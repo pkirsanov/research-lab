@@ -220,3 +220,27 @@ comparison isolates the cause: the only differing projected key is `backdrop`, f
 another session's uncommitted narrative work through this packet, and because the edit is
 plainly in flight. Owner: whoever holds the concurrent session. The remedy is the ordinary
 one — regenerate the page artifacts after the payload edit, before committing.
+
+## Capability Proportionality
+
+### Single-Implementation Justification
+
+One implementation exists and one is correct.
+
+The empty-tier floor lives in a single place, `scripts/validate-brief-payload.mjs`, inside
+`validateBriefPayload`, immediately after the existing card-ceiling check and before the
+per-item `attentionContext` validation. It is deliberately co-located with the other tier-level
+rules rather than extracted, because extracting it would separate a seven-line invariant from
+the checks it sits between and make the ordering harder to see, not easier.
+
+A second implementation would be justified only if a second publication surface had to enforce
+the same rule. None does. The composer `scripts/build-attention-items.mjs` runs *before* this
+gate and is the producer, not a second enforcer; `scripts/selftest.mjs:6117` asserts a related
+but distinct property against the *committed* payload, and that separation is intentional and
+recorded — a second enforcement of the identical property would duplicate authority over one
+invariant, which is the failure mode noted as C4 in `report.md`.
+
+No variation axes are declared because there is nothing to vary: the rule takes no options, has
+no per-environment behavior, and admits no alternative strategy. Its only design choice —
+whether to read `attentionExclusions` defensively — was resolved in `9606b04a` by making the
+check self-contained rather than configurable.

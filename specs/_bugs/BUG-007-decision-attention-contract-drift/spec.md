@@ -61,7 +61,7 @@ fails naming the decision-attention contract explicitly. Silent republication is
 
 | ID | Criterion | Measured by |
 |---|---|---|
-| AC-1 | `node scripts/selftest.mjs` ends `1370 passed, 0 failed`, exit 0, on a clean tree | Full suite run |
+| AC-1 | `node scripts/selftest.mjs` ends `0 failed` at exit 0 on a clean tree. The criterion is the zero-failure/exit-0 pair, not a fixed total: the suite total grows as scenarios are added, and it read `1370 passed` when this criterion was written and `1401 passed` at closure | Full suite run |
 | AC-2 | Every committed attention item carries `contractVersion` and a declared `decisionWindow` | `scripts/selftest.mjs:6103-6106` |
 | AC-3 | Uncapped selection publishes the whole tier; capped selection suppresses the tail | `scripts/selftest.mjs:6131-6140` |
 | AC-4 | `market-brief.page.json` is byte-current | `scripts/selftest.mjs:6209` |
@@ -84,3 +84,50 @@ No API keys and no restricted endpoints were used; every command was local and r
 apart from artifact authoring under this bug folder. No browser file was modified, so the
 ES5 constraint and the `Number.isFinite`-over-global-`isFinite` rule bind no new code here.
 Single-file tool conventions are untouched.
+
+## 6. Capability Proportionality
+
+### Single-Capability Justification
+
+This packet introduces **no reusable capability foundation**, and none is warranted.
+
+Gate G094 became applicable on two keyword hits, and both are incidental. The word
+"provider" appears exactly twice across the planning artifacts, on `scopes.md` lines 172 and
+174, and in both places it is part of the *name of a sibling bug folder* cited as a
+cross-reference — `BUG-001-central-provider-credential-security` and
+`BUG-002-two-tier-provider-access`. Nothing in this bug introduces a provider, adapter,
+strategy, plugin, channel, driver, connector, or variant.
+
+There is exactly one capability at issue: the empty-tier floor on the decision-attention
+publication gate, which requires that a generation publishing zero items must record why. It
+has exactly one caller and one call site. Building a foundation with variation axes for a
+single seven-line rule would be speculative generality — the abstraction would have one
+implementation forever, and the second implementation that would justify it does not exist
+and is not foreseen.
+
+The contracts this rule enforces — `decision-attention/v1` and its siblings — are owned by
+spec 017, were reused unchanged, and were deliberately **not** re-abstracted here.
+
+## Outcome Contract
+
+**Intent**: Establish by measurement whether the reported decision-attention contract drift
+reproduces, determine the failure-family structure rather than assuming it, and close any
+residual gap that lets a non-conformant attention tier reach publication.
+
+**Success Signal**: The publication gate refuses a drifted or unexplained-empty attention tier
+*by name* rather than passing it silently, and the full project suite is green at exit 0. Both
+halves must hold together — a green suite that never exercises the refusal is not the signal.
+
+**Hard Constraints**:
+
+- No source file outside the publication gate `scripts/validate-brief-payload.mjs` and its
+  scenario coverage `tests/attention-payload-contract.test.mjs` may change.
+- The certified contracts owned by spec 017 (`decision-attention/v1`, `low-noise-gate/v1`,
+  `red-alert-policy/v1`, `xnys-calendar/v1`) are reused unchanged, never redefined here.
+- Repository conventions hold: UMD modules only and no ESM in browser files, `Number.isFinite`
+  over the global `isFinite`, no build step, and no shell redirection used to write files.
+- Any mutation test runs in a disposable worktree; the live tree is never left mutated.
+
+**Failure Condition**: A generation that publishes an empty attention tier with no recorded
+exclusions, or a payload in the legacy catalyst shape, reaches publication at exit 0 — that is,
+the gate stays silent where it should name a refusal.

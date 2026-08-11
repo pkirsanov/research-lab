@@ -1928,6 +1928,29 @@ function unactionedSubjects(ctx) {
    the market facts, and the authored judgement at the top level. It carries NO
    serialized envelope field — 047 asserts that before asserting anything the
    build step produced. */
+/* FR-018 made this fixture live-data dependent, so it derives its source instead of
+   naming one. The build step resolves an item's deepLink from the figure's
+   provenance.sourceId via payload.toolReads, and leaves it ABSENT when that lookup
+   fails, which the validator then refuses by name (RLATTN-DEEPLINK). A hardcoded
+   sourceId therefore made "a complete authored candidate" quietly mean "…provided
+   this generation happened to publish that particular tool" — and market-brief
+   regenerates 4x/day, so the 07:23 refresh that dropped market-heatmap-lab from
+   toolReads turned four passing scenarios red without any code changing. Deriving a
+   source that THIS generation actually published makes "complete" mean complete, and
+   does not weaken the assertion: the scenarios still require zero refusals. */
+function resolvableSourceId() {
+  const reads = (COMMITTED_PAYLOAD && COMMITTED_PAYLOAD.toolReads) || {};
+  const id = Object.keys(reads).find(
+    (key) => reads[key] && typeof reads[key].deepLink === 'string' && reads[key].deepLink
+  );
+  assert.ok(
+    id,
+    'the committed payload must publish at least one toolRead carrying a deepLink, otherwise no '
+      + 'candidate can resolve one and the build step cannot be exercised at all'
+  );
+  return id;
+}
+
 function completeCandidate(ctx, subject) {
   assert.ok(
     ctx.watchlistScope.includes(subject),
@@ -1949,7 +1972,7 @@ function completeCandidate(ctx, subject) {
       figures: [{
         label: 'spread change',
         value: 'plus eighteen basis points',
-        provenance: { sourceId: 'market-heatmap-lab', asOf: FIGURE_AS_OF_INSTANT }
+        provenance: { sourceId: resolvableSourceId(), asOf: FIGURE_AS_OF_INSTANT }
       }]
     },
     headline: `${subject} funding spreads widened for a fifth consecutive session`,

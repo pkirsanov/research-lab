@@ -1,0 +1,98 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_bugs/BUG-007-decision-attention-contract-drift",
+  "generatedBy": "bubbles.workflow",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-BUG007-001",
+      "title": "A payload authored in the legacy catalyst shape is refused by name",
+      "scopeId": "01-verify-the-defect-its-family-structure-and-its-closure",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "functional",
+      "linkedTests": [
+        "tests/attention-payload-contract.test.mjs",
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG007-002",
+      "title": "A payload composed through the certified composer publishes its whole tier",
+      "scopeId": "01-verify-the-defect-its-family-structure-and-its-closure",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "functional",
+      "linkedTests": [
+        "tests/attention-payload-contract.test.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-017-022",
+      "title": "The card ceiling overflows rather than rejects",
+      "scopeId": "01-verify-the-defect-its-family-structure-and-its-closure",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "functional",
+      "linkedTests": [
+        "tests/rlattention.test.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG007-004",
+      "title": "The page projection is byte-current with the payload it copies",
+      "scopeId": "01-verify-the-defect-its-family-structure-and-its-closure",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "functional",
+      "linkedTests": [
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG007-005",
+      "title": "The composer runs inside the regeneration path, not beside it",
+      "scopeId": "01-verify-the-defect-its-family-structure-and-its-closure",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "functional",
+      "linkedTests": [
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-017-067",
+      "title": "An empty attention tier with no recorded exclusions is refused",
+      "scopeId": "02-residual-observations",
+      "scope": 2,
+      "status": "done",
+      "requiredTestType": "functional",
+      "linkedTests": [
+        "tests/attention-payload-contract.test.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    }
+  ]
+}

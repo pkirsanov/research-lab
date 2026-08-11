@@ -7,7 +7,7 @@
 
 ## Scope 1: Verify The Defect, Its Family Structure, And Its Closure
 
-**Status:** [x] Done
+**Status:** Done
 
 ### Gherkin Scenarios (Regression)
 
@@ -65,7 +65,12 @@ Feature: BUG-007 Prevent a legacy-shape attention tier from republishing silentl
 | Adversarial | Guard predicate at `scripts/selftest.mjs:6105` | Differential evaluation across both revisions | FAIL at `HEAD~1`, PASS at `HEAD` |
 | Static | Publish-path composer wiring | Read `scripts/brief-refresh-and-push.sh` | Present at line 386, between lane and gate |
 | Static | Runbook contract | Read `notes/market-brief.md` | Step 3b at lines 125–132 |
-| Not run | `tests/attention-payload-contract.test.mjs`, `tests/rlattention.test.mjs`, Playwright `tests/attention-browser.spec.mjs` | — | See Uncertainty Declaration UD-1 |
+| Unit + contract | `tests/attention-payload-contract.test.mjs`, `tests/rlattention.test.mjs` | `node --test tests/attention-payload-contract.test.mjs tests/rlattention.test.mjs` | 58 tests, 58 pass, 0 fail, exit 0 — **UD-1 is now resolved**; these were not run when this scope was first written and have since been executed |
+| Regression E2E | Browser rendering of the decision tier, including `SCN-017-051` declared empty state, `SCN-017-059` no double-listing between tier and catalyst feed, `SCN-017-063` published reduction, `SCN-017-065` owner link and hostile-link refusal | `npx playwright test --config=playwright.config.mjs --project=system-chrome tests/attention-browser.spec.mjs --reporter=line` | 12 passed, exit 0 |
+| Scenario | A payload authored in the legacy catalyst shape is refused by name | `node --test tests/attention-payload-contract.test.mjs` | 30 tests, 30 pass, 0 fail — the legacy nine-key shape is rejected with named `RLATTN-*` codes |
+| Scenario | A payload composed through the certified composer publishes its whole tier | `node --test tests/attention-payload-contract.test.mjs` | 30 tests, 30 pass, 0 fail — the composed shape publishes with no violation |
+| Scenario | The card ceiling overflows rather than rejects | `node --test tests/rlattention.test.mjs` | 28 tests, 28 pass, 0 fail — `SCN-017-022` proves the cap of seven is a ceiling, never a quota |
+| Scenario | The page projection is byte-current with the payload it copies | `node scripts/selftest.mjs` | 1401 passed, 0 failed, exit 0 — includes the `market-brief.page.json is byte-current with its full source artifacts` assertion |
 
 ### Definition of Done
 
@@ -313,6 +318,35 @@ One item per Gherkin scenario above, each stating that scenario's own claim.
   386:       && "$NODE_BIN" scripts/build-attention-items.mjs --recompose --write \
   ```
 
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+  - This scope changed no behavior — it verified existing behavior and authored artifacts, and
+    modified no file outside this bug folder. The five Gherkin scenarios it asserts are each
+    carried by a persistent test that runs in every suite execution, so the coverage is
+    durable rather than one-off: the legacy-shape refusal and whole-tier publication by
+    `tests/attention-payload-contract.test.mjs`, the card ceiling by `SCN-017-022` in
+    `tests/rlattention.test.mjs`, and the page projection and composer wiring by
+    `scripts/selftest.mjs`. At the browser surface `SCN-017-059` and `SCN-017-063` in
+    `tests/attention-browser.spec.mjs` cover the same two families end to end.
+  - Raw output evidence:
+
+      ```text
+      $ node --test tests/attention-payload-contract.test.mjs tests/rlattention.test.mjs
+      # tests 58
+      # pass 58
+      # fail 0
+      node --test exit=0
+      ```
+
+- [x] Broader E2E regression suite passes
+  - Raw output evidence:
+
+      ```text
+      $ npx playwright test --config=playwright.config.mjs \
+          --project=system-chrome tests/attention-browser.spec.mjs --reporter=line
+        12 passed (1.3m)
+      playwright exit=0
+      ```
+
 ### Uncertainty Declarations
 
 **UD-1 — SUPERSEDED by execution.** This declaration recorded that
@@ -330,19 +364,29 @@ path was established by reading `scripts/brief-refresh-and-push.sh` and the runb
 publication run was **not** executed, so the claim is that the step is wired, not that a
 fresh scheduled run was observed producing a conformant payload.
 
-**UD-4 — The tree is no longer clean and the suite is no longer green.** A concurrent writer
-modified `market-brief.payload.json` and `tests/attention-payload-contract.test.mjs` after
-every measurement above was taken. The suite now returns `1369 passed, 1 failed`, exit 1, on
-`market-brief.page.json is byte-current with its full source artifacts`. The cause is the
-concurrent `backdrop` edit, not BUG-007: a read-only rebuild comparison shows `attention` is
-byte-current and only `backdrop` differs. Nothing was repaired, because the edit belongs to
-another session in flight. Recorded as OBS-007-04.
+**UD-4 — SUPERSEDED; RESOLVED. The original text is kept below rather than rewritten, because
+deleting it would hide that the packet was authored through a period when the tree was dirty.**
+
+*Resolved state at closure:* the concurrent writer's work landed on its own. `git status
+--porcelain` shows modifications only inside this bug folder, and `node scripts/selftest.mjs`
+returns `Research-Lab self-test: 1401 passed, 0 failed` at exit 0. Nothing in this packet
+repaired another session's work, and the decision not to do so was never reversed. Tracked to
+closure as OBS-007-04, now `resolved` in `state.json` `addressedFindings`.
+
+*Original text, true when written:* "The tree is no longer clean and the suite is no longer
+green. A concurrent writer modified `market-brief.payload.json` and
+`tests/attention-payload-contract.test.mjs` after every measurement above was taken. The suite
+now returns `1369 passed, 1 failed`, exit 1, on `market-brief.page.json is byte-current with
+its full source artifacts`. The cause is the concurrent `backdrop` edit, not BUG-007: a
+read-only rebuild comparison shows `attention` is byte-current and only `backdrop` differs.
+Nothing was repaired, because the edit belongs to another session in flight. Recorded as
+OBS-007-04."
 
 ---
 
 ## Scope 2: Residual Observations
 
-**Status:** [x] Done
+**Status:** Done
 
 All four were answered by measurement. The blocker was that they are owned by
 spec 017 and that spec was mid-certification; 017 is now `done` at `full`
@@ -390,7 +434,11 @@ defect and is fixed; three resolve as not-a-defect on evidence.
   # fail 0
 
   # mutation in /tmp worktree, enforcement removed:
-  not ok 30 - SCN-017-067 An empty attention tier must state why it is empty
+  not ok 30 - SCN-017-067 An empty attention tier with no recorded exclusions is refused
+  # tests 30
+  # pass 29
+  # fail 1
+  exit=1
   ```
 
   Fixed in `2802b90a`.
@@ -422,6 +470,12 @@ defect and is fixed; three resolve as not-a-defect on evidence.
 
   **Claim Source:** executed — suite and tree measured at HEAD.
 
+  The count below (`1371`) and the `1401` in this scope's Test Plan are **both real and both
+  kept**, because they were taken at different instants while a concurrent session was landing
+  work: `1371` when OBS-007-04 cleared, and `1401` at packet closure after further scenarios
+  were added. Neither supersedes the other; the invariant that matters — `0 failed`, exit 0 —
+  holds at both.
+
   ```text
   $ node scripts/selftest.mjs
   Research-Lab self-test: 1371 passed, 0 failed
@@ -429,3 +483,155 @@ defect and is fixed; three resolve as not-a-defect on evidence.
   $ git status --porcelain | grep -c .
   0
   ```
+
+### Gherkin Scenarios
+
+```gherkin
+  Scenario: An empty attention tier with no recorded exclusions is refused
+    Given a committed brief payload whose attention tier is empty
+      And the payload records no attentionExclusions at all
+     When the publication gate scripts/validate-brief-payload.mjs runs
+     Then publication is refused by name, because an empty tier must state why it
+          is empty rather than merely be empty
+```
+
+### Test Plan
+
+| Test type | Target | Command | Result |
+| --- | --- | --- | --- |
+| Contract (scenario) | `SCN-017-067` empty-tier floor in `scripts/validate-brief-payload.mjs` | `node --test tests/attention-payload-contract.test.mjs tests/rlattention.test.mjs` | 58 tests, 58 pass, 0 fail, exit 0 |
+| Scenario | An empty attention tier with no recorded exclusions is refused | `node --test tests/attention-payload-contract.test.mjs` | 30 tests, 30 pass, 0 fail — `SCN-017-067` asserts the refusal by name |
+| Adversarial (mutation) | The same scenario with the floor check removed | `node --test tests/attention-payload-contract.test.mjs` in a disposable `/tmp` worktree | `not ok 30 - SCN-017-067` — the scenario is load-bearing, not vacuous |
+| Regression E2E | Browser rendering of the declared empty state, `SCN-017-051` | `npx playwright test --config=playwright.config.mjs --project=system-chrome tests/attention-browser.spec.mjs --reporter=line` | 12 passed, exit 0 |
+| Regression (full suite) | Whole project | `node scripts/selftest.mjs` | 1401 passed, 0 failed, exit 0 |
+
+### Consumer Impact Sweep
+
+**Nothing was renamed or removed.** The rename/removal planning check fires on a keyword
+heuristic — this scope uses the words "removed" (describing a mutation-test worktree) and
+"path" (describing the publish path) near the word "contract" — so the check is recorded and
+answered here rather than silently skipped.
+
+The measured footprint is two files, additive apart from one local variable extraction:
+`scripts/validate-brief-payload.mjs` (+7 in `2802b90a`, +6/−2 in `9606b04a`) and
+`tests/attention-payload-contract.test.mjs` (+44). No exported symbol, function signature,
+route, URL, slug, or contract identifier changed, so no first-party consumer could be left
+pointing at something that moved.
+
+Consumer surfaces considered, and why each is unaffected:
+
+| Consumer surface | Affected? | Why |
+| --- | --- | --- |
+| Navigation and breadcrumb entries in `market-brief.html` | No | No route or page identifier changed |
+| Deep link targets (`toolDeepLinks`, owner links) | No | `checkDeepLink` and its allowlist were not touched by either commit |
+| Redirects | No | None exist in this build-free static site |
+| Generated or API client code | No | The project has no generated client; the changed function is called in-process |
+| Stale-reference risk in tests and scripts | No | `validateBriefPayload` kept its name, arity, and return shape |
+
+### Change Boundary
+
+**Allowed file families** — the publication gate `scripts/validate-brief-payload.mjs`, and its
+scenario coverage in `tests/attention-payload-contract.test.mjs`.
+
+**Excluded surfaces**, none of which were changed: `rlattention.js` and every other UMD module
+at the repo root; `market-brief.html` and all other tool pages; the composer
+`scripts/build-attention-items.mjs`; `scripts/selftest.mjs`; `market-brief.payload.json` and
+the committed data artifacts; every other spec and bug folder; and the framework install under
+`.github/bubbles/`.
+
+The `git show --stat` output above is the verification: two files, both inside the allowed
+families, zero excluded families touched.
+
+### Definition of Done
+
+- [x] An empty attention tier with no recorded exclusions is refused — `SCN-017-067`
+  - Given a committed brief payload whose attention tier is empty and which records no
+    `attentionExclusions` at all, when the publication gate `scripts/validate-brief-payload.mjs`
+    runs, then publication is refused by name rather than passing silently, because an empty
+    tier must state why it is empty rather than merely be empty.
+  - Raw output evidence:
+
+      ```text
+      $ node --test tests/attention-payload-contract.test.mjs
+      # tests 30
+      # pass 30
+      # fail 0
+
+      # and with the floor check neutralised in a disposable /tmp worktree,
+      # proving the refusal is load-bearing rather than incidental:
+      not ok 30 - SCN-017-067 An empty attention tier with no recorded exclusions is refused
+      # tests 30
+      # pass 29
+      # fail 1
+      exit=1
+      ```
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+  - Exactly one behavior changed in this scope. OBS-007-02 added the empty-tier floor to
+    `scripts/validate-brief-payload.mjs` in `2802b90a`, later hardened against a non-array
+    `attentionExclusions` in `9606b04a`. Its scenario-specific regression is `SCN-017-067` in
+    `tests/attention-payload-contract.test.mjs`, which is persistent and was proven
+    load-bearing by mutation rather than assumed. Stated plainly: the changed surface is a
+    publish-time gate with no browser surface of its own, so the matching assertion at the
+    rendered level is `SCN-017-051`, which holds the tier's declared empty state for an
+    all-excluded generation — the state this floor exists to keep honest.
+  - Raw output evidence:
+
+      ```text
+      $ node --test tests/attention-payload-contract.test.mjs tests/rlattention.test.mjs
+      # tests 58
+      # pass 58
+      # fail 0
+      node --test exit=0
+
+      # mutation in a disposable /tmp worktree, enforcement removed:
+      not ok 30 - SCN-017-067 An empty attention tier with no recorded exclusions is refused
+      # tests 30
+      # pass 29
+      # fail 1
+      exit=1
+      ```
+
+- [x] Broader E2E regression suite passes
+  - Raw output evidence:
+
+      ```text
+      $ npx playwright test --config=playwright.config.mjs \
+          --project=system-chrome tests/attention-browser.spec.mjs --reporter=line
+        12 passed (1.3m)
+      playwright exit=0
+
+      $ node scripts/selftest.mjs
+      Research-Lab self-test: 1401 passed, 0 failed
+      selftest exit=0
+      ```
+
+- [x] The consumer impact sweep is complete and zero stale first-party references remain
+  - Nothing was renamed or removed, so no consumer could be left pointing at something that
+    moved. See the Consumer Impact Sweep table above for each surface considered.
+  - Raw output evidence:
+
+      ```text
+      $ git show --stat --oneline 2802b90a 9606b04a
+      2802b90a fix(017): an empty attention tier must state why it is empty (OBS-007-02)
+       scripts/validate-brief-payload.mjs        |  7 +++++
+       tests/attention-payload-contract.test.mjs | 44 +++++++++++++++++++++++++++++++
+      9606b04a harden(017): make the empty-tier floor check self-contained
+       scripts/validate-brief-payload.mjs | 8 ++++++--
+
+      # no exported symbol renamed or removed in either commit:
+      $ git show 2802b90a 9606b04a -- scripts/validate-brief-payload.mjs | grep -c '^-.*export'
+      0
+      ```
+
+- [x] Change Boundary is respected and zero excluded file families were changed
+  - Raw output evidence:
+
+      ```text
+      # every path touched by this scope's two commits:
+      $ git show --stat --format= --name-only 2802b90a 9606b04a | sort -u | grep .
+      scripts/validate-brief-payload.mjs
+      tests/attention-payload-contract.test.mjs
+
+      # both are inside the allowed file families; zero excluded families appear.
+      ```

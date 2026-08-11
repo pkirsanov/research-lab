@@ -11,7 +11,10 @@ not hold — an unchecked item is a reported regression, and only you uncheck.
   - **Steps:**
     1. From the repository root, confirm the tree is clean with `git status --porcelain` (no output).
     2. Run `node scripts/selftest.mjs`.
-  - **Expected:** `Research-Lab self-test: 1370 passed, 0 failed`, exit code 0.
+  - **Expected:** `0 failed`, exit code 0. The total grows as scenarios are added, so the
+    count is not the criterion: it read `1370 passed` when this item was written on
+    2026-08-10 at HEAD `aeb1bcbc3`, and `1401 passed` at packet closure. If you run it now,
+    expect a number at least that high with `0 failed`.
   - **Verify:** terminal
   - **Evidence:** [report.md](report.md) §E3
   - **Notes:** Measured at `HEAD = aeb1bcbc3` on 2026-08-10.
@@ -55,8 +58,13 @@ not hold — an unchecked item is a reported regression, and only you uncheck.
   - **Expected:** an owner decision, recorded against spec 017.
   - **Verify:** owner decision
   - **Evidence:** [design.md](design.md) §5 OBS-007-01
-  - **Notes:** Unchecked because the question was posed, not answered. This is not a
-    reported regression.
+  - **Notes:** Still an owner decision, so it stays unchecked — an agent must not answer it on
+    the owner's behalf. **The premise has since been investigated**, so the decision can now be
+    made on evidence rather than on an open question: `build-brief-page-artifacts.mjs` reads
+    `payload.attention` directly with **no snapshot fallback**, so the snapshot carrying no
+    `attention` key is the expected shape rather than a disagreement between artifacts.
+    Recorded as OBS-007-01, resolved as *correct by design, not a defect*. Nothing was changed.
+    This is not a reported regression.
 
 - [ ] **What:** Decide whether an all-refusal composer run must fail the publish.
   - **Steps:**
@@ -65,5 +73,11 @@ not hold — an unchecked item is a reported regression, and only you uncheck.
   - **Expected:** an owner decision, recorded against spec 017.
   - **Verify:** owner decision
   - **Evidence:** [design.md](design.md) §5 OBS-007-02
-  - **Notes:** Unchecked because enforcement was not verified. This is not a reported
-    regression.
+  - **Notes:** Still an owner decision about intended policy, so it stays unchecked. **The
+    factual half is now settled**: enforcement was verified to exist nowhere on the publish
+    path — the composer's accounting throw passes trivially at `0 + 0 === 0` — and that gap was
+    closed. A floor check was added to `scripts/validate-brief-payload.mjs` in `2802b90a` and
+    hardened in `9606b04a`, so an all-refusal run now fails the publish *by name*. It is proven
+    load-bearing by mutation: `not ok 30 - SCN-017-067 An empty attention tier with no recorded
+    exclusions is refused`. What remains for the owner is only whether that is the policy they
+    want. Recorded as OBS-007-02. This is not a reported regression.

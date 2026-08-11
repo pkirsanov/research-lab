@@ -2874,3 +2874,47 @@ test('SCN-017-066 The publication gate refuses an absent or unregistered deep li
   assert.ok(absentErrors.length > 0, 'the absent-link run must exit non-zero');
 });
 
+/* ── SCN-017-067 — OBS-007-02: an empty tier must say why it is empty ────────
+   Zero published is valid. Zero published with zero recorded exclusions is not:
+   it is indistinguishable from a composer that silently dropped every candidate.
+   The composer's own accounting check cannot catch it, because 0 built + 0
+   excluded === 0 declared passes trivially when nothing was offered at all. */
+test('SCN-017-067 An empty attention tier with no recorded exclusions is refused', () => {
+  const FLOOR = 'empty with no recorded exclusions';
+  const excluded = (reason) => ({ index: 0, code: 'RLATTN-HEADLINE', field: 'headline', reason });
+
+  /* the gap: nothing published and nothing explained. */
+  const silent = briefContract.validateBriefPayload(
+    Object.assign(payloadWithAttention([]), { attentionExclusions: [] }), REGISTRY, CONFIG, null
+  );
+  assert.ok(
+    silent.some((error) => String(error).includes(FLOOR)),
+    'an empty tier carrying no exclusions must be refused — it cannot be told apart from a run that dropped every candidate. '
+      + `Errors: ${JSON.stringify(silent)}`
+  );
+  assert.ok(silent.length > 0, 'the silent-empty run must exit non-zero');
+
+  /* ADVERSARIAL, and the reason this is not just a non-empty check: an empty
+     tier that DOES record why it is empty is legitimate and must still publish.
+     A rule written as "attention must be non-empty" would fail this case. */
+  const explained = briefContract.validateBriefPayload(
+    Object.assign(payloadWithAttention([]), { attentionExclusions: [excluded('headline exceeded the ceiling')] }),
+    REGISTRY, CONFIG, null
+  );
+  assert.ok(
+    !explained.some((error) => String(error).includes(FLOOR)),
+    'an empty tier WITH recorded exclusions is the declared empty state and must publish. '
+      + `Errors: ${JSON.stringify(explained)}`
+  );
+
+  /* and a populated tier is unaffected either way. */
+  const populated = briefContract.validateBriefPayload(
+    Object.assign(payloadWithAttention([attentionItem()]), { attentionExclusions: [] }), REGISTRY, CONFIG, null
+  );
+  assert.ok(
+    !populated.some((error) => String(error).includes(FLOOR)),
+    'a populated tier must not be refused for carrying no exclusions. '
+      + `Errors: ${JSON.stringify(populated)}`
+  );
+});
+

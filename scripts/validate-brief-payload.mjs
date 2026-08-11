@@ -402,6 +402,13 @@ export function validateBriefPayload(payload, registry, config, snapshot) {
   if (!Array.isArray(payload?.attention)) errors.push('attention must be an array');
   else {
     if (payload.attention.length > (thresholds.attentionMaxCards || 7)) errors.push('attention exceeds configured card maximum');
+    /* Zero published is valid; zero published with zero recorded exclusions is not.
+       The composer's accounting throw passes trivially at 0 + 0 === 0, so a generation
+       that considered nothing silently ships an empty tier at exit 0 — the exact risk
+       scope 06 named and left unenforced (OBS-007-02). An empty tier must say why. */
+    if (payload.attention.length === 0 && (payload.attentionExclusions || []).length === 0) {
+      errors.push('attention is empty with no recorded exclusions — an empty tier must state why it is empty, not merely be empty');
+    }
     const attentionContext = {
       watchlistScope: WATCHLIST_SCOPE,
       calendarSource: XNYS_CALENDAR_SOURCE,

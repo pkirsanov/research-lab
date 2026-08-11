@@ -503,7 +503,100 @@ findings AUD-017-005 lists in `addressedFindings`. No high-severity observation
 survives this measurement unretired, so certification is not carrying concealed
 remediation.
 
-## Audit Verdict AUD-017-005
+## Audit Verdict AUD-017-007
+
+**SHIP_WITH_NOTES** · profile `delivery-completion-v1` · attempt `AUD-017-007` ·
+`bubbles.audit` · supersedes `AUD-017-006` · **`independentAudit: true`** ·
+`blockingCode: none` · `unresolvedFindings: []`
+
+`AUD-017-006` refused delivery on **A-017-10**. That finding is closed and the
+finding set is empty.
+
+### What A-017-10 was
+
+FR-018 governs **published** items, and the registry check that enforces it
+existed in the composer only. `rlattention.js` defines `checkDeepLink` inside the
+section its own comment calls *"shared field rules, expressed once and used by
+build and validate"*, but only `buildAttentionItem` called it.
+`validateAttentionItem` recorded twelve shared rules and `checkDeepLink` was the
+one missing, while `scripts/validate-brief-payload.mjs` delegates **all**
+attention field enforcement to that predicate by design (scope 02 DoD: *"calls
+the module predicate and restates no rule locally"*) and its `attentionContext`
+supplied four members but never `toolDeepLinks`.
+
+Measured rather than inferred: driving the real committed
+`market-brief.payload.json` through `validateBriefPayload` returned **0 errors**
+with `attention[0].deepLink` set to an unregistered page, to `javascript:alert(1)`,
+to `//evil.example.com/x.html`, or **deleted entirely** — while the same inputs
+through `buildAttentionItem` refused with `RLATTN-DEEPLINK`. An item carrying no
+deep link at all published cleanly, the exact boundary FR-018 names.
+
+Three facts stopped any other layer from catching it: the render guard in
+`market-brief.html` is a **shape** test, so an unregistered but well-formed page
+becomes a live anchor; `stableId` excludes `deepLink`, so a substituted link
+preserves the item id; and the gap sat precisely between SCN-017-064 (build side
+only) and SCN-017-065 (whose hostile set carried no well-shaped unregistered
+page).
+
+### How it was closed
+
+`record(checkDeepLink(item.deepLink, ctx.toolDeepLinks))` mirrored into
+`validateAttentionItem`; `toolDeepLinksFrom(registry)` added to the gate's
+`attentionContext`, deriving the allowlist from `registry.tools[].file` so it
+cannot drift from the registry the way a restated literal list would; and
+SCN-017-066 added under scope 02, driving `validateBriefPayload` end to end.
+
+### Two defects introduced while closing it, both corrected
+
+Recorded because the correction is the evidence, not the intention.
+
+**The mirror shipped neutralised.** Proving SCN-017-066 load-bearing required
+mutating `rlattention.js` to `record(checkDeepLink(...) && null)`. A concurrent
+session committed during that window, so HEAD briefly carried the **disabled**
+check under a commit message claiming A-017-10 was closed. The audit reproduced
+both states independently: the offending tree fails SCN-017-066, the restored
+tree passes. In a repository with concurrent sessions the interval between
+mutate and restore is a commit window, which is why the audit itself declined to
+mutate shipped source and proved non-tautology by behavioural probe instead.
+
+**The allowlist compared the whole link.** Registry membership is a property of
+the **page**, but the first implementation compared the entire string, so
+`bond-regime-lab.html#simple` — a live `toolReads` value that `market-brief.html`
+already renders, and whose href guard explicitly admits a fragment — was refused.
+That put the gate and the render in disagreement and would have blocked the next
+compose from that read at publish time. `checkDeepLink` now compares
+`pageOf(link)`. Only the fragment is dropped, so a fragment cannot launder a
+hostile value: `attacker-controlled-page.html#simple` and `javascript:alert(1)#x`
+both still refuse.
+
+### Notes carried, none blocking
+
+Four low-severity observations, including one recording that two measurements
+handed to the audit were **stale-low** — the audit re-executed rather than
+inheriting them, which is how it noticed. Nothing in the note set gates delivery.
+
+## Audit Verdict AUD-017-006 (SUPERSEDED by AUD-017-007)
+
+**REWORK_REQUIRED** · `blockingCode: FR018-PUBLISH-GATE-UNENFORCED` ·
+`bubbles.audit` · 2026-08-10T17:05:00Z · supersedes `AUD-017-005` ·
+**`independentAudit: true`** · `unresolvedFindings: ["A-017-10"]`
+
+This attempt was owed because `AUD-017-005` was recorded at 03:08:41Z while the
+FR-018 implementation landed at 14:13:48Z — roughly eleven hours later. It
+corrected the reason on measurement: the framing offered to it was that
+`targetRevision` hashes spec-directory artifacts only and so could not witness a
+source change under `rlattention.js`. True in general, **false for this case** —
+the FR-018 commits also wrote `report.md` and `scenario-manifest.json`, so the
+revision moved and `AUD-017-005` was provenance-conflicted by the lifecycle's own
+binding rule rather than merely time-stale. Taking the handed-over framing on
+faith would have understated the staleness.
+
+It re-executed every handed-over measurement rather than inheriting it, and all
+nine reproduced. It then found A-017-10, which no prior attempt had recorded, and
+routed to `bubbles.plan` because closing it required a scope-02 scenario and DoD
+row before the implementation could be traced.
+
+## Audit Verdict AUD-017-005 (SUPERSEDED by AUD-017-006)
 
 **SHIP_WITH_NOTES** · profile `delivery-completion-v1` · attempt `AUD-017-005` ·
 `bubbles.audit` · 2026-08-10T03:08:41Z · supersedes `AUD-017-004` ·

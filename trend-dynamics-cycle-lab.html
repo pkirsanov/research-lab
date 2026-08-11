@@ -3075,6 +3075,23 @@
       }
     }
 
+    /* A mode change is a VIEW change only. It redraws from the last complete result and never
+       computes, fetches or publishes, so Simple and Power cannot drift onto different runs.
+       An unknown mode is refused before anything mutates. */
+    function tdcApplyMode(mode, ctx, deps) {
+      if (mode !== 'simple' && mode !== 'power') return null;
+      if (!ctx || typeof ctx !== 'object' || !ctx.body || !ctx.body.classList) return null;
+      var handlers = deps && typeof deps === 'object' ? deps : {};
+      if (mode === 'power') ctx.body.classList.add('power');
+      else ctx.body.classList.remove('power');
+      var tabs = Array.isArray(ctx.tabs) ? ctx.tabs : [];
+      for (var i = 0; i < tabs.length; i++) tabs[i].ariaSelected = tabs[i].mode === mode;
+      if (typeof handlers.persist === 'function') handlers.persist(mode);
+      // Redraw on reveal: a canvas hidden at draw time renders blank otherwise.
+      if (ctx.lastCompleteResult && typeof handlers.draw === 'function') handlers.draw(ctx.lastCompleteResult);
+      return { mode: mode };
+    }
+
     /* Plain reader words only — no id, contract version or status code reaches Brief copy. */
     function tdcComposeReadSentence(metrics) {
       var parts = [];

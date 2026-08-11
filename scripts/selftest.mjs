@@ -7101,6 +7101,57 @@ try {
     'a publisher that REFUSES without throwing is also treated as rejected, so a silent false is not read as success');
 } catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab publication threw): ' + e.message); }
 
+/* ── trend-dynamics-cycle-lab — Simple/Power mode (TP-04-01, spec 006 scope 4) ─────────────────
+   design.md line 891: a mode change updates body.power, the tab ARIA state and visibility, then
+   synchronously draws newly visible charts from lastCompleteResult -- and does NOT compute,
+   fetch or publish. The failure that matters is a toggle that re-runs the analysis: the two
+   views would then show two different runs while claiming to be one result, and a hidden canvas
+   never redrawn on reveal renders blank. Compute, fetch and publish are injected as spies so
+   "does not" is asserted rather than assumed. */
+try {
+  group('trend-dynamics-cycle-lab \u2014 switching Simple/Power redraws but never recomputes (TP-04-01)');
+  const modeSrc = read('trend-dynamics-cycle-lab.html');
+  const modeEnv = build([extractFn(modeSrc, 'tdcApplyMode')], ['tdcApplyMode']);
+  const makeCtx = (mode) => {
+    const classes = new Set(mode === 'power' ? ['power'] : []);
+    return {
+      calls: { compute: 0, fetch: 0, publish: 0, drawn: [], persisted: [] },
+      body: { classList: {
+        add: (c) => classes.add(c), remove: (c) => classes.delete(c), contains: (c) => classes.has(c)
+      } },
+      tabs: [{ mode: 'simple', ariaSelected: mode !== 'power' }, { mode: 'power', ariaSelected: mode === 'power' }],
+      lastCompleteResult: { resultId: 'res-mode', requestDigest: 'dig-mode', complete: true }
+    };
+  };
+
+  const ctx = makeCtx('simple');
+  const toPower = modeEnv.tdcApplyMode('power', ctx, {
+    compute: () => { ctx.calls.compute++; }, fetchSource: () => { ctx.calls.fetch++; },
+    publish: () => { ctx.calls.publish++; }, draw: (r) => { ctx.calls.drawn.push(r); },
+    persist: (m) => { ctx.calls.persisted.push(m); }
+  });
+  assert(toPower && toPower.mode === 'power' && ctx.body.classList.contains('power'),
+    'switching to Power sets body.power, which is what the stylesheet keys visibility off');
+  assert(ctx.calls.compute === 0 && ctx.calls.fetch === 0 && ctx.calls.publish === 0,
+    'a mode change performs NO compute, fetch or publish \u2014 the two views cannot drift onto different runs');
+  assert(ctx.calls.drawn.length === 1 && ctx.calls.drawn[0].resultId === 'res-mode',
+    'newly visible charts are redrawn from lastCompleteResult, so a revealed canvas is never left blank');
+  assert(ctx.tabs[1].ariaSelected === true && ctx.tabs[0].ariaSelected === false,
+    'the tab ARIA state follows the mode, so a screen-reader user is told which view is active');
+  assert(ctx.calls.persisted.length === 1 && ctx.calls.persisted[0] === 'power',
+    'the chosen mode is persisted, so a reload does not silently drop the reader back to Simple');
+
+  const back = makeCtx('power');
+  modeEnv.tdcApplyMode('simple', back, { draw: (r) => back.calls.drawn.push(r), persist: (m) => back.calls.persisted.push(m) });
+  assert(!back.body.classList.contains('power') && back.tabs[0].ariaSelected === true,
+    'switching back to Simple clears body.power and moves the ARIA selection, so the toggle is symmetric');
+
+  const bad = makeCtx('simple');
+  const rejected = modeEnv.tdcApplyMode('expert', bad, { draw: () => bad.calls.drawn.push(1) });
+  assert(rejected === null && bad.calls.drawn.length === 0 && !bad.body.classList.contains('power'),
+    'an unknown mode is refused and changes nothing, so a crafted deep link cannot force an undefined view state');
+} catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab mode threw): ' + e.message); }
+
 /* ---------- Bond regime: one-model parity guarantee (spec 018 Scope 6) ----------
    The highest-value test in feature 018. It makes the Outcome Contract's hard constraint — ONE
    model, two compositions — checkable rather than asserted.

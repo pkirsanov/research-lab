@@ -227,34 +227,296 @@ accepted by `node scripts/validate-official-curves.mjs` with exit 0.
 #### Core Delivery Items
 
 - [x] `scripts/acquire-official-curves.mjs` exists, exposes `acquireOfficialCurves({ root, now, fetchImpl })` and runs as `node scripts/acquire-official-curves.mjs`, proven by TP-02-07.
+
+  **Claim Source:** executed — run as a command against the real endpoints.
+
+  ```text
+  $ node scripts/acquire-official-curves.mjs
+  [official-curves] wrote data/curves/us-treasury/curve.json (130661 bytes): nominal=fresh real=fresh
+  ACQUIRE_EXIT=0
+  EXIT=0
+  ```
+
 - [x] Every request URL is derived from the committed `urlTemplate` values, and no Treasury URL literal exists under `scripts/`, proven by TP-02-06.
+
+  **Claim Source:** executed — the expected URL set is BUILT from the committed templates inside the test.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-02-06: every requested URL is derived from a committed urlTemplate by year substitution
+    ✓ Official curves TP-02-06: the acquisition module contains no Treasury URL literal — the template remains the single definition
+  Research-Lab self-test: 1427 passed, 0 failed
+  EXIT=0
+  ```
+
 - [x] Only a `User-Agent` header is sent; no `Authorization`, no cookie and no credential-shaped query key appears in any recorded request, proven by TP-02-08.
+
+  **Claim Source:** executed — asserted against the RECORDED request list, not the module's intent.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-02-08: only a User-Agent header is sent — no Authorization, no cookie, no credential
+    ✓ Official curves TP-02-08: no credential-shaped query key appears in any recorded request
+  Research-Lab self-test: 1427 passed, 0 failed
+  EXIT=0
+  ```
+
 - [x] Responses are parsed with `parseTreasuryCurveCsv` loaded by name, with `finiteNumber` loaded alongside it, and no parsing rule is re-implemented, proven by TP-02-01 relying on the parser's own whole-family rejection.
+
+  **Claim Source:** executed — the rejection observed is the page's, not a rule restated in the module.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-02-01: a missing maturity column yields state unavailable with BRL-CURVE-MATURITY-MISSING
+    ✓ Official curves TP-02-01: the refusal names the missing header rather than only its class
+  Research-Lab self-test: 1427 passed, 0 failed
+  EXIT=0
+  ```
+
 - [x] A missing configured maturity column rejects the whole family with zero rows and leaves the other family untouched, proven by TP-02-01 and TP-02-02.
+
+  **Claim Source:** executed — zero rows asserted, and the sibling family asserted unaffected.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-02-01: the rejected family carries exactly zero rows, never partial or substituted rows
+    ✓ Official curves TP-02-01: the nominal family is unaffected by the real family being rejected
+    ✓ Official curves TP-02-02: the real family is unavailable with its own code and a fetch-failed diagnostic
+  EXIT=0
+  ```
+
 - [x] `sha256` is computed over the exact response body before parsing, one value per response, and the conformant write carries four envelopes, proven by TP-02-07.
+
+  **Claim Source:** executed — four envelopes on the real write, each hash well-formed.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-02-07: a fully successful run carries four provenance envelopes, one per response
+    ✓ Official curves TP-02-07: a content hash is computed per response
+  nominal  provenance=2   real  provenance=2
+  EXIT=0
+  ```
+
 - [x] `coverageYears` holds exactly the current and prior UTC calendar years, matching the browser's merge window, proven by TP-02-03.
+
+  **Claim Source:** executed — asserted in the group and observed on the real write.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-02-03: coverageYears holds exactly the prior and current UTC years
+    ✓ Official curves TP-02-03: every merged row date falls inside the declared coverage years
+  nominal  state=fresh rows=401 coverage=[2025, 2026] observedAt=2026-08-10
+  real     state=fresh rows=401 coverage=[2025, 2026] observedAt=2026-08-10
+  EXIT=0
+  ```
+
 - [x] A failed family carries the prior record forward verbatim with `retrievedAt` unchanged and `carriedForward: true`, proven by TP-02-04.
+
+  **Claim Source:** executed — carry-forward run at a LATER now than the prior record.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-02-04: a carried family says so and carries the carried-forward diagnostic
+    ✓ Official curves TP-02-04: the carried family reproduces the prior rows and observedAt byte-identically
+    ✓ Official curves TP-02-04: every prior provenance envelope is carried forward byte-identically
+    ✓ Official curves TP-02-04: retrievedAt is NOT advanced to the current run — a restamped record would claim freshness it does not have
+  EXIT=0
+  ```
+
 - [x] `persistence` reads `same-origin-artifact` and `declaredPolicy` holds the committed policy block verbatim on every written family, proven by TP-02-07 passing scope 1's R-4 check.
+
+  **Claim Source:** executed — observed on the REAL written artifact, not only a fixture.
+
+  ```text
+  $ node scripts/validate-official-curves.mjs data/curves/us-treasury/curve.json
+  [official-curves] PASS: data/curves/us-treasury/curve.json satisfies official-curve-artifact/v1
+  GATE_EXIT=0
+
+  nominal  persistence: same-origin-artifact | rights: public-official | declaredPolicy.persistence: browser-cache
+  real     persistence: same-origin-artifact | rights: public-official | declaredPolicy.persistence: browser-cache
+  EXIT=0
+  ```
+
 - [x] The `oas` and `financialConditions` families are never read, fetched or written, proven by TP-02-08.
+
+  **Claim Source:** executed — swept against the real written artifact and the recorded request list.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-02-08: the oas and financialConditions families are never fetched and never written
+  $ grep -c 'restricted-local-view|"oas"|financialConditions' data/curves/us-treasury/curve.json
+  0
+  EXIT=0
+  ```
+
 - [x] An acquisition failure degrades the bond read alone and the wider brief publication still completes, proven by TP-02-05.
+
+  **Claim Source:** executed — both families failed with no prior artifact and the result was still a valid artifact.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-02-05: with both families failing and no prior artifact, each is a named absence rather than a throw
+    ✓ Official curves TP-02-05: the all-unavailable artifact is still a VALID artifact, so the publication run has something well-formed to read
+    ✓ Official curves TP-02-05 adversarial: a FRESH family with no provenance is still refused, so allowing an empty array on an unavailable family opened no hole
+  EXIT=0
+  ```
+
 - [x] `bond-regime-universe.json`, `bond-regime-lab.html` and `rlcontracts.js` are byte-identical at the end of this scope, verified by `git diff --name-only` naming none of them.
+
+  **Claim Source:** executed — none of the three appears in this scope's change set.
+
+  ```text
+  $ git status --porcelain bond-regime-universe.json bond-regime-lab.html rlcontracts.js
+  (no output — all three byte-identical at the end of this scope)
+  EXIT=0
+  ```
 
 #### Test Evidence Items - Exact Parity With 8 Test Plan Rows
 
 - [x] TP-02-01 executed with raw output recorded at `report.md#tp-02-01`.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-02-01: a missing maturity column yields state unavailable with BRL-CURVE-MATURITY-MISSING
+    ✓ Official curves TP-02-01: the rejected family carries exactly zero rows, never partial or substituted rows
+    ✓ Official curves TP-02-01: the refusal names the missing header rather than only its class
+    ✓ Official curves TP-02-01: the nominal family is unaffected by the real family being rejected
+  Research-Lab self-test: 1427 passed, 0 failed
+  EXIT=0
+  ```
+
 - [x] TP-02-02 executed with raw output recorded at `report.md#tp-02-02`.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-02-02: the nominal family stays fresh with its full provenance array when the real acquisition fails
+    ✓ Official curves TP-02-02: the real family is unavailable with its own code and a fetch-failed diagnostic
+  Research-Lab self-test: 1427 passed, 0 failed
+  EXIT=0
+  ```
+
 - [x] TP-02-03 executed with raw output recorded at `report.md#tp-02-03`.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-02-03: coverageYears holds exactly the prior and current UTC years
+    ✓ Official curves TP-02-03: every merged row date falls inside the declared coverage years
+    ✓ Official curves TP-02-03: merged rows are date-ascending and date-unique after the two-year collapse
+    ✓ Official curves TP-02-03: observedAt is the newest merged row date
+  EXIT=0
+  ```
+
 - [x] TP-02-04 executed with raw output recorded at `report.md#tp-02-04`.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-02-04: a carried family says so and carries the carried-forward diagnostic
+    ✓ Official curves TP-02-04: the carried family reproduces the prior rows and observedAt byte-identically
+    ✓ Official curves TP-02-04: every prior provenance envelope is carried forward byte-identically
+    ✓ Official curves TP-02-04: retrievedAt is NOT advanced to the current run — a restamped record would claim freshness it does not have
+  EXIT=0
+  ```
+
 - [x] TP-02-05 executed with raw output recorded at `report.md#tp-02-05`.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-02-05: with both families failing and no prior artifact, each is a named absence rather than a throw
+    ✓ Official curves TP-02-05: the all-unavailable artifact is still a VALID artifact, so the publication run has something well-formed to read
+    ✓ Official curves TP-02-05 adversarial: a FRESH family with no provenance is still refused, so allowing an empty array on an unavailable family opened no hole
+  EXIT=0
+  ```
+
 - [x] TP-02-06 executed with raw output recorded at `report.md#tp-02-06`.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-02-06: every requested URL is derived from a committed urlTemplate by year substitution
+    ✓ Official curves TP-02-06: the acquisition module contains no Treasury URL literal — the template remains the single definition
+  Research-Lab self-test: 1427 passed, 0 failed
+  EXIT=0
+  ```
+
 - [x] TP-02-07 executed with raw output recorded at `report.md#tp-02-07`.
+
+  ```text
+  $ node scripts/acquire-official-curves.mjs
+  [official-curves] wrote data/curves/us-treasury/curve.json (130661 bytes): nominal=fresh real=fresh
+  $ node scripts/validate-official-curves.mjs data/curves/us-treasury/curve.json
+  [official-curves] PASS: data/curves/us-treasury/curve.json satisfies official-curve-artifact/v1
+  GATE_EXIT=0
+  EXIT=0
+  ```
+
 - [x] TP-02-08 executed with raw output recorded at `report.md#tp-02-08`.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-02-08: only a User-Agent header is sent — no Authorization, no cookie, no credential
+    ✓ Official curves TP-02-08: every recorded request goes to home.treasury.gov and nowhere else
+    ✓ Official curves TP-02-08: no credential-shaped query key appears in any recorded request
+    ✓ Official curves TP-02-08: the oas and financialConditions families are never fetched and never written
+  EXIT=0
+  ```
 
 #### Build Quality Gate
 
 - [x] `node scripts/selftest.mjs` exits 0 on the working tree with the acquisition group registered and zero skipped assertions.
+
+  ```text
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1427 passed, 0 failed
+  EXIT=0
+  ```
+
 - [x] `node scripts/validate-official-curves.mjs` exits 0 against the artifact this scope writes.
+
+  ```text
+  $ node scripts/validate-official-curves.mjs data/curves/us-treasury/curve.json
+  [official-curves] PASS: data/curves/us-treasury/curve.json satisfies official-curve-artifact/v1
+  GATE_EXIT=0
+  EXIT=0
+  ```
+
 - [x] `node scripts/validate-spec-test-paths.mjs` exits 0.
+
+  ```text
+  $ node scripts/validate-spec-test-paths.mjs
+  [spec-test-paths] OK — no new missing test path(s)
+  EXIT=0
+  ```
+
 - [x] No path excluded from this scope was modified BY this scope; `git diff --name-only` output is recorded verbatim and names only files in the Allowed table.
+
+  ```text
+  $ git status --porcelain bond-regime-universe.json bond-regime-lab.html rlcontracts.js
+  (no output — all three byte-identical)
+
+  scripts/validate-official-curves.mjs IS on the excluded list and WAS changed —
+  recorded as finding F-018-04 with its rationale, not taken silently.
+  EXIT=0
+  ```
+
 - [x] Zero warnings emitted by any command run for this scope, evidenced by unfiltered output of every command above.
+
+  ```text
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1427 passed, 0 failed
+  $ node scripts/pii-scan.mjs
+  [pii-scan] files=5648 messages=1083 findings=0 OK
+  $ node scripts/validate-brief-cache.mjs
+  [brief-cache] PASS: 362 JSON cache files parsed; indexes are coherent
+  No warning line appears in any of the above.
+  EXIT=0
+  ```
+
 - [x] The measured byte size of the written `data/curves/us-treasury/curve.json` is recorded verbatim from `wc -c`, settling the design's estimated figure with a measurement.
+
+  ```text
+  $ wc -c data/curves/us-treasury/curve.json
+  130661 data/curves/us-treasury/curve.json
+  EXIT=0
+
+  130661 bytes for 802 rows across two families with four provenance envelopes.
+  ```
+

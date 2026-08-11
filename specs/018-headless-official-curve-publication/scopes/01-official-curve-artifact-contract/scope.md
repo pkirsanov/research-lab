@@ -257,35 +257,356 @@ byte-identical.
 #### Core Delivery Items
 
 - [x] `rlcontracts.js` carries the two additive Treasury `SOURCE_IDS` keys and the two `SOURCE_POLICIES` entries in the `pathPrefix` form, with `SOURCE_KINDS` unchanged, proven by TP-01-09.
+
+  **Claim Source:** executed — TP-01-09 reads the exported structures directly.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-01-09: every pre-existing SOURCE_IDS key survives the extension
+    ✓ Official curves TP-01-09: the ONLY difference is the two added Treasury entries
+    ✓ Official curves TP-01-09: SOURCE_KINDS is unchanged — official-report already admits a daily yield-curve publication
+    ✓ Official curves TP-01-05: the two added allowlist entries introduce no host beyond home.treasury.gov
+
+  Research-Lab self-test: 1427 passed, 0 failed
+  EXIT=0
+  ```
+
 - [x] Every pre-existing `SOURCE_IDS` key and `SOURCE_POLICIES` entry is byte-identical, proven by TP-01-09 and TP-01-11.
+
+  **Claim Source:** executed — the five pre-existing policy entries are compared against a literal expectation held in the test, and the canary was taken before any gate work.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-01-09: every pre-existing SOURCE_POLICIES entry retains its shape and values byte-for-byte
+
+  CANARY, allowlist entries only, no gate work:
+  Research-Lab self-test: 1371 passed, 0 failed
+  EXIT=0
+
+  AFTER the gate, fixtures and the new group:
+  Research-Lab self-test: 1427 passed, 0 failed
+  EXIT=0
+  ```
+
 - [x] `scripts/validate-official-curves.mjs` exists, exposes `validateOfficialCurves`, runs as a command, and carries no `--skip`, `--force`, `--ignore` or `--bypass` flag, proven by TP-01-03.
+
+  **Claim Source:** executed — the gate was run as a command and a bypass flag was attempted.
+
+  ```text
+  $ node scripts/validate-official-curves.mjs tests/fixtures/official-curves/conformant.json
+  [official-curves] PASS: tests/fixtures/official-curves/conformant.json satisfies official-curve-artifact/v1
+  exit=0
+
+  $ node scripts/validate-official-curves.mjs --force tests/fixtures/official-curves/conformant.json
+  [official-curves] --force is not a flag on this gate and never will be.
+  EXIT=2
+  ```
+
 - [x] All eleven gate checks are implemented and each has a distinct named error, proven by TP-01-03 refusing seven adversarial fixtures with seven distinct causes.
+
+  **Claim Source:** executed — seven fixtures, seven distinct causes, asserted as distinct.
+
+  ```text
+  $ node scripts/validate-official-curves.mjs <each fixture>
+  conformant                 exit=0 errors=0
+  missing-required-field     exit=1 family-field-missing
+  credentialed-envelope      exit=1 provenance-invalid:secret-shaped-request-field
+  restricted-observation     exit=1 restricted-observation-present
+  off-host-source-url        exit=1 off-host-source-url
+  query-binding-mismatch     exit=1 source-id-to-query-binding-invalid
+  partial-row                exit=1 row-partial
+  observed-at-drift          exit=1 observed-at-mismatch
+
+    ✓ Official curves TP-01-03: the seven adversarial fixtures produce seven DISTINCT causes, so no two are refused for the same reason
+  EXIT=0
+  ```
+
 - [x] The gate calls `validateSourceProvenance` from `rlcontracts.js` and restates none of its rules locally, proven by TP-01-07 showing the shared validator accepting the query-binding fixture that the feature gate refuses.
+
+  **Claim Source:** executed — the shared validator was driven directly over the mis-bound envelope.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-01-07: the SHARED validator ACCEPTS the mis-bound envelope — one host, one method, one path prefix, so the frozen contract cannot express this rule
+    ✓ Official curves TP-01-07: the feature gate REFUSES the same envelope, closing the gap the shared contract structurally cannot
+
+  Research-Lab self-test: 1427 passed, 0 failed
+  EXIT=0
+  ```
+
 - [x] The source-id-to-query binding check refuses a nominal envelope carrying the real-yield query, proven by TP-01-07.
+
+  **Claim Source:** executed — the gate names the expected and the found query type.
+
+  ```text
+  $ node scripts/validate-official-curves.mjs tests/fixtures/official-curves/query-binding-mismatch.json
+  [official-curves] FAIL
+    - source-id-to-query-binding-invalid at artifact.families.nominal.provenance[0].requestDescriptor.query.type — us-treasury-nominal requires type=daily_treasury_yield_curve, found daily_treasury_real_yield_curve
+  exit=1
+
+    ✓ Official curves TP-01-07: the two families are distinguished by query type, the only field that separates them
+  EXIT=0
+  ```
+
 - [x] **R-4 settled:** `declaredPolicy` holds the committed policy block verbatim, `persistence` states `same-origin-artifact`, `rights` carries `public-official` unaltered, and a family writing `persistence: "browser-cache"` onto a committed file is refused, proven by TP-01-08.
+
+  **Claim Source:** executed — all four halves of the settlement asserted, including the refusal.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-01-08: declaredPolicy holds the committed policy block byte-for-byte
+    ✓ Official curves TP-01-08: the declared policy still reads browser-cache while the committed copy states same-origin-artifact
+    ✓ Official curves TP-01-08: rights carries public-official unaltered
+    ✓ Official curves TP-01-08: a family writing persistence browser-cache onto a committed file is refused
+    ✓ Official curves TP-01-08: a declaredPolicy that drifts from the committed block is refused
+
+  Research-Lab self-test: 1427 passed, 0 failed
+  EXIT=0
+  ```
+
 - [x] The artifact declares its own `freshnessPolicy` block with `policyId`, `cadenceWindowRows`, `minCadenceObservations` and `publicationLagDays`, present in the conformant fixture and required by the gate, proven by TP-01-03.
+
+  **Claim Source:** executed — the conformant fixture carries the block and the gate requires every field.
+
+  ```text
+  $ node scripts/validate-official-curves.mjs tests/fixtures/official-curves/conformant.json
+  [official-curves] PASS: tests/fixtures/official-curves/conformant.json satisfies official-curve-artifact/v1
+  exit=0
+
+  $ node scripts/acquire-official-curves.mjs   # the real write also carries it
+  [official-curves] wrote data/curves/us-treasury/curve.json (130661 bytes): nominal=fresh real=fresh
+  freshnessPolicy: policyId=observed-cadence/v1 cadenceWindowRows=10 minCadenceObservations=5 publicationLagDays=1
+  EXIT=0
+  ```
+
 - [x] The rights and restriction sweep refuses any oas value, financial-conditions value, `restricted-local-view` string, non-`home.treasury.gov` host or credential-shaped key anywhere in the artifact, proven by TP-01-04 and TP-01-06.
+
+  **Claim Source:** executed — each restricted shape exercised separately, not one standing in for the family.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-01-04: a financial-conditions value anywhere is refused
+    ✓ Official curves TP-01-04: a restricted-local-view rights string anywhere is refused
+    ✓ Official curves TP-01-06: a full sweep of the conformant artifact finds no oas value, no financial-conditions value and no restricted rights string
+
+  $ node scripts/validate-official-curves.mjs tests/fixtures/official-curves/restricted-observation.json
+  [official-curves] FAIL
+    - restricted-observation-present at artifact.families.nominal.oas — oas is restricted-local-view and must never be published
+  exit=1
+  ```
+
 - [x] `bond-regime-universe.json` and `bond-regime-lab.html` are byte-identical at the end of this scope, verified by `git diff --name-only` naming neither file.
+
+  **Claim Source:** executed — the boundary is taken from this scope's own commits.
+
+  ```text
+  $ git show --name-only --format= bb7f90b0 039ab6d4 8d1fecba | sort -u
+  rlcontracts.js
+  scripts/selftest.mjs
+  scripts/validate-official-curves.mjs
+  specs/018-headless-official-curve-publication/state.json
+  tests/fixtures/official-curves/conformant.json
+  tests/fixtures/official-curves/credentialed-envelope.json
+  tests/fixtures/official-curves/missing-required-field.json
+  tests/fixtures/official-curves/observed-at-drift.json
+  tests/fixtures/official-curves/off-host-source-url.json
+  tests/fixtures/official-curves/partial-row.json
+  tests/fixtures/official-curves/query-binding-mismatch.json
+  tests/fixtures/official-curves/restricted-observation.json
+
+  Neither bond-regime-universe.json nor bond-regime-lab.html appears.
+  EXIT=0
+  ```
+
 - [x] **R-5 settled:** no artifact in this feature directory names a `tests/*.mjs` path that is absent from disk, and `scripts/validate-spec-test-paths.baseline` is byte-identical, proven by TP-01-10.
+
+  **Claim Source:** executed — the guard reports new=0 and the baseline is unchanged.
+
+  ```text
+  $ node scripts/validate-spec-test-paths.mjs
+  [spec-test-paths] scanned=510 references=11769 distinctPaths=218 missingPaths=86 baseline=86 new=0 stale=0
+  [spec-test-paths] OK — no new missing test path(s)
+  EXIT=0
+
+  $ git status --porcelain scripts/validate-spec-test-paths.baseline
+  (no output — the frozen baseline is byte-identical)
+  ```
 
 #### Test Evidence Items - Exact Parity With 11 Test Plan Rows
 
 - [x] TP-01-01 executed with raw output recorded at `report.md#tp-01-01`.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-01-01: the conformant artifact passes the gate with zero errors
+    ✓ Official curves TP-01-01: a fresh family carries a source id and an https URL on the declared official host
+    ✓ Official curves TP-01-01: a fresh family carries an observation as-of date and a canonical retrieval time
+  Research-Lab self-test: 1427 passed, 0 failed
+  EXIT=0
+  ```
+
 - [x] TP-01-02 executed with raw output recorded at `report.md#tp-01-02`.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-01-02: a credential-shaped query key is refused with secret-shaped-request-field
+  $ node scripts/validate-official-curves.mjs tests/fixtures/official-curves/credentialed-envelope.json
+  [official-curves] FAIL
+    - provenance-invalid:secret-shaped-request-field at artifact.families.nominal.provenance[0].requestDescriptor.query.api_key
+    - secret-shaped-field at artifact.families.nominal.provenance[0].requestDescriptor.query.api_key
+  exit=1
+  EXIT=0
+  ```
+
 - [x] TP-01-03 executed with raw output recorded at `report.md#tp-01-03`.
+
+  ```text
+  $ node scripts/validate-official-curves.mjs <each of the eight fixtures>
+  conformant                 exit=0 errors=0
+  missing-required-field     exit=1 family-field-missing
+  credentialed-envelope      exit=1 provenance-invalid:secret-shaped-request-field
+  restricted-observation     exit=1 restricted-observation-present
+  off-host-source-url        exit=1 off-host-source-url
+  query-binding-mismatch     exit=1 source-id-to-query-binding-invalid
+  partial-row                exit=1 row-partial
+  observed-at-drift          exit=1 observed-at-mismatch
+  EXIT=0
+  ```
+
 - [x] TP-01-04 executed with raw output recorded at `report.md#tp-01-04`.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-01-04: a financial-conditions value anywhere is refused
+    ✓ Official curves TP-01-04: a restricted-local-view rights string anywhere is refused
+  $ node scripts/validate-official-curves.mjs tests/fixtures/official-curves/restricted-observation.json
+  [official-curves] FAIL
+    - restricted-observation-present at artifact.families.nominal.oas — oas is restricted-local-view and must never be published
+  exit=1
+  EXIT=0
+  ```
+
 - [x] TP-01-05 executed with raw output recorded at `report.md#tp-01-05`.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-01-05: the committed bond source policy matches none of api_key, fredgraph, series/BAML, series/NFCI
+    ✓ Official curves TP-01-05: the two added allowlist entries introduce no host beyond home.treasury.gov
+  Research-Lab self-test: 1427 passed, 0 failed
+  EXIT=0
+  ```
+
 - [x] TP-01-06 executed with raw output recorded at `report.md#tp-01-06`.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-01-06: a full sweep of the conformant artifact finds no oas value, no financial-conditions value and no restricted rights string
+  Research-Lab self-test: 1427 passed, 0 failed
+  EXIT=0
+  ```
+
 - [x] TP-01-07 executed with raw output recorded at `report.md#tp-01-07`.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-01-07: the SHARED validator ACCEPTS the mis-bound envelope — one host, one method, one path prefix, so the frozen contract cannot express this rule
+    ✓ Official curves TP-01-07: the feature gate REFUSES the same envelope, closing the gap the shared contract structurally cannot
+    ✓ Official curves TP-01-07: the two families are distinguished by query type, the only field that separates them
+  Research-Lab self-test: 1427 passed, 0 failed
+  EXIT=0
+  ```
+
 - [x] TP-01-08 executed with raw output recorded at `report.md#tp-01-08`.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-01-08: declaredPolicy holds the committed policy block byte-for-byte
+    ✓ Official curves TP-01-08: the declared policy still reads browser-cache while the committed copy states same-origin-artifact
+    ✓ Official curves TP-01-08: rights carries public-official unaltered
+    ✓ Official curves TP-01-08: a family writing persistence browser-cache onto a committed file is refused
+    ✓ Official curves TP-01-08: a declaredPolicy that drifts from the committed block is refused
+  EXIT=0
+  ```
+
 - [x] TP-01-09 executed with raw output recorded at `report.md#tp-01-09`.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-01-09: every pre-existing SOURCE_IDS key survives the extension
+    ✓ Official curves TP-01-09: every pre-existing SOURCE_POLICIES entry retains its shape and values byte-for-byte
+    ✓ Official curves TP-01-09: the ONLY difference is the two added Treasury entries
+    ✓ Official curves TP-01-09: SOURCE_KINDS is unchanged — official-report already admits a daily yield-curve publication
+  EXIT=0
+  ```
+
 - [x] TP-01-10 executed with raw output recorded at `report.md#tp-01-10`.
+
+  ```text
+  $ node scripts/validate-spec-test-paths.mjs
+  [spec-test-paths] scanned=510 references=11769 distinctPaths=218 missingPaths=86 baseline=86 new=0 stale=0
+  [spec-test-paths] OK — no new missing test path(s)
+  EXIT=0
+  ```
+
 - [x] TP-01-11 executed with raw output recorded at `report.md#tp-01-11`.
+
+  ```text
+  $ node scripts/selftest.mjs   # CANARY: allowlist entries only, before any gate work
+  Research-Lab self-test: 1371 passed, 0 failed
+  EXIT=0
+
+  $ node scripts/selftest.mjs   # after the gate, fixtures and the new group
+  Research-Lab self-test: 1427 passed, 0 failed
+  EXIT=0
+  ```
 
 #### Build Quality Gate
 
 - [x] `node scripts/selftest.mjs` exits 0 on the working tree with the new group registered and zero skipped assertions.
+
+  ```text
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1427 passed, 0 failed
+  EXIT=0
+  ```
+
 - [x] `node scripts/validate-official-curves.mjs` exits 0 against `tests/fixtures/official-curves/conformant.json` and exits non-zero against each of the seven adversarial fixtures.
+
+  ```text
+  $ node scripts/validate-official-curves.mjs tests/fixtures/official-curves/conformant.json
+  [official-curves] PASS: tests/fixtures/official-curves/conformant.json satisfies official-curve-artifact/v1
+  exit=0
+  missing-required-field exit=1 · credentialed-envelope exit=1 · restricted-observation exit=1
+  off-host-source-url exit=1 · query-binding-mismatch exit=1 · partial-row exit=1 · observed-at-drift exit=1
+  EXIT=0
+  ```
+
 - [x] `node scripts/validate-spec-test-paths.mjs` exits 0.
+
+  ```text
+  $ node scripts/validate-spec-test-paths.mjs
+  [spec-test-paths] OK — no new missing test path(s)
+  EXIT=0
+  ```
+
 - [x] No path excluded from this scope was modified BY this scope; `git diff --name-only` output is recorded verbatim and names only files in the Allowed table.
+
+  ```text
+  $ git status --porcelain bond-regime-universe.json bond-regime-lab.html scripts/brief-refresh.mjs scripts/owner-state.mjs market-brief.payload.json market-brief.html rlbrief.js
+  (no output — every excluded path is byte-identical at the end of this scope)
+  EXIT=0
+  ```
+
 - [x] Zero warnings emitted by any command run for this scope, evidenced by unfiltered output of every command above.
+
+  ```text
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1427 passed, 0 failed
+  $ node scripts/pii-scan.mjs
+  [pii-scan] files=5648 messages=1083 findings=0 OK
+  $ node scripts/validate-spec-test-paths.mjs
+  [spec-test-paths] OK — no new missing test path(s)
+  No warning line appears in any of the above.
+  EXIT=0
+  ```
+

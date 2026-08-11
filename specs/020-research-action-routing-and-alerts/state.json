@@ -1,0 +1,198 @@
+{
+    "version": 3,
+    "featureDir": "specs/020-research-action-routing-and-alerts",
+    "featureName": "Research Action Routing And Alerts",
+    "createdAt": "2026-08-10T00:00:00Z",
+    "lastUpdatedAt": "2026-08-10T00:00:00Z",
+    "status": "not_started",
+    "blockedReason": null,
+    "workflowMode": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "specDependsOn": [
+        "specs/019-custom-recurring-research-agenda"
+    ],
+    "flagsIntroduced": [],
+    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "workBoundary": {
+        "repositoryRoots": [
+            "research-lab"
+        ],
+        "specTargets": [
+            "specs/020-research-action-routing-and-alerts"
+        ],
+        "allowedPaths": [
+            "specs/020-research-action-routing-and-alerts/**"
+        ],
+        "crossRepoPolicy": "forbidden"
+    },
+    "execution": {
+        "goalContractRef": null,
+        "activeAgent": "bubbles.analyst",
+        "currentPhase": "discover",
+        "currentPhaseStatus": "completed",
+        "currentScope": null,
+        "substate": "spec-authored",
+        "runStartedAt": "2026-08-10T00:00:00Z",
+        "completedAt": null,
+        "completedPhaseClaims": [],
+        "pendingTransitionRequests": [],
+        "nextRequiredOwner": "bubbles.design",
+        "nextRequiredTarget": "specs/020-research-action-routing-and-alerts/design.md",
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "scopeId": "01-routable-finding-contract",
+                "status": "not_started",
+                "foundation": true,
+                "dependsOn": []
+            },
+            {
+                "scope": 2,
+                "scopeId": "02-action-list-routing-and-evaluability",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1
+                ]
+            },
+            {
+                "scope": 3,
+                "scopeId": "03-attention-tier-routing-and-exclusions",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    2
+                ]
+            },
+            {
+                "scope": 4,
+                "scopeId": "04-anomaly-seed-and-alert-candidacy",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1
+                ]
+            },
+            {
+                "scope": 5,
+                "scopeId": "05-scoring-ledger-and-degraded-modes",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    2,
+                    3,
+                    4
+                ]
+            }
+        ],
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "uncertified",
+        "certifiedAt": null,
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        },
+        "observations": [
+            {
+                "recordedBy": "bubbles.analyst",
+                "recordedAt": "2026-08-10T00:00:00Z",
+                "kind": "dependency-is-a-capability-not-a-status",
+                "summary": "Per P25 this spec blocks on named missing capabilities, never on another spec's status. The three named capabilities are: live Red Alert publication (rlmarketaction.js rejects published === true with RLMKT-GATE and GATE.redAlertPublication is 'dependency-pending:feature-002'); a routable topic finding (supplied by Feature 019); and committed market data for the topics' instruments. Each has a specified degraded behaviour in spec.md, so none of them makes this spec blocked. specDependsOn names specs/019 as an artifact dependency for the finding contract, not as a status gate."
+            },
+            {
+                "recordedBy": "bubbles.analyst",
+                "recordedAt": "2026-08-10T00:00:00Z",
+                "kind": "honest-capability-limit",
+                "summary": "Several of the operator's own topics cannot produce a scoreable brief call today. loadInstrumentUniverse in scripts/recommendation-body.mjs builds the committed universe from data/bars/*.json, data/options/*.json and watchlist.json tickers. European defense listings, Brent, urea and potash are not in it. A swing or tactical call naming them resolves no-instrument-in-committed-universe and is withheld by scripts/validate-brief-payload.mjs, whose --drop-unscoreable path drops the offending claim and publishes the rest. Expanding the committed universe is Non-Goal 5 and is separate work. Certification must not treat 'a defense or fertilizer call published in nextSession.actions' as this feature's success signal."
+            },
+            {
+                "recordedBy": "bubbles.analyst",
+                "recordedAt": "2026-08-10T00:00:00Z",
+                "kind": "gate-integrity-invariant",
+                "summary": "FR-020-038 forbids modifying any destination threshold, cap, score, minimum or vocabulary. The concrete surfaces this protects are: the D16 swing/tactical evaluability rule and its direction-correct invalidation level requirement; config.thresholds.nextSessionMaxActions; the closed RLATTN-* refusal codes in rlattention.js including PRIVACY, DEEPLINK, VERB and OVERLAP; and red-alert-policy/v1 scoreThreshold 75, visibleCap 5, minSeverity 4, minIndependentOrigins 2, minOwnerEvidence 1. A topic origin buys no exemption from any of them. Any implementation that raises throughput by moving one of these numbers has failed the spec regardless of test results."
+            },
+            {
+                "recordedBy": "bubbles.analyst",
+                "recordedAt": "2026-08-10T00:00:00Z",
+                "kind": "open-design-question",
+                "summary": "Where topic-action exclusions become reader-visible is undecided. The attention tier already has payload.attentionExclusions[] with code, field and reason, and the invariant that built plus excluded equals declared. The action list has no equivalent reader-visible channel today; scripts/validate-brief-payload.mjs withholds an unscoreable claim via --drop-unscoreable and reports to stderr. FR-020-037 requires a refused finding to remain visible to the operator, so design must resolve whether topic-action exclusions join an existing channel or need their own."
+            },
+            {
+                "recordedBy": "bubbles.analyst",
+                "recordedAt": "2026-08-10T00:00:00Z",
+                "kind": "open-design-question",
+                "summary": "Whether routing injects an action directly or supplies material a lane may adopt is a write-disjointness question. scripts/brief-narrative-parallel.mjs gives each lane an exact set of owned top-level payload keys and permits it to write only .brief-work/<lane>.json, verified by readCompleteFragment against the declared key set. nextSession is authored upstream of the attention rebuild: scripts/brief-refresh-and-push.sh runs build-attention-items.mjs --recompose --write before validate-brief-payload.mjs. Design must place topic routing in that ordering without breaking lane write-disjointness."
+            }
+        ]
+    },
+    "policySnapshot": {
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "repo-default"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
+    },
+    "transitionRequests": [],
+    "reworkQueue": [],
+    "executionHistory": [],
+    "activeBugs": [],
+    "resolvedBugs": [],
+    "failures": [],
+    "scopeLayout": "per-scope-directory",
+    "artifacts": {
+        "spec": "spec.md",
+        "design": "design.md",
+        "scopes": "scopes/_index.md",
+        "report": "scopes/NN-name/report.md",
+        "uservalidation": "uservalidation.md",
+        "scenarioManifest": "scenario-manifest.json"
+    },
+    "statusDiscipline": {
+        "validStatuses": [
+            "not_started",
+            "in_progress",
+            "blocked",
+            "specs_hardened",
+            "docs_updated",
+            "validated",
+            "done"
+        ],
+        "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+    },
+    "notes": "Spec-level planning artifacts authored by bubbles.analyst. spec.md, scenario-manifest.json and this file only. design.md, scopes and test-plan.json are not yet authored. 38 functional requirements and 5 intended scopes, inside the P25 cap."
+}

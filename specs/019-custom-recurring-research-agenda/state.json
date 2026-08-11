@@ -1,0 +1,190 @@
+{
+    "version": 3,
+    "featureDir": "specs/019-custom-recurring-research-agenda",
+    "featureName": "Custom Recurring Research Agenda",
+    "createdAt": "2026-08-10T00:00:00Z",
+    "lastUpdatedAt": "2026-08-10T00:00:00Z",
+    "status": "not_started",
+    "blockedReason": null,
+    "workflowMode": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "specDependsOn": [],
+    "flagsIntroduced": [],
+    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "workBoundary": {
+        "repositoryRoots": [
+            "research-lab"
+        ],
+        "specTargets": [
+            "specs/019-custom-recurring-research-agenda"
+        ],
+        "allowedPaths": [
+            "specs/019-custom-recurring-research-agenda/**"
+        ],
+        "crossRepoPolicy": "forbidden"
+    },
+    "execution": {
+        "goalContractRef": null,
+        "activeAgent": "bubbles.analyst",
+        "currentPhase": "discover",
+        "currentPhaseStatus": "completed",
+        "currentScope": null,
+        "substate": "spec-authored",
+        "runStartedAt": "2026-08-10T00:00:00Z",
+        "completedAt": null,
+        "completedPhaseClaims": [],
+        "pendingTransitionRequests": [],
+        "nextRequiredOwner": "bubbles.design",
+        "nextRequiredTarget": "specs/019-custom-recurring-research-agenda/design.md",
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "scopeId": "01-agenda-registry-contract",
+                "status": "not_started",
+                "foundation": true,
+                "dependsOn": []
+            },
+            {
+                "scope": 2,
+                "scopeId": "02-topic-lifecycle",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1
+                ]
+            },
+            {
+                "scope": 3,
+                "scopeId": "03-per-generation-review-policy",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    2
+                ]
+            },
+            {
+                "scope": 4,
+                "scopeId": "04-dossier-and-outcome-states",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    3
+                ]
+            },
+            {
+                "scope": 5,
+                "scopeId": "05-refinement-public-safety-and-brief-read",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    4
+                ]
+            }
+        ],
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "uncertified",
+        "certifiedAt": null,
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        },
+        "observations": [
+            {
+                "recordedBy": "bubbles.analyst",
+                "recordedAt": "2026-08-10T00:00:00Z",
+                "kind": "scope-boundary",
+                "summary": "This feature ends at an honest, dated, append-only dossier per topic. It deliberately does NOT route topic findings into payload.nextSession.actions, the decision-attention tier, or the red-alert pipeline. That routing is specs/020-research-action-routing-and-alerts and was split out under P25 (no new spec above ~40 functional requirements or ~5 scopes). Any certification that treats a topic action item reaching the brief action list as this feature's success signal is measuring Feature 020."
+            },
+            {
+                "recordedBy": "bubbles.analyst",
+                "recordedAt": "2026-08-10T00:00:00Z",
+                "kind": "hard-environmental-constraint",
+                "summary": "scripts/brief-refresh-scheduled.sh clones origin/main into a disposable checkout created with mktemp -d and runs scripts/brief-refresh-and-push.sh inside it. An unattended generation therefore sees only committed files. Any design that stores the topic registry in browser localStorage, session storage, or an uncommitted local file makes the entire feature invisible to the scheduler. FR-019-001 and FR-019-002 exist for this reason and must not be relaxed."
+            },
+            {
+                "recordedBy": "bubbles.analyst",
+                "recordedAt": "2026-08-10T00:00:00Z",
+                "kind": "adjacent-feature-separation",
+                "summary": "specs/008-portfolio-survival-and-brief-lab owns a PRIVATE, portfolio-derived research queue whose publication is withheld through site-exclusions.json. This agenda is PUBLIC and topic-driven and must never consume private holdings. Non-Goal 2 and FR-019-036 keep them apart. Merging the two surfaces would breach P13 (tickers only, forever)."
+            },
+            {
+                "recordedBy": "bubbles.analyst",
+                "recordedAt": "2026-08-10T00:00:00Z",
+                "kind": "open-design-question",
+                "summary": "Which lane researches a topic is undecided and has real consequences. scripts/brief-narrative-parallel.mjs runs four write-disjoint lanes; only core and signals declare web: true, and their fetches are restricted to the 15-host webAllow allowlist. Each lane may write only .brief-work/<lane>.json and owns an exact set of top-level payload keys, verified by readCompleteFragment against the declared key set. Adding topic research to an existing lane's key set versus adding a lane is a write-disjointness decision that design.md must resolve before implementation."
+            }
+        ]
+    },
+    "policySnapshot": {
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "repo-default"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
+    },
+    "transitionRequests": [],
+    "reworkQueue": [],
+    "executionHistory": [],
+    "activeBugs": [],
+    "resolvedBugs": [],
+    "failures": [],
+    "scopeLayout": "per-scope-directory",
+    "artifacts": {
+        "spec": "spec.md",
+        "design": "design.md",
+        "scopes": "scopes/_index.md",
+        "report": "scopes/NN-name/report.md",
+        "uservalidation": "uservalidation.md",
+        "scenarioManifest": "scenario-manifest.json"
+    },
+    "statusDiscipline": {
+        "validStatuses": [
+            "not_started",
+            "in_progress",
+            "blocked",
+            "specs_hardened",
+            "docs_updated",
+            "validated",
+            "done"
+        ],
+        "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+    },
+    "notes": "Spec-level planning artifacts authored by bubbles.analyst. spec.md, scenario-manifest.json and this file only. design.md, scopes and test-plan.json are not yet authored. 38 functional requirements and 5 intended scopes, inside the P25 cap."
+}

@@ -1,0 +1,512 @@
+{
+    "contractVersion": "scenario-manifest/v1",
+    "featureDir": "specs/020-research-action-routing-and-alerts",
+    "generatedBy": "bubbles.analyst",
+    "generatedAt": "2026-08-10T00:00:00Z",
+    "stage": "spec-level-planning",
+    "stageNote": "Authored at spec level before scopes.md and test-plan.json exist. scopeId values name the intended scope decomposition recorded in spec.md and are subject to change when bubbles.plan authors the scopes. linkedTests, testRows and evidenceRefs are deliberately empty because no test plan has been authored; populating them now would be a fabricated linkage.",
+    "scenarioCount": 25,
+    "businessScenarioMapping": "SCN-020-001 through SCN-020-025 map one-to-one onto BS-020-001 through BS-020-025 in spec.md. SCN-020-024 and SCN-020-025 belong to scope 4 and were added when spec.md assumption 4 was closed; they carry the next free identifiers rather than displacing any existing scenario number, so every prior identifier is stable.",
+    "scenarios": [
+        {
+            "scenarioId": "SCN-020-001",
+            "businessScenario": "BS-020-001",
+            "scopeId": "01-routable-finding-contract",
+            "scope": 1,
+            "status": "not_started",
+            "title": "The finding contract is destination-agnostic and complete",
+            "gherkin": {
+                "given": "a topic dossier finding emitted for routing",
+                "when": "it is validated against the routable-finding contract",
+                "then": "it carries subject, claim, dated sourced evidence, horizon, originating topic identifier and dossier version, and a finding missing any required member is refused by name rather than defaulted"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-002",
+            "businessScenario": "BS-020-002",
+            "scopeId": "01-routable-finding-contract",
+            "scope": 1,
+            "status": "not_started",
+            "title": "One definition per concept",
+            "gherkin": {
+                "given": "the routable-finding contract",
+                "when": "the repository is inspected for its definition",
+                "then": "exactly one module defines the shape and destination-eligibility rules and every consumer reads them from that module"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-003",
+            "businessScenario": "BS-020-003",
+            "scopeId": "02-action-list-routing-and-evaluability",
+            "scope": 2,
+            "status": "not_started",
+            "title": "A committed-universe subject with a real invalidation level publishes",
+            "gherkin": {
+                "given": "a topic finding naming an instrument in the committed universe and an invalidation carrying a direction-correct numeric price level",
+                "when": "it is routed to the brief action list",
+                "then": "it publishes with the full action contract and its evaluability resolves to machine-checkable"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-004",
+            "businessScenario": "BS-020-004",
+            "scopeId": "02-action-list-routing-and-evaluability",
+            "scope": 2,
+            "status": "not_started",
+            "title": "An out-of-universe swing call is withheld and named",
+            "gherkin": {
+                "given": "a swing or tactical topic finding whose only instrument is outside the committed instrument universe",
+                "when": "it is routed to the brief action list",
+                "then": "it is not emitted as an action, a named exclusion records no-instrument-in-committed-universe, and the rest of the brief still publishes"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-005",
+            "businessScenario": "BS-020-005",
+            "scopeId": "02-action-list-routing-and-evaluability",
+            "scope": 2,
+            "status": "not_started",
+            "title": "An unfalsifiable call cannot inflate the hit rate",
+            "gherkin": {
+                "given": "a swing or tactical topic finding whose invalidation carries no attributable direction-correct price level",
+                "when": "it is routed to the brief action list",
+                "then": "it is not emitted as an action and a named exclusion records the missing invalidation level"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-006",
+            "businessScenario": "BS-020-006",
+            "scopeId": "02-action-list-routing-and-evaluability",
+            "scope": 2,
+            "status": "not_started",
+            "title": "Topic actions fill free slots only",
+            "gherkin": {
+                "given": "more qualifying topic findings than remaining slots under the configured action maximum",
+                "when": "routing selects actions",
+                "then": "the published action count does not exceed the maximum, every action present before routing is still present afterwards unchanged and in its original order, every unplaced qualifying finding is a named exclusion with a cap reason, and no topic finding is published by removing or overwriting an existing action"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-007",
+            "businessScenario": "BS-020-007",
+            "scopeId": "02-action-list-routing-and-evaluability",
+            "scope": 2,
+            "status": "not_started",
+            "title": "Structural horizon is out of the evaluability rule's scope",
+            "gherkin": {
+                "given": "a topic finding whose horizon is structural",
+                "when": "it is routed to the brief action list",
+                "then": "the swing and tactical evaluability rule does not apply, it publishes only if it satisfies the full action contract, and it is not presented as a scored directional call"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-008",
+            "businessScenario": "BS-020-008",
+            "scopeId": "03-attention-tier-routing-and-exclusions",
+            "scope": 3,
+            "status": "not_started",
+            "title": "A public subject with a live tool deep link publishes",
+            "gherkin": {
+                "given": "a topic finding inside the public watchlist scope whose deep link is a tool that filed a read this generation and whose verb is a research verb",
+                "when": "it is routed to the attention tier",
+                "then": "it publishes as an attention item"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-009",
+            "businessScenario": "BS-020-009",
+            "scopeId": "03-attention-tier-routing-and-exclusions",
+            "scope": 3,
+            "status": "not_started",
+            "title": "RLATTN-PRIVACY is honoured, not worked around",
+            "gherkin": {
+                "given": "a topic finding whose subject is outside the public watchlist scope",
+                "when": "it is routed to the attention tier",
+                "then": "it is refused with the privacy code, the refusal is recorded with code, field and reason, and no substitute subject is used to force publication"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-010",
+            "businessScenario": "BS-020-010",
+            "scopeId": "03-attention-tier-routing-and-exclusions",
+            "scope": 3,
+            "status": "not_started",
+            "title": "RLATTN-DEEPLINK is honoured",
+            "gherkin": {
+                "given": "a topic finding whose deep link is not among this generation's tool-read deep links",
+                "when": "it is routed to the attention tier",
+                "then": "it is refused with the deep-link code and the refusal is recorded with code, field and reason"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-011",
+            "businessScenario": "BS-020-011",
+            "scopeId": "03-attention-tier-routing-and-exclusions",
+            "scope": 3,
+            "status": "not_started",
+            "title": "RLATTN-VERB is honoured",
+            "gherkin": {
+                "given": "a topic finding carrying a verb outside the research-verb vocabulary",
+                "when": "it is routed to the attention tier",
+                "then": "it is refused with the verb code and the refusal is recorded with code, field and reason"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-012",
+            "businessScenario": "BS-020-012",
+            "scopeId": "03-attention-tier-routing-and-exclusions",
+            "scope": 3,
+            "status": "not_started",
+            "title": "RLATTN-OVERLAP is honoured",
+            "gherkin": {
+                "given": "a topic finding whose subject is already published in the action list this generation",
+                "when": "it is routed to the attention tier",
+                "then": "it is refused with the overlap code and the reader is not told the same thing twice"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-013",
+            "businessScenario": "BS-020-013",
+            "scopeId": "03-attention-tier-routing-and-exclusions",
+            "scope": 3,
+            "status": "not_started",
+            "title": "Built plus excluded equals declared",
+            "gherkin": {
+                "given": "a generation in which topic findings were routed to the attention tier",
+                "when": "the published payload is inspected",
+                "then": "built items plus recorded exclusions equal the declared count and an empty tier is accepted rather than padded"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-014",
+            "businessScenario": "BS-020-014",
+            "scopeId": "04-anomaly-seed-and-alert-candidacy",
+            "scope": 4,
+            "status": "not_started",
+            "title": "A finding whose transmission maps to a certified channel enters the alert pipeline",
+            "gherkin": {
+                "given": "a topic finding carrying owner evidence and a transmission that maps to a certified channel",
+                "when": "it is routed to the alert pipeline",
+                "then": "it is recorded as an anomaly seed naming its transmission channel from the existing closed channel vocabulary, and no frozen evidence bundle is required for the seed to be recorded"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-015",
+            "businessScenario": "BS-020-015",
+            "scopeId": "04-anomaly-seed-and-alert-candidacy",
+            "scope": 4,
+            "status": "not_started",
+            "title": "The admission bar is applied unchanged",
+            "gherkin": {
+                "given": "topic-derived anomaly seeds",
+                "when": "they are clustered and built into a candidate",
+                "then": "the candidate is scored against the existing policy, a below-threshold candidate is rejected with an existing rejection reason, and no threshold is lowered because the origin is a research topic"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-016",
+            "businessScenario": "BS-020-016",
+            "scopeId": "04-anomaly-seed-and-alert-candidacy",
+            "scope": 4,
+            "status": "not_started",
+            "title": "The publication gate is respected",
+            "gherkin": {
+                "given": "a topic-derived candidate that would clear every evidence bar",
+                "when": "the alert view is composed",
+                "then": "the projection reports the existing dependency-pending publication state, no path sets published to true, and the reader is told the qualification is local"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-017",
+            "businessScenario": "BS-020-017",
+            "scopeId": "04-anomaly-seed-and-alert-candidacy",
+            "scope": 4,
+            "status": "not_started",
+            "title": "The forbidden-term vocabulary is honoured",
+            "gherkin": {
+                "given": "a topic finding whose text contains a term in the forbidden alarmist vocabulary",
+                "when": "it is routed to the alert pipeline",
+                "then": "it is refused with a named reason and no alarmist term reaches any published surface"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-018",
+            "businessScenario": "BS-020-018",
+            "scopeId": "04-anomaly-seed-and-alert-candidacy",
+            "scope": 4,
+            "status": "not_started",
+            "title": "Nothing qualified this window",
+            "gherkin": {
+                "given": "no topic-derived candidate cleared the evidence bar this window",
+                "when": "the alert view is composed",
+                "then": "the empty statement is the exact committed empty-state copy and no weak candidate is promoted to avoid an empty section"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-019",
+            "businessScenario": "BS-020-019",
+            "scopeId": "05-scoring-ledger-and-degraded-modes",
+            "scope": 5,
+            "status": "not_started",
+            "title": "No exemption for research origin",
+            "gherkin": {
+                "given": "a published topic-originated action that later resolves",
+                "when": "the outcome ledger is updated",
+                "then": "the call appears with its outcome alongside non-topic calls and its origin does not exempt it from the hit and miss counts"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-020",
+            "businessScenario": "BS-020-020",
+            "scopeId": "05-scoring-ledger-and-degraded-modes",
+            "scope": 5,
+            "status": "not_started",
+            "title": "Origin is recorded, not privileged",
+            "gherkin": {
+                "given": "a published topic-originated action",
+                "when": "the ledger entry is inspected",
+                "then": "it records the originating topic identifier and dossier version and that origin changes no scoring rule, threshold or weighting"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-021",
+            "businessScenario": "BS-020-021",
+            "scopeId": "05-scoring-ledger-and-degraded-modes",
+            "scope": 5,
+            "status": "not_started",
+            "title": "A correction is a new event",
+            "gherkin": {
+                "given": "a published topic-originated call whose recorded outcome is later corrected",
+                "when": "the correction is applied",
+                "then": "it is a new entry referencing the original and the original entry is not edited or removed"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-022",
+            "businessScenario": "BS-020-022",
+            "scopeId": "05-scoring-ledger-and-degraded-modes",
+            "scope": 5,
+            "status": "not_started",
+            "title": "A missing capability is disclosed",
+            "gherkin": {
+                "given": "live Red Alert publication is unavailable and a topic-derived candidate cleared the local evidence bar",
+                "when": "the reader views the alert surface",
+                "then": "the surface states publication is dependency-pending and only local qualification is shown, and the candidate is still recorded"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-023",
+            "businessScenario": "BS-020-023",
+            "scopeId": "05-scoring-ledger-and-degraded-modes",
+            "scope": 5,
+            "status": "not_started",
+            "title": "Research is distinguishable from silence",
+            "gherkin": {
+                "given": "a topic finding refused by every destination",
+                "when": "the generation completes",
+                "then": "the operator can see the finding existed and which gate refused it, the reasons carry each refusing gate's own code, and the finding is not silently discarded"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-024",
+            "businessScenario": "BS-020-024",
+            "scopeId": "04-anomaly-seed-and-alert-candidacy",
+            "scope": 4,
+            "status": "not_started",
+            "title": "An unmappable transmission is a named outcome, not a forced fit",
+            "gherkin": {
+                "given": "a topic finding whose transmission matches none of the certified channels",
+                "when": "it is routed to the alert pipeline",
+                "then": "no anomaly seed is emitted, the outcome is recorded by name as a finding with no certified transmission channel, the closed channel vocabulary is not extended and no channel is approximated to admit it, and its eligibility for the action list and the attention tier is unaffected"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "SCN-020-025",
+            "businessScenario": "BS-020-025",
+            "scopeId": "04-anomaly-seed-and-alert-candidacy",
+            "scope": 4,
+            "status": "not_started",
+            "title": "Seeding and candidacy have different preconditions, stated honestly",
+            "gherkin": {
+                "given": "a topic-derived anomaly seed whose evidence did not come through the committed acquisition path",
+                "when": "candidate assembly is attempted",
+                "then": "no candidate is assembled, the seed remains recorded rather than discarded, the outcome is recorded by name as a missing frozen evidence bundle, and no bundle is substituted or synthesised to promote it"
+            },
+            "behaviorClass": "api",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "linkedTests": [],
+            "testRows": [],
+            "evidenceRefs": []
+        }
+    ]
+}

@@ -15,7 +15,7 @@
 
 import { createRequire } from 'node:module';
 import { existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { relative, resolve } from 'node:path';
 
 const require = createRequire(import.meta.url);
 const RLCONTRACTS = require('../rlcontracts.js');
@@ -283,7 +283,7 @@ function readJson(path, errors) {
   try {
     return JSON.parse(readFileSync(path, 'utf8'));
   } catch (error) {
-    errors.push(`artifact-unparsable at ${path} — ${error.message}`);
+    errors.push(`artifact-unparsable at ${relative(process.cwd(), path) || path} — ${error.message}`);
     return null;
   }
 }
@@ -296,10 +296,13 @@ function main(argv) {
   }
   const positional = argv.filter((arg) => !arg.startsWith('--'));
   const artifactPath = resolve(process.cwd(), positional[0] || 'data/official-curves/official-curves.json');
+  // Reported repo-relative: an absolute path would carry the operator's home
+  // directory into any evidence block that quotes this output.
+  const reportedPath = relative(process.cwd(), artifactPath) || artifactPath;
   const errors = [];
 
   if (!existsSync(artifactPath)) {
-    console.error(`[official-curves] FAIL: artifact-missing at ${artifactPath}`);
+    console.error(`[official-curves] FAIL: artifact-missing at ${reportedPath}`);
     return 1;
   }
   const artifact = readJson(artifactPath, errors);
@@ -314,7 +317,7 @@ function main(argv) {
     for (const error of errors) console.error('  - ' + error);
     return 1;
   }
-  console.log(`[official-curves] PASS: ${artifactPath} satisfies ${OFFICIAL_CURVE_CONTRACT_VERSION}`);
+  console.log(`[official-curves] PASS: ${reportedPath} satisfies ${OFFICIAL_CURVE_CONTRACT_VERSION}`);
   return 0;
 }
 

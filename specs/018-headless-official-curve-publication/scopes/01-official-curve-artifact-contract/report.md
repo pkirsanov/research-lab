@@ -82,7 +82,7 @@ Command: `node scripts/validate-official-curves.mjs`
 
 ```text
 $ node scripts/validate-official-curves.mjs tests/fixtures/official-curves/conformant.json
-[official-curves] PASS: /home/philipk/research-lab/tests/fixtures/official-curves/conformant.json satisfies official-curve-artifact/v1
+[official-curves] PASS: tests/fixtures/official-curves/conformant.json satisfies official-curve-artifact/v1
 exit=0
 $ node scripts/validate-official-curves.mjs tests/fixtures/official-curves/missing-required-field.json
 [official-curves] FAIL
@@ -339,7 +339,7 @@ Command: `node scripts/validate-official-curves.mjs`
 
 ```text
 $ node scripts/validate-official-curves.mjs tests/fixtures/official-curves/conformant.json
-[official-curves] PASS: /home/philipk/research-lab/tests/fixtures/official-curves/conformant.json satisfies official-curve-artifact/v1
+[official-curves] PASS: tests/fixtures/official-curves/conformant.json satisfies official-curve-artifact/v1
 exit=0
 
 missing-required-field     exit=1 errors=2  family-field-missing
@@ -417,6 +417,15 @@ scalar twice, once through its parent key and once through the recursion, so the
 that double-counts teaches its reader to distrust its counts. Fixed in the same
 commit by visiting array elements explicitly and returning early for scalars.
 Measured after: that fixture reports `errors=1`. Owner: this scope. Closed.
+
+**F-018-03 — the gate printed a resolved ABSOLUTE path, leaking the operator's
+home directory into evidence.** `node scripts/pii-scan.mjs` refused with two
+`rule=home-path` findings in this report, because the gate's PASS line printed
+`resolve(...)` output and I quoted it verbatim. Fixed at the SOURCE rather than
+by redacting the two lines: the gate now reports `relative(process.cwd(), ...)`,
+so no future run can put a home directory into an evidence block that quotes it.
+The two lines above were then re-recorded from the corrected run. Owner: this
+scope. Closed — `pii-scan` findings back to 0 and the suite back to 1401 / 0.
 
 No finding is routed onward. Nothing was deferred.
 

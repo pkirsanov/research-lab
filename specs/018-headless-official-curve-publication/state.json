@@ -97,7 +97,8 @@
       "04-headless-consumption-path",
       "05-brief-read-and-provenance-render",
       "06-one-model-parity-guarantee"
-    ],    "certifiedCompletedPhases": [],
+    ],
+    "certifiedCompletedPhases": [],
     "scopeProgress": [],
     "observations": [
       {

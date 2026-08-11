@@ -34,12 +34,21 @@ test.afterAll(async () => {
   });
 });
 
+// The engine panels are Power-view detail (class .pw), so a test that inspects them must open
+// Power first. Asserting body.power as well keeps this from silently degrading into a no-op
+// click if the segmented control is ever renamed.
+async function openPower(page) {
+  await page.locator('#modeSeg button[data-mode="power"]').click();
+  await expect(page.locator('body')).toHaveClass(/power/);
+}
+
 async function openScope2Case(page, caseId, profileId = 'balanced') {
   const requestedPaths = [];
   page.on('request', (request) => requestedPaths.push(new URL(request.url()).pathname));
   await page.goto(`${baseUrl}/trend-dynamics-cycle-lab.html?fixture=trend-engine&case=${caseId}&profile=${profileId}&clock=${CLOCK}`);
   await expect(page.locator('#fixtureBand')).toContainText('TEST FIXTURE - ANALYTIC');
   await expect(page.locator('#publicationState')).toHaveText('TEST FIXTURE: owner-read publication disabled.');
+  await openPower(page);
   await expect(page.locator('#enginePanel')).toBeVisible();
   return requestedPaths;
 }
@@ -50,6 +59,7 @@ async function openScope3Case(page, caseId) {
   await page.goto(`${baseUrl}/trend-dynamics-cycle-lab.html?fixture=cycle-engine&case=${caseId}&clock=${CLOCK}`);
   await expect(page.locator('#fixtureBand')).toContainText('TEST FIXTURE - ANALYTIC');
   await expect(page.locator('#publicationState')).toHaveText('TEST FIXTURE: owner-read publication disabled.');
+  await openPower(page);
   await expect(page.locator('#cycleEnginePanel')).toBeVisible();
   return requestedPaths;
 }
@@ -357,6 +367,7 @@ test('Regression: SCN-006-013 ENSO context stays scoped to source season geograp
   page.on('request', (request) => requestedPaths.push(new URL(request.url()).pathname));
   await page.goto(`${baseUrl}/trend-dynamics-cycle-lab.html?fixture=climate-context&clock=${CLOCK}`);
   await expect(page.locator('#fixtureBand')).toContainText('TEST FIXTURE - SOURCE-QUALIFIED');
+  await openPower(page);
   await expect(page.locator('#cycleEnginePanel')).toBeVisible();
   await expect(page.locator('#cycleState')).toHaveText('CONTEXTUAL');
   await expect(page.locator('#cycleContext')).toContainText('NOAA Climate.gov');

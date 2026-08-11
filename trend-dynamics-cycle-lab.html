@@ -364,6 +364,35 @@
         grid-template-columns: minmax(0, 1fr);
       }
     }
+
+    /* Simple is the default. Power-only panels carry .pw and are revealed by body.power. */
+    .viewseg {
+      display: inline-flex;
+      gap: 4px;
+      margin: 12px 0;
+      padding: 3px;
+      border: 1px solid var(--line, #d5d9e0);
+      border-radius: 8px;
+    }
+
+    .viewseg button {
+      font: inherit;
+      color: inherit;
+      padding: 6px 14px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .viewseg button[aria-selected="true"] {
+      background: var(--accent-soft, #e8ecf5);
+      font-weight: 600;
+    }
+
+    body:not(.power) .pw {
+      display: none;
+    }
   </style>
 </head>
 
@@ -381,6 +410,10 @@
     <h1>Trend Dynamics &amp; Cycle Lab</h1>
     <p class="lede">A deterministic foundation for explicit source vintages, transforms, quality gates, cycle types, and
       bounded work. Missing evidence remains missing. Irregular observations remain irregular.</p>
+    <div class="viewseg" id="modeSeg" role="tablist" aria-label="View mode">
+      <button type="button" data-mode="simple" role="tab" aria-selected="true">Simple</button>
+      <button type="button" data-mode="power" role="tab" aria-selected="false">Power</button>
+    </div>
     <div id="fixtureBand" role="status" aria-live="polite"></div>
     <section class="truth-band" aria-labelledby="truthHeading">
       <div>
@@ -418,14 +451,14 @@
         <p class="notice">Educational research only. This foundation is not investment advice, an automated execution
           surface, or a scientific forecast guarantee.</p>
       </section>
-      <aside class="audit" aria-labelledby="auditHeading">
+      <aside class="audit pw" aria-labelledby="auditHeading">
         <h2 id="auditHeading">Foundation audit</h2>
         <h3>Method eligibility</h3>
         <pre id="methodEligibility">Waiting for validated observations.</pre>
         <h3>Quality and contract reasons</h3>
         <pre id="qualityReasons">No errors recorded.</pre>
       </aside>
-      <section id="enginePanel" class="engine-panel" aria-labelledby="engineHeading" hidden>
+      <section id="enginePanel" class="engine-panel pw" aria-labelledby="engineHeading" hidden>
         <div class="truth-label">Scope 2 computed evidence</div>
         <h2 id="engineHeading">Trend, dynamics, change, and sensitivity</h2>
         <div class="engine-control">
@@ -472,7 +505,7 @@
         </div>
         <p id="engineIntegrity" class="notice">Integrity gates unavailable.</p>
       </section>
-      <section id="cycleEnginePanel" class="engine-panel" aria-labelledby="cycleScenarioTitle" hidden>
+      <section id="cycleEnginePanel" class="engine-panel pw" aria-labelledby="cycleScenarioTitle" hidden>
         <div class="truth-label">Scope 3 computed evidence</div>
         <h2 id="cycleScenarioTitle">Season, cycle, context, and association</h2>
         <div class="engine-summary">
@@ -3610,7 +3643,39 @@
       window.__TDC_DIAGNOSTICS__ = Object.freeze({ fixtureId: null, ownerReadPublished: false, foundation: Object.freeze({ truthState: truth.toLowerCase(), interpolationApplied: false, quality: quality.profile, endpointPosture: resolved.replayPosture }) });
     }
 
+    /* Restores the persisted mode and keeps the tablist's ARIA in step with body.power.
+       No draw handler is supplied yet: the charts arrive with the scope-4 screens, and
+       tdcApplyMode only redraws when one is provided. */
+    function tdcInitMode() {
+      var seg = document.getElementById('modeSeg');
+      if (!seg) return;
+      var buttons = [].slice.call(seg.querySelectorAll('button[data-mode]'));
+      if (!buttons.length) return;
+      var ctx = {
+        body: document.body,
+        tabs: buttons.map(function (button) { return { mode: button.getAttribute('data-mode'), ariaSelected: false }; }),
+        lastCompleteResult: null
+      };
+      var deps = {
+        persist: function (mode) {
+          try { window.localStorage.setItem('tdc.mode', mode); } catch (error) { /* private mode: the view still switches */ }
+        }
+      };
+      function syncTabs() {
+        for (var i = 0; i < buttons.length; i++) buttons[i].setAttribute('aria-selected', ctx.tabs[i].ariaSelected ? 'true' : 'false');
+      }
+      var saved = null;
+      try { saved = window.localStorage.getItem('tdc.mode'); } catch (error) { saved = null; }
+      if (tdcApplyMode(saved === 'power' ? 'power' : 'simple', ctx, deps)) syncTabs();
+      seg.addEventListener('click', function (event) {
+        var button = event.target && event.target.closest ? event.target.closest('button[data-mode]') : null;
+        if (!button) return;
+        if (tdcApplyMode(button.getAttribute('data-mode'), ctx, deps)) syncTabs();
+      });
+    }
+
     function tdcBoot() {
+      tdcInitMode();
       var selection = tdcFixtureSelection(window.location.search);
       if (!selection.ok) return tdcRenderInvalid([selection.error], selection, 'Fixture selection is invalid');
       if (selection.fixture) tdcSetText('fixtureBand', selection.label + ' - owner publication disabled');

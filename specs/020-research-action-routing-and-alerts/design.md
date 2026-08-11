@@ -227,7 +227,7 @@ eligibility itself.
 ### Variation axes
 
 | Axis | Variants | Why the foundation must absorb the difference |
-|---|---|---|
+| --- | --- | --- |
 | **Destination contract** | action (`recommendation-body` + the action field contract), attention (`decision-attention/v1`), alert (`anomaly-seed/v1` → `red-alert-candidate/v1`) | Three unrelated rule sets, three unrelated code namespaces, one uniform decision record |
 | **Refusal channel** | action refusals → the new `routingRecord`; attention refusals → the composer's own `attentionExclusions[]`, referenced not copied; alert refusals → reason-class counts | `attentionExclusions[].code` is validated against `RLATTN.REFUSAL_CODES`, so an action reason placed there fails the publish gate |
 | **Runtime environment** | Node collector (routes and records), browser (renders the record only) | The browser must never re-decide eligibility; it holds the same module but is supplied no adjudicators |
@@ -364,7 +364,7 @@ restate or replace a destination's own code; a destination's verdict is always
 recorded with that destination's code.
 
 | Code | Refused when | FR |
-|---|---|---|
+| --- | --- | --- |
 | `RLROUTE-CONTRACT` | `contractVersion` absent or unknown | 020-001 |
 | `RLROUTE-INCOMPLETE` | a required member is absent; nothing is defaulted | 020-003 |
 | `RLROUTE-ADJUDICATOR` | no adjudicator was supplied for a destination the module was asked to route | 020-004 |
@@ -391,7 +391,7 @@ the publish gate and the browser hold the identical frozen object.
 ### 5.1 Exported surface
 
 | Export | Kind | Consumers |
-|---|---|---|
+| --- | --- | --- |
 | `CONTRACT_VERSION`, `RECORD_CONTRACT_VERSION` | frozen strings | all |
 | `DESTINATIONS`, `REFUSAL_CODES`, `DECISION_STATES` | frozen arrays | all |
 | `validateRoutableFinding(finding)` | pure | collector, publish gate |
@@ -410,7 +410,7 @@ holds none, and no rule to approximate because it calls the owner. The Node
 collector supplies:
 
 | Destination | Adjudicator | Source of truth |
-|---|---|---|
+| --- | --- | --- |
 | `action` | `buildRecommendationBody(candidateAction, { universe })` and the action field contract | `scripts/recommendation-body.mjs`, `scripts/validate-brief-payload.mjs:363-368` |
 | `attention` | `RLATTN.buildAttentionItem(gateResult, authored, ctx)` through `scripts/build-attention-items.mjs` | `rlattention.js` |
 | `alert` | `RLMKT.validateAnomalySeed` → `clusterAnomalySeeds` → `assembleCandidate` → `scoreCandidate` → qualification | `rlmarketaction.js` |
@@ -471,7 +471,7 @@ routing.
 **Verified reach of the three real topics.** Per-finding, never per-topic:
 
 | Finding subject | Action list | Attention tier | Alert pipeline |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `LMT`, `RTX` | can publish — both are in `data/bars/` | refused `RLATTN-PRIVACY` — neither is in `watchlist.json` | seed, and candidate where a bundle exists |
 | A European defense listing | refused `no-instrument-in-committed-universe` | refused `RLATTN-PRIVACY` | seed still reachable |
 | `XLE`, `USO`, `BNO` | can publish — all three are in `data/bars/` | `XLE` can publish — it is in `watchlist.json` | `geopolitical-supply-chain`, `commodities-energy` |
@@ -611,7 +611,7 @@ Expressed as `spec.md` requires — as a **named missing capability**, never as
 another spec's status:
 
 | Missing capability | Degraded behaviour while absent |
-|---|---|
+| --- | --- |
 | **Live Red Alert publication** | Seeds and scored candidates are produced and recorded; the reader is told the qualification is local and nothing was published; nothing is faked |
 | **A registered research surface filing a tool read** | Attention routing refuses `RLATTN-DEEPLINK` every time and each refusal is recorded; the action list and the alert pipeline are unaffected |
 | **A frozen web-evidence bundle for a finding** | The finding stops at seed; `RLROUTE-BUNDLE` is recorded; no candidate is assembled |
@@ -653,7 +653,7 @@ differential scoring rule by accident.
 ## 8. Reader Surface — Ownership
 
 | Surface | Owner | This feature may | This feature must not |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `#nextSession` | the existing action contract | contribute an action satisfying the full contract, carrying its origin | add a field, relax the cap, or bypass evaluability |
 | `#decisionAttention` | `rlattention.js` | submit a candidate through the existing composer | compose by a parallel path, rename a subject to dodge overlap, or invent a deep link |
 | Red-alert area | `rlmarketaction.js` | contribute seeds and scored candidates | set published, fake an alert, or lower a threshold |
@@ -669,7 +669,7 @@ this feature adds only *where it came from* and *why it did not arrive*.
 ## 9. Host Facts The Reader Surface Is Built On
 
 | Fact | Evidence |
-|---|---|
+| --- | --- |
 | An action renders as the `.rec` card: action badge, subject, horizon and confidence pills, rationale, `⚓` anchor, `▸ trigger:` / `✕ invalidation:`, then the deep link | `rlbrief.js` `renderRecs()` / `renderNextSession()` |
 | The action cap is 5; the attention card cap is 7 | `market-brief.config.json` `thresholds` |
 | Evaluability has three named reasons, not two | `scripts/recommendation-body.mjs:250-263` |
@@ -702,7 +702,7 @@ Machine codes travel in `data-*` attributes; only the right column is visible.
 ### 10.1 Action-list evaluability
 
 | Machine reason | Reader text |
-|---|---|
+| --- | --- |
 | `no-instrument-in-committed-universe` | "This project holds no price history for [subject], so a call on it could never be scored later. It is kept as research, not published as a call." |
 | `no-attributable-price-level` | "No price level was written that a later check could read, so this could not be published as a call." |
 | `no-attributable-invalidation-level` | "No level was written that would prove this wrong, so it could not be published as a call. A call that can only be right is not a call." |
@@ -712,7 +712,7 @@ Machine codes travel in `data-*` attributes; only the right column is visible.
 ### 10.2 Attention-tier refusals (13 closed codes)
 
 | Machine code | Reader text |
-|---|---|
+| --- | --- |
 | `RLATTN-PRIVACY` | "[subject] is not on the public watchlist, so it cannot appear in the decision list. This is a scope rule, not a fault in the research." |
 | `RLATTN-DEEPLINK` | "No tool on this site published a read that owns this figure in this run, so there is nowhere to send you for the underlying math." |
 | `RLATTN-VERB` | "This asked for an action rather than a piece of research, and the decision list only ever asks you to research." |
@@ -729,7 +729,7 @@ Machine codes travel in `data-*` attributes; only the right column is visible.
 ### 10.3 Alert pipeline
 
 | Machine state | Reader text |
-|---|---|
+| --- | --- |
 | `publicationState` is the pending gate | "Publishing alerts is not available yet. What follows is a local check only — nothing was published as an alert." |
 | candidate cleared the local bar | "This cleared the local evidence bar. It is recorded, and it was not published." |
 | `score-below-threshold` | "It did not reach the evidence score the bar requires." |
@@ -987,18 +987,21 @@ states where each finding went and links; it restates nothing.
 ```
 │ Nothing requires attention in this window.                             │
 ```
+
 (the composer's own empty statement, unchanged)
 
 ```
 │ No current candidate cleared the Red Alert evidence bar for this       │
 │ window.                                                                │
 ```
+
 (the exact committed sentence, unchanged)
 
 ```
 │ No recommendation clears the immediate-action bar for [date]. Keep the │
 │ current plan; use the owning tools for watch-only setups.              │
 ```
+
 (the existing action-list empty copy, unchanged)
 
 ---
@@ -1008,7 +1011,7 @@ states where each finding went and links; it restates nothing.
 ### 12.1 Every state, and what renders
 
 | # | State | Where it shows | Reader sees |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | T1 | Published as an action | `#nextSession` | normal `.rec` card + one origin line (§ 11.1) |
 | T2 | Published as an attention item | `#decisionAttention` | normal item + one origin line (§ 11.3) |
 | T3 | Recorded as a seed / scored candidate | red-alert area | "Cleared the local bar. Recorded. Not published." (§ 11.4) |
@@ -1135,7 +1138,7 @@ one:
 ### 14.1 Failure and degraded modes
 
 | Condition | Behaviour | Reader sees |
-|---|---|---|
+| --- | --- | --- |
 | No routable finding this run | `routingRecord` with `declaredFindingCount: 0`; legitimately empty | § 11.7 first empty statement |
 | A finding missing a required member | `RLROUTE-INCOMPLETE`; recorded; other findings unaffected | refusal-surface line |
 | Action adjudicator resolves `not-evaluable` | no action emitted; the exact reason recorded; the rest of the brief publishes | T4 / T5 / T6 |
@@ -1151,7 +1154,7 @@ one:
 ### 14.2 Guards, each with an adversarial case that can actually fail (FR-020-038, P23)
 
 | Guard | Adversarial case | What fails when the guard is removed |
-|---|---|---|
+| --- | --- | --- |
 | Balancing assertion (finding → decision) | a finding for which no adjudicator is invoked | a finding is silently discarded and the record still looks complete |
 | Born-evaluable before emission | a swing topic call on a subject outside the committed universe | an unscoreable call reaches the payload and relies on `--drop-unscoreable` after the fact |
 | Horizon fidelity `RLROUTE-HORIZON` | a swing dossier finding emitted as a `structural` action | the call escapes D16 entirely and enters the ledger unscoreable |
@@ -1170,7 +1173,7 @@ one:
 ### 14.3 Test surfaces (named without extensions, per `scripts/validate-spec-test-paths.mjs`)
 
 | Surface | Type | Covers |
-|---|---|---|
+| --- | --- | --- |
 | `research-routing.contract` | unit | routable-finding validation, every `RLROUTE-*` code, adjudicator injection, dispatch order (SCN-020-001, -002) |
 | `research-routing.action` | unit | born-evaluable across all three evaluability reasons, cap, deterministic selection, never-displace, structural guards (SCN-020-003 … -007) |
 | `research-routing.attention` | integration | composition through the existing composer, every refusal path, exclusion-index pointer, balancing (SCN-020-008 … -013) |
@@ -1191,7 +1194,7 @@ inside that scan; subjects are public tickers and public market objects only
 ### 15.1 The six conflicts the folded UX raised
 
 | Id | Conflict | Resolution |
-|---|---|---|
+| --- | --- | --- |
 | C-020-01 | FR-020-037 needs a reader-visible refusal channel; Non-Goal 3 forbids a new destination | § 4.3. Refusals live in a new **payload key** `routingRecord`, rendered inside the **existing** evidence drawer. Not a tier, not a view, not a second feed. The underlying record cannot join `attentionExclusions[]`, because `scripts/validate-brief-payload.mjs:438-440` validates that array's `code` against `RLATTN.REFUSAL_CODES` and would reject the payload. |
 | C-020-02 | A web-sourced finding may be structurally unable to earn an attention deep link | § 7.1. Resolved by Feature 019's registered `research-agenda-lab` tool read; this feature depends on that capability and § 7.3 names the degraded behaviour when it is absent. |
 | C-020-03 | "Several of the three real topics cannot produce a scoreable call today at all" is stronger than the data supports | Adopted. The design and every piece of copy use **per-finding** phrasing. Re-verified: `data/bars/` contains `LMT`, `RTX`, `USO`, `BNO`, `CL`, `XLE`, `DBA`, `XOM`, `CVX`, `CTVA`, `DE`; it contains no European defense listing, no urea and no potash. No spec edit is proposed. |
@@ -1236,7 +1239,7 @@ inside that scan; subjects are public tickers and public market objects only
 ## 16. Complexity Tracking
 
 | Deviation from the simplest viable approach | Simpler alternative considered | Why it was rejected |
-|---|---|---|
+| --- | --- | --- |
 | Injected adjudicators rather than direct calls inside the module | have `rlrouting.js` import each destination's rules | `rlrouting.js` is UMD and browser-loadable; `scripts/recommendation-body.mjs` is Node ESM. More importantly, a module that could reach a threshold could shadow one, and FR-020-006 forbids that |
 | A new `routingRecord` payload key | reuse `attentionExclusions[]` | `scripts/validate-brief-payload.mjs:438-440` validates that array's `code` against `RLATTN.REFUSAL_CODES`; an action reason there fails the publish gate |
 | Collector-composed topic actions | supply the material to the `core` lane as input | advisory, and the repository has already measured that failure — three consecutive publishes with an intact instruction and an armed gate |
@@ -1261,7 +1264,7 @@ inside that scan; subjects are public tickers and public market objects only
 ## 18. Traceability — Requirement To Design Element
 
 | FR | Design element |
-|---|---|
+| --- | --- |
 | FR-020-001 | § 4.1 `routable-finding/v1` required members |
 | FR-020-002 | § 3, § 5 — one UMD module, `createRequire`-loaded, three consumers |
 | FR-020-003 | § 4.1 `RLROUTE-INCOMPLETE`; nothing defaulted |

@@ -503,6 +503,29 @@ findings AUD-017-005 lists in `addressedFindings`. No high-severity observation
 survives this measurement unretired, so certification is not carrying concealed
 remediation.
 
+## Audit Verdict
+
+Index of every audit attempt on this packet, newest first. Each attempt has its
+own section below at a **stable** anchor of the form
+`#audit-verdict-aud-017-0NN`.
+
+The anchor is stable deliberately. These headings previously carried a
+`(SUPERSEDED by …)` suffix, which changed the slug every time a newer attempt
+landed and silently broke evidence pointers that were correct when written —
+the defect recorded as VAL-017-11, and the same one A-017-09 had already raised.
+Supersession is now stated in the body line under each heading, where it can
+change without invalidating a reference.
+
+| attempt | verdict | independent | state |
+|---|---|---|---|
+| [AUD-017-007](#audit-verdict-aud-017-007) | SHIP_WITH_NOTES | yes | ACTIVE |
+| [AUD-017-006](#audit-verdict-aud-017-006) | REWORK_REQUIRED | yes | superseded |
+| [AUD-017-005](#audit-verdict-aud-017-005) | SHIP_WITH_NOTES | yes | superseded |
+| [AUD-017-004](#audit-verdict-aud-017-004) | DO_NOT_SHIP | yes | superseded |
+| [AUD-017-003](#audit-verdict-aud-017-003) | REWORK_REQUIRED | **no** (parent-expanded) | superseded |
+| [AUD-017-002](#audit-verdict-aud-017-002) | REWORK_REQUIRED | yes | superseded |
+| [AUD-017-001](#audit-verdict-aud-017-001) | REWORK_REQUIRED | yes | superseded |
+
 ## Audit Verdict AUD-017-007
 
 **SHIP_WITH_NOTES** · profile `delivery-completion-v1` · attempt `AUD-017-007` ·
@@ -575,10 +598,11 @@ Four low-severity observations, including one recording that two measurements
 handed to the audit were **stale-low** — the audit re-executed rather than
 inheriting them, which is how it noticed. Nothing in the note set gates delivery.
 
-## Audit Verdict AUD-017-006 (SUPERSEDED by AUD-017-007)
+## Audit Verdict AUD-017-006
 
 **REWORK_REQUIRED** · `blockingCode: FR018-PUBLISH-GATE-UNENFORCED` ·
 `bubbles.audit` · 2026-08-10T17:05:00Z · supersedes `AUD-017-005` ·
+SUPERSEDED by `AUD-017-007` ·
 **`independentAudit: true`** · `unresolvedFindings: ["A-017-10"]`
 
 This attempt was owed because `AUD-017-005` was recorded at 03:08:41Z while the
@@ -596,10 +620,11 @@ nine reproduced. It then found A-017-10, which no prior attempt had recorded, an
 routed to `bubbles.plan` because closing it required a scope-02 scenario and DoD
 row before the implementation could be traced.
 
-## Audit Verdict AUD-017-005 (SUPERSEDED by AUD-017-006)
+## Audit Verdict AUD-017-005
 
 **SHIP_WITH_NOTES** · profile `delivery-completion-v1` · attempt `AUD-017-005` ·
 `bubbles.audit` · 2026-08-10T03:08:41Z · supersedes `AUD-017-004` ·
+SUPERSEDED by `AUD-017-006` ·
 **`independentAudit: true`**
 
 `AUD-017-004` refused delivery on one unresolved finding, **D19**, which it
@@ -803,10 +828,11 @@ resumeFromPhase: none
 END AUDIT_RESULT_V1
 ```
 
-## Audit Verdict AUD-017-004 (SUPERSEDED by AUD-017-005)
+## Audit Verdict AUD-017-004
 
 **DO_NOT_SHIP** · profile `delivery-completion-v1` · attempt `AUD-017-004` ·
 `bubbles.audit` · 2026-08-09T23:12:23Z · supersedes `AUD-017-003` ·
+SUPERSEDED by `AUD-017-005` ·
 **`independentAudit: true`**
 
 > Heading corrected by `bubbles.validate` 2026-08-10. This attempt's `evidenceRef`
@@ -1116,10 +1142,38 @@ agent owes rework, and no agent can clear the blocker either. `failedGateIds` is
 empty because the gates pass; `blockingCode` names an upstream data condition, not
 a gate failure.
 
-## Audit Verdict — AUD-017-002 (SUPERSEDED by AUD-017-004)
+## Audit Verdict AUD-017-003
+
+**REWORK_REQUIRED** · `blockingCode: DELIVERY_COMPLETION_FAILED` ·
+attempt `AUD-017-003` · `bubbles.workflow` · 2026-08-09T16:43:40Z ·
+supersedes `AUD-017-002` · SUPERSEDED by `AUD-017-004`
+
+**`independentAudit: false` — `provenanceMode: parent-expanded`.** This attempt
+is recorded here because its evidence pointer named a section that did not
+exist. It is NOT an independent audit and does not satisfy the
+`independent-audit` assurance input; the section exists so the pointer resolves
+to the truth about the attempt, not so the attempt reads as stronger than it was.
+
+It exists at all because the third `runSubagent` dispatch of `bubbles.audit`
+superseded `AUD-017-002` without writing its own record, leaving
+`currentAttemptId` null with zero ACTIVE attempts. `bubbles.workflow` expanded
+the work itself rather than leave the ledger empty, and said so in the record.
+
+- **guardExit:** 0 · **targetStatus:** done
+- **Closed on re-derived evidence (6):** `F-017-04`, `F-017-06`, `A-017-01`,
+  `A-017-02`, `A-017-03`, `A-017-04`, `A-017-05`, `A-017-06`
+- **Left unresolved (2):** `A-017-07`, `A-017-08`
+
+Full transcript: `state.json#execution.audit.attempts[AUD-017-003].summary`
+(5429 characters). The independent chain resumes at
+[AUD-017-004](#audit-verdict-aud-017-004), which is where an auditor other than
+the parent next examined this packet.
+
+## Audit Verdict AUD-017-002
 
 **REWORK_REQUIRED** · profile `delivery-completion-v1` · attempt `AUD-017-002` ·
-`bubbles.audit` · 2026-08-08T17:42:32Z · supersedes `AUD-017-001`
+`bubbles.audit` · 2026-08-08T17:42:32Z · supersedes `AUD-017-001` ·
+SUPERSEDED by `AUD-017-004`
 
 Two of the four reworked findings are genuinely closed and I verified them
 against the tree rather than against the rework summary. **A-017-01 and A-017-03
@@ -1350,10 +1404,11 @@ END AUDIT_RESULT_V1
 
 ---
 
-## Audit Verdict — AUD-017-001 (SUPERSEDED by AUD-017-002)
+## Audit Verdict AUD-017-001
 
 **REWORK_REQUIRED** · profile `delivery-completion-v1` · attempt `AUD-017-001` ·
-`bubbles.audit` · 2026-08-08T16:31:52Z
+`bubbles.audit` · 2026-08-08T16:31:52Z ·
+SUPERSEDED by `AUD-017-002`
 
 The delivered feature is sound. I re-ran every gate rather than reading this
 packet's account of them, and every implementation claim I could falsify held.

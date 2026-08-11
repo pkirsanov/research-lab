@@ -2,7 +2,7 @@
 
 ## 01-official-curve-artifact-contract
 
-**Status:** Not started
+**Status:** Done
 **Scope-Kind:** contract-foundation
 **Tags:** foundation:true, capability-foundation, artifact-contract, provenance, gate
 Depends On: none
@@ -256,36 +256,36 @@ byte-identical.
 
 #### Core Delivery Items
 
-- [ ] `rlcontracts.js` carries the two additive Treasury `SOURCE_IDS` keys and the two `SOURCE_POLICIES` entries in the `pathPrefix` form, with `SOURCE_KINDS` unchanged, proven by TP-01-09.
-- [ ] Every pre-existing `SOURCE_IDS` key and `SOURCE_POLICIES` entry is byte-identical, proven by TP-01-09 and TP-01-11.
-- [ ] `scripts/validate-official-curves.mjs` exists, exposes `validateOfficialCurves`, runs as a command, and carries no `--skip`, `--force`, `--ignore` or `--bypass` flag, proven by TP-01-03.
-- [ ] All eleven gate checks are implemented and each has a distinct named error, proven by TP-01-03 refusing seven adversarial fixtures with seven distinct causes.
-- [ ] The gate calls `validateSourceProvenance` from `rlcontracts.js` and restates none of its rules locally, proven by TP-01-07 showing the shared validator accepting the query-binding fixture that the feature gate refuses.
-- [ ] The source-id-to-query binding check refuses a nominal envelope carrying the real-yield query, proven by TP-01-07.
-- [ ] **R-4 settled:** `declaredPolicy` holds the committed policy block verbatim, `persistence` states `same-origin-artifact`, `rights` carries `public-official` unaltered, and a family writing `persistence: "browser-cache"` onto a committed file is refused, proven by TP-01-08.
-- [ ] The artifact declares its own `freshnessPolicy` block with `policyId`, `cadenceWindowRows`, `minCadenceObservations` and `publicationLagDays`, present in the conformant fixture and required by the gate, proven by TP-01-03.
-- [ ] The rights and restriction sweep refuses any oas value, financial-conditions value, `restricted-local-view` string, non-`home.treasury.gov` host or credential-shaped key anywhere in the artifact, proven by TP-01-04 and TP-01-06.
-- [ ] `bond-regime-universe.json` and `bond-regime-lab.html` are byte-identical at the end of this scope, verified by `git diff --name-only` naming neither file.
-- [ ] **R-5 settled:** no artifact in this feature directory names a `tests/*.mjs` path that is absent from disk, and `scripts/validate-spec-test-paths.baseline` is byte-identical, proven by TP-01-10.
+- [x] `rlcontracts.js` carries the two additive Treasury `SOURCE_IDS` keys and the two `SOURCE_POLICIES` entries in the `pathPrefix` form, with `SOURCE_KINDS` unchanged, proven by TP-01-09.
+- [x] Every pre-existing `SOURCE_IDS` key and `SOURCE_POLICIES` entry is byte-identical, proven by TP-01-09 and TP-01-11.
+- [x] `scripts/validate-official-curves.mjs` exists, exposes `validateOfficialCurves`, runs as a command, and carries no `--skip`, `--force`, `--ignore` or `--bypass` flag, proven by TP-01-03.
+- [x] All eleven gate checks are implemented and each has a distinct named error, proven by TP-01-03 refusing seven adversarial fixtures with seven distinct causes.
+- [x] The gate calls `validateSourceProvenance` from `rlcontracts.js` and restates none of its rules locally, proven by TP-01-07 showing the shared validator accepting the query-binding fixture that the feature gate refuses.
+- [x] The source-id-to-query binding check refuses a nominal envelope carrying the real-yield query, proven by TP-01-07.
+- [x] **R-4 settled:** `declaredPolicy` holds the committed policy block verbatim, `persistence` states `same-origin-artifact`, `rights` carries `public-official` unaltered, and a family writing `persistence: "browser-cache"` onto a committed file is refused, proven by TP-01-08.
+- [x] The artifact declares its own `freshnessPolicy` block with `policyId`, `cadenceWindowRows`, `minCadenceObservations` and `publicationLagDays`, present in the conformant fixture and required by the gate, proven by TP-01-03.
+- [x] The rights and restriction sweep refuses any oas value, financial-conditions value, `restricted-local-view` string, non-`home.treasury.gov` host or credential-shaped key anywhere in the artifact, proven by TP-01-04 and TP-01-06.
+- [x] `bond-regime-universe.json` and `bond-regime-lab.html` are byte-identical at the end of this scope, verified by `git diff --name-only` naming neither file.
+- [x] **R-5 settled:** no artifact in this feature directory names a `tests/*.mjs` path that is absent from disk, and `scripts/validate-spec-test-paths.baseline` is byte-identical, proven by TP-01-10.
 
 #### Test Evidence Items - Exact Parity With 11 Test Plan Rows
 
-- [ ] TP-01-01 executed with raw output recorded at `report.md#tp-01-01`.
-- [ ] TP-01-02 executed with raw output recorded at `report.md#tp-01-02`.
-- [ ] TP-01-03 executed with raw output recorded at `report.md#tp-01-03`.
-- [ ] TP-01-04 executed with raw output recorded at `report.md#tp-01-04`.
-- [ ] TP-01-05 executed with raw output recorded at `report.md#tp-01-05`.
-- [ ] TP-01-06 executed with raw output recorded at `report.md#tp-01-06`.
-- [ ] TP-01-07 executed with raw output recorded at `report.md#tp-01-07`.
-- [ ] TP-01-08 executed with raw output recorded at `report.md#tp-01-08`.
-- [ ] TP-01-09 executed with raw output recorded at `report.md#tp-01-09`.
-- [ ] TP-01-10 executed with raw output recorded at `report.md#tp-01-10`.
-- [ ] TP-01-11 executed with raw output recorded at `report.md#tp-01-11`.
+- [x] TP-01-01 executed with raw output recorded at `report.md#tp-01-01`.
+- [x] TP-01-02 executed with raw output recorded at `report.md#tp-01-02`.
+- [x] TP-01-03 executed with raw output recorded at `report.md#tp-01-03`.
+- [x] TP-01-04 executed with raw output recorded at `report.md#tp-01-04`.
+- [x] TP-01-05 executed with raw output recorded at `report.md#tp-01-05`.
+- [x] TP-01-06 executed with raw output recorded at `report.md#tp-01-06`.
+- [x] TP-01-07 executed with raw output recorded at `report.md#tp-01-07`.
+- [x] TP-01-08 executed with raw output recorded at `report.md#tp-01-08`.
+- [x] TP-01-09 executed with raw output recorded at `report.md#tp-01-09`.
+- [x] TP-01-10 executed with raw output recorded at `report.md#tp-01-10`.
+- [x] TP-01-11 executed with raw output recorded at `report.md#tp-01-11`.
 
 #### Build Quality Gate
 
-- [ ] `node scripts/selftest.mjs` exits 0 on the working tree with the new group registered and zero skipped assertions.
-- [ ] `node scripts/validate-official-curves.mjs` exits 0 against `tests/fixtures/official-curves/conformant.json` and exits non-zero against each of the seven adversarial fixtures.
-- [ ] `node scripts/validate-spec-test-paths.mjs` exits 0.
-- [ ] No path excluded from this scope was modified BY this scope; `git diff --name-only` output is recorded verbatim and names only files in the Allowed table.
-- [ ] Zero warnings emitted by any command run for this scope, evidenced by unfiltered output of every command above.
+- [x] `node scripts/selftest.mjs` exits 0 on the working tree with the new group registered and zero skipped assertions.
+- [x] `node scripts/validate-official-curves.mjs` exits 0 against `tests/fixtures/official-curves/conformant.json` and exits non-zero against each of the seven adversarial fixtures.
+- [x] `node scripts/validate-spec-test-paths.mjs` exits 0.
+- [x] No path excluded from this scope was modified BY this scope; `git diff --name-only` output is recorded verbatim and names only files in the Allowed table.
+- [x] Zero warnings emitted by any command run for this scope, evidenced by unfiltered output of every command above.

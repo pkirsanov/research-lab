@@ -94,6 +94,52 @@ Only these preferences may persist in `bondRegimeLabState`: schema version, mode
 
 No FRED API key, FRED observation endpoint, ICE observation payload, or committed OAS/NFCI observation is part of this tool.
 
+### Headless Publication: Contract Extension And The `persistence` Reading
+
+The headless path (spec 018) publishes the two official families as one
+committed artifact, `official-curve-artifact/v1`, gated offline by
+`scripts/validate-official-curves.mjs`. Two decisions belong here beside the
+tool rather than buried in the spec.
+
+**The allowlist extension is additive.** `us-treasury-nominal` and
+`us-treasury-real` were appended to `SOURCE_IDS` and `SOURCE_POLICIES` in
+`rlcontracts.js`; no pre-existing entry was edited and `SOURCE_KINDS` needed
+nothing, because `official-report` already admits a daily yield-curve
+publication. They use the `pathPrefix` form because the official pathname
+embeds the year.
+
+That has a consequence the gate has to carry. Both families share one host, one
+method and one path prefix, so `validateSourceProvenance` **structurally cannot
+tell them apart** — nothing it inspects differs. The only field that separates
+them is the query `type`, so the source-id-to-query binding lives in the feature
+gate rather than in the shared contract. The `query-binding-mismatch` fixture
+pins that from both sides: the shared validator accepts it, the feature gate
+refuses it.
+
+**Why `persistence` reads differently in two places (routed item R-4).** The
+committed policy in `bond-regime-universe.json` says `persistence:
+"browser-cache"`, and that is correct for the browser tool, which is the only
+consumer that policy was written for. A committed artifact is not a browser
+cache. So the artifact carries both, and they do not contradict each other:
+
+- `declaredPolicy` holds the committed policy block **byte-for-byte**, still
+  reading `browser-cache`. It is a quotation, not a claim about the copy.
+- The family's own `persistence` field reads `same-origin-artifact`, describing
+  what the committed file actually is.
+- `rights` carries `public-official` unaltered in both.
+
+A family that writes `persistence: "browser-cache"` onto a committed file is
+refused, because it would be describing itself as something it is not. Rewriting
+the quoted policy instead would have been the other way to remove the apparent
+contradiction, and it is the wrong one — it would silently edit the browser
+tool's declared policy to suit a different consumer.
+
+The gate's required maturity sets are the browser's own required column map
+(`bond-regime-lab.html`, `parseTreasuryCurveCsv`): nominal `y3m,y2,y5,y10,y30`
+and real `y5,y10,y20,y30`. They are stated in one place per consumer on purpose
+— a second definition would let the headless path admit a curve shape the tool
+would reject.
+
 ## Refresh Procedure
 
 1. Review characteristic `asOf` and `reviewWindowDays` fields in `bond-regime-universe.json`; update only from the linked issuer source.

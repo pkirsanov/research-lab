@@ -2136,6 +2136,144 @@ try {
     'Freshness TP-03-07: the rule reads no wall clock — the run date arrives as a parameter');
 } catch (e) { failures++; console.log('  ✗ FAIL (observed-cadence freshness group threw): ' + e.message); }
 
+/* ---------- Bond regime: headless official curve consumption (spec 018 Scope 4) ----------
+   The path from a committed artifact into the model, and the four ways it can end. The point of
+   this group is that a family is admitted only when it EARNS admission: absent, gate-invalid and
+   stale artifacts all resolve to the model's own named-absence shape and contribute zero rows,
+   while a fresh admitted artifact resolves the duration axis WITHOUT resolving the credit axis —
+   so the published refusal narrows rather than disappearing.
+
+   Every case drives the real `buildBondRegimeToolRead` against the real committed universe. The
+   model is never edited and no classifier, threshold or vocabulary is restated here. */
+try {
+  group('bond-regime — headless curve consumption');
+  const refresh4 = await import('./brief-refresh.mjs');
+  const owner4 = await import('./owner-state.mjs');
+  const universe4 = JSON.parse(read('bond-regime-universe.json'));
+  const fixture4 = (name) => JSON.parse(read('tests/fixtures/official-curves/' + name + '.json'));
+  const conformant4 = fixture4('conformant');
+  const bondRead4 = (over) => refresh4.buildBondRegimeToolRead(Object.assign({ config: universe4 }, over));
+
+  // TP-04-01 — no artifact on file. This is today's behaviour and it MUST survive the feature.
+  // The absence is constructed through the promoted export, so the test cannot drift from the
+  // canonical shape by hand-writing a second one.
+  const canonicalAbsence = owner4.unavailableCurveFamily(universe4.sourcePolicies.nominalCurve, 'BRL-CURVE-NOMINAL-UNAVAILABLE');
+  const absent4 = bondRead4({ officialCurveArtifact: null });
+  assert(canonicalAbsence.state === 'unavailable' && canonicalAbsence.rows.length === 0 && canonicalAbsence.retrievedAt === null
+    && canonicalAbsence.sourceId === universe4.sourcePolicies.nominalCurve.id,
+    'Consumption TP-04-01: unavailableCurveFamily is exported with its shape intact and retrievedAt null — nothing was retrieved, so no clock is stamped');
+  assert(absent4.state === 'unavailable' && absent4.metrics.curveState === 'Unavailable' && absent4.metrics.curveImpulse === 'Unavailable'
+    && absent4.metrics.inflationState === 'Unavailable' && absent4.metrics.evidenceGaps.includes('the Treasury yield curve')
+    && absent4.metrics.curveAsOf === null && absent4.metrics.durationPosture === 'Indeterminate',
+    'Consumption TP-04-01: with no artifact on file all three curve-derived families read Unavailable, the curve gap is named, and curveAsOf is null');
+  assert(absent4.metrics.resultPct === null && absent4.metrics.preferredSleeveId === null
+    && absent4.metrics.curveAdmission.nominal.errorCode === 'BRL-CURVE-ARTIFACT-ABSENT' && absent4.metrics.curveAdmission.real.errorCode === 'BRL-CURVE-ARTIFACT-ABSENT',
+    'Consumption TP-04-01: no zero, no empty-but-plausible family and no neutral filler is published in place of the missing curve — the absence is named');
+  assert(owner4.officialCurveArtifact(join(ROOT, 'tests', 'fixtures')) === null,
+    'Consumption TP-04-01: officialCurveArtifact returns null for a root holding no artifact rather than throwing or inventing one');
+
+  // TP-04-02 — a GATE-FAILING artifact. The fixture fails on a missing maturity INSIDE a row, which
+  // is invisible to any shallow shape test, so this also proves the read-time check is the gate's
+  // own predicate rather than a second one that could drift.
+  const invalidArtifact4 = fixture4('invalid-for-consumption');
+  const invalid4 = bondRead4({ officialCurveArtifact: invalidArtifact4 });
+  const invalidReason4 = JSON.stringify(invalid4.metrics.curveAdmission);
+  assert(invalid4.metrics.curveState === 'Unavailable' && invalid4.metrics.inflationState === 'Unavailable'
+    && invalid4.metrics.curveAsOf === null && invalid4.metrics.durationPosture === 'Indeterminate'
+    && invalid4.metrics.evidenceGaps.includes('the Treasury yield curve'),
+    'Consumption TP-04-02: a gate-failing artifact admits exactly zero rows to the model and the read is the named-absence form');
+  assert(invalid4.metrics.curveAdmission.nominal.errorCode === 'BRL-CURVE-ARTIFACT-INVALID' && /row-partial/.test(invalidReason4),
+    'Consumption TP-04-02: the reason names the validation failure class the gate itself returned (' + invalid4.metrics.curveAdmission.nominal.basis + ')');
+  assert(!/home\.treasury\.gov|https?:\/\//.test(invalidReason4) && !/4\.38|4\.28|1\.76/.test(invalidReason4),
+    'Consumption TP-04-02: the refusal reason carries no source URL fragment and no observed value');
+
+  // TP-04-03 — the committed ADVERSARIAL 2 shape, run against a REAL acquired artifact rather than
+  // a hand-built fixture. This is the assertion this whole feature exists to make reachable.
+  const realArtifact4 = owner4.officialCurveArtifact(ROOT);
+  const fresh4 = bondRead4({ officialCurveArtifact: realArtifact4, runDate: realArtifact4 ? realArtifact4.families.nominal.observedAt : null });
+  assert(!!realArtifact4 && fresh4.metrics.curveAdmission.nominal.verdict === 'current',
+    'Consumption TP-04-03: the repository holds a real acquired artifact whose nominal family earns admission at its own observed date');
+  assert(fresh4.state === 'unavailable' && fresh4.metrics.durationPosture !== 'Indeterminate' && fresh4.metrics.creditRegime === 'Indeterminate'
+    && !fresh4.metrics.evidenceGaps.includes('the Treasury yield curve')
+    && fresh4.metrics.evidenceGaps.includes('an independent credit-spread reading') && !/Treasury yield curve/.test(fresh4.read),
+    'Consumption TP-04-03: with both curve families fresh and no credit-spread observation the duration axis resolves, the credit axis does not, state stays unavailable and evidenceGaps narrows to the credit gap alone');
+  assert(/so the credit call cannot be made/.test(fresh4.read) && !/duration call/.test(fresh4.read)
+    && fresh4.metrics.curveAsOf === realArtifact4.families.nominal.observedAt,
+    'Consumption TP-04-03: the consequence clause names only the credit call, and curveAsOf is the artifact\u2019s own observed date rather than a run clock');
+
+  // TP-04-04 — a gate-VALID artifact refused on cadence alone. The same fixture is admitted one day
+  // after its own last observation, so staleness is derived from the run date, not baked into it.
+  const staleArtifact4 = fixture4('stale-for-consumption');
+  const stale4 = bondRead4({ officialCurveArtifact: staleArtifact4, runDate: '2026-03-01' });
+  const staleAdmitted4 = bondRead4({ officialCurveArtifact: staleArtifact4, runDate: '2026-01-03' });
+  assert(stale4.metrics.curveState === 'Unavailable' && stale4.metrics.curveAsOf === null && stale4.metrics.durationPosture === 'Indeterminate'
+    && stale4.metrics.curveAdmission.nominal.verdict === 'stale'
+    && stale4.metrics.curveAdmission.nominal.errorCode === 'BRL-CURVE-FAMILY-STALE'
+    && stale4.metrics.curveAdmission.nominal.lastGoodObservedAt === '2026-01-02',
+    'Consumption TP-04-04: a stale-admission artifact admits zero rows, curveAsOf is null, and curveAdmission carries the verdict, BRL-CURVE-FAMILY-STALE and lastGoodObservedAt');
+  assert(staleAdmitted4.metrics.curveAdmission.nominal.verdict === 'current' && staleAdmitted4.metrics.curveState !== 'Unavailable',
+    'Consumption TP-04-04: the SAME fixture is admitted one day after its own last observation, so the refusal above is a derived verdict rather than a property of the file');
+
+  // TP-04-05 — curve LEVEL and duration POSTURE are separate conclusions. An inverted level with no
+  // directional impulse and no inflation context must not manufacture a directional posture. The
+  // posture vocabulary is extracted from the model's own classifier rather than restated.
+  const postureVocab4 = (() => {
+    const fn = /function classifyDurationPosture\([\s\S]*?\n        \}/.exec(read('bond-regime-lab.html'));
+    return [...new Set((fn ? fn[0] : '').match(/"(?:Balanced|Extend|Shorten|Indeterminate)"/g) || [])].map((w) => w.slice(1, -1));
+  })();
+  const invertedArtifact4 = JSON.parse(JSON.stringify(fixture4('stale-for-consumption')));
+  for (const row of invertedArtifact4.families.nominal.rows) { row.y2 = 4.6; row.y3m = 4.7; row.y10 = 4.0; }
+  // The real family is withheld at the ARTIFACT level, whose persistence is same-origin-artifact and
+  // whose two consecutive coverage years travel with the family whatever its state — a different
+  // shape from the BROWSER family the page holds, where an absence carries persistence 'none' and no
+  // coverage at all. Conflating the two is a gate refusal, correctly.
+  invertedArtifact4.families.real = Object.assign({}, invertedArtifact4.families.real, {
+    state: 'unavailable', errorCode: 'BRL-OPTIONAL-UNAVAILABLE', observedAt: null, rows: [], provenance: []
+  });
+  const inverted4 = bondRead4({ officialCurveArtifact: invertedArtifact4, runDate: '2026-01-03' });
+  assert(postureVocab4.length >= 3 && postureVocab4.includes('Balanced') && postureVocab4.includes('Indeterminate'),
+    'Consumption TP-04-05: the duration-posture vocabulary is extracted from the model\u2019s own classifier, never restated (' + postureVocab4.join('/') + ')');
+  assert(inverted4.metrics.curveState === 'Inverted' && inverted4.metrics.inflationState === 'Unavailable'
+    && postureVocab4.includes(inverted4.metrics.durationPosture)
+    && inverted4.metrics.durationPosture !== 'Shorten' && inverted4.metrics.durationPosture !== 'Extend',
+    'Consumption TP-04-05: an inverted curve level with no directional impulse and no inflation context yields a posture that is neither Shorten nor Extend — level is not posture (' + inverted4.metrics.durationPosture + ')');
+
+  // TP-04-06 — the breakeven join is EXACT common dates. Driven through the model's own
+  // deriveBreakevenRows, so no join rule is reimplemented here.
+  const page4 = refresh4.loadToolFunctions('bond-regime-lab.html', ['finiteNumber', 'deriveBreakevenRows']);
+  const nominal4 = [{ date: '2026-01-05', y10: 4.4 }, { date: '2026-01-06', y10: 4.41 }, { date: '2026-01-07', y10: 4.42 }, { date: '2026-01-08', y10: 4.43 }];
+  const real4 = [{ date: '2026-01-05', y10: 2.0 }, { date: '2026-01-07', y10: 2.02 }];
+  const breakevens4 = page4.deriveBreakevenRows(nominal4, real4);
+  const commonDates4 = nominal4.filter((row) => real4.some((other) => other.date === row.date)).map((row) => row.date);
+  assert(breakevens4.length === commonDates4.length && breakevens4.length === 2
+    && breakevens4.map((row) => row.date).join(',') === commonDates4.join(','),
+    'Consumption TP-04-06: the breakeven row count equals the exact common-date count — a nominal date with no matching real date produces no row');
+  assert(!breakevens4.some((row) => row.date === '2026-01-06' || row.date === '2026-01-08')
+    && Math.abs(breakevens4[0].breakevenPct - 2.4) < 1e-9,
+    'Consumption TP-04-06: no forward-fill, no interpolation and no nearest-date match — the unmatched dates are simply absent and the matched value is nominal minus real on its own date');
+
+  // TP-04-09 — precedence. An explicit deps value still wins over a present artifact, which is what
+  // keeps every injection-based adversarial case in this suite meaning exactly what it meant before.
+  const explicitAbsence4 = bondRead4({
+    officialCurveArtifact: realArtifact4,
+    nominalCurve: owner4.unavailableCurveFamily(universe4.sourcePolicies.nominalCurve, 'BRL-CURVE-NOMINAL-UNAVAILABLE'),
+    realCurve: owner4.unavailableCurveFamily(universe4.sourcePolicies.realCurve, 'BRL-OPTIONAL-UNAVAILABLE')
+  });
+  assert(!!realArtifact4 && explicitAbsence4.metrics.curveState === 'Unavailable' && explicitAbsence4.metrics.durationPosture === 'Indeterminate'
+    && explicitAbsence4.metrics.evidenceGaps.includes('the Treasury yield curve'),
+    'Consumption TP-04-09: an explicit deps.nominalCurve wins over a present committed artifact, so the seam is unwidened and every injected fixture keeps its exact semantics');
+
+  /* The gate's default artifact path and the acquisition's write path are two literals in two
+     modules that MUST name one file. Importing one into the other would close a cycle
+     (gate → acquisition → brief-refresh → gate), so they are compared here instead: drift between
+     them becomes a test failure rather than a bare `validate-official-curves` run reporting a false
+     FAIL against a repository that does hold a valid artifact. */
+  const acquisition4 = await import('./acquire-official-curves.mjs');
+  const gateDefaultPath4 = (/positional\[0\]\s*\|\|\s*'([^']+)'/.exec(read('scripts/validate-official-curves.mjs')) || [])[1];
+  assert(!!gateDefaultPath4 && gateDefaultPath4 === acquisition4.ARTIFACT_RELATIVE_PATH,
+    'Consumption TP-04-09: the gate\u2019s default artifact path and the acquisition\u2019s write path name one file (' + gateDefaultPath4 + ')');
+} catch (e) { failures++; console.log('  ✗ FAIL (headless curve consumption group threw): ' + e.message); }
+
 /* ---------- Market Brief: §6c larger-picture / anti-reactivity helpers ---------- */
 try {
   group('rlbrief.js — §6c structural frame + anti-reactivity (MA stack, horizon cap, persistence gate)');
@@ -5975,13 +6113,17 @@ try {
     'the quarterly refresh window is enforced at its exact edge \u2014 ready at 92 days, refused at 93');
 
   /* ── bond-regime-lab — the indeterminacy must be COMPUTED, never asserted ──────────────────────
-     This tool cannot reach a verdict from committed evidence: the Treasury nominal and real curves
-     are fetched live into browser cache and the independent credit-spread observation is a
-     current-tab entry its own source policy marks memory-only, so neither has a same-origin file a
-     server run could read. An adapter that simply hard-coded "unresolved" would therefore pass a
-     committed-evidence-only suite forever. The cases below drive the SAME builder with each
-     evidence family present and absent, so the honest gap is provably the model's own conclusion
-     and the gap SENTENCE provably tracks which family is missing. */
+     Before spec 018 this tool could reach NEITHER axis from committed evidence. It can now reach the
+     duration axis: the Treasury nominal and real curves are acquired into a committed same-origin
+     artifact a server run reads, admitted through the artifact's own observed-cadence verdict. The
+     independent credit-spread observation remains a current-tab entry its own source policy marks
+     memory-only, so it still has no same-origin file and the credit axis stays unresolved — which is
+     why the published state is still a named absence rather than a verdict.
+     An adapter that simply hard-coded either outcome would pass a committed-evidence-only suite
+     forever. The cases below therefore drive the SAME builder with each evidence family explicitly
+     present and explicitly absent, so the honest gap is provably the model's own conclusion and the
+     gap SENTENCE provably tracks which family is missing. That force is unchanged; only the set of
+     families the repository can supply has grown. */
   const bondDay = (index) => new Date(Date.UTC(2026, 0, 5 + index)).toISOString().slice(0, 10);
   const bondNominalRows = Array.from({ length: 70 }, (_, index) => ({ date: bondDay(index), y3m: 4.2 - 0.012 * index, y2: 4 - 0.01 * index, y10: 4.5 - 0.005 * index }));
   const bondRealRows = Array.from({ length: 70 }, (_, index) => ({ date: bondDay(index), y10: 2 - 0.004 * index }));
@@ -5998,12 +6140,40 @@ try {
   }
 
   const bondLive = reads['bond-regime-lab'];
-  assert(bondLive.state === 'unavailable' && bondLive.metrics.creditRegime === 'Indeterminate' && bondLive.metrics.durationPosture === 'Indeterminate',
-    'from committed evidence alone the bond regime is unresolved on BOTH axes, so the brief publishes a named absence instead of a verdict');
+  /* Spec 018 landed a committed official curve artifact, so the curve families are no longer
+     structurally unreachable from a server run — they are reachable exactly WHEN the artifact's own
+     observed-cadence admission says current. This live read therefore asserts an IMPLICATION of that
+     verdict rather than a fixed outcome, so it neither flakes as the artifact ages nor stops
+     asserting. Neither branch is a free pass: each one names what MUST hold under it. The
+     curve-state vocabulary is extracted from the model's OWN classifier rather than restated here,
+     so the admitted branch cannot be satisfied by a literal that the model never emits. */
+  const bondCurveStateVocab = (() => {
+    const classifier = /function classifyCurveState\([\s\S]*?\n        \}/.exec(read('bond-regime-lab.html'));
+    return [...new Set((classifier ? classifier[0] : '').match(/"(?:Unavailable|Inverted|Positive|Flat|Mixed)"/g) || [])].map((word) => word.slice(1, -1));
+  })();
+  const bondNominalAdmission = (bondLive.metrics.curveAdmission || {}).nominal || {};
+  const bondLiveAdmitted = bondNominalAdmission.verdict === 'current';
+  assert(bondCurveStateVocab.length >= 4 && bondCurveStateVocab.includes('Unavailable') && bondCurveStateVocab.includes('Mixed'),
+    'the curve-state vocabulary the live assertion branches against is extracted from the model\u2019s own classifier, never restated (' + bondCurveStateVocab.join('/') + ')');
+  if (bondLiveAdmitted) {
+    assert(bondLive.state === 'unavailable' && bondLive.metrics.creditRegime === 'Indeterminate'
+      && bondLive.metrics.durationPosture !== 'Indeterminate'
+      && !bondLive.metrics.evidenceGaps.includes('the Treasury yield curve')
+      && bondCurveStateVocab.includes(bondLive.metrics.curveState) && bondLive.metrics.curveState !== 'Unavailable',
+      'the committed curve artifact is admitted, so the duration axis resolves from committed evidence, the curve gap is absent, and the curve state is one the model itself emits \u2014 while the credit axis stays unresolved and the brief still publishes a named absence ('
+      + bondLive.metrics.durationPosture + ' duration, ' + bondLive.metrics.curveState + ' curve)');
+  } else {
+    assert(bondLive.state === 'unavailable' && bondLive.metrics.creditRegime === 'Indeterminate'
+      && bondLive.metrics.durationPosture === 'Indeterminate'
+      && bondLive.metrics.evidenceGaps.includes('the Treasury yield curve') && bondLive.metrics.curveState === 'Unavailable'
+      && typeof bondNominalAdmission.errorCode === 'string' && bondNominalAdmission.errorCode.length > 0
+      && typeof bondNominalAdmission.basis === 'string' && bondNominalAdmission.basis.length > 0,
+      'the committed curve artifact is refused, so the duration axis stays unresolved, the curve gap is named, and the admission carries a non-empty reason and error code rather than a silent absence ('
+      + bondNominalAdmission.errorCode + ')');
+  }
   assert(bondLive.metrics.preferredSleeveId === null && bondLive.metrics.resultPct === null,
     'the unresolved bond read names no preferred sleeve and no modelled result \u2014 not a zero, and not a neutral placeholder');
-  assert(bondLive.metrics.evidenceGaps.includes('the Treasury yield curve') && bondLive.metrics.evidenceGaps.includes('an independent credit-spread reading')
-    && bondLive.metrics.curveState === 'Unavailable' && bondLive.metrics.inflationState === 'Unavailable',
+  assert(bondLive.metrics.evidenceGaps.includes('an independent credit-spread reading'),
     'the unresolved bond read names WHICH evidence is missing rather than reporting a bare failure');
   assert(['strengthening', 'weakening', 'mixed', 'neutral'].includes(bondLive.metrics.pricePulse) && bondLive.read.includes(bondLive.metrics.pricePulse)
     && bondLive.metrics.readablePairs.length > 0,
@@ -6042,15 +6212,24 @@ try {
     'the curve resolves the duration axis, and the read says only the credit call is missing \u2014 the consequence clause is the model\u2019s verdict, not a fixed phrase');
 
   // ADVERSARIAL 3 — the mirror image. Together with case 2 this pins the gap sentence to the
-  // model's state from both sides, so neither absence can be a constant.
-  const bondSpreadOnly = refresh.buildBondRegimeToolRead({ config: bondFreshConfig, confirmations: bondSpreadObservation });
+  // model's state from both sides, so neither absence can be a constant. Since spec 018 landed a
+  // committed curve artifact, this case passes EXPLICIT named absences for both curve families: the
+  // absence it tests is now something it states, not something the repository happens to lack.
+  const bondSpreadOnly = refresh.buildBondRegimeToolRead({
+    config: bondFreshConfig,
+    confirmations: bondSpreadObservation,
+    nominalCurve: owner.unavailableCurveFamily(bondFreshConfig.sourcePolicies.nominalCurve, 'BRL-CURVE-NOMINAL-UNAVAILABLE'),
+    realCurve: owner.unavailableCurveFamily(bondFreshConfig.sourcePolicies.realCurve, 'BRL-OPTIONAL-UNAVAILABLE')
+  });
   assert(bondSpreadOnly.state === 'unavailable' && bondSpreadOnly.metrics.evidenceGaps.includes('the Treasury yield curve')
     && !bondSpreadOnly.metrics.evidenceGaps.includes('an independent credit-spread reading') && bondSpreadOnly.metrics.creditRegime !== 'Indeterminate',
     'with the spread observation on file but no curve the credit axis resolves, the duration axis does not, and the read names the curve gap alone');
   assert(/so the duration call cannot be made/.test(bondSpreadOnly.read) && !/credit call/.test(bondSpreadOnly.read),
     'the mirror case says only the duration call is missing, so neither half of the consequence clause can be a constant');
-  assert(/so the credit call and the duration call cannot be made/.test(bondLive.read),
-    'and from committed evidence alone \u2014 where both axes really are unresolved \u2014 the read names both');
+  assert(bondLiveAdmitted
+    ? (/so the credit call cannot be made/.test(bondLive.read) && !/duration call/.test(bondLive.read))
+    : /so the credit call and the duration call cannot be made/.test(bondLive.read),
+    'and from committed evidence alone the read names exactly the axes the model could not reach \u2014 both when the curve is refused, the credit call alone when it is admitted');
 
   // ADVERSARIAL 4 — no committed price history at all. Without this the builder could fall back to
   // an inline bar window and every case above would still be green.

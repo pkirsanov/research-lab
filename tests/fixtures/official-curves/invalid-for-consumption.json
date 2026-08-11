@@ -1,0 +1,167 @@
+{
+  "_fixtureIntent": "The reference artifact with exactly one field changed: the final nominal row is missing its y30 maturity. It exists to prove the read-time contract check is the GATE'S OWN predicate rather than a shallow shape test — a missing maturity inside a row is invisible to any check that only inspects contractVersion, freshnessPolicy and families, so an artifact failing here proves the two cannot drift apart. Zero rows from it may reach the model.",
+  "contractVersion": "official-curve-artifact/v1",
+  "generatedAt": "2026-01-02T21:15:00.000Z",
+  "freshnessPolicy": {
+    "policyId": "observed-cadence/v1",
+    "cadenceWindowRows": 10,
+    "minCadenceObservations": 5,
+    "publicationLagDays": 1
+  },
+  "families": {
+    "nominal": {
+      "sourceId": "us-treasury-nominal",
+      "state": "fresh",
+      "errorCode": null,
+      "coverageYears": [2025, 2026],
+      "observedAt": "2026-01-02",
+      "declaredPolicy": {
+        "id": "us-treasury-nominal",
+        "mode": "public-official-live",
+        "rights": "public-official",
+        "persistence": "browser-cache",
+        "urlTemplate": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/{YEAR}/all?type=daily_treasury_yield_curve&field_tdr_date_value={YEAR}&page&_format=csv"
+      },
+      "persistence": "same-origin-artifact",
+      "rights": "public-official",
+      "rows": [
+        { "date": "2025-12-30", "y3m": 4.31, "y2": 3.94, "y5": 4.02, "y10": 4.31, "y30": 4.88 },
+        { "date": "2025-12-31", "y3m": 4.3, "y2": 3.96, "y5": 4.05, "y10": 4.34, "y30": 4.91 },
+        { "date": "2026-01-02", "y3m": 4.28, "y2": 3.99, "y5": 4.09, "y10": 4.38 }
+      ],
+      "provenance": [
+        {
+          "contractVersion": "source-provenance/v1",
+          "sourceId": "us-treasury-nominal",
+          "sourceKind": "official-report",
+          "accessClass": "public-official",
+          "adapterId": "official-curve-acquisition",
+          "adapterVersion": "1.0.0",
+          "sourceUsePolicyId": "us-treasury-public-official",
+          "sourceUseReviewRef": "specs/018-headless-official-curve-publication",
+          "freshnessPolicy": "observed-cadence/v1",
+          "sourceUrl": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2025/all?type=daily_treasury_yield_curve&field_tdr_date_value=2025&page&_format=csv",
+          "requestDescriptor": {
+            "method": "GET",
+            "path": "/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2025/all",
+            "query": {
+              "type": "daily_treasury_yield_curve",
+              "field_tdr_date_value": "2025",
+              "_format": "csv"
+            }
+          },
+          "sourcePublishedAt": "2025-12-31T22:00:00.000Z",
+          "retrievedAt": "2026-01-02T21:10:00.000Z",
+          "contentSha256": "sha256:3f1c8a44d2b5e9071ac6d3e58b2f47a90c15d6e8b3479a02cf65d81e4a7b90c2",
+          "retentionMode": "normalized-facts-and-hash",
+          "freshnessState": "current",
+          "diagnostics": []
+        },
+        {
+          "contractVersion": "source-provenance/v1",
+          "sourceId": "us-treasury-nominal",
+          "sourceKind": "official-report",
+          "accessClass": "public-official",
+          "adapterId": "official-curve-acquisition",
+          "adapterVersion": "1.0.0",
+          "sourceUsePolicyId": "us-treasury-public-official",
+          "sourceUseReviewRef": "specs/018-headless-official-curve-publication",
+          "freshnessPolicy": "observed-cadence/v1",
+          "sourceUrl": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2026/all?type=daily_treasury_yield_curve&field_tdr_date_value=2026&page&_format=csv",
+          "requestDescriptor": {
+            "method": "GET",
+            "path": "/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2026/all",
+            "query": {
+              "type": "daily_treasury_yield_curve",
+              "field_tdr_date_value": "2026",
+              "_format": "csv"
+            }
+          },
+          "sourcePublishedAt": "2026-01-02T20:00:00.000Z",
+          "retrievedAt": "2026-01-02T21:12:00.000Z",
+          "contentSha256": "sha256:9b7e2d150c48af36e5901d7ba26c4f8039e71b5a4c2d68093fae15b7c04d2e83",
+          "retentionMode": "normalized-facts-and-hash",
+          "freshnessState": "current",
+          "diagnostics": []
+        }
+      ]
+    },
+    "real": {
+      "sourceId": "us-treasury-real",
+      "state": "fresh",
+      "errorCode": null,
+      "coverageYears": [2025, 2026],
+      "observedAt": "2026-01-02",
+      "declaredPolicy": {
+        "id": "us-treasury-real",
+        "mode": "public-official-live",
+        "rights": "public-official",
+        "persistence": "browser-cache",
+        "urlTemplate": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/{YEAR}/all?type=daily_treasury_real_yield_curve&field_tdr_date_value={YEAR}&page&_format=csv"
+      },
+      "persistence": "same-origin-artifact",
+      "rights": "public-official",
+      "rows": [
+        { "date": "2025-12-30", "y5": 1.71, "y10": 1.94, "y20": 2.28, "y30": 2.41 },
+        { "date": "2025-12-31", "y5": 1.73, "y10": 1.96, "y20": 2.3, "y30": 2.43 },
+        { "date": "2026-01-02", "y5": 1.76, "y10": 2.0, "y20": 2.34, "y30": 2.47 }
+      ],
+      "provenance": [
+        {
+          "contractVersion": "source-provenance/v1",
+          "sourceId": "us-treasury-real",
+          "sourceKind": "official-report",
+          "accessClass": "public-official",
+          "adapterId": "official-curve-acquisition",
+          "adapterVersion": "1.0.0",
+          "sourceUsePolicyId": "us-treasury-public-official",
+          "sourceUseReviewRef": "specs/018-headless-official-curve-publication",
+          "freshnessPolicy": "observed-cadence/v1",
+          "sourceUrl": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2025/all?type=daily_treasury_real_yield_curve&field_tdr_date_value=2025&page&_format=csv",
+          "requestDescriptor": {
+            "method": "GET",
+            "path": "/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2025/all",
+            "query": {
+              "type": "daily_treasury_real_yield_curve",
+              "field_tdr_date_value": "2025",
+              "_format": "csv"
+            }
+          },
+          "sourcePublishedAt": "2025-12-31T22:00:00.000Z",
+          "retrievedAt": "2026-01-02T21:11:00.000Z",
+          "contentSha256": "sha256:c04a7e6318bd259fa1370e84cb62d95170af38e2b6c419d7085fae3c26b19d54",
+          "retentionMode": "normalized-facts-and-hash",
+          "freshnessState": "current",
+          "diagnostics": []
+        },
+        {
+          "contractVersion": "source-provenance/v1",
+          "sourceId": "us-treasury-real",
+          "sourceKind": "official-report",
+          "accessClass": "public-official",
+          "adapterId": "official-curve-acquisition",
+          "adapterVersion": "1.0.0",
+          "sourceUsePolicyId": "us-treasury-public-official",
+          "sourceUseReviewRef": "specs/018-headless-official-curve-publication",
+          "freshnessPolicy": "observed-cadence/v1",
+          "sourceUrl": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2026/all?type=daily_treasury_real_yield_curve&field_tdr_date_value=2026&page&_format=csv",
+          "requestDescriptor": {
+            "method": "GET",
+            "path": "/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2026/all",
+            "query": {
+              "type": "daily_treasury_real_yield_curve",
+              "field_tdr_date_value": "2026",
+              "_format": "csv"
+            }
+          },
+          "sourcePublishedAt": "2026-01-02T20:00:00.000Z",
+          "retrievedAt": "2026-01-02T21:13:00.000Z",
+          "contentSha256": "sha256:5e83b170cd249af6e0135b8a7c62d4903fe718b5a2c4d6890fae5137b0c24de9",
+          "retentionMode": "normalized-facts-and-hash",
+          "freshnessState": "current",
+          "diagnostics": []
+        }
+      ]
+    }
+  }
+}

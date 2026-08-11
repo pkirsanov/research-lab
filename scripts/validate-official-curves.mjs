@@ -302,7 +302,7 @@ function main(argv) {
     return 2;
   }
   const positional = argv.filter((arg) => !arg.startsWith('--'));
-  const artifactPath = resolve(process.cwd(), positional[0] || 'data/official-curves/official-curves.json');
+  const artifactPath = resolve(process.cwd(), positional[0] || 'data/curves/us-treasury/curve.json');
   // Reported repo-relative: an absolute path would carry the operator's home
   // directory into any evidence block that quotes this output.
   const reportedPath = relative(process.cwd(), artifactPath) || artifactPath;

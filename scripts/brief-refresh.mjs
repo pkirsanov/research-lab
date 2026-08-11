@@ -28,6 +28,9 @@ import {
   createRunState, advanceRunState
 } from './brief-publication.mjs';
 import * as OWNER from './owner-state.mjs';
+// The artifact gate's OWN validator. Imported, never restated, so a "gate-failing" artifact and a
+// "refused at read time" artifact are decided by one predicate that cannot drift into two.
+import { validateOfficialCurves } from './validate-official-curves.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
@@ -1596,8 +1599,58 @@ export function buildBondRegimeToolRead(deps = {}) {
     if (!config || !Array.isArray(config.scenarioPresets) || !config.scenarioPresets.length) {
       return unavailableToolRead(id, deepLink, 'No committed bond model configuration on file; there are no sleeves, ratio pairs or policy thresholds to read a regime against.');
     }
+    /* Official curve resolution (spec 018 Scope 4). Only on the `undefined` branch,
+       mirroring the precedence bondRegimeOwnerState already uses — resolving on the
+       explicit branch would silently override every injected adversarial fixture. */
+    const curveRunDate = deps.runDate || new Date().toISOString().slice(0, 10);
+    const curvePolicies = (config && config.sourcePolicies) || {};
+    const curveArtifact = deps.officialCurveArtifact !== undefined
+      ? deps.officialCurveArtifact
+      : OWNER.officialCurveArtifact(root);
+    const curveAdmission = {};
+
+    /* A read-time contract check, independent of whether the gate ran in this process. It is the
+       GATE'S OWN validator, so an artifact the gate would reject and an artifact refused here are
+       decided by one predicate that cannot drift into two. Only the failure CLASS is carried into
+       the reason — never the gate's detail text, which can quote a source URL or an observed value. */
+    const curveArtifactErrors = curveArtifact ? validateOfficialCurves(curveArtifact, { universe: config }) : [];
+    const curveArtifactFailureClass = curveArtifactErrors.length ? String(curveArtifactErrors[0]).split(' at ')[0] : null;
+    const artifactShapeValid = !!curveArtifact && curveArtifactErrors.length === 0;
+
+    const resolveCurveFamily = (familyKey, policyKey, absentCode) => {
+      const policy = curvePolicies[policyKey] || null;
+      if (!curveArtifact) {
+        curveAdmission[familyKey] = { verdict: 'unavailable', errorCode: 'BRL-CURVE-ARTIFACT-ABSENT', lastGoodObservedAt: null, elapsedDays: null, windowDays: null, basis: 'no-committed-artifact' };
+        return OWNER.unavailableCurveFamily(policy, absentCode);
+      }
+      if (!artifactShapeValid) {
+        curveAdmission[familyKey] = { verdict: 'unavailable', errorCode: 'BRL-CURVE-ARTIFACT-INVALID', lastGoodObservedAt: null, elapsedDays: null, windowDays: null, basis: 'artifact-rejected-by-contract-gate:' + curveArtifactFailureClass };
+        return OWNER.unavailableCurveFamily(policy, 'BRL-CURVE-ARTIFACT-INVALID');
+      }
+      const family = curveArtifact.families[familyKey];
+      const admission = admitCurveFamily(curveArtifact, familyKey, curveRunDate);
+      curveAdmission[familyKey] = admission;
+      if (!family || family.state !== 'fresh' || admission.verdict !== 'current') {
+        return OWNER.unavailableCurveFamily(policy, admission.errorCode || absentCode);
+      }
+      return {
+        state: 'ready',
+        rows: family.rows,
+        observedAt: family.observedAt,
+        retrievedAt: (family.provenance && family.provenance.length) ? family.provenance[family.provenance.length - 1].retrievedAt : null,
+        sourceId: family.sourceId,
+        sourceUrl: null,
+        rights: family.rights,
+        persistence: family.persistence,
+        errorCode: null
+      };
+    };
+
+    const resolvedNominal = deps.nominalCurve !== undefined ? deps.nominalCurve : resolveCurveFamily('nominal', 'nominalCurve', 'BRL-CURVE-NOMINAL-UNAVAILABLE');
+    const resolvedReal = deps.realCurve !== undefined ? deps.realCurve : resolveCurveFamily('real', 'realCurve', 'BRL-OPTIONAL-UNAVAILABLE');
+
     const snapshot = deps.snapshot !== undefined ? deps.snapshot : OWNER.bondRegimeOwnerState(root, {
-      config, confirmations: deps.confirmations, nominalCurve: deps.nominalCurve, realCurve: deps.realCurve
+      config, confirmations: deps.confirmations, nominalCurve: resolvedNominal, realCurve: resolvedReal
     });
     if (!snapshot) return unavailableToolRead(id, deepLink, 'No committed price history for the bond sleeves this tool tracks; there is nothing to read a credit or duration regime from.');
 
@@ -1636,6 +1689,9 @@ export function buildBondRegimeToolRead(deps = {}) {
       pricePulse: creditRegime.pricePulseState,
       confirmationState: normalized.metrics.confirmationState,
       curveState: curveState.state, curveImpulse: curveImpulse.state, inflationState: inflationState.state,
+      // Additive (spec 018 Scope 4): why each curve family was admitted or withheld. Nothing
+      // above is renamed, retyped or removed by its presence.
+      curveAdmission,
       readablePairs: readablePairs.map((pulse) => ({ pairId: pulse.pairId, direction: pulse.direction, purity: pulse.purity, asOf: pulse.latestCommonDate })),
       // Named absences, from the model's own missing list plus the two curve families it could not
       // classify. Empty when nothing is missing — never a zero and never a neutral stand-in.

@@ -213,6 +213,49 @@ Two vocabularies stay separate. Uppercase `BRL-*` codes appear only in
 `errorCode`; lowercase-hyphen reasons appear only in `basis` and `diagnostics`.
 Neither leaks into the other's field.
 
+### Headless Consumption Precedence
+
+The server-side read resolves a curve family only when the caller passed no
+explicit one. An explicit `deps.nominalCurve` or `deps.realCurve` always wins
+over a committed artifact, which is what keeps every injected fixture in the
+suite meaning exactly what it meant before the artifact existed. The
+`bondRegimeOwnerState` seam is unchanged; resolution happens above it.
+
+Three refusals sit in front of the model, and each one contributes zero rows:
+
+1. **No artifact** — `BRL-CURVE-ARTIFACT-ABSENT`. The pre-feature behaviour,
+   preserved exactly.
+2. **A gate-failing artifact** — `BRL-CURVE-ARTIFACT-INVALID`. The check is the
+   artifact gate's OWN validator, imported rather than restated, so an artifact
+   the gate would reject and an artifact refused at read time can never become
+   two different questions. Only the failure CLASS reaches the reason; the
+   gate's detail text is dropped because it can quote a source URL or an
+   observed value.
+3. **A stale or underivable admission** — the family's own cadence verdict.
+
+A refused family becomes the canonical named absence built by
+`unavailableCurveFamily`, never a family carrying rows the model might classify.
+The verdict itself is published additively as `curveAdmission`, so a reader can
+see why a family was withheld without inferring it from a silence.
+
+Note the two family shapes are not interchangeable. In the **browser** family an
+absence carries `persistence: 'none'` and no coverage years. In the **artifact**
+family every family carries `persistence: 'same-origin-artifact'` and its two
+consecutive coverage years whatever its state, because the file is committed
+same-origin regardless of whether one family in it was observed.
+
+What this changes for the published read: the duration axis now resolves from
+committed evidence, so the Treasury-curve gap disappears from `evidenceGaps`.
+The credit axis does not, because the independent credit-spread observation is
+still a current-tab entry its own policy marks memory-only. The published state
+therefore stays `unavailable` and the read still names an absence — a narrower
+one. `evidenceGaps` is not edited to achieve this; it is computed from the
+model's own states and narrows by itself.
+
+Two literals in two modules name the artifact file: the gate's default path and
+the acquisition's write path. They cannot be single-sourced by import without
+closing a cycle, so `scripts/selftest.mjs` asserts they are equal instead.
+
 ## Refresh Procedure
 
 1. Review characteristic `asOf` and `reviewWindowDays` fields in `bond-regime-universe.json`; update only from the linked issuer source.

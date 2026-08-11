@@ -402,12 +402,27 @@ export function bondRegimeConfig(root) {
  * `retrievedAt` stays null on purpose: nothing was retrieved. Stamping the run's clock here would
  * read as a fetch that happened and returned nothing, which is a different fact.
  */
-function unavailableCurveFamily(policy, errorCode) {
+export function unavailableCurveFamily(policy, errorCode) {
   return {
     state: 'unavailable', rows: [], observedAt: null, retrievedAt: null,
     sourceId: policy ? policy.id : null, sourceUrl: null,
     rights: policy ? policy.rights : null, persistence: 'none', errorCode
   };
+}
+
+/**
+ * The committed official curve artifact, or `null` when it is absent or
+ * unparsable. Assembles an INPUT only — no classification and no freshness
+ * verdict, both of which belong to the caller.
+ */
+export function officialCurveArtifact(root) {
+  const target = path.join(root, 'data', 'curves', 'us-treasury', 'curve.json');
+  if (!existsSync(target)) return null;
+  try {
+    return JSON.parse(readFileSync(target, 'utf8'));
+  } catch {
+    return null;
+  }
 }
 
 /**

@@ -18,14 +18,14 @@
     "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
     "currentPhaseStatus": "in_progress",
-    "currentScope": "04-headless-consumption-path",
-    "substate": "scope-03-delivered",
+    "currentScope": "05-brief-read-and-provenance-render",
+    "substate": "scope-04-delivered",
     "runStartedAt": "2026-08-10T17:05:00Z",
     "completedAt": null,
     "completedPhaseClaims": [],
     "pendingTransitionRequests": [],
     "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "specs/018-headless-official-curve-publication/scopes/04-headless-consumption-path/scope.md",
+    "nextRequiredTarget": "specs/018-headless-official-curve-publication/scopes/05-brief-read-and-provenance-render/scope.md",
     "scopeProgress": [
       {
         "scope": 1,
@@ -55,7 +55,7 @@
       {
         "scope": 4,
         "scopeId": "04-headless-consumption-path",
-        "status": "not_started",
+        "status": "done",
         "foundation": false,
         "dependsOn": [
           1,
@@ -93,7 +93,8 @@
     "completedScopes": [
       "01-official-curve-artifact-contract",
       "02-tier-a-official-curve-acquisition",
-      "03-observed-cadence-freshness-admission"
+      "03-observed-cadence-freshness-admission",
+      "04-headless-consumption-path"
     ],
     "certifiedCompletedPhases": [],
     "scopeProgress": [],

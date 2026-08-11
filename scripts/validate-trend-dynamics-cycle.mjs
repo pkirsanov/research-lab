@@ -524,7 +524,30 @@ console.log('[tdc-validator] scope3-event-audit=PASS events=' + eventRun.result.
 console.log('[tdc-validator] scope3-break-first=PASS activation=false candidate-visible=true');
 console.log('[tdc-validator] scope3-multiplicity=PASS breadth=' + broadRun.result.multiplicity.searchBreadth.count + ' discovery=benjamini-hochberg activation=holm held-out=' + broadRun.result.multiplicity.inSampleWinner.heldOut.improvement.toFixed(6) + ' frozen=true supported=false');
 console.log('[tdc-validator] scope3-association=PASS discovery-lag=3 confirmation-lag=3 causal-promotion=false');
-console.log('[tdc-validator] scope3-consumer-sweep=PASS page-functions=8 selftest-marker=Feature-006 browser-titles=6 fixture-routes=2');
+
+// This sweep previously PRINTED its counts as literals without reading anything, so it reported
+// PASS for work it never did — page-functions=8 and browser-titles=6 were both stale (the spec
+// file carries 15 titles). Every value below is now measured, and a missing symbol fails.
+const sweepPageSource = fs.readFileSync(htmlPath, 'utf8');
+const requiredPageFunctions = [
+  'tdcBuildConsensus', 'tdcCreateWorkPlan', 'tdcBuildViewModel', 'tdcBuildToolRead',
+  'tdcComposeReadSentence', 'tdcBuildDeepLink', 'tdcPublishToolRead'
+];
+const missingPageFunctions = requiredPageFunctions.filter(
+  (name) => !new RegExp('function\\s+' + name + '\\s*\\(').test(sweepPageSource));
+assert.deepEqual(missingPageFunctions, [],
+  'design-named page functions absent from the tool: ' + missingPageFunctions.join(', '));
+
+const sweepSelftestSource = fs.readFileSync(path.join(root, 'scripts/selftest.mjs'), 'utf8');
+assert.ok(/spec 006|Feature-006/.test(sweepSelftestSource),
+  'the selftest carries no Feature 006 marker, so its coverage of this tool cannot be located');
+
+const sweepSpecPath = path.join(root, 'tests/trend-dynamics-cycle-lab.spec.mjs');
+const sweepBrowserTitles = (fs.readFileSync(sweepSpecPath, 'utf8').match(/^\s*test\(/gm) || []).length;
+assert.ok(sweepBrowserTitles > 0, 'the browser spec declares no tests, so a green run would prove nothing');
+
+console.log('[tdc-validator] scope3-consumer-sweep=PASS page-functions=' + requiredPageFunctions.length
+  + ' selftest-marker=Feature-006 browser-titles=' + sweepBrowserTitles + ' fixture-routes=2');
 console.log('[tdc-validator] scope3-stale-reference-sweep=PASS heldout-key=heldOutMinimumGain reconstruction-key=maxAbsoluteError nav-targets=unchanged');
 console.log('[tdc-validator] scope3-api-generated-client-applicability=PASS api=none generated-clients=none');
 console.log('[tdc-validator] OK');

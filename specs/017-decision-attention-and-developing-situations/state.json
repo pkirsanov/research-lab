@@ -926,6 +926,17 @@
         "resolution": "RESOLVED. All three findings it reconfirmed, A-017-01, A-017-02 and A-017-03, appear in AUD-017-005 addressedFindings, and that attempt records unresolvedFindings empty. Consistent with this observation's own framing, each was a defect in the RECORD rather than in delivered code, and each was repaired in the record.",
         "followUpOwner": "bubbles.workflow",
         "followUpAction": "none"
+      },
+      {
+        "id": "VAL-017-13",
+        "severity": "low",
+        "recordedAt": "2026-08-11T02:06:00Z",
+        "recordedBy": "parent-orchestrator",
+        "title": "The certification's 'green guard is impossible' claim is FALSIFIED - it was a load-dependent timeout, not a packet defect",
+        "detail": "certification.guardResidualFailureExplained states that state-transition-guard.sh 'CANNOT return a green verdict for this spec at a genuinely-done status'. That is wrong, and it is corrected here rather than edited out, because the reasoning around it was sound and worth keeping. Its diagnosis was right: Check 13 wrapped artifact-lint in a flat 60s cap while this spec's lint exceeded it. Its CONCLUSION - that this is permanent - was wrong, because the lint's runtime is load-dependent, not fixed. Measured on this machine against byte-identical content: 32s, 73s, 90s and 103s. The 60s cap sits inside that spread, so the verdict depended on concurrent load rather than on the packet. Run at genuinely status=done in the real repository with the machine idle, the guard returned exitStatus 0, verdict PASS, failureCount 0, failedGateIds [], blockingCode none across all 63 gates. The other two components it named are also closed: G088 failed only because the write set certification.certifiedAt and left the TOP-LEVEL certifiedAt null, which is the field the gate reads - both mirrors are now set and G088 passes with trackedFiles=9; G090 failed only inside the /tmp worktree, where the gitignored .specify/memory/bubbles.session.json is absent, and passes in the real repository. Root cause fixed upstream in bubbles 7e71f02: Check 13 now distinguishes exit 124 (did not COMPLETE) from a completed-and-rejected lint, names the cap, raises the default to 300s and makes it overridable. Both outcomes still block - a lint that cannot finish is 'unknown', not 'fine' - but they are no longer reported as the same thing, which is what sent a reader hunting for findings that did not exist.",
+        "resolvedAt": "2026-08-11T02:06:00Z",
+        "resolution": "Guard re-run at done: exit 0, PASS, failureCount 0, failedGateIds []. Framework defect fixed in bubbles 7e71f02 with three selftest cases, two adversarial.",
+        "followUpAction": "none"
       }
     ],
     "certifiedAtNote": "Set to an instant after the commit that records this certification. G088 compares git history for tracked planning paths against certifiedAt, so a certification instant that predates its own recording commit would read as a post-certification edit of certified truth. The prior value 2026-08-10T01:30:00Z-class stamp had that defect and also left the top-level mirror null, which is the field G088 actually reads."

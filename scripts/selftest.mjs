@@ -6947,6 +6947,51 @@ try {
     'an incomplete run publishes NOTHING, so a cancelled or partial analysis can never reach the Brief');
 } catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab owner read threw): ' + e.message); }
 
+/* ── trend-dynamics-cycle-lab — view model (TP-04-01, spec 006 scope 4) ────────────────────────
+   Simple and Power are two views of ONE result. The risk this group exists to catch is a
+   renderer that quietly reaches a second verdict: design.md line 174 says a renderer consumes
+   AnalysisResultV1 only and cannot calculate one, and line 428 says full precision stays in the
+   result while `display` owns rounding. A view model that recomputed, re-rounded into the result,
+   or formatted a non-finite value would satisfy none of those and would let the two views
+   disagree about what the same run concluded. */
+try {
+  group('trend-dynamics-cycle-lab \u2014 view model projects ONE result without a second verdict (TP-04-01)');
+  const vmSrc = read('trend-dynamics-cycle-lab.html');
+  const vmEnv = build([extractFn(vmSrc, 'tdcBuildViewModel')], ['tdcBuildViewModel']);
+  const vmResult = (over) => Object.assign({
+    contractVersion: 'tdc-analysis-result/v1', resultId: 'res-042', requestDigest: 'dig-xyz',
+    computedAt: '2026-08-11T12:00:00Z', sourceAsOf: '2026-08-10',
+    sourceAvailability: 'current', truthState: 'current',
+    request: { seriesId: 'series-a', transformId: 'level', horizonId: 'medium' },
+    trend: { direction: 'rising', trendType: 'linear' },
+    strength: { score: 0.6666666666666666 },
+    dynamics: { state: 'accelerating' },
+    changeState: 'stable',
+    confidencePct: 73.4999,
+    caveats: [], complete: true
+  }, over || {});
+
+  const vm = vmEnv.tdcBuildViewModel(vmResult());
+  assert(vm && vm.resultId === 'res-042' && vm.requestDigest === 'dig-xyz',
+    'the view model carries the result identity verbatim, so Simple and Power provably render the SAME run');
+  assert(vm.direction === 'rising' && vm.trendType === 'linear' && vm.dynamics === 'accelerating' && vm.changeState === 'stable',
+    'every verdict field is the result\u2019s own value passed through \u2014 the view model reaches no second conclusion');
+
+  const src = vmResult();
+  const vm2 = vmEnv.tdcBuildViewModel(src);
+  assert(src.strength.score === 0.6666666666666666,
+    'building a view model does not mutate the result \u2014 full precision survives for the owner read and history');
+  assert(typeof vm2.display.strengthScore === 'string' && vm2.display.strengthScore !== '0.6666666666666666',
+    'rounding lives in display only, so the rounded value can never leak back as the stored measurement');
+
+  const nonFinite = vmEnv.tdcBuildViewModel(vmResult({ strength: { score: Number.NaN }, confidencePct: Infinity }));
+  assert(nonFinite.display.strengthScore === null && nonFinite.display.confidencePct === null,
+    'a non-finite measurement formats to null rather than \u201cNaN\u201d or \u201cInfinity\u201d reaching a reader as if it were a number');
+
+  assert(vmEnv.tdcBuildViewModel(vmResult({ complete: false })) === null,
+    'an incomplete run yields no view model, so a cancelled or partial analysis cannot be rendered as a finished verdict');
+} catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab view model threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

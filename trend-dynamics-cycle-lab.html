@@ -3007,6 +3007,36 @@
       };
     }
 
+    /* Simple and Power both render THIS projection, so neither can reach its own verdict.
+       Rounding lives here and never in the result, which keeps full precision for the owner
+       read and history. */
+    function tdcBuildViewModel(result) {
+      if (!result || typeof result !== 'object' || result.complete !== true) return null;
+      var request = result.request && typeof result.request === 'object' ? result.request : {};
+      var trend = result.trend && typeof result.trend === 'object' ? result.trend : {};
+      var strength = result.strength && typeof result.strength === 'object' ? result.strength : {};
+      var dynamics = result.dynamics && typeof result.dynamics === 'object' ? result.dynamics : {};
+      // A non-finite measurement formats to null; "NaN" would read as a value.
+      var round = function (value, places) { return Number.isFinite(value) ? value.toFixed(places) : null; };
+      return {
+        resultId: result.resultId || null,
+        requestDigest: result.requestDigest || null,
+        truthState: result.truthState || 'unavailable',
+        seriesId: request.seriesId || null,
+        transformId: request.transformId || null,
+        horizonId: request.horizonId || null,
+        direction: trend.direction || null,
+        trendType: trend.trendType || null,
+        dynamics: dynamics.state || null,
+        changeState: result.changeState || null,
+        caveats: Array.isArray(result.caveats) ? result.caveats.slice() : [],
+        display: {
+          strengthScore: round(strength.score, 2),
+          confidencePct: round(result.confidencePct, 1)
+        }
+      };
+    }
+
     /* Plain reader words only — no id, contract version or status code reaches Brief copy. */
     function tdcComposeReadSentence(metrics) {
       var parts = [];

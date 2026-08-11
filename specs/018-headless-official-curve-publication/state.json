@@ -1,199 +1,199 @@
 {
-    "version": 3,
-    "featureDir": "specs/018-headless-official-curve-publication",
-    "featureName": "Headless Official Curve Publication",
-    "createdAt": "2026-08-10T16:30:34Z",
-    "lastUpdatedAt": "2026-08-10T17:00:25Z",
-    "status": "in_progress",
-    "blockedReason": null,
-    "workflowMode": null,
-    "planningOnly": false,
-    "specDependsOn": [
-        "specs/003-bond-regime-and-scenario-lab"
-    ],
-    "flagsIntroduced": [],
-    "certifiedAt": null,
-    "requiresRevalidation": false,
-    "execution": {
-        "activeAgent": "bubbles.plan",
-        "currentPhase": "bootstrap",
-        "currentPhaseStatus": "completed",
-        "currentScope": null,
-        "substate": "scopes-authored",
-        "runStartedAt": "2026-08-10T17:05:00Z",
-        "completedAt": null,
-        "completedPhaseClaims": [],
-        "pendingTransitionRequests": [],
-        "nextRequiredOwner": "bubbles.implement",
-        "nextRequiredTarget": "specs/018-headless-official-curve-publication/scopes/01-official-curve-artifact-contract/scope.md",
-        "scopeProgress": [
-            {
-                "scope": 1,
-                "scopeId": "01-official-curve-artifact-contract",
-                "status": "not_started",
-                "foundation": true,
-                "dependsOn": []
-            },
-            {
-                "scope": 2,
-                "scopeId": "02-tier-a-official-curve-acquisition",
-                "status": "not_started",
-                "foundation": false,
-                "dependsOn": [
-                    1
-                ]
-            },
-            {
-                "scope": 3,
-                "scopeId": "03-observed-cadence-freshness-admission",
-                "status": "not_started",
-                "foundation": false,
-                "dependsOn": [
-                    1
-                ]
-            },
-            {
-                "scope": 4,
-                "scopeId": "04-headless-consumption-path",
-                "status": "not_started",
-                "foundation": false,
-                "dependsOn": [
-                    1,
-                    2,
-                    3
-                ]
-            },
-            {
-                "scope": 5,
-                "scopeId": "05-brief-read-and-provenance-render",
-                "status": "not_started",
-                "foundation": false,
-                "dependsOn": [
-                    4
-                ]
-            },
-            {
-                "scope": 6,
-                "scopeId": "06-one-model-parity-guarantee",
-                "status": "not_started",
-                "foundation": false,
-                "dependsOn": [
-                    1,
-                    2,
-                    3,
-                    4,
-                    5
-                ]
-            }
+  "version": 3,
+  "featureDir": "specs/018-headless-official-curve-publication",
+  "featureName": "Headless Official Curve Publication",
+  "createdAt": "2026-08-10T16:30:34Z",
+  "lastUpdatedAt": "2026-08-10T17:00:25Z",
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "full-delivery",
+  "planningOnly": false,
+  "specDependsOn": [
+    "specs/003-bond-regime-and-scenario-lab"
+  ],
+  "flagsIntroduced": [],
+  "certifiedAt": null,
+  "requiresRevalidation": false,
+  "execution": {
+    "activeAgent": "bubbles.plan",
+    "currentPhase": "bootstrap",
+    "currentPhaseStatus": "completed",
+    "currentScope": null,
+    "substate": "scopes-authored",
+    "runStartedAt": "2026-08-10T17:05:00Z",
+    "completedAt": null,
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": [],
+    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredTarget": "specs/018-headless-official-curve-publication/scopes/01-official-curve-artifact-contract/scope.md",
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "01-official-curve-artifact-contract",
+        "status": "not_started",
+        "foundation": true,
+        "dependsOn": []
+      },
+      {
+        "scope": 2,
+        "scopeId": "02-tier-a-official-curve-acquisition",
+        "status": "not_started",
+        "foundation": false,
+        "dependsOn": [
+          1
         ]
-    },
-    "certification": {
-        "status": "uncertified",
-        "certifiedAt": null,
-        "completedScopes": [],
-        "certifiedCompletedPhases": [],
-        "scopeProgress": [],
-        "observations": [
-            {
-                "recordedBy": "bubbles.analyst",
-                "recordedAt": "2026-08-10T16:30:34Z",
-                "kind": "scope-boundary",
-                "summary": "This feature resolves the duration, curve-level, curve-impulse and inflation evidence families. It does NOT resolve the credit axis. bond-regime-lab.html:1934 returns null from selectResearchExpression while EITHER axis is Indeterminate, and scripts/brief-refresh.mjs:1571 publishes state 'unavailable' when no preferred sleeve results. The credit axis needs an independent credit-spread family that bond-regime-universe.json:41-50 marks restricted-local-view and memory-only, which this spec must not change. scripts/selftest.mjs:5670-5682 already asserts the exact post-feature outcome: curves present and no spread observation leaves state 'unavailable' with durationPosture resolved and the gap list narrowed to the credit gap alone. Any certification that treats a resolved published bond verdict as this feature's success signal is measuring the wrong thing."
-            },
-            {
-                "recordedBy": "bubbles.analyst",
-                "recordedAt": "2026-08-10T16:30:34Z",
-                "kind": "blocking-open-question",
-                "summary": "FR-018-019 has no committed source. data/calendars/xnys/calendar.json is an equity calendar and marks 2026-10-12 and 2026-11-11 as dateState 'regular' with closureCode null, while the US bond market is closed and Treasury publishes no curve on those dates. Reusing it unmodified would publish false staleness. Its coverageEnd is also 2026-12-31, so any freshness rule keyed to it inherits a coverage cliff. An authoritative, committable source for US bond-market publication dates must be chosen before FR-018-019 can be implemented."
-            },
-            {
-                "recordedBy": "bubbles.analyst",
-                "recordedAt": "2026-08-10T16:30:34Z",
-                "kind": "contract-extension-required",
-                "summary": "rlcontracts.js:51-64 freezes SOURCE_IDS and SOURCE_POLICIES to five sources, none of which is home.treasury.gov. validateSourceProvenance at rlcontracts.js:515-560 rejects an unknown sourceId and an off-policy host or path. Carrying the repo's own source-provenance/v1 envelope on the published curve artifact therefore requires additive entries for us-treasury-nominal and us-treasury-real using the pathPrefix form, because the official path embeds the year. SOURCE_KINDS at rlcontracts.js:65-70 admits only four kinds, so the daily yield curve either reuses official-report or needs an additive kind. Whether the artifact carries that envelope at all is open question 2 in spec.md."
-            },
-            {
-                "recordedBy": "bubbles.analyst",
-                "recordedAt": "2026-08-10T16:30:34Z",
-                "kind": "out-of-scope-expiry",
-                "summary": "Every instrument characteristic in bond-regime-universe.json carries asOf 2026-07-10 with reviewWindowDays 45, expiring 2026-08-24. notes/bond-regime-lab.md:70 states stale characteristics make a sleeve Not rankable, and scripts/selftest.mjs:5630-5636 re-stamps them in its own fixture for that reason. This is outside this feature's scope and is a second, independent cause of an unresolved published bond read."
-            }
+      },
+      {
+        "scope": 3,
+        "scopeId": "03-observed-cadence-freshness-admission",
+        "status": "not_started",
+        "foundation": false,
+        "dependsOn": [
+          1
         ]
-    },
-    "policySnapshot": {
-        "grill": {
-            "mode": "off",
-            "source": "repo-default"
-        },
-        "tdd": {
-            "mode": "scenario-first",
-            "source": "repo-default"
-        },
-        "autoCommit": {
-            "mode": "off",
-            "source": "repo-default"
-        },
-        "lockdown": {
-            "mode": "off",
-            "source": "repo-default"
-        },
-        "regression": {
-            "mode": "protected-scenarios",
-            "source": "repo-default"
-        },
-        "validation": {
-            "mode": "certification-required",
-            "source": "repo-default"
-        }
-    },
-    "transitionRequests": [],
-    "reworkQueue": [],
-    "executionHistory": [
-        {
-            "agent": "bubbles.analyst",
-            "phasesExecuted": [
-                "analyze"
-            ],
-            "startedAt": "2026-08-10T16:30:34Z",
-            "completedAt": "2026-08-10T16:30:34Z",
-            "durationUnmeasured": true,
-            "durationUnmeasuredReason": "The authoring run recorded a single instant rather than a start and a finish. Declared unmeasured rather than back-filled with a plausible-looking span.",
-            "statusBefore": "in_progress",
-            "statusAfter": "in_progress",
-            "summary": "Greenfield analyst authoring of feature 018. Created spec.md and state.json only; no design.md or scopes.md, and no file outside specs/018-headless-official-curve-publication/ was written. Repository binding was committed to <repo-root> as decision rb:vscode-237c8ac0756a6f7a2d67045658373c1c:10 before any local write. Every claim in spec.md was read from a file during authoring and is cited with a path and a line range in the Research Evidence table. Delivered 5 actors, 6 use cases, 18 Gherkin business scenarios in 5 clusters mapped to SCN-018-NNN at planning time, 38 functional requirements in 5 groups, a domain capability model, an outcome contract, an exposure contract, and 7 honest findings. The primary finding is H-1: this feature half-resolves the bond regime and the published state most likely stays 'unavailable', which the repo's own committed selftest at scripts/selftest.mjs:5670-5682 already asserts. Two sections are recorded as 'None found' with reasons rather than filled with invented content: competitive analysis and market-trend research, because no competitor or trend claim is derivable from a file in this repository. Four open questions are named with owners rather than deferred; one of them, the US bond-market publication calendar, blocks FR-018-019 and has no committed source today."
-        },
-        {
-            "agent": "bubbles.ux",
-            "phasesExecuted": [
-                "analyze"
-            ],
-            "startedAt": "2026-08-10T16:38:00Z",
-            "completedAt": "2026-08-10T16:44:08Z",
-            "statusBefore": "in_progress",
-            "statusAfter": "in_progress",
-            "summary": "UX authoring for feature 018. Added '## UI Wireframes' and '## User Flows' to specs/018-headless-official-curve-publication/spec.md between the analyst-owned UI Scenario Matrix and Assumptions And Open Questions. No other file was written; no sidecar UX file was created; no analyst-owned section, business scenario or requirement id was modified, and no new BS- or FR- id was invented. Repository binding was committed to <repo-root> as decision rb:vscode-237c8ac0756a6f7a2d67045658373c1c:11 before any local write. Delivered a screen inventory, a five-primitive UI-primitives table satisfying UX9, three central rendering rules for the partial-resolution state named by finding H-1, six ASCII screens each carrying interactions, responsive behavior, accessibility and its BS-/FR- coverage, and two mermaid user flows covering the provenance drill and the stale-artifact restore path. Freshness state is rendered as shape glyph plus word in every screen so fresh, stale and absent are never separated by colour alone. Every dynamic value carries a two-part contextual tooltip reachable by keyboard focus and by an explicit information target, never hover-only. Sample dates, yields and classifications inside the wireframes are declared placeholders in the shape the field takes rather than measurements. BS-018-001, BS-018-002 and BS-018-003 have no screen because they are acquisition-command and source-policy scenarios with no reader-visible surface; that is recorded in the screen inventory rather than left implicit. Nothing is claimed to be built. Verified: UX1 spec.md carries '## UI Wireframes'; UX8 no forbidden sidecar file exists in the feature directory; artifact-lint reports 'No forbidden sidecar artifacts present' and its four remaining failures are the not-yet-authored design.md, scopes.md, report.md and uservalidation.md owned by downstream agents."
-        },
-        {
-            "agent": "bubbles.design",
-            "phasesExecuted": [
-                "bootstrap"
-            ],
-            "startedAt": "2026-08-10T16:46:12Z",
-            "completedAt": "2026-08-10T17:00:25Z",
-            "statusBefore": "in_progress",
-            "statusAfter": "in_progress",
-            "summary": "Design authoring for feature 018. Created specs/018-headless-official-curve-publication/design.md and updated this state.json execution block and executionHistory only. No other file was written; spec.md was not modified; scopes.md, report.md and uservalidation.md were not created; certification.* was not touched. Repository binding was committed to <repo-root> as decision rb:vscode-237c8ac0756a6f7a2d67045658373c1c:12 before any local write, and git status confirms no file outside the feature directory changed, so the concurrently-edited market-brief artifacts and notes/README.md were left untouched. Both blocking open questions are resolved with evidence. Open question 1 (bond-market publication calendar) is resolved as an observed-cadence freshness rule derived from the artifact's own as-of progression: no calendar file is read, data/calendars/xnys/calendar.json is never consulted, weekends and bond holidays are absorbed structurally because each appears in the data as a gap, there is no coverage cliff, and a live publication stoppage still goes stale because the widening gap is only recorded once observations resume. FR-018-020's out-of-coverage named absence is preserved as an insufficient-observation-count verdict that defaults neither to current nor to stale. Open question 2 (provenance depth) is resolved as the full source-provenance/v1 envelope, one per fetched response, nested inside a family record: envelope-only is structurally impossible because rlcontracts.js:109-127 freezes SOURCE_PROVENANCE_FIELDS with no observation as-of and hasOnlyFields rejects an added one, while the lighter data/bars form has no validator, no host allowlist, no https enforcement, no hash and no access class. The layering follows the committed data/calendars/xnys/calendar.json sourceRef precedent. Spec open questions 3 and 4 are also resolved: retention is exactly the browser's two-calendar-year window, and acquisition runs inside the existing scheduled refresh. One new design finding is recorded, D-1: classifyInflationState at bond-regime-lab.html:1697-1699 compares the first and last breakeven rows, so the retained window is a parity correctness requirement rather than only a coverage one, and unequal coverageYears make the two compositions non-comparable rather than divergent. Five concerns are routed rather than absorbed: R-1 the 2026-08-24 sleeve-characteristic expiry to a separate spec, R-2 and R-3 two UX wording changes to bubbles.ux, R-4 the persistence field interpretation and R-5 the spec-test-path guard constraint to bubbles.plan. The design also enumerates the four committed selftest sites that must be reconciled and shows each change makes the suite more explicit rather than weaker. Two open questions remain, both non-blocking with named settling evidence: the numeric magnitude of the observed publication gap and the artifact's measured byte size, both settled by the first acquisition run. Verified by execution: repository-binding.sh preflight exit 0 with PREFLIGHT_COMMITTED revision 12; node scripts/validate-spec-test-paths.mjs exit 0 reporting scanned=492 references=11616 new=0, confirming design.md introduces no unresolvable tests/*.mjs token; artifact-lint.sh reports design.md present and no forbidden sidecar, with its three remaining failures being the downstream-owned scopes.md, report.md and uservalidation.md. The first-load figure quoted in the design (175,359 of 204,800 bytes, 29,441 bytes headroom) was measured during authoring; the artifact byte estimate is declared arithmetic rather than a measurement."
-        },
-        {
-            "agent": "bubbles.plan",
-            "phasesExecuted": [
-                "bootstrap"
-            ],
-            "startedAt": "2026-08-10T17:05:00Z",
-            "completedAt": "2026-08-10T17:22:00Z",
-            "statusBefore": "in_progress",
-            "statusAfter": "in_progress",
-            "summary": "Planning authoring for feature 018. Created scopes/_index.md, six per-scope directories each with scope.md and a report.md evidence template, the rollup report.md, uservalidation.md, test-plan.json and scenario-manifest.json, and updated this state.json execution block, scopeProgress and executionHistory. spec.md and design.md were not modified, certification.* was not touched, and no file outside specs/018-headless-official-curve-publication/ was written, so the concurrently-held market-brief artifacts, scripts/build-attention-items.mjs, tests/attention-payload-contract.test.mjs and notes/README.md were left untouched. Repository binding was committed to <repo-root> as decision rb:vscode-237c8ac0756a6f7a2d67045658373c1c:14 before any local write. The layout follows specs/017-decision-attention-and-developing-situations rather than the single-file specs/003 form, because 017 is the current per-scope-directory convention in this repository. Six scopes: scope 1 carries foundation:true and owns the official-curve-artifact/v1 contract, the additive rlcontracts.js allowlist entries and the validation gate; scopes 2 through 6 are Tier-A acquisition, the observed-cadence freshness admission, the headless consumption path, the brief read and provenance render, and the one-model parity guarantee. 38 scenarios SCN-018-001 through SCN-018-038, of which 001 through 018 map one-to-one onto BS-018-001 through BS-018-018 and 019 through 038 are planning-added scenarios covering the design's named adversarial cases and its routed items. 51 test-plan rows, every BS id covered by at least one row. Routed item R-4 (the persistence field interpretation) lands in scope 1 as SCN-018-020, TP-01-08 and a Core Delivery item plus a dedicated section in scopes/_index.md. Routed item R-5 (the spec-test-path guard) is settled by a plan-level decision recorded in scopes/_index.md: this feature names no new tests/*.mjs path anywhere, so scripts/validate-spec-test-paths.baseline neither grows nor needs an entry. Every Node test row lands in scripts/selftest.mjs as a named group and every browser row lands in the existing tests/bond-regime-lab.spec.mjs, which are the two surfaces this repository actually uses. R-2 lands in scope 5 as SCN-018-035 and R-3 lands in scope 6 as SCN-018-037. Every assertion class in test-plan.json is structural — shape, state, named reason, provenance field, as-of, count, or an equality between two computed results — because curve values are live market data. The differential parity row TP-06-01 hands one frozen input set to the browser composition and to the real headless consumption path and asserts pairwise equality, and TP-06-03 perturbs the headless input alone to prove the comparison can fail. The committed assertion at scripts/selftest.mjs:5670-5682 is referenced explicitly in scope 4 with its verbatim source, and TP-04-03 runs it unmodified against a real acquired artifact rather than contradicting it. Verified by execution: repository-binding.sh preflight exit 0 with PREFLIGHT_COMMITTED revision 14; node scripts/validate-spec-test-paths.mjs and .github/bubbles/scripts/artifact-lint.sh were run against the feature directory and their real exit codes are recorded in the planning result envelope."
-        }
+      },
+      {
+        "scope": 4,
+        "scopeId": "04-headless-consumption-path",
+        "status": "not_started",
+        "foundation": false,
+        "dependsOn": [
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "scope": 5,
+        "scopeId": "05-brief-read-and-provenance-render",
+        "status": "not_started",
+        "foundation": false,
+        "dependsOn": [
+          4
+        ]
+      },
+      {
+        "scope": 6,
+        "scopeId": "06-one-model-parity-guarantee",
+        "status": "not_started",
+        "foundation": false,
+        "dependsOn": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
     ]
+  },
+  "certification": {
+    "status": "uncertified",
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [],
+    "observations": [
+      {
+        "recordedBy": "bubbles.analyst",
+        "recordedAt": "2026-08-10T16:30:34Z",
+        "kind": "scope-boundary",
+        "summary": "This feature resolves the duration, curve-level, curve-impulse and inflation evidence families. It does NOT resolve the credit axis. bond-regime-lab.html:1934 returns null from selectResearchExpression while EITHER axis is Indeterminate, and scripts/brief-refresh.mjs:1571 publishes state 'unavailable' when no preferred sleeve results. The credit axis needs an independent credit-spread family that bond-regime-universe.json:41-50 marks restricted-local-view and memory-only, which this spec must not change. scripts/selftest.mjs:5670-5682 already asserts the exact post-feature outcome: curves present and no spread observation leaves state 'unavailable' with durationPosture resolved and the gap list narrowed to the credit gap alone. Any certification that treats a resolved published bond verdict as this feature's success signal is measuring the wrong thing."
+      },
+      {
+        "recordedBy": "bubbles.analyst",
+        "recordedAt": "2026-08-10T16:30:34Z",
+        "kind": "blocking-open-question",
+        "summary": "FR-018-019 has no committed source. data/calendars/xnys/calendar.json is an equity calendar and marks 2026-10-12 and 2026-11-11 as dateState 'regular' with closureCode null, while the US bond market is closed and Treasury publishes no curve on those dates. Reusing it unmodified would publish false staleness. Its coverageEnd is also 2026-12-31, so any freshness rule keyed to it inherits a coverage cliff. An authoritative, committable source for US bond-market publication dates must be chosen before FR-018-019 can be implemented."
+      },
+      {
+        "recordedBy": "bubbles.analyst",
+        "recordedAt": "2026-08-10T16:30:34Z",
+        "kind": "contract-extension-required",
+        "summary": "rlcontracts.js:51-64 freezes SOURCE_IDS and SOURCE_POLICIES to five sources, none of which is home.treasury.gov. validateSourceProvenance at rlcontracts.js:515-560 rejects an unknown sourceId and an off-policy host or path. Carrying the repo's own source-provenance/v1 envelope on the published curve artifact therefore requires additive entries for us-treasury-nominal and us-treasury-real using the pathPrefix form, because the official path embeds the year. SOURCE_KINDS at rlcontracts.js:65-70 admits only four kinds, so the daily yield curve either reuses official-report or needs an additive kind. Whether the artifact carries that envelope at all is open question 2 in spec.md."
+      },
+      {
+        "recordedBy": "bubbles.analyst",
+        "recordedAt": "2026-08-10T16:30:34Z",
+        "kind": "out-of-scope-expiry",
+        "summary": "Every instrument characteristic in bond-regime-universe.json carries asOf 2026-07-10 with reviewWindowDays 45, expiring 2026-08-24. notes/bond-regime-lab.md:70 states stale characteristics make a sleeve Not rankable, and scripts/selftest.mjs:5630-5636 re-stamps them in its own fixture for that reason. This is outside this feature's scope and is a second, independent cause of an unresolved published bond read."
+      }
+    ]
+  },
+  "policySnapshot": {
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "repo-default"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "startedAt": "2026-08-10T16:30:34Z",
+      "completedAt": "2026-08-10T16:30:34Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "The authoring run recorded a single instant rather than a start and a finish. Declared unmeasured rather than back-filled with a plausible-looking span.",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "summary": "Greenfield analyst authoring of feature 018. Created spec.md and state.json only; no design.md or scopes.md, and no file outside specs/018-headless-official-curve-publication/ was written. Repository binding was committed to <repo-root> as decision rb:vscode-237c8ac0756a6f7a2d67045658373c1c:10 before any local write. Every claim in spec.md was read from a file during authoring and is cited with a path and a line range in the Research Evidence table. Delivered 5 actors, 6 use cases, 18 Gherkin business scenarios in 5 clusters mapped to SCN-018-NNN at planning time, 38 functional requirements in 5 groups, a domain capability model, an outcome contract, an exposure contract, and 7 honest findings. The primary finding is H-1: this feature half-resolves the bond regime and the published state most likely stays 'unavailable', which the repo's own committed selftest at scripts/selftest.mjs:5670-5682 already asserts. Two sections are recorded as 'None found' with reasons rather than filled with invented content: competitive analysis and market-trend research, because no competitor or trend claim is derivable from a file in this repository. Four open questions are named with owners rather than deferred; one of them, the US bond-market publication calendar, blocks FR-018-019 and has no committed source today."
+    },
+    {
+      "agent": "bubbles.ux",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "startedAt": "2026-08-10T16:38:00Z",
+      "completedAt": "2026-08-10T16:44:08Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "summary": "UX authoring for feature 018. Added '## UI Wireframes' and '## User Flows' to specs/018-headless-official-curve-publication/spec.md between the analyst-owned UI Scenario Matrix and Assumptions And Open Questions. No other file was written; no sidecar UX file was created; no analyst-owned section, business scenario or requirement id was modified, and no new BS- or FR- id was invented. Repository binding was committed to <repo-root> as decision rb:vscode-237c8ac0756a6f7a2d67045658373c1c:11 before any local write. Delivered a screen inventory, a five-primitive UI-primitives table satisfying UX9, three central rendering rules for the partial-resolution state named by finding H-1, six ASCII screens each carrying interactions, responsive behavior, accessibility and its BS-/FR- coverage, and two mermaid user flows covering the provenance drill and the stale-artifact restore path. Freshness state is rendered as shape glyph plus word in every screen so fresh, stale and absent are never separated by colour alone. Every dynamic value carries a two-part contextual tooltip reachable by keyboard focus and by an explicit information target, never hover-only. Sample dates, yields and classifications inside the wireframes are declared placeholders in the shape the field takes rather than measurements. BS-018-001, BS-018-002 and BS-018-003 have no screen because they are acquisition-command and source-policy scenarios with no reader-visible surface; that is recorded in the screen inventory rather than left implicit. Nothing is claimed to be built. Verified: UX1 spec.md carries '## UI Wireframes'; UX8 no forbidden sidecar file exists in the feature directory; artifact-lint reports 'No forbidden sidecar artifacts present' and its four remaining failures are the not-yet-authored design.md, scopes.md, report.md and uservalidation.md owned by downstream agents."
+    },
+    {
+      "agent": "bubbles.design",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "startedAt": "2026-08-10T16:46:12Z",
+      "completedAt": "2026-08-10T17:00:25Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "summary": "Design authoring for feature 018. Created specs/018-headless-official-curve-publication/design.md and updated this state.json execution block and executionHistory only. No other file was written; spec.md was not modified; scopes.md, report.md and uservalidation.md were not created; certification.* was not touched. Repository binding was committed to <repo-root> as decision rb:vscode-237c8ac0756a6f7a2d67045658373c1c:12 before any local write, and git status confirms no file outside the feature directory changed, so the concurrently-edited market-brief artifacts and notes/README.md were left untouched. Both blocking open questions are resolved with evidence. Open question 1 (bond-market publication calendar) is resolved as an observed-cadence freshness rule derived from the artifact's own as-of progression: no calendar file is read, data/calendars/xnys/calendar.json is never consulted, weekends and bond holidays are absorbed structurally because each appears in the data as a gap, there is no coverage cliff, and a live publication stoppage still goes stale because the widening gap is only recorded once observations resume. FR-018-020's out-of-coverage named absence is preserved as an insufficient-observation-count verdict that defaults neither to current nor to stale. Open question 2 (provenance depth) is resolved as the full source-provenance/v1 envelope, one per fetched response, nested inside a family record: envelope-only is structurally impossible because rlcontracts.js:109-127 freezes SOURCE_PROVENANCE_FIELDS with no observation as-of and hasOnlyFields rejects an added one, while the lighter data/bars form has no validator, no host allowlist, no https enforcement, no hash and no access class. The layering follows the committed data/calendars/xnys/calendar.json sourceRef precedent. Spec open questions 3 and 4 are also resolved: retention is exactly the browser's two-calendar-year window, and acquisition runs inside the existing scheduled refresh. One new design finding is recorded, D-1: classifyInflationState at bond-regime-lab.html:1697-1699 compares the first and last breakeven rows, so the retained window is a parity correctness requirement rather than only a coverage one, and unequal coverageYears make the two compositions non-comparable rather than divergent. Five concerns are routed rather than absorbed: R-1 the 2026-08-24 sleeve-characteristic expiry to a separate spec, R-2 and R-3 two UX wording changes to bubbles.ux, R-4 the persistence field interpretation and R-5 the spec-test-path guard constraint to bubbles.plan. The design also enumerates the four committed selftest sites that must be reconciled and shows each change makes the suite more explicit rather than weaker. Two open questions remain, both non-blocking with named settling evidence: the numeric magnitude of the observed publication gap and the artifact's measured byte size, both settled by the first acquisition run. Verified by execution: repository-binding.sh preflight exit 0 with PREFLIGHT_COMMITTED revision 12; node scripts/validate-spec-test-paths.mjs exit 0 reporting scanned=492 references=11616 new=0, confirming design.md introduces no unresolvable tests/*.mjs token; artifact-lint.sh reports design.md present and no forbidden sidecar, with its three remaining failures being the downstream-owned scopes.md, report.md and uservalidation.md. The first-load figure quoted in the design (175,359 of 204,800 bytes, 29,441 bytes headroom) was measured during authoring; the artifact byte estimate is declared arithmetic rather than a measurement."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "startedAt": "2026-08-10T17:05:00Z",
+      "completedAt": "2026-08-10T17:22:00Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "summary": "Planning authoring for feature 018. Created scopes/_index.md, six per-scope directories each with scope.md and a report.md evidence template, the rollup report.md, uservalidation.md, test-plan.json and scenario-manifest.json, and updated this state.json execution block, scopeProgress and executionHistory. spec.md and design.md were not modified, certification.* was not touched, and no file outside specs/018-headless-official-curve-publication/ was written, so the concurrently-held market-brief artifacts, scripts/build-attention-items.mjs, tests/attention-payload-contract.test.mjs and notes/README.md were left untouched. Repository binding was committed to <repo-root> as decision rb:vscode-237c8ac0756a6f7a2d67045658373c1c:14 before any local write. The layout follows specs/017-decision-attention-and-developing-situations rather than the single-file specs/003 form, because 017 is the current per-scope-directory convention in this repository. Six scopes: scope 1 carries foundation:true and owns the official-curve-artifact/v1 contract, the additive rlcontracts.js allowlist entries and the validation gate; scopes 2 through 6 are Tier-A acquisition, the observed-cadence freshness admission, the headless consumption path, the brief read and provenance render, and the one-model parity guarantee. 38 scenarios SCN-018-001 through SCN-018-038, of which 001 through 018 map one-to-one onto BS-018-001 through BS-018-018 and 019 through 038 are planning-added scenarios covering the design's named adversarial cases and its routed items. 51 test-plan rows, every BS id covered by at least one row. Routed item R-4 (the persistence field interpretation) lands in scope 1 as SCN-018-020, TP-01-08 and a Core Delivery item plus a dedicated section in scopes/_index.md. Routed item R-5 (the spec-test-path guard) is settled by a plan-level decision recorded in scopes/_index.md: this feature names no new tests/*.mjs path anywhere, so scripts/validate-spec-test-paths.baseline neither grows nor needs an entry. Every Node test row lands in scripts/selftest.mjs as a named group and every browser row lands in the existing tests/bond-regime-lab.spec.mjs, which are the two surfaces this repository actually uses. R-2 lands in scope 5 as SCN-018-035 and R-3 lands in scope 6 as SCN-018-037. Every assertion class in test-plan.json is structural — shape, state, named reason, provenance field, as-of, count, or an equality between two computed results — because curve values are live market data. The differential parity row TP-06-01 hands one frozen input set to the browser composition and to the real headless consumption path and asserts pairwise equality, and TP-06-03 perturbs the headless input alone to prove the comparison can fail. The committed assertion at scripts/selftest.mjs:5670-5682 is referenced explicitly in scope 4 with its verbatim source, and TP-04-03 runs it unmodified against a real acquired artifact rather than contradicting it. Verified by execution: repository-binding.sh preflight exit 0 with PREFLIGHT_COMMITTED revision 14; node scripts/validate-spec-test-paths.mjs and .github/bubbles/scripts/artifact-lint.sh were run against the feature directory and their real exit codes are recorded in the planning result envelope."
+    }
+  ]
 }

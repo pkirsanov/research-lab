@@ -53,6 +53,8 @@
     "bls-public-api-v2": true,
     "manual-consensus-artifact": true,
     "nyse-hours-calendar": true,
+    "us-treasury-nominal": true,
+    "us-treasury-real": true,
     "yahoo-chart": true
   });
   var SOURCE_POLICIES = Object.freeze({
@@ -60,6 +62,10 @@
     "bls-public-api-v2": Object.freeze({ sourceKind: "official-report", accessClass: "public-official", host: "api.bls.gov", method: "POST", path: "/publicAPI/v2/timeseries/data/" }),
     "manual-consensus-artifact": Object.freeze({ sourceKind: "sourced-consensus", accessClass: "public-manual-citation", host: null, method: "GET", path: null }),
     "nyse-hours-calendar": Object.freeze({ sourceKind: "official-calendar", accessClass: "public-official", host: "www.nyse.com", method: "GET", path: "/markets/hours-calendars" }),
+    // pathPrefix, not path: the official pathname embeds the year, so the two
+    // families are indistinguishable here by host, method and prefix alike.
+    "us-treasury-nominal": Object.freeze({ sourceKind: "official-report", accessClass: "public-official", host: "home.treasury.gov", method: "GET", pathPrefix: "/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/" }),
+    "us-treasury-real": Object.freeze({ sourceKind: "official-report", accessClass: "public-official", host: "home.treasury.gov", method: "GET", pathPrefix: "/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/" }),
     "yahoo-chart": Object.freeze({ sourceKind: "best-effort-public-chart", accessClass: "public-best-effort", host: "query1.finance.yahoo.com", method: "GET", pathPrefix: "/v8/finance/chart/" })
   });
   var SOURCE_KINDS = Object.freeze({

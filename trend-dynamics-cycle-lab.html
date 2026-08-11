@@ -3059,6 +3059,22 @@
       return 'trend-dynamics-cycle-lab.html' + (parts.length ? '?' + parts.join('&') : '');
     }
 
+    /* Gated on a COMPLETE render, and never mutates the result — a failed write must not change
+       the analysis the reader is looking at. A refusal and a throw are both rejections, so a
+       silent false is never read as success. */
+    function tdcPublishToolRead(result, put) {
+      if (!result || typeof result !== 'object' || result.complete !== true) return { published: false, errorCode: null };
+      if (typeof put !== 'function') return { published: false, errorCode: 'TDC-PUBLISH-REJECTED' };
+      var read = tdcBuildToolRead(result);
+      try {
+        var accepted = put('trend-dynamics-cycle-lab', read);
+        if (accepted === false || accepted === null || accepted === undefined) return { published: false, errorCode: 'TDC-PUBLISH-REJECTED' };
+        return { published: true, errorCode: null };
+      } catch (error) {
+        return { published: false, errorCode: 'TDC-PUBLISH-REJECTED' };
+      }
+    }
+
     /* Plain reader words only — no id, contract version or status code reaches Brief copy. */
     function tdcComposeReadSentence(metrics) {
       var parts = [];

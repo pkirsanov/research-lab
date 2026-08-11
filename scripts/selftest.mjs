@@ -7052,6 +7052,55 @@ try {
     'the markup-sink scan MATCHES both sink shapes when present, so this guard cannot pass vacuously');
 } catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab safe text threw): ' + e.message); }
 
+/* ── trend-dynamics-cycle-lab — publication (TP-04-01, spec 006 scope 4) ───────────────────────
+   design.md: publication is automatic only after a COMPLETE render, and a rejected putToolRead
+   is TDC-PUBLISH-REJECTED and visible, with the page unable to claim Market Brief coverage.
+   The failure that matters is a page that treats publication as fire-and-forget: the reader
+   then sees a finished analysis while the Brief silently holds nothing, or holds a partial run.
+   The publisher is dependency-injected so rejection is exercised for real rather than mocked
+   away. */
+try {
+  group('trend-dynamics-cycle-lab \u2014 publication is gated on completeness and a rejection stays visible (TP-04-01)');
+  const pubSrc = read('trend-dynamics-cycle-lab.html');
+  const pubEnv = build([
+    extractFn(pubSrc, 'tdcComposeReadSentence'), extractFn(pubSrc, 'tdcBuildDeepLink'),
+    extractFn(pubSrc, 'tdcBuildToolRead'), extractFn(pubSrc, 'tdcPublishToolRead')
+  ], ['tdcPublishToolRead']);
+  const pubResult = (over) => Object.assign({
+    contractVersion: 'tdc-analysis-result/v1', resultId: 'res-777', requestDigest: 'dig-777',
+    computedAt: '2026-08-11T12:00:00Z', sourceAsOf: '2026-08-10',
+    sourceAvailability: 'current', truthState: 'current',
+    request: { seriesId: 'srs-9', transformId: 'level', horizonId: 'medium' },
+    trend: { direction: 'rising', trendType: 'linear' }, strength: { score: 0.5 },
+    dynamics: { state: 'steady' }, changeState: 'stable',
+    confidencePct: 60, caveats: [], complete: true
+  }, over || {});
+
+  const sent = [];
+  const ok = pubEnv.tdcPublishToolRead(pubResult(), (id, payload) => { sent.push([id, payload]); return true; });
+  assert(ok.published === true && ok.errorCode === null,
+    'a complete result publishes and reports success, so the page may claim Brief coverage');
+  assert(sent.length === 1 && sent[0][0] === 'trend-dynamics-cycle-lab'
+    && sent[0][1].contractVersion === 'rl-tool-read/v1' && sent[0][1].metrics.resultId === 'res-777',
+    'exactly one owner read is published under the registered id, carrying the identity of the run that produced it');
+
+  const blocked = [];
+  const partial = pubEnv.tdcPublishToolRead(pubResult({ complete: false }), (id, payload) => { blocked.push(id); return true; });
+  assert(blocked.length === 0 && partial.published === false,
+    'an incomplete run publishes NOTHING \u2014 the publisher is never called, so a partial analysis cannot reach the Brief');
+
+  const source = pubResult();
+  const rejected = pubEnv.tdcPublishToolRead(source, () => { throw new Error('quota exceeded'); });
+  assert(rejected.published === false && rejected.errorCode === 'TDC-PUBLISH-REJECTED',
+    'a rejected publish is reported as TDC-PUBLISH-REJECTED rather than swallowed, so the page cannot claim coverage it does not have');
+  assert(source.complete === true && source.resultId === 'res-777' && source.truthState === 'current',
+    'a publication failure leaves the result untouched \u2014 the analysis the reader is looking at does not change because a write failed');
+
+  const refused = pubEnv.tdcPublishToolRead(pubResult(), () => false);
+  assert(refused.published === false && refused.errorCode === 'TDC-PUBLISH-REJECTED',
+    'a publisher that REFUSES without throwing is also treated as rejected, so a silent false is not read as success');
+} catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab publication threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

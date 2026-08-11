@@ -2054,6 +2054,88 @@ try {
     'Official curves TP-02-08: the oas and financialConditions families are never fetched and never written');
 } catch (e) { failures++; console.log('  ✗ FAIL (official curve acquisition group threw): ' + e.message); }
 
+/* ---------- Bond regime: observed-cadence freshness admission (spec 018 Scope 3) ---------- */
+try {
+  group('bond-regime — observed-cadence freshness admission');
+  const { admitCurveFamily } = await import('./brief-refresh.mjs');
+  const cadence = (name) => JSON.parse(read('tests/fixtures/official-curves/cadence-' + name + '.json'));
+  const ADMISSION_FIELDS = ['verdict', 'errorCode', 'lastGoodObservedAt', 'elapsedDays', 'windowDays', 'basis'];
+
+  // TP-03-01 — a weekend is not staleness.
+  const weekend = cadence('weekend');
+  const sunday = admitCurveFamily(weekend, 'nominal', '2026-01-11');
+  assert(sunday.verdict === 'current' && sunday.errorCode === null,
+    'Freshness TP-03-01: a Friday lastObserved evaluated on Sunday is current with a null errorCode');
+  assert(sunday.windowDays === 4 && sunday.elapsedDays === 2,
+    'Freshness TP-03-01: the weekend is absorbed by the observed 3-day gap plus the 1-day lag, not by a calendar');
+  assert(!/stale/i.test(sunday.basis),
+    'Freshness TP-03-01: no staleness reason is published for a weekend run');
+
+  // TP-03-02 — a bond-market holiday is not staleness, and no calendar is read.
+  const holiday = cadence('holiday-gap');
+  const afterHoliday = admitCurveFamily(holiday, 'nominal', '2026-01-15');
+  assert(afterHoliday.verdict === 'current' && afterHoliday.windowDays === 5,
+    'Freshness TP-03-02: a 4-day bond-holiday gap widens the derived window to 5 and the run stays current');
+  /* Source-level proof, and stated as exactly that: an ESM named import cannot be
+     intercepted from inside this process, so this asserts the rule CONTAINS no
+     file read rather than tracing one. It still fails the moment anyone adds one. */
+  const refreshSource = read('scripts/brief-refresh.mjs');
+  const ruleStart = refreshSource.indexOf('export function admitCurveFamily');
+  const ruleBody = refreshSource.slice(ruleStart, refreshSource.indexOf('\n}', ruleStart));
+  assert(ruleStart > 0 && !/readFileSync|readFile\(|existsSync|join\(|require\(/.test(ruleBody),
+    'Freshness TP-03-02: the admission rule opens no file at all — it reads no calendar because it reads nothing');
+  assert(!/calendar/i.test(ruleBody),
+    'Freshness TP-03-02: data/calendars/xnys/calendar.json is never named in the rule, so a right answer reached by reading the wrong file is impossible');
+
+  // TP-03-03 — a missed publication is staleness with a named reason.
+  const stale = admitCurveFamily(weekend, 'nominal', '2026-01-20');
+  assert(stale.verdict === 'stale' && stale.errorCode === 'BRL-CURVE-FAMILY-STALE',
+    'Freshness TP-03-03: a run past the derived window is stale with BRL-CURVE-FAMILY-STALE');
+  assert(stale.lastGoodObservedAt === '2026-01-09' && stale.elapsedDays === 11 && stale.windowDays === 4 && stale.basis.length > 0,
+    'Freshness TP-03-03: the admission block names lastGoodObservedAt, elapsedDays, windowDays and a non-empty observed-gap basis');
+  assert(JSON.stringify(Object.keys(stale)) === JSON.stringify(ADMISSION_FIELDS),
+    'Freshness TP-03-03: the admission block carries exactly the six contracted fields, so scope 5 codes against a settled shape');
+
+  // TP-03-04 — too little observed history is a named absence.
+  const short = admitCurveFamily(cadence('short-history'), 'nominal', '2026-01-12');
+  assert(short.verdict === 'undetermined' && short.errorCode === 'BRL-CURVE-FRESHNESS-UNDERIVABLE',
+    'Freshness TP-03-04: fewer observed gaps than minCadenceObservations yields undetermined with BRL-CURVE-FRESHNESS-UNDERIVABLE');
+  assert(short.verdict !== 'current' && short.verdict !== 'stale',
+    'Freshness TP-03-04: the named absence defaults to NEITHER current nor stale');
+  assert(/gaps-2-of-5/.test(short.basis),
+    'Freshness TP-03-04: the reason states the observation count rather than assuming a publication schedule');
+  assert(!/BRL-/.test(short.basis) && /^BRL-[A-Z-]+$/.test(short.errorCode),
+    'Freshness TP-03-04: uppercase BRL- codes stay in errorCode and lowercase-hyphen reasons stay in basis — neither vocabulary leaks into the other field');
+
+  // TP-03-05 — the window is enforced at its exact edge from both sides.
+  const atEdge = admitCurveFamily(weekend, 'nominal', '2026-01-13');
+  const pastEdge = admitCurveFamily(weekend, 'nominal', '2026-01-14');
+  assert(atEdge.elapsedDays === atEdge.windowDays && atEdge.verdict === 'current',
+    'Freshness TP-03-05: at elapsedDays === windowDays the verdict is current');
+  assert(pastEdge.elapsedDays === pastEdge.windowDays + 1 && pastEdge.verdict === 'stale',
+    'Freshness TP-03-05: at windowDays + 1 the verdict is stale, so the window cannot be widened to infinity');
+  /* The policy is read from the ARTIFACT, so changing it must move the boundary.
+     A hardcoded window would leave this verdict unchanged. */
+  const widened = JSON.parse(JSON.stringify(weekend));
+  widened.freshnessPolicy.publicationLagDays = 2;
+  assert(admitCurveFamily(widened, 'nominal', '2026-01-14').verdict === 'current'
+    && admitCurveFamily(widened, 'nominal', '2026-01-14').windowDays === 5,
+    'Freshness TP-03-05: raising publicationLagDays in the artifact moves the boundary, proving no window value is hardcoded in the rule');
+
+  // TP-03-06 — a live publication stoppage still goes stale.
+  const stoppage = admitCurveFamily(cadence('stoppage'), 'nominal', '2026-02-20');
+  assert(stoppage.verdict === 'stale' && stoppage.windowDays === 4 && stoppage.elapsedDays === 42,
+    'Freshness TP-03-06: an outage far past the widest observed gap is stale — the window is not widened by the outage it exists to detect');
+
+  // TP-03-07 — determinism.
+  const first = admitCurveFamily(weekend, 'nominal', '2026-01-11');
+  const second = admitCurveFamily(weekend, 'nominal', '2026-01-11');
+  assert(JSON.stringify(first) === JSON.stringify(second),
+    'Freshness TP-03-07: the same artifact and the same injected run date return an identical verdict, code and admission block');
+  assert(!/new Date\(\)|Date\.now\(\)/.test(ruleBody),
+    'Freshness TP-03-07: the rule reads no wall clock — the run date arrives as a parameter');
+} catch (e) { failures++; console.log('  ✗ FAIL (observed-cadence freshness group threw): ' + e.message); }
+
 /* ---------- Market Brief: §6c larger-picture / anti-reactivity helpers ---------- */
 try {
   group('rlbrief.js — §6c structural frame + anti-reactivity (MA stack, horizon cap, persistence gate)');

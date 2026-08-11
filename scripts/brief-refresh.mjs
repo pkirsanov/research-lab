@@ -1493,6 +1493,69 @@ export function buildAiCapexToolRead(deps = {}) {
   } catch (error) { return unavailableToolRead(id, deepLink, `AI-capex strategy model unavailable this run: ${error.message}`); }
 }
 
+/* Observed-cadence freshness admission (spec 018 Scope 3).
+
+   Derives each family's freshness window from the family's OWN observed as-of
+   progression rather than from a calendar. A weekend and a bond-market holiday
+   are absorbed structurally, because each already appears in the data as a gap.
+
+   The equity calendar at data/calendars/xnys/calendar.json is deliberately NOT
+   consulted: it marks dates `regular` on which the bond market is closed and
+   Treasury publishes nothing, so reading it would manufacture false staleness.
+   This function opens no file at all — it is a pure function of
+   (artifact, familyId, runDate), which is also what makes the verdict
+   recomputable at every read as a committed artifact ages. */
+export function admitCurveFamily(artifact, familyId, runDate) {
+  const DAY_MS = 86400000;
+  const absent = (basis) => ({
+    verdict: 'undetermined',
+    errorCode: 'BRL-CURVE-FRESHNESS-UNDERIVABLE',
+    lastGoodObservedAt: null,
+    elapsedDays: null,
+    windowDays: null,
+    basis
+  });
+
+  const family = artifact && artifact.families ? artifact.families[familyId] : null;
+  if (!family) return absent('family-absent-from-artifact');
+
+  const policy = (artifact && artifact.freshnessPolicy) || null;
+  if (!policy) return absent('freshness-policy-absent-from-artifact');
+  const cadenceWindowRows = Number(policy.cadenceWindowRows);
+  const minCadenceObservations = Number(policy.minCadenceObservations);
+  const publicationLagDays = Number(policy.publicationLagDays);
+  if (![cadenceWindowRows, minCadenceObservations, publicationLagDays].every(Number.isFinite)) {
+    return absent('freshness-policy-incomplete');
+  }
+
+  const rows = Array.isArray(family.rows) ? family.rows : [];
+  if (!rows.length) return absent('no-observed-rows');
+
+  const dates = rows.map((row) => row.date).filter((date) => typeof date === 'string');
+  const lastObserved = dates[dates.length - 1];
+  const utcDays = (date) => Math.floor(Date.parse(date + 'T00:00:00.000Z') / DAY_MS);
+  const runDayText = runDate instanceof Date ? runDate.toISOString().slice(0, 10) : String(runDate).slice(0, 10);
+  const elapsedDays = utcDays(runDayText) - utcDays(lastObserved);
+
+  const trailing = dates.slice(-Math.max(2, cadenceWindowRows));
+  const observedGaps = [];
+  for (let index = 1; index < trailing.length; index += 1) {
+    observedGaps.push(utcDays(trailing[index]) - utcDays(trailing[index - 1]));
+  }
+  if (observedGaps.length < minCadenceObservations) {
+    return absent(`insufficient-observed-history-gaps-${observedGaps.length}-of-${minCadenceObservations}`);
+  }
+
+  const maxObservedGapDays = Math.max(...observedGaps);
+  const windowDays = maxObservedGapDays + publicationLagDays;
+  const basis = `observed-gap-max-${maxObservedGapDays}d-over-${observedGaps.length}-gaps-plus-lag-${publicationLagDays}d`;
+
+  if (elapsedDays <= windowDays) {
+    return { verdict: 'current', errorCode: null, lastGoodObservedAt: lastObserved, elapsedDays, windowDays, basis };
+  }
+  return { verdict: 'stale', errorCode: 'BRL-CURVE-FAMILY-STALE', lastGoodObservedAt: lastObserved, elapsedDays, windowDays, basis };
+}
+
 /* bond-regime-lab publishes a DECISION, and its own model refuses to reach one until three
    independent evidence families are current at once: an aligned credit price ratio, an independent
    credit-spread (or financial-conditions) observation, and a Treasury curve. This repo commits only
@@ -1505,6 +1568,7 @@ export function buildAiCapexToolRead(deps = {}) {
    expression-selection code runs over whatever evidence it is handed, and the indeterminacy below is
    what it returns. Hand the same builder a curve and a spread observation and it publishes a real
    regime instead — which is exactly how the brief can be trusted when it says "unresolved". */
+/* The bond regime read is EXPECTED to publish a named absence rather than a verdict. */
 export function buildBondRegimeToolRead(deps = {}) {
   const id = 'bond-regime-lab', deepLink = 'bond-regime-lab.html#simple';
   const priorMacroRotation = globalThis.RLMACROROTATION;

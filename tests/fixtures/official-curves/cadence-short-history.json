@@ -1,0 +1,18 @@
+{
+  "_fixtureIntent": "Three observations yield two observed gaps, below minCadenceObservations of 5. The verdict must be undetermined with BRL-CURVE-FRESHNESS-UNDERIVABLE, and must be NEITHER current nor stale: with too little history the cadence cannot be derived, and defaulting either way would state a freshness the data does not support.",
+  "contractVersion": "official-curve-artifact/v1",
+  "freshnessPolicy": { "policyId": "observed-cadence/v1", "cadenceWindowRows": 10, "minCadenceObservations": 5, "publicationLagDays": 1 },
+  "families": {
+    "nominal": {
+      "sourceId": "us-treasury-nominal",
+      "state": "fresh",
+      "errorCode": null,
+      "observedAt": "2026-01-09",
+      "rows": [
+        { "date": "2026-01-07", "y3m": 4.25, "y2": 4.04, "y5": 4.14, "y10": 4.43, "y30": 5.00 },
+        { "date": "2026-01-08", "y3m": 4.24, "y2": 4.06, "y5": 4.16, "y10": 4.45, "y30": 5.02 },
+        { "date": "2026-01-09", "y3m": 4.23, "y2": 4.07, "y5": 4.17, "y10": 4.46, "y30": 5.03 }
+      ]
+    }
+  }
+}

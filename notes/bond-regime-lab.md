@@ -174,6 +174,45 @@ provenance envelopes, because when a fetch fails at transport there is no
 response to attest; a `fresh` family must carry them, and the gate enforces that
 asymmetry in both directions.
 
+### Headless Publication: Why Freshness Reads No Calendar
+
+`admitCurveFamily(artifact, familyId, runDate)` in `scripts/brief-refresh.mjs`
+decides whether a family's rows may be presented as a current observation. It
+derives the window from the family's OWN observed as-of progression:
+
+```
+observedGaps      = calendar-day gaps between consecutive row dates,
+                    over the trailing cadenceWindowRows rows
+windowDays        = max(observedGaps) + publicationLagDays
+verdict           = undetermined  when observedGaps.length < minCadenceObservations
+                  = current       when elapsedDays <= windowDays
+                  = stale         otherwise
+```
+
+All three policy values come from the artifact's own `freshnessPolicy` block, so
+nothing hardcodes a window and a committed artifact self-reports as it ages
+without being rewritten.
+
+**The equity calendar is deliberately not consulted.** `data/calendars/xnys/calendar.json`
+marks `2026-10-12` and `2026-11-11` as regular trading days, but the US bond
+market is closed on both and Treasury publishes no curve. A rule that read that
+file would manufacture a staleness verdict on exactly those days. Reading nothing
+is not a shortcut here — it is the correct answer, because a weekend and a
+bond-market holiday are already IN the data as gaps, and a rule derived from the
+observed gaps absorbs them structurally.
+
+The window cannot be widened by the outage it exists to detect: the gaps are
+taken from history the artifact already holds, so a publication stoppage raises
+`elapsedDays` while leaving `windowDays` where it was.
+
+Measured over the artifact acquisition writes: `maxObservedGapDays` 3 and
+`windowDays` 4 for both families — the weekend gap, plus the one-day publication
+lag.
+
+Two vocabularies stay separate. Uppercase `BRL-*` codes appear only in
+`errorCode`; lowercase-hyphen reasons appear only in `basis` and `diagnostics`.
+Neither leaks into the other's field.
+
 ## Refresh Procedure
 
 1. Review characteristic `asOf` and `reviewWindowDays` fields in `bond-regime-universe.json`; update only from the linked issuer source.

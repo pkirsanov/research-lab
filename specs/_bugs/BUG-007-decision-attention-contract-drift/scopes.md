@@ -269,31 +269,85 @@ another session in flight. Recorded as OBS-007-04.
 
 ## Scope 2: Residual Observations
 
-**Status:** [ ] Not started — owner decision required, no work claimed
+**Status:** [x] Done
 
-These are recorded so they are not lost. None was fixed and none is claimed closed.
+All four were answered by measurement. The blocker was that they are owned by
+spec 017 and that spec was mid-certification; 017 is now `done` at `full`
+assurance, so the questions are answerable rather than deferred. One was a real
+defect and is fixed; three resolve as not-a-defect on evidence.
 
-- [ ] **OBS-007-01** — `market-brief.snapshot.json` carries no `attention` key while the
-      payload carries three items. Measured (`snapshot.attention: undefined`). Whether this
-      divergence is a defect or correct by design was **not** established; the page
-      projection reads the payload with no snapshot fallback. Owner: spec 017.
-      - **Claim Source:** not-run — the question was posed, not answered.
+- [x] **OBS-007-01** — RESOLVED, correct by design, not a defect. The snapshot's
+      keys are all **observation** data; `attention[]` is **composed** output, so its
+      absence is the boundary working. Nothing reads attention from the snapshot: the
+      single grep match loads a separate `market-brief.attention-scorecard.json`.
 
-- [ ] **OBS-007-02** — `scripts/build-attention-items.mjs` exits 0 when it refuses a
-      candidate, which is correct per its design, but a run refusing *every* candidate would
-      also exit 0. The scope for that step declares "zero published with zero recorded
-      exclusions is a failure"; whether that condition is enforced mechanically anywhere on
-      the publish path was **not** verified. Owner: spec 017.
-      - **Claim Source:** not-run.
+  **Claim Source:** executed — snapshot keys and reader scan measured at HEAD.
 
-- [ ] **OBS-007-03** — `specs/017-decision-attention-and-developing-situations/state.json` is
-      `in_progress` under a certification refusal naming four surviving blockers. None is
-      this defect. This bug asserts nothing about that spec's certification.
-      - **Claim Source:** interpreted — read from that spec's `state.json`, not re-measured.
+  ```text
+  $ node -e "const s=require('./market-brief.snapshot.json'); console.log(Object.keys(s).join(', ')); console.log('attention:', String(s.attention))"
+  asOf, generatedAt, window, marketClosed, nextSessionDate, dataFreshness,
+  regime, bench, names, sectors, groups, toolReads, toolCoverage
+  attention: undefined
 
-- [ ] **OBS-007-04** — A concurrent writer left the tree dirty and the suite red at
-      `1369 passed, 1 failed`, exit 1, on the byte-currency assertion. Isolated read-only to
-      the `backdrop` key from an added `globalBackdrop` entry; `attention` is byte-current,
-      so BUG-007 has not regressed. Not repaired here: rebuilding the projection would
-      commit another session's uncommitted narrative work. Owner: the concurrent session.
-      - **Claim Source:** executed — the failure and its isolation were both measured.
+  $ grep -rn 'snapshot.*\.attention\|SNAP\.attention' --include='*.mjs' --include='*.js' --include='*.html' .
+  ./market-brief.html:1595:  Promise.all([... j("market-brief.attention-scorecard.json")])
+  # the one match loads a SEPARATE file, not snapshot.attention
+  ```
+
+- [x] **OBS-007-02** — CONFIRMED A REAL GAP, and FIXED. The rule
+      "zero published with zero recorded exclusions is a failure" was declared in the
+      plan and enforced nowhere. The gate checked only the ceiling
+      (`attention.length > max`); there was no floor. The composer's accounting
+      assertion passes trivially at zero candidates (`0 + 0 === 0`), so a generation
+      that refused everything published an empty tier at exit 0 with no explanation.
+      Same class as A-017-10: a stated rule with no mechanical enforcement.
+
+  **Claim Source:** executed — gap reproduced, fix applied, regression proven
+  load-bearing by mutation in a disposable worktree (never in the live tree).
+
+  ```text
+  $ node scripts/validate-brief-payload.mjs            # real payload: 0 items, 4 exclusions
+  [brief-contract] PASS
+  exit=0
+
+  # the gap case — zero published AND zero exclusions
+  before fix : 0 errors  (published silently)
+  after  fix : refused by name, non-zero exit
+
+  $ node --test tests/attention-payload-contract.test.mjs
+  # tests 30
+  # pass 30
+  # fail 0
+
+  # mutation in /tmp worktree, enforcement removed:
+  not ok 30 - SCN-017-067 An empty attention tier must state why it is empty
+  ```
+
+  Fixed in `2802b90a`.
+
+- [x] **OBS-007-03** — RESOLVED, premise no longer holds. The certification refusal
+      this observation described is gone; 017 carries no `refusedAt`.
+
+  **Claim Source:** executed — re-read from that spec's `state.json` at HEAD.
+
+  ```text
+  $ node -e "const s=require('./specs/017-.../state.json'); ..."
+  017 status: done | cert: done | assurance: full | refusedAt: (none)
+  ```
+
+  BUG-007 still asserts nothing about that spec's certification; the point is only
+  that the blocker this observation recorded has cleared.
+
+- [x] **OBS-007-04** — RESOLVED. The concurrent writer's work landed; the suite is
+      green and the tree is clean, so nothing needs repairing on another session's
+      behalf.
+
+  **Claim Source:** executed — suite and tree measured at HEAD.
+
+  ```text
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1371 passed, 0 failed
+
+  $ git status --porcelain | grep -c .
+  0
+  ```

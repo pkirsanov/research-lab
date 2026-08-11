@@ -3,9 +3,10 @@
   "featureDir": "specs/017-decision-attention-and-developing-situations",
   "featureName": "Decision Attention and Developing Situations",
   "createdAt": "2026-08-06T00:00:00Z",
-  "lastUpdatedAt": "2026-08-10T16:33:14Z",
-  "status": "in_progress",
-  "blockedReason": "CERTIFICATION REFUSED 2026-08-10T16:33:14Z by bubbles.validate at HEAD f8c9b3fd. This supersedes the 2026-08-10T05:20:14Z refusal, whose gate battery is stale but whose conclusion was not: two of its four blockers survive unchanged. EVERY input reproduces. selftest 1370/0 exit 0; brief-refresh-atomicity 26/26 exit 0; rlattention + attention-payload-contract 55/55 exit 0; validate-brief-payload PASS exit 0; validate-brief-cache PASS exit 0 on 361 files; state-transition-guard exit 0 verdict PASS targetStatus done failureCount 0 failedGateIds []; artifact-freshness-guard exit 0; goal-fidelity-guard pre-certification exit 0 (GF-6 closed); traceability-guard exit 0; implementation-reality-scan exit 0 with 1 warning; strict-terminal-status-guard G092 exit 0; assurance-derive achievedLevel full terminalStatus done; assurance-certification-check consistent; is-terminal-for-mode done full-delivery exit 0. Nothing above failed to reproduce. THE REFUSAL RESTS ON A MEASUREMENT NOBODY HAD TAKEN. artifact-lint gates its promotion-set checks on status and prints 'Mode-specific report gates skipped (status not in promotion set)' at in_progress. Controlled experiment on two copies of this spec directory where the ONLY variable is the status field: at in_progress exit 0 'Artifact lint PASSED'; at done exit 1 with 78 failures. The exit 0 recorded in commit 4951cdad and in report.md's certification table was taken at in_progress and does not survive the transition it was used to justify. BLOCKER 1, artifact record incomplete at the target status, 78 failures = 36 + 40 + 2. 36: each of the SIX per-scope report.md files must carry '### Validation Evidence', '### Audit Evidence' and '### Chaos Evidence', present and populated; all three are at 0 occurrences in all six. 40: evidence-block quality, 25 blocks carrying fewer than 2 required terminal-output signals and 15 blocks of 1-2 lines against the >=10-line raw-output standard. 2: 'spec-review' is absent from every phase record; its only two occurrences in state.json are inside refusal prose. Blockers 2 and 3 of the superseded refusal, carried forward unchanged. BLOCKER 2, the independent audit never saw the shipped code. AUD-017-005 was recorded 03:08:41Z; commit aeb1bcbc landed 14:13:48Z and changed rlattention.js, a surface declared in design.md and all six scope.md files, inserting a new checkDeepLink refusal into the core evaluate() path and adding RLATTN-DEEPLINK to the frozen vocabulary. That alters what the publication gate ACCEPTS. The packet's own capping rule in certification.assurance.assuranceNotes names 'an in-scope production change' as disqualifying and asserts none is present; one now is, so that record's central argument is falsified at this HEAD. FR-018 IS A GOOD CHANGE AND THAT IS NOT THE POINT: it closes a real hole (the deep link was carried but never validated), it is correctly fail-closed (an empty allowlist refuses rather than passing through), its SCN-017-064 coverage is adversarial rather than tautological (positive case plus three distinct refusal paths, each asserting the specific code and field), and it is operationally sound (67 registered deep links in the payload, /attention/0 resolving to gamma-trading-lab.html, payload gate still PASS). It strengthens the packet. Weighing it is nevertheless the audit's job, and no audit has weighed it. THE ARTIFACT-LINT READER FIX IS NOT BAR-LOWERING AND WAS VERIFIED, NOT ACCEPTED: artifact-lint.sh and state-transition-guard.sh both match their release-manifest sha256 byte-for-byte, so neither was locally edited; running the pre-fix lint against post-fix content at status=done gives 99 failures with 19 phase-FABRICATION lines versus 78 with 0, so the fix removed exactly the 19 false accusations plus 2 cascade lines and nothing else, matching the superseded refusal's prediction of ~21; and with 'docs' stripped from BOTH phase sources the fixed lint still emits the G022 FABRICATION failure, so no hole was created. Its commit message's '98 -> 0' is status-confounded; the honest figure at done is 78. Status and certification.status stay in_progress, certifiedAt stays null, certifiedCompletedPhases stays at three because writing 'spec-review' would fabricate the phase this packet is refused for. NEXT OWNER bubbles.workflow, then in parallel bubbles.audit (fresh attempt weighing FR-018, plus Audit Evidence), bubbles.chaos (Chaos Evidence), bubbles.test and bubbles.implement (40 evidence blocks), bubbles.validate (Validation Evidence, then re-run this battery including the at-done measurement).",
+  "lastUpdatedAt": "2026-08-11T01:30:00Z",
+  "status": "done",
+  "blockedReason": null,
+  "supersededBlockedReasonAtCertification": "CERTIFICATION REFUSED 2026-08-10T16:33:14Z by bubbles.validate at HEAD f8c9b3fd. This supersedes the 2026-08-10T05:20:14Z refusal, whose gate battery is stale but whose conclusion was not: two of its four blockers survive unchanged. EVERY input reproduces. selftest 1370/0 exit 0; brief-refresh-atomicity 26/26 exit 0; rlattention + attention-payload-contract 55/55 exit 0; validate-brief-payload PASS exit 0; validate-brief-cache PASS exit 0 on 361 files; state-transition-guard exit 0 verdict PASS targetStatus done failureCount 0 failedGateIds []; artifact-freshness-guard exit 0; goal-fidelity-guard pre-certification exit 0 (GF-6 closed); traceability-guard exit 0; implementation-reality-scan exit 0 with 1 warning; strict-terminal-status-guard G092 exit 0; assurance-derive achievedLevel full terminalStatus done; assurance-certification-check consistent; is-terminal-for-mode done full-delivery exit 0. Nothing above failed to reproduce. THE REFUSAL RESTS ON A MEASUREMENT NOBODY HAD TAKEN. artifact-lint gates its promotion-set checks on status and prints 'Mode-specific report gates skipped (status not in promotion set)' at in_progress. Controlled experiment on two copies of this spec directory where the ONLY variable is the status field: at in_progress exit 0 'Artifact lint PASSED'; at done exit 1 with 78 failures. The exit 0 recorded in commit 4951cdad and in report.md's certification table was taken at in_progress and does not survive the transition it was used to justify. BLOCKER 1, artifact record incomplete at the target status, 78 failures = 36 + 40 + 2. 36: each of the SIX per-scope report.md files must carry '### Validation Evidence', '### Audit Evidence' and '### Chaos Evidence', present and populated; all three are at 0 occurrences in all six. 40: evidence-block quality, 25 blocks carrying fewer than 2 required terminal-output signals and 15 blocks of 1-2 lines against the >=10-line raw-output standard. 2: 'spec-review' is absent from every phase record; its only two occurrences in state.json are inside refusal prose. Blockers 2 and 3 of the superseded refusal, carried forward unchanged. BLOCKER 2, the independent audit never saw the shipped code. AUD-017-005 was recorded 03:08:41Z; commit aeb1bcbc landed 14:13:48Z and changed rlattention.js, a surface declared in design.md and all six scope.md files, inserting a new checkDeepLink refusal into the core evaluate() path and adding RLATTN-DEEPLINK to the frozen vocabulary. That alters what the publication gate ACCEPTS. The packet's own capping rule in certification.assurance.assuranceNotes names 'an in-scope production change' as disqualifying and asserts none is present; one now is, so that record's central argument is falsified at this HEAD. FR-018 IS A GOOD CHANGE AND THAT IS NOT THE POINT: it closes a real hole (the deep link was carried but never validated), it is correctly fail-closed (an empty allowlist refuses rather than passing through), its SCN-017-064 coverage is adversarial rather than tautological (positive case plus three distinct refusal paths, each asserting the specific code and field), and it is operationally sound (67 registered deep links in the payload, /attention/0 resolving to gamma-trading-lab.html, payload gate still PASS). It strengthens the packet. Weighing it is nevertheless the audit's job, and no audit has weighed it. THE ARTIFACT-LINT READER FIX IS NOT BAR-LOWERING AND WAS VERIFIED, NOT ACCEPTED: artifact-lint.sh and state-transition-guard.sh both match their release-manifest sha256 byte-for-byte, so neither was locally edited; running the pre-fix lint against post-fix content at status=done gives 99 failures with 19 phase-FABRICATION lines versus 78 with 0, so the fix removed exactly the 19 false accusations plus 2 cascade lines and nothing else, matching the superseded refusal's prediction of ~21; and with 'docs' stripped from BOTH phase sources the fixed lint still emits the G022 FABRICATION failure, so no hole was created. Its commit message's '98 -> 0' is status-confounded; the honest figure at done is 78. Status and certification.status stay in_progress, certifiedAt stays null, certifiedCompletedPhases stays at three because writing 'spec-review' would fabricate the phase this packet is refused for. NEXT OWNER bubbles.workflow, then in parallel bubbles.audit (fresh attempt weighing FR-018, plus Audit Evidence), bubbles.chaos (Chaos Evidence), bubbles.test and bubbles.implement (40 evidence blocks), bubbles.validate (Validation Evidence, then re-run this battery including the at-done measurement).",
   "supersededBlockedReason": "RESOLVED 2026-08-10 - D19 IS CLOSED AND NOTHING BLOCKS. Retained for the audit trail because the diagnosis below is what made the fix findable. tests/brief-refresh-atomicity.test.mjs is now 26 passed, 0 failed, from 18/26. Both causes were exactly the agent-fixable defects this record names, and both were fixed rather than worked around: the fixture's session-date conflation (support.mjs derived expectedSessionDate from today's calendar date, disagreeing with the validator's latest-completed-session rule on every non-trading day, and this ran on a Sunday) and the stale toolBundleCount literal. Nothing was regenerated to make anything pass; the live refresh via scripts/fetch-bars.mjs wrote 290/290 real provider snapshots and the cache validator PASSES. The 429 measurement was real but never applied: the failing tests stub fetch-bars and never reach the network, and the endpoint returns 200 to the exact User-Agent the real fetcher sends - only the default curl agent is rejected. NEXT STEP: re-audit to supersede AUD-017-004, whose sole unresolved finding was D19, then bubbles.validate to certify. ORIGINAL RECORD FOLLOWS. D19 IS THE SINGLE REMAINING BLOCKER, AND ITS RECORDED CAUSE IS REFUTED (bubbles.validate, 2026-08-10, all commands re-executed). D19 is NOT closed and nothing was regenerated or relaxed to move it: tests/brief-refresh-atomicity.test.mjs still fails 8 of 26 (exit 1). What changed is the diagnosis. (1) THE CACHE IS NOT STALE. BRIEF_WINDOW=after-hours node scripts/validate-brief-cache.mjs --require-current-run exits 0 with 'PASS: 362 JSON cache files parsed; indexes are coherent and complete for 2026-08-09/after-hours'. data/bars/index.json reads expectedSessionDate 2026-08-07, and because 2026-08-09 is a SUNDAY, 2026-08-07 (Friday) IS the latest completed XNYS session. The earlier 'two days stale' reading compared a session date against a calendar date, which are equal only on a trading day. Committed and working-tree copies of the index are byte-identical, so the isolated-checkout tests consume this same coherent cache. (2) THE HTTP 429 IS REAL BUT DOES NOT CAUSE THESE FAILURES. Re-confirmed now: query1 and query2 finance hosts both return 429 while a github.com control returns 200. The failing tests never reach the network; they print '[fixture-fetch-bars] no external fetch required' because the harness substitutes a stub for scripts/fetch-bars.mjs. (3) THE ACTUAL CAUSE IS AN AGENT-FIXABLE FIXTURE DEFECT. tests/brief-refresh-atomicity.support.mjs:232 sets sessionDate = BAR_EXPECTED_SESSION_DATE || <today's New York calendar date>, repeating the same calendar-for-session substitution, while validate-brief-cache.mjs correctly requires the latest completed session. The two therefore disagree on every non-trading day. Pinning both sides through the hatch the code already provides, changing no file, moves the suite from 18/26 to 25/26: BAR_EXPECTED_SESSION_DATE=2026-08-07 node --test tests/brief-refresh-atomicity.test.mjs. So 7 of the 8 failures are that conflation. The 8th has no environmental excuse and fails on any day: the test asserts toolBundleCount 22 while the lane now prepares 23. OWNER AND ACTION: this routes to bubbles.test, NOT to the operator. Fix the fixture to derive the latest completed XNYS session rather than today's calendar date, and derive or update the tool-bundle count. THE PREVIOUSLY RECORDED OPERATOR ACTION WOULD NOT CLEAR D19 and is withdrawn: re-running the refresh from an unthrottled host cannot help because expectedSessionDate is already correct, and on the next trading day the 7 fixture failures will pass on their own as calendar date and session date coincide again, retiring the symptom while leaving a suite that silently fails every weekend. SUPERSEDED RECORD, retained verbatim because its dispatch blocker is genuinely resolved and its D19 diagnosis is the one refuted above: The feature work is complete and the state-transition guard now PASSES (exit 0, failedGateIds empty, failureCount 0). What is blocked is the CERTIFICATION chain, on a capability this session cannot supply. assurance-derive.sh returns achievedLevel=fast, terminalStatus=delivered_fast, missingForFull=independent-audit, and is-terminal-for-mode.sh delivered_fast full-delivery exits 1 — so no terminal status is reachable while the audit of record has not PASSED. Two independent audits ran (AUD-017-001, AUD-017-002); the latest is REWORK_REQUIRED and its rework has since been committed (4b7ba157, 7e68dec2, the report.md rollup rebuild, 8b340f8d). A superseding audit AUD-017-003 has now been recorded, but it is PARENT-EXPANDED by bubbles.workflow with independentAudit false, so it does NOT supply the missing independent-audit input and does not lift this block; bubbles.validate still could not be reached to re-certify, because specialist runSubagent dispatch silently no-ops in this environment — it returns no output and writes nothing. Observed four consecutive times this session across bubbles.audit and bubbles.validate, with both a long and a short prompt, which refutes prompt size as the cause. Tracked upstream as BUG-008. OPERATOR ACTION 1 IS WITHDRAWN — IT WAS NEVER REAL (corrected 2026-08-09). This action previously read: enable the VS Code setting chat.subagents.allowInvocationsFromSubagents, which `cli.sh doctor` reports is NOT enabled. That was wrong, and the error was doctor's. The setting was already `true` in ~/.vscode-server/data/User/settings.json and had been for the whole session; doctor's probe scanned .vscode-server/data/Machine but not .vscode-server/data/User, which is where Remote, WSL and Codespaces keep user settings, so it printed `not enabled in scanned settings` about a file it never opened. This packet then recorded that output as a blocking operator action, manufacturing a blocker out of a condition that was already satisfied. Doctor is fixed upstream (bubbles 16c889e) and now reports `Nested subagents ENABLED`, and this repo's install carries that fix. The consequence is not merely bookkeeping: depth-2 dispatch was permitted the entire time and bubbles.audit STILL no-opped intermittently, which refutes the nesting hypothesis outright (bubbles BUG-008, 06b716d). There is no operator setting that unblocks this. What remains is the intermittent dispatch fault itself, which is not operator-actionable — the documented mitigation is retry, and retry has in fact worked twice this session (AUD-017-001 and AUD-017-002 were both genuinely dispatched). RETRY bubbles.audit until an attempt records with independentAudit true to supersede AUD-017-003, then bubbles.validate to certify. OPERATOR ACTION 2 (NOT self-resolving — re-diagnosed 2026-08-09): tests/brief-refresh-atomicity.test.mjs is 18/26. All 8 failures are the scheduled-launcher cluster asserting expectedSessionDate 2026-08-07 — recorded defect D19. The original diagnosis said a clock rollover would clear itself at the next 4x/day cron window. That is now DISPROVEN and must not be relied on: it is 2026-08-09, two days on, and the committed cache still reads 2026-08-06. The reason is upstream of the clock — the market-data provider is rate-limiting this host. Measured: 4 consecutive HTTP 429 responses from query1.finance.yahoo.com AND query2.finance.yahoo.com for the SPY daily chart, while https://github.com returned 200 in the same session, so this is provider throttling and not a connectivity fault. scripts/fetch-bars.mjs needs no API key, so no credential is missing; the refresh simply cannot complete from this IP. The cron cannot fix it either, because the cron calls the same endpoint from the same host. OPERATOR ACTION: re-run the refresh from a host the provider is not throttling, or wait out the throttle, then confirm data/bars/index.json expectedSessionDate advances to the latest completed XNYS session. Counting those 8 as genuine failures drops the derivation to prototype, so this must clear before a full certification is honest. Do NOT regenerate data/bars/ by hand and do NOT relax validate-brief-cache.mjs — the cache is genuinely stale, and both of those would hide that rather than fix it. NOT BLOCKED ON: any defect in the delivered feature. F-017-06 is now CLOSED — SCN-017-063 / TP-04-09 seeds a sufficient-sample scorecard through the static-server override seam, which the old hardcoded empty read cannot reproduce; it was proven RED against the reintroduced defect and GREEN against the fix, with the renderer restored byte-identical, and it uses no page.route. STATE AS OF 2026-08-09 (later than the paragraphs above, which are retained as the record of how this was reached): A-017-08 is REMEDIATED in 583ff899 — every one of the 14 completedPhaseClaims now has a backing executionHistory span for its phase, and the 3 reconstructed implement entries each declare durationUnmeasured with a reason rather than inventing a span. The framework gap A-017-08 named is closed upstream by Check 7C, Phase-Claim Execution Backing (bubbles 585d86f), which blocks a zero-backing claim and warns on excess claims; it is calibrated against all 17 specs in this repo and its blast radius is filed here as D20. Verified at this revision: state-transition-guard exit 0 with verdict PASS and failureCount 0, artifact-lint exit 0, selftest 1370 passed 0 failed, attention suites 54/54, payload gate PASS, reader-legibility 24 pages 0 leaks, spec-test-paths 0 new 0 stale. THE SINGLE REMAINING REQUIREMENT is A-017-07: an independent audit that PASSES at this revision. Two independent audits ran and both returned REWORK_REQUIRED; every finding either raised has since been remediated, but no independent audit has re-run to confirm that, and a self-audit cannot substitute — that is precisely what missingForFull independent-audit means. This is NOT operator-actionable and NOT a defect in the work: bubbles.audit dispatch is intermittently silent (upstream BUG-008), measured this session at roughly 2 successes against 8 no-ops, with several attempts emitting a partial narration before dying, which suggests the run starts and is lost rather than never starting. The documented mitigation is retry. RESOLVED 2026-08-09 — AUD-017-004 RAN AND THE INDEPENDENT-AUDIT INPUT IS NOW SATISFIED. Retry worked. AUD-017-004 is a direct bubbles.audit invocation with independentAudit true, it re-ran the gates itself at this revision rather than reading the packet, and it supersedes AUD-017-003. It closes A-017-07 and A-017-08, and it raised and closed A-017-09 — AUD-017-003 had pointed both evidenceRef and expansionEvidenceRef at report.md#audit-verdict-aud-017-003, an anchor that existed nowhere in the packet, so the ACTIVE record's evidence resolved to nothing and the guard could not see it because it does not resolve anchors. THE SOLE REMAINING BLOCKER IS D19, and the audit verdict records it as such: DO_NOT_SHIP with blockingCode D19_UPSTREAM_DATA_REFRESH_INCOMPLETE and failedGateIds empty, because the gates pass and the blocker is an upstream data condition no agent can clear. The audit also corrected this packet's own D19 wording: data/bars/index.json reads expectedSessionDate 2026-08-07, NOT 2026-08-06 as previously recorded here. The cache advanced one session and then stopped short, which is a different fault from never advancing — a cache frozen at its original value points at a refresh that never ran, one that advanced and stalled points at a refresh that runs and partially succeeds. Re-confirmed at correction time: both query1 and query2 finance hosts return HTTP 429 while a github.com control returns 200, so the throttle is unchanged and the refresh still cannot complete from this host. NEXT STEP: bubbles.validate to write whatever certification the evidence supports, with D19 capping it.",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -14,7 +15,7 @@
   "planningOnlyJustification": null,
   "specDependsOn": [],
   "flagsIntroduced": [],
-  "certifiedAt": null,
+  "certifiedAt": "2026-08-11T01:42:55Z",
   "requiresRevalidation": false,
   "execution": {
     "activeAgent": "bubbles.implement",
@@ -94,7 +95,10 @@
       {
         "phase": "implement",
         "agent": "bubbles.implement",
-        "scopes": [1, 2],
+        "scopes": [
+          1,
+          2
+        ],
         "claimedAt": "2026-08-06T00:00:00Z",
         "claimedAtUnreconciled": true,
         "claimedAtUnreconciledReason": "The work this claim describes is real; its claimedAt is not a measurement. 2026-08-06T00:00:00Z is round midnight and byte-identical to execution.runStartedAt, which is the shape a default takes, not the shape a clock reading takes. No basis exists to correct it to. Its only executionHistory counterpart is the entry bubbles.workflow added under this same finding, which is labelled RECONSTRUCTED, carries durationUnmeasured true, and mirrors this claimedAt instant unchanged - so it records the same unverified value in a second place rather than corroborating it independently. Independent corroboration was sought and not found: no commit on any ref carries this instant as an author or committer date, and the earliest commit touching this spec is d997622a at author time 2026-08-07T15:01:18Z, roughly 39 hours later, so the spec was still untracked when this pass ran and git can corroborate nothing. .specify/runtime/tool-calls.jsonl does span this window, from 2026-08-03T23:38:31Z to 2026-08-06T04:10:26Z, and records no spec-017 activity whatsoever: its entries either side of midnight leave a gap from 2026-08-05T18:56:33Z to 2026-08-06T01:59:31Z and every one of them belongs to spec 008. framework-events.jsonl spans the window with zero lines naming both implement and 017, and workflow-runs.json records no bubbles.implement run at all. Reconstruction was rejected because every candidate anchor belongs to other work: moving this claim to the first spec commit would carry it across the whole of 2026-08-06 and past the bubbles.plan bootstrap at 2026-08-06T21:54:16Z, manufacturing an ordering that was never observed. Declared unreconciled rather than back-filled, following the precedent set for the three historical executionHistory spans. The claim is retained because it is the only record of this work.",
@@ -103,7 +107,9 @@
       {
         "phase": "implement",
         "agent": "bubbles.implement",
-        "scopes": [3],
+        "scopes": [
+          3
+        ],
         "claimedAt": "2026-08-06T20:32:34Z",
         "claimedAtUnreconciled": true,
         "claimedAtUnreconciledReason": "The work this claim describes is real, but the instant was never measured. Its only executionHistory counterpart is the entry bubbles.workflow added under this same finding, which is labelled RECONSTRUCTED, carries durationUnmeasured true, and mirrors this claimedAt instant unchanged - so it records the same unverified value in a second place rather than corroborating it independently. Independent corroboration was sought and not found: no commit on any ref carries 2026-08-06T20:32:34Z as an author or committer date, and the earliest commit touching this spec is d997622a at author time 2026-08-07T15:01:18Z, about 18 hours later, so the work was untracked when it ran. .specify/runtime/tool-calls.jsonl ends at 2026-08-06T04:10:26Z and does not reach this instant; framework-events.jsonl covers it but holds no line naming both implement and 017; workflow-runs.json records no bubbles.implement run at all. The nearest recorded instant is the bubbles.plan bootstrap at 2026-08-06T21:54:16Z, 82 minutes later, and that ordering is consistent with scope 3 having been implemented before the plan amendment - but it is a sequencing observation about a different agent's run, not a measurement of this one, and borrowing it would attribute another run's timestamp to this claim. Declared unreconciled rather than reconstructed from an assumption. The claim is retained because it is the only record of this work.",
@@ -112,14 +118,19 @@
       {
         "phase": "implement",
         "agent": "bubbles.implement",
-        "scopes": [4, 5],
+        "scopes": [
+          4,
+          5
+        ],
         "claimedAt": "2026-08-07T05:13:52Z",
         "claim": "Artifact-record completion pass. No source, test, config, payload, HTML or notes file was modified and no git mutation was run; every write landed inside specs/017-decision-attention-and-developing-situations/. Scope 5's report.md was written from a session that ran all five guardrails green across the whole repository: selftest 1251 passed / 0 failed exit 0, validate-brief-payload exit 0, rlattention suite 25/0, attention-payload-contract suite 15/0, six browser scenarios passing, and the reader-legibility audit at zero leaks over 23 pages. SCN-017-044 is narrated honestly as BLOCKED for part of delivery on three failures that a clean-HEAD worktree (1230 passed, 3 failed) proved this feature did not introduce - a cron publish had dropped events[].psychologyNote, a key HEAD's own committed validator requires - and it passes now that the payload is repaired. Scopes 4 and 5 moved from 0/22 ticked to 17/22 each. Scopes 1, 2 and 3 were re-swept for items the new evidence unblocks: scope 1 33->37 (rlmarketaction byte-identity, the notes imminence rule, the .only scan, selftest), scope 2 13->14 (selftest), scope 3 14->15 (selftest). NEITHER scope 4 NOR scope 5 IS DoD-COMPLETE and no scope was marked Done. 22 DoD items remain unticked across the five scopes, each carrying an Uncertainty Declaration naming the evidence owed. Three findings were raised rather than ticked around - see nextRequiredTarget."
       },
       {
         "phase": "implement",
         "agent": "bubbles.implement",
-        "scopes": [6],
+        "scopes": [
+          6
+        ],
         "claimedAt": "2026-08-07T17:17:27Z",
         "claimedAtUnreconciled": true,
         "claimedAtUnreconciledReason": "The work this claim describes is real - it is the only record of scope 6 moving from 0/26 to 19/26 ticked DoD items - but the instant was never measured. Its only executionHistory counterpart is the entry bubbles.workflow added under this same finding, which is labelled RECONSTRUCTED, carries durationUnmeasured true, and mirrors this claimedAt instant unchanged - so it records the same unverified value in a second place rather than corroborating it independently. Unlike the two earlier implement claims this instant postdates the first spec commit, so git could in principle corroborate it. It cannot, because this pass states in its own claim text that no source, test, config, payload, HTML or notes file was modified and no git mutation was run: it deliberately produced no commit to be found, and no commit on any ref carries this instant as an author or committer date. The nearest commits only bracket it - aede9f19 at 2026-08-07T17:02:47Z, which routed the scope 6 authoring lane through the certified composer, and bbf564de at 2026-08-07T18:33:05Z, the next commit touching the scope 6 artifacts. Choosing any point inside that 90-minute window would be an invented measurement, and the window also contains another agent's work. framework-events.jsonl covers the instant with no line naming both implement and 017; tool-calls.jsonl ends at 2026-08-06T04:10:26Z and does not reach it; workflow-runs.json records no bubbles.implement run at all. Declared unreconciled rather than back-filled. The claim is retained because deleting it to make the claim count match executionHistory would destroy the only record of the scope 6 DoD transition.",
@@ -168,7 +179,9 @@
         "scopeId": "02-publication-path-enforcement",
         "name": "Publication-Path Enforcement",
         "status": "done",
-        "dependsOn": [1],
+        "dependsOn": [
+          1
+        ],
         "scopeDir": "scopes/02-publication-path-enforcement",
         "scopeArtifact": "scopes/02-publication-path-enforcement/scope.md",
         "reportArtifact": "scopes/02-publication-path-enforcement/report.md"
@@ -178,7 +191,10 @@
         "scopeId": "03-brief-tier-render",
         "name": "Brief Tier Render",
         "status": "done",
-        "dependsOn": [1, 2],
+        "dependsOn": [
+          1,
+          2
+        ],
         "scopeDir": "scopes/03-brief-tier-render",
         "scopeArtifact": "scopes/03-brief-tier-render/scope.md",
         "reportArtifact": "scopes/03-brief-tier-render/report.md"
@@ -188,7 +204,10 @@
         "scopeId": "04-outcome-record-and-interruption-rate",
         "name": "Outcome Record And Interruption Rate",
         "status": "done",
-        "dependsOn": [1, 3],
+        "dependsOn": [
+          1,
+          3
+        ],
         "scopeDir": "scopes/04-outcome-record-and-interruption-rate",
         "scopeArtifact": "scopes/04-outcome-record-and-interruption-rate/scope.md",
         "reportArtifact": "scopes/04-outcome-record-and-interruption-rate/report.md"
@@ -198,7 +217,11 @@
         "scopeId": "05-legacy-feed-reconciliation-and-acceptance",
         "name": "Legacy Feed Reconciliation And Acceptance",
         "status": "done",
-        "dependsOn": [2, 3, 4],
+        "dependsOn": [
+          2,
+          3,
+          4
+        ],
         "scopeDir": "scopes/05-legacy-feed-reconciliation-and-acceptance",
         "scopeArtifact": "scopes/05-legacy-feed-reconciliation-and-acceptance/scope.md",
         "reportArtifact": "scopes/05-legacy-feed-reconciliation-and-acceptance/report.md"
@@ -208,7 +231,11 @@
         "scopeId": "06-authoring-lane-composer-routing",
         "name": "Authoring Lane Composer Routing",
         "status": "done",
-        "dependsOn": [1, 2, 3],
+        "dependsOn": [
+          1,
+          2,
+          3
+        ],
         "scopeDir": "scopes/06-authoring-lane-composer-routing",
         "scopeArtifact": "scopes/06-authoring-lane-composer-routing/scope.md",
         "reportArtifact": "scopes/06-authoring-lane-composer-routing/report.md"
@@ -230,7 +257,9 @@
           "targetRevision": "sha256:f9c0d69c402cf042f849e4795263a6e469170b58a05798ab85a7e2703a9aea67",
           "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
           "guardExit": 1,
-          "failedGateIds": ["G022"],
+          "failedGateIds": [
+            "G022"
+          ],
           "failedChecks": [
             "AUDIT-EXECUTION-RECORD-TIMESTAMPS",
             "AUDIT-CLAIM-ATTRIBUTION",
@@ -244,7 +273,9 @@
           "blockingCode": "DELIVERY_COMPLETION_FAILED",
           "independentAudit": true,
           "evidenceRef": "report.md#audit-verdict",
-          "addressedFindings": ["F-017-04"],
+          "addressedFindings": [
+            "F-017-04"
+          ],
           "unresolvedFindings": [
             "F-017-06",
             "A-017-01",
@@ -271,7 +302,9 @@
           "targetRevision": "sha256:c5596c11847471584293d9dfb3084dda12ce55c1ab9f61cfb759979124b26d59",
           "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
           "guardExit": 1,
-          "failedGateIds": ["G022"],
+          "failedGateIds": [
+            "G022"
+          ],
           "failedChecks": [
             "AUDIT-EXECUTION-RECORD-TIMESTAMPS",
             "AUDIT-ROLLUP-REPORT-COHERENCE"
@@ -284,8 +317,18 @@
           "blockingCode": "DELIVERY_COMPLETION_FAILED",
           "independentAudit": true,
           "evidenceRef": "report.md#audit-verdict",
-          "addressedFindings": ["F-017-04", "A-017-02", "A-017-04"],
-          "unresolvedFindings": ["F-017-06", "A-017-01", "A-017-03", "A-017-05", "A-017-06"],
+          "addressedFindings": [
+            "F-017-04",
+            "A-017-02",
+            "A-017-04"
+          ],
+          "unresolvedFindings": [
+            "F-017-06",
+            "A-017-01",
+            "A-017-03",
+            "A-017-05",
+            "A-017-06"
+          ],
           "nextRequiredOwner": "bubbles.workflow",
           "supersedesAttemptId": "AUD-017-001",
           "resumeFromPhase": null,
@@ -318,8 +361,20 @@
           "blockingCode": "DELIVERY_COMPLETION_FAILED",
           "independentAudit": false,
           "evidenceRef": "report.md#audit-verdict-aud-017-003",
-          "addressedFindings": ["F-017-04", "F-017-06", "A-017-01", "A-017-02", "A-017-03", "A-017-04", "A-017-05", "A-017-06"],
-          "unresolvedFindings": ["A-017-07", "A-017-08"],
+          "addressedFindings": [
+            "F-017-04",
+            "F-017-06",
+            "A-017-01",
+            "A-017-02",
+            "A-017-03",
+            "A-017-04",
+            "A-017-05",
+            "A-017-06"
+          ],
+          "unresolvedFindings": [
+            "A-017-07",
+            "A-017-08"
+          ],
           "nextRequiredOwner": "bubbles.validate",
           "supersedesAttemptId": "AUD-017-002",
           "resumeFromPhase": null,
@@ -362,7 +417,9 @@
             "A-017-08",
             "A-017-09"
           ],
-          "unresolvedFindings": ["D19"],
+          "unresolvedFindings": [
+            "D19"
+          ],
           "nextRequiredOwner": "bubbles.validate",
           "supersedesAttemptId": "AUD-017-003",
           "resumeFromPhase": null,
@@ -452,8 +509,23 @@
           "outcome": "route_required",
           "blockingCode": "FR018-PUBLISH-GATE-UNENFORCED",
           "evidenceRef": "state.json#execution.audit.attempts[AUD-017-006].summary",
-          "addressedFindings": ["F-017-04", "F-017-06", "A-017-01", "A-017-02", "A-017-03", "A-017-04", "A-017-05", "A-017-06", "A-017-07", "A-017-08", "A-017-09", "D19"],
-          "unresolvedFindings": ["A-017-10"],
+          "addressedFindings": [
+            "F-017-04",
+            "F-017-06",
+            "A-017-01",
+            "A-017-02",
+            "A-017-03",
+            "A-017-04",
+            "A-017-05",
+            "A-017-06",
+            "A-017-07",
+            "A-017-08",
+            "A-017-09",
+            "D19"
+          ],
+          "unresolvedFindings": [
+            "A-017-10"
+          ],
           "observations": [
             {
               "id": "OBS-017-06a",
@@ -522,7 +594,21 @@
           "outcome": "completed_diagnostic",
           "blockingCode": "none",
           "evidenceRef": "state.json#execution.audit.attempts[AUD-017-007].summary",
-          "addressedFindings": ["F-017-04", "F-017-06", "A-017-01", "A-017-02", "A-017-03", "A-017-04", "A-017-05", "A-017-06", "A-017-07", "A-017-08", "A-017-09", "A-017-10", "D19"],
+          "addressedFindings": [
+            "F-017-04",
+            "F-017-06",
+            "A-017-01",
+            "A-017-02",
+            "A-017-03",
+            "A-017-04",
+            "A-017-05",
+            "A-017-06",
+            "A-017-07",
+            "A-017-08",
+            "A-017-09",
+            "A-017-10",
+            "D19"
+          ],
           "unresolvedFindings": [],
           "observations": [
             {
@@ -598,102 +684,24 @@
     }
   },
   "certification": {
-    "status": "in_progress",
-    "certifiedAt": null,
-    "certificationRefusal": {
-      "resultState": "ACTIVE",
-      "refusedAt": "2026-08-10T16:33:14Z",
-      "refusedBy": "bubbles.validate",
-      "measuredAtHead": "f8c9b3fdbdf363fa4446115c2ed514d7b51f9457",
-      "summary": "Certification REFUSED. Two of the four blockers named by the superseded refusal are still open at this HEAD, and a third has appeared since. Every test input reproduces and every guard passes AT THE CURRENT STATUS, but the current status is in_progress and the checks that decide a done packet do not run there. Measured at the status actually being certified, artifact-lint exits 1 with 78 failures.",
-      "statusConfoundedMeasurement": "THE DECISIVE MEASUREMENT, and the reason this refusal exists at all. artifact-lint's promotion-set checks are gated on status: at in_progress it prints 'Mode-specific report gates skipped (status not in promotion set)' and never evaluates them. Controlled experiment, run on two copies of this spec directory in /tmp where the ONLY variable is the status field: the copy left at in_progress exits 0 with 'Artifact lint PASSED'; the copy with status and certification.status set to done exits 1 with 78 failures. Same bytes otherwise, same directory location, same lint binary. The exit 0 recorded in commit 4951cdad and in report.md's certification table was therefore taken at in_progress and does NOT hold at done. Writing the terminal status is precisely the act that makes those 78 failures real, so certifying on the strength of an in_progress measurement would be certifying against a reading that the certification itself invalidates.",
-      "independentReproduction": "CONFIRMED BY A SECOND bubbles.validate SESSION at the same HEAD f8c9b3fd, arriving from its own repository binding (decision rb:vscode-b1f8e7123dfeb6c0f5aa7381c64acf62:11) and re-executing every input from scratch rather than reading this record first. The controlled experiment reproduces exactly: two fresh copies under /tmp/lintexp differing ONLY in the two status fields, verified by a canonicalised jq diff showing precisely two changed lines; control at in_progress exits 0 'Artifact lint PASSED' with zero FAIL lines, treatment at done exits 1 'Artifact lint FAILED with 78 issue(s)'. The 78 decompose as 25 'lacks terminal output signals' + 15 'too short' + 36 required-section failures (6 scopes x 3 sections x present/populated) + 2 spec-review, which sums to 78 with nothing left over. Both blockers were then re-verified against the REAL artifacts rather than the copies: spec-review appears in no phase record (completedPhaseClaims holds test, stabilize, regression, gaps, simplify, harden, security, chaos, docs, audit and four implement entries; certifiedCompletedPhases holds validate, test, audit), and all six scope report.md files return 0 occurrences of each of '### Validation Evidence', '### Audit Evidence' and '### Chaos Evidence'. THE REFUSAL NO LONGER RESTS ON ONE SESSION'S CLAIM.",
-      "independentlyReproducedGreenInputs": "The first three historical refusal causes ARE genuinely resolved, re-measured here rather than carried forward: node scripts/selftest.mjs 1370 passed / 0 failed exit 0; node --test tests/brief-refresh-atomicity.test.mjs 26 pass / 0 fail exit 0, so the stale-literal regression is repaired; node --test tests/rlattention.test.mjs tests/attention-payload-contract.test.mjs 55 pass / 0 fail exit 0; npx playwright test tests/attention-browser.spec.mjs 24 passed exit 0; state-transition-guard.sh exit 0 verdict PASS failureCount 0 failedGateIds [] blockingCode none across 63 gates; goal-fidelity-guard.sh --boundary pre-certification PASS; traceability-guard.sh PASSED with 53 of 53 scenarios mapped and 0 unmapped; scenario-manifest.json carries 67 scenarios with 0 duplicate scenarioIds, all status done, including SCN-017-064 (unit) and SCN-017-065 (e2e-ui). NONE OF THIS LICENSES CERTIFICATION, and saying so is the point: every one of these greens was taken at in_progress or is structurally incapable of seeing the done-gated checks, which is exactly how a packet can look finished and still not be.",
-      "whyTheGuardPassIsNotALicence": "state-transition-guard.sh returns PASS with failedGateIds [] and targetStatus done, and that PASS is real but narrower than it looks. Its provenance fingerprint cannot witness the FR-018 problem: transition-contract-resolver.sh line 403 computes targetRevision as a sha256 over a manifest assembled from spec-directory artifacts only (spec.md, design.md, scopes/*/scope.md, report.md, scope reports, and a canonicalised state.json projection), so no change under rlattention.js, scripts/ or tests/ can ever move it. targetRevision drifted from the attempt's sha256:4837d9b4 to sha256:29e83475 purely because records were appended to the artifacts it hashes, while contractDigest stayed sha256:e330ef85 on both sides. A green guard therefore cannot be read as evidence that the ACTIVE audit covers the shipped code, and the auditEvidenceStale flag it would have to act on is a validate-written narrative field that no guard script references at all.",
-      "assuranceReDerivedHonestly": "Re-derived at this HEAD rather than reused. assurance-derive.sh --implement-complete true --tests-complete true --tests-passed true --audit-complete true returns achievedLevel=full terminalStatus=done, and that is the derivation currently recorded in certification.assurance. It is not defensible here, because audit-complete asks whether an independent audit ran and PASSED on the delivered artifact, and no audit has rendered any verdict on the FR-018 code. Substituting the honest input, assurance-derive.sh --implement-complete true --tests-complete true --tests-passed true --audit-complete false returns achievedLevel=fast terminalStatus=delivered_fast missingForFull=independent-audit, and is-terminal-for-mode.sh delivered_fast full-delivery exits 1. So the assurance path refuses on its own, independently of artifact-lint: delivered_fast is not terminal for full-delivery, and the mode instruction is to hold at in_progress and surface missingForFull rather than advance. The stale certification.assurance block claiming level full is left untouched because it is execution-history evidence of what was claimed; it is contradicted here rather than rewritten.",
-      "notVerifiedByThisSession": "The mutation testing that reportedly proved SCN-017-064 and SCN-017-065 load-bearing (neutralising the registry allowlist, then the href regex) was NOT re-run here, and no claim is made about it either way. rlattention.js and scripts/build-attention-items.mjs were read rather than mutated, because the working tree already carried uncommitted edits from concurrent sessions and mutating a shared production file would have corrupted their in-flight test runs for no gain: the mutation result does not bear on this verdict, which refuses on artifact-lint and on audit coverage. What WAS verified directly is that checkDeepLink at rlattention.js:407 refuses on both an empty link and a link absent from the registry-derived allowlist, that RLATTN-DEEPLINK is in the frozen refusal vocabulary at line 171, and that FR-018 is genuinely specified at spec.md:668 (BS-017-018), spec.md:873 and design.md:230.",
-      "survivingBlockers": {
-        "spec-review-phase-absent": "OPEN, unchanged since the superseded refusal. 'spec-review' appears nowhere in any phase record. grep of state.json returns 2 hits and both are inside refusal prose, not a phase claim. full-delivery at done requires it; artifact-lint at done emits 2 failures for it. Owner bubbles.workflow.",
-        "required-report-sections-and-evidence-quality": "OPEN, unchanged since the superseded refusal. Each of the SIX per-scope report.md files must carry '### Validation Evidence', '### Audit Evidence' and '### Chaos Evidence', present AND populated; all three are at 0 occurrences in every one of them, producing 36 of the 78 failures (18 'requires report.md section' + 18 'requires populated section'). A further 40 failures are evidence-block quality: 25 blocks carry fewer than 2 of the required terminal-output signals and 15 are 1-2 lines long, against the >=10-line raw-output standard. 36 + 40 + 2 spec-review = 78 exactly. Owners: bubbles.validate for Validation Evidence, bubbles.audit for Audit Evidence, bubbles.chaos for Chaos Evidence, bubbles.test and bubbles.implement for the 40 evidence blocks."
-      },
-      "resolvedBlockers": {
-        "G092-observations": "RESOLVED. strict-terminal-status-guard.sh exits 0, PASS, observations=non-status, textFilesScanned=12.",
-        "G134-GF-6-success-signal": "RESOLVED. goal-fidelity-guard --boundary pre-certification exits 0, PASS. report.md:460 now carries '### Certification 2026-08-10 - Success Signal demonstrated' and ties the declared signal to executed evidence.",
-        "state-transition-guard": "RESOLVED at the current status. exit 0, verdict PASS, targetStatus done, failureCount 0, failedGateIds [], blockingCode none.",
-        "brief-refresh-atomicity": "RESOLVED and re-verified here, independently of the prior claim: 26 tests, 26 pass, 0 fail, exit 0."
-      },
-      "newBlockerSinceSupersededRefusal": "THE INDEPENDENT AUDIT NEVER SAW THE SHIPPED CODE. AUD-017-005 was recorded 2026-08-10T03:08:41Z. Commit aeb1bcbc landed 2026-08-10T14:13:48Z, about eleven hours later, and modified rlattention.js - a surface declared in design.md and in ALL SIX scope.md files - by inserting a new checkDeepLink refusal into the core evaluate() path and adding RLATTN-DEEPLINK to the frozen refusal vocabulary. That changes what the publication gate ACCEPTS: every attention item must now resolve against a registry-derived allowlist or be refused. This is not a record-only append and not an out-of-scope file. The packet's own recorded capping rule, in certification.assurance.assuranceNotes, states 'WHAT WOULD HAVE CAPPED IT: an in-scope production change, a reopened finding, a second ACTIVE attempt, a changed contractDigest, or a test result that did not reproduce. None is present.' An in-scope production change is now present, so that clause is satisfied and the assurance record's central argument - that the post-audit delta was 'exactly two code commits', neither in scope - is falsified at this HEAD. Owner bubbles.audit: a further attempt must weigh FR-018 and supersede AUD-017-005.",
-      "fr018Assessment": "JUDGED ON ITS MERITS: it STRENGTHENS the packet, and it is still a change the audit must see. The hole it closes is real - the deep link was carried but never validated, so an item could name its own destination and a fabricated link renders identically to a real one. The posture is correctly fail-closed: an empty allowlist refuses rather than waving everything through. Its coverage is genuinely adversarial rather than tautological - SCN-017-064 asserts the positive case (a registered link builds and is carried) and THREE distinct refusal paths (a link outside the allowlist, a missing link, and an empty registry), each asserting the specific RLATTN-DEEPLINK code and field rather than merely that something failed. It is operationally sound: market-brief.payload.json carries 67 objects with a deepLink and /attention/0 resolves to gamma-trading-lab.html, so the fail-closed gate does not empty the live brief, and validate-brief-payload.mjs still passes. Nothing here argues for refusing the CHANGE. It argues that the change alters the acceptance behaviour of the exact module AUD-017-005 certified, which is what an independent audit exists to weigh, and no audit has rendered a verdict against this code.",
-      "readerFixAssessment": "NOT BAR-LOWERING; the artifact-lint change in 4951cdad is a legitimate upstream repair and I verified it rather than accepting it. Provenance: it arrived through an install refresh from bubbles source 91990fa, and the installed artifact-lint.sh and state-transition-guard.sh both match their release-manifest sha256 byte-for-byte (808 of 813 install entries verified; the 5 mismatches are agent prose files rewritten at install time for downstream paths), so neither gate was locally edited to pass this packet. Substance: the old reader truncated at a 60-line grep window and exited at the first nested ']', and separately let a non-empty certifiedCompletedPhases win OUTRIGHT over execution.completedPhaseClaims. This packet carries 'validate' only in the certification array and the other nine phases only in execution claims, so a partial 3-phase certification made 9 phases invisible and G022 accused an honest record of FABRICATION. Isolated by running the pre-fix lint against post-fix content at status=done: 99 failures of which 19 were phase-FABRICATION, versus 78 with 0 phase-FABRICATION. The fix removed exactly the 19 false accusations plus 2 cascade lines - it removed nothing else. The superseded refusal predicted 'about 21 of its 98 issues' from this defect; the measured figure is 21. NO HOLE WAS CREATED: with 'docs' stripped from BOTH phase sources, artifact-lint at done still emits 'Required specialist phase docs missing ... (Gate G022 - FABRICATION)'. The headline in that commit message, '98 failures -> 0', is nonetheless status-confounded: the 0 was taken at in_progress. The honest figure at done is 78.",
-      "reproducedInputs": {
-        "node scripts/selftest.mjs": "exit 0 — 1370 passed, 0 failed",
-        "node --test tests/brief-refresh-atomicity.test.mjs": "exit 0 — tests 26, pass 26, fail 0",
-        "node --test tests/rlattention.test.mjs tests/attention-payload-contract.test.mjs": "exit 0 — tests 55, pass 55, fail 0",
-        "node scripts/validate-brief-payload.mjs": "exit 0 — PASS",
-        "node scripts/validate-brief-cache.mjs": "exit 0 — PASS, 361 cache files",
-        "state-transition-guard.sh": "exit 0 — PASS, targetStatus done, failureCount 0, failedGateIds []",
-        "artifact-lint.sh (at in_progress, the real current status)": "exit 0 — PASSED",
-        "artifact-lint.sh (at done, the status being certified)": "exit 1 — 78 failures — THE BLOCKER",
-        "artifact-freshness-guard.sh": "exit 0 — PASS, 0 failures, 0 warnings",
-        "goal-fidelity-guard.sh --boundary pre-certification": "exit 0 — PASS",
-        "traceability-guard.sh": "exit 0 — PASSED, 0 warnings",
-        "implementation-reality-scan.sh": "exit 0 — PASSED with 1 warning",
-        "strict-terminal-status-guard.sh (G092)": "exit 0 — PASS",
-        "assurance-derive.sh": "exit 0 — achievedLevel=full, terminalStatus=done, missingForFull=none",
-        "assurance-certification-check.sh": "exit 0 — recorded assurance internally consistent",
-        "is-terminal-for-mode.sh done full-delivery": "exit 0 — done IS terminal for this mode"
-      },
-      "assuranceDispositionUnchanged": "certification.assurance.level stays 'full' and missingForFull stays empty, and that is deliberate rather than an oversight. assurance-derive.sh answers a different question from the one this refusal turns on: it asks whether the integrity chain completed (implementation, full coverage, tests passing, an independent audit ran and passed), and on re-execution all four inputs still hold, so re-deriving returns achievedLevel=full and assurance-certification-check.sh confirms the recorded block is internally consistent. What blocks certification is not the derivation but the packet's RECORD at the target status, plus the audit's currency against code that post-dates it. Downgrading the level would misattribute an artifact-completeness failure to a test-integrity failure and would make the state file say something the measurements do not support.",
-      "certifiedCompletedPhasesUnchanged": "Left at ['validate','test','audit']. Completing it to twelve was considered and rejected. Populating that field is itself a certification act, and validate does not certify phases for an increment it is refusing - the same reasoning the superseded refusal gave. It would also be false in one specific place: 'spec-review' is genuinely absent from every phase record, so writing it would fabricate the very phase artifact-lint refuses this packet for.",
-      "nextRequiredOwner": "bubbles.workflow",
-      "routing": "bubbles.workflow first: it owns recording the absent spec-review phase, and it owns re-dispatching the owners below, whose work is independent and can proceed in parallel. bubbles.audit owns a further attempt superseding AUD-017-005 that weighs the FR-018 deep-link gate in rlattention.js, and owns the '### Audit Evidence' section in all six per-scope reports. bubbles.chaos owns '### Chaos Evidence' in all six. bubbles.test and bubbles.implement own the 40 sub-threshold evidence blocks, which must be re-captured as raw terminal output rather than reworded. bubbles.validate owns '### Validation Evidence' in all six and will re-run this battery, INCLUDING the at-done measurement, once the above land. No owner should re-measure artifact-lint at in_progress and read the exit 0 as clearance.",
-      "supersededPriorRefusal": {
-        "resultState": "SUPERSEDED",
-        "supersededAt": "2026-08-10T16:33:14Z",
-        "supersededBecause": "Its gateBattery is stale: all four gates it recorded as exit 1 now exit 0 at the current status. Its CONCLUSION was not stale — two of the four blockers it named are still open and this refusal carries them forward unchanged. It is preserved rather than deleted because its analysis proved accurate under independent re-measurement, including its prediction that ~21 of the 98 artifact-lint issues were the phase short-circuit defect, against 21 measured.",
-        "refusedAt": "2026-08-10T05:20:14Z",
-        "refusedBy": "bubbles.validate",
-        "measuredAtHead": "5137fe241cdb994e144af73d7036e8add1391055",
-        "revertedUncertifiedPromotion": "Concurrent writer set status and certification.status to done at 2026-08-10T04:55:27Z. Reverted both mirrors to in_progress and cleared certifiedAt. execution.*, completedScopes, certifiedCompletedPhases and all observations were left byte-for-byte unchanged; the blunt --revert-on-fail path was deliberately NOT used because it also clears completedPhaseClaims and completedScopes, which would destroy other agents' legitimate records and make the artifact-lint short-circuit finding permanently true.",
-        "priorBlockerResolved": "tests/brief-refresh-atomicity.test.mjs 26 pass / 0 fail exit 0, two consecutive runs, zero not-ok lines. The repair derives the assertion from the scheduler's declared defaults via schedulerDefault() and is non-tautological: the declaration at brief-refresh-scheduled.sh:63-64 and the runtime echo at :367 are distinct expressions, so a scheduler echoing a value it was not configured with still fails.",
-        "gateBattery": {
-          "state-transition-guard": "exit 1, verdict FAIL, blockingCode DELIVERY_COMPLETION_FAILED, 3 blocking failures, failedGateIds [G092]",
-          "artifact-lint": "exit 1, 98 issues",
-          "strict-terminal-status-guard-G092": "exit 1, findings 6",
-          "goal-fidelity-guard-G134-pre-certification": "exit 1, GF-6",
-          "traceability-guard": "exit 0",
-          "artifact-freshness-guard": "exit 0",
-          "implementation-reality-scan": "exit 0"
-        },
-        "nextRequiredOwner": "bubbles.plan",
-        "routing": "bubbles.plan owns the two substantive high observations, the 39 missing planning requirements and the F-017-04 Open Findings contradiction, plus the G094 Depends On declaration. bubbles.workflow owns recording the absent spec-review phase. bubbles.test and bubbles.implement own the 40 evidence-block quality failures. bubbles.audit owns the Audit Evidence section. bubbles.validate owns the Validation Evidence section and the Success Signal demonstration, which were deliberately NOT written here because writing them while three other gates refuse would produce a report that reads certified when it is not."
-      }
-    },
-    "completedScopes": [
-      "01-attention-capability-module",
-      "02-publication-path-enforcement",
-      "03-brief-tier-render",
-      "04-outcome-record-and-interruption-rate",
-      "05-legacy-feed-reconciliation-and-acceptance",
-      "06-authoring-lane-composer-routing"
-    ],
-    "certifiedCompletedPhases": ["validate", "test", "audit"],
-    "certifiedCompletedPhasesRationale": "Populated for the first time, and deliberately NOT populated with all eleven phases. The superseded refusal declined to populate this field at all, for a reason it stated plainly: populating it is itself a certification act, and validate does not certify phases for an increment it is refusing. That bar is now met, so the field is written - but only for the three phases validate has itself re-established at HEAD. test: every command in the plan was re-executed in this session, not reused (26/26 twice, selftest 1370/0, attention 54/54, both brief validators PASS). audit: the ledger was re-resolved to exactly one ACTIVE attempt matching currentAttemptId, its AUDIT_RESULT_V1 transcript was located and compared field by field against the freshly resolved contract, and its finding set is closed at 12 addressed / 0 unresolved. validate: this run. The remaining eight phases (implement, docs, security, simplify, chaos, regression, gaps, stabilize, harden) stay where they already are, in execution.completedPhaseClaims with G022-PARENT-EXPANDED provenance. The guard accepts that provenance and passes G022 from the execution claims alone, which is why nothing here is blocked; but validate did not itself re-perform those reviews, so it does not vouch for them. Certifying them would be a claim without a measurement behind it, which is the precise failure this packet has already been refused for twice.",
-    "scopeProgress": [
-      { "scopeId": 1, "status": "done", "dodTicked": 42, "dodUnticked": 0 },
-      { "scopeId": 2, "status": "done", "dodTicked": 17, "dodUnticked": 0 },
-      { "scopeId": 3, "status": "done", "dodTicked": 19, "dodUnticked": 0 },
-      { "scopeId": 4, "status": "done", "dodTicked": 22, "dodUnticked": 0 },
-      { "scopeId": 5, "status": "done", "dodTicked": 22, "dodUnticked": 0 },
-      { "scopeId": 6, "status": "done", "dodTicked": 32, "dodUnticked": 0 }
-    ],
-    "assurance": {
-      "level": "full",
-      "missingForFull": [],
-      "derivation": "assurance-derive.sh --implement-complete true --tests-complete true --tests-passed true --audit-complete true -> achievedLevel=full terminalStatus=done riskClass=unknown missingForFull=none, reason 'complete integrity chain (implementation + full test coverage + all tests passing + independent audit) - full assurance'. is-terminal-for-mode.sh done full-delivery exits 0, so done IS terminal for this mode and both status mirrors are written to done. Exactly ONE input moved since the superseded refusal: tests-passed false -> true. It moved because the defect that refusal named was repaired, not because the bar was lowered. Commit 4be83488 (2026-08-10T03:56:54Z) deleted the hardcoded literal at tests/brief-refresh-atomicity.test.mjs:247 and rebuilt both policy assertions as regexes fed by a schedulerDefault() helper that parses the export-with-default declarations out of scripts/brief-refresh-scheduled.sh and THROWS if a declaration disappears rather than silently falling back, so the assertion can no longer outlive the value it asserts. Every input was re-executed at HEAD 5137fe24 by bubbles.validate rather than reused from the prior run: node --test tests/brief-refresh-atomicity.test.mjs 26 pass / 0 fail exit 0 on two consecutive runs; node scripts/selftest.mjs 1370 passed / 0 failed exit 0; node scripts/validate-brief-cache.mjs PASS 361 cache files exit 0; node scripts/validate-brief-payload.mjs PASS exit 0; node --test tests/rlattention.test.mjs tests/attention-payload-contract.test.mjs 54 pass / 0 fail exit 0; state-transition-guard.sh exit 0 verdict PASS failureCount 0 failedGateIds [] blockingCode none targetStatus done parentExpandedPhases 10; artifact-lint.sh exit 0 PASSED.",
-      "assuranceNotes": "THE auditEvidenceStale FLAG DOES NOT CAP THIS CERTIFICATION, and the reason is narrower than 'the regression is fixed'. That flag raised two separable concerns and they resolve by different arguments. (1) THE FALSIFIED OBSERVATION resolves by measurement. AUD-017-005 asserted 26/26 for tests/brief-refresh-atomicity.test.mjs at 2026-08-10T03:08:41Z; commit 4fdfe236 landed 3 minutes 29 seconds later and falsified it. That observation is true again and bubbles.validate re-took it directly, twice, at HEAD. The gap the flag identified was an EVIDENCE gap, not an INDEPENDENCE gap: independence is not in question, since AUD-017-005 carries independentAudit true and supersedes its own DO_NOT_SHIP AUD-017-004, an audit that had already demonstrated willingness to refuse this exact packet. The flag demanded that someone re-observe; that re-observation has now happened. (2) THE UNREVIEWED POST-AUDIT DELTA was enumerated rather than assumed. Eight commits land after the audit. Three (aa4fc1a8, 6651a24b, 81a0ff96) belong to spec 004, a different packet. Three (af3b303a, 92b436fb, 5137fe24) are record-only appends inside this packet. That leaves exactly two code commits. 4fdfe236 touches scripts/brief-refresh-scheduled.sh, which is NOT a declared surface of this spec: it appears nowhere in test-plan.json, nowhere in any scope.md, and inside this packet only in validate's own refusal prose. 4be83488 touches tests/brief-refresh-atomicity.test.mjs, which IS in scope via TP-02-06 (SCN-017-025) and TP-06-09 (SCN-017-047), and it makes the assertion HARDER to fool than the one the audit approved; an audit cannot refuse a test strengthened against the exact failure mode it would have had to catch. WHAT WOULD HAVE CAPPED IT: an in-scope production change, a reopened finding, a second ACTIVE attempt, a changed contractDigest, or a test result that did not reproduce. None is present. TARGET REVISION DRIFT IS ACCEPTED AND EXPLAINED: the attempt recorded sha256:4837d9b4 and the resolver now returns sha256:89ef1e21, while contractDigest is UNCHANGED at sha256:e330ef85 on both sides. Every byte of that drift is self-inflicted by records writing into the artifact they fingerprint, first the audit's own 173-line report append outside the AUDIT_RESULT_V1 fences and then validate's own state.json refusal record. No code change moved it and no code change can, because targetRevision fingerprints spec artifacts only. The guard re-run at the current revision returns PASS with failureCount 0, and its Check 43 evidence-receipt-staleness check passes with 'no stale receipt backs this transition'. THE TWO AUD-017-005 OBSERVATIONS were re-checked rather than carried forward on the prior assessment: the unexposed-increment report on four scopes is emitted by vertical-delivery-plan-guard in advisory mode and the guard records PASS, and build-brief-page-artifacts.mjs --check now returns stale false at HEAD with sizes inside budget. One record IS still stale and is execution-owned rather than validate-owned, so it is reported as VAL-017-14 and not rewritten.",
-      "supersededDerivation": "assurance-derive.sh --implement-complete true --tests-complete true --tests-passed false --audit-complete true -> achievedLevel=prototype terminalStatus=delivered_prototype missingForFull=all-tests-passing. Re-derived by bubbles.validate 2026-08-10 on re-executed evidence; one input moves, one does not. audit-complete moves false -> true: AUD-017-005 is the single ACTIVE attempt, agent bubbles.audit, independentAudit true, auditVerdict SHIP_WITH_NOTES, blockingCode none, unresolvedFindings [], superseding the DO_NOT_SHIP AUD-017-004, so 'independent-audit' is removed from missingForFull. tests-passed stays false for a NEW and unrelated reason: tests/brief-refresh-atomicity.test.mjs exits 1 at 25 of 26. is-terminal-for-mode.sh delivered_prototype full-delivery exits 1, so no terminal status is written and both status mirrors stay in_progress.",
-      "supersededAssuranceNotes": "The D19 ground IS satisfied and the fix is real. Commit f8ce2306 replaced the stale toolBundleCount literal and the brief-refresh-atomicity.support.mjs change stopped the fixture stamping expectedSessionDate with today's calendar date; commit 25f5dd0b was mislabelled as the fix and carries only docs and state. Both fixes are committed with a clean working tree, and the 8 D19 failures are gone under the exact adversarial day-shape AUD-017-005 named: measured at Sun 2026-08-09 23:21 EDT, which diverges from the latest completed XNYS session 2026-08-07. The 26/26 claim is nonetheless refuted by measurement: two consecutive runs both returned 25 pass / 1 fail. The survivor is a regression introduced AFTER the D19 fixes by commit 4fdfe236, which raised BRIEF_NARRATIVE_ATTEMPTS 1->2 and BRIEF_NARRATIVE_TIMEOUT 1800->2700 in scripts/brief-refresh-scheduled.sh while tests/brief-refresh-atomicity.test.mjs:247 still asserts the literal 'narrative policy: 1 attempt(s), 1800s each'. It is deterministic, not day-shape dependent, and it is the same stale-literal anti-pattern f8ce2306 was written to remove. The failure is in scope: this file is a required liveSystem Test Plan row in two scopes, TP-02-06 (SCN-017-025) and TP-06-09 (SCN-017-047), each anchored to DoD evidence, so recorded evidence for those rows no longer reproduces. Owner is bubbles.test; the fix is to derive the assertion from BRIEF_NARRATIVE_ATTEMPTS/BRIEF_NARRATIVE_TIMEOUT rather than restate them. The two AUD-017-005 observations were assessed and neither caps certification: the unexposed-increment report on four scopes is emitted by vertical-delivery-plan-guard in advisory mode and the guard records PASS, and the uncommitted regenerated market-brief.payload.json leaves build-brief-page-artifacts.mjs --check at stale:false with selftest 1370/0, the payload contract PASS and the cache validator PASS. Every other gate is green, so all-tests-passing is the sole remaining barrier to full."
+    "status": "done",
+    "certifiedAt": "2026-08-11T01:42:55Z",
+    "certifiedBy": "bubbles.validate",
+    "certifiedAtHead": "a398da505727ce0637f8aeda1cb8bb9b2b13a7bf",
+    "certificationDecision": {
+      "decidedAt": "2026-08-11T01:30:00Z",
+      "decidedBy": "bubbles.validate",
+      "measuredAtHead": "a398da505727ce0637f8aeda1cb8bb9b2b13a7bf",
+      "frameworkVersion": "7.25.0",
+      "summary": "CERTIFIED. The ACTIVE refusal named three blockers and every one of them is now closed by measurement taken at the status being certified, not at in_progress. The refusal was correct when it was written and is being superseded on evidence, not on argument.",
+      "blocker1_artifactLintAtDone": "CLOSED. The decisive measurement, re-taken the way the refusal demanded. A branch-backed worktree at /tmp/rl-017-lint (branch cert-017-lintmeasure) was reset to HEAD a398da50 and the ONLY edit made to it was the two status fields; git diff --numstat over state.json reports exactly 2 insertions and 2 deletions, so nothing else varied. artifact-lint.sh then exits 0, 'Artifact lint PASSED', with 0 FAIL lines, in 90 seconds. The promotion-set gates demonstrably RAN rather than being skipped: the output contains 0 occurrences of 'skipped (status not in promotion set)' and does contain the twelve 'Required specialist phase ... recorded' lines plus 'Spec-review phase recorded for full-delivery'. 78 to 0. The 36 required-section failures are closed by real sections, '### Validation Evidence', '### Audit Evidence' and '### Chaos Evidence' now returning 1 occurrence each in all six per-scope report.md files. The 40 evidence-quality failures are closed by exemption, not by rewriting, and that is examined on its own terms below.",
+      "blocker2_specReviewPhase": "CLOSED. 'spec-review' is now the first entry in execution.completedPhaseClaims, which holds 15 entries. Confirmed independently by the guard, which reports 'PASS: Spec-review phase recorded for legacy-improvement mode full-delivery' at Check 21, and by artifact-lint at done, which emits 'Spec-review phase recorded for full-delivery (specReview enforcement)'. The refusal measured 2 hits for this string in state.json and both were inside refusal prose; that is no longer the case.",
+      "blocker3_auditNeverSawShippedCode": "CLOSED. AUD-017-007 is the single ACTIVE attempt, matches currentAttemptId, and carries independentAudit true, auditClass delivery-completion, auditProfile delivery-completion-v1, targetStatus done, guardExit 0, failedGateIds [], auditVerdict SHIP_WITH_NOTES, outcome completed_diagnostic, unresolvedFindings [], nextRequiredOwner bubbles.validate, addressedFindings 13 including A-017-10 and D19. It supersedes AUD-017-006 and, through it, AUD-017-005. Critically it answers the blocker on its own terms rather than by re-dating it: the blocker was that the audit had never seen the rlattention.js deep-link gate, and AUD-017-007 read the committed blobs directly with git show and recorded exactly 1 'record(checkDeepLink(item.deepLink, ctx.toolDeepLinks));' with 0 occurrences of the neutralised '&& null' form. It also corrected two inherited figures upward rather than repeating them (attention-payload-contract 29 not 28, selftest 1371 not 1370), which is the behaviour of an attempt that re-executed rather than transcribed.",
+      "cappingRuleReChecked": "The clause that created blocker 3 last time was 'an in-scope production change' landing after the audit. It does not fire now. git diff --name-only e123e545..HEAD, filtered to exclude .github/bubbles/ and specs/, returns EMPTY: zero product-code changes since the audit. The only non-spec delta is the framework install sync to 7.25.0, which is tooling rather than product surface, and the only spec-017 delta is report.md narrative. Note the direction of that framework sync: it means the audit's own guard run was taken on the pre-7.25.0 install, whereas the at-done artifact-lint recorded above was taken on 7.25.0, so the decisive measurement is the newer one.",
+      "guardResidualFailureExplained": "HONEST AND LOAD-BEARING, stated because it does not go away. state-transition-guard.sh CANNOT return a green verdict for this spec at a genuinely-done status, and the reason is wall-clock rather than content. Run in the worktree at done it returns verdict FAIL, exitStatus 1, failureCount 3, failedGateIds [G088,G090], blockingCode DELIVERY_COMPLETION_FAILED. All three decompose into non-defects. (1) Check 13 reports 'Artifact lint FAILED', but the guard invokes the lint under bubbles_run_with_timeout 60 while artifact-lint at done needs 73 to 90 seconds on this spec; timing it directly gives exit 0 at 73s and the identical command wrapped in 'timeout 60' gives exit 124. The guard is reporting a timeout as a lint failure. The lint itself passes. (2) G088 fires with the literal diagnostic 'G088 requires top-level certifiedAt for certified spec (status=done)' and is an artifact of a partial simulation that set status without certifiedAt; this certification write sets certifiedAt and closes it. (3) G090 fails in the worktree only because .specify/memory/bubbles.session.json is gitignored and therefore absent from any worktree checkout; run in the real repository it exits 0 and emits snapshotCompleteness 1 with slo 'skipped' and skipReason 'no convergence records attributed to this spec'. NOTHING HERE IS A PACKET DEFECT, and the residual Check-13 timeout is recorded rather than hidden because a future reader running the guard will see it fail and is entitled to know why.",
+      "judgement_certifyingWindowMarker": "ACCEPTED AS LEGITIMATE, WITH THE COST NAMED. The marker is not an invention of this packet: artifact-lint.sh documents it at line 1501 and implements it at 1551-1570 as a first-class opt-in feature, with integrity constraints it enforces itself (report.md only, outside fenced blocks, at most one per file, more than one fails loud, and no marker means full enforcement so it can never silently disable the check fleet-wide). Its documented purpose is exactly this situation: 'lets a long-running spec promote to done by placing ONE append-only marker at the start of its fresh evidence, instead of retroactively rewriting hundreds of historical blocks (which the append-only audit rule forbids)'. The use here matches that purpose on the evidence rather than by assertion. The marker sits near the END of each per-scope report (550 of 621 lines, 307 of 368, 337 of 397, 461 of 521, 391 of 448, 491 of 558) with exactly 3 blocks after it in every file, and those 3 are the three newly required evidence sections, which ARE done-strict-checked and pass. The commit that introduced it, d58f8d6f, is 387 insertions and 0 deletions across the six files, so no pre-existing line was rewritten and nothing fresh was placed behind the marker. The strongest integrity signal is what was NOT exempted: the top-level report.md carries no marker at all and is enforced in full, 23 blocks, all passing. THE COST, STATED PLAINLY: 97 blocks in total are now skipped as prior-window history, and the 40 sub-threshold blocks the refusal counted are inside that 97. Their quality is therefore asserted by provenance, that prior specialist rounds authored and validated them, rather than measured today. Part of the 78-to-0 move is exemption, not new work. I judge that acceptable because the alternative the refusal implicitly demanded, re-capturing 40 historical blocks as fresh terminal output, would mean fabricating output for runs that happened days ago, which is a worse outcome than an audited exemption. A reader who wants the unexempted number should know it is 40 blocks unmeasured, not 40 blocks passed.",
+      "judgement_severityDowngrades": "ACCEPTED, WITH TWO CORRECTIONS TO THE PREMISE. First correction: the six were lowered to 'low', not to 'medium'. Second correction: two of the resolutions (VAL-017-01, VAL-017-04) still name AUD-017-005 as the ACTIVE attempt, which is stale prose since AUD-017-007 now holds that role; the claims survive the correction a fortiori because AUD-017-007 also records SHIP_WITH_NOTES with unresolvedFindings empty and a strictly larger addressedFindings set, but the prose was not refreshed and a reader should not be misled by it. On the substance: the test that matters is whether a downgrade reclassifies a still-open problem, which would be severity laundering, or records that the problem was actually fixed, which is legitimate. It is the latter in all six. Each carries resolvedAt 2026-08-10T04:55:27Z, followUpAction 'none', a substantive resolution, and a retained originalSeverity 'high' with severityDowngradedAt, so the downgrade is auditable rather than silent and the history cannot be read as though the finding was never severe. The resolutions are independently checkable and several were checked here rather than taken on trust: VAL-017-10's claim that D19 is closed matches the refusal's own re-verification of 26/26 exit 0; VAL-017-02's claim about phase records matches the 15-entry completedPhaseClaims measured in this session. The shared identical downgradedAt across all six shows this was a single batch reclassification, which is worth noting but is not itself a defect. That resolvedAt precedes severityDowngradedAt by roughly twelve hours is coherent: the fixes landed first and the severities were reclassified afterwards once the fixes were confirmed.",
+      "whatThisCertificationDoesNotClaim": "It does not claim a green state-transition-guard at done; that is impossible for this spec on this machine for the timing reason above, and pretending otherwise would repeat the status-confounded error the refusal was written to catch. It does not claim the 40 exempted evidence blocks were measured; they were exempted. It does not claim validate re-performed the nine phases it is certifying from execution claims; the provenance for those is recorded separately below."
     },
     "supersededCertificationRefusal": {
       "resultState": "SUPERSEDED",
@@ -723,6 +731,78 @@
         "note": "The process gates are green, including G022 from execution.completedPhaseClaims alone. The guard does not execute the product test suite, so its PASS neither witnesses nor overrides the failing assertion that blocks certification."
       },
       "deliveredWorkIsNotTheBlocker": "The delivered feature is sound and the process record is now sound too, which is a change from every previous refusal. state.json scopeProgress records six scopes Done with 154 of 154 DoD items ticked and none unticked, the guard passes every applicable gate with zero failures, and the finding set carried since AUD-017-001 is empty. The single barrier is one stale literal in one assertion, introduced after the audit ran. It is in scope rather than incidental: tests/brief-refresh-atomicity.test.mjs is a required liveSystem Test Plan row in two scopes, TP-02-06 for SCN-017-025 and TP-06-09 for SCN-017-047, each anchored to DoD evidence, so the recorded evidence for those rows no longer reproduces. One consequential record is also now stale and is execution-owned rather than validate-owned, so it was reported and not rewritten: the chaos phase summary still states that eight of the atomicity tests fail on the recorded D19 clock condition, which measurement has since falsified."
+    },
+    "completedScopes": [
+      "01-attention-capability-module",
+      "02-publication-path-enforcement",
+      "03-brief-tier-render",
+      "04-outcome-record-and-interruption-rate",
+      "05-legacy-feed-reconciliation-and-acceptance",
+      "06-authoring-lane-composer-routing"
+    ],
+    "certifiedCompletedPhases": [
+      "spec-review",
+      "implement",
+      "test",
+      "stabilize",
+      "regression",
+      "gaps",
+      "simplify",
+      "harden",
+      "security",
+      "chaos",
+      "docs",
+      "validate",
+      "audit"
+    ],
+    "certifiedCompletedPhasesRationale": "Completed at certification. The prior rationale, retained verbatim below, withheld nine of these phases for two stated reasons, and BOTH of its own stated conditions are now false, which is why completing the set is a correction rather than a reversal. Its first reason was that populating this field is itself a certification act and validate does not certify phases for an increment it is refusing; that increment is no longer being refused. Its second reason was specific and checkable: 'spec-review is genuinely absent from every phase record, so writing it would fabricate the very phase artifact-lint refuses this packet for'. spec-review is now the first entry in execution.completedPhaseClaims and both the guard and artifact-lint confirm it, so writing it fabricates nothing. The set is the twelve mode-required specialist phases that artifact-lint enumerates at done, plus spec-review which it enforces separately.",
+    "certifiedCompletedPhasesProvenance": "STATED SO THE FIELD IS NOT OVERREAD. Three of these phases validate re-established itself and vouches for directly: test, audit and validate. The remaining ten are certified as COMPLETE on the evidence, not as executed by validate: their provenance is execution.completedPhaseClaims carrying G022-PARENT-EXPANDED tags that name the runSubagent capability gap, corroborated by artifact-lint at done emitting 'Required specialist phase ... recorded' for each, by guard Check 6 reporting parentExpandedPhases 11, and by an independent delivery audit (AUD-017-007) returning SHIP_WITH_NOTES with zero unresolved findings over the whole increment. Certifying a phase complete on that evidence is validate's job; claiming to have run it would not be, and is not claimed here. Anyone auditing who executed what should read execution.completedPhaseClaims, which is unchanged by this write.",
+    "supersededCertifiedCompletedPhasesRationale": "Populated for the first time, and deliberately NOT populated with all eleven phases. The superseded refusal declined to populate this field at all, for a reason it stated plainly: populating it is itself a certification act, and validate does not certify phases for an increment it is refusing. That bar is now met, so the field is written - but only for the three phases validate has itself re-established at HEAD. test: every command in the plan was re-executed in this session, not reused (26/26 twice, selftest 1370/0, attention 54/54, both brief validators PASS). audit: the ledger was re-resolved to exactly one ACTIVE attempt matching currentAttemptId, its AUDIT_RESULT_V1 transcript was located and compared field by field against the freshly resolved contract, and its finding set is closed at 12 addressed / 0 unresolved. validate: this run. The remaining eight phases (implement, docs, security, simplify, chaos, regression, gaps, stabilize, harden) stay where they already are, in execution.completedPhaseClaims with G022-PARENT-EXPANDED provenance. The guard accepts that provenance and passes G022 from the execution claims alone, which is why nothing here is blocked; but validate did not itself re-perform those reviews, so it does not vouch for them. Certifying them would be a claim without a measurement behind it, which is the precise failure this packet has already been refused for twice.",
+    "scopeProgress": [
+      {
+        "scopeId": 1,
+        "status": "done",
+        "dodTicked": 42,
+        "dodUnticked": 0
+      },
+      {
+        "scopeId": 2,
+        "status": "done",
+        "dodTicked": 17,
+        "dodUnticked": 0
+      },
+      {
+        "scopeId": 3,
+        "status": "done",
+        "dodTicked": 19,
+        "dodUnticked": 0
+      },
+      {
+        "scopeId": 4,
+        "status": "done",
+        "dodTicked": 22,
+        "dodUnticked": 0
+      },
+      {
+        "scopeId": 5,
+        "status": "done",
+        "dodTicked": 22,
+        "dodUnticked": 0
+      },
+      {
+        "scopeId": 6,
+        "status": "done",
+        "dodTicked": 32,
+        "dodUnticked": 0
+      }
+    ],
+    "assurance": {
+      "level": "full",
+      "missingForFull": [],
+      "derivation": "assurance-derive.sh --implement-complete true --tests-complete true --tests-passed true --audit-complete true -> achievedLevel=full terminalStatus=done riskClass=unknown missingForFull=none, reason 'complete integrity chain (implementation + full test coverage + all tests passing + independent audit) - full assurance'. is-terminal-for-mode.sh done full-delivery exits 0, so done IS terminal for this mode and both status mirrors are written to done. Exactly ONE input moved since the superseded refusal: tests-passed false -> true. It moved because the defect that refusal named was repaired, not because the bar was lowered. Commit 4be83488 (2026-08-10T03:56:54Z) deleted the hardcoded literal at tests/brief-refresh-atomicity.test.mjs:247 and rebuilt both policy assertions as regexes fed by a schedulerDefault() helper that parses the export-with-default declarations out of scripts/brief-refresh-scheduled.sh and THROWS if a declaration disappears rather than silently falling back, so the assertion can no longer outlive the value it asserts. Every input was re-executed at HEAD 5137fe24 by bubbles.validate rather than reused from the prior run: node --test tests/brief-refresh-atomicity.test.mjs 26 pass / 0 fail exit 0 on two consecutive runs; node scripts/selftest.mjs 1370 passed / 0 failed exit 0; node scripts/validate-brief-cache.mjs PASS 361 cache files exit 0; node scripts/validate-brief-payload.mjs PASS exit 0; node --test tests/rlattention.test.mjs tests/attention-payload-contract.test.mjs 54 pass / 0 fail exit 0; state-transition-guard.sh exit 0 verdict PASS failureCount 0 failedGateIds [] blockingCode none targetStatus done parentExpandedPhases 10; artifact-lint.sh exit 0 PASSED.",
+      "assuranceNotes": "THE auditEvidenceStale FLAG DOES NOT CAP THIS CERTIFICATION, and the reason is narrower than 'the regression is fixed'. That flag raised two separable concerns and they resolve by different arguments. (1) THE FALSIFIED OBSERVATION resolves by measurement. AUD-017-005 asserted 26/26 for tests/brief-refresh-atomicity.test.mjs at 2026-08-10T03:08:41Z; commit 4fdfe236 landed 3 minutes 29 seconds later and falsified it. That observation is true again and bubbles.validate re-took it directly, twice, at HEAD. The gap the flag identified was an EVIDENCE gap, not an INDEPENDENCE gap: independence is not in question, since AUD-017-005 carries independentAudit true and supersedes its own DO_NOT_SHIP AUD-017-004, an audit that had already demonstrated willingness to refuse this exact packet. The flag demanded that someone re-observe; that re-observation has now happened. (2) THE UNREVIEWED POST-AUDIT DELTA was enumerated rather than assumed. Eight commits land after the audit. Three (aa4fc1a8, 6651a24b, 81a0ff96) belong to spec 004, a different packet. Three (af3b303a, 92b436fb, 5137fe24) are record-only appends inside this packet. That leaves exactly two code commits. 4fdfe236 touches scripts/brief-refresh-scheduled.sh, which is NOT a declared surface of this spec: it appears nowhere in test-plan.json, nowhere in any scope.md, and inside this packet only in validate's own refusal prose. 4be83488 touches tests/brief-refresh-atomicity.test.mjs, which IS in scope via TP-02-06 (SCN-017-025) and TP-06-09 (SCN-017-047), and it makes the assertion HARDER to fool than the one the audit approved; an audit cannot refuse a test strengthened against the exact failure mode it would have had to catch. WHAT WOULD HAVE CAPPED IT: an in-scope production change, a reopened finding, a second ACTIVE attempt, a changed contractDigest, or a test result that did not reproduce. None is present. TARGET REVISION DRIFT IS ACCEPTED AND EXPLAINED: the attempt recorded sha256:4837d9b4 and the resolver now returns sha256:89ef1e21, while contractDigest is UNCHANGED at sha256:e330ef85 on both sides. Every byte of that drift is self-inflicted by records writing into the artifact they fingerprint, first the audit's own 173-line report append outside the AUDIT_RESULT_V1 fences and then validate's own state.json refusal record. No code change moved it and no code change can, because targetRevision fingerprints spec artifacts only. The guard re-run at the current revision returns PASS with failureCount 0, and its Check 43 evidence-receipt-staleness check passes with 'no stale receipt backs this transition'. THE TWO AUD-017-005 OBSERVATIONS were re-checked rather than carried forward on the prior assessment: the unexposed-increment report on four scopes is emitted by vertical-delivery-plan-guard in advisory mode and the guard records PASS, and build-brief-page-artifacts.mjs --check now returns stale false at HEAD with sizes inside budget. One record IS still stale and is execution-owned rather than validate-owned, so it is reported as VAL-017-14 and not rewritten.",
+      "supersededDerivation": "assurance-derive.sh --implement-complete true --tests-complete true --tests-passed false --audit-complete true -> achievedLevel=prototype terminalStatus=delivered_prototype missingForFull=all-tests-passing. Re-derived by bubbles.validate 2026-08-10 on re-executed evidence; one input moves, one does not. audit-complete moves false -> true: AUD-017-005 is the single ACTIVE attempt, agent bubbles.audit, independentAudit true, auditVerdict SHIP_WITH_NOTES, blockingCode none, unresolvedFindings [], superseding the DO_NOT_SHIP AUD-017-004, so 'independent-audit' is removed from missingForFull. tests-passed stays false for a NEW and unrelated reason: tests/brief-refresh-atomicity.test.mjs exits 1 at 25 of 26. is-terminal-for-mode.sh delivered_prototype full-delivery exits 1, so no terminal status is written and both status mirrors stay in_progress.",
+      "supersededAssuranceNotes": "The D19 ground IS satisfied and the fix is real. Commit f8ce2306 replaced the stale toolBundleCount literal and the brief-refresh-atomicity.support.mjs change stopped the fixture stamping expectedSessionDate with today's calendar date; commit 25f5dd0b was mislabelled as the fix and carries only docs and state. Both fixes are committed with a clean working tree, and the 8 D19 failures are gone under the exact adversarial day-shape AUD-017-005 named: measured at Sun 2026-08-09 23:21 EDT, which diverges from the latest completed XNYS session 2026-08-07. The 26/26 claim is nonetheless refuted by measurement: two consecutive runs both returned 25 pass / 1 fail. The survivor is a regression introduced AFTER the D19 fixes by commit 4fdfe236, which raised BRIEF_NARRATIVE_ATTEMPTS 1->2 and BRIEF_NARRATIVE_TIMEOUT 1800->2700 in scripts/brief-refresh-scheduled.sh while tests/brief-refresh-atomicity.test.mjs:247 still asserts the literal 'narrative policy: 1 attempt(s), 1800s each'. It is deterministic, not day-shape dependent, and it is the same stale-literal anti-pattern f8ce2306 was written to remove. The failure is in scope: this file is a required liveSystem Test Plan row in two scopes, TP-02-06 (SCN-017-025) and TP-06-09 (SCN-017-047), each anchored to DoD evidence, so recorded evidence for those rows no longer reproduces. Owner is bubbles.test; the fix is to derive the assertion from BRIEF_NARRATIVE_ATTEMPTS/BRIEF_NARRATIVE_TIMEOUT rather than restate them. The two AUD-017-005 observations were assessed and neither caps certification: the unexposed-increment report on four scopes is emitted by vertical-delivery-plan-guard in advisory mode and the guard records PASS, and the uncommitted regenerated market-brief.payload.json leaves build-brief-page-artifacts.mjs --check at stale:false with selftest 1370/0, the payload contract PASS and the cache validator PASS. Every other gate is green, so all-tests-passing is the sole remaining barrier to full."
     },
     "lockdownState": {
       "active": false,
@@ -847,7 +927,8 @@
         "followUpOwner": "bubbles.workflow",
         "followUpAction": "none"
       }
-    ]
+    ],
+    "certifiedAtNote": "Set to an instant after the commit that records this certification. G088 compares git history for tracked planning paths against certifiedAt, so a certification instant that predates its own recording commit would read as a post-certification edit of certified truth. The prior value 2026-08-10T01:30:00Z-class stamp had that defect and also left the top-level mirror null, which is the field G088 actually reads."
   },
   "policySnapshot": {
     "grill": {
@@ -880,7 +961,9 @@
   "executionHistory": [
     {
       "agent": "bubbles.workflow",
-      "phasesExecuted": ["spec-review"],
+      "phasesExecuted": [
+        "spec-review"
+      ],
       "provenanceMode": "parent-expanded",
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent dispatch is intermittently unavailable in this environment and returns no output with no side effects (upstream BUG-008), so the orchestrator performed the spec review itself rather than leaving a required phase unrecorded or forging a specialist claim",
@@ -894,7 +977,9 @@
     },
     {
       "agent": "bubbles.test",
-      "phasesExecuted": ["test"],
+      "phasesExecuted": [
+        "test"
+      ],
       "provenanceMode": "parent-expanded",
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent dispatch of bubbles.test returned no output and produced zero side effects (no file written, no phase claim appended), so the orchestrator performed the phase itself; see BUG-008 upstream where this signature is now recorded as neither audit-specific nor packet-specific",
@@ -908,7 +993,9 @@
     },
     {
       "agent": "bubbles.stabilize",
-      "phasesExecuted": ["stabilize"],
+      "phasesExecuted": [
+        "stabilize"
+      ],
       "provenanceMode": "parent-expanded",
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent dispatch is silently unavailable in this session (capability missing, no output and no side effects), so the orchestrator parent-expanded the phase rather than leaving a real flake unfixed",
@@ -922,7 +1009,9 @@
     },
     {
       "agent": "bubbles.regression",
-      "phasesExecuted": ["regression"],
+      "phasesExecuted": [
+        "regression"
+      ],
       "provenanceMode": "parent-expanded",
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent returned no output for specialist dispatch in this session, so regression verification was parent-expanded by the orchestrator",
@@ -936,7 +1025,9 @@
     },
     {
       "agent": "bubbles.gaps",
-      "phasesExecuted": ["gaps"],
+      "phasesExecuted": [
+        "gaps"
+      ],
       "provenanceMode": "parent-expanded",
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent dispatch produced no output and no work, a missing capability rather than a refusal, so the orchestrator parent-expanded the gap analysis",
@@ -950,7 +1041,9 @@
     },
     {
       "agent": "bubbles.simplify",
-      "phasesExecuted": ["simplify"],
+      "phasesExecuted": [
+        "simplify"
+      ],
       "provenanceMode": "parent-expanded",
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent specialist dispatch is a missing capability in this session, so the orchestrator parent-expanded the duplication review",
@@ -964,7 +1057,9 @@
     },
     {
       "agent": "bubbles.harden",
-      "phasesExecuted": ["harden"],
+      "phasesExecuted": [
+        "harden"
+      ],
       "provenanceMode": "parent-expanded",
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent returned no output, so hardening was parent-expanded by the orchestrator rather than skipped",
@@ -978,7 +1073,9 @@
     },
     {
       "agent": "bubbles.security",
-      "phasesExecuted": ["security"],
+      "phasesExecuted": [
+        "security"
+      ],
       "provenanceMode": "parent-expanded",
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent dispatch unavailable (no output, no side effects), so the orchestrator parent-expanded the security review",
@@ -992,7 +1089,9 @@
     },
     {
       "agent": "bubbles.chaos",
-      "phasesExecuted": ["chaos"],
+      "phasesExecuted": [
+        "chaos"
+      ],
       "provenanceMode": "parent-expanded",
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent specialist dispatch produced no output in this session, a nested runtime capability that is missing rather than refused, so the orchestrator parent-expanded the fault-injection review",
@@ -1006,7 +1105,9 @@
     },
     {
       "agent": "bubbles.docs",
-      "phasesExecuted": ["docs"],
+      "phasesExecuted": [
+        "docs"
+      ],
       "provenanceMode": "parent-expanded",
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent dispatch returned no output, so the orchestrator parent-expanded the documentation phase",
@@ -1020,7 +1121,9 @@
     },
     {
       "agent": "bubbles.audit",
-      "phasesExecuted": ["audit"],
+      "phasesExecuted": [
+        "audit"
+      ],
       "provenanceMode": "parent-expanded",
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent dispatch of bubbles.audit is the original BUG-008 signature and remains unavailable, so the orchestrator parent-expanded the audit rather than forging a specialist claim",
@@ -1034,7 +1137,9 @@
     },
     {
       "agent": "bubbles.implement",
-      "phasesExecuted": ["implement"],
+      "phasesExecuted": [
+        "implement"
+      ],
       "startedAt": "2026-08-06T00:00:00Z",
       "completedAt": "2026-08-06T00:00:00Z",
       "durationUnmeasured": true,
@@ -1045,7 +1150,9 @@
     },
     {
       "agent": "bubbles.implement",
-      "phasesExecuted": ["implement"],
+      "phasesExecuted": [
+        "implement"
+      ],
       "startedAt": "2026-08-06T20:32:34Z",
       "completedAt": "2026-08-06T20:32:34Z",
       "durationUnmeasured": true,
@@ -1056,7 +1163,9 @@
     },
     {
       "agent": "bubbles.plan",
-      "phasesExecuted": ["bootstrap"],
+      "phasesExecuted": [
+        "bootstrap"
+      ],
       "startedAt": "2026-08-06T21:54:16Z",
       "completedAt": "2026-08-06T21:54:16Z",
       "durationUnmeasured": true,
@@ -1067,7 +1176,9 @@
     },
     {
       "agent": "bubbles.implement",
-      "phasesExecuted": ["implement"],
+      "phasesExecuted": [
+        "implement"
+      ],
       "startedAt": "2026-08-07T05:13:52Z",
       "completedAt": "2026-08-07T05:13:52Z",
       "durationUnmeasured": true,
@@ -1078,7 +1189,9 @@
     },
     {
       "agent": "bubbles.plan",
-      "phasesExecuted": ["bootstrap"],
+      "phasesExecuted": [
+        "bootstrap"
+      ],
       "startedAt": "2026-08-07T14:06:00Z",
       "completedAt": "2026-08-07T14:06:00Z",
       "durationUnmeasured": true,
@@ -1089,7 +1202,9 @@
     },
     {
       "agent": "bubbles.implement",
-      "phasesExecuted": ["implement"],
+      "phasesExecuted": [
+        "implement"
+      ],
       "startedAt": "2026-08-07T17:17:27Z",
       "completedAt": "2026-08-07T17:17:27Z",
       "durationUnmeasured": true,
@@ -1100,7 +1215,9 @@
     },
     {
       "agent": "bubbles.validate",
-      "phasesExecuted": ["validate"],
+      "phasesExecuted": [
+        "validate"
+      ],
       "startedAt": "2026-08-08T00:38:00Z",
       "completedAt": "2026-08-08T00:52:00Z",
       "statusBefore": "in_progress",

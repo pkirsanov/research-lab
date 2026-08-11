@@ -1714,3 +1714,233 @@ The renderer was restored byte-identical after the RED run. The row therefore
 fails against the defect and passes against the fix, which is what TP-04-08
 could not do while the shipped artifact reduced to `closedSample: 0`.
 
+---
+
+## Certification 2026-08-11 — bubbles.validate
+
+**Verdict: CERTIFIED.** `status` and `certification.status` are `done`,
+`certifiedAt` is `2026-08-11T01:30:00Z`, measured at HEAD `a398da50` on
+framework install 7.25.0.
+
+The ACTIVE refusal at `certification.certificationRefusal` named three blockers.
+It was right when it was written. It is superseded here on measurement, not on
+argument, and it is retained in full at
+`certification.supersededCertificationRefusal` with `resultState: SUPERSEDED`.
+
+### Blocker 1 — artifact-lint at the status being certified
+
+This was the refusal's decisive point: `artifact-lint` gates its promotion-set
+checks on `status`, so an exit 0 taken at `in_progress` cannot license a move to
+`done`. That objection is honoured rather than sidestepped. The measurement was
+re-taken at `done`.
+
+A branch-backed worktree (`/tmp/rl-017-lint`, branch `cert-017-lintmeasure`) was
+reset to HEAD `a398da50`. The only edit made to it was the two status fields.
+
+```
+$ git diff --numstat -- specs/017-decision-attention-and-developing-situations/state.json
+2       2       specs/017-decision-attention-and-developing-situations/state.json
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/017-decision-attention-and-developing-situations
+ARTIFACT_LINT_EXIT=0 elapsed=90s
+FAIL/❌ lines: 0
+
+=== End Anti-Fabrication Checks ===
+
+Artifact lint PASSED.
+```
+
+Two insertions, two deletions. Nothing else varied. **78 failures to 0.**
+
+The promotion gates demonstrably ran rather than being skipped. The output
+contains zero occurrences of `skipped (status not in promotion set)`, and it does
+contain the twelve `Required specialist phase ... recorded` lines plus
+`Spec-review phase recorded for 'full-delivery'`.
+
+Repeated against the real repository once the status was genuinely written:
+
+```
+=== ARTIFACT LINT — REAL REPO, GENUINELY status=done ===
+ARTIFACT_LINT_EXIT=0 elapsed=103s
+FAIL lines: 0
+promotion gates skipped?: 0 (0=gates ran)
+=== End Anti-Fabrication Checks ===
+
+Artifact lint PASSED.
+```
+
+The 36 required-section failures are closed by real sections. All six per-scope
+`report.md` files now return one occurrence each of `### Validation Evidence`,
+`### Audit Evidence` and `### Chaos Evidence`.
+
+```
+01-attention-capability-module                       V=1 A=1 C=1
+02-publication-path-enforcement                      V=1 A=1 C=1
+03-brief-tier-render                                 V=1 A=1 C=1
+04-outcome-record-and-interruption-rate              V=1 A=1 C=1
+05-legacy-feed-reconciliation-and-acceptance         V=1 A=1 C=1
+06-authoring-lane-composer-routing                   V=1 A=1 C=1
+```
+
+The remaining 40 are closed by exemption rather than by rewriting. That is
+examined on its own terms below, because it is the part of the 78-to-0 move that
+a reader should not take at face value.
+
+### Blocker 2 — spec-review absent from every phase record
+
+Closed. `spec-review` is now the first of the 15 entries in
+`execution.completedPhaseClaims`. Two independent surfaces confirm it:
+`artifact-lint` at `done` emits `Spec-review phase recorded for 'full-delivery'
+(specReview enforcement)`, and the transition guard reports at Check 21:
+
+```
+--- Check 21: Spec Review Enforcement (specReview policy) ---
+✅ PASS: Spec-review phase recorded for legacy-improvement mode 'full-delivery'
+```
+
+### Blocker 3 — the independent audit never saw the shipped code
+
+Closed by `AUD-017-007`, the single `ACTIVE` attempt, matching
+`currentAttemptId`.
+
+| field | value |
+|---|---|
+| `independentAudit` | `true` |
+| `auditProfile` | `delivery-completion-v1` |
+| `targetStatus` | `done` |
+| `guardExit` / `failedGateIds` | `0` / `[]` |
+| `auditVerdict` | `SHIP_WITH_NOTES` |
+| `outcome` | `completed_diagnostic` |
+| `unresolvedFindings` | `[]` |
+| `nextRequiredOwner` | `bubbles.validate` |
+| `addressedFindings` | 13, including `A-017-10` and `D19` |
+
+It answers the blocker on the blocker's own terms rather than by re-dating
+itself. The complaint was that no audit had seen the FR-018 deep-link gate in
+`rlattention.js`. `AUD-017-007` read the committed blobs directly with `git show`
+and recorded exactly one
+`record(checkDeepLink(item.deepLink, ctx.toolDeepLinks));` with zero occurrences
+of the neutralised `&& null` form. It also corrected two inherited figures
+upward instead of repeating them (`attention-payload-contract` 29 not 28,
+`selftest` 1371 not 1370), which is the behaviour of an attempt that re-executed
+rather than transcribed.
+
+### The capping rule was re-checked, not assumed
+
+The clause that produced blocker 3 last time was an in-scope production change
+landing after the audit. It does not fire now.
+
+```
+$ git diff --name-only e123e545..HEAD | grep -vE '^\.github/bubbles/|^specs/'
+(empty above = no product-code change since the audit)
+```
+
+Zero product-code changes since the audit. The only non-spec delta is the
+framework install sync to 7.25.0, which is tooling and not product surface, and
+the only spec-017 delta is `report.md` narrative. Note the direction of that
+sync: the audit's own guard run was taken on the pre-7.25.0 install, whereas the
+at-done lint above was taken on 7.25.0. The decisive measurement is the newer
+one.
+
+### Judgement: the certifying-window marker
+
+**Accepted as legitimate, with the cost named.**
+
+The marker is not an invention of this packet. `artifact-lint.sh` documents it at
+line 1501 and implements it at 1551-1570 as a first-class opt-in feature, and it
+enforces its own integrity constraints: `report.md` only, outside fenced blocks,
+at most one per file, more than one fails loud, and a file with no marker is
+enforced in full so the marker can never silently disable the check fleet-wide.
+Its documented purpose is this exact situation, in the framework's own words:
+it lets a long-running spec promote to `done` by placing one append-only marker
+at the start of its fresh evidence instead of retroactively rewriting hundreds of
+historical blocks, which the append-only audit rule forbids.
+
+The use here matches that purpose on evidence rather than by assertion.
+
+| report.md | lines | marker at | blocks before | blocks after |
+|---|---|---|---|---|
+| top-level | 1716 | **none** | 0 | 23 (all enforced) |
+| 01-attention-capability-module | 621 | 550 | 31 | 3 |
+| 02-publication-path-enforcement | 368 | 307 | 11 | 3 |
+| 03-brief-tier-render | 397 | 337 | 12 | 3 |
+| 04-outcome-record-and-interruption-rate | 521 | 461 | 19 | 3 |
+| 05-legacy-feed-reconciliation-and-acceptance | 448 | 391 | 11 | 3 |
+| 06-authoring-lane-composer-routing | 558 | 491 | 13 | 3 |
+
+The marker sits near the end of each file, not at the top. Exactly three blocks
+follow it in every file, and those three are the newly required evidence
+sections, which are done-strict-checked and pass. The commit that introduced it
+is pure append:
+
+```
+$ git show --stat d58f8d6f -- specs/017-.../scopes/
+ .../01-attention-capability-module/report.md       | 73 ++++++++++++++++++++++
+ .../02-publication-path-enforcement/report.md      | 63 +++++++++++++++++++
+ .../scopes/03-brief-tier-render/report.md          | 62 ++++++++++++++++++
+ .../report.md                                      | 62 ++++++++++++++++++
+ .../report.md                                      | 59 +++++++++++++++++
+ .../06-authoring-lane-composer-routing/report.md   | 68 ++++++++++++++++++++
+ 6 files changed, 387 insertions(+)
+--- did it touch ANY line before the marker? (deletions would mean rewrite) ---
+0
+(0 deletions = pure append)
+```
+
+387 insertions, 0 deletions. No pre-existing line was rewritten, and nothing
+fresh was placed behind the marker. The strongest integrity signal is what was
+not exempted: the top-level `report.md` carries no marker at all and is enforced
+in full, 23 blocks, all passing.
+
+**The cost, stated plainly.** 97 blocks in total are now skipped as prior-window
+history, and the 40 sub-threshold blocks the refusal counted sit inside that 97.
+Their quality is asserted by provenance, that prior specialist rounds authored
+and validated them, rather than measured today. Part of the 78-to-0 move is
+exemption, not new work.
+
+I judge that acceptable because the alternative is worse. Re-capturing 40
+historical blocks as fresh terminal output would mean manufacturing output for
+runs that happened days ago. An audited exemption beats a fabricated rewrite. A
+reader who wants the unexempted number should know it is 40 blocks unmeasured,
+not 40 blocks passed.
+
+### Judgement: the six severity downgrades
+
+**Accepted, with two corrections to the premise.**
+
+First correction: the six were lowered to `low`, not to `medium`.
+
+Second correction: two of the resolutions (`VAL-017-01`, `VAL-017-04`) still name
+`AUD-017-005` as the ACTIVE attempt. That is stale prose, since `AUD-017-007` now
+holds that role. The claims survive the correction a fortiori, because
+`AUD-017-007` also records `SHIP_WITH_NOTES` with `unresolvedFindings` empty and
+a strictly larger `addressedFindings` set. The prose was not refreshed, and a
+reader should not be misled by it.
+
+On the substance, the test that matters is whether a downgrade reclassifies a
+still-open problem, which is severity laundering, or records that the problem was
+actually fixed, which is legitimate. It is the latter in all six.
+
+| id | severity | originalSeverity | resolvedAt | followUpAction |
+|---|---|---|---|---|
+| VAL-017-01 | low | high | 2026-08-10T04:55:27Z | none |
+| VAL-017-02 | low | high | 2026-08-10T04:55:27Z | none |
+| VAL-017-03 | low | high | 2026-08-10T04:55:27Z | none |
+| VAL-017-04 | low | high | 2026-08-10T04:55:27Z | none |
+| VAL-017-09 | low | high | 2026-08-10T04:55:27Z | none |
+| VAL-017-10 | low | high | 2026-08-10T04:55:27Z | none |
+
+Each retains `originalSeverity: "high"` and `severityDowngradedAt`, so the
+downgrade is auditable rather than silent and the history cannot be read as
+though the finding was never severe. Each carries a substantive resolution, and
+several were checked here rather than taken on trust. `VAL-017-10`'s claim that
+D19 is closed matches the refusal's own independent re-verification of 26/26
+exit 0. `VAL-017-02`'s claim about phase records matches the 15-entry
+`completedPhaseClaims` measured in this session.
+
+Two smaller observations. All six share an identical `severityDowngradedAt`, so
+this was a single batch reclassification. That is worth noting but is not itself
+a defect. And `resolvedAt` precedes `severityDowngradedAt` by about twelve hours,
+which is coherent: the fixes landed first, and the severities were reclassified
+afterwards once the fixes were confirmed.
+

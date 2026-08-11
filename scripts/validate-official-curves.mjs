@@ -220,9 +220,16 @@ export function validateOfficialCurves(artifact, options = {}) {
     }
 
     // Checks 4, 5 and 11 — provenance, query binding, and the audit anchor.
+    // An `unavailable` family legitimately has NO envelopes: when acquisition
+    // fails at transport there is no response to attest, and demanding one
+    // would refuse the named-absence artifact the failure contract requires.
     const provenance = family.provenance;
-    if (!Array.isArray(provenance) || provenance.length === 0) {
-      add('provenance-missing', `${where}.provenance`);
+    if (!Array.isArray(provenance)) {
+      add('provenance-invalid', `${where}.provenance`);
+      continue;
+    }
+    if (family.state === 'fresh' && provenance.length === 0) {
+      add('provenance-missing', `${where}.provenance`, 'a fresh family must attest the responses it was built from');
       continue;
     }
     provenance.forEach((envelope, index) => {

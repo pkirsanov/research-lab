@@ -937,7 +937,7 @@ function extractToolFunction(source, name) {
   }
   throw new Error(`tool helper has unbalanced body: ${name}`);
 }
-function loadToolFunctions(file, names, preamble = '') {
+export function loadToolFunctions(file, names, preamble = '') {
   const source = read(file);
   const body = `${preamble}\n${names.map((name) => extractToolFunction(source, name)).join('\n')}\nreturn {${names.join(',')}};`;
   return Function(body)();
@@ -1835,6 +1835,18 @@ async function main() {
       if (Number.isFinite(mem.mom21) && mem.mom21 > 0) up++;
     }
     groups.push({ id: g.id, label: g.label, etf: g.etf || null, deepLink: g.deepLink || null, read, breadth: { n: nTot, bullStacked: bull, above50: a50, above200: a200, upMom: up, label: nTot ? `${bull}/${nTot} bull-stacked` : 'n/a' }, members });
+  }
+
+  /* Tier-A official curve acquisition (spec 018), before tool-read assembly so the
+     bond read sees this run's artifact. Wrapped like every other per-tool builder:
+     an acquisition failure degrades the bond read alone and never fails the brief.
+     Imported dynamically because that module imports loadToolFunctions from here. */
+  try {
+    const acquisition = await import('./acquire-official-curves.mjs');
+    const { artifact } = await acquisition.acquireOfficialCurves({ root: ROOT });
+    if (!process.argv.includes('--dry-run')) acquisition.writeOfficialCurveArtifact(artifact, { root: ROOT });
+  } catch (error) {
+    console.warn('[official-curves] acquisition unavailable this run: ' + error.message);
   }
 
   const toolReads = {};

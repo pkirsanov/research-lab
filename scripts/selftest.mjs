@@ -1911,6 +1911,149 @@ try {
     'Official curves: the gate requires the same maturity set the browser parser requires, so the headless path cannot admit a shape the tool would reject');
 } catch (e) { failures++; console.log('  ✗ FAIL (official curve artifact group threw): ' + e.message); }
 
+/* ---------- Bond regime: Tier-A official curve acquisition (spec 018 Scope 2) ---------- */
+try {
+  group('bond-regime — Tier-A official curve acquisition');
+  const { acquireOfficialCurves, USER_AGENT } = await import('./acquire-official-curves.mjs');
+  const { validateOfficialCurves } = await import('./validate-official-curves.mjs');
+  const universe = JSON.parse(read('bond-regime-universe.json'));
+  const NOW = new Date('2026-01-07T12:00:00.000Z');
+
+  const csv = (name) => read('tests/fixtures/official-curves/' + name + '.csv');
+  const ok = (body) => ({ ok: true, status: 200, text: async () => body });
+  const fail = () => ({ ok: false, status: 503, text: async () => '' });
+
+  /* Routes by the query type each family carries, so a stub can never silently
+     answer for the wrong family the way a positional stub would. */
+  function router(map) {
+    const seen = [];
+    const impl = async (url, init) => {
+      seen.push({ url, init });
+      const parsed = new URL(url);
+      const kind = parsed.searchParams.get('type') === 'daily_treasury_real_yield_curve' ? 'real' : 'nominal';
+      const year = parsed.pathname.split('/').filter(Boolean).slice(-2)[0];
+      const responder = map[`${kind}:${year}`];
+      return responder ? responder() : fail();
+    };
+    impl.seen = seen;
+    return impl;
+  }
+
+  const HAPPY = {
+    'nominal:2026': () => ok(csv('response-nominal-year-current')),
+    'nominal:2025': () => ok(csv('response-nominal-year-prior')),
+    'real:2026': () => ok(csv('response-real-year-current')),
+    'real:2025': () => ok(csv('response-real-year-current'))
+  };
+
+  // TP-02-01 — a missing configured maturity rejects the WHOLE family.
+  const missingImpl = router({
+    ...HAPPY,
+    'real:2026': () => ok(csv('response-real-missing-maturity')),
+    'real:2025': () => ok(csv('response-real-missing-maturity'))
+  });
+  const missing = await acquireOfficialCurves({ root: ROOT, now: NOW, fetchImpl: missingImpl, priorArtifact: null });
+  assert(missing.artifact.families.real.state === 'unavailable' && missing.artifact.families.real.errorCode === 'BRL-CURVE-MATURITY-MISSING',
+    'Official curves TP-02-01: a missing maturity column yields state unavailable with BRL-CURVE-MATURITY-MISSING');
+  assert(missing.artifact.families.real.rows.length === 0,
+    'Official curves TP-02-01: the rejected family carries exactly zero rows, never partial or substituted rows');
+  assert(missing.artifact.families.real.diagnostics.some((entry) => entry.startsWith('missing-headers:') && entry.includes('20 yr')),
+    'Official curves TP-02-01: the refusal names the missing header rather than only its class');
+  assert(missing.artifact.families.nominal.state === 'fresh' && missing.artifact.families.nominal.rows.length > 0,
+    'Official curves TP-02-01: the nominal family is unaffected by the real family being rejected');
+
+  // TP-02-02 — a transport failure in one family leaves the other intact.
+  const partialImpl = router({ ...HAPPY, 'real:2026': fail, 'real:2025': fail });
+  const partial = await acquireOfficialCurves({ root: ROOT, now: NOW, fetchImpl: partialImpl, priorArtifact: null });
+  assert(partial.artifact.families.nominal.state === 'fresh' && partial.artifact.families.nominal.provenance.length === 2,
+    'Official curves TP-02-02: the nominal family stays fresh with its full provenance array when the real acquisition fails');
+  assert(partial.artifact.families.real.state === 'unavailable' && partial.artifact.families.real.errorCode === 'BRL-OPTIONAL-UNAVAILABLE'
+    && partial.artifact.families.real.diagnostics.includes('BRL-CURVE-FETCH-FAILED'),
+    'Official curves TP-02-02: the real family is unavailable with its own code and a fetch-failed diagnostic');
+
+  // TP-02-03 — two consecutive years, merged by date, ascending and unique.
+  const happy = await acquireOfficialCurves({ root: ROOT, now: NOW, fetchImpl: router(HAPPY), priorArtifact: null });
+  const nominalFamily = happy.artifact.families.nominal;
+  const dates = nominalFamily.rows.map((row) => row.date);
+  assert(JSON.stringify(nominalFamily.coverageYears) === JSON.stringify([2025, 2026]),
+    'Official curves TP-02-03: coverageYears holds exactly the prior and current UTC years');
+  assert(dates.every((date) => Number(date.slice(0, 4)) === 2025 || Number(date.slice(0, 4)) === 2026),
+    'Official curves TP-02-03: every merged row date falls inside the declared coverage years');
+  assert(JSON.stringify(dates) === JSON.stringify(dates.slice().sort()) && new Set(dates).size === dates.length,
+    'Official curves TP-02-03: merged rows are date-ascending and date-unique after the two-year collapse');
+  assert(nominalFamily.observedAt === dates[dates.length - 1],
+    'Official curves TP-02-03: observedAt is the newest merged row date');
+
+  // TP-02-04 — carry-forward is verbatim and is NOT restamped.
+  const priorArtifact = happy.artifact;
+  const priorNominal = JSON.parse(JSON.stringify(priorArtifact.families.nominal));
+  const laterNow = new Date('2026-01-09T12:00:00.000Z');
+  const carriedRun = await acquireOfficialCurves({
+    root: ROOT, now: laterNow, priorArtifact,
+    fetchImpl: router({ 'nominal:2026': fail, 'nominal:2025': fail, 'real:2026': fail, 'real:2025': fail })
+  });
+  const carried = carriedRun.artifact.families.nominal;
+  assert(carried.carriedForward === true && carried.diagnostics.includes('carried-forward-from-prior-artifact'),
+    'Official curves TP-02-04: a carried family says so and carries the carried-forward diagnostic');
+  assert(JSON.stringify(carried.rows) === JSON.stringify(priorNominal.rows) && carried.observedAt === priorNominal.observedAt,
+    'Official curves TP-02-04: the carried family reproduces the prior rows and observedAt byte-identically');
+  assert(JSON.stringify(carried.provenance) === JSON.stringify(priorNominal.provenance),
+    'Official curves TP-02-04: every prior provenance envelope is carried forward byte-identically');
+  const carriedRetrieved = carried.provenance.map((entry) => entry.retrievedAt);
+  assert(carriedRetrieved.every((stamp) => !stamp.startsWith('2026-01-09')),
+    'Official curves TP-02-04: retrievedAt is NOT advanced to the current run — a restamped record would claim freshness it does not have');
+
+  // TP-02-05 — total acquisition failure with no prior degrades the bond read alone.
+  const bothFailed = await acquireOfficialCurves({
+    root: ROOT, now: NOW, priorArtifact: null,
+    fetchImpl: router({ 'nominal:2026': fail, 'nominal:2025': fail, 'real:2026': fail, 'real:2025': fail })
+  });
+  assert(bothFailed.artifact.families.nominal.state === 'unavailable' && bothFailed.artifact.families.real.state === 'unavailable',
+    'Official curves TP-02-05: with both families failing and no prior artifact, each is a named absence rather than a throw');
+  assert(bothFailed.artifact.contractVersion === 'official-curve-artifact/v1' && validateOfficialCurves(bothFailed.artifact, { universe }).length === 0,
+    'Official curves TP-02-05: the all-unavailable artifact is still a VALID artifact, so the publication run has something well-formed to read');
+  // Adversarial twin for the provenance relaxation: an unavailable family may
+  // carry no envelopes, but a FRESH one may not, or the relaxation would let an
+  // unattested family through claiming freshness.
+  const freshWithoutProvenance = JSON.parse(JSON.stringify(happy.artifact));
+  freshWithoutProvenance.families.nominal.provenance = [];
+  assert(validateOfficialCurves(freshWithoutProvenance, { universe })
+    .some((entry) => entry.startsWith('provenance-missing')),
+    'Official curves TP-02-05 adversarial: a FRESH family with no provenance is still refused, so allowing an empty array on an unavailable family opened no hole');
+
+  // TP-02-06 — one URL definition, in the committed universe.
+  const requested = happy.requests.map((entry) => entry.url);
+  const expected = [2025, 2026].flatMap((year) => [
+    universe.sourcePolicies.nominalCurve.urlTemplate.split('{YEAR}').join(String(year)),
+    universe.sourcePolicies.realCurve.urlTemplate.split('{YEAR}').join(String(year))
+  ]);
+  assert(requested.every((url) => expected.includes(url)) && requested.length === 4,
+    'Official curves TP-02-06: every requested URL is derived from a committed urlTemplate by year substitution');
+  const acquisitionSource = read('scripts/acquire-official-curves.mjs');
+  assert(!/https:\/\/home\.treasury\.gov/.test(acquisitionSource),
+    'Official curves TP-02-06: the acquisition module contains no Treasury URL literal — the template remains the single definition');
+
+  // TP-02-07 — the producer and the contract are proven to agree.
+  assert(validateOfficialCurves(happy.artifact, { universe }).length === 0,
+    'Official curves TP-02-07: the artifact acquisition ACTUALLY writes is accepted by scope 1\'s gate with zero errors');
+  assert(happy.artifact.families.nominal.provenance.length === 2 && happy.artifact.families.real.provenance.length === 2,
+    'Official curves TP-02-07: a fully successful run carries four provenance envelopes, one per response');
+  assert(happy.artifact.families.nominal.provenance.every((entry) => /^sha256:[0-9a-f]{64}$/.test(entry.contentSha256)),
+    'Official curves TP-02-07: a content hash is computed per response');
+
+  // TP-02-08 — asserted against the RECORDED request list, not the module's intent.
+  assert(happy.requests.every((entry) => JSON.stringify(Object.keys(entry.headers)) === JSON.stringify(['User-Agent'])),
+    'Official curves TP-02-08: only a User-Agent header is sent — no Authorization, no cookie, no credential');
+  assert(happy.requests.every((entry) => entry.headers['User-Agent'] === USER_AGENT && new URL(entry.url).hostname === 'home.treasury.gov'),
+    'Official curves TP-02-08: every recorded request goes to home.treasury.gov and nowhere else');
+  assert(happy.requests.every((entry) => !/(authorization|cookie|credential|api_key|token|secret|password)/i.test(entry.url)),
+    'Official curves TP-02-08: no credential-shaped query key appears in any recorded request');
+  const artifactText = JSON.stringify(happy.artifact);
+  assert(!/"oas"|"financialConditions"|restricted-local-view/.test(artifactText)
+    && !/oas|financialConditions/.test(happy.requests.map((entry) => entry.url).join(' ')),
+    'Official curves TP-02-08: the oas and financialConditions families are never fetched and never written');
+} catch (e) { failures++; console.log('  ✗ FAIL (official curve acquisition group threw): ' + e.message); }
+
 /* ---------- Market Brief: §6c larger-picture / anti-reactivity helpers ---------- */
 try {
   group('rlbrief.js — §6c structural frame + anti-reactivity (MA stack, horizon cap, persistence gate)');

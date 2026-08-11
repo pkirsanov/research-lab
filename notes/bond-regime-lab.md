@@ -280,6 +280,42 @@ count, so the exactness of the join is visible rather than asserted.
 
 No cell is ever an empty string or a bare dash. Every absence names its kind.
 
+### One-Model Parity
+
+The page composition and the published headless read must reach the same verdict,
+because they are supposed to be one model reached two ways. `bondParityVerdict`
+compares exactly four fields — `curveState`, `curveImpulse`, `inflationState`,
+`durationPosture` — and returns exactly three verdicts:
+
+| Verdict | Meaning |
+| --- | --- |
+| **Agree** | all four compared fields are equal |
+| **Differ** | at least one field disagrees — a defect to investigate, not a status to acknowledge |
+| **Cannot be compared** | the comparison could not be made, with its reason named |
+
+There are six *Cannot be compared* reasons. The sixth —
+`differing-observation-window` — settles routed item **R-3** and exists because of
+design finding **D-1**: `classifyInflationState` compares the **first and last**
+breakeven rows, so two compositions holding different windows can legitimately
+reach different `realYieldChangeBp` and therefore different `inflationState` and
+`durationPosture`. That is not a disagreement between models; it is a comparison
+that cannot be made, and calling it *Differ* would report a defect that does not
+exist. Calling it *Agree* would be worse.
+
+The compared-field count is always rendered beside the verdict, so a comparison
+that silently narrowed is visible rather than hidden behind a reassuring word.
+
+**Silence is never agreement.** An absent published read renders *Cannot be
+compared* with its reason — never an empty line, and never *Agree*.
+
+**The guarantee is proven capable of failing.** The parity group hands one frozen
+input set to the page's own `computeBondLabViewModel` and to the real headless
+consumption path, then perturbs one row of the headless input alone and asserts
+the two now disagree. Without that perturbation an assertion comparing two calls
+into the same loaded module would pass even if the headless path ignored its own
+input entirely. The group writes only under a temporary root and asserts the
+committed artifact is byte-identical afterwards.
+
 ## Refresh Procedure
 
 1. Review characteristic `asOf` and `reviewWindowDays` fields in `bond-regime-universe.json`; update only from the linked issuer source.

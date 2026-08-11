@@ -7101,6 +7101,168 @@ try {
     'a publisher that REFUSES without throwing is also treated as rejected, so a silent false is not read as success');
 } catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab publication threw): ' + e.message); }
 
+/* ---------- Bond regime: one-model parity guarantee (spec 018 Scope 6) ----------
+   The highest-value test in feature 018. It makes the Outcome Contract's hard constraint — ONE
+   model, two compositions — checkable rather than asserted.
+
+   One frozen input set is handed to the BROWSER composition (the page's own computeBondLabViewModel,
+   loaded not reimplemented) and to the REAL HEADLESS path (a temporary artifact, resolved and
+   admitted by buildBondRegimeToolRead). Four fields are compared, each as an equality between two
+   COMPUTED values with no literal on either side.
+
+   The comparison is proven capable of failing: perturbing one row of the headless input alone must
+   make the two sides disagree. Without that, an assertion comparing two calls into the same loaded
+   module would pass even if the headless path ignored its own input entirely.
+
+   No wall clock, no network, no committed artifact: the group writes only under a temp root and
+   asserts the committed artifact is byte-identical afterwards. */
+try {
+  group('bond-regime — one-model parity guarantee');
+  const { mkdtempSync, mkdirSync, writeFileSync, readFileSync: readSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { createHash } = await import('node:crypto');
+  const refresh6 = await import('./brief-refresh.mjs');
+  const universe6 = JSON.parse(read('bond-regime-universe.json'));
+
+  const committedArtifactPath = join(ROOT, 'data', 'curves', 'us-treasury', 'curve.json');
+  const digestBefore = existsSync(committedArtifactPath) ? createHash('sha256').update(readSync(committedArtifactPath)).digest('hex') : null;
+
+  // (1) One frozen input set. Fixed dates, fixed values, no clock and no network.
+  const parityDay = (index) => new Date(Date.UTC(2025, 10, 8 + index)).toISOString().slice(0, 10);
+  const frozenNominal = Array.from({ length: 60 }, (_, i) => ({
+    date: parityDay(i), y3m: 4.30 - 0.004 * i, y2: 3.95 + 0.003 * i, y5: 4.05 + 0.002 * i, y10: 4.35 + 0.005 * i, y30: 4.90 + 0.004 * i
+  }));
+  const frozenReal = frozenNominal.map((row) => ({ date: row.date, y5: 1.70 + 0.001 * (frozenNominal.indexOf(row)), y10: 1.95 + 0.002 * frozenNominal.indexOf(row), y20: 2.28, y30: 2.40 }));
+  const coverageYears6 = [...new Set(frozenNominal.map((r) => Number(r.date.slice(0, 4))))].sort();
+  const observedAt6 = frozenNominal[frozenNominal.length - 1].date;
+
+  // (2) The BROWSER composition: the page's own model, loaded through the same helper the brief uses,
+  // with the SAME dependency set brief-refresh.mjs declares — so this is the shipped model, not a copy.
+  const page6 = refresh6.loadToolFunctions('bond-regime-lab.html', [
+    'finiteNumber', 'bpToDecimal', 'pctToDecimal', 'alignCommonDateRows', 'buildRatioSeries', 'rollingPercentile',
+    'estimateDurationConfound', 'classifyRelativeCreditPulse', 'classifyCreditConfirmation', 'aggregateCreditConfirmations',
+    'classifyCreditRegime', 'classifyCurveState', 'classifyCurveImpulse', 'deriveBreakevenRows', 'classifyInflationState',
+    'classifyDurationPosture', 'scenarioShockForSleeve', 'solveBreakEvenShock', 'classifyReliability', 'calculateScenarioResult',
+    'rankScenarioResults', 'selectResearchExpression', 'buildDecisionRead', 'buildBondToolRead', 'stableDecisionDigest',
+    'instrumentIndex', 'computeCreditView', 'computeBondLabViewModel', 'bondParityVerdict'
+  ]);
+  const browserFamily = (rows, sourceId) => ({ state: 'fresh', rows, observedAt: rows[rows.length - 1].date, retrievedAt: '2026-01-05T00:00:00.000Z', sourceId, sourceUrl: null, rights: 'public-official', persistence: 'browser-cache', errorCode: null });
+  const parityConfig = JSON.parse(JSON.stringify(universe6));
+  for (const instrument of parityConfig.instruments) {
+    for (const field of ['carry', 'rateDuration', 'spreadDuration', 'convexity']) if (instrument[field]) instrument[field].asOf = observedAt6;
+  }
+  const browserCompose = (nominalRows, realRows) => page6.computeBondLabViewModel(parityConfig, {
+    bars: {}, barMeta: {}, treasuryChanges: null, confirmations: null,
+    nominalCurve: browserFamily(nominalRows, 'us-treasury-nominal'),
+    realCurve: browserFamily(realRows, 'us-treasury-real')
+  }, parityConfig.scenarioPresets[0], {});
+
+  // (3) The REAL HEADLESS path: a temp artifact, resolved and admitted, never a shortcut.
+  const tempRoot = mkdtempSync(join(tmpdir(), 'rl-parity-'));
+  const writeArtifact = (nominalRows, realRows, years) => {
+    const dir = join(tempRoot, 'data', 'curves', 'us-treasury');
+    mkdirSync(dir, { recursive: true });
+    const family = (rows, sourceId, kind) => {
+      // The query type is parsed out of the declared policy's own URL template, so the fixture
+      // cannot drift from the source-id-to-query binding the gate enforces.
+      const template = String(universe6.sourcePolicies[kind].urlTemplate);
+      const queryType = (/[?&]type=([^&]+)/.exec(template) || [])[1];
+      return {
+        sourceId, state: 'fresh', errorCode: null, coverageYears: years,
+        observedAt: rows[rows.length - 1].date,
+        declaredPolicy: universe6.sourcePolicies[kind],
+        persistence: 'same-origin-artifact', rights: 'public-official', rows,
+        provenance: [{
+          contractVersion: 'source-provenance/v1', sourceId, sourceKind: 'official-report', accessClass: 'public-official',
+          adapterId: 'official-curve-acquisition', adapterVersion: '1.0.0',
+          sourceUsePolicyId: 'us-treasury-public-official', sourceUseReviewRef: 'specs/018-headless-official-curve-publication',
+          freshnessPolicy: 'observed-cadence/v1',
+          sourceUrl: template.split('{YEAR}').join('2026'),
+          requestDescriptor: { method: 'GET', path: '/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2026/all', query: { type: queryType, field_tdr_date_value: '2026', _format: 'csv' } },
+          sourcePublishedAt: null, retrievedAt: '2026-01-06T00:00:00.000Z',
+          contentSha256: 'sha256:' + createHash('sha256').update(JSON.stringify(rows)).digest('hex'),
+          retentionMode: 'normalized-facts-and-hash', freshnessState: 'current', diagnostics: []
+        }]
+      };
+    };
+    writeFileSync(join(dir, 'curve.json'), JSON.stringify({
+      contractVersion: 'official-curve-artifact/v1', generatedAt: '2026-01-05T00:00:00.000Z',
+      freshnessPolicy: { policyId: 'observed-cadence/v1', cadenceWindowRows: 10, minCadenceObservations: 5, publicationLagDays: 1 },
+      families: { nominal: family(nominalRows, 'us-treasury-nominal', 'nominalCurve'), real: family(realRows, 'us-treasury-real', 'realCurve') }
+    }, null, 2));
+    return JSON.parse(readSync(join(dir, 'curve.json'), 'utf8'));
+  };
+  const headlessCompose = (nominalRows, realRows, years) => refresh6.buildBondRegimeToolRead({
+    config: parityConfig,
+    officialCurveArtifact: writeArtifact(nominalRows, realRows, years || coverageYears6),
+    runDate: nominalRows[nominalRows.length - 1].date
+  });
+
+  const browserView = browserCompose(frozenNominal, frozenReal);
+  const headlessRead = headlessCompose(frozenNominal, frozenReal);
+  const browserSide = {
+    curveState: browserView.curveState.state, curveImpulse: browserView.curveImpulse.state,
+    inflationState: browserView.inflationState.state, durationPosture: browserView.durationPosture.state
+  };
+  const headlessSide = {
+    curveState: headlessRead.metrics.curveState, curveImpulse: headlessRead.metrics.curveImpulse,
+    inflationState: headlessRead.metrics.inflationState, durationPosture: headlessRead.metrics.durationPosture
+  };
+
+  // TP-06-01 — the four fields are pairwise equal, each an equality between two COMPUTED values.
+  assert(typeof page6.computeBondLabViewModel === 'function' && typeof page6.bondParityVerdict === 'function',
+    'Parity TP-06-01: the page\u2019s own composition and parity helpers both resolve, so the comparison runs against the real model rather than a reimplementation');
+  assert(headlessRead.metrics.curveAdmission.nominal.verdict === 'current',
+    'Parity TP-06-01: the headless side reached its verdict THROUGH resolution and admission, not around them');
+  for (const field of ['curveState', 'curveImpulse', 'inflationState', 'durationPosture']) {
+    assert(browserSide[field] === headlessSide[field],
+      'Parity TP-06-01: ' + field + ' is identical across the browser composition and the real headless path (' + browserSide[field] + ' === ' + headlessSide[field] + ')');
+  }
+
+  // TP-06-02 — the two-calendar-year window is load-bearing, not decorative. Removing the prior year
+  // from the SAME input must take the impulse out, because the impulse needs a lookback of history.
+  const januaryOnly = frozenNominal.filter((row) => row.date.slice(0, 4) === '2026');
+  const twoYearImpulse = browserCompose(frozenNominal, frozenReal).curveImpulse.state;
+  const oneYearImpulse = browserCompose(januaryOnly.length ? januaryOnly : frozenNominal.slice(-5), frozenReal).curveImpulse.state;
+  assert(twoYearImpulse !== 'Unavailable' && oneYearImpulse === 'Unavailable',
+    'Parity TP-06-02: the full retained window yields a derivable impulse (' + twoYearImpulse + ') while the truncated window yields Unavailable \u2014 the window is load-bearing');
+
+  // TP-06-03 — ADVERSARIAL: perturb ONE row of the headless input alone. If the headless path
+  // ignored its own input, this would still agree, and the whole parity assertion would be vacuous.
+  const perturbedNominal = frozenNominal.map((row, i) => (i === frozenNominal.length - 1 ? Object.assign({}, row, { y10: row.y10 - 1.8, y2: row.y2 + 1.2 }) : row));
+  const perturbedRead = headlessCompose(perturbedNominal, frozenReal);
+  const perturbedSide = {
+    curveState: perturbedRead.metrics.curveState, curveImpulse: perturbedRead.metrics.curveImpulse,
+    inflationState: perturbedRead.metrics.inflationState, durationPosture: perturbedRead.metrics.durationPosture
+  };
+  const perturbedDiffers = ['curveState', 'curveImpulse', 'inflationState', 'durationPosture'].some((f) => browserSide[f] !== perturbedSide[f]);
+  assert(perturbedDiffers,
+    'Parity TP-06-03: perturbing one row of the HEADLESS input alone makes the compositions disagree, so the comparison is capable of failing (' + JSON.stringify(perturbedSide) + ')');
+  const perturbedVerdict = page6.bondParityVerdict(Object.assign({ coverageYears: coverageYears6, observedAt: observedAt6 }, browserSide), Object.assign({ coverageYears: coverageYears6, observedAt: observedAt6 }, perturbedSide));
+  assert(perturbedVerdict.verdict === 'differ' && perturbedVerdict.differing.length > 0 && perturbedVerdict.comparedFields === 4,
+    'Parity TP-06-03: the parity verdict REPORTS the disagreement rather than passing (' + perturbedVerdict.differing.join(', ') + ')');
+
+  // TP-06-04 — D-1 / R-3: unequal coverageYears is not a disagreement, it is an incomparability.
+  const agreeVerdict = page6.bondParityVerdict(Object.assign({ coverageYears: coverageYears6, observedAt: observedAt6 }, browserSide), Object.assign({ coverageYears: coverageYears6, observedAt: observedAt6 }, headlessSide));
+  assert(agreeVerdict.verdict === 'agree' && agreeVerdict.comparedFields === 4,
+    'Parity TP-06-04: equal windows and equal readings yield Agree across all four compared fields');
+  const windowVerdict = page6.bondParityVerdict(Object.assign({ coverageYears: [2025, 2026], observedAt: observedAt6 }, browserSide), Object.assign({ coverageYears: [2024, 2025], observedAt: observedAt6 }, browserSide));
+  assert(windowVerdict.verdict === 'cannot-compare' && windowVerdict.reasonCode === 'differing-observation-window'
+    && windowVerdict.verdict !== 'agree' && windowVerdict.verdict !== 'differ' && /different observation windows/.test(windowVerdict.reason),
+    'Parity TP-06-04: unequal coverageYears yields Cannot be compared with the differing-window reason \u2014 neither Agree nor Differ (D-1, R-3)');
+  assert(page6.bondParityVerdict(null, headlessSide).verdict === 'cannot-compare'
+    && page6.bondParityVerdict(browserSide, null).reasonCode === 'no-published-read',
+    'Parity TP-06-04: an absent side is Cannot be compared with its own reason \u2014 silence is never agreement');
+
+  // TP-06-05 — isolation: the group wrote only under a temp root.
+  const digestAfter = existsSync(committedArtifactPath) ? createHash('sha256').update(readSync(committedArtifactPath)).digest('hex') : null;
+  assert(digestBefore === digestAfter,
+    'Parity TP-06-05: data/curves/us-treasury/curve.json is byte-identical before and after the parity group \u2014 the suite never mutates published evidence');
+  assert(tempRoot.startsWith(tmpdir()) && existsSync(join(tempRoot, 'data', 'curves', 'us-treasury', 'curve.json')),
+    'Parity TP-06-05: the parity artifact was written under a temporary root, never into the repository');
+  rmSync(tempRoot, { recursive: true, force: true });
+} catch (e) { failures++; console.log('  \u2717 FAIL (one-model parity group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

@@ -19,7 +19,7 @@
     "currentPhase": "implement",
     "currentPhaseStatus": "in_progress",
     "currentScope": "06-one-model-parity-guarantee",
-    "substate": "scope-05-delivered",
+    "substate": "scope-06-delivered",
     "runStartedAt": "2026-08-10T17:05:00Z",
     "completedAt": null,
     "completedPhaseClaims": [],
@@ -75,7 +75,7 @@
       {
         "scope": 6,
         "scopeId": "06-one-model-parity-guarantee",
-        "status": "not_started",
+        "status": "done",
         "foundation": false,
         "dependsOn": [
           1,
@@ -95,7 +95,8 @@
       "02-tier-a-official-curve-acquisition",
       "03-observed-cadence-freshness-admission",
       "04-headless-consumption-path",
-      "05-brief-read-and-provenance-render"
+      "05-brief-read-and-provenance-render",
+      "06-one-model-parity-guarantee"
     ],    "certifiedCompletedPhases": [],
     "scopeProgress": [],
     "observations": [

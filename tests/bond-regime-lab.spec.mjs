@@ -977,6 +977,51 @@ test('TP-05-07 curve level, curve impulse and the inflation pair never share a r
   expect(typeof nominalAsOf).toBe('string');
 });
 
+test('TP-06-06 SCN-018-038 the parity line renders exactly one of three verdicts with its compared-field count, and silence is never agreement', async ({ page }) => {
+  const cases = [
+    { parity: { verdict: 'agree', comparedFields: 4, differing: [], reason: 'Both compositions reached the same reading on all 4 compared fields.' }, word: 'Agree' },
+    { parity: { verdict: 'differ', comparedFields: 4, differing: ['curveState'], reason: 'The browser composition and the published headless read disagree on curveState. One model should not reach two answers, so this is a defect to investigate rather than a status to acknowledge.' }, word: 'Differ' },
+    { parity: { verdict: 'cannot-compare', comparedFields: 0, differing: [], reason: 'The two compositions hold different observation windows (2025–2026 against 2024–2025), so their inflation and impulse readings are not comparable.' }, word: 'Cannot be compared' },
+    { parity: undefined, word: 'Cannot be compared' }
+  ];
+
+  for (const item of cases) {
+    const card = await renderBondCard(page, bondReadFixture({ parity: item.parity }, 'A published read.'));
+    const line = card.locator('.brl-parity');
+    await expect(line).toHaveCount(1);
+    await expect(line.locator('.brl-tok')).toContainText(item.word);
+    const text = await line.innerText();
+
+    // Exactly one verdict word is present — the three are mutually exclusive.
+    const present = ['Agree', 'Differ', 'Cannot be compared'].filter((w) => new RegExp('(^|[^a-z])' + w).test(text));
+    expect(present).toEqual([item.word]);
+    expect(text).toMatch(/across \d+ compared fields?/);
+    // Never an empty line, and an absent comparison never reads as agreement.
+    expect(text.trim().length).toBeGreaterThan(20);
+    if (!item.parity) expect(text).not.toMatch(/(^|[^a-z])Agree/);
+  }
+});
+
+test('TP-06-07 Regression: the parity line survives an absent comparison and a Differ verdict is not dismissible, collapsible or snoozable', async ({ page }) => {
+  // The whole card must still render when the comparison cannot run.
+  const absent = await renderBondCard(page, bondReadFixture({}, 'A published read with no parity block.'));
+  await expect(absent.locator('.brl-axes dt')).toHaveCount(2);
+  await expect(absent.locator('.brl-parity')).toHaveCount(1);
+  await expect(absent.locator('.brl-parity')).toContainText('Cannot be compared');
+
+  const differ = await renderBondCard(page, bondReadFixture({
+    parity: { verdict: 'differ', comparedFields: 4, differing: ['curveState', 'inflationState'], reason: 'The browser composition and the published headless read disagree on curveState, inflationState. One model should not reach two answers, so this is a defect to investigate rather than a status to acknowledge.' }
+  }, 'A published read whose compositions disagree.'));
+
+  const line = differ.locator('.brl-parity');
+  // Stated as a defect in words, with no severity level and no alarm styling.
+  await expect(line).toContainText('defect to investigate rather than a status to acknowledge');
+  const html = await line.innerHTML();
+  expect(html).not.toMatch(/severity|critical|P[0-4]\b|alert-danger|blink/i);
+  // No dismiss, collapse or snooze affordance anywhere in the block.
+  await expect(line.locator('button, [role="button"], details, summary, input[type="checkbox"], [aria-expanded], [data-dismiss], [data-snooze]')).toHaveCount(0);
+});
+
 test('TP-05-08 Regression: every publication state stays readable with colour removed and at 200% zoom', async ({ page }) => {
   const states = [
     { label: 'fresh', metrics: { durationPosture: 'Shorten', curveState: 'Positive', curveImpulse: 'Mixed', inflationState: 'Mixed', curveAsOf: '2026-08-10', curveAdmission: { nominal: { verdict: 'current', errorCode: null, lastGoodObservedAt: '2026-08-10', elapsedDays: 1, windowDays: 4, basis: 'observed-gap-max-3d-over-9-gaps-plus-lag-1d' } } } },

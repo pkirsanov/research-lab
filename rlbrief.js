@@ -1240,7 +1240,7 @@
      token is a shape glyph PLUS the state word, so removing all colour leaves the state fully
      readable. No machine slug is ever painted: the render boundary is where `Indeterminate` becomes
      "Not resolved" and where a null sleeve becomes a sentence. */
-  var BRL_GLYPH = { current: "\u25CF", stale: "\u25D0", unavailable: "\u25CB" };
+  var BRL_GLYPH = { current: "\u25CF", stale: "\u25D0", unavailable: "\u25CB", differ: "\u25C6" };
   /* tabindex makes the token focusable, so its two-part tooltip is reachable by keyboard and not
      only by hover. The glyph is aria-hidden because the state word beside it already says the state. */
   function brlToken(kind, word, tip) {
@@ -1304,7 +1304,25 @@
         + brlToken(words.kind, words.word, words.text) + '<div class="sub">' + esc(words.text) + '</div></div>';
     }).join("");
     var asOf = m.curveAsOf ? '<div class="sub">Curve observed as of ' + esc(m.curveAsOf) + '.</div>' : '';
-    return '<div class="brl-card">' + axes + partial + families + admissionRows + asOf + '</div>';
+    return '<div class="brl-card">' + axes + partial + families + admissionRows + asOf + brlParityLine(m.parity) + '</div>';
+  }
+  /* Exactly three verdicts, each a shape plus a word, with the compared-field count stated so a
+     comparison that silently narrowed is visible. An absent comparison is "Cannot be compared" WITH
+     its reason — never an empty line and never "Agree", because silence is not agreement. A Differ
+     verdict is stated as a defect in words and carries no severity level, no alarm styling and no
+     dismiss, collapse or snooze affordance. */
+  function brlParityLine(parity) {
+    var verdict = (parity && parity.verdict) || "cannot-compare";
+    var words = { agree: "Agree", differ: "Differ", "cannot-compare": "Cannot be compared" };
+    var glyphKind = { agree: "current", differ: "differ", "cannot-compare": "unavailable" };
+    var word = words[verdict] || words["cannot-compare"];
+    var count = (parity && Number.isFinite(parity.comparedFields)) ? parity.comparedFields : 0;
+    var reason = (parity && parity.reason) || "No published headless read is on file to compare against.";
+    var tip = "One model, two compositions \u2014 the page and the published read must reach the same verdict. This reading: " + word + ". " + reason;
+    return '<div class="brl-parity" data-brl-parity="' + esc(verdict) + '"><span class="brl-fam-l" title="Parity \u2014 whether the page composition and the published headless read agree.">One-model parity</span> '
+      + brlToken(glyphKind[verdict] || "unavailable", word, tip)
+      + '<span class="sub"> across ' + count + ' compared field' + (count === 1 ? '' : 's') + '</span>'
+      + '<div class="sub">' + esc(reason) + '</div></div>';
   }
   function fmtToolReadAge(iso) {
     var time = Date.parse(iso); if (!isFinite(time)) return String(iso || "as-of unknown");

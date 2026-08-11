@@ -2146,6 +2146,41 @@
             return { creditRegime: credit, pulses: pulses, confirmations: confirmations, ratioDetails: details, decisionDigest: stableDecisionDigest({ creditRegime: credit }) };
         }
 
+        /* One model, two compositions. This compares what the BROWSER composition concluded against
+           what the HEADLESS composition published, over exactly four fields. It returns one of three
+           verdicts and never guesses: an absent side, an unequal observation window or an unequal
+           as-of is "cannot-compare" WITH its reason, because a comparison that cannot be made is a
+           different fact from agreement. Silence is never agreement. */
+        var BOND_PARITY_FIELDS = ["curveState", "curveImpulse", "inflationState", "durationPosture"];
+        function bondParityVerdict(left, right) {
+            // Declared inside so the function stays self-contained when extracted for Node tests.
+            var fields = ["curveState", "curveImpulse", "inflationState", "durationPosture"];
+            function reason(code, text) { return { verdict: "cannot-compare", reasonCode: code, reason: text, comparedFields: 0, differing: [] }; }
+            if (!left) return reason("no-browser-composition", "The page has not composed a view model yet.");
+            if (!right) return reason("no-published-read", "No published headless read is on file to compare against.");
+            var leftYears = left.coverageYears, rightYears = right.coverageYears;
+            if (Array.isArray(leftYears) && Array.isArray(rightYears) && leftYears.join(",") !== rightYears.join(",")) {
+                return reason("differing-observation-window", "The two compositions hold different observation windows ("
+                    + leftYears.join("\u2013") + " against " + rightYears.join("\u2013") + "), so their inflation and impulse readings are not comparable.");
+            }
+            if (left.observedAt && right.observedAt && left.observedAt !== right.observedAt) {
+                return reason("differing-as-of", "The two compositions report different observation dates (" + left.observedAt + " against " + right.observedAt + ").");
+            }
+            var differing = [];
+            for (var index = 0; index < fields.length; index += 1) {
+                var field = fields[index];
+                if (left[field] === undefined || left[field] === null || right[field] === undefined || right[field] === null) {
+                    return reason("incomplete-field-set", "At least one compared field is absent, so a full comparison cannot be made.");
+                }
+                if (String(left[field]) !== String(right[field])) differing.push(field);
+            }
+            return differing.length
+                ? { verdict: "differ", reasonCode: "fields-differ", comparedFields: fields.length, differing: differing,
+                    reason: "The browser composition and the published headless read disagree on " + differing.join(", ") + ". One model should not reach two answers, so this is a defect to investigate rather than a status to acknowledge." }
+                : { verdict: "agree", reasonCode: "fields-equal", comparedFields: fields.length, differing: [],
+                    reason: "Both compositions reached the same reading on all " + fields.length + " compared fields." };
+        }
+
         function computeBondLabViewModel(config, observedSnapshot, assumptions, ui) {
             assumptions = assumptions || Object.assign({}, config.scenarioPresets[0]);
             var nominalRowsForChange = observedSnapshot.nominalCurve && Array.isArray(observedSnapshot.nominalCurve.rows) ? observedSnapshot.nominalCurve.rows : [];

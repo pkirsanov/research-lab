@@ -58,7 +58,7 @@ the resulting agreement meaningful.
 | 3 | Observed-Cadence Freshness Admission | [`03-observed-cadence-freshness-admission/scope.md`](03-observed-cadence-freshness-admission/scope.md) | 1 | Done |
 | 4 | Headless Consumption Path | [`04-headless-consumption-path/scope.md`](04-headless-consumption-path/scope.md) | 1, 2, 3 | Done |
 | 5 | Brief Read And Provenance Render | [`05-brief-read-and-provenance-render/scope.md`](05-brief-read-and-provenance-render/scope.md) | 4 | Done |
-| 6 | One-Model Parity Guarantee | [`06-one-model-parity-guarantee/scope.md`](06-one-model-parity-guarantee/scope.md) | 1, 2, 3, 4, 5 | Not started |
+| 6 | One-Model Parity Guarantee | [`06-one-model-parity-guarantee/scope.md`](06-one-model-parity-guarantee/scope.md) | 1, 2, 3, 4, 5 | Done |
 
 ---
 

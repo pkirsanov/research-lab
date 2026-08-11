@@ -3001,7 +3001,7 @@
         asOf: unavailable ? null : (result.sourceAsOf || null),
         read: sentence,
         metrics: metrics,
-        deepLink: 'trend-dynamics-cycle-lab.html',
+        deepLink: tdcBuildDeepLink(request),
         computedAt: result.computedAt || null,
         freshUntil: unavailable ? null : (result.freshUntil || null)
       };
@@ -3035,6 +3035,28 @@
           confidencePct: round(result.confidencePct, 1)
         }
       };
+    }
+
+    /* An allowlist, never a denylist: a denylist fails open the moment the request grows a
+       field, which is exactly how a credential or a source payload reaches a shareable URL. */
+    function tdcBuildDeepLink(request) {
+      var allowed = [
+        { key: 'seriesId', param: 'series' },
+        { key: 'transformId', param: 'transform' },
+        { key: 'horizonId', param: 'horizon' },
+        { key: 'profileId', param: 'profile' }
+      ];
+      var source = request && typeof request === 'object' ? request : {};
+      var parts = [];
+      for (var i = 0; i < allowed.length; i++) {
+        var entry = allowed[i];
+        if (!Object.prototype.hasOwnProperty.call(source, entry.key)) continue;
+        var value = source[entry.key];
+        if (typeof value === 'number' && Number.isFinite(value)) value = String(value);
+        else if (typeof value !== 'string' || !value) continue;
+        parts.push(entry.param + '=' + encodeURIComponent(value));
+      }
+      return 'trend-dynamics-cycle-lab.html' + (parts.length ? '?' + parts.join('&') : '');
     }
 
     /* Plain reader words only — no id, contract version or status code reaches Brief copy. */

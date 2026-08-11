@@ -6913,7 +6913,7 @@ try {
   const tdcSrc = read('trend-dynamics-cycle-lab.html');
   // The sentence helper is a dependency of the builder, so the sandbox must carry both.
   const tdcEnv = build(
-    [extractFn(tdcSrc, 'tdcComposeReadSentence'), extractFn(tdcSrc, 'tdcBuildToolRead')],
+    [extractFn(tdcSrc, 'tdcComposeReadSentence'), extractFn(tdcSrc, 'tdcBuildDeepLink'), extractFn(tdcSrc, 'tdcBuildToolRead')],
     ['tdcBuildToolRead']);
   const tdcResult = (over) => Object.assign({
     contractVersion: 'tdc-analysis-result/v1', resultId: 'res-001', requestDigest: 'dig-abc',
@@ -6930,6 +6930,8 @@ try {
     'the owner read uses the shared rl-tool-read/v1 transport under the tool\u2019s registered id');
   assert(okRead.metrics.contractVersion === 'tdc-tool-read/v1' && okRead.metrics.resultId === 'res-001' && okRead.metrics.requestDigest === 'dig-abc',
     'the nested metrics contract carries the result identity verbatim, so a consumer can prove which run it read');
+  assert(/^trend-dynamics-cycle-lab\.html\?/.test(okRead.deepLink) && okRead.deepLink.indexOf('series=srs-1') > 0,
+    'the published deep link carries the selection through the allowlist, so following it from the Brief reproduces the run rather than landing on a default view');
 
   const degraded = tdcEnv.tdcBuildToolRead(tdcResult({ truthState: 'degraded', sourceAvailability: 'current' }));
   assert(degraded.availability === 'current' && degraded.metrics.truthState === 'degraded',
@@ -6991,6 +6993,41 @@ try {
   assert(vmEnv.tdcBuildViewModel(vmResult({ complete: false })) === null,
     'an incomplete run yields no view model, so a cancelled or partial analysis cannot be rendered as a finished verdict');
 } catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab view model threw): ' + e.message); }
+
+/* ── trend-dynamics-cycle-lab — deep link allowlist (TP-04-01, spec 006 scope 4) ───────────────
+   design.md's security section is explicit: a deep link carries allowlisted public ids and
+   numeric controls ONLY, never source payloads or credentials. A denylist would be the wrong
+   shape here — it fails open the moment a new field is added to the request, which is exactly
+   how a credential or a payload reaches a shareable URL. These cases prove the builder is an
+   allowlist by handing it keys that must not survive. */
+try {
+  group('trend-dynamics-cycle-lab \u2014 deep link is an allowlist, so no payload or credential can ride along (TP-04-01)');
+  const dlSrc = read('trend-dynamics-cycle-lab.html');
+  const dlEnv = build([extractFn(dlSrc, 'tdcBuildDeepLink')], ['tdcBuildDeepLink']);
+
+  const link = dlEnv.tdcBuildDeepLink({ seriesId: 'series-a', transformId: 'level', horizonId: 'medium', profileId: 'balanced' });
+  assert(link.indexOf('trend-dynamics-cycle-lab.html?') === 0,
+    'the deep link returns to the owning route as a relative URL, never an absolute or foreign origin');
+  assert(/[?&]series=series-a(&|$)/.test(link) && /[?&]transform=level(&|$)/.test(link)
+    && /[?&]horizon=medium(&|$)/.test(link) && /[?&]profile=balanced(&|$)/.test(link),
+    'every allowlisted public id is carried, so a shared link reproduces the same selection');
+
+  const hostile = dlEnv.tdcBuildDeepLink({
+    seriesId: 'series-a', apiKey: 'secret-key', token: 'bearer-abc',
+    sourcePayload: '[[1,2],[3,4]]', __proto__ID: 'x', redirect: 'https://evil.example'
+  });
+  assert(hostile.indexOf('apiKey') < 0 && hostile.indexOf('secret-key') < 0
+    && hostile.indexOf('token') < 0 && hostile.indexOf('bearer-abc') < 0,
+    'a credential handed to the builder is DROPPED rather than encoded \u2014 the allowlist fails closed');
+  assert(hostile.indexOf('sourcePayload') < 0 && hostile.indexOf('redirect') < 0 && hostile.indexOf('evil.example') < 0,
+    'a source payload and an off-site redirect are dropped too, so a deep link cannot exfiltrate data or bounce a reader');
+  assert(/[?&]series=series-a(&|$)/.test(hostile),
+    'the legitimate id in the SAME hostile call still survives, so the guard discriminates rather than refusing everything');
+
+  const encoded = dlEnv.tdcBuildDeepLink({ seriesId: 'a b&c=d' });
+  assert(encoded.indexOf('series=a%20b%26c%3Dd') > 0 || encoded.indexOf('series=a+b%26c%3Dd') > 0,
+    'an allowlisted value is percent-encoded, so a crafted id cannot inject an extra query parameter');
+} catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab deep link threw): ' + e.message); }
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

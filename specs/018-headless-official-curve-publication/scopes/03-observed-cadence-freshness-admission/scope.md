@@ -5,7 +5,7 @@
 **Status:** Done
 **Scope-Kind:** runtime-behavior
 **Tags:** freshness, admission, determinism, named-absence
-Depends On: Scope 1 — the artifact contract, which declares `freshnessPolicy`
+Depends On: Scope 1, the foundation scope — the artifact contract, which declares `freshnessPolicy`
 
 **Primary Outcome:** `admitCurveFamily(artifact, familyId, runDate)` derives each
 family's freshness window from the family's **own** observed as-of progression

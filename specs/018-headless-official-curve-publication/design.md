@@ -347,7 +347,7 @@ usable rows. Rights travel with the family and are never upgraded. A restricted 
 is never produced by the server path. Every family carries source id, source URL,
 observation as-of and retrieval time.
 
-### Concrete Implementations
+## Concrete Implementations
 
 | | Browser-live | Server-published |
 | --- | --- | --- |
@@ -361,17 +361,17 @@ observation as-of and retrieval time.
 
 ### Variation Axes
 
-1. **Runtime and transport** — in-page `fetch` under CORS versus Node `fetch` with no
-   CORS, giving the server path a two-year merge the browser must also perform.
-2. **Retention and rights expression** — ephemeral browser cache versus a committed
-   file, which is why `persistence` differs while `rights` does not.
-3. **Degrade policy** — the browser classifies cached-stale rows; the server withholds
-   out-of-window rows. This is the only axis on which the two paths reach different
-   *inputs*, and § *Parity* states exactly how that is prevented from becoming a
-   different *verdict*.
-4. **Provenance depth** — a family-level source id in the browser versus a validated
-   per-response envelope in the artifact, because only the artifact is audited offline
-   by A-5 with no network available.
+- **Runtime and transport** — in-page `fetch` under CORS versus Node `fetch` with no
+  CORS, giving the server path a two-year merge the browser must also perform.
+- **Retention and rights expression** — ephemeral browser cache versus a committed
+  file, which is why `persistence` differs while `rights` does not.
+- **Degrade policy** — the browser classifies cached-stale rows; the server withholds
+  out-of-window rows. This is the only axis on which the two paths reach different
+  *inputs*, and § *Parity* states exactly how that is prevented from becoming a
+  different *verdict*.
+- **Provenance depth** — a family-level source id in the browser versus a validated
+  per-response envelope in the artifact, because only the artifact is audited offline
+  by A-5 with no network available.
 
 ---
 

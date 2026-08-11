@@ -316,6 +316,32 @@ $ node scripts/selftest.mjs 2>&1 | grep -vE "^\s*[✓✗]" | grep -ciE "warning|
 EXIT=0
 ```
 
+### Code Diff Evidence
+
+```
+$ git show --stat --format="" b04233e5
+ bond-regime-lab.html                               |  59 +++-
+ market-brief.html                                  |  53 +++
+ notes/bond-regime-lab.md                           |  24 ++
+ notes/market-brief.md                              |  38 +++
+ rlbrief.js                                         |  74 ++++-
+ tests/bond-regime-lab.spec.mjs                     | 245 +++++++++++++-
+ 10 files changed, 1098 insertions(+), 44 deletions(-)
+EXIT=0
+```
+
+The `bond-regime-lab.html` diff is three hunks — two in the source-table markup,
+one in its renderer — and names no classifier, which is the containment this
+feature rests on.
+
+```
+$ git show b04233e5 -- bond-regime-lab.html | grep -E "^@@"
+@@ -587,6 +587,7 @@
+@@ -595,36 +596,42 @@
+@@ -2225,12 +2232,58 @@
+EXIT=0
+```
+
 ## Findings Raised
 
 **The tooltip contract was not met by the first implementation, and was fixed

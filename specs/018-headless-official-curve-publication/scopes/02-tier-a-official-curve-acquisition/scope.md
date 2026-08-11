@@ -5,7 +5,7 @@
 **Status:** Done
 **Scope-Kind:** runtime-behavior
 **Tags:** acquisition, tier-a, network, provenance, degradation
-Depends On: Scope 1 — the artifact contract and its validation gate
+Depends On: Scope 1, the foundation scope — the artifact contract and its validation gate
 
 **Primary Outcome:** `scripts/acquire-official-curves.mjs` fetches four responses
 — the nominal and real daily Treasury yield-curve CSVs for the current and prior

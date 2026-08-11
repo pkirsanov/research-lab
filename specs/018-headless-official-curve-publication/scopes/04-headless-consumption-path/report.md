@@ -283,6 +283,36 @@ recorded verbatim from the selftest assertion.
 EXIT=0
 ```
 
+### Code Diff Evidence
+
+```
+$ git show --stat --format="" 6572dca6
+ notes/bond-regime-lab.md                           |  43 +++
+ scripts/brief-refresh.mjs                          |  58 ++-
+ scripts/owner-state.mjs                            |  17 +-
+ scripts/selftest.mjs                               | 209 ++++++++++-
+ scripts/validate-official-curves.mjs               |   2 +-
+ tests/fixtures/official-curves/invalid-for-consumption.json | 167 +++++++++
+ tests/fixtures/official-curves/stale-for-consumption.json   | 177 +++++++++
+ 11 files changed, 1272 insertions(+), 58 deletions(-)
+EXIT=0
+```
+
+The `scripts/owner-state.mjs` hunk is the load-bearing one: two additive exports
+and nothing else, which is what proves `bondRegimeOwnerState` was not widened.
+
+```
+$ git diff scripts/owner-state.mjs
+-function unavailableCurveFamily(policy, errorCode) {
++export function unavailableCurveFamily(policy, errorCode) {
++export function officialCurveArtifact(root) {
++  const target = path.join(root, 'data', 'curves', 'us-treasury', 'curve.json');
++  if (!existsSync(target)) return null;
++  try { return JSON.parse(readFileSync(target, 'utf8')); } catch { return null; }
++}
+EXIT=0
+```
+
 ## Findings Raised
 
 **F-018-07 — the artifact gate's default path named a file the acquisition never

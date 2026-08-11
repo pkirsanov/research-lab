@@ -283,6 +283,25 @@ classification rather than assumed to.
 
 ## Domain Capability Model
 
+### UI Primitives
+
+The rendered surface introduces three primitives that are reused across every row
+the bond card draws, rather than one-off markup per row. They are listed here
+because a second consumer of any of them must reuse the primitive rather than
+re-implement its rules.
+
+| Primitive | Definition | Reused by |
+| --- | --- | --- |
+| **State token** | A shape glyph plus the state word, carrying a two-part contextual tooltip and a matching accessible name. Colour is never the carrier, so the state survives colour removal and 200% zoom. | the two axis rows, the three family rows, both admission rows, and the parity line |
+| **Named absence row** | A labelled row whose value is an explicit absence with its reason, never an empty cell, a zero, a dash or a neutral filler. | family rows, admission rows, the source table's every cell |
+| **Verdict line** | A single line carrying exactly one of a closed verdict set, the count of things compared, and the reason for the verdict. | the parity line; the admission block reuses its reason discipline |
+
+The three are deliberately small. The card's whole geometry is these primitives
+arranged in a fixed order, which is what lets one reader who has learned the fresh
+state read the stale and absent states without relearning anything.
+
+### Capability Trigger
+
 The proportionality trigger that applies is *a second implementation of an existing
 capability*: official curve acquisition already exists in the browser, and this feature
 adds a second acquisition path for the same evidence families. The capability is

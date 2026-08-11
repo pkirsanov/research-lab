@@ -354,7 +354,7 @@ value appears in any rendered cell.
   EXIT=0
   ```
 
-- [x] `bond-regime-lab.html` browser code introduced here is single-file with no build step and uses `Number.isFinite` rather than the global `isFinite`, verified by reading the committed diff.
+- [x] `bond-regime-lab.html` browser code introduced here is single-file with no build step and uses `Number.isFinite` rather than the global `isFinite`, verified by reading the committed diff. **(FR-018-037)**
 
   **Claim Source:** executed — the added `retrieved()` helper uses `Number.isFinite`; the diff introduces no global `isFinite` and no module syntax.
 

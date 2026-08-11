@@ -83,8 +83,61 @@ the run that settles each. Both are filled here from execution.
 
 ## Code Diff Evidence
 
-Filled at execution with the verbatim `git --no-pager diff --stat` over the
-files this feature's six Change Boundary tables allow.
+### Code Diff Evidence
+
+The verbatim per-scope `git show --stat` over the files this feature's six Change
+Boundary tables allow. Spec-artifact rows are filtered out so the runtime and
+source surface is visible on its own.
+
+```
+$ git show --stat --format="" 6572dca6    # scope 4 — headless consumption path
+ notes/bond-regime-lab.md                           |  43 +++
+ scripts/brief-refresh.mjs                          |  58 ++-
+ scripts/owner-state.mjs                            |  17 +-
+ scripts/selftest.mjs                               | 209 ++++++++++-
+ scripts/validate-official-curves.mjs               |   2 +-
+ tests/fixtures/official-curves/invalid-for-consumption.json   | 167 +++++++++
+ tests/fixtures/official-curves/stale-for-consumption.json     | 177 +++++++++
+ 11 files changed, 1272 insertions(+), 58 deletions(-)
+
+$ git show --stat --format="" b04233e5    # scope 5 — brief card + provenance render
+ bond-regime-lab.html                               |  59 +++-
+ market-brief.html                                  |  53 +++
+ notes/bond-regime-lab.md                           |  24 ++
+ notes/market-brief.md                              |  38 +++
+ rlbrief.js                                         |  74 ++++-
+ tests/bond-regime-lab.spec.mjs                     | 245 +++++++++++++-
+ 10 files changed, 1098 insertions(+), 44 deletions(-)
+
+$ git show --stat --format="" 084f66b6    # scope 6 — one-model parity guarantee
+ bond-regime-lab.html                               |  35 +++
+ notes/bond-regime-lab.md                           |  36 +++
+ rlbrief.js                                         |  22 +-
+ scripts/selftest.mjs                               | 162 +++++++++++
+ tests/bond-regime-lab.spec.mjs                     |  45 +++
+ 9 files changed, 651 insertions(+), 35 deletions(-)
+EXIT=0
+```
+
+The load-bearing containment proof is what does NOT appear: every classifier in
+`bond-regime-lab.html` is byte-identical across all six scopes, and
+`bond-regime-universe.json` is absent from every diff. That is the whole point of
+the feature — the model was not edited to make a read resolve.
+
+```
+$ for f in parseTreasuryCurveCsv classifyCurveState classifyCurveImpulse deriveBreakevenRows \
+           classifyInflationState classifyDurationPosture selectResearchExpression computeBondLabViewModel; do
+    printf "%s:" "$f"; git diff HEAD~4 -- bond-regime-lab.html | grep -cE "^[-+].*function $f\("; done
+parseTreasuryCurveCsv:0
+classifyCurveState:0
+classifyCurveImpulse:0
+deriveBreakevenRows:0
+classifyInflationState:0
+classifyDurationPosture:0
+selectResearchExpression:0
+computeBondLabViewModel:0
+EXIT=0
+```
 
 ## Findings Raised
 

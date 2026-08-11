@@ -104,6 +104,33 @@ Command: `node scripts/validate-spec-test-paths.mjs`
 
 Command: `git diff --name-only`
 
+### Code Diff Evidence
+
+```
+$ git show --stat --format="" 084f66b6
+ bond-regime-lab.html                               |  35 +++
+ notes/bond-regime-lab.md                           |  36 +++
+ rlbrief.js                                         |  22 +-
+ scripts/selftest.mjs                               | 162 +++++++++++
+ tests/bond-regime-lab.spec.mjs                     |  45 +++
+ 9 files changed, 651 insertions(+), 35 deletions(-)
+EXIT=0
+```
+
+The 35 added lines in `bond-regime-lab.html` are one new pure function,
+`bondParityVerdict`, plus its field list. No classifier is touched, which is what
+lets the parity comparison mean anything at all.
+
+```
+$ for f in classifyCurveState classifyCurveImpulse classifyInflationState classifyDurationPosture; do
+    printf "%s:" "$f"; git show 084f66b6 -- bond-regime-lab.html | grep -cE "^[-+].*function $f\("; done
+classifyCurveState:0
+classifyCurveImpulse:0
+classifyInflationState:0
+classifyDurationPosture:0
+EXIT=0
+```
+
 ## Findings Raised
 
 **TP-06-03 caught a real defect in my own fixture — which is exactly what that row

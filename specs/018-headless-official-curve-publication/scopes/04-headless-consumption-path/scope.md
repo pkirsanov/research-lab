@@ -5,7 +5,7 @@
 **Status:** Done
 **Scope-Kind:** runtime-behavior
 **Tags:** consumption, injection-seam, refusal-preservation, selftest-reconciliation
-Depends On: Scopes 1, 2, 3 — the contract, a written artifact, and the admission rule
+Depends On: Scopes 1, 2, 3 — the foundation scope's contract, a written artifact, and the admission rule
 
 **Primary Outcome:** `buildBondRegimeToolRead` resolves the committed artifact
 when `deps.nominalCurve` is `undefined`, admits each family through

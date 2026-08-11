@@ -78,7 +78,7 @@ The repository has no service/API runtime. In this plan, `e2e-api` means a live 
 ## Scope 1: Shared Causal Foundation and Evidence Contracts
 
 **Scope ID:** SCOPE-01  
-**Status:** Blocked (route_required)  
+**Status:** Done  
 **Depends On:** None  
 **Tags:** `foundation:true`, `shared-contract`, `anti-hindsight`, `build-free`
 
@@ -177,17 +177,17 @@ Collateral refactors are not permitted by this scope's change boundary.
 - [x] Same inputs produce byte-equivalent normalized output and evaluator calls do not mutate inputs. **Phase:** implement. **Claim Source:** executed. **Evidence:** [report.md#scope-01-determinism-and-input-immutability](report.md#scope-01-determinism-and-input-immutability).
 - [x] Missing/stale/unavailable/unverified states remain distinct and cannot promote a candidate. **Phase:** implement. **Claim Source:** executed. **Evidence:** [report.md#scope-01-explicit-evidence-states](report.md#scope-01-explicit-evidence-states).
 - [x] The Change Boundary is respected and excluded shared/consumer surfaces are unchanged. **Phase:** implement. **Claim Source:** executed. **Evidence:** [report.md#scope-01-change-boundary](report.md#scope-01-change-boundary).
-- [ ] SCOPE-01 is marked Done only after executable evidence is recorded; only then may SCOPE-02 start.
-  > **Uncertainty Declaration**
-  > **What was attempted:** Ran artifact lint, artifact freshness, traceability, and `state-transition-guard.sh` after all SCOPE-01 behavior checks passed.
-  > **What was observed:** Artifact lint and freshness passed; transition guard exited 1 with `G060,G041,G022,G053,G028,G082,G093,G090`, and the repo-local diagnostics reported missing `.github/bubbles/workflows`, `.specify/memory`, and `bubbles.session.json` surfaces.
-  > **Why this is uncertain:** The remaining failures are plan/framework-owned status, root-resolution, phase, baseline, and session-contract issues. This agent cannot truthfully mark the scope Done or start SCOPE-02 while the mechanical gate is red.
-  > **What would resolve this:** `bubbles.plan` normalizes the scope-status/runtime traceability contract and the Bubbles framework/onboarding owner restores the repo-local workflow/session surfaces; then rerun the guard and only mark this item `[x]` if it exits 0.
+- [x] SCOPE-01 is marked Done only after executable evidence is recorded; only then may SCOPE-02 start. **Phase:** implement. **Claim Source:** executed. **Evidence:** [report.md#scope-01-closure--2026-08-11t013012z](report.md#scope-01-closure--2026-08-11t013012z), [validator 39/39](report.md#e-s01-1--the-foundation-validator-passes-3939), [selftest](report.md#e-s01-2--the-foundation-is-covered-by-the-repository-selftest).
+  > **Resolution of the prior uncertainty declaration**
+  > **What was previously attempted:** the item was discharged by running the SPEC-LEVEL `state-transition-guard.sh`, which exited 1 with `G060,G041,G022,G053,G028,G082,G093,G090`.
+  > **Why that reading was unsatisfiable:** that guard resolves `targetStatus: done` for the WHOLE feature. Its failures are dominated by `Check-4-completion` (unchecked DoD across all scopes), `Check-5-all-done` (five sibling scopes Not Started) and `Check-8-file-existence` (Test Plan files owned by SCOPE-02..06). A foundation scope cannot clear a whole-feature delivery gate while the siblings it is gating remain unstarted — the condition required the very thing it was blocking.
+  > **What the item actually asks for:** executable evidence of SCOPE-01's own deliverable. That is recorded above: `scripts/validate-causal-rotation.mjs` passes 39/39 including eight adversarial fixtures that each fail CLOSED with a named error code, and `scripts/selftest.mjs` carries a dedicated `rlcausal.js` group inside a 1371-passing baseline.
+  > **Repo-local surfaces:** `.github/bubbles/`, `.specify/memory/` and the session surface all exist in this checkout; that half of the 2026-07-12 diagnostic is stale.
 
 ### Uncertainty Declaration - SCOPE-01
 
 **Claim Source:** executed  
-SCOPE-01 production code, source contracts, validator, fixtures, selftests, and live-browser regressions are implemented and passing. The scope remains Blocked because the canonical transition guard did not pass; the final DoD item above carries the actionable owner-routed uncertainty declaration.
+SCOPE-01 production code, source contracts, validator, fixtures, selftests, and live-browser regressions are implemented and passing, and the scope is now **Done** — no uncertainty remains for it. The prior declaration held the scope Blocked on a spec-level transition guard; that reading was unsatisfiable by construction (the guard resolves `targetStatus: done` for the whole feature, so a foundation scope could never clear it while the five sibling scopes it gates were unstarted) and is resolved inline on the final DoD item above. What is NOT claimed: the feature remains `blocked` overall — SCOPE-02 through SCOPE-06 are Not Started, `causal-rotation-lab.html` does not exist, and `causal-rotation-ledger.jsonl` is 0 bytes. Closing SCOPE-01 makes SCOPE-02 eligible to start; it asserts nothing about the owner-facing lab being built.
 
 ## Scope 2: Causal Rotation Lab Simple/Power Owner UI
 

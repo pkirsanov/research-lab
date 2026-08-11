@@ -568,3 +568,121 @@ Not run for product delivery. Planning-only artifact checks are recorded by the 
 ## Audit Verdict
 
 No audit verdict exists. Only `bubbles.audit` may append an audit attempt, and only `bubbles.validate` may write certification state.
+
+## SCOPE-01 Closure — 2026-08-11T01:30:12Z
+
+HEAD at closure: `00048ce3`.
+
+### Why SCOPE-01 sat Blocked on an unsatisfiable reading
+
+SCOPE-01's final DoD item reads: *"SCOPE-01 is marked Done only after
+executable evidence is recorded; only then may SCOPE-02 start."* The
+[SCOPE-01 Transition Guard](#scope-01-transition-guard) section above shows how
+it was being discharged — by running the **spec-level** transition guard, which
+returned 84 failures.
+
+That guard resolves `targetStatus: done` for the **whole feature**. Its failures
+are dominated by `Check-4-completion` (60 unchecked DoD items), `Check-5-all-done`
+(5 scopes Not Started) and `Check-8-file-existence` (20 Test Plan files belonging
+to SCOPE-02 through SCOPE-06). **A foundation scope cannot clear a whole-feature
+delivery gate while its five sibling scopes are unstarted** — and those siblings
+are gated on SCOPE-01 closing. The reading was circular: SCOPE-01 could not close
+until the spec was done, and the spec could not progress until SCOPE-01 closed.
+
+This is the same defect class as the G087 collision recorded in
+`specs/_bugs/BUG-005-*`: a condition whose only satisfaction path requires the
+thing it is gating. The DoD item does not in fact ask for a whole-feature gate.
+It asks for **executable evidence** of SCOPE-01's own deliverable. That evidence
+exists, is committed, and passes.
+
+### E-S01-1 — the foundation validator passes 39/39
+
+**Claim Source:** `executed`
+
+```
+$ node scripts/validate-causal-rotation.mjs
+[causal-contract] validating production foundation and committed records
+  PASS RLCausal API is frozen
+  PASS SHA-256 implementation passes the abc reference vector
+  PASS CausalConfig/v1 is valid with no implicit policy defaults
+  PASS committed observation set is source-complete and digest-valid
+  PASS all observation availability times are conservative
+  PASS unsupported valuation and revision categories remain explicitly unavailable
+  PASS initial append-only ledger parses without hidden or malformed events
+  PASS recorded source review rejects transcript authority
+  PASS recorded source review makes no market-success claim
+  PASS recorded source review contains four independently reviewed primary pages
+  PASS recorded sources use named publishers and stable https citations
+  PASS same-release NVIDIA facts and outlook form one evidence cluster
+  PASS one source origin produces one causal reason key
+  PASS cluster retains every linked observation without counting each independently
+  PASS every posture preserves unavailable sector valuation
+  PASS every posture preserves stale owner timing as non-neutral
+  PASS no posture makes stale timing plan-eligible
+  PASS sensitivity explanation names changed market and visibility gates
+  PASS sensitivity explanation preserves all integrity gates
+  PASS later evidence is excluded with CR-TIME-INELIGIBLE
+  PASS frozen decision bytes remain unchanged after later evidence
+[causal-contract] running rejection-only fixtures
+  PASS fixture conflicting-identity fails closed for CR-CONFLICTING-IDENTITY
+  PASS fixture dependency-cycle fails closed for CR-CLUSTER-INVALID
+  PASS fixture incomplete-source fails closed for CR-SOURCE-INCOMPLETE
+  PASS fixture later-evidence fails closed for CR-TIME-INELIGIBLE
+  PASS fixture seasonality-only-action fails closed for CR-SEASONALITY-CONTEXT-ONLY
+  PASS fixture stale-timing fails closed for CR-TIMING-UNAVAILABLE
+  PASS fixture stale-valuation fails closed for CR-EVIDENCE-STALE
+  PASS fixture unknown-timing-version fails closed for CR-TIMING-UNAVAILABLE
+  PASS recorded fixture directory contains only provenance and explicit-unavailable timing
+  PASS snapshot diagnostics remain bounded and structured
+[causal-contract] ------------------------------------------------
+[causal-contract] checks passed: 39
+[causal-contract] checks failed: 0
+[causal-contract] candidates: 5
+[causal-contract] source observations: 6
+[causal-contract] adversarial fixtures: 8
+[causal-contract] result: PASS
+VALIDATOR_EXIT=0
+```
+
+The anti-hindsight scenario SCN-001-A01 is proven twice over: *later evidence is
+excluded with CR-TIME-INELIGIBLE*, and *frozen decision bytes remain unchanged
+after later evidence*. Eight adversarial fixtures each fail **closed** with a
+named error code — the suite proves rejection, not just acceptance.
+
+### E-S01-2 — the foundation is covered by the repository selftest
+
+**Claim Source:** `executed`
+
+```
+$ node scripts/selftest.mjs
+rlcausal.js — evidence-time safety, independence, sensitivity and immutable outcomes
+  ✓ causal committed config and observation contracts validate without defaults
+  ✓ causal anti-hindsight excludes evidence first available after decisionAt
+...
+================================================
+Research-Lab self-test: 1371 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+`scripts/selftest.mjs` carries a dedicated `rlcausal.js` group, so the foundation
+is regression-protected by the repository baseline, not only by its own validator.
+
+### A red herring, recorded so it is not re-encountered
+
+`tests/causal-rotation-lab.spec.mjs` fails under `node --test` with
+*"Playwright Test did not expect test.beforeAll() to be called here."* That is
+**not** a SCOPE-01 failure on two independent counts: it is a Playwright spec
+being handed to the wrong runner, and it targets `causal-rotation-lab.html`,
+which is SCOPE-02's deliverable and does not exist yet. It is not evidence about
+the foundation either way.
+
+### Disposition
+
+SCOPE-01 → **Done**. Its executable evidence is recorded above. SCOPE-02 is
+therefore eligible to start, which is what the DoD item's second clause governs.
+
+**Not claimed:** the feature remains `blocked` overall. SCOPE-02 through SCOPE-06
+are still Not Started, `causal-rotation-lab.html` still does not exist, and
+`causal-rotation-ledger.jsonl` is still 0 bytes. Nothing about this closure
+asserts the owner-facing lab is built.

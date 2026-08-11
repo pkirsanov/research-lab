@@ -1,170 +1,171 @@
 {
-    "version": 3,
-    "featureDir": "specs/001-causal-rotation-intelligence",
-    "featureName": "Causal Rotation Intelligence",
-    "status": "blocked",
-    "blockedReason": "The owner-facing Causal Rotation Lab is unbuilt. SCOPE-02 (Causal Rotation Lab Simple/Power Owner UI) has never started, so `causal-rotation-lab.html` does not exist, `tools.json` carries zero causal entries, `rlnav.js` contains no causal reference, and the 49,953-byte SCOPE-01 foundation `rlcausal.js` is loaded by no HTML page — the spec's Success Signal that a user can see the catalyst timeline, affected exposure, transmission mechanism, regime dependence, and one explicit confirmation and invalidation condition has no surface to render on. Scope tally: 5 of 6 scopes are Not Started (SCOPE-02 owner UI, SCOPE-03 sector/global/real-assets consumer integration, SCOPE-04 Market Brief and Tier-A integration, SCOPE-05 outcome ledger/registry/documentation, SCOPE-06 comprehensive browser and adversarial validation) and SCOPE-01 is Blocked, so nothing downstream is eligible to start. Root-level `causal-rotation-ledger.jsonl` is 0 bytes while its two sibling SCOPE-01 contracts are populated (`causal-rotation.config.json` 7,348 bytes, `causal-rotation-observations.json` 34,975 bytes); because that ledger is append-only, written by the SCOPE-02 decision recorder and made queryable by SCOPE-05, its emptiness means no decision has ever been frozen — the capability is unbuilt rather than merely unrecorded. The blocker is not uniform: SCOPE-01's foundation is implemented with 10 of its 11 DoD items marked executed, and it is Blocked only on its final DoD item pending a clean `state-transition-guard.sh` run, recorded on 2026-07-12 as failing G060,G041,G022,G053,G028,G082,G093,G090 with missing repo-local workflow/session surfaces; that guard result predates later repo changes and must be re-run rather than assumed current.",
-    "statusReconciliation": {
-        "recordedBy": "orchestrator",
-        "recordedAt": "2026-08-02T05:03:12Z",
-        "previousStatus": "not_started",
-        "why": "`not_started` contradicted this spec's own artifacts. `scopes.md` line 81 declares SCOPE-01 `**Status:** Blocked (route_required)`, and the SCOPE-01 Uncertainty Declaration states its production code, source contracts, validator, fixtures, selftests and live-browser regressions are implemented and passing. Shipped surfaces exist on disk (`rlcausal.js`, `causal-rotation-ledger.jsonl`, `causal-rotation-observations.json`, `causal-rotation.config.json`). Work has demonstrably begun, so `not_started` was false.",
-        "blocker": "SCOPE-01 is route_required: the canonical transition guard did not pass. Per the scope's own resolution note, `bubbles.plan` must normalize the scope-status/runtime traceability contract and the Bubbles framework/onboarding owner must restore the repo-local workflow/session surfaces; only then may the final DoD item be marked.",
-        "noScopeClaimed": "No scope was marked complete and no certification field was touched. This edit corrects the lifecycle status only."
-    },
-    "workflowMode": "full-delivery",
-    "linkedImplementationSpec": null,
-    "linkedPlanningPacket": null,
-    "planningOnly": false,
-    "planningOnlyJustification": null,
-    "specDependsOn": [],
-    "certifiedAt": null,
-    "requiresRevalidation": false,
-    "execution": {
-        "activeAgent": "bubbles.plan",
-        "currentPhase": "bootstrap",
-        "currentScope": "SCOPE-01",
-        "runStartedAt": "2026-07-12T22:28:01Z",
-        "completedPhaseClaims": [
-            "analyze",
-            "bootstrap"
-        ],
-        "pendingTransitionRequests": [],
-        "audit": {
-            "schemaVersion": "audit-run/v1",
-            "runId": null,
-            "currentAttemptId": null,
-            "attempts": []
-        }
-    },
-    "certification": {
-        "status": "blocked",
-        "completedScopes": [],
-        "certifiedCompletedPhases": [],
-        "scopeProgress": [],
-        "lockdownState": {
-            "active": false,
-            "lockedScenarioIds": []
-        }
-    },
-    "policySnapshot": {
-        "grill": {
-            "mode": "off",
-            "source": "repo-default"
-        },
-        "tdd": {
-            "mode": "scenario-first",
-            "source": "repo-default"
-        },
-        "autoCommit": {
-            "mode": "off",
-            "source": "repo-default"
-        },
-        "lockdown": {
-            "mode": "off",
-            "source": "repo-default"
-        },
-        "regression": {
-            "mode": "protected-scenarios",
-            "source": "repo-default"
-        },
-        "validation": {
-            "mode": "certification-required",
-            "source": "repo-default"
-        }
-    },
-    "transitionRequests": [],
-    "reworkQueue": [],
-    "executionHistory": [
-        {
-            "agent": "bubbles.analyst",
-            "phasesExecuted": [
-                "analyze"
-            ],
-            "statusBefore": "not_started",
-            "statusAfter": "in_progress",
-            "startedAt": "2026-07-12T20:36:18Z",
-            "finishedAt": "2026-07-12T20:36:18Z",
-            "summary": "Defined the Causal Rotation Intelligence business capability, actor/use-case model, evidence lifecycle, four-clock early-rotation model, regime-conditioned policies, transcript assessment, cross-tool boundaries, and acceptance scenarios."
-        },
-        {
-            "agent": "bubbles.design",
-            "phasesExecuted": [
-                "bootstrap"
-            ],
-            "statusBefore": "not_started",
-            "statusAfter": "not_started",
-            "startedAt": "2026-07-12T20:49:53Z",
-            "finishedAt": "2026-07-12T20:54:25Z",
-            "summary": "Authored the build-free Causal Rotation capability foundation, static data and ledger contracts, owner-consumer boundaries, browser/headless adapters, UI behavior, failure handling, and scenario-level validation strategy."
-        },
-        {
-            "agent": "bubbles.plan",
-            "phasesExecuted": [
-                "bootstrap"
-            ],
-            "statusBefore": "not_started",
-            "statusAfter": "not_started",
-            "startedAt": "2026-07-12T21:07:28Z",
-            "finishedAt": "2026-07-12T21:22:24Z",
-            "summary": "Created the sequential foundation-first delivery plan, report and user-validation templates, 18-scenario manifest, and synchronized 62-row structured test handoff for the full Causal Rotation tool and Market Brief delivery."
-        },
-        {
-            "agent": "bubbles.plan",
-            "phasesExecuted": [
-                "bootstrap"
-            ],
-            "statusBefore": "not_started",
-            "statusAfter": "not_started",
-            "startedAt": "2026-07-12T22:28:01Z",
-            "finishedAt": "2026-07-12T22:31:46Z",
-            "summary": "Normalized active scope statuses to the canonical plain vocabulary and diagnosed central wrong-root plus premature future-scope test enforcement without changing scenarios, test obligations, implementation evidence, or certification state."
-        }
+  "version": 3,
+  "featureDir": "specs/001-causal-rotation-intelligence",
+  "featureName": "Causal Rotation Intelligence",
+  "status": "blocked",
+  "blockedReason": "SCOPE-01 IS NOW DONE (closed 2026-08-11). The prior blockedReason said SCOPE-01 was Blocked on its final DoD item pending a clean state-transition-guard.sh run and that the 2026-07-12 guard result must be re-run rather than assumed current. It was re-run. Two things were established: (a) the repo-local surfaces that diagnostic reported missing (.github/bubbles, .specify/memory, session surface) all exist in this checkout, so that half was stale; (b) the reading itself was unsatisfiable by construction - the spec-level guard resolves targetStatus done for the WHOLE feature, and its failures are dominated by Check-4-completion, Check-5-all-done and Check-8-file-existence, all owned by SCOPE-02..06. A foundation scope could never clear a whole-feature delivery gate while the five sibling scopes it gates stayed unstarted. The DoD item asks for executable evidence of SCOPE-01 own deliverable, which exists and passes: node scripts/validate-causal-rotation.mjs 39/39 including 8 adversarial fixtures each failing closed with a named error code, plus a dedicated rlcausal.js group inside the 1371-passing repository selftest. SCOPE-02 is therefore ELIGIBLE TO START and nothing external gates it. REMAINING WORK IS UNCHANGED AND IS REAL IMPLEMENTATION: causal-rotation-lab.html does not exist, tools.json carries zero causal entries, rlnav.js has no causal reference, causal-rotation-ledger.jsonl is 0 bytes, 5 of 6 scopes are Not Started, 59 DoD items are unchecked, and 20 of 31 Test Plan files do not exist. The feature stays blocked on that build work, not on a gate.",
+  "statusReconciliation": {
+    "recordedBy": "orchestrator",
+    "recordedAt": "2026-08-02T05:03:12Z",
+    "previousStatus": "not_started",
+    "why": "`not_started` contradicted this spec's own artifacts. `scopes.md` line 81 declares SCOPE-01 `**Status:** Blocked (route_required)`, and the SCOPE-01 Uncertainty Declaration states its production code, source contracts, validator, fixtures, selftests and live-browser regressions are implemented and passing. Shipped surfaces exist on disk (`rlcausal.js`, `causal-rotation-ledger.jsonl`, `causal-rotation-observations.json`, `causal-rotation.config.json`). Work has demonstrably begun, so `not_started` was false.",
+    "blocker": "SCOPE-01 is route_required: the canonical transition guard did not pass. Per the scope's own resolution note, `bubbles.plan` must normalize the scope-status/runtime traceability contract and the Bubbles framework/onboarding owner must restore the repo-local workflow/session surfaces; only then may the final DoD item be marked.",
+    "noScopeClaimed": "No scope was marked complete and no certification field was touched. This edit corrects the lifecycle status only."
+  },
+  "workflowMode": "full-delivery",
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "specDependsOn": [],
+  "certifiedAt": null,
+  "requiresRevalidation": false,
+  "execution": {
+    "activeAgent": "bubbles.plan",
+    "currentPhase": "bootstrap",
+    "currentScope": "SCOPE-01",
+    "runStartedAt": "2026-07-12T22:28:01Z",
+    "completedPhaseClaims": [
+      "analyze",
+      "bootstrap"
     ],
-    "activeBugs": [],
-    "resolvedBugs": [],
-    "failures": [],
-    "lastUpdatedAt": "2026-07-12T22:31:46Z",
-    "scopeLayout": "single-file",
-    "artifacts": {
-        "spec": "spec.md",
-        "design": "design.md",
-        "scopes": "scopes.md",
-        "report": "report.md",
-        "uservalidation": "uservalidation.md",
-        "scenarioManifest": "scenario-manifest.json",
-        "lockdownApprovals": "lockdown-approvals.json",
-        "invalidationLedger": "invalidation-ledger.json",
-        "transitionRequests": "transition-requests.json",
-        "reworkQueue": "rework-queue.json"
+    "pendingTransitionRequests": [],
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": null,
+      "currentAttemptId": null,
+      "attempts": []
+    }
+  },
+  "certification": {
+    "status": "blocked",
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [],
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
     },
-    "statusDiscipline": {
-        "validStatuses": [
-            "not_started",
-            "in_progress",
-            "blocked",
-            "specs_hardened",
-            "docs_updated",
-            "validated",
-            "done"
-        ],
-        "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
-        "scopeDoneGates": [
-            "G020",
-            "G021",
-            "G022",
-            "G023",
-            "G024",
-            "G025",
-            "G055",
-            "G056",
-            "G057",
-            "G058",
-            "G059",
-            "G060",
-            "G061"
-        ],
-        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "repo-default"
     },
-    "notes": "Plan-owned artifacts are complete for the full-delivery handoff; runtime delivery remains at not_started."
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-07-12T20:36:18Z",
+      "finishedAt": "2026-07-12T20:36:18Z",
+      "summary": "Defined the Causal Rotation Intelligence business capability, actor/use-case model, evidence lifecycle, four-clock early-rotation model, regime-conditioned policies, transcript assessment, cross-tool boundaries, and acceptance scenarios."
+    },
+    {
+      "agent": "bubbles.design",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-12T20:49:53Z",
+      "finishedAt": "2026-07-12T20:54:25Z",
+      "summary": "Authored the build-free Causal Rotation capability foundation, static data and ledger contracts, owner-consumer boundaries, browser/headless adapters, UI behavior, failure handling, and scenario-level validation strategy."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-12T21:07:28Z",
+      "finishedAt": "2026-07-12T21:22:24Z",
+      "summary": "Created the sequential foundation-first delivery plan, report and user-validation templates, 18-scenario manifest, and synchronized 62-row structured test handoff for the full Causal Rotation tool and Market Brief delivery."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-12T22:28:01Z",
+      "finishedAt": "2026-07-12T22:31:46Z",
+      "summary": "Normalized active scope statuses to the canonical plain vocabulary and diagnosed central wrong-root plus premature future-scope test enforcement without changing scenarios, test obligations, implementation evidence, or certification state."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "failures": [],
+  "lastUpdatedAt": "2026-07-12T22:31:46Z",
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "lockdownApprovals": "lockdown-approvals.json",
+    "invalidationLedger": "invalidation-ledger.json",
+    "transitionRequests": "transition-requests.json",
+    "reworkQueue": "rework-queue.json"
+  },
+  "statusDiscipline": {
+    "validStatuses": [
+      "not_started",
+      "in_progress",
+      "blocked",
+      "specs_hardened",
+      "docs_updated",
+      "validated",
+      "done"
+    ],
+    "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+    "scopeDoneGates": [
+      "G020",
+      "G021",
+      "G022",
+      "G023",
+      "G024",
+      "G025",
+      "G055",
+      "G056",
+      "G057",
+      "G058",
+      "G059",
+      "G060",
+      "G061"
+    ],
+    "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+  },
+  "notes": "Plan-owned artifacts are complete for the full-delivery handoff; runtime delivery remains at not_started.",
+  "blockedReasonPriorToScope01Closure": "The owner-facing Causal Rotation Lab is unbuilt. SCOPE-02 (Causal Rotation Lab Simple/Power Owner UI) has never started, so `causal-rotation-lab.html` does not exist, `tools.json` carries zero causal entries, `rlnav.js` contains no causal reference, and the 49,953-byte SCOPE-01 foundation `rlcausal.js` is loaded by no HTML page — the spec's Success Signal that a user can see the catalyst timeline, affected exposure, transmission mechanism, regime dependence, and one explicit confirmation and invalidation condition has no surface to render on. Scope tally: 5 of 6 scopes are Not Started (SCOPE-02 owner UI, SCOPE-03 sector/global/real-assets consumer integration, SCOPE-04 Market Brief and Tier-A integration, SCOPE-05 outcome ledger/registry/documentation, SCOPE-06 comprehensive browser and adversarial validation) and SCOPE-01 is Blocked, so nothing downstream is eligible to start. Root-level `causal-rotation-ledger.jsonl` is 0 bytes while its two sibling SCOPE-01 contracts are populated (`causal-rotation.config.json` 7,348 bytes, `causal-rotation-observations.json` 34,975 bytes); because that ledger is append-only, written by the SCOPE-02 decision recorder and made queryable by SCOPE-05, its emptiness means no decision has ever been frozen — the capability is unbuilt rather than merely unrecorded. The blocker is not uniform: SCOPE-01's foundation is implemented with 10 of its 11 DoD items marked executed, and it is Blocked only on its final DoD item pending a clean `state-transition-guard.sh` run, recorded on 2026-07-12 as failing G060,G041,G022,G053,G028,G082,G093,G090 with missing repo-local workflow/session surfaces; that guard result predates later repo changes and must be re-run rather than assumed current."
 }

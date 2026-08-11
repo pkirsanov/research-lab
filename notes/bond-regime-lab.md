@@ -140,6 +140,40 @@ and real `y5,y10,y20,y30`. They are stated in one place per consumer on purpose
 — a second definition would let the headless path admit a curve shape the tool
 would reject.
 
+### Headless Publication: Acquisition, Carry-Forward And The No-Restamp Rule
+
+`scripts/acquire-official-curves.mjs` fetches four responses — nominal and real,
+current and prior UTC calendar year — and writes
+`data/curves/us-treasury/curve.json`. It is invoked from
+`scripts/brief-refresh.mjs` before tool-read assembly, wrapped like every other
+per-tool builder, so an acquisition failure degrades the bond read alone and
+never fails the brief.
+
+**One URL definition.** Request URLs are built by substituting `{YEAR}` into the
+committed `urlTemplate` values in `bond-regime-universe.json`. There is no
+Treasury URL literal in `scripts/`, and the selftest asserts that by scanning the
+acquisition module's own source. Change a URL in the universe and the headless
+path follows; there is nowhere else to change it.
+
+**One parser.** Responses are parsed with the page's own `parseTreasuryCurveCsv`,
+loaded by name, and merged with the browser's exact by-date collapse. A missing
+configured maturity column therefore rejects the WHOLE family with zero rows —
+that is the page's behaviour, observed rather than restated. The family reports
+`BRL-CURVE-MATURITY-MISSING` and names the missing headers.
+
+**Carry-forward never restamps.** When a family fails to acquire and a prior
+record exists, the prior family is carried forward byte-identically with
+`carriedForward: true` and a `carried-forward-from-prior-artifact` diagnostic.
+`retrievedAt` is NOT advanced to the current run. Advancing it is the tempting
+shortcut and it is the wrong one: it would turn a stale record into one claiming
+to be fresh, and the freshness admission downstream reads exactly that field.
+
+A family with nothing to carry forward is a named absence — `state:
+"unavailable"`, zero rows, its own error code. An `unavailable` family carries no
+provenance envelopes, because when a fetch fails at transport there is no
+response to attest; a `fresh` family must carry them, and the gate enforces that
+asymmetry in both directions.
+
 ## Refresh Procedure
 
 1. Review characteristic `asOf` and `reviewWindowDays` fields in `bond-regime-universe.json`; update only from the linked issuer source.

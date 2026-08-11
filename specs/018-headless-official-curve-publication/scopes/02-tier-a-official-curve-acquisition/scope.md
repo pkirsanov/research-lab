@@ -2,7 +2,7 @@
 
 ## 02-tier-a-official-curve-acquisition
 
-**Status:** Not started
+**Status:** Done
 **Scope-Kind:** runtime-behavior
 **Tags:** acquisition, tier-a, network, provenance, degradation
 Depends On: Scope 1 — the artifact contract and its validation gate
@@ -226,35 +226,35 @@ accepted by `node scripts/validate-official-curves.mjs` with exit 0.
 
 #### Core Delivery Items
 
-- [ ] `scripts/acquire-official-curves.mjs` exists, exposes `acquireOfficialCurves({ root, now, fetchImpl })` and runs as `node scripts/acquire-official-curves.mjs`, proven by TP-02-07.
-- [ ] Every request URL is derived from the committed `urlTemplate` values, and no Treasury URL literal exists under `scripts/`, proven by TP-02-06.
-- [ ] Only a `User-Agent` header is sent; no `Authorization`, no cookie and no credential-shaped query key appears in any recorded request, proven by TP-02-08.
-- [ ] Responses are parsed with `parseTreasuryCurveCsv` loaded by name, with `finiteNumber` loaded alongside it, and no parsing rule is re-implemented, proven by TP-02-01 relying on the parser's own whole-family rejection.
-- [ ] A missing configured maturity column rejects the whole family with zero rows and leaves the other family untouched, proven by TP-02-01 and TP-02-02.
-- [ ] `sha256` is computed over the exact response body before parsing, one value per response, and the conformant write carries four envelopes, proven by TP-02-07.
-- [ ] `coverageYears` holds exactly the current and prior UTC calendar years, matching the browser's merge window, proven by TP-02-03.
-- [ ] A failed family carries the prior record forward verbatim with `retrievedAt` unchanged and `carriedForward: true`, proven by TP-02-04.
-- [ ] `persistence` reads `same-origin-artifact` and `declaredPolicy` holds the committed policy block verbatim on every written family, proven by TP-02-07 passing scope 1's R-4 check.
-- [ ] The `oas` and `financialConditions` families are never read, fetched or written, proven by TP-02-08.
-- [ ] An acquisition failure degrades the bond read alone and the wider brief publication still completes, proven by TP-02-05.
-- [ ] `bond-regime-universe.json`, `bond-regime-lab.html` and `rlcontracts.js` are byte-identical at the end of this scope, verified by `git diff --name-only` naming none of them.
+- [x] `scripts/acquire-official-curves.mjs` exists, exposes `acquireOfficialCurves({ root, now, fetchImpl })` and runs as `node scripts/acquire-official-curves.mjs`, proven by TP-02-07.
+- [x] Every request URL is derived from the committed `urlTemplate` values, and no Treasury URL literal exists under `scripts/`, proven by TP-02-06.
+- [x] Only a `User-Agent` header is sent; no `Authorization`, no cookie and no credential-shaped query key appears in any recorded request, proven by TP-02-08.
+- [x] Responses are parsed with `parseTreasuryCurveCsv` loaded by name, with `finiteNumber` loaded alongside it, and no parsing rule is re-implemented, proven by TP-02-01 relying on the parser's own whole-family rejection.
+- [x] A missing configured maturity column rejects the whole family with zero rows and leaves the other family untouched, proven by TP-02-01 and TP-02-02.
+- [x] `sha256` is computed over the exact response body before parsing, one value per response, and the conformant write carries four envelopes, proven by TP-02-07.
+- [x] `coverageYears` holds exactly the current and prior UTC calendar years, matching the browser's merge window, proven by TP-02-03.
+- [x] A failed family carries the prior record forward verbatim with `retrievedAt` unchanged and `carriedForward: true`, proven by TP-02-04.
+- [x] `persistence` reads `same-origin-artifact` and `declaredPolicy` holds the committed policy block verbatim on every written family, proven by TP-02-07 passing scope 1's R-4 check.
+- [x] The `oas` and `financialConditions` families are never read, fetched or written, proven by TP-02-08.
+- [x] An acquisition failure degrades the bond read alone and the wider brief publication still completes, proven by TP-02-05.
+- [x] `bond-regime-universe.json`, `bond-regime-lab.html` and `rlcontracts.js` are byte-identical at the end of this scope, verified by `git diff --name-only` naming none of them.
 
 #### Test Evidence Items - Exact Parity With 8 Test Plan Rows
 
-- [ ] TP-02-01 executed with raw output recorded at `report.md#tp-02-01`.
-- [ ] TP-02-02 executed with raw output recorded at `report.md#tp-02-02`.
-- [ ] TP-02-03 executed with raw output recorded at `report.md#tp-02-03`.
-- [ ] TP-02-04 executed with raw output recorded at `report.md#tp-02-04`.
-- [ ] TP-02-05 executed with raw output recorded at `report.md#tp-02-05`.
-- [ ] TP-02-06 executed with raw output recorded at `report.md#tp-02-06`.
-- [ ] TP-02-07 executed with raw output recorded at `report.md#tp-02-07`.
-- [ ] TP-02-08 executed with raw output recorded at `report.md#tp-02-08`.
+- [x] TP-02-01 executed with raw output recorded at `report.md#tp-02-01`.
+- [x] TP-02-02 executed with raw output recorded at `report.md#tp-02-02`.
+- [x] TP-02-03 executed with raw output recorded at `report.md#tp-02-03`.
+- [x] TP-02-04 executed with raw output recorded at `report.md#tp-02-04`.
+- [x] TP-02-05 executed with raw output recorded at `report.md#tp-02-05`.
+- [x] TP-02-06 executed with raw output recorded at `report.md#tp-02-06`.
+- [x] TP-02-07 executed with raw output recorded at `report.md#tp-02-07`.
+- [x] TP-02-08 executed with raw output recorded at `report.md#tp-02-08`.
 
 #### Build Quality Gate
 
-- [ ] `node scripts/selftest.mjs` exits 0 on the working tree with the acquisition group registered and zero skipped assertions.
-- [ ] `node scripts/validate-official-curves.mjs` exits 0 against the artifact this scope writes.
-- [ ] `node scripts/validate-spec-test-paths.mjs` exits 0.
-- [ ] No path excluded from this scope was modified BY this scope; `git diff --name-only` output is recorded verbatim and names only files in the Allowed table.
-- [ ] Zero warnings emitted by any command run for this scope, evidenced by unfiltered output of every command above.
-- [ ] The measured byte size of the written `data/curves/us-treasury/curve.json` is recorded verbatim from `wc -c`, settling the design's estimated figure with a measurement.
+- [x] `node scripts/selftest.mjs` exits 0 on the working tree with the acquisition group registered and zero skipped assertions.
+- [x] `node scripts/validate-official-curves.mjs` exits 0 against the artifact this scope writes.
+- [x] `node scripts/validate-spec-test-paths.mjs` exits 0.
+- [x] No path excluded from this scope was modified BY this scope; `git diff --name-only` output is recorded verbatim and names only files in the Allowed table.
+- [x] Zero warnings emitted by any command run for this scope, evidenced by unfiltered output of every command above.
+- [x] The measured byte size of the written `data/curves/us-treasury/curve.json` is recorded verbatim from `wc -c`, settling the design's estimated figure with a measurement.

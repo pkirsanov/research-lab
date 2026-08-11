@@ -3,7 +3,7 @@
   "featureDir": "specs/018-headless-official-curve-publication",
   "featureName": "Headless Official Curve Publication",
   "createdAt": "2026-08-10T16:30:34Z",
-  "lastUpdatedAt": "2026-08-11T05:54:08Z",
+  "lastUpdatedAt": "2026-08-11T14:48:01Z",
   "status": "in_progress",
   "blockedReason": null,
   "workflowMode": "full-delivery",
@@ -18,14 +18,14 @@
     "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
     "currentPhaseStatus": "in_progress",
-    "currentScope": "02-tier-a-official-curve-acquisition",
-    "substate": "scope-01-delivered",
+    "currentScope": "03-observed-cadence-freshness-admission",
+    "substate": "scope-02-delivered",
     "runStartedAt": "2026-08-10T17:05:00Z",
     "completedAt": null,
     "completedPhaseClaims": [],
     "pendingTransitionRequests": [],
     "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "specs/018-headless-official-curve-publication/scopes/02-tier-a-official-curve-acquisition/scope.md",
+    "nextRequiredTarget": "specs/018-headless-official-curve-publication/scopes/03-observed-cadence-freshness-admission/scope.md",
     "scopeProgress": [
       {
         "scope": 1,
@@ -37,7 +37,7 @@
       {
         "scope": 2,
         "scopeId": "02-tier-a-official-curve-acquisition",
-        "status": "not_started",
+        "status": "done",
         "foundation": false,
         "dependsOn": [
           1
@@ -91,7 +91,8 @@
     "status": "uncertified",
     "certifiedAt": null,
     "completedScopes": [
-      "01-official-curve-artifact-contract"
+      "01-official-curve-artifact-contract",
+      "02-tier-a-official-curve-acquisition"
     ],
     "certifiedCompletedPhases": [],
     "scopeProgress": [],

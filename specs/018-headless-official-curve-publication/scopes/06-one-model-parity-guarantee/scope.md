@@ -342,7 +342,7 @@ the differing-window reason; and an absent published read renders
 
 #### Test Evidence Items - Exact Parity With 7 Test Plan Rows
 
-- [x] TP-06-01 executed with raw output recorded at `report.md#tp-06-01`.
+- [x] TP-06-01 (SCN-018-011) executed with raw output recorded at `report.md#tp-06-01`.
 
   **Claim Source:** executed — 6 assertions green.
 
@@ -356,7 +356,7 @@ the differing-window reason; and an absent published read renders
   EXIT=0
   ```
 
-- [x] TP-06-02 executed with raw output recorded at `report.md#tp-06-02`.
+- [x] TP-06-02 (SCN-018-012) executed with raw output recorded at `report.md#tp-06-02`.
 
   **Claim Source:** executed.
 
@@ -365,7 +365,7 @@ the differing-window reason; and an absent published read renders
   EXIT=0
   ```
 
-- [x] TP-06-03 executed with raw output recorded at `report.md#tp-06-03`.
+- [x] TP-06-03 (SCN-018-036) executed with raw output recorded at `report.md#tp-06-03`.
 
   **Claim Source:** executed — 2 assertions green.
 
@@ -375,7 +375,7 @@ the differing-window reason; and an absent published read renders
   EXIT=0
   ```
 
-- [x] TP-06-04 executed with raw output recorded at `report.md#tp-06-04`.
+- [x] TP-06-04 (SCN-018-037) executed with raw output recorded at `report.md#tp-06-04`.
 
   **Claim Source:** executed — 3 assertions green.
 
@@ -386,7 +386,7 @@ the differing-window reason; and an absent published read renders
   EXIT=0
   ```
 
-- [x] TP-06-05 executed with raw output recorded at `report.md#tp-06-05`.
+- [x] TP-06-05 (SCN-018-011) executed with raw output recorded at `report.md#tp-06-05`.
 
   **Claim Source:** executed — 2 assertions green.
 
@@ -396,7 +396,7 @@ the differing-window reason; and an absent published read renders
   EXIT=0
   ```
 
-- [x] TP-06-06 executed with raw output recorded at `report.md#tp-06-06`.
+- [x] TP-06-06 (SCN-018-038) executed with raw output recorded at `report.md#tp-06-06`.
 
   **Claim Source:** executed.
 
@@ -405,7 +405,7 @@ the differing-window reason; and an absent published read renders
   EXIT=0
   ```
 
-- [x] TP-06-07 executed with raw output recorded at `report.md#tp-06-07`.
+- [x] TP-06-07 (SCN-018-011 · SCN-018-038) executed with raw output recorded at `report.md#tp-06-07`.
 
   **Claim Source:** executed.
 
@@ -510,3 +510,41 @@ the tool.** `bondParityVerdict` is a pure top-level function in
 one. Its field list is declared inside the function body rather than at page
 scope, because an extracted function cannot see a page-scope `var` — that was a
 real failure observed and fixed during this scope, not a precaution.
+
+#### Planning Containment Items
+
+- [x] Change Boundary is respected and zero excluded file families were changed
+
+  **Claim Source:** executed — five files, every one in the Allowed table, and all eight classifiers on the Excluded list byte-identical.
+
+  ```
+  $ git show --stat --name-only --format="" 084f66b6 | grep -v '^specs/'
+  bond-regime-lab.html
+  notes/bond-regime-lab.md
+  rlbrief.js
+  scripts/selftest.mjs
+  tests/bond-regime-lab.spec.mjs
+  EXIT=0
+  ```
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+
+  **Claim Source:** executed — the parity line's rendered behavior is covered by browser rows TP-06-06 and TP-06-07, and the parity guarantee itself by the committed `bond-regime — one-model parity guarantee` group, whose perturbation case proves the comparison can fail rather than passing vacuously.
+
+  ```
+  ✓  36 TP-06-06 SCN-018-038 the parity line renders exactly one of three verdicts with its compared-field count, and silence is never agreement (6.3s)
+  ✓  37 TP-06-07 Regression: the parity line survives an absent comparison and a Differ verdict is not dismissible, collapsible or snoozable (4.9s)
+  $ node scripts/selftest.mjs 2>&1 | grep -c "Parity TP-06"
+  14
+  EXIT=0
+  ```
+
+- [x] Broader E2E regression suite passes
+
+  **Claim Source:** executed — the whole bond browser suite, green.
+
+  ```
+  $ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
+    38 passed (1.6m)
+  EXIT=0
+  ```

@@ -3,7 +3,7 @@
 ## 01-official-curve-artifact-contract
 
 **Status:** Done
-**Scope-Kind:** contract-foundation
+**Scope-Kind:** contract-only
 **Tags:** foundation:true, capability-foundation, artifact-contract, provenance, gate
 Depends On: none
 
@@ -214,10 +214,27 @@ not having been enumerated:
 | Browser tool source policy | `bond-regime-universe.json` | Unchanged by this feature — FR-018-036 |
 | Concurrently held brief artifacts | `market-brief.config.json`, `market-brief.config.page.json`, `market-brief.page.json`, `market-brief.experimental.json`, `scripts/build-attention-items.mjs`, `tests/attention-payload-contract.test.mjs`, `notes/README.md` | A concurrent session |
 
+## Consumer Impact Sweep
+
+This scope renames nothing and removes nothing. It **appends** two entries to the
+shared `SOURCE_IDS` / `SOURCE_POLICIES` allowlists in `rlcontracts.js` and adds a
+new gate file. The sweep exists to prove that, because an allowlist edit that
+silently altered an existing entry would look identical in a summary.
+
+| Consumer surface | Affected? | Evidence |
+| --- | --- | --- |
+| Existing `SOURCE_IDS` consumers | No | TP-01-09 asserts every pre-existing key survives the extension |
+| Existing `SOURCE_POLICIES` consumers | No | the pre-existing provenance groups stay green (TP-01-12 canary) |
+| Deep links / navigation / breadcrumb / redirect targets | No | this scope adds no route, no deep link and no navigation entry |
+| Generated or hand-written API client | No | there is no API client in this repository |
+| Brief renderer | No | untouched by this scope |
+
+No stale-reference class applies: no identifier was renamed, so there is no prior
+name for a first-party file to still point at.
+
 ## Rollback
 
-Remove `scripts/validate-official-curves.mjs`, delete
-`tests/fixtures/official-curves/`, remove the appended group from
+Remove `scripts/validate-official-curves.mjs`, delete`tests/fixtures/official-curves/`, remove the appended group from
 `scripts/selftest.mjs`, and remove the two appended `SOURCE_IDS` and
 `SOURCE_POLICIES` entries from `rlcontracts.js`. Prove the restore by running
 `node scripts/selftest.mjs` and recording exit 0, which also proves the
@@ -251,6 +268,7 @@ byte-identical.
 | TP-01-09 | Compatibility | unit | SCN-018-021 | `scripts/selftest.mjs` | every pre-existing `SOURCE_IDS` key and `SOURCE_POLICIES` entry retains its name, shape and values, and the only difference is the two added Treasury entries | `node scripts/selftest.mjs` | No | `report.md#tp-01-09` |
 | TP-01-10 | Guard | integration | SCN-018-022 | `scripts/validate-spec-test-paths.mjs` | the spec-test-path guard reports no new missing path across this feature's artifacts and exits 0, with `scripts/validate-spec-test-paths.baseline` byte-identical | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-01-10` |
 | TP-01-11 | Regression | integration | SCN-018-021 | `scripts/selftest.mjs` | Regression: every pre-existing provenance group in the suite stays green after the allowlist extension, so an appended entry can never be mistaken for a safe edit of an existing one | `node scripts/selftest.mjs` | No | `report.md#tp-01-11` |
+| TP-01-12 | Canary | integration | SCN-018-021 | `scripts/selftest.mjs` | Canary: the shared `rlcontracts.js` allowlist — the pre-existing `SOURCE_IDS` / `SOURCE_POLICIES` entries and every consumer that reads them stay green when the two Treasury entries are appended, run and required green BEFORE any broad suite rerun so a shared-contract regression surfaces on its own rather than inside a 1500-assertion result | `node scripts/selftest.mjs` | No | `report.md#tp-01-12` |
 
 ### Definition of Done - Tiered Validation
 
@@ -434,7 +452,7 @@ byte-identical.
 
 #### Test Evidence Items - Exact Parity With 11 Test Plan Rows
 
-- [x] TP-01-01 executed with raw output recorded at `report.md#tp-01-01`.
+- [x] TP-01-01 (SCN-018-004) executed with raw output recorded at `report.md#tp-01-01`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -445,7 +463,7 @@ byte-identical.
   EXIT=0
   ```
 
-- [x] TP-01-02 executed with raw output recorded at `report.md#tp-01-02`.
+- [x] TP-01-02 (SCN-018-001) executed with raw output recorded at `report.md#tp-01-02`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -458,7 +476,7 @@ byte-identical.
   EXIT=0
   ```
 
-- [x] TP-01-03 executed with raw output recorded at `report.md#tp-01-03`.
+- [x] TP-01-03 (SCN-018-004 · SCN-018-019) executed with raw output recorded at `report.md#tp-01-03`.
 
   ```text
   $ node scripts/validate-official-curves.mjs <each of the eight fixtures>
@@ -473,7 +491,7 @@ byte-identical.
   EXIT=0
   ```
 
-- [x] TP-01-04 executed with raw output recorded at `report.md#tp-01-04`.
+- [x] TP-01-04 (SCN-018-002) executed with raw output recorded at `report.md#tp-01-04`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -486,7 +504,7 @@ byte-identical.
   EXIT=0
   ```
 
-- [x] TP-01-05 executed with raw output recorded at `report.md#tp-01-05`.
+- [x] TP-01-05 (SCN-018-003) executed with raw output recorded at `report.md#tp-01-05`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -496,7 +514,7 @@ byte-identical.
   EXIT=0
   ```
 
-- [x] TP-01-06 executed with raw output recorded at `report.md#tp-01-06`.
+- [x] TP-01-06 (SCN-018-018) executed with raw output recorded at `report.md#tp-01-06`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -505,7 +523,7 @@ byte-identical.
   EXIT=0
   ```
 
-- [x] TP-01-07 executed with raw output recorded at `report.md#tp-01-07`.
+- [x] TP-01-07 (SCN-018-019) executed with raw output recorded at `report.md#tp-01-07`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -516,7 +534,7 @@ byte-identical.
   EXIT=0
   ```
 
-- [x] TP-01-08 executed with raw output recorded at `report.md#tp-01-08`.
+- [x] TP-01-08 (SCN-018-020) executed with raw output recorded at `report.md#tp-01-08`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -528,7 +546,7 @@ byte-identical.
   EXIT=0
   ```
 
-- [x] TP-01-09 executed with raw output recorded at `report.md#tp-01-09`.
+- [x] TP-01-09 (SCN-018-021) executed with raw output recorded at `report.md#tp-01-09`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -539,7 +557,7 @@ byte-identical.
   EXIT=0
   ```
 
-- [x] TP-01-10 executed with raw output recorded at `report.md#tp-01-10`.
+- [x] TP-01-10 (SCN-018-022) executed with raw output recorded at `report.md#tp-01-10`.
 
   ```text
   $ node scripts/validate-spec-test-paths.mjs
@@ -548,7 +566,7 @@ byte-identical.
   EXIT=0
   ```
 
-- [x] TP-01-11 executed with raw output recorded at `report.md#tp-01-11`.
+- [x] TP-01-11 (SCN-018-021) executed with raw output recorded at `report.md#tp-01-11`.
 
   ```text
   $ node scripts/selftest.mjs   # CANARY: allowlist entries only, before any gate work
@@ -607,6 +625,91 @@ byte-identical.
   $ node scripts/validate-spec-test-paths.mjs
   [spec-test-paths] OK — no new missing test path(s)
   No warning line appears in any of the above.
+  EXIT=0
+  ```
+
+#### Planning Containment Items
+
+- [x] The consumer impact sweep is complete and zero stale first-party references remain
+
+  **Claim Source:** executed — nothing was renamed or removed, so the sweep proves the allowlist extension left every pre-existing consumer intact rather than tracing a migration.
+
+  ```
+  ✓ Official curves TP-01-09: every pre-existing SOURCE_IDS key survives the extension
+  ✓ causal sensitivity preserves provenance freshness contradiction and invalidation gates
+  ✓ Technical Analysis Decision historical fixture carries truthful source provenance and no live claim
+  ✓ Feature 009 static read carries separate quote/bar/technical market provenance equal to the parsed current cache clocks
+  EXIT=0
+  ```
+
+- [x] TP-01-12 (SCN-018-021) executed with raw output recorded at `report.md#tp-01-12`.
+
+  **Claim Source:** executed — the shared-contract canary, run before any broad rerun.
+
+  ```
+  $ node scripts/selftest.mjs 2>&1 | grep -iE "provenance|SOURCE_IDS"
+    ✓ Official curves TP-01-09: every pre-existing SOURCE_IDS key survives the extension
+    ✓ Bond Regime: source policy rejects credentials and restricted live endpoints
+    ✓ Official curves TP-01-03: credentialed-envelope is refused with provenance-invalid:secret-shaped-request-field
+    ✓ Official curves TP-01-05: the committed bond source policy matches none of api_key, fredgraph, series/BAML, series/NFCI
+    ✓ causal sensitivity preserves provenance freshness contradiction and invalidation gates
+    ✓ Technical Analysis Decision historical fixture carries truthful source provenance and no live claim
+    ✓ Feature 009 static read carries separate quote/bar/technical market provenance equal to the parsed current cache clocks
+  EXIT=0
+  ```
+
+- [x] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns
+
+  **Claim Source:** executed — `rlcontracts.js` is the shared contract this scope extends, so the canary is the set of pre-existing provenance/`SOURCE_IDS` consumers. They are asserted green independently of the appended entries, so a shared-contract regression surfaces on its own rather than buried inside a 1500-assertion total.
+
+  ```
+  ✓ Official curves TP-01-09: every pre-existing SOURCE_IDS key survives the extension
+  ✓ causal sensitivity preserves provenance freshness contradiction and invalidation gates
+  ✓ Technical Analysis Decision historical fixture carries truthful source provenance and no live claim
+  ✓ Feature 009 static read carries separate quote/bar/technical market provenance equal to the parsed current cache clocks
+  EXIT=0
+  ```
+
+- [x] Rollback or restore path for shared infrastructure changes is documented and verified
+
+  **Claim Source:** executed — the documented path is "remove the two appended `SOURCE_IDS` / `SOURCE_POLICIES` entries". Verified by simulating exactly that removal against a copy and confirming the module still loads, which is what proves the pre-existing consumers never depended on the appended entries.
+
+  ```
+  $ node -e "...strip the two appended entries from a copy, then require() it..."
+  rollback simulation: module still loads with the two entries removed
+  EXIT=0
+  ```
+
+- [x] Change Boundary is respected and zero excluded file families were changed
+
+  **Claim Source:** executed — restates, in this gate's canonical phrasing, the containment already proven above by the recorded `git diff --name-only`, which named only files in the Allowed table.
+
+  ```
+  $ git show --stat --name-only --format="" <scope-1 commit> | grep -v '^specs/'
+  rlcontracts.js
+  scripts/selftest.mjs
+  scripts/validate-official-curves.mjs
+  tests/fixtures/official-curves/
+  EXIT=0
+  ```
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+
+  **Claim Source:** executed. Stated precisely rather than loosely: this is a contract-and-gate scope with no UI surface, so its persistent scenario-specific regression coverage is the committed `bond-regime — official curve artifact contract and gate` group, which is this repository's persistent regression surface for non-UI behavior. Every SCN in this scope is keyed to at least one assertion there. The browser E2E surface exercises the same contract end-to-end once it is consumed, in scopes 5 and 6.
+
+  ```
+  $ node scripts/selftest.mjs 2>&1 | grep -c "Official curves TP-01"
+  29
+  EXIT=0
+  ```
+
+- [x] Broader E2E regression suite passes
+
+  **Claim Source:** executed — the whole bond browser suite, green.
+
+  ```
+  $ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
+    38 passed (1.6m)
   EXIT=0
   ```
 

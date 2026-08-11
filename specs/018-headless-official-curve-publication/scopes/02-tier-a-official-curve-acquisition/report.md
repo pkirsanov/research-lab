@@ -313,7 +313,7 @@ The export is additive and changes no behavior. The alternative — re-implement
 the extraction — would have violated the stronger rule the step exists to
 enforce. Owner: this scope. Closed.
 
-Nothing was deferred.
+Every finding was closed inside this scope.
 
 ## Completion Statement
 

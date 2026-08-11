@@ -389,7 +389,7 @@ value appears in any rendered cell.
 
 #### Test Evidence Items - Exact Parity With 8 Test Plan Rows
 
-- [x] TP-05-01 executed with raw output recorded at `report.md#tp-05-01`.
+- [x] TP-05-01 (SCN-018-032) executed with raw output recorded at `report.md#tp-05-01`.
 
   **Claim Source:** executed.
 
@@ -398,7 +398,7 @@ value appears in any rendered cell.
   EXIT=0
   ```
 
-- [x] TP-05-02 executed with raw output recorded at `report.md#tp-05-02`.
+- [x] TP-05-02 (SCN-018-033) executed with raw output recorded at `report.md#tp-05-02`.
 
   **Claim Source:** executed.
 
@@ -407,7 +407,7 @@ value appears in any rendered cell.
   EXIT=0
   ```
 
-- [x] TP-05-03 executed with raw output recorded at `report.md#tp-05-03`.
+- [x] TP-05-03 (SCN-018-034) executed with raw output recorded at `report.md#tp-05-03`.
 
   **Claim Source:** executed.
 
@@ -416,7 +416,7 @@ value appears in any rendered cell.
   EXIT=0
   ```
 
-- [x] TP-05-04 executed with raw output recorded at `report.md#tp-05-04`.
+- [x] TP-05-04 (SCN-018-004) executed with raw output recorded at `report.md#tp-05-04`.
 
   **Claim Source:** executed.
 
@@ -425,7 +425,7 @@ value appears in any rendered cell.
   EXIT=0
   ```
 
-- [x] TP-05-05 executed with raw output recorded at `report.md#tp-05-05`.
+- [x] TP-05-05 (SCN-018-018) executed with raw output recorded at `report.md#tp-05-05`.
 
   **Claim Source:** executed.
 
@@ -434,7 +434,7 @@ value appears in any rendered cell.
   EXIT=0
   ```
 
-- [x] TP-05-06 executed with raw output recorded at `report.md#tp-05-06`.
+- [x] TP-05-06 (SCN-018-035) executed with raw output recorded at `report.md#tp-05-06`.
 
   **Claim Source:** executed.
 
@@ -443,7 +443,7 @@ value appears in any rendered cell.
   EXIT=0
   ```
 
-- [x] TP-05-07 executed with raw output recorded at `report.md#tp-05-07`.
+- [x] TP-05-07 (SCN-018-032) executed with raw output recorded at `report.md#tp-05-07`.
 
   **Claim Source:** executed.
 
@@ -452,7 +452,7 @@ value appears in any rendered cell.
   EXIT=0
   ```
 
-- [x] TP-05-08 executed with raw output recorded at `report.md#tp-05-08`.
+- [x] TP-05-08 (SCN-018-032 · SCN-018-034) executed with raw output recorded at `report.md#tp-05-08`.
 
   **Claim Source:** executed.
 
@@ -566,3 +566,40 @@ No request is intercepted, and the renderer under test is the shipped one.
 spec-006 work in two files on this scope's excluded list. I did not fix it,
 because it is theirs and mid-flight, and I did not stage it. Attribution is
 recorded above rather than the item being marked green on a technicality.
+
+#### Planning Containment Items
+
+- [x] Change Boundary is respected and zero excluded file families were changed
+
+  **Claim Source:** executed — six files, every one in the Allowed table, and all eight classifiers on the Excluded list byte-identical.
+
+  ```
+  $ git show --stat --name-only --format="" b04233e5 | grep -v '^specs/'
+  bond-regime-lab.html
+  market-brief.html
+  notes/bond-regime-lab.md
+  notes/market-brief.md
+  rlbrief.js
+  tests/bond-regime-lab.spec.mjs
+  EXIT=0
+  ```
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+
+  **Claim Source:** executed — this is a UI scope, so the coverage is literal browser E2E: 8 rows, one or more per scenario, and all six card rows proven non-vacuous by neutering the card body and observing them fail.
+
+  ```
+  ✓ TP-05-01 ... ✓ TP-05-02 ... ✓ TP-05-03 ... ✓ TP-05-04
+  ✓ TP-05-05 ... ✓ TP-05-06 ... ✓ TP-05-07 ... ✓ TP-05-08
+  EXIT=0
+  ```
+
+- [x] Broader E2E regression suite passes
+
+  **Claim Source:** executed — the whole bond browser suite, green, including all 28 pre-existing rows.
+
+  ```
+  $ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
+    38 passed (1.6m)
+  EXIT=0
+  ```

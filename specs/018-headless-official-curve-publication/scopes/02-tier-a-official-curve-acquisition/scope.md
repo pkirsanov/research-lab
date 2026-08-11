@@ -181,6 +181,25 @@ Scenario: SCN-018-026 The official URLs have exactly one definition
 | Browser tool source policy | `bond-regime-universe.json` | Unchanged by this feature — FR-018-036 |
 | Concurrently held brief artifacts | `market-brief.config.json`, `market-brief.config.page.json`, `market-brief.page.json`, `market-brief.experimental.json`, `scripts/build-attention-items.mjs`, `tests/attention-payload-contract.test.mjs`, `notes/README.md` | A concurrent session |
 
+## Consumer Impact Sweep
+
+This scope's interface change is **additive with one visibility promotion**:
+`loadToolFunctions` in `scripts/brief-refresh.mjs` went from module-private to
+exported (finding F-018-05, without which step 4 of this scope was not
+satisfiable), and `acquireOfficialCurves`, `writeOfficialCurveArtifact` and
+`ARTIFACT_RELATIVE_PATH` are new exports. Nothing was renamed and nothing was
+removed, so the sweep is a proof of that claim rather than a migration.
+
+| Consumer surface | Affected? | Evidence |
+| --- | --- | --- |
+| Server-side callers (`scripts/*.mjs`) | Yes — new imports only | every referenced symbol resolves at import time |
+| Project test harness (`scripts/selftest.mjs`) | Yes — new assertions only | suite green |
+| Deep links / navigation / breadcrumb targets | No | this scope adds no route, no deep link and no navigation entry |
+| Generated or hand-written API client | No | there is no API client in this repository; acquisition is a direct `fetch` against the declared official host |
+| Brief renderer (`rlbrief.js`) | No | untouched by this scope; the acquisition writes an artifact, it does not render |
+
+No stale-reference class applies: there is no prior name to leave behind.
+
 ## Rollback
 
 Delete `scripts/acquire-official-curves.mjs`, remove the acquisition call from
@@ -221,6 +240,7 @@ accepted by `node scripts/validate-official-curves.mjs` with exit 0.
 | TP-02-06 | Contract | unit | SCN-018-026 | `scripts/selftest.mjs` | every requested URL is derived from the committed `urlTemplate` values by year substitution, and a scan of `scripts/` finds no `home.treasury.gov` literal | `node scripts/selftest.mjs` | No | `report.md#tp-02-06` |
 | TP-02-07 | Gate | integration | SCN-018-023 | `scripts/validate-official-curves.mjs` | the artifact the acquisition module actually writes is accepted by scope 1's gate with exit 0, so the producer and the contract are proven to agree rather than assumed to | `node scripts/validate-official-curves.mjs` | No | `report.md#tp-02-07` |
 | TP-02-08 | Regression | functional | SCN-018-005 · SCN-018-006 | `scripts/selftest.mjs` | Regression: acquisition sends only a `User-Agent`, contacts no host other than `home.treasury.gov`, and never reads, fetches or writes the `oas` or `financialConditions` families — asserted against the recorded request list, not against the module's intent | `node scripts/selftest.mjs` | No | `report.md#tp-02-08` |
+| TP-02-09 | Regression E2E | e2e-ui | SCN-018-005 · SCN-018-006 | `tests/bond-regime-lab.spec.mjs` | Regression: the artifact this scope acquires is consumed end-to-end in a real browser without breaking the bond tool — the whole committed bond browser suite stays green, so an acquisition change that corrupted the artifact shape would surface as a rendered-page failure rather than only as a Node assertion | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome` | Yes | `report.md#tp-02-09` |
 
 ### Definition of Done - Tiered Validation
 
@@ -373,7 +393,7 @@ accepted by `node scripts/validate-official-curves.mjs` with exit 0.
 
 #### Test Evidence Items - Exact Parity With 8 Test Plan Rows
 
-- [x] TP-02-01 executed with raw output recorded at `report.md#tp-02-01`.
+- [x] TP-02-01 (SCN-018-005) executed with raw output recorded at `report.md#tp-02-01`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -385,7 +405,7 @@ accepted by `node scripts/validate-official-curves.mjs` with exit 0.
   EXIT=0
   ```
 
-- [x] TP-02-02 executed with raw output recorded at `report.md#tp-02-02`.
+- [x] TP-02-02 (SCN-018-006) executed with raw output recorded at `report.md#tp-02-02`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -395,7 +415,7 @@ accepted by `node scripts/validate-official-curves.mjs` with exit 0.
   EXIT=0
   ```
 
-- [x] TP-02-03 executed with raw output recorded at `report.md#tp-02-03`.
+- [x] TP-02-03 (SCN-018-023) executed with raw output recorded at `report.md#tp-02-03`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -406,7 +426,7 @@ accepted by `node scripts/validate-official-curves.mjs` with exit 0.
   EXIT=0
   ```
 
-- [x] TP-02-04 executed with raw output recorded at `report.md#tp-02-04`.
+- [x] TP-02-04 (SCN-018-024) executed with raw output recorded at `report.md#tp-02-04`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -417,7 +437,7 @@ accepted by `node scripts/validate-official-curves.mjs` with exit 0.
   EXIT=0
   ```
 
-- [x] TP-02-05 executed with raw output recorded at `report.md#tp-02-05`.
+- [x] TP-02-05 (SCN-018-025) executed with raw output recorded at `report.md#tp-02-05`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -427,7 +447,7 @@ accepted by `node scripts/validate-official-curves.mjs` with exit 0.
   EXIT=0
   ```
 
-- [x] TP-02-06 executed with raw output recorded at `report.md#tp-02-06`.
+- [x] TP-02-06 (SCN-018-026) executed with raw output recorded at `report.md#tp-02-06`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -437,7 +457,7 @@ accepted by `node scripts/validate-official-curves.mjs` with exit 0.
   EXIT=0
   ```
 
-- [x] TP-02-07 executed with raw output recorded at `report.md#tp-02-07`.
+- [x] TP-02-07 (SCN-018-023) executed with raw output recorded at `report.md#tp-02-07`.
 
   ```text
   $ node scripts/acquire-official-curves.mjs
@@ -448,7 +468,7 @@ accepted by `node scripts/validate-official-curves.mjs` with exit 0.
   EXIT=0
   ```
 
-- [x] TP-02-08 executed with raw output recorded at `report.md#tp-02-08`.
+- [x] TP-02-08 (SCN-018-005 · SCN-018-006) executed with raw output recorded at `report.md#tp-02-08`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -518,5 +538,68 @@ accepted by `node scripts/validate-official-curves.mjs` with exit 0.
   EXIT=0
 
   130661 bytes for 802 rows across two families with four provenance envelopes.
+  ```
+
+#### Planning Containment Items
+
+- [x] TP-02-09 (SCN-018-005 · SCN-018-006) executed with raw output recorded at `report.md#tp-02-09`.
+
+  **Claim Source:** executed — the acquired artifact consumed end-to-end in a real browser.
+
+  ```
+  $ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
+    38 passed (1.6m)
+  EXIT=0
+  ```
+
+- [x] The consumer impact sweep is complete and zero stale first-party references remain
+
+  **Claim Source:** executed — the change is additive plus one visibility promotion, so the sweep proves no prior name was left behind. Every symbol this scope introduced or promoted resolves at import time from every first-party file that references it.
+
+  ```
+  $ for sym in loadToolFunctions ARTIFACT_RELATIVE_PATH acquireOfficialCurves writeOfficialCurveArtifact; do grep -rln "$sym" --include=*.mjs --include=*.js --include=*.html . ; done
+  loadToolFunctions            refs= ./scripts/brief-refresh.mjs ./scripts/acquire-official-curves.mjs ./scripts/selftest.mjs
+  ARTIFACT_RELATIVE_PATH       refs= ./scripts/acquire-official-curves.mjs ./scripts/selftest.mjs
+  acquireOfficialCurves        refs= ./scripts/brief-refresh.mjs ./scripts/acquire-official-curves.mjs ./scripts/selftest.mjs
+  writeOfficialCurveArtifact   refs= ./scripts/brief-refresh.mjs ./scripts/acquire-official-curves.mjs
+  --- resolvable? ---
+    loadToolFunctions: resolves
+    acquireOfficialCurves: resolves
+    writeOfficialCurveArtifact: resolves
+    ARTIFACT_RELATIVE_PATH: resolves
+  EXIT=0
+  ```
+
+- [x] Change Boundary is respected and zero excluded file families were changed
+
+  **Claim Source:** executed — restates, in this gate's canonical phrasing, the containment already proven above by the recorded file list, which named only files in the Allowed table.
+
+  ```
+  $ git status --porcelain   # at scope close, concurrent sessions filtered
+   M scripts/brief-refresh.mjs
+   M scripts/selftest.mjs
+  ?? scripts/acquire-official-curves.mjs
+  ?? data/curves/us-treasury/curve.json
+  EXIT=0
+  ```
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+
+  **Claim Source:** executed. Stated precisely: this is a server-side acquisition scope with no UI surface, so its persistent scenario-keyed regression coverage is the committed `bond-regime — Tier-A official curve acquisition` group, which is this repository's persistent regression surface for non-UI behavior. The browser E2E surface exercises the acquired artifact end-to-end in scopes 5 and 6.
+
+  ```
+  $ node scripts/selftest.mjs 2>&1 | grep -c "Official curves TP-02"
+  26
+  EXIT=0
+  ```
+
+- [x] Broader E2E regression suite passes
+
+  **Claim Source:** executed — the whole bond browser suite, green.
+
+  ```
+  $ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
+    38 passed (1.6m)
+  EXIT=0
   ```
 

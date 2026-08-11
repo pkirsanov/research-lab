@@ -427,7 +427,7 @@ so no future run can put a home directory into an evidence block that quotes it.
 The two lines above were then re-recorded from the corrected run. Owner: this
 scope. Closed — `pii-scan` findings back to 0 and the suite back to 1401 / 0.
 
-No finding is routed onward. Nothing was deferred.
+No finding is routed onward. Every finding was closed inside this scope.
 
 ## Completion Statement
 

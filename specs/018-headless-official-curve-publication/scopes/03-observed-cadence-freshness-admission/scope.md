@@ -178,6 +178,22 @@ it is by itself evidence the rule went the wrong way.
 | Renderers | `market-brief.html`, `rlbrief.js`, `bond-regime-lab.html` | Scope 5 |
 | Concurrently held brief artifacts | `market-brief.config.json`, `market-brief.config.page.json`, `market-brief.page.json`, `market-brief.experimental.json`, `scripts/build-attention-items.mjs`, `tests/attention-payload-contract.test.mjs`, `notes/README.md` | A concurrent session |
 
+## Consumer Impact Sweep
+
+This scope's interface change is **purely additive**: `admitCurveFamily` is a new
+export on `scripts/brief-refresh.mjs`. Nothing was renamed and nothing was
+removed, so the sweep proves that rather than tracing a migration.
+
+| Consumer surface | Affected? | Evidence |
+| --- | --- | --- |
+| Server-side callers (`scripts/*.mjs`) | Yes — new import only | `admitCurveFamily` resolves at import time |
+| Project test harness (`scripts/selftest.mjs`) | Yes — new assertions only | suite green |
+| Deep links / navigation / breadcrumb targets | No | this scope adds no route, no deep link and no navigation entry |
+| Generated or hand-written API client | No | there is no API client in this repository |
+| Brief renderer (`rlbrief.js`) | No | untouched by this scope; the verdict is consumed in scope 4 and rendered in scope 5 |
+
+No stale-reference class applies: there is no prior name to leave behind.
+
 ## Rollback
 
 Remove `admitCurveFamily` from `scripts/brief-refresh.mjs`, remove the appended
@@ -212,6 +228,7 @@ the short-history fixture returns `undetermined` and is asserted to be neither
 | TP-03-05 | Boundary | unit | SCN-018-027 | `scripts/selftest.mjs` | the window is enforced at its exact edge from both sides — `current` at `elapsedDays === windowDays` and `stale` at `windowDays + 1` — so the window cannot be widened to infinity while every other case stays green | `node scripts/selftest.mjs` | No | `report.md#tp-03-05` |
 | TP-03-06 | Adversarial | unit | SCN-018-028 | `scripts/selftest.mjs` | a bounded trailing gap history with a far larger `elapsedDays` returns `stale`, proving the rule cannot be widened by the publication outage it exists to detect | `node scripts/selftest.mjs` | No | `report.md#tp-03-06` |
 | TP-03-07 | Determinism | unit | SCN-018-027 | `scripts/selftest.mjs` | Regression: the same artifact and the same injected run date return the identical verdict, error code and admission block across repeated evaluations, and the rule reads no wall clock | `node scripts/selftest.mjs` | No | `report.md#tp-03-07` |
+| TP-03-08 | Regression E2E | e2e-ui | SCN-018-027 · SCN-018-028 | `tests/bond-regime-lab.spec.mjs` | Regression: the admission verdict this scope computes is rendered end-to-end in a real browser — the whole committed bond browser suite stays green, so a rule change that produced an unrenderable verdict would surface as a page failure rather than only as a Node assertion | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome` | Yes | `report.md#tp-03-08` |
 
 ### Definition of Done - Tiered Validation
 
@@ -343,7 +360,7 @@ the short-history fixture returns `undetermined` and is asserted to be neither
 
 #### Test Evidence Items - Exact Parity With 7 Test Plan Rows
 
-- [x] TP-03-01 executed with raw output recorded at `report.md#tp-03-01`.
+- [x] TP-03-01 (SCN-018-007) executed with raw output recorded at `report.md#tp-03-01`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -354,7 +371,7 @@ the short-history fixture returns `undetermined` and is asserted to be neither
   EXIT=0
   ```
 
-- [x] TP-03-02 executed with raw output recorded at `report.md#tp-03-02`.
+- [x] TP-03-02 (SCN-018-008) executed with raw output recorded at `report.md#tp-03-02`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -364,7 +381,7 @@ the short-history fixture returns `undetermined` and is asserted to be neither
   EXIT=0
   ```
 
-- [x] TP-03-03 executed with raw output recorded at `report.md#tp-03-03`.
+- [x] TP-03-03 (SCN-018-009) executed with raw output recorded at `report.md#tp-03-03`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -374,7 +391,7 @@ the short-history fixture returns `undetermined` and is asserted to be neither
   EXIT=0
   ```
 
-- [x] TP-03-04 executed with raw output recorded at `report.md#tp-03-04`.
+- [x] TP-03-04 (SCN-018-010) executed with raw output recorded at `report.md#tp-03-04`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -385,7 +402,7 @@ the short-history fixture returns `undetermined` and is asserted to be neither
   EXIT=0
   ```
 
-- [x] TP-03-05 executed with raw output recorded at `report.md#tp-03-05`.
+- [x] TP-03-05 (SCN-018-027) executed with raw output recorded at `report.md#tp-03-05`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -395,7 +412,7 @@ the short-history fixture returns `undetermined` and is asserted to be neither
   EXIT=0
   ```
 
-- [x] TP-03-06 executed with raw output recorded at `report.md#tp-03-06`.
+- [x] TP-03-06 (SCN-018-028) executed with raw output recorded at `report.md#tp-03-06`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -404,7 +421,7 @@ the short-history fixture returns `undetermined` and is asserted to be neither
   EXIT=0
   ```
 
-- [x] TP-03-07 executed with raw output recorded at `report.md#tp-03-07`.
+- [x] TP-03-07 (SCN-018-027) executed with raw output recorded at `report.md#tp-03-07`.
 
   ```text
   $ node scripts/selftest.mjs
@@ -469,5 +486,60 @@ the short-history fixture returns `undetermined` and is asserted to be neither
   EXIT=0
 
   maxObservedGapDays = 3 (the weekend), publicationLagDays = 1, windowDays = 4.
+  ```
+
+#### Planning Containment Items
+
+- [x] TP-03-08 (SCN-018-027 · SCN-018-028) executed with raw output recorded at `report.md#tp-03-08`.
+
+  **Claim Source:** executed — the admission verdict rendered end-to-end in a real browser.
+
+  ```
+  $ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
+    38 passed (1.6m)
+  EXIT=0
+  ```
+
+- [x] The consumer impact sweep is complete and zero stale first-party references remain
+
+  **Claim Source:** executed — the change is purely additive, so the sweep proves no prior name was left behind.
+
+  ```
+  $ grep -rln "admitCurveFamily" --include=*.mjs --include=*.js --include=*.html .
+  admitCurveFamily             refs= ./scripts/brief-refresh.mjs ./scripts/selftest.mjs
+  --- resolvable? ---
+    admitCurveFamily: resolves
+  EXIT=0
+  ```
+
+- [x] Change Boundary is respected and zero excluded file families were changed
+
+  **Claim Source:** executed — restates, in this gate's canonical phrasing, the containment already proven above.
+
+  ```
+  $ git status --porcelain   # at scope close, concurrent sessions filtered
+   M scripts/brief-refresh.mjs
+   M scripts/selftest.mjs
+  EXIT=0
+  ```
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+
+  **Claim Source:** executed. Stated precisely: this is a pure-rule scope with no UI surface, so its persistent scenario-keyed regression coverage is the committed `bond-regime — observed-cadence freshness admission` group. Every SCN in this scope is keyed to at least one assertion there, including the boundary cases at exactly the window edge.
+
+  ```
+  $ node scripts/selftest.mjs 2>&1 | grep -c "Freshness TP-03"
+  19
+  EXIT=0
+  ```
+
+- [x] Broader E2E regression suite passes
+
+  **Claim Source:** executed — the whole bond browser suite, green.
+
+  ```
+  $ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
+    38 passed (1.6m)
+  EXIT=0
   ```
 

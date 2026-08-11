@@ -2,7 +2,7 @@
     "contractVersion": "scenario-manifest/v1",
     "featureDir": "specs/018-headless-official-curve-publication",
     "generatedBy": "bubbles.plan",
-    "scenarioCount": 38,
+    "scenarioCount": 40,
     "businessScenarioMapping": "SCN-018-001 through SCN-018-018 map one-to-one onto BS-018-001 through BS-018-018 in spec.md. SCN-018-019 through SCN-018-038 are planning-added scenarios covering the adversarial cases design.md names and the routed items R-2 through R-5.",
     "scenarios": [
         {
@@ -725,6 +725,42 @@
                 "scopes/06-one-model-parity-guarantee/report.md#tp-06-07"
             ],
             "origin": "spec.md § One-model guarantee — silence is never agreement"
+        },
+        {
+            "scenarioId": "SCN-018-004",
+            "businessScenario": "BS-018-004",
+            "scopeId": "05-brief-read-and-provenance-render",
+            "scope": 5,
+            "status": "not_started",
+            "requiredTestType": "e2e-ui",
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs"
+            ],
+            "testRows": [
+                "TP-05-04"
+            ],
+            "evidenceRefs": [
+                "scopes/05-brief-read-and-provenance-render/report.md#tp-05-04"
+            ],
+            "origin": "spec.md § Provenance row is complete and traceable — the rendered instance, whose required test type is e2e-ui rather than the scope-1 contract instance's unit"
+        },
+        {
+            "scenarioId": "SCN-018-018",
+            "businessScenario": "BS-018-018",
+            "scopeId": "05-brief-read-and-provenance-render",
+            "scope": 5,
+            "status": "not_started",
+            "requiredTestType": "e2e-ui",
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs"
+            ],
+            "testRows": [
+                "TP-05-05"
+            ],
+            "evidenceRefs": [
+                "scopes/05-brief-read-and-provenance-render/report.md#tp-05-05"
+            ],
+            "origin": "spec.md § No restricted value is rendered anywhere — the rendered instance, whose required test type is e2e-ui rather than the scope-1 contract instance's unit"
         }
     ]
 }

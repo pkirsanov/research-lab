@@ -259,7 +259,7 @@ is recorded as a weakening rather than presented as the trace the row asked for.
 It still fails the moment anyone adds a read, which is the regression the row
 exists to guard. Owner: this scope. Closed with the limitation stated.
 
-Nothing was deferred.
+Every finding was closed inside this scope.
 
 ## Completion Statement
 

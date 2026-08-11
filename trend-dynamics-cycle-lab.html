@@ -2958,6 +2958,66 @@
       return tdcDeepFreeze({ ok: true, score: matching / evaluations.length, evaluations: evaluations, baselineSignature: evaluations[0].signature, integrityInvariant: evaluations.every(function (evaluation) { return evaluation.integrityKey === integritySerialized.value; }), integrityKey: integritySerialized.value });
     }
 
+    /* State precedence lives here, not in the Brief: `availability` stays SOURCE freshness while
+       `metrics.truthState` carries the ANALYTICAL state, so a degraded read over current source
+       stays honest on both axes. Invalid numerics are omitted rather than zeroed — a published 0
+       reads downstream as a real measurement. */
+    function tdcBuildToolRead(result) {
+      if (!result || typeof result !== 'object' || result.complete !== true) return null;
+      var truth = result.truthState;
+      var unavailable = truth === 'unavailable';
+      var request = result.request && typeof result.request === 'object' ? result.request : {};
+      var metrics = {
+        contractVersion: 'tdc-tool-read/v1',
+        truthState: truth || 'unavailable',
+        seriesId: request.seriesId || null,
+        transformId: request.transformId || null,
+        horizonId: request.horizonId || null,
+        resultId: result.resultId || null,
+        requestDigest: result.requestDigest || null
+      };
+      if (!unavailable) {
+        var trend = result.trend && typeof result.trend === 'object' ? result.trend : {};
+        var strength = result.strength && typeof result.strength === 'object' ? result.strength : {};
+        var dynamics = result.dynamics && typeof result.dynamics === 'object' ? result.dynamics : {};
+        if (trend.direction) metrics.direction = trend.direction;
+        if (trend.trendType) metrics.trendType = trend.trendType;
+        if (Number.isFinite(strength.score)) metrics.strengthScore = strength.score;
+        if (dynamics.state) metrics.dynamics = dynamics.state;
+        if (result.changeState) metrics.changeState = result.changeState;
+        if (Number.isFinite(result.confidencePct)) metrics.confidencePct = result.confidencePct;
+        if (result.keyContext) metrics.keyContext = result.keyContext;
+      }
+      var caveats = Array.isArray(result.caveats) ? result.caveats : [];
+      if (caveats.length) metrics.caveat = String(caveats[0]);
+      var sentence;
+      if (unavailable) sentence = 'Unavailable: the trend, dynamics and cycle read could not be resolved from the available evidence.';
+      else if (truth === 'degraded') sentence = 'Degraded: ' + tdcComposeReadSentence(metrics) + ' Evidence is incomplete, so treat this as provisional.';
+      else sentence = tdcComposeReadSentence(metrics);
+      return {
+        contractVersion: 'rl-tool-read/v1',
+        id: 'trend-dynamics-cycle-lab',
+        availability: result.sourceAvailability || 'unavailable',
+        asOf: unavailable ? null : (result.sourceAsOf || null),
+        read: sentence,
+        metrics: metrics,
+        deepLink: 'trend-dynamics-cycle-lab.html',
+        computedAt: result.computedAt || null,
+        freshUntil: unavailable ? null : (result.freshUntil || null)
+      };
+    }
+
+    /* Plain reader words only — no id, contract version or status code reaches Brief copy. */
+    function tdcComposeReadSentence(metrics) {
+      var parts = [];
+      if (metrics.direction) parts.push('trend is ' + metrics.direction);
+      if (metrics.trendType) parts.push('shaped ' + metrics.trendType);
+      if (metrics.dynamics) parts.push('dynamics ' + metrics.dynamics);
+      if (metrics.changeState) parts.push('change ' + metrics.changeState);
+      if (!parts.length) return 'No resolved trend, dynamics or change reading is available.';
+      return 'The ' + parts.join(', ') + '.';
+    }
+
     function tdcBuildConsensus(input) {
       if (!tdcIsPlainObject(input).value || !Array.isArray(input.methodResults) || !Array.isArray(input.familyVotes) || !tdcIsPlainObject(input.trend).value || !tdcIsPlainObject(input.dynamics).value || !tdcIsPlainObject(input.change).value || !tdcIsPlainObject(input.stability).value || !tdcIsPlainObject(input.influence).value || !tdcIsPlainObject(input.quality).value || !tdcIsPlainObject(input.profile).value || !tdcIsPlainObject(input.horizon).value || !tdcIsPlainObject(input.integrity).value) return tdcDeepFreeze({ ok: false, errors: [tdcError('TDC-CONTRACT-OBJECT', '$', input, 'complete Scope 2 consensus input', 'Consensus input is incomplete')] });
       var linear = input.methodResults.find(function (result) { return result.methodId === 'M01-ols-hac'; });

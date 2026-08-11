@@ -6900,6 +6900,53 @@ try {
   assert(specTestPaths.newMissing.length === 0, 'no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline \u2014 a stale path makes a multi-file verification command silently cover less than it claims (' + specTestPaths.newMissing.length + ' new, ' + specTestPaths.knownMissing.length + ' known-missing, ' + specTestPaths.staleBaseline.length + ' stale of ' + specTestPaths.referencedPathCount + ' referenced)');
 } catch (e) { failures++; console.log('  \u2717 FAIL (spec artifact test-path guard threw): ' + e.message); }
 
+/* ── trend-dynamics-cycle-lab — owner read (TP-04-01, spec 006 scope 4) ───────────────────
+   The owner read is this tool's ONLY route into the Market Brief, so its truth handling is a
+   contract rather than a formatting detail. Two axes stay deliberately separate: the shared
+   transport's top-level `availability` carries SOURCE freshness, while `metrics.truthState`
+   carries the ANALYTICAL state. A degraded analysis over current source must publish
+   availability:'current' WITH truthState:'degraded' — collapsing the axes would either hide a
+   degraded conclusion or falsely age a source that is in fact current. The cases below drive
+   the SAME builder across states so the mapping is provably computed, not a fixed shape. */
+try {
+  group('trend-dynamics-cycle-lab \u2014 owner read separates source freshness from analytical truth (TP-04-01)');
+  const tdcSrc = read('trend-dynamics-cycle-lab.html');
+  // The sentence helper is a dependency of the builder, so the sandbox must carry both.
+  const tdcEnv = build(
+    [extractFn(tdcSrc, 'tdcComposeReadSentence'), extractFn(tdcSrc, 'tdcBuildToolRead')],
+    ['tdcBuildToolRead']);
+  const tdcResult = (over) => Object.assign({
+    contractVersion: 'tdc-analysis-result/v1', resultId: 'res-001', requestDigest: 'dig-abc',
+    computedAt: '2026-08-11T12:00:00Z', sourceAsOf: '2026-08-10',
+    sourceAvailability: 'current', truthState: 'current',
+    request: { seriesId: 'srs-1', transformId: 'level', horizonId: 'medium' },
+    trend: { direction: 'rising', trendType: 'linear' }, strength: { score: 0.72 },
+    dynamics: { state: 'accelerating' }, changeState: 'stable',
+    confidencePct: 81, keyContext: 'expansion', caveats: [], complete: true
+  }, over || {});
+
+  const okRead = tdcEnv.tdcBuildToolRead(tdcResult());
+  assert(okRead && okRead.contractVersion === 'rl-tool-read/v1' && okRead.id === 'trend-dynamics-cycle-lab',
+    'the owner read uses the shared rl-tool-read/v1 transport under the tool\u2019s registered id');
+  assert(okRead.metrics.contractVersion === 'tdc-tool-read/v1' && okRead.metrics.resultId === 'res-001' && okRead.metrics.requestDigest === 'dig-abc',
+    'the nested metrics contract carries the result identity verbatim, so a consumer can prove which run it read');
+
+  const degraded = tdcEnv.tdcBuildToolRead(tdcResult({ truthState: 'degraded', sourceAvailability: 'current' }));
+  assert(degraded.availability === 'current' && degraded.metrics.truthState === 'degraded',
+    'a degraded analysis over CURRENT source keeps availability current and carries the degraded state nested \u2014 the two axes never collapse');
+  assert(typeof degraded.read === 'string' && degraded.read.indexOf('Degraded:') === 0,
+    'the degraded sentence is prefixed so the Brief can quote it verbatim instead of recomputing the state');
+
+  const unavailable = tdcEnv.tdcBuildToolRead(tdcResult({ truthState: 'unavailable', sourceAvailability: 'unavailable', strength: { score: null }, confidencePct: null }));
+  assert(unavailable.asOf === null && unavailable.freshUntil === null,
+    'an unavailable read reports no as-of and no freshness rather than a stale-but-plausible timestamp');
+  assert(!('strengthScore' in unavailable.metrics) && !('confidencePct' in unavailable.metrics),
+    'invalid numerics are OMITTED from an unavailable read \u2014 not published as zero, which a consumer would read as a real measurement');
+
+  assert(tdcEnv.tdcBuildToolRead(tdcResult({ complete: false })) === null,
+    'an incomplete run publishes NOTHING, so a cancelled or partial analysis can never reach the Brief');
+} catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab owner read threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

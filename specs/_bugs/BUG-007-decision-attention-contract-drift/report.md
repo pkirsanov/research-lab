@@ -169,11 +169,19 @@ passed `--expected-control-revision 8` and committed revision 9.
 
 ### E2 — Clean tree at HEAD
 
+<!-- bubbles:evidence-legitimacy-skip-begin -->
+<!-- Reason: this capture is a `git status --porcelain` that produced NO output, which is
+     precisely the result it exists to prove. Its whole evidentiary content is an absence,
+     so it carries no test count, no file path and no exit-code string for the heuristic to
+     recognise. Manufacturing one would mean writing output the command never produced. The
+     block is exempted through the framework's declared mechanism, which counts and reports
+     it, rather than being dressed up to look like something it is not. -->
 ```
 $ git status --porcelain; git log -1 --format='%H %ci %s'
 GIT_STATUS_EXIT=0 (empty above == clean tree)
 HEAD=aeb1bcbc3373cc90cc846fc4bfb577dd9f75c927 2026-08-10 14:13:48 +0000 FR-018: an attention item deep-links to its owning tool, checked against the registry
 ```
+<!-- bubbles:evidence-legitimacy-skip-end -->
 
 `git status --porcelain` produced no output. Re-checked after every subsequent command,
 including after the worktree reproduction and its removal, with the same empty result.
@@ -243,12 +251,18 @@ confirms the reproduction is of the same state and not a similar one.
 
 ### E5 — Worktree removed, tree restored
 
+<!-- bubbles:evidence-legitimacy-skip-begin -->
+<!-- Reason: same shape as E2. The `git status --porcelain` half produced no output, and the
+     `git worktree list` half prints one path that carries no file extension, so this block
+     cannot reach two signals without inventing output. Exempted through the declared
+     mechanism rather than padded. -->
 ```
 $ git worktree list; git status --porcelain
 <repo-root>  aeb1bcbc3 [main]
 === tree clean? ===
 (empty above == clean)
 ```
+<!-- bubbles:evidence-legitimacy-skip-end -->
 
 `git worktree list` shows only the primary checkout; `git status --porcelain` is empty.
 

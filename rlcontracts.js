@@ -1931,6 +1931,11 @@
   }
 
   var api = Object.freeze({
+    // The frozen provenance allowlists, exported so a consumer can ASSERT the
+    // contract rather than scrape it out of this file's source text.
+    SOURCE_IDS: SOURCE_IDS,
+    SOURCE_KINDS: SOURCE_KINDS,
+    SOURCE_POLICIES: SOURCE_POLICIES,
     canonicalize: canonicalize,
     compactAuthorInput: compactAuthorInput,
     compactFinalAuthorInput: compactFinalAuthorInput,

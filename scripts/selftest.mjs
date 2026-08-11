@@ -1778,6 +1778,139 @@ try {
   config.instruments.forEach((instrument) => assert(collector.includes('bond-regime-universe.json') || collector.includes(instrument.ticker), 'Canary: Bond Regime snapshot inventory includes ' + instrument.ticker));
 } catch (e) { failures++; console.log('  ✗ FAIL (bond-regime adapter group threw): ' + e.message); }
 
+/* ---------- Bond regime: official curve artifact contract and gate (spec 018 Scope 1) ---------- */
+try {
+  group('bond-regime — official curve artifact contract and gate');
+  const { createRequire } = await import('node:module');
+  const curveRequire = createRequire(import.meta.url);
+  const RLC = curveRequire(join(ROOT, 'rlcontracts.js'));
+  const {
+    validateOfficialCurves, REQUIRED_MATURITIES, REQUIRED_QUERY_TYPE, OFFICIAL_CURVE_HOST
+  } = await import('./validate-official-curves.mjs');
+
+  const fixture = (name) => JSON.parse(read('tests/fixtures/official-curves/' + name + '.json'));
+  const clone = (value) => JSON.parse(JSON.stringify(value));
+  const universe = JSON.parse(read('bond-regime-universe.json'));
+  const conformant = fixture('conformant');
+  const runGate = (artifact) => validateOfficialCurves(artifact, { universe });
+  const refusalCodes = (errors) => errors.map((entry) => entry.split(' at ')[0]);
+
+  // TP-01-01 — a fresh family carries full provenance. Scheme and host are
+  // asserted structurally; a full-string literal would pass even if the URL
+  // pointed at the wrong year.
+  const nominal = conformant.families.nominal;
+  const envelope = nominal.provenance[0];
+  const parsedUrl = new URL(envelope.sourceUrl);
+  assert(runGate(conformant).length === 0, 'Official curves TP-01-01: the conformant artifact passes the gate with zero errors');
+  assert(envelope.sourceId === 'us-treasury-nominal' && parsedUrl.protocol === 'https:' && parsedUrl.hostname === OFFICIAL_CURVE_HOST,
+    'Official curves TP-01-01: a fresh family carries a source id and an https URL on the declared official host');
+  assert(typeof nominal.observedAt === 'string' && typeof envelope.retrievedAt === 'string' && envelope.retrievedAt.endsWith('Z'),
+    'Official curves TP-01-01: a fresh family carries an observation as-of date and a canonical retrieval time');
+
+  // TP-01-02 — the no-credential guarantee is mechanical, not inspected.
+  const credentialed = runGate(fixture('credentialed-envelope'));
+  assert(credentialed.some((entry) => entry.includes('secret-shaped-request-field')),
+    'Official curves TP-01-02: a credential-shaped query key is refused with secret-shaped-request-field');
+
+  // TP-01-03 — every adversarial fixture is refused, each naming its own cause.
+  const adversarial = {
+    'missing-required-field': 'family-field-missing',
+    'credentialed-envelope': 'provenance-invalid:secret-shaped-request-field',
+    'restricted-observation': 'restricted-observation-present',
+    'off-host-source-url': 'off-host-source-url',
+    'query-binding-mismatch': 'source-id-to-query-binding-invalid',
+    'partial-row': 'row-partial',
+    'observed-at-drift': 'observed-at-mismatch'
+  };
+  const causes = new Set();
+  for (const [name, expected] of Object.entries(adversarial)) {
+    const errors = runGate(fixture(name));
+    assert(errors.length > 0 && refusalCodes(errors).includes(expected),
+      'Official curves TP-01-03: ' + name + ' is refused with ' + expected);
+    causes.add(expected);
+  }
+  assert(causes.size === 7, 'Official curves TP-01-03: the seven adversarial fixtures produce seven DISTINCT causes, so no two are refused for the same reason');
+
+  // TP-01-04 — the restriction sweep, proven on each restricted shape rather
+  // than only on the committed fixture.
+  const withFinancialConditions = clone(conformant);
+  withFinancialConditions.families.nominal.financialConditions = -0.31;
+  assert(refusalCodes(runGate(withFinancialConditions)).includes('restricted-observation-present'),
+    'Official curves TP-01-04: a financial-conditions value anywhere is refused');
+  const withRestrictedRights = clone(conformant);
+  withRestrictedRights.families.real.rights = 'restricted-local-view';
+  assert(refusalCodes(runGate(withRestrictedRights)).includes('restricted-rights-present'),
+    'Official curves TP-01-04: a restricted-local-view rights string anywhere is refused');
+
+  // TP-01-05 — the committed bond policy names no keyed or licensed endpoint,
+  // and the additive allowlist introduces no new host.
+  const policyText = JSON.stringify(universe.sourcePolicies);
+  assert(!/api_key|fredgraph|series\/BAML|series\/NFCI/i.test(policyText),
+    'Official curves TP-01-05: the committed bond source policy matches none of api_key, fredgraph, series/BAML, series/NFCI');
+  const treasuryHosts = ['us-treasury-nominal', 'us-treasury-real'].map((id) => RLC.SOURCE_POLICIES[id].host);
+  assert(treasuryHosts.every((host) => host === OFFICIAL_CURVE_HOST),
+    'Official curves TP-01-05: the two added allowlist entries introduce no host beyond ' + OFFICIAL_CURVE_HOST);
+
+  // TP-01-06 — the conformant artifact is swept end to end and carries nothing restricted.
+  const conformantText = JSON.stringify(conformant);
+  assert(!/"oas"|"financialConditions"|restricted-local-view/.test(conformantText),
+    'Official curves TP-01-06: a full sweep of the conformant artifact finds no oas value, no financial-conditions value and no restricted rights string');
+
+  // TP-01-07 — the binding gap, proven from BOTH sides. If the shared validator
+  // ever refused this envelope the assertion below would fail, and the feature
+  // gate check would no longer be load-bearing.
+  const misbound = fixture('query-binding-mismatch');
+  const misboundEnvelope = misbound.families.nominal.provenance[0];
+  const sharedVerdict = RLC.validateSourceProvenance(misboundEnvelope);
+  assert(!sharedVerdict || sharedVerdict.ok !== false,
+    'Official curves TP-01-07: the SHARED validator ACCEPTS the mis-bound envelope — one host, one method, one path prefix, so the frozen contract cannot express this rule');
+  assert(refusalCodes(runGate(misbound)).includes('source-id-to-query-binding-invalid'),
+    'Official curves TP-01-07: the feature gate REFUSES the same envelope, closing the gap the shared contract structurally cannot');
+  assert(REQUIRED_QUERY_TYPE['us-treasury-nominal'] !== REQUIRED_QUERY_TYPE['us-treasury-real'],
+    'Official curves TP-01-07: the two families are distinguished by query type, the only field that separates them');
+
+  // TP-01-08 — R-4 settled: the declared policy travels verbatim, the copy
+  // states its own retention.
+  assert(JSON.stringify(nominal.declaredPolicy) === JSON.stringify(universe.sourcePolicies.nominalCurve),
+    'Official curves TP-01-08: declaredPolicy holds the committed policy block byte-for-byte');
+  assert(nominal.declaredPolicy.persistence === 'browser-cache' && nominal.persistence === 'same-origin-artifact',
+    'Official curves TP-01-08: the declared policy still reads browser-cache while the committed copy states same-origin-artifact');
+  assert(nominal.rights === 'public-official' && nominal.declaredPolicy.rights === 'public-official',
+    'Official curves TP-01-08: rights carries public-official unaltered');
+  const browserCachePersistence = clone(conformant);
+  browserCachePersistence.families.nominal.persistence = 'browser-cache';
+  assert(refusalCodes(runGate(browserCachePersistence)).includes('family-persistence-invalid'),
+    'Official curves TP-01-08: a family writing persistence browser-cache onto a committed file is refused');
+  const tamperedPolicy = clone(conformant);
+  tamperedPolicy.families.nominal.declaredPolicy.mode = 'public-official-cached';
+  assert(refusalCodes(runGate(tamperedPolicy)).includes('declared-policy-mismatch'),
+    'Official curves TP-01-08: a declaredPolicy that drifts from the committed block is refused');
+
+  // TP-01-09 — the contract extension is additive only.
+  const PRE_EXISTING_SOURCE_IDS = ['bls-cpi-schedule', 'bls-public-api-v2', 'manual-consensus-artifact', 'nyse-hours-calendar', 'yahoo-chart'];
+  const PRE_EXISTING_POLICIES = {
+    'bls-cpi-schedule': { sourceKind: 'official-report', accessClass: 'public-official', host: 'www.bls.gov', method: 'GET', path: '/schedule/news_release/cpi.htm' },
+    'bls-public-api-v2': { sourceKind: 'official-report', accessClass: 'public-official', host: 'api.bls.gov', method: 'POST', path: '/publicAPI/v2/timeseries/data/' },
+    'manual-consensus-artifact': { sourceKind: 'sourced-consensus', accessClass: 'public-manual-citation', host: null, method: 'GET', path: null },
+    'nyse-hours-calendar': { sourceKind: 'official-calendar', accessClass: 'public-official', host: 'www.nyse.com', method: 'GET', path: '/markets/hours-calendars' },
+    'yahoo-chart': { sourceKind: 'best-effort-public-chart', accessClass: 'public-best-effort', host: 'query1.finance.yahoo.com', method: 'GET', pathPrefix: '/v8/finance/chart/' }
+  };
+  assert(PRE_EXISTING_SOURCE_IDS.every((id) => RLC.SOURCE_IDS[id] === true),
+    'Official curves TP-01-09: every pre-existing SOURCE_IDS key survives the extension');
+  assert(Object.keys(PRE_EXISTING_POLICIES).every((id) => JSON.stringify(RLC.SOURCE_POLICIES[id]) === JSON.stringify(PRE_EXISTING_POLICIES[id])),
+    'Official curves TP-01-09: every pre-existing SOURCE_POLICIES entry retains its shape and values byte-for-byte');
+  const addedIds = Object.keys(RLC.SOURCE_IDS).filter((id) => !PRE_EXISTING_SOURCE_IDS.includes(id));
+  assert(addedIds.length === 2 && addedIds.includes('us-treasury-nominal') && addedIds.includes('us-treasury-real'),
+    'Official curves TP-01-09: the ONLY difference is the two added Treasury entries');
+  assert(!RLC.SOURCE_KINDS['official-curve'] && Object.keys(RLC.SOURCE_KINDS).length === 4,
+    'Official curves TP-01-09: SOURCE_KINDS is unchanged — official-report already admits a daily yield-curve publication');
+
+  // Required maturity sets are the browser's own, not a second definition.
+  assert(REQUIRED_MATURITIES['us-treasury-nominal'].join(',') === 'y3m,y2,y5,y10,y30'
+    && REQUIRED_MATURITIES['us-treasury-real'].join(',') === 'y5,y10,y20,y30',
+    'Official curves: the gate requires the same maturity set the browser parser requires, so the headless path cannot admit a shape the tool would reject');
+} catch (e) { failures++; console.log('  ✗ FAIL (official curve artifact group threw): ' + e.message); }
+
 /* ---------- Market Brief: §6c larger-picture / anti-reactivity helpers ---------- */
 try {
   group('rlbrief.js — §6c structural frame + anti-reactivity (MA stack, horizon cap, persistence gate)');

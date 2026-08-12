@@ -238,3 +238,188 @@ test('dismissal and automatic invalidation record a safe outcome and never a beh
   assert.deepEqual(projection(api, policy, populated).behaviorContribution, 'none');
   assert.equal(populated.actionOutcomes.length, 0, 'no closing command has written itself into the workspace as a side effect');
 });
+
+/* ---------- Scope 05 TP-05-01: four-window direct-scope brief composition ----------
+   Three failures are being prevented, and each one looks harmless in isolation.
+   (1) Using an observation later than the window's cutoff makes an earlier brief secretly
+       clairvoyant, which destroys the ability to audit what was knowable when.
+   (2) Merging the four qualification lanes lets an INFERRED interest be read as a HELD
+       position, or a held position be read as proof of preference — the authority error
+       FR-057 forbids in both directions.
+   (3) Filling an empty inferred lane below the behavior floor manufactures the appearance
+       of personalisation from too little history. */
+
+const BRIEF_MODULE_PATH = resolve(ROOT, 'rlportfoliobrief.js');
+const MARKET_BRIEF_CONFIG = resolve(ROOT, 'market-brief.config.json');
+
+function loadBrief() {
+  assert.equal(existsSync(BRIEF_MODULE_PATH), true, 'RLPORTFOLIOBRIEF production module must exist');
+  const brief = require('../rlportfoliobrief.js');
+  const policy = JSON.parse(readFileSync(POLICY_PATH, 'utf8'));
+  // Windows are READ from the generic public config; the local composer never declares its own.
+  const windows = JSON.parse(readFileSync(MARKET_BRIEF_CONFIG, 'utf8')).windows;
+  return { brief, policy, windows };
+}
+
+const BRIEF_DAY = '2026-07-15';
+function ev(id, subjectId, subjectKind, observedAt, materiality, domain) {
+  return { id, subjectId, subjectKind, observedAt, materiality, domain: domain || 'equity-research' };
+}
+
+// MSFT is held, BND is on the public watchlist, ZZTOP was explicitly researched, and
+// 'semiconductors' is a domain reachable only by inference.
+function briefInput(overrides = {}) {
+  const { brief, policy, windows } = overrides.loaded || loadBrief();
+  return Object.assign({
+    windows,
+    windowId: 'morning',
+    publishedAt: `${BRIEF_DAY}T15:05:00.000Z`,
+    composedAt: `${BRIEF_DAY}T15:40:00.000Z`,
+    holdings: [{ symbol: 'MSFT' }],
+    watchlist: ['BND'],
+    completions: [
+      { subjectId: 'ZZTOP', subjectKind: 'ticker', domain: 'semiconductors', completedAt: `${BRIEF_DAY}T12:00:00.000Z` },
+      { subjectId: 'QQQX', subjectKind: 'ticker', domain: 'semiconductors', completedAt: '2026-07-14T12:00:00.000Z' }
+    ],
+    evidence: [
+      ev('e-msft', 'MSFT', 'ticker', `${BRIEF_DAY}T14:30:00.000Z`, 0.9),
+      ev('e-bnd', 'BND', 'ticker', `${BRIEF_DAY}T14:00:00.000Z`, 0.5),
+      ev('e-zztop', 'ZZTOP', 'ticker', `${BRIEF_DAY}T13:00:00.000Z`, 0.7),
+      ev('e-semi', 'semiconductors', 'domain', `${BRIEF_DAY}T13:30:00.000Z`, 0.6)
+    ],
+    policy
+  }, overrides.input || {});
+}
+
+test('SCN-008-006 TP-05-01: each window is identified from the generic config and no later observation enters an earlier cutoff', () => {
+  const loaded = loadBrief();
+  const ids = loaded.windows.map((w) => w.id);
+  assert.deepEqual(ids, ['pre-market', 'morning', 'pre-close', 'after-hours'],
+    'the composer must consume the four generic windows rather than declaring its own');
+
+  for (const id of ids) {
+    const composed = loaded.brief.composeBrief(briefInput({ loaded, input: { windowId: id } }));
+    assert.equal(composed.ok, true, `window ${id} must compose: ${JSON.stringify(composed.error || {})}`);
+    assert.equal(composed.value.window.id, id, 'the brief names the window it used');
+    assert.ok(composed.value.window.etTime, `window ${id} reports its exact ET time`);
+
+    // Three clocks, three distinct fields. Collapsing any pair is what makes a brief unauditable.
+    const times = composed.value.times;
+    assert.ok(times.evidenceCutoffAt, 'the evidence cutoff is stated');
+    assert.equal(times.publishedAt, `${BRIEF_DAY}T15:05:00.000Z`, 'generic publication time is preserved verbatim');
+    assert.equal(times.composedAt, `${BRIEF_DAY}T15:40:00.000Z`, 'local composition time is distinct from publication time');
+    assert.notEqual(times.evidenceCutoffAt, times.composedAt, 'cutoff and composition time must not be the same clock');
+  }
+
+  // An observation AFTER the cutoff must be excluded and counted, never quietly used.
+  const cutoffProbe = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: {
+      windowId: 'pre-market',
+      evidence: [
+        ev('e-early', 'MSFT', 'ticker', `${BRIEF_DAY}T10:00:00.000Z`, 0.9),
+        ev('e-late', 'MSFT', 'ticker', `${BRIEF_DAY}T19:00:00.000Z`, 0.99)
+      ]
+    }
+  }));
+  assert.equal(cutoffProbe.ok, true);
+  const usedIds = cutoffProbe.value.lanes.held.flatMap((item) => item.evidenceIds);
+  assert.ok(!usedIds.includes('e-late'), 'an observation later than the cutoff must not reach an earlier window');
+  assert.equal(cutoffProbe.value.states.excludedAfterCutoff, 1, 'the exclusion is counted rather than silent');
+});
+
+test('SCN-008-007 TP-05-01: the four qualification lanes stay separate and a subject is never duplicated across them', () => {
+  const loaded = loadBrief();
+  const composed = loaded.brief.composeBrief(briefInput({ loaded }));
+  assert.equal(composed.ok, true, JSON.stringify(composed.error || {}));
+  const lanes = composed.value.lanes;
+
+  assert.deepEqual(lanes.held.map((i) => i.subjectId), ['MSFT']);
+  assert.deepEqual(lanes.watchlist.map((i) => i.subjectId), ['BND']);
+  assert.deepEqual(lanes.completedResearch.map((i) => i.subjectId), ['ZZTOP']);
+  assert.deepEqual(lanes.inferredRelevance.map((i) => i.subjectId), ['semiconductors']);
+
+  assert.equal(lanes.held[0].scopeSource, 'direct-holding');
+  assert.equal(lanes.watchlist[0].scopeSource, 'direct-watchlist');
+  assert.equal(lanes.completedResearch[0].scopeSource, 'direct-completed-research');
+  assert.equal(lanes.inferredRelevance[0].scopeSource, 'behavior-derived',
+    'an inferred item must state that it is behaviour-derived, never presented as a direct holding');
+
+  // No inferred subject may appear as held, in either direction.
+  const heldIds = new Set(lanes.held.map((i) => i.subjectId));
+  for (const item of lanes.inferredRelevance) {
+    assert.ok(!heldIds.has(item.subjectId), 'an inferred subject must never be rendered in the Held lane');
+  }
+  assert.equal(lanes.held[0].impliesPreference, false,
+    'a held position is a fact of ownership, not evidence of interest or risk preference');
+
+  // De-duplication by identity: a subject qualifying twice appears ONCE, in the higher-authority
+  // lane, and says where else it qualified rather than being listed twice.
+  const dual = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: { watchlist: ['BND', 'MSFT'] }
+  }));
+  assert.equal(dual.ok, true);
+  assert.deepEqual(dual.value.lanes.held.map((i) => i.subjectId), ['MSFT']);
+  assert.ok(!dual.value.lanes.watchlist.some((i) => i.subjectId === 'MSFT'),
+    'a held subject must not be duplicated into the watchlist lane');
+  assert.deepEqual(dual.value.lanes.held[0].alsoQualifiesVia, ['watchlist'],
+    'the second qualification is disclosed rather than dropped or duplicated');
+});
+
+test('SCN-008-010 TP-05-01: below the behavior floor the inferred lane is empty and the shortfall is named', () => {
+  const loaded = loadBrief();
+  const floor = loaded.policy.behavior;
+
+  // One completion on one date — below both minimums.
+  const thin = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: {
+      completions: [{ subjectId: 'ZZTOP', subjectKind: 'ticker', domain: 'semiconductors', completedAt: `${BRIEF_DAY}T12:00:00.000Z` }]
+    }
+  }));
+  assert.equal(thin.ok, true, JSON.stringify(thin.error || {}));
+  assert.deepEqual(thin.value.lanes.inferredRelevance, [],
+    'below the floor the inferred lane must be empty rather than filled with speculation');
+  assert.equal(thin.value.states.behaviorHistory, 'insufficient-history');
+  assert.equal(thin.value.states.behaviorFloor.distinctCompletions, 1);
+  assert.equal(thin.value.states.behaviorFloor.requiredCompletions, floor.minimumDistinctCompletions);
+  assert.equal(thin.value.states.behaviorFloor.distinctUtcDates, 1);
+  assert.equal(thin.value.states.behaviorFloor.requiredUtcDates, floor.minimumDistinctUtcDates);
+
+  // Direct value must survive the shortfall untouched — an empty inferred lane is not an empty brief.
+  assert.deepEqual(thin.value.lanes.held.map((i) => i.subjectId), ['MSFT']);
+  assert.deepEqual(thin.value.lanes.completedResearch.map((i) => i.subjectId), ['ZZTOP']);
+
+  // At the floor the lane populates, which proves the empty result above was the floor and not a
+  // composer that simply never emits inferred items.
+  const atFloor = loaded.brief.composeBrief(briefInput({ loaded }));
+  assert.equal(atFloor.value.states.behaviorHistory, 'sufficient-history');
+  assert.equal(atFloor.value.lanes.inferredRelevance.length, 1);
+
+  // No-material-change is a real state, not an error.
+  const quiet = loaded.brief.composeBrief(briefInput({ loaded, input: { evidence: [] } }));
+  assert.equal(quiet.ok, true);
+  assert.equal(quiet.value.states.materialChange, 'no-material-change');
+  assert.equal(quiet.value.states.itemCount, 0);
+});
+
+test('SCN-008-007 TP-05-01: the visible queue is bounded by policy and ordered by materiality', () => {
+  const loaded = loadBrief();
+  const caps = loaded.policy.queue;
+  const manyHoldings = ['AAA', 'BBB', 'CCC', 'DDD', 'EEE', 'FFF', 'GGG'].map((symbol) => ({ symbol }));
+  const manyEvidence = manyHoldings.map((h, index) =>
+    ev(`e-${h.symbol}`, h.symbol, 'ticker', `${BRIEF_DAY}T13:00:00.000Z`, (index + 1) / 10));
+
+  const composed = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: { holdings: manyHoldings, watchlist: [], evidence: manyEvidence }
+  }));
+  assert.equal(composed.ok, true, JSON.stringify(composed.error || {}));
+  assert.equal(composed.value.lanes.held.length, caps.directActionCap,
+    'the direct queue is bounded by the declared cap rather than growing without limit');
+  // Highest materiality first, so the cap keeps what matters most instead of an arbitrary slice.
+  assert.deepEqual(composed.value.lanes.held.map((i) => i.subjectId), ['GGG', 'FFF', 'EEE', 'DDD', 'CCC']);
+  assert.equal(composed.value.states.suppressedByCap, manyHoldings.length - caps.directActionCap,
+    'items dropped by the cap are counted, so a bounded queue is not a silent one');
+});

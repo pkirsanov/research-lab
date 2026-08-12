@@ -808,19 +808,22 @@
         var summary = output.values.summary;
         var ready = summary.forecast.state === "ready";
         var multiplierText = summary.throttle.multiplier !== null ? "×" + summary.throttle.multiplier.toFixed(2) : "withheld";
+        var percentileText = summary.regime.percentile !== null ? Math.round(summary.regime.percentile) + "th percentile" : "percentile unavailable";
+        var windowText = summary.regime.windowObservations !== null ? summary.regime.windowObservations + " observations" : "window unavailable";
         return {
           ok: true,
           value: {
             contractVersion: "owner-evidence-projection/v1",
             state: output.state,
             valueText: ready
-              ? "Forecast " + summary.forecast.annualizedPct + "% (" + (summary.regime.band || "regime unavailable") + ")"
+              ? "Forecast " + summary.forecast.annualizedPct + "% (" + (summary.regime.band || "regime unavailable") + "; " + percentileText + " / " + windowText + ")"
               : "Volatility evidence unavailable",
             numericValue: ready ? summary.forecast.annualizedDecimal : null,
             unit: "annualized-decimal",
             summary: ready
               ? "Forecast volatility " + summary.forecast.annualizedPct + "% with a " + multiplierText +
-                " capped sizing throttle in a " + (summary.regime.band || "unavailable") + " regime."
+                " capped sizing throttle in a " + (summary.regime.band || "unavailable") + " regime at the " +
+                percentileText + " over a trailing window of " + windowText + "."
               : "The owner volatility decision is unavailable for the current window.",
             sourceRefs: ["owner-evidence"]
           }

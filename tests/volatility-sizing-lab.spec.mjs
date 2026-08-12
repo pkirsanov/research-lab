@@ -21,6 +21,11 @@ function simGarch(n, omega, alpha, beta, seed) {
     for (let i = 0; i < n; i += 1) { const e = gauss(rng); const x = Math.sqrt(sig2) * e; r.push(x); sig2 = omega + alpha * x * x + beta * sig2; }
     return r;
 }
+function simArch(n, omega, alpha, seed) {
+    const rng = makeRng(seed); let sig2 = omega / (1 - alpha); const r = [];
+    for (let i = 0; i < n; i += 1) { const e = gauss(rng); const x = Math.sqrt(sig2) * e; r.push(x); sig2 = omega + alpha * x * x; }
+    return r;
+}
 function iidReturns(n, sigma, seed) { const rng = makeRng(seed); const r = []; for (let i = 0; i < n; i += 1) r.push(sigma * gauss(rng)); return r; }
 function closesFromReturns(returns, start = 100) { const closes = [start]; for (const r of returns) closes.push(closes[closes.length - 1] * Math.exp(r)); return closes; }
 function baseT(count) { return Date.UTC(2024, 0, 2) - (count - 1) * 86400000 + 200 * 86400000; }
@@ -28,6 +33,8 @@ function barRows(closes) { const b0 = Date.UTC(2023, 0, 2); return closes.map((c
 
 /* clustered, high-persistence, GARCH-convergent series with a recent burst */
 function clusteredCloses(seed = 99) { return closesFromReturns(simGarch(300, 0.00002, 0.08, 0.90, seed).concat([0.055, -0.05, 0.058])); }
+/* the same clustered shape scaled to roughly 30% annualized forecast vol, preserving its storm percentile */
+function halfThrottleStormCloses(seed = 99) { return closesFromReturns(simGarch(300, 0.00002, 0.08, 0.90, seed).concat([0.055, -0.05, 0.058]).map((value) => value * 0.336)); }
 /* constant daily return → zero variance → GARCH cannot estimate ω → FIT_NONCONVERGENT → labeled EWMA fallback (and NOT managed-suppressed: maxAbs return exceeds the band floor) */
 function nonConvergentCloses() { const r = []; for (let i = 0; i < 300; i += 1) r.push(0.001); return closesFromReturns(r); }
 /* pegged/managed series: mostly flat with rare tiny moves → managed-suppressed */
@@ -36,6 +43,8 @@ function peggedCloses() { const out = []; let p = 100; for (let i = 0; i < 170; 
 function lowVolCloses() { const out = []; let p = 100; for (let i = 0; i < 200; i += 1) { p = p * Math.exp(0.001 * (i % 2 ? 1 : -1) + 0.00005); out.push(Math.round(p * 1e6) / 1e6); } return out; }
 /* short series → INSUFFICIENT_HISTORY (min 60) */
 function shortCloses() { return closesFromReturns(simGarch(40, 0.00002, 0.08, 0.90, 5)); }
+/* short-memory ARCH series → fitted GARCH persistence diverges materially from EWMA λ=0.94 */
+function divergentPersistenceCloses() { return closesFromReturns(simArch(400, 0.00005, 0.35, 7)); }
 
 function cacheFor(barsBySymbol) {
     const now = Date.now();
@@ -151,6 +160,72 @@ async function open(page, cache, options = {}) {
     }
 }
 
+test('Regression BS-001: high-persistence forecast stays elevated and typed forecast', async ({ page }) => {
+    await open(page, cacheFor({ SPY: clusteredCloses() }), { estimator: 'garch11', mode: 'power' });
+    const forecast = await page.evaluate(() => {
+        const decision = window.VolSizingLab.runtime.decision;
+        return {
+            kind: decision.forecast.kind,
+            value: decision.forecast.value,
+            longRunVol: decision.term.longRunVol,
+            persistence: decision.persistence.persistence,
+            estimator: decision.diagnostics.estimatorResolved
+        };
+    });
+    expect(forecast.estimator).toBe('garch11');
+    expect(forecast.kind).toBe('forecast');
+    expect(forecast.persistence).toBeGreaterThan(0.8);
+    expect(forecast.value).toBeGreaterThan(forecast.longRunVol);
+    await expect(page.locator('#powerView [data-chart-summary="term"]')).toContainText('GARCH11 forecast term');
+});
+
+test('Regression BS-003: sizing multiplier throttles to about half in a storm with a worked example', async ({ page }) => {
+    await open(page, cacheFor({ SPY: halfThrottleStormCloses() }), { mode: 'power' });
+    await page.fill('#targetVolInput', '15');
+    await page.waitForFunction(() => window.VolSizingLab.runtime.decision.controls.targetVol === 0.15);
+    const sizing = await page.evaluate(() => {
+        const decision = window.VolSizingLab.runtime.decision;
+        return {
+            multiplier: decision.sizing.multiplier,
+            expected: Math.min(decision.sizing.cap, decision.controls.targetVol / Math.max(decision.sizing.forecastVolFloor, decision.forecast.value)),
+            forecastVol: decision.forecast.value,
+            regime: decision.regime.band,
+            notional: decision.sizing.workedExample.notional,
+            conditionalExposure: decision.sizing.workedExample.conditionalExposure
+        };
+    });
+    expect(sizing.multiplier).toBeCloseTo(sizing.expected, 10);
+    expect(sizing.forecastVol).toBeCloseTo(0.30, 1);
+    expect(sizing.regime).toBe('storm');
+    expect(sizing.multiplier).toBeCloseTo(0.5, 1);
+    expect(sizing.notional).toBe(100000);
+    expect(sizing.conditionalExposure).toBeCloseTo(sizing.notional * sizing.multiplier, 6);
+    await expect(page.locator('#powerView [data-worked-example]')).toContainText('conditional exposure');
+    await expect(page.locator('#powerView [data-sizing-conditional]')).toContainText('apply only if a separate signal fires');
+    const assumption = page.locator('#powerView [data-sizing-assumption]');
+    await expect(assumption).toBeVisible();
+    await expect(assumption).toContainText('holds risk steady, not growth');
+    await expect(assumption).toContainText('growth-optimal sizing');
+    await expect(assumption).toContainText('1/vol²');
+});
+
+test('Regression BS-012: EWMA-vs-GARCH persistence divergence is shown not averaged', async ({ page }) => {
+    await open(page, cacheFor({ SPY: divergentPersistenceCloses() }), { estimator: 'garch11', mode: 'power' });
+    const result = await page.evaluate(() => {
+        const decision = window.VolSizingLab.runtime.decision;
+        return {
+            estimator: decision.diagnostics.estimatorResolved,
+            persistence: decision.persistence.persistence,
+            conflictCodes: decision.conflicts.map((conflict) => conflict.code)
+        };
+    });
+    expect(result.estimator).toBe('garch11');
+    expect(Math.abs(result.persistence - 0.94)).toBeGreaterThan(0.1);
+    expect(result.conflictCodes).toContain('EWMA_GARCH_PERSISTENCE_DIVERGENCE');
+    await expect(page.locator('#powerView [data-conflicts]')).toContainText('EWMA_GARCH_PERSISTENCE_DIVERGENCE');
+    await expect(page.locator('#powerView [data-chart-summary="estimator"]')).toContainText('shown not averaged');
+});
+
 test('Regression BS-002: storm-gauge percentile always renders its trailing window and observation count', async ({ page }) => {
     await open(page, cacheFor({ SPY: clusteredCloses() }));
     const percentile = await page.locator('[data-regime-percentile]').textContent();
@@ -160,6 +235,10 @@ test('Regression BS-002: storm-gauge percentile always renders its trailing wind
     expect(Number(window)).toBeGreaterThan(0);
     await expect(page.locator('#simpleView')).toContainText('trailing window of');
     await expect(page.locator('#simpleView')).toContainText('observations');
+    const visibleSimple = page.locator('[data-rlexperience-panel="simple"]');
+    await expect(visibleSimple).toBeVisible();
+    await expect(visibleSimple).toContainText('percentile');
+    await expect(visibleSimple).toContainText(window + ' observations');
 });
 
 test('Regression BS-005: no directional element appears in Simple or Power', async ({ page }) => {
@@ -254,7 +333,25 @@ test('Regression BS-009: insufficient history is unavailable with exact counts',
 });
 
 test('Regression BS-010: Simple and Power share one decision identity', async ({ page }) => {
-    await open(page, cacheFor({ SPY: clusteredCloses() }), { mode: 'power' });
+    await open(page, cacheFor({ SPY: clusteredCloses() }));
+    const native = await page.evaluate(() => {
+        const decision = window.VolSizingLab.runtime.decision;
+        return {
+            forecastPct: (decision.forecast.value * 100).toFixed(4),
+            regime: decision.regime.band,
+            percentile: Math.round(decision.regime.percentile),
+            window: decision.regime.windowRef.observations,
+            multiplier: decision.sizing.multiplier.toFixed(2)
+        };
+    });
+    const visibleSimple = page.locator('[data-rlexperience-panel="simple"]');
+    await expect(visibleSimple).toBeVisible();
+    await expect(visibleSimple).toContainText('Forecast ' + native.forecastPct + '%');
+    await expect(visibleSimple).toContainText(native.regime);
+    await expect(visibleSimple).toContainText(native.percentile + 'th percentile');
+    await expect(visibleSimple).toContainText(native.window + ' observations');
+    await expect(visibleSimple).toContainText('×' + native.multiplier);
+    await openNativeResearchSurface(page);
     const simpleId = await page.locator('[data-decision-id]').textContent();
     const powerId = await page.locator('[data-decision-id-power]').textContent();
     expect(simpleId).toBe(powerId);
@@ -322,11 +419,55 @@ test('Regression BS-014: longer history is caveated and reproduces no multi-deca
     expect(owner).not.toMatch(/1[05]0?-year|multi-decade/i);
 });
 
-test('Cache-first partial paint renders synchronous non-blank canvases with text and table fallback', async ({ page }) => {
-    await open(page, cacheFor({ SPY: clusteredCloses() }), { mode: 'power' });
+test('Cache-first partial paint renders before stale-cache delta completion with synchronous non-blank canvases and table fallback', async ({ page }) => {
+    const staleCache = cacheFor({ SPY: clusteredCloses() });
+    staleCache.bars.SPY['1d'].at = Date.now() - 365 * 86400000;
+    await page.addInitScript(() => {
+        window.__volFirstPaintAt = null;
+        window.__volFirstPaintDecision = null;
+        const inspect = () => {
+            const node = document.querySelector('[data-forecast-value]');
+            if (window.__volFirstPaintAt === null && node && /^\d/.test(node.textContent || '')) {
+                const decision = window.VolSizingLab && window.VolSizingLab.runtime && window.VolSizingLab.runtime.decision;
+                window.__volFirstPaintAt = performance.now();
+                window.__volFirstPaintDecision = decision ? {
+                    decisionId: decision.decisionId,
+                    observedAsOf: decision.forecast.observedAsOf
+                } : null;
+            }
+        };
+        const install = () => {
+            if (!document.documentElement) return;
+            new MutationObserver(inspect).observe(document.documentElement, { subtree: true, childList: true, characterData: true });
+            inspect();
+        };
+        if (document.documentElement) install(); else document.addEventListener('readystatechange', install, { once: true });
+    });
+    await open(page, staleCache, { mode: 'power' });
+    await page.waitForFunction(() => {
+        const barResource = performance.getEntriesByType('resource').find((entry) => /\/data\/bars\/SPY\.json(?:\?|$)/.test(entry.name));
+        const runtime = window.VolSizingLab && window.VolSizingLab.runtime;
+        return !!barResource && barResource.responseEnd > 0 && !!runtime && !!runtime.decision && !runtime.refresh.active;
+    });
     await expect(page.locator('[data-chart-summary="term"]')).not.toHaveText('--');
     const termRows = await page.locator('#termTable tr').count();
     expect(termRows).toBeGreaterThan(0);
+    const chronology = await page.evaluate(() => {
+        const barResource = performance.getEntriesByType('resource').find((entry) => /\/data\/bars\/SPY\.json(?:\?|$)/.test(entry.name));
+        const decision = window.VolSizingLab.runtime.decision;
+        return {
+            firstPaintAt: window.__volFirstPaintAt,
+            deltaResponseEnd: barResource ? barResource.responseEnd : null,
+            firstDecision: window.__volFirstPaintDecision,
+            latestDecision: { decisionId: decision.decisionId, observedAsOf: decision.forecast.observedAsOf }
+        };
+    });
+    expect(chronology.firstPaintAt).not.toBeNull();
+    expect(chronology.deltaResponseEnd).not.toBeNull();
+    expect(chronology.firstPaintAt).toBeLessThan(chronology.deltaResponseEnd);
+    expect(chronology.firstDecision).not.toBeNull();
+    expect(chronology.latestDecision.decisionId).not.toBe(chronology.firstDecision.decisionId);
+    expect(Date.parse(chronology.latestDecision.observedAsOf)).toBeGreaterThan(Date.parse(chronology.firstDecision.observedAsOf));
     const nonBlank = await page.evaluate(() => {
         const canvas = document.getElementById('termChart');
         const ctx = canvas.getContext('2d');
@@ -383,19 +524,14 @@ test('Registered Volatility Sizing tool publishes one owner read and Market Brie
     // The brief loads its owner-read renderer (RLBRIEF) and the shared cache (RLDATA) but NOT the
     // volatility model (RLVOL): it consumes the published owner read and never recomputes it.
     await page.goto(site.baseUrl + '/market-brief.html');
-    const rendered = await page.evaluate(async (publishedRead) => {
-        const tools = await fetch('tools.json').then((r) => r.json());
-        const snap = await fetch('market-brief.snapshot.json').then((r) => r.json()).catch(() => ({}));
-        const host = document.createElement('div');
-        RLBRIEF.renderToolReads(host, tools.tools, snap.toolReads || {}, RLDATA.toolRead() || {});
-        const volNode = Array.from(host.querySelectorAll('.toolread')).find((n) => /Vol-Targeting/.test(n.innerText));
-        return { hasVol: !!volNode, volText: volNode ? volNode.innerText : '', containsRead: volNode ? volNode.innerText.indexOf(publishedRead) >= 0 : false, hasRlvol: typeof window.RLVOL };
-    }, ownerRead.read);
-    expect(rendered.hasVol).toBe(true);
-    expect(rendered.volText).toContain('conditional vol');
-    expect(rendered.volText).toContain('browser');
-    expect(rendered.containsRead).toBe(true);
-    expect(rendered.hasRlvol).toBe('undefined');
+    await page.waitForFunction(() => document.querySelectorAll('#toolReads .toolread').length > 0);
+    const volNode = page.locator('#toolReads .toolread', { hasText: 'Volatility Regime & Vol-Targeting Sizing Lab' });
+    await expect(volNode).toHaveCount(1);
+    await expect(volNode).toContainText('conditional vol');
+    await expect(volNode).toContainText('browser');
+    const substantiveRead = ownerRead.read.slice(ownerRead.read.indexOf('conditional vol'));
+    await expect(volNode.locator('.ay')).toContainText(substantiveRead);
+    expect(await page.evaluate(() => typeof window.RLVOL)).toBe('undefined');
 });
 
 // TP-15-06 CARRIER 2/3 — the "Simple shows the panel" arm: arriving through the real shared nav,

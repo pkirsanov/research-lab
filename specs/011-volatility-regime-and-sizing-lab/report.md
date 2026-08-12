@@ -1762,3 +1762,839 @@ GUARD_BASELINE_EXIT=1
 This certifying act resolves exactly those signals: it checks the sole open `CMD-STATE` DoD item, flips all 4 scopes `In Progress → Done` (summary table + per-scope headers + `execution.scopeProgress`), records the `validate` phase with `bubbles.validate` provenance, and writes the terminal certification (`status=done`, `certification.status=done`, `completedScopes` = all 4 scope ids, `certifiedAt`). The terminal `state-transition-guard.sh` is then re-run **LAST** after the certify-commit (`spec(011): certify done`, path-scoped to `specs/011-…` only, never a foreign file); certification is contingent on that terminal run returning **exit 0 / TRANSITION ALLOWED / verdict PASS** — this section and the terminal status are reverted otherwise. The verbatim terminal summary line + exit code are recorded in the certifying agent's RESULT-ENVELOPE.
 
 **Verdict: CERTIFIED — `status=done`, `certification.status=done` (contingent on and confirmed by the terminal guard exit 0 recorded in the RESULT-ENVELOPE).**
+
+## Test Reconciliation — bubbles.test — 2026-08-11
+
+**Claim Source:** executed in the current session from the repository root.
+
+This pass reconciles the six test-owned DoD items strengthened by the 2026-08-11 planning update. It does not alter or reassert the historical certification above. `state.json`, `spec.md`, `design.md`, `scenario-manifest.json`, `test-plan.json`, and `uservalidation.md` were not edited by `bubbles.test`.
+
+### Runner Identity And Final 19-Case Aggregate
+
+**Executed:** YES (current session)
+**Command:** `npx --no-install playwright --version`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# spec 011 Playwright runner identity
+$ npx --no-install playwright --version
+exit: 0
+lines: 1
+sha256: ec60000cff0b2bb61c0bd02338c28b5001eb04073e84ef331029c941b4b9a332
+--- output ---
+Version 1.61.1
+```
+
+**Executed:** YES (current session, after all test repairs)
+**Command:** `npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+Running 19 tests using 1 worker
+
+  ✓   1 …01: high-persistence forecast stays elevated and typed forecast (612ms)
+  ✓   2 …iplier throttles to about half in a storm with a worked example (414ms)
+  ✓   3 …012: EWMA-vs-GARCH persistence divergence is shown not averaged (418ms)
+  ✓   4 …entile always renders its trailing window and observation count (301ms)
+  ✓   5 …ssion BS-005: no directional element appears in Simple or Power (377ms)
+  ✓   6 …ression BS-007: backtest is a deep-link with no in-tool verdict (304ms)
+  ✓   7 …S-008: managed-suppressed history is marked, not calm/full-size (391ms)
+  ✓   8 …n BS-009: insufficient history is unavailable with exact counts (359ms)
+  ✓   9 …Regression BS-010: Simple and Power share one decision identity (375ms)
+  ✓  10 …BS-004: near-zero forecast vol floors the multiplier at the cap (298ms)
+  ✓  11 …on BS-006: GARCH fit is labeled a lightweight optimizer not MLE (417ms)
+  ✓  12 …ression BS-011: non-convergent GARCH falls back to labeled EWMA (389ms)
+  ✓  13 …S-013: realized is never relabeled a forecast in the owner read (285ms)
+  ✓  14 …longer history is caveated and reproduces no multi-decade claim (367ms)
+  ✓  15 …mpletion with synchronous non-blank canvases and table fallback (375ms)
+  ✓  16 …Controls recompute one decision without any market-data request (586ms)
+  ✓  17 …ases carry aria-label and same-data table on desktop and mobile (531ms)
+  ✓  18 …es one owner read and Market Brief renders it without recompute (914ms)
+  ✓  19 …e THROUGH the shared rlnav registration, not just by direct URL (773ms)
+
+  19 passed (9.3s)
+```
+
+**Result:** PASS. This is the final exact-command run. An earlier passing run that accidentally repeated the identical `--project=system-chrome` flag is deliberately excluded from evidence.
+
+### Final Full Selftest
+
+The direct `node scripts/selftest.mjs` run completed at **1540 passed / 0 failed**, but its 1,771-line output exceeded VS Code terminal scrollback. The exact command was therefore re-run through the repository's canonical compact evidence capture. The SHA-256 covers the complete unfiltered output.
+
+```text
+# spec 011 post-artifact full selftest reconciliation
+$ node scripts/selftest.mjs
+exit: 0
+lines: 1771
+sha256: 92a83cb6c45d5704eaf00d061deb21f31253b839b5f6f4a96d2319ab2688aa6a
+--- first 20 ---
+
+Step 1 security — escaped model sinks and CSP on every page
+  ✓ every shipped HTML page carries a Content-Security-Policy meta
+  ✓ all pages use one identical CSP instead of drifting per page
+  ✓ CSP keeps the single-file inline-script design while defaulting to self
+  ✓ CSP blocks object, base-tag, and form exfiltration paths
+  ✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✓ CSP allows no open URL-forwarding relay origin
+  ✓ production pages and shared runtime contain no open URL-forwarding relay chain
+  ✓ no model/config-authored field reaches innerHTML without esc()
+  ✓ the sink detector catches an unescaped model-authored title
+
+Feature 004 RLFX/RLDATA foundation
+  ✓ RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic
+  ✓ RLFX universe is bounded closed and asserts no live source authorization
+  ✓ RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows
+  ✓ RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes
+  ✓ RLDATA Twelve Data mapping: interval/symbol translate, values sort newest-first → oldest-first with UTC epochs, empty volume → null, error/malformed → null
+  ✓ RLFX broad dollar keeps Broad AFE EME and proxy states separate
+--- omitted 1731 line(s); sha256 above covers the full output ---
+--- last 20 ---
+
+bond-regime — one-model parity guarantee
+  ✓ Parity TP-06-01: the page’s own composition and parity helpers both resolve, so the comparison runs against the real model rather than a reimplementation
+  ✓ Parity TP-06-01: the headless side reached its verdict THROUGH resolution and admission, not around them
+  ✓ Parity TP-06-01: curveState is identical across the browser composition and the real headless path (Positive === Positive)
+  ✓ Parity TP-06-01: curveImpulse is identical across the browser composition and the real headless path (Mixed === Mixed)
+  ✓ Parity TP-06-01: inflationState is identical across the browser composition and the real headless path (Heating === Heating)
+  ✓ Parity TP-06-01: durationPosture is identical across the browser composition and the real headless path (Shorten === Shorten)
+  ✓ Parity TP-06-02: the full retained window yields a derivable impulse (Mixed) while the truncated window yields Unavailable — the window is load-bearing
+  ✓ Parity TP-06-03: perturbing one row of the HEADLESS input alone makes the compositions disagree, so the comparison is capable of failing
+  ✓ Parity TP-06-03: the parity verdict REPORTS the disagreement rather than passing (curveState, inflationState)
+  ✓ Parity TP-06-04: equal windows and equal readings yield Agree across all four compared fields
+  ✓ Parity TP-06-04: unequal coverageYears yields Cannot be compared with the differing-window reason — neither Agree nor Differ (D-1, R-3)
+  ✓ Parity TP-06-04: an absent side is Cannot be compared with its own reason — silence is never agreement
+  ✓ Parity TP-06-05: data/curves/us-treasury/curve.json is byte-identical before and after the parity group — the suite never mutates published evidence
+  ✓ Parity TP-06-05: the parity artifact was written under a temporary root, never into the repository
+
+================================================
+Research-Lab self-test: 1540 passed, 0 failed
+================================================
+```
+
+Verify with `bash .github/bubbles/scripts/evidence-capture.sh --verify 92a83cb6c45d5704eaf00d061deb21f31253b839b5f6f4a96d2319ab2688aa6a -- node scripts/selftest.mjs`.
+
+### Contract Validators
+
+**Executed:** YES (current session)
+**Commands:** `node scripts/validate-brief-payload.mjs` and the exact `.specify/memory/agents.md` inline-script/id check with `PAGE=volatility-sizing-lab.html`
+**Exit Codes:** 0 and 0
+
+```text
+$ node scripts/validate-brief-payload.mjs
+[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+
+$ PAGE=volatility-sizing-lab.html node -e '<exact registered inline-script and literal-id check>'
+OK page=volatility-sizing-lab.html inline=1 refs=0
+```
+
+### Focused TP-03-02 And TP-03-07 Visible-Adapter Parity
+
+```text
+$ npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression BS-002|Regression BS-010" --reporter=list
+
+Running 2 tests using 1 worker
+
+  ✓  1 …centile always renders its trailing window and observation count (913ms)
+  ✓  2 … Regression BS-010: Simple and Power share one decision identity (607ms)
+
+  2 passed (3.0s)
+```
+
+The assertions read forecast, regime, percentile, window observations, throttle, and `decisionId` from the production `window.VolSizingLab.runtime.decision`, then compare those facts with the visible production Simple adapter and native projections.
+
+### Focused TP-03-13 Stale-Cache Chronology
+
+The first audit found that the test proved paint-before-response but did not assert that the response produced a newer decision. `bubbles.test` strengthened the test to capture the first production decision identity and `observedAsOf`, wait for the real same-origin `data/bars/SPY.json` response and settled refresh, then require a different decision identity with a later observation date.
+
+```text
+$ npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Cache-first partial paint renders before stale-cache delta completion with synchronous non-blank canvases and table fallback" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 …ompletion with synchronous non-blank canvases and table fallback (535ms)
+
+  1 passed (1.2s)
+```
+
+### Focused TP-03-18, TP-03-19, And TP-03-20
+
+The initial BS-003 assertion audit found that the deterministic fixture produced a storm but approximately 89% forecast volatility and a 0.168 multiplier, contradicting the test title's approximately-half scenario. The test failed after adding the missing contract assertion. The fixture was corrected by scaling the same clustered return path to approximately 30% annualized forecast volatility, preserving the storm percentile; the test now independently asserts forecast ≈30%, storm regime, multiplier ≈0.5, the formula, worked exposure, separate-signal caveat, and the `1/forecastVol` versus `1/vol²` disclosure.
+
+```text
+$ npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression BS-001|Regression BS-003|Regression BS-012" --reporter=list
+
+Running 3 tests using 1 worker
+
+  ✓  1 …001: high-persistence forecast stays elevated and typed forecast (699ms)
+  ✓  2 …tiplier throttles to about half in a storm with a worked example (399ms)
+  ✓  3 …-012: EWMA-vs-GARCH persistence divergence is shown not averaged (425ms)
+
+  3 passed (2.7s)
+```
+
+### Focused TP-04-02 And TP-04-09 Owner-Read Bridge
+
+```text
+$ npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Registered Volatility Sizing tool publishes one owner read and Market Brief renders it without recompute" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 …shes one owner read and Market Brief renders it without recompute (1.2s)
+
+  1 passed (2.4s)
+```
+
+This case navigates the real `market-brief.html`, waits for the production `#toolReads .toolread` DOM, asserts the persisted volatility read appears there, and asserts `typeof window.RLVOL === 'undefined'`. It does not invoke `RLBRIEF.renderToolReads` manually or render into a detached host.
+
+### Shared Simple Adapter And Production Bridge
+
+The changed `simple-models.json` and `rlexperience-adapters/market-structure.js` surfaces were validated with their committed Feature 012 commands.
+
+```text
+# spec 011 shared conditional-volatility adapter unit
+$ node --test tests/simple-model-adapters-market.unit.mjs
+exit: 0
+lines: 52
+sha256: f3b3e357cbae47e7ac919961a587e4840c043ebd89d3fd664184067bf6f7d96f
+✔ TP-05-01 conditional-volatility adapter registers and is single-sourced from rlvol.buildVolDecisionRead
+✔ TP-05-01 each enabled conditional-volatility parameter changes its declared output path
+✔ TP-05-01 conditional-volatility compute is deterministic for one compute identity
+✔ TP-05-01 conditional-volatility adapter performs zero fetch provider storage author or publication calls
+✔ TP-05-01 volatility-sizing-lab.html single-sources the vol formula from rlvol.js with no inline copy
+ℹ tests 42
+ℹ suites 0
+ℹ pass 42
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+```
+
+```text
+$ node --test --test-name-pattern="market structure and options adapters" tests/simple-model-adapters.integration.mjs
+✔ TP-05-02 market structure and options adapters: registry-derived loop runs all eight at owner-parity with real parameter effects
+✔ TP-05-02 market structure and options adapters: a missing definition removes exactly that adapter from the production registry loop
+✔ TP-05-02 market structure and options adapters: adding a valid definition registers exactly that adapter through the production loop
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+```
+
+```text
+$ npx --no-install playwright test tests/simple-model-adapters-market.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: volatility sizing Simple controls recompute owner forecast regime and throttle" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 …ing Simple controls recompute owner forecast regime and throttle (708ms)
+
+  1 passed (2.0s)
+```
+
+The first bridge integration run exposed a stale test oracle: production now includes percentile/window text, while `OWNER_PARITY` still expected the old label. `bubbles.test` updated only that test oracle and reran the same command. Owner parity and every volatility-owned bridge path then passed. One unrelated FX wiring-disposition failure remains and is routed below.
+
+```text
+# spec 011 shared production bridge integration after parity repair
+$ node --test tests/simple-production-bridge.integration.mjs
+exit: 1
+lines: 43
+sha256: e80cf9f63c19f4517b918c5bff6a5b4207bda6610cf309067235ae1ae6230062
+✔ TP-15-02 registry-derived loop: each wired tool prepares through the REAL runtime and paints the REAL panel
+✔ TP-15-02 owner parity: every wired tool's Simple facts EQUAL the owner/Power-path values
+✔ TP-15-02 the production bridge reaches the SAME projection as the explicit runtime path for every module-backed wired tool
+✔ TP-15-02 honest unavailable: a wired tool whose provider yields NO owner state degrades truthfully
+✔ TP-15-02 honest unavailable: owner evidence that does not permit a run degrades truthfully rather than inventing a read
+ℹ tests 6
+ℹ pass 5
+ℹ fail 1
+AssertionError [ERR_ASSERTION]: SCN-012-039: ordinary tool(s) neither wired nor declared-unwired: fx-regime-relative-value-lab
+```
+
+```text
+$ npx --no-install playwright test tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "TP-15-04 every wired ordinary tool paints its real Simple adapter panel with an owner-parity fact" --reporter=list --workers=1 --retries=0
+
+Running 1 test using 1 worker
+
+  ✓  1 …ol paints its real Simple adapter panel with an owner-parity fact (1.8m)
+TP-15-04/SCN-012-041 derived native #simpleView tools: 7 of 19 wired (4 also declare #powerView)
+TP-15-04 swept 19 wired tools: market-heatmap-lab=ready(x1) options-flow-feed-lab=ready(x1) intraday-tape-lab=unavailable(x1) swing-structure-lab=ready(x1) options-structure-lab=ready(x1) gamma-trading-lab=ready(x1) sector-research-lab=ready(x1) global-rotation-lab=ready(x1) real-assets-lab=ready(x2) bond-regime-lab=ready(x1) ai-capex-strategy-lab=ready(x1) company-fundamentals-lab=ready(x1) etf-momentum-lab=ready(x1) strategy-self-improvement-lab=ready(x1) strategy-validation-lab=ready(x1) smart-money-flow-lab=ready(x1) waterfront-polo-lab=ready(x1) volatility-sizing-lab=ready(x1) technical-analysis-decision-lab=unavailable(x1)
+TP-15-04/SCN-012-041 native demotion verified on 7 tools, including volatility-sizing-lab
+
+  1 passed (1.8m)
+```
+
+The source-ownership canary passed all adapter-owned checks but retained one unrelated `rldata.js` keyless-chain failure. No `rldata.js` or FX surface was edited.
+
+```text
+# spec 011 shared source ownership canary
+$ node --test tests/simple-model-source-ownership.functional.mjs
+exit: 1
+lines: 48
+sha256: b6de38cd94589120d54b6f6e4b9c28f08eb3917d942d715a428079382ee2fb1c
+✔ SCN-012-016 the two Scope-05 adapter modules invoke no fetch, provider, storage, author, publication, or cross-domain path
+✔ SCN-012-016 functional: the delivered adapters perform zero fetch/provider/storage at runtime through the production runtime
+✔ SCN-012-016 scripts/fetch-options.mjs remains the sole data/options producer and Feature 012 adds no second producer
+✔ SCN-012-015 rldata.js paints the committed same-origin daily snapshot first and only fetches the remote delta
+ℹ tests 18
+ℹ pass 17
+ℹ fail 1
+AssertionError [ERR_ASSERTION]: the keyless chain names direct Yahoo + the three public proxies
+```
+
+### Test Integrity Scans
+
+```text
+$ bash .github/bubbles/scripts/regression-quality-guard.sh tests/volatility-sizing-lab.spec.mjs
+============================================================
+  BUBBLES REGRESSION QUALITY GUARD
+  Timestamp: 2026-08-12T06:36:53Z
+  Bugfix mode: false
+============================================================
+
+ℹ️  Scanning tests/volatility-sizing-lab.spec.mjs
+
+============================================================
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 1
+============================================================
+```
+
+```text
+REQUEST_INTERCEPTION_GREP_EXIT=1
+REQUEST_INTERCEPTION_SCAN_OK: zero executable matches
+SKIP_FIXME_GREP_EXIT=1
+SKIP_FIXME_SCAN_OK: zero matches
+$ grep -nE 'return;' tests/volatility-sizing-lab.spec.mjs
+440:            if (!document.documentElement) return;
+```
+
+The sole `return;` is inside the `addInitScript` DOM-readiness installer. Its caller immediately installs when `documentElement` exists or registers the alternate one-shot `readystatechange` path. It is not inside a test body and cannot turn a missing feature or failed assertion into a pass.
+
+The new and strengthened cases are not self-validating. Deterministic cache rows are stimuli passed through the real production `RLVOL`, page runtime, adapter module, shared bridge, cache publication, and Market Brief DOM. Assertions target production-computed forecast/regime/percentile/window/throttle/decision identities, real resource timing, canvas pixels, actual table rows, and persisted owner-read rendering. The BS-003 audit specifically rejected the original dynamically-correct but scenario-inaccurate 0.168 multiplier fixture before accepting the corrected production result.
+
+### Routed Findings
+
+- `TEST-011-R1` — `tests/simple-production-bridge.integration.mjs` still reports `fx-regime-relative-value-lab` as neither wired nor declared unwired (`SCN-012-039`). This is outside Feature 011's owning slice and requires the Feature 012 / FX owner.
+- `TEST-011-R2` — `tests/simple-model-source-ownership.functional.mjs` still reports the unrelated `rldata.js` keyless-chain expectation failure (`SCN-012-014`). `rldata.js` is an excluded read-only canary for Feature 011 and requires its owning shared-data work item.
+
+No certification state was changed. Remaining terminal certification review is routed to `bubbles.validate` after this evidence reconciliation.
+
+## Validation Reconciliation - bubbles.validate - 2026-08-11 Local / 2026-08-12 UTC
+
+**Phase:** validate
+**Claim Source:** interpreted
+**Interpretation:** Current execution proves the repaired Feature 011 product path, but it does not support terminal certification. The current done-target guard is blocked, the persisted audit attempt does not satisfy the current audit-result contract, one human-owned acceptance item remains unchecked, and two broader shared canaries are red. Historical evidence above remains unchanged.
+
+### Certification State Adjustment
+
+`bubbles.validate` changed only validate-owned lifecycle truth in `state.json`: both status mirrors moved from `done` to `blocked`, `certifiedAt` moved to `null`, and `requiresRevalidation` moved to `true`. Scope completion, completed-scope membership, execution history, the stale execution-owned `nextRequiredTarget` / `blocker` text, and the persisted audit attempt were not rewritten.
+
+**Command:** `jq '. as $root | {status,certificationStatus:.certification.status,certifiedAt,requiresRevalidation,completedScopes:.certification.completedScopes,auditCurrentAttemptId:.execution.audit.currentAttemptId,auditAttemptState:(.execution.audit.attempts[]|select(.attemptId==$root.execution.audit.currentAttemptId)|(.resultState // .state)),auditAttemptGuardExit:(.execution.audit.attempts[]|select(.attemptId==$root.execution.audit.currentAttemptId)|.guardExit)}' specs/011-volatility-regime-and-sizing-lab/state.json`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+{
+  "status": "blocked",
+  "certificationStatus": "blocked",
+  "certifiedAt": null,
+  "requiresRevalidation": true,
+  "completedScopes": [
+    "SCOPE-01",
+    "SCOPE-02",
+    "SCOPE-03",
+    "SCOPE-04"
+  ],
+  "auditCurrentAttemptId": "audit-011-001",
+  "auditAttemptState": "ACTIVE",
+  "auditAttemptGuardExit": 1
+}
+```
+
+The first read-only state query emitted no JSON because its attempt selector lost the root object inside the array context. It made no write. The corrected command above binds the root as `$root` and is the evidence of record.
+
+### Current Feature 011 Product Evidence
+
+**Command:** `npx --no-install playwright --version`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+Version 1.61.1
+```
+
+**Command:** `npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+Running 19 tests using 1 worker
+
+  ✓   1 …01: high-persistence forecast stays elevated and typed forecast (947ms)
+  ✓   2 …iplier throttles to about half in a storm with a worked example (405ms)
+  ✓   3 …012: EWMA-vs-GARCH persistence divergence is shown not averaged (421ms)
+  ✓   4 …entile always renders its trailing window and observation count (522ms)
+  ✓   5 …ssion BS-005: no directional element appears in Simple or Power (493ms)
+  ✓   6 …ression BS-007: backtest is a deep-link with no in-tool verdict (333ms)
+  ✓   7 …S-008: managed-suppressed history is marked, not calm/full-size (425ms)
+  ✓   8 …n BS-009: insufficient history is unavailable with exact counts (425ms)
+  ✓   9 …Regression BS-010: Simple and Power share one decision identity (494ms)
+  ✓  10 …BS-004: near-zero forecast vol floors the multiplier at the cap (351ms)
+  ✓  11 …on BS-006: GARCH fit is labeled a lightweight optimizer not MLE (424ms)
+  ✓  12 …ression BS-011: non-convergent GARCH falls back to labeled EWMA (411ms)
+  ✓  13 …S-013: realized is never relabeled a forecast in the owner read (333ms)
+  ✓  14 …longer history is caveated and reproduces no multi-decade claim (393ms)
+  ✓  15 …mpletion with synchronous non-blank canvases and table fallback (380ms)
+  ✓  16 …Controls recompute one decision without any market-data request (578ms)
+  ✓  17 …ases carry aria-label and same-data table on desktop and mobile (519ms)
+  ✓  18 …es one owner read and Market Brief renders it without recompute (954ms)
+  ✓  19 …e THROUGH the shared rlnav registration, not just by direct URL (869ms)
+
+  19 passed (11.2s)
+```
+
+**Command:** `bash .github/bubbles/scripts/evidence-capture.sh --label "spec 011 validate reconciliation selftest" -- node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# spec 011 validate reconciliation selftest
+$ node scripts/selftest.mjs
+exit: 0
+lines: 1771
+sha256: 55f7e55cbbdd9c19d8819842ce974233c94afbce3949482c70ae9b678c7f8f0c
+--- first 20 ---
+
+Step 1 security — escaped model sinks and CSP on every page
+  ✓ every shipped HTML page carries a Content-Security-Policy meta
+  ✓ all pages use one identical CSP instead of drifting per page
+  ✓ CSP keeps the single-file inline-script design while defaulting to self
+  ✓ CSP blocks object, base-tag, and form exfiltration paths
+  ✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✓ CSP allows no open URL-forwarding relay origin
+  ✓ production pages and shared runtime contain no open URL-forwarding relay chain
+  ✓ no model/config-authored field reaches innerHTML without esc()
+  ✓ the sink detector catches an unescaped model-authored title
+
+Feature 004 RLFX/RLDATA foundation
+  ✓ RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic
+  ✓ RLFX universe is bounded closed and asserts no live source authorization
+  ✓ RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows
+  ✓ RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes
+  ✓ RLDATA Twelve Data mapping: interval/symbol translate, values sort newest-first → oldest-first with UTC epochs, empty volume → null, error/malformed → null
+  ✓ RLFX broad dollar keeps Broad AFE EME and proxy states separate
+--- omitted 1731 line(s); sha256 above covers the full output ---
+--- last 20 ---
+
+bond-regime — one-model parity guarantee
+  ✓ Parity TP-06-01: the page’s own composition and parity helpers both resolve, so the comparison runs against the real model rather than a reimplementation
+  ✓ Parity TP-06-01: the headless side reached its verdict THROUGH resolution and admission, not around them
+  ✓ Parity TP-06-01: curveState is identical across the browser composition and the real headless path (Positive === Positive)
+  ✓ Parity TP-06-01: curveImpulse is identical across the browser composition and the real headless path (Mixed === Mixed)
+  ✓ Parity TP-06-01: inflationState is identical across the browser composition and the real headless path (Heating === Heating)
+  ✓ Parity TP-06-01: durationPosture is identical across the browser composition and the real headless path (Shorten === Shorten)
+  ✓ Parity TP-06-02: the full retained window yields a derivable impulse (Mixed) while the truncated window yields Unavailable — the window is load-bearing
+  ✓ Parity TP-06-03: perturbing one row of the HEADLESS input alone makes the compositions disagree, so the comparison is capable of failing ({"curveState":"Inverted","curveImpulse":"Mixed","inflationState":"Mixed","durationPosture":"Shorten"})
+  ✓ Parity TP-06-03: the parity verdict REPORTS the disagreement rather than passing (curveState, inflationState)
+  ✓ Parity TP-06-04: equal windows and equal readings yield Agree across all four compared fields
+  ✓ Parity TP-06-04: unequal coverageYears yields Cannot be compared with the differing-window reason — neither Agree nor Differ (D-1, R-3)
+  ✓ Parity TP-06-04: an absent side is Cannot be compared with its own reason — silence is never agreement
+  ✓ Parity TP-06-05: data/curves/us-treasury/curve.json is byte-identical before and after the parity group — the suite never mutates published evidence
+  ✓ Parity TP-06-05: the parity artifact was written under a temporary root, never into the repository
+
+================================================
+Research-Lab self-test: 1540 passed, 0 failed
+================================================
+```
+
+Full-output verification command:
+
+```text
+bash .github/bubbles/scripts/evidence-capture.sh --verify 55f7e55cbbdd9c19d8819842ce974233c94afbce3949482c70ae9b678c7f8f0c -- node scripts/selftest.mjs
+```
+
+### Supporting Contract And Artifact Checks
+
+**Claim Source:** interpreted
+**Interpretation:** Each row records the direct terminal result of the exact current-session command. The large source-lock output is summarized by its final actual/adversarial signals; the page and manifest commands are retained in the session transcript.
+
+| Command | Direct terminal result |
+| --- | --- |
+| `node scripts/validate-brief-payload.mjs` | `[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid` |
+| Registered `PAGE=volatility-sizing-lab.html node -e '...'` command from `.specify/memory/agents.md` | `OK page=volatility-sizing-lab.html inline=1 refs=0` |
+| `node scripts/validate-node-source-lock.mjs` | `[node-source-lock] actual=PASS`; `[node-source-lock] OK adversarial=16 unexpectedAcceptances=0` |
+| `node scripts/build-brief-page-artifacts.mjs --check` | `check=true`, `stale=false` |
+| Exact scenario-manifest file-and-title resolver executed in this session | `links=36`, `missing=[]` |
+
+### Current Governance Checks
+
+**Claim Source:** interpreted
+**Interpretation:** These are direct current-session command outcomes. The full guard transcripts were observed; the table retains their decisive counts while the blocked transition guard is captured separately below.
+
+| Command | Direct terminal result |
+| --- | --- |
+| `bash .github/bubbles/scripts/goal-fidelity-guard.sh --boundary pre-certification --session-file .specify/memory/bubbles.session.json --spec-dir specs/011-volatility-regime-and-sizing-lab` | PASS |
+| `bash .github/bubbles/scripts/artifact-lint.sh specs/011-volatility-regime-and-sizing-lab 'SCN-011-[0-9]{3}'` | PASS |
+| `bash .github/bubbles/scripts/traceability-guard.sh specs/011-volatility-regime-and-sizing-lab` | 21 scenarios; 52 rows; 21/21 DoD fidelity; 0 warnings |
+| `bash .github/bubbles/scripts/artifact-freshness-guard.sh specs/011-volatility-regime-and-sizing-lab` | 0 failures; 0 warnings |
+| `bash .github/bubbles/scripts/implementation-reality-scan.sh specs/011-volatility-regime-and-sizing-lab --verbose` | 9 files; 0 violations; 0 warnings |
+| `bash .github/bubbles/scripts/regression-quality-guard.sh tests/volatility-sizing-lab.spec.mjs` | 0 violations; 0 warnings |
+
+### Current Done-Target Guard - Blocked
+
+**Command:** `bash .github/bubbles/scripts/evidence-capture.sh --label "spec 011 post-demotion certification guard" -- bash .github/bubbles/scripts/state-transition-guard.sh specs/011-volatility-regime-and-sizing-lab --target-status done --expect-workflow-mode full-delivery --expect-contract-digest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93`
+**Exit Code:** 1
+**Claim Source:** interpreted
+**Interpretation:** The complete 406-line guard output is hashed below. Its human diagnostics report three blocking classes even though the machine block names only G040: G077 historical overlaps, two G040 plan-owned labels, and the repo-global evidence-receipt clone detector. G088 passes after the certification demotion.
+
+```text
+# spec 011 post-demotion certification guard
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/011-volatility-regime-and-sizing-lab --target-status done --expect-workflow-mode full-delivery --expect-contract-digest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93
+exit: 1
+lines: 406
+sha256: 93301a3b023cee2ea96e0335d466131332648a6de8e0c4a03ee28a5336ccddaa
+
+--- Check 7A: executionHistory Timestamp Plausibility ---
+🔴 BLOCK: executionHistory contains 2 overlapping entries — sequential agent execution is impossible if runs overlap
+ℹ️  INFO: bubbles.stabilize(2026-07-17T22:55:00+00:00-2026-07-17T23:12:00+00:00) overlaps bubbles.audit(2026-07-17T23:01:00+00:00)
+ℹ️  INFO: bubbles.validate(2026-07-17T23:46:00+00:00-2026-07-18T00:00:37+00:00) overlaps bubbles.chaos(2026-07-17T23:55:00+00:00)
+
+--- Check 18: Deferral Language Scan (Gate G040) ---
+🔴 BLOCK: Scope artifact contains 2 deferral language hit(s): scopes.md — SPEC CANNOT BE DONE WITH DEFERRED WORK (Gate G040)
+
+--- Check 43: Evidence Receipt Staleness ---
+✅ PASS: Evidence receipts consulted; no stale receipt backs this transition
+🔴 BLOCK: Evidence receipt CLONE — one captured stdout is cited by two different commands, which cannot happen from honest execution
+
+--- Check 30: Post-Certification Spec Edit Detection (Gate G088) ---
+✅ PASS: Post-certification planning truth is aligned with certification state (Gate G088)
+
+🔴 TRANSITION BLOCKED: 3 failure(s), 2 warning(s)
+failedGateIds: [G040]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 3
+exitStatus: 1
+verdict: FAIL
+```
+
+The compact capture's verification command is preserved as emitted. Re-running it after this report append may change report-derived advisory counts; the hash remains the immutable record of the pre-append post-demotion run.
+
+### Persisted Audit Attempt Contract Check
+
+**Claim Source:** executed
+
+```text
+$ bash .github/bubbles/scripts/audit-result-contract-lint.sh --result specs/011-volatility-regime-and-sizing-lab/report.md
+audit-result-contract-lint: FAIL [PRESENTATION]: result contains non-ASCII, control, color, or carriage-return bytes
+
+$ jq '{schemaVersion:.execution.audit.schemaVersion,currentAttemptId:.execution.audit.currentAttemptId,activeAttempts:[.execution.audit.attempts[]|select((.resultState // .state)=="ACTIVE")|{attemptId,state,resultState,auditProfile,targetStatus,targetRevision,contractDigest,guardExit,auditVerdict,outcome,evidenceRef,addressedFindings,unresolvedFindings}]}' specs/011-volatility-regime-and-sizing-lab/state.json
+{
+  "schemaVersion": "audit-run/v1",
+  "currentAttemptId": "audit-011-001",
+  "activeAttempts": [
+    {
+      "attemptId": "audit-011-001",
+      "state": "ACTIVE",
+      "resultState": null,
+      "auditProfile": "delivery-completion-v1",
+      "targetStatus": "done",
+      "targetRevision": "sha256:98797ed4d13bc846dd5e5d1862d64f8c7123f9adabcd08c65b78ca9d79b45c8f",
+      "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
+      "guardExit": 1,
+      "auditVerdict": null,
+      "outcome": "route_required",
+      "evidenceRef": "report.md#audit-verification-bubblesaudit-2026-07-17",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "G022-validate-phase-unrun",
+        "G027-zero-scopes-done",
+        "F011-VAL-013-G052-foreign-specmd-heading",
+        "foreign-rlnav-comingling-F010",
+        "foreign-shared-tree-wip"
+      ]
+    }
+  ]
+}
+```
+
+The installed current audit contract requires `resultState`, `auditVerdict`, a current `targetRevision`, exactly one complete `AUDIT_RESULT_V1`, and a lintable evidence transcript. The persisted attempt lacks those current fields and targets an obsolete revision. `bubbles.validate` did not alter it and did not fabricate a replacement audit pass.
+
+### Changed Shared-Surface Checks
+
+**Claim Source:** executed
+
+```text
+$ node --test tests/simple-model-adapters-market.unit.mjs
+(node:44708) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+ℹ tests 42
+ℹ suites 0
+ℹ pass 42
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+
+$ node --test --test-name-pattern="market structure and options adapters" tests/simple-model-adapters.integration.mjs
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+
+$ npx --no-install playwright test tests/simple-model-adapters-market.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: volatility sizing Simple controls recompute owner forecast regime and throttle" --reporter=list
+Running 1 test using 1 worker
+  ✓  1 …ing Simple controls recompute owner forecast regime and throttle (824ms)
+  1 passed (3.7s)
+```
+
+Two broader shared canaries remain red. Their volatility-owner parity assertions pass, but their foreign contract assertions do not:
+
+```text
+$ node --test tests/simple-production-bridge.integration.mjs
+✖ TP-15-02 the wired-tool set is derived from the production registry + the production pages (never a hard-coded list)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 5
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+AssertionError [ERR_ASSERTION]: SCN-012-039: ordinary tool(s) neither wired nor declared-unwired: fx-regime-relative-value-lab
+
+$ node --test tests/simple-model-source-ownership.functional.mjs
+(node:48608) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+✖ SCN-012-014 rldata.js preserves the ordered Yahoo keyless chain and reads no keyed-provider key on the keyless path
+ℹ tests 18
+ℹ suites 0
+ℹ pass 17
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+AssertionError [ERR_ASSERTION]: the keyless chain names direct Yahoo + the three public proxies
+```
+
+### Repository Health Signals
+
+**Claim Source:** executed
+
+```text
+$ bash .github/bubbles/scripts/cli.sh framework-write-guard
+⚠️  Installed from a dirty local source checkout. This is not a clean published release install.
+✅ Managed-file integrity: downstream framework-managed files still match the installed upstream snapshot
+
+$ bash .github/bubbles/scripts/cli.sh repo-readiness .
+Summary: pass=9 warn=0 fail=0
+
+$ bash .github/bubbles/scripts/cli.sh doctor
+Result: 21 passed, 1 failed, 27 advisory
+❌ collected-test-count-guard: new drift beyond the baseline
+
+$ bash .github/bubbles/scripts/collected-test-count-guard.sh .
+[collected-test-count-guard] scanned 302 evidence file(s)
+
+[collected-test-count-guard] FAIL: 1 evidence block(s) state that ZERO tests ran:
+
+  ./specs/004-fx-regime-relative-value-lab/report.md:8707
+    capture aborted before running: 1 error, 0 tests executed
+
+$ bash .github/bubbles/scripts/done-spec-audit.sh --profile changed specs/011-volatility-regime-and-sizing-lab
+Done-spec audit summary
+- specs scanned: 1
+- done specs scanned: 0
+- artifact lint passed: 1
+- artifact lint failed: 0
+- done completion checks passed: 0
+- done completion checks failed: 0
+- reopened (--reopen-failing): 0
+```
+
+### Current Blocker Ownership
+
+| Finding | Current Evidence | Owner |
+| --- | --- | --- |
+| `VAL-011-G040` | Two active plan-owned subsection labels in `scopes.md` trigger Gate G040. | `bubbles.plan` |
+| `VAL-011-G077` | Two historical execution spans overlap. The installed G077 check has no correction or supersession input. The original timestamps remain unchanged because no source-backed replacement times are available. | Human/operator for source-backed times; otherwise `bubbles.bug` in the canonical Bubbles repository for a supported correction representation |
+| `VAL-011-RECEIPT-CLONE` | The repo-global Check 43 clone detector blocks on identical outputs attributed to different commands outside spec 011. | `bubbles.bug` in the canonical Bubbles repository |
+| `VAL-011-AUDIT-STALE` | `audit-011-001` is a failed legacy-shaped ACTIVE attempt with no current result contract and an obsolete target revision. | `bubbles.audit` |
+| `VAL-011-EXECUTION-ROUTING` | `execution.nextRequiredTarget` and `execution.blocker` still describe older validation rounds. Validate preserved them because they are execution-owned historical fields; the status mirrors and this reconciliation carry current certification truth. | `bubbles.workflow` |
+| `VAL-011-USER-ACCEPTANCE` | `uservalidation.md` contains one historical automation-authored unchecked item. Agent policy forbids toggling it; the item remains unchanged. | Human |
+| `VAL-011-SCN012-039` | Shared bridge suite is 5/6; `fx-regime-relative-value-lab` is neither wired nor declared unwired under the current spec 012 contract. | `bubbles.implement` on `specs/012-market-action-center-and-guided-tools` |
+| `VAL-011-SCN012-014` | Shared source-ownership suite is 17/18; the current `rldata.js` keyless chain does not satisfy spec 012 Scope 05. | `bubbles.implement` on `specs/012-market-action-center-and-guided-tools` |
+| `VAL-011-G133` | Repository doctor finds one zero-test evidence block in Feature 004's report. | `bubbles.test` on `specs/004-fx-regime-relative-value-lab` |
+
+Advisory signals, not additional blockers: two current test-reconciliation evidence blocks lack an explicit `**Claim Source:**` tag; the adapter unit and source-ownership runners emit Node's experimental localStorage warning; framework write guard reports a dirty local-source framework install while confirming managed-file integrity; the vertical-plan checker reports advisory shape findings.
+
+### Reconciliation Verdict
+
+Feature 011's repaired product-specific path is green in current execution: exact Playwright 1.61.1, real-route E2E 19/19, full selftest 1540/0, brief/page/source-lock/artifact-link checks green, artifact lint green, traceability 21/21 green, freshness green, implementation reality 0/0, and regression quality 0/0. Certification remains `blocked` because the current done-target guard exits 1, the current audit contract is unsatisfied, one human-owned acceptance item remains unchecked, and broader required shared canaries remain red. No commit was created.
+
+## Latest-Base Test Evidence - bubbles.test - 2026-08-12
+
+**Phase:** test
+**Base HEAD:** `088883faa971cdbdd6605956d3f4568b9a1e1a4b`
+**Claim Source:** executed
+
+This subsection records only commands independently re-executed on the current combined working tree. It does not alter or claim certification, lifecycle state, planning truth, or historical evidence.
+
+### Exact Spec 011 Playwright Suite
+
+**Command:** `npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+Running 19 tests using 1 worker
+
+  ✓   1 …01: high-persistence forecast stays elevated and typed forecast (725ms)
+  ✓   2 …iplier throttles to about half in a storm with a worked example (383ms)
+  ✓   3 …012: EWMA-vs-GARCH persistence divergence is shown not averaged (443ms)
+  ✓   4 …entile always renders its trailing window and observation count (344ms)
+  ✓   5 …ssion BS-005: no directional element appears in Simple or Power (391ms)
+  ✓   6 …ression BS-007: backtest is a deep-link with no in-tool verdict (312ms)
+  ✓   7 …S-008: managed-suppressed history is marked, not calm/full-size (386ms)
+  ✓   8 …n BS-009: insufficient history is unavailable with exact counts (383ms)
+  ✓   9 …Regression BS-010: Simple and Power share one decision identity (372ms)
+  ✓  10 …BS-004: near-zero forecast vol floors the multiplier at the cap (319ms)
+  ✓  11 …on BS-006: GARCH fit is labeled a lightweight optimizer not MLE (450ms)
+  ✓  12 …ression BS-011: non-convergent GARCH falls back to labeled EWMA (400ms)
+  ✓  13 …S-013: realized is never relabeled a forecast in the owner read (309ms)
+  ✓  14 …longer history is caveated and reproduces no multi-decade claim (363ms)
+  ✓  15 …mpletion with synchronous non-blank canvases and table fallback (390ms)
+  ✓  16 …Controls recompute one decision without any market-data request (579ms)
+  ✓  17 …ases carry aria-label and same-data table on desktop and mobile (874ms)
+  ✓  18 …es one owner read and Market Brief renders it without recompute (989ms)
+  ✓  19 …e THROUGH the shared rlnav registration, not just by direct URL (820ms)
+
+  19 passed (14.4s)
+```
+
+**Result:** PASS - 19 passed, 0 failed, exit 0.
+
+### Full Repository Selftest
+
+**Command:** `bash .github/bubbles/scripts/evidence-capture.sh --label "spec 011 latest-base full selftest" -- node scripts/selftest.mjs`
+**Underlying Command:** `node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# spec 011 latest-base full selftest
+$ node scripts/selftest.mjs
+exit: 0
+lines: 1813
+sha256: ff6199e3145cca9157e43b9ffa1793b4edfb31cbbd2f367c6c0c768b99acba9b
+--- first 20 ---
+
+Step 1 security — escaped model sinks and CSP on every page
+  ✓ every shipped HTML page carries a Content-Security-Policy meta
+  ✓ all pages use one identical CSP instead of drifting per page
+  ✓ CSP keeps the single-file inline-script design while defaulting to self
+  ✓ CSP blocks object, base-tag, and form exfiltration paths
+  ✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✓ CSP allows no open URL-forwarding relay origin
+  ✓ production pages and shared runtime contain no open URL-forwarding relay chain
+  ✓ no model/config-authored field reaches innerHTML without esc()
+  ✓ the sink detector catches an unescaped model-authored title
+
+Feature 004 RLFX/RLDATA foundation
+  ✓ RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic
+  ✓ RLFX universe is bounded closed and asserts no live source authorization
+  ✓ RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows
+  ✓ RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes
+  ✓ RLDATA Twelve Data mapping: interval/symbol translate, values sort newest-first → oldest-first with UTC epochs, empty volume → null, error/malformed → null
+  ✓ RLFX broad dollar keeps Broad AFE EME and proxy states separate
+--- omitted 1773 line(s); sha256 above covers the full output ---
+--- last 20 ---
+
+bond-regime — one-model parity guarantee
+  ✓ Parity TP-06-01: the page’s own composition and parity helpers both resolve, so the comparison runs against the real model rather than a reimplementation
+  ✓ Parity TP-06-01: the headless side reached its verdict THROUGH resolution and admission, not around them
+  ✓ Parity TP-06-01: curveState is identical across the browser composition and the real headless path (Positive === Positive)
+  ✓ Parity TP-06-01: curveImpulse is identical across the browser composition and the real headless path (Mixed === Mixed)
+  ✓ Parity TP-06-01: inflationState is identical across the browser composition and the real headless path (Heating === Heating)
+  ✓ Parity TP-06-01: durationPosture is identical across the browser composition and the real headless path (Shorten === Shorten)
+  ✓ Parity TP-06-02: the full retained window yields a derivable impulse (Mixed) while the truncated window yields Unavailable — the window is load-bearing
+  ✓ Parity TP-06-03: perturbing one row of the HEADLESS input alone makes the compositions disagree, so the comparison is capable of failing ({"curveState":"Inverted","curveImpulse":"Mixed","inflationState":"Mixed","durationPosture":"Shorten"})
+  ✓ Parity TP-06-03: the parity verdict REPORTS the disagreement rather than passing (curveState, inflationState)
+  ✓ Parity TP-06-04: equal windows and equal readings yield Agree across all four compared fields
+  ✓ Parity TP-06-04: unequal coverageYears yields Cannot be compared with the differing-window reason — neither Agree nor Differ (D-1, R-3)
+  ✓ Parity TP-06-04: an absent side is Cannot be compared with its own reason — silence is never agreement
+  ✓ Parity TP-06-05: data/curves/us-treasury/curve.json is byte-identical before and after the parity group — the suite never mutates published evidence
+  ✓ Parity TP-06-05: the parity artifact was written under a temporary root, never into the repository
+
+================================================
+Research-Lab self-test: 1578 passed, 0 failed
+================================================
+```
+
+Full-output verification command:
+
+```text
+bash .github/bubbles/scripts/evidence-capture.sh --verify ff6199e3145cca9157e43b9ffa1793b4edfb31cbbd2f367c6c0c768b99acba9b -- node scripts/selftest.mjs
+```
+
+**Result:** PASS - 1578 passed, 0 failed, exit 0.
+
+### Foreign Test Status
+
+**Claim Source:** executed
+
+The independently re-executed downstream count-canary pair is outside spec 011. The two files completed with 3 passed and 5 failed, exit 1.
+
+```text
+# foreign stale adapter-count canaries after Trend Dynamics registration
+$ node --test tests/distributed-briefs-read-adapters.integration.mjs tests/journey-definitions.functional.mjs
+exit: 1
+lines: 121
+sha256: 03cab6d84f3d032a021270a0efc39b813b4a61c2e0daee91b2cbc477c41b3517
+✖ all observed 22 source adapters emit truthful production ToolModelRead outcomes
+✖ TP-08-02 SCN-012-032 every registered tool resolves concrete Journey goals through the runtime
+✖ TP-08-02 SCN-012-032 each ordinary tool has at least two concrete same-tool goals with a mechanism
+✔ TP-08-02 SCN-012-032 market-brief maps to the four exact Market Action Center goals
+✔ TP-08-02 SCN-012-032 no goal is generic, example-only, or a placeholder
+✖ TP-08-02 every one of the 48 definitions compiles under the runtime schema with a fingerprint
+✖ TP-08-02 cross-checks that rlexperience.js still validates the same journey registry (single source)
+✔ TP-08-02 the runtime rejects an inventory that regresses goal completeness (non-tautological)
+ℹ tests 8
+ℹ pass 3
+ℹ fail 5
+ℹ skipped 0
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+52 !== 48
+```
+
+**Claim Source:** interpreted
+**Interpretation:** These foreign files still encode the pre-registration totals of 22 source/ordinary tools and 48 journey definitions. Trend Dynamics registration increased the live registry and journey inventory, so those fixed totals are stale. No foreign test or implementation was changed.
+
+A broader foreign diagnostic also remained red and was not used to judge spec 011:
+
+```text
+# foreign Feature 006 adapter-count canaries
+$ node --test tests/simple-model-adapters.integration.mjs
+exit: 1
+lines: 150
+sha256: f5941de87e65c8affb573ae85f42d9d5a22ba34e95622b81040784f810e05045
+ℹ tests 8
+ℹ suites 0
+ℹ pass 2
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+```
+
+**Claim Source:** interpreted
+**Interpretation:** This shared adapter integration file reports additional foreign registry/fixture-contract failures beyond the stale count-canary pair. It is outside spec 011's boundary and was left unchanged.
+
+No certification is claimed. This run changed no lifecycle or planning artifact and created no commit.

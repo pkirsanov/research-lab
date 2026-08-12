@@ -45,10 +45,16 @@ The scopes execute strictly in numeric order. Scope 1 is tagged `foundation:true
 - **Scope 1 first red:** run `CMD-FIRST-RED`. Its assertion title is `RLVOL CommonJS import preserves the existing global and explicit decisionTime is deterministic`; it directly requires production `rlvol.js`, installs a sentinel `globalThis.RLVOL`, and compares two byte-identical complete inputs before any universe, page, or brief work.
 - **After Scope 1:** that exact CommonJS assertion and the remaining named RLVOL helper/adversarial assertions run red then green in `node scripts/selftest.mjs`; the existing RLFX/RLVALID/causal/bond/credential/registry/market-brief canaries remain byte-preserved; `rldata.js` is untouched.
 - **After Scope 2:** `node scripts/selftest.mjs` proves closed-universe validation and registry parity across `tools.json`, `index.html`, and `rlnav.js`; the catalog and notes registration is present and consistent.
-- **After Scope 3:** `CMD-PAGE-VOL` proves inline-script and literal-id integrity, and the real-route `tests/volatility-sizing-lab.spec.mjs` suite (desktop 1440x1000 and mobile 390x844) proves window-visible regime, magnitude-only rendering, capped sizing, managed-suppressed marks, insufficient-history unavailability, Simple/Power identity, the labeled EWMA fallback, and synchronous non-blank canvases — with no request interception.
-- **After Scope 4:** the owner read publishes through the existing versioned `putToolRead`, Market Brief renders one attributed regime/throttle line without recompute, `CMD-BRIEF-VALIDATE` passes, and the Bond, Causal, and provider-credential browser canaries pass unchanged.
+- **After Scope 3:** `CMD-PAGE-VOL` proves inline-script and literal-id integrity, and the 19-case real-route `tests/volatility-sizing-lab.spec.mjs` suite proves the current Feature-012 Simple adapter agrees with the owning native forecast/regime/percentile/window/throttle, the sizing disclosure distinguishes `1/forecastVol` risk targeting from `1/vol²` growth-optimal sizing, stale cached SPY paint precedes the real delta response, and synchronous canvases remain non-blank on desktop and mobile — with no request interception.
+- **After Scope 4:** the owner read publishes through the existing versioned `putToolRead`, the actual `market-brief.html #toolReads` DOM renders the attributed owner read without a detached manual renderer or model recomputation, `CMD-BRIEF-VALIDATE` passes, and the Bond, Causal, and provider-credential browser canaries pass unchanged.
 
 ## Planning Baseline And Constraints
+
+### Planning Reconciliation Note (2026-08-11)
+
+- This planning-only reconciliation aligns exact test titles and expectations to the current 19-case real-route suite after the test-integrity audit.
+- Prior checked DoD evidence and command output remain historical and unchanged. They do not satisfy the newly strengthened expectations below.
+- `bubbles.test` owns fresh execution evidence for the strengthened rows; `bubbles.validate` owns any resulting certification review. This planning pass does not change `state.json` or terminal certification.
 
 - **Greenfield feature.** `rlvol.js`, `volatility-sizing-lab.html`, `volatility-sizing-universe.json`, `notes/volatility-sizing-lab.md`, the `scripts/selftest.mjs` RLVOL group, and `tests/volatility-sizing-lab.spec.mjs` do not exist yet. This plan introduces no dirty-tree collision baseline because Feature 011 has no pre-existing uncommitted product surface.
 - **No fabricated baseline.** No `node scripts/selftest.mjs` or Playwright result is recorded as Feature 011 evidence; the implementer records the first real red/green baseline. Any prior repo selftest count is context only, never Feature 011 completion evidence.
@@ -69,7 +75,7 @@ Command IDs are plan references only. The command text is verbatim repository co
 | CMD-FIRST-RED | Scope 1 cheapest first red against production `rlvol.js`: sentinel-global purity plus explicit-`decisionTime` determinism |
 | CMD-SELFTEST | `node scripts/selftest.mjs` — production helper, universe, registry, owner-read, and protected-canary assertions |
 | CMD-PAGE-VOL | Exact `volatility-sizing-lab.html` inline-script and literal-id integrity check |
-| CMD-E2E-VOL | `npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --reporter=list` — real-route regressions |
+| CMD-E2E-VOL | `npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` — current 19-case real-route regressions |
 | CMD-BRIEF-VALIDATE | `node scripts/validate-brief-payload.mjs` — committed Market Brief owner-read/coverage contract |
 | CMD-E2E-BOND | Bond Regime browser canary (`BASE-BOND-E2E`) |
 | CMD-E2E-CAUSAL | Causal Rotation browser canary (`BASE-CAUSAL-E2E`) |
@@ -162,6 +168,7 @@ When RLVOL computes the sizing multiplier
 Then it is approximately 0.5
 And a worked cash example on the user notional is present
 And the read states it applies only if a separate signal fires
+And the sizing disclosure distinguishes 1/forecastVol risk targeting from 1/vol² growth-optimal sizing
 ```
 
 #### SCN-011-004 (BS-004): A near-zero forecast cannot explode the multiplier
@@ -347,7 +354,7 @@ And validateUniverse accepts the closed universe and rejects unknown keys, inval
 | TP-02-01 | SCN-011-015 | Unit | unit | `scripts/selftest.mjs` / `tool registry parity: volatility-sizing-lab is registered identically across tools.json, index.html, and rlnav.js` | CMD-SELFTEST | No | Identity/order/label/icon/basename match across the trio |
 | TP-02-02 | SCN-011-015 | Unit | unit | `scripts/selftest.mjs` / `RLVOL validateUniverse accepts the closed volatility-sizing universe and rejects unknown keys` | CMD-SELFTEST | No | Closed universe accepted; unknown keys, invalid identity, and out-of-range/ordering-violating policy rejected |
 | TP-02-03 | SCN-011-015 | Regression (functional) | functional | `scripts/selftest.mjs` / full suite after registration | CMD-SELFTEST | No | Suite stays green with the registration and universe assertions and every prior registry canary preserved |
-| TP-02-04 | SCN-011-015 | Regression E2E | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / registered volatility route loads through the real nav | CMD-E2E-VOL | Yes | Regression E2E: the registered `volatility-sizing-lab` route is reachable and renders through the real nav registration; a broken registry entry fails the real-route suite (transitive registration regression) |
+| TP-02-04 | SCN-011-015 | Regression E2E | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `TP-02-04: the volatility tool is reachable THROUGH the shared rlnav registration, not just by direct URL` | CMD-E2E-VOL | Yes | The exact current test follows the shared nav to the visible Simple adapter, then reaches the owning native surface under Power |
 
 ### Definition of Done
 
@@ -383,7 +390,7 @@ Build quality gate:
 
 ### Outcome
 
-The user opens the real production route and completes the Simple storm-gauge and Power model/persistence/sizing journey over one `VolDecisionReadV1`. Every hard constraint is a UI invariant: magnitude-only, window-visible regime percentile, capped-and-floored conditional sizing, managed-suppressed marks, explicit unavailable states, Simple/Power identity, synchronous accessible canvases, and a backtest deep-link with no in-tool verdict.
+The user opens the real production route and completes the visible Feature-012 Simple adapter plus the owning native model/persistence/sizing journey over one `VolDecisionReadV1`. Every hard constraint is a UI invariant: adapter/native parity, magnitude-only, window-visible regime percentile, capped-and-floored conditional sizing with the risk-vs-growth scaling disclosure, managed-suppressed marks, explicit unavailable states, stale-cache-first chronology, synchronous accessible canvases, and a backtest deep-link with no in-tool verdict.
 
 ### Change Boundary
 
@@ -399,7 +406,7 @@ The user opens the real production route and completes the Simple storm-gauge an
 ### Consumer Impact Sweep
 
 - Producers: route title/file, allowlisted deep-link hash params, `window.VolSizingLab` read-only runtime, and the `recompute`/`publish` seams.
-- Current consumers: the direct route and its browser tests; the Scope 4 owner-read publication and Market Brief coverage.
+- Current consumers: the owning native route under the shell Power view, the current visible Feature-012 Simple adapter, the route browser tests, and the Scope 4 owner-read publication and Market Brief coverage.
 - Explicit boundary: no registry entry changes here (owned by Scope 2); no owner-read consumer is activated here (owned by Scope 4).
 
 ### Gherkin Scenarios
@@ -409,8 +416,8 @@ The user opens the real production route and completes the Simple storm-gauge an
 ```gherkin
 Scenario: SCN-011-002 - Percentile always renders its trailing window
 Given the current forecast volatility is at a high percentile
-When the storm-gauge regime is rendered in Simple or Power
-Then the percentile displays its trailing window and observation count
+When the current visible Feature-012 Simple adapter and the owning native volatility views render
+Then the adapter agrees with the owning decision percentile and trailing-window observation count
 And it is never presented as an absolute, cross-asset-comparable danger score
 ```
 
@@ -458,18 +465,20 @@ And it never defaults to zero, neutral, calm, or full size
 ```gherkin
 Scenario: SCN-011-010 - Simple and Power share one decision identity
 Given the same asset, window, and controls
-When both Simple and Power views render
-Then they consume one decisionId
-And they never show a different regime, forecast, persistence, or multiplier
+When the current visible Feature-012 Simple adapter and the owning native Simple and Power views render
+Then the adapter agrees with the owning forecast, regime, percentile, window observations, and throttle
+And the native views consume one decisionId without disagreement
 ```
 
 #### SCN-011-016: Cache-first partial paint with synchronous accessible canvases
 
 ```gherkin
 Scenario: SCN-011-016 - Cache-first synchronous non-blank canvases
-Given the same-origin cache holds a mixture of fresh, stale, short, and missing bars
+Given the same-origin cache holds a stale but meaningful SPY bar snapshot
+And the real same-origin SPY delta response has not completed
 When the production volatility page opens
-Then the Simple structure paints from valid cache before any network completion
+Then the Simple structure paints the stale cached decision before the SPY delta response completes
+And the completed delta replaces the cached decision with a newer SPY bar snapshot
 And Power canvases draw synchronously without requestAnimationFrame
 And each canvas has an adjacent summary and a same-data table on the synchronous render path
 ```
@@ -508,22 +517,25 @@ And the layout shows no clipped controls or horizontal page overflow
 | ID | Scenario(s) | Test Type | Category | File / Exact Test Title | Command | Live System | Red/Green Focus |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | TP-03-01 | SCN-011-016 | Functional | functional | `./volatility-sizing-lab.html` / inline-script + literal-id integrity | CMD-PAGE-VOL | No | Every inline script parses; every `getElementById` resolves to a literal id |
-| TP-03-02 | SCN-011-002 | E2E UI | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Regression BS-002: storm-gauge percentile always renders its trailing window and observation count` | CMD-E2E-VOL | Yes | Percentile always renders its window + count; not a cross-asset absolute |
+| TP-03-02 | SCN-011-002 | E2E UI | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Regression BS-002: storm-gauge percentile always renders its trailing window and observation count` | CMD-E2E-VOL | Yes | The visible Feature-012 Simple adapter agrees with the owning percentile and window observations; not a cross-asset absolute |
 | TP-03-03 | SCN-011-005 | E2E UI | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Regression BS-005: no directional element appears in Simple or Power` | CMD-E2E-VOL | Yes | No directional element/target/top/bottom anywhere |
 | TP-03-04 | SCN-011-007 | E2E UI | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Regression BS-007: backtest is a deep-link with no in-tool verdict` | CMD-E2E-VOL | Yes | Deep-link to strategy-validation-lab; no in-tool verdict |
 | TP-03-05 | SCN-011-008 | E2E UI | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Regression BS-008: managed-suppressed history is marked, not calm/full-size` | CMD-E2E-VOL | Yes | Managed-suppressed mark; sizing withheld/caveated, never calm/full size |
 | TP-03-06 | SCN-011-009 | E2E UI | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Regression BS-009: insufficient history is unavailable with exact counts` | CMD-E2E-VOL | Yes | Unavailable with exact counts; no zero/neutral/calm/full-size default |
-| TP-03-07 | SCN-011-010 | E2E UI | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Regression BS-010: Simple and Power share one decision identity` | CMD-E2E-VOL | Yes | Same `decisionId` and headline fields across Simple and Power |
+| TP-03-07 | SCN-011-010 | E2E UI | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Regression BS-010: Simple and Power share one decision identity` | CMD-E2E-VOL | Yes | The visible adapter matches owning forecast/regime/percentile/window/throttle; native Simple and Power share one `decisionId` |
 | TP-03-08 | SCN-011-004 | E2E UI (regression) | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Regression BS-004: near-zero forecast vol floors the multiplier at the cap` | CMD-E2E-VOL | Yes | Rendered multiplier hits the cap under near-zero forecast vol |
 | TP-03-09 | SCN-011-006 | E2E UI (regression) | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Regression BS-006: GARCH fit is labeled a lightweight optimizer not MLE` | CMD-E2E-VOL | Yes | Rendered GARCH label is lightweight-optimizer, never MLE |
 | TP-03-10 | SCN-011-011 | E2E UI (regression) | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Regression BS-011: non-convergent GARCH falls back to labeled EWMA` | CMD-E2E-VOL | Yes | Non-convergent GARCH renders labeled EWMA fallback, not a broken value |
 | TP-03-11 | SCN-011-013 | E2E UI (regression) | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Regression BS-013: realized is never relabeled a forecast in the owner read` | CMD-E2E-VOL | Yes | Realized typing badge; owner read never presents realized as forecast |
 | TP-03-12 | SCN-011-014 | E2E UI (regression) | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Regression BS-014: longer history is caveated and reproduces no multi-decade claim` | CMD-E2E-VOL | Yes | Longer range caveated best-effort; no single-path multi-decade number |
-| TP-03-13 | SCN-011-016 | E2E UI | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Cache-first partial paint renders synchronous non-blank canvases with text and table fallback` | CMD-E2E-VOL | Yes | Cache-first paint; synchronous non-blank canvases; same-data table fallback |
+| TP-03-13 | SCN-011-016 | E2E UI | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Cache-first partial paint renders before stale-cache delta completion with synchronous non-blank canvases and table fallback` | CMD-E2E-VOL | Yes | A stale meaningful cached SPY decision paints before the real same-origin delta response; the response produces a newer decision; canvases are synchronously non-blank with a same-data table fallback |
 | TP-03-14 | SCN-011-017 | E2E UI | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Controls recompute one decision without any market-data request` | CMD-E2E-VOL | Yes | One recompute; zero market-data requests from a control change |
 | TP-03-15 | SCN-011-018 | E2E UI | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Power canvases carry aria-label and same-data table on desktop and mobile` | CMD-E2E-VOL | Yes | Desktop + mobile aria-labels, same-data tables, no overflow/clipping |
-| TP-03-16 | SCN-011-002/005/007/008/009/010 + 016/017/018 | E2E UI (regression) | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / full suite | CMD-E2E-VOL | Yes | Full real-route suite green with no request interception |
-| TP-03-17 | SCN-011-002/005/007/008/009/010/016/017/018 | Regression E2E | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / persistent real-route regression suite | CMD-E2E-VOL | Yes | Regression E2E: the persistent scenario-specific real-route suite (15 cases) guards every Simple/Power behavior against regression on desktop and mobile |
+| TP-03-16 | All browser-mapped scenarios | E2E UI (regression) | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / full 19-case suite | CMD-E2E-VOL | Yes | Current 19-case real-route suite green with no request interception |
+| TP-03-17 | All browser-mapped scenarios | Regression E2E | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / persistent 19-case real-route suite | CMD-E2E-VOL | Yes | Standing guard covers adapter/native parity, stale-cache chronology, actual Brief DOM, registration, and desktop/mobile behavior |
+| TP-03-18 | SCN-011-001 | E2E UI (regression) | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Regression BS-001: high-persistence forecast stays elevated and typed forecast` | CMD-E2E-VOL | Yes | Fitted high-persistence forecast stays above long-run, typed `forecast`, with the owning term summary |
+| TP-03-19 | SCN-011-003 | E2E UI (regression) | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Regression BS-003: sizing multiplier throttles to about half in a storm with a worked example` | CMD-E2E-VOL | Yes | Formula, worked example, separate-signal caveat, and `1/forecastVol` versus `1/vol²` disclosure are visible |
+| TP-03-20 | SCN-011-012 | E2E UI (regression) | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Regression BS-012: EWMA-vs-GARCH persistence divergence is shown not averaged` | CMD-E2E-VOL | Yes | Material divergence opens the named conflict and is shown, not averaged |
 
 ### Definition of Done
 
@@ -544,12 +556,19 @@ Regression E2E coverage (Gate G022):
 - [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior are added or updated and pass on the real route — the persistent `Regression BS-002/004/005/006/007/008/009/010/011/013/014` cases plus the cache-first, no-fetch-recompute, and desktop/mobile a11y cases in `tests/volatility-sizing-lab.spec.mjs`. — Evidence: report.md § Plan Reconciliation Re-Run; the full `tests/volatility-sizing-lab.spec.mjs` suite is 15/0 this session (exit 0).
 - [x] Broader E2E regression suite passes with every cross-tool canary preserved. — Evidence: report.md § Fast-Delivery Regression Verification (2026-07-17); `node scripts/selftest.mjs` 547/0 + Bond 27/0 + Causal 4/0 + Provider 4/0 + vol E2E 15/0, all exit 0 this session; every cross-tool canary preserved.
 
-Test Plan parity - 17 rows:
+Test Plan parity - 20 rows:
 
 - [x] TP-03-01 passes the exact page inline-script/id command. — Evidence: report.md § Plan Reconciliation Re-Run; `CMD-PAGE-VOL` `OK page=volatility-sizing-lab.html inline=1 refs=0` (exit 0) this session.
 - [x] TP-03-02 through TP-03-15 each record their focused red and pass the named real-route regression on desktop and, where applicable, mobile. — Evidence: report.md § Plan Reconciliation Re-Run; vol E2E cases 1-14 ✓ (15/0 this session).
 - [x] TP-03-16 passes the full `tests/volatility-sizing-lab.spec.mjs` suite on the real ephemeral same-origin server with no request interception. — Evidence: report.md § Plan Reconciliation Re-Run; `15 passed (exit 0)` this session.
 - [x] TP-03-17 passes the persistent scenario-specific regression suite as a standing regression guard. — Evidence: report.md § Fast-Delivery Regression Verification (2026-07-17); `tests/volatility-sizing-lab.spec.mjs` persistent real-route suite = 15 passed / 0 failed (exit 0) — accepted as a standing regression guard by the regression phase.
+
+Current strengthened test evidence:
+
+- [x] TP-03-02 and TP-03-07 prove the current visible Feature-012 Simple adapter agrees with the owning native percentile, window observations, forecast, regime, and throttle, while native Simple and Power retain one decision identity. — **Claim Source:** executed; `CMD-E2E-VOL` 19/19 and focused parity 2/2, exit 0. Raw output: report.md § Test Reconciliation — Focused TP-03-02 And TP-03-07 Visible-Adapter Parity.
+- [x] TP-03-13 proves meaningful stale cached SPY paint precedes the real same-origin `data/bars/SPY.json` delta response, the delta produces a newer decision, and the canvas is synchronously non-blank with a table fallback. — **Claim Source:** executed after strengthening the assertion to require a changed decision identity and later `observedAsOf`; focused case 1/1 and final suite 19/19, exit 0. Raw output: report.md § Test Reconciliation — Focused TP-03-13 Stale-Cache Chronology.
+- [x] TP-03-18, TP-03-19, and TP-03-20 pass their exact current test titles, including the `1/forecastVol` risk-targeting versus `1/vol²` growth-optimal sizing disclosure in TP-03-19. — **Claim Source:** executed after correcting TP-03-19's deterministic stimulus to produce the specified approximately 30% storm forecast and approximately 0.5 throttle; focused cases 3/3 and final suite 19/19, exit 0. Raw output: report.md § Test Reconciliation — Focused TP-03-18, TP-03-19, And TP-03-20.
+- [x] TP-03-16 and TP-03-17 pass the current 19-case real-route suite with no request interception. — **Claim Source:** executed; exact `CMD-E2E-VOL` 19/19, interception scan zero executable matches, skip/fixme scan zero matches, regression-quality guard 0 violations/0 warnings. Raw output: report.md § Test Reconciliation — Runner Identity And Final 19-Case Aggregate and § Test Integrity Scans.
 
 Build quality gate:
 
@@ -604,7 +623,8 @@ And it contains no raw bars, no restricted payload, and no source URL beyond the
 Scenario: SCN-011-019 - Market Brief renders the owner read without recompute
 Given the registry includes a current normalized volatility owner read or an explicit unavailable outcome
 When Market Brief renders the volatility item
-Then it surfaces the window-visible regime and sizing throttle with the owner as-of and deep link
+Then the actual market-brief.html #toolReads DOM surfaces the owner read and deep link
+And no detached manual renderer call or volatility-model recomputation is used
 And a stale or unavailable owner read renders a named coverage outcome rather than an invented synthesis
 ```
 
@@ -620,14 +640,14 @@ And a stale or unavailable owner read renders a named coverage outcome rather th
 | ID | Scenario(s) | Test Type | Category | File / Exact Test Title | Command | Live System | Red/Green Focus |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | TP-04-01 | SCN-011-021 | Unit | unit | `scripts/selftest.mjs` / `RLVOL projectVolToolRead browser and headless parity carries no raw bars` | CMD-SELFTEST | No | Identical owner read for one input/`decisionTime` in browser and Node; summary-only, no raw bars |
-| TP-04-02 | SCN-011-019 | E2E UI | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Registered Volatility Sizing tool publishes one owner read and Market Brief renders it without recompute` | CMD-E2E-VOL | Yes | One versioned owner read published (no restricted payload); Brief renders regime/throttle from it |
+| TP-04-02 | SCN-011-019 | E2E UI | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Registered Volatility Sizing tool publishes one owner read and Market Brief renders it without recompute` | CMD-E2E-VOL | Yes | One versioned owner read is published; the actual `market-brief.html #toolReads` DOM renders it while `RLVOL` remains absent |
 | TP-04-03 | SCN-011-019 | Functional | functional | `scripts/validate-brief-payload.mjs` / `Market Brief payload includes the registered volatility-sizing-lab owner read` | CMD-BRIEF-VALIDATE | No | Registry-wide coverage includes the volatility owner read; stale/unavailable is a named outcome |
 | TP-04-04 | SCN-011-019 | Functional | functional | `scripts/selftest.mjs` / `Registry-wide Market Brief coverage selftest includes the registered volatility owner read` | CMD-SELFTEST | No | Market-brief coverage group includes the volatility owner read in the action-only payload |
 | TP-04-05 | SCN-011-019 | E2E UI canary | e2e-ui | `tests/bond-regime-lab.spec.mjs` / complete committed suite | CMD-E2E-BOND | Yes | `BASE-BOND-E2E` unchanged |
 | TP-04-06 | SCN-011-019 | E2E UI canary | e2e-ui | `tests/causal-rotation-lab.spec.mjs` / complete committed suite | CMD-E2E-CAUSAL | Yes | `BASE-CAUSAL-E2E` unchanged |
 | TP-04-07 | SCN-011-019 | E2E UI canary | e2e-ui | `tests/provider-credentials.spec.mjs` / complete committed suite | CMD-E2E-PROVIDER | Yes | `BASE-SEC-02/03` unchanged; no new credential surface |
 | TP-04-08 | SCN-011-019, SCN-011-021 | Regression (functional) | functional | `scripts/selftest.mjs` + `tests/volatility-sizing-lab.spec.mjs` / full suites | CMD-SELFTEST | No | Full selftest and full volatility E2E green with all canaries preserved |
-| TP-04-09 | SCN-011-019 | Regression E2E | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / owner-read publish + Market Brief renders without recompute | CMD-E2E-VOL | Yes | Regression E2E: the persistent owner-read publish + Brief-renders-without-recompute case (`typeof window.RLVOL === 'undefined'` on the brief) guards the cross-tool contract |
+| TP-04-09 | SCN-011-019 | Regression E2E | e2e-ui | `tests/volatility-sizing-lab.spec.mjs` / `Registered Volatility Sizing tool publishes one owner read and Market Brief renders it without recompute` | CMD-E2E-VOL | Yes | Standing regression asserts the actual `#toolReads` DOM, not a detached `RLBRIEF.renderToolReads` call, and keeps `typeof window.RLVOL === 'undefined'` on the Brief |
 
 ### Definition of Done
 
@@ -651,6 +671,11 @@ Test Plan parity - 9 rows:
 - [x] TP-04-05, TP-04-06, and TP-04-07 pass the Bond, Causal, and provider-credential browser canaries unchanged. — Evidence: report.md § Fast-Delivery Regression Verification (2026-07-17); `tests/bond-regime-lab.spec.mjs` 27/0, `tests/causal-rotation-lab.spec.mjs` 4/0, `tests/provider-credentials.spec.mjs` 4/0, all exit 0 this session.
 - [x] TP-04-08 passes the full selftest and full volatility E2E regression with every canary preserved and no decreased pass count. — Evidence: report.md § Fast-Delivery Harden Verification (2026-07-17); `node scripts/selftest.mjs` = 548 passed / 0 failed (exit 0) and `npx playwright test tests/volatility-sizing-lab.spec.mjs --project=system-chrome` = 15 passed / 0 failed (exit 0) this session; every selftest group + the 15 vol E2E cases green — prior foreign 523/1 blocker resolved (session-bound).
 - [x] TP-04-09 passes the persistent cross-tool owner-read regression as a standing guard. — Evidence: report.md § Fast-Delivery Regression Verification (2026-07-17); `tests/volatility-sizing-lab.spec.mjs` case 15 (owner-read publish + Market Brief renders without recompute, `typeof window.RLVOL === 'undefined'` on the brief) ✓, suite 15/0 exit 0 — accepted as a standing cross-tool regression guard.
+
+Current strengthened test evidence:
+
+- [x] TP-04-02 and TP-04-09 prove the current production `market-brief.html #toolReads` DOM renders the persisted volatility owner read without invoking `RLBRIEF.renderToolReads` manually in a detached host and without loading `RLVOL`. — **Claim Source:** executed; focused production DOM case 1/1 and final suite 19/19, exit 0. Raw output: report.md § Test Reconciliation — Focused TP-04-02 And TP-04-09 Owner-Read Bridge.
+- [x] TP-04-08 includes the current 19-case volatility E2E suite in its cross-tool checkpoint. — **Claim Source:** executed; final `node scripts/selftest.mjs` 1540/0 (1,771-line full-output SHA-256 capture) plus exact `CMD-E2E-VOL` 19/19, both exit 0. Raw output: report.md § Test Reconciliation — Final Full Selftest and § Runner Identity And Final 19-Case Aggregate. Certification coherence remains `bubbles.validate`-owned.
 
 Build quality and completion gate:
 

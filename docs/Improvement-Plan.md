@@ -1,11 +1,57 @@
 # Research Lab — Improvement Plan
 
-**Date:** 2026-08-02 · **Baseline:** HEAD `64ff26e6` · **Status:** authoritative delivery plan
+**Date:** 2026-08-02 · **Baseline:** HEAD `64ff26e6` · **Status:** historical delivery plan
+**Current execution authority:** [`releases/improvement-plan/actions.md`](releases/improvement-plan/actions.md)
 **Supersedes the roadmap in:** [`Product-Review-and-Roadmap.md`](Product-Review-and-Roadmap.md) §11 (Steps 1–9, all shipped)
 **Related:** [`Product-Principles.md`](Product-Principles.md) · [`DomainModel.md`](DomainModel.md) · [`../notes/market-brief.md`](../notes/market-brief.md)
 
-Every claim below is measured at HEAD. Every step carries one acceptance metric and the exact command that
-proves it. No step depends on a later one.
+## Current execution rebaseline — 2026-08-12
+
+The [release action ledger](releases/improvement-plan/actions.md) defines current execution order. It supersedes
+the old `Do Step 9 next` imperative. It does not replace dated measurements, corrections, or command output below.
+
+**Claim source:** release-owner measurements dated 2026-08-12 and the linked action ledger.
+
+| Priority | Actions | Current focus |
+|---|---|---|
+| **P0** | A01 | Restore atomic publication and align the transaction fixtures. |
+| **P1** | A02–A03 | Publish 12-ticker owner reads and deliver Feature 004 headless FX. |
+| **P2** | A04–A05 | Continue Feature 008 sequentially. Start Feature 015 only after its decisions are recorded. |
+| **P3** | A06–A08 | Continue Feature 007, Feature 006, and the evidence-bound D20 reconciliation. |
+| **P4 / P4-low** | A09–A13 | Expand only after higher priorities clear. Follow the ledger's owner and collision rules. |
+
+| Current measure | 2026-08-12 release baseline |
+|---|---|
+| Tool universe | **25** live registry entries. Four planned registered surfaces yield an eventual **29**: Portfolio Survival (008), Market Regime (013), Recommendation Track Record (015), and Research Agenda (019). Features 016 and 020 extend existing tools. Historical **23**-tool measurements below remain point-in-time evidence. |
+| Journeys | **52** definitions and **67** steps. |
+| Browser audit | **25/25** pages audited, with zero errors and zero reader-visible leaks. |
+| Watchlist depth | **12** tickers and **62** applicable evidence cells. Published owner reads still cover 4 tickers and 14 current reads. An identical-input dry run has capacity for 35 current reads and reports 13 gaps. |
+| Scorecard | **246** closed, **96** resolved, and **143** not evaluable. The not-evaluable share is **0.5813** and the hit rate is **0.5729**. Recent authoring is **45/45** machine-checkable. The implementation is corrected, but the append-only rolling KPI has not converged. |
+| Coverage | **13** analyzed, **7** not relevant, and **5** stale. Bond and smart-money have evidence blockers. Technical has an implementation gap. FX has a certified-delivery gap. Trend remains honest work in progress. |
+
+| Historical item | Current disposition |
+|---|---|
+| Step 4 | **Reopened.** The watchlist grew from 4 to 12 tickers, and scheduled owner-read publication remains unwired. A02 owns the current acceptance condition. |
+| Step 6 | **Implementation corrected, KPI partial.** Recent authoring is 45/45 machine-checkable. Historical append-only outcomes keep the rolling scorecard above target. |
+| Step 7 | **Reopened.** Two new live tools expanded the registry. The five stale causes now require separate evidence, implementation, delivery, or active-scope treatment. |
+| Step 9 | **Original binding complete.** BUG-001 paperwork is done. D20 remains a separate record-integrity action under A08. |
+| D19 | **Red again.** The atomicity suite now fails on transaction and fixture drift. A01 is the current repair path. |
+
+### Current Step 4 test correction
+
+The original Step 4 command remains below as historical evidence. It names
+`tests/public-watchlist-matrix.spec.mjs`, which does not exist. The current checks are:
+
+```bash
+node --test tests/public-portfolio-matrix.functional.mjs
+npx --no-install playwright test tests/market-action-center.spec.mjs --config=playwright.config.mjs --project=system-chrome
+```
+
+> **Historical evidence boundary.** The original plan and its dated corrections follow. Read their counts,
+> dispositions, and command output at their recorded dates. Use only the rebaseline and action ledger for current order.
+
+Every claim in the original plan was measured at its recorded HEAD unless a dated correction says otherwise.
+Every original step carries one acceptance metric and its recorded proof command.
 
 ---
 
@@ -718,9 +764,12 @@ silently undone the fix.
 | `journey/market-action/prepare-session/v1` | "Prepare the next market session" |
 | `returned coverage-only` in brief prose | `returned no call` |
 
-**Do Step 9 next** (paperwork), then reconcile `Product-Review-and-Roadmap.md` sections 5, 10.2, 11 and 14
-against its corrected sections 1 and 2. Step 7 closed at `analyzed` 13 with 3 named blockers — see the
-correction below before treating any of the 3 as remaining work.
+**Current correction — 2026-08-12:** follow the
+[release action ledger](releases/improvement-plan/actions.md). Step 9 is not the next action. Its original
+BUG-001 binding is complete, while D20 remains separate under A08.
+
+The 2026-08-07 correction below recorded Step 7 as closed at `analyzed` 13 with 3 named blockers. The current
+rebaseline supersedes that action status because two new live tools expanded the registry.
 
 ### Step 7 — specified, and the target lowered to what the evidence supports
 

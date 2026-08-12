@@ -19,8 +19,8 @@ Everything below follows from that sentence. A dashboard shows you numbers. This
 *and how often the numbers were wrong*, which is the only thing that makes the numbers worth
 anything.
 
-Twenty-three single-file, build-free research tools, plus one cockpit that reads across all of them,
-computed in the browser from a shared cache. Educational models — **not investment advice.**
+A registry-derived catalogue of single-file, build-free research tools, plus one cockpit that reads every
+live entry, runs in the browser from a shared cache. Educational models — **not investment advice.**
 
 ---
 
@@ -34,8 +34,8 @@ If neither, it does not ship. No exceptions for "it was nearly done", "it's only
 the demo better". This is D12 in the anti-drift contract, and it is the reason the roadmap says *tool
 count is not the constraint — integration and feedback are.*
 
-Corollary: adding tool #24 before the scorecard shipped would have failed this test. Adding tool #24
-after it may pass, if the tool's read reaches the brief.
+Corollary: adding another tool before the scorecard shipped would have failed this test. Adding the next tool
+may pass if its read reaches the brief.
 
 ---
 

@@ -1,10 +1,25 @@
 # Research Lab — Product Review & Delivery Roadmap
 
-**Date:** 2026-08-02 · **Type:** product review + executable roadmap (sixth pass) · **Scope:** whole product
+**Date:** 2026-08-02 · **Type:** historical product review + shipped executable roadmap (sixth pass) · **Scope:** whole product
 **Method:** line-by-line source reading, registry↔disk diffing, payload/ledger reduction, `node scripts/selftest.mjs`
 (1,138 passed / 0 failed, exit 0). Every number is re-measured at HEAD `64ff26e6` unless marked *derived*.
 **Related:** [`Improvement-Plan.md`](Improvement-Plan.md) · [`DomainModel.md`](DomainModel.md) ·
 [`Product-Principles.md`](Product-Principles.md) · [`../notes/market-brief.md`](../notes/market-brief.md)
+
+## Current status notice — 2026-08-12
+
+This document preserves the 2026-08-02 review and its dated corrections. Its §11 roadmap is shipped history.
+The steps in [`Improvement-Plan.md`](Improvement-Plan.md) are historical delivery provenance. Current action order
+lives in the [release action ledger](releases/improvement-plan/actions.md).
+
+**Claim source:** release-owner measurements dated 2026-08-12 and the linked action ledger.
+
+| Current surface | Release baseline |
+|---|---|
+| Live inventory | **25** registry entries, **52** journey definitions, and **67** steps. The browser audit covers **25/25** pages with zero errors or leaks. |
+| Planned inventory | Four future registered surfaces yield an eventual **29**. Features 016 and 020 extend existing tools and do not increase that count. |
+| Current measurements | Use the `Current execution rebaseline — 2026-08-12` in [`Improvement-Plan.md`](Improvement-Plan.md). Historical counts in this review remain labeled by their measurement date. |
+| Current order | Follow A01–A13 in the release action ledger. Respect active ownership in Features 007 and 008. |
 
 > **Supersession note.** The fifth-pass edition of this document described a pre-Step-1 product. Steps 1–9 of
 > its own roadmap have since shipped (commits `393f543e`, `f806d99f`, `ab309151`, `57e9f713`, `fcfba7db`,
@@ -14,14 +29,14 @@
 
 ---
 
-## 1. Verdict
+## 1. Historical verdict at the 2026-08-02 baseline
 
 **The nine-step roadmap landed. The security defect, the coverage gap, the unscored ledger, the unbounded
 payload and the unreachable assets are all closed and asserted. What the fixes exposed is a deeper and more
 interesting problem: the product now measures itself honestly, and the honest measurement says it is mostly
 blind.**
 
-| | Measured at HEAD | Meaning |
+| | Measured at historical HEAD | Meaning |
 |---|---|---|
 | **1** | **0** unescaped LLM-content sinks; **26/26** pages carry a CSP | The credential path is shut and asserted |
 | **2** | **11 of 23** tools feed the brief with live evidence (was 5) | The original coverage target is met; **5** tools remain `stale` |
@@ -34,7 +49,7 @@ nothing to check. That is the subject of §16 and of [`Improvement-Plan.md`](Imp
 
 ---
 
-## 2. What exists today
+## 2. What existed at the 2026-08-02 baseline
 
 ### 2.1 Inventory
 
@@ -771,7 +786,7 @@ does not measure the constraint §5.11 calls binding cannot report it improving 
 
 ---
 
-## 11. Roadmap
+## 11. Roadmap — shipped history
 
 Each step ships user-visible value alone, is independently revertable, and ends with a command that proves it.
 No step depends on a later one. No step requires unblocking a spec. Effort is *focused working time*.

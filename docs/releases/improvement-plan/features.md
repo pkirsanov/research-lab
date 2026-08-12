@@ -1,17 +1,28 @@
 <!-- bubbles:reconciled-packet schemaVersion=1 phase=improvement-plan -->
 
-# Features — `improvement-plan` phase
+# Features - `improvement-plan` phase
 
-**Measured at:** HEAD `4476cefd`, 2026-08-04 · **Gate:** G101 `release-delivery-reconciliation-guard.sh`
+**Release status:** in progress
+**Planning snapshot:** local repository commit `eac966b78bacc5697458a7c8e54a684f6517c05b` (2026-08-12)
+**Planning snapshot inventory:** 25 live tool entries, 52 journey definitions, 67 journey steps
+**Gate:** G101 `release-delivery-reconciliation-guard.sh`
 
-> **Anti-fabrication contract for this file.** A row is marked **Delivered** only when a command was actually
-> run in this session and its output is quoted, or a committed file is cited by path. **A spec existing is not
-> delivery.** Where code demonstrably shipped but the owning spec is non-terminal, the row says so — that
-> divergence is the phase's own Step 9 and is exactly what the machine bindings below are wired to catch.
+This ledger keeps delivered-and-certified, implemented-but-release-incomplete, planning-terminal, in-progress,
+and not-started states distinct. Registry presence is not certification. A terminal spec is not proof that a
+later integration still works.
 
----
+Numeric planning baselines in this packet are fixed to the local snapshot above. Scheduled origin artifacts
+advance independently, and the latest origin scorecard has already advanced beyond that snapshot. Execution and
+release checks must remeasure the artifacts at their own date and repository revision instead of chasing moving
+origin values in this prose.
 
-## Carried Forward From Prior Phases
+## Historical Snapshot - Superseded
+
+Everything below this heading through the historical traceability note was measured on 2026-08-04 at HEAD
+`4476cefd`. It is retained as a baseline only. Its status labels, counts, acceptance denominator, and delivery
+dispositions are not current release truth. The active ledger follows in **Current Release Ledger** below.
+
+### Historical Carried-Forward Table
 
 The prior arc is `Product-Review-and-Roadmap.md` §11 (Steps 1–9, shipped). Nothing from it is dropped. These
 five specs are the ones that are **both** terminal **and** validate-certified — verified by reading
@@ -25,11 +36,11 @@ five specs are the ones that are **both** terminal **and** validate-certified �
 | Company fundamentals + brief lab | `010-company-fundamentals-and-brief-lab` | `done` | yes | Carried, intact |
 | Volatility regime + sizing lab | `011-volatility-regime-and-sizing-lab` | `done` | yes | Carried, intact |
 
-<!-- bubbles:feature id=distributed-tool-briefs spec=specs/002-distributed-tool-briefs-and-history delivery=carried -->
-<!-- bubbles:feature id=bond-regime-lab spec=specs/003-bond-regime-and-scenario-lab delivery=carried -->
-<!-- bubbles:feature id=msft-july-refresh spec=specs/009-msft-july-market-refresh delivery=carried -->
-<!-- bubbles:feature id=company-fundamentals-lab spec=specs/010-company-fundamentals-and-brief-lab delivery=carried -->
-<!-- bubbles:feature id=volatility-sizing-lab spec=specs/011-volatility-regime-and-sizing-lab delivery=carried -->
+<!-- historical-feature-binding id=distributed-tool-briefs spec=specs/002-distributed-tool-briefs-and-history delivery=carried -->
+<!-- historical-feature-binding id=bond-regime-lab spec=specs/003-bond-regime-and-scenario-lab delivery=carried -->
+<!-- historical-feature-binding id=msft-july-refresh spec=specs/009-msft-july-market-refresh delivery=carried -->
+<!-- historical-feature-binding id=company-fundamentals-lab spec=specs/010-company-fundamentals-and-brief-lab delivery=carried -->
+<!-- historical-feature-binding id=volatility-sizing-lab spec=specs/011-volatility-regime-and-sizing-lab delivery=carried -->
 
 **Deprecated from the prior phase:** none. **Step 8 of this phase is withdrawn** (see below) but that withdraws
 a *planned* item, not a delivered one.
@@ -40,7 +51,7 @@ which is the mechanism that keeps them from regressing.
 
 ---
 
-## New In This Phase
+### Historical New-In-Phase Table
 
 Each row maps to a step in [`Improvement-Plan.md`](../../Improvement-Plan.md) §5 and to the owning spec named in
 its §8 *Spec re-plan* table.
@@ -51,17 +62,17 @@ its §8 *Spec re-plan* table.
 | 2 | Watchlist routed into the tools (public matrix) | 4 | `008-portfolio-survival-and-brief-lab` | `in_progress` | **partial, verified** | In flight |
 | 3 | Red Alert + Portfolio become data-derived | 5 | `012-market-action-center-and-guided-tools` | `blocked` | **yes, verified** | **Code delivered, spec not certified** |
 | 4 | Recommendations born evaluable | 6 | `015-recommendation-outcome-ledger-and-track-record` | `blocked` | partial | In flight |
-| 5 | Close the last stale tools | 7 | `007-technical-analysis-decision-lab` | `blocked` | not in published payload | In flight |
+| 5 | Close the last stale tools | 7 | `007-technical-analysis-decision-lab` | Superseded lifecycle snapshot; current: `in_progress` | not in published payload | In flight |
 | 6 | Journey entry on every tool page | 8 | — | — | — | **VOID — withdrawn (D17)** |
-| 7 | Paperwork reconciled to shipped code | 9 | `_bugs/BUG-001-central-provider-credential-security` | `in_progress` | no | Outstanding |
+| 7 | Paperwork reconciled to shipped code | 9 | `_bugs/BUG-001-central-provider-credential-security` | Historical: `in_progress`; current: `done` | Historical row superseded | Delivered now |
 
-<!-- bubbles:feature id=reader-legibility spec=specs/012-market-action-center-and-guided-tools delivery=required -->
-<!-- bubbles:feature id=watchlist-routing spec=specs/008-portfolio-survival-and-brief-lab delivery=required -->
-<!-- bubbles:feature id=red-alert-portfolio-real spec=specs/012-market-action-center-and-guided-tools delivery=required -->
-<!-- bubbles:feature id=born-evaluable-calls spec=specs/015-recommendation-outcome-ledger-and-track-record delivery=required -->
-<!-- bubbles:feature id=stale-tool-coverage spec=specs/007-technical-analysis-decision-lab delivery=required -->
-<!-- bubbles:feature id=paperwork-reconciliation spec=specs/_bugs/BUG-001-central-provider-credential-security delivery=required -->
-<!-- bubbles:feature id=journey-entry-every-page spec=none delivery=optional -->
+<!-- historical-feature-binding id=reader-legibility spec=specs/012-market-action-center-and-guided-tools delivery=required -->
+<!-- historical-feature-binding id=watchlist-routing spec=specs/008-portfolio-survival-and-brief-lab delivery=required -->
+<!-- historical-feature-binding id=red-alert-portfolio-real spec=specs/012-market-action-center-and-guided-tools delivery=required -->
+<!-- historical-feature-binding id=born-evaluable-calls spec=specs/015-recommendation-outcome-ledger-and-track-record delivery=required -->
+<!-- historical-feature-binding id=stale-tool-coverage spec=specs/007-technical-analysis-decision-lab delivery=required -->
+<!-- historical-feature-binding id=paperwork-reconciliation spec=specs/_bugs/BUG-001-central-provider-credential-security delivery=required -->
+<!-- historical-feature-binding id=journey-entry-every-page spec=none delivery=optional -->
 
 ### Why the required set is expected to refuse G101
 
@@ -74,7 +85,7 @@ unmet. Binding these `optional` to obtain a green gate would make G101 decorativ
 
 ---
 
-## Evidence Trace — every "verified" claim above
+### Historical Evidence Trace
 
 **1 · Reader legibility (Steps 1–3) — code delivered.**
 
@@ -151,13 +162,12 @@ reach was always 23 of 23 — re-confirmed this session, every tool page reporti
 journeyGoals=2` and the Action Center `journeyToolRows=23 journeyGoals=48`. That scoping (a tool page shows its
 *own* journeys) was the real defect, N10, and it is fixed. Recorded as anti-drift **D17**.
 
-**7 · Paperwork (Step 9) — outstanding.** `BUG-001-central-provider-credential-security` is still
-`in_progress` at High severity although `BUG-002-two-tier-provider-access` is `done` and explicitly reverses its
-Tier-2 clause — a live **D8** violation.
+**7 · Paperwork (Step 9) - historical claim, now superseded.** On 2026-08-04 BUG-001 was `in_progress`.
+It is now `done` and validate-certified, so this binding is delivered. D20 is a separate record concern.
 
 ---
 
-## Measured spec-status sweep — the Step 9 worklist
+### Historical Spec-Status Sweep
 
 ```
 $ for f in specs/*/state.json specs/_bugs/*/state.json; do printf '%-70s %s\n' "$f" "$(jq -r '.status' "$f")"; done
@@ -169,14 +179,14 @@ $ for f in specs/*/state.json specs/_bugs/*/state.json; do printf '%-70s %s\n' "
 | `004-fx-regime-relative-value-lab` | `in_progress` | 4 of 5 |
 | `005-palm-springs-rental-market-lab` | `in_progress` | 8 of 10 |
 | `006-trend-dynamics-cycle-lab` | `in_progress` | 2 of 5 |
-| `007-technical-analysis-decision-lab` | `blocked` | 8 of 9 |
+| `007-technical-analysis-decision-lab` | Superseded lifecycle snapshot; current: `in_progress` | Historical 8 of 9 |
 | `008-portfolio-survival-and-brief-lab` | `in_progress` | 15 of 16 |
 | `012-market-action-center-and-guided-tools` | `blocked` | 1 of 18 |
 | `013-market-regime-stack-and-strategy-playbook` | `in_progress` | 14 of 14 |
 | `014-shared-cycle-and-seasonality-exchange` | `not_started` | 11 of 11 |
 | `015-recommendation-outcome-ledger-and-track-record` | `blocked` | 10 of 10 |
 | `016-auction-gamma-playbook` | `not_started` | 9 of 9 |
-| `_bugs/BUG-001-central-provider-credential-security` | `in_progress` | 0 of 1 |
+| `_bugs/BUG-001-central-provider-credential-security` | Historical: `in_progress`; current: `done` | Historical 0 of 1 |
 | `_bugs/BUG-005-g087-planning-packet-linkage…` | `blocked` | 0 of 0 |
 
 **11 non-terminal specs. 87 Not Started scopes** across all specs; **74** of those fall in the nine specs
@@ -188,7 +198,7 @@ $ for f in specs/*/state.json specs/_bugs/*/state.json; do printf '%-70s %s\n' "
 
 ---
 
-## Withheld From This Phase
+### Historical Withheld Dispositions - Superseded
 
 Not deferred to a named successor — **this repo declares no phase model**, so `unscheduled` below is a
 disposition, not a release identity.
@@ -201,11 +211,11 @@ disposition, not a release identity.
 | Auction + gamma playbook | `016` | Same — 9 of 9 scopes Not Started. |
 | Causal rotation intelligence | `001` | `blocked`; must name a real missing capability, not a status, per **D10**. |
 
-<!-- bubbles:feature id=private-portfolio-overlay spec=specs/008-portfolio-survival-and-brief-lab delivery=deferred-to:unscheduled -->
-<!-- bubbles:feature id=regime-stack-playbook spec=specs/013-market-regime-stack-and-strategy-playbook delivery=deferred-to:unscheduled -->
-<!-- bubbles:feature id=cycle-seasonality-exchange spec=specs/014-shared-cycle-and-seasonality-exchange delivery=deferred-to:unscheduled -->
-<!-- bubbles:feature id=auction-gamma-playbook spec=specs/016-auction-gamma-playbook delivery=deferred-to:unscheduled -->
-<!-- bubbles:feature id=causal-rotation spec=specs/001-causal-rotation-intelligence delivery=deferred-to:unscheduled -->
+<!-- historical-feature-binding id=private-portfolio-overlay spec=specs/008-portfolio-survival-and-brief-lab delivery=deferred-to:unscheduled -->
+<!-- historical-feature-binding id=regime-stack-playbook spec=specs/013-market-regime-stack-and-strategy-playbook delivery=deferred-to:unscheduled -->
+<!-- historical-feature-binding id=cycle-seasonality-exchange spec=specs/014-shared-cycle-and-seasonality-exchange delivery=deferred-to:unscheduled -->
+<!-- historical-feature-binding id=auction-gamma-playbook spec=specs/016-auction-gamma-playbook delivery=deferred-to:unscheduled -->
+<!-- historical-feature-binding id=causal-rotation spec=specs/001-causal-rotation-intelligence delivery=deferred-to:unscheduled -->
 
 `004-fx-regime-relative-value-lab`, `005-palm-springs-rental-market-lab` and `006-trend-dynamics-cycle-lab` are
 non-terminal but carry **no** binding in this packet: this phase makes no promise about them, and inventing one
@@ -214,7 +224,7 @@ not read, measured, or bound.
 
 ---
 
-## Plan-to-Release Traceability
+### Historical Plan-to-Release Traceability
 
 There is no `docs/plans/improvement-plan/` directory. This repo keeps its delivery plan as a single authoritative
 document rather than the plans-and-features split, so traceability runs directly to
@@ -223,3 +233,124 @@ document rather than the plans-and-features split, so traceability runs directly
 > ⚠ **"Step *N*" is ambiguous in this repository — always name the document.** `Product-Review-and-Roadmap.md`
 > §11 and `Improvement-Plan.md` §5 both number their steps 1–9 and mean entirely different things. Every step
 > reference in this packet means **Improvement-Plan** unless it says §11.
+
+---
+
+## Current Release Ledger
+
+### Carried Forward From Shipped History
+
+Research Lab has one named release phase. These capabilities come from the shipped pre-phase roadmap rather
+than from an earlier release packet.
+
+| Capability | Binding | Recorded state | Current release qualification |
+|---|---|---|---|
+| Distributed tool briefs and bounded history | `specs/002-distributed-tool-briefs-and-history` | `done`, certified | Carried; D20 warning-class phase-record excess remains open |
+| Bond regime and scenario lab | `specs/003-bond-regime-and-scenario-lab` | `done`, certified | Carried; current brief row is stale because independent credit-spread evidence is absent |
+| MSFT July market refresh | `specs/009-msft-july-market-refresh` | `done`, certified | Carried; D20 records phase claims with zero execution history |
+| Company fundamentals and brief lab | `specs/010-company-fundamentals-and-brief-lab` | `done`, certified | Carried |
+| Volatility regime and sizing lab | `specs/011-volatility-regime-and-sizing-lab` | `done`, certified | Carried |
+
+<!-- bubbles:feature id=current-distributed-tool-briefs spec=specs/002-distributed-tool-briefs-and-history delivery=carried -->
+<!-- bubbles:feature id=current-bond-regime-lab spec=specs/003-bond-regime-and-scenario-lab delivery=carried -->
+<!-- bubbles:feature id=current-msft-july-refresh spec=specs/009-msft-july-market-refresh delivery=carried -->
+<!-- bubbles:feature id=current-company-fundamentals-lab spec=specs/010-company-fundamentals-and-brief-lab delivery=carried -->
+<!-- bubbles:feature id=current-volatility-sizing-lab spec=specs/011-volatility-regime-and-sizing-lab delivery=carried -->
+
+### Required In This Phase
+
+| ID | Capability | Binding | Current release truth | Delivery state |
+|---|---|---|---|---|
+| F01 | Scheduled-publication atomicity | `specs/_bugs/BUG-002-market-brief-session-date-drift` | Bug packet is `done` and certified, but the focused suite is red on scheduler and repair fixture contract drift | Release regression open |
+| F02 | Reader-legible tools and Market Action Center | `specs/012-market-action-center-and-guided-tools` | Shared surfaces exist; feature remains `blocked` and uncertified | Partial |
+| F03 | Twelve-ticker scheduled owner-read regeneration | `specs/008-portfolio-survival-and-brief-lab` | Feature 008 consumes generic owner reads but does not own scheduled public publication. Scope 5 is Done; `state.json` names current Scope 6, `Explainable Research Action Lifecycle`; commit `4063170a` landed initial Scope 6 code, but its DoD remains unchecked. A02 assigns the producer change between Feature 002 and Feature 012 | Publisher ownership pending; Feature 008 separately in progress under its current owner |
+| F04 | Headless FX owner read | `specs/004-fx-regime-relative-value-lab` | Feature 004 is `done` and certified, but `scripts/brief-refresh.mjs` has no `buildFxToolRead`; current brief row remains stale | Certified-delivery gap |
+| F05 | New-call evaluability and public track record | `specs/015-recommendation-outcome-ledger-and-track-record` | Recent authoring is corrected; historical KPI has not converged; planning is terminal at `specs_hardened`, with no implementation scope delivered | Implementation pending |
+| F06 | Technical five-gate owner model | `specs/007-technical-analysis-decision-lab` | Scope 1 is Done and its blocker is resolved by commit `7972b308`; current Scope is `02-technique-engine`, with `nextRequiredOwner: bubbles.validate`. Later scopes still owe setup state, trigger, expectancy, five-gate synthesis, and owner publication | Validate-owned Scope 1 certification review next; only then may the current owner begin Scope 2 |
+| F07 | Headless trend and cycle read | `specs/006-trend-dynamics-cycle-lab` | Scope 4 delivered the registered browser owner read. Scope 5 remains In Progress; commit `eac966b7` landed as-of replay, run lifecycle, and history implementation, but persistence/read-back, regression closure, and test/validate obligations remain unchecked. Scheduled composition still lacks deterministic consumption | Partial Scope 5 delivery under current owner; no parallel pickup |
+| F08 | Step 9 BUG-001 paperwork binding | `specs/_bugs/BUG-001-central-provider-credential-security` | BUG-001 is `done` and validate-certified | Delivered |
+| F09 | D20 MSFT evidence-record reconciliation | `specs/009-msft-july-market-refresh` | `done` state carries phase claims and zero execution-history entries | Open record-integrity review |
+| F10 | D20 Action Center implement-record reconciliation | `specs/012-market-action-center-and-guided-tools` | Implement claims have no implement execution-history backing | Open record-integrity review |
+| F11 | D20 distributed-briefs warning review | `specs/002-distributed-tool-briefs-and-history` | Excess implement claims versus one run are warning-class, not proof of fabricated execution | Open bounded review |
+| F12 | Market Regime registered tool | `specs/013-market-regime-stack-and-strategy-playbook` | Lifecycle state is `in_progress`; registered tool implementation is absent | Not delivered |
+| F13 | Research Agenda registered tool | `specs/019-custom-recurring-research-agenda` | `not_started` | Not delivered |
+| F14 | Research action-routing extension | `specs/020-research-action-routing-and-alerts` | `not_started`; follows Feature 019 and extends an existing tool | Not delivered |
+
+<!-- bubbles:feature id=scheduled-publication-atomicity spec=specs/_bugs/BUG-002-market-brief-session-date-drift delivery=required -->
+<!-- bubbles:feature id=reader-legible-action-center spec=specs/012-market-action-center-and-guided-tools delivery=required -->
+<!-- bubbles:feature id=twelve-ticker-owner-reads spec=specs/008-portfolio-survival-and-brief-lab delivery=required -->
+<!-- bubbles:feature id=headless-fx-owner-read spec=specs/004-fx-regime-relative-value-lab delivery=required -->
+<!-- bubbles:feature id=recommendation-track-record spec=specs/015-recommendation-outcome-ledger-and-track-record delivery=required -->
+<!-- bubbles:feature id=technical-five-gate spec=specs/007-technical-analysis-decision-lab delivery=required -->
+<!-- bubbles:feature id=headless-trend-read spec=specs/006-trend-dynamics-cycle-lab delivery=required -->
+<!-- bubbles:feature id=bug001-paperwork-binding spec=specs/_bugs/BUG-001-central-provider-credential-security delivery=required -->
+<!-- bubbles:feature id=d20-msft-record spec=specs/009-msft-july-market-refresh delivery=required -->
+<!-- bubbles:feature id=d20-action-center-record spec=specs/012-market-action-center-and-guided-tools delivery=required -->
+<!-- bubbles:feature id=d20-distributed-briefs-warning spec=specs/002-distributed-tool-briefs-and-history delivery=required -->
+<!-- bubbles:feature id=market-regime-tool spec=specs/013-market-regime-stack-and-strategy-playbook delivery=required -->
+<!-- bubbles:feature id=research-agenda-tool spec=specs/019-custom-recurring-research-agenda delivery=required -->
+<!-- bubbles:feature id=research-action-routing spec=specs/020-research-action-routing-and-alerts delivery=required -->
+
+F03's required G101 binding remains intact because Feature 008 is a release dependency and regression consumer.
+That binding does not assign scheduled-publication ownership. A02 requires `/bubbles.clarify` to assign the
+producer change between Feature 002 and Feature 012, with Feature 002 consent before implementation. Feature
+008 stays out of that change except for regression proof that generic owner-read consumption and the privacy
+boundary remain green.
+
+### Current Coverage Truth
+
+At the fixed planning snapshot, the published split is **13 analyzed, 7 not relevant, and 5 stale**. The stale
+rows have different causes.
+
+| Tool | Cause class | Current truth | Required disposition |
+|---|---|---|---|
+| `bond-regime-lab` | Evidence blocker | Independent credit-spread evidence is absent; partial price-ratio evidence is not a credit or duration conclusion | Keep stale until accepted evidence exists |
+| `smart-money-flow-lab` | Evidence blocker | No fresh filings delta or deterministic owner read exists | Keep stale or not relevant; never synthesize filings |
+| `technical-analysis-decision-lab` | Capability implementation | Scope 1 is Done; validate review is next, while technique, setup, five-gate, expectancy, and owner-publication scopes remain unbuilt | Validate Scope 1, then deliver Feature 007 sequentially from Scope 2 |
+| `fx-regime-relative-value-lab` | Certified-delivery gap | Browser feature is certified; scheduled headless read is absent | Add the design-required read and recertify |
+| `trend-dynamics-cycle-lab` | Partial Scope 5 delivery | The browser owner read exists and is registered. Scope 5 implementation has landed in part, but persistence/read-back, regression, test, and validation closure remain; scheduled composition has no deterministic consumer | Complete Scope 5 under its owner, then add scheduled/headless consumption without duplicating the owner model |
+
+### Watchlist Denominator And Producer Truth
+
+At the fixed planning snapshot, the release denominator is **12 watchlist tickers and 62 applicable cells**.
+The published artifact had four tickers and 14 current cells, while the existing producer dry run reported
+**35 current reads and 13 explicit gaps across 12 tickers**. The release obligation is to invoke that producer
+from scheduled publication and preserve the same evidence-qualified output, not to hand-copy the dry-run file.
+Execution and release checks remeasure these moving artifacts.
+
+### Evaluability Truth
+
+At local repository commit `eac966b78bacc5697458a7c8e54a684f6517c05b` on 2026-08-12, the owner measurement
+was **45 of 45 proposals since 2026-08-10 machine-checkable**. The append-only 30-day scorecard reported
+**246 closed, 96 resolved, 143 not evaluable, `notEvaluableShare` 0.5813, and hit rate 0.5729**. These are
+planning-snapshot values, not a claim about the latest origin artifact. No historical outcome may be rewritten
+to accelerate convergence, and execution/release must record a new date and repository revision when remeasured.
+
+### Planned Registry Growth
+
+The registry becomes 29 only if Portfolio Survival (008), Market Regime (013), Recommendation Track Record
+(015), and Research Agenda (019) all land and pass their release gates. Features 016 and 020 extend existing
+tools and do not increase that count.
+
+### Lower-Priority, Non-Exit Work
+
+| Capability | Binding | Current truth | Disposition |
+|---|---|---|---|
+| Shared cycle and seasonality exchange | `specs/014-shared-cycle-and-seasonality-exchange` | `not_started` | Optional after required P0-P4 work |
+| Auction gamma playbook extension | `specs/016-auction-gamma-playbook` | `specs_hardened`; implementation not started | Optional after required P0-P4 work |
+
+<!-- bubbles:feature id=cycle-seasonality-exchange spec=specs/014-shared-cycle-and-seasonality-exchange delivery=optional -->
+<!-- bubbles:feature id=auction-gamma-extension spec=specs/016-auction-gamma-playbook delivery=optional -->
+
+### G101 Interpretation
+
+G101 is expected to refuse while required bindings remain incomplete. That is release truth, not a reason to
+mark them optional. G101 is also not sufficient alone: F01, F04, F09, and F11 bind terminal specs while current
+executable or record-integrity findings remain open. Exit requires both machine reconciliation and the named
+acceptance checks in [actions.md](actions.md).
+
+### Current Plan Traceability
+
+This repository uses the release packet plus `docs/Improvement-Plan.md`; it has no
+`docs/plans/improvement-plan/`. Historical step numbers remain provenance. The current priority and ownership
+order is [actions.md](actions.md).

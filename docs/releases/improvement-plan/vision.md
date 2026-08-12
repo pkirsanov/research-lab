@@ -1,111 +1,84 @@
-# Vision — `improvement-plan` phase
+# Vision - `improvement-plan` phase
 
-**Phase slug:** `improvement-plan` · **Authoritative content:** [`docs/Improvement-Plan.md`](../../Improvement-Plan.md)
-(header: *"Status: authoritative delivery plan"*) · **Measured at:** HEAD `4476cefd`, 2026-08-04
+**Phase status:** in progress
+**Planning snapshot:** local repository commit `eac966b78bacc5697458a7c8e54a684f6517c05b` (2026-08-12)
+**Product boundary:** static, build-free, single-operator educational market research; not investment advice
 
-> **On the phase name.** This repository declares **no version vocabulary** — there is no `VERSION` file, no
-> git tag (`git tag` → empty), and `package.json` carries `"version": "0.0.0"` for a Playwright test-harness
-> package, not the product. There is also no `docs/INVESTOR_OVERVIEW.md`, so no Phase Overview table exists to
-> supply a canonical phase name. Naming this phase `v1.0` would fabricate a release identity the repo has never
-> declared. The slug is therefore taken from the authoritative delivery plan itself. See
-> [`actions.md`](actions.md) → A1 for the rename path once the Phase Overview table lands.
+Numeric baselines below are fixed to that local planning snapshot. Scheduled origin artifacts advance
+independently, and execution/release must remeasure them at a named date and repository revision. This packet
+does not chase moving origin values in prose.
 
----
+## 1. Product Vision
 
-## 1. What this product is
+Research Lab is a closed-loop decision journal for a discretionary investor. It states what changed, shows
+why, records what it claimed, and publishes how the claim resolved. Its differentiator is calibrated honesty:
+misses, unavailable evidence, stale reads, and unscoreable claims remain visible instead of being edited away.
 
-> Not another dashboard — **the only market brief that publishes its own error rate.**
+At the planning snapshot, the inventory was **25 live registry entries**, **52 journey definitions**, and **67
+journey steps**. Those counts describe published inventory, not blanket certification. The Market Action Center
+is the global cockpit; each owning tool remains responsible for its own math, evidence, and compact read.
 
-That sentence is quoted from [`docs/Product-Principles.md`](../../Product-Principles.md) §0, which is marked
-**binding**. It is restated here in full rather than cross-referenced, because a phase vision must be readable
-without opening another document.
+## 2. Phase Intent
 
-Research Lab is **23 single-file, build-free research tools** (`jq '.tools | length' tools.json` → `23`) plus one
-cockpit that reads across all of them, computed in the browser from a shared cache, served static from GitHub
-Pages. The models are educational — **not investment advice**.
+This phase makes the honesty loop operational across scheduled publication, watchlist depth, headless tool
+reads, recommendation scoring, and release records. Shipping it must prove that a reader can receive a
+legible, evidence-qualified, machine-checkable claim about a watched ticker and later see that claim scored
+without selective history repair.
 
-The product's own reframing, from [`Product-Review-and-Roadmap.md`](../../Product-Review-and-Roadmap.md) §4:
+Four planned registered tools move the registry from 25 to 29 only after their own gates clear: Portfolio
+Survival (008, current Scope 6 `Explainable Research Action Lifecycle`; initial code landed but the scope is not
+done), Market Regime (013, not implemented), Recommendation Track Record (015, `specs_hardened` planning only),
+and Research Agenda (019, not started). Features 016 and 020 extend existing tools and do not increase the
+count.
 
-> **Research Lab is a closed-loop decision journal for a discretionary investor.**
-> It says **what changed**, shows **why**, records **what it claimed**, and **scores itself in public.**
+## 3. What Shipping This Phase Proves
 
-## 2. Why this phase exists
+1. A scheduled run publishes one coherent generation or retains the prior coherent generation.
+2. The scheduled producer evaluates all 12 watchlist tickers against the 62 applicable matrix cells and
+	preserves explicit gaps.
+3. Feature 004 contributes its design-required headless FX read and passes recertification review.
+4. New proposals remain machine-checkable while the historical 30-day KPI converges append-only.
+5. Evidence blockers, missing implementations, honest work in progress, and certified-delivery gaps retain
+	distinct labels.
+6. D20 phase records are reconciled from existing evidence; missing execution history is never invented.
+7. G101 passes without relabeling an incomplete required feature optional.
 
-The prior arc — `Product-Review-and-Roadmap.md` §11, Steps 1–9 — **shipped**. It optimised for *contract
-conformance*: escaped, bounded, wired, asserted, deployed. All of that is true and none of it made the product
-legible. The Improvement-Plan states the missing premise directly (§1.3):
+## 4. Current Signals And Exit Metrics
 
-> **A surface that a reader cannot act on has not shipped, however green its tests are.**
-
-This phase is the response to what shipping the prior arc exposed. Its unifying thesis (§3):
-
-> **Every surface — tool, brief, journey — should produce the same object: a legible, level-bearing,
-> machine-checkable claim about a ticker the reader actually watches. The ledger scores that object. The
-> scorecard publishes the score.**
-
-One object, four failure modes: not legible (N1–N3), not about the reader's tickers (N4), not machine-checkable
-(N5), nowhere to surface (N6). The steps compose because they all repair the same object.
-
-## 3. What shipping this phase proves
-
-That the honesty posture is **operational**, not aspirational. The competitive analysis
-(`Product-Review-and-Roadmap.md` §6) is blunt about why this is the whole game:
-
-> The one defensible edge — not a feature, a **posture**: *calibrated honesty with a published track record.*
-> No subscription competitor can ever publish its own miss rate; a single-operator, no-revenue, educational
-> project can. **But the posture is worth nothing until §5.3 is fixed.** Today the product has the honesty *and*
-> no track record — the worst of both.
-
-## 4. Success signal
-
-Observable, measured by command — not by spec status:
-
-| Signal | Command | At HEAD |
+| Signal | Current state | Exit condition |
 |---|---|---|
-| No framework vocabulary reaches a reader | `node scripts/audit-reader-legibility.mjs` | **0 leaks / 23 of 23 tools · exit 0** ✅ |
-| The reader's own tickers are answered | same audit, `covered=` on `market-brief` | **14 of 28 cells** ◐ |
-| Published calls are machine-checkable | `jq '.windows["30d"].notEvaluableShare' market-brief.scorecard.json` | **0.8333** ✗ (target ≤ 0.25) |
-| Every tool with data on disk reports a read | `jq '.toolCoverage' market-brief.payload.json` | **analyzed 11 · stale 5** ✗ |
-| Recorded status matches shipped code | spec status sweep | **11 non-terminal specs** ✗ |
+| Scheduled-publication atomicity | Focused scheduler/repair suite is red on fixture contract drift | Focused suite passes with production scheduler and repair fixture on one contract |
+| Published owner reads | Planning snapshot: 4 tickers, 14 current reads | A02 owner-decision packet assigns the Feature 002/012 producer change with Feature 002 consent; scheduled output then covers 12 tickers and the 62-applicable-cell denominator |
+| Producer capacity | Planning snapshot: dry run reports 35 current reads and 13 explicit gaps across 12 tickers | Same-input supported set publishes without hand editing; execution and release remeasure it |
+| Headless FX | Feature 004 is certified; `buildFxToolRead` is absent | FX read is wired, tested, and recertified |
+| New proposal evaluability | Owner measurement is 45 of 45 since 2026-08-10 machine-checkable | New proposals remain machine-checkable |
+| Rolling evaluability | Planning snapshot: 246 closed, 96 resolved, 143 not evaluable, `notEvaluableShare` 0.5813, hit rate 0.5729 | At or below 0.25 without rewriting history, measured again on the release revision |
+| Brief coverage | Planning snapshot: 13 analyzed, 7 not relevant, 5 stale | Every stale row has an accepted cause-specific disposition |
+| Feature 008 handoff | Scope 5 Done; current Scope 6 has initial code from `4063170a` but unchecked completion obligations | Current owner completes Scope 6 sequentially |
+| Feature 007 handoff | Scope 1 Done in `7972b308`; current Scope is `02-technique-engine`, with `/bubbles.validate` next | Validate-owned Scope 1 certification review, then only the current owner starts Scope 2 |
+| Feature 006 handoff | Scope 5 In Progress; `eac966b7` landed partial replay/run/history implementation; browser owner read exists and is registered | Remaining persistence/read-back, regression, test, and validate closure completes before scheduled/headless consumption is claimed |
+| Release reconciliation | Required bindings remain incomplete | G101 and named executable checks pass together |
 
-Two of five met. This phase is **in flight**, and [`features.md`](features.md) encodes that mechanically rather
-than narratively.
+Historical 2026-08-04 baselines remain useful but are not current: 23 registered tools, 14 current reads over
+four tickers and an older 28-cell matrix, `notEvaluableShare` 0.8333, and 11 analyzed / 7 not relevant / 5 stale.
 
 ## 5. Audience
 
-**One discretionary investor — the operator.** Single-operator is a *feature*, not a limitation: it is the
-precondition that permits publishing the miss rate at all. `Product-Review-and-Roadmap.md` §13 lists
-*"multi-user accounts, auth, hosting"* under **What not to build** for exactly this reason.
+The primary audience is the single operator. The secondary audience is any public reader who wants to inspect
+the evidence, gaps, and realised error rate. Neither audience is promised personalised advice, execution, or a
+performance guarantee.
 
-Secondary: any reader who arrives at the public Pages site and can judge the tools by a published track record
-instead of a claim.
+## 6. Non-Goals
 
-## 6. Non-goals
+This phase does not add a bundler, brokerage, execution, real-time proprietary data, multi-user accounts,
+hosted auth, private portfolio data, synthetic filings, or selective scorecard repair. It does not start 013
+or 019 before P0-P3 clear, and it does not count 016 or 020 as new registry entries.
 
-Carried verbatim from the two authoritative "what not to build" registers
-(`Product-Review-and-Roadmap.md` §13 + `Improvement-Plan.md` §9). This phase does **not**:
+## 7. Admission Test
 
-- migrate to ES modules or add a bundler — breaks `file://`, which is a product capability (D11, BI-6);
-- rewrite tool models — already contract-declared, 23/23;
-- add tool #24 before the scorecard is trustworthy;
-- build real-time options flow, order execution, or brokerage integration;
-- add multi-user accounts, auth, or hosting;
-- **finish specs 013–016 as written** — they must be re-scoped under D9 against the §4 admission test;
-- keep synthetic filings in `smart-money-flow-lab` — real data or the tool is cut;
-- run a "make it prettier" visual pass before the legibility track — *a restyled hash is still a hash*;
-- fabricate a matrix cell to raise `coveredCellCount` (**BI-2**);
-- suppress `notEvaluable` to improve the headline rate (**BI-5**).
+Every candidate must improve decision quality or the measurement of decision quality. Tool count, visual
+polish, sunk effort, and roadmap status do not override that test.
 
-## 7. The admission test
+## 8. Cross-Product Context
 
-Every candidate for this phase faces one question, from `Product-Principles.md` §1:
-
-> **Does this improve decision quality, or the measurement of decision quality?**
-
-If neither, it does not ship. No exceptions for *"it was nearly done"*, *"it's only small"*, or *"it makes the
-demo better."*
-
-## 8. Cross-product context
-
-None. Research Lab is a standalone single-operator repository with no paired product, no companion repo, and no
-shared schema boundary.
+None. This is one standalone Research Lab phase with no paired-repository schema.

@@ -3128,6 +3128,57 @@
       return { mode: mode };
     }
 
+    /* The one frozen object every renderer, the history and the owner read read from.
+       `complete` means every required work item RESOLVED — eligible, unavailable, cancelled or
+       errored — not that every one succeeded; a run that declared no work has nothing to prove
+       and stays incomplete. Timings and computedAt are run diagnostics and are deliberately
+       excluded from the digest, so the same analysis keeps one id across runs and results stay
+       comparable. */
+    function tdcAssembleResult(parts) {
+      var input = parts && typeof parts === 'object' ? parts : {};
+      var required = Array.isArray(input.requiredMethodIds) ? input.requiredMethodIds.slice() : [];
+      var results = Array.isArray(input.methodResults) ? input.methodResults.slice() : [];
+      results.sort(function (left, right) {
+        var a = String(left && left.methodId);
+        var b = String(right && right.methodId);
+        return a < b ? -1 : a > b ? 1 : 0;
+      });
+      var resolved = {};
+      for (var i = 0; i < results.length; i++) resolved[String(results[i].methodId)] = true;
+      var complete = required.length > 0 && required.every(function (id) { return resolved[String(id)] === true; });
+      var content = {
+        contractVersion: 'tdc-analysis-result/v1',
+        request: input.request || null,
+        registryVersion: input.registryVersion || null,
+        configDigest: input.configDigest || null,
+        decisionTime: input.decisionTime || null,
+        sourceAsOf: input.sourceAsOf || null,
+        sourceAvailability: input.sourceAvailability || null,
+        truthState: input.truthState || null,
+        methodResults: results,
+        familyVotes: Array.isArray(input.familyVotes) ? input.familyVotes : [],
+        trend: input.trend || null,
+        strength: input.strength || null,
+        dynamics: input.dynamics || null,
+        changeState: input.changeState || null,
+        complete: complete
+      };
+      var resultDigest = tdcStableDigest(content);
+      var requestDigest = tdcStableDigest(input.request || null);
+      var assembled = {};
+      Object.keys(content).forEach(function (key) { assembled[key] = content[key]; });
+      assembled.resultId = resultDigest.ok ? resultDigest.value : null;
+      assembled.requestDigest = requestDigest.ok ? requestDigest.value : null;
+      assembled.computedAt = input.computedAt || null;
+      assembled.turningRecords = Array.isArray(input.turningRecords) ? input.turningRecords : [];
+      assembled.cycleResults = Array.isArray(input.cycleResults) ? input.cycleResults : [];
+      assembled.contextResults = Array.isArray(input.contextResults) ? input.contextResults : [];
+      assembled.caveats = Array.isArray(input.caveats) ? input.caveats : [];
+      assembled.errors = Array.isArray(input.errors) ? input.errors : [];
+      assembled.timings = input.timings || null;
+      return tdcDeepFreeze(assembled);
+    }
+
     /* Plain reader words only — no id, contract version or status code reaches Brief copy. */
     function tdcComposeReadSentence(metrics) {
       var parts = [];

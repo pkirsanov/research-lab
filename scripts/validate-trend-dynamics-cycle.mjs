@@ -531,7 +531,7 @@ console.log('[tdc-validator] scope3-association=PASS discovery-lag=3 confirmatio
 const sweepPageSource = fs.readFileSync(htmlPath, 'utf8');
 const requiredPageFunctions = [
   'tdcBuildConsensus', 'tdcCreateWorkPlan', 'tdcBuildViewModel', 'tdcBuildToolRead',
-  'tdcComposeReadSentence', 'tdcBuildDeepLink', 'tdcPublishToolRead', 'tdcApplyMode'
+  'tdcComposeReadSentence', 'tdcBuildDeepLink', 'tdcPublishToolRead', 'tdcApplyMode', 'tdcAssembleResult'
 ];
 const missingPageFunctions = requiredPageFunctions.filter(
   (name) => !new RegExp('function\\s+' + name + '\\s*\\(').test(sweepPageSource));

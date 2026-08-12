@@ -7188,6 +7188,67 @@ try {
     'failing closed also withholds the measurements, so an unrecognised state cannot publish numbers a reader would trust');
 } catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab vocabulary threw): ' + e.message); }
 
+/* ── trend-dynamics-cycle-lab — result assembly (TP-04-01, spec 006 scope 4) ───────────────────
+   AnalysisResultV1 is the one frozen object every renderer, the history and the owner read read
+   from. Two properties carry the weight. First, complete is true ONLY once every required work
+   item is accounted for -- eligible, unavailable, cancelled or errored -- because a partial run
+   that reported complete would publish a verdict built from missing evidence. Second, timings
+   are diagnostics and must not reach the digest (design.md line 979): if they did, the same
+   analysis would get a new resultId on every run and no two results could ever be compared. */
+try {
+  group('trend-dynamics-cycle-lab \u2014 the assembled result is frozen, complete-gated and timing-independent (TP-04-01)');
+  const asmSrc = read('trend-dynamics-cycle-lab.html');
+  const asmEnv = build([
+    extractFn(asmSrc, 'tdcIsPlainObject'), extractFn(asmSrc, 'tdcError'),
+    extractFn(asmSrc, 'tdcStableSerialize'), extractFn(asmSrc, 'tdcStableDigest'),
+    extractFn(asmSrc, 'tdcDeepFreeze'), extractFn(asmSrc, 'tdcAssembleResult')
+  ], ['tdcAssembleResult']);
+  const asmParts = (over) => Object.assign({
+    request: { seriesId: 'srs-1', transformId: 'level', horizonId: 'medium', profileId: 'balanced' },
+    registryVersion: 'reg-1', configDigest: 'cfg-1',
+    computedAt: '2026-08-11T12:00:00Z', decisionTime: '2026-08-11T00:00:00Z',
+    sourceAsOf: '2026-08-10', sourceAvailability: 'current', truthState: 'current',
+    requiredMethodIds: ['M02', 'M01'],
+    methodResults: [{ methodId: 'M02', state: 'eligible' }, { methodId: 'M01', state: 'unavailable' }],
+    trend: { direction: 'rising', trendType: 'linear' }, strength: { score: 0.7 },
+    dynamics: { state: 'steady' }, changeState: 'stable',
+    timings: { totalMs: 12.5 }
+  }, over || {});
+
+  const asm = asmEnv.tdcAssembleResult(asmParts());
+  assert(asm.contractVersion === 'tdc-analysis-result/v1' && typeof asm.resultId === 'string' && asm.resultId.length > 0
+    && typeof asm.requestDigest === 'string' && asm.requestDigest.length > 0,
+    'the assembled result carries the contract version and a derived result id and request digest');
+  assert(asm.complete === true,
+    'every required method is accounted for \u2014 one eligible and one unavailable \u2014 so the run is complete');
+
+  assert(Object.isFrozen(asm) && Object.isFrozen(asm.trend),
+    'the result is deeply frozen, so no renderer can quietly edit the analysis it is displaying');
+  const before = asm.truthState;
+  try { asm.truthState = 'tampered'; } catch (ignored) { /* strict mode throws; sloppy mode ignores */ }
+  assert(asm.truthState === before,
+    'writing to a frozen result does not take effect, so the freeze is real rather than declarative');
+
+  const partial = asmEnv.tdcAssembleResult(asmParts({ methodResults: [{ methodId: 'M02', state: 'eligible' }] }));
+  assert(partial.complete === false,
+    'a required method with no result at all leaves the run INCOMPLETE, so a partial analysis cannot publish');
+  const errored = asmEnv.tdcAssembleResult(asmParts({
+    methodResults: [{ methodId: 'M02', state: 'eligible' }, { methodId: 'M01', state: 'error' }]
+  }));
+  assert(errored.complete === true,
+    'an explicit error still ACCOUNTS for its work item \u2014 completeness means every item resolved, not that every item succeeded');
+
+  const twin = asmEnv.tdcAssembleResult(asmParts());
+  assert(twin.resultId === asm.resultId,
+    'identical inputs produce an identical result id, so the digest is deterministic rather than clock- or order-dependent');
+  const slower = asmEnv.tdcAssembleResult(asmParts({ timings: { totalMs: 987.6 } }));
+  assert(slower.resultId === asm.resultId,
+    'a different timing produces the SAME result id \u2014 diagnostics are excluded from the digest, so two runs of one analysis stay comparable');
+
+  assert(asm.methodResults[0].methodId === 'M01' && asm.methodResults[1].methodId === 'M02',
+    'method results are sorted by stable id rather than arrival order, so the digest cannot change with scheduling');
+} catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab assembly threw): ' + e.message); }
+
 /* ---------- Bond regime: one-model parity guarantee (spec 018 Scope 6) ----------
    The highest-value test in feature 018. It makes the Outcome Contract's hard constraint — ONE
    model, two compositions — checkable rather than asserted.

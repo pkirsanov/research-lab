@@ -3,9 +3,9 @@
   "featureDir": "specs/_bugs/BUG-008-fx-route-claims-unregistered",
   "featureName": "BUG-008 The Registered FX Route Claimed It Was Unregistered",
   "createdAt": "2026-08-12T12:53:46Z",
-  "lastUpdatedAt": "2026-08-12T14:28:46Z",
+  "lastUpdatedAt": "2026-08-12T16:19:45Z",
   "completedAt": "2026-08-12T14:27:10Z",
-  "certifiedAt": "2026-08-12T14:28:46Z",
+  "certifiedAt": "2026-08-12T16:19:45Z",
   "status": "done",
   "blockedReason": null,
   "priorBlockedReason": null,
@@ -64,7 +64,7 @@
     "status": "done",
     "lockdownState": "unlocked",
     "completedAt": "2026-08-12T14:27:10Z",
-    "certifiedAt": "2026-08-12T14:28:46Z",
+    "certifiedAt": "2026-08-12T16:19:45Z",
     "completedScopes": [
       "01-retire-the-falsified-claims-and-guard-the-invariant"
     ],

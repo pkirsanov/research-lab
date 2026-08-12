@@ -394,6 +394,31 @@
       display: none;
     }
 
+    .levers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 12px 0 6px;
+    }
+
+    .levers label {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.85rem;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .levers select {
+      max-width: 100%;
+    }
+
+    .muted {
+      color: #666;
+      font-size: 0.82rem;
+      margin: 0 0 8px;
+    }
+
     /* Width-constrained so the chart can never push the layout wide at 390px. */
     #trendChart {
       display: block;
@@ -436,6 +461,19 @@
         <h2 id="scenarioTitle">Loading source-qualified foundation</h2>
         <p id="scenarioOutcome" class="outcome">The page is validating configuration and the selected source posture. No
           conclusion is available until those contracts pass.</p>
+        <div class="levers" role="group" aria-label="Analysis parameters">
+          <label for="transformSelect">Transform
+            <select id="transformSelect"></select>
+          </label>
+          <label for="horizonSelect">Horizon
+            <select id="horizonSelect"></select>
+          </label>
+          <label for="profileSelect2">Confirmation profile
+            <select id="profileSelect2"></select>
+          </label>
+        </div>
+        <p id="leverNote" class="muted">Changing a parameter recomputes from observations already held in the shared
+          cache. No source data is refetched.</p>
         <dl class="facts">
           <div class="fact">
             <dt>Cycle type</dt>
@@ -3772,8 +3810,50 @@
       window.__TDC_DIAGNOSTICS__ = tdcDeepFreeze({ fixtureId: selection.fixtureId, ownerReadPublished: false, cycleEngine: { contractVersion: 'tdc-scope3-engine/v1', caseId: 'climate-context', cycle: cycle } });
     }
 
+    /* Local lever state. Overrides start empty so the configured initial selection remains the
+       default; a lever only ever narrows to another CONFIGURED id, never an arbitrary value. */
+    var tdcLeverOverride = {};
+
+    function tdcEffectiveSelection(config) {
+      var base = config.initialSelection;
+      return {
+        seriesId: tdcLeverOverride.seriesId || base.seriesId,
+        transformId: tdcLeverOverride.transformId || base.transformId,
+        horizonId: tdcLeverOverride.horizonId || base.horizonId,
+        profileId: tdcLeverOverride.profileId || base.profileId
+      };
+    }
+
+    /* Populates each lever from the CONFIG rather than hardcoded option lists, so an id that is
+       not configured can never be selected, and re-renders in place on change. Re-rendering reads
+       observations already held in the shared cache; it issues no fetch. */
+    function tdcInitLevers(config, configIndex, selection) {
+      var levers = [
+        { elementId: 'transformSelect', key: 'transformId', entries: config.transforms },
+        { elementId: 'horizonSelect', key: 'horizonId', entries: config.horizons },
+        { elementId: 'profileSelect2', key: 'profileId', entries: config.profiles }
+      ];
+      levers.forEach(function (lever) {
+        var select = document.getElementById(lever.elementId);
+        if (!select || !Array.isArray(lever.entries)) return;
+        select.textContent = '';
+        lever.entries.forEach(function (entry) {
+          var option = document.createElement('option');
+          option.value = entry.id;
+          option.textContent = entry.label || entry.id;
+          select.appendChild(option);
+        });
+        select.value = tdcEffectiveSelection(config)[lever.key];
+        select.addEventListener('change', function () {
+          tdcLeverOverride[lever.key] = select.value;
+          tdcRenderProduction(config, configIndex, selection);
+        });
+      });
+    }
+
     function tdcRenderProduction(config, configIndex, selection) {
-      var descriptor = configIndex.seriesById[config.initialSelection.seriesId];
+      var chosen = tdcEffectiveSelection(config);
+      var descriptor = configIndex.seriesById[chosen.seriesId];
       var envelope = tdcSharedBarsEnvelope(descriptor, selection.clock);
       if (!envelope.ok) {
         tdcRenderInvalid(envelope.errors, selection, 'Shared source observations are unavailable');
@@ -3784,7 +3864,7 @@
       if (!validation.ok) return tdcRenderInvalid(validation.errors, selection, 'Shared source envelope failed validation');
       var resolved = tdcResolveAsOfVintage(envelope.value, selection.clock);
       if (!resolved.ok) return tdcRenderInvalid(resolved.errors, selection, 'No shared observation was available at the cutoff');
-      var transformed = tdcApplyTransform(resolved.observations, configIndex.transformsById[config.initialSelection.transformId], descriptor.units, {});
+      var transformed = tdcApplyTransform(resolved.observations, configIndex.transformsById[chosen.transformId], descriptor.units, {});
       if (!transformed.ok) return tdcRenderInvalid(transformed.errors, selection, 'Configured transform is unavailable');
       var quality = tdcAssessDataQuality(descriptor, resolved.observations, selection.clock, config, configIndex);
       if (!quality.ok) return tdcRenderInvalid(quality.errors, selection, 'Shared source quality could not be assessed');
@@ -3806,8 +3886,8 @@
         values: resolved.observations.map(function (observation) { return observation.value; }),
         comparison: [],
         injectedChangeIndex: null,
-        profile: configIndex.profilesById[config.initialSelection.profileId],
-        horizon: configIndex.horizonsById[config.initialSelection.horizonId],
+        profile: configIndex.profilesById[chosen.profileId],
+        horizon: configIndex.horizonsById[chosen.horizonId],
         config: config
       });
       var verdict = productionEngine.ok ? productionEngine.result : null;
@@ -3817,8 +3897,10 @@
       }
       var foundationResult = tdcAssembleResult({
         request: {
-          seriesId: config.initialSelection.seriesId,
-          transformId: config.initialSelection.transformId
+          seriesId: chosen.seriesId,
+          transformId: chosen.transformId,
+          horizonId: chosen.horizonId,
+          profileId: chosen.profileId
         },
         registryVersion: config.registryVersion || null,
         computedAt: new Date().toISOString(),
@@ -3882,7 +3964,7 @@
         : publication.errorCode === 'TDC-PUBLISH-REJECTED'
           ? 'TDC-PUBLISH-REJECTED: the owner read was refused and no Brief coverage is claimed.'
           : 'No owner read has been published.');
-      window.__TDC_DIAGNOSTICS__ = Object.freeze({ fixtureId: null, ownerReadPublished: publication.published, resultId: foundationResult.resultId, foundation: Object.freeze({ truthState: truth.toLowerCase(), interpolationApplied: false, quality: quality.profile, endpointPosture: resolved.replayPosture }) });
+      window.__TDC_DIAGNOSTICS__ = Object.freeze({ fixtureId: null, ownerReadPublished: publication.published, resultId: foundationResult.resultId, requestDigest: foundationResult.requestDigest, foundation: Object.freeze({ truthState: truth.toLowerCase(), interpolationApplied: false, quality: quality.profile, endpointPosture: resolved.replayPosture }) });
     }
 
     /* Restores the persisted mode and keeps the tablist's ARIA in step with body.power.
@@ -3932,7 +4014,11 @@
         var indexed = tdcIndexConfig(config);
         if (!indexed.ok) return tdcRenderInvalid(indexed.errors, selection, 'Configuration index is invalid');
         var configIndex = indexed.index;
-        if (!selection.fixture) return tdcRenderProduction(config, configIndex, selection);
+        if (!selection.fixture) {
+          // Levers are wired once; each change re-renders from the cache rather than re-booting.
+          tdcInitLevers(config, configIndex, selection);
+          return tdcRenderProduction(config, configIndex, selection);
+        }
         if (selection.fixtureId === 'irregular') return tdcRenderIrregular(fixture, config, configIndex, selection);
         if (selection.fixtureId === 'technology-lifecycle') return tdcRenderLifecycle(fixture, configIndex, selection);
         if (selection.fixtureId === 'political-calendar') return tdcRenderPolitical(fixture, configIndex, selection);

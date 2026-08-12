@@ -491,15 +491,17 @@ test('Regression: SCN-006-017 lead-lag evidence remains association without a me
 // published, so a wiring mistake there would reach the Brief unseen. Seeding the shared bar
 // cache is what makes the path reachable headlessly; without it the page correctly refuses on
 // absent observations and never gets far enough to publish.
-test('Regression: SCN-006-020 the production route computes a verdict and publishes it as an owner read', async ({ page }) => {
+// Seeds the shared bar cache so the PRODUCTION route is reachable headlessly. Without it the
+// page correctly refuses on absent observations and never gets far enough to compute or publish.
+// The peak five observations from the end guarantees a CURRENT turning record, so the
+// effective-versus-detected distinction is exercised rather than skipped.
+async function seedProductionBars(page) {
   await page.addInitScript(() => {
     const dayMs = 86400000;
     const end = Date.UTC(2026, 6, 14);
     const rows = [];
     for (let i = 399; i >= 0; i--) {
       let c = 400 + Math.sin(i / 9) * 5 + i * 0.02;
-      // A pronounced peak five observations from the end, so a CURRENT turning record exists and
-      // the effective-versus-detected distinction is actually exercised rather than skipped.
       if (i <= 10) c += (10 - Math.abs(i - 5)) * 4;
       rows.push({ t: end - i * dayMs, c });
     }
@@ -508,6 +510,10 @@ test('Regression: SCN-006-020 the production route computes a verdict and publis
       bars: { SPY: { '1d': { at: Date.UTC(2026, 6, 15, 11), src: 'option-snapshot', rows } } }
     }));
   });
+}
+
+test('Regression: SCN-006-020 the production route computes a verdict and publishes it as an owner read', async ({ page }) => {
+  await seedProductionBars(page);
   await page.goto(`${baseUrl}/trend-dynamics-cycle-lab.html?clock=${CLOCK}`);
 
   await expect(page.locator('#truthState')).toHaveText(/CURRENT|STALE|DEGRADED/);
@@ -630,4 +636,79 @@ test('Regression: SCN-006-019 the route stays contained and keyboard-operable at
 
   // The fixture band is a live region, so a status change is announced rather than only drawn.
   await expect(page.locator('#fixtureBand')).toHaveAttribute('aria-live', 'polite');
+});
+
+// The Simple cockpit promises levers the reader can move and watch the verdict update. Two
+// distinct claims need proving and they pull in opposite directions: switching MODE must keep
+// the SAME result (it is a view change), while moving a LEVER must produce a NEW result -- and
+// neither may refetch source data. Asserting only "the page still works" would pass against a
+// page that silently refetched on every keystroke, or one whose levers did nothing at all.
+test('Regression: SCN-006-019 Simple Power mobile and local controls share one result without refetch', async ({ page }) => {
+  await seedProductionBars(page);
+
+  // Count real network traffic. Requests are OBSERVED via browser events, never intercepted,
+  // so the page runs against the live static server exactly as a reader would meet it.
+  const dataRequests = [];
+  page.on('request', (request) => {
+    const url = request.url();
+    if (!url.startsWith(baseUrl)) dataRequests.push(url);
+  });
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${baseUrl}/trend-dynamics-cycle-lab.html?clock=${CLOCK}`);
+  await expect(page.locator('#truthState')).toHaveText(/CURRENT|STALE|DEGRADED/);
+
+  const readResult = () => page.evaluate(() => ({
+    id: window.__TDC_DIAGNOSTICS__.resultId,
+    digest: window.__TDC_DIAGNOSTICS__.requestDigest,
+    truth: document.getElementById('truthState').textContent.trim(),
+    outcome: document.getElementById('scenarioOutcome').textContent.trim()
+  }));
+
+  const atBoot = await readResult();
+  expect(atBoot.id.length).toBeGreaterThan(0);
+
+  // A mode switch is a VIEW change. The result id, digest, truth and verdict must all survive it.
+  await page.locator('#modeSeg button[data-mode="power"]').click();
+  await expect(page.locator('body')).toHaveClass(/power/);
+  const inPower = await readResult();
+  expect(inPower.id, 'switching to Power recomputed instead of re-rendering').toBe(atBoot.id);
+  expect(inPower.digest).toBe(atBoot.digest);
+  expect(inPower.truth).toBe(atBoot.truth);
+  expect(inPower.outcome).toBe(atBoot.outcome);
+
+  await page.locator('#modeSeg button[data-mode="simple"]').click();
+  await expect(page.locator('body')).not.toHaveClass(/power/);
+  expect((await readResult()).id).toBe(atBoot.id);
+
+  // A lever change is a REQUEST change, so it must genuinely recompute. Horizon is the strongest
+  // probe: it changes how much history the engine sees, so a page that ignored the lever would
+  // return the identical id and fail here.
+  await page.selectOption('#horizonSelect', 'h63');
+  await expect
+    .poll(async () => (await readResult()).id, { message: 'the horizon lever did not recompute' })
+    .not.toBe(atBoot.id);
+  const afterHorizon = await readResult();
+  expect(afterHorizon.digest).not.toBe(atBoot.digest);
+
+  await page.selectOption('#transformSelect', 'log-level');
+  await expect
+    .poll(async () => (await readResult()).id, { message: 'the transform lever did not recompute' })
+    .not.toBe(afterHorizon.id);
+
+  // The whole point of the levers: recompute happens from the shared cache. Any off-origin
+  // request here means the page went back to the network for data it already held.
+  expect(dataRequests, `levers refetched: ${dataRequests.join(', ')}`).toEqual([]);
+
+  // Returning to the original horizon must reproduce the original result exactly. That proves the
+  // recompute is a pure function of the request, not a drifting accumulation of state.
+  await page.selectOption('#transformSelect', 'level');
+  await page.selectOption('#horizonSelect', 'h126');
+  await expect
+    .poll(async () => (await readResult()).id, { message: 'restoring the levers did not restore the result' })
+    .toBe(atBoot.id);
+
+  console.log('[SCN-006-019] bootResult=' + atBoot.id + ' powerResult=' + inPower.id);
+  console.log('[SCN-006-019] horizonResult=' + afterHorizon.id);
+  console.log('[SCN-006-019] offOriginRequests=' + dataRequests.length);
 });

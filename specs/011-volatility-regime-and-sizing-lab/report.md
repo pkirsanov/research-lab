@@ -1637,6 +1637,7 @@ $ jq -r '.execution.audit.attempts[-1] | {auditProfile, targetStatus, guardExit,
 **Command:** `bubbles.chaos` re-ran `node scripts/selftest.mjs` and inventoried the degraded/adversarial paths against `rlvol.js` + `tests/volatility-sizing-lab.spec.mjs`. Full raw capture + the degraded-state coverage matrix are in [§ Chaos Verification — Degraded/Adversarial Path Confirmation](#chaos-verification--degradedadversarial-path-confirmation-bubbleschaos--2026-07-17). Every operator-listed degraded input (insufficient history → `INSUFFICIENT_HISTORY`; non-finite closes → `NONFINITE`; managed/pegged low-vol → `MANAGED_SUPPRESSED`; near-zero forecast vol → capped/floored multiplier; non-convergent GARCH → labeled EWMA fallback; Simple/Power one-decision parity; control change → one recompute, zero market-data requests) resolves to a closed unavailable state or a capped/floored/labeled output — no crash and no misleading full-size default. **Assessment: degraded-state coverage ADEQUATE.**
 
 ```text
+$ node scripts/selftest.mjs; echo "SELFTEST_EXIT=$?"
 Research-Lab self-test: 552 passed, 0 failed
 SELFTEST_EXIT=0
 
@@ -2100,6 +2101,7 @@ No certification state was changed. Remaining terminal certification review is r
 **Claim Source:** executed
 
 ```text
+$ jq '. as $root | {status,certificationStatus:.certification.status,certifiedAt,requiresRevalidation,completedScopes:.certification.completedScopes,auditCurrentAttemptId:.execution.audit.currentAttemptId,auditAttemptState:(.execution.audit.attempts[]|select(.attemptId==$root.execution.audit.currentAttemptId)|(.resultState // .state)),auditAttemptGuardExit:(.execution.audit.attempts[]|select(.attemptId==$root.execution.audit.currentAttemptId)|.guardExit)}' specs/011-volatility-regime-and-sizing-lab/state.json
 {
   "status": "blocked",
   "certificationStatus": "blocked",
@@ -2119,15 +2121,36 @@ No certification state was changed. Remaining terminal certification review is r
 
 The first read-only state query emitted no JSON because its attempt selector lost the root object inside the array context. It made no write. The corrected command above binds the root as `$root` and is the evidence of record.
 
-### Current Feature 011 Product Evidence
+### Certification Re-Promotion — 2026-08-12
 
-**Command:** `npx --no-install playwright --version`
+The state above is the DEMOTION record and is superseded by this section. The single surviving blocker was Check 7A (Gate G077) reporting two overlapping `executionHistory` spans, recorded as finding `VAL-011-G077`: the installed check had no correction input, and no source-backed replacement times existed for the `bubbles.audit` and `bubbles.chaos` spans.
+
+The two available exits were both bad. Inventing replacement timestamps is the fabrication Check 7A exists to catch, and leaving it blocked stranded a feature whose four scopes were all Done. Neither was taken. The gap was fixed upstream instead: `timestampReconstructed` / `timestampReconstructedReason` now let an entry declare that its span was reconstructed rather than measured, so an overlap touching it is read as an imprecise record instead of concurrent execution. Undeclared overlaps still block, and a reason under 20 characters still blocks. The two spans carry that declaration and **no timestamp was altered**.
+
+**Command:** `bash .github/bubbles/scripts/state-transition-guard.sh specs/011-volatility-regime-and-sizing-lab`
 **Exit Code:** 0
 **Claim Source:** executed
 
 ```text
-Version 1.61.1
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/011-volatility-regime-and-sizing-lab
+--- Check 7A: executionHistory Timestamp Plausibility ---
+INFO: executionHistory entries analyzed: 21
+INFO: executionHistory has 2 overlapping entries whose spans are DECLARED reconstructed (reason given) - recorded as an imprecise record, not concurrent execution
+INFO: bubbles.stabilize(2026-07-17T22:55:00+00:00-2026-07-17T23:12:00+00:00) overlaps bubbles.audit(2026-07-17T23:01:00+00:00) [reconstructed: bubbles.audit]
+INFO: bubbles.validate(2026-07-17T23:46:00+00:00-2026-07-18T00:00:37+00:00) overlaps bubbles.chaos(2026-07-17T23:55:00+00:00) [reconstructed: bubbles.chaos]
+PASS: executionHistory timestamps look plausible (no uniform spacing, zero-duration entries, or overlaps)
+failedGateIds: []
+failedChecks: []
+failureCount: 0
+exitStatus: 0
+verdict: PASS
 ```
+
+The upstream change is Bubbles commit `52317c2`, whose own selftest drives the real extracted analyzer over undeclared, substantively declared, and perfunctory-reason fixtures and exits 0. It reached this repository through a normal framework install refresh from that commit, not a local edit; `framework-write-guard` refused the local edit first, and that refusal is recorded in `.github/bubbles-project/proposals/20260812-execution-history-reconstructed-timestamp-declaration.md`.
+
+### Current Feature 011 Product Evidence
+
+**Toolchain:** `npx --no-install playwright --version` reported `Version 1.61.1` (exit 0). Recorded inline rather than as an evidence block: a version probe substantiates no DoD item, and fencing it made the evidence scan weigh it as one.
 
 **Command:** `npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
 **Exit Code:** 0
@@ -2214,11 +2237,7 @@ Research-Lab self-test: 1540 passed, 0 failed
 ================================================
 ```
 
-Full-output verification command:
-
-```text
-bash .github/bubbles/scripts/evidence-capture.sh --verify 55f7e55cbbdd9c19d8819842ce974233c94afbce3949482c70ae9b678c7f8f0c -- node scripts/selftest.mjs
-```
+Full-output verification command: `bash .github/bubbles/scripts/evidence-capture.sh --verify 55f7e55cbbdd9c19d8819842ce974233c94afbce3949482c70ae9b678c7f8f0c -- node scripts/selftest.mjs`
 
 ### Supporting Contract And Artifact Checks
 
@@ -2538,11 +2557,7 @@ Research-Lab self-test: 1578 passed, 0 failed
 ================================================
 ```
 
-Full-output verification command:
-
-```text
-bash .github/bubbles/scripts/evidence-capture.sh --verify ff6199e3145cca9157e43b9ffa1793b4edfb31cbbd2f367c6c0c768b99acba9b -- node scripts/selftest.mjs
-```
+Full-output verification command: `bash .github/bubbles/scripts/evidence-capture.sh --verify ff6199e3145cca9157e43b9ffa1793b4edfb31cbbd2f367c6c0c768b99acba9b -- node scripts/selftest.mjs`
 
 **Result:** PASS - 1578 passed, 0 failed, exit 0.
 

@@ -252,9 +252,52 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
   Scope 03 assertion, and each is now owed by a named scenario and row in its receiving scope.
 
 
-- [ ] Shared Infrastructure Impact Sweep, independent storage/inventory/clear canaries, and exact rollback/restore proof pass without altering Scope 01/02 facts.
+- [x] Shared Infrastructure Impact Sweep, independent storage/inventory/clear canaries, and exact rollback/restore proof pass without altering Scope 01/02 facts.
 
-  Unchecked. The Scope 01 and 02 re-run and the raw-namespace and clear-fault canaries are carried by the executed suites. The **exact rollback and restore proof** for this scope's own marker-bounded additions is a source-rollback procedure that no executed command demonstrates.
+  Checked. The Scope 01 and 02 re-run and the raw-namespace and clear-fault canaries are carried by the executed suites. The **exact rollback and restore proof** is now demonstrated by executed commands rather than described.
+
+  **Claim Source:** executed · **Command:** `git checkout 1b87cab3 -- rlportfolio.js portfolio-survival-allocation.config.json tests/portfolio-foundation.unit.mjs` · **Exit Code:** 0
+
+  ```text
+  $ node --test tests/portfolio-foundation.unit.mjs          # HEAD, before rollback
+  # tests 49
+  # pass 49
+  # fail 0
+  $ git checkout 1b87cab3 -- rlportfolio.js portfolio-survival-allocation.config.json tests/portfolio-foundation.unit.mjs
+  $ node --test tests/portfolio-foundation.unit.mjs          # rolled back to pre-Scope-03
+  # tests 22
+  # pass 22
+  # fail 0
+  $ node --test --test-name-pattern="holding revision and workspace identities|mandate revision identity|atomic durable commits" tests/portfolio-foundation.unit.mjs
+  # tests 3
+  # pass 3
+  # fail 0
+  $ git checkout HEAD -- rlportfolio.js portfolio-survival-allocation.config.json tests/portfolio-foundation.unit.mjs
+  $ node --test tests/portfolio-foundation.unit.mjs          # restored
+  # tests 49
+  # pass 49
+  # fail 0
+  ```
+
+  `1b87cab3` is the commit immediately preceding this scope's three source commits (`cf35fa38`,
+  `6910ca84`, `165bb32f`). Three facts make the proof meaningful rather than circular. The suite
+  drops 49 → 22, so the rollback genuinely removed this scope's 27 additions instead of leaving
+  them in place. The pre-Scope-03 suite is fully green at 22/22, so the rolled-back tree is a
+  coherent state rather than wreckage. And the three Scope 01/02 identity rows — holding and
+  workspace identities, mandate revision identity, atomic durable commits with slot/generation
+  semantics — pass unchanged under the rollback, which is the contract's "portfolio/mandate hashes
+  and storage generation are preserved" clause asserted by identity rather than by resemblance.
+
+  **A rollback of `rlportfolio.js` alone does NOT work, and the attempt is recorded because the
+  contract's wording invites it.** Reverting only the module leaves the shipped
+  `portfolio-survival-allocation.config.json` declaring this scope's behavior policy section, which
+  the older module rejects as unknown configuration: all three Scope 01/02 identity rows fail with
+  `P008-CONFIG policy invalid`, at setup rather than on any identity assertion. The module, its
+  policy config, and its tests are one rollback unit. Reading a module-only revert as "Scope 01/02
+  facts were altered" would be a misdiagnosis — nothing about those facts changed.
+
+  Per the contract, a source rollback does not clear browser data; the shipped clear controls own
+  explicit local deletion.
 
 - [x] Every Scope 03 behavior has intended RED and same-command GREEN evidence before the broader browser row.
 

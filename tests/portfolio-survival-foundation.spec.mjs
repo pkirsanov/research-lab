@@ -1393,7 +1393,7 @@ async function seedBars(page, symbol, { ageMs = 0 } = {}) {
   }, { sym: symbol, age: ageMs });
 }
 
-test('Regression: SCN-008-035 partial evidence names each affected holding and substitutes nothing', async ({ page }) => {
+test('Regression: SCN-008-035 partial data corrupt schema and localStorage disabled preserve truth', async ({ page }) => {
   await openRoute(page);
   await importValid(page, 'TP-04-06 partial truth');
 
@@ -1448,7 +1448,29 @@ test('Regression: SCN-008-035 partial evidence names each affected holding and s
   expect(claimedValued, 'the headline count must equal the rows that are genuinely valued')
     .toBe(rows.filter((row) => row.valueIncluded).length);
 
-  // Phase D — storage degraded to session-only. Truth must still render and still not substitute.
+  // Phase D — corrupt schema in the active slot. Whatever survives must be a REAL revision; the
+  // corrupt bytes must never become holding rows, and no row may gain a substituted value because
+  // its neighbour was lost. Asserting "rows come from the last valid revision OR there are none"
+  // covers both legitimate atomic-slot outcomes without guessing which one fires.
+  await page.evaluate(() => {
+    const pointer = JSON.parse(localStorage.getItem('rlPortfolioWorkspaceV1.pointer'));
+    localStorage.setItem('rlPortfolioWorkspaceV1.' + pointer.activeSlot, '{ not json');
+  });
+  await page.reload();
+  await expect.poll(async () => (await foundationKeyState(page)).values[STORAGE_POLICY.quarantineKey],
+    'the corrupt slot must travel the real quarantine path, not be silently discarded').not.toBeNull();
+  const afterCorruption = await truthRows(page);
+  for (const row of afterCorruption) {
+    expect(['MSFT', 'BND'], 'no holding row may be synthesised from corrupt bytes').toContain(row.symbol);
+    if (!row.valueIncluded) {
+      expect(row.text).toContain('excluded from valuation, no substitute applied');
+    }
+  }
+  const corruptSummary = await page.locator('#truthSummary').textContent();
+  expect(corruptSummary.includes('Holding evidence unavailable') || /^\d+ of \d+ holdings/.test(corruptSummary),
+    'after corruption the surface must either state unavailability or report a real revision').toBe(true);
+
+  // Phase E — storage degraded to session-only. Truth must still render and still not substitute.
   const sessionPage = await page.context().newPage();
   await blockStorage(sessionPage, 'session');
   await sessionPage.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#brief`);
@@ -1461,5 +1483,6 @@ test('Regression: SCN-008-035 partial evidence names each affected holding and s
   console.log('[TP-04-06] phaseA excluded=2 substituted=0');
   console.log('[TP-04-06] phaseB valued=1 missingBesideValid=BND');
   console.log('[TP-04-06] phaseC staleNamed=MSFT lastObservation=2026-04-30');
-  console.log('[TP-04-06] phaseD sessionOnly rows=0 unavailableStated=true');
+  console.log(`[TP-04-06] phaseD quarantined=true syntheticRows=0 rows=${afterCorruption.length}`);
+  console.log('[TP-04-06] phaseE sessionOnly rows=0 unavailableStated=true');
 });

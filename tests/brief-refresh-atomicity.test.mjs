@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 
 import {
   createBriefRefreshFixture,
+  FIXTURE_ATTENTION_CANDIDATE,
   gitFixture,
   readPublicationState,
   runBriefRefreshFixture,
@@ -57,6 +58,41 @@ function readSchedulerStatus(path) {
 
 if (process.env.NODE_TEST_CONTEXT) {
   const { default: test } = await import('node:test');
+
+  /* The fixture's authored attention tier must not be a function of the live brief.
+     It was: every lane echoed the committed payload verbatim, so when the live 4x/day
+     brief began legitimately publishing an empty tier, the stub handed the composer
+     zero candidates and every narrative run in this file failed the publication gate
+     on an empty tier that stated no reason. Nothing about the publication transaction
+     had changed — only yesterday's market had. Pin the decoupling here so the next
+     empty tier cannot take the suite down again. */
+  test('the fixture signals lane accounts for its own tier when the live brief publishes none', async () => {
+    const { recomposePayloadAttention } = await import('../scripts/build-attention-items.mjs');
+    const config = JSON.parse(readFileSync(new URL('../market-brief.config.json', import.meta.url), 'utf8'));
+    /* ADVERSARIAL: an empty live tier carrying no exclusions is exactly the committed
+       state that made the old verbatim echo degenerate. */
+    const emptyLive = Object.assign(
+      JSON.parse(readFileSync(new URL('../market-brief.payload.json', import.meta.url), 'utf8')),
+      { attention: [], attentionExclusions: [] }
+    );
+
+    const authored = recomposePayloadAttention(
+      Object.assign({}, emptyLive, { attention: [FIXTURE_ATTENTION_CANDIDATE] }), config);
+    assert.equal(authored.items.length + authored.exclusions.length, 1,
+      'the lane-authored candidate is accounted for as a published item or a named refusal');
+    assert.ok(authored.exclusions.every((exclusion) => /^RLATTN-/.test(exclusion.code)
+      && typeof exclusion.field === 'string' && exclusion.field.length > 0
+      && typeof exclusion.reason === 'string' && exclusion.reason.length > 0),
+      `a refusal names a composer code, the field and the reason: ${JSON.stringify(authored.exclusions)}`);
+    assert.ok(authored.payload.attention.length + authored.payload.attentionExclusions.length > 0,
+      'the tier the fixture publishes states why it is empty rather than merely being empty');
+
+    /* ADVERSARIAL: prove the guard can fail. A verbatim echo of the empty live tier
+       really does account for nothing, so the assertions above are not tautological. */
+    const echoed = recomposePayloadAttention(emptyLive, config);
+    assert.equal(echoed.payload.attention.length + echoed.payload.attentionExclusions.length, 0,
+      'an echo of an empty live tier accounts for nothing, which is the state this guard exists to keep out of the fixture');
+  });
 
   test('installed launchd template and scheduler share one 30-minute publication lead', () => {
     const scheduler = readFileSync(resolve(process.cwd(), 'scripts/brief-refresh-scheduled.sh'), 'utf8');

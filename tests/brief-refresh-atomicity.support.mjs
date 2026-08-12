@@ -72,6 +72,37 @@ function fixtureHistory(sessionDate) {
   })}\n`;
 }
 
+/**
+ * The one attention candidate the fixture's `signals` lane authors.
+ *
+ * The stub used to model every lane as a verbatim echo of the baseline payload
+ * (`fragment[key] = payload[key]`). For `attention` that made this suite's
+ * outcome a function of whatever the live 4x/day brief last published. Since the
+ * F-017-06 build-step cutover landed on 2026-08-10 every real generation has
+ * legitimately published an EMPTY tier, so the echo began handing the composer
+ * ZERO candidates: `recomposePayloadAttention` accounted 0 built + 0 refused,
+ * and the publication gate correctly refused an empty tier that states no reason.
+ *
+ * Both production halves are right. The gate is right that an empty tier must say
+ * why it is empty, and recompose is right that its exclusion list is the complete
+ * accounting of the candidates it was handed — preserving a previous generation's
+ * reasons instead would let a generation that considered nothing publish behind
+ * someone else's explanation, which is the OBS-007-02 silent drop. What was wrong
+ * is a lane stub that authored nothing and therefore modelled nothing.
+ *
+ * So the lane authors a candidate of its own, on top of anything the baseline
+ * carried. It supplies JUDGEMENT ONLY and no `observed` gate result, because a
+ * fixture observes no market and must not assert a figure, a level or an instant
+ * it cannot source. The certified composer refuses exactly that at its first
+ * check, by name, so the tier's emptiness is explained by a real `RLATTN-*`
+ * reason rather than by an invented observation — and the explanation no longer
+ * depends on what the market did yesterday.
+ */
+export const FIXTURE_ATTENTION_CANDIDATE = Object.freeze({
+  headline: 'fixture signals lane authored judgement with no observed gate result',
+  rationale: 'the fixture lane observes no market, so it hands the composer judgement alone and expects a named refusal'
+});
+
 export function createBriefRefreshFixture(options = {}) {
   const baselineDate = options.baselineDate || '2026-07-15';
   const candidateDate = options.candidateDate || '2026-07-16';
@@ -310,6 +341,13 @@ if (lane === 'core') {
   payload.nextSession.sessionDate = process.env.BUG002_CANDIDATE_DATE;
 }
 const fragment = Object.fromEntries(keys.map((key) => [key, payload[key]]));
+/* The signals lane AUTHORS its attention candidates; it does not inherit them.
+   Echoing the baseline tier alone made this fixture degenerate the moment the
+   live brief legitimately published an empty one — see FIXTURE_ATTENTION_CANDIDATE. */
+if (lane === 'signals') {
+  fragment.attention = (Array.isArray(payload.attention) ? payload.attention : [])
+    .concat([${JSON.stringify(FIXTURE_ATTENTION_CANDIDATE)}]);
+}
 writeFileSync(outputPath, JSON.stringify(fragment, null, 2) + '\\n');
 console.log('[fixture-copilot] wrote lane=' + lane + ' attempt=' + attempt);
 if (process.env.BUG002_NARRATIVE_MODE === 'post-write-hang' && lane === 'core') {

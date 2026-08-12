@@ -1,12 +1,12 @@
 {
-  "asOf": "2026-08-12T05:13:01.121Z",
-  "generatedAt": "2026-08-12T05:13:01.121Z",
+  "asOf": "2026-08-12T11:00:56.627Z",
+  "generatedAt": "2026-08-12T11:00:56.627Z",
   "window": "pre-market",
   "marketClosed": false,
   "nextSessionDate": "2026-08-12",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-12T05:12:18.201Z",
+      "updated": "2026-08-12T11:00:18.601Z",
       "symbolCount": 289,
       "expectedSessionDate": "2026-08-11",
       "refreshDate": "2026-08-12",
@@ -16,7 +16,7 @@
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-08-12T05:12:22.195Z",
+      "updated": "2026-08-12T11:00:18.670Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-08-12",
@@ -27,9 +27,9 @@
     }
   },
   "regime": {
-    "band": "VIX 15.3",
+    "band": "VIX 15.4",
     "score": 0,
-    "vix": 15.28,
+    "vix": 15.41,
     "fearGreed": null
   },
   "bench": {
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-12T05:13:00.696Z",
+      "asOf": "2026-08-12T11:00:56.098Z",
       "read": "Rotate toward XLK as XLB weakens.",
       "metrics": {
         "into": {
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": 0.041183483277066335,
           "usdRelativeReturn": 0.1532563865316363,
           "asOf": "2026-08-11T00:00:00.000Z",
-          "computedAt": "2026-08-12T05:13:00.711Z",
+          "computedAt": "2026-08-12T11:00:56.116Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1932,7 +1932,7 @@
           "interaction": -0.00041093401726739255,
           "relationship": "Mixed",
           "asOf": "2026-08-11T00:00:00.000Z",
-          "computedAt": "2026-08-12T05:13:00.711Z",
+          "computedAt": "2026-08-12T11:00:56.116Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1956,7 +1956,7 @@
               "usdLeadership": {
                 "asOf": "2026-08-11T00:00:00.000Z",
                 "benchmarkReturn": 0.041183483277066335,
-                "computedAt": "2026-08-12T05:13:00.711Z",
+                "computedAt": "2026-08-12T11:00:56.116Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2465,7 +2465,7 @@
                 "approximateLocalReturn": 0.20393108032464036,
                 "asOf": "2026-08-11T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": 0.08499347249686684,
-                "computedAt": "2026-08-12T05:13:00.711Z",
+                "computedAt": "2026-08-12T11:00:56.116Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "SGD",
                 "freshUntil": null,
@@ -3059,7 +3059,7 @@
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-08-12T05:13:00.711Z",
+          "computedAt": "2026-08-12T11:00:56.116Z",
           "freshUntil": null
         }
       },
@@ -3929,7 +3929,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-08-12T05:13:00.973Z",
+      "asOf": "2026-08-12T11:00:56.447Z",
       "read": "Leadership is narrow — 56.47% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -3985,7 +3985,7 @@
         "symbol": "SPY",
         "forecastPct": 13.7509,
         "regime": "normal",
-        "percentile": 72.222,
+        "percentile": 60,
         "throttle": 1.091,
         "capped": null,
         "estimator": "ewma",
@@ -4172,6 +4172,12 @@
     {
       "id": "fx-regime-relative-value-lab",
       "deepLink": "fx-regime-relative-value-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+    },
+    {
+      "id": "trend-dynamics-cycle-lab",
+      "deepLink": "trend-dynamics-cycle-lab.html",
       "status": "browser-or-agent-read",
       "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
     }

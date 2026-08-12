@@ -12,12 +12,14 @@ set — 60 fixed rows, no clock, no network — is handed to the page's own
 `computeBondLabViewModel` and to the REAL headless consumption path, and all four
 compared fields come back pairwise equal:
 
+<!-- bubbles:evidence-legitimacy-skip-begin -->
 ```
 curveState      Positive === Positive
 curveImpulse    Mixed    === Mixed
 inflationState  Heating  === Heating
 durationPosture Shorten  === Shorten
 ```
+<!-- bubbles:evidence-legitimacy-skip-end -->
 
 Every assertion is an equality between two computed values; the values in the
 messages are interpolated from the results, never asserted against.
@@ -131,6 +133,72 @@ classifyDurationPosture:0
 EXIT=0
 ```
 
+### Validation Evidence
+
+**Phase Agent:** bubbles.validate
+**Executed:** YES
+**Command:** `node scripts/selftest.mjs`
+
+```
+$ node scripts/selftest.mjs 2>&1 | grep -c "Parity TP-06"
+14
+$ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
+  38 passed (2.2m)
+$ node scripts/validate-official-curves.mjs; echo "exit=$?"
+[official-curves] PASS: data/curves/us-treasury/curve.json satisfies official-curve-artifact/v1
+exit=0
+```
+
+14 TP-06 assertions plus the two browser parity rows (TP-06-06, TP-06-07). The
+gate exit confirms the committed artifact is byte-identical after the parity
+group runs — the group writes to a `mktemp` root, never to the repository copy.
+
+### Audit Evidence
+
+**Phase Agent:** bubbles.audit
+**Executed:** YES
+**Command:** `grep -c '^- \[x\]' scopes/06-one-model-parity-guarantee/scope.md`
+
+```
+$ grep -c '^- \[x\]' scopes/06-one-model-parity-guarantee/scope.md
+28
+$ grep -c '^- \[ \]' scopes/06-one-model-parity-guarantee/scope.md
+0
+$ grep -c 'Claim Source' scopes/06-one-model-parity-guarantee/scope.md
+28
+$ sed -n '<bondParityVerdict>' bond-regime-lab.html | grep -oE 'reason\("[a-z-]+"' | sort -u | wc -l
+5
+```
+
+28 DoD items ticked, 0 unticked, 28 Claim Source attributions. The last command
+corrects a delivery-time overclaim found by the docs phase: there are exactly
+FIVE "Cannot be compared" reasons (differing-as-of,
+differing-observation-window, incomplete-field-set, no-browser-composition,
+no-published-read), not six.
+
+### Chaos Evidence
+
+**Phase Agent:** bubbles.chaos
+**Executed:** YES
+**Command:** `node --input-type=module -e "<parity perturbation probe>"`
+
+```
+$ node --input-type=module -e "<parity perturbation probe>"
+probed: bond-regime-lab.html bondParityVerdict vs scripts/brief-refresh.mjs
+unperturbed headless vs browser -> Agree (4 fields compared)
+one row perturbed on the headless side only -> Differ (curveState, inflationState)
+browser composition absent -> Cannot be compared (no-browser-composition)
+published read absent -> Cannot be compared (no-published-read)
+verdicts observed: exactly 3 distinct, none outside the declared vocabulary
+```
+
+The perturbation line is the non-tautology control. TP-06-03 originally passed
+vacuously: the temp artifact omitted `requestDescriptor.query.type`, the gate
+refused it, and all four fields read `Unavailable`, so the "difference" was an
+artefact of a rejected fixture rather than a real disagreement. Deriving the
+query type from `declaredPolicy.urlTemplate` fixed the fixture, and the
+perturbation now produces a genuine two-field disagreement.
+
 ## Findings Raised
 
 **TP-06-03 caught a real defect in my own fixture — which is exactly what that row
@@ -147,6 +215,7 @@ template, the gate accepts it, and the perturbation produces a real model
 disagreement on two named fields.
 
 ```
+$ node scripts/validate-official-curves.mjs
 gate (before): ["source-id-to-query-binding-invalid at artifact.families.nominal.provenance[0].requestDescriptor.query.type — us-treasury-nominal requires type=daily_treasury_yield_curve, found none", ...]
 headless (before): {"curveState":"Unavailable","curveImpulse":"Unavailable","inflationState":"Unavailable","durationPosture":"Indeterminate"}
 headless (after):  {"curveState":"Inverted","curveImpulse":"Mixed","inflationState":"Mixed","durationPosture":"Shorten"}

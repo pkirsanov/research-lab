@@ -243,6 +243,69 @@ EXIT=0
 4-day window. The design left this magnitude unmeasured; it is now an observation
 over real acquired data rather than an estimate.
 
+### Validation Evidence
+
+**Phase Agent:** bubbles.validate
+**Executed:** YES
+**Command:** `node scripts/selftest.mjs`
+
+```
+$ node scripts/selftest.mjs 2>&1 | grep -c "Freshness TP-03"
+19
+$ node scripts/selftest.mjs 2>&1 | tail -3
+================================================
+Research-Lab self-test: 1542 passed, 0 failed
+================================================
+$ node scripts/validate-brief-payload.mjs; echo "exit=$?"
+exit=0
+```
+
+All 19 TP-03 assertions pass inside a suite of 1542 with zero failures.
+
+### Audit Evidence
+
+**Phase Agent:** bubbles.audit
+**Executed:** YES
+**Command:** `sed -n '1511,1560p' scripts/brief-refresh.mjs | grep -cE 'Date\.now\(\)|new Date\(\)'`
+
+```
+$ grep -c '^- \[x\]' scopes/03-observed-cadence-freshness-admission/scope.md
+30
+$ grep -c '^- \[ \]' scopes/03-observed-cadence-freshness-admission/scope.md
+0
+$ grep -c 'Claim Source' scopes/03-observed-cadence-freshness-admission/scope.md
+9
+$ sed -n '1511,1560p' scripts/brief-refresh.mjs | grep -cE 'Date\.now\(\)|new Date\(\)'
+0
+```
+
+30 DoD items ticked, 0 unticked. The last command is the load-bearing one for
+this scope: `admitCurveFamily` spans lines 1511-1560 and reads NO wall clock, so
+the admission is a pure function of (artifact, familyId, runDate). The single
+`new Date()` at line 1605 is in `buildBondRegimeToolRead`, the injection seam.
+
+### Chaos Evidence
+
+**Phase Agent:** bubbles.chaos
+**Executed:** YES
+**Command:** `node --input-type=module -e "<12000-iteration admitCurveFamily probe>"`
+
+```
+$ node --input-type=module -e "<12000-iteration probe of admitCurveFamily>"
+probed: scripts/brief-refresh.mjs admitCurveFamily (lines 1511-1560)
+CHAOS iterations=12000 throws=0 outOfVocabulary=0 unknownErrorCode=0 shapeViolations=0
+verdicts: {"undetermined":7184,"current":747,"stale":4069}
+```
+
+12000 iterations against the real artifact under six perturbation modes (emptied
+rows, corrupted observedAt, null/garbage freshnessPolicy, deleted family,
+truncated row windows, hostile familyId and runDate). Per-iteration invariants:
+all six result keys present, and any verdict other than `current` carries a
+non-null errorCode — the rule can never fall silent while claiming a non-current
+state. Three of four verdicts are reached, so this is not a single-branch probe;
+two defects in the probe itself were found and fixed before the result was
+trusted (recorded under `bubbles.chaos` in `state.json`).
+
 ## Findings Raised
 
 **F-018-06 — the no-calendar proof is source-level, not a runtime file-open

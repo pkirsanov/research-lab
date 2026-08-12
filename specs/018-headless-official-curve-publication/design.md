@@ -482,11 +482,20 @@ Four constraints the frozen validator imposes, each verified against
   H-4's second option is not exercised.
 - `retrievedAt` must match `CANONICAL_TIMESTAMP_PATTERN` — `\.\d{3}Z` exactly.
   `new Date().toISOString()` produces that form.
-- `diagnostics[]` entries must match `SAFE_REASON_PATTERN` = `^[a-z0-9][a-z0-9-]*$`
-  (`:8`). So `carried-forward-from-prior-artifact` is a valid diagnostic and
-  `BRL-CURVE-FAMILY-STALE` is not. The uppercase `BRL-*` codes belong in the family
-  record's `errorCode`, matching the existing vocabulary at
-  `scripts/owner-state.mjs:484-485`. **Two vocabularies, two homes, no overlap.**
+- `diagnostics[]` was originally designed to match `SAFE_REASON_PATTERN` = `^[a-z0-9][a-z0-9-]*$`
+  (`:8`), on a "two vocabularies, two homes, no overlap" rule. **CORRECTED BY SPEC-REVIEW —
+  the shipped system does not work this way, and the correction is recorded rather than the
+  original claim preserved.** Two facts settle it. First, the gate never implemented the rule:
+  `scripts/validate-official-curves.mjs` contains no reference to `SAFE_REASON_PATTERN` and none
+  to `diagnostics`, so nothing validates the field's vocabulary. Second, the design contradicted
+  itself — the failure-mode table below states that `BRL-CURVE-FETCH-FAILED` is written **into
+  family diagnostics**, and the acquisition does exactly that. The uppercase code sits in
+  `diagnostics` beside lowercase reasons like `carried-forward-from-prior-artifact`, deliberately:
+  it lets a family name the transport cause **without overwriting the `errorCode` the model
+  reads**. The separation rule is therefore real but NARROWER than written here — it holds inside
+  the **admission verdict**, where `errorCode` carries only `BRL-*` and `basis` carries only
+  lowercase-hyphen reasons. `diagnostics` is mixed by design and must not be read as
+  single-vocabulary.
 - `sourceUseReviewRef` is an identifier, not a path. No `reviews/` directory exists in
   the repository, and the committed XNYS envelope already uses the same form.
 
@@ -837,9 +846,15 @@ the two-year window, so the file's size is stationary rather than monotonic
 - **Traceable offline.** Every published curve number resolves to a source id, a source
   URL, an observation date and a retrieval time inside the repository, with no network
   (NFR *Auditability*, UC-018-006).
-- **Diagnostics are structured.** Family-level diagnostics use the lowercase-hyphen
-  `SAFE_REASON_PATTERN` vocabulary; operator-facing codes use the uppercase `BRL-*`
-  vocabulary. Neither leaks into the other's field.
+- **Diagnostics are structured, but not single-vocabulary.** *(Corrected by spec-review; the
+  original text claimed "neither leaks into the other's field", which the shipped system
+  contradicts.)* The two-vocabulary separation is real inside the **admission verdict**:
+  `errorCode` carries only uppercase `BRL-*` codes and `basis` carries only lowercase-hyphen
+  reasons. Family-level `diagnostics` is deliberately MIXED — it carries the uppercase
+  `BRL-CURVE-FETCH-FAILED` beside lowercase reasons such as
+  `carried-forward-from-prior-artifact`, so a family can name its transport cause without
+  overwriting the `errorCode` the model reads. Nothing validates that field's vocabulary: the
+  gate references neither `SAFE_REASON_PATTERN` nor `diagnostics`.
 
 ---
 

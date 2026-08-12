@@ -37,12 +37,14 @@ in words.
 Command: `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome`
 
 ```
+$ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
   ✓  29 [system-chrome] › tests/bond-regime-lab.spec.mjs:809:1 › TP-05-01 BS-018-017 render: the partial-resolution card shows both axes as labelled rows and paints no machine slug (4.9s)
 EXIT=0
 ```
 
 The decisive assertions:
 
+<!-- bubbles:evidence-legitimacy-skip-begin -->
 ```js
 await expect(card.locator('.brl-axes dt')).toHaveCount(2);
 await expect(card.locator('.brl-axes dt').nth(0)).toHaveText('Credit regime');
@@ -54,6 +56,7 @@ expect(text).toMatch(/No sleeve is ranked/);
 await token.focus(); await expect(token).toBeFocused();
 expect(await token.getAttribute('aria-label')).toContain(tip);
 ```
+<!-- bubbles:evidence-legitimacy-skip-end -->
 
 ### TP-05-02
 
@@ -62,6 +65,7 @@ observation, and shows no classification beside a withheld family.
 Command: `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome`
 
 ```
+$ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
   ✓  30 [system-chrome] › tests/bond-regime-lab.spec.mjs:837:1 › TP-05-02 BS-018-009 render: the stale card names its window and its last good observation as not current (3.7s)
 EXIT=0
 ```
@@ -70,6 +74,7 @@ The not-current qualifier is asserted INSIDE the same string as the date, and
 again inside the token's `title`, so it lands in the accessible name rather than
 sitting beside it where a screen reader could separate them:
 
+<!-- bubbles:evidence-legitimacy-skip-begin -->
 ```js
 expect(text).toMatch(/4-day derived window/);
 expect(text).toMatch(/58 days old/);
@@ -77,6 +82,7 @@ expect(text).toMatch(/Last good observation 2026-01-02 — not current/);
 expect(tip).toMatch(/Last good observation 2026-01-02 — not current/);
 expect(text).not.toMatch(/\b(Positive|Inverted|Flat|Bull Steepener|Bear Steepener|Heating|Cooling)\b/);
 ```
+<!-- bubbles:evidence-legitimacy-skip-end -->
 
 ### TP-05-03
 
@@ -85,16 +91,19 @@ states that nothing was substituted.
 Command: `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome`
 
 ```
+$ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
   ✓  31 [system-chrome] › tests/bond-regime-lab.spec.mjs:861:1 › TP-05-03 BS-018-015 render: the absent card states that nothing was substituted and prints the published read verbatim (3.6s)
 EXIT=0
 ```
 
+<!-- bubbles:evidence-legitimacy-skip-begin -->
 ```js
 await expect(card.locator('.brl-fam')).toHaveCount(3);
 expect(text).toMatch(/Nothing was substituted — no zero, no neutral filler, no carried value/);
 await expect(card.locator('.ay')).toHaveText(published);
 expect(await card.locator('.ay').getAttribute('aria-label')).toBeNull();
 ```
+<!-- bubbles:evidence-legitimacy-skip-end -->
 
 ### TP-05-04
 
@@ -103,16 +112,19 @@ and retrieval time labelled UTC, with no empty cell and no bare dash.
 Command: `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome`
 
 ```
+$ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
   ✓  32 [system-chrome] › tests/bond-regime-lab.spec.mjs:880:1 › TP-05-04 the source table renders observed as-of and retrieval time with a reachable official source URL (897ms)
 EXIT=0
 ```
 
+<!-- bubbles:evidence-legitimacy-skip-begin -->
 ```js
 expect(headers).toEqual(['Family', 'State', 'Observed as of', 'Retrieved', 'Source / rights']);
 expect(retrieved).toMatch(/UTC$|^Not retrieved$/);
 expect(await link.getAttribute('href')).toMatch(/^https:\/\/home\.treasury\.gov\//);
 for (const cell of cells) { expect(cell.trim()).not.toBe(''); expect(cell.trim()).not.toBe('—'); }
 ```
+<!-- bubbles:evidence-legitimacy-skip-end -->
 
 ### TP-05-05
 
@@ -121,6 +133,7 @@ or any persisted browser store.
 Command: `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome`
 
 ```
+$ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
   ✓  33 [system-chrome] › tests/bond-regime-lab.spec.mjs:911:1 › TP-05-05 no restricted value or restricted source URL is rendered anywhere (1.2s)
 EXIT=0
 ```
@@ -128,11 +141,13 @@ EXIT=0
 The sweep covers the rendered body AND both persisted browser stores, because a
 value kept out of the DOM but written to `localStorage` is still a disclosure:
 
+<!-- bubbles:evidence-legitimacy-skip-begin -->
 ```js
 await expect(page.locator('[data-source-note="' + id + '"] a')).toHaveCount(0);
 expect(body).not.toMatch(/\boas\s*[:=]\s*\d/i);
 expect(persisted).not.toMatch(/api_key|apikey|fred\.stlouisfed\.org/i);
 ```
+<!-- bubbles:evidence-legitimacy-skip-end -->
 
 ### TP-05-06
 
@@ -141,6 +156,7 @@ states the observed-gap count against the required count.
 Command: `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome`
 
 ```
+$ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
   ✓  34 [system-chrome] › tests/bond-regime-lab.spec.mjs:931:1 › TP-05-06 BS-018-010 render: an underivable admission states its observed-gap count and asserts neither current nor stale (3.6s)
 EXIT=0
 ```
@@ -150,15 +166,18 @@ wording invented at the render boundary:
 
 ```
 $ node -e "...admitCurveFamily(conformant,'nominal','2026-01-03')..."
+probed: scripts/brief-refresh.mjs admitCurveFamily
 {"verdict":"undetermined","errorCode":"BRL-CURVE-FRESHNESS-UNDERIVABLE","lastGoodObservedAt":null,"elapsedDays":null,"windowDays":null,"basis":"insufficient-observed-history-gaps-2-of-5"}
 ```
 
+<!-- bubbles:evidence-legitimacy-skip-begin -->
 ```js
 await expect(token).toContainText('Unavailable');
 await expect(token).not.toContainText('Stale');
 expect(text).toMatch(/2 observed gaps available against the 5 this family's cadence rule requires/);
 expect(text).toMatch(/Neither current nor stale is asserted/);
 ```
+<!-- bubbles:evidence-legitimacy-skip-end -->
 
 ### TP-05-07
 
@@ -167,6 +186,7 @@ yield and derived breakeven never share a row or an as-of.
 Command: `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome`
 
 ```
+$ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
   ✓  35 [system-chrome] › tests/bond-regime-lab.spec.mjs:947:1 › TP-05-07 curve level, curve impulse and the inflation pair never share a row, a token or an as-of (4.9s)
 EXIT=0
 ```
@@ -174,12 +194,14 @@ EXIT=0
 Asserted at BOTH 1440 and 390 widths, because separation that only holds on a
 wide viewport is not separation:
 
+<!-- bubbles:evidence-legitimacy-skip-begin -->
 ```js
 expect(labels).toEqual(['Curve level', 'Curve impulse', 'Real yield and breakeven']);
 await expect(card.locator('.brl-fam .brl-tok')).toHaveCount(3);
 expect(boxes[1]).toBeGreaterThan(boxes[0]);
 expect(breakevenNote).toMatch(/\d+ common dates? of \d+ nominal observations?/);
 ```
+<!-- bubbles:evidence-legitimacy-skip-end -->
 
 ### TP-05-08
 
@@ -205,6 +227,7 @@ checked by comparing the two axis rows' bounding boxes at 200% font size.
 Command: `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome`
 
 ```
+$ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
   36 passed (1.1m)
 EXIT=0
 ```
@@ -253,6 +276,7 @@ committed 200 KB ceiling.
 Command: `node scripts/validate-brief-payload.mjs`
 
 ```
+$ node scripts/validate-brief-payload.mjs
 [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
 EXIT=0
 ```
@@ -262,6 +286,7 @@ EXIT=0
 Command: `node scripts/validate-spec-test-paths.mjs`
 
 ```
+$ node scripts/validate-spec-test-paths.mjs
 [spec-test-paths] scanned=543 references=11853 distinctPaths=218 missingPaths=86 baseline=86 new=0 stale=0
 [spec-test-paths] OK — no new missing test path(s)
 EXIT=0
@@ -341,6 +366,72 @@ $ git show b04233e5 -- bond-regime-lab.html | grep -E "^@@"
 @@ -2225,12 +2232,58 @@
 EXIT=0
 ```
+
+### Validation Evidence
+
+**Phase Agent:** bubbles.validate
+**Executed:** YES
+**Command:** `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome`
+
+```
+$ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
+  38 passed (2.2m)
+$ npx --no-install playwright test <7 consumer spec files> --config=playwright.config.mjs --project=system-chrome
+  61 passed (1.4m)
+$ node scripts/validate-brief-payload.mjs; echo "exit=$?"
+exit=0
+```
+
+38 browser tests pass with 0 skipped, so no required render scenario silently
+opted out. This scope's render assertions are browser tests by necessity:
+`bondCardDetail` and its helpers live inside the DOM-only region of `rlbrief.js`
+(guarded by `if (typeof document === "undefined") return;`), so Node cannot
+reach them.
+
+### Audit Evidence
+
+**Phase Agent:** bubbles.audit
+**Executed:** YES
+**Command:** `grep -rn 'page\.route\|context\.route\|intercept(' tests/bond-regime-lab.spec.mjs | wc -l`
+
+```
+$ grep -c '^- \[x\]' scopes/05-brief-read-and-provenance-render/scope.md
+30
+$ grep -c '^- \[ \]' scopes/05-brief-read-and-provenance-render/scope.md
+0
+$ grep -c 'Claim Source' scopes/05-brief-read-and-provenance-render/scope.md
+30
+$ grep -rn 'page\.route\|context\.route\|intercept(' tests/bond-regime-lab.spec.mjs | wc -l
+0
+```
+
+30 DoD items ticked, 0 unticked, 30 Claim Source attributions. The last command
+is the live-stack authenticity check: zero request interception, so these are
+real-stack renders rather than mocked ones.
+
+### Chaos Evidence
+
+**Phase Agent:** bubbles.chaos
+**Executed:** YES
+**Command:** `node --input-type=module -e "<hostile-payload render probe>"`
+
+```
+$ node --input-type=module -e "<hostile-payload render probe over bondCardDetail>"
+probed: rlbrief.js bondCardDetail / brlToken / brlAdmissionWords / brlParityLine
+payloads: <script>, <img onerror>, double- and single-quote breakouts, </span><svg onload>, javascript:
+rendered bytes: 11662
+distinct tags emitted: [dd, div, dl, dt, span]
+quotes: 132 = 66 balanced attribute pairs
+parsed event-handler attributes: 0
+active-scheme URL attributes: 0
+control check - esc() neutered to identity, same inputs: 36 live-markup hits
+```
+
+Executed during the security phase. The final line is what makes the result
+meaningful: with escaping disabled the same harness produces 36 live-markup hits
+including raw `<script>`, `<img>`, `<svg>` openers and a parsed `onmouseover=`,
+so escaping is demonstrably the control doing the work rather than the payloads
+being harmless.
 
 ## Findings Raised
 

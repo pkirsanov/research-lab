@@ -398,6 +398,75 @@ The boundary is taken from THIS scope's three commits rather than from a commit
 RANGE, because concurrent sessions landed specs 019, 020 and a BUG-007 edit in
 between; a range diff would have attributed their files to this scope.
 
+### Validation Evidence
+
+**Phase Agent:** bubbles.validate
+**Executed:** YES
+**Command:** `node scripts/validate-official-curves.mjs`
+
+```
+$ node scripts/validate-official-curves.mjs
+[official-curves] PASS: data/curves/us-treasury/curve.json satisfies official-curve-artifact/v1
+$ echo "gate exit=$?"
+gate exit=0
+$ node scripts/selftest.mjs 2>&1 | grep -c "Official curves TP-01"
+29
+$ node scripts/pii-scan.mjs
+[pii-scan] files=5859 messages=1138 findings=0 OK
+$ node scripts/validate-brief-payload.mjs; echo "exit=$?"
+exit=0
+```
+
+The gate this scope defines accepts the committed artifact, and the 29 TP-01
+assertions that constrain the contract all pass. The gate runs offline, so this
+validates the CONTRACT, not the network — see the Completion Statement.
+
+### Audit Evidence
+
+**Phase Agent:** bubbles.audit
+**Executed:** YES
+**Command:** `grep -c '^- \[x\]' scopes/01-official-curve-artifact-contract/scope.md`
+
+```
+$ grep -c '^- \[x\]' scopes/01-official-curve-artifact-contract/scope.md
+34
+$ grep -c '^- \[ \]' scopes/01-official-curve-artifact-contract/scope.md
+0
+$ grep -c 'Claim Source' scopes/01-official-curve-artifact-contract/scope.md
+18
+$ grep -oE '^\*\*Status:\*\* *[A-Za-z ]+' scopes/01-official-curve-artifact-contract/scope.md | head -1
+**Status:** Done
+```
+
+34 DoD items ticked, 0 unticked, 18 Claim Source attributions. Audit was run as
+a runner self-audit, not an independent review — recorded in `state.json`
+`executionHistory` under `bubbles.audit` with empty provenance.
+
+### Chaos Evidence
+
+**Phase Agent:** bubbles.chaos
+**Executed:** YES
+**Command:** `node --input-type=module -e "<gate mutant probe>"`
+
+```
+$ node --input-type=module -e "<gate mutant probe: 8 hostile artifact mutations>"
+off-host sourceUrl            -> REFUSED
+off-host urlTemplate          -> REFUSED
+http downgrade                -> REFUSED
+credential-shaped field       -> REFUSED
+authorization field           -> REFUSED
+restricted rights             -> REFUSED
+non-official rights           -> REFUSED
+contract version downgrade    -> REFUSED
+baseline (unmutated artifact) -> 0 errors
+8/8 mutants rejected
+```
+
+Executed during the security phase against the gate defined by THIS scope. The
+baseline line is what makes it non-tautological: the same harness accepts the
+unmutated artifact, so the 8 refusals are the gate biting rather than a probe
+that refuses everything.
+
 ## Findings Raised
 
 Two defects, both in code I wrote in this scope, both found by running the gate

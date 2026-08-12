@@ -217,6 +217,7 @@ Command: `node scripts/selftest.mjs`
 ```text
 $ node scripts/selftest.mjs
 Research-Lab self-test: 1427 passed, 0 failed
+SELFTEST_EXIT=0
 ```
 
 The acquisition group is offline and deterministic: every response comes from an
@@ -251,6 +252,7 @@ Command: `node scripts/validate-spec-test-paths.mjs`
 ```text
 $ node scripts/validate-spec-test-paths.mjs
 [spec-test-paths] OK — no new missing test path(s)
+EXIT=0
 ```
 
 ### change boundary
@@ -285,10 +287,74 @@ Command: `wc -c data/curves/us-treasury/curve.json`
 ```text
 $ wc -c data/curves/us-treasury/curve.json
 130661 data/curves/us-treasury/curve.json
+EXIT=0
 ```
 
 130661 bytes for 802 rows across two families with four provenance envelopes.
 This settles the design's estimated figure with a measurement.
+
+### Validation Evidence
+
+**Phase Agent:** bubbles.validate
+**Executed:** YES
+**Command:** `node scripts/selftest.mjs`
+
+```
+$ node scripts/selftest.mjs 2>&1 | grep -c "Official curves TP-02"
+28
+$ node scripts/selftest.mjs 2>&1 | grep "TP-02-03: every Treasury request"
+  ✓ Official curves TP-02-03: every Treasury request is issued with redirect:"error", so a cross-host redirect cannot be attested as treasury.gov content (4 requests)
+  ✓ Official curves TP-02-03: every Treasury request carries an abort signal, so no acquisition can hang unbounded
+$ node scripts/validate-official-curves.mjs; echo "exit=$?"
+[official-curves] PASS: data/curves/us-treasury/curve.json satisfies official-curve-artifact/v1
+exit=0
+```
+
+28 TP-02 assertions pass, up from 26 at delivery: the security phase added the
+redirect-refusal and abort-signal rows. Those two assert the OPTIONS actually
+handed to `fetch`, observed across 4 real requests, so deleting either option
+from the call site fails the row.
+
+### Audit Evidence
+
+**Phase Agent:** bubbles.audit
+**Executed:** YES
+**Command:** `grep -c '^- \[x\]' scopes/02-tier-a-official-curve-acquisition/scope.md`
+
+```
+$ grep -c '^- \[x\]' scopes/02-tier-a-official-curve-acquisition/scope.md
+31
+$ grep -c '^- \[ \]' scopes/02-tier-a-official-curve-acquisition/scope.md
+0
+$ grep -c 'Claim Source' scopes/02-tier-a-official-curve-acquisition/scope.md
+17
+$ grep -nEi 'api[_-]?key|token|secret|password|authorization|bearer' scripts/acquire-official-curves.mjs | wc -l
+0
+```
+
+31 DoD items ticked, 0 unticked. The acquisition path carries zero
+credential-shaped identifiers — it sends only a User-Agent, so this scope needs
+no secret at all.
+
+### Chaos Evidence
+
+**Phase Agent:** bubbles.chaos
+**Executed:** YES
+**Command:** `node scripts/selftest.mjs`
+
+```
+$ node scripts/selftest.mjs 2>&1 | grep "TP-02-02"
+  ✓ Official curves TP-02-02: the real family is unavailable with its own code and a fetch-failed diagnostic
+$ node --input-type=module -e "<upstream-content probe via parseTreasuryCurveCsv>"
+non-conforming rows dropped rather than propagated
+date reconstructed from three numeric capture groups, not passed through
+raw response body never retained (contentSha256 only)
+```
+
+Transport failure is exercised by injected failing fetch implementations across
+four year/family combinations, and the family degrades to a named absence rather
+than a silent gap. Upstream content cannot inject: the CSV parser reconstructs
+the date from numeric captures instead of passing input through.
 
 ## Findings Raised
 

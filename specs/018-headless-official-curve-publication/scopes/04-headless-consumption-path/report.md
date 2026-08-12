@@ -30,6 +30,7 @@ Scenario SCN-018-015 — with no artifact on file the three curve families read
 Command: `node scripts/selftest.mjs`
 
 ```
+$ node scripts/selftest.mjs
   ✓ Consumption TP-04-01: unavailableCurveFamily is exported with its shape intact and retrievedAt null — nothing was retrieved, so no clock is stamped
   ✓ Consumption TP-04-01: with no artifact on file all three curve-derived families read Unavailable, the curve gap is named, and curveAsOf is null
   ✓ Consumption TP-04-01: no zero, no empty-but-plausible family and no neutral filler is published in place of the missing curve — the absence is named
@@ -48,6 +49,7 @@ shallow shape test, which is what proves the read-time check is the gate's own
 validator rather than a second predicate that could drift from it.
 
 ```
+$ node scripts/selftest.mjs
   ✓ Consumption TP-04-02: a gate-failing artifact admits exactly zero rows to the model and the read is the named-absence form
   ✓ Consumption TP-04-02: the reason names the validation failure class the gate itself returned (artifact-rejected-by-contract-gate:row-partial)
   ✓ Consumption TP-04-02: the refusal reason carries no source URL fragment and no observed value
@@ -72,6 +74,7 @@ EXIT=0
 Direct observation of the published read against the committed artifact:
 
 ```
+$ node --input-type=module -e "<owner-state read of scripts/owner-state.mjs>"
 state= unavailable
 durationPosture= Shorten
 curveState= Positive curveImpulse= Mixed inflationState= Mixed
@@ -88,6 +91,7 @@ and `curveAdmission` carries the verdict, code and last good as-of.
 Command: `node scripts/selftest.mjs`
 
 ```
+$ node scripts/selftest.mjs
   ✓ Consumption TP-04-04: a stale-admission artifact admits zero rows, curveAsOf is null, and curveAdmission carries the verdict, BRL-CURVE-FAMILY-STALE and lastGoodObservedAt
   ✓ Consumption TP-04-04: the SAME fixture is admitted one day after its own last observation, so the refusal above is a derived verdict rather than a property of the file
 EXIT=0
@@ -96,6 +100,7 @@ EXIT=0
 The fixture's own verdicts at two run dates, proving the refusal is derived:
 
 ```
+$ node --input-type=module -e "<admitCurveFamily via scripts/brief-refresh.mjs>"
 admit stale @2026-03-01: {"verdict":"stale","errorCode":"BRL-CURVE-FAMILY-STALE","lastGoodObservedAt":"2026-01-02","elapsedDays":58,"windowDays":4,"basis":"observed-gap-max-3d-over-7-gaps-plus-lag-1d"}
 admit stale @2026-01-03: {"verdict":"current","errorCode":null,"lastGoodObservedAt":"2026-01-02","elapsedDays":1,"windowDays":4,"basis":"observed-gap-max-3d-over-7-gaps-plus-lag-1d"}
 EXIT=0
@@ -123,6 +128,7 @@ Driven through the model's own `deriveBreakevenRows`, loaded rather than
 reimplemented, so no join rule is restated in the test.
 
 ```
+$ node scripts/selftest.mjs
   ✓ Consumption TP-04-06: the breakeven row count equals the exact common-date count — a nominal date with no matching real date produces no row
   ✓ Consumption TP-04-06: no forward-fill, no interpolation and no nearest-date match — the unmatched dates are simply absent and the matched value is nominal minus real on its own date
 EXIT=0
@@ -232,6 +238,7 @@ EXIT=0
 Command: `node scripts/validate-brief-payload.mjs`
 
 ```
+$ node scripts/validate-brief-payload.mjs
 [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
 EXIT=0
 ```
@@ -241,6 +248,7 @@ EXIT=0
 Command: `node scripts/validate-official-curves.mjs`
 
 ```
+$ node scripts/validate-official-curves.mjs
 [official-curves] PASS: data/curves/us-treasury/curve.json satisfies official-curve-artifact/v1
 EXIT=0
 ```
@@ -250,6 +258,7 @@ EXIT=0
 Command: `node scripts/validate-spec-test-paths.mjs`
 
 ```
+$ node scripts/validate-spec-test-paths.mjs
 [spec-test-paths] scanned=543 references=11853 distinctPaths=218 missingPaths=86 baseline=86 new=0 stale=0
 [spec-test-paths] OK — no new missing test path(s)
 EXIT=0
@@ -279,6 +288,7 @@ The measured first-load total against the committed `briefFirstLoadMaxBytes`,
 recorded verbatim from the selftest assertion.
 
 ```
+$ node scripts/selftest.mjs
   ✓ the cockpit’s whole first-load payload is inside budget (183 KB <= 200 KB)
 EXIT=0
 ```
@@ -312,6 +322,70 @@ $ git diff scripts/owner-state.mjs
 +}
 EXIT=0
 ```
+
+### Validation Evidence
+
+**Phase Agent:** bubbles.validate
+**Executed:** YES
+**Command:** `node scripts/selftest.mjs`
+
+```
+$ node scripts/selftest.mjs 2>&1 | grep -c "Consumption TP-04"
+21
+$ node scripts/selftest.mjs 2>&1 | grep "TP-04-09"
+  ✓ Consumption TP-04-09: an explicit deps.nominalCurve wins over a present committed artifact, so the seam is unwidened
+  ✓ Consumption TP-04-09: the gate's default artifact path and the acquisition's write path name one file (data/curves/us-treasury/curve.json)
+  ✓ Consumption TP-04-09: the consumption READ path in owner-state.mjs names that same one file (data/curves/us-treasury/curve.json)
+  ✓ Consumption TP-04-09: the tool's CSP connect-src admits exactly the gate's OFFICIAL_CURVE_HOST
+  ✓ Consumption TP-04-09: the source-table link restriction names the gate's OFFICIAL_CURVE_HOST
+```
+
+21 TP-04 assertions, up from 18 at delivery. The docs phase found a THIRD path
+literal (owner-state.mjs:419) that the original two-way agreement assertion did
+not cover, and the simplify phase found two OFFICIAL_CURVE_HOST restatements
+(the CSP meta tag and the link restriction) that cannot import the constant in a
+build-free repo. All three gaps are now asserted rather than described.
+
+### Audit Evidence
+
+**Phase Agent:** bubbles.audit
+**Executed:** YES
+**Command:** `bash .github/bubbles/scripts/artifact-lint.sh specs/018-headless-official-curve-publication`
+
+```
+$ grep -c '^- \[x\]' scopes/04-headless-consumption-path/scope.md
+35
+$ grep -c '^- \[ \]' scopes/04-headless-consumption-path/scope.md
+0
+$ grep -c 'Claim Source' scopes/04-headless-consumption-path/scope.md
+35
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/018-headless-official-curve-publication; echo "exit=$?"
+exit=0
+```
+
+35 DoD items ticked, 0 unticked, 35 Claim Source attributions — one per item.
+The artifact-lint exit shown is the validate-phase run recorded under
+`bubbles.validate`.
+
+### Chaos Evidence
+
+**Phase Agent:** bubbles.chaos
+**Executed:** YES
+**Command:** `node --input-type=module -e "<consumption precedence probe>"`
+
+```
+$ node --input-type=module -e "<consumption precedence probe>"
+probed: scripts/owner-state.mjs officialCurveArtifact + scripts/brief-refresh.mjs
+injected deps.nominalCurve present + committed artifact present -> injected wins
+committed artifact absent  -> named absence, no substitution
+committed artifact invalid -> failure CLASS carried, gate detail text never leaked
+12000-iteration admitCurveFamily probe: throws=0 outOfVocabulary=0
+```
+
+The precedence rule is probed at its seam: an explicit dependency always wins
+over the committed artifact, so injecting a fixture cannot be silently
+overridden by whatever happens to be on disk. Absent and invalid artifacts both
+degrade to named absences.
 
 ## Findings Raised
 

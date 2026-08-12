@@ -3173,7 +3173,8 @@ try {
     'tdcVisibleAt',
     'tdcDetectOneSided',
     'tdcWalkForward',
-    'tdcRetrospectiveAnatomy'
+    'tdcRetrospectiveAnatomy',
+    'tdcReplayMetrics'
   ];
   const tdc = build(tdcNames.map((name) => extractFn(tdcSource, name)), tdcNames);
   const tdcConfig = JSON.parse(read('trend-dynamics-cycle-universe.json'));
@@ -3457,6 +3458,22 @@ try {
 
     // Fail-closed on empty input rather than returning an empty-but-ok replay.
     assert(tdc.tdcWalkForward([], {}).ok === false, 'Scope 5 replay refuses empty observations instead of returning a vacuous result');
+
+    // The payoff of retaining false alarms: the rates that depend on them are computable.
+    const metrics = tdc.tdcReplayMetrics(rising, [3], 2);
+    assert(metrics && metrics.truePositives === 1 && metrics.misses === 0,
+      'Scope 5 a confirmed record within tolerance of the target event counts as a hit');
+    assert(metrics.precision === 1 && metrics.recall === 1,
+      'Scope 5 precision and recall are derived from matched targets rather than asserted');
+
+    const failedMetrics = tdc.tdcReplayMetrics(failed, [], 2);
+    assert(failedMetrics.invalidatedCount >= 1 && failedMetrics.falseAlarmRate > 0,
+      'Scope 5 retained invalidated candidates keep the false-alarm rate above zero rather than vanishing from the denominator');
+
+    // A detector that never fires must not score a perfect precision.
+    const silent = tdc.tdcReplayMetrics({ ok: true, records: [] }, [3], 2);
+    assert(silent.precision === null && silent.recall === 0,
+      'Scope 5 a detector that predicted nothing reports undefined precision, never a perfect score');
   }
 
   const sharedStore = {};

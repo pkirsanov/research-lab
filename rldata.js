@@ -362,10 +362,13 @@
     rows.forEach(function (row) { if (counts[row.state] != null) counts[row.state]++; });
     return { updatedAt: _activity.updatedAt, resources: rows, counts: counts };
   }
+  function legacyBridgeBars(bucket) {
+    return !!bucket && (bucket.src === "etf-lab" || bucket.src === "sector-lab");
+  }
   function barInfo(sym, interval, maxAgeH) {
     var d = load(), bucket = d.bars[sym] && d.bars[sym][interval];
     if (!bucket) return { state: "missing", at: null, src: null, rows: 0 };
-    var fresh = maxAgeH == null || isFresh(bucket.at, maxAgeH * 3600e3);
+    var fresh = !legacyBridgeBars(bucket) && (maxAgeH == null || isFresh(bucket.at, maxAgeH * 3600e3));
     return { state: fresh ? "fresh" : "stale", at: bucket.at || null, src: bucket.src || null, rows: (bucket.rows || []).length };
   }
 
@@ -373,7 +376,7 @@
   function getBars(sym, interval, maxAgeH) {
     var d = load(), b = d.bars[sym] && d.bars[sym][interval];
     if (!b) return null;
-    if (maxAgeH != null && !isFresh(b.at, maxAgeH * 3600e3)) return null;
+    if (maxAgeH != null && (legacyBridgeBars(b) || !isFresh(b.at, maxAgeH * 3600e3))) return null;
     return b.rows;
   }
   function putBars(sym, interval, rows, src) {

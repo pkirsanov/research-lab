@@ -449,6 +449,8 @@ bubbles/adapters/experience-recall/none.sh
 bubbles/adapters/judge/ollama.sh
 bubbles/adapters/observability/none.sh
 bubbles/adapters/observability/prometheus.sh
+bubbles/adapters/usage/none.sh
+bubbles/adapters/usage/vscode-copilot.sh
 bubbles/schemas/adoption-profiles.schema.json
 bubbles/schemas/capability-ledger.schema.json
 bubbles/schemas/experience-recall.schema.json
@@ -465,6 +467,7 @@ bubbles/registry/gates.yaml
 bubbles/registry/optional-skills.txt
 bubbles/registry/required-specialists.yaml
 bubbles/registry/selftest-denylist.txt
+bubbles/registry/tool-grants.yaml
 bubbles/mcp/clients/claude.json
 bubbles/mcp/clients/cline.json
 bubbles/mcp/clients/cursor.json

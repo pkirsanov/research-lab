@@ -485,3 +485,46 @@ test('Regression: SCN-006-017 lead-lag evidence remains association without a me
   console.log('[SCN-006-017] nearbyStability=' + association.nearbyStability.toFixed(6));
   console.log('[SCN-006-017] label=' + association.label + ' mechanismEstablished=' + association.mechanismEstablished);
 });
+
+// Every other test here drives a fixture route, so the PRODUCTION path -- the one a real reader
+// lands on -- had no browser coverage at all. That is where the owner read is assembled and
+// published, so a wiring mistake there would reach the Brief unseen. Seeding the shared bar
+// cache is what makes the path reachable headlessly; without it the page correctly refuses on
+// absent observations and never gets far enough to publish.
+test('Regression: SCN-006-020 the production route assembles and publishes an honest foundation read', async ({ page }) => {
+  await page.addInitScript(() => {
+    const dayMs = 86400000;
+    const end = Date.UTC(2026, 6, 14);
+    const rows = [];
+    for (let i = 399; i >= 0; i--) rows.push({ t: end - i * dayMs, c: 400 + Math.sin(i / 9) * 5 + i * 0.02 });
+    window.localStorage.setItem('rlData', JSON.stringify({
+      v: 1, quotes: {}, options: {}, si: {}, macro: null, events: {}, toolReads: {},
+      bars: { SPY: { '1d': { at: Date.UTC(2026, 6, 15, 11), src: 'option-snapshot', rows } } }
+    }));
+  });
+  await page.goto(`${baseUrl}/trend-dynamics-cycle-lab.html?clock=${CLOCK}`);
+
+  await expect(page.locator('#truthState')).toHaveText(/CURRENT|STALE|DEGRADED/);
+  await expect(page.locator('#scenarioTitle')).toHaveText('Source and numerical foundation ready');
+
+  const diagnostics = await page.evaluate(() => window.__TDC_DIAGNOSTICS__);
+  expect(diagnostics.fixtureId).toBeNull();
+  expect(diagnostics.ownerReadPublished).toBe(true);
+  expect(typeof diagnostics.resultId).toBe('string');
+  expect(diagnostics.resultId.length).toBeGreaterThan(0);
+  await expect(page.locator('#publicationState')).toHaveText('Owner read published for the foundation state.');
+
+  // The read must actually be in the shared registry, not merely reported as published.
+  const stored = await page.evaluate(() => {
+    const cache = JSON.parse(window.localStorage.getItem('rlData') || '{}');
+    return (cache.toolReads || {})['trend-dynamics-cycle-lab'] || null;
+  });
+  expect(stored).not.toBeNull();
+  expect(stored.metrics.contractVersion).toBe('tdc-tool-read/v1');
+  expect(stored.metrics.resultId).toBe(diagnostics.resultId);
+  // No verdict exists yet, so the sentence must name the absence rather than imply one.
+  expect(stored.read).toContain('No resolved trend, dynamics or change reading is available.');
+  expect(stored.deepLink).toContain('series=spy-daily');
+  console.log('[SCN-006-020] truthState=' + stored.metrics.truthState + ' availability=' + stored.availability);
+  console.log('[SCN-006-020] resultId=' + stored.metrics.resultId.slice(0, 16));
+});

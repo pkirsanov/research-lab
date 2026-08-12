@@ -3692,8 +3692,38 @@
       tdcSetText('cycleState', 'Unavailable');
       tdcSetText('cycleDetails', 'Cycle entries retain their configured type and requirements; no entry is activated without its engine evidence.');
       tdcSetText('endpointPosture', resolved.replayPosture);
-      tdcSetText('publicationState', 'No owner read has been published.');
-      window.__TDC_DIAGNOSTICS__ = Object.freeze({ fixtureId: null, ownerReadPublished: false, foundation: Object.freeze({ truthState: truth.toLowerCase(), interpolationApplied: false, quality: quality.profile, endpointPosture: resolved.replayPosture }) });
+      // The foundation publishes an honest read with no verdict: the sentence names the absence
+      // rather than withholding the source truth the Brief legitimately needs.
+      var requiredMethodIds = config.methods.map(function (method) { return method.id; });
+      var foundationResult = tdcAssembleResult({
+        request: {
+          seriesId: config.initialSelection.seriesId,
+          transformId: config.initialSelection.transformId
+        },
+        registryVersion: config.registryVersion || null,
+        computedAt: new Date().toISOString(),
+        sourceAsOf: resolved.sourceAsOf,
+        // resolved.sourceAvailability is a TIMESTAMP (latest availableAt), not the freshness
+        // enum the transport requires. Source freshness comes from the quality profile; a
+        // DEGRADED reading is analytical and leaves the source itself current.
+        sourceAvailability: quality.profile.stale ? 'stale' : 'current',
+        truthState: truth.toLowerCase(),
+        requiredMethodIds: requiredMethodIds,
+        methodResults: config.methods.map(function (method) {
+          var availability = quality.methodAvailability[method.id];
+          return { methodId: method.id, state: availability && availability.state === 'eligible' ? 'eligible' : 'unavailable' };
+        })
+      });
+      var publication = tdcPublishToolRead(foundationResult,
+        window.RLDATA && typeof window.RLDATA.putToolRead === 'function'
+          ? function (id, read) { return window.RLDATA.putToolRead(id, read); }
+          : null);
+      tdcSetText('publicationState', publication.published
+        ? 'Owner read published for the foundation state.'
+        : publication.errorCode === 'TDC-PUBLISH-REJECTED'
+          ? 'TDC-PUBLISH-REJECTED: the owner read was refused and no Brief coverage is claimed.'
+          : 'No owner read has been published.');
+      window.__TDC_DIAGNOSTICS__ = Object.freeze({ fixtureId: null, ownerReadPublished: publication.published, resultId: foundationResult.resultId, foundation: Object.freeze({ truthState: truth.toLowerCase(), interpolationApplied: false, quality: quality.profile, endpointPosture: resolved.replayPosture }) });
     }
 
     /* Restores the persisted mode and keeps the tablist's ARIA in step with body.power.

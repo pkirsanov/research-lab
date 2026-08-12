@@ -1719,6 +1719,68 @@
         ],
         "publicAliases": []
       }
+    },
+    {
+      "id": "trend-dynamics-cycle-lab",
+      "group": "Market Structure",
+      "title": "Trend, Dynamics & Cycle Lab",
+      "nav": {
+        "label": "Trend Dynamics",
+        "icon": "📉"
+      },
+      "file": "trend-dynamics-cycle-lab.html",
+      "notes": "notes/trend-dynamics-cycle-lab.md",
+      "data": "trend-dynamics-cycle-universe.json",
+      "status": "live",
+      "updated": "2026-08-12",
+      "blurb": "Source-qualified trend workspace that separates direction, strength, dynamics, and turning points instead of collapsing them into one score. Every method declares its own eligibility and fails closed with an exact reason, so an insufficient history reads as unavailable rather than as a weak signal. A turn is reported with the observation where it became effective and the later observation where it became detectable, so the confirmation lag is visible rather than implied, and source freshness is kept separate from analytical truth.",
+      "tags": [
+        "trend",
+        "turning points",
+        "confirmation lag",
+        "cycle analysis",
+        "seasonality",
+        "structural break",
+        "method eligibility",
+        "as-of vintage",
+        "fails closed",
+        "Simple + Power",
+        "shared cache"
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "live-market",
+        "readAdapter": "trend-dynamics-owning-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "daily-market-bars-v1",
+        "recommendationPolicy": "market-action-v1",
+        "budgetPolicy": "live-market-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": [
+          "simple",
+          "power",
+          "brief",
+          "journey"
+        ],
+        "simpleModelDefinitionId": "simple-model/trend-confirmation/v1",
+        "simpleAdapterId": "simple-adapter/trend-confirmation/v1",
+        "simpleAdapterModule": "rlexperience-adapters/market-structure.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/live-market/v1",
+        "journeyDefinitionIds": [
+          "journey/trend-dynamics-cycle-lab/trend-confirmation-review/v1",
+          "journey/trend-dynamics-cycle-lab/turn-confirmation-delay/v1"
+        ],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": [
+          "technical"
+        ],
+        "publicAliases": []
+      }
     }
   ]
 }

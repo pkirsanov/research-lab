@@ -1936,6 +1936,363 @@
      runtime renders the explicit unavailable state for them. Adapters whose owner
      seam is an injected foundation module (conditional-volatility -> rlvol.js) are
      only produced when that dependency is supplied. */
+  /* ═══════════ trend-confirmation Simple model (owner = trend-dynamics-cycle-lab) ═══════════
+     The owner page answers "what does the full method battery conclude about this series".
+     This Simple model answers a narrower, steerable question: under a chosen lookback,
+     smoothing width, strength threshold, and confirmation delay, does the frozen series read
+     as rising, falling, or flat, and is its most recent turn confirmed yet? The formula lives
+     HERE and nowhere else, so the adapter and any consumer share one implementation.
+
+     Declared output paths (each enabled parameter moves at least one):
+       lookback            -> summary.trend
+       smoothing           -> summary.trend
+       strength-threshold  -> summary.strength
+       confirmation-delay  -> summary.turn   */
+
+  var TREND_CONFIRMATION_OUTPUT_PATHS = {
+    "lookback": ["summary.trend"],
+    "smoothing": ["summary.trend"],
+    "strength-threshold": ["summary.strength"],
+    "confirmation-delay": ["summary.turn"]
+  };
+
+  function trendObservationValues(ownerState) {
+    if (!ownerState || !Array.isArray(ownerState.observations)) return [];
+    return ownerState.observations
+      .map(function (observation) { return observation && observation.value; })
+      .filter(function (value) { return isFiniteNumber(value); });
+  }
+
+  /* Centred moving average. Width 1 is the identity, so the smoothing lever spans "raw series"
+     through "heavily smoothed" without a special case. */
+  function trendSmooth(values, width) {
+    if (!Array.isArray(values) || width <= 1) return values.slice();
+    var half = Math.floor(width / 2);
+    return values.map(function (_, index) {
+      var start = Math.max(0, index - half);
+      var end = Math.min(values.length - 1, index + half);
+      var sum = 0;
+      for (var i = start; i <= end; i++) sum += values[i];
+      return sum / (end - start + 1);
+    });
+  }
+
+  /* OLS slope of value on observation index, plus the residual scale and the x-spread needed to
+     turn the raw slope into a t-statistic. Returning all three keeps the caller from re-deriving
+     them, and makes the strength threshold interpretable on the usual significance scale. */
+  function trendSlope(values) {
+    var n = values.length;
+    if (n < 2) return { slope: null, residualSd: null, sxx: null };
+    var meanX = (n - 1) / 2;
+    var meanY = values.reduce(function (a, b) { return a + b; }, 0) / n;
+    var sxy = 0;
+    var sxx = 0;
+    for (var i = 0; i < n; i++) {
+      sxy += (i - meanX) * (values[i] - meanY);
+      sxx += (i - meanX) * (i - meanX);
+    }
+    if (!(sxx > 0)) return { slope: null, residualSd: null, sxx: null };
+    var slope = sxy / sxx;
+    var intercept = meanY - slope * meanX;
+    var sse = 0;
+    for (var j = 0; j < n; j++) {
+      var residual = values[j] - (intercept + slope * j);
+      sse += residual * residual;
+    }
+    var residualSd = n > 2 ? Math.sqrt(sse / (n - 2)) : 0;
+    return { slope: slope, residualSd: residualSd, sxx: sxx };
+  }
+
+  /* Most recent local extremum in the window, and whether the observations after it have
+     sustained the reversal for the required confirmation delay. An unconfirmed turn is reported
+     as unconfirmed rather than suppressed, because "we cannot confirm it yet" is the finding. */
+  function trendTurn(values, confirmationDelay) {
+    var n = values.length;
+    if (n < 3) return { state: "unavailable", reason: "Fewer than three observations in the window.", effectiveIndex: null, detectionIndex: null, confirmed: false };
+    var effectiveIndex = null;
+    var kind = null;
+    for (var i = n - 2; i >= 1; i--) {
+      if (values[i] > values[i - 1] && values[i] > values[i + 1]) { effectiveIndex = i; kind = "peak"; break; }
+      if (values[i] < values[i - 1] && values[i] < values[i + 1]) { effectiveIndex = i; kind = "trough"; break; }
+    }
+    if (effectiveIndex === null) {
+      return { state: "none", reason: "No local extremum is present in the window.", effectiveIndex: null, detectionIndex: null, confirmed: false, kind: null };
+    }
+    var observationsAfter = n - 1 - effectiveIndex;
+    var sustained = true;
+    for (var k = effectiveIndex + 1; k <= Math.min(n - 1, effectiveIndex + confirmationDelay); k++) {
+      if (kind === "peak" && values[k] > values[effectiveIndex]) { sustained = false; break; }
+      if (kind === "trough" && values[k] < values[effectiveIndex]) { sustained = false; break; }
+    }
+    var confirmed = sustained && observationsAfter >= confirmationDelay;
+    return {
+      state: confirmed ? "confirmed" : "unconfirmed",
+      kind: kind,
+      effectiveIndex: effectiveIndex,
+      detectionIndex: confirmed ? effectiveIndex + confirmationDelay : null,
+      observationsAfter: observationsAfter,
+      requiredDelay: confirmationDelay,
+      confirmed: confirmed,
+      reason: confirmed
+        ? "The extremum held for the full confirmation delay."
+        : sustained
+          ? "Only " + observationsAfter + " observation(s) follow the extremum; " + confirmationDelay + " are required."
+          : "A later observation exceeded the extremum, so the turn did not hold."
+    };
+  }
+
+  function computeTrendConfirmationSummary(ownerState, params) {
+    var all = trendObservationValues(ownerState);
+    var lookback = isFiniteNumber(params.lookback) ? Math.round(params.lookback) : 126;
+    var smoothing = isFiniteNumber(params.smoothing) ? Math.round(params.smoothing) : 5;
+    var threshold = isFiniteNumber(params["strength-threshold"]) ? params["strength-threshold"] : 2;
+    var delay = isFiniteNumber(params["confirmation-delay"]) ? Math.round(params["confirmation-delay"]) : 3;
+    var echoed = { lookback: lookback, smoothing: smoothing, strengthThreshold: threshold, confirmationDelay: delay };
+
+    if (all.length < 3) {
+      var reason = "The frozen owner snapshot carries fewer than three finite observations.";
+      return {
+        state: "unavailable",
+        observationCount: all.length,
+        trend: { state: "unavailable", reason: reason },
+        strength: { state: "unavailable", reason: reason },
+        turn: { state: "unavailable", reason: reason },
+        params: echoed
+      };
+    }
+
+    var window = all.slice(Math.max(0, all.length - lookback));
+    var smoothed = trendSmooth(window, smoothing);
+    var fit = trendSlope(smoothed);
+    // Slope t-statistic, so the threshold reads on the familiar significance scale rather than
+    // as an arbitrary ratio. A zero residual means a perfectly straight line, not weak evidence.
+    var score = (fit.slope === null)
+      ? null
+      : (fit.residualSd > 0 ? Math.abs(fit.slope) * Math.sqrt(fit.sxx) / fit.residualSd : Infinity);
+    var clears = score !== null && score >= threshold;
+    var direction = (fit.slope === null || !clears) ? "flat" : (fit.slope > 0 ? "rising" : "falling");
+
+    return {
+      state: "ready",
+      observationCount: window.length,
+      trend: {
+        state: "ready",
+        direction: direction,
+        slopePerObservation: fit.slope === null ? null : roundTo(fit.slope, 6),
+        lookback: lookback,
+        smoothing: smoothing,
+        reason: clears
+          ? "The fitted slope clears the strength threshold, so a direction is asserted."
+          : "The fitted slope does not clear the strength threshold, so the read is flat."
+      },
+      strength: {
+        state: score === null ? "unavailable" : "ready",
+        score: (score === null || score === Infinity) ? null : roundTo(score, 4),
+        threshold: threshold,
+        clears: clears,
+        reason: score === null
+          ? "The window has no finite fitted slope."
+          : clears ? "Strength is at or above the threshold." : "Strength is below the threshold."
+      },
+      turn: trendTurn(smoothed, delay),
+      params: echoed
+    };
+  }
+
+  function buildTrendConfirmationEvidence(api, ownerState) {
+    var values = trendObservationValues(ownerState);
+    var state = values.length >= 3 ? "ready" : "unavailable";
+    var cutoff = String(ownerState.asOf || "unavailable");
+    var symbol = ownerState.symbol ? String(ownerState.symbol) : "trend";
+    var evidence = {
+      contractVersion: "simple-evidence-snapshot/v1",
+      toolId: "trend-dynamics-cycle-lab",
+      state: state,
+      evidenceCutoff: cutoff,
+      evidenceRefs: [{
+        requirementId: "owner-evidence",
+        evidenceRef: "owner:trend-dynamics-cycle-lab:" + symbol + ":" + cutoff,
+        semanticFingerprint: ownerStateFingerprint(api, ownerState),
+        sourceClass: "observed-fact",
+        observedAsOf: cutoff,
+        retrievedOrPublishedAt: cutoff,
+        freshness: "cache-current-for-render",
+        dataTier: String(ownerState.source || "shared cache snapshot"),
+        valueState: state
+      }],
+      parameterValues: {},
+      assumptions: [
+        "The frozen observation series is taken as given; this view re-reads it and never refetches."
+      ],
+      limitations: [
+        "This is a steerable re-read of one frozen series, not the owner page's full method battery."
+      ],
+      invalidationConditions: [
+        "The owner page publishes a different series, cutoff, or transform."
+      ],
+      evidenceIdentity: null
+    };
+    evidence.evidenceIdentity = evidenceIdentityOf(api, evidence);
+    return evidence;
+  }
+
+  function trendConfirmationSummaryPath(summary, path) {
+    if (path === "summary.trend") return summary.trend;
+    if (path === "summary.strength") return summary.strength;
+    if (path === "summary.turn") return summary.turn;
+    return null;
+  }
+
+  function trendConfirmationOutput(input, summary) {
+    var scenarioValues = { summary: summary };
+    var ready = summary.state === "ready";
+    return {
+      contractVersion: "simple-model-output/v1",
+      state: ready ? "ready" : "unavailable",
+      values: scenarioValues,
+      scenarios: input.scenarios.map(function (scenario) {
+        return { scenarioId: scenario.scenarioId, state: ready ? "ready" : "unavailable", values: scenarioValues };
+      }),
+      calibration: {
+        state: "owner-evidence-relative",
+        reason: ready
+          ? "Direction, strength, and turn confirmation are computed from the frozen owner observations under the selected parameters."
+          : "The frozen owner snapshot carries too few finite observations to fit a trend."
+      },
+      provenance: { classes: [ready ? "observed-fact" : "unavailable"], evidenceIdentity: input.evidenceIdentity },
+      uncertainty: {
+        state: ready ? "ready" : "unavailable",
+        rangeOrBand: ready
+          ? "Strength is the slope t-statistic; readings near the threshold are not materially different from it."
+          : "No fitted trend is available.",
+        reason: ready
+          ? "The t-statistic is the stated uncertainty proxy; it assumes independent residuals, which a trending series can violate."
+          : "Too few finite observations."
+      },
+      assumptions: [
+        "Observations are treated as equally spaced; calendar gaps are not re-weighted."
+      ],
+      limitations: [
+        "A confirmed turn is a statement about the chosen delay, not a forecast that the reversal persists."
+      ],
+      invalidationConditions: [
+        "The owner page publishes a different series, cutoff, or transform."
+      ],
+      flatRegionProofs: []
+    };
+  }
+
+  function createTrendConfirmationAdapter(api, definition, ownerByIdentity) {
+    return {
+      contractVersion: "simple-model-adapter/v1",
+      adapterId: definition.adapterId,
+      supportedDefinitionIds: [definition.definitionId],
+      validateDefinition: function (candidate) { return { ok: true, value: candidate }; },
+      captureEvidence: function (ownerContext) {
+        if (!ownerContext || typeof ownerContext !== "object") {
+          return { ok: false, error: { reason: "owner context required" } };
+        }
+        var ownerState = ownerContext.ownerState;
+        if (!ownerState || typeof ownerState !== "object" || !Array.isArray(ownerState.observations)) {
+          return { ok: false, error: { reason: "trend owner state with an observations array is required" } };
+        }
+        var frozen = deepFreeze(JSON.parse(JSON.stringify(ownerState)));
+        var evidence = buildTrendConfirmationEvidence(api, frozen);
+        ownerByIdentity.set(evidence.evidenceIdentity, frozen);
+        return { ok: true, value: evidence };
+      },
+      normalizeInputs: function (candidate, evidence, parameterValues, seed, scenarioIds) {
+        return api.normalizeSimpleInput(candidate, evidence, parameterValues, seed, scenarioIds);
+      },
+      compute: function (input) {
+        var ownerState = ownerByIdentity.get(input.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for this evidence identity" } };
+        }
+        var summary = computeTrendConfirmationSummary(ownerState, paramMap(input));
+        return { ok: true, value: trendConfirmationOutput(input, summary) };
+      },
+      compareSensitivity: function (baselineInput, currentInput, sharedRandomness) {
+        var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
+        }
+        var baselineValues = paramMap(baselineInput);
+        var currentValues = paramMap(currentInput);
+        var baselineSummary = computeTrendConfirmationSummary(ownerState, baselineValues);
+        var currentSummary = computeTrendConfirmationSummary(ownerState, currentValues);
+        var effects = [];
+        Object.keys(currentValues).forEach(function (parameterId) {
+          if (parameterId === "seed") return;
+          if (baselineValues[parameterId] === currentValues[parameterId]) return;
+          var paths = TREND_CONFIRMATION_OUTPUT_PATHS[parameterId] || [];
+          var changed = paths.some(function (path) {
+            return fingerprintOf(api, trendConfirmationSummaryPath(baselineSummary, path)) !== fingerprintOf(api, trendConfirmationSummaryPath(currentSummary, path));
+          });
+          effects.push({
+            parameterId: parameterId,
+            oldValue: baselineValues[parameterId],
+            newValue: currentValues[parameterId],
+            direction: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (currentValues[parameterId] > baselineValues[parameterId] ? "higher" : "lower")
+              : "changed",
+            magnitude: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (Math.abs(currentValues[parameterId] - baselineValues[parameterId]) || 1)
+              : 1,
+            nonlinear: false,
+            resultPaths: paths,
+            outputChanged: changed,
+            flatRegionProof: changed ? null : {
+              parameterId: parameterId,
+              resultPaths: paths,
+              reason: "The frozen observation series yields an identical value on these paths for this parameter change."
+            }
+          });
+        });
+        return {
+          ok: true,
+          value: {
+            contractVersion: "simple-sensitivity/v1",
+            sharedRandomness: sharedRandomness,
+            seedChanged: baselineInput.seed !== currentInput.seed,
+            effects: effects
+          }
+        };
+      },
+      projectOwnerEvidence: function (output) {
+        var summary = output.values.summary;
+        if (summary.state !== "ready") {
+          return {
+            ok: true,
+            value: {
+              contractVersion: "owner-evidence-projection/v1",
+              state: "unavailable",
+              valueText: "No fitted trend",
+              numericValue: null,
+              unit: "ratio",
+              summary: summary.trend.reason,
+              sourceRefs: ["owner-evidence"]
+            }
+          };
+        }
+        return {
+          ok: true,
+          value: {
+            contractVersion: "owner-evidence-projection/v1",
+            state: output.state,
+            valueText: summary.trend.direction === "flat" ? "Flat" : (summary.trend.direction === "rising" ? "Rising" : "Falling"),
+            numericValue: summary.strength.score,
+            unit: "ratio",
+            summary: "Over the last " + summary.observationCount + " observations the series reads "
+              + summary.trend.direction + " at strength " + (summary.strength.score === null ? "unavailable" : summary.strength.score)
+              + " against a threshold of " + summary.strength.threshold + "; the most recent turn is " + summary.turn.state + ".",
+            sourceRefs: ["owner-evidence"]
+          }
+        };
+      }
+    };
+  }
+
   function createMarketStructureAdapters(api, definitions, deps) {
     if (!api || typeof api.fingerprint !== "function" || typeof api.normalizeSimpleInput !== "function") {
       throw new Error("RLMARKETSTRUCTURE_REQUIRES_RLEXPERIENCE_API");
@@ -1960,6 +2317,10 @@
       var fiveGateDefinition = byToolId["technical-analysis-decision-lab"];
       adapters[fiveGateDefinition.adapterId] = createTechnicalFiveGateAdapter(api, fiveGateDefinition, ownerByIdentity);
     }
+    if (byToolId["trend-dynamics-cycle-lab"]) {
+      var trendDefinition = byToolId["trend-dynamics-cycle-lab"];
+      adapters[trendDefinition.adapterId] = createTrendConfirmationAdapter(api, trendDefinition, ownerByIdentity);
+    }
     var rlvol = deps && deps.rlvol;
     if (byToolId["volatility-sizing-lab"] && rlvol && typeof rlvol.buildVolDecisionRead === "function") {
       var volDefinition = byToolId["volatility-sizing-lab"];
@@ -1983,7 +2344,7 @@
   return {
     contractVersion: "market-structure-adapters/v1",
     module: "rlexperience-adapters/market-structure.js",
-    supportedAdapterIds: ["simple-adapter/market-breadth/v1", "simple-adapter/conditional-volatility/v1", "simple-adapter/session-auction/v1", "simple-adapter/swing-transition/v1", "simple-adapter/technical-five-gate/v1"],
+    supportedAdapterIds: ["simple-adapter/market-breadth/v1", "simple-adapter/conditional-volatility/v1", "simple-adapter/session-auction/v1", "simple-adapter/swing-transition/v1", "simple-adapter/technical-five-gate/v1", "simple-adapter/trend-confirmation/v1"],
     WINDOW_BARS: WINDOW_BARS,
     pctOverWindow: pctOverWindow,
     meanSampleSd: meanSampleSd,
@@ -2005,6 +2366,10 @@
     regimeBand: regimeBand,
     computeSwingTransitionSummary: computeSwingTransitionSummary,
     computeTechnicalFiveGateSummary: computeTechnicalFiveGateSummary,
+    trendSmooth: trendSmooth,
+    trendSlope: trendSlope,
+    trendTurn: trendTurn,
+    computeTrendConfirmationSummary: computeTrendConfirmationSummary,
     createMarketStructureAdapters: createMarketStructureAdapters,
     registerMarketStructureAdapters: registerMarketStructureAdapters
   };

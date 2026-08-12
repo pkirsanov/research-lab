@@ -643,10 +643,10 @@ function validateJourneyRegistryCoverage(packet) {
   }));
   const completeness = RLJOURNEY.validateRegistryCompleteness(packet.journeys, inventory);
   invariant(completeness.ok, `SCN-012-032 journey coverage rejected: ${completeness.error && completeness.error.code} ${completeness.error && completeness.error.fieldPath} ${completeness.error && completeness.error.reason}`);
-  invariant(completeness.value.ordinaryTools === 23, `SCN-012-032 expected 23 ordinary tools with concrete goals, got ${completeness.value.ordinaryTools}`);
+  invariant(completeness.value.ordinaryTools === 24, `SCN-012-032 expected 24 ordinary tools with concrete goals, got ${completeness.value.ordinaryTools}`);
   invariant(completeness.value.centerGoals === 4, `SCN-012-032 Market Action Center must expose exactly four goals, got ${completeness.value.centerGoals}`);
-  invariant(completeness.value.totalGoals === 50, `SCN-012-032 expected 50 total goals, got ${completeness.value.totalGoals}`);
-  invariant(completeness.value.definitionCount === 50, `SCN-012-032 expected 50 journey definitions, got ${completeness.value.definitionCount}`);
+  invariant(completeness.value.totalGoals === 52, `SCN-012-032 expected 52 total goals, got ${completeness.value.totalGoals}`);
+  invariant(completeness.value.definitionCount === 52, `SCN-012-032 expected 52 journey definitions, got ${completeness.value.definitionCount}`);
   for (const row of inventory) {
     if (row.kind === 'market-action-center') {
       invariant(row.journeyDefinitionIds.length === 4, `${row.registryId} (Center) must reference exactly four journey goals`);

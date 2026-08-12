@@ -1359,6 +1359,12 @@
       "deepLink": "fx-regime-relative-value-lab.html",
       "status": "stale",
       "reason": "The FX currency-vehicle lab is brief-relevant but carries no deterministic Tier-A owner read in this snapshot; the source bundle provides no fresh headless read this window and it does not feed the brief yet. No currency-vehicle recommendation to carry into the pre-market 2026-08-12 view; inspect the owning tool for the per-vehicle rights and relative-value disposition before citing an FX read. No call this cycle."
+    },
+    {
+      "id": "trend-dynamics-cycle-lab",
+      "deepLink": "trend-dynamics-cycle-lab.html",
+      "status": "stale",
+      "reason": "The trend, dynamics and cycle lab registered this window and is brief-relevant, but it carries no deterministic Tier-A owner read in this snapshot: its owner read is published client-side into the shared cache when the route renders, so a headless composition run has nothing to read yet. No trend or turning-point call to carry into the pre-market 2026-08-12 view; open the owning tool for the direction, strength and confirmation-lag reads before citing a trend state. No call this cycle."
     }
   ],
   "watchlistNotes": {

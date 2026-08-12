@@ -708,6 +708,33 @@
       "limitations": ["Research eligibility only. An unavailable or rights-unclear listed-vehicle fact can never become an eligible vehicle, and no constraint is relaxed to produce one."],
       "deepLinkTargets": {"power":"fx-regime-relative-value-lab.html#power","journey":"fx-regime-relative-value-lab.html#journey"},
       "definitionFingerprint": null
+    },
+    {
+      "contractVersion": "simple-model-definition/v1",
+      "definitionId": "simple-model/trend-confirmation/v1",
+      "toolId": "trend-dynamics-cycle-lab",
+      "modelId": "trend-confirmation",
+      "modelVersion": "v1",
+      "researchQuestion": "Under a chosen lookback, smoothing width, strength threshold, and confirmation delay, does the frozen series read as rising, falling, or flat, and is its most recent turn confirmed yet",
+      "resultSchemaId": "simple-model-output/generic-scenario/v1",
+      "adapterId": "simple-adapter/trend-confirmation/v1",
+      "adapterModule": "rlexperience-adapters/market-structure.js",
+      "inputRequirements": [{"requirementId":"owner-evidence","sourceClass":"owner-evidence","required":true,"stalePolicy":"reject"}],
+      "parameterDefinitions": [
+        {"parameterId":"lookback","label":"Lookback","kind":"integer","unit":"observations","domain":{"min":20,"max":504,"step":1},"defaultValue":126,"defaultSource":"registry","interpretation":"Sets how much recent history the fitted trend sees.","affectsOutputPaths":["summary.trend"],"disabledWhen":[],"identityBearing":true},
+        {"parameterId":"smoothing","label":"Smoothing width","kind":"integer","unit":"observations","domain":{"min":1,"max":21,"step":1},"defaultValue":5,"defaultSource":"registry","interpretation":"Width of the centred moving average applied before fitting; 1 leaves the series raw.","affectsOutputPaths":["summary.trend"],"disabledWhen":[],"identityBearing":true},
+        {"parameterId":"strength-threshold","label":"Strength threshold","kind":"number","unit":"t-statistic","domain":{"min":0,"max":6,"step":0.25},"defaultValue":2,"defaultSource":"registry","interpretation":"Slope t-statistic a direction must clear; below it the read is reported flat.","affectsOutputPaths":["summary.strength"],"disabledWhen":[],"identityBearing":true},
+        {"parameterId":"confirmation-delay","label":"Confirmation delay","kind":"integer","unit":"observations","domain":{"min":1,"max":20,"step":1},"defaultValue":3,"defaultSource":"registry","interpretation":"Observations a turn must hold before it counts as confirmed.","affectsOutputPaths":["summary.turn"],"disabledWhen":[],"identityBearing":true}
+      ],
+      "scenarioDefinitions": [{"scenarioId":"baseline","label":"Baseline","parameterOverrides":{}}],
+      "seedPolicy": {"required":false,"defaultSeed":null,"defaultSource":null,"randomnessClass":"none","commonRandomNumbersForSensitivity":false},
+      "sensitivityPolicy": {"method":"one-at-a-time","requireOutputEffect":true,"flatRegionPolicy":"explicit-proof"},
+      "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
+      "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
+      "performancePolicy": {"maxComputeMs":250,"deterministic":true},
+      "limitations": ["A confirmed turn describes the chosen delay on the frozen series; it is not a forecast that the reversal persists, and it does not reproduce the owner page's full method battery."],
+      "deepLinkTargets": {"power":"trend-dynamics-cycle-lab.html#power","journey":"trend-dynamics-cycle-lab.html#journey"},
+      "definitionFingerprint": null
     }
   ]
 }

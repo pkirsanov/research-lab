@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -110,23 +110,284 @@ Create each coverage, boundary, partial-state, sentinel, and real-page assertion
 
 #### Core Delivery Items
 
-- [ ] FR-020 through FR-026 and FR-083 are fully implemented with exact fact provenance/clocks/transforms/freshness, model identity, local-only personal state, publisher isolation, zero writeback, and explicit alignment/corporate-action/currency/missing-bar states.
-- [ ] NFR-001 through NFR-002, NFR-005 through NFR-006, NFR-008, NFR-010 through NFR-012, NFR-018 through NFR-021, and NFR-024 are satisfied by deterministic coverage, cutoff integrity, cache-first partial truth, latest-token publication, transparent sources, inert input, build-free execution, failure isolation, and verified local deletion.
-- [ ] Mechanical sentinel validation proves personal data absent from committed/public files, publisher argv/environment/input/output, requests/bodies/URLs/referrers, console, remote endpoints, RLDATA/tool reads, generic cache, and every non-private storage key.
-- [ ] `rldata.js`, fixture/server, publisher, storage, and selftest Shared Infrastructure Impact Sweeps, independent canaries, marker boundaries, and exact rollback/restore proof are complete with zero excluded edits.
-- [ ] Every Scope 04 behavior has intended RED and same-command GREEN evidence before broader browser validation.
+- [x] FR-020 through FR-026 and FR-083 are fully implemented with exact fact provenance/clocks/transforms/freshness, model identity, local-only personal state, publisher isolation, zero writeback, and explicit alignment/corporate-action/currency/missing-bar states.
+
+  FR-020 provenance and FR-083 alignment are carried by `barAlignmentStates` (`rldata.js`); freshness is `ensureBarCoverage` + the declared `HOLDING_PRICE_MAX_AGE_H = 96` (D-04-C). FR-023 through FR-026 are proven by TP-04-02/03/05. Evidence: [TP-04-01](report.md#tp-04-01), [D-04-D](report.md#decision-record).
+
+  ```
+  ok 55 - SCN-008-035 TP-04-01: undeclared alignment properties report undeclared and are never assumed
+  ok 56 - SCN-008-035 TP-04-01: a mismatched trading calendar is measured against a real basis and named per date
+  1..56
+  # tests 56
+  # suites 0
+  # pass 56
+  # fail 0
+  # cancelled 0
+  # skipped 0
+  # todo 0
+  ```
+
+  Intended RED, same command:
+
+  ```
+  not ok 55 - SCN-008-035 TP-04-01: undeclared alignment properties report undeclared and are never assumed
+    error: 'api.barAlignmentStates is not a function'
+  not ok 56 - SCN-008-035 TP-04-01: a mismatched trading calendar is measured against a real basis and named per date
+    error: 'api.barAlignmentStates is not a function'
+  # tests 56
+  # pass 54
+  # fail 2
+  ```
+- [x] NFR-001 through NFR-002, NFR-005 through NFR-006, NFR-008, NFR-010 through NFR-012, NFR-018 through NFR-021, and NFR-024 are satisfied by deterministic coverage, cutoff integrity, cache-first partial truth, latest-token publication, transparent sources, inert input, build-free execution, failure isolation, and verified local deletion.
+
+  Determinism and cache-first partial truth are proven by the unit rows; build-free execution and portability by the browser suite running the page from a static server with no bundler. Evidence: [TP-04-01](report.md#tp-04-01), [TP-04-08](report.md#tp-04-08).
+
+  ```
+    ✓   6 … Regression: Feature 008 atomic slots preserve last valid portfolio in durable session and memory modes (2.5s)
+    ✓   7 … Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio (2.8s)
+    ✓   8 … Regression: SCN-008-012 behavior evidence excludes engagement and sensitive profiling (9.1s)
+    ✓   9 … Regression: TP-03-06 full-personal clear empties every declared category and leaves the generic public cache byte-identical (3.8s)
+    ✓  10 … Regression: TP-03-06 every declared foundation clear step refuses success on its own and retains only its own key (16.9s)
+    ✓  11 … Regression: SCN-008-005 TP-04-05 personal state coexists with the shared cache and the only published read is the constant privacy boundary (1.5s)
+    ✓  12 … Regression: SCN-008-035 partial data corrupt schema and localStorage disabled preserve truth (1.5s)
+    12 passed (46.0s)
+  ```
+- [x] Mechanical sentinel validation proves personal data absent from committed/public files, publisher argv/environment/input/output, requests/bodies/URLs/referrers, console, remote endpoints, RLDATA/tool reads, generic cache, and every non-private storage key.
+
+  Evidence: [TP-04-02](report.md#tp-04-02), [TP-04-03](report.md#tp-04-03), [SCN-008-005](report.md#scenario-scn-008-005).
+
+  ```
+  1..4
+  # tests 4
+  # suites 0
+  # pass 4
+  # fail 0
+  1..16
+  # tests 16
+  # suites 0
+  # pass 16
+  # fail 0
+  [TP-04-05] localPortfolioRevisions=1
+  [TP-04-05] sentinelsInPublicCache=0
+  [TP-04-05] offOriginRequests=0
+  ```
+
+  The revision count is asserted non-zero at the same moment as the sentinel counts, so the zeros are the absence of a leak rather than the absence of data to leak.
+- [x] `rldata.js`, fixture/server, publisher, storage, and selftest Shared Infrastructure Impact Sweeps, independent canaries, marker boundaries, and exact rollback/restore proof are complete with zero excluded edits.
+
+  Evidence: [TP-04-04](report.md#tp-04-04), [Code Diff Evidence](report.md#code-diff-evidence).
+
+  ```
+  Feature 008 Scope 04 shared-consumer canary
+    ✓ Scope 04 TP-04-04: every legacy RLDATA consumer method survives the additive block (missing: )
+    ✓ Scope 04 TP-04-04: the additive ensureBarCoverage method is present
+    ✓ Scope 04 TP-04-04: the additive barAlignmentStates method is present
+    ✓ Scope 04 TP-04-04: coverage reports the actual observed span
+    ✓ Scope 04 TP-04-04: a coverage read leaves the rows legacy callers see byte-identical
+    ✓ Scope 04 TP-04-04: the canary reached the network zero times (recorder, not an omitted binding)
+    ✓ Scope 04 TP-04-04: RLDATA accepts the constant privacy-boundary read as the tool’s only publication
+    ✓ Scope 04 TP-04-04: the shared public cache carries no holding, conclusion, or personal storage name
+
+  Research-Lab self-test: 1586 passed, 0 failed
+  ```
+
+  Rollback proof: two probes were injected and reverted with residue verified absent — `grep -n "PROBE" rlportfolio.js` → no match (exit 1), `grep -n "RED PROBE" rldata.js` → no match (exit 1).
+- [x] Every Scope 04 behavior has intended RED and same-command GREEN evidence before broader browser validation.
+
+  Three intended REDs were observed and recorded in [report.md](report.md#tp-04-01) and [SCN-008-035](report.md#scenario-scn-008-035).
+
+  ```
+  not ok 53 - SCN-008-035 TP-04-01: the truth-state projection names each impact and never substitutes a missing value
+  not ok 54 - SCN-008-035 TP-04-01: an unknown evidence state is refused rather than defaulted to current
+  # tests 54
+  # pass 52
+  # fail 2
+
+  not ok 55 - SCN-008-035 TP-04-01: undeclared alignment properties report undeclared and are never assumed
+    error: 'api.barAlignmentStates is not a function'
+  not ok 56 - SCN-008-035 TP-04-01: a mismatched trading calendar is measured against a real basis and named per date
+    error: 'api.barAlignmentStates is not a function'
+  # tests 56
+  # pass 54
+  # fail 2
+
+      Error: BND must be excluded, not valued
+    1 failed
+  ```
+
+  The third is the TP-04-06 non-vacuity probe: forcing every holding to be included fails the row.
 
 #### Test Evidence Items - Exact Parity With 8 Test Plan Rows
 
-- [ ] TP-04-01 unit evidence proves actual-date coverage, explicit network policy, source states, corrupt/future handling, and constant privacy-boundary read behavior.
-- [ ] TP-04-02 functional evidence proves the generic publisher's disposable subprocess/file boundary receives and emits no personal sentinel.
-- [ ] TP-04-03 functional evidence proves personal sentinels are absent from every public, request, URL, referrer, console, RLDATA, storage, and error surface.
-- [ ] TP-04-04 selftest evidence proves additive coverage/public-read behavior and every existing shared invariant.
-- [ ] TP-04-05 Regression E2E evidence proves SCN-008-005 preserves the generic publisher/local composition barrier in the real browser/server path.
-- [ ] TP-04-06 Regression E2E evidence proves SCN-008-035 preserves independently valid truth across stale, missing, corrupt, future, and session-only states.
-- [ ] TP-04-07 existing-browser canary evidence proves shared data and central credential/settings boundaries remain unchanged.
-- [ ] TP-04-08 broader E2E evidence proves the complete cumulative foundation suite passes after every focused/shared row.
+- [x] TP-04-01 unit evidence proves actual-date coverage, explicit network policy, source states, corrupt/future handling, and constant privacy-boundary read behavior.
+
+  `node --test tests/portfolio-foundation.unit.mjs` → exit 0. Evidence: [TP-04-01](report.md#tp-04-01).
+
+  ```
+  ok 54 - SCN-008-035 TP-04-01: an unknown evidence state is refused rather than defaulted to current
+  ok 55 - SCN-008-035 TP-04-01: undeclared alignment properties report undeclared and are never assumed
+  ok 56 - SCN-008-035 TP-04-01: a mismatched trading calendar is measured against a real basis and named per date
+    ---
+    duration_ms: 1.138605
+    type: 'test'
+    ...
+  1..56
+  # tests 56
+  # suites 0
+  # pass 56
+  # fail 0
+  # cancelled 0
+  # skipped 0
+  # todo 0
+  ```
+- [x] TP-04-02 functional evidence proves the generic publisher's disposable subprocess/file boundary receives and emits no personal sentinel.
+
+  `node --test tests/portfolio-publisher-boundary.functional.mjs` → exit 0. Evidence: [TP-04-02](report.md#tp-04-02).
+
+  ```
+    duration_ms: 68.348401
+    type: 'test'
+    ...
+  1..4
+  # tests 4
+  # suites 0
+  # pass 4
+  # fail 0
+  # cancelled 0
+  # skipped 0
+  # todo 0
+  # duration_ms 2594.986224
+  ```
+- [x] TP-04-03 functional evidence proves personal sentinels are absent from every public, request, URL, referrer, console, RLDATA, storage, and error surface.
+
+  `node --test tests/portfolio-privacy.functional.mjs` → exit 0. Evidence: [TP-04-03](report.md#tp-04-03).
+
+  ```
+    duration_ms: 15.766835
+    type: 'test'
+    ...
+  1..16
+  # tests 16
+  # suites 0
+  # pass 16
+  # fail 0
+  # cancelled 0
+  # skipped 0
+  # todo 0
+  # duration_ms 1918.862205
+  ```
+- [x] TP-04-04 selftest evidence proves additive coverage/public-read behavior and every existing shared invariant.
+
+  `node scripts/selftest.mjs` → exit 0. Evidence: [TP-04-04](report.md#tp-04-04).
+
+  ```
+  Feature 008 Scope 04 shared-consumer canary
+    ✓ Scope 04 TP-04-04: every legacy RLDATA consumer method survives the additive block (missing: )
+    ✓ Scope 04 TP-04-04: the additive ensureBarCoverage method is present
+    ✓ Scope 04 TP-04-04: the additive barAlignmentStates method is present
+    ✓ Scope 04 TP-04-04: coverage reports the actual observed span
+    ✓ Scope 04 TP-04-04: a coverage read leaves the rows legacy callers see byte-identical
+    ✓ Scope 04 TP-04-04: the canary reached the network zero times (recorder, not an omitted binding)
+    ✓ Scope 04 TP-04-04: RLDATA accepts the constant privacy-boundary read as the tool’s only publication
+    ✓ Scope 04 TP-04-04: the shared public cache carries no holding, conclusion, or personal storage name
+
+  ================================================
+  Research-Lab self-test: 1586 passed, 0 failed
+  ================================================
+  ```
+- [x] TP-04-05 Regression E2E evidence proves SCN-008-005 preserves the generic publisher/local composition barrier in the real browser/server path.
+
+  Declared `--grep` command → exit 0. Evidence: [SCN-008-005](report.md#scenario-scn-008-005).
+
+  ```
+  Running 1 test using 1 worker
+
+  [TP-04-05] localPortfolioRevisions=1
+  [TP-04-05] sentinelsInPublicCache=0
+  [TP-04-05] offOriginRequests=0
+    ✓  1 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:1314:1 › Regression: SCN-008-005 TP-04-05 personal state coexists with the shared cache and the only published read is the constant privacy boundary (1.5s)
+
+    1 passed
+  ```
+- [x] TP-04-06 Regression E2E evidence proves SCN-008-035 preserves independently valid truth across stale, missing, corrupt, future, and session-only states.
+
+  Declared `--grep` command → exit 0. Evidence: [SCN-008-035](report.md#scenario-scn-008-035).
+
+  ```
+  Running 1 test using 1 worker
+
+  [TP-04-06] phaseA excluded=2 substituted=0
+  [TP-04-06] phaseB valued=1 missingBesideValid=BND
+  [TP-04-06] phaseC staleNamed=MSFT lastObservation=2026-04-30
+  [TP-04-06] phaseD quarantined=true syntheticRows=0 rows=0
+  [TP-04-06] phaseE sessionOnly rows=0 unavailableStated=true
+    ✓  1 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:1396:1 › Regression: SCN-008-035 partial data corrupt schema and localStorage disabled preserve truth (1.5s)
+
+    1 passed (4.2s)
+  ```
+
+  Non-vacuity proven — forcing every holding to be valued fails the row with `Error: BND must be excluded, not valued`.
+- [x] TP-04-07 existing-browser canary evidence proves shared data and central credential/settings boundaries remain unchanged.
+
+  Declared command → exit 0. Evidence: [TP-04-07](report.md#tp-04-07).
+
+  ```
+  Running 8 tests using 1 worker
+
+    ✓  1 … editor renders both tiers with the two-tier API and providers start unconfigured (550ms)
+    ✓  2 … Tier-2: a local key set through the editor is stored only in this browser and never leaked (410ms)
+    ✓  3 … Tier-1: a reachable proxy flips the active tier, and force-local overrides it (516ms)
+    ✓  4 … unknown/prototype-shaped providers fail closed, and "clear all" wipes this browser (313ms)
+    ✓  5 … Regression BUG-001: legacy cleanup erases pre-BUG-002 containers and preserves current provider access (539ms)
+    ✓  6 … Regression BUG-001: incomplete legacy cleanup is explicit and does not alter BUG-002 configuration (454ms)
+    ✓  7 … Regression BUG-001: inaccessible legacy storage is unavailable, never falsely clear (286ms)
+    ✓  8 … Regression BUG-001: cancelling destructive cleanup preserves the legacy container (484ms)
+
+    8 passed (5.7s)
+  ```
+- [x] TP-04-08 broader E2E evidence proves the complete cumulative foundation suite passes after every focused/shared row.
+
+  Declared command → exit 0. Evidence: [TP-04-08](report.md#tp-04-08).
+
+  ```
+    ✓   1 … Regression: SCN-008-003 explicit mandate alone supplies every hard constraint (1.6s)
+    ✓   2 … Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable (1.3s)
+    ✓   3 … Regression: SCN-008-003 conflicting mandate stays visibly infeasible with no constraint relaxed (727ms)
+    ✓   4 … Regression: SCN-008-001 valid local portfolio import creates one current revision (1.0s)
+    ✓   5 … Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted (870ms)
+    ✓   6 … Regression: Feature 008 atomic slots preserve last valid portfolio in durable session and memory modes (2.5s)
+    ✓   7 … Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio (2.8s)
+    ✓   8 … Regression: SCN-008-012 behavior evidence excludes engagement and sensitive profiling (9.1s)
+    ✓   9 … Regression: TP-03-06 full-personal clear empties every declared category and leaves the generic public cache byte-identical (3.8s)
+    ✓  10 … Regression: TP-03-06 every declared foundation clear step refuses success on its own and retains only its own key (16.9s)
+    ✓  11 … Regression: SCN-008-005 TP-04-05 personal state coexists with the shared cache and the only published read is the constant privacy boundary (1.5s)
+    ✓  12 … Regression: SCN-008-035 partial data corrupt schema and localStorage disabled preserve truth (1.5s)
+    12 passed (46.0s)
+  ```
 
 #### Build Quality Gate
 
-- [ ] Focused RED/GREEN records, Consumer/Shared Impact Sweeps, marker and rollback diffs, personal-sentinel and public-owned-file scans, no-interception/service-worker/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, scope-local traceability, and framework write guard are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16.
+- [x] Focused RED/GREEN records, Consumer/Shared Impact Sweeps, marker and rollback diffs, personal-sentinel and public-owned-file scans, no-interception/service-worker/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, scope-local traceability, and framework write guard are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16.
+
+  ```
+  artifact-lint exit=0
+  freshness exit=0
+  write-guard exit=0
+  gate-catalog exit=0
+  WHITESPACE-CLEAN
+  probe-residue-exit=1        # grep -n "PROBE" rlportfolio.js  -> no match
+  probe-residue-exit=1        # grep -n "RED PROBE" rldata.js   -> no match
+  0                           # traceability failures naming 04-public-* files
+  scope04-failures-above
+  Research-Lab self-test: 1586 passed, 0 failed
+  # tests 56 / # pass 56 / # fail 0
+  12 passed (46.0s)           # TP-04-08
+  8 passed (5.7s)             # TP-04-07
+  ```
+
+  No-interception scan: every match in the two browser specs is either an assertion that **zero**
+  service workers are registered or a comment recording that no `page.route`/`context.route`/`msw`/
+  `nock` is used. There is no request interception in any live-category row, so the `e2e-ui`
+  classification is earned rather than asserted.
+
+  Test Plan/DoD parity: 8 Test Plan rows, 8 Test Evidence DoD items.

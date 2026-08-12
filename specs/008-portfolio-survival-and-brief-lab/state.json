@@ -24,7 +24,7 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": 3,
+        "currentScope": 5,
         "runStartedAt": "2026-07-15T23:25:05Z",
         "completedPhaseClaims": [],
         "pendingTransitionRequests": [],
@@ -60,7 +60,7 @@
             {
                 "scope": 4,
                 "name": "Public Evidence Barrier And Coverage",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     "3"
                 ],
@@ -201,7 +201,8 @@
         "completedScopes": [
             "01-private-portfolio-import-and-atomic-store",
             "02-mandate-and-cash-need-authority",
-            "03-local-behavior-privacy-inventory-and-clear"
+            "03-local-behavior-privacy-inventory-and-clear",
+            "04-public-evidence-barrier-and-coverage"
         ],
         "certifiedCompletedPhases": [],
         "scopeProgress": [
@@ -239,7 +240,7 @@
             {
                 "scope": 4,
                 "name": "Public Evidence Barrier And Coverage",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     "3"
                 ],

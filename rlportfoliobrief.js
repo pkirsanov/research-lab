@@ -109,9 +109,20 @@
     var evidence = Array.isArray(input.evidence) ? input.evidence : [];
     var usable = [];
     var excludedAfterCutoff = 0;
+    /* Tracked PER SUBJECT as well as in total, so FR-064 can say WHICH of the two silences applies:
+       evidence existed but fell outside the window, or none was ever observed. */
+    var excludedBySubject = {};
     evidence.forEach(function (record) {
-      if (!isObject(record) || !isIso(record.observedAt)) { excludedAfterCutoff += 1; return; }
-      if (record.observedAt > evidenceCutoffAt) { excludedAfterCutoff += 1; return; }
+      if (!isObject(record) || !isIso(record.observedAt)) {
+        excludedAfterCutoff += 1;
+        if (isObject(record) && record.subjectId) excludedBySubject[String(record.subjectId)] = true;
+        return;
+      }
+      if (record.observedAt > evidenceCutoffAt) {
+        excludedAfterCutoff += 1;
+        excludedBySubject[String(record.subjectId)] = true;
+        return;
+      }
       usable.push(record);
     });
 
@@ -151,10 +162,32 @@
     });
 
     var lanes = { held: [], watchlist: [], completedResearch: [], inferredRelevance: [] };
+    /* Owner routing is SUPPLIED by the caller from the shared tool registry rather than hardcoded
+       here, so the brief cannot drift from the registry that actually defines which tool owns what. */
+    var owners = isObject(input.owners) ? input.owners : {};
+    /* FR-064. A subject that qualified by scope but produced no action is ACCOUNTED FOR, never
+       silently dropped. Dropping it is the failure this list exists to prevent: a held ticker whose
+       evidence is unavailable would simply vanish, and the reader could not tell "nothing to do"
+       apart from "we do not know". Each entry therefore carries WHY it produced no action. */
+    var noAction = [];
     Object.keys(qualifiesVia).forEach(function (subjectId) {
       var entry = qualifiesVia[subjectId];
       var observed = byId[subjectId];
-      if (!observed) return; // No evidence survived the cutoff for this subject.
+      var scopeLane = null;
+      for (var laneIndex = 0; laneIndex < LANE_ORDER.length; laneIndex += 1) {
+        if (entry.lanes.indexOf(LANE_ORDER[laneIndex]) !== -1) { scopeLane = LANE_ORDER[laneIndex]; break; }
+      }
+      if (!observed) {
+        noAction.push({
+          subjectId: subjectId,
+          subjectKind: entry.subjectKind,
+          lane: scopeLane,
+          scopeSource: scopeLane ? LANE_SOURCE[scopeLane] : null,
+          // Distinguishes "we looked and there is nothing current" from "nothing was ever observed".
+          reason: excludedBySubject[subjectId] ? "evidence-after-cutoff" : "evidence-unavailable"
+        });
+        return;
+      }
       var primary = null;
       for (var index = 0; index < LANE_ORDER.length; index += 1) {
         if (entry.lanes.indexOf(LANE_ORDER[index]) !== -1) { primary = LANE_ORDER[index]; break; }
@@ -169,6 +202,12 @@
         impliesPreference: false,
         materiality: observed.materiality,
         evidenceIds: observed.evidenceIds,
+        /* FR-060/FR-061. When a Research Lab tool already owns this subject the brief LINKS to it
+           instead of restating its model here; a duplicated specialist model is how two surfaces
+           start disagreeing. When nothing owns it the gap is named as an unowned capability, which
+           is a statement about the toolset, NOT a licence to synthesise a specialist result. */
+        owner: owners[subjectId] || null,
+        unownedCapability: !owners[subjectId],
         alsoQualifiesVia: entry.lanes.filter(function (lane) { return lane !== primary; })
       });
     });
@@ -184,11 +223,34 @@
       var cap = lane === "inferredRelevance" ? inferredCap : directCap;
       if (lanes[lane].length > cap) {
         suppressedByCap += lanes[lane].length - cap;
+        /* FR-064 again: a subject trimmed by the bounded queue is still owed an explanation.
+           It is not "no action", it is "ranked below the visible cap", and saying so is what
+           keeps the bound honest instead of making items disappear. */
+        lanes[lane].slice(cap).forEach(function (item) {
+          noAction.push({
+            subjectId: item.subjectId,
+            subjectKind: item.subjectKind,
+            lane: lane,
+            scopeSource: LANE_SOURCE[lane],
+            reason: "below-visible-queue-cap"
+          });
+        });
         lanes[lane] = lanes[lane].slice(0, cap);
       }
     });
 
     var itemCount = LANE_ORDER.reduce(function (total, lane) { return total + lanes[lane].length; }, 0);
+
+    noAction.sort(function (a, b) { return a.subjectId < b.subjectId ? -1 : 1; });
+
+    /* FR-067. One identity binds the five things that make a brief reproducible: which portfolio
+       revision, which generic window and cutoff, when it was composed locally, which behaviour
+       policy applied, and which action set resulted. The action set is folded in as an ordered
+       lane:subject signature so two briefs that differ ONLY in their actions cannot share an
+       identity and be mistaken for the same view. */
+    var actionSignature = LANE_ORDER.map(function (lane) {
+      return lane + "[" + lanes[lane].map(function (item) { return item.subjectId; }).join(",") + "]";
+    }).join("|");
 
     return ok({
       contractVersion: CONTRACT_VERSION,
@@ -196,14 +258,26 @@
       // Three clocks, never collapsed: what was knowable, when the public brief shipped, and when
       // this local view was assembled.
       times: { evidenceCutoffAt: evidenceCutoffAt, publishedAt: input.publishedAt, composedAt: input.composedAt },
+      identity: {
+        portfolioRevisionId: input.portfolioRevisionId || null,
+        windowId: window.id,
+        evidenceCutoffAt: evidenceCutoffAt,
+        composedAt: input.composedAt,
+        behaviorPolicyVersion: input.policy.contractVersion || null,
+        actionSignature: actionSignature,
+        itemCount: itemCount
+      },
       lanes: lanes,
+      noAction: noAction,
       states: {
         behaviorHistory: floor.satisfied ? "sufficient-history" : "insufficient-history",
         behaviorFloor: floor,
         materialChange: itemCount ? "material-change" : "no-material-change",
         itemCount: itemCount,
         excludedAfterCutoff: excludedAfterCutoff,
-        suppressedByCap: suppressedByCap
+        suppressedByCap: suppressedByCap,
+        // Surfaced as a count so "nothing to show" and "several things unexplained" cannot look alike.
+        noActionCount: noAction.length
       }
     });
   }

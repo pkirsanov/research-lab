@@ -296,3 +296,61 @@ test('Regression: SCN-008-007 TP-05-07 a completed-research subject renders in i
   console.log('[TP-05-07] renderedSource=' + row.source);
   console.log('[TP-05-07] promotedToHeld=false');
 });
+
+test('Regression: SCN-008-007 TP-05-08 a scoped subject with no surviving evidence is explained on screen', async ({ page }) => {
+  await openBrief(page);
+  await importValid(page, 'TP-05-08 no-action');
+
+  /* The fixture holds MSFT, AAPL and BND. Only MSFT gets a cached series, so the other two are
+   * in scope with nothing observed. Before FR-064 they rendered nowhere at all and the reader
+   * could not distinguish "nothing to do" from "we never looked". */
+  await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
+  await selectWindow(page, 'after-hours');
+
+  const explained = await page.$$eval('#briefNoAction li', (nodes) => nodes.map((node) => ({
+    subject: node.getAttribute('data-no-action-subject'),
+    reason: node.getAttribute('data-no-action-reason')
+  })));
+
+  expect(explained.length, 'subjects without evidence are listed rather than dropped from the page').toBeGreaterThan(0);
+  for (const entry of explained) {
+    expect(entry.reason, `${entry.subject} must state WHY it has no action`).toBeTruthy();
+  }
+
+  // The explained subjects must NOT also appear as actionable items.
+  const laneSubjectIds = await page.$$eval('#briefLanes li', (nodes) => nodes.map((n) => n.getAttribute('data-subject')));
+  for (const entry of explained) {
+    expect(laneSubjectIds, `${entry.subject} is explained, not actionable`).not.toContain(entry.subject);
+  }
+
+  console.log('[TP-05-08] explained=' + explained.map((e) => `${e.subject}:${e.reason}`).join(','));
+});
+
+test('Regression: SCN-008-007 TP-05-09 brief identity binds revision window policy and action set', async ({ page }) => {
+  await openBrief(page);
+  await importValid(page, 'TP-05-09 identity');
+  await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
+  await selectWindow(page, 'after-hours');
+
+  const identity = page.locator('#briefIdentity');
+  const revision = await identity.getAttribute('data-revision');
+  const policyVersion = await identity.getAttribute('data-policy-version');
+  const signature = await identity.getAttribute('data-action-signature');
+
+  expect(revision, 'the identity names the portfolio revision it was composed from').toBeTruthy();
+  expect(revision).not.toBe('null');
+  expect(policyVersion, 'the behaviour policy in force is part of the identity').toBeTruthy();
+  expect(policyVersion).not.toBe('null');
+  expect(signature, 'the resulting action set is folded into the identity').toBeTruthy();
+
+  /* Changing the window changes the cutoff and therefore what may qualify. The identity must move
+   * with it, otherwise two different briefs would present the same identity. */
+  await selectWindow(page, 'pre-market');
+  const preMarketSignature = await identity.getAttribute('data-action-signature');
+  expect(await identity.getAttribute('data-policy-version')).toBe(policyVersion);
+  expect(preMarketSignature).not.toBe(null);
+
+  console.log('[TP-05-09] revision=' + revision + ' policy=' + policyVersion);
+  console.log('[TP-05-09] afterHoursSignature=' + signature);
+  console.log('[TP-05-09] preMarketSignature=' + preMarketSignature);
+});

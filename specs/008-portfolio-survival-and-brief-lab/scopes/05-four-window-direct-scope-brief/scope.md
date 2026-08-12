@@ -120,6 +120,8 @@ Add every window/source/floor/ranking and browser assertion before composer/rend
 | TP-05-05 | Responsive Regression E2E | e2e-ui | SCN-008-006, SCN-008-007, SCN-008-010 | `tests/portfolio-survival-brief.spec.mjs` | `Regression: Feature 008 four-window brief preserves source lanes at desktop mobile and zoom without overlap` | `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 four-window brief preserves source lanes at desktop mobile and zoom without overlap" --reporter=list` | Yes | `report.md#tp-05-05` |
 | TP-05-06 | Broader Regression E2E | e2e-ui | SCN-008-006, SCN-008-007, SCN-008-010 | `tests/portfolio-survival-brief.spec.mjs` | Execute the complete cumulative Feature 008 Brief browser suite over the real fixture-overlay server | `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-05-06` |
 | TP-05-07 | Regression E2E | e2e-ui | SCN-008-007 | `tests/portfolio-survival-brief.spec.mjs` | `Regression: SCN-008-007 TP-05-07 a completed-research subject renders in its own lane with its qualification source` | `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-007 TP-05-07 a completed-research subject renders in its own lane with its qualification source" --reporter=list` | Yes | `report.md#tp-05-07` |
+| TP-05-08 | Regression E2E | e2e-ui | SCN-008-007 | `tests/portfolio-survival-brief.spec.mjs` | `Regression: SCN-008-007 TP-05-08 a scoped subject with no surviving evidence is explained on screen` | `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-007 TP-05-08 a scoped subject with no surviving evidence is explained on screen" --reporter=list` | Yes | `report.md#tp-05-08` |
+| TP-05-09 | Regression E2E | e2e-ui | SCN-008-006 | `tests/portfolio-survival-brief.spec.mjs` | `Regression: SCN-008-007 TP-05-09 brief identity binds revision window policy and action set` | `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-007 TP-05-09 brief identity binds revision window policy and action set" --reporter=list` | Yes | `report.md#tp-05-09` |
 
 ### Definition of Done
 
@@ -131,7 +133,7 @@ Add every window/source/floor/ranking and browser assertion before composer/rend
 - [ ] Desktop/mobile/zoom behavior has no body overflow, overlap, clipped dynamic text, hidden source meaning, hover-only requirement, or speculative filler.
 - [ ] Every Scope 05 behavior has intended RED and same-command GREEN evidence before the broader browser row.
 
-#### Test Evidence Items - Exact Parity With 7 Test Plan Rows
+#### Test Evidence Items - Exact Parity With 9 Test Plan Rows
 
 - [ ] TP-05-01 functional evidence proves four-window cutoff integrity, direct/inferred separation, de-duplication, ranking, no-action accounting, and insufficient history.
 - [ ] TP-05-02 Regression E2E evidence proves SCN-008-006 renders all exact ET windows with separate cutoff/publication/composition times and no later evidence.
@@ -140,6 +142,8 @@ Add every window/source/floor/ranking and browser assertion before composer/rend
 - [ ] TP-05-05 responsive E2E evidence proves source lanes, controls, long text, and no-action states remain usable without overlap at desktop/mobile/zoom.
 - [ ] TP-05-06 broader E2E evidence proves the complete cumulative Brief suite passes after all focused rows.
 - [ ] TP-05-07 Regression E2E evidence proves SCN-008-007's POPULATED case: a subject qualifying only through the explicit completion path renders in the completed-research lane, declares `direct-completed-research` as its qualification source, and is never promoted into the held lane. TP-05-03 asserts the empty case only, so without this row an emptied completed-research lane passes undetected.
+- [ ] TP-05-08 Regression E2E evidence proves FR-064 on screen: a subject in scope whose evidence is unavailable or post-cutoff is listed with an explicit reason instead of disappearing, and is not also presented as actionable.
+- [ ] TP-05-09 Regression E2E evidence proves FR-067 on screen: the rendered brief identity carries the portfolio revision fingerprint, the window, the behaviour-policy version, and an action-set signature.
 
 #### Build Quality Gate
 

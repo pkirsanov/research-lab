@@ -423,3 +423,109 @@ test('SCN-008-007 TP-05-01: the visible queue is bounded by policy and ordered b
   assert.equal(composed.value.states.suppressedByCap, manyHoldings.length - caps.directActionCap,
     'items dropped by the cap are counted, so a bounded queue is not a silent one');
 });
+
+test('FR-064 a scoped subject with no surviving evidence is explained rather than dropped', () => {
+  const loaded = loadBrief();
+
+  /* CCC is held but has NO evidence record at all; DDD has evidence stamped AFTER the cutoff.
+   * Before this behaviour existed both simply vanished from the brief, which is the exact
+   * failure FR-064 names: the reader cannot tell "nothing to do" from "we do not know". */
+  const composed = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: {
+      holdings: [{ symbol: 'MSFT' }, { symbol: 'CCC' }, { symbol: 'DDD' }],
+      evidence: [
+        ev('e-msft', 'MSFT', 'ticker', `${BRIEF_DAY}T14:30:00.000Z`, 0.9),
+        ev('e-ddd', 'DDD', 'ticker', `${BRIEF_DAY}T23:59:00.000Z`, 0.9)
+      ]
+    }
+  }));
+  assert.equal(composed.ok, true);
+
+  const reasons = Object.fromEntries(composed.value.noAction.map((e) => [e.subjectId, e.reason]));
+  assert.equal(reasons.CCC, 'evidence-unavailable',
+    'a subject with no observation at all is reported as unavailable, not omitted');
+  assert.equal(reasons.DDD, 'evidence-after-cutoff',
+    'a subject whose only evidence post-dates the cutoff is distinguished from one never observed');
+
+  // Neither may leak into a lane: being explained is not the same as being actionable.
+  const held = composed.value.lanes.held.map((i) => i.subjectId);
+  assert.equal(held.includes('CCC'), false);
+  assert.equal(held.includes('DDD'), false);
+
+  // Every no-action entry still declares the scope that put it in view.
+  for (const entry of composed.value.noAction) {
+    assert.ok(entry.scopeSource, `${entry.subjectId} must declare how it entered scope`);
+  }
+  assert.equal(composed.value.states.noActionCount, composed.value.noAction.length);
+});
+
+test('FR-064 subjects trimmed by the visible cap are accounted for, not silently discarded', () => {
+  const loaded = loadBrief();
+  const caps = loaded.policy.queue;
+  const overflow = caps.directActionCap + 2;
+  const holdings = [];
+  const evidence = [];
+  for (let index = 0; index < overflow; index += 1) {
+    const symbol = `S${String(index).padStart(2, '0')}`;
+    holdings.push({ symbol });
+    evidence.push(ev(`e-${symbol}`, symbol, 'ticker', `${BRIEF_DAY}T14:00:00.000Z`, index / 100));
+  }
+
+  const composed = loaded.brief.composeBrief(briefInput({ loaded, input: { holdings, evidence, watchlist: [], completions: [] } }));
+  assert.equal(composed.ok, true);
+
+  const trimmed = composed.value.noAction.filter((e) => e.reason === 'below-visible-queue-cap');
+  assert.equal(trimmed.length, overflow - caps.directActionCap,
+    'every item the cap removed is explained, so the bound is visible rather than hidden');
+
+  // The two lowest-materiality symbols are the ones trimmed.
+  assert.deepEqual(trimmed.map((e) => e.subjectId).sort(), ['S00', 'S01']);
+});
+
+test('FR-060 and FR-061 each item routes to its owning tool or names the gap', () => {
+  const loaded = loadBrief();
+  const owner = { toolId: 'risk-xray', href: 'risk-xray.html' };
+
+  const composed = loaded.brief.composeBrief(briefInput({ loaded, input: { owners: { MSFT: owner } } }));
+  assert.equal(composed.ok, true);
+
+  const msft = composed.value.lanes.held.find((i) => i.subjectId === 'MSFT');
+  assert.deepEqual(msft.owner, owner, 'the brief links to the owning tool instead of restating it');
+  assert.equal(msft.unownedCapability, false);
+
+  // BND has no owner. That gap is NAMED, which is different from inventing a specialist result.
+  const bnd = composed.value.lanes.watchlist.find((i) => i.subjectId === 'BND');
+  assert.equal(bnd.owner, null);
+  assert.equal(bnd.unownedCapability, true,
+    'an unowned subject is reported as a capability gap rather than given a fabricated result');
+});
+
+test('FR-067 the brief identity binds revision window cutoff policy and action set', () => {
+  const loaded = loadBrief();
+  const base = loaded.brief.composeBrief(briefInput({ loaded, input: { portfolioRevisionId: 'rev-1' } }));
+  assert.equal(base.ok, true);
+
+  const identity = base.value.identity;
+  assert.equal(identity.portfolioRevisionId, 'rev-1');
+  assert.equal(identity.windowId, 'morning');
+  assert.equal(identity.evidenceCutoffAt, base.value.times.evidenceCutoffAt);
+  assert.equal(identity.composedAt, base.value.times.composedAt);
+  assert.equal(identity.behaviorPolicyVersion, loaded.policy.contractVersion,
+    'the policy version in force is part of what the brief IS, not incidental metadata');
+
+  /* The load-bearing property: two briefs that differ ONLY in their resulting action set must not
+   * share an identity. Without the action signature they would, and a changed brief could be
+   * mistaken for the same one. */
+  const fewer = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: { portfolioRevisionId: 'rev-1', holdings: [], watchlist: [], completions: [] }
+  }));
+  assert.equal(fewer.ok, true);
+  assert.notEqual(fewer.value.identity.actionSignature, identity.actionSignature,
+    'a different action set yields a different identity');
+
+  // Same inputs must reproduce the same signature, or the identity would be useless for comparison.
+  const repeat = loaded.brief.composeBrief(briefInput({ loaded, input: { portfolioRevisionId: 'rev-1' } }));
+  assert.equal(repeat.value.identity.actionSignature, identity.actionSignature);
+});

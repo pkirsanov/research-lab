@@ -696,7 +696,10 @@
                     </div>
                     <div id="briefTimes" class="state-message">No generic evidence window loaded.</div>
                     <div id="briefStates" class="state-message" role="status">Brief unavailable.</div>
+                    <div id="briefIdentity" class="state-message">No brief identity.</div>
                     <div id="briefLanes" class="brief-lanes"></div>
+                    <h3>No current action</h3>
+                    <div id="briefNoAction" class="brief-no-action"></div>
                 </div>
 
                 <div class="band" id="holdingTruth">
@@ -1004,6 +1007,10 @@
                 briefWindows: null,
                 briefWindowId: null,
                 briefPublishedAt: null,
+                /* Subject -> owning tool, READ from the shared registry. Held here rather than
+                   inside the composer so the brief cannot drift from the registry that actually
+                   defines ownership, and so an unowned subject is a registry fact, not a guess. */
+                briefOwners: {},
                 briefEvidence: [],
                 publicWatchlist: []
             };
@@ -1409,6 +1416,11 @@
                     windowId: state.briefWindowId,
                     publishedAt: state.briefPublishedAt,
                     composedAt: now(),
+                    /* The revision's stable identity IS its content fingerprint (`portfolioId`),
+                       assigned in rlportfolio.js. Using it means a brief identity changes whenever
+                       the underlying revision content changes. */
+                    portfolioRevisionId: revision ? revision.portfolioId : null,
+                    owners: state.briefOwners,
                     holdings: holdings,
                     watchlist: watchlist,
                     completions: completions,
@@ -1431,6 +1443,15 @@
                 byId("briefTimes").setAttribute("data-cutoff", value.times.evidenceCutoffAt);
                 byId("briefTimes").setAttribute("data-published", value.times.publishedAt);
                 byId("briefTimes").setAttribute("data-composed", value.times.composedAt);
+
+                var identity = value.identity;
+                byId("briefIdentity").setAttribute("data-revision", String(identity.portfolioRevisionId));
+                byId("briefIdentity").setAttribute("data-policy-version", String(identity.behaviorPolicyVersion));
+                byId("briefIdentity").setAttribute("data-action-signature", identity.actionSignature);
+                setText("briefIdentity", "revision " + identity.portfolioRevisionId +
+                    " · window " + identity.windowId +
+                    " · policy " + identity.behaviorPolicyVersion +
+                    " · " + identity.itemCount + " actions");
 
                 var states = value.states;
                 setText("briefStates", states.materialChange + " · " + states.itemCount + " items · " +
@@ -1469,6 +1490,21 @@
                             row.setAttribute("data-scope-source", item.scopeSource);
                             var words = [item.subjectId, item.scopeSource];
                             if (item.alsoQualifiesVia.length) words.push("also qualifies via " + item.alsoQualifiesVia.join(", "));
+                            /* FR-060/FR-061 in the UI: route to the owning tool when one exists,
+                               otherwise say the capability is unowned. Never a fabricated result. */
+                            if (item.owner && item.owner.href) {
+                                row.setAttribute("data-owner-tool", item.owner.toolId);
+                                var link = document.createElement("a");
+                                link.href = item.owner.href;
+                                link.rel = "noreferrer";
+                                link.textContent = "open " + item.owner.toolId;
+                                row.textContent = words.join(" · ") + " · ";
+                                row.appendChild(link);
+                                list.appendChild(row);
+                                return;
+                            }
+                            row.setAttribute("data-unowned-capability", "true");
+                            words.push("no owning tool");
                             row.textContent = words.join(" · ");
                             list.appendChild(row);
                         });
@@ -1476,6 +1512,33 @@
                     }
                     laneRoot.appendChild(section);
                 });
+
+                /* FR-064. Rendered as its own region so a scoped subject that produced no action is
+                   visibly accounted for. An empty region here means every scoped subject is in a
+                   lane; it does NOT mean subjects were quietly discarded. */
+                var noActionRoot = byId("briefNoAction");
+                if (noActionRoot) {
+                    noActionRoot.textContent = "";
+                    if (!value.noAction.length) {
+                        var none = document.createElement("p");
+                        none.className = "subtle";
+                        none.setAttribute("data-no-action-empty", "true");
+                        none.textContent = "Every subject in scope produced an action.";
+                        noActionRoot.appendChild(none);
+                    } else {
+                        var reasons = document.createElement("ul");
+                        reasons.className = "subtle";
+                        value.noAction.forEach(function (entry) {
+                            var row = document.createElement("li");
+                            row.setAttribute("data-no-action-subject", entry.subjectId);
+                            row.setAttribute("data-no-action-reason", entry.reason);
+                            row.textContent = entry.subjectId + " · " + (entry.scopeSource || "unscoped") +
+                                " · " + entry.reason;
+                            reasons.appendChild(row);
+                        });
+                        noActionRoot.appendChild(reasons);
+                    }
+                }
             }
 
             function refreshWorkspaceViews() {

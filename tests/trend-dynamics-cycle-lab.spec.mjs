@@ -858,3 +858,198 @@ test('Regression: SCN-006-019 Simple Power mobile and local controls share one r
   console.log('[SCN-006-019] horizonResult=' + afterHorizon.id);
   console.log('[SCN-006-019] offOriginRequests=' + dataRequests.length);
 });
+
+/* ── Scope 5 replay, immutability, retrospective honesty, and maximum-work responsiveness ──
+   These open the replay route in Power view, which is the only surface that steps through the
+   actual availability cutoffs. Each test reads the SAME replay the page rendered, so a test
+   passing while the page shows something else is not possible. */
+
+async function openReplayCase(page, caseId) {
+  const requestedPaths = [];
+  page.on('request', (request) => requestedPaths.push(new URL(request.url()).pathname));
+  await page.goto(`${baseUrl}/trend-dynamics-cycle-lab.html?fixture=replay&case=${caseId}&clock=${CLOCK}`);
+  await expect(page.locator('#fixtureBand')).toContainText('TEST FIXTURE - ANALYTIC');
+  await expect(page.locator('#publicationState')).toHaveText('TEST FIXTURE: owner-read publication disabled.');
+  await openPower(page);
+  await expect(page.locator('#changeReplayPanel')).toBeVisible();
+  return requestedPaths;
+}
+
+test('Regression: SCN-006-004 provisional peak keeps effective detection and confirmation times separate', async ({ page }) => {
+  await openReplayCase(page, 'provisional-peak');
+
+  // The four clocks must be four separate readouts. A page that prints one date in all of them
+  // would still "render cleanly", which is exactly the failure this asserts against.
+  const effective = await page.locator('#replayEffective').textContent();
+  const detected = await page.locator('#replayDetected').textContent();
+  const oneSided = await page.locator('#replayOneSidedDate').textContent();
+  expect(effective).toMatch(/peak at \d{4}-\d{2}-\d{2}/);
+  expect(detected).toMatch(/\d{4}-\d{2}-\d{2} \(\d+ observations after effective\)/);
+  expect(effective.match(/\d{4}-\d{2}-\d{2}/)[0] < detected.match(/\d{4}-\d{2}-\d{2}/)[0]).toBe(true);
+  expect(oneSided).toContain('first detection');
+  expect(oneSided).toContain('confirmed');
+
+  const replay = await page.evaluate(() => window.__TDC_REPLAY__);
+  const confirmed = replay.recordStates.filter((record) => record.state === 'confirmed');
+  expect(confirmed.length).toBeGreaterThanOrEqual(1);
+  // Provisional first, confirmed later: the promotion arrives as an appended revision.
+  expect(confirmed[0].revisions).toBeGreaterThanOrEqual(1);
+
+  // The record was genuinely provisional at an earlier cutoff. Stepping back to that cutoff must
+  // still say provisional; if the page rewrote history on confirmation this would read confirmed.
+  const timelineStates = await page.locator('#replayTimelineBody tr td:nth-child(3)').allTextContents();
+  expect(timelineStates).toContain('provisional');
+  expect(timelineStates).toContain('confirmed');
+  expect(timelineStates.indexOf('provisional')).toBeLessThan(timelineStates.lastIndexOf('confirmed'));
+
+  await page.locator('#replayStep').click();
+  await expect(page.locator('#replayCutoffLabel')).toContainText('cutoff 2 of');
+  const visibleAtSecond = Number(await page.locator('#replayVisibleCount').textContent());
+  await page.locator('#replayStep').click();
+  const visibleAtThird = Number(await page.locator('#replayVisibleCount').textContent());
+  expect(visibleAtThird).toBeGreaterThan(visibleAtSecond);
+
+  console.log('[SCN-006-004] effective=' + effective);
+  console.log('[SCN-006-004] detected=' + detected);
+  console.log('[SCN-006-004] confirmedRecords=' + confirmed.length + ' revisions=' + confirmed[0].revisions);
+  console.log('[SCN-006-004] timelineStates=' + timelineStates.join(','));
+});
+
+test('Regression: SCN-006-005 failed early reversal remains immutable and invalidated', async ({ page }) => {
+  await openReplayCase(page, 'failed-reversal');
+
+  const rows = await page.locator('#replayInvalidatedBody tr').count();
+  expect(rows).toBeGreaterThanOrEqual(1);
+  const firstRow = await page.locator('#replayInvalidatedBody tr').first().locator('td').allTextContents();
+  expect(firstRow[2]).toBe('provisional');
+  expect(firstRow[3]).toBe('false-alarm');
+
+  const before = await page.evaluate(() => window.__TDC_REPLAY__);
+  const invalidated = before.recordStates.filter((record) => record.state === 'invalidated');
+  expect(invalidated.length).toBeGreaterThanOrEqual(1);
+  const originalAlert = invalidated[0].alertAt;
+  const originalCutoff = invalidated[0].cutoff;
+
+  // Stepping the replay is a VIEW operation. If it recomputed and overwrote the record, the
+  // original alert time would move — which is the exact corruption the record exists to prevent.
+  await page.locator('#replayStep').click();
+  await page.locator('#replayStep').click();
+  await page.locator('#replayStepBack').click();
+  const after = await page.evaluate(() => window.__TDC_REPLAY__);
+  const afterInvalidated = after.recordStates.filter((record) => record.state === 'invalidated');
+  expect(afterInvalidated[0].alertAt).toBe(originalAlert);
+  expect(afterInvalidated[0].cutoff).toBe(originalCutoff);
+  expect(afterInvalidated[0].revisions).toBeGreaterThanOrEqual(1);
+
+  // The retained false alarm has to stay in the denominator, or the rate flatters the detector.
+  expect(after.metrics.invalidatedCount).toBeGreaterThanOrEqual(1);
+  expect(after.metrics.falseAlarmRate).toBeGreaterThan(0);
+
+  console.log('[SCN-006-005] invalidatedRows=' + rows + ' outcome=' + firstRow[3]);
+  console.log('[SCN-006-005] alertAtBefore=' + originalAlert + ' alertAtAfter=' + afterInvalidated[0].alertAt);
+  console.log('[SCN-006-005] falseAlarmRate=' + after.metrics.falseAlarmRate);
+});
+
+test('Regression: SCN-006-007 retrospective turn never backdates the real-time alert', async ({ page }) => {
+  await openReplayCase(page, 'retrospective-gap');
+
+  const oneSided = await page.locator('#replayOneSidedDate').textContent();
+  const twoSided = await page.locator('#replayTwoSidedDate').textContent();
+  expect(twoSided).toContain('two-sided');
+  expect(oneSided).toContain('first detection');
+
+  const replay = await page.evaluate(() => window.__TDC_REPLAY__);
+  // The two-sided date is genuinely EARLIER. That is legitimate; writing it into the real-time
+  // field is not. Both dates must survive, and they must not be equal.
+  expect(replay.retrospectiveEffectiveAt).not.toBeNull();
+  expect(replay.realTimeDetectedAt).not.toBeNull();
+  expect(replay.retrospectiveEffectiveAt < replay.realTimeDetectedAt).toBe(true);
+  const confirmed = replay.recordStates.filter((record) => record.state === 'confirmed');
+  expect(confirmed.length).toBeGreaterThanOrEqual(1);
+
+  // The real-time readout must not contain the retrospective date anywhere.
+  expect(oneSided).not.toContain(replay.retrospectiveEffectiveAt.slice(0, 10));
+
+  const limitation = await page.locator('#replayVintageLimitation').textContent();
+  expect(limitation).toContain('cannot be used to claim earlier warning');
+
+  const postures = await page.locator('#replayRetrospective').textContent();
+  expect(postures).toBe('two-sided');
+
+  console.log('[SCN-006-007] retrospectiveEffectiveAt=' + replay.retrospectiveEffectiveAt);
+  console.log('[SCN-006-007] realTimeDetectedAt=' + replay.realTimeDetectedAt);
+  console.log('[SCN-006-007] oneSidedReadout=' + oneSided);
+  console.log('[SCN-006-007] twoSidedReadout=' + twoSided);
+});
+
+test('Regression: maximum work plan reports progress cancels atomically and keeps navigation responsive', async ({ page }) => {
+  await openReplayCase(page, 'max-work');
+
+  const priorResultId = await page.evaluate(() => window.__TDC_REPLAY__.committedResultId);
+  expect(priorResultId).toBe('replay-prior-result');
+  const priorHistoryWrites = await page.evaluate(() => window.__TDC_REPLAY__.historyWrites);
+
+  await page.locator('#replayRunWork').click();
+  // Progress must actually start moving before the cancel, or cancelling proves nothing.
+  await expect
+    .poll(async () => page.evaluate(() => window.__TDC_REPLAY__.executedJobIds.length), { message: 'the maximum work plan never started' })
+    .toBeGreaterThan(2);
+
+  // Navigation stays serviceable BETWEEN fixed work units: a keyboard focus move must land while
+  // the run is still going. A run that monopolised the main thread would fail here.
+  await page.locator('#replayStep').focus();
+  expect(await page.evaluate(() => document.activeElement && document.activeElement.id)).toBe('replayStep');
+  await page.locator('#replayCancelWork').click();
+
+  await expect
+    .poll(async () => page.evaluate(() => window.__TDC_REPLAY__.run && window.__TDC_REPLAY__.run.cancelled), { message: 'the run never reported cancellation' })
+    .toBe(true);
+
+  const afterCancel = await page.evaluate(() => window.__TDC_REPLAY__);
+  expect(afterCancel.run.complete).toBe(false);
+  expect(afterCancel.run.completedWorkUnits).toBeLessThan(afterCancel.run.totalWorkUnits);
+
+  // Cancellation stops BEFORE the next unit: the executed-job count must stop growing.
+  const settled = afterCancel.executedJobIds.length;
+  await page.waitForTimeout(250);
+  expect(await page.evaluate(() => window.__TDC_REPLAY__.executedJobIds.length)).toBe(settled);
+
+  // Progress is monotonic and never rewinds.
+  const fractions = afterCancel.progressFractions;
+  expect(fractions.length).toBeGreaterThan(1);
+  expect(fractions.every((value, index) => index === 0 || value >= fractions[index - 1])).toBe(true);
+
+  // Zero partial publication, zero history mutation, prior result retained.
+  expect(afterCancel.committedResultId).toBe('replay-prior-result');
+  expect(afterCancel.publications).toBe(0);
+  expect(afterCancel.historyWrites).toBe(priorHistoryWrites);
+  await expect(page.locator('#replayCommitState')).toContainText('TDC-COMPUTE-CANCELLED');
+  await expect(page.locator('#replayCommitState')).toContainText('nothing was committed');
+
+  // Cancel returns focus to its initiator rather than dropping it on the body.
+  expect(await page.evaluate(() => document.activeElement && document.activeElement.id)).toBe('replayCancelWork');
+
+  // Deterministic rerun: the same plan run to completion executes the same jobs in the same order.
+  await page.locator('#replayRunWork').click();
+  await expect
+    .poll(async () => page.evaluate(() => window.__TDC_REPLAY__.run && window.__TDC_REPLAY__.run.complete), { message: 'the rerun never completed', timeout: 60000 })
+    .toBe(true);
+  const firstRun = await page.evaluate(() => window.__TDC_REPLAY__.executedJobIds.slice());
+  await page.locator('#replayRunWork').click();
+  await expect
+    .poll(async () => page.evaluate(() => window.__TDC_REPLAY__.run && window.__TDC_REPLAY__.run.complete), { message: 'the second rerun never completed', timeout: 60000 })
+    .toBe(true);
+  const secondRun = await page.evaluate(() => window.__TDC_REPLAY__.executedJobIds.slice());
+  expect(secondRun).toEqual(firstRun);
+
+  const completed = await page.evaluate(() => window.__TDC_REPLAY__);
+  expect(completed.run.complete).toBe(true);
+  expect(completed.committedResultId).toBe('replay-run-' + completed.run.runId);
+  await expect(page.locator('#replayCommitState')).toContainText('after every work unit completed');
+
+  console.log('[NFR-003] totalWorkUnits=' + completed.run.totalWorkUnits);
+  console.log('[NFR-003] cancelledAfterUnits=' + settled);
+  console.log('[NFR-003] progressSamples=' + fractions.length + ' monotonic=true');
+  console.log('[NFR-003] deterministicRerun=' + (secondRun.length === firstRun.length));
+  console.log('[NFR-003] committedResultId=' + completed.committedResultId);
+});

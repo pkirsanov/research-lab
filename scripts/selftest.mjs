@@ -3174,7 +3174,20 @@ try {
     'tdcDetectOneSided',
     'tdcWalkForward',
     'tdcRetrospectiveAnatomy',
-    'tdcReplayMetrics'
+    'tdcReplayMetrics',
+    'tdcHistoryDocument',
+    'tdcValidateHistoryDocument',
+    'tdcPersistHistory',
+    'tdcLoadHistory',
+    'tdcCreateRunState',
+    'tdcStartRun',
+    'tdcCancelRun',
+    'tdcRunCancelled',
+    'tdcCreateRunner',
+    'tdcRunSlice',
+    'tdcRunProgress',
+    'tdcCommitRun',
+    'tdcBuildReplayTimeline'
   ];
   const tdc = build(tdcNames.map((name) => extractFn(tdcSource, name)), tdcNames);
   const tdcConfig = JSON.parse(read('trend-dynamics-cycle-universe.json'));
@@ -3474,6 +3487,240 @@ try {
     const silent = tdc.tdcReplayMetrics({ ok: true, records: [] }, [3], 2);
     assert(silent.precision === null && silent.recall === 0,
       'Scope 5 a detector that predicted nothing reports undefined precision, never a perfect score');
+  }
+
+  group('Trend Dynamics Scope 5 — replay fixtures, history persistence, and fixed-work scheduling (spec 006, TP-05-01)');
+  {
+    const replayFixture = JSON.parse(read('tests/fixtures/trend-dynamics-cycle/analytic/replay-inputs.json'));
+    assert(replayFixture.contractVersion === 'tdc-replay-fixture/v1'
+      && replayFixture.fixtureContract.posture === 'analytic'
+      && replayFixture.fixtureContract.ownerPublicationAllowed === false
+      && replayFixture.fixtureContract.purpose === 'availability-and-vintage-changing-replay-inputs'
+      && !/(^|\W)(expected|conclusion|verdict|precision|recall)(\W|$)/i.test(JSON.stringify(Object.keys(replayFixture.cases[0]))),
+      'Scope 5 replay fixture is visibly analytic, non-publishing, and input-only rather than carrying its own answers');
+    const replayCases = Object.fromEntries(replayFixture.cases.map((entry) => [entry.id, entry]));
+    assert(['provisional-peak', 'failed-reversal', 'retrospective-gap', 'late-availability', 'max-work'].every((id) => replayCases[id]),
+      'Scope 5 replay fixture covers provisional confirmation, false alarm, retrospective gap, late availability, and maximum work');
+
+    /* Availability and vintage actually CHANGE inside the fixture. Without that, the replay would
+       be reading a series whose rows all arrived on time, which cannot exercise prefix safety. */
+    const laggedRows = replayFixture.cases
+      .flatMap((entry) => entry.observations)
+      .filter((row) => row.availableAt > row.observedAt);
+    assert(laggedRows.length > 0, 'Scope 5 replay fixture contains observations that became available after they were observed');
+    assert(new Set(replayFixture.cases.flatMap((entry) => entry.observations.map((row) => row.vintageId))).size > 1,
+      'Scope 5 replay fixture carries more than one vintage, so vintage selection is exercised rather than assumed');
+
+    /* SCN-006-004. Expected values are derived from the SPEC statement (a peak that holds past the
+       configured confirmation delay confirms, and a confirmed record inside tolerance of a declared
+       target is a hit), not read out of the fixture. */
+    const peakCase = replayCases['provisional-peak'];
+    const peakReplay = tdc.tdcWalkForward(peakCase.observations, { confirmationDelay: peakCase.confirmationDelay });
+    assert(peakReplay.ok && peakReplay.records.some((record) => record.state === 'confirmed'),
+      'Scope 5 fixture replay confirms the peak that holds past the configured confirmation delay');
+    const peakRecord = peakReplay.records.find((record) => record.state === 'confirmed');
+    assert(peakRecord.estimatedEffectiveAt < peakRecord.firstDetectedAt && peakRecord.confirmedAt >= peakRecord.firstDetectedAt,
+      'Scope 5 fixture replay keeps effective, first-detection, and confirmation clocks in their only physically possible order');
+    const peakMetrics = tdc.tdcReplayMetrics(peakReplay, peakCase.targetEventIndexes, peakCase.matchTolerance);
+    assert(peakMetrics.truePositives === 1 && peakMetrics.misses === 0 && peakMetrics.precision === 1 && peakMetrics.recall === 1,
+      'Scope 5 a confirmed record inside the declared tolerance of the declared target scores exactly one hit and no miss');
+
+    /* SCN-006-005. The candidate the trend erases must survive as invalidated, because deleting it
+       is what would silently drive the false-alarm rate to zero. */
+    const failedCase = replayCases['failed-reversal'];
+    const failedReplay = tdc.tdcWalkForward(failedCase.observations, { confirmationDelay: failedCase.confirmationDelay });
+    const failedMetrics = tdc.tdcReplayMetrics(failedReplay, failedCase.targetEventIndexes, failedCase.matchTolerance);
+    assert(failedReplay.records.some((record) => record.state === 'invalidated'
+      && record.revisions.some((revision) => revision.outcome === 'false-alarm')),
+      'Scope 5 fixture replay retains the erased candidate as invalidated with an appended false-alarm revision');
+    assert(failedMetrics.invalidatedCount >= 1 && failedMetrics.falseAlarmRate > 0,
+      'Scope 5 the retained false alarm stays in the denominator instead of improving the rate by disappearing');
+
+    /* SCN-006-007. The two-sided date may legitimately precede the one-sided detection; what is
+       forbidden is letting the earlier date populate the real-time field. */
+    const gapCase = replayCases['retrospective-gap'];
+    const gapReplay = tdc.tdcWalkForward(gapCase.observations, { confirmationDelay: gapCase.confirmationDelay });
+    const gapAnatomy = tdc.tdcRetrospectiveAnatomy(gapCase.observations, gapReplay);
+    assert(gapAnatomy && gapAnatomy.state === 'available' && gapAnatomy.endpointPosture === 'two-sided'
+      && gapAnatomy.realTimeEndpointPosture === 'one-sided',
+      'Scope 5 fixture retrospective anatomy reports both endpoint postures separately');
+    assert(gapAnatomy.retrospectiveEffectiveAt < gapAnatomy.realTimeDetectedAt,
+      'Scope 5 the two-sided date precedes the real-time detection date, which is exactly the gap the record must not erase');
+
+    /* Prefix safety under LATE availability: a row stamped as arriving later is simply not there. */
+    const lateCase = replayCases['late-availability'];
+    const lateRow = lateCase.observations.find((row) => row.availableAt > row.observedAt);
+    const beforeArrival = tdc.tdcVisibleAt(lateCase.observations, lateRow.observedAt);
+    const afterArrival = tdc.tdcVisibleAt(lateCase.observations, lateRow.availableAt);
+    assert(!beforeArrival.some((row) => row.observationId === lateRow.observationId)
+      && afterArrival.some((row) => row.observationId === lateRow.observationId),
+      'Scope 5 a late-arriving observation is invisible at its observation date and visible only once it actually arrived');
+
+    /* Deterministic replay: the same inputs produce byte-identical records across 100 repeats. */
+    const repeatedReplayBytes = Array.from({ length: 100 }, () => JSON.stringify(
+      tdc.tdcWalkForward(peakCase.observations, { confirmationDelay: peakCase.confirmationDelay }).records));
+    assert(new Set(repeatedReplayBytes).size === 1,
+      'Scope 5 replay is deterministic across 100 repeats rather than depending on wall-clock or iteration order');
+
+    /* ---- tdc-history/v1 persistence, read-back validation, and explicit degradation ---- */
+    const historyDocument = tdc.tdcHistoryDocument(peakReplay.records);
+    assert(historyDocument.ok && historyDocument.document.contractVersion === 'tdc-history/v1'
+      && historyDocument.document.records.length === peakReplay.records.length,
+      'Scope 5 history document carries the versioned contract and every retained record');
+    assert(tdc.tdcValidateHistoryDocument(historyDocument.document).ok,
+      'Scope 5 the produced history document satisfies its own read-back validator');
+
+    const makeStore = () => {
+      const cells = {};
+      return { cells, getItem: (key) => (Object.prototype.hasOwnProperty.call(cells, key) ? cells[key] : null), setItem: (key, value) => { cells[key] = String(value); }, removeItem: (key) => { delete cells[key]; } };
+    };
+    const store = makeStore();
+    const persisted = tdc.tdcPersistHistory(historyDocument.document, store, { maxHistoryBytes: 1000000 });
+    assert(persisted.ok && persisted.bytes > 0, 'Scope 5 history persistence writes and reports its own byte cost');
+    const loaded = tdc.tdcLoadHistory(store);
+    assert(loaded.ok && loaded.document.records.length === peakReplay.records.length
+      && JSON.stringify(loaded.document) === JSON.stringify(historyDocument.document),
+      'Scope 5 persisted history reads back byte-identically rather than being trusted unread');
+
+    /* Read-back validation is the point: a store that silently mutates on write must be caught. */
+    const lyingStore = makeStore();
+    lyingStore.setItem = (key, value) => { lyingStore.cells[key] = String(value).replace('"provisional"', '"confirmed"'); };
+    const lyingResult = tdc.tdcPersistHistory(historyDocument.document, lyingStore, { maxHistoryBytes: 1000000 });
+    assert(!lyingResult.ok && lyingResult.errors.some((error) => error.code === 'TDC-HISTORY-STORAGE'),
+      'Scope 5 persistence reads back what it wrote and fails loud when the store did not keep it');
+
+    /* Capacity is explicit degradation, not truncation, and the prior history survives untouched. */
+    const capacityStore = makeStore();
+    const priorDocument = tdc.tdcHistoryDocument(peakReplay.records.slice(0, 1));
+    tdc.tdcPersistHistory(priorDocument.document, capacityStore, { maxHistoryBytes: 1000000 });
+    const priorRaw = capacityStore.getItem('tdc-history/v1');
+    const capacityResult = tdc.tdcPersistHistory(historyDocument.document, capacityStore, { maxHistoryBytes: 10 });
+    assert(!capacityResult.ok && capacityResult.errors.some((error) => error.code === 'TDC-HISTORY-CAPACITY'),
+      'Scope 5 an oversized history is refused with an explicit capacity code instead of being trimmed');
+    assert(capacityStore.getItem('tdc-history/v1') === priorRaw,
+      'Scope 5 a refused capacity write leaves the existing history exactly as it was');
+
+    /* Corruption is surfaced, never silently repaired. */
+    const corruptStore = makeStore();
+    corruptStore.setItem('tdc-history/v1', '{"contractVersion":"tdc-history/v1","records":[');
+    const corruptLoad = tdc.tdcLoadHistory(corruptStore);
+    assert(!corruptLoad.ok && corruptLoad.errors.some((error) => error.code === 'TDC-HISTORY-CORRUPTION'),
+      'Scope 5 unparseable history is reported as corruption rather than parsed into an empty success');
+    assert(corruptStore.getItem('tdc-history/v1') === '{"contractVersion":"tdc-history/v1","records":[',
+      'Scope 5 a corrupt history is left untouched, so no silent repair rewrites the audit trail');
+    const wrongVersionStore = makeStore();
+    wrongVersionStore.setItem('tdc-history/v1', JSON.stringify({ contractVersion: 'tdc-history/v99', records: [] }));
+    assert(!tdc.tdcLoadHistory(wrongVersionStore).ok, 'Scope 5 an unknown history major version fails loud rather than being migrated in place');
+    const emptyLoad = tdc.tdcLoadHistory(makeStore());
+    assert(emptyLoad.ok && emptyLoad.document.records.length === 0,
+      'Scope 5 an absent history is an empty valid document, not an error');
+    const missingIdentity = JSON.parse(JSON.stringify(historyDocument.document));
+    delete missingIdentity.records[0].alertAt;
+    assert(!tdc.tdcValidateHistoryDocument(missingIdentity).ok,
+      'Scope 5 a record missing its immutable alert time is rejected, because that field is what makes the record auditable');
+
+    /* ---- fixed-work jobs, monotonic run id, progress, cancellation, atomic commit ---- */
+    const runState = tdc.tdcCreateRunState();
+    const plan = firstPlan;
+    const firstRun = tdc.tdcStartRun(runState, plan);
+    const secondRun = tdc.tdcStartRun(runState, plan);
+    assert(firstRun.runId === 1 && secondRun.runId === 2 && secondRun.runId > firstRun.runId,
+      'Scope 5 run ids are monotonic, so a stale slice can always be recognised as stale');
+    assert(runState.activeRunId === secondRun.runId && runState.cancelledRunIds.includes(firstRun.runId),
+      'Scope 5 starting a new run cancels the previous one rather than leaving two runs racing');
+
+    const executed = [];
+    const executeJob = (job) => { executed.push(job.jobId); return { jobId: job.jobId, output: job.jobId + ':' + job.count }; };
+    const cleanState = tdc.tdcCreateRunState();
+    const cleanRun = tdc.tdcStartRun(cleanState, plan);
+    const runner = tdc.tdcCreateRunner(plan, cleanRun.runId);
+    let guard = 0;
+    const progressFractions = [];
+    while (!runner.finished && guard < 10000) { tdc.tdcRunSlice(runner, cleanState, executeJob); progressFractions.push(tdc.tdcRunProgress(runner).fraction); guard += 1; }
+    assert(runner.complete && runner.completedWorkUnits === plan.totalWorkUnits,
+      'Scope 5 a run that is never cancelled completes every declared work unit');
+    assert(executed.length === plan.jobs.length && executed[0] === plan.jobs[0].jobId,
+      'Scope 5 jobs execute once each in registry order rather than being sliced by elapsed time');
+    assert(progressFractions.every((value, index) => index === 0 || value >= progressFractions[index - 1]),
+      'Scope 5 progress is monotonic, so the reader never sees it move backwards');
+    assert(progressFractions[progressFractions.length - 1] === 1 && tdc.tdcRunProgress(runner).activeFamily === null,
+      'Scope 5 a complete run reports full progress and no remaining active family');
+
+    /* Cancellation must stop BEFORE the next unit and must discard the unit it was mid-way through. */
+    const cancelState = tdc.tdcCreateRunState();
+    const cancelRun = tdc.tdcStartRun(cancelState, plan);
+    const cancelRunner = tdc.tdcCreateRunner(plan, cancelRun.runId);
+    const cancelExecuted = [];
+    tdc.tdcRunSlice(cancelRunner, cancelState, (job) => { cancelExecuted.push(job.jobId); return { jobId: job.jobId }; });
+    tdc.tdcCancelRun(cancelState, cancelRun.runId, 'user');
+    const beforeCancelCount = cancelExecuted.length;
+    tdc.tdcRunSlice(cancelRunner, cancelState, (job) => { cancelExecuted.push(job.jobId); return { jobId: job.jobId }; });
+    assert(cancelExecuted.length === beforeCancelCount,
+      'Scope 5 cancellation is observed BEFORE the next work unit runs, so no further work is performed');
+    assert(cancelRunner.cancelled && cancelRunner.finished && !cancelRunner.complete,
+      'Scope 5 a cancelled runner is finished and explicitly incomplete rather than quietly complete');
+
+    /* Work performed AFTER the flag is set is discarded, not recorded. */
+    const midState = tdc.tdcCreateRunState();
+    const midRun = tdc.tdcStartRun(midState, plan);
+    const midRunner = tdc.tdcCreateRunner(plan, midRun.runId);
+    tdc.tdcRunSlice(midRunner, midState, (job) => { tdc.tdcCancelRun(midState, midRun.runId, 'superseded'); return { jobId: job.jobId }; });
+    assert(midRunner.cancelled && midRunner.outputs.length === 0 && midRunner.completedWorkUnits === 0,
+      'Scope 5 a unit cancelled while it was running contributes no output and no progress');
+
+    /* Atomic commit: only a complete run belonging to the active run id may publish anything. */
+    const priorResult = Object.freeze({ resultId: 'prior', value: 1 });
+    const runtimeState = { lastCompleteResult: priorResult, history: historyDocument.document, published: null };
+    const cancelledCommit = tdc.tdcCommitRun(runtimeState, cancelRunner, cancelState, { resultId: 'cancelled', value: 2 });
+    assert(!cancelledCommit.committed && cancelledCommit.errorCode === 'TDC-COMPUTE-CANCELLED',
+      'Scope 5 a cancelled run is refused commit with the closed cancellation code');
+    assert(runtimeState.lastCompleteResult === priorResult && runtimeState.published === null
+      && runtimeState.history === historyDocument.document,
+      'Scope 5 a refused commit leaves the prior result, the history, and the publication exactly as they were');
+
+    const supersededState = tdc.tdcCreateRunState();
+    const supersededRun = tdc.tdcStartRun(supersededState, plan);
+    const supersededRunner = tdc.tdcCreateRunner(plan, supersededRun.runId);
+    let supersededGuard = 0;
+    while (!supersededRunner.finished && supersededGuard < 10000) { tdc.tdcRunSlice(supersededRunner, supersededState, executeJob); supersededGuard += 1; }
+    tdc.tdcStartRun(supersededState, plan);
+    const supersededCommit = tdc.tdcCommitRun(runtimeState, supersededRunner, supersededState, { resultId: 'superseded', value: 3 });
+    assert(supersededRunner.complete && !supersededCommit.committed && supersededCommit.errorCode === 'TDC-COMPUTE-CANCELLED',
+      'Scope 5 a complete but superseded run still cannot commit, because a newer run already owns the surface');
+    assert(runtimeState.lastCompleteResult === priorResult,
+      'Scope 5 a superseded complete run leaves the visible result untouched');
+
+    const commitState = tdc.tdcCreateRunState();
+    const commitRun = tdc.tdcStartRun(commitState, plan);
+    const commitRunner = tdc.tdcCreateRunner(plan, commitRun.runId);
+    let commitGuard = 0;
+    while (!commitRunner.finished && commitGuard < 10000) { tdc.tdcRunSlice(commitRunner, commitState, executeJob); commitGuard += 1; }
+    const accepted = tdc.tdcCommitRun(runtimeState, commitRunner, commitState, { resultId: 'accepted', value: 4 });
+    assert(accepted.committed && runtimeState.lastCompleteResult.resultId === 'accepted',
+      'Scope 5 only a complete, current run replaces the visible result');
+
+    /* Deterministic rerun: identical plan and identical executor produce identical output bytes. */
+    const rerunBytes = Array.from({ length: 100 }, () => {
+      const state = tdc.tdcCreateRunState();
+      const run = tdc.tdcStartRun(state, plan);
+      const localRunner = tdc.tdcCreateRunner(plan, run.runId);
+      let localGuard = 0;
+      while (!localRunner.finished && localGuard < 10000) { tdc.tdcRunSlice(localRunner, state, (job) => ({ jobId: job.jobId, count: job.count })); localGuard += 1; }
+      return JSON.stringify({ outputs: localRunner.outputs, completedWorkUnits: localRunner.completedWorkUnits, elapsedIgnored: Math.random() > -1 });
+    });
+    assert(new Set(rerunBytes).size === 1,
+      'Scope 5 100 identical reruns of the same plan produce byte-identical outputs while diagnostic timings are excluded');
+
+    /* Replay timeline is the accessible text equivalent of the replay UI, built from the same records. */
+    const timeline = tdc.tdcBuildReplayTimeline(peakReplay, peakCase.observations);
+    assert(timeline.ok && timeline.rows.length === peakReplay.steps.length,
+      'Scope 5 the replay timeline carries one row per actual availability cutoff');
+    assert(timeline.rows.every((row) => typeof row.cutoff === 'string' && Number.isFinite(row.visibleCount) && typeof row.state === 'string'),
+      'Scope 5 each timeline row names its cutoff, its visible-observation count, and the state that was knowable then');
+    const invalidatedTimeline = tdc.tdcBuildReplayTimeline(failedReplay, failedCase.observations);
+    assert(invalidatedTimeline.invalidated.length >= 1
+      && invalidatedTimeline.invalidated.every((entry) => entry.outcome === 'false-alarm' && typeof entry.alertAt === 'string'),
+      'Scope 5 the timeline keeps invalidated candidates visible with their original alert time rather than dropping them from the view');
   }
 
   const sharedStore = {};

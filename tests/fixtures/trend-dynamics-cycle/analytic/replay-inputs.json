@@ -1,0 +1,103 @@
+{
+  "contractVersion": "tdc-replay-fixture/v1",
+  "fixtureContract": {
+    "posture": "analytic",
+    "ownerPublicationAllowed": false,
+    "purpose": "availability-and-vintage-changing-replay-inputs",
+    "note": "Inputs only. Availability times, vintages, and values are declared here; every replay outcome, delay, and rate is recomputed by production code and checked against the specification, never read out of this file."
+  },
+  "unitId": "index-points",
+  "cases": [
+    {
+      "id": "provisional-peak",
+      "scenarioId": "SCN-006-004",
+      "confirmationDelay": 3,
+      "matchTolerance": 2,
+      "targetEventIndexes": [3],
+      "observations": [
+        { "observationId": "peak-01", "observedAt": "2026-03-01T00:00:00.000Z", "availableAt": "2026-03-01T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 10 },
+        { "observationId": "peak-02", "observedAt": "2026-03-02T00:00:00.000Z", "availableAt": "2026-03-02T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 11 },
+        { "observationId": "peak-03", "observedAt": "2026-03-03T00:00:00.000Z", "availableAt": "2026-03-03T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 12 },
+        { "observationId": "peak-04", "observedAt": "2026-03-04T00:00:00.000Z", "availableAt": "2026-03-04T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 15 },
+        { "observationId": "peak-05", "observedAt": "2026-03-05T00:00:00.000Z", "availableAt": "2026-03-05T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 14 },
+        { "observationId": "peak-06", "observedAt": "2026-03-06T00:00:00.000Z", "availableAt": "2026-03-06T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 13 },
+        { "observationId": "peak-07", "observedAt": "2026-03-07T00:00:00.000Z", "availableAt": "2026-03-07T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 12 },
+        { "observationId": "peak-08", "observedAt": "2026-03-08T00:00:00.000Z", "availableAt": "2026-03-08T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 11 },
+        { "observationId": "peak-09", "observedAt": "2026-03-09T00:00:00.000Z", "availableAt": "2026-03-09T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 10 }
+      ]
+    },
+    {
+      "id": "failed-reversal",
+      "scenarioId": "SCN-006-005",
+      "confirmationDelay": 3,
+      "matchTolerance": 2,
+      "targetEventIndexes": [],
+      "observations": [
+        { "observationId": "reversal-01", "observedAt": "2026-04-01T00:00:00.000Z", "availableAt": "2026-04-01T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 10 },
+        { "observationId": "reversal-02", "observedAt": "2026-04-02T00:00:00.000Z", "availableAt": "2026-04-02T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 11 },
+        { "observationId": "reversal-03", "observedAt": "2026-04-03T00:00:00.000Z", "availableAt": "2026-04-03T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 14 },
+        { "observationId": "reversal-04", "observedAt": "2026-04-04T00:00:00.000Z", "availableAt": "2026-04-04T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 12 },
+        { "observationId": "reversal-05", "observedAt": "2026-04-05T00:00:00.000Z", "availableAt": "2026-04-05T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 13 },
+        { "observationId": "reversal-06", "observedAt": "2026-04-06T00:00:00.000Z", "availableAt": "2026-04-06T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 16 },
+        { "observationId": "reversal-07", "observedAt": "2026-04-07T00:00:00.000Z", "availableAt": "2026-04-07T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 18 },
+        { "observationId": "reversal-08", "observedAt": "2026-04-08T00:00:00.000Z", "availableAt": "2026-04-08T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 20 },
+        { "observationId": "reversal-09", "observedAt": "2026-04-09T00:00:00.000Z", "availableAt": "2026-04-09T00:00:00.000Z", "vintageId": "replay-vintage-a", "value": 22 }
+      ]
+    },
+    {
+      "id": "retrospective-gap",
+      "scenarioId": "SCN-006-007",
+      "confirmationDelay": 3,
+      "matchTolerance": 2,
+      "targetEventIndexes": [4],
+      "observations": [
+        { "observationId": "gap-01", "observedAt": "2026-05-01T00:00:00.000Z", "availableAt": "2026-05-01T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 8 },
+        { "observationId": "gap-02", "observedAt": "2026-05-02T00:00:00.000Z", "availableAt": "2026-05-02T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 9 },
+        { "observationId": "gap-03", "observedAt": "2026-05-03T00:00:00.000Z", "availableAt": "2026-05-03T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 11 },
+        { "observationId": "gap-04", "observedAt": "2026-05-04T00:00:00.000Z", "availableAt": "2026-05-04T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 14 },
+        { "observationId": "gap-05", "observedAt": "2026-05-05T00:00:00.000Z", "availableAt": "2026-05-05T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 18 },
+        { "observationId": "gap-06", "observedAt": "2026-05-06T00:00:00.000Z", "availableAt": "2026-05-06T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 17 },
+        { "observationId": "gap-07", "observedAt": "2026-05-07T00:00:00.000Z", "availableAt": "2026-05-07T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 16 },
+        { "observationId": "gap-08", "observedAt": "2026-05-08T00:00:00.000Z", "availableAt": "2026-05-08T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 15 },
+        { "observationId": "gap-09", "observedAt": "2026-05-09T00:00:00.000Z", "availableAt": "2026-05-09T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 14 },
+        { "observationId": "gap-10", "observedAt": "2026-05-10T00:00:00.000Z", "availableAt": "2026-05-10T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 13 }
+      ]
+    },
+    {
+      "id": "late-availability",
+      "scenarioId": "SCN-006-004",
+      "confirmationDelay": 2,
+      "matchTolerance": 2,
+      "targetEventIndexes": [],
+      "observations": [
+        { "observationId": "late-01", "observedAt": "2026-06-01T00:00:00.000Z", "availableAt": "2026-06-01T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 5 },
+        { "observationId": "late-02", "observedAt": "2026-06-02T00:00:00.000Z", "availableAt": "2026-06-02T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 6 },
+        { "observationId": "late-03", "observedAt": "2026-06-03T00:00:00.000Z", "availableAt": "2026-06-03T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 7 },
+        { "observationId": "late-04", "observedAt": "2026-06-04T00:00:00.000Z", "availableAt": "2026-06-07T00:00:00.000Z", "vintageId": "replay-vintage-c", "value": 9 },
+        { "observationId": "late-05", "observedAt": "2026-06-05T00:00:00.000Z", "availableAt": "2026-06-05T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 8 },
+        { "observationId": "late-06", "observedAt": "2026-06-06T00:00:00.000Z", "availableAt": "2026-06-06T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 7 }
+      ]
+    },
+    {
+      "id": "max-work",
+      "scenarioId": "NFR-003",
+      "confirmationDelay": 3,
+      "matchTolerance": 2,
+      "targetEventIndexes": [5],
+      "observations": [
+        { "observationId": "work-01", "observedAt": "2026-07-01T00:00:00.000Z", "availableAt": "2026-07-01T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 20 },
+        { "observationId": "work-02", "observedAt": "2026-07-02T00:00:00.000Z", "availableAt": "2026-07-02T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 22 },
+        { "observationId": "work-03", "observedAt": "2026-07-03T00:00:00.000Z", "availableAt": "2026-07-03T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 25 },
+        { "observationId": "work-04", "observedAt": "2026-07-04T00:00:00.000Z", "availableAt": "2026-07-04T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 27 },
+        { "observationId": "work-05", "observedAt": "2026-07-05T00:00:00.000Z", "availableAt": "2026-07-05T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 30 },
+        { "observationId": "work-06", "observedAt": "2026-07-06T00:00:00.000Z", "availableAt": "2026-07-06T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 34 },
+        { "observationId": "work-07", "observedAt": "2026-07-07T00:00:00.000Z", "availableAt": "2026-07-07T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 31 },
+        { "observationId": "work-08", "observedAt": "2026-07-08T00:00:00.000Z", "availableAt": "2026-07-08T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 29 },
+        { "observationId": "work-09", "observedAt": "2026-07-09T00:00:00.000Z", "availableAt": "2026-07-09T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 26 },
+        { "observationId": "work-10", "observedAt": "2026-07-10T00:00:00.000Z", "availableAt": "2026-07-10T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 24 },
+        { "observationId": "work-11", "observedAt": "2026-07-11T00:00:00.000Z", "availableAt": "2026-07-11T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 21 },
+        { "observationId": "work-12", "observedAt": "2026-07-12T00:00:00.000Z", "availableAt": "2026-07-12T00:00:00.000Z", "vintageId": "replay-vintage-b", "value": 19 }
+      ]
+    }
+  ]
+}

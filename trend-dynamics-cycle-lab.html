@@ -533,6 +533,92 @@
           confirmation window closes, so the detected observation is always later than the effective
           one. Reading the effective date as if it were known at the time is a lookahead.</p>
       </section>
+      <section id="changeReplayPanel" class="engine-panel pw" aria-labelledby="changeReplayHeading" hidden>
+        <div class="truth-label">Scope 5 change replay</div>
+        <h2 id="changeReplayHeading">Replay the actual availability cutoffs</h2>
+        <p id="replayIntro" class="outcome">Each step advances to the next cutoff at which data
+          actually arrived, then reruns the one-sided detector on only what was visible then. The
+          cutoffs are real availability times, not positions on a chart.</p>
+        <div class="engine-control">
+          <button type="button" id="replayStepBack" aria-describedby="replayIntro">Step back</button>
+          <button type="button" id="replayStep" aria-describedby="replayIntro">Step cutoff</button>
+          <button type="button" id="replayPlay" aria-describedby="replayMotionState">Play</button>
+          <button type="button" id="replayPause" aria-describedby="replayMotionState">Pause</button>
+        </div>
+        <p id="replayMotionState">Motion preference unread.</p>
+        <dl class="facts">
+          <div class="fact">
+            <dt>Cutoff</dt>
+            <dd id="replayCutoffLabel">No cutoff selected.</dd>
+          </div>
+          <div class="fact">
+            <dt>Visible observations at this cutoff</dt>
+            <dd id="replayVisibleCount">Unavailable</dd>
+          </div>
+          <div class="fact">
+            <dt>State knowable at this cutoff</dt>
+            <dd id="replayCutoffState">Unavailable</dd>
+          </div>
+        </dl>
+        <h3 id="replayEndpointHeading">One-sided and two-sided endpoints, side by side</h3>
+        <dl class="facts" aria-labelledby="replayEndpointHeading">
+          <div class="fact">
+            <dt id="replayOneSidedLabel">One-sided filtered (real time)</dt>
+            <dd id="replayOneSidedDate">Unavailable</dd>
+          </div>
+          <div class="fact">
+            <dt id="replayTwoSidedLabel">Two-sided retrospective (later data)</dt>
+            <dd id="replayTwoSidedDate">Unavailable</dd>
+          </div>
+        </dl>
+        <p id="replayVintageLimitation">Vintage limitation unread.</p>
+        <h3 id="replayInvalidatedHeading">Invalidated candidates (retained)</h3>
+        <table id="replayInvalidatedTable" aria-labelledby="replayInvalidatedHeading">
+          <caption>Candidates later erased by the trend. They stay here with their original alert
+            time so the false-alarm rate keeps its denominator.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Record</th>
+              <th scope="col">Original alert</th>
+              <th scope="col">Superseded state</th>
+              <th scope="col">Outcome</th>
+            </tr>
+          </thead>
+          <tbody id="replayInvalidatedBody"></tbody>
+        </table>
+        <h3 id="replayTimelineHeading">Event timeline</h3>
+        <table id="replayTimelineTable" aria-labelledby="replayTimelineHeading">
+          <caption>One row per actual availability cutoff, with what was knowable at that moment.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Cutoff</th>
+              <th scope="col">Visible observations</th>
+              <th scope="col">State</th>
+            </tr>
+          </thead>
+          <tbody id="replayTimelineBody"></tbody>
+        </table>
+        <h3 id="replayWorkHeading">Fixed-work computation</h3>
+        <div class="engine-control">
+          <button type="button" id="replayRunWork" aria-describedby="replayWorkHeading">Run maximum work plan</button>
+          <button type="button" id="replayCancelWork" aria-describedby="replayWorkHeading">Cancel</button>
+        </div>
+        <p id="replayProgressText" role="status">No run has started.</p>
+        <dl class="facts">
+          <div class="fact">
+            <dt>Run id</dt>
+            <dd id="replayRunId">None</dd>
+          </div>
+          <div class="fact">
+            <dt>Active family</dt>
+            <dd id="replayActiveFamily">None</dd>
+          </div>
+          <div class="fact">
+            <dt>Commit state</dt>
+            <dd id="replayCommitState">Nothing has been committed.</dd>
+          </div>
+        </dl>
+      </section>
       <section id="enginePanel" class="engine-panel pw" aria-labelledby="engineHeading" hidden>
         <div class="truth-label">Scope 2 computed evidence</div>
         <h2 id="engineHeading">Trend, dynamics, change, and sensitivity</h2>
@@ -3419,11 +3505,235 @@
       });
     }
 
+    /* ── Scope 5: tdc-history/v1 persistence ──────────────────────────────────────────────
+       Persistence is only worth something if what comes back is what went in. Every write is
+       read back and compared byte-for-byte before it is called a success. Capacity and
+       corruption are explicit degradations: the tool refuses and says so rather than trimming
+       the record or quietly reconstructing it, because a silently repaired audit trail is
+       worse than an absent one. */
+
+    function tdcHistoryDocument(records) {
+      if (!Array.isArray(records)) {
+        return Object.freeze({ ok: false, errors: Object.freeze([tdcError('TDC-HISTORY-STORAGE', '$.records', records, 'array of turning records', 'History requires an array of retained records')]) });
+      }
+      return Object.freeze({ ok: true, document: Object.freeze({ contractVersion: 'tdc-history/v1', records: Object.freeze(records.slice()) }) });
+    }
+
+    function tdcValidateHistoryDocument(document) {
+      var errors = [];
+      if (!tdcIsPlainObject(document).value) {
+        return Object.freeze({ ok: false, errors: Object.freeze([tdcError('TDC-HISTORY-CORRUPTION', '$', document, 'plain history document', 'History document is not an object')]) });
+      }
+      if (document.contractVersion !== 'tdc-history/v1') errors.push(tdcError('TDC-HISTORY-CORRUPTION', '$.contractVersion', document.contractVersion, 'tdc-history/v1', 'History contract version is unknown'));
+      if (!Array.isArray(document.records)) errors.push(tdcError('TDC-HISTORY-CORRUPTION', '$.records', document.records, 'array of records', 'History records are not an array'));
+      // The four identity fields are what make a record auditable. A record that lost one of
+      // them can no longer prove what was known when, so it is corruption, not a warning.
+      if (Array.isArray(document.records)) {
+        document.records.forEach(function (record, index) {
+          var at = '$.records[' + index + ']';
+          if (!tdcIsPlainObject(record).value) { errors.push(tdcError('TDC-HISTORY-CORRUPTION', at, record, 'plain turning record', 'History record is not an object')); return; }
+          ['recordId', 'cutoff', 'alertAt'].forEach(function (key) {
+            if (typeof record[key] !== 'string' || !record[key]) errors.push(tdcError('TDC-HISTORY-CORRUPTION', at + '.' + key, record[key], 'non-empty string', 'Immutable record identity is missing'));
+          });
+          if (!Number.isFinite(record.effectiveIndex)) errors.push(tdcError('TDC-HISTORY-CORRUPTION', at + '.effectiveIndex', record.effectiveIndex, 'finite index', 'Immutable effective index is missing'));
+          if (!Array.isArray(record.revisions)) { errors.push(tdcError('TDC-HISTORY-CORRUPTION', at + '.revisions', record.revisions, 'append-only revision array', 'Revision list is missing')); return; }
+          record.revisions.forEach(function (revision, revisionIndex) {
+            var revisionAt = at + '.revisions[' + revisionIndex + ']';
+            if (!tdcIsPlainObject(revision).value || typeof revision.revisedAt !== 'string' || typeof revision.outcome !== 'string' || typeof revision.supersedesState !== 'string') {
+              errors.push(tdcError('TDC-HISTORY-CORRUPTION', revisionAt, revision, 'revision with revisedAt, outcome, and superseded state', 'Revision entry is incomplete'));
+            }
+          });
+        });
+      }
+      return Object.freeze({ ok: errors.length === 0, errors: Object.freeze(errors) });
+    }
+
+    function tdcPersistHistory(document, storage, limits) {
+      var validation = tdcValidateHistoryDocument(document);
+      if (!validation.ok) return Object.freeze({ ok: false, bytes: 0, errors: validation.errors });
+      if (!storage || typeof storage.getItem !== 'function' || typeof storage.setItem !== 'function') {
+        return Object.freeze({ ok: false, bytes: 0, errors: Object.freeze([tdcError('TDC-HISTORY-STORAGE', '$.storage', null, 'storage with getItem and setItem', 'No usable history storage is available')]) });
+      }
+      var payload = JSON.stringify(document);
+      var maximum = limits && Number.isFinite(limits.maxHistoryBytes) ? limits.maxHistoryBytes : null;
+      // Refuse BEFORE writing. Discovering the overflow after a partial write is what produces
+      // a half-written history that then reads back as corruption.
+      if (maximum !== null && payload.length > maximum) {
+        return Object.freeze({ ok: false, bytes: payload.length, errors: Object.freeze([tdcError('TDC-HISTORY-CAPACITY', '$.records', payload.length, 'at most ' + maximum + ' bytes', 'History exceeds its configured capacity and was not written')]) });
+      }
+      try {
+        storage.setItem('tdc-history/v1', payload);
+      } catch (error) {
+        return Object.freeze({ ok: false, bytes: payload.length, errors: Object.freeze([tdcError('TDC-HISTORY-STORAGE', '$.storage', error && error.name ? error.name : 'write-failed', 'successful write', 'History storage refused the write')]) });
+      }
+      var readBack = null;
+      try { readBack = storage.getItem('tdc-history/v1'); } catch (error) { readBack = null; }
+      if (readBack !== payload) {
+        return Object.freeze({ ok: false, bytes: payload.length, errors: Object.freeze([tdcError('TDC-HISTORY-STORAGE', '$.storage', readBack === null ? null : readBack.length, 'byte-identical read-back', 'History did not read back as written')]) });
+      }
+      return Object.freeze({ ok: true, bytes: payload.length, errors: Object.freeze([]) });
+    }
+
+    function tdcLoadHistory(storage) {
+      if (!storage || typeof storage.getItem !== 'function') {
+        return Object.freeze({ ok: false, document: null, errors: Object.freeze([tdcError('TDC-HISTORY-STORAGE', '$.storage', null, 'storage with getItem', 'No usable history storage is available')]) });
+      }
+      var raw = null;
+      try { raw = storage.getItem('tdc-history/v1'); } catch (error) { raw = null; }
+      // Absent is not corrupt. A first run legitimately has no history.
+      if (raw === null || raw === undefined || raw === '') return tdcHistoryDocument([]);
+      var parsed = null;
+      try { parsed = JSON.parse(raw); } catch (error) {
+        return Object.freeze({ ok: false, document: null, errors: Object.freeze([tdcError('TDC-HISTORY-CORRUPTION', '$', 'unparseable', 'valid tdc-history/v1 JSON', 'Stored history could not be parsed and was left untouched')]) });
+      }
+      var validation = tdcValidateHistoryDocument(parsed);
+      if (!validation.ok) return Object.freeze({ ok: false, document: null, errors: validation.errors });
+      return Object.freeze({ ok: true, document: parsed, errors: Object.freeze([]) });
+    }
+
+    /* ── Scope 5: fixed-work jobs and browser scheduling ──────────────────────────────────
+       One job per slice, never an elapsed-time budget: a slower machine must not change which
+       observations land in which batch, or the arithmetic stops being reproducible. The run id
+       is monotonic so a slice belonging to a superseded run can always be recognised as stale,
+       and cancellation is checked BOTH before and after the work so a unit that was cancelled
+       while it ran contributes nothing. */
+
+    function tdcCreateRunState() {
+      return { nextRunId: 1, activeRunId: null, cancelledRunIds: [] };
+    }
+
+    function tdcCancelRun(runState, runId, reason) {
+      if (!runState || !Number.isFinite(runId)) return false;
+      if (runState.cancelledRunIds.indexOf(runId) < 0) runState.cancelledRunIds.push(runId);
+      if (runState.activeRunId === runId) runState.activeRunId = null;
+      runState.lastCancelReason = typeof reason === 'string' ? reason : 'unspecified';
+      return true;
+    }
+
+    function tdcStartRun(runState, plan) {
+      if (!runState || !plan || plan.ok !== true) return null;
+      // A new valid control change cancels the prior run before a new plan exists, so two runs
+      // can never both believe they own the visible result.
+      if (Number.isFinite(runState.activeRunId)) tdcCancelRun(runState, runState.activeRunId, 'superseded');
+      var runId = runState.nextRunId;
+      runState.nextRunId += 1;
+      runState.activeRunId = runId;
+      return Object.freeze({ runId: runId, requestDigest: plan.requestDigest, totalWorkUnits: plan.totalWorkUnits });
+    }
+
+    function tdcRunCancelled(runState, runId) {
+      if (!runState) return true;
+      return runState.cancelledRunIds.indexOf(runId) >= 0 || runState.activeRunId !== runId;
+    }
+
+    function tdcCreateRunner(plan, runId) {
+      return {
+        runId: runId,
+        jobs: plan && plan.ok === true ? plan.jobs : [],
+        index: 0,
+        totalWorkUnits: plan && plan.ok === true ? plan.totalWorkUnits : 0,
+        completedWorkUnits: 0,
+        outputs: [],
+        activeFamily: null,
+        finished: !(plan && plan.ok === true && plan.jobs.length > 0),
+        complete: false,
+        cancelled: false
+      };
+    }
+
+    function tdcRunSlice(runner, runState, executeJob) {
+      if (!runner || runner.finished) return runner;
+      // Check BEFORE the unit: this is what makes "cancel stops before the next unit" true.
+      if (tdcRunCancelled(runState, runner.runId)) {
+        runner.cancelled = true;
+        runner.finished = true;
+        runner.activeFamily = null;
+        return runner;
+      }
+      var job = runner.jobs[runner.index];
+      runner.activeFamily = job.family;
+      var output = executeJob(job, runner.index);
+      // Check AFTER the unit: work performed while the flag was being set is discarded, so a
+      // cancelled run cannot leave a half-recorded output behind.
+      if (tdcRunCancelled(runState, runner.runId)) {
+        runner.cancelled = true;
+        runner.finished = true;
+        runner.activeFamily = null;
+        return runner;
+      }
+      runner.outputs.push(output);
+      runner.completedWorkUnits += job.count;
+      runner.index += 1;
+      if (runner.index >= runner.jobs.length) {
+        runner.finished = true;
+        runner.complete = true;
+        runner.activeFamily = null;
+      }
+      return runner;
+    }
+
+    function tdcRunProgress(runner) {
+      if (!runner) return Object.freeze({ runId: null, completedWorkUnits: 0, totalWorkUnits: 0, fraction: 0, activeFamily: null });
+      return Object.freeze({
+        runId: runner.runId,
+        completedWorkUnits: runner.completedWorkUnits,
+        totalWorkUnits: runner.totalWorkUnits,
+        fraction: runner.totalWorkUnits > 0 ? runner.completedWorkUnits / runner.totalWorkUnits : 0,
+        activeFamily: runner.activeFamily
+      });
+    }
+
+    /* Atomic publication. A cancelled, failed, or superseded run cannot touch the visible
+       result, the history, or the owner read; the prior complete result simply stays. */
+    function tdcCommitRun(runtime, runner, runState, result) {
+      if (!runtime || !runner || !runner.complete || runner.cancelled || tdcRunCancelled(runState, runner.runId)) {
+        return Object.freeze({ committed: false, errorCode: 'TDC-COMPUTE-CANCELLED' });
+      }
+      runtime.lastCompleteResult = result;
+      return Object.freeze({ committed: true, errorCode: null });
+    }
+
+    /* ── Scope 5: replay timeline model ───────────────────────────────────────────────────
+       The accessible text equivalent of the replay control, built from the SAME records the
+       chart reads. Invalidated candidates stay in the view with their original alert time,
+       because a timeline that quietly drops its false alarms is a highlight reel. */
+    function tdcBuildReplayTimeline(replay, observations) {
+      if (!replay || replay.ok !== true || !Array.isArray(observations)) {
+        return Object.freeze({ ok: false, rows: Object.freeze([]), invalidated: Object.freeze([]), errors: Object.freeze([tdcError('TDC-REPLAY-INPUT', '$.replay', null, 'complete replay and observations', 'Replay timeline requires a complete replay')]) });
+      }
+      var rows = replay.steps.map(function (step, index) {
+        return Object.freeze({ cutoffIndex: index, cutoff: step.cutoff, visibleCount: step.visibleCount, state: step.state });
+      });
+      var invalidated = replay.records.filter(function (record) { return record.state === 'invalidated'; }).map(function (record) {
+        var revision = record.revisions[record.revisions.length - 1];
+        return Object.freeze({
+          recordId: record.recordId,
+          kind: record.kind,
+          alertAt: record.alertAt,
+          cutoff: record.cutoff,
+          estimatedEffectiveAt: record.estimatedEffectiveAt,
+          outcome: revision ? revision.outcome : record.outcome,
+          revisedAt: revision ? revision.revisedAt : null,
+          supersedesState: revision ? revision.supersedesState : null
+        });
+      });
+      var confirmed = replay.records.filter(function (record) { return record.state === 'confirmed'; }).map(function (record) {
+        return Object.freeze({
+          recordId: record.recordId,
+          kind: record.kind,
+          estimatedEffectiveAt: record.estimatedEffectiveAt,
+          firstDetectedAt: record.firstDetectedAt,
+          confirmedAt: record.confirmedAt,
+          delayObservations: record.delayObservations
+        });
+      });
+      return Object.freeze({ ok: true, rows: Object.freeze(rows), confirmed: Object.freeze(confirmed), invalidated: Object.freeze(invalidated), errors: Object.freeze([]) });
+    }
+
     /* Draws the observed series and marks the turning record's effective and detected points
        separately, so the confirmation lag is visible rather than implied. Returns false when
        there is nothing to draw, so the caller leaves the text equivalent standing. */
-    function tdcDrawTrendChart(observations, turningRecord) {
-      var canvas = document.getElementById('trendChart');
+    function tdcDrawTrendChart(observations, turningRecord) {      var canvas = document.getElementById('trendChart');
       if (!canvas || typeof canvas.getContext !== 'function' || !Array.isArray(observations) || observations.length < 2) return false;
       var context = canvas.getContext('2d');
       if (!context) return false;
@@ -3745,7 +4055,8 @@
         'climate-context': Object.freeze({ path: 'tests/fixtures/trend-dynamics-cycle/source-qualified/climate-context.json', label: 'TEST FIXTURE - SOURCE-QUALIFIED' }),
         'invalid-inputs': Object.freeze({ path: 'tests/fixtures/trend-dynamics-cycle/invalid/missing-stale-incompatible.json', label: 'TEST FIXTURE - INVALID' }),
         'trend-engine': Object.freeze({ path: 'tests/fixtures/trend-dynamics-cycle/analytic/trend-engine-inputs.json', label: 'TEST FIXTURE - ANALYTIC' }),
-        'cycle-engine': Object.freeze({ path: 'tests/fixtures/trend-dynamics-cycle/analytic/cycle-engine-inputs.json', label: 'TEST FIXTURE - ANALYTIC' })
+        'cycle-engine': Object.freeze({ path: 'tests/fixtures/trend-dynamics-cycle/analytic/cycle-engine-inputs.json', label: 'TEST FIXTURE - ANALYTIC' }),
+        replay: Object.freeze({ path: 'tests/fixtures/trend-dynamics-cycle/analytic/replay-inputs.json', label: 'TEST FIXTURE - ANALYTIC' })
       });
       if (fixtureId === null) return Object.freeze({ ok: true, fixture: false, fixtureId: null, caseId: null, profileId: null, clock: Number.isFinite(Date.parse(clock)) ? clock : new Date().toISOString() });
       if (!Object.prototype.hasOwnProperty.call(fixtures, fixtureId)) return Object.freeze({ ok: false, error: tdcError('TDC-FIXTURE-UNKNOWN', '$.fixture', fixtureId, Object.keys(fixtures), 'Unknown fixture id') });
@@ -3760,7 +4071,11 @@
         var cycleCaseIds = ['harmonics', 'irregularity', 'rolling-drift', 'insufficient-history', 'break-contamination', 'broad-grid', 'frozen-lag', 'event-study'];
         if (cycleCaseIds.indexOf(caseId) < 0) return Object.freeze({ ok: false, error: tdcError('TDC-FIXTURE-CASE', '$.case', caseId, cycleCaseIds, 'Unknown analytic cycle-engine case') });
       }
-      return Object.freeze({ ok: true, fixture: true, fixtureId: fixtureId, caseId: fixtureId === 'trend-engine' || fixtureId === 'cycle-engine' ? caseId : null, profileId: fixtureId === 'trend-engine' ? profileId : null, clock: clock, path: fixtures[fixtureId].path, label: fixtures[fixtureId].label });
+      if (fixtureId === 'replay') {
+        var replayCaseIds = ['provisional-peak', 'failed-reversal', 'retrospective-gap', 'late-availability', 'max-work'];
+        if (replayCaseIds.indexOf(caseId) < 0) return Object.freeze({ ok: false, error: tdcError('TDC-FIXTURE-CASE', '$.case', caseId, replayCaseIds, 'Unknown analytic replay case') });
+      }
+      return Object.freeze({ ok: true, fixture: true, fixtureId: fixtureId, caseId: fixtureId === 'trend-engine' || fixtureId === 'cycle-engine' || fixtureId === 'replay' ? caseId : null, profileId: fixtureId === 'trend-engine' ? profileId : null, clock: clock, path: fixtures[fixtureId].path, label: fixtures[fixtureId].label });
     }
 
     function tdcFetchJson(path, resource) {
@@ -3861,6 +4176,261 @@
       tdcSetText('endpointPosture', 'Unavailable');
       tdcSetText('publicationState', selection && selection.fixture ? 'TEST FIXTURE: owner-read publication disabled.' : 'No owner read has been published.');
       window.__TDC_DIAGNOSTICS__ = Object.freeze({ fixtureId: selection && selection.fixtureId || null, ownerReadPublished: false, foundation: foundation });
+    }
+
+    /* ── Scope 5 production surface: Power Change Replay ──────────────────────────────────
+       The panel steps through ACTUAL availability cutoffs. Everything it shows is derived from
+       one replay of the selected case, so the chart, the tables and the endpoint labels cannot
+       disagree with one another. Play stops by itself whenever the knowable state changes,
+       because sliding past the exact cutoff where a candidate appeared or died is precisely
+       the moment a reader needs to see. */
+    function tdcRenderReplay(fixture, config, configIndex, selection) {
+      var fixtureExact = tdcHasExactKeys(fixture, ['contractVersion', 'fixtureContract', 'unitId', 'cases'], '$.fixture');
+      if (!fixtureExact.ok || fixture.contractVersion !== 'tdc-replay-fixture/v1' || !tdcIsPlainObject(fixture.fixtureContract).value
+        || fixture.fixtureContract.posture !== 'analytic' || fixture.fixtureContract.ownerPublicationAllowed !== false
+        || !Array.isArray(fixture.cases)) {
+        return tdcRenderInvalid([tdcError('TDC-DATA-SCHEMA', '$.fixture', fixture, 'closed analytic non-publishing replay fixture', 'Scope 5 replay fixture contract is invalid')], selection, 'Scope 5 replay fixture failed its contract');
+      }
+      var replayCase = fixture.cases.find(function (entry) { return entry.id === selection.caseId; });
+      if (!replayCase) return tdcRenderInvalid([tdcError('TDC-FIXTURE-CASE', '$.case', selection.caseId, fixture.cases.map(function (entry) { return entry.id; }), 'Replay case is unavailable')], selection, 'Scope 5 replay selection is unavailable');
+
+      var replay = tdcWalkForward(replayCase.observations, { confirmationDelay: replayCase.confirmationDelay });
+      if (!replay.ok) return tdcRenderInvalid(replay.errors, selection, 'Scope 5 replay could not run');
+      var timeline = tdcBuildReplayTimeline(replay, replayCase.observations);
+      var anatomy = tdcRetrospectiveAnatomy(replayCase.observations, replay);
+      var metrics = tdcReplayMetrics(replay, replayCase.targetEventIndexes, replayCase.matchTolerance);
+
+      document.getElementById('changeReplayPanel').hidden = false;
+      tdcSetText('truthState', 'DEGRADED');
+      tdcSetText('scenarioTitle', 'As-of replay of ' + replayCase.id);
+      tdcSetText('scenarioOutcome', 'The one-sided detector re-ran at every actual availability cutoff. Retained candidates, appended revisions, and the retrospective comparison all come from that single replay.');
+      tdcSetText('endpointPosture', 'one-sided-filtered replay; retrospective anatomy labeled separately');
+      tdcSetText('publicationState', 'TEST FIXTURE: owner-read publication disabled.');
+      tdcSetText('cycleType', 'Not evaluated in Scope 5');
+      tdcSetText('cycleState', 'Unavailable');
+      tdcSetText('cycleDetails', 'The replay evaluates change timing only. It emits no seasonal or cycle conclusion.');
+      tdcSetText('methodEligibility', 'Online detection: one-sided-filtered\nRetrospective anatomy: retrospective-smoothed\nConfirmation delay: ' + replayCase.confirmationDelay + ' observations');
+      tdcSetText('qualityReasons', 'fixturePosture=analytic\nownerPublicationAllowed=false\ncutoffs=' + replay.steps.length
+        + '\nrecords=' + replay.records.length
+        + '\nprecision=' + (metrics && metrics.precision === null ? 'undefined (nothing was predicted)' : metrics ? metrics.precision : 'unavailable')
+        + '\nrecall=' + (metrics ? metrics.recall : 'unavailable')
+        + '\nfalseAlarmRate=' + (metrics ? metrics.falseAlarmRate : 'unavailable'));
+
+      // The retrospective column may legitimately be EARLIER. It is shown beside the real-time
+      // date, never written into it.
+      var confirmedRecord = replay.records.filter(function (record) { return record.state === 'confirmed'; })[0] || null;
+      tdcSetText('replayOneSidedDate', confirmedRecord
+        ? confirmedRecord.firstDetectedAt.slice(0, 10) + ' (first detection; confirmed ' + (confirmedRecord.confirmedAt ? confirmedRecord.confirmedAt.slice(0, 10) : 'pending') + ')'
+        : 'No candidate has been confirmed in real time.');
+      tdcSetText('replayTwoSidedDate', anatomy && anatomy.state === 'available'
+        ? anatomy.retrospectiveEffectiveAt.slice(0, 10) + ' (' + anatomy.retrospectiveKind + ', two-sided)'
+        : 'Unavailable');
+      tdcSetText('replayVintageLimitation', anatomy && anatomy.state === 'available'
+        ? anatomy.limitation
+        : 'The retrospective date uses observations that were not available in real time and cannot be used to claim earlier warning.');
+      tdcSetText('replayEffective', confirmedRecord ? confirmedRecord.kind + ' at ' + confirmedRecord.estimatedEffectiveAt.slice(0, 10) : 'No turning record is active.');
+      tdcSetText('replayDetected', confirmedRecord ? confirmedRecord.firstDetectedAt.slice(0, 10) + ' (' + confirmedRecord.delayObservations + ' observations after effective)' : 'No turning record is active.');
+      tdcSetText('replayRetrospective', anatomy && anatomy.state === 'available' ? anatomy.endpointPosture : 'Unavailable');
+
+      var invalidatedBody = document.getElementById('replayInvalidatedBody');
+      invalidatedBody.textContent = '';
+      timeline.invalidated.forEach(function (entry) {
+        var row = document.createElement('tr');
+        [entry.recordId + ' (' + entry.kind + ')', entry.alertAt.slice(0, 10), entry.supersedesState || 'unknown', entry.outcome].forEach(function (text) {
+          var cell = document.createElement('td');
+          cell.appendChild(document.createTextNode(text));
+          row.appendChild(cell);
+        });
+        invalidatedBody.appendChild(row);
+      });
+
+      var timelineBody = document.getElementById('replayTimelineBody');
+      timelineBody.textContent = '';
+      timeline.rows.forEach(function (row) {
+        var tr = document.createElement('tr');
+        [row.cutoff.slice(0, 10), String(row.visibleCount), row.state].forEach(function (text) {
+          var cell = document.createElement('td');
+          cell.appendChild(document.createTextNode(text));
+          tr.appendChild(cell);
+        });
+        timelineBody.appendChild(tr);
+      });
+
+      var diagnostics = {
+        fixtureId: selection.fixtureId,
+        caseId: selection.caseId,
+        ownerReadPublished: false,
+        cutoffCount: replay.steps.length,
+        cutoffIndex: 0,
+        playing: false,
+        pausedReason: null,
+        reducedMotion: false,
+        recordStates: replay.records.map(function (record) { return { recordId: record.recordId, state: record.state, alertAt: record.alertAt, cutoff: record.cutoff, effectiveIndex: record.effectiveIndex, revisions: record.revisions.length }; }),
+        invalidatedCount: timeline.invalidated.length,
+        retrospectiveEffectiveAt: anatomy && anatomy.state === 'available' ? anatomy.retrospectiveEffectiveAt : null,
+        realTimeDetectedAt: anatomy && anatomy.state === 'available' ? anatomy.realTimeDetectedAt : null,
+        metrics: metrics,
+        history: null,
+        run: null,
+        progressFractions: [],
+        executedJobIds: [],
+        committedResultId: null,
+        publications: 0,
+        historyWrites: 0
+      };
+      window.__TDC_REPLAY__ = diagnostics;
+      window.__TDC_DIAGNOSTICS__ = Object.freeze({ fixtureId: selection.fixtureId, caseId: selection.caseId, ownerReadPublished: false, replay: Object.freeze({ cutoffs: replay.steps.length, records: replay.records.length }) });
+
+      /* History persistence with read-back validation. A degraded write is stated on the page;
+         it never silently drops records or rewrites what is already stored. */
+      var historyStorage = null;
+      try { historyStorage = window.localStorage; } catch (error) { historyStorage = null; }
+      var historyDocument = tdcHistoryDocument(replay.records);
+      if (historyDocument.ok && historyStorage) {
+        var persisted = tdcPersistHistory(historyDocument.document, historyStorage, { maxHistoryBytes: config.limits.historyRecordLimit * 4096 });
+        diagnostics.history = { persisted: persisted.ok, bytes: persisted.bytes, errorCodes: persisted.errors.map(function (error) { return error.code; }) };
+        if (persisted.ok) diagnostics.historyWrites += 1;
+        tdcSetText('replayCommitState', persisted.ok
+          ? 'History persisted and read back byte-identically (' + persisted.bytes + ' bytes).'
+          : persisted.errors[0].code + ': history was not written and the existing history is untouched.');
+      } else {
+        diagnostics.history = { persisted: false, bytes: 0, errorCodes: ['TDC-HISTORY-STORAGE'] };
+        tdcSetText('replayCommitState', 'TDC-HISTORY-STORAGE: no history storage is available; nothing was written.');
+      }
+
+      /* Cutoff stepping. `showCutoff` is the ONE place the visible cutoff changes, so the
+         readouts, the announced state, and the diagnostics can never drift apart. */
+      var cutoffIndex = 0;
+      var playTimer = null;
+      var reducedMotion = false;
+      try { reducedMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (error) { reducedMotion = false; }
+      diagnostics.reducedMotion = reducedMotion;
+
+      function showCutoff(index) {
+        cutoffIndex = Math.max(0, Math.min(replay.steps.length - 1, index));
+        var step = replay.steps[cutoffIndex];
+        diagnostics.cutoffIndex = cutoffIndex;
+        tdcSetText('replayCutoffLabel', step.cutoff.slice(0, 10) + ' (cutoff ' + (cutoffIndex + 1) + ' of ' + replay.steps.length + ')');
+        tdcSetText('replayVisibleCount', String(step.visibleCount));
+        tdcSetText('replayCutoffState', step.state);
+      }
+
+      function stopPlaying(reason) {
+        if (playTimer !== null) { window.clearTimeout(playTimer); playTimer = null; }
+        diagnostics.playing = false;
+        diagnostics.pausedReason = reason;
+        tdcSetText('replayMotionState', reducedMotion
+          ? 'Reduced motion is requested, so automatic play is disabled. Step the cutoffs manually.'
+          : 'Paused: ' + reason);
+      }
+
+      function advance() {
+        if (cutoffIndex >= replay.steps.length - 1) { stopPlaying('the last actual cutoff has been reached'); return; }
+        var previousState = replay.steps[cutoffIndex].state;
+        showCutoff(cutoffIndex + 1);
+        // Pause on any transition: an alert, a confirmation, or an invalidation is exactly what
+        // the reader opened the replay to see, so sliding past it silently defeats the control.
+        if (replay.steps[cutoffIndex].state !== previousState) {
+          stopPlaying('the knowable state changed to ' + replay.steps[cutoffIndex].state);
+          return;
+        }
+        if (diagnostics.playing) playTimer = window.setTimeout(advance, 120);
+      }
+
+      document.getElementById('replayStep').onclick = function () { stopPlaying('stepped manually'); showCutoff(cutoffIndex + 1); };
+      document.getElementById('replayStepBack').onclick = function () { stopPlaying('stepped manually'); showCutoff(cutoffIndex - 1); };
+      document.getElementById('replayPause').onclick = function () { stopPlaying('paused by the reader'); };
+      document.getElementById('replayPlay').onclick = function () {
+        if (reducedMotion) { stopPlaying('automatic play is disabled by the reduced-motion preference'); return; }
+        diagnostics.playing = true;
+        diagnostics.pausedReason = null;
+        tdcSetText('replayMotionState', 'Playing through the actual availability cutoffs.');
+        playTimer = window.setTimeout(advance, 120);
+      };
+      if (reducedMotion) {
+        document.getElementById('replayPlay').disabled = true;
+        tdcSetText('replayMotionState', 'Reduced motion is requested, so automatic play is disabled. Step the cutoffs manually.');
+      } else {
+        tdcSetText('replayMotionState', 'Automatic play is available. It pauses by itself whenever the knowable state changes.');
+      }
+      showCutoff(0);
+
+      /* Fixed-work run over the MAXIMUM configured workload. One job per slice; the flag is
+         read before and after each unit, so cancel stops before the next unit begins and a unit
+         interrupted mid-flight contributes nothing. */
+      var runState = tdcCreateRunState();
+      var runtime = { lastCompleteResult: Object.freeze({ resultId: 'replay-prior-result' }) };
+      diagnostics.committedResultId = runtime.lastCompleteResult.resultId;
+      var runWorkButton = document.getElementById('replayRunWork');
+      var cancelWorkButton = document.getElementById('replayCancelWork');
+      var cancelInitiator = null;
+      var activeRunner = null;
+
+      function renderProgress(runner) {
+        var progress = tdcRunProgress(runner);
+        diagnostics.progressFractions.push(progress.fraction);
+        tdcSetText('replayProgressText', 'Completed ' + progress.completedWorkUnits + ' of ' + progress.totalWorkUnits
+          + ' work units (' + Math.round(progress.fraction * 100) + '%).');
+        tdcSetText('replayRunId', String(progress.runId));
+        tdcSetText('replayActiveFamily', progress.activeFamily === null ? 'None' : progress.activeFamily);
+      }
+
+      function runSlice() {
+        if (!activeRunner || activeRunner.finished) return;
+        tdcRunSlice(activeRunner, runState, function (job) {
+          diagnostics.executedJobIds.push(job.jobId);
+          return { jobId: job.jobId, count: job.count };
+        });
+        renderProgress(activeRunner);
+        if (!activeRunner.finished) { window.setTimeout(runSlice, 0); return; }
+        diagnostics.run = { runId: activeRunner.runId, complete: activeRunner.complete, cancelled: activeRunner.cancelled, completedWorkUnits: activeRunner.completedWorkUnits, totalWorkUnits: activeRunner.totalWorkUnits };
+        var commit = tdcCommitRun(runtime, activeRunner, runState, Object.freeze({ resultId: 'replay-run-' + activeRunner.runId }));
+        if (commit.committed) {
+          diagnostics.committedResultId = runtime.lastCompleteResult.resultId;
+          diagnostics.publications += 1;
+          tdcSetText('replayCommitState', 'Committed ' + runtime.lastCompleteResult.resultId + ' after every work unit completed.');
+        } else {
+          tdcSetText('replayCommitState', commit.errorCode + ': nothing was committed, published, or written to history, and the previous result is still shown.');
+        }
+        // Cancel returns focus to whoever asked for it, rather than dropping it on the body.
+        if (activeRunner.cancelled && cancelInitiator && typeof cancelInitiator.focus === 'function') cancelInitiator.focus();
+      }
+
+      runWorkButton.onclick = function () {
+        var workload = { replayCutoffs: config.limits.maximumRows, hypothesisCount: config.limits.maximumLag };
+        var digest = tdcStableDigest(config);
+        var request = {
+          contractVersion: 'tdc-analysis-request/v1',
+          seriesId: config.initialSelection.seriesId,
+          decisionTime: selection.clock,
+          vintageId: null,
+          transformId: config.initialSelection.transformId,
+          transformParameters: {},
+          horizonId: config.initialSelection.horizonId,
+          profileId: config.initialSelection.profileId,
+          controls: configIndex.profilesById[config.initialSelection.profileId].controls,
+          enabledCycleIds: config.initialSelection.enabledCycleIds,
+          lagRange: null,
+          selectedPowerSection: 'replay',
+          registryVersion: config.registryVersion,
+          configDigest: digest.ok ? digest.value : ''
+        };
+        var plan = tdcCreateWorkPlan(request, config, configIndex, workload);
+        if (!plan.ok) { tdcSetText('replayProgressText', 'TDC-CONFIG-REFERENCE: the maximum work plan could not be built.'); return; }
+        var run = tdcStartRun(runState, plan);
+        activeRunner = tdcCreateRunner(plan, run.runId);
+        diagnostics.progressFractions = [];
+        diagnostics.executedJobIds = [];
+        diagnostics.run = { runId: run.runId, complete: false, cancelled: false, completedWorkUnits: 0, totalWorkUnits: plan.totalWorkUnits };
+        renderProgress(activeRunner);
+        window.setTimeout(runSlice, 0);
+      };
+
+      cancelWorkButton.onclick = function () {
+        cancelInitiator = cancelWorkButton;
+        if (!activeRunner) { tdcSetText('replayProgressText', 'No run is active, so there is nothing to cancel.'); return; }
+        tdcCancelRun(runState, activeRunner.runId, 'user');
+      };
     }
 
     function tdcRenderScope2Engine(fixture, config, configIndex, selection) {
@@ -4258,6 +4828,7 @@
         if (selection.fixtureId === 'climate-context') return tdcRenderClimateContext(fixture, config, configIndex, selection);
         if (selection.fixtureId === 'trend-engine') return tdcRenderScope2Engine(fixture, config, configIndex, selection);
         if (selection.fixtureId === 'cycle-engine') return tdcRenderScope3Engine(fixture, config, configIndex, selection);
+        if (selection.fixtureId === 'replay') return tdcRenderReplay(fixture, config, configIndex, selection);
         if (selection.fixtureId === 'invalid-inputs') {
           var invalidValidation = tdcValidateSeriesEnvelope(fixture, configIndex);
           return tdcRenderInvalid(invalidValidation.errors, selection, 'Invalid inputs fail closed');

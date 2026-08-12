@@ -15,8 +15,9 @@ const sourceFixturePaths = [
 const analyticFixturePath = path.join(fixtureRoot, 'analytic/technology-lifecycle.json');
 const engineFixturePath = path.join(fixtureRoot, 'analytic/trend-engine-inputs.json');
 const cycleFixturePath = path.join(fixtureRoot, 'analytic/cycle-engine-inputs.json');
+const replayFixturePath = path.join(fixtureRoot, 'analytic/replay-inputs.json');
 const invalidFixturePath = path.join(fixtureRoot, 'invalid/missing-stale-incompatible.json');
-const requiredPaths = [htmlPath, configPath, ...sourceFixturePaths, analyticFixturePath, engineFixturePath, cycleFixturePath, invalidFixturePath];
+const requiredPaths = [htmlPath, configPath, ...sourceFixturePaths, analyticFixturePath, engineFixturePath, cycleFixturePath, replayFixturePath, invalidFixturePath];
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -139,7 +140,27 @@ const functionNames = [
   'tdcBuildAnalyticSeries',
   'tdcComputeTrendEngine',
   'tdcRunScope2Engine',
-  'tdcRunScope3Engine'
+  'tdcRunScope3Engine',
+  'tdcCreateTurningRecord',
+  'tdcAppendRevision',
+  'tdcVisibleAt',
+  'tdcDetectOneSided',
+  'tdcWalkForward',
+  'tdcRetrospectiveAnatomy',
+  'tdcReplayMetrics',
+  'tdcHistoryDocument',
+  'tdcValidateHistoryDocument',
+  'tdcPersistHistory',
+  'tdcLoadHistory',
+  'tdcCreateRunState',
+  'tdcStartRun',
+  'tdcCancelRun',
+  'tdcRunCancelled',
+  'tdcCreateRunner',
+  'tdcRunSlice',
+  'tdcRunProgress',
+  'tdcCommitRun',
+  'tdcBuildReplayTimeline'
 ];
 const extracted = functionNames.map((name) => extractFunction(html, name));
 const production = new Function(`${extracted.join('\n')}\nreturn {${functionNames.join(',')}};`)();
@@ -600,4 +621,175 @@ assert.deepEqual(declaredStepIds, actualStepIds, 'declared journey steps and act
 console.log('[tdc-validator] scope4-registration-identity=PASS route=' + registryEntry.file
   + ' model=' + simpleModel.definitionId + ' adapter=' + simpleModel.adapterId
   + ' journeys=' + toolJourneys.length + ' steps=' + declaredStepIds.length + ' excluded=no');
+
+/* ── Scope 5: replay, history, and work-plan contracts ────────────────────────────────────
+   These execute production code against the replay fixture rather than reading the page for
+   keywords. A page can carry every expected identifier and still collapse the four clocks or
+   commit a cancelled run; only running it proves otherwise. */
+
+const replayFixture = readJson(replayFixturePath);
+assert.equal(replayFixture.contractVersion, 'tdc-replay-fixture/v1', 'replay fixture must declare its contract');
+assert.equal(replayFixture.fixtureContract.posture, 'analytic', 'replay fixture must be visibly analytic');
+assert.equal(replayFixture.fixtureContract.ownerPublicationAllowed, false, 'replay fixture must not permit owner publication');
+assert.equal(replayFixture.fixtureContract.purpose, 'availability-and-vintage-changing-replay-inputs', 'replay fixture purpose must name its discriminating job');
+const replayCaseIds = replayFixture.cases.map((entry) => entry.id);
+assert.deepEqual(replayCaseIds.slice().sort(),
+  ['failed-reversal', 'late-availability', 'max-work', 'provisional-peak', 'retrospective-gap'],
+  'replay fixture must carry exactly the five declared cases');
+for (const entry of replayFixture.cases) {
+  assert.ok(Array.isArray(entry.observations) && entry.observations.length >= 6, 'replay case ' + entry.id + ' must carry a usable observation run');
+  for (const row of entry.observations) {
+    assert.match(row.observedAt, /^\d{4}-\d{2}-\d{2}T/, 'replay observation must carry an RFC3339 observation time');
+    assert.match(row.availableAt, /^\d{4}-\d{2}-\d{2}T/, 'replay observation must carry an RFC3339 availability time');
+    assert.ok(row.availableAt >= row.observedAt, 'an observation cannot become available before it was observed');
+    assert.match(row.vintageId, /\S/, 'replay observation must name its vintage');
+    assert.equal(Number.isFinite(row.value), true, 'replay observation value must be finite');
+  }
+  // A fixture that carried its own answers would make every downstream assertion circular.
+  assert.equal(/(^|\W)(expected|conclusion|verdict|precision|recall|falseAlarmRate)(\W|$)/i.test(Object.keys(entry).join(' ')), false,
+    'replay case ' + entry.id + ' must be input-only and must not embed its own outcome');
+}
+assert.ok(replayFixture.cases.some((entry) => entry.observations.some((row) => row.availableAt > row.observedAt)),
+  'the replay fixture must contain a late-arriving observation, or prefix safety is never exercised');
+assert.ok(new Set(replayFixture.cases.flatMap((entry) => entry.observations.map((row) => row.vintageId))).size > 1,
+  'the replay fixture must contain more than one vintage, or vintage selection is never exercised');
+
+const replayCases = Object.fromEntries(replayFixture.cases.map((entry) => [entry.id, entry]));
+
+/* Clocks. The one-sided detector cannot see a turn before it happened, and a confirmation
+   cannot precede the detection it confirms. */
+const validatorPeak = production.tdcWalkForward(replayCases['provisional-peak'].observations, { confirmationDelay: replayCases['provisional-peak'].confirmationDelay });
+assert.equal(validatorPeak.ok, true, 'replay must run over the provisional-peak case');
+const validatorConfirmed = validatorPeak.records.find((record) => record.state === 'confirmed');
+assert.ok(validatorConfirmed, 'a peak that holds past the confirmation delay must reach confirmed');
+assert.ok(validatorConfirmed.estimatedEffectiveAt < validatorConfirmed.firstDetectedAt, 'the effective time must precede the first detection');
+assert.ok(validatorConfirmed.confirmedAt >= validatorConfirmed.firstDetectedAt, 'confirmation cannot precede the detection it confirms');
+assert.ok(validatorConfirmed.revisions.length >= 1, 'promotion to confirmed must arrive as an appended revision');
+
+/* Append-only revisions and frozen parameters. */
+const validatorOriginal = production.tdcCreateTurningRecord({
+  recordId: 'validator-1', cutoff: '2026-03-05T00:00:00.000Z', parameters: { confirmationDelay: 3 },
+  alertAt: '2026-03-05T00:00:00.000Z', effectiveIndex: 3, estimatedEffectiveAt: '2026-03-04T00:00:00.000Z',
+  firstDetectedAt: '2026-03-05T00:00:00.000Z'
+});
+const validatorRevised = production.tdcAppendRevision(validatorOriginal, {
+  revisedAt: '2026-03-09T00:00:00.000Z', reason: 'later data', outcome: 'false-alarm', state: 'invalidated'
+});
+assert.equal(validatorOriginal.state, 'provisional', 'appending a revision must not mutate the record the caller already holds');
+assert.equal(validatorOriginal.revisions.length, 0, 'the original record must keep an empty revision list');
+assert.equal(validatorRevised.cutoff, validatorOriginal.cutoff, 'the cutoff is immutable across revision');
+assert.equal(validatorRevised.alertAt, validatorOriginal.alertAt, 'the alert time is immutable across revision');
+assert.deepEqual(validatorRevised.parameters, validatorOriginal.parameters, 'the frozen parameter state is immutable across revision');
+assert.equal(validatorRevised.effectiveIndex, validatorOriginal.effectiveIndex, 'the effective index is immutable across revision');
+assert.equal(Object.isFrozen(validatorOriginal) && Object.isFrozen(validatorRevised), true, 'turning records must be frozen');
+
+/* History: read-back validation, explicit capacity and corruption, and no silent repair. */
+const validatorHistory = production.tdcHistoryDocument(validatorPeak.records);
+assert.equal(validatorHistory.ok, true, 'the history document must be constructible from retained records');
+assert.equal(validatorHistory.document.contractVersion, 'tdc-history/v1', 'history must declare tdc-history/v1');
+assert.equal(production.tdcValidateHistoryDocument(validatorHistory.document).ok, true, 'the produced history must satisfy its own validator');
+const makeValidatorStore = () => {
+  const cells = {};
+  return { cells, getItem: (key) => (Object.prototype.hasOwnProperty.call(cells, key) ? cells[key] : null), setItem: (key, value) => { cells[key] = String(value); } };
+};
+const validatorStore = makeValidatorStore();
+assert.equal(production.tdcPersistHistory(validatorHistory.document, validatorStore, { maxHistoryBytes: 1000000 }).ok, true, 'a valid history must persist');
+assert.deepEqual(production.tdcLoadHistory(validatorStore).document, validatorHistory.document, 'persisted history must read back identically');
+const capacityStore = makeValidatorStore();
+const capacityRefusal = production.tdcPersistHistory(validatorHistory.document, capacityStore, { maxHistoryBytes: 10 });
+assert.equal(capacityRefusal.ok, false, 'an oversized history must be refused');
+assert.equal(capacityRefusal.errors.some((error) => error.code === 'TDC-HISTORY-CAPACITY'), true, 'capacity refusal must use the closed capacity code');
+assert.equal(capacityStore.getItem('tdc-history/v1'), null, 'a refused capacity write must not touch storage at all');
+const corruptStore = makeValidatorStore();
+corruptStore.setItem('tdc-history/v1', '{"contractVersion":"tdc-history/v1","records":[');
+const corruptLoad = production.tdcLoadHistory(corruptStore);
+assert.equal(corruptLoad.ok, false, 'unparseable history must fail loud');
+assert.equal(corruptLoad.errors.some((error) => error.code === 'TDC-HISTORY-CORRUPTION'), true, 'corruption must use the closed corruption code');
+assert.equal(corruptStore.getItem('tdc-history/v1'), '{"contractVersion":"tdc-history/v1","records":[', 'corrupt history must be left untouched rather than repaired');
+
+/* Work plan and complete-result/publication linkage. */
+const validatorDigest = production.tdcStableDigest(config);
+const validatorRequest = {
+  contractVersion: 'tdc-analysis-request/v1', seriesId: config.initialSelection.seriesId,
+  decisionTime: '2026-07-15T12:00:00.000Z', vintageId: null, transformId: config.initialSelection.transformId,
+  transformParameters: {}, horizonId: config.initialSelection.horizonId, profileId: config.initialSelection.profileId,
+  controls: configIndex.profilesById[config.initialSelection.profileId].controls,
+  enabledCycleIds: config.initialSelection.enabledCycleIds, lagRange: null, selectedPowerSection: 'replay',
+  registryVersion: config.registryVersion, configDigest: validatorDigest.value
+};
+const maximumPlan = production.tdcCreateWorkPlan(validatorRequest, config, configIndex, { replayCutoffs: config.limits.maximumRows, hypothesisCount: config.limits.maximumLag });
+assert.equal(maximumPlan.ok, true, 'the maximum configured work plan must build');
+assert.equal(maximumPlan.totalWorkUnits, config.methods.length + config.limits.maximumRows + config.limits.maximumLag + 8,
+  'the maximum plan must account for every method, replay cutoff, hypothesis, and stability perturbation');
+assert.equal(maximumPlan.jobs.every((job) => job.count <= 32), true, 'every batch must respect the configured fixed batch size');
+
+const validatorRunState = production.tdcCreateRunState();
+const validatorRun = production.tdcStartRun(validatorRunState, maximumPlan);
+assert.equal(validatorRun.runId, 1, 'the first run id must be 1');
+const validatorSecondRun = production.tdcStartRun(validatorRunState, maximumPlan);
+assert.ok(validatorSecondRun.runId > validatorRun.runId, 'run ids must be monotonic');
+assert.equal(validatorRunState.cancelledRunIds.includes(validatorRun.runId), true, 'starting a new run must cancel the previous one');
+
+const cancelState = production.tdcCreateRunState();
+const cancelRun = production.tdcStartRun(cancelState, maximumPlan);
+const cancelRunner = production.tdcCreateRunner(maximumPlan, cancelRun.runId);
+production.tdcRunSlice(cancelRunner, cancelState, (job) => ({ jobId: job.jobId }));
+production.tdcCancelRun(cancelState, cancelRun.runId, 'user');
+let cancelledExecutions = 0;
+production.tdcRunSlice(cancelRunner, cancelState, (job) => { cancelledExecutions += 1; return { jobId: job.jobId }; });
+assert.equal(cancelledExecutions, 0, 'cancellation must be observed before the next work unit runs');
+assert.equal(cancelRunner.cancelled && !cancelRunner.complete, true, 'a cancelled runner must be explicitly incomplete');
+const cancelRuntime = { lastCompleteResult: { resultId: 'prior' } };
+const refused = production.tdcCommitRun(cancelRuntime, cancelRunner, cancelState, { resultId: 'cancelled' });
+assert.equal(refused.committed, false, 'a cancelled run must not commit');
+assert.equal(refused.errorCode, 'TDC-COMPUTE-CANCELLED', 'commit refusal must use the closed cancellation code');
+assert.equal(cancelRuntime.lastCompleteResult.resultId, 'prior', 'a refused commit must leave the prior result in place');
+
+const completeState = production.tdcCreateRunState();
+const completeRun = production.tdcStartRun(completeState, maximumPlan);
+const completeRunner = production.tdcCreateRunner(maximumPlan, completeRun.runId);
+let completeGuard = 0;
+while (!completeRunner.finished && completeGuard < 100000) { production.tdcRunSlice(completeRunner, completeState, (job) => ({ jobId: job.jobId })); completeGuard += 1; }
+assert.equal(completeRunner.complete, true, 'an uncancelled run must complete');
+assert.equal(completeRunner.completedWorkUnits, maximumPlan.totalWorkUnits, 'a complete run must account for every declared work unit');
+const completeRuntime = { lastCompleteResult: { resultId: 'prior' } };
+assert.equal(production.tdcCommitRun(completeRuntime, completeRunner, completeState, { resultId: 'published' }).committed, true, 'only a complete current run may publish');
+assert.equal(completeRuntime.lastCompleteResult.resultId, 'published', 'a committed run must replace the visible result');
+
+/* The discriminating case. A cancelled runner is already incomplete, so refusing it proves
+   little. A run that finished every unit but was SUPERSEDED while it ran is complete and not
+   self-cancelled; only checking the run state against the currently active run catches it, and
+   that is exactly the guard a partial-publication bug removes. */
+const supersededState = production.tdcCreateRunState();
+const supersededRun = production.tdcStartRun(supersededState, maximumPlan);
+const supersededRunner = production.tdcCreateRunner(maximumPlan, supersededRun.runId);
+let supersededGuard = 0;
+while (!supersededRunner.finished && supersededGuard < 100000) { production.tdcRunSlice(supersededRunner, supersededState, (job) => ({ jobId: job.jobId })); supersededGuard += 1; }
+assert.equal(supersededRunner.complete && !supersededRunner.cancelled, true, 'the superseded probe must reach a complete, self-uncancelled state');
+production.tdcStartRun(supersededState, maximumPlan);
+const supersededRuntime = { lastCompleteResult: { resultId: 'prior' } };
+const supersededCommit = production.tdcCommitRun(supersededRuntime, supersededRunner, supersededState, { resultId: 'superseded' });
+assert.equal(supersededCommit.committed, false, 'a complete but superseded run must not commit, because a newer run already owns the surface');
+assert.equal(supersededCommit.errorCode, 'TDC-COMPUTE-CANCELLED', 'superseded refusal must use the closed cancellation code');
+assert.equal(supersededRuntime.lastCompleteResult.resultId, 'prior', 'a superseded run must leave the visible result untouched');
+
+/* The Scope 5 surface must actually exist on the page and be reachable by its declared route. */
+for (const marker of ['changeReplayPanel', 'replayTimelineBody', 'replayInvalidatedBody', 'replayOneSidedDate', 'replayTwoSidedDate', 'replayCancelWork', 'replayRunWork']) {
+  assert.ok(html.includes('id="' + marker + '"'), 'the page is missing the Scope 5 replay element ' + marker);
+}
+assert.ok(html.includes("replay: Object.freeze({ path: 'tests/fixtures/trend-dynamics-cycle/analytic/replay-inputs.json'"),
+  'the replay fixture route is not registered on the page');
+const scope5BrowserTitles = [
+  'Regression: SCN-006-004 provisional peak keeps effective detection and confirmation times separate',
+  'Regression: SCN-006-005 failed early reversal remains immutable and invalidated',
+  'Regression: SCN-006-007 retrospective turn never backdates the real-time alert',
+  'Regression: maximum work plan reports progress cancels atomically and keeps navigation responsive'
+];
+for (const title of scope5BrowserTitles) {
+  assert.ok(browserSource.includes(title), 'the browser suite is missing the Scope 5 title: ' + title);
+}
+
+console.log('[tdc-validator] scope5-replay-history-workplan=PASS cases=' + replayCaseIds.length
+  + ' work-units=' + maximumPlan.totalWorkUnits + ' jobs=' + maximumPlan.jobs.length
+  + ' history=read-back-validated browser-titles=' + scope5BrowserTitles.length);
 console.log('[tdc-validator] OK');

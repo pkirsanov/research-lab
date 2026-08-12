@@ -2603,3 +2603,74 @@ test('SCN-008-005 TP-04-01: ensureBarCoverage is additive — legacy bars behavi
   assert.equal(after.v, before.v, 'the cache schema version is untouched');
 });
 
+/* SCN-008-035 — partial data must not create synthetic completeness. The projection reports what
+ * each holding's evidence actually supports; it computes no analytics, which stay in later scopes. */
+
+const TRUTH_HOLDINGS = Object.freeze([
+  { symbol: 'CURRENT', factorTags: ['quality'], derivedValue: 4502.5 },
+  { symbol: 'STALEPX', factorTags: ['value'], derivedValue: 1200 },
+  { symbol: 'NOFACTOR', factorTags: [], derivedValue: 800 },
+  { symbol: 'NOPRICE', factorTags: ['size'], derivedValue: 640 }
+]);
+
+const TRUTH_EVIDENCE = Object.freeze({
+  CURRENT: { state: 'complete', lastDate: '2026-07-15', firstDate: '2021-01-04' },
+  STALEPX: { state: 'stale', lastDate: '2026-05-01', firstDate: '2021-01-04' },
+  NOFACTOR: { state: 'complete', lastDate: '2026-07-15', firstDate: '2021-01-04' },
+  NOPRICE: { state: 'unavailable', lastDate: null, firstDate: null }
+});
+
+test('SCN-008-035 TP-04-01: the truth-state projection names each impact and never substitutes a missing value', () => {
+  const { api } = loadContracts();
+  assert.equal(typeof api.portfolioTruthState, 'function', 'RLPORTFOLIO must expose portfolioTruthState');
+
+  const projection = api.portfolioTruthState(TRUTH_HOLDINGS, TRUTH_EVIDENCE, '2026-07-15');
+  assert.equal(projection.ok, true, 'a well-formed projection succeeds');
+
+  const rows = projection.value.rows;
+  assert.equal(rows.length, 4, 'every holding is projected — none is dropped for being partial');
+  const bySymbol = Object.fromEntries(rows.map((row) => [row.symbol, row]));
+
+  // Valid current results remain visible and usable.
+  assert.equal(bySymbol.CURRENT.priceState, 'current');
+  assert.equal(bySymbol.CURRENT.factorState, 'present');
+  assert.equal(bySymbol.CURRENT.confidence, 'full');
+  assert.equal(bySymbol.CURRENT.valueIncluded, true, 'a fully-evidenced holding stays included');
+
+  // Each impact is named PER RESULT rather than summarised once for the portfolio.
+  assert.equal(bySymbol.STALEPX.priceState, 'stale');
+  assert.ok(String(bySymbol.STALEPX.priceReason || '').includes('2026-05-01'), 'the stale row names the last date it actually has');
+  assert.equal(bySymbol.STALEPX.confidence, 'reduced', 'stale evidence reduces confidence by explicit policy');
+
+  assert.equal(bySymbol.NOFACTOR.priceState, 'current', 'a missing factor does not degrade an unrelated price state');
+  assert.equal(bySymbol.NOFACTOR.factorState, 'missing');
+  assert.equal(bySymbol.NOFACTOR.confidence, 'reduced');
+
+  assert.equal(bySymbol.NOPRICE.priceState, 'missing');
+  assert.equal(bySymbol.NOPRICE.confidence, 'unavailable', 'absent price evidence is unavailable, not merely reduced');
+  assert.equal(bySymbol.NOPRICE.valueIncluded, false, 'a holding with no price evidence is excluded rather than valued');
+
+  /* The load-bearing assertion: a missing value must be null. Zero, the prior value, and the
+   * portfolio average are each a synthetic completeness this scenario exists to forbid. */
+  assert.equal(bySymbol.NOPRICE.value, null, 'a missing value is null — never zero, unchanged, or averaged');
+  const included = rows.filter((row) => row.valueIncluded).map((row) => row.value);
+  assert.equal(included.includes(0), false, 'no included row carries a fabricated zero');
+  assert.equal(projection.value.summary.excludedForMissingEvidence, 1, 'the summary counts what was excluded rather than hiding it');
+  assert.equal(projection.value.summary.valuedCount, 3, 'only evidenced holdings are valued');
+});
+
+test('SCN-008-035 TP-04-01: an unknown evidence state is refused rather than defaulted to current', () => {
+  const { api } = loadContracts();
+  // Defaulting an unrecognised state to "current" is the exact synthetic completeness this forbids.
+  const projection = api.portfolioTruthState(
+    [{ symbol: 'WEIRD', factorTags: ['quality'], derivedValue: 100 }],
+    { WEIRD: { state: 'not-a-real-state', lastDate: '2026-07-15' } },
+    '2026-07-15'
+  );
+  assert.equal(projection.ok, true, 'the projection still returns a record rather than throwing');
+  const row = projection.value.rows[0];
+  assert.equal(row.priceState, 'missing', 'an unrecognised evidence state is treated as missing, never as current');
+  assert.equal(row.valueIncluded, false);
+  assert.equal(row.value, null);
+});
+

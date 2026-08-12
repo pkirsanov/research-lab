@@ -683,6 +683,15 @@
                     </div>
                 </div>
 
+                <div class="band" id="holdingTruth">
+                    <h2>Holding evidence truth</h2>
+                    <p class="subtle">Each holding states what its own evidence supports. A holding without usable
+                        price evidence is excluded and named — it never becomes zero, a stale carry-forward, or the
+                        portfolio average.</p>
+                    <div id="truthSummary" class="state-message">No local revision. Holding evidence unavailable.</div>
+                    <ul id="truthRows" class="subtle"></ul>
+                </div>
+
                 <div class="band" id="behaviorRecorder">
                     <h2>Record a completed research action</h2>
                     <p class="subtle">Nothing here is automatic and nothing is preselected. You choose the completed
@@ -1200,10 +1209,85 @@
                 byId("currentMandate").className = "state-message ok";
             }
 
+            /* Feature 008 Scope 04: render what each holding's evidence supports. The substitution
+               ban is the point — an unevidenced holding is named and excluded, never filled in. */
+            var TRUTH_WORDS = {
+                current: "price current",
+                stale: "price stale",
+                missing: "price missing"
+            };
+
+            /* A freshness expectation must be DECLARED, because barInfo treats a record of any age
+               as fresh when none is given — so omitting this would render a month-old price as
+               "current", which is the substituted completeness this scope exists to prevent.
+               96h is chosen so a daily series read across a weekend plus a holiday is not cried
+               stale, while a genuinely old reading cannot pass as current. */
+            var HOLDING_PRICE_MAX_AGE_H = 96;
+
+            /* Evidence is MEASURED from the shared bar cache, never asserted. ensureBarCoverage
+               issues no request, so reading it here cannot turn a private holding list into a
+               remote lookup. A symbol that cannot be measured stays absent, and the projection
+               reads an absent envelope as missing rather than as current. */
+            function holdingEvidence(holdings) {
+                var evidence = {};
+                if (!window.RLDATA || typeof window.RLDATA.ensureBarCoverage !== "function") return evidence;
+                holdings.forEach(function (holding) {
+                    if (!holding || typeof holding.symbol !== "string" || evidence[holding.symbol]) return;
+                    try {
+                        evidence[holding.symbol] = window.RLDATA.ensureBarCoverage(holding.symbol, "1d", {
+                            mode: "same-origin-only",
+                            maxAgeH: HOLDING_PRICE_MAX_AGE_H
+                        });
+                    } catch (error) {
+                        /* Deliberately unhandled: an unmeasurable symbol must read as missing. */
+                    }
+                });
+                return evidence;
+            }
+
+            function renderHoldingTruth() {
+                var revision = currentRevision();
+                var rowList = byId("truthRows");
+                rowList.innerHTML = "";
+                if (!revision || !revision.holdings.length) {
+                    setText("truthSummary", "No local revision. Holding evidence unavailable.");
+                    byId("truthSummary").className = "state-message";
+                    return;
+                }
+                var projection = api.portfolioTruthState(revision.holdings, holdingEvidence(revision.holdings), null);
+                if (!projection.ok) {
+                    setText("truthSummary", projection.error.code + " · " + projection.error.reason);
+                    byId("truthSummary").className = "state-message warn";
+                    return;
+                }
+                var summary = projection.value.summary;
+                setText("truthSummary", summary.valuedCount + " of " + summary.holdingCount +
+                    " holdings carry usable price evidence · " + summary.excludedForMissingEvidence +
+                    " excluded for missing evidence · " + summary.reducedConfidenceCount +
+                    " at reduced confidence · no substituted value is used");
+                byId("truthSummary").className = "state-message" + (summary.excludedForMissingEvidence ? " warn" : " ok");
+                projection.value.rows.forEach(function (row) {
+                    var item = document.createElement("li");
+                    item.setAttribute("data-symbol", String(row.symbol));
+                    item.setAttribute("data-price-state", row.priceState);
+                    item.setAttribute("data-factor-state", row.factorState);
+                    item.setAttribute("data-confidence", row.confidence);
+                    item.setAttribute("data-value-included", String(row.valueIncluded));
+                    var words = [String(row.symbol), TRUTH_WORDS[row.priceState]];
+                    if (row.priceReason) words.push(row.priceReason);
+                    if (row.factorState === "missing") words.push("factor tags missing");
+                    words.push("confidence " + row.confidence);
+                    words.push(row.valueIncluded ? "value included" : "excluded from valuation, no substitute applied");
+                    item.textContent = words.join(" · ");
+                    rowList.appendChild(item);
+                });
+            }
+
             function refreshWorkspaceViews() {
                 state.routeStates = routeProjection();
                 renderRoutes();
                 renderCurrentMandate();
+                renderHoldingTruth();
                 renderBehavior();
                 updateDiagnostics();
             }

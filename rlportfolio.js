@@ -2326,6 +2326,53 @@
         : new Date().toISOString()
     };
   }
+  /* Truth-state projection for SCN-008-035. It reports what each holding's evidence actually
+     supports and computes no analytics — those stay in later scopes. The rule that shapes every
+     branch: an absent value is null. Zero, the prior value and the portfolio average are each a
+     synthetic completeness, so an unevidenced holding is EXCLUDED and counted, never valued. */
+  var TRUTH_PRICE_STATES = { complete: "current", stale: "stale", partial: "stale", unavailable: "missing" };
+
+  function portfolioTruthState(holdings, evidence, asOfDate) {
+    if (!Array.isArray(holdings)) return failure("P008-TRUTH-INPUT", "holdings-array-required", "holdings", null, false);
+    var source = isPlainObject(evidence) ? evidence : {};
+    var rows = holdings.map(function (holding) {
+      var symbol = holding && typeof holding.symbol === "string" ? holding.symbol : null;
+      var envelope = symbol && isPlainObject(source[symbol]) ? source[symbol] : null;
+      // An unrecognised state falls through to "missing" rather than defaulting to current.
+      var priceState = envelope && TRUTH_PRICE_STATES.hasOwnProperty(envelope.state)
+        ? TRUTH_PRICE_STATES[envelope.state]
+        : "missing";
+      var factorTags = Array.isArray(holding && holding.factorTags) ? holding.factorTags : [];
+      var factorState = factorTags.length > 0 ? "present" : "missing";
+      var included = priceState === "current" || priceState === "stale";
+      var confidence = priceState === "missing"
+        ? "unavailable"
+        : (priceState === "stale" || factorState === "missing") ? "reduced" : "full";
+      return {
+        symbol: symbol,
+        priceState: priceState,
+        priceReason: priceState === "current" ? null
+          : priceState === "stale" ? "last-observation-" + String(envelope && envelope.lastDate)
+            : envelope ? "evidence-state-" + String(envelope.state) : "no-evidence-envelope",
+        factorState: factorState,
+        factorReason: factorState === "present" ? null : "no-factor-tags",
+        confidence: confidence,
+        valueIncluded: included,
+        value: included && isFinite(holding && holding.derivedValue) ? holding.derivedValue : null
+      };
+    });
+    return success({
+      contractVersion: "portfolio-truth-state/v1",
+      asOf: typeof asOfDate === "string" ? asOfDate : null,
+      rows: rows,
+      summary: {
+        holdingCount: rows.length,
+        valuedCount: rows.filter(function (row) { return row.valueIncluded; }).length,
+        excludedForMissingEvidence: rows.filter(function (row) { return row.priceState === "missing"; }).length,
+        reducedConfidenceCount: rows.filter(function (row) { return row.confidence === "reduced"; }).length
+      }
+    });
+  }
   /* ---------- End Feature 008 Scope 04 ---------- */
 
   var api = Object.freeze({
@@ -2362,6 +2409,7 @@
     validatePortfolioRevision: validatePortfolioRevision,
     validateWorkspace: validateWorkspace,
     privacyBoundaryToolRead: privacyBoundaryToolRead,
+    portfolioTruthState: portfolioTruthState,
     PRIVACY_BOUNDARY_TOOL_ID: PRIVACY_BOUNDARY_TOOL_ID
   });
 

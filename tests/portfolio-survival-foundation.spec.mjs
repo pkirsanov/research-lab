@@ -1358,3 +1358,108 @@ test('Regression: SCN-008-005 TP-04-05 personal state coexists with the shared c
   console.log('[TP-04-05] sentinelsInPublicCache=0');
   console.log('[TP-04-05] offOriginRequests=0');
 });
+
+/* TP-04-06 / SCN-008-035. The failure this guards is the comfortable one: a holding whose evidence
+   is absent quietly renders as zero, as the last value it had, or as the portfolio average, so the
+   surface looks complete and the reader cannot tell which numbers are earned. Every phase therefore
+   asserts BOTH that the affected holding is named AND that no substitute stands in for it. */
+const TRUTH_ROW = '#truthRows li';
+
+async function truthRows(page) {
+  return page.$$eval(TRUTH_ROW, (nodes) => nodes.map((node) => ({
+    symbol: node.getAttribute('data-symbol'),
+    priceState: node.getAttribute('data-price-state'),
+    factorState: node.getAttribute('data-factor-state'),
+    confidence: node.getAttribute('data-confidence'),
+    valueIncluded: node.getAttribute('data-value-included') === 'true',
+    text: node.textContent
+  })));
+}
+
+async function seedBars(page, symbol, { ageMs = 0 } = {}) {
+  await page.evaluate(({ sym, age }) => {
+    const rows = [
+      { t: Date.UTC(2026, 3, 28), c: 100 },
+      { t: Date.UTC(2026, 3, 29), c: 101 },
+      { t: Date.UTC(2026, 3, 30), c: 102 }
+    ];
+    window.RLDATA.putBars(sym, '1d', rows, 'tp-04-06-fixture');
+    if (age > 0) {
+      // Age the RECORD, not the span, so the surface must distinguish "old reading" from "short history".
+      const cache = JSON.parse(window.localStorage.getItem('rlData'));
+      cache.bars[sym]['1d'].at = Date.now() - age;
+      window.localStorage.setItem('rlData', JSON.stringify(cache));
+    }
+  }, { sym: symbol, age: ageMs });
+}
+
+test('Regression: SCN-008-035 partial evidence names each affected holding and substitutes nothing', async ({ page }) => {
+  await openRoute(page);
+  await importValid(page, 'TP-04-06 partial truth');
+
+  // Phase A — no bar evidence at all. Both holdings must be excluded BY NAME.
+  let rows = await truthRows(page);
+  expect(rows.map((row) => row.symbol).sort(), 'both imported holdings must be reported').toEqual(['BND', 'MSFT']);
+  for (const row of rows) {
+    expect(row.priceState, `${row.symbol} has no cached bars, so its price cannot be current`).toBe('missing');
+    expect(row.valueIncluded, `${row.symbol} must be excluded, not valued`).toBe(false);
+    expect(row.confidence).toBe('unavailable');
+    expect(row.text).toContain('excluded from valuation, no substitute applied');
+    // The substitution ban, stated positively: no stand-in number may appear on an unevidenced row.
+    expect(row.text, `${row.symbol} must not carry a substituted number`).not.toMatch(/value included|\b0(\.0+)?\b|average/i);
+  }
+  await expect(page.locator('#truthSummary')).toContainText('0 of 2 holdings carry usable price evidence');
+  await expect(page.locator('#truthSummary')).toContainText('2 excluded for missing evidence');
+
+  // Phase B — evidence for MSFT only. The valid row must survive independently of the missing one.
+  await seedBars(page, 'MSFT');
+  await page.reload();
+  await expect(page.locator('#currentRevision')).toContainText('Current revision');
+  rows = await truthRows(page);
+  const msft = rows.find((row) => row.symbol === 'MSFT');
+  const bnd = rows.find((row) => row.symbol === 'BND');
+  expect(msft.priceState, 'a freshly cached full series reads as current').toBe('current');
+  expect(msft.valueIncluded, 'the evidenced holding must remain valued').toBe(true);
+  expect(bnd.priceState, 'the unevidenced holding must stay missing beside a valid one').toBe('missing');
+  expect(bnd.valueIncluded, 'one holding gaining evidence must not value another').toBe(false);
+  expect(bnd.text).toContain('excluded from valuation, no substitute applied');
+  await expect(page.locator('#truthSummary')).toContainText('1 of 2 holdings carry usable price evidence');
+
+  // The imported fixture carries no factor tags, so a missing factor must be named on its own axis
+  // and must NOT be allowed to masquerade as a price problem.
+  expect(msft.factorState).toBe('missing');
+  expect(msft.text).toContain('factor tags missing');
+  expect(msft.confidence, 'a missing factor reduces confidence without invalidating the price').toBe('reduced');
+
+  // Phase C — age the MSFT record. Stale must be said out loud, with the observation date.
+  await seedBars(page, 'MSFT', { ageMs: 1000 * 60 * 60 * 24 * 45 });
+  await page.reload();
+  await expect(page.locator('#currentRevision')).toContainText('Current revision');
+  rows = await truthRows(page);
+  const stale = rows.find((row) => row.symbol === 'MSFT');
+  expect(stale.priceState, 'an aged cache record must read stale, never current').toBe('stale');
+  expect(stale.text, 'a stale row must name the observation it is actually resting on').toContain('2026-04-30');
+  expect(stale.valueIncluded, 'stale evidence is still evidence — the row stays valued and labelled').toBe(true);
+
+  // Non-vacuity: the summary count and the rendered rows must agree. If any phase had substituted a
+  // value for an unevidenced holding, valuedCount would exceed the rows actually marked as included.
+  const summaryText = await page.locator('#truthSummary').textContent();
+  const claimedValued = Number(summaryText.match(/^(\d+) of/)[1]);
+  expect(claimedValued, 'the headline count must equal the rows that are genuinely valued')
+    .toBe(rows.filter((row) => row.valueIncluded).length);
+
+  // Phase D — storage degraded to session-only. Truth must still render and still not substitute.
+  const sessionPage = await page.context().newPage();
+  await blockStorage(sessionPage, 'session');
+  await sessionPage.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#brief`);
+  await expect(sessionPage.locator('#storageMode')).toContainText('Session-only');
+  await expect(sessionPage.locator('#truthSummary'), 'with no durable revision the surface states unavailability rather than inventing rows')
+    .toContainText('Holding evidence unavailable');
+  expect(await sessionPage.$$(TRUTH_ROW), 'no holding rows may be fabricated without a revision').toHaveLength(0);
+  await sessionPage.close();
+
+  console.log('[TP-04-06] phaseA excluded=2 substituted=0');
+  console.log('[TP-04-06] phaseB valued=1 missingBesideValid=BND');
+  console.log('[TP-04-06] phaseC staleNamed=MSFT lastObservation=2026-04-30');
+  console.log('[TP-04-06] phaseD sessionOnly rows=0 unavailableStated=true');
+});

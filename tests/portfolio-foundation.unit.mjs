@@ -719,6 +719,17 @@ test('privacy inventory reports real category counts and carries no stored subje
     'every category must name the all-personal clear, which empties all of them');
   assert.equal(inventory.value.categories.length, 8, 'every declared category must be projected, so the clearedBy sweep above is not run over a short list');
 
+  /* The serialized sweep above is a DENYLIST: it catches only the five values it names. A leak it
+   * was never told to look for passes it silently — proven by injecting a `subjectValue` field into
+   * every category record, which left this file fully green. The record is therefore closed by
+   * SHAPE instead, which is an allowlist: any field beyond the declared four is a value-bearing
+   * surface whatever it happens to hold. */
+  const DECLARED_CATEGORY_FIELDS = ['category', 'clearedBy', 'present', 'recordCount'];
+  inventory.value.categories.forEach((entry) => {
+    assert.deepEqual(Object.keys(entry).sort(), DECLARED_CATEGORY_FIELDS,
+      'category ' + entry.category + ' projects exactly the declared count and state fields and carries no additional value-bearing field');
+  });
+
   const duplicate = api.buildBehaviorCandidate(behaviorDraft(), populated, { now: SAME_DAY_LATER }, policy);
   assert.equal(duplicate.value.accepted, false);
   assert.equal(duplicate.value.reason, 'duplicate-completion');

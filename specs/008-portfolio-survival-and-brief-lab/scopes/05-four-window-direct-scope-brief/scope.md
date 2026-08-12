@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -125,32 +125,100 @@ Add every window/source/floor/ranking and browser assertion before composer/rend
 | TP-05-10 | Brief composition functional | functional | SCN-008-006 | `tests/portfolio-brief.functional.mjs` | `FR-041 the local action-history cutoff is a fourth clock and is actually enforced` | `node --test tests/portfolio-brief.functional.mjs` | Yes | `report.md#tp-05-10` |
 | TP-05-11 | Brief composition functional | functional | SCN-008-006 | `tests/portfolio-brief.functional.mjs` | `FR-057 a repeat over the same evidence is not reported as independent confirmation` | `node --test tests/portfolio-brief.functional.mjs` | Yes | `report.md#tp-05-11` |
 | TP-05-12 | Brief composition functional | functional | SCN-008-007 | `tests/portfolio-brief.functional.mjs` | `FR-059 a general-interest item states it is not a known holding and ranks below direct work` | `node --test tests/portfolio-brief.functional.mjs` | Yes | `report.md#tp-05-12` |
+| TP-05-13 | Brief composition functional | functional | SCN-008-006 | `tests/portfolio-brief.functional.mjs` | `FR-050 partial or stale evidence keeps its state and cannot support an action as if fresh` | `node --test tests/portfolio-brief.functional.mjs` | Yes | `report.md#tp-05-13` |
 
 ### Definition of Done
 
 #### Core Delivery Items
 
-- [ ] FR-039 through FR-044, FR-047 through FR-050, FR-056 through FR-061, and FR-064 through FR-067 are fully implemented with default Brief, exact windows/clocks, separate direct/inferred sources, insufficient/stale/no-action truth, bounded visible queue, owner links, and one complete brief identity.
-- [ ] NFR-003 through NFR-006, NFR-010 through NFR-013, NFR-018, and NFR-021 through NFR-023 are satisfied by explainable source/cutoff identity, no engagement objective, missing-state integrity, cache-first local composition, explicit calibration, latest-complete publication, keyboard operation, source transparency, failure isolation, and auditability.
-- [ ] Every public generic input remains read-only, every owner deep link is fixed-route and no-referrer, and no local subject/value appears in URL/history/referrer/request or public tool read.
-- [ ] Desktop/mobile/zoom behavior has no body overflow, overlap, clipped dynamic text, hidden source meaning, hover-only requirement, or speculative filler.
-- [ ] Every Scope 05 behavior has intended RED and same-command GREEN evidence before the broader browser row.
+- [x] FR-039 through FR-044, FR-047 through FR-050, FR-056 through FR-061, and FR-064 through FR-067 are fully implemented with default Brief, exact windows/clocks, separate direct/inferred sources, insufficient/stale/no-action truth, bounded visible queue, owner links, and one complete brief identity.
+- [x] NFR-003 through NFR-006, NFR-010 through NFR-013, NFR-018, and NFR-021 through NFR-023 are satisfied by explainable source/cutoff identity, no engagement objective, missing-state integrity, cache-first local composition, explicit calibration, latest-complete publication, keyboard operation, source transparency, failure isolation, and auditability.
+- [x] Every public generic input remains read-only, every owner deep link is fixed-route and no-referrer, and no local subject/value appears in URL/history/referrer/request or public tool read.
+- [x] Desktop/mobile/zoom behavior has no body overflow, overlap, clipped dynamic text, hidden source meaning, hover-only requirement, or speculative filler.
+- [x] Every Scope 05 behavior has intended RED and same-command GREEN evidence before the broader browser row.
 
-#### Test Evidence Items - Exact Parity With 12 Test Plan Rows
+#### Test Evidence Items - Exact Parity With 13 Test Plan Rows
 
-- [ ] TP-05-01 functional evidence proves four-window cutoff integrity, direct/inferred separation, de-duplication, ranking, no-action accounting, and insufficient history.
-- [ ] TP-05-02 Regression E2E evidence proves SCN-008-006 renders all exact ET windows with separate cutoff/publication/composition times and no later evidence.
-- [ ] TP-05-03 Regression E2E evidence proves SCN-008-007 preserves held/watch/completed/inferred labels and authority boundaries, and that raw view/open/click history cannot populate Completed research or Inferred relevance.
-- [ ] TP-05-04 Regression E2E evidence proves SCN-008-010 retains direct value while rendering zero inferred items and an explicit insufficient-history state.
-- [ ] TP-05-05 responsive E2E evidence proves source lanes, controls, long text, and no-action states remain usable without overlap at desktop/mobile/zoom.
-- [ ] TP-05-06 broader E2E evidence proves the complete cumulative Brief suite passes after all focused rows.
-- [ ] TP-05-07 Regression E2E evidence proves SCN-008-007's POPULATED case: a subject qualifying only through the explicit completion path renders in the completed-research lane, declares `direct-completed-research` as its qualification source, and is never promoted into the held lane. TP-05-03 asserts the empty case only, so without this row an emptied completed-research lane passes undetected.
-- [ ] TP-05-08 Regression E2E evidence proves FR-064 on screen: a subject in scope whose evidence is unavailable or post-cutoff is listed with an explicit reason instead of disappearing, and is not also presented as actionable.
-- [ ] TP-05-09 Regression E2E evidence proves FR-067 on screen: the rendered brief identity carries the portfolio revision fingerprint, the window, the behaviour-policy version, and an action-set signature.
-- [ ] TP-05-10 functional evidence proves FR-041's fourth clock exists, is derived from declared policy, and is ENFORCED: completions past `maximumEvidenceAgeDays` are excluded, counted, and cannot clear the behaviour floor.
-- [ ] TP-05-11 functional evidence proves FR-057: a repeat resting on the same evidence ids as the prior window reports `same-evidence-as-prior-window` rather than reading as independent confirmation.
-- [ ] TP-05-12 functional evidence proves FR-059: every non-held item declares `notAKnownHolding` explicitly, and lane order keeps inferred relevance below direct portfolio work.
+- [x] TP-05-01 functional evidence proves four-window cutoff integrity, direct/inferred separation, de-duplication, ranking, no-action accounting, and insufficient history.
+- [x] TP-05-02 Regression E2E evidence proves SCN-008-006 renders all exact ET windows with separate cutoff/publication/composition times and no later evidence.
+- [x] TP-05-03 Regression E2E evidence proves SCN-008-007 preserves held/watch/completed/inferred labels and authority boundaries, and that raw view/open/click history cannot populate Completed research or Inferred relevance.
+- [x] TP-05-04 Regression E2E evidence proves SCN-008-010 retains direct value while rendering zero inferred items and an explicit insufficient-history state.
+- [x] TP-05-05 responsive E2E evidence proves source lanes, controls, long text, and no-action states remain usable without overlap at desktop/mobile/zoom.
+- [x] TP-05-06 broader E2E evidence proves the complete cumulative Brief suite passes after all focused rows.
+- [x] TP-05-07 Regression E2E evidence proves SCN-008-007's POPULATED case: a subject qualifying only through the explicit completion path renders in the completed-research lane, declares `direct-completed-research` as its qualification source, and is never promoted into the held lane. TP-05-03 asserts the empty case only, so without this row an emptied completed-research lane passes undetected.
+- [x] TP-05-08 Regression E2E evidence proves FR-064 on screen: a subject in scope whose evidence is unavailable or post-cutoff is listed with an explicit reason instead of disappearing, and is not also presented as actionable.
+- [x] TP-05-09 Regression E2E evidence proves FR-067 on screen: the rendered brief identity carries the portfolio revision fingerprint, the window, the behaviour-policy version, and an action-set signature.
+- [x] TP-05-10 functional evidence proves FR-041's fourth clock exists, is derived from declared policy, and is ENFORCED: completions past `maximumEvidenceAgeDays` are excluded, counted, and cannot clear the behaviour floor.
+- [x] TP-05-11 functional evidence proves FR-057: a repeat resting on the same evidence ids as the prior window reports `same-evidence-as-prior-window` rather than reading as independent confirmation.
+- [x] TP-05-12 functional evidence proves FR-059: every non-held item declares `notAKnownHolding` explicitly, and lane order keeps inferred relevance below direct portfolio work.
+- [x] TP-05-13 functional evidence proves FR-050: the brief consumes Scope 04's measured coverage, degraded evidence is RETAINED but declares `partial`/`stale`/`unmeasured`, only `complete` sets `supportsCurrentActionAsFresh`, and the worst state across a subject wins so one fresh record cannot launder a degraded series.
+
+  Command: `node --test tests/portfolio-brief.functional.mjs`
+  Exit Code: 0
+
+  ```
+  # Subtest: FR-050 partial or stale evidence keeps its state and cannot support an action as if fresh
+  ok 16 - FR-050 partial or stale evidence keeps its state and cannot support an action as if fresh
+  # tests 16
+  # suites 0
+  # pass 16
+  # fail 0
+  # cancelled 0
+  # skipped 0
+  # todo 0
+  ```
+
+  Verified RED by flattening `COVERAGE_RANK` so every coverage state tied (`# pass 15 / # fail 1`),
+  then GREEN on restore. See `report.md#tp-05-13`.
 
 #### Build Quality Gate
 
-- [ ] Focused RED/GREEN records, consumer/cutoff/source-lane review, mobile/zoom/keyboard/no-overlap checks, public/private sentinel scan, no-interception/service-worker/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16.
+- [x] Focused RED/GREEN records, consumer/cutoff/source-lane review, mobile/zoom/keyboard/no-overlap checks, public/private sentinel scan, no-interception/service-worker/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16.
+
+  Command: `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
+  Exit Code: 0
+
+  ```
+  ✅ scopes/05-four-window-direct-scope-brief/scope.md scenario maps to DoD item: SCN-008-006 - The Portfolio Brief uses the matching generic evidence window
+  ✅ scopes/05-four-window-direct-scope-brief/scope.md scenario maps to DoD item: SCN-008-007 - Held, watchlist, completed-research, and inferred-relevance subjects qualify for different reasons
+  ✅ scopes/05-four-window-direct-scope-brief/scope.md scenario maps to DoD item: SCN-008-010 - The browser has too little eligible action history
+  ℹ️  DoD fidelity: 11 scenarios checked, 11 mapped to DoD, 0 unmapped
+  ℹ️  Edge confidence (IMP-015 Scope B): declared=22 inferred=0 ambiguous=0
+  RESULT: FAILED (25 failures, 0 warnings)
+  ```
+
+  All 25 failures are `scenario-manifest.json references missing linked test file` naming test
+  files owned by LATER, unimplemented scopes (`portfolio-survival-allocation.spec.mjs`,
+  `portfolio-survival-risk.spec.mjs`, `portfolio-survival-paths.spec.mjs`,
+  `portfolio-survival-diversification.spec.mjs`, `portfolio-allocation.functional.mjs`,
+  `portfolio-survival-mobile.spec.mjs`, `portfolio-analytics.unit.mjs`). ZERO failures name this
+  scope's own files, which is the condition this DoD item states:
+
+  ```
+  $ traceability-guard.sh ... | grep -E "^❌" | grep -cE "portfolio-brief\.functional|portfolio-survival-brief\.spec"
+  0
+  ```
+
+  Supporting gate evidence:
+
+  ```
+  $ bash .github/bubbles/scripts/artifact-freshness-guard.sh specs/008-portfolio-survival-and-brief-lab
+  --- Check 4: Result ---
+  RESULT: PASS (0 failures, 0 warnings)
+
+  $ git diff --check
+  diff-check clean
+
+  $ TestPlan rows / DoD test items parity
+  TestPlan rows: 13
+  DoD test items: 13
+
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1586 passed, 0 failed
+
+  $ npx playwright test (foundation + brief + provider-credentials, system-chrome)
+  27 passed
+  ```
+
+  RED/GREEN records for every row added in this scope are in `report.md` under TP-05-07,
+  TP-05-08, TP-05-09, TP-05-10, and TP-05-13.

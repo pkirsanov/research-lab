@@ -35,12 +35,15 @@
   /* Authority order, highest first. A subject that qualifies more than once is placed in the
      highest lane ONCE and discloses the others, rather than being duplicated or silently dropped. */
   var LANE_ORDER = ["held", "watchlist", "completedResearch", "inferredRelevance"];
-  var LANE_SOURCE = {
-    held: "direct-holding",
+  var LANE_SOURCE = {    held: "direct-holding",
     watchlist: "direct-watchlist",
     completedResearch: "direct-completed-research",
     inferredRelevance: "behavior-derived"
   };
+
+  /* Ordered worst-last so the highest rank is the most degraded state. `unmeasured` outranks
+     `complete` because "we did not check" must never present as "we checked and it is fine". */
+  var COVERAGE_RANK = { complete: 0, unmeasured: 1, partial: 2, stale: 3, unavailable: 4 };
 
   function ok(value) { return { ok: true, value: value }; }
   function err(code, reason, field) { return { ok: false, error: { code: code, reason: reason, field: field || null } }; }
@@ -170,10 +173,19 @@
     var byId = {};
     usable.forEach(function (record) {
       var key = String(record.subjectId);
-      if (!byId[key]) byId[key] = { materiality: 0, evidenceIds: [] };
+      if (!byId[key]) byId[key] = { materiality: 0, evidenceIds: [], coverageState: null };
       byId[key].evidenceIds.push(record.id);
       var value = isFinite(record.materiality) ? record.materiality : 0;
       if (value > byId[key].materiality) byId[key].materiality = value;
+      /* FR-050. The WORST coverage state across a subject's records wins. Taking the best would let
+         one complete day make a mostly-absent series look fresh, which is precisely the
+         misrepresentation this field exists to prevent. */
+      if (record.coverageState && COVERAGE_RANK[record.coverageState] !== undefined) {
+        var current = byId[key].coverageState;
+        if (current === null || COVERAGE_RANK[record.coverageState] > COVERAGE_RANK[current]) {
+          byId[key].coverageState = record.coverageState;
+        }
+      }
     });
 
     var lanes = { held: [], watchlist: [], completedResearch: [], inferredRelevance: [] };
@@ -220,6 +232,11 @@
         impliesPreference: false,
         materiality: observed.materiality,
         evidenceIds: observed.evidenceIds,
+        /* FR-050. Carried onto the item so a partial or stale series cannot support an action as
+           if it were fresh. The item is still shown — withholding it would be its own distortion —
+           but it declares the quality of what it rests on. */
+        evidenceState: observed.coverageState || "unmeasured",
+        supportsCurrentActionAsFresh: (observed.coverageState || "unmeasured") === "complete",
         /* FR-060/FR-061. When a Research Lab tool already owns this subject the brief LINKS to it
            instead of restating its model here; a duplicated specialist model is how two surfaces
            start disagreeing. When nothing owns it the gap is named as an unowned capability, which

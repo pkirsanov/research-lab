@@ -620,3 +620,63 @@ test('FR-059 a general-interest item states it is not a known holding and ranks 
   assert.equal(loaded.brief.laneOrder[0], 'held');
   assert.equal(loaded.brief.laneOrder[loaded.brief.laneOrder.length - 1], 'inferredRelevance');
 });
+
+test('FR-050 partial or stale evidence keeps its state and cannot support an action as if fresh', () => {
+  const loaded = loadBrief();
+
+  const withStates = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: {
+      holdings: [{ symbol: 'MSFT' }, { symbol: 'AAA' }, { symbol: 'BBB' }],
+      watchlist: [],
+      completions: [],
+      evidence: [
+        { ...ev('e-msft', 'MSFT', 'ticker', `${BRIEF_DAY}T14:30:00.000Z`, 0.9), coverageState: 'complete' },
+        { ...ev('e-aaa', 'AAA', 'ticker', `${BRIEF_DAY}T14:00:00.000Z`, 0.8), coverageState: 'partial' },
+        { ...ev('e-bbb', 'BBB', 'ticker', `${BRIEF_DAY}T14:00:00.000Z`, 0.7), coverageState: 'stale' }
+      ]
+    }
+  }));
+  assert.equal(withStates.ok, true);
+
+  const held = Object.fromEntries(withStates.value.lanes.held.map((i) => [i.subjectId, i]));
+
+  // Degraded evidence is RETAINED — hiding it would be its own distortion — but declares itself.
+  assert.equal(held.AAA.evidenceState, 'partial');
+  assert.equal(held.BBB.evidenceState, 'stale');
+  assert.equal(held.MSFT.evidenceState, 'complete');
+
+  // Only complete coverage may back a current action as fresh.
+  assert.equal(held.MSFT.supportsCurrentActionAsFresh, true);
+  assert.equal(held.AAA.supportsCurrentActionAsFresh, false,
+    'partial coverage must not present as fresh');
+  assert.equal(held.BBB.supportsCurrentActionAsFresh, false,
+    'stale coverage must not present as fresh');
+
+  /* The WORST state across a subject's records wins. One good day inside a mostly-absent series
+   * must not launder the whole subject into looking fresh. */
+  const mixed = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: {
+      holdings: [{ symbol: 'MIX' }],
+      watchlist: [],
+      completions: [],
+      evidence: [
+        { ...ev('e-mix-1', 'MIX', 'ticker', `${BRIEF_DAY}T13:00:00.000Z`, 0.4), coverageState: 'complete' },
+        { ...ev('e-mix-2', 'MIX', 'ticker', `${BRIEF_DAY}T14:00:00.000Z`, 0.5), coverageState: 'stale' }
+      ]
+    }
+  }));
+  assert.equal(mixed.value.lanes.held.find((i) => i.subjectId === 'MIX').evidenceState, 'stale',
+    'the most degraded state across a subject wins, so one fresh record cannot mask the rest');
+
+  // An unmeasured subject must not read as verified-fresh either.
+  const unmeasured = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: { holdings: [{ symbol: 'MSFT' }], watchlist: [], completions: [] }
+  }));
+  const plain = unmeasured.value.lanes.held.find((i) => i.subjectId === 'MSFT');
+  assert.equal(plain.evidenceState, 'unmeasured');
+  assert.equal(plain.supportsCurrentActionAsFresh, false,
+    '"we did not check" must never present as "we checked and it is fine"');
+});

@@ -1356,8 +1356,20 @@
             function briefEvidence(subjects, completions) {
                 var records = [];
                 var bars = window.RLDATA && typeof window.RLDATA.bars === "function" ? window.RLDATA.bars : null;
+                /* FR-050. Coverage is MEASURED through Scope 04's `ensureBarCoverage` rather than
+                   inferred from row count here. A partial or stale series still produces records,
+                   but it carries its state so the composer cannot present it as fresh. Measuring
+                   it in the brief would duplicate — and eventually contradict — Scope 04. */
+                var coverage = window.RLDATA && typeof window.RLDATA.ensureBarCoverage === "function"
+                    ? window.RLDATA.ensureBarCoverage
+                    : null;
                 subjects.forEach(function (symbol) {
                     if (!bars) return;
+                    var coverageState = "unmeasured";
+                    if (coverage) {
+                        try { coverageState = coverage(symbol, "1d", { mode: "same-origin-only" }).state; }
+                        catch (error) { coverageState = "unmeasured"; }
+                    }
                     var rows = null;
                     try { rows = bars(symbol, "1d"); } catch (error) { rows = null; }
                     if (!Array.isArray(rows) || !rows.length) return;
@@ -1377,6 +1389,7 @@
                             subjectKind: "ticker",
                             observedAt: new Date(row.t).toISOString(),
                             materiality: move,
+                            coverageState: coverageState,
                             domain: null
                         });
                     });

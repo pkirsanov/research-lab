@@ -24,7 +24,7 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": 5,
+        "currentScope": 6,
         "runStartedAt": "2026-07-15T23:25:05Z",
         "completedPhaseClaims": [],
         "pendingTransitionRequests": [],
@@ -70,7 +70,7 @@
             {
                 "scope": 5,
                 "name": "Four-Window Direct-Scope Brief",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     "4"
                 ],
@@ -251,7 +251,7 @@
             {
                 "scope": 5,
                 "name": "Four-Window Direct-Scope Brief",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     "4"
                 ],

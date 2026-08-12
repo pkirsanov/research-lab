@@ -163,13 +163,13 @@
             <p class="disclosure" id="eduDisclosure">Educational research, not investment advice. No trade execution or order preparation is available.</p>
         </header>
 
-        <!-- Shared four-view shell anchor. This route is intentionally UNREGISTERED until Scope 5,
-             so rlexperience.js resolveShell refuses with E012-REGISTRY and the shell renders its
-             honest unavailable state. Registration and site-exclusions.json are mutually exclusive
-             (scripts/build-pages-site.mjs), so activating the switcher here would publish an
-             unfinished route. There is deliberately NO page-local mode strip. -->
+        <!-- Shared four-view shell anchor. This route is registered in tools.json and absent from
+             site-exclusions.json, which are mutually exclusive (scripts/build-pages-site.mjs), so
+             rlexperience.js resolveShell returns the ordinary-four-view/v1 set and rlapp.js mounts
+             Simple, Power, Brief, and Journey here. There is deliberately NO page-local mode strip;
+             the shared switcher is the only view control. -->
         <div class="shellmount" id="shellMount" data-rlbrief-mount data-tool-id="fx-regime-relative-value-lab">
-            Shared four-view shell mounts here once this route is registered.
+            Loading the Simple, Power, Brief, and Journey views&hellip;
         </div>
 
         <section class="panel" id="controlsPanel" aria-labelledby="controlsHeading">

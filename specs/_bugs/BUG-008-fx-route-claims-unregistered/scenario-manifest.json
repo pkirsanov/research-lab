@@ -1,0 +1,68 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_bugs/BUG-008-fx-route-claims-unregistered",
+  "generatedBy": "bubbles.goal",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-008B-001",
+      "title": "A registered route does not claim it is unregistered",
+      "scopeId": "01-retire-the-falsified-claims-and-guard-the-invariant",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "e2e-ui",
+      "linkedTests": [
+        "tests/fx-regime-relative-value-lab.spec.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-008B-002",
+      "title": "The guard is grounded in the registry, not in a remembered string",
+      "scopeId": "01-retire-the-falsified-claims-and-guard-the-invariant",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "e2e-ui",
+      "linkedTests": [
+        "tests/fx-regime-relative-value-lab.spec.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-008B-003",
+      "title": "The surviving design fact is preserved",
+      "scopeId": "01-retire-the-falsified-claims-and-guard-the-invariant",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "e2e-ui",
+      "linkedTests": [
+        "tests/fx-regime-relative-value-lab.spec.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-008B-004",
+      "title": "Runtime behavior is unchanged",
+      "scopeId": "01-retire-the-falsified-claims-and-guard-the-invariant",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "e2e-ui",
+      "linkedTests": [
+        "tests/fx-regime-relative-value-lab.spec.mjs",
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    }
+  ]
+}

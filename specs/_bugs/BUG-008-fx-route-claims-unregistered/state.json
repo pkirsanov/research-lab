@@ -1,0 +1,169 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-008-fx-route-claims-unregistered",
+  "featureName": "BUG-008 The Registered FX Route Claimed It Was Unregistered",
+  "createdAt": "2026-08-12T12:53:46Z",
+  "lastUpdatedAt": "2026-08-12T14:28:46Z",
+  "completedAt": "2026-08-12T14:27:10Z",
+  "certifiedAt": "2026-08-12T14:28:46Z",
+  "status": "done",
+  "blockedReason": null,
+  "priorBlockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/004-fx-regime-relative-value-lab",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [
+    "specs/004-fx-regime-relative-value-lab"
+  ],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": "bubbles.goal",
+    "currentPhase": "audit",
+    "currentPhaseStatus": "completed",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-12T12:53:46Z",
+    "completedAt": "2026-08-12T14:22:46Z",
+    "currentScope": 1,
+    "nextRequiredOwner": null,
+    "nextRequiredTarget": null,
+    "nextRequiredReason": null,
+    "completedPhaseClaims": [
+      "implement",
+      "test",
+      "regression",
+      "simplify",
+      "stabilize",
+      "security",
+      "validate",
+      "audit"
+    ],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scopeId": "01-retire-the-falsified-claims-and-guard-the-invariant",
+        "scope": 1,
+        "status": "Done",
+        "dependsOn": []
+      }
+    ],
+    "audit": null
+  },
+  "certification": {
+    "status": "done",
+    "lockdownState": "unlocked",
+    "completedAt": "2026-08-12T14:27:10Z",
+    "certifiedAt": "2026-08-12T14:28:46Z",
+    "completedScopes": [
+      "01-retire-the-falsified-claims-and-guard-the-invariant"
+    ],
+    "certifiedCompletedPhases": [
+      "implement",
+      "test",
+      "regression",
+      "simplify",
+      "stabilize",
+      "security",
+      "validate",
+      "audit"
+    ],
+    "scopeProgress": [
+      {
+        "scopeId": "01-retire-the-falsified-claims-and-guard-the-invariant",
+        "status": "Done",
+        "dodChecked": 10,
+        "dodUnchecked": 0
+      }
+    ],
+    "assurance": {
+      "level": "fast",
+      "missingForFull": [
+        "independent-audit",
+        "Detail on independent-audit: every phase in this packet was executed directly by the authorized top-level runner bubbles.goal rather than by independent specialist subagents. Full assurance would require an independent bubbles.validate and bubbles.audit pass over the same evidence. The packet is small and every claim carries an executed transcript, but no second party re-derived them."
+      ]
+    }
+  },
+  "completedScopes": [
+    "01-retire-the-falsified-claims-and-guard-the-invariant"
+  ],
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.goal",
+      "workflowMode": "bugfix-fastlane",
+      "phasesExecuted": [
+        "implement",
+        "test",
+        "regression",
+        "simplify",
+        "stabilize",
+        "security",
+        "validate",
+        "audit"
+      ],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.goal",
+      "expansionReason": "No runSubagent dispatch was issued for these phases. bubbles.goal executed each one directly as the authorized top-level workflow runner, under an explicit operator instruction to drive the work to completion without stopping to delegate or ask. The phases were performed, not recorded: each carries its own executed transcript in report.md.",
+      "expansionEvidenceRef": "report.md",
+      "statusBefore": "not_started",
+      "statusAfter": "done",
+      "startedAt": "2026-08-12T12:53:46Z",
+      "finishedAt": "2026-08-12T14:22:46Z",
+      "outcome": "completed_owned",
+      "addressedFindings": [
+        "BUG-008-FX-ROUTE-SELF-DESCRIPTION-CONTRADICTS-REGISTRY"
+      ],
+      "unresolvedFindings": [],
+      "evidenceRef": "report.md#test-evidence",
+      "summary": "Retired two falsified registration claims from the FX route's served markup, preserved the two facts in that comment that remained true, and installed a registry-derived regression guard proven RED then GREEN on the identical command. Full FX suite 78/78, repository selftest 1578/0, page id integrity 0 missing.",
+      "durationProvenance": "The packet ran as one continuous session: audit and hypothesis-rejection first, then RED guard, then the markup fix, then the GREEN and collateral-damage runs. The FX suite run is the long pole at 1.1m wall clock; every other command completed in seconds."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [
+    "BUG-008-fx-route-claims-unregistered"
+  ],
+  "addressedFindings": [
+    "BUG-008-FX-ROUTE-SELF-DESCRIPTION-CONTRADICTS-REGISTRY"
+  ],
+  "unresolvedFindings": []
+}

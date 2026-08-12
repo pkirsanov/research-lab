@@ -1,4 +1,5 @@
 import { createRequire } from 'node:module';
+import { existsSync, readFileSync } from 'node:fs';
 import { test, expect } from './playwright-runtime.mjs';
 import { startStaticServer } from './provider-credentials.support.mjs';
 
@@ -1373,4 +1374,43 @@ test('Regression SCN-004-026 adversarial: source tokens do not prove an unreacha
   }));
   expect(identity.toolId).toBe('fx-regime-relative-value-lab');
   expect(identity.registered).toBe('registered');
+});
+
+/* BUG-008. The route shipped registered, but its served markup still asserted the pre-registration
+   state in both a source comment and the mount's pre-hydration placeholder text. That text is what a
+   reader sees before rlapp.js injects the shell, so a registered, published route was telling the
+   reader it was not registered.
+
+   The invariant is derived from tools.json rather than frozen as a string, so it fails in BOTH
+   directions: it reddens if the page reacquires an unregistered claim, and it also reddens if the
+   tool is ever de-registered while the page keeps claiming to be live. A hardcoded "this exact
+   sentence is absent" assertion would have done neither. */
+test('Regression BUG-008: a registered route never claims it is unregistered', async () => {
+  const registry = JSON.parse(readFileSync(new URL('../tools.json', import.meta.url), 'utf8'));
+  const registered = JSON.stringify(registry).includes('"fx-regime-relative-value-lab"');
+  const excluded = existsSync(new URL('../site-exclusions.json', import.meta.url))
+    ? JSON.parse(readFileSync(new URL('../site-exclusions.json', import.meta.url), 'utf8'))
+    : [];
+  const isExcluded = JSON.stringify(excluded).includes('fx-regime-relative-value-lab');
+
+  // Ground the expectation in the registry, not in a remembered answer.
+  expect(registered).toBe(true);
+  expect(isExcluded).toBe(false);
+
+  const markup = readFileSync(new URL('../fx-regime-relative-value-lab.html', import.meta.url), 'utf8');
+
+  // Claims that contradict the registry state proven immediately above.
+  const contradictions = [
+    /intentionally\s+UNREGISTERED/i,
+    /once\s+this\s+route\s+is\s+registered/i,
+    /until\s+this\s+route\s+is\s+registered/i,
+    /E012-REGISTRY\s+(?:and|so)/i
+  ];
+  const found = contradictions.filter((pattern) => pattern.test(markup)).map(String);
+  expect(found).toEqual([]);
+
+  // The placeholder a reader sees before the shell mounts must not deny the route's own liveness.
+  const mount = markup.match(/<div[^>]*id="shellMount"[^>]*>([\s\S]*?)<\/div>/);
+  expect(mount).not.toBeNull();
+  expect(mount[1]).not.toMatch(/\bnot\s+registered\b|\bunregistered\b|\bonce\b.*\bregistered\b/i);
 });

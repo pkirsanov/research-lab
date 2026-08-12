@@ -3376,6 +3376,49 @@
       });
     }
 
+    /* The reason false alarms are retained rather than deleted: these rates are only honest if
+       the denominator still contains them. Matching is by effective index against declared
+       target events, so a "hit" cannot be awarded to a record that fired somewhere else. */
+    function tdcReplayMetrics(replay, targetIndexes, tolerance) {
+      if (!replay || !replay.ok || !Array.isArray(targetIndexes)) return null;
+      var window = Number.isFinite(tolerance) ? tolerance : 2;
+      var confirmed = replay.records.filter(function (record) { return record.state === 'confirmed'; });
+      var invalidated = replay.records.filter(function (record) { return record.state === 'invalidated'; });
+      var matchedTargets = [];
+      var truePositives = [];
+      confirmed.forEach(function (record) {
+        var hit = targetIndexes.filter(function (target) {
+          return Math.abs(target - record.effectiveIndex) <= window && matchedTargets.indexOf(target) < 0;
+        })[0];
+        if (hit === undefined) return;
+        matchedTargets.push(hit);
+        truePositives.push({ recordId: record.recordId, targetIndex: hit, delayObservations: record.delayObservations });
+      });
+      var falsePositives = confirmed.length - truePositives.length;
+      var misses = targetIndexes.filter(function (target) { return matchedTargets.indexOf(target) < 0; });
+      var delays = truePositives
+        .map(function (entry) { return entry.delayObservations; })
+        .filter(function (value) { return Number.isFinite(value); })
+        .sort(function (a, b) { return a - b; });
+      return tdcDeepFreeze({
+        contractVersion: 'tdc-replay-metrics/v1',
+        confirmedCount: confirmed.length,
+        invalidatedCount: invalidated.length,
+        truePositives: truePositives.length,
+        falsePositives: falsePositives,
+        misses: misses.length,
+        // Undefined rather than 1.0 when nothing was predicted. A precision of 1 from zero
+        // predictions is the classic way a detector looks perfect by never firing.
+        precision: confirmed.length ? truePositives.length / confirmed.length : null,
+        recall: targetIndexes.length ? truePositives.length / targetIndexes.length : null,
+        // False alarms include invalidated candidates, which is exactly why they are retained.
+        falseAlarmRate: (confirmed.length + invalidated.length)
+          ? (falsePositives + invalidated.length) / (confirmed.length + invalidated.length) : null,
+        medianDelayObservations: delays.length ? delays[Math.floor(delays.length / 2)] : null,
+        matchTolerance: window
+      });
+    }
+
     /* Draws the observed series and marks the turning record's effective and detected points
        separately, so the confirmation lag is visible rather than implied. Returns false when
        there is nothing to draw, so the caller leaves the text equivalent standing. */

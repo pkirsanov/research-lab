@@ -680,3 +680,171 @@ test('FR-050 partial or stale evidence keeps its state and cannot support an act
   assert.equal(plain.supportsCurrentActionAsFresh, false,
     '"we did not check" must never present as "we checked and it is fine"');
 });
+
+test('SCN-008-008 TP-06-01: every item explains why it appears with the full FR-045 disclosure', () => {
+  const loaded = loadBrief();
+
+  /* Three distinct completions on two distinct dates in one domain, so the behaviour floor is
+   * cleared and the inferred lane is genuinely populated. Without that the disclosure below
+   * would be asserted against an empty lane and prove nothing. */
+  const day = BRIEF_DAY;
+  const composed = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: {
+      completions: [
+        { subjectId: 'ZZTOP', subjectKind: 'ticker', domain: 'semiconductors', category: 'ticker-research-completed', horizon: 'medium-term', completedAt: `${day}T12:00:00.000Z` },
+        { subjectId: 'QQQX', subjectKind: 'ticker', domain: 'semiconductors', category: 'risk-analysis-completed', horizon: 'medium-term', completedAt: '2026-07-14T12:00:00.000Z' }
+      ],
+      owners: { MSFT: { toolId: 'risk-xray', href: 'risk-xray.html' } }
+    }
+  }));
+  assert.equal(composed.ok, true);
+
+  const inferred = composed.value.lanes.inferredRelevance;
+  assert.ok(inferred.length, 'the inferred lane must be populated for this disclosure to mean anything');
+
+  const REQUIRED = ['whyShown', 'evidenceEventCategories', 'relevanceConfidence', 'horizon',
+    'recency', 'evidenceState', 'triggerCondition', 'completionCondition',
+    'invalidationCondition', 'deepLink', 'researchVerb'];
+
+  for (const lane of loaded.brief.laneOrder) {
+    for (const item of composed.value.lanes[lane]) {
+      for (const field of REQUIRED) {
+        assert.ok(field in item.explanation,
+          `${item.subjectId} (${lane}) must disclose ${field}`);
+      }
+      // FR-046: relevance confidence is on its own scale and cannot read as a success probability.
+      assert.equal(item.explanation.confidenceKind, 'relevance-only');
+      // FR-052/FR-053: only research verbs, never an order verb.
+      assert.ok(loaded.brief.researchVerbs.includes(item.explanation.researchVerb),
+        `${item.subjectId} uses research verb "${item.explanation.researchVerb}"`);
+      // FR-054: an action that cannot end becomes a permanent prompt across repeated windows.
+      assert.ok(item.explanation.completionCondition);
+      assert.ok(item.explanation.invalidationCondition);
+    }
+  }
+
+  // A behaviour-derived item names the deliberate completions behind it, not passive activity.
+  const domainItem = inferred[0];
+  assert.match(domainItem.explanation.whyShown, /explicitly completed research action/);
+  assert.ok(loaded.brief.relevanceConfidenceScale.includes(domainItem.explanation.relevanceConfidence),
+    'relevance confidence uses the declared relevance vocabulary');
+  assert.ok(domainItem.explanation.evidenceEventCategories.length,
+    'the supporting event categories are named rather than summarised away');
+
+  // Direct-scope items are explicitly marked as not carrying a relevance score at all.
+  const msft = composed.value.lanes.held.find((i) => i.subjectId === 'MSFT');
+  assert.equal(msft.explanation.relevanceConfidence, 'not-applicable-direct-scope',
+    'a holding is in scope by ownership, so a relevance score would be a fabricated inference');
+  assert.equal(msft.explanation.deepLink, 'risk-xray.html');
+});
+
+test('SCN-008-008 TP-06-01: recency decays on the declared half-life and expires past the age limit', () => {
+  const loaded = loadBrief();
+  const behavior = loaded.policy.behavior;
+
+  const recent = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: {
+      completions: [
+        { subjectId: 'ZZTOP', subjectKind: 'ticker', domain: 'semiconductors', category: 'ticker-research-completed', completedAt: `${BRIEF_DAY}T12:00:00.000Z` },
+        { subjectId: 'QQQX', subjectKind: 'ticker', domain: 'semiconductors', category: 'ticker-research-completed', completedAt: '2026-07-14T12:00:00.000Z' }
+      ]
+    }
+  }));
+  const fresh = recent.value.lanes.inferredRelevance[0];
+  assert.equal(fresh.explanation.recency.state, 'current');
+  assert.ok(fresh.explanation.recency.weight > 0.9,
+    'a same-day completion carries nearly full weight under the declared half-life');
+
+  /* Weight must FALL with age rather than staying flat. A decay field that never decays is
+   * decoration, and would let a months-old interest present exactly like a fresh one. */
+  const halfLifeAgo = new Date(Date.parse(`${BRIEF_DAY}T15:40:00.000Z`) - behavior.halfLifeDays * 86400000).toISOString();
+  // BOTH completions must be at least a half-life old, or the NEWEST would be the other one and
+  // the weight measured below would not be the half-life case at all.
+  const dayBefore = new Date(Date.parse(halfLifeAgo) - 86400000).toISOString();
+  const older = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: {
+      completions: [
+        { subjectId: 'ZZTOP', subjectKind: 'ticker', domain: 'semiconductors', category: 'ticker-research-completed', completedAt: halfLifeAgo },
+        { subjectId: 'QQQX', subjectKind: 'ticker', domain: 'semiconductors', category: 'ticker-research-completed', completedAt: dayBefore }
+      ]
+    }
+  }));
+  const aged = older.value.lanes.inferredRelevance[0];
+  assert.ok(aged.explanation.recency.weight < fresh.explanation.recency.weight,
+    'weight must fall with age, otherwise the decay field is decoration');
+  assert.ok(Math.abs(aged.explanation.recency.weight - 0.5) < 0.05,
+    'at exactly one half-life the weight is about one half');
+  /* The boundary is INCLUSIVE: at exactly `recentSupportDays` the support is still current, and
+   * only past it does it decay. Asserting the exact boundary rather than a comfortable distance
+   * from it is what makes an off-by-one in either direction detectable. */
+  assert.equal(aged.explanation.recency.state, 'current',
+    'at exactly recentSupportDays the support is still current');
+
+  const pastRecent = new Date(Date.parse(`${BRIEF_DAY}T15:40:00.000Z`) - (behavior.recentSupportDays + 1) * 86400000).toISOString();
+  const decaying = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: {
+      completions: [
+        { subjectId: 'ZZTOP', subjectKind: 'ticker', domain: 'semiconductors', category: 'ticker-research-completed', completedAt: pastRecent },
+        { subjectId: 'QQQX', subjectKind: 'ticker', domain: 'semiconductors', category: 'ticker-research-completed', completedAt: new Date(Date.parse(pastRecent) - 86400000).toISOString() }
+      ]
+    }
+  }));
+  assert.equal(decaying.value.lanes.inferredRelevance[0].explanation.recency.state, 'decaying',
+    'one day past the recent-support boundary the support is reported as decaying');
+});
+
+test('SCN-008-009 TP-06-01: settings and passive activity never become inferred interests', () => {
+  const loaded = loadBrief();
+
+  /* The load-bearing property is structural: only entries present in `completions` — which the
+   * privacy layer populates from EXPLICIT completion commands — can support an interest. Passing
+   * setting-shaped and passive-shaped records proves they cannot manufacture a lane entry. */
+  const composed = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: {
+      holdings: [],
+      watchlist: [],
+      completions: [],
+      evidence: [
+        ev('e-setting', 'displayMode', 'ticker', `${BRIEF_DAY}T14:00:00.000Z`, 0.9),
+        ev('e-passive', 'scrollDepth', 'ticker', `${BRIEF_DAY}T14:00:00.000Z`, 0.9)
+      ]
+    }
+  }));
+  assert.equal(composed.ok, true);
+
+  // Evidence alone cannot qualify a subject; qualification comes from holdings, watchlist, or an
+  // explicit completion. Nothing was in any of those, so every lane is empty.
+  for (const lane of loaded.brief.laneOrder) {
+    assert.deepEqual(composed.value.lanes[lane], [],
+      `${lane} must stay empty when nothing was explicitly completed`);
+  }
+  assert.equal(composed.value.states.behaviorHistory, 'insufficient-history');
+  assert.equal(composed.value.states.materialChange, 'no-material-change');
+});
+
+test('SCN-008-034 TP-06-01: no authored action carries an order verb or a size instruction', () => {
+  const loaded = loadBrief();
+  const composed = loaded.brief.composeBrief(briefInput({ loaded }));
+  assert.equal(composed.ok, true);
+
+  /* Screened as a closed ALLOW list on the verb plus a deny scan over the whole rendered payload.
+   * The allow list is what actually holds the line; the deny scan catches an order instruction
+   * smuggled into free text, which the verb check alone would miss. */
+  const BANNED = /\b(buy|sell|short|order|trade size|position size|rebalance|allocate now|execute|suitab)/i;
+  const payload = JSON.stringify(composed.value);
+  assert.equal(BANNED.test(payload), false,
+    'no order verb, size instruction, or suitability claim may appear anywhere in the brief payload');
+
+  for (const lane of loaded.brief.laneOrder) {
+    for (const item of composed.value.lanes[lane]) {
+      assert.ok(loaded.brief.researchVerbs.includes(item.explanation.researchVerb));
+      assert.equal(item.impliesPreference, false,
+        'holding something is not evidence of preferring it');
+    }
+  }
+});

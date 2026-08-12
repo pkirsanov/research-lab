@@ -45,6 +45,39 @@
      `complete` because "we did not check" must never present as "we checked and it is fine". */
   var COVERAGE_RANK = { complete: 0, unmeasured: 1, partial: 2, stale: 3, unavailable: 4 };
 
+  /* FR-052/FR-053. The ONLY verbs this brief may author. Research verbs describe looking at
+     something; an order verb describes moving money. Keeping the permitted set closed — rather
+     than screening for banned words — means a new verb has to be added deliberately instead of
+     slipping in because nobody thought to ban it. */
+  var RESEARCH_VERBS = ["review", "inspect", "compare", "run-scenario", "test-dependence",
+    "revisit-thesis", "refresh-evidence", "open-owning-analysis"];
+
+  /* Relevance confidence is labelled on its OWN vocabulary (FR-046). It deliberately shares no
+     token with market or model confidence, so a reader cannot read "how sure are we this is
+     relevant to you" as "how likely is this to make money". */
+  var RELEVANCE_CONFIDENCE = ["insufficient-evidence", "weak-relevance", "moderate-relevance", "strong-relevance"];
+
+  function relevanceConfidence(distinctCompletions, behaviorPolicy) {
+    if (distinctCompletions < behaviorPolicy.minimumDistinctCompletions) return "insufficient-evidence";
+    if (distinctCompletions >= behaviorPolicy.highScore) return "strong-relevance";
+    if (distinctCompletions >= behaviorPolicy.mediumScore) return "moderate-relevance";
+    return "weak-relevance";
+  }
+
+  /* Exponential decay on the policy's half-life. Recency is a MEASUREMENT of how old the newest
+     supporting completion is, not a judgement about whether the interest still holds. */
+  function decayState(newestCompletedAt, referenceIso, behaviorPolicy) {
+    if (!isIso(newestCompletedAt)) return { ageDays: null, weight: 0, state: "no-supporting-action" };
+    var ageMs = Date.parse(referenceIso) - Date.parse(newestCompletedAt);
+    var ageDays = ageMs / 86400000;
+    var halfLife = behaviorPolicy.halfLifeDays;
+    var weight = isFinite(halfLife) && halfLife > 0 ? Math.pow(0.5, ageDays / halfLife) : 0;
+    var state = "current";
+    if (ageDays > behaviorPolicy.maximumEvidenceAgeDays) state = "expired";
+    else if (ageDays > behaviorPolicy.recentSupportDays) state = "decaying";
+    return { ageDays: Math.round(ageDays * 100) / 100, weight: Math.round(weight * 10000) / 10000, state: state };
+  }
+
   function ok(value) { return { ok: true, value: value }; }
   function err(code, reason, field) { return { ok: false, error: { code: code, reason: reason, field: field || null } }; }
 
@@ -148,6 +181,29 @@
       completions.push(entry);
     });
     var floor = evaluateFloor(completions, input.policy.behavior);
+
+    /* Per-subject support, derived ONLY from explicitly completed actions. Settings, passive
+       activity, and view history are not in `completions` by construction, which is what makes
+       FR-045's "evidence event categories" a statement about deliberate actions (SCN-008-009). */
+    var supportBySubject = {};
+    var categoriesBySubject = {};
+    var horizonBySubject = {};
+    var newestSupportBySubject = {};
+    completions.forEach(function (entry) {
+      [entry.subjectId, entry.domain].forEach(function (key) {
+        if (!key) return;
+        key = String(key);
+        supportBySubject[key] = (supportBySubject[key] || 0) + 1;
+        if (entry.category) {
+          if (!categoriesBySubject[key]) categoriesBySubject[key] = [];
+          if (categoriesBySubject[key].indexOf(entry.category) === -1) categoriesBySubject[key].push(entry.category);
+        }
+        if (entry.horizon && !horizonBySubject[key]) horizonBySubject[key] = entry.horizon;
+        if (!newestSupportBySubject[key] || entry.completedAt > newestSupportBySubject[key]) {
+          newestSupportBySubject[key] = entry.completedAt;
+        }
+      });
+    });
 
     // INVARIANT 2. Build the qualification map first, then place each subject exactly once.
     var qualifiesVia = {};
@@ -259,7 +315,33 @@
             ? "same-evidence-as-prior-window"
             : "new-evidence-since-prior-window";
         })(),
-        alsoQualifiesVia: entry.lanes.filter(function (lane) { return lane !== primary; })
+        alsoQualifiesVia: entry.lanes.filter(function (lane) { return lane !== primary; }),
+        /* FR-045. A behaviour-derived item that cannot say why it appeared is indistinguishable
+           from a guess, so the explanation travels WITH the item rather than being reconstructed
+           by whatever renders it. Direct-scope items carry the same shape so a reader never has to
+           learn two vocabularies. */
+        explanation: {
+          whyShown: primary === "inferredRelevance"
+            ? "Inferred from " + (supportBySubject[subjectId] || 0) + " explicitly completed research action(s) in a non-sensitive domain."
+            : "In scope because it is a " + LANE_SOURCE[primary].replace("direct-", "") + ".",
+          evidenceEventCategories: categoriesBySubject[subjectId] || [],
+          relevanceConfidence: primary === "inferredRelevance"
+            ? relevanceConfidence(supportBySubject[subjectId] || 0, input.policy.behavior)
+            : "not-applicable-direct-scope",
+          // Named apart from market/model confidence so the two can never be read as one number.
+          confidenceKind: "relevance-only",
+          horizon: horizonBySubject[subjectId] || null,
+          recency: decayState(newestSupportBySubject[subjectId] || null, input.composedAt, input.policy.behavior),
+          evidenceState: observed.coverageState || "unmeasured",
+          // What would make this action stop being open. Without it a repeated window becomes a
+          // permanent unresolved prompt (FR-054).
+          triggerCondition: "Reviewed against the " + window.id + " evidence window.",
+          completionCondition: "Marked complete through the explicit completion control.",
+          invalidationCondition: "Supporting evidence ages past " + input.policy.behavior.maximumEvidenceAgeDays + " days, or local history is cleared.",
+          deepLink: owners[subjectId] ? owners[subjectId].href : null,
+          // FR-051/FR-052/FR-053: a research verb, never an order verb.
+          researchVerb: primary === "held" ? "review" : "inspect"
+        }
       });
     });
 
@@ -339,6 +421,8 @@
     contractVersion: CONTRACT_VERSION,
     laneOrder: LANE_ORDER.slice(),
     laneSource: LANE_SOURCE,
+    researchVerbs: RESEARCH_VERBS.slice(),
+    relevanceConfidenceScale: RELEVANCE_CONFIDENCE.slice(),
     composeBrief: composeBrief
   };
 }));

@@ -256,9 +256,37 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
 
   Unchecked. The Scope 01 and 02 re-run and the raw-namespace and clear-fault canaries are carried by the executed suites. The **exact rollback and restore proof** for this scope's own marker-bounded additions is a source-rollback procedure that no executed command demonstrates.
 
-- [ ] Every Scope 03 behavior has intended RED and same-command GREEN evidence before the broader browser row.
+- [x] Every Scope 03 behavior has intended RED and same-command GREEN evidence before the broader browser row.
 
-  Unchecked — **0 of 14 behaviors have an intended RED.** All 14 have committed same-command GREEN. No RED record existed before this run and this run was barred from injecting defects. Behavior-by-behavior table in [report.md](report.md#coverage-report).
+  Checked — **14 of 14 behaviors have an intended RED**, each with same-command GREEN on restored
+  source. Earlier passes recorded 0 of 14 only because they were barred from injecting defects;
+  this pass was authorised to inject them.
+
+  **Claim Source:** executed · **Command:** `node --test tests/portfolio-foundation.unit.mjs` · **Exit Code:** 0 restored
+
+  ```text
+  $ node --test tests/portfolio-foundation.unit.mjs        # baseline
+  # pass 49
+  # fail 0
+  $ <inject behavior 3 defect: occurredAt '<' flipped to '>'>
+  not ok 25 - semantic de-duplication collapses same-day repeats to the earliest occurrence
+    expected: '2026-07-15T09:05:00.000Z'
+    actual:   '2026-07-15T21:45:00.000Z'
+  $ git checkout -- rlportfolio.js && node --test tests/portfolio-foundation.unit.mjs
+  # pass 49
+  # fail 0
+  ```
+
+  Per-behavior defect and reddened test in [report.md](report.md#dod-core-item-5--red-and-green-pairs-14-of-14).
+  Each defect was injected alone, the behavior's own command run, the failing test recorded by
+  name, and the source restored with `git checkout -- rlportfolio.js` before the next injection.
+
+  **The pass found a real guard defect rather than confirming a healthy one.** Behavior 5 produced
+  no RED at all: injecting `subjectValue` into every privacy-inventory category left the file at
+  49 pass / 0 fail, so a privacy-critical assertion could not detect the leak it exists to
+  prevent. Its leak sweep was a denylist over five known values. The category record is now closed
+  by shape, and the same defect reddens test 27 alone. That fix is why this item is ticked on
+  evidence rather than on a clean-looking run.
 
 #### Test Evidence Items - Exact Parity With 6 Test Plan Rows
 

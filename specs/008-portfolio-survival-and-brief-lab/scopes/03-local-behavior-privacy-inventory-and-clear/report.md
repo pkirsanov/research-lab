@@ -1085,26 +1085,53 @@ UI state therefore has no present coverage, no auto-absorption, and no pinning t
 
 Either the four nouns gain real surfaces and the sweep observes them, or — the cheaper path for UI state specifically — the two key helpers derive from the policy storage section the way the array sweep derives from the workspace contract, so an added key cannot escape the sweep unnoticed. Both are planning-owned changes, not evidence-recording ones.
 
-### DoD core item 5 — RED and GREEN pairs: 0 of 14
+### DoD core item 5 — RED and GREEN pairs: 14 of 14
 
-Every Scope 03 behavior below has committed same-command GREEN. **None has a recorded intended RED.** `report.md` held no RED record before this run, and this run was barred from injecting defects, so no RED could be produced.
+Every Scope 03 behavior below now has committed same-command GREEN **and** a recorded intended
+RED. The earlier passes recorded 0 of 14 because they were barred from injecting defects; this
+pass was authorised to inject them, so each behavior's guard was made to fail on purpose and then
+restored.
 
-| # | Behavior | GREEN | Intended RED |
-|---|---|---|---|
-| 1 | Closed behavior event vocabulary | Yes | No |
-| 2 | Declared excluded-source rejection at any casing, separator, or depth | Yes | No |
-| 3 | Semantic de-duplication to earliest occurrence | Yes | No |
-| 4 | Action-outcome command-to-state mapping | Yes | No |
-| 5 | Privacy inventory projection without stored values | Yes | No |
-| 6 | Atomic behavior-only clear preserving portfolio and mandate | Yes | No |
-| 7 | Verified clear reread with remove-fault refusal | Yes | No |
-| 8 | Verified clear covering every policy-declared personal key | Yes | No |
-| 9 | Full-personal clear with byte-identical generic assets | Yes | No |
-| 10 | Inventory and verified clear available without policy config | Yes | No |
-| 11 | Eligible-completion-only behavior evidence derivation | Yes | No |
-| 12 | Route recomposition invariance to behavior evidence | Yes | No |
-| 13 | Behavior clear returning recomposition to the pre-evidence baseline | Yes | No |
-| 14 | Dismissal and automatic invalidation recording no negative preference | Yes | No |
+**Method.** For each behavior a single targeted defect was injected into `rlportfolio.js`, the
+behavior's own command was run, the failing test was recorded by name, and the source was restored
+with `git checkout -- rlportfolio.js` before the next injection. GREEN is the same command on the
+restored source. Baselines: `node --test tests/portfolio-foundation.unit.mjs` 49 pass / 0 fail;
+`node --test tests/portfolio-privacy.functional.mjs` 13 pass / 0 fail; the browser suite 10 passed.
+
+**Claim Source:** executed · **Command:** `node --test tests/portfolio-foundation.unit.mjs` (and
+the browser command for #13) · **Exit Code:** 0 restored, non-zero under each injected defect
+
+| # | Behavior | GREEN | Intended RED | Injected defect | Test that went red |
+|---|---|---|---|---|---|
+| 1 | Closed behavior event vocabulary | Yes | Yes | category allow-check replaced with `false` | 23 (also 36, 42) |
+| 2 | Declared excluded-source rejection at any casing, separator, or depth | Yes | Yes | nested recursion in `findForbiddenBehaviorPath` returns `null` | 24 (also 49) |
+| 3 | Semantic de-duplication to earliest occurrence | Yes | Yes | `occurredAt <` flipped to `>`, keeping the latest | 25 |
+| 4 | Action-outcome command-to-state mapping | Yes | Yes | command/state mismatch guard replaced with `false` | 26 (also 36, 42) |
+| 5 | Privacy inventory projection without stored values | Yes | Yes | `subjectValue` added to every category record | 27 — **see the guard defect below** |
+| 6 | Atomic behavior-only clear preserving portfolio and mandate | Yes | Yes | behavior clear also empties `portfolioRevisions` | 28 (also 33, 41, 48) |
+| 7 | Verified clear reread with remove-fault refusal | Yes | Yes | post-reread failure branch replaced with `if (false)` | 29 (also 49) |
+| 8 | Verified clear covering every policy-declared personal key | Yes | Yes | local sweep narrowed to `FOUNDATION_LOCAL_KEYS.slice(1)` | 30 (also 16, 29, 31, 37, 49) |
+| 9 | Full-personal clear with byte-identical generic assets | Yes | Yes | clear also removes the foreign `rlData` key | 31 (also 1, 16) |
+| 10 | Inventory and verified clear available without policy config | Yes | Yes | same narrowed-sweep defect as #8 | 16 |
+| 11 | Eligible-completion-only behavior evidence derivation | Yes | Yes | constructed event's `lifecycleState` set to `quarantined` | 42 (also 23, 41) |
+| 12 | Route recomposition invariance to behavior evidence | Yes | Yes | route `available` made to depend on `behaviorEvents.length` | 22 |
+| 13 | Behavior clear returning recomposition to the pre-evidence baseline | Yes | Yes | behavior clear no longer empties `behaviorEvents` | browser `SCN-008-011` |
+| 14 | Dismissal and automatic invalidation recording no negative preference | Yes | Yes | `preferenceDelta: -1` added on dismiss and invalidate | 40 (also 26, 32) |
+
+**A guard defect the RED pass exposed, and the fix.** Behavior 5 initially produced **no** RED at
+all. Injecting `subjectValue: "REDPROBE-msft"` into every privacy-inventory category record left
+the file fully green at 49 pass / 0 fail — a privacy-critical assertion that could not detect the
+leak it exists to prevent. The cause was that the leak sweep is a **denylist**: it serializes the
+inventory and asserts five *known* values are absent, so any value it was not told to look for
+passes silently. The category record is now closed by **shape** instead, an allowlist requiring
+exactly `category`, `clearedBy`, `present`, `recordCount`. The same defect then produced 48 pass /
+1 fail naming test 27 alone, and 49 pass / 0 fail once reverted. Fixed in
+`tests/portfolio-foundation.unit.mjs`; this is the RED pass finding a real hole rather than
+confirming a healthy one.
+
+**On the corroborating tests.** Several defects reddened more than the behavior's own row. That is
+recorded rather than trimmed: it shows the guards overlap, so a single regression is caught by
+several independent assertions. #8 is the strongest case, reddening six.
 
 ## Lint And Quality
 
@@ -1131,7 +1158,7 @@ carried by named assertions in the row's own test.
 |---|---|
 | Core 3 — full-personal clear section verification | **4 of the 13 nouns the line enumerates have no runtime surface at all: scenarios, allocations, dossiers, UI state.** The two vacuous nouns (interests, outcomes) are accepted as pinned. Ruling and the derived-versus-named sweep asymmetry that decides it are in decision D-03-08 and [core item 3](#dod-core-item-3--full-personal-clear-the-two-thirteens). Supersedes the earlier "9 of 13" line. **Planning ruling D-03-11** discharges all six unreachable nouns forward — interests/outcomes to Scope 06, scenarios to Scope 09, allocations to Scope 13, dossiers to Scope 15, UI state and whole-set closure to Scope 16 — with a named DoD item in each receiving scope. The item remains unchecked, now on Scope 03's own retained obligation: `policyDeclaredKeys` names five storage fields explicitly and pins the counts they produce, so a seventh personal key would be swept by nothing and redden nothing. |
 | Core 4 — impact sweep, canaries, rollback and restore proof | Not assessed on this pass. The prior assessment stands: the Scope 01 and 02 re-run and the raw-namespace and clear-fault canaries are carried; the **exact rollback and restore proof** was the open half. |
-| Core 5 — RED plus same-command GREEN | Not assessed on this pass. The prior assessment stands: **0 of 14 behaviors have an intended RED**, GREEN is complete, and this pass was again barred from injecting defects. |
+| Core 5 — RED plus same-command GREEN | **14 of 14 behaviors have an intended RED**, each paired with same-command GREEN on restored source. Recorded per behavior with the injected defect and the test that went red. The pass also exposed and fixed a behavior-5 guard that could not detect its own defect. |
 | TP-03-06 | **Executed and green (10 passed, exit 0), and still unchecked.** The second clause is carried: all six prior-scope rows passed in the same invocation. The first is not. The matrix is three axes — 6 foundation scenarios, 8 declared categories × 2 clear operations, and 6 declared clear steps plus a control. Axes 1 and 3 are fully carried. In Axis 2, **behavior clear × quarantine and behavior clear × session-fallback have no assertion at all**: the arm never stocks either, and the row's only namespace guard structurally excludes both. Three further cells are vacuous. Cell-by-cell mapping and the two-cell closing path are in [TP-03-06](#tp-03-06). Two earlier readings are superseded — "likely closable" (the suite grew from 8 rows to 10, and the new rows close the full-personal and partial-failure clauses but not the behavior column), and the "11 of 16 carried" count, corrected to 9 after a producer sweep showed the `interest-signals` behavior cell is vacuous rather than carried. **Planning ruling D-03-11** discharges the vacuous cells to Scope 06, which removes vacuity as a reason to hold this row; the two unasserted reachable cells are not discharged and are what keep it unchecked. |
 | Build Quality Gate | Deliberately not assessed this pass. |
 

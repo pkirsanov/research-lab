@@ -757,11 +757,6 @@
           "weight": 0.022
         },
         {
-          "ticker": "EA",
-          "name": "Electronic Arts",
-          "weight": 0.02
-        },
-        {
           "ticker": "TTWO",
           "name": "Take-Two Interactive",
           "weight": 0.015

@@ -1308,3 +1308,53 @@ test('Regression: TP-03-06 every declared foundation clear step refuses success 
   console.log('[TP-03-06] refusalOnlySteps=' + FOUNDATION_SESSION_KEYS.join(','));
   console.log('[TP-03-06] successPayloadOnPartialFailure=0');
 });
+
+/* ═══════════ Feature 008 Scope 04 — public evidence barrier (TP-04-05) ═══════════ */
+
+test('Regression: SCN-008-005 TP-04-05 personal state coexists with the shared cache and the only published read is the constant privacy boundary', async ({ page }) => {
+  const requestStart = server.requests.length;
+  const browserRequests = await openRoute(page);
+
+  /* The precondition that makes the barrier claim mean anything: real personal state must EXIST
+   * locally while the public cache is read. A barrier asserted over an empty workspace proves
+   * nothing, because there would be nothing available to leak. */
+  await populateFoundation(page, 'TP-04-05 portfolio');
+  const workspace = await persistedWorkspace(page);
+  expect(workspace.portfolioRevisions.length, 'local personal state genuinely exists before the barrier is read').toBeGreaterThan(0);
+
+  const published = await page.evaluate(() => {
+    const cache = JSON.parse(localStorage.getItem('rlData') || '{}');
+    return cache.toolReads || {};
+  });
+
+  /* The tool is NOT a registered shared-cache participant yet — registration is Scope 16 — so the
+   * barrier is that nothing personal reaches the public cache, not that a record must appear.
+   * Publishing on load was tried and reverted: it broke Scope 03's committed byte-identity
+   * assertion and created a cache entry the rejection-path rows require to be absent. What the
+   * module MAY publish is pinned at unit level by TP-04-03/04, which prove RLDATA's own contract
+   * check accepts the constant boundary record and nothing richer. */
+  const ids = Object.keys(published);
+  for (const id of ids) {
+    const record = published[id].v ?? published[id];
+    expect(record.availability, `any read this tool publishes is unavailable by contract: ${id}`).toBe('unavailable');
+    expect(record.metrics?.personalDataIncluded, `any read this tool publishes declares no personal data: ${id}`).toBe(false);
+  }
+
+  /* The whole point: the personal values that demonstrably exist locally must not appear anywhere
+   * in the shared public cache, in any request URL, or in the address bar. */
+  const publicState = JSON.stringify(published);
+  for (const secret of ['MSFT', 'BND', 'TP-04-05 portfolio', 'costBasis', 'holdings', 'rlPortfolioWorkspace']) {
+    expect(publicState.includes(secret), `the shared public cache must not carry ${secret}`).toBe(false);
+  }
+
+  const requests = server.requests.slice(requestStart);
+  expect(requests.every((entry) => entry.method === 'GET'), 'the barrier issues no mutating request').toBe(true);
+  expect(JSON.stringify(requests), 'no personal subject appears in any request the page made').not.toMatch(/msft|bnd|costbasis/i);
+  expect(browserRequests.every((url) => new URL(url).origin === server.baseUrl), 'every request stayed same-origin').toBe(true);
+  expect(page.url(), 'no personal subject reaches the address bar').not.toMatch(/msft|bnd|costbasis/i);
+
+  console.log('[TP-04-05] publishedToolReadIds=' + (ids.join(',') || '(none — registration is Scope 16)'));
+  console.log('[TP-04-05] localPortfolioRevisions=' + workspace.portfolioRevisions.length);
+  console.log('[TP-04-05] sentinelsInPublicCache=0');
+  console.log('[TP-04-05] offOriginRequests=0');
+});

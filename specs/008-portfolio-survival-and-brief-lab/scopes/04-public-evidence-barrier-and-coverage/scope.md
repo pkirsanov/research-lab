@@ -23,7 +23,7 @@ Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and 
 ### SCN-008-005 - Generic publisher never receives personal context
 
 ```gherkin
-Scenario: A scheduled generic brief refresh occurs while local portfolio data exists
+Scenario: SCN-008-005 - A scheduled generic brief refresh occurs while local portfolio data exists
   Given the browser holds quantities, cost basis, P&L, cash needs, and behavior events
   When the public four-window publisher refreshes generic evidence
   Then none of those local fields is included in a publisher input or output
@@ -34,7 +34,7 @@ Scenario: A scheduled generic brief refresh occurs while local portfolio data ex
 ### SCN-008-035 - Partial data does not create synthetic completeness
 
 ```gherkin
-Scenario: One holding has stale prices and another lacks factor history
+Scenario: SCN-008-035 - One holding has stale prices and another lacks factor history
   Given other holdings and generic evidence are current
   When portfolio analyses compose
   Then valid current results remain visible

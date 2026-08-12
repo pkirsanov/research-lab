@@ -23,7 +23,7 @@ Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and 
 ### SCN-008-036 - One state feeds Simple and Power
 
 ```gherkin
-Scenario: The user switches between Simple and Power or follows a brief deep link
+Scenario: SCN-008-036 - The user switches between Simple and Power or follows a brief deep link
   Given one portfolio revision, evidence cutoff, behavior state, mandate, and result identity are active
   When the display mode or portfolio tab changes
   Then portfolio facts, recommendations, risk results, paths, candidate weights, and caveats remain coherent
@@ -38,7 +38,7 @@ personal categories is open at Scope 03 and closes only here, so this is the fir
 that can quantify over it.
 
 ```gherkin
-Scenario: A user clears all personal data from the complete six-tab route
+Scenario: SCN-008-041 - A user clears all personal data from the complete six-tab route
   Given every personal category the finished tool can create is genuinely populated
   When the user confirms the full-personal clear
   Then every declared personal category is empty on a storage reread

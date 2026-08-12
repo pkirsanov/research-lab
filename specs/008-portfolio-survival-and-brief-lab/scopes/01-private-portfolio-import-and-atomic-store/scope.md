@@ -25,7 +25,7 @@ Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and 
 ### SCN-008-001 - Valid local portfolio import
 
 ```gherkin
-Scenario: A user imports a valid portfolio without credentials
+Scenario: SCN-008-001 - A user imports a valid portfolio without credentials
   Given the import contains recognized holding fields and no secret or account-identity field
   When the user reviews and confirms the import preview
   Then one new local portfolio revision becomes current
@@ -36,7 +36,7 @@ Scenario: A user imports a valid portfolio without credentials
 ### SCN-008-002 - Invalid import is atomic
 
 ```gherkin
-Scenario: A malformed or secret-bearing import cannot partially replace the portfolio
+Scenario: SCN-008-002 - A malformed or secret-bearing import cannot partially replace the portfolio
   Given a current valid portfolio exists
   And a new import contains malformed rows, credential-shaped fields, or unresolved required identities
   When import validation runs

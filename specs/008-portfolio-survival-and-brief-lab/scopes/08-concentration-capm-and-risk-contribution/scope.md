@@ -23,7 +23,7 @@ Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and 
 ### SCN-008-015 - Concentration exposes overlapping risk
 
 ```gherkin
-Scenario: Several holdings share the same issuer, sector, factor, or underlying constituents
+Scenario: SCN-008-015 - Several holdings share the same issuer, sector, factor, or underlying constituents
   Given compatible exposure data is available
   When concentration is evaluated
   Then position, issuer, sector, factor, and known look-through overlap remain separate views
@@ -34,7 +34,7 @@ Scenario: Several holdings share the same issuer, sector, factor, or underlying 
 ### SCN-008-016 - Beta, R-squared, and residual risk stay separate
 
 ```gherkin
-Scenario: A portfolio has moderate benchmark beta but low explanatory power
+Scenario: SCN-008-016 - A portfolio has moderate benchmark beta but low explanatory power
   Given a named benchmark and aligned return window are valid
   When the CAPM diagnostic runs
   Then beta, R-squared, alpha estimate, and residual risk are reported separately
@@ -45,7 +45,7 @@ Scenario: A portfolio has moderate benchmark beta but low explanatory power
 ### SCN-008-017 - Marginal and total risk contribution reconcile
 
 ```gherkin
-Scenario: Risk contributions are available for the current covariance estimate
+Scenario: SCN-008-017 - Risk contributions are available for the current covariance estimate
   Given finite weights and a valid covariance estimate exist
   When asset and factor contributions are calculated
   Then marginal and total contribution definitions are visible

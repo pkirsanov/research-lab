@@ -23,7 +23,7 @@ Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and 
 ### SCN-008-006 - Four-window local composition
 
 ```gherkin
-Scenario Outline: The Portfolio Brief uses the matching generic evidence window
+Scenario Outline: SCN-008-006 - The Portfolio Brief uses the matching generic evidence window
   Given a fresh generic <window> evidence record exists
   And a valid local portfolio or direct research scope exists
   When the user opens the Portfolio Brief
@@ -42,7 +42,7 @@ Scenario Outline: The Portfolio Brief uses the matching generic evidence window
 ### SCN-008-007 - Direct and inferred scope stay separate
 
 ```gherkin
-Scenario: Held, watchlist, completed-research, and inferred-relevance subjects qualify for different reasons
+Scenario: SCN-008-007 - Held, watchlist, completed-research, and inferred-relevance subjects qualify for different reasons
   Given one ticker is in local holdings
   And one ticker is only in the public watchlist
   And one ticker appears only in eligible explicitly completed research action history
@@ -57,7 +57,7 @@ Scenario: Held, watchlist, completed-research, and inferred-relevance subjects q
 ### SCN-008-010 - Insufficient behavior history degrades honestly
 
 ```gherkin
-Scenario: The browser has too little eligible action history
+Scenario: SCN-008-010 - The browser has too little eligible action history
   Given no eligible events survive the visible evidence and decay policy
   When the Portfolio Brief composes
   Then behavior-derived interests are labeled insufficient

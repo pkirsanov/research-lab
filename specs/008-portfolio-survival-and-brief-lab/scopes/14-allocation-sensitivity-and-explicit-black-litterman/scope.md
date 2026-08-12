@@ -23,7 +23,7 @@ Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and 
 ### SCN-008-028 - Estimation sensitivity exposes unstable weights
 
 ```gherkin
-Scenario: Small input changes produce large allocation changes
+Scenario: SCN-008-028 - Small input changes produce large allocation changes
   Given a candidate is recomputed across declared history, mean, covariance, and constraint perturbations
   When its sensitivity band is evaluated
   Then weight ranges, turnover, objective ranges, and unstable holdings are visible
@@ -34,7 +34,7 @@ Scenario: Small input changes produce large allocation changes
 ### SCN-008-030 - Black-Litterman views are explicit, not inferred
 
 ```gherkin
-Scenario: A behavior-derived interest exists for a market theme
+Scenario: SCN-008-030 - A behavior-derived interest exists for a market theme
   Given the user has not entered a Black-Litterman view for that theme
   When the Black-Litterman candidate runs
   Then behavior history contributes no view, return adjustment, or confidence

@@ -23,7 +23,7 @@ Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and 
 ### SCN-008-022 - Raw crisis correlation receives volatility context
 
 ```gherkin
-Scenario: Cross-asset correlation rises during a high-volatility stress sample
+Scenario: SCN-008-022 - Cross-asset correlation rises during a high-volatility stress sample
   Given normal and stress samples are explicitly defined
   When dependence is compared
   Then raw correlations and volatility changes are shown
@@ -34,7 +34,7 @@ Scenario: Cross-asset correlation rises during a high-volatility stress sample
 ### SCN-008-023 - Crisis correlation never becomes a universal one
 
 ```gherkin
-Scenario: Several holdings become more dependent in downside observations
+Scenario: SCN-008-023 - Several holdings become more dependent in downside observations
   Given a finite stressed sample and uncertainty estimate exist
   When the diversification read is authored
   Then increased dependence and tail co-movement are visible
@@ -45,7 +45,7 @@ Scenario: Several holdings become more dependent in downside observations
 ### SCN-008-024 - Alternative appraisal smoothing limits decorrelation claims
 
 ```gherkin
-Scenario: A manually valued real estate or collectible series appears smooth
+Scenario: SCN-008-024 - A manually valued real estate or collectible series appears smooth
   Given valuations are infrequent, stale, appraisal-based, or user-entered
   When normal correlation and volatility are shown
   Then valuation frequency, last appraisal, liquidity, expected transaction cost, and smoothing caveat are prominent

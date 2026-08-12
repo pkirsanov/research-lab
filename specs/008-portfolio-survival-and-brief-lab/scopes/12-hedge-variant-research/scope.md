@@ -23,7 +23,7 @@ Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and 
 ### SCN-008-025 - Hedged and unhedged comparison includes carry and basis risk
 
 ```gherkin
-Scenario: A user compares a currency-hedged and unhedged research portfolio
+Scenario: SCN-008-025 - A user compares a currency-hedged and unhedged research portfolio
   Given hedge proxy, horizon, carry, transaction cost, rebalance, and basis-risk assumptions are explicit
   When the comparison runs
   Then gross risk change, carry, direct cost, turnover, residual exposure, and net modeled outcome are separate

@@ -23,7 +23,7 @@ Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and 
 ### SCN-008-020 - Withdrawal collision changes the path outcome
 
 ```gherkin
-Scenario: A dated cash need lands during an early drawdown
+Scenario: SCN-008-020 - A dated cash need lands during an early drawdown
   Given the user entered the need amount and date explicitly
   And a generated path falls before that date
   When the withdrawal is applied at the declared time
@@ -35,7 +35,7 @@ Scenario: A dated cash need lands during an early drawdown
 ### SCN-008-021 - Missing survival definition does not create a default
 
 ```gherkin
-Scenario: The user runs paths without a floor or goal horizon
+Scenario: SCN-008-021 - The user runs paths without a floor or goal horizon
   Given return history and portfolio weights are available
   But survival success conditions are absent
   When paths are generated

@@ -23,7 +23,7 @@ Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and 
 ### SCN-008-026 - All six allocation methods share one comparison basis
 
 ```gherkin
-Scenario: A user compares allocation approaches
+Scenario: SCN-008-026 - A user compares allocation approaches
   Given one frozen portfolio universe, evidence set, mandate, and cost policy are valid
   When current, equal-weight, minimum-variance, risk-parity, Black-Litterman, and constrained MVO candidates run
   Then every candidate uses the same shared inputs and constraints where applicable
@@ -34,7 +34,7 @@ Scenario: A user compares allocation approaches
 ### SCN-008-027 - No optimizer is the universal winner
 
 ```gherkin
-Scenario: One allocation candidate has the strongest in-sample metric
+Scenario: SCN-008-027 - One allocation candidate has the strongest in-sample metric
   Given other candidates differ on drawdown, cash-need survival, turnover, concentration, and sensitivity
   When the comparison summary renders
   Then it states the tradeoffs by objective
@@ -45,7 +45,7 @@ Scenario: One allocation candidate has the strongest in-sample metric
 ### SCN-008-029 - Conflicting constraints return infeasible
 
 ```gherkin
-Scenario: The mandate cannot be satisfied by the eligible universe
+Scenario: SCN-008-029 - The mandate cannot be satisfied by the eligible universe
   Given explicit minimums, maximums, exclusions, liquidity, and cash requirements conflict
   When an allocation method attempts to solve
   Then the candidate is infeasible
@@ -60,7 +60,7 @@ Carries Scope 03's discharged `allocations` conjunct. Scope 13 is the first scop
 persists an allocation candidate.
 
 ```gherkin
-Scenario: A user clears all personal data after computing allocation candidates
+Scenario: SCN-008-039 - A user clears all personal data after computing allocation candidates
   Given at least one allocation candidate is genuinely persisted
   When the user confirms the full-personal clear
   Then the allocation section is empty on a storage reread
@@ -121,7 +121,7 @@ Author independent objective/constraint/residual, basis equality, infeasibility,
 - [ ] NFR-002 through NFR-003, NFR-005 through NFR-006, NFR-009, NFR-011 through NFR-018, and NFR-021 through NFR-022 are satisfied by deterministic explainable candidates, missing/cutoff integrity, reproducible dossiers, visible calibration, accessible chart/table parity, stable responsive geometry, precision/source honesty, failure isolation, and research-only copy.
 - [ ] Every solver returns objective, iterations, residuals, constraint checks and reason; infeasible/unstable/unavailable rows remain visible and no hidden policy, relaxed constraint, heuristic substitute, score, winner, apply, rebalance, or trade control exists.
 - [ ] Candidate pixels/tables/disclosures derive from one comparison, remain synchronous/nonblank and ordered at desktop/mobile/zoom, and have no overlap/body overflow/hidden state.
-- [ ] Scope 03's discharged `allocations` clear conjunct is verified here, because `AllocationBasis/v1` is the first frozen allocation basis in the feature. If an allocation basis or candidate set is retained across a reload in any form, it is a personal category: it is registered in the privacy inventory, swept by the full-personal clear, and proven empty on reread with the generic public cache byte-identical. If it is never persisted, that is stated with the code path showing it, and the emptiness claim is withdrawn rather than asserted vacuously. TP-13-02 is the carrying row. At Scope 03 the noun had no workspace section, no `policy.storage` key, and no declarable inventory category, so nothing there could observe it. See [Scope 03 Full-Personal-Clear Enumeration Discharge](../_index.md#scope-03-full-personal-clear-enumeration-discharge).
+- [ ] SCN-008-039: Scope 03's discharged `allocations` clear conjunct is verified here, because `AllocationBasis/v1` is the first frozen allocation basis in the feature. If an allocation basis or candidate set is retained across a reload in any form, it is a personal category: it is registered in the privacy inventory, swept by the full-personal clear, and proven empty on reread with the generic public cache byte-identical. If it is never persisted, that is stated with the code path showing it, and the emptiness claim is withdrawn rather than asserted vacuously. TP-13-02 is the carrying row. At Scope 03 the noun had no workspace section, no `policy.storage` key, and no declarable inventory category, so nothing there could observe it. See [Scope 03 Full-Personal-Clear Enumeration Discharge](../_index.md#scope-03-full-personal-clear-enumeration-discharge).
 - [ ] Every Scope 13 behavior has intended RED and same-command GREEN evidence before the broader browser row.
 
 #### Test Evidence Items - Exact Parity With 7 Test Plan Rows

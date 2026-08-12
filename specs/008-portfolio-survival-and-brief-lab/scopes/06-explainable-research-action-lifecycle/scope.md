@@ -23,7 +23,7 @@ Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and 
 ### SCN-008-008 - Every behavior-derived item explains why it appears
 
 ```gherkin
-Scenario: A behavior-derived general research action is shown
+Scenario: SCN-008-008 - A behavior-derived general research action is shown
   Given eligible completed actions support a non-sensitive domain interest
   When a general research action is ranked from that interest
   Then it shows why shown, event categories, relevance confidence, horizon, recency, decay, freshness, trigger, and completion or invalidation condition
@@ -34,7 +34,7 @@ Scenario: A behavior-derived general research action is shown
 ### SCN-008-009 - Settings never become inferred interests
 
 ```gherkin
-Scenario: A user changes risk, horizon, shock, or display controls
+Scenario: SCN-008-009 - A user changes risk, horizon, shock, or display controls
   Given the user has no eligible behavior history for the affected domain
   When settings and parameter values change
   Then no InterestSignal is created or strengthened from those fields
@@ -45,7 +45,7 @@ Scenario: A user changes risk, horizon, shock, or display controls
 ### SCN-008-034 - Recommendations remain non-executing
 
 ```gherkin
-Scenario: A held position has concentration and catalyst risk
+Scenario: SCN-008-034 - A held position has concentration and catalyst risk
   Given fresh generic evidence and local exposure identify the research issue
   When the Portfolio Brief authors an action
   Then the action says review concentration, inspect catalyst risk, or run a scenario
@@ -59,7 +59,7 @@ Carries Scope 03's discharged `interests` and `outcomes` conjuncts. Scope 06 is 
 producer of either, so it is the first scope whose assertion can be non-vacuous.
 
 ```gherkin
-Scenario: A user clears all personal data after research actions have accumulated
+Scenario: SCN-008-037 - A user clears all personal data after research actions have accumulated
   Given at least one derived InterestSignal and one actionOutcome are genuinely persisted
   When the user confirms the full-personal clear
   Then the interest-signal and action-outcome sections are empty on a storage reread
@@ -131,7 +131,7 @@ Author complete why-shown, forbidden mutation, lifecycle, owner-handoff, and clo
 - [ ] NFR-003 through NFR-004, NFR-011 through NFR-013, NFR-019, and NFR-022 through NFR-023 are satisfied by visible calibration/sensitivity, deterministic latest identity, keyboard/focus operation, inert text/routes, adjacent educational boundary, and exact recommendation traceability.
 - [ ] Closed-vocabulary and DOM/source scans find no buy/sell/order/execute/rebalance/size/target-position/suitable/recommended-for-you control or personalized-advice claim.
 - [ ] Consumer Impact Sweep proves fixed sibling/owner routing, zero private URL/referrer/request content, no generic copy mutation, and no action event from open/click/display changes.
-- [ ] Scope 03's discharged `interests` and `outcomes` clear conjuncts are verified here, because Scope 06 is the first producer of either. With at least one derived `InterestSignal` and one `actionOutcome` genuinely persisted, a full-personal clear leaves both sections empty on reread, and a behavior-only clear leaves the holdings, mandate, and cash-need records at their exact prior counts. TP-06-02 is the carrying row; it already runs `tests/portfolio-privacy.functional.mjs`, the file holding Scope 03's clear proof. Scope 03 could assert neither: `validateWorkspace` refuses `interestSignals.length > 0` as `unsupported-contract-scope`, and no builder it exports can hash an `actionOutcome` into a workspace, so its own assertions are vacuous by construction and its DoD line says so. Scope 03's committed pin, `the two personal sections the clear sweep cannot populate are pinned by their own distinct refusal`, goes red the moment `deriveInterestSignals` lands, which is the signal that this item is now owed. See [Scope 03 Full-Personal-Clear Enumeration Discharge](../_index.md#scope-03-full-personal-clear-enumeration-discharge).
+- [ ] SCN-008-037: Scope 03's discharged `interests` and `outcomes` clear conjuncts are verified here, because Scope 06 is the first producer of either. With at least one derived `InterestSignal` and one `actionOutcome` genuinely persisted, a full-personal clear leaves both sections empty on reread, and a behavior-only clear leaves the holdings, mandate, and cash-need records at their exact prior counts. TP-06-02 is the carrying row; it already runs `tests/portfolio-privacy.functional.mjs`, the file holding Scope 03's clear proof. Scope 03 could assert neither: `validateWorkspace` refuses `interestSignals.length > 0` as `unsupported-contract-scope`, and no builder it exports can hash an `actionOutcome` into a workspace, so its own assertions are vacuous by construction and its DoD line says so. Scope 03's committed pin, `the two personal sections the clear sweep cannot populate are pinned by their own distinct refusal`, goes red the moment `deriveInterestSignals` lands, which is the signal that this item is now owed. See [Scope 03 Full-Personal-Clear Enumeration Discharge](../_index.md#scope-03-full-personal-clear-enumeration-discharge).
 - [ ] Every Scope 06 behavior has intended RED and same-command GREEN evidence before the broader browser row.
 
 #### Test Evidence Items - Exact Parity With 7 Test Plan Rows

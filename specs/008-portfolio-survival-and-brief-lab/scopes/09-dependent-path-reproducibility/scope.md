@@ -23,7 +23,7 @@ Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and 
 ### SCN-008-018 - Block-bootstrap paths are reproducible
 
 ```gherkin
-Scenario: The same dependent-path specification is executed twice
+Scenario: SCN-008-018 - The same dependent-path specification is executed twice
   Given portfolio revision, return sample, block policy, horizon, cash flows, fees, and seed are identical
   When block-bootstrap paths are generated twice
   Then path identities and result summaries are identical
@@ -34,7 +34,7 @@ Scenario: The same dependent-path specification is executed twice
 ### SCN-008-019 - Parameter uncertainty is part of survival
 
 ```gherkin
-Scenario: Plausible expected-return, dependence, or tail parameters vary
+Scenario: SCN-008-019 - Plausible expected-return, dependence, or tail parameters vary
   Given the user selects explicit uncertainty ranges or an evidence-derived parameter policy
   When survival paths are evaluated
   Then results show a distribution across parameter uncertainty as well as path randomness
@@ -48,7 +48,7 @@ Carries Scope 03's discharged `scenarios` conjunct. Scope 09 is the first scope 
 persists a scenario, so it is the first that can assert this without vacuity.
 
 ```gherkin
-Scenario: A user clears all personal data after running dependent-path scenarios
+Scenario: SCN-008-038 - A user clears all personal data after running dependent-path scenarios
   Given at least one scenario is genuinely persisted from a completed run
   When the user confirms the full-personal clear
   Then the scenario section is empty on a storage reread
@@ -105,7 +105,7 @@ Author index/path hash, parameter-band, identity mutation, cancellation, canvas/
 - [ ] NFR-002 through NFR-003, NFR-005 through NFR-006, NFR-009 through NFR-012, NFR-014 through NFR-018, and NFR-021 through NFR-022 are satisfied by deterministic dossiers, cutoff/missing integrity, reproducibility, visible calibration/chunk tokens, chart parity, stable responsive geometry, precision/source honesty, failure isolation, and research-only copy.
 - [ ] Every policy value and range comes from mandatory visible config or explicit user input; changing it changes the identity/trial record and no fallback supplies a path assumption.
 - [ ] Path canvas pixels/table rows derive from one immutable result, remain synchronous/nonblank at desktop/mobile/zoom, and have no overlap/body overflow/hidden uncertainty meaning.
-- [ ] Scope 03's discharged `scenarios` clear conjunct is verified here, because `ScenarioSpecification/v1` is the first persisted scenario identity in the feature. If a scenario specification is retained across a reload in any form, it is a personal category: it is registered in the privacy inventory, swept by the full-personal clear, and proven empty on reread with the generic public cache byte-identical. If it is never persisted, that is stated with the code path showing it, and the emptiness claim is withdrawn rather than asserted vacuously. TP-09-01 is the carrying row. At Scope 03 the noun had no workspace section, no `policy.storage` key, and no declarable inventory category, so nothing there could observe it. See [Scope 03 Full-Personal-Clear Enumeration Discharge](../_index.md#scope-03-full-personal-clear-enumeration-discharge).
+- [ ] SCN-008-038: Scope 03's discharged `scenarios` clear conjunct is verified here, because `ScenarioSpecification/v1` is the first persisted scenario identity in the feature. If a scenario specification is retained across a reload in any form, it is a personal category: it is registered in the privacy inventory, swept by the full-personal clear, and proven empty on reread with the generic public cache byte-identical. If it is never persisted, that is stated with the code path showing it, and the emptiness claim is withdrawn rather than asserted vacuously. TP-09-01 is the carrying row. At Scope 03 the noun had no workspace section, no `policy.storage` key, and no declarable inventory category, so nothing there could observe it. See [Scope 03 Full-Personal-Clear Enumeration Discharge](../_index.md#scope-03-full-personal-clear-enumeration-discharge).
 - [ ] Every Scope 09 behavior has intended RED and same-command GREEN evidence before the broader browser row.
 
 #### Test Evidence Items - Exact Parity With 5 Test Plan Rows

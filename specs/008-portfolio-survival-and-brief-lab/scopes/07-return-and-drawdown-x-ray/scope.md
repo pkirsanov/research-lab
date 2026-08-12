@@ -23,7 +23,7 @@ Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and 
 ### SCN-008-013 - Arithmetic and geometric return remain distinct
 
 ```gherkin
-Scenario: The portfolio has volatile historical returns
+Scenario: SCN-008-013 - The portfolio has volatile historical returns
   Given an aligned return sample and portfolio weights are valid
   When Risk X-Ray calculates return statistics
   Then arithmetic mean, compounded CAGR, and observed volatility drag are shown separately
@@ -34,7 +34,7 @@ Scenario: The portfolio has volatile historical returns
 ### SCN-008-014 - Drawdown and unrecovered state are truthful
 
 ```gherkin
-Scenario: The latest portfolio path has not recovered its prior peak
+Scenario: SCN-008-014 - The latest portfolio path has not recovered its prior peak
   Given the sample includes a peak and subsequent drawdown
   But no later observation regains that peak by the evidence cutoff
   When drawdown statistics are shown

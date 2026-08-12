@@ -23,7 +23,7 @@ Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and 
 ### SCN-008-031 - Walk-forward and costs limit backtest claims
 
 ```gherkin
-Scenario: An allocation rule looks attractive in the selected historical sample
+Scenario: SCN-008-031 - An allocation rule looks attractive in the selected historical sample
   Given transaction costs, rebalance timing, walk-forward splits, and trial count are available
   When the dossier evaluates the candidate
   Then in-sample, walk-forward, and cost-adjusted results remain separate
@@ -34,7 +34,7 @@ Scenario: An allocation rule looks attractive in the selected historical sample
 ### SCN-008-032 - Market-efficiency claims stay empirical
 
 ```gherkin
-Scenario: Research evidence appears to contradict one market-efficiency form
+Scenario: SCN-008-032 - Research evidence appears to contradict one market-efficiency form
   Given the dossier identifies the information set, sample, test, and costs
   When the conclusion is written
   Then it is limited to the tested weak, semi-strong, or strong-form proposition
@@ -45,7 +45,7 @@ Scenario: Research evidence appears to contradict one market-efficiency form
 ### SCN-008-033 - Correlation cannot adjudicate substantially identical
 
 ```gherkin
-Scenario: Two securities have very high historical correlation
+Scenario: SCN-008-033 - Two securities have very high historical correlation
   Given the user opens an analytical replacement comparison
   When tax-related evidence is displayed
   Then correlation, holdings overlap, issuer or index facts, and tracking evidence remain research inputs
@@ -59,7 +59,7 @@ Carries Scope 03's discharged `dossiers` conjunct. Scope 15 is the first scope t
 persists a dossier.
 
 ```gherkin
-Scenario: A user clears all personal data after producing a walk-forward dossier
+Scenario: SCN-008-040 - A user clears all personal data after producing a walk-forward dossier
   Given at least one dossier is genuinely persisted
   When the user confirms the full-personal clear
   Then the dossier section is empty on a storage reread
@@ -120,7 +120,7 @@ Author decision-time availability, cost/trial, append-only, claim-boundary, forb
 - [ ] NFR-002 through NFR-003, NFR-005 through NFR-006, NFR-009, NFR-011, NFR-017 through NFR-018, and NFR-021 through NFR-023 are satisfied by deterministic explainable dossiers, missing/cutoff integrity, local reproducibility, visible calibration/trials, precision/source honesty, failure isolation, research-only boundaries, and exact recommendation/claim traceability.
 - [ ] Dossier records append/supersede and retain prior sources/claims/corrections; missing costs/validation remain gross-only/not-evaluated and no copy claims future superiority, all efficiency forms false, legal/tax determination, filing action, or transaction advice.
 - [ ] Desktop/mobile/zoom dossier tables/disclosures, filters, corrections, long sources, focus and private export preview are complete with no overlap/body overflow/clipping or hidden claim boundary.
-- [ ] Scope 03's discharged `dossiers` clear conjunct is verified here, because the `ResearchDossier/v1` projection and its append-oriented store are the first persisted dossier records in the feature. A dossier that appends and supersedes without rewriting prior records is durable personal data by construction, so it is registered in the privacy inventory, swept by the full-personal clear, and proven empty on reread — including superseded and corrected records, which an append-only store must not leave behind — with the generic public cache byte-identical. TP-15-02 is the carrying row. At Scope 03 the noun had no workspace section, no `policy.storage` key, and no declarable inventory category, so nothing there could observe it. See [Scope 03 Full-Personal-Clear Enumeration Discharge](../_index.md#scope-03-full-personal-clear-enumeration-discharge).
+- [ ] SCN-008-040: Scope 03's discharged `dossiers` clear conjunct is verified here, because the `ResearchDossier/v1` projection and its append-oriented store are the first persisted dossier records in the feature. A dossier that appends and supersedes without rewriting prior records is durable personal data by construction, so it is registered in the privacy inventory, swept by the full-personal clear, and proven empty on reread — including superseded and corrected records, which an append-only store must not leave behind — with the generic public cache byte-identical. TP-15-02 is the carrying row. At Scope 03 the noun had no workspace section, no `policy.storage` key, and no declarable inventory category, so nothing there could observe it. See [Scope 03 Full-Personal-Clear Enumeration Discharge](../_index.md#scope-03-full-personal-clear-enumeration-discharge).
 - [ ] Every Scope 15 behavior has intended RED and same-command GREEN evidence before the broader browser row.
 
 #### Test Evidence Items - Exact Parity With 7 Test Plan Rows

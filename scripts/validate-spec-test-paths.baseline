@@ -121,7 +121,6 @@ tests/portfolio-allocation.functional.mjs
 tests/portfolio-analytics.unit.mjs
 tests/portfolio-matrix-privacy.functional.mjs
 tests/portfolio-private.spec.mjs
-tests/portfolio-publisher-boundary.functional.mjs
 tests/portfolio-stress-journey.functional.mjs
 tests/portfolio-survival-allocation.spec.mjs
 tests/portfolio-survival-brief.spec.mjs

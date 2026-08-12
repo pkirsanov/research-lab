@@ -698,6 +698,13 @@
                     <div id="briefStates" class="state-message" role="status">Brief unavailable.</div>
                     <div id="briefIdentity" class="state-message">No brief identity.</div>
                     <div id="briefLanes" class="brief-lanes"></div>
+                    <div class="brief-lifecycle">
+                        <label for="briefClearConfirmation">
+                            <input id="briefClearConfirmation" type="checkbox">
+                            Confirm clearing local research history
+                        </label>
+                        <button id="briefClearHistory" type="button">Clear local research history</button>
+                    </div>
                     <div id="briefLifecycleResult" class="state-message" role="status">No research outcome recorded.</div>
                     <h3>No current action</h3>
                     <div id="briefNoAction" class="brief-no-action"></div>
@@ -2251,6 +2258,34 @@
                         renderBrief();
                     });
             }
+
+            /* FR-062. The clear control is exposed WHERE behaviour-derived ranking is visible, not
+               only on the privacy panel. It delegates to the existing control rather than
+               reimplementing the clear, so there is one clear path and the confirmation it
+               requires cannot be bypassed from here. */
+            byId("briefClearHistory").addEventListener("click", function () {
+                var confirmation = byId("briefClearConfirmation");
+                if (!confirmation.checked) {
+                    byId("briefLifecycleResult").className = "state-message warn";
+                    byId("briefLifecycleResult").setAttribute("data-clear-state", "confirmation-required");
+                    setText("briefLifecycleResult",
+                        "Tick the confirmation before clearing local research history.");
+                    confirmation.focus();
+                    return;
+                }
+                /* Delegates to the privacy panel's control so there is ONE clear implementation.
+                   The confirmation is duplicated here, not the clear itself: a reader acting from
+                   the brief must not have to find a panel they cannot see to confirm. */
+                byId("clearBehaviorConfirmation").checked = true;
+                byId("clearBehavior").disabled = false;
+                byId("clearBehavior").click();
+                confirmation.checked = false;
+                byId("briefLifecycleResult").className = "state-message ok";
+                byId("briefLifecycleResult").setAttribute("data-clear-state", "cleared");
+                setText("briefLifecycleResult",
+                    "Local research history cleared. Behaviour-derived items are gone from this composition.");
+                refreshWorkspaceViews();
+            });
 
             byId("briefWindow").addEventListener("change", function () {
                 state.briefWindowId = this.value;

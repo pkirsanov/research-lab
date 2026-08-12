@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started
+**Status:** In Progress
 
 **Scope-Kind:** runtime-behavior
 
@@ -122,6 +122,8 @@ Author complete why-shown, forbidden mutation, lifecycle, owner-handoff, and clo
 | TP-06-06 | Responsive lifecycle Regression E2E | e2e-ui | SCN-008-008, SCN-008-009, SCN-008-034 | `tests/portfolio-survival-brief.spec.mjs` | `Regression: Feature 008 why shown lifecycle and return focus remain accessible without mobile overlap` | `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 why shown lifecycle and return focus remain accessible without mobile overlap" --reporter=list` | Yes | `report.md#tp-06-06` |
 | TP-06-07 | Broader Regression E2E | e2e-ui | SCN-008-006 through SCN-008-010, SCN-008-034 | `tests/portfolio-survival-brief.spec.mjs` | Execute the complete cumulative Feature 008 Brief browser suite after lifecycle and why-shown rows | `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-06-07` |
 | TP-06-08 | Discharged clear conjunct functional | functional | SCN-008-037 | `tests/portfolio-privacy.functional.mjs` | Persist at least one derived `InterestSignal` and one `actionOutcome`, then prove a full-personal clear leaves both sections empty on a storage reread and a behavior-only clear leaves holdings, mandate, and cash-need counts at their exact prior values. Carries Scope 03's discharged `interests` and `outcomes` conjuncts under register rule 2 | `node --test tests/portfolio-privacy.functional.mjs` | No | `report.md#tp-06-08` |
+| TP-06-09 | Regression E2E | e2e-ui | SCN-008-034 | `tests/portfolio-survival-brief.spec.mjs` | `Regression: SCN-008-034 TP-06-09 a lifecycle outcome is recorded without becoming a market view` | `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-034 TP-06-09 a lifecycle outcome is recorded without becoming a market view" --reporter=list` | Yes | `report.md#tp-06-09` |
+| TP-06-10 | Regression E2E | e2e-ui | SCN-008-008 | `tests/portfolio-survival-brief.spec.mjs` | `Regression: SCN-008-008 TP-06-10 the clear control is exposed where behaviour-derived ranking is visible` | `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-008 TP-06-10 the clear control is exposed where behaviour-derived ranking is visible" --reporter=list` | Yes | `report.md#tp-06-10` |
 
 ### Definition of Done
 
@@ -134,7 +136,7 @@ Author complete why-shown, forbidden mutation, lifecycle, owner-handoff, and clo
 - [ ] SCN-008-037: Scope 03's discharged `interests` and `outcomes` clear conjuncts are verified here, because Scope 06 is the first producer of either. With at least one derived `InterestSignal` and one `actionOutcome` genuinely persisted, a full-personal clear leaves both sections empty on reread, and a behavior-only clear leaves the holdings, mandate, and cash-need records at their exact prior counts. TP-06-02 is the carrying row; it already runs `tests/portfolio-privacy.functional.mjs`, the file holding Scope 03's clear proof. Scope 03 could assert neither: `validateWorkspace` refuses `interestSignals.length > 0` as `unsupported-contract-scope`, and no builder it exports can hash an `actionOutcome` into a workspace, so its own assertions are vacuous by construction and its DoD line says so. Scope 03's committed pin, `the two personal sections the clear sweep cannot populate are pinned by their own distinct refusal`, goes red the moment `deriveInterestSignals` lands, which is the signal that this item is now owed. See [Scope 03 Full-Personal-Clear Enumeration Discharge](../_index.md#scope-03-full-personal-clear-enumeration-discharge).
 - [ ] Every Scope 06 behavior has intended RED and same-command GREEN evidence before the broader browser row.
 
-#### Test Evidence Items - Exact Parity With 7 Test Plan Rows
+#### Test Evidence Items - Exact Parity With 10 Test Plan Rows
 
 - [ ] TP-06-01 functional evidence proves complete why-shown, deterministic decay/ranking, lifecycle, owner routes, and closed research vocabulary.
 - [ ] TP-06-02 functional evidence proves settings/passive activity/lifecycle changes cannot create profiling, mandate, BL, expected-return, confidence, or execution state.
@@ -143,6 +145,9 @@ Author complete why-shown, forbidden mutation, lifecycle, owner-handoff, and clo
 - [ ] TP-06-05 Regression E2E evidence proves SCN-008-034 exposes only non-executing research commands, conditions, confidence, freshness, and safe links.
 - [ ] TP-06-06 responsive E2E evidence proves Why Shown, lifecycle, keyboard/touch, focus return, long text, and mobile geometry have no overlap or hidden meaning.
 - [ ] TP-06-07 broader E2E evidence proves the complete Brief suite passes after all focused lifecycle rows.
+- [ ] TP-06-08 functional evidence proves SCN-008-037: with a derived interest and an action outcome genuinely persisted, a full-personal clear empties both on a storage reread and a behavior-only clear leaves holdings, mandate revisions, and cash needs at their exact prior counts.
+- [ ] TP-06-09 Regression E2E evidence proves a lifecycle outcome is recorded through the production path and states it is not a market view.
+- [ ] TP-06-10 Regression E2E evidence proves FR-062/FR-063: a clear control is reachable where behaviour-derived ranking is shown, it enforces its own confirmation, and the next composition drops behaviour-derived items without a public refresh.
 
 #### Build Quality Gate
 

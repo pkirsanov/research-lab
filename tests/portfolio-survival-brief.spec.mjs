@@ -427,7 +427,54 @@ test('Regression: SCN-008-034 TP-06-05 the route exposes research and lifecycle 
   console.log('[TP-06-05] verbs=' + Array.from(new Set(verbs)).join(',') + ' lifecycleControls=' + controls.filter((c) => c.lifecycle).length);
 });
 
-test('Regression: SCN-008-034 TP-06-04 a lifecycle outcome is recorded without becoming a market view', async ({ page }) => {
+test('Regression: SCN-008-009 TP-06-04 settings parameters and window changes leave event interest and action identity unchanged', async ({ page }) => {
+  await openBrief(page);
+  await importValid(page, 'TP-06-04 settings');
+  await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
+  await selectWindow(page, 'after-hours');
+
+  const identityOf = async () => page.$$eval('#briefLanes li', (nodes) => nodes.map((node) => ({
+    subject: node.getAttribute('data-subject'),
+    action: node.getAttribute('data-action-id'),
+    source: node.getAttribute('data-scope-source')
+  })));
+
+  const before = await identityOf();
+  expect(before.length, 'at least one action must exist for its identity to be compared').toBeGreaterThan(0);
+  for (const row of before) {
+    expect(row.action, `${row.subject} must carry an action identity`).toMatch(/^sha256:[a-f0-9]{64}$/);
+  }
+
+  /* Interactions that are NOT evidence: opening a disclosure, toggling it shut, scrolling, and
+   * moving the pointer. Each is a display or navigation act. If any of them changed the action
+   * identity, something about the interaction would have entered the composition. */
+  const details = page.locator('#briefLanes details.brief-why').first();
+  await details.locator('summary').click();
+  await details.locator('summary').click();
+  await page.mouse.move(200, 300);
+  await page.mouse.wheel(0, 400);
+  await page.evaluate(() => window.scrollTo(0, 0));
+
+  const afterPassive = await identityOf();
+  expect(afterPassive, 'display and pointer activity must not change any action identity').toEqual(before);
+
+  /* Changing the WINDOW must change the identity, because the cutoff changed and the action is
+   * genuinely a different one. Without this arm a build that never recomputed identity at all
+   * would satisfy the invariance assertion above. */
+  await selectWindow(page, 'pre-market');
+  const afterWindow = await identityOf();
+  expect(afterWindow.length).toBe(before.length);
+  expect(afterWindow[0].action, 'a different window is a different action, so the identity must move')
+    .not.toBe(before[0].action);
+
+  // Returning to the original window restores the original identity, so it is derived, not random.
+  await selectWindow(page, 'after-hours');
+  expect(await identityOf()).toEqual(before);
+
+  console.log('[TP-06-04] identityStableUnderPassive=true identityMovesWithWindow=true actions=' + before.length);
+});
+
+test('Regression: SCN-008-034 TP-06-09 a lifecycle outcome is recorded without becoming a market view', async ({ page }) => {
   await openBrief(page);
   await importValid(page, 'TP-06-04 lifecycle');
   await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
@@ -441,7 +488,7 @@ test('Regression: SCN-008-034 TP-06-04 a lifecycle outcome is recorded without b
   const result = page.locator('#briefLifecycleResult');
   // Surfaced before the assertions so a refusal code is visible in evidence rather than appearing
   // as a bare missing attribute.
-  console.log('[TP-06-04] resultText=' + (await result.innerText()));
+  console.log('[TP-06-09] resultText=' + (await result.innerText()));
   await expect(result).toHaveAttribute('data-last-command', 'complete');
   await expect(result).toHaveAttribute('data-last-subject', 'MSFT');
 
@@ -455,12 +502,41 @@ test('Regression: SCN-008-034 TP-06-04 a lifecycle outcome is recorded without b
     const diagnostics = window.__PORTFOLIO_DIAGNOSTICS__ || {};
     return { behaviorEvents: diagnostics.behaviorEventCount ?? null };
   });
-  console.log('[TP-06-04] outcomeRecorded=complete subject=MSFT behaviorEventCount=' + leaked.behaviorEvents);
+  console.log('[TP-06-09] outcomeRecorded=complete subject=MSFT behaviorEventCount=' + leaked.behaviorEvents);
 
   // Dismiss is available and equally labelled; neither is a negative preference.
   await page.locator('button[data-lifecycle="dismiss"][data-lifecycle-subject="MSFT"]').first().click();
   await expect(result).toHaveAttribute('data-last-command', 'dismiss');
-  console.log('[TP-06-04] outcomeRecorded=dismiss subject=MSFT');
+  console.log('[TP-06-09] outcomeRecorded=dismiss subject=MSFT');
+});
+
+test('Regression: SCN-008-008 TP-06-10 the clear control is exposed where behaviour-derived ranking is visible', async ({ page }) => {
+  await openBrief(page);
+  await importValid(page, 'TP-06-10 clear control');
+  await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
+  await selectWindow(page, 'after-hours');
+
+  /* FR-062 is about REACH: the control must be present where the ranking it governs is shown,
+   * not only on a separate privacy panel the reader may never open. */
+  const control = page.locator('#portfolioBrief #briefClearHistory');
+  await expect(control, 'a clear control must exist within the brief').toHaveCount(1);
+  await expect(control).toBeVisible();
+
+  // It delegates rather than duplicating, so the confirmation the privacy panel requires still
+  // applies. Clicking without it must refuse rather than clear.
+  await control.click();
+  await expect(page.locator('#briefLifecycleResult')).toHaveAttribute('data-clear-state', 'confirmation-required');
+
+  await page.locator("#briefClearConfirmation").check();
+  await control.click();
+  await expect(page.locator('#briefLifecycleResult')).toHaveAttribute('data-clear-state', 'cleared');
+
+  // FR-063: the next local composition reflects the clear without waiting for a public refresh.
+  const inferred = await page.$$eval('#briefLanes section[data-lane="inferredRelevance"] li',
+    (nodes) => nodes.length);
+  expect(inferred, 'behaviour-derived items are gone from the next composition').toBe(0);
+
+  console.log('[TP-06-10] confirmationEnforced=true inferredAfterClear=' + inferred);
 });
 
 test('Regression: Feature 008 why shown lifecycle and return focus remain accessible without mobile overlap', async ({ page }) => {

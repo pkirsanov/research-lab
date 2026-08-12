@@ -80,7 +80,7 @@
             {
                 "scope": 6,
                 "name": "Explainable Research Action Lifecycle",
-                "status": "not_started",
+                "status": "in_progress",
                 "dependsOn": [
                     "5"
                 ],
@@ -262,7 +262,7 @@
             {
                 "scope": 6,
                 "name": "Explainable Research Action Lifecycle",
-                "status": "not_started",
+                "status": "in_progress",
                 "dependsOn": [
                     "5"
                 ],

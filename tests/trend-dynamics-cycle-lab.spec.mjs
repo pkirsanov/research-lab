@@ -34,11 +34,13 @@ test.afterAll(async () => {
   });
 });
 
-// The engine panels are Power-view detail (class .pw), so a test that inspects them must open
-// Power first. Asserting body.power as well keeps this from silently degrading into a no-op
-// click if the segmented control is ever renamed.
+// The engine panels are Power-view detail. The production page now uses the shared four-view shell,
+// which owns the visible tabs and drives the hidden native control. Tests must follow that same path.
 async function openPower(page) {
-  await page.locator('#modeSeg button[data-mode="power"]').click();
+  await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
+  await page.locator('#rlviews button[data-rlview-mode="power"]').click();
+  await expect(page.locator('body')).toHaveAttribute('data-rlview', 'power');
+  await expect(page.locator('body')).not.toHaveClass(/rlv-focused/);
   await expect(page.locator('body')).toHaveClass(/power/);
 }
 
@@ -543,7 +545,7 @@ test('Regression: SCN-006-020 the production route computes a verdict and publis
   expect(stored.deepLink).toContain('series=spy-daily');
 
   // The reader must be able to SEE what was published on their behalf, and follow it back.
-  await page.locator('#modeSeg button[data-mode="power"]').click();
+  await openPower(page);
   await expect(page.locator('#ownerReadSentence')).toHaveText(stored.read);
   await expect(page.locator('#ownerReadLink')).toHaveAttribute('href', stored.deepLink);
 
@@ -674,6 +676,7 @@ test('Regression: SCN-006-020 owner read preserves mixed stale degraded and unav
 
 test('Regression: SCN-006-019 charts controls focus and 390px layout remain accessible and equivalent', async ({ page }) => {
   await page.goto(`${baseUrl}/trend-dynamics-cycle-lab.html?fixture=trend-engine&case=sustained&profile=balanced&clock=${CLOCK}`);
+  await openPower(page);
   await expect(page.locator('#truthState')).toBeVisible();
 
   for (const [width, height] of [[390, 844], [1440, 1000]]) {
@@ -681,7 +684,8 @@ test('Regression: SCN-006-019 charts controls focus and 390px layout remain acce
     // Measured in BOTH modes. Simple hides the dense engine panels, so checking it alone would
     // be the easy case; Power is where the tables and matrices can actually push the layout wide.
     for (const mode of ['simple', 'power']) {
-      await page.locator(`#modeSeg button[data-mode="${mode}"]`).click();
+      await page.locator(`#rlviews button[data-rlview-mode="${mode}"]`).click();
+      await expect(page.locator('body')).toHaveAttribute('data-rlview', mode);
       const overflow = await page.evaluate(() => ({
         doc: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         body: document.body.scrollWidth - document.body.clientWidth
@@ -694,17 +698,18 @@ test('Regression: SCN-006-019 charts controls focus and 390px layout remain acce
 
   // The mode control must be reachable and operable without a pointer.
   await page.setViewportSize({ width: 1440, height: 1000 });
-  const powerTab = page.locator('#modeSeg button[data-mode="power"]');
+  const powerTab = page.locator('#rlviews button[data-rlview-mode="power"]');
   await powerTab.focus();
   await expect(powerTab).toBeFocused();
   await page.keyboard.press('Enter');
+  await expect(page.locator('body')).toHaveAttribute('data-rlview', 'power');
   await expect(page.locator('body')).toHaveClass(/power/);
   await expect(powerTab).toHaveAttribute('aria-selected', 'true');
 
   // State is exposed structurally, not by colour alone: the tablist carries roles and the
   // selected tab is announced through aria-selected rather than styling only.
   const roles = await page.evaluate(() => {
-    const seg = document.getElementById('modeSeg');
+    const seg = document.getElementById('rlviews');
     return {
       tablist: seg.getAttribute('role'),
       label: seg.getAttribute('aria-label'),
@@ -713,7 +718,7 @@ test('Regression: SCN-006-019 charts controls focus and 390px layout remain acce
   });
   expect(roles.tablist).toBe('tablist');
   expect(roles.label).toBeTruthy();
-  expect(roles.tabs).toEqual(['tab', 'tab']);
+  expect(roles.tabs).toEqual(['tab', 'tab', 'tab', 'tab']);
 
   // The fixture band is a live region, so a status change is announced rather than only drawn.
   await expect(page.locator('#fixtureBand')).toHaveAttribute('aria-live', 'polite');
@@ -809,7 +814,7 @@ test('Regression: SCN-006-019 Simple Power mobile and local controls share one r
   expect(atBoot.id.length).toBeGreaterThan(0);
 
   // A mode switch is a VIEW change. The result id, digest, truth and verdict must all survive it.
-  await page.locator('#modeSeg button[data-mode="power"]').click();
+  await openPower(page);
   await expect(page.locator('body')).toHaveClass(/power/);
   const inPower = await readResult();
   expect(inPower.id, 'switching to Power recomputed instead of re-rendering').toBe(atBoot.id);
@@ -817,7 +822,8 @@ test('Regression: SCN-006-019 Simple Power mobile and local controls share one r
   expect(inPower.truth).toBe(atBoot.truth);
   expect(inPower.outcome).toBe(atBoot.outcome);
 
-  await page.locator('#modeSeg button[data-mode="simple"]').click();
+  await page.locator('#rlviews button[data-rlview-mode="simple"]').click();
+  await expect(page.locator('body')).toHaveAttribute('data-rlview', 'simple');
   await expect(page.locator('body')).not.toHaveClass(/power/);
   expect((await readResult()).id).toBe(atBoot.id);
 

@@ -53,6 +53,20 @@ Scenario: Two securities have very high historical correlation
   And professional tax review is the explicit next boundary
 ```
 
+### SCN-008-040 - A full-personal clear empties stored dossiers
+
+Carries Scope 03's discharged `dossiers` conjunct. Scope 15 is the first scope that
+persists a dossier.
+
+```gherkin
+Scenario: A user clears all personal data after producing a walk-forward dossier
+  Given at least one dossier is genuinely persisted
+  When the user confirms the full-personal clear
+  Then the dossier section is empty on a storage reread
+  And public generic assets outside the Feature 008 namespace are byte-identical
+  And the emptiness is read back off the storage adapters rather than the module's own report
+```
+
 ## UI Scenario Matrix
 
 | Scenario | Viewports / Inputs | User Steps | Exact Visible Result | Test Type |
@@ -96,6 +110,7 @@ Author decision-time availability, cost/trial, append-only, claim-boundary, forb
 | TP-15-05 | Regression E2E | e2e-ui | SCN-008-033 | `tests/portfolio-survival-allocation.spec.mjs` | `Regression: SCN-008-033 correlation never emits a substantially identical verdict` | `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-033 correlation never emits a substantially identical verdict" --reporter=list` | Yes | `report.md#scenario-scn-008-033` |
 | TP-15-06 | Responsive/a11y Regression E2E | e2e-ui | SCN-008-031, SCN-008-032, SCN-008-033 | `tests/portfolio-survival-allocation.spec.mjs` | `Regression: Feature 008 dossier ledgers claims corrections and private export remain accessible without mobile overlap` | `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 dossier ledgers claims corrections and private export remain accessible without mobile overlap" --reporter=list` | Yes | `report.md#tp-15-06` |
 | TP-15-07 | Broader Regression E2E | e2e-ui | SCN-008-026 through SCN-008-033 | `tests/portfolio-survival-allocation.spec.mjs` | Execute the complete cumulative Feature 008 Allocation and Dossier browser suite after every Scope 15 focused row | `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-15-07` |
+| TP-15-08 | Discharged clear conjunct functional | functional | SCN-008-040 | `tests/portfolio-allocation.functional.mjs` | Persist at least one dossier, then prove a full-personal clear leaves the dossier section empty on a storage reread while public generic assets stay byte-identical. Carries Scope 03's discharged `dossiers` conjunct under register rule 2. Shares TP-15-02's file rather than naming a new one, so the frozen spec-test-path baseline does not grow | `node --test tests/portfolio-allocation.functional.mjs` | No | `report.md#tp-15-08` |
 
 ### Definition of Done
 

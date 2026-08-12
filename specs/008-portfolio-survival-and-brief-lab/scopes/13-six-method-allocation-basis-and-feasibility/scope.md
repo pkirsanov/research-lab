@@ -54,6 +54,20 @@ Scenario: The mandate cannot be satisfied by the eligible universe
   And the current portfolio remains unchanged
 ```
 
+### SCN-008-039 - A full-personal clear empties stored allocations
+
+Carries Scope 03's discharged `allocations` conjunct. Scope 13 is the first scope that
+persists an allocation candidate.
+
+```gherkin
+Scenario: A user clears all personal data after computing allocation candidates
+  Given at least one allocation candidate is genuinely persisted
+  When the user confirms the full-personal clear
+  Then the allocation section is empty on a storage reread
+  And public generic assets outside the Feature 008 namespace are byte-identical
+  And the emptiness is read back off the storage adapters rather than the module's own report
+```
+
 ## UI Scenario Matrix
 
 | Scenario | Viewports / Inputs | User Steps | Exact Visible Result | Test Type |
@@ -97,6 +111,7 @@ Author independent objective/constraint/residual, basis equality, infeasibility,
 | TP-13-05 | Regression E2E | e2e-ui | SCN-008-029 | `tests/portfolio-survival-allocation.spec.mjs` | `Regression: SCN-008-029 conflicting constraints remain infeasible without relaxation` | `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-029 conflicting constraints remain infeasible without relaxation" --reporter=list` | Yes | `report.md#scenario-scn-008-029` |
 | TP-13-06 | Canvas/accessibility Regression E2E | e2e-ui | SCN-008-026, SCN-008-027, SCN-008-029 | `tests/portfolio-survival-allocation.spec.mjs` | `Regression: Feature 008 six allocation rows preserve ordered mobile canvas table parity and infeasible states` | `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 six allocation rows preserve ordered mobile canvas table parity and infeasible states" --reporter=list` | Yes | `report.md#tp-13-06` |
 | TP-13-07 | Broader Regression E2E | e2e-ui | SCN-008-026, SCN-008-027, SCN-008-029 | `tests/portfolio-survival-allocation.spec.mjs` | Execute the complete cumulative Feature 008 Allocation browser suite after every Scope 13 focused row | `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-13-07` |
+| TP-13-08 | Discharged clear conjunct functional | functional | SCN-008-039 | `tests/portfolio-allocation.functional.mjs` | Persist at least one allocation candidate, then prove a full-personal clear leaves the allocation section empty on a storage reread while public generic assets stay byte-identical. Carries Scope 03's discharged `allocations` conjunct under register rule 2 | `node --test tests/portfolio-allocation.functional.mjs` | No | `report.md#tp-13-08` |
 
 ### Definition of Done
 

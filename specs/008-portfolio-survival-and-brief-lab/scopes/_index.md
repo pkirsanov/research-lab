@@ -118,14 +118,39 @@ Ruling it a genuine Scope 03 obligation was rejected, and not for convenience. S
 | Noun | Status at Scope 03 | Discharged to | Why there |
 |------|--------------------|---------------|-----------|
 | holdings, mandate, needs, events, quarantine, session fallback, return context | Reachable, proven non-empty before the clear, asserted empty after it | **Not discharged — Scope 03 retains all seven** | Each is a workspace array section or a `policy.storage` key that Scope 03 itself creates and sweeps. |
-| interests (`interestSignals`) | Swept, but vacuously: `validateWorkspace` refuses any workspace with `interestSignals.length > 0` as `unsupported-contract-scope`, so no record can exist at this contract version | **Scope 06**, TP-06-02 | Scope 06 implementation item 1 adds `deriveInterestSignals` in `rlportfoliobrief.js`, the first and only producer. TP-06-02 already runs `tests/portfolio-privacy.functional.mjs`, the file carrying Scope 03's clear proof. |
-| outcomes (`actionOutcomes`) | Swept, but vacuously: the schema validates entries, yet no exported builder can hash one into a workspace | **Scope 06**, TP-06-02 | Scope 06 owns completion and dismissal (FR-045 through FR-046, FR-051 through FR-055), which is what produces an action outcome. |
-| scenarios | No workspace section, no storage key, not a declarable inventory category | **Scope 09**, TP-09-01 | Scope 09 implementation item 1 adds `ScenarioSpecification/v1`, the first persisted scenario identity. |
-| allocations | Same | **Scope 13**, TP-13-02 | Scope 13 implementation item 1 adds `AllocationBasis/v1`, the first frozen allocation basis. |
-| dossiers | Same | **Scope 15**, TP-15-02 | Scope 15 implementation item 4 adds the `ResearchDossier/v1` projection and its append-oriented store. |
-| UI state | Same, and no downstream scope names it either | **Scope 16**, TP-16-04 | UI state is route-level, so it first exists once all six tabs do. TP-16-04 is already declared as the *complete* namespace and clear boundary row, which makes it the whole-set backstop. |
+| interests (`interestSignals`) | Swept, but vacuously: `validateWorkspace` refuses any workspace with `interestSignals.length > 0` as `unsupported-contract-scope`, so no record can exist at this contract version | **Scope 06**, SCN-008-037 / TP-06-08 | Scope 06 implementation item 1 adds `deriveInterestSignals` in `rlportfoliobrief.js`, the first and only producer. TP-06-08 runs `tests/portfolio-privacy.functional.mjs`, the file carrying Scope 03's clear proof. |
+| outcomes (`actionOutcomes`) | Swept, but vacuously: the schema validates entries, yet no exported builder can hash one into a workspace | **Scope 06**, SCN-008-037 / TP-06-08 | Scope 06 owns completion and dismissal (FR-045 through FR-046, FR-051 through FR-055), which is what produces an action outcome. |
+| scenarios | No workspace section, no storage key, not a declarable inventory category | **Scope 09**, SCN-008-038 / TP-09-06 | Scope 09 implementation item 1 adds `ScenarioSpecification/v1`, the first persisted scenario identity. |
+| allocations | Same | **Scope 13**, SCN-008-039 / TP-13-08 | Scope 13 implementation item 1 adds `AllocationBasis/v1`, the first frozen allocation basis. |
+| dossiers | Same | **Scope 15**, SCN-008-040 / TP-15-08 | Scope 15 implementation item 4 adds the `ResearchDossier/v1` projection and its append-oriented store. |
+| UI state | Same, and no downstream scope names it either | **Scope 16**, SCN-008-041 / TP-16-12 | UI state is route-level, so it first exists once all six tabs do. TP-16-12 asserts the whole declared set derives from the runtime, which makes it the whole-set backstop. |
 
 Discharge runs 03 → 06, 09, 13, 15, 16. Every edge points forward, so no cycle is introduced and no receiving scope becomes a prerequisite of its own predecessor.
+
+**Rule 2 closure — the discharge is no longer orphaned.** The earlier discharge gave each receiving
+scope a DoD item naming the obligation, which rule 2 does not accept: a DoD item is neither of the
+two artifacts it requires. An audit of all five receiving scopes confirmed the gap was real rather
+than bookkeeping — none of the previously cited rows asserted a clear at all. TP-06-02's declared
+elements are a *no-mutation* proof and SCN-008-009 asserts the opposite direction (that no
+`InterestSignal` is **created** from settings); TP-09-01 is a `unit` row over RNG vectors and
+bootstrap hashes; TP-13-02 covers Pareto tradeoffs and infeasible rows; TP-15-02 covers backtest
+claim limits. Each receiving scope now carries a purpose-built pair instead — a Gherkin scenario
+and a Test Plan row that assert the clear directly — so every discharged conjunct has a verifying
+row that reddens if the obligation is dropped:
+
+| Noun | Scenario | Carrying row | Asserts the clear |
+|------|----------|--------------|-------------------|
+| interests, outcomes | SCN-008-037 | TP-06-08 | both sections empty on a storage reread; behavior-only clear preserves portfolio facts |
+| scenarios | SCN-008-038 | TP-09-06 | scenario section empty on a storage reread; public assets byte-identical |
+| allocations | SCN-008-039 | TP-13-08 | allocation section empty on a storage reread; public assets byte-identical |
+| dossiers | SCN-008-040 | TP-15-08 | dossier section empty on a storage reread; public assets byte-identical |
+| UI state + whole-set closure | SCN-008-041 | TP-16-12 | every declared category empty; no key outside the sweep; declared set derived from the runtime |
+
+Each scenario requires its subject to be **proven non-empty before the clear**, so no receiving row
+can discharge its conjunct vacuously the way Scope 03's own `interestSignals` and `actionOutcomes`
+assertions do. All five are registered in `scenario-manifest.json` (41 scenarios, every
+`gherkinHash` recomputed and matching) and `test-plan.json` (107 rows), with zero cross-reference
+mismatches in either direction.
 
 **Scope 03 does not walk away clean.** The discharge is enforceable only if a later scope cannot add a personal category *silently*, and today that holds for one half of the sweep and not the other.
 

@@ -31,6 +31,22 @@ Scenario: The user switches between Simple and Power or follows a brief deep lin
   And Power adds evidence without upgrading or changing the conclusion
 ```
 
+### SCN-008-041 - A full-personal clear empties UI state and closes the personal-category set
+
+Carries Scope 03's discharged `UI state` conjunct AND the whole-set closure. The set of
+personal categories is open at Scope 03 and closes only here, so this is the first scope
+that can quantify over it.
+
+```gherkin
+Scenario: A user clears all personal data from the complete six-tab route
+  Given every personal category the finished tool can create is genuinely populated
+  When the user confirms the full-personal clear
+  Then every declared personal category is empty on a storage reread
+  And no personal storage key survives outside the declared sweep
+  And public generic assets outside the Feature 008 namespace are byte-identical
+  And the declared category set is derived from the runtime rather than a hand-written list
+```
+
 ## UI Scenario Matrix
 
 | Journey / State | Viewports / Inputs | Exact User-Visible Assertions | Test Type |
@@ -110,6 +126,7 @@ Author identity, accessibility, pixel/table, deep-link, privacy, registry, stale
 | TP-16-09 | Complete privacy Regression E2E | e2e-ui | SCN-008-005, SCN-008-011, SCN-008-012, SCN-008-035, SCN-008-036 | `tests/portfolio-survival-mobile.spec.mjs` | `Regression: SCN-008-036 personal sentinels stay absent from complete route public reads and publisher inputs` | `npx --no-install playwright test tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-036 personal sentinels stay absent from complete route public reads and publisher inputs" --reporter=list` | Yes | `report.md#tp-16-09` |
 | TP-16-10 | Complete Feature 008 Regression E2E | e2e-ui | SCN-008-001 through SCN-008-036 | Seven design-owned Feature 008 Playwright files | Execute every exact Feature 008 Regression title over real fixture-overlay HTTP servers with no request interception | `npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-16-10` |
 | TP-16-11 | Existing shared-consumer Regression E2E | e2e-ui | SCN-008-036 | Existing Feature 001-007/shared browser suites | Preserve provider credentials, Causal, Bond, FX, Palm Springs, Trend Dynamics, and Technical Analysis behavior after RLDATA/rlnav/registry/selftest additions | `npx --no-install playwright test tests/provider-credentials.spec.mjs tests/causal-rotation-lab.spec.mjs tests/bond-regime-lab.spec.mjs tests/fx-regime-relative-value-lab.spec.mjs tests/palm-springs-rental-market-lab.spec.mjs tests/trend-dynamics-cycle-lab.spec.mjs tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-16-11` |
+| TP-16-12 | Whole-set clear closure functional | functional | SCN-008-041 | `tests/portfolio-privacy.functional.mjs` | Populate every personal category the finished six-tab route can create, then prove a full-personal clear empties every declared category on a storage reread, leaves no personal key outside the declared sweep, keeps public generic assets byte-identical, and derives the declared category set from the runtime rather than a hand-written list. Carries Scope 03's discharged `UI state` conjunct AND the whole-set closure under register rule 2. Shares TP-16-04's complete-privacy file rather than naming a new one, so the frozen spec-test-path baseline does not grow; the assertions are storage-level, which is what makes `functional` the honest category | `node --test tests/portfolio-privacy.functional.mjs` | No | `report.md#tp-16-12` |
 
 ### PSA-PAGE-INLINE-ID
 

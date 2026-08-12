@@ -1447,6 +1447,197 @@
             ],
             "replacedBy": null,
             "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-037",
+            "scenarioId": "SCN-008-037",
+            "businessScenarioId": "BS-008-037",
+            "scope": "06-explainable-research-action-lifecycle",
+            "scopeRef": "scopes/06-explainable-research-action-lifecycle/scope.md",
+            "title": "Full-personal clear empties derived interests and outcomes",
+            "gherkin": {
+                "given": "at least one derived InterestSignal and one actionOutcome are genuinely persisted",
+                "when": "the user confirms the full-personal clear",
+                "then": "the interest-signal and action-outcome sections are empty on a storage reread\nAnd a behavior-only clear instead leaves holdings, mandate, and cash-need counts unchanged\nAnd the emptiness is read back off the storage adapters rather than the module's own report"
+            },
+            "gherkinHash": "sha256:7f1011afc18bd8fc0506274511aabf6d9e42ab357003deeaf6b3f12ee9498870",
+            "behaviorClass": "data",
+            "changeType": "new",
+            "requiredTestType": "functional",
+            "regressionRequired": false,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-privacy.functional.mjs",
+                    "testId": "TP-06-08 full-personal clear empties derived interests and outcomes"
+                }
+            ],
+            "expectedAssertions": [
+                "interest-signal and action-outcome sections read empty off the storage adapters after a full-personal clear",
+                "a behavior-only clear leaves holdings mandate and cash-need counts at their exact prior values",
+                "both sections are proven non-empty before the clear so the emptiness assertion is not vacuous"
+            ],
+            "evidenceRefs": [
+                "scopes/06-explainable-research-action-lifecycle/report.md#tp-06-08"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-038",
+            "scenarioId": "SCN-008-038",
+            "businessScenarioId": "BS-008-038",
+            "scope": "09-dependent-path-reproducibility",
+            "scopeRef": "scopes/09-dependent-path-reproducibility/scope.md",
+            "title": "Full-personal clear empties stored scenarios",
+            "gherkin": {
+                "given": "at least one scenario is genuinely persisted from a completed run",
+                "when": "the user confirms the full-personal clear",
+                "then": "the scenario section is empty on a storage reread\nAnd public generic assets outside the Feature 008 namespace are byte-identical\nAnd the emptiness is read back off the storage adapters rather than the module's own report"
+            },
+            "gherkinHash": "sha256:b45e4bfe9745bb4cd527e785fbfb9d170197af11b0dbf92f9a7fe3b14f377bd7",
+            "behaviorClass": "data",
+            "changeType": "new",
+            "requiredTestType": "functional",
+            "regressionRequired": false,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-analytics.unit.mjs",
+                    "testId": "TP-09-06 full-personal clear empties stored scenarios"
+                }
+            ],
+            "expectedAssertions": [
+                "the scenario section reads empty off the storage adapters after a full-personal clear",
+                "public generic assets outside the Feature 008 namespace are byte-identical across the clear",
+                "the scenario section is proven non-empty before the clear so the emptiness assertion is not vacuous"
+            ],
+            "evidenceRefs": [
+                "scopes/09-dependent-path-reproducibility/report.md#tp-09-06"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-039",
+            "scenarioId": "SCN-008-039",
+            "businessScenarioId": "BS-008-039",
+            "scope": "13-six-method-allocation-basis-and-feasibility",
+            "scopeRef": "scopes/13-six-method-allocation-basis-and-feasibility/scope.md",
+            "title": "Full-personal clear empties stored allocations",
+            "gherkin": {
+                "given": "at least one allocation candidate is genuinely persisted",
+                "when": "the user confirms the full-personal clear",
+                "then": "the allocation section is empty on a storage reread\nAnd public generic assets outside the Feature 008 namespace are byte-identical\nAnd the emptiness is read back off the storage adapters rather than the module's own report"
+            },
+            "gherkinHash": "sha256:6744687f81b169288922c1bc51b598599da98827bbcaa6839425ac2aff653c51",
+            "behaviorClass": "data",
+            "changeType": "new",
+            "requiredTestType": "functional",
+            "regressionRequired": false,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-allocation.functional.mjs",
+                    "testId": "TP-13-08 full-personal clear empties stored allocations"
+                }
+            ],
+            "expectedAssertions": [
+                "the allocation section reads empty off the storage adapters after a full-personal clear",
+                "public generic assets outside the Feature 008 namespace are byte-identical across the clear",
+                "the allocation section is proven non-empty before the clear so the emptiness assertion is not vacuous"
+            ],
+            "evidenceRefs": [
+                "scopes/13-six-method-allocation-basis-and-feasibility/report.md#tp-13-08"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-040",
+            "scenarioId": "SCN-008-040",
+            "businessScenarioId": "BS-008-040",
+            "scope": "15-walk-forward-research-dossier-and-claim-boundaries",
+            "scopeRef": "scopes/15-walk-forward-research-dossier-and-claim-boundaries/scope.md",
+            "title": "Full-personal clear empties stored dossiers",
+            "gherkin": {
+                "given": "at least one dossier is genuinely persisted",
+                "when": "the user confirms the full-personal clear",
+                "then": "the dossier section is empty on a storage reread\nAnd public generic assets outside the Feature 008 namespace are byte-identical\nAnd the emptiness is read back off the storage adapters rather than the module's own report"
+            },
+            "gherkinHash": "sha256:8e15a9ea07c630641089ec13f1f2334543ef25404164056ccb6b07b4364673f0",
+            "behaviorClass": "data",
+            "changeType": "new",
+            "requiredTestType": "functional",
+            "regressionRequired": false,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-allocation.functional.mjs",
+                    "testId": "TP-15-08 full-personal clear empties stored dossiers"
+                }
+            ],
+            "expectedAssertions": [
+                "the dossier section reads empty off the storage adapters after a full-personal clear",
+                "public generic assets outside the Feature 008 namespace are byte-identical across the clear",
+                "the dossier section is proven non-empty before the clear so the emptiness assertion is not vacuous"
+            ],
+            "evidenceRefs": [
+                "scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md#tp-15-08"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-041",
+            "scenarioId": "SCN-008-041",
+            "businessScenarioId": "BS-008-041",
+            "scope": "16-integrated-route-accessibility-and-atomic-release",
+            "scopeRef": "scopes/16-integrated-route-accessibility-and-atomic-release/scope.md",
+            "title": "Full-personal clear empties UI state and closes the personal-category set",
+            "gherkin": {
+                "given": "every personal category the finished tool can create is genuinely populated",
+                "when": "the user confirms the full-personal clear",
+                "then": "every declared personal category is empty on a storage reread\nAnd no personal storage key survives outside the declared sweep\nAnd public generic assets outside the Feature 008 namespace are byte-identical\nAnd the declared category set is derived from the runtime rather than a hand-written list"
+            },
+            "gherkinHash": "sha256:3ab6d292c6f4cb771533fd8a217c36fc3fefa9789af04c3e14df9f1349b1286e",
+            "behaviorClass": "data",
+            "changeType": "new",
+            "requiredTestType": "functional",
+            "regressionRequired": false,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-privacy.functional.mjs",
+                    "testId": "TP-16-12 full-personal clear empties every declared category and closes the personal-category set"
+                }
+            ],
+            "expectedAssertions": [
+                "every declared personal category reads empty off the storage adapters after a full-personal clear",
+                "no personal storage key survives outside the declared sweep",
+                "public generic assets outside the Feature 008 namespace are byte-identical across the clear",
+                "the declared category set is derived from the runtime so a newly added category cannot arrive unswept"
+            ],
+            "evidenceRefs": [
+                "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#tp-16-12"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
         }
     ]
 }

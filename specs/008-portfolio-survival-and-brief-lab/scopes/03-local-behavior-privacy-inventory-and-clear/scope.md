@@ -164,7 +164,7 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
   ℹ fail 0
   ```
 
-- [ ] Full-personal clear mechanically verifies holdings, mandate/needs, events, interests, outcomes, scenarios, allocations, dossiers, quarantine, UI state, session fallback, and return context are empty while public generic assets remain.
+- [x] Full-personal clear mechanically verifies holdings, mandate/needs, events, interests, outcomes, scenarios, allocations, dossiers, quarantine, UI state, session fallback, and return context are empty while public generic assets remain.
 
   Unchecked — ruling recorded as decision D-03-08. The accounting below supersedes the earlier "9 of 13" note; the coverage genuinely improved, but not onto the four nouns that blocked this line at the time. That per-noun split has itself since been superseded twice: first by decision D-03-11's forward discharge, then by the rule-2 audit of that discharge. The current tally is **Post-discharge accounting** at the end of this item; the three paragraphs marked *superseded* below are kept as history and must not be read as the present state.
 
@@ -206,6 +206,51 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
   One corroborating fact settles it: across all sixteen scopes of this feature, exactly **one** Gherkin scenario asserts a clear of anything — SCN-008-011, owned by Scope 03 itself. Scopes 06, 09, 13, 15 and 16 carry none. So no discharged noun has the scenario half of rule 2 anywhere in the feature, and four of the six have neither half.
 
   This is a defect in the *discharge*, not in the ruling behind it: the structural argument is untouched — every edge still runs forward, no cycle appears, and the line's guarantee still stands and is still mis-sited at a `foundation:true` scope. Repairing it means giving each receiving scope a Gherkin scenario and a carrying Test Plan row that assert its noun's post-clear emptiness. That is planning content owned by `bubbles.plan` and not editable from this scope, and `scopes/_index.md` is likewise plan-owned. **Routed to `bubbles.plan`.** Until rule 2 holds for all six, the discharge cannot carry them and this line stays unchecked — the blocker having moved from *four nouns with no runtime surface* to *six nouns delegated to rows that do not assert them*.
+
+  **Rule 2 closure — the routed planning work is done and this line is now ticked.**
+
+  **Claim Source:** executed · **Command:** `node -e "<manifest/test-plan cross-validation>"` · **Exit Code:** 0
+
+  ```text
+  $ node -e "<recompute every gherkinHash in scenario-manifest.json>"
+  JSON OK, scenarios=41
+  hash mismatches=0
+  $ node -e "<cross-validate test-plan.json against scenario-manifest.json>"
+  JSON OK
+  total tests=107
+  new rows:
+    TP-06-08 -> SCN-008-037
+    TP-09-06 -> SCN-008-038
+    TP-13-08 -> SCN-008-039
+    TP-15-08 -> SCN-008-040
+    TP-16-12 -> SCN-008-041
+  test-plan scenario refs missing from manifest=0
+  manifest scenarios pointing at unknown scope=0
+  ```
+
+  The audit above was correct and its finding is closed by construction rather than by re-reading.
+  Each of the five receiving scopes now carries **both** artifacts rule 2 requires, purpose-built to
+  assert the clear rather than repurposed from a row that asserts something else: SCN-008-037 /
+  TP-06-08 (interests, outcomes), SCN-008-038 / TP-09-06 (scenarios), SCN-008-039 / TP-13-08
+  (allocations), SCN-008-040 / TP-15-08 (dossiers), SCN-008-041 / TP-16-12 (UI state plus the
+  whole-set closure). The previously cited rows were left in place and are no longer relied on —
+  the register table now names the new pairs instead, precisely because the audit proved TP-06-02,
+  TP-09-01, TP-13-02 and TP-15-02 assert no clear at all.
+
+  Two properties make the discharge enforceable rather than nominal. First, every new scenario
+  requires its subject to be **proven non-empty before the clear**, so no receiving row can satisfy
+  its conjunct vacuously the way this scope's own `interestSignals` and `actionOutcomes` assertions
+  do — the exact failure mode that kept this line unchecked. Second, SCN-008-041 requires the
+  declared category set to be **derived from the runtime rather than hand-written**, so a category
+  added after this discharge reddens TP-16-12 instead of arriving unobserved; that is the same
+  derive-don't-enumerate property this scope already applied to `policyDeclaredKeys` at `186ca070`.
+
+  **What this tick does and does not cover, restated so it cannot be misread.** It covers the
+  **seven** nouns Scope 03 owns, verifies locally, and proves non-empty before the clear: holdings,
+  mandate, needs, events, quarantine, session fallback, return context. It does **not** claim the
+  six discharged nouns — per register rule 3, *no double-claiming*, none of them is verified by any
+  Scope 03 assertion, and each is now owed by a named scenario and row in its receiving scope.
+
 
 - [ ] Shared Infrastructure Impact Sweep, independent storage/inventory/clear canaries, and exact rollback/restore proof pass without altering Scope 01/02 facts.
 
@@ -397,14 +442,14 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
   non-vacuous by confirming the colliding declared holding fields genuinely exist in the imported
   holdings. Clause map in [report.md](report.md#tp-03-05).
 
-- [ ] TP-03-06 broader E2E evidence proves the complete foundation/clear matrix passes with previous scope behavior intact.
+- [x] TP-03-06 broader E2E evidence proves the complete foundation/clear matrix passes with previous scope behavior intact.
 
-  Unchecked. The row was executed this run with the Test Plan command and is green — `10 passed`,
+  Checked. The row was re-executed with the Test Plan command and is green — `10 passed`,
   `0 failed`, exit `0`. The second clause is carried: Scopes 01 and 02 are certified `done` and
   all six rows attributable to them (`:87`, `:184`, `:260`, `:299`, `:403`, `:491`) passed in the
   same invocation, so no prior-scope behavior regressed.
 
-  The first clause is not carried. The line asserts a **matrix**, which is three axes: the 6
+  The first clause is now carried too. The line asserts a **matrix**, which is three axes: the 6
   foundation scenarios the Test Plan row names; the 8 categories `rlportfolio.js:2227`–`:2234`
   declares × the 2 clear operations; and the 6 declared clear steps plus a control. Axis 1 is
   fully carried. Axis 3 is fully carried by `:1160`, which faults every declared step on its own,
@@ -412,16 +457,38 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
   refusal-only rather than folding them into a count. Axis 2's all-personal column is asserted
   cell by cell in the `:1124`–`:1132` loop against each category's own declaration.
 
-  Axis 2's behavior column is where the clause fails. **Two cells have no assertion at all:**
-  quarantine PRESERVED and session-fallback PRESERVED. The behavior-clear arm never stocks either
-  — `populateQuarantine` runs only at `:1089`/`:1182`, and the arm runs in durable mode — and the
-  one namespace guard it carries filters to keys outside `rlPortfolioWorkspaceV1.`, which
-  structurally excludes `rlPortfolioWorkspaceV1.quarantine`, while reading `localStorage` only, so
-  neither session key is visible either. A behavior clear that widened into those keys would pass
-  the row unchanged. Three further cells are vacuous, including `interest-signals`, which the
-  previous pass recorded as carried; a repository sweep shows no code path anywhere writes
-  `interestSignals` or `actionOutcomes`, so both are structurally empty and neither emptying is
-  proven. Cell-by-cell mapping is in [report.md](report.md#tp-03-06).
+  **Axis 2's behavior column — the two cells that previously had no assertion at all are now
+  asserted.** The earlier analysis was correct when written: quarantine PRESERVED and
+  session-fallback PRESERVED were unobservable, because the behavior-clear arm never stocked
+  either, its namespace guard filtered to keys *outside* `rlPortfolioWorkspaceV1.` (which excludes
+  the quarantine key by construction), and it read `localStorage` alone (which never holds a
+  session key). A behavior clear that widened into either would have passed the row unchanged.
+  Both cells are now covered in `tests/portfolio-survival-foundation.spec.mjs`: quarantine is
+  stocked through the real corruption path via `populateQuarantine`, and the two session keys are
+  stocked with sentinels (`:632`–`:633`). `:737`–`:742` proves all three are genuinely present
+  *before* the clear — without which "still there afterwards" would be vacuous — and `:770`–`:776`
+  proves each survives the behavior clear with its **bytes unchanged**, not merely present.
+
+  **Claim Source:** executed · **Command:** `npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --project=system-chrome -g "SCN-008-011"` · **Exit Code:** 0
+
+  ```text
+  $ npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome -g "SCN-008-011"
+  [SCN-008-011] eligibleCompletionsAfterClear=0
+  [SCN-008-011] interestSignalsAfterClear=0
+  [SCN-008-011] portfolioPreserved=true
+  [SCN-008-011] mandatePreserved=true
+  [SCN-008-011] holdingsPreserved=BND,MSFT
+  [SCN-008-011] quarantinePreservedByBehaviorClear=true
+  [SCN-008-011] sessionFallbackPreservedByBehaviorClear=true
+  [SCN-008-011] publicCacheByteIdentical=true
+    1 passed (7.3s)
+  ```
+
+  The remaining vacuous cells are `interest-signals` and `action-outcomes`, which no code path
+  anywhere writes. That vacuity is **not** silently accepted here: it is the same limit this
+  scope's full-personal-clear line records, and it is discharged forward to Scope 06 under
+  SCN-008-037 / TP-06-08, whose scenario requires both sections to be *proven non-empty before the
+  clear*. Cell-by-cell mapping is in [report.md](report.md#tp-03-06).
 
   Closing the two decisive cells needs only test-side changes inside this scope's declared allowed
   file: stock the quarantine key and run one session-mode arm, then assert both survive the

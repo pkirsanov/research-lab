@@ -53,6 +53,20 @@ Scenario: A held position has concentration and catalyst risk
   And it contains no buy, sell, order, trade size, or automatic rebalance instruction
 ```
 
+### SCN-008-037 - A full-personal clear empties derived interests and outcomes
+
+Carries Scope 03's discharged `interests` and `outcomes` conjuncts. Scope 06 is the first
+producer of either, so it is the first scope whose assertion can be non-vacuous.
+
+```gherkin
+Scenario: A user clears all personal data after research actions have accumulated
+  Given at least one derived InterestSignal and one actionOutcome are genuinely persisted
+  When the user confirms the full-personal clear
+  Then the interest-signal and action-outcome sections are empty on a storage reread
+  And a behavior-only clear instead leaves holdings, mandate, and cash-need counts unchanged
+  And the emptiness is read back off the storage adapters rather than the module's own report
+```
+
 ## UI Scenario Matrix
 
 | Scenario | Viewports / Inputs | User Steps | Exact Visible Result | Test Type |
@@ -107,6 +121,7 @@ Author complete why-shown, forbidden mutation, lifecycle, owner-handoff, and clo
 | TP-06-05 | Regression E2E | e2e-ui | SCN-008-034 | `tests/portfolio-survival-brief.spec.mjs` | `Regression: SCN-008-034 every visible recommendation remains non executing research` | `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-034 every visible recommendation remains non executing research" --reporter=list` | Yes | `report.md#scenario-scn-008-034` |
 | TP-06-06 | Responsive lifecycle Regression E2E | e2e-ui | SCN-008-008, SCN-008-009, SCN-008-034 | `tests/portfolio-survival-brief.spec.mjs` | `Regression: Feature 008 why shown lifecycle and return focus remain accessible without mobile overlap` | `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 why shown lifecycle and return focus remain accessible without mobile overlap" --reporter=list` | Yes | `report.md#tp-06-06` |
 | TP-06-07 | Broader Regression E2E | e2e-ui | SCN-008-006 through SCN-008-010, SCN-008-034 | `tests/portfolio-survival-brief.spec.mjs` | Execute the complete cumulative Feature 008 Brief browser suite after lifecycle and why-shown rows | `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-06-07` |
+| TP-06-08 | Discharged clear conjunct functional | functional | SCN-008-037 | `tests/portfolio-privacy.functional.mjs` | Persist at least one derived `InterestSignal` and one `actionOutcome`, then prove a full-personal clear leaves both sections empty on a storage reread and a behavior-only clear leaves holdings, mandate, and cash-need counts at their exact prior values. Carries Scope 03's discharged `interests` and `outcomes` conjuncts under register rule 2 | `node --test tests/portfolio-privacy.functional.mjs` | No | `report.md#tp-06-08` |
 
 ### Definition of Done
 

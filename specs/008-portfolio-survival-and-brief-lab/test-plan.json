@@ -730,6 +730,23 @@
                     "evidenceRef": "scopes/06-explainable-research-action-lifecycle/report.md#tp-06-07",
                     "status": "planned-not-executed",
                     "redGreenRequired": false
+                },
+                {
+                    "id": "TP-06-08",
+                    "type": "Discharged clear conjunct functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-privacy.functional.mjs",
+                    "scenarioId": "SCN-008-037",
+                    "coversScenarioIds": [
+                        "SCN-008-037"
+                    ],
+                    "description": "Carries Scope 03's discharged interests and outcomes clear conjuncts: a full-personal clear empties both sections on a storage reread and a behavior-only clear preserves portfolio facts.",
+                    "commandRef": "CMD-FUNCTIONAL-PRIVACY",
+                    "command": "node --test tests/portfolio-privacy.functional.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/06-explainable-research-action-lifecycle/report.md#tp-06-08",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
                 }
             ]
         },
@@ -1025,6 +1042,23 @@
                     "evidenceRef": "scopes/09-dependent-path-reproducibility/report.md#tp-09-05",
                     "status": "planned-not-executed",
                     "redGreenRequired": false
+                },
+                {
+                    "id": "TP-09-06",
+                    "type": "Discharged clear conjunct functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-analytics.unit.mjs",
+                    "scenarioId": "SCN-008-038",
+                    "coversScenarioIds": [
+                        "SCN-008-038"
+                    ],
+                    "description": "Carries Scope 03's discharged scenarios clear conjunct: a full-personal clear empties the scenario section on a storage reread while public generic assets stay byte-identical.",
+                    "commandRef": "CMD-UNIT-ANALYTICS",
+                    "command": "node --test tests/portfolio-analytics.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/09-dependent-path-reproducibility/report.md#tp-09-06",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
                 }
             ]
         },
@@ -1442,6 +1476,23 @@
                     "evidenceRef": "scopes/13-six-method-allocation-basis-and-feasibility/report.md#tp-13-07",
                     "status": "planned-not-executed",
                     "redGreenRequired": false
+                },
+                {
+                    "id": "TP-13-08",
+                    "type": "Discharged clear conjunct functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-allocation.functional.mjs",
+                    "scenarioId": "SCN-008-039",
+                    "coversScenarioIds": [
+                        "SCN-008-039"
+                    ],
+                    "description": "Carries Scope 03's discharged allocations clear conjunct: a full-personal clear empties the allocation section on a storage reread while public generic assets stay byte-identical.",
+                    "commandRef": "CMD-FUNCTIONAL-ALLOCATION",
+                    "command": "node --test tests/portfolio-allocation.functional.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/13-six-method-allocation-basis-and-feasibility/report.md#tp-13-08",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
                 }
             ]
         },
@@ -1702,6 +1753,23 @@
                     "evidenceRef": "scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md#tp-15-07",
                     "status": "planned-not-executed",
                     "redGreenRequired": false
+                },
+                {
+                    "id": "TP-15-08",
+                    "type": "Discharged clear conjunct functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-allocation.functional.mjs",
+                    "scenarioId": "SCN-008-040",
+                    "coversScenarioIds": [
+                        "SCN-008-040"
+                    ],
+                    "description": "Carries Scope 03's discharged dossiers clear conjunct: a full-personal clear empties the dossier section on a storage reread while public generic assets stay byte-identical.",
+                    "commandRef": "CMD-FUNCTIONAL-DOSSIER",
+                    "command": "node --test tests/portfolio-allocation.functional.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md#tp-15-08",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
                 }
             ]
         },
@@ -1956,6 +2024,23 @@
                     "evidenceRef": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#tp-16-11",
                     "status": "planned-not-executed",
                     "redGreenRequired": false
+                },
+                {
+                    "id": "TP-16-12",
+                    "type": "Whole-set clear closure functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-privacy.functional.mjs",
+                    "scenarioId": "SCN-008-041",
+                    "coversScenarioIds": [
+                        "SCN-008-041"
+                    ],
+                    "description": "Carries Scope 03's discharged UI-state clear conjunct AND the whole-set closure: every declared personal category empties on a storage reread, no personal key survives outside the declared sweep, and the declared set is derived from the runtime rather than hand-written.",
+                    "commandRef": "CMD-FUNCTIONAL-PRIVACY",
+                    "command": "node --test tests/portfolio-privacy.functional.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#tp-16-12",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
                 }
             ]
         }

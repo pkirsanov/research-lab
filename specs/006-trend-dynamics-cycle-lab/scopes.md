@@ -1616,7 +1616,26 @@ Build Quality Gate (Scope 3):
 
 ## Scope 4: Complete Simple/Power Experience, Registration, And Publication
 
-**Status:** Not Started
+**Status:** In Progress
+
+**Progress note (registration blocker identified):** The page-side work is delivered and verified.
+The production route computes a verdict through the shared trend model, draws the observed series
+synchronously with an `RLCHART` hover hit-test and a text equivalent, exposes transform/horizon/
+profile levers that recompute from the shared cache with zero off-origin requests, publishes an
+owner read that preserves stale, degraded, and unavailable truth, refuses publication on an
+incomplete run, and shows distinct effective/detected/retrospective change-replay labels.
+`notes/trend-dynamics-cycle-lab.md` is written.
+
+Step 4 (registration) is NOT reached, and the reason is registry-side rather than page-side. The
+registry has evolved since this scope was authored: every one of the 24 registered tools now
+carries a `briefing` and an `experience` block, and registration is enforced to require (a) a
+Simple model definition in `simple-models.json` for the tool id, (b) a matching adapter declared
+in an `rlexperience-adapters` module `supportedAdapterIds` and produced by its factory as a
+`simple-model-adapter/v1`, and (c) at least two journey definitions with their steps in
+`journeys.json`, matched bidirectionally against `experience.journeyDefinitionIds`. None of those
+exist for this tool. Registration is therefore a genuine atomic change against a registry serving
+24 live tools, not the three-line additive edit step 4 describes, and it is sequenced as its own
+focused change rather than appended to the page work.
 
 **Scope-Kind:** runtime-behavior
 
@@ -1708,13 +1727,84 @@ Test Evidence Items (Scope 4; Exact Parity With 9 Test Plan Rows):
 
 - [ ] TP-04-01 focused red then green unit evidence proves view-model, owner-read, registry, safe-text, and shared-read invariants.
 - [ ] TP-04-02 focused red then green validator evidence proves page/config/note/registry/symbol/publication contracts.
-- [ ] TP-04-03 focused red then green evidence proves inline script syntax and ID integrity.
-- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-006-019 through TP-04-04.
-- [ ] TP-04-05 Regression E2E evidence proves SCN-006-020 the owner read preserves mixed, stale, degraded, or unavailable truth, caveat, invalid-field omission, deep link, and no consumer recalculation or upgrade.
-- [ ] TP-04-06 Regression E2E evidence proves keyboard, focus, announcements, synchronous nonblank canvas/table parity, 130% text, and 390/1440 containment.
-- [ ] TP-04-07 Regression E2E evidence proves route/note/data/navigation and owner-publication identity.
-- [ ] TP-04-08 integration browser evidence proves the existing central credential/settings suite remains green.
+- [x] TP-04-03 focused red then green evidence proves inline script syntax and ID integrity.
+
+```
+$ PAGE=trend-dynamics-cycle-lab.html node -e '...TDC-PAGE-INLINE-ID...'
+OK page=trend-dynamics-cycle-lab.html inline=1 refs=7
+page=0
+```
+
+Red evidence for this row is recorded under TP-01-03 (inserting a reference to a
+non-existent id `tdc-recovery-missing-id` makes the same command exit nonzero with
+`missing ids: tdc-recovery-missing-id`).
+
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-006-019 through TP-04-04.
+
+```
+$ npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs \
+    --project=system-chrome --grep "share one result without refetch" --reporter=list
+[SCN-006-019] bootResult=a39f88ac61d30893a63bbcebda566f421eecab193dd635a9177c0328f74a0896 powerResult=a39f88ac61d30893a63bbcebda566f421eecab193dd635a9177c0328f74a0896
+[SCN-006-019] horizonResult=4f589ffab6445d0beefeca2c3fdc7476d6688d6335ab8af7bfddfafc2311c86b
+[SCN-006-019] offOriginRequests=0
+  ✓  1 [system-chrome] › Regression: SCN-006-019 Simple Power mobile and local controls share one result without refetch (1.8s)
+  1 passed (4.7s)
+```
+
+Non-vacuous: with `tdcEffectiveSelection` changed to ignore the horizon override, the same
+command fails with `Error: the horizon lever did not recompute`. Reverted before commit.
+
+- [x] TP-04-05 Regression E2E evidence proves SCN-006-020 the owner read preserves mixed, stale, degraded, or unavailable truth, caveat, invalid-field omission, deep link, and no consumer recalculation or upgrade.
+
+```
+$ npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs \
+    --project=system-chrome --grep "owner read preserves mixed stale degraded" --reporter=list
+[SCN-006-020] stale availability=stale truthState=stale
+[SCN-006-020] degraded truthState=degraded availability=current
+[SCN-006-020] unavailable published=none truthText=UNAVAILABLE
+  ✓  1 [system-chrome] › Regression: SCN-006-020 owner read preserves mixed stale degraded and unavailable truth (1.6s)
+  1 passed (4.0s)
+```
+
+The degraded row demonstrates the two-axis separation: `availability=current` because the SOURCE
+is fresh while `metrics.truthState=degraded` because the ANALYSIS is not.
+
+- [x] TP-04-06 Regression E2E evidence proves keyboard, focus, announcements, synchronous nonblank canvas/table parity, 130% text, and 390/1440 containment.
+
+```
+[SCN-006-019] chart paintedPixels=2580
+[SCN-006-019] chart equivalent="400 observations from 2025-06-10 to 2026-07-14; low 395.85, high 442.74, last 420.00."
+[SCN-006-019] 390x844 simple docOverflow=0 bodyOverflow=0
+[SCN-006-019] 390x844 power docOverflow=0 bodyOverflow=0
+[SCN-006-019] 1440x1000 simple docOverflow=0 bodyOverflow=0
+[SCN-006-019] 1440x1000 power docOverflow=0 bodyOverflow=0
+```
+
+- [ ] TP-04-07 Regression E2E evidence proves route/note/data/navigation and owner-publication identity. BLOCKED on registration; navigation parity cannot be asserted while the tool is unregistered.
+- [x] TP-04-08 integration browser evidence proves the existing central credential/settings suite remains green.
+
+```
+$ npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs \
+    --project=system-chrome --reporter=list
+  ✓  8 [system-chrome] › Regression BUG-001: cancelling destructive cleanup preserves the legacy container (551ms)
+  8 passed (6.2s)
+```
+
 - [ ] Broader E2E regression suite passes through TP-04-09 after all focused Scope 4 rows pass.
+
+```
+$ npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs \
+    --project=system-chrome --reporter=list
+  19 passed (14.9s)
+$ node scripts/selftest.mjs
+Research-Lab self-test: 1540 passed, 0 failed
+$ node scripts/validate-trend-dynamics-cycle.mjs
+[tdc-validator] OK          (exit 0)
+```
+
+The suite is green; this row stays unchecked because TP-04-01, TP-04-02, and TP-04-07 have not
+completed, and TP-04-09 is defined as passing *after* all focused rows pass.
+
 
 Build Quality Gate (Scope 4):
 

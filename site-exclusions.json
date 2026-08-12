@@ -4,7 +4,7 @@
   "files": [
     {
       "path": "trend-dynamics-cycle-lab.html",
-      "reason": "Feature 006 scope 4 declares registration as its own atomic step, and that step is not reached: the Power change-replay entry point still owes its distinct effective/detected/retrospective labels, and scope 5 (as-of replay) is not started. Publication and the methodology note are no longer the reason -- the production route computes a verdict through the shared trend model, publishes an owner read, and notes/trend-dynamics-cycle-lab.md is written."
+      "reason": "Feature 006 scope 4 declares registration as its own atomic step, and that step is not reached. The remaining blocker is now precisely identified and is registry-side, not page-side: registering a tool requires a Simple model definition in simple-models.json, a matching adapter declared in an rlexperience-adapters module supportedAdapterIds and produced by its factory as simple-model-adapter/v1, and at least two journey definitions with their steps in journeys.json. None of those exist for this tool yet. The page itself is no longer the constraint -- the production route computes a verdict through the shared trend model, draws the observed series with a hover tooltip and text equivalent, offers transform/horizon/profile levers that recompute from cache without refetching, publishes an owner read that preserves stale, degraded, and unavailable truth, shows the change-replay effective/detected/retrospective labels, and notes/trend-dynamics-cycle-lab.md is written. Scope 5 (as-of replay) is also not started."
     },
     {
       "path": "trend-dynamics-cycle-universe.json",

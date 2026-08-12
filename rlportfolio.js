@@ -152,6 +152,19 @@
   var BEHAVIOR_EVENT_DRAFT_FIELDS = Object.freeze([
     "category", "completionConditionId", "domain", "horizon", "resultIdentity", "sourceSurface", "subjectId", "subjectKind"
   ]);
+  var INTEREST_SIGNAL_VERSION = "InterestSignal/v1";
+  /* Closed per design.md "InterestSignal/v1". It carries NO market or model confidence and no
+     personal-trait label: a relevance inference must never be readable as a forecast, and a
+     derived interest must never harden into a description of the person. */
+  var INTEREST_SIGNAL_FIELDS = Object.freeze([
+    "contractVersion", "distinctUtcDateCount", "domain", "evidenceScore", "expiresAt", "floorSatisfied",
+    "horizon", "latestSupportAt", "relevanceBand", "sensitivityBand", "signalId", "subjectId",
+    "subjectKind", "supportingEventIds"
+  ]);
+  var INTEREST_RELEVANCE_BANDS = Object.freeze([
+    "insufficient-evidence", "weak-relevance", "moderate-relevance", "strong-relevance"
+  ]);
+  var INTEREST_SENSITIVITY_BANDS = Object.freeze(["non-sensitive"]);
   var ACTION_OUTCOME_FIELDS = Object.freeze([
     "actionId", "command", "contractVersion", "occurredAt", "outcomeId", "reason", "state"
   ]);
@@ -1081,7 +1094,10 @@
       return failure("P008-SCHEMA-CORRUPT", "workspace-invalid", "workspace", null, false);
     }
     if (value.interestSignals.length > 0) {
-      return failure("P008-SCHEMA-CORRUPT", "unsupported-contract-scope", "workspace", null, false);
+      for (var signalIndex = 0; signalIndex < value.interestSignals.length; signalIndex += 1) {
+        var signalResult = validateInterestSignal(value.interestSignals[signalIndex], policy);
+        if (!signalResult.ok) return signalResult;
+      }
     }
     if (value.behaviorEvents.length > policy.behavior.maxBehaviorEvents) {
       return failure("P008-SCHEMA-CORRUPT", "behavior-event-cap-exceeded", "behaviorEvents", null, false);
@@ -1746,8 +1762,38 @@
     });
   }
 
-  function validateActionOutcome(value, policy) {
+  /* A derived interest is still PERSONAL data, so it is validated as strictly as a behavior event:
+     closed field set, forbidden-source scan, and a sensitivity band that admits only
+     `non-sensitive`. The band is a closed list rather than a boolean so a future sensitive
+     category has to be added deliberately instead of arriving as `true`. */
+  function validateInterestSignal(value, policy) {
     var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    if (!isPlainObject(value)) return failure("P008-SCHEMA-CORRUPT", "interest-signal-required", "interestSignal", null, false);
+    var forbidden = findForbiddenBehaviorPath(value, policy, "interestSignal");
+    if (forbidden) return failure("P008-SCHEMA-CORRUPT", "forbidden-behavior-source", forbidden, null, false);
+    var unknown = hasOnlyFields(value, INTEREST_SIGNAL_FIELDS);
+    if (unknown || Object.keys(value).length !== INTEREST_SIGNAL_FIELDS.length) {
+      return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown || "interestSignal", null, false);
+    }
+    if (value.contractVersion !== INTEREST_SIGNAL_VERSION ||
+        !HASH_PATTERN.test(value.signalId || "") ||
+        !safeToken(value.subjectId) || !safeToken(value.subjectKind) || !safeToken(value.domain) ||
+        (value.horizon !== null && !safeToken(value.horizon)) ||
+        !Array.isArray(value.supportingEventIds) || value.supportingEventIds.length === 0 ||
+        !value.supportingEventIds.every(function (id) { return HASH_PATTERN.test(id || ""); }) ||
+        typeof value.distinctUtcDateCount !== "number" || value.distinctUtcDateCount < 0 ||
+        typeof value.evidenceScore !== "number" || !isFinite(value.evidenceScore) ||
+        typeof value.floorSatisfied !== "boolean" ||
+        INTEREST_RELEVANCE_BANDS.indexOf(value.relevanceBand) < 0 ||
+        INTEREST_SENSITIVITY_BANDS.indexOf(value.sensitivityBand) < 0 ||
+        !canonicalTimestamp(value.latestSupportAt) || !canonicalTimestamp(value.expiresAt)) {
+      return failure("P008-SCHEMA-CORRUPT", "interest-signal-invalid", "interestSignal", null, false);
+    }
+    return success(value);
+  }
+
+  function validateActionOutcome(value, policy) {    var policyResult = validatePolicy(policy);
     if (!policyResult.ok) return policyResult;
     if (!isPlainObject(value)) return failure("P008-SCHEMA-CORRUPT", "action-outcome-required", "actionOutcome", null, false);
     var forbidden = findForbiddenBehaviorPath(value, policy, "actionOutcome");
@@ -1828,6 +1874,104 @@
       event: eventResult.value,
       accepted: !duplicate,
       reason: duplicate ? "duplicate-completion" : null
+    });
+  }
+
+  /* Derives interest signals from EXPLICITLY completed actions only. It reads `behaviorEvents`,
+     which the privacy layer populates from deliberate completion commands, so a setting or a
+     passive view can never reach this function's input. Signals below the declared floor are still
+     EMITTED, carrying `floorSatisfied: false` and the `insufficient-evidence` band, because the
+     brief must be able to say "too little history" with real counts rather than show nothing and
+     leave the reason to inference. */
+  function deriveInterestSignals(workspace, now, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    var workspaceResult = validateWorkspace(workspace, policy);
+    if (!workspaceResult.ok) return workspaceResult;
+    if (!canonicalTimestamp(now)) return failure("P008-SCHEMA-CORRUPT", "timestamp-invalid", "now", null, false);
+
+    var behavior = policy.behavior;
+    var byDomain = Object.create(null);
+    workspace.behaviorEvents.forEach(function (event) {
+      if (!event || !event.domain) return;
+      if (event.lifecycleState !== "eligible") return;
+      var key = String(event.domain);
+      if (!byDomain[key]) {
+        byDomain[key] = { domain: key, subjectKind: "domain", horizon: null, eventIds: [], dates: Object.create(null), latest: null, score: 0 };
+      }
+      var bucket = byDomain[key];
+      bucket.eventIds.push(event.eventId);
+      bucket.dates[String(event.occurredAt).slice(0, 10)] = true;
+      if (!bucket.horizon && event.horizon) bucket.horizon = event.horizon;
+      if (!bucket.latest || event.occurredAt > bucket.latest) bucket.latest = event.occurredAt;
+      var ageDays = (Date.parse(now) - Date.parse(event.occurredAt)) / 86400000;
+      if (ageDays <= behavior.maximumEvidenceAgeDays) {
+        bucket.score += Math.pow(0.5, ageDays / behavior.halfLifeDays);
+      }
+    });
+
+    var signals = Object.keys(byDomain).sort().map(function (key) {
+      var bucket = byDomain[key];
+      var distinctDates = Object.keys(bucket.dates).length;
+      var distinctEvents = bucket.eventIds.length;
+      var satisfied = distinctEvents >= behavior.minimumDistinctCompletions &&
+        distinctDates >= behavior.minimumDistinctUtcDates;
+      var band = "insufficient-evidence";
+      if (satisfied) {
+        band = distinctEvents >= behavior.highScore ? "strong-relevance"
+          : distinctEvents >= behavior.mediumScore ? "moderate-relevance" : "weak-relevance";
+      }
+      var signal = {
+        contractVersion: INTEREST_SIGNAL_VERSION,
+        signalId: null,
+        subjectId: bucket.domain,
+        subjectKind: bucket.subjectKind,
+        domain: bucket.domain,
+        horizon: bucket.horizon,
+        supportingEventIds: bucket.eventIds.slice().sort(),
+        distinctUtcDateCount: distinctDates,
+        evidenceScore: Math.round(bucket.score * 10000) / 10000,
+        floorSatisfied: satisfied,
+        relevanceBand: band,
+        sensitivityBand: "non-sensitive",
+        latestSupportAt: bucket.latest,
+        // Expiry is derived from declared policy, so a signal cannot outlive the evidence under it.
+        expiresAt: new Date(Date.parse(bucket.latest) + behavior.maximumEvidenceAgeDays * 86400000).toISOString()
+      };
+      signal.signalId = contracts.fingerprint("portfolio-interest-signal", {
+        contractVersion: "portfolio-interest-signal/v1",
+        subjectId: signal.subjectId,
+        domain: signal.domain,
+        supportingEventIds: signal.supportingEventIds
+      });
+      return signal;
+    });
+
+    for (var index = 0; index < signals.length; index += 1) {
+      var validated = validateInterestSignal(signals[index], policy);
+      if (!validated.ok) return validated;
+    }
+    return success(signals);
+  }
+
+  /* Persists derived signals through the same reduce-apply-rehash-revalidate path every other
+     mutation uses. Derivation is REPLACING, not appending: a signal is a current statement about
+     the evidence, so stale signals must not accumulate beside the ones just derived. */
+  function buildInterestSignalCandidate(currentWorkspace, now, policy) {
+    var derived = deriveInterestSignals(currentWorkspace, now, policy);
+    if (!derived.ok) return derived;
+    var candidate = clone(currentWorkspace);
+    candidate.interestSignals = derived.value;
+    candidate.updatedAt = now;
+    candidate.policyRefs = policyRefs(policy);
+    var hashed = withWorkspaceHashes(candidate);
+    var validated = validateWorkspace(hashed, policy);
+    if (!validated.ok) return validated;
+    return success({
+      contractVersion: "portfolio-interest-signal-candidate/v1",
+      workspace: hashed,
+      signals: derived.value,
+      signalCount: derived.value.length
     });
   }
 
@@ -2430,6 +2574,9 @@
     buildBehaviorCandidate: buildBehaviorCandidate,
     actionIdentity: actionIdentity,
     buildActionOutcomeCandidate: buildActionOutcomeCandidate,
+    buildInterestSignalCandidate: buildInterestSignalCandidate,
+    deriveInterestSignals: deriveInterestSignals,
+    validateInterestSignal: validateInterestSignal,
     buildBehaviorClearCandidate: buildBehaviorClearCandidate,
     buildBehaviorEvent: buildBehaviorEvent,
     buildMandateCandidate: buildMandateCandidate,

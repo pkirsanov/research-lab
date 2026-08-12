@@ -1009,7 +1009,7 @@ test('full-personal clear empties every declared personal section and leaves gen
 // vacuously true and the sweep reports coverage it does not have. This pins that limit to the
 // exact refusal that causes it: when a later scope adds a real write path the refusal stops
 // firing and this test goes red, instead of the sweep quietly continuing to over-report.
-test('the two personal sections the clear sweep cannot populate are pinned by their own distinct refusal', () => {
+test('the two personal sections Scope 03 could not populate now have real write paths and are swept', () => {
   const { api, policy } = loadContracts();
   const sections = personalWorkspaceSections(api, policy);
 
@@ -1021,27 +1021,38 @@ test('the two personal sections the clear sweep cannot populate are pinned by th
   assert.equal(withMandate.ok, true);
   const populated = appendEvent(api, policy, withMandate.value, {}).value.workspace;
 
-  // Reachability is measured by what a builder actually put there, not declared by name.
-  const populatable = sections.filter((section) => populated[section].length > 0);
-  const unreachable = sections.filter((section) => !populatable.includes(section));
-  assert.deepEqual(populatable, ['behaviorEvents', 'mandateRevisions', 'portfolioRevisions'], 'the builders this scope exports reach exactly three of the derived personal sections');
-  assert.deepEqual(unreachable, ['actionOutcomes', 'interestSignals'], 'exactly two derived sections have no write path, so the sweep asserts their emptiness vacuously');
+  /* Scope 03 recorded that exactly two derived sections had no write path, so its sweep asserted
+   * their emptiness vacuously. Scope 06 is the producer of both, so this pin is discharged: the
+   * assertion is now that each section can be POPULATED and then swept, which is the claim Scope
+   * 03 could not make. */
+  const withSignals = api.buildInterestSignalCandidate(populated, NOW, policy);
+  assert.equal(withSignals.ok, true, `interest derivation must succeed: ${JSON.stringify(withSignals.error || {})}`);
+  assert.equal(withSignals.value.workspace.interestSignals.length > 0, true,
+    'interestSignals now has a real write path');
 
-  // Distinct reasons, so neither refusal can stand in for the other if one is removed.
-  assert.equal(
-    api.validateWorkspace({ ...populated, interestSignals: [{ signalId: RESULT_IDENTITY }] }, policy).error.reason,
-    'unsupported-contract-scope',
-    'an interest signal is refused as outside the contract scope, which is why the sweep can never observe one'
-  );
-  assert.equal(
-    api.validateWorkspace({ ...populated, actionOutcomes: [api.reduceActionOutcome(RESULT_IDENTITY, 'complete', 'owner-decision', NOW, policy).value] }, policy).error.reason,
-    'workspace-hash-mismatch',
-    'a structurally valid outcome is still refused because no exported builder can hash it into a workspace, which is why the sweep can never observe one'
-  );
+  const actionId = api.actionIdentity({
+    windowId: 'morning', subjectId: 'MSFT', lane: 'held', evidenceCutoffAt: NOW
+  });
+  assert.equal(actionId.ok, true);
+  const withOutcome = api.buildActionOutcomeCandidate(actionId.value, 'complete', 'owner-decision', withSignals.value.workspace, NOW, policy);
+  assert.equal(withOutcome.ok, true, `outcome build must succeed: ${JSON.stringify(withOutcome.error || {})}`);
+  assert.equal(withOutcome.value.workspace.actionOutcomes.length > 0, true,
+    'actionOutcomes now has a real write path');
 
-  // Control: the same spread with neither section touched is accepted, so both refusals are
-  // caused by the section content rather than by rebuilding the object.
-  assert.equal(api.validateWorkspace({ ...populated }, policy).ok, true, 'the untouched spread must still validate, or the two refusals prove nothing about the sections');
+  // Every derived personal section is reachable, so no emptiness claim in the sweep is vacuous.
+  const stillUnreachable = sections.filter((section) => withOutcome.value.workspace[section].length === 0);
+  assert.deepEqual(stillUnreachable, [],
+    'no derived personal section may remain unpopulatable, or the sweep would still assert emptiness over an empty-by-construction container');
+
+  // A populated workspace must validate, or the write paths above produced something unstorable.
+  assert.equal(api.validateWorkspace(withOutcome.value.workspace, policy).ok, true);
+
+  // And the behavior clear genuinely empties both, which is the claim Scope 03 could not test.
+  const cleared = api.buildBehaviorClearCandidate(withOutcome.value.workspace, NOW, policy);
+  assert.equal(cleared.ok, true);
+  assert.equal(cleared.value.workspace.interestSignals.length, 0);
+  assert.equal(cleared.value.workspace.actionOutcomes.length, 0,
+    'a completed outcome is behavior-derived, so the behavior clear removes it');
 });
 
 test('exact rollback restores the pre-change workspace identity and the Scope 01/02 durable record survives a committed round trip', () => {
@@ -1796,13 +1807,35 @@ test('FR-028: a behavior clear removes the eligible events and empties the deriv
   assert.equal(mandateClear.value.currentPortfolioId, workspace.currentPortfolioId, 'FR-028 a mandate clear must not also remove the portfolio');
   assert.equal(mandateClear.value.behaviorEvents.length, workspace.behaviorEvents.length, 'FR-028 a mandate clear must not also remove behavior history');
 
-  // Honest scope limit: the derived-interest container is asserted empty above over a
-  // container this contract forces empty. Asserting the refusal keeps a future widening
-  // from silently inheriting an untested "removes derived interests" claim.
+  // Honest scope limit DISCHARGED by Scope 06. `deriveInterestSignals` now populates the
+  // container, so the emptiness claim above is exercised against a genuinely populated set
+  // instead of one the contract forced empty.
+  const withSignals = api.buildInterestSignalCandidate(workspace, LATER, policy);
+  assert.equal(withSignals.ok, true, `FR-028 interest derivation must succeed: ${JSON.stringify(withSignals.error || {})}`);
   assert.equal(
-    api.validateWorkspace({ ...workspace, interestSignals: [{ interestId: 'inferred' }] }, policy).error.reason,
-    'unsupported-contract-scope',
-    'FR-028 a workspace carrying a derived interest is refused at this contract scope, which is why the emptiness claim above is not yet exercised against a populated set'
+    withSignals.value.workspace.interestSignals.length > 0,
+    true,
+    'FR-028 a derived interest must genuinely exist before its removal can be observed'
+  );
+
+  const populatedClear = api.buildBehaviorClearCandidate(withSignals.value.workspace, LATER, policy);
+  assert.equal(populatedClear.ok, true, `FR-028 the behavior clear must succeed over a populated container: ${JSON.stringify(populatedClear.error || {})}`);
+  assert.equal(
+    populatedClear.value.clearedInterestCount,
+    withSignals.value.workspace.interestSignals.length,
+    'FR-028 the reported cleared-interest count must match the population just proven'
+  );
+  assert.equal(populatedClear.value.workspace.interestSignals.length, 0,
+    'FR-028 a behavior clear must remove derived interests that genuinely existed');
+  assert.deepEqual(
+    populatedClear.value.workspace.portfolioRevisions,
+    workspace.portfolioRevisions,
+    'FR-028 holdings must still survive when the interest container was populated'
+  );
+  assert.deepEqual(
+    populatedClear.value.workspace.mandateRevisions,
+    workspace.mandateRevisions,
+    'FR-028 mandate and cash needs must still survive when the interest container was populated'
   );
 });
 

@@ -1564,3 +1564,79 @@ test('SCN-008-035 TP-04-03: a personal value cannot ride into the public store t
   const lying = api.privacyBoundaryToolRead(NOW);
   assert.equal(lying.metrics.personalDataIncluded, false, 'the boundary declaration is false by construction, so a true value would be a code change rather than data');
 });
+
+test('SCN-008-037 TP-06-08: a full-personal clear empties genuinely persisted interests and outcomes on a storage reread', () => {
+  const { api, policy } = loadRuntime();
+  const localStorage = createStorage({ initial: { ...GENERIC_PUBLIC_CACHES } });
+  const sessionStorage = createStorage();
+  const { store, workspace } = seedEveryPopulatableCategory(api, policy, localStorage, sessionStorage);
+
+  /* Scope 03 could assert neither of these sections: validateWorkspace refused any interest
+   * signal, and no exported builder could hash an outcome into a workspace. Scope 06 produces
+   * both, so this is the first non-vacuous form of that assertion. Both are PERSISTED and read
+   * back off the adapters, not merely present on an in-process candidate. */
+  const withSignals = api.buildInterestSignalCandidate(workspace, LATER_CLEAR, policy);
+  assert.equal(withSignals.ok, true, `interest derivation must succeed: ${JSON.stringify(withSignals.error || {})}`);
+  const signalCount = withSignals.value.workspace.interestSignals.length;
+  assert.equal(signalCount > 0, true, 'at least one derived interest must exist, or the emptiness claim is vacuous');
+
+  const actionId = api.actionIdentity({
+    windowId: 'morning', subjectId: CLEAR_SUBJECT, lane: 'inferredRelevance', evidenceCutoffAt: LATER_CLEAR
+  });
+  assert.equal(actionId.ok, true);
+  const withOutcome = api.buildActionOutcomeCandidate(actionId.value, 'complete', 'user-marked-complete', withSignals.value.workspace, LATER_CLEAR, policy);
+  assert.equal(withOutcome.ok, true, `outcome build must succeed: ${JSON.stringify(withOutcome.error || {})}`);
+  const outcomeCount = withOutcome.value.workspace.actionOutcomes.length;
+  assert.equal(outcomeCount > 0, true, 'at least one action outcome must exist, or the emptiness claim is vacuous');
+
+  const committed = store.commitWorkspace(withOutcome.value.workspace, workspace.generation, LATER_CLEAR);
+  assert.equal(committed.ok, true, `the populated workspace must commit: ${JSON.stringify(committed.error || {})}`);
+
+  // Proven ON THE BYTES: both sections survive a reopen, so their later absence means the clear
+  // removed them rather than the commit never having stored them.
+  const reopened = api.createPortfolioStore({ localStorage, sessionStorage }, policy).openWorkspace(AFTER_CLEAR);
+  assert.equal(reopened.ok, true);
+  assert.equal(reopened.value.workspace.interestSignals.length, signalCount, 'the derived interests must be genuinely persisted');
+  assert.equal(reopened.value.workspace.actionOutcomes.length, outcomeCount, 'the action outcomes must be genuinely persisted');
+
+  // A clone of the populated bytes, so the two clears start from the same state.
+  const behaviorLocal = createStorage({ initial: localStorage.snapshot() });
+  const behaviorSession = createStorage({ initial: sessionStorage.snapshot() });
+
+  // --- The full-personal clear ------------------------------------------------------------
+  const cleared = api.clearFoundationStorage({ localStorage, sessionStorage });
+  assert.equal(cleared.ok, true, `the full-personal clear must succeed: ${JSON.stringify(cleared.error || {})}`);
+  assert.equal(cleared.value.verifiedEmpty, true);
+
+  const afterAll = api.createPortfolioStore({ localStorage, sessionStorage }, policy).openWorkspace(AFTER_CLEAR);
+  assert.equal(afterAll.ok, true);
+  assert.deepEqual(afterAll.value.workspace.interestSignals, [], 'a full-personal clear must leave no derived interest on a storage reread');
+  assert.deepEqual(afterAll.value.workspace.actionOutcomes, [], 'a full-personal clear must leave no action outcome on a storage reread');
+  assert.deepEqual(localStorage.snapshot(), GENERIC_PUBLIC_CACHES, 'exactly the generic public caches survive');
+
+  /* --- The behavior-only clear, on the untouched clone -------------------------------------
+   * The other half of SCN-008-037: holdings, mandate, and cash needs stay at their EXACT prior
+   * counts. Without this arm an implementation that cleared everything would satisfy the
+   * emptiness assertions above. */
+  const behaviorStore = api.createPortfolioStore({ localStorage: behaviorLocal, sessionStorage: behaviorSession }, policy);
+  const beforeBehavior = behaviorStore.openWorkspace(AFTER_CLEAR);
+  assert.equal(beforeBehavior.ok, true);
+  const priorHoldings = beforeBehavior.value.workspace.portfolioRevisions.length;
+  const priorMandates = beforeBehavior.value.workspace.mandateRevisions.length;
+  const priorCashNeeds = beforeBehavior.value.workspace.mandateRevisions[0].cashNeeds.length;
+  assert.equal(priorHoldings > 0 && priorMandates > 0 && priorCashNeeds > 0, true,
+    'holdings, mandate, and cash needs must genuinely exist before their survival can be observed');
+
+  const behaviorClear = api.buildBehaviorClearCandidate(beforeBehavior.value.workspace, LATER_CLEAR, policy);
+  assert.equal(behaviorClear.ok, true, `the behavior clear must succeed: ${JSON.stringify(behaviorClear.error || {})}`);
+  const behaviorCommitted = behaviorStore.commitWorkspace(behaviorClear.value.workspace, beforeBehavior.value.workspace.generation, LATER_CLEAR);
+  assert.equal(behaviorCommitted.ok, true);
+
+  const afterBehavior = api.createPortfolioStore({ localStorage: behaviorLocal, sessionStorage: behaviorSession }, policy).openWorkspace(AFTER_CLEAR);
+  assert.equal(afterBehavior.ok, true);
+  assert.deepEqual(afterBehavior.value.workspace.interestSignals, [], 'a behavior clear also empties derived interests');
+  assert.deepEqual(afterBehavior.value.workspace.actionOutcomes, [], 'a completed outcome is behavior-derived, so a behavior clear removes it');
+  assert.equal(afterBehavior.value.workspace.portfolioRevisions.length, priorHoldings, 'holdings stay at their exact prior count');
+  assert.equal(afterBehavior.value.workspace.mandateRevisions.length, priorMandates, 'mandate revisions stay at their exact prior count');
+  assert.equal(afterBehavior.value.workspace.mandateRevisions[0].cashNeeds.length, priorCashNeeds, 'cash needs stay at their exact prior count');
+});

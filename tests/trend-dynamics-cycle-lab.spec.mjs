@@ -529,6 +529,11 @@ test('Regression: SCN-006-020 the production route computes a verdict and publis
   expect(stored.read).toContain('The trend is ' + stored.metrics.direction);
   expect(typeof stored.metrics.strengthScore).toBe('number');
   expect(stored.deepLink).toContain('series=spy-daily');
+
+  // The reader must be able to SEE what was published on their behalf, and follow it back.
+  await page.locator('#modeSeg button[data-mode="power"]').click();
+  await expect(page.locator('#ownerReadSentence')).toHaveText(stored.read);
+  await expect(page.locator('#ownerReadLink')).toHaveAttribute('href', stored.deepLink);
   console.log('[SCN-006-020] direction=' + stored.metrics.direction + ' trendType=' + stored.metrics.trendType);
   console.log('[SCN-006-020] truthState=' + stored.metrics.truthState + ' availability=' + stored.availability);
   console.log('[SCN-006-020] resultId=' + stored.metrics.resultId.slice(0, 16));

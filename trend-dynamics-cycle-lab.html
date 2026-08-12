@@ -457,6 +457,10 @@
         <pre id="methodEligibility">Waiting for validated observations.</pre>
         <h3>Quality and contract reasons</h3>
         <pre id="qualityReasons">No errors recorded.</pre>
+        <h3>Published owner read</h3>
+        <p id="ownerReadSentence">No owner read has been published.</p>
+        <a id="ownerReadLink" href="trend-dynamics-cycle-lab.html" rel="noopener noreferrer"
+          referrerpolicy="no-referrer">Deep link to this run</a>
       </aside>
       <section id="enginePanel" class="engine-panel pw" aria-labelledby="engineHeading" hidden>
         <div class="truth-label">Scope 2 computed evidence</div>
@@ -3752,6 +3756,14 @@
         window.RLDATA && typeof window.RLDATA.putToolRead === 'function'
           ? function (id, read) { return window.RLDATA.putToolRead(id, read); }
           : null);
+      // Show the reader exactly what was published on their behalf, and the link that returns
+      // to this run. The link comes from the same allowlist the published read carries.
+      var publishedRead = tdcBuildToolRead(foundationResult);
+      if (publishedRead) {
+        tdcSetText('ownerReadSentence', publishedRead.read);
+        var ownerLinkNode = document.getElementById('ownerReadLink');
+        if (ownerLinkNode) ownerLinkNode.setAttribute('href', publishedRead.deepLink);
+      }
       tdcSetText('publicationState', publication.published
         ? 'Owner read published for the foundation state.'
         : publication.errorCode === 'TDC-PUBLISH-REJECTED'

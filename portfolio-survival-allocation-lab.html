@@ -1319,9 +1319,9 @@
             };
 
             function briefWatchlist() {
-                var revision = currentRevision();
-                if (!revision) return [];
-                // A watchlist entry is a PUBLIC interest, so it must not be derived from holdings.
+                // The PUBLIC watchlist, tickers only. It is deliberately not derived from holdings:
+                // a watchlist entry is a public interest, and inferring one from an owned position
+                // would manufacture the very interest signal FR-057 forbids reading into ownership.
                 return Array.isArray(state.publicWatchlist) ? state.publicWatchlist : [];
             }
 
@@ -1338,6 +1338,53 @@
                 });
             }
 
+            /* Generic evidence is DERIVED from observations that already exist, never invented.
+               A ticker's observations are the public bars in the shared same-origin cache; an
+               inferred domain's observation is the explicit completion that made it relevant.
+               Both are real records with real timestamps, which is what lets the composer apply a
+               cutoff at all — a fabricated observation would have no honest time to test. */
+            function briefEvidence(subjects, completions) {
+                var records = [];
+                var bars = window.RLDATA && typeof window.RLDATA.bars === "function" ? window.RLDATA.bars : null;
+                subjects.forEach(function (symbol) {
+                    if (!bars) return;
+                    var rows = null;
+                    try { rows = bars(symbol, "1d"); } catch (error) { rows = null; }
+                    if (!Array.isArray(rows) || !rows.length) return;
+                    var closes = rows.filter(function (row) { return row && isFinite(row.t); });
+                    if (!closes.length) return;
+                    var first = closes[0];
+                    var last = closes[closes.length - 1];
+                    // Materiality is the observed move across the cached span. It is a measurement,
+                    // so an unmoved symbol ranks last rather than being dropped or assumed important.
+                    var move = isFinite(first.c) && first.c !== 0 && isFinite(last.c)
+                        ? Math.abs((last.c - first.c) / first.c)
+                        : 0;
+                    closes.forEach(function (row) {
+                        records.push({
+                            id: symbol + "@" + new Date(row.t).toISOString(),
+                            subjectId: symbol,
+                            subjectKind: "ticker",
+                            observedAt: new Date(row.t).toISOString(),
+                            materiality: move,
+                            domain: null
+                        });
+                    });
+                });
+                completions.forEach(function (entry) {
+                    if (!entry || !entry.domain || !entry.completedAt) return;
+                    records.push({
+                        id: "completion@" + entry.domain + "@" + entry.completedAt,
+                        subjectId: entry.domain,
+                        subjectKind: "domain",
+                        observedAt: entry.completedAt,
+                        materiality: 0,
+                        domain: entry.domain
+                    });
+                });
+                return records;
+            }
+
             function renderBrief() {
                 var laneRoot = byId("briefLanes");
                 laneRoot.innerHTML = "";
@@ -1347,15 +1394,25 @@
                     return;
                 }
                 var revision = currentRevision();
+                var holdings = revision ? revision.holdings : [];
+                var watchlist = briefWatchlist();
+                var completions = briefCompletions();
+                var subjects = [];
+                holdings.forEach(function (holding) {
+                    if (holding && holding.symbol && subjects.indexOf(holding.symbol) === -1) subjects.push(holding.symbol);
+                });
+                watchlist.concat(completions.map(function (entry) { return entry.subjectId; }))
+                    .forEach(function (symbol) { if (symbol && subjects.indexOf(symbol) === -1) subjects.push(symbol); });
+
                 var composed = window.RLPORTFOLIOBRIEF.composeBrief({
                     windows: state.briefWindows,
                     windowId: state.briefWindowId,
                     publishedAt: state.briefPublishedAt,
                     composedAt: now(),
-                    holdings: revision ? revision.holdings : [],
-                    watchlist: briefWatchlist(),
-                    completions: briefCompletions(),
-                    evidence: Array.isArray(state.briefEvidence) ? state.briefEvidence : [],
+                    holdings: holdings,
+                    watchlist: watchlist,
+                    completions: completions,
+                    evidence: briefEvidence(subjects, completions),
                     policy: state.policy
                 });
                 if (!composed.ok) {
@@ -2012,6 +2069,7 @@
                             select.appendChild(option);
                         });
                         select.value = state.briefWindowId;
+                        loadPublicWatchlist();
                         renderBrief();
                     })
                     .catch(function (error) {
@@ -2019,6 +2077,28 @@
                         setText("briefTimes", "Generic evidence window unavailable · " + error.message);
                         byId("briefTimes").className = "state-message warn";
                         setText("briefStates", "Brief unavailable. No window is assumed.");
+                    });
+            }
+
+            /* The public watchlist is tickers only, read from the committed public artifact. A
+               failure leaves the lane empty rather than substituting holdings, because deriving a
+               watchlist from what is owned would fabricate an interest signal. */
+            function loadPublicWatchlist() {
+                fetch("watchlist.json", { cache: "no-store", credentials: "same-origin" })
+                    .then(function (response) {
+                        if (!response.ok) throw new Error("watchlist-http-" + response.status);
+                        return response.json();
+                    })
+                    .then(function (list) {
+                        var items = list && Array.isArray(list.items) ? list.items : [];
+                        state.publicWatchlist = items
+                            .map(function (entry) { return entry && entry.ticker; })
+                            .filter(function (ticker) { return typeof ticker === "string" && ticker; });
+                        renderBrief();
+                    })
+                    .catch(function () {
+                        state.publicWatchlist = [];
+                        renderBrief();
                     });
             }
 

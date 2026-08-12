@@ -462,6 +462,27 @@
         <a id="ownerReadLink" href="trend-dynamics-cycle-lab.html" rel="noopener noreferrer"
           referrerpolicy="no-referrer">Deep link to this run</a>
       </aside>
+      <section id="changeReplayEntry" class="engine-panel pw" aria-labelledby="replayHeading">
+        <div class="truth-label">Change replay entry</div>
+        <h2 id="replayHeading">Current turning record</h2>
+        <dl class="facts">
+          <div class="fact">
+            <dt>Effective</dt>
+            <dd id="replayEffective">No turning record is active.</dd>
+          </div>
+          <div class="fact">
+            <dt>Detected</dt>
+            <dd id="replayDetected">No turning record is active.</dd>
+          </div>
+          <div class="fact">
+            <dt>Retrospective posture</dt>
+            <dd id="replayRetrospective">Unavailable</dd>
+          </div>
+        </dl>
+        <p id="replayCaveat" class="outcome">A turn is only detectable after its right-side
+          confirmation window closes, so the detected observation is always later than the effective
+          one. Reading the effective date as if it were known at the time is a lookahead.</p>
+      </section>
       <section id="enginePanel" class="engine-panel pw" aria-labelledby="engineHeading" hidden>
         <div class="truth-label">Scope 2 computed evidence</div>
         <h2 id="engineHeading">Trend, dynamics, change, and sensitivity</h2>
@@ -3763,6 +3784,22 @@
         tdcSetText('ownerReadSentence', publishedRead.read);
         var ownerLinkNode = document.getElementById('ownerReadLink');
         if (ownerLinkNode) ownerLinkNode.setAttribute('href', publishedRead.deepLink);
+      }
+      // Effective and detected are DIFFERENT observations by construction: a turn is confirmed
+      // only after its right-side window closes. Showing one date for both would be a lookahead.
+      var turningRecord = verdict && Array.isArray(verdict.turningRecords) && verdict.turningRecords.length
+        ? verdict.turningRecords[verdict.turningRecords.length - 1]
+        : null;
+      if (turningRecord) {
+        var observedAtIndex = function (index) {
+          var observation = resolved.observations[index];
+          return observation ? observation.observedAt.slice(0, 10) : 'unavailable';
+        };
+        tdcSetText('replayEffective', turningRecord.type + ' at ' + observedAtIndex(turningRecord.effectiveIndex));
+        tdcSetText('replayDetected', turningRecord.detectionIndex === null
+          ? 'Not yet detectable — the confirmation window has not closed.'
+          : observedAtIndex(turningRecord.detectionIndex) + ' (' + turningRecord.delay + ' observations after effective)');
+        tdcSetText('replayRetrospective', turningRecord.state);
       }
       tdcSetText('publicationState', publication.published
         ? 'Owner read published for the foundation state.'

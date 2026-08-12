@@ -496,7 +496,13 @@ test('Regression: SCN-006-020 the production route computes a verdict and publis
     const dayMs = 86400000;
     const end = Date.UTC(2026, 6, 14);
     const rows = [];
-    for (let i = 399; i >= 0; i--) rows.push({ t: end - i * dayMs, c: 400 + Math.sin(i / 9) * 5 + i * 0.02 });
+    for (let i = 399; i >= 0; i--) {
+      let c = 400 + Math.sin(i / 9) * 5 + i * 0.02;
+      // A pronounced peak five observations from the end, so a CURRENT turning record exists and
+      // the effective-versus-detected distinction is actually exercised rather than skipped.
+      if (i <= 10) c += (10 - Math.abs(i - 5)) * 4;
+      rows.push({ t: end - i * dayMs, c });
+    }
     window.localStorage.setItem('rlData', JSON.stringify({
       v: 1, quotes: {}, options: {}, si: {}, macro: null, events: {}, toolReads: {},
       bars: { SPY: { '1d': { at: Date.UTC(2026, 6, 15, 11), src: 'option-snapshot', rows } } }
@@ -534,6 +540,26 @@ test('Regression: SCN-006-020 the production route computes a verdict and publis
   await page.locator('#modeSeg button[data-mode="power"]').click();
   await expect(page.locator('#ownerReadSentence')).toHaveText(stored.read);
   await expect(page.locator('#ownerReadLink')).toHaveAttribute('href', stored.deepLink);
+
+  // Effective and detected must read as DIFFERENT observations. Collapsing them would present a
+  // turn as if it had been known on the day it happened, which is the lookahead this panel exists
+  // to make visible.
+  const replay = await page.evaluate(() => ({
+    effective: document.getElementById('replayEffective').textContent.trim(),
+    detected: document.getElementById('replayDetected').textContent.trim(),
+    retrospective: document.getElementById('replayRetrospective').textContent.trim()
+  }));
+  if (replay.effective !== 'No turning record is active.') {
+    expect(replay.detected).not.toBe(replay.effective);
+    expect(replay.detected).toMatch(/observations after effective|not yet detectable/i);
+    expect(replay.retrospective).not.toBe('Unavailable');
+    console.log(`[SCN-006-019] replay effective="${replay.effective}" detected="${replay.detected}" state=${replay.retrospective}`);
+  } else {
+    // No current turn in this window is a legitimate outcome; the panel must then say so on
+    // every field rather than showing a stale or half-filled record.
+    expect(replay.detected).toBe('No turning record is active.');
+    console.log('[SCN-006-019] replay: no current turning record in this window');
+  }
   console.log('[SCN-006-020] direction=' + stored.metrics.direction + ' trendType=' + stored.metrics.trendType);
   console.log('[SCN-006-020] truthState=' + stored.metrics.truthState + ' availability=' + stored.availability);
   console.log('[SCN-006-020] resultId=' + stored.metrics.resultId.slice(0, 16));

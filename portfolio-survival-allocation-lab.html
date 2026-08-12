@@ -683,6 +683,22 @@
                     </div>
                 </div>
 
+                <div class="band" id="portfolioBrief">
+                    <h2>Four-window brief composition</h2>
+                    <p class="subtle">Composed locally from the public generic evidence window. Held, watchlist,
+                        completed-research and inferred-relevance qualify for different reasons and stay in
+                        separate lanes, because an inferred interest is not an owned position and an owned
+                        position is not evidence of preference.</p>
+                    <div class="privacy-inventory">
+                        <label for="briefWindow">Evidence window
+                            <select id="briefWindow"></select>
+                        </label>
+                    </div>
+                    <div id="briefTimes" class="state-message">No generic evidence window loaded.</div>
+                    <div id="briefStates" class="state-message" role="status">Brief unavailable.</div>
+                    <div id="briefLanes" class="brief-lanes"></div>
+                </div>
+
                 <div class="band" id="holdingTruth">
                     <h2>Holding evidence truth</h2>
                     <p class="subtle">Each holding states what its own evidence supports. A holding without usable
@@ -964,6 +980,7 @@
     <script src="rlcontracts.js"></script>
     <script src="rldata.js"></script>
     <script src="rlportfolio.js"></script>
+    <script src="rlportfoliobrief.js"></script>
     <script>
         "use strict";
 
@@ -980,7 +997,15 @@
                 routeStates: null,
                 route: "brief",
                 configReady: false,
-                adapters: null
+                adapters: null,
+                /* Scope 05 brief inputs. `briefWindows` is READ from the public generic config;
+                   the local composer never declares or writes windows. `briefEvidence` holds the
+                   generic observations, which carry no personal field by construction. */
+                briefWindows: null,
+                briefWindowId: null,
+                briefPublishedAt: null,
+                briefEvidence: [],
+                publicWatchlist: []
             };
 
             // Fixed, non-sensitive descriptors for a completion recorded on this surface. They are
@@ -1283,11 +1308,125 @@
                 });
             }
 
+            /* Feature 008 Scope 05: compose the Portfolio Brief locally from the PUBLIC generic
+               window contract. The generic config is read-only here — the local composer never
+               writes to it, and nothing local is sent anywhere. */
+            var BRIEF_LANE_LABELS = {
+                held: "Held",
+                watchlist: "Public watchlist",
+                completedResearch: "Completed research",
+                inferredRelevance: "Inferred relevance"
+            };
+
+            function briefWatchlist() {
+                var revision = currentRevision();
+                if (!revision) return [];
+                // A watchlist entry is a PUBLIC interest, so it must not be derived from holdings.
+                return Array.isArray(state.publicWatchlist) ? state.publicWatchlist : [];
+            }
+
+            function briefCompletions() {
+                var workspace = state.opened ? state.opened.workspace : null;
+                if (!workspace || !Array.isArray(workspace.behaviorEvents)) return [];
+                return workspace.behaviorEvents.map(function (event) {
+                    return {
+                        subjectId: event.subjectId,
+                        subjectKind: event.subjectKind,
+                        domain: event.domain,
+                        completedAt: event.recordedAt || event.at || null
+                    };
+                });
+            }
+
+            function renderBrief() {
+                var laneRoot = byId("briefLanes");
+                laneRoot.innerHTML = "";
+                if (!state.briefWindows || !state.policy) {
+                    setText("briefTimes", "No generic evidence window loaded.");
+                    setText("briefStates", "Brief unavailable.");
+                    return;
+                }
+                var revision = currentRevision();
+                var composed = window.RLPORTFOLIOBRIEF.composeBrief({
+                    windows: state.briefWindows,
+                    windowId: state.briefWindowId,
+                    publishedAt: state.briefPublishedAt,
+                    composedAt: now(),
+                    holdings: revision ? revision.holdings : [],
+                    watchlist: briefWatchlist(),
+                    completions: briefCompletions(),
+                    evidence: Array.isArray(state.briefEvidence) ? state.briefEvidence : [],
+                    policy: state.policy
+                });
+                if (!composed.ok) {
+                    setText("briefTimes", composed.error.code + " · " + composed.error.reason);
+                    byId("briefTimes").className = "state-message warn";
+                    setText("briefStates", "Brief unavailable.");
+                    return;
+                }
+                var value = composed.value;
+                byId("briefTimes").className = "state-message ok";
+                setText("briefTimes", value.window.label + " (" + value.window.etTime + " ET)" +
+                    " · evidence cutoff " + value.times.evidenceCutoffAt +
+                    " · generic published " + value.times.publishedAt +
+                    " · composed locally " + value.times.composedAt);
+                byId("briefTimes").setAttribute("data-window", value.window.id);
+                byId("briefTimes").setAttribute("data-cutoff", value.times.evidenceCutoffAt);
+                byId("briefTimes").setAttribute("data-published", value.times.publishedAt);
+                byId("briefTimes").setAttribute("data-composed", value.times.composedAt);
+
+                var states = value.states;
+                setText("briefStates", states.materialChange + " · " + states.itemCount + " items · " +
+                    states.behaviorHistory + " (" + states.behaviorFloor.distinctCompletions + "/" +
+                    states.behaviorFloor.requiredCompletions + " completions, " +
+                    states.behaviorFloor.distinctUtcDates + "/" + states.behaviorFloor.requiredUtcDates +
+                    " dates) · " + states.excludedAfterCutoff + " excluded after cutoff · " +
+                    states.suppressedByCap + " suppressed by cap");
+                byId("briefStates").setAttribute("data-behavior-history", states.behaviorHistory);
+                byId("briefStates").setAttribute("data-material-change", states.materialChange);
+                byId("briefStates").setAttribute("data-excluded-after-cutoff", String(states.excludedAfterCutoff));
+
+                window.RLPORTFOLIOBRIEF.laneOrder.forEach(function (lane) {
+                    var section = document.createElement("section");
+                    section.className = "brief-lane";
+                    section.setAttribute("data-lane", lane);
+                    var heading = document.createElement("h3");
+                    heading.textContent = BRIEF_LANE_LABELS[lane];
+                    section.appendChild(heading);
+                    var items = value.lanes[lane];
+                    if (!items.length) {
+                        var empty = document.createElement("p");
+                        empty.className = "subtle";
+                        empty.setAttribute("data-lane-empty", lane);
+                        empty.textContent = lane === "inferredRelevance" && states.behaviorHistory === "insufficient-history"
+                            ? "No inferred items. Completed-research history is below the declared floor, so nothing is inferred."
+                            : "No items qualify in this lane.";
+                        section.appendChild(empty);
+                    } else {
+                        var list = document.createElement("ul");
+                        list.className = "subtle";
+                        items.forEach(function (item) {
+                            var row = document.createElement("li");
+                            row.setAttribute("data-subject", item.subjectId);
+                            row.setAttribute("data-lane", item.lane);
+                            row.setAttribute("data-scope-source", item.scopeSource);
+                            var words = [item.subjectId, item.scopeSource];
+                            if (item.alsoQualifiesVia.length) words.push("also qualifies via " + item.alsoQualifiesVia.join(", "));
+                            row.textContent = words.join(" · ");
+                            list.appendChild(row);
+                        });
+                        section.appendChild(list);
+                    }
+                    laneRoot.appendChild(section);
+                });
+            }
+
             function refreshWorkspaceViews() {
                 state.routeStates = routeProjection();
                 renderRoutes();
                 renderCurrentMandate();
                 renderHoldingTruth();
+                renderBrief();
                 renderBehavior();
                 updateDiagnostics();
             }
@@ -1841,11 +1980,52 @@
                         renderStorage();
                         renderCurrent();
                         renderInventory();
+                        loadBriefWindows();
                         setTruth("Current", currentRevision() ? "Verified local revision loaded" : "Ready for one local portfolio revision", "No external provider, account, credential, telemetry, or execution path is active.");
                         updateConfirmState();
                     })
                     .catch(function () { bootFailure({ reason: "policy-load-failed" }); });
             }
+
+            /* The generic window contract is fetched READ-ONLY from the same origin. A failure here
+               leaves the brief explicitly unavailable rather than falling back to a locally invented
+               schedule, because a second copy of the schedule is a second source of truth. */
+            function loadBriefWindows() {
+                fetch("market-brief.config.json", { cache: "no-store", credentials: "same-origin" })
+                    .then(function (response) {
+                        if (!response.ok) throw new Error("brief-config-http-" + response.status);
+                        return response.json();
+                    })
+                    .then(function (config) {
+                        if (!config || !Array.isArray(config.windows) || !config.windows.length) {
+                            throw new Error("brief-config-windows-absent");
+                        }
+                        state.briefWindows = config.windows;
+                        state.briefWindowId = state.briefWindowId || config.windows[0].id;
+                        state.briefPublishedAt = config.asOf || now();
+                        var select = byId("briefWindow");
+                        select.innerHTML = "";
+                        config.windows.forEach(function (window_) {
+                            var option = document.createElement("option");
+                            option.value = window_.id;
+                            option.textContent = window_.label + " (" + window_.etTime + " ET)";
+                            select.appendChild(option);
+                        });
+                        select.value = state.briefWindowId;
+                        renderBrief();
+                    })
+                    .catch(function (error) {
+                        state.briefWindows = null;
+                        setText("briefTimes", "Generic evidence window unavailable · " + error.message);
+                        byId("briefTimes").className = "state-message warn";
+                        setText("briefStates", "Brief unavailable. No window is assumed.");
+                    });
+            }
+
+            byId("briefWindow").addEventListener("change", function () {
+                state.briefWindowId = this.value;
+                renderBrief();
+            });
 
             byId("openPortfolio").addEventListener("click", function () {
                 if (state.route !== "brief") window.location.hash = "brief";

@@ -591,7 +591,88 @@ test('Regression: SCN-006-020 the production route computes a verdict and publis
 // Scope 4's UI matrix requires the route to hold at 390x844 and 1440x1000, to be operable by
 // keyboard, and to expose state through more than colour. Horizontal overflow is the failure
 // that actually strands a phone reader: the verdict scrolls off-screen and nothing says so.
-test('Regression: SCN-006-019 the route stays contained and keyboard-operable at both breakpoints', async ({ page }) => {
+test('Regression: SCN-006-020 owner read preserves mixed stale degraded and unavailable truth', async ({ page }) => {
+  // Seeds the shared cache with a chosen posture instead of the healthy one. Truth states are
+  // only meaningful if a NON-current state can actually be produced and survives publication.
+  // Each call registers another init script; they run in order on every navigation and each one
+  // rewrites the whole cache entry, so the most recently registered seed is the one that wins.
+  const seed = (rowCount, lastBarDaysAgo, withOutlier) => page.addInitScript(([count, staleDays, outlier]) => {
+    const dayMs = 86400000;
+    const end = Date.UTC(2026, 6, 14) - staleDays * dayMs;
+    const rows = [];
+    for (let i = count - 1; i >= 0; i--) {
+      let c = 400 + Math.sin(i / 9) * 5 + i * 0.02;
+      // A single extreme print. Quality degrades on outliers, not on row count, so this is what
+      // actually drives the DEGRADED branch rather than merely shortening the history.
+      if (outlier && i === 12) c = 4000;
+      rows.push({ t: end - i * dayMs, c });
+    }
+    window.localStorage.setItem('rlData', JSON.stringify({
+      v: 1, quotes: {}, options: {}, si: {}, macro: null, events: {}, toolReads: {},
+      bars: { SPY: { '1d': { at: Date.UTC(2026, 6, 15, 11), src: 'option-snapshot', rows } } }
+    }));
+  }, [rowCount, lastBarDaysAgo, withOutlier === true]);
+
+  const readOwnerRead = () => page.evaluate(() => {
+    const cache = JSON.parse(window.localStorage.getItem('rlData') || '{}');
+    return {
+      read: (cache.toolReads || {})['trend-dynamics-cycle-lab'] || null,
+      published: window.__TDC_DIAGNOSTICS__ ? window.__TDC_DIAGNOSTICS__.ownerReadPublished : null,
+      truthText: (document.getElementById('truthState') || {}).textContent
+    };
+  });
+
+  // 1. A STALE source. The bar cache is healthy but its newest observation is far behind the
+  //    cutoff, so freshness must degrade and the read must say so rather than smoothing it over.
+  await seed(400, 40, false);
+  await page.goto(`${baseUrl}/trend-dynamics-cycle-lab.html?clock=${CLOCK}`);
+  const stale = await readOwnerRead();
+  expect(stale.truthText.trim()).toBe('STALE');
+  expect(stale.read, 'a stale run published nothing at all').not.toBeNull();
+  expect(stale.read.availability, 'stale source availability was upgraded').toBe('stale');
+  console.log('[SCN-006-020] stale availability=' + stale.read.availability + ' truthState=' + stale.read.metrics.truthState);
+
+  // 2. A DEGRADED run. Quality degrades on outliers, so one extreme print is what drives this
+  //    branch. The verdict must stay honest and every numeric it cannot support must be OMITTED
+  //    rather than defaulted to zero. Asserted unconditionally: a tolerant branch here would let
+  //    a page that silently upgraded degraded to current pass.
+  await seed(400, 0, true);
+  await page.goto(`${baseUrl}/trend-dynamics-cycle-lab.html?clock=${CLOCK}`);
+  const degraded = await readOwnerRead();
+  expect(degraded.truthText.trim(), 'an outlier-contaminated series was reported as clean').toBe('DEGRADED');
+  expect(degraded.read, 'a degraded run published nothing at all').not.toBeNull();
+  expect(['current', 'stale', 'degraded', 'unavailable'], 'an undeclared truth state escaped the closed vocabulary')
+    .toContain(degraded.read.metrics.truthState);
+  // Omission, not fabrication: any numeric present must be a real finite number.
+  for (const key of ['strengthScore', 'confidencePct']) {
+    const value = degraded.read.metrics[key];
+    if (value !== undefined && value !== null) {
+      expect(Number.isFinite(value), `${key} was published as a non-number`).toBe(true);
+    }
+  }
+  console.log('[SCN-006-020] degraded truthState=' + degraded.read.metrics.truthState + ' availability=' + degraded.read.availability);
+
+  // 3. UNAVAILABLE. With no observations at all the run cannot complete, and an incomplete run
+  //    must publish NOTHING. This is the assertion that stops a half-run reaching a consumer as
+  //    though it were a finding.
+  await page.addInitScript(() => {
+    window.localStorage.setItem('rlData', JSON.stringify({
+      v: 1, quotes: {}, options: {}, si: {}, macro: null, events: {}, toolReads: {}, bars: {}
+    }));
+  });
+  await page.goto(`${baseUrl}/trend-dynamics-cycle-lab.html?clock=${CLOCK}`);
+  const unavailable = await page.evaluate(() => {
+    const cache = JSON.parse(window.localStorage.getItem('rlData') || '{}');
+    return {
+      read: (cache.toolReads || {})['trend-dynamics-cycle-lab'] || null,
+      truthText: (document.getElementById('truthState') || {}).textContent
+    };
+  });
+  expect(unavailable.read, 'an incomplete run published an owner read').toBeNull();
+  console.log('[SCN-006-020] unavailable published=' + (unavailable.read === null ? 'none' : 'SOMETHING') + ' truthText=' + unavailable.truthText.trim());
+});
+
+test('Regression: SCN-006-019 charts controls focus and 390px layout remain accessible and equivalent', async ({ page }) => {
   await page.goto(`${baseUrl}/trend-dynamics-cycle-lab.html?fixture=trend-engine&case=sustained&profile=balanced&clock=${CLOCK}`);
   await expect(page.locator('#truthState')).toBeVisible();
 

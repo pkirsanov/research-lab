@@ -2674,3 +2674,55 @@ test('SCN-008-035 TP-04-01: an unknown evidence state is refused rather than def
   assert.equal(row.value, null);
 });
 
+/* FR-083 requires corporate actions, currency conversion, missing bars and mismatched trading
+   calendars to produce EXPLICIT alignment states. The failure being prevented is the comfortable
+   default: treating an undeclared series as unadjusted-and-native, which silently corrupts any
+   return computed across a split, and inventing gap counts for a series that has no comparison
+   basis. */
+test('SCN-008-035 TP-04-01: undeclared alignment properties report undeclared and are never assumed', () => {
+  const { api } = loadRldata();
+  api.putBars('SCOPE04-ALIGN-A', '1d', coverageRows(['2026-07-06', '2026-07-07']), 'same-origin-fixture');
+
+  const report = api.barAlignmentStates(['SCOPE04-ALIGN-A'], '1d');
+  const only = report.symbols['SCOPE04-ALIGN-A'];
+  assert.equal(report.contractVersion, 'rl-bar-alignment/v1');
+  assert.equal(only.corporateAction, 'undeclared', 'an undeclared corporate-action basis must not be reported as unadjusted');
+  assert.equal(only.currency, 'undeclared', 'an undeclared currency must not be reported as native');
+  assert.equal(only.units, 'undeclared');
+  assert.equal(only.transform, 'undeclared');
+  assert.ok(only.retrievedAt, 'FR-020 requires a retrieval time distinct from the observation dates');
+  assert.equal(only.firstDate, '2026-07-06', 'observation time is reported from the actual rows');
+
+  // A single series cannot distinguish a market holiday from an absent bar.
+  assert.equal(only.missingBars.state, 'no-comparison-basis',
+    'one series alone must not fabricate a gap count');
+  assert.equal(only.missingBars.count, 0);
+  assert.equal(report.calendar.state, 'no-comparison-basis');
+});
+
+test('SCN-008-035 TP-04-01: a mismatched trading calendar is measured against a real basis and named per date', () => {
+  const { api } = loadRldata();
+  // B is missing 2026-07-07 INSIDE its own span, so the absence is a real gap rather than a
+  // shorter history — which ensureBarCoverage already reports separately.
+  api.putBars('SCOPE04-CAL-A', '1d', coverageRows(['2026-07-06', '2026-07-07', '2026-07-08']), 'same-origin-fixture');
+  api.putBars('SCOPE04-CAL-B', '1d', coverageRows(['2026-07-06', '2026-07-08']), 'same-origin-fixture');
+
+  const report = api.barAlignmentStates(['SCOPE04-CAL-A', 'SCOPE04-CAL-B'], '1d');
+  assert.equal(report.calendar.state, 'mismatched');
+  assert.deepEqual(report.symbols['SCOPE04-CAL-B'].missingBars.dates, ['2026-07-07'],
+    'the mismatch names the actual date rather than only a count');
+  assert.equal(report.symbols['SCOPE04-CAL-B'].missingBars.state, 'gaps-present');
+  assert.equal(report.symbols['SCOPE04-CAL-A'].missingBars.state, 'complete-within-span',
+    'the complete series must not be blamed for its neighbour’s gap');
+  assert.deepEqual(report.calendar.mismatchedDates, { 'SCOPE04-CAL-B': ['2026-07-07'] });
+
+  // A shorter history is a coverage question, not a calendar mismatch; conflating them double-reports.
+  const short = loadRldata().api;
+  short.putBars('SCOPE04-SPAN-A', '1d', coverageRows(['2026-07-06', '2026-07-07', '2026-07-08']), 'same-origin-fixture');
+  short.putBars('SCOPE04-SPAN-B', '1d', coverageRows(['2026-07-07', '2026-07-08']), 'same-origin-fixture');
+  const spanReport = short.barAlignmentStates(['SCOPE04-SPAN-A', 'SCOPE04-SPAN-B'], '1d');
+  assert.equal(spanReport.calendar.state, 'aligned',
+    'a later start is short history, not a trading-calendar mismatch');
+  assert.equal(spanReport.symbols['SCOPE04-SPAN-B'].missingBars.count, 0);
+});
+

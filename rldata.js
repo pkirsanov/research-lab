@@ -898,6 +898,85 @@
     return envelope;
   }
 
+  /* FR-083 alignment states, and the FR-020 provenance fields that qualify a bar as a fact.
+
+     The split matters. Corporate-action basis, currency and units are DECLARED properties that the
+     bar cache does not carry, so an undeclared one reports "undeclared" — never "unadjusted",
+     "native" or "aligned". Assuming those defaults is the silent error this exists to surface: a
+     split-unadjusted series and a split-adjusted one look identical until a return is computed.
+
+     Missing bars and calendar mismatch ARE measurable, but only against a basis. A single series
+     cannot tell a market holiday from an absent bar, so with one symbol the honest answer is
+     "no-comparison-basis" rather than a fabricated gap count. */
+  function barAlignmentStates(symbols, interval, policy) {
+    policy = policy || {};
+    var list = Array.isArray(symbols) ? symbols.slice() : [symbols];
+    var d = load();
+    var report = {
+      contractVersion: "rl-bar-alignment/v1",
+      interval: String(interval),
+      symbols: {},
+      calendar: { state: "no-comparison-basis", basisSymbolCount: list.length, mismatchedDates: {} }
+    };
+    var observed = {};
+
+    list.forEach(function (sym) {
+      var key = String(sym);
+      var bucket = d.bars[key] && d.bars[key][interval];
+      var meta = (bucket && bucket.seriesMeta) || null;
+      var rows = bucket && Array.isArray(bucket.rows) ? bucket.rows : [];
+      var dates = rows.map(function (row) { return row && utcDate(row.t); })
+        .filter(function (value) { return !!value; })
+        .sort();
+      observed[key] = dates;
+      report.symbols[key] = {
+        observedCount: dates.length,
+        firstDate: dates.length ? dates[0] : null,
+        lastDate: dates.length ? dates[dates.length - 1] : null,
+        // FR-020: retrieval time is distinct from observation time, so both are reported.
+        retrievedAt: (meta && meta.retrievedAt) ||
+          (bucket && isFinite(bucket.at) ? new Date(bucket.at).toISOString() : null),
+        units: (meta && meta.units) || "undeclared",
+        transform: (meta && meta.transform) || "undeclared",
+        corporateAction: (meta && meta.corporateAction) || "undeclared",
+        currency: (meta && meta.currency) || "undeclared",
+        missingBars: { state: "no-comparison-basis", count: 0, dates: [] }
+      };
+    });
+
+    if (list.length < 2) return report;
+
+    // With two or more series the union of observed dates is a real basis: a date one series has
+    // and another lacks is an actual gap, not an assumption about which days are trading days.
+    var union = {};
+    Object.keys(observed).forEach(function (key) {
+      observed[key].forEach(function (date) { union[date] = true; });
+    });
+    var unionDates = Object.keys(union).sort();
+    var anyMismatch = false;
+
+    Object.keys(observed).forEach(function (key) {
+      var have = {};
+      observed[key].forEach(function (date) { have[date] = true; });
+      var first = report.symbols[key].firstDate;
+      var last = report.symbols[key].lastDate;
+      // Only dates inside this series' own span count as missing. A shorter history is a coverage
+      // question that ensureBarCoverage already answers, and conflating the two would double-report.
+      var gaps = unionDates.filter(function (date) {
+        return first && last && date >= first && date <= last && !have[date];
+      });
+      report.symbols[key].missingBars = { state: gaps.length ? "gaps-present" : "complete-within-span", count: gaps.length, dates: gaps };
+      if (gaps.length) {
+        anyMismatch = true;
+        report.calendar.mismatchedDates[key] = gaps;
+      }
+    });
+
+    report.calendar.state = anyMismatch ? "mismatched" : "aligned";
+    return report;
+  }
+
   root.RLDATA.ensureBarCoverage = ensureBarCoverage;
+  root.RLDATA.barAlignmentStates = barAlignmentStates;
   /* ---------- End Feature 008 Scope 04 ---------- */
 })();

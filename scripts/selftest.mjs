@@ -7628,6 +7628,7 @@ try {
   const missing8 = legacy8.filter((name) => typeof rldata8[name] !== 'function');
   assert(missing8.length === 0, 'Scope 04 TP-04-04: every legacy RLDATA consumer method survives the additive block (missing: ' + missing8.join(',') + ')');
   assert(typeof rldata8.ensureBarCoverage === 'function', 'Scope 04 TP-04-04: the additive ensureBarCoverage method is present');
+  assert(typeof rldata8.barAlignmentStates === 'function', 'Scope 04 TP-04-04: the additive barAlignmentStates method is present');
 
   rldata8.putBars('CANARY08', '1d', [{ t: Date.parse('2026-07-06T00:00:00.000Z'), c: 10 }, { t: Date.parse('2026-07-07T00:00:00.000Z'), c: 11 }], 'same-origin-fixture');
   const legacyRows8 = JSON.stringify(rldata8.bars('CANARY08', '1d'));

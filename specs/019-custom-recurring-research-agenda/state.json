@@ -96,7 +96,7 @@
         }
     },
     "certification": {
-        "status": "uncertified",
+        "status": "not_started",
         "certifiedAt": null,
         "completedScopes": [],
         "certifiedCompletedPhases": [],

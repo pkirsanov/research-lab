@@ -1593,8 +1593,10 @@
                 if (cacheOnly && (!cb || cb.length < 60)) return; /* nothing usable cached — stay idle, no network on load */
                 busy = true; setStatus(cacheOnly ? ('loading cached ' + tk + '…') : ('fetching ' + tk + '…')); saveState();
                 /* Legacy cache bridges stamp imports at the current time, so write age cannot prove observation freshness. */
-                var reconcileDailySnapshot = autoMode || !cacheOnly;
-                var barsWork = reconcileDailySnapshot && RLDATA.ensureBars ? RLDATA.ensureBars(tk, '1d', 0, '5y').then(function (rows) { return rows && rows.length ? { bars: rows, name: '', spot: rows[rows.length - 1].c, cached: true } : null; }) : (cacheOnly ? Promise.resolve({ bars: cb, name: '', spot: cb[cb.length - 1].c, cached: true }) : fetchDaily(tk));
+                var cachedInfo = RLDATA.barInfo ? RLDATA.barInfo(tk, '1d') : null;
+                var legacyBridgeRows = cachedInfo && (cachedInfo.src === 'etf-lab' || cachedInfo.src === 'sector-lab');
+                var maxAgeHours = (!autoMode || legacyBridgeRows) ? 0 : 6;
+                var barsWork = !cacheOnly && RLDATA.ensureBars ? RLDATA.ensureBars(tk, '1d', maxAgeHours, '5y').then(function (rows) { return rows && rows.length ? { bars: rows, name: '', spot: rows[rows.length - 1].c, cached: true } : null; }) : (cacheOnly ? Promise.resolve({ bars: cb, name: '', spot: cb[cb.length - 1].c, cached: true }) : fetchDaily(tk));
                 var macroWork = autoMode && RLDATA.ensureMacro ? RLDATA.ensureMacro(30) : (cacheOnly ? Promise.resolve(RLDATA.macro()) : fetchMacro());
                 Promise.all([barsWork, macroWork]).then(function (res) {
                     var d = res[0]; state.macro = res[1] || RLDATA.macro();

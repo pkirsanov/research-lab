@@ -58,3 +58,38 @@ test('Regression: Swing replaces recently stamped legacy MSFT rows with the curr
   expect(cache.last).toBe(currentClose);
   expect(snapshotRequests.length).toBeGreaterThan(0);
 });
+
+test('Regression: Swing keeps a current Pages snapshot cache-first', async ({ page }) => {
+  await page.addInitScript(({ rows }) => {
+    localStorage.setItem('rlData', JSON.stringify({
+      v: 1,
+      bars: { MSFT: { '1d': { at: Date.now(), src: 'pages-snapshot', rows } } },
+      quotes: {},
+      options: {},
+      macro: null,
+      events: {},
+      toolReads: {}
+    }));
+    localStorage.setItem('swingStructLab', JSON.stringify({
+      provider: 'auto',
+      ticker: 'MSFT',
+      win: 126,
+      mode: 'power',
+      acct: 10000,
+      riskPct: 1,
+      svStance: 'neutral',
+      svAggr: 'balanced',
+      svHz: 'swing'
+    }));
+  }, { rows: currentRows });
+
+  const snapshotRequests = [];
+  page.on('request', (request) => {
+    if (new URL(request.url()).pathname.endsWith('/data/bars/MSFT.json')) snapshotRequests.push(request.url());
+  });
+
+  await page.goto(`${site.baseUrl}/swing-structure-lab.html`);
+  await expect(page.locator('#status')).toContainText('loaded MSFT', { timeout: 20_000 });
+  await expect(page.locator('#kpis .kpi').first().locator('.v')).toHaveText(`$${currentClose.toFixed(2)}`);
+  expect(snapshotRequests).toEqual([]);
+});

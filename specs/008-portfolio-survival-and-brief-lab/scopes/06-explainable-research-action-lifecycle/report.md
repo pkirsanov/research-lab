@@ -221,6 +221,54 @@ implementation that cleared everything would satisfy the emptiness assertions.
 Verified RED by removing the two clear lines from `buildBehaviorClearCandidate`: 3 rows
 failed across the unit and privacy files.
 
+### TP-06-04
+
+Command: `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-009 TP-06-04 settings parameters and window changes leave event interest and action identity unchanged" --reporter=list`
+Exit code: 0
+
+```
+[TP-06-04] identityStableUnderPassive=true identityMovesWithWindow=true actions=1
+  ✓ [system-chrome] › Regression: SCN-008-009 TP-06-04 settings parameters and window changes leave event interest and action identity unchanged
+```
+
+This row was originally built as a lifecycle row, which did not match its declared contract.
+The Test Plan declares TP-06-04 as the SCN-008-009 browser row, so the lifecycle row was
+renumbered TP-06-09 and this row now proves what was declared. Opening a disclosure,
+scrolling, and moving the pointer leave every action identity unchanged; changing the WINDOW
+does move it, which is the arm that stops a build that never recomputed identity from
+satisfying the invariance claim. Returning to the first window restores the original
+identity, so it is derived rather than random.
+
+### TP-06-09
+
+Command: `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-034 TP-06-09 a lifecycle outcome is recorded without becoming a market view" --reporter=list`
+Exit code: 0
+
+```
+[TP-06-09] resultText=MSFT · completed · recorded as a local research outcome, not a market view
+[TP-06-09] outcomeRecorded=complete subject=MSFT behaviorEventCount=null
+[TP-06-09] outcomeRecorded=dismiss subject=MSFT
+  ✓ [system-chrome] › Regression: SCN-008-034 TP-06-09 a lifecycle outcome is recorded without becoming a market view
+```
+
+### TP-06-10
+
+Command: `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-008 TP-06-10 the clear control is exposed where behaviour-derived ranking is visible" --reporter=list`
+Exit code: 0
+
+```
+[TP-06-10] confirmationEnforced=true inferredAfterClear=0
+  ✓ [system-chrome] › Regression: SCN-008-008 TP-06-10 the clear control is exposed where behaviour-derived ranking is visible
+```
+
+FR-062 was unsatisfied before this row: a clear control existed, but only on the privacy
+panel, while FR-062 requires it wherever behaviour-derived ranking is visible. The first
+version of the new control delegated its CONFIRMATION to the privacy panel, which is not
+visible from the brief — a real usability flaw, not merely a test problem, because it told
+the reader to confirm somewhere they could not see. The brief now carries its own
+confirmation and delegates only the clear itself, so there is still exactly one clear
+implementation.
+
 ## Scenario Contract Evidence
 
 ### Scenario SCN-008-008

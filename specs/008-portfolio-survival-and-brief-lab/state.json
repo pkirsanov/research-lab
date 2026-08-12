@@ -50,7 +50,7 @@
             {
                 "scope": 3,
                 "name": "Local Behavior Privacy Inventory And Clear",
-                "status": "in_progress",
+                "status": "done",
                 "dependsOn": [
                     "2"
                 ],
@@ -200,7 +200,8 @@
         "status": "in_progress",
         "completedScopes": [
             "01-private-portfolio-import-and-atomic-store",
-            "02-mandate-and-cash-need-authority"
+            "02-mandate-and-cash-need-authority",
+            "03-local-behavior-privacy-inventory-and-clear"
         ],
         "certifiedCompletedPhases": [],
         "scopeProgress": [
@@ -227,7 +228,7 @@
             {
                 "scope": 3,
                 "name": "Local Behavior Privacy Inventory And Clear",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     "2"
                 ],

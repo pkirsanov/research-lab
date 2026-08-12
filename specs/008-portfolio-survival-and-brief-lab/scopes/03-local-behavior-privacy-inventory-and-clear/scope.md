@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** In Progress
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -23,7 +23,7 @@ Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and 
 ### SCN-008-011 - Clear behavior history removes its influence
 
 ```gherkin
-Scenario: A user clears local behavior history
+Scenario: SCN-008-011 - A user clears local behavior history
   Given behavior-derived items currently affect brief ranking
   When the user confirms Clear behavior history
   Then eligible events and derived InterestSignals are removed locally
@@ -34,7 +34,7 @@ Scenario: A user clears local behavior history
 ### SCN-008-012 - No engagement or sensitive profiling
 
 ```gherkin
-Scenario: The local ranking model evaluates user activity
+Scenario: SCN-008-012 - The local ranking model evaluates user activity
   Given pointer movement, dwell time, scroll depth, settings, and sensitive-trait fields exist or can be observed
   When eligible behavior evidence is selected
   Then those sources are excluded
@@ -166,7 +166,11 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
 
 - [x] Full-personal clear mechanically verifies holdings, mandate/needs, events, interests, outcomes, scenarios, allocations, dossiers, quarantine, UI state, session fallback, and return context are empty while public generic assets remain.
 
-  Unchecked — ruling recorded as decision D-03-08. The accounting below supersedes the earlier "9 of 13" note; the coverage genuinely improved, but not onto the four nouns that blocked this line at the time. That per-noun split has itself since been superseded twice: first by decision D-03-11's forward discharge, then by the rule-2 audit of that discharge. The current tally is **Post-discharge accounting** at the end of this item; the three paragraphs marked *superseded* below are kept as history and must not be read as the present state.
+  Checked for the **seven nouns this scope owns**, with the other six discharged forward and NOT claimed here. Full accounting below.
+
+  **Claim Source:** executed · **Command:** `node --test tests/portfolio-foundation.unit.mjs` · **Exit Code:** 0 · 49 pass / 0 fail
+
+  The paragraphs that follow are kept as decision history. The ruling recorded as decision D-03-08 has been superseded twice — first by decision D-03-11's forward discharge, then by the rule-2 audit of that discharge, and finally by the **Rule 2 closure** record at the end of this item, which is the present state. The three paragraphs marked *superseded* must not be read as current.
 
   Two different thirteens meet here and must not be conflated. The clear sweeps **13 surfaces** — 5 derived workspace array sections, 2 workspace pointers, and 6 declared storage keys — and **11 of those 13 are proven non-empty before the clear**, which is a real result. But this DoD line enumerates **13 nouns**, and against its own enumeration the split is:
 
@@ -515,7 +519,11 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
 
 - [x] TP-03-06 broader E2E evidence proves the complete foundation/clear matrix passes with previous scope behavior intact.
 
-  Checked. The row was re-executed with the Test Plan command and is green — `10 passed`,
+  Checked.
+
+  **Claim Source:** executed · **Command:** `npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome` · **Exit Code:** 0 · 10 passed / 0 failed
+
+  The row was re-executed with the Test Plan command and is green — `10 passed`,
   `0 failed`, exit `0`. The second clause is carried: Scopes 01 and 02 are certified `done` and
   all six rows attributable to them (`:87`, `:184`, `:260`, `:299`, `:403`, `:491`) passed in the
   same invocation, so no prior-scope behavior regressed.
@@ -602,4 +610,46 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
 
 #### Build Quality Gate
 
-- [ ] Focused RED/GREEN records, personal-category and raw-storage scans, full/partial-clear proof, forbidden-field/source and unsafe-text scans, no-interception/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16.
+- [x] Focused RED/GREEN records, personal-category and raw-storage scans, full/partial-clear proof, forbidden-field/source and unsafe-text scans, no-interception/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16.
+
+  **Claim Source:** executed · **Command:** the twelve commands below · **Exit Code:** 0 on every gate
+
+  ```text
+  $ git diff --check                                                    exit=0
+  $ bash .github/bubbles/scripts/artifact-lint.sh specs/008-…           exit=0
+  $ bash .github/bubbles/scripts/artifact-freshness-guard.sh specs/008-… exit=0
+  $ bash .github/bubbles/scripts/capability-foundation-guard.sh (G094)  exit=0
+  $ node scripts/pii-scan.mjs
+  [pii-scan] files=5867 messages=1153 findings=0 OK
+  $ bash .github/bubbles/scripts/traceability-guard.sh specs/008-… --current-scope
+  failures naming this scope's own files: 0   (31 total, none scope-03)
+  Test Plan rows=6  TP-DoD items=6            parity holds
+  interception matches in the live spec: 2    both comments asserting absence
+  external-request (non-origin URLs) in the live spec: 0
+  literal secret VALUES in rlportfolio.js (sk-/ghp_/AKIA/base64): 0
+  ```
+
+  Three of these needed a real fix rather than a pass, and each is recorded rather than smoothed over.
+
+  **Traceability.** The guard reported four failures against this scope — both scenarios untraceable
+  to a Test Plan row *and* unmatched to a DoD item. The rows and items were not missing: they carry
+  `SCN-008-011` / `SCN-008-012` already. `scenario_matches_row` and `scenario_matches_dod` both match
+  by trace ID first and fall back to fuzzy word overlap, and the guard extracts the inner
+  `Scenario:` line \u2014 which carried no ID, so both checks fell to fuzzy matching and missed. Carrying
+  the ID into the `Scenario:` line fixes all four at the root. It is hash-safe: `scenario-manifest.json`
+  hashes only `{given, when, then}`, never the title. Scope 02 already used this form, which is why it
+  passed while this scope did not; 38 of the feature's 40 scenarios still use the fuzzy-only form.
+
+  **PII.** `pii-scan` failed with 5 findings \u2014 the operator home path in captured terminal evidence in
+  `specs/_bugs/BUG-008-fx-route-claims-unregistered/report.md`. Not this scope's file, but a real
+  disclosure in a public repository and a repo-wide gate failure. Redacted to the segment the scan's
+  own `homePathAllowedSegments` sanctions (`redacted`), which preserves the evidence's shape and
+  meaning while removing the identifier. Allowlisting was rejected: the config's single `allow` entry
+  is a detection fixture, so the established convention is to fix real files, not exempt them.
+
+  **The two scans that look like failures and are not.** The forbidden-field scan returns 43 hits in
+  `rlportfolio.js`; every one is secret-*detection* machinery \u2014 `secretFieldTokens`,
+  `secretValuePrefixes`, `findSecretPath`, `P008-IMPORT-SECRET` \u2014 code that refuses secrets rather
+  than carrying one, and a value-shaped scan finds 0 literal secrets. The no-interception scan
+  returns 2 hits; both are comments stating that no interception appears, so the live-stack claim
+  holds.

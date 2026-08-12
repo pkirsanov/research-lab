@@ -157,15 +157,15 @@ real command emitted five lines and exited 1.
 
 ### E1 — Repository binding
 
-**Command:** `bash .github/bubbles/scripts/repository-binding.sh preflight --session-id … --request-class CONTINUE --repository-root /home/philipk/research-lab`
+**Command:** `bash .github/bubbles/scripts/repository-binding.sh preflight --session-id … --request-class CONTINUE --repository-root /home/redacted/research-lab`
 **Exit Code:** 0
 **Claim Source:** executed
 
 ```text
-$ bash .github/bubbles/scripts/repository-binding.sh preflight --session-id vscode-2385c8f4ad1f394bec01aceff93f3e89 --session-control-file /run/user/1000/bubbles/repository-binding/vscode-2385c8f4ad1f394bec01aceff93f3e89/repository-binding.json --request-class CONTINUE --repository-root /home/philipk/research-lab
-REPOSITORY PREFLIGHT BOUND repository=research-lab root=/home/philipk/research-lab source=explicit-repositoryRoot affinity=established
-PREFLIGHT_COMMITTED decision=rb:vscode-2385c8f4ad1f394bec01aceff93f3e89:1 revision=1 repository=research-lab root=/home/philipk/research-lab
-{"repositoryRoot":"/home/philipk/research-lab","repositoryAlias":"research-lab","repositoryResolution":{"authority":"explicit-repository-root","transition":"established","scopeKind":"command","targetKind":"repository-root","actionable":true}}
+$ bash .github/bubbles/scripts/repository-binding.sh preflight --session-id vscode-2385c8f4ad1f394bec01aceff93f3e89 --session-control-file /run/user/1000/bubbles/repository-binding/vscode-2385c8f4ad1f394bec01aceff93f3e89/repository-binding.json --request-class CONTINUE --repository-root /home/redacted/research-lab
+REPOSITORY PREFLIGHT BOUND repository=research-lab root=/home/redacted/research-lab source=explicit-repositoryRoot affinity=established
+PREFLIGHT_COMMITTED decision=rb:vscode-2385c8f4ad1f394bec01aceff93f3e89:1 revision=1 repository=research-lab root=/home/redacted/research-lab
+{"repositoryRoot":"/home/redacted/research-lab","repositoryAlias":"research-lab","repositoryResolution":{"authority":"explicit-repository-root","transition":"established","scopeKind":"command","targetKind":"repository-root","actionable":true}}
 exit code: 0
 ```
 

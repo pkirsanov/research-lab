@@ -9,7 +9,7 @@
         "recordedAt": "2026-08-02T05:03:12Z",
         "previousStatus": "not_started",
         "why": "`not_started` was the most clear-cut contradiction in the repository. `scopes.md` declares Scopes 1, 2 and 3 as `**Status:** Done` and Scopes 4-5 as `Not Started`, while `execution` records `activeAgent: bubbles.implement`, `currentPhase: implement`, `currentScope: Scope 4`, and completed phase claims `[implement, test]`. The page `trend-dynamics-cycle-lab.html` and `trend-dynamics-cycle-universe.json` are shipped on disk.",
-        "remaining": "Superseded 2026-08-12. Scope 4 is Done and the tool is registered: `tools.json`, `index.html`, `rlnav.js`, `simple-models.json` and `journeys.json` all carry it, and it is no longer listed in `site-exclusions.json`, so `build-pages-site.mjs` now reports registeredPages=25. Production diagnostics carry `ownerReadPublished=true`. Scope 5 (as-of replay, progress, regression closure) is the only remaining scope.",
+        "remaining": "Superseded 2026-08-12. Scope 4 is Done and the tool is registered: `tools.json`, `index.html`, `rlnav.js`, `simple-models.json` and `journeys.json` all carry it, and it is no longer listed in `site-exclusions.json`, so `build-pages-site.mjs` now reports registeredPages=25. Production diagnostics carry `ownerReadPublished=true`. Scope 5 (as-of replay, progress, regression closure) is now Done: all 22 of its DoD items are checked with inline executed evidence, including focused RED-then-GREEN for TP-05-01 and TP-05-02 and all 16 Test Plan rows green. ALL FIVE SCOPES ARE NOW DONE; the feature awaits bubbles.validate certification.",
         "noScopeClaimed": "`certification.completedScopes` was deliberately left empty — populating it is `bubbles.validate`-owned and requires certification evidence this orchestrator did not produce. Only the lifecycle status was corrected."
     },
     "workflowMode": "full-delivery",
@@ -23,14 +23,26 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": "Scope 5",
+        "currentScope": "Scope 5 (Done) - all 5 scopes Done",
         "runStartedAt": "2026-07-15T19:42:05Z",
         "completedPhaseClaims": [
             "implement",
             "test"
         ],
         "pendingTransitionRequests": [],
-        "nextRequiredOwner": "bubbles.implement",
+        "nextRequiredOwner": "bubbles.validate",
+        "scopeClosure": {
+            "recordedAt": "2026-08-12T21:05:00Z",
+            "scope": "Scope 5: As-Of Replay, Progress, And Regression Closure",
+            "dodItemsChecked": 22,
+            "dodItemsUnchecked": 0,
+            "testPlanRowsExecuted": 16,
+            "testPlanRowsPassing": 16,
+            "redThenGreen": "TP-05-01 and TP-05-02 captured focused RED via a controlled break (tdcAppendRevision rewriting alertAt) executed in an isolated detached git worktree at the same commit, then GREEN after restore with identical commands. The shared working tree was never left broken while a concurrent session was active.",
+            "baseline": "node scripts/selftest.mjs -> 1629 passed, 0 failed",
+            "guards": "artifact-lint, artifact-freshness-guard, implementation-reality-scan, capability-foundation-guard (G094), traceability-guard, framework-write-guard all exit 0",
+            "notCertified": "certification.* is untouched and remains bubbles.validate-owned. completedScopes and scopeProgress stay empty; no certification is claimed by this implement-phase closure."
+        },
         "audit": {
             "schemaVersion": "audit-run/v1",
             "runId": null,

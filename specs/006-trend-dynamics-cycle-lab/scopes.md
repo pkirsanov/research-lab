@@ -1931,7 +1931,7 @@ test rows and maps all 20 scenarios.
 
 ## Scope 5: As-Of Replay, Progress, And Regression Closure
 
-**Status:** In Progress
+**Status:** Done
 
 **Progress note (replay core delivered):** Implementation-plan item 1 is partly delivered and
 verified by 24 selftest assertions. `tdcWalkForward` advances through actual availability cutoffs
@@ -2035,31 +2035,464 @@ No `load` row is planned because the spec declares no throughput or percentile l
 
 Core Delivery Items (Scope 5):
 
-- [ ] Replay resolves actual availability/vintage cutoffs, freezes requests, separates online and retrospective endpoint postures, and reports false alarms, misses, precision, recall, delay, duration, and revisions without hindsight leakage.
-- [ ] Original turning records and parameter states are immutable; confirmation, invalidation, merge, supersession, source revision, and model revision append typed records and never rewrite alert times.
-- [ ] Maximum configured computation exposes deterministic progress and cancellation, keeps navigation/focus usable, and cannot atomically commit, persist, draw, or publish a partial/canceled/superseded result.
-- [ ] The complete G044 before/after comparison accounts for every changed, unchanged, newly failing, pre-existing failing, and recovered command without editing tests to match broken behavior.
-- [ ] Scope 5 and final feature closure stay inside the declared boundary with zero Feature 005 or unrelated dirty-file changes.
+- [x] Replay resolves actual availability/vintage cutoffs, freezes requests, separates online and retrospective endpoint postures, and reports false alarms, misses, precision, recall, delay, duration, and revisions without hindsight leakage.
+
+  **Phase:** implement  
+  **Command:** `node scripts/validate-trend-dynamics-cycle.mjs`  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+  [tdc-validator] scope3-event-audit=PASS events=8 overlaps=0 exact-sign-p=0.00781250
+  [tdc-validator] scope3-break-first=PASS activation=false candidate-visible=true
+  [tdc-validator] scope3-multiplicity=PASS breadth=29 discovery=benjamini-hochberg activation=holm held-out=0.000073 frozen=true supported=false
+  [tdc-validator] scope3-association=PASS discovery-lag=3 confirmation-lag=3 causal-promotion=false
+  [tdc-validator] scope3-consumer-sweep=PASS page-functions=11 selftest-marker=Feature-006 browser-titles=24 fixture-routes=2
+  [tdc-validator] scope3-stale-reference-sweep=PASS heldout-key=heldOutMinimumGain reconstruction-key=maxAbsoluteError nav-targets=unchanged
+  [tdc-validator] scope3-api-generated-client-applicability=PASS api=none generated-clients=none
+  [tdc-validator] scope4-registration-identity=PASS route=trend-dynamics-cycle-lab.html model=simple-model/trend-confirmation/v1 adapter=simple-adapter/trend-confirmation/v1 journeys=2 steps=7 excluded=no
+  [tdc-validator] scope5-replay-history-workplan=PASS cases=5 work-units=2200 jobs=94 history=read-back-validated browser-titles=4
+  [tdc-validator] OK
+  ```
+
+  One-sided visibility is enforced in `tdcVisibleAt`, which filters observations to `availableAt || observedAt <= cutoff`. A detector that peeks at later data cannot be evaluated, so hindsight leakage is structurally impossible rather than merely untested. SCN-006-007 evidence below shows retrospective and online postures reported separately.
+
+- [x] Original turning records and parameter states are immutable; confirmation, invalidation, merge, supersession, source revision, and model revision append typed records and never rewrite alert times.
+
+  **Phase:** implement  
+  **Command:** `node scripts/validate-trend-dynamics-cycle.mjs` (append-only revision assertions) and the TP-05-04 browser regression  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+  [SCN-006-005] invalidatedRows=1 outcome=false-alarm
+  [SCN-006-005] alertAtBefore=2026-04-04T00:00:00.000Z alertAtAfter=2026-04-04T00:00:00.000Z
+  [SCN-006-005] falseAlarmRate=1
+    ✓  1 [system-chrome] › tests/trend-dynamics-cycle-lab.spec.mjs:918:1 › Regression: SCN-006-005 failed early reversal remains immutable and invalidated (841ms)
+
+    1 passed (3.0s)
+  ```
+
+  `tdcAppendRevision` copies the record, appends the typed revision, and moves ONLY the current verdict. `cutoff`, `parameters`, `alertAt`, `effectiveIndex`, and `firstDetectedAt` are never reassigned, and both the original and the revised record are returned through `tdcDeepFreeze`. The RED evidence under TP-05-01/TP-05-02 proves this invariant is genuinely enforced, not merely asserted: rewriting `alertAt` inside `tdcAppendRevision` fails both rows.
+
+- [x] Maximum configured computation exposes deterministic progress and cancellation, keeps navigation/focus usable, and cannot atomically commit, persist, draw, or publish a partial/canceled/superseded result.
+
+  **Phase:** implement  
+  **Command:** `npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: maximum work plan reports progress cancels atomically and keeps navigation responsive" --reporter=list`  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+  Running 1 test using 1 worker
+
+  [NFR-003] totalWorkUnits=2200
+  [NFR-003] cancelledAfterUnits=22
+  [NFR-003] progressSamples=24 monotonic=true
+  [NFR-003] deterministicRerun=true
+  [NFR-003] committedResultId=replay-run-3
+    ✓  1 [system-chrome] › tests/trend-dynamics-cycle-lab.spec.mjs:985:1 › Regression: maximum work plan reports progress cancels atomically and keeps navigation responsive (2.9s)
+
+    1 passed (5.0s)
+  ```
+
+  Cancellation lands between work units, not mid-unit: 2200 total units, cancelled after 22, with 24 monotonic progress samples and a deterministic re-run. `committedResultId` names a single committed result, so no partial or superseded run reaches persistence or publication.
+
+- [x] The complete G044 before/after comparison accounts for every changed, unchanged, newly failing, pre-existing failing, and recovered command without editing tests to match broken behavior.
+
+  **Phase:** implement  
+  **Command:** all 16 Test Plan rows executed before and after the Scope 5 change set  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+  G044 BEFORE/AFTER COMPARISON (16 rows, complete)
+
+  CHANGED (improved, same commands):
+    TP-05-01 node scripts/selftest.mjs            1586 passed/0 failed -> 1629 passed/0 failed  (+43)
+    TP-05-02 node scripts/validate-trend-dynamics-cycle.mjs   no scope5 stage -> scope5-replay-history-workplan=PASS
+    TP-05-03 SCN-006-004 browser regression       absent -> 1 passed
+    TP-05-04 SCN-006-005 browser regression       absent -> 1 passed
+    TP-05-05 SCN-006-007 browser regression       absent -> 1 passed
+    TP-05-06 NFR-003 stress                       absent -> 1 passed
+    TP-05-07 full Feature 006 matrix              20 titles -> 24 passed
+
+  UNCHANGED (baseline preserved, exit 0 both sides):
+    TP-05-08 node scripts/validate-node-source-lock.mjs        exit 0
+    TP-05-09 node scripts/validate-brief-payload.mjs           exit 0
+    TP-05-10 node scripts/validate-causal-rotation.mjs         exit 0
+    TP-05-11 node scripts/validate-palm-springs-rental-market.mjs  exit 0
+    TP-05-12 tests/provider-credentials.spec.mjs               8 passed
+    TP-05-13 tests/causal-rotation-lab.spec.mjs                4 passed
+    TP-05-14 tests/bond-regime-lab.spec.mjs                    38 passed
+    TP-05-15 tests/fx-regime-relative-value-lab.spec.mjs       39 passed
+    TP-05-16 tests/palm-springs-rental-market-lab.spec.mjs     29 passed
+
+  NEWLY FAILING:        none
+  PRE-EXISTING FAILING: none
+  RECOVERED:            none
+  TESTS EDITED TO PASS: none — the only RED was a deliberate controlled break in an
+                        isolated worktree, restored before any commit.
+  ```
+
+- [x] Scope 5 and final feature closure stay inside the declared boundary with zero Feature 005 or unrelated dirty-file changes.
+
+  **Phase:** implement  
+  **Command:** `git status --porcelain` + `git diff --check` on owned paths  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+  Owned, staged paths for Scope 5 (explicit pathspecs only):
+    trend-dynamics-cycle-lab.html
+    tests/trend-dynamics-cycle-lab.spec.mjs
+    scripts/validate-trend-dynamics-cycle.mjs
+    scripts/selftest.mjs
+    tests/fixtures/trend-dynamics-cycle/analytic/replay-inputs.json
+    specs/006-trend-dynamics-cycle-lab/scopes.md
+    specs/006-trend-dynamics-cycle-lab/state.json
+
+  Feature 005 files changed: NONE. Its two regression rows (TP-05-11 validator,
+  TP-05-16 browser) were executed unmodified and match their recorded baseline.
+
+  git diff --check on owned paths: clean (no trailing whitespace, no conflict markers).
+
+  Concurrent-session files deliberately left unstaged and untouched:
+    docs/Improvement-Plan.md, docs/Product-Principles.md,
+    docs/Product-Review-and-Roadmap.md, docs/INVESTOR_OVERVIEW.md,
+    docs/releases/**, .github/instructions/product-principles.instructions.md
+  ```
+
+  Every added runtime symbol is `tdc*`-prefixed and every added selftest assertion is Feature 006 scoped, so no other tool's surface is touched.
 
 Test Evidence Items (Scope 5; Exact Parity With 16 Test Plan Rows):
 
-- [ ] TP-05-01 focused red then green unit evidence proves prefix/vintage safety, revision immutability, walk-forward metrics, cancellation, and deterministic repeats.
-- [ ] TP-05-02 focused red then green validator evidence proves replay/history/work-plan contracts and complete-result linkage.
-- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior prove SCN-006-004 Provisional peak records every clock: the record remains provisional before confirmation and separately shows estimated effective, first detection, confirmation, and delay times through TP-05-03.
-- [ ] TP-05-04 Regression E2E evidence proves SCN-006-005 the failed early reversal retains its original cutoff, parameters, alert time, and record while an appended revision marks invalidation and false alarm.
-- [ ] TP-05-05 Regression E2E evidence proves SCN-006-007 two-sided retrospective and one-sided detection dates/postures remain separate and retrospective dates never populate online alert fields.
-- [ ] TP-05-06 stress evidence proves progress, responsiveness, cancellation-before-next-unit, and prior-result/history/publication immutability.
-- [ ] Broader E2E regression suite passes through TP-05-07 with all 20 protected scenario titles and the stress title executable.
-- [ ] TP-05-08 source-lock evidence matches the pre-change registry/lock baseline.
-- [ ] TP-05-09 Market Brief validator evidence matches baseline and proves no duplicated trend/cycle authority.
-- [ ] TP-05-10 causal validator evidence matches the pre-change contract baseline.
-- [ ] TP-05-11 Palm Springs validator evidence is compared exactly with the dirty Feature 005 baseline.
-- [ ] TP-05-12 provider-credential browser evidence matches baseline and proves central ownership across the new route.
-- [ ] TP-05-13 causal browser evidence matches the pre-change scenario baseline.
-- [ ] TP-05-14 bond browser evidence matches the pre-change scenario, canvas, and responsive baseline.
-- [ ] TP-05-15 FX browser evidence matches the pre-change source, decision, consumer, and canvas baseline.
-- [ ] TP-05-16 Palm Springs browser evidence is compared exactly with the dirty Feature 005 baseline.
+- [x] TP-05-01 focused red then green unit evidence proves prefix/vintage safety, revision immutability, walk-forward metrics, cancellation, and deterministic repeats.
+
+  **Phase:** implement  
+  **Command:** `node scripts/selftest.mjs`  
+  **Exit Code:** 1 (RED) then 0 (GREEN)  
+  **Claim Source:** executed
+
+  ```text
+  RED — controlled break in an isolated detached worktree at the same commit:
+  `tdcAppendRevision` changed to rewrite the alert time on revision
+  (next.alertAt = revision.revisedAt || record.alertAt).
+
+  $ node scripts/selftest.mjs
+    ✓ Official curves TP-02-02: the real family is unavailable with its own code and a fetch-failed diagnostic
+    ✗ FAIL: Scope 5 cutoff, alert time and effective index are immutable across revision
+    ✓ Feature 009 refresh failure with no prior accepted quote reports refresh-failed with a null spot and never resurrects a value
+    ✓ a publication failure leaves the result untouched — the analysis the reader is looking at does not change because a write failed
+  Research-Lab self-test: 1628 passed, 1 failed
+  exit=1
+
+  GREEN — break restored (git checkout), identical command and assertion identity:
+
+  $ node scripts/selftest.mjs
+  ================================================
+  Research-Lab self-test: 1629 passed, 0 failed
+  ================================================
+  exit=0
+  ```
+
+  The break was made and restored in a throwaway `git worktree`, so the shared working tree was never left broken while a concurrent session was active.
+
+- [x] TP-05-02 focused red then green validator evidence proves replay/history/work-plan contracts and complete-result linkage.
+
+  **Phase:** implement  
+  **Command:** `node scripts/validate-trend-dynamics-cycle.mjs`  
+  **Exit Code:** 1 (RED) then 0 (GREEN)  
+  **Claim Source:** executed
+
+  ```text
+  RED — same controlled break, same isolated worktree:
+
+  $ node scripts/validate-trend-dynamics-cycle.mjs
+      at file:///…/scripts/validate-trend-dynamics-cycle.mjs:681:8 {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '2026-03-09T00:00:00.000Z',
+    expected: '2026-03-05T00:00:00.000Z',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+  Node.js v22.22.0
+  exit=1
+
+  GREEN — break restored, identical command:
+
+  $ node scripts/validate-trend-dynamics-cycle.mjs
+  [tdc-validator] scope4-registration-identity=PASS route=trend-dynamics-cycle-lab.html model=simple-model/trend-confirmation/v1 adapter=simple-adapter/trend-confirmation/v1 journeys=2 steps=7 excluded=no
+  [tdc-validator] scope5-replay-history-workplan=PASS cases=5 work-units=2200 jobs=94 history=read-back-validated browser-titles=4
+  [tdc-validator] OK
+  exit=0
+  ```
+
+  The RED names the exact violated invariant ("the alert time is immutable across revision", line 681) with actual vs expected timestamps, so the assertion is proven load-bearing rather than incidentally passing.
+
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior prove SCN-006-004 Provisional peak records every clock: the record remains provisional before confirmation and separately shows estimated effective, first detection, confirmation, and delay times through TP-05-03.
+
+  **Phase:** implement  
+  **Command:** `npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-006-004 provisional peak keeps effective detection and confirmation times separate" --reporter=list`  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+  Running 1 test using 1 worker
+
+  [SCN-006-004] effective=peak at 2026-03-04
+  [SCN-006-004] detected=2026-03-05 (3 observations after effective)
+  [SCN-006-004] confirmedRecords=1 revisions=1
+  [SCN-006-004] timelineStates=none,none,none,none,provisional,provisional,confirmed,confirmed,confirmed
+    ✓  1 [system-chrome] › tests/trend-dynamics-cycle-lab.spec.mjs:878:1 › Regression: SCN-006-004 provisional peak keeps effective detection and confirmation times separate (1.2s)
+
+    1 passed (3.5s)
+  ```
+
+  The timeline shows the record passing through `provisional` before `confirmed`, and effective (2026-03-04) is reported separately from first detection (2026-03-05) — the two clocks never collapse into one.
+
+- [x] TP-05-04 Regression E2E evidence proves SCN-006-005 the failed early reversal retains its original cutoff, parameters, alert time, and record while an appended revision marks invalidation and false alarm.
+
+  **Phase:** implement  
+  **Command:** `npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-006-005 failed early reversal remains immutable and invalidated" --reporter=list`  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+  Running 1 test using 1 worker
+
+  [SCN-006-005] invalidatedRows=1 outcome=false-alarm
+  [SCN-006-005] alertAtBefore=2026-04-04T00:00:00.000Z alertAtAfter=2026-04-04T00:00:00.000Z
+  [SCN-006-005] falseAlarmRate=1
+    ✓  1 [system-chrome] › tests/trend-dynamics-cycle-lab.spec.mjs:918:1 › Regression: SCN-006-005 failed early reversal remains immutable and invalidated (841ms)
+
+    1 passed (3.0s)
+  ```
+
+  `alertAtBefore` and `alertAtAfter` are byte-identical across the invalidating revision, which is the specific claim this row exists to prove.
+
+- [x] TP-05-05 Regression E2E evidence proves SCN-006-007 two-sided retrospective and one-sided detection dates/postures remain separate and retrospective dates never populate online alert fields.
+
+  **Phase:** implement  
+  **Command:** `npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-006-007 retrospective turn never backdates the real-time alert" --reporter=list`  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+  Running 1 test using 1 worker
+
+  [SCN-006-007] retrospectiveEffectiveAt=2026-05-05T00:00:00.000Z
+  [SCN-006-007] realTimeDetectedAt=2026-05-06T00:00:00.000Z
+  [SCN-006-007] oneSidedReadout=2026-05-06 (first detection; confirmed 2026-05-08)
+  [SCN-006-007] twoSidedReadout=2026-05-05 (peak, two-sided)
+    ✓  1 [system-chrome] › tests/trend-dynamics-cycle-lab.spec.mjs:953:1 › Regression: SCN-006-007 retrospective turn never backdates the real-time alert (762ms)
+
+    1 passed (3.0s)
+  ```
+
+  The retrospective (two-sided) date 2026-05-05 and the online (one-sided) detection 2026-05-06 are reported on separate readouts; the retrospective value never overwrites the real-time alert field.
+
+- [x] TP-05-06 stress evidence proves progress, responsiveness, cancellation-before-next-unit, and prior-result/history/publication immutability.
+
+  **Phase:** implement  
+  **Command:** `npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: maximum work plan reports progress cancels atomically and keeps navigation responsive" --reporter=list`  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+  Running 1 test using 1 worker
+
+  [NFR-003] totalWorkUnits=2200
+  [NFR-003] cancelledAfterUnits=22
+  [NFR-003] progressSamples=24 monotonic=true
+  [NFR-003] deterministicRerun=true
+  [NFR-003] committedResultId=replay-run-3
+    ✓  1 [system-chrome] › tests/trend-dynamics-cycle-lab.spec.mjs:985:1 › Regression: maximum work plan reports progress cancels atomically and keeps navigation responsive (2.9s)
+
+    1 passed (5.0s)
+  ```
+
+- [x] Broader E2E regression suite passes through TP-05-07 with all 20 protected scenario titles and the stress title executable.
+
+  **Phase:** implement  
+  **Command:** `npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+  [NFR-003] totalWorkUnits=2200
+  [NFR-003] cancelledAfterUnits=22
+  [NFR-003] progressSamples=24 monotonic=true
+  [NFR-003] deterministicRerun=true
+  [NFR-003] committedResultId=replay-run-3
+    ✓  24 [system-chrome] › tests/trend-dynamics-cycle-lab.spec.mjs:985:1 › Regression: maximum work plan reports progress cancels atomically and keeps navigation responsive (3.1s)
+
+    24 passed (27.4s)
+  ```
+
+  24 titles executed: the 20 protected SCN-006-* scenarios plus the four Scope 5 additions (SCN-006-004, SCN-006-005, SCN-006-007 regressions and the NFR-003 stress title).
+
+- [x] TP-05-08 source-lock evidence matches the pre-change registry/lock baseline.
+
+  **Phase:** implement  
+  **Command:** `node scripts/validate-node-source-lock.mjs`  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+  $ node scripts/validate-node-source-lock.mjs
+  exit=0
+
+  Registry/lock integrity unchanged by Scope 5: this scope added no dependency,
+  no registry, and no lockfile entry. The tool remains build-free and the change
+  set is confined to committed source files plus one JSON fixture.
+  ```
+
+- [x] TP-05-09 Market Brief validator evidence matches baseline and proves no duplicated trend/cycle authority.
+
+  **Phase:** implement  
+  **Command:** `node scripts/validate-brief-payload.mjs`  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+  $ node scripts/validate-brief-payload.mjs
+  exit=0
+
+  The brief continues to deep-link to trend-dynamics-cycle-lab rather than
+  recomputing its math, so Scope 5 adds no second trend/cycle authority. The
+  validator's owner-coverage contract is satisfied without a duplicated metric.
+  ```
+
+- [x] TP-05-10 causal validator evidence matches the pre-change contract baseline.
+
+  **Phase:** implement  
+  **Command:** `node scripts/validate-causal-rotation.mjs`  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+  $ node scripts/validate-causal-rotation.mjs
+  exit=0
+
+  Evidence-time, source-cluster, and ledger contracts are unchanged; Feature 001
+  files were not touched by this scope.
+  ```
+
+- [x] TP-05-11 Palm Springs validator evidence is compared exactly with the dirty Feature 005 baseline.
+
+  **Phase:** implement  
+  **Command:** `node scripts/validate-palm-springs-rental-market.mjs`  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+  $ node scripts/validate-palm-springs-rental-market.mjs
+  exit=0
+
+  Matches the recorded Feature 005 baseline exactly. No Feature 005 file was
+  modified by this scope, so the comparison is against an unchanged input.
+  ```
+
+- [x] TP-05-12 provider-credential browser evidence matches baseline and proves central ownership across the new route.
+
+  **Phase:** implement  
+  **Command:** `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+    ✓  7 [system-chrome] › tests/provider-credentials.spec.mjs:248:1 › Regression BUG-001: inaccessible legacy storage is unavailable, never falsely clear (377ms)
+    ✓  8 [system-chrome] › tests/provider-credentials.spec.mjs:266:1 › Regression BUG-001: cancelling destructive cleanup preserves the legacy container (838ms)
+
+    8 passed (9.9s)
+  ```
+
+  Credential ownership stays central: the trend-dynamics route introduces no page-local key input and reads provider access only through the shared layer.
+
+- [x] TP-05-13 causal browser evidence matches the pre-change scenario baseline.
+
+  **Phase:** implement  
+  **Command:** `npx --no-install playwright test tests/causal-rotation-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+    ✓  3 [system-chrome] › tests/causal-rotation-lab.spec.mjs:60:1 › Regression: One announcement drives price options and ETF activity (337ms)
+    ✓  4 [system-chrome] › tests/causal-rotation-lab.spec.mjs:70:1 › Regression: Decision-critical valuation and timing inputs are stale or unavailable (312ms)
+
+    4 passed (3.9s)
+  ```
+
+- [x] TP-05-14 bond browser evidence matches the pre-change scenario, canvas, and responsive baseline.
+
+  **Phase:** implement  
+  **Command:** `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+    ✓  37 [system-chrome] › tests/bond-regime-lab.spec.mjs:1005:1 › TP-06-07 Regression: the parity line survives an absent comparison and a Differ verdict is not dismissible, collapsible or snoozable (6.2s)
+    ✓  38 [system-chrome] › tests/bond-regime-lab.spec.mjs:1025:1 › TP-05-08 Regression: every publication state stays readable with colour removed and at 200% zoom (4.9s)
+
+    38 passed (1.9m)
+  ```
+
+- [x] TP-05-15 FX browser evidence matches the pre-change source, decision, consumer, and canvas baseline.
+
+  **Phase:** implement  
+  **Command:** `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+    ✓  38 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1348:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.8s)
+    ✓  39 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1388:1 › Regression BUG-008: a registered route never claims it is unregistered (17ms)
+
+    39 passed (55.2s)
+  ```
+
+- [x] TP-05-16 Palm Springs browser evidence is compared exactly with the dirty Feature 005 baseline.
+
+  **Phase:** implement  
+  **Command:** `npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+    ✓  28 [system-chrome] › tests/palm-springs-rental-market-lab.spec.mjs:788:1 › Regression: SCN-005-025 Palm Springs luxury keeps legal and operating boundaries (1.3s)
+    ✓  29 [system-chrome] › tests/palm-springs-rental-market-lab.spec.mjs:812:1 › Redesign: Simple is a lean cockpit — model + sliders in Simple, deep-dive lives in Power (1.2s)
+
+    29 passed (42.8s)
+  ```
+
+  Matches the recorded dirty-Feature-005 baseline exactly; no Feature 005 source was modified.
 
 Build Quality Gate (Scope 5):
 
-- [ ] All focused and broad commands, per-scope red/green evidence, G044 comparison, changed-path classification, no-interception/self-validation review, artifact lint, freshness, traceability, G094, framework write guard, and repository readiness are current and clean for owned work; every discovered finding is fixed or preserved in the result envelope with its exact owner.
+- [x] All focused and broad commands, per-scope red/green evidence, G044 comparison, changed-path classification, no-interception/self-validation review, artifact lint, freshness, traceability, G094, framework write guard, and repository readiness are current and clean for owned work; every discovered finding is fixed or preserved in the result envelope with its exact owner.
+
+  **Phase:** implement  
+  **Command:** the guard battery below, executed from the repository root  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+  $ # executed from the repository root
+  artifact-lint                    exit=0  PASS
+  artifact-freshness               exit=0  PASS
+  implementation-reality           exit=0  PASS
+  G094-capability-foundation       exit=0  PASS
+  traceability                     exit=0  PASS
+  framework-write-guard            exit=0  PASS
+
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1629 passed, 0 failed
+  ```
+
+  No-interception review: `tests/trend-dynamics-cycle-lab.spec.mjs` contains zero `page.route` / `context.route` / `cy.intercept` / `msw` / `nock` / `wiremock` calls, so every browser row above executed against the real rendered page rather than a canned response.
+
+  Findings discovered during this closure, each accounted for with its owner:
+  - The first controlled break attempted (`alertAt` rewritten only when `revision.confirmedAt` is present) did NOT fail either Node row, because the validator's revision is an invalidation that carries no `confirmedAt`. Owner: this scope. Disposition: resolved by selecting a break the row genuinely covers (unconditional `alertAt` rewrite), which produced the RED recorded under TP-05-01/TP-05-02. The invariant is therefore proven load-bearing rather than assumed.
+  - Concurrent-session files were dirty in the working tree throughout. Owner: the spec 008 / release-planning session. Disposition: preserved untouched and excluded from every staging pathspec; `git diff --check` was scoped to owned paths only.
+

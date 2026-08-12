@@ -1491,3 +1491,76 @@ test('every declared clear step is faulted on its own, the other steps still del
   const redViolations = stepViolations(policy, red.adapters, declared, faulted, red.sentinels);
   assert.deepEqual(redViolations, [`${skipped}: unfaulted step did not delete`], `the per-step checker must name the silently skipped key, got: ${JSON.stringify(redViolations)}`);
 });
+
+/* ═══════════ Feature 008 Scope 04 — public tool-read barrier (TP-04-03) ═══════════ */
+
+// The exact record design.md specifies for the public read. Pinned here so a drift in either
+// direction — a richer read that leaks, or a poorer one that stops declaring the boundary — fails.
+const BOUNDARY_READ = 'Private local portfolio analysis stays in its owning tab; open the tool for local research.';
+
+function loadRldataFor(initial = {}) {
+  const source = readFileSync(resolve(ROOT, 'rldata.js'), 'utf8');
+  const durable = createStorage({ initial });
+  const session = createStorage();
+  const root = { location: { pathname: '/index.html', protocol: 'https:' } };
+  const api = Function(
+    'globalThis', 'window', 'localStorage', 'sessionStorage', 'fetch', 'location', 'document',
+    source + '\nreturn globalThis.RLDATA;'
+  )(root, root, durable, session, undefined, root.location, undefined);
+  return { api, durable };
+}
+
+test('SCN-008-005 TP-04-03: the public tool read is a constant privacy boundary carrying no personal fact', () => {
+  const { api } = loadRuntime();
+  assert.equal(typeof api.privacyBoundaryToolRead, 'function', 'RLPORTFOLIO must expose the public privacy-boundary tool read');
+
+  const read = api.privacyBoundaryToolRead(NOW);
+  assert.equal(read.contractVersion, 'rl-tool-read/v1', 'the public read uses the compact public contract');
+  assert.equal(read.availability, 'unavailable', 'the portfolio tool publishes an unavailable read, never a conclusion');
+  assert.equal(read.read, BOUNDARY_READ, 'the read states the boundary in the exact designed words');
+  assert.equal(read.metrics.privacyBoundary, 'local-only', 'the read declares its boundary');
+  assert.equal(read.metrics.personalDataIncluded, false, 'the read declares that it carries no personal data');
+  assert.equal(read.asOf, null, 'an unavailable read carries no as-of');
+  assert.equal(read.freshUntil, null, 'an unavailable read carries no freshness window');
+
+  // The record must be CONSTANT: the same call with different personal state present must produce
+  // byte-identical output, or the read is a channel through which local state could vary.
+  const second = api.privacyBoundaryToolRead(NOW);
+  assert.equal(JSON.stringify(second), JSON.stringify(read), 'the public read is constant across calls');
+});
+
+test('SCN-008-005 TP-04-03: the public read is accepted by RLDATA and carries no holding, count, or conclusion', () => {
+  const { api } = loadRuntime();
+  const { api: rldata } = loadRldataFor();
+  const read = api.privacyBoundaryToolRead(NOW);
+
+  // Round-tripping through the real store is what proves the record is publishable. putToolRead
+  // returns null for any rl-tool-read/v1 that violates the contract, so a shape error fails here.
+  const stored = rldata.putToolRead(read.id, read);
+  assert.notEqual(stored, null, 'RLDATA must accept the privacy-boundary read as a valid public tool read');
+  assert.equal(JSON.stringify(rldata.toolRead(read.id)), JSON.stringify(read), 'the stored public read round-trips unchanged');
+
+  /* The leak assertion runs over the SERIALIZED stored record rather than a hand-picked field, so a
+   * personal value added to any future field is caught rather than only the fields named today. */
+  const serialized = JSON.stringify(stored);
+  for (const forbidden of ['MSFT', 'BND', 'holdings', 'quantity', 'costBasis', 'mandate', 'behaviorEvents', 'interestSignals']) {
+    assert.equal(serialized.includes(forbidden), false, `the public tool read must not contain ${forbidden}`);
+  }
+  assert.equal(/\bslot[AB]\b|rlPortfolioWorkspace/.test(serialized), false, 'the public read names no personal storage surface');
+});
+
+test('SCN-008-035 TP-04-03: a personal value cannot ride into the public store through the boundary read', () => {
+  const { api } = loadRuntime();
+  const { api: rldata } = loadRldataFor();
+
+  /* The control this row exists for: attempting to smuggle a personal field into the published
+   * record must be REFUSED by the store, not silently persisted. Without this the constant-read
+   * assertion above only proves the happy path. */
+  const tampered = { ...api.privacyBoundaryToolRead(NOW), holdings: ['MSFT'] };
+  assert.equal(rldata.putToolRead(tampered.id, tampered), null, 'a read carrying an extra personal field is refused by the public contract');
+  assert.equal(rldata.toolRead(tampered.id), null, 'the refused read leaves nothing in the public store');
+
+  // And a metrics-level smuggle is refused by the boundary declaration itself.
+  const lying = api.privacyBoundaryToolRead(NOW);
+  assert.equal(lying.metrics.personalDataIncluded, false, 'the boundary declaration is false by construction, so a true value would be a code change rather than data');
+});

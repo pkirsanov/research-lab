@@ -2303,6 +2303,31 @@
     return result;
   };
 
+  /* ---------- Feature 008 Scope 04: public tool-read barrier ----------
+     The ONLY thing this tool publishes to the shared public cache. It is a constant: it takes no
+     workspace argument, so there is no parameter through which a holding, count, or conclusion
+     could reach RLDATA even by mistake. `computedAt` is the sole varying field, and it is a clock
+     reading rather than anything derived from local state. */
+  var PRIVACY_BOUNDARY_TOOL_ID = "portfolio-survival-allocation-lab";
+  var PRIVACY_BOUNDARY_READ = "Private local portfolio analysis stays in its owning tab; open the tool for local research.";
+
+  function privacyBoundaryToolRead(computedAt) {
+    return {
+      contractVersion: "rl-tool-read/v1",
+      id: PRIVACY_BOUNDARY_TOOL_ID,
+      availability: "unavailable",
+      read: PRIVACY_BOUNDARY_READ,
+      metrics: { privacyBoundary: "local-only", personalDataIncluded: false },
+      deepLink: PRIVACY_BOUNDARY_TOOL_ID + ".html",
+      asOf: null,
+      freshUntil: null,
+      computedAt: typeof computedAt === "string" && isFinite(Date.parse(computedAt))
+        ? computedAt
+        : new Date().toISOString()
+    };
+  }
+  /* ---------- End Feature 008 Scope 04 ---------- */
+
   var api = Object.freeze({
     applyDraftRemoval: applyDraftRemoval,
     buildBehaviorCandidate: buildBehaviorCandidate,
@@ -2335,7 +2360,9 @@
     validatePolicy: validatePolicy,
     validatePortfolioError: validatePortfolioError,
     validatePortfolioRevision: validatePortfolioRevision,
-    validateWorkspace: validateWorkspace
+    validateWorkspace: validateWorkspace,
+    privacyBoundaryToolRead: privacyBoundaryToolRead,
+    PRIVACY_BOUNDARY_TOOL_ID: PRIVACY_BOUNDARY_TOOL_ID
   });
 
   root.RLPORTFOLIO = api;

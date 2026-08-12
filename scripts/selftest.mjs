@@ -7596,6 +7596,61 @@ try {
   rmSync(tempRoot, { recursive: true, force: true });
 } catch (e) { failures++; console.log('  \u2717 FAIL (one-model parity group threw): ' + e.message); }
 
+/* ---------- Feature 008 Scope 04: shared-consumer canary (TP-04-04) ----------
+   Scope 04 edits rldata.js and rlportfolio.js, both of which other tools depend on. This group is
+   the independent canary the scope's Shared Infrastructure Impact Sweep requires: it proves the
+   additive surface did not disturb the legacy one, and that the only thing the portfolio tool
+   publishes into the shared cache is the constant privacy boundary. */
+try {
+  group('Feature 008 Scope 04 shared-consumer canary');
+  const rldata8Source = read('rldata.js');
+  const durable8 = {}, session8 = {};
+  const store8 = (backing) => ({
+    getItem: (k) => (Object.prototype.hasOwnProperty.call(backing, k) ? backing[k] : null),
+    setItem: (k, v) => { backing[k] = String(v); },
+    removeItem: (k) => { delete backing[k]; },
+    key: (i) => Object.keys(backing)[i] ?? null,
+    get length() { return Object.keys(backing).length; }
+  });
+  const root8 = { location: { pathname: '/index.html', protocol: 'https:' } };
+  const requests8 = [];
+  const rldata8 = Function('globalThis', 'window', 'localStorage', 'sessionStorage', 'fetch', 'location', 'document',
+    rldata8Source + '\nreturn globalThis.RLDATA;')(
+    root8, root8, store8(durable8), store8(session8),
+    (url) => { requests8.push(String(url)); return Promise.reject(new Error('offline canary')); },
+    root8.location, undefined);
+
+  /* The legacy surface every other tool already binds to. Asserted by NAME so an accidental
+     rename or drop in the Feature 008 block fails here rather than in a downstream tool. */
+  const legacy8 = ['bars', 'putBars', 'quote', 'putQuote', 'barSeries', 'putBarSeries', 'ensureBarSeries',
+    'options', 'putOptions', 'macro', 'putMacro', 'events', 'putEvents', 'toolRead', 'putToolRead',
+    'freshness', 'barInfo', 'dataState', 'reportData', 'ensureBars', 'ensureMacro', 'mergeBars', 'isFresh'];
+  const missing8 = legacy8.filter((name) => typeof rldata8[name] !== 'function');
+  assert(missing8.length === 0, 'Scope 04 TP-04-04: every legacy RLDATA consumer method survives the additive block (missing: ' + missing8.join(',') + ')');
+  assert(typeof rldata8.ensureBarCoverage === 'function', 'Scope 04 TP-04-04: the additive ensureBarCoverage method is present');
+
+  rldata8.putBars('CANARY08', '1d', [{ t: Date.parse('2026-07-06T00:00:00.000Z'), c: 10 }, { t: Date.parse('2026-07-07T00:00:00.000Z'), c: 11 }], 'same-origin-fixture');
+  const legacyRows8 = JSON.stringify(rldata8.bars('CANARY08', '1d'));
+  const coverage8 = rldata8.ensureBarCoverage('CANARY08', '1d', { mode: 'same-origin-only', requiredFirst: '2026-07-06', requiredLast: '2026-07-07' });
+  assert(coverage8.state === 'complete' && coverage8.firstDate === '2026-07-06' && coverage8.lastDate === '2026-07-07',
+    'Scope 04 TP-04-04: coverage reports the actual observed span');
+  assert(JSON.stringify(rldata8.bars('CANARY08', '1d')) === legacyRows8,
+    'Scope 04 TP-04-04: a coverage read leaves the rows legacy callers see byte-identical');
+  assert(requests8.length === 0, 'Scope 04 TP-04-04: the canary reached the network zero times (recorder, not an omitted binding)');
+
+  /* The public-cache half. The portfolio module publishes exactly one record, and it must survive
+     the real store's contract check — a shape violation makes putToolRead return null. */
+  const { createRequire: createRequire8 } = await import('node:module');
+  const rlportfolio8 = createRequire8(import.meta.url)('../rlportfolio.js');
+  const boundary8 = rlportfolio8.privacyBoundaryToolRead('2026-07-15T14:00:00.000Z');
+  const stored8 = rldata8.putToolRead(boundary8.id, boundary8);
+  assert(stored8 !== null && stored8.availability === 'unavailable' && stored8.metrics.personalDataIncluded === false,
+    'Scope 04 TP-04-04: RLDATA accepts the constant privacy-boundary read as the tool\u2019s only publication');
+  const publicState8 = JSON.stringify(JSON.parse(durable8.rlData).toolReads);
+  assert(!/MSFT|BND|holdings|costBasis|mandate|behaviorEvents|interestSignals|rlPortfolioWorkspace/.test(publicState8),
+    'Scope 04 TP-04-04: the shared public cache carries no holding, conclusion, or personal storage name');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 008 Scope 04 canary group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

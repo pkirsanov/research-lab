@@ -1931,7 +1931,25 @@ test rows and maps all 20 scenarios.
 
 ## Scope 5: As-Of Replay, Progress, And Regression Closure
 
-**Status:** Not Started
+**Status:** In Progress
+
+**Progress note (replay core delivered):** Implementation-plan item 1 is partly delivered and
+verified by 24 selftest assertions. `tdcWalkForward` advances through actual availability cutoffs
+with `tdcVisibleAt` enforcing one-sided visibility, so a detector cannot peek at data that had not
+arrived. `tdcCreateTurningRecord` and `tdcAppendRevision` give append-only `tdc-history/v1` records
+whose cutoff, parameters, alert time, effective index, and first-detection date are immutable,
+while state, outcome, confirmation time, and delay move as verdict fields. A candidate later erased
+by the trend is retained as `invalidated` with a `false-alarm` revision rather than deleted.
+`tdcRetrospectiveAnatomy` returns the two-sided and real-time dates separately with an explicit
+limitation. `tdcReplayMetrics` derives precision, recall, false-alarm rate, and median delay from
+those retained records, and reports null precision when nothing was predicted.
+
+Still outstanding in Scope 5: `tdc-history/v1` persistence with read-back validation and explicit
+corruption/capacity degradation (item 2); fixed-work jobs and browser scheduling with monotonic run
+id, visible progress, explicit cancel, and atomic commit (item 3); the Power Change Replay UI with
+cutoff step/play/pause, side-by-side endpoint labels, and focus return (item 4); deterministic
+replay fixtures with availability/vintage changes (item 5); the maximum-work stress case (item 6);
+and the G044 post-change matrix against the recorded baseline (item 7).
 
 **Scope-Kind:** runtime-behavior
 

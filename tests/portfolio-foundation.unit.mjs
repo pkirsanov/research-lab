@@ -2517,3 +2517,89 @@ test('NFR-024: local deletion is certified only after an independent reread prov
     'NFR-024 control: the reread predicate must distinguish an emptied namespace from a populated one'
   );
 });
+
+/* ═══════════ Feature 008 Scope 04 — public evidence barrier and coverage ═══════════ */
+
+// rldata.js is an IIFE that attaches to a root object rather than exporting, so it is loaded the
+// way scripts/selftest.mjs already loads it. `fetch` is passed as a RECORDER rather than omitted:
+// omitting it would make "no request was issued" trivially true, which proves nothing about policy.
+function loadRldata({ initial = {}, protocol = 'https:' } = {}) {
+  const source = readFileSync(resolve(ROOT, 'rldata.js'), 'utf8');
+  const durable = createStorage({ initial });
+  const session = createStorage();
+  const requests = [];
+  const fetchRecorder = (url, init) => {
+    requests.push({ url: String(url), init: init || {} });
+    return Promise.reject(new Error('network is not reachable in this suite'));
+  };
+  const root = { location: { pathname: '/index.html', protocol } };
+  const api = Function(
+    'globalThis', 'window', 'localStorage', 'sessionStorage', 'fetch', 'location', 'document',
+    source + '\nreturn globalThis.RLDATA;'
+  )(root, root, durable, session, fetchRecorder, root.location, undefined);
+  return { api, durable, session, requests };
+}
+
+// Two consecutive UTC weekdays of same-origin daily bars, oldest-first, matching the shape putBars
+// stores. The dates are explicit so a coverage claim can be checked against them rather than
+// against a range string the caller asked for.
+function coverageRows(dates) {
+  return dates.map((iso, index) => ({ t: Date.parse(iso + 'T00:00:00.000Z'), c: 100 + index }));
+}
+
+test('SCN-008-005 TP-04-01: bar coverage is measured from actual dates and same-origin-only never issues a request', () => {
+  const { api, requests } = loadRldata();
+  assert.equal(typeof api.ensureBarCoverage, 'function', 'RLDATA must expose the additive ensureBarCoverage method');
+
+  const dates = ['2026-07-06', '2026-07-07', '2026-07-08'];
+  api.putBars('SCOPE04-COVERAGE', '1d', coverageRows(dates), 'same-origin-fixture');
+
+  const covered = api.ensureBarCoverage('SCOPE04-COVERAGE', '1d', { mode: 'same-origin-only', requiredFirst: '2026-07-06', requiredLast: '2026-07-08' });
+  assert.equal(covered.state, 'complete', 'coverage that spans the required window reports complete');
+  assert.equal(covered.firstDate, '2026-07-06', 'the envelope reports the ACTUAL first date rather than the requested range');
+  assert.equal(covered.lastDate, '2026-07-08', 'the envelope reports the ACTUAL last date');
+  assert.equal(covered.observedCount, 3, 'the envelope counts the rows it actually has');
+  assert.equal(covered.requestIssued, false, 'satisfied coverage issues no request');
+
+  // The load-bearing half: a window the cache CANNOT satisfy must still not reach the network under
+  // same-origin-only. A recorder is used so this asserts policy, not the absence of a fetch binding.
+  const short = api.ensureBarCoverage('SCOPE04-COVERAGE', '1d', { mode: 'same-origin-only', requiredFirst: '2021-01-01', requiredLast: '2026-07-08' });
+  assert.equal(short.state, 'partial', 'coverage shorter than the required window reports partial, never a false complete');
+  assert.equal(short.firstDate, '2026-07-06', 'partial coverage still reports its real first date');
+  assert.ok(String(short.partialReason || '').length > 0, 'partial coverage names why it is partial');
+  assert.equal(short.requestIssued, false, 'same-origin-only never triggers a hidden request for missing coverage');
+  assert.deepEqual(requests, [], 'no fetch of any kind was issued under same-origin-only');
+});
+
+test('SCN-008-035 TP-04-01: absent coverage is unavailable and no missing value is substituted', () => {
+  const { api, requests } = loadRldata();
+
+  const absent = api.ensureBarCoverage('SCOPE04-NOTHING', '1d', { mode: 'same-origin-only', requiredFirst: '2026-07-06', requiredLast: '2026-07-08' });
+  assert.equal(absent.state, 'unavailable', 'a symbol with no same-origin rows is unavailable, not complete and not zero');
+  assert.equal(absent.firstDate, null, 'an unavailable envelope carries no invented first date');
+  assert.equal(absent.lastDate, null, 'an unavailable envelope carries no invented last date');
+  assert.equal(absent.observedCount, 0, 'an unavailable envelope reports zero observations rather than a filled default');
+  assert.ok(String(absent.unavailableReason || '').length > 0, 'an unavailable envelope names its reason');
+
+  // A zero close is a legitimate observation; "no observation" must not render as one.
+  const serialized = JSON.stringify(absent);
+  assert.equal(/"c"\s*:\s*0/.test(serialized), false, 'absent coverage does not fabricate a zero close');
+  assert.deepEqual(requests, [], 'an unavailable read under same-origin-only reaches no network');
+});
+
+test('SCN-008-005 TP-04-01: ensureBarCoverage is additive — legacy bars behaviour and cache keys are unchanged', () => {
+  const { api, durable } = loadRldata();
+  const dates = ['2026-07-06', '2026-07-07'];
+  api.putBars('SCOPE04-LEGACY', '1d', coverageRows(dates), 'same-origin-fixture');
+
+  const before = JSON.parse(durable.getItem('rlData'));
+  const beforeBars = JSON.stringify(api.bars('SCOPE04-LEGACY', '1d'));
+
+  api.ensureBarCoverage('SCOPE04-LEGACY', '1d', { mode: 'same-origin-only', requiredFirst: '2026-07-06', requiredLast: '2026-07-07' });
+
+  const after = JSON.parse(durable.getItem('rlData'));
+  assert.equal(JSON.stringify(api.bars('SCOPE04-LEGACY', '1d')), beforeBars, 'a coverage read does not alter the rows legacy callers see');
+  assert.deepEqual(Object.keys(after).sort(), Object.keys(before).sort(), 'a coverage read introduces no new top-level cache key');
+  assert.equal(after.v, before.v, 'the cache schema version is untouched');
+});
+

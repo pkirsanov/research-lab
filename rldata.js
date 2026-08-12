@@ -822,4 +822,82 @@
   root.RLDATA.putQualifiedBarSeries = putQualifiedBarSeries;
   root.RLDATA.qualifiedBarSeries = qualifiedBarSeries;
   /* ---------- End Feature 007 qualified interval series ---------- */
+
+  /* ---------- Feature 008 Scope 04: coverage-aware same-origin bar reads ----------
+     Measurement is deliberately SEPARATE from acquisition. ensureBarCoverage never fetches under
+     any policy: it reports what the same-origin cache actually holds, and `lookupPermitted` tells
+     the caller whether policy would allow it to go and get more via the existing ensureBars path.
+     Folding a fetch in here is what would make "missing coverage" silently reach the network, which
+     is the leak this scope exists to prevent — so the only way to issue a request stays explicit. */
+  var COVERAGE_MODES = { "same-origin-only": false, "allow-public-symbol-lookup": true };
+
+  function utcDate(ms) {
+    if (!isFinite(ms)) return null;
+    var d = new Date(ms);
+    return isFinite(d.getTime()) ? d.toISOString().slice(0, 10) : null;
+  }
+
+  function ensureBarCoverage(sym, interval, policy) {
+    policy = policy || {};
+    var mode = typeof policy.mode === "string" ? policy.mode : "same-origin-only";
+    var lookupPermitted = COVERAGE_MODES[mode] === true;
+    var info = barInfo(sym, interval, policy.maxAgeH);
+    var rows = getBars(sym, interval) || [];
+    var envelope = {
+      contractVersion: "rl-bar-coverage/v1",
+      symbol: String(sym),
+      interval: String(interval),
+      mode: mode,
+      source: info.src || null,
+      observedCount: rows.length,
+      firstDate: null,
+      lastDate: null,
+      requiredFirst: policy.requiredFirst || null,
+      requiredLast: policy.requiredLast || null,
+      state: "unavailable",
+      partialReason: null,
+      unavailableReason: null,
+      lookupPermitted: lookupPermitted,
+      // Always false. Kept as an explicit field so a caller can assert the absence of a request
+      // rather than infer it, and so a future fetch-bearing variant cannot quietly reuse this name.
+      requestIssued: false
+    };
+
+    if (!COVERAGE_MODES.hasOwnProperty(mode)) {
+      envelope.unavailableReason = "coverage-policy-unrecognized";
+      return envelope;
+    }
+    if (!rows.length) {
+      envelope.unavailableReason = info.state === "missing" ? "no-same-origin-rows" : "empty-same-origin-series";
+      return envelope;
+    }
+
+    var stamps = rows.map(function (row) { return row && row.t; }).filter(function (t) { return isFinite(t); });
+    if (!stamps.length) {
+      envelope.unavailableReason = "no-dated-observations";
+      return envelope;
+    }
+    envelope.firstDate = utcDate(Math.min.apply(null, stamps));
+    envelope.lastDate = utcDate(Math.max.apply(null, stamps));
+
+    var shortStart = envelope.requiredFirst && envelope.firstDate > envelope.requiredFirst;
+    var shortEnd = envelope.requiredLast && envelope.lastDate < envelope.requiredLast;
+    if (shortStart || shortEnd) {
+      envelope.state = "partial";
+      envelope.partialReason = shortStart && shortEnd
+        ? "same-origin-history-starts-" + envelope.firstDate + "-and-ends-" + envelope.lastDate
+        : shortStart
+          ? "same-origin-history-starts-" + envelope.firstDate + "-after-required-" + envelope.requiredFirst
+          : "same-origin-history-ends-" + envelope.lastDate + "-before-required-" + envelope.requiredLast;
+      return envelope;
+    }
+
+    // Span is satisfied, so the only remaining question is whether the cache entry is old enough to
+    // report as stale. `stale` is a claim about the RECORD's age, never about the span.
+    envelope.state = info.state === "stale" ? "stale" : "complete";
+    return envelope;
+  }
+
+  root.RLDATA.ensureBarCoverage = ensureBarCoverage;
+  /* ---------- End Feature 008 Scope 04 ---------- */
 })();

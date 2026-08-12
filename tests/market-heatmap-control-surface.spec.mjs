@@ -83,6 +83,16 @@ function declaredParameters() {
   return definition.parameterDefinitions || [];
 }
 
+function constituentSymbols() {
+  const universe = JSON.parse(readFileSync(resolve(SOURCE_ROOT, 'sector-universe.json'), 'utf8'));
+  const constituents = new Set();
+  for (const sectorId of Object.keys(universe.sectorMap || {})) {
+    for (const member of universe.sectorMap[sectorId].constituents || []) constituents.add(member.ticker);
+  }
+  if (!constituents.size) throw new Error('sector-universe.json exposes no constituents — this test would be vacuous');
+  return [...constituents];
+}
+
 /* UNIVERSE-DERIVED, never a hand-written ticker list: the symbols the "sectors"
    grouping needs that the "constituents" grouping does not. Because the page boots
    in "constituents", these are exactly the symbols a grouping-scoped hydration
@@ -95,10 +105,7 @@ function sectorsOnlySymbols() {
   const available = new Set(
     JSON.parse(readFileSync(resolve(SOURCE_ROOT, 'data/bars/index.json'), 'utf8')).tickers.map((entry) => entry.sym)
   );
-  const constituents = new Set();
-  for (const sectorId of Object.keys(universe.sectorMap || {})) {
-    for (const member of universe.sectorMap[sectorId].constituents || []) constituents.add(member.ticker);
-  }
+  const constituents = new Set(constituentSymbols());
   const sectorsOnly = new Set();
   for (const entry of universe.entries || []) {
     if (!entry || entry.on === false) continue;
@@ -154,10 +161,10 @@ async function installHydrationObserver(page) {
   });
 }
 
-/* A BUDGET, NEVER AN ORACLE. Boot hydration now covers the UNION of both groupings — 161
-   symbols, up from the 135 of the constituents-only boot — and RLDATA rewrites the whole
+/* A BUDGET, NEVER AN ORACLE. Boot hydration now covers the UNION of both groupings,
+  beyond the constituents-only boot, and RLDATA rewrites the whole
    cache after every accepted symbol, so per-symbol cost climbs as the cache grows. A
-   measured cold open reached symbol 135 at 105s but symbol 161 only at 218s, and flipped
+  measured cold open reached the constituent set at 105s but the full union only at 218s, and flipped
    the marker to "ready" at 228s: past the previous 240s budget once browser start-up and a
    loaded host are added. Every symbol resolves from a committed same-origin snapshot and
    the observed marker sequence was exactly ["loading","ready"], so this is arrival latency,
@@ -460,8 +467,9 @@ test('BUG-004 SCN-B004-A: direct Simple cold-open requalifies after owner hydrat
   ).toBe(true);
   expect(verdict.state, 'production must accept the hydrated owner state for this assertion to be meaningful').toBe('ready');
   expect(verdict.adapter).toBe(ADAPTER_ID);
-  expect(verdict.pricedCount, 'terminal hydration must price the complete constituent owner set').toBe(135);
-  expect(verdict.coverageCount, 'the owner snapshot must retain all declared constituents').toBe(135);
+  const expectedConstituentCount = constituentSymbols().length;
+  expect(verdict.pricedCount, 'terminal hydration must price the complete constituent owner set').toBe(expectedConstituentCount);
+  expect(verdict.coverageCount, 'the owner snapshot must retain all declared constituents').toBe(expectedConstituentCount);
 
   // THE DISCRIMINATOR: no click, no reload, no synthetic event — the panel must catch up on its own.
   await awaitPanelReadyUntouched(page, 60000);

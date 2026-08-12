@@ -353,7 +353,7 @@ Record an owner table with one row per reported path or shared-file hunk: `path/
 node -e 'const fs=require("node:fs"),crypto=require("node:crypto");const dir="specs/006-trend-dynamics-cycle-lab";const md=fs.readFileSync(dir+"/scopes.md","utf8"),plan=JSON.parse(fs.readFileSync(dir+"/test-plan.json","utf8")),manifest=JSON.parse(fs.readFileSync(dir+"/scenario-manifest.json","utf8")),spec=fs.readFileSync(dir+"/spec.md","utf8");const need=(value,message)=>{if(!value)throw new Error(message)};const same=(left,right)=>left.length===right.length&&left.every((value,index)=>value===right[index]);const marks=[...md.matchAll(/^## Scope (\d+):/gm)];need(marks.length===5,"scope count drift");const markdownIds=[],dodIds=[];for(let index=0;index<marks.length;index+=1){const section=md.slice(marks[index].index,index+1<marks.length?marks[index+1].index:md.length);const rowIds=[...section.matchAll(/^\|[^|\n]*\|\s*(TP-\d{2}-\d{2})\s*\|/gm)].map(match=>match[1]);const scopeDodIds=[...section.matchAll(/^- \[[ x]\].*(TP-\d{2}-\d{2}).*$/gm)].map(match=>match[1]);const jsonIds=plan.scopes[index].tests.map(test=>test.id);need(same(rowIds,jsonIds),"Markdown/JSON row drift in scope "+(index+1));need(same(scopeDodIds,jsonIds),"Test Plan/DoD drift in scope "+(index+1));markdownIds.push(...rowIds);dodIds.push(...scopeDodIds)}const jsonIds=plan.scopes.flatMap(scope=>scope.tests.map(test=>test.id));need(markdownIds.length===50&&new Set(markdownIds).size===50&&same(markdownIds,jsonIds),"50-row plan drift");need(dodIds.length===50&&same(dodIds,jsonIds),"50-item DoD drift");need(manifest.scenarios.length===20&&new Set(manifest.scenarios.map(scenario=>scenario.scenarioId)).size===20,"scenario contract drift");const sha=value=>crypto.createHash("sha256").update(value).digest("hex");need(manifest.scenarios.every(scenario=>scenario.gherkinHash==="sha256:"+sha(JSON.stringify(scenario.gherkin))),"scenario hash drift");const linkedTitles=manifest.scenarios.flatMap(scenario=>scenario.linkedTests.map(test=>test.testId));const commands=plan.scopes.flatMap(scope=>scope.tests.map(test=>test.command)).join("\n");need(linkedTitles.length===22&&new Set(linkedTitles).size===22&&linkedTitles.every(title=>md.includes(title)&&commands.includes(title)),"linked title drift");const fr=(spec.match(/^- \*\*FR-\d{3}:\*\*/gm)||[]).length,nfr=(spec.match(/^- \*\*NFR-\d{3}:\*\*/gm)||[]).length;need(fr===83&&nfr===18,"requirement count drift");need(plan.scopes[0].tests.length===8&&plan.scopes[0].tests.every(test=>test.recoveryProof&&test.recoveryProof.sameCommandGreenRequired===true),"Scope 1 recovery mapping drift");const statuses=[...md.matchAll(/^\*\*Status:\*\* (.+)$/gm)].map(match=>match[1]);need(same(statuses,["In Progress","Not Started","Not Started","Not Started","Not Started"]),"scope status drift");const implementation=(md.match(/### Implementation Files\n\n([\s\S]*?)\n### /)||[])[1]||"";need(implementation.includes("trend-dynamics-cycle-lab.html")&&implementation.includes("scripts/selftest.mjs")&&!implementation.includes("rldata.js"),"implementation declaration drift");console.log("[plan-sync] scopes=5");console.log("[plan-sync] markdown-test-rows="+markdownIds.length);console.log("[plan-sync] json-test-rows="+jsonIds.length);console.log("[plan-sync] dod-test-items="+dodIds.length);console.log("[plan-sync] scenario-contracts="+manifest.scenarios.length);console.log("[plan-sync] valid-scenario-hashes="+manifest.scenarios.length);console.log("[plan-sync] exact-linked-titles="+linkedTitles.length);console.log("[plan-sync] functional-requirements="+fr);console.log("[plan-sync] non-functional-requirements="+nfr);console.log("[plan-sync] scope1-recovery-rows="+plan.scopes[0].tests.length);console.log("[plan-sync] scope-status-order="+statuses.join(","));console.log("[plan-sync] implementation-fallback-target=rldata.js excluded=true");console.log("[plan-sync] OK")'
 ```
 
-### Test Plan - Scope 1
+### Test Plan
 
 TDD evidence remains mandatory for every row. Because historical pre-implementation RED was not captured, Scope 1 uses the explicitly labeled recovery mutation protocol above before accepting the existing implementation; this does not rewrite the historical chronology.
 
@@ -798,7 +798,7 @@ Scenario: SCN-006-016 Detector disagreement remains mixed
 
 **Rollback/restore:** remove only the marker-bounded Scope 2 additions from the Feature 006 selftest group and analytic fixtures, then rerun the unchanged TP-02-01 canary and the accepted Scope 1 browser matrix. No shared harness, foreign fixture, or pre-existing dirty hunk is restored, reset, or rewritten.
 
-### Test Plan - Scope 2
+### Test Plan
 
 Scenario-first TDD is mandatory for every row: capture focused red evidence before its production behavior exists or after a controlled break, then capture green evidence with the same command and assertion identity after implementation.
 
@@ -1276,7 +1276,7 @@ Scenario: SCN-006-017 Lead-lag remains association
 
 **Docs, config, and tests:** `design.md` remains the design authority and is read-only during implementation; the existing closed universe config may gain only evidence-bearing records allowed by this scope; validator, selftest, fixture, and Playwright references must resolve the same method ids, cycle types, catalog ids, fields, and omission rules with zero stale references.
 
-### Test Plan - Scope 3
+### Test Plan
 
 Scenario-first TDD is mandatory for every row: capture focused red evidence before its production behavior exists or after a controlled break, then capture green evidence with the same command and assertion identity after implementation.
 
@@ -1616,7 +1616,7 @@ Build Quality Gate (Scope 3):
 
 ## Scope 4: Complete Simple/Power Experience, Registration, And Publication
 
-**Status:** In Progress
+**Status:** Done
 
 **Progress note (registration delivered):** The page-side work and registration are both delivered
 and verified. The production route computes a verdict through the shared trend model, draws the
@@ -1698,7 +1698,7 @@ Scenario: SCN-006-020 Owner read preserves uncertainty
 
 **Rollback:** remove the three exact registry entries and the new note, then remove only Scope 4 page/test blocks. Preserve all pre-existing dirty content and leave Scopes 1-3 executable.
 
-### Test Plan - Scope 4
+### Test Plan
 
 Scenario-first TDD is mandatory for every row: capture focused red evidence before its production behavior exists or after a controlled break, then capture green evidence with the same command and assertion identity after implementation.
 
@@ -1718,7 +1718,22 @@ Scenario-first TDD is mandatory for every row: capture focused red evidence befo
 
 Core Delivery Items (Scope 4):
 
-- [ ] Every specified Simple/Power screen, truth state, control, chart/table, explanation, focus/announcement path, responsive rule, source audit, and educational/privacy boundary renders from one complete result with no second calculation.
+- [x] Every specified Simple/Power screen, truth state, control, chart/table, explanation, focus/announcement path, responsive rule, source audit, and educational/privacy boundary renders from one complete result with no second calculation.
+
+```
+[SCN-006-019] bootResult=a39f88ac61d3... powerResult=a39f88ac61d3...   (identical)
+[SCN-006-019] chart paintedPixels=2580
+[SCN-006-019] chart equivalent="400 observations from 2025-06-10 to 2026-07-14; low 395.85, high 442.74, last 420.00."
+[SCN-006-019] 390x844 simple docOverflow=0 bodyOverflow=0
+[SCN-006-019] 390x844 power  docOverflow=0 bodyOverflow=0
+[SCN-006-019] 1440x1000 simple docOverflow=0 bodyOverflow=0
+[SCN-006-019] 1440x1000 power  docOverflow=0 bodyOverflow=0
+```
+
+"No second calculation" is the load-bearing clause and is asserted directly: a mode switch must
+preserve the result id, request digest, truth state, and verdict, while a lever change must produce
+a different result id. A page that recomputed on every mode switch, and one whose levers did
+nothing, each fail a different half of that pair.
 - [x] Registration is atomic and identity-equal across `tools.json`, `index.html`, `rlnav.js`, page, config, note, owner read, deep link, and tests; no existing entry is reordered or changed.
 
 ```
@@ -1734,13 +1749,59 @@ Research-Lab self-test: 1554 passed, 0 failed
 The new registry entry is appended last, so no existing entry is reordered; the selftest asserts
 that position explicitly. `build-pages-site.mjs` enforces the contract in both directions, so the
 route now shipping and no longer being excluded are checked together.
-- [ ] The owner read preserves source availability and analytical truth, omits invalid values, exposes caveats, and cannot be published from an invalid edit, partial run, canceled run, or render failure.
-- [ ] The consumer impact sweep is complete and zero stale first-party references remain across navigation, breadcrumbs, redirects, API clients, generated clients, deep links, route/config/note identities, docs, and tests; dirty-file hunk discipline, the central credential boundary, exact rollback, and zero Feature 005/excluded edits are proven.
+- [x] The owner read preserves source availability and analytical truth, omits invalid values, exposes caveats, and cannot be published from an invalid edit, partial run, canceled run, or render failure.
+
+```
+[SCN-006-020] stale       availability=stale   truthState=stale
+[SCN-006-020] degraded    availability=current truthState=degraded
+[SCN-006-020] unavailable published=none      truthText=UNAVAILABLE
+```
+
+The degraded row proves the two axes stay separate: source freshness is `current` while analytical
+truth is `degraded`. `tdcPublishToolRead` refuses unless the result is complete, so the unavailable
+row publishes nothing at all rather than a partial finding.
+- [x] The consumer impact sweep is complete and zero stale first-party references remain across navigation, breadcrumbs, redirects, API clients, generated clients, deep links, route/config/note identities, docs, and tests; dirty-file hunk discipline, the central credential boundary, exact rollback, and zero Feature 005/excluded edits are proven.
+
+```
+$ node scripts/validate-trend-dynamics-cycle.mjs
+[tdc-validator] scope3-stale-reference-sweep=PASS heldout-key=heldOutMinimumGain reconstruction-key=maxAbsoluteError nav-targets=unchanged
+[tdc-validator] scope3-api-generated-client-applicability=PASS api=none generated-clients=none
+[tdc-validator] scope4-registration-identity=PASS route=trend-dynamics-cycle-lab.html model=simple-model/trend-confirmation/v1 adapter=simple-adapter/trend-confirmation/v1 journeys=2 steps=7 excluded=no
+$ npx --no-install playwright test tests/provider-credentials.spec.mjs --project=system-chrome
+  8 passed (6.2s)
+```
+
+Every registry-declared path is fetched and required to exist, so a declared note or config that is
+not served cannot pass. The credential-boundary suite is rerun unchanged, and no Feature 005 or
+excluded file was touched.
 
 Test Evidence Items (Scope 4; Exact Parity With 9 Test Plan Rows):
 
-- [ ] TP-04-01 focused red then green unit evidence proves view-model, owner-read, registry, safe-text, and shared-read invariants.
-- [ ] TP-04-02 focused red then green validator evidence proves page/config/note/registry/symbol/publication contracts.
+- [x] TP-04-01 focused red then green unit evidence proves view-model, owner-read, registry, safe-text, and shared-read invariants.
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 1554 passed, 0 failed
+```
+
+Red evidence: registering the tool made eleven previously-green assertions fail at once
+(`expected 23 ordinary tools ... got 24`, `toolCoverage missing registered tools:
+trend-dynamics-cycle-lab`, and the participant/source/journey inventory counts). Those failures
+are the registry invariants proving they are live rather than decorative; each was resolved by
+updating the pinned inventory to the new truth, not by relaxing the check.
+
+- [x] TP-04-02 focused red then green validator evidence proves page/config/note/registry/symbol/publication contracts.
+
+```
+$ node scripts/validate-trend-dynamics-cycle.mjs
+[tdc-validator] scope3-consumer-sweep=PASS page-functions=11 selftest-marker=Feature-006 browser-titles=20 fixture-routes=2
+[tdc-validator] scope4-registration-identity=PASS route=trend-dynamics-cycle-lab.html model=simple-model/trend-confirmation/v1 adapter=simple-adapter/trend-confirmation/v1 journeys=2 steps=7 excluded=no
+[tdc-validator] OK          (exit 0)
+```
+
+Non-vacuous: re-adding the route to `site-exclusions.json` while it is registered makes the same
+command exit 1 with `the tool is registered but still listed as a site exclusion, so the deploy
+artifact would drop it`. Reverted before commit.
 - [x] TP-04-03 focused red then green evidence proves inline script syntax and ID integrity.
 
 ```
@@ -1820,25 +1881,51 @@ $ npx --no-install playwright test tests/provider-credentials.spec.mjs --config=
   8 passed (6.2s)
 ```
 
-- [ ] Broader E2E regression suite passes through TP-04-09 after all focused Scope 4 rows pass.
+- [x] Broader E2E regression suite passes through TP-04-09 after all focused Scope 4 rows pass.
 
 ```
 $ npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs \
     --project=system-chrome --reporter=list
-  19 passed (14.9s)
+  20 passed (13.9s)
+$ npx --no-install playwright test tests/tool-discovery.spec.mjs tests/tool-experience.spec.mjs \
+    tests/journey.spec.mjs tests/simple-models.spec.mjs tests/simple-model-adapters-market.spec.mjs \
+    tests/simple-production-wiring.spec.mjs tests/trend-dynamics-cycle-lab.spec.mjs --project=system-chrome
+  52 passed (3.9m)
 $ node scripts/selftest.mjs
-Research-Lab self-test: 1540 passed, 0 failed
-$ node scripts/validate-trend-dynamics-cycle.mjs
-[tdc-validator] OK          (exit 0)
+Research-Lab self-test: 1554 passed, 0 failed
+$ node scripts/build-pages-site.mjs
+{"registeredPages":25,"excludedPaths":6,...}          (exit 0)
 ```
 
-The suite is green; this row stays unchecked because TP-04-01, TP-04-02, and TP-04-07 have not
-completed, and TP-04-09 is defined as passing *after* all focused rows pass.
+The registration-sensitive browser suites are run alongside the tool's own, because registering a
+tool changes the shared nav on every page and the registry every discovery surface reads.
 
 
 Build Quality Gate (Scope 4):
 
-- [ ] Scope 4 focused commands, path/hunk classification, consumer stale-reference audit, artifact lint, freshness, traceability, G094, and unchanged existing registry/credential canaries are recorded; every Scope 4 finding is fixed and rerun.
+- [x] Scope 4 focused commands, path/hunk classification, consumer stale-reference audit, artifact lint, freshness, traceability, G094, and unchanged existing registry/credential canaries are recorded; every Scope 4 finding is fixed and rerun.
+
+```
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/006-trend-dynamics-cycle-lab
+Artifact lint PASSED.                                        (exit 0)
+$ node scripts/pii-scan.mjs
+[pii-scan] files=5859 messages=1140 findings=0 OK            (exit 0)
+$ bash .github/bubbles/scripts/traceability-guard.sh specs/006-trend-dynamics-cycle-lab
+Test rows checked: 50 | Scenario-to-row mappings: 20 | Concrete test file references: 20
+Report evidence references: 20 | DoD fidelity scenarios: 20 (mapped: 20, unmapped: 0)
+RESULT: PASSED (0 warnings)
+$ node scripts/selftest.mjs
+Research-Lab self-test: 1554 passed, 0 failed
+```
+
+The traceability guard found a real defect rather than merely passing. It had been reporting
+`FAILED (5 failures)` with `no recognized Test Plan section` for all five scopes, because this spec
+used `### Test Plan - Scope N` while the guard matches the exact heading. Its counters showed the
+consequence plainly: 0 concrete test file references and 0 report evidence references, meaning the
+guard was structurally inert here and would have stayed silent through any traceability
+regression. The repo convention is the exact heading (148 exact against 11 suffixed, 10 of the 11
+in this spec), so the headings were conformed rather than the guard weakened. It now checks 50
+test rows and maps all 20 scenarios.
 
 ---
 
@@ -1901,7 +1988,7 @@ Scenario: SCN-006-007 Retrospective anatomy cannot claim foresight
 
 **Rollback:** remove Scope 5 replay/history/scheduler/UI/test blocks while retaining the complete non-replay Scope 1-4 tool; registry rollback remains the exact Scope 4 hunk if the whole feature is withdrawn.
 
-### Test Plan - Scope 5
+### Test Plan
 
 Scenario-first TDD is mandatory for every row: capture focused red evidence before its production behavior exists or after a controlled break, then capture green evidence with the same command and assertion identity after implementation.
 

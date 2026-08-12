@@ -552,4 +552,52 @@ console.log('[tdc-validator] scope3-consumer-sweep=PASS page-functions=' + requi
   + ' selftest-marker=Feature-006 browser-titles=' + sweepBrowserTitles + ' fixture-routes=2');
 console.log('[tdc-validator] scope3-stale-reference-sweep=PASS heldout-key=heldOutMinimumGain reconstruction-key=maxAbsoluteError nav-targets=unchanged');
 console.log('[tdc-validator] scope3-api-generated-client-applicability=PASS api=none generated-clients=none');
+
+/* Scope 4 registration identity. Every surface that names this tool must name the SAME route,
+   note, config, Simple model, and journeys. Registration spans six files, so a partial move is
+   the realistic failure; comparing them against one another is what detects it. */
+const registryEntry = JSON.parse(fs.readFileSync(path.join(root, 'tools.json'), 'utf8'))
+  .tools.find((tool) => tool.id === 'trend-dynamics-cycle-lab');
+assert.ok(registryEntry, 'the tool is absent from tools.json, so it is not registered');
+assert.equal(registryEntry.file, 'trend-dynamics-cycle-lab.html', 'registry route differs from the page');
+assert.equal(registryEntry.notes, 'notes/trend-dynamics-cycle-lab.md', 'registry note path differs');
+assert.equal(registryEntry.data, 'trend-dynamics-cycle-universe.json', 'registry config path differs');
+for (const declared of [registryEntry.file, registryEntry.notes, registryEntry.data]) {
+  assert.ok(fs.existsSync(path.join(root, declared)), 'registry declares a path that does not exist: ' + declared);
+}
+assert.ok(fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes("file: 'trend-dynamics-cycle-lab.html'"),
+  'the landing registry does not carry the route');
+assert.ok(fs.readFileSync(path.join(root, 'rlnav.js'), 'utf8').includes('file: "trend-dynamics-cycle-lab.html"'),
+  'the shared nav does not carry the route');
+const exclusions = JSON.parse(fs.readFileSync(path.join(root, 'site-exclusions.json'), 'utf8'));
+assert.ok(!exclusions.files.some((entry) => entry.path.startsWith('trend-dynamics-cycle')),
+  'the tool is registered but still listed as a site exclusion, so the deploy artifact would drop it');
+
+const simpleModel = JSON.parse(fs.readFileSync(path.join(root, 'simple-models.json'), 'utf8'))
+  .definitions.find((definition) => definition.toolId === 'trend-dynamics-cycle-lab');
+assert.ok(simpleModel, 'no Simple model definition is registered for the tool');
+assert.equal(simpleModel.definitionId, registryEntry.experience.simpleModelDefinitionId, 'Simple model id differs from the registry');
+assert.equal(simpleModel.adapterId, registryEntry.experience.simpleAdapterId, 'Simple adapter id differs from the registry');
+assert.equal(simpleModel.adapterModule, registryEntry.experience.simpleAdapterModule, 'Simple adapter module differs from the registry');
+const adapterRequire = (await import('node:module')).createRequire(import.meta.url);
+const adapterModule = adapterRequire(path.join(root, simpleModel.adapterModule)).supportedAdapterIds;
+assert.ok(adapterModule.includes(simpleModel.adapterId),
+  'the adapter module does not declare the registered adapter id, so the model cannot be produced');
+
+const journeys = JSON.parse(fs.readFileSync(path.join(root, 'journeys.json'), 'utf8'));
+const toolJourneys = journeys.definitions.filter((definition) => definition.toolId === 'trend-dynamics-cycle-lab');
+assert.ok(toolJourneys.length >= 2, 'an ordinary tool must reference at least two journey goals, found ' + toolJourneys.length);
+assert.deepEqual(
+  toolJourneys.map((definition) => definition.definitionId).sort(),
+  registryEntry.experience.journeyDefinitionIds.slice().sort(),
+  'journey definitions and the registry references do not match exactly');
+const declaredStepIds = toolJourneys.flatMap((definition) => definition.stepIds).sort();
+const actualStepIds = journeys.steps
+  .filter((step) => toolJourneys.some((definition) => definition.definitionId === step.definitionId))
+  .map((step) => step.stepId).sort();
+assert.deepEqual(declaredStepIds, actualStepIds, 'declared journey steps and actual steps do not match exactly');
+
+console.log('[tdc-validator] scope4-registration-identity=PASS route=' + registryEntry.file
+  + ' model=' + simpleModel.definitionId + ' adapter=' + simpleModel.adapterId
+  + ' journeys=' + toolJourneys.length + ' steps=' + declaredStepIds.length + ' excluded=no');
 console.log('[tdc-validator] OK');

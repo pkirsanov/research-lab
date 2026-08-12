@@ -166,6 +166,9 @@ the same analysis keeps one id across runs and two results stay comparable.
 - The route is contained with no horizontal overflow at 390×844 and 1440×1000, measured in
   **both** modes — Power is the demanding case because that is where the dense panels
   render.
+- The observed-series chart is drawn synchronously and carries a hover tooltip through the
+  shared `RLCHART.attach` hit-test, plus a text equivalent stating the observation count,
+  the date range, and the low/high/last values for anyone not reading pixels.
 
 ## Run Handoff
 
@@ -182,11 +185,10 @@ npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs \
 Stated here so the note is not read as a completion claim:
 
 - Scope 5 (as-of replay and revision records) is not started. The Power change-replay entry
-  point exists only as far as Scope 4 requires.
+  shows the current turning record's effective and detected observations and the delay
+  between them; replaying a run at an earlier cutoff is Scope 5.
 - The route is intentionally **not registered** in `tools.json`, `index.html`, or
   `rlnav.js`, and is listed in `site-exclusions.json`. Registration is Scope 4's own atomic
   step and moves together with the two selftest assertions that currently pin the exclusion.
-- Chart redraw-on-reveal is implemented in `tdcApplyMode` but no draw handler is wired yet;
-  the charts arrive with the remaining Scope 4 screens.
 
 **Educational research only. Not investment advice.**

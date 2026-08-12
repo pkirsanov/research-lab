@@ -393,6 +393,14 @@
     body:not(.power) .pw {
       display: none;
     }
+
+    /* Width-constrained so the chart can never push the layout wide at 390px. */
+    #trendChart {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+    }
   </style>
 </head>
 
@@ -446,6 +454,10 @@
             <dd id="endpointPosture">Unavailable</dd>
           </div>
         </dl>
+        <h3>Observed series</h3>
+        <canvas id="trendChart" width="640" height="180" role="img"
+          aria-label="Observed series with the current turning record marked"></canvas>
+        <p id="trendChartEquivalent" class="outcome">No observations are available to chart.</p>
         <h3>Type-specific evidence</h3>
         <p id="cycleDetails" class="outcome">No type-specific record is active.</p>
         <p class="notice">Educational research only. This foundation is not investment advice, an automated execution
@@ -3136,6 +3148,59 @@
       }
     }
 
+    /* Draws the observed series and marks the turning record's effective and detected points
+       separately, so the confirmation lag is visible rather than implied. Returns false when
+       there is nothing to draw, so the caller leaves the text equivalent standing. */
+    function tdcDrawTrendChart(observations, turningRecord) {
+      var canvas = document.getElementById('trendChart');
+      if (!canvas || typeof canvas.getContext !== 'function' || !Array.isArray(observations) || observations.length < 2) return false;
+      var context = canvas.getContext('2d');
+      if (!context) return false;
+      var width = canvas.width;
+      var height = canvas.height;
+      var padding = 10;
+      var values = observations.map(function (observation) { return observation.value; });
+      var minimum = Math.min.apply(null, values);
+      var maximum = Math.max.apply(null, values);
+      var span = maximum - minimum || 1;
+      var xAt = function (index) { return padding + (index / (values.length - 1)) * (width - 2 * padding); };
+      var yAt = function (value) { return height - padding - ((value - minimum) / span) * (height - 2 * padding); };
+      context.clearRect(0, 0, width, height);
+      context.strokeStyle = '#3b5bdb';
+      context.lineWidth = 1.5;
+      context.beginPath();
+      for (var index = 0; index < values.length; index += 1) {
+        if (index === 0) context.moveTo(xAt(index), yAt(values[index]));
+        else context.lineTo(xAt(index), yAt(values[index]));
+      }
+      context.stroke();
+      if (turningRecord && Number.isFinite(turningRecord.effectiveIndex)) {
+        var markers = [{ index: turningRecord.effectiveIndex, colour: '#c92a2a' }];
+        if (Number.isFinite(turningRecord.detectionIndex)) markers.push({ index: turningRecord.detectionIndex, colour: '#2b8a3e' });
+        markers.forEach(function (marker) {
+          if (marker.index < 0 || marker.index >= values.length) return;
+          context.fillStyle = marker.colour;
+          context.beginPath();
+          context.arc(xAt(marker.index), yAt(values[marker.index]), 3.5, 0, Math.PI * 2);
+          context.fill();
+        });
+      }
+      if (window.RLCHART && typeof RLCHART.attach === 'function') {
+        RLCHART.attach(canvas, function (mx) {
+          // RLCHART reports CSS pixels; the canvas is width-constrained, so convert to its space.
+          var rect = canvas.getBoundingClientRect();
+          var scale = rect.width ? canvas.width / rect.width : 1;
+          var index = Math.round((((mx * scale) - padding) / (width - 2 * padding)) * (values.length - 1));
+          if (!Number.isFinite(index) || index < 0 || index >= values.length) return null;
+          var role = turningRecord && index === turningRecord.effectiveIndex ? 'turn became effective here'
+            : turningRecord && index === turningRecord.detectionIndex ? 'turn became detectable here'
+              : 'observed close';
+          return RLCHART.tip(observations[index].observedAt.slice(0, 10), [['value', values[index].toFixed(2)]], role);
+        });
+      }
+      return true;
+    }
+
     /* A mode change is a VIEW change only. It redraws from the last complete result and never
        computes, fetches or publishes, so Simple and Power cannot drift onto different runs.
        An unknown mode is refused before anything mutates. */
@@ -3800,6 +3865,17 @@
           ? 'Not yet detectable — the confirmation window has not closed.'
           : observedAtIndex(turningRecord.detectionIndex) + ' (' + turningRecord.delay + ' observations after effective)');
         tdcSetText('replayRetrospective', turningRecord.state);
+      }
+      // Drawn synchronously so the canvas is never left blank, with a text equivalent carrying
+      // the same endpoints and range for anyone not reading pixels.
+      if (tdcDrawTrendChart(resolved.observations, turningRecord)) {
+        var chartValues = resolved.observations.map(function (observation) { return observation.value; });
+        tdcSetText('trendChartEquivalent', resolved.observations.length + ' observations from '
+          + resolved.observations[0].observedAt.slice(0, 10) + ' to '
+          + resolved.observations[resolved.observations.length - 1].observedAt.slice(0, 10)
+          + '; low ' + Math.min.apply(null, chartValues).toFixed(2)
+          + ', high ' + Math.max.apply(null, chartValues).toFixed(2)
+          + ', last ' + chartValues[chartValues.length - 1].toFixed(2) + '.');
       }
       tdcSetText('publicationState', publication.published
         ? 'Owner read published for the foundation state.'

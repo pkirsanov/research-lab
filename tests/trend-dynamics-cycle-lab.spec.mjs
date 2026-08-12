@@ -560,6 +560,23 @@ test('Regression: SCN-006-020 the production route computes a verdict and publis
     expect(replay.detected).toBe('No turning record is active.');
     console.log('[SCN-006-019] replay: no current turning record in this window');
   }
+
+  // The chart must be drawn synchronously and be NONBLANK. Sampling pixels is the only way to
+  // tell a rendered chart from an empty canvas that merely exists.
+  const chart = await page.evaluate(() => {
+    const canvas = document.getElementById('trendChart');
+    const ctx = canvas.getContext('2d');
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    let painted = 0;
+    for (let i = 3; i < data.length; i += 4) if (data[i] !== 0) painted++;
+    return { painted, equivalent: document.getElementById('trendChartEquivalent').textContent.trim() };
+  });
+  expect(chart.painted, 'the trend canvas is blank').toBeGreaterThan(0);
+  // A text equivalent must carry the same series facts for anyone not reading pixels.
+  expect(chart.equivalent).toMatch(/\d+ observations from \d{4}-\d{2}-\d{2} to \d{4}-\d{2}-\d{2}/);
+  expect(chart.equivalent).toMatch(/low .*high .*last/);
+  console.log('[SCN-006-019] chart paintedPixels=' + chart.painted);
+  console.log('[SCN-006-019] chart equivalent="' + chart.equivalent + '"');
   console.log('[SCN-006-020] direction=' + stored.metrics.direction + ' trendType=' + stored.metrics.trendType);
   console.log('[SCN-006-020] truthState=' + stored.metrics.truthState + ' availability=' + stored.availability);
   console.log('[SCN-006-020] resultId=' + stored.metrics.resultId.slice(0, 16));

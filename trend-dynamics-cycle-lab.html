@@ -3161,6 +3161,8 @@
         strength: input.strength || null,
         dynamics: input.dynamics || null,
         changeState: input.changeState || null,
+        confidencePct: Number.isFinite(input.confidencePct) ? input.confidencePct : null,
+        keyContext: input.keyContext || null,
         complete: complete
       };
       var resultDigest = tdcStableDigest(content);

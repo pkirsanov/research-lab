@@ -7249,6 +7249,52 @@ try {
     'method results are sorted by stable id rather than arrival order, so the digest cannot change with scheduling');
 } catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab assembly threw): ' + e.message); }
 
+/* ── trend-dynamics-cycle-lab — assembly feeds the publishers (TP-04-01, spec 006 scope 4) ─────
+   The assembly and the owner read were built separately against the same written contract, which
+   is exactly the situation where a field name quietly diverges and nobody notices until the Brief
+   shows a gap. This drives the REAL pipeline end to end -- assemble, read, publish -- instead of
+   handing the publishers a fixture shaped the way they happen to want. */
+try {
+  group('trend-dynamics-cycle-lab \u2014 an assembled result survives the whole publish pipeline (TP-04-01)');
+  const e2eSrc = read('trend-dynamics-cycle-lab.html');
+  const e2eEnv = build([
+    extractFn(e2eSrc, 'tdcIsPlainObject'), extractFn(e2eSrc, 'tdcError'),
+    extractFn(e2eSrc, 'tdcStableSerialize'), extractFn(e2eSrc, 'tdcStableDigest'),
+    extractFn(e2eSrc, 'tdcDeepFreeze'), extractFn(e2eSrc, 'tdcAssembleResult'),
+    extractFn(e2eSrc, 'tdcComposeReadSentence'), extractFn(e2eSrc, 'tdcBuildDeepLink'),
+    extractFn(e2eSrc, 'tdcBuildToolRead'), extractFn(e2eSrc, 'tdcPublishToolRead')
+  ], ['tdcAssembleResult', 'tdcBuildToolRead', 'tdcPublishToolRead']);
+
+  const assembled = e2eEnv.tdcAssembleResult({
+    request: { seriesId: 'srs-e2e', transformId: 'level', horizonId: 'medium', profileId: 'balanced' },
+    registryVersion: 'reg-1', configDigest: 'cfg-1',
+    computedAt: '2026-08-11T12:00:00Z', decisionTime: '2026-08-11T00:00:00Z',
+    sourceAsOf: '2026-08-10', sourceAvailability: 'current', truthState: 'current',
+    requiredMethodIds: ['M01'], methodResults: [{ methodId: 'M01', state: 'eligible' }],
+    trend: { direction: 'rising', trendType: 'linear' }, strength: { score: 0.81 },
+    dynamics: { state: 'accelerating' }, changeState: 'stable',
+    confidencePct: 77, keyContext: 'expansion', timings: { totalMs: 3.2 }
+  });
+
+  const readOut = e2eEnv.tdcBuildToolRead(assembled);
+  assert(readOut && readOut.metrics.resultId === assembled.resultId && readOut.metrics.requestDigest === assembled.requestDigest,
+    'the published read carries the assembled result\u2019s own identity, so a reader can trace the Brief line back to the run');
+  assert(readOut.metrics.direction === 'rising' && readOut.metrics.trendType === 'linear'
+    && readOut.metrics.dynamics === 'accelerating' && readOut.metrics.changeState === 'stable',
+    'every verdict field crosses the assembly/publisher boundary intact');
+  assert(readOut.metrics.strengthScore === 0.81,
+    'the strength measurement crosses intact at full precision, since the owner read is not a display surface');
+  assert(readOut.metrics.confidencePct === 77 && readOut.metrics.keyContext === 'expansion',
+    'confidence and key context survive assembly \u2014 a field the assembly forgot to carry would silently vanish from the Brief');
+  assert(readOut.deepLink.indexOf('series=srs-e2e') > 0,
+    'the deep link is built from the assembled request, so it returns to the run that was published');
+
+  const sent = [];
+  const published = e2eEnv.tdcPublishToolRead(assembled, (id, payload) => { sent.push([id, payload]); return true; });
+  assert(published.published === true && sent.length === 1 && sent[0][1].metrics.resultId === assembled.resultId,
+    'the assembled result publishes end to end, so step 1 and step 3 are proven to agree on one contract');
+} catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab pipeline threw): ' + e.message); }
+
 /* ---------- Bond regime: one-model parity guarantee (spec 018 Scope 6) ----------
    The highest-value test in feature 018. It makes the Outcome Contract's hard constraint — ONE
    model, two compositions — checkable rather than asserted.

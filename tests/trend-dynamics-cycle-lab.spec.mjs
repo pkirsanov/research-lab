@@ -533,3 +533,53 @@ test('Regression: SCN-006-020 the production route computes a verdict and publis
   console.log('[SCN-006-020] truthState=' + stored.metrics.truthState + ' availability=' + stored.availability);
   console.log('[SCN-006-020] resultId=' + stored.metrics.resultId.slice(0, 16));
 });
+
+// Scope 4's UI matrix requires the route to hold at 390x844 and 1440x1000, to be operable by
+// keyboard, and to expose state through more than colour. Horizontal overflow is the failure
+// that actually strands a phone reader: the verdict scrolls off-screen and nothing says so.
+test('Regression: SCN-006-019 the route stays contained and keyboard-operable at both breakpoints', async ({ page }) => {
+  await page.goto(`${baseUrl}/trend-dynamics-cycle-lab.html?fixture=trend-engine&case=sustained&profile=balanced&clock=${CLOCK}`);
+  await expect(page.locator('#truthState')).toBeVisible();
+
+  for (const [width, height] of [[390, 844], [1440, 1000]]) {
+    await page.setViewportSize({ width, height });
+    // Measured in BOTH modes. Simple hides the dense engine panels, so checking it alone would
+    // be the easy case; Power is where the tables and matrices can actually push the layout wide.
+    for (const mode of ['simple', 'power']) {
+      await page.locator(`#modeSeg button[data-mode="${mode}"]`).click();
+      const overflow = await page.evaluate(() => ({
+        doc: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        body: document.body.scrollWidth - document.body.clientWidth
+      }));
+      expect(overflow.doc, `document overflows horizontally at ${width}px in ${mode}`).toBeLessThanOrEqual(1);
+      expect(overflow.body, `body overflows horizontally at ${width}px in ${mode}`).toBeLessThanOrEqual(1);
+      console.log(`[SCN-006-019] ${width}x${height} ${mode} docOverflow=${overflow.doc} bodyOverflow=${overflow.body}`);
+    }
+  }
+
+  // The mode control must be reachable and operable without a pointer.
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const powerTab = page.locator('#modeSeg button[data-mode="power"]');
+  await powerTab.focus();
+  await expect(powerTab).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('body')).toHaveClass(/power/);
+  await expect(powerTab).toHaveAttribute('aria-selected', 'true');
+
+  // State is exposed structurally, not by colour alone: the tablist carries roles and the
+  // selected tab is announced through aria-selected rather than styling only.
+  const roles = await page.evaluate(() => {
+    const seg = document.getElementById('modeSeg');
+    return {
+      tablist: seg.getAttribute('role'),
+      label: seg.getAttribute('aria-label'),
+      tabs: [...seg.querySelectorAll('button')].map((b) => b.getAttribute('role'))
+    };
+  });
+  expect(roles.tablist).toBe('tablist');
+  expect(roles.label).toBeTruthy();
+  expect(roles.tabs).toEqual(['tab', 'tab']);
+
+  // The fixture band is a live region, so a status change is announced rather than only drawn.
+  await expect(page.locator('#fixtureBand')).toHaveAttribute('aria-live', 'polite');
+});

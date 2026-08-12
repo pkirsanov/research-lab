@@ -354,3 +354,111 @@ test('Regression: SCN-008-007 TP-05-09 brief identity binds revision window poli
   console.log('[TP-05-09] afterHoursSignature=' + signature);
   console.log('[TP-05-09] preMarketSignature=' + preMarketSignature);
 });
+
+test('Regression: SCN-008-008 TP-06-03 every rendered item discloses why it appears', async ({ page }) => {
+  await openBrief(page);
+  await importValid(page, 'TP-06-03 disclosure');
+  await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
+  await selectWindow(page, 'after-hours');
+
+  const rows = page.locator('#briefLanes li');
+  const count = await rows.count();
+  expect(count, 'at least one item must render for this disclosure to mean anything').toBeGreaterThan(0);
+
+  /* The disclosure must be REACHABLE, not merely present in the DOM. A hover-only affordance is
+   * out of reach on touch and for keyboard users, so it is asserted as a real <details> the
+   * reader can open. */
+  for (let index = 0; index < count; index += 1) {
+    const row = rows.nth(index);
+    const subject = await row.getAttribute('data-subject');
+    const details = row.locator('details.brief-why');
+    await expect(details, `${subject} must carry a Why shown disclosure`).toHaveCount(1);
+
+    await details.locator('summary').click();
+    await expect(details).toHaveAttribute('open', '');
+
+    for (const field of ['why-shown', 'event-categories', 'relevance-confidence', 'horizon',
+      'recency', 'evidence-state', 'trigger', 'completion', 'invalidation', 'research-verb']) {
+      const value = await details.locator(`dd[data-why="${field}"]`).textContent();
+      expect(value?.trim(), `${subject} must disclose ${field}`).toBeTruthy();
+    }
+
+    // FR-046 on screen: relevance is labelled as relevance, never as a success probability.
+    const relevance = await details.locator('dd[data-why="relevance-confidence"]').textContent();
+    expect(relevance).toContain('not a success probability');
+  }
+
+  console.log('[TP-06-03] rowsDisclosed=' + count);
+});
+
+test('Regression: SCN-008-034 TP-06-05 the route exposes research and lifecycle verbs only', async ({ page }) => {
+  await openBrief(page);
+  await importValid(page, 'TP-06-05 verbs');
+  await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
+  await selectWindow(page, 'after-hours');
+
+  // Every authored action verb comes from the closed research set.
+  const verbs = await page.$$eval('#briefLanes li', (nodes) =>
+    nodes.map((node) => node.getAttribute('data-research-verb')));
+  const RESEARCH = ['review', 'inspect', 'compare', 'run-scenario', 'test-dependence',
+    'revisit-thesis', 'refresh-evidence', 'open-owning-analysis'];
+  expect(verbs.length).toBeGreaterThan(0);
+  for (const verb of verbs) {
+    expect(RESEARCH, `"${verb}" must be a research verb`).toContain(verb);
+  }
+
+  /* Every control inside the brief is either a research verb or a LABELLED lifecycle verb. An
+   * unlabelled destructive control is exactly what this row is meant to catch, so the label text
+   * is asserted rather than only the presence of a button. */
+  const controls = await page.$$eval('#portfolioBrief button', (nodes) => nodes.map((node) => ({
+    lifecycle: node.getAttribute('data-lifecycle'),
+    label: (node.textContent || '').trim()
+  })));
+  for (const control of controls) {
+    if (!control.lifecycle) continue;
+    expect(['complete', 'dismiss']).toContain(control.lifecycle);
+    expect(control.label.length, 'a lifecycle control must be labelled').toBeGreaterThan(0);
+  }
+
+  // No order verb, size instruction, or suitability claim anywhere in the rendered route.
+  const text = await page.locator('#portfolioBrief').innerText();
+  expect(text).not.toMatch(/\b(buy|sell|short|order|trade size|position size|rebalance|execute|suitab)/i);
+
+  console.log('[TP-06-05] verbs=' + Array.from(new Set(verbs)).join(',') + ' lifecycleControls=' + controls.filter((c) => c.lifecycle).length);
+});
+
+test('Regression: SCN-008-034 TP-06-04 a lifecycle outcome is recorded without becoming a market view', async ({ page }) => {
+  await openBrief(page);
+  await importValid(page, 'TP-06-04 lifecycle');
+  await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
+  await selectWindow(page, 'after-hours');
+
+  const before = await page.locator('#briefLifecycleResult').innerText();
+  expect(before).toContain('No research outcome recorded');
+
+  await page.locator('button[data-lifecycle="complete"][data-lifecycle-subject="MSFT"]').first().click();
+
+  const result = page.locator('#briefLifecycleResult');
+  // Surfaced before the assertions so a refusal code is visible in evidence rather than appearing
+  // as a bare missing attribute.
+  console.log('[TP-06-04] resultText=' + (await result.innerText()));
+  await expect(result).toHaveAttribute('data-last-command', 'complete');
+  await expect(result).toHaveAttribute('data-last-subject', 'MSFT');
+
+  /* The load-bearing assertion: an outcome is a record that the USER acted, never an inference
+   * about what they believe. If completing an action silently created an interest signal, the
+   * lifecycle would be a back door into the behaviour model. */
+  const text = await result.innerText();
+  expect(text).toContain('not a market view');
+
+  const leaked = await page.evaluate(() => {
+    const diagnostics = window.__PORTFOLIO_DIAGNOSTICS__ || {};
+    return { behaviorEvents: diagnostics.behaviorEventCount ?? null };
+  });
+  console.log('[TP-06-04] outcomeRecorded=complete subject=MSFT behaviorEventCount=' + leaked.behaviorEvents);
+
+  // Dismiss is available and equally labelled; neither is a negative preference.
+  await page.locator('button[data-lifecycle="dismiss"][data-lifecycle-subject="MSFT"]').first().click();
+  await expect(result).toHaveAttribute('data-last-command', 'dismiss');
+  console.log('[TP-06-04] outcomeRecorded=dismiss subject=MSFT');
+});

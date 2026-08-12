@@ -698,6 +698,7 @@
                     <div id="briefStates" class="state-message" role="status">Brief unavailable.</div>
                     <div id="briefIdentity" class="state-message">No brief identity.</div>
                     <div id="briefLanes" class="brief-lanes"></div>
+                    <div id="briefLifecycleResult" class="state-message" role="status">No research outcome recorded.</div>
                     <h3>No current action</h3>
                     <div id="briefNoAction" class="brief-no-action"></div>
                 </div>
@@ -1506,8 +1507,17 @@
                             row.setAttribute("data-subject", item.subjectId);
                             row.setAttribute("data-lane", item.lane);
                             row.setAttribute("data-scope-source", item.scopeSource);
+                            row.setAttribute("data-research-verb", item.explanation.researchVerb);
+                            row.setAttribute("data-relevance-confidence", item.explanation.relevanceConfidence);
+                            row.setAttribute("data-evidence-state", item.explanation.evidenceState);
+                            row.setAttribute("data-recency-state", item.explanation.recency.state);
+                            row.setAttribute("data-not-a-known-holding", String(item.notAKnownHolding));
                             var words = [item.subjectId, item.scopeSource];
                             if (item.alsoQualifiesVia.length) words.push("also qualifies via " + item.alsoQualifiesVia.join(", "));
+                            var headline = document.createElement("span");
+                            headline.textContent = words.join(" · ");
+                            row.appendChild(headline);
+
                             /* FR-060/FR-061 in the UI: route to the owning tool when one exists,
                                otherwise say the capability is unowned. Never a fabricated result. */
                             if (item.owner && item.owner.href) {
@@ -1515,22 +1525,81 @@
                                 var link = document.createElement("a");
                                 link.href = item.owner.href;
                                 link.rel = "noreferrer";
-                                link.textContent = "open " + item.owner.toolId;
-                                row.textContent = words.join(" · ") + " · ";
+                                link.textContent = " open " + item.owner.toolId;
                                 row.appendChild(link);
-                                list.appendChild(row);
-                                return;
+                            } else {
+                                row.setAttribute("data-unowned-capability", "true");
+                                var gap = document.createElement("span");
+                                gap.textContent = " · no owning tool";
+                                row.appendChild(gap);
                             }
-                            row.setAttribute("data-unowned-capability", "true");
-                            words.push("no owning tool");
-                            row.textContent = words.join(" · ");
+
+                            /* FR-045. The disclosure travels WITH the item. A <details> keeps it
+                               out of the way without hiding it behind hover, which would put it
+                               out of reach on touch and for keyboard users. */
+                            var why = document.createElement("details");
+                            why.className = "brief-why";
+                            why.setAttribute("data-why-shown", item.subjectId);
+                            var summary = document.createElement("summary");
+                            summary.textContent = "Why shown";
+                            why.appendChild(summary);
+                            var dl = document.createElement("dl");
+                            [
+                                ["why-shown", "Why shown", item.explanation.whyShown],
+                                ["event-categories", "Evidence event categories", item.explanation.evidenceEventCategories.join(", ") || "none"],
+                                ["relevance-confidence", "Relevance confidence", item.explanation.relevanceConfidence + " (relevance only, not a success probability)"],
+                                ["horizon", "Horizon", item.explanation.horizon || "unstated"],
+                                ["recency", "Recency", item.explanation.recency.state + " · " + item.explanation.recency.ageDays + "d · weight " + item.explanation.recency.weight],
+                                ["evidence-state", "Evidence freshness", item.explanation.evidenceState + (item.supportsCurrentActionAsFresh ? "" : " (not usable as fresh)")],
+                                ["trigger", "Trigger", item.explanation.triggerCondition],
+                                ["completion", "Completes when", item.explanation.completionCondition],
+                                ["invalidation", "Invalidated when", item.explanation.invalidationCondition],
+                                ["confirmation", "Confirmation basis", item.confirmationBasis],
+                                ["research-verb", "Research action", item.explanation.researchVerb]
+                            ].forEach(function (pair) {
+                                var dt = document.createElement("dt");
+                                dt.textContent = pair[1];
+                                var dd = document.createElement("dd");
+                                dd.setAttribute("data-why", pair[0]);
+                                dd.textContent = String(pair[2]);
+                                dl.appendChild(dt);
+                                dl.appendChild(dd);
+                            });
+                            why.appendChild(dl);
+                            row.appendChild(why);
+
+                            /* FR-055/FR-062. Lifecycle verbs only. Both are labelled, so neither is
+                               an unlabelled destructive action, and neither is a market view. The
+                               button carries the ACTION identity, not the subject: the same subject
+                               authored in two windows is two actions, and one outcome must not
+                               discharge both. */
+                            var identity = api.actionIdentity({
+                                windowId: value.window.id,
+                                subjectId: item.subjectId,
+                                lane: item.lane,
+                                evidenceCutoffAt: value.times.evidenceCutoffAt
+                            });
+                            var controls = document.createElement("div");
+                            controls.className = "brief-lifecycle";
+                            if (identity.ok) {
+                                row.setAttribute("data-action-id", identity.value);
+                                [["complete", "Mark complete"], ["dismiss", "Dismiss"]].forEach(function (pair) {
+                                    var button = document.createElement("button");
+                                    button.type = "button";
+                                    button.setAttribute("data-lifecycle", pair[0]);
+                                    button.setAttribute("data-lifecycle-subject", item.subjectId);
+                                    button.setAttribute("data-lifecycle-action", identity.value);
+                                    button.textContent = pair[1] + " " + item.subjectId;
+                                    controls.appendChild(button);
+                                });
+                            }
+                            row.appendChild(controls);
                             list.appendChild(row);
                         });
                         section.appendChild(list);
                     }
                     laneRoot.appendChild(section);
                 });
-
                 /* FR-064. Rendered as its own region so a scoped subject that produced no action is
                    visibly accounted for. An empty region here means every scoped subject is in a
                    lane; it does NOT mean subjects were quietly discarded. */
@@ -2186,6 +2255,38 @@
             byId("briefWindow").addEventListener("change", function () {
                 state.briefWindowId = this.value;
                 renderBrief();
+            });
+
+            /* FR-055/FR-062/FR-063. Lifecycle is delegated from the lane container because rows are
+               re-rendered on every window change. An outcome records that the USER acted on a
+               prompt; it is never read back as a market view or a risk preference. */
+            byId("briefLanes").addEventListener("click", function (event) {
+                var button = event.target.closest ? event.target.closest("[data-lifecycle]") : null;
+                if (!button || !state.opened) return;
+                var command = button.getAttribute("data-lifecycle");
+                var subject = button.getAttribute("data-lifecycle-subject");
+                var actionId = button.getAttribute("data-lifecycle-action");
+                var candidate = api.buildActionOutcomeCandidate(actionId, command,
+                    command === "complete" ? "user-marked-complete" : "user-dismissed",
+                    state.opened.workspace, now(), state.policy);
+                if (!candidate.ok) {
+                    setText("briefLifecycleResult", candidate.error.code + " · " + candidate.error.reason);
+                    byId("briefLifecycleResult").className = "state-message error";
+                    return;
+                }
+                var committed = state.store.commitWorkspace(candidate.value.workspace, state.opened.workspace.generation, now());
+                if (!committed.ok) {
+                    setText("briefLifecycleResult", committed.error.code + " · " + committed.error.reason);
+                    byId("briefLifecycleResult").className = "state-message error";
+                    return;
+                }
+                state.opened = committed.value;
+                byId("briefLifecycleResult").className = "state-message ok";
+                byId("briefLifecycleResult").setAttribute("data-last-command", command);
+                byId("briefLifecycleResult").setAttribute("data-last-subject", subject);
+                setText("briefLifecycleResult", subject + " · " + candidate.value.outcome.state +
+                    " · recorded as a local research outcome, not a market view");
+                refreshWorkspaceViews();
             });
 
             byId("openPortfolio").addEventListener("click", function () {

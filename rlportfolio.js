@@ -1831,6 +1831,56 @@
     });
   }
 
+  /* A research action's stable identity. An outcome must point at a SPECIFIC authored action, not
+     at a bare ticker: the same subject can be authored differently in two windows, and recording
+     "MSFT was completed" would silently discharge both. The brief composer stays dependency-free,
+     so identity is computed here, next to the contracts module that already owns fingerprinting. */
+  function actionIdentity(descriptor) {
+    if (!isPlainObject(descriptor)) return failure("P008-SCHEMA-CORRUPT", "action-descriptor-required", "descriptor", null, false);
+    var required = ["windowId", "subjectId", "lane", "evidenceCutoffAt"];
+    for (var index = 0; index < required.length; index += 1) {
+      if (typeof descriptor[required[index]] !== "string" || !descriptor[required[index]]) {
+        return failure("P008-SCHEMA-CORRUPT", "action-descriptor-incomplete", required[index], null, false);
+      }
+    }
+    return success(contracts.fingerprint("portfolio-research-action", {
+      contractVersion: "portfolio-research-action/v1",
+      windowId: descriptor.windowId,
+      subjectId: descriptor.subjectId,
+      lane: descriptor.lane,
+      evidenceCutoffAt: descriptor.evidenceCutoffAt
+    }));
+  }
+
+  /* An action outcome mutates the workspace the SAME way every other mutation does: reduce, apply,
+     re-hash, re-validate. Callers must not hand-roll this — appending to `actionOutcomes` without
+     recomputing the hashes produces a candidate that fails validation at commit, which surfaces to
+     the user as a lifecycle button that silently does nothing. */
+  function buildActionOutcomeCandidate(actionId, command, reason, currentWorkspace, now, policy) {
+    var workspaceResult = validateWorkspace(currentWorkspace, policy);
+    if (!workspaceResult.ok) return workspaceResult;
+    var reduced = reduceActionOutcome(actionId, command, reason, now, policy);
+    if (!reduced.ok) return reduced;
+    var candidate = clone(currentWorkspace);
+    // Recording the same command for the same action twice is a no-op, not a second outcome.
+    var duplicate = candidate.actionOutcomes.some(function (entry) {
+      return entry.outcomeId === reduced.value.outcomeId;
+    });
+    if (!duplicate) candidate.actionOutcomes.push(reduced.value);
+    candidate.updatedAt = now;
+    candidate.policyRefs = policyRefs(policy);
+    var hashed = withWorkspaceHashes(candidate);
+    var validated = validateWorkspace(hashed, policy);
+    if (!validated.ok) return validated;
+    return success({
+      contractVersion: "portfolio-action-outcome-candidate/v1",
+      workspace: hashed,
+      outcome: reduced.value,
+      accepted: !duplicate,
+      reason: duplicate ? "duplicate-outcome" : null
+    });
+  }
+
   // Behavior-only clear. Portfolio and mandate revisions, the current pointers, and the
   // creation time are copied through untouched: the affected set is exactly events,
   // interests, and the completed/dismissed outcomes design.md names.
@@ -2378,6 +2428,8 @@
   var api = Object.freeze({
     applyDraftRemoval: applyDraftRemoval,
     buildBehaviorCandidate: buildBehaviorCandidate,
+    actionIdentity: actionIdentity,
+    buildActionOutcomeCandidate: buildActionOutcomeCandidate,
     buildBehaviorClearCandidate: buildBehaviorClearCandidate,
     buildBehaviorEvent: buildBehaviorEvent,
     buildMandateCandidate: buildMandateCandidate,

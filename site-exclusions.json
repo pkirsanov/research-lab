@@ -4,7 +4,7 @@
   "files": [
     {
       "path": "trend-dynamics-cycle-lab.html",
-      "reason": "Feature 006 publication remains disabled: production diagnostics explicitly carry ownerReadPublished=false and scopes 4-5 are not complete."
+      "reason": "Feature 006 scope 4 declares registration as its own atomic step, and that step is not reached: the methodology note and the remaining Power screens are outstanding, and scope 5 (as-of replay) is not started. Publication is no longer the reason -- the production route now computes a verdict through the shared trend model and publishes an owner read, so diagnostics carry ownerReadPublished=true."
     },
     {
       "path": "trend-dynamics-cycle-universe.json",

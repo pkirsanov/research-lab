@@ -1618,24 +1618,24 @@ Build Quality Gate (Scope 3):
 
 **Status:** In Progress
 
-**Progress note (registration blocker identified):** The page-side work is delivered and verified.
-The production route computes a verdict through the shared trend model, draws the observed series
-synchronously with an `RLCHART` hover hit-test and a text equivalent, exposes transform/horizon/
-profile levers that recompute from the shared cache with zero off-origin requests, publishes an
-owner read that preserves stale, degraded, and unavailable truth, refuses publication on an
-incomplete run, and shows distinct effective/detected/retrospective change-replay labels.
-`notes/trend-dynamics-cycle-lab.md` is written.
+**Progress note (registration delivered):** The page-side work and registration are both delivered
+and verified. The production route computes a verdict through the shared trend model, draws the
+observed series synchronously with an `RLCHART` hover hit-test and a text equivalent, exposes
+transform/horizon/profile levers that recompute from the shared cache with zero off-origin
+requests, publishes an owner read that preserves stale, degraded, and unavailable truth, refuses
+publication on an incomplete run, and shows distinct effective/detected/retrospective
+change-replay labels. `notes/trend-dynamics-cycle-lab.md` is written.
 
-Step 4 (registration) is NOT reached, and the reason is registry-side rather than page-side. The
-registry has evolved since this scope was authored: every one of the 24 registered tools now
-carries a `briefing` and an `experience` block, and registration is enforced to require (a) a
-Simple model definition in `simple-models.json` for the tool id, (b) a matching adapter declared
-in an `rlexperience-adapters` module `supportedAdapterIds` and produced by its factory as a
-`simple-model-adapter/v1`, and (c) at least two journey definitions with their steps in
-`journeys.json`, matched bidirectionally against `experience.journeyDefinitionIds`. None of those
-exist for this tool. Registration is therefore a genuine atomic change against a registry serving
-24 live tools, not the three-line additive edit step 4 describes, and it is sequenced as its own
-focused change rather than appended to the page work.
+Step 4 (registration) is complete, but it was not the three-line additive edit the step describes.
+The registry had evolved: every registered tool carries `briefing` and `experience` blocks, and the
+checks require (a) a Simple model definition in `simple-models.json`, (b) a matching adapter
+declared in an `rlexperience-adapters` module `supportedAdapterIds` and produced by its factory as
+a `simple-model-adapter/v1`, and (c) at least two journey definitions with their steps matched
+bidirectionally against `experience.journeyDefinitionIds`. All three were authored: a real
+slope-t-statistic trend-confirmation model in `market-structure.js`, its definition, and two
+journeys with seven steps. Registration landed atomically across `tools.json`, `index.html`,
+`rlnav.js`, `simple-models.json`, `journeys.json`, and `site-exclusions.json`, and the selftest pin
+was inverted rather than deleted so a half-move now fails.
 
 **Scope-Kind:** runtime-behavior
 
@@ -1719,7 +1719,21 @@ Scenario-first TDD is mandatory for every row: capture focused red evidence befo
 Core Delivery Items (Scope 4):
 
 - [ ] Every specified Simple/Power screen, truth state, control, chart/table, explanation, focus/announcement path, responsive rule, source audit, and educational/privacy boundary renders from one complete result with no second calculation.
-- [ ] Registration is atomic and identity-equal across `tools.json`, `index.html`, `rlnav.js`, page, config, note, owner read, deep link, and tests; no existing entry is reordered or changed.
+- [x] Registration is atomic and identity-equal across `tools.json`, `index.html`, `rlnav.js`, page, config, note, owner read, deep link, and tests; no existing entry is reordered or changed.
+
+```
+$ node scripts/build-pages-site.mjs
+{"contractVersion":"pages-site-build-result/v1","registeredPages":25,"excludedPaths":6,...}
+$ node scripts/validate-tool-experience.mjs
+[tool-experience] shadow=PASS shadowOnly=true integrationClaims=0
+[tool-experience] OK adversarial=13 unexpectedAcceptances=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 1554 passed, 0 failed
+```
+
+The new registry entry is appended last, so no existing entry is reordered; the selftest asserts
+that position explicitly. `build-pages-site.mjs` enforces the contract in both directions, so the
+route now shipping and no longer being excluded are checked together.
 - [ ] The owner read preserves source availability and analytical truth, omits invalid values, exposes caveats, and cannot be published from an invalid edit, partial run, canceled run, or render failure.
 - [ ] The consumer impact sweep is complete and zero stale first-party references remain across navigation, breadcrumbs, redirects, API clients, generated clients, deep links, route/config/note identities, docs, and tests; dirty-file hunk discipline, the central credential boundary, exact rollback, and zero Feature 005/excluded edits are proven.
 
@@ -1780,7 +1794,23 @@ is fresh while `metrics.truthState=degraded` because the ANALYSIS is not.
 [SCN-006-019] 1440x1000 power docOverflow=0 bodyOverflow=0
 ```
 
-- [ ] TP-04-07 Regression E2E evidence proves route/note/data/navigation and owner-publication identity. BLOCKED on registration; navigation parity cannot be asserted while the tool is unregistered.
+- [x] TP-04-07 Regression E2E evidence proves route/note/data/navigation and owner-publication identity.
+
+```
+$ npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs \
+    --project=system-chrome --grep "registration navigation and owner publication" --reporter=list
+[SCN-006-020] registry file=trend-dynamics-cycle-lab.html notes=notes/trend-dynamics-cycle-lab.md data=trend-dynamics-cycle-universe.json
+[SCN-006-020] navigated resultId=978099a5106ed2f6a3710b77cea6730f261ae1921b0fd969d6b203a182a642c0 deepLink=trend-dynamics-cycle-lab.html?series=spy-daily&transform=level&horizon=h126&profile=balanced
+  ✓  1 [system-chrome] › Regression: SCN-006-020 registration navigation and owner publication stay in parity (1.1s)
+  1 passed (3.3s)
+```
+
+The test reaches the tool the way a reader does — from the landing page, by clicking its link —
+then asserts every registry-declared path is actually served, the shared nav carries the route,
+and arriving through navigation still publishes an owner read whose deep link returns to source.
+It anchors its seed to the real clock rather than the fixed `CLOCK` the other rows use, because a
+reader arriving from the landing page carries no clock override.
+
 - [x] TP-04-08 integration browser evidence proves the existing central credential/settings suite remains green.
 
 ```

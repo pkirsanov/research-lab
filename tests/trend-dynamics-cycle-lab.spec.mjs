@@ -724,6 +724,65 @@ test('Regression: SCN-006-019 charts controls focus and 390px layout remain acce
 // the SAME result (it is a view change), while moving a LEVER must produce a NEW result -- and
 // neither may refetch source data. Asserting only "the page still works" would pass against a
 // page that silently refetched on every keystroke, or one whose levers did nothing at all.
+// Registration is only real if a reader can actually reach the tool and the identity they land on
+// is the one the registry promised. Asserting the tools.json entry exists would prove nothing about
+// reachability; asserting navigation works would prove nothing about identity. Both are checked,
+// against the SAME registry entry, plus the owner read still publishing once you arrive.
+test('Regression: SCN-006-020 registration navigation and owner publication stay in parity', async ({ page }) => {
+  // Anchored to the real clock, not the fixed CLOCK the other tests pass. A reader arriving from
+  // the landing page carries no clock override, so the seed has to be current for the page to
+  // reach a verdict at all -- which is exactly the path this test exists to prove.
+  await page.addInitScript(() => {
+    const dayMs = 86400000;
+    const end = Date.now();
+    const rows = [];
+    for (let i = 399; i >= 0; i--) rows.push({ t: end - i * dayMs, c: 400 + Math.sin(i / 9) * 5 + i * 0.02 });
+    window.localStorage.setItem('rlData', JSON.stringify({
+      v: 1, quotes: {}, options: {}, si: {}, macro: null, events: {}, toolReads: {},
+      bars: { SPY: { '1d': { at: end, src: 'option-snapshot', rows } } }
+    }));
+  });
+
+  const registry = await page.request.get(`${baseUrl}/tools.json`).then((r) => r.json());
+  const entry = registry.tools.find((tool) => tool.id === 'trend-dynamics-cycle-lab');
+  expect(entry, 'the tool is absent from tools.json').toBeTruthy();
+  expect(entry.file).toBe('trend-dynamics-cycle-lab.html');
+  expect(entry.notes).toBe('notes/trend-dynamics-cycle-lab.md');
+  expect(entry.data).toBe('trend-dynamics-cycle-universe.json');
+
+  // Every identity the registry names must actually be served, not merely declared.
+  for (const path of [entry.file, entry.notes, entry.data]) {
+    const response = await page.request.get(`${baseUrl}/${path}`);
+    expect(response.status(), `${path} is declared in the registry but not served`).toBe(200);
+  }
+
+  // The shared nav must carry the route, so the tool is reachable from every other page.
+  const navSource = await page.request.get(`${baseUrl}/rlnav.js`).then((r) => r.text());
+  expect(navSource, 'the shared nav does not carry the registered route').toContain('trend-dynamics-cycle-lab.html');
+
+  // Reach the tool the way a reader does: from the landing page, by clicking its link.
+  await page.goto(`${baseUrl}/index.html`);
+  const card = page.locator('a[href="trend-dynamics-cycle-lab.html"]').first();
+  await expect(card, 'the landing page exposes no link to the registered route').toHaveCount(1);
+  await card.click();
+  await expect(page).toHaveURL(/trend-dynamics-cycle-lab\.html/);
+
+  // Arriving through navigation must still produce and publish a real owner read.
+  await expect(page.locator('#truthState')).toHaveText(/CURRENT|STALE|DEGRADED/);
+  const published = await page.evaluate(() => {
+    const cache = JSON.parse(window.localStorage.getItem('rlData') || '{}');
+    const read = (cache.toolReads || {})['trend-dynamics-cycle-lab'] || null;
+    return { read, resultId: window.__TDC_DIAGNOSTICS__ && window.__TDC_DIAGNOSTICS__.resultId };
+  });
+  expect(published.read, 'navigating to the registered route published no owner read').not.toBeNull();
+  expect(published.read.id).toBe('trend-dynamics-cycle-lab');
+  // The deep link must point back at the owning route, so a consumer can always return to source.
+  expect(published.read.deepLink).toContain('trend-dynamics-cycle-lab.html');
+
+  console.log('[SCN-006-020] registry file=' + entry.file + ' notes=' + entry.notes + ' data=' + entry.data);
+  console.log('[SCN-006-020] navigated resultId=' + published.resultId + ' deepLink=' + published.read.deepLink);
+});
+
 test('Regression: SCN-006-019 Simple Power mobile and local controls share one result without refetch', async ({ page }) => {
   await seedProductionBars(page);
 

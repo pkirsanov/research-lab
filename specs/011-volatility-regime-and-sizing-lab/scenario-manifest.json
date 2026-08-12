@@ -45,8 +45,8 @@
             "title": "The storm-gauge regime percentile always renders its trailing window and observation count",
             "gherkin": {
                 "given": "The current forecast volatility is at a high percentile",
-                "when": "The storm-gauge regime is rendered in Simple or Power",
-                "then": "The percentile displays its trailing window and observation count and is never presented as an absolute cross-asset-comparable danger score"
+                "when": "The current visible Feature-012 Simple adapter and the owning native volatility views render",
+                "then": "The adapter agrees with the owning decision percentile and trailing-window observation count, and the percentile is never presented as an absolute cross-asset-comparable danger score"
             },
             "behaviorClass": "ui",
             "changeType": "new",
@@ -77,7 +77,7 @@
             "gherkin": {
                 "given": "A user target annualized volatility of 15% and a forecast annualized volatility of 30%",
                 "when": "RLVOL computes the sizing multiplier",
-                "then": "The multiplier is approximately 0.5, a worked cash example on the user notional is present, and the read states it applies only if a separate signal fires"
+                "then": "The multiplier is approximately 0.5, a worked cash example on the user notional is present, the read states it applies only if a separate signal fires, and the disclosure distinguishes 1/forecastVol risk targeting from 1/vol^2 growth-optimal sizing"
             },
             "behaviorClass": "ui",
             "changeType": "new",
@@ -210,7 +210,6 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "scripts/selftest.mjs#RLVOL buildBacktestDeepLink emits an allowlisted strategy-validation-lab URL and no verdict",
                 "tests/volatility-sizing-lab.spec.mjs#Regression BS-007: backtest is a deep-link with no in-tool verdict"
             ],
             "evidenceRefs": [
@@ -292,8 +291,8 @@
             "title": "Simple and Power cannot disagree for one asset, window, and controls",
             "gherkin": {
                 "given": "The same asset, window, and controls",
-                "when": "Both Simple and Power views render",
-                "then": "They consume one decisionId and never show a different regime, forecast, persistence, or multiplier"
+                "when": "The current visible Feature-012 Simple adapter and the owning native Simple and Power views render",
+                "then": "The adapter agrees with the owning forecast, regime, percentile, window observations, and throttle, and the native views consume one decisionId without disagreement"
             },
             "behaviorClass": "ui",
             "changeType": "new",
@@ -303,7 +302,6 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "scripts/selftest.mjs#RLVOL one decision identity feeds Simple Power owner-read and deep-link projections",
                 "tests/volatility-sizing-lab.spec.mjs#Regression BS-010: Simple and Power share one decision identity"
             ],
             "evidenceRefs": [
@@ -460,7 +458,8 @@
             },
             "linkedTests": [
                 "scripts/selftest.mjs#tool registry parity: volatility-sizing-lab is registered identically across tools.json, index.html, and rlnav.js",
-                "scripts/selftest.mjs#RLVOL validateUniverse accepts the closed volatility-sizing universe and rejects unknown keys"
+                "scripts/selftest.mjs#RLVOL validateUniverse accepts the closed volatility-sizing universe and rejects unknown keys",
+                "tests/volatility-sizing-lab.spec.mjs#TP-02-04: the volatility tool is reachable THROUGH the shared rlnav registration, not just by direct URL"
             ],
             "evidenceRefs": [
                 "report.md#scenario-scn-011-015"
@@ -475,11 +474,11 @@
             "scenarioId": "SCN-011-016",
             "scopeRef": "SCOPE-03",
             "scope": "SCOPE-03-tool-ui",
-            "title": "Cache-first partial paint renders synchronous non-blank canvases with a text and table fallback",
+            "title": "Stale-cache partial paint precedes the real delta response and renders synchronous non-blank canvases",
             "gherkin": {
-                "given": "The same-origin cache holds a mixture of fresh, stale, short, and missing bars",
+                "given": "The same-origin cache holds a stale but meaningful SPY bar snapshot and the real same-origin SPY delta response has not completed",
                 "when": "The production volatility page opens",
-                "then": "The Simple structure paints from valid cache before any network completion, Power canvases draw synchronously without requestAnimationFrame, and each canvas has an adjacent summary and same-data table"
+                "then": "The stale cached decision paints before the SPY delta response completes, the response produces a newer decision, and Power canvases draw synchronously with an adjacent summary and same-data table"
             },
             "behaviorClass": "ui",
             "changeType": "new",
@@ -489,7 +488,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/volatility-sizing-lab.spec.mjs#Cache-first partial paint renders synchronous non-blank canvases with text and table fallback"
+                "tests/volatility-sizing-lab.spec.mjs#Cache-first partial paint renders before stale-cache delta completion with synchronous non-blank canvases and table fallback"
             ],
             "evidenceRefs": [
                 "report.md#scenario-scn-011-016"
@@ -569,7 +568,7 @@
             "gherkin": {
                 "given": "The registry includes a current normalized volatility owner read or an explicit unavailable outcome",
                 "when": "Market Brief renders the volatility item",
-                "then": "It surfaces the window-visible regime and sizing throttle with the owner as-of and deep link, and a stale or unavailable owner read renders a named coverage outcome rather than an invented synthesis"
+                "then": "The actual market-brief.html #toolReads DOM surfaces the owner read and deep link without a detached manual renderer call, and a stale or unavailable owner read renders a named coverage outcome rather than an invented synthesis"
             },
             "behaviorClass": "ui",
             "changeType": "new",
@@ -579,7 +578,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "scripts/validate-brief-payload.mjs#Market Brief payload includes the registered volatility-sizing-lab owner read",
+                "scripts/selftest.mjs#Registry-wide Market Brief coverage selftest includes the registered volatility owner read",
                 "tests/volatility-sizing-lab.spec.mjs#Registered Volatility Sizing tool publishes one owner read and Market Brief renders it without recompute"
             ],
             "evidenceRefs": [
@@ -610,8 +609,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "scripts/selftest.mjs#RLVOL CommonJS import preserves the existing global and explicit decisionTime is deterministic",
-                "./rlvol.js#RLVOL CommonJS import preserves the existing global and explicit decisionTime is deterministic"
+                "scripts/selftest.mjs#RLVOL CommonJS import preserves the existing global and explicit decisionTime is deterministic"
             ],
             "evidenceRefs": [
                 "report.md#scenario-scn-011-020"

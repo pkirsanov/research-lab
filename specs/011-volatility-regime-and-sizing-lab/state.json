@@ -2,15 +2,15 @@
     "version": 3,
     "featureDir": "specs/011-volatility-regime-and-sizing-lab",
     "featureName": "Volatility Regime and Vol-Targeting Sizing Lab",
-    "status": "done",
+    "status": "blocked",
     "workflowMode": "full-delivery",
     "linkedImplementationSpec": null,
     "linkedPlanningPacket": null,
     "planningOnly": false,
     "planningOnlyJustification": null,
     "specDependsOn": [],
-    "certifiedAt": "2026-07-18T01:30:00Z",
-    "requiresRevalidation": false,
+    "certifiedAt": null,
+    "requiresRevalidation": true,
     "execution": {
         "activeAgent": "bubbles.validate",
         "currentPhase": "validate",
@@ -72,20 +72,20 @@
             }
         ],
         "nextRequiredOwner": null,
-        "nextRequiredTarget": "bubbles.validate ran the full-delivery done gate on 2026-07-17T18:47Z. VERDICT: BLOCKED - Feature 011 is NOT certifiable and NO terminal status was written. state-transition-guard.sh specs/011-volatility-regime-and-sizing-lab returned exit 1: TRANSITION BLOCKED with 40 failures / 3 warnings, verdict FAIL, blockingCode DELIVERY_COMPLETION_FAILED, failedGateIds [G022,G053,G027,G040,G068], failedChecks [Check-4-completion,Check-5-all-done]. ALL 40 blocks are Feature-011-OWNED delivery-completeness gaps, none foreign: (Check 4) 47 DoD items are ALL unchecked; (Check 5) scopes.md marks all 4 scopes 'Not Started', contradicting execution.scopeProgress 'done' (G027 fabrication, completedScopes empty); (G022) 10 required phases regression/simplify/gaps/harden/stabilize/security/validate/audit/chaos/docs never ran and the 'implement' phase-claim lacks specialist provenance; (G053) report.md has no '### Code Diff Evidence'; (Check 13A/G052) the spec.md managed-low-volatility degraded-state screen heading collides with reserved artifact-freshness vocabulary; (G040) scopes.md+report.md contain deferral language; (G068) 2 Gherkin scenarios have no faithful DoD item; (Checks 8A/8C/8D) missing regression-E2E, shared-infra canary/rollback, and change-boundary DoD/Test-Plan rows. CORRECTION OF PRIOR RECORD: the previously-recorded foreign blocker (node scripts/selftest.mjs = 546/2, two Feature 010 config-fingerprint failures) is STALE and RESOLVED. As of this run node scripts/selftest.mjs = 554 passed / 0 failed (exit 0) on two consecutive deterministic runs; the Feature 010 owner already repaired the fingerprint (git HEAD = feat(010) Scope 4), so NO foreign failure exists to route and NO Feature 010 file was touched. artifact-lint = PASS (exit 0). NEXT: bubbles.plan reconciles scopes.md scope statuses + the 47 DoD checkboxes to reality and adds the missing regression-E2E / shared-infra / change-boundary / DoD-Gherkin planning rows and removes deferral language; bubbles.ux/analyst renames the colliding spec.md degraded-state heading; then the full delivery pipeline (implement -> test -> ... -> docs) executes with real Code-Diff evidence before re-validation. Top-level status stays in_progress; certification.status stays in_progress; certification.completedScopes and certifiedCompletedPhases remain empty.",
+        "nextRequiredTarget": "Resolve the two historical executionHistory overlaps using source-backed timestamps or framework-supported remediation, and resolve upstream Bubbles BUG-028's receipt-clone false positive. The human owner must resolve the historical unchecked acceptance item. Then run a fresh bubbles.audit attempt before any certification retry.",
         "blocker": {
             "code": "DELIVERY_COMPLETION_FAILED",
-            "summary": "bubbles.plan reconciled the plan-owned artifacts to honest reality (2026-07-17): all 4 scopes set to 'In Progress' in scopes.md AND execution.scopeProgress (the G027 scopeProgress='done' vs scopes.md='Not Started' fabrication is resolved); implement/test-backed DoD items checked with evidence refs, all downstream-phase / foreign-blocked items left unchecked; G040 deferral language removed (scopes.md + report.md); G068 SCN-011-003 and SCN-011-018 DoD-Gherkin fidelity repaired; regression-E2E rows added for scopes 2/3/4, shared-infra canary+rollback DoD + canary Test-Plan row added for scope 1, change-boundary DoD added; report.md now carries a '### Code Diff Evidence' section (G053). Feature 011's own surfaces are green first-hand this session (RLVOL selftest group 16/16, vol E2E 15/0, CMD-PAGE-VOL OK, CMD-BRIEF-VALIDATE PASS, all exit 0). CORRECTION of the prior validate record's 554/0 claim: the current broad node scripts/selftest.mjs = 523 passed / 1 failed (exit 1); the sole failure is a NEW FOREIGN Feature 005 Palm Springs / place-based-rental regression (psrmError 'function not found') that entered the shared working tree after the last validate run - routed to the Feature 005 owner; no Feature 005 file was touched. The guard still BLOCKS 'done' on honest remaining gaps owned by downstream phases: G022 (10 pipeline phases not run + implement phase-claim provenance), G052 (spec.md heading -> bubbles.ux/analyst), the foreign Feature 005 selftest red, and the residual G027 '0 scopes Done while implement/test claimed' interim signal that clears when the pipeline completes the scopes. No terminal status written; status and certification.status remain in_progress.",
-            "evidenceRef": "report.md#plan-reconciliation--bubblesplan--2026-07-17"
+            "summary": "Certification remains blocked. Two historical executionHistory timestamp overlaps require source-backed correction or framework-supported remediation. The upstream Bubbles BUG-028 receipt check still reports a clone false positive. The failed legacy audit attempt is superseded and execution.audit.currentAttemptId is null, so a fresh bubbles.audit attempt is required after the mechanical blockers are resolved. uservalidation.md retains one historical unchecked human-owned acceptance item and remains unchanged. No passing guard or done certification is claimed.",
+            "evidenceRef": "report.md#current-done-target-guard---blocked"
         },
         "audit": {
             "schemaVersion": "audit-run/v1",
             "runId": "audit-011-2026-07-17T2301Z",
-            "currentAttemptId": "audit-011-001",
+            "currentAttemptId": null,
             "attempts": [
                 {
                     "attemptId": "audit-011-001",
-                    "state": "ACTIVE",
+                    "resultState": "SUPERSEDED",
                     "startedAt": "2026-07-17T23:01:00Z",
                     "finishedAt": "2026-07-17T23:12:00Z",
                     "auditClass": "delivery-completion",
@@ -102,6 +102,7 @@
                     "ownershipBoundaryVerdict": "CLEAN",
                     "deliveryGateStatus": "BLOCKED_PENDING_VALIDATE (G022 validate-unrun + G027 zero-scopes-Done — validate-owned progression, not audit-integrity defects)",
                     "dodItemsChecked": [],
+                    "auditVerdict": "REWORK_REQUIRED",
                     "outcome": "route_required",
                     "addressedFindings": [],
                     "unresolvedFindings": [
@@ -118,7 +119,7 @@
         }
     },
     "certification": {
-        "status": "done",
+        "status": "blocked",
         "completedScopes": [
             "SCOPE-01",
             "SCOPE-02",

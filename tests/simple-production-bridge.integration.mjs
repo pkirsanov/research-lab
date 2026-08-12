@@ -1713,18 +1713,20 @@ const OWNER_PARITY = {
     const summary = moduleObject.computeVolatilitySummary(loadModule('rlvol.js'), frozenClone(ownerState), parameterValues);
     const ready = summary.forecast.state === 'ready';
     const multiplierText = summary.throttle.multiplier !== null ? `×${summary.throttle.multiplier.toFixed(2)}` : 'withheld';
+    const percentileText = summary.regime.percentile !== null ? `${Math.round(summary.regime.percentile)}th percentile` : 'percentile unavailable';
+    const windowText = summary.regime.windowObservations !== null ? `${summary.regime.windowObservations} observations` : 'window unavailable';
     return {
       ownerFunction: 'computeVolatilitySummary',
       numericValue: ready ? summary.forecast.annualizedDecimal : null,
       valueText: ready
-        ? `Forecast ${summary.forecast.annualizedPct}% (${summary.regime.band || 'regime unavailable'})`
+        ? `Forecast ${summary.forecast.annualizedPct}% (${summary.regime.band || 'regime unavailable'}; ${percentileText} / ${windowText})`
         : 'Volatility evidence unavailable',
       /* The owner-computed forecast level, the capped throttle the owner actually sized to, and the
          regime band it was read under — taken straight off the summary object. A Simple read that
          published a different forecast, sized to a different (or silently uncapped) throttle, or
          claimed a regime band the owner did not reach fails here. */
       summaryContains: ready
-        ? [String(summary.forecast.annualizedPct), multiplierText, summary.regime.band]
+        ? [String(summary.forecast.annualizedPct), multiplierText, summary.regime.band, percentileText, windowText]
         : []
     };
   },

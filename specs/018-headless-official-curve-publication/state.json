@@ -3,7 +3,7 @@
   "featureDir": "specs/018-headless-official-curve-publication",
   "featureName": "Headless Official Curve Publication",
   "createdAt": "2026-08-10T16:30:34Z",
-  "lastUpdatedAt": "2026-08-12T06:15:00Z",
+  "lastUpdatedAt": "2026-08-12T07:15:00Z",
   "status": "done",
   "blockedReason": null,
   "workflowMode": "full-delivery",
@@ -12,7 +12,7 @@
     "specs/003-bond-regime-and-scenario-lab"
   ],
   "flagsIntroduced": [],
-  "certifiedAt": "2026-08-12T06:15:00Z",
+  "certifiedAt": "2026-08-12T07:15:00Z",
   "requiresRevalidation": false,
   "execution": {
     "activeAgent": "bubbles.implement",
@@ -110,7 +110,7 @@
   },
   "certification": {
     "status": "done",
-    "certifiedAt": "2026-08-12T06:15:00Z",
+    "certifiedAt": "2026-08-12T07:15:00Z",
     "completedScopes": [
       "01-official-curve-artifact-contract",
       "02-tier-a-official-curve-acquisition",

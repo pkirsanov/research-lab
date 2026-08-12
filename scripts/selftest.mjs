@@ -3167,7 +3167,13 @@ try {
     'tdcBuildAnalyticSeries',
     'tdcComputeTrendEngine',
     'tdcRunScope2Engine',
-    'tdcRunScope3Engine'
+    'tdcRunScope3Engine',
+    'tdcCreateTurningRecord',
+    'tdcAppendRevision',
+    'tdcVisibleAt',
+    'tdcDetectOneSided',
+    'tdcWalkForward',
+    'tdcRetrospectiveAnatomy'
   ];
   const tdc = build(tdcNames.map((name) => extractFn(tdcSource, name)), tdcNames);
   const tdcConfig = JSON.parse(read('trend-dynamics-cycle-universe.json'));
@@ -3383,6 +3389,75 @@ try {
   const repeatedConsensusBytes = Array.from({ length: 100 }, () => JSON.stringify(tdc.tdcBuildConsensus({ methodResults: sustainedEngine.result.methodResults, familyVotes: sustainedEngine.result.familyVotes, trend: sustainedEngine.result.trend, dynamics: sustainedEngine.result.dynamics, change: sustainedEngine.result.change, stability: sustainedEngine.result.stability, influence: sustainedEngine.result.influence, quality: sustainedEngine.result.quality, profile: sustainedEngine.result.profile, horizon: sustainedEngine.result.horizon, integrity: sustainedEngine.result.integrity, timings: { ignored: Math.random() } })));
   assert(new Set(repeatedConsensusBytes).size === 1 && Object.isFrozen(sustainedEngine.result) && Object.isFrozen(sustainedEngine.result.methodResults) && sustainedEngine.result.methodResults.every((result) => Object.isFrozen(result)), 'Trend Dynamics consensus is deeply frozen and produces 100 byte-identical results while excluding diagnostic timings');
   assert(!tdc.tdcRollingOlsHac([1, 2, null], { window: 3, intervalMultiplier: 1.96, minimumQrDiagonalRatio: 1e-10, varianceFloor: 1e-12, unitId: 'points' }).ok && !tdc.tdcCorrelationShift([{ x: 1, y: 1 }], { window: 30, intervalMultiplier: 1.96 }).ok && !tdc.tdcGaussianHmm2([1, 1, 1], { diagonalTransition: 0.95, maximumIterations: 50, tolerance: 1e-8, minimumOccupancy: 20, varianceFloor: 1e-12 }).ok, 'Trend Dynamics M01-M12 fail loud on non-finite, insufficient, or degenerate inputs without manufacturing neutral output');
+
+  group('Trend Dynamics Scope 5 — as-of replay separates four clocks and keeps false alarms immutable (spec 006)');
+  {
+    const day = (n) => '2026-01-' + String(n).padStart(2, '0');
+    const series = (vals) => vals.map((value, i) => ({ observedAt: day(i + 1), availableAt: day(i + 1), value }));
+
+    // SCN-006-004: a peak forms, then holds. It must be PROVISIONAL before the confirmation
+    // delay elapses and CONFIRMED only afterwards, with the four clocks reported separately.
+    const rising = tdc.tdcWalkForward(series([10, 11, 12, 15, 14, 13, 12, 11, 10]), { confirmationDelay: 3 });
+    assert(rising.ok && rising.records.length >= 1, 'Scope 5 replay produces a turning record for a formed peak');
+    const peak = rising.records[0];
+    assert(peak.kind === 'peak' && peak.state === 'confirmed', 'Scope 5 a peak that holds past the confirmation delay reaches confirmed');
+    assert(peak.estimatedEffectiveAt !== peak.firstDetectedAt,
+      'Scope 5 the estimated effective date and the first detection date are separate clocks, not one date reused');
+    assert(peak.estimatedEffectiveAt < peak.firstDetectedAt,
+      'Scope 5 a one-sided detector can only detect a turn AFTER it became effective');
+    assert(Number.isFinite(peak.delayObservations) && peak.delayObservations >= 3,
+      'Scope 5 the confirmation delay is reported in observations rather than implied');
+    // The fourth clock. A record promoted by a later revision must carry a confirmation time
+    // strictly after the first detection, or the delay it reports is not measuring anything.
+    const promoted = rising.records.filter((record) => record.state === 'confirmed' && record.revisions.length > 0);
+    assert(promoted.every((record) => record.confirmedAt > record.firstDetectedAt),
+      'Scope 5 a record confirmed by a later revision carries a confirmation time after its first detection');
+
+    // The record was provisional at least once before confirmation: the replay states show it.
+    const provisionalSteps = rising.steps.filter((step) => step.state === 'provisional').length;
+    assert(provisionalSteps >= 1, 'Scope 5 the record is provisional at earlier cutoffs rather than appearing already confirmed');
+
+    // SCN-006-005: a candidate that the trend later erases must NOT vanish. Deleting it would
+    // silently improve the false-alarm rate, which is the number the record exists to protect.
+    const failed = tdc.tdcWalkForward(series([10, 11, 14, 12, 13, 16, 18, 20, 22]), { confirmationDelay: 3 });
+    const invalidated = failed.records.filter((record) => record.state === 'invalidated');
+    assert(invalidated.length >= 1, 'Scope 5 a candidate erased by later observations is retained as invalidated, not removed');
+    const falseAlarm = invalidated[0];
+    assert(falseAlarm.revisions.length >= 1 && falseAlarm.revisions[falseAlarm.revisions.length - 1].outcome === 'false-alarm',
+      'Scope 5 invalidation arrives as an appended revision carrying a false-alarm outcome');
+    assert(falseAlarm.revisions[0].supersedesState === 'provisional',
+      'Scope 5 the revision records the state it superseded, so the original verdict stays legible');
+
+    // Immutability is the whole contract: the original identity survives every revision.
+    const original = tdc.tdcCreateTurningRecord({ recordId: 'r1', cutoff: day(4), parameters: { confirmationDelay: 3 }, alertAt: day(4), effectiveIndex: 2, estimatedEffectiveAt: day(3), firstDetectedAt: day(4) });
+    const revised = tdc.tdcAppendRevision(original, { revisedAt: day(9), reason: 'later data', outcome: 'false-alarm', state: 'invalidated' });
+    assert(original.state === 'provisional' && original.revisions.length === 0,
+      'Scope 5 appending a revision does not mutate the record the caller already holds');
+    assert(revised.cutoff === original.cutoff && revised.alertAt === original.alertAt && revised.effectiveIndex === original.effectiveIndex,
+      'Scope 5 cutoff, alert time and effective index are immutable across revision');
+    assert(revised.state === 'invalidated' && revised.revisions.length === 1,
+      'Scope 5 only the current verdict moves, and the revision is appended');
+    assert(Object.isFrozen(original) && Object.isFrozen(revised), 'Scope 5 turning records are frozen');
+
+    // SCN-006-007: retrospective anatomy may date the turn earlier than real time could know.
+    // Both dates must survive separately, or a study silently claims foresight.
+    const anatomy = tdc.tdcRetrospectiveAnatomy(series([10, 11, 12, 15, 14, 13, 12, 11, 10]), rising);
+    assert(anatomy && anatomy.state === 'available', 'Scope 5 retrospective anatomy is available for a two-sided series');
+    assert(anatomy.endpointPosture === 'two-sided' && anatomy.realTimeEndpointPosture === 'one-sided',
+      'Scope 5 the retrospective and real-time endpoint postures are reported separately');
+    assert(anatomy.retrospectiveEffectiveAt !== anatomy.realTimeDetectedAt,
+      'Scope 5 the retrospective date is not silently substituted for the real-time detection date');
+    assert(/cannot be used to claim earlier warning/.test(anatomy.limitation),
+      'Scope 5 the retrospective view states its own limitation rather than leaving it to the reader');
+
+    // Visibility: a cutoff must expose ONLY already-available observations.
+    const late = [{ observedAt: day(1), availableAt: day(1), value: 1 }, { observedAt: day(2), availableAt: day(9), value: 2 }];
+    assert(tdc.tdcVisibleAt(late, day(3)).length === 1,
+      'Scope 5 an observation that was not yet available is invisible at that cutoff');
+
+    // Fail-closed on empty input rather than returning an empty-but-ok replay.
+    assert(tdc.tdcWalkForward([], {}).ok === false, 'Scope 5 replay refuses empty observations instead of returning a vacuous result');
+  }
 
   const sharedStore = {};
   const sharedStorage = { getItem: (key) => sharedStore[key] || null, setItem: (key, value) => { sharedStore[key] = value; }, removeItem: (key) => { delete sharedStore[key]; } };

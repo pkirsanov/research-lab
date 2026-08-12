@@ -9,7 +9,7 @@
         "recordedAt": "2026-08-02T05:03:12Z",
         "previousStatus": "not_started",
         "why": "`not_started` was the most clear-cut contradiction in the repository. `scopes.md` declares Scopes 1, 2 and 3 as `**Status:** Done` and Scopes 4-5 as `Not Started`, while `execution` records `activeAgent: bubbles.implement`, `currentPhase: implement`, `currentScope: Scope 4`, and completed phase claims `[implement, test]`. The page `trend-dynamics-cycle-lab.html` and `trend-dynamics-cycle-universe.json` are shipped on disk.",
-        "remaining": "Publication is intentionally withheld: `site-exclusions.json` excludes both files because production diagnostics carry `ownerReadPublished=false` and Scopes 4-5 are incomplete. The tool is correctly absent from `tools.json`.",
+        "remaining": "Superseded 2026-08-12. Scope 4 is Done and the tool is registered: `tools.json`, `index.html`, `rlnav.js`, `simple-models.json` and `journeys.json` all carry it, and it is no longer listed in `site-exclusions.json`, so `build-pages-site.mjs` now reports registeredPages=25. Production diagnostics carry `ownerReadPublished=true`. Scope 5 (as-of replay, progress, regression closure) is the only remaining scope.",
         "noScopeClaimed": "`certification.completedScopes` was deliberately left empty — populating it is `bubbles.validate`-owned and requires certification evidence this orchestrator did not produce. Only the lifecycle status was corrected."
     },
     "workflowMode": "full-delivery",
@@ -23,7 +23,7 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": "Scope 4",
+        "currentScope": "Scope 5",
         "runStartedAt": "2026-07-15T19:42:05Z",
         "completedPhaseClaims": [
             "implement",

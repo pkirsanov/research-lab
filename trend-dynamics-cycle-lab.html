@@ -3186,6 +3186,196 @@
       }
     }
 
+    /* ── Scope 5: as-of replay, immutable turning records, and revisions ──────────────────
+       A turning record separates four clocks that are routinely collapsed into one date:
+       when the turn was estimated to have become EFFECTIVE, when a one-sided detector could
+       FIRST have seen it, when an independent confirmation arrived, and the DELAY between
+       them. Collapsing them is what lets a retrospective study claim foresight it never had. */
+
+    function tdcCreateTurningRecord(input) {
+      if (!tdcIsPlainObject(input) || !Number.isFinite(input.effectiveIndex)) return null;
+      return tdcDeepFreeze({
+        contractVersion: 'tdc-history/v1',
+        recordId: input.recordId,
+        // Original identity. These four fields are what make the record auditable and are
+        // never rewritten; a later opinion arrives as an appended revision instead.
+        cutoff: input.cutoff,
+        parameters: input.parameters || null,
+        alertAt: input.alertAt,
+        effectiveIndex: input.effectiveIndex,
+        estimatedEffectiveAt: input.estimatedEffectiveAt || null,
+        firstDetectedAt: input.firstDetectedAt || null,
+        confirmedAt: input.confirmedAt || null,
+        delayObservations: Number.isFinite(input.delayObservations) ? input.delayObservations : null,
+        kind: input.kind || null,
+        state: input.state || 'provisional',
+        outcome: input.outcome || 'pending',
+        revisions: []
+      });
+    }
+
+    /* Append-only. Returns a NEW frozen record; the original is never mutated, so a caller
+       holding the earlier value keeps seeing exactly what it was told at the time. */
+    function tdcAppendRevision(record, revision) {
+      if (!tdcIsPlainObject(record) || !tdcIsPlainObject(revision)) return record;
+      var appended = {
+        contractVersion: 'tdc-revision/v1',
+        revisedAt: revision.revisedAt,
+        reason: revision.reason,
+        outcome: revision.outcome,
+        supersedesState: record.state
+      };
+      var next = {};
+      Object.keys(record).forEach(function (key) { next[key] = record[key]; });
+      next.revisions = record.revisions.concat([appended]);
+      // Only the CURRENT verdict moves. cutoff, parameters, alertAt, effectiveIndex and
+      // firstDetectedAt do not. Confirmation time and delay belong to the verdict because they
+      // are only knowable once the confirmation actually arrives.
+      next.state = revision.state || record.state;
+      next.outcome = revision.outcome || record.outcome;
+      if (revision.confirmedAt) next.confirmedAt = revision.confirmedAt;
+      if (Number.isFinite(revision.delayObservations)) next.delayObservations = revision.delayObservations;
+      return tdcDeepFreeze(next);
+    }
+
+    /* One-sided detection: at a given cutoff only observations already AVAILABLE are visible,
+       which is the whole point -- a detector that peeks at later data cannot be evaluated. */
+    function tdcVisibleAt(observations, cutoff) {
+      return observations.filter(function (observation) {
+        var stamp = observation.availableAt || observation.observedAt;
+        return stamp <= cutoff;
+      });
+    }
+
+    function tdcDetectOneSided(values, confirmationDelay) {
+      var n = values.length;
+      if (n < 3) return null;
+      for (var i = n - 2; i >= 1; i--) {
+        var isPeak = values[i] > values[i - 1] && values[i] > values[i + 1];
+        var isTrough = values[i] < values[i - 1] && values[i] < values[i + 1];
+        if (!isPeak && !isTrough) continue;
+        var after = n - 1 - i;
+        var held = true;
+        for (var k = i + 1; k < n; k++) {
+          if (isPeak && values[k] > values[i]) { held = false; break; }
+          if (isTrough && values[k] < values[i]) { held = false; break; }
+        }
+        return {
+          effectiveIndex: i,
+          kind: isPeak ? 'peak' : 'trough',
+          held: held,
+          observationsAfter: after,
+          confirmed: held && after >= confirmationDelay
+        };
+      }
+      return null;
+    }
+
+    /* Advances through ACTUAL availability cutoffs and records what was knowable at each one.
+       A candidate that later fails is not deleted: its original record stands and an appended
+       revision marks it invalidated, so the false-alarm rate stays computable. */
+    function tdcWalkForward(observations, options) {
+      if (!Array.isArray(observations) || !observations.length) {
+        return tdcDeepFreeze({ ok: false, errors: [tdcError('TDC-REPLAY-INPUT', '$.observations', observations && observations.length, 'at least one observation', 'Replay requires observations')] });
+      }
+      var confirmationDelay = Number.isFinite(options && options.confirmationDelay) ? options.confirmationDelay : 3;
+      var cutoffs = (options && Array.isArray(options.cutoffs) && options.cutoffs.length)
+        ? options.cutoffs.slice()
+        : observations.map(function (observation) { return observation.availableAt || observation.observedAt; });
+      var steps = [];
+      var records = [];
+      var byIndex = {};
+      cutoffs.forEach(function (cutoff) {
+        var visible = tdcVisibleAt(observations, cutoff);
+        var values = visible.map(function (observation) { return observation.value; });
+        var candidate = tdcDetectOneSided(values, confirmationDelay);
+        var stepState = 'none';
+        if (candidate) {
+          var existing = byIndex[candidate.effectiveIndex];
+          var effectiveAt = visible[candidate.effectiveIndex] ? visible[candidate.effectiveIndex].observedAt : null;
+          if (!existing) {
+            var created = tdcCreateTurningRecord({
+              recordId: 'turn-' + candidate.effectiveIndex,
+              cutoff: cutoff,
+              parameters: { confirmationDelay: confirmationDelay },
+              alertAt: cutoff,
+              effectiveIndex: candidate.effectiveIndex,
+              estimatedEffectiveAt: effectiveAt,
+              firstDetectedAt: cutoff,
+              confirmedAt: candidate.confirmed ? cutoff : null,
+              delayObservations: candidate.observationsAfter,
+              kind: candidate.kind,
+              state: candidate.confirmed ? 'confirmed' : 'provisional',
+              outcome: candidate.confirmed ? 'confirmed' : 'pending'
+            });
+            byIndex[candidate.effectiveIndex] = created;
+            records.push(created);
+            stepState = created.state;
+          } else if (candidate.confirmed && existing.state !== 'confirmed') {
+            var promoted = tdcAppendRevision(existing, {
+              revisedAt: cutoff, reason: 'An independent later observation confirmed the candidate.',
+              outcome: 'confirmed', state: 'confirmed',
+              confirmedAt: cutoff, delayObservations: candidate.observationsAfter
+            });
+            byIndex[candidate.effectiveIndex] = promoted;
+            records[records.indexOf(existing)] = promoted;
+            stepState = 'confirmed';
+          } else {
+            stepState = existing.state;
+          }
+        }
+        // Any provisional candidate the detector no longer sees was a false alarm. It is
+        // invalidated by appended revision, never removed.
+        Object.keys(byIndex).forEach(function (key) {
+          var record = byIndex[key];
+          if (record.state !== 'provisional') return;
+          if (candidate && String(candidate.effectiveIndex) === key) return;
+          if (record.cutoff === cutoff) return;
+          var invalidated = tdcAppendRevision(record, {
+            revisedAt: cutoff, reason: 'Later observations restored the prior trend before confirmation.',
+            outcome: 'false-alarm', state: 'invalidated'
+          });
+          byIndex[key] = invalidated;
+          records[records.indexOf(record)] = invalidated;
+        });
+        steps.push(tdcDeepFreeze({ cutoff: cutoff, visibleCount: visible.length, state: stepState }));
+      });
+      return tdcDeepFreeze({ ok: true, contractVersion: 'tdc-replay/v1', confirmationDelay: confirmationDelay, steps: steps, records: records });
+    }
+
+    /* Retrospective (two-sided) anatomy. It may date a turn EARLIER than the one-sided
+       detector could have known it; both dates are returned separately and the early-warning
+       delay is measured only from the real-time detection date. */
+    function tdcRetrospectiveAnatomy(observations, replay) {
+      if (!Array.isArray(observations) || observations.length < 3 || !replay || !replay.ok) return null;
+      var values = observations.map(function (observation) { return observation.value; });
+      var best = null;
+      for (var i = 1; i < values.length - 1; i++) {
+        var isPeak = values[i] > values[i - 1] && values[i] > values[i + 1];
+        var isTrough = values[i] < values[i - 1] && values[i] < values[i + 1];
+        if (!isPeak && !isTrough) continue;
+        if (!best || Math.abs(values[i] - values[0]) > Math.abs(values[best.index] - values[0])) {
+          best = { index: i, kind: isPeak ? 'peak' : 'trough' };
+        }
+      }
+      if (!best) return tdcDeepFreeze({ state: 'none', reason: 'No two-sided extremum is present.' });
+      var realTime = replay.records.filter(function (record) { return record.state === 'confirmed'; })[0] || null;
+      return tdcDeepFreeze({
+        state: 'available',
+        retrospectiveIndex: best.index,
+        retrospectiveKind: best.kind,
+        retrospectiveEffectiveAt: observations[best.index].observedAt,
+        endpointPosture: 'two-sided',
+        realTimeDetectedAt: realTime ? realTime.firstDetectedAt : null,
+        realTimeEndpointPosture: 'one-sided',
+        // Measured from the REAL-TIME date only. Using the retrospective date here is exactly
+        // how a study accidentally claims foresight.
+        revisionObservations: realTime && Number.isFinite(realTime.effectiveIndex)
+          ? realTime.effectiveIndex - best.index : null,
+        limitation: 'The retrospective date uses observations that were not available in real time and cannot be used to claim earlier warning.'
+      });
+    }
+
     /* Draws the observed series and marks the turning record's effective and detected points
        separately, so the confirmation lag is visible rather than implied. Returns false when
        there is nothing to draw, so the caller leaves the text equivalent standing. */

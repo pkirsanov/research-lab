@@ -3128,6 +3128,7 @@ try {
     'tdcInfluenceDiagnostics',
     'tdcNearbyStability',
     'tdcBuildAnalyticSeries',
+    'tdcComputeTrendEngine',
     'tdcRunScope2Engine',
     'tdcRunScope3Engine'
   ];

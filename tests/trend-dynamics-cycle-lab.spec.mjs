@@ -491,7 +491,7 @@ test('Regression: SCN-006-017 lead-lag evidence remains association without a me
 // published, so a wiring mistake there would reach the Brief unseen. Seeding the shared bar
 // cache is what makes the path reachable headlessly; without it the page correctly refuses on
 // absent observations and never gets far enough to publish.
-test('Regression: SCN-006-020 the production route assembles and publishes an honest foundation read', async ({ page }) => {
+test('Regression: SCN-006-020 the production route computes a verdict and publishes it as an owner read', async ({ page }) => {
   await page.addInitScript(() => {
     const dayMs = 86400000;
     const end = Date.UTC(2026, 6, 14);
@@ -505,7 +505,9 @@ test('Regression: SCN-006-020 the production route assembles and publishes an ho
   await page.goto(`${baseUrl}/trend-dynamics-cycle-lab.html?clock=${CLOCK}`);
 
   await expect(page.locator('#truthState')).toHaveText(/CURRENT|STALE|DEGRADED/);
-  await expect(page.locator('#scenarioTitle')).toHaveText('Source and numerical foundation ready');
+  // Asserted as a shape rather than one literal verdict: the point is that the engine RAN on real
+  // observations, not that this particular seeded series is flat.
+  await expect(page.locator('#scenarioTitle')).toHaveText(/ trend$/);
 
   const diagnostics = await page.evaluate(() => window.__TDC_DIAGNOSTICS__);
   expect(diagnostics.fixtureId).toBeNull();
@@ -522,9 +524,12 @@ test('Regression: SCN-006-020 the production route assembles and publishes an ho
   expect(stored).not.toBeNull();
   expect(stored.metrics.contractVersion).toBe('tdc-tool-read/v1');
   expect(stored.metrics.resultId).toBe(diagnostics.resultId);
-  // No verdict exists yet, so the sentence must name the absence rather than imply one.
-  expect(stored.read).toContain('No resolved trend, dynamics or change reading is available.');
+  // The verdict must come from the closed vocabulary and reach the Brief as a real reading.
+  expect(['rising', 'falling', 'flat/range', 'mixed', 'unavailable']).toContain(stored.metrics.direction);
+  expect(stored.read).toContain('The trend is ' + stored.metrics.direction);
+  expect(typeof stored.metrics.strengthScore).toBe('number');
   expect(stored.deepLink).toContain('series=spy-daily');
+  console.log('[SCN-006-020] direction=' + stored.metrics.direction + ' trendType=' + stored.metrics.trendType);
   console.log('[SCN-006-020] truthState=' + stored.metrics.truthState + ' availability=' + stored.availability);
   console.log('[SCN-006-020] resultId=' + stored.metrics.resultId.slice(0, 16));
 });

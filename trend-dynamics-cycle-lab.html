@@ -3268,8 +3268,20 @@
       var generated = tdcBuildAnalyticSeries(fixtureCase.generator, fixtureCase.count);
       var comparisonGenerated = tdcBuildAnalyticSeries(fixtureCase.comparisonGenerator, fixtureCase.count);
       if (!generated.ok || !comparisonGenerated.ok) return tdcDeepFreeze({ ok: false, errors: generated.ok ? comparisonGenerated.errors : generated.errors });
-      var values = generated.values;
-      var comparison = comparisonGenerated.values;
+      // A fixture knows where its change was injected; real observations never do.
+      var injectedIndex = fixtureCase.generator.levelSteps.length ? fixtureCase.generator.levelSteps[0].index : null;
+      return tdcComputeTrendEngine({ caseId: fixtureCase.id, values: generated.values, comparison: comparisonGenerated.values, injectedChangeIndex: injectedIndex, profile: profile, horizon: horizon, config: config });
+    }
+
+    /* ONE model, two compositions: the fixture path generates its series while production reads
+       real observations, but both reach their verdict through exactly this function. */
+    function tdcComputeTrendEngine(input) {
+      if (!tdcIsPlainObject(input).value || !Array.isArray(input.values) || !Array.isArray(input.comparison) || !tdcIsPlainObject(input.profile).value || !tdcIsPlainObject(input.horizon).value || !tdcIsPlainObject(input.config).value) return tdcDeepFreeze({ ok: false, errors: [tdcError('TDC-CONTRACT-OBJECT', '$', null, 'values, comparison, profile, horizon, and config', 'Trend engine inputs are incomplete')] });
+      var profile = input.profile;
+      var horizon = input.horizon;
+      var config = input.config;
+      var values = input.values;
+      var comparison = input.comparison;
       var differences = [];
       var comparisonDifferences = [];
       for (var differenceIndex = 1; differenceIndex < values.length; differenceIndex += 1) { differences.push(values[differenceIndex] - values[differenceIndex - 1]); comparisonDifferences.push(comparison[differenceIndex] - comparison[differenceIndex - 1]); }
@@ -3326,14 +3338,18 @@
       var change = tdcBuildChangeTimeline(methodResults, trend, dynamics, { persistenceBars: controls.persistenceBars, consensusFamilies: controls.consensusFamilies, priorDirection: 'rising' });
       var analyzer = function (series) { var fit = tdcRollingOlsHac(series, { window: Math.min(horizon.observations, series.length), intervalMultiplier: 1.96, minimumQrDiagonalRatio: limits.minimumQrDiagonalRatio, varianceFloor: limits.absoluteVarianceFloor, unitId: 'index-points' }); return fit.ok && fit.slope > 0 ? 'rising' : fit.ok && fit.slope < 0 ? 'falling' : 'unavailable'; };
       var influence = tdcInfluenceDiagnostics(values, [], analyzer);
-      var targetIndex = fixtureCase.generator.levelSteps.length ? fixtureCase.generator.levelSteps[0].index : values.length;
+      // Detection speed is only measurable against a KNOWN change point. Real observations have
+      // none, so the metric is withheld rather than computed against a stand-in that would count
+      // every genuine alarm as a false one.
+      var hasGroundTruth = Number.isFinite(input.injectedChangeIndex);
+      var targetIndex = hasGroundTruth ? input.injectedChangeIndex : values.length;
       var firstDetectionIndex = m05.ok && m05.alarms.length ? m05.alarms[0].detectionIndex + 1 : values.length;
       var falseAlarms = m05.ok ? m05.alarms.filter(function (alarm) { return alarm.detectionIndex + 1 < targetIndex; }).length : 0;
       var postTargetAlarms = m05.ok ? m05.alarms.filter(function (alarm) { return alarm.detectionIndex + 1 >= targetIndex; }).length : 0;
-      var speedReliability = { firstDetectionIndex: firstDetectionIndex, falseAlarms: falseAlarms, misses: targetIndex < values.length && postTargetAlarms === 0 ? 1 : 0, revisions: falseAlarms };
+      var speedReliability = hasGroundTruth ? { firstDetectionIndex: firstDetectionIndex, falseAlarms: falseAlarms, misses: targetIndex < values.length && postTargetAlarms === 0 ? 1 : 0, revisions: falseAlarms } : null;
       var supportingFamilies = trend.supportFamilies.slice();
       var contradictingFamilies = clustered.votes.filter(function (vote) { return ['change-online', 'change-scale-distribution', 'regime-latent', 'turn-extrema'].indexOf(vote.familyCluster) >= 0 && vote.state !== 'unavailable' && !methodResults.some(function (result) { return result.familyCluster === vote.familyCluster && result.changeSignal === true; }); }).map(function (vote) { return vote.familyCluster; });
-      var sourceDigestResult = tdcStableDigest({ caseId: fixtureCase.id, values: values, comparison: comparison });
+      var sourceDigestResult = tdcStableDigest({ caseId: input.caseId, values: values, comparison: comparison });
       var consensus = tdcBuildConsensus({ methodResults: methodResults, familyVotes: clustered.votes, trend: trend, dynamics: dynamics, change: change, stability: stability, influence: influence, quality: { state: 'degraded', posture: 'analytic-nonpublishing', finiteCount: values.length }, profile: { id: profile.id, label: profile.label, posture: profile.posture, controls: Object.assign({}, controls) }, horizon: Object.assign({}, horizon), integrity: integrity, turningRecords: m12.ok ? m12.currentEvents : [], supportingFamilies: supportingFamilies, contradictingFamilies: contradictingFamilies, agreement: change.state === 'mixed-unconfirmed' ? 'mixed' : 'supported', speedReliability: speedReliability, sourceDigest: sourceDigestResult.ok ? sourceDigestResult.value : null, timings: {} });
       return tdcDeepFreeze({ ok: true, result: consensus });
     }
@@ -3692,9 +3708,23 @@
       tdcSetText('cycleState', 'Unavailable');
       tdcSetText('cycleDetails', 'Cycle entries retain their configured type and requirements; no entry is activated without its engine evidence.');
       tdcSetText('endpointPosture', resolved.replayPosture);
-      // The foundation publishes an honest read with no verdict: the sentence names the absence
-      // rather than withholding the source truth the Brief legitimately needs.
       var requiredMethodIds = config.methods.map(function (method) { return method.id; });
+      // Only one series is configured, so the correlation method has nothing to compare against
+      // and reports unavailable rather than being handed a stand-in series.
+      var productionEngine = tdcComputeTrendEngine({
+        caseId: 'production:' + descriptor.id,
+        values: resolved.observations.map(function (observation) { return observation.value; }),
+        comparison: [],
+        injectedChangeIndex: null,
+        profile: configIndex.profilesById[config.initialSelection.profileId],
+        horizon: configIndex.horizonsById[config.initialSelection.horizonId],
+        config: config
+      });
+      var verdict = productionEngine.ok ? productionEngine.result : null;
+      if (verdict) {
+        tdcSetText('scenarioTitle', verdict.trend.lifecycle.charAt(0).toUpperCase() + verdict.trend.lifecycle.slice(1) + ' ' + verdict.trend.direction + ' trend');
+        tdcSetText('scenarioOutcome', 'The shared series passed its source, as-of, transform and quality contracts, and the trend engine reached a verdict from those observations.');
+      }
       var foundationResult = tdcAssembleResult({
         request: {
           seriesId: config.initialSelection.seriesId,
@@ -3709,6 +3739,10 @@
         sourceAvailability: quality.profile.stale ? 'stale' : 'current',
         truthState: truth.toLowerCase(),
         requiredMethodIds: requiredMethodIds,
+        trend: verdict ? verdict.trend : null,
+        strength: verdict ? verdict.strength : null,
+        dynamics: verdict ? verdict.dynamics : null,
+        changeState: verdict && verdict.change ? verdict.change.state : null,
         methodResults: config.methods.map(function (method) {
           var availability = quality.methodAvailability[method.id];
           return { methodId: method.id, state: availability && availability.state === 'eligible' ? 'eligible' : 'unavailable' };

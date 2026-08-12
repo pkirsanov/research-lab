@@ -529,3 +529,94 @@ test('FR-067 the brief identity binds revision window cutoff policy and action s
   const repeat = loaded.brief.composeBrief(briefInput({ loaded, input: { portfolioRevisionId: 'rev-1' } }));
   assert.equal(repeat.value.identity.actionSignature, identity.actionSignature);
 });
+
+test('FR-041 the local action-history cutoff is a fourth clock and is actually enforced', () => {
+  const loaded = loadBrief();
+  const maxAgeDays = loaded.policy.behavior.maximumEvidenceAgeDays;
+  assert.ok(Number.isFinite(maxAgeDays), 'the policy must declare an evidence age limit');
+
+  const base = loaded.brief.composeBrief(briefInput({ loaded }));
+  assert.equal(base.ok, true);
+
+  const times = base.value.times;
+  // Four DISTINCT clocks. Collapsing any pair would let one question answer another.
+  const distinct = new Set([times.evidenceCutoffAt, times.publishedAt, times.composedAt, times.actionHistoryCutoffAt]);
+  assert.equal(distinct.size, 4, 'evidence cutoff, publication, composition and action-history cutoff stay separate');
+
+  const expected = new Date(Date.parse(times.composedAt) - maxAgeDays * 86400000).toISOString();
+  assert.equal(times.actionHistoryCutoffAt, expected,
+    'the action-history cutoff is derived from declared policy, not chosen locally');
+
+  /* The enforcement, which is the point. A completion older than the limit must stop counting.
+   * Before this, `maximumEvidenceAgeDays` was declared and ignored, so activity from years ago
+   * kept clearing the behaviour floor forever. */
+  const ancient = '2019-01-01T12:00:00.000Z';
+  const stale = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: {
+      completions: [
+        { subjectId: 'ZZTOP', subjectKind: 'ticker', domain: 'semiconductors', completedAt: ancient },
+        { subjectId: 'QQQX', subjectKind: 'ticker', domain: 'semiconductors', completedAt: ancient }
+      ]
+    }
+  }));
+  assert.equal(stale.ok, true);
+  assert.equal(stale.value.states.excludedStaleCompletions, 2,
+    'completions past the age limit are excluded and counted, not silently kept');
+  assert.equal(stale.value.states.behaviorHistory, 'insufficient-history',
+    'expired activity cannot clear the behaviour floor');
+  assert.deepEqual(stale.value.lanes.completedResearch, [],
+    'an expired completion cannot qualify a subject');
+});
+
+test('FR-057 a repeat over the same evidence is not reported as independent confirmation', () => {
+  const loaded = loadBrief();
+
+  const first = loaded.brief.composeBrief(briefInput({ loaded, input: { windowId: 'morning' } }));
+  assert.equal(first.ok, true);
+  const msftFirst = first.value.lanes.held.find((i) => i.subjectId === 'MSFT');
+  assert.equal(msftFirst.confirmationBasis, 'no-prior-window',
+    'with nothing to compare against, the brief says so rather than implying novelty');
+
+  // Same evidence seen again in a later window: a repeat, NOT a second independent signal.
+  const repeated = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: { windowId: 'pre-close', priorEvidenceIds: { MSFT: msftFirst.evidenceIds } }
+  }));
+  assert.equal(repeated.ok, true);
+  assert.equal(repeated.value.lanes.held.find((i) => i.subjectId === 'MSFT').confirmationBasis,
+    'same-evidence-as-prior-window',
+    'the same underlying evidence must not masquerade as confirmation');
+
+  // Genuinely new evidence is distinguished from a repeat.
+  const advanced = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: { windowId: 'pre-close', priorEvidenceIds: { MSFT: ['some-older-id'] } }
+  }));
+  assert.equal(advanced.value.lanes.held.find((i) => i.subjectId === 'MSFT').confirmationBasis,
+    'new-evidence-since-prior-window');
+});
+
+test('FR-059 a general-interest item states it is not a known holding and ranks below direct work', () => {
+  const loaded = loadBrief();
+  const composed = loaded.brief.composeBrief(briefInput({ loaded }));
+  assert.equal(composed.ok, true);
+
+  const held = composed.value.lanes.held;
+  assert.ok(held.length, 'the fixture must produce at least one direct holding');
+  for (const item of held) {
+    assert.equal(item.notAKnownHolding, false, 'a held item is a known holding');
+  }
+
+  // Every non-held lane declares the negative EXPLICITLY rather than leaving it to lane position.
+  for (const lane of ['watchlist', 'completedResearch', 'inferredRelevance']) {
+    for (const item of composed.value.lanes[lane]) {
+      assert.equal(item.notAKnownHolding, true,
+        `${item.subjectId} in ${lane} must state it is not a known holding`);
+    }
+  }
+
+  // Lane order is the visible ranking reason: direct portfolio work is never displaced by inferred.
+  assert.equal(loaded.brief.laneOrder[0], 'held');
+  assert.equal(loaded.brief.laneOrder[loaded.brief.laneOrder.length - 1], 'inferredRelevance');
+});

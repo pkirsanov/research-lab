@@ -71,8 +71,7 @@
 
   /* Behaviour must clear BOTH floors. Requiring distinct dates as well as distinct completions is
      what stops a single burst of activity in one sitting from reading as a sustained interest. */
-  function evaluateFloor(completions, behaviorPolicy) {
-    var distinctCompletions = distinctCount(completions, function (c) { return c && c.subjectId; });
+  function evaluateFloor(completions, behaviorPolicy) {    var distinctCompletions = distinctCount(completions, function (c) { return c && c.subjectId; });
     var distinctUtcDates = distinctCount(completions, function (c) {
       return c && isIso(c.completedAt) ? c.completedAt.slice(0, 10) : null;
     });
@@ -128,7 +127,23 @@
 
     var holdings = Array.isArray(input.holdings) ? input.holdings : [];
     var watchlist = Array.isArray(input.watchlist) ? input.watchlist : [];
-    var completions = Array.isArray(input.completions) ? input.completions : [];
+    var allCompletions = Array.isArray(input.completions) ? input.completions : [];
+
+    /* FR-041's FOURTH clock. The local action-history cutoff is distinct from the generic evidence
+       cutoff: one bounds what the market knew, the other bounds how far back local activity still
+       counts. `maximumEvidenceAgeDays` is declared policy, so it is ENFORCED here — an unenforced
+       age limit would let a completion from years ago keep clearing the behaviour floor forever. */
+    var maxAgeDays = input.policy.behavior.maximumEvidenceAgeDays;
+    var actionHistoryCutoffAt = isFinite(maxAgeDays)
+      ? new Date(Date.parse(input.composedAt) - maxAgeDays * 86400000).toISOString()
+      : null;
+    var completions = [];
+    var excludedStaleCompletions = 0;
+    allCompletions.forEach(function (entry) {
+      if (!isObject(entry) || !isIso(entry.completedAt)) { excludedStaleCompletions += 1; return; }
+      if (actionHistoryCutoffAt && entry.completedAt < actionHistoryCutoffAt) { excludedStaleCompletions += 1; return; }
+      completions.push(entry);
+    });
     var floor = evaluateFloor(completions, input.policy.behavior);
 
     // INVARIANT 2. Build the qualification map first, then place each subject exactly once.
@@ -165,6 +180,9 @@
     /* Owner routing is SUPPLIED by the caller from the shared tool registry rather than hardcoded
        here, so the brief cannot drift from the registry that actually defines which tool owns what. */
     var owners = isObject(input.owners) ? input.owners : {};
+    /* Supplied by the caller from the previously rendered window. The composer holds no cross-window
+       memory of its own, so this stays an explicit input rather than hidden state. */
+    var priorEvidenceIds = isObject(input.priorEvidenceIds) ? input.priorEvidenceIds : {};
     /* FR-064. A subject that qualified by scope but produced no action is ACCOUNTED FOR, never
        silently dropped. Dropping it is the failure this list exists to prevent: a held ticker whose
        evidence is unavailable would simply vanish, and the reader could not tell "nothing to do"
@@ -208,6 +226,22 @@
            is a statement about the toolset, NOT a licence to synthesise a specialist result. */
         owner: owners[subjectId] || null,
         unownedCapability: !owners[subjectId],
+        /* FR-059. A general-interest item says outright that it is not a known holding. Position in
+           a lower lane is not a substitute: a reader who skims could otherwise carry ownership
+           over from the lanes above. */
+        notAKnownHolding: primary !== "held",
+        /* FR-057. Seeing the same subject again in a later window is NOT a second, independent
+           confirmation when it rests on the same underlying evidence. Comparing this window's
+           evidence ids against the prior window's is what keeps a repeat from reading as
+           corroboration. Absent a prior window there is nothing to compare, and it says so. */
+        confirmationBasis: (function () {
+          var prior = priorEvidenceIds[subjectId];
+          if (!prior) return "no-prior-window";
+          var current = observed.evidenceIds.slice().sort().join(",");
+          return current === prior.slice().sort().join(",")
+            ? "same-evidence-as-prior-window"
+            : "new-evidence-since-prior-window";
+        })(),
         alsoQualifiesVia: entry.lanes.filter(function (lane) { return lane !== primary; })
       });
     });
@@ -257,7 +291,7 @@
       window: { id: window.id, label: window.label, etTime: window.etTime, anchor: window.anchor, offsetMinutes: window.offsetMinutes },
       // Three clocks, never collapsed: what was knowable, when the public brief shipped, and when
       // this local view was assembled.
-      times: { evidenceCutoffAt: evidenceCutoffAt, publishedAt: input.publishedAt, composedAt: input.composedAt },
+      times: { evidenceCutoffAt: evidenceCutoffAt, publishedAt: input.publishedAt, composedAt: input.composedAt, actionHistoryCutoffAt: actionHistoryCutoffAt },
       identity: {
         portfolioRevisionId: input.portfolioRevisionId || null,
         windowId: window.id,
@@ -277,7 +311,9 @@
         excludedAfterCutoff: excludedAfterCutoff,
         suppressedByCap: suppressedByCap,
         // Surfaced as a count so "nothing to show" and "several things unexplained" cannot look alike.
-        noActionCount: noAction.length
+        noActionCount: noAction.length,
+        // Declared policy that is enforced, reported so an aging-out is visible rather than silent.
+        excludedStaleCompletions: excludedStaleCompletions
       }
     });
   }

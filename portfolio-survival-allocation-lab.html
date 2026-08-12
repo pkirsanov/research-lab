@@ -1340,7 +1340,10 @@
                         subjectId: event.subjectId,
                         subjectKind: event.subjectKind,
                         domain: event.domain,
-                        completedAt: event.recordedAt || event.at || null
+                        /* The behaviour event's timestamp field is `occurredAt` (rlportfolio.js).
+                           Reading a field that does not exist yielded null here, which silently
+                           zeroed the distinct-date behaviour floor. */
+                        completedAt: event.occurredAt || null
                     };
                 });
             }
@@ -1438,11 +1441,13 @@
                 setText("briefTimes", value.window.label + " (" + value.window.etTime + " ET)" +
                     " · evidence cutoff " + value.times.evidenceCutoffAt +
                     " · generic published " + value.times.publishedAt +
-                    " · composed locally " + value.times.composedAt);
+                    " · composed locally " + value.times.composedAt +
+                    " · action history since " + value.times.actionHistoryCutoffAt);
                 byId("briefTimes").setAttribute("data-window", value.window.id);
                 byId("briefTimes").setAttribute("data-cutoff", value.times.evidenceCutoffAt);
                 byId("briefTimes").setAttribute("data-published", value.times.publishedAt);
                 byId("briefTimes").setAttribute("data-composed", value.times.composedAt);
+                byId("briefTimes").setAttribute("data-action-history-cutoff", String(value.times.actionHistoryCutoffAt));
 
                 var identity = value.identity;
                 byId("briefIdentity").setAttribute("data-revision", String(identity.portfolioRevisionId));

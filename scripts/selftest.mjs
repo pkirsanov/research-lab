@@ -1973,6 +1973,22 @@ try {
 
   // TP-02-03 — two consecutive years, merged by date, ascending and unique.
   const happy = await acquireOfficialCurves({ root: ROOT, now: NOW, fetchImpl: router(HAPPY), priorArtifact: null });
+
+  /* The acquisition must refuse redirects and bound every request. Both are provenance controls:
+     a followed cross-host redirect would let contentSha256 attest bytes the declared sourceUrl
+     never served, and an unbounded request can hang an unattended run indefinitely. Asserting the
+     OPTIONS actually handed to fetch — rather than grepping the source for the words — is what
+     makes this non-vacuous: deleting either option from the call site fails this row. */
+  const seenInit = [];
+  await acquireOfficialCurves({
+    root: ROOT, now: NOW, priorArtifact: null,
+    fetchImpl: (url, init) => { seenInit.push(init || {}); return router(HAPPY)(url); }
+  });
+  assert(seenInit.length > 0 && seenInit.every((init) => init.redirect === 'error'),
+    'Official curves TP-02-03: every Treasury request is issued with redirect:"error", so a cross-host redirect cannot be attested as treasury.gov content (' + seenInit.length + ' requests)');
+  assert(seenInit.every((init) => init.signal && typeof init.signal.aborted === 'boolean'),
+    'Official curves TP-02-03: every Treasury request carries an abort signal, so no acquisition can hang unbounded');
+
   const nominalFamily = happy.artifact.families.nominal;
   const dates = nominalFamily.rows.map((row) => row.date);
   assert(JSON.stringify(nominalFamily.coverageYears) === JSON.stringify([2025, 2026]),

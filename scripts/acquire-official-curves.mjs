@@ -26,6 +26,11 @@ export const ADAPTER_VERSION = 'official-curve-acquisition/v1';
 export const FRESHNESS_POLICY_ID = 'observed-cadence/v1';
 export const USER_AGENT = 'research-lab-official-curve-acquisition/1.0 (+https://github.com/pkirsanov/research-lab)';
 
+/* Per-request ceiling for the Treasury fetch. Named rather than inline because it is a policy
+   value, not a tuning knob: an unattended acquisition that waits forever cannot be distinguished
+   from one that is merely slow, and a hung run publishes nothing while looking alive. */
+export const FETCH_TIMEOUT_MS = 30000;
+
 const FAMILIES = Object.freeze([
   Object.freeze({ key: 'nominal', policyKey: 'nominalCurve', curveKind: 'nominal', absentCode: 'BRL-CURVE-NOMINAL-UNAVAILABLE' }),
   Object.freeze({ key: 'real', policyKey: 'realCurve', curveKind: 'real', absentCode: 'BRL-OPTIONAL-UNAVAILABLE' })
@@ -153,7 +158,19 @@ export async function acquireOfficialCurves(options = {}) {
       requests.push({ url, method: 'GET', headers: { 'User-Agent': USER_AGENT } });
       let body = null;
       try {
-        const response = await fetchImpl(url, { headers: { 'User-Agent': USER_AGENT } });
+        /* `redirect: 'error'` and an explicit timeout are both provenance controls, not ergonomics.
+           Node's default `redirect: 'follow'` would let a cross-host redirect return bytes that
+           `contentSha256` then attests while `sourceUrl` still names treasury.gov — the artifact
+           would carry an honest-looking hash of content the declared source never served. Refusing
+           the redirect makes that impossible by construction rather than by trusting the upstream.
+           The timeout exists because an acquisition that hangs forever is indistinguishable from one
+           that is merely slow, and this runs unattended. Both failures land in the same `catch`
+           below, so they degrade to a named absence exactly like any other transport failure. */
+        const response = await fetchImpl(url, {
+          headers: { 'User-Agent': USER_AGENT },
+          redirect: 'error',
+          signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)
+        });
         if (!response || !response.ok) throw new Error('http ' + (response ? response.status : 'no-response'));
         body = await response.text();
       } catch {

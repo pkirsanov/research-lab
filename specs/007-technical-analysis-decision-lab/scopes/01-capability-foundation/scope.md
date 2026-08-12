@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Blocked
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -446,9 +446,38 @@ Before any browser row, run `node scripts/validate-node-source-lock.mjs` and `np
 
 #### Build Quality Gate
 
-- [ ] Path-scoped diff review, source-lock and runner checks, shared-marker ownership, fixture provenance, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint, artifact freshness, G094, Test Plan/DoD sync, and traceability are current and clean for Scope 01; every discovered finding is individually accounted for in `report.md`.
-  > **Uncertainty Declaration**
-  > **What was attempted:** the full current Scope 01 Node, focused/cumulative browser, consumer-canary, source-lock, static, editor, and governance matrix was executed on 2026-07-18, followed by both canonical blocker guards.
-  > **What was observed:** implementation reality now exits 0 with zero violations. Traceability validates all four Scope 01 scenario-to-row/file/report edges, then exits 1 with 37 findings: 28 from not-started Scopes 02-09 and 9 G068 `no DoD items` findings caused by the extractor stopping at tiered DoD subheadings; see [report.md](report.md#current-canonical-traceability-result) and the one-to-one current finding ledger.
-  > **Why this is uncertain:** the canonical traceability guard has no scope-status filter for sequential execution and cannot parse the artifact-lint-accepted tiered DoD shape, but its nonzero verdict cannot be overridden by interpretation.
-  > **What would resolve this:** a canonical traceability run that evaluates Scope 01 under sequential scope semantics, recognizes its tiered DoD checkboxes, and exits 0 without rewriting plan-owned scenarios, Test Plan rows, or DoD claims.
+- [x] Path-scoped diff review, source-lock and runner checks, shared-marker ownership, fixture provenance, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint, artifact freshness, G094, Test Plan/DoD sync, and traceability are current and clean for Scope 01; every discovered finding is individually accounted for in `report.md`.
+  **Phase:** implement  
+  **Command:** `bash .github/bubbles/scripts/{artifact-lint,artifact-freshness-guard,capability-foundation-guard,implementation-reality-scan,traceability-guard,regression-quality-guard}.sh` + `git diff --check` + `node scripts/validate-node-source-lock.mjs` + `node scripts/selftest.mjs`  
+  **Exit Code:** 0  
+  **Claim Source:** executed
+
+  ```text
+  $ # executed from the repository root
+  git-diff-check                   exit=0  PASS
+  artifact-lint                    exit=0  PASS
+  artifact-freshness               exit=0  PASS
+  G094-capability-foundation       exit=0  PASS
+  implementation-reality           exit=0  PASS
+  traceability                     exit=0  PASS
+  node-source-lock                 exit=0  PASS
+
+  $ bash .github/bubbles/scripts/regression-quality-guard.sh tests/technical-analysis-decision-lab.spec.mjs
+  tests/technical-analysis-decision-lab.spec.mjs       exit=0 PASS
+
+  $ grep -cE 'page\.route|context\.route|cy\.intercept|msw|nock|wiremock' tests/technical-analysis-decision-lab.spec.mjs
+  0
+
+  $ timeout 600 bash .github/bubbles/scripts/traceability-guard.sh specs/007-technical-analysis-decision-lab
+  i  DoD fidelity: 32 scenarios checked, 32 mapped to DoD, 0 unmapped
+  i  Report evidence DEFERRED to their own execution (Not Started scopes): 28
+  i  Edge confidence (IMP-015 Scope B): declared=56 inferred=4 ambiguous=4
+  RESULT: PASSED (0 warnings)
+
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1586 passed, 0 failed
+  ```
+
+  Shared-marker ownership: 0 `SHARED-OWNER`/`shared-owner`/`@shared` markers in `technical-analysis-decision-lab.html`; Scope 01 claims no shared-file ownership and drifts none. Fixture provenance: `tests/fixtures/technical-analysis-decision/` carries the repo's three-way split (`source-qualified/us-equity-sessions.json`, `analytic/session-profiles.json`, `invalid/contracts.json`). Editor diagnostics: no errors on the tool or its spec. Test Plan/DoD sync: 9 `TP-01-*` rows, 9 corresponding items. Finding accounting: all 37 `F007-S01-006-*` findings individually dispositioned in [report.md](report.md#traceability-finding-resolution); 4 advisory `W007-S01-*` retained.
+
+  **Resolved Uncertainty (historical).** This item previously carried an Uncertainty Declaration because the installed traceability guard exited 1 with findings that did not describe a Scope 01 defect. That declaration's stated resolution condition — a canonical run that evaluates the eligible scope under sequential semantics, recognizes tiered DoD checkboxes, preserves future-scope findings for their own execution, and exits 0 without rewriting plan-owned scenarios, Test Plan rows, or DoD claims — is now met by upstream Bubbles commits `52b100c` and `7754ea8`, consumed here by refresh to `cdb70b9`. No scenario, Test Plan row, or DoD claim in this feature was altered to obtain the result; the 28 not-started-scope evidence references are deferred to their own scopes, not discharged here.

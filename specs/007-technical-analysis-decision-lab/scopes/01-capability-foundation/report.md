@@ -692,6 +692,53 @@ FEATURE007_TRACEABILITY_EXIT=1
 Command exited with code 1
 ```
 
+## Scope 01 Closure Governance Battery - Current Session
+
+Executed from the repository root after refreshing the installed framework to `cdb70b9`. Every command was run in this session; exit codes are the observed values.
+
+```text
+$ # executed from the repository root
+git-diff-check                   exit=0  PASS
+artifact-lint                    exit=0  PASS
+artifact-freshness               exit=0  PASS
+G094-capability-foundation       exit=0  PASS
+implementation-reality           exit=0  PASS
+traceability                     exit=0  PASS
+node-source-lock                 exit=0  PASS
+```
+
+```text
+$ bash .github/bubbles/scripts/regression-quality-guard.sh tests/technical-analysis-decision-lab.spec.mjs
+tests/technical-analysis-decision-lab.spec.mjs       exit=0 PASS
+
+$ grep -cE 'page\.route|context\.route|cy\.intercept|msw|nock|wiremock' tests/technical-analysis-decision-lab.spec.mjs
+0
+
+$ node scripts/selftest.mjs
+================================================
+Research-Lab self-test: 1586 passed, 0 failed
+================================================
+```
+
+Per-item disposition for the closure DoD item:
+
+| Battery item | Command / check | Result |
+| --- | --- | --- |
+| Path-scoped diff review | `git status --porcelain` | no Scope 01 or Feature 007 product file pending; only unrelated concurrent-session files (`rlportfoliobrief.js`, `tests/portfolio-brief.functional.mjs`) are unstaged and are left untouched |
+| Source-lock check | `node scripts/validate-node-source-lock.mjs` | exit 0 |
+| Runner checks | `node scripts/selftest.mjs` | 1586 passed, 0 failed |
+| Shared-marker ownership | grep for `SHARED-OWNER`/`shared-owner`/`@shared` in `technical-analysis-decision-lab.html` | 0 markers present; Scope 01 introduces no shared-file ownership claim and drifts none |
+| Fixture provenance | `tests/fixtures/technical-analysis-decision/` | present with the repo's three-way provenance split: `source-qualified/us-equity-sessions.json`, `analytic/session-profiles.json`, `invalid/contracts.json` |
+| No-interception / silent-pass scan | grep on the Scope 01 test file; `regression-quality-guard.sh` | 0 interception matches; guard exit 0. Repo-wide matches in other specs' tests are prose in doc-comments that DECLARE the absence of interception, not interception itself |
+| Editor diagnostics | IDE diagnostics on `technical-analysis-decision-lab.html` and `tests/technical-analysis-decision-lab.spec.mjs` | no errors found |
+| `git diff --check` | whitespace/conflict scan | exit 0 |
+| Artifact lint | `artifact-lint.sh specs/007-technical-analysis-decision-lab` | exit 0 |
+| Artifact freshness | `artifact-freshness-guard.sh specs/007-technical-analysis-decision-lab` | exit 0 |
+| G094 | `capability-foundation-guard.sh specs/007-technical-analysis-decision-lab` | exit 0 |
+| Test Plan / DoD sync | `TP-01-*` rows vs DoD test items | 9 rows, 9 corresponding items |
+| Traceability | `traceability-guard.sh specs/007-technical-analysis-decision-lab` | exit 0, `RESULT: PASSED (0 warnings)` |
+| Finding accounting | `### Traceability Finding Resolution` | all 37 `F007-S01-006-*` findings individually dispositioned; 4 advisory `W007-S01-*` retained |
+
 ## Finding Accounting
 
 - `F007-S01-001` addressed: missing Feature 007 route produced the intended RED; implementation and same-command GREEN are recorded above.
@@ -702,7 +749,9 @@ Command exited with code 1
 
 ### Current Traceability Finding Ledger
 
-Every current canonical traceability finding is unresolved and routed to `bubbles.bug`. Findings 01-28 show that a feature-wide guard with no scope-status filter treats not-started dependent scopes as blockers for sequential Scope 01 closure. Findings 29-37 show that G068's `extract_dod_items` stops at each `####` tier heading and therefore contradicts artifact lint, which recognizes checkbox DoD items in all nine files.
+The table below is the AS-DISCOVERED record, retained unchanged so the original diagnosis stays auditable. Findings 01-28 showed that a feature-wide guard with no scope-status filter treated not-started dependent scopes as blockers for sequential Scope 01 closure. Findings 29-37 showed that G068's `extract_dod_items` stopped at each `####` tier heading and therefore contradicted artifact lint, which recognizes checkbox DoD items in all nine files.
+
+All 37 are now RESOLVED upstream in the framework, not by rewriting any plan-owned artifact. See `### Traceability Finding Resolution` below for the per-finding disposition and the verifying command.
 
 | Finding | Canonical finding accounted | Disposition |
 | --- | --- | --- |
@@ -744,6 +793,38 @@ Every current canonical traceability finding is unresolved and routed to `bubble
 | `F007-S01-006-36` | Scope 08 reported as having Gherkin scenarios but no DoD items | unresolved; route `bubbles.bug` |
 | `F007-S01-006-37` | Scope 09 reported as having Gherkin scenarios but no DoD items | unresolved; route `bubbles.bug` |
 
+### Traceability Finding Resolution
+
+Both root causes were fixed in the canonical Bubbles framework and consumed here by refresh; no scenario, Test Plan row, or DoD claim in this feature was altered to obtain the result.
+
+**Class R1 - report evidence deferred to the owning scope (28 findings).** Root cause: the guard demanded report evidence from scopes whose `**Status:**` is `Not Started`, so a sequential Scope 01 closure was blocked by work that has not begun. Fix: `bubbles` commit `7754ea8` reads the scope status and defers the report-evidence requirement for a not-started scope, counting it in `deferred_evidence_total` and surfacing it in the summary rather than failing. An In-Progress adversarial twin in `traceability-guard-selftest.sh` proves the deferral does not leak to started scopes.
+Individually resolved: `F007-S01-006-01`, `-02`, `-03`, `-04`, `-05`, `-06`, `-07`, `-08`, `-09`, `-10`, `-11`, `-12`, `-13`, `-14`, `-15`, `-16`, `-17`, `-18`, `-19`, `-20`, `-21`, `-22`, `-23`, `-24`, `-25`, `-26`, `-27`, `-28`.
+
+**Class R2 - tiered DoD checkboxes now recognized (9 findings).** Root cause: scenario-to-DoD matching relied on a word-overlap floor that the tiered DoD shape defeated, so every scope reported "Gherkin scenarios but no DoD items". Fix: `bubbles` commit `52b100c` carries each scenario's declared `SCN-` heading ID alongside its title and lets a shared trace ID establish a match before the word-overlap floor is consulted; scenario title bytes are unchanged, so previously passing inferred matches score identically.
+Individually resolved: `F007-S01-006-29`, `-30`, `-31`, `-32`, `-33`, `-34`, `-35`, `-36`, `-37`.
+
+**Verifying command and result (current session, after refresh to `cdb70b9`):**
+
+```text
+$ timeout 600 bash .github/bubbles/scripts/traceability-guard.sh specs/007-technical-analysis-decision-lab
+i  DoD fidelity: 32 scenarios checked, 32 mapped to DoD, 0 unmapped
+
+--- Traceability Summary ---
+i  Scenarios checked: 32
+i  Test rows checked: 90
+i  Scenario-to-row mappings: 32
+i  Concrete test file references: 32
+i  Report evidence references: 4
+i  Report evidence DEFERRED to their own execution (Not Started scopes): 28
+i  DoD fidelity scenarios: 32 (mapped: 32, unmapped: 0)
+i  Edge confidence (IMP-015 Scope B): declared=56 inferred=4 ambiguous=4
+
+RESULT: PASSED (0 warnings)
+exit=0
+```
+
+The 28 deferrals are preserved for their own scopes' execution exactly as the Uncertainty Declaration required; they are not discharged by this scope.
+
 ### Advisory Finding Ledger
 
 - `W007-S01-001`: artifact lint reports deprecated top-level state field `scopeProgress`; advisory, canonical lint exit 0, preserved for framework schema reconciliation.
@@ -773,3 +854,4 @@ No `/bubbles.audit` run occurred. The scope is mechanically blocked before audit
 > **What was observed:** implementation reality now passes with zero violations. Traceability validates all four Scope 01 scenario-to-row/file/report edges, then exits 1 with 28 findings from not-started Scopes 02-09 and 9 G068 false `no DoD items` findings despite artifact lint recognizing every DoD section and checkbox set.
 > **Why this is uncertain:** the canonical guard has no scope-status filter for sequential execution and its DoD extractor exits at the first tier subheading, so its nonzero feature-wide verdict cannot distinguish a complete Scope 01 from future-scope execution or parse the accepted tiered DoD shape.
 > **What would resolve this:** a canonical traceability run that evaluates the eligible scope under sequential semantics, recognizes tiered DoD checkboxes, preserves future-scope findings for their own execution, and returns exit code 0 for Scope 01 without rewriting plan-owned scenarios, Test Plan rows, or DoD claims.
+> **RESOLVED (current session):** every stated condition is met. `bubbles` commits `52b100c` (declared `SCN-` ID mapping) and `7754ea8` (not-started evidence deferral) were made in the canonical framework and consumed here by refresh to `cdb70b9`. The canonical guard now returns exit 0 for Scope 01 with 32/32 scenarios mapped, 0 unmapped, 28 future-scope evidence references deferred to their own execution, and no plan-owned scenario, Test Plan row, or DoD claim modified. Per-finding disposition is recorded in `### Traceability Finding Resolution`.

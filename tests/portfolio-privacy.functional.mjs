@@ -1565,6 +1565,75 @@ test('SCN-008-035 TP-04-03: a personal value cannot ride into the public store t
   assert.equal(lying.metrics.personalDataIncluded, false, 'the boundary declaration is false by construction, so a true value would be a code change rather than data');
 });
 
+test('SCN-008-009 TP-06-02: passive activity and settings cannot create an event, an interest, or a trait', () => {
+  const { api, policy } = loadRuntime();
+  const localStorage = createStorage({ initial: { ...GENERIC_PUBLIC_CACHES } });
+  const sessionStorage = createStorage();
+  const { workspace } = seedEveryPopulatableCategory(api, policy, localStorage, sessionStorage);
+
+  /* Every shape the scope names as non-evidence. Each is offered to the SAME builder a genuine
+   * completion goes through, so a refusal here is the production path refusing, not a test
+   * asserting over a path that was never open. */
+  const passiveDrafts = [
+    { name: 'display mode', patch: { displayMode: 'dark' } },
+    { name: 'parameter value', patch: { parameterValue: '0.25' } },
+    { name: 'pointer dwell', patch: { dwell: 1200 } },
+    { name: 'scroll depth', patch: { scroll: 0.8 } },
+    { name: 'click count', patch: { clickCount: 12 } },
+    { name: 'open count', patch: { openCount: 3 } },
+    { name: 'engagement', patch: { engagement: 'high' } },
+    { name: 'setting', patch: { setting: 'notifications-on' } },
+    { name: 'risk control', patch: { riskControl: 'stop-loss' } },
+    { name: 'preference', patch: { preference: 'growth' } }
+  ];
+
+  for (const { name, patch } of passiveDrafts) {
+    const built = api.buildBehaviorCandidate({
+      category: 'ticker-research-completed',
+      completionConditionId: 'risk-panel-reviewed',
+      domain: 'equity-research',
+      horizon: 'medium-term',
+      resultIdentity: CLEAR_RESULT_IDENTITY,
+      sourceSurface: 'risk-xray',
+      subjectId: CLEAR_SUBJECT,
+      subjectKind: 'ticker',
+      ...patch
+    }, workspace, { now: LATER_CLEAR }, policy);
+    assert.equal(built.ok, false, `${name} must not be accepted as completion evidence`);
+    assert.equal(built.error.code, 'P008-SCHEMA-CORRUPT', `${name} must be refused as a schema violation`);
+  }
+
+  // Control: the same draft WITHOUT a passive field is accepted, so the refusals above are caused
+  // by the passive field rather than by the draft being malformed for some other reason.
+  const control = api.buildBehaviorCandidate({
+    category: 'ticker-research-completed',
+    completionConditionId: 'risk-panel-reviewed',
+    domain: 'equity-research',
+    horizon: 'medium-term',
+    resultIdentity: CLEAR_RESULT_IDENTITY,
+    sourceSurface: 'risk-xray',
+    subjectId: 'subject-control-beta',
+    subjectKind: 'ticker'
+  }, workspace, { now: LATER_CLEAR }, policy);
+  assert.equal(control.ok, true, `the control draft must be accepted: ${JSON.stringify(control.error || {})}`);
+
+  /* And nothing passive can reach a derived interest either. Interests are derived from stored
+   * behaviorEvents, so a shape that cannot become an event cannot become an interest. */
+  const derived = api.deriveInterestSignals(control.value.workspace, LATER_CLEAR, policy);
+  assert.equal(derived.ok, true);
+  const serialized = JSON.stringify(derived.value);
+  for (const forbidden of ['displayMode', 'dwell', 'scroll', 'clickCount', 'openCount', 'engagement', 'preference', 'riskControl']) {
+    assert.equal(serialized.includes(forbidden), false, `no derived interest may carry ${forbidden}`);
+  }
+  // A derived interest carries no personal-trait label and no market/model confidence.
+  for (const signal of derived.value) {
+    assert.equal(signal.sensitivityBand, 'non-sensitive');
+    assert.equal('marketConfidence' in signal, false);
+    assert.equal('modelConfidence' in signal, false);
+    assert.equal('trait' in signal, false);
+  }
+});
+
 test('SCN-008-037 TP-06-08: a full-personal clear empties genuinely persisted interests and outcomes on a storage reread', () => {
   const { api, policy } = loadRuntime();
   const localStorage = createStorage({ initial: { ...GENERIC_PUBLIC_CACHES } });

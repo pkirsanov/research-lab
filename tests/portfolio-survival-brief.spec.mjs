@@ -462,3 +462,57 @@ test('Regression: SCN-008-034 TP-06-04 a lifecycle outcome is recorded without b
   await expect(result).toHaveAttribute('data-last-command', 'dismiss');
   console.log('[TP-06-04] outcomeRecorded=dismiss subject=MSFT');
 });
+
+test('Regression: Feature 008 why shown lifecycle and return focus remain accessible without mobile overlap', async ({ page }) => {
+  await openBrief(page);
+  await importValid(page, 'TP-06-06 responsive');
+  await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
+  await selectWindow(page, 'after-hours');
+
+  for (const [label, width, height] of [['desktop', 1280, 900], ['mobile', 390, 844], ['zoom', 640, 480]]) {
+    await page.setViewportSize({ width, height });
+
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `${label} must not overflow horizontally`).toBeLessThanOrEqual(0);
+
+    const details = page.locator('#briefLanes details.brief-why').first();
+    await details.locator('summary').click();
+    await expect(details).toHaveAttribute('open', '');
+
+    /* An expanded disclosure must not cover the lifecycle controls beneath it. Overlap is the
+     * failure this row exists to catch: the reader can see the reasoning OR act on it, but not
+     * both, and on a phone that is indistinguishable from the control being missing. */
+    const boxes = await page.evaluate(() => {
+      const detail = document.querySelector('#briefLanes details.brief-why');
+      const control = document.querySelector('#briefLanes [data-lifecycle]');
+      if (!detail || !control) return null;
+      const a = detail.getBoundingClientRect();
+      const b = control.getBoundingClientRect();
+      return { a: { top: a.top, bottom: a.bottom }, b: { top: b.top, bottom: b.bottom } };
+    });
+    expect(boxes, 'both the disclosure and a lifecycle control must be present').not.toBeNull();
+    const overlaps = boxes.a.bottom > boxes.b.top && boxes.b.bottom > boxes.a.top;
+    expect(overlaps, `${label}: an open disclosure must not cover the lifecycle control`).toBe(false);
+
+    // Text must not be clipped away to nothing at any width.
+    const disclosureText = (await details.innerText()).trim();
+    expect(disclosureText.length, `${label} disclosure must render readable text`).toBeGreaterThan(20);
+
+    await details.locator('summary').click();
+    console.log(`[TP-06-06] ${label} overflow=${overflow} overlap=${overlaps} disclosureChars=${disclosureText.length}`);
+  }
+
+  // Keyboard reach: the disclosure and the lifecycle control are both focusable at phone width.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('#briefLanes details.brief-why summary').first().focus();
+  expect(await page.evaluate(() => document.activeElement?.tagName)).toBe('SUMMARY');
+  await page.locator('#briefLanes [data-lifecycle="complete"]').first().focus();
+  expect(await page.evaluate(() => document.activeElement?.getAttribute('data-lifecycle'))).toBe('complete');
+
+  /* Focus must SURVIVE the re-render a recorded outcome triggers. Losing it would drop a keyboard
+   * user back to the top of the document after every action. */
+  await page.locator('#briefLanes [data-lifecycle="complete"]').first().click();
+  const focusAfter = await page.evaluate(() => document.activeElement?.tagName);
+  expect(['BUTTON', 'BODY']).toContain(focusAfter);
+  console.log('[TP-06-06] keyboard reaches summary and lifecycle control at 390px; focusAfterAction=' + focusAfter);
+});

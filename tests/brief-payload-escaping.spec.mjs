@@ -46,6 +46,30 @@ test('model-authored experimental title and note render as text, never executabl
   }
 });
 
+test('published legacy experimental id and pattern remain visible during migration', async ({ page }) => {
+  const experimental = {
+    ...EXPERIMENTAL,
+    items: [{
+      id: 'legacy-pattern-id',
+      pattern: 'Legacy pattern prose remains visible instead of becoming a blank card.',
+      method: 'Compatibility-render the already-published legacy fields.',
+      inputs: ['one source-qualified input']
+    }]
+  };
+  const server = await startStaticServer({
+    overrides: { 'market-brief.experimental.json': JSON.stringify(experimental) }
+  });
+
+  try {
+    await page.goto(`${server.baseUrl}/market-brief.html`);
+    await page.locator('#experimentalDrawer summary').click();
+    await expect(page.locator('#experimental')).toContainText('legacy-pattern-id');
+    await expect(page.locator('#experimental')).toContainText('Legacy pattern prose remains visible');
+  } finally {
+    await server.close();
+  }
+});
+
 for (const failure of [
   { name: 'missing', server: { missing: ['market-brief.experimental.json'] } },
   { name: 'malformed', server: { overrides: { 'market-brief.experimental.json': '{not-json' } } }

@@ -1099,7 +1099,7 @@
                     return;
                 }
                 var xs = EXPERIMENTAL.items || [];
-                host.innerHTML = xs.length ? xs.map(function (x) { return '<div class="acard"><b>' + esc(x.title || "") + '</b><div class="ay">' + esc(x.note || "") + '</div></div>'; }).join("") : '<div class="sub">Nothing experimental in the current payload.</div>';
+                host.innerHTML = xs.length ? xs.map(function (x) { return '<div class="acard"><b>' + esc(x.title || x.id || "") + '</b><div class="ay">' + esc(x.note || x.pattern || "") + '</div></div>'; }).join("") : '<div class="sub">Nothing experimental in the current payload.</div>';
             }
             function loadExperimental() {
                 if (EXPERIMENTAL || experimentalLoading) return;

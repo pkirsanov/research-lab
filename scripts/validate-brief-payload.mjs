@@ -461,6 +461,26 @@ export function validateBriefPayload(payload, registry, config, snapshot) {
   if (!hasObject(payload?.watchlistNotes)) errors.push('watchlistNotes must be a non-empty object');
   if (!hasObject(payload?.toolReads)) errors.push('toolReads must be a non-empty object');
   if (!Array.isArray(payload?.experimental)) errors.push('experimental must be an array');
+  else {
+    const allowedExperimentalKeys = new Set(['id', 'pattern', 'title', 'note', 'method', 'inputs', 'hiddenByDefault']);
+    payload.experimental.forEach((item, index) => {
+      const at = `experimental[${index}]`;
+      if (!item || typeof item !== 'object' || Array.isArray(item)) {
+        errors.push(`${at} must be an object`);
+        return;
+      }
+      const unknownKeys = Object.keys(item).filter((key) => !allowedExperimentalKeys.has(key));
+      if (unknownKeys.length) errors.push(`${at} carries unknown keys: ${unknownKeys.join(', ')}`);
+      const canonical = hasText(item.title) && hasText(item.note) && item.id === undefined && item.pattern === undefined;
+      const legacy = hasText(item.id) && hasText(item.pattern) && item.title === undefined && item.note === undefined;
+      if (!canonical && !legacy) errors.push(`${at} must use either title/note or legacy id/pattern, without mixing shapes`);
+      if (!hasText(item.method)) errors.push(`${at}.method must be non-empty reader prose`);
+      if (item.hiddenByDefault !== undefined && typeof item.hiddenByDefault !== 'boolean') errors.push(`${at}.hiddenByDefault must be boolean when present`);
+      if (!Array.isArray(item.inputs) || item.inputs.length === 0 || item.inputs.some((input) => !hasText(input))) {
+        errors.push(`${at}.inputs must be a non-empty string array`);
+      }
+    });
+  }
 
   /* D13 on the publish path. The rule used to live only in the author prompt and in a
      browser audit that the 4x/day cron never runs, so a status code could be re-emitted

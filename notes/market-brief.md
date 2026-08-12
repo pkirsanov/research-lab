@@ -576,7 +576,7 @@ rotation math (§4).
   },
   "toolCoverage": [ { "id": "", "status": "fresh-headless|browser-or-agent-read", "reason": null } ],
   "watchlistNotes": { "TICKER": { "status": "", "deepLink": "" } },
-  "experimental": [ { "title": "", "note": "", "hiddenByDefault": true } ]
+  "experimental": [ { "title": "", "note": "", "method": "", "inputs": [ "" ], "hiddenByDefault": true } ]
 }
 ```
 

@@ -76,7 +76,7 @@ const lanes = [
         id: 'coverage',
         keys: ['toolReads', 'toolCoverage', 'experimental'],
         web: false,
-        instructions: `Own registry-wide evidence coverage. toolReads must faithfully carry the exact current Tier-A sector, ETF momentum, global rotation, and real-assets reads from snapshot.toolReads, including model-specific GLD, SLV, BTC-USD/IBIT, broad-commodity, and oil metrics. toolCoverage must contain every tools.json id exactly once and no unregistered ids, each with a specific analyzed/stale/not-relevant reason. experimental may contain only genuinely new patterns with method and inputs.`
+        instructions: `Own registry-wide evidence coverage. toolReads must faithfully carry the exact current Tier-A sector, ETF momentum, global rotation, and real-assets reads from snapshot.toolReads, including model-specific GLD, SLV, BTC-USD/IBIT, broad-commodity, and oil metrics. toolCoverage must contain every tools.json id exactly once and no unregistered ids, each with a specific analyzed/stale/not-relevant reason. experimental may contain only genuinely new patterns. Every item must contain exactly title, note, method, and inputs; title, note, and method are non-empty reader prose, and inputs is a non-empty string array. Do not emit the legacy id or pattern keys.`
     }
 ];
 

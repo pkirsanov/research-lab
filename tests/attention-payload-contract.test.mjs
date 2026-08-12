@@ -709,6 +709,45 @@ test('SCN-017-056 A recorded exclusion must name a real refusal code', () => {
   assert.deepEqual(named(absent), [], 'a payload without the key must not be refused for it');
 });
 
+test('Experimental items accept one closed canonical or legacy shape and reject drift', () => {
+  const base = payloadWithAttention([attentionItem()]);
+  const experimentalErrors = (items) => briefContract.validateBriefPayload(
+    Object.assign({}, base, { experimental: items }), REGISTRY, CONFIG, null
+  ).filter((error) => error.startsWith('experimental['));
+
+  const canonical = experimentalErrors([{
+    title: 'Narrow breadth meets negative gamma',
+    note: 'Participation is thinning while dealer hedging can amplify a directional move.',
+    method: 'Compare the breadth threshold with signed dealer gamma and the latest session type.',
+    inputs: ['breadthPct 56.47 versus threshold 60', 'signedNetGEX below zero'],
+    hiddenByDefault: true
+  }]);
+  assert.deepEqual(canonical, [], `the canonical title/note shape must pass. Received: ${JSON.stringify(canonical)}`);
+
+  const legacy = experimentalErrors([{
+    id: 'narrow-breadth-negative-gamma',
+    pattern: 'Participation is thinning while dealer hedging can amplify a directional move.',
+    method: 'Compare the breadth threshold with signed dealer gamma and the latest session type.',
+    inputs: ['breadthPct 56.47 versus threshold 60', 'signedNetGEX below zero']
+  }]);
+  assert.deepEqual(legacy, [], `the published id/pattern compatibility shape must pass. Received: ${JSON.stringify(legacy)}`);
+
+  const mixed = experimentalErrors([{
+    id: 'mixed', pattern: 'legacy note', title: 'canonical title', note: 'canonical note',
+    method: 'method', inputs: ['input']
+  }]);
+  assert.ok(mixed.some((error) => error.includes('without mixing shapes')), 'a mixed canonical/legacy item must be refused');
+
+  const unknown = experimentalErrors([{
+    title: 'title', note: 'note', method: 'method', inputs: ['input'], confidence: 90
+  }]);
+  assert.ok(unknown.some((error) => error.includes('unknown keys: confidence')), 'an undeclared experimental key must be refused');
+
+  const incomplete = experimentalErrors([{ title: 'title', note: 'note', method: '', inputs: [] }]);
+  assert.ok(incomplete.some((error) => error.includes('.method')), 'an empty method must be refused');
+  assert.ok(incomplete.some((error) => error.includes('.inputs')), 'empty inputs must be refused');
+});
+
 /* ══════════════════════════════════════════════════════════════════════════
  * Feature 017 Scope 04 — outcome record and interruption rate.
  * TP-04-01 … TP-04-07 (SCN-017-033 … SCN-017-039).

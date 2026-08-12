@@ -159,6 +159,7 @@ export const BRIEF_NARRATIVE_FIELDS_OPTIONAL = [
   { pattern: 'toolReads.*.recommendationEligibility.reason', producer: 'scripts/brief-refresh.mjs' },
   { pattern: 'experimental.[].title', producer: 'scripts/brief-narrative-parallel.mjs' },
   { pattern: 'experimental.[].note', producer: 'scripts/brief-narrative-parallel.mjs' },
+  { pattern: 'experimental.[].pattern', producer: 'scripts/brief-narrative-parallel.mjs' },
   { pattern: 'experimental.[].method', producer: 'scripts/brief-narrative-parallel.mjs' },
   /* A generation may validly refuse every attention candidate. Legacy feed prose is rendered
      by rlbrief.js when present; certified item prose is emitted by rlattention.js. Both remain
@@ -211,6 +212,7 @@ export const BRIEF_STRUCTURED_FIELDS = [
   'toolReads.*.ownerReadRef.**',
   'toolReads.*.metrics.**',
   'toolReads.*.recommendationEligibility.eligible',
+  'experimental.[].id',
   'experimental.[].inputs.**',
   'groups.[].read.**',
   'groups.[].breadth.**'

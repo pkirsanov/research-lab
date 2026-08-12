@@ -2263,15 +2263,20 @@ try {
     && explicitAbsence4.metrics.evidenceGaps.includes('the Treasury yield curve'),
     'Consumption TP-04-09: an explicit deps.nominalCurve wins over a present committed artifact, so the seam is unwidened and every injected fixture keeps its exact semantics');
 
-  /* The gate's default artifact path and the acquisition's write path are two literals in two
-     modules that MUST name one file. Importing one into the other would close a cycle
-     (gate → acquisition → brief-refresh → gate), so they are compared here instead: drift between
-     them becomes a test failure rather than a bare `validate-official-curves` run reporting a false
-     FAIL against a repository that does hold a valid artifact. */
+  /* THREE modules name the artifact file with a literal of their own: the gate's default path, the
+     acquisition's write path, and the consumption read path. They MUST name one file. Importing one
+     into another would close a cycle (gate → acquisition → brief-refresh → gate), so all three are
+     compared here instead: drift between any pair becomes a test failure rather than a bare
+     `validate-official-curves` run reporting a false FAIL against a repository that does hold a
+     valid artifact, or a consumption path silently reading somewhere nothing is ever written. */
   const acquisition4 = await import('./acquire-official-curves.mjs');
   const gateDefaultPath4 = (/positional\[0\]\s*\|\|\s*'([^']+)'/.exec(read('scripts/validate-official-curves.mjs')) || [])[1];
+  const readerSegments4 = (/path\.join\(root,\s*((?:'[^']+'\s*,\s*)*'[^']+')\s*\)/.exec(read('scripts/owner-state.mjs')) || [])[1];
+  const readerPath4 = readerSegments4 ? readerSegments4.split(',').map((s) => s.trim().slice(1, -1)).join('/') : null;
   assert(!!gateDefaultPath4 && gateDefaultPath4 === acquisition4.ARTIFACT_RELATIVE_PATH,
     'Consumption TP-04-09: the gate\u2019s default artifact path and the acquisition\u2019s write path name one file (' + gateDefaultPath4 + ')');
+  assert(!!readerPath4 && readerPath4 === acquisition4.ARTIFACT_RELATIVE_PATH,
+    'Consumption TP-04-09: the consumption READ path in owner-state.mjs names that same one file, so a reader cannot drift to a location nothing writes (' + readerPath4 + ')');
 } catch (e) { failures++; console.log('  ✗ FAIL (headless curve consumption group threw): ' + e.message); }
 
 /* ---------- Market Brief: §6c larger-picture / anti-reactivity helpers ---------- */

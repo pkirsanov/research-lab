@@ -171,8 +171,11 @@ to be fresh, and the freshness admission downstream reads exactly that field.
 A family with nothing to carry forward is a named absence — `state:
 "unavailable"`, zero rows, its own error code. An `unavailable` family carries no
 provenance envelopes, because when a fetch fails at transport there is no
-response to attest; a `fresh` family must carry them, and the gate enforces that
-asymmetry in both directions.
+response to attest. The gate encodes that asymmetry in ONE direction only: it
+requires envelopes on a `fresh` family (`provenance-missing`) and merely permits
+an empty array on an `unavailable` one. The relaxation is the risk, so it carries
+an adversarial twin — a `fresh` family stripped of its envelopes is still
+refused, which is what proves permitting the empty array opened no hole.
 
 ### Headless Publication: Why Freshness Reads No Calendar
 
@@ -209,9 +212,16 @@ Measured over the artifact acquisition writes: `maxObservedGapDays` 3 and
 `windowDays` 4 for both families — the weekend gap, plus the one-day publication
 lag.
 
-Two vocabularies stay separate. Uppercase `BRL-*` codes appear only in
-`errorCode`; lowercase-hyphen reasons appear only in `basis` and `diagnostics`.
-Neither leaks into the other's field.
+Two vocabularies stay separate inside the admission verdict: uppercase `BRL-*`
+codes appear only in `errorCode`, and `basis` carries only lowercase-hyphen
+reasons. That is the whole of the rule, and it is scoped to the verdict.
+
+The artifact family's own `diagnostics` array is deliberately mixed and is not
+covered by it. A transport failure pushes the uppercase `BRL-CURVE-FETCH-FAILED`
+into `diagnostics` while `errorCode` holds the model-facing absence code, so the
+family can name the transport cause without overwriting the code the model reads.
+Beside it sit lowercase-hyphen reasons — `carried-forward-from-prior-artifact`
+and `missing-headers:…`. Do not read `diagnostics` as single-vocabulary.
 
 ### Headless Consumption Precedence
 
@@ -252,9 +262,12 @@ therefore stays `unavailable` and the read still names an absence — a narrower
 one. `evidenceGaps` is not edited to achieve this; it is computed from the
 model's own states and narrows by itself.
 
-Two literals in two modules name the artifact file: the gate's default path and
-the acquisition's write path. They cannot be single-sourced by import without
-closing a cycle, so `scripts/selftest.mjs` asserts they are equal instead.
+Three modules name the artifact file with a literal of their own: the gate's
+default path (`scripts/validate-official-curves.mjs`), the acquisition's write
+path (`ARTIFACT_RELATIVE_PATH`), and the consumption read path
+(`officialCurveArtifact` in `scripts/owner-state.mjs`). The first two cannot be
+single-sourced by import without closing a cycle, so `scripts/selftest.mjs`
+asserts those two are equal instead. The third is not covered by that assertion.
 
 ### Source Table: Observed As Of Versus Retrieved
 
@@ -293,7 +306,9 @@ compares exactly four fields — `curveState`, `curveImpulse`, `inflationState`,
 | **Differ** | at least one field disagrees — a defect to investigate, not a status to acknowledge |
 | **Cannot be compared** | the comparison could not be made, with its reason named |
 
-There are six *Cannot be compared* reasons. The sixth —
+There are five *Cannot be compared* reasons, evaluated in this order:
+`no-browser-composition`, `no-published-read`, `differing-observation-window`,
+`differing-as-of`, `incomplete-field-set`. The third —
 `differing-observation-window` — settles routed item **R-3** and exists because of
 design finding **D-1**: `classifyInflationState` compares the **first and last**
 breakeven rows, so two compositions holding different windows can legitimately

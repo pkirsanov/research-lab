@@ -703,15 +703,17 @@ compare two rows and draw the conclusion themselves.
 glyph and the state word, so removing all colour — or zooming to 200% — leaves
 the state fully readable. This is asserted in the browser suite, not assumed.
 
-**Three states, one geometry.** Fresh, stale and absent use the same layout, so a
-reader who has learned one has learned all three:
+**Three state tokens, one geometry.** Admitted, stale and unavailable use the same
+layout, so a reader who has learned one has learned all three. The `unavailable`
+token covers two different reasons; they differ only in the sentence beside the
+token, never in the glyph or the word:
 
-| State | What the card adds |
+| State token | Reason line the card adds |
 | --- | --- |
-| fresh / admitted | the resolved axis, the curve as-of, no admission row |
-| stale | the derived window, the elapsed age, and the last good observation *with its not-current qualifier inside the same string* so the qualifier lands in the accessible name |
-| underivable | the observed-gap count against the count the cadence rule required — asserting neither current nor stale |
-| absent | an explicit statement that nothing was substituted: no zero, no neutral filler, no carried value |
+| admitted | no admission row at all — the resolved axis and the curve as-of carry the state |
+| stale — `◐ Stale` | the derived window, the elapsed age, and the last good observation *with its not-current qualifier inside the same string* so the qualifier lands in the accessible name |
+| unavailable — `○ Unavailable`, freshness underivable | the observed-gap count against the count the cadence rule required — asserting neither current nor stale |
+| unavailable — `○ Unavailable`, nothing on file | an explicit statement that nothing was substituted: no zero, no neutral filler, no carried value |
 
 The published `read` string renders verbatim in its own paragraph. It is never
 re-derived, paraphrased, or duplicated into an `aria-label`.

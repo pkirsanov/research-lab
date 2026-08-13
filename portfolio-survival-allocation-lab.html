@@ -1130,6 +1130,8 @@
                     currentMandateId: workspace ? workspace.currentMandateId : null,
                     mandateRevisionCount: workspace ? workspace.mandateRevisions.length : 0,
                     scenarioCount: workspace ? workspace.scenarios.length : 0,
+                    cashNeedCount: (state.cashNeeds || []).length,
+                    survivalFloorSet: isFiniteNumber(state.survivalFloor),
                     routeStates: state.routeStates
                 });
             }
@@ -1570,7 +1572,236 @@
                 tableWrap.appendChild(table);
                 band.appendChild(tableWrap);
 
+                appendCashNeedsAndSurvival(band, run);
+
                 panel.appendChild(band);
+            }
+
+            /* Modeled sessions are business days projected forward from the last
+               observation. Holidays are not modeled, and the surface says so
+               rather than implying a real exchange calendar it does not hold. */
+            function forwardSessionDates(lastObserved, count) {
+                var out = [];
+                var cursor = new Date(lastObserved + "T00:00:00Z");
+                while (out.length < count) {
+                    cursor.setUTCDate(cursor.getUTCDate() + 1);
+                    var day = cursor.getUTCDay();
+                    if (day === 0 || day === 6) continue;
+                    out.push(cursor.toISOString().slice(0, 10));
+                }
+                return out;
+            }
+
+            function appendCashNeedsAndSurvival(band, run) {
+                var r = run.result;
+                var probe = riskProjection();
+                var lastObserved = probe.available && probe.rows && probe.rows.length
+                    ? probe.rows[probe.rows.length - 1].date
+                    : null;
+                var sessionDates = lastObserved
+                    ? forwardSessionDates(lastObserved, r.fanBands.length)
+                    : [];
+
+                var cashBand = document.createElement("div");
+                cashBand.className = "band";
+                cashBand.id = "cashNeeds";
+                var cashHeading = document.createElement("h5");
+                cashHeading.textContent = "Dated cash needs";
+                cashBand.appendChild(cashHeading);
+
+                if (!sessionDates.length) {
+                    var noDates = document.createElement("p");
+                    noDates.id = "cashNeedsUnavailable";
+                    noDates.className = "state-message";
+                    noDates.textContent = "Cash needs unavailable · no observed session date is held, " +
+                        "so no need can be placed on a modeled step. Nothing is assumed in its place.";
+                    cashBand.appendChild(noDates);
+                    band.appendChild(cashBand);
+                    return;
+                }
+
+                var calendarNote = document.createElement("p");
+                calendarNote.className = "microcopy";
+                calendarNote.textContent = "Modeled sessions " + sessionDates[0] + " through " +
+                    sessionDates[sessionDates.length - 1] + " are business days projected forward from the " +
+                    "last observation " + lastObserved + ". Exchange holidays are not modeled. A need lands on " +
+                    "the first modeled session on or after its stated date and is never moved to a better one.";
+                cashBand.appendChild(calendarNote);
+
+                var form = document.createElement("div");
+                form.className = "row";
+                var amountInput = document.createElement("input");
+                amountInput.id = "cashNeedAmount";
+                amountInput.type = "number";
+                amountInput.min = "1";
+                amountInput.placeholder = "Amount";
+                amountInput.setAttribute("aria-label", "Cash need amount");
+                var dateInput = document.createElement("input");
+                dateInput.id = "cashNeedDate";
+                dateInput.type = "date";
+                dateInput.setAttribute("aria-label", "Cash need date");
+                var labelInput = document.createElement("input");
+                labelInput.id = "cashNeedLabel";
+                labelInput.type = "text";
+                labelInput.placeholder = "What is it for";
+                labelInput.setAttribute("aria-label", "Cash need label");
+                var addButton = document.createElement("button");
+                addButton.id = "cashNeedAdd";
+                addButton.type = "button";
+                addButton.textContent = "Add cash need";
+                addButton.addEventListener("click", function () {
+                    var amount = Number(amountInput.value);
+                    if (!isFiniteNumber(amount) || amount <= 0 || !dateInput.value || !labelInput.value) {
+                        state.cashNeedError = "A cash need requires an amount, a date, and a label. " +
+                            "None of the three is inferred.";
+                        refreshWorkspaceViews();
+                        return;
+                    }
+                    state.cashNeedError = null;
+                    state.cashNeeds = (state.cashNeeds || []).concat([{
+                        amount: amount,
+                        currency: "USD",
+                        date: dateInput.value,
+                        kind: "withdrawal",
+                        label: labelInput.value,
+                        timing: "end-of-step"
+                    }]);
+                    refreshWorkspaceViews();
+                });
+                [amountInput, dateInput, labelInput, addButton].forEach(function (el) { form.appendChild(el); });
+                cashBand.appendChild(form);
+
+                if (state.cashNeedError) {
+                    var cashError = document.createElement("p");
+                    cashError.id = "cashNeedError";
+                    cashError.className = "state-message";
+                    cashError.textContent = state.cashNeedError;
+                    cashBand.appendChild(cashError);
+                }
+
+                var needs = state.cashNeeds || [];
+                var schedule = window.RLPORTFOLIOANALYTICS.scheduleCashFlows(needs, sessionDates);
+                var medianPath = r.fanBands.map(function (row) { return row.p50; });
+                var applied = schedule.state === "ok"
+                    ? window.RLPORTFOLIOANALYTICS.applyCashFlows(medianPath, schedule.scheduled, "USD")
+                    : { state: schedule.state, events: [] };
+
+                var timelineWrap = document.createElement("div");
+                timelineWrap.style.overflowX = "auto";
+                timelineWrap.style.maxWidth = "100%";
+                var timeline = document.createElement("table");
+                timeline.id = "cashNeedTimeline";
+                timeline.innerHTML = "<thead><tr><th scope=\"col\">Need</th><th scope=\"col\">Stated date</th>" +
+                    "<th scope=\"col\">Modeled date</th><th scope=\"col\">Capital before</th>" +
+                    "<th scope=\"col\">Applied</th><th scope=\"col\">Capital after</th>" +
+                    "<th scope=\"col\">Funded</th><th scope=\"col\">During drawdown</th></tr></thead>";
+                var timelineBody = document.createElement("tbody");
+                (applied.events || []).forEach(function (event) {
+                    var tr = document.createElement("tr");
+                    tr.id = "cashneed-" + event.index;
+                    tr.dataset.session = String(event.session);
+                    tr.dataset.funded = event.fundedFraction >= 1 ? "full" : "partial";
+                    var cells = [
+                        event.label,
+                        event.declaredDate,
+                        event.modeledDate,
+                        money(event.capitalBefore),
+                        money(event.appliedAmount) + " of " + money(event.requestedAmount),
+                        money(event.capitalAfter),
+                        (event.fundedFraction * 100).toFixed(1) + "%",
+                        event.duringDrawdown ? "Yes — sequence risk" : "No"
+                    ];
+                    cells.forEach(function (value, i) {
+                        var cell = document.createElement(i === 0 ? "th" : "td");
+                        if (i === 0) cell.setAttribute("scope", "row");
+                        cell.textContent = value;
+                        tr.appendChild(cell);
+                    });
+                    timelineBody.appendChild(tr);
+                });
+                timeline.appendChild(timelineBody);
+                timelineWrap.appendChild(timeline);
+                cashBand.appendChild(timelineWrap);
+
+                if (!needs.length) {
+                    var noNeeds = document.createElement("p");
+                    noNeeds.id = "cashNeedEmpty";
+                    noNeeds.className = "microcopy";
+                    noNeeds.textContent = "No cash need entered. None is assumed on your behalf.";
+                    cashBand.appendChild(noNeeds);
+                }
+
+                (schedule.rejected || []).forEach(function (rejection) {
+                    var note = document.createElement("p");
+                    note.className = "state-message";
+                    note.dataset.rejectedIndex = String(rejection.index);
+                    note.textContent = "Cash need " + (rejection.index + 1) + " not placed · " + rejection.reason +
+                        (rejection.declaredDate
+                            ? " · stated " + rejection.declaredDate + " falls beyond the modeled horizon and is " +
+                              "reported rather than moved onto the last modeled session."
+                            : "");
+                    cashBand.appendChild(note);
+                });
+
+                band.appendChild(cashBand);
+
+                /* Survival. Reported ONLY from a complete user-stated definition.
+                   There is no default floor and no assumed withdrawal rate. */
+                var survivalBand = document.createElement("div");
+                survivalBand.className = "band";
+                survivalBand.id = "survivalBand";
+                var survivalHeading = document.createElement("h5");
+                survivalHeading.textContent = "Survival";
+                survivalBand.appendChild(survivalHeading);
+
+                var floorRow = document.createElement("div");
+                floorRow.className = "row";
+                var floorInput = document.createElement("input");
+                floorInput.id = "survivalFloor";
+                floorInput.type = "number";
+                floorInput.min = "0";
+                floorInput.placeholder = "Wealth floor";
+                floorInput.setAttribute("aria-label", "Survival wealth floor");
+                if (isFiniteNumber(state.survivalFloor)) floorInput.value = String(state.survivalFloor);
+                var floorButton = document.createElement("button");
+                floorButton.id = "survivalFloorApply";
+                floorButton.type = "button";
+                floorButton.textContent = "Set floor";
+                floorButton.addEventListener("click", function () {
+                    var value = Number(floorInput.value);
+                    state.survivalFloor = isFiniteNumber(value) && floorInput.value !== "" ? value : null;
+                    refreshWorkspaceViews();
+                });
+                floorRow.appendChild(floorInput);
+                floorRow.appendChild(floorButton);
+                survivalBand.appendChild(floorRow);
+
+                var definition = isFiniteNumber(state.survivalFloor)
+                    ? {
+                        floorValue: state.survivalFloor,
+                        horizonSessions: r.horizonSessions,
+                        currency: "USD",
+                        startingValue: r.startingValue
+                    }
+                    : null;
+                var survival = window.RLPORTFOLIOANALYTICS.computeSurvival(definition, [medianPath]);
+                survivalBand.dataset.survivalState = survival.state;
+
+                var survivalText = document.createElement("p");
+                survivalText.id = "survivalResult";
+                if (survival.state === "ok") {
+                    survivalText.textContent = "Survival " + (survival.survivalProbability * 100).toFixed(1) +
+                        "% of " + survival.pathCount + " modeled series stay at or above " +
+                        money(survival.floorValue) + " at every modeled session. " + survival.failureDefinition;
+                } else {
+                    survivalText.className = "state-message";
+                    survivalText.textContent = "Survival unavailable · " + survival.reason +
+                        " · missing: " + survival.missing.join(", ") +
+                        ". No probability, wealth floor, withdrawal rate, or success threshold is supplied in " +
+                        "its place. The wealth and drawdown distributions above remain valid on their own.";
+                }
+                survivalBand.appendChild(survivalText);
+                band.appendChild(survivalBand);
             }
 
             function money(value) {

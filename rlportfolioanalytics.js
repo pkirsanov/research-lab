@@ -1135,6 +1135,7 @@
         : "Stationary bootstrap with geometric blocks and cyclic wrap, preserving short-run dependence.",
       meanBlockSessions: spec.meanBlockSessions,
       horizonSessions: spec.horizonSessions,
+      startingValue: spec.startingValue,
       pathCount: spec.pathCount,
       parameterDrawCount: spec.parameterDrawCount,
       commonRandomStreams: true,

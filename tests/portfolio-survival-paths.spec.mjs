@@ -250,3 +250,166 @@ test('Regression: Feature 008 Path Lab refuses rather than generating a path wit
     await expect(panel.locator(id), `${id} must be absent when no sample exists`).toHaveCount(0);
   }
 });
+
+/* ---------------------------------------------------------------------------
+   Scope 10 — dated cash needs and survival states
+   --------------------------------------------------------------------------- */
+
+async function firstModeledSession(page) {
+  return page.locator('#cashNeeds .microcopy').first().textContent();
+}
+
+test('Regression: SCN-008-020 dated cash need records before and after collision capital', async ({ page }) => {
+  await seedPortfolio(page, 'TP-10-02 collision');
+  const panel = await openPathLab(page);
+
+  // The modeled calendar is stated on screen, so the need's landing step is
+  // checkable by a reader rather than only by the test.
+  const note = await firstModeledSession(page);
+  expect(note).toContain('business days projected forward');
+  expect(note).toContain('never moved to a better one');
+
+  const firstSession = note.match(/Modeled sessions (\d{4}-\d{2}-\d{2})/)[1];
+
+  await panel.locator('#cashNeedAmount').fill('20000');
+  await panel.locator('#cashNeedDate').fill(firstSession);
+  await panel.locator('#cashNeedLabel').fill('Tuition');
+  await panel.locator('#cashNeedAdd').click();
+
+  const row = panel.locator('#cashNeedTimeline tbody tr').first();
+  await expect(row).toBeVisible();
+
+  const cells = await row.locator('th, td').allTextContents();
+  expect(cells[0]).toBe('Tuition');
+  expect(cells[1], 'the stated date is shown verbatim').toBe(firstSession);
+  expect(cells[2], 'the modeled date is on or after the stated date').not.toBe('');
+  expect(cells[2] >= cells[1], 'a need is never pulled earlier than its stated date').toBe(true);
+
+  // Capital before, applied, and capital after are all present as real currency
+  // figures - not a single opaque "impact" number.
+  expect(cells[3]).toMatch(/\$/);
+  expect(cells[4]).toMatch(/\$20,000/);
+  expect(cells[5]).toMatch(/\$/);
+  expect(cells[6]).toMatch(/%$/);
+
+  // The need is not reduced to make the result look better.
+  expect(cells[4], 'the full requested amount is stated even if partly funded').toContain('of $20,000');
+
+  const diagnostics = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+  expect(diagnostics.cashNeedCount).toBe(1);
+});
+
+test('Regression: SCN-008-021 missing survival definition renders distributions without probability', async ({ page }) => {
+  await seedPortfolio(page, 'TP-10-03 no definition');
+  const panel = await openPathLab(page);
+
+  // Distributions remain fully available.
+  await expect(panel.locator('#pathBands')).toBeVisible();
+  await expect(panel.locator('#pathTable')).toBeVisible();
+  await expect(panel.locator('#pathCanvas')).toBeVisible();
+
+  // Survival refuses, names the missing field, and states what it did NOT supply.
+  await expect(panel.locator('#survivalBand')).toHaveAttribute('data-survival-state', 'unavailable');
+  const survival = await panel.locator('#survivalResult').textContent();
+  expect(survival).toContain('Survival unavailable');
+  expect(survival).toContain('floorValue');
+  expect(survival).toContain('No probability, wealth floor, withdrawal rate, or success threshold is supplied');
+
+  // Adversarial: no percentage, no floor figure, and no withdrawal rate leaks
+  // into the survival band while the definition is absent. A default 4% rule
+  // would be caught here.
+  const bandText = await panel.locator('#survivalBand').textContent();
+  expect(bandText).not.toMatch(/\d+(\.\d+)?%\s+of\s+\d+\s+modeled/);
+  expect(bandText).not.toMatch(/4%|0\.04/);
+
+  const beforeFloor = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__.survivalFloorSet);
+  expect(beforeFloor).toBe(false);
+
+  // Supplying the floor is what turns it on - nothing else does.
+  await panel.locator('#survivalFloor').fill('1');
+  await panel.locator('#survivalFloorApply').click();
+  await expect(panel.locator('#survivalBand')).toHaveAttribute('data-survival-state', 'ok');
+  const withFloor = await panel.locator('#survivalResult').textContent();
+  expect(withFloor).toContain('Survival');
+  expect(withFloor).toContain('modeled series stay at or above');
+  expect(withFloor).toContain('A path fails when its capital falls below the stated floor');
+});
+
+test('Regression: Feature 008 cash need timeline and path table preserve order and mobile canvas parity', async ({ page }) => {
+  await seedPortfolio(page, 'TP-10-04 order');
+  const panel = await openPathLab(page);
+
+  const note = await firstModeledSession(page);
+  const dates = note.match(/Modeled sessions (\d{4}-\d{2}-\d{2}) through (\d{4}-\d{2}-\d{2})/);
+  const first = dates[1];
+  const last = dates[2];
+
+  // Entered out of chronological order on purpose: the timeline must reorder.
+  for (const [amount, date, label] of [
+    ['3000', last, 'Later need'],
+    ['1000', first, 'Earlier need']
+  ]) {
+    await panel.locator('#cashNeedAmount').fill(amount);
+    await panel.locator('#cashNeedDate').fill(date);
+    await panel.locator('#cashNeedLabel').fill(label);
+    await panel.locator('#cashNeedAdd').click();
+  }
+
+  const labels = await panel.locator('#cashNeedTimeline tbody tr th').allTextContents();
+  expect(labels, 'the timeline is chronological, not entry-ordered').toEqual(['Earlier need', 'Later need']);
+
+  const sessions = await panel.locator('#cashNeedTimeline tbody tr').evaluateAll(
+    (rows) => rows.map((row) => Number(row.dataset.session))
+  );
+  expect(sessions[0]).toBeLessThan(sessions[1]);
+
+  // Every timeline row is a unique link target, like the fan rows.
+  const unresolved = await panel.evaluate(() => {
+    const rows = Array.from(document.querySelectorAll('#cashNeedTimeline tbody tr'));
+    return rows.filter((row) => !row.id || document.querySelectorAll('#' + CSS.escape(row.id)).length !== 1).length;
+  });
+  expect(unresolved).toBe(0);
+
+  // Canvas parity survives the timeline being present, at both geometries.
+  for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    await expect(panel.locator('#pathCanvas')).toBeVisible();
+    await expect(panel.locator('#cashNeedTimeline')).toBeVisible();
+    const painted = await panel.locator('#pathCanvas').evaluate((canvas) => {
+      const { data } = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+      let coloured = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255) coloured += 1;
+      }
+      return coloured;
+    });
+    expect(painted, `canvas stays painted at ${viewport.width}px`).toBeGreaterThan(200);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `no horizontal overflow at ${viewport.width}px`).toBeLessThanOrEqual(1);
+    expect(await panel.locator('#cashNeedTimeline tbody tr').count()).toBe(2);
+  }
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.evaluate(() => { document.documentElement.style.fontSize = '130%'; });
+  await expect(panel.locator('#cashNeedTimeline')).toBeVisible();
+  const overflowZoom = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflowZoom, 'no horizontal overflow at 130% text').toBeLessThanOrEqual(1);
+  await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
+});
+
+test('Regression: Feature 008 an incomplete cash need is refused rather than partly assumed', async ({ page }) => {
+  await seedPortfolio(page, 'TP-10-04 refusal');
+  const panel = await openPathLab(page);
+
+  await expect(panel.locator('#cashNeedEmpty')).toContainText('None is assumed on your behalf');
+
+  // Amount only: no date, no label. The surface must refuse, not invent today's
+  // date or an empty label.
+  await panel.locator('#cashNeedAmount').fill('5000');
+  await panel.locator('#cashNeedAdd').click();
+
+  await expect(panel.locator('#cashNeedError')).toContainText('requires an amount, a date, and a label');
+  expect(await panel.locator('#cashNeedTimeline tbody tr').count()).toBe(0);
+  const diagnostics = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+  expect(diagnostics.cashNeedCount).toBe(0);
+});

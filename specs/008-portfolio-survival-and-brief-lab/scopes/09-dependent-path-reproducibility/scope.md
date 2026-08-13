@@ -78,7 +78,13 @@ Scenario: SCN-008-038 - A user clears all personal data after running dependent-
 
 **Allowed files:** `rlportfolioanalytics.js`, `portfolio-survival-allocation-lab.html`, `portfolio-survival-allocation.config.json`, `tests/portfolio-analytics.unit.mjs`, `tests/portfolio-survival-paths.spec.mjs`, `tests/portfolio-survival.support.mjs`, and Scope 09 fixture entries.
 
-**Explicitly excluded:** private storage/brief behavior except read-only inputs, `rldata.js`, `rlnav.js`, generic Market Brief surfaces, cash-need/survival logic owned by Scope 10, dependence/hedge/allocation/dossier logic, registries/docs, package/source-lock files, Feature 001-007 work, unrelated tools/tests, and framework-managed files.
+**Amended 2026-08-13 (F-09-PERSISTENCE-BOUNDARY):** `rlportfolio.js` and `tests/portfolio-foundation.unit.mjs` are added to the allowed set, for the scenario-persistence field only.
+
+The original boundary excluded private storage while this scope requires a saved scenario that survives a reload and is removed by the existing full-personal clear. Those cannot both hold: the workspace schema is owned by `rlportfolio.js`, and a scenario stored anywhere else would be a parallel top-level key that a clear keyed on `FOUNDATION_LOCAL_KEYS` would miss — the exact privacy defect SCN-008-038 exists to prevent. Storing it inside the workspace inherits the existing clear, because `slotA`/`slotB` are already on that list.
+
+`tests/portfolio-foundation.unit.mjs` is included because Scope 03 pins that no personal section may be declared without a real write path, so the sweep cannot be vacuously true. That pin goes red by design when a new section appears, and it must be updated to populate the new section **through its real builder** — never relaxed to accept an empty container.
+
+**Still excluded:** every other private-storage behavior, `rldata.js`, `rlnav.js`, generic Market Brief surfaces, cash-need/survival logic owned by Scope 10, dependence/hedge/allocation/dossier logic, registries/docs, package/source-lock files, Feature 001-007 work, unrelated tools/tests, and framework-managed files.
 
 **Rollback/restore:** remove Scope 09 exact path/config/route/test/fixture blocks. Risk X-Ray/Brief remain complete, and Path Lab returns a designed unavailable state with no generated or synthetic path.
 

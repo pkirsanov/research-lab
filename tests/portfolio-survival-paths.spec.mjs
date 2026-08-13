@@ -148,6 +148,48 @@ test('Regression: Feature 008 Path Lab table stays equivalent and stable at desk
   await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
 });
 
+test('Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear', async ({ page }) => {
+  await seedPortfolio(page, 'TP-09-06 persistence');
+  const panel = await openPathLab(page);
+  await expect(panel.locator('#pathLab')).toHaveAttribute('data-path-state', 'ok');
+
+  const identity = await panel.locator('#pathIdentity').textContent();
+  await panel.locator('#pathSaveScenario').click();
+  const result = panel.locator('#pathSaveResult');
+  await expect(result).toHaveAttribute('data-accepted', 'true');
+  await expect(result).toContainText('1 scenario(s) saved');
+  // Only the identity plus a summary is stored: the identity reproduces the paths exactly, so
+  // persisting thousands of resampled rows would duplicate derivable data in private storage.
+  await expect(result).toContainText('never the resampled paths');
+
+  // Saving the SAME scenario again is a no-op, not a second row.
+  await panel.locator('#pathSaveScenario').click();
+  await expect(result).toHaveAttribute('data-accepted', 'false');
+  await expect(result).toContainText('already saved, not duplicated');
+  await expect(result).toContainText('1 scenario(s) saved');
+
+  // It survives a reload, which is what makes it a saved scenario rather than a render artefact.
+  await page.reload();
+  await page.locator('#workspaceTabPathLab').click();
+  await expect(page.locator('#pathSaveResult')).toContainText('1 scenario(s) saved');
+  const stored = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__.scenarioCount);
+  expect(stored).toBe(1);
+
+  // ADVERSARIAL: the identity must be the SAME one the surface showed, not a fresh sample.
+  const afterReload = await page.locator('#pathIdentity').textContent();
+  expect(afterReload).toBe(identity);
+
+  // The full personal clear removes it. The workspace lives in slotA/slotB, which are on
+  // FOUNDATION_LOCAL_KEYS, so a scenario stored INSIDE the workspace is swept with everything else.
+  // A parallel top-level key would have survived, which is why the field lives where it does.
+  await page.locator('#workspaceTabBrief').click();
+  await page.locator('#openPrivacy').click();
+  await page.locator('#emergencyClear').click();
+  await expect(page.locator('#privacyResult')).not.toHaveText('No clear requested.');
+  const afterClear = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__.scenarioCount);
+  expect(afterClear, 'a full personal clear must remove every saved scenario').toBe(0);
+});
+
 test('Regression: Feature 008 Path Lab refuses rather than generating a path without evidence', async ({ page }) => {
   await openLab(page);
   await importValid(page, 'TP-09-05 refusal');

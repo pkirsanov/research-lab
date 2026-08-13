@@ -1039,20 +1039,50 @@ test('the two personal sections Scope 03 could not populate now have real write 
   assert.equal(withOutcome.value.workspace.actionOutcomes.length > 0, true,
     'actionOutcomes now has a real write path');
 
+  /* Scope 09 declared `scenarios`. This pin goes red the moment a personal section appears without
+   * a write path, which is exactly what it is for, so the section is populated through its REAL
+   * builder rather than the pin being relaxed to accept an empty container. */
+  const withScenario = api.buildScenarioCandidate(
+    'basis=exact-common-date-intersection|cutoff=2026-05-08|paths=200|horizon=21|seed=7',
+    'Sweep limit scenario',
+    { paths: 200, horizonSessions: 21, terminalMedian: 1.0123 },
+    withOutcome.value.workspace,
+    NOW,
+    policy
+  );
+  assert.equal(withScenario.ok, true, `scenario build must succeed: ${JSON.stringify(withScenario.error || {})}`);
+  assert.equal(withScenario.value.workspace.scenarios.length > 0, true,
+    'scenarios now has a real write path');
+
   // Every derived personal section is reachable, so no emptiness claim in the sweep is vacuous.
-  const stillUnreachable = sections.filter((section) => withOutcome.value.workspace[section].length === 0);
+  const stillUnreachable = sections.filter((section) => withScenario.value.workspace[section].length === 0);
   assert.deepEqual(stillUnreachable, [],
     'no derived personal section may remain unpopulatable, or the sweep would still assert emptiness over an empty-by-construction container');
 
   // A populated workspace must validate, or the write paths above produced something unstorable.
-  assert.equal(api.validateWorkspace(withOutcome.value.workspace, policy).ok, true);
+  assert.equal(api.validateWorkspace(withScenario.value.workspace, policy).ok, true);
 
   // And the behavior clear genuinely empties both, which is the claim Scope 03 could not test.
-  const cleared = api.buildBehaviorClearCandidate(withOutcome.value.workspace, NOW, policy);
+  const cleared = api.buildBehaviorClearCandidate(withScenario.value.workspace, NOW, policy);
   assert.equal(cleared.ok, true);
   assert.equal(cleared.value.workspace.interestSignals.length, 0);
   assert.equal(cleared.value.workspace.actionOutcomes.length, 0,
     'a completed outcome is behavior-derived, so the behavior clear removes it');
+
+  /* A saved scenario is NOT behavior-derived -- it is a thing the user explicitly saved -- so the
+   * behavior-only clear must LEAVE it, exactly as it leaves holdings and mandate revisions. The
+   * full-personal clear removes it, because the workspace slots are on FOUNDATION_LOCAL_KEYS. */
+  assert.equal(cleared.value.workspace.scenarios.length, 1,
+    'a behavior-only clear must not remove an explicitly saved scenario');
+
+  /* Scenarios must participate in the workspace semantic fingerprint. Without this, two workspaces
+   * differing ONLY in saved scenarios would share an identity, and a commit that added a scenario
+   * would look like a no-op to anything keyed on that fingerprint. */
+  assert.notEqual(
+    withScenario.value.workspace.semanticFingerprint,
+    withOutcome.value.workspace.semanticFingerprint,
+    'saving a scenario must change the workspace semantic fingerprint'
+  );
 });
 
 test('exact rollback restores the pre-change workspace identity and the Scope 01/02 durable record survives a committed round trip', () => {

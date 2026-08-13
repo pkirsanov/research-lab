@@ -115,7 +115,7 @@
   var WORKSPACE_FIELDS = Object.freeze([
     "actionOutcomes", "behaviorEvents", "contentSha256", "contractVersion", "createdAt", "currentMandateId",
     "currentPortfolioId", "generation", "interestSignals", "mandateRevisions", "policyRefs", "portfolioRevisions",
-    "semanticFingerprint", "updatedAt"
+    "scenarios", "semanticFingerprint", "updatedAt"
   ]);
   var ERROR_FIELDS = Object.freeze([
     "code", "contractVersion", "field", "reason", "recoverable", "row", "valueEchoed"
@@ -962,6 +962,7 @@
       behaviorEvents: value.behaviorEvents,
       interestSignals: value.interestSignals,
       actionOutcomes: value.actionOutcomes,
+      scenarios: value.scenarios,
       policyRefs: value.policyRefs
     };
   }
@@ -989,6 +990,7 @@
       behaviorEvents: [],
       interestSignals: [],
       actionOutcomes: [],
+      scenarios: [],
       policyRefs: policyRefs(policy),
       createdAt: now,
       updatedAt: now
@@ -1113,7 +1115,7 @@
     if (unknown || Object.keys(value).length !== WORKSPACE_FIELDS.length) return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown || "workspace", null, false);
     if (value.contractVersion !== WORKSPACE_VERSION || !Number.isInteger(value.generation) || value.generation < 0 ||
         !Array.isArray(value.portfolioRevisions) || !Array.isArray(value.mandateRevisions) || !Array.isArray(value.behaviorEvents) ||
-        !Array.isArray(value.interestSignals) || !Array.isArray(value.actionOutcomes) || !isPlainObject(value.policyRefs) ||
+        !Array.isArray(value.interestSignals) || !Array.isArray(value.actionOutcomes) || !Array.isArray(value.scenarios) || !isPlainObject(value.policyRefs) ||
         !canonicalTimestamp(value.createdAt) || !canonicalTimestamp(value.updatedAt) || !HASH_PATTERN.test(value.semanticFingerprint || "") ||
         !HASH_PATTERN.test(value.contentSha256 || "") || (value.currentPortfolioId !== null && !HASH_PATTERN.test(value.currentPortfolioId || "")) ||
         (value.currentMandateId !== null && !HASH_PATTERN.test(value.currentMandateId || ""))) {
@@ -1141,6 +1143,13 @@
       if (!outcomeResult.ok) return outcomeResult;
       if (outcomeIds[value.actionOutcomes[outcomeIndex].outcomeId]) return failure("P008-IDENTITY", "duplicate-outcome-id", "actionOutcomes", null, false);
       outcomeIds[value.actionOutcomes[outcomeIndex].outcomeId] = true;
+    }
+    var scenarioIds = Object.create(null);
+    for (var scenarioIndex = 0; scenarioIndex < value.scenarios.length; scenarioIndex += 1) {
+      var scenarioResult = validateScenario(value.scenarios[scenarioIndex]);
+      if (!scenarioResult.ok) return scenarioResult;
+      if (scenarioIds[value.scenarios[scenarioIndex].scenarioId]) return failure("P008-IDENTITY", "duplicate-scenario-id", "scenarios", null, false);
+      scenarioIds[value.scenarios[scenarioIndex].scenarioId] = true;
     }
     var mandateIds = Object.create(null);
     for (var mandateIndex = 0; mandateIndex < value.mandateRevisions.length; mandateIndex += 1) {
@@ -2026,6 +2035,70 @@
      re-hash, re-validate. Callers must not hand-roll this — appending to `actionOutcomes` without
      recomputing the hashes produces a candidate that fails validation at commit, which surfaces to
      the user as a lifecycle button that silently does nothing. */
+  var SCENARIO_FIELDS = Object.freeze([
+    "computedAt", "identity", "label", "scenarioId", "summary"
+  ]);
+
+  /* A saved scenario stores its IDENTITY and a summary, never the resampled paths. The identity
+     reproduces the paths exactly, so persisting thousands of rows would duplicate derivable data in
+     private storage for no gain and widen what a clear has to remove. */
+  function validateScenario(value) {
+    if (!isPlainObject(value)) return failure("P008-SCHEMA-CORRUPT", "scenario-invalid", "scenarios", null, false);
+    var unknown = hasOnlyFields(value, SCENARIO_FIELDS);
+    if (unknown || Object.keys(value).length !== SCENARIO_FIELDS.length) {
+      return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown || "scenarios", null, false);
+    }
+    if (!HASH_PATTERN.test(value.scenarioId || "") || !nonEmptyString(value.identity) ||
+        !nonEmptyString(value.label) || value.label.length > 120 ||
+        !canonicalTimestamp(value.computedAt) || !isPlainObject(value.summary)) {
+      return failure("P008-SCHEMA-CORRUPT", "scenario-invalid", "scenarios", null, false);
+    }
+    return success(value);
+  }
+
+  /* The real write path for the scenarios section. Scope 03 pins that no personal section may be
+     declared without one, so that its clear sweep cannot be vacuously true over an
+     empty-by-construction container. */
+  function buildScenarioCandidate(identity, label, summary, currentWorkspace, now, policy) {
+    var workspaceResult = validateWorkspace(currentWorkspace, policy);
+    if (!workspaceResult.ok) return workspaceResult;
+    if (!nonEmptyString(identity) || !nonEmptyString(label) || label.length > 120 || !isPlainObject(summary)) {
+      return failure("P008-SCHEMA-CORRUPT", "scenario-input-invalid", "scenarios", null, false);
+    }
+    if (!canonicalTimestamp(now)) return failure("P008-SCHEMA-CORRUPT", "timestamp-invalid", "now", null, false);
+
+    var scenario = {
+      scenarioId: contracts.fingerprint("portfolio-scenario", {
+        contractVersion: "portfolio-scenario-identity/v1",
+        identity: identity,
+        label: label
+      }),
+      identity: identity,
+      label: label,
+      summary: clone(summary),
+      computedAt: now
+    };
+    var validated = validateScenario(scenario);
+    if (!validated.ok) return validated;
+
+    var candidate = clone(currentWorkspace);
+    // Saving the same identity under the same label twice is a no-op, not a second scenario.
+    var duplicate = candidate.scenarios.some(function (entry) { return entry.scenarioId === scenario.scenarioId; });
+    if (!duplicate) candidate.scenarios.push(scenario);
+    candidate.updatedAt = now;
+    candidate.policyRefs = policyRefs(policy);
+    var hashed = withWorkspaceHashes(candidate);
+    var workspaceValid = validateWorkspace(hashed, policy);
+    if (!workspaceValid.ok) return workspaceValid;
+    return success({
+      contractVersion: "portfolio-scenario-candidate/v1",
+      workspace: hashed,
+      scenario: scenario,
+      accepted: !duplicate,
+      reason: duplicate ? "duplicate-scenario" : null
+    });
+  }
+
   function buildActionOutcomeCandidate(actionId, command, reason, currentWorkspace, now, policy) {
     var workspaceResult = validateWorkspace(currentWorkspace, policy);
     if (!workspaceResult.ok) return workspaceResult;
@@ -2600,6 +2673,8 @@
     buildBehaviorCandidate: buildBehaviorCandidate,
     actionIdentity: actionIdentity,
     buildActionOutcomeCandidate: buildActionOutcomeCandidate,
+    buildScenarioCandidate: buildScenarioCandidate,
+    validateScenario: validateScenario,
     buildInterestSignalCandidate: buildInterestSignalCandidate,
     deriveInterestSignals: deriveInterestSignals,
     validateInterestSignal: validateInterestSignal,

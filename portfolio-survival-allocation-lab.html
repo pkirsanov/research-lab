@@ -1129,6 +1129,7 @@
                     holdingCount: revision ? revision.holdings.length : 0,
                     currentMandateId: workspace ? workspace.currentMandateId : null,
                     mandateRevisionCount: workspace ? workspace.mandateRevisions.length : 0,
+                    scenarioCount: workspace ? workspace.scenarios.length : 0,
                     routeStates: state.routeStates
                 });
             }
@@ -1292,6 +1293,42 @@
                 identity.className = "identity";
                 identity.textContent = r.identity;
                 band.appendChild(identity);
+
+                /* Saving stores the IDENTITY and a summary, never the resampled paths: the identity
+                   reproduces them exactly, so persisting thousands of rows would duplicate derivable
+                   data in private storage and widen what a clear has to remove. */
+                var saveRow = document.createElement("div");
+                saveRow.className = "button-row";
+                var saveButton = document.createElement("button");
+                saveButton.id = "pathSaveScenario";
+                saveButton.type = "button";
+                saveButton.className = "primary";
+                saveButton.textContent = "Save this scenario locally";
+                saveButton.dataset.pathIdentity = r.identity;
+                saveRow.appendChild(saveButton);
+                band.appendChild(saveRow);
+
+                var saveResult = document.createElement("div");
+                saveResult.id = "pathSaveResult";
+                saveResult.className = "state-message";
+                saveResult.setAttribute("role", "status");
+                var savedCount = (state.opened && state.opened.workspace.scenarios)
+                    ? state.opened.workspace.scenarios.length : 0;
+                /* Rendered from state, not set imperatively after the commit: the band is rebuilt on
+                   every workspace refresh, so an attribute written onto the old node is discarded. */
+                if (state.lastScenarioSave) {
+                    saveResult.className = "state-message " + (state.lastScenarioSave.ok ? "ok" : "error");
+                    saveResult.setAttribute("data-accepted", String(state.lastScenarioSave.accepted));
+                    if (state.lastScenarioSave.scenarioId) {
+                        saveResult.setAttribute("data-scenario-id", state.lastScenarioSave.scenarioId);
+                    }
+                    saveResult.textContent = state.lastScenarioSave.message;
+                } else {
+                    saveResult.textContent = savedCount
+                        ? savedCount + " scenario(s) saved on this device · a full personal clear removes them"
+                        : "No scenario saved on this device.";
+                }
+                band.appendChild(saveResult);
 
                 var method = document.createElement("p");
                 method.id = "pathMethod";
@@ -3430,12 +3467,54 @@
                 byId("editorHeading").focus();
             });
 
+            /* Delegated, because the Path Lab band is rebuilt on every route render. */
+            document.addEventListener("click", function (event) {
+                var button = event.target.closest ? event.target.closest("#pathSaveScenario") : null;
+                if (!button || !state.opened) return;
+                var run = pathScenario();
+                if (!run.available) return;
+                var candidate = api.buildScenarioCandidate(
+                    run.result.identity,
+                    "Path scenario " + run.result.pathCount + "x" + run.result.horizonSessions,
+                    {
+                        method: run.result.method,
+                        pathCount: run.result.pathCount,
+                        horizonSessions: run.result.horizonSessions,
+                        meanBlockSessions: run.result.meanBlockSessions
+                    },
+                    state.opened.workspace, now(), state.policy);
+                if (!candidate.ok) {
+                    state.lastScenarioSave = { ok: false, accepted: false, scenarioId: null,
+                        message: candidate.error.code + " · " + candidate.error.reason };
+                    refreshWorkspaceViews();
+                    return;
+                }
+                var committed = state.store.commitWorkspace(candidate.value.workspace,
+                    state.opened.workspace.generation, now());
+                if (!committed.ok) {
+                    state.lastScenarioSave = { ok: false, accepted: false, scenarioId: null,
+                        message: committed.error.code + " · " + committed.error.reason };
+                    refreshWorkspaceViews();
+                    return;
+                }
+                state.opened = committed.value;
+                state.lastScenarioSave = {
+                    ok: true,
+                    accepted: candidate.value.accepted,
+                    scenarioId: candidate.value.scenario.scenarioId,
+                    message: state.opened.workspace.scenarios.length +
+                        " scenario(s) saved on this device · " +
+                        (candidate.value.accepted ? "saved" : "already saved, not duplicated") +
+                        " · stored as identity plus summary, never the resampled paths · a full personal clear removes them"
+                };
+                refreshWorkspaceViews();
+            });
+
             ROUTE_TABS.forEach(function (route) {
                 byId(route.tab).addEventListener("click", function () {
                     if (window.location.hash !== "#" + route.hash) window.location.hash = route.hash;
                     applyRoute(route.hash);
-                });
-            });
+                });            });
 
             window.addEventListener("hashchange", function () { applyRoute(routeFromHash()); });
 

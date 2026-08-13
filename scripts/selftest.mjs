@@ -2368,6 +2368,39 @@ try {
     'FX TP-A03-04 adversarial: an invalid committed universe is refused by the owner\u2019s own validator with a distinct reason, never folded into the no-evidence case');
 } catch (e) { failures++; console.log('  ✗ FAIL (fx headless owner read group threw): ' + e.message); }
 
+/* ---------- Portfolio brief: owner routing is READ, not declared (A04 / Feature 008 Scope 06) ----------
+   `state.briefOwners` shipped initialized to `{}` and never populated, so every brief item rendered
+   `unownedCapability` with a null deep link — the page told the reader no owning tool existed even
+   where one did. These assertions pin the wiring that fixed it, because the failure mode is silent:
+   reverting to an empty map breaks no existing test and produces a page that still renders.
+
+   The routing itself is exercised in the browser; what is pinned here is that the page still READS
+   the shared registry rather than declaring routes locally, and that it single-sources the link. */
+try {
+  group('portfolio brief — owner routing reads the registry');
+  const portfolioPage = read('portfolio-survival-allocation-lab.html');
+  const ownerArtifact = JSON.parse(read('market-brief.owner-reads.json'));
+  // Comment-stripped, because a commented-out call still matches a naive substring search — which is
+  // precisely the regression this pins, and the first draft of this assertion fell for it.
+  const portfolioLive = portfolioPage.split('\n').filter((line) => !/^\s*(\/\/|\/\*|\*)/.test(line)).join('\n');
+
+  assert(/function loadOwnerRoutes\(\)/.test(portfolioLive) && /^\s*loadOwnerRoutes\(\);/m.test(portfolioLive),
+    'Owner routing A04-01: the page defines loadOwnerRoutes and CALLS it at boot on a live line, so briefOwners is populated rather than left empty');
+  assert(/loadOwnerRoutes[\s\S]{0,900}market-brief\.owner-reads\.json/.test(portfolioPage),
+    'Owner routing A04-02: ownership is read from the public owner-read artifact, so it is a registry fact rather than a list this page could drift from');
+  assert(/read\.ownerDeepLink/.test(portfolioPage) && !/loadOwnerRoutes[\s\S]{0,900}tools\.json/.test(portfolioPage),
+    'Owner routing A04-03: the route comes from the producer\u2019s own ownerDeepLink, so the link has ONE definition instead of a second resolution through tools.json');
+  assert(/state\.briefOwners = \{\};/.test(portfolioPage),
+    'Owner routing A04-04: a fetch failure restores the EMPTY map, so an unowned subject is a named capability gap rather than a guessed route');
+
+  // The artifact must actually carry what the routing depends on, or the wiring above is inert.
+  const routable = Object.values(ownerArtifact.ownerReads || {})
+    .flatMap((perTicker) => Object.values(perTicker || {}))
+    .filter((entry) => entry && typeof entry.ownerDeepLink === 'string' && entry.ownerDeepLink && typeof entry.domainId === 'string');
+  assert(Array.isArray(ownerArtifact.domainsProduced) && ownerArtifact.domainsProduced.length > 0 && routable.length > 0,
+    'Owner routing A04-05: the published artifact carries domainsProduced plus per-read domainId and ownerDeepLink, so the page has real routes to resolve');
+} catch (e) { failures++; console.log('  ✗ FAIL (portfolio owner routing group threw): ' + e.message); }
+
 /* ---------- Market Brief: §6c larger-picture / anti-reactivity helpers ---------- */
 try {
   group('rlbrief.js — §6c structural frame + anti-reactivity (MA stack, horizon cap, persistence gate)');

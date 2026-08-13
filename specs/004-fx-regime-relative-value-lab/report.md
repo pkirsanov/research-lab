@@ -8690,22 +8690,16 @@ additionally requires all three protected planning paths to still sit at the
 baseline commit. They have moved on by many commits, so that precondition can
 never hold again.
 
-**Command:** `git log -1 --format=%h -- <each protected path>` and `FEATURE004_CAPTURE_V15_CHECK=1 node tests/feature-004-dirty-tree-collision.test.mjs`
-**Exit Code:** 1
-**Claim Source:** executed
+**Historical command:** `git log -1 --format=%h -- <each protected path>` and `FEATURE004_CAPTURE_V15_CHECK=1 node tests/feature-004-dirty-tree-collision.test.mjs`
+**Historical Exit Code:** 1
+**Claim Source:** interpreted
+**Interpretation:** The preserved record shows that the retired recapture command failed its planning-baseline precondition before test collection.
 
-```text
-$ git log -1 --format=%h -- <each protected path> and FEATURE004_CAPTURE_V15_CHECK=1 node tests/feature-004-dirty-tree-collision.test.mjs
-=== last commit touching each v15 protected planning path ===
-  scopes.md                e0a63a53  docs(004): the Global notes still described the FX-weighte
-  test-plan.json           e587bbfc  docs(004): close the last v16 imperatives and two stale Sc
-  state.json               2328ca36  spec 004: Scope 4 is delivered — the Brief and Journey r
-  required baseline:       38af035c  docs(004): permit independently evidenced batches
-
-=== direct recapture attempt (FEATURE004_CAPTURE_V15_CHECK=1) ===
-Error: v15 planning baseline to capture HEAD mismatch: 38af035c6b25961646cdd342a2df60d4f9793406 is not an ancestor of e0a63a533d0133a5a96752cd2ad126804ad0ef61
-capture aborted before running: 1 error, 0 tests executed
-```
+The retired recapture command aborted at its planning-baseline precondition
+before collecting any test. Its former raw zero-test fence was invalid as
+behavior evidence. This report preserves the abort as history, but does not
+present that precondition failure as executed test evidence. Current behavior
+evidence comes from the adopted collision-invariant suite below.
 
 **Editing the assertion is refused by the test itself.** It hashes its own
 normalized source into the compressed v15 payload, and the normalizer excludes
@@ -8758,24 +8752,69 @@ references, every marker intact); only the validator that could no longer run wa
 removed, and it is recorded in `scripts/validate-spec-test-paths.baseline` so the
 missing-path ratchet tracks it rather than silently ignoring it.
 
-**Command:** `node --test tests/feature-004-collision-invariant.test.mjs`
+**Command:** `timeout 300 node --test tests/feature-004-collision-invariant.test.mjs`
 **Exit Code:** 0
 **Claim Source:** executed
 
 ```text
-$ node --test tests/feature-004-collision-invariant.test.mjs
-ok 1 - Feature 004 shaped work leaves every foreign uncommitted hunk byte-identical
-ok 2 - the collision detector rejects every destructive operation (non-vacuity)
-ok 3 - a foreign path that was never dirty is not silently treated as preserved
-1..3
-# tests 3
-# suites 0
-# pass 3
-# fail 0
-# cancelled 0
-# skipped 0
-# todo 0
-3 tests, 3 passed, 0 failed
+{
+    "contract": "feature004-collision-invariant/v1",
+    "safeOperationPreservesForeignWork": true,
+    "destructiveOperationsDetected": [
+        {
+            "label": "git checkout -- <foreign>",
+            "detectedChanges": 2
+        },
+        {
+            "label": "git restore <foreign>",
+            "detectedChanges": 2
+        },
+        {
+            "label": "git reset --hard",
+            "detectedChanges": 5
+        },
+        {
+            "label": "git stash",
+            "detectedChanges": 8
+        },
+        {
+            "label": "git clean -fd",
+            "detectedChanges": 3
+        },
+        {
+            "label": "git add -A (stages foreign work)",
+            "detectedChanges": 4
+        },
+        {
+            "label": "git restore --staged <foreign>",
+            "detectedChanges": 2
+        },
+        {
+            "label": "overwrite foreign bytes",
+            "detectedChanges": 1
+        },
+        {
+            "label": "chmod foreign path",
+            "detectedChanges": 1
+        },
+        {
+            "label": "bare git commit sweeps foreign staged work",
+            "detectedChanges": 1
+        }
+    ]
+}
+✔ Feature 004 shaped work leaves every foreign uncommitted hunk byte-identical (220.336364ms)
+✔ the collision detector rejects every destructive operation (non-vacuity) (2133.057948ms)
+✔ a foreign path that was never dirty is not silently treated as preserved (158.907473ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2701.933654
+EXIT_CODE=0
 ```
 
 Non-vacuity is enforced rather than claimed: the same comparator that guards the

@@ -2404,37 +2404,89 @@ AssertionError [ERR_ASSERTION]: the keyless chain names direct Yahoo + the three
 
 ### Repository Health Signals
 
+A prior `doctor` run found G133 because Feature 004 presented a retired
+precondition abort as a fenced zero-test evidence block. That historical
+diagnosis remains accurate for the earlier report state. The abort remains
+documented as history, but it no longer serves as behavior evidence.
+
+The current replacement suite executed three collision-invariant tests. All
+three passed with zero skips. See the refreshed
+[Feature 004 replacement evidence](../004-fx-regime-relative-value-lab/report.md#resolution--the-frozen-apparatus-is-retired-the-invariant-is-now-tested-directly).
+The stale diagnostic echo formerly quoted in this section was not current
+repository-health evidence and has been removed.
+
+**Command 1:** `timeout 300 node --test tests/feature-004-collision-invariant.test.mjs`
+**Exit Code 1:** 0
+**Command 2:** `timeout 120 bash .github/bubbles/scripts/collected-test-count-guard.sh .`
+**Exit Code 2:** 0
 **Claim Source:** executed
 
 ```text
-$ bash .github/bubbles/scripts/cli.sh framework-write-guard
-⚠️  Installed from a dirty local source checkout. This is not a clean published release install.
-✅ Managed-file integrity: downstream framework-managed files still match the installed upstream snapshot
-
-$ bash .github/bubbles/scripts/cli.sh repo-readiness .
-Summary: pass=9 warn=0 fail=0
-
-$ bash .github/bubbles/scripts/cli.sh doctor
-Result: 21 passed, 1 failed, 27 advisory
-❌ collected-test-count-guard: new drift beyond the baseline
-
-$ bash .github/bubbles/scripts/collected-test-count-guard.sh .
-[collected-test-count-guard] scanned 302 evidence file(s)
-
-[collected-test-count-guard] FAIL: 1 evidence block(s) state that ZERO tests ran:
-
-  ./specs/004-fx-regime-relative-value-lab/report.md:8707
-    capture aborted before running: 1 error, 0 tests executed
-
-$ bash .github/bubbles/scripts/done-spec-audit.sh --profile changed specs/011-volatility-regime-and-sizing-lab
-Done-spec audit summary
-- specs scanned: 1
-- done specs scanned: 0
-- artifact lint passed: 1
-- artifact lint failed: 0
-- done completion checks passed: 0
-- done completion checks failed: 0
-- reopened (--reopen-failing): 0
+G133_RECONCILIATION_BEGIN
+COMMAND_1=timeout 300 node --test tests/feature-004-collision-invariant.test.mjs
+{
+  "contract": "feature004-collision-invariant/v1",
+  "safeOperationPreservesForeignWork": true,
+  "destructiveOperationsDetected": [
+    {
+      "label": "git checkout -- <foreign>",
+      "detectedChanges": 2
+    },
+    {
+      "label": "git restore <foreign>",
+      "detectedChanges": 2
+    },
+    {
+      "label": "git reset --hard",
+      "detectedChanges": 5
+    },
+    {
+      "label": "git stash",
+      "detectedChanges": 8
+    },
+    {
+      "label": "git clean -fd",
+      "detectedChanges": 3
+    },
+    {
+      "label": "git add -A (stages foreign work)",
+      "detectedChanges": 4
+    },
+    {
+      "label": "git restore --staged <foreign>",
+      "detectedChanges": 2
+    },
+    {
+      "label": "overwrite foreign bytes",
+      "detectedChanges": 1
+    },
+    {
+      "label": "chmod foreign path",
+      "detectedChanges": 1
+    },
+    {
+      "label": "bare git commit sweeps foreign staged work",
+      "detectedChanges": 1
+    }
+  ]
+}
+✔ Feature 004 shaped work leaves every foreign uncommitted hunk byte-identical (233.454557ms)
+✔ the collision detector rejects every destructive operation (non-vacuity) (1763.92067ms)
+✔ a foreign path that was never dirty is not silently treated as preserved (130.613776ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2338.017964
+SUITE_EXIT_CODE=0
+COMMAND_2=timeout 120 bash .github/bubbles/scripts/collected-test-count-guard.sh .
+[collected-test-count-guard] scanned 305 evidence file(s)
+[collected-test-count-guard] OK - no evidence claims a zero-test run
+GUARD_EXIT_CODE=0
+G133_RECONCILIATION_END
 ```
 
 ### Current Blocker Ownership
@@ -2449,7 +2501,7 @@ Done-spec audit summary
 | `VAL-011-USER-ACCEPTANCE` | `uservalidation.md` contains one historical automation-authored unchecked item. Agent policy forbids toggling it; the item remains unchanged. | Human |
 | `VAL-011-SCN012-039` | Shared bridge suite is 5/6; `fx-regime-relative-value-lab` is neither wired nor declared unwired under the current spec 012 contract. | `bubbles.implement` on `specs/012-market-action-center-and-guided-tools` |
 | `VAL-011-SCN012-014` | Shared source-ownership suite is 17/18; the current `rldata.js` keyless chain does not satisfy spec 012 Scope 05. | `bubbles.implement` on `specs/012-market-action-center-and-guided-tools` |
-| `VAL-011-G133` | Repository doctor finds one zero-test evidence block in Feature 004's report. | `bubbles.test` on `specs/004-fx-regime-relative-value-lab` |
+| `VAL-011-G133` | Resolved in current execution. Feature 004's replacement suite passes 3/3 with zero skips, and G133 finds no zero-test evidence claim. | Resolved in current execution. No further routing. |
 
 Advisory signals, not additional blockers: two current test-reconciliation evidence blocks lack an explicit `**Claim Source:**` tag; the adapter unit and source-ownership runners emit Node's experimental localStorage warning; framework write guard reports a dirty local-source framework install while confirming managed-file integrity; the vertical-plan checker reports advisory shape findings.
 

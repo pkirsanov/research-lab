@@ -113,16 +113,17 @@ Author index/path hash, parameter-band, identity mutation, cancellation, canvas/
 - [ ] NFR-002 through NFR-003, NFR-005 through NFR-006, NFR-009 through NFR-012, NFR-014 through NFR-018, and NFR-021 through NFR-022 are satisfied by deterministic dossiers, cutoff/missing integrity, reproducibility, visible calibration/chunk tokens, chart parity, stable responsive geometry, precision/source honesty, failure isolation, and research-only copy.
 - [ ] Every policy value and range comes from mandatory visible config or explicit user input; changing it changes the identity/trial record and no fallback supplies a path assumption.
 - [ ] Path canvas pixels/table rows derive from one immutable result, remain synchronous/nonblank at desktop/mobile/zoom, and have no overlap/body overflow/hidden uncertainty meaning.
-- [ ] SCN-008-038: Scope 03's discharged `scenarios` clear conjunct is verified here, because `ScenarioSpecification/v1` is the first persisted scenario identity in the feature. If a scenario specification is retained across a reload in any form, it is a personal category: it is registered in the privacy inventory, swept by the full-personal clear, and proven empty on reread with the generic public cache byte-identical. If it is never persisted, that is stated with the code path showing it, and the emptiness claim is withdrawn rather than asserted vacuously. TP-09-01 is the carrying row. At Scope 03 the noun had no workspace section, no `policy.storage` key, and no declarable inventory category, so nothing there could observe it. See [Scope 03 Full-Personal-Clear Enumeration Discharge](../_index.md#scope-03-full-personal-clear-enumeration-discharge).
+- [ ] SCN-008-038: Scope 03's discharged `scenarios` clear conjunct is verified here, because `ScenarioSpecification/v1` is the first persisted scenario identity in the feature. If a scenario specification is retained across a reload in any form, it is a personal category: it is registered in the privacy inventory, swept by the full-personal clear, and proven empty on reread with the generic public cache byte-identical. If it is never persisted, that is stated with the code path showing it, and the emptiness claim is withdrawn rather than asserted vacuously. TP-09-06 is the carrying row. At Scope 03 the noun had no workspace section, no `policy.storage` key, and no declarable inventory category, so nothing there could observe it. See [Scope 03 Full-Personal-Clear Enumeration Discharge](../_index.md#scope-03-full-personal-clear-enumeration-discharge).
 - [ ] Every Scope 09 behavior has intended RED and same-command GREEN evidence before the broader browser row.
 
-#### Test Evidence Items - Exact Parity With 5 Test Plan Rows
+#### Test Evidence Items - Exact Parity With 6 Test Plan Rows
 
 - [ ] TP-09-01 unit evidence proves seeded dependent path determinism, identity changes, separate parameter uncertainty, common streams, warnings/rejections, and stale-token preservation.
 - [ ] TP-09-02 Regression E2E evidence proves SCN-008-018 reruns identical paths/results and changes identity when seed or block changes.
 - [ ] TP-09-03 Regression E2E evidence proves SCN-008-019 displays separate path and parameter uncertainty plus influential assumptions without a point-truth claim.
 - [ ] TP-09-04 canvas/accessibility E2E evidence proves synchronous nonblank fan pixels, equivalent tables, keyboard/touch traversal, stable dimensions, and no overlap at desktop/mobile/zoom.
 - [ ] TP-09-05 broader E2E evidence proves the cumulative Path Lab suite passes after every focused row.
+- [ ] TP-09-06 functional evidence proves a completed-run scenario persists across reload, then a full-personal clear leaves the scenario section empty on storage reread while generic public cache assets remain byte-identical.
 
 #### Build Quality Gate
 

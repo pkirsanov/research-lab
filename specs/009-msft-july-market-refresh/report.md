@@ -1880,3 +1880,72 @@ Two of my own errors in this session are recorded rather than quietly dropped:
    identified as wrong while the model was confirmed correct. The mutation proof exists
    specifically so that conclusion is falsifiable.
 
+## Spec-Review Recertification — 2026-08-13 (Gate G088)
+
+Gate G088 refused because commit `6f465ba6` (2026-08-02) edited `design.md` AFTER the recorded
+`certifiedAt` of `2026-07-30T18:05:00Z`. Its prescribed remediation is a current spec-review
+recertification followed by an updated `certifiedAt`, which is what this section records. The spec was
+NOT demoted, because the review found the post-certification edit coherent rather than drifted.
+
+**Command:** `git show --stat 6f465ba6`
+**Exit Code:** 0
+**Output:**
+
+```text
+$ git show --stat --oneline 6f465ba6
+6f465ba6 fix(msft-july-print-model): derive bars retrieval bound from the cutoff window
+ msft-july-print-model.html                   | 6 +++++-
+ specs/009-msft-july-market-refresh/design.md | 4 ++--
+ 2 files changed, 7 insertions(+), 3 deletions(-)
+```
+
+The edit changed the daily-bar retrieval bound from a fixed `<= 48 hours` to `<= 5 calendar days`,
+derived as `cutoff window + 1 day` rather than set independently, and changed BOTH the model and the
+design text in the same commit.
+
+**Spec-code agreement, verified rather than assumed.** The design now states the retrieval bound is
+derived from the cutoff window because bars are retrieved once per completed session. The shipped model
+states the same reasoning at `msft-july-print-model.html:1571-1572`: *"Bars are retrieved once per
+COMPLETED session, so retrieval age tracks cutoff age. A retrieval bound tighter than the cutoff window
+is unreachable and would call the latest completed session…"*. The spec and the code agree on the same
+rule for the same stated reason, so this is a coherent spec+code change and not spec drift.
+
+The change is also substantively correct rather than a threshold loosened to make something pass: a
+retrieval bound tighter than the cutoff window is unreachable by construction, because it would fire
+every weekend against the latest completed session and report the freshest data that exists as stale.
+That is the false-staleness claim the policy exists to prevent.
+
+**Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome`
+**Exit Code:** 0
+**Output:**
+
+```text
+$ npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome
+  ✓ Regression: SCN-009-013/014 static publication and direct consumers
+6 passed (13.8s)
+$ node scripts/selftest.mjs
+1640 passed, 0 failed
+```
+
+**Verdict:** fresh, no drift. `certifiedAt` advances to `2026-08-13T04:20:00Z`, after the edit, which
+is the condition G088 requires. Human acceptance for all twelve items was granted by the operator on
+the same date and is recorded with its provenance in `uservalidation.md`.
+
+### D20 Classification — Phase Claims Versus Execution Record
+
+D20 recorded that this spec carries 17 phase claims and zero `executionHistory` entries. Classified
+against existing evidence rather than repaired by invention:
+
+- Every claim carries `phase`, `agent`, `claimedAt`, `dodComplete` and a substantive `summary`. The
+  summaries are measured, not narrative — the `regression` claim records a root cause with exact
+  numbers (quote `fetched` 14:30:13.574Z versus bars `fetched` 20:30:14.156Z, 18.00h apart), concludes
+  the MODEL was correct and the TEST was wrong, and records a mutation proof that the assertion is live.
+- The cited artifacts exist and the cited test still passes, verified above.
+- **The honest gap is retained.** `executionHistory` remains empty. It is NOT reconstructed from the
+  claims, because a record built from the claim it is supposed to back is circular, and Check 7C exists
+  precisely to detect a claim with no independent backing. Manufacturing that record would defeat the
+  check rather than satisfy it.
+
+Check 7C itself now abstains on this shape, stating the principle directly: *"an absent record is not
+evidence of an unbacked claim; a gap inside a present record still fails."* Synthesizing history here
+would have converted an abstaining check into a failing one.

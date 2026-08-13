@@ -1786,6 +1786,94 @@
                 }
                 wrap.appendChild(contribBox);
 
+                // --- Return contribution, deliberately adjacent to the risk split.
+                var returnBox = document.createElement("div");
+                returnBox.className = "band";
+                returnBox.id = "riskReturnContribution";
+                var rr = projection.returnContributions || { state: "not-computed" };
+                returnBox.dataset.returnContributionState = rr.state;
+                var rrHeading = document.createElement("h5");
+                rrHeading.textContent = "Return contribution";
+                returnBox.appendChild(rrHeading);
+
+                if (rr.state !== "ok") {
+                    var rrMissing = document.createElement("p");
+                    rrMissing.id = "riskReturnContributionUnavailable";
+                    rrMissing.className = "state-message";
+                    rrMissing.textContent = "Return contribution unavailable · " + rr.state +
+                        " · no share is shown, because none can be measured from held evidence.";
+                    returnBox.appendChild(rrMissing);
+                } else {
+                    var rrNote = document.createElement("p");
+                    rrNote.id = "riskReturnContributionNote";
+                    rrNote.className = "subtle";
+                    rrNote.textContent = "A DIFFERENT quantity from the risk split above, shown beside it because the " +
+                        "two routinely disagree: a hedge can contribute negative risk and positive return, and a large " +
+                        "calm position can dominate return while contributing little risk. Basis " + rr.basis + ".";
+                    returnBox.appendChild(rrNote);
+
+                    var rrTable = document.createElement("table");
+                    rrTable.id = "riskReturnContributionTable";
+                    var rhead = document.createElement("thead");
+                    rhead.innerHTML = "<tr><th scope=\"col\">Holding</th><th scope=\"col\">Return contribution</th>" +
+                        "<th scope=\"col\">Return share</th><th scope=\"col\">Risk share</th></tr>";
+                    rrTable.appendChild(rhead);
+                    var rbody = document.createElement("tbody");
+                    rr.symbols.forEach(function (symbol, index) {
+                        var tr = document.createElement("tr");
+                        tr.dataset.returnContributor = symbol;
+                        var r1 = document.createElement("th");
+                        r1.setAttribute("scope", "row");
+                        r1.textContent = symbol;
+                        var r2 = document.createElement("td");
+                        r2.textContent = pct(rr.contribution[index]);
+                        var r3 = document.createElement("td");
+                        r3.textContent = rr.contributionShare
+                            ? pct(rr.contributionShare[index])
+                            : "Unavailable · " + rr.shareState;
+                        var r4 = document.createElement("td");
+                        var riskIndex = rc.state === "ok" ? rc.symbols.indexOf(symbol) : -1;
+                        r4.textContent = riskIndex === -1 ? "Unavailable" : pct(rc.contributionShare[riskIndex]);
+                        [r1, r2, r3, r4].forEach(function (cell) { tr.appendChild(cell); });
+                        rbody.appendChild(tr);
+                    });
+                    rrTable.appendChild(rbody);
+                    var rrWrap = document.createElement("div");
+                    rrWrap.style.overflowX = "auto";
+                    rrWrap.style.maxWidth = "100%";
+                    rrWrap.appendChild(rrTable);
+                    returnBox.appendChild(rrWrap);
+                }
+                wrap.appendChild(returnBox);
+
+                // --- What the diagnostics do and do not cover.
+                var treatBox = document.createElement("div");
+                treatBox.className = "band";
+                treatBox.id = "riskAssetTreatment";
+                var treat = projection.assetTreatment || { state: "not-computed" };
+                treatBox.dataset.treatmentState = treat.state;
+                var treatHeading = document.createElement("h5");
+                treatHeading.textContent = "Coverage of these diagnostics";
+                treatBox.appendChild(treatHeading);
+
+                if (treat.state === "ok") {
+                    var treatRows = document.createElement("ul");
+                    treatRows.className = "route-states";
+                    treatRows.appendChild(riskMetricRow("riskMarketBased", "Market-based holdings",
+                        treat.marketBased.length ? treat.marketBased.join(", ") : "None"));
+                    treatRows.appendChild(riskMetricRow("riskExcludedAssets", "Excluded from market analytics",
+                        treat.excludedFromMarketAnalytics.length
+                            ? treat.excludedFromMarketAnalytics.map(function (e) { return e.symbol + " (" + e.assetType + ")"; }).join(", ")
+                            : "None · every holding is market-based",
+                        treat.excludedFromMarketAnalytics.length
+                            ? "These carry no market series, so they contribute to no return, covariance, or beta figure above. They are named rather than dropped."
+                            : ""));
+                    treatRows.appendChild(riskMetricRow("riskLookThrough", "Look-through overlap",
+                        treat.lookThrough.state, treat.lookThrough.reason));
+                    treatBox.appendChild(treatRows);
+                }
+                wrap.appendChild(treatBox);
+
                 band.appendChild(wrap);
             }
 

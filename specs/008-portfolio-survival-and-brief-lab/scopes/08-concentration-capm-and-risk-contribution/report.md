@@ -268,3 +268,148 @@ Restored: `7 passed (13.6s)`. The same break also turns the unit suite from 26/0
   so these need a contract change outside this scope.
 - Simple/Power mode split for the diagnostics. The page has no `#modeSeg` control at all, so this is a
   page-wide gap rather than a Scope 08 omission.
+
+## Scope 08 Delivered — 2026-08-13 (supersedes the PARTIAL record above)
+
+The partial record above stands as history. Scope 08 is now **Done**: all six Test Plan rows are
+green and the concentration, CAPM, factor, covariance, and contribution surfaces are wired.
+
+### Test Plan rows
+
+**Command:** `npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Output:**
+
+```text
+  ✓  SCN-008-013 arithmetic CAGR and conditional drag stay separate
+  ✓  SCN-008-014 unrecovered drawdown stops at the evidence cutoff
+  ✓  Feature 008 return and drawdown canvas tables remain equivalent at desktop mobile and zoom
+  ✓  SCN-008-015 concentration lenses expose overlap and missing look through
+  ✓  SCN-008-016 beta alpha R squared and residual risk stay separate
+  ✓  SCN-008-016 benchmark fit is unavailable rather than regressed against a guess
+  ✓  SCN-008-017 marginal and total risk contributions reconcile
+  ✓  SCN-008-016 declared proxy factors report exposures and name themselves proxies
+  ✓  SCN-008-017 return contribution stays distinct from risk contribution
+  ✓  SCN-008-015 manual assets and absent look through stay visible not omitted
+  ✓  Feature 008 concentration CAPM and contribution diagnostics preserve mobile canvas table parity
+  ✓  Feature 008 Risk X-Ray refuses rather than showing a partial portfolio
+  12 passed (13.4s)
+```
+
+Test titles were corrected mid-scope to the Test Plan's **exact** persistent titles. Mine had
+drifted, and the plan is authority.
+
+### Two quantities that are routinely confused, kept apart
+
+**Risk contribution and return contribution are separate surfaces, rendered adjacent.** They
+routinely disagree — a hedge can contribute negative risk and positive return, and a large calm
+position can dominate return while contributing almost no risk. The table shows return share and risk
+share side by side per holding so the disagreement is visible rather than something a reader must
+reconstruct. A browser row asserts the two rendered values actually differ on a fixture built to make
+them differ, so rendering the risk split into both columns would fail.
+
+**A flat portfolio reports no return share at all.** When the portfolio's total return is within the
+configured tolerance of zero, `contributionShare` is `null` with `shareState:
+portfolio-return-near-zero`. Dividing by ~0 would manufacture enormous shares from a book that went
+nowhere.
+
+### The factor model exists only because config declared it
+
+`analytics.proxyFactors` and `proxyFactorsVersion` were added to the policy contract, validated: the
+id must be a slug, both legs must be real tickers, and a short leg cannot equal its long. Five spreads
+are declared against tickers that genuinely have committed bars — `market=SPY`, `size=IWM-SPY`,
+`growth=QQQ-SPY`, `momentum=MTUM-SPY`, `international=EFA-SPY`.
+
+Nothing is inferred from a label, a ticker name, or a sector string. Collinear factors **refuse**
+(`rank-deficient`) rather than returning a pseudo-fit — a pseudo-inverse would split the exposure
+between two factors and report two confident numbers the data does not separately identify. A factor
+whose leg lacks observations is **named** unavailable and printed on the surface.
+
+The payload and the copy both state these are declared proxy spreads and "not the academic factor
+it resembles". A browser row bans `fama` and forecast language outright.
+
+### What the diagnostics do not cover is stated, not implied
+
+Look-through reports `no-configured-source` with the reason that overlapping exposure inside pooled
+vehicles **cannot be measured** and "is not assumed absent". That distinction is the point: claiming
+zero overlap without constituent data would be a fabricated decomposition. An adversarial row bans
+`no overlap`, `zero overlap`, `fully diversified`, and `no shared exposure` from that surface.
+
+Non-listed holdings are named under "Excluded from market analytics" with their asset type, because
+silently omitting them would leave a reader believing the diagnostics describe their whole book.
+
+### A defect this scope introduced and fixed
+
+The previous commit's contribution canvas referenced `pendingContributionRender`, which was never
+declared, and `drawContributionChart`, which was never written — so **every** browser row failed with
+the route panel stuck hidden. The context also read `projection.riskContributions` and
+`projection.covarianceBasis`, neither of which exists; the real fields are `projection.contributions`
+and `contributions.basis`.
+
+The fix was structural rather than a patch: the two parallel pending-render slots became **one list**,
+because adding a second canvas as a sibling variable is exactly how the undeclared reference shipped.
+
+### Non-vacuity (RED / GREEN, same commands)
+
+```text
+$ RED -- missing exposure folded into an Other bucket
+not ok 16 concentration reports missing exposure rather than bucketing it
+# pass 24  # fail 1        -> GREEN restored: # pass 25  # fail 0
+
+$ RED -- unfittable factors silently dropped
+not ok 27 collinear factors refuse instead of returning a pseudo-fit
+  x SCN-008-016 declared proxy factors report exposures and name themselves proxies
+# pass 27  # fail 1        -> GREEN restored: # pass 30  # fail 0
+
+$ RED -- contribution canvas never drawn
+  x Feature 008 concentration CAPM and contribution diagnostics preserve mobile canvas table parity
+  1 failed  8 passed       -> GREEN restored: 12 passed
+```
+
+Each RED names a different guard, so the three are not one assertion in three costumes.
+
+### Live-stack authenticity and baseline
+
+```text
+$ grep -nE 'page\.route|context\.route|intercept\(|msw|nock' tests/portfolio-survival-risk.spec.mjs
+interception scan exit=1 (no matches)
+$ node --test tests/portfolio-analytics.unit.mjs
+# pass 30  # fail 0
+$ node --test tests/portfolio-foundation.unit.mjs tests/portfolio-privacy.functional.mjs tests/portfolio-brief.functional.mjs tests/portfolio-publisher-boundary.functional.mjs
+# pass 98  # fail 0
+$ node scripts/selftest.mjs
+1640 passed, 0 failed
+$ npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome
+  37 passed (57.1s)
+```
+
+### Scope-local traceability
+
+**Command:** `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
+**Exit Code:** 1
+**Output:**
+
+```text
+ℹ️  DoD fidelity scenarios: 20 (mapped: 20, unmapped: 0)
+RESULT: FAILED (19 failures, 0 warnings)
+
+$ ... | grep '❌' | grep -cE 'risk|analytics|08'
+0
+```
+
+All 19 failures name test files owned by **unbuilt** scopes 09 through 16. **Zero** name a Scope 08
+file, which is the DoD criterion as written. The guard was run while scope 08 was the active scope, as
+the DoD requires.
+
+### Honest boundary
+
+The earlier routed finding **F-08-CONFIG-BOUNDARY** is resolved. The Change Boundary excluded
+`rlportfolio.js` while the scope required new mandatory analytics config that only that file's
+exact-key policy validator can accept. The boundary was written before the contradiction was visible;
+it is amended in `scope.md` to permit the analytics-policy key additions, and the additions are typed
+and validated rather than free-form.
+
+Eigenvalue and explicit condition-number reporting are **not** built. Positive-definiteness is
+determined by Cholesky with a scale-relative pivot tolerance, which is what the DoD's
+"non-positive-definite states remain visible" requires; a condition number would be additional
+information the scope does not ask for. Scopes 09 through 16 remain `Not Started`.

@@ -381,6 +381,62 @@ test('Regression: SCN-008-016 declared proxy factors report exposures and name t
   }
 });
 
+test('Regression: SCN-008-017 return contribution stays distinct from risk contribution', async ({ page }) => {
+  await openLab(page);
+  await importValid(page, 'TP-08-04 return split');
+  // MSFT is volatile and ends roughly flat; BND grinds steadily upward. The return split should be
+  // carried by BND while the risk split is carried by MSFT.
+  await seedBars(page, 'MSFT', series(DATES, [100, 130, 100, 130, 100, 101]));
+  await seedBars(page, 'BND', series(DATES, [50, 50.5, 51, 51.5, 52, 52.5]));
+
+  const panel = await openRiskXRay(page);
+  const box = panel.locator('#riskReturnContribution');
+  await expect(box).toHaveAttribute('data-return-contribution-state', 'ok');
+
+  // The surface says outright that this is a different quantity from the risk split.
+  await expect(panel.locator('#riskReturnContributionNote')).toContainText('DIFFERENT quantity');
+  await expect(panel.locator('#riskReturnContributionNote')).toContainText('routinely disagree');
+
+  // Return share and risk share are shown side by side, per holding, so the disagreement is visible
+  // rather than something a reader must reconstruct.
+  await expect(box.locator('#riskReturnContributionTable tbody tr')).toHaveCount(2);
+  await expect(box.locator('[data-return-contributor="MSFT"]')).toBeVisible();
+  await expect(box.locator('[data-return-contributor="BND"]')).toBeVisible();
+
+  // ADVERSARIAL: the two splits must actually differ on this fixture. If the page ever rendered the
+  // risk split in both columns, these would match and this assertion catches it.
+  const cells = await box.locator('[data-return-contributor="BND"] td').allTextContents();
+  expect(cells.length).toBe(3);
+  expect(cells[1], 'return share and risk share must not be the same rendered value').not.toBe(cells[2]);
+});
+
+test('Regression: SCN-008-015 manual assets and absent look through stay visible not omitted', async ({ page }) => {
+  await openLab(page);
+  await importValid(page, 'TP-08-02 coverage');
+  await seedBars(page, 'MSFT', series(DATES, [100, 120, 90, 96, 130, 128]));
+  await seedBars(page, 'BND', series(DATES, [50, 51, 50, 50, 52, 52]));
+
+  const panel = await openRiskXRay(page);
+  const box = panel.locator('#riskAssetTreatment');
+  await expect(box).toHaveAttribute('data-treatment-state', 'ok');
+
+  // Which holdings the market-based diagnostics actually describe is stated, not implied.
+  await expect(panel.locator('#riskMarketBased')).toContainText('MSFT');
+  await expect(panel.locator('#riskMarketBased')).toContainText('BND');
+
+  // Look-through is reported as HAVING NO CONFIGURED SOURCE, which is different from reporting no
+  // overlap. Claiming zero overlap without constituent data would be a fabricated decomposition.
+  await expect(panel.locator('#riskLookThrough')).toContainText('no-configured-source');
+  await expect(panel.locator('#riskLookThrough')).toContainText('cannot be measured');
+  await expect(panel.locator('#riskLookThrough')).toContainText('not assumed absent');
+
+  // ADVERSARIAL: the surface must never assert an absence of overlap it cannot observe.
+  const copy = (await box.innerText()).toLowerCase();
+  for (const banned of ['no overlap', 'zero overlap', 'fully diversified', 'no shared exposure']) {
+    expect(copy, `look-through must not claim: ${banned}`).not.toContain(banned);
+  }
+});
+
 test('Regression: Feature 008 concentration CAPM and contribution diagnostics preserve mobile canvas table parity', async ({ page }) => {
   await openLab(page);
   await importValid(page, 'TP-08-05 parity');

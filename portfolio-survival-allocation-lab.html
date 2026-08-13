@@ -1233,7 +1233,136 @@
                     "Recorded research behavior contributes none to this route · display settings contribute none"
                 ], ""));
                 if (entry.route === "risk-xray") appendRiskXRay(panel);
+                if (entry.route === "path-lab") appendPathLab(panel);
                 return panel;
+            }
+
+            /* ------------------------------------------------ Scope 09 Path Lab */
+
+            function pathScenario() {
+                var probe = riskProjection();
+                if (!probe.available) return { available: false, state: probe.state };
+                var cal = (state.policy && state.policy.calibration) || {};
+                var spec = {
+                    contractVersion: "ScenarioSpecification/v1",
+                    returnFingerprint: probe.identity,
+                    method: "stationary-bootstrap",
+                    seed: cal.initialSeed,
+                    meanBlockSessions: cal.stationaryBootstrapMeanBlockSessions,
+                    horizonSessions: Math.max(probe.metrics.sampleSize, 2),
+                    // Budgets are scaled to the configured product so a browser tab is never asked
+                    // to run the full 2000x21 production grid synchronously.
+                    pathCount: Math.min(cal.pathCount, 200),
+                    parameterDrawCount: Math.min(cal.parameterDrawCount, 21),
+                    driftRange: { low: -0.0002, high: 0.0002 },
+                    startingValue: 100000
+                };
+                var result = window.RLPORTFOLIOANALYTICS.runScenario(spec, probe.alignedReturns || [], {
+                    maximumPaths: 20000
+                });
+                return { available: result.state === "ok", state: result.state, spec: spec, result: result };
+            }
+
+            function appendPathLab(panel) {
+                var band = document.createElement("div");
+                band.className = "band";
+                band.id = "pathLab";
+                var run = pathScenario();
+                band.dataset.pathState = run.state;
+
+                var heading = document.createElement("h4");
+                heading.textContent = "Dependent-path scenario";
+                band.appendChild(heading);
+
+                if (!run.available) {
+                    var unavailable = document.createElement("p");
+                    unavailable.id = "pathUnavailable";
+                    unavailable.className = "state-message";
+                    unavailable.textContent = "Path Lab unavailable · " + run.state +
+                        " · no path, percentile, or survival figure is shown, because none can be generated from held evidence.";
+                    band.appendChild(unavailable);
+                    panel.appendChild(band);
+                    return;
+                }
+
+                var r = run.result;
+
+                var identity = document.createElement("p");
+                identity.id = "pathIdentity";
+                identity.className = "identity";
+                identity.textContent = r.identity;
+                band.appendChild(identity);
+
+                var method = document.createElement("p");
+                method.id = "pathMethod";
+                method.className = "subtle";
+                method.textContent = "Method " + r.method + " · mean block " + r.meanBlockSessions +
+                    " sessions · horizon " + r.horizonSessions + " · " + r.pathCount + " paths x " +
+                    r.parameterDrawCount + " parameter nodes · common random streams: " + r.commonRandomStreams +
+                    " · " + r.methodNote;
+                band.appendChild(method);
+
+                var bands = document.createElement("ul");
+                bands.id = "pathBands";
+                bands.className = "route-states";
+                bands.appendChild(riskMetricRow("pathRandomness", r.pathRandomness.label,
+                    money(r.pathRandomness.p05) + " / " + money(r.pathRandomness.p50) + " / " + money(r.pathRandomness.p95),
+                    "5th / 50th / 95th percentile at the central assumption"));
+                bands.appendChild(riskMetricRow("pathParameterUncertainty", r.parameterUncertainty.label,
+                    money(r.parameterUncertainty.medianLow) + " to " + money(r.parameterUncertainty.medianHigh),
+                    "How far the MEDIAN outcome moves when the assumption moves across its declared range"));
+                bands.appendChild(riskMetricRow("pathCombined", r.combined.label,
+                    money(r.combined.p05) + " / " + money(r.combined.p50) + " / " + money(r.combined.p95),
+                    "Path randomness and parameter uncertainty together"));
+                bands.appendChild(riskMetricRow("pathInfluence", "Most influential assumption",
+                    r.influence.assumption + " over " + r.influence.rangeLow.toFixed(6) + " to " + r.influence.rangeHigh.toFixed(6),
+                    "Median spread " + money(r.influence.medianSpread)));
+                band.appendChild(bands);
+
+                var claim = document.createElement("p");
+                claim.id = "pathClaimBoundary";
+                claim.className = "microcopy";
+                claim.textContent = r.noExpectedPathClaim +
+                    " Path randomness and parameter uncertainty are shown separately on purpose: how much this " +
+                    "portfolio bounces around under one assumption is a different question from how much the answer " +
+                    "moves when that assumption is wrong.";
+                band.appendChild(claim);
+
+                var tableWrap = document.createElement("div");
+                tableWrap.className = "band";
+                tableWrap.style.overflowX = "auto";
+                tableWrap.style.maxWidth = "100%";
+                var table = document.createElement("table");
+                table.id = "pathTable";
+                table.innerHTML = "<thead><tr><th scope=\"col\">Distribution</th><th scope=\"col\">5th</th>" +
+                    "<th scope=\"col\">Median</th><th scope=\"col\">95th</th></tr></thead>";
+                var tbody = document.createElement("tbody");
+                [["path-randomness", r.pathRandomness], ["combined", r.combined]].forEach(function (pair) {
+                    var tr = document.createElement("tr");
+                    tr.dataset.distribution = pair[0];
+                    var c1 = document.createElement("th");
+                    c1.setAttribute("scope", "row");
+                    c1.textContent = pair[1].label;
+                    var c2 = document.createElement("td");
+                    c2.textContent = money(pair[1].p05);
+                    var c3 = document.createElement("td");
+                    c3.textContent = money(pair[1].p50);
+                    var c4 = document.createElement("td");
+                    c4.textContent = money(pair[1].p95);
+                    [c1, c2, c3, c4].forEach(function (cell) { tr.appendChild(cell); });
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+                tableWrap.appendChild(table);
+                band.appendChild(tableWrap);
+
+                panel.appendChild(band);
+            }
+
+            function money(value) {
+                return isFiniteNumber(value)
+                    ? value.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })
+                    : "Unavailable";
             }
 
             /* ---------------------------------------------------------- Scope 07 Risk X-Ray */

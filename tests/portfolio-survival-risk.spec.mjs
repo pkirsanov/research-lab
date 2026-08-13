@@ -225,7 +225,7 @@ test('Regression: Feature 008 return and drawdown canvas tables remain equivalen
   await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
 });
 
-test('Regression: SCN-008-015 concentration lenses name missing exposure instead of bucketing it', async ({ page }) => {
+test('Regression: SCN-008-015 concentration lenses expose overlap and missing look through', async ({ page }) => {
   await openLab(page);
   await importValid(page, 'TP-08-02 concentration');
   await seedBars(page, 'MSFT', series(DATES, [100, 120, 90, 96, 130, 128]));
@@ -258,29 +258,65 @@ test('Regression: SCN-008-015 concentration lenses name missing exposure instead
   }
 });
 
+test('Regression: SCN-008-016 beta alpha R squared and residual risk stay separate', async ({ page }) => {
+  await openLab(page);
+  await importValid(page, 'TP-08-03 capm fitted');
+
+  // MSFT is constructed to move at exactly 2x SPY while BND stays flat, so the portfolio beta is
+  // predictable from the fixture rather than read back from the module under test.
+  await seedBars(page, 'SPY', series(DATES, [100, 102, 99, 101, 103, 102]));
+  await seedBars(page, 'MSFT', series(DATES, [200, 208, 196, 204, 212, 208]));
+  await seedBars(page, 'BND', series(DATES, [50, 50, 50, 50, 50, 50]));
+
+  const panel = await openRiskXRay(page);
+  const capm = panel.locator('#riskCapm');
+  await expect(capm).toHaveAttribute('data-capm-state', 'ok');
+
+  // Every reading is rendered as its OWN row; none stands in for another.
+  for (const id of ['#riskBeta', '#riskAlpha', '#riskRSquared', '#riskCorrelation', '#riskResidual', '#riskBetaStdError', '#riskCapmSample']) {
+    await expect(panel.locator(id), `${id} must be a separate rendered reading`).toBeVisible();
+  }
+  await expect(panel.locator('#riskBeta')).toContainText('Beta vs SPY');
+
+  // Independently calculated: BND is flat, so the portfolio return is wMsft * the MSFT return, and
+  // MSFT moves at 2x SPY on this fixture. Beta therefore lands at 2 * wMsft.
+  const wMsft = ((10 * 450.25) + (2 * 451.00)) / ((10 * 450.25) + (2 * 451.00) + 20 * 72.10);
+  const betaText = await panel.locator('#riskBeta').textContent();
+  const beta = Number(/Beta vs SPY: (-?[0-9.]+)/.exec(betaText)[1]);
+  expect(Math.abs(beta - 2 * wMsft), `beta ${beta} should be near ${2 * wMsft}`).toBeLessThan(0.05);
+
+  // The sample is far below the configured 126-observation minimum and must say so rather than
+  // presenting a five-period beta as though it were seasoned.
+  await expect(panel.locator('#riskCapmSample')).toContainText('below-configured-minimum');
+  await expect(panel.locator('#riskCapmSample')).toContainText('126');
+
+  // ADVERSARIAL: no copy may read a beta as a statement about TOTAL risk.
+  const copy = (await capm.innerText()).toLowerCase();
+  for (const banned of ['total risk is low', 'low total risk', 'therefore safe', 'less risky overall']) {
+    expect(copy, `benchmark fit must not claim: ${banned}`).not.toContain(banned);
+  }
+});
+
 test('Regression: SCN-008-016 benchmark fit is unavailable rather than regressed against a guess', async ({ page }) => {
   await openLab(page);
-  await importValid(page, 'TP-08-03 capm');
+  await importValid(page, 'TP-08-03 capm unavailable');
+  // Portfolio evidence exists but the DECLARED benchmark has none, so no regression is possible.
   await seedBars(page, 'MSFT', series(DATES, [100, 120, 90, 96, 130, 128]));
   await seedBars(page, 'BND', series(DATES, [50, 51, 50, 50, 52, 52]));
 
   const panel = await openRiskXRay(page);
   const capm = panel.locator('#riskCapm');
-  await expect(capm).toBeVisible();
-
-  // The benchmark symbol is a policy value with no home in the current analytics contract
-  // (F-08-CONFIG-BOUNDARY), so the surface refuses rather than picking a symbol for itself.
   await expect(capm).toHaveAttribute('data-capm-state', 'benchmark-unavailable');
   await expect(panel.locator('#riskCapmUnavailable')).toContainText('Benchmark fit unavailable');
   await expect(panel.locator('#riskCapmUnavailable')).toContainText('no beta, alpha, or explanatory figure is shown');
 
-  // ADVERSARIAL: not one fitted figure may be rendered while the benchmark is undeclared.
+  // ADVERSARIAL: not one fitted figure may be rendered when the benchmark has no evidence.
   for (const id of ['#riskBeta', '#riskAlpha', '#riskRSquared', '#riskCorrelation', '#riskResidual', '#riskBetaStdError']) {
-    await expect(panel.locator(id), `${id} must be absent without a declared benchmark`).toHaveCount(0);
+    await expect(panel.locator(id), `${id} must be absent without benchmark evidence`).toHaveCount(0);
   }
 });
 
-test('Regression: SCN-008-017 risk contributions reconcile and declare their covariance basis', async ({ page }) => {
+test('Regression: SCN-008-017 marginal and total risk contributions reconcile', async ({ page }) => {
   await openLab(page);
   await importValid(page, 'TP-08-04 contributions');
   await seedBars(page, 'MSFT', series(DATES, [100, 120, 90, 96, 130, 128]));
@@ -306,6 +342,105 @@ test('Regression: SCN-008-017 risk contributions reconcile and declare their cov
   const sum = Number(/sum to ([0-9.]+)/.exec(reconText)[1]);
   const risk = Number(/portfolio risk ([0-9.]+)/.exec(reconText)[1]);
   expect(Math.abs(sum - risk)).toBeLessThanOrEqual(1e-8);
+});
+
+test('Regression: SCN-008-016 declared proxy factors report exposures and name themselves proxies', async ({ page }) => {
+  await openLab(page);
+  await importValid(page, 'TP-08-03 factors');
+  // MSFT tracks SPY at 2x while BND is flat, so the portfolio loads on the market proxy.
+  await seedBars(page, 'SPY', series(DATES, [100, 102, 99, 101, 103, 102]));
+  await seedBars(page, 'MSFT', series(DATES, [200, 208, 196, 204, 212, 208]));
+  await seedBars(page, 'BND', series(DATES, [50, 50, 50, 50, 50, 50]));
+  // Two of the five declared legs are present, so the other three must be NAMED unavailable.
+  await seedBars(page, 'IWM', series(DATES, [80, 81, 79, 80, 82, 81]));
+
+  const panel = await openRiskXRay(page);
+  const box = panel.locator('#riskFactors');
+  await expect(box).toHaveAttribute('data-factor-state', 'ok');
+
+  // The surface states it is a PROXY basis, versioned, and names what it could not fit.
+  await expect(panel.locator('#riskFactorBasis')).toContainText('DECLARED PROXY');
+  await expect(panel.locator('#riskFactorBasis')).toContainText('proxy-factors/v1');
+  await expect(panel.locator('#riskFactorBasis')).toContainText('unavailable:');
+  await expect(panel.locator('#riskFactorBasis')).toContainText('growth');
+  await expect(panel.locator('#riskFactorBasis')).toContainText('momentum');
+  await expect(panel.locator('#riskFactorBasis')).toContainText('international');
+
+  // Fitted exposures are shown as their own rows, separate from fit quality and residual.
+  await expect(box.locator('[data-factor="market"]')).toBeVisible();
+  await expect(panel.locator('#riskFactorR2')).toBeVisible();
+  await expect(panel.locator('#riskFactorResidual')).toBeVisible();
+  await expect(panel.locator('#riskFactorAlpha')).toBeVisible();
+
+  // ADVERSARIAL: the copy must not promote a proxy spread to the academic factor it resembles, and
+  // must not forecast.
+  const copy = (await box.innerText()).toLowerCase();
+  expect(copy).toContain('not the academic factor');
+  for (const banned of ['fama', 'will outperform', 'expected to return', 'guarantees']) {
+    expect(copy, `factor copy must not claim: ${banned}`).not.toContain(banned);
+  }
+});
+
+test('Regression: Feature 008 concentration CAPM and contribution diagnostics preserve mobile canvas table parity', async ({ page }) => {
+  await openLab(page);
+  await importValid(page, 'TP-08-05 parity');
+  await seedBars(page, 'MSFT', series(DATES, [100, 120, 90, 96, 130, 128]));
+  await seedBars(page, 'BND', series(DATES, [50, 51, 50, 50, 52, 52]));
+  await seedBars(page, 'SPY', series(DATES, [400, 404, 396, 398, 410, 408]));
+
+  const panel = await openRiskXRay(page);
+  const canvas = panel.locator('#riskContributionCanvas');
+  await expect(canvas).toBeVisible();
+
+  // Drawn SYNCHRONOUSLY: nonblank the moment the tab is shown, with no animation frame to wait for.
+  const coloured = await page.evaluate(() => {
+    const el = document.getElementById('riskContributionCanvas');
+    const data = el.getContext('2d').getImageData(0, 0, el.width, el.height).data;
+    let n = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255) n += 1;
+    }
+    return n;
+  });
+  expect(coloured, 'the contribution canvas must carry drawn pixels').toBeGreaterThan(200);
+
+  // Structured attach is what supplies keyboard traversal, and it validates every point context.
+  await expect(canvas).toHaveAttribute('data-rlchart-mode', 'structured');
+  await expect(canvas).not.toHaveAttribute('data-rlchart-error', /.+/);
+  await expect(canvas).toHaveAttribute('tabindex', '0');
+
+  // Every chart point resolves to a real table row: pixels and cells are one projection, so a
+  // mismatch would mean a second computation appeared.
+  const railId = await canvas.getAttribute('aria-owns');
+  const rail = page.locator(`#${railId}`);
+  const railCount = await rail.locator('[role="option"]').count();
+  const rowCount = await panel.locator('#riskContributionTable tbody tr').count();
+  expect(railCount).toBe(rowCount);
+  expect(rowCount).toBe(2);
+
+  const rowIds = await panel.locator('#riskContributionTable tbody tr').evaluateAll((rows) => rows.map((r) => r.id));
+  expect(rowIds.filter(Boolean).length).toBe(rowCount);
+  for (const id of rowIds) {
+    await expect(page.locator(`#${id}`)).toHaveCount(1);
+  }
+
+  // Both diagnostics canvases coexist; adding the second must not have displaced the first.
+  await expect(panel.locator('#riskCanvas')).toHaveAttribute('data-rlchart-mode', 'structured');
+
+  for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    await expect(canvas).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `no horizontal overflow at ${viewport.width}px`).toBeLessThanOrEqual(1);
+    expect(await panel.locator('#riskContributionTable tbody tr').count()).toBe(rowCount);
+  }
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.evaluate(() => { document.documentElement.style.fontSize = '130%'; });
+  await expect(panel.locator('#riskContributionTable')).toBeVisible();
+  const overflowZoom = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflowZoom, 'no horizontal overflow at 130% text').toBeLessThanOrEqual(1);
+  await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
 });
 
 test('Regression: Feature 008 Risk X-Ray refuses rather than showing a partial portfolio', async ({ page }) => {

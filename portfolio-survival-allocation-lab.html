@@ -1241,15 +1241,6 @@
             var RISK_TOOL_ID = "portfolio-survival-allocation-lab";
             var RISK_PERIODS_PER_YEAR = 252;
 
-            /* Concentration lenses are the EXPOSURE FIELDS of the holding contract, not policy
-               values, so they are read from the schema rather than added to the analytics policy.
-               `rlportfolio.js` validates the analytics block against an exact key list and is
-               outside this scope's change boundary, so a genuinely new policy value — the benchmark
-               symbol and the concentration alert threshold — cannot be introduced here. Those two
-               are routed (F-08-CONFIG-BOUNDARY in report.md) and their surfaces render an honest
-               unavailable state rather than a hard-coded stand-in. */
-            var RISK_CONCENTRATION_LENSES = ["symbol", "assetClass", "sector", "currency"];
-
             function pct(value, digits) {
                 return isFiniteNumber(value)
                     ? (value * 100).toFixed(digits === undefined ? 2 : digits) + "%"
@@ -1308,21 +1299,75 @@
                 var series = riskSeries(symbols);
                 var cutoff = riskCutoff(series);
 
-                /* The benchmark symbol is a policy value with no home in the current analytics
-                   contract, so CAPM renders unavailable rather than regressing against a symbol
-                   this page picked for itself. See F-08-CONFIG-BOUNDARY. */
+                /* The benchmark is aligned on the portfolio's OWN common dates under the same
+                   cutoff. Reading its bars independently would let CAPM regress two series that
+                   were never observed on the same days, which produces a beta from a comparison
+                   that never happened. */
+                var benchmarkReturns = null;
+                var benchSymbol = policy.benchmarkSymbol || null;
+                var probe = window.RLPORTFOLIOANALYTICS.riskXRayProjection({
+                    holdings: revision.holdings, series: series, cutoff: cutoff,
+                    periodsPerYear: RISK_PERIODS_PER_YEAR
+                });
+                if (benchSymbol && probe.available) {
+                    var benchRows = riskSeries([benchSymbol])[benchSymbol] || [];
+                    var byDate = {};
+                    benchRows.forEach(function (row) { byDate[row.date] = row.close; });
+                    var dates = probe.rows.map(function (r) { return r.date; });
+                    if (dates.every(function (d) { return isFiniteNumber(byDate[d]) && byDate[d] > 0; })) {
+                        benchmarkReturns = [];
+                        for (var b = 1; b < dates.length; b += 1) {
+                            benchmarkReturns.push((byDate[dates[b]] / byDate[dates[b - 1]]) - 1);
+                        }
+                    }
+                }
+
+                /* Proxy factors are built on the SAME common dates as the portfolio, from the
+                   spreads config declared. A factor whose leg is missing a date is omitted here and
+                   reported unavailable rather than aligned onto a different basis. */
+                var factorReturns = {};
+                if (probe.available) {
+                    var factorDates = probe.rows.map(function (r) { return r.date; });
+                    (policy.proxyFactors || []).forEach(function (factor) {
+                        var legs = [factor.long].concat(factor.short ? [factor.short] : []);
+                        var legSeries = riskSeries(legs);
+                        var closes = {};
+                        var usable = legs.every(function (leg) {
+                            var rows = legSeries[leg] || [];
+                            closes[leg] = {};
+                            rows.forEach(function (row) { closes[leg][row.date] = row.close; });
+                            return factorDates.every(function (d) {
+                                return isFiniteNumber(closes[leg][d]) && closes[leg][d] > 0;
+                            });
+                        });
+                        if (!usable) { factorReturns[factor.id] = []; return; }
+                        var built = [];
+                        for (var f = 1; f < factorDates.length; f += 1) {
+                            var longReturn = (closes[factor.long][factorDates[f]] / closes[factor.long][factorDates[f - 1]]) - 1;
+                            var shortReturn = factor.short
+                                ? (closes[factor.short][factorDates[f]] / closes[factor.short][factorDates[f - 1]]) - 1
+                                : 0;
+                            built.push(longReturn - shortReturn);
+                        }
+                        factorReturns[factor.id] = built;
+                    });
+                }
+
                 return window.RLPORTFOLIOANALYTICS.riskXRayProjection({
                     holdings: revision.holdings,
                     series: series,
                     cutoff: cutoff,
                     periodsPerYear: RISK_PERIODS_PER_YEAR,
-                    concentrationLenses: RISK_CONCENTRATION_LENSES,
-                    benchmarkReturns: null,
-                    benchmarkSymbol: null,
+                    concentrationLenses: policy.concentrationLenses || [],
+                    benchmarkReturns: benchmarkReturns,
+                    benchmarkSymbol: benchSymbol,
+                    factorReturns: factorReturns,
+                    proxyFactorsVersion: policy.proxyFactorsVersion || null,
                     riskFreeAnnual: policy.riskFreeAnnual,
                     minimumCapmObservations: policy.minimumCapmObservations,
                     shrinkageLambda: policy.covarianceShrinkageLambda,
-                    reconciliationTolerance: policy.riskReconciliationTolerance
+                    reconciliationTolerance: policy.riskReconciliationTolerance,
+                    concentrationAlertWeight: policy.concentrationAlertWeight
                 });
             }
 
@@ -1474,17 +1519,20 @@
                    finds by id. Attaching while the panel is still detached makes it adopt the
                    PREVIOUS render's rail, which replaceChildren then discards -- so keyboard
                    traversal would silently disappear after the first route change. */
-                pendingRiskRender = { canvas: canvas, projection: projection };
+                pendingCanvasRenders.push({ canvas: canvas, projection: projection, draw: drawRiskChart });
             }
 
-            var pendingRiskRender = null;
+            /* A LIST rather than one slot per canvas: a second canvas added as a sibling variable is
+               how the contribution chart shipped a reference to an undeclared name. */
+            var pendingCanvasRenders = [];
 
             function flushRiskRender() {
-                if (!pendingRiskRender) return;
-                var pending = pendingRiskRender;
-                pendingRiskRender = null;
-                if (!pending.canvas.isConnected) return;
-                drawRiskChart(pending.canvas, pending.projection);
+                var queued = pendingCanvasRenders;
+                pendingCanvasRenders = [];
+                queued.forEach(function (pending) {
+                    if (!pending.canvas.isConnected) return;
+                    pending.draw(pending.canvas, pending.projection);
+                });
             }
 
             function riskTableTarget(pointId) { return "riskrow-" + pointId; }
@@ -1593,6 +1641,62 @@
                 }
                 wrap.appendChild(capmBox);
 
+                // --- Declared proxy-factor exposures.
+                var factorBox = document.createElement("div");
+                factorBox.className = "band";
+                factorBox.id = "riskFactors";
+                var factors = projection.factors || { state: "not-computed" };
+                factorBox.dataset.factorState = factors.state;
+                var factorHeading = document.createElement("h5");
+                factorHeading.textContent = "Declared proxy-factor exposures";
+                factorBox.appendChild(factorHeading);
+
+                if (factors.state !== "ok") {
+                    var fMissing = document.createElement("p");
+                    fMissing.id = "riskFactorsUnavailable";
+                    fMissing.className = "state-message";
+                    fMissing.textContent = "Factor exposures unavailable · " + factors.state +
+                        " · no exposure is shown, because none can be fitted from held evidence.";
+                    factorBox.appendChild(fMissing);
+                } else {
+                    var fBasis = document.createElement("p");
+                    fBasis.id = "riskFactorBasis";
+                    fBasis.className = "subtle";
+                    fBasis.textContent = "These are DECLARED PROXY spreads from " + factors.factorsVersion +
+                        ", not academic factor returns · basis " + factors.basis +
+                        " · fitted on " + factors.sampleSize + " periods with " + factors.parameters + " parameters" +
+                        (factors.unavailable.length
+                            ? " · unavailable: " + factors.unavailable.join(", ")
+                            : " · every declared factor was usable");
+                    factorBox.appendChild(fBasis);
+
+                    var fRows = document.createElement("ul");
+                    fRows.id = "riskFactorExposures";
+                    fRows.className = "route-states";
+                    factors.available.forEach(function (id) {
+                        var li = riskMetricRow("riskFactor-" + id, id + " exposure",
+                            factors.exposures[id].toFixed(4));
+                        li.dataset.factor = id;
+                        fRows.appendChild(li);
+                    });
+                    fRows.appendChild(riskMetricRow("riskFactorAlpha", "Intercept (annualized)",
+                        pct(factors.interceptAnnualized)));
+                    fRows.appendChild(riskMetricRow("riskFactorR2", "R-squared", pct(factors.rSquared)));
+                    fRows.appendChild(riskMetricRow("riskFactorAdjR2", "Adjusted R-squared", pct(factors.adjustedRSquared)));
+                    fRows.appendChild(riskMetricRow("riskFactorResidual", "Residual risk (annualized)",
+                        pct(factors.residualRiskAnnualized)));
+                    factorBox.appendChild(fRows);
+
+                    var fNote = document.createElement("p");
+                    fNote.id = "riskFactorNote";
+                    fNote.className = "microcopy";
+                    fNote.textContent = "A proxy spread is a modelling convenience, not the academic factor it " +
+                        "resembles. Exposures describe how this portfolio moved with these declared spreads over " +
+                        "this sample; they are not a forecast and are not investment advice.";
+                    factorBox.appendChild(fNote);
+                }
+                wrap.appendChild(factorBox);
+
                 // --- Covariance and risk contribution.
                 var contribBox = document.createElement("div");
                 contribBox.className = "band";
@@ -1632,6 +1736,7 @@
                     rc.symbols.forEach(function (symbol, index) {
                         var tr = document.createElement("tr");
                         tr.dataset.contributor = symbol;
+                        tr.id = contributionTableTarget(symbol);
                         var c1 = document.createElement("th");
                         c1.setAttribute("scope", "row");
                         c1.textContent = symbol;
@@ -1666,10 +1771,168 @@
                               " (a genuine hedge reduces portfolio risk; it is reported, not floored at zero)"
                             : " · no negative contribution in this sample");
                     contribBox.appendChild(recon);
+
+                    var contribCanvas = document.createElement("canvas");
+                    contribCanvas.id = "riskContributionCanvas";
+                    contribCanvas.width = 640;
+                    contribCanvas.height = 260;
+                    contribCanvas.setAttribute("role", "img");
+                    contribCanvas.setAttribute("aria-label", "Risk contribution share by holding");
+                    contribCanvas.style.width = "100%";
+                    contribCanvas.style.maxWidth = "640px";
+                    contribCanvas.style.height = "auto";
+                    contribBox.appendChild(contribCanvas);
+                    pendingCanvasRenders.push({ canvas: contribCanvas, projection: projection, draw: drawContributionChart });
                 }
                 wrap.appendChild(contribBox);
 
                 band.appendChild(wrap);
+            }
+
+            function contributionTableTarget(symbol) {
+                return "riskcontrib-" + String(symbol).replace(/[^A-Za-z0-9:._-]+/g, "-");
+            }
+
+            function contributionPointId(symbol) {
+                return "rc-" + String(symbol).replace(/[^A-Za-z0-9:._-]+/g, "-");
+            }
+
+            function contributionContext(projection, pointId) {
+                var rc = projection.contributions;
+                var index = -1, i;
+                for (i = 0; i < rc.symbols.length; i += 1) {
+                    if (contributionPointId(rc.symbols[i]) === pointId) { index = i; break; }
+                }
+                if (index === -1) return null;
+                var symbol = rc.symbols[index];
+                var share = rc.contributionShare[index];
+                var negative = rc.contribution[index] < 0;
+                return {
+                    contractVersion: "contextual-tooltip/v1",
+                    contextId: RISK_TOOL_ID + "/" + pointId,
+                    triggerKind: "chart-point",
+                    label: symbol + " risk contribution",
+                    definition: "The share of total portfolio risk attributable to " + symbol +
+                        " under the Euler decomposition, computed from the " + rc.basis +
+                        " covariance of the same aligned return sample (shrinkage lambda " +
+                        rc.shrinkageLambda + ").",
+                    displayed: {
+                        valueText: pct(share),
+                        numericValue: share,
+                        unit: "share of portfolio risk",
+                        truthState: "current"
+                    },
+                    interpretation: {
+                        text: negative
+                            ? symbol + " REDUCES portfolio risk: it contributes " + pct(share) +
+                              ", a genuine hedge rather than a rounding artefact."
+                            : symbol + " contributes " + pct(share) + " of portfolio risk against a " +
+                              pct(projection.weights[symbol]) + " weight.",
+                        direction: "threshold-dependent",
+                        comparisonBasis: "The holding's capital weight in the same portfolio",
+                        window: "The aligned return sample through the declared evidence cutoff",
+                        thresholdsOrBounds: ["risk share and capital weight are different quantities and are not expected to match"]
+                    },
+                    provenance: {
+                        ownerId: RISK_TOOL_ID,
+                        modelId: "rlportfolioanalytics/v1",
+                        evidenceIdentity: projection.identity,
+                        sourceRefs: ["shared same-origin daily bars"],
+                        observedAsOf: projection.cutoff,
+                        retrievedOrPublishedAt: projection.cutoff,
+                        freshness: "fresh",
+                        dataTier: "measured-observation"
+                    },
+                    uncertainty: {
+                        state: rc.reconciled ? "bounded" : "unavailable",
+                        rangeOrBand: "Contributions reconcile to total risk within " + rc.reconciliationTolerance + ".",
+                        reason: rc.reconciled
+                            ? "The Euler decomposition sums to total portfolio risk on this sample."
+                            : "The decomposition did not reconcile, so the split is not trustworthy."
+                    },
+                    limitation: "Backward-looking description of held evidence only. This is not investment advice and forecasts nothing.",
+                    triggerCondition: "The aligned return sample and its covariance basis remain unchanged.",
+                    invalidationCondition: "A constituent series changes, the cutoff moves, or the covariance basis is reconditioned.",
+                    links: {
+                        owner: "portfolio-survival-allocation-lab.html",
+                        citation: "",
+                        sameDataTable: "#" + contributionTableTarget(symbol),
+                        ticker: ""
+                    },
+                    accessibility: {
+                        conciseLabel: symbol + " risk share " + pct(share),
+                        longDescriptionId: "rlcontext-" + pointId
+                    },
+                    contextFingerprint: null
+                };
+            }
+
+            /* Drawn synchronously for the same reason as the wealth chart: a hidden-then-shown tab
+               must never paint a blank frame. Negative contributions draw BELOW the zero axis so a
+               hedge is visible as a hedge rather than as a short bar. */
+            function drawContributionChart(canvas, projection) {
+                var ctx = canvas.getContext && canvas.getContext("2d");
+                if (!ctx) return;
+                var rc = projection.contributions;
+                var w = canvas.width, h = canvas.height, pad = 34;
+                var shares = rc.contributionShare;
+                var lo = 0, hi = 0, i;
+                for (i = 0; i < shares.length; i += 1) {
+                    if (shares[i] < lo) lo = shares[i];
+                    if (shares[i] > hi) hi = shares[i];
+                }
+                if (hi === lo) { hi = lo + 1; }
+                var yAt = function (v) { return h - pad - ((v - lo) / (hi - lo)) * (h - pad * 2); };
+                var slot = (w - pad * 2) / Math.max(shares.length, 1);
+
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, w, h);
+                ctx.strokeStyle = "#94a3b8";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(pad, pad, w - pad * 2, h - pad * 2);
+
+                var zeroY = yAt(0);
+                ctx.beginPath();
+                ctx.moveTo(pad, zeroY);
+                ctx.lineTo(w - pad, zeroY);
+                ctx.stroke();
+
+                var points = [];
+                rc.symbols.forEach(function (symbol, index) {
+                    var x = pad + slot * index + slot * 0.15;
+                    var barWidth = slot * 0.7;
+                    var y = yAt(shares[index]);
+                    ctx.fillStyle = shares[index] < 0 ? "#b91c1c" : "#1d4ed8";
+                    ctx.fillRect(x, Math.min(y, zeroY), barWidth, Math.abs(zeroY - y));
+                    points.push({ pointId: contributionPointId(symbol), cx: x + barWidth / 2, cy: (y + zeroY) / 2 });
+                });
+
+                ctx.fillStyle = "#0f172a";
+                ctx.font = "12px system-ui, sans-serif";
+                ctx.fillText("Risk contribution share · " + rc.basis + " covariance", pad, pad - 12);
+
+                if (window.RLCHART && typeof window.RLCHART.attach === "function") {
+                    window.RLCHART.attach(canvas, {
+                        orderedPointIds: points.map(function (p) { return p.pointId; }),
+                        seriesOrder: ["risk-contribution"],
+                        contextFor: function (pointId) { return contributionContext(projection, pointId); },
+                        tableTargetFor: function (pointId) {
+                            var match = null;
+                            rc.symbols.forEach(function (symbol) {
+                                if (contributionPointId(symbol) === pointId) match = symbol;
+                            });
+                            return contributionTableTarget(match);
+                        },
+                        hitTest: function (mx, my) {
+                            var best = null, bestDistance = Infinity;
+                            points.forEach(function (p) {
+                                var dist = (mx - p.cx) * (mx - p.cx) + (my - p.cy) * (my - p.cy);
+                                if (dist < bestDistance) { bestDistance = dist; best = p; }
+                            });
+                            return best && bestDistance <= 60 * 60 ? best.pointId : null;
+                        }
+                    });
+                }
             }
 
             function riskChartContext(projection, pointId) {

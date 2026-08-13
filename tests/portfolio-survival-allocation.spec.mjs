@@ -65,7 +65,7 @@ async function seedPortfolio(page, name) {
   await seedBars(page, 'BND', series(DATES, [50, 51, 50, 50, 52, 52]));
 }
 
-test('Regression: SCN-008-026 all six allocation methods share one comparison basis', async ({ page }) => {
+test('Regression: SCN-008-026 all six allocation methods share one frozen basis', async ({ page }) => {
   await seedPortfolio(page, 'TP-13-02 six methods');
   const panel = await openAllocation(page);
 
@@ -93,7 +93,7 @@ test('Regression: SCN-008-026 all six allocation methods share one comparison ba
   expect(mvoState).toContain('expected-returns-required');
 });
 
-test('Regression: SCN-008-027 no allocation candidate is labelled best or recommended', async ({ page }) => {
+test('Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner', async ({ page }) => {
   await seedPortfolio(page, 'TP-13-03 no winner');
   const panel = await openAllocation(page);
 
@@ -114,7 +114,7 @@ test('Regression: SCN-008-027 no allocation candidate is labelled best or recomm
   expect(await panel.locator('[data-best], [data-recommended], .winner').count()).toBe(0);
 });
 
-test('Regression: SCN-008-029 conflicting constraints render infeasible without silent relaxation', async ({ page }) => {
+test('Regression: SCN-008-029 conflicting constraints remain infeasible without relaxation', async ({ page }) => {
   await seedPortfolio(page, 'TP-13-04 infeasible');
   const panel = await openAllocation(page);
 
@@ -145,12 +145,28 @@ test('Regression: SCN-008-029 conflicting constraints render infeasible without 
   }
 });
 
-test('Regression: Feature 008 allocation candidates stay complete and legible at desktop mobile and zoom', async ({ page }) => {
+test('Regression: Feature 008 six allocation rows preserve ordered mobile canvas table parity and infeasible states', async ({ page }) => {
   await seedPortfolio(page, 'TP-13-05 parity');
   const panel = await openAllocation(page);
 
   const rowCount = await panel.locator('#allocationTable tbody tr[data-method]').count();
   expect(rowCount).toBe(6);
+
+  // Synchronous and non-blank on the render that reveals the route.
+  const painted = await panel.locator('#allocationCanvas').evaluate((canvas) => {
+    const { data } = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+    let coloured = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255) coloured += 1;
+    }
+    return coloured;
+  });
+  expect(painted, 'the allocation chart is painted, not blank').toBeGreaterThan(200);
+
+  // Infeasibility is captioned in the pixels, not signalled by colour alone.
+  // The caption text is what a reader who cannot distinguish the hues relies on.
+  const drawnText = await panel.locator('#allocationCanvas').evaluate((canvas) => canvas.getAttribute('aria-label'));
+  expect(drawnText).toContain('infeasible candidates marked');
 
   const unresolved = await panel.evaluate(() => {
     const rows = Array.from(document.querySelectorAll('#allocationTable tbody tr[id]'));
@@ -161,6 +177,7 @@ test('Regression: Feature 008 allocation candidates stay complete and legible at
   for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(viewport);
     await expect(panel.locator('#allocationTable')).toBeVisible();
+    await expect(panel.locator('#allocationCanvas')).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, `no horizontal overflow at ${viewport.width}px`).toBeLessThanOrEqual(1);
     expect(await panel.locator('#allocationTable tbody tr[data-method]').count()).toBe(rowCount);

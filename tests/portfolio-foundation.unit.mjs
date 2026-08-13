@@ -717,7 +717,7 @@ test('privacy inventory reports real category counts and carries no stored subje
   // telling an owner less than the full-personal clear actually deletes.
   assert.equal(inventory.value.categories.every((entry) => entry.clearedBy.split('-and-').includes('all-personal')), true,
     'every category must name the all-personal clear, which empties all of them');
-  assert.equal(inventory.value.categories.length, 9, 'every declared category must be projected, so the clearedBy sweep above is not run over a short list');
+  assert.equal(inventory.value.categories.length, 10, 'every declared category must be projected, so the clearedBy sweep above is not run over a short list');
 
   /* The serialized sweep above is a DENYLIST: it catches only the five values it names. A leak it
    * was never told to look for passes it silently — proven by injecting a `subjectValue` field into
@@ -1054,16 +1054,32 @@ test('the two personal sections Scope 03 could not populate now have real write 
   assert.equal(withScenario.value.workspace.scenarios.length > 0, true,
     'scenarios now has a real write path');
 
+  /* Scope 13 declared `allocations`. Same rule, same reason: the section is
+   * populated through its REAL builder so the sweep below is not asserted over
+   * an empty-by-construction container. */
+  const withAllocation = api.buildAllocationCandidate(
+    'basis=exact-common-date-intersection|cutoff=2026-05-08|symbols=BND,MSFT',
+    'minimum-variance',
+    'Sweep limit allocation',
+    { volatility: 0.1784, feasible: true },
+    withScenario.value.workspace,
+    NOW,
+    policy
+  );
+  assert.equal(withAllocation.ok, true, `allocation build must succeed: ${JSON.stringify(withAllocation.error || {})}`);
+  assert.equal(withAllocation.value.workspace.allocations.length > 0, true,
+    'allocations now has a real write path');
+
   // Every derived personal section is reachable, so no emptiness claim in the sweep is vacuous.
-  const stillUnreachable = sections.filter((section) => withScenario.value.workspace[section].length === 0);
+  const stillUnreachable = sections.filter((section) => withAllocation.value.workspace[section].length === 0);
   assert.deepEqual(stillUnreachable, [],
     'no derived personal section may remain unpopulatable, or the sweep would still assert emptiness over an empty-by-construction container');
 
   // A populated workspace must validate, or the write paths above produced something unstorable.
-  assert.equal(api.validateWorkspace(withScenario.value.workspace, policy).ok, true);
+  assert.equal(api.validateWorkspace(withAllocation.value.workspace, policy).ok, true);
 
   // And the behavior clear genuinely empties both, which is the claim Scope 03 could not test.
-  const cleared = api.buildBehaviorClearCandidate(withScenario.value.workspace, NOW, policy);
+  const cleared = api.buildBehaviorClearCandidate(withAllocation.value.workspace, NOW, policy);
   assert.equal(cleared.ok, true);
   assert.equal(cleared.value.workspace.interestSignals.length, 0);
   assert.equal(cleared.value.workspace.actionOutcomes.length, 0,

@@ -1246,6 +1246,66 @@
 
             /* ------------------------------------- Scope 13 Allocation Comparison */
 
+            /* Bars are labelled with their method AND their numeric volatility, and
+               an infeasible candidate is hatched AND captioned. Marking infeasibility
+               by colour alone would hide it from a reader who cannot distinguish the
+               hues, on exactly the rows where the mandate is being breached. */
+            function drawAllocationChart(canvas, comparison) {
+                var ctx = canvas.getContext && canvas.getContext("2d");
+                if (!ctx) return;
+                var w = canvas.width, h = canvas.height;
+                var pad = 34, left = 150;
+                var rows = comparison.candidates;
+                var barHeight = (h - pad * 2) / rows.length;
+                var maximum = 0;
+                rows.forEach(function (row) {
+                    if (isFiniteNumber(row.portfolioVolatility) && row.portfolioVolatility > maximum) {
+                        maximum = row.portfolioVolatility;
+                    }
+                });
+                if (maximum <= 0) maximum = 1;
+
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, w, h);
+                ctx.font = "12px system-ui, sans-serif";
+                ctx.textBaseline = "middle";
+
+                rows.forEach(function (row, i) {
+                    var y = pad + i * barHeight;
+                    ctx.fillStyle = "#0f172a";
+                    ctx.textAlign = "right";
+                    ctx.fillText(row.label.slice(0, 22), left - 8, y + barHeight / 2);
+                    if (!isFiniteNumber(row.portfolioVolatility)) {
+                        ctx.textAlign = "left";
+                        ctx.fillStyle = "#64748b";
+                        ctx.fillText("unavailable — " + (row.reason || "no solution"), left + 4, y + barHeight / 2);
+                        return;
+                    }
+                    var width = (row.portfolioVolatility / maximum) * (w - left - pad);
+                    var infeasible = row.feasibility && row.feasibility.state === "infeasible";
+                    ctx.fillStyle = infeasible ? "#fecaca" : "#bfdbfe";
+                    ctx.fillRect(left, y + 3, width, barHeight - 8);
+                    if (infeasible) {
+                        ctx.strokeStyle = "#b91c1c";
+                        ctx.lineWidth = 1;
+                        for (var x = left; x < left + width; x += 6) {
+                            ctx.beginPath();
+                            ctx.moveTo(x, y + 3);
+                            ctx.lineTo(x + barHeight - 8, y + barHeight - 5);
+                            ctx.stroke();
+                        }
+                    }
+                    ctx.fillStyle = "#0f172a";
+                    ctx.textAlign = "left";
+                    ctx.fillText((row.portfolioVolatility * 100).toFixed(2) + "%" +
+                        (infeasible ? " · infeasible" : ""), left + width + 6, y + barHeight / 2);
+                });
+
+                ctx.fillStyle = "#0f172a";
+                ctx.textAlign = "left";
+                ctx.fillText("Modeled volatility · lower is not thereby better · none is recommended", 10, 14);
+            }
+
             function allocationModel() {
                 var probe = riskProjection();
                 if (!probe.available) return { available: false, state: probe.state };
@@ -1309,6 +1369,20 @@
                 }
 
                 var c = model.comparison;
+
+                var canvas = document.createElement("canvas");
+                canvas.id = "allocationCanvas";
+                canvas.width = 620;
+                canvas.height = 300;
+                canvas.setAttribute("role", "img");
+                canvas.setAttribute("aria-label",
+                    "Modeled volatility by allocation method, with infeasible candidates marked");
+                canvas.style.width = "100%";
+                canvas.style.maxWidth = "620px";
+                canvas.style.height = "auto";
+                band.appendChild(canvas);
+                pendingCanvasRenders.push({ canvas: canvas, projection: c, draw: drawAllocationChart });
+
                 var wrap = document.createElement("div");
                 wrap.style.overflowX = "auto";
                 wrap.style.maxWidth = "100%";

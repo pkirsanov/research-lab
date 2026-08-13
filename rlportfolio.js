@@ -118,7 +118,7 @@
   var WORKSPACE_FIELDS = Object.freeze([
     "actionOutcomes", "behaviorEvents", "contentSha256", "contractVersion", "createdAt", "currentMandateId",
     "currentPortfolioId", "generation", "interestSignals", "mandateRevisions", "policyRefs", "portfolioRevisions",
-    "scenarios", "semanticFingerprint", "updatedAt"
+    "allocations", "scenarios", "semanticFingerprint", "updatedAt"
   ]);
   var ERROR_FIELDS = Object.freeze([
     "code", "contractVersion", "field", "reason", "recoverable", "row", "valueEchoed"
@@ -973,6 +973,7 @@
       behaviorEvents: value.behaviorEvents,
       interestSignals: value.interestSignals,
       actionOutcomes: value.actionOutcomes,
+      allocations: value.allocations,
       scenarios: value.scenarios,
       policyRefs: value.policyRefs
     };
@@ -1001,6 +1002,7 @@
       behaviorEvents: [],
       interestSignals: [],
       actionOutcomes: [],
+      allocations: [],
       scenarios: [],
       policyRefs: policyRefs(policy),
       createdAt: now,
@@ -1126,7 +1128,7 @@
     if (unknown || Object.keys(value).length !== WORKSPACE_FIELDS.length) return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown || "workspace", null, false);
     if (value.contractVersion !== WORKSPACE_VERSION || !Number.isInteger(value.generation) || value.generation < 0 ||
         !Array.isArray(value.portfolioRevisions) || !Array.isArray(value.mandateRevisions) || !Array.isArray(value.behaviorEvents) ||
-        !Array.isArray(value.interestSignals) || !Array.isArray(value.actionOutcomes) || !Array.isArray(value.scenarios) || !isPlainObject(value.policyRefs) ||
+        !Array.isArray(value.interestSignals) || !Array.isArray(value.actionOutcomes) || !Array.isArray(value.scenarios) || !Array.isArray(value.allocations) || !isPlainObject(value.policyRefs) ||
         !canonicalTimestamp(value.createdAt) || !canonicalTimestamp(value.updatedAt) || !HASH_PATTERN.test(value.semanticFingerprint || "") ||
         !HASH_PATTERN.test(value.contentSha256 || "") || (value.currentPortfolioId !== null && !HASH_PATTERN.test(value.currentPortfolioId || "")) ||
         (value.currentMandateId !== null && !HASH_PATTERN.test(value.currentMandateId || ""))) {
@@ -1161,6 +1163,15 @@
       if (!scenarioResult.ok) return scenarioResult;
       if (scenarioIds[value.scenarios[scenarioIndex].scenarioId]) return failure("P008-IDENTITY", "duplicate-scenario-id", "scenarios", null, false);
       scenarioIds[value.scenarios[scenarioIndex].scenarioId] = true;
+    }
+    var allocationIds = Object.create(null);
+    for (var allocationIndex = 0; allocationIndex < value.allocations.length; allocationIndex += 1) {
+      var allocationResult = validateAllocation(value.allocations[allocationIndex]);
+      if (!allocationResult.ok) return allocationResult;
+      if (allocationIds[value.allocations[allocationIndex].allocationId]) {
+        return failure("P008-IDENTITY", "duplicate-allocation-id", "allocations", null, false);
+      }
+      allocationIds[value.allocations[allocationIndex].allocationId] = true;
     }
     var mandateIds = Object.create(null);
     for (var mandateIndex = 0; mandateIndex < value.mandateRevisions.length; mandateIndex += 1) {
@@ -2067,6 +2078,75 @@
     return success(value);
   }
 
+  var ALLOCATION_FIELDS = Object.freeze([
+    "allocationId", "basisIdentity", "computedAt", "label", "method", "summary"
+  ]);
+
+  /* A saved allocation stores its BASIS identity and a summary, never the full
+     candidate matrix. The basis reproduces the candidate exactly, so persisting
+     the weights would duplicate derivable data in private storage and widen
+     what a clear has to remove. */
+  function validateAllocation(value) {
+    if (!isPlainObject(value)) return failure("P008-SCHEMA-CORRUPT", "allocation-invalid", "allocations", null, false);
+    var unknown = hasOnlyFields(value, ALLOCATION_FIELDS);
+    if (unknown || Object.keys(value).length !== ALLOCATION_FIELDS.length) {
+      return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown || "allocations", null, false);
+    }
+    if (!HASH_PATTERN.test(value.allocationId || "") || !nonEmptyString(value.basisIdentity) ||
+        !nonEmptyString(value.label) || value.label.length > 120 ||
+        !nonEmptyString(value.method) ||
+        !canonicalTimestamp(value.computedAt) || !isPlainObject(value.summary)) {
+      return failure("P008-SCHEMA-CORRUPT", "allocation-invalid", "allocations", null, false);
+    }
+    return success(value);
+  }
+
+  /* The real write path for the allocations section. Scope 03 pins that no
+     personal section may be declared without one, so that its clear sweep
+     cannot be vacuously true over an empty-by-construction container. */
+  function buildAllocationCandidate(basisIdentity, method, label, summary, currentWorkspace, now, policy) {
+    var workspaceResult = validateWorkspace(currentWorkspace, policy);
+    if (!workspaceResult.ok) return workspaceResult;
+    if (!nonEmptyString(basisIdentity) || !nonEmptyString(method) ||
+        !nonEmptyString(label) || label.length > 120 || !isPlainObject(summary)) {
+      return failure("P008-SCHEMA-CORRUPT", "allocation-input-invalid", "allocations", null, false);
+    }
+    if (!canonicalTimestamp(now)) return failure("P008-SCHEMA-CORRUPT", "timestamp-invalid", "now", null, false);
+
+    var allocation = {
+      allocationId: contracts.fingerprint("portfolio-allocation", {
+        contractVersion: "portfolio-allocation-identity/v1",
+        basisIdentity: basisIdentity,
+        method: method,
+        label: label
+      }),
+      basisIdentity: basisIdentity,
+      method: method,
+      label: label,
+      summary: clone(summary),
+      computedAt: now
+    };
+    var validated = validateAllocation(allocation);
+    if (!validated.ok) return validated;
+
+    var candidate = clone(currentWorkspace);
+    // Saving the same basis and method twice is a no-op, not a second allocation.
+    var duplicate = candidate.allocations.some(function (entry) { return entry.allocationId === allocation.allocationId; });
+    if (!duplicate) candidate.allocations.push(allocation);
+    candidate.updatedAt = now;
+    candidate.policyRefs = policyRefs(policy);
+    var hashed = withWorkspaceHashes(candidate);
+    var workspaceValid = validateWorkspace(hashed, policy);
+    if (!workspaceValid.ok) return workspaceValid;
+    return success({
+      contractVersion: "portfolio-allocation-candidate/v1",
+      workspace: hashed,
+      allocation: allocation,
+      accepted: !duplicate,
+      reason: duplicate ? "duplicate-allocation" : null
+    });
+  }
+
   /* The real write path for the scenarios section. Scope 03 pins that no personal section may be
      declared without one, so that its clear sweep cannot be vacuously true over an
      empty-by-construction container. */
@@ -2537,6 +2617,7 @@
         // Explicitly saved by the owner, so the behavior clear leaves it exactly as it leaves
         // holdings; only the full-personal clear removes it.
         category("scenarios", workspace.scenarios.length, "all-personal"),
+        category("allocations", workspace.allocations.length, "all-personal"),
         // Explicitly saved by the owner, so the behavior clear leaves it exactly as it leaves
         // holdings; only the full-personal clear removes it.
         category("quarantine", storageResult.value.presentKeys.filter(function (entry) { return entry.key === policy.storage.quarantineKey; }).length, "all-personal"),
@@ -2690,6 +2771,7 @@
     actionIdentity: actionIdentity,
     buildActionOutcomeCandidate: buildActionOutcomeCandidate,
     buildScenarioCandidate: buildScenarioCandidate,
+    buildAllocationCandidate: buildAllocationCandidate,
     validateScenario: validateScenario,
     buildInterestSignalCandidate: buildInterestSignalCandidate,
     deriveInterestSignals: deriveInterestSignals,

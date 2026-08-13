@@ -1074,7 +1074,7 @@ const FOUNDATION_KEYS = Object.freeze([...FOUNDATION_LOCAL_KEYS, ...FOUNDATION_S
  * disagree with the contract about what a category should DO; the name set is pinned here so the
  * matrix cannot quietly stop covering a category that someone adds. */
 const DECLARED_PRIVACY_CATEGORIES = Object.freeze([
-  'action-outcomes', 'behavior-events', 'cash-needs', 'interest-signals',
+  'action-outcomes', 'allocations', 'behavior-events', 'cash-needs', 'interest-signals',
   'mandate-revisions', 'portfolio-revisions', 'quarantine', 'scenarios', 'session-fallback'
 ]);
 

@@ -1243,3 +1243,122 @@ test('TP-11-01 de-smoothing is a sensitivity that raises variance and never repl
   assert.equal(RLPA.desmoothReturns(observed, 0).reason, 'rho-required');
   assert.equal(RLPA.desmoothReturns(observed, 1).reason, 'rho-required');
 });
+
+/* ---------------------------------------------------------------------------
+   Scope 12 - hedge variant research
+   --------------------------------------------------------------------------- */
+
+const HEDGE_BASE = {
+  targetExposureValue: 100000,
+  targetVolatility: 0.20,
+  hedgeRatio: 1,
+  horizonYears: 1,
+  annualCarryFraction: 0.01,
+  commissionFraction: 0.001,
+  spreadFraction: 0.0005,
+  slippageFraction: 0.0005,
+  rebalancesPerYear: 4,
+  basisCorrelation: 1,
+  proxySymbol: 'FXE',
+  instrumentClass: 'currency-forward-proxy-etf',
+  liquidity: 'high'
+};
+
+test('TP-12-01 a fully hedged variant separates gross risk reduction from every cost', () => {
+  const out = RLPA.computeHedgeVariant(HEDGE_BASE);
+  assert.equal(out.state, 'ok');
+
+  // Independently calculated. rho = 1, ratio = 1 so residual variance fraction
+  // is 1 - 2 + 1 = 0: a perfect proxy fully hedged leaves no residual volatility.
+  assert.ok(near(out.residualVolatility, 0, 1e-12));
+  assert.ok(near(out.grossVolatilityReduction, 0.20, 1e-12));
+  assert.equal(out.basisRiskRemains, false);
+
+  // carry = 100000 * 0.01 * 1 = 1000
+  assert.ok(near(out.carryCost, 1000, 1e-9));
+  // round trip = 0.001 + 0.0005 + 0.0005 = 0.002; direct = 100000 * 0.002 = 200
+  assert.ok(near(out.directCost, 200, 1e-9));
+  // rebalances = 4 * 1 = 4; turnover = 100000 * 0.002 * 4 = 800
+  assert.equal(out.rebalanceCount, 4);
+  assert.ok(near(out.turnoverCost, 800, 1e-9));
+  assert.ok(near(out.totalCost, 2000, 1e-9));
+
+  // The three cost components stay separate. A single net number would let a
+  // large carry hide behind a large risk reduction.
+  assert.ok(out.carryCost !== out.directCost);
+  assert.ok(near(out.costPerVolatilityPoint, 2000 / 0.20, 1e-9));
+
+  // The refusals that make this research rather than advice.
+  assert.equal(out.prescribedRatio, null);
+  assert.equal(out.executable, false);
+  assert.ok(out.claimBoundary.includes('No ratio is prescribed as optimal or suitable'));
+  assert.ok(out.claimBoundary.includes('your portfolio is not modified'));
+});
+
+test('TP-12-01 an imperfect proxy leaves basis risk even at a full hedge ratio', () => {
+  // rho = 0.9, ratio = 1 -> residual variance fraction = 1 - 1.8 + 1 = 0.2
+  const out = RLPA.computeHedgeVariant({ ...HEDGE_BASE, basisCorrelation: 0.9 });
+  assert.equal(out.state, 'ok');
+  assert.ok(near(out.residualVolatility, 0.20 * Math.sqrt(0.2), 1e-12));
+  assert.ok(out.residualVolatility > 0, 'a full hedge on an imperfect proxy is NOT riskless');
+  assert.equal(out.basisRiskRemains, true);
+
+  // This is the whole point: the naive reading of "fully hedged" would report
+  // zero residual risk. An implementation that ignored rho would fail here.
+  const perfect = RLPA.computeHedgeVariant(HEDGE_BASE);
+  assert.ok(out.residualVolatility > perfect.residualVolatility);
+  assert.ok(out.grossVolatilityReduction < perfect.grossVolatilityReduction);
+});
+
+test('TP-12-01 a missing cost component blocks net benefit and is never treated as zero', () => {
+  for (const key of ['annualCarryFraction', 'commissionFraction', 'spreadFraction', 'slippageFraction', 'proxySymbol', 'liquidity']) {
+    const partial = { ...HEDGE_BASE };
+    delete partial[key];
+    const out = RLPA.computeHedgeVariant(partial);
+    assert.equal(out.state, 'gross-only', key + ' must block net benefit');
+    assert.equal(out.reason, 'incomplete-cost-evidence');
+    assert.deepEqual(out.missing, [key]);
+    assert.equal(out.netBenefit, null);
+    assert.equal(out.totalCost, undefined, 'no total cost is emitted from incomplete evidence');
+    assert.ok(out.note.includes('is NOT treated as zero'));
+    assert.ok(out.note.includes('zero is a claim about the world'));
+  }
+});
+
+test('TP-12-01 hedge inputs are validated rather than clamped into a plausible range', () => {
+  assert.equal(RLPA.computeHedgeVariant({ ...HEDGE_BASE, hedgeRatio: 1.5 }).reason, 'hedge-ratio-out-of-range');
+  assert.equal(RLPA.computeHedgeVariant({ ...HEDGE_BASE, hedgeRatio: -0.2 }).reason, 'hedge-ratio-out-of-range');
+  assert.equal(RLPA.computeHedgeVariant({ ...HEDGE_BASE, basisCorrelation: 1.4 }).reason, 'basis-correlation-out-of-range');
+  assert.equal(RLPA.computeHedgeVariant({ ...HEDGE_BASE, targetExposureValue: 0 }).reason, 'exposure-invalid');
+
+  // Clamping 1.5 to 1 would silently answer a question the user did not ask.
+  assert.equal(RLPA.computeHedgeVariant({ ...HEDGE_BASE, hedgeRatio: 1.5 }).hedgeRatio, undefined);
+});
+
+test('TP-12-01 variants are compared on one frozen basis and none is prescribed', () => {
+  const out = RLPA.compareHedgeVariants(HEDGE_BASE, [0, 0.5, 1]);
+  assert.equal(out.state, 'ok');
+  assert.equal(out.basisFrozen, true);
+  assert.equal(out.prescribedRatio, null);
+  assert.deepEqual(out.variants.map((v) => v.label), ['Unhedged', 'Partial hedge 50%', 'Fully hedged']);
+
+  // Unhedged costs nothing and reduces nothing: the honest baseline.
+  assert.ok(near(out.variants[0].totalCost, 0, 1e-12));
+  assert.ok(near(out.variants[0].grossVolatilityReduction, 0, 1e-12));
+  assert.ok(near(out.variants[0].residualVolatility, 0.20, 1e-12));
+
+  // Cost rises monotonically with the ratio while residual risk falls. Both
+  // directions must be visible for the trade-off to be judged.
+  assert.ok(out.variants[0].totalCost < out.variants[1].totalCost);
+  assert.ok(out.variants[1].totalCost < out.variants[2].totalCost);
+  assert.ok(out.variants[0].residualVolatility > out.variants[1].residualVolatility);
+  assert.ok(out.variants[1].residualVolatility > out.variants[2].residualVolatility);
+
+  // Every row shares the frozen basis, so only the ratio differs between them.
+  for (const variant of out.variants) {
+    assert.equal(variant.proxySymbol, HEDGE_BASE.proxySymbol);
+    assert.equal(variant.basisCorrelation, HEDGE_BASE.basisCorrelation);
+    assert.equal(variant.executable, false);
+  }
+  assert.ok(out.claimBoundary.includes('None of them is recommended'));
+});

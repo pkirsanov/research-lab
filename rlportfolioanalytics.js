@@ -1675,6 +1675,141 @@
     };
   }
 
+  /* ---------------------------------------------------------------------
+     Scope 12 - hedge variant research
+     --------------------------------------------------------------------- */
+
+  var HEDGE_KEYS = [
+    "annualCarryFraction", "basisCorrelation", "commissionFraction", "hedgeRatio",
+    "horizonYears", "instrumentClass", "liquidity", "proxySymbol", "rebalancesPerYear",
+    "slippageFraction", "spreadFraction", "targetExposureValue", "targetVolatility"
+  ];
+
+  /**
+   * Research comparison of an explicit hedge ratio. Never a recommendation.
+   *
+   * Every component is returned SEPARATELY - gross risk change, carry, direct
+   * cost, turnover cost, residual exposure, basis risk - because a single "net
+   * benefit" number lets a large carry cost hide behind a large risk reduction
+   * and vice versa. Net is only computed when every cost component is present;
+   * a missing cost is never treated as zero, because zero is a claim.
+   */
+  function computeHedgeVariant(input) {
+    if (!input || typeof input !== "object" || Array.isArray(input)) {
+      return { state: "unavailable", reason: "input-invalid", missing: HEDGE_KEYS.slice() };
+    }
+    var missing = [];
+    var numeric = [
+      "targetExposureValue", "targetVolatility", "hedgeRatio", "horizonYears",
+      "annualCarryFraction", "commissionFraction", "spreadFraction", "slippageFraction",
+      "rebalancesPerYear", "basisCorrelation"
+    ];
+    for (var i = 0; i < numeric.length; i += 1) {
+      if (!isNum(input[numeric[i]])) missing.push(numeric[i]);
+    }
+    if (typeof input.proxySymbol !== "string" || !input.proxySymbol) missing.push("proxySymbol");
+    if (typeof input.instrumentClass !== "string" || !input.instrumentClass) missing.push("instrumentClass");
+    if (typeof input.liquidity !== "string" || !input.liquidity) missing.push("liquidity");
+    if (missing.length) {
+      return {
+        state: "gross-only",
+        reason: "incomplete-cost-evidence",
+        missing: missing,
+        netBenefit: null,
+        note: "Net benefit is unavailable because " + missing.join(", ") + " " +
+          (missing.length === 1 ? "is" : "are") + " not stated. A missing cost is NOT treated as " +
+          "zero: zero is a claim about the world, and this comparison has no evidence for it."
+      };
+    }
+    if (input.hedgeRatio < 0 || input.hedgeRatio > 1) {
+      return { state: "unavailable", reason: "hedge-ratio-out-of-range", missing: [] };
+    }
+    if (input.targetVolatility < 0 || input.targetExposureValue <= 0) {
+      return { state: "unavailable", reason: "exposure-invalid", missing: [] };
+    }
+    if (Math.abs(input.basisCorrelation) > 1) {
+      return { state: "unavailable", reason: "basis-correlation-out-of-range", missing: [] };
+    }
+
+    var ratio = input.hedgeRatio;
+    var hedgedNotional = input.targetExposureValue * ratio;
+
+    /* Residual volatility of a partially hedged exposure whose proxy is
+       imperfectly correlated. With rho = 1 this collapses to (1 - ratio); with
+       rho < 1 a full hedge still leaves basis risk, which is the entire reason
+       basis risk is reported rather than assumed away. */
+    var rho = input.basisCorrelation;
+    var residualVarianceFraction = 1 - 2 * ratio * rho + ratio * ratio;
+    if (residualVarianceFraction < 0) residualVarianceFraction = 0;
+    var residualVolatility = input.targetVolatility * Math.sqrt(residualVarianceFraction);
+    var grossVolatilityReduction = input.targetVolatility - residualVolatility;
+
+    var carryCost = hedgedNotional * input.annualCarryFraction * input.horizonYears;
+    var roundTripFraction = input.commissionFraction + input.spreadFraction + input.slippageFraction;
+    var directCost = hedgedNotional * roundTripFraction;
+    var rebalanceCount = input.rebalancesPerYear * input.horizonYears;
+    var turnoverCost = hedgedNotional * roundTripFraction * rebalanceCount;
+    var totalCost = carryCost + directCost + turnoverCost;
+
+    return {
+      state: "ok",
+      hedgeRatio: ratio,
+      proxySymbol: input.proxySymbol,
+      instrumentClass: input.instrumentClass,
+      liquidity: input.liquidity,
+      hedgedNotional: hedgedNotional,
+      grossVolatilityReduction: grossVolatilityReduction,
+      residualVolatility: residualVolatility,
+      residualExposureValue: input.targetExposureValue * (1 - ratio),
+      basisCorrelation: rho,
+      basisRiskRemains: rho < 1,
+      carryCost: carryCost,
+      directCost: directCost,
+      turnoverCost: turnoverCost,
+      rebalanceCount: rebalanceCount,
+      totalCost: totalCost,
+      /* Deliberately a cost per unit of volatility removed, NOT a verdict. It
+         lets a reader weigh the trade themselves instead of being told the
+         answer. */
+      costPerVolatilityPoint: grossVolatilityReduction === 0
+        ? null
+        : totalCost / grossVolatilityReduction,
+      prescribedRatio: null,
+      executable: false,
+      claimBoundary: "A research comparison of the ratio YOU entered. No ratio is prescribed as " +
+        "optimal or suitable, no contract is selected, nothing is executed, and your portfolio is " +
+        "not modified. Costs and risk reduction are reported separately so neither can hide behind " +
+        "the other."
+    };
+  }
+
+  /**
+   * Compare explicit hedge ratios on ONE frozen basis.
+   *
+   * Every variant is evaluated against the same input, so a difference between
+   * rows is attributable to the ratio rather than to a changed assumption.
+   */
+  function compareHedgeVariants(baseInput, ratios) {
+    if (!Array.isArray(ratios) || !ratios.length) return { state: "unavailable", reason: "ratios-required" };
+    if (!ratios.every(isNum)) return { state: "unavailable", reason: "ratios-non-finite" };
+    var variants = ratios.map(function (ratio) {
+      var merged = {};
+      Object.keys(baseInput || {}).forEach(function (key) { merged[key] = baseInput[key]; });
+      merged.hedgeRatio = ratio;
+      var out = computeHedgeVariant(merged);
+      out.label = ratio === 0 ? "Unhedged" : (ratio === 1 ? "Fully hedged" : "Partial hedge " + (ratio * 100).toFixed(0) + "%");
+      return out;
+    });
+    return {
+      state: "ok",
+      variants: variants,
+      basisFrozen: true,
+      prescribedRatio: null,
+      claimBoundary: "All rows share one frozen basis, so a difference between them is attributable " +
+        "to the ratio and not to a changed assumption. None of them is recommended."
+    };
+  }
+
   return {
     TRADING_DAYS: TRADING_DAYS,
     alignPortfolioReturns: alignPortfolioReturns,
@@ -1704,6 +1839,8 @@
     lowerTailDependence: lowerTailDependence,
     alternativeAssetQuality: alternativeAssetQuality,
     desmoothReturns: desmoothReturns,
+    computeHedgeVariant: computeHedgeVariant,
+    compareHedgeVariants: compareHedgeVariants,
     analyticsIdentity: analyticsIdentity
   };
 });

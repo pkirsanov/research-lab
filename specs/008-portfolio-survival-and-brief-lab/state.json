@@ -24,7 +24,7 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": 8,
+        "currentScope": 9,
         "runStartedAt": "2026-07-15T23:25:05Z",
         "completedPhaseClaims": [],
         "pendingTransitionRequests": [],
@@ -100,7 +100,7 @@
             {
                 "scope": 8,
                 "name": "Concentration CAPM And Risk Contribution",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     "7"
                 ],
@@ -205,7 +205,8 @@
             "04-public-evidence-barrier-and-coverage",
             "05-four-window-direct-scope-brief",
             "06-explainable-research-action-lifecycle",
-            "07-return-and-drawdown-x-ray"
+            "07-return-and-drawdown-x-ray",
+            "08-concentration-capm-and-risk-contribution"
         ],
         "certifiedCompletedPhases": [],
         "scopeProgress": [
@@ -287,7 +288,7 @@
             {
                 "scope": 8,
                 "name": "Concentration CAPM And Risk Contribution",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     "7"
                 ],
@@ -496,7 +497,7 @@
     "activeBugs": [],
     "resolvedBugs": [],
     "failures": [],
-    "lastUpdatedAt": "2026-08-13T05:30:00Z",
+    "lastUpdatedAt": "2026-08-13T06:30:00Z",
     "scopeLayout": "per-scope-directory",
     "artifacts": {
         "spec": "spec.md",
@@ -547,6 +548,7 @@
         "04-public-evidence-barrier-and-coverage",
         "05-four-window-direct-scope-brief",
         "06-explainable-research-action-lifecycle",
-        "07-return-and-drawdown-x-ray"
+        "07-return-and-drawdown-x-ray",
+        "08-concentration-capm-and-risk-contribution"
     ]
 }

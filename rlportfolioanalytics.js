@@ -421,6 +421,10 @@
       }
     }
 
+    var returnSplit = returnContributions(weightResult.symbols, weightResult.weights, aligned.perSymbolReturns, {
+      reconciliationTolerance: opts.reconciliationTolerance
+    });
+
     // Canvas points and table rows come from the SAME wealth index in the SAME order.
     var points = aligned.commonDates.map(function (date, i) {
       return {
@@ -451,6 +455,8 @@
       benchmarkSymbol: opts.benchmarkSymbol || null,
       covariance: covariance,
       contributions: contributions,
+      returnContributions: returnSplit,
+      assetTreatment: assetTreatment(opts.holdings, opts.lookThroughSource),
       points: points,
       rows: points
     };
@@ -828,6 +834,94 @@
     };
   }
 
+  /**
+   * Return contribution: each holding's share of the portfolio's realised return.
+   *
+   * This is a DIFFERENT quantity from risk contribution and is reported separately because the two
+   * routinely disagree. A hedge can contribute negative risk and positive return; a large calm
+   * position can dominate return while contributing little risk. Presenting one as though it
+   * answered the other is the conflation FR-082 exists to prevent.
+   *
+   * Contributions are computed on the same aligned per-symbol returns, so they share the return
+   * basis with everything else on the surface.
+   */
+  function returnContributions(symbols, weights, perSymbolReturns, options) {
+    var opts = options || {};
+    if (!Array.isArray(symbols) || !symbols.length) return { state: "no-symbols" };
+    var totals = {}, total = 0, i, s;
+    for (i = 0; i < symbols.length; i += 1) {
+      s = symbols[i];
+      var series = perSymbolReturns ? perSymbolReturns[s] : null;
+      if (!Array.isArray(series) || !series.length) return { state: "returns-unavailable", symbol: s };
+      if (!isNum(weights[s])) return { state: "weights-invalid", symbol: s };
+      // Arithmetic sum of period returns: the additive basis that makes contributions sum to the
+      // portfolio's own arithmetic total. A compounded split does not decompose additively.
+      var sum = 0;
+      for (var k = 0; k < series.length; k += 1) {
+        if (!isNum(series[k])) return { state: "non-finite-input", symbol: s };
+        sum += series[k];
+      }
+      totals[s] = weights[s] * sum;
+      total += totals[s];
+    }
+
+    var tolerance = isNum(opts.reconciliationTolerance) ? opts.reconciliationTolerance : 1e-8;
+    var contribution = symbols.map(function (symbol) { return totals[symbol]; });
+    return {
+      state: "ok",
+      basis: "arithmetic-sum-of-period-returns",
+      symbols: symbols.slice(),
+      contribution: contribution,
+      contributionSum: total,
+      // Share is undefined when the portfolio went nowhere: dividing by ~0 would manufacture
+      // enormous shares from a flat book.
+      contributionShare: Math.abs(total) > tolerance
+        ? contribution.map(function (c) { return c / total; })
+        : null,
+      shareState: Math.abs(total) > tolerance ? "available" : "portfolio-return-near-zero",
+      negativeContributors: symbols.filter(function (_s, index) { return contribution[index] < 0; })
+    };
+  }
+
+  /**
+   * How each holding is treated by the market-based analytics on this surface, and what the
+   * look-through lens can say.
+   *
+   * Two honesty problems live here. A `manual-alternative` holding has no market series, so it
+   * cannot participate in return, covariance, or beta — and silently omitting it would leave a
+   * reader believing the diagnostics describe their whole book. And look-through requires
+   * constituent data for pooled vehicles, which this deployment holds no source for; reporting an
+   * ETF's own ticker as its "underlying" would be a fabricated decomposition.
+   *
+   * Both are therefore reported as NAMED states rather than omissions.
+   */
+  function assetTreatment(holdings, lookThroughSource) {
+    if (!Array.isArray(holdings) || !holdings.length) return { state: "no-holdings" };
+    var marketBased = [], excluded = [], seen = {};
+    for (var i = 0; i < holdings.length; i += 1) {
+      var h = holdings[i];
+      if (!h || typeof h.symbol !== "string" || seen[h.symbol]) continue;
+      seen[h.symbol] = true;
+      if (h.assetType === "listed") marketBased.push(h.symbol);
+      else excluded.push({ symbol: h.symbol, assetType: h.assetType || "unknown" });
+    }
+    return {
+      state: "ok",
+      marketBased: marketBased.sort(),
+      excludedFromMarketAnalytics: excluded.sort(function (a, b) { return a.symbol < b.symbol ? -1 : 1; }),
+      // Absent by design in this deployment: no constituent source is configured, and inventing one
+      // from a vehicle's own ticker would be a fabricated decomposition.
+      lookThrough: {
+        state: lookThroughSource ? "available" : "no-configured-source",
+        source: lookThroughSource || null,
+        covered: [],
+        reason: lookThroughSource
+          ? "Constituent data is available for the declared source."
+          : "No constituent source is configured, so overlapping exposure inside pooled vehicles cannot be measured. It is not assumed absent."
+      }
+    };
+  }
+
   /** Gaussian elimination with partial pivoting. Returns null when the system is not solvable. */
   function solveSymmetric(A, b) {
     var n = b.length, i, j, k;
@@ -866,6 +960,8 @@
     fitFactors: fitFactors,
     computeCovariance: computeCovariance,
     riskContributions: riskContributions,
+    returnContributions: returnContributions,
+    assetTreatment: assetTreatment,
     analyticsIdentity: analyticsIdentity
   };
 });

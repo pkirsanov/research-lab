@@ -614,6 +614,51 @@ test('TP-08-01 ADVERSARIAL collinear factors refuse instead of returning a pseud
   assert.equal(RLPA.fitFactors(null, { market: [] }, {}).state, 'input-invalid');
 });
 
+test('TP-08-01 return contribution is a different quantity from risk contribution', () => {
+  const symbols = ['AAA', 'BBB'];
+  const weights = { AAA: 0.5, BBB: 0.5 };
+  // AAA is calm and strongly positive; BBB is volatile and ends flat. Return contribution should
+  // be dominated by AAA while risk contribution is dominated by BBB -- the exact disagreement that
+  // makes reporting one as the other misleading.
+  const perSymbolReturns = {
+    AAA: [0.01, 0.01, 0.01, 0.01],
+    BBB: [0.20, -0.20, 0.20, -0.20]
+  };
+  const rc = RLPA.returnContributions(symbols, weights, perSymbolReturns, {});
+  assert.equal(rc.state, 'ok');
+  // Independent: AAA 0.5 * 0.04 = 0.02; BBB 0.5 * 0.0 = 0.
+  assert.ok(near(rc.contribution[0], 0.02, 1e-12));
+  assert.ok(near(rc.contribution[1], 0, 1e-12));
+  assert.ok(near(rc.contributionSum, 0.02, 1e-12));
+  assert.ok(near(rc.contributionShare[0], 1, 1e-9), 'the calm holding supplied all the return');
+
+  // Now the RISK split on the same book: BBB carries essentially all of it.
+  const cov = RLPA.computeCovariance(perSymbolReturns, { shrinkageLambda: 0 });
+  const risk = RLPA.riskContributions(cov.symbols, weights, cov.conditioned, {});
+  assert.equal(risk.state, 'ok');
+  const bbbIndex = cov.symbols.indexOf('BBB');
+  assert.ok(risk.contributionShare[bbbIndex] > 0.9, 'the volatile holding carries the risk');
+  // The two decompositions genuinely disagree, which is why they are separate fields.
+  assert.notEqual(rc.contributionShare[0] > 0.9, risk.contributionShare[cov.symbols.indexOf('AAA')] > 0.9);
+});
+
+test('TP-08-01 ADVERSARIAL a flat portfolio reports no return share rather than dividing by zero', () => {
+  const symbols = ['AAA', 'BBB'];
+  const weights = { AAA: 0.5, BBB: 0.5 };
+  // The two legs cancel exactly, so the portfolio went nowhere. Dividing by ~0 would manufacture
+  // enormous shares from a flat book.
+  const flat = { AAA: [0.05, -0.05], BBB: [-0.05, 0.05] };
+  const rc = RLPA.returnContributions(symbols, weights, flat, { reconciliationTolerance: 1e-8 });
+  assert.equal(rc.state, 'ok');
+  assert.equal(rc.contributionShare, null, 'no share may be reported for a zero-return portfolio');
+  assert.equal(rc.shareState, 'portfolio-return-near-zero');
+
+  assert.equal(RLPA.returnContributions([], {}, {}).state, 'no-symbols');
+  assert.equal(RLPA.returnContributions(['AAA'], { AAA: 1 }, {}).state, 'returns-unavailable');
+  assert.equal(RLPA.returnContributions(['AAA'], {}, { AAA: [0.1] }).state, 'weights-invalid');
+  assert.equal(RLPA.returnContributions(['AAA'], { AAA: 1 }, { AAA: [NaN] }).state, 'non-finite-input');
+});
+
 test("TP-07-01 return math is delegated to rlmetrics, not redefined here", () => {
   // P18: a metric is defined once. If this module ever grew its own arithmetic/CAGR/drag, the
   // repo would have two definitions of each and the brief could publish either.

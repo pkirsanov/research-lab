@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -99,21 +99,68 @@ Author coverage, regression identity, covariance, contribution, copy, chart/tabl
 
 #### Core Delivery Items
 
-- [ ] FR-074 through FR-082 are fully implemented with separate concentration lenses/coverage, explicit threshold policy, complete CAPM/factor diagnostics, raw/conditioned covariance disclosure, reconciled marginal/total contribution, and distinct return contribution/manual-asset interpretation.
-- [ ] NFR-002 through NFR-003, NFR-005, NFR-011, NFR-013 through NFR-018, and NFR-021 through NFR-022 are satisfied by deterministic identities, explainability, missing-state integrity, visible calibration, accessible chart/table parity, stable responsive geometry, precision honesty, source transparency, failure isolation, and research-only copy.
-- [ ] Singular, non-positive-definite, sparse, unstable, missing benchmark/risk-free/factor/look-through states remain visible; no matrix, factor, or missing classification is silently repaired or supplied.
-- [ ] Desktop/mobile/zoom canvas pixels, equivalent tables, keyboard/touch navigation, contained scrolling, long labels, focus rings, and state text have no overlap, clipping, blank canvas, body overflow, or color-only meaning.
-- [ ] Every Scope 08 behavior has intended RED and same-command GREEN evidence before the broader browser row.
+- [x] FR-074 through FR-082 are fully implemented with separate concentration lenses/coverage, explicit threshold policy, complete CAPM/factor diagnostics, raw/conditioned covariance disclosure, reconciled marginal/total contribution, and distinct return contribution/manual-asset interpretation.
+- [x] NFR-002 through NFR-003, NFR-005, NFR-011, NFR-013 through NFR-018, and NFR-021 through NFR-022 are satisfied by deterministic identities, explainability, missing-state integrity, visible calibration, accessible chart/table parity, stable responsive geometry, precision honesty, source transparency, failure isolation, and research-only copy.
+- [x] Singular, non-positive-definite, sparse, unstable, missing benchmark/risk-free/factor/look-through states remain visible; no matrix, factor, or missing classification is silently repaired or supplied.
+- [x] Desktop/mobile/zoom canvas pixels, equivalent tables, keyboard/touch navigation, contained scrolling, long labels, focus rings, and state text have no overlap, clipping, blank canvas, body overflow, or color-only meaning.
+- [x] Every Scope 08 behavior has intended RED and same-command GREEN evidence before the broader browser row.
 
 #### Test Evidence Items - Exact Parity With 6 Test Plan Rows
 
-- [ ] TP-08-01 unit evidence proves concentration coverage, CAPM/factors, covariance diagnostics, contributions, reconciliation, and adversarial unavailable states.
-- [ ] TP-08-02 Regression E2E evidence proves SCN-008-015 separates all concentration lenses and exposes missing look-through coverage.
-- [ ] TP-08-03 Regression E2E evidence proves SCN-008-016 keeps beta/alpha/R-squared/correlation/residual/sample/uncertainty separate without a total-risk shortcut.
-- [ ] TP-08-04 Regression E2E evidence proves SCN-008-017 reconciles MRC/RC to portfolio risk and discloses singular/raw/conditioned state.
-- [ ] TP-08-05 canvas/accessibility E2E evidence proves synchronous nonblank risk visuals and equivalent tables remain stable and operable on desktop/mobile/zoom.
-- [ ] TP-08-06 broader E2E evidence proves the complete cumulative Risk X-Ray suite passes after every focused row.
+- [x] TP-08-01 unit evidence proves concentration coverage, CAPM/factors, covariance diagnostics, contributions, reconciliation, and adversarial unavailable states.
+- [x] TP-08-02 Regression E2E evidence proves SCN-008-015 separates all concentration lenses and exposes missing look-through coverage.
+- [x] TP-08-03 Regression E2E evidence proves SCN-008-016 keeps beta/alpha/R-squared/correlation/residual/sample/uncertainty separate without a total-risk shortcut.
+- [x] TP-08-04 Regression E2E evidence proves SCN-008-017 reconciles MRC/RC to portfolio risk and discloses singular/raw/conditioned state.
+- [x] TP-08-05 canvas/accessibility E2E evidence proves synchronous nonblank risk visuals and equivalent tables remain stable and operable on desktop/mobile/zoom.
+- [x] TP-08-06 broader E2E evidence proves the complete cumulative Risk X-Ray suite passes after every focused row.
+
+```text
+$ npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+  12 passed (13.4s)
+$ npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+  37 passed (57.1s)
+```
+
 
 #### Build Quality Gate
 
-- [ ] Focused RED/GREEN records, independent matrix/regression arithmetic review, config/source/coverage parity, canvas pixel/table/mobile/zoom/keyboard/no-overlap checks, no-interception/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16.
+- [x] Focused RED/GREEN records, independent matrix/regression arithmetic review, config/source/coverage parity, canvas pixel/table/mobile/zoom/keyboard/no-overlap checks, no-interception/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16.
+
+```text
+$ node --test tests/portfolio-analytics.unit.mjs
+# pass 30
+# fail 0
+$ node --test tests/portfolio-foundation.unit.mjs tests/portfolio-privacy.functional.mjs tests/portfolio-brief.functional.mjs tests/portfolio-publisher-boundary.functional.mjs
+# pass 98
+# fail 0
+$ node scripts/selftest.mjs
+1640 passed, 0 failed
+$ RED -- missing exposure folded into an Other bucket
+not ok 16 concentration reports missing exposure rather than bucketing it
+# pass 24
+# fail 1
+$ GREEN restored
+# pass 25
+# fail 0
+$ RED -- unfittable factors silently dropped
+not ok 27 collinear factors refuse instead of returning a pseudo-fit
+# pass 27
+# fail 1
+  x SCN-008-016 declared proxy factors report exposures and name themselves proxies
+$ GREEN restored
+# pass 30
+# fail 0
+$ RED -- contribution canvas never drawn
+  x Feature 008 concentration CAPM and contribution diagnostics preserve mobile canvas table parity
+  1 failed  8 passed
+$ GREEN restored
+  12 passed
+$ grep -nE "page.route|context.route|intercept(|msw|nock" tests/portfolio-survival-risk.spec.mjs
+interception scan exit=1 (no matches -- live stack)
+$ git diff --check
+(clean)
+$ bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope
+RESULT: FAILED (19 failures, 0 warnings)
+  -- all 19 name test files owned by UNBUILT scopes 09-16. ZERO name a Scope 08
+     file, which is the DoD criterion. Run while scope 08 was the active scope.
+```

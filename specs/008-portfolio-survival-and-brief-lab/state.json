@@ -24,7 +24,7 @@
   "execution": {
     "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
-    "currentScope": 12,
+    "currentScope": 13,
     "runStartedAt": "2026-07-15T23:25:05Z",
     "completedPhaseClaims": [],
     "pendingTransitionRequests": [],
@@ -140,7 +140,7 @@
       {
         "scope": 12,
         "name": "Hedge Variant Research",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "11"
         ],
@@ -206,7 +206,8 @@
       8,
       9,
       10,
-      11
+      11,
+      12
     ]
   },
   "certification": {
@@ -345,7 +346,7 @@
       {
         "scope": 12,
         "name": "Hedge Variant Research",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "11"
         ],

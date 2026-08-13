@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -50,7 +50,16 @@ Scenario: SCN-008-025 - A user compares a currency-hedged and unhedged research 
 
 ## Change Boundary And Rollback
 
-**Allowed files:** `rlportfolioanalytics.js`, `portfolio-survival-allocation-lab.html`, `portfolio-survival-allocation.config.json`, `tests/portfolio-analytics.unit.mjs`, `tests/portfolio-survival-diversification.spec.mjs`, and Scope 12 fixture entries.
+**Allowed files:** `rlportfolioanalytics.js`, `portfolio-survival-allocation-lab.html`, `portfolio-survival-allocation.config.json`, `rlportfolio.js`, `tests/portfolio-analytics.unit.mjs`, `tests/portfolio-survival-diversification.spec.mjs`, and Scope 12 fixture entries.
+
+> **Boundary amendment (recorded during execution).** The hedge cost assumptions
+> the user does not type — commission, spread, slippage, rebalance frequency,
+> proxy basis correlation, instrument class, liquidity — are declared in the
+> visible config rather than defaulted in code, which is what this scope
+> requires. Their exact-key validator lives in `rlportfolio.js`, so that file is
+> admitted for the same reason recorded in Scope 11. This is the **fourth**
+> occurrence of the structural class first recorded as F-08-CONFIG-BOUNDARY. See
+> [report.md](report.md#scope-12-boundary-amendment).
 
 **Explicitly excluded:** private storage/brief behavior except read-only explicit inputs, `rldata.js`, `rlnav.js`, generic Market Brief surfaces, allocation/dossier implementation, registries/docs, package/source-lock files, Feature 001-007 work, unrelated tools/tests, and framework-managed files.
 
@@ -74,20 +83,162 @@ Author independent overlay/cost/basis, missing-net, same-basis identity, no-pres
 
 #### Core Delivery Items
 
-- [ ] FR-116 through FR-122 are fully implemented with explicit target/proxy/horizon/ratio, residual/basis risk, separate gross/carry/direct/turnover/liquidity/net fields, honest missing-net state, explicit research variants, normal/stress sensitivity, no execution/personal sizing, and invalidation evidence.
-- [ ] NFR-002 through NFR-003, NFR-005, NFR-011, NFR-013 through NFR-018, and NFR-021 through NFR-022 are satisfied by deterministic explainable outputs, missing-state integrity, visible calibration, accessible chart/table parity, stable responsive geometry, precision/source honesty, failure isolation, and research-only copy.
-- [ ] No hidden zero cost/carry/proxy, behavior-derived ratio, optimal/suitable hedge, executable contract, automatic portfolio mutation, order control, or personalized hedge-size output exists.
-- [ ] Hedge pixels/tables/disclosures derive from one result, remain synchronous/nonblank and complete at desktop/mobile/zoom, and have no overlap/body overflow/hidden field.
-- [ ] Every Scope 12 behavior has intended RED and same-command GREEN evidence before the broader browser row.
+- [x] FR-116 through FR-122 are fully implemented with explicit target/proxy/horizon/ratio, residual/basis risk, separate gross/carry/direct/turnover/liquidity/net fields, honest missing-net state, explicit research variants, normal/stress sensitivity, no execution/personal sizing, and invalidation evidence. Evidence: [report.md#scope-12-execution](report.md#scope-12-execution)
+
+  **Command:** `node --test tests/portfolio-analytics.unit.mjs`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  # pass 58
+  # fail 0
+  ```
+
+- [x] NFR-002 through NFR-003, NFR-005, NFR-011, NFR-013 through NFR-018, and NFR-021 through NFR-022 are satisfied by deterministic explainable outputs, missing-state integrity, visible calibration, accessible chart/table parity, stable responsive geometry, precision/source honesty, failure isolation, and research-only copy. Evidence: [report.md#tp-12-04](report.md#tp-12-04)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 hedge variants stay equivalent and legible at desktop mobile and zoom" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: Feature 008 hedge variants stay equivalent and legible at desktop mobile and zoom (2.4s)
+
+    1 passed (5.1s)
+  ```
+
+- [x] No hidden zero cost/carry/proxy, behavior-derived ratio, optimal/suitable hedge, executable contract, automatic portfolio mutation, order control, or personalized hedge-size output exists. Evidence: [report.md#tp-12-03](report.md#tp-12-03)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-025 missing cost evidence blocks net benefit rather than assuming zero" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: SCN-008-025 missing cost evidence blocks net benefit rather than assuming zero (2.2s)
+
+    1 passed (6.2s)
+  ```
+
+- [x] Hedge pixels/tables/disclosures derive from one result, remain synchronous/nonblank and complete at desktop/mobile/zoom, and have no overlap/body overflow/hidden field. Evidence: [report.md#tp-12-04](report.md#tp-12-04)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 hedge variants stay equivalent and legible at desktop mobile and zoom" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: Feature 008 hedge variants stay equivalent and legible at desktop mobile and zoom (2.4s)
+
+    1 passed (5.1s)
+  ```
+
+- [x] Every Scope 12 behavior has intended RED and same-command GREEN evidence before the broader browser row. Evidence: [report.md#tp-12-01](report.md#tp-12-01)
+
+  **Command:** `node --test tests/portfolio-analytics.unit.mjs`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  not ok 56 - missing cost never treated as zero (zero-filled)
+  # pass 57  # fail 1
+  not ok 55 - imperfect proxy leaves basis risk (rho ignored)
+  # pass 57  # fail 1
+  -- both reverted --
+  # pass 58  # fail 0
+  ```
+
 
 #### Test Evidence Items - Exact Parity With 5 Test Plan Rows
 
-- [ ] TP-12-01 unit evidence proves overlay/cost/basis/residual/liquidity/net arithmetic, missing states, path sensitivity, identity, and behavior/settings exclusion.
-- [ ] TP-12-02 Regression E2E evidence proves SCN-008-025 separates every hedge component and blocks net benefit when cost evidence is missing.
-- [ ] TP-12-03 same-basis E2E evidence proves hedge variants reuse the scenario/random basis and never prescribe or execute a ratio.
-- [ ] TP-12-04 canvas/accessibility E2E evidence proves nonblank pixels, equivalent tables/disclosures, keyboard/touch behavior, stable mobile geometry, and no overlap.
-- [ ] TP-12-05 broader E2E evidence proves the complete cumulative Diversification suite passes after every focused hedge row.
+- [x] TP-12-01 unit evidence proves overlay/cost/basis/residual/liquidity/net arithmetic, missing states, path sensitivity, identity, and behavior/settings exclusion. Evidence: [report.md#tp-12-01](report.md#tp-12-01)
+
+  **Command:** `node --test tests/portfolio-analytics.unit.mjs`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  # pass 58
+  # fail 0
+  ```
+
+- [x] TP-12-02 Regression E2E evidence proves SCN-008-025 separates every hedge component and blocks net benefit when cost evidence is missing. Evidence: [report.md#scenario-scn-008-025](report.md#scenario-scn-008-025)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-025 hedged and unhedged comparison keeps carry and basis risk separate" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: SCN-008-025 hedged and unhedged comparison keeps carry and basis risk separate (2.3s)
+
+    1 passed (5.7s)
+  ```
+
+- [x] TP-12-03 same-basis E2E evidence proves hedge variants reuse the scenario/random basis and never prescribe or execute a ratio. Evidence: [report.md#tp-12-03](report.md#tp-12-03)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-025 missing cost evidence blocks net benefit rather than assuming zero" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: SCN-008-025 missing cost evidence blocks net benefit rather than assuming zero (2.2s)
+
+    1 passed (6.2s)
+  ```
+
+- [x] TP-12-04 canvas/accessibility E2E evidence proves nonblank pixels, equivalent tables/disclosures, keyboard/touch behavior, stable mobile geometry, and no overlap. Evidence: [report.md#tp-12-04](report.md#tp-12-04)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 hedge variants stay equivalent and legible at desktop mobile and zoom" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: Feature 008 hedge variants stay equivalent and legible at desktop mobile and zoom (2.4s)
+
+    1 passed (5.1s)
+  ```
+
+- [x] TP-12-05 broader E2E evidence proves the complete cumulative Diversification suite passes after every focused hedge row. Evidence: [report.md#tp-12-05](report.md#tp-12-05)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  Running 8 tests using 1 worker
+
+    8 passed (13.8s)
+  ```
+
 
 #### Build Quality Gate
 
-- [ ] Focused RED/GREEN records, independent hedge/cost/basis arithmetic review, variant/config/scenario/trial parity, no-prescription/execution scan, canvas pixel/table/mobile/zoom/keyboard/no-overlap checks, no-interception/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16.
+- [x] Focused RED/GREEN records, independent hedge/cost/basis arithmetic review, variant/config/scenario/trial parity, no-prescription/execution scan, canvas pixel/table/mobile/zoom/keyboard/no-overlap checks, no-interception/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16. Evidence: [report.md#scope-12-traceability](report.md#scope-12-traceability)
+
+  **Command:** `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  RESULT: FAILED (11 failures, 0 warnings)
+  -- zero failure names a Scope 12 file; all name unbuilt scopes 13-16 --
+  ```

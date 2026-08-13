@@ -75,7 +75,7 @@
     ]),
     analytics: Object.freeze([
       "benchmarkSymbol", "concentrationAlertWeight", "concentrationLenses", "contractVersion",
-      "covarianceSensitivity", "covarianceShrinkageLambda", "maximumListedAssets",
+      "covarianceSensitivity", "covarianceShrinkageLambda", "lowerTailQuantile", "maximumListedAssets",
       "minimumCapmObservations", "minimumJointTailEvents", "minimumRiskObservations", "minimumTailObservations",
       "proxyFactors", "proxyFactorsVersion",
       "riskFreeAnnual", "riskReconciliationTolerance", "targetHistoryCalendarYears"
@@ -373,7 +373,7 @@
         !exactStringSet(mandatePolicy.constraintUnits, ["currency", "portfolio-fraction"]) ||
         !exactStringSet(mandatePolicy.cashNeedUnits, ["currency", "portfolio-fraction"]) ||
         !exactStringSet(mandatePolicy.treatmentTimings, ["start-of-step", "end-of-step"]) ||
-        !exactStringSet(mandatePolicy.descriptiveRouteStates, ["risk-xray", "path-lab", "allocation"]) ||
+        !exactStringSet(mandatePolicy.descriptiveRouteStates, ["risk-xray", "path-lab", "diversification", "allocation"]) ||
         !stringArray(mandatePolicy.constraintTypes, false) || !stringArray(mandatePolicy.forbiddenInputSources, false) ||
         !stringArray(mandatePolicy.mandateDependentStates, false) || !stringArray(mandatePolicy.neverInferredFields, false) ||
         !Number.isInteger(mandatePolicy.maxConstraints) || mandatePolicy.maxConstraints <= 0 ||
@@ -395,6 +395,7 @@
         !stringArray(value.analytics.concentrationLenses, false) ||
         !value.analytics.concentrationLenses.every(function (lens) { return HOLDING_FIELDS.indexOf(lens) !== -1; }) ||
         !finitePositive(value.analytics.concentrationAlertWeight) || value.analytics.concentrationAlertWeight > 1 ||
+        !finitePositive(value.analytics.lowerTailQuantile) || value.analytics.lowerTailQuantile >= 0.5 ||
         typeof value.analytics.proxyFactorsVersion !== "string" || !value.analytics.proxyFactorsVersion.trim() ||
         !Array.isArray(value.analytics.proxyFactors) || !value.analytics.proxyFactors.length ||
         !value.analytics.proxyFactors.every(validProxyFactor)) {

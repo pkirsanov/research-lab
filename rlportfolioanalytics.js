@@ -450,6 +450,10 @@
       // The exact portfolio return sample every later stage must resample, so a path scenario can
       // never be built on a basis the rest of the surface did not use.
       alignedReturns: aligned.returns,
+      // The per-symbol legs of that SAME alignment. Dependence must be measured
+      // on the same observation set the rest of the surface used, never on
+      // independently re-read bars that were never observed together.
+      perSymbolReturns: aligned.perSymbolReturns,
       metrics: metrics,
       drawdown: drawdown,
       concentration: concentration,

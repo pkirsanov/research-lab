@@ -138,6 +138,7 @@
         ],
         "descriptiveRouteStates": [
             "allocation",
+            "diversification",
             "path-lab",
             "risk-xray"
         ],
@@ -229,6 +230,7 @@
         "minimumCapmObservations": 126,
         "minimumTailObservations": 250,
         "minimumJointTailEvents": 8,
+        "lowerTailQuantile": 0.1,
         "covarianceShrinkageLambda": 0.2,
         "covarianceSensitivity": [
             0,

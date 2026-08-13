@@ -139,7 +139,7 @@ test('Regression: SCN-008-003 explicit mandate alone supplies every hard constra
   const projection = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__.routeStates);
   expect(projection.behaviorContribution).toBe('none');
   expect(projection.settingsContribution).toBe('none');
-  expect(projection.routes.map((entry) => entry.route).sort()).toEqual(['allocation', 'path-lab', 'risk-xray']);
+  expect(projection.routes.map((entry) => entry.route).sort()).toEqual(['allocation', 'diversification', 'path-lab', 'risk-xray']);
   for (const entry of projection.routes) {
     expect(entry.constraints.map((constraint) => constraint.subject).sort()).toEqual(['BND', 'MSFT']);
     expect(entry.constraints.every((constraint) => constraint.inputAuthority === 'user')).toBe(true);

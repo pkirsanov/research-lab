@@ -456,7 +456,7 @@ test('route projection cites one mandate revision and reports mandate-absent sta
   const portfolio = store.commitWorkspace(api.buildWorkspaceCandidate(validDraft(api, policy), store.openWorkspace(NOW).value.workspace, { name: 'Route projection portfolio', now: NOW }, policy).value, 0, NOW);
   const withoutMandate = api.projectRouteStates(portfolio.value.workspace, policy);
   assert.equal(withoutMandate.ok, true);
-  assert.deepEqual(withoutMandate.value.routes.map((route) => route.route), ['allocation', 'path-lab', 'risk-xray']);
+  assert.deepEqual(withoutMandate.value.routes.map((route) => route.route), ['allocation', 'diversification', 'path-lab', 'risk-xray']);
   assert.equal(withoutMandate.value.routes.every((route) => route.descriptive.available === true && route.descriptive.citedPortfolioId === portfolio.value.workspace.currentPortfolioId), true);
   assert.equal(withoutMandate.value.routes.every((route) => route.mandateDependent.every((entry) => entry.available === false && entry.reason === 'mandate-absent' && entry.citedMandateId === null)), true);
   assert.deepEqual(

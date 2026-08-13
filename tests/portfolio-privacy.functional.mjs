@@ -284,7 +284,7 @@ test('one reloaded constraint set reaches every consumer and absent or conflicti
   const mandate = durable.mandateRevisions[0];
   const projected = api.projectRouteStates(durable, policy);
   assert.equal(projected.ok, true);
-  assert.deepEqual(projected.value.routes.map((route) => route.route), ['allocation', 'path-lab', 'risk-xray']);
+  assert.deepEqual(projected.value.routes.map((route) => route.route), ['allocation', 'diversification', 'path-lab', 'risk-xray']);
   assert.equal(projected.value.currentMandateId, committed.workspace.currentMandateId);
 
   // The consumer list is taken from the policy that declares it, so a consumer the

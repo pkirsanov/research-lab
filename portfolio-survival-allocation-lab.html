@@ -603,7 +603,7 @@
             <button id="workspaceTabBrief" type="button" role="tab" aria-selected="true">Portfolio Brief</button>
             <button id="workspaceTabRiskXray" type="button" role="tab" aria-selected="false">Risk X-Ray</button>
             <button id="workspaceTabPathLab" type="button" role="tab" aria-selected="false">Path Lab</button>
-            <button type="button" role="tab" aria-selected="false" disabled>Diversification</button>
+            <button id="workspaceTabDiversification" type="button" role="tab" aria-selected="false">Diversification</button>
             <button id="workspaceTabAllocation" type="button" role="tab" aria-selected="false">Allocation
                 Comparison</button>
             <button type="button" role="tab" aria-selected="false" disabled>Research Dossier</button>
@@ -1056,11 +1056,13 @@
                 { hash: "brief", tab: "workspaceTabBrief" },
                 { hash: "risk-xray", tab: "workspaceTabRiskXray" },
                 { hash: "path-lab", tab: "workspaceTabPathLab" },
+                { hash: "diversification", tab: "workspaceTabDiversification" },
                 { hash: "allocation", tab: "workspaceTabAllocation" }
             ]);
 
             var ROUTE_LABELS = Object.freeze({
                 "allocation": "Allocation Comparison",
+                "diversification": "Diversification",
                 "path-lab": "Path Lab",
                 "risk-xray": "Risk X-Ray"
             });
@@ -1237,7 +1239,296 @@
                 ], ""));
                 if (entry.route === "risk-xray") appendRiskXRay(panel);
                 if (entry.route === "path-lab") appendPathLab(panel);
+                if (entry.route === "diversification") appendDiversification(panel);
                 return panel;
+            }
+
+            /* ------------------------------------------ Scope 11 Diversification */
+
+            var DIVERSIFICATION_TOOL_ID = "portfolio-survival-allocation-lab";
+
+            function matrixTableTarget(i, j) { return "depcell-" + i + "-" + j; }
+            function matrixPointId(i, j) { return "dc-" + i + "-" + j; }
+
+            function matrixContext(model, pointId) {
+                var cell = null;
+                for (var i = 0; i < model.cells.length; i += 1) {
+                    if (model.cells[i].pointId === pointId) { cell = model.cells[i]; break; }
+                }
+                if (!cell) return null;
+                return {
+                    contractVersion: "contextual-tooltip/v1",
+                    contextId: DIVERSIFICATION_TOOL_ID + "/" + pointId,
+                    triggerKind: "chart-point",
+                    label: cell.rowSymbol + " with " + cell.columnSymbol,
+                    definition: "Pearson correlation of daily simple returns between " + cell.rowSymbol +
+                        " and " + cell.columnSymbol + " over the " + model.sampleName + " sample of " +
+                        model.sampleSize + " observations.",
+                    displayed: {
+                        valueText: cell.correlation === null ? "Unavailable" : cell.correlation.toFixed(3),
+                        numericValue: cell.correlation,
+                        unit: "correlation",
+                        truthState: cell.correlation === null ? "unavailable" : "current"
+                    },
+                    interpretation: {
+                        text: cell.correlation === null
+                            ? "No correlation is shown for this pair, because the two series were not observed together enough to form one."
+                            : "Over this sample the two moved together " + (cell.correlation >= 0 ? "positively" : "inversely") +
+                              ". A correlation measured on one named window is not a property of the pair.",
+                        direction: "not-directional",
+                        comparisonBasis: "The " + model.sampleName + " sample, named explicitly rather than searched for",
+                        window: model.sampleName,
+                        thresholdsOrBounds: ["no universal crisis correlation is claimed"]
+                    },
+                    provenance: {
+                        ownerId: DIVERSIFICATION_TOOL_ID,
+                        modelId: "rlportfolioanalytics-dependence/v1",
+                        evidenceIdentity: model.identity,
+                        sourceRefs: ["shared same-origin daily bars"],
+                        observedAsOf: model.cutoff,
+                        retrievedOrPublishedAt: model.cutoff,
+                        freshness: "fresh",
+                        dataTier: "measured-observation"
+                    },
+                    uncertainty: {
+                        state: "bounded",
+                        rangeOrBand: "Estimated on " + model.sampleSize + " observations.",
+                        reason: "A finite-sample estimate. A different named window gives a different number."
+                    },
+                    limitation: "Correlation on one sample. Not investment advice.",
+                    triggerCondition: "The named sample and the observed bars are unchanged.",
+                    invalidationCondition: "The sample definition, cutoff, or underlying bars change.",
+                    links: {
+                        owner: "portfolio-survival-allocation-lab.html",
+                        citation: "",
+                        sameDataTable: "#" + matrixTableTarget(cell.row, cell.column),
+                        ticker: "https://finance.yahoo.com/quote/" + encodeURIComponent(cell.rowSymbol)
+                    },
+                    accessibility: {
+                        conciseLabel: cell.rowSymbol + " with " + cell.columnSymbol + " " +
+                            (cell.correlation === null ? "unavailable" : cell.correlation.toFixed(2)),
+                        longDescriptionId: "rlcontext-" + pointId
+                    },
+                    contextFingerprint: null
+                };
+            }
+
+            /* The matrix is drawn with a diverging fill AND a printed number in
+               every cell. Colour alone would make the reading inaccessible and
+               would let a near-zero and a strong negative look similar at a
+               glance on a small screen. */
+            function drawDependenceMatrix(canvas, model) {
+                var ctx = canvas.getContext && canvas.getContext("2d");
+                if (!ctx) return;
+                var n = model.symbols.length;
+                var w = canvas.width, h = canvas.height;
+                var pad = 76;
+                var size = Math.min(w - pad - 10, h - pad - 10);
+                var cellSize = n ? size / n : size;
+
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, w, h);
+                ctx.font = "11px system-ui, sans-serif";
+                ctx.textBaseline = "middle";
+
+                var points = [];
+                model.cells.forEach(function (cell) {
+                    var x = pad + cell.column * cellSize;
+                    var y = pad + cell.row * cellSize;
+                    if (cell.correlation === null) {
+                        ctx.fillStyle = "#e2e8f0";
+                    } else {
+                        var v = Math.max(-1, Math.min(1, cell.correlation));
+                        ctx.fillStyle = v >= 0
+                            ? "rgb(" + Math.round(255 - v * 140) + "," + Math.round(255 - v * 90) + ",255)"
+                            : "rgb(255," + Math.round(255 + v * 90) + "," + Math.round(255 + v * 140) + ")";
+                    }
+                    ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
+                    ctx.fillStyle = "#0f172a";
+                    ctx.textAlign = "center";
+                    ctx.fillText(cell.correlation === null ? "n/a" : cell.correlation.toFixed(2),
+                        x + cellSize / 2, y + cellSize / 2);
+                    points.push({ pointId: cell.pointId, cx: x + cellSize / 2, cy: y + cellSize / 2 });
+                });
+
+                ctx.fillStyle = "#0f172a";
+                model.symbols.forEach(function (symbol, i) {
+                    ctx.textAlign = "right";
+                    ctx.fillText(symbol, pad - 6, pad + i * cellSize + cellSize / 2);
+                    ctx.save();
+                    ctx.translate(pad + i * cellSize + cellSize / 2, pad - 6);
+                    ctx.rotate(-Math.PI / 4);
+                    ctx.textAlign = "left";
+                    ctx.fillText(symbol, 0, 0);
+                    ctx.restore();
+                });
+
+                ctx.textAlign = "left";
+                ctx.fillText(model.sampleName + " · " + model.sampleSize + " observations · numbers printed, not colour alone",
+                    10, h - 12);
+
+                if (window.RLCHART && typeof window.RLCHART.attach === "function") {
+                    window.RLCHART.attach(canvas, {
+                        orderedPointIds: points.map(function (p) { return p.pointId; }),
+                        seriesOrder: ["dependence-matrix"],
+                        contextFor: function (pointId) { return matrixContext(model, pointId); },
+                        tableTargetFor: function (pointId) {
+                            var parts = String(pointId).replace(/^dc-/, "").split("-");
+                            return matrixTableTarget(Number(parts[0]), Number(parts[1]));
+                        },
+                        hitTest: function (mx, my) {
+                            var best = null, bestDistance = Infinity;
+                            points.forEach(function (p) {
+                                var dist = (mx - p.cx) * (mx - p.cx) + (my - p.cy) * (my - p.cy);
+                                if (dist < bestDistance) { bestDistance = dist; best = p; }
+                            });
+                            return best && bestDistance <= (cellSize * cellSize) ? best.pointId : null;
+                        }
+                    });
+                }
+            }
+
+            function dependenceModel() {
+                var probe = riskProjection();
+                if (!probe.available) return { available: false, state: probe.state };
+                var rows = probe.rows || [];
+                var symbols = probe.symbols || [];
+                if (symbols.length < 2) return { available: false, state: "insufficient-symbols" };
+
+                var cells = [];
+                for (var i = 0; i < symbols.length; i += 1) {
+                    for (var j = 0; j < symbols.length; j += 1) {
+                        var a = (probe.perSymbolReturns || {})[symbols[i]] || [];
+                        var b = (probe.perSymbolReturns || {})[symbols[j]] || [];
+                        var comparison = window.RLPORTFOLIOANALYTICS.compareStressDependence({
+                            tranquil: { name: "full observed sample", a: a, b: b },
+                            stress: { name: "full observed sample", a: a, b: b }
+                        });
+                        cells.push({
+                            row: i,
+                            column: j,
+                            rowSymbol: symbols[i],
+                            columnSymbol: symbols[j],
+                            pointId: matrixPointId(i, j),
+                            correlation: comparison.state === "ok" ? comparison.samples[0].correlation : null
+                        });
+                    }
+                }
+                return {
+                    available: true,
+                    state: "ok",
+                    symbols: symbols,
+                    cells: cells,
+                    identity: probe.identity,
+                    cutoff: rows.length ? rows[rows.length - 1].date : "unavailable",
+                    sampleName: "full observed sample",
+                    sampleSize: rows.length
+                };
+            }
+
+            function appendDiversification(panel) {
+                var band = document.createElement("div");
+                band.className = "band";
+                band.id = "diversificationLab";
+                var model = dependenceModel();
+                band.dataset.dependenceState = model.state;
+
+                var heading = document.createElement("h4");
+                heading.textContent = "Dependence";
+                band.appendChild(heading);
+
+                if (!model.available) {
+                    var unavailable = document.createElement("p");
+                    unavailable.id = "dependenceUnavailable";
+                    unavailable.className = "state-message";
+                    unavailable.textContent = "Dependence unavailable · " + model.state +
+                        " · no correlation, tail estimate, or diversification conclusion is shown, " +
+                        "because none can be formed from held evidence.";
+                    band.appendChild(unavailable);
+                    panel.appendChild(band);
+                    return;
+                }
+
+                var canvas = document.createElement("canvas");
+                canvas.id = "dependenceMatrix";
+                canvas.width = 520;
+                canvas.height = 420;
+                canvas.setAttribute("role", "img");
+                canvas.setAttribute("aria-label", "Correlation matrix of held symbols over the full observed sample");
+                canvas.style.width = "100%";
+                canvas.style.maxWidth = "520px";
+                canvas.style.height = "auto";
+                band.appendChild(canvas);
+                pendingCanvasRenders.push({ canvas: canvas, projection: model, draw: drawDependenceMatrix });
+
+                var matrixWrap = document.createElement("div");
+                matrixWrap.style.overflowX = "auto";
+                matrixWrap.style.maxWidth = "100%";
+                var matrixTable = document.createElement("table");
+                matrixTable.id = "dependenceTable";
+                var head = "<thead><tr><th scope=\"col\">Pair</th><th scope=\"col\">Correlation</th>" +
+                    "<th scope=\"col\">Sample</th><th scope=\"col\">Observations</th></tr></thead>";
+                matrixTable.innerHTML = head;
+                var matrixBody = document.createElement("tbody");
+                model.cells.forEach(function (cell) {
+                    var tr = document.createElement("tr");
+                    tr.id = matrixTableTarget(cell.row, cell.column);
+                    var c1 = document.createElement("th");
+                    c1.setAttribute("scope", "row");
+                    c1.textContent = cell.rowSymbol + " with " + cell.columnSymbol;
+                    var c2 = document.createElement("td");
+                    c2.textContent = cell.correlation === null ? "Unavailable" : cell.correlation.toFixed(3);
+                    var c3 = document.createElement("td");
+                    c3.textContent = model.sampleName;
+                    var c4 = document.createElement("td");
+                    c4.textContent = String(model.sampleSize);
+                    [c1, c2, c3, c4].forEach(function (cellNode) { tr.appendChild(cellNode); });
+                    matrixBody.appendChild(tr);
+                });
+                matrixTable.appendChild(matrixBody);
+                matrixWrap.appendChild(matrixTable);
+                band.appendChild(matrixWrap);
+
+                /* Tail dependence for the first held pair, at the configured
+                   quantile and event floor. Both come from config; neither is
+                   defaulted here. */
+                var policy = (state.policy && state.policy.analytics) || {};
+                var tail = window.RLPORTFOLIOANALYTICS.lowerTailDependence(
+                    model.symbols.length > 1 ? (dependenceReturns(model.symbols[0]) || []) : [],
+                    model.symbols.length > 1 ? (dependenceReturns(model.symbols[1]) || []) : [],
+                    { quantile: policy.lowerTailQuantile, minimumJointEvents: policy.minimumJointTailEvents }
+                );
+                var tailNode = document.createElement("p");
+                tailNode.id = "tailDependence";
+                tailNode.dataset.tailState = tail.state;
+                if (tail.state === "ok") {
+                    tailNode.textContent = "Lower-tail dependence " + model.symbols[0] + " with " + model.symbols[1] +
+                        " · " + (tail.estimate === null ? "unavailable" : tail.estimate.toFixed(3)) +
+                        " from " + tail.jointEvents + " joint lower-tail observations in " + tail.sampleSize +
+                        " · " + tail.claimBoundary;
+                } else {
+                    tailNode.className = "state-message";
+                    tailNode.textContent = "Lower-tail dependence unavailable · " + tail.reason +
+                        (tail.note ? " · " + tail.note : "") +
+                        " No tail estimate is shown, and no universal crisis correlation is assumed in its place.";
+                }
+                band.appendChild(tailNode);
+
+                var boundary = document.createElement("p");
+                boundary.id = "dependenceClaimBoundary";
+                boundary.className = "microcopy";
+                boundary.textContent = "Correlations here are measured on one named sample and are not a property " +
+                    "of the pair. A rise in a volatile window is what heteroskedasticity produces on its own, so " +
+                    "no contagion label is applied automatically. Values are printed in every cell, so the reading " +
+                    "never depends on colour alone.";
+                band.appendChild(boundary);
+
+                panel.appendChild(band);
+            }
+
+            function dependenceReturns(symbol) {
+                var probe = riskProjection();
+                return probe.available && probe.perSymbolReturns ? probe.perSymbolReturns[symbol] : null;
             }
 
             /* ------------------------------------------------ Scope 09 Path Lab */

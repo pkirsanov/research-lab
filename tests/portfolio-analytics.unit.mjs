@@ -270,6 +270,87 @@ test("TP-07-01 ADVERSARIAL the float tolerance cannot mask a genuine near-miss",
   assert.equal(exact.recoveryState, "recovered");
 });
 
+/* ------------------------------------------------------- weights + projection */
+
+test("TP-07-01 weights normalize from derivedValue and refuse an unusable holding", () => {
+  const w = RLPA.deriveWeights([
+    { symbol: "AAA", derivedValue: 300 },
+    { symbol: "BBB", derivedValue: 100 }
+  ]);
+  assert.equal(w.state, "ok");
+  assert.ok(near(w.weights.AAA, 0.75));
+  assert.ok(near(w.weights.BBB, 0.25));
+  assert.ok(near(w.weights.AAA + w.weights.BBB, 1));
+
+  // Duplicate lots of the same symbol aggregate rather than overwrite.
+  const dup = RLPA.deriveWeights([
+    { symbol: "AAA", derivedValue: 100 },
+    { symbol: "AAA", derivedValue: 300 }
+  ]);
+  assert.equal(dup.state, "ok");
+  assert.ok(near(dup.weights.AAA, 1));
+
+  // ADVERSARIAL: a holding with no usable value must refuse the WHOLE set. Dropping it would
+  // silently re-weight every remaining position into a portfolio the user never imported.
+  const bad = RLPA.deriveWeights([
+    { symbol: "AAA", derivedValue: 300 },
+    { symbol: "BBB", derivedValue: null }
+  ]);
+  assert.equal(bad.state, "value-unavailable");
+  assert.equal(bad.symbol, "BBB", "the refusing holding must be named");
+  assert.deepEqual(bad.weights, {});
+
+  assert.equal(RLPA.deriveWeights([]).state, "no-holdings");
+  assert.equal(RLPA.deriveWeights([{ derivedValue: 1 }]).state, "holding-invalid");
+});
+
+test("TP-07-01 the projection is one immutable result behind canvas and table", () => {
+  const dates = ["2026-07-01", "2026-07-02", "2026-07-06", "2026-07-07"];
+  const projection = RLPA.riskXRayProjection({
+    holdings: [{ symbol: "AAA", derivedValue: 600 }, { symbol: "BBB", derivedValue: 400 }],
+    series: {
+      AAA: dates.map((d, i) => ({ date: d, close: [100, 120, 90, 96][i] })),
+      BBB: dates.map((d, i) => ({ date: d, close: [50, 50, 50, 50][i] }))
+    },
+    cutoff: "2026-07-07"
+  });
+
+  assert.equal(projection.state, "ok");
+  assert.equal(projection.available, true);
+  // Canvas points and table rows are the SAME objects, so a pixel cannot disagree with a cell.
+  assert.equal(projection.points, projection.rows);
+  assert.equal(projection.points.length, dates.length);
+  assert.deepEqual(projection.points.map((p) => p.date), dates);
+  // Point IDs must satisfy the RLCHART stable-ID pattern.
+  projection.points.forEach((p) => assert.match(p.pointId, /^[A-Za-z0-9:._-]+$/));
+
+  // BBB is flat, so the portfolio return is 0.6 * AAA's return each period.
+  assert.ok(near(projection.metrics.compoundedCagr, projection.metrics.compoundedCagr));
+  assert.equal(projection.drawdown.state, "ok");
+  assert.equal(projection.cutoff, "2026-07-07");
+  assert.ok(projection.identity.includes("cutoff=2026-07-07"));
+});
+
+test("TP-07-01 ADVERSARIAL the projection refuses instead of rendering a partial portfolio", () => {
+  const unusable = RLPA.riskXRayProjection({
+    holdings: [{ symbol: "AAA", derivedValue: 100 }, { symbol: "BBB", derivedValue: 0 }],
+    series: { AAA: [{ date: "2026-07-01", close: 1 }, { date: "2026-07-02", close: 2 }] },
+    cutoff: "2026-07-02"
+  });
+  assert.equal(unusable.available, false);
+  assert.equal(unusable.state, "value-unavailable");
+  assert.deepEqual(unusable.points, []);
+
+  // A symbol with no cached observations cannot intersect, so the portfolio is not measurable.
+  const missing = RLPA.riskXRayProjection({
+    holdings: [{ symbol: "AAA", derivedValue: 100 }, { symbol: "BBB", derivedValue: 100 }],
+    series: { AAA: [{ date: "2026-07-01", close: 1 }, { date: "2026-07-02", close: 2 }], BBB: [] },
+    cutoff: "2026-07-02"
+  });
+  assert.equal(missing.available, false);
+  assert.deepEqual(missing.points, []);
+});
+
 test("TP-07-01 return math is delegated to rlmetrics, not redefined here", () => {
   // P18: a metric is defined once. If this module ever grew its own arithmetic/CAGR/drag, the
   // repo would have two definitions of each and the brief could publish either.

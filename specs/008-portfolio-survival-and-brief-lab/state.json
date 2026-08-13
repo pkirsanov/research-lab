@@ -24,7 +24,7 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": 7,
+        "currentScope": 8,
         "runStartedAt": "2026-07-15T23:25:05Z",
         "completedPhaseClaims": [],
         "pendingTransitionRequests": [],
@@ -90,7 +90,7 @@
             {
                 "scope": 7,
                 "name": "Return And Drawdown X-Ray",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     "6"
                 ],
@@ -202,7 +202,10 @@
             "01-private-portfolio-import-and-atomic-store",
             "02-mandate-and-cash-need-authority",
             "03-local-behavior-privacy-inventory-and-clear",
-            "04-public-evidence-barrier-and-coverage"
+            "04-public-evidence-barrier-and-coverage",
+            "05-four-window-direct-scope-brief",
+            "06-explainable-research-action-lifecycle",
+            "07-return-and-drawdown-x-ray"
         ],
         "certifiedCompletedPhases": [],
         "scopeProgress": [
@@ -273,7 +276,7 @@
             {
                 "scope": 7,
                 "name": "Return And Drawdown X-Ray",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     "6"
                 ],
@@ -493,7 +496,7 @@
     "activeBugs": [],
     "resolvedBugs": [],
     "failures": [],
-    "lastUpdatedAt": "2026-08-05T17:21:25Z",
+    "lastUpdatedAt": "2026-08-13T05:30:00Z",
     "scopeLayout": "per-scope-directory",
     "artifacts": {
         "spec": "spec.md",
@@ -536,5 +539,14 @@
         ],
         "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
     },
-    "notes": "Analyst business specification initialized; status and certification remain at baseline."
+    "notes": "Analyst business specification initialized; status and certification remain at baseline.",
+    "completedScopes": [
+        "01-private-portfolio-import-and-atomic-store",
+        "02-mandate-and-cash-need-authority",
+        "03-local-behavior-privacy-inventory-and-clear",
+        "04-public-evidence-barrier-and-coverage",
+        "05-four-window-direct-scope-brief",
+        "06-explainable-research-action-lifecycle",
+        "07-return-and-drawdown-x-ray"
+    ]
 }

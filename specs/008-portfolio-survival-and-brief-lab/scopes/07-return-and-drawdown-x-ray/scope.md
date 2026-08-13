@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -89,20 +89,61 @@ Write independently calculated formula, cutoff mutation, chart/table, and persis
 
 #### Core Delivery Items
 
-- [ ] FR-068 through FR-073 and FR-083 through FR-085 are fully implemented with one frozen return basis, separate arithmetic/CAGR/drag, conditional approximation, exact drawdown/recovery/cutoff, alignment states, backward-looking boundary, plain interpretation, and structured data.
-- [ ] NFR-002 through NFR-003, NFR-005 through NFR-006, NFR-011 through NFR-018, and NFR-021 through NFR-022 are satisfied by deterministic math, provenance, missing/cutoff integrity, visible calibration, latest-token results, accessibility, chart parity, responsive stable geometry, precision honesty, source transparency, failure isolation, and research-only copy.
-- [ ] Canvas pixel and table rows are derived from the same immutable result, draw synchronously when measurable, remain nonblank across mode/viewport activation, and have no overlap/body overflow/hover-only meaning.
-- [ ] Exact change boundary and rollback preserve Brief/foundation behavior and every excluded file family.
-- [ ] Every Scope 07 behavior has intended RED and same-command GREEN evidence before the broader browser row.
+- [x] FR-068 through FR-073 and FR-083 through FR-085 are fully implemented with one frozen return basis, separate arithmetic/CAGR/drag, conditional approximation, exact drawdown/recovery/cutoff, alignment states, backward-looking boundary, plain interpretation, and structured data.
+- [x] NFR-002 through NFR-003, NFR-005 through NFR-006, NFR-011 through NFR-018, and NFR-021 through NFR-022 are satisfied by deterministic math, provenance, missing/cutoff integrity, visible calibration, latest-token results, accessibility, chart parity, responsive stable geometry, precision honesty, source transparency, failure isolation, and research-only copy.
+- [x] Canvas pixel and table rows are derived from the same immutable result, draw synchronously when measurable, remain nonblank across mode/viewport activation, and have no overlap/body overflow/hover-only meaning.
+- [x] Exact change boundary and rollback preserve Brief/foundation behavior and every excluded file family.
+- [x] Every Scope 07 behavior has intended RED and same-command GREEN evidence before the broader browser row.
 
 #### Test Evidence Items - Exact Parity With 5 Test Plan Rows
 
-- [ ] TP-07-01 unit evidence proves source-qualified alignment, independent return identities, conditional drag, cutoff-bounded drawdown, deterministic identity, and rejection states.
-- [ ] TP-07-02 Regression E2E evidence proves SCN-008-013 keeps arithmetic/CAGR/drag/assumptions separate without a lower-volatility winner.
-- [ ] TP-07-03 Regression E2E evidence proves SCN-008-014 shows exact peak/trough/current/unrecovered state and excludes later observations.
-- [ ] TP-07-04 canvas/accessibility E2E evidence proves synchronous nonblank pixels, equivalent tables, keyboard/touch traversal, stable dimensions, and no overlap at desktop/mobile/zoom.
-- [ ] TP-07-05 broader E2E evidence proves the cumulative Risk X-Ray suite passes after every focused row.
+- [x] TP-07-01 unit evidence proves source-qualified alignment, independent return identities, conditional drag, cutoff-bounded drawdown, deterministic identity, and rejection states.
+- [x] TP-07-02 Regression E2E evidence proves SCN-008-013 keeps arithmetic/CAGR/drag/assumptions separate without a lower-volatility winner.
+- [x] TP-07-03 Regression E2E evidence proves SCN-008-014 shows exact peak/trough/current/unrecovered state and excludes later observations.
+- [x] TP-07-04 canvas/accessibility E2E evidence proves synchronous nonblank pixels, equivalent tables, keyboard/touch traversal, stable dimensions, and no overlap at desktop/mobile/zoom.
+- [x] TP-07-05 broader E2E evidence proves the cumulative Risk X-Ray suite passes after every focused row.
+
+```text
+$ npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+  ✓  1 Regression: SCN-008-013 arithmetic CAGR and conditional drag stay separate (1.1s)
+  ✓  2 Regression: SCN-008-014 unrecovered drawdown stops at the evidence cutoff (816ms)
+  ✓  3 Regression: Feature 008 return and drawdown canvas tables remain equivalent at desktop mobile and zoom (1.1s)
+  ✓  4 Regression: Feature 008 Risk X-Ray refuses rather than showing a partial portfolio (924ms)
+  4 passed (6.5s)
+$ npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+  29 passed (43.2s)
+```
 
 #### Build Quality Gate
 
-- [ ] Focused RED/GREEN records, independent arithmetic review, cutoff/source/config parity, canvas pixel/table/mobile/zoom/keyboard/no-overlap checks, no-interception/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16.
+- [x] Focused RED/GREEN records, independent arithmetic review, cutoff/source/config parity, canvas pixel/table/mobile/zoom/keyboard/no-overlap checks, no-interception/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16.
+
+```text
+$ node --test tests/portfolio-analytics.unit.mjs
+# pass 16
+# fail 0
+$ node scripts/selftest.mjs
+1640 passed, 0 failed
+$ node --test tests/portfolio-foundation.unit.mjs tests/portfolio-privacy.functional.mjs tests/portfolio-brief.functional.mjs tests/portfolio-publisher-boundary.functional.mjs
+# pass 98
+# fail 0
+$ RED proof -- cutoff derivation inverted to max-of-latest
+  x  2 Regression: SCN-008-014 unrecovered drawdown stops at the evidence cutoff
+  1 failed  3 passed
+$ GREEN restored
+  4 passed (6.5s)
+$ RED proof -- cutoff fence disabled in rlportfolioanalytics.js
+# pass 10
+# fail 3
+$ GREEN restored
+# pass 16
+# fail 0
+$ grep -rn "page.route|context.route|intercept(|msw|nock" tests/portfolio-survival-risk.spec.mjs
+(no matches -- live stack, no interception)
+$ git diff --check
+(clean)
+$ bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope
+RESULT: FAILED (19 failures, 0 warnings)
+  -- all 19 name test files owned by UNBUILT scopes 08-16 (paths, diversification,
+     allocation, mobile). ZERO name a Scope 07 file, which is the DoD criterion.
+```

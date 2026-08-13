@@ -2311,6 +2311,63 @@ try {
     'Consumption TP-04-09: the source-table link restriction names the gate\u2019s OFFICIAL_CURVE_HOST, so the only linkable host cannot drift away from the only admissible one');
 } catch (e) { failures++; console.log('  ✗ FAIL (headless curve consumption group threw): ' + e.message); }
 
+/* ---------- FX regime: headless owner read (A03 / RF-FX-HEADLESS) ----------
+   Feature 004 is certified in the browser but had no scheduled read, so the FX row was reported
+   `stale` — "no fresh headless read this window" — rather than saying what the owner model actually
+   concludes. `buildFxToolRead` closes that by running the SAME RLFX chain the route runs at boot.
+
+   The point of this group is that the published absence is EARNED, not asserted. Every case drives
+   the real builder against the real committed universes; no scoring, fit, tracking or admission rule
+   is restated here. The adversarial cases matter most: if the read said "unavailable" no matter what
+   it were handed, it would be decoration, so two of the four below change the committed contract and
+   require the output to change with it. */
+try {
+  group('fx-regime — headless owner read');
+  const refreshFx = await import('./brief-refresh.mjs');
+  const currencyFx = JSON.parse(read('fx-regime-universe.json'));
+  const vehicleFx = JSON.parse(read('fx-vehicle-universe.json'));
+  const clone = (value) => JSON.parse(JSON.stringify(value));
+
+  // TP-A03-01 — the committed contract approves no source, so the owner model reaches no verdict and
+  // says so in its own words, source-qualified by the families the contract actually declares.
+  const fxRead = refreshFx.buildFxToolRead();
+  const declaredFamilies = [...new Set(currencyFx.evidenceSources.map((s) => s.family))].sort();
+  assert(fxRead.id === 'fx-regime-relative-value-lab' && fxRead.source === 'owning-tool-functions'
+    && fxRead.deepLink === 'fx-regime-relative-value-lab.html#power',
+    'FX TP-A03-01: the scheduled run publishes an FX owner read from the owning model, deep-linked to its Power evidence view');
+  assert(fxRead.state === 'unavailable' && fxRead.metrics.approvedSourceCount === 0
+    && fxRead.metrics.declaredSourceCount === currencyFx.evidenceSources.length,
+    'FX TP-A03-01: with zero approved sources in the committed contract the read is explicitly unavailable, and it counts the contract rather than assuming it');
+  assert(declaredFamilies.every((family) => fxRead.read.includes(family)),
+    'FX TP-A03-01: the absence is source-qualified — every withheld evidence family the universe declares is named in the published sentence');
+
+  // TP-A03-02 — the read is the OWNER's conclusion, carrying its decision identity, not a local string.
+  assert(/^fxo-v1-/.test(fxRead.metrics.ownerDecisionId) && /^fxe-v1-/.test(fxRead.metrics.evidenceIdentity)
+    && fxRead.metrics.projection.contractVersion === 'rl-tool-read/v1'
+    && fxRead.metrics.selectedPair.state === 'Unavailable' && fxRead.metrics.vehicle.state === 'Unavailable',
+    'FX TP-A03-02: the published read carries RLFX\u2019s own owner-decision and evidence identities and its projected contract, so the scheduled read and the route cannot drift into two answers');
+
+  // TP-A03-03 (ADVERSARIAL) — approve a source properly and the read MUST stop reporting the same
+  // absence. A gate that survives its own precondition being removed is not a gate.
+  const approvedFx = clone(currencyFx);
+  Object.assign(approvedFx.evidenceSources[0], {
+    activation: 'approved', sourceUsePolicyId: 'selftest-source-use', sourceUseReviewRef: 'selftest-review',
+    reviewedAt: '2026-08-13T00:00:00.000Z', rights: 'redistributable', persistence: 'public-snapshot'
+  });
+  const approvedRead = refreshFx.buildFxToolRead({ currencyUniverse: approvedFx, vehicleUniverse: vehicleFx });
+  assert(approvedRead.read !== fxRead.read && approvedRead.read.includes(approvedFx.evidenceSources[0].sourceId),
+    'FX TP-A03-03 adversarial: approving a source changes the published read and names that source — the absence tracks the contract instead of being hardcoded');
+
+  // TP-A03-04 (ADVERSARIAL) — a universe the OWNER's own validator rejects must be refused by the
+  // same predicate the route uses, not silently degraded into the ordinary no-evidence sentence.
+  const brokenFx = clone(currencyFx);
+  brokenFx.schemaVersion = 'rlfx-universe/v99';
+  const brokenRead = refreshFx.buildFxToolRead({ currencyUniverse: brokenFx, vehicleUniverse: vehicleFx });
+  assert(brokenRead.state === 'unavailable' && brokenRead.read !== fxRead.read
+    && /fails the owner's own validator/.test(brokenRead.read),
+    'FX TP-A03-04 adversarial: an invalid committed universe is refused by the owner\u2019s own validator with a distinct reason, never folded into the no-evidence case');
+} catch (e) { failures++; console.log('  ✗ FAIL (fx headless owner read group threw): ' + e.message); }
+
 /* ---------- Market Brief: §6c larger-picture / anti-reactivity helpers ---------- */
 try {
   group('rlbrief.js — §6c structural frame + anti-reactivity (MA stack, horizon cap, persistence gate)');

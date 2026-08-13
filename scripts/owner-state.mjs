@@ -387,6 +387,18 @@ export function aiCapexOwnerState(root, options = {}) {
   return page.aiCapexOwnerState();
 }
 
+/* ── fx-regime-relative-value-lab: the two committed universes the route validates at boot ─────── */
+
+/** The currency universe: cohorts, USD legs, pairs, crosses, and the evidence-source contract. */
+export function fxCurrencyUniverse(root) {
+  return readJson(root, 'fx-regime-universe.json');
+}
+
+/** The listed-vehicle universe: vehicles, structural observations, and the fit/tracking policies. */
+export function fxVehicleUniverse(root) {
+  return readJson(root, 'fx-vehicle-universe.json');
+}
+
 /* ── bond-regime-lab: the observed snapshot the page's own view model consumes ──────────────────── */
 
 /** The committed model configuration the page fetches at init: instruments, pairs, sleeves, policy. */

@@ -1733,6 +1733,105 @@ export function buildBondRegimeToolRead(deps = {}) {
   }
 }
 
+/* The route's OWN `defaultControls` — the research question the browser Simple view answers when no
+   operator has steered it. Restating it here keeps the scheduled read and the browser read pointed
+   at one question; a divergence would make the two disagree about what was even asked. */
+function fxDefaultControls(vehicleUniverse) {
+  return {
+    objective: 'foreign-currency-strength', subjectId: 'JPY', cohort: 'G10', horizon: 'swing',
+    pairMode: 'explicit', base: 'JPY', quote: 'USD',
+    vehicleClass: 'unlevered-single-currency', dailyResetPermission: 'exclude',
+    liquidityPolicyId: vehicleUniverse.policies.liquidityPolicies[0].policyId,
+    costPolicyId: vehicleUniverse.policies.costPolicies[0].policyId,
+    evidenceLens: 'balanced', dollarComparison: 'Broad'
+  };
+}
+
+/* fx-regime-relative-value-lab publishes an owner DECISION, and its own source contract decides
+   whether any currency evidence may be consumed at all. Every committed evidence source is declared
+   `unreviewed` or `denied` with a null source-use policy, so RLFX's own admission predicate admits
+   none, and the currency decision is computed from an empty approved-envelope set — which is exactly
+   what the browser route does at boot. So this read is EXPECTED to land as a named absence.
+
+   That absence is computed, not asserted: the owner's cohort, pair, broad-dollar, vehicle-fit and
+   tracking code runs over whatever evidence it is handed, and the unavailable state below is what it
+   returns. Approve a source in the committed universe and the same builder publishes a real regime
+   and a selected vehicle instead — which is what makes "unavailable" trustworthy when it appears.
+
+   No formula is restated here. Scoring, fit, tracking and projection are RLFX's, so the scheduled
+   read, Simple and Power cannot drift into three answers. A price proxy is never substituted for a
+   currency observation: UUP is a listed vehicle, not the broad dollar it tracks. */
+export function buildFxToolRead(deps = {}) {
+  const id = 'fx-regime-relative-value-lab', deepLink = 'fx-regime-relative-value-lab.html#power';
+  try {
+    const root = deps.root || ROOT;
+    const RLFX = createRequire(import.meta.url)('../rlfx.js');
+    const currencyRaw = deps.currencyUniverse !== undefined ? deps.currencyUniverse : OWNER.fxCurrencyUniverse(root);
+    const vehicleRaw = deps.vehicleUniverse !== undefined ? deps.vehicleUniverse : OWNER.fxVehicleUniverse(root);
+
+    // The route's own boot order: BOTH universes are validated before any source is read.
+    const currencyValidation = RLFX.validateUniverse(currencyRaw);
+    if (!currencyValidation.ok) return unavailableToolRead(id, deepLink, `The committed FX currency universe fails the owner's own validator (${currencyValidation.errors[0].message}); no currency evidence can be admitted.`);
+    const vehicleValidation = RLFX.validateVehicleUniverse(vehicleRaw);
+    if (!vehicleValidation.ok) return unavailableToolRead(id, deepLink, `The committed FX vehicle universe fails the owner's own validator (${vehicleValidation.errors[0].message}); no listed vehicle can be evaluated.`);
+
+    const currencyUniverse = currencyValidation.value, vehicleUniverse = vehicleValidation.value;
+    /* Source admissibility is READ from the committed contract rather than hardcoded, so this gate
+       cannot keep reporting an absence after the contract stops declaring one. */
+    const sources = currencyUniverse.evidenceSources || [];
+    const approved = sources.filter((source) => source.activation === 'approved');
+    if (approved.length) {
+      return unavailableToolRead(id, deepLink, `${approved.length} FX evidence source(s) are now approved (${approved.map((source) => source.sourceId).join(', ')}), but no scheduled acquisition is wired for them; the scheduled run will not infer a currency read from an unacquired source.`);
+    }
+
+    const decisionTime = deps.decisionTime || new Date().toISOString();
+    const controls = deps.controls || fxDefaultControls(vehicleUniverse);
+    const vehicleObservations = (vehicleRaw.observations || []).map((observation) => RLFX.normalizeVehicleObservation(observation, {
+      universe: vehicleRaw, decisionTime, payloadKind: 'normalized-structural-fact'
+    }));
+
+    const currencyDecision = RLFX.computeCurrencyDecision({
+      decisionTime, configVersion: currencyUniverse.version,
+      controls: {
+        cohort: controls.cohort, horizon: controls.horizon, pairMode: controls.pairMode,
+        base: controls.base, quote: controls.quote,
+        evidenceLens: controls.evidenceLens, dollarComparison: controls.dollarComparison
+      },
+      sourceEnvelopes: [], observations: []
+    });
+    const owner = RLFX.computeFxOwnerDecision({
+      decisionTime, currencyDecision, vehicleUniverse, vehicleObservations, trackingReads: [],
+      controls: JSON.parse(JSON.stringify(controls)),
+      fitPolicyId: vehicleUniverse.policies.fitPolicyId,
+      trackingPolicyId: vehicleUniverse.policies.trackingPolicyId
+    });
+    const projected = RLFX.projectFxToolReadV2(owner);
+    const reader = RLFX.projectFxReaderDecision(owner);
+    const state = projected.availability === 'available' ? 'ready' : 'unavailable';
+
+    /* Source-qualified: the reader sentence says WHAT is missing, this clause says WHICH declared
+       source family withholds it, so the absence is attributable rather than anonymous. */
+    const families = [...new Set(sources.map((source) => source.family))].sort();
+    const read = state === 'ready'
+      ? projected.read
+      : `${reader.summary} No FX evidence source is approved for use, so the ${families.join(', ')} families are all withheld and no currency regime or listed vehicle is published.`;
+
+    return {
+      id, asOf: projected.asOf || decisionTime, read, deepLink, source: 'owning-tool-functions', state,
+      metrics: {
+        state, ownerDecisionId: projected.metrics.ownerDecisionId, evidenceIdentity: projected.metrics.evidenceIdentity,
+        objective: projected.metrics.objective, subjectId: projected.metrics.subjectId, horizon: projected.metrics.horizon,
+        broadDollarState: projected.metrics.broadDollarState, selectedPair: projected.metrics.selectedPair,
+        vehicle: projected.metrics.vehicle, evidenceState: reader.evidenceState, reasons: reader.reasons,
+        approvedSourceCount: approved.length, declaredSourceCount: sources.length, withheldFamilies: families,
+        projection: projected
+      }
+    };
+  } catch (error) {
+    return unavailableToolRead(id, deepLink, `FX regime model unavailable this run: ${error.message}`);
+  }
+}
+
 export function buildSwingToolRead(deps = {}) {
   const id = 'swing-structure-lab', deepLink = 'swing-structure-lab.html';
   try {
@@ -1987,6 +2086,7 @@ async function main() {
     buildOptionsFlowToolRead(),
     buildAiCapexToolRead(),
     buildBondRegimeToolRead(),
+    buildFxToolRead(),
     buildSwingToolRead({ macro }),
     buildBreadthToolRead({ asOf: new Date().toISOString() }),
     buildVolatilityToolRead(),

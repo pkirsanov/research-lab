@@ -166,3 +166,126 @@ Research-Lab self-test: 1640 passed, 0 failed
 The lab page is unchanged, so Risk X-Ray currently displays no fabricated metric — the module is not
 yet wired to any surface. That is the correct intermediate state: the analytics core is proven in
 isolation before a surface claims to display it.
+
+## Scope 07 Delivered — 2026-08-13 (supersedes the PARTIAL record above)
+
+The partial record above stands as history. Scope 07 is now **Done**: all five Test Plan rows are
+green, the Risk X-Ray surface is wired, and status is `Done` in `scope.md`, `scopes/_index.md`, and
+both `state.json` progress mirrors.
+
+### TP-07-02 through TP-07-05 — browser rows
+
+**Command:** `npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Output:**
+
+```text
+Running 4 tests using 1 worker
+  ✓  1 Regression: SCN-008-013 arithmetic CAGR and conditional drag stay separate (1.1s)
+  ✓  2 Regression: SCN-008-014 unrecovered drawdown stops at the evidence cutoff (816ms)
+  ✓  3 Regression: Feature 008 return and drawdown canvas tables remain equivalent at desktop mobile and zoom (1.1s)
+  ✓  4 Regression: Feature 008 Risk X-Ray refuses rather than showing a partial portfolio (924ms)
+  4 passed (6.5s)
+```
+
+Cumulative Feature 008 browser regression after the focused rows:
+
+```text
+$ npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+  29 passed (43.2s)
+```
+
+### What the browser rows verify independently
+
+Expected values are calculated in the spec file from the fixture, not read back from the module. That
+caught a genuine error in my own arithmetic: the fixture's two MSFT lots merge by **summing derived
+values** (10 at 450.25 plus 2 at 451.00), not by repricing 12 units at one lot's price. The page was
+right and the first hand-calculation was wrong.
+
+### The evidence cutoff is the portfolio's boundary, not the newest bar
+
+`riskCutoff` takes the **minimum of the per-symbol latest observations** — the last date on which
+every constituent still has evidence. Taking the maximum would let one fresher series push the
+boundary past the others, and a recovery measured there would rest on a portfolio that was never
+fully observed on that date. TP-07-03 exercises exactly this: MSFT recovers to 240 on `2026-05-11`
+while BND's evidence stops on `2026-05-08`, and the page reports `Unrecovered as of cutoff
+2026-05-08` rather than borrowing the later, half-observed recovery.
+
+### Three real defects found and fixed during wiring
+
+**The accessible point rail was destroyed on every re-render.** `RLCHART.ensurePointRail` reuses any
+rail it finds by id. Attaching while the route panel was still detached made it adopt the *previous*
+render's rail, which `replaceChildren` then discarded — so keyboard traversal silently disappeared
+after the first route change. Draw and attach are now deferred until the panel is connected.
+
+**A pre-existing mobile overflow on every route view.** At 390px the document scrolled 142px
+horizontally. Isolation by element removal showed it was **not** Risk X-Ray content: the brief route
+measured 0 while `path-lab` and `allocation` — neither of which has any Scope 07 content — both
+measured 142. The cause was a `<p class="subtle">` carrying an unbreakable 64-character sha256
+identity; `.identity` already wrapped, `.subtle` and `.microcopy` did not. Fixed at the shared class,
+which takes all three route views to 0.
+
+**A wrong first fix, recorded because it was wrong.** The table was blamed first and given
+`overflow-x: auto`. Re-measuring showed the overflow unchanged at 142, which is what forced the
+element-removal isolation that found the real cause. The table containment is kept because three
+numeric columns genuinely do not fit a phone, but it was not the overflow fix.
+
+### Non-vacuity (RED / GREEN, same command)
+
+Inverting the cutoff derivation from minimum to maximum:
+
+```text
+=== RED: cutoff takes max instead of min ===
+  ✓  1 Regression: SCN-008-013 arithmetic CAGR and conditional drag stay separate (1.0s)
+  ✘  2 Regression: SCN-008-014 unrecovered drawdown stops at the evidence cutoff (5.8s)
+  ✓  3 Regression: Feature 008 return and drawdown canvas tables remain equivalent...
+  ✓  4 Regression: Feature 008 Risk X-Ray refuses rather than showing a partial portfolio
+  1 failed  3 passed
+```
+
+Restored: `4 passed (6.5s)`.
+
+### Live-stack authenticity
+
+```text
+$ grep -nE 'page\.route|context\.route|intercept\(|cy\.intercept|msw|nock|wiremock' tests/portfolio-survival-risk.spec.mjs
+exit=1 (no matches)
+```
+
+Every row drives the real page, the real `RLDATA` cache, the real analytics module, and a real
+Chrome. Bars are seeded through `RLDATA.putBars`, the same public surface production reads — there is
+no test-only entry point on the page.
+
+### Scope-local traceability
+
+**Command:** `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
+**Exit Code:** 1
+**Output:**
+
+```text
+ℹ️  Scenarios checked: 17
+ℹ️  Test rows checked: 60
+ℹ️  DoD fidelity scenarios: 17 (mapped: 17, unmapped: 0)
+RESULT: FAILED (19 failures, 0 warnings)
+
+$ ... | grep '❌' | sort -u
+❌ scenario-manifest.json references missing linked test file: tests/portfolio-allocation.functional.mjs
+❌ scenario-manifest.json references missing linked test file: tests/portfolio-survival-allocation.spec.mjs
+❌ scenario-manifest.json references missing linked test file: tests/portfolio-survival-diversification.spec.mjs
+❌ scenario-manifest.json references missing linked test file: tests/portfolio-survival-mobile.spec.mjs
+❌ scenario-manifest.json references missing linked test file: tests/portfolio-survival-paths.spec.mjs
+
+$ ... | grep '❌' | grep -cE 'risk|analytics|07'
+0
+```
+
+All 19 failures name test files owned by **unbuilt** scopes 08 through 16. **Zero** name a Scope 07
+file, which is the DoD criterion exactly as written. The guard was run while scope 07 was the active
+scope in `state.json`, as the DoD requires; the resolver refuses `--current-scope` against a scope
+already marked done, so the run precedes the status flip rather than following it.
+
+### Not claimed
+
+The whole-feature `--all-scopes` traceability run is **not** clean and is **not** claimed here. The
+Feature Completion Gate enforces it once, in Scope 16, and it cannot pass until scopes 08 through 16
+ship their test files. Scopes 08 through 16 remain `Not Started`.

@@ -195,10 +195,16 @@
 
         .subtle {
             font-size: .84rem;
+            /* These paragraphs carry unbreakable sha256 identities. Without this, one 64-character
+               token forces the whole document into horizontal scroll at phone widths — which it did
+               on every non-brief route, not just Risk X-Ray. `.identity` already wraps; `.subtle`
+               and `.microcopy` render the same tokens and must too. */
+            overflow-wrap: anywhere;
         }
 
         .microcopy {
             font-size: .75rem;
+            overflow-wrap: anywhere;
         }
 
         .identity {
@@ -990,6 +996,13 @@
 
     <script src="rlcontracts.js"></script>
     <script src="rldata.js"></script>
+    <script src="rlmetrics.js"></script>
+    <!-- rlcontext canonicalises through RLEXPERIENCE, and rlchart's structured-adapter validator
+         requires the RLCTX it defines, so this order is load-bearing rather than cosmetic. -->
+    <script src="rlexperience.js"></script>
+    <script src="rlcontext.js"></script>
+    <script src="rlchart.js"></script>
+    <script src="rlportfolioanalytics.js"></script>
     <script src="rlportfolio.js"></script>
     <script src="rlportfoliobrief.js"></script>
     <script>
@@ -1219,7 +1232,356 @@
                 panel.appendChild(routeBlock("data-behavior", "Evidence authority", [
                     "Recorded research behavior contributes none to this route · display settings contribute none"
                 ], ""));
+                if (entry.route === "risk-xray") appendRiskXRay(panel);
                 return panel;
+            }
+
+            /* ---------------------------------------------------------- Scope 07 Risk X-Ray */
+
+            var RISK_TOOL_ID = "portfolio-survival-allocation-lab";
+            var RISK_PERIODS_PER_YEAR = 252;
+
+            function pct(value, digits) {
+                return isFiniteNumber(value)
+                    ? (value * 100).toFixed(digits === undefined ? 2 : digits) + "%"
+                    : "Unavailable";
+            }
+            function isFiniteNumber(value) { return typeof value === "number" && isFinite(value); }
+
+            /* Observations come from the SAME shared same-origin cache Scope 04 measures. Reading
+               it issues no request, so a private holding list still cannot become a remote lookup. */
+            function riskSeries(symbols) {
+                var series = {};
+                var bars = window.RLDATA && typeof window.RLDATA.bars === "function" ? window.RLDATA.bars : null;
+                if (!bars) return series;
+                symbols.forEach(function (symbol) {
+                    var rows = null;
+                    try { rows = bars(symbol, "1d"); } catch (error) { rows = null; }
+                    if (!Array.isArray(rows)) return;
+                    series[symbol] = rows.filter(function (row) {
+                        return row && isFiniteNumber(row.t) && isFiniteNumber(row.c);
+                    }).map(function (row) {
+                        return { date: new Date(row.t).toISOString().slice(0, 10), close: row.c };
+                    });
+                });
+                return series;
+            }
+
+            /* The evidence cutoff is the last date on which EVERY constituent still has evidence —
+               the minimum of the per-symbol latest observations — not an ambient clock reading and
+               not the newest date any single symbol happens to carry.
+
+               Taking the maximum would let one fresher series push the boundary past the others,
+               and a "recovery" measured there would rest on a portfolio that was never fully
+               observed on that date. Deriving it from the cache is also what makes "unrecovered as
+               of cutoff" a statement about evidence rather than about when the page loaded. */
+            function riskCutoff(series) {
+                var symbols = Object.keys(series), cutoff = null;
+                for (var i = 0; i < symbols.length; i += 1) {
+                    var rows = series[symbols[i]];
+                    if (!rows || !rows.length) return null;
+                    var latest = rows[0].date;
+                    for (var r = 1; r < rows.length; r += 1) { if (rows[r].date > latest) latest = rows[r].date; }
+                    if (cutoff === null || latest < cutoff) cutoff = latest;
+                }
+                return cutoff;
+            }
+
+            function riskProjection() {
+                var revision = currentRevision();
+                if (!revision || !revision.holdings.length) return { available: false, state: "no-portfolio" };
+                if (!window.RLPORTFOLIOANALYTICS) return { available: false, state: "analytics-unavailable" };
+                var symbols = [];
+                revision.holdings.forEach(function (holding) {
+                    if (holding && holding.symbol && symbols.indexOf(holding.symbol) === -1) symbols.push(holding.symbol);
+                });
+                var series = riskSeries(symbols);
+                return window.RLPORTFOLIOANALYTICS.riskXRayProjection({
+                    holdings: revision.holdings,
+                    series: series,
+                    cutoff: riskCutoff(series),
+                    periodsPerYear: RISK_PERIODS_PER_YEAR
+                });
+            }
+
+            function riskMetricRow(id, label, value, note) {
+                var row = document.createElement("li");
+                row.id = id;
+                row.dataset.metric = id;
+                var strong = document.createElement("strong");
+                strong.textContent = label + ": ";
+                row.appendChild(strong);
+                row.appendChild(document.createTextNode(value));
+                if (note) {
+                    var small = document.createElement("span");
+                    small.className = "microcopy";
+                    small.textContent = " " + note;
+                    row.appendChild(small);
+                }
+                return row;
+            }
+
+            function appendRiskXRay(panel) {
+                var projection = riskProjection();
+                var band = document.createElement("div");
+                band.className = "band";
+                band.id = "riskXray";
+                band.dataset.riskState = projection.state;
+
+                var heading = document.createElement("h4");
+                heading.textContent = "Return, compounding, and drawdown";
+                band.appendChild(heading);
+
+                if (!projection.available) {
+                    var unavailable = document.createElement("p");
+                    unavailable.id = "riskUnavailable";
+                    unavailable.className = "state-message";
+                    unavailable.textContent = "Risk X-Ray unavailable · " + projection.state +
+                        " · no return, drawdown, or recovery figure is shown, because none can be measured from held evidence.";
+                    band.appendChild(unavailable);
+                    panel.appendChild(band);
+                    return;
+                }
+
+                var m = projection.metrics;
+                var d = projection.drawdown;
+
+                var identity = document.createElement("p");
+                identity.id = "riskIdentity";
+                identity.className = "identity";
+                identity.textContent = projection.identity;
+                band.appendChild(identity);
+
+                var source = document.createElement("p");
+                source.id = "riskSource";
+                source.className = "subtle";
+                source.textContent = "Question: what did this portfolio actually return, and how deep did it fall? · " +
+                    "Source: shared same-origin daily bars · basis " + projection.alignment.common +
+                    " exact common dates across " + projection.symbols.join(", ") +
+                    " · evidence cutoff " + projection.cutoff +
+                    " · " + projection.alignment.excluded.length + " non-intersecting dates excluded";
+                band.appendChild(source);
+
+                var returns = document.createElement("ul");
+                returns.id = "riskReturnMetrics";
+                returns.className = "route-states";
+                returns.appendChild(riskMetricRow("riskArithmetic", "Arithmetic annualized", pct(m.arithmeticAnnualized)));
+                returns.appendChild(riskMetricRow("riskCagr", "Compounded CAGR", pct(m.compoundedCagr)));
+                returns.appendChild(riskMetricRow("riskDrag", "Observed volatility drag", pct(m.dragObserved)));
+                returns.appendChild(riskMetricRow("riskVol", "Annualized volatility", pct(m.volatilityAnnualized)));
+                returns.appendChild(riskMetricRow("riskDragApprox", "Conditional approximation g ≈ μ − σ²/2",
+                    pct(m.dragApprox), "Conditional · " + m.dragApproxAssumptions));
+                returns.appendChild(riskMetricRow("riskSample", "Sample",
+                    m.sampleSize + " periods · " + m.annualizationState));
+                band.appendChild(returns);
+
+                var boundary = document.createElement("p");
+                boundary.id = "riskClaimBoundary";
+                boundary.className = "microcopy";
+                boundary.textContent = "Backward-looking description of held evidence only. No forecast is made, " +
+                    "and lower volatility is not claimed to produce higher wealth — arithmetic mean, compounded " +
+                    "CAGR, and the observed drag between them are reported separately so the difference stays visible.";
+                band.appendChild(boundary);
+
+                var draw = document.createElement("ul");
+                draw.id = "riskDrawdownMetrics";
+                draw.className = "route-states";
+                draw.appendChild(riskMetricRow("riskMaxDrawdown", "Maximum drawdown", pct(d.maxDrawdown)));
+                draw.appendChild(riskMetricRow("riskPeakDate", "Peak date", d.peakDate || "No drawdown observed"));
+                draw.appendChild(riskMetricRow("riskTroughDate", "Trough date", d.troughDate || "No drawdown observed"));
+                draw.appendChild(riskMetricRow("riskCurrentDrawdown", "Current depth", pct(d.currentDrawdown)));
+                draw.appendChild(riskMetricRow("riskRecovery", "Recovery",
+                    d.recoveryState === "recovered"
+                        ? "Recovered on " + d.recoveryDate + " · " + d.recoveryPeriods + " periods after the trough"
+                        : (d.recoveryState === "no-drawdown"
+                            ? "No drawdown observed"
+                            : "Unrecovered as of cutoff " + d.cutoff)));
+                draw.appendChild(riskMetricRow("riskUnderWater", "Time under water",
+                    d.timeUnderWaterPeriods + " periods" + (d.timeUnderWaterIsOpen ? " and still open at the cutoff" : "")));
+                band.appendChild(draw);
+
+                var canvas = document.createElement("canvas");
+                canvas.id = "riskCanvas";
+                canvas.width = 640;
+                canvas.height = 360;
+                canvas.setAttribute("role", "img");
+                canvas.setAttribute("aria-label", "Portfolio wealth index and drawdown depth by observation date");
+                canvas.style.width = "100%";
+                canvas.style.maxWidth = "640px";
+                canvas.style.height = "auto";
+                band.appendChild(canvas);
+
+                var tableWrap = document.createElement("div");
+                tableWrap.className = "band";
+                /* The table scrolls WITHIN its own band rather than widening the page. Three
+                   numeric columns do not fit a 390px viewport, and letting them push the document
+                   would put the whole page into horizontal scroll — so the overflow is contained
+                   here instead of dropping columns or rounding the values away. */
+                tableWrap.style.overflowX = "auto";
+                tableWrap.style.maxWidth = "100%";
+                var tableHeading = document.createElement("h5");
+                tableHeading.textContent = "Same data, as a table";
+                tableWrap.appendChild(tableHeading);
+                var table = document.createElement("table");
+                table.id = "riskTable";
+                var thead = document.createElement("thead");
+                thead.innerHTML = "<tr><th scope=\"col\">Date</th><th scope=\"col\">Wealth index</th><th scope=\"col\">Drawdown</th></tr>";
+                table.appendChild(thead);
+                var tbody = document.createElement("tbody");
+                projection.rows.forEach(function (row) {
+                    var tr = document.createElement("tr");
+                    tr.id = riskTableTarget(row.pointId);
+                    var td1 = document.createElement("th");
+                    td1.setAttribute("scope", "row");
+                    td1.textContent = row.date;
+                    var td2 = document.createElement("td");
+                    td2.textContent = row.wealth.toFixed(6);
+                    var td3 = document.createElement("td");
+                    td3.textContent = pct(row.drawdownAt);
+                    tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+                tableWrap.appendChild(table);
+                band.appendChild(tableWrap);
+
+                panel.appendChild(band);
+                /* Drawing and attaching are DEFERRED until the panel is in the document. RLCHART builds
+                   its accessible point rail with insertAdjacentElement, and it reuses any rail it
+                   finds by id. Attaching while the panel is still detached makes it adopt the
+                   PREVIOUS render's rail, which replaceChildren then discards -- so keyboard
+                   traversal would silently disappear after the first route change. */
+                pendingRiskRender = { canvas: canvas, projection: projection };
+            }
+
+            var pendingRiskRender = null;
+
+            function flushRiskRender() {
+                if (!pendingRiskRender) return;
+                var pending = pendingRiskRender;
+                pendingRiskRender = null;
+                if (!pending.canvas.isConnected) return;
+                drawRiskChart(pending.canvas, pending.projection);
+            }
+
+            function riskTableTarget(pointId) { return "riskrow-" + pointId; }
+
+            function riskChartContext(projection, pointId) {
+                var row = null;
+                for (var i = 0; i < projection.rows.length; i += 1) {
+                    if (projection.rows[i].pointId === pointId) { row = projection.rows[i]; break; }
+                }
+                if (!row) return null;
+                var underWater = row.drawdownAt < 0;
+                return {
+                    contractVersion: "contextual-tooltip/v1",
+                    contextId: RISK_TOOL_ID + "/" + row.pointId,
+                    triggerKind: "chart-point",
+                    label: row.date + " wealth and drawdown",
+                    definition: "The portfolio wealth index on " + row.date + ", indexed to 1 at the first " +
+                        "common observation date, and its depth below the running peak on that date.",
+                    displayed: {
+                        valueText: row.wealth.toFixed(6) + " · " + pct(row.drawdownAt),
+                        numericValue: row.wealth,
+                        unit: "index",
+                        truthState: "current"
+                    },
+                    interpretation: {
+                        text: underWater
+                            ? "On " + row.date + " the portfolio sat " + pct(Math.abs(row.drawdownAt)) + " below its running peak."
+                            : "On " + row.date + " the portfolio was at its running peak.",
+                        direction: "threshold-dependent",
+                        comparisonBasis: "Running peak of the same wealth index",
+                        window: "First common observation date through the declared evidence cutoff",
+                        thresholdsOrBounds: ["drawdown is measured against the running peak, not the final value"]
+                    },
+                    provenance: {
+                        ownerId: RISK_TOOL_ID,
+                        modelId: "rlportfolioanalytics/v1",
+                        evidenceIdentity: projection.identity,
+                        sourceRefs: ["shared same-origin daily bars"],
+                        observedAsOf: row.date,
+                        retrievedOrPublishedAt: projection.cutoff,
+                        freshness: "fresh",
+                        dataTier: "measured-observation"
+                    },
+                    uncertainty: {
+                        state: "bounded",
+                        rangeOrBand: "Exact on the aligned sample; no value is interpolated or filled.",
+                        reason: "Every point is a weighted return over two exact common observation dates."
+                    },
+                    limitation: "Backward-looking description of held evidence only. This is not investment advice and forecasts nothing.",
+                    triggerCondition: "The cached daily bars behind this date remain present and unchanged.",
+                    invalidationCondition: "A constituent series changes, or the declared evidence cutoff moves.",
+                    links: {
+                        owner: "portfolio-survival-allocation-lab.html",
+                        citation: "",
+                        sameDataTable: "#" + riskTableTarget(row.pointId),
+                        ticker: ""
+                    },
+                    accessibility: {
+                        conciseLabel: row.date + " wealth " + row.wealth.toFixed(4),
+                        longDescriptionId: "rlcontext-" + row.pointId
+                    },
+                    contextFingerprint: null
+                };
+            }
+
+            /* Drawn SYNCHRONOUSLY at render time. Deferring to rAF would leave the canvas blank on
+               a hidden-then-shown tab, which is exactly the blank-pixel case the scope forbids. */
+            function drawRiskChart(canvas, projection) {
+                var ctx = canvas.getContext && canvas.getContext("2d");
+                if (!ctx) return;
+                var w = canvas.width, h = canvas.height, pad = 34;
+                var rows = projection.rows;
+                var lo = rows[0].wealth, hi = rows[0].wealth;
+                rows.forEach(function (r) { if (r.wealth < lo) lo = r.wealth; if (r.wealth > hi) hi = r.wealth; });
+                if (hi === lo) { hi = lo + 1; }
+                var xAt = function (i) { return pad + (rows.length === 1 ? 0 : (i / (rows.length - 1)) * (w - pad * 2)); };
+                var yAt = function (v) { return h - pad - ((v - lo) / (hi - lo)) * (h - pad * 2); };
+
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, w, h);
+                ctx.strokeStyle = "#94a3b8";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(pad, pad, w - pad * 2, h - pad * 2);
+
+                ctx.strokeStyle = "#1d4ed8";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                rows.forEach(function (r, i) {
+                    var x = xAt(i), y = yAt(r.wealth);
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                    r.cx = x; r.cy = y;
+                });
+                ctx.stroke();
+
+                ctx.fillStyle = "#b91c1c";
+                rows.forEach(function (r) {
+                    if (r.drawdownAt < 0) { ctx.beginPath(); ctx.arc(r.cx, r.cy, 3, 0, Math.PI * 2); ctx.fill(); }
+                });
+
+                ctx.fillStyle = "#0f172a";
+                ctx.font = "12px system-ui, sans-serif";
+                ctx.fillText("Wealth index · " + rows[0].date + " to " + rows[rows.length - 1].date, pad, pad - 12);
+
+                if (window.RLCHART && typeof window.RLCHART.attach === "function") {
+                    window.RLCHART.attach(canvas, {
+                        orderedPointIds: rows.map(function (r) { return r.pointId; }),
+                        seriesOrder: ["wealth-index"],
+                        contextFor: function (pointId) { return riskChartContext(projection, pointId); },
+                        tableTargetFor: riskTableTarget,
+                        hitTest: function (mx, my) {
+                            var best = null, bestDistance = Infinity;
+                            rows.forEach(function (r) {
+                                if (!isFiniteNumber(r.cx) || !isFiniteNumber(r.cy)) return;
+                                var dist = (mx - r.cx) * (mx - r.cx) + (my - r.cy) * (my - r.cy);
+                                if (dist < bestDistance) { bestDistance = dist; best = r; }
+                            });
+                            return best && bestDistance <= 40 * 40 ? best.pointId : null;
+                        }
+                    });
+                }
             }
 
             function renderRoutes() {
@@ -1234,6 +1596,7 @@
                     (projection.currentPortfolioId || "No current portfolio revision") + " · " +
                     (projection.currentMandateId || "No current mandate"));
                 container.replaceChildren.apply(container, projection.routes.map(routePanel));
+                flushRiskRender();
             }
 
             function renderCurrentMandate() {

@@ -317,11 +317,105 @@
     ].join("|");
   }
 
+  /* ------------------------------------------------------------------ weights */
+
+  /**
+   * Normalized portfolio weights from validated holdings.
+   *
+   * `derivedValue` is the one field every input basis (weight, quantity-price, local-value) already
+   * resolves to in rlportfolio.js, so reading it here reuses that normalization instead of
+   * re-deriving a second, divergent notion of position size.
+   *
+   * A holding without a usable `derivedValue` makes the whole weight set refuse. Dropping it would
+   * silently re-weight every remaining position, which is a different portfolio than the one the
+   * user imported.
+   */
+  function deriveWeights(holdings) {
+    if (!Array.isArray(holdings) || !holdings.length) return { state: "no-holdings", weights: {} };
+    var totals = {}, total = 0, i, h;
+    for (i = 0; i < holdings.length; i += 1) {
+      h = holdings[i];
+      if (!h || typeof h.symbol !== "string" || !h.symbol) return { state: "holding-invalid", weights: {} };
+      if (!isNum(h.derivedValue) || h.derivedValue <= 0) return { state: "value-unavailable", weights: {}, symbol: h.symbol };
+      totals[h.symbol] = (totals[h.symbol] || 0) + h.derivedValue;
+      total += h.derivedValue;
+    }
+    if (!(total > 0)) return { state: "value-unavailable", weights: {} };
+    var weights = {}, keys = Object.keys(totals);
+    for (i = 0; i < keys.length; i += 1) weights[keys[i]] = totals[keys[i]] / total;
+    return { state: "ok", weights: weights, symbols: keys.sort(), totalValue: total };
+  }
+
+  /* --------------------------------------------------------------- projection */
+
+  /**
+   * ONE immutable result behind every Risk X-Ray surface.
+   *
+   * Simple copy, Power copy, canvas points, and the accessible table are all projected from this
+   * single object, so a pixel and a table cell cannot disagree: there is no second computation for
+   * them to drift apart from.
+   */
+  function riskXRayProjection(input) {
+    var opts = input || {};
+    var weightResult = deriveWeights(opts.holdings);
+    if (weightResult.state !== "ok") {
+      return { state: weightResult.state, available: false, symbol: weightResult.symbol || null, points: [], rows: [] };
+    }
+
+    var aligned = alignPortfolioReturns({
+      series: opts.series,
+      weights: weightResult.weights,
+      cutoff: opts.cutoff
+    });
+    if (aligned.state !== "ok") {
+      return { state: aligned.state, available: false, points: [], rows: [], cutoff: opts.cutoff || null };
+    }
+
+    var metrics = computeReturnMetrics(aligned, { periodsPerYear: opts.periodsPerYear });
+    var drawdown = computeDrawdown(aligned);
+
+    // Canvas points and table rows come from the SAME wealth index in the SAME order.
+    var points = aligned.commonDates.map(function (date, i) {
+      return {
+        pointId: "rx-" + date.replace(/-/g, ""),
+        date: date,
+        wealth: aligned.wealthIndex[i],
+        drawdownAt: (aligned.wealthIndex[i] / runningPeakAt(aligned.wealthIndex, i)) - 1
+      };
+    });
+
+    return {
+      state: "ok",
+      available: true,
+      identity: analyticsIdentity({
+        weights: weightResult.weights,
+        cutoff: opts.cutoff,
+        periodsPerYear: opts.periodsPerYear
+      }),
+      cutoff: aligned.cutoff,
+      symbols: weightResult.symbols,
+      weights: weightResult.weights,
+      alignment: aligned.alignment,
+      metrics: metrics,
+      drawdown: drawdown,
+      points: points,
+      rows: points
+    };
+  }
+
+  function runningPeakAt(index, i) {
+    var peak = index[0];
+    for (var k = 1; k <= i; k += 1) { if (index[k] > peak) peak = index[k]; }
+    return peak;
+  }
+
   return {
     TRADING_DAYS: TRADING_DAYS,
     alignPortfolioReturns: alignPortfolioReturns,
     computeReturnMetrics: computeReturnMetrics,
     computeDrawdown: computeDrawdown,
+    deriveWeights: deriveWeights,
+    riskXRayProjection: riskXRayProjection,
     analyticsIdentity: analyticsIdentity
   };
 });

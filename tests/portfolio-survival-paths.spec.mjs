@@ -190,6 +190,58 @@ test('Regression: SCN-008-038 a saved scenario survives reload and is removed by
   expect(afterClear, 'a full personal clear must remove every saved scenario').toBe(0);
 });
 
+test('Regression: Feature 008 Path Lab fan chart and its table describe one immutable result', async ({ page }) => {
+  await seedPortfolio(page, 'TP-09-05 fan');
+  const panel = await openPathLab(page);
+
+  // Synchronous and non-blank: the canvas is painted during the same render that
+  // reveals the panel, so a tab that was hidden never shows an empty frame.
+  const painted = await panel.locator('#pathCanvas').evaluate((canvas) => {
+    const ctx = canvas.getContext('2d');
+    const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let coloured = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255) coloured += 1;
+    }
+    return coloured;
+  });
+  expect(painted, 'fan canvas is painted, not blank').toBeGreaterThan(200);
+
+  await expect(panel.locator('#pathCanvas')).toHaveAttribute('data-rlchart-mode', 'structured');
+  await expect(panel.locator('#pathCanvas')).toHaveAttribute('tabindex', '0');
+  expect(await panel.locator('#pathCanvas[data-rlchart-error]').count(), 'no chart contract error').toBe(0);
+
+  // One result, two renderings: every rail option must resolve to a table row of
+  // the same fan, so the picture and the numbers cannot disagree.
+  const railCount = await page.locator('#rlchart-rail-pathCanvas [role="option"]').count();
+  const fanRows = await panel.locator('#pathFanTable tbody tr').count();
+  expect(fanRows, 'fan table has one row per session including session 0').toBeGreaterThan(1);
+  expect(railCount, 'keyboard rail exposes exactly the table rows').toBe(fanRows);
+
+  const unresolved = await panel.evaluate(() => {
+    const rows = Array.from(document.querySelectorAll('#pathFanTable tbody tr'));
+    return rows.filter((row) => !row.id || document.querySelectorAll('#' + CSS.escape(row.id)).length !== 1).length;
+  });
+  expect(unresolved, 'every fan row is a unique link target').toBe(0);
+
+  // Both canvases coexist: adding the fan must not evict the risk chart.
+  expect(await page.locator('canvas#pathCanvas').count()).toBe(1);
+
+  for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    await expect(panel.locator('#pathCanvas')).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `no horizontal overflow at ${viewport.width}px`).toBeLessThanOrEqual(1);
+  }
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.evaluate(() => { document.documentElement.style.fontSize = '130%'; });
+  await expect(panel.locator('#pathCanvas')).toBeVisible();
+  const overflowZoom = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflowZoom, 'no horizontal overflow at 130% text').toBeLessThanOrEqual(1);
+  await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
+});
+
 test('Regression: Feature 008 Path Lab refuses rather than generating a path without evidence', async ({ page }) => {
   await openLab(page);
   await importValid(page, 'TP-09-05 refusal');

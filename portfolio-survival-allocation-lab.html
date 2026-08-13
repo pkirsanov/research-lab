@@ -1240,6 +1240,138 @@
 
             /* ------------------------------------------------ Scope 09 Path Lab */
 
+            function fanTableTarget(session) { return "pathfan-" + session; }
+            function fanPointId(session) { return "pf-" + session; }
+
+            function fanContext(result, pointId) {
+                var row = null;
+                for (var i = 0; i < result.fanBands.length; i += 1) {
+                    if (fanPointId(result.fanBands[i].session) === pointId) { row = result.fanBands[i]; break; }
+                }
+                if (!row) return null;
+                var width = row.p95 - row.p05;
+                return {
+                    contractVersion: "contextual-tooltip/v1",
+                    contextId: RISK_TOOL_ID + "/" + pointId,
+                    triggerKind: "chart-point",
+                    label: "Session " + row.session + " outcome band",
+                    definition: "The 5th, 50th and 95th percentile of " + result.pathCount +
+                        " resampled portfolio values at session " + row.session +
+                        ", drawn at the central drift assumption from the same streams as the terminal figures.",
+                    displayed: {
+                        valueText: row.p05.toFixed(4) + " / " + row.p50.toFixed(4) + " / " + row.p95.toFixed(4),
+                        numericValue: row.p50,
+                        unit: "index",
+                        truthState: "current"
+                    },
+                    interpretation: {
+                        text: row.session === 0
+                            ? "Every path starts here, so the band has no width yet."
+                            : "By session " + row.session + " the middle 90% of resampled histories span " +
+                              width.toFixed(4) + " of index value.",
+                        direction: "not-directional",
+                        comparisonBasis: "The same resampled streams that produced the terminal distribution",
+                        window: "Session 0 through session " + result.horizonSessions,
+                        thresholdsOrBounds: ["no path here is the expected future"]
+                    },
+                    provenance: {
+                        ownerId: RISK_TOOL_ID,
+                        modelId: "rlportfolioanalytics-scenario/v1",
+                        evidenceIdentity: result.identity,
+                        sourceRefs: ["shared same-origin daily bars"],
+                        observedAsOf: "session " + row.session,
+                        retrievedOrPublishedAt: "scenario " + result.identity,
+                        freshness: "fresh",
+                        dataTier: "resampled-from-measured-observation"
+                    },
+                    uncertainty: {
+                        state: "bounded",
+                        rangeOrBand: "5th to 95th percentile across " + result.pathCount + " resampled paths.",
+                        reason: "The band is the dispersion of resampled histories, not an estimate of a single future path."
+                    },
+                    limitation: "A distribution of resampled histories, not a forecast. This is not investment advice.",
+                    triggerCondition: "The scenario specification and its return sample remain unchanged.",
+                    invalidationCondition: "The seed, block length, horizon, path count, drift range, or return sample changes.",
+                    links: {
+                        owner: "portfolio-survival-allocation-lab.html",
+                        citation: "",
+                        sameDataTable: "#" + fanTableTarget(row.session),
+                        ticker: ""
+                    },
+                    accessibility: {
+                        conciseLabel: "Session " + row.session + " median " + row.p50.toFixed(4),
+                        longDescriptionId: "rlcontext-" + pointId
+                    },
+                    contextFingerprint: null
+                };
+            }
+
+            /* Drawn synchronously, like the other canvases: a hidden-then-shown tab must never paint
+               a blank frame. The band is filled BETWEEN p05 and p95 rather than drawn as three
+               separate lines, so the width reads as uncertainty rather than as three predictions. */
+            function drawPathFan(canvas, result) {
+                var ctx = canvas.getContext && canvas.getContext("2d");
+                if (!ctx) return;
+                var bands = result.fanBands;
+                var w = canvas.width, h = canvas.height, pad = 38;
+                var lo = bands[0].p05, hi = bands[0].p95, i;
+                for (i = 0; i < bands.length; i += 1) {
+                    if (bands[i].p05 < lo) lo = bands[i].p05;
+                    if (bands[i].p95 > hi) hi = bands[i].p95;
+                }
+                if (hi === lo) { hi = lo + 1; }
+                var xAt = function (n) { return pad + (bands.length === 1 ? 0 : (n / (bands.length - 1)) * (w - pad * 2)); };
+                var yAt = function (v) { return h - pad - ((v - lo) / (hi - lo)) * (h - pad * 2); };
+
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, w, h);
+                ctx.strokeStyle = "#94a3b8";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(pad, pad, w - pad * 2, h - pad * 2);
+
+                ctx.fillStyle = "#dbeafe";
+                ctx.beginPath();
+                ctx.moveTo(xAt(0), yAt(bands[0].p95));
+                for (i = 1; i < bands.length; i += 1) ctx.lineTo(xAt(i), yAt(bands[i].p95));
+                for (i = bands.length - 1; i >= 0; i -= 1) ctx.lineTo(xAt(i), yAt(bands[i].p05));
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.strokeStyle = "#1d4ed8";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                var points = [];
+                for (i = 0; i < bands.length; i += 1) {
+                    var x = xAt(i), y = yAt(bands[i].p50);
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                    points.push({ pointId: fanPointId(bands[i].session), cx: x, cy: y });
+                }
+                ctx.stroke();
+
+                ctx.fillStyle = "#0f172a";
+                ctx.font = "12px system-ui, sans-serif";
+                ctx.fillText("5th-95th percentile of " + result.pathCount + " resampled histories · not a forecast", pad, pad - 12);
+
+                if (window.RLCHART && typeof window.RLCHART.attach === "function") {
+                    window.RLCHART.attach(canvas, {
+                        orderedPointIds: points.map(function (p) { return p.pointId; }),
+                        seriesOrder: ["outcome-fan"],
+                        contextFor: function (pointId) { return fanContext(result, pointId); },
+                        tableTargetFor: function (pointId) {
+                            return fanTableTarget(Number(String(pointId).replace(/^pf-/, "")));
+                        },
+                        hitTest: function (mx, my) {
+                            var best = null, bestDistance = Infinity;
+                            points.forEach(function (p) {
+                                var dist = (mx - p.cx) * (mx - p.cx) + (my - p.cy) * (my - p.cy);
+                                if (dist < bestDistance) { bestDistance = dist; best = p; }
+                            });
+                            return best && bestDistance <= 40 * 40 ? best.pointId : null;
+                        }
+                    });
+                }
+            }
+
             function pathScenario() {
                 var probe = riskProjection();
                 if (!probe.available) return { available: false, state: probe.state };
@@ -1364,6 +1496,51 @@
                     "portfolio bounces around under one assumption is a different question from how much the answer " +
                     "moves when that assumption is wrong.";
                 band.appendChild(claim);
+
+                var pathCanvas = document.createElement("canvas");
+                pathCanvas.id = "pathCanvas";
+                pathCanvas.width = 640;
+                pathCanvas.height = 300;
+                pathCanvas.setAttribute("role", "img");
+                pathCanvas.setAttribute("aria-label",
+                    "Resampled outcome fan: 5th to 95th percentile band and median by session");
+                pathCanvas.style.width = "100%";
+                pathCanvas.style.maxWidth = "640px";
+                pathCanvas.style.height = "auto";
+                band.appendChild(pathCanvas);
+                pendingCanvasRenders.push({ canvas: pathCanvas, projection: r, draw: drawPathFan });
+
+                var fanWrap = document.createElement("div");
+                fanWrap.className = "band";
+                fanWrap.style.overflowX = "auto";
+                fanWrap.style.maxWidth = "100%";
+                var fanHeading = document.createElement("h5");
+                fanHeading.textContent = "Same fan, as a table";
+                fanWrap.appendChild(fanHeading);
+                var fanTable = document.createElement("table");
+                fanTable.id = "pathFanTable";
+                fanTable.innerHTML = "<thead><tr><th scope=\"col\">Session</th><th scope=\"col\">5th</th>" +
+                    "<th scope=\"col\">Median</th><th scope=\"col\">95th</th></tr></thead>";
+                var fanBody = document.createElement("tbody");
+                r.fanBands.forEach(function (bandRow) {
+                    var tr = document.createElement("tr");
+                    tr.id = fanTableTarget(bandRow.session);
+                    tr.dataset.session = String(bandRow.session);
+                    var f1 = document.createElement("th");
+                    f1.setAttribute("scope", "row");
+                    f1.textContent = String(bandRow.session);
+                    var f2 = document.createElement("td");
+                    f2.textContent = bandRow.p05.toFixed(6);
+                    var f3 = document.createElement("td");
+                    f3.textContent = bandRow.p50.toFixed(6);
+                    var f4 = document.createElement("td");
+                    f4.textContent = bandRow.p95.toFixed(6);
+                    [f1, f2, f3, f4].forEach(function (cell) { tr.appendChild(cell); });
+                    fanBody.appendChild(tr);
+                });
+                fanTable.appendChild(fanBody);
+                fanWrap.appendChild(fanTable);
+                band.appendChild(fanWrap);
 
                 var tableWrap = document.createElement("div");
                 tableWrap.className = "band";

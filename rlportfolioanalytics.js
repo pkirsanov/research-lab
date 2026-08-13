@@ -1086,6 +1086,30 @@
     };
 
     var central = terminalsAt(centralDrift).slice().sort(function (a, b) { return a - b; });
+
+    /* Per-session percentile bands at the central assumption, for the fan. Computed from the SAME
+       streams as the terminals, so the chart and the terminal numbers cannot describe different
+       runs. The band is a distribution of resampled histories at each step, never a forecast path. */
+    var fan = [];
+    for (var t0 = 0; t0 <= spec.horizonSessions; t0 += 1) fan.push([]);
+    for (var s0 = 0; s0 < streams.length; s0 += 1) {
+      var v = spec.startingValue;
+      fan[0].push(v);
+      for (var t1 = 0; t1 < streams[s0].length; t1 += 1) {
+        v = v * (1 + sampleReturns[streams[s0][t1]] + centralDrift);
+        fan[t1 + 1].push(v);
+      }
+    }
+    var fanBands = fan.map(function (values, session) {
+      var sorted = values.slice().sort(function (a, b) { return a - b; });
+      return {
+        session: session,
+        p05: percentile(sorted, 0.05),
+        p50: percentile(sorted, 0.5),
+        p95: percentile(sorted, 0.95)
+      };
+    });
+
     var nodeMedians = [], nodeFailureRates = [], combined = [];
     var floor = isNum(opts.survivalFloor) ? opts.survivalFloor : null;
     for (var g = 0; g < grid.length; g += 1) {
@@ -1114,6 +1138,7 @@
       pathCount: spec.pathCount,
       parameterDrawCount: spec.parameterDrawCount,
       commonRandomStreams: true,
+      fanBands: fanBands,
       pathRandomness: {
         label: "Path randomness at the central assumption",
         drift: centralDrift,

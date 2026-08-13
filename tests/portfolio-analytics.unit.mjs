@@ -814,6 +814,56 @@ test('TP-09-01 the parameter grid is deterministic and stratified', () => {
   assert.equal(RLPA.parameterGrid(null, 5), null);
 });
 
+test('TP-09-01 fan bands come from the same streams as the terminals and widen with horizon', () => {
+  const sample = [0.01, -0.02, 0.015, -0.005, 0.02, -0.01, 0.008, -0.012];
+  const spec = {
+    contractVersion: 'ScenarioSpecification/v1',
+    returnFingerprint: 'sha256:fan-band-fixture',
+    method: 'stationary-bootstrap',
+    meanBlockSessions: 3,
+    horizonSessions: 10,
+    pathCount: 200,
+    parameterDrawCount: 3,
+    driftRange: { low: -0.0002, high: 0.0002 },
+    startingValue: 1,
+    seed: 11
+  };
+  const run = RLPA.runScenario(spec, sample, { maximumPaths: 20000 });
+  assert.equal(run.state, 'ok');
+
+  // One band per session boundary, including the known starting point.
+  assert.equal(run.fanBands.length, spec.horizonSessions + 1);
+  assert.equal(run.fanBands[0].session, 0);
+  // At session 0 every path is the starting value, so the band has zero width. A non-zero band
+  // there would mean the chart started from something the run did not.
+  assert.ok(near(run.fanBands[0].p05, spec.startingValue, 1e-12));
+  assert.ok(near(run.fanBands[0].p95, spec.startingValue, 1e-12));
+
+  // Percentiles are ordered at every session, or the band is not a band.
+  run.fanBands.forEach((band) => {
+    assert.ok(band.p05 <= band.p50, `p05 <= p50 at session ${band.session}`);
+    assert.ok(band.p50 <= band.p95, `p50 <= p95 at session ${band.session}`);
+  });
+
+  // Uncertainty grows with horizon: the final band must be wider than an early one.
+  const early = run.fanBands[1].p95 - run.fanBands[1].p05;
+  const last = run.fanBands[run.fanBands.length - 1].p95 - run.fanBands[run.fanBands.length - 1].p05;
+  assert.ok(last > early, `final band ${last} must exceed early band ${early}`);
+
+  /* ADVERSARIAL: the fan must be the SAME run as the terminal numbers. The terminal band is
+   * computed independently of fanBands, so if the chart were drawn from a second sample these
+   * would disagree. */
+  const finalBand = run.fanBands[run.fanBands.length - 1];
+  assert.ok(near(finalBand.p50, run.pathRandomness.p50, 1e-9),
+    `fan terminal median ${finalBand.p50} must equal the reported path-randomness median ${run.pathRandomness.p50}`);
+  assert.ok(near(finalBand.p05, run.pathRandomness.p05, 1e-9));
+  assert.ok(near(finalBand.p95, run.pathRandomness.p95, 1e-9));
+
+  // Reproducible: the same specification produces the identical fan.
+  const rerun = RLPA.runScenario(spec, sample, { maximumPaths: 20000 });
+  assert.deepEqual(rerun.fanBands, run.fanBands);
+});
+
 test("TP-07-01 return math is delegated to rlmetrics, not redefined here", () => {
   // P18: a metric is defined once. If this module ever grew its own arithmetic/CAGR/drag, the
   // repo would have two definitions of each and the brief could publish either.

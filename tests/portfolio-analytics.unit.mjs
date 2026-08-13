@@ -1362,3 +1362,147 @@ test('TP-12-01 variants are compared on one frozen basis and none is prescribed'
   }
   assert.ok(out.claimBoundary.includes('None of them is recommended'));
 });
+
+/* ---------------------------------------------------------------------------
+   Scope 13 - six-method allocation basis and feasibility
+   --------------------------------------------------------------------------- */
+
+const ALLOC_COV = [[0.04, 0.01], [0.01, 0.09]];
+const ALLOC_BASE = {
+  symbols: ['A', 'B'],
+  covariance: ALLOC_COV,
+  currentWeights: [0.5, 0.5],
+  constraints: []
+};
+
+test('TP-13-01 all six methods run on one frozen basis and none is labelled best', () => {
+  const out = RLPA.compareAllocationMethods({
+    ...ALLOC_BASE,
+    expectedReturns: [0.06, 0.10],
+    views: [0.7, 0.3],
+    viewConfidence: 0.5
+  });
+  assert.equal(out.state, 'ok');
+  assert.deepEqual(out.candidates.map((c) => c.method), RLPA.ALLOCATION_METHODS);
+  assert.equal(out.basisFrozen, true);
+
+  // The refusal that keeps this a comparison rather than a recommendation.
+  assert.equal(out.recommendedMethod, null);
+  assert.equal(out.bestMethod, null);
+  assert.ok(out.claimBoundary.includes('None is labelled best or recommended'));
+  assert.ok(out.claimBoundary.includes('an in-sample lead is the weakest kind of evidence'));
+
+  // Every candidate carries its own visible assumptions, so the reader can see
+  // what each method believes rather than only what it produced.
+  for (const candidate of out.candidates) {
+    assert.ok(Array.isArray(candidate.assumptions) && candidate.assumptions.length > 0,
+      candidate.method + ' must state its assumptions');
+  }
+});
+
+test('TP-13-01 minimum variance solves the full covariance, verified by hand', () => {
+  const out = RLPA.compareAllocationMethods(ALLOC_BASE);
+  const minVar = out.candidates.find((c) => c.method === 'minimum-variance');
+
+  // Independently calculated. det = 0.04*0.09 - 0.01^2 = 0.0035.
+  // inv(S) * 1 proportional to [0.09 - 0.01, 0.04 - 0.01] = [0.08, 0.03].
+  // Normalised: 0.08/0.11 and 0.03/0.11.
+  assert.ok(near(minVar.weights[0], 0.08 / 0.11, 1e-12));
+  assert.ok(near(minVar.weights[1], 0.03 / 0.11, 1e-12));
+
+  // It must actually achieve the lowest volatility of the weight-bearing
+  // candidates - that is the only thing it optimises.
+  const solved = out.candidates.filter((c) => c.portfolioVolatility !== null);
+  const lowest = Math.min(...solved.map((c) => c.portfolioVolatility));
+  assert.ok(near(minVar.portfolioVolatility, lowest, 1e-12));
+
+  // Risk parity is inverse VOLATILITY, a different answer. If minimum variance
+  // silently dropped the off-diagonals the two would coincide.
+  const riskParity = out.candidates.find((c) => c.method === 'risk-parity');
+  assert.ok(near(riskParity.weights[0], (1 / 0.2) / (1 / 0.2 + 1 / 0.3), 1e-12));
+  assert.ok(Math.abs(riskParity.weights[0] - minVar.weights[0]) > 0.05,
+    'minimum variance must not collapse into inverse-variance weighting');
+  assert.ok(riskParity.assumptions.join(' ').includes('NOT correlation-adjusted'));
+});
+
+test('TP-13-01 methods needing stated inputs refuse rather than inventing them', () => {
+  const out = RLPA.compareAllocationMethods(ALLOC_BASE);
+
+  const bl = out.candidates.find((c) => c.method === 'black-litterman');
+  assert.equal(bl.state, 'unavailable');
+  assert.equal(bl.reason, 'views-and-confidence-required');
+  assert.equal(bl.weights, null);
+  assert.ok(bl.assumptions.join(' ').includes('a view you did not state is not your view'));
+
+  const mvo = out.candidates.find((c) => c.method === 'constrained-mvo');
+  assert.equal(mvo.state, 'unavailable');
+  assert.equal(mvo.reason, 'expected-returns-required');
+  assert.equal(mvo.weights, null);
+  // The specific temptation this refuses: silently using the historical mean.
+  assert.ok(mvo.assumptions.join(' ').includes('never estimated from past returns'));
+
+  // The methods that need nothing still produce answers, so the comparison is
+  // useful even when the forecast-dependent ones cannot run.
+  assert.ok(out.candidates.find((c) => c.method === 'equal-weight').weights);
+  assert.ok(out.candidates.find((c) => c.method === 'minimum-variance').weights);
+});
+
+test('TP-13-01 conflicting constraints are infeasible and are never silently relaxed', () => {
+  // Minimums of 0.7 and 0.6 sum to 1.3: no weight vector can satisfy them.
+  const impossible = RLPA.evaluateFeasibility(['A', 'B'], [0.5, 0.5], [
+    { subject: 'A', minimum: 0.7, maximum: null },
+    { subject: 'B', minimum: 0.6, maximum: null }
+  ]);
+  assert.equal(impossible.state, 'infeasible');
+  assert.equal(impossible.universallyInfeasible, true, 'this is impossible for ANY allocation, not just this one');
+  assert.equal(impossible.reason, 'minimums-exceed-full-allocation');
+  assert.equal(impossible.conflictingSet.length, 2, 'the smallest conflicting set is identified');
+  assert.ok(impossible.explanation.includes('No constraint has been relaxed'));
+  assert.ok(impossible.explanation.includes('current portfolio is unchanged'));
+
+  // Maximums that cannot fill the portfolio are the mirror case.
+  const cannotFill = RLPA.evaluateFeasibility(['A', 'B'], [0.5, 0.5], [
+    { subject: 'A', minimum: null, maximum: 0.3 },
+    { subject: 'B', minimum: null, maximum: 0.3 }
+  ]);
+  assert.equal(cannotFill.state, 'infeasible');
+  assert.equal(cannotFill.reason, 'maximums-cannot-fill-allocation');
+
+  // A candidate that merely misses a satisfiable constraint is infeasible but
+  // NOT universally so - a different and weaker finding, reported as such.
+  const missable = RLPA.evaluateFeasibility(['A', 'B'], [0.9, 0.1], [
+    { subject: 'A', minimum: null, maximum: 0.6 }
+  ]);
+  assert.equal(missable.state, 'infeasible');
+  assert.equal(missable.universallyInfeasible, false);
+  assert.equal(missable.conflictingSet[0].kind, 'maximum');
+  assert.ok(near(missable.conflictingSet[0].actual, 0.9, 1e-12));
+  assert.ok(missable.explanation.includes('reported as infeasible rather than adjusted'));
+
+  // Satisfiable constraints pass without alteration.
+  const fine = RLPA.evaluateFeasibility(['A', 'B'], [0.5, 0.5], [
+    { subject: 'A', minimum: 0.2, maximum: 0.8 }
+  ]);
+  assert.equal(fine.state, 'feasible');
+  assert.deepEqual(fine.conflictingSet, []);
+});
+
+test('TP-13-01 infeasible candidates appear beside feasible ones rather than being hidden', () => {
+  const out = RLPA.compareAllocationMethods({
+    ...ALLOC_BASE,
+    constraints: [{ subject: 'A', minimum: null, maximum: 0.55 }]
+  });
+  assert.equal(out.state, 'ok');
+
+  // Minimum variance puts 0.727 in A, which breaches the 0.55 cap. It must still
+  // be listed - hiding it would make the comparison look cleaner than it is.
+  const minVar = out.candidates.find((c) => c.method === 'minimum-variance');
+  assert.equal(minVar.feasibility.state, 'infeasible');
+  assert.ok(minVar.weights, 'the infeasible candidate keeps its weights so the breach is inspectable');
+
+  const equal = out.candidates.find((c) => c.method === 'equal-weight');
+  assert.equal(equal.feasibility.state, 'feasible');
+
+  // Both are present in one list.
+  assert.equal(out.candidates.length, 6);
+});

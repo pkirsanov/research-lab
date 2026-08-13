@@ -1810,6 +1810,278 @@
     };
   }
 
+  /* ---------------------------------------------------------------------
+     Scope 13 - six-method allocation basis and feasibility
+     --------------------------------------------------------------------- */
+
+  var ALLOCATION_METHODS = [
+    "current", "equal-weight", "minimum-variance",
+    "risk-parity", "black-litterman", "constrained-mvo"
+  ];
+
+  /**
+   * Check an explicit constraint set against a candidate weight vector.
+   *
+   * Returns the SMALLEST identifiable conflicting set when the constraints
+   * cannot all hold. A constraint is never silently relaxed to produce a
+   * feasible-looking answer, because the whole value of a mandate is that it
+   * binds.
+   */
+  function evaluateFeasibility(symbols, weights, constraints) {
+    if (!Array.isArray(symbols) || !Array.isArray(weights) || symbols.length !== weights.length) {
+      return { state: "unavailable", reason: "shape-mismatch" };
+    }
+    var list = Array.isArray(constraints) ? constraints : [];
+    var violated = [];
+    for (var i = 0; i < list.length; i += 1) {
+      var c = list[i];
+      var index = symbols.indexOf(c.subject);
+      if (index === -1) continue;
+      var weight = weights[index];
+      if (isNum(c.minimum) && weight < c.minimum - 1e-12) {
+        violated.push({ subject: c.subject, kind: "minimum", required: c.minimum, actual: weight });
+      }
+      if (isNum(c.maximum) && weight > c.maximum + 1e-12) {
+        violated.push({ subject: c.subject, kind: "maximum", required: c.maximum, actual: weight });
+      }
+    }
+
+    /* Universe-level impossibility: if the stated minimums already exceed one,
+       or the maximums cannot reach one, NO weight vector can satisfy them. That
+       is a stronger and more useful finding than "this candidate missed". */
+    var minimumSum = 0, maximumSum = 0, hasMaximumForAll = true;
+    for (var k = 0; k < symbols.length; k += 1) {
+      var applicable = list.filter(function (c) { return c.subject === symbols[k]; });
+      var mins = applicable.filter(function (c) { return isNum(c.minimum); });
+      var maxes = applicable.filter(function (c) { return isNum(c.maximum); });
+      minimumSum += mins.length ? Math.max.apply(null, mins.map(function (c) { return c.minimum; })) : 0;
+      if (maxes.length) maximumSum += Math.min.apply(null, maxes.map(function (c) { return c.maximum; }));
+      else hasMaximumForAll = false;
+    }
+    if (minimumSum > 1 + 1e-12) {
+      return {
+        state: "infeasible",
+        universallyInfeasible: true,
+        reason: "minimums-exceed-full-allocation",
+        conflictingSet: list.filter(function (c) { return isNum(c.minimum) && c.minimum > 0; }),
+        explanation: "The stated minimums sum to " + minimumSum.toFixed(4) + ", which is more than the " +
+          "whole portfolio. No weight vector can satisfy them, so this is not a solver failure. " +
+          "No constraint has been relaxed and the current portfolio is unchanged."
+      };
+    }
+    if (hasMaximumForAll && maximumSum < 1 - 1e-12) {
+      return {
+        state: "infeasible",
+        universallyInfeasible: true,
+        reason: "maximums-cannot-fill-allocation",
+        conflictingSet: list.filter(function (c) { return isNum(c.maximum); }),
+        explanation: "The stated maximums sum to " + maximumSum.toFixed(4) + ", so the eligible universe " +
+          "cannot be fully allocated. No constraint has been relaxed and the current portfolio is unchanged."
+      };
+    }
+    if (violated.length) {
+      return {
+        state: "infeasible",
+        universallyInfeasible: false,
+        reason: "candidate-violates-constraints",
+        conflictingSet: violated,
+        explanation: "This candidate violates " + violated.length + " stated constraint" +
+          (violated.length === 1 ? "" : "s") + ". It is reported as infeasible rather than adjusted, " +
+          "because silently relaxing a mandate would make the mandate meaningless."
+      };
+    }
+    return { state: "feasible", universallyInfeasible: false, conflictingSet: [] };
+  }
+
+  function normalizeWeights(raw) {
+    var total = 0;
+    for (var i = 0; i < raw.length; i += 1) total += raw[i];
+    if (total <= 0) return null;
+    return raw.map(function (v) { return v / total; });
+  }
+
+  /**
+   * Build the six allocation candidates on ONE frozen basis.
+   *
+   * Every candidate reads the same universe, the same covariance, and the same
+   * constraints, so a difference between them is attributable to the METHOD and
+   * not to a changed input. No candidate is labelled best or recommended: the
+   * comparison reports the trade-offs and leaves the judgement where it belongs.
+   */
+  function compareAllocationMethods(request) {
+    if (!request || typeof request !== "object") return { state: "unavailable", reason: "request-invalid" };
+    var symbols = request.symbols;
+    var covariance = request.covariance;
+    if (!Array.isArray(symbols) || symbols.length < 2) return { state: "unavailable", reason: "insufficient-universe" };
+    if (!Array.isArray(covariance) || covariance.length !== symbols.length) {
+      return { state: "unavailable", reason: "covariance-required" };
+    }
+    if (!Array.isArray(request.currentWeights) || request.currentWeights.length !== symbols.length) {
+      return { state: "unavailable", reason: "current-weights-required" };
+    }
+    var n = symbols.length;
+    var variances = [];
+    for (var i = 0; i < n; i += 1) {
+      if (!Array.isArray(covariance[i]) || covariance[i].length !== n) {
+        return { state: "unavailable", reason: "covariance-not-square" };
+      }
+      if (!isNum(covariance[i][i]) || covariance[i][i] <= 0) {
+        return { state: "unavailable", reason: "non-positive-variance" };
+      }
+      variances.push(covariance[i][i]);
+    }
+
+    var candidates = [];
+
+    candidates.push({
+      method: "current",
+      label: "Current portfolio",
+      weights: request.currentWeights.slice(),
+      assumptions: ["Your holdings exactly as they are. No model, no estimate."]
+    });
+
+    candidates.push({
+      method: "equal-weight",
+      label: "Equal weight",
+      weights: symbols.map(function () { return 1 / n; }),
+      assumptions: [
+        "Assumes nothing about return, risk, or correlation.",
+        "Its strength is that it cannot be wrong about an estimate it never makes."
+      ]
+    });
+
+    /* Minimum variance WITHOUT the off-diagonals is inverse-variance weighting,
+       which is a different method. The full solve needs the inverse covariance;
+       when it is unavailable this reports so rather than substituting the
+       diagonal approximation under the same name. */
+    var minVarWeights = null;
+    var inverseRow = solveSymmetric(covariance, symbols.map(function () { return 1; }));
+    if (inverseRow && inverseRow.length === n && inverseRow.every(isNum)) {
+      minVarWeights = normalizeWeights(inverseRow);
+      if (minVarWeights && !minVarWeights.every(isNum)) minVarWeights = null;
+    }
+    if (minVarWeights) {
+      candidates.push({
+        method: "minimum-variance",
+        label: "Minimum variance",
+        weights: minVarWeights,
+        assumptions: [
+          "Uses the full covariance matrix including correlations.",
+          "Makes no return forecast at all, so it optimises risk only.",
+          "Highly sensitive to covariance estimation error, which is why the sensitivity read matters."
+        ]
+      });
+    } else {
+      candidates.push({
+        method: "minimum-variance",
+        label: "Minimum variance",
+        weights: null,
+        state: "unavailable",
+        reason: "covariance-not-invertible",
+        assumptions: ["The covariance matrix could not be inverted, so no minimum-variance solution exists " +
+          "for this universe. Inverse-variance weighting is NOT substituted here: it is a different method " +
+          "and reporting it under this name would misstate what was solved."]
+      });
+    }
+
+    var inverseVol = variances.map(function (v) { return 1 / Math.sqrt(v); });
+    candidates.push({
+      method: "risk-parity",
+      label: "Risk parity (inverse volatility)",
+      weights: normalizeWeights(inverseVol),
+      assumptions: [
+        "Inverse-volatility weighting, the naive form of risk parity.",
+        "It equalises standalone volatility contribution, NOT correlation-adjusted risk contribution."
+      ]
+    });
+
+    if (Array.isArray(request.views) && request.views.length && isNum(request.viewConfidence)) {
+      var equilibrium = normalizeWeights(inverseVol);
+      var blended = equilibrium.map(function (w, index) {
+        var view = request.views[index];
+        return isNum(view) ? w * (1 - request.viewConfidence) + view * request.viewConfidence : w;
+      });
+      candidates.push({
+        method: "black-litterman",
+        label: "Black-Litterman",
+        weights: normalizeWeights(blended),
+        assumptions: [
+          "Blends YOUR stated views with an equilibrium prior at the confidence you stated.",
+          "Both the views and the confidence are your inputs; neither is inferred."
+        ]
+      });
+    } else {
+      candidates.push({
+        method: "black-litterman",
+        label: "Black-Litterman",
+        weights: null,
+        state: "unavailable",
+        reason: "views-and-confidence-required",
+        assumptions: ["Black-Litterman requires explicit views AND an explicit confidence. Neither is " +
+          "inferred from your holdings or behaviour, because a view you did not state is not your view."]
+      });
+    }
+
+    if (Array.isArray(request.expectedReturns) && request.expectedReturns.length === n && request.expectedReturns.every(isNum)) {
+      var mvoRaw = solveSymmetric(covariance, request.expectedReturns);
+      var mvoWeights = mvoRaw && mvoRaw.length === n && mvoRaw.every(isNum)
+        ? normalizeWeights(mvoRaw.map(function (v) { return Math.max(v, 0); }))
+        : null;
+      candidates.push({
+        method: "constrained-mvo",
+        label: "Constrained mean-variance",
+        weights: mvoWeights,
+        state: mvoWeights ? undefined : "unavailable",
+        reason: mvoWeights ? undefined : "no-non-negative-solution",
+        assumptions: [
+          "Uses YOUR stated expected returns. Mean-variance output is famously sensitive to them.",
+          "Long-only: negative solutions are clipped to zero before renormalising, which is a stated " +
+            "simplification rather than a true constrained solve."
+        ]
+      });
+    } else {
+      candidates.push({
+        method: "constrained-mvo",
+        label: "Constrained mean-variance",
+        weights: null,
+        state: "unavailable",
+        reason: "expected-returns-required",
+        assumptions: ["Mean-variance optimisation requires expected returns you stated. They are never " +
+          "estimated from past returns here, because a historical mean is a poor forecast and using one " +
+          "silently would hide that choice inside the result."]
+      });
+    }
+
+    candidates.forEach(function (candidate) {
+      if (!candidate.weights) {
+        candidate.feasibility = { state: "unavailable", reason: candidate.reason };
+        candidate.portfolioVolatility = null;
+        return;
+      }
+      candidate.feasibility = evaluateFeasibility(symbols, candidate.weights, request.constraints);
+      var variance = 0;
+      for (var a = 0; a < n; a += 1) {
+        for (var b = 0; b < n; b += 1) {
+          variance += candidate.weights[a] * candidate.weights[b] * covariance[a][b];
+        }
+      }
+      candidate.portfolioVolatility = Math.sqrt(Math.max(variance, 0));
+    });
+
+    return {
+      state: "ok",
+      symbols: symbols.slice(),
+      candidates: candidates,
+      basisFrozen: true,
+      recommendedMethod: null,
+      bestMethod: null,
+      claimBoundary: "Every candidate reads the same universe, the same covariance, and the same " +
+        "constraints, so a difference between them is attributable to the METHOD and not to a changed " +
+        "input. None is labelled best or recommended: the candidate with the lowest modeled volatility " +
+        "is not thereby the right one for you, and an in-sample lead is the weakest kind of evidence."
+    };
+  }
+
   return {
     TRADING_DAYS: TRADING_DAYS,
     alignPortfolioReturns: alignPortfolioReturns,
@@ -1841,6 +2113,9 @@
     desmoothReturns: desmoothReturns,
     computeHedgeVariant: computeHedgeVariant,
     compareHedgeVariants: compareHedgeVariants,
+    ALLOCATION_METHODS: ALLOCATION_METHODS,
+    evaluateFeasibility: evaluateFeasibility,
+    compareAllocationMethods: compareAllocationMethods,
     analyticsIdentity: analyticsIdentity
   };
 });

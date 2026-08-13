@@ -2227,6 +2227,7 @@
                         });
                         select.value = state.briefWindowId;
                         loadPublicWatchlist();
+                        loadOwnerRoutes();
                         renderBrief();
                     })
                     .catch(function (error) {
@@ -2255,6 +2256,56 @@
                     })
                     .catch(function () {
                         state.publicWatchlist = [];
+                        renderBrief();
+                    });
+            }
+
+            /* Subject -> owning tool, READ from the shared public registry rather than declared here.
+               `market-brief.owner-reads.json` records which tool actually published a read for which
+               ticker, AND the route that tool declares for it, so ownership and its link are one
+               registry fact this page cannot drift from. Resolving the route a second way — through
+               tools.json — would create a second definition of the same link, so the producer's own
+               `ownerDeepLink` is used directly.
+
+               Without this the map stayed empty and EVERY subject rendered as `unownedCapability`,
+               which told the reader no owning tool existed even when one did — a false statement, not
+               a missing feature. A failure here restores that empty map on purpose: an unowned
+               subject is then reported as a named capability gap, which is honest, rather than
+               guessing a route that may not resolve.
+
+               The artifact is public — the tickers-only watchlist projection — so no personal value
+               participates in routing. */
+            function loadOwnerRoutes() {
+                fetch("market-brief.owner-reads.json", { cache: "no-store", credentials: "same-origin" })
+                    .then(function (response) {
+                        if (!response.ok) throw new Error("owner-routes-http-" + response.status);
+                        return response.json();
+                    })
+                    .then(function (artifact) {
+                        var reads = (artifact && artifact.ownerReads) || {};
+                        var owners = {};
+                        // Producer order is the artifact's own declared precedence, so the choice is
+                        // deterministic. A tool holding a real read outranks one reporting a gap,
+                        // because linking to a published answer beats linking to a stated absence.
+                        ((artifact && artifact.domainsProduced) || []).forEach(function (domainId) {
+                            Object.keys(reads).forEach(function (toolId) {
+                                var perTicker = reads[toolId] || {};
+                                Object.keys(perTicker).forEach(function (ticker) {
+                                    var read = perTicker[ticker];
+                                    if (!read || read.domainId !== domainId) return;
+                                    if (typeof read.ownerDeepLink !== "string" || !read.ownerDeepLink) return;
+                                    var isCurrent = read.state === "current";
+                                    if (owners[ticker] && !(isCurrent && !owners[ticker].current)) return;
+                                    owners[ticker] = { toolId: toolId, href: read.ownerDeepLink, current: isCurrent };
+                                });
+                            });
+                        });
+                        Object.keys(owners).forEach(function (ticker) { delete owners[ticker].current; });
+                        state.briefOwners = owners;
+                        renderBrief();
+                    })
+                    .catch(function () {
+                        state.briefOwners = {};
                         renderBrief();
                     });
             }

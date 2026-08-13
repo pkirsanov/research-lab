@@ -217,3 +217,76 @@ to include `rlportfolio.js` and `tests/portfolio-foundation.unit.mjs`, and updat
 populate the new section through the new builder. Scope 03's sweep then covers scenarios genuinely
 rather than vacuously.
 
+### F-09-PERSISTENCE-BOUNDARY — RESOLVED 2026-08-13
+
+The boundary is amended in `scope.md` and the scenario-persistence conjunct is delivered. The earlier
+"attempted and reverted" record above stands as history; this supersedes it.
+
+**Why the amendment was correct rather than convenient.** The original boundary excluded private
+storage while the scope required a saved scenario that survives a reload and is removed by the
+existing full-personal clear. Those cannot both hold. The workspace schema is owned by
+`rlportfolio.js`, and a scenario stored anywhere else would be a parallel top-level key that a clear
+keyed on `FOUNDATION_LOCAL_KEYS` would miss — the exact privacy defect SCN-008-038 exists to prevent.
+Storing it inside the workspace inherits the existing clear, because `slotA` and `slotB` are already
+on that list.
+
+**The Scope 03 pin was satisfied, never relaxed.** That guard exists so a newly declared personal
+section cannot make the clear sweep vacuously true, and it went red the moment `scenarios` appeared.
+It was updated to populate the section **through its real builder**, `buildScenarioCandidate`, not
+edited to accept an empty container. The distinction matters: relaxing it would have removed the
+protection the guard exists to provide, in the same change that created the risk.
+
+**What is stored, and what deliberately is not.** A saved scenario carries its identity, a label, a
+summary, and a timestamp. It does **not** carry the resampled paths. The identity reproduces those
+paths exactly, so persisting thousands of rows would duplicate derivable data in private storage for
+no gain and widen what a clear has to remove.
+
+**Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Output:**
+
+```text
+  ✓  SCN-008-018 an identical specification reproduces an identical scenario identity
+  ✓  SCN-008-019 path randomness and parameter uncertainty stay separately labelled
+  ✓  Feature 008 Path Lab table stays equivalent and stable at desktop mobile and zoom
+  ✓  SCN-008-038 a saved scenario survives reload and is removed by a full personal clear
+  ✓  Feature 008 Path Lab refuses rather than generating a path without evidence
+  5 passed (10.1s)
+```
+
+The persistence row proves four separate things rather than one: the save is accepted, saving the
+same scenario twice is a no-op rather than a second row, the scenario survives a real `page.reload()`
+with its identity unchanged, and a full personal clear takes `scenarioCount` to zero.
+
+**A defect this work exposed.** Removing `scenarios` from the workspace semantic payload did **not**
+fail any existing test. Two workspaces differing only in saved scenarios would therefore have shared
+a fingerprint, and a commit that added a scenario would have looked like a no-op to anything keyed on
+it. A pin was added, and it bites:
+
+```text
+=== RED: scenarios removed from semantic payload ===
+not ok 32 - the two personal sections Scope 03 could not populate now have real write paths and are swept
+# pass 55  # fail 1
+=== GREEN restored ===
+# pass 56  # fail 0
+```
+
+**A rendering defect fixed on the way.** The save outcome was first written imperatively onto the
+result element after commit. `refreshWorkspaceViews()` rebuilds the Path Lab band, so the attributes
+were discarded on the next render and the surface silently lost its state. The outcome is now held in
+`state.lastScenarioSave` and rendered from there, which survives any number of re-renders.
+
+**Baseline after the change:**
+
+```text
+$ node --test tests/portfolio-foundation.unit.mjs tests/portfolio-privacy.functional.mjs tests/portfolio-brief.functional.mjs tests/portfolio-publisher-boundary.functional.mjs
+# pass 98  # fail 0
+$ node --test tests/portfolio-analytics.unit.mjs
+# pass 38  # fail 0
+$ node scripts/selftest.mjs
+1640 passed, 0 failed
+$ npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome
+  42 passed (2.1m)
+$ git diff --check
+(clean)
+```

@@ -179,3 +179,41 @@ simply not the state the scope asks for.
 - Progress, cancel, and compute-token staleness handling. The current scenario is small enough to run
   synchronously; the production 2000 x 21 grid is not attempted in the tab.
 - Regime and fat-tail methods remain explicitly unavailable, as the implementation plan requires.
+
+### F-09-PERSISTENCE-BOUNDARY — attempted and reverted, 2026-08-13
+
+The amendment was attempted rather than assumed, and the attempt sharpened the finding.
+
+**The clear is not the obstacle.** The workspace itself lives in `slotA`/`slotB`, which ARE on
+`FOUNDATION_LOCAL_KEYS`. A `scenarios` array stored INSIDE the workspace is therefore removed by the
+existing full-personal clear with no clear-list change at all. The first assessment above — that a
+scenarios key would survive a clear — is true only of a PARALLEL top-level key, which is exactly why
+the field belongs inside the workspace.
+
+**The obstacle is a deliberate pin in a foreign test.** Adding `scenarios` to `WORKSPACE_FIELDS` and
+`createEmptyWorkspace`, plus a `buildScenarioCandidate` write path, turned
+`tests/portfolio-foundation.unit.mjs` red:
+
+```text
+not ok 32 - the two personal sections Scope 03 could not populate now have real write paths and are swept
+    + [ 'scenarios' ]  - []
+    no derived personal section may remain unpopulatable, or the sweep would still
+    assert emptiness over an empty-by-construction container
+# pass 55  # fail 1
+```
+
+That guard is doing its job. It exists so a newly declared personal section cannot make the clear
+sweep vacuously true, and it goes red by design when one appears. Satisfying it requires editing
+`tests/portfolio-foundation.unit.mjs`, which Scope 09's Change Boundary does not list.
+
+**Reverted rather than sprawled.** `git checkout -- rlportfolio.js` restored 56/56. Editing another
+scope's pin to make my own change pass is precisely the move that guard is built to catch, and doing
+it quietly at the edge of a boundary would be worse than leaving the row honestly blocked.
+
+**The amendment is now precisely specified for whoever takes it:** add `scenarios` to
+`WORKSPACE_FIELDS` and `createEmptyWorkspace`, add `buildScenarioCandidate` (identity plus summary
+only — never the resampled paths, which the identity reproduces), extend Scope 09's Change Boundary
+to include `rlportfolio.js` and `tests/portfolio-foundation.unit.mjs`, and update that pin to
+populate the new section through the new builder. Scope 03's sweep then covers scenarios genuinely
+rather than vacuously.
+

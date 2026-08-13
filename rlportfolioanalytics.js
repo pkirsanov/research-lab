@@ -409,6 +409,276 @@
     return peak;
   }
 
+  /* ----------------------------------------------------- Scope 08 concentration */
+
+  /**
+   * Concentration by one exposure lens.
+   *
+   * A holding whose lens field is absent is reported in `missing`, never folded into an "Other"
+   * bucket, assigned zero, or given the average. Those three shortcuts all produce a complete-looking
+   * distribution from incomplete data, which is worse than a visible gap: the reader cannot tell that
+   * anything is missing. `coveredWeight` states exactly how much of the portfolio the lens explains.
+   */
+  function computeConcentration(holdings, lens) {
+    if (!Array.isArray(holdings) || !holdings.length) return { state: "no-holdings", lens: lens, buckets: [], missing: [] };
+    if (typeof lens !== "string" || !lens) return { state: "lens-invalid", lens: lens, buckets: [], missing: [] };
+    var weightResult = deriveWeights(holdings);
+    if (weightResult.state !== "ok") return { state: weightResult.state, lens: lens, buckets: [], missing: [] };
+
+    var totals = {}, missing = [], coveredWeight = 0, i, h, key, w;
+    var bySymbol = {};
+    for (i = 0; i < holdings.length; i += 1) {
+      h = holdings[i];
+      if (bySymbol[h.symbol]) continue;
+      bySymbol[h.symbol] = true;
+      key = h[lens];
+      w = weightResult.weights[h.symbol];
+      if (typeof key !== "string" || !key.trim()) { missing.push(h.symbol); continue; }
+      key = key.trim();
+      totals[key] = (totals[key] || 0) + w;
+      coveredWeight += w;
+    }
+
+    var buckets = Object.keys(totals).sort().map(function (name) {
+      return { key: name, weight: totals[name] };
+    }).sort(function (a, b) { return b.weight - a.weight; });
+
+    return {
+      state: "ok",
+      lens: lens,
+      buckets: buckets,
+      largest: buckets.length ? buckets[0] : null,
+      coveredWeight: coveredWeight,
+      missing: missing.sort(),
+      // Coverage is stated so a lens explaining a third of the book cannot read like a full picture.
+      coverageState: missing.length === 0 ? "complete" : (coveredWeight > 0 ? "partial" : "none")
+    };
+  }
+
+  /* ------------------------------------------------------------- Scope 08 CAPM */
+
+  /**
+   * OLS fit of portfolio excess return on benchmark excess return.
+   *
+   * Beta, R-squared, correlation and residual risk are reported SEPARATELY and none is allowed to
+   * stand in for another. A low R-squared does not make beta wrong, and a beta near zero does not
+   * make total risk low — it makes the BENCHMARK a poor explanation of this portfolio, which is a
+   * statement about the model rather than about the risk.
+   */
+  function fitCapm(portfolioReturns, benchmarkReturns, options) {
+    var opts = options || {};
+    if (!Array.isArray(portfolioReturns) || !Array.isArray(benchmarkReturns)) return { state: "input-invalid" };
+    if (portfolioReturns.length !== benchmarkReturns.length) return { state: "length-mismatch" };
+    var n = portfolioReturns.length;
+    var minimum = isNum(opts.minimumObservations) ? opts.minimumObservations : 0;
+    if (n < 2) return { state: "insufficient-sample", sampleSize: n };
+
+    var ppy = isNum(opts.periodsPerYear) && opts.periodsPerYear > 0 ? opts.periodsPerYear : TRADING_DAYS;
+    var rfPeriod = isNum(opts.riskFreeAnnual) ? opts.riskFreeAnnual / ppy : 0;
+
+    var xs = [], ys = [], i;
+    for (i = 0; i < n; i += 1) {
+      if (!isNum(portfolioReturns[i]) || !isNum(benchmarkReturns[i])) return { state: "non-finite-input" };
+      ys.push(portfolioReturns[i] - rfPeriod);
+      xs.push(benchmarkReturns[i] - rfPeriod);
+    }
+
+    var mx = mean(xs), my = mean(ys);
+    var sxx = 0, sxy = 0, syy = 0;
+    for (i = 0; i < n; i += 1) {
+      sxx += (xs[i] - mx) * (xs[i] - mx);
+      sxy += (xs[i] - mx) * (ys[i] - my);
+      syy += (ys[i] - my) * (ys[i] - my);
+    }
+    // A benchmark that never moved cannot explain anything, and dividing by its variance would
+    // manufacture an infinite beta from a degenerate sample.
+    if (sxx <= 0) return { state: "benchmark-degenerate", sampleSize: n };
+
+    var beta = sxy / sxx;
+    var alphaPeriod = my - beta * mx;
+    var rSquared = syy > 0 ? (sxy * sxy) / (sxx * syy) : null;
+    var correlation = syy > 0 ? sxy / Math.sqrt(sxx * syy) : null;
+
+    var ssResidual = 0;
+    for (i = 0; i < n; i += 1) {
+      var predicted = alphaPeriod + beta * xs[i];
+      ssResidual += (ys[i] - predicted) * (ys[i] - predicted);
+    }
+    var residualVariance = n > 2 ? ssResidual / (n - 2) : null;
+    var residualRisk = residualVariance === null ? null : Math.sqrt(residualVariance * ppy);
+    var betaStdError = residualVariance === null ? null : Math.sqrt(residualVariance / sxx);
+
+    return {
+      state: "ok",
+      sampleSize: n,
+      periodsPerYear: ppy,
+      beta: beta,
+      alphaAnnualized: alphaPeriod * ppy,
+      rSquared: rSquared,
+      correlation: correlation,
+      residualRiskAnnualized: residualRisk,
+      betaStandardError: betaStdError,
+      // Explanatory power is reported as its own state so a low-fit beta is never read as a precise one.
+      fitState: rSquared === null ? "unavailable" : (rSquared < 0.3 ? "low-explanatory-power" : "explained"),
+      sampleState: n >= minimum ? "meets-minimum" : "below-configured-minimum",
+      configuredMinimum: minimum
+    };
+  }
+
+  function mean(values) {
+    var total = 0;
+    for (var i = 0; i < values.length; i += 1) total += values[i];
+    return total / values.length;
+  }
+
+  /* ------------------------------------------------------- Scope 08 covariance */
+
+  /**
+   * Raw sample covariance and, separately, a fixed-lambda diagonally shrunk matrix.
+   *
+   * The two are returned as DISTINCT results rather than one "best" matrix. Lambda is supplied by
+   * config and is never raised automatically to rescue a singular sample: silently increasing
+   * shrinkage until a matrix inverts would report a conditioned answer as though it were the
+   * observed one, hiding the very degeneracy the diagnostics exist to surface.
+   */
+  function computeCovariance(returnsBySymbol, options) {
+    var opts = options || {};
+    var symbols = Object.keys(returnsBySymbol || {}).sort();
+    if (!symbols.length) return { state: "no-symbols" };
+    var n = returnsBySymbol[symbols[0]].length, i, j, k;
+    for (i = 0; i < symbols.length; i += 1) {
+      if (!Array.isArray(returnsBySymbol[symbols[i]]) || returnsBySymbol[symbols[i]].length !== n) {
+        return { state: "length-mismatch" };
+      }
+    }
+    if (n < 2) return { state: "insufficient-sample", sampleSize: n };
+
+    var means = {};
+    for (i = 0; i < symbols.length; i += 1) means[symbols[i]] = mean(returnsBySymbol[symbols[i]]);
+
+    var raw = [];
+    for (i = 0; i < symbols.length; i += 1) {
+      raw.push([]);
+      for (j = 0; j < symbols.length; j += 1) {
+        var acc = 0;
+        for (k = 0; k < n; k += 1) {
+          acc += (returnsBySymbol[symbols[i]][k] - means[symbols[i]]) *
+            (returnsBySymbol[symbols[j]][k] - means[symbols[j]]);
+        }
+        raw[i].push(acc / (n - 1));
+      }
+    }
+
+    var lambda = isNum(opts.shrinkageLambda) ? opts.shrinkageLambda : 0;
+    if (lambda < 0 || lambda > 1) return { state: "lambda-invalid", lambda: lambda };
+    var conditioned = [];
+    for (i = 0; i < symbols.length; i += 1) {
+      conditioned.push([]);
+      for (j = 0; j < symbols.length; j += 1) {
+        // Diagonal shrinkage: off-diagonals are pulled toward zero, variances are preserved.
+        conditioned[i].push(i === j ? raw[i][j] : raw[i][j] * (1 - lambda));
+      }
+    }
+
+    return {
+      state: "ok",
+      symbols: symbols,
+      sampleSize: n,
+      raw: raw,
+      conditioned: conditioned,
+      shrinkageLambda: lambda,
+      rawPositiveDefinite: isPositiveDefinite(raw),
+      conditionedPositiveDefinite: isPositiveDefinite(conditioned),
+      lambdaWasAutoRaised: false
+    };
+  }
+
+  /**
+   * Cholesky attempt. Success is the definition of positive-definite used here.
+   *
+   * The pivot test is RELATIVE to the matrix scale rather than a comparison against exact zero. A
+   * genuinely singular matrix — two perfectly collinear series, say — produces a final pivot of
+   * `4v - 4v`, which in floating point lands a hair above zero rather than on it. Testing `> 0`
+   * would call that matrix positive-definite and hand a caller an inverse built on noise, which is
+   * precisely the degeneracy these diagnostics exist to surface.
+   */
+  function isPositiveDefinite(matrix) {
+    var size = matrix.length, L = [], i, j, k, scale = 0;
+    for (i = 0; i < size; i += 1) { if (Math.abs(matrix[i][i]) > scale) scale = Math.abs(matrix[i][i]); }
+    var epsilon = scale * 1e-12;
+    for (i = 0; i < size; i += 1) { L.push(new Array(size).fill(0)); }
+    for (i = 0; i < size; i += 1) {
+      for (j = 0; j <= i; j += 1) {
+        var sum = matrix[i][j];
+        for (k = 0; k < j; k += 1) sum -= L[i][k] * L[j][k];
+        if (i === j) {
+          if (!(sum > epsilon)) return false;
+          L[i][j] = Math.sqrt(sum);
+        } else {
+          L[i][j] = sum / L[j][j];
+        }
+      }
+    }
+    return true;
+  }
+
+  /* ------------------------------------------------ Scope 08 risk contribution */
+
+  /**
+   * Marginal and total risk contribution.
+   *
+   * Risk contributions sum to total portfolio risk by construction (Euler decomposition), so the
+   * reconciliation check is a genuine test of the arithmetic rather than a formality — if it fails,
+   * something is wrong and the result says so instead of presenting figures that do not add up.
+   *
+   * A negative contribution is REPORTED, not clamped: a genuine hedge reduces portfolio risk, and
+   * flooring it at zero would erase the single most useful thing the decomposition can show.
+   */
+  function riskContributions(symbols, weights, covariance, options) {
+    var opts = options || {};
+    if (!Array.isArray(symbols) || !symbols.length) return { state: "no-symbols" };
+    if (!Array.isArray(covariance) || covariance.length !== symbols.length) return { state: "covariance-shape-invalid" };
+    var w = [], i, j;
+    for (i = 0; i < symbols.length; i += 1) {
+      if (!isNum(weights[symbols[i]])) return { state: "weights-invalid" };
+      w.push(weights[symbols[i]]);
+    }
+
+    var variance = 0;
+    for (i = 0; i < w.length; i += 1) {
+      for (j = 0; j < w.length; j += 1) variance += w[i] * covariance[i][j] * w[j];
+    }
+    if (!(variance > 0)) return { state: "zero-variance" };
+    var sigma = Math.sqrt(variance);
+
+    var marginal = [], contribution = [], total = 0;
+    for (i = 0; i < w.length; i += 1) {
+      var cov = 0;
+      for (j = 0; j < w.length; j += 1) cov += covariance[i][j] * w[j];
+      var mrc = cov / sigma;
+      marginal.push(mrc);
+      contribution.push(w[i] * mrc);
+      total += w[i] * mrc;
+    }
+
+    var tolerance = isNum(opts.reconciliationTolerance) ? opts.reconciliationTolerance : 1e-8;
+    var residual = Math.abs(total - sigma);
+
+    return {
+      state: "ok",
+      symbols: symbols.slice(),
+      portfolioRisk: sigma,
+      marginal: marginal,
+      contribution: contribution,
+      contributionShare: contribution.map(function (c) { return c / sigma; }),
+      contributionSum: total,
+      reconciliationResidual: residual,
+      reconciliationTolerance: tolerance,
+      reconciled: residual <= tolerance,
+      negativeContributors: symbols.filter(function (_s, index) { return contribution[index] < 0; })
+    };
+  }
+
   return {
     TRADING_DAYS: TRADING_DAYS,
     alignPortfolioReturns: alignPortfolioReturns,
@@ -416,6 +686,10 @@
     computeDrawdown: computeDrawdown,
     deriveWeights: deriveWeights,
     riskXRayProjection: riskXRayProjection,
+    computeConcentration: computeConcentration,
+    fitCapm: fitCapm,
+    computeCovariance: computeCovariance,
+    riskContributions: riskContributions,
     analyticsIdentity: analyticsIdentity
   };
 });

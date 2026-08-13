@@ -351,6 +351,177 @@ test("TP-07-01 ADVERSARIAL the projection refuses instead of rendering a partial
   assert.deepEqual(missing.points, []);
 });
 
+/* ------------------------------------------- Scope 08: concentration and CAPM */
+
+test('TP-08-01 concentration reports missing exposure rather than bucketing it', () => {
+  const holdings = [
+    { symbol: 'AAA', derivedValue: 500, sector: 'Tech' },
+    { symbol: 'BBB', derivedValue: 300, sector: 'Tech' },
+    { symbol: 'CCC', derivedValue: 200 }
+  ];
+  const c = RLPA.computeConcentration(holdings, 'sector');
+  assert.equal(c.state, 'ok');
+  // Independent: Tech is 500+300 of 1000.
+  assert.equal(c.buckets.length, 1);
+  assert.equal(c.buckets[0].key, 'Tech');
+  assert.ok(near(c.buckets[0].weight, 0.8));
+
+  // ADVERSARIAL: the holding with no sector must be NAMED, not folded into "Other", not given zero,
+  // and not given the average. Each of those makes an incomplete lens look complete.
+  assert.deepEqual(c.missing, ['CCC']);
+  assert.equal(c.coverageState, 'partial');
+  assert.ok(near(c.coveredWeight, 0.8));
+  assert.equal(c.buckets.some((b) => /other|unknown|n\/a/i.test(b.key)), false);
+  // Bucket weights must sum to covered weight, NOT to 1 -- the gap stays visible.
+  assert.ok(near(c.buckets.reduce((a, b) => a + b.weight, 0), c.coveredWeight));
+  assert.ok(c.coveredWeight < 1);
+});
+
+test('TP-08-01 CAPM separates beta, fit, correlation, and residual risk', () => {
+  // Construct returns with a KNOWN beta: portfolio = 0.6 * benchmark + noise.
+  const bench = [0.01, -0.02, 0.015, -0.005, 0.02, -0.01, 0.008, -0.012, 0.011, -0.007];
+  const noise = [0.001, -0.001, 0.0005, 0.0008, -0.0012, 0.0003, -0.0007, 0.0011, -0.0004, 0.0006];
+  const port = bench.map((b, i) => 0.6 * b + noise[i]);
+
+  const fit = RLPA.fitCapm(port, bench, { periodsPerYear: 252, minimumObservations: 126 });
+  assert.equal(fit.state, 'ok');
+  assert.equal(fit.sampleSize, 10);
+  // Beta must recover close to the constructed 0.6.
+  assert.ok(Math.abs(fit.beta - 0.6) < 0.05, `beta ${fit.beta} should be near 0.6`);
+  // Every quantity is its own field; none substitutes for another.
+  for (const key of ['beta', 'alphaAnnualized', 'rSquared', 'correlation', 'residualRiskAnnualized', 'betaStandardError']) {
+    assert.ok(Object.prototype.hasOwnProperty.call(fit, key), `${key} must be reported separately`);
+  }
+  // A 10-period sample is below the configured 126 minimum and must say so.
+  assert.equal(fit.sampleState, 'below-configured-minimum');
+  assert.equal(fit.configuredMinimum, 126);
+});
+
+test('TP-08-01 ADVERSARIAL a low-fit beta is not reported as a precise one', () => {
+  // Portfolio almost uncorrelated with the benchmark: beta is near zero, and the honest reading is
+  // that the BENCHMARK explains little -- not that the portfolio carries little risk.
+  const bench = [0.01, -0.01, 0.01, -0.01, 0.01, -0.01, 0.01, -0.01];
+  const port = [0.03, 0.028, -0.031, -0.029, 0.032, 0.027, -0.03, -0.028];
+  const fit = RLPA.fitCapm(port, bench, { periodsPerYear: 252 });
+  assert.equal(fit.state, 'ok');
+  assert.ok(fit.rSquared < 0.3, `rSquared ${fit.rSquared} should be low for this fixture`);
+  assert.equal(fit.fitState, 'low-explanatory-power');
+  // Residual risk must be LARGE here: the portfolio is volatile even though beta is small, which is
+  // exactly the case where reading beta as total risk would mislead.
+  assert.ok(fit.residualRiskAnnualized > 0.1, 'a low beta must not imply low total risk');
+});
+
+test('TP-08-01 CAPM refuses degenerate and mismatched input', () => {
+  assert.equal(RLPA.fitCapm([0.1, 0.2], [0.1]).state, 'length-mismatch');
+  assert.equal(RLPA.fitCapm([0.1], [0.1]).state, 'insufficient-sample');
+  assert.equal(RLPA.fitCapm([0.1, 0.2], [0.05, NaN]).state, 'non-finite-input');
+  // A benchmark that never moved cannot explain anything; dividing by its variance would
+  // manufacture an infinite beta.
+  assert.equal(RLPA.fitCapm([0.1, 0.2, 0.3], [0.01, 0.01, 0.01]).state, 'benchmark-degenerate');
+  assert.equal(RLPA.fitCapm(null, []).state, 'input-invalid');
+});
+
+/* ------------------------------------ Scope 08: covariance and risk contribution */
+
+test('TP-08-01 covariance keeps raw and conditioned matrices separate', () => {
+  const returns = {
+    AAA: [0.01, -0.02, 0.015, -0.005, 0.02],
+    BBB: [0.005, -0.01, 0.008, -0.002, 0.011]
+  };
+  const cov = RLPA.computeCovariance(returns, { shrinkageLambda: 0.2 });
+  assert.equal(cov.state, 'ok');
+  assert.deepEqual(cov.symbols, ['AAA', 'BBB']);
+
+  // Independent: sample variance of AAA with Bessel correction.
+  const a = returns.AAA;
+  const ma = a.reduce((x, y) => x + y, 0) / a.length;
+  const varA = a.reduce((acc, v) => acc + (v - ma) ** 2, 0) / (a.length - 1);
+  assert.ok(near(cov.raw[0][0], varA, 1e-12));
+
+  // Shrinkage pulls the OFF-diagonal toward zero and leaves variances untouched.
+  assert.ok(near(cov.conditioned[0][0], cov.raw[0][0]), 'variances must be preserved');
+  assert.ok(near(cov.conditioned[0][1], cov.raw[0][1] * 0.8), 'off-diagonal must shrink by lambda');
+  // The two matrices are distinct results, not one replacing the other.
+  assert.notEqual(cov.raw, cov.conditioned);
+  assert.equal(cov.shrinkageLambda, 0.2);
+});
+
+test('TP-08-01 ADVERSARIAL lambda is never auto-raised to rescue a singular matrix', () => {
+  // BBB is an exact multiple of AAA, so the covariance matrix is singular by construction.
+  const returns = { AAA: [0.01, -0.02, 0.03, -0.01], BBB: [0.02, -0.04, 0.06, -0.02] };
+  const cov = RLPA.computeCovariance(returns, { shrinkageLambda: 0 });
+  assert.equal(cov.state, 'ok');
+  assert.equal(cov.rawPositiveDefinite, false, 'a perfectly collinear pair is not positive definite');
+  // The degeneracy is REPORTED, not silently repaired by raising lambda until it inverts.
+  assert.equal(cov.shrinkageLambda, 0, 'the configured lambda must be honoured exactly');
+  assert.equal(cov.lambdaWasAutoRaised, false);
+
+  assert.equal(RLPA.computeCovariance(returns, { shrinkageLambda: 1.5 }).state, 'lambda-invalid');
+  assert.equal(RLPA.computeCovariance({ AAA: [0.1], BBB: [0.1] }, {}).state, 'insufficient-sample');
+  assert.equal(RLPA.computeCovariance({ AAA: [0.1, 0.2], BBB: [0.1] }, {}).state, 'length-mismatch');
+});
+
+test('TP-08-01 risk contributions reconcile to total risk within tolerance', () => {
+  const symbols = ['AAA', 'BBB'];
+  const weights = { AAA: 0.6, BBB: 0.4 };
+  const cov = [[0.04, 0.006], [0.006, 0.01]];
+  const rc = RLPA.riskContributions(symbols, weights, cov, { reconciliationTolerance: 1e-8 });
+
+  assert.equal(rc.state, 'ok');
+  // Independent: sigma^2 = .36*.04 + 2*.24*.006 + .16*.01 = .0144 + .00288 + .0016 = .01888.
+  const expectedSigma = Math.sqrt(0.01888);
+  assert.ok(near(rc.portfolioRisk, expectedSigma, 1e-12));
+  // Euler decomposition: contributions must sum to total risk. This is a real arithmetic check.
+  assert.ok(near(rc.contributionSum, rc.portfolioRisk, 1e-12));
+  assert.equal(rc.reconciled, true);
+  assert.ok(rc.reconciliationResidual <= 1e-8);
+  // Shares sum to 1 because the parts sum to the whole.
+  assert.ok(near(rc.contributionShare.reduce((a, b) => a + b, 0), 1, 1e-12));
+});
+
+test('TP-08-01 ADVERSARIAL a genuine hedge reports a NEGATIVE contribution', () => {
+  // BBB is strongly negatively correlated with AAA, so it removes risk from the portfolio.
+  const symbols = ['AAA', 'BBB'];
+  const weights = { AAA: 0.8, BBB: 0.2 };
+  const cov = [[0.04, -0.02], [-0.02, 0.02]];
+  const rc = RLPA.riskContributions(symbols, weights, cov, {});
+
+  assert.equal(rc.state, 'ok');
+  assert.ok(rc.contribution[1] < 0, 'the hedge must show a negative contribution, not a floored zero');
+  assert.deepEqual(rc.negativeContributors, ['BBB']);
+  // Even with a negative part, the decomposition still adds up.
+  assert.ok(near(rc.contributionSum, rc.portfolioRisk, 1e-12));
+  assert.equal(rc.reconciled, true);
+
+  assert.equal(RLPA.riskContributions([], {}, []).state, 'no-symbols');
+  assert.equal(RLPA.riskContributions(['A'], { A: 1 }, [[0]]).state, 'zero-variance');
+  assert.equal(RLPA.riskContributions(['A'], {}, [[0.1]]).state, 'weights-invalid');
+  assert.equal(RLPA.riskContributions(['A', 'B'], { A: 0.5, B: 0.5 }, [[0.1]]).state, 'covariance-shape-invalid');
+});
+
+test('TP-08-01 ADVERSARIAL the Cholesky pivot tolerance cannot reject a valid matrix', () => {
+  // isPositiveDefinite tests the pivot against scale * 1e-12 rather than exact zero, so that a
+  // genuinely singular matrix is not called positive-definite by float noise. That tolerance must
+  // be noise-only. This matrix is ill-conditioned but genuinely positive-definite -- its smallest
+  // eigenvalue is ~1e-6 relative to the diagonal, six orders of magnitude above the tolerance --
+  // and must still be accepted.
+  const nearly = { AAA: [], BBB: [] };
+  for (let i = 0; i < 40; i += 1) {
+    const base = Math.sin(i) * 0.02;
+    nearly.AAA.push(base);
+    nearly.BBB.push(base * 2 + Math.cos(i * 7) * 0.00002);
+  }
+  const cov = RLPA.computeCovariance(nearly, { shrinkageLambda: 0 });
+  assert.equal(cov.state, 'ok');
+  assert.equal(cov.rawPositiveDefinite, true, 'ill-conditioned but valid must still be accepted');
+
+  // And shrinkage is what a caller applies DELIBERATELY to condition a hard matrix -- it is offered,
+  // never applied behind their back.
+  const shrunk = RLPA.computeCovariance(nearly, { shrinkageLambda: 0.2 });
+  assert.equal(shrunk.shrinkageLambda, 0.2);
+  assert.equal(shrunk.conditionedPositiveDefinite, true);
+});
+
 test("TP-07-01 return math is delegated to rlmetrics, not redefined here", () => {
   // P18: a metric is defined once. If this module ever grew its own arithmetic/CAGR/drag, the
   // repo would have two definitions of each and the brief could publish either.

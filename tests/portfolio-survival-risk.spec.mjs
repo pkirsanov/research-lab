@@ -225,6 +225,89 @@ test('Regression: Feature 008 return and drawdown canvas tables remain equivalen
   await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
 });
 
+test('Regression: SCN-008-015 concentration lenses name missing exposure instead of bucketing it', async ({ page }) => {
+  await openLab(page);
+  await importValid(page, 'TP-08-02 concentration');
+  await seedBars(page, 'MSFT', series(DATES, [100, 120, 90, 96, 130, 128]));
+  await seedBars(page, 'BND', series(DATES, [50, 51, 50, 50, 52, 52]));
+
+  const panel = await openRiskXRay(page);
+  const conc = panel.locator('#riskConcentration');
+  await expect(conc).toBeVisible();
+
+  // Every configured lens renders its own section with its own coverage state.
+  for (const lens of ['symbol', 'assetClass', 'sector', 'currency']) {
+    await expect(conc.locator(`[data-lens="${lens}"]`)).toHaveCount(1);
+  }
+
+  // The symbol lens covers every holding, so it is complete and its buckets sum to 100%.
+  const symbolLens = conc.locator('[data-lens="symbol"]');
+  await expect(symbolLens).toHaveAttribute('data-coverage', 'complete');
+  await expect(symbolLens.locator('[data-bucket="MSFT"]')).toBeVisible();
+  await expect(symbolLens.locator('[data-bucket="BND"]')).toBeVisible();
+
+  // ADVERSARIAL: the fixture carries no sector, so that lens must be PARTIAL and must NAME the
+  // holdings it cannot place -- never invent an Other bucket, a zero, or an average.
+  const sectorLens = conc.locator('[data-lens="sector"]');
+  await expect(sectorLens).toHaveAttribute('data-coverage', 'none');
+  await expect(sectorLens.locator('[data-lens-coverage="sector"]')).toContainText('missing this detail');
+  await expect(sectorLens.locator('[data-lens-coverage="sector"]')).toContainText('never bucketed as Other');
+  const sectorBuckets = await sectorLens.locator('[data-bucket]').allTextContents();
+  for (const bucket of sectorBuckets) {
+    expect(bucket.toLowerCase()).not.toMatch(/other|unknown|n\/a/);
+  }
+});
+
+test('Regression: SCN-008-016 benchmark fit is unavailable rather than regressed against a guess', async ({ page }) => {
+  await openLab(page);
+  await importValid(page, 'TP-08-03 capm');
+  await seedBars(page, 'MSFT', series(DATES, [100, 120, 90, 96, 130, 128]));
+  await seedBars(page, 'BND', series(DATES, [50, 51, 50, 50, 52, 52]));
+
+  const panel = await openRiskXRay(page);
+  const capm = panel.locator('#riskCapm');
+  await expect(capm).toBeVisible();
+
+  // The benchmark symbol is a policy value with no home in the current analytics contract
+  // (F-08-CONFIG-BOUNDARY), so the surface refuses rather than picking a symbol for itself.
+  await expect(capm).toHaveAttribute('data-capm-state', 'benchmark-unavailable');
+  await expect(panel.locator('#riskCapmUnavailable')).toContainText('Benchmark fit unavailable');
+  await expect(panel.locator('#riskCapmUnavailable')).toContainText('no beta, alpha, or explanatory figure is shown');
+
+  // ADVERSARIAL: not one fitted figure may be rendered while the benchmark is undeclared.
+  for (const id of ['#riskBeta', '#riskAlpha', '#riskRSquared', '#riskCorrelation', '#riskResidual', '#riskBetaStdError']) {
+    await expect(panel.locator(id), `${id} must be absent without a declared benchmark`).toHaveCount(0);
+  }
+});
+
+test('Regression: SCN-008-017 risk contributions reconcile and declare their covariance basis', async ({ page }) => {
+  await openLab(page);
+  await importValid(page, 'TP-08-04 contributions');
+  await seedBars(page, 'MSFT', series(DATES, [100, 120, 90, 96, 130, 128]));
+  await seedBars(page, 'BND', series(DATES, [50, 51, 50, 50, 52, 52]));
+
+  const panel = await openRiskXRay(page);
+  const box = panel.locator('#riskContributions');
+  await expect(box).toHaveAttribute('data-contribution-state', 'ok');
+  await expect(box).toHaveAttribute('data-covariance-state', 'ok');
+
+  // One row per holding, each carrying weight, marginal, contribution, and share as SEPARATE cells.
+  await expect(box.locator('#riskContributionTable tbody tr')).toHaveCount(2);
+  await expect(box.locator('[data-contributor="MSFT"]')).toBeVisible();
+  await expect(box.locator('[data-contributor="BND"]')).toBeVisible();
+
+  // The shrinkage assumption is never implicit: the basis and lambda are stated on the surface.
+  await expect(panel.locator('#riskCovarianceState')).toContainText('conditioned covariance');
+  await expect(panel.locator('#riskCovarianceState')).toContainText('lambda auto-raised: false');
+
+  // The Euler reconciliation is a real arithmetic check and its result is shown, not assumed.
+  await expect(panel.locator('#riskReconciliation')).toContainText('reconciled: true');
+  const reconText = await panel.locator('#riskReconciliation').textContent();
+  const sum = Number(/sum to ([0-9.]+)/.exec(reconText)[1]);
+  const risk = Number(/portfolio risk ([0-9.]+)/.exec(reconText)[1]);
+  expect(Math.abs(sum - risk)).toBeLessThanOrEqual(1e-8);
+});
+
 test('Regression: Feature 008 Risk X-Ray refuses rather than showing a partial portfolio', async ({ page }) => {
   await openLab(page);
   await importValid(page, 'TP-07-05 refusal');

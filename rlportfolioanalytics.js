@@ -132,14 +132,22 @@
 
     // Weighted simple returns on the common basis. The portfolio return for a period is the
     // weight-weighted sum of constituent simple returns over the SAME two dates.
-    var returns = [], dates = [], index = [1], wealth = 1;
+    //
+    // Per-symbol returns are emitted alongside so covariance and risk contributions run on the
+    // IDENTICAL aligned basis. Letting a caller re-derive them would permit a second, subtly
+    // different alignment, and a covariance built on one basis while weights come from another is
+    // wrong in a way no assertion downstream would catch.
+    var returns = [], dates = [], index = [1], wealth = 1, perSymbol = {};
+    for (i = 0; i < symbols.length; i += 1) perSymbol[symbols[i]] = [];
     for (i = 1; i < common.length; i += 1) {
       var rp = 0;
       for (var k = 0; k < symbols.length; k += 1) {
         var sym = symbols[k];
         var prev = maps[sym].get(common[i - 1]);
         var cur = maps[sym].get(common[i]);
-        rp += weights[sym] * ((cur / prev) - 1);
+        var ri = (cur / prev) - 1;
+        perSymbol[sym].push(ri);
+        rp += weights[sym] * ri;
       }
       returns.push(rp);
       dates.push(common[i]);
@@ -154,6 +162,7 @@
       basis: "exact-common-date-intersection",
       commonDates: common,
       returns: returns,
+      perSymbolReturns: perSymbol,
       returnDates: dates,
       wealthIndex: index,
       alignment: {
@@ -173,6 +182,7 @@
       basis: "exact-common-date-intersection",
       commonDates: [],
       returns: [],
+      perSymbolReturns: {},
       returnDates: [],
       wealthIndex: [],
       alignment: {
@@ -374,6 +384,35 @@
     var metrics = computeReturnMetrics(aligned, { periodsPerYear: opts.periodsPerYear });
     var drawdown = computeDrawdown(aligned);
 
+    // Scope 08 diagnostics. Each is OPTIONAL and independently unavailable: a missing benchmark
+    // must not suppress concentration, and an unmeasurable covariance must not suppress CAPM.
+    var lenses = Array.isArray(opts.concentrationLenses) ? opts.concentrationLenses : [];
+    var concentration = lenses.map(function (lens) { return computeConcentration(opts.holdings, lens); });
+
+    var capm = { state: "benchmark-unavailable" };
+    if (Array.isArray(opts.benchmarkReturns) && opts.benchmarkReturns.length === aligned.returns.length) {
+      capm = fitCapm(aligned.returns, opts.benchmarkReturns, {
+        periodsPerYear: opts.periodsPerYear,
+        riskFreeAnnual: opts.riskFreeAnnual,
+        minimumObservations: opts.minimumCapmObservations
+      });
+    }
+
+    var covariance = { state: "not-computed" };
+    var contributions = { state: "not-computed" };
+    if (aligned.returns.length >= 2) {
+      covariance = computeCovariance(aligned.perSymbolReturns, { shrinkageLambda: opts.shrinkageLambda });
+      if (covariance.state === "ok") {
+        // Contributions run on the CONDITIONED matrix, and the projection carries which one was
+        // used so a reader is never left guessing whether a shrinkage assumption is baked in.
+        contributions = riskContributions(covariance.symbols, weightResult.weights, covariance.conditioned, {
+          reconciliationTolerance: opts.reconciliationTolerance
+        });
+        contributions.basis = "conditioned";
+        contributions.shrinkageLambda = covariance.shrinkageLambda;
+      }
+    }
+
     // Canvas points and table rows come from the SAME wealth index in the SAME order.
     var points = aligned.commonDates.map(function (date, i) {
       return {
@@ -398,6 +437,11 @@
       alignment: aligned.alignment,
       metrics: metrics,
       drawdown: drawdown,
+      concentration: concentration,
+      capm: capm,
+      benchmarkSymbol: opts.benchmarkSymbol || null,
+      covariance: covariance,
+      contributions: contributions,
       points: points,
       rows: points
     };

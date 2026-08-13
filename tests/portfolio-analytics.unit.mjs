@@ -522,6 +522,54 @@ test('TP-08-01 ADVERSARIAL the Cholesky pivot tolerance cannot reject a valid ma
   assert.equal(shrunk.conditionedPositiveDefinite, true);
 });
 
+test('TP-08-01 the projection carries each diagnostic independently unavailable', () => {
+  const dates = ['2026-05-04', '2026-05-05', '2026-05-06', '2026-05-07', '2026-05-08'];
+  const base = {
+    holdings: [{ symbol: 'AAA', derivedValue: 600, sector: 'Tech' }, { symbol: 'BBB', derivedValue: 400 }],
+    series: {
+      AAA: dates.map((d, i) => ({ date: d, close: [100, 110, 95, 105, 102][i] })),
+      BBB: dates.map((d, i) => ({ date: d, close: [50, 50.5, 49, 50, 50.2][i] }))
+    },
+    cutoff: '2026-05-08',
+    periodsPerYear: 252,
+    concentrationLenses: ['symbol', 'sector'],
+    shrinkageLambda: 0.2,
+    reconciliationTolerance: 1e-8
+  };
+
+  const full = RLPA.riskXRayProjection({ ...base, benchmarkReturns: [0.01, -0.02, 0.015, -0.005], benchmarkSymbol: 'SPY' });
+  assert.equal(full.state, 'ok');
+  assert.equal(full.capm.state, 'ok');
+  assert.equal(full.covariance.state, 'ok');
+  assert.equal(full.contributions.state, 'ok');
+  // Contributions must declare WHICH matrix they used, so a shrinkage assumption is never implicit.
+  assert.equal(full.contributions.basis, 'conditioned');
+  assert.equal(full.contributions.shrinkageLambda, 0.2);
+  // Covariance runs on the SAME aligned basis as the weights, not a re-derived one.
+  assert.deepEqual(full.covariance.symbols, ['AAA', 'BBB']);
+  assert.equal(full.covariance.sampleSize, full.metrics.sampleSize);
+
+  // ADVERSARIAL: an absent benchmark must NOT suppress the other diagnostics. Each is independently
+  // unavailable, because a reader losing concentration because a benchmark is missing would be told
+  // nothing is measurable when most of it is.
+  const noBenchmark = RLPA.riskXRayProjection(base);
+  assert.equal(noBenchmark.capm.state, 'benchmark-unavailable');
+  assert.equal(noBenchmark.covariance.state, 'ok');
+  assert.equal(noBenchmark.contributions.state, 'ok');
+  assert.equal(noBenchmark.concentration[0].state, 'ok');
+  assert.equal(noBenchmark.metrics.state, 'ok');
+
+  // A benchmark of the wrong length is refused rather than truncated to fit.
+  const shortBenchmark = RLPA.riskXRayProjection({ ...base, benchmarkReturns: [0.01] });
+  assert.equal(shortBenchmark.capm.state, 'benchmark-unavailable');
+
+  // Concentration coverage differs per lens on the same portfolio: every holding has a symbol, only
+  // one has a sector.
+  assert.equal(full.concentration[0].coverageState, 'complete');
+  assert.equal(full.concentration[1].coverageState, 'partial');
+  assert.deepEqual(full.concentration[1].missing, ['BBB']);
+});
+
 test("TP-07-01 return math is delegated to rlmetrics, not redefined here", () => {
   // P18: a metric is defined once. If this module ever grew its own arithmetic/CAGR/drag, the
   // repo would have two definitions of each and the brief could publish either.

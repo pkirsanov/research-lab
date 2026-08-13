@@ -1,7 +1,7 @@
 # Research Lab - Investor Overview
 
-**Status:** Current product-direction summary for release planning  
-**Measured:** 2026-08-12 from the checked-out repository  
+**Status:** Current product-direction summary for release planning
+**Measured:** 2026-08-12 from the checked-out repository
 **Audience:** Owner, operator, investor, release planner, and new contributor
 
 > Research Lab provides educational market-research models. It does not provide investment advice,

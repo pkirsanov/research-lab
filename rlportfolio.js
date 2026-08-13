@@ -75,7 +75,10 @@
     ]),
     analytics: Object.freeze([
       "benchmarkSymbol", "concentrationAlertWeight", "concentrationLenses", "contractVersion",
-      "covarianceSensitivity", "covarianceShrinkageLambda", "lowerTailQuantile", "maximumListedAssets",
+      "covarianceSensitivity", "covarianceShrinkageLambda", "hedgeBasisCorrelation",
+      "hedgeCommissionFraction", "hedgeInstrumentClass", "hedgeLiquidity",
+      "hedgeRebalancesPerYear", "hedgeSlippageFraction", "hedgeSpreadFraction",
+      "lowerTailQuantile", "maximumListedAssets",
       "minimumCapmObservations", "minimumJointTailEvents", "minimumRiskObservations", "minimumTailObservations",
       "proxyFactors", "proxyFactorsVersion",
       "riskFreeAnnual", "riskReconciliationTolerance", "targetHistoryCalendarYears"
@@ -396,6 +399,13 @@
         !value.analytics.concentrationLenses.every(function (lens) { return HOLDING_FIELDS.indexOf(lens) !== -1; }) ||
         !finitePositive(value.analytics.concentrationAlertWeight) || value.analytics.concentrationAlertWeight > 1 ||
         !finitePositive(value.analytics.lowerTailQuantile) || value.analytics.lowerTailQuantile >= 0.5 ||
+        !finiteNonNegative(value.analytics.hedgeCommissionFraction) ||
+        !finiteNonNegative(value.analytics.hedgeSpreadFraction) ||
+        !finiteNonNegative(value.analytics.hedgeSlippageFraction) ||
+        !finiteNonNegative(value.analytics.hedgeRebalancesPerYear) ||
+        !finiteNonNegative(value.analytics.hedgeBasisCorrelation) || value.analytics.hedgeBasisCorrelation > 1 ||
+        typeof value.analytics.hedgeInstrumentClass !== "string" || !value.analytics.hedgeInstrumentClass.trim() ||
+        typeof value.analytics.hedgeLiquidity !== "string" || !value.analytics.hedgeLiquidity.trim() ||
         typeof value.analytics.proxyFactorsVersion !== "string" || !value.analytics.proxyFactorsVersion.trim() ||
         !Array.isArray(value.analytics.proxyFactors) || !value.analytics.proxyFactors.length ||
         !value.analytics.proxyFactors.every(validProxyFactor)) {

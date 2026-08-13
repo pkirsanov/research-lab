@@ -241,3 +241,131 @@ test('Regression: Feature 008 Diversification refuses rather than showing a simp
   expect(await panel.locator('#dependenceMatrix').count(), 'no matrix is drawn without evidence').toBe(0);
   expect(await panel.locator('#dependenceTable').count(), 'no table is drawn without evidence').toBe(0);
 });
+
+/* ---------------------------------------------------------------------------
+   Scope 12 — hedge variant research
+   --------------------------------------------------------------------------- */
+
+async function enterHedge(panel, { exposure = '100000', volatility = '0.2', carry = '0.01', proxy = 'FXE' } = {}) {
+  await panel.locator('#hedgeExposure').fill(exposure);
+  await panel.locator('#hedgeVolatility').fill(volatility);
+  await panel.locator('#hedgeCarry').fill(carry);
+  await panel.locator('#hedgeProxy').fill(proxy);
+  await panel.locator('#hedgeApply').click();
+}
+
+test('Regression: SCN-008-025 hedged and unhedged comparison keeps carry and basis risk separate', async ({ page }) => {
+  await seedPortfolio(page, 'TP-12-02 hedge');
+  const panel = await openDiversification(page);
+
+  // Nothing is assumed before the user enters anything.
+  await expect(panel.locator('#hedgeEmpty')).toContainText('No exposure, proxy, ratio, or cost is assumed on your behalf');
+  await expect(panel.locator('#hedgeEmpty')).toContainText('nothing is derived from your recorded behavior or display settings');
+
+  await enterHedge(panel);
+
+  const rows = panel.locator('#hedgeTable tbody tr');
+  expect(await rows.count(), 'unhedged, partial and fully hedged are all shown').toBe(3);
+  const labels = await rows.locator('th').allTextContents();
+  expect(labels).toEqual(['Unhedged', 'Partial hedge 50%', 'Fully hedged']);
+
+  // Carry, direct and turnover are SEPARATE columns. One blended "net" figure
+  // would let a large carry hide behind a large risk reduction.
+  const headers = await panel.locator('#hedgeTable thead th').allTextContents();
+  expect(headers).toEqual(['Variant', 'Residual volatility', 'Carry', 'Direct', 'Turnover', 'Total cost', 'Basis risk']);
+
+  // The unhedged baseline costs nothing and reduces nothing.
+  // td indices are shifted by one: the variant label is a th, not a td.
+  const unhedged = await rows.nth(0).locator('td').allTextContents();
+  expect(unhedged[1], 'unhedged carry is zero').toMatch(/\$0/);
+  expect(unhedged[4], 'unhedged total cost is zero').toMatch(/\$0/);
+
+  // Cost rises with the ratio; both directions of the trade-off are visible.
+  const fully = await rows.nth(2).locator('td').allTextContents();
+  expect(fully[4], 'a full hedge costs something').not.toMatch(/^\$0$/);
+  expect(
+    Number(fully[0].replace('%', '')),
+    'a full hedge leaves less residual volatility than no hedge'
+  ).toBeLessThan(Number(unhedged[0].replace('%', '')));
+
+  // Basis risk is stated per row, not assumed away.
+  expect(fully[5]).toContain('Remains');
+
+  // No prescription anywhere on the surface.
+  const boundary = await panel.locator('#hedgeClaimBoundary').textContent();
+  expect(boundary).toContain('No hedge ratio is prescribed as optimal or suitable');
+  expect(boundary).toContain('nothing is executed');
+  expect(boundary).toContain('your portfolio is not modified');
+
+  const rendered = await panel.locator('#hedgeVariants').textContent();
+  expect(rendered).not.toMatch(/recommended (hedge )?ratio/i);
+  expect(rendered).not.toMatch(/optimal for you/i);
+  expect(rendered).not.toMatch(/\bplace (the )?order\b/i);
+});
+
+test('Regression: SCN-008-025 missing cost evidence blocks net benefit rather than assuming zero', async ({ page }) => {
+  await seedPortfolio(page, 'TP-12-03 missing cost');
+  const panel = await openDiversification(page);
+
+  // Carry deliberately left empty: the one cost the user must state.
+  await enterHedge(panel, { carry: '' });
+
+  await expect(panel.locator('#hedgeNetUnavailable')).toBeVisible();
+  const note = await panel.locator('#hedgeNetUnavailable').textContent();
+  expect(note).toContain('Net benefit unavailable');
+  expect(note).toContain('annualCarryFraction');
+  expect(note).toContain('is NOT treated as zero');
+  expect(note).toContain('zero is a claim about the world');
+
+  // Every row reports the refusal rather than a plausible total built on a
+  // silently-zeroed carry. Total cost is the fifth td (the label is a th).
+  const totals = await panel.locator('#hedgeTable tbody tr td:nth-child(6)').allTextContents();
+  for (const total of totals) expect(total).toContain('Net unavailable');
+
+  const states = await panel.locator('#hedgeTable tbody tr').evaluateAll(
+    (rows) => rows.map((row) => row.dataset.variantState)
+  );
+  expect(states.every((s) => s === 'gross-only')).toBe(true);
+});
+
+test('Regression: Feature 008 hedge variants stay equivalent and legible at desktop mobile and zoom', async ({ page }) => {
+  await seedPortfolio(page, 'TP-12-04 hedge parity');
+  const panel = await openDiversification(page);
+  await enterHedge(panel);
+
+  const rowCount = await panel.locator('#hedgeTable tbody tr').count();
+  expect(rowCount).toBe(3);
+
+  const unresolved = await panel.evaluate(() => {
+    const rows = Array.from(document.querySelectorAll('#hedgeTable tbody tr'));
+    return rows.filter((row) => !row.id || document.querySelectorAll('#' + CSS.escape(row.id)).length !== 1).length;
+  });
+  expect(unresolved, 'every hedge row is a unique link target').toBe(0);
+
+  for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    await expect(panel.locator('#hedgeTable')).toBeVisible();
+    await expect(panel.locator('#dependenceMatrix')).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `no horizontal overflow at ${viewport.width}px`).toBeLessThanOrEqual(1);
+    expect(await panel.locator('#hedgeTable tbody tr').count()).toBe(rowCount);
+
+    // The matrix must still be painted with the hedge table below it.
+    const painted = await panel.locator('#dependenceMatrix').evaluate((canvas) => {
+      const { data } = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+      let coloured = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255) coloured += 1;
+      }
+      return coloured;
+    });
+    expect(painted).toBeGreaterThan(200);
+  }
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.evaluate(() => { document.documentElement.style.fontSize = '130%'; });
+  await expect(panel.locator('#hedgeTable')).toBeVisible();
+  const overflowZoom = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflowZoom, 'no horizontal overflow at 130% text').toBeLessThanOrEqual(1);
+  await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
+});

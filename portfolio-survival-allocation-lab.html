@@ -1523,7 +1523,166 @@
                     "never depends on colour alone.";
                 band.appendChild(boundary);
 
+                appendHedgeVariants(band);
+
                 panel.appendChild(band);
+            }
+
+            /* Hedge inputs are entered, never inferred. Behaviour and display
+               settings contribute nothing here by construction: this reads only
+               from the form fields below. */
+            function hedgeInputs() {
+                var h = state.hedge || {};
+                return {
+                    targetExposureValue: h.targetExposureValue,
+                    targetVolatility: h.targetVolatility,
+                    hedgeRatio: 1,
+                    horizonYears: h.horizonYears,
+                    annualCarryFraction: h.annualCarryFraction,
+                    commissionFraction: h.commissionFraction,
+                    spreadFraction: h.spreadFraction,
+                    slippageFraction: h.slippageFraction,
+                    rebalancesPerYear: h.rebalancesPerYear,
+                    basisCorrelation: h.basisCorrelation,
+                    proxySymbol: h.proxySymbol,
+                    instrumentClass: h.instrumentClass,
+                    liquidity: h.liquidity
+                };
+            }
+
+            function appendHedgeVariants(band) {
+                var hedgeBand = document.createElement("div");
+                hedgeBand.className = "band";
+                hedgeBand.id = "hedgeVariants";
+                var heading = document.createElement("h5");
+                heading.textContent = "Hedge variant research";
+                hedgeBand.appendChild(heading);
+
+                var form = document.createElement("div");
+                form.className = "row";
+                var fields = [
+                    ["hedgeExposure", "number", "Exposure value", "targetExposureValue"],
+                    ["hedgeVolatility", "number", "Exposure volatility", "targetVolatility"],
+                    ["hedgeCarry", "number", "Annual carry fraction", "annualCarryFraction"],
+                    ["hedgeProxy", "text", "Proxy symbol", "proxySymbol"]
+                ];
+                fields.forEach(function (field) {
+                    var input = document.createElement("input");
+                    input.id = field[0];
+                    input.type = field[1];
+                    input.placeholder = field[2];
+                    input.setAttribute("aria-label", field[2]);
+                    if (state.hedge && state.hedge[field[3]] !== undefined && state.hedge[field[3]] !== null) {
+                        input.value = String(state.hedge[field[3]]);
+                    }
+                    form.appendChild(input);
+                });
+                var apply = document.createElement("button");
+                apply.id = "hedgeApply";
+                apply.type = "button";
+                apply.textContent = "Compare variants";
+                apply.addEventListener("click", function () {
+                    var policy = (state.policy && state.policy.analytics) || {};
+                    state.hedge = {
+                        targetExposureValue: Number(byId("hedgeExposure").value),
+                        targetVolatility: Number(byId("hedgeVolatility").value),
+                        annualCarryFraction: byId("hedgeCarry").value === ""
+                            ? null
+                            : Number(byId("hedgeCarry").value),
+                        proxySymbol: byId("hedgeProxy").value,
+                        // The remaining components come from the mandatory visible
+                        // config, never from a code-side default.
+                        horizonYears: 1,
+                        commissionFraction: policy.hedgeCommissionFraction,
+                        spreadFraction: policy.hedgeSpreadFraction,
+                        slippageFraction: policy.hedgeSlippageFraction,
+                        rebalancesPerYear: policy.hedgeRebalancesPerYear,
+                        basisCorrelation: policy.hedgeBasisCorrelation,
+                        instrumentClass: policy.hedgeInstrumentClass,
+                        liquidity: policy.hedgeLiquidity
+                    };
+                    refreshWorkspaceViews();
+                });
+                form.appendChild(apply);
+                hedgeBand.appendChild(form);
+
+                if (!state.hedge) {
+                    var empty = document.createElement("p");
+                    empty.id = "hedgeEmpty";
+                    empty.className = "microcopy";
+                    empty.textContent = "No hedge comparison entered. No exposure, proxy, ratio, or cost is " +
+                        "assumed on your behalf, and nothing is derived from your recorded behavior or display settings.";
+                    hedgeBand.appendChild(empty);
+                    band.appendChild(hedgeBand);
+                    return;
+                }
+
+                var comparison = window.RLPORTFOLIOANALYTICS.compareHedgeVariants(hedgeInputs(), [0, 0.5, 1]);
+                hedgeBand.dataset.hedgeState = comparison.state;
+
+                var wrap = document.createElement("div");
+                wrap.style.overflowX = "auto";
+                wrap.style.maxWidth = "100%";
+                var table = document.createElement("table");
+                table.id = "hedgeTable";
+                table.innerHTML = "<thead><tr><th scope=\"col\">Variant</th><th scope=\"col\">Residual volatility</th>" +
+                    "<th scope=\"col\">Carry</th><th scope=\"col\">Direct</th><th scope=\"col\">Turnover</th>" +
+                    "<th scope=\"col\">Total cost</th><th scope=\"col\">Basis risk</th></tr></thead>";
+                var body = document.createElement("tbody");
+                (comparison.variants || []).forEach(function (variant, index) {
+                    var tr = document.createElement("tr");
+                    tr.id = "hedgevariant-" + index;
+                    tr.dataset.variantState = variant.state;
+                    var cells = variant.state === "ok"
+                        ? [
+                            variant.label,
+                            (variant.residualVolatility * 100).toFixed(2) + "%",
+                            money(variant.carryCost),
+                            money(variant.directCost),
+                            money(variant.turnoverCost),
+                            money(variant.totalCost),
+                            variant.basisRiskRemains ? "Remains — proxy is imperfect" : "None at this correlation"
+                        ]
+                        : [
+                            variant.label,
+                            "Unavailable",
+                            "Unavailable",
+                            "Unavailable",
+                            "Unavailable",
+                            "Net unavailable — " + (variant.missing || []).join(", ") + " not stated",
+                            "Unavailable"
+                        ];
+                    cells.forEach(function (value, i) {
+                        var cell = document.createElement(i === 0 ? "th" : "td");
+                        if (i === 0) cell.setAttribute("scope", "row");
+                        cell.textContent = value;
+                        tr.appendChild(cell);
+                    });
+                    body.appendChild(tr);
+                });
+                table.appendChild(body);
+                wrap.appendChild(table);
+                hedgeBand.appendChild(wrap);
+
+                var incomplete = (comparison.variants || []).filter(function (v) { return v.state === "gross-only"; });
+                if (incomplete.length) {
+                    var note = document.createElement("p");
+                    note.id = "hedgeNetUnavailable";
+                    note.className = "state-message";
+                    note.textContent = "Net benefit unavailable · " + incomplete[0].note;
+                    hedgeBand.appendChild(note);
+                }
+
+                var hedgeBoundary = document.createElement("p");
+                hedgeBoundary.id = "hedgeClaimBoundary";
+                hedgeBoundary.className = "microcopy";
+                hedgeBoundary.textContent = comparison.claimBoundary + " " +
+                    "No hedge ratio is prescribed as optimal or suitable for you, no contract is selected, " +
+                    "nothing is executed, and your portfolio is not modified. Costs and risk reduction are " +
+                    "reported separately so neither can hide behind the other.";
+                hedgeBand.appendChild(hedgeBoundary);
+
+                band.appendChild(hedgeBand);
             }
 
             function dependenceReturns(symbol) {

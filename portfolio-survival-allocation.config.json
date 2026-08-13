@@ -231,6 +231,13 @@
         "minimumTailObservations": 250,
         "minimumJointTailEvents": 8,
         "lowerTailQuantile": 0.1,
+        "hedgeCommissionFraction": 0.001,
+        "hedgeSpreadFraction": 0.0005,
+        "hedgeSlippageFraction": 0.0005,
+        "hedgeRebalancesPerYear": 4,
+        "hedgeBasisCorrelation": 0.9,
+        "hedgeInstrumentClass": "listed-proxy-etf",
+        "hedgeLiquidity": "high",
         "covarianceShrinkageLambda": 0.2,
         "covarianceSensitivity": [
             0,

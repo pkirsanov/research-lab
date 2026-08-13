@@ -1241,6 +1241,15 @@
             var RISK_TOOL_ID = "portfolio-survival-allocation-lab";
             var RISK_PERIODS_PER_YEAR = 252;
 
+            /* Concentration lenses are the EXPOSURE FIELDS of the holding contract, not policy
+               values, so they are read from the schema rather than added to the analytics policy.
+               `rlportfolio.js` validates the analytics block against an exact key list and is
+               outside this scope's change boundary, so a genuinely new policy value — the benchmark
+               symbol and the concentration alert threshold — cannot be introduced here. Those two
+               are routed (F-08-CONFIG-BOUNDARY in report.md) and their surfaces render an honest
+               unavailable state rather than a hard-coded stand-in. */
+            var RISK_CONCENTRATION_LENSES = ["symbol", "assetClass", "sector", "currency"];
+
             function pct(value, digits) {
                 return isFiniteNumber(value)
                     ? (value * 100).toFixed(digits === undefined ? 2 : digits) + "%"
@@ -1291,16 +1300,29 @@
                 var revision = currentRevision();
                 if (!revision || !revision.holdings.length) return { available: false, state: "no-portfolio" };
                 if (!window.RLPORTFOLIOANALYTICS) return { available: false, state: "analytics-unavailable" };
+                var policy = (state.policy && state.policy.analytics) || {};
                 var symbols = [];
                 revision.holdings.forEach(function (holding) {
                     if (holding && holding.symbol && symbols.indexOf(holding.symbol) === -1) symbols.push(holding.symbol);
                 });
                 var series = riskSeries(symbols);
+                var cutoff = riskCutoff(series);
+
+                /* The benchmark symbol is a policy value with no home in the current analytics
+                   contract, so CAPM renders unavailable rather than regressing against a symbol
+                   this page picked for itself. See F-08-CONFIG-BOUNDARY. */
                 return window.RLPORTFOLIOANALYTICS.riskXRayProjection({
                     holdings: revision.holdings,
                     series: series,
-                    cutoff: riskCutoff(series),
-                    periodsPerYear: RISK_PERIODS_PER_YEAR
+                    cutoff: cutoff,
+                    periodsPerYear: RISK_PERIODS_PER_YEAR,
+                    concentrationLenses: RISK_CONCENTRATION_LENSES,
+                    benchmarkReturns: null,
+                    benchmarkSymbol: null,
+                    riskFreeAnnual: policy.riskFreeAnnual,
+                    minimumCapmObservations: policy.minimumCapmObservations,
+                    shrinkageLambda: policy.covarianceShrinkageLambda,
+                    reconciliationTolerance: policy.riskReconciliationTolerance
                 });
             }
 
@@ -1444,6 +1466,7 @@
                 table.appendChild(tbody);
                 tableWrap.appendChild(table);
                 band.appendChild(tableWrap);
+                appendRiskDiagnostics(band, projection);
 
                 panel.appendChild(band);
                 /* Drawing and attaching are DEFERRED until the panel is in the document. RLCHART builds
@@ -1465,6 +1488,189 @@
             }
 
             function riskTableTarget(pointId) { return "riskrow-" + pointId; }
+
+            /* ------------------------------------------------ Scope 08 diagnostics */
+
+            /* Each diagnostic renders its OWN availability. A missing benchmark must not blank
+               concentration, and an unmeasurable covariance must not blank CAPM — telling a reader
+               that nothing is measurable when most of it is would be its own kind of false report. */
+            function appendRiskDiagnostics(band, projection) {
+                var wrap = document.createElement("div");
+                wrap.className = "band";
+                wrap.id = "riskDiagnostics";
+
+                var heading = document.createElement("h4");
+                heading.textContent = "Concentration, benchmark fit, and risk contribution";
+                wrap.appendChild(heading);
+
+                // --- Concentration, one list per configured lens.
+                var lensList = document.createElement("div");
+                lensList.id = "riskConcentration";
+                (projection.concentration || []).forEach(function (lens) {
+                    var section = document.createElement("div");
+                    section.className = "band";
+                    section.dataset.lens = lens.lens;
+                    section.dataset.coverage = lens.coverageState || lens.state;
+
+                    var h = document.createElement("h5");
+                    h.textContent = "Concentration by " + lens.lens;
+                    section.appendChild(h);
+
+                    if (lens.state !== "ok") {
+                        var bad = document.createElement("p");
+                        bad.className = "state-message";
+                        bad.textContent = "Unavailable · " + lens.state;
+                        section.appendChild(bad);
+                        lensList.appendChild(section);
+                        return;
+                    }
+
+                    var rows = document.createElement("ul");
+                    rows.className = "route-states";
+                    lens.buckets.forEach(function (bucket) {
+                        var li = document.createElement("li");
+                        li.dataset.bucket = bucket.key;
+                        li.textContent = bucket.key + " · " + pct(bucket.weight);
+                        rows.appendChild(li);
+                    });
+                    section.appendChild(rows);
+
+                    /* Coverage is stated on every lens. Bucket weights sum to the COVERED weight,
+                       not to 100%, so a lens explaining part of the book cannot read as the whole. */
+                    var coverage = document.createElement("p");
+                    coverage.className = "microcopy";
+                    coverage.dataset.lensCoverage = lens.lens;
+                    coverage.textContent = lens.missing.length
+                        ? "Covers " + pct(lens.coveredWeight) + " of the portfolio · missing this detail: " +
+                          lens.missing.join(", ") + " · missing holdings are named, never bucketed as Other, zero, or the average"
+                        : "Covers " + pct(lens.coveredWeight) + " of the portfolio · every holding carries this detail";
+                    section.appendChild(coverage);
+                    lensList.appendChild(section);
+                });
+                wrap.appendChild(lensList);
+
+                // --- CAPM.
+                var capmBox = document.createElement("div");
+                capmBox.className = "band";
+                capmBox.id = "riskCapm";
+                var capmHeading = document.createElement("h5");
+                capmHeading.textContent = "Benchmark fit";
+                capmBox.appendChild(capmHeading);
+                var capm = projection.capm || { state: "not-computed" };
+                capmBox.dataset.capmState = capm.state;
+                if (capm.state !== "ok") {
+                    var capmMissing = document.createElement("p");
+                    capmMissing.id = "riskCapmUnavailable";
+                    capmMissing.className = "state-message";
+                    capmMissing.textContent = "Benchmark fit unavailable · " + capm.state +
+                        " · no beta, alpha, or explanatory figure is shown";
+                    capmBox.appendChild(capmMissing);
+                } else {
+                    var capmRows = document.createElement("ul");
+                    capmRows.className = "route-states";
+                    capmRows.appendChild(riskMetricRow("riskBeta", "Beta vs " + (projection.benchmarkSymbol || "benchmark"),
+                        isFiniteNumber(capm.beta) ? capm.beta.toFixed(4) : "Unavailable"));
+                    capmRows.appendChild(riskMetricRow("riskAlpha", "Alpha annualized", pct(capm.alphaAnnualized)));
+                    capmRows.appendChild(riskMetricRow("riskRSquared", "R-squared",
+                        isFiniteNumber(capm.rSquared) ? capm.rSquared.toFixed(4) : "Unavailable"));
+                    capmRows.appendChild(riskMetricRow("riskCorrelation", "Correlation",
+                        isFiniteNumber(capm.correlation) ? capm.correlation.toFixed(4) : "Unavailable"));
+                    capmRows.appendChild(riskMetricRow("riskResidual", "Residual risk annualized", pct(capm.residualRiskAnnualized)));
+                    capmRows.appendChild(riskMetricRow("riskBetaStdError", "Beta standard error",
+                        isFiniteNumber(capm.betaStandardError) ? capm.betaStandardError.toFixed(4) : "Unavailable"));
+                    capmRows.appendChild(riskMetricRow("riskCapmSample", "Sample",
+                        capm.sampleSize + " periods · " + capm.sampleState + " (configured minimum " + capm.configuredMinimum + ")"));
+                    capmBox.appendChild(capmRows);
+
+                    var fit = document.createElement("p");
+                    fit.id = "riskFitState";
+                    fit.className = "microcopy";
+                    fit.textContent = capm.fitState === "low-explanatory-power"
+                        ? "Low explanatory power: this benchmark explains little of the portfolio movement. " +
+                          "That is a statement about the BENCHMARK, not evidence that total risk is low — residual risk above is the part it does not explain."
+                        : "The benchmark explains a substantial share of the portfolio movement over this sample. Beta, fit, correlation, and residual risk remain separate readings.";
+                    capmBox.appendChild(fit);
+                }
+                wrap.appendChild(capmBox);
+
+                // --- Covariance and risk contribution.
+                var contribBox = document.createElement("div");
+                contribBox.className = "band";
+                contribBox.id = "riskContributions";
+                var contribHeading = document.createElement("h5");
+                contribHeading.textContent = "Risk contribution";
+                contribBox.appendChild(contribHeading);
+                var cov = projection.covariance || { state: "not-computed" };
+                var rc = projection.contributions || { state: "not-computed" };
+                contribBox.dataset.contributionState = rc.state;
+                contribBox.dataset.covarianceState = cov.state;
+
+                if (rc.state !== "ok") {
+                    var rcMissing = document.createElement("p");
+                    rcMissing.id = "riskContributionsUnavailable";
+                    rcMissing.className = "state-message";
+                    rcMissing.textContent = "Risk contribution unavailable · " + rc.state +
+                        " · no marginal or total contribution is shown";
+                    contribBox.appendChild(rcMissing);
+                } else {
+                    var covLine = document.createElement("p");
+                    covLine.id = "riskCovarianceState";
+                    covLine.className = "subtle";
+                    covLine.textContent = "Computed on the " + rc.basis + " covariance · shrinkage lambda " +
+                        rc.shrinkageLambda + " · raw matrix positive-definite: " + cov.rawPositiveDefinite +
+                        " · conditioned positive-definite: " + cov.conditionedPositiveDefinite +
+                        " · lambda auto-raised: " + cov.lambdaWasAutoRaised;
+                    contribBox.appendChild(covLine);
+
+                    var contribTable = document.createElement("table");
+                    contribTable.id = "riskContributionTable";
+                    var chead = document.createElement("thead");
+                    chead.innerHTML = "<tr><th scope=\"col\">Holding</th><th scope=\"col\">Weight</th>" +
+                        "<th scope=\"col\">Marginal</th><th scope=\"col\">Contribution</th><th scope=\"col\">Share</th></tr>";
+                    contribTable.appendChild(chead);
+                    var cbody = document.createElement("tbody");
+                    rc.symbols.forEach(function (symbol, index) {
+                        var tr = document.createElement("tr");
+                        tr.dataset.contributor = symbol;
+                        var c1 = document.createElement("th");
+                        c1.setAttribute("scope", "row");
+                        c1.textContent = symbol;
+                        var c2 = document.createElement("td");
+                        c2.textContent = pct(projection.weights[symbol]);
+                        var c3 = document.createElement("td");
+                        c3.textContent = rc.marginal[index].toFixed(6);
+                        var c4 = document.createElement("td");
+                        c4.textContent = rc.contribution[index].toFixed(6);
+                        var c5 = document.createElement("td");
+                        c5.textContent = pct(rc.contributionShare[index]);
+                        [c1, c2, c3, c4, c5].forEach(function (cell) { tr.appendChild(cell); });
+                        cbody.appendChild(tr);
+                    });
+                    contribTable.appendChild(cbody);
+                    var contribWrap = document.createElement("div");
+                    contribWrap.style.overflowX = "auto";
+                    contribWrap.style.maxWidth = "100%";
+                    contribWrap.appendChild(contribTable);
+                    contribBox.appendChild(contribWrap);
+
+                    var recon = document.createElement("p");
+                    recon.id = "riskReconciliation";
+                    recon.className = "microcopy";
+                    recon.textContent = "Contributions sum to " + rc.contributionSum.toFixed(8) +
+                        " against portfolio risk " + rc.portfolioRisk.toFixed(8) +
+                        " · residual " + rc.reconciliationResidual.toExponential(2) +
+                        " · tolerance " + rc.reconciliationTolerance +
+                        " · reconciled: " + rc.reconciled +
+                        (rc.negativeContributors.length
+                            ? " · negative contribution from " + rc.negativeContributors.join(", ") +
+                              " (a genuine hedge reduces portfolio risk; it is reported, not floored at zero)"
+                            : " · no negative contribution in this sample");
+                    contribBox.appendChild(recon);
+                }
+                wrap.appendChild(contribBox);
+
+                band.appendChild(wrap);
+            }
 
             function riskChartContext(projection, pointId) {
                 var row = null;

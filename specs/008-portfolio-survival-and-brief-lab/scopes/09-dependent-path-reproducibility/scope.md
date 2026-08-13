@@ -78,7 +78,9 @@ Scenario: SCN-008-038 - A user clears all personal data after running dependent-
 
 **Allowed files:** `rlportfolioanalytics.js`, `portfolio-survival-allocation-lab.html`, `portfolio-survival-allocation.config.json`, `tests/portfolio-analytics.unit.mjs`, `tests/portfolio-survival-paths.spec.mjs`, `tests/portfolio-survival.support.mjs`, and Scope 09 fixture entries.
 
-**Amended 2026-08-13 (F-09-PERSISTENCE-BOUNDARY):** `rlportfolio.js` and `tests/portfolio-foundation.unit.mjs` are added to the allowed set, for the scenario-persistence field only.
+**Amended 2026-08-13 (F-09-PERSISTENCE-BOUNDARY):** `rlportfolio.js`, `tests/portfolio-foundation.unit.mjs`, `tests/portfolio-privacy.functional.mjs`, and `tests/portfolio-survival-foundation.spec.mjs` are added to the allowed set, for the scenario-persistence field only.
+
+The three test files are included because each pins a Scope 03 privacy-inventory fact that is *designed* to go red when a later scope gives a declared category a real write path — the category count, the not-representable set, the behavior-clear survivor set, and the rendered category list. Each was updated to cover `scenarios` genuinely, by seeding it through `buildScenarioCandidate`; none was relaxed.
 
 The original boundary excluded private storage while this scope requires a saved scenario that survives a reload and is removed by the existing full-personal clear. Those cannot both hold: the workspace schema is owned by `rlportfolio.js`, and a scenario stored anywhere else would be a parallel top-level key that a clear keyed on `FOUNDATION_LOCAL_KEYS` would miss — the exact privacy defect SCN-008-038 exists to prevent. Storing it inside the workspace inherits the existing clear, because `slotA`/`slotB` are already on that list.
 

@@ -1075,7 +1075,7 @@ const FOUNDATION_KEYS = Object.freeze([...FOUNDATION_LOCAL_KEYS, ...FOUNDATION_S
  * matrix cannot quietly stop covering a category that someone adds. */
 const DECLARED_PRIVACY_CATEGORIES = Object.freeze([
   'action-outcomes', 'behavior-events', 'cash-needs', 'interest-signals',
-  'mandate-revisions', 'portfolio-revisions', 'quarantine', 'session-fallback'
+  'mandate-revisions', 'portfolio-revisions', 'quarantine', 'scenarios', 'session-fallback'
 ]);
 
 /* The closed vocabulary a `cleared by` verdict may draw from. Asserted as MEMBERSHIP, not as an

@@ -717,7 +717,7 @@ test('privacy inventory reports real category counts and carries no stored subje
   // telling an owner less than the full-personal clear actually deletes.
   assert.equal(inventory.value.categories.every((entry) => entry.clearedBy.split('-and-').includes('all-personal')), true,
     'every category must name the all-personal clear, which empties all of them');
-  assert.equal(inventory.value.categories.length, 8, 'every declared category must be projected, so the clearedBy sweep above is not run over a short list');
+  assert.equal(inventory.value.categories.length, 9, 'every declared category must be projected, so the clearedBy sweep above is not run over a short list');
 
   /* The serialized sweep above is a DENYLIST: it catches only the five values it names. A leak it
    * was never told to look for passes it silently — proven by injecting a `subjectValue` field into

@@ -24,7 +24,7 @@
   "execution": {
     "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
-    "currentScope": 10,
+    "currentScope": 11,
     "runStartedAt": "2026-07-15T23:25:05Z",
     "completedPhaseClaims": [],
     "pendingTransitionRequests": [],
@@ -120,7 +120,7 @@
       {
         "scope": 10,
         "name": "Dated Cash Needs And Survival States",
-        "status": "in_progress",
+        "status": "done",
         "dependsOn": [
           "9"
         ],
@@ -204,7 +204,8 @@
       6,
       7,
       8,
-      9
+      9,
+      10
     ]
   },
   "certification": {
@@ -321,7 +322,7 @@
       {
         "scope": 10,
         "name": "Dated Cash Needs And Survival States",
-        "status": "in_progress",
+        "status": "done",
         "dependsOn": [
           "9"
         ],

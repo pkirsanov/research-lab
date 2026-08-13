@@ -27,6 +27,9 @@ const featureRequire = createRequire(import.meta.url);
 const METRICS = featureRequire('../rlmetrics.js');
 
 const DRY_RUN = process.argv.includes('--dry-run');
+/* Opt-in: treat zero covered cells as a failure. Off by default so an honest all-gap day publishes an
+   honest all-gap matrix instead of blocking the run that carries it. */
+const REQUIRE_COVERAGE = process.argv.includes('--require-coverage');
 const asOfArgIndex = process.argv.indexOf('--as-of');
 const AS_OF = asOfArgIndex >= 0 ? process.argv[asOfArgIndex + 1] : new Date().toISOString().slice(0, 10);
 
@@ -311,11 +314,17 @@ function main() {
 
   if (DRY_RUN) {
     console.log('dry run: market-brief.owner-reads.json not written');
-    return current > 0 ? 0 : 1;
+    return REQUIRE_COVERAGE && current === 0 ? 1 : 0;
   }
   writeFileSync(resolve(ROOT, 'market-brief.owner-reads.json'), `${JSON.stringify(artifact, null, 2)}\n`);
   console.log('wrote market-brief.owner-reads.json');
-  return current > 0 ? 0 : 1;
+  /* The exit code reports whether PRODUCTION succeeded, not how much it covered. An all-gap artifact
+     is a truthful result, not a failure: every uncovered cell already carries a reason naming what is
+     missing, and the counts are in the artifact and on stdout above. Conflating the two used to make
+     a legitimately uncovered day indistinguishable from a crash, and — once this runs inside the
+     publication transaction — would have refused the entire brief over honest missing evidence.
+     `--require-coverage` keeps the strict check available for a caller that genuinely wants it. */
+  return REQUIRE_COVERAGE && current === 0 ? 1 : 0;
 }
 
 process.exit(main());

@@ -80,7 +80,7 @@ DATA_FILES=(market-brief.snapshot.json brief-history.jsonl)
 PAYLOAD="market-brief.payload.json"
 CONFIG="market-brief.config.json"
 PAGE_FILES=(market-brief.page.json market-brief.config.page.json market-brief.snapshot.page.json market-brief.tools.page.json market-brief.experimental.json)
-DERIVED_FILES=(brief-history.recent.jsonl market-brief.scorecard.json)
+DERIVED_FILES=(brief-history.recent.jsonl market-brief.scorecard.json market-brief.owner-reads.json)
 DERIVED_DIRS=(briefs/tier-a)
 OWNED_PATHS=("${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" "${PAGE_FILES[@]}" "${DERIVED_FILES[@]}" "${DERIVED_DIRS[@]}" data)
 
@@ -113,11 +113,28 @@ cleanup_baseline() {
 }
 trap cleanup_baseline EXIT
 
-for baseline_file in "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" "${PAGE_FILES[@]}" "${DERIVED_FILES[@]}"; do
+for baseline_file in "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" "${PAGE_FILES[@]}"; do
   cp "$baseline_file" "$BASELINE_DIR/$baseline_file" || {
     echo "[brief-timer] cannot capture baseline bytes for $baseline_file"
     exit 1
   }
+done
+# Derived artifacts are captured absent-tolerantly, unlike the core files above. A derived artifact
+# legitimately does not exist before its first producing run, so a missing one is a real state rather
+# than a broken checkout, and hard-failing on it would make every newly-introduced derived artifact
+# break the whole publication chain until someone hand-created it. The absence is RECORDED, using the
+# same sentinel the data directory already uses, so rollback can tell "was absent" from "was empty".
+# The tolerance stops here on purpose: a missing payload, config, page or data file IS a broken
+# checkout, and extending this to them would weaken the transaction instead of completing it.
+for baseline_file in "${DERIVED_FILES[@]}"; do
+  if [ -f "$baseline_file" ]; then
+    cp "$baseline_file" "$BASELINE_DIR/$baseline_file" || {
+      echo "[brief-timer] cannot capture baseline bytes for $baseline_file"
+      exit 1
+    }
+  else
+    : >"$BASELINE_DIR/$baseline_file.absent"
+  fi
 done
 for baseline_dir in "${DERIVED_DIRS[@]}"; do
   mkdir -p "$BASELINE_DIR/$(dirname "$baseline_dir")" || exit 1
@@ -149,7 +166,14 @@ restore_page_baseline() {
 restore_derived_baseline() {
   local derived_file derived_dir
   for derived_file in "${DERIVED_FILES[@]}"; do
-    cp "$BASELINE_DIR/$derived_file" "$derived_file" || return 1
+    # An artifact that did not exist at baseline must be REMOVED, not left behind: a failed run that
+    # created one and then rolled back would otherwise publish an artifact the rollback was supposed
+    # to revert, which is the cross-artifact disagreement this transaction exists to prevent.
+    if [ -f "$BASELINE_DIR/$derived_file.absent" ]; then
+      rm -f "$derived_file" || return 1
+    else
+      cp "$BASELINE_DIR/$derived_file" "$derived_file" || return 1
+    fi
   done
   for derived_dir in "${DERIVED_DIRS[@]}"; do
     rm -rf "$derived_dir"
@@ -284,6 +308,29 @@ if [ "$REQUIRE_COMPLETE_RUN" = "1" ]; then
   }
 else
   run_with_timeout "$TIER_A_TIMEOUT" env BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/brief-refresh.mjs --window "$WINDOW" || echo "[brief-timer] refresh returned non-zero (soft) — continuing"
+fi
+
+# 1b-i) Per-ticker owner reads for the public watchlist matrix. This runs INSIDE the publication
+# transaction, immediately after the Tier-A refresh that produced the bars and chains it reads, and
+# `market-brief.owner-reads.json` is an owned path — so it is staged, validated and rolled back with
+# the payload it must agree with. Producing it outside the transaction is what let the matrix serve a
+# 4-ticker file dated 2026-08-03 beside a payload refreshed the same morning: the reader saw a fresh
+# brief and a stale grid and had no way to tell which was current.
+#
+# The producer resolves the watchlist at runtime rather than from a fixed list, so a ticker added to
+# watchlist.json is covered by the next scheduled run with no change here. A cell it cannot compute
+# becomes a reasoned gap naming what is missing, never a fabricated read — so a hard failure means
+# something structural broke, which is why the scheduled path refuses rather than publishing a
+# silently stale grid.
+if [ "$REQUIRE_COMPLETE_RUN" = "1" ]; then
+  run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/build-owner-reads.mjs || {
+    echo "[brief-timer] owner-read production failed — refusing rather than publishing a stale watchlist matrix"
+    restore_owned_baseline || true
+    exit 1
+  }
+else
+  run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/build-owner-reads.mjs \
+    || echo "[brief-timer] owner-read production returned non-zero (soft) — continuing"
 fi
 
 # 1b-ii) Score every open call against its OWN published trigger/invalidation BEFORE the narrative

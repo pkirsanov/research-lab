@@ -130,6 +130,10 @@ export function createBriefRefreshFixture(options = {}) {
   copyFileSync(resolve(ROOT, 'scripts/evaluate-recommendations.mjs'), resolve(repoRoot, 'scripts/evaluate-recommendations.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/shard-brief-history.mjs'), resolve(repoRoot, 'scripts/shard-brief-history.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/build-scorecard.mjs'), resolve(repoRoot, 'scripts/build-scorecard.mjs'));
+  // The per-ticker owner-read producer. brief-refresh-and-push.sh runs it inside the transaction
+  // right after the Tier-A refresh, so a fixture without it cannot reproduce the real publication
+  // path — the wrapper aborts on a missing module before it ever reaches the steps under test.
+  copyFileSync(resolve(ROOT, 'scripts/build-owner-reads.mjs'), resolve(repoRoot, 'scripts/build-owner-reads.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/build-brief-page-artifacts.mjs'), resolve(repoRoot, 'scripts/build-brief-page-artifacts.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/validate-distributed-briefs.mjs'), resolve(repoRoot, 'scripts/validate-distributed-briefs.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/validate-brief-cache.mjs'), resolve(repoRoot, 'scripts/validate-brief-cache.mjs'));
@@ -140,6 +144,10 @@ export function createBriefRefreshFixture(options = {}) {
   // without it cannot reproduce the real publication path at all.
   copyFileSync(resolve(ROOT, 'scripts/build-attention-items.mjs'), resolve(repoRoot, 'scripts/build-attention-items.mjs'));
   copyFileSync(resolve(ROOT, 'rlcontracts.js'), resolve(repoRoot, 'rlcontracts.js'));
+  // build-owner-reads.mjs requires this at MODULE LOAD, so without it the producer aborts before
+  // running and the wrapper refuses the whole publication. It is also the single definition of the
+  // metrics the reads are built from, so the fixture must use the real one rather than a stand-in.
+  copyFileSync(resolve(ROOT, 'rlmetrics.js'), resolve(repoRoot, 'rlmetrics.js'));
   // rlattention.js is required on BOTH sides of the publication boundary, so the
   // fixture needs it regardless of which assets the caller asked for:
   //   - scripts/validate-brief-payload.mjs require()s it, deliberately, so the

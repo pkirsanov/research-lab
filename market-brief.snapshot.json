@@ -1,26 +1,26 @@
 {
-  "asOf": "2026-08-12T20:48:11.097Z",
-  "generatedAt": "2026-08-12T20:48:11.097Z",
-  "window": "after-hours",
+  "asOf": "2026-08-13T11:01:05.654Z",
+  "generatedAt": "2026-08-13T11:01:05.654Z",
+  "window": "pre-market",
   "marketClosed": false,
   "nextSessionDate": "2026-08-13",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-12T20:47:28.104Z",
+      "updated": "2026-08-13T11:00:18.860Z",
       "symbolCount": 289,
       "expectedSessionDate": "2026-08-12",
-      "refreshDate": "2026-08-12",
-      "refreshWindow": "after-hours",
+      "refreshDate": "2026-08-13",
+      "refreshWindow": "pre-market",
       "freshSymbolCount": 289,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-08-12T20:47:32.218Z",
+      "updated": "2026-08-13T11:00:22.795Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
-      "refreshDate": "2026-08-12",
-      "refreshWindow": "after-hours",
+      "refreshDate": "2026-08-13",
+      "refreshWindow": "pre-market",
       "freshSymbolCount": 22,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
@@ -29,7 +29,7 @@
   "regime": {
     "band": "VIX 14.6",
     "score": 1,
-    "vix": 14.55,
+    "vix": 14.6,
     "fearGreed": null
   },
   "bench": {
@@ -80,13 +80,13 @@
     },
     "FMTM": {
       "px": 39.62,
-      "mom5": 0.56,
-      "mom21": -2.19,
-      "mom63": -3.49,
-      "mom126": 9.58,
-      "mom252": 47.37,
-      "ma50Dist": -1.71,
-      "ma200Dist": 8.65,
+      "mom5": -1.09,
+      "mom21": -0.45,
+      "mom63": -4.13,
+      "mom126": 8.95,
+      "mom252": 46.77,
+      "ma50Dist": -1.8,
+      "ma200Dist": 8.79,
       "maStack": "tangled",
       "pctFrom52wHigh": -9.21
     },
@@ -202,17 +202,17 @@
       "ma200Dist": 20.42
     },
     "XLC": {
-      "rsMom1m": -3.81,
-      "rsMom3m": -9.49,
-      "rsMom6m": -17.88,
-      "rsRatio": 98.56,
-      "rsMom": 97,
+      "rsMom1m": -3.93,
+      "rsMom3m": -9.26,
+      "rsMom6m": -17.31,
+      "rsRatio": 98.54,
+      "rsMom": 97.66,
       "quad": "A",
-      "accel": -3.34,
+      "accel": -2.53,
       "rrgState": "Lagging",
       "rotation": "neutral",
       "maStack": "bear-stack",
-      "ma200Dist": -3
+      "ma200Dist": -3.01
     },
     "XLY": {
       "rsMom1m": -1.03,
@@ -306,17 +306,17 @@
       "ma200Dist": 7.37
     },
     "XLRE": {
-      "rsMom1m": -2.73,
-      "rsMom3m": -4.24,
-      "rsMom6m": -6.74,
-      "rsRatio": 98.57,
-      "rsMom": 97.46,
+      "rsMom1m": -3.22,
+      "rsMom3m": -4.22,
+      "rsMom6m": -5.27,
+      "rsRatio": 98.5,
+      "rsMom": 97.66,
       "quad": "A",
-      "accel": -4.7,
+      "accel": -4.09,
       "rrgState": "Lagging",
       "rotation": "neutral",
       "maStack": "bull-stack",
-      "ma200Dist": 5.31
+      "ma200Dist": 5.34
     },
     "XLU": {
       "rsMom1m": -6.8,
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-12T20:48:10.464Z",
+      "asOf": "2026-08-13T11:01:04.130Z",
       "read": "Rotate toward XLK as XLV weakens.",
       "metrics": {
         "into": {
@@ -699,10 +699,10 @@
           {
             "ticker": "JMOM",
             "signal": 20.19,
-            "score": 0.3629,
-            "annVol": 16.65,
-            "sharpeGeometric": 1.609,
-            "sharpeArithmetic": 1.457,
+            "score": 0.3624,
+            "annVol": 16.69,
+            "sharpeGeometric": 1.606,
+            "sharpeArithmetic": 1.461,
             "volatilityDrag": 1.39,
             "asOf": "2026-08-12T13:30:00.000Z"
           },
@@ -729,11 +729,11 @@
           {
             "ticker": "MTUM",
             "signal": 23.64,
-            "score": 0.2758,
-            "annVol": 25.83,
-            "sharpeGeometric": 0.914,
-            "sharpeArithmetic": 0.919,
-            "volatilityDrag": 3.34,
+            "score": 0.2752,
+            "annVol": 25.9,
+            "sharpeGeometric": 0.911,
+            "sharpeArithmetic": 0.921,
+            "volatilityDrag": 3.36,
             "asOf": "2026-08-12T13:30:00.000Z"
           }
         ],
@@ -843,7 +843,7 @@
           "horizonSessions": 63,
           "observationSet": {
             "contractVersion": "rlfx-observation-set/v1",
-            "setId": "set-v1-da0b3e67",
+            "setId": "set-v1-0da535c7",
             "purpose": "global-usd-leadership",
             "horizonSessions": 63,
             "legs": [
@@ -853,7 +853,7 @@
                 "subject": "EWS",
                 "orientation": "etf",
                 "adjustment": "adjusted-close",
-                "validDateCount": 514
+                "validDateCount": 501
               },
               {
                 "legId": "benchmark",
@@ -861,7 +861,7 @@
                 "subject": "ACWI",
                 "orientation": "benchmark",
                 "adjustment": "adjusted-close",
-                "validDateCount": 514
+                "validDateCount": 501
               }
             ],
             "alignedRows": [
@@ -1316,8 +1316,8 @@
             ],
             "coverage": {
               "requiredRowCount": 64,
-              "commonRowCount": 514,
-              "earliestCommonDate": "2024-07-25",
+              "commonRowCount": 501,
+              "earliestCommonDate": "2024-08-13",
               "latestCommonDate": "2026-08-12",
               "unmatchedNewerDates": {
                 "etf": [],
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": 0.052054371714966186,
           "usdRelativeReturn": 0.1296644338444104,
           "asOf": "2026-08-12T00:00:00.000Z",
-          "computedAt": "2026-08-12T20:48:10.486Z",
+          "computedAt": "2026-08-13T11:01:04.259Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1351,7 +1351,7 @@
           "horizonSessions": 63,
           "observationSet": {
             "contractVersion": "rlfx-observation-set/v1",
-            "setId": "set-v1-f3fd3716",
+            "setId": "set-v1-3f4f18e2",
             "purpose": "global-decomposition",
             "horizonSessions": 63,
             "legs": [
@@ -1361,7 +1361,7 @@
                 "subject": "EWS",
                 "orientation": "etf",
                 "adjustment": "adjusted-close",
-                "validDateCount": 514
+                "validDateCount": 501
               },
               {
                 "legId": "benchmark",
@@ -1369,7 +1369,7 @@
                 "subject": "ACWI",
                 "orientation": "benchmark",
                 "adjustment": "adjusted-close",
-                "validDateCount": 514
+                "validDateCount": 501
               },
               {
                 "legId": "fx",
@@ -1896,13 +1896,15 @@
             ],
             "coverage": {
               "requiredRowCount": 64,
-              "commonRowCount": 404,
-              "earliestCommonDate": "2024-10-29",
+              "commonRowCount": 403,
+              "earliestCommonDate": "2024-10-30",
               "latestCommonDate": "2026-08-12",
               "unmatchedNewerDates": {
                 "etf": [],
                 "benchmark": [],
-                "fx": []
+                "fx": [
+                  "2026-08-13"
+                ]
               },
               "duplicateDatesDropped": {
                 "etf": 0,
@@ -1930,7 +1932,7 @@
           "interaction": -0.0010001611722860544,
           "relationship": "Local-Equity-Led With FX Drag",
           "asOf": "2026-08-12T00:00:00.000Z",
-          "computedAt": "2026-08-12T20:48:10.486Z",
+          "computedAt": "2026-08-13T11:01:04.259Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1954,7 +1956,7 @@
               "usdLeadership": {
                 "asOf": "2026-08-12T00:00:00.000Z",
                 "benchmarkReturn": 0.052054371714966186,
-                "computedAt": "2026-08-12T20:48:10.486Z",
+                "computedAt": "2026-08-13T11:01:04.259Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2411,12 +2413,12 @@
                   ],
                   "contractVersion": "rlfx-observation-set/v1",
                   "coverage": {
-                    "commonRowCount": 514,
+                    "commonRowCount": 501,
                     "duplicateDatesDropped": {
                       "benchmark": 0,
                       "etf": 0
                     },
-                    "earliestCommonDate": "2024-07-25",
+                    "earliestCommonDate": "2024-08-13",
                     "latestCommonDate": "2026-08-12",
                     "requiredRowCount": 64,
                     "unmatchedNewerDates": {
@@ -2432,7 +2434,7 @@
                       "observationId": "EWS",
                       "orientation": "etf",
                       "subject": "EWS",
-                      "validDateCount": 514
+                      "validDateCount": 501
                     },
                     {
                       "adjustment": "adjusted-close",
@@ -2440,7 +2442,7 @@
                       "observationId": "ACWI",
                       "orientation": "benchmark",
                       "subject": "ACWI",
-                      "validDateCount": 514
+                      "validDateCount": 501
                     }
                   ],
                   "lineage": {
@@ -2451,7 +2453,7 @@
                     "uniqueRelationshipIds": []
                   },
                   "purpose": "global-usd-leadership",
-                  "setId": "set-v1-da0b3e67",
+                  "setId": "set-v1-0da535c7",
                   "state": "aligned"
                 },
                 "state": "ready",
@@ -2463,7 +2465,7 @@
                 "approximateLocalReturn": 0.2029301358875355,
                 "asOf": "2026-08-12T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": 0.08099271511373352,
-                "computedAt": "2026-08-12T20:48:10.486Z",
+                "computedAt": "2026-08-13T11:01:04.259Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "SGD",
                 "freshUntil": null,
@@ -2990,19 +2992,21 @@
                   ],
                   "contractVersion": "rlfx-observation-set/v1",
                   "coverage": {
-                    "commonRowCount": 404,
+                    "commonRowCount": 403,
                     "duplicateDatesDropped": {
                       "benchmark": 0,
                       "etf": 0,
                       "fx": 0
                     },
-                    "earliestCommonDate": "2024-10-29",
+                    "earliestCommonDate": "2024-10-30",
                     "latestCommonDate": "2026-08-12",
                     "requiredRowCount": 64,
                     "unmatchedNewerDates": {
                       "benchmark": [],
                       "etf": [],
-                      "fx": []
+                      "fx": [
+                        "2026-08-13"
+                      ]
                     }
                   },
                   "horizonSessions": 63,
@@ -3013,7 +3017,7 @@
                       "observationId": "EWS",
                       "orientation": "etf",
                       "subject": "EWS",
-                      "validDateCount": 514
+                      "validDateCount": 501
                     },
                     {
                       "adjustment": "adjusted-close",
@@ -3021,7 +3025,7 @@
                       "observationId": "ACWI",
                       "orientation": "benchmark",
                       "subject": "ACWI",
-                      "validDateCount": 514
+                      "validDateCount": 501
                     },
                     {
                       "adjustment": "adjusted-close",
@@ -3041,7 +3045,7 @@
                     "uniqueRelationshipIds": []
                   },
                   "purpose": "global-decomposition",
-                  "setId": "set-v1-f3fd3716",
+                  "setId": "set-v1-3f4f18e2",
                   "state": "aligned"
                 },
                 "relationship": "Local-Equity-Led With FX Drag",
@@ -3055,7 +3059,7 @@
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-08-12T20:48:10.486Z",
+          "computedAt": "2026-08-13T11:01:04.259Z",
           "freshUntil": null
         }
       },
@@ -3065,7 +3069,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-08-12T13:30:00.000Z",
-      "read": "CPER leads real assets at 50.9/100; GLD 34.9, BTC 42.3, SLV 11.3.",
+      "read": "CPER leads real assets at 50.9/100; GLD 34.9, BTC 41.4, SLV 11.3.",
       "metrics": {
         "leader": {
           "ticker": "CPER",
@@ -3135,45 +3139,14 @@
             "asOf": "2026-08-12T13:30:00.000Z"
           },
           {
-            "ticker": "ETH-USD",
-            "model": "crypto",
-            "score": 49.1,
-            "trend": "Mixed",
-            "mom21": -2.52,
-            "mom63": 16.33,
-            "mom126": -13.95,
-            "vol": 47.46,
-            "maxDrawdown": 35.37,
-            "riskPenalty": 7.21,
-            "confirmations": [
-              {
-                "label": "Equity risk appetite",
-                "symbols": [
-                  "QQQ"
-                ],
-                "score": 57.62441467165455,
-                "detail": "Growth equities proxy broad speculative appetite."
-              },
-              {
-                "label": "Bitcoin confirmation",
-                "symbols": [
-                  "BTC-USD"
-                ],
-                "score": 54.734449753074735,
-                "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
-              }
-            ],
-            "asOf": "2026-08-12T00:00:00.000Z"
-          },
-          {
             "ticker": "PDBC",
             "model": "broad",
-            "score": 47.1,
+            "score": 49,
             "trend": "Uptrend",
-            "mom21": 5.21,
-            "mom63": -4.97,
-            "mom126": 25.31,
-            "vol": 23.83,
+            "mom21": 6.33,
+            "mom63": -3.13,
+            "mom126": 24.79,
+            "vol": 23.86,
             "maxDrawdown": 16.55,
             "riskPenalty": 2.89,
             "confirmations": [
@@ -3197,6 +3170,37 @@
               }
             ],
             "asOf": "2026-08-12T13:30:00.000Z"
+          },
+          {
+            "ticker": "ETH-USD",
+            "model": "crypto",
+            "score": 47.5,
+            "trend": "Mixed",
+            "mom21": 0.22,
+            "mom63": 12.5,
+            "mom126": -14.07,
+            "vol": 47.46,
+            "maxDrawdown": 35.37,
+            "riskPenalty": 7.21,
+            "confirmations": [
+              {
+                "label": "Equity risk appetite",
+                "symbols": [
+                  "QQQ"
+                ],
+                "score": 57.62441467165455,
+                "detail": "Growth equities proxy broad speculative appetite."
+              },
+              {
+                "label": "Bitcoin confirmation",
+                "symbols": [
+                  "BTC-USD"
+                ],
+                "score": 50.0723344864651,
+                "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
+              }
+            ],
+            "asOf": "2026-08-13T00:00:00.000Z"
           },
           {
             "ticker": "DBC",
@@ -3374,12 +3378,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 42.3,
+            "score": 41.4,
             "trend": "Mixed",
-            "mom21": -3.96,
-            "mom63": 3.31,
-            "mom126": -10.74,
-            "vol": 33.89,
+            "mom21": -2.23,
+            "mom63": 0.05,
+            "mom126": -11.39,
+            "vol": 33.86,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -3398,7 +3402,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-08-12T00:00:00.000Z"
+            "asOf": "2026-08-13T00:00:00.000Z"
           },
           "IBIT": {
             "ticker": "IBIT",
@@ -3668,27 +3672,27 @@
     "options-structure-lab": {
       "id": "options-structure-lab",
       "asOf": "2026-08-12T15:59:59.000Z",
-      "read": "SPY sits in positive dealer gamma with the flip near 770.19; call wall 775, put wall 770, front expected move ±4.14.",
+      "read": "SPY sits in positive dealer gamma with the flip near 770.98; call wall 775, put wall 770, front expected move ±5.21.",
       "deepLink": "options-structure-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
       "metrics": {
         "symbol": "SPY",
-        "spot": 772.35,
+        "spot": 774,
         "regime": "positive",
-        "flipLevel": 770.19,
-        "signedNetGEX": 3691718781.4616,
+        "flipLevel": 770.98,
+        "signedNetGEX": 7728904082.2469,
         "callWall": 775,
         "putWall": 770,
-        "expectedMove": 4.14,
-        "atmIV": 0.1449,
+        "expectedMove": 5.21,
+        "atmIV": 0.1819,
         "expiriesPriced": 3
       }
     },
     "gamma-trading-lab": {
       "id": "gamma-trading-lab",
       "asOf": "2026-08-12T15:59:59.000Z",
-      "read": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 770.19, walls 770/775.",
+      "read": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 770.98, walls 770/775.",
       "deepLink": "gamma-trading-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
@@ -3698,9 +3702,9 @@
         "scenario": "pin-to-maxpain",
         "conviction": "patient",
         "hold": "same-session-fade",
-        "signedNetGEX": 3691718781.46,
+        "signedNetGEX": 7728904082.25,
         "flipPresent": true,
-        "flip": 770.19,
+        "flip": 770.98,
         "callWall": 775,
         "putWall": 770,
         "oviState": "unavailable",
@@ -3724,9 +3728,9 @@
         "putPremium": 1129503741,
         "callFraction": 0.6224,
         "netPremium": null,
-        "consideredCount": 21462,
-        "clearedCount": 774,
-        "clearedFraction": 0.0361,
+        "consideredCount": 21506,
+        "clearedCount": 479,
+        "clearedFraction": 0.0223,
         "maxScore": 85,
         "top": [
           {
@@ -3738,7 +3742,7 @@
             "openInterest": 3497,
             "volOI": 10.827,
             "premium": 10355257,
-            "iv": 98.54,
+            "iv": 97.24,
             "score": 85
           },
           {
@@ -3762,7 +3766,7 @@
             "openInterest": 773,
             "volOI": 433.2354,
             "premium": 49228977,
-            "iv": 35.18,
+            "iv": 35.15,
             "score": 81
           }
         ]
@@ -3859,7 +3863,7 @@
             "verdict": "current",
             "errorCode": null,
             "lastGoodObservedAt": "2026-08-12",
-            "elapsedDays": 0,
+            "elapsedDays": 1,
             "windowDays": 4,
             "basis": "observed-gap-max-3d-over-9-gaps-plus-lag-1d"
           },
@@ -3867,7 +3871,7 @@
             "verdict": "current",
             "errorCode": null,
             "lastGoodObservedAt": "2026-08-12",
-            "elapsedDays": 0,
+            "elapsedDays": 1,
             "windowDays": 4,
             "basis": "observed-gap-max-3d-over-9-gaps-plus-lag-1d"
           }
@@ -3904,6 +3908,290 @@
         "indeterminateReason": "No policy-eligible rankable expression"
       }
     },
+    "fx-regime-relative-value-lab": {
+      "id": "fx-regime-relative-value-lab",
+      "asOf": "2026-08-13T11:01:05.388Z",
+      "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
+      "deepLink": "fx-regime-relative-value-lab.html#power",
+      "source": "owning-tool-functions",
+      "state": "unavailable",
+      "metrics": {
+        "state": "unavailable",
+        "ownerDecisionId": "fxo-v1-7fd6775c",
+        "evidenceIdentity": "fxe-v1-c51ff29b",
+        "objective": "foreign-currency-strength",
+        "subjectId": "JPY",
+        "horizon": "swing",
+        "broadDollarState": "Indeterminate",
+        "selectedPair": {
+          "base": "JPY",
+          "momentumState": "Unavailable",
+          "quote": "USD",
+          "riskState": "Unavailable",
+          "state": "Unavailable",
+          "strengthState": "unavailable"
+        },
+        "vehicle": {
+          "state": "Unavailable",
+          "selectedVehicleId": null,
+          "selectedTicker": null,
+          "selectedStructure": null,
+          "selectedDirection": null,
+          "materialWrapperCaveat": null,
+          "trackingState": null,
+          "alternatives": [
+            {
+              "vehicleId": "vehicle:FXY",
+              "ticker": "FXY",
+              "state": "Unavailable",
+              "reasonCodes": [
+                "RIGHTS_UNCLEAR",
+                "REQUIRED_FACT_MISSING",
+                "TRACKING_EVIDENCE_INCOMPLETE"
+              ]
+            },
+            {
+              "vehicleId": "vehicle:FXE",
+              "ticker": "FXE",
+              "state": "Unavailable",
+              "reasonCodes": [
+                "RIGHTS_UNCLEAR",
+                "REQUIRED_FACT_MISSING",
+                "TRACKING_EVIDENCE_INCOMPLETE"
+              ]
+            },
+            {
+              "vehicleId": "vehicle:UUP",
+              "ticker": "UUP",
+              "state": "Unavailable",
+              "reasonCodes": [
+                "RIGHTS_UNCLEAR",
+                "REQUIRED_FACT_MISSING",
+                "TRACKING_EVIDENCE_INCOMPLETE"
+              ]
+            },
+            {
+              "vehicleId": "vehicle:UDN",
+              "ticker": "UDN",
+              "state": "Unavailable",
+              "reasonCodes": [
+                "RIGHTS_UNCLEAR",
+                "REQUIRED_FACT_MISSING",
+                "TRACKING_EVIDENCE_INCOMPLETE"
+              ]
+            },
+            {
+              "vehicleId": "vehicle:USDU",
+              "ticker": "USDU",
+              "state": "Unavailable",
+              "reasonCodes": [
+                "RIGHTS_UNCLEAR",
+                "REQUIRED_FACT_MISSING",
+                "TRACKING_EVIDENCE_INCOMPLETE"
+              ]
+            },
+            {
+              "vehicleId": "vehicle:CEW",
+              "ticker": "CEW",
+              "state": "Unavailable",
+              "reasonCodes": [
+                "RIGHTS_UNCLEAR",
+                "REQUIRED_FACT_MISSING",
+                "TRACKING_EVIDENCE_INCOMPLETE"
+              ]
+            },
+            {
+              "vehicleId": "vehicle:YCS",
+              "ticker": "YCS",
+              "state": "Unavailable",
+              "reasonCodes": [
+                "RIGHTS_UNCLEAR",
+                "REQUIRED_FACT_MISSING",
+                "TRACKING_EVIDENCE_INCOMPLETE"
+              ]
+            }
+          ],
+          "rejected": [],
+          "factCutoff": null,
+          "freshUntil": null
+        },
+        "evidenceState": "Evidence incomplete for a current recommendation",
+        "reasons": [
+          "Required listed-vehicle facts are unavailable or no longer current.",
+          "Reuse rights are not established for a required fact.",
+          "A required listed-vehicle fact is missing.",
+          "Listed-vehicle tracking evidence is incomplete."
+        ],
+        "approvedSourceCount": 0,
+        "declaredSourceCount": 8,
+        "withheldFamilies": [
+          "broad-dollar",
+          "event",
+          "forward-carry",
+          "policy-rate-proxy",
+          "positioning",
+          "reer-value",
+          "spot"
+        ],
+        "projection": {
+          "contractVersion": "rl-tool-read/v1",
+          "id": "fx-regime-relative-value-lab",
+          "availability": "unavailable",
+          "asOf": null,
+          "read": "The available evidence does not support a complete attributable recommendation.",
+          "metrics": {
+            "contractVersion": "rlfx-tool-read/v2",
+            "ownerDecisionId": "fxo-v1-7fd6775c",
+            "evidenceIdentity": "fxe-v1-c51ff29b",
+            "state": "unavailable",
+            "objective": "foreign-currency-strength",
+            "subjectId": "JPY",
+            "horizon": "swing",
+            "cohort": "G10",
+            "broadDollarState": "Indeterminate",
+            "broadDollarBasis": "unavailable",
+            "strongest": null,
+            "weakest": null,
+            "currencyStates": {},
+            "selectedPair": {
+              "base": "JPY",
+              "momentumState": "Unavailable",
+              "quote": "USD",
+              "riskState": "Unavailable",
+              "state": "Unavailable",
+              "strengthState": "unavailable"
+            },
+            "hedgeResearchState": "Indeterminate",
+            "carryUnwindState": "Indeterminate",
+            "vehicle": {
+              "state": "Unavailable",
+              "selectedVehicleId": null,
+              "selectedTicker": null,
+              "selectedStructure": null,
+              "selectedDirection": null,
+              "materialWrapperCaveat": null,
+              "trackingState": null,
+              "alternatives": [
+                {
+                  "vehicleId": "vehicle:FXY",
+                  "ticker": "FXY",
+                  "state": "Unavailable",
+                  "reasonCodes": [
+                    "RIGHTS_UNCLEAR",
+                    "REQUIRED_FACT_MISSING",
+                    "TRACKING_EVIDENCE_INCOMPLETE"
+                  ]
+                },
+                {
+                  "vehicleId": "vehicle:FXE",
+                  "ticker": "FXE",
+                  "state": "Unavailable",
+                  "reasonCodes": [
+                    "RIGHTS_UNCLEAR",
+                    "REQUIRED_FACT_MISSING",
+                    "TRACKING_EVIDENCE_INCOMPLETE"
+                  ]
+                },
+                {
+                  "vehicleId": "vehicle:UUP",
+                  "ticker": "UUP",
+                  "state": "Unavailable",
+                  "reasonCodes": [
+                    "RIGHTS_UNCLEAR",
+                    "REQUIRED_FACT_MISSING",
+                    "TRACKING_EVIDENCE_INCOMPLETE"
+                  ]
+                },
+                {
+                  "vehicleId": "vehicle:UDN",
+                  "ticker": "UDN",
+                  "state": "Unavailable",
+                  "reasonCodes": [
+                    "RIGHTS_UNCLEAR",
+                    "REQUIRED_FACT_MISSING",
+                    "TRACKING_EVIDENCE_INCOMPLETE"
+                  ]
+                },
+                {
+                  "vehicleId": "vehicle:USDU",
+                  "ticker": "USDU",
+                  "state": "Unavailable",
+                  "reasonCodes": [
+                    "RIGHTS_UNCLEAR",
+                    "REQUIRED_FACT_MISSING",
+                    "TRACKING_EVIDENCE_INCOMPLETE"
+                  ]
+                },
+                {
+                  "vehicleId": "vehicle:CEW",
+                  "ticker": "CEW",
+                  "state": "Unavailable",
+                  "reasonCodes": [
+                    "RIGHTS_UNCLEAR",
+                    "REQUIRED_FACT_MISSING",
+                    "TRACKING_EVIDENCE_INCOMPLETE"
+                  ]
+                },
+                {
+                  "vehicleId": "vehicle:YCS",
+                  "ticker": "YCS",
+                  "state": "Unavailable",
+                  "reasonCodes": [
+                    "RIGHTS_UNCLEAR",
+                    "REQUIRED_FACT_MISSING",
+                    "TRACKING_EVIDENCE_INCOMPLETE"
+                  ]
+                }
+              ],
+              "rejected": [],
+              "factCutoff": null,
+              "freshUntil": null
+            },
+            "recommendationOutcome": {
+              "contractVersion": "rlfx-recommendation-outcome/v1",
+              "outcome": "unavailable",
+              "objective": "foreign-currency-strength",
+              "economicDirection": {
+                "exposure": "long-JPY/short-USD",
+                "instrumentSide": "long"
+              },
+              "horizon": "swing",
+              "reasonCodes": [
+                "VEHICLE_FIT_UNAVAILABLE",
+                "RIGHTS_UNCLEAR",
+                "REQUIRED_FACT_MISSING",
+                "TRACKING_EVIDENCE_INCOMPLETE"
+              ],
+              "evidenceIdentity": "fxe-v1-c51ff29b",
+              "evidenceCutoff": null,
+              "provenance": [],
+              "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
+              "evaluability": "non-recommendation",
+              "confidencePct": null,
+              "educationalOnly": true,
+              "executionAvailable": false
+            },
+            "coverage": {
+              "available": 0,
+              "ratio": 0,
+              "required": 7,
+              "stale": 0,
+              "unavailable": 7
+            },
+            "conflicts": [],
+            "confirmation": "Approved minimum evidence must become available. Confirm the currency thesis without substituting an ineligible or unavailable vehicle.",
+            "invalidation": "No directional conclusion exists while minimum evidence is unavailable. Selection remains invalid until the exact rejected or unavailable criteria change under current evidence.",
+            "evidenceCutoff": null,
+            "freshUntil": null,
+            "educationalOnly": true,
+            "executionAvailable": false
+          },
+          "deepLink": "fx-regime-relative-value-lab.html#power",
+          "computedAt": "2026-08-13T11:01:05.388Z",
+          "freshUntil": null
+        }
+      }
+    },
     "swing-structure-lab": {
       "id": "swing-structure-lab",
       "asOf": "2026-08-12T13:30:00.000Z",
@@ -3925,7 +4213,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-08-12T20:48:10.879Z",
+      "asOf": "2026-08-13T11:01:05.462Z",
       "read": "Leadership is narrow — 49.85% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -4061,13 +4349,13 @@
       "id": "options-structure-lab",
       "deepLink": "options-structure-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY sits in positive dealer gamma with the flip near 770.19; call wall 775, put wall 770, front expected move ±4.14."
+      "reason": "SPY sits in positive dealer gamma with the flip near 770.98; call wall 775, put wall 770, front expected move ±5.21."
     },
     {
       "id": "gamma-trading-lab",
       "deepLink": "gamma-trading-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 770.19, walls 770/775."
+      "reason": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 770.98, walls 770/775."
     },
     {
       "id": "sector-research-lab",
@@ -4085,7 +4373,7 @@
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "CPER leads real assets at 50.9/100; GLD 34.9, BTC 42.3, SLV 11.3."
+      "reason": "CPER leads real assets at 50.9/100; GLD 34.9, BTC 41.4, SLV 11.3."
     },
     {
       "id": "bond-regime-lab",
@@ -4168,8 +4456,8 @@
     {
       "id": "fx-regime-relative-value-lab",
       "deepLink": "fx-regime-relative-value-lab.html",
-      "status": "browser-or-agent-read",
-      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+      "status": "unavailable",
+      "reason": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published."
     },
     {
       "id": "trend-dynamics-cycle-lab",

@@ -1,799 +1,971 @@
 {
-  "version": 3,
-  "featureDir": "specs/012-market-action-center-and-guided-tools",
-  "featureName": "Market Action Center and Guided Tools",
-  "createdAt": "2026-07-22T03:40:01Z",
-  "lastUpdatedAt": "2026-07-31T00:00:00Z",
-  "status": "blocked",
-  "blockedReason": "Feature 012 is blocked SOLELY on Feature 008 not being terminally certified. Verified at HEAD f398a9ac: specs/008-portfolio-survival-and-brief-lab is status=not_started, certification.status=not_started, certifiedAt=null, and it publishes no machine-readable state.milestones array. Its declared gate feature-008 therefore evaluates matched 0/3 and refuses, which blocks Scope 13 (feature-008 private-portfolio integration) and transitively Scope 14 (integrated acceptance and release handoff); both scope.md files record Status: Blocked. THAT REFUSAL IS THE GATE WORKING AS DESIGNED, NOT A CONTRACT DEFECT — it refuses because the producer has genuinely not delivered, not because the contract is unreachable by any party. FINDING XFC-01 IS RESOLVED AS A DEFECT CLASS (see report.md): no declared dependency gate is unsatisfiable-by-construction any longer. Both formerly-unsatisfiable gates were resolved by finding-path (a) producer-side publication, with every published marker verified against genuinely delivered code before publication — feature-002 at commit 85a9ce1d (state.milestones, provenance recorded inline under milestonesProvenance) and BUG-004 at commit 4ad447c1 (state.evidenceIds, provenance under evidenceIdsProvenance). No gate was weakened, relaxed, or bypassed: tool-experience.config.json is byte-unchanged, its only commit in the entire repository history being c81d808d dated 2026-07-24, which predates the 2026-07-30 finding; bypassAllowed=false remains correct anti-fabrication design. Gate verdicts re-executed at HEAD against each gate's own declared statePath using the rlexperience.js predicate at lines 2104-2109: feature-002 status=done/done matched 4/4 SATISFIED; BUG-004 status=done/done matched 2/2 SATISFIED; feature-008 status=not_started/not_started matched 0/3 refuses. SCOPE 11 IS UNBLOCKED AND READY TO WORK: its only declared external gate (feature-002) now satisfies, its scope.md records Status: Not Started, and it carries 17 unchecked DoD items and 12 Test Plan rows. Nothing external gates it; it is actionable implementation work owned by this feature. SCOPE TALLY at HEAD f398a9ac (15 scopes, per-scope-directory layout): 12 Done (01-10, 12, and 15 — Scope 15 certified Done at f398a9ac), 1 Not Started (Scope 11), 2 Blocked (Scopes 13 and 14). TO UNBLOCK, EXACTLY TWO ACTIONS ARE REQUIRED, and only the second is external: (1) this feature's owner implements Scope 11 against its 17 DoD items and 12 Test Plan rows — no external permission or negotiation is needed; (2) the owner of specs/008-portfolio-survival-and-brief-lab drives Feature 008 to status=done and certification.status=done with a non-null certifiedAt, AND publishes a machine-readable state.milestones array naming rlportfolio-store-privacy, public-evidence-barrier, and local-brief-ticker-scope, each verified against genuinely delivered code before it is published — the identical path taken by 85a9ce1d and 4ad447c1. Scopes 13 and 14 become eligible only when both parts of (2) hold. Publishing a marker that was not genuinely delivered would be fabrication and is not an acceptable route to satisfying the gate. certification.status stays blocked to match top-level status as this repo's artifact-lint requires; certifiedAt remains null and certification.completedScopes stays empty — no completion is claimed.",
-  "blockedReasonAddendum": {
-    "recordedBy": "orchestrator",
-    "recordedAt": "2026-08-02T05:03:12Z",
-    "note": "The blocker above remains IN FORCE and its substance is unchanged, but one status string it quotes is now stale. Feature 008 was reconciled from `not_started` to `in_progress` on 2026-08-02 because its own artifacts contradicted `not_started` (scopes.md declares 1 scope In Progress and 15 Not Started; execution records activeAgent bubbles.test at currentScope 1; and portfolio-survival-allocation-lab.html, rlportfolio.js and portfolio-survival-allocation.config.json are shipped on disk).",
-    "whyStillBlocked": "Gate `feature-008` requires the producer to be TERMINALLY CERTIFIED, not merely started. Feature 008 remains certification.status=not_started with certifiedAt=null, completedScopes=[], 15 of 16 scopes not started, and no registration in tools.json — its own Scope 16 declares that registration is the atomic release boundary. The gate therefore still evaluates FALSE and Scopes 13 and 14 stay blocked. Reclassifying the producer's lifecycle status does not and must not satisfy the gate."
-  },
-  "supersededBlockerRecord": "RETAINED FOR AUDIT ONLY; NOT IN FORCE. Superseded 2026-07-31. The text below was accurate when written but has since been overtaken by two events. First, commit 4ad447c1 published the BUG-004 producer's TP-09 and TP-12 evidenceIds, so the BUG-004 gate now evaluates matched 2/2 SATISFIED rather than the matched 0/2 satisfied=false the text below records; with that, no declared gate remains unsatisfiable-by-construction and finding XFC-01 is resolved as a defect class. Second, Scope 11's scope.md was flipped from Blocked to Not Started once its feature-002 gate satisfied, so the assertion below that Scopes 11, 13 and 14 are all blocked no longer holds — only Scopes 13 and 14 are, on Feature 008 alone. The live blockedReason above states the current condition and supersedes every claim below. The following is preserved verbatim for audit: Scopes 11/13/14 remain blocked by TWO INDEPENDENT conditions. (A) PRODUCER NOT TERMINAL: specs/008-portfolio-survival-and-brief-lab is status=not_started, certification.status=not_started, certifiedAt=null, so Scope 13 (and transitively Scope 14) has no terminal producer. specs/002-distributed-tool-briefs-and-history is NO LONGER a producer-status blocker — verified at HEAD it is status=done, certification.status=done, certifiedAt=2026-07-29T23:45:00Z; the prior text asserting 'both status=not_started' was factually false and is corrected here. (B) UNSATISFIABLE-BY-CONSTRUCTION DEPENDENCY CONTRACT (finding XFC-01, see report.md), which applies to BOTH gates and additionally to the BUG-004 gate: tool-experience.config.json declares acceptedPredicate.requiredMilestones (feature-002 = 4 IDs, feature-008 = 3 IDs) and requiredEvidenceIds (BUG-004 = TP-09, TP-12), and rlexperience.js lines 2056-2059 read those from the PRODUCER's state.milestones / state.evidenceIds. XFC-01 is now RESOLVED FOR THE feature-002 GATE (commit 85a9ce1d): specs/002-distributed-tool-briefs-and-history publishes state.milestones naming only capabilities it genuinely delivered, each verified against delivered production code, a certified Done scope, and a test surface BEFORE publication (evidence recorded inline in that state.json under milestonesProvenance). That is resolution path (B)-EITHER below, not a weakening — tool-experience.config.json is byte-unchanged. Re-executed against the real declared statePath files the gates now return: feature-002 status=done/done matched 4/4 satisfied=TRUE; feature-008 status=not_started/not_started matched 0/3 satisfied=false; BUG-004 status=done/done matched 0/2 satisfied=false (its producer reached terminal AFTER this text was first written; publishing its TP-09/TP-12 evidenceIds is owned by the BUG-004 packet owner and would use the same path). CONSEQUENCE: Scope 11's only declared external gate is now satisfied, so Scope 11 is NO LONGER EXTERNALLY BLOCKED — it is simply unimplemented. Scopes 13/14 remain genuinely blocked because feature-008 fails BOTH (A) producer-terminal and (B) milestone publication. TO UNBLOCK, BOTH are required: (A) Feature 008 reaches status=done and certification.status=done with a non-null certifiedAt under its own owner; AND (B) a cross-feature negotiation resolves the contract by EITHER the producer publishing a machine-readable milestones/evidenceIds array in its own state.json naming only markers it genuinely delivered, OR Feature 012 amending acceptedPredicate to require marker IDs the producer actually publishes. Publishing a marker ID that was not genuinely delivered would be fabrication and is not an acceptable resolution. The gates MUST NOT be weakened, relaxed, or bypassed to unblock; bypassAllowed=false is correct anti-fabrication design and the defect is the unnegotiated consumer-side contract, not the gate's strictness. Scope tally at HEAD (15 scopes, per-scope-directory layout): 11 Done (01-10 + 12), 1 In Progress (15, DoD 14/14 checked with 0 unchecked), 3 recorded Blocked (11, 13, 14) of which Scope 11's external gate is now SATISFIED and awaits only an owner status flip to not_started — the prior 'of 14 scopes' total was stale. certification.status stays blocked (matching top-level; the repo artifact-lint requires top-level status == certification.status); certifiedAt remains null and certification.completedScopes / certifiedCompletedPhases remain empty — zero completion is fabricated.",
-  "workflowMode": "full-delivery",
-  "linkedImplementationSpec": null,
-  "linkedPlanningPacket": null,
-  "planningOnly": false,
-  "planningOnlyJustification": null,
-  "specDependsOn": [
-    "specs/_bugs/BUG-004-proxy-route-local-key-fallback",
-    "specs/002-distributed-tool-briefs-and-history",
-    "specs/008-portfolio-survival-and-brief-lab"
-  ],
-  "flagsIntroduced": [],
-  "certifiedAt": null,
-  "requiresRevalidation": false,
-  "execution": {
-    "activeAgent": "bubbles.test",
-    "currentPhase": "test",
-    "currentPhaseStatus": "completed",
-    "currentScope": null,
-    "substate": "independently_verified",
-    "runStartedAt": "2026-07-24T03:30:00Z",
-    "completedAt": null,
-    "completedPhaseClaims": [
-      {
-        "scope": "12-dynamic-red-alert",
-        "phase": "test",
-        "agent": "bubbles.test",
-        "claimedAt": "2026-07-26T23:15:00Z",
-        "evidence": "scopes/12-dynamic-red-alert/report.md#independent-verification-bubblestest",
-        "summary": "Independent verification of Scope 12 Dynamic Red Alert And Latent-Risk Journey (full-delivery; recorded implement evidence NOT trusted, every Test Plan row reproduced from scratch at HEAD 77c92aac with the exact scope.md commands and full unfiltered output; repo-binding-preflight --agent-source research-lab exit 0 first; tree byte-clean except the preserved concurrent BUG-001 scenario-manifest.json). All 8 rows GREEN in-session: TP-12-01 unit 26/0 exit 0, TP-12-02 functional 7/0 exit 0 (the brief's '6' superseded by the authoritative reproduced 7), TP-12-03 security 9/0 exit 0, TP-12-04..07 live system-chrome e2e each 1 passed exit 0 per exact --grep, TP-12-08 selftest 952/0 exit 0; validate-market-action PASS (forbiddenCapabilities=0, adversarial=7, unexpectedAcceptances=0) + validate-brief-payload PASS + validate-web-evidence PASS (fixtures=11 adversarial=12). Six audits pass: (1) no-interception grep on the spec empty (exit 1); real page.goto + real window.RLMARKETACTIONCENTER + real rljourney addScriptTag (27 real-page/real-engine refs); (2) Center single-source -- qualifyRedAlerts(1229)/renderRedAlertProjection(1347) defined+exported ONLY in rlmarketaction.js, zero data-mac-redalert-field/severity/score/thesis render hooks outside the engine, market-brief.html loads the module (L876) and boot renders only the Feature-002-gated empty scaffold (no F-05-SS-OPTIONS inline duplicate); (3) no-execution -- buildLatentRiskEvidence noExecution/noPublication:true (1331/1332), rljourney.js hard-rejects any non-noExecution definition (RLJOURNEY-DEFINITION 314/330), zero executable execution/publication verbs in rlmarketaction.js+rljourney.js (exit 1), reproduced TP-12-07 proves ledgerAfter===ledgerBefore + alertAfter===alertBefore byte-identical + zero execution traffic in the REAL browser; (4) no-topic/no-alarmism -- config red-alert-policy/v1 = scoreThreshold75/minIndependentOrigins2/weights-sum-100/horizon-bands/severity-labels/staleness, NO named threat/entity/country/asset seed catalog, visibleCap5 is a MAX not a floor, engine total is admissionScore/admission-index and every probability/confidence/crash-odds occurrence is a comment or the unrelated Scope-09 fabricatedConfidence guard; (5) forbidden-authority raw scan of rlmarketaction.js = 3 hits ALL comments (JSDoc + safety), zero executable fetch/providerFetch/credential/storage/execute/publish, validate-market-action moduleAuthorityScan forbiddenCapabilities=0 scanned=10; (6) RED-bite neutralized gate-1 two-independent-origin (both policy.minIndependentOrigins -> 1 in runQualification) -> genuine non-tautological RED: unit 24/2 (not ok 11 gate-1 insufficient-corroboration SCN-012-024 + not ok 24), functional 4/3 (SCN-012-024 + drop-one-origin flip + all-fixtures-derived), security 7/2, each exit 1 -> git checkout HEAD -- rlmarketaction.js restored byte-identical sha256 714cf84f3fd2bb20f1dba72473ed70bc66af6f2ca226e082589218ba8b946ef6 (==before) -> GREEN unit 26/0 func 7/0 sec 9/0 exit 0 + validate-market-action exit 0 -> git status shows ONLY the preserved BUG-001 file, NO bite residue. Build Quality Gate clean: protected paths (rldata.js/rlexperience.js/data/options/watchlist.json/web-evidence-acquire.mjs/rlexperience-adapters/.github-bubbles/rlmarketaction.js/rljourney.js/journeys.json/market-brief.html/market-brief.config.json/scripts-selftest.mjs) byte-unchanged (empty diff), git diff --check exit 0, editor diagnostics 'No errors found' on the engine + all four tests/red-alert.*, artifact-lint PASSED exit 0. No coverage gap; no test change required. Scope 12 DoD 13/13 [x]; scope status done, substate independently_verified. execution.currentScope reconciled off the stale 11 to 12-dynamic-red-alert. NO agent-actionable scope remains: Scope 11 (Feature-002), Scope 13 (Feature-008), Scope 14 (BUG-004 + Scopes 11/13) are all externally gated. Non-blocking finding F-12-INDEX: _index.md status column uniformly stale (Not Started for done scopes 4-12) -> bubbles.plan. Feature status not_started / certifiedAt null / certification.status not_started UNTOUCHED (Scope 12 of 14)."
-      },
-      {
-        "scope": "10-bounded-web-evidence-acquisition",
-        "phase": "test",
-        "agent": "bubbles.test",
-        "claimedAt": "2026-07-26T21:40:00Z",
-        "evidence": "scopes/10-bounded-web-evidence-acquisition/report.md#independent-verification-bubblestest",
-        "summary": "Independent verification of Scope 10 Bounded WebEvidence Acquisition (full-delivery; recorded evidence NOT trusted, every Test Plan row reproduced from scratch at HEAD 674cb92f with the exact scope.md commands and full unfiltered output; repo-binding-preflight --agent-source research-lab exit 0 first). All 8 rows GREEN in-session: TP-10-01 unit 10/0 exit 0, TP-10-02 functional 11/0 exit 0, TP-10-03 security 9/0 exit 0, TP-10-04 validator PASS fixtures=11 adversarial=12 unexpectedAcceptances=0 exit 0, TP-10-05/06/07 live system-chrome e2e each 1 passed exit 0 (full spec 3/3), TP-10-08 selftest 949/0 exit 0; validate-brief-payload PASS + validate-tool-experience PASS adversarial=13. Eight checks pass: (1) SCN-012-006 one-origin material claim rejected as uncorroborated + SCN-012-007 syndication=one independent origin (second still required) + SCN-012-037 frozen web-evidence-bundle/v1 with hashes/bounded-excerpts/claims/origins/owner-evidence, raw HTML/scripts/creds/redirects/author-authority ABSENT (functional+unit+e2e+validator); (2) fail-closed 12 closed-code adversarial rejections + functional policy-enforcement (robots/redirect/over-budget/missing-metadata/later-than-cutoff/instruction-excerpt), no env relaxation; (3) hostile content rejected and never echoed (security + e2e redaction proof: scriptCount=0 onerror=false __webEvidencePwned=false secretpass/exfiltrate absent redactedCount>0); (4) zero author/network authority STATIC -- acquire imports ONLY node:crypto, moduleAuthority=PASS forbiddenCapabilities=0 importsAuthorModule=false, produces NO ToolBrief/pointer, I/O only via injected boundary; (5) browser boundary -- rlbrief consumers projectSafeWebEvidence/renderWebEvidenceDisclosure network-free (only fetch at line 1158 is pre-existing briefFetchText), window.RLBRIEF.acquire===undefined, no-interception grep exit 1, static same-origin frozen bundles, no raw DOM content; (6) RED-bite MIN_INDEPENDENT_ORIGINS 2->1 -> functional 3 fail + unit 3 fail exit 1, git checkout HEAD restored byte-identical sha256 d51838d7...1727f24a -> GREEN exit 0, git status only BUG-001; (7) protected paths byte-unchanged (author/publication scripts, rldata.js, rlexperience-adapters, rlmarketaction.js, rljourney.js, journeys.json, simple-models.json, data/options, market-brief.config.json, rlexperience.js all empty git status), Feature-002 renderer/static green (selftest 949/0 + payload PASS), config additive; (8) rollback truthful -- rlbrief consumer commit 587e9ee9 = 244 insertions/0 deletions (purely additive), removing Scope-10 additions restores prior green with no published state change. Findings F-10-A (scope.md Modified list names rlexperience.js but it is byte-unchanged -- deliberate, non-blocking, route bubbles.plan) + F-10-B (distributed-briefs.spec.mjs pre-existing mount-visibility harness failure, independently reproduced, additive-only proof it is not a Scope-10 regression, non-blocking) both recorded, neither blocks. Scope 10 DoD 13/13 [x]; scope status done, substate independently_verified; artifact-lint exit 0. Feature status not_started / certifiedAt null / certification.status not_started UNTOUCHED (Scope 10 of 14). Next owner bubbles.implement for Scope 11."
-      },
-      {
-        "scope": "09-public-matrix-market-action-scaffold",
-        "phase": "test",
-        "agent": "bubbles.test",
-        "claimedAt": "2026-07-26T19:10:00Z",
-        "evidence": "scopes/09-public-matrix-market-action-scaffold/report.md#independent-verification-bubblestest",
-        "summary": "Independent verification of Scope 09 (full-delivery; recorded evidence NOT trusted, every Test Plan row reproduced from scratch at HEAD df37f198 with the exact scope.md commands and full unfiltered output; repo-binding-preflight --agent-source research-lab exit 0 first). All 8 rows GREEN in-session: TP-09-01 unit 13/13 exit 0, TP-09-02 functional 10/10 exit 0, TP-09-03 consumer-trace 5/5 exit 0 (blockingStaleReferences=0, 1967 files scanned), TP-09-04..07 live system-chrome e2e each 1 passed exit 0 (full spec 4/4 exit 0), TP-09-08 selftest 945/0 exit 0; validate-market-action exit 0 (moduleAuthorityScan forbiddenCapabilities=0, 7 adversarial REJECTED unexpectedAcceptances=0), validate-brief-payload PASS. Eight checks pass: (1) SCN-012-017 rename+route/ID/payload stability -- git diff 3a86d1a3..HEAD market-brief.config.json EMPTY (payload IDs + scheduler byte-unchanged), tools.json/index.html/rlnav.js change ONLY the visible title/nav.label to Market Action Center, id market-brief + file market-brief.html preserved and singular, market-brief.html/rlbrief.js edits additive; (2) SCN-012-019 no-action truthful at unit+e2e (exact statement, fabricated flags false, no numeric confidence/probability, admitted action suppresses no-action); (3) SCN-012-022 public-only every row scopeLabel Public watchlist, no holding/quantity/cost/pnl/mandate/exposure field or copy, storage/request sentinel zero feature-008 read/create + zero fetch/storage, watchlist.json byte-unchanged sha256 8d65ba89aaf72e45ad1f6ab1db0eb6133f813f174b9eb3494a5aabe64bc28eb1; (4) consumer-trace non-tautological (adversarial reverted-title sub-test -> classifier reports exactly 1 blocking, no disk mutation); (5) no-interception raw grep on the spec = 0 matches (page.route/context.route/intercept/msw/nock/wiremock/fulfill), real page.goto + real market-brief.html + real Center runtime; (6) RED-bite neutralized the no-action projection fabricatedCatalyst:false->true -> targeted 'fabricates nothing' assertion FAILED (AssertionError true !== false at tests/market-action.unit.mjs:80) exit 1, git checkout HEAD -- rlmarketaction.js restored byte-identical sha256 f7d43ca33cb78ff15914b996012ad7d0913222aa8da84781d56f1aa7c1251617 -> re-run GREEN exit 0, git status --short afterward shows ONLY the concurrent BUG-001 scenario-manifest.json (no neutralized file left in tree); (7) forbidden-authority comment-stripped scan of rlmarketaction.js = 0 executable (the only 2 hits are lines 37-38 INSIDE the JSDoc block comment; validate-market-action moduleAuthorityScan=PASS forbiddenCapabilities=0) + protected paths byte-unchanged across range AND worktree (rlexperience.js, rlexperience-adapters/**, simple-models.json, journeys.json, rljourney.js, rldata.js, data/options/**, watchlist.json); (8) rollback Core-Delivery item 4 verified truthful-reasoned (Scope-09 additive-only, config/payload untouched, watchlist byte-unchanged, id/file preserved, forward-revert with no history/watchlist/local-data change). No coverage gap; no test change required. Scope 09 status done, substate independently_verified; artifact-lint PASSED. Feature status not_started / certifiedAt null / certification.status not_started -- UNTOUCHED (Scope 9 of 14). Next owner bubbles.implement, next scope 10-bounded-web-evidence-acquisition."
-      },
-      {
-        "scope": "09-public-matrix-market-action-scaffold",
-        "phase": "implement",
-        "agent": "bubbles.implement",
-        "claimedAt": "2026-07-26T18:20:00Z",
-        "evidence": "scopes/09-public-matrix-market-action-scaffold/report.md#tp-09-03",
-        "summary": "Scope 09 implement BATCH 2 of 2 (code + tests COMPLETE; execution claim, NOT a self-certified completed phase -- bubbles.test finalizes). Delivered the two remaining Test Plan files against the already-shipped visible rename (commit 380812b4): tests/market-action-consumer-trace.mjs (TP-09-03) + tests/market-action-center.spec.mjs (TP-09-04..07). repo-binding-preflight --agent-source research-lab exit 0 first. TP-09-03 consumer-trace 5/5 exit 0: enumerates the whole repo (1966 files scanned, 278 with occurrences, 881 old-visible + 1384 identity refs) and classifies every occurrence into immutable-history(1763) / routed-to-Scope-14-docs(87) / explicit-compat-alias(6) / in-scope-source-tests(409) -- 0 blocking-stale-references; the blocking rule is a STRUCTURAL primary-identity check (page title/h1, tools.json title+nav.label, index card title, rlnav label) plus a singular-route/id guard; the adversarial sub-test reverts the <title> IN-MEMORY and proves the SAME classifier reports exactly 1 blocking ref (non-tautological, no disk mutation). All 4 primary surfaces read 'Market Action Center'; route/file market-brief.html + registry id market-brief + payload IDs + publicAliases preserved and singular. TP-09-04..07 live-stack system-chrome 4/4 exit 0 against the REAL market-brief.html route + REAL four-view shell rlviews.js + REAL Center controller, ZERO request interception (passive storage-API observation only; no-interception scan clean; regression-quality-guard 0 violations): SCN-012-017 title/h1 + exactly 4 tabs [brief,portfolio,red-alert,journey] + route/id registered + #simple/#power -> #brief boot-replaceState + #power opens the evidence disclosure + Back/Forward restore exact tab + bare bookmark boots Brief; SCN-012-019 driving the REAL renderCenterNoAction with complete-coverage/zero-action -> exact no-action statement + no fabricated action/catalyst/confidence + admitted-action suppression (adversarial) + closed disclosure; SCN-012-022 every public row 'Public watchlist' + closed explicit cells + no private field/copy + Feature-008 overlay gate + live matrix privacyAssertion feature008KeyRead/Created=false + storage sentinel 0 private key read/created; TP-09-07 legacy hashes safe + legacy-market-brief-payload provenance + authored-v2 Feature-002 gate + 4 ET windows + Red Alert empty+Feature-002 gate + 4 journey goals+Feature-008 stress gate + closed evidence. Regression guards: selftest 945/0, validate-brief-payload PASS, watchlist.json byte-unchanged, artifact-lint PASSED. Committed f2049709 (consumer-trace), c5de975b (e2e); git add scoped to the 2 changed files, concurrent BUG-001 scenario-manifest.json preserved. All 8 Test Plan rows GREEN. Scope 09 stays in_progress; Feature status not_started / certifiedAt null / certification.status not_started UNTOUCHED. nextRequiredOwner bubbles.test."
-      },
-      {
-        "scope": "09-public-matrix-market-action-scaffold",
-        "phase": "implement",
-        "agent": "bubbles.implement",
-        "claimedAt": "2026-07-26T17:20:00Z",
-        "evidence": "scopes/09-public-matrix-market-action-scaffold/report.md#tp-09-01",
-        "summary": "Scope 09 implement BATCH 1 of 2 (PARTIAL -- NOT a completed phase). Delivered the PURE public projection module + its unit/functional tests + the contract validator, all GREEN in-session (repo-binding-preflight --agent-source research-lab exit 0 first). NEW rlmarketaction.js: pure dependency-free UMD (mirrors rljourney.js wrapper+helpers) composing/validating two public contracts -- PortfolioTickerMatrix/v1 PUBLIC (composePublicMatrix/validatePublicMatrix: one row per watchlist ticker, every row scope-labeled 'Public watchlist', one EXPLICIT cell per registry domain with applicability in {applicable,not-applicable} + state in the closed six {current|partial|stale|disputed|unavailable|not-applicable}, missing owner read -> unavailable+gapReason NEVER neutral-by-omission, not-applicable not counted as a gap) and MarketActionCenterProjection/v1 (composeCenterProjection/validateCenterProjection: EXACTLY four top-level views brief/portfolio/red-alert/journey, single active view, no Simple/Power/fifth; SCN-012-019 no-action Brief states 'No current action clears the bar' and fabricates NO action/catalyst/confidence; closed long-context disclosures open:false; three EXACT dependency-pending gates authoredBriefV2=feature-002, redAlertPublication=feature-002, privatePortfolioOverlay=feature-008 rendered NOT implemented). HARD INVARIANTS proven: PUBLIC-ONLY private-field barrier (assertNoPrivateField rejects any holding/quantity/cost/pnl/mandate/exposure field with RLMKT-PRIVACY, value never echoed -- SCN-012-022); ZERO fetch/providerFetch/credential/storage-write (forbidden-authority DIRECT scan on rlmarketaction.js: all 12 patterns incl require/import = 0; validator moduleAuthorityScan forbiddenCapabilities=0). TP-09-01 unit 13/13 exit 0; TP-09-02 functional 10/10 exit 0 (incl storage/request sentinel proving zero fetch/localStorage/RLDATA touch + zero Feature 008 key read/create, and watchlist.json sha256 byte-identical before/after). RED->GREEN proven for BOTH: with rlmarketaction.js moved aside the existence guard fails (UNIT_EXIT=1, FUNCTIONAL_EXIT=1, 'production contract missing: rlmarketaction.js'), module restored byte-identical -> GREEN. NEW scripts/validate-market-action.mjs exit 0 (publicMatrix rows=4, centerProjection views=4 gatesPending=3, 7 closed adversarial refusals RLMKT-PRIVACY/SCOPE/CELL/VIEW/GATE/NOACTION). scripts/selftest.mjs Scope-09 canary added (5 asserts) -> 945 passed / 0 failed exit 0. artifact-lint exit 0. tool-experience.config.json NOT modified (rlmarketaction.js is a TOP-LEVEL module, not rlexperience-adapters/*, so moduleAllowlist does not apply). Scope 01-08 code + rldata.js + data/options + watchlist.json byte-unchanged (git diff-name-only = only scripts/selftest.mjs + the concurrent BUG-001 scenario-manifest.json which was NOT touched). DEFERRED to batch 2 (route_required continuation): the visible RENAME (market-brief.html/tools.json/index.html/rlnav.js -> 'Market Action Center'), TP-09-03 consumer-trace test, TP-09-04..07 desktop e2e. No DoD item checked (full slice incl rename+e2e is batch 2). Feature status not_started, certifiedAt null -- UNTOUCHED. Scope 09 stays in_progress."
-      },
-      {
-        "scope": "08-journey-runtime-definitions",
-        "phase": "test",
-        "agent": "bubbles.test",
-        "claimedAt": "2026-07-26T16:40:00Z",
-        "evidence": "scopes/08-journey-runtime-definitions/report.md#independent-verification-bubblestest",
-        "summary": "Independent verification of Scope 08 (full-delivery; recorded evidence NOT trusted, every Test Plan row reproduced from scratch at HEAD e590c1d5 with the exact scope.md commands; repo-binding-preflight --agent-source research-lab exit 0 first). All 10 rows GREEN in-session: TP-08-01 unit 12/12 exit 0, TP-08-02 functional 7/7 exit 0, TP-08-03 storage/privacy functional 11/11 exit 0, TP-08-04..08 desktop e2e each 1 passed exit 0 (full journey.spec.mjs 6/6), TP-08-09 mobile e2e 1 passed exit 0, TP-08-10 broad selftest 939 passed/0 failed exit 0. Six checks pass: (1) SCN-012-011 NO-EXECUTION -- zero executable execution path in rljourney.js (only a doc-comment + the packet disclaimer STRING literal), ledger byte-identity proven at unit (TP-08-01 three sentinel ledgers) + desktop (TP-08-06 full localStorage ledger + live network capture) + mobile (TP-08-09); (2) no-interception -- both e2e specs match only documentation-comment lines, each drives a REAL page.goto + REAL RLAPP.mountJourney + REAL RLJOURNEY/__rljourneyController runtime + RLJOURNEY.compileDefinition; (3) SCN-012-032 coverage -- validate-tool-experience.mjs journeyCoverage=PASS ordinaryTools=22 centerGoals=4 totalGoals=48 definitions=48, adversarial journey-execution-enabled REJECTED (E012-JOURNEY-DEFINITION), 13/13 adversarial refused; (4) config no-executable-JS (grep 0 tokens, both valid JSON) + local-non-sensitive-only + portfolio-stress gated to Scope 13 (privacyClass local-private-ref, noExecution:true, step sideEffectPolicy none, opaque-reference-only limitations, no Feature 008 read); (5) RED-bite -- neutralizing the transitive-stale marking in backtrackStepInternal failed EXACTLY the two SCN-012-010 unit assertions (RED pass 10/fail 2 exit 1; dependent stayed complete, packet leaked [d,b,c]), git checkout HEAD -- rljourney.js restored byte-identical sha256 fa80d5dcd81cce65060b6f923f23bd005869afdc08381a682d6718e16d94cb24 (GREEN 12/12 exit 0), git status --short shows ONLY the concurrent BUG-001 scenario-manifest.json dirty -- no neutralized file left in the tree; (6) forbidden-authority EXECUTABLE=0 on rljourney.js (only two header doc-comment lines) + EMPTY git diff on rlexperience.js/rlexperience-adapters/simple-models.json/rldata.js/data/options/journeys.json. Reconciled the stale report Summary/Completion-Statement/Decision-Record + TP-08-10 count (934 to 939) and wrote the missing TP-08-04..08 evidence blocks -- F-08-REPORT-STALE CLOSED. Scope-08 DoD 14/14 [x]; scope status done, substate independently_verified. execution.currentScope=09-public-matrix-market-action-scaffold, nextRequiredOwner=bubbles.implement. Feature status not_started, certifiedAt null, certification.status not_started -- UNTOUCHED (Scope 8 of 14)."
-      },
-      {
-        "scope": "08-journey-runtime-definitions",
-        "phase": "implement",
-        "agent": "bubbles.implement",
-        "claimedAt": "2026-07-26T15:06:27Z",
-        "evidence": "scopes/08-journey-runtime-definitions/report.md#tp-08-01",
-        "summary": "Scope 08 implement PARTIAL (NOT a completed phase) -- Journey runtime CORE + unit + definitions-functional delivered. Created rljourney.js (greenfield UMD Journey runtime): runtime-boundary definition/step preconditions, dependency-DAG cycle-rejection + topological order, canonical sha256 semantic fingerprints, JourneySession create/serialize/restore/completeStep/backtrack with DEPENDENCY-AWARE TRANSITIVE-STALE marking (SCN-012-010), typed complete/partial/refused NON-EXECUTING JourneyCompletionPacket (SCN-012-011: recordSignoff mutates only local review state, executed:false, no execution entry point exists), no-executable-code invariant (RLJOURNEY-EXECUTION), privacy field-name boundary (RLJOURNEY-PRIVACY), Scope-13 portfolio-stress gate (privacyClass local-private-ref compiles gated:true, no Feature 008 read). DELEGATES deep schema validation to rlexperience.validateJourneyRegistry (single source, no fork). TP-08-01 unit 12/12 exit 0 (RED-first: first run 10/2 on two test-expectation errors -- topo next-step d not c; forbidden context field is RLJOURNEY-PRIVACY not RLJOURNEY-SESSION -- corrected to the runtime contract, GREEN 12/12; adversarial RED-bite neutralizing transitive-stale fails exactly the 2 SCN-012-010 tests, restored byte-identical sha256 989a749c...7d9d GREEN). TP-08-02 functional 7/7 exit 0 (SCN-012-032: ordinaryTools=22, centerGoals=4, totalGoals=48, definitionCount=48; market-brief -> 4 market-action goals; rlexperience cross-check 48/48; adversarial single-goal/three-Center/generic-goalId refusals). TP-08-10 broad selftest 934/0 exit 0 (baseline preserved). journeys.json NOT modified -- all 48 definitions already satisfy the runtime contract. Forbidden-authority EXECUTABLE=0 on rljourney.js (only hit is the FORBIDDEN_FIELD_ROOTS denylist literal). rlexperience.js / rlexperience-adapters/** / simple-models.json / rldata.js / data/options/** byte-unchanged (empty git diff). artifact-lint PASSED. DEFERRED to next dispatch: TP-08-03 storage-functional, TP-08-04..08 journey.spec e2e, TP-08-09 journey-mobile e2e, verified local-slot storage, rlexperience/rlapp/config journey-exposure wiring, validate-tool-experience + selftest journey canary wiring, finalization. Scope 08 stays in_progress; feature status not_started / certifiedAt null / certification.status not_started UNTOUCHED."
-      },
-      {
-        "scope": "04-simple-model-core-runtime",
-        "phase": "implement",
-        "agent": "bubbles.implement",
-        "claimedAt": "2026-07-24T01:00:00Z",
-        "evidence": "scopes/04-simple-model-core-runtime/report.md",
-        "summary": "Reconciled and completed Scope 04 SimpleModel Core Runtime. TP-04-01..06 executed in-session at exit 0 (unit 8/8, functional 6/6, e2e-ui 1/1 + 1/1, perf 1/1, broad selftest 712/0). Honest identity-exclusion RED/GREEN replay (RED exit 1 at tests/simple-models.unit.mjs:238, restored GREEN exit 0). Forbidden-authority static scan 0 tokens; registry validator registeredAdapters=0 toolIdBranches=0 authorityOwned=0; e2e no-interception clean."
-      },
-      {
-        "scope": "04-simple-model-core-runtime",
-        "phase": "test",
-        "agent": "bubbles.test",
-        "claimedAt": "2026-07-24T02:30:00Z",
-        "evidence": "scopes/04-simple-model-core-runtime/report.md#independent-verification-bubblestest",
-        "summary": "Independent re-verification (full-delivery, recorded evidence not trusted). Reproduced TP-04-01..06 in-session at exit 0 (unit 8/8, functional 6/6, e2e-ui 1/1 + 1/1, perf 1/1, broad selftest 712 passed/0 failed). No-interception scan clean (grep exit 1) with real-page page.goto + empty in-browser network ledger (expect(requests).toEqual([])). Forbidden-authority invariant reproduced: simpleRuntime=PASS truthStates=6 registeredAdapters=0 toolIdBranches=0 authorityOwned=0; static token scan all 0. Adversarial RED-bite reproduced: neutralizing the occurrence-time exclusion FAILS tests/simple-models.unit.mjs:238 (RED exit 1), restored to byte-identical rlexperience.js sha256 011b01da...ccc3f with no residual marker (GREEN exit 0). artifact-lint exit 0; git diff --check exit 0; no editor diagnostics. No coverage gap; no test change required. Scope 04 status set to done."
-      },
-      {
-        "scope": "05-market-structure-options-adapters",
-        "phase": "test",
-        "agent": "bubbles.test",
-        "claimedAt": "2026-07-24T23:55:00Z",
-        "evidence": "scopes/05-market-structure-options-adapters/report.md#independent-verification-bubblestest--round-2-post-f-05-ss-options",
-        "summary": "Independent re-verification Round 2 after the F-05-SS-OPTIONS fix (full-delivery; recorded evidence not trusted, reproduced from scratch at HEAD bbe4608d). All 12 Test Plan rows GREEN in-session: TP-05-01 unit 42/0, TP-05-02 integration 3/0, TP-05-03 source-ownership 6/0, TP-05-04..11 e2e 8/8, TP-05-12 selftest 802/0. F-05-SS-OPTIONS RESOLVED: options-flow-feed-lab.html/options-structure-lab.html/gamma-trading-lab.html each load rlexperience-adapters/options.js (RLOPTIONS 9/5/12) and delegate every owner formula to RLOPTIONS.* via thin one-line delegators; adversarial grep proves the formula bodies (Black-Scholes nCDF constants 0.2316419/0.319381530/1.330274429, d1/d2 Math.log(S/K)) live ONLY in options.js with zero inline duplication in the pages, and the old 'Extracted VERBATIM from <page>.html' copy-admissions are removed. All 8 owner pages single-sourced (market-heatmap/intraday/swing via RLMARKETSTRUCTURE 7/5/7, volatility via RLVOL 7, options x3 via RLOPTIONS, technical genuinely owner-less=0). No-interception clean (only JSDoc comment lines 17-18; real-page page.goto + addScriptTag). Forbidden-authority EXECUTABLE=0 for both modules (options.js zero raw tokens; market-structure.js two RLDATA mentions both in comments). rldata.js/rlexperience.js/scripts/fetch-options.mjs/data/options byte-unchanged (0 diff). technical-five-gate honest-unavailable is genuine SIGNAL-invariance grounded in design.md L572/L1353. No coverage gap. Scope 05 status set to done; F-05-SS-OPTIONS CLOSED."
-      },
-      {
-        "scope": "06-macro-rotation-fundamental-adapters",
-        "phase": "implement",
-        "agent": "bubbles.implement",
-        "claimedAt": "2026-07-26T05:00:00Z",
-        "evidence": "scopes/06-macro-rotation-fundamental-adapters/report.md",
-        "summary": "Authored + ran the previously-missing E2E spec tests/simple-model-adapters-macro-fundamental.spec.mjs (F-06-E2E-01 CLOSED): the eight persistent per-tool system-Chrome regressions TP-06-04..TP-06-11 (one per Scope-06 owner tool), mirroring the delivered Scope-05 spec. All 8 rows GREEN in-session -- full-spec single run 8 passed (FULLSPEC_EXIT=0) and each per-row --grep command exit 0 (TP-06-04..11). Broad selftest 895 passed / 0 failed (SELFTEST_EXIT=0). No-interception scan of the new spec empty (grep exit 1). Live-stack authentic: real page (page.goto) + real production adapter UMD (macro-rotation.js / fundamental-models.js) + real runtime (globalThis.RLEXPERIENCE.createSimpleRuntime + register*Adapters) + real renderer (renderSimpleProjection) + real [data-rlexperience-panel=simple] DOM host; owner data = frozen deterministic fixture, NOT an intercepted network response. Finding F-06-MSFT-SHELL-OPTOUT: msft-july-print-model.html deliberately opts out of the shared #rlviews shell (committed; documented as future spec-migration work) but already loads the real core + adapter for its Power path, so the TP-06-10 row exercises the real msft-margin-eps adapter through the page's OWN core + adapter, mounting only the Simple host the opt-out shell omits (probe: FY27 EPS 18.229333 -> 17.162667 under the two controls). Scope 06 stays in_progress; bubbles.test to independently re-verify TP-06-04..11 + finalize the DoD + status."
-      },
-      {
-        "scope": "06-macro-rotation-fundamental-adapters",
-        "phase": "test",
-        "agent": "bubbles.test",
-        "claimedAt": "2026-07-26T06:30:00Z",
-        "evidence": "scopes/06-macro-rotation-fundamental-adapters/report.md#iv-e2e-finalization",
-        "summary": "Independent E2E finalization of Scope 06 (full-delivery; recorded implement evidence not trusted, every Test Plan row reproduced from scratch at HEAD 20432c56 with the exact scope.md commands). All 12 rows GREEN in-session: TP-06-01 unit 51/51 exit 0, TP-06-02 integration 2/2 exit 0, TP-06-03 functional 12/12 exit 0, TP-06-12 selftest 895/0 exit 0, and the eight persistent per-tool system-Chrome E2E rows TP-06-04..TP-06-11 each 1 passed exit 0 with its exact --grep, plus the full 8-row spec in one invocation = 8 passed (FULLSPEC_EXIT=0). No-interception scan of the spec empty (grep exit 1); live-stack authentic (real page.goto + real adapter UMD + real createSimpleRuntime + real renderSimpleProjection + real [data-rlexperience-panel=simple] DOM host; frozen owner fixture, zero request interception; the only broader-scan hits are comment lines asserting the absence of interception). F-06-MSFT-SHELL-OPTOUT verified independently: committed meta name=rlviews content=off at msft page L778 (git show HEAD), page loads real fundamental-models.js for its Power path, and the page Power calculateAnnual + the Simple adapter both single-source RLFUNDAMENTALS.msftAnnualBridge -- JUDGED to genuinely satisfy TP-06-10 (real msft-margin-eps adapter + real two-control sensitivity + owner facts + provenance); the shell opt-out is surfaced as the non-blocking page-owner finding F-06-MSFT-SHELL-OPTOUT routed to bubbles.plan, NOT a Scope-06 adapter defect. Fresh owner-parity RED-bite on msftAnnualBridge (fundamental-models.js; prior session bit sleeveTotalReturn, so this is a not-previously-bitten adapter): doubled the implied valuation term -> RED 800!=400 exit 1; git checkout HEAD restored byte-identical sha256 0441403e...496237c4 -> GREEN exit 0; tree byte-clean. Scope-06 DoD reconciled 16/16 [x]; scope status done, substate independently_verified; artifact-lint exit 0. Feature status not_started, certifiedAt null, certification.status not_started -- UNTOUCHED. Only preserved concurrent dirt: bugs/BUG-001 scenario-manifest.json. Verdict TESTED; next owner bubbles.implement to kick off Scope 07."
-      },
-      {
-        "scope": "07-strategy-property-method-adapters",
-        "phase": "implement",
-        "agent": "bubbles.implement",
-        "claimedAt": "2026-07-26T06:40:00Z",
-        "evidence": "scopes/07-strategy-property-method-adapters/report.md#tp-07-01-ocean",
-        "summary": "Scope 07 implement IN PROGRESS -- 5 of 7 adapters delivered (NOT a completed phase). THIS dispatch registered simple-adapter/str-scenario/ocean-shores/v1 (batch 5) through the SAME property-research.js shared compute (computeStrScenarioSummary) + injected rlrental.js owner engine as palm-springs -- a 2-line registration (STR_SCENARIO_TOOL_IDS + supportedAdapterIds), no new formula. Added five dedicated ocean-shores unit rows: registration + no forbidden authority, page single-source vs rlrental.js (RLRENTAL.mountRoute, no inline copy), owner-parity run vs a DIRECT RLRENTAL.computeRentalResult, all EIGHT parameters move their declared path (segment/adr/occupancy/financing-rate/operating-cost/horizon -> summary.cashFlow; storm-insurance-stress + regulation-stress -> summary.stress ONLY), and gap preservation (full economics INCOMPLETE, null bottom line, missingCostFieldIds includes property-tax+capital-reserve, never zero-filled). RED replay: git stash of the registration reverted property-research.js to HEAD -> 4 of 5 ocean rows FAIL (adapter unregistered) exit 1; git stash pop restored GREEN 27/27. TP-07-01 unit 27/27 exit 0; TP-07-11 broad selftest 931/0 exit 0; forbidden-authority EXECUTABLE=0; rlrental.js / strategy-research.js / Scope 04/05/06 modules / rldata.js / data/options zero-diff. Ocean carries NO explicit insurance Simple input (disclosed cost = frozen owner baseFixedInsuranceUsd). Prior committed batches: strategy-evolution/v1, disclosure-decay/v1, walk-forward-validation/v1 (strategy-research.js), str-scenario/palm-springs/v1 (property-research.js). Remaining: location-suitability/v1 (waterfront-polo, this dispatch Task B) + market-action-triage/v1 (Center, later dispatch). Feature status not_started, certifiedAt null -- untouched. Scope 07 stays in_progress."
-      },
-      {
-        "scope": "07-strategy-property-method-adapters",
-        "phase": "implement",
-        "agent": "bubbles.implement",
-        "claimedAt": "2026-07-26T07:10:00Z",
-        "evidence": "scopes/07-strategy-property-method-adapters/report.md#tp-07-01-location",
-        "summary": "Scope 07 implement IN PROGRESS -- 6 of 7 adapters delivered (NOT a completed phase). THIS dispatch Task A delivered simple-adapter/location-suitability/v1 (batch 6, waterfront-polo-lab) with GENUINE single-sourcing: the four owner geo primitives (haversineMi/driveMinutesApprox/nearestClub/marketPasses) + computeLocationSuitabilitySummary live ONCE in property-research.js (RLPROPERTY). waterfront-polo-lab.html was REWIRED to load the module + delegate via thin RLPROPERTY.* wrappers -- the inline var R=3958.7613 great-circle body + the budget-fit rank table were REMOVED (the F-05-SS-OPTIONS-critical anti-duplication step) -- and scripts/selftest.mjs waterfront group was reconciled IN LOCKSTEP (extractFn/build-on-page -> createRequire load of RLPROPERTY; the 13 geo assertions moved env.* -> RLP.*, +3 new wiring assertions: page loads module, delegates the four primitives, no inline copy). Five location unit rows added: (1) module authority + geo-primitives-exposed + no forbidden authority, (2) page single-source, (3) adapter registers + owner-parity (shortlist row nearestClubMi/driveMin == DIRECT RLPROPERTY.nearestClub+driveMinutesApprox), (4) all SEVEN params move declared path (budget/minimum-size/water-type/travel-limit -> summary.shortlist; insurance-risk-ceiling -> summary.risk ONLY; flood-verification/club-verification -> summary.verification ONLY), (5) unverified club-seed/estimated-hazard gap preserved (never promoted) + determinism. Isolated RED replay: git stash of the page reverted to HEAD inline copies -> ONLY the page-single-source row bites (pass 31/fail 1 exit 1); git stash pop restored GREEN 32/32 (also corrected one fixture-expectation: shortlist drive-time order is the genuine ['m-f','m-a'], an expectation fix not a relaxed assertion). TP-07-01 unit 32/32 exit 0; TP-07-02 integration 5/5 exit 0 (regression, no Scope-05/06 drift); TP-07-11 broad selftest 934/0 exit 0 (+3 waterfront wiring assertions); forbidden-authority EXECUTABLE=0; rlrental.js / strategy-research.js / rldata.js / rlexperience.js / Scope 04/05/06 modules / simple-models.json / tests/simple-model-adapters.integration.mjs / data/options ALL zero-diff. Remaining: market-action-triage/v1 (Market Action Center in-Brief triage, THIS dispatch Task B). Feature status not_started, certifiedAt null -- untouched. Scope 07 stays in_progress."
-      },
-      {
-        "scope": "08-journey-runtime-definitions",
-        "phase": "implement",
-        "agent": "bubbles.implement",
-        "claimedAt": "2026-07-26T16:20:00Z",
-        "evidence": "scopes/08-journey-runtime-definitions/report.md#tp-08-09",
-        "summary": "Scope 08 FINAL test file delivered (execution claim, NOT a self-certified completed phase; bubbles.test finalizes). Authored tests/journey-mobile.spec.mjs (TP-08-09) -- the last of the 6 Implementation Files -- a single persistent live-stack system-Chrome mobile regression 'Regression: Journey mobile progress evidence backtrack dialogs and packet fit and restore focus' under a genuine 320x900 page.setViewportSize client on the REAL market-heatmap-lab.html + REAL RLAPP.mountJourney() + REAL rljourney runtime + REAL browser localStorage. Proves ON MOBILE the same core invariants as the desktop journey.spec.mjs: SCN-012-009 durable resume across a real page.reload() with no visit/click misclassified complete + ordered aria-labelled progress with aria-current='step' + per-step evidence counts; SCN-012-010 backtrack transitive-stale (only dependent b stale WITH reason, unrelated d intact) on both the session view AND the rendered DOM + partial-packet exclusion + complete-packet RLJOURNEY-STALE refusal; SCN-012-011 signoff triggers ZERO execution (full localStorage ledger BYTE-IDENTICAL across recordReview, no execution entry point, no execution/publication network request); plus mobile fit (packet+disclaimer + shell fit within 320px, no internal horizontal overflow, zero inline geometry on shell children) and focus preserved across an active-region re-render. Command 'npx --no-install playwright test tests/journey-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list' = 1 passed exit 0. No-interception scan of the spec = zero executable interception (only the two documentation-comment lines 22-23). Broad selftest re-ran 939 passed/0 failed exit 0 (baseline green). Consistent with desktop journey.spec.mjs the injected mount is driven via page.evaluate; the neutral test host <div data-rljourney-mount> is opted into visibility (a real adopting page supplies its own visible container) -- a host-only override that never touches the shell's rendered chooser/progress/packet children. Change boundary honored: created tests/journey-mobile.spec.mjs + report TP-08-09 evidence + DoD [x] + this state pointer; rljourney.js/rlapp.js/journeys.json/scripts/adapters/core untouched; the concurrent BUG-001 scenario-manifest.json dirty file preserved (not staged). All 6 Scope-08 Implementation Files now present and all e2e Test Plan rows green. FINDING (routed to bubbles.test): the Scope-08 report Summary/Completion-Statement and the TP-08-04..08 + TP-08-10 rows are STALE (still narrate those as 'deferred'/934) although journey.spec.mjs + the rlapp.js Journey-chooser wiring + the selftest/validator canaries landed in prior commits (6db3e282/055f7512/fb3fb26b/a8efa69d) -- a prior-dispatch report-freshness gap outside this change boundary. Scope 08 stays in_progress; Feature status not_started / certifiedAt null / certification.status not_started UNTOUCHED. Next owner bubbles.test to independently re-verify all Test Plan rows + reconcile the stale report + finalize Scope-08 DoD and status."
-      }
-    ],
-    "pendingTransitionRequests": [],
-    "nextRequiredOwner": "bubbles.workflow",
-    "nextRequiredTarget": "Scope 12 (Dynamic Red Alert And Latent-Risk Journey) is DONE (substate independently_verified): bubbles.test reproduced all 8 Test Plan rows from scratch at HEAD 77c92aac (TP-12-01 unit 26/0, TP-12-02 functional 7/0, TP-12-03 security 9/0, TP-12-04..07 live system-chrome e2e 4/4, TP-12-08 selftest 952/0; validate-market-action + validate-brief-payload + validate-web-evidence PASS) and confirmed all 6 audits: (1) no-interception scan empty; (2) Center single-source qualifyRedAlerts/renderRedAlertProjection defined ONLY in rlmarketaction.js, zero render hooks outside the engine, market-brief.html loads the module and boot renders only the Feature-002-gated empty scaffold; (3) no-execution buildLatentRiskEvidence noExecution/noPublication:true + rljourney hard-rejects non-noExecution definitions + zero execution/publication verbs in source + TP-12-07 runtime ledger/alert byte-identity + zero execution traffic; (4) no-topic/no-alarmism config red-alert-policy=thresholds/weights(sum100)/bands/staleness with NO named-topic seed catalog and visibleCap is a MAX not a floor, total labelled admissionScore never probability/confidence/crash-odds; (5) forbidden-authority raw scan=3 comment-only hits + validate-market-action forbiddenCapabilities=0 + validate-brief-payload + validate-web-evidence PASS; (6) RED-bite neutralized gate-1 minIndependentOrigins->1 -> genuine RED unit 2/func 3/sec 2 fail exit 1 -> git checkout HEAD byte-identical restore sha256 714cf84f...b946ef6 (==before) -> GREEN 26/7/9 exit 0 -> tree clean of the bite. Scope 12 DoD 13/13 [x] (authoritative artifact count is 13, not the brief's 16). NO agent-actionable scope remains: Scope 11 blocked on external Feature-002 gate, Scope 13 blocked on external Feature-008 gate, Scope 14 blocked on external BUG-004 gate (plus Scopes 11/13). bubbles.implement resumes Scope 11 or 13 ONLY after its external certification/feature gate clears. Non-blocking finding F-12-INDEX: _index.md status column is uniformly stale (shows Not Started for scopes 4-12 that are done in state.json) -> route to bubbles.plan. Feature status not_started / certifiedAt null / certification.status not_started remain UNTOUCHED (Scope 12 of 14).",
-    "scopeProgress": [
-      {
-        "scope": 1,
-        "scopeId": "01-contract-config-registry-foundation",
-        "name": "Contract, Configuration, And Registry Foundation",
-        "status": "done",
-        "dependsOn": [],
-        "scopeDir": "scopes/01-contract-config-registry-foundation",
-        "scopeArtifact": "scopes/01-contract-config-registry-foundation/scope.md",
-        "reportArtifact": "scopes/01-contract-config-registry-foundation/report.md"
-      },
-      {
-        "scope": 2,
-        "scopeId": "02-shared-four-view-shell",
-        "name": "Shared Four-View Shell",
-        "status": "done",
-        "dependsOn": [1],
-        "scopeDir": "scopes/02-shared-four-view-shell",
-        "scopeArtifact": "scopes/02-shared-four-view-shell/scope.md",
-        "reportArtifact": "scopes/02-shared-four-view-shell/report.md"
-      },
-      {
-        "scope": 3,
-        "scopeId": "03-contextual-tooltip-foundation",
-        "name": "Contextual Tooltip Foundation",
-        "status": "done",
-        "dependsOn": [2],
-        "scopeDir": "scopes/03-contextual-tooltip-foundation",
-        "scopeArtifact": "scopes/03-contextual-tooltip-foundation/scope.md",
-        "reportArtifact": "scopes/03-contextual-tooltip-foundation/report.md"
-      },
-      {
-        "scope": 4,
-        "scopeId": "04-simple-model-core-runtime",
-        "name": "SimpleModel Core Runtime",
-        "status": "done",
-        "dependsOn": [3],
-        "scopeDir": "scopes/04-simple-model-core-runtime",
-        "scopeArtifact": "scopes/04-simple-model-core-runtime/scope.md",
-        "reportArtifact": "scopes/04-simple-model-core-runtime/report.md"
-      },
-      {
-        "scope": 5,
-        "scopeId": "05-market-structure-options-adapters",
-        "name": "Market-Structure And Options Simple Adapters",
-        "status": "done",
-        "dependsOn": [4],
-        "scopeDir": "scopes/05-market-structure-options-adapters",
-        "scopeArtifact": "scopes/05-market-structure-options-adapters/scope.md",
-        "reportArtifact": "scopes/05-market-structure-options-adapters/report.md"
-      },
-      {
-        "scope": 6,
-        "scopeId": "06-macro-rotation-fundamental-adapters",
-        "name": "Macro, Rotation, And Fundamental Simple Adapters",
-        "status": "done",
-        "dependsOn": [5],
-        "scopeDir": "scopes/06-macro-rotation-fundamental-adapters",
-        "scopeArtifact": "scopes/06-macro-rotation-fundamental-adapters/scope.md",
-        "reportArtifact": "scopes/06-macro-rotation-fundamental-adapters/report.md"
-      },
-      {
-        "scope": 7,
-        "scopeId": "07-strategy-property-method-adapters",
-        "name": "Strategy, Property, And Method Simple Adapters",
-        "status": "done",
-        "substate": "independently_verified",
-        "dependsOn": [6],
-        "scopeDir": "scopes/07-strategy-property-method-adapters",
-        "scopeArtifact": "scopes/07-strategy-property-method-adapters/scope.md",
-        "reportArtifact": "scopes/07-strategy-property-method-adapters/report.md"
-      },
-      {
-        "scope": 8,
-        "scopeId": "08-journey-runtime-definitions",
-        "name": "Journey Capability Runtime And All-Tool Definitions",
-        "status": "done",
-        "substate": "independently_verified",
-        "dependsOn": [7],
-        "scopeDir": "scopes/08-journey-runtime-definitions",
-        "scopeArtifact": "scopes/08-journey-runtime-definitions/scope.md",
-        "reportArtifact": "scopes/08-journey-runtime-definitions/report.md"
-      },
-      {
-        "scope": 9,
-        "scopeId": "09-public-matrix-market-action-scaffold",
-        "name": "Public Matrix And Market Action Center Scaffold",
-        "status": "done",
-        "substate": "independently_verified",
-        "dependsOn": [8],
-        "scopeDir": "scopes/09-public-matrix-market-action-scaffold",
-        "scopeArtifact": "scopes/09-public-matrix-market-action-scaffold/scope.md",
-        "reportArtifact": "scopes/09-public-matrix-market-action-scaffold/report.md"
-      },
-      {
-        "scope": 10,
-        "scopeId": "10-bounded-web-evidence-acquisition",
-        "name": "Bounded WebEvidence Acquisition",
-        "status": "done",
-        "dependsOn": [9],
-        "scopeDir": "scopes/10-bounded-web-evidence-acquisition",
-        "scopeArtifact": "scopes/10-bounded-web-evidence-acquisition/scope.md",
-        "reportArtifact": "scopes/10-bounded-web-evidence-acquisition/report.md"
-      },
-      {
-        "scope": 11,
-        "scopeId": "11-feature-002-authored-brief-integration",
-        "name": "Feature 002-Gated Authored Brief Integration",
-        "status": "not_started",
-        "blockedReason": "External gate feature-002 now evaluates TRUE. XFC-01 is RESOLVED for this gate (commit 85a9ce1d): specs/002-distributed-tool-briefs-and-history now publishes state.milestones = [current-graph, owner-coverage, powerless-author, atomic-publication] — the exact resolution this text prescribed (the producer publishing markers it genuinely delivered), NOT a weakening; tool-experience.config.json is byte-unchanged. Each marker was verified against delivered production code, a certified Done scope, and a test surface BEFORE publication, with evidence recorded inline in that state.json under milestonesProvenance: current-graph = validateCurrentGraph() exported at scripts/validate-distributed-briefs.mjs:39 and consumed by scripts/brief-distributed-publish.mjs:530 (certified scope 05-registry-wide-normalized-reads); owner-coverage = certified scope 05 all-source ToolModelRead coverage with cardinality enforced at rlbrief.js:449; powerless-author = scripts/brief-author.mjs:5-9 declaring the sole external author boundary with no repository-write, shell, source-fetch or browser-state authority (certified scope 06-bounded-authorship-and-recommendation-lifecycle); atomic-publication = scripts/brief-publication.mjs:416 with the selftest group at scripts/selftest.mjs:3751 (certified scope 09-evidence-first-atomic-publication). Re-executed verdict: status=done/done, matched 4/4, satisfied=TRUE. This scope is therefore NO LONGER EXTERNALLY BLOCKED — it is unimplemented. Recommended transition: blocked -> not_started (this scope's own scope.md rule states it remains Not Started while the gate is false; the gate is now true and no implementation work has begun). The status value is deliberately left unchanged here for the Feature 012 owner to flip, because scheduling this scope's implementation is their decision, not this correction's. TRANSITION APPLIED 2026-07-30 on owner approval: status is now not_started. This field is retained as the historical record of why the scope WAS blocked and how that cleared; it is no longer an active blocker, and implementation of this scope has not begun. The previously recorded eligibility refusal remains accurate for the period it described: no integrated source edit, no author request, no publication call, no Feature 002 artifact touched.",
-        "dependsOn": [10],
-        "externalGates": ["feature-002"],
-        "scopeDir": "scopes/11-feature-002-authored-brief-integration",
-        "scopeArtifact": "scopes/11-feature-002-authored-brief-integration/scope.md",
-        "reportArtifact": "scopes/11-feature-002-authored-brief-integration/report.md"
-      },
-      {
-        "scope": 12,
-        "scopeId": "12-dynamic-red-alert",
-        "name": "Dynamic Red Alert And Latent-Risk Journey",
-        "status": "done",
-        "substate": "independently_verified",
-        "dependsOn": [8, 10],
-        "scopeDir": "scopes/12-dynamic-red-alert",
-        "scopeArtifact": "scopes/12-dynamic-red-alert/scope.md",
-        "reportArtifact": "scopes/12-dynamic-red-alert/report.md"
-      },
-      {
-        "scope": 13,
-        "scopeId": "13-feature-008-private-portfolio-integration",
-        "name": "Feature 008-Gated Private Portfolio Integration",
-        "status": "blocked",
-        "blockedReason": "External gate feature-008 FALSE for TWO independent reasons. (A) Producer not terminal — verified at HEAD, specs/008-portfolio-survival-and-brief-lab is status=not_started, certification.status=not_started, certifiedAt=null. (B) Cross-feature contract defect XFC-01 (see report.md) — acceptedPredicate.requiredMilestones = [rlportfolio-store-privacy, public-evidence-barrier, local-brief-ticker-scope], which rlexperience.js lines 2056-2059 read from the producer's state.milestones; that key is published by zero of the 26 state.json files under specs/, so observed=[] and matchedRequirementCount=0 of 3 regardless of status. An executed control that injected a fabricated status=done/certification.status=done for this producer still returned satisfied=false at matched 0/3, proving (B) is binding independently of (A). Two of the three required IDs (rlportfolio-store-privacy, local-brief-ticker-scope) occur in 0 files under specs/008-portfolio-survival-and-brief-lab; only public-evidence-barrier occurs (6 files). Scope contract still forbids a second store or emulated certification even as a fixture; the recorded eligibility refusal stands (no private provider/stress adapter, no watchlist write, no Feature 008 artifact touched). Unblocks only when BOTH clear: specs/008-portfolio-survival-and-brief-lab reaches status=done and certification.status=done with a non-null certifiedAt under its own owner, AND the XFC-01 contract is resolved by cross-feature negotiation — either that producer publishes a machine-readable state.milestones array naming markers it genuinely delivered, or Feature 012 amends acceptedPredicate to require marker IDs that producer actually publishes. The gate MUST NOT be weakened or bypassed.",
-        "dependsOn": [9, 12],
-        "externalGates": ["feature-008"],
-        "scopeDir": "scopes/13-feature-008-private-portfolio-integration",
-        "scopeArtifact": "scopes/13-feature-008-private-portfolio-integration/scope.md",
-        "reportArtifact": "scopes/13-feature-008-private-portfolio-integration/report.md"
-      },
-      {
-        "scope": 14,
-        "scopeId": "14-integrated-acceptance-release-handoff",
-        "name": "Integrated Acceptance, Migration, And Release Handoff",
-        "status": "blocked",
-        "blockedReason": "Transitively blocked via dependsOn [11,12,13]: Scope 11 and Scope 13 are both blocked; Scope 12 is done. The prior text asserting Feature 002 and Feature 008 are 'both not_started' was factually false and is corrected here — verified at HEAD, specs/002-distributed-tool-briefs-and-history is status=done/certification.status=done, while specs/008-portfolio-survival-and-brief-lab is status=not_started/certification.status=not_started. The prior claim that the direct BUG-004 sub-gate is SATISFIED was also false: only its status halves pass. Executed against its declared statePath specs/_bugs/BUG-004-proxy-route-local-key-fallback/state.json, the BUG-004 gate returns satisfied=false with matchedRequirementCount=0 of 2, because acceptedPredicate.requiredEvidenceIds = [TP-09, TP-12] is read from the producer's state.evidenceIds, a key that producer does not publish (its TP-09/TP-12 references exist only inside free-prose transitionRequests, executionHistory, and addressedFindings summary strings, which the evaluator never reads). All three declared dependency gates therefore fail on the same cross-feature contract defect XFC-01 (see report.md), and two of the three producers are already status=done/certification.status=done. Aggregate validator scripts/validate-feature-012.mjs is not authored (TP-14-01 exit 1 MODULE_NOT_FOUND) because cutover never began. Unblocks only when Scopes 11 and 13 unblock, which requires both Feature 008 reaching terminal certification and the XFC-01 contract being resolved by cross-feature negotiation for all three gates. The gates MUST NOT be weakened or bypassed.",
-        "dependsOn": [11, 12, 13],
-        "externalGates": ["BUG-004"],
-        "scopeDir": "scopes/14-integrated-acceptance-release-handoff",
-        "scopeArtifact": "scopes/14-integrated-acceptance-release-handoff/scope.md",
-        "reportArtifact": "scopes/14-integrated-acceptance-release-handoff/report.md"
-      },
-      {
-        "scope": 15,
-        "scopeId": "15-production-simple-adapter-wiring",
-        "name": "Production Simple-View Adapter Wiring (Model B)",
-        "status": "done",
-        "dependsOn": [5, 6, 7],
-        "scopeDir": "scopes/15-production-simple-adapter-wiring",
-        "scopeArtifact": "scopes/15-production-simple-adapter-wiring/scope.md",
-        "reportArtifact": "scopes/15-production-simple-adapter-wiring/report.md"
-      }
-    ],
-    "audit": {
-      "schemaVersion": "audit-run/v1",
-      "runId": null,
-      "currentAttemptId": null,
-      "attempts": []
-    }
-  },
-  "certification": {
+    "version": 3,
+    "featureDir": "specs/012-market-action-center-and-guided-tools",
+    "featureName": "Market Action Center and Guided Tools",
+    "createdAt": "2026-07-22T03:40:01Z",
+    "lastUpdatedAt": "2026-07-31T00:00:00Z",
     "status": "blocked",
-    "completedScopes": [],
-    "certifiedCompletedPhases": [],
-    "scopeProgress": [],
-    "lockdownState": {
-      "active": false,
-      "lockedScenarioIds": []
-    }
-  },
-  "policySnapshot": {
-    "grill": {
-      "mode": "off",
-      "source": "repo-default"
+    "blockedReason": "Feature 012 is blocked SOLELY on Feature 008 not being terminally certified. Verified at HEAD f398a9ac: specs/008-portfolio-survival-and-brief-lab is status=not_started, certification.status=not_started, certifiedAt=null, and it publishes no machine-readable state.milestones array. Its declared gate feature-008 therefore evaluates matched 0/3 and refuses, which blocks Scope 13 (feature-008 private-portfolio integration) and transitively Scope 14 (integrated acceptance and release handoff); both scope.md files record Status: Blocked. THAT REFUSAL IS THE GATE WORKING AS DESIGNED, NOT A CONTRACT DEFECT — it refuses because the producer has genuinely not delivered, not because the contract is unreachable by any party. FINDING XFC-01 IS RESOLVED AS A DEFECT CLASS (see report.md): no declared dependency gate is unsatisfiable-by-construction any longer. Both formerly-unsatisfiable gates were resolved by finding-path (a) producer-side publication, with every published marker verified against genuinely delivered code before publication — feature-002 at commit 85a9ce1d (state.milestones, provenance recorded inline under milestonesProvenance) and BUG-004 at commit 4ad447c1 (state.evidenceIds, provenance under evidenceIdsProvenance). No gate was weakened, relaxed, or bypassed: tool-experience.config.json is byte-unchanged, its only commit in the entire repository history being c81d808d dated 2026-07-24, which predates the 2026-07-30 finding; bypassAllowed=false remains correct anti-fabrication design. Gate verdicts re-executed at HEAD against each gate's own declared statePath using the rlexperience.js predicate at lines 2104-2109: feature-002 status=done/done matched 4/4 SATISFIED; BUG-004 status=done/done matched 2/2 SATISFIED; feature-008 status=not_started/not_started matched 0/3 refuses. SCOPE 11 IS UNBLOCKED AND READY TO WORK: its only declared external gate (feature-002) now satisfies, its scope.md records Status: Not Started, and it carries 17 unchecked DoD items and 12 Test Plan rows. Nothing external gates it; it is actionable implementation work owned by this feature. SCOPE TALLY at HEAD f398a9ac (15 scopes, per-scope-directory layout): 12 Done (01-10, 12, and 15 — Scope 15 certified Done at f398a9ac), 1 Not Started (Scope 11), 2 Blocked (Scopes 13 and 14). TO UNBLOCK, EXACTLY TWO ACTIONS ARE REQUIRED, and only the second is external: (1) this feature's owner implements Scope 11 against its 17 DoD items and 12 Test Plan rows — no external permission or negotiation is needed; (2) the owner of specs/008-portfolio-survival-and-brief-lab drives Feature 008 to status=done and certification.status=done with a non-null certifiedAt, AND publishes a machine-readable state.milestones array naming rlportfolio-store-privacy, public-evidence-barrier, and local-brief-ticker-scope, each verified against genuinely delivered code before it is published — the identical path taken by 85a9ce1d and 4ad447c1. Scopes 13 and 14 become eligible only when both parts of (2) hold. Publishing a marker that was not genuinely delivered would be fabrication and is not an acceptable route to satisfying the gate. certification.status stays blocked to match top-level status as this repo's artifact-lint requires; certifiedAt remains null and certification.completedScopes stays empty — no completion is claimed.",
+    "blockedReasonAddendum": {
+        "recordedBy": "orchestrator",
+        "recordedAt": "2026-08-02T05:03:12Z",
+        "note": "The blocker above remains IN FORCE and its substance is unchanged, but one status string it quotes is now stale. Feature 008 was reconciled from `not_started` to `in_progress` on 2026-08-02 because its own artifacts contradicted `not_started` (scopes.md declares 1 scope In Progress and 15 Not Started; execution records activeAgent bubbles.test at currentScope 1; and portfolio-survival-allocation-lab.html, rlportfolio.js and portfolio-survival-allocation.config.json are shipped on disk).",
+        "whyStillBlocked": "Gate `feature-008` requires the producer to be TERMINALLY CERTIFIED, not merely started. Feature 008 remains certification.status=not_started with certifiedAt=null, completedScopes=[], 15 of 16 scopes not started, and no registration in tools.json — its own Scope 16 declares that registration is the atomic release boundary. The gate therefore still evaluates FALSE and Scopes 13 and 14 stay blocked. Reclassifying the producer's lifecycle status does not and must not satisfy the gate."
     },
-    "tdd": {
-      "mode": "scenario-first",
-      "source": "repo-default"
-    },
-    "autoCommit": {
-      "mode": "off",
-      "source": "repo-default"
-    },
-    "lockdown": {
-      "mode": "off",
-      "source": "repo-default"
-    },
-    "regression": {
-      "mode": "protected-scenarios",
-      "source": "repo-default"
-    },
-    "validation": {
-      "mode": "certification-required",
-      "source": "repo-default"
-    }
-  },
-  "transitionRequests": [],
-  "reworkQueue": [],
-  "executionHistory": [
-    {
-      "agent": "bubbles.analyst",
-      "workflowMode": "full-delivery",
-      "startedAt": "2026-07-22T03:40:01Z",
-      "completedAt": "2026-07-22T03:52:45Z",
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "phasesExecuted": [
-        "analyze"
-      ],
-      "scopesCompleted": [],
-      "outcome": "route_required",
-      "addressedFindings": [
-        "F012-ANALYST-PACKET",
-        "F012-23-TOOL-MATRIX",
-        "F012-SOURCE-OWNERSHIP",
-        "F012-PRIVACY-REGENERATION",
-        "F012-MIGRATION-BOUNDARY",
-        "F012-STRATEGIC-ANALYSIS"
-      ],
-      "unresolvedFindings": [
-        "F012-UX-WIREFRAMES-FLOWS",
-        "F012-DESIGN-ARCHITECTURE",
-        "F012-PLAN-MANIFEST-SCOPES",
-        "F012-BUG004-INTEGRATION-GATE",
-        "F012-F002-INTEGRATION-GATE",
-        "F012-F008-INTEGRATION-GATE"
-      ],
-      "nextRequiredOwner": "bubbles.ux",
-      "summary": "Created the analyst-owned greenfield Feature 012 specification from the current 23-entry Research Lab registry, shared mode/data/brief foundations, Market Brief page/config/payload/runbook, scheduled options owner, Feature 002/008 and BUG-004 dependency states, and QF journey/DecisionPacket/catalog/simulation semantics. Defined the strict SimpleModel and ContextualTooltip contracts, frozen pre-author WebEvidenceBundle, ToolBrief, Journey, Red Alert, PortfolioTickerMatrix, Market Action Center four-view state, exact source/privacy/migration boundaries, a 23-row tool experience matrix with explicit goals, 8 actors, 12 use cases, 32 BDD scenarios, 8 strategic gaps, 7 ranked improvement proposals, measurable success criteria, and observable integration gates. No foreign-owned design, scope, manifest, test, report, user-validation, implementation, or certification artifact was created or modified."
-    },
-    {
-      "agent": "bubbles.ux",
-      "workflowMode": "full-delivery",
-      "startedAt": "2026-07-22T03:56:17Z",
-      "completedAt": "2026-07-22T03:56:17Z",
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "phasesExecuted": [
-        "analyze"
-      ],
-      "scopesCompleted": [],
-      "outcome": "route_required",
-      "addressedFindings": [
-        "F012-UX-OWNERSHIP-RESOLVED"
-      ],
-      "unresolvedFindings": [
-        "F012-UX-ARTIFACT-DESTINATION-CONFLICT",
-        "F012-UX-WIREFRAMES-FLOWS"
-      ],
-      "nextRequiredOwner": "bubbles.ux",
-      "summary": "Resolved the installed Research Lab ownership contract: bubbles.ux owns only the inline UI Wireframes and User Flows sections of spec.md, and UX sidecar files are forbidden by UX8. This invocation also explicitly forbids editing spec.md, so no conforming UX content destination exists. Recorded only execution/routing metadata; no spec, design, scope, report, user-validation, source, test, completed-phase, status, or certification content was modified."
-    },
-    {
-      "agent": "bubbles.ux",
-      "workflowMode": "full-delivery",
-      "startedAt": "2026-07-22T04:07:44Z",
-      "completedAt": "2026-07-22T04:07:44Z",
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "phasesExecuted": [
-        "analyze"
-      ],
-      "scopesCompleted": [],
-      "outcome": "route_required",
-      "addressedFindings": [
-        "F012-UX-ARTIFACT-DESTINATION-CONFLICT",
-        "F012-UX-WIREFRAMES-FLOWS",
-        "F012-UX-SHARED-FOUR-VIEW-CONTROL",
-        "F012-UX-SIMPLE-POWER-BRIEF-JOURNEY",
-        "F012-UX-MARKET-ACTION-CENTER",
-        "F012-UX-DEPENDENCY-GATED-STATES"
-      ],
-      "unresolvedFindings": [
-        "F012-DESIGN-ARCHITECTURE",
-        "F012-PLAN-MANIFEST-SCOPES",
-        "F012-BUG004-INTEGRATION-GATE",
-        "F012-F002-INTEGRATION-GATE",
-        "F012-F008-INTEGRATION-GATE"
-      ],
-      "nextRequiredOwner": "bubbles.design",
-      "summary": "Used the operator's explicit section-level delegation to append only the UX-owned UI Wireframes and User Flows sections to spec.md; the original 129,021-byte analyst prefix remained byte-identical. Defined the fixed four-view ordinary-tool and Market Action Center controls with desktop/mobile/keyboard/hash/focus behavior; reusable UI primitives; distinct parameterized Simple model states; universal Power ContextualTooltip anatomy and pointer/keyboard/touch behavior; concise cited Brief hierarchy; goal chooser and shared wizard/checklist/decision-tree/scenario-lab Journey shell with local resume, backtracking, evidence, typed packet, and no execution; Market Action Center Brief/Portfolio/Red Alert/Journey views; public/private publication truth; responsive wireframes; state/copy matrices; acceptance-ready outcomes; interaction flows; and explicit BUG-004/Feature 002/Feature 008 dependency gates. No design, plan, source, test, report, certification, or top-level status work was performed."
-    },
-    {
-      "agent": "bubbles.design",
-      "workflowMode": "full-delivery",
-      "startedAt": "2026-07-22T04:24:13Z",
-      "completedAt": "2026-07-22T04:25:34Z",
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "phasesExecuted": [
-        "bootstrap"
-      ],
-      "scopesCompleted": [],
-      "outcome": "route_required",
-      "addressedFindings": [
-        "F012-DESIGN-ARCHITECTURE",
-        "F012-CAPABILITY-FOUNDATION",
-        "F012-IMPLEMENTATION-GRADE-CONTRACTS",
-        "F012-DEPENDENCY-BOUNDARIES",
-        "F012-RESEARCH-LAB-QF-ADR"
-      ],
-      "unresolvedFindings": [
-        "F012-PLAN-MANIFEST-SCOPES",
-        "F012-BUG004-INTEGRATION-GATE",
-        "F012-F002-INTEGRATION-GATE",
-        "F012-F008-INTEGRATION-GATE"
-      ],
-      "nextRequiredOwner": "bubbles.plan",
-      "summary": "Created the design-owned implementation-grade design.md from the complete analyst and delegated UX specification and current repository/QF evidence. Defined the ToolExperience registry, strict SimpleModel adapter/run contract and all-23 adapter map, one shared contextual disclosure renderer over RLG/RLTKR/RLCHART, bounded WebEvidence acquisition before networkless authorship, Journey definitions/sessions/steps/packets and mechanisms, dynamic Red Alert qualification, public/private PortfolioTickerMatrix, Market Action Center route/view composition, source-owner preservation, Feature 002 atomic publication extension, versioning/failure/security/privacy/accessibility/performance/observability/test/rollback contracts, Research Lab-first/QF-later ADR, and exact dependency-gated delivery matrix. Product selftest passed 692/0 and design-owned G094 sections passed; artifact/G094 completion remains routed to bubbles.plan for the missing plan-owned scopes and user-validation artifacts, with BUG-004/Feature 002/Feature 008 integration gates preserved. No spec, scope, source, test, report, user-validation, top-level status, or certification field was modified."
-    },
-    {
-      "agent": "bubbles.plan",
-      "workflowMode": "full-delivery",
-      "startedAt": "2026-07-22T05:08:52Z",
-      "completedAt": "2026-07-22T06:23:25Z",
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "phasesExecuted": [
-        "bootstrap"
-      ],
-      "scopesCompleted": [],
-      "outcome": "route_required",
-      "addressedFindings": [
-        "F012-PLAN-ARTIFACT-CONTRACT",
-        "F012-PLAN-TRACEABILITY",
-        "F012-PLAN-TEST-HANDOFF",
-        "F012-PLAN-ROUTING"
-      ],
-      "unresolvedFindings": [
-        "F012-SCOPE-01-IMPLEMENTATION"
-      ],
-      "nextRequiredOwner": "bubbles.implement",
-      "summary": "Reconciled the existing 14-scope foundation-first plan against spec.md, design.md, and current Research Lab governance without redesigning it. Corrected per-scope DoD hierarchy, attached stable SCN identifiers to all 37 Gherkin scenarios and their existing DoD claims, added the current user-validation checklist heading, created the missing canonical 130-row test-plan.json handoff, normalized machine-readable scope IDs/dependencies for the canonical DAG renderer, registered all scope directories in execution routing state, and corrected routing to Scope 01. Canonical artifact lint, freshness, and capability-foundation checks pass. Traceability maps 37/37 scenarios to Test Plan rows and 37/37 scenarios to DoD items; its remaining 37 failures are delivery-file/evidence checks because implementation tests and per-scope execution evidence are absent at planning maturity. No source, test, dependency feature/bug, framework-managed, status, or certification field was modified."
-    },
-    {
-      "agent": "bubbles.test",
-      "workflowMode": "full-delivery",
-      "startedAt": "2026-07-23T05:34:03Z",
-      "completedAt": "2026-07-23T05:40:12Z",
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "phasesExecuted": [
-        "test"
-      ],
-      "scopesCompleted": [],
-      "outcome": "route_required",
-      "addressedFindings": [
-        "F012-SCOPE01-TEST-MATRIX-CURRENT",
-        "F012-SCOPE01-SYSTEM-CHROME-BLOCKER-CLEARED",
-        "F012-SCOPE01-NO-INTERCEPTION"
-      ],
-      "unresolvedFindings": [
-        "F012-SCOPE01-PLAN-STATUS-DOD-RECONCILIATION"
-      ],
-      "nextRequiredOwner": "bubbles.plan",
-      "summary": "Independently reran all five exact Scope 01 Test Plan commands on current bytes: TP-01-01 passed 7/7, TP-01-02 passed 5/5, TP-01-03 passed 1/1 under system-chrome, TP-01-04 accepted the locked source graph and contract packet, and TP-01-05 passed 698/698. The no-interception scan found zero violations. Cleared only the obsolete Chrome execution blocker and routed the unchanged plan-owned Status and unchecked DoD reconciliation to bubbles.plan; no scope, feature, completed-scope, completed-phase-claim, top-level status, or certification promotion was made."
-    },
-    {
-      "agent": "bubbles.plan",
-      "workflowMode": "full-delivery",
-      "startedAt": "2026-07-23T05:48:12Z",
-      "completedAt": "2026-07-23T05:50:44Z",
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "phasesExecuted": [
-        "bootstrap"
-      ],
-      "scopesCompleted": [],
-      "outcome": "route_required",
-      "addressedFindings": [
-        "F012-SCOPE01-DOD-EVIDENCE-RECONCILED",
-        "F012-SCOPE01-STATUS-SYNCHRONIZED",
-        "F012-BUG004-INDEX-STATE-REFRESHED"
-      ],
-      "unresolvedFindings": [
-        "F012-SCOPE01-ROLLBACK-EVIDENCE-MISSING",
-        "F012-SCOPE01-RED-QUALITY-EVIDENCE-MISSING"
-      ],
-      "nextRequiredOwner": "bubbles.test",
-      "summary": "Reconciled Scope 01 strictly against the current test-owned report: checked three directly proven core items and all five exact Test Plan items with precise report anchors; left the rollback aggregate and grouped Build Quality Gate unchecked with uncertainty declarations because the report lacks executed rollback proof, intended RED evidence, and raw grouped guard outputs. Synchronized Scope 01 to In Progress in its scope and index, preserved execution.scopeProgress as in_progress, refreshed the certified BUG-004 planning observation, and routed the two evidence gaps to bubbles.test. Scope 02 remains dependency-ineligible; top-level feature and certification fields are unchanged."
-    },
-    {
-      "agent": "bubbles.test",
-      "workflowMode": "full-delivery",
-      "startedAt": "2026-07-23T06:17:06Z",
-      "completedAt": "2026-07-23T06:20:29Z",
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "phasesExecuted": [
-        "test"
-      ],
-      "scopesCompleted": [],
-      "outcome": "route_required",
-      "addressedFindings": [
-        "F012-SCOPE01-ROLLBACK-EVIDENCE-MISSING",
-        "F012-SCOPE01-CURRENT-QUALITY-EVIDENCE-CAPTURED"
-      ],
-      "unresolvedFindings": [
-        "F012-SCOPE01-RED-QUALITY-EVIDENCE-MISSING"
-      ],
-      "nextRequiredOwner": "bubbles.plan",
-      "summary": "Independently executed the focused SCN-012-033 rollback rehearsal, the complete 6-test functional suite, the 698-test broad selftest, git diff --check, Feature 012 artifact lint, Gate G094, and VS Code diagnostics for all 11 Scope 01 implementation files. The rollback canary proved the 11/56 snapshot, 9/23 removal, baseline equality, current sandbox RED exit 17, exact 23/23/48/13 GREEN restoration, unchanged hashes, and temp cleanup. Recorded the current sandbox RED only as a rollback discriminator, not as the unavailable historical pre-production RED; routed that Scenario-First chronology uncertainty to bubbles.plan. No plan-owned checkbox/status, later scope, certification field, source/runtime/config file, dependency artifact, options surface, package file, or framework-managed file was modified."
-    },
-    {
-      "agent": "bubbles.plan",
-      "workflowMode": "full-delivery",
-      "startedAt": "2026-07-23T06:31:57Z",
-      "completedAt": "2026-07-23T06:34:23Z",
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "phasesExecuted": [
-        "bootstrap"
-      ],
-      "scopesCompleted": [],
-      "outcome": "route_required",
-      "addressedFindings": [
-        "F012-SCOPE01-ROLLBACK-EVIDENCE-MISSING",
-        "F012-SCOPE01-CURRENT-QUALITY-EVIDENCE-CAPTURED",
-        "F012-SCOPE01-G060-DECISION"
-      ],
-      "unresolvedFindings": [
-        "F012-SCOPE01-EXACT-RED-GREEN-REPLAY-REQUIRED"
-      ],
-      "nextRequiredOwner": "bubbles.test",
-      "summary": "Determined that the current rollback rehearsal directly closes the shared-infrastructure rollback DoD item, but the honest chronology statement plus post-implementation sandbox discriminator cannot close the Scenario-First Build Quality Gate. Full-delivery is not eligible for a G060 exemption, and the missing historical RED output cannot be inferred or relabeled. Left Scope 01 In Progress, kept Scope 02 dependency-ineligible, and routed one resolvable action to bubbles.test: execute the exact TP-01-01, TP-01-02, and TP-01-03 commands RED in an isolated rollback baseline, restore exact current bytes, rerun the identical commands GREEN, and retain protected plus real-worktree hash proof. Canonical artifact lint and Gate G094 passed after reconciliation. Top-level feature status and certification remain unchanged."
-    },
-    {
-      "agent": "bubbles.test",
-      "workflowMode": "full-delivery",
-      "startedAt": "2026-07-23T06:52:14Z",
-      "completedAt": "2026-07-23T06:53:41Z",
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "phasesExecuted": [
-        "test"
-      ],
-      "scopesCompleted": [],
-      "outcome": "route_required",
-      "addressedFindings": [
-        "F012-SCOPE01-EXACT-RED-GREEN-REPLAY-REQUIRED"
-      ],
-      "unresolvedFindings": [
-        "F012-SCOPE01-PLAN-STATUS-DOD-RECONCILIATION"
-      ],
-      "nextRequiredOwner": "bubbles.plan",
-      "summary": "Independently executed the exact requested SCN-012-033 command as a current isolated replay. The sandbox produced three intended RED exit-1 results for TP-01-01, TP-01-02, and TP-01-03; restored the exact current production hashes; reran the identical three commands GREEN at exit 0; and proved protected plus real-worktree hash equality. A separate node --check of the current functional test file exited 0. This is current isolated replay evidence, not recovered historical chronology. No scope, feature, certification, source, config, test, BUG-004, framework-managed, or plan-owned artifact was changed; Build Quality Gate and Scope status reconciliation route to bubbles.plan."
-    },
-    {
-      "agent": "bubbles.plan",
-      "workflowMode": "full-delivery",
-      "startedAt": "2026-07-23T07:01:17Z",
-      "completedAt": "2026-07-23T07:01:17Z",
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "phasesExecuted": [
-        "bootstrap"
-      ],
-      "scopesCompleted": [],
-      "outcome": "route_required",
-      "addressedFindings": [
-        "F012-SCOPE01-PLAN-STATUS-DOD-RECONCILIATION"
-      ],
-      "unresolvedFindings": [
-        "F012-SCOPE01-G060-MARKER-VOCABULARY"
-      ],
-      "nextRequiredOwner": "bubbles.test",
-      "summary": "Reconciled the single remaining Scope 01 Build Quality item against the current exact-command replay and independently ran the installed G060 evidence predicate. The replay is semantically complete, artifact lint and Gate G094 pass, but G060 exits 1 because its accepted marker vocabulary does not match the report's executed '[exact-replay] RED TP-...' and GREEN lines. Scope 01 remains In Progress, Scope 02 remains dependency-ineligible, and the exact test-owned report marker repair routes to bubbles.test. Top-level feature status and all certification fields remain unchanged."
-    },
-    {
-      "agent": "bubbles.test",
-      "workflowMode": "full-delivery",
-      "startedAt": "2026-07-23T07:13:21Z",
-      "completedAt": "2026-07-23T07:13:21Z",
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "phasesExecuted": [
-        "test"
-      ],
-      "scopesCompleted": [],
-      "outcome": "route_required",
-      "addressedFindings": [
-        "F012-SCOPE01-G060-MARKER-VOCABULARY"
-      ],
-      "unresolvedFindings": [
-        "F012-SCOPE01-PLAN-STATUS-DOD-RECONCILIATION"
-      ],
-      "nextRequiredOwner": "bubbles.plan",
-      "summary": "Inserted a concise ordered RED-stage/GREEN-stage bridge immediately below the Scope 01 report Summary heading and tied it only to the existing current isolated exact-command replay evidence. The installed detect_red_green_ordering predicate exited 0, Feature 012 artifact lint passed, and git diff --check exited 0 with no output. Cleared only the marker-vocabulary blocker and routed Build Quality Gate plus Scope status reconciliation to bubbles.plan. Scope status, feature status, certification fields, evidence output, source, config, and tests remain unchanged."
-    },
-    {
-      "agent": "bubbles.plan",
-      "workflowMode": "full-delivery",
-      "startedAt": "2026-07-23T07:22:30Z",
-      "completedAt": "2026-07-23T07:22:30Z",
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "phasesExecuted": [
-        "bootstrap"
-      ],
-      "scopesCompleted": [
-        "01-contract-config-registry-foundation"
-      ],
-      "outcome": "route_required",
-      "addressedFindings": [
-        "F012-SCOPE01-PLAN-STATUS-DOD-RECONCILIATION"
-      ],
-      "unresolvedFindings": [
-        "F012-SCOPE02-IMPLEMENTATION"
-      ],
-      "nextRequiredOwner": "bubbles.implement",
-      "summary": "Independently reran the installed G060 detector, Feature 012 artifact lint, Gate G094, and the plan-owned DAG/status consistency check; all exited 0. Checked the single remaining Scope 01 Build Quality Gate item against the current replay evidence, removed the stale uncertainty block, marked Scope 01 Done in its scope and both index inventories, and updated execution routing so Scope 02 is the sole lowest-numbered eligible scope for bubbles.implement. Scope 02 remains Not Started. Top-level Feature 012 status remains not_started and certification fields remain unchanged."
-    },
-    {
-      "agent": "bubbles.test",
-      "workflowMode": "full-delivery",
-      "startedAt": "2026-07-23T15:31:34Z",
-      "completedAt": "2026-07-23T15:31:34Z",
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "phasesExecuted": [
-        "test"
-      ],
-      "scopesCompleted": [],
-      "outcome": "route_required",
-      "addressedFindings": [
-        "F012-SCOPE02-EXACT-TEST-MATRIX-CURRENT",
-        "F012-SCOPE02-ALL-ROUTE-CANARY-CURRENT",
-        "F012-SCOPE02-VIEW-BOUNDARY-CURRENT",
-        "F012-SCOPE02-BROWSER-BOUNDARY-CURRENT"
-      ],
-      "unresolvedFindings": [
-        "F012-SCOPE02-PLAN-STATUS-DOD-RECONCILIATION"
-      ],
-      "nextRequiredOwner": "bubbles.plan",
-      "summary": "Independently executed all seven exact Scope 02 Test Plan commands on current bytes: unit passed 7/7, functional passed 2/2 with all 23 route canaries and a zero-fetch closed mode record, three focused system-Chrome scenarios passed 1/1 each, the complete browser pair passed 4/4, and the broad selftest passed 703/703. Source lock, registry validation, cumulative Scope 01 suites, no-interception/service-worker scan, editor diagnostics, git diff check, artifact lint, Gate G094, regression quality, and skip-marker checks are clean. The inherited implement-owned RED is not relabeled as current test RED. No source, config, test, scope, dependency, package, data, HTML, framework-managed, top-level status, or certification field was modified; plan-owned DoD/status reconciliation remains."
-    },
-    {
-      "agent": "bubbles.plan",
-      "workflowMode": "full-delivery",
-      "startedAt": "2026-07-23T16:28:05Z",
-      "completedAt": "2026-07-23T16:35:20Z",
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "phasesExecuted": [
-        "bootstrap"
-      ],
-      "scopesCompleted": [],
-      "outcome": "route_required",
-      "addressedFindings": [
-        "F012-SCOPE02-PLAN-STATUS-DOD-RECONCILIATION"
-      ],
-      "unresolvedFindings": [
-        "F012-SCOPE02-COMPATIBILITY-ROLLBACK-EVIDENCE-MISSING",
-        "F012-SCOPE02-BUILD-QUALITY-EVIDENCE-INCOMPLETE"
-      ],
-      "nextRequiredOwner": "bubbles.test",
-      "summary": "Reconciled Scope 02 strictly against the current test-owned report: checked the two directly proven core outcomes and all seven exact Test Plan items with precise report anchors; left the shared-bootstrap rollback aggregate and grouped Build Quality Gate unchecked because no executable Scope 02 compatibility rollback rehearsal or complete protected-path and exact RED/GREEN proof is recorded. Marked Scope 02 In Progress in its scope, both index rows, and execution scope progress, then routed the two evidence gaps to bubbles.test. Top-level Feature 012 status and all certification fields remain unchanged."
-    },
-    {
-      "agent": "bubbles.plan",
-      "workflowMode": "full-delivery",
-      "startedAt": "2026-07-23T23:43:17Z",
-      "completedAt": "2026-07-23T23:43:17Z",
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "phasesExecuted": [
-        "bootstrap"
-      ],
-      "scopesCompleted": [],
-      "outcome": "route_required",
-      "addressedFindings": [
-        "F012-SCOPE03-DOD-EVIDENCE-RECONCILED",
-        "F012-SCOPE03-G060-DECISION"
-      ],
-      "unresolvedFindings": [
-        "F012-SCOPE03-EXACT-RED-GREEN-REPLAY-REQUIRED",
-        "F012-SCOPE03-ROLLBACK-RESTORE-REHEARSAL-REQUIRED"
-      ],
-      "nextRequiredOwner": "bubbles.test",
-      "summary": "Reconciled Scope 03 strictly against the independent test-owned report: checked three directly proven core outcomes and all six exact Test Plan items with report anchors; left rollback and grouped Build Quality unchecked with precise uncertainty declarations. The installed G060 detector exits 1 because no RED-before-GREEN ordering exists, and full-delivery scenario-first TDD is not exemption-eligible. Routed one isolated sandbox rehearsal that can prove legacy RLG/RLTKR/RLCHART/page behavior, exact TP-03-01 through TP-03-05 RED then GREEN, exact current-byte restoration, protected/real-worktree hash equality, and temp cleanup. Scope 03 remains In Progress; Scope 04 remains dependency-ineligible; top-level feature status and all certification fields are unchanged."
-    }
-  ],
-  "activeBugs": [],
-  "resolvedBugs": [],
-  "failures": [],
-  "scopeLayout": "per-scope-directory",
-  "artifacts": {
-    "spec": "spec.md",
-    "design": "design.md",
-    "scopes": "scopes/_index.md",
-    "report": "report.md",
-    "uservalidation": "uservalidation.md",
-    "scenarioManifest": "scenario-manifest.json",
-    "testPlan": "test-plan.json",
-    "lockdownApprovals": "lockdown-approvals.json",
-    "invalidationLedger": "invalidation-ledger.json",
-    "transitionRequests": "transition-requests.json",
-    "reworkQueue": "rework-queue.json"
-  },
-  "statusDiscipline": {
-    "validStatuses": [
-      "not_started",
-      "in_progress",
-      "blocked",
-      "specs_hardened",
-      "docs_updated",
-      "validated",
-      "done"
+    "supersededBlockerRecord": "RETAINED FOR AUDIT ONLY; NOT IN FORCE. Superseded 2026-07-31. The text below was accurate when written but has since been overtaken by two events. First, commit 4ad447c1 published the BUG-004 producer's TP-09 and TP-12 evidenceIds, so the BUG-004 gate now evaluates matched 2/2 SATISFIED rather than the matched 0/2 satisfied=false the text below records; with that, no declared gate remains unsatisfiable-by-construction and finding XFC-01 is resolved as a defect class. Second, Scope 11's scope.md was flipped from Blocked to Not Started once its feature-002 gate satisfied, so the assertion below that Scopes 11, 13 and 14 are all blocked no longer holds — only Scopes 13 and 14 are, on Feature 008 alone. The live blockedReason above states the current condition and supersedes every claim below. The following is preserved verbatim for audit: Scopes 11/13/14 remain blocked by TWO INDEPENDENT conditions. (A) PRODUCER NOT TERMINAL: specs/008-portfolio-survival-and-brief-lab is status=not_started, certification.status=not_started, certifiedAt=null, so Scope 13 (and transitively Scope 14) has no terminal producer. specs/002-distributed-tool-briefs-and-history is NO LONGER a producer-status blocker — verified at HEAD it is status=done, certification.status=done, certifiedAt=2026-07-29T23:45:00Z; the prior text asserting 'both status=not_started' was factually false and is corrected here. (B) UNSATISFIABLE-BY-CONSTRUCTION DEPENDENCY CONTRACT (finding XFC-01, see report.md), which applies to BOTH gates and additionally to the BUG-004 gate: tool-experience.config.json declares acceptedPredicate.requiredMilestones (feature-002 = 4 IDs, feature-008 = 3 IDs) and requiredEvidenceIds (BUG-004 = TP-09, TP-12), and rlexperience.js lines 2056-2059 read those from the PRODUCER's state.milestones / state.evidenceIds. XFC-01 is now RESOLVED FOR THE feature-002 GATE (commit 85a9ce1d): specs/002-distributed-tool-briefs-and-history publishes state.milestones naming only capabilities it genuinely delivered, each verified against delivered production code, a certified Done scope, and a test surface BEFORE publication (evidence recorded inline in that state.json under milestonesProvenance). That is resolution path (B)-EITHER below, not a weakening — tool-experience.config.json is byte-unchanged. Re-executed against the real declared statePath files the gates now return: feature-002 status=done/done matched 4/4 satisfied=TRUE; feature-008 status=not_started/not_started matched 0/3 satisfied=false; BUG-004 status=done/done matched 0/2 satisfied=false (its producer reached terminal AFTER this text was first written; publishing its TP-09/TP-12 evidenceIds is owned by the BUG-004 packet owner and would use the same path). CONSEQUENCE: Scope 11's only declared external gate is now satisfied, so Scope 11 is NO LONGER EXTERNALLY BLOCKED — it is simply unimplemented. Scopes 13/14 remain genuinely blocked because feature-008 fails BOTH (A) producer-terminal and (B) milestone publication. TO UNBLOCK, BOTH are required: (A) Feature 008 reaches status=done and certification.status=done with a non-null certifiedAt under its own owner; AND (B) a cross-feature negotiation resolves the contract by EITHER the producer publishing a machine-readable milestones/evidenceIds array in its own state.json naming only markers it genuinely delivered, OR Feature 012 amending acceptedPredicate to require marker IDs the producer actually publishes. Publishing a marker ID that was not genuinely delivered would be fabrication and is not an acceptable resolution. The gates MUST NOT be weakened, relaxed, or bypassed to unblock; bypassAllowed=false is correct anti-fabrication design and the defect is the unnegotiated consumer-side contract, not the gate's strictness. Scope tally at HEAD (15 scopes, per-scope-directory layout): 11 Done (01-10 + 12), 1 In Progress (15, DoD 14/14 checked with 0 unchecked), 3 recorded Blocked (11, 13, 14) of which Scope 11's external gate is now SATISFIED and awaits only an owner status flip to not_started — the prior 'of 14 scopes' total was stale. certification.status stays blocked (matching top-level; the repo artifact-lint requires top-level status == certification.status); certifiedAt remains null and certification.completedScopes / certifiedCompletedPhases remain empty — zero completion is fabricated.",
+    "workflowMode": "full-delivery",
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "specDependsOn": [
+        "specs/_bugs/BUG-004-proxy-route-local-key-fallback",
+        "specs/002-distributed-tool-briefs-and-history",
+        "specs/008-portfolio-survival-and-brief-lab"
     ],
-    "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
-    "scopeDoneGates": [
-      "G020",
-      "G021",
-      "G022",
-      "G023",
-      "G024",
-      "G025",
-      "G055",
-      "G056",
-      "G057",
-      "G058",
-      "G059",
-      "G060",
-      "G061"
+    "flagsIntroduced": [],
+    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "execution": {
+        "activeAgent": "bubbles.test",
+        "currentPhase": "test",
+        "currentPhaseStatus": "completed",
+        "currentScope": null,
+        "substate": "independently_verified",
+        "runStartedAt": "2026-07-24T03:30:00Z",
+        "completedAt": null,
+        "completedPhaseClaims": [
+            {
+                "scope": "12-dynamic-red-alert",
+                "phase": "test",
+                "agent": "bubbles.test",
+                "claimedAt": "2026-07-26T23:15:00Z",
+                "evidence": "scopes/12-dynamic-red-alert/report.md#independent-verification-bubblestest",
+                "summary": "Independent verification of Scope 12 Dynamic Red Alert And Latent-Risk Journey (full-delivery; recorded implement evidence NOT trusted, every Test Plan row reproduced from scratch at HEAD 77c92aac with the exact scope.md commands and full unfiltered output; repo-binding-preflight --agent-source research-lab exit 0 first; tree byte-clean except the preserved concurrent BUG-001 scenario-manifest.json). All 8 rows GREEN in-session: TP-12-01 unit 26/0 exit 0, TP-12-02 functional 7/0 exit 0 (the brief's '6' superseded by the authoritative reproduced 7), TP-12-03 security 9/0 exit 0, TP-12-04..07 live system-chrome e2e each 1 passed exit 0 per exact --grep, TP-12-08 selftest 952/0 exit 0; validate-market-action PASS (forbiddenCapabilities=0, adversarial=7, unexpectedAcceptances=0) + validate-brief-payload PASS + validate-web-evidence PASS (fixtures=11 adversarial=12). Six audits pass: (1) no-interception grep on the spec empty (exit 1); real page.goto + real window.RLMARKETACTIONCENTER + real rljourney addScriptTag (27 real-page/real-engine refs); (2) Center single-source -- qualifyRedAlerts(1229)/renderRedAlertProjection(1347) defined+exported ONLY in rlmarketaction.js, zero data-mac-redalert-field/severity/score/thesis render hooks outside the engine, market-brief.html loads the module (L876) and boot renders only the Feature-002-gated empty scaffold (no F-05-SS-OPTIONS inline duplicate); (3) no-execution -- buildLatentRiskEvidence noExecution/noPublication:true (1331/1332), rljourney.js hard-rejects any non-noExecution definition (RLJOURNEY-DEFINITION 314/330), zero executable execution/publication verbs in rlmarketaction.js+rljourney.js (exit 1), reproduced TP-12-07 proves ledgerAfter===ledgerBefore + alertAfter===alertBefore byte-identical + zero execution traffic in the REAL browser; (4) no-topic/no-alarmism -- config red-alert-policy/v1 = scoreThreshold75/minIndependentOrigins2/weights-sum-100/horizon-bands/severity-labels/staleness, NO named threat/entity/country/asset seed catalog, visibleCap5 is a MAX not a floor, engine total is admissionScore/admission-index and every probability/confidence/crash-odds occurrence is a comment or the unrelated Scope-09 fabricatedConfidence guard; (5) forbidden-authority raw scan of rlmarketaction.js = 3 hits ALL comments (JSDoc + safety), zero executable fetch/providerFetch/credential/storage/execute/publish, validate-market-action moduleAuthorityScan forbiddenCapabilities=0 scanned=10; (6) RED-bite neutralized gate-1 two-independent-origin (both policy.minIndependentOrigins -> 1 in runQualification) -> genuine non-tautological RED: unit 24/2 (not ok 11 gate-1 insufficient-corroboration SCN-012-024 + not ok 24), functional 4/3 (SCN-012-024 + drop-one-origin flip + all-fixtures-derived), security 7/2, each exit 1 -> git checkout HEAD -- rlmarketaction.js restored byte-identical sha256 714cf84f3fd2bb20f1dba72473ed70bc66af6f2ca226e082589218ba8b946ef6 (==before) -> GREEN unit 26/0 func 7/0 sec 9/0 exit 0 + validate-market-action exit 0 -> git status shows ONLY the preserved BUG-001 file, NO bite residue. Build Quality Gate clean: protected paths (rldata.js/rlexperience.js/data/options/watchlist.json/web-evidence-acquire.mjs/rlexperience-adapters/.github-bubbles/rlmarketaction.js/rljourney.js/journeys.json/market-brief.html/market-brief.config.json/scripts-selftest.mjs) byte-unchanged (empty diff), git diff --check exit 0, editor diagnostics 'No errors found' on the engine + all four tests/red-alert.*, artifact-lint PASSED exit 0. No coverage gap; no test change required. Scope 12 DoD 13/13 [x]; scope status done, substate independently_verified. execution.currentScope reconciled off the stale 11 to 12-dynamic-red-alert. NO agent-actionable scope remains: Scope 11 (Feature-002), Scope 13 (Feature-008), Scope 14 (BUG-004 + Scopes 11/13) are all externally gated. Non-blocking finding F-12-INDEX: _index.md status column uniformly stale (Not Started for done scopes 4-12) -> bubbles.plan. Feature status not_started / certifiedAt null / certification.status not_started UNTOUCHED (Scope 12 of 14)."
+            },
+            {
+                "scope": "10-bounded-web-evidence-acquisition",
+                "phase": "test",
+                "agent": "bubbles.test",
+                "claimedAt": "2026-07-26T21:40:00Z",
+                "evidence": "scopes/10-bounded-web-evidence-acquisition/report.md#independent-verification-bubblestest",
+                "summary": "Independent verification of Scope 10 Bounded WebEvidence Acquisition (full-delivery; recorded evidence NOT trusted, every Test Plan row reproduced from scratch at HEAD 674cb92f with the exact scope.md commands and full unfiltered output; repo-binding-preflight --agent-source research-lab exit 0 first). All 8 rows GREEN in-session: TP-10-01 unit 10/0 exit 0, TP-10-02 functional 11/0 exit 0, TP-10-03 security 9/0 exit 0, TP-10-04 validator PASS fixtures=11 adversarial=12 unexpectedAcceptances=0 exit 0, TP-10-05/06/07 live system-chrome e2e each 1 passed exit 0 (full spec 3/3), TP-10-08 selftest 949/0 exit 0; validate-brief-payload PASS + validate-tool-experience PASS adversarial=13. Eight checks pass: (1) SCN-012-006 one-origin material claim rejected as uncorroborated + SCN-012-007 syndication=one independent origin (second still required) + SCN-012-037 frozen web-evidence-bundle/v1 with hashes/bounded-excerpts/claims/origins/owner-evidence, raw HTML/scripts/creds/redirects/author-authority ABSENT (functional+unit+e2e+validator); (2) fail-closed 12 closed-code adversarial rejections + functional policy-enforcement (robots/redirect/over-budget/missing-metadata/later-than-cutoff/instruction-excerpt), no env relaxation; (3) hostile content rejected and never echoed (security + e2e redaction proof: scriptCount=0 onerror=false __webEvidencePwned=false secretpass/exfiltrate absent redactedCount>0); (4) zero author/network authority STATIC -- acquire imports ONLY node:crypto, moduleAuthority=PASS forbiddenCapabilities=0 importsAuthorModule=false, produces NO ToolBrief/pointer, I/O only via injected boundary; (5) browser boundary -- rlbrief consumers projectSafeWebEvidence/renderWebEvidenceDisclosure network-free (only fetch at line 1158 is pre-existing briefFetchText), window.RLBRIEF.acquire===undefined, no-interception grep exit 1, static same-origin frozen bundles, no raw DOM content; (6) RED-bite MIN_INDEPENDENT_ORIGINS 2->1 -> functional 3 fail + unit 3 fail exit 1, git checkout HEAD restored byte-identical sha256 d51838d7...1727f24a -> GREEN exit 0, git status only BUG-001; (7) protected paths byte-unchanged (author/publication scripts, rldata.js, rlexperience-adapters, rlmarketaction.js, rljourney.js, journeys.json, simple-models.json, data/options, market-brief.config.json, rlexperience.js all empty git status), Feature-002 renderer/static green (selftest 949/0 + payload PASS), config additive; (8) rollback truthful -- rlbrief consumer commit 587e9ee9 = 244 insertions/0 deletions (purely additive), removing Scope-10 additions restores prior green with no published state change. Findings F-10-A (scope.md Modified list names rlexperience.js but it is byte-unchanged -- deliberate, non-blocking, route bubbles.plan) + F-10-B (distributed-briefs.spec.mjs pre-existing mount-visibility harness failure, independently reproduced, additive-only proof it is not a Scope-10 regression, non-blocking) both recorded, neither blocks. Scope 10 DoD 13/13 [x]; scope status done, substate independently_verified; artifact-lint exit 0. Feature status not_started / certifiedAt null / certification.status not_started UNTOUCHED (Scope 10 of 14). Next owner bubbles.implement for Scope 11."
+            },
+            {
+                "scope": "09-public-matrix-market-action-scaffold",
+                "phase": "test",
+                "agent": "bubbles.test",
+                "claimedAt": "2026-07-26T19:10:00Z",
+                "evidence": "scopes/09-public-matrix-market-action-scaffold/report.md#independent-verification-bubblestest",
+                "summary": "Independent verification of Scope 09 (full-delivery; recorded evidence NOT trusted, every Test Plan row reproduced from scratch at HEAD df37f198 with the exact scope.md commands and full unfiltered output; repo-binding-preflight --agent-source research-lab exit 0 first). All 8 rows GREEN in-session: TP-09-01 unit 13/13 exit 0, TP-09-02 functional 10/10 exit 0, TP-09-03 consumer-trace 5/5 exit 0 (blockingStaleReferences=0, 1967 files scanned), TP-09-04..07 live system-chrome e2e each 1 passed exit 0 (full spec 4/4 exit 0), TP-09-08 selftest 945/0 exit 0; validate-market-action exit 0 (moduleAuthorityScan forbiddenCapabilities=0, 7 adversarial REJECTED unexpectedAcceptances=0), validate-brief-payload PASS. Eight checks pass: (1) SCN-012-017 rename+route/ID/payload stability -- git diff 3a86d1a3..HEAD market-brief.config.json EMPTY (payload IDs + scheduler byte-unchanged), tools.json/index.html/rlnav.js change ONLY the visible title/nav.label to Market Action Center, id market-brief + file market-brief.html preserved and singular, market-brief.html/rlbrief.js edits additive; (2) SCN-012-019 no-action truthful at unit+e2e (exact statement, fabricated flags false, no numeric confidence/probability, admitted action suppresses no-action); (3) SCN-012-022 public-only every row scopeLabel Public watchlist, no holding/quantity/cost/pnl/mandate/exposure field or copy, storage/request sentinel zero feature-008 read/create + zero fetch/storage, watchlist.json byte-unchanged sha256 8d65ba89aaf72e45ad1f6ab1db0eb6133f813f174b9eb3494a5aabe64bc28eb1; (4) consumer-trace non-tautological (adversarial reverted-title sub-test -> classifier reports exactly 1 blocking, no disk mutation); (5) no-interception raw grep on the spec = 0 matches (page.route/context.route/intercept/msw/nock/wiremock/fulfill), real page.goto + real market-brief.html + real Center runtime; (6) RED-bite neutralized the no-action projection fabricatedCatalyst:false->true -> targeted 'fabricates nothing' assertion FAILED (AssertionError true !== false at tests/market-action.unit.mjs:80) exit 1, git checkout HEAD -- rlmarketaction.js restored byte-identical sha256 f7d43ca33cb78ff15914b996012ad7d0913222aa8da84781d56f1aa7c1251617 -> re-run GREEN exit 0, git status --short afterward shows ONLY the concurrent BUG-001 scenario-manifest.json (no neutralized file left in tree); (7) forbidden-authority comment-stripped scan of rlmarketaction.js = 0 executable (the only 2 hits are lines 37-38 INSIDE the JSDoc block comment; validate-market-action moduleAuthorityScan=PASS forbiddenCapabilities=0) + protected paths byte-unchanged across range AND worktree (rlexperience.js, rlexperience-adapters/**, simple-models.json, journeys.json, rljourney.js, rldata.js, data/options/**, watchlist.json); (8) rollback Core-Delivery item 4 verified truthful-reasoned (Scope-09 additive-only, config/payload untouched, watchlist byte-unchanged, id/file preserved, forward-revert with no history/watchlist/local-data change). No coverage gap; no test change required. Scope 09 status done, substate independently_verified; artifact-lint PASSED. Feature status not_started / certifiedAt null / certification.status not_started -- UNTOUCHED (Scope 9 of 14). Next owner bubbles.implement, next scope 10-bounded-web-evidence-acquisition."
+            },
+            {
+                "scope": "09-public-matrix-market-action-scaffold",
+                "phase": "implement",
+                "agent": "bubbles.implement",
+                "claimedAt": "2026-07-26T18:20:00Z",
+                "evidence": "scopes/09-public-matrix-market-action-scaffold/report.md#tp-09-03",
+                "summary": "Scope 09 implement BATCH 2 of 2 (code + tests COMPLETE; execution claim, NOT a self-certified completed phase -- bubbles.test finalizes). Delivered the two remaining Test Plan files against the already-shipped visible rename (commit 380812b4): tests/market-action-consumer-trace.mjs (TP-09-03) + tests/market-action-center.spec.mjs (TP-09-04..07). repo-binding-preflight --agent-source research-lab exit 0 first. TP-09-03 consumer-trace 5/5 exit 0: enumerates the whole repo (1966 files scanned, 278 with occurrences, 881 old-visible + 1384 identity refs) and classifies every occurrence into immutable-history(1763) / routed-to-Scope-14-docs(87) / explicit-compat-alias(6) / in-scope-source-tests(409) -- 0 blocking-stale-references; the blocking rule is a STRUCTURAL primary-identity check (page title/h1, tools.json title+nav.label, index card title, rlnav label) plus a singular-route/id guard; the adversarial sub-test reverts the <title> IN-MEMORY and proves the SAME classifier reports exactly 1 blocking ref (non-tautological, no disk mutation). All 4 primary surfaces read 'Market Action Center'; route/file market-brief.html + registry id market-brief + payload IDs + publicAliases preserved and singular. TP-09-04..07 live-stack system-chrome 4/4 exit 0 against the REAL market-brief.html route + REAL four-view shell rlviews.js + REAL Center controller, ZERO request interception (passive storage-API observation only; no-interception scan clean; regression-quality-guard 0 violations): SCN-012-017 title/h1 + exactly 4 tabs [brief,portfolio,red-alert,journey] + route/id registered + #simple/#power -> #brief boot-replaceState + #power opens the evidence disclosure + Back/Forward restore exact tab + bare bookmark boots Brief; SCN-012-019 driving the REAL renderCenterNoAction with complete-coverage/zero-action -> exact no-action statement + no fabricated action/catalyst/confidence + admitted-action suppression (adversarial) + closed disclosure; SCN-012-022 every public row 'Public watchlist' + closed explicit cells + no private field/copy + Feature-008 overlay gate + live matrix privacyAssertion feature008KeyRead/Created=false + storage sentinel 0 private key read/created; TP-09-07 legacy hashes safe + legacy-market-brief-payload provenance + authored-v2 Feature-002 gate + 4 ET windows + Red Alert empty+Feature-002 gate + 4 journey goals+Feature-008 stress gate + closed evidence. Regression guards: selftest 945/0, validate-brief-payload PASS, watchlist.json byte-unchanged, artifact-lint PASSED. Committed f2049709 (consumer-trace), c5de975b (e2e); git add scoped to the 2 changed files, concurrent BUG-001 scenario-manifest.json preserved. All 8 Test Plan rows GREEN. Scope 09 stays in_progress; Feature status not_started / certifiedAt null / certification.status not_started UNTOUCHED. nextRequiredOwner bubbles.test."
+            },
+            {
+                "scope": "09-public-matrix-market-action-scaffold",
+                "phase": "implement",
+                "agent": "bubbles.implement",
+                "claimedAt": "2026-07-26T17:20:00Z",
+                "evidence": "scopes/09-public-matrix-market-action-scaffold/report.md#tp-09-01",
+                "summary": "Scope 09 implement BATCH 1 of 2 (PARTIAL -- NOT a completed phase). Delivered the PURE public projection module + its unit/functional tests + the contract validator, all GREEN in-session (repo-binding-preflight --agent-source research-lab exit 0 first). NEW rlmarketaction.js: pure dependency-free UMD (mirrors rljourney.js wrapper+helpers) composing/validating two public contracts -- PortfolioTickerMatrix/v1 PUBLIC (composePublicMatrix/validatePublicMatrix: one row per watchlist ticker, every row scope-labeled 'Public watchlist', one EXPLICIT cell per registry domain with applicability in {applicable,not-applicable} + state in the closed six {current|partial|stale|disputed|unavailable|not-applicable}, missing owner read -> unavailable+gapReason NEVER neutral-by-omission, not-applicable not counted as a gap) and MarketActionCenterProjection/v1 (composeCenterProjection/validateCenterProjection: EXACTLY four top-level views brief/portfolio/red-alert/journey, single active view, no Simple/Power/fifth; SCN-012-019 no-action Brief states 'No current action clears the bar' and fabricates NO action/catalyst/confidence; closed long-context disclosures open:false; three EXACT dependency-pending gates authoredBriefV2=feature-002, redAlertPublication=feature-002, privatePortfolioOverlay=feature-008 rendered NOT implemented). HARD INVARIANTS proven: PUBLIC-ONLY private-field barrier (assertNoPrivateField rejects any holding/quantity/cost/pnl/mandate/exposure field with RLMKT-PRIVACY, value never echoed -- SCN-012-022); ZERO fetch/providerFetch/credential/storage-write (forbidden-authority DIRECT scan on rlmarketaction.js: all 12 patterns incl require/import = 0; validator moduleAuthorityScan forbiddenCapabilities=0). TP-09-01 unit 13/13 exit 0; TP-09-02 functional 10/10 exit 0 (incl storage/request sentinel proving zero fetch/localStorage/RLDATA touch + zero Feature 008 key read/create, and watchlist.json sha256 byte-identical before/after). RED->GREEN proven for BOTH: with rlmarketaction.js moved aside the existence guard fails (UNIT_EXIT=1, FUNCTIONAL_EXIT=1, 'production contract missing: rlmarketaction.js'), module restored byte-identical -> GREEN. NEW scripts/validate-market-action.mjs exit 0 (publicMatrix rows=4, centerProjection views=4 gatesPending=3, 7 closed adversarial refusals RLMKT-PRIVACY/SCOPE/CELL/VIEW/GATE/NOACTION). scripts/selftest.mjs Scope-09 canary added (5 asserts) -> 945 passed / 0 failed exit 0. artifact-lint exit 0. tool-experience.config.json NOT modified (rlmarketaction.js is a TOP-LEVEL module, not rlexperience-adapters/*, so moduleAllowlist does not apply). Scope 01-08 code + rldata.js + data/options + watchlist.json byte-unchanged (git diff-name-only = only scripts/selftest.mjs + the concurrent BUG-001 scenario-manifest.json which was NOT touched). DEFERRED to batch 2 (route_required continuation): the visible RENAME (market-brief.html/tools.json/index.html/rlnav.js -> 'Market Action Center'), TP-09-03 consumer-trace test, TP-09-04..07 desktop e2e. No DoD item checked (full slice incl rename+e2e is batch 2). Feature status not_started, certifiedAt null -- UNTOUCHED. Scope 09 stays in_progress."
+            },
+            {
+                "scope": "08-journey-runtime-definitions",
+                "phase": "test",
+                "agent": "bubbles.test",
+                "claimedAt": "2026-07-26T16:40:00Z",
+                "evidence": "scopes/08-journey-runtime-definitions/report.md#independent-verification-bubblestest",
+                "summary": "Independent verification of Scope 08 (full-delivery; recorded evidence NOT trusted, every Test Plan row reproduced from scratch at HEAD e590c1d5 with the exact scope.md commands; repo-binding-preflight --agent-source research-lab exit 0 first). All 10 rows GREEN in-session: TP-08-01 unit 12/12 exit 0, TP-08-02 functional 7/7 exit 0, TP-08-03 storage/privacy functional 11/11 exit 0, TP-08-04..08 desktop e2e each 1 passed exit 0 (full journey.spec.mjs 6/6), TP-08-09 mobile e2e 1 passed exit 0, TP-08-10 broad selftest 939 passed/0 failed exit 0. Six checks pass: (1) SCN-012-011 NO-EXECUTION -- zero executable execution path in rljourney.js (only a doc-comment + the packet disclaimer STRING literal), ledger byte-identity proven at unit (TP-08-01 three sentinel ledgers) + desktop (TP-08-06 full localStorage ledger + live network capture) + mobile (TP-08-09); (2) no-interception -- both e2e specs match only documentation-comment lines, each drives a REAL page.goto + REAL RLAPP.mountJourney + REAL RLJOURNEY/__rljourneyController runtime + RLJOURNEY.compileDefinition; (3) SCN-012-032 coverage -- validate-tool-experience.mjs journeyCoverage=PASS ordinaryTools=22 centerGoals=4 totalGoals=48 definitions=48, adversarial journey-execution-enabled REJECTED (E012-JOURNEY-DEFINITION), 13/13 adversarial refused; (4) config no-executable-JS (grep 0 tokens, both valid JSON) + local-non-sensitive-only + portfolio-stress gated to Scope 13 (privacyClass local-private-ref, noExecution:true, step sideEffectPolicy none, opaque-reference-only limitations, no Feature 008 read); (5) RED-bite -- neutralizing the transitive-stale marking in backtrackStepInternal failed EXACTLY the two SCN-012-010 unit assertions (RED pass 10/fail 2 exit 1; dependent stayed complete, packet leaked [d,b,c]), git checkout HEAD -- rljourney.js restored byte-identical sha256 fa80d5dcd81cce65060b6f923f23bd005869afdc08381a682d6718e16d94cb24 (GREEN 12/12 exit 0), git status --short shows ONLY the concurrent BUG-001 scenario-manifest.json dirty -- no neutralized file left in the tree; (6) forbidden-authority EXECUTABLE=0 on rljourney.js (only two header doc-comment lines) + EMPTY git diff on rlexperience.js/rlexperience-adapters/simple-models.json/rldata.js/data/options/journeys.json. Reconciled the stale report Summary/Completion-Statement/Decision-Record + TP-08-10 count (934 to 939) and wrote the missing TP-08-04..08 evidence blocks -- F-08-REPORT-STALE CLOSED. Scope-08 DoD 14/14 [x]; scope status done, substate independently_verified. execution.currentScope=09-public-matrix-market-action-scaffold, nextRequiredOwner=bubbles.implement. Feature status not_started, certifiedAt null, certification.status not_started -- UNTOUCHED (Scope 8 of 14)."
+            },
+            {
+                "scope": "08-journey-runtime-definitions",
+                "phase": "implement",
+                "agent": "bubbles.implement",
+                "claimedAt": "2026-07-26T15:06:27Z",
+                "evidence": "scopes/08-journey-runtime-definitions/report.md#tp-08-01",
+                "summary": "Scope 08 implement PARTIAL (NOT a completed phase) -- Journey runtime CORE + unit + definitions-functional delivered. Created rljourney.js (greenfield UMD Journey runtime): runtime-boundary definition/step preconditions, dependency-DAG cycle-rejection + topological order, canonical sha256 semantic fingerprints, JourneySession create/serialize/restore/completeStep/backtrack with DEPENDENCY-AWARE TRANSITIVE-STALE marking (SCN-012-010), typed complete/partial/refused NON-EXECUTING JourneyCompletionPacket (SCN-012-011: recordSignoff mutates only local review state, executed:false, no execution entry point exists), no-executable-code invariant (RLJOURNEY-EXECUTION), privacy field-name boundary (RLJOURNEY-PRIVACY), Scope-13 portfolio-stress gate (privacyClass local-private-ref compiles gated:true, no Feature 008 read). DELEGATES deep schema validation to rlexperience.validateJourneyRegistry (single source, no fork). TP-08-01 unit 12/12 exit 0 (RED-first: first run 10/2 on two test-expectation errors -- topo next-step d not c; forbidden context field is RLJOURNEY-PRIVACY not RLJOURNEY-SESSION -- corrected to the runtime contract, GREEN 12/12; adversarial RED-bite neutralizing transitive-stale fails exactly the 2 SCN-012-010 tests, restored byte-identical sha256 989a749c...7d9d GREEN). TP-08-02 functional 7/7 exit 0 (SCN-012-032: ordinaryTools=22, centerGoals=4, totalGoals=48, definitionCount=48; market-brief -> 4 market-action goals; rlexperience cross-check 48/48; adversarial single-goal/three-Center/generic-goalId refusals). TP-08-10 broad selftest 934/0 exit 0 (baseline preserved). journeys.json NOT modified -- all 48 definitions already satisfy the runtime contract. Forbidden-authority EXECUTABLE=0 on rljourney.js (only hit is the FORBIDDEN_FIELD_ROOTS denylist literal). rlexperience.js / rlexperience-adapters/** / simple-models.json / rldata.js / data/options/** byte-unchanged (empty git diff). artifact-lint PASSED. DEFERRED to next dispatch: TP-08-03 storage-functional, TP-08-04..08 journey.spec e2e, TP-08-09 journey-mobile e2e, verified local-slot storage, rlexperience/rlapp/config journey-exposure wiring, validate-tool-experience + selftest journey canary wiring, finalization. Scope 08 stays in_progress; feature status not_started / certifiedAt null / certification.status not_started UNTOUCHED."
+            },
+            {
+                "scope": "04-simple-model-core-runtime",
+                "phase": "implement",
+                "agent": "bubbles.implement",
+                "claimedAt": "2026-07-24T01:00:00Z",
+                "evidence": "scopes/04-simple-model-core-runtime/report.md",
+                "summary": "Reconciled and completed Scope 04 SimpleModel Core Runtime. TP-04-01..06 executed in-session at exit 0 (unit 8/8, functional 6/6, e2e-ui 1/1 + 1/1, perf 1/1, broad selftest 712/0). Honest identity-exclusion RED/GREEN replay (RED exit 1 at tests/simple-models.unit.mjs:238, restored GREEN exit 0). Forbidden-authority static scan 0 tokens; registry validator registeredAdapters=0 toolIdBranches=0 authorityOwned=0; e2e no-interception clean."
+            },
+            {
+                "scope": "04-simple-model-core-runtime",
+                "phase": "test",
+                "agent": "bubbles.test",
+                "claimedAt": "2026-07-24T02:30:00Z",
+                "evidence": "scopes/04-simple-model-core-runtime/report.md#independent-verification-bubblestest",
+                "summary": "Independent re-verification (full-delivery, recorded evidence not trusted). Reproduced TP-04-01..06 in-session at exit 0 (unit 8/8, functional 6/6, e2e-ui 1/1 + 1/1, perf 1/1, broad selftest 712 passed/0 failed). No-interception scan clean (grep exit 1) with real-page page.goto + empty in-browser network ledger (expect(requests).toEqual([])). Forbidden-authority invariant reproduced: simpleRuntime=PASS truthStates=6 registeredAdapters=0 toolIdBranches=0 authorityOwned=0; static token scan all 0. Adversarial RED-bite reproduced: neutralizing the occurrence-time exclusion FAILS tests/simple-models.unit.mjs:238 (RED exit 1), restored to byte-identical rlexperience.js sha256 011b01da...ccc3f with no residual marker (GREEN exit 0). artifact-lint exit 0; git diff --check exit 0; no editor diagnostics. No coverage gap; no test change required. Scope 04 status set to done."
+            },
+            {
+                "scope": "05-market-structure-options-adapters",
+                "phase": "test",
+                "agent": "bubbles.test",
+                "claimedAt": "2026-07-24T23:55:00Z",
+                "evidence": "scopes/05-market-structure-options-adapters/report.md#independent-verification-bubblestest--round-2-post-f-05-ss-options",
+                "summary": "Independent re-verification Round 2 after the F-05-SS-OPTIONS fix (full-delivery; recorded evidence not trusted, reproduced from scratch at HEAD bbe4608d). All 12 Test Plan rows GREEN in-session: TP-05-01 unit 42/0, TP-05-02 integration 3/0, TP-05-03 source-ownership 6/0, TP-05-04..11 e2e 8/8, TP-05-12 selftest 802/0. F-05-SS-OPTIONS RESOLVED: options-flow-feed-lab.html/options-structure-lab.html/gamma-trading-lab.html each load rlexperience-adapters/options.js (RLOPTIONS 9/5/12) and delegate every owner formula to RLOPTIONS.* via thin one-line delegators; adversarial grep proves the formula bodies (Black-Scholes nCDF constants 0.2316419/0.319381530/1.330274429, d1/d2 Math.log(S/K)) live ONLY in options.js with zero inline duplication in the pages, and the old 'Extracted VERBATIM from <page>.html' copy-admissions are removed. All 8 owner pages single-sourced (market-heatmap/intraday/swing via RLMARKETSTRUCTURE 7/5/7, volatility via RLVOL 7, options x3 via RLOPTIONS, technical genuinely owner-less=0). No-interception clean (only JSDoc comment lines 17-18; real-page page.goto + addScriptTag). Forbidden-authority EXECUTABLE=0 for both modules (options.js zero raw tokens; market-structure.js two RLDATA mentions both in comments). rldata.js/rlexperience.js/scripts/fetch-options.mjs/data/options byte-unchanged (0 diff). technical-five-gate honest-unavailable is genuine SIGNAL-invariance grounded in design.md L572/L1353. No coverage gap. Scope 05 status set to done; F-05-SS-OPTIONS CLOSED."
+            },
+            {
+                "scope": "06-macro-rotation-fundamental-adapters",
+                "phase": "implement",
+                "agent": "bubbles.implement",
+                "claimedAt": "2026-07-26T05:00:00Z",
+                "evidence": "scopes/06-macro-rotation-fundamental-adapters/report.md",
+                "summary": "Authored + ran the previously-missing E2E spec tests/simple-model-adapters-macro-fundamental.spec.mjs (F-06-E2E-01 CLOSED): the eight persistent per-tool system-Chrome regressions TP-06-04..TP-06-11 (one per Scope-06 owner tool), mirroring the delivered Scope-05 spec. All 8 rows GREEN in-session -- full-spec single run 8 passed (FULLSPEC_EXIT=0) and each per-row --grep command exit 0 (TP-06-04..11). Broad selftest 895 passed / 0 failed (SELFTEST_EXIT=0). No-interception scan of the new spec empty (grep exit 1). Live-stack authentic: real page (page.goto) + real production adapter UMD (macro-rotation.js / fundamental-models.js) + real runtime (globalThis.RLEXPERIENCE.createSimpleRuntime + register*Adapters) + real renderer (renderSimpleProjection) + real [data-rlexperience-panel=simple] DOM host; owner data = frozen deterministic fixture, NOT an intercepted network response. Finding F-06-MSFT-SHELL-OPTOUT: msft-july-print-model.html deliberately opts out of the shared #rlviews shell (committed; documented as future spec-migration work) but already loads the real core + adapter for its Power path, so the TP-06-10 row exercises the real msft-margin-eps adapter through the page's OWN core + adapter, mounting only the Simple host the opt-out shell omits (probe: FY27 EPS 18.229333 -> 17.162667 under the two controls). Scope 06 stays in_progress; bubbles.test to independently re-verify TP-06-04..11 + finalize the DoD + status."
+            },
+            {
+                "scope": "06-macro-rotation-fundamental-adapters",
+                "phase": "test",
+                "agent": "bubbles.test",
+                "claimedAt": "2026-07-26T06:30:00Z",
+                "evidence": "scopes/06-macro-rotation-fundamental-adapters/report.md#iv-e2e-finalization",
+                "summary": "Independent E2E finalization of Scope 06 (full-delivery; recorded implement evidence not trusted, every Test Plan row reproduced from scratch at HEAD 20432c56 with the exact scope.md commands). All 12 rows GREEN in-session: TP-06-01 unit 51/51 exit 0, TP-06-02 integration 2/2 exit 0, TP-06-03 functional 12/12 exit 0, TP-06-12 selftest 895/0 exit 0, and the eight persistent per-tool system-Chrome E2E rows TP-06-04..TP-06-11 each 1 passed exit 0 with its exact --grep, plus the full 8-row spec in one invocation = 8 passed (FULLSPEC_EXIT=0). No-interception scan of the spec empty (grep exit 1); live-stack authentic (real page.goto + real adapter UMD + real createSimpleRuntime + real renderSimpleProjection + real [data-rlexperience-panel=simple] DOM host; frozen owner fixture, zero request interception; the only broader-scan hits are comment lines asserting the absence of interception). F-06-MSFT-SHELL-OPTOUT verified independently: committed meta name=rlviews content=off at msft page L778 (git show HEAD), page loads real fundamental-models.js for its Power path, and the page Power calculateAnnual + the Simple adapter both single-source RLFUNDAMENTALS.msftAnnualBridge -- JUDGED to genuinely satisfy TP-06-10 (real msft-margin-eps adapter + real two-control sensitivity + owner facts + provenance); the shell opt-out is surfaced as the non-blocking page-owner finding F-06-MSFT-SHELL-OPTOUT routed to bubbles.plan, NOT a Scope-06 adapter defect. Fresh owner-parity RED-bite on msftAnnualBridge (fundamental-models.js; prior session bit sleeveTotalReturn, so this is a not-previously-bitten adapter): doubled the implied valuation term -> RED 800!=400 exit 1; git checkout HEAD restored byte-identical sha256 0441403e...496237c4 -> GREEN exit 0; tree byte-clean. Scope-06 DoD reconciled 16/16 [x]; scope status done, substate independently_verified; artifact-lint exit 0. Feature status not_started, certifiedAt null, certification.status not_started -- UNTOUCHED. Only preserved concurrent dirt: bugs/BUG-001 scenario-manifest.json. Verdict TESTED; next owner bubbles.implement to kick off Scope 07."
+            },
+            {
+                "scope": "07-strategy-property-method-adapters",
+                "phase": "implement",
+                "agent": "bubbles.implement",
+                "claimedAt": "2026-07-26T06:40:00Z",
+                "evidence": "scopes/07-strategy-property-method-adapters/report.md#tp-07-01-ocean",
+                "summary": "Scope 07 implement IN PROGRESS -- 5 of 7 adapters delivered (NOT a completed phase). THIS dispatch registered simple-adapter/str-scenario/ocean-shores/v1 (batch 5) through the SAME property-research.js shared compute (computeStrScenarioSummary) + injected rlrental.js owner engine as palm-springs -- a 2-line registration (STR_SCENARIO_TOOL_IDS + supportedAdapterIds), no new formula. Added five dedicated ocean-shores unit rows: registration + no forbidden authority, page single-source vs rlrental.js (RLRENTAL.mountRoute, no inline copy), owner-parity run vs a DIRECT RLRENTAL.computeRentalResult, all EIGHT parameters move their declared path (segment/adr/occupancy/financing-rate/operating-cost/horizon -> summary.cashFlow; storm-insurance-stress + regulation-stress -> summary.stress ONLY), and gap preservation (full economics INCOMPLETE, null bottom line, missingCostFieldIds includes property-tax+capital-reserve, never zero-filled). RED replay: git stash of the registration reverted property-research.js to HEAD -> 4 of 5 ocean rows FAIL (adapter unregistered) exit 1; git stash pop restored GREEN 27/27. TP-07-01 unit 27/27 exit 0; TP-07-11 broad selftest 931/0 exit 0; forbidden-authority EXECUTABLE=0; rlrental.js / strategy-research.js / Scope 04/05/06 modules / rldata.js / data/options zero-diff. Ocean carries NO explicit insurance Simple input (disclosed cost = frozen owner baseFixedInsuranceUsd). Prior committed batches: strategy-evolution/v1, disclosure-decay/v1, walk-forward-validation/v1 (strategy-research.js), str-scenario/palm-springs/v1 (property-research.js). Remaining: location-suitability/v1 (waterfront-polo, this dispatch Task B) + market-action-triage/v1 (Center, later dispatch). Feature status not_started, certifiedAt null -- untouched. Scope 07 stays in_progress."
+            },
+            {
+                "scope": "07-strategy-property-method-adapters",
+                "phase": "implement",
+                "agent": "bubbles.implement",
+                "claimedAt": "2026-07-26T07:10:00Z",
+                "evidence": "scopes/07-strategy-property-method-adapters/report.md#tp-07-01-location",
+                "summary": "Scope 07 implement IN PROGRESS -- 6 of 7 adapters delivered (NOT a completed phase). THIS dispatch Task A delivered simple-adapter/location-suitability/v1 (batch 6, waterfront-polo-lab) with GENUINE single-sourcing: the four owner geo primitives (haversineMi/driveMinutesApprox/nearestClub/marketPasses) + computeLocationSuitabilitySummary live ONCE in property-research.js (RLPROPERTY). waterfront-polo-lab.html was REWIRED to load the module + delegate via thin RLPROPERTY.* wrappers -- the inline var R=3958.7613 great-circle body + the budget-fit rank table were REMOVED (the F-05-SS-OPTIONS-critical anti-duplication step) -- and scripts/selftest.mjs waterfront group was reconciled IN LOCKSTEP (extractFn/build-on-page -> createRequire load of RLPROPERTY; the 13 geo assertions moved env.* -> RLP.*, +3 new wiring assertions: page loads module, delegates the four primitives, no inline copy). Five location unit rows added: (1) module authority + geo-primitives-exposed + no forbidden authority, (2) page single-source, (3) adapter registers + owner-parity (shortlist row nearestClubMi/driveMin == DIRECT RLPROPERTY.nearestClub+driveMinutesApprox), (4) all SEVEN params move declared path (budget/minimum-size/water-type/travel-limit -> summary.shortlist; insurance-risk-ceiling -> summary.risk ONLY; flood-verification/club-verification -> summary.verification ONLY), (5) unverified club-seed/estimated-hazard gap preserved (never promoted) + determinism. Isolated RED replay: git stash of the page reverted to HEAD inline copies -> ONLY the page-single-source row bites (pass 31/fail 1 exit 1); git stash pop restored GREEN 32/32 (also corrected one fixture-expectation: shortlist drive-time order is the genuine ['m-f','m-a'], an expectation fix not a relaxed assertion). TP-07-01 unit 32/32 exit 0; TP-07-02 integration 5/5 exit 0 (regression, no Scope-05/06 drift); TP-07-11 broad selftest 934/0 exit 0 (+3 waterfront wiring assertions); forbidden-authority EXECUTABLE=0; rlrental.js / strategy-research.js / rldata.js / rlexperience.js / Scope 04/05/06 modules / simple-models.json / tests/simple-model-adapters.integration.mjs / data/options ALL zero-diff. Remaining: market-action-triage/v1 (Market Action Center in-Brief triage, THIS dispatch Task B). Feature status not_started, certifiedAt null -- untouched. Scope 07 stays in_progress."
+            },
+            {
+                "scope": "08-journey-runtime-definitions",
+                "phase": "implement",
+                "agent": "bubbles.implement",
+                "claimedAt": "2026-07-26T16:20:00Z",
+                "evidence": "scopes/08-journey-runtime-definitions/report.md#tp-08-09",
+                "summary": "Scope 08 FINAL test file delivered (execution claim, NOT a self-certified completed phase; bubbles.test finalizes). Authored tests/journey-mobile.spec.mjs (TP-08-09) -- the last of the 6 Implementation Files -- a single persistent live-stack system-Chrome mobile regression 'Regression: Journey mobile progress evidence backtrack dialogs and packet fit and restore focus' under a genuine 320x900 page.setViewportSize client on the REAL market-heatmap-lab.html + REAL RLAPP.mountJourney() + REAL rljourney runtime + REAL browser localStorage. Proves ON MOBILE the same core invariants as the desktop journey.spec.mjs: SCN-012-009 durable resume across a real page.reload() with no visit/click misclassified complete + ordered aria-labelled progress with aria-current='step' + per-step evidence counts; SCN-012-010 backtrack transitive-stale (only dependent b stale WITH reason, unrelated d intact) on both the session view AND the rendered DOM + partial-packet exclusion + complete-packet RLJOURNEY-STALE refusal; SCN-012-011 signoff triggers ZERO execution (full localStorage ledger BYTE-IDENTICAL across recordReview, no execution entry point, no execution/publication network request); plus mobile fit (packet+disclaimer + shell fit within 320px, no internal horizontal overflow, zero inline geometry on shell children) and focus preserved across an active-region re-render. Command 'npx --no-install playwright test tests/journey-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list' = 1 passed exit 0. No-interception scan of the spec = zero executable interception (only the two documentation-comment lines 22-23). Broad selftest re-ran 939 passed/0 failed exit 0 (baseline green). Consistent with desktop journey.spec.mjs the injected mount is driven via page.evaluate; the neutral test host <div data-rljourney-mount> is opted into visibility (a real adopting page supplies its own visible container) -- a host-only override that never touches the shell's rendered chooser/progress/packet children. Change boundary honored: created tests/journey-mobile.spec.mjs + report TP-08-09 evidence + DoD [x] + this state pointer; rljourney.js/rlapp.js/journeys.json/scripts/adapters/core untouched; the concurrent BUG-001 scenario-manifest.json dirty file preserved (not staged). All 6 Scope-08 Implementation Files now present and all e2e Test Plan rows green. FINDING (routed to bubbles.test): the Scope-08 report Summary/Completion-Statement and the TP-08-04..08 + TP-08-10 rows are STALE (still narrate those as 'deferred'/934) although journey.spec.mjs + the rlapp.js Journey-chooser wiring + the selftest/validator canaries landed in prior commits (6db3e282/055f7512/fb3fb26b/a8efa69d) -- a prior-dispatch report-freshness gap outside this change boundary. Scope 08 stays in_progress; Feature status not_started / certifiedAt null / certification.status not_started UNTOUCHED. Next owner bubbles.test to independently re-verify all Test Plan rows + reconcile the stale report + finalize Scope-08 DoD and status."
+            }
+        ],
+        "pendingTransitionRequests": [],
+        "nextRequiredOwner": "bubbles.workflow",
+        "nextRequiredTarget": "Scope 12 (Dynamic Red Alert And Latent-Risk Journey) is DONE (substate independently_verified): bubbles.test reproduced all 8 Test Plan rows from scratch at HEAD 77c92aac (TP-12-01 unit 26/0, TP-12-02 functional 7/0, TP-12-03 security 9/0, TP-12-04..07 live system-chrome e2e 4/4, TP-12-08 selftest 952/0; validate-market-action + validate-brief-payload + validate-web-evidence PASS) and confirmed all 6 audits: (1) no-interception scan empty; (2) Center single-source qualifyRedAlerts/renderRedAlertProjection defined ONLY in rlmarketaction.js, zero render hooks outside the engine, market-brief.html loads the module and boot renders only the Feature-002-gated empty scaffold; (3) no-execution buildLatentRiskEvidence noExecution/noPublication:true + rljourney hard-rejects non-noExecution definitions + zero execution/publication verbs in source + TP-12-07 runtime ledger/alert byte-identity + zero execution traffic; (4) no-topic/no-alarmism config red-alert-policy=thresholds/weights(sum100)/bands/staleness with NO named-topic seed catalog and visibleCap is a MAX not a floor, total labelled admissionScore never probability/confidence/crash-odds; (5) forbidden-authority raw scan=3 comment-only hits + validate-market-action forbiddenCapabilities=0 + validate-brief-payload + validate-web-evidence PASS; (6) RED-bite neutralized gate-1 minIndependentOrigins->1 -> genuine RED unit 2/func 3/sec 2 fail exit 1 -> git checkout HEAD byte-identical restore sha256 714cf84f...b946ef6 (==before) -> GREEN 26/7/9 exit 0 -> tree clean of the bite. Scope 12 DoD 13/13 [x] (authoritative artifact count is 13, not the brief's 16). NO agent-actionable scope remains: Scope 11 blocked on external Feature-002 gate, Scope 13 blocked on external Feature-008 gate, Scope 14 blocked on external BUG-004 gate (plus Scopes 11/13). bubbles.implement resumes Scope 11 or 13 ONLY after its external certification/feature gate clears. Non-blocking finding F-12-INDEX: _index.md status column is uniformly stale (shows Not Started for scopes 4-12 that are done in state.json) -> route to bubbles.plan. Feature status not_started / certifiedAt null / certification.status not_started remain UNTOUCHED (Scope 12 of 14).",
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "scopeId": "01-contract-config-registry-foundation",
+                "name": "Contract, Configuration, And Registry Foundation",
+                "status": "done",
+                "dependsOn": [],
+                "scopeDir": "scopes/01-contract-config-registry-foundation",
+                "scopeArtifact": "scopes/01-contract-config-registry-foundation/scope.md",
+                "reportArtifact": "scopes/01-contract-config-registry-foundation/report.md"
+            },
+            {
+                "scope": 2,
+                "scopeId": "02-shared-four-view-shell",
+                "name": "Shared Four-View Shell",
+                "status": "done",
+                "dependsOn": [
+                    1
+                ],
+                "scopeDir": "scopes/02-shared-four-view-shell",
+                "scopeArtifact": "scopes/02-shared-four-view-shell/scope.md",
+                "reportArtifact": "scopes/02-shared-four-view-shell/report.md"
+            },
+            {
+                "scope": 3,
+                "scopeId": "03-contextual-tooltip-foundation",
+                "name": "Contextual Tooltip Foundation",
+                "status": "done",
+                "dependsOn": [
+                    2
+                ],
+                "scopeDir": "scopes/03-contextual-tooltip-foundation",
+                "scopeArtifact": "scopes/03-contextual-tooltip-foundation/scope.md",
+                "reportArtifact": "scopes/03-contextual-tooltip-foundation/report.md"
+            },
+            {
+                "scope": 4,
+                "scopeId": "04-simple-model-core-runtime",
+                "name": "SimpleModel Core Runtime",
+                "status": "done",
+                "dependsOn": [
+                    3
+                ],
+                "scopeDir": "scopes/04-simple-model-core-runtime",
+                "scopeArtifact": "scopes/04-simple-model-core-runtime/scope.md",
+                "reportArtifact": "scopes/04-simple-model-core-runtime/report.md"
+            },
+            {
+                "scope": 5,
+                "scopeId": "05-market-structure-options-adapters",
+                "name": "Market-Structure And Options Simple Adapters",
+                "status": "done",
+                "dependsOn": [
+                    4
+                ],
+                "scopeDir": "scopes/05-market-structure-options-adapters",
+                "scopeArtifact": "scopes/05-market-structure-options-adapters/scope.md",
+                "reportArtifact": "scopes/05-market-structure-options-adapters/report.md"
+            },
+            {
+                "scope": 6,
+                "scopeId": "06-macro-rotation-fundamental-adapters",
+                "name": "Macro, Rotation, And Fundamental Simple Adapters",
+                "status": "done",
+                "dependsOn": [
+                    5
+                ],
+                "scopeDir": "scopes/06-macro-rotation-fundamental-adapters",
+                "scopeArtifact": "scopes/06-macro-rotation-fundamental-adapters/scope.md",
+                "reportArtifact": "scopes/06-macro-rotation-fundamental-adapters/report.md"
+            },
+            {
+                "scope": 7,
+                "scopeId": "07-strategy-property-method-adapters",
+                "name": "Strategy, Property, And Method Simple Adapters",
+                "status": "done",
+                "substate": "independently_verified",
+                "dependsOn": [
+                    6
+                ],
+                "scopeDir": "scopes/07-strategy-property-method-adapters",
+                "scopeArtifact": "scopes/07-strategy-property-method-adapters/scope.md",
+                "reportArtifact": "scopes/07-strategy-property-method-adapters/report.md"
+            },
+            {
+                "scope": 8,
+                "scopeId": "08-journey-runtime-definitions",
+                "name": "Journey Capability Runtime And All-Tool Definitions",
+                "status": "done",
+                "substate": "independently_verified",
+                "dependsOn": [
+                    7
+                ],
+                "scopeDir": "scopes/08-journey-runtime-definitions",
+                "scopeArtifact": "scopes/08-journey-runtime-definitions/scope.md",
+                "reportArtifact": "scopes/08-journey-runtime-definitions/report.md"
+            },
+            {
+                "scope": 9,
+                "scopeId": "09-public-matrix-market-action-scaffold",
+                "name": "Public Matrix And Market Action Center Scaffold",
+                "status": "done",
+                "substate": "independently_verified",
+                "dependsOn": [
+                    8
+                ],
+                "scopeDir": "scopes/09-public-matrix-market-action-scaffold",
+                "scopeArtifact": "scopes/09-public-matrix-market-action-scaffold/scope.md",
+                "reportArtifact": "scopes/09-public-matrix-market-action-scaffold/report.md"
+            },
+            {
+                "scope": 10,
+                "scopeId": "10-bounded-web-evidence-acquisition",
+                "name": "Bounded WebEvidence Acquisition",
+                "status": "done",
+                "dependsOn": [
+                    9
+                ],
+                "scopeDir": "scopes/10-bounded-web-evidence-acquisition",
+                "scopeArtifact": "scopes/10-bounded-web-evidence-acquisition/scope.md",
+                "reportArtifact": "scopes/10-bounded-web-evidence-acquisition/report.md"
+            },
+            {
+                "scope": 11,
+                "scopeId": "11-feature-002-authored-brief-integration",
+                "name": "Feature 002-Gated Authored Brief Integration",
+                "status": "not_started",
+                "blockedReason": "External gate feature-002 now evaluates TRUE. XFC-01 is RESOLVED for this gate (commit 85a9ce1d): specs/002-distributed-tool-briefs-and-history now publishes state.milestones = [current-graph, owner-coverage, powerless-author, atomic-publication] — the exact resolution this text prescribed (the producer publishing markers it genuinely delivered), NOT a weakening; tool-experience.config.json is byte-unchanged. Each marker was verified against delivered production code, a certified Done scope, and a test surface BEFORE publication, with evidence recorded inline in that state.json under milestonesProvenance: current-graph = validateCurrentGraph() exported at scripts/validate-distributed-briefs.mjs:39 and consumed by scripts/brief-distributed-publish.mjs:530 (certified scope 05-registry-wide-normalized-reads); owner-coverage = certified scope 05 all-source ToolModelRead coverage with cardinality enforced at rlbrief.js:449; powerless-author = scripts/brief-author.mjs:5-9 declaring the sole external author boundary with no repository-write, shell, source-fetch or browser-state authority (certified scope 06-bounded-authorship-and-recommendation-lifecycle); atomic-publication = scripts/brief-publication.mjs:416 with the selftest group at scripts/selftest.mjs:3751 (certified scope 09-evidence-first-atomic-publication). Re-executed verdict: status=done/done, matched 4/4, satisfied=TRUE. This scope is therefore NO LONGER EXTERNALLY BLOCKED — it is unimplemented. Recommended transition: blocked -> not_started (this scope's own scope.md rule states it remains Not Started while the gate is false; the gate is now true and no implementation work has begun). The status value is deliberately left unchanged here for the Feature 012 owner to flip, because scheduling this scope's implementation is their decision, not this correction's. TRANSITION APPLIED 2026-07-30 on owner approval: status is now not_started. This field is retained as the historical record of why the scope WAS blocked and how that cleared; it is no longer an active blocker, and implementation of this scope has not begun. The previously recorded eligibility refusal remains accurate for the period it described: no integrated source edit, no author request, no publication call, no Feature 002 artifact touched.",
+                "dependsOn": [
+                    10
+                ],
+                "externalGates": [
+                    "feature-002"
+                ],
+                "scopeDir": "scopes/11-feature-002-authored-brief-integration",
+                "scopeArtifact": "scopes/11-feature-002-authored-brief-integration/scope.md",
+                "reportArtifact": "scopes/11-feature-002-authored-brief-integration/report.md"
+            },
+            {
+                "scope": 12,
+                "scopeId": "12-dynamic-red-alert",
+                "name": "Dynamic Red Alert And Latent-Risk Journey",
+                "status": "done",
+                "substate": "independently_verified",
+                "dependsOn": [
+                    8,
+                    10
+                ],
+                "scopeDir": "scopes/12-dynamic-red-alert",
+                "scopeArtifact": "scopes/12-dynamic-red-alert/scope.md",
+                "reportArtifact": "scopes/12-dynamic-red-alert/report.md"
+            },
+            {
+                "scope": 13,
+                "scopeId": "13-feature-008-private-portfolio-integration",
+                "name": "Feature 008-Gated Private Portfolio Integration",
+                "status": "blocked",
+                "blockedReason": "External gate feature-008 FALSE for TWO independent reasons. (A) Producer not terminal — verified at HEAD, specs/008-portfolio-survival-and-brief-lab is status=not_started, certification.status=not_started, certifiedAt=null. (B) Cross-feature contract defect XFC-01 (see report.md) — acceptedPredicate.requiredMilestones = [rlportfolio-store-privacy, public-evidence-barrier, local-brief-ticker-scope], which rlexperience.js lines 2056-2059 read from the producer's state.milestones; that key is published by zero of the 26 state.json files under specs/, so observed=[] and matchedRequirementCount=0 of 3 regardless of status. An executed control that injected a fabricated status=done/certification.status=done for this producer still returned satisfied=false at matched 0/3, proving (B) is binding independently of (A). Two of the three required IDs (rlportfolio-store-privacy, local-brief-ticker-scope) occur in 0 files under specs/008-portfolio-survival-and-brief-lab; only public-evidence-barrier occurs (6 files). Scope contract still forbids a second store or emulated certification even as a fixture; the recorded eligibility refusal stands (no private provider/stress adapter, no watchlist write, no Feature 008 artifact touched). Unblocks only when BOTH clear: specs/008-portfolio-survival-and-brief-lab reaches status=done and certification.status=done with a non-null certifiedAt under its own owner, AND the XFC-01 contract is resolved by cross-feature negotiation — either that producer publishes a machine-readable state.milestones array naming markers it genuinely delivered, or Feature 012 amends acceptedPredicate to require marker IDs that producer actually publishes. The gate MUST NOT be weakened or bypassed.",
+                "dependsOn": [
+                    9,
+                    12
+                ],
+                "externalGates": [
+                    "feature-008"
+                ],
+                "scopeDir": "scopes/13-feature-008-private-portfolio-integration",
+                "scopeArtifact": "scopes/13-feature-008-private-portfolio-integration/scope.md",
+                "reportArtifact": "scopes/13-feature-008-private-portfolio-integration/report.md"
+            },
+            {
+                "scope": 14,
+                "scopeId": "14-integrated-acceptance-release-handoff",
+                "name": "Integrated Acceptance, Migration, And Release Handoff",
+                "status": "blocked",
+                "blockedReason": "Transitively blocked via dependsOn [11,12,13]: Scope 11 and Scope 13 are both blocked; Scope 12 is done. The prior text asserting Feature 002 and Feature 008 are 'both not_started' was factually false and is corrected here — verified at HEAD, specs/002-distributed-tool-briefs-and-history is status=done/certification.status=done, while specs/008-portfolio-survival-and-brief-lab is status=not_started/certification.status=not_started. The prior claim that the direct BUG-004 sub-gate is SATISFIED was also false: only its status halves pass. Executed against its declared statePath specs/_bugs/BUG-004-proxy-route-local-key-fallback/state.json, the BUG-004 gate returns satisfied=false with matchedRequirementCount=0 of 2, because acceptedPredicate.requiredEvidenceIds = [TP-09, TP-12] is read from the producer's state.evidenceIds, a key that producer does not publish (its TP-09/TP-12 references exist only inside free-prose transitionRequests, executionHistory, and addressedFindings summary strings, which the evaluator never reads). All three declared dependency gates therefore fail on the same cross-feature contract defect XFC-01 (see report.md), and two of the three producers are already status=done/certification.status=done. Aggregate validator scripts/validate-feature-012.mjs is not authored (TP-14-01 exit 1 MODULE_NOT_FOUND) because cutover never began. Unblocks only when Scopes 11 and 13 unblock, which requires both Feature 008 reaching terminal certification and the XFC-01 contract being resolved by cross-feature negotiation for all three gates. The gates MUST NOT be weakened or bypassed.",
+                "dependsOn": [
+                    11,
+                    12,
+                    13
+                ],
+                "externalGates": [
+                    "BUG-004"
+                ],
+                "scopeDir": "scopes/14-integrated-acceptance-release-handoff",
+                "scopeArtifact": "scopes/14-integrated-acceptance-release-handoff/scope.md",
+                "reportArtifact": "scopes/14-integrated-acceptance-release-handoff/report.md"
+            },
+            {
+                "scope": 15,
+                "scopeId": "15-production-simple-adapter-wiring",
+                "name": "Production Simple-View Adapter Wiring (Model B)",
+                "status": "done",
+                "dependsOn": [
+                    5,
+                    6,
+                    7
+                ],
+                "scopeDir": "scopes/15-production-simple-adapter-wiring",
+                "scopeArtifact": "scopes/15-production-simple-adapter-wiring/scope.md",
+                "reportArtifact": "scopes/15-production-simple-adapter-wiring/report.md"
+            }
+        ],
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "blocked",
+        "completedScopes": [
+            "01-contract-config-registry-foundation",
+            "02-shared-four-view-shell",
+            "03-contextual-tooltip-foundation",
+            "04-simple-model-core-runtime",
+            "05-market-structure-options-adapters",
+            "06-macro-rotation-fundamental-adapters",
+            "07-strategy-property-method-adapters",
+            "08-journey-runtime-definitions",
+            "09-public-matrix-market-action-scaffold",
+            "10-bounded-web-evidence-acquisition",
+            "12-dynamic-red-alert",
+            "15-production-simple-adapter-wiring"
+        ],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        }
+    },
+    "policySnapshot": {
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "repo-default"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
+    },
+    "transitionRequests": [],
+    "reworkQueue": [],
+    "executionHistory": [
+        {
+            "agent": "bubbles.analyst",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-22T03:40:01Z",
+            "completedAt": "2026-07-22T03:52:45Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F012-ANALYST-PACKET",
+                "F012-23-TOOL-MATRIX",
+                "F012-SOURCE-OWNERSHIP",
+                "F012-PRIVACY-REGENERATION",
+                "F012-MIGRATION-BOUNDARY",
+                "F012-STRATEGIC-ANALYSIS"
+            ],
+            "unresolvedFindings": [
+                "F012-UX-WIREFRAMES-FLOWS",
+                "F012-DESIGN-ARCHITECTURE",
+                "F012-PLAN-MANIFEST-SCOPES",
+                "F012-BUG004-INTEGRATION-GATE",
+                "F012-F002-INTEGRATION-GATE",
+                "F012-F008-INTEGRATION-GATE"
+            ],
+            "nextRequiredOwner": "bubbles.ux",
+            "summary": "Created the analyst-owned greenfield Feature 012 specification from the current 23-entry Research Lab registry, shared mode/data/brief foundations, Market Brief page/config/payload/runbook, scheduled options owner, Feature 002/008 and BUG-004 dependency states, and QF journey/DecisionPacket/catalog/simulation semantics. Defined the strict SimpleModel and ContextualTooltip contracts, frozen pre-author WebEvidenceBundle, ToolBrief, Journey, Red Alert, PortfolioTickerMatrix, Market Action Center four-view state, exact source/privacy/migration boundaries, a 23-row tool experience matrix with explicit goals, 8 actors, 12 use cases, 32 BDD scenarios, 8 strategic gaps, 7 ranked improvement proposals, measurable success criteria, and observable integration gates. No foreign-owned design, scope, manifest, test, report, user-validation, implementation, or certification artifact was created or modified."
+        },
+        {
+            "agent": "bubbles.ux",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-22T03:56:17Z",
+            "completedAt": "2026-07-22T03:56:17Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F012-UX-OWNERSHIP-RESOLVED"
+            ],
+            "unresolvedFindings": [
+                "F012-UX-ARTIFACT-DESTINATION-CONFLICT",
+                "F012-UX-WIREFRAMES-FLOWS"
+            ],
+            "nextRequiredOwner": "bubbles.ux",
+            "summary": "Resolved the installed Research Lab ownership contract: bubbles.ux owns only the inline UI Wireframes and User Flows sections of spec.md, and UX sidecar files are forbidden by UX8. This invocation also explicitly forbids editing spec.md, so no conforming UX content destination exists. Recorded only execution/routing metadata; no spec, design, scope, report, user-validation, source, test, completed-phase, status, or certification content was modified."
+        },
+        {
+            "agent": "bubbles.ux",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-22T04:07:44Z",
+            "completedAt": "2026-07-22T04:07:44Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F012-UX-ARTIFACT-DESTINATION-CONFLICT",
+                "F012-UX-WIREFRAMES-FLOWS",
+                "F012-UX-SHARED-FOUR-VIEW-CONTROL",
+                "F012-UX-SIMPLE-POWER-BRIEF-JOURNEY",
+                "F012-UX-MARKET-ACTION-CENTER",
+                "F012-UX-DEPENDENCY-GATED-STATES"
+            ],
+            "unresolvedFindings": [
+                "F012-DESIGN-ARCHITECTURE",
+                "F012-PLAN-MANIFEST-SCOPES",
+                "F012-BUG004-INTEGRATION-GATE",
+                "F012-F002-INTEGRATION-GATE",
+                "F012-F008-INTEGRATION-GATE"
+            ],
+            "nextRequiredOwner": "bubbles.design",
+            "summary": "Used the operator's explicit section-level delegation to append only the UX-owned UI Wireframes and User Flows sections to spec.md; the original 129,021-byte analyst prefix remained byte-identical. Defined the fixed four-view ordinary-tool and Market Action Center controls with desktop/mobile/keyboard/hash/focus behavior; reusable UI primitives; distinct parameterized Simple model states; universal Power ContextualTooltip anatomy and pointer/keyboard/touch behavior; concise cited Brief hierarchy; goal chooser and shared wizard/checklist/decision-tree/scenario-lab Journey shell with local resume, backtracking, evidence, typed packet, and no execution; Market Action Center Brief/Portfolio/Red Alert/Journey views; public/private publication truth; responsive wireframes; state/copy matrices; acceptance-ready outcomes; interaction flows; and explicit BUG-004/Feature 002/Feature 008 dependency gates. No design, plan, source, test, report, certification, or top-level status work was performed."
+        },
+        {
+            "agent": "bubbles.design",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-22T04:24:13Z",
+            "completedAt": "2026-07-22T04:25:34Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F012-DESIGN-ARCHITECTURE",
+                "F012-CAPABILITY-FOUNDATION",
+                "F012-IMPLEMENTATION-GRADE-CONTRACTS",
+                "F012-DEPENDENCY-BOUNDARIES",
+                "F012-RESEARCH-LAB-QF-ADR"
+            ],
+            "unresolvedFindings": [
+                "F012-PLAN-MANIFEST-SCOPES",
+                "F012-BUG004-INTEGRATION-GATE",
+                "F012-F002-INTEGRATION-GATE",
+                "F012-F008-INTEGRATION-GATE"
+            ],
+            "nextRequiredOwner": "bubbles.plan",
+            "summary": "Created the design-owned implementation-grade design.md from the complete analyst and delegated UX specification and current repository/QF evidence. Defined the ToolExperience registry, strict SimpleModel adapter/run contract and all-23 adapter map, one shared contextual disclosure renderer over RLG/RLTKR/RLCHART, bounded WebEvidence acquisition before networkless authorship, Journey definitions/sessions/steps/packets and mechanisms, dynamic Red Alert qualification, public/private PortfolioTickerMatrix, Market Action Center route/view composition, source-owner preservation, Feature 002 atomic publication extension, versioning/failure/security/privacy/accessibility/performance/observability/test/rollback contracts, Research Lab-first/QF-later ADR, and exact dependency-gated delivery matrix. Product selftest passed 692/0 and design-owned G094 sections passed; artifact/G094 completion remains routed to bubbles.plan for the missing plan-owned scopes and user-validation artifacts, with BUG-004/Feature 002/Feature 008 integration gates preserved. No spec, scope, source, test, report, user-validation, top-level status, or certification field was modified."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-22T05:08:52Z",
+            "completedAt": "2026-07-22T06:23:25Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F012-PLAN-ARTIFACT-CONTRACT",
+                "F012-PLAN-TRACEABILITY",
+                "F012-PLAN-TEST-HANDOFF",
+                "F012-PLAN-ROUTING"
+            ],
+            "unresolvedFindings": [
+                "F012-SCOPE-01-IMPLEMENTATION"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "summary": "Reconciled the existing 14-scope foundation-first plan against spec.md, design.md, and current Research Lab governance without redesigning it. Corrected per-scope DoD hierarchy, attached stable SCN identifiers to all 37 Gherkin scenarios and their existing DoD claims, added the current user-validation checklist heading, created the missing canonical 130-row test-plan.json handoff, normalized machine-readable scope IDs/dependencies for the canonical DAG renderer, registered all scope directories in execution routing state, and corrected routing to Scope 01. Canonical artifact lint, freshness, and capability-foundation checks pass. Traceability maps 37/37 scenarios to Test Plan rows and 37/37 scenarios to DoD items; its remaining 37 failures are delivery-file/evidence checks because implementation tests and per-scope execution evidence are absent at planning maturity. No source, test, dependency feature/bug, framework-managed, status, or certification field was modified."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-23T05:34:03Z",
+            "completedAt": "2026-07-23T05:40:12Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "phasesExecuted": [
+                "test"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F012-SCOPE01-TEST-MATRIX-CURRENT",
+                "F012-SCOPE01-SYSTEM-CHROME-BLOCKER-CLEARED",
+                "F012-SCOPE01-NO-INTERCEPTION"
+            ],
+            "unresolvedFindings": [
+                "F012-SCOPE01-PLAN-STATUS-DOD-RECONCILIATION"
+            ],
+            "nextRequiredOwner": "bubbles.plan",
+            "summary": "Independently reran all five exact Scope 01 Test Plan commands on current bytes: TP-01-01 passed 7/7, TP-01-02 passed 5/5, TP-01-03 passed 1/1 under system-chrome, TP-01-04 accepted the locked source graph and contract packet, and TP-01-05 passed 698/698. The no-interception scan found zero violations. Cleared only the obsolete Chrome execution blocker and routed the unchanged plan-owned Status and unchecked DoD reconciliation to bubbles.plan; no scope, feature, completed-scope, completed-phase-claim, top-level status, or certification promotion was made."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-23T05:48:12Z",
+            "completedAt": "2026-07-23T05:50:44Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F012-SCOPE01-DOD-EVIDENCE-RECONCILED",
+                "F012-SCOPE01-STATUS-SYNCHRONIZED",
+                "F012-BUG004-INDEX-STATE-REFRESHED"
+            ],
+            "unresolvedFindings": [
+                "F012-SCOPE01-ROLLBACK-EVIDENCE-MISSING",
+                "F012-SCOPE01-RED-QUALITY-EVIDENCE-MISSING"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "summary": "Reconciled Scope 01 strictly against the current test-owned report: checked three directly proven core items and all five exact Test Plan items with precise report anchors; left the rollback aggregate and grouped Build Quality Gate unchecked with uncertainty declarations because the report lacks executed rollback proof, intended RED evidence, and raw grouped guard outputs. Synchronized Scope 01 to In Progress in its scope and index, preserved execution.scopeProgress as in_progress, refreshed the certified BUG-004 planning observation, and routed the two evidence gaps to bubbles.test. Scope 02 remains dependency-ineligible; top-level feature and certification fields are unchanged."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-23T06:17:06Z",
+            "completedAt": "2026-07-23T06:20:29Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "phasesExecuted": [
+                "test"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F012-SCOPE01-ROLLBACK-EVIDENCE-MISSING",
+                "F012-SCOPE01-CURRENT-QUALITY-EVIDENCE-CAPTURED"
+            ],
+            "unresolvedFindings": [
+                "F012-SCOPE01-RED-QUALITY-EVIDENCE-MISSING"
+            ],
+            "nextRequiredOwner": "bubbles.plan",
+            "summary": "Independently executed the focused SCN-012-033 rollback rehearsal, the complete 6-test functional suite, the 698-test broad selftest, git diff --check, Feature 012 artifact lint, Gate G094, and VS Code diagnostics for all 11 Scope 01 implementation files. The rollback canary proved the 11/56 snapshot, 9/23 removal, baseline equality, current sandbox RED exit 17, exact 23/23/48/13 GREEN restoration, unchanged hashes, and temp cleanup. Recorded the current sandbox RED only as a rollback discriminator, not as the unavailable historical pre-production RED; routed that Scenario-First chronology uncertainty to bubbles.plan. No plan-owned checkbox/status, later scope, certification field, source/runtime/config file, dependency artifact, options surface, package file, or framework-managed file was modified."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-23T06:31:57Z",
+            "completedAt": "2026-07-23T06:34:23Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F012-SCOPE01-ROLLBACK-EVIDENCE-MISSING",
+                "F012-SCOPE01-CURRENT-QUALITY-EVIDENCE-CAPTURED",
+                "F012-SCOPE01-G060-DECISION"
+            ],
+            "unresolvedFindings": [
+                "F012-SCOPE01-EXACT-RED-GREEN-REPLAY-REQUIRED"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "summary": "Determined that the current rollback rehearsal directly closes the shared-infrastructure rollback DoD item, but the honest chronology statement plus post-implementation sandbox discriminator cannot close the Scenario-First Build Quality Gate. Full-delivery is not eligible for a G060 exemption, and the missing historical RED output cannot be inferred or relabeled. Left Scope 01 In Progress, kept Scope 02 dependency-ineligible, and routed one resolvable action to bubbles.test: execute the exact TP-01-01, TP-01-02, and TP-01-03 commands RED in an isolated rollback baseline, restore exact current bytes, rerun the identical commands GREEN, and retain protected plus real-worktree hash proof. Canonical artifact lint and Gate G094 passed after reconciliation. Top-level feature status and certification remain unchanged."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-23T06:52:14Z",
+            "completedAt": "2026-07-23T06:53:41Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "phasesExecuted": [
+                "test"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F012-SCOPE01-EXACT-RED-GREEN-REPLAY-REQUIRED"
+            ],
+            "unresolvedFindings": [
+                "F012-SCOPE01-PLAN-STATUS-DOD-RECONCILIATION"
+            ],
+            "nextRequiredOwner": "bubbles.plan",
+            "summary": "Independently executed the exact requested SCN-012-033 command as a current isolated replay. The sandbox produced three intended RED exit-1 results for TP-01-01, TP-01-02, and TP-01-03; restored the exact current production hashes; reran the identical three commands GREEN at exit 0; and proved protected plus real-worktree hash equality. A separate node --check of the current functional test file exited 0. This is current isolated replay evidence, not recovered historical chronology. No scope, feature, certification, source, config, test, BUG-004, framework-managed, or plan-owned artifact was changed; Build Quality Gate and Scope status reconciliation route to bubbles.plan."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-23T07:01:17Z",
+            "completedAt": "2026-07-23T07:01:17Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F012-SCOPE01-PLAN-STATUS-DOD-RECONCILIATION"
+            ],
+            "unresolvedFindings": [
+                "F012-SCOPE01-G060-MARKER-VOCABULARY"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "summary": "Reconciled the single remaining Scope 01 Build Quality item against the current exact-command replay and independently ran the installed G060 evidence predicate. The replay is semantically complete, artifact lint and Gate G094 pass, but G060 exits 1 because its accepted marker vocabulary does not match the report's executed '[exact-replay] RED TP-...' and GREEN lines. Scope 01 remains In Progress, Scope 02 remains dependency-ineligible, and the exact test-owned report marker repair routes to bubbles.test. Top-level feature status and all certification fields remain unchanged."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-23T07:13:21Z",
+            "completedAt": "2026-07-23T07:13:21Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "phasesExecuted": [
+                "test"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F012-SCOPE01-G060-MARKER-VOCABULARY"
+            ],
+            "unresolvedFindings": [
+                "F012-SCOPE01-PLAN-STATUS-DOD-RECONCILIATION"
+            ],
+            "nextRequiredOwner": "bubbles.plan",
+            "summary": "Inserted a concise ordered RED-stage/GREEN-stage bridge immediately below the Scope 01 report Summary heading and tied it only to the existing current isolated exact-command replay evidence. The installed detect_red_green_ordering predicate exited 0, Feature 012 artifact lint passed, and git diff --check exited 0 with no output. Cleared only the marker-vocabulary blocker and routed Build Quality Gate plus Scope status reconciliation to bubbles.plan. Scope status, feature status, certification fields, evidence output, source, config, and tests remain unchanged."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-23T07:22:30Z",
+            "completedAt": "2026-07-23T07:22:30Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [
+                "01-contract-config-registry-foundation"
+            ],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F012-SCOPE01-PLAN-STATUS-DOD-RECONCILIATION"
+            ],
+            "unresolvedFindings": [
+                "F012-SCOPE02-IMPLEMENTATION"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "summary": "Independently reran the installed G060 detector, Feature 012 artifact lint, Gate G094, and the plan-owned DAG/status consistency check; all exited 0. Checked the single remaining Scope 01 Build Quality Gate item against the current replay evidence, removed the stale uncertainty block, marked Scope 01 Done in its scope and both index inventories, and updated execution routing so Scope 02 is the sole lowest-numbered eligible scope for bubbles.implement. Scope 02 remains Not Started. Top-level Feature 012 status remains not_started and certification fields remain unchanged."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-23T15:31:34Z",
+            "completedAt": "2026-07-23T15:31:34Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "phasesExecuted": [
+                "test"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F012-SCOPE02-EXACT-TEST-MATRIX-CURRENT",
+                "F012-SCOPE02-ALL-ROUTE-CANARY-CURRENT",
+                "F012-SCOPE02-VIEW-BOUNDARY-CURRENT",
+                "F012-SCOPE02-BROWSER-BOUNDARY-CURRENT"
+            ],
+            "unresolvedFindings": [
+                "F012-SCOPE02-PLAN-STATUS-DOD-RECONCILIATION"
+            ],
+            "nextRequiredOwner": "bubbles.plan",
+            "summary": "Independently executed all seven exact Scope 02 Test Plan commands on current bytes: unit passed 7/7, functional passed 2/2 with all 23 route canaries and a zero-fetch closed mode record, three focused system-Chrome scenarios passed 1/1 each, the complete browser pair passed 4/4, and the broad selftest passed 703/703. Source lock, registry validation, cumulative Scope 01 suites, no-interception/service-worker scan, editor diagnostics, git diff check, artifact lint, Gate G094, regression quality, and skip-marker checks are clean. The inherited implement-owned RED is not relabeled as current test RED. No source, config, test, scope, dependency, package, data, HTML, framework-managed, top-level status, or certification field was modified; plan-owned DoD/status reconciliation remains."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-23T16:28:05Z",
+            "completedAt": "2026-07-23T16:35:20Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F012-SCOPE02-PLAN-STATUS-DOD-RECONCILIATION"
+            ],
+            "unresolvedFindings": [
+                "F012-SCOPE02-COMPATIBILITY-ROLLBACK-EVIDENCE-MISSING",
+                "F012-SCOPE02-BUILD-QUALITY-EVIDENCE-INCOMPLETE"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "summary": "Reconciled Scope 02 strictly against the current test-owned report: checked the two directly proven core outcomes and all seven exact Test Plan items with precise report anchors; left the shared-bootstrap rollback aggregate and grouped Build Quality Gate unchecked because no executable Scope 02 compatibility rollback rehearsal or complete protected-path and exact RED/GREEN proof is recorded. Marked Scope 02 In Progress in its scope, both index rows, and execution scope progress, then routed the two evidence gaps to bubbles.test. Top-level Feature 012 status and all certification fields remain unchanged."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-23T23:43:17Z",
+            "completedAt": "2026-07-23T23:43:17Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F012-SCOPE03-DOD-EVIDENCE-RECONCILED",
+                "F012-SCOPE03-G060-DECISION"
+            ],
+            "unresolvedFindings": [
+                "F012-SCOPE03-EXACT-RED-GREEN-REPLAY-REQUIRED",
+                "F012-SCOPE03-ROLLBACK-RESTORE-REHEARSAL-REQUIRED"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "summary": "Reconciled Scope 03 strictly against the independent test-owned report: checked three directly proven core outcomes and all six exact Test Plan items with report anchors; left rollback and grouped Build Quality unchecked with precise uncertainty declarations. The installed G060 detector exits 1 because no RED-before-GREEN ordering exists, and full-delivery scenario-first TDD is not exemption-eligible. Routed one isolated sandbox rehearsal that can prove legacy RLG/RLTKR/RLCHART/page behavior, exact TP-03-01 through TP-03-05 RED then GREEN, exact current-byte restoration, protected/real-worktree hash equality, and temp cleanup. Scope 03 remains In Progress; Scope 04 remains dependency-ineligible; top-level feature status and all certification fields are unchanged."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-24T01:00:00Z",
+            "completedAt": "2026-07-24T01:00:00Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "Reconstructed from the recorded claimedAt of the implement dispatches for this scope; no wall-clock span was captured at run time, so the interval is a claim ordering, not a measured duration.",
+            "timestampReconstructed": true,
+            "timestampReconstructedReason": "Timestamps are taken from the completedPhaseClaims claimedAt values recorded by the implementing agent, corroborated by the cited scope report sections and the shipped artifacts, not observed by this agent.",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "scopesCompleted": [],
+            "outcome": "completed_owned",
+            "addressedFindings": [],
+            "unresolvedFindings": [],
+            "nextRequiredOwner": "bubbles.test",
+            "summary": "Implement dispatches for scope 04-simple-model-core-runtime (1 recorded). Backfilled ledger entry: the implement phase ran and shipped verifiable artifacts, but the implementing agent wrote only the claim and not the matching executionHistory record. Backing verified independently of the claim: every cited evidence reference resolves to a real section in scopes/04-simple-model-core-runtime/report.md carrying in-session test output, and the shipped modules exist in the working tree under real commits. Evidence: scopes/04-simple-model-core-runtime/report.md."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-26T05:00:00Z",
+            "completedAt": "2026-07-26T05:00:00Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "Reconstructed from the recorded claimedAt of the implement dispatches for this scope; no wall-clock span was captured at run time, so the interval is a claim ordering, not a measured duration.",
+            "timestampReconstructed": true,
+            "timestampReconstructedReason": "Timestamps are taken from the completedPhaseClaims claimedAt values recorded by the implementing agent, corroborated by the cited scope report sections and the shipped artifacts, not observed by this agent.",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "scopesCompleted": [],
+            "outcome": "completed_owned",
+            "addressedFindings": [],
+            "unresolvedFindings": [],
+            "nextRequiredOwner": "bubbles.test",
+            "summary": "Implement dispatches for scope 06-macro-rotation-fundamental-adapters (1 recorded). Backfilled ledger entry: the implement phase ran and shipped verifiable artifacts, but the implementing agent wrote only the claim and not the matching executionHistory record. Backing verified independently of the claim: every cited evidence reference resolves to a real section in scopes/06-macro-rotation-fundamental-adapters/report.md carrying in-session test output, and the shipped modules exist in the working tree under real commits. Evidence: scopes/06-macro-rotation-fundamental-adapters/report.md."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-26T06:40:00Z",
+            "completedAt": "2026-07-26T07:10:00Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "Reconstructed from the recorded claimedAt of the implement dispatches for this scope; no wall-clock span was captured at run time, so the interval is a claim ordering, not a measured duration.",
+            "timestampReconstructed": true,
+            "timestampReconstructedReason": "Timestamps are taken from the completedPhaseClaims claimedAt values recorded by the implementing agent, corroborated by the cited scope report sections and the shipped artifacts, not observed by this agent.",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "scopesCompleted": [],
+            "outcome": "completed_owned",
+            "addressedFindings": [],
+            "unresolvedFindings": [],
+            "nextRequiredOwner": "bubbles.test",
+            "summary": "Implement dispatches for scope 07-strategy-property-method-adapters (2 recorded). Backfilled ledger entry: the implement phase ran and shipped verifiable artifacts, but the implementing agent wrote only the claim and not the matching executionHistory record. Backing verified independently of the claim: every cited evidence reference resolves to a real section in scopes/07-strategy-property-method-adapters/report.md carrying in-session test output, and the shipped modules exist in the working tree under real commits. Evidence: scopes/07-strategy-property-method-adapters/report.md#tp-07-01-ocean; scopes/07-strategy-property-method-adapters/report.md#tp-07-01-location."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-26T15:06:27Z",
+            "completedAt": "2026-07-26T16:20:00Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "Reconstructed from the recorded claimedAt of the implement dispatches for this scope; no wall-clock span was captured at run time, so the interval is a claim ordering, not a measured duration.",
+            "timestampReconstructed": true,
+            "timestampReconstructedReason": "Timestamps are taken from the completedPhaseClaims claimedAt values recorded by the implementing agent, corroborated by the cited scope report sections and the shipped artifacts, not observed by this agent.",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "scopesCompleted": [],
+            "outcome": "completed_owned",
+            "addressedFindings": [],
+            "unresolvedFindings": [],
+            "nextRequiredOwner": "bubbles.test",
+            "summary": "Implement dispatches for scope 08-journey-runtime-definitions (2 recorded). Backfilled ledger entry: the implement phase ran and shipped verifiable artifacts, but the implementing agent wrote only the claim and not the matching executionHistory record. Backing verified independently of the claim: every cited evidence reference resolves to a real section in scopes/08-journey-runtime-definitions/report.md carrying in-session test output, and the shipped modules exist in the working tree under real commits. Evidence: scopes/08-journey-runtime-definitions/report.md#tp-08-01; scopes/08-journey-runtime-definitions/report.md#tp-08-09."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "full-delivery",
+            "startedAt": "2026-07-26T17:20:00Z",
+            "completedAt": "2026-07-26T18:20:00Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "Reconstructed from the recorded claimedAt of the implement dispatches for this scope; no wall-clock span was captured at run time, so the interval is a claim ordering, not a measured duration.",
+            "timestampReconstructed": true,
+            "timestampReconstructedReason": "Timestamps are taken from the completedPhaseClaims claimedAt values recorded by the implementing agent, corroborated by the cited scope report sections and the shipped artifacts, not observed by this agent.",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "scopesCompleted": [],
+            "outcome": "completed_owned",
+            "addressedFindings": [],
+            "unresolvedFindings": [],
+            "nextRequiredOwner": "bubbles.test",
+            "summary": "Implement dispatches for scope 09-public-matrix-market-action-scaffold (2 recorded). Backfilled ledger entry: the implement phase ran and shipped verifiable artifacts, but the implementing agent wrote only the claim and not the matching executionHistory record. Backing verified independently of the claim: every cited evidence reference resolves to a real section in scopes/09-public-matrix-market-action-scaffold/report.md carrying in-session test output, and the shipped modules exist in the working tree under real commits. Evidence: scopes/09-public-matrix-market-action-scaffold/report.md#tp-09-01; scopes/09-public-matrix-market-action-scaffold/report.md#tp-09-03."
+        }
     ],
-    "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
-  },
-  "notes": "Scope 01 is Done. Its implementation, all five exact Test Plan rows, rollback/restore, current isolated exact-command TP-01-01/02/03 RED/GREEN replay, detector-recognized marker bridge, G060 detector, artifact lint, G094 capability-foundation guard, and DAG/status consistency check are green. Scope 02 is the sole lowest-numbered eligible scope and routes to bubbles.implement while remaining Not Started. Overall feature status remains not_started and certification remains unchanged."
+    "activeBugs": [],
+    "resolvedBugs": [],
+    "failures": [],
+    "scopeLayout": "per-scope-directory",
+    "artifacts": {
+        "spec": "spec.md",
+        "design": "design.md",
+        "scopes": "scopes/_index.md",
+        "report": "report.md",
+        "uservalidation": "uservalidation.md",
+        "scenarioManifest": "scenario-manifest.json",
+        "testPlan": "test-plan.json",
+        "lockdownApprovals": "lockdown-approvals.json",
+        "invalidationLedger": "invalidation-ledger.json",
+        "transitionRequests": "transition-requests.json",
+        "reworkQueue": "rework-queue.json"
+    },
+    "statusDiscipline": {
+        "validStatuses": [
+            "not_started",
+            "in_progress",
+            "blocked",
+            "specs_hardened",
+            "docs_updated",
+            "validated",
+            "done"
+        ],
+        "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+        "scopeDoneGates": [
+            "G020",
+            "G021",
+            "G022",
+            "G023",
+            "G024",
+            "G025",
+            "G055",
+            "G056",
+            "G057",
+            "G058",
+            "G059",
+            "G060",
+            "G061"
+        ],
+        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+    },
+    "notes": "Scope 01 is Done. Its implementation, all five exact Test Plan rows, rollback/restore, current isolated exact-command TP-01-01/02/03 RED/GREEN replay, detector-recognized marker bridge, G060 detector, artifact lint, G094 capability-foundation guard, and DAG/status consistency check are green. Scope 02 is the sole lowest-numbered eligible scope and routes to bubbles.implement while remaining Not Started. Overall feature status remains not_started and certification remains unchanged.",
+    "completedScopes": [
+        "01-contract-config-registry-foundation",
+        "02-shared-four-view-shell",
+        "03-contextual-tooltip-foundation",
+        "04-simple-model-core-runtime",
+        "05-market-structure-options-adapters",
+        "06-macro-rotation-fundamental-adapters",
+        "07-strategy-property-method-adapters",
+        "08-journey-runtime-definitions",
+        "09-public-matrix-market-action-scaffold",
+        "10-bounded-web-evidence-acquisition",
+        "12-dynamic-red-alert",
+        "15-production-simple-adapter-wiring"
+    ]
 }

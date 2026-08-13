@@ -49,18 +49,19 @@
 |---|---|---|---|
 | 01 | Contract, configuration, and registry foundation | - | Done |
 | 02 | Shared four-view shell | 01 | Done |
-| 03 | Contextual tooltip foundation | 02 | Not Started |
-| 04 | SimpleModel core runtime | 03 | Not Started |
-| 05 | Market-structure and options adapters | 04 | Not Started |
-| 06 | Macro, rotation, and fundamental adapters | 05 | Not Started |
-| 07 | Strategy, property, and method adapters | 06 | Not Started |
-| 08 | Journey capability and all-tool definitions | 07 | Not Started |
-| 09 | Public matrix and Market Action Center scaffold | 08 | Not Started |
-| 10 | Bounded WebEvidence acquisition | 09 | Not Started |
+| 03 | Contextual tooltip foundation | 02 | Done |
+| 04 | SimpleModel core runtime | 03 | Done |
+| 05 | Market-structure and options adapters | 04 | Done |
+| 06 | Macro, rotation, and fundamental adapters | 05 | Done |
+| 07 | Strategy, property, and method adapters | 06 | Done |
+| 08 | Journey capability and all-tool definitions | 07 | Done |
+| 09 | Public matrix and Market Action Center scaffold | 08 | Done |
+| 10 | Bounded WebEvidence acquisition | 09 | Done |
 | 11 | Feature 002-gated authored Brief integration | 10 + Feature 002 predicate | Not Started |
-| 12 | Dynamic Red Alert and latent-risk Journey | 08, 10 | Not Started |
-| 13 | Feature 008-gated private Portfolio integration | 09, 12 + Feature 008 predicate | Not Started |
-| 14 | Integrated acceptance and release handoff | 11, 12, 13 + BUG-004 predicate | Not Started |
+| 12 | Dynamic Red Alert and latent-risk Journey | 08, 10 | Done |
+| 13 | Feature 008-gated private Portfolio integration | 09, 12 + Feature 008 predicate | Blocked |
+| 14 | Integrated acceptance and release handoff | 11, 12, 13 + BUG-004 predicate | Blocked |
+| 15 | Production SimpleModel adapter wiring | 04 | Done |
 
 ```mermaid
 flowchart TD
@@ -92,18 +93,19 @@ flowchart TD
 |---|---|---|---|---|---|
 | 01 | Contract, configuration, and registry foundation | - | JSON contracts, registry metadata, validators, dependency resolver, Node-safe runtime | SCN-012-033 plus contract predicates used by SCN-012-028/029 | Done |
 | 02 | Shared four-view shell | 01 | `rlviews.js`, `rlapp.js`, shared shell, hash/history/focus/mobile/gate bands | SCN-012-017, 028, 029, 031 | Done |
-| 03 | Contextual tooltip foundation | 02 | `rlcontext.js`, RLG/RLTKR/RLCHART adapters, representative pages | SCN-012-003, 004 | Not Started |
-| 04 | SimpleModel core runtime | 03 | pure runtime, validator, renderer, identity/sensitivity/seed/truth states | SCN-012-001, 002 | Not Started |
-| 05 | Market-structure and options adapters | 04 | eight tool definitions/adapters and owner canaries | SCN-012-001, 002, 014, 015, 016 | Not Started |
-| 06 | Macro, rotation, and fundamental adapters | 05 | eight tool definitions/adapters and owner canaries | SCN-012-001, 002, 015 | Not Started |
-| 07 | Strategy, property, and method adapters | 06 | six tool definitions/adapters plus Center triage definition | SCN-012-001, 002, 032 | Not Started |
-| 08 | Journey capability and all-tool definitions | 07 | `rljourney.js`, definitions, local store, mechanisms, packet, tool shell | SCN-012-009, 010, 011, 032 | Not Started |
-| 09 | Public matrix and Market Action Center scaffold | 08 | `market-brief.html`, rename consumers, public matrix, route compatibility | SCN-012-017, 019, 022, 029, 030 | Not Started |
-| 10 | Bounded WebEvidence acquisition | 09 | acquisition/validation scripts, policies, static hostile-source fixtures | SCN-012-005, 006, 007 | Not Started |
+| 03 | Contextual tooltip foundation | 02 | `rlcontext.js`, RLG/RLTKR/RLCHART adapters, representative pages | SCN-012-003, 004 | Done |
+| 04 | SimpleModel core runtime | 03 | pure runtime, validator, renderer, identity/sensitivity/seed/truth states | SCN-012-001, 002 | Done |
+| 05 | Market-structure and options adapters | 04 | eight tool definitions/adapters and owner canaries | SCN-012-001, 002, 014, 015, 016 | Done |
+| 06 | Macro, rotation, and fundamental adapters | 05 | eight tool definitions/adapters and owner canaries | SCN-012-001, 002, 015 | Done |
+| 07 | Strategy, property, and method adapters | 06 | six tool definitions/adapters plus Center triage definition | SCN-012-001, 002, 032 | Done |
+| 08 | Journey capability and all-tool definitions | 07 | `rljourney.js`, definitions, local store, mechanisms, packet, tool shell | SCN-012-009, 010, 011, 032 | Done |
+| 09 | Public matrix and Market Action Center scaffold | 08 | `market-brief.html`, rename consumers, public matrix, route compatibility | SCN-012-017, 019, 022, 029, 030 | Done |
+| 10 | Bounded WebEvidence acquisition | 09 | acquisition/validation scripts, policies, static hostile-source fixtures | SCN-012-005, 006, 007 | Done |
 | 11 | Feature 002-gated authored Brief integration | 10 + Feature 002 predicate | ToolBrief v2, networkless author, public ticker briefs, atomic publication, concise UI | SCN-012-005, 006, 007, 008, 018, 019, 020, 028 | Not Started |
-| 12 | Dynamic Red Alert and latent-risk Journey | 08, 10 | anomaly discovery, qualification, lifecycle, empty view, global Journey | SCN-012-023, 024, 025 | Not Started |
-| 13 | Feature 008-gated private Portfolio integration | 09, 12 + Feature 008 predicate | RLPORTFOLIO adapter, private overlays, local stress Journey | SCN-012-021, 027, 029 | Not Started |
-| 14 | Integrated acceptance and release handoff | 11, 12, 13 + BUG-004 predicate | all 23 routes, sources, publication, privacy, accessibility, performance, rollback, docs/QF handoff | SCN-012-012 through 032 integration sweep | Not Started |
+| 12 | Dynamic Red Alert and latent-risk Journey | 08, 10 | anomaly discovery, qualification, lifecycle, empty view, global Journey | SCN-012-023, 024, 025 | Done |
+| 13 | Feature 008-gated private Portfolio integration | 09, 12 + Feature 008 predicate | RLPORTFOLIO adapter, private overlays, local stress Journey | SCN-012-021, 027, 029 | Blocked |
+| 14 | Integrated acceptance and release handoff | 11, 12, 13 + BUG-004 predicate | all 23 routes, sources, publication, privacy, accessibility, performance, rollback, docs/QF handoff | SCN-012-012 through 032 integration sweep | Blocked |
+| 15 | Production SimpleModel adapter wiring | 04 | production page wiring for the delivered SimpleModel adapters | SCN-012-001, 002 | Done |
 
 ## External Dependency Predicates
 

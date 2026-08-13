@@ -855,3 +855,73 @@ No `/bubbles.audit` run occurred. The scope is mechanically blocked before audit
 > **Why this is uncertain:** the canonical guard has no scope-status filter for sequential execution and its DoD extractor exits at the first tier subheading, so its nonzero feature-wide verdict cannot distinguish a complete Scope 01 from future-scope execution or parse the accepted tiered DoD shape.
 > **What would resolve this:** a canonical traceability run that evaluates the eligible scope under sequential semantics, recognizes tiered DoD checkboxes, preserves future-scope findings for their own execution, and returns exit code 0 for Scope 01 without rewriting plan-owned scenarios, Test Plan rows, or DoD claims.
 > **RESOLVED (current session):** every stated condition is met. `bubbles` commits `52b100c` (declared `SCN-` ID mapping) and `7754ea8` (not-started evidence deferral) were made in the canonical framework and consumed here by refresh to `cdb70b9`. The canonical guard now returns exit 0 for Scope 01 with 32/32 scenarios mapped, 0 unmapped, 28 future-scope evidence references deferred to their own execution, and no plan-owned scenario, Test Plan row, or DoD claim modified. Per-finding disposition is recorded in `### Traceability Finding Resolution`.
+
+## Scope 01 Certification Review — 2026-08-13
+
+`nextRequiredOwner` named `bubbles.validate` after Scope 01 closed at `7972b308`, so Scope 02 was
+correctly held until this review ran. The `bubbles.validate` dispatch returned no output and made no
+repository change, verified by `git status` and by re-reading `state.json`, so the orchestrator
+performed the review directly and records it as parent-expanded.
+
+**Scope of this review.** Scope 01 only. Feature 007 has 8 scopes still `not_started`, so this is NOT a
+feature-terminal certification and no top-level status or `certifiedAt` is claimed. The feature stays
+`in_progress`, which is the truthful state.
+
+**Command:** `bash .github/bubbles/scripts/traceability-guard.sh specs/007-technical-analysis-decision-lab`
+**Exit Code:** 0
+**Output:**
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/007-technical-analysis-decision-lab
+Artifact lint PASSED.
+$ bash .github/bubbles/scripts/capability-foundation-guard.sh specs/007-technical-analysis-decision-lab
+capability-foundation-guard: design.md contains capability foundation split with sufficient variation axes
+capability-foundation-guard: scopes include foundation:true and overlay Depends On foundation ordering
+capability-foundation-guard: PASS Gate G094 - capability foundation requirements satisfied
+$ bash .github/bubbles/scripts/traceability-guard.sh specs/007-technical-analysis-decision-lab
+DoD fidelity scenarios: 32 (mapped: 32, unmapped: 0)
+Edge confidence (IMP-015 Scope B): declared=56 inferred=4 ambiguous=4
+RESULT: PASSED (0 warnings)
+$ bash .github/bubbles/scripts/implementation-reality-scan.sh specs/007-technical-analysis-decision-lab
+Violations:     0
+Warnings:       1
+PASSED with 1 warning
+```
+
+Scope 01 carries 16 checked and 0 unchecked DoD items with an 857-line evidence report. G094 passes,
+which matters here because Scope 01 IS the capability foundation the other eight overlay scopes depend
+on — a foundation that failed G094 would invalidate every scope ordered behind it.
+
+### Two Defects Found And Fixed By This Review
+
+Scope-local traceability (`--current-scope`) had never been runnable for this feature, and the review
+found why:
+
+1. **`certification.scopeProgress` was empty** while `execution.scopeProgress` held all nine scopes.
+   The scope-universe resolver reads the certification mirror, so it refused with
+   `certification.scopeProgress must be a non-empty JSON array`. It is now mirrored from execution,
+   with `certifiedAt` set ONLY on Scope 01 — the one scope this review actually certifies.
+2. **`dependsOn` entries were numbers, not strings.** The resolver requires non-empty strings, and
+   every other spec in this repository uses strings. Sixteen records across both mirrors were
+   normalized. This was a latent typing defect that would have blocked scope-local traceability for
+   every future scope of this feature, not just Scope 01.
+
+After both fixes the resolver advances to its next condition and reports `current scope status must be
+in_progress or blocked`. That is correct behaviour, not a further defect: `currentScope` is
+`02-technique-engine`, which is `not_started`, so there is no active scope to scope to. Whole-spec
+traceability is the applicable check and it passes with 32/32 scenarios mapped.
+
+### Reviewed Non-Blocking Warning
+
+The implementation-reality scan passes with 0 violations and 1 warning: *"Resolved 11 file(s) from
+design.md fallback — scopes.md should reference these directly."* Reviewed and accepted as
+non-blocking. The feature's own route is referenced 6 times in `scope.md` and once in `scopes/_index.md`,
+so the files are declared; the fallback reflects the scan's section-resolution heuristic rather than an
+undeclared implementation surface. No violation is masked by accepting it — the scan reports zero.
+
+### Verdict
+
+Scope 01 certification is **recorded**. Scope 02 is released to begin. No promotion beyond Scope 01 is
+claimed, and the feature-level `status`, `certification.status` and `certifiedAt` are deliberately
+unchanged, because eight scopes remain unbuilt and claiming otherwise would be exactly the fabrication
+the gates exist to catch.

@@ -56,7 +56,7 @@
         "runStartedAt": "2026-07-15T18:01:42Z",
         "completedPhaseClaims": [],
         "pendingTransitionRequests": [],
-        "nextRequiredOwner": "bubbles.validate",
+        "nextRequiredOwner": "bubbles.implement",
         "scopeProgress": [
             {
                 "scope": 1,
@@ -74,7 +74,7 @@
                 "name": "Technique Engine And Evidence Independence",
                 "status": "not_started",
                 "dependsOn": [
-                    1
+                    "1"
                 ],
                 "scopeDir": "scopes/02-technique-engine",
                 "scopeArtifact": "scopes/02-technique-engine/scope.md",
@@ -86,8 +86,8 @@
                 "name": "Level Geometry And Setup Lifecycle",
                 "status": "not_started",
                 "dependsOn": [
-                    1,
-                    2
+                    "1",
+                    "2"
                 ],
                 "scopeDir": "scopes/03-setup-lifecycle",
                 "scopeArtifact": "scopes/03-setup-lifecycle/scope.md",
@@ -99,9 +99,9 @@
                 "name": "Five-Gate Synthesis And Candidate Selection",
                 "status": "not_started",
                 "dependsOn": [
-                    1,
-                    2,
-                    3
+                    "1",
+                    "2",
+                    "3"
                 ],
                 "scopeDir": "scopes/04-five-gate-synthesis",
                 "scopeArtifact": "scopes/04-five-gate-synthesis/scope.md",
@@ -113,10 +113,10 @@
                 "name": "Existing-Owner Publication And Strict Adapters",
                 "status": "not_started",
                 "dependsOn": [
-                    1,
-                    2,
-                    3,
-                    4
+                    "1",
+                    "2",
+                    "3",
+                    "4"
                 ],
                 "scopeDir": "scopes/05-owner-publication",
                 "scopeArtifact": "scopes/05-owner-publication/scope.md",
@@ -128,11 +128,11 @@
                 "name": "Comparison And Optional Evidence",
                 "status": "not_started",
                 "dependsOn": [
-                    1,
-                    2,
-                    3,
-                    4,
-                    5
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5"
                 ],
                 "scopeDir": "scopes/06-comparison-optional-evidence",
                 "scopeArtifact": "scopes/06-comparison-optional-evidence/scope.md",
@@ -144,12 +144,12 @@
                 "name": "Validation Cost Expectancy And Process",
                 "status": "not_started",
                 "dependsOn": [
-                    1,
-                    2,
-                    3,
-                    4,
-                    5,
-                    6
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6"
                 ],
                 "scopeDir": "scopes/07-validation-risk-process",
                 "scopeArtifact": "scopes/07-validation-risk-process/scope.md",
@@ -161,13 +161,13 @@
                 "name": "Complete Experience Publication And Registration",
                 "status": "not_started",
                 "dependsOn": [
-                    1,
-                    2,
-                    3,
-                    4,
-                    5,
-                    6,
-                    7
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                    "7"
                 ],
                 "scopeDir": "scopes/08-experience-publication",
                 "scopeArtifact": "scopes/08-experience-publication/scope.md",
@@ -179,14 +179,14 @@
                 "name": "Protected Regression And Governance Closure",
                 "status": "not_started",
                 "dependsOn": [
-                    1,
-                    2,
-                    3,
-                    4,
-                    5,
-                    6,
-                    7,
-                    8
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                    "7",
+                    "8"
                 ],
                 "scopeDir": "scopes/09-regression-closure",
                 "scopeArtifact": "scopes/09-regression-closure/scope.md",
@@ -204,7 +204,143 @@
         "status": "in_progress",
         "completedScopes": [],
         "certifiedCompletedPhases": [],
-        "scopeProgress": [],
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "scopeId": "01-capability-foundation",
+                "name": "Capability Foundation And Shared Contracts",
+                "status": "done",
+                "dependsOn": [],
+                "scopeDir": "scopes/01-capability-foundation",
+                "scopeArtifact": "scopes/01-capability-foundation/scope.md",
+                "reportArtifact": "scopes/01-capability-foundation/report.md",
+                "certifiedAt": "2026-08-13T04:05:00Z"
+            },
+            {
+                "scope": 2,
+                "scopeId": "02-technique-engine",
+                "name": "Technique Engine And Evidence Independence",
+                "status": "not_started",
+                "dependsOn": [
+                    "1"
+                ],
+                "scopeDir": "scopes/02-technique-engine",
+                "scopeArtifact": "scopes/02-technique-engine/scope.md",
+                "reportArtifact": "scopes/02-technique-engine/report.md"
+            },
+            {
+                "scope": 3,
+                "scopeId": "03-setup-lifecycle",
+                "name": "Level Geometry And Setup Lifecycle",
+                "status": "not_started",
+                "dependsOn": [
+                    "1",
+                    "2"
+                ],
+                "scopeDir": "scopes/03-setup-lifecycle",
+                "scopeArtifact": "scopes/03-setup-lifecycle/scope.md",
+                "reportArtifact": "scopes/03-setup-lifecycle/report.md"
+            },
+            {
+                "scope": 4,
+                "scopeId": "04-five-gate-synthesis",
+                "name": "Five-Gate Synthesis And Candidate Selection",
+                "status": "not_started",
+                "dependsOn": [
+                    "1",
+                    "2",
+                    "3"
+                ],
+                "scopeDir": "scopes/04-five-gate-synthesis",
+                "scopeArtifact": "scopes/04-five-gate-synthesis/scope.md",
+                "reportArtifact": "scopes/04-five-gate-synthesis/report.md"
+            },
+            {
+                "scope": 5,
+                "scopeId": "05-owner-publication",
+                "name": "Existing-Owner Publication And Strict Adapters",
+                "status": "not_started",
+                "dependsOn": [
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                ],
+                "scopeDir": "scopes/05-owner-publication",
+                "scopeArtifact": "scopes/05-owner-publication/scope.md",
+                "reportArtifact": "scopes/05-owner-publication/report.md"
+            },
+            {
+                "scope": 6,
+                "scopeId": "06-comparison-optional-evidence",
+                "name": "Comparison And Optional Evidence",
+                "status": "not_started",
+                "dependsOn": [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5"
+                ],
+                "scopeDir": "scopes/06-comparison-optional-evidence",
+                "scopeArtifact": "scopes/06-comparison-optional-evidence/scope.md",
+                "reportArtifact": "scopes/06-comparison-optional-evidence/report.md"
+            },
+            {
+                "scope": 7,
+                "scopeId": "07-validation-risk-process",
+                "name": "Validation Cost Expectancy And Process",
+                "status": "not_started",
+                "dependsOn": [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6"
+                ],
+                "scopeDir": "scopes/07-validation-risk-process",
+                "scopeArtifact": "scopes/07-validation-risk-process/scope.md",
+                "reportArtifact": "scopes/07-validation-risk-process/report.md"
+            },
+            {
+                "scope": 8,
+                "scopeId": "08-experience-publication",
+                "name": "Complete Experience Publication And Registration",
+                "status": "not_started",
+                "dependsOn": [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                    "7"
+                ],
+                "scopeDir": "scopes/08-experience-publication",
+                "scopeArtifact": "scopes/08-experience-publication/scope.md",
+                "reportArtifact": "scopes/08-experience-publication/report.md"
+            },
+            {
+                "scope": 9,
+                "scopeId": "09-regression-closure",
+                "name": "Protected Regression And Governance Closure",
+                "status": "not_started",
+                "dependsOn": [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                    "7",
+                    "8"
+                ],
+                "scopeDir": "scopes/09-regression-closure",
+                "scopeArtifact": "scopes/09-regression-closure/scope.md",
+                "reportArtifact": "scopes/09-regression-closure/report.md"
+            }
+        ],
         "lockdownState": {
             "active": false,
             "lockedScenarioIds": []

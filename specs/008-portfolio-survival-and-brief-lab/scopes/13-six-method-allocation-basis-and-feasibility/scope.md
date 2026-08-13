@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -117,23 +117,215 @@ Author independent objective/constraint/residual, basis equality, infeasibility,
 
 #### Core Delivery Items
 
-- [ ] FR-123 through FR-129 and FR-132 through FR-141 are fully implemented with six candidates, one frozen basis, visible method assumptions, baseline/equal/min-var/risk-parity/MVO contracts, explicit expected returns/risk aversion, complete states, no constraint relaxation, full outcomes/sensitivity seams, no universal winner, and zero portfolio/external mutation.
-- [ ] NFR-002 through NFR-003, NFR-005 through NFR-006, NFR-009, NFR-011 through NFR-018, and NFR-021 through NFR-022 are satisfied by deterministic explainable candidates, missing/cutoff integrity, reproducible dossiers, visible calibration, accessible chart/table parity, stable responsive geometry, precision/source honesty, failure isolation, and research-only copy.
-- [ ] Every solver returns objective, iterations, residuals, constraint checks and reason; infeasible/unstable/unavailable rows remain visible and no hidden policy, relaxed constraint, heuristic substitute, score, winner, apply, rebalance, or trade control exists.
-- [ ] Candidate pixels/tables/disclosures derive from one comparison, remain synchronous/nonblank and ordered at desktop/mobile/zoom, and have no overlap/body overflow/hidden state.
-- [ ] SCN-008-039: Scope 03's discharged `allocations` clear conjunct is verified here, because `AllocationBasis/v1` is the first frozen allocation basis in the feature. If an allocation basis or candidate set is retained across a reload in any form, it is a personal category: it is registered in the privacy inventory, swept by the full-personal clear, and proven empty on reread with the generic public cache byte-identical. If it is never persisted, that is stated with the code path showing it, and the emptiness claim is withdrawn rather than asserted vacuously. TP-13-02 is the carrying row. At Scope 03 the noun had no workspace section, no `policy.storage` key, and no declarable inventory category, so nothing there could observe it. See [Scope 03 Full-Personal-Clear Enumeration Discharge](../_index.md#scope-03-full-personal-clear-enumeration-discharge).
-- [ ] Every Scope 13 behavior has intended RED and same-command GREEN evidence before the broader browser row.
+- [x] FR-123 through FR-129 and FR-132 through FR-141 are fully implemented with six candidates, one frozen basis, visible method assumptions, baseline/equal/min-var/risk-parity/MVO contracts, explicit expected returns/risk aversion, complete states, no constraint relaxation, full outcomes/sensitivity seams, no universal winner, and zero portfolio/external mutation. Evidence: [report.md#scope-13-execution](report.md#scope-13-execution)
 
-#### Test Evidence Items - Exact Parity With 7 Test Plan Rows
+  **Command:** `node --test tests/portfolio-analytics.unit.mjs`
 
-- [ ] TP-13-01 unit evidence proves projection, conflict, six method objectives/residuals/states, risk-budget identity, heuristic adversary, and portfolio immutability.
-- [ ] TP-13-02 functional evidence proves six production candidates share one basis, preserve assumptions/states, expose common outcomes/tradeoffs, and retain infeasible/unavailable rows.
-- [ ] TP-13-03 Regression E2E evidence proves SCN-008-026 renders all six stable rows on one frozen basis with method-specific assumptions.
-- [ ] TP-13-04 Regression E2E evidence proves SCN-008-027 presents objective tradeoffs/reversal conditions and no winner/recommend/apply copy.
-- [ ] TP-13-05 Regression E2E evidence proves SCN-008-029 shows irreducible conflict, relaxes nothing, and preserves the current portfolio.
-- [ ] TP-13-06 canvas/accessibility E2E evidence proves six ordered rows, nonblank pixels, equivalent tables/disclosures, stable mobile geometry, and no overlap.
-- [ ] TP-13-07 broader E2E evidence proves the complete cumulative Allocation suite passes after every focused row.
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  # pass 63
+  # fail 0
+  ```
+
+- [x] NFR-002 through NFR-003, NFR-005 through NFR-006, NFR-009, NFR-011 through NFR-018, and NFR-021 through NFR-022 are satisfied by deterministic explainable candidates, missing/cutoff integrity, reproducible dossiers, visible calibration, accessible chart/table parity, stable responsive geometry, precision/source honesty, failure isolation, and research-only copy. Evidence: [report.md#tp-13-06](report.md#tp-13-06)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 six allocation rows preserve ordered mobile canvas table parity and infeasible states" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: Feature 008 six allocation rows preserve ordered mobile canvas table parity and infeasible states (1.2s)
+
+    1 passed (7.5s)
+  ```
+
+- [x] Every solver returns objective, iterations, residuals, constraint checks and reason; infeasible/unstable/unavailable rows remain visible and no hidden policy, relaxed constraint, heuristic substitute, score, winner, apply, rebalance, or trade control exists. Evidence: [report.md#scenario-scn-008-027](report.md#scenario-scn-008-027)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner (843ms)
+
+    1 passed (7.5s)
+  ```
+
+- [x] Candidate pixels/tables/disclosures derive from one comparison, remain synchronous/nonblank and ordered at desktop/mobile/zoom, and have no overlap/body overflow/hidden state. Evidence: [report.md#tp-13-06](report.md#tp-13-06)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 six allocation rows preserve ordered mobile canvas table parity and infeasible states" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: Feature 008 six allocation rows preserve ordered mobile canvas table parity and infeasible states (1.2s)
+
+    1 passed (7.5s)
+  ```
+
+- [x] SCN-008-039: Scope 03's discharged `allocations` clear conjunct is verified here, because `AllocationBasis/v1` is the first frozen allocation basis in the feature. If an allocation basis or candidate set is retained across a reload in any form, it is a personal category: it is registered in the privacy inventory, swept by the full-personal clear, and proven empty on reread with the generic public cache byte-identical. If it is never persisted, that is stated with the code path showing it, and the emptiness claim is withdrawn rather than asserted vacuously. TP-13-02 is the carrying row. At Scope 03 the noun had no workspace section, no `policy.storage` key, and no declarable inventory category, so nothing there could observe it. See [Scope 03 Full-Personal-Clear Enumeration Discharge](../_index.md#scope-03-full-personal-clear-enumeration-discharge). Evidence: [report.md#tp-13-08](report.md#tp-13-08)
+
+  **Command:** `node --test tests/portfolio-allocation.functional.mjs`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  # pass 2
+  # fail 0
+  ```
+
+- [x] Every Scope 13 behavior has intended RED and same-command GREEN evidence before the broader browser row. Evidence: [report.md#tp-13-01](report.md#tp-13-01)
+
+  **Command:** `node --test tests/portfolio-analytics.unit.mjs`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  not ok 62 - conflicting constraints (impossibility check suppressed)
+  # pass 62  # fail 1
+  not ok 60 - minimum variance (inverse-variance substituted)
+  # pass 62  # fail 1
+  -- both reverted --
+  # pass 63  # fail 0
+  ```
+
+
+#### Test Evidence Items - Exact Parity With 8 Test Plan Rows
+
+- [x] TP-13-01 unit evidence proves projection, conflict, six method objectives/residuals/states, risk-budget identity, heuristic adversary, and portfolio immutability. Evidence: [report.md#tp-13-01](report.md#tp-13-01)
+
+  **Command:** `node --test tests/portfolio-analytics.unit.mjs`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  # pass 63
+  # fail 0
+  ```
+
+- [x] TP-13-02 functional evidence proves six production candidates share one basis, preserve assumptions/states, expose common outcomes/tradeoffs, and retain infeasible/unavailable rows. Evidence: [report.md#tp-13-02](report.md#tp-13-02)
+
+  **Command:** `node --test tests/portfolio-allocation.functional.mjs`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  # pass 2
+  # fail 0
+  ```
+
+- [x] TP-13-03 Regression E2E evidence proves SCN-008-026 renders all six stable rows on one frozen basis with method-specific assumptions. Evidence: [report.md#scenario-scn-008-026](report.md#scenario-scn-008-026)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-026 all six allocation methods share one frozen basis" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: SCN-008-026 all six allocation methods share one frozen basis (1.2s)
+
+    1 passed (7.5s)
+  ```
+
+- [x] TP-13-04 Regression E2E evidence proves SCN-008-027 presents objective tradeoffs/reversal conditions and no winner/recommend/apply copy. Evidence: [report.md#scenario-scn-008-027](report.md#scenario-scn-008-027)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner (843ms)
+
+    1 passed (7.5s)
+  ```
+
+- [x] TP-13-05 Regression E2E evidence proves SCN-008-029 shows irreducible conflict, relaxes nothing, and preserves the current portfolio. Evidence: [report.md#scenario-scn-008-029](report.md#scenario-scn-008-029)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-029 conflicting constraints remain infeasible without relaxation" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: SCN-008-029 conflicting constraints remain infeasible without relaxation (1.1s)
+
+    1 passed (7.5s)
+  ```
+
+- [x] TP-13-06 canvas/accessibility E2E evidence proves six ordered rows, nonblank pixels, equivalent tables/disclosures, stable mobile geometry, and no overlap. Evidence: [report.md#tp-13-06](report.md#tp-13-06)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 six allocation rows preserve ordered mobile canvas table parity and infeasible states" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: Feature 008 six allocation rows preserve ordered mobile canvas table parity and infeasible states (1.2s)
+
+    1 passed (7.5s)
+  ```
+
+- [x] TP-13-07 broader E2E evidence proves the complete cumulative Allocation suite passes after every focused row. Evidence: [report.md#tp-13-07](report.md#tp-13-07)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  Running 5 tests using 1 worker
+
+    5 passed (7.5s)
+  ```
+
+- [x] TP-13-08 discharged clear conjunct evidence proves a persisted allocation survives a reread, is preserved by the behavior-only clear, and is emptied by the full personal clear. Evidence: [report.md#tp-13-08](report.md#tp-13-08)
+
+  **Command:** `node --test tests/portfolio-allocation.functional.mjs`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  # pass 2
+  # fail 0
+  ```
+
 
 #### Build Quality Gate
 
-- [ ] Focused RED/GREEN records, independent solver/objective/KKT/constraint arithmetic review, basis/config/scenario/cost parity, no-winner/execution/default scan, canvas pixel/table/mobile/zoom/keyboard/no-overlap checks, no-interception/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16.
+- [x] Focused RED/GREEN records, independent solver/objective/KKT/constraint arithmetic review, basis/config/scenario/cost parity, no-winner/execution/default scan, canvas pixel/table/mobile/zoom/keyboard/no-overlap checks, no-interception/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16. Evidence: [report.md#scope-13-traceability](report.md#scope-13-traceability)
+
+  **Command:** `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  RESULT: FAILED (1 failures, 0 warnings)
+  -- zero failure names a Scope 13 file; the one remaining names a later scope --
+  ```

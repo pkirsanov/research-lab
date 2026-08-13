@@ -447,6 +447,9 @@
       symbols: weightResult.symbols,
       weights: weightResult.weights,
       alignment: aligned.alignment,
+      // The exact portfolio return sample every later stage must resample, so a path scenario can
+      // never be built on a basis the rest of the surface did not use.
+      alignedReturns: aligned.returns,
       metrics: metrics,
       drawdown: drawdown,
       concentration: concentration,

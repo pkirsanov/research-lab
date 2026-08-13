@@ -1205,6 +1205,214 @@
     return x;
   }
 
+  /* ---------------------------------------------------------------------
+     Scope 10 - dated cash needs and survival states
+     --------------------------------------------------------------------- */
+
+  var CASH_FLOW_KEYS = ["amount", "currency", "date", "kind", "label", "timing"];
+
+  /**
+   * A cash flow is only usable if the user stated every part of it. There is no
+   * inferred currency, no inferred timing, no inferred sign. A need whose
+   * currency is unknown cannot be compared to capital, and guessing one would
+   * silently convert money.
+   */
+  function validateCashFlow(flow) {
+    if (!flow || typeof flow !== "object" || Array.isArray(flow)) return { ok: false, reason: "flow-invalid" };
+    var keys = Object.keys(flow).sort();
+    if (keys.join("|") !== CASH_FLOW_KEYS.slice().sort().join("|")) return { ok: false, reason: "flow-keys-exact" };
+    if (flow.kind !== "contribution" && flow.kind !== "withdrawal") return { ok: false, reason: "kind" };
+    if (flow.timing !== "start-of-step" && flow.timing !== "end-of-step") return { ok: false, reason: "timing" };
+    if (!isNum(flow.amount) || flow.amount <= 0) return { ok: false, reason: "amount" };
+    if (typeof flow.currency !== "string" || !flow.currency) return { ok: false, reason: "currency" };
+    if (typeof flow.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(flow.date)) return { ok: false, reason: "date" };
+    if (typeof flow.label !== "string" || !flow.label) return { ok: false, reason: "label" };
+    return { ok: true };
+  }
+
+  /**
+   * Resolve each flow to the FIRST modeled session on or after its stated date.
+   *
+   * The date is never moved earlier to make it land on a session, and never
+   * moved later to dodge a drawdown. If a flow's date falls beyond the modeled
+   * horizon it is reported as out-of-horizon rather than clamped to the last
+   * session, because clamping would silently reprice the need.
+   */
+  function scheduleCashFlows(flows, sessionDates) {
+    if (!Array.isArray(flows)) return { state: "flows-invalid" };
+    if (!Array.isArray(sessionDates) || sessionDates.length === 0) return { state: "no-session-dates" };
+    var scheduled = [];
+    var rejected = [];
+    for (var i = 0; i < flows.length; i += 1) {
+      var check = validateCashFlow(flows[i]);
+      if (!check.ok) { rejected.push({ index: i, reason: check.reason }); continue; }
+      var flow = flows[i];
+      var session = -1;
+      for (var s = 0; s < sessionDates.length; s += 1) {
+        if (sessionDates[s] >= flow.date) { session = s; break; }
+      }
+      if (session === -1) {
+        rejected.push({ index: i, reason: "out-of-horizon", declaredDate: flow.date });
+        continue;
+      }
+      scheduled.push({
+        index: i,
+        kind: flow.kind,
+        timing: flow.timing,
+        amount: flow.amount,
+        currency: flow.currency,
+        label: flow.label,
+        declaredDate: flow.date,
+        modeledDate: sessionDates[session],
+        session: session
+      });
+    }
+    /* Chronological, then start-of-step before end-of-step within a session,
+       then declaration order. Stable and total, so two runs of the same input
+       can never disagree about which need was funded first. */
+    scheduled.sort(function (a, b) {
+      if (a.session !== b.session) return a.session - b.session;
+      if (a.timing !== b.timing) return a.timing === "start-of-step" ? -1 : 1;
+      return a.index - b.index;
+    });
+    return { state: "ok", scheduled: scheduled, rejected: rejected };
+  }
+
+  /**
+   * Walk one path, applying scheduled flows at their declared step.
+   *
+   * A withdrawal larger than available capital is recorded as a PARTIAL fill
+   * with its funded fraction; it is never reduced quietly and never skipped.
+   * The shortfall is what the user needs to see.
+   */
+  function applyCashFlows(pathValues, scheduled, currency) {
+    if (!Array.isArray(pathValues) || pathValues.length === 0) return { state: "path-invalid" };
+    if (typeof currency !== "string" || !currency) return { state: "currency-required" };
+    var bySession = {};
+    for (var i = 0; i < scheduled.length; i += 1) {
+      if (scheduled[i].currency !== currency) {
+        return { state: "currency-mismatch", index: scheduled[i].index, expected: currency, found: scheduled[i].currency };
+      }
+      var key = String(scheduled[i].session);
+      if (!bySession[key]) bySession[key] = [];
+      bySession[key].push(scheduled[i]);
+    }
+
+    var events = [];
+    var capital = pathValues[0];
+    var values = [];
+    var collisions = 0;
+    var shortfalls = 0;
+
+    var applyAt = function (list, timing, session, modeledDate) {
+      for (var k = 0; k < list.length; k += 1) {
+        var flow = list[k];
+        if (flow.timing !== timing) continue;
+        var before = capital;
+        var applied, fundedFraction;
+        if (flow.kind === "contribution") {
+          applied = flow.amount;
+          capital = before + applied;
+          fundedFraction = 1;
+        } else {
+          applied = Math.min(flow.amount, Math.max(before, 0));
+          capital = before - applied;
+          fundedFraction = applied / flow.amount;
+          if (fundedFraction < 1) shortfalls += 1;
+        }
+        var inDrawdown = before < pathValues[0];
+        if (flow.kind === "withdrawal" && inDrawdown) collisions += 1;
+        events.push({
+          index: flow.index,
+          label: flow.label,
+          kind: flow.kind,
+          timing: timing,
+          session: session,
+          declaredDate: flow.declaredDate,
+          modeledDate: modeledDate,
+          requestedAmount: flow.amount,
+          appliedAmount: applied,
+          capitalBefore: before,
+          capitalAfter: capital,
+          fundedFraction: fundedFraction,
+          duringDrawdown: inDrawdown
+        });
+      }
+    };
+
+    for (var t = 0; t < pathValues.length; t += 1) {
+      var here = bySession[String(t)] || [];
+      var modeledDate = here.length ? here[0].modeledDate : null;
+      applyAt(here, "start-of-step", t, modeledDate);
+      if (t > 0) {
+        var growth = pathValues[t - 1] === 0 ? 0 : pathValues[t] / pathValues[t - 1] - 1;
+        capital = capital * (1 + growth);
+      }
+      applyAt(here, "end-of-step", t, modeledDate);
+      values.push(capital);
+    }
+
+    return {
+      state: "ok",
+      values: values,
+      events: events,
+      collisionCount: collisions,
+      shortfallCount: shortfalls,
+      terminalCapital: values[values.length - 1]
+    };
+  }
+
+  var SURVIVAL_KEYS = ["currency", "floorValue", "horizonSessions", "startingValue"];
+
+  /**
+   * Survival is only reported when the user supplied a COMPLETE success
+   * definition. There is no default floor, no default withdrawal rate, no
+   * default horizon. A missing definition returns `unavailable` with the exact
+   * field that is missing, because a fabricated 4% rule would look like an
+   * answer while being nobody's actual plan.
+   */
+  function computeSurvival(definition, pathSeries) {
+    if (!definition || typeof definition !== "object" || Array.isArray(definition)) {
+      return { state: "unavailable", reason: "no-definition", missing: SURVIVAL_KEYS.slice() };
+    }
+    var missing = [];
+    if (!isNum(definition.floorValue)) missing.push("floorValue");
+    if (!Number.isInteger(definition.horizonSessions) || definition.horizonSessions < 1) missing.push("horizonSessions");
+    if (typeof definition.currency !== "string" || !definition.currency) missing.push("currency");
+    if (!isNum(definition.startingValue) || definition.startingValue <= 0) missing.push("startingValue");
+    if (missing.length) return { state: "unavailable", reason: "incomplete-definition", missing: missing };
+    if (!Array.isArray(pathSeries) || pathSeries.length === 0) {
+      return { state: "unavailable", reason: "no-paths", missing: [] };
+    }
+
+    var survived = 0;
+    var breachSessions = [];
+    for (var i = 0; i < pathSeries.length; i += 1) {
+      var series = pathSeries[i];
+      if (!Array.isArray(series) || !series.every(isNum)) return { state: "unavailable", reason: "non-finite-path", missing: [] };
+      var breachAt = -1;
+      for (var t = 0; t < series.length; t += 1) {
+        if (series[t] < definition.floorValue) { breachAt = t; break; }
+      }
+      if (breachAt === -1) survived += 1; else breachSessions.push(breachAt);
+    }
+
+    return {
+      state: "ok",
+      pathCount: pathSeries.length,
+      survivingPaths: survived,
+      survivalProbability: survived / pathSeries.length,
+      floorValue: definition.floorValue,
+      horizonSessions: definition.horizonSessions,
+      currency: definition.currency,
+      firstBreachMedianSession: breachSessions.length
+        ? breachSessions.slice().sort(function (a, b) { return a - b; })[Math.floor(breachSessions.length / 2)]
+        : null,
+      failureDefinition: "A path fails when its capital falls below the stated floor of " +
+        definition.floorValue + " " + definition.currency + " at any modeled session."
+    };
+  }
+
   return {
     TRADING_DAYS: TRADING_DAYS,
     alignPortfolioReturns: alignPortfolioReturns,
@@ -1225,6 +1433,10 @@
     validateScenarioSpecification: validateScenarioSpecification,
     scenarioIdentity: scenarioIdentity,
     runScenario: runScenario,
+    validateCashFlow: validateCashFlow,
+    scheduleCashFlows: scheduleCashFlows,
+    applyCashFlows: applyCashFlows,
+    computeSurvival: computeSurvival,
     analyticsIdentity: analyticsIdentity
   };
 });

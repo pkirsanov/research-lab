@@ -874,3 +874,203 @@ test("TP-07-01 return math is delegated to rlmetrics, not redefined here", () =>
     assert.ok(src.includes(`RLMETRICS.${owned}(`), `${owned} must actually be called on RLMETRICS`);
   }
 });
+
+/* ---------------------------------------------------------------------------
+   Scope 10 - dated cash needs and survival states
+   --------------------------------------------------------------------------- */
+
+const SESSION_DATES = [
+  '2026-01-05', '2026-01-06', '2026-01-07', '2026-01-08', '2026-01-09',
+  '2026-01-12', '2026-01-13', '2026-01-14', '2026-01-15', '2026-01-16'
+];
+
+const need = (over) => ({
+  amount: 100,
+  currency: 'USD',
+  date: '2026-01-08',
+  kind: 'withdrawal',
+  label: 'Tuition',
+  timing: 'end-of-step',
+  ...over
+});
+
+test('TP-10-01 a cash flow is rejected unless the user stated every part of it', () => {
+  assert.equal(RLPA.validateCashFlow(need()).ok, true);
+
+  // Each omission is its own refusal. An inferred currency would silently convert
+  // money; an inferred timing would move the need across a market move.
+  for (const key of ['amount', 'currency', 'date', 'kind', 'label', 'timing']) {
+    const partial = need();
+    delete partial[key];
+    assert.equal(RLPA.validateCashFlow(partial).ok, false, key + ' must be required');
+    assert.equal(RLPA.validateCashFlow(partial).reason, 'flow-keys-exact');
+  }
+
+  assert.equal(RLPA.validateCashFlow(need({ kind: 'transfer' })).reason, 'kind');
+  assert.equal(RLPA.validateCashFlow(need({ timing: 'mid-step' })).reason, 'timing');
+  assert.equal(RLPA.validateCashFlow(need({ amount: 0 })).reason, 'amount');
+  assert.equal(RLPA.validateCashFlow(need({ amount: -100 })).reason, 'amount');
+  assert.equal(RLPA.validateCashFlow(need({ date: '8 Jan 2026' })).reason, 'date');
+  assert.equal(RLPA.validateCashFlow(need({ currency: '' })).reason, 'currency');
+
+  // An extra key is a refusal too: it means the caller believes in a field this
+  // engine does not honour, and honouring none of it silently would be worse.
+  assert.equal(RLPA.validateCashFlow({ ...need(), inflationAdjust: true }).reason, 'flow-keys-exact');
+});
+
+test('TP-10-01 a need lands on the first modeled session on or after its date and is never moved', () => {
+  // 2026-01-10 and -11 are a weekend: no session. The need must land on Monday
+  // the 12th (index 5), the first session ON OR AFTER the stated date - never
+  // pulled back to Friday the 9th, which would fund it before it is owed.
+  const weekend = RLPA.scheduleCashFlows([need({ date: '2026-01-10' })], SESSION_DATES);
+  assert.equal(weekend.state, 'ok');
+  assert.equal(weekend.scheduled.length, 1);
+  assert.equal(weekend.scheduled[0].session, 5);
+  assert.equal(weekend.scheduled[0].modeledDate, '2026-01-12');
+  assert.equal(weekend.scheduled[0].declaredDate, '2026-01-10', 'the declared date is preserved verbatim');
+
+  // An exact session date lands on itself, not the next one.
+  const exact = RLPA.scheduleCashFlows([need({ date: '2026-01-08' })], SESSION_DATES);
+  assert.equal(exact.scheduled[0].session, 3);
+  assert.equal(exact.scheduled[0].modeledDate, '2026-01-08');
+
+  // Beyond the horizon is reported, NOT clamped to the last session. Clamping
+  // would reprice the need into a market it was never exposed to.
+  const beyond = RLPA.scheduleCashFlows([need({ date: '2026-02-01' })], SESSION_DATES);
+  assert.equal(beyond.scheduled.length, 0);
+  assert.equal(beyond.rejected[0].reason, 'out-of-horizon');
+  assert.equal(beyond.rejected[0].declaredDate, '2026-02-01');
+});
+
+test('TP-10-01 flows are ordered chronologically then start-of-step before end-of-step', () => {
+  const flows = [
+    need({ date: '2026-01-08', timing: 'end-of-step', label: 'B end' }),
+    need({ date: '2026-01-06', timing: 'end-of-step', label: 'A end' }),
+    need({ date: '2026-01-08', timing: 'start-of-step', label: 'B start' }),
+    need({ date: '2026-01-08', timing: 'end-of-step', label: 'B end two' })
+  ];
+  const out = RLPA.scheduleCashFlows(flows, SESSION_DATES);
+  assert.deepEqual(out.scheduled.map((f) => f.label), ['A end', 'B start', 'B end', 'B end two']);
+
+  // Declaration order breaks the remaining tie, so the ordering is total: no two
+  // runs of the same input can disagree about which need was funded first.
+  assert.deepEqual(out.scheduled.map((f) => f.index), [1, 2, 0, 3]);
+});
+
+test('TP-10-01 a withdrawal during a drawdown records collision capital and sequence effect', () => {
+  // A path that falls to 800 by session 3, then recovers.
+  const path = [1000, 950, 900, 800, 850, 900, 950, 1000, 1050, 1100];
+  const flows = RLPA.scheduleCashFlows([need({ amount: 200, date: '2026-01-08' })], SESSION_DATES);
+  const applied = RLPA.applyCashFlows(path, flows.scheduled, 'USD');
+  assert.equal(applied.state, 'ok');
+
+  const event = applied.events[0];
+  assert.equal(event.session, 3);
+  assert.equal(event.modeledDate, '2026-01-08');
+  assert.equal(event.requestedAmount, 200);
+  assert.equal(event.appliedAmount, 200);
+  assert.equal(event.fundedFraction, 1);
+  assert.equal(event.duringDrawdown, true, 'capital is below the starting value, so this is a collision');
+  assert.equal(applied.collisionCount, 1);
+
+  // Independently calculated: end-of-step at session 3 means the market move to
+  // 800 happens first, so capital before the withdrawal is exactly 800.
+  assert.ok(near(event.capitalBefore, 800, 1e-9));
+  assert.ok(near(event.capitalAfter, 600, 1e-9));
+
+  // Sequence risk: the remaining capital compounds from a smaller base, so the
+  // terminal is strictly below the no-withdrawal path minus the withdrawal.
+  const untouched = RLPA.applyCashFlows(path, [], 'USD');
+  assert.ok(near(untouched.terminalCapital, 1100, 1e-9));
+  assert.ok(applied.terminalCapital < untouched.terminalCapital - 200,
+    'withdrawing in a drawdown costs more than the amount withdrawn');
+  // 600 growing 800 -> 1100 is 600 * 1.375 = 825.
+  assert.ok(near(applied.terminalCapital, 825, 1e-9));
+});
+
+test('TP-10-01 the same need at a different date changes the outcome, proving timing is honoured', () => {
+  const path = [1000, 950, 900, 800, 850, 900, 950, 1000, 1050, 1100];
+  const schedule = (date) => RLPA.scheduleCashFlows([need({ amount: 200, date })], SESSION_DATES).scheduled;
+  const early = RLPA.applyCashFlows(path, schedule('2026-01-08'), 'USD');
+  const late = RLPA.applyCashFlows(path, schedule('2026-01-15'), 'USD');
+
+  assert.equal(early.events[0].session, 3);
+  assert.equal(late.events[0].session, 8);
+  assert.equal(early.events[0].duringDrawdown, true);
+  assert.equal(late.events[0].duringDrawdown, false, 'by session 8 capital is above its start');
+
+  // If the engine silently shifted needs to a convenient step, these would match.
+  assert.ok(Math.abs(early.terminalCapital - late.terminalCapital) > 1,
+    'withdrawal date must change the result');
+});
+
+test('TP-10-01 an underfunded need is recorded as a partial fill, never reduced or skipped', () => {
+  const path = [1000, 500, 400, 300, 300, 300, 300, 300, 300, 300];
+  const flows = RLPA.scheduleCashFlows([need({ amount: 5000, date: '2026-01-08' })], SESSION_DATES);
+  const applied = RLPA.applyCashFlows(path, flows.scheduled, 'USD');
+
+  const event = applied.events[0];
+  assert.equal(event.requestedAmount, 5000, 'the request is preserved at full size');
+  assert.ok(near(event.appliedAmount, 300, 1e-9));
+  assert.ok(near(event.fundedFraction, 300 / 5000, 1e-9));
+  assert.equal(applied.shortfallCount, 1);
+  assert.ok(near(event.capitalAfter, 0, 1e-9));
+  assert.equal(applied.events.length, 1, 'the need still appears; it is not skipped');
+});
+
+test('TP-10-01 a currency mismatch refuses rather than silently converting', () => {
+  const path = [1000, 1000, 1000];
+  const flows = RLPA.scheduleCashFlows([need({ currency: 'EUR', date: '2026-01-06' })], SESSION_DATES);
+  const applied = RLPA.applyCashFlows(path, flows.scheduled, 'USD');
+  assert.equal(applied.state, 'currency-mismatch');
+  assert.equal(applied.expected, 'USD');
+  assert.equal(applied.found, 'EUR');
+
+  // A missing portfolio currency is a refusal too: without it there is nothing
+  // to compare the need against.
+  assert.equal(RLPA.applyCashFlows(path, [], '').state, 'currency-required');
+});
+
+test('TP-10-01 survival is unavailable with a reason when the definition is incomplete', () => {
+  const paths = [[1000, 900, 800], [1000, 1100, 1200]];
+
+  const none = RLPA.computeSurvival(null, paths);
+  assert.equal(none.state, 'unavailable');
+  assert.equal(none.reason, 'no-definition');
+  assert.deepEqual(none.missing.slice().sort(), ['currency', 'floorValue', 'horizonSessions', 'startingValue']);
+
+  // Every single missing field is named. A partially stated plan is not a plan.
+  const complete = { floorValue: 500, horizonSessions: 3, currency: 'USD', startingValue: 1000 };
+  for (const key of Object.keys(complete)) {
+    const partial = { ...complete };
+    delete partial[key];
+    const out = RLPA.computeSurvival(partial, paths);
+    assert.equal(out.state, 'unavailable', key + ' must be required');
+    assert.equal(out.reason, 'incomplete-definition');
+    assert.deepEqual(out.missing, [key]);
+  }
+
+  // Adversarial: no default floor is invented anywhere in the unavailable result.
+  const unavailable = RLPA.computeSurvival({ horizonSessions: 3, currency: 'USD', startingValue: 1000 }, paths);
+  assert.equal(unavailable.survivalProbability, undefined, 'no probability without a floor');
+  assert.equal(unavailable.floorValue, undefined, 'no floor is supplied');
+});
+
+test('TP-10-01 survival counts a breach at any session, not only at the horizon', () => {
+  const paths = [
+    [1000, 900, 1100],   // dips to 900, never below 800 -> survives
+    [1000, 700, 1200],   // dips to 700 -> fails even though it ends high
+    [1000, 1100, 1200]   // never dips -> survives
+  ];
+  const out = RLPA.computeSurvival({ floorValue: 800, horizonSessions: 3, currency: 'USD', startingValue: 1000 }, paths);
+  assert.equal(out.state, 'ok');
+  assert.equal(out.pathCount, 3);
+  assert.equal(out.survivingPaths, 2);
+  assert.ok(near(out.survivalProbability, 2 / 3, 1e-12));
+
+  // The middle path recovers to 1200. A terminal-only test would call it a
+  // success, which is exactly the failure mode this assertion exists to catch.
+  assert.equal(out.firstBreachMedianSession, 1);
+  assert.ok(out.failureDefinition.includes('800'));
+  assert.ok(out.failureDefinition.includes('USD'));
+});

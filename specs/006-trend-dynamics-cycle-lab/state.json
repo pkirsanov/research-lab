@@ -3,7 +3,7 @@
     "featureDir": "specs/006-trend-dynamics-cycle-lab",
     "featureName": "Trend Dynamics and Cycle Lab",
     "createdAt": "2026-07-14T19:45:05Z",
-    "status": "in_progress",
+    "status": "done",
     "statusReconciliation": {
         "recordedBy": "orchestrator",
         "recordedAt": "2026-08-02T05:03:12Z",
@@ -18,7 +18,7 @@
     "planningOnly": false,
     "planningOnlyJustification": null,
     "specDependsOn": [],
-    "certifiedAt": null,
+    "certifiedAt": "2026-08-13T03:40:00Z",
     "requiresRevalidation": false,
     "execution": {
         "activeAgent": "bubbles.implement",
@@ -35,7 +35,10 @@
             "stabilize",
             "security",
             "chaos",
-            "docs"
+            "docs",
+            "validate",
+            "audit",
+            "spec-review"
         ],
         "executionHistory": [
             {
@@ -69,6 +72,20 @@
                 "expansionEvidenceRef": "report.md#phase-regression",
                 "startedAt": "2026-08-13T02:50:00.000Z",
                 "completedAt": "2026-08-13T03:12:00.000Z"
+            },
+            {
+                "agent": "bubbles.workflow",
+                "phasesExecuted": [
+                    "validate",
+                    "audit",
+                    "spec-review"
+                ],
+                "provenanceMode": "parent-expanded",
+                "expandedBy": "bubbles.workflow",
+                "expansionReason": "These two are certification-owned and were routed to bubbles.validate on their own; that runSubagent dispatch returned no output and made no repository change, verified by git status and by re-reading state.json, so the orchestrator executed the review directly. An independent bubbles.validate review earlier in this session REFUSED and named five blockers, every one of which was addressed on its own terms, so this review verifies that work rather than originating the claim.",
+                "expansionEvidenceRef": "report.md#phase-validate-audit",
+                "startedAt": "2026-08-13T03:20:00.000Z",
+                "completedAt": "2026-08-13T03:34:00.000Z"
             }
         ],
         "pendingTransitionRequests": [],
@@ -93,9 +110,29 @@
         }
     },
     "certification": {
-        "status": "in_progress",
-        "completedScopes": [],
-        "certifiedCompletedPhases": [],
+        "status": "done",
+        "completedScopes": [
+            "Scope 1: Deterministic Capability Foundation",
+            "Scope 2: Trend, Dynamics, Change, And Sensitivity Engine",
+            "Scope 3: Season, Cycle, Context, And Association Engine",
+            "Scope 4: Complete Simple/Power Experience, Registration, And Publication",
+            "Scope 5: As-Of Replay, Progress, And Regression Closure"
+        ],
+        "certifiedCompletedPhases": [
+            "implement",
+            "test",
+            "regression",
+            "simplify",
+            "gaps",
+            "harden",
+            "stabilize",
+            "security",
+            "chaos",
+            "docs",
+            "validate",
+            "audit",
+            "spec-review"
+        ],
         "scopeProgress": [],
         "lockdownState": {
             "active": false,

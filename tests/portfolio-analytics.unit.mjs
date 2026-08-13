@@ -659,6 +659,161 @@ test('TP-08-01 ADVERSARIAL a flat portfolio reports no return share rather than 
   assert.equal(RLPA.returnContributions(['AAA'], { AAA: 1 }, { AAA: [NaN] }).state, 'non-finite-input');
 });
 
+/* ------------------------------------------- Scope 09: dependent-path scenarios */
+
+const SAMPLE = [0.010, -0.020, 0.015, -0.005, 0.020, -0.010, 0.008, -0.012, 0.011, -0.007, 0.013, -0.009];
+
+function scenario(overrides = {}) {
+  return {
+    contractVersion: 'ScenarioSpecification/v1',
+    returnFingerprint: 'sha256:fixture',
+    method: 'stationary-bootstrap',
+    seed: 20260715,
+    meanBlockSessions: 10,
+    horizonSessions: 20,
+    pathCount: 200,
+    parameterDrawCount: 21,
+    driftRange: { low: -0.0002, high: 0.0002 },
+    startingValue: 100000,
+    ...overrides
+  };
+}
+
+test('TP-09-01 the same specification reproduces byte-identical results', () => {
+  const a = RLPA.runScenario(scenario(), SAMPLE, {});
+  const b = RLPA.runScenario(scenario(), SAMPLE, {});
+  assert.equal(a.state, 'ok');
+  // Deep equality across the WHOLE result, not just the identity: a matching identity with drifting
+  // numbers would be worse than no identity at all.
+  assert.deepEqual(a, b);
+  assert.equal(a.identity, b.identity);
+});
+
+test('TP-09-01 ADVERSARIAL changing seed or block policy creates a distinct identity and result', () => {
+  const base = RLPA.runScenario(scenario(), SAMPLE, {});
+  const seeded = RLPA.runScenario(scenario({ seed: 20260716 }), SAMPLE, {});
+  const blocked = RLPA.runScenario(scenario({ meanBlockSessions: 5 }), SAMPLE, {});
+
+  assert.notEqual(base.identity, seeded.identity, 'a new seed must create a new identity');
+  assert.notEqual(base.identity, blocked.identity, 'a new block policy must create a new identity');
+  // The identity must not be cosmetic: the numbers must move too.
+  assert.notEqual(base.pathRandomness.p50, seeded.pathRandomness.p50);
+  assert.notEqual(base.pathRandomness.p05, blocked.pathRandomness.p05);
+});
+
+test('TP-09-01 no Math.random, ambient clock, or hidden seed reaches the path engine', () => {
+  // Comments are stripped first: this module DOCUMENTS the prohibition, and a scan that matched its
+  // own prose would fail on the explanation rather than on any executable call.
+  const raw = require('node:fs').readFileSync(new URL('../rlportfolioanalytics.js', import.meta.url), 'utf8');
+  const src = raw.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+  assert.equal(/Math\.random/.test(src), false, 'Math.random is prohibited: it cannot be reproduced');
+  assert.equal(/Date\.now|new Date\(\)/.test(src), false, 'an ambient clock cannot be reproduced');
+
+  // Determinism proven behaviourally as well as by inspection: the same seed replays exactly.
+  const first = RLPA.mulberry32(42);
+  const second = RLPA.mulberry32(42);
+  const a = [first(), first(), first()];
+  const b = [second(), second(), second()];
+  assert.deepEqual(a, b);
+  assert.notDeepEqual(a, [RLPA.mulberry32(43)(), RLPA.mulberry32(43)(), RLPA.mulberry32(43)()]);
+});
+
+test('TP-09-01 stationary bootstrap preserves blocks and wraps cyclically', () => {
+  const random = RLPA.mulberry32(7);
+  const indices = RLPA.stationaryBootstrapIndices(10, 500, 10, random);
+  assert.equal(indices.length, 500);
+  assert.equal(indices.every((i) => Number.isInteger(i) && i >= 0 && i < 10), true);
+
+  // With mean block 10 over a 10-observation sample, consecutive-index continuation must dominate:
+  // that continuation IS the dependence the bootstrap exists to preserve.
+  let consecutive = 0;
+  for (let i = 1; i < indices.length; i += 1) {
+    if (indices[i] === (indices[i - 1] + 1) % 10) consecutive += 1;
+  }
+  assert.ok(consecutive / (indices.length - 1) > 0.5, `blocks must persist, got ${consecutive / (indices.length - 1)}`);
+
+  // Cyclic wrap: index 0 must be reachable by continuation from the last observation, otherwise the
+  // tail of the history is quietly under-sampled.
+  let wrapped = false;
+  for (let i = 1; i < indices.length; i += 1) {
+    if (indices[i - 1] === 9 && indices[i] === 0) { wrapped = true; break; }
+  }
+  assert.equal(wrapped, true, 'the sequence must wrap cyclically rather than truncate');
+
+  assert.equal(RLPA.stationaryBootstrapIndices(0, 5, 10, random), null);
+  assert.equal(RLPA.stationaryBootstrapIndices(10, 5, 0, random), null);
+});
+
+test('TP-09-01 path randomness and parameter uncertainty are reported separately', () => {
+  const result = RLPA.runScenario(scenario(), SAMPLE, { survivalFloor: 50000 });
+  assert.equal(result.state, 'ok');
+
+  // Three DISTINCT labelled distributions; none is a rename of another.
+  assert.ok(result.pathRandomness.label.includes('Path randomness'));
+  assert.ok(result.parameterUncertainty.label.includes('Across-parameter'));
+  assert.ok(result.combined.label.includes('Combined'));
+  assert.notEqual(result.pathRandomness.p05, result.combined.p05);
+
+  // The most influential assumption is named rather than left to the reader.
+  assert.equal(result.influence.assumption, 'drift');
+  assert.ok(result.influence.medianSpread > 0);
+
+  // Common random numbers are declared, which is what makes node-to-node differences attributable
+  // to the parameter rather than to resampling noise.
+  assert.equal(result.commonRandomStreams, true);
+
+  // No point estimate is presented as the survival truth.
+  assert.equal(result.representativePathIsExample, true);
+  assert.ok(result.noExpectedPathClaim.includes('not a forecast'));
+});
+
+test('TP-09-01 ADVERSARIAL IID is labelled a simplification, never an equal alternative', () => {
+  const boot = RLPA.runScenario(scenario(), SAMPLE, {});
+  const iid = RLPA.runScenario(scenario({ method: 'iid' }), SAMPLE, {});
+  assert.equal(iid.state, 'ok');
+  assert.ok(iid.methodNote.includes('independence simplification'));
+  assert.ok(iid.methodNote.includes('discards'));
+  assert.ok(boot.methodNote.includes('preserving short-run dependence'));
+  assert.notEqual(boot.identity, iid.identity);
+});
+
+test('TP-09-01 the scenario contract is exact and refuses incomplete or contradictory specs', () => {
+  assert.equal(RLPA.validateScenarioSpecification(scenario()).ok, true);
+
+  // Exact keys: an extra field the engine ignores would let two different scenarios collide on one
+  // identity, which is the silent collision the identity exists to prevent.
+  const extra = scenario();
+  extra.unusedKnob = 1;
+  assert.equal(RLPA.validateScenarioSpecification(extra).reason, 'spec-keys-exact');
+
+  const missing = scenario();
+  delete missing.seed;
+  assert.equal(RLPA.validateScenarioSpecification(missing).reason, 'spec-keys-exact');
+
+  assert.equal(RLPA.validateScenarioSpecification(scenario({ contractVersion: 'v2' })).reason, 'contract-version');
+  assert.equal(RLPA.validateScenarioSpecification(scenario({ method: 'regime' })).reason, 'method');
+  assert.equal(RLPA.validateScenarioSpecification(scenario({ seed: -1 })).reason, 'seed');
+  assert.equal(RLPA.validateScenarioSpecification(scenario({ horizonSessions: 0 })).reason, 'horizon');
+  assert.equal(RLPA.validateScenarioSpecification(scenario({ driftRange: { low: 0.1, high: -0.1 } })).reason, 'drift-range');
+  assert.equal(RLPA.validateScenarioSpecification(scenario({ startingValue: 0 })).reason, 'starting-value');
+  assert.equal(RLPA.scenarioIdentity(scenario({ seed: -1 })), null);
+
+  assert.equal(RLPA.runScenario(scenario(), [0.1], {}).state, 'insufficient-sample');
+  assert.equal(RLPA.runScenario(scenario(), [0.1, NaN], {}).state, 'non-finite-input');
+  // A budget refuses rather than freezing the tab on an unbounded run.
+  assert.equal(RLPA.runScenario(scenario(), SAMPLE, { maximumPaths: 10 }).state, 'budget-exceeded');
+});
+
+test('TP-09-01 the parameter grid is deterministic and stratified', () => {
+  const grid = RLPA.parameterGrid({ low: -1, high: 1 }, 5);
+  assert.deepEqual(grid, [-1, -0.5, 0, 0.5, 1]);
+  // A single draw is the centre, which is the honest degenerate case rather than an arbitrary end.
+  assert.deepEqual(RLPA.parameterGrid({ low: -1, high: 1 }, 1), [0]);
+  assert.deepEqual(RLPA.parameterGrid({ low: -1, high: 1 }, 5), RLPA.parameterGrid({ low: -1, high: 1 }, 5));
+  assert.equal(RLPA.parameterGrid({ low: 1, high: -1 }, 5), null);
+  assert.equal(RLPA.parameterGrid(null, 5), null);
+});
+
 test("TP-07-01 return math is delegated to rlmetrics, not redefined here", () => {
   // P18: a metric is defined once. If this module ever grew its own arithmetic/CAGR/drag, the
   // repo would have two definitions of each and the brief could publish either.

@@ -922,6 +922,235 @@
     };
   }
 
+  /* ------------------------------------------------- Scope 09 dependent paths */
+
+  /**
+   * mulberry32 — a small, exactly-specified PRNG.
+   *
+   * `Math.random` is prohibited on this surface and an ambient clock is prohibited as a seed. A path
+   * result that cannot be reproduced from its recorded identity is not evidence about a portfolio;
+   * it is one sample nobody can check. Every draw here traces to the integer seed in the scenario.
+   */
+  function mulberry32(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  /**
+   * Stationary bootstrap (Politis-Romano) index sequence.
+   *
+   * Blocks have geometrically distributed lengths with mean `meanBlock` and wrap CYCLICALLY at the
+   * end of the sample. The cyclic wrap is what keeps every observation equally likely to be drawn;
+   * truncating instead would quietly under-sample the tail of the history, biasing every path toward
+   * the early part of the record.
+   *
+   * Preserving blocks rather than drawing IID is the whole point: returns are dependent, and an IID
+   * resample destroys the volatility clustering that drives drawdown risk.
+   */
+  function stationaryBootstrapIndices(sampleSize, drawCount, meanBlock, random) {
+    if (!isNum(sampleSize) || sampleSize < 1) return null;
+    if (!isNum(drawCount) || drawCount < 1) return null;
+    if (!isNum(meanBlock) || meanBlock < 1) return null;
+    var p = 1 / meanBlock;
+    var indices = [], current = Math.floor(random() * sampleSize) % sampleSize;
+    for (var i = 0; i < drawCount; i += 1) {
+      indices.push(current);
+      if (random() < p) current = Math.floor(random() * sampleSize) % sampleSize;
+      else current = (current + 1) % sampleSize;
+    }
+    return indices;
+  }
+
+  /**
+   * Deterministic stratified parameter grid over a declared drift range.
+   *
+   * Stratified rather than randomly drawn: with a modest draw count a random sample leaves visible
+   * gaps and reorders between runs, so two identical scenarios could report different uncertainty
+   * bands. `drawCount === 1` returns the centre, which is the honest degenerate case.
+   */
+  function parameterGrid(range, drawCount) {
+    if (!range || !isNum(range.low) || !isNum(range.high)) return null;
+    if (!isNum(drawCount) || drawCount < 1) return null;
+    if (range.high < range.low) return null;
+    if (drawCount === 1) return [(range.low + range.high) / 2];
+    var grid = [];
+    for (var i = 0; i < drawCount; i += 1) {
+      grid.push(range.low + ((range.high - range.low) * i) / (drawCount - 1));
+    }
+    return grid;
+  }
+
+  var SCENARIO_KEYS = [
+    "contractVersion", "returnFingerprint", "method", "seed", "meanBlockSessions",
+    "horizonSessions", "pathCount", "parameterDrawCount", "driftRange", "startingValue"
+  ];
+
+  /**
+   * ScenarioSpecification/v1 — every field that changes a result must be present and explicit.
+   *
+   * Exact-key validation, not a superset check: a field the caller thought mattered but the engine
+   * ignores would make two different-looking scenarios produce one identity, which is the silent
+   * collision the identity exists to prevent.
+   */
+  function validateScenarioSpecification(spec) {
+    if (!spec || typeof spec !== "object" || Array.isArray(spec)) return { ok: false, reason: "spec-invalid" };
+    var keys = Object.keys(spec).sort();
+    if (keys.join("|") !== SCENARIO_KEYS.slice().sort().join("|")) return { ok: false, reason: "spec-keys-exact" };
+    if (spec.contractVersion !== "ScenarioSpecification/v1") return { ok: false, reason: "contract-version" };
+    if (typeof spec.returnFingerprint !== "string" || !spec.returnFingerprint) return { ok: false, reason: "return-fingerprint" };
+    if (spec.method !== "stationary-bootstrap" && spec.method !== "iid") return { ok: false, reason: "method" };
+    if (!Number.isInteger(spec.seed) || spec.seed < 0) return { ok: false, reason: "seed" };
+    if (!isNum(spec.meanBlockSessions) || spec.meanBlockSessions < 1) return { ok: false, reason: "mean-block" };
+    if (!Number.isInteger(spec.horizonSessions) || spec.horizonSessions < 1) return { ok: false, reason: "horizon" };
+    if (!Number.isInteger(spec.pathCount) || spec.pathCount < 1) return { ok: false, reason: "path-count" };
+    if (!Number.isInteger(spec.parameterDrawCount) || spec.parameterDrawCount < 1) return { ok: false, reason: "parameter-draws" };
+    if (!spec.driftRange || !isNum(spec.driftRange.low) || !isNum(spec.driftRange.high)) return { ok: false, reason: "drift-range" };
+    if (spec.driftRange.high < spec.driftRange.low) return { ok: false, reason: "drift-range" };
+    if (!isNum(spec.startingValue) || spec.startingValue <= 0) return { ok: false, reason: "starting-value" };
+    return { ok: true };
+  }
+
+  /** Stable identity over every field that changes the result. */
+  function scenarioIdentity(spec) {
+    var check = validateScenarioSpecification(spec);
+    if (!check.ok) return null;
+    return SCENARIO_KEYS.map(function (key) {
+      var value = spec[key];
+      if (key === "driftRange") return "driftRange=" + value.low + ":" + value.high;
+      return key + "=" + value;
+    }).join("|");
+  }
+
+  function percentile(sorted, q) {
+    if (!sorted.length) return null;
+    var pos = (sorted.length - 1) * q;
+    var lo = Math.floor(pos), hi = Math.ceil(pos);
+    if (lo === hi) return sorted[lo];
+    return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
+  }
+
+  /**
+   * Run a dependent-path scenario.
+   *
+   * Path randomness and parameter uncertainty are reported SEPARATELY and then combined, never
+   * collapsed into one band. They answer different questions: "how much does this portfolio bounce
+   * around under one assumption" is not "how much does the answer move when the assumption is
+   * wrong", and a single blended band lets a reader mistake assumption risk for market risk.
+   *
+   * Common random numbers: every parameter node reuses the SAME bootstrap index streams, so a
+   * difference between nodes is attributable to the parameter rather than to resampling noise.
+   */
+  function runScenario(spec, sampleReturns, options) {
+    var check = validateScenarioSpecification(spec);
+    if (!check.ok) return { state: "spec-invalid", reason: check.reason };
+    if (!Array.isArray(sampleReturns) || sampleReturns.length < 2) return { state: "insufficient-sample" };
+    if (!sampleReturns.every(isNum)) return { state: "non-finite-input" };
+    var opts = options || {};
+    var budget = isNum(opts.maximumPaths) ? opts.maximumPaths : 20000;
+    if (spec.pathCount * spec.parameterDrawCount > budget) {
+      return { state: "budget-exceeded", requested: spec.pathCount * spec.parameterDrawCount, budget: budget };
+    }
+
+    var identity = scenarioIdentity(spec);
+    var grid = parameterGrid(spec.driftRange, spec.parameterDrawCount);
+    var centralDrift = (spec.driftRange.low + spec.driftRange.high) / 2;
+
+    // Base index streams drawn ONCE and reused at every parameter node (common random numbers).
+    var random = mulberry32(spec.seed);
+    var streams = [];
+    for (var p = 0; p < spec.pathCount; p += 1) {
+      streams.push(spec.method === "iid"
+        ? iidIndices(sampleReturns.length, spec.horizonSessions, random)
+        : stationaryBootstrapIndices(sampleReturns.length, spec.horizonSessions, spec.meanBlockSessions, random));
+    }
+
+    var terminalsAt = function (drift) {
+      var out = [];
+      for (var s = 0; s < streams.length; s += 1) {
+        var value = spec.startingValue;
+        for (var t = 0; t < streams[s].length; t += 1) {
+          value = value * (1 + sampleReturns[streams[s][t]] + drift);
+        }
+        out.push(value);
+      }
+      return out;
+    };
+
+    var central = terminalsAt(centralDrift).slice().sort(function (a, b) { return a - b; });
+    var nodeMedians = [], nodeFailureRates = [], combined = [];
+    var floor = isNum(opts.survivalFloor) ? opts.survivalFloor : null;
+    for (var g = 0; g < grid.length; g += 1) {
+      var node = terminalsAt(grid[g]);
+      combined = combined.concat(node);
+      var sortedNode = node.slice().sort(function (a, b) { return a - b; });
+      nodeMedians.push(percentile(sortedNode, 0.5));
+      if (floor !== null) {
+        nodeFailureRates.push(node.filter(function (v) { return v < floor; }).length / node.length);
+      }
+    }
+    combined.sort(function (a, b) { return a - b; });
+    var sortedMedians = nodeMedians.slice().sort(function (a, b) { return a - b; });
+
+    return {
+      state: "ok",
+      identity: identity,
+      method: spec.method,
+      // An IID run is a declared SIMPLIFICATION, not an equivalent alternative: it discards the
+      // dependence that produces clustered drawdowns.
+      methodNote: spec.method === "iid"
+        ? "IID resampling is an independence simplification: it discards the serial dependence that produces clustered drawdowns."
+        : "Stationary bootstrap with geometric blocks and cyclic wrap, preserving short-run dependence.",
+      meanBlockSessions: spec.meanBlockSessions,
+      horizonSessions: spec.horizonSessions,
+      pathCount: spec.pathCount,
+      parameterDrawCount: spec.parameterDrawCount,
+      commonRandomStreams: true,
+      pathRandomness: {
+        label: "Path randomness at the central assumption",
+        drift: centralDrift,
+        p05: percentile(central, 0.05),
+        p50: percentile(central, 0.5),
+        p95: percentile(central, 0.95)
+      },
+      parameterUncertainty: {
+        label: "Across-parameter dispersion of the median outcome",
+        gridLow: grid[0],
+        gridHigh: grid[grid.length - 1],
+        medianLow: sortedMedians[0],
+        medianHigh: sortedMedians[sortedMedians.length - 1],
+        failureRateLow: nodeFailureRates.length ? Math.min.apply(null, nodeFailureRates) : null,
+        failureRateHigh: nodeFailureRates.length ? Math.max.apply(null, nodeFailureRates) : null
+      },
+      combined: {
+        label: "Combined path and parameter distribution",
+        p05: percentile(combined, 0.05),
+        p50: percentile(combined, 0.5),
+        p95: percentile(combined, 0.95)
+      },
+      // The single most influential assumption, stated rather than left for the reader to infer.
+      influence: {
+        assumption: "drift",
+        rangeLow: grid[0],
+        rangeHigh: grid[grid.length - 1],
+        medianSpread: sortedMedians[sortedMedians.length - 1] - sortedMedians[0]
+      },
+      representativePathIsExample: true,
+      noExpectedPathClaim: "No path here is the expected future. The fan is a distribution of resampled histories, not a forecast."
+    };
+  }
+
+  function iidIndices(sampleSize, drawCount, random) {
+    var out = [];
+    for (var i = 0; i < drawCount; i += 1) out.push(Math.floor(random() * sampleSize) % sampleSize);
+    return out;
+  }
+
   /** Gaussian elimination with partial pivoting. Returns null when the system is not solvable. */
   function solveSymmetric(A, b) {
     var n = b.length, i, j, k;
@@ -962,6 +1191,12 @@
     riskContributions: riskContributions,
     returnContributions: returnContributions,
     assetTreatment: assetTreatment,
+    mulberry32: mulberry32,
+    stationaryBootstrapIndices: stationaryBootstrapIndices,
+    parameterGrid: parameterGrid,
+    validateScenarioSpecification: validateScenarioSpecification,
+    scenarioIdentity: scenarioIdentity,
+    runScenario: runScenario,
     analyticsIdentity: analyticsIdentity
   };
 });

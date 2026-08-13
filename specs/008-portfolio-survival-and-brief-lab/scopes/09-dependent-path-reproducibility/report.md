@@ -290,3 +290,243 @@ $ npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs tests
 $ git diff --check
 (clean)
 ```
+
+## Core Item 4 — Outcome Fan Canvas <a id="core-item-4"></a>
+
+The Path Lab reported a terminal distribution but drew no chart, so Core Item 4
+had no canvas to govern and the *shape* of the uncertainty across the horizon was
+invisible. A reader could see where the paths ended and nothing about how the
+band opened on the way there.
+
+The correction keeps chart and table provably inseparable. `runScenario` now also
+returns `fanBands`: per-session 5th, 50th and 95th percentiles computed from the
+**same** resampled `streams`, at the **same** central drift, that produce the
+reported terminals. The fan is not a second simulation that happens to look
+similar; it is the same run, read at every session instead of only the last. The
+unit row asserts exactly that: the fan's final entry equals the reported
+path-randomness terminals to the last bit.
+
+The band is filled **between** p05 and p95 rather than stroked as three separate
+lines. Three lines read as three predictions; a filled band reads as one range,
+which is what it is. The header states the count of resampled histories and
+"not a forecast" in the pixels themselves, so the meaning does not depend on
+surrounding prose that a screenshot would crop away.
+
+**Drawn synchronously.** The canvas is pushed onto `pendingCanvasRenders` and
+flushed from `renderRoutes()` once the node is connected, which is the same
+mechanism the risk charts use. A tab that was hidden therefore never paints a
+blank frame.
+
+### TP-09-01 <a id="tp-09-01"></a>
+
+**Command:** `node --test tests/portfolio-analytics.unit.mjs`
+
+**Exit Code:** 0
+
+**Output:**
+
+```text
+$ node --test tests/portfolio-analytics.unit.mjs
+# pass 39
+# fail 0
+```
+
+The 39th row is `TP-09-01 fan bands come from the same streams as the terminals
+and widen with horizon`. Authoring it surfaced a real contract fact: the first
+fixture omitted `returnFingerprint` and `runScenario` returned
+`state: 'spec-invalid'` rather than silently accepting a partial specification.
+The exact-key check in `validateScenarioSpecification` did its job on my own
+test.
+
+### TP-09-02 <a id="scenario-scn-008-018"></a>
+
+**Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths" --reporter=list`
+
+**Exit Code:** 0
+
+**Output:**
+
+```text
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:69:1 › Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths (1.5s)
+
+  1 passed (4.2s)
+```
+
+### TP-09-03 <a id="scenario-scn-008-019"></a>
+
+**Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-019 parameter uncertainty is separate from path randomness" --reporter=list`
+
+**Exit Code:** 0
+
+**Output:**
+
+```text
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:97:1 › Regression: SCN-008-019 parameter uncertainty is separate from path randomness (1.5s)
+
+  1 passed (4.4s)
+```
+
+### TP-09-04 <a id="tp-09-04"></a>
+
+**Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 dependent path fan and uncertainty tables remain equivalent at desktop mobile and zoom" --reporter=list`
+
+**Exit Code:** 0
+
+**Output:**
+
+```text
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:168:1 › Regression: Feature 008 dependent path fan and uncertainty tables remain equivalent at desktop mobile and zoom (2.1s)
+
+  1 passed (5.0s)
+```
+
+This row proves, in one place, everything the Core Item claims: more than 200
+coloured pixels immediately after the panel opens (non-blank, synchronous),
+`data-rlchart-mode="structured"` with no `data-rlchart-error`, `tabindex="0"`,
+an arrow-key press selecting a fan point, a keyboard rail whose option count
+equals the fan table's row count, every fan row resolving as a unique link
+target, the terminal-distribution table still present with both distributions
+labelled, and no body overflow at 1440×1000, at 390×844, or at 130% text.
+
+**Non-vacuity, proven not asserted.** Disabling the draw with an early return
+turned this row RED and left the other five GREEN:
+
+```text
+  1 failed
+    [system-chrome] › tests/portfolio-survival-paths.spec.mjs:193:1 › Regression: Feature 008 Path Lab fan chart and its table describe one immutable result
+  5 passed (17.5s)
+```
+
+The break was reverted and the row returned to GREEN under the same command.
+
+**A vacuous assertion caught and removed.** The rail check was first written as
+`if (railCount > 0) expect(railCount).toBe(fanRows)`, which passes silently when
+the rail does not exist at all — precisely the failure it was meant to catch. It
+is now unconditional against the deterministic rail id `#rlchart-rail-pathCanvas`,
+and it observes 11 options for 11 sessions.
+
+### TP-09-05 <a id="tp-09-05"></a>
+
+**Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+
+**Exit Code:** 0
+
+**Output:**
+
+```text
+Running 5 tests using 1 worker
+
+  ✓  1 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:69:1 › Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths (1.1s)
+  ✓  2 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:97:1 › Regression: SCN-008-019 parameter uncertainty is separate from path randomness (788ms)
+  ✓  3 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:126:1 › Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear (1.4s)
+  ✓  4 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:168:1 › Regression: Feature 008 dependent path fan and uncertainty tables remain equivalent at desktop mobile and zoom (1.2s)
+  ✓  5 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:237:1 › Regression: Feature 008 Path Lab refuses rather than generating a path without evidence (668ms)
+
+  5 passed (7.7s)
+```
+
+### TP-09-06 <a id="tp-09-06"></a>
+
+**Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear" --reporter=list`
+
+**Exit Code:** 0
+
+**Output:**
+
+```text
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:126:1 › Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear (2.2s)
+
+  1 passed (5.4s)
+```
+
+Scope 03's discharged `scenarios` clear conjunct is now discharged for real, not
+withdrawn: scenarios **are** persisted, so the emptiness claim is the one that
+had to be proven rather than the one that could be skipped. The category is
+registered in the privacy inventory, swept by the full-personal clear, and empty
+on reread.
+
+## Three Artifact Contradictions Found And Fixed <a id="scope-09-artifact-corrections"></a>
+
+Reconciling the DoD against reality exposed three internal contradictions in this
+scope's own artifact. All three are recorded rather than quietly corrected,
+because each one could have produced a green scope with a false claim.
+
+1. **Test titles had drifted from the Test Plan.** The plan is authority, so the
+   tests were renamed to its exact persistent titles — not the reverse.
+2. **The plan declared 6 rows; the DoD header said "Exact Parity With 5 Test Plan
+   Rows" and listed 5 items.** TP-09-06 had no evidence item, so the Build
+   Quality Gate's parity requirement was unsatisfiable as written. The header is
+   now 6 and the missing item is present.
+3. **The SCN-008-038 Core Item named TP-09-01 as the carrying row while the Test
+   Plan named TP-09-06.** Two rows cannot both be the single carrier. TP-09-06
+   is the carrier; the Core Item now says so.
+
+A fourth correction is recorded in `scope.md` beside the row itself: TP-09-06 was
+authored as a `node --test` functional row, which cannot observe a browser
+reload or a `localStorage` clear. It was relocated to the browser spec. A node
+row would have looked green while proving something weaker than its own claim.
+
+## Scope-Local Traceability <a id="scope-09-traceability"></a>
+
+**Command:** `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
+
+**Exit Code:** 1
+
+**Output:**
+
+```text
+✅ scopes/09-dependent-path-reproducibility/scope.md scenario maps to DoD item: SCN-008-018 - The same dependent-path specification is executed twice
+✅ scopes/09-dependent-path-reproducibility/scope.md scenario maps to DoD item: SCN-008-019 - Plausible expected-return, dependence, or tail parameters vary
+✅ scopes/09-dependent-path-reproducibility/scope.md scenario maps to DoD item: SCN-008-038 - A user clears all personal data after running dependent-path scenarios
+ℹ️  DoD fidelity: 23 scenarios checked, 23 mapped to DoD, 0 unmapped
+RESULT: FAILED (15 failures, 0 warnings)
+```
+
+The gate for this scope is "zero failure naming this scope's own files", not
+"exit 0" — the whole-feature `--all-scopes` run is deferred to Scope 16 by the
+Feature Completion Gate. All 15 failures name test files belonging to scopes that
+have not been built yet:
+
+```text
+tests/portfolio-survival-diversification.spec.mjs   (4)
+tests/portfolio-survival-allocation.spec.mjs        (8)
+tests/portfolio-survival-mobile.spec.mjs            (1)
+tests/portfolio-allocation.functional.mjs           (2)
+```
+
+Zero name a Scope 09 file. All three Scope 09 scenarios map to DoD items at
+`declared` confidence with concrete test-file and report-evidence references.
+
+The resolver refused the first invocation with
+`current scope status must be in_progress or blocked` — Scope 09 was still
+recorded as `not_started` in both `state.json` mirrors while its code was being
+written. That is a real bookkeeping gap the guard caught; the mirrors were
+corrected to `in_progress` before the run, and the guard then resolved.
+
+## Final Scope 09 Baseline <a id="scope-09-baseline"></a>
+
+**Command:** `node scripts/selftest.mjs` and the node and browser suites
+
+**Exit Code:** 0
+
+**Output:**
+
+```text
+$ node scripts/selftest.mjs
+Research-Lab self-test: 1640 passed, 0 failed
+$ node --test tests/portfolio-analytics.unit.mjs tests/portfolio-foundation.unit.mjs tests/portfolio-privacy.functional.mjs tests/portfolio-brief.functional.mjs tests/portfolio-publisher-boundary.functional.mjs
+# pass 137
+# fail 0
+$ npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome
+  43 passed (42.4s)
+$ git diff --check
+(clean)
+```

@@ -66,7 +66,7 @@ async function seedPortfolio(page, name) {
   await seedBars(page, 'BND', series(DATES, [50, 51, 50, 50, 52, 52]));
 }
 
-test('Regression: SCN-008-018 an identical specification reproduces an identical scenario identity', async ({ page }) => {
+test('Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths', async ({ page }) => {
   await seedPortfolio(page, 'TP-09-02 reproducibility');
   const panel = await openPathLab(page);
   await expect(panel.locator('#pathLab')).toHaveAttribute('data-path-state', 'ok');
@@ -94,7 +94,7 @@ test('Regression: SCN-008-018 an identical specification reproduces an identical
   await expect(panel.locator('#pathMethod')).toContainText('common random streams: true');
 });
 
-test('Regression: SCN-008-019 path randomness and parameter uncertainty stay separately labelled', async ({ page }) => {
+test('Regression: SCN-008-019 parameter uncertainty is separate from path randomness', async ({ page }) => {
   await seedPortfolio(page, 'TP-09-03 uncertainty');
   const panel = await openPathLab(page);
   await expect(panel.locator('#pathLab')).toHaveAttribute('data-path-state', 'ok');
@@ -121,31 +121,6 @@ test('Regression: SCN-008-019 path randomness and parameter uncertainty stay sep
   for (const banned of ['expected path', 'will reach', 'projected to', 'you can expect', 'guaranteed']) {
     expect(copy, `Path Lab must not claim: ${banned}`).not.toContain(banned);
   }
-});
-
-test('Regression: Feature 008 Path Lab table stays equivalent and stable at desktop mobile and zoom', async ({ page }) => {
-  await seedPortfolio(page, 'TP-09-04 parity');
-  const panel = await openPathLab(page);
-
-  const rowCount = await panel.locator('#pathTable tbody tr').count();
-  expect(rowCount).toBe(2);
-  await expect(panel.locator('[data-distribution="path-randomness"]')).toBeVisible();
-  await expect(panel.locator('[data-distribution="combined"]')).toBeVisible();
-
-  for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
-    await page.setViewportSize(viewport);
-    await expect(panel.locator('#pathTable')).toBeVisible();
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    expect(overflow, `no horizontal overflow at ${viewport.width}px`).toBeLessThanOrEqual(1);
-    expect(await panel.locator('#pathTable tbody tr').count()).toBe(rowCount);
-  }
-
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.evaluate(() => { document.documentElement.style.fontSize = '130%'; });
-  await expect(panel.locator('#pathTable')).toBeVisible();
-  const overflowZoom = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  expect(overflowZoom, 'no horizontal overflow at 130% text').toBeLessThanOrEqual(1);
-  await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
 });
 
 test('Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear', async ({ page }) => {
@@ -190,7 +165,7 @@ test('Regression: SCN-008-038 a saved scenario survives reload and is removed by
   expect(afterClear, 'a full personal clear must remove every saved scenario').toBe(0);
 });
 
-test('Regression: Feature 008 Path Lab fan chart and its table describe one immutable result', async ({ page }) => {
+test('Regression: Feature 008 dependent path fan and uncertainty tables remain equivalent at desktop mobile and zoom', async ({ page }) => {
   await seedPortfolio(page, 'TP-09-05 fan');
   const panel = await openPathLab(page);
 
@@ -227,16 +202,33 @@ test('Regression: Feature 008 Path Lab fan chart and its table describe one immu
   // Both canvases coexist: adding the fan must not evict the risk chart.
   expect(await page.locator('canvas#pathCanvas').count()).toBe(1);
 
+  // Keyboard traversal: the fan is reachable and steppable without a pointer.
+  await panel.locator('#pathCanvas').focus();
+  await page.keyboard.press('ArrowRight');
+  const selectedAfterStep = await page.locator('#rlchart-rail-pathCanvas [aria-selected="true"]').count();
+  expect(selectedAfterStep, 'arrow key selects a fan point').toBe(1);
+
+  // The terminal-distribution table stays present and equivalent alongside the fan.
+  const termRows = await panel.locator('#pathTable tbody tr').count();
+  expect(termRows).toBe(2);
+  await expect(panel.locator('[data-distribution="path-randomness"]')).toBeVisible();
+  await expect(panel.locator('[data-distribution="combined"]')).toBeVisible();
+
   for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(viewport);
     await expect(panel.locator('#pathCanvas')).toBeVisible();
+    await expect(panel.locator('#pathTable')).toBeVisible();
+    await expect(panel.locator('#pathFanTable')).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, `no horizontal overflow at ${viewport.width}px`).toBeLessThanOrEqual(1);
+    expect(await panel.locator('#pathTable tbody tr').count()).toBe(termRows);
+    expect(await panel.locator('#pathFanTable tbody tr').count()).toBe(fanRows);
   }
 
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.evaluate(() => { document.documentElement.style.fontSize = '130%'; });
   await expect(panel.locator('#pathCanvas')).toBeVisible();
+  await expect(panel.locator('#pathTable')).toBeVisible();
   const overflowZoom = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflowZoom, 'no horizontal overflow at 130% text').toBeLessThanOrEqual(1);
   await page.evaluate(() => { document.documentElement.style.fontSize = ''; });

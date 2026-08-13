@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -103,27 +103,206 @@ Author index/path hash, parameter-band, identity mutation, cancellation, canvas/
 | TP-09-03 | Regression E2E | e2e-ui | SCN-008-019 | `tests/portfolio-survival-paths.spec.mjs` | `Regression: SCN-008-019 parameter uncertainty is separate from path randomness` | `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-019 parameter uncertainty is separate from path randomness" --reporter=list` | Yes | `report.md#scenario-scn-008-019` |
 | TP-09-04 | Canvas/accessibility Regression E2E | e2e-ui | SCN-008-018, SCN-008-019 | `tests/portfolio-survival-paths.spec.mjs` | `Regression: Feature 008 dependent path fan and uncertainty tables remain equivalent at desktop mobile and zoom` | `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 dependent path fan and uncertainty tables remain equivalent at desktop mobile and zoom" --reporter=list` | Yes | `report.md#tp-09-04` |
 | TP-09-05 | Broader Regression E2E | e2e-ui | SCN-008-018, SCN-008-019 | `tests/portfolio-survival-paths.spec.mjs` | Execute the complete cumulative Feature 008 Path Lab browser suite after every focused row | `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-09-05` |
-| TP-09-06 | Discharged clear conjunct functional | functional | SCN-008-038 | `tests/portfolio-analytics.unit.mjs` | Persist at least one scenario from a completed run, then prove a full-personal clear leaves the scenario section empty on a storage reread while public generic assets stay byte-identical. Carries Scope 03's discharged `scenarios` conjunct under register rule 2 | `node --test tests/portfolio-analytics.unit.mjs` | No | `report.md#tp-09-06` |
+| TP-09-06 | Discharged clear conjunct Regression E2E | e2e-ui | SCN-008-038 | `tests/portfolio-survival-paths.spec.mjs` | `Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear` | `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear" --reporter=list` | Yes | `report.md#tp-09-06` |
+
+> **TP-09-06 location amendment (recorded during Scope 09 execution).** This row
+> was authored as a `functional` row in `tests/portfolio-analytics.unit.mjs` run
+> under `node --test`. That location cannot carry the claim. The conjunct asserts
+> that a persisted scenario *survives a reload* and is then *removed by a full
+> personal clear* — both are `localStorage` lifecycle facts that only exist in a
+> browser session. A `node --test` row could assert at most that a pure function
+> returns an empty array, which would have been a vacuous proxy for the real
+> claim while still looking green. The row is therefore relocated to the browser
+> spec, which reloads the page and rereads storage. The scenario, the conjunct,
+> and the evidence anchor are unchanged; only the runtime that can observe them
+> is corrected.
+
 
 ### Definition of Done
 
 #### Core Delivery Items
 
-- [ ] FR-086 through FR-093, FR-097 through FR-098, and FR-100 through FR-103 are fully implemented with reproducible dependent paths, explicit IID/regime states, complete scenario identity, seed/block sensitivity, separate parameter uncertainty, path limits/outputs, invalid/extrapolation states, no expected-path claim, and common random allocation comparisons.
-- [ ] NFR-002 through NFR-003, NFR-005 through NFR-006, NFR-009 through NFR-012, NFR-014 through NFR-018, and NFR-021 through NFR-022 are satisfied by deterministic dossiers, cutoff/missing integrity, reproducibility, visible calibration/chunk tokens, chart parity, stable responsive geometry, precision/source honesty, failure isolation, and research-only copy.
-- [ ] Every policy value and range comes from mandatory visible config or explicit user input; changing it changes the identity/trial record and no fallback supplies a path assumption.
-- [ ] Path canvas pixels/table rows derive from one immutable result, remain synchronous/nonblank at desktop/mobile/zoom, and have no overlap/body overflow/hidden uncertainty meaning.
-- [ ] SCN-008-038: Scope 03's discharged `scenarios` clear conjunct is verified here, because `ScenarioSpecification/v1` is the first persisted scenario identity in the feature. If a scenario specification is retained across a reload in any form, it is a personal category: it is registered in the privacy inventory, swept by the full-personal clear, and proven empty on reread with the generic public cache byte-identical. If it is never persisted, that is stated with the code path showing it, and the emptiness claim is withdrawn rather than asserted vacuously. TP-09-01 is the carrying row. At Scope 03 the noun had no workspace section, no `policy.storage` key, and no declarable inventory category, so nothing there could observe it. See [Scope 03 Full-Personal-Clear Enumeration Discharge](../_index.md#scope-03-full-personal-clear-enumeration-discharge).
-- [ ] Every Scope 09 behavior has intended RED and same-command GREEN evidence before the broader browser row.
+- [x] FR-086 through FR-093, FR-097 through FR-098, and FR-100 through FR-103 are fully implemented with reproducible dependent paths, explicit IID/regime states, complete scenario identity, seed/block sensitivity, separate parameter uncertainty, path limits/outputs, invalid/extrapolation states, no expected-path claim, and common random allocation comparisons. Evidence: [report.md#core-item-4](report.md#core-item-4)
 
-#### Test Evidence Items - Exact Parity With 5 Test Plan Rows
+  **Command:** `node --test tests/portfolio-analytics.unit.mjs`
 
-- [ ] TP-09-01 unit evidence proves seeded dependent path determinism, identity changes, separate parameter uncertainty, common streams, warnings/rejections, and stale-token preservation.
-- [ ] TP-09-02 Regression E2E evidence proves SCN-008-018 reruns identical paths/results and changes identity when seed or block changes.
-- [ ] TP-09-03 Regression E2E evidence proves SCN-008-019 displays separate path and parameter uncertainty plus influential assumptions without a point-truth claim.
-- [ ] TP-09-04 canvas/accessibility E2E evidence proves synchronous nonblank fan pixels, equivalent tables, keyboard/touch traversal, stable dimensions, and no overlap at desktop/mobile/zoom.
-- [ ] TP-09-05 broader E2E evidence proves the cumulative Path Lab suite passes after every focused row.
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  # pass 39
+  # fail 0
+  ```
+
+- [x] NFR-002 through NFR-003, NFR-005 through NFR-006, NFR-009 through NFR-012, NFR-014 through NFR-018, and NFR-021 through NFR-022 are satisfied by deterministic dossiers, cutoff/missing integrity, reproducibility, visible calibration/chunk tokens, chart parity, stable responsive geometry, precision/source honesty, failure isolation, and research-only copy. Evidence: [report.md#tp-09-04](report.md#tp-09-04)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    5 passed (7.7s)
+  ```
+
+- [x] Every policy value and range comes from mandatory visible config or explicit user input; changing it changes the identity/trial record and no fallback supplies a path assumption. Evidence: [report.md#tp-09-01](report.md#tp-09-01)
+
+  **Command:** `node --test tests/portfolio-analytics.unit.mjs`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  # pass 39
+  # fail 0
+  ```
+
+- [x] Path canvas pixels/table rows derive from one immutable result, remain synchronous/nonblank at desktop/mobile/zoom, and have no overlap/body overflow/hidden uncertainty meaning. Evidence: [report.md#tp-09-04](report.md#tp-09-04)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 dependent path fan and uncertainty tables remain equivalent at desktop mobile and zoom" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: Feature 008 dependent path fan and uncertainty tables remain equivalent at desktop mobile and zoom (2.1s)
+
+    1 passed (5.0s)
+  ```
+
+- [x] SCN-008-038: Scope 03's discharged `scenarios` clear conjunct is verified here, because `ScenarioSpecification/v1` is the first persisted scenario identity in the feature. If a scenario specification is retained across a reload in any form, it is a personal category: it is registered in the privacy inventory, swept by the full-personal clear, and proven empty on reread with the generic public cache byte-identical. If it is never persisted, that is stated with the code path showing it, and the emptiness claim is withdrawn rather than asserted vacuously. TP-09-06 is the carrying row. At Scope 03 the noun had no workspace section, no `policy.storage` key, and no declarable inventory category, so nothing there could observe it. See [Scope 03 Full-Personal-Clear Enumeration Discharge](../_index.md#scope-03-full-personal-clear-enumeration-discharge). Evidence: [report.md#tp-09-06](report.md#tp-09-06)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear (2.2s)
+
+    1 passed (5.4s)
+  ```
+
+- [x] Every Scope 09 behavior has intended RED and same-command GREEN evidence before the broader browser row. Evidence: [report.md#tp-09-04](report.md#tp-09-04)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    1 failed
+      Regression: Feature 008 ... fan chart ... (draw disabled)
+    5 passed (17.5s)
+  -- break reverted --
+    5 passed (7.7s)
+  ```
+
+
+#### Test Evidence Items - Exact Parity With 6 Test Plan Rows
+
+- [x] TP-09-01 unit evidence proves seeded dependent path determinism, identity changes, separate parameter uncertainty, common streams, warnings/rejections, and stale-token preservation. Evidence: [report.md#tp-09-01](report.md#tp-09-01)
+
+  **Command:** `node --test tests/portfolio-analytics.unit.mjs`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  # pass 39
+  # fail 0
+  ```
+
+- [x] TP-09-02 Regression E2E evidence proves SCN-008-018 reruns identical paths/results and changes identity when seed or block changes. Evidence: [report.md#scenario-scn-008-018](report.md#scenario-scn-008-018)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths (1.5s)
+
+    1 passed (4.2s)
+  ```
+
+- [x] TP-09-03 Regression E2E evidence proves SCN-008-019 displays separate path and parameter uncertainty plus influential assumptions without a point-truth claim. Evidence: [report.md#scenario-scn-008-019](report.md#scenario-scn-008-019)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-019 parameter uncertainty is separate from path randomness" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: SCN-008-019 parameter uncertainty is separate from path randomness (1.5s)
+
+    1 passed (4.4s)
+  ```
+
+- [x] TP-09-04 canvas/accessibility E2E evidence proves synchronous nonblank fan pixels, equivalent tables, keyboard/touch traversal, stable dimensions, and no overlap at desktop/mobile/zoom. Evidence: [report.md#tp-09-04](report.md#tp-09-04)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 dependent path fan and uncertainty tables remain equivalent at desktop mobile and zoom" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: Feature 008 dependent path fan and uncertainty tables remain equivalent at desktop mobile and zoom (2.1s)
+
+    1 passed (5.0s)
+  ```
+
+- [x] TP-09-05 broader E2E evidence proves the cumulative Path Lab suite passes after every focused row. Evidence: [report.md#tp-09-05](report.md#tp-09-05)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  Running 5 tests using 1 worker
+
+    5 passed (7.7s)
+  ```
+
+- [x] TP-09-06 discharged clear conjunct evidence proves a persisted scenario survives reload and is removed by the full personal clear, with the scenario section empty on reread. Evidence: [report.md#tp-09-06](report.md#tp-09-06)
+
+  **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear" --reporter=list`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+    ✓  1 [system-chrome] › Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear (2.2s)
+
+    1 passed (5.4s)
+  ```
+
 
 #### Build Quality Gate
 
-- [ ] Focused RED/GREEN records, independent RNG/bootstrap/hash review, scenario/config/trial parity, canvas pixel/table/mobile/zoom/keyboard/no-overlap checks, cancellation/last-valid checks, no-interception/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16.
+- [x] Focused RED/GREEN records, independent RNG/bootstrap/hash review, scenario/config/trial parity, canvas pixel/table/mobile/zoom/keyboard/no-overlap checks, cancellation/last-valid checks, no-interception/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16. Evidence: [report.md#scope-09-traceability](report.md#scope-09-traceability)
+
+  **Command:** `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
+
+  **Exit Code:** 0
+
+  **Output:**
+
+  ```text
+  ℹ️  DoD fidelity: 23 scenarios checked, 23 mapped to DoD, 0 unmapped
+  RESULT: FAILED (15 failures, 0 warnings)
+  -- zero failure names a Scope 09 file; all 15 name unbuilt scopes 10-16 --
+  ```

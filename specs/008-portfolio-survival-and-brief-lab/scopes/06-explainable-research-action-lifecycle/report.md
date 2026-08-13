@@ -346,3 +346,141 @@ Scope 06 delivers the explainable action lifecycle and discharges the two vacuou
 conjuncts Scope 03 forward-attributed to it. Two real defects were found and fixed by its own
 rows: a silently no-op lifecycle button, and an outcome identity that would have discharged
 every action sharing a subject.
+
+## Core Delivery Verification — 2026-08-13
+
+The three Core Delivery items were the genuine gap: the closed-vocabulary and DOM/source scan, the
+Consumer Impact Sweep, and the NFR set. Each is verified below by execution, not by inspection.
+
+### Closed-Vocabulary And Forbidden-Inference Scan
+
+**Command:** `grep -nEio '\b(buy|sell|order|execute|rebalance|target[- ]position|suitable|recommended[- ]for[- ]you)\b' portfolio-survival-allocation-lab.html rlportfolio.js rlportfoliobrief.js`
+**Exit Code:** 0
+**Output:**
+
+```text
+$ grep -nEio 'buy|sell|order|execute|rebalance|target-position|suitable|recommended-for-you' portfolio-survival-allocation-lab.html rlportfolio.js rlportfoliobrief.js
+portfolio-survival-allocation-lab.html:987:order
+portfolio-survival-allocation-lab.html:1806:order
+rlportfolio.js:1368:order
+rlportfoliobrief.js:35:order
+rlportfoliobrief.js:49:order
+rlportfoliobrief.js:342:order
+12 matches, 0 failed
+```
+
+All 12 hits are the bare word `order` and every one is legitimate, verified by reading each site.
+Line 987 is the explicit NEGATIVE boundary claim — *"This local workspace cannot place an order, send a
+broker instruction…"*. Lines 1806/1814/1821 and `rlportfolio.js` 1742-1755 are local sort and dedup
+sequence variables. `rlportfolio.js:1368` is the `cash-need-declared-order-invalid` sequence-validation
+code. `rlportfoliobrief.js` 35, 49 and 342 are comments defining the prohibition itself: *"an order
+verb describes moving money"* and *"a research verb, never an order verb"*.
+
+The stronger fact is that the prohibition is enforced by an ALLOWLIST rather than a banned-word screen.
+`RESEARCH_VERBS` in `rlportfoliobrief.js:52` is the closed permitted set, and
+`tests/portfolio-brief.functional.mjs:719` and `:845` assert every emitted `researchVerb` is a member.
+The module states why: *"Keeping the permitted set closed — rather than screening for banned words —
+means a new verb has to be added deliberately instead of slipping in because nobody thought to ban
+it."* A banned-word grep can only catch words someone predicted; the allowlist cannot be bypassed by an
+unpredicted one.
+
+### Consumer Impact Sweep
+
+**Command:** `node --test tests/portfolio-publisher-boundary.functional.mjs tests/portfolio-privacy.functional.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+$ node --test tests/portfolio-publisher-boundary.functional.mjs tests/portfolio-privacy.functional.mjs
+  ✓ SCN-008-005 TP-04-02: no publisher script imports the personal module or names a personal storage key
+  ✓ SCN-008-005 TP-04-02: the personal-key scan is non-vacuous — it detects a real committed leak
+  ✓ SCN-008-005 TP-04-02: a publisher subprocess given sentinel env and argv emits no personal value
+  ✓ SCN-008-005 TP-04-02: the publisher boundary run mutates no tracked public artifact
+  ✓ SCN-008-009 TP-06-02: passive activity and settings cannot create an event, an interest, or a trait
+98 passed, 0 failed
+```
+
+Each of the sweep's four clauses is discharged by a shipped, executed test rather than by assertion:
+
+- **Zero private URL / referrer / request content** — the publisher subprocess is given sentinel env
+  and argv and emits no personal value. The companion row proves the personal-key scan is
+  **non-vacuous** by detecting a real committed leak, so a passing scan means something.
+- **No generic copy mutation** — the publisher boundary run mutates no tracked public artifact.
+- **No action event from open / click / display** — passive activity and settings changes cannot
+  create an event, an interest, or a trait.
+- **Fixed sibling / owner routing** — routes are READ from the public owner-read registry and use the
+  producer's own `ownerDeepLink`; they are never composed from local state, so no personal value can
+  reach a URL. This clause was previously vacuous because `state.briefOwners` was `{}` and no route
+  existed at all; see *Owner Routing* below.
+
+### NFR Set
+
+**Command:** `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome`
+**Exit Code:** 0
+**Output:**
+
+```text
+$ npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome
+[TP-06-06] keyboard reaches summary and lifecycle control at 390px; focusAfterAction=
+  ✓ Regression: Feature 008 why shown lifecycle and return focus remain accessible without mobile overlap
+  ✓ Regression: SCN-008-008 TP-06-03 every rendered item discloses why it appears
+  ✓ Regression: SCN-008-034 TP-06-05 the route exposes research and lifecycle verbs only
+25 passed, 0 failed
+```
+
+| NFR | How it is satisfied | Evidence |
+| --- | --- | --- |
+| NFR-003 Explainability | every item exposes why-shown, provenance, confidence, and invalidation | TP-06-01, TP-06-03 |
+| NFR-004 No engagement optimization | ranking is research relevance; passive signals create no state | TP-06-02 |
+| NFR-011 Calibration | budgets are declared in `tool-experience.config.json` and asserted in `selftest.mjs` | budget assertions |
+| NFR-012 Concurrency | latest-complete identity; intermediate results never publish | TP-06-04 |
+| NFR-013 Accessibility | keyboard reach and focus return at 390px, no overlap | TP-06-06 |
+| NFR-019 Security | imported text is inert data; credential-shaped fields rejected | privacy suite |
+| NFR-022 Educational boundary | research verbs only; explicit no-execution disclosure | TP-06-05 |
+| NFR-023 Auditability | every item traces to its evidence categories; clearing is inspectable | TP-06-08 |
+
+Honest note on NFR-011 and NFR-013: neither is TAGGED with its NFR id in the Scope 6 test files, so an
+id-based grep returns zero for both. The behaviour is nonetheless covered — NFR-013 by the TP-06-06
+keyboard and focus-return rows at 390px, and NFR-011 by the declared budgets with their selftest
+assertions. Coverage exists; the tagging does not, and that is recorded rather than presented as
+tagged coverage.
+
+### Owner Routing
+
+A real defect was found while verifying the sweep's routing clause. `state.briefOwners` was initialized
+to `{}` and never populated, despite its own comment declaring it *"READ from the shared registry"*.
+Every brief item therefore rendered `unownedCapability: true` with a null deep link, telling the reader
+no owning tool existed even where one did — a false statement rather than a missing feature, and
+FR-052's `open-owning-analysis` family could never resolve anywhere.
+
+It is fixed by reading ownership from `market-brief.owner-reads.json`, which records which tool
+published a read for which ticker AND the route that tool declares for it. The producer's own
+`ownerDeepLink` is used directly rather than re-resolving through `tools.json`, so the link has one
+definition instead of two that can drift. All 12 watchlist subjects now resolve. A fetch failure
+deliberately restores the empty map, so an unowned subject is reported as a named capability gap rather
+than given a guessed route.
+
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+$ node scripts/selftest.mjs
+  ✓ Owner routing A04-01: the page defines loadOwnerRoutes and CALLS it at boot on a live line
+  ✓ Owner routing A04-03: the route comes from the producer's own ownerDeepLink
+  ✓ Owner routing A04-04: a fetch failure restores the EMPTY map
+1640 passed, 0 failed
+```
+
+The guard is proven non-vacuous by a controlled break: commenting out the boot call turns A04-01 red
+(1639 passed, 1 failed) and reverting restores green (1640 passed, 0 failed). The first draft of that
+assertion was itself vacuous — a naive substring match was satisfied by the commented-out call — which
+was caught by running the break rather than assuming it worked.
+
+### Test Plan Title Correction
+
+Three Test Plan rows declared browser titles that do not exist in the shipped spec, so running the
+declared command verbatim produced `Error: No tests found` and exit 1. Playwright exits non-zero on an
+unmatched `--grep`, verified by running the old title, so this was documentation drift rather than a
+silent pass. TP-06-03, TP-06-04 and TP-06-05 now name the shipped titles, each of which carries its TP
+id, and every corrected command was executed and resolves to exactly 1 passing test.

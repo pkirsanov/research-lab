@@ -1074,3 +1074,172 @@ test('TP-10-01 survival counts a breach at any session, not only at the horizon'
   assert.ok(out.failureDefinition.includes('800'));
   assert.ok(out.failureDefinition.includes('USD'));
 });
+
+/* ---------------------------------------------------------------------------
+   Scope 11 - stress, tail, and alternative dependence
+   --------------------------------------------------------------------------- */
+
+test('TP-11-01 raw stress dependence reports its samples by name and refuses to call it contagion', () => {
+  // Same underlying relationship in both windows; the stress window is simply
+  // scaled up. A raw correlation comparison must NOT read this as contagion.
+  const tranquilA = [0.01, -0.01, 0.02, -0.02, 0.015, -0.015];
+  const tranquilB = [0.008, -0.012, 0.018, -0.019, 0.012, -0.014];
+  const stressA = tranquilA.map((v) => v * 4);
+  const stressB = tranquilB.map((v) => v * 4);
+
+  const out = RLPA.compareStressDependence({
+    tranquil: { name: '2019 tranquil', a: tranquilA, b: tranquilB },
+    stress: { name: '2020 drawdown', a: stressA, b: stressB }
+  });
+  assert.equal(out.state, 'ok');
+  assert.deepEqual(out.samples.map((s) => s.name), ['2019 tranquil', '2020 drawdown']);
+  assert.deepEqual(out.samples.map((s) => s.count), [6, 6]);
+
+  // Pure rescaling leaves correlation identical - the estimate must show that.
+  assert.ok(near(out.rawCorrelationChange, 0, 1e-12), 'rescaling alone does not change correlation');
+  assert.ok(near(out.varianceRatio, 16, 1e-9), 'variance rises 4^2 while correlation does not');
+
+  // The refusal to label is the point of the row.
+  assert.equal(out.contagionLabel, null, 'no automatic contagion verdict');
+  assert.ok(out.interpretation.includes('not, by itself, evidence of contagion'));
+
+  // Unnamed samples are refused: an unnamed window is an unauditable window.
+  assert.equal(RLPA.compareStressDependence({
+    tranquil: { a: tranquilA, b: tranquilB },
+    stress: { name: 's', a: stressA, b: stressB }
+  }).state, 'sample-names-required');
+});
+
+test('TP-11-01 the Forbes-Rigobon adjustment removes the mechanical part of a correlation rise', () => {
+  // Independently calculated: rho = 0.8, variance up 3x so delta = 2.
+  // denominator = 1 + 2 * (1 - 0.64) = 1.72; adjusted = 0.8 / sqrt(1.72).
+  const out = RLPA.forbesRigobonAdjustment({
+    rawStressCorrelation: 0.8,
+    tranquilVariance: 0.0001,
+    stressVariance: 0.0003,
+    anchorSeries: 'SPY'
+  });
+  assert.equal(out.state, 'ok');
+  assert.ok(near(out.varianceIncrease, 2, 1e-12));
+  assert.ok(near(out.adjustedCorrelation, 0.8 / Math.sqrt(1.72), 1e-12));
+  assert.ok(out.adjustedCorrelation < out.rawStressCorrelation, 'the adjustment lowers the raw estimate');
+
+  // The anchor travels with the number, because adjusting on the other series
+  // answers a different question and the value alone cannot say which was used.
+  assert.equal(out.anchorSeries, 'SPY');
+  assert.ok(out.claimBoundary.includes('SPY'));
+  assert.ok(out.claimBoundary.includes('does not prove it'));
+  assert.ok(out.claimBoundary.includes('does not disprove it'));
+  assert.equal(out.assumptions.length, 3, 'the formula assumptions are stated, not implied');
+
+  // Every precondition refuses by name rather than returning a plausible number.
+  assert.equal(RLPA.forbesRigobonAdjustment({ tranquilVariance: 1, stressVariance: 2, anchorSeries: 'A' }).reason,
+    'raw-correlation-required');
+  assert.equal(RLPA.forbesRigobonAdjustment({ rawStressCorrelation: 1.4, tranquilVariance: 1, stressVariance: 2, anchorSeries: 'A' }).reason,
+    'correlation-out-of-range');
+  assert.equal(RLPA.forbesRigobonAdjustment({ rawStressCorrelation: 0.5, stressVariance: 2, anchorSeries: 'A' }).reason,
+    'tranquil-variance-required');
+  assert.equal(RLPA.forbesRigobonAdjustment({ rawStressCorrelation: 0.5, tranquilVariance: 1, stressVariance: 2 }).reason,
+    'anchor-series-required');
+
+  // No variance increase means there is nothing to correct. Returning a number
+  // here would manufacture an adjustment out of an unstressed window.
+  const flat = RLPA.forbesRigobonAdjustment({
+    rawStressCorrelation: 0.5, tranquilVariance: 0.001, stressVariance: 0.001, anchorSeries: 'SPY'
+  });
+  assert.equal(flat.state, 'unavailable');
+  assert.equal(flat.reason, 'no-variance-increase');
+  assert.equal(flat.adjustedCorrelation, undefined);
+});
+
+test('TP-11-01 tail dependence reports its joint event count and refuses a thin tail', () => {
+  // 20 paired observations; the lowest 25% of each is 5 observations.
+  const a = [];
+  const b = [];
+  for (let i = 0; i < 20; i += 1) { a.push(i); b.push(i); }
+
+  const out = RLPA.lowerTailDependence(a, b, { quantile: 0.25, minimumJointEvents: 3 });
+  assert.equal(out.state, 'ok');
+  assert.equal(out.sampleSize, 20);
+  // Perfectly comonotone: every marginal lower-tail observation is also joint.
+  assert.equal(out.jointEvents, out.marginalEvents);
+  assert.ok(near(out.estimate, 1, 1e-12));
+  assert.ok(out.jointEvents >= 3);
+
+  // Even at an estimate of exactly 1, the copy must not generalise.
+  assert.ok(out.claimBoundary.includes('does NOT say that all assets become perfectly correlated'));
+
+  // Independent series: the joint count falls far below the marginal count.
+  const opposed = a.slice().reverse();
+  const anti = RLPA.lowerTailDependence(a, opposed, { quantile: 0.25, minimumJointEvents: 1 });
+  assert.equal(anti.state, 'unavailable');
+  assert.equal(anti.reason, 'thin-tail-sample');
+  assert.equal(anti.jointEvents, 0, 'opposed series never share a lower tail');
+
+  // A floor above the observable count refuses rather than reporting noise.
+  const thin = RLPA.lowerTailDependence(a, b, { quantile: 0.25, minimumJointEvents: 99 });
+  assert.equal(thin.state, 'unavailable');
+  assert.equal(thin.reason, 'thin-tail-sample');
+  assert.equal(thin.estimate, undefined, 'no estimate is emitted below the floor');
+  assert.ok(thin.note.includes('noise with a decimal point'));
+
+  // Quantile and floor are both required: neither is defaulted.
+  assert.equal(RLPA.lowerTailDependence(a, b, { minimumJointEvents: 3 }).reason, 'quantile-required');
+  assert.equal(RLPA.lowerTailDependence(a, b, { quantile: 0.25 }).reason, 'event-floor-required');
+});
+
+test('TP-11-01 an appraisal-valued asset is qualified, never treated as mechanically orthogonal', () => {
+  const complete = {
+    valuationFrequency: 'quarterly',
+    lastValuationDate: '2026-03-31',
+    valuationMethod: 'appraisal',
+    liquidity: 'low',
+    expectedTransactionCostFraction: 0.06
+  };
+
+  const out = RLPA.alternativeAssetQuality(complete);
+  assert.equal(out.state, 'ok');
+  assert.equal(out.smoothingSuspected, true);
+  assert.equal(out.requiresSensitivity, true, 'a conclusion is blocked until a sensitivity is run');
+  assert.ok(out.caveat.includes('understated by appraisal'));
+  assert.ok(out.caveat.includes('must NOT be treated as mechanically uncorrelated'));
+
+  // Market-observed series are not falsely flagged.
+  const market = RLPA.alternativeAssetQuality({ ...complete, valuationMethod: 'market-observed' });
+  assert.equal(market.smoothingSuspected, false);
+  assert.equal(market.requiresSensitivity, false);
+
+  // Every missing field is named, and absence never becomes an orthogonality argument.
+  for (const key of Object.keys(complete)) {
+    const partial = { ...complete };
+    delete partial[key];
+    const missing = RLPA.alternativeAssetQuality(partial);
+    assert.equal(missing.state, 'unavailable', key + ' must be required');
+    assert.deepEqual(missing.missing, [key]);
+    assert.ok(missing.note.includes('Missing evidence is not an argument for orthogonality'));
+  }
+});
+
+test('TP-11-01 de-smoothing is a sensitivity that raises variance and never replaces the observed series', () => {
+  const observed = [0.02, 0.021, 0.019, 0.022, 0.018, 0.02];
+  const out = RLPA.desmoothReturns(observed, 0.5);
+  assert.equal(out.state, 'ok');
+  assert.equal(out.rho, 0.5);
+
+  // Independently calculated first element: (0.021 - 0.5 * 0.02) / 0.5 = 0.022.
+  assert.ok(near(out.desmoothed[0], 0.022, 1e-12));
+  assert.equal(out.desmoothed.length, observed.length - 1, 'one lag is consumed, not interpolated back');
+
+  // The whole point: smoothing understates variance, so de-smoothing raises it.
+  assert.ok(out.desmoothedVariance > out.observedVariance,
+    'de-smoothing must reveal the variance appraisal smoothing hides');
+
+  // The observed record is preserved verbatim alongside the sensitivity.
+  assert.deepEqual(out.observed, observed);
+  assert.ok(out.claimBoundary.includes('observed series is unchanged'));
+
+  // rho is explicit, never assumed.
+  assert.equal(RLPA.desmoothReturns(observed).reason, 'rho-required');
+  assert.equal(RLPA.desmoothReturns(observed, 0).reason, 'rho-required');
+  assert.equal(RLPA.desmoothReturns(observed, 1).reason, 'rho-required');
+});

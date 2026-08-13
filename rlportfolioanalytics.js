@@ -1414,6 +1414,263 @@
     };
   }
 
+  /* ---------------------------------------------------------------------
+     Scope 11 - stress, tail, and alternative dependence
+     --------------------------------------------------------------------- */
+
+  function pearson(a, b) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length || a.length < 2) return null;
+    if (!a.every(isNum) || !b.every(isNum)) return null;
+    var ma = mean(a), mb = mean(b);
+    var num = 0, da = 0, db = 0;
+    for (var i = 0; i < a.length; i += 1) {
+      var xa = a[i] - ma, xb = b[i] - mb;
+      num += xa * xb; da += xa * xa; db += xb * xb;
+    }
+    if (da === 0 || db === 0) return null;
+    return num / Math.sqrt(da * db);
+  }
+
+  function sampleVariance(values) {
+    if (!Array.isArray(values) || values.length < 2 || !values.every(isNum)) return null;
+    var m = mean(values), acc = 0;
+    for (var i = 0; i < values.length; i += 1) acc += (values[i] - m) * (values[i] - m);
+    return acc / (values.length - 1);
+  }
+
+  /**
+   * Raw dependence on two EXPLICITLY named samples.
+   *
+   * The samples are supplied by the caller, never discovered by searching for
+   * whichever window maximises the correlation change. A searched window would
+   * find a "crisis" in any series given enough tries, so the sample names and
+   * counts travel with the estimate.
+   */
+  function compareStressDependence(request) {
+    if (!request || typeof request !== "object") return { state: "request-invalid" };
+    var tranquil = request.tranquil, stress = request.stress;
+    if (!tranquil || !stress || typeof tranquil.name !== "string" || typeof stress.name !== "string") {
+      return { state: "sample-names-required" };
+    }
+    var pairs = [];
+    var need = ["a", "b"];
+    for (var s = 0; s < 2; s += 1) {
+      var block = s === 0 ? tranquil : stress;
+      for (var k = 0; k < need.length; k += 1) {
+        if (!Array.isArray(block[need[k]]) || block[need[k]].length < 2) {
+          return { state: "insufficient-sample", sample: block.name, series: need[k] };
+        }
+      }
+    }
+    var rawTranquil = pearson(tranquil.a, tranquil.b);
+    var rawStress = pearson(stress.a, stress.b);
+    if (rawTranquil === null || rawStress === null) return { state: "degenerate-series" };
+
+    var varTranquil = sampleVariance(tranquil.a);
+    var varStress = sampleVariance(stress.a);
+    pairs.push({ name: tranquil.name, correlation: rawTranquil, varianceA: varTranquil, count: tranquil.a.length });
+    pairs.push({ name: stress.name, correlation: rawStress, varianceA: varStress, count: stress.a.length });
+
+    return {
+      state: "ok",
+      samples: pairs,
+      rawCorrelationChange: rawStress - rawTranquil,
+      varianceRatio: varTranquil === 0 ? null : varStress / varTranquil,
+      /* Deliberately NOT a verdict. A raw rise in correlation during a
+         high-variance window is exactly what heteroskedasticity produces on its
+         own, so calling it contagion here would be the bias this scope exists
+         to avoid. */
+      contagionLabel: null,
+      interpretation: "A raw correlation change measured on two named samples. It is not, by " +
+        "itself, evidence of contagion: correlation estimated on a higher-variance window rises " +
+        "mechanically even when the underlying relationship is unchanged."
+    };
+  }
+
+  /**
+   * Forbes-Rigobon heteroskedasticity adjustment.
+   *
+   * Corrects the raw stress correlation for the variance increase in the anchor
+   * series. The anchor ORIENTATION is part of the result, because adjusting on
+   * the wrong series answers a different question and the reader cannot tell
+   * from the number alone.
+   */
+  function forbesRigobonAdjustment(input) {
+    if (!input || typeof input !== "object") return { state: "unavailable", reason: "input-invalid" };
+    if (!isNum(input.rawStressCorrelation)) return { state: "unavailable", reason: "raw-correlation-required" };
+    if (Math.abs(input.rawStressCorrelation) > 1) return { state: "unavailable", reason: "correlation-out-of-range" };
+    if (!isNum(input.tranquilVariance) || input.tranquilVariance <= 0) {
+      return { state: "unavailable", reason: "tranquil-variance-required" };
+    }
+    if (!isNum(input.stressVariance) || input.stressVariance <= 0) {
+      return { state: "unavailable", reason: "stress-variance-required" };
+    }
+    if (typeof input.anchorSeries !== "string" || !input.anchorSeries) {
+      return { state: "unavailable", reason: "anchor-series-required" };
+    }
+    var delta = input.stressVariance / input.tranquilVariance - 1;
+    if (delta <= 0) {
+      return {
+        state: "unavailable",
+        reason: "no-variance-increase",
+        note: "The adjustment is defined for a stress window whose anchor variance EXCEEDS the " +
+          "tranquil window. Here it does not, so there is no heteroskedasticity to correct and a " +
+          "number would be manufactured rather than measured."
+      };
+    }
+    var rho = input.rawStressCorrelation;
+    var denominator = 1 + delta * (1 - rho * rho);
+    if (denominator <= 0) return { state: "unavailable", reason: "denominator-non-positive" };
+    var adjusted = rho / Math.sqrt(denominator);
+    return {
+      state: "ok",
+      anchorSeries: input.anchorSeries,
+      rawStressCorrelation: rho,
+      adjustedCorrelation: adjusted,
+      varianceIncrease: delta,
+      assumptions: [
+        "No omitted common factor beyond the anchor series",
+        "No feedback from the dependent series back to the anchor within the window",
+        "The anchor variance increase is the only source of the correlation shift"
+      ],
+      claimBoundary: "This adjustment removes the mechanical part of a correlation rise. A residual " +
+        "rise is consistent with contagion but does not prove it, and a vanished rise does not " +
+        "disprove it. The anchor is " + input.anchorSeries + "; adjusting on the other series answers " +
+        "a different question."
+    };
+  }
+
+  /**
+   * Empirical lower-tail dependence at a configured quantile.
+   *
+   * Reports the joint-exceedance COUNT alongside the estimate, and refuses when
+   * the count falls below the configured event floor. A tail estimate built on
+   * three joint observations is noise wearing a decimal point.
+   */
+  function lowerTailDependence(a, b, options) {
+    var opts = options || {};
+    if (!isNum(opts.quantile) || opts.quantile <= 0 || opts.quantile >= 0.5) {
+      return { state: "unavailable", reason: "quantile-required" };
+    }
+    if (!Number.isInteger(opts.minimumJointEvents) || opts.minimumJointEvents < 1) {
+      return { state: "unavailable", reason: "event-floor-required" };
+    }
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length || a.length < 2) {
+      return { state: "unavailable", reason: "insufficient-sample" };
+    }
+    if (!a.every(isNum) || !b.every(isNum)) return { state: "unavailable", reason: "non-finite-input" };
+
+    var sortedA = a.slice().sort(function (x, y) { return x - y; });
+    var sortedB = b.slice().sort(function (x, y) { return x - y; });
+    var cut = function (sorted) {
+      var pos = opts.quantile * (sorted.length - 1);
+      var lo = Math.floor(pos), hi = Math.ceil(pos);
+      return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
+    };
+    var thresholdA = cut(sortedA), thresholdB = cut(sortedB);
+
+    var belowA = 0, joint = 0;
+    for (var i = 0; i < a.length; i += 1) {
+      var lowA = a[i] <= thresholdA;
+      if (lowA) belowA += 1;
+      if (lowA && b[i] <= thresholdB) joint += 1;
+    }
+    if (joint < opts.minimumJointEvents) {
+      return {
+        state: "unavailable",
+        reason: "thin-tail-sample",
+        jointEvents: joint,
+        minimumJointEvents: opts.minimumJointEvents,
+        note: "Only " + joint + " joint lower-tail observations were seen, below the configured " +
+          "floor of " + opts.minimumJointEvents + ". A number here would be noise with a decimal point."
+      };
+    }
+    return {
+      state: "ok",
+      quantile: opts.quantile,
+      thresholdA: thresholdA,
+      thresholdB: thresholdB,
+      jointEvents: joint,
+      marginalEvents: belowA,
+      sampleSize: a.length,
+      estimate: belowA === 0 ? null : joint / belowA,
+      claimBoundary: "An empirical conditional frequency over " + joint + " joint observations. " +
+        "It does NOT say that all assets become perfectly correlated in a crisis; it says how often " +
+        "these two were jointly in their lower tails in this finite sample."
+    };
+  }
+
+  /**
+   * Quality qualification for a manually or infrequently valued asset.
+   *
+   * Appraisal series look smooth because they are appraised, not because the
+   * asset is stable. Reporting their correlation without this qualification
+   * would let a stale valuation masquerade as diversification.
+   */
+  function alternativeAssetQuality(asset) {
+    if (!asset || typeof asset !== "object") return { state: "unavailable", reason: "asset-invalid" };
+    var missing = [];
+    if (typeof asset.valuationFrequency !== "string" || !asset.valuationFrequency) missing.push("valuationFrequency");
+    if (typeof asset.lastValuationDate !== "string" || !asset.lastValuationDate) missing.push("lastValuationDate");
+    if (typeof asset.valuationMethod !== "string" || !asset.valuationMethod) missing.push("valuationMethod");
+    if (typeof asset.liquidity !== "string" || !asset.liquidity) missing.push("liquidity");
+    if (!isNum(asset.expectedTransactionCostFraction)) missing.push("expectedTransactionCostFraction");
+    if (missing.length) {
+      return {
+        state: "unavailable",
+        reason: "incomplete-quality-evidence",
+        missing: missing,
+        note: "A diversification conclusion for this asset is withheld until its valuation and " +
+          "liquidity evidence is stated. Missing evidence is not an argument for orthogonality."
+      };
+    }
+    var smoothed = asset.valuationMethod === "appraisal" || asset.valuationMethod === "user-entered";
+    return {
+      state: "ok",
+      valuationFrequency: asset.valuationFrequency,
+      lastValuationDate: asset.lastValuationDate,
+      valuationMethod: asset.valuationMethod,
+      liquidity: asset.liquidity,
+      expectedTransactionCostFraction: asset.expectedTransactionCostFraction,
+      smoothingSuspected: smoothed,
+      requiresSensitivity: smoothed,
+      caveat: smoothed
+        ? "This series is " + asset.valuationMethod + "-valued at " + asset.valuationFrequency +
+          " frequency. Its observed volatility and correlation are understated by appraisal " +
+          "smoothing, so it must NOT be treated as mechanically uncorrelated. A de-smoothed " +
+          "sensitivity is required before any diversification conclusion."
+        : "Market-observed valuations at " + asset.valuationFrequency + " frequency."
+    };
+  }
+
+  /**
+   * De-smoothing sensitivity: r_true(t) = (r_obs(t) - rho * r_obs(t-1)) / (1 - rho).
+   *
+   * A SENSITIVITY, not a replacement. The observed series is never overwritten
+   * and never interpolated to daily; this returns an alternative reading under
+   * an explicitly stated rho so the conclusion can be tested against it.
+   */
+  function desmoothReturns(observed, rho) {
+    if (!Array.isArray(observed) || observed.length < 2 || !observed.every(isNum)) {
+      return { state: "unavailable", reason: "insufficient-sample" };
+    }
+    if (!isNum(rho) || rho <= 0 || rho >= 1) return { state: "unavailable", reason: "rho-required" };
+    var out = [];
+    for (var i = 1; i < observed.length; i += 1) {
+      out.push((observed[i] - rho * observed[i - 1]) / (1 - rho));
+    }
+    return {
+      state: "ok",
+      rho: rho,
+      observed: observed.slice(),
+      desmoothed: out,
+      observedVariance: sampleVariance(observed),
+      desmoothedVariance: sampleVariance(out),
+      claimBoundary: "A sensitivity under an explicitly chosen rho of " + rho + ". The observed " +
+        "series is unchanged and is still the record of what was actually valued."
+    };
+  }
+
   return {
     TRADING_DAYS: TRADING_DAYS,
     alignPortfolioReturns: alignPortfolioReturns,
@@ -1438,6 +1695,11 @@
     scheduleCashFlows: scheduleCashFlows,
     applyCashFlows: applyCashFlows,
     computeSurvival: computeSurvival,
+    compareStressDependence: compareStressDependence,
+    forbesRigobonAdjustment: forbesRigobonAdjustment,
+    lowerTailDependence: lowerTailDependence,
+    alternativeAssetQuality: alternativeAssetQuality,
+    desmoothReturns: desmoothReturns,
     analyticsIdentity: analyticsIdentity
   };
 });

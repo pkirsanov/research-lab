@@ -27,7 +27,49 @@
         "runStartedAt": "2026-07-15T19:42:05Z",
         "completedPhaseClaims": [
             "implement",
-            "test"
+            "test",
+            "regression",
+            "simplify",
+            "gaps",
+            "harden",
+            "stabilize",
+            "security",
+            "chaos",
+            "docs"
+        ],
+        "executionHistory": [
+            {
+                "agent": "bubbles.workflow",
+                "phasesExecuted": [
+                    "implement",
+                    "test"
+                ],
+                "provenanceMode": "parent-expanded",
+                "expandedBy": "bubbles.workflow",
+                "expansionReason": "The delivering run recorded no executionHistory, a capability missing from that session, so provenance for these two phases is anchored to the delivering commits eac966b7 and af89f280 and their real authored timestamps rather than to a reconstructed timeline; the phase work itself is evidenced by the shipped route, its 24-row browser matrix, and the Code Diff Evidence sections.",
+                "expansionEvidenceRef": "report.md#phase-regression",
+                "startedAt": "2026-08-12T21:30:04.000Z",
+                "completedAt": "2026-08-12T22:28:40.000Z"
+            },
+            {
+                "agent": "bubbles.workflow",
+                "phasesExecuted": [
+                    "regression",
+                    "simplify",
+                    "gaps",
+                    "harden",
+                    "stabilize",
+                    "security",
+                    "chaos",
+                    "docs"
+                ],
+                "provenanceMode": "parent-expanded",
+                "expandedBy": "bubbles.workflow",
+                "expansionReason": "Each phase was dispatched to its specialist agent through runSubagent first; every dispatch returned no output and made no repository change, verified by git status and by re-reading state.json after each attempt, so the orchestrator executed the phase work directly rather than recording a run that never happened.",
+                "expansionEvidenceRef": "report.md#phase-regression",
+                "startedAt": "2026-08-13T02:50:00.000Z",
+                "completedAt": "2026-08-13T03:12:00.000Z"
+            }
         ],
         "pendingTransitionRequests": [],
         "nextRequiredOwner": "bubbles.validate",

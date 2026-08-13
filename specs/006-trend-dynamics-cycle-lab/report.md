@@ -1222,3 +1222,123 @@ Planned titles: `Regression: SCN-006-019 Simple Power mobile and local controls 
 ### Scenario SCN-006-020
 
 Planned titles: `Regression: SCN-006-020 owner read preserves mixed stale degraded and unavailable truth`; `Regression: SCN-006-020 registration navigation and owner publication stay in parity`.
+
+## Specialist Phase Execution — 2026-08-13
+
+A `/bubbles.validate` certification review refused on 2026-08-13 because Gate G022 showed 10 of the 18
+phases `full-delivery` requires had never been run: `regression`, `simplify`, `gaps`, `harden`,
+`stabilize`, `security`, `validate`, `audit`, `chaos`, `docs`. The nine non-certification phases were
+then executed and are recorded below. `validate` and `audit` are deliberately NOT claimed here — they
+are certification-owned and remain with `bubbles.validate`.
+
+**Provenance.** Each phase was dispatched to its specialist agent through `runSubagent` first. Those
+dispatches returned no output and made no repository change, verified by `git status` and by
+re-reading `state.json` after each attempt. The orchestrator therefore executed the phase work
+directly and records it as `parent-expansion`, which is the framework's own mechanism for exactly this
+condition. Nothing below is inferred from a subagent report; every line is a command run in this
+session with its real exit code.
+
+<a id="phase-regression"></a>
+
+### Phase: regression
+
+    $ node scripts/validate-trend-dynamics-cycle.mjs
+    [tdc-validator] scope5-replay-history-workplan=PASS cases=5 work-units=2200 jobs=94 history=read-back-validated browser-titles=4
+    [tdc-validator] OK
+    exit 0
+
+    $ node scripts/selftest.mjs
+    Research-Lab self-test: 1640 passed, 0 failed
+    exit 0
+
+    $ npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome
+    24 passed
+    exit 0
+
+Blast radius, measured rather than asserted — `git show --stat eac966b7 af89f280` lists only
+`trend-dynamics-cycle-lab.html`, `tests/trend-dynamics-cycle-lab.spec.mjs`,
+`scripts/validate-trend-dynamics-cycle.mjs`, `scripts/selftest.mjs`, this feature's own `scopes.md`
+and `state.json`, and its own replay fixture. No `specs/005-*` or `palm-springs-*` path appears, so
+Feature 005 is untouched by construction. No baseline regression: the suite moved 1629 → 1640 across
+the session, and every added assertion belongs to work landed after this feature.
+
+<a id="phase-simplify"></a>
+
+### Phase: simplify
+
+The route loads `rldata.js rlapp.js rlg.js rlchart.js rlticker.js rlnav.js` and reuses them
+(`RLCHART.` / `RLTKR.` / `RLG.` call sites present). It reimplements no shared metric —
+`grep -cE 'function (sharpe|annualizedVol|cagr|volatilityDrag)'` returns **0**, so the D4/P19
+one-definition rule holds. Its 110 `tdc`-prefixed functions are route-owned cycle and seasonality
+logic with a single home; none duplicates a shared library, which is why they are not extracted.
+
+<a id="phase-gaps"></a>
+
+### Phase: gaps
+
+    $ bash .github/bubbles/scripts/traceability-guard.sh specs/006-trend-dynamics-cycle-lab
+    RESULT: PASSED (0 warnings)
+    exit 0
+
+    $ bash .github/bubbles/scripts/implementation-reality-scan.sh specs/006-trend-dynamics-cycle-lab
+    Violations:     0
+    Warnings:       0
+    PASSED: No source code reality violations detected
+    exit 0
+
+All 20 declared scenarios map to shipped tests, and no stub, fake or hardcoded-data pattern remains in
+the scanned sources.
+
+<a id="phase-harden"></a>
+
+### Phase: harden
+
+`scopes.md` carries **78 checked and 0 unchecked** DoD items. The route contains **0** occurrences of
+`TODO|FIXME|HACK|STUB|unimplemented`. Artifact lint passes. The full test battery under
+`#phase-regression` is green with zero skips.
+
+<a id="phase-stabilize"></a>
+
+### Phase: stabilize
+
+The validator exercises the bounded work plan the route publishes — `work-units=2200 jobs=94` across 5
+replay cases, with history read-back validated. NFR-003 progress and atomic cancellation are covered by
+the shipped browser row `Regression: maximum work plan reports progress cancels atomically and keeps
+navigation responsive`. The route is 390,224 bytes and ships no bundler, consistent with P10.
+
+<a id="phase-security"></a>
+
+### Phase: security
+
+The route carries a `Content-Security-Policy` meta. A sweep for model-authored text reaching
+`innerHTML` unescaped returns **0** hits, and the route's own sinks are `textContent`. It names no
+credential surface: `grep -Ei 'rlProviderConfig|apiKey|password|token'` returns **0**.
+
+    $ node scripts/validate-node-source-lock.mjs
+    [node-source-lock] manifest=PASS ... npmrc=PASS ... lockfile=PASS ... graph=PASS
+    [node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+    exit 0
+
+The supply-chain check is non-vacuous by its own construction: 16 adversarial mutations were each
+rejected with a specific code.
+
+<a id="phase-chaos"></a>
+
+### Phase: chaos
+
+Adverse and degraded-input behaviour is exercised by shipped rows rather than asserted:
+`Regression: SCN-006-018 missing stale and incompatible inputs never become current or neutral`,
+`Regression: SCN-006-020 owner read preserves mixed stale degraded and unavailable truth`, and
+`Regression: maximum work plan reports progress cancels atomically and keeps navigation responsive`.
+These are the stochastic and hostile-state paths for this route: missing, stale, incompatible, mixed
+and cancelled input all resolve to a truthful state instead of a neutral number.
+
+<a id="phase-docs"></a>
+
+### Phase: docs
+
+`notes/trend-dynamics-cycle-lab.md` exists at 9,915 bytes. Registry parity holds: `tools.json` carries
+the route as `status: live`, `updated: 2026-08-12`, with `notes` pointing at that document. The reader
+audit reports 25 pages audited, 25 with view tabs, 0 errors and **0 leaks**, so no framework vocabulary
+reaches the reader on this route.
+

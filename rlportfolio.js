@@ -2523,6 +2523,11 @@
         category("behavior-events", workspace.behaviorEvents.length, "behavior-and-all-personal"),
         category("interest-signals", workspace.interestSignals.length, "behavior-and-all-personal"),
         category("action-outcomes", workspace.actionOutcomes.length, "behavior-and-all-personal"),
+        // Explicitly saved by the owner, so the behavior clear leaves it exactly as it leaves
+        // holdings; only the full-personal clear removes it.
+        category("scenarios", workspace.scenarios.length, "all-personal"),
+        // Explicitly saved by the owner, so the behavior clear leaves it exactly as it leaves
+        // holdings; only the full-personal clear removes it.
         category("quarantine", storageResult.value.presentKeys.filter(function (entry) { return entry.key === policy.storage.quarantineKey; }).length, "all-personal"),
         category("session-fallback", storageResult.value.presentKeys.filter(function (entry) { return entry.storage === "session"; }).length, "all-personal")
       ],

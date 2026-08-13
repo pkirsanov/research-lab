@@ -1240,7 +1240,151 @@
                 if (entry.route === "risk-xray") appendRiskXRay(panel);
                 if (entry.route === "path-lab") appendPathLab(panel);
                 if (entry.route === "diversification") appendDiversification(panel);
+                if (entry.route === "allocation") appendAllocationComparison(panel);
                 return panel;
+            }
+
+            /* ------------------------------------- Scope 13 Allocation Comparison */
+
+            function allocationModel() {
+                var probe = riskProjection();
+                if (!probe.available) return { available: false, state: probe.state };
+                if (!probe.covariance || !probe.covariance.conditioned) {
+                    return { available: false, state: "covariance-unavailable" };
+                }
+                var mandate = currentMandate();
+                var constraints = mandate && Array.isArray(mandate.constraints)
+                    ? mandate.constraints.map(function (c) {
+                        return { subject: c.subject, minimum: c.minimum, maximum: c.maximum };
+                    })
+                    : [];
+                /* probe.weights is a symbol-keyed map, not a positional array.
+                   Reading it in the covariance's own symbol order is what keeps
+                   the current-portfolio row aligned with every other candidate. */
+                var currentWeights = probe.symbols.map(function (symbol) {
+                    return isFiniteNumber(probe.weights[symbol]) ? probe.weights[symbol] : 0;
+                });
+                var comparison = window.RLPORTFOLIOANALYTICS.compareAllocationMethods({
+                    symbols: probe.symbols,
+                    covariance: probe.covariance.conditioned,
+                    currentWeights: currentWeights,
+                    constraints: constraints,
+                    // Views and expected returns are NEVER inferred. They stay
+                    // absent unless the user states them, so the two
+                    // forecast-dependent methods report unavailable by design.
+                    views: null,
+                    viewConfidence: null,
+                    expectedReturns: null
+                });
+                return {
+                    available: comparison.state === "ok",
+                    state: comparison.state === "ok" ? "ok" : (comparison.reason || comparison.state),
+                    comparison: comparison,
+                    identity: probe.identity,
+                    constraintCount: constraints.length
+                };
+            }
+
+            function appendAllocationComparison(panel) {
+                var band = document.createElement("div");
+                band.className = "band";
+                band.id = "allocationComparison";
+                var model = allocationModel();
+                band.dataset.allocationState = model.state;
+
+                var heading = document.createElement("h4");
+                heading.textContent = "Allocation comparison";
+                band.appendChild(heading);
+
+                if (!model.available) {
+                    var unavailable = document.createElement("p");
+                    unavailable.id = "allocationUnavailable";
+                    unavailable.className = "state-message";
+                    unavailable.textContent = "Allocation comparison unavailable · " + model.state +
+                        " · no candidate weights, ranking, or recommendation is shown, because none can " +
+                        "be formed from held evidence. Your current portfolio is unchanged.";
+                    band.appendChild(unavailable);
+                    panel.appendChild(band);
+                    return;
+                }
+
+                var c = model.comparison;
+                var wrap = document.createElement("div");
+                wrap.style.overflowX = "auto";
+                wrap.style.maxWidth = "100%";
+                var table = document.createElement("table");
+                table.id = "allocationTable";
+                table.innerHTML = "<thead><tr><th scope=\"col\">Method</th><th scope=\"col\">Weights</th>" +
+                    "<th scope=\"col\">Modeled volatility</th><th scope=\"col\">Feasibility</th>" +
+                    "<th scope=\"col\">State</th></tr></thead>";
+                var body = document.createElement("tbody");
+                c.candidates.forEach(function (candidate) {
+                    var tr = document.createElement("tr");
+                    tr.id = "alloccandidate-" + candidate.method;
+                    tr.dataset.method = candidate.method;
+                    tr.dataset.feasibility = candidate.feasibility ? candidate.feasibility.state : "unavailable";
+                    var weightText = candidate.weights
+                        ? c.symbols.map(function (symbol, i) {
+                            return symbol + " " + (candidate.weights[i] * 100).toFixed(1) + "%";
+                        }).join(" · ")
+                        : "Unavailable";
+                    var feasibilityText = !candidate.feasibility || candidate.feasibility.state === "unavailable"
+                        ? "Unavailable"
+                        : (candidate.feasibility.state === "feasible"
+                            ? "Feasible"
+                            : (candidate.feasibility.universallyInfeasible
+                                ? "Infeasible for ANY allocation"
+                                : "Infeasible — breaches " + candidate.feasibility.conflictingSet.length + " stated constraint(s)"));
+                    var cells = [
+                        candidate.label,
+                        weightText,
+                        candidate.portfolioVolatility === null
+                            ? "Unavailable"
+                            : (candidate.portfolioVolatility * 100).toFixed(2) + "%",
+                        feasibilityText,
+                        candidate.state === "unavailable" ? "Unavailable — " + candidate.reason : "Solved"
+                    ];
+                    cells.forEach(function (value, i) {
+                        var cell = document.createElement(i === 0 ? "th" : "td");
+                        if (i === 0) cell.setAttribute("scope", "row");
+                        cell.textContent = value;
+                        tr.appendChild(cell);
+                    });
+                    body.appendChild(tr);
+
+                    var assumptionRow = document.createElement("tr");
+                    assumptionRow.id = "allocassumptions-" + candidate.method;
+                    assumptionRow.dataset.assumptionsFor = candidate.method;
+                    var assumptionCell = document.createElement("td");
+                    assumptionCell.setAttribute("colspan", "5");
+                    assumptionCell.className = "microcopy";
+                    assumptionCell.textContent = "Assumes: " + candidate.assumptions.join(" ");
+                    assumptionRow.appendChild(assumptionCell);
+                    body.appendChild(assumptionRow);
+                });
+                table.appendChild(body);
+                wrap.appendChild(table);
+                band.appendChild(wrap);
+
+                var infeasible = c.candidates.filter(function (candidate) {
+                    return candidate.feasibility && candidate.feasibility.state === "infeasible";
+                });
+                infeasible.forEach(function (candidate) {
+                    var note = document.createElement("p");
+                    note.className = "state-message";
+                    note.dataset.infeasibleFor = candidate.method;
+                    note.textContent = candidate.label + " · " + candidate.feasibility.explanation;
+                    band.appendChild(note);
+                });
+
+                var boundary = document.createElement("p");
+                boundary.id = "allocationClaimBoundary";
+                boundary.className = "microcopy";
+                boundary.textContent = c.claimBoundary + " Nothing here is a recommendation, no candidate " +
+                    "is applied, and your current portfolio is not modified by viewing this comparison.";
+                band.appendChild(boundary);
+
+                panel.appendChild(band);
             }
 
             /* ------------------------------------------ Scope 11 Diversification */

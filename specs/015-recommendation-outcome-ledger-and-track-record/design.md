@@ -2230,3 +2230,103 @@ sequencing.
   - `scopeKind`: `command` · `scopeId`: `null` · `targetKind`: `repository-root`
   - `pathVisibility`: `local` · `actionable`: `true`
   - `repositoryRoot`: `/home/redacted/research-lab` · `repositoryAlias`: `research-lab`
+
+## Routed Design Decisions — Recorded 2026-08-13 (P-015-01, P-015-02, P-015-03, P-015-07)
+
+The four Blocking routed findings that gated scopes 02 and 04 are hereby **RESOLVED as design
+decisions**. Each ruling below was already reasoned in the D-sections above; what was missing was a
+recorded owner decision. This section records them, and re-verifies each against the payload and
+calendar **as they stand today** rather than relying on the earlier verification, because the payload
+has turned over since (`recommendations` now carries 4 entries where the D-section observed 7, and the
+action horizon histogram has changed).
+
+Command and output for the re-verification are recorded in `report.md` under
+`## Routed Finding Re-Verification — 2026-08-13`.
+
+### The Feature 002 co-consent question, answered by not needing it
+
+P-015-01 and P-015-03 were routed for Feature 002 co-consent because the obvious fix is to make the
+publisher emit two new fields. **That is not the decision taken.** Every ruling below is implementable
+entirely inside Feature 015 and mutates no Feature 002 contract, schema, or output. Feature 015 reads
+what the publisher actually emits and refuses honestly where an authored field is absent.
+
+This is the long-term-correct shape for three reasons. It removes a cross-feature blocking dependency
+rather than deepening one. It keeps the measurement surface honest on day one instead of waiting for an
+upstream change. And if Feature 002 later chooses to author `subject.resolvesTo` or `thesisFamily`, the
+claims begin resolving with **no** change to Feature 015 — the refusal path simply stops firing. Co-consent
+is therefore satisfied in the strongest available way: by requiring nothing of the other owner.
+
+### P-015-01 — Authored subject is prose. Resolution reads only `subject.resolvesTo`. RESOLVED.
+
+**Re-verified today.** `nextSession.actions` carries 5 actions. **Zero** of their `subject` values is a
+key in `data/bars/` (293 symbols). All five are prose of 207 to 494 characters. `resolvesTo` is absent
+from all five. `data/bars/VIX.json` remains absent.
+
+**Decision.** `subject.prose` retains the key-bearing string verbatim, because `recommendationKey` is
+derived from it and cannot otherwise be reproduced. Resolution reads **only** `subject.resolvesTo`, an
+authored array of `data/bars/` symbols. The minter performs no parsing, no ticker regex, no NER, and no
+lookup table. Absent or empty `resolvesTo` mints the claim `not-evaluable` with reason
+`no-authored-subject`, excluded from every rate denominator but still visibly counted in the coverage
+line.
+
+**Why not parse.** Parsing is not a lossy extraction here, it is an inverting one. The live rotate
+action names a leader to buy and names the funding and lagging legs in the same sentence; a ticker
+harvester would score the funded-from and the explicitly-not-traded legs as though the claim were long
+them. A separate live action names no instrument at all. A parser cannot be wrong-but-close on these —
+it is wrong in the opposite direction, and silently.
+
+### P-015-02 — The claim carries its own horizon. The authored band is recorded, non-authoritative. RESOLVED.
+
+**Re-verified today.** The live action horizon vocabulary is `structural | swing | tactical`. D1's
+`horizon.kind` vocabulary is `intraday | next-session | multi-session | event-bound`. The two still
+share **zero** members.
+
+**Decision.** No mapping is declared, because no honest total mapping exists — the two vocabularies are
+not the same kind of thing. A holding *band* expresses intent; a horizon *kind* expresses a resolvable
+fence. `horizon.kind` is authored per claim alongside `sessions` when the kind is `multi-session`. The
+payload band is preserved as `horizon.authoredBand` and is explicitly **non-authoritative**: it is
+displayed and stored, never used to resolve.
+
+**Why not map.** The tempting `swing -> next-session` row resolves every swing claim systematically
+early, and a systematic early resolution is not noise — it is a directional bias in the track record,
+scoring claims against a fence their author never set. A measurement surface that mis-scores in a
+consistent direction is worse than one that declines to score.
+
+### P-015-03 — `thesisFamily` is authored-or-not-evaluable. No value is invented. RESOLVED.
+
+**Re-verified today.** `thesisFamily` is absent from all 5 `nextSession.actions` and from all 4
+`recommendations` entries. It has no live source.
+
+**Decision.** The field stays declared on `lifecycleTerms` with its refusal path. When absent, the
+reducer bridge mints `not-evaluable` with reason `no-authored-thesis-family` rather than assigning a
+default, deriving one from direction or horizon, or collapsing to a catch-all bucket. Scope 04
+implements the refusal path now; the bridge activates unchanged if a value is ever authored.
+
+**Why not default.** A default would flatten genuinely distinct theses onto one reducer key, and the
+reducer key is what the track record aggregates. Every rate computed over that key would then be an
+average across theses that were never the same claim — a number that looks like a measurement and is
+not one.
+
+### P-015-07 — The trading-session test is `regular !== null`. RESOLVED.
+
+**Re-verified today** against `data/calendars/xnys/calendar.json`, 365 rows: `regular` 249,
+`early-close` 2, `holiday` 10, `weekend` 104. A non-null `regular` block is present on **exactly** the
+249 regular plus 2 early-close rows and on **none** of the 10 holidays or 104 weekends. Both
+early-close rows, `2026-11-27` and `2026-12-24`, carry genuine 09:30 to 13:00 sessions.
+
+**Decision.** The session predicate is `row.regular !== null`, selecting 251 sessions. The
+`dateState === "regular"` form is rejected.
+
+**Why this is a correctness fix and not a preference.** `dateState === "regular"` counts 249 sessions
+where there are 251, so a `next-session` claim entered 2026-11-26 steps to 2026-11-30 and is resolved
+against an extra session of price movement it never claimed. That is a lookahead — manufactured by the
+anti-lookahead machinery itself, which is the failure mode hardest to notice from the outside because
+the guard reports success while producing the defect. The predicate is also exact rather than merely
+better: it partitions the committed calendar with no residue.
+
+### Consequence
+
+All four findings are resolved and no longer gate implementation. Scope 02 may bind the live publisher
+surface, and scope 04 may implement the reducer bridge and the session predicate, each on the ruling
+recorded above. Both scopes retain their obligation to record the decision they implemented in their
+own `report.md`. Feature 002 artifacts remain untouched.

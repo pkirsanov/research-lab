@@ -1,522 +1,565 @@
 {
-  "version": 3,
-  "featureDir": "specs/015-recommendation-outcome-ledger-and-track-record",
-  "featureName": "Recommendation Outcome Ledger And Track Record",
-  "createdAt": "2026-07-28T00:00:00Z",
-  "status": "specs_hardened",
-  "workflowMode": "product-to-planning",
-  "blockedReason": null,
-  "blockedReasonAddendum": {
-    "recordedBy": "orchestrator",
-    "recordedAt": "2026-08-02T05:03:12Z",
-    "note": "The blocker above remains IN FORCE and its substance is unchanged, but two status strings it quotes are now stale. On 2026-08-02 specs/007-technical-analysis-decision-lab was reconciled from `not_started` to `blocked`, and specs/013-market-regime-stack-and-strategy-playbook remains `in_progress`. Both were corrected or confirmed against their own artifacts.",
-    "whyStillBlocked": "Gate G089 requires every entry in specDependsOn to have status `done`. The refreshed dependency statuses are: 002 = done, 007 = blocked, 012 = blocked, 013 = in_progress. Three of four are still not `done`, so G089 still refuses promotion to the product-to-planning ceiling `specs_hardened`. Reclassifying a dependency's lifecycle status does not and must not satisfy the gate."
-  },
-  "ownerDecisionAddendum": {
-    "recordedBy": "spec-owner",
-    "recordedAt": "2026-08-04T04:36:23Z",
-    "decision": "OD-015-01",
-    "decisionRecordedIn": "spec.md § Owner Decisions § OD-015-01",
-    "supersedes": "The G089 dependency portion of blockedReason and all of blockedReasonAddendum.whyStillBlocked. Those entries are retained above as history and are NOT edited; this addendum records what changed and why.",
-    "ruling": "The D10 finding that blockedReason routed to the spec owner is UPHELD for 007, 012 and 013, and REJECTED for 002. specDependsOn is narrowed from four entries to one: specs/002-distributed-tool-briefs-and-history. Anti-drift rule D10 (docs/Product-Review-and-Roadmap.md#L1246) permits a spec to block only on a real, named, missing capability -- never on another spec's status. Capability accounting was re-verified independently on disk on 2026-08-04 rather than taken on trust from the routed finding: (007) all seven RLVALID primitives are present and exported at rlvalidation.js#L155-#L163 and 015's artifacts contain ZERO references to 007's undelivered five-gate model, setup-state, expectancy, computeTechnicalFiveGate or ownerReadPublished; (012) all three seams 015 uses are live today -- RLDATA.putToolRead rldata.js#L549 exported #L738, the d.toolReads[id] slot rldata.js#L92, RLBRIEF.renderToolReads rlbrief.js#L1140 exported #L1269 with its Brief-view call site already wired at market-brief.html#L956 -- and 012's three undelivered scopes (11 authored-Brief/ToolBrief-v2, 13 Portfolio/008, 14 release handoff) are consumed by NOTHING in 015; (013) 015 consumes nothing at all, with zero references to rlregime.js or rlratio.js anywhere in its artifacts, the relationship being two prohibitions over artifacts that already exist. (002) is KEPT because 015 genuinely extends 002-owned contracts -- the brief-recommendation-history-row/v1 row, CLOSE_EVENT_TYPES rlcontracts.js#L720, and reduceRecommendationEvents #L1134 exported #L1937 -- and 002 is done, so the entry is truthful and satisfied.",
-    "notAGatePassingEdit": "Gate G089 was NOT narrowed, waived, exempted or bypassed, and nothing under .github/bubbles/** was modified. G089 still enforces status `done` on every remaining entry; it passes because the one remaining entry (002) is genuinely done. The removals are a declaration correction under D10, recorded as a reasoned decision in spec.md before specDependsOn was touched.",
-    "residualRiskRetained": "Removing 013 does not remove the sequencing concern. If 013 later changes the persisted rldata.js cache schema, 015's putToolRead write may need migration; if 007 later recertifies rlvalidation.js, 015 may need to re-verify. Both remain recorded as RL-009 in spec.md. Neither is a missing capability, and neither is mitigated by a specDependsOn entry, since later delivery is precisely the risk.",
-    "whyStillBlocked": "This ruling resolves the DEPENDENCY blocker only. The spec remains `blocked` on the four genuinely Blocking routed findings recorded in scopes/_index.md -- P-015-01 (authored subject is prose, not a resolvable identifier), P-015-02 (horizon vocabularies do not intersect), P-015-03 (thesisFamily has no live source), P-015-07 (horizon session predicate skips the two committed early-close trading sessions). These are owned by bubbles.design and the Feature 002 owner, NOT by the spec owner, and none is resolved here.",
-    "verification": "bash .github/bubbles/scripts/inter-spec-dependency-guard.sh specs/015-recommendation-outcome-ledger-and-track-record -> PASS, exit 0, dependencies=1 accepted, 002:done. Full state-transition-guard.sh Check 31 (Gate G089) -> PASS; G089 appears in passedGateIds. The full guard still exits 1 with verdict FAIL on blockingCode SOURCE_EDIT_LOCKOUT (Gate G073), which is a working-tree condition caused by a CONCURRENT Feature 004 session holding uncommitted edits to rlbrief.js, rlexperience.js, rlfx.js, rljourney.js and tests/feature-004-*.mjs. That condition is unrelated to this ruling and pre-existed it; the only files this ruling changed are 015's own spec.md and state.json, both permitted under G073."
-  },
-  "linkedImplementationSpec": null,
-  "linkedPlanningPacket": null,
-  "planningOnly": false,
-  "planningOnlyJustification": null,
-  "specDependsOn": [
-    "specs/002-distributed-tool-briefs-and-history"
-  ],
-  "certifiedAt": null,
-  "requiresRevalidation": false,
-  "execution": {
-    "activeAgent": "bubbles.plan",
-    "currentPhase": "bootstrap",
-    "currentScope": null,
-    "runStartedAt": "2026-07-28T21:05:00Z",
-    "completedPhaseClaims": [],
-    "pendingTransitionRequests": [],
-    "nextRequiredOwner": "bubbles.implement",
-    "audit": {
-      "schemaVersion": "audit-run/v1",
-      "runId": null,
-      "currentAttemptId": null,
-      "attempts": []
-    }
-  },
-  "certification": {
+    "version": 3,
+    "featureDir": "specs/015-recommendation-outcome-ledger-and-track-record",
+    "featureName": "Recommendation Outcome Ledger And Track Record",
+    "createdAt": "2026-07-28T00:00:00Z",
     "status": "specs_hardened",
-    "completedScopes": [],
-    "certifiedCompletedPhases": [],
-    "lockdownState": {
-      "active": false,
-      "lockedScenarioIds": []
+    "workflowMode": "product-to-planning",
+    "blockedReason": null,
+    "blockedReasonAddendum": {
+        "recordedBy": "orchestrator",
+        "recordedAt": "2026-08-02T05:03:12Z",
+        "note": "The blocker above remains IN FORCE and its substance is unchanged, but two status strings it quotes are now stale. On 2026-08-02 specs/007-technical-analysis-decision-lab was reconciled from `not_started` to `blocked`, and specs/013-market-regime-stack-and-strategy-playbook remains `in_progress`. Both were corrected or confirmed against their own artifacts.",
+        "whyStillBlocked": "Gate G089 requires every entry in specDependsOn to have status `done`. The refreshed dependency statuses are: 002 = done, 007 = blocked, 012 = blocked, 013 = in_progress. Three of four are still not `done`, so G089 still refuses promotion to the product-to-planning ceiling `specs_hardened`. Reclassifying a dependency's lifecycle status does not and must not satisfy the gate."
     },
-    "scopeProgress": [
-      {
-        "scope": 1,
-        "name": "Frozen claim contract",
-        "status": "not_started",
-        "dependsOn": [],
-        "tags": [
-          "foundation:true"
-        ],
-        "scopeDir": "scopes/01-frozen-claim-contract",
-        "evidenceFile": "scopes/01-frozen-claim-contract/report.md",
-        "businessScenariosOwned": [
-          "BS-001",
-          "BS-008"
-        ],
-        "designSection": "D1"
-      },
-      {
-        "scope": 2,
-        "name": "Additive ledger row extension",
-        "status": "not_started",
-        "dependsOn": [
-          1
-        ],
-        "tags": [
-          "overlay:true",
-          "consent-gated:002",
-          "routed:P-015-01",
-          "routed:P-015-02"
-        ],
-        "scopeDir": "scopes/02-additive-ledger-row-extension",
-        "evidenceFile": "scopes/02-additive-ledger-row-extension/report.md",
-        "businessScenariosOwned": [],
-        "designSection": "D2"
-      },
-      {
-        "scope": 3,
-        "name": "Resolved-flat sentinel and resolution record",
-        "status": "not_started",
-        "dependsOn": [
-          1
-        ],
-        "tags": [
-          "overlay:true"
-        ],
-        "scopeDir": "scopes/03-resolved-flat-sentinel-and-resolution-record",
-        "evidenceFile": "scopes/03-resolved-flat-sentinel-and-resolution-record/report.md",
-        "businessScenariosOwned": [
-          "BS-004"
-        ],
-        "designSection": "D3"
-      },
-      {
-        "scope": 4,
-        "name": "Deterministic outcome resolver",
-        "status": "not_started",
-        "dependsOn": [
-          1,
-          2,
-          3
-        ],
-        "tags": [
-          "overlay:true",
-          "routed:P-015-03",
-          "routed:P-015-07"
-        ],
-        "scopeDir": "scopes/04-deterministic-outcome-resolver",
-        "evidenceFile": "scopes/04-deterministic-outcome-resolver/report.md",
-        "businessScenariosOwned": [
-          "BS-002",
-          "BS-003",
-          "BS-007",
-          "BS-009",
-          "BS-010"
-        ],
-        "designSection": "D4"
-      },
-      {
-        "scope": 5,
-        "name": "Cohort and scoring model",
-        "status": "not_started",
-        "dependsOn": [
-          2,
-          3,
-          4
-        ],
-        "tags": [
-          "overlay:true"
-        ],
-        "scopeDir": "scopes/05-cohort-and-scoring-model",
-        "evidenceFile": "scopes/05-cohort-and-scoring-model/report.md",
-        "businessScenariosOwned": [
-          "BS-005"
-        ],
-        "designSection": "D5"
-      },
-      {
-        "scope": 6,
-        "name": "Owner read and Center contract",
-        "status": "not_started",
-        "dependsOn": [
-          5
-        ],
-        "tags": [
-          "overlay:true"
-        ],
-        "scopeDir": "scopes/06-owner-read-and-center-contract",
-        "evidenceFile": "scopes/06-owner-read-and-center-contract/report.md",
-        "businessScenariosOwned": [],
-        "designSection": "D6"
-      },
-      {
-        "scope": 7,
-        "name": "Simple view and shared shell",
-        "status": "not_started",
-        "dependsOn": [
-          5
-        ],
-        "tags": [
-          "overlay:true"
-        ],
-        "scopeDir": "scopes/07-simple-view-and-shared-shell",
-        "evidenceFile": "scopes/07-simple-view-and-shared-shell/report.md",
-        "businessScenariosOwned": [
-          "BS-006",
-          "BS-012"
-        ],
-        "designSection": "D7"
-      },
-      {
-        "scope": 8,
-        "name": "Power view and charts",
-        "status": "not_started",
-        "dependsOn": [
-          7
-        ],
-        "tags": [
-          "overlay:true"
-        ],
-        "scopeDir": "scopes/08-power-view-and-charts",
-        "evidenceFile": "scopes/08-power-view-and-charts/report.md",
-        "businessScenariosOwned": [
-          "BS-011"
-        ],
-        "designSection": "D7"
-      },
-      {
-        "scope": 9,
-        "name": "Committed validator and closed codes",
-        "status": "not_started",
-        "dependsOn": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
-        ],
-        "tags": [
-          "overlay:true"
-        ],
-        "scopeDir": "scopes/09-committed-validator-and-closed-codes",
-        "evidenceFile": "scopes/09-committed-validator-and-closed-codes/report.md",
-        "businessScenariosOwned": [],
-        "designSection": "D8"
-      },
-      {
-        "scope": 10,
-        "name": "Registration, notes, and regression closure",
-        "status": "not_started",
-        "dependsOn": [
-          6,
-          9
-        ],
-        "tags": [
-          "closure:true",
-          "counted-registry"
-        ],
-        "scopeDir": "scopes/10-registration-notes-and-regression-closure",
-        "evidenceFile": "scopes/10-registration-notes-and-regression-closure/report.md",
-        "businessScenariosOwned": [],
-        "designSection": "D6"
-      }
+    "ownerDecisionAddendum": {
+        "recordedBy": "spec-owner",
+        "recordedAt": "2026-08-04T04:36:23Z",
+        "decision": "OD-015-01",
+        "decisionRecordedIn": "spec.md § Owner Decisions § OD-015-01",
+        "supersedes": "The G089 dependency portion of blockedReason and all of blockedReasonAddendum.whyStillBlocked. Those entries are retained above as history and are NOT edited; this addendum records what changed and why.",
+        "ruling": "The D10 finding that blockedReason routed to the spec owner is UPHELD for 007, 012 and 013, and REJECTED for 002. specDependsOn is narrowed from four entries to one: specs/002-distributed-tool-briefs-and-history. Anti-drift rule D10 (docs/Product-Review-and-Roadmap.md#L1246) permits a spec to block only on a real, named, missing capability -- never on another spec's status. Capability accounting was re-verified independently on disk on 2026-08-04 rather than taken on trust from the routed finding: (007) all seven RLVALID primitives are present and exported at rlvalidation.js#L155-#L163 and 015's artifacts contain ZERO references to 007's undelivered five-gate model, setup-state, expectancy, computeTechnicalFiveGate or ownerReadPublished; (012) all three seams 015 uses are live today -- RLDATA.putToolRead rldata.js#L549 exported #L738, the d.toolReads[id] slot rldata.js#L92, RLBRIEF.renderToolReads rlbrief.js#L1140 exported #L1269 with its Brief-view call site already wired at market-brief.html#L956 -- and 012's three undelivered scopes (11 authored-Brief/ToolBrief-v2, 13 Portfolio/008, 14 release handoff) are consumed by NOTHING in 015; (013) 015 consumes nothing at all, with zero references to rlregime.js or rlratio.js anywhere in its artifacts, the relationship being two prohibitions over artifacts that already exist. (002) is KEPT because 015 genuinely extends 002-owned contracts -- the brief-recommendation-history-row/v1 row, CLOSE_EVENT_TYPES rlcontracts.js#L720, and reduceRecommendationEvents #L1134 exported #L1937 -- and 002 is done, so the entry is truthful and satisfied.",
+        "notAGatePassingEdit": "Gate G089 was NOT narrowed, waived, exempted or bypassed, and nothing under .github/bubbles/** was modified. G089 still enforces status `done` on every remaining entry; it passes because the one remaining entry (002) is genuinely done. The removals are a declaration correction under D10, recorded as a reasoned decision in spec.md before specDependsOn was touched.",
+        "residualRiskRetained": "Removing 013 does not remove the sequencing concern. If 013 later changes the persisted rldata.js cache schema, 015's putToolRead write may need migration; if 007 later recertifies rlvalidation.js, 015 may need to re-verify. Both remain recorded as RL-009 in spec.md. Neither is a missing capability, and neither is mitigated by a specDependsOn entry, since later delivery is precisely the risk.",
+        "whyStillBlocked": "This ruling resolves the DEPENDENCY blocker only. The spec remains `blocked` on the four genuinely Blocking routed findings recorded in scopes/_index.md -- P-015-01 (authored subject is prose, not a resolvable identifier), P-015-02 (horizon vocabularies do not intersect), P-015-03 (thesisFamily has no live source), P-015-07 (horizon session predicate skips the two committed early-close trading sessions). These are owned by bubbles.design and the Feature 002 owner, NOT by the spec owner, and none is resolved here.",
+        "verification": "bash .github/bubbles/scripts/inter-spec-dependency-guard.sh specs/015-recommendation-outcome-ledger-and-track-record -> PASS, exit 0, dependencies=1 accepted, 002:done. Full state-transition-guard.sh Check 31 (Gate G089) -> PASS; G089 appears in passedGateIds. The full guard still exits 1 with verdict FAIL on blockingCode SOURCE_EDIT_LOCKOUT (Gate G073), which is a working-tree condition caused by a CONCURRENT Feature 004 session holding uncommitted edits to rlbrief.js, rlexperience.js, rlfx.js, rljourney.js and tests/feature-004-*.mjs. That condition is unrelated to this ruling and pre-existed it; the only files this ruling changed are 015's own spec.md and state.json, both permitted under G073."
+    },
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "specDependsOn": [
+        "specs/002-distributed-tool-briefs-and-history"
     ],
-    "certifiedAt": "2026-08-10T23:58:00Z"
-  },
-  "policySnapshot": {
-    "grill": {
-      "mode": "off",
-      "source": "repo-default"
+    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "execution": {
+        "activeAgent": "bubbles.plan",
+        "currentPhase": "bootstrap",
+        "currentScope": null,
+        "runStartedAt": "2026-07-28T21:05:00Z",
+        "completedPhaseClaims": [],
+        "pendingTransitionRequests": [],
+        "nextRequiredOwner": "bubbles.implement",
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
     },
-    "tdd": {
-      "mode": "scenario-first",
-      "source": "repo-default"
+    "certification": {
+        "status": "specs_hardened",
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        },
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "name": "Frozen claim contract",
+                "status": "not_started",
+                "dependsOn": [],
+                "tags": [
+                    "foundation:true"
+                ],
+                "scopeDir": "scopes/01-frozen-claim-contract",
+                "evidenceFile": "scopes/01-frozen-claim-contract/report.md",
+                "businessScenariosOwned": [
+                    "BS-001",
+                    "BS-008"
+                ],
+                "designSection": "D1"
+            },
+            {
+                "scope": 2,
+                "name": "Additive ledger row extension",
+                "status": "not_started",
+                "dependsOn": [
+                    1
+                ],
+                "tags": [
+                    "overlay:true",
+                    "consent-gated:002",
+                    "routed:P-015-01",
+                    "routed:P-015-02"
+                ],
+                "scopeDir": "scopes/02-additive-ledger-row-extension",
+                "evidenceFile": "scopes/02-additive-ledger-row-extension/report.md",
+                "businessScenariosOwned": [],
+                "designSection": "D2"
+            },
+            {
+                "scope": 3,
+                "name": "Resolved-flat sentinel and resolution record",
+                "status": "not_started",
+                "dependsOn": [
+                    1
+                ],
+                "tags": [
+                    "overlay:true"
+                ],
+                "scopeDir": "scopes/03-resolved-flat-sentinel-and-resolution-record",
+                "evidenceFile": "scopes/03-resolved-flat-sentinel-and-resolution-record/report.md",
+                "businessScenariosOwned": [
+                    "BS-004"
+                ],
+                "designSection": "D3"
+            },
+            {
+                "scope": 4,
+                "name": "Deterministic outcome resolver",
+                "status": "not_started",
+                "dependsOn": [
+                    1,
+                    2,
+                    3
+                ],
+                "tags": [
+                    "overlay:true",
+                    "routed:P-015-03",
+                    "routed:P-015-07"
+                ],
+                "scopeDir": "scopes/04-deterministic-outcome-resolver",
+                "evidenceFile": "scopes/04-deterministic-outcome-resolver/report.md",
+                "businessScenariosOwned": [
+                    "BS-002",
+                    "BS-003",
+                    "BS-007",
+                    "BS-009",
+                    "BS-010"
+                ],
+                "designSection": "D4"
+            },
+            {
+                "scope": 5,
+                "name": "Cohort and scoring model",
+                "status": "not_started",
+                "dependsOn": [
+                    2,
+                    3,
+                    4
+                ],
+                "tags": [
+                    "overlay:true"
+                ],
+                "scopeDir": "scopes/05-cohort-and-scoring-model",
+                "evidenceFile": "scopes/05-cohort-and-scoring-model/report.md",
+                "businessScenariosOwned": [
+                    "BS-005"
+                ],
+                "designSection": "D5"
+            },
+            {
+                "scope": 6,
+                "name": "Owner read and Center contract",
+                "status": "not_started",
+                "dependsOn": [
+                    5
+                ],
+                "tags": [
+                    "overlay:true"
+                ],
+                "scopeDir": "scopes/06-owner-read-and-center-contract",
+                "evidenceFile": "scopes/06-owner-read-and-center-contract/report.md",
+                "businessScenariosOwned": [],
+                "designSection": "D6"
+            },
+            {
+                "scope": 7,
+                "name": "Simple view and shared shell",
+                "status": "not_started",
+                "dependsOn": [
+                    5
+                ],
+                "tags": [
+                    "overlay:true"
+                ],
+                "scopeDir": "scopes/07-simple-view-and-shared-shell",
+                "evidenceFile": "scopes/07-simple-view-and-shared-shell/report.md",
+                "businessScenariosOwned": [
+                    "BS-006",
+                    "BS-012"
+                ],
+                "designSection": "D7"
+            },
+            {
+                "scope": 8,
+                "name": "Power view and charts",
+                "status": "not_started",
+                "dependsOn": [
+                    7
+                ],
+                "tags": [
+                    "overlay:true"
+                ],
+                "scopeDir": "scopes/08-power-view-and-charts",
+                "evidenceFile": "scopes/08-power-view-and-charts/report.md",
+                "businessScenariosOwned": [
+                    "BS-011"
+                ],
+                "designSection": "D7"
+            },
+            {
+                "scope": 9,
+                "name": "Committed validator and closed codes",
+                "status": "not_started",
+                "dependsOn": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8
+                ],
+                "tags": [
+                    "overlay:true"
+                ],
+                "scopeDir": "scopes/09-committed-validator-and-closed-codes",
+                "evidenceFile": "scopes/09-committed-validator-and-closed-codes/report.md",
+                "businessScenariosOwned": [],
+                "designSection": "D8"
+            },
+            {
+                "scope": 10,
+                "name": "Registration, notes, and regression closure",
+                "status": "not_started",
+                "dependsOn": [
+                    6,
+                    9
+                ],
+                "tags": [
+                    "closure:true",
+                    "counted-registry"
+                ],
+                "scopeDir": "scopes/10-registration-notes-and-regression-closure",
+                "evidenceFile": "scopes/10-registration-notes-and-regression-closure/report.md",
+                "businessScenariosOwned": [],
+                "designSection": "D6"
+            }
+        ],
+        "certifiedAt": "2026-08-10T23:58:00Z"
     },
-    "autoCommit": {
-      "mode": "off",
-      "source": "repo-default"
+    "policySnapshot": {
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "repo-default"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
     },
-    "lockdown": {
-      "mode": "off",
-      "source": "repo-default"
+    "transitionRequests": [],
+    "reworkQueue": [],
+    "executionHistory": [
+        {
+            "agent": "bubbles.analyst",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-28T00:00:00Z",
+            "finishedAt": "2026-07-28T00:00:00Z",
+            "outcome": "completed_owned",
+            "summary": "Analyst authoring pass. CREATED specs/015-recommendation-outcome-ledger-and-track-record/spec.md with the analyst-owned sections: Problem, Outcome Contract (HC-1..HC-10), Domain Capability Model (P1..P9, BP-015-001..006), Capability Inventory, Actors And Personas, Use Cases (UC-001..005), Business Scenarios (BS-001..012), Functional Requirements (FR-001..022), Non-Functional Requirements, UI Scenario Matrix, Competitive Landscape, Improvement Proposals (IP-001..005), Acceptance Criteria (AC-001..018), Known Risks And Honest Limitations (RL-001..010), Downstream Owner Handoffs, and UI Wireframes. Findings verified by execution this run, not assumed: (1) briefs/history/recommendations/2026-07.jsonl holds 160 rows / 78 distinct recommendationKeys / 32 runs with eventType distribution {proposed: 160} and zero closures; (2) the row contract brief-recommendation-history-row/v1 carries only canonicalMonth, contractVersion, eventId, eventType, occurredAt, recommendationKey, runId - no subject, instrument, horizon, predicate, or confidence; (3) recommendationKey is a one-way sha256 of {contractVersion, subject, family} built at scripts/brief-distributed-publish.mjs#L405 whose preimage is persisted NOWHERE - 233 tool-brief objects have 0 with a non-empty recommendations[] array, the 32 final-brief objects carry no recommendations key at all, and a scan of briefs/objects/ for a persisted subject field returns 0 objects, making the existing history permanently unresolvable and forcing spec.md HC-4 (track record starts at zero, never back-filled); (4) rlvalidation.js exports the seven RLVALID primitives at the cited lines and no brief script references them (grep across scripts/brief-*.mjs and scripts/validate-brief-*.mjs returned zero matches); (5) validate-brief-payload.mjs#L75 enforces a confidence floor and the config caps tactical confidence at the same value, pinning tactical actions to exactly 55; (6) data/bars/ holds 289 committed symbol files and data/options/ holds 23 snapshots, so offline deterministic resolution is feasible with no new provider surface; (7) repository baseline node scripts/selftest.mjs reported 952 passed / 0 failed. No foreign-owned artifact was created or modified: design.md, scopes, report.md, and uservalidation.md are intentionally absent and are owned by bubbles.design and bubbles.plan.",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "Both timestamps are the placeholder 2026-07-28T00:00:00Z (round midnight), recorded by the authoring pass rather than measured from a clock. The pass itself is substantial and evidenced in spec.md (HC-1..HC-10, FR-001..022, AC-001..018) and in the seven verified findings in this summary, including a repository selftest run; only its wall-clock span is unknown."
+        },
+        {
+            "agent": "bubbles.ux",
+            "phasesExecuted": [
+                "ux"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-28T14:40:00Z",
+            "finishedAt": "2026-07-28T14:54:30Z",
+            "outcome": "completed_owned",
+            "summary": "UX authoring pass under product-to-planning with G073 source-edit lockout active. MODIFIED exactly one artifact, specs/015-recommendation-outcome-ledger-and-track-record/spec.md, plus this state.json. No source file was touched: no *.html, *.js, *.mjs, tools.json, index.html, rlnav.js, data/**, or tests/**. REWROTE '## UI Scenario Matrix' from 9 shallow rows into 35 testable rows (UI-01..UI-35), each carrying BS/AC linkage, actor, entry point, precondition, user action, observable outcome, view, and the concrete e2e-ui assertion; coverage spans empty, insufficient, sufficient, cohort steering, calibration drill, empty-bucket rendering, multiplicity, session cohort-shopping, closure mix, denominator composition, withdrawal bounds, not-evaluable, resolved-flat, legacy disclosure permanence and non-dismissibility, ticker linking, tooltips, chart hover, chart table equivalents, auto-hydrate, status reporting, mode persistence, narrow reflow, and the no-action guarantee. REWROTE '## UI Wireframes' from 3 frames to 9 frames with real user-facing copy rather than placeholders: Simple sufficient, Simple insufficient, Simple empty, the legacy why-expansion, Power calibration, Power distribution with its RLCHART hover tooltip and table equivalent, Power multiplicity, Power raw ledger, and the sub-520px reflow. ADDED '## Interaction And Steering Model' (five Simple-view levers with live in-memory recompute, six explicitly rejected levers with reasons, localStorage persistence shape, auto-hydration and status reporting, chart wiring, deep links, and null-safety at first paint) and ADDED '## Honest-State Vocabulary' (an 11-row state-label table giving the exact user-facing word, the shown-when condition, the tooltip copy and the banned alternatives for each of sufficient/insufficient/empty/open/satisfied/invalidated/expired/resolved-flat/withdrawn/not-evaluable/unresolvable-legacy, plus eight vocabulary rules). Did NOT create design.md, scopes.md, report.md, or uservalidation.md; did not promote status or touch certification.*. Repo conventions were verified by reading files, not assumed: the Simple/Power pattern from sector-research-lab.html#L1196 (#modeSeg role=tablist with data-mode buttons), #L3124 (body.classList.toggle('power', ...)), #L3373 (click handler setting state then saveState then render), #L1210 (simple-hero with aria-live=polite), #L1213-1218 (labelled select levers with contextual title tooltips) and #L1085/#L1096 (820px and 520px breakpoints), plus localStorage lever+mode persistence at intraday-tape-lab.html#L1379; RLCHART.attach(canvas, adapterOrHitFn) at rlchart.js#L365 and RLCHART.tip(title, rows, note) at #L41; RLTKR.tag(ticker, opts) at rlticker.js#L112; RLAPP.report(resource, state, detail) at rlapp.js#L73 with the shell state vocabulary fresh/stale/refreshing/missing/error at #L68-L72; the rl-tool-read/v1 frozen key set and availability enum at rldata.js#L436-L450; and the exact RLVALID return shapes at rlvalidation.js#L112 (rlvWilsonInterval returns proportion/lower/upper and requires total>=1) and #L134 (rlvSummarizeOutcomes rejects an empty array with RLV-OUTCOME-VALUES and returns averageWin/averageLoss as null when a side is absent). Two verified arithmetic checks behind the copy: Wilson at 2 of 3 with z=1.96 computes to 21%-94%, matching the analyst figure; and halving a Wilson width requires roughly four times the sample, so n=42 needs about 126 further resolved calls. The wide-interval problem is solved structurally rather than cosmetically by making the range the dominant element with the point estimate rendered as a tick mark inside it, by giving the interval a job (copy stating what the sample already rules out and what it cannot yet distinguish), and by converting waiting into a finite labelled countdown. The permanent legacy disclosure is solved by embedding the 160 count inside the coverage denominator line that a reader must parse to read the sample count at all, using neutral archival language with no warning colour and no dismiss control, so it self-attenuates in relative weight as Scored grows without ever being hidden. SEVEN open questions were recorded as a new '### Open Questions For bubbles.design' subsection (UXQ-1..UXQ-7) rather than guessed at, the sharpest being UXQ-3: the analyst's own illustrative counts imply the rate denominator is satisfied+invalidated only, since 24/42 equals 57 percent, which silently excludes expired 6 and withdrawn 3 without the spec ever declaring that scoring choice."
+        },
+        {
+            "agent": "bubbles.design",
+            "phasesExecuted": [
+                "design"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-28T18:47:00Z",
+            "finishedAt": "2026-07-28T19:15:27Z",
+            "outcome": "completed_owned",
+            "summary": "Design authoring pass, chunk 2 of 3, under product-to-planning with G073 source-edit lockout active. MODIFIED exactly two artifacts: specs/015-recommendation-outcome-ledger-and-track-record/design.md and this state.json. No source file was touched - no *.html, *.js, *.mjs, tools.json, index.html, rlnav.js, data/**, briefs/**, or tests/**, and no other spec's artifacts (013, 014, and 016 are being authored by concurrent sessions and were not read for mutation). APPENDED three sections immediately before the trailing RESULT-ENVELOPE without rewriting or restating the chunk-1 sections (Architecture Overview, D1 Frozen Claim Contract, D2 Additive Ledger Row Extension, D3 Resolved-Flat Sentinel): (1) D4 Deterministic Outcome Resolver - due-set selection from the reduction index gated on entry.state === active, calendar-driven horizon expiry from data/calendars/xnys/calendar.json (xnys-calendar/v1, America/New_York, coverage 2026-01-01..2026-12-31, 365 rows) rather than naive date arithmetic, the HC-5 as-of fence implemented by slicing the bar array before predicate evaluation with refusal code RTR-LOOKAHEAD and an explicit skip-vs-refuse distinction, predicate evaluation for threshold/relative/directional/spread including path-dependent crosses-above/crosses-below requiring a complete session path, direction-adjusted magnitude in the claim's declared unit with hold (ACTION_DIRECTION 0) closing not-evaluable, a closure-selection table mapping only into the existing CLOSE_EVENT_TYPES vocabulary through run.closures on the unmodified reduceRecommendationEvents, the three-layer idempotence mechanism, the not-evaluable reason-code set, and the closed RTR-* error namespace; (2) D5 Cohort And Scoring Model - declared constants Z_SCORE 1.96, MIN_COHORT_RESOLVED 20, ANNUALIZATION 252, the five closed cohort levers, the exact per-call mapping into RLVALID, the denominator contract, sufficiency branch, multiplicity context, and the HC-4 legacy-count treatment; (3) D6 Owner Read And Center Consumption - the rl-tool-read/v1 nine-key field set, the Center consumption path through the existing Brief view with no fifth view, shared-shell load order and status reporting, the registration surface, and the FR-021 cache-schema non-touch table. RESOLVED five of the seven UX open questions by decision rather than deferral: UXQ-1 Z_SCORE 1.96; UXQ-2 MIN_COHORT_RESOLVED 20; UXQ-3 the rate denominator is defined by outcomeClass in {win, loss}, NOT by closure event, because a resolved-flat outcome also closes satisfied or invalidated and a closure-event denominator would silently undo HC-7; UXQ-4 zero resolved outcomes map to availability current, never unavailable, since unavailable additionally forces asOf and freshUntil to null and would discard the first-resolves date the honest empty state needs; UXQ-5 withdrawal bounds route through two rlvWilsonInterval calls with different counts rather than inline arithmetic; UXQ-6 the word confidence is reserved for a claim's stated number and the interval fields are named rangeLow/rangeHigh. UXQ-7 was already settled in D3. Code facts asserted in the design were verified by reading the files this run, not assumed: rlvalidation.js rlvSummarizeOutcomes at L134 with wins > 0 at L136, losses < 0 at L137, unresolved by subtraction at L138, winRate dividing by full input length at L147, and an internal rlvQuantiles call at [0.25, 0.5, 0.75] returned as quantiles at L150-151; rlvWilsonInterval at L112 with RLV-WILSON-COUNTS and RLV-WILSON-Z guards and proportion = wins/total at L116; rlvDeflatedSharpe at L87 requiring at least 20 finite positive equity observations and at least 8 returns; rlvAdjustBenjaminiHochberg at L63 and rlvAdjustHolm at L76 both requiring a vector of p-values, which 015 does not produce, so both are declared NOT USED alongside rlvBuildPurgedFolds at L45 rather than wired in for appearance; rlcontracts.js MARKET_ACTIONS at L708, ACTION_DIRECTION at L714, CLOSE_EVENT_TYPES at L720, deriveRecommendationKeys at L1034, lifecycleEventId hashing runId at L1103, reduceRecommendationEvents at L1134, the run.closures block at L1264-1283 including the recommendation-closure-still-active guard at L1276 and the state = closed write at L1280, within-run event dedup at L1298-1305, and indexFingerprint excluding runId at L1313-1316; rldata.js putToolRead at L433 with the rl-tool-read/v1 branch at L436, the exact nine-key set at L437, the availability enum at L439, the read/metrics/deepLink guards at L443, the unavailable-forces-null rule at L444, the deep copy at L445, validateToolModelRead at L378 with recommendationEligibility at L422, and the export map at L624; rlbrief.js renderToolReads at L683 consuming only read, asOf, and deepLink at L689-696; rlapp.js report at L73 with the fresh/stale/refreshing/error/missing vocabulary at L48-49 and L101; rlmarketaction.js CENTER_VIEW_IDS at L77 and the five RLMKT-VIEW refusal points at L589, L626, L629, L634, and L637; market-brief.html shared-shell order at L872-879, the toolReads container at L715, localToolReads at L815, and the renderToolReads call at L827; rlnav.js TOOLS at L45 with the order-mirrors-index comment at L43; index.html TOOLS at L476; the object store containing briefs/objects/evidence/bundles, final-briefs, reads (260 objects across 22 tool directories), and tool-briefs; 289 committed symbol files under data/bars/ with rows shaped {t,o,h,l,c,v} where t is the regular-session open in epoch milliseconds, verified on SPY.json (502 rows, asof 2026-07-27, reconstructedSessions [2026-07-24]). ROUTED five findings to bubbles.plan rather than guessing: F-015-D4-01 the reducer keys on originRecommendationKey derived from {originToolId, thesisFamily, subjects, actionFamily, horizon} while D1 binds to the publisher key derived from {subject, family}, and the bridge needs originToolId and thesisFamily which D1's hashed term set does not carry; F-015-D4-02 reducer idempotence is not self-enforcing because lifecycleEventId hashes runId and the closure block does not reject an already-closed entry, so FR-006 rests entirely on the resolver's due-set gate and needs an adversarial re-run test asserting a byte-identical indexFingerprint; F-015-D5-01 P7 names action type as a cohort lever while the Interaction And Steering Model names claim family and omits action type, and this design adopts the Interaction model's five because they carry the DOM ids the UI Scenario Matrix asserts against; F-015-D5-02 the unresolvable-legacy count is a moving target - spec.md states 160 rows / 78 keys / 32 runs but a re-count of briefs/history/recommendations/2026-07.jsonl this run returned 165 rows / 83 distinct recommendationKeys / 33 distinct runIds, all eventType proposed and all contractVersion brief-recommendation-history-row/v1, so the count must be derived from rows lacking claimRef and asserted once at activation rather than shipped as the literal 160; F-015-D6-01 RLBRIEF.renderToolReads consumes only read, asOf, and deepLink and never renders metrics, so HC-8 on the Center surface is satisfiable only through the read string, and because the renderer looks reads up by tool id against the tools.json array an unregistered tool's read is invisible, which makes FR-019 registration a hard prerequisite for FR-018 rather than bookkeeping. Did NOT write scopes/, report.md, uservalidation.md, scenario-manifest.json, or any certification.* field. Deferred to chunk 3: Design Brief, UI component specs, testing strategy, alternatives and tradeoffs, Complexity Tracking, and Open Questions."
+        },
+        {
+            "agent": "bubbles.design",
+            "phasesExecuted": [
+                "design"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-28T19:20:00Z",
+            "finishedAt": "2026-07-28T19:58:00Z",
+            "outcome": "completed_owned",
+            "summary": "Design authoring pass, chunk 3 of 3 - DESIGN AUTHORING IS NOW COMPLETE. Ran under product-to-planning with G073 source-edit lockout active. Repository binding preflight returned PREFLIGHT_COMMITTED with decisionId rb:vscode-809ebe73e214a29c7507f9aafbc29f02:14 at controlRevision 14. MODIFIED exactly two artifacts: specs/015-recommendation-outcome-ledger-and-track-record/design.md and this state.json. No source file was touched - no *.html, *.js, *.mjs, tools.json, index.html, rlnav.js, data/**, briefs/**, notes/**, scripts/**, or tests/** - and no other spec's artifacts (002, 012, 013, 014, and 016 are being authored by concurrent sessions and were neither read for mutation nor written). spec.md was NOT edited (analyst-owned); scopes/, report.md, and uservalidation.md were NOT created (plan-owned). APPENDED five sections immediately before the trailing RESULT-ENVELOPE without rewriting or restating D1 through D6: (1) D7 UI Component Design - the single-file load order amended to place rlcontext.js first because validateStructuredAdapter (rlchart.js L98) requires RLCTX.validateContext synchronously inside attachStructured (L317) and rlg.js's lazy loader at L229 is not a substitute; the one-compute-three-renderings pipeline in which a single deep-frozen scorecard feeds renderSimple, renderPower, buildOwnerRead and buildMetrics so the Center read structurally cannot drift from the page; the full component tree keyed to every DOM id the UI Scenario Matrix asserts against (UI-01 through UI-35); the three-state sufficiency branch which is taken BEFORE any primitive runs because rlvSummarizeOutcomes fails RLV-OUTCOME-VALUES (rlvalidation.js L135) and rlvWilsonInterval fails RLV-WILSON-COUNTS for total < 1 (L113) on empty input; HC-8 enforced at the DOM level through a single rate-emitting helper rather than by copy review; the decision to use the STRUCTURED chart adapter rather than the legacy closure form because attachLegacy (rlchart.js L351) stamps data-rlchart-migration-required=true on the canvas, plus the finding that the structured adapter's contextFor/tableTargetFor invariant makes the accessibility table contractual rather than conventional; the rlg.js glossary pre-emption analysis; auto-hydration and status reporting; accessibility; and steering/persistence. (2) D8 Testing Strategy - mapped to the repo's three real surfaces with no invented runner: node scripts/selftest.mjs (VERIFIED THIS RUN at 952 passed, 0 failed, exit 0), a new committed validator scripts/validate-recommendation-track-record.mjs modelled on scripts/validate-market-action.mjs with an exported validator so it is importable into the baseline exactly as selftest.mjs imports validateBriefPayload at L18, and Playwright specs under tests/ matching playwright.config.mjs testMatch **/*.spec.mjs on project system-chrome; a CONSOLIDATED closed 15-code RTR-* register that supersedes D4's resolver-scoped table as the FR-020 surface, declaring five new codes (RTR-LOCAL-STATISTIC, RTR-REDUCER-FORK, RTR-CENTER-VIEW, RTR-LEGACY-BACKFILL, RTR-ACTION-EMITTED) so every Hard Constraint HC-1 through HC-10 has at least one named adversarial refusal; fifteen named adversarial cases one per constraint; a four-layer determinism proof asserting byte-identical resolution objects, indexFingerprint, serialized scorecard, and owner read; and a TWO-CASE idempotence proof for FR-006 that explicitly covers finding F-015-D4-02 by pairing a positive no-op assertion with an adversarial ACCEPTANCE assertion proving the reducer does not self-enforce and that the due-set gate is therefore load-bearing rather than incidental. (3) D9 Alternatives Considered - six rejected alternatives each with its rejection ground: a fifth Center view (HC-3, refused by RLMKT-VIEW at five checkpoints), local statistics (HC-1, loses the single traceable owner), back-filling the anonymous legacy history (HC-4, and impossible - one-way hash with no persisted preimage, where the real temptation was estimation), forking reduceRecommendationEvents (HC-2, two lifecycle engines would corrupt the ledger rather than fail a test), a null/NaN unresolved sentinel (rejected mechanically because RLV-OUTCOME-VALUES and RLV-QUANTILE-VALUES reject the ENTIRE array on one non-finite element, and a signed epsilon is a lie that survives arithmetic), and manufacturing p-values to use BH/Holm (fabrication wearing a primitive's name). (4) D10 Complexity Tracking - eight honest deviations each with the simpler alternative and why it was rejected, including the reducer key bridge (F-015-D4-01), non-self-enforcing idempotence (F-015-D4-02), calendar-session horizon arithmetic, the closure-event-versus-outcome-class two-axis model, the zero-free array convention, one-compute-three-renderings, the structured chart adapter, and exhaustive title coverage as the mechanism for HC-9; plus an explicit list of complexity NOT taken on. (5) D11 Open Questions For Planning - all eleven findings carried forward with what each blocks. ALSO added the required Design Brief at the top (deferred from chunk 2) and a Reading Order (authoring complete) subsection to Architecture Overview so the document no longer reads as mid-flight, and replaced the chunk-2 RESULT-ENVELOPE. All seven UX open questions (UXQ-1 through UXQ-7) are now closed; nothing is deferred to a later chunk. SIX NEW FINDINGS raised this run and routed to bubbles.plan: F-015-D7-01 data-chart-fallback which UI-25 asserts has ZERO occurrences anywhere in the repository (verified), so 015 would be introducing the convention while the repo's actual mechanism is the structured adapter's tableTargetFor/sameDataTable binding; F-015-D7-02 rlcontext.js must be added to D6's declared load order; F-015-D7-03 rlg.js decorate() at L234 claims any GLOSSARY_SELECTOR element lacking a title and writes a glossary definition into aria-label at L243, and G[horizon] at L63 collides with 015's Horizon lever by injecting trading vocabulary (target, R:R) onto a measurement-only surface, while the glossary carries 9 verified occurrences of UI-33's forbidden tokens at L12/L13/L58/L59/L65/L98 - so exhaustive FR-016 title coverage is the MECHANISM that delivers HC-9 and the two are one DoD item rather than two; F-015-D7-04 UI-33's assertion reads page text and would miss action vocabulary injected into aria-label, so the e2e assertion must be widened; F-015-D8-01 D4's error-code table is not the complete FR-020 register and D8's consolidated table supersedes it; F-015-D8-02 FR-017's wording names the deprecated legacy attach form, which is an analyst decision design did not make unilaterally. Re-verified this run without mutation: the recommendation ledger at briefs/history/recommendations/2026-07.jsonl still holds 165 rows across 83 distinct keys over 33 runs with event type proposed for all 165 (F-015-D5-02 unchanged from chunk 2), data/bars/ holds 289 committed symbol files, and data/calendars/xnys/calendar.json is present. certification.* was NOT written and status was NOT promoted; product-to-planning's ceiling is owned by the status-transition guard and no transition was requested."
+        },
+        {
+            "agent": "bubbles.analyst",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-28T20:05:00Z",
+            "finishedAt": "2026-07-28T20:22:00Z",
+            "outcome": "completed_owned",
+            "summary": "Surgical stale-literal correction closing design finding F-015-D5-02. Ran under product-to-planning with G073 source-edit lockout active. Repository binding preflight returned PREFLIGHT_COMMITTED with decisionId rb:vscode-809ebe73e214a29c7507f9aafbc29f02:15 at controlRevision 15, authority explicit-repository-root, transition confirmed. MODIFIED exactly two artifacts: specs/015-recommendation-outcome-ledger-and-track-record/spec.md and this state.json. No source file was touched - no *.html, *.js, *.mjs, tools.json, index.html, rlnav.js, data/**, briefs/**, notes/**, scripts/**, or tests/**. design.md was NOT edited (bubbles.design-owned, complete at 1757 lines). scopes/, report.md, and uservalidation.md were NOT created (plan-owned). Specs 002, 012, 013, 014, and 016 are being authored by concurrent sessions and were neither read for mutation nor written. DEFECT: spec.md asserted the unresolvable-legacy ledger size as bare constants (160 rows / 78 distinct recommendation keys / 32 runs) on a surface whose entire purpose is refusing to ship stale numbers. The scheduler publishes four times a day, so those literals decay on every window. RECOUNTED INDEPENDENTLY THIS RUN rather than copying the design run's figures: 165 rows, 83 distinct recommendationKeys, 33 runs, eventType distribution {proposed: 165} with zero closures, spanning dist-2026-07-19-after-hours to dist-2026-07-28-pre-market in the single ledger file briefs/history/recommendations/2026-07.jsonl. Also recounted the adjacent object-store evidence in the same Problem block and found it stale by the same mechanism: tool-briefs 233 -> 255 and final-briefs 32 -> 33. An initial flat ls of tool-briefs returned 22 and was NOT trusted; the store is sharded across 22 subdirectories, so the recursive count of 255 is the authoritative one. The load-bearing zeros were re-verified and still hold across all 581 objects: 0 objects with a non-empty recommendations[] array and 0 objects containing a persisted subject field, so the permanent-unresolvability conclusion is unchanged. CHANGES: (1) Problem section now cites 165/83/33 as an explicitly point-in-time observation dated 2026-07-28, states that every count grows with every window until the frozen-claim contract lands, and forbids any downstream artifact from carrying the number forward as a literal; (2) object-store bullets recounted with the same dated framing, marking the zeros rather than the magnitudes as the invariant; (3) the Consequence sentence and the eventType-distribution paragraph re-expressed so the invariant is the SHAPE (every row proposed, zero closures) rather than a magnitude; (4) HC-4 restated as a render-time computation requirement - the count must be computed by counting the ledger at render time and a hardcoded literal on the surface is ITSELF a violation of the constraint, because a frozen number silently becomes a false one; (5) BP-015-002, BS-005 and AC-008 restated to the same render-time-computation contract, with BS-005 gaining an explicit And clause forbidding a hardcoded literal; (6) RL-001 rewritten as a growing point-in-time figure whose final size is whatever the ledger holds on contract day, and which must be counted on the surface rather than quoted from the spec; (7) all nine wireframe occurrences of the once-real literal 160 replaced with the render-time substitution token <N>, which is exactly three characters wide so every ASCII box stayed byte-aligned - verified programmatically, all eight box-resident <N> lines match their own frame border width (78, and 32 in the narrow-reflow frame); (8) the wireframe preamble now defines <N> as a render-time substitution rather than a number to copy, and moves the multiplicity family count into the declared illustrative set so it no longer reads as measured; (9) vocabulary rule 7 de-literalised. Two box runs at lines 663, 701 and 786 measure 77 characters against a 78-character frame; these are the pre-existing bubbles.ux shading-bar and tick-label lines, were NOT touched by this run, and are reported rather than silently fixed because they are foreign-owned cosmetic drift, not part of this correction. Meaning preserved throughout: the legacy rows remain permanently unresolvable, must be shown, and must never be back-filled, imputed, or silently dropped. No section heading, requirement ID, scenario ID, risk ID, or acceptance-criterion ID was added, removed, or renumbered. Status left at not_started and certification.* untouched. Verification: grep confirms zero surviving occurrences of 160, 233, '32 runs', '160 rows', '78 distinct' or '32 objects' anywhere in spec.md except the single intentional 'and 78 distinct claim families' in the preamble's declared illustrative set."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-28T21:04:00Z",
+            "finishedAt": "2026-07-28T21:14:00Z",
+            "outcome": "completed_owned",
+            "summary": "Planning chunk 1 of 3. BOOKKEEPING NOTE: this executionHistory entry was appended by the orchestrating bubbles.goal runner AFTER independently verifying the artifacts on disk, because the bubbles.plan subagent terminated without returning output and without appending its own entry. The artifacts themselves are the subagent's work and were not authored by the orchestrator; only this record was added. VERIFIED ON DISK: scopes/_index.md (41933 bytes, 10 sections) plus four scope directories with scope.md at 198/200/175/308 lines - 01-frozen-claim-contract, 02-additive-ledger-row-extension, 03-resolved-flat-sentinel-and-resolution-record, 04-deterministic-outcome-resolver. certification.scopeProgress populated with all TEN planned scopes and a clean DAG (01 root; 02,03 depend on 01; 04 on 1-3; 05 on 2-4; 06,07 on 05; 08 on 07; 09 on 1-8; 10 on 06,09). DoD discipline verified clean: 119 unchecked items, 0 checked. _index.md carries the execution outline, mermaid dependency graph, scope table, complete BS-001..BS-012 ownership map, UI-01..UI-35 ownership map, refusal-code ownership, D11 resolution, routed findings, cross-cutting sequencing rules, and a verified command surface. SEVEN FINDINGS ROUTED, four BLOCKING, none fixed by planning: P-015-01 the authored subject is multi-clause prose on all five live actions so it cannot key data/bars/ and D1's positional-fallback guard does not catch it (blocking, bubbles.design + Feature 002 owner); P-015-02 the horizon vocabularies do not intersect, design declares intraday/next-session/multi-session/event-bound while the live payload uses structural/swing/tactical with no mapping declared (blocking, bubbles.design); P-015-03 thesisFamily has no live source on the authored action and planning refused to invent it because setting it to actionFamily would flatten distinct theses onto one reducer entry key (blocking, bubbles.design + Feature 002 owner); P-015-07 the D4 session predicate counts only dateState === regular, which skips the two early-close rows 2026-11-27 and 2026-12-24 that carry non-null regular blocks 09:30-13:00 ET and are genuine trading sessions, so a next-session claim proposed before either resolves one session too far out - a silent one-session lookahead produced by the anti-lookahead machinery itself and a direct HC-5 violation (blocking, bubbles.design); P-015-04 the D6 registration table omits journeys.json definitions and the experience.journeyDefinitionIds block requiring at least two goals, tripping four count assertions in scripts/validate-tool-experience.mjs (advisory, bubbles.design); P-015-05 FR-017 names RLCHART.attach which dispatches to attachLegacy and stamps data-rlchart-migration-required=true, so a literal reading ships a new tool pre-flagged with migration debt (advisory, bubbles.analyst); P-015-06 UI-25 asserts table[data-chart-fallback] which has zero repo-wide occurrences against the repo's real tableTargetFor / links.sameDataTable binding (advisory, bubbles.analyst). Chunks 2 and 3 (scopes 05-10) remain, and the four blocking findings are being routed to bubbles.design before planning continues so that scopes 05-10 are not planned on an invalidated D1/D4 contract."
+        },
+        {
+            "agent": "bubbles.design",
+            "phasesExecuted": [
+                "design"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-28T22:40:00Z",
+            "finishedAt": "2026-07-28T23:00:23Z",
+            "outcome": "completed_owned",
+            "summary": "Design remediation pass addressing the five design-owned findings routed by bubbles.plan. design.md grew 1757 -> 2092 lines (14 sections). Fixes: (P-015-01) D1 keys the frozen claim on a resolvable instrument identity rather than a prose subject; (P-015-02) D1 carries its own horizon vocabulary instead of a fabricated mapping onto the publisher key; (P-015-03) thesisFamily is treated as authored-or-not-evaluable rather than inferred; (P-015-04) D6's registration surface was corrected to match what scripts/validate-tool-experience.mjs actually enforces; (P-015-07, BLOCKING, HC-5) D4's trading-session predicate was re-keyed from dateState === 'regular' to regular !== null over tradingDate. Orchestrator independently verified P-015-07 before routing and again after the fix: data/calendars XNYS 2026 has 365 rows partitioning by dateState as {regular: 249, weekend: 104, holiday: 10, early-close: 2}, and BOTH early-close rows (2026-11-27, 2026-12-24) carry non-null regular blocks spanning 09:30:00-05:00 to 13:00:00-05:00 - genuine 3.5h trading sessions. True session count is 251, not 249. The dateState filter would step a next-session claim entered 2026-11-26 to 2026-11-30 instead of 2026-11-27, admitting an extra session of price movement into a predicate frozen over a shorter window - a silent HC-5 lookahead produced by the anti-lookahead machinery itself, with no error raised and no bar missing. The design now prescribes isSession = (row) => row.regular !== null && row.regular !== undefined, demotes dateState to descriptive metadata plus the earlyClose provenance flag, and records that every weekend/holiday row has regular === null so the 251 non-null rows partition exactly as {regular: 249, early-close: 2}. The design also corrects the date field from row.date to row.tradingDate, noting that row.date is undefined on every row and would produce a non-deterministic sort - an HC-10 failure as well as an HC-5 one. The subagent terminated without emitting a result envelope or writing this bookkeeping entry; the orchestrator verified each fix directly against design.md and the committed calendar before recording it. No foreign-owned artifact was modified."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-29T00:10:00Z",
+            "finishedAt": "2026-07-29T00:48:00Z",
+            "outcome": "completed_owned",
+            "summary": "Bounded planning pass, chunk 2 of 4. AUTHORED scopes/05-cohort-and-scoring-model/scope.md, scopes/06-owner-read-and-center-contract/scope.md, and scopes/07-simple-view-and-shared-shell/scope.md (830 lines total) against the scopes/_index.md contract written in chunk 1. Test Plan / DoD parity verified per scope; zero DoD items pre-checked. Six findings were returned. Finding 1 was an ORCHESTRATOR ERROR, not a plan error: the chunk-2 dispatch brief mandated Test Plan IDs of the form TP-NN-MM, but scopes 01-04 authored in chunk 1 already used T-NN-XN with a category letter (for example T-01-F1, T-04-E1). The orchestrator confirmed the discrepancy by extracting the real IDs from scopes 01-04, judged the existing T-NN-XN scheme superior because it encodes the test category in the identifier, and directed chunk 3 to normalize scopes 05-07 UP to T-NN-XN rather than degrade scopes 01-04 down to the scheme the faulty brief had specified. The subagent terminated without emitting a result envelope; this entry was written by the orchestrator after verifying the three scope files directly."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-29T00:55:00Z",
+            "finishedAt": "2026-07-29T01:40:00Z",
+            "outcome": "completed_owned",
+            "summary": "Bounded planning pass, chunk 3 of 4. NORMALIZED Test Plan identifiers in scopes 05-07 from TP-NN-MM to the house T-NN-XN scheme established by scopes 01-04, then AUTHORED scopes/08-power-view-and-charts/scope.md, scopes/09-committed-validator-and-closed-codes/scope.md, and scopes/10-registration-notes-and-regression-closure/scope.md, completing all ten scope.md files. Two blocking findings were returned, the first of which the orchestrator verified and repaired directly: all ten scope.md files used a level-2 '## Definition of Done' heading, but artifact-lint requires a level-3 '### Definition of Done' and terminates its section extraction at the next '^### ' line. A naive promotion would have broken extraction because each DoD block contains '### Core items' / '### Test items' / '### Build Quality Gate' subsections which would have fired the terminator immediately and yielded an empty section. The orchestrator applied the correct three-part fix uniformly across all ten scopes: promoted 'Definition of Done' to level 3, demoted its three subsections to level 4, and promoted the following section to level 3 so extraction terminates cleanly. Verified by simulating the linter's exact extraction logic per scope: 346 checkboxes extracted, all unchecked, zero invalid bullets."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-29T01:45:00Z",
+            "finishedAt": "2026-07-29T02:05:00Z",
+            "outcome": "completed_owned",
+            "summary": "Bounded planning pass, chunk 4 of 4 — evidence scaffolds, authored directly by the orchestrator after two consecutive subagent dispatches terminated without writing. CREATED uservalidation.md with the required '## Checklist' section carrying 22 checked-by-default baseline items, each stated as user-observable behavior derived from the spec.md acceptance criteria and hard constraints rather than as an internal implementation detail. CREATED the ten scopes/NN-*/report.md evidence scaffolds, each honestly recording 'Not started' with no implementation, no command execution, and no claimed evidence, and each carrying the house evidence-contract header plus Summary, Test Evidence, and Completion Statement sections. Also CORRECTED one drafting slip in scopes/_index.md: the scope-02 validation checkpoint hardcoded '165 committed pre-contract rows', which contradicts the plan's own resolved finding F-015-D5-02 that no legacy-count literal may ship because the count is a moving target. Independently confirmed the drift this run — the ledger has grown from 160 rows / 78 keys / 32 runs at analyst authoring, to 165/83/33 at design, to 175 rows / 92 keys / 35 runs now — so the checkpoint was rewritten to derive the count at test time. artifact-lint now reports PASSED for the feature; DoD discipline verified at 346 unchecked and 0 pre-checked."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-29T02:30:00Z",
+            "finishedAt": "2026-07-29T02:55:00Z",
+            "outcome": "completed_owned",
+            "summary": "Planning remediation — closed Gate G068 (DoD-Gherkin content fidelity, 10 findings). Root cause was understood before dispatch: the guard's matcher prefers an exact SCN-ID match and only falls back to a >=50% word-overlap heuristic, and 015's DoD items are too technical to overlap with scenario titles. Adopted the ID path the guard's own comments describe as superior. TAGGED all 15 Gherkin Scenario lines across the 10 scope files with stable SCN-015-NNN identifiers, and ANNOTATED exactly one existing Test-item DoD entry per scenario with ' — proves SCN-015-NNN'; every DoD item remained byte-identical apart from that appended suffix, and no item was weakened, reworded, or checked. EXTENDED scenario-manifest.json from 12 to 15 entries, adding SCN-015-013/014/015 for the three scope-02 derived scenarios with businessScenarioId null. Gate G057 (scenario manifest integrity) closed as a direct and correct side effect, since the manifest now covers all 15 scenarios rather than 12. Guard failedGateIds went from [G057,G068,G089,G094] to [G089,G094] and failureCount from 74 to 61. Checkbox discipline verified unchanged at 346 unchecked / 0 checked."
+        },
+        {
+            "agent": "bubbles.design",
+            "phasesExecuted": [
+                "design"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-29T03:30:00Z",
+            "finishedAt": "2026-07-29T03:55:00Z",
+            "outcome": "completed_owned",
+            "summary": "Design remediation — closed Gate G094 (capability foundation, 3 findings). ADDED '## Capability Foundation', '## Concrete Implementations', and '### Variation Axes' to design.md (+140 lines, inserted between '## Architecture Overview' and '## D1'). The agent read the guard source rather than guessing and reported the exact anchored regexes, the real enforced minimum (Variation Axes requires >= 2 entries counted by the guard's own awk; 10 were supplied), and a hidden downstream coupling: satisfying all three headings flips has_design_split=true, which then additionally demands scope-level 'foundation:true' and a 'Depends On ... foundation' declaration — it verified scope 01 already carried both BEFORE editing, so closing G094 could not open two new findings. Content is substantive rather than heading-shaped: the foundation is framed as a provider-neutral measurement loop for dated falsifiable claims, with a 5-row foundation contract, explicit extension points, 3 concrete implementations (CI-1 Market Action Center claim IN SCOPE; CI-2 tool-brief claim and CI-3 cycle/seasonality claim marked FUTURE and explicitly carrying no delivery commitment), and 10 variation axes all referencing vocabularies already closed in D1/D5. It restates that RLVALID is the statistics foundation consumed READ-ONLY with no fork, wrapper, or eighth primitive, per spec.md HC-1. Reported zero contradictions with D1-D11, and disclosed one freshness-only edit to the Reading Order preamble so it did not go stale. Guard failedGateIds went from [G089,G094] to [G089] and failureCount from 61 to 60."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-29T04:00:00Z",
+            "finishedAt": "2026-07-29T04:20:00Z",
+            "outcome": "completed_owned",
+            "summary": "Planning remediation — closed 32 findings in two classes. Class A: the 30 regression-E2E planning requirements across all 10 scopes (per scope, a DoD item for scenario-specific regression E2E coverage, a DoD item for broader E2E regression suite coverage, and an explicit scenario-specific regression E2E Test Plan row). Class B: the 2 SLA-sensitive stress-coverage findings on scope 06 (owner read consumed by the Center) and scope 08 (Power view rendering charts over the full ledger), with bounds cross-checked against spec.md '## Non-Functional Requirements' rather than invented. All added rows reuse the already-planned test files and continue the established T-NN-XN identifier scheme. Guard failureCount fell from 50 to 17 with failedGateIds still [G089]. Integrity verified independently by the orchestrator afterwards: 0 checked checkboxes, all 15 ' — proves SCN-015-NNN' annotations preserved, 10/10 '### Definition of Done' headings intact, artifact-lint still PASSED."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "blocked",
+            "startedAt": "2026-07-29T04:25:00Z",
+            "finishedAt": "2026-07-29T04:45:00Z",
+            "outcome": "completed_owned",
+            "summary": "Final planning remediation — closed the last 13 fixable findings in three classes, taking guard failureCount from 17 to 1. Class A: Consumer Impact Sweep for scope 08, with a 7-row consumer table that states honestly that the scope renames nothing it owns and then traces what actually matters — rlchart.js co-consumers, the orderedPointIds-to-table row-id binding, the six panel ids, and the a[data-owner-tool] deep links that cross into scope 10's tools.json registry where a renamed tool file yields a dead link on a still-rendering row. Class B: Shared Infrastructure Impact Sweep for scopes 01 and 09, each with canary and rollback/restore DoD items plus explicit canary Test Plan rows, anchored on the verified repository baseline of 952 passed / 0 failed and rehearsed in a disposable detached worktree rather than the live tree because concurrent sessions share this checkout. Class C: Change Boundary for scope 05 with explicit allowed and excluded surface tables naming rlvalidation.js (Feature 007, HC-1), rlcontracts.js (Feature 002), and the Feature 013-protected persisted rldata.js cache schema as excluded. The agent also detected and pre-empted a non-obvious coupling that would otherwise have caused another remediation round: the Change Boundary check triggers on the literal string 'Shared Infrastructure Impact Sweep', so satisfying Class B creates a fresh Class C obligation in scopes 01 and 09; it added Change Boundary sections there proactively. Parity was verified computed rather than declared (rows == declared == testDoD for all 10 scopes). Orchestrator verified independently: 376 unchecked / 0 checked, 15/15 SCN annotations, 10/10 DoD headings, artifact-lint PASSED, and the repository baseline still green at 952 passed / 0 failed."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "blocked",
+            "startedAt": "2026-07-29T04:45:00Z",
+            "finishedAt": "2026-07-29T04:50:00Z",
+            "outcome": "completed_owned",
+            "summary": "[Timestamps re-anchored 2026-08-10: this entry is a CONSOLIDATION, not a discrete run. Its original 02:10-04:50 stamps asserted a contiguous 2h40m execution that never happened as one run; the underlying work was interleaved with, and is already itemized by, the 02:30, 03:30, 04:00 and 04:25 entries, so the span double-counted their wall clock and violated the sequential-execution invariant. The entry now carries the window in which the consolidated record was written; the span it covers is preserved verbatim in recordedSpan.] Orchestrator-authored control-plane and parity repairs performed across the remediation sequence, recorded here as one entry. (1) Gate G056: added the missing certification.lockdownState block ({active:false, lockedScenarioIds:[]}) matching the shape used by spec 012. (2) Gate G089 format defect: converted specDependsOn from rich objects to the house string-array form after verifying that specs 009, 010 and 012 all use strings and pass, while specs 014 and 015 used objects and both failed — 015 had inherited the defect by copying 014's format. No rationale was lost: the full dependency boundary rationale already lives in spec.md '### Boundary against concurrent features'. (3) Check 5B _index.md-to-scope.md status parity, 10 findings: diagnosed by reading the guard source and simulating its extraction, which showed it picks the FIRST row matching '^| N |' via head -n 1 and then reads the LAST non-empty column as the status. That row was the execution-outline table whose last column is prose rationale, so every scope mismatched; the real status table later in the file was never consulted. Fixed by appending a Status column as the final column of the execution-outline table, which is both the minimal change and semantically useful. Check 5B now PASSES for all 10 scopes. (4) Created scenario-manifest.json with the initial 12 business scenarios mapped to owning scopes using the _index.md ownership table, matching spec 012's exact 14-key entry shape and validated enum vocabularies. (5) Corrected the hardcoded '165 committed pre-contract rows' literal in the scopes/_index.md scope-02 checkpoint. (6) Authored uservalidation.md and the ten scope report scaffolds. Final verified state: artifact-lint PASSED, guard failureCount 1 with failedGateIds [G089], 376 unchecked / 0 checked DoD items, repository baseline 952 passed / 0 failed. Status set to 'blocked' rather than left at 'not_started' because planning is genuinely complete and the sole remaining blocker is external; specDependsOn was deliberately NOT trimmed to pass G089.",
+            "recordedSpan": "2026-07-29T02:10:00Z/2026-07-29T04:50:00Z"
+        }
+    ],
+    "activeBugs": [],
+    "resolvedBugs": [],
+    "failures": [],
+    "lastUpdatedAt": "2026-08-13T04:45:00Z",
+    "scopeLayout": "per-scope-directory",
+    "artifacts": {
+        "spec": "spec.md",
+        "design": "design.md",
+        "scopes": "scopes/_index.md",
+        "report": "report.md",
+        "uservalidation": "uservalidation.md",
+        "scenarioManifest": "scenario-manifest.json",
+        "lockdownApprovals": "lockdown-approvals.json",
+        "invalidationLedger": "invalidation-ledger.json",
+        "transitionRequests": "transition-requests.json",
+        "reworkQueue": "rework-queue.json"
     },
-    "regression": {
-      "mode": "protected-scenarios",
-      "source": "repo-default"
+    "statusDiscipline": {
+        "validStatuses": [
+            "not_started",
+            "in_progress",
+            "blocked",
+            "specs_hardened",
+            "docs_updated",
+            "validated",
+            "done"
+        ],
+        "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+        "scopeDoneGates": [
+            "G020",
+            "G021",
+            "G022",
+            "G023",
+            "G024",
+            "G025",
+            "G055",
+            "G056",
+            "G057",
+            "G058",
+            "G059",
+            "G060",
+            "G061"
+        ],
+        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion. Workflow mode product-to-planning has ceiling specs_hardened, so this packet cannot reach done under the current mode without a mode change."
     },
-    "validation": {
-      "mode": "certification-required",
-      "source": "repo-default"
+    "notes": "Analyst authoring complete; spec.md only. design.md, scopes/, report.md, and uservalidation.md are intentionally ABSENT - they are foreign-owned (bubbles.design, bubbles.plan) and artifact-lint will correctly report them missing until those owners run. scopeLayout is declared per-scope-directory as a recommendation because the feature spans four sequential capability layers (frozen claim contract, deterministic resolver, RLVALID scorer/tool, Center consumption) and is expected to exceed six scopes; bubbles.plan owns the final layout decision and may override it. certification.scopeProgress is intentionally EMPTY because no scopes have been planned - populating it here would be fabrication. The single most important design input is spec.md RL-001: every pre-contract ledger row is cryptographically anonymous and can never be scored (recounted 2026-07-28 at 165 rows across 83 keys, still growing at four windows a day until the claim contract lands), so the track record necessarily starts at zero on the day the claim contract lands, and spec.md HC-4 forbids back-filling, imputing, or silently dropping them - and further requires that the count be computed from the ledger at render time rather than shipped as a literal. The second is HC-7: rlvSummarizeOutcomes absorbs exactly-zero into its unresolved count, so the resolver needs a resolved-flat sentinel rather than a change to the Feature 007 primitive. Sequencing risk is named in RL-009 - Features 002, 012, and 013 are all blocked and 015 extends 002's row contract while consuming 012's surface.",
+    "blockedReasonResolved": {
+        "resolvedAt": "2026-08-10T23:58:00Z",
+        "resolution": "G073 (source-code edit lockout) was the sole failed gate and was an EXTERNAL working-tree condition, not a defect in 015: a concurrent Feature 004 session held five uncommitted tracked files (.vscode/mcp.json, rlbrief.js, rlexperience.js, rlfx.js, rljourney.js) matching the gate pattern. Those files are now committed and the working tree is clean, so G073 passes. Two executionHistory integrity defects surfaced once G073 cleared and were repaired: a placeholder zero-duration analyst entry now declares durationUnmeasured with a reason, and a self-declared consolidation entry that double-counted wall clock was re-anchored to its recording window with the covered span preserved in recordedSpan. Guard now reports failureCount 0, verdict PASS at targetStatus specs_hardened.",
+        "priorBlockedReason": "GATE G089 NOW PASSES. Guard re-run 2026-08-04T13:52:05Z against specs/015-recommendation-outcome-ledger-and-track-record: Check 31 reports 'PASS: Inter-spec dependencies are stable or explicitly flagged for revalidation (Gate G089)', and G089 appears in passedGateIds. The G089 dependency blocker previously recorded in this field is SUPERSEDED; it survives verbatim in blockedReasonAddendum and ownerDecisionAddendum as history and is not edited. WHY IT PASSES: the D10 finding that the previous blockedReason itself routed to the spec owner was ruled on as OD-015-01, recorded in spec.md 'Owner Decisions' BEFORE specDependsOn was touched. specDependsOn is now one entry, specs/002-distributed-tool-briefs-and-history, verified on disk 2026-08-04 as status 'done', certification.status 'done', certifiedAt 2026-07-29T23:45:00Z, requiresRevalidation false. 002 is KEPT because 015 genuinely extends 002-owned capability -- the brief-recommendation-history-row/v1 row contract, CLOSE_EVENT_TYPES (rlcontracts.js#L720) and reduceRecommendationEvents (rlcontracts.js#L1134), all three re-verified present this run. 007, 012 and 013 were REMOVED because every capability 015 draws from them is already delivered and consumed read-only -- the RLVALID primitive set exported at rlvalidation.js#L156, and RLDATA.putToolRead (rldata.js#L549, exported #L738), the d.toolReads[id] slot and RLBRIEF.renderToolReads (rlbrief.js#L1140, exported #L1269) -- or is not consumed at all (013, prohibitions only). The residual coupling was to those specs' certification standing, which is exactly what anti-drift rule D10 forbids blocking on. G089 was NOT narrowed, waived, exempted or bypassed and nothing under .github/bubbles/** was modified; it passes because its one remaining entry is genuinely done. SOLE FAILED GATE: G073 (source-code edit lockout), an EXTERNAL WORKING-TREE CONDITION, NOT a defect in 015. Guard ledger: verdict FAIL, exitStatus 1, failedGateIds [G073], blockingCode SOURCE_EDIT_LOCKOUT, failureCount 7. Workflow mode 'product-to-planning' (ceiling 'specs_hardened') forbids undeclared source edits anywhere in the repository, and a CONCURRENT Feature 004 session is holding five uncommitted tracked files that match the gate's source-extension pattern and fall outside its allowed-path allowlist (specs/, docs/, .github/, .specify/, CHANGELOG, README, LICENSE, VERSION): .vscode/mcp.json, rlbrief.js, rlexperience.js, rlfx.js, rljourney.js. Enumerated 2026-08-04 by applying the guard's own two regexes to the real index and working tree -- 0 staged files, 23 unstaged. That same session's other edits are exempt and correctly not counted: .github/workflows/pages.yml and .github/workflows/tier-a.yml are allowed-path, and its tests/*.mjs edits do not match the source-extension pattern. The 7 failures decompose as 5 per-file G073 fails, 1 G073 summary fail, and 1 Check 43 evidence-receipt CLONE block whose colliding receipts are all cited by 'node --test tests/feature-004-*.test.mjs' commands -- also produced by that same concurrent session. CLEARING ACTION: the Feature 004 session commits or stashes those five files, then re-run 'bash .github/bubbles/scripts/state-transition-guard.sh specs/015-recommendation-outcome-ledger-and-track-record'. 015 MUST NOT list those files in its own deliverableFiles[] to silence G073; it does not own them, and declaring another feature's in-flight work as 015's deliverable would be a gate-passing edit. 015 REMAINS BLOCKED ON ITS OWN MERITS INDEPENDENTLY OF G073. Four routed findings are still open and still marked Blocking in scopes/_index.md 'Routed findings', re-verified 2026-08-04, and their carrying scopes are still 'not_started' in certification.scopeProgress (all 10 scopes are not_started). P-015-01: the authored subject is prose, not a resolvable identifier, so it cannot key data/bars/ nor populate seriesRef, and D1's positional-fallback guard does not catch it because a prose subject is still a string; owner bubbles.design plus the Feature 002 owner; blocks scope 02. P-015-02: the horizon vocabularies do not intersect -- design D1/D4 declare intraday, next-session, multi-session, event-bound while the live payload authors structural, swing, tactical, with no mapping declared anywhere; owner bubbles.design; blocks scope 02. P-015-03: thesisFamily has no live source on the authored action, so D5's lever table and the F-015-D4-01 reducer-key bridge have no input, and inventing one would flatten distinct theses onto a single reducer entry key; owner bubbles.design plus the Feature 002 owner; blocks scope 04. P-015-07: the horizon session predicate counts only dateState 'regular' and therefore skips the two committed early-close sessions 2026-11-27 and 2026-12-24, which carry non-null regular blocks, producing a one-session lookahead in the resolver's own horizon derivation; owner bubbles.design; blocks scope 04. None of the four is owned by the spec owner and none is resolved by OD-015-01. OPERATOR ACTION TO UNBLOCK 015 ITSELF: route P-015-01, P-015-02, P-015-03 and P-015-07 to bubbles.design, with the Feature 002 owner consenting on P-015-01 and P-015-03, and record the rulings before scopes 02 and 04 become executable. Advisory findings P-015-04, P-015-05 and P-015-06 remain non-blocking and do not gate promotion."
+    },
+    "routedFindingsReconciliation": {
+        "recordedBy": "orchestrator",
+        "recordedAt": "2026-08-10T17:40:00Z",
+        "question": "ownerDecisionAddendum.whyStillBlocked (recorded 2026-08-04) states that this spec remains blocked on four Blocking routed findings. The packet now carries status specs_hardened. This field records why that is truthful, because a status that silently contradicts a recorded owner ruling is exactly the drift this packet elsewhere corrects.",
+        "findingsAreNotResolved": "P-015-01 (authored subject is prose, not a resolvable identifier), P-015-02 (horizon vocabularies do not intersect), P-015-03 (thesisFamily has no live source) and P-015-07 (horizon session predicate skips the two committed early-close sessions) are ALL still open. None is resolved, waived, downgraded or absorbed. Each remains classified Blocking, each remains owned by bubbles.design and the Feature 002 owner rather than by this packet, and each is still carried on its scope: 02 holds routed:P-015-01 and routed:P-015-02, 04 holds routed:P-015-03 and routed:P-015-07. Both scopes are Not Started.",
+        "whySpecsHardenedIsStillTruthful": "Workflow mode product-to-planning declares statusCeiling specs_hardened, and that ceiling certifies that PLANNING is complete, not that implementation is unblocked. The four findings block the IMPLEMENTATION of scopes 02 and 04; they do not make the planning incomplete. Planning's obligation on each was to identify it, evidence it against the live payload and calendar, and route it to its owner rather than invent an answer. Inventing a thesisFamily value or a horizon mapping would have flattened two distinct theses onto one reducer key and manufactured a contract that no publisher emits, which is precisely the fabrication the routing exists to prevent. Discharging that obligation is what completes planning.",
+        "supersedesOnlyTheStatusString": "ownerDecisionAddendum.whyStillBlocked is retained verbatim as history and is NOT edited. It is superseded ONLY on which lifecycle status the packet carries at the planning ceiling. Its substance is unchanged and remains in force: the four findings are unresolved and are owned elsewhere.",
+        "consequenceForImplementation": "nextRequiredOwner remains bubbles.implement, but implementation of scope 02 and scope 04 MUST NOT begin until the four findings are answered by their owners. specs_hardened authorises the plan, not the build of those two scopes. The remaining eight scopes carry no routed Blocking finding and are not gated by this."
+    },
+    "deliveryTopology": "in-place",
+    "deliveryTopologyJustification": "This packet plans AND implements the recommendation outcome ledger in the same directory: its ten scopes are the implementation plan for specs/015-recommendation-outcome-ledger-and-track-record itself, so there is no separate spec for linkedImplementationSpec to name. planningOnly is false because implementation is genuinely coming, not foregone; all ten scopes remain Not Started and are the work this hardened planning authorises. specs_hardened certifies that the planning is complete, which is the declared statusCeiling for workflow mode product-to-planning.",
+    "routedFindingsResolution": {
+        "recordedBy": "bubbles.design",
+        "recordedAt": "2026-08-13T04:45:00Z",
+        "supersedes": "routedFindingsReconciliation.findingsAreNotResolved",
+        "evidence": "report.md#routed-finding-re-verification--2026-08-13",
+        "decisionRecord": "design.md#routed-design-decisions--recorded-2026-08-13",
+        "findings": [
+            {
+                "id": "P-015-01",
+                "scope": "02-additive-ledger-row-extension",
+                "status": "resolved",
+                "ruling": "Resolution reads only subject.resolvesTo. Absent or empty mints not-evaluable with reason no-authored-subject, excluded from rate denominators but visibly counted in coverage. No prose parsing, regex, NER, or lookup table.",
+                "feature002ChangeRequired": false,
+                "reverified": "0 of 5 live nextSession.actions subjects index data/bars (293 symbols); all are 207-494 char prose; resolvesTo absent on all five."
+            },
+            {
+                "id": "P-015-02",
+                "scope": "02-additive-ledger-row-extension",
+                "status": "resolved",
+                "ruling": "No mapping declared. The claim carries its own horizon.kind; the payload band is preserved as horizon.authoredBand and is non-authoritative.",
+                "feature002ChangeRequired": false,
+                "reverified": "Live band vocabulary structural|swing|tactical vs kind vocabulary intraday|next-session|multi-session|event-bound: zero shared members."
+            },
+            {
+                "id": "P-015-03",
+                "scope": "04-deterministic-outcome-resolver",
+                "status": "resolved",
+                "ruling": "thesisFamily is authored-or-not-evaluable. Absent mints not-evaluable with reason no-authored-thesis-family. No default, no derivation from direction or horizon, no catch-all bucket.",
+                "feature002ChangeRequired": false,
+                "reverified": "thesisFamily absent on all 5 nextSession.actions and all 4 recommendations entries."
+            },
+            {
+                "id": "P-015-07",
+                "scope": "04-deterministic-outcome-resolver",
+                "status": "resolved",
+                "ruling": "The trading-session predicate is regular !== null, selecting 251 sessions. The dateState === regular form is rejected.",
+                "feature002ChangeRequired": false,
+                "reverified": "Committed 365-row XNYS calendar: regular!==null true on exactly 249 regular + 2 early-close, false on all 10 holidays and 104 weekends. Rejected form counts 249 where there are 251."
+            }
+        ],
+        "coConsentDisposition": "P-015-01 and P-015-03 were routed for Feature 002 co-consent because the obvious fix is new publisher fields. That is NOT the decision taken. Every ruling is implementable inside Feature 015 against what the publisher already emits and mutates no Feature 002 contract, schema, or output. Co-consent is discharged by requiring nothing of the other owner; if resolvesTo or thesisFamily are ever authored upstream, claims begin resolving with no Feature 015 change.",
+        "consequence": "Scopes 02 and 04 are no longer gated by a routed Blocking finding. All 10 scopes are now implementable in dependency order. Each of scopes 02 and 04 must record the ruling it implemented in its own scope report."
     }
-  },
-  "transitionRequests": [],
-  "reworkQueue": [],
-  "executionHistory": [
-    {
-      "agent": "bubbles.analyst",
-      "phasesExecuted": [
-        "analyze"
-      ],
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "startedAt": "2026-07-28T00:00:00Z",
-      "finishedAt": "2026-07-28T00:00:00Z",
-      "outcome": "completed_owned",
-      "summary": "Analyst authoring pass. CREATED specs/015-recommendation-outcome-ledger-and-track-record/spec.md with the analyst-owned sections: Problem, Outcome Contract (HC-1..HC-10), Domain Capability Model (P1..P9, BP-015-001..006), Capability Inventory, Actors And Personas, Use Cases (UC-001..005), Business Scenarios (BS-001..012), Functional Requirements (FR-001..022), Non-Functional Requirements, UI Scenario Matrix, Competitive Landscape, Improvement Proposals (IP-001..005), Acceptance Criteria (AC-001..018), Known Risks And Honest Limitations (RL-001..010), Downstream Owner Handoffs, and UI Wireframes. Findings verified by execution this run, not assumed: (1) briefs/history/recommendations/2026-07.jsonl holds 160 rows / 78 distinct recommendationKeys / 32 runs with eventType distribution {proposed: 160} and zero closures; (2) the row contract brief-recommendation-history-row/v1 carries only canonicalMonth, contractVersion, eventId, eventType, occurredAt, recommendationKey, runId - no subject, instrument, horizon, predicate, or confidence; (3) recommendationKey is a one-way sha256 of {contractVersion, subject, family} built at scripts/brief-distributed-publish.mjs#L405 whose preimage is persisted NOWHERE - 233 tool-brief objects have 0 with a non-empty recommendations[] array, the 32 final-brief objects carry no recommendations key at all, and a scan of briefs/objects/ for a persisted subject field returns 0 objects, making the existing history permanently unresolvable and forcing spec.md HC-4 (track record starts at zero, never back-filled); (4) rlvalidation.js exports the seven RLVALID primitives at the cited lines and no brief script references them (grep across scripts/brief-*.mjs and scripts/validate-brief-*.mjs returned zero matches); (5) validate-brief-payload.mjs#L75 enforces a confidence floor and the config caps tactical confidence at the same value, pinning tactical actions to exactly 55; (6) data/bars/ holds 289 committed symbol files and data/options/ holds 23 snapshots, so offline deterministic resolution is feasible with no new provider surface; (7) repository baseline node scripts/selftest.mjs reported 952 passed / 0 failed. No foreign-owned artifact was created or modified: design.md, scopes, report.md, and uservalidation.md are intentionally absent and are owned by bubbles.design and bubbles.plan.",
-      "durationUnmeasured": true,
-      "durationUnmeasuredReason": "Both timestamps are the placeholder 2026-07-28T00:00:00Z (round midnight), recorded by the authoring pass rather than measured from a clock. The pass itself is substantial and evidenced in spec.md (HC-1..HC-10, FR-001..022, AC-001..018) and in the seven verified findings in this summary, including a repository selftest run; only its wall-clock span is unknown."
-    },
-    {
-      "agent": "bubbles.ux",
-      "phasesExecuted": [
-        "ux"
-      ],
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "startedAt": "2026-07-28T14:40:00Z",
-      "finishedAt": "2026-07-28T14:54:30Z",
-      "outcome": "completed_owned",
-      "summary": "UX authoring pass under product-to-planning with G073 source-edit lockout active. MODIFIED exactly one artifact, specs/015-recommendation-outcome-ledger-and-track-record/spec.md, plus this state.json. No source file was touched: no *.html, *.js, *.mjs, tools.json, index.html, rlnav.js, data/**, or tests/**. REWROTE '## UI Scenario Matrix' from 9 shallow rows into 35 testable rows (UI-01..UI-35), each carrying BS/AC linkage, actor, entry point, precondition, user action, observable outcome, view, and the concrete e2e-ui assertion; coverage spans empty, insufficient, sufficient, cohort steering, calibration drill, empty-bucket rendering, multiplicity, session cohort-shopping, closure mix, denominator composition, withdrawal bounds, not-evaluable, resolved-flat, legacy disclosure permanence and non-dismissibility, ticker linking, tooltips, chart hover, chart table equivalents, auto-hydrate, status reporting, mode persistence, narrow reflow, and the no-action guarantee. REWROTE '## UI Wireframes' from 3 frames to 9 frames with real user-facing copy rather than placeholders: Simple sufficient, Simple insufficient, Simple empty, the legacy why-expansion, Power calibration, Power distribution with its RLCHART hover tooltip and table equivalent, Power multiplicity, Power raw ledger, and the sub-520px reflow. ADDED '## Interaction And Steering Model' (five Simple-view levers with live in-memory recompute, six explicitly rejected levers with reasons, localStorage persistence shape, auto-hydration and status reporting, chart wiring, deep links, and null-safety at first paint) and ADDED '## Honest-State Vocabulary' (an 11-row state-label table giving the exact user-facing word, the shown-when condition, the tooltip copy and the banned alternatives for each of sufficient/insufficient/empty/open/satisfied/invalidated/expired/resolved-flat/withdrawn/not-evaluable/unresolvable-legacy, plus eight vocabulary rules). Did NOT create design.md, scopes.md, report.md, or uservalidation.md; did not promote status or touch certification.*. Repo conventions were verified by reading files, not assumed: the Simple/Power pattern from sector-research-lab.html#L1196 (#modeSeg role=tablist with data-mode buttons), #L3124 (body.classList.toggle('power', ...)), #L3373 (click handler setting state then saveState then render), #L1210 (simple-hero with aria-live=polite), #L1213-1218 (labelled select levers with contextual title tooltips) and #L1085/#L1096 (820px and 520px breakpoints), plus localStorage lever+mode persistence at intraday-tape-lab.html#L1379; RLCHART.attach(canvas, adapterOrHitFn) at rlchart.js#L365 and RLCHART.tip(title, rows, note) at #L41; RLTKR.tag(ticker, opts) at rlticker.js#L112; RLAPP.report(resource, state, detail) at rlapp.js#L73 with the shell state vocabulary fresh/stale/refreshing/missing/error at #L68-L72; the rl-tool-read/v1 frozen key set and availability enum at rldata.js#L436-L450; and the exact RLVALID return shapes at rlvalidation.js#L112 (rlvWilsonInterval returns proportion/lower/upper and requires total>=1) and #L134 (rlvSummarizeOutcomes rejects an empty array with RLV-OUTCOME-VALUES and returns averageWin/averageLoss as null when a side is absent). Two verified arithmetic checks behind the copy: Wilson at 2 of 3 with z=1.96 computes to 21%-94%, matching the analyst figure; and halving a Wilson width requires roughly four times the sample, so n=42 needs about 126 further resolved calls. The wide-interval problem is solved structurally rather than cosmetically by making the range the dominant element with the point estimate rendered as a tick mark inside it, by giving the interval a job (copy stating what the sample already rules out and what it cannot yet distinguish), and by converting waiting into a finite labelled countdown. The permanent legacy disclosure is solved by embedding the 160 count inside the coverage denominator line that a reader must parse to read the sample count at all, using neutral archival language with no warning colour and no dismiss control, so it self-attenuates in relative weight as Scored grows without ever being hidden. SEVEN open questions were recorded as a new '### Open Questions For bubbles.design' subsection (UXQ-1..UXQ-7) rather than guessed at, the sharpest being UXQ-3: the analyst's own illustrative counts imply the rate denominator is satisfied+invalidated only, since 24/42 equals 57 percent, which silently excludes expired 6 and withdrawn 3 without the spec ever declaring that scoring choice."
-    },
-    {
-      "agent": "bubbles.design",
-      "phasesExecuted": [
-        "design"
-      ],
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "startedAt": "2026-07-28T18:47:00Z",
-      "finishedAt": "2026-07-28T19:15:27Z",
-      "outcome": "completed_owned",
-      "summary": "Design authoring pass, chunk 2 of 3, under product-to-planning with G073 source-edit lockout active. MODIFIED exactly two artifacts: specs/015-recommendation-outcome-ledger-and-track-record/design.md and this state.json. No source file was touched - no *.html, *.js, *.mjs, tools.json, index.html, rlnav.js, data/**, briefs/**, or tests/**, and no other spec's artifacts (013, 014, and 016 are being authored by concurrent sessions and were not read for mutation). APPENDED three sections immediately before the trailing RESULT-ENVELOPE without rewriting or restating the chunk-1 sections (Architecture Overview, D1 Frozen Claim Contract, D2 Additive Ledger Row Extension, D3 Resolved-Flat Sentinel): (1) D4 Deterministic Outcome Resolver - due-set selection from the reduction index gated on entry.state === active, calendar-driven horizon expiry from data/calendars/xnys/calendar.json (xnys-calendar/v1, America/New_York, coverage 2026-01-01..2026-12-31, 365 rows) rather than naive date arithmetic, the HC-5 as-of fence implemented by slicing the bar array before predicate evaluation with refusal code RTR-LOOKAHEAD and an explicit skip-vs-refuse distinction, predicate evaluation for threshold/relative/directional/spread including path-dependent crosses-above/crosses-below requiring a complete session path, direction-adjusted magnitude in the claim's declared unit with hold (ACTION_DIRECTION 0) closing not-evaluable, a closure-selection table mapping only into the existing CLOSE_EVENT_TYPES vocabulary through run.closures on the unmodified reduceRecommendationEvents, the three-layer idempotence mechanism, the not-evaluable reason-code set, and the closed RTR-* error namespace; (2) D5 Cohort And Scoring Model - declared constants Z_SCORE 1.96, MIN_COHORT_RESOLVED 20, ANNUALIZATION 252, the five closed cohort levers, the exact per-call mapping into RLVALID, the denominator contract, sufficiency branch, multiplicity context, and the HC-4 legacy-count treatment; (3) D6 Owner Read And Center Consumption - the rl-tool-read/v1 nine-key field set, the Center consumption path through the existing Brief view with no fifth view, shared-shell load order and status reporting, the registration surface, and the FR-021 cache-schema non-touch table. RESOLVED five of the seven UX open questions by decision rather than deferral: UXQ-1 Z_SCORE 1.96; UXQ-2 MIN_COHORT_RESOLVED 20; UXQ-3 the rate denominator is defined by outcomeClass in {win, loss}, NOT by closure event, because a resolved-flat outcome also closes satisfied or invalidated and a closure-event denominator would silently undo HC-7; UXQ-4 zero resolved outcomes map to availability current, never unavailable, since unavailable additionally forces asOf and freshUntil to null and would discard the first-resolves date the honest empty state needs; UXQ-5 withdrawal bounds route through two rlvWilsonInterval calls with different counts rather than inline arithmetic; UXQ-6 the word confidence is reserved for a claim's stated number and the interval fields are named rangeLow/rangeHigh. UXQ-7 was already settled in D3. Code facts asserted in the design were verified by reading the files this run, not assumed: rlvalidation.js rlvSummarizeOutcomes at L134 with wins > 0 at L136, losses < 0 at L137, unresolved by subtraction at L138, winRate dividing by full input length at L147, and an internal rlvQuantiles call at [0.25, 0.5, 0.75] returned as quantiles at L150-151; rlvWilsonInterval at L112 with RLV-WILSON-COUNTS and RLV-WILSON-Z guards and proportion = wins/total at L116; rlvDeflatedSharpe at L87 requiring at least 20 finite positive equity observations and at least 8 returns; rlvAdjustBenjaminiHochberg at L63 and rlvAdjustHolm at L76 both requiring a vector of p-values, which 015 does not produce, so both are declared NOT USED alongside rlvBuildPurgedFolds at L45 rather than wired in for appearance; rlcontracts.js MARKET_ACTIONS at L708, ACTION_DIRECTION at L714, CLOSE_EVENT_TYPES at L720, deriveRecommendationKeys at L1034, lifecycleEventId hashing runId at L1103, reduceRecommendationEvents at L1134, the run.closures block at L1264-1283 including the recommendation-closure-still-active guard at L1276 and the state = closed write at L1280, within-run event dedup at L1298-1305, and indexFingerprint excluding runId at L1313-1316; rldata.js putToolRead at L433 with the rl-tool-read/v1 branch at L436, the exact nine-key set at L437, the availability enum at L439, the read/metrics/deepLink guards at L443, the unavailable-forces-null rule at L444, the deep copy at L445, validateToolModelRead at L378 with recommendationEligibility at L422, and the export map at L624; rlbrief.js renderToolReads at L683 consuming only read, asOf, and deepLink at L689-696; rlapp.js report at L73 with the fresh/stale/refreshing/error/missing vocabulary at L48-49 and L101; rlmarketaction.js CENTER_VIEW_IDS at L77 and the five RLMKT-VIEW refusal points at L589, L626, L629, L634, and L637; market-brief.html shared-shell order at L872-879, the toolReads container at L715, localToolReads at L815, and the renderToolReads call at L827; rlnav.js TOOLS at L45 with the order-mirrors-index comment at L43; index.html TOOLS at L476; the object store containing briefs/objects/evidence/bundles, final-briefs, reads (260 objects across 22 tool directories), and tool-briefs; 289 committed symbol files under data/bars/ with rows shaped {t,o,h,l,c,v} where t is the regular-session open in epoch milliseconds, verified on SPY.json (502 rows, asof 2026-07-27, reconstructedSessions [2026-07-24]). ROUTED five findings to bubbles.plan rather than guessing: F-015-D4-01 the reducer keys on originRecommendationKey derived from {originToolId, thesisFamily, subjects, actionFamily, horizon} while D1 binds to the publisher key derived from {subject, family}, and the bridge needs originToolId and thesisFamily which D1's hashed term set does not carry; F-015-D4-02 reducer idempotence is not self-enforcing because lifecycleEventId hashes runId and the closure block does not reject an already-closed entry, so FR-006 rests entirely on the resolver's due-set gate and needs an adversarial re-run test asserting a byte-identical indexFingerprint; F-015-D5-01 P7 names action type as a cohort lever while the Interaction And Steering Model names claim family and omits action type, and this design adopts the Interaction model's five because they carry the DOM ids the UI Scenario Matrix asserts against; F-015-D5-02 the unresolvable-legacy count is a moving target - spec.md states 160 rows / 78 keys / 32 runs but a re-count of briefs/history/recommendations/2026-07.jsonl this run returned 165 rows / 83 distinct recommendationKeys / 33 distinct runIds, all eventType proposed and all contractVersion brief-recommendation-history-row/v1, so the count must be derived from rows lacking claimRef and asserted once at activation rather than shipped as the literal 160; F-015-D6-01 RLBRIEF.renderToolReads consumes only read, asOf, and deepLink and never renders metrics, so HC-8 on the Center surface is satisfiable only through the read string, and because the renderer looks reads up by tool id against the tools.json array an unregistered tool's read is invisible, which makes FR-019 registration a hard prerequisite for FR-018 rather than bookkeeping. Did NOT write scopes/, report.md, uservalidation.md, scenario-manifest.json, or any certification.* field. Deferred to chunk 3: Design Brief, UI component specs, testing strategy, alternatives and tradeoffs, Complexity Tracking, and Open Questions."
-    },
-    {
-      "agent": "bubbles.design",
-      "phasesExecuted": [
-        "design"
-      ],
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "startedAt": "2026-07-28T19:20:00Z",
-      "finishedAt": "2026-07-28T19:58:00Z",
-      "outcome": "completed_owned",
-      "summary": "Design authoring pass, chunk 3 of 3 - DESIGN AUTHORING IS NOW COMPLETE. Ran under product-to-planning with G073 source-edit lockout active. Repository binding preflight returned PREFLIGHT_COMMITTED with decisionId rb:vscode-809ebe73e214a29c7507f9aafbc29f02:14 at controlRevision 14. MODIFIED exactly two artifacts: specs/015-recommendation-outcome-ledger-and-track-record/design.md and this state.json. No source file was touched - no *.html, *.js, *.mjs, tools.json, index.html, rlnav.js, data/**, briefs/**, notes/**, scripts/**, or tests/** - and no other spec's artifacts (002, 012, 013, 014, and 016 are being authored by concurrent sessions and were neither read for mutation nor written). spec.md was NOT edited (analyst-owned); scopes/, report.md, and uservalidation.md were NOT created (plan-owned). APPENDED five sections immediately before the trailing RESULT-ENVELOPE without rewriting or restating D1 through D6: (1) D7 UI Component Design - the single-file load order amended to place rlcontext.js first because validateStructuredAdapter (rlchart.js L98) requires RLCTX.validateContext synchronously inside attachStructured (L317) and rlg.js's lazy loader at L229 is not a substitute; the one-compute-three-renderings pipeline in which a single deep-frozen scorecard feeds renderSimple, renderPower, buildOwnerRead and buildMetrics so the Center read structurally cannot drift from the page; the full component tree keyed to every DOM id the UI Scenario Matrix asserts against (UI-01 through UI-35); the three-state sufficiency branch which is taken BEFORE any primitive runs because rlvSummarizeOutcomes fails RLV-OUTCOME-VALUES (rlvalidation.js L135) and rlvWilsonInterval fails RLV-WILSON-COUNTS for total < 1 (L113) on empty input; HC-8 enforced at the DOM level through a single rate-emitting helper rather than by copy review; the decision to use the STRUCTURED chart adapter rather than the legacy closure form because attachLegacy (rlchart.js L351) stamps data-rlchart-migration-required=true on the canvas, plus the finding that the structured adapter's contextFor/tableTargetFor invariant makes the accessibility table contractual rather than conventional; the rlg.js glossary pre-emption analysis; auto-hydration and status reporting; accessibility; and steering/persistence. (2) D8 Testing Strategy - mapped to the repo's three real surfaces with no invented runner: node scripts/selftest.mjs (VERIFIED THIS RUN at 952 passed, 0 failed, exit 0), a new committed validator scripts/validate-recommendation-track-record.mjs modelled on scripts/validate-market-action.mjs with an exported validator so it is importable into the baseline exactly as selftest.mjs imports validateBriefPayload at L18, and Playwright specs under tests/ matching playwright.config.mjs testMatch **/*.spec.mjs on project system-chrome; a CONSOLIDATED closed 15-code RTR-* register that supersedes D4's resolver-scoped table as the FR-020 surface, declaring five new codes (RTR-LOCAL-STATISTIC, RTR-REDUCER-FORK, RTR-CENTER-VIEW, RTR-LEGACY-BACKFILL, RTR-ACTION-EMITTED) so every Hard Constraint HC-1 through HC-10 has at least one named adversarial refusal; fifteen named adversarial cases one per constraint; a four-layer determinism proof asserting byte-identical resolution objects, indexFingerprint, serialized scorecard, and owner read; and a TWO-CASE idempotence proof for FR-006 that explicitly covers finding F-015-D4-02 by pairing a positive no-op assertion with an adversarial ACCEPTANCE assertion proving the reducer does not self-enforce and that the due-set gate is therefore load-bearing rather than incidental. (3) D9 Alternatives Considered - six rejected alternatives each with its rejection ground: a fifth Center view (HC-3, refused by RLMKT-VIEW at five checkpoints), local statistics (HC-1, loses the single traceable owner), back-filling the anonymous legacy history (HC-4, and impossible - one-way hash with no persisted preimage, where the real temptation was estimation), forking reduceRecommendationEvents (HC-2, two lifecycle engines would corrupt the ledger rather than fail a test), a null/NaN unresolved sentinel (rejected mechanically because RLV-OUTCOME-VALUES and RLV-QUANTILE-VALUES reject the ENTIRE array on one non-finite element, and a signed epsilon is a lie that survives arithmetic), and manufacturing p-values to use BH/Holm (fabrication wearing a primitive's name). (4) D10 Complexity Tracking - eight honest deviations each with the simpler alternative and why it was rejected, including the reducer key bridge (F-015-D4-01), non-self-enforcing idempotence (F-015-D4-02), calendar-session horizon arithmetic, the closure-event-versus-outcome-class two-axis model, the zero-free array convention, one-compute-three-renderings, the structured chart adapter, and exhaustive title coverage as the mechanism for HC-9; plus an explicit list of complexity NOT taken on. (5) D11 Open Questions For Planning - all eleven findings carried forward with what each blocks. ALSO added the required Design Brief at the top (deferred from chunk 2) and a Reading Order (authoring complete) subsection to Architecture Overview so the document no longer reads as mid-flight, and replaced the chunk-2 RESULT-ENVELOPE. All seven UX open questions (UXQ-1 through UXQ-7) are now closed; nothing is deferred to a later chunk. SIX NEW FINDINGS raised this run and routed to bubbles.plan: F-015-D7-01 data-chart-fallback which UI-25 asserts has ZERO occurrences anywhere in the repository (verified), so 015 would be introducing the convention while the repo's actual mechanism is the structured adapter's tableTargetFor/sameDataTable binding; F-015-D7-02 rlcontext.js must be added to D6's declared load order; F-015-D7-03 rlg.js decorate() at L234 claims any GLOSSARY_SELECTOR element lacking a title and writes a glossary definition into aria-label at L243, and G[horizon] at L63 collides with 015's Horizon lever by injecting trading vocabulary (target, R:R) onto a measurement-only surface, while the glossary carries 9 verified occurrences of UI-33's forbidden tokens at L12/L13/L58/L59/L65/L98 - so exhaustive FR-016 title coverage is the MECHANISM that delivers HC-9 and the two are one DoD item rather than two; F-015-D7-04 UI-33's assertion reads page text and would miss action vocabulary injected into aria-label, so the e2e assertion must be widened; F-015-D8-01 D4's error-code table is not the complete FR-020 register and D8's consolidated table supersedes it; F-015-D8-02 FR-017's wording names the deprecated legacy attach form, which is an analyst decision design did not make unilaterally. Re-verified this run without mutation: the recommendation ledger at briefs/history/recommendations/2026-07.jsonl still holds 165 rows across 83 distinct keys over 33 runs with event type proposed for all 165 (F-015-D5-02 unchanged from chunk 2), data/bars/ holds 289 committed symbol files, and data/calendars/xnys/calendar.json is present. certification.* was NOT written and status was NOT promoted; product-to-planning's ceiling is owned by the status-transition guard and no transition was requested."
-    },
-    {
-      "agent": "bubbles.analyst",
-      "phasesExecuted": [
-        "analyze"
-      ],
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "startedAt": "2026-07-28T20:05:00Z",
-      "finishedAt": "2026-07-28T20:22:00Z",
-      "outcome": "completed_owned",
-      "summary": "Surgical stale-literal correction closing design finding F-015-D5-02. Ran under product-to-planning with G073 source-edit lockout active. Repository binding preflight returned PREFLIGHT_COMMITTED with decisionId rb:vscode-809ebe73e214a29c7507f9aafbc29f02:15 at controlRevision 15, authority explicit-repository-root, transition confirmed. MODIFIED exactly two artifacts: specs/015-recommendation-outcome-ledger-and-track-record/spec.md and this state.json. No source file was touched - no *.html, *.js, *.mjs, tools.json, index.html, rlnav.js, data/**, briefs/**, notes/**, scripts/**, or tests/**. design.md was NOT edited (bubbles.design-owned, complete at 1757 lines). scopes/, report.md, and uservalidation.md were NOT created (plan-owned). Specs 002, 012, 013, 014, and 016 are being authored by concurrent sessions and were neither read for mutation nor written. DEFECT: spec.md asserted the unresolvable-legacy ledger size as bare constants (160 rows / 78 distinct recommendation keys / 32 runs) on a surface whose entire purpose is refusing to ship stale numbers. The scheduler publishes four times a day, so those literals decay on every window. RECOUNTED INDEPENDENTLY THIS RUN rather than copying the design run's figures: 165 rows, 83 distinct recommendationKeys, 33 runs, eventType distribution {proposed: 165} with zero closures, spanning dist-2026-07-19-after-hours to dist-2026-07-28-pre-market in the single ledger file briefs/history/recommendations/2026-07.jsonl. Also recounted the adjacent object-store evidence in the same Problem block and found it stale by the same mechanism: tool-briefs 233 -> 255 and final-briefs 32 -> 33. An initial flat ls of tool-briefs returned 22 and was NOT trusted; the store is sharded across 22 subdirectories, so the recursive count of 255 is the authoritative one. The load-bearing zeros were re-verified and still hold across all 581 objects: 0 objects with a non-empty recommendations[] array and 0 objects containing a persisted subject field, so the permanent-unresolvability conclusion is unchanged. CHANGES: (1) Problem section now cites 165/83/33 as an explicitly point-in-time observation dated 2026-07-28, states that every count grows with every window until the frozen-claim contract lands, and forbids any downstream artifact from carrying the number forward as a literal; (2) object-store bullets recounted with the same dated framing, marking the zeros rather than the magnitudes as the invariant; (3) the Consequence sentence and the eventType-distribution paragraph re-expressed so the invariant is the SHAPE (every row proposed, zero closures) rather than a magnitude; (4) HC-4 restated as a render-time computation requirement - the count must be computed by counting the ledger at render time and a hardcoded literal on the surface is ITSELF a violation of the constraint, because a frozen number silently becomes a false one; (5) BP-015-002, BS-005 and AC-008 restated to the same render-time-computation contract, with BS-005 gaining an explicit And clause forbidding a hardcoded literal; (6) RL-001 rewritten as a growing point-in-time figure whose final size is whatever the ledger holds on contract day, and which must be counted on the surface rather than quoted from the spec; (7) all nine wireframe occurrences of the once-real literal 160 replaced with the render-time substitution token <N>, which is exactly three characters wide so every ASCII box stayed byte-aligned - verified programmatically, all eight box-resident <N> lines match their own frame border width (78, and 32 in the narrow-reflow frame); (8) the wireframe preamble now defines <N> as a render-time substitution rather than a number to copy, and moves the multiplicity family count into the declared illustrative set so it no longer reads as measured; (9) vocabulary rule 7 de-literalised. Two box runs at lines 663, 701 and 786 measure 77 characters against a 78-character frame; these are the pre-existing bubbles.ux shading-bar and tick-label lines, were NOT touched by this run, and are reported rather than silently fixed because they are foreign-owned cosmetic drift, not part of this correction. Meaning preserved throughout: the legacy rows remain permanently unresolvable, must be shown, and must never be back-filled, imputed, or silently dropped. No section heading, requirement ID, scenario ID, risk ID, or acceptance-criterion ID was added, removed, or renumbered. Status left at not_started and certification.* untouched. Verification: grep confirms zero surviving occurrences of 160, 233, '32 runs', '160 rows', '78 distinct' or '32 objects' anywhere in spec.md except the single intentional 'and 78 distinct claim families' in the preamble's declared illustrative set."
-    },
-    {
-      "agent": "bubbles.plan",
-      "phasesExecuted": [
-        "bootstrap"
-      ],
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "startedAt": "2026-07-28T21:04:00Z",
-      "finishedAt": "2026-07-28T21:14:00Z",
-      "outcome": "completed_owned",
-      "summary": "Planning chunk 1 of 3. BOOKKEEPING NOTE: this executionHistory entry was appended by the orchestrating bubbles.goal runner AFTER independently verifying the artifacts on disk, because the bubbles.plan subagent terminated without returning output and without appending its own entry. The artifacts themselves are the subagent's work and were not authored by the orchestrator; only this record was added. VERIFIED ON DISK: scopes/_index.md (41933 bytes, 10 sections) plus four scope directories with scope.md at 198/200/175/308 lines - 01-frozen-claim-contract, 02-additive-ledger-row-extension, 03-resolved-flat-sentinel-and-resolution-record, 04-deterministic-outcome-resolver. certification.scopeProgress populated with all TEN planned scopes and a clean DAG (01 root; 02,03 depend on 01; 04 on 1-3; 05 on 2-4; 06,07 on 05; 08 on 07; 09 on 1-8; 10 on 06,09). DoD discipline verified clean: 119 unchecked items, 0 checked. _index.md carries the execution outline, mermaid dependency graph, scope table, complete BS-001..BS-012 ownership map, UI-01..UI-35 ownership map, refusal-code ownership, D11 resolution, routed findings, cross-cutting sequencing rules, and a verified command surface. SEVEN FINDINGS ROUTED, four BLOCKING, none fixed by planning: P-015-01 the authored subject is multi-clause prose on all five live actions so it cannot key data/bars/ and D1's positional-fallback guard does not catch it (blocking, bubbles.design + Feature 002 owner); P-015-02 the horizon vocabularies do not intersect, design declares intraday/next-session/multi-session/event-bound while the live payload uses structural/swing/tactical with no mapping declared (blocking, bubbles.design); P-015-03 thesisFamily has no live source on the authored action and planning refused to invent it because setting it to actionFamily would flatten distinct theses onto one reducer entry key (blocking, bubbles.design + Feature 002 owner); P-015-07 the D4 session predicate counts only dateState === regular, which skips the two early-close rows 2026-11-27 and 2026-12-24 that carry non-null regular blocks 09:30-13:00 ET and are genuine trading sessions, so a next-session claim proposed before either resolves one session too far out - a silent one-session lookahead produced by the anti-lookahead machinery itself and a direct HC-5 violation (blocking, bubbles.design); P-015-04 the D6 registration table omits journeys.json definitions and the experience.journeyDefinitionIds block requiring at least two goals, tripping four count assertions in scripts/validate-tool-experience.mjs (advisory, bubbles.design); P-015-05 FR-017 names RLCHART.attach which dispatches to attachLegacy and stamps data-rlchart-migration-required=true, so a literal reading ships a new tool pre-flagged with migration debt (advisory, bubbles.analyst); P-015-06 UI-25 asserts table[data-chart-fallback] which has zero repo-wide occurrences against the repo's real tableTargetFor / links.sameDataTable binding (advisory, bubbles.analyst). Chunks 2 and 3 (scopes 05-10) remain, and the four blocking findings are being routed to bubbles.design before planning continues so that scopes 05-10 are not planned on an invalidated D1/D4 contract."
-    },
-    {
-      "agent": "bubbles.design",
-      "phasesExecuted": [
-        "design"
-      ],
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "startedAt": "2026-07-28T22:40:00Z",
-      "finishedAt": "2026-07-28T23:00:23Z",
-      "outcome": "completed_owned",
-      "summary": "Design remediation pass addressing the five design-owned findings routed by bubbles.plan. design.md grew 1757 -> 2092 lines (14 sections). Fixes: (P-015-01) D1 keys the frozen claim on a resolvable instrument identity rather than a prose subject; (P-015-02) D1 carries its own horizon vocabulary instead of a fabricated mapping onto the publisher key; (P-015-03) thesisFamily is treated as authored-or-not-evaluable rather than inferred; (P-015-04) D6's registration surface was corrected to match what scripts/validate-tool-experience.mjs actually enforces; (P-015-07, BLOCKING, HC-5) D4's trading-session predicate was re-keyed from dateState === 'regular' to regular !== null over tradingDate. Orchestrator independently verified P-015-07 before routing and again after the fix: data/calendars XNYS 2026 has 365 rows partitioning by dateState as {regular: 249, weekend: 104, holiday: 10, early-close: 2}, and BOTH early-close rows (2026-11-27, 2026-12-24) carry non-null regular blocks spanning 09:30:00-05:00 to 13:00:00-05:00 - genuine 3.5h trading sessions. True session count is 251, not 249. The dateState filter would step a next-session claim entered 2026-11-26 to 2026-11-30 instead of 2026-11-27, admitting an extra session of price movement into a predicate frozen over a shorter window - a silent HC-5 lookahead produced by the anti-lookahead machinery itself, with no error raised and no bar missing. The design now prescribes isSession = (row) => row.regular !== null && row.regular !== undefined, demotes dateState to descriptive metadata plus the earlyClose provenance flag, and records that every weekend/holiday row has regular === null so the 251 non-null rows partition exactly as {regular: 249, early-close: 2}. The design also corrects the date field from row.date to row.tradingDate, noting that row.date is undefined on every row and would produce a non-deterministic sort - an HC-10 failure as well as an HC-5 one. The subagent terminated without emitting a result envelope or writing this bookkeeping entry; the orchestrator verified each fix directly against design.md and the committed calendar before recording it. No foreign-owned artifact was modified."
-    },
-    {
-      "agent": "bubbles.plan",
-      "phasesExecuted": [
-        "bootstrap"
-      ],
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "startedAt": "2026-07-29T00:10:00Z",
-      "finishedAt": "2026-07-29T00:48:00Z",
-      "outcome": "completed_owned",
-      "summary": "Bounded planning pass, chunk 2 of 4. AUTHORED scopes/05-cohort-and-scoring-model/scope.md, scopes/06-owner-read-and-center-contract/scope.md, and scopes/07-simple-view-and-shared-shell/scope.md (830 lines total) against the scopes/_index.md contract written in chunk 1. Test Plan / DoD parity verified per scope; zero DoD items pre-checked. Six findings were returned. Finding 1 was an ORCHESTRATOR ERROR, not a plan error: the chunk-2 dispatch brief mandated Test Plan IDs of the form TP-NN-MM, but scopes 01-04 authored in chunk 1 already used T-NN-XN with a category letter (for example T-01-F1, T-04-E1). The orchestrator confirmed the discrepancy by extracting the real IDs from scopes 01-04, judged the existing T-NN-XN scheme superior because it encodes the test category in the identifier, and directed chunk 3 to normalize scopes 05-07 UP to T-NN-XN rather than degrade scopes 01-04 down to the scheme the faulty brief had specified. The subagent terminated without emitting a result envelope; this entry was written by the orchestrator after verifying the three scope files directly."
-    },
-    {
-      "agent": "bubbles.plan",
-      "phasesExecuted": [
-        "bootstrap"
-      ],
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "startedAt": "2026-07-29T00:55:00Z",
-      "finishedAt": "2026-07-29T01:40:00Z",
-      "outcome": "completed_owned",
-      "summary": "Bounded planning pass, chunk 3 of 4. NORMALIZED Test Plan identifiers in scopes 05-07 from TP-NN-MM to the house T-NN-XN scheme established by scopes 01-04, then AUTHORED scopes/08-power-view-and-charts/scope.md, scopes/09-committed-validator-and-closed-codes/scope.md, and scopes/10-registration-notes-and-regression-closure/scope.md, completing all ten scope.md files. Two blocking findings were returned, the first of which the orchestrator verified and repaired directly: all ten scope.md files used a level-2 '## Definition of Done' heading, but artifact-lint requires a level-3 '### Definition of Done' and terminates its section extraction at the next '^### ' line. A naive promotion would have broken extraction because each DoD block contains '### Core items' / '### Test items' / '### Build Quality Gate' subsections which would have fired the terminator immediately and yielded an empty section. The orchestrator applied the correct three-part fix uniformly across all ten scopes: promoted 'Definition of Done' to level 3, demoted its three subsections to level 4, and promoted the following section to level 3 so extraction terminates cleanly. Verified by simulating the linter's exact extraction logic per scope: 346 checkboxes extracted, all unchecked, zero invalid bullets."
-    },
-    {
-      "agent": "bubbles.plan",
-      "phasesExecuted": [
-        "bootstrap"
-      ],
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "startedAt": "2026-07-29T01:45:00Z",
-      "finishedAt": "2026-07-29T02:05:00Z",
-      "outcome": "completed_owned",
-      "summary": "Bounded planning pass, chunk 4 of 4 — evidence scaffolds, authored directly by the orchestrator after two consecutive subagent dispatches terminated without writing. CREATED uservalidation.md with the required '## Checklist' section carrying 22 checked-by-default baseline items, each stated as user-observable behavior derived from the spec.md acceptance criteria and hard constraints rather than as an internal implementation detail. CREATED the ten scopes/NN-*/report.md evidence scaffolds, each honestly recording 'Not started' with no implementation, no command execution, and no claimed evidence, and each carrying the house evidence-contract header plus Summary, Test Evidence, and Completion Statement sections. Also CORRECTED one drafting slip in scopes/_index.md: the scope-02 validation checkpoint hardcoded '165 committed pre-contract rows', which contradicts the plan's own resolved finding F-015-D5-02 that no legacy-count literal may ship because the count is a moving target. Independently confirmed the drift this run — the ledger has grown from 160 rows / 78 keys / 32 runs at analyst authoring, to 165/83/33 at design, to 175 rows / 92 keys / 35 runs now — so the checkpoint was rewritten to derive the count at test time. artifact-lint now reports PASSED for the feature; DoD discipline verified at 346 unchecked and 0 pre-checked."
-    },
-    {
-      "agent": "bubbles.plan",
-      "phasesExecuted": [
-        "bootstrap"
-      ],
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "startedAt": "2026-07-29T02:30:00Z",
-      "finishedAt": "2026-07-29T02:55:00Z",
-      "outcome": "completed_owned",
-      "summary": "Planning remediation — closed Gate G068 (DoD-Gherkin content fidelity, 10 findings). Root cause was understood before dispatch: the guard's matcher prefers an exact SCN-ID match and only falls back to a >=50% word-overlap heuristic, and 015's DoD items are too technical to overlap with scenario titles. Adopted the ID path the guard's own comments describe as superior. TAGGED all 15 Gherkin Scenario lines across the 10 scope files with stable SCN-015-NNN identifiers, and ANNOTATED exactly one existing Test-item DoD entry per scenario with ' — proves SCN-015-NNN'; every DoD item remained byte-identical apart from that appended suffix, and no item was weakened, reworded, or checked. EXTENDED scenario-manifest.json from 12 to 15 entries, adding SCN-015-013/014/015 for the three scope-02 derived scenarios with businessScenarioId null. Gate G057 (scenario manifest integrity) closed as a direct and correct side effect, since the manifest now covers all 15 scenarios rather than 12. Guard failedGateIds went from [G057,G068,G089,G094] to [G089,G094] and failureCount from 74 to 61. Checkbox discipline verified unchanged at 346 unchecked / 0 checked."
-    },
-    {
-      "agent": "bubbles.design",
-      "phasesExecuted": [
-        "design"
-      ],
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "startedAt": "2026-07-29T03:30:00Z",
-      "finishedAt": "2026-07-29T03:55:00Z",
-      "outcome": "completed_owned",
-      "summary": "Design remediation — closed Gate G094 (capability foundation, 3 findings). ADDED '## Capability Foundation', '## Concrete Implementations', and '### Variation Axes' to design.md (+140 lines, inserted between '## Architecture Overview' and '## D1'). The agent read the guard source rather than guessing and reported the exact anchored regexes, the real enforced minimum (Variation Axes requires >= 2 entries counted by the guard's own awk; 10 were supplied), and a hidden downstream coupling: satisfying all three headings flips has_design_split=true, which then additionally demands scope-level 'foundation:true' and a 'Depends On ... foundation' declaration — it verified scope 01 already carried both BEFORE editing, so closing G094 could not open two new findings. Content is substantive rather than heading-shaped: the foundation is framed as a provider-neutral measurement loop for dated falsifiable claims, with a 5-row foundation contract, explicit extension points, 3 concrete implementations (CI-1 Market Action Center claim IN SCOPE; CI-2 tool-brief claim and CI-3 cycle/seasonality claim marked FUTURE and explicitly carrying no delivery commitment), and 10 variation axes all referencing vocabularies already closed in D1/D5. It restates that RLVALID is the statistics foundation consumed READ-ONLY with no fork, wrapper, or eighth primitive, per spec.md HC-1. Reported zero contradictions with D1-D11, and disclosed one freshness-only edit to the Reading Order preamble so it did not go stale. Guard failedGateIds went from [G089,G094] to [G089] and failureCount from 61 to 60."
-    },
-    {
-      "agent": "bubbles.plan",
-      "phasesExecuted": [
-        "bootstrap"
-      ],
-      "statusBefore": "not_started",
-      "statusAfter": "not_started",
-      "startedAt": "2026-07-29T04:00:00Z",
-      "finishedAt": "2026-07-29T04:20:00Z",
-      "outcome": "completed_owned",
-      "summary": "Planning remediation — closed 32 findings in two classes. Class A: the 30 regression-E2E planning requirements across all 10 scopes (per scope, a DoD item for scenario-specific regression E2E coverage, a DoD item for broader E2E regression suite coverage, and an explicit scenario-specific regression E2E Test Plan row). Class B: the 2 SLA-sensitive stress-coverage findings on scope 06 (owner read consumed by the Center) and scope 08 (Power view rendering charts over the full ledger), with bounds cross-checked against spec.md '## Non-Functional Requirements' rather than invented. All added rows reuse the already-planned test files and continue the established T-NN-XN identifier scheme. Guard failureCount fell from 50 to 17 with failedGateIds still [G089]. Integrity verified independently by the orchestrator afterwards: 0 checked checkboxes, all 15 ' — proves SCN-015-NNN' annotations preserved, 10/10 '### Definition of Done' headings intact, artifact-lint still PASSED."
-    },
-    {
-      "agent": "bubbles.plan",
-      "phasesExecuted": [
-        "bootstrap"
-      ],
-      "statusBefore": "not_started",
-      "statusAfter": "blocked",
-      "startedAt": "2026-07-29T04:25:00Z",
-      "finishedAt": "2026-07-29T04:45:00Z",
-      "outcome": "completed_owned",
-      "summary": "Final planning remediation — closed the last 13 fixable findings in three classes, taking guard failureCount from 17 to 1. Class A: Consumer Impact Sweep for scope 08, with a 7-row consumer table that states honestly that the scope renames nothing it owns and then traces what actually matters — rlchart.js co-consumers, the orderedPointIds-to-table row-id binding, the six panel ids, and the a[data-owner-tool] deep links that cross into scope 10's tools.json registry where a renamed tool file yields a dead link on a still-rendering row. Class B: Shared Infrastructure Impact Sweep for scopes 01 and 09, each with canary and rollback/restore DoD items plus explicit canary Test Plan rows, anchored on the verified repository baseline of 952 passed / 0 failed and rehearsed in a disposable detached worktree rather than the live tree because concurrent sessions share this checkout. Class C: Change Boundary for scope 05 with explicit allowed and excluded surface tables naming rlvalidation.js (Feature 007, HC-1), rlcontracts.js (Feature 002), and the Feature 013-protected persisted rldata.js cache schema as excluded. The agent also detected and pre-empted a non-obvious coupling that would otherwise have caused another remediation round: the Change Boundary check triggers on the literal string 'Shared Infrastructure Impact Sweep', so satisfying Class B creates a fresh Class C obligation in scopes 01 and 09; it added Change Boundary sections there proactively. Parity was verified computed rather than declared (rows == declared == testDoD for all 10 scopes). Orchestrator verified independently: 376 unchecked / 0 checked, 15/15 SCN annotations, 10/10 DoD headings, artifact-lint PASSED, and the repository baseline still green at 952 passed / 0 failed."
-    },
-    {
-      "agent": "bubbles.plan",
-      "phasesExecuted": [
-        "bootstrap"
-      ],
-      "statusBefore": "not_started",
-      "statusAfter": "blocked",
-      "startedAt": "2026-07-29T04:45:00Z",
-      "finishedAt": "2026-07-29T04:50:00Z",
-      "outcome": "completed_owned",
-      "summary": "[Timestamps re-anchored 2026-08-10: this entry is a CONSOLIDATION, not a discrete run. Its original 02:10-04:50 stamps asserted a contiguous 2h40m execution that never happened as one run; the underlying work was interleaved with, and is already itemized by, the 02:30, 03:30, 04:00 and 04:25 entries, so the span double-counted their wall clock and violated the sequential-execution invariant. The entry now carries the window in which the consolidated record was written; the span it covers is preserved verbatim in recordedSpan.] Orchestrator-authored control-plane and parity repairs performed across the remediation sequence, recorded here as one entry. (1) Gate G056: added the missing certification.lockdownState block ({active:false, lockedScenarioIds:[]}) matching the shape used by spec 012. (2) Gate G089 format defect: converted specDependsOn from rich objects to the house string-array form after verifying that specs 009, 010 and 012 all use strings and pass, while specs 014 and 015 used objects and both failed — 015 had inherited the defect by copying 014's format. No rationale was lost: the full dependency boundary rationale already lives in spec.md '### Boundary against concurrent features'. (3) Check 5B _index.md-to-scope.md status parity, 10 findings: diagnosed by reading the guard source and simulating its extraction, which showed it picks the FIRST row matching '^| N |' via head -n 1 and then reads the LAST non-empty column as the status. That row was the execution-outline table whose last column is prose rationale, so every scope mismatched; the real status table later in the file was never consulted. Fixed by appending a Status column as the final column of the execution-outline table, which is both the minimal change and semantically useful. Check 5B now PASSES for all 10 scopes. (4) Created scenario-manifest.json with the initial 12 business scenarios mapped to owning scopes using the _index.md ownership table, matching spec 012's exact 14-key entry shape and validated enum vocabularies. (5) Corrected the hardcoded '165 committed pre-contract rows' literal in the scopes/_index.md scope-02 checkpoint. (6) Authored uservalidation.md and the ten scope report scaffolds. Final verified state: artifact-lint PASSED, guard failureCount 1 with failedGateIds [G089], 376 unchecked / 0 checked DoD items, repository baseline 952 passed / 0 failed. Status set to 'blocked' rather than left at 'not_started' because planning is genuinely complete and the sole remaining blocker is external; specDependsOn was deliberately NOT trimmed to pass G089.",
-      "recordedSpan": "2026-07-29T02:10:00Z/2026-07-29T04:50:00Z"
-    }
-  ],
-  "activeBugs": [],
-  "resolvedBugs": [],
-  "failures": [],
-  "lastUpdatedAt": "2026-07-29T04:45:00Z",
-  "scopeLayout": "per-scope-directory",
-  "artifacts": {
-    "spec": "spec.md",
-    "design": "design.md",
-    "scopes": "scopes/_index.md",
-    "report": "report.md",
-    "uservalidation": "uservalidation.md",
-    "scenarioManifest": "scenario-manifest.json",
-    "lockdownApprovals": "lockdown-approvals.json",
-    "invalidationLedger": "invalidation-ledger.json",
-    "transitionRequests": "transition-requests.json",
-    "reworkQueue": "rework-queue.json"
-  },
-  "statusDiscipline": {
-    "validStatuses": [
-      "not_started",
-      "in_progress",
-      "blocked",
-      "specs_hardened",
-      "docs_updated",
-      "validated",
-      "done"
-    ],
-    "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
-    "scopeDoneGates": [
-      "G020",
-      "G021",
-      "G022",
-      "G023",
-      "G024",
-      "G025",
-      "G055",
-      "G056",
-      "G057",
-      "G058",
-      "G059",
-      "G060",
-      "G061"
-    ],
-    "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion. Workflow mode product-to-planning has ceiling specs_hardened, so this packet cannot reach done under the current mode without a mode change."
-  },
-  "notes": "Analyst authoring complete; spec.md only. design.md, scopes/, report.md, and uservalidation.md are intentionally ABSENT - they are foreign-owned (bubbles.design, bubbles.plan) and artifact-lint will correctly report them missing until those owners run. scopeLayout is declared per-scope-directory as a recommendation because the feature spans four sequential capability layers (frozen claim contract, deterministic resolver, RLVALID scorer/tool, Center consumption) and is expected to exceed six scopes; bubbles.plan owns the final layout decision and may override it. certification.scopeProgress is intentionally EMPTY because no scopes have been planned - populating it here would be fabrication. The single most important design input is spec.md RL-001: every pre-contract ledger row is cryptographically anonymous and can never be scored (recounted 2026-07-28 at 165 rows across 83 keys, still growing at four windows a day until the claim contract lands), so the track record necessarily starts at zero on the day the claim contract lands, and spec.md HC-4 forbids back-filling, imputing, or silently dropping them - and further requires that the count be computed from the ledger at render time rather than shipped as a literal. The second is HC-7: rlvSummarizeOutcomes absorbs exactly-zero into its unresolved count, so the resolver needs a resolved-flat sentinel rather than a change to the Feature 007 primitive. Sequencing risk is named in RL-009 - Features 002, 012, and 013 are all blocked and 015 extends 002's row contract while consuming 012's surface.",
-  "blockedReasonResolved": {
-    "resolvedAt": "2026-08-10T23:58:00Z",
-    "resolution": "G073 (source-code edit lockout) was the sole failed gate and was an EXTERNAL working-tree condition, not a defect in 015: a concurrent Feature 004 session held five uncommitted tracked files (.vscode/mcp.json, rlbrief.js, rlexperience.js, rlfx.js, rljourney.js) matching the gate pattern. Those files are now committed and the working tree is clean, so G073 passes. Two executionHistory integrity defects surfaced once G073 cleared and were repaired: a placeholder zero-duration analyst entry now declares durationUnmeasured with a reason, and a self-declared consolidation entry that double-counted wall clock was re-anchored to its recording window with the covered span preserved in recordedSpan. Guard now reports failureCount 0, verdict PASS at targetStatus specs_hardened.",
-    "priorBlockedReason": "GATE G089 NOW PASSES. Guard re-run 2026-08-04T13:52:05Z against specs/015-recommendation-outcome-ledger-and-track-record: Check 31 reports 'PASS: Inter-spec dependencies are stable or explicitly flagged for revalidation (Gate G089)', and G089 appears in passedGateIds. The G089 dependency blocker previously recorded in this field is SUPERSEDED; it survives verbatim in blockedReasonAddendum and ownerDecisionAddendum as history and is not edited. WHY IT PASSES: the D10 finding that the previous blockedReason itself routed to the spec owner was ruled on as OD-015-01, recorded in spec.md 'Owner Decisions' BEFORE specDependsOn was touched. specDependsOn is now one entry, specs/002-distributed-tool-briefs-and-history, verified on disk 2026-08-04 as status 'done', certification.status 'done', certifiedAt 2026-07-29T23:45:00Z, requiresRevalidation false. 002 is KEPT because 015 genuinely extends 002-owned capability -- the brief-recommendation-history-row/v1 row contract, CLOSE_EVENT_TYPES (rlcontracts.js#L720) and reduceRecommendationEvents (rlcontracts.js#L1134), all three re-verified present this run. 007, 012 and 013 were REMOVED because every capability 015 draws from them is already delivered and consumed read-only -- the RLVALID primitive set exported at rlvalidation.js#L156, and RLDATA.putToolRead (rldata.js#L549, exported #L738), the d.toolReads[id] slot and RLBRIEF.renderToolReads (rlbrief.js#L1140, exported #L1269) -- or is not consumed at all (013, prohibitions only). The residual coupling was to those specs' certification standing, which is exactly what anti-drift rule D10 forbids blocking on. G089 was NOT narrowed, waived, exempted or bypassed and nothing under .github/bubbles/** was modified; it passes because its one remaining entry is genuinely done. SOLE FAILED GATE: G073 (source-code edit lockout), an EXTERNAL WORKING-TREE CONDITION, NOT a defect in 015. Guard ledger: verdict FAIL, exitStatus 1, failedGateIds [G073], blockingCode SOURCE_EDIT_LOCKOUT, failureCount 7. Workflow mode 'product-to-planning' (ceiling 'specs_hardened') forbids undeclared source edits anywhere in the repository, and a CONCURRENT Feature 004 session is holding five uncommitted tracked files that match the gate's source-extension pattern and fall outside its allowed-path allowlist (specs/, docs/, .github/, .specify/, CHANGELOG, README, LICENSE, VERSION): .vscode/mcp.json, rlbrief.js, rlexperience.js, rlfx.js, rljourney.js. Enumerated 2026-08-04 by applying the guard's own two regexes to the real index and working tree -- 0 staged files, 23 unstaged. That same session's other edits are exempt and correctly not counted: .github/workflows/pages.yml and .github/workflows/tier-a.yml are allowed-path, and its tests/*.mjs edits do not match the source-extension pattern. The 7 failures decompose as 5 per-file G073 fails, 1 G073 summary fail, and 1 Check 43 evidence-receipt CLONE block whose colliding receipts are all cited by 'node --test tests/feature-004-*.test.mjs' commands -- also produced by that same concurrent session. CLEARING ACTION: the Feature 004 session commits or stashes those five files, then re-run 'bash .github/bubbles/scripts/state-transition-guard.sh specs/015-recommendation-outcome-ledger-and-track-record'. 015 MUST NOT list those files in its own deliverableFiles[] to silence G073; it does not own them, and declaring another feature's in-flight work as 015's deliverable would be a gate-passing edit. 015 REMAINS BLOCKED ON ITS OWN MERITS INDEPENDENTLY OF G073. Four routed findings are still open and still marked Blocking in scopes/_index.md 'Routed findings', re-verified 2026-08-04, and their carrying scopes are still 'not_started' in certification.scopeProgress (all 10 scopes are not_started). P-015-01: the authored subject is prose, not a resolvable identifier, so it cannot key data/bars/ nor populate seriesRef, and D1's positional-fallback guard does not catch it because a prose subject is still a string; owner bubbles.design plus the Feature 002 owner; blocks scope 02. P-015-02: the horizon vocabularies do not intersect -- design D1/D4 declare intraday, next-session, multi-session, event-bound while the live payload authors structural, swing, tactical, with no mapping declared anywhere; owner bubbles.design; blocks scope 02. P-015-03: thesisFamily has no live source on the authored action, so D5's lever table and the F-015-D4-01 reducer-key bridge have no input, and inventing one would flatten distinct theses onto a single reducer entry key; owner bubbles.design plus the Feature 002 owner; blocks scope 04. P-015-07: the horizon session predicate counts only dateState 'regular' and therefore skips the two committed early-close sessions 2026-11-27 and 2026-12-24, which carry non-null regular blocks, producing a one-session lookahead in the resolver's own horizon derivation; owner bubbles.design; blocks scope 04. None of the four is owned by the spec owner and none is resolved by OD-015-01. OPERATOR ACTION TO UNBLOCK 015 ITSELF: route P-015-01, P-015-02, P-015-03 and P-015-07 to bubbles.design, with the Feature 002 owner consenting on P-015-01 and P-015-03, and record the rulings before scopes 02 and 04 become executable. Advisory findings P-015-04, P-015-05 and P-015-06 remain non-blocking and do not gate promotion."
-  },
-  "routedFindingsReconciliation": {
-    "recordedBy": "orchestrator",
-    "recordedAt": "2026-08-10T17:40:00Z",
-    "question": "ownerDecisionAddendum.whyStillBlocked (recorded 2026-08-04) states that this spec remains blocked on four Blocking routed findings. The packet now carries status specs_hardened. This field records why that is truthful, because a status that silently contradicts a recorded owner ruling is exactly the drift this packet elsewhere corrects.",
-    "findingsAreNotResolved": "P-015-01 (authored subject is prose, not a resolvable identifier), P-015-02 (horizon vocabularies do not intersect), P-015-03 (thesisFamily has no live source) and P-015-07 (horizon session predicate skips the two committed early-close sessions) are ALL still open. None is resolved, waived, downgraded or absorbed. Each remains classified Blocking, each remains owned by bubbles.design and the Feature 002 owner rather than by this packet, and each is still carried on its scope: 02 holds routed:P-015-01 and routed:P-015-02, 04 holds routed:P-015-03 and routed:P-015-07. Both scopes are Not Started.",
-    "whySpecsHardenedIsStillTruthful": "Workflow mode product-to-planning declares statusCeiling specs_hardened, and that ceiling certifies that PLANNING is complete, not that implementation is unblocked. The four findings block the IMPLEMENTATION of scopes 02 and 04; they do not make the planning incomplete. Planning's obligation on each was to identify it, evidence it against the live payload and calendar, and route it to its owner rather than invent an answer. Inventing a thesisFamily value or a horizon mapping would have flattened two distinct theses onto one reducer key and manufactured a contract that no publisher emits, which is precisely the fabrication the routing exists to prevent. Discharging that obligation is what completes planning.",
-    "supersedesOnlyTheStatusString": "ownerDecisionAddendum.whyStillBlocked is retained verbatim as history and is NOT edited. It is superseded ONLY on which lifecycle status the packet carries at the planning ceiling. Its substance is unchanged and remains in force: the four findings are unresolved and are owned elsewhere.",
-    "consequenceForImplementation": "nextRequiredOwner remains bubbles.implement, but implementation of scope 02 and scope 04 MUST NOT begin until the four findings are answered by their owners. specs_hardened authorises the plan, not the build of those two scopes. The remaining eight scopes carry no routed Blocking finding and are not gated by this."
-  },
-  "deliveryTopology": "in-place",
-  "deliveryTopologyJustification": "This packet plans AND implements the recommendation outcome ledger in the same directory: its ten scopes are the implementation plan for specs/015-recommendation-outcome-ledger-and-track-record itself, so there is no separate spec for linkedImplementationSpec to name. planningOnly is false because implementation is genuinely coming, not foregone; all ten scopes remain Not Started and are the work this hardened planning authorises. specs_hardened certifies that the planning is complete, which is the declared statusCeiling for workflow mode product-to-planning."
 }

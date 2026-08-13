@@ -74,9 +74,11 @@
       "minimumDistinctUtcDates", "outcomeCommands", "outcomeStates", "recentSupportDays"
     ]),
     analytics: Object.freeze([
-      "contractVersion", "covarianceSensitivity", "covarianceShrinkageLambda", "maximumListedAssets",
+      "benchmarkSymbol", "concentrationAlertWeight", "concentrationLenses", "contractVersion",
+      "covarianceSensitivity", "covarianceShrinkageLambda", "maximumListedAssets",
       "minimumCapmObservations", "minimumJointTailEvents", "minimumRiskObservations", "minimumTailObservations",
-      "riskReconciliationTolerance", "targetHistoryCalendarYears"
+      "proxyFactors", "proxyFactorsVersion",
+      "riskFreeAnnual", "riskReconciliationTolerance", "targetHistoryCalendarYears"
     ]),
     solver: Object.freeze(["contractVersion", "convergenceTolerance", "maximumIterations"]),
     calibration: Object.freeze([
@@ -294,6 +296,22 @@
     return value.every(function (entry) { return nonEmptyString(entry); });
   }
 
+  /* A proxy factor is a DECLARED long-short spread of two real tickers, never a label the code
+     interprets. `long` alone (no `short`) is a plain long leg. */
+  function validProxyFactor(entry) {
+    var TICKER = /^[A-Z][A-Z0-9.-]{0,9}$/;
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return false;
+    var keys = Object.keys(entry).sort().join("|");
+    if (keys !== "id|long|short" && keys !== "id|long") return false;
+    if (!nonEmptyString(entry.id) || !/^[a-z][a-z0-9-]*$/.test(entry.id)) return false;
+    if (typeof entry.long !== "string" || !TICKER.test(entry.long)) return false;
+    if (Object.prototype.hasOwnProperty.call(entry, "short")) {
+      if (typeof entry.short !== "string" || !TICKER.test(entry.short)) return false;
+      if (entry.short === entry.long) return false;
+    }
+    return true;
+  }
+
   function exactStringSet(value, expected) {
     if (!stringArray(value, false) || value.length !== expected.length) return false;
     var actual = value.slice().sort();
@@ -371,7 +389,15 @@
         !Array.isArray(value.analytics.covarianceSensitivity) || value.analytics.covarianceSensitivity.length === 0 ||
         !value.analytics.covarianceSensitivity.every(finiteNonNegative) ||
         !finitePositive(value.analytics.riskReconciliationTolerance) ||
-        !Number.isInteger(value.analytics.maximumListedAssets) || value.analytics.maximumListedAssets <= 0) {
+        !Number.isInteger(value.analytics.maximumListedAssets) || value.analytics.maximumListedAssets <= 0 ||
+        typeof value.analytics.benchmarkSymbol !== "string" || !/^[A-Z][A-Z0-9.-]{0,9}$/.test(value.analytics.benchmarkSymbol) ||
+        !finiteNonNegative(value.analytics.riskFreeAnnual) ||
+        !stringArray(value.analytics.concentrationLenses, false) ||
+        !value.analytics.concentrationLenses.every(function (lens) { return HOLDING_FIELDS.indexOf(lens) !== -1; }) ||
+        !finitePositive(value.analytics.concentrationAlertWeight) || value.analytics.concentrationAlertWeight > 1 ||
+        typeof value.analytics.proxyFactorsVersion !== "string" || !value.analytics.proxyFactorsVersion.trim() ||
+        !Array.isArray(value.analytics.proxyFactors) || !value.analytics.proxyFactors.length ||
+        !value.analytics.proxyFactors.every(validProxyFactor)) {
       return failure("P008-CONFIG", "invalid-policy", "analytics", null, false);
     }
     var behaviorPolicy = value.behavior;

@@ -570,6 +570,50 @@ test('TP-08-01 the projection carries each diagnostic independently unavailable'
   assert.deepEqual(full.concentration[1].missing, ['BBB']);
 });
 
+/* --------------------------------------------------- Scope 08: factor model */
+
+test('TP-08-01 factor OLS recovers declared proxy exposures and names them proxies', () => {
+  // Construct returns with KNOWN exposures: 1.0 market + 0.5 size, plus a small residual.
+  const market = [0.010, -0.020, 0.015, -0.005, 0.020, -0.010, 0.008, -0.012, 0.011, -0.007, 0.013, -0.009];
+  const size = [0.004, 0.006, -0.008, 0.003, -0.005, 0.007, -0.002, 0.005, -0.006, 0.004, -0.003, 0.006];
+  const eps = [0.0002, -0.0003, 0.0001, 0.0004, -0.0002, 0.0003, -0.0001, 0.0002, -0.0004, 0.0001, 0.0003, -0.0002];
+  const port = market.map((m, i) => 1.0 * m + 0.5 * size[i] + eps[i]);
+
+  const fit = RLPA.fitFactors(port, { market, size }, { periodsPerYear: 252, factorsVersion: 'proxy-factors/v1' });
+  assert.equal(fit.state, 'ok');
+  assert.ok(Math.abs(fit.exposures.market - 1.0) < 0.05, `market ${fit.exposures.market} should be near 1.0`);
+  assert.ok(Math.abs(fit.exposures.size - 0.5) < 0.05, `size ${fit.exposures.size} should be near 0.5`);
+  assert.ok(fit.rSquared > 0.9, 'a constructed fit should explain nearly everything');
+
+  // The payload names itself a proxy so a consumer cannot quietly promote it to a real factor.
+  assert.equal(fit.basis, 'declared-proxy-spreads');
+  assert.equal(fit.factorsVersion, 'proxy-factors/v1');
+  assert.deepEqual(fit.unavailable, []);
+});
+
+test('TP-08-01 ADVERSARIAL collinear factors refuse instead of returning a pseudo-fit', () => {
+  const market = [0.01, -0.02, 0.015, -0.005, 0.02, -0.01, 0.008, -0.012, 0.011, -0.007];
+  // `duplicate` is an exact multiple of `market`, so the design matrix is rank-deficient. A
+  // pseudo-inverse would happily split the exposure between them and report two confident numbers
+  // that are not separately identified by the data.
+  const duplicate = market.map((m) => m * 2);
+  const port = market.map((m) => 0.8 * m);
+  const fit = RLPA.fitFactors(port, { market, duplicate }, {});
+  assert.equal(fit.state, 'rank-deficient');
+  assert.equal(Object.prototype.hasOwnProperty.call(fit, 'exposures'), false, 'no exposure may be reported');
+
+  // A factor whose leg has no observations is NAMED unavailable, never silently dropped.
+  const partial = RLPA.fitFactors(port, { market, missing: [] }, {});
+  assert.equal(partial.state, 'ok');
+  assert.deepEqual(partial.unavailable, ['missing']);
+  assert.deepEqual(partial.available, ['market']);
+
+  assert.equal(RLPA.fitFactors(port, {}, {}).state, 'no-factors');
+  assert.equal(RLPA.fitFactors(port, { a: [], b: [] }, {}).state, 'no-usable-factors');
+  assert.equal(RLPA.fitFactors([0.1, 0.2], { market: [0.1, 0.2] }, {}).state, 'insufficient-sample');
+  assert.equal(RLPA.fitFactors(null, { market: [] }, {}).state, 'input-invalid');
+});
+
 test("TP-07-01 return math is delegated to rlmetrics, not redefined here", () => {
   // P18: a metric is defined once. If this module ever grew its own arithmetic/CAGR/drag, the
   // repo would have two definitions of each and the brief could publish either.

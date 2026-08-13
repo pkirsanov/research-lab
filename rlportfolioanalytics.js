@@ -398,6 +398,14 @@
       });
     }
 
+    var factors = { state: "factors-unavailable" };
+    if (opts.factorReturns && Object.keys(opts.factorReturns).length) {
+      factors = fitFactors(aligned.returns, opts.factorReturns, {
+        periodsPerYear: opts.periodsPerYear,
+        factorsVersion: opts.proxyFactorsVersion
+      });
+    }
+
     var covariance = { state: "not-computed" };
     var contributions = { state: "not-computed" };
     if (aligned.returns.length >= 2) {
@@ -439,6 +447,7 @@
       drawdown: drawdown,
       concentration: concentration,
       capm: capm,
+      factors: factors,
       benchmarkSymbol: opts.benchmarkSymbol || null,
       covariance: covariance,
       contributions: contributions,
@@ -723,6 +732,128 @@
     };
   }
 
+  /* ---------------------------------------------------- Scope 08 factor model */
+
+  /**
+   * Multivariate OLS of portfolio excess return on DECLARED proxy factors, with intercept.
+   *
+   * Factors are supplied as already-built return series keyed by the config-declared factor id. No
+   * factor is ever inferred from a label, a ticker name, or a sector string: a factor exists only
+   * because `analytics.proxyFactors` declared it as an explicit long-short spread of real tickers,
+   * and a leg with no observations makes that factor `unavailable` rather than silently dropped.
+   *
+   * These are PROXIES, not academic factor returns, and the result says so. Calling `IWM - SPY` a
+   * size factor is a modelling convenience; treating it as the Fama-French SMB would be a claim the
+   * data does not support.
+   */
+  function fitFactors(portfolioReturns, factorSeries, options) {
+    var opts = options || {};
+    if (!Array.isArray(portfolioReturns)) return { state: "input-invalid" };
+    var ids = Object.keys(factorSeries || {}).sort();
+    if (!ids.length) return { state: "no-factors" };
+
+    var n = portfolioReturns.length, i, j, k;
+    var available = [], unavailable = [];
+    for (i = 0; i < ids.length; i += 1) {
+      var s = factorSeries[ids[i]];
+      if (!Array.isArray(s) || s.length !== n || !s.every(isNum)) { unavailable.push(ids[i]); continue; }
+      available.push(ids[i]);
+    }
+    if (!available.length) return { state: "no-usable-factors", unavailable: unavailable };
+
+    var p = available.length + 1;
+    if (n < p + 1) return { state: "insufficient-sample", sampleSize: n, parameters: p, unavailable: unavailable };
+
+    // Design matrix with intercept in column 0.
+    var X = [], y = [];
+    for (i = 0; i < n; i += 1) {
+      if (!isNum(portfolioReturns[i])) return { state: "non-finite-input" };
+      var row = [1];
+      for (j = 0; j < available.length; j += 1) row.push(factorSeries[available[j]][i]);
+      X.push(row);
+      y.push(portfolioReturns[i]);
+    }
+
+    // Normal equations. XtX is symmetric positive-semidefinite; a rank-deficient design (two
+    // collinear factors) makes it singular, and that REFUSES rather than returning a pseudo-fit.
+    var XtX = [], Xty = [];
+    for (i = 0; i < p; i += 1) {
+      XtX.push(new Array(p).fill(0));
+      Xty.push(0);
+    }
+    for (k = 0; k < n; k += 1) {
+      for (i = 0; i < p; i += 1) {
+        Xty[i] += X[k][i] * y[k];
+        for (j = 0; j < p; j += 1) XtX[i][j] += X[k][i] * X[k][j];
+      }
+    }
+
+    if (!isPositiveDefinite(XtX)) {
+      return { state: "rank-deficient", available: available, unavailable: unavailable, sampleSize: n };
+    }
+
+    var beta = solveSymmetric(XtX, Xty);
+    if (!beta) return { state: "rank-deficient", available: available, unavailable: unavailable, sampleSize: n };
+
+    var ssResidual = 0, ssTotal = 0, my = mean(y);
+    for (k = 0; k < n; k += 1) {
+      var predicted = 0;
+      for (i = 0; i < p; i += 1) predicted += beta[i] * X[k][i];
+      ssResidual += (y[k] - predicted) * (y[k] - predicted);
+      ssTotal += (y[k] - my) * (y[k] - my);
+    }
+
+    var ppy = isNum(opts.periodsPerYear) && opts.periodsPerYear > 0 ? opts.periodsPerYear : TRADING_DAYS;
+    var exposures = {};
+    for (i = 0; i < available.length; i += 1) exposures[available[i]] = beta[i + 1];
+
+    var rSquared = ssTotal > 0 ? 1 - (ssResidual / ssTotal) : null;
+    var adjusted = (ssTotal > 0 && n > p) ? 1 - ((1 - rSquared) * (n - 1)) / (n - p) : null;
+
+    return {
+      state: "ok",
+      factorsVersion: opts.factorsVersion || null,
+      // Named a proxy in the payload itself so a consumer cannot quietly promote it to a real factor.
+      basis: "declared-proxy-spreads",
+      sampleSize: n,
+      parameters: p,
+      available: available,
+      unavailable: unavailable,
+      interceptAnnualized: beta[0] * ppy,
+      exposures: exposures,
+      rSquared: rSquared,
+      adjustedRSquared: adjusted,
+      residualRiskAnnualized: n > p ? Math.sqrt((ssResidual / (n - p)) * ppy) : null,
+      fitState: rSquared === null ? "unavailable" : (rSquared < 0.3 ? "low-explanatory-power" : "explained")
+    };
+  }
+
+  /** Gaussian elimination with partial pivoting. Returns null when the system is not solvable. */
+  function solveSymmetric(A, b) {
+    var n = b.length, i, j, k;
+    var M = A.map(function (row, index) { return row.slice().concat([b[index]]); });
+    var scale = 0;
+    for (i = 0; i < n; i += 1) { if (Math.abs(A[i][i]) > scale) scale = Math.abs(A[i][i]); }
+    var epsilon = scale * 1e-12;
+    for (i = 0; i < n; i += 1) {
+      var pivot = i;
+      for (k = i + 1; k < n; k += 1) { if (Math.abs(M[k][i]) > Math.abs(M[pivot][i])) pivot = k; }
+      if (Math.abs(M[pivot][i]) <= epsilon) return null;
+      var tmp = M[i]; M[i] = M[pivot]; M[pivot] = tmp;
+      for (k = i + 1; k < n; k += 1) {
+        var factor = M[k][i] / M[i][i];
+        for (j = i; j <= n; j += 1) M[k][j] -= factor * M[i][j];
+      }
+    }
+    var x = new Array(n).fill(0);
+    for (i = n - 1; i >= 0; i -= 1) {
+      var sum = M[i][n];
+      for (j = i + 1; j < n; j += 1) sum -= M[i][j] * x[j];
+      x[i] = sum / M[i][i];
+    }
+    return x;
+  }
+
   return {
     TRADING_DAYS: TRADING_DAYS,
     alignPortfolioReturns: alignPortfolioReturns,
@@ -732,6 +863,7 @@
     riskXRayProjection: riskXRayProjection,
     computeConcentration: computeConcentration,
     fitCapm: fitCapm,
+    fitFactors: fitFactors,
     computeCovariance: computeCovariance,
     riskContributions: riskContributions,
     analyticsIdentity: analyticsIdentity

@@ -237,7 +237,45 @@
             0.35
         ],
         "riskReconciliationTolerance": 0.00000001,
-        "maximumListedAssets": 30
+        "maximumListedAssets": 30,
+        "benchmarkSymbol": "SPY",
+        "riskFreeAnnual": 0,
+        "concentrationLenses": [
+            "symbol",
+            "assetClass",
+            "sector",
+            "issuer",
+            "geography",
+            "currency"
+        ],
+        "concentrationAlertWeight": 0.25,
+        "proxyFactorsVersion": "proxy-factors/v1",
+        "proxyFactors": [
+            {
+                "id": "market",
+                "long": "SPY"
+            },
+            {
+                "id": "size",
+                "long": "IWM",
+                "short": "SPY"
+            },
+            {
+                "id": "growth",
+                "long": "QQQ",
+                "short": "SPY"
+            },
+            {
+                "id": "momentum",
+                "long": "MTUM",
+                "short": "SPY"
+            },
+            {
+                "id": "international",
+                "long": "EFA",
+                "short": "SPY"
+            }
+        ]
     },
     "solver": {
         "contractVersion": "portfolio-solver-policy/v1",

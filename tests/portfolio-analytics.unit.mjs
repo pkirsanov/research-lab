@@ -1506,3 +1506,160 @@ test('TP-13-01 infeasible candidates appear beside feasible ones rather than bei
   // Both are present in one list.
   assert.equal(out.candidates.length, 6);
 });
+
+/* ---------------------------------------------------------------------------
+   Scope 14 - allocation sensitivity and explicit Black-Litterman
+   --------------------------------------------------------------------------- */
+
+test('TP-14-01 sensitivity reports a weight RANGE and labels unstable holdings', () => {
+  // A near-singular pair: the two assets are strongly correlated, which is
+  // exactly when minimum-variance weights swing on small covariance changes.
+  const covariance = [[0.04, 0.0595], [0.0595, 0.09]];
+  const out = RLPA.allocationSensitivity({
+    symbols: ['A', 'B'],
+    covariance,
+    currentWeights: [0.5, 0.5],
+    perturbations: [-0.02, -0.01, 0, 0.01, 0.02],
+    unstableRangeThreshold: 0.05
+  });
+  assert.equal(out.state, 'ok');
+  assert.equal(out.validTrials, 5);
+  assert.equal(out.failedTrials, 0);
+  assert.deepEqual(out.declaredPerturbations, [-0.02, -0.01, 0, 0.01, 0.02]);
+
+  // A range, not a point. low <= high for every holding, and the ranges are real.
+  for (const range of out.ranges) {
+    assert.ok(range.low <= range.high);
+    assert.ok(near(range.span, range.high - range.low, 1e-12));
+  }
+
+  // This fixture is deliberately unstable, so the point vector must be refused.
+  assert.ok(out.unstableSymbols.length > 0, 'a near-singular covariance must produce unstable weights');
+  assert.equal(out.pointVectorTrustworthy, false);
+  assert.ok(out.claimBoundary.includes('UNSTABLE'));
+  assert.ok(out.claimBoundary.includes('false precision'));
+});
+
+test('TP-14-01 a stable covariance is reported as stable ON THIS SET, not as correct', () => {
+  const covariance = [[0.04, 0.001], [0.001, 0.09]];
+  const out = RLPA.allocationSensitivity({
+    symbols: ['A', 'B'],
+    covariance,
+    currentWeights: [0.5, 0.5],
+    perturbations: [-0.02, 0, 0.02],
+    unstableRangeThreshold: 0.05
+  });
+  assert.equal(out.state, 'ok');
+  assert.equal(out.unstableSymbols.length, 0);
+  assert.equal(out.pointVectorTrustworthy, true);
+
+  // The wording is the point: stability on a perturbation set is not correctness.
+  assert.ok(out.claimBoundary.includes('ON THIS PERTURBATION SET'));
+  assert.ok(out.claimBoundary.includes('not the same as being correct'));
+});
+
+test('TP-14-01 precision follows the range so a wide band never prints false decimals', () => {
+  const wide = RLPA.allocationSensitivity({
+    symbols: ['A', 'B'],
+    covariance: [[0.04, 0.0595], [0.0595, 0.09]],
+    currentWeights: [0.5, 0.5],
+    perturbations: [-0.02, 0, 0.02],
+    unstableRangeThreshold: 0.05
+  });
+  const widest = wide.ranges.slice().sort((a, b) => b.span - a.span)[0];
+  assert.ok(widest.span > 0.01);
+  assert.equal(widest.decimals, 0, 'a band wider than a point earns no decimals');
+
+  const tight = RLPA.allocationSensitivity({
+    symbols: ['A', 'B'],
+    covariance: [[0.04, 0.0001], [0.0001, 0.09]],
+    currentWeights: [0.5, 0.5],
+    perturbations: [-0.001, 0, 0.001],
+    unstableRangeThreshold: 0.05
+  });
+  const tightest = tight.ranges.slice().sort((a, b) => a.span - b.span)[0];
+  assert.ok(tightest.span < 0.001);
+  assert.equal(tightest.decimals, 2, 'a tight band earns its decimals');
+});
+
+test('TP-14-01 sensitivity refuses without declared perturbations or a stability threshold', () => {
+  const base = {
+    symbols: ['A', 'B'],
+    covariance: [[0.04, 0.01], [0.01, 0.09]],
+    currentWeights: [0.5, 0.5],
+    perturbations: [-0.01, 0, 0.01],
+    unstableRangeThreshold: 0.05
+  };
+  const noPerturbations = { ...base };
+  delete noPerturbations.perturbations;
+  assert.equal(RLPA.allocationSensitivity(noPerturbations).reason, 'perturbations-required');
+
+  const noThreshold = { ...base };
+  delete noThreshold.unstableRangeThreshold;
+  assert.equal(RLPA.allocationSensitivity(noThreshold).reason, 'unstable-threshold-required');
+
+  // Neither is defaulted: an undeclared perturbation set would make the range
+  // an artefact of a hidden choice rather than a stated one.
+  assert.equal(RLPA.allocationSensitivity(noPerturbations).ranges, undefined);
+});
+
+test('TP-14-01 Black-Litterman admits only user-stated views and never a behavioural one', () => {
+  const out = RLPA.blackLittermanViews({
+    statedViews: [
+      { subject: 'AI infrastructure', expectedReturn: 0.08, confidence: 0.5, source: 'user-stated' }
+    ],
+    behaviorSignals: [
+      { subject: 'AI infrastructure', weight: 0.9 },
+      { subject: 'semiconductors', weight: 0.7 }
+    ]
+  });
+  assert.equal(out.state, 'ok');
+  assert.equal(out.admittedViews.length, 1);
+  assert.equal(out.admittedViews[0].source, 'user-stated');
+
+  // The behavioural signals were SEEN and contributed nothing. Accepting them as
+  // an argument and ignoring them is what makes the exclusion testable rather
+  // than merely absent.
+  assert.equal(out.behaviorSignalsSeen, 2);
+  assert.equal(out.behaviorDerivedViews, 0);
+  assert.equal(out.behaviorContribution, 'none');
+  assert.ok(out.exclusionStatement.includes('contributed NO view'));
+  assert.ok(out.exclusionStatement.includes('What you read is not what you believe'));
+
+  // A view claiming any other provenance is rejected by name.
+  const inferred = RLPA.blackLittermanViews({
+    statedViews: [{ subject: 'AI', expectedReturn: 0.08, confidence: 0.5, source: 'behavior-derived' }],
+    behaviorSignals: []
+  });
+  assert.equal(inferred.admittedViews.length, 0);
+  assert.equal(inferred.rejectedViews[0].reason, 'source-must-be-user-stated');
+});
+
+test('TP-14-01 with no stated view the candidate stays equilibrium-only', () => {
+  const out = RLPA.blackLittermanViews({
+    statedViews: [],
+    behaviorSignals: [{ subject: 'AI infrastructure', weight: 0.95 }]
+  });
+  assert.equal(out.state, 'equilibrium-only');
+  assert.equal(out.equilibriumOnly, true);
+  assert.equal(out.admittedViews.length, 0);
+  assert.equal(out.behaviorDerivedViews, 0);
+
+  // A strong behavioural signal is exactly the case where inference is
+  // tempting. The candidate must stay directionless.
+  assert.equal(out.behaviorSignalsSeen, 1);
+  assert.ok(out.note.includes('rather than being given a direction it was never told'));
+
+  // Every incomplete view is rejected by its own reason rather than part-used.
+  const partial = RLPA.blackLittermanViews({
+    statedViews: [
+      { subject: 'AI', expectedReturn: 0.08, source: 'user-stated' },
+      { subject: 'AI', confidence: 0.5, source: 'user-stated' },
+      { expectedReturn: 0.08, confidence: 0.5, source: 'user-stated' }
+    ],
+    behaviorSignals: []
+  });
+  assert.equal(partial.admittedViews.length, 0);
+  assert.deepEqual(partial.rejectedViews.map((r) => r.reason),
+    ['confidence-required', 'expected-return-required', 'subject-required']);
+});

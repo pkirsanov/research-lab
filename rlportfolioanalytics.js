@@ -2082,6 +2082,178 @@
     };
   }
 
+  /* ---------------------------------------------------------------------
+     Scope 14 - allocation sensitivity and explicit Black-Litterman
+     --------------------------------------------------------------------- */
+
+  /**
+   * Recompute an allocation across DECLARED perturbations and report the range.
+   *
+   * A single point-weight vector from an optimiser is the most confident-looking
+   * and least reliable output in portfolio analysis: minimum-variance and
+   * mean-variance weights move violently under small covariance changes. This
+   * reports the RANGE each weight takes across the perturbation set, and labels
+   * a holding unstable when its range exceeds the declared threshold.
+   *
+   * Precision follows the range: a weight whose band spans 30 points is printed
+   * to fewer decimals than one that barely moves, because the extra digits would
+   * be false precision.
+   */
+  function allocationSensitivity(request) {
+    if (!request || typeof request !== "object") return { state: "unavailable", reason: "request-invalid" };
+    var symbols = request.symbols;
+    var covariance = request.covariance;
+    if (!Array.isArray(symbols) || symbols.length < 2) return { state: "unavailable", reason: "insufficient-universe" };
+    if (!Array.isArray(covariance) || covariance.length !== symbols.length) {
+      return { state: "unavailable", reason: "covariance-required" };
+    }
+    if (!Array.isArray(request.perturbations) || !request.perturbations.length) {
+      return { state: "unavailable", reason: "perturbations-required" };
+    }
+    if (!isNum(request.unstableRangeThreshold) || request.unstableRangeThreshold <= 0) {
+      return { state: "unavailable", reason: "unstable-threshold-required" };
+    }
+    if (!request.perturbations.every(isNum)) return { state: "unavailable", reason: "perturbations-non-finite" };
+
+    var n = symbols.length;
+    var trials = [];
+    var failed = 0;
+    for (var p = 0; p < request.perturbations.length; p += 1) {
+      var scale = 1 + request.perturbations[p];
+      if (scale <= 0) { failed += 1; continue; }
+      /* Perturb the OFF-DIAGONALS only. Scaling the whole matrix would leave
+         minimum-variance weights unchanged (they are scale-invariant), so the
+         sensitivity would look reassuringly flat while proving nothing. */
+      var perturbed = [];
+      for (var i = 0; i < n; i += 1) {
+        perturbed.push([]);
+        for (var j = 0; j < n; j += 1) {
+          perturbed[i].push(i === j ? covariance[i][j] : covariance[i][j] * scale);
+        }
+      }
+      var solved = solveSymmetric(perturbed, symbols.map(function () { return 1; }));
+      if (!solved || solved.length !== n || !solved.every(isNum)) { failed += 1; continue; }
+      var total = 0;
+      for (var k = 0; k < n; k += 1) total += solved[k];
+      if (!(Math.abs(total) > 0)) { failed += 1; continue; }
+      trials.push({ perturbation: request.perturbations[p], weights: solved.map(function (v) { return v / total; }) });
+    }
+
+    if (!trials.length) {
+      return {
+        state: "unavailable",
+        reason: "no-valid-trial",
+        validTrials: 0,
+        failedTrials: failed,
+        note: "Every declared perturbation failed to solve, so there is no range to report. " +
+          "A point weight is NOT shown in its place."
+      };
+    }
+
+    var ranges = [];
+    for (var s = 0; s < n; s += 1) {
+      var values = trials.map(function (trial) { return trial.weights[s]; });
+      var low = Math.min.apply(null, values);
+      var high = Math.max.apply(null, values);
+      var span = high - low;
+      ranges.push({
+        symbol: symbols[s],
+        low: low,
+        high: high,
+        span: span,
+        unstable: span > request.unstableRangeThreshold,
+        /* False precision is the failure mode here. A weight whose band spans
+           more than a point is printed to whole percents; a tight one earns its
+           decimals. */
+        decimals: span > 0.01 ? 0 : (span > 0.001 ? 1 : 2)
+      });
+    }
+
+    var turnover = 0;
+    if (Array.isArray(request.currentWeights) && request.currentWeights.length === n) {
+      for (var t = 0; t < n; t += 1) {
+        turnover += Math.abs(ranges[t].high - request.currentWeights[t]);
+      }
+      turnover = turnover / 2;
+    }
+
+    var unstable = ranges.filter(function (row) { return row.unstable; });
+    return {
+      state: "ok",
+      validTrials: trials.length,
+      failedTrials: failed,
+      declaredPerturbations: request.perturbations.slice(),
+      unstableRangeThreshold: request.unstableRangeThreshold,
+      ranges: ranges,
+      unstableSymbols: unstable.map(function (row) { return row.symbol; }),
+      pointVectorTrustworthy: unstable.length === 0,
+      worstCaseTurnover: turnover,
+      claimBoundary: unstable.length
+        ? unstable.length + " holding" + (unstable.length === 1 ? "" : "s") + " move" +
+          (unstable.length === 1 ? "s" : "") + " more than the declared stability threshold across these " +
+          trials.length + " perturbations. The point-weight vector is UNSTABLE: reporting it to two " +
+          "decimals would be false precision about an answer that moves when the inputs barely do."
+        : "No holding exceeds the declared stability threshold across these " + trials.length +
+          " perturbations. The point-weight vector is stable ON THIS PERTURBATION SET, which is not " +
+          "the same as being correct."
+    };
+  }
+
+  /**
+   * Black-Litterman views, with an explicit provenance boundary.
+   *
+   * A view is admitted ONLY when the user stated it. Behaviour history — what
+   * the user read, searched, or lingered on — is deliberately accepted as an
+   * argument and deliberately ignored, so the exclusion is testable rather than
+   * merely absent. An inferred view would put words in the user's mouth and
+   * then optimise against them.
+   */
+  function blackLittermanViews(request) {
+    if (!request || typeof request !== "object") return { state: "unavailable", reason: "request-invalid" };
+    var stated = Array.isArray(request.statedViews) ? request.statedViews : [];
+    var behavior = Array.isArray(request.behaviorSignals) ? request.behaviorSignals : [];
+
+    var admitted = [];
+    var rejected = [];
+    for (var i = 0; i < stated.length; i += 1) {
+      var view = stated[i];
+      if (!view || typeof view !== "object") { rejected.push({ index: i, reason: "view-invalid" }); continue; }
+      if (typeof view.subject !== "string" || !view.subject) { rejected.push({ index: i, reason: "subject-required" }); continue; }
+      if (!isNum(view.expectedReturn)) { rejected.push({ index: i, reason: "expected-return-required" }); continue; }
+      if (!isNum(view.confidence) || view.confidence <= 0 || view.confidence > 1) {
+        rejected.push({ index: i, reason: "confidence-required" });
+        continue;
+      }
+      if (view.source !== "user-stated") { rejected.push({ index: i, reason: "source-must-be-user-stated" }); continue; }
+      admitted.push({
+        subject: view.subject,
+        expectedReturn: view.expectedReturn,
+        confidence: view.confidence,
+        source: "user-stated"
+      });
+    }
+
+    return {
+      state: admitted.length ? "ok" : "equilibrium-only",
+      admittedViews: admitted,
+      rejectedViews: rejected,
+      behaviorSignalsSeen: behavior.length,
+      behaviorDerivedViews: 0,
+      behaviorContribution: "none",
+      exclusionStatement: behavior.length
+        ? behavior.length + " behaviour signal" + (behavior.length === 1 ? "" : "s") +
+          " were present and contributed NO view, no return adjustment, and no confidence. " +
+          "What you read is not what you believe, and optimising against an inferred view would " +
+          "put words in your mouth and then act on them."
+        : "No behaviour signal was present. Views come only from what you stated.",
+      equilibriumOnly: admitted.length === 0,
+      note: admitted.length
+        ? "The candidate blends " + admitted.length + " view you stated with the equilibrium prior."
+        : "No view was stated, so the candidate remains equilibrium-only rather than being given a " +
+          "direction it was never told."
+    };
+  }
+
   return {
     TRADING_DAYS: TRADING_DAYS,
     alignPortfolioReturns: alignPortfolioReturns,
@@ -2116,6 +2288,8 @@
     ALLOCATION_METHODS: ALLOCATION_METHODS,
     evaluateFeasibility: evaluateFeasibility,
     compareAllocationMethods: compareAllocationMethods,
+    allocationSensitivity: allocationSensitivity,
+    blackLittermanViews: blackLittermanViews,
     analyticsIdentity: analyticsIdentity
   };
 });

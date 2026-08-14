@@ -29,9 +29,9 @@
       ]
     },
     "FEATURE008": {
-      "status": "blocked",
+      "status": "done_with_concerns",
       "certification": {
-        "status": "blocked"
+        "status": "done_with_concerns"
       }
     }
   }

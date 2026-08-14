@@ -301,3 +301,91 @@ plan-parity contradiction (Scopes 09, 13, 15, and here). Scope 16 declared 12 Te
 Plan rows while the parity header admitted 11, leaving TP-16-12 with no evidence
 item. Corrected. Four occurrences is a property of how these scopes were authored,
 not four separate slips.
+
+### <a id="s16-registration-delivered"></a>Registration DELIVERED - superseding the earlier finding
+
+The finding above stands as the record of what was attempted and reverted. It is
+superseded here: the registration is done.
+
+What changed was the diagnosis, not the effort. Registering as an `ordinary` tool
+requires the Feature 012 experience contract, and I had declared
+`rlexperience-adapters/strategy-research.js` as the adapter module. Scope-07
+membership in Feature 012 is derived FROM that field, so a Feature 008 tool
+declaring it silently enrolled itself in another feature's adapter suite and
+inherited its per-tool fixture contract. That single wrong field produced the
+whole cascade. Giving the tool its own module ends it.
+
+Delivered: five registry surfaces, the site-exclusion removal, a Simple-model
+definition, a dedicated adapter module, two journeys with steps, the module
+allowlist entry, the brief-coverage entry, and roughly twenty-one count pins.
+
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+================================================
+Research-Lab self-test: 1640 passed, 0 failed
+================================================
+```
+
+**Command:** the seven-file Feature 008 Playwright matrix
+**Exit Code:** 0
+**Output:**
+
+```text
+  72 passed (1.2m)
+```
+
+That 72 includes the atomic-registration row, which asserts all five surfaces
+agree AND that the experience contract resolves - a registry entry pointing at a
+model or adapter that does not exist is a tool registered into a registry that
+cannot run it.
+
+Both journeys are `privacyClass: local-private-ref`, not `public-safe`. Every
+other journey in the registry reasons over public evidence; these reason over
+holdings, so the gated class is the only correct one.
+
+#### Three real reader-legibility defects, found because registration brought the audit into scope
+
+Contract-version slugs were reaching the reader in three separate places: the
+policy line, the brief identity line, and the declared-relevance inputs. A string
+like `portfolio-behavior-policy/v1` is framework vocabulary - it tells a reader
+nothing they can act on and makes the surface read like a debug view.
+
+**Command:** `node scripts/audit-reader-legibility.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+=== leak class totals (page-view occurrences) ===
+
+pages audited: 26   with view tabs: 26   errored: 0   total leaks: 0
+```
+
+Each fix keeps the exact version on a `data-policy-version` attribute for
+machines and shows plain language to people. The FR-036 pin moved with them and
+deliberately got STRONGER: it now asserts both the visible thresholds and the
+version on the attribute, so the contract version is still pinned and traceable -
+it is simply no longer prose.
+
+#### One residual, named precisely
+
+The registered-source brief mount anchor is NOT installed. With it present, the
+shared brief shell mounts view panels that destabilise this page's import editor:
+the field never becomes reliably editable and four browser rows time out. This is
+a real integration defect between the shell and a page that already owns its own
+Simple/Power control, not a test race - `elementFromPoint` returns the input
+itself, so nothing covers it, yet it never settles.
+
+One node canary (`compatibility consumers contain zero stale mutable-history
+count or unsafe-render assumptions`) therefore fails, asserting that a registered
+tool has exactly one mount anchor. I would rather ship one precisely-understood
+failing canary than four broken rows verifying real user-facing behaviour.
+
+**Operator action for the residual:** a Feature 012 scope should reconcile the
+shell's view mounting with pages that already own a view control. Two other
+registered tools (`fx-regime-relative-value-lab`, `trend-dynamics-cycle-lab`)
+already report `enabled source mount state=idle (expected ready)` in the same
+canary, so this is a shell-side gap that predates this tool rather than something
+unique to it.

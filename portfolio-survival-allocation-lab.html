@@ -262,6 +262,39 @@
             padding: 18px 0;
         }
 
+        .mode-seg {
+            display: inline-flex;
+            gap: 0;
+            margin-top: 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .mode-seg button {
+            min-height: 44px;
+            min-width: 88px;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .mode-seg button[aria-pressed="true"] {
+            background: var(--line);
+            font-weight: 600;
+        }
+
+        /* Power-only evidence. Hidden in Simple, never removed: the same compute
+           feeds both modes, so a conclusion cannot differ between them. */
+        .pw {
+            display: none;
+        }
+
+        body.power .pw {
+            display: block;
+        }
+
         .brief .band:first-child,
         .editor .band:first-child {
             border-top: 0;
@@ -597,6 +630,12 @@
                 </div>
             </div>
             <div id="workspaceIdentity" class="identity">No current portfolio revision</div>
+            <div id="modeSeg" class="mode-seg" role="group" aria-label="Detail level">
+                <button id="modeSimple" type="button" aria-pressed="true">Simple</button>
+                <button id="modePower" type="button" aria-pressed="false">Power</button>
+            </div>
+            <p id="modeExplainer" class="microcopy">Simple shows the decision. Power adds the evidence behind it.
+                Neither mode changes a conclusion; Power never upgrades a result that Simple called unavailable.</p>
         </section>
 
         <nav class="tablist" role="tablist" aria-label="Portfolio workspace">
@@ -996,6 +1035,10 @@
 
     <script src="rlcontracts.js"></script>
     <script src="rldata.js"></script>
+    <!-- Shared shell. rldata before rlapp before rlnav is the repository-wide
+         load order every registered page is checked against. -->
+    <script src="rlapp.js"></script>
+    <script src="rlnav.js" defer></script>
     <script src="rlmetrics.js"></script>
     <!-- rlcontext canonicalises through RLEXPERIENCE, and rlchart's structured-adapter validator
          requires the RLCTX it defines, so this order is load-bearing rather than cosmetic. -->
@@ -1193,6 +1236,50 @@
                 return block;
             }
 
+            /* Power ADDS evidence. It never hides a conclusion, never re-runs
+               analytics, and never upgrades an unavailable state - the block below
+               reads the SAME projection Simple rendered, so the two modes cannot
+               disagree about what is available. */
+            function appendPowerEvidence(panel, entry) {
+                var block = document.createElement("div");
+                block.className = "band pw";
+                block.dataset.powerEvidence = entry.route;
+
+                var heading = document.createElement("h4");
+                heading.textContent = "Power evidence";
+                block.appendChild(heading);
+
+                var note = document.createElement("p");
+                note.className = "microcopy";
+                note.textContent = "Provenance for the conclusion above. Reading it changes nothing: " +
+                    "the same computation produced both views.";
+                block.appendChild(note);
+
+                var rows = document.createElement("ul");
+                rows.className = "route-states";
+                var facts = [
+                    ["route", entry.route],
+                    ["descriptive", entry.descriptive.available
+                        ? "available · cites portfolio " + entry.descriptive.citedPortfolioId
+                        : "unavailable · " + entry.descriptive.reason],
+                    ["mandate-dependent states", entry.mandateDependent.map(function (dependent) {
+                        return (STATE_LABELS[dependent.state] || dependent.state) + "=" +
+                            (dependent.available ? "available" : "unavailable");
+                    }).join(" · ") || "none declared"],
+                    ["user constraints", String(entry.constraints.length)],
+                    ["dated cash needs", String(entry.cashNeeds.length)],
+                    ["inferred fields", Object.keys(entry.inferredValues).length + " declared, all absent by contract"]
+                ];
+                facts.forEach(function (fact) {
+                    var li = document.createElement("li");
+                    li.dataset.powerFact = fact[0];
+                    li.textContent = fact[0] + " · " + fact[1];
+                    rows.appendChild(li);
+                });
+                block.appendChild(rows);
+                panel.appendChild(block);
+            }
+
             function routePanel(entry) {
                 var panel = document.createElement("article");
                 panel.className = "band route-panel";
@@ -1244,6 +1331,7 @@
                 if (entry.route === "diversification") appendDiversification(panel);
                 if (entry.route === "allocation") appendAllocationComparison(panel);
                 if (entry.route === "dossier") appendResearchDossier(panel);
+                appendPowerEvidence(panel, entry);
                 return panel;
             }
 
@@ -3879,6 +3967,36 @@
                 }
             }
 
+            /* The ONLY thing this tool ever tells the public brief. Registration in
+               tools.json makes the brief account for the tool, so it must publish
+               something - and the only safe something is that it has nothing to
+               publish. availability is permanently "unavailable": not because a
+               computation failed, but because every result here is personal and
+               belongs to this device. No holding, weight, conclusion or count
+               crosses into this object. */
+            function publishPrivacyBoundaryRead() {
+                if (!window.RLDATA || typeof window.RLDATA.putToolRead !== "function") return null;
+                /* Idempotent on purpose. rlData is a SHARED public artifact that the brief
+                   publisher harvests into tracked files, so restamping an identical read on
+                   every page load would churn a committed artifact for no added information. */
+                var existing = window.RLDATA.toolRead("portfolio-survival-allocation-lab");
+                if (existing && existing.availability === "unavailable" &&
+                    existing.metrics && existing.metrics.personalDataIncluded === false) {
+                    return existing;
+                }
+                return window.RLDATA.putToolRead("portfolio-survival-allocation-lab", {
+                    contractVersion: "rl-tool-read/v1",
+                    id: "portfolio-survival-allocation-lab",
+                    read: "Private local portfolio analysis stays in its owning tab; open the tool for local research.",
+                    metrics: { privacyBoundary: "local-only", personalDataIncluded: false },
+                    availability: "unavailable",
+                    asOf: null,
+                    freshUntil: null,
+                    computedAt: new Date().toISOString(),
+                    deepLink: "portfolio-survival-allocation-lab.html#brief"
+                });
+            }
+
             function renderRoutes() {
                 var projection = state.routeStates;
                 var container = byId("routePanels");
@@ -5088,6 +5206,32 @@
                     applyRoute(route.hash);
                 });            });
 
+            /* Simple/Power is a DISPLAY choice, so it is stored under the display
+               namespace and never re-runs analytics. Re-rendering from the same
+               state is what makes a conclusion identical across both modes. */
+            var MODE_KEY = "rl-portfolio-display-mode";
+
+            function applyDisplayMode(mode, persist) {
+                var power = mode === "power";
+                document.body.classList.toggle("power", power);
+                byId("modeSimple").setAttribute("aria-pressed", String(!power));
+                byId("modePower").setAttribute("aria-pressed", String(power));
+                if (persist) {
+                    try { window.localStorage.setItem(MODE_KEY, power ? "power" : "simple"); }
+                    catch (error) { /* session-only mode: the choice simply does not persist */ }
+                }
+                renderRoutes();
+            }
+
+            byId("modeSimple").addEventListener("click", function () { applyDisplayMode("simple", true); });
+            byId("modePower").addEventListener("click", function () { applyDisplayMode("power", true); });
+
+            var storedMode = "simple";
+            try { storedMode = window.localStorage.getItem(MODE_KEY) === "power" ? "power" : "simple"; }
+            catch (error) { storedMode = "simple"; }
+            applyDisplayMode(storedMode, false);
+            publishPrivacyBoundaryRead();
+
             window.addEventListener("hashchange", function () { applyRoute(routeFromHash()); });
 
             byId("openPrivacy").addEventListener("click", function () {
@@ -5357,6 +5501,13 @@
             boot();
         })();
     </script>
+
+    <!-- Registered-source brief mount. This tool's published read is the permanent
+         privacy-boundary read, so the mount renders that refusal rather than a
+         personal result - the anchor still has to exist, because a registered source
+         with no mount is invisible to the shared shell. -->
+    <section data-rlbrief-mount data-tool-id="portfolio-survival-allocation-lab" data-simple-target="rlbrief-simple"
+        data-power-target="rlbrief-power"></section>
 </body>
 
 </html>

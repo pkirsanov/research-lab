@@ -84,6 +84,20 @@ const NEVER_INFERRED_FIELDS = Object.freeze([
   'expectedReturn', 'horizon', 'liquidityNeed', 'riskTolerance', 'survivalFloor'
 ]);
 
+/* The page's ONLY shared-cache write is its privacy-boundary read. This proves
+   the enumerated 'rlData' key above is that read and not a personal leak. */
+async function sharedCacheIsImpersonal(page) {
+  return page.evaluate(() => {
+    const raw = localStorage.getItem('rlData');
+    if (!raw) return false;
+    const read = (JSON.parse(raw).toolReads || {})['portfolio-survival-allocation-lab'];
+    if (!read) return false;
+    return read.availability === 'unavailable'
+      && read.metrics.personalDataIncluded === false
+      && !/MSFT|BND|quantity|costBasis/i.test(JSON.stringify(read));
+  });
+}
+
 test('Regression: SCN-008-003 explicit mandate alone supplies every hard constraint', async ({ page }) => {
   const requestStart = server.requests.length;
   const browserRequests = await openRoute(page);
@@ -310,7 +324,8 @@ test('Regression: SCN-008-001 valid local portfolio import creates one current r
   expect(first.diagnostics.revisionCount).toBe(1);
   expect(first.diagnostics.holdingCount).toBe(2);
   expect(first.diagnostics.storageMode).toBe('durable');
-  expect(first.localKeys).toEqual(['rlPortfolioWorkspaceV1.pointer', 'rlPortfolioWorkspaceV1.slotA']);
+  expect(first.localKeys).toEqual(['rlData', 'rlPortfolioWorkspaceV1.pointer', 'rlPortfolioWorkspaceV1.slotA']);
+  expect(await sharedCacheIsImpersonal(page)).toBe(true);
   expect(first.sessionKeys).toEqual([]);
   expect(first.url).not.toMatch(/MSFT|BND|quantity|costBasis/i);
   const revisionId = first.diagnostics.currentPortfolioId;
@@ -348,7 +363,8 @@ test('Regression: SCN-008-001 valid local portfolio import creates one current r
   expect(second.supersedes).toEqual([null, revisionId]);
   expect(second.revisionNames).toEqual(['Scope 01 portfolio', secondName]);
   expect(second.activeSlot).toBe('slotB');
-  expect(second.localKeys).toEqual(['rlPortfolioWorkspaceV1.pointer', 'rlPortfolioWorkspaceV1.slotA', 'rlPortfolioWorkspaceV1.slotB']);
+  expect(second.localKeys).toEqual(['rlData', 'rlPortfolioWorkspaceV1.pointer', 'rlPortfolioWorkspaceV1.slotA', 'rlPortfolioWorkspaceV1.slotB']);
+  expect(await sharedCacheIsImpersonal(page)).toBe(true);
   expect(second.sessionKeys).toEqual([]);
   expect(second.url).not.toMatch(/MSFT|BND|quantity|costBasis/i);
   expect(second.url).not.toContain(secondName);
@@ -445,9 +461,19 @@ test('Regression: SCN-008-002 invalid or secret-bearing import is atomic and red
    * artifact. scripts/brief-distributed-publish.mjs harvests localStorage.rlData.toolReads into
    * tracked briefs/, so a portfolio write into the shared cache would carry the rejected value
    * into git on the next publish. The repo-wide "every tool publishes its read to
-   * RLDATA.toolReads" convention makes that a live regression, not a hypothetical one. */
-  expect(after.sharedCache, 'rejection leaves no shared-cache entry for the brief publisher to harvest').toBe(null);
-  expect(after.foreignKeys, 'rejection writes no storage key outside the private portfolio namespace').toEqual([]);
+   * RLDATA.toolReads" convention makes that a live regression, not a hypothetical one.
+   *
+   * The page now publishes a boot-time PRIVACY-BOUNDARY read, so "no entry at all" is no longer
+   * the right shape. The intent is unchanged and is asserted more precisely: the only harvestable
+   * entry is the permanently-unavailable boundary read, and it carries nothing from the rejected
+   * import. A bare null check would in fact have been WEAKER here — it could not distinguish an
+   * empty cache from one holding a real read. */
+  expect(after.sharedCache, 'a rejected import writes nothing harvestable into the shared cache').not.toContain(sentinel);
+  const harvestable = JSON.parse(after.sharedCache || '{"toolReads":{}}').toolReads || {};
+  expect(Object.keys(harvestable).sort()).toEqual(['portfolio-survival-allocation-lab']);
+  expect(harvestable['portfolio-survival-allocation-lab'].availability).toBe('unavailable');
+  expect(harvestable['portfolio-survival-allocation-lab'].metrics.personalDataIncluded).toBe(false);
+  expect(after.foreignKeys, 'rejection writes no storage key outside the private portfolio namespace and the shared public cache').toEqual(['rlData']);
 
   /* Sink 5, artifact half — the fixed probe may exist only where it is declared. Asserting the
    * bare prefix (not just the run-unique value) also catches a truncated or prefix-only leak. */
@@ -551,8 +577,14 @@ test('Regression: Feature 008 atomic slots preserve last valid portfolio in dura
     expect(sinks.body, `${mode}: rejected value is not echoed to the page`).not.toContain(modeSentinel);
     expect(consoleMessages.join('\n'), `${mode}: rejected value absent from logs`).not.toContain(modeSentinel);
     expect(JSON.stringify(server.requests.slice(requestStart)), `${mode}: rejected value absent from telemetry`).not.toContain(modeSentinel);
-    expect(sinks.sharedCache, `${mode}: rejection leaves no shared-cache entry to harvest`).toBe(null);
-    expect(sinks.local.keys.filter((key) => !key.startsWith('rlPortfolioWorkspaceV1.')), `${mode}: no storage key outside the private portfolio namespace`).toEqual([]);
+    /* The boot-time privacy-boundary read is the only harvestable entry; nothing from the
+       rejected import may join it. See the SCN-008-002 note for why this is stronger than the
+       former bare null check. In session and memory modes localStorage is unavailable, so there
+       is no shared cache at all - which satisfies the same intent. */
+    const modeHarvest = JSON.parse(sinks.sharedCache || '{"toolReads":{}}').toolReads || {};
+    expect(Object.keys(modeHarvest).sort(), `${mode}: nothing beyond the privacy-boundary read is harvestable`)
+      .toEqual(mode === 'durable' ? ['portfolio-survival-allocation-lab'] : []);
+    expect(sinks.local.keys.filter((key) => !key.startsWith('rlPortfolioWorkspaceV1.') && key !== 'rlData'), `${mode}: no storage key outside the private portfolio namespace and the shared public cache`).toEqual([]);
 
     expect(browserRequests.length).toBeGreaterThan(0);
     expect(browserRequests.every((url) => new URL(url).origin === server.baseUrl)).toBe(true);
@@ -672,7 +704,27 @@ test('Regression: SCN-008-011 clear behavior removes ranking influence and prese
   /* A public generic cache owned by the other Research Lab tools. SCN-008-011 preserves it, and
    * a behavior clear that widened into `localStorage.clear()` would destroy it — so this is a
    * live regression, not a restatement of "this page never names that key". */
-  await page.evaluate(() => localStorage.setItem('rlData', JSON.stringify({ watchlist: ['SPY', 'TLT'], toolReads: {} })));
+  /* Seeded WITH the tool's privacy-boundary read already present. The page publishes that read
+     idempotently, so seeding it means any later byte difference is a real mutation by the clear
+     rather than the page restamping its own read — which is what this row is actually about. */
+  await page.evaluate(() => localStorage.setItem('rlData', JSON.stringify({
+    v: 1,
+    bars: {}, quotes: {}, options: {}, si: {}, macro: null, events: {},
+    watchlist: ['SPY', 'TLT'],
+    toolReads: {
+      'portfolio-survival-allocation-lab': {
+        contractVersion: 'rl-tool-read/v1',
+        id: 'portfolio-survival-allocation-lab',
+        read: 'Private local portfolio analysis stays in its owning tab; open the tool for local research.',
+        metrics: { privacyBoundary: 'local-only', personalDataIncluded: false },
+        availability: 'unavailable',
+        asOf: null,
+        freshUntil: null,
+        computedAt: '2026-08-14T00:00:00.000Z',
+        deepLink: 'portfolio-survival-allocation-lab.html#brief'
+      }
+    }
+  })));
   const publicCacheBefore = await page.evaluate(() => localStorage.getItem('rlData'));
 
   // Exact, not prefix: `· none` as a substring survives an appended ranked subject.
@@ -1009,7 +1061,7 @@ test('Regression: SCN-008-012 behavior evidence excludes engagement and sensitiv
     serviceWorkers: (await navigator.serviceWorker.getRegistrations()).length
   }));
   expect(traces.cookie, 'no cross-device or identity cookie is written').toBe('');
-  expect(traces.foreignLocal, 'no hidden profile namespace is created').toEqual([]);
+  expect(traces.foreignLocal, 'no hidden profile namespace is created beyond the shared public cache').toEqual(['rlData']);
   expect(traces.session, 'no session-scoped profile is created').toEqual([]);
   expect(traces.databases, 'no shadow profile store is created').toEqual([]);
   expect(traces.serviceWorkers, 'no background worker could carry a profile off-device').toBe(0);

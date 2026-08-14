@@ -150,7 +150,7 @@ Before TP-16-05 through TP-16-11, run `npx --no-install playwright --version` an
 - [ ] Atomic release adds the route to `index.html`, `tools.json`, `rlnav.js`, README and the note only after the direct unregistered route, privacy, accessibility, canvas/table and focused domain tests are green.
 - [ ] Every Scope 16 behavior has intended RED and same-command GREEN evidence before the complete Feature 008 and existing-consumer browser matrices.
 
-#### Test Evidence Items - Exact Parity With 11 Test Plan Rows
+#### Test Evidence Items - Exact Parity With 12 Test Plan Rows
 
 - [ ] TP-16-01 functional evidence proves the committed Node/Playwright source-lock graph is exact and trusted before browser execution.
 - [ ] TP-16-02 selftest evidence proves all Feature 008 production/registry/shared contracts and every existing repository invariant.
@@ -163,6 +163,7 @@ Before TP-16-05 through TP-16-11, run `npx --no-install playwright --version` an
 - [ ] TP-16-09 complete privacy E2E evidence proves personal sentinels stay absent from route requests/URLs/referrers/console/public reads/files/publisher inputs and clear proof remains exact.
 - [ ] TP-16-10 complete Feature 008 E2E evidence proves every exact SCN-008-001 through SCN-008-036 Regression title passes without interception or external providers.
 - [ ] TP-16-11 existing-consumer E2E evidence proves provider credentials and every named Feature 001-007/shared route remain green after high-fan-out changes.
+- [ ] TP-16-12 whole-set closure functional evidence proves every personal category the finished six-tab route can create is populated, swept by one full-personal clear, and derived from the runtime rather than a hand-written list.
 
 #### Build Quality Gate
 

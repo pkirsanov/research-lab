@@ -1756,3 +1756,64 @@ test('SCN-008-037 TP-06-08: a full-personal clear empties genuinely persisted in
   assert.equal(afterBehavior.value.workspace.mandateRevisions.length, priorMandates, 'mandate revisions stay at their exact prior count');
   assert.equal(afterBehavior.value.workspace.mandateRevisions[0].cashNeeds.length, priorCashNeeds, 'cash needs stay at their exact prior count');
 });
+
+test('TP-16-12 SCN-008-041 every personal category the finished route can create is swept by one full-personal clear', () => {
+  const { api, policy } = loadRuntime();
+  const localStorage = createStorage({ initial: { ...GENERIC_PUBLIC_CACHES } });
+  const sessionStorage = createStorage();
+  const { workspace } = seedEveryPopulatableCategory(api, policy, localStorage, sessionStorage);
+
+  /* Scope 03 wrote this DoD line while the personal-category set was still open, so it could not
+     be quantified over. Scope 16 is the first point at which the set is closed: every route that
+     can create a category now exists. The list is read off the runtime for the same reason it was
+     read off the runtime there - a hand-written list stops covering the next category silently. */
+  const before = api.privacyInventory(workspace, { localStorage, sessionStorage }, policy);
+  assert.equal(before.ok, true, `inventory must project: ${JSON.stringify(before.error || {})}`);
+  const declared = before.value.categories.map((entry) => entry.category).sort();
+
+  assert.deepEqual(
+    declared,
+    ['action-outcomes', 'allocations', 'behavior-events', 'cash-needs', 'dossiers', 'interest-signals',
+      'mandate-revisions', 'portfolio-revisions', 'quarantine', 'scenarios', 'session-fallback'],
+    'the closed personal-category set for the finished six-tab route'
+  );
+
+  /* Populated, not merely declared. A closure proof over categories that were never filled would
+     pass on a route that cannot create them at all. */
+  const populated = before.value.categories.filter((entry) => entry.present).map((entry) => entry.category).sort();
+  assert.ok(populated.length >= 8, `at least eight categories must be genuinely populated, got ${populated.length}: ${populated.join(', ')}`);
+  assert.ok(populated.includes('dossiers'), 'the Scope 15 dossier category must be populated before the closure claim');
+  assert.ok(populated.includes('allocations'), 'the Scope 13 allocation category must be populated before the closure claim');
+
+  const publicBefore = { ...GENERIC_PUBLIC_CACHES };
+  const cleared = api.clearFoundationStorage({ localStorage, sessionStorage });
+  assert.equal(cleared.ok, true, `full-personal clear must succeed: ${JSON.stringify(cleared.error || {})}`);
+
+  const reloaded = api.createPortfolioStore({ localStorage, sessionStorage }, policy).openWorkspace(NOW);
+  assert.equal(reloaded.ok, true, `a cleared namespace must still open: ${JSON.stringify(reloaded.error || {})}`);
+  const after = api.privacyInventory(reloaded.value.workspace, { localStorage, sessionStorage }, policy);
+  assert.equal(after.ok, true, `inventory must project after the clear: ${JSON.stringify(after.error || {})}`);
+
+  const survivors = after.value.categories.filter((entry) => entry.present).map((entry) => entry.category).sort();
+  assert.deepEqual(survivors, [], `no personal category may survive the full-personal clear, survived: ${survivors.join(', ')}`);
+
+  /* The public generic cache is not the tool's to delete. A clear that took it would be
+     destroying another tool's evidence to prove its own thoroughness. */
+  for (const [key, value] of Object.entries(publicBefore)) {
+    assert.equal(localStorage.getItem(key), value, `generic public cache ${key} must be byte-identical after the clear`);
+  }
+
+  /* No personal storage key may survive outside the declared sweep. This is the half that a
+     per-category matrix cannot see: it checks the categories it knows about, so a key written
+     under an undeclared namespace would be invisible to it and to the user. */
+  const residualKeys = [];
+  for (let i = 0; i < localStorage.length; i += 1) {
+    const key = localStorage.key(i);
+    if (!Object.prototype.hasOwnProperty.call(publicBefore, key)) residualKeys.push(key);
+  }
+  assert.deepEqual(residualKeys, [], `no personal storage key may survive the sweep, found: ${residualKeys.join(', ')}`);
+
+  const residualSession = [];
+  for (let i = 0; i < sessionStorage.length; i += 1) residualSession.push(sessionStorage.key(i));
+  assert.deepEqual(residualSession, [], `no personal session key may survive the sweep, found: ${residualSession.join(', ')}`);
+});

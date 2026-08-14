@@ -1,62 +1,59 @@
-# Scope 4: Dossier And Honest Outcome States
+# Scope 4: Governed Generation And Atomic Publication
 
-## 04-dossier-and-outcome-states
-
-**Status:** Not started
+**Scope ID:** `04-dossier-and-outcome-states`
+**Scope Dir:** `scopes/04-dossier-and-outcome-states`
+**Status:** Done
+**Depends On:** `01-agenda-registry-contract` (foundation), `03-per-generation-review-policy`
 **Scope-Kind:** runtime-behavior
-**Tags:** provenance, named-absence, append-only, soft-failure, write-disjoint
-Depends On: Scope 1 — the dossier contract · Scope 3 — the offline plan that selects a topic
 
-**Primary Outcome:** A fifth write-disjoint lane, `research`, owning exactly the
-key `researchAgenda` and spawned only when the offline plan selected at least one
-topic, researches the selected topics through the existing allowlisted web
-fetches. Each reviewed topic produces an immutable dated dossier whose every
-finding carries an observation date, a source and a stated confidence, or it
-produces one of the four honest outcomes — `updated`, `unchanged`, `stale`,
-`unavailable` — each with the `reviewed` discriminator that separates "we looked
-and found nothing" from "we did not look". A refreshed dossier references the
-version it supersedes and never overwrites it. A failed lane costs its own topics
-and nothing else.
+Related artifacts: [spec.md](../../spec.md), [design.md](../../design.md),
+[scope index](../_index.md).
+
+## Replan Evidence Boundary
+
+The existing `report.md` records historical evidence for the superseded
+implementation contract. It cannot satisfy any DoD item below. Implementation
+must execute every current `TP-04-*` row and append fresh evidence under a
+`replanned-contract-tp-04-*` anchor before checking the matching item.
+
+## Outcome
+
+Integrate the offline plan and deterministic model engine into each real market
+brief generation. Reuse current committed observations, bars, frozen evidence,
+and source-ledger entries. Send only missing or stale requirements through the
+existing governed acquisition boundary. Run one separately bounded,
+networkless, write-disjoint research side lane that authors situation evidence
+and interpretation but no analytical number.
+
+Compose one exact candidate containing every declared topic and section. A
+successful topic produces a complete current review and, only when substantive
+state changed, a new immutable dossier. Quiet, stale, and unavailable outcomes
+remain explicit. Validate the complete agenda/payload transaction, write
+immutable assets create-only, replace the append-only ledger candidate, and
+move `current.json` last. Research acquisition, authoring, validation, and
+timeout failures remain isolated from the four critical lanes.
 
 ## Requirement Coverage
 
-- FR-019-024 — a researched topic produces a dossier carrying the topic
-  identifier, the generation instant and the outcome state.
-- FR-019-025 — every finding carries an observation date, a source and a stated
-  confidence; a finding missing any of the three is not published (P1).
-- FR-019-026 — the outcome comes from the closed vocabulary `updated`,
-  `unchanged`, `stale`, `unavailable`, plus `paused` and `deferred` for topics
-  that were not researched.
-- FR-019-027 — `unchanged` is published when research completed and surfaced no
-  new evidence; no finding is invented to justify the review.
-- FR-019-028 — `stale` is published with the age of the newest evidence when that
-  evidence predates the topic's declared freshness window.
-- FR-019-029 — `unavailable` is published with a named reason when the worker
-  failed or returned nothing usable, and no partial or inferred finding is
-  published in its place (P2).
-- FR-019-030 — a new dossier version references the version it supersedes and the
-  superseded version remains readable (P21).
-- FR-019-031 — a correction is a new entry referencing the old one, never an edit
-  of the old one (P21).
-- FR-019-037 — research runs only through the existing web-capable lanes and their
-  committed `webAllow` allowlist; no new credential and no new endpoint (P9).
-- NFR-019-002 — the agenda's contribution to publication time is bounded by the
-  review budget.
-- NFR-019-003 — a dossier body stays inside the committed
-  `maxNormalizedObservationBytes` figure of 262144 from the `artifact-budget/v1`
-  block in `market-brief.config.json`, and that budget is asserted by a test that
-  can fail (P22).
-- NFR-019-004 — the supersession guard and the soft-failure guard each carry an
-  adversarial case that fails when the guard is removed.
+FR-019-010, FR-019-017 through FR-019-019, FR-019-024 through FR-019-031,
+FR-019-037 through FR-019-038, NFR-019-002 through NFR-019-004.
 
 ## Gherkin Scenarios
 
 ```gherkin
+Scenario: SCN-019-004 A newly declared topic enters the review cycle
+  Given the operator commits a new topic with a declared question and an explicit review mode
+  When the next generation runs
+  Then an every-generation topic is selected as mandatory
+  And a cadence topic is treated as due because it has never been reviewed
+  And a first dossier is produced or a named outcome is recorded
+
 Scenario: SCN-019-012 A dossier carries provenance
   Given a due topic researched successfully this generation
   When the dossier is written
-  Then every finding carries an observation date, a source, and a stated confidence
-  And the dossier carries the generation instant and the topic identifier
+  Then every finding carries an observation date, source, confidence and evidence role
+  And the dossier carries the generation instant, topic identifier and change assessment
+  And it carries every declared analytical section with sustained model and chart state
   And the outcome state is updated
 
 Scenario: SCN-019-013 No new evidence is a real answer
@@ -79,215 +76,514 @@ Scenario: SCN-019-015 A failed lane is a named absence
   Then the outcome state is unavailable with a named reason
   And no partial, inferred or placeholder finding is published for it
   And the remaining topics are unaffected
-
-Scenario: SCN-019-016 History is append-only
-  Given a topic with an existing dossier
-  When a new review produces an updated dossier
-  Then the new version references the version it supersedes
-  And the superseded version is still readable
-  And no prior finding is edited in place
 ```
 
-## Implementation Files
+## Planned Production Paths
 
-### New
-
-- `tests/fixtures/research-agenda/dossier-updated.json`
-- `tests/fixtures/research-agenda/dossier-finding-missing-source.json`
-- `tests/fixtures/research-agenda/dossier-stale-evidence.json`
-- `tests/fixtures/research-agenda/dossier-over-byte-budget.json`
-- `tests/fixtures/research-agenda/lane-fragment-incomplete.json`
-
-### Modified
-
-- `scripts/brief-narrative-parallel.mjs` — one lane descriptor, the `optional`
-  branch in `loadFragment`, `agendaUnavailableFragment`, and the collector
-  ordering that writes dossiers and ledger rows after the payload is accepted
-- `rlagenda.js` — `validateDossier`, `supersedes`, `buildAgendaRead`
-- `scripts/selftest.mjs` — one new assertion group
-- `notes/research-agenda-lab.md` — the dossier contract and the outcome table
+| Path | Disposition | Purpose |
+| --- | --- | --- |
+| `market-brief.config.json` | existing, planned modification | explicit agenda acquisition and research-authoring policy |
+| `scripts/web-evidence-policy.mjs` | planned new | one extracted allowlist policy shared by existing and agenda lanes |
+| `scripts/web-evidence-acquire.mjs` | existing, reused without second fetcher | frozen missing/stale evidence bundles |
+| `scripts/brief-narrative-parallel.mjs` | existing, planned modification | side-pool research author and candidate collection |
+| `scripts/research-agenda-generation.mjs` | planned new | pure agenda candidate, read, and transaction composition |
+| `scripts/research-agenda-refresh.mjs` | planned new | runtime binding and exact pointer-last publication orchestration |
+| `scripts/validate-brief-payload.mjs` | existing, planned modification | agenda/payload validation |
+| `scripts/brief-refresh-and-push.sh` | existing, planned modification | candidate transaction, owned paths, scoped commit, rollback |
+| `research/agenda/generations/`, `reviews/`, `dossiers/` | existing after Scope 2, planned writes | immutable transaction outputs |
+| `research/agenda/history.jsonl`, `current.json` | existing after Scope 2, planned writes | append candidate and pointer-last publication |
+| `market-brief.payload.json` | existing generated artifact, planned additive key | compact `researchAgenda` read |
+| `tests/web-evidence.functional.mjs` | existing, planned modification | real acquisition behavior |
+| `tests/web-evidence.security.mjs` | existing, planned modification | allowlist/private/instruction/budget refusals |
+| `tests/distributed-briefs.authorship.integration.mjs` | existing, planned modification | side-pool and critical-lane isolation |
+| `tests/brief-refresh-atomicity.test.mjs` | existing, planned modification | transaction, rollback, pointer-last |
+| `tests/distributed-briefs.final.e2e.mjs` | existing, planned modification | real generation end to end |
 
 ## Implementation Plan
 
-1. Add one lane descriptor to `scripts/brief-narrative-parallel.mjs`:
-   `{ id: 'research', keys: ['researchAgenda'], web: true, optional: true }`. It
-   is a fifth lane rather than an extension of `signals` because
-   `readCompleteFragment` accepts a fragment only when its key set matches the
-   lane's declared keys exactly — so widening `signals` would make one failed
-   topic invalidate `attention`, `recommendations` and `events` together, which is
-   the opposite of SCN-019-015. It is not `coverage`, which declares `web: false`.
-   It is not `core`, which owns `nextSession`.
-2. Spawn the lane only when `plan.selected.length > 0`. When nothing is due the
-   lane is not added to the pool at all and the collector composes the entire read
-   itself, so the common case adds no pool wave and no tokens.
-3. Pass the lane only the selected topics — for each, the `declaredQuestion`, the
-   `scopeBoundary`, `freshnessWindowDays`, the prior dossier's findings and
-   newest-evidence date, and the `because` of any fired trigger. No other topic
-   enters the prompt.
-4. Extend `loadFragment` with the `optional` branch: a lane error on an `optional`
-   lane returns `agendaUnavailableFragment(plan, error)` instead of rethrowing.
-   `core`, `signals`, `groups` and `coverage` carry no `optional` flag, so their
-   fail-closed behaviour is byte-identical to today — this is an added branch, not
-   a changed one.
-5. Compose `agendaUnavailableFragment` from the same offline plan with every
-   selected topic at `outcome: "unavailable"`, `reviewed: true` and a named
-   `unavailableReason`. It fabricates no finding.
-6. Implement `validateDossier(dossier, topic)` refusing `RLAGENDA-FINDING` for any
-   finding missing `observedAt`, `source` or `confidence`. A refused finding is
-   not published and never renders as a blank row.
-7. Resolve `stale` when `newestEvidenceObservedAt` is older than the topic's
-   `freshnessWindowDays`, and carry `newestEvidenceAgeDays` so the reader is told
-   the age rather than shown an undated read.
-8. Resolve `unchanged` with `reviewed: true` when research completed and surfaced
-   nothing new, and keep the prior dossier as current. The pair
-   `(outcome, reviewed)` — not the word alone — distinguishes this from the
-   not-due case scope 3 produces.
-9. Implement `supersedes(previousRef, nextDossier)` refusing `RLAGENDA-SUPERSEDE`
-   when the new version does not reference its predecessor, and refusing any write
-   whose target path already exists. Version files are immutable; a correction is
-   a new ledger row referencing the old `findingId`.
-10. Write dossier files at
-    `research/agenda/<topicId>/<YYYY-MM-DDTHHMMSSZ>.dossier.json`, with the colons
-    stripped from the instant because they are a hostile filename character on
-    non-POSIX checkouts. Write them and the ledger rows in the collector **after**
-    the payload is accepted, so a reverted narrative attempt leaves no orphan
-    dossier claiming a generation that did not publish.
-11. Refuse `RLAGENDA-BUDGET` for a dossier body over the committed
-    `maxNormalizedObservationBytes` of 262144, reusing the figure from the
-    `artifact-budget/v1` block rather than re-inventing one. The topic then
-    resolves `unavailable` with that named reason.
-12. Register a `research-agenda — dossier and outcomes` group in
-    `scripts/selftest.mjs`, and record the contract and the outcome table in
-    `notes/research-agenda-lab.md`.
+1. Run `planGeneration` before any acquisition or authoring. Bind one
+   `generationId` to all retries with registry, definition, calibration, bars,
+   history, cutoff, and snapshot digests. Keep pure candidate, read, and
+   transaction composition in `scripts/research-agenda-generation.mjs`; bind
+   repository I/O and pointer-last promotion in `scripts/research-agenda-refresh.mjs`.
+2. Compare selected-topic source requirements with current owner observations,
+   bars, frozen bundles, and prior source-ledger records. Reuse only records
+   whose identity, digest, times, freshness, and claim coverage remain valid.
+   Query only missing or stale requirements.
+3. Extract the current 15-host allowlist into one policy module and keep all
+   four existing lane arguments byte-equivalent. Add the explicit
+   `research-agenda` query/URL/origin/excerpt/response/bundle/time/concurrency
+   limits from design section 11.3. Reject every limit at capacity plus one.
+4. Invoke `scripts/web-evidence-acquire.mjs` as the only query-plan-to-bundle
+   transform. Preserve HTTPS, no redirect, robots, private-field,
+   instruction-shape, freshness, corroboration, byte, and raw-body-discard
+   behavior. Add no host, credential, or licensed endpoint.
+5. Run a separate optional side pool with `concurrency: 1`, `attempts: 1`, and
+   `timeoutSeconds: 900`. The `research` lane has no web and no shell, owns only
+   `.brief-work/research.json`, consumes frozen inputs, and outputs exact
+   `research-situation/v1` records without probabilities, ranges, chart points,
+   or change labels.
+6. Recompute every deterministic output through `rlagenda.js`. Validate every
+   declared section as changed, unchanged, stale, or unavailable. Require one
+   generation classification per registry row and one current review or named
+   unavailable record for every active mandatory topic.
+7. Compose `updated` only with complete provenance and sustained state.
+   Compose `unchanged` as a new complete review with the prior dossier ref and
+   no invented finding. Compose `stale` with newest-evidence age and zero stale
+   impact. Compose `unavailable` with a specific reason and no partial finding.
+8. Add the compact `researchAgenda` read to the payload candidate. Scope 5 adds
+   the registered tool-read identity and visible page projection; this scope
+   does not register or render a tool.
+9. Validate canonical model equality, complete topic/section accounting,
+   artifact budgets, immutable refs, and payload shape before tracked writes.
+   Create immutable files, replace the ledger candidate, move `current.json`
+   last, and stage only the enumerated owned paths with the brief graph.
+10. On pre-stage failure, restore mutable pointer and ledger bytes and remove
+    unreachable new immutable files. On push failure, preserve the complete
+    local commit. Never publish a partial current state.
+11. Prove a timed-out or malformed research lane yields named unavailable
+    reviews while the four critical lane outputs remain byte-identical. Execute
+    authoring once per generation id and reuse the validated candidate on outer
+    narrative retry.
 
 ## Shared Infrastructure Impact Sweep
 
-| Shared surface | Change in this scope | Downstream consumers | Blast radius | Canary | Rollback proof |
-| --- | --- | --- | --- | --- | --- |
-| `scripts/brief-narrative-parallel.mjs` | One lane descriptor, one added `optional` branch, one collector write | Every scheduled generation of the entire brief | **Highest in the feature** — this file publishes the whole brief four times a day; a regression here loses the brief, not just the agenda | Run the four existing lanes with the research lane absent from the plan and assert the produced payload is byte-identical to the pre-change run, BEFORE the lane is ever spawned | Remove the lane descriptor and the `optional` branch; the four existing lanes are untouched by construction |
-| `loadFragment` fail-closed behaviour | An `optional` branch added, no existing branch changed | The four existing lanes | High — if `optional` leaked onto an existing lane, a real failure would publish a degraded brief silently | Assert `core`, `signals`, `groups` and `coverage` carry no `optional` flag and still rethrow on error | Remove the branch |
-| The protected-file byte check | Untouched — the collector write happens after it | The lane write-disjointness rule | Medium — a write placed before it would look like a lane violation and trigger the baseline restore | Assert the check's inputs are unchanged and no lane's declared key set widened | The check is not modified |
-| `research/agenda/**` (new dossier files) | Written per reviewed topic | Scope 5's read, Feature 020's routing | High — an overwrite destroys the trajectory the whole feature exists to preserve | Attempt a second write at an existing version path and require `RLAGENDA-SUPERSEDE` | Delete the written versions; the ledger rows referencing them are appended, not edited |
-| The `webAllow` allowlist | Read only — not extended | The two existing web lanes | Medium — a new host here would be a new data source, which is Non-Goal 3 | Assert the allowlist is byte-identical and holds its existing 15 hosts | It is never written |
+| Surface | Risk | Canary | Restore boundary |
+| --- | --- | --- | --- |
+| four critical narrative lanes | side lane failure could weaken the brief | baseline run and forced research timeout produce byte-identical critical keys | remove side-pool integration only |
+| shared web policy | extracted allowlist could change existing acquisition | existing lane argument vectors and host set are byte-identical | restore prior inline list and remove new policy module |
+| brief refresh transaction | partial writes can expose mismatched current state | forced failure at every publication step retains prior pointer/ledger and unreachable new files | restore mutable bytes and delete new unreachable files |
+| payload contract | additive agenda key could invalidate old payloads | payload without `researchAgenda` retains existing accepted behavior until complete registration lands | remove only the additive validation branch |
 
-## Change Boundary And Protected Paths
+## Change Boundary
 
-**Allowed:** `scripts/brief-narrative-parallel.mjs` · `rlagenda.js` ·
-`research/agenda/**` · `tests/fixtures/research-agenda/*` ·
-`scripts/selftest.mjs` · `notes/research-agenda-lab.md`.
-
-**Excluded (must remain byte-identical in this scope):**
-`scripts/validate-brief-payload.mjs` · `scripts/build-attention-items.mjs` ·
-`scripts/build-brief-page-artifacts.mjs` · `scripts/build-pages-site.mjs` ·
-`tools.json` · `index.html` · `rlnav.js` · `README.md` · `site-exclusions.json` ·
-`tool-experience.config.json` · `rlattention.js` · `rlmarketaction.js` ·
-`rlbrief.js` · `market-brief.html` · `market-brief.config.json` ·
-`market-brief.page.json` · `market-brief.snapshot.json` · `watchlist.json` ·
-`brief-history.jsonl` · `scripts/brief-refresh-and-push.sh` ·
-`scripts/brief-refresh-scheduled.sh` · `research-agenda.json`.
-
-The `webAllow` list inside `scripts/brief-narrative-parallel.mjs` is inside an
-allowed file but is itself excluded: this scope adds a lane, never a host.
-
-**Allowed file families.**
-
-| Family | Members | Why this scope may touch it |
-| --- | --- | --- |
-| Publisher lane wiring | `scripts/brief-narrative-parallel.mjs` | The lane descriptor, the `optional` branch and the collector write are the deliverable. |
-| Owning module | `rlagenda.js` | Dossier validation and supersession belong to the one owning module. |
-| Dossier store | `research/agenda/**` | The immutable dated versions and the ledger rows referencing them. |
-| Dossier fixtures | `tests/fixtures/research-agenda/*` | The dossiers and lane fragments the outcomes are proven against. |
-| Project test harness | `scripts/selftest.mjs` | Where the deterministic group lives. |
-| Tool notes | `notes/research-agenda-lab.md` | Where the dossier contract is recorded. |
-
-**Excluded surfaces.**
-
-| Surface | Members | Owner |
-| --- | --- | --- |
-| Publish gate and page artifacts | `scripts/validate-brief-payload.mjs`, `scripts/build-brief-page-artifacts.mjs` | Scope 5 |
-| Registration | `tools.json`, `index.html`, `rlnav.js`, `README.md`, `site-exclusions.json`, `tool-experience.config.json`, `scripts/build-pages-site.mjs` | Scope 5 |
-| Scheduler shell path | `scripts/brief-refresh-scheduled.sh`, `scripts/brief-refresh-and-push.sh` | Unchanged by this feature; the lane is added inside the narrative stage the scheduler already invokes |
-| Routing to actions, attention or alerts | `rlattention.js`, `rlmarketaction.js`, `scripts/build-attention-items.mjs` | Feature 020 |
-
-## Rollback
-
-Remove the lane descriptor, the `optional` branch and the collector write from
-`scripts/brief-narrative-parallel.mjs`; remove `validateDossier`, `supersedes` and
-`buildAgendaRead` from `rlagenda.js`; delete the written dossier versions and the
-five fixtures; remove the appended selftest group. Prove the restore by running
-`node scripts/selftest.mjs` and `node scripts/validate-brief-payload.mjs` and
-recording exit 0 for both with unfiltered output, and by asserting the four
-existing lanes produce a payload byte-identical to the pre-change run.
-
-## Scenario-First RED/GREEN Contract
-
-RED: author the five scenarios and the five fixtures first. Record the
-missing-source fixture publishing a finding with a blank source before
-`RLAGENDA-FINDING` exists — the P1 violation the refusal removes. Record the lane
-error taking the whole narrative attempt down before the `optional` branch exists,
-losing the entire brief over one topic. Record a second write at an existing
-version path silently overwriting it before `RLAGENDA-SUPERSEDE` exists.
-
-GREEN: the updated fixture yields every finding with a date, a source and a
-confidence; the missing-source fixture publishes zero findings and refuses by
-name; the no-new-evidence case yields `unchanged` with `reviewed: true`, zero new
-findings and the prior dossier still current; the stale fixture yields `stale`
-with a numeric evidence age; the incomplete lane fragment yields `unavailable`
-with a named reason for its own topics only, and the other four lanes' keys are
-byte-identical; the second write at an existing path is refused; and the
-over-budget dossier is refused with the committed 262144-byte figure.
+Allowed families are the production and test paths listed above plus
+`rlagenda.js`, `tests/fixtures/research-agenda/**`, and `scripts/selftest.mjs`.
+Excluded are tool/page registration, visible UI, experience/journey registries,
+shared ticker/chart rendering, action/attention/anomaly/candidate/alert writes,
+and Feature 020 eligibility or routing behavior.
 
 ## Test Plan
 
-| ID | Type | Category | Scenario | File | Exact Behavior / Persistent Title | Command | Live System | Evidence Anchor |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| TP-04-01 | Provenance | unit | SCN-019-012 | `scripts/selftest.mjs` | a due topic researched successfully produces a dossier in which every finding carries an observation date, a source and a stated confidence, and the dossier itself carries the topic identifier, the generation instant and outcome `updated` | `node scripts/selftest.mjs` | No | `report.md#tp-04-01` |
-| TP-04-02 | Provenance | unit | SCN-019-012 | `scripts/selftest.mjs` | Regression: a finding missing `observedAt`, or missing `source`, or missing `confidence` is refused `RLAGENDA-FINDING` with the offending field named and is not published — it never renders as a blank row, and a mutated validator without the refusal is proven to publish it | `node scripts/selftest.mjs` | No | `report.md#tp-04-02` |
-| TP-04-03 | Honest outcome | unit | SCN-019-013 | `scripts/selftest.mjs` | research that completed and surfaced no new evidence yields outcome `unchanged` with `reviewed: true`, publishes exactly zero new findings so nothing is invented to justify the review, and leaves the prior dossier as the current one | `node scripts/selftest.mjs` | No | `report.md#tp-04-03` |
-| TP-04-04 | Discriminator | unit | SCN-019-013 | `scripts/selftest.mjs` | Regression: `unchanged` with `reviewed: true` and `unchanged` with `reviewed: false` are asserted distinguishable, and a read row carrying `unchanged` with no `reviewed` member is refused — "we looked and found nothing" cannot collapse into "we did not look" | `node scripts/selftest.mjs` | No | `report.md#tp-04-04` |
-| TP-04-05 | Honest outcome | unit | SCN-019-014 | `scripts/selftest.mjs` | a topic whose newest available evidence predates its declared freshness window yields outcome `stale`, the record names the age of the newest evidence as a number of days, and the findings carry the age sentence rather than being presented as a current read | `node scripts/selftest.mjs` | No | `report.md#tp-04-05` |
-| TP-04-06 | Boundary | unit | SCN-019-014 | `scripts/selftest.mjs` | the freshness edge is enforced from both sides — not stale at exactly `freshnessWindowDays` and stale at `freshnessWindowDays + 1` — so the window cannot be widened while every other case stays green | `node scripts/selftest.mjs` | No | `report.md#tp-04-06` |
-| TP-04-07 | Named absence | integration | SCN-019-015 | `scripts/selftest.mjs` | a research lane that exits non-zero after writing nothing yields outcome `unavailable` with a named reason for its selected topics, publishes zero partial, inferred or placeholder findings, and the generation still completes | `node scripts/selftest.mjs` | No | `report.md#tp-04-07` |
-| TP-04-08 | Adversarial | integration | SCN-019-015 | `scripts/selftest.mjs` | Regression: with the research lane forced to fail, the `nextSession`, `attention`, `recommendations`, `events`, `groups`, `watchlistNotes`, `toolReads`, `toolCoverage` and `experimental` keys are byte-identical to a run without the lane; and with the `optional` flag removed the same failure is proven to fail the whole attempt — the soft-failure guard can actually fail | `node scripts/selftest.mjs` | No | `report.md#tp-04-08` |
-| TP-04-09 | Append-only | unit | SCN-019-016 | `scripts/selftest.mjs` | a new review of a topic with an existing dossier writes a new dated version referencing the version it supersedes, the superseded version file is still present and byte-identical, and no prior finding is edited in place | `node scripts/selftest.mjs` | No | `report.md#tp-04-09` |
-| TP-04-10 | Adversarial | unit | SCN-019-016 | `scripts/selftest.mjs` | Regression: a write targeting an existing version path is refused `RLAGENDA-SUPERSEDE`, a new version omitting its `supersedes` reference is refused by the same code, and a mutated writer without the guard is proven to overwrite a prior version | `node scripts/selftest.mjs` | No | `report.md#tp-04-10` |
-| TP-04-11 | Correction | unit | SCN-019-016 | `scripts/selftest.mjs` | a correction to a published finding is a new ledger entry referencing the original `findingId`, and the original entry is present and unedited afterwards | `node scripts/selftest.mjs` | No | `report.md#tp-04-11` |
-| TP-04-12 | Budget assertion | unit | SCN-019-012 | `scripts/selftest.mjs` | Regression: a dossier body one byte over the committed `maxNormalizedObservationBytes` of 262144 is refused `RLAGENDA-BUDGET` and the topic resolves `unavailable`, while a body at exactly the limit is accepted — the byte budget is asserted at its edge and can fail | `node scripts/selftest.mjs` | No | `report.md#tp-04-12` |
-| TP-04-13 | Lane cost | integration | SCN-019-013 | `scripts/selftest.mjs` | with the offline plan selecting zero topics the research lane is not added to the pool at all, and with it selecting topics the lane input carries only the selected topics and no other topic's declared question | `node scripts/selftest.mjs` | No | `report.md#tp-04-13` |
-| TP-04-14 | Source policy | unit | SCN-019-012 | `scripts/selftest.mjs` | the committed `webAllow` allowlist is byte-identical after this scope and still holds its existing hosts, so research adds no new data source, no new credential and no new licensed endpoint | `node scripts/selftest.mjs` | No | `report.md#tp-04-14` |
-| TP-04-15 | Publish gate | integration | SCN-019-015 | `scripts/validate-brief-payload.mjs` | the publication gate accepts a payload carrying a `researchAgenda` read in which one topic is `unavailable` with a named reason, and the rest of the brief publishes unaffected | `node scripts/validate-brief-payload.mjs` | No | `report.md#tp-04-15` |
+| ID | Category | Scenario | Existing test surface | Exact planned test title | Command | Live system |
+| --- | --- | --- | --- | --- | --- | --- |
+| TP-04-03 | functional | SCN-019-004, SCN-019-012, SCN-019-013, SCN-019-014, SCN-019-015 | `scripts/selftest.mjs` | `Feature 019 candidate contract accounts for new sourced unchanged stale and unavailable reviews before publication` | `node scripts/selftest.mjs` | No |
+| TP-04-01 | integration | SCN-019-004 | `tests/distributed-briefs.final.e2e.mjs` | `SCN-019-004 newly committed topic receives its first current review or named outcome` | `node --test tests/distributed-briefs.final.e2e.mjs` | Yes |
+| TP-04-02 | functional | SCN-019-012 | `tests/web-evidence.functional.mjs` | `SCN-019-012 generation reuses current evidence and acquires only missing or stale requirements` | `node --test tests/web-evidence.functional.mjs` | No |
+| TP-04-04 | integration | SCN-019-013 | `tests/distributed-briefs.authorship.integration.mjs` | `SCN-019-013 quiet complete pass writes an unchanged review and reuses the substantive dossier` | `node --test tests/distributed-briefs.authorship.integration.mjs` | Yes |
+| TP-04-05 | adversarial | SCN-019-014 | `scripts/selftest.mjs` | `SCN-019-014 stale evidence publishes its age has zero model impact and never masquerades as current` | `node scripts/selftest.mjs` | No |
+| TP-04-06 | integration | SCN-019-015 | `tests/distributed-briefs.authorship.integration.mjs` | `SCN-019-015 failed research lane publishes named unavailable without a partial finding` | `node --test tests/distributed-briefs.authorship.integration.mjs` | Yes |
+| TP-04-07 | adversarial | SCN-019-015 | `tests/distributed-briefs.authorship.integration.mjs` | `Regression: research lane timeout leaves every critical lane output byte-identical` | `node --test tests/distributed-briefs.authorship.integration.mjs` | Yes |
+| TP-04-08 | security | SCN-019-012 | `tests/web-evidence.security.mjs` | `Regression: agenda acquisition rejects query URL byte time and concurrency limits at capacity plus one` | `node --test tests/web-evidence.security.mjs` | No |
+| TP-04-09 | functional | SCN-019-012 | `tests/web-evidence.functional.mjs` | `Regression: shared web policy preserves all existing lane allowlist arguments byte for byte` | `node --test tests/web-evidence.functional.mjs` | No |
+| TP-04-10 | adversarial | SCN-019-012, SCN-019-015 | `tests/brief-refresh-atomicity.test.mjs` | `Regression: agenda publication writes immutable files before ledger and moves current pointer last` | `node --test tests/brief-refresh-atomicity.test.mjs` | Yes |
+| TP-04-11 | integration | SCN-019-009, SCN-019-012 | `scripts/validate-brief-payload.mjs` | `Every declared topic and section is accounted and every mandatory review belongs to the current generation` | `node scripts/validate-brief-payload.mjs` | Yes |
+| TP-04-12 | stress | SCN-019-011, SCN-019-015 | `tests/distributed-briefs.final-budget.stress.mjs` | `Agenda acquisition and authoring remain within explicit topic byte concurrency and timeout budgets` | `node --test tests/distributed-briefs.final-budget.stress.mjs` | Yes |
+| TP-04-13 | e2e-api | SCN-019-004, SCN-019-012, SCN-019-013, SCN-019-014, SCN-019-015 | `tests/distributed-briefs.final.e2e.mjs` | `SCN-019-012 real generation publishes one atomic agenda and brief payload transaction` | `node --test tests/distributed-briefs.final.e2e.mjs` | Yes |
 
-### Definition of Done
+### Definition of Done - Tiered Validation
 
-- [ ] SCN-019-012 — a due topic researched successfully produces a dossier whose every finding carries an observation date, a source and a stated confidence, and which carries the generation instant, the topic identifier and outcome `updated`, proven by TP-04-01 and TP-04-02.
-- [ ] SCN-019-013 — research that surfaced no new evidence yields outcome `unchanged`, invents no new finding to justify the review, and leaves the prior dossier as the current one, proven by TP-04-03 and TP-04-04.
-- [ ] SCN-019-014 — a topic whose newest available evidence predates its declared freshness window yields outcome `stale`, the published record names the age of the newest evidence, and the findings are not presented as a current read, proven by TP-04-05 and TP-04-06.
-- [ ] SCN-019-015 — a due topic whose research lane failed or returned nothing usable yields outcome `unavailable` with a named reason, publishes no partial, inferred or placeholder finding, and leaves the remaining topics unaffected, proven by TP-04-07, TP-04-08 and TP-04-15.
-- [ ] SCN-019-016 — a new review of a topic with an existing dossier produces a version referencing the version it supersedes, the superseded version is still readable, and no prior finding is edited in place, proven by TP-04-09, TP-04-10 and TP-04-11.
-- [ ] The `research` lane declares exactly `keys: ['researchAgenda']`, and no existing lane's declared key set widened, so write-disjointness is preserved, proven by TP-04-08.
-- [ ] `core`, `signals`, `groups` and `coverage` carry no `optional` flag and still rethrow on error; only the research lane degrades, proven by TP-04-08.
-- [ ] The lane is not added to the pool when the offline plan selects zero topics, and the lane input carries only the selected topics (NFR-019-002), proven by TP-04-13.
-- [ ] The outcome vocabulary is closed at `updated`, `unchanged`, `stale`, `unavailable`, `paused` and `deferred`, and every published row carries the `reviewed` discriminator, proven by TP-04-04.
-- [ ] The committed `maxNormalizedObservationBytes` figure of 262144 from the `artifact-budget/v1` block is reused rather than re-invented, and is asserted at its exact edge from both sides (NFR-019-003, P22), proven by TP-04-12.
-- [ ] The `webAllow` allowlist is byte-identical; research adds no credential and no endpoint (FR-019-037), proven by TP-04-14.
-- [ ] Dossier files and ledger rows are written only after the payload is accepted, so a reverted narrative attempt leaves no orphan dossier, evidenced by the collector ordering and by TP-04-08.
-- [ ] `node scripts/selftest.mjs` exits 0 with the dossier group registered and zero skipped assertions, evidenced by unfiltered output.
-- [ ] `node scripts/validate-brief-payload.mjs` exits 0, proven by TP-04-15.
-- [ ] `node scripts/pii-scan.mjs` exits 0 across `git ls-files` with the written dossiers committed.
-- [ ] `node scripts/validate-spec-test-paths.mjs` exits 0 with zero new missing paths.
-- [ ] No path excluded from this scope was modified BY this scope; `git diff --name-only` output is recorded verbatim and names only files in the Allowed table.
-- [ ] TP-04-01 executed with raw output recorded at `report.md#tp-04-01`.
-- [ ] TP-04-02 executed with raw output recorded at `report.md#tp-04-02`.
-- [ ] TP-04-03 executed with raw output recorded at `report.md#tp-04-03`.
-- [ ] TP-04-04 executed with raw output recorded at `report.md#tp-04-04`.
-- [ ] TP-04-05 executed with raw output recorded at `report.md#tp-04-05`.
-- [ ] TP-04-06 executed with raw output recorded at `report.md#tp-04-06`.
-- [ ] TP-04-07 executed with raw output recorded at `report.md#tp-04-07`.
-- [ ] TP-04-08 executed with raw output recorded at `report.md#tp-04-08`.
-- [ ] TP-04-09 executed with raw output recorded at `report.md#tp-04-09`.
-- [ ] TP-04-10 executed with raw output recorded at `report.md#tp-04-10`.
-- [ ] TP-04-11 executed with raw output recorded at `report.md#tp-04-11`.
-- [ ] TP-04-12 executed with raw output recorded at `report.md#tp-04-12`.
-- [ ] TP-04-13 executed with raw output recorded at `report.md#tp-04-13`.
-- [ ] TP-04-14 executed with raw output recorded at `report.md#tp-04-14`.
-- [ ] TP-04-15 executed with raw output recorded at `report.md#tp-04-15`.
+#### Tier 1 - Behavior
+
+- [x] SCN-019-004 and SCN-019-012 through SCN-019-015 satisfy the exact Given/When/Then contracts above.
+
+   ```text
+   # Scope 4 focused matrix
+   exit: 0
+   tests: 35
+   pass: 35
+   fail: 0
+
+   # Scope 4 full project selftest
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1991
+   sha256: b34fae9c0d408726874f2672ef28b11d742597dccb710cb529e8273f2ab388b8
+   Research-Lab self-test: 1696 passed, 0 failed
+   ```
+
+- [x] Every active mandatory topic has a current-generation review or named unavailable record, and every registry row and declared section is accounted exactly once.
+
+   ```text
+   # replanned-contract-tp-04-03
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1991
+   sha256: a5db1f0293d59c7828d9fe8370830587c72e4f335e85b0e4ab873ebe4c50e77c
+   Feature 019 candidate contract accounts for new sourced unchanged stale and unavailable reviews before publication
+   TP-04-03: new sourced evidence creates one complete updated review and one sustained dossier
+   TP-04-03: a quiet complete pass writes an unchanged review reusing the prior dossier without inventing a finding
+   TP-04-03: stale evidence records its age and publishes no current model output or dossier
+   TP-04-03: a failed lane creates a named unavailable review with no partial finding or dossier
+   Research-Lab self-test: 1696 passed, 0 failed
+
+   # replanned-contract-tp-04-11
+   $ node scripts/validate-brief-payload.mjs
+   exit: 0
+   lines: 2
+   sha256: 5633a06b8d73d88c69105a844e0949c1ba8ee31d362aeeeb697916d04c599479
+   [brief-contract] Every declared topic and section is accounted and every mandatory review belongs to the current generation: PASS
+   [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+   ```
+
+- [x] Acquisition is governed, missing/stale-only, bounded, and source-allowlisted; authoring is networkless, shell-free, write-disjoint, and separately bounded.
+
+   ```text
+   # replanned-contract-tp-04-02
+   $ node --test --test-name-pattern='SCN-019-012 generation reuses current evidence and acquires only missing or stale requirements' tests/web-evidence.functional.mjs
+   exit: 0
+   lines: 9
+   sha256: a07c74920d81695fe7a5d2a5f0e8d07391c2321f9c7bfd678192d050b1974502
+   SCN-019-012 generation reuses current evidence and acquires only missing or stale requirements
+   tests: 1
+   pass: 1
+   fail: 0
+
+   # replanned-contract-tp-04-08
+   $ node --test --test-name-pattern='Regression: agenda acquisition rejects query URL byte time and concurrency limits at capacity plus one' tests/web-evidence.security.mjs
+   exit: 0
+   lines: 9
+   sha256: 77ee4b69123d26ce99db886b75585e62b201aed8085fb89e741fb0593db3f7aa
+   Regression: agenda acquisition rejects query URL byte time and concurrency limits at capacity plus one
+   tests: 1
+   pass: 1
+   fail: 0
+
+   # replanned-contract-tp-04-09
+   $ node --test --test-name-pattern='Regression: shared web policy preserves all existing lane allowlist arguments byte for byte' tests/web-evidence.functional.mjs
+   exit: 0
+   lines: 9
+   sha256: 1b4e2048c15dfd96acd1f358220b0a5e2acedb3573186fef2b6402cd128bf8eb
+   Regression: shared web policy preserves all existing lane allowlist arguments byte for byte
+   tests: 1
+   pass: 1
+   fail: 0
+
+   # replanned-contract-tp-04-12
+   $ node --test --test-name-pattern='Agenda acquisition and authoring remain within explicit topic byte concurrency and timeout budgets' tests/distributed-briefs.final-budget.stress.mjs
+   exit: 0
+   lines: 9
+   sha256: 1db84abe24485db857f00a900d6da1bbd1cd23b7d71a42f233d1b5af494db65c
+   Agenda acquisition and authoring remain within explicit topic byte concurrency and timeout budgets
+   tests: 1
+   pass: 1
+   fail: 0
+   ```
+
+- [x] Publication is one validated pointer-last transaction and never exposes prior history as the current mandatory review.
+
+   ```text
+   # replanned-contract-tp-04-10
+   $ node --test --test-name-pattern='Regression: agenda publication writes immutable files before ledger and moves current pointer last' tests/brief-refresh-atomicity.test.mjs
+   exit: 0
+   lines: 9
+   sha256: 2bd10c2e510cddf7c7d95676fb183df9e4f7cf93ef8bfec41d647d98d45eaaa2
+   Regression: agenda publication writes immutable files before ledger and moves current pointer last
+   tests: 1
+   pass: 1
+   fail: 0
+
+   # replanned-contract-tp-04-13
+   $ node --test --test-name-pattern='SCN-019-012 real generation publishes one atomic agenda and brief payload transaction' tests/distributed-briefs.final.e2e.mjs
+   exit: 0
+   lines: 32
+   sha256: 4b08a5368d71f7d04cefabce0ca28358db901867b9d34bd442aa26f8627b5275
+   SCN-019-012 real generation publishes one atomic agenda and brief payload transaction
+   tests: 1
+   pass: 1
+   fail: 0
+
+   # Scope 4 full atomic wrapper suite
+   $ node --test tests/brief-refresh-atomicity.test.mjs
+   exit: 0
+   lines: 697
+   sha256: 34d00ca9ba3b18ade6df758d2b28aa83718da5a2ea29f519740b28185dd8e851
+   tests: 30
+   pass: 30
+   fail: 0
+   ```
+
+#### Tier 2 - Test Evidence (13 rows)
+
+The thirteen items below are the complete test-related DoD inventory for this
+scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
+`test-plan.json`.
+
+- [x] TP-04-01: `tests/distributed-briefs.final.e2e.mjs` executes `SCN-019-004 newly committed topic receives its first current review or named outcome` with fresh evidence.
+
+   ```text
+   # replanned-contract-tp-04-01
+   $ node --test --test-name-pattern='SCN-019-004 newly committed topic receives its first current review or named outcome' tests/distributed-briefs.final.e2e.mjs
+   exit: 0
+   lines: 9
+   sha256: eaf1ae8da7d503908582dd0ec456daa0e0600150047967ce2d46e2d7f661257c
+   SCN-019-004 newly committed topic receives its first current review or named outcome
+   tests: 1
+   pass: 1
+   fail: 0
+   ```
+
+- [x] TP-04-02: `tests/web-evidence.functional.mjs` executes `SCN-019-012 generation reuses current evidence and acquires only missing or stale requirements` with fresh evidence.
+
+   ```text
+   # replanned-contract-tp-04-02
+   $ node --test --test-name-pattern='SCN-019-012 generation reuses current evidence and acquires only missing or stale requirements' tests/web-evidence.functional.mjs
+   exit: 0
+   lines: 9
+   sha256: a07c74920d81695fe7a5d2a5f0e8d07391c2321f9c7bfd678192d050b1974502
+   SCN-019-012 generation reuses current evidence and acquires only missing or stale requirements
+   tests: 1
+   pass: 1
+   fail: 0
+   ```
+
+- [x] TP-04-03: `scripts/selftest.mjs` executes `Feature 019 candidate contract accounts for new sourced unchanged stale and unavailable reviews before publication` with fresh evidence.
+
+   ```text
+   # replanned-contract-tp-04-03
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1991
+   sha256: a5db1f0293d59c7828d9fe8370830587c72e4f335e85b0e4ab873ebe4c50e77c
+   Feature 019 candidate contract accounts for new sourced unchanged stale and unavailable reviews before publication
+   TP-04-03: new sourced evidence creates one complete updated review and one sustained dossier
+   TP-04-03: a quiet complete pass writes an unchanged review reusing the prior dossier without inventing a finding
+   TP-04-03: stale evidence records its age and publishes no current model output or dossier
+   TP-04-03: a failed lane creates a named unavailable review with no partial finding or dossier
+   Research-Lab self-test: 1696 passed, 0 failed
+   ```
+
+- [x] TP-04-04: `tests/distributed-briefs.authorship.integration.mjs` executes `SCN-019-013 quiet complete pass writes an unchanged review and reuses the substantive dossier` with fresh evidence.
+
+   ```text
+   # replanned-contract-tp-04-04
+   $ node --test --test-name-pattern='SCN-019-013 quiet complete pass writes an unchanged review and reuses the substantive dossier' tests/distributed-briefs.authorship.integration.mjs
+   exit: 0
+   lines: 9
+   sha256: 88983765c9a81829949f94c481ec4146ade5b605216e34c3f734165e042a596d
+   SCN-019-013 quiet complete pass writes an unchanged review and reuses the substantive dossier
+   tests: 1
+   pass: 1
+   fail: 0
+   ```
+
+- [x] TP-04-05: `scripts/selftest.mjs` executes `SCN-019-014 stale evidence publishes its age has zero model impact and never masquerades as current` with fresh evidence.
+
+   ```text
+   # replanned-contract-tp-04-05
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1991
+   sha256: 478d09f2cdf735fe5a66a14d3c5fb82898271457592b42cf816408f00d017626
+   SCN-019-014 stale evidence publishes its age has zero model impact and never masquerades as current
+   TP-04-05: stale evidence has zero impact and the compact read labels stale with its age
+   TP-04-05: stale current review never points at or masquerades as the prior dossier
+   Research-Lab self-test: 1696 passed, 0 failed
+   ```
+
+- [x] TP-04-06: `tests/distributed-briefs.authorship.integration.mjs` executes `SCN-019-015 failed research lane publishes named unavailable without a partial finding` with fresh evidence.
+
+   ```text
+   # replanned-contract-tp-04-06
+   $ node --test --test-name-pattern='SCN-019-015 failed research lane publishes named unavailable without a partial finding' tests/distributed-briefs.authorship.integration.mjs
+   exit: 0
+   lines: 9
+   sha256: 7d5ac28dfe84947510c51e4279444e5618fe74a0b8c9e17bc67979d1865f538c
+   SCN-019-015 failed research lane publishes named unavailable without a partial finding
+   tests: 1
+   pass: 1
+   fail: 0
+   ```
+
+- [x] TP-04-07: `tests/distributed-briefs.authorship.integration.mjs` executes `Regression: research lane timeout leaves every critical lane output byte-identical` with fresh evidence.
+
+   ```text
+   # replanned-contract-tp-04-07
+   $ node --test --test-name-pattern='Regression: research lane timeout leaves every critical lane output byte-identical' tests/distributed-briefs.authorship.integration.mjs
+   exit: 0
+   lines: 9
+   sha256: 7ac42cb843334e6df9022611c5d9b99b475ea0fa11664e801956a7eae8fd6174
+   Regression: research lane timeout leaves every critical lane output byte-identical
+   tests: 1
+   pass: 1
+   fail: 0
+   ```
+
+- [x] TP-04-08: `tests/web-evidence.security.mjs` executes `Regression: agenda acquisition rejects query URL byte time and concurrency limits at capacity plus one` with fresh evidence.
+
+   ```text
+   # replanned-contract-tp-04-08
+   $ node --test --test-name-pattern='Regression: agenda acquisition rejects query URL byte time and concurrency limits at capacity plus one' tests/web-evidence.security.mjs
+   exit: 0
+   lines: 9
+   sha256: 77ee4b69123d26ce99db886b75585e62b201aed8085fb89e741fb0593db3f7aa
+   Regression: agenda acquisition rejects query URL byte time and concurrency limits at capacity plus one
+   tests: 1
+   pass: 1
+   fail: 0
+   ```
+
+- [x] TP-04-09: `tests/web-evidence.functional.mjs` executes `Regression: shared web policy preserves all existing lane allowlist arguments byte for byte` with fresh evidence.
+
+   ```text
+   # replanned-contract-tp-04-09
+   $ node --test --test-name-pattern='Regression: shared web policy preserves all existing lane allowlist arguments byte for byte' tests/web-evidence.functional.mjs
+   exit: 0
+   lines: 9
+   sha256: 1b4e2048c15dfd96acd1f358220b0a5e2acedb3573186fef2b6402cd128bf8eb
+   Regression: shared web policy preserves all existing lane allowlist arguments byte for byte
+   tests: 1
+   pass: 1
+   fail: 0
+   ```
+
+- [x] TP-04-10: `tests/brief-refresh-atomicity.test.mjs` executes `Regression: agenda publication writes immutable files before ledger and moves current pointer last` with fresh evidence.
+
+   ```text
+   # replanned-contract-tp-04-10
+   $ node --test --test-name-pattern='Regression: agenda publication writes immutable files before ledger and moves current pointer last' tests/brief-refresh-atomicity.test.mjs
+   exit: 0
+   lines: 9
+   sha256: 2bd10c2e510cddf7c7d95676fb183df9e4f7cf93ef8bfec41d647d98d45eaaa2
+   Regression: agenda publication writes immutable files before ledger and moves current pointer last
+   tests: 1
+   pass: 1
+   fail: 0
+   ```
+
+- [x] TP-04-11: `scripts/validate-brief-payload.mjs` executes `Every declared topic and section is accounted and every mandatory review belongs to the current generation` with fresh evidence.
+
+   ```text
+   # replanned-contract-tp-04-11
+   $ node scripts/validate-brief-payload.mjs
+   exit: 0
+   lines: 2
+   sha256: 5633a06b8d73d88c69105a844e0949c1ba8ee31d362aeeeb697916d04c599479
+   [brief-contract] Every declared topic and section is accounted and every mandatory review belongs to the current generation: PASS
+   [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+   ```
+
+- [x] TP-04-12: `tests/distributed-briefs.final-budget.stress.mjs` executes `Agenda acquisition and authoring remain within explicit topic byte concurrency and timeout budgets` with fresh evidence.
+
+   ```text
+   # replanned-contract-tp-04-12
+   $ node --test --test-name-pattern='Agenda acquisition and authoring remain within explicit topic byte concurrency and timeout budgets' tests/distributed-briefs.final-budget.stress.mjs
+   exit: 0
+   lines: 9
+   sha256: 1db84abe24485db857f00a900d6da1bbd1cd23b7d71a42f233d1b5af494db65c
+   Agenda acquisition and authoring remain within explicit topic byte concurrency and timeout budgets
+   tests: 1
+   pass: 1
+   fail: 0
+   ```
+
+- [x] TP-04-13: `tests/distributed-briefs.final.e2e.mjs` executes `SCN-019-012 real generation publishes one atomic agenda and brief payload transaction` with fresh evidence.
+
+   ```text
+   # replanned-contract-tp-04-13
+   $ node --test --test-name-pattern='SCN-019-012 real generation publishes one atomic agenda and brief payload transaction' tests/distributed-briefs.final.e2e.mjs
+   exit: 0
+   lines: 32
+   sha256: 4b08a5368d71f7d04cefabce0ca28358db901867b9d34bd442aa26f8627b5275
+   SCN-019-012 real generation publishes one atomic agenda and brief payload transaction
+   tests: 1
+   pass: 1
+   fail: 0
+   ```
+
+#### Tier 3 - Parity And Policy
+
+- [x] Markdown Test Plan rows, `test-plan.json`, and `scenario-manifest.json` contain the same row and scenario mappings.
+
+   ```text
+   # Scope 4 focused matrix
+   exit: 0
+   tests: 35
+   pass: 35
+   fail: 0
+
+   artifact lint: exit 0, lines 94, sha256 77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c
+   traceability all scopes: exit 0, lines 159, sha256 806f8d21722564cf7072d4ef6bebbacf7421ee80c192f3a466dda6224b3b6816
+   artifact freshness: RESULT PASS, 0 failures, 0 warnings
+   capability foundation: PASS Gate G094
+   node source lock: actual PASS, adversarial 16, unexpected acceptances 0
+   PII scan: files 6342, messages 1246, findings 0
+   test-path ratchet: new missing paths 0; three unrelated stale baseline entries retained
+   Markdown and JSON: 17 artifact files, reference/fence findings 0
+   change boundary: changed paths 53, forbidden paths 0, UI/registration/Feature 020 writes 0
+   git diff --check: exit 0
+   ```
+
+- [x] Existing critical lane behavior and allowlist arguments remain byte-identical when agenda research succeeds, fails, or is absent.
+
+   ```text
+   # replanned-contract-tp-04-07
+   $ node --test --test-name-pattern='Regression: research lane timeout leaves every critical lane output byte-identical' tests/distributed-briefs.authorship.integration.mjs
+   exit: 0
+   lines: 9
+   sha256: 7ac42cb843334e6df9022611c5d9b99b475ea0fa11664e801956a7eae8fd6174
+   Regression: research lane timeout leaves every critical lane output byte-identical
+   tests: 1
+   pass: 1
+   fail: 0
+
+   # replanned-contract-tp-04-09
+   $ node --test --test-name-pattern='Regression: shared web policy preserves all existing lane allowlist arguments byte for byte' tests/web-evidence.functional.mjs
+   exit: 0
+   lines: 9
+   sha256: 1b4e2048c15dfd96acd1f358220b0a5e2acedb3573186fef2b6402cd128bf8eb
+   Regression: shared web policy preserves all existing lane allowlist arguments byte for byte
+   tests: 1
+   pass: 1
+   fail: 0
+   ```
+
+- [x] Scope 4 adds no tool registration, visible UI, destination eligibility, action, attention item, anomaly seed, candidate, or alert write.
+
+   ```text
+   artifact lint: exit 0, lines 94, sha256 77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c
+   traceability all scopes: exit 0, lines 159, sha256 806f8d21722564cf7072d4ef6bebbacf7421ee80c192f3a466dda6224b3b6816
+   artifact freshness: RESULT PASS, 0 failures, 0 warnings
+   capability foundation: PASS Gate G094
+   node source lock: actual PASS, adversarial 16, unexpected acceptances 0
+   PII scan: files 6342, messages 1246, findings 0
+   test-path ratchet: new missing paths 0; three unrelated stale baseline entries retained
+   Markdown and JSON: 17 artifact files, reference/fence findings 0
+   change boundary: changed paths 53, forbidden paths 0, UI/registration/Feature 020 writes 0
+   git diff --check: exit 0
+   ```
+
+- [x] Artifact lint, traceability, capability foundation, artifact freshness, payload, test-path, reference-existence, fence-parity, and diff checks pass.
+
+   ```text
+   # Scope 4 full project selftest
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1991
+   sha256: b34fae9c0d408726874f2672ef28b11d742597dccb710cb529e8273f2ab388b8
+   Research-Lab self-test: 1696 passed, 0 failed
+
+   # Scope 4 full atomic wrapper suite
+   $ node --test tests/brief-refresh-atomicity.test.mjs
+   exit: 0
+   lines: 697
+   sha256: 34d00ca9ba3b18ade6df758d2b28aa83718da5a2ea29f519740b28185dd8e851
+   tests: 30
+   pass: 30
+   fail: 0
+
+   artifact lint: exit 0, lines 94, sha256 77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c
+   traceability all scopes: exit 0, lines 159, sha256 806f8d21722564cf7072d4ef6bebbacf7421ee80c192f3a466dda6224b3b6816
+   artifact freshness: RESULT PASS, 0 failures, 0 warnings
+   capability foundation: PASS Gate G094
+   node source lock: actual PASS, adversarial 16, unexpected acceptances 0
+   PII scan: files 6342, messages 1246, findings 0
+   test-path ratchet: new missing paths 0; three unrelated stale baseline entries retained
+   Markdown and JSON: 17 artifact files, reference/fence findings 0
+   change boundary: changed paths 53, forbidden paths 0, UI/registration/Feature 020 writes 0
+   git diff --check: exit 0
+   ```
+
+---
+
+*Educational models only - not investment advice.*

@@ -19,6 +19,10 @@ import {
   SAFE_REJECTION_DETAILS
 } from '../scripts/web-evidence-acquire.mjs';
 import {
+  resolveResearchAgendaPolicy,
+  validateResearchAgendaAcquisitionUsage
+} from '../scripts/research-agenda-generation.mjs';
+import {
   loadConfig,
   resolveFixturePolicies,
   loadFixture,
@@ -168,4 +172,29 @@ test('STATIC authority proof: acquisition module imports ONLY node:crypto and ow
   assert.deepEqual(authority.imports, ['node:crypto'], 'the ONLY import is a pure hashing primitive');
   assert.equal(authority.forbiddenCapabilityCount, 0, 'zero fetch/provider-key/repo-write/current-pointer/owner-model capability');
   assert.equal(authority.importsAuthorModule, false, 'imports NO author or publication module');
+});
+
+test('Regression: agenda acquisition rejects query URL byte time and concurrency limits at capacity plus one', () => {
+  const policyResult = resolveResearchAgendaPolicy(config);
+  assert.equal(policyResult.ok, true);
+  const policy = policyResult.value;
+  const atCapacity = {
+    queryCount: policy.maxQueries,
+    candidateUrlCount: policy.maxCandidateUrls,
+    retainedOriginCount: policy.maxRetainedOrigins,
+    retainedExcerptCount: policy.maxRetainedExcerpts,
+    maxExcerptBytes: policy.maxExcerptBytes,
+    maxResponseBytesPerUrl: policy.maxResponseBytesPerUrl,
+    bundleBytes: policy.maxBundleBytes,
+    maxRequestMs: policy.perRequestTimeoutMs,
+    totalAcquisitionMs: policy.totalAcquisitionMs,
+    peakConcurrentFetches: policy.maxConcurrentFetches
+  };
+  assert.equal(validateResearchAgendaAcquisitionUsage(atCapacity, policy).ok, true);
+  for (const field of Object.keys(atCapacity)) {
+    const over = validateResearchAgendaAcquisitionUsage({ ...atCapacity, [field]: atCapacity[field] + 1 }, policy);
+    assert.equal(over.ok, false, `${field} plus one must refuse`);
+    assert.equal(over.error.code, 'E012-WEB-BUDGET');
+    assert.equal(over.error.field, field);
+  }
 });

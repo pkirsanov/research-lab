@@ -1594,7 +1594,8 @@
     "rlexperience-adapters/macro-rotation.js": { global: "RLMACROROTATION", register: "registerMacroRotationAdapters" },
     "rlexperience-adapters/fundamental-models.js": { global: "RLFUNDAMENTALS", register: "registerFundamentalModelsAdapters" },
     "rlexperience-adapters/strategy-research.js": { global: "RLSTRATEGY", register: "registerStrategyResearchAdapters" },
-    "rlexperience-adapters/property-research.js": { global: "RLPROPERTY", register: "registerPropertyResearchAdapters" }
+    "rlexperience-adapters/property-research.js": { global: "RLPROPERTY", register: "registerPropertyResearchAdapters" },
+    "rlexperience-adapters/research-agenda.js": { global: "RLRESEARCHAGENDA", register: "registerResearchAgendaAdapters" }
   };
 
   /* ─── Steerable Simple-control helpers ───────────────────────────────────────

@@ -1,0 +1,98 @@
+{
+  "contractVersion": "research-agenda-ui-fixture/v1",
+  "fixtureId": "reversal",
+  "topicId": "geopolitical-supply-shock",
+  "generationId": "generation-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "reviewId": "review-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "dossierId": "dossier-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "predecessorDossierId": "dossier-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "attemptedAt": "2026-08-14T12:00:00.000Z",
+  "evidenceImpacts": [
+    {
+      "targetId": "staged-reopening",
+      "weightedImpact": -0.3
+    },
+    {
+      "targetId": "escalation",
+      "weightedImpact": 0.45
+    }
+  ],
+  "chokepointState": {
+    "hormuz": {
+      "physicalPassFraction": { "low": 0.25, "base": 0.4, "high": 0.55 },
+      "insuredPassFraction": { "low": 0.2, "base": 0.35, "high": 0.5 },
+      "delayDays": { "low": 3, "base": 7, "high": 14 }
+    },
+    "bab-el-mandeb": {
+      "physicalPassFraction": { "low": 0.5, "base": 0.65, "high": 0.8 },
+      "insuredPassFraction": { "low": 0.4, "base": 0.55, "high": 0.7 },
+      "delayDays": { "low": 4, "base": 9, "high": 18 }
+    },
+    "red-sea": {
+      "physicalPassFraction": { "low": 0.6, "base": 0.75, "high": 0.9 },
+      "insuredPassFraction": { "low": 0.5, "base": 0.65, "high": 0.8 },
+      "delayDays": { "low": 3, "base": 8, "high": 16 }
+    }
+  },
+  "inventoryGapByChannel": {
+    "oil": { "low": 0.01, "base": 0.03, "high": 0.06 },
+    "refined-products": { "low": 0.01, "base": 0.025, "high": 0.05 },
+    "lng": { "low": 0.01, "base": 0.035, "high": 0.07 },
+    "fertilizer": { "low": 0.005, "base": 0.02, "high": 0.05 },
+    "aluminum": { "low": 0.005, "base": 0.015, "high": 0.04 },
+    "shipping": { "low": 0.01, "base": 0.04, "high": 0.08 }
+  },
+  "levers": {
+    "reroutedShare": 0.35,
+    "inventoryPolicyResponseOffset": 0,
+    "demandOffset": 0,
+    "proxyAdjustment": 0
+  },
+  "currentFindings": [
+    {
+      "findingId": "fixture-insured-throughput-reversal",
+      "claim": "Current public observations imply materially lower insured effective throughput than the predecessor review.",
+      "evidenceRole": "indirect",
+      "provenanceClass": "model-estimate",
+      "causalPath": ["insured-capacity", "effective-throughput", "scenario-probability"],
+      "weightedImpact": 0.45,
+      "refutedBy": "Insurance capacity and measured transit normalize together.",
+      "invalidation": "Measured physical pass and insured pass both return to at least 0.95.",
+      "sourceIds": ["fixture-public-maritime-observation", "fixture-public-insurance-observation"],
+      "limitations": ["This committed fixture proves UI behavior; it is not a current market claim."]
+    }
+  ],
+  "sourceLedger": [
+    {
+      "sourceId": "fixture-public-maritime-observation",
+      "publisher": "Public maritime observation fixture",
+      "canonicalUrl": "https://www.eia.gov/international/content/analysis/special_topics/World_Oil_Transit_Chokepoints/",
+      "observedAt": "2026-08-14T10:00:00.000Z"
+    },
+    {
+      "sourceId": "fixture-public-insurance-observation",
+      "publisher": "Public insurance observation fixture",
+      "canonicalUrl": "https://www.reuters.com/world/middle-east/",
+      "observedAt": "2026-08-14T11:00:00.000Z"
+    }
+  ],
+  "predecessor": {
+    "observedThrough": "2026-08-10T23:59:59.000Z",
+    "directionScore": -0.55,
+    "dominantScenarioId": "staged-reopening",
+    "probabilities": {
+      "staged-reopening": 0.62,
+      "managed-coercion": 0.28,
+      "escalation": 0.1,
+      "single-route-disruption": 0.06,
+      "dual-route-or-infrastructure-shock": 0.04
+    },
+    "evidenceIds": ["fixture-prior-reopening-evidence"],
+    "summary": "The predecessor favored staged reopening before the current insured-throughput deterioration."
+  },
+  "comparisonThresholds": {
+    "minimumEvidenceCoverage": 0.5,
+    "materialDelta": 0.1,
+    "reversalThreshold": 0.1
+  }
+}

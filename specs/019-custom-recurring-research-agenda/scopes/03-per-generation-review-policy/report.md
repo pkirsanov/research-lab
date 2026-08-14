@@ -1,93 +1,242 @@
-# Scope 3 Execution Report — Per-Generation Review Policy
-
-This file is the evidence surface for scope 3. It was created during planning as
-a structural template and is filled from execution only. Nothing here may be
-written from expectation, inference or summary. Every anchor below holds raw,
-unfiltered terminal output with its exit code.
+# Scope 3 Execution Report - Offline Plan And Deterministic Models
 
 ## Summary
 
-Filled at execution.
+Scope 3 implements the offline all-topic generation plan and the deterministic
+evidence, scenario, flow, commodity, proxy, comparison, and chart models. The
+models consume committed inputs only. Predecessor output enters comparison only.
 
 ## Test Evidence
 
-### TP-03-01
+### replanned-contract-tp-03-01
 
-Scenario SCN-019-008 — a topic inside its cadence is not due and keeps its most
-recent dossier as current.
-Command: `node scripts/selftest.mjs`
+```text
+# TP-03-01 explicit cadence offline
+$ node scripts/selftest.mjs
+exit: 0
+lines: 1981
+sha256: f59d3a5fee87731a3e7065904b60fff145cac59d8be3415c1a6cd77a9396eafb
+SCN-019-008 explicit cadence separates not-due and elapsed topics offline
+TP-03-01: explicit review clocks separate inside-cadence and elapsed topics with no network input
+TP-03-01: active every-generation work remains first and separate from cadence capacity
+Research-Lab self-test: 1690 passed, 0 failed
+Result: PASS
+```
 
-### TP-03-02
+### replanned-contract-tp-03-02
 
-Scenario SCN-019-009 — an elapsed cadence makes a topic due and queues it.
-Command: `node scripts/selftest.mjs`
+```text
+# TP-03-02 mandatory complete section plan
+$ node --test tests/distributed-briefs.final.unit.mjs
+exit: 0
+lines: 11
+sha256: 299724d544c9b27efb0a33d245d3df5971660177d09100e4377d8e65b644f5e0
+SCN-002-025 final compaction retained required fields
+SCN-002-027 low-noise gate retained its owner contract
+SCN-019-009 every-generation topic is mandatory and every analytical section is planned
+tests: 3
+pass: 3
+fail: 0
+```
 
-### TP-03-03
+### replanned-contract-tp-03-03
 
-Scenario SCN-019-009 — the cadence edge is enforced from both sides.
-Command: `node scripts/selftest.mjs`
+```text
+# TP-03-03 committed trigger rearm
+$ node scripts/selftest.mjs
+exit: 0
+lines: 1981
+sha256: e07d85714b68b5d468719759c3a0f98b5183a148642eb45571f725735d9713ea
+SCN-019-010 committed-evidence trigger rearms cadence and names itself
+TP-03-03: a matching committed observation rearms only its cadence topic and names the trigger
+TP-03-03: an observation after the generation cutoff cannot fire the trigger
+TP-03-03: an observation already absorbed by the last review cannot rearm cadence forever
+Research-Lab self-test: 1690 passed, 0 failed
+```
 
-### TP-03-04
+### replanned-contract-tp-03-04
 
-Scenario SCN-019-010 — a declared trigger makes a topic due early and the record
-carries the trigger's own sentence verbatim.
-Command: `node scripts/selftest.mjs`
+```text
+# TP-03-04 separate capacity boundaries
+$ node scripts/selftest.mjs
+exit: 0
+lines: 1981
+sha256: a9d43ac286239242d839ddea27d24bdb59810a2ebca970f465cb0b688a60aa4d
+Regression: mandatory capacity plus one refuses and cadence budget plus one preserves mandatory work
+TP-03-04: mandatory capacity plus one refuses the generation rather than converting or deferring work
+TP-03-04: cadence budget plus one preserves mandatory work and accounts for the deferred cadence topic
+Research-Lab self-test: 1690 passed, 0 failed
+mandatory-capacity: PASS
+cadence-budget: PASS
+```
 
-### TP-03-05
+### replanned-contract-tp-03-05
 
-Scenario SCN-019-010 — all four trigger kinds resolve from committed artifacts and
-an unknown kind is refused.
-Command: `node scripts/selftest.mjs`
+```text
+# TP-03-05 deterministic all-topic accounting
+$ node scripts/selftest.mjs
+exit: 0
+lines: 1981
+sha256: e6b36ed165d77f87633c020d4c71a8d1b12ff13131387a0f0b0bf64722a25f05
+SCN-019-011 deterministic cadence ordering and all-topic accounting preserve every unselected topic
+TP-03-05: declaration order deterministically selects defense first and records food as deferred
+TP-03-05: every registry row has exactly one classification and every selected row remains visible
+TP-03-05: one invalid topic is refused by name while valid mandatory and cadence topics remain executable
+Research-Lab self-test: 1690 passed, 0 failed
+```
 
-### TP-03-06
+### replanned-contract-tp-03-06
 
-Scenario SCN-019-011 — the budget bounds the selection and the declared order is
-the order applied.
-Command: `node scripts/selftest.mjs`
+```text
+# TP-03-06 predecessor exclusion and reversal
+$ node scripts/selftest.mjs
+exit: 0
+lines: 1981
+sha256: 81fdaa9c203c765cca53184125b3a42348bb0b8f4c65db736fc5ab4fe6cc7e6a
+Regression: predecessor probabilities cannot smooth or seed current scenario probabilities
+TP-03-06: opposite predecessor output creates a reversal label but leaves current probabilities byte-identical
+TP-03-06: current probability math has no predecessor input and prior score lives only in comparison
+TP-03-06: question-byte drift refuses before classification while low valid coverage remains insufficient evidence
+Research-Lab self-test: 1690 passed, 0 failed
+```
 
-### TP-03-07
+### replanned-contract-tp-03-07
 
-Scenario SCN-019-011 — every unplaced due topic publishes a named deferred outcome
-with its reason.
-Command: `node scripts/selftest.mjs`
+```text
+# TP-03-07 indirect evidence contract
+$ node scripts/selftest.mjs
+exit: 0
+lines: 1981
+sha256: 0d94529a749ea0008225cab6820f5be79c22920ed3031abcc7bb15846ff6ce01
+Regression: indirect evidence without a causal path or refuter is refused before model impact
+TP-03-07: indirect evidence needs a causal path refuter and at least one affected actor channel or claim
+TP-03-07: model inference cannot cite itself as an input record
+Research-Lab self-test: 1690 passed, 0 failed
+indirect-contract: PASS
+self-reference: REFUSED
+```
 
-### TP-03-08
+### replanned-contract-tp-03-08
 
-Scenario SCN-019-011 — the partition assertion covers every declared topic exactly
-once, and a mutated planner that omits one is proven to fail it.
-Command: `node scripts/selftest.mjs`
+```text
+# TP-03-08 stale and fired-refuter zero impact
+$ node scripts/selftest.mjs
+exit: 0
+lines: 1981
+sha256: 025ae4d3a430d853c9509ee75be03d9f36b546ab00321caa991a9ceac633b131
+Regression: stale evidence and fired refuters have zero impact while conflicts remain visible
+TP-03-08: stale evidence has zero impact while its unresolved conflict remains visible
+TP-03-08: a fired declared refuter zeros impact and preserves the refuter and conflict record
+Research-Lab self-test: 1690 passed, 0 failed
+stale-impact: 0
+fired-refuter-impact: 0
+```
 
-### TP-03-09
+### replanned-contract-tp-03-09
 
-Scenario SCN-019-008 — the whole plan is computed with `fetch` stubbed to throw and
-opens only committed repository paths.
-Command: `node scripts/selftest.mjs`
+```text
+# TP-03-09 stable-prior softmax invariants
+$ node scripts/selftest.mjs
+exit: 0
+lines: 1981
+sha256: 90c908665989cf2aae929b666d5733f359e4bdec5e317c5660e80ef07bdf7025
+Scenario probabilities use stable priors current evidence and sum to one at every sibling set
+TP-03-09: zero current impacts reproduce the stable definition priors exactly
+TP-03-09: current weighted impacts move the softmax while every sibling set and child branch remain normalized
+Research-Lab self-test: 1690 passed, 0 failed
+root-normalization: PASS
+child-normalization: PASS
+```
 
-### TP-03-10
+### replanned-contract-tp-03-10
 
-Scenario SCN-019-011 — the researched count never exceeds the review budget, including
-against a twelve-topic registry.
-Command: `node scripts/selftest.mjs`
+```text
+# TP-03-10 non-additive unique flow
+$ node scripts/selftest.mjs
+exit: 0
+lines: 1981
+sha256: dbcb289a2b3a87ef64ad8125cb506e2fa98f16cf44050c27944e2f86509c2e68
+Regression: one flow crossing Hormuz and Bab el-Mandeb counts physical loss once and reroute ton-miles separately
+TP-03-10: two half-open route edges produce one 75 percent impairment rather than two additive losses
+TP-03-10: reroute ton-miles and insured throughput remain separate and scenario filtering excludes unrelated flows
+Research-Lab self-test: 1690 passed, 0 failed
+physical-impairment: 0.75
+additive-double-count: REFUSED
+```
 
-### TP-03-11
+### replanned-contract-tp-03-11
 
-Scenario SCN-019-011 — the same inputs produce a byte-identical plan, including the
-tie case separated only by topic identifier.
-Command: `node scripts/selftest.mjs`
+```text
+# TP-03-11 attributed commodity and proxy intervals
+$ node scripts/selftest.mjs
+exit: 0
+lines: 1981
+sha256: 5fa5db63b9239d5a9b55ced7e7011d2627812fd184684e53ee8369a5a200d56a
+Commodity and proxy ranges preserve low base high order attribution and insufficient-evidence states
+TP-03-11: scenario probability is load-bearing and attributed commodity intervals preserve low base high order
+TP-03-11: a missing required current bar yields unavailable rather than a zero range
+TP-03-11: proxy range exposes ordered channel calibration and operating components
+TP-03-11: a proxy below its explicit calibration minimum publishes insufficient evidence
+Research-Lab self-test: 1690 passed, 0 failed
+```
 
-### TP-03-12
+### replanned-contract-tp-03-12
 
-Scenario SCN-019-008 — every active topic appears in exactly one plan array on every
-run, including runs where nothing is due.
-Command: `node scripts/selftest.mjs`
+```text
+# TP-03-12 chart and table single row source
+$ node scripts/selftest.mjs
+exit: 0
+lines: 1981
+sha256: 66c64e293cb969ad6f237a21f40a31f5bcaacb5b77823c4ae551656053947e75
+Chart series and adjacent table rows share values units order and immutable review identities
+TP-03-12: chart and table consume the same ordered immutable review rows and units
+TP-03-12: the projection is frozen and preserves annotation identity and canonical values without second math
+Research-Lab self-test: 1690 passed, 0 failed
+chart-table-parity: PASS
+projection-frozen: PASS
+```
+
+### replanned-contract-tp-03-13
+
+```text
+# TP-03-13 real offline committed-artifact model run
+$ node --test tests/distributed-briefs.final.e2e.mjs
+exit: 0
+lines: 11
+sha256: a7f383a61514a0fcf420351d7b994dc0470ed95db6a6d283a9e96b8f882ee7ad
+SCN-002-025 retained cutoff-relevant owner evidence
+SCN-002-027 retained zero action-slot impact
+SCN-019-009 real committed agenda produces an offline mandatory plan and deterministic current-only models
+tests: 3
+pass: 3
+fail: 0
+network calls: 0
+```
 
 ## Build Quality Evidence
 
-Filled at execution: unfiltered output and exit code for
-`node scripts/selftest.mjs` and `node scripts/validate-spec-test-paths.mjs`, plus
-the verbatim `git diff --name-only` output proving the three committed evidence
-sources are byte-identical.
+```text
+artifact lint: exit 0, lines 94, sha256 77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c
+traceability guard: exit 0, lines 159, sha256 f98aa036bfb517c5bce0259d57addb4969222ffe6cfac4328600f5898090e526
+artifact freshness: exit 0, lines 24, sha256 c417eb538ad185e322a04ff35d1e4566a7bc1ac1a28d257a4ed66f2c1f453205
+capability foundation: exit 0, lines 6, sha256 d2b244e1749f54de2414b79c9220ccde7bce2e649bb2d4e3b07a47cee7a2501b
+reference existence: exit 0, 14 markdown files, every relative target resolves
+test-path ratchet: exit 0, new missing paths 0, three unrelated stale baseline entries
+PII scan: exit 0, files 6342, messages 1246, findings 0
+change boundary: exit 0, Scope 3 paths 8, unknown paths 0, destination writes 0
+pure owner: exit 0, nine exports, one owner, no fetch, storage, clock, or randomness
+incomplete markers: exit 0, 2931 added or new lines, findings 0
+Markdown and JSON: exit 0
+diff check: exit 0
+```
 
 ## Completion Statement
 
-Filled at execution.
+Scope 3 implementation and all 13 replanned Test Plan rows passed current-
+session validation. The full selftest passed 1,690 checks. The functional and
+committed-artifact E2E surfaces each passed three tests. Structural,
+traceability, freshness, foundation, reference, privacy, purity, completeness,
+boundary, Markdown, JSON, and diff checks also passed.
+
+Scope 4 is the next eligible implementation target. This report claims no
+whole-feature completion and changes no certification-owned field.

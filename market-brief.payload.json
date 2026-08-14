@@ -752,6 +752,57 @@
       },
       "deepLink": "real-assets-lab.html",
       "source": "owning-tool-functions"
+    },
+    "research-agenda-lab": {
+      "asOf": "2026-08-13T22:45:15.063Z",
+      "deepLink": "research-agenda-lab.html#power/geopolitical-supply-shock",
+      "id": "research-agenda-lab",
+      "metrics": {
+        "contractVersion": "research-agenda-tool-read/v1",
+        "generationId": "generation-2dd4385a0919e49a28e2eed63fc014d8e2d8a4a077a3595a57811e23e9622a5e",
+        "readFingerprint": "sha256:a3ae154c1a5ebef5a0e8e9c8683f70b4ff297a54a21d5726f057c43570701a64",
+        "reviewedTopicCount": 0,
+        "unavailableTopicCount": 2,
+        "deferredTopicCount": 1,
+        "agendaRead": {
+          "contractVersion": "research-agenda-read/v1",
+          "generationId": "generation-2dd4385a0919e49a28e2eed63fc014d8e2d8a4a077a3595a57811e23e9622a5e",
+          "asOf": "2026-08-13T22:45:15.063Z",
+          "topics": [
+            {
+              "topicId": "geopolitical-supply-shock",
+              "state": "unavailable",
+              "reason": "research-lane-unavailable",
+              "reviewId": "review-9dbb8a42cf014258fad7151ee70de7eb0545cf750f5575a48adbed21097a2fa9",
+              "dossierId": null,
+              "outcome": "unavailable",
+              "newestEvidenceAgeHours": null
+            },
+            {
+              "topicId": "defense-earnings-acceleration",
+              "state": "unavailable",
+              "reason": "research-lane-unavailable",
+              "reviewId": "review-d36d4c18cd0030f4be22064dfae4c79e82348ca655ad5574cb4db219a52da3f2",
+              "dossierId": null,
+              "outcome": "unavailable",
+              "newestEvidenceAgeHours": null
+            },
+            {
+              "topicId": "food-inputs-outlook",
+              "state": "deferred",
+              "reason": "cadence-budget",
+              "reviewId": null,
+              "dossierId": null,
+              "outcome": "deferred",
+              "newestEvidenceAgeHours": null
+            }
+          ],
+          "readFingerprint": "sha256:a3ae154c1a5ebef5a0e8e9c8683f70b4ff297a54a21d5726f057c43570701a64"
+        }
+      },
+      "read": "Geopolitical supply shock: the current research lane did not produce a validated dossier. Defense earnings acceleration: the current research lane did not produce a validated dossier. Food, grains and fertilizer: the topic was deferred by this generation's cadence budget.",
+      "source": "research-agenda-current",
+      "state": "unavailable"
     }
   },
   "toolCoverage": [
@@ -910,6 +961,12 @@
       "deepLink": "portfolio-survival-allocation-lab.html",
       "status": "stale",
       "reason": "Registered and brief-relevant, but it contributes no evidence to this or any brief by design: every result it produces is personal to the reader's device, so its published read never leaves that device and carries no personal data into the brief. There is no call to carry into this window and never will be; open the owning tool for local mandate-survival, allocation-stability and dossier reads."
+    },
+    {
+      "id": "research-agenda-lab",
+      "deepLink": "research-agenda-lab.html#power/geopolitical-supply-shock",
+      "status": "stale",
+      "reason": "The latest committed standing-research generation is from 2026-08-13 and was not refreshed for this 2026-08-14 after-hours brief. Its geopolitical supply-shock and defense-earnings reviews remain explicitly unavailable because no validated current dossier was produced, while food inputs was deferred by the cadence budget. No historical dossier is promoted to current and no market call is made from the stale generation."
     }
   ],
   "watchlistNotes": {
@@ -989,6 +1046,41 @@
       ]
     }
   ],
+  "researchAgenda": {
+    "contractVersion": "research-agenda-read/v1",
+    "generationId": "generation-2dd4385a0919e49a28e2eed63fc014d8e2d8a4a077a3595a57811e23e9622a5e",
+    "asOf": "2026-08-13T22:45:15.063Z",
+    "topics": [
+      {
+        "topicId": "geopolitical-supply-shock",
+        "state": "unavailable",
+        "reason": "research-lane-unavailable",
+        "reviewId": "review-9dbb8a42cf014258fad7151ee70de7eb0545cf750f5575a48adbed21097a2fa9",
+        "dossierId": null,
+        "outcome": "unavailable",
+        "newestEvidenceAgeHours": null
+      },
+      {
+        "topicId": "defense-earnings-acceleration",
+        "state": "unavailable",
+        "reason": "research-lane-unavailable",
+        "reviewId": "review-d36d4c18cd0030f4be22064dfae4c79e82348ca655ad5574cb4db219a52da3f2",
+        "dossierId": null,
+        "outcome": "unavailable",
+        "newestEvidenceAgeHours": null
+      },
+      {
+        "topicId": "food-inputs-outlook",
+        "state": "deferred",
+        "reason": "cadence-budget",
+        "reviewId": null,
+        "dossierId": null,
+        "outcome": "deferred",
+        "newestEvidenceAgeHours": null
+      }
+    ],
+    "readFingerprint": "sha256:a3ae154c1a5ebef5a0e8e9c8683f70b4ff297a54a21d5726f057c43570701a64"
+  },
   "attentionExclusions": [
     {
       "index": 0,

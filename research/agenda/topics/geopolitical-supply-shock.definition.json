@@ -1,0 +1,1188 @@
+{
+  "contractVersion": "research-topic-definition/v1",
+  "topicId": "geopolitical-supply-shock",
+  "definitionVersion": "v1.0.0",
+  "declaredQuestionSha256": "sha256:54b82ad812c22fff4f5d2f3553fcd9d0f25431da5f52b5eccfc64bb880e38319",
+  "analyticalSections": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "title": "Actor reaction functions",
+      "kind": "actor-analysis",
+      "required": true
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "title": "Escalation scenario tree and probabilities",
+      "kind": "scenario-analysis",
+      "required": true
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "title": "Physical and insured flow state",
+      "kind": "flow-analysis",
+      "required": true
+    },
+    {
+      "sectionId": "channel-transmission",
+      "title": "Channel transmission",
+      "kind": "transmission-analysis",
+      "required": true
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "title": "U.S.-listed proxy sensitivity and calibration",
+      "kind": "proxy-analysis",
+      "required": true
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "title": "Triggers and invalidations",
+      "kind": "trigger-analysis",
+      "required": true
+    },
+    {
+      "sectionId": "source-ledger",
+      "title": "Source ledger",
+      "kind": "source-ledger",
+      "required": true
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "title": "Predecessor change assessment",
+      "kind": "change-assessment",
+      "required": true
+    }
+  ],
+  "evidencePolicy": {
+    "contractVersion": "research-evidence-quality-policy/v1",
+    "confidenceWeights": {
+      "low": 0.35,
+      "moderate": 0.65,
+      "high": 1
+    },
+    "provenanceWeights": {
+      "observed-fact": 1,
+      "user-assumption": 0.55,
+      "model-estimate": 0.4,
+      "unavailable": 0
+    },
+    "roleWeights": {
+      "direct": 1,
+      "indirect": 0.6,
+      "model-inference": 0.4
+    },
+    "corroborationWeights": {
+      "corroborated": 1,
+      "uncorroborated": 0.5,
+      "conflicted": 0.25
+    },
+    "freshnessWeights": {
+      "current": 1,
+      "stale": 0,
+      "later-than-cutoff": 0
+    },
+    "impactCaps": {
+      "direct": 0.45,
+      "indirect": 0.25,
+      "model-inference": 0.15
+    }
+  },
+  "sourceRequirements": [
+    {
+      "requirementId": "official-policy-and-statements",
+      "sourceClasses": [
+        "official"
+      ],
+      "queryTemplate": "named actor plus declared policy or verified statement",
+      "freshnessHours": 24,
+      "requiredClaimCoverage": [
+        "actor-state"
+      ]
+    },
+    {
+      "requirementId": "measured-maritime-flow",
+      "sourceClasses": [
+        "official",
+        "maritime-observation"
+      ],
+      "queryTemplate": "named route plus measured transit loadings delay or insured capacity",
+      "freshnessHours": 24,
+      "requiredClaimCoverage": [
+        "physical-flow",
+        "insured-flow"
+      ]
+    },
+    {
+      "requirementId": "energy-and-input-balances",
+      "sourceClasses": [
+        "official",
+        "industry-data"
+      ],
+      "queryTemplate": "named channel plus inventory production export or policy response",
+      "freshnessHours": 72,
+      "requiredClaimCoverage": [
+        "transmission-input"
+      ]
+    },
+    {
+      "requirementId": "committed-public-bars",
+      "sourceClasses": [
+        "committed-bar"
+      ],
+      "queryTemplate": "same-origin committed daily bars for each declared public proxy",
+      "freshnessHours": 48,
+      "requiredClaimCoverage": [
+        "proxy-bar"
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "triggerId": "transit-restriction-observed",
+      "kind": "state-change",
+      "description": "A verified restriction or measurable impairment changes a declared route state.",
+      "targetIds": [
+        "hormuz",
+        "bab-el-mandeb",
+        "red-sea"
+      ],
+      "condition": {
+        "field": "physicalPassFraction",
+        "operator": "changed",
+        "value": true
+      }
+    },
+    {
+      "triggerId": "insured-capacity-tightens",
+      "kind": "threshold",
+      "description": "Observed insured effective throughput crosses the declared impairment threshold.",
+      "targetIds": [
+        "shipping-insurers"
+      ],
+      "condition": {
+        "field": "insuredPassFraction",
+        "operator": "below",
+        "value": 0.8
+      }
+    },
+    {
+      "triggerId": "inventory-response-confirmed",
+      "kind": "source-observation",
+      "description": "A public inventory or coordinated policy response is confirmed.",
+      "targetIds": [
+        "oil",
+        "refined-products"
+      ],
+      "condition": {
+        "field": "policyResponse",
+        "operator": "equals",
+        "value": "confirmed"
+      }
+    }
+  ],
+  "invalidations": [
+    {
+      "invalidationId": "transit-normalizes",
+      "kind": "state-change",
+      "description": "Measured transit and loading return inside the declared normal interval.",
+      "targetIds": [
+        "hormuz",
+        "bab-el-mandeb",
+        "red-sea"
+      ],
+      "condition": {
+        "field": "physicalPassFraction",
+        "operator": "at-least",
+        "value": 0.95
+      }
+    },
+    {
+      "invalidationId": "insurance-normalizes",
+      "kind": "threshold",
+      "description": "Observed insured capacity returns above the declared normalization threshold.",
+      "targetIds": [
+        "shipping-insurers"
+      ],
+      "condition": {
+        "field": "insuredPassFraction",
+        "operator": "at-least",
+        "value": 0.95
+      }
+    },
+    {
+      "invalidationId": "evidence-stales",
+      "kind": "elapsed-cadence",
+      "description": "No supporting observation remains inside the evidence freshness window.",
+      "targetIds": [
+        "source-ledger"
+      ],
+      "condition": {
+        "field": "ageHours",
+        "operator": "above",
+        "value": 24
+      }
+    }
+  ],
+  "chartDefinitions": [
+    {
+      "chartId": "scenario-probabilities",
+      "title": "Scenario probabilities",
+      "kind": "probability-tree",
+      "unit": "probability",
+      "valuePath": "modelOutputs.scenarioProbability"
+    },
+    {
+      "chartId": "physical-flow-state",
+      "title": "Physical flow state",
+      "kind": "stacked-range",
+      "unit": "normalized-share",
+      "valuePath": "modelOutputs.physicalFlow"
+    },
+    {
+      "chartId": "channel-shock-ranges",
+      "title": "Channel shock ranges",
+      "kind": "range-band",
+      "unit": "decimal-return",
+      "valuePath": "modelOutputs.channelRanges"
+    },
+    {
+      "chartId": "proxy-sensitivity-ranges",
+      "title": "Public proxy sensitivity ranges",
+      "kind": "range-band",
+      "unit": "decimal-return",
+      "valuePath": "modelOutputs.proxyRanges"
+    }
+  ],
+  "modelFunctionIds": [
+    "computeEvidenceWeight",
+    "updateEscalationProbabilities",
+    "computeFlowState",
+    "computeCommodityShockRanges",
+    "computeEquityProxyRanges",
+    "compareScenarioOutputs",
+    "classifyChangeDirection",
+    "buildAgendaChartSeries"
+  ],
+  "actors": [
+    {
+      "actorId": "united-states",
+      "title": "United States",
+      "dimensions": [
+        "military-pressure",
+        "blockade-enforcement",
+        "inventory-response",
+        "escort-and-reinsurance",
+        "negotiation-posture"
+      ],
+      "reactionRules": [
+        {
+          "ruleId": "us-inventory-response",
+          "triggerIds": [
+            "inventory-response-confirmed"
+          ],
+          "dimensionId": "inventory-response",
+          "direction": "observed-change-only",
+          "limitations": [
+            "No unobserved intent is inferred."
+          ]
+        }
+      ]
+    },
+    {
+      "actorId": "iran",
+      "title": "Iran",
+      "dimensions": [
+        "transit-control",
+        "selective-enforcement",
+        "concession-demand",
+        "proxy-activation",
+        "technical-political-separation"
+      ],
+      "reactionRules": [
+        {
+          "ruleId": "iran-transit-control",
+          "triggerIds": [
+            "transit-restriction-observed"
+          ],
+          "dimensionId": "transit-control",
+          "direction": "observed-change-only",
+          "limitations": [
+            "Public observations do not establish private intent."
+          ]
+        }
+      ]
+    },
+    {
+      "actorId": "oman-mediators",
+      "title": "Oman mediators",
+      "dimensions": [
+        "technical-route-progress",
+        "political-agreement-progress",
+        "verification-mechanism"
+      ],
+      "reactionRules": []
+    },
+    {
+      "actorId": "gulf-exporters",
+      "title": "Gulf exporters",
+      "dimensions": [
+        "bypass-use",
+        "loadings",
+        "storage",
+        "alternate-capacity"
+      ],
+      "reactionRules": []
+    },
+    {
+      "actorId": "houthis",
+      "title": "Houthis",
+      "dimensions": [
+        "bab-el-mandeb-threat-state",
+        "incident-state"
+      ],
+      "reactionRules": []
+    },
+    {
+      "actorId": "shipping-insurers",
+      "title": "Shipping insurers",
+      "dimensions": [
+        "cover-availability",
+        "exclusions",
+        "war-risk-premium"
+      ],
+      "reactionRules": [
+        {
+          "ruleId": "insured-throughput-tightening",
+          "triggerIds": [
+            "insured-capacity-tightens"
+          ],
+          "dimensionId": "cover-availability",
+          "direction": "observed-change-only",
+          "limitations": [
+            "Premium changes alone do not prove physical loss."
+          ]
+        }
+      ]
+    },
+    {
+      "actorId": "opec-buffer-producers",
+      "title": "OPEC buffer producers",
+      "dimensions": [
+        "production",
+        "export-realization",
+        "spare-and-bypass-contribution"
+      ],
+      "reactionRules": []
+    }
+  ],
+  "scenarioTree": {
+    "priorTolerance": 0.000001,
+    "nodes": [
+      {
+        "scenarioId": "staged-reopening",
+        "parentId": null,
+        "definitionPrior": 0.3,
+        "directionValue": -1,
+        "entryTriggerIds": [],
+        "invalidationIds": [
+          "transit-normalizes"
+        ],
+        "affectedActorIds": [
+          "united-states",
+          "iran",
+          "oman-mediators"
+        ],
+        "affectedChannelIds": [
+          "oil",
+          "shipping"
+        ]
+      },
+      {
+        "scenarioId": "managed-coercion",
+        "parentId": null,
+        "definitionPrior": 0.5,
+        "directionValue": 0.2,
+        "entryTriggerIds": [
+          "insured-capacity-tightens"
+        ],
+        "invalidationIds": [
+          "insurance-normalizes"
+        ],
+        "affectedActorIds": [
+          "iran",
+          "shipping-insurers"
+        ],
+        "affectedChannelIds": [
+          "oil",
+          "shipping"
+        ]
+      },
+      {
+        "scenarioId": "escalation",
+        "parentId": null,
+        "definitionPrior": 0.2,
+        "directionValue": 1,
+        "entryTriggerIds": [
+          "transit-restriction-observed"
+        ],
+        "invalidationIds": [
+          "transit-normalizes"
+        ],
+        "affectedActorIds": [
+          "united-states",
+          "iran",
+          "houthis"
+        ],
+        "affectedChannelIds": [
+          "oil",
+          "refined-products",
+          "lng",
+          "fertilizer",
+          "aluminum",
+          "shipping"
+        ]
+      },
+      {
+        "scenarioId": "single-route-disruption",
+        "parentId": "escalation",
+        "definitionPrior": 0.6,
+        "directionValue": 0.7,
+        "entryTriggerIds": [
+          "transit-restriction-observed"
+        ],
+        "invalidationIds": [
+          "transit-normalizes"
+        ],
+        "affectedActorIds": [
+          "iran",
+          "houthis"
+        ],
+        "affectedChannelIds": [
+          "oil",
+          "shipping"
+        ]
+      },
+      {
+        "scenarioId": "dual-route-or-infrastructure-shock",
+        "parentId": "escalation",
+        "definitionPrior": 0.4,
+        "directionValue": 1,
+        "entryTriggerIds": [
+          "transit-restriction-observed"
+        ],
+        "invalidationIds": [
+          "transit-normalizes"
+        ],
+        "affectedActorIds": [
+          "iran",
+          "houthis",
+          "gulf-exporters"
+        ],
+        "affectedChannelIds": [
+          "oil",
+          "refined-products",
+          "lng",
+          "fertilizer",
+          "aluminum",
+          "shipping"
+        ]
+      }
+    ]
+  },
+  "flowNetwork": {
+    "flows": [
+      {
+        "flowId": "gulf-crude-global",
+        "commodity": "oil",
+        "baselineVolume": 1,
+        "unit": "normalized-share",
+        "origin": "gulf",
+        "destinationClass": "global",
+        "routeEdges": [
+          "hormuz"
+        ],
+        "alternateRoute": {
+          "capacityFraction": {
+            "low": 0.05,
+            "base": 0.15,
+            "high": 0.25
+          },
+          "distanceMultiplier": {
+            "low": 1.05,
+            "base": 1.15,
+            "high": 1.3
+          },
+          "routeEdges": [
+            "gulf-bypass"
+          ]
+        },
+        "scenarioIds": [
+          "managed-coercion",
+          "escalation"
+        ]
+      },
+      {
+        "flowId": "gulf-refined-europe",
+        "commodity": "refined-products",
+        "baselineVolume": 1,
+        "unit": "normalized-share",
+        "origin": "gulf",
+        "destinationClass": "europe",
+        "routeEdges": [
+          "hormuz",
+          "bab-el-mandeb",
+          "red-sea"
+        ],
+        "alternateRoute": {
+          "capacityFraction": {
+            "low": 0.2,
+            "base": 0.5,
+            "high": 0.8
+          },
+          "distanceMultiplier": {
+            "low": 1.25,
+            "base": 1.45,
+            "high": 1.7
+          },
+          "routeEdges": [
+            "cape-route"
+          ]
+        },
+        "scenarioIds": [
+          "single-route-disruption",
+          "dual-route-or-infrastructure-shock"
+        ]
+      },
+      {
+        "flowId": "qatar-lng-global",
+        "commodity": "lng",
+        "baselineVolume": 1,
+        "unit": "normalized-share",
+        "origin": "qatar",
+        "destinationClass": "global",
+        "routeEdges": [
+          "hormuz"
+        ],
+        "alternateRoute": {
+          "capacityFraction": {
+            "low": 0,
+            "base": 0,
+            "high": 0
+          },
+          "distanceMultiplier": {
+            "low": 1,
+            "base": 1,
+            "high": 1
+          },
+          "routeEdges": []
+        },
+        "scenarioIds": [
+          "escalation"
+        ]
+      },
+      {
+        "flowId": "gulf-fertilizer-europe",
+        "commodity": "fertilizer",
+        "baselineVolume": 1,
+        "unit": "normalized-share",
+        "origin": "gulf",
+        "destinationClass": "europe",
+        "routeEdges": [
+          "hormuz",
+          "bab-el-mandeb",
+          "red-sea"
+        ],
+        "alternateRoute": {
+          "capacityFraction": {
+            "low": 0.2,
+            "base": 0.5,
+            "high": 0.8
+          },
+          "distanceMultiplier": {
+            "low": 1.25,
+            "base": 1.45,
+            "high": 1.7
+          },
+          "routeEdges": [
+            "cape-route"
+          ]
+        },
+        "scenarioIds": [
+          "dual-route-or-infrastructure-shock"
+        ]
+      },
+      {
+        "flowId": "gulf-aluminum-europe",
+        "commodity": "aluminum",
+        "baselineVolume": 1,
+        "unit": "normalized-share",
+        "origin": "gulf",
+        "destinationClass": "europe",
+        "routeEdges": [
+          "hormuz",
+          "bab-el-mandeb",
+          "red-sea"
+        ],
+        "alternateRoute": {
+          "capacityFraction": {
+            "low": 0.2,
+            "base": 0.5,
+            "high": 0.8
+          },
+          "distanceMultiplier": {
+            "low": 1.25,
+            "base": 1.45,
+            "high": 1.7
+          },
+          "routeEdges": [
+            "cape-route"
+          ]
+        },
+        "scenarioIds": [
+          "dual-route-or-infrastructure-shock"
+        ]
+      },
+      {
+        "flowId": "asia-europe-container",
+        "commodity": "shipping",
+        "baselineVolume": 1,
+        "unit": "normalized-share",
+        "origin": "asia",
+        "destinationClass": "europe",
+        "routeEdges": [
+          "bab-el-mandeb",
+          "red-sea"
+        ],
+        "alternateRoute": {
+          "capacityFraction": {
+            "low": 0.4,
+            "base": 0.75,
+            "high": 1
+          },
+          "distanceMultiplier": {
+            "low": 1.25,
+            "base": 1.5,
+            "high": 1.8
+          },
+          "routeEdges": [
+            "cape-route"
+          ]
+        },
+        "scenarioIds": [
+          "single-route-disruption",
+          "dual-route-or-infrastructure-shock"
+        ]
+      }
+    ]
+  },
+  "transmissionModels": [
+    {
+      "channelId": "oil",
+      "flowStateId": "gulf-crude-global",
+      "barId": "BNO",
+      "physicalSensitivity": {
+        "low": 0.15,
+        "base": 0.35,
+        "high": 0.7
+      },
+      "rerouteSensitivity": {
+        "low": 0.02,
+        "base": 0.06,
+        "high": 0.12
+      },
+      "inventorySensitivity": {
+        "low": 0.05,
+        "base": 0.12,
+        "high": 0.25
+      },
+      "policyResponseOffset": {
+        "low": -0.15,
+        "base": -0.05,
+        "high": 0
+      },
+      "demandOffset": {
+        "low": -0.1,
+        "base": 0,
+        "high": 0.1
+      },
+      "bounds": {
+        "low": -0.35,
+        "base": 0,
+        "high": 1
+      },
+      "lagDays": 5,
+      "proxyIds": [
+        "bno",
+        "uso",
+        "xle",
+        "xom",
+        "cvx",
+        "cop"
+      ],
+      "invalidationIds": [
+        "transit-normalizes",
+        "evidence-stales"
+      ]
+    },
+    {
+      "channelId": "refined-products",
+      "flowStateId": "gulf-refined-europe",
+      "barId": "MPC",
+      "physicalSensitivity": {
+        "low": 0.1,
+        "base": 0.25,
+        "high": 0.55
+      },
+      "rerouteSensitivity": {
+        "low": 0.05,
+        "base": 0.12,
+        "high": 0.25
+      },
+      "inventorySensitivity": {
+        "low": 0.08,
+        "base": 0.16,
+        "high": 0.3
+      },
+      "policyResponseOffset": {
+        "low": -0.08,
+        "base": -0.03,
+        "high": 0
+      },
+      "demandOffset": {
+        "low": -0.1,
+        "base": 0,
+        "high": 0.08
+      },
+      "bounds": {
+        "low": -0.3,
+        "base": 0,
+        "high": 0.8
+      },
+      "lagDays": 10,
+      "proxyIds": [
+        "mpc",
+        "psx"
+      ],
+      "invalidationIds": [
+        "transit-normalizes",
+        "evidence-stales"
+      ]
+    },
+    {
+      "channelId": "lng",
+      "flowStateId": "qatar-lng-global",
+      "barId": "XLE",
+      "physicalSensitivity": {
+        "low": 0.1,
+        "base": 0.3,
+        "high": 0.65
+      },
+      "rerouteSensitivity": {
+        "low": 0,
+        "base": 0,
+        "high": 0
+      },
+      "inventorySensitivity": {
+        "low": 0.05,
+        "base": 0.15,
+        "high": 0.35
+      },
+      "policyResponseOffset": {
+        "low": -0.08,
+        "base": -0.02,
+        "high": 0
+      },
+      "demandOffset": {
+        "low": -0.08,
+        "base": 0,
+        "high": 0.08
+      },
+      "bounds": {
+        "low": -0.25,
+        "base": 0,
+        "high": 0.9
+      },
+      "lagDays": 12,
+      "proxyIds": [
+        "xle"
+      ],
+      "invalidationIds": [
+        "transit-normalizes",
+        "evidence-stales"
+      ]
+    },
+    {
+      "channelId": "fertilizer",
+      "flowStateId": "gulf-fertilizer-europe",
+      "barId": "DBA",
+      "physicalSensitivity": {
+        "low": 0.06,
+        "base": 0.18,
+        "high": 0.4
+      },
+      "rerouteSensitivity": {
+        "low": 0.04,
+        "base": 0.1,
+        "high": 0.22
+      },
+      "inventorySensitivity": {
+        "low": 0.05,
+        "base": 0.15,
+        "high": 0.35
+      },
+      "policyResponseOffset": {
+        "low": -0.05,
+        "base": 0,
+        "high": 0.02
+      },
+      "demandOffset": {
+        "low": -0.1,
+        "base": 0,
+        "high": 0.1
+      },
+      "bounds": {
+        "low": -0.3,
+        "base": 0,
+        "high": 0.7
+      },
+      "lagDays": 30,
+      "proxyIds": [
+        "dba",
+        "dbc"
+      ],
+      "invalidationIds": [
+        "transit-normalizes",
+        "evidence-stales"
+      ]
+    },
+    {
+      "channelId": "aluminum",
+      "flowStateId": "gulf-aluminum-europe",
+      "barId": "XLB",
+      "physicalSensitivity": {
+        "low": 0.04,
+        "base": 0.12,
+        "high": 0.3
+      },
+      "rerouteSensitivity": {
+        "low": 0.03,
+        "base": 0.08,
+        "high": 0.18
+      },
+      "inventorySensitivity": {
+        "low": 0.04,
+        "base": 0.1,
+        "high": 0.25
+      },
+      "policyResponseOffset": {
+        "low": -0.03,
+        "base": 0,
+        "high": 0.02
+      },
+      "demandOffset": {
+        "low": -0.08,
+        "base": 0,
+        "high": 0.08
+      },
+      "bounds": {
+        "low": -0.25,
+        "base": 0,
+        "high": 0.55
+      },
+      "lagDays": 20,
+      "proxyIds": [
+        "xlb"
+      ],
+      "invalidationIds": [
+        "transit-normalizes",
+        "evidence-stales"
+      ]
+    },
+    {
+      "channelId": "shipping",
+      "flowStateId": "asia-europe-container",
+      "barId": "XLI",
+      "physicalSensitivity": {
+        "low": 0,
+        "base": 0.04,
+        "high": 0.1
+      },
+      "rerouteSensitivity": {
+        "low": 0.12,
+        "base": 0.3,
+        "high": 0.65
+      },
+      "inventorySensitivity": {
+        "low": 0,
+        "base": 0.05,
+        "high": 0.12
+      },
+      "policyResponseOffset": {
+        "low": -0.03,
+        "base": 0,
+        "high": 0.02
+      },
+      "demandOffset": {
+        "low": -0.1,
+        "base": 0,
+        "high": 0.08
+      },
+      "bounds": {
+        "low": -0.3,
+        "base": 0,
+        "high": 0.8
+      },
+      "lagDays": 18,
+      "proxyIds": [
+        "xli"
+      ],
+      "invalidationIds": [
+        "insurance-normalizes",
+        "evidence-stales"
+      ]
+    }
+  ],
+  "proxyDefinitions": [
+    {
+      "proxyId": "bno",
+      "ticker": "BNO",
+      "represents": "Brent-linked public oil exposure",
+      "limitations": [
+        "Fund structure and roll effects differ from physical crude."
+      ],
+      "channelId": "oil",
+      "channelSensitivity": {
+        "low": 0.8,
+        "base": 1,
+        "high": 1.2
+      },
+      "operatingExposureOffset": {
+        "low": 0,
+        "base": 0,
+        "high": 0
+      },
+      "minimumCalibrationEvents": 1
+    },
+    {
+      "proxyId": "uso",
+      "ticker": "USO",
+      "represents": "WTI-linked public oil exposure",
+      "limitations": [
+        "Fund structure and roll effects differ from physical crude."
+      ],
+      "channelId": "oil",
+      "channelSensitivity": {
+        "low": 0.75,
+        "base": 0.95,
+        "high": 1.15
+      },
+      "operatingExposureOffset": {
+        "low": 0,
+        "base": 0,
+        "high": 0
+      },
+      "minimumCalibrationEvents": 1
+    },
+    {
+      "proxyId": "xle",
+      "ticker": "XLE",
+      "represents": "U.S.-listed energy equities",
+      "limitations": [
+        "Equity returns include company and broad-market effects."
+      ],
+      "channelId": "oil",
+      "channelSensitivity": {
+        "low": 0.35,
+        "base": 0.55,
+        "high": 0.8
+      },
+      "operatingExposureOffset": {
+        "low": -0.05,
+        "base": 0,
+        "high": 0.05
+      },
+      "minimumCalibrationEvents": 1
+    },
+    {
+      "proxyId": "mpc",
+      "ticker": "MPC",
+      "represents": "U.S.-listed refining exposure",
+      "limitations": [
+        "Crack spreads and company operations can dominate crude direction."
+      ],
+      "channelId": "refined-products",
+      "channelSensitivity": {
+        "low": 0.25,
+        "base": 0.5,
+        "high": 0.8
+      },
+      "operatingExposureOffset": {
+        "low": -0.08,
+        "base": 0,
+        "high": 0.08
+      },
+      "minimumCalibrationEvents": 1
+    },
+    {
+      "proxyId": "psx",
+      "ticker": "PSX",
+      "represents": "U.S.-listed refining and logistics exposure",
+      "limitations": [
+        "Company-specific operations and chemicals exposure remain material."
+      ],
+      "channelId": "refined-products",
+      "channelSensitivity": {
+        "low": 0.2,
+        "base": 0.45,
+        "high": 0.75
+      },
+      "operatingExposureOffset": {
+        "low": -0.08,
+        "base": 0,
+        "high": 0.08
+      },
+      "minimumCalibrationEvents": 1
+    },
+    {
+      "proxyId": "xom",
+      "ticker": "XOM",
+      "represents": "Integrated U.S.-listed energy exposure",
+      "limitations": [
+        "Integrated operations damp pure commodity sensitivity."
+      ],
+      "channelId": "oil",
+      "channelSensitivity": {
+        "low": 0.25,
+        "base": 0.45,
+        "high": 0.7
+      },
+      "operatingExposureOffset": {
+        "low": -0.05,
+        "base": 0,
+        "high": 0.05
+      },
+      "minimumCalibrationEvents": 1
+    },
+    {
+      "proxyId": "cvx",
+      "ticker": "CVX",
+      "represents": "Integrated U.S.-listed energy exposure",
+      "limitations": [
+        "Integrated operations damp pure commodity sensitivity."
+      ],
+      "channelId": "oil",
+      "channelSensitivity": {
+        "low": 0.25,
+        "base": 0.45,
+        "high": 0.7
+      },
+      "operatingExposureOffset": {
+        "low": -0.05,
+        "base": 0,
+        "high": 0.05
+      },
+      "minimumCalibrationEvents": 1
+    },
+    {
+      "proxyId": "cop",
+      "ticker": "COP",
+      "represents": "U.S.-listed upstream energy exposure",
+      "limitations": [
+        "Production mix and hedging alter spot sensitivity."
+      ],
+      "channelId": "oil",
+      "channelSensitivity": {
+        "low": 0.35,
+        "base": 0.6,
+        "high": 0.9
+      },
+      "operatingExposureOffset": {
+        "low": -0.05,
+        "base": 0,
+        "high": 0.05
+      },
+      "minimumCalibrationEvents": 1
+    },
+    {
+      "proxyId": "dbc",
+      "ticker": "DBC",
+      "represents": "Broad public commodity exposure",
+      "limitations": [
+        "The basket mixes unrelated commodity channels."
+      ],
+      "channelId": "fertilizer",
+      "channelSensitivity": {
+        "low": 0.15,
+        "base": 0.3,
+        "high": 0.5
+      },
+      "operatingExposureOffset": {
+        "low": -0.03,
+        "base": 0,
+        "high": 0.03
+      },
+      "minimumCalibrationEvents": 1
+    },
+    {
+      "proxyId": "dba",
+      "ticker": "DBA",
+      "represents": "Public agriculture commodity exposure",
+      "limitations": [
+        "Weather and crop fundamentals can dominate input-cost effects."
+      ],
+      "channelId": "fertilizer",
+      "channelSensitivity": {
+        "low": 0.15,
+        "base": 0.35,
+        "high": 0.6
+      },
+      "operatingExposureOffset": {
+        "low": -0.04,
+        "base": 0,
+        "high": 0.04
+      },
+      "minimumCalibrationEvents": 1
+    },
+    {
+      "proxyId": "xlb",
+      "ticker": "XLB",
+      "represents": "U.S.-listed materials equities",
+      "limitations": [
+        "The basket is broader than aluminum and includes demand effects."
+      ],
+      "channelId": "aluminum",
+      "channelSensitivity": {
+        "low": 0.15,
+        "base": 0.35,
+        "high": 0.6
+      },
+      "operatingExposureOffset": {
+        "low": -0.05,
+        "base": 0,
+        "high": 0.05
+      },
+      "minimumCalibrationEvents": 1
+    },
+    {
+      "proxyId": "xli",
+      "ticker": "XLI",
+      "represents": "U.S.-listed industrial equities",
+      "limitations": [
+        "The basket is a broad and imperfect shipping-cost proxy."
+      ],
+      "channelId": "shipping",
+      "channelSensitivity": {
+        "low": 0.1,
+        "base": 0.25,
+        "high": 0.45
+      },
+      "operatingExposureOffset": {
+        "low": -0.05,
+        "base": 0,
+        "high": 0.05
+      },
+      "minimumCalibrationEvents": 1
+    }
+  ],
+  "calibrationRef": "research/agenda/topics/geopolitical-supply-shock.calibration.json"
+}

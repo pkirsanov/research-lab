@@ -1,0 +1,171 @@
+{
+  "contractVersion": "research-topic-definition/v1",
+  "topicId": "food-inputs-outlook",
+  "definitionVersion": "v1.0.0",
+  "declaredQuestionSha256": "sha256:422a5e6fab7ba3c65b16aad8acfbaa94866c48880e22e8e777908e71e76bf529",
+  "analyticalSections": [
+    {
+      "sectionId": "grains-outlook",
+      "title": "Grains outlook",
+      "kind": "commodity-analysis",
+      "required": true
+    },
+    {
+      "sectionId": "fertilizer-inputs",
+      "title": "Fertilizer inputs",
+      "kind": "commodity-analysis",
+      "required": true
+    },
+    {
+      "sectionId": "declared-catalysts",
+      "title": "Declared catalysts",
+      "kind": "catalyst-analysis",
+      "required": true
+    },
+    {
+      "sectionId": "move-ranges",
+      "title": "Move ranges",
+      "kind": "range-analysis",
+      "required": true
+    },
+    {
+      "sectionId": "invalidations",
+      "title": "Invalidations",
+      "kind": "invalidation-analysis",
+      "required": true
+    },
+    {
+      "sectionId": "source-ledger",
+      "title": "Source ledger",
+      "kind": "source-ledger",
+      "required": true
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "title": "Predecessor change assessment",
+      "kind": "change-assessment",
+      "required": true
+    }
+  ],
+  "evidencePolicy": {
+    "contractVersion": "research-evidence-quality-policy/v1",
+    "confidenceWeights": {
+      "low": 0.35,
+      "moderate": 0.65,
+      "high": 1
+    },
+    "provenanceWeights": {
+      "observed-fact": 1,
+      "user-assumption": 0.55,
+      "model-estimate": 0.4,
+      "unavailable": 0
+    },
+    "roleWeights": {
+      "direct": 1,
+      "indirect": 0.6,
+      "model-inference": 0.4
+    },
+    "corroborationWeights": {
+      "corroborated": 1,
+      "uncorroborated": 0.5,
+      "conflicted": 0.25
+    },
+    "freshnessWeights": {
+      "current": 1,
+      "stale": 0,
+      "later-than-cutoff": 0
+    },
+    "impactCaps": {
+      "direct": 0.45,
+      "indirect": 0.25,
+      "model-inference": 0.15
+    }
+  },
+  "sourceRequirements": [
+    {
+      "requirementId": "public-crop-and-input-observations",
+      "sourceClasses": [
+        "official",
+        "industry-data"
+      ],
+      "queryTemplate": "public grains fertilizer production inventory trade weather and input observations",
+      "freshnessHours": 720,
+      "requiredClaimCoverage": [
+        "grains",
+        "fertilizer",
+        "catalyst"
+      ]
+    },
+    {
+      "requirementId": "committed-public-bars",
+      "sourceClasses": [
+        "committed-bar"
+      ],
+      "queryTemplate": "same-origin committed public bars for declared agriculture and materials proxies",
+      "freshnessHours": 720,
+      "requiredClaimCoverage": [
+        "public-bar"
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "triggerId": "material-input-observation",
+      "kind": "source-observation",
+      "description": "A public crop or fertilizer observation changes a declared input.",
+      "targetIds": [
+        "grains-outlook",
+        "fertilizer-inputs"
+      ],
+      "condition": {
+        "field": "materialChange",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "triggerId": "cadence-elapsed",
+      "kind": "elapsed-cadence",
+      "description": "The explicit seven-day cadence has elapsed.",
+      "targetIds": [
+        "food-inputs-outlook"
+      ],
+      "condition": {
+        "field": "elapsedDays",
+        "operator": "at-least",
+        "value": 7
+      }
+    }
+  ],
+  "invalidations": [
+    {
+      "invalidationId": "input-observation-superseded",
+      "kind": "source-observation",
+      "description": "A later public observation supersedes a prior crop or fertilizer input.",
+      "targetIds": [
+        "grains-outlook",
+        "fertilizer-inputs"
+      ],
+      "condition": {
+        "field": "superseded",
+        "operator": "equals",
+        "value": true
+      }
+    }
+  ],
+  "chartDefinitions": [
+    {
+      "chartId": "food-input-direction-history",
+      "title": "Food input direction history",
+      "kind": "line",
+      "unit": "normalized-direction",
+      "valuePath": "modelOutputs.inputDirection"
+    }
+  ],
+  "modelFunctionIds": [
+    "computeEvidenceWeight",
+    "compareScenarioOutputs",
+    "classifyChangeDirection",
+    "buildAgendaChartSeries"
+  ]
+}

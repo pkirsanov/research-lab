@@ -1,0 +1,158 @@
+{
+  "contractVersion": "research-topic-definition/v1",
+  "topicId": "defense-earnings-acceleration",
+  "definitionVersion": "v1.0.0",
+  "declaredQuestionSha256": "sha256:054393f3f2a4cc775e6eb35cfadfd52e8a1d9a5f9c90278ea35dadbd6f2d4b2a",
+  "analyticalSections": [
+    {
+      "sectionId": "consensus-revisions",
+      "title": "Consensus revisions",
+      "kind": "earnings-analysis",
+      "required": true
+    },
+    {
+      "sectionId": "production-capacity",
+      "title": "Production capacity",
+      "kind": "capacity-analysis",
+      "required": true
+    },
+    {
+      "sectionId": "backlog-conversion",
+      "title": "Backlog conversion",
+      "kind": "earnings-analysis",
+      "required": true
+    },
+    {
+      "sectionId": "source-ledger",
+      "title": "Source ledger",
+      "kind": "source-ledger",
+      "required": true
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "title": "Predecessor change assessment",
+      "kind": "change-assessment",
+      "required": true
+    }
+  ],
+  "evidencePolicy": {
+    "contractVersion": "research-evidence-quality-policy/v1",
+    "confidenceWeights": {
+      "low": 0.35,
+      "moderate": 0.65,
+      "high": 1
+    },
+    "provenanceWeights": {
+      "observed-fact": 1,
+      "user-assumption": 0.55,
+      "model-estimate": 0.4,
+      "unavailable": 0
+    },
+    "roleWeights": {
+      "direct": 1,
+      "indirect": 0.6,
+      "model-inference": 0.4
+    },
+    "corroborationWeights": {
+      "corroborated": 1,
+      "uncorroborated": 0.5,
+      "conflicted": 0.25
+    },
+    "freshnessWeights": {
+      "current": 1,
+      "stale": 0,
+      "later-than-cutoff": 0
+    },
+    "impactCaps": {
+      "direct": 0.45,
+      "indirect": 0.25,
+      "model-inference": 0.15
+    }
+  },
+  "sourceRequirements": [
+    {
+      "requirementId": "company-filings-and-guidance",
+      "sourceClasses": [
+        "official-filing",
+        "company-guidance"
+      ],
+      "queryTemplate": "public manufacturer plus filing guidance backlog production and consensus revision",
+      "freshnessHours": 720,
+      "requiredClaimCoverage": [
+        "earnings-revision",
+        "capacity",
+        "backlog"
+      ]
+    },
+    {
+      "requirementId": "committed-public-bars",
+      "sourceClasses": [
+        "committed-bar"
+      ],
+      "queryTemplate": "same-origin committed public bars for declared manufacturers",
+      "freshnessHours": 720,
+      "requiredClaimCoverage": [
+        "public-bar"
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "triggerId": "material-guidance-change",
+      "kind": "source-observation",
+      "description": "A public filing or guidance update changes a declared earnings or production input.",
+      "targetIds": [
+        "consensus-revisions",
+        "production-capacity"
+      ],
+      "condition": {
+        "field": "materialChange",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "triggerId": "cadence-elapsed",
+      "kind": "elapsed-cadence",
+      "description": "The explicit seven-day cadence has elapsed.",
+      "targetIds": [
+        "defense-earnings-acceleration"
+      ],
+      "condition": {
+        "field": "elapsedDays",
+        "operator": "at-least",
+        "value": 7
+      }
+    }
+  ],
+  "invalidations": [
+    {
+      "invalidationId": "guidance-superseded",
+      "kind": "source-observation",
+      "description": "A later public filing supersedes the prior guidance observation.",
+      "targetIds": [
+        "consensus-revisions"
+      ],
+      "condition": {
+        "field": "superseded",
+        "operator": "equals",
+        "value": true
+      }
+    }
+  ],
+  "chartDefinitions": [
+    {
+      "chartId": "revision-direction-history",
+      "title": "Revision direction history",
+      "kind": "line",
+      "unit": "normalized-direction",
+      "valuePath": "modelOutputs.revisionDirection"
+    }
+  ],
+  "modelFunctionIds": [
+    "computeEvidenceWeight",
+    "compareScenarioOutputs",
+    "classifyChangeDirection",
+    "buildAgendaChartSeries"
+  ]
+}

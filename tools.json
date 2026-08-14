@@ -1841,6 +1841,70 @@
         "matrixDomains": [],
         "publicAliases": []
       }
+    },
+    {
+      "id": "research-agenda-lab",
+      "group": "Rotation & Macro",
+      "title": "Research Agenda Lab",
+      "nav": {
+        "label": "Research Agenda",
+        "icon": "🧭"
+      },
+      "file": "research-agenda-lab.html",
+      "notes": "notes/research-agenda-lab.md",
+      "data": "research-agenda.json",
+      "status": "live",
+      "updated": "2026-08-13",
+      "blurb": "Recurring public-market research with immutable current reviews, honest unavailable and stale states, durable actor/flow/transmission models, dated history, explicit local assumptions, and falsifiable reversal conditions. Simple answers what changed and what would reverse it; Power exposes the full evidence, source, model, comparison, and version record without promoting history to current.",
+      "tags": [
+        "standing research",
+        "geopolitical supply shock",
+        "scenario probabilities",
+        "Hormuz",
+        "Bab el-Mandeb",
+        "transmission",
+        "public proxies",
+        "evidence provenance",
+        "dated history",
+        "Simple + Power"
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "live-market",
+        "readAdapter": "research-agenda-owning-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "daily-market-bars-v1",
+        "recommendationPolicy": "market-action-v1",
+        "budgetPolicy": "live-market-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": [
+          "simple",
+          "power",
+          "brief",
+          "journey"
+        ],
+        "simpleModelDefinitionId": "simple-model/research-agenda-posture/v1",
+        "simpleAdapterId": "simple-adapter/research-agenda-posture/v1",
+        "simpleAdapterModule": "rlexperience-adapters/research-agenda.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/live-market/v1",
+        "journeyDefinitionIds": [
+          "journey/research-agenda-lab/reversal-review/v1",
+          "journey/research-agenda-lab/chokepoint-transmission/v1"
+        ],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": [
+          "macro-rotation",
+          "catalyst"
+        ],
+        "publicAliases": [
+          "Standing Research Agenda"
+        ]
+      }
     }
   ]
 }

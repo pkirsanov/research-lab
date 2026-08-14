@@ -58,6 +58,62 @@ test('the deployed artifact ships the dependency-gate projection', async ({ requ
   expect(Object.keys(document.states).sort()).toEqual(declared.sort());
 });
 
+test('SCN-019-001 foundation artifacts are served from committed files by the real static server', async ({ request }) => {
+  const artifacts = [
+    'research-agenda.json',
+    'rlagenda.js',
+    'research/agenda/topics/geopolitical-supply-shock.definition.json',
+    'research/agenda/topics/geopolitical-supply-shock.calibration.json',
+    'research/agenda/topics/defense-earnings-acceleration.definition.json',
+    'research/agenda/topics/food-inputs-outlook.definition.json'
+  ];
+
+  for (const relative of artifacts) {
+    const response = await request.get(`${site.baseUrl}/${relative}`);
+    expect(response.status(), `${relative} must be reachable on the deployed artifact`).toBe(200);
+    expect(await response.text(), `${relative} must preserve the committed bytes`).toBe(
+      readFileSync(join(ROOT, relative), 'utf8')
+    );
+  }
+});
+
+test('SCN-019-020 deployed site contains every agenda artifact registry target and dossier link', async ({ page, request }) => {
+  const agenda = readRootJson('research-agenda.json');
+  const current = readRootJson('research/agenda/current.json');
+  const historyRows = readFileSync(join(ROOT, 'research/agenda/history.jsonl'), 'utf8').trim().split(/\r?\n/).map((line) => JSON.parse(line));
+  const historicalPaths = historyRows.filter((row) => row.eventType === 'historical-seed').map((row) => row.artifactRef.path);
+  expect(historicalPaths.length).toBeGreaterThan(0);
+
+  const paths = [
+    'research-agenda-lab.html',
+    'rlexperience-adapters/research-agenda.js',
+    'notes/research-agenda-lab.md',
+    'research-agenda.json',
+    'research/agenda/current.json',
+    'research/agenda/history.jsonl',
+    current.generationRef.path,
+    ...agenda.topics.map((topic) => topic.definitionRef),
+    ...current.topicRefs.filter((topic) => topic.reviewRef).map((topic) => topic.reviewRef.path),
+    ...historicalPaths
+  ];
+  for (const relative of [...new Set(paths)]) {
+    const response = await request.get(`${site.baseUrl}/${relative}`);
+    expect(response.status(), `${relative} must be deployed`).toBe(200);
+    expect(await response.text(), `${relative} must preserve committed bytes`).toBe(readFileSync(join(ROOT, relative), 'utf8'));
+  }
+
+  await page.goto(`${site.baseUrl}/research-agenda-lab.html#power/geopolitical-supply-shock`, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
+  await expect(page.locator('body')).toHaveAttribute('data-rlview', 'power');
+  await expect(page.locator('[data-public-target-id="geopolitical-supply-shock"]')).toBeFocused();
+  await expect(page.locator('[data-rlbrief-mount]')).toHaveAttribute('data-public-target-ids', agenda.topics.map((topic) => topic.topicId).join(','));
+  for (const relative of historicalPaths) {
+    await expect(page.locator(`#historyList a[href="${relative}"]`)).toHaveCount(1);
+  }
+  const currentReviewPath = current.topicRefs.find((topic) => topic.topicId === 'geopolitical-supply-shock').reviewRef.path;
+  await expect(page.locator(`#historyList a[href="${currentReviewPath}"]`)).toHaveCount(1);
+});
+
 /* Governance stays private. This is the other half of the contract: the projection exists
    precisely so `specs/` never has to be published to make gates resolve. */
 test('the deployed artifact does not publish governance state', async ({ request }) => {

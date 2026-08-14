@@ -6,13 +6,16 @@ import {
     existsSync,
     mkdirSync,
     openSync,
+    readdirSync,
     readFileSync,
     renameSync,
     rmSync,
+    statSync,
     writeFileSync
 } from 'node:fs';
 import { resolve } from 'node:path';
 import { briefEventContractInstruction } from './validate-brief-payload.mjs';
+import { NARRATIVE_WEB_ALLOWLIST } from './web-evidence-policy.mjs';
 
 const ROOT = process.cwd();
 const PAYLOAD_PATH = resolve(ROOT, 'market-brief.payload.json');
@@ -24,6 +27,12 @@ const WATCHLIST_PATH = resolve(ROOT, 'watchlist.json');
 const WORK_DIR = resolve(ROOT, '.brief-work');
 const TOOL_BUNDLE_PATH = process.env.BRIEF_TOOL_BUNDLE ? resolve(process.env.BRIEF_TOOL_BUNDLE) : null;
 const REQUIRE_TOOL_BUNDLE = process.env.BRIEF_REQUIRE_COMPLETE_RUN === '1';
+const RESEARCH_AGENDA_PATH = resolve(ROOT, 'research-agenda.json');
+const RESEARCH_CACHE_PATH = process.env.BRIEF_RESEARCH_CACHE ? resolve(process.env.BRIEF_RESEARCH_CACHE) : null;
+const RESEARCH_CACHE_VERSION = 'research-generation-cache/v1';
+let researchPreparation = null;
+let researchRuntime = null;
+let researchTreeBaseline = null;
 
 const copilotBin = process.env.BRIEF_COPILOT_BIN || 'copilot';
 const model = process.env.BRIEF_MODEL || 'claude-opus-4.8';
@@ -80,13 +89,27 @@ const lanes = [
     }
 ];
 
-const webAllow = [
-    'finance.yahoo.com', 'query1.finance.yahoo.com', 'query2.finance.yahoo.com',
-    'production.dataviz.cnn.io', 'www.federalreserve.gov', 'www.bls.gov',
-    'www.bea.gov', 'fred.stlouisfed.org', 'api.stlouisfed.org', 'www.cnbc.com',
-    'www.reuters.com', 'www.marketwatch.com', 'www.investing.com',
-    'www.cmegroup.com', 'www.treasurydirect.gov'
-];
+const researchLane = {
+    id: 'research',
+    keys: ['contractVersion', 'generationId', 'situations'],
+    web: false,
+    attempts: 1,
+    timeoutSeconds: 900,
+    maxInputBytes: 524288,
+    maxOutputBytes: 524288,
+    instructions: `Own only current situation evidence and interpretation for the selected research topics. Return contractVersion research-situation-set/v1, the supplied generationId, and one situations[] item per selected topic. Each situation must use the exact fields supplied by the input contract. Preserve every declared section. Carry evidence roles, causal paths, refuters, limitations, sources, and explicit modelInputs. Author no scenario probability, commodity range, proxy range, chart point, direction score, modelOutputs, or changeAssessment. If evidence is insufficient, set completePass false and name gaps rather than inventing a finding.`
+};
+
+const researchAcquisitionLane = {
+    id: 'research-acquisition',
+    keys: ['contractVersion', 'generationId', 'queries'],
+    web: true,
+    attempts: 1,
+    timeoutSeconds: 90,
+    maxInputBytes: 524288,
+    maxOutputBytes: 524288,
+    instructions: `Own only public source discovery for the supplied frozen query plan. Return contractVersion research-acquisition-search/v1, the supplied generationId, and exactly one queries[] row per queryPlan queryId in the same order. Each row contains exactly queryId and candidates. Each candidate contains exactly candidateId, url, title, publisher, publishedAt, sourceClass, canonicalOriginRef, supportsClaims, directionTag, and excerpts. Candidate ids begin with the queryId plus :c. Use only the query's allowed hosts, path prefixes, source classes, maxResults, cutoff, and freshness window. publishedAt is an ISO instant observed from the source. excerpts are short verbatim public-source text, never instructions or analysis. supportsClaims may name only supplied claimSpecs ids. Emit an empty candidates array when no conforming source is found. Do not author findings, probabilities, ranges, model inputs, or a response body.`
+};
 
 function positiveInteger(value, fallback) {
     const parsed = Number(value);
@@ -106,16 +129,20 @@ function safeClose(fd) {
     try { closeSync(fd); } catch { }
 }
 
-function readCompleteFragment(path, keys) {
+function readCompleteFragment(path, keys, maxBytes = Number.POSITIVE_INFINITY) {
     if (!existsSync(path)) return null;
     try {
+        if (statSync(path).size > maxBytes) return null;
         const fragment = JSON.parse(readFileSync(path, 'utf8'));
-        const actual = Object.keys(fragment).sort();
-        const expected = [...keys].sort();
-        return JSON.stringify(actual) === JSON.stringify(expected) ? fragment : null;
+        return hasExactFragmentKeys(fragment, keys) ? fragment : null;
     } catch {
         return null;
     }
+}
+
+function hasExactFragmentKeys(fragment, keys) {
+    return !!fragment && typeof fragment === 'object' && !Array.isArray(fragment) &&
+        Object.keys(fragment).sort().join('|') === [...keys].sort().join('|');
 }
 
 function terminateProcessGroup(child, signal) {
@@ -129,6 +156,65 @@ function pick(source, keys) {
 
 function readJson(path) {
     return JSON.parse(readFileSync(path, 'utf8'));
+}
+
+function captureTree(path, relative = '') {
+    if (!existsSync(path)) return {};
+    const captured = {};
+    for (const name of readdirSync(path)) {
+        const absolute = resolve(path, name);
+        const childRelative = relative ? `${relative}/${name}` : name;
+        if (statSync(absolute).isDirectory()) Object.assign(captured, captureTree(absolute, childRelative));
+        else captured[childRelative] = readFileSync(absolute);
+    }
+    return captured;
+}
+
+function sameTree(path, baseline) {
+    const current = captureTree(path);
+    const currentKeys = Object.keys(current).sort();
+    const baselineKeys = Object.keys(baseline || {}).sort();
+    return JSON.stringify(currentKeys) === JSON.stringify(baselineKeys)
+        && currentKeys.every((key) => current[key].equals(baseline[key]));
+}
+
+function restoreTree(path, baseline) {
+    rmSync(path, { recursive: true, force: true });
+    for (const [relative, bytes] of Object.entries(baseline || {})) {
+        const target = resolve(path, relative);
+        mkdirSync(resolve(target, '..'), { recursive: true });
+        writeFileSync(target, bytes);
+    }
+}
+
+function readResearchCache() {
+    if (!RESEARCH_CACHE_PATH || !existsSync(RESEARCH_CACHE_PATH)) return null;
+    const cached = readJson(RESEARCH_CACHE_PATH);
+    const keys = Object.keys(cached || {}).sort().join('|');
+    if (keys !== ['acquisitionFailuresByTopicId', 'contractVersion', 'generationId', 'inputFingerprint', 'researchFragment'].sort().join('|') ||
+        cached.contractVersion !== RESEARCH_CACHE_VERSION || cached.generationId !== researchPreparation.generationId ||
+        cached.inputFingerprint !== researchPreparation.inputFingerprint ||
+                !(cached.researchFragment === null || hasExactFragmentKeys(cached.researchFragment, researchLane.keys)) ||
+        !cached.acquisitionFailuresByTopicId || typeof cached.acquisitionFailuresByTopicId !== 'object' || Array.isArray(cached.acquisitionFailuresByTopicId) ||
+        Object.values(cached.acquisitionFailuresByTopicId).some((reason) => typeof reason !== 'string' || !reason)) {
+        throw new Error('research cache does not match the frozen generation inputs');
+    }
+    return cached;
+}
+
+function writeResearchCache(execution) {
+    if (!RESEARCH_CACHE_PATH) return;
+    const cache = {
+        contractVersion: RESEARCH_CACHE_VERSION,
+        generationId: researchPreparation.generationId,
+        inputFingerprint: researchPreparation.inputFingerprint,
+        acquisitionFailuresByTopicId: execution.acquisitionFailuresByTopicId,
+        researchFragment: execution.authorResult && !execution.authorResult.laneError ? execution.authorResult.fragment : null
+    };
+    mkdirSync(resolve(RESEARCH_CACHE_PATH, '..'), { recursive: true });
+    const candidatePath = RESEARCH_CACHE_PATH + '.candidate';
+    writeFileSync(candidatePath, JSON.stringify(cache) + '\n');
+    renameSync(candidatePath, RESEARCH_CACHE_PATH);
 }
 
 function recentHistory(limit = 6) {
@@ -174,6 +260,8 @@ function baseSnapshot() {
 }
 
 function laneInput(lane) {
+    if (lane.id === 'research-acquisition') return researchPreparation.acquisitionInput;
+    if (lane.id === 'research') return researchPreparation.authorInput;
     const current = pick(payload, lane.keys);
     const meta = { lane: lane.id, ownedKeys: lane.keys, window: windowId, todayEt };
     const commonConfig = {
@@ -230,6 +318,10 @@ function runLane(lane, laneAttempt) {
     const stderrPath = resolve(WORK_DIR, `${lane.id}.attempt-${laneAttempt}.stderr.log`);
     writeFileSync(outputPath, '{}\n');
     writeFileSync(inputPath, JSON.stringify(laneInput(lane), null, 2) + '\n');
+    const inputBytes = statSync(inputPath).size;
+    if (lane.maxInputBytes && inputBytes > lane.maxInputBytes) {
+        return Promise.resolve({ ok: false, error: 'input-bytes-over-cap', lane, laneAttempt, outputPath, stdoutPath, stderrPath, elapsedMs: 0 });
+    }
 
     const bundleInstruction = toolBriefBundle
         ? 'Consume every toolBriefBundle.tools outcome; preserve explicit unavailable, not-applicable, and coverage-only states rather than inventing evidence.'
@@ -256,18 +348,22 @@ function runLane(lane, laneAttempt) {
        integer, so no `above` level survived either. Enforced by
        scripts/validate-brief-payload.mjs on the publish path (D16). */
     const evaluabilityInstruction = 'Every tactical or swing call MUST carry, in its invalidation field, a numeric price level on a named instrument that is in the committed universe, written with an explicit direction word AND on the side that would prove the call WRONG. The side is decided by the call, not by preference: for a long-biased call (add, rotate, hold) the invalidation level must be BELOW a price (for example "a daily close below 740.09"); for a short-biased call (trim, hedge) it must be ABOVE a price (for example "a daily close above ~765.0"). A level describing the call WORKING is a TRIGGER, not an invalidation, and it will not be accepted: a hedge is not invalidated by the market falling, and a long is not invalidated by the market rising. Write the number with a decimal or a leading tilde ("~765.0", "765.00"); a bare integer ("765"), a percentage, a relative-strength threshold, a moving-average name with no number, or a purely qualitative condition is NOT a level. The publish gate re-derives this from your own prose and withholds any tactical or swing call that resolves to unscoreable, so a call written with only the working side is dropped from the brief. If the thesis genuinely has no direction-correct price level, withhold the call yourself rather than publishing one that can never be scored.';
-    const prompt = `You are one parallel lane of the Actionable Market Brief for window=${windowId}, today ET=${todayEt}. All allowed repository evidence, current schema examples, and relevant recent history for this lane have already been compacted into .brief-work/${lane.id}.input.json. Read that one input file and no other repository file. The deterministic data and owning-tool reads are already refreshed. ${bundleInstruction} ${vocabularyInstruction} ${evaluabilityInstruction} Structure first, tactical noise last. Count persistence by distinct market-bar dates, not repeated intraday runs. Label estimates, proxies, carried data, and unavailable inputs honestly. Do not edit market-brief.payload.json, market-brief.config.json, the tool bundle, or any other repository file. Overwrite only .brief-work/${lane.id}.json with one strict JSON object, no markdown, containing exactly these top-level keys: ${lane.keys.join(', ')}. ${lane.instructions}`;
+    const prompt = lane.id === 'research-acquisition' || lane.id === 'research'
+        ? `You are the ${lane.id} side process for generation ${researchPreparation.generationId}. Read only .brief-work/${lane.id}.input.json. Do not edit any tracked file. Overwrite only .brief-work/${lane.id}.json with one strict JSON object, no markdown, containing exactly these top-level keys: ${lane.keys.join(', ')}. ${lane.instructions}`
+        : `You are one parallel lane of the Actionable Market Brief for window=${windowId}, today ET=${todayEt}. All allowed repository evidence, current schema examples, and relevant recent history for this lane have already been compacted into .brief-work/${lane.id}.input.json. Read that one input file and no other repository file. The deterministic data and owning-tool reads are already refreshed. ${bundleInstruction} ${vocabularyInstruction} ${evaluabilityInstruction} Structure first, tactical noise last. Count persistence by distinct market-bar dates, not repeated intraday runs. Label estimates, proxies, carried data, and unavailable inputs honestly. Do not edit market-brief.payload.json, market-brief.config.json, the tool bundle, or any other repository file. Overwrite only .brief-work/${lane.id}.json with one strict JSON object, no markdown, containing exactly these top-level keys: ${lane.keys.join(', ')}. ${lane.instructions}`;
 
     const args = ['-p', prompt, '--allow-all-tools', '--deny-tool=shell'];
     if (lane.web && process.env.BRIEF_NO_WEB !== '1') {
-        for (const host of webAllow) args.push(`--allow-url=${host}`);
+        for (const host of NARRATIVE_WEB_ALLOWLIST) args.push(`--allow-url=${host}`);
     }
     args.push('--no-ask-user', '--model', model, '--no-color', '--no-auto-update', '--log-level', 'error', '-C', ROOT);
 
     const stdoutFd = openSync(stdoutPath, 'w');
     const stderrFd = openSync(stderrPath, 'w');
     const startedAt = Date.now();
-    console.log(`[brief-parallel] lane=${lane.id} started attempt=${laneAttempt}/${laneAttempts} keys=${lane.keys.join(',')} inputBytes=${readFileSync(inputPath).length}`);
+    const laneAttemptLimit = lane.attempts || laneAttempts;
+    const laneTimeoutSeconds = lane.timeoutSeconds || timeoutSeconds;
+    console.log(`[brief-parallel] lane=${lane.id} started attempt=${laneAttempt}/${laneAttemptLimit} keys=${lane.keys.join(',')} inputBytes=${inputBytes}`);
 
     return new Promise((resolveLane) => {
         let settled = false;
@@ -287,7 +383,7 @@ function runLane(lane, laneAttempt) {
             clearTimeout(forceKillTimer);
             safeClose(stdoutFd);
             safeClose(stderrFd);
-            const fragment = readCompleteFragment(outputPath, lane.keys);
+            const fragment = readCompleteFragment(outputPath, lane.keys, lane.maxOutputBytes);
             const normalExit = result.code === 0 && !timedOut;
             resolveLane({
                 ...result,
@@ -330,21 +426,21 @@ function runLane(lane, laneAttempt) {
         }
 
         readinessTimer = setInterval(() => {
-            if (exitGraceTimer || !readCompleteFragment(outputPath, lane.keys)) return;
+            if (exitGraceTimer || !readCompleteFragment(outputPath, lane.keys, lane.maxOutputBytes)) return;
             exitGraceTimer = setTimeout(() => requestTermination('post-write-grace'), exitGraceSeconds * 1000);
         }, 250);
 
         timer = setTimeout(() => {
             timedOut = true;
             requestTermination('timeout');
-        }, timeoutSeconds * 1000);
+        }, laneTimeoutSeconds * 1000);
 
         child.once('error', (error) => finish({ ok: false, error: error.message }));
         child.once('exit', (code, signal) => finish({
             ok: code === 0 && !timedOut,
             code,
             signal,
-            error: timedOut ? `timed out after ${timeoutSeconds}s` : null
+            error: timedOut ? `timed out after ${laneTimeoutSeconds}s` : null
         }));
     });
 }
@@ -363,7 +459,8 @@ function validateLaneResult(result) {
 async function runLaneWithRetries(lane) {
     let lastError;
     let result;
-    for (let attempt = 1; attempt <= laneAttempts; attempt += 1) {
+    const attemptLimit = lane.attempts || laneAttempts;
+    for (let attempt = 1; attempt <= attemptLimit; attempt += 1) {
         result = await runLane(lane, attempt);
         try {
             result.fragment = validateLaneResult(result);
@@ -374,8 +471,8 @@ async function runLaneWithRetries(lane) {
             return result;
         } catch (error) {
             lastError = error;
-            if (attempt < laneAttempts) {
-                console.log(`[brief-parallel] lane=${lane.id} attempt=${attempt}/${laneAttempts} failed; retrying only this lane`);
+            if (attempt < attemptLimit) {
+                console.log(`[brief-parallel] lane=${lane.id} attempt=${attempt}/${attemptLimit} failed; retrying only this lane`);
             }
         }
     }
@@ -394,6 +491,39 @@ async function runLanePool(items, concurrency) {
     }
     await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => worker()));
     return results;
+}
+
+async function runResearchPipeline() {
+    const cached = readResearchCache();
+    if (cached) {
+        console.log(`[brief-parallel] research cache reused generation=${cached.generationId}`);
+        return {
+            acquisitionResult: null,
+            acquisitionFailuresByTopicId: cached.acquisitionFailuresByTopicId,
+            authorResult: { fragment: cached.researchFragment, laneError: null },
+            cached: true
+        };
+    }
+    const acquisitionStartedAt = Date.now();
+    let acquisitionResult = null;
+    if (researchPreparation.acquisitionInput) acquisitionResult = await runLaneWithRetries(researchAcquisitionLane);
+    const searchFragment = acquisitionResult && !acquisitionResult.laneError ? acquisitionResult.fragment : null;
+    const bound = await researchRuntime.bindResearchAgendaAcquisition({
+        preparation: researchPreparation,
+        searchFragment,
+        deadlineAtMs: acquisitionStartedAt + researchPreparation.policy.totalAcquisitionMs
+    });
+    if (!bound.ok) throw new Error(`research acquisition binding failed: ${bound.error?.reason || 'unknown'}`);
+    researchPreparation.authorInput = bound.value.authorInput;
+    const authorResult = await runLaneWithRetries(researchLane);
+    const execution = {
+        acquisitionResult,
+        acquisitionFailuresByTopicId: bound.value.acquisitionFailuresByTopicId,
+        authorResult
+    };
+    writeResearchCache(execution);
+    console.log(`[brief-parallel] research cache stored generation=${researchPreparation.generationId}`);
+    return execution;
 }
 
 function loadFragment(result) {
@@ -426,10 +556,19 @@ if (toolBriefBundle && (toolBriefBundle.contractVersion !== 'brief-tool-bundle/v
 rmSync(WORK_DIR, { recursive: true, force: true });
 mkdirSync(WORK_DIR, { recursive: true });
 
+if (existsSync(RESEARCH_AGENDA_PATH)) {
+    researchRuntime = await import('./research-agenda-refresh.mjs');
+    researchPreparation = researchRuntime.prepareResearchAgendaRuntime({ root: ROOT, snapshot, config, payload });
+    researchTreeBaseline = captureTree(resolve(ROOT, 'research/agenda'));
+}
+
 let succeeded = false;
 try {
     console.log(`[brief-parallel] starting ${lanes.length} write-disjoint lanes with maxConcurrency=${laneConcurrency} laneAttempts=${laneAttempts} exitGrace=${exitGraceSeconds}s`);
-    const results = await runLanePool(lanes, laneConcurrency);
+    const [results, researchExecution] = await Promise.all([
+        runLanePool(lanes, laneConcurrency),
+        researchPreparation ? runResearchPipeline() : Promise.resolve(null)
+    ]);
     /* Lanes routinely finish by writing a complete fragment and then failing to exit, so the
        recovery path is load-bearing rather than exceptional. Report the per-run rate here so a
        trend is readable from the run log instead of re-derived by grepping per-lane lines. */
@@ -444,6 +583,10 @@ try {
         writeFileSync(CONFIG_PATH, configBaseline);
         throw new Error('a lane edited a protected publication file or the frozen tool bundle');
     }
+    if (researchPreparation && !sameTree(resolve(ROOT, 'research/agenda'), researchTreeBaseline)) {
+        restoreTree(resolve(ROOT, 'research/agenda'), researchTreeBaseline);
+        throw new Error('the research lane edited protected agenda history or pointer state');
+    }
 
     for (const result of results) Object.assign(payload, loadFragment(result));
     payload.toolId = 'market-brief';
@@ -454,14 +597,32 @@ try {
         throw new Error(`collected nextSession ${payload.nextSession?.sessionDate || '<missing>'} does not match snapshot ${snapshot.nextSessionDate}`);
     }
 
-    const candidatePath = `${PAYLOAD_PATH}.candidate`;
-    writeFileSync(candidatePath, JSON.stringify(payload, null, 2) + '\n');
-    renameSync(candidatePath, PAYLOAD_PATH);
+    if (researchPreparation) {
+        const researchResult = researchExecution?.authorResult;
+        const researchFragment = researchResult && !researchResult.laneError ? researchResult.fragment : null;
+        const finalized = researchRuntime.finalizeResearchAgendaRuntime({
+            preparation: researchPreparation,
+            researchFragment,
+            payload,
+            acquisitionFailuresByTopicId: researchExecution?.acquisitionFailuresByTopicId || {}
+        });
+        if (!finalized.ok) throw new Error(`research agenda transaction failed: ${finalized.error?.reason || 'unknown'}`);
+        payload.researchAgenda = finalized.transaction.payload.researchAgenda;
+        payload.toolReads = finalized.transaction.payload.toolReads;
+        console.log(`[brief-parallel] research agenda generation=${researchPreparation.generationId} failures=${Object.keys(finalized.failuresByTopicId).length} pointerLast=${finalized.promotion.pointerLast}`);
+    } else {
+        const candidatePath = `${PAYLOAD_PATH}.candidate`;
+        writeFileSync(candidatePath, JSON.stringify(payload, null, 2) + '\n');
+        renameSync(candidatePath, PAYLOAD_PATH);
+    }
     succeeded = true;
-    console.log(`[brief-parallel] collected final payload from ${lanes.length} lanes`);
+        console.log(researchPreparation
+            ? `[brief-parallel] collected final payload from ${lanes.length} critical lanes plus the research side lane`
+            : `[brief-parallel] collected final payload from ${lanes.length} lanes`);
 } catch (error) {
     writeFileSync(PAYLOAD_PATH, payloadBaseline);
     writeFileSync(CONFIG_PATH, configBaseline);
+    if (researchPreparation && researchTreeBaseline) restoreTree(resolve(ROOT, 'research/agenda'), researchTreeBaseline);
     console.error(`[brief-parallel] FAIL: ${error.message}`);
     process.exitCode = 1;
 } finally {

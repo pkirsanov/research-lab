@@ -1,0 +1,131 @@
+{
+  "contractVersion": "research-calibration/v1",
+  "topicId": "geopolitical-supply-shock",
+  "calibrationVersion": "v1.0.0",
+  "events": [
+    {
+      "eventId": "iran-missile-attack-2024-10-01",
+      "eventVersion": "v1.0.0",
+      "eventTime": "2024-10-01T00:00:00.000Z",
+      "cutoffTime": "2024-10-07T23:59:59.999Z",
+      "sourceRefs": [
+        "public-chronology:iran-missile-attack-2024-10-01"
+      ],
+      "scenarioId": "escalation",
+      "affectedChannelIds": [
+        "oil",
+        "refined-products",
+        "shipping"
+      ],
+      "preWindow": {
+        "start": "2024-09-30",
+        "end": "2024-09-30"
+      },
+      "postWindow": {
+        "start": "2024-10-01",
+        "end": "2024-10-07"
+      },
+      "barFiles": [
+        {
+          "path": "data/bars/BNO.json",
+          "sha256": "sha256:3b3c102cf6181546cd4e9ef224dd96cb60fa49e486a5bce2245a48e95efbefcc"
+        },
+        {
+          "path": "data/bars/USO.json",
+          "sha256": "sha256:2a7104a173c52ca7fd31d13728c7a7ef0da3bb40b1343b03ad45925ba18eee57"
+        },
+        {
+          "path": "data/bars/XLE.json",
+          "sha256": "sha256:e05a649a39ee37a5bec46f3ecb3d1e2f7e2a8c4295ecdf9e456120680f8838e3"
+        },
+        {
+          "path": "data/bars/MPC.json",
+          "sha256": "sha256:d6e5f8b254a1590748cb839909602f637cbdd4abf4d4d69163639a279991f26d"
+        },
+        {
+          "path": "data/bars/PSX.json",
+          "sha256": "sha256:b5756c812f0fa041f51b911b94111fd0801be50b62a5ebda6ce48dacdcdd6e57"
+        },
+        {
+          "path": "data/bars/XOM.json",
+          "sha256": "sha256:e45eef2734e0360d14402e6d037d67b0bf8a361b09f02e7f2c3d181bb32ab68a"
+        },
+        {
+          "path": "data/bars/CVX.json",
+          "sha256": "sha256:4818b53b0a75f37d99db8fb2a6dd5243bf6f7c721c606713e4434a91cb73685b"
+        },
+        {
+          "path": "data/bars/COP.json",
+          "sha256": "sha256:b099b21a6d8c354257e0bc1763f8148963603647807e52c4a8fab57361ca51ab"
+        },
+        {
+          "path": "data/bars/DBC.json",
+          "sha256": "sha256:99701edd237787956f68224eb0a3709a5bc4973ef59070b8fcd6f0e513cf5e84"
+        },
+        {
+          "path": "data/bars/DBA.json",
+          "sha256": "sha256:e8a61994ac69521f920e1c9fe3e6b3ebc91856ce7bbe776519e319f027dddb4b"
+        },
+        {
+          "path": "data/bars/XLB.json",
+          "sha256": "sha256:9e119a362872722ce0e7dd18a5f444bf8deaf628f9000cb2eeea1efd26a8a02a"
+        },
+        {
+          "path": "data/bars/XLI.json",
+          "sha256": "sha256:39a08b3b21fe4a4434d5be90d62e42b8aaaea0834be1b149a7a383c8c8bb8fc9"
+        }
+      ],
+      "benchmark": "DBC",
+      "proxyReturns": {
+        "BNO": 0.130696,
+        "USO": 0.132723,
+        "XLE": 0.065034,
+        "MPC": 0.063593,
+        "PSX": 0.053633,
+        "XOM": 0.069527,
+        "CVX": 0.026142,
+        "COP": 0.089666,
+        "DBC": 0.057925,
+        "DBA": -0.034496,
+        "XLB": -0.01546,
+        "XLI": -0.00192
+      },
+      "maximumAdverseExcursion": {
+        "BNO": 0.031084,
+        "USO": 0.031322,
+        "XLE": 0.022779,
+        "MPC": 0.015162,
+        "PSX": 0.011715,
+        "XOM": 0.023119,
+        "CVX": 0.0165,
+        "COP": 0.038849,
+        "DBC": 0.017512,
+        "DBA": -0.034496,
+        "XLB": -0.017327,
+        "XLI": -0.006423
+      },
+      "maximumFavorableExcursion": {
+        "BNO": 0.130696,
+        "USO": 0.132723,
+        "XLE": 0.065034,
+        "MPC": 0.073231,
+        "PSX": 0.056904,
+        "XOM": 0.069527,
+        "CVX": 0.027025,
+        "COP": 0.089666,
+        "DBC": 0.057925,
+        "DBA": -0.020698,
+        "XLB": -0.00249,
+        "XLI": 0.000517
+      },
+      "confounds": [
+        "concurrent-energy-and-macro-news",
+        "single-event-window"
+      ],
+      "limitations": [
+        "The event label is a public chronology anchor; the observed proxy path does not establish causal attribution.",
+        "One event is sufficient only for the initial explicit minimum and must be expanded before stronger calibration claims."
+      ]
+    }
+  ]
+}

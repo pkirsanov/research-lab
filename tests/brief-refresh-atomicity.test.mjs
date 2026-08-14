@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
-import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
 import {
@@ -11,6 +12,16 @@ import {
   runBriefRefreshFixture,
   runFixtureValidator
 } from './brief-refresh-atomicity.support.mjs';
+import {
+  buildResearchAgendaTransaction,
+  composeResearchAgendaCandidate,
+  promoteResearchAgendaTransaction,
+  RESEARCH_AGENDA_CONTRACTS
+} from '../scripts/research-agenda-generation.mjs';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const RLAGENDA = require('../rlagenda.js');
 
 /* One outcome per registered tool EXCEPT the brief itself, which consumes the
    bundle rather than contributing to it. Derived from the registry the fixture
@@ -58,6 +69,142 @@ function readSchedulerStatus(path) {
 
 if (process.env.NODE_TEST_CONTEXT) {
   const { default: test } = await import('node:test');
+
+  test('Regression: agenda publication writes immutable files before ledger and moves current pointer last', (context) => {
+    const root = mkdtempSync(resolve(tmpdir(), 'research-agenda-atomicity-'));
+    context.after(() => rmSync(root, { recursive: true, force: true }));
+    const registry = JSON.parse(readFileSync(new URL('../research-agenda.json', import.meta.url), 'utf8'));
+    const topic = registry.topics[0];
+    const definition = JSON.parse(readFileSync(new URL('../' + topic.definitionRef, import.meta.url), 'utf8'));
+    const evidence = JSON.parse(readFileSync(new URL('../tests/fixtures/research-agenda/valid-evidence-record.json', import.meta.url), 'utf8'));
+    const historicalPath = 'research/agenda/dossiers/geopolitical-supply-shock/historical-2026-08-10-v1.json';
+    const historical = JSON.parse(readFileSync(new URL('../' + historicalPath, import.meta.url), 'utf8'));
+    const generation = RLAGENDA.deriveGenerationId({
+      snapshotDigest: 'sha256:' + '6'.repeat(64),
+      registryDigest: RLAGENDA.agendaDigest(registry),
+      briefWindow: { start: '2026-08-13T07:30:00.000Z', end: '2026-08-13T12:00:00.000Z' },
+      generationCutoff: '2026-08-13T12:00:00.000Z'
+    });
+    const oneTopicRegistry = { ...registry, topics: [topic] };
+    const plan = {
+      ok: true,
+      refusals: [],
+      selected: [{ topicId: topic.topicId, mode: topic.reviewPolicy.mode, reason: 'mode-required', sectionIds: definition.analyticalSections.map((section) => section.sectionId) }],
+      classifications: [{ topicId: topic.topicId, lifecycleState: 'active', mode: topic.reviewPolicy.mode, status: 'selected', reason: 'mode-required' }]
+    };
+    const finding = {
+      findingId: 'atomicity-finding',
+      observedAt: evidence.observedAt,
+      claim: evidence.claim,
+      source: evidence.source,
+      statedConfidence: evidence.confidence,
+      provenanceClass: evidence.provenanceClass,
+      evidenceRole: evidence.evidenceRole,
+      causalPath: evidence.causalPath,
+      refutedBy: evidence.refutedBy,
+      limitations: ['Atomicity fixture.']
+    };
+    const situation = {
+      contractVersion: RESEARCH_AGENDA_CONTRACTS.situation,
+      generationId: generation.id,
+      topicId: topic.topicId,
+      authoredAt: '2026-08-13T12:00:00.000Z',
+      completePass: true,
+      evidenceRecords: [evidence],
+      sectionInterpretations: definition.analyticalSections.map((section) => ({ sectionId: section.sectionId, status: 'changed', interpretation: 'Current fixture interpretation.', gaps: [] })),
+      findings: [finding],
+      sourceLedger: [evidence.source],
+      newEvidenceIds: [evidence.evidenceId],
+      modelInputs: { chokepointState: {}, inventoryGapByChannel: {}, levers: {} }
+    };
+    const candidate = composeResearchAgendaCandidate({
+      registry: oneTopicRegistry,
+      plan,
+      definitionsByTopicId: { [topic.topicId]: definition },
+      generationId: generation.id,
+      generationCutoff: '2026-08-13T12:00:00.000Z',
+      situationsByTopicId: { [topic.topicId]: situation },
+      deterministicOutputsByTopicId: { [topic.topicId]: { scenarioProbability: { escalation: 0.2 } } },
+      priorDossiersByTopicId: { [topic.topicId]: historical }
+    });
+    assert.equal(candidate.ok, true, JSON.stringify(candidate));
+    const baselineHistory = readFileSync(new URL('../research/agenda/history.jsonl', import.meta.url), 'utf8');
+    const baselineCurrent = readFileSync(new URL('../research/agenda/current.json', import.meta.url), 'utf8');
+    const baselinePayload = readFileSync(new URL('../market-brief.payload.json', import.meta.url), 'utf8');
+    const transactionInput = {
+      candidate: candidate.value,
+      payload: JSON.parse(baselinePayload),
+      historyText: baselineHistory,
+      existingRecordsByPath: { [historicalPath]: historical }
+    };
+    for (const invalidRegistry of [undefined, []]) {
+      const invalidTransaction = buildResearchAgendaTransaction({ ...transactionInput, registry: invalidRegistry });
+      assert.deepEqual(invalidTransaction, {
+        ok: false,
+        error: { code: 'E019-AGENDA-TRANSACTION', reason: 'transaction-input-invalid', field: 'registry', topicId: null }
+      });
+      assert.equal(readFileSync(new URL('../research/agenda/history.jsonl', import.meta.url), 'utf8'), baselineHistory);
+      assert.equal(readFileSync(new URL('../research/agenda/current.json', import.meta.url), 'utf8'), baselineCurrent);
+    }
+    const transaction = buildResearchAgendaTransaction({ ...transactionInput, registry: oneTopicRegistry });
+    assert.equal(transaction.ok, true, JSON.stringify(transaction));
+    assert.equal(transaction.value.writeOrder.at(-1), 'research/agenda/current.json');
+    const historyIndex = transaction.value.writeOrder.indexOf('research/agenda/history.jsonl');
+    const payloadIndex = transaction.value.writeOrder.indexOf('market-brief.payload.json');
+    assert.ok(Object.keys(transaction.value.immutableFiles).every((path) => transaction.value.writeOrder.indexOf(path) < historyIndex));
+    assert.ok(historyIndex < payloadIndex && payloadIndex < transaction.value.writeOrder.length - 1);
+
+    const writes = [];
+    const full = (relativePath) => resolve(root, relativePath);
+    const io = {
+      exists: (relativePath) => existsSync(full(relativePath)),
+      read: (relativePath) => readFileSync(full(relativePath), 'utf8'),
+      create: (relativePath, bytes) => { mkdirSync(resolve(full(relativePath), '..'), { recursive: true }); writeFileSync(full(relativePath), bytes, { flag: 'wx' }); writes.push(relativePath); },
+      replace: (relativePath, bytes) => { mkdirSync(resolve(full(relativePath), '..'), { recursive: true }); writeFileSync(full(relativePath), bytes); writes.push(relativePath); },
+      remove: (relativePath) => rmSync(full(relativePath), { recursive: true, force: true })
+    };
+    for (const [relativePath, bytes] of [[historicalPath, JSON.stringify(historical, null, 2) + '\n'], ['research/agenda/history.jsonl', baselineHistory], ['research/agenda/current.json', baselineCurrent], ['market-brief.payload.json', baselinePayload]]) {
+      io.replace(relativePath, bytes);
+    }
+    writes.length = 0;
+    const promoted = promoteResearchAgendaTransaction(transaction.value, io);
+    assert.equal(promoted.ok, true, JSON.stringify(promoted));
+    assert.deepEqual(writes, transaction.value.writeOrder);
+    assert.equal(writes.at(-1), 'research/agenda/current.json');
+    const diskCurrent = JSON.parse(io.read('research/agenda/current.json'));
+    const diskPayload = JSON.parse(io.read('market-brief.payload.json'));
+    assert.equal(RLAGENDA.validateCurrentPointer(diskCurrent, transaction.value.recordsByPath).ok, true);
+    assert.equal(diskPayload.researchAgenda.generationId, generation.id);
+
+    const rollbackRoot = mkdtempSync(resolve(tmpdir(), 'research-agenda-rollback-'));
+    context.after(() => rmSync(rollbackRoot, { recursive: true, force: true }));
+    const rollbackFull = (relativePath) => resolve(rollbackRoot, relativePath);
+    let failPayloadOnce = true;
+    const rollbackIo = {
+      exists: (relativePath) => existsSync(rollbackFull(relativePath)),
+      read: (relativePath) => readFileSync(rollbackFull(relativePath), 'utf8'),
+      create: (relativePath, bytes) => { mkdirSync(resolve(rollbackFull(relativePath), '..'), { recursive: true }); writeFileSync(rollbackFull(relativePath), bytes, { flag: 'wx' }); },
+      replace: (relativePath, bytes) => {
+        if (relativePath === 'market-brief.payload.json' && failPayloadOnce) {
+          failPayloadOnce = false;
+          throw new Error('forced pre-pointer failure');
+        }
+        mkdirSync(resolve(rollbackFull(relativePath), '..'), { recursive: true });
+        writeFileSync(rollbackFull(relativePath), bytes);
+      },
+      remove: (relativePath) => rmSync(rollbackFull(relativePath), { recursive: true, force: true })
+    };
+    for (const [relativePath, bytes] of [['research/agenda/history.jsonl', baselineHistory], ['research/agenda/current.json', baselineCurrent], ['market-brief.payload.json', baselinePayload]]) {
+      mkdirSync(resolve(rollbackFull(relativePath), '..'), { recursive: true });
+      writeFileSync(rollbackFull(relativePath), bytes);
+    }
+    const refused = promoteResearchAgendaTransaction(transaction.value, rollbackIo);
+    assert.equal(refused.ok, false);
+    assert.equal(rollbackIo.read('research/agenda/history.jsonl'), baselineHistory);
+    assert.equal(rollbackIo.read('research/agenda/current.json'), baselineCurrent);
+    assert.equal(rollbackIo.read('market-brief.payload.json'), baselinePayload);
+    for (const path of Object.keys(transaction.value.immutableFiles)) assert.equal(rollbackIo.exists(path), false, `${path} removed on rollback`);
+  });
 
   /* The fixture's authored attention tier must not be a function of the live brief.
      It was: every lane echoed the committed payload verbatim, so when the live 4x/day
@@ -171,6 +318,155 @@ if (process.env.NODE_TEST_CONTEXT) {
     assert.ok(!publication.historyBytes.equals(fixture.baseline['brief-history.jsonl']));
     assert.ok(!publication.payloadBytes.equals(fixture.baseline['market-brief.payload.json']));
     assert.equal(validator.status, 0, validator.stderr);
+  });
+
+  test('SCN-019-012 real generation publishes one atomic agenda and brief payload transaction', (context) => {
+    const fixture = createBriefRefreshFixture({ narrativeMode: 'success', agendaAssets: true });
+    context.after(() => fixture.cleanup());
+    const baselineHistory = readFileSync(resolve(fixture.repoRoot, 'research/agenda/history.jsonl'));
+    const baselineCurrent = readFileSync(resolve(fixture.repoRoot, 'research/agenda/current.json'));
+    const result = runBriefRefreshFixture(fixture);
+    const publication = readPublicationState(fixture);
+    const validator = runFixtureValidator(fixture);
+
+    assert.equal(result.status, 0, `wrapper failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+    for (const lane of ['core', 'signals', 'groups', 'coverage', 'research-acquisition', 'research']) {
+      assert.equal(result.stdout.match(new RegExp(`lane=${lane} started`, 'g'))?.length, 1,
+        `${lane} must start exactly once\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+    }
+    assert.match(result.stdout, /collected final payload from 4 critical lanes plus the research side lane/);
+    assert.match(result.stdout, /pointerLast=research\/agenda\/current\.json/);
+    assert.equal(publication.snapshotDate, fixture.candidateDate);
+    assert.equal(publication.payloadDate, fixture.candidateDate);
+    const payload = JSON.parse(publication.payloadBytes);
+    const current = JSON.parse(readFileSync(resolve(fixture.repoRoot, 'research/agenda/current.json'), 'utf8'));
+    const history = readFileSync(resolve(fixture.repoRoot, 'research/agenda/history.jsonl'));
+    assert.ok(payload.researchAgenda && payload.researchAgenda.generationId === current.generationRef.generationId);
+    assert.equal(payload.researchAgenda.topics.length, 3);
+    assert.equal(payload.researchAgenda.topics.find((row) => row.topicId === 'geopolitical-supply-shock').outcome, 'unavailable');
+    assert.ok(!history.equals(baselineHistory), 'agenda history advances in the selected transaction');
+    assert.ok(!readFileSync(resolve(fixture.repoRoot, 'research/agenda/current.json')).equals(baselineCurrent), 'agenda current pointer advances');
+    assert.equal(validator.status, 0, validator.stderr);
+    assert.ok(publication.lastCommitPaths.includes('research/agenda/current.json'));
+    assert.ok(publication.lastCommitPaths.includes('research/agenda/history.jsonl'));
+  });
+
+  test('REG-019-004 pre-projection defer ignores only stale disk page parity', (context) => {
+    const fixture = createBriefRefreshFixture({ narrativeMode: 'success', agendaAssets: true });
+    context.after(() => fixture.cleanup());
+    const pagePath = resolve(fixture.repoRoot, 'market-brief.page.json');
+    const stalePageBytes = readFileSync(pagePath);
+    const publicationResult = runBriefRefreshFixture(fixture);
+
+    assert.equal(publicationResult.status, 0, `fixture publication failed\nstdout:\n${publicationResult.stdout}\nstderr:\n${publicationResult.stderr}`);
+    assert.ok(!readFileSync(pagePath).equals(stalePageBytes), 'the fixture must produce a newer page before the stale-page probe');
+    writeFileSync(pagePath, stalePageBytes);
+
+    const validatorEnv = {
+      ...process.env,
+      BUG002_VALIDATOR_COUNT_FILE: resolve(fixture.fixtureRoot, 'adversarial-validator-count.txt')
+    };
+    const deferred = spawnSync(process.execPath, ['scripts/validate-brief-payload.mjs', '--defer-page-parity'], {
+      cwd: fixture.repoRoot,
+      encoding: 'utf8',
+      env: validatorEnv
+    });
+    assert.equal(deferred.status, 0, `deferred validation failed\nstdout:\n${deferred.stdout}\nstderr:\n${deferred.stderr}`);
+    assert.match(deferred.stdout, /payload and toolRead agree/);
+    assert.match(deferred.stdout, /disk page parity DEFERRED until projection build/);
+    assert.doesNotMatch(deferred.stdout, /payload toolRead and page read agree/);
+
+    const defaultWithStalePage = runFixtureValidator(fixture);
+    assert.equal(defaultWithStalePage.status, 1, 'default validation must reject the stale disk page');
+    assert.match(defaultWithStalePage.stderr, /market-brief\.page\.json researchAgenda must equal payload\.researchAgenda/);
+
+    const pageBuild = spawnSync(process.execPath, ['scripts/build-brief-page-artifacts.mjs'], {
+      cwd: fixture.repoRoot,
+      encoding: 'utf8',
+      env: process.env
+    });
+    assert.equal(pageBuild.status, 0, pageBuild.stderr);
+    const defaultAfterBuild = runFixtureValidator(fixture);
+    assert.equal(defaultAfterBuild.status, 0, defaultAfterBuild.stderr);
+    assert.doesNotMatch(JSON.stringify(JSON.parse(readFileSync(resolve(fixture.repoRoot, 'market-brief.payload.json'), 'utf8'))), /defer-page-parity/);
+  });
+
+  test('REG-019-004 no-agenda validation and unknown-flag refusal remain unchanged', (context) => {
+    const fixture = createBriefRefreshFixture();
+    context.after(() => fixture.cleanup());
+    const defaultVerdict = runFixtureValidator(fixture);
+    assert.equal(defaultVerdict.status, 0, defaultVerdict.stderr);
+
+    const deferred = spawnSync(process.execPath, ['scripts/validate-brief-payload.mjs', '--defer-page-parity'], {
+      cwd: fixture.repoRoot,
+      encoding: 'utf8',
+      env: process.env
+    });
+    assert.equal(deferred.status, 0, deferred.stderr);
+    assert.doesNotMatch(deferred.stdout, /page parity DEFERRED/);
+
+    const unknown = spawnSync(process.execPath, ['scripts/validate-brief-payload.mjs', '--defer-page-parity=1'], {
+      cwd: fixture.repoRoot,
+      encoding: 'utf8',
+      env: process.env
+    });
+    assert.equal(unknown.status, 2, 'only the exact CLI flag is accepted');
+    assert.match(unknown.stderr, /unknown flag\(s\): --defer-page-parity=1/);
+  });
+
+  test('REG-019-004 dry-run validates candidate page projections without claiming disk parity', (context) => {
+    const fixture = createBriefRefreshFixture({ agendaAssets: true });
+    context.after(() => fixture.cleanup());
+    const protectedPaths = [
+      'market-brief.payload.json',
+      'market-brief.page.json',
+      'market-brief.snapshot.json',
+      'research/agenda/current.json',
+      'research/agenda/history.jsonl'
+    ];
+    const before = Object.fromEntries(protectedPaths.map((path) => [path, readFileSync(resolve(fixture.repoRoot, path))]));
+    const beforeHead = gitFixture(fixture, ['rev-parse', 'HEAD']);
+    const beforeStatus = gitFixture(fixture, ['status', '--porcelain=v1', '--untracked-files=all']);
+    const result = spawnSync('bash', ['scripts/brief-refresh-and-push.sh', '--dry-run'], {
+      cwd: fixture.repoRoot,
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        BRIEF_COPILOT_BIN: '',
+        BRIEF_NARRATIVE_ATTEMPTS: '2',
+        BRIEF_LANE_ATTEMPTS: '1',
+        BRIEF_LANE_CONCURRENCY: '4',
+        BRIEF_SKIP_NARRATIVE: '1',
+        BUG002_BOUNDARY_LOG: fixture.boundaryLog,
+        BUG002_CANDIDATE_DATE: fixture.candidateDate,
+        BUG002_COPILOT_ATTEMPT_FILE: fixture.copilotAttemptFile,
+        BUG002_COPILOT_AUDIT_FILE: fixture.copilotAuditFile,
+        BUG002_VALIDATOR_COUNT_FILE: fixture.validatorCountFile
+      }
+    });
+
+    assert.equal(result.status, 0, `dry-run failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+    assert.match(result.stdout, /"contractVersion":"market-brief-page-build-result\/v1","dryRun":true/);
+    assert.match(result.stdout, /compact page projection validation passed; disk page parity was not asserted/);
+    assert.doesNotMatch(result.stdout, /post-build payload \+ disk page parity validation passed/);
+    assert.match(result.stdout, /reverted working tree; no commit, no push/);
+    for (const path of protectedPaths) assert.ok(readFileSync(resolve(fixture.repoRoot, path)).equals(before[path]), `${path} changed during dry-run`);
+    assert.equal(gitFixture(fixture, ['rev-parse', 'HEAD']), beforeHead);
+    assert.equal(gitFixture(fixture, ['status', '--porcelain=v1', '--untracked-files=all']), beforeStatus);
+    assert.equal(gitFixture(fixture, ['diff', '--cached', '--name-only']), '');
+  });
+
+  test('Regression: outer narrative retry reuses one generation-bound research candidate', (context) => {
+    const fixture = createBriefRefreshFixture({ narrativeMode: 'retry-config', agendaAssets: true });
+    context.after(() => fixture.cleanup());
+    const result = runBriefRefreshFixture(fixture);
+
+    assert.equal(result.status, 0, `wrapper failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+    assert.equal(result.stdout.match(/lane=core started/g)?.length, 2, 'critical core lane retries with the outer narrative');
+    assert.equal(result.stdout.match(/lane=research-acquisition started/g)?.length, 1, 'research discovery runs once per generation');
+    assert.equal(result.stdout.match(/lane=research started/g)?.length, 1, 'research authoring runs once per generation');
+    assert.match(result.stdout, /research cache stored generation=/);
+    assert.match(result.stdout, /research cache reused generation=/);
   });
 
   test('failed Copilot lane retries without rerunning successful lanes', (context) => {
@@ -882,19 +1178,29 @@ if (process.env.NODE_TEST_CONTEXT) {
     assert.equal(gitFixture(fixture, ['status', '--porcelain=v1', '--', 'unrelated.txt', 'unrelated-untracked.txt']), before.status);
   });
 
-  test('forced final validation failure restores every owned baseline byte and index path', (context) => {
-    const fixture = createBriefRefreshFixture({ validatorMode: 'fail-final', narrativeMode: 'success' });
+  test('REG-019-004 corrupted post-build page blocks before staging and restores every owned baseline byte', (context) => {
+    const fixture = createBriefRefreshFixture({ validatorMode: 'fail-final', narrativeMode: 'success', agendaAssets: true });
     context.after(() => fixture.cleanup());
     const baselineData = readFileSync(resolve(fixture.repoRoot, 'data/baseline.json'));
+    const baselinePage = readFileSync(resolve(fixture.repoRoot, 'market-brief.page.json'));
+    const baselineCurrent = readFileSync(resolve(fixture.repoRoot, 'research/agenda/current.json'));
+    const baselineAgendaHistory = readFileSync(resolve(fixture.repoRoot, 'research/agenda/history.jsonl'));
 
     const result = runBriefRefreshFixture(fixture);
     const publication = readPublicationState(fixture);
     assert.equal(result.status, 1);
-    assert.match(result.stdout, /selected publication pair failed final validation/, `unexpected failure phase\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+    assert.match(result.stderr, /corrupted post-build page before default parity validation/);
+    assert.match(result.stderr, /market-brief\.page\.json researchAgenda must equal payload\.researchAgenda/);
+    assert.match(result.stdout, /post-build page parity validation failed/, `unexpected failure phase\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+    assert.doesNotMatch(result.stdout, /post-build payload \+ disk page parity validation passed/);
+    assert.equal(readFileSync(fixture.validatorCountFile, 'utf8'), '4', 'the injected corruption must target the fourth, post-build validator call');
     assert.ok(publication.snapshotBytes.equals(fixture.baseline['market-brief.snapshot.json']));
     assert.ok(publication.historyBytes.equals(fixture.baseline['brief-history.jsonl']));
     assert.ok(publication.payloadBytes.equals(fixture.baseline['market-brief.payload.json']));
     assert.ok(publication.configBytes.equals(fixture.baseline['market-brief.config.json']));
+    assert.ok(readFileSync(resolve(fixture.repoRoot, 'market-brief.page.json')).equals(baselinePage));
+    assert.ok(readFileSync(resolve(fixture.repoRoot, 'research/agenda/current.json')).equals(baselineCurrent));
+    assert.ok(readFileSync(resolve(fixture.repoRoot, 'research/agenda/history.jsonl')).equals(baselineAgendaHistory));
     assert.ok(readFileSync(resolve(fixture.repoRoot, 'data/baseline.json')).equals(baselineData));
     assert.equal(existsSync(resolve(fixture.repoRoot, 'data/raw-refresh.json')), false);
     assert.equal(publication.staged, '');

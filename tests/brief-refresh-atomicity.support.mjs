@@ -2,6 +2,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import {
   createReadStream,
   chmodSync,
+  cpSync,
   copyFileSync,
   existsSync,
   mkdirSync,
@@ -124,6 +125,7 @@ export function createBriefRefreshFixture(options = {}) {
   }
   chmodSync(wrapperPath, 0o755);
   copyFileSync(resolve(ROOT, 'scripts/brief-narrative-parallel.mjs'), resolve(repoRoot, 'scripts/brief-narrative-parallel.mjs'));
+  copyFileSync(resolve(ROOT, 'scripts/web-evidence-policy.mjs'), resolve(repoRoot, 'scripts/web-evidence-policy.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/brief-distributed-publish.mjs'), resolve(repoRoot, 'scripts/brief-distributed-publish.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/brief-publication.mjs'), resolve(repoRoot, 'scripts/brief-publication.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/recommendation-body.mjs'), resolve(repoRoot, 'scripts/recommendation-body.mjs'));
@@ -144,6 +146,15 @@ export function createBriefRefreshFixture(options = {}) {
   // without it cannot reproduce the real publication path at all.
   copyFileSync(resolve(ROOT, 'scripts/build-attention-items.mjs'), resolve(repoRoot, 'scripts/build-attention-items.mjs'));
   copyFileSync(resolve(ROOT, 'rlcontracts.js'), resolve(repoRoot, 'rlcontracts.js'));
+  copyFileSync(resolve(ROOT, 'rlagenda.js'), resolve(repoRoot, 'rlagenda.js'));
+  if (options.agendaAssets) {
+    copyFileSync(resolve(ROOT, 'research-agenda.json'), resolve(repoRoot, 'research-agenda.json'));
+    copyFileSync(resolve(ROOT, 'scripts/research-agenda-generation.mjs'), resolve(repoRoot, 'scripts/research-agenda-generation.mjs'));
+    copyFileSync(resolve(ROOT, 'scripts/research-agenda-refresh.mjs'), resolve(repoRoot, 'scripts/research-agenda-refresh.mjs'));
+    copyFileSync(resolve(ROOT, 'scripts/web-evidence-acquire.mjs'), resolve(repoRoot, 'scripts/web-evidence-acquire.mjs'));
+    mkdirSync(resolve(repoRoot, 'research'), { recursive: true });
+    cpSync(resolve(ROOT, 'research/agenda'), resolve(repoRoot, 'research/agenda'), { recursive: true });
+  }
   // build-owner-reads.mjs requires this at MODULE LOAD, so without it the producer aborts before
   // running and the wrapper refuses the whole publication. It is also the single definition of the
   // metrics the reads are built from, so the fixture must use the real one rather than a stand-in.
@@ -193,13 +204,16 @@ if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
   const countPath = process.env.BUG002_VALIDATOR_COUNT_FILE;
   const count = (existsSync(countPath) ? Number(readFileSync(countPath, 'utf8')) : 0) + 1;
   writeFileSync(countPath, String(count));
+  if (count === 4) {
+    const pagePath = resolvePath('market-brief.page.json');
+    const page = JSON.parse(readFileSync(pagePath, 'utf8'));
+    page.researchAgenda = { contractVersion: 'corrupted-post-build-page/v1' };
+    writeFileSync(pagePath, JSON.stringify(page) + '\\n');
+    console.error('[fixture-validator] corrupted post-build page before default parity validation');
+  }
   const realValidator = fileURLToPath(new URL('./validate-brief-payload.real.mjs', import.meta.url));
   const result = spawnSync(process.execPath, [realValidator, ...process.argv.slice(2)], { cwd: process.cwd(), env: process.env, stdio: 'inherit' });
   if (result.status !== 0) process.exit(result.status || 1);
-  if (count === 3) {
-    console.error('[fixture-validator] forced final validation failure');
-    process.exit(1);
-  }
 }
 `);
   } else {
@@ -208,6 +222,7 @@ if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
   copyFileSync(resolve(ROOT, 'market-brief.payload.json'), resolve(repoRoot, 'market-brief.payload.json'));
   const fixturePayloadPath = resolve(repoRoot, 'market-brief.payload.json');
   const fixturePayload = JSON.parse(readFileSync(fixturePayloadPath, 'utf8'));
+  if (!options.agendaAssets) delete fixturePayload.researchAgenda;
   fixturePayload.window = 'pre-market';
   fixturePayload.asOf = `${baselineDate}T14:05:00.000Z`;
   fixturePayload.generatedAt = `${baselineDate}T14:05:00.000Z`;
@@ -348,7 +363,15 @@ if (lane === 'core') {
   writeFileSync(process.env.BUG002_COPILOT_AUDIT_FILE, JSON.stringify(audit) + '\\n');
   payload.nextSession.sessionDate = process.env.BUG002_CANDIDATE_DATE;
 }
-const fragment = Object.fromEntries(keys.map((key) => [key, payload[key]]));
+const fragment = lane === 'research-acquisition'
+  ? {
+      contractVersion: 'research-acquisition-search/v1',
+      generationId: laneInput.generationId,
+      queries: laneInput.queryPlan.queries.map((query) => ({ queryId: query.queryId, candidates: [] }))
+    }
+  : lane === 'research'
+    ? { contractVersion: 'research-situation-set/v1', generationId: laneInput.generationId, situations: [] }
+    : Object.fromEntries(keys.map((key) => [key, payload[key]]));
 /* The signals lane AUTHORS its attention candidates; it does not inherit them.
    Echoing the baseline tier alone made this fixture degenerate the moment the
    live brief legitimately published an empty one — see FIXTURE_ATTENTION_CANDIDATE. */

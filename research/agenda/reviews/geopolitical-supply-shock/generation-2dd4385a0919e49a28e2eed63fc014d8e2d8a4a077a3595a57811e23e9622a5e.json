@@ -1,0 +1,69 @@
+{
+  "contractVersion": "research-review/v1",
+  "generationId": "generation-2dd4385a0919e49a28e2eed63fc014d8e2d8a4a077a3595a57811e23e9622a5e",
+  "topicId": "geopolitical-supply-shock",
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "attemptedAt": "2026-08-13T22:45:15.063Z",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "research-lane-unavailable",
+  "newestEvidenceAgeHours": null,
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    }
+  ],
+  "evidenceIds": [],
+  "modelOutputs": null,
+  "predecessorDossierId": null,
+  "dossierId": null,
+  "reviewId": "review-9dbb8a42cf014258fad7151ee70de7eb0545cf750f5575a48adbed21097a2fa9",
+  "validationState": "validated",
+  "historicalOnly": false
+}

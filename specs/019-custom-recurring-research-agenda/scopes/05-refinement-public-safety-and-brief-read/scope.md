@@ -1,55 +1,51 @@
-# Scope 5: Refinement, Public Safety And The Brief Read
+# Scope 5: Owning Tool, Brief Read, And Reachability
 
-## 05-refinement-public-safety-and-brief-read
+**Scope ID:** `05-refinement-public-safety-and-brief-read`
+**Scope Dir:** `scopes/05-refinement-public-safety-and-brief-read`
+**Status:** Done
+**Depends On:** `01-agenda-registry-contract` (foundation), `04-dossier-and-outcome-states`
+**Scope-Kind:** runtime-behavior
 
-**Status:** Not started
-**Scope-Kind:** runtime-behavior + reader-surface
-**Tags:** reachability, registration, public-scope, bounded-refinement, accessibility
-Depends On: Scope 1 — the byte-stable declared question and the private-field list · Scope 4 — the dossiers the read projects
+Related artifacts: [spec.md](../../spec.md), [design.md](../../design.md),
+[scope index](../_index.md).
 
-**Primary Outcome:** The agent may sharpen a topic inside the operator's declared
-boundary, recorded as a dated attributed addition that leaves the declared
-question byte-identical; a proposal outside the boundary is refused by name and
-changes nothing. No dossier, registry entry or published record carries a
-position, a size, a cost basis or a profit-or-loss figure. And the agenda read
-reaches the brief through both halves that FR-019-038 requires and neither of
-which substitutes for the other: a `payload.toolReads['research-agenda-lab']`
-entry under a newly registered tool id, and an additive `researchAgenda` key on
-`market-brief.page.json` rendered by an agenda section of the brief the reader
-already opens.
+## Replan Evidence Boundary
+
+The existing `report.md` records historical evidence for the superseded
+implementation contract. It cannot satisfy any DoD item below. Implementation
+must execute every current `TP-05-*` row and append fresh evidence under a
+`replanned-contract-tp-05-*` anchor before checking the matching item.
+
+## Outcome
+
+Ship `research-agenda-lab.html` as the first-class owning research tool, not a
+landing page. Simple is the default current-decision cockpit. Power exposes the
+actor matrix, unique-flow network, scenario contributions, all six
+transmission channels, proxy calibration, evidence graph, source ledger,
+current/predecessor comparison, immutable versions, and review history. Both
+modes consume one `computeViewState` result from `rlagenda.js`.
+
+Publish a compact `research-agenda-read/v1` into the market-brief payload,
+registered tool-read channel, page artifact, and visible brief section. Register
+the page across the tool, navigation, notes, site, simple-model, adapter,
+experience, journey, and public-target surfaces. Keep full model/chart detail in
+the owning tool and deep-link from the brief.
+
+Recursively reject private fields and out-of-boundary refinements. Expose a
+read-only Feature 020 seam containing immutable finding, evidence, trigger,
+invalidation, topic, and dossier references. Feature 019 emits no destination,
+eligibility, action family, attention envelope, anomaly seed, alert candidate,
+routing decision, or score.
 
 ## Requirement Coverage
 
-- FR-019-032 — the agent may propose a refinement that narrows a topic or adds a
-  sub-question inside the declared scope boundary.
-- FR-019-033 — a refinement is recorded as an attributed, dated addition and the
-  operator's declared question text remains byte-identical.
-- FR-019-034 — a refinement whose subject falls outside the declared scope
-  boundary is refused with a named reason.
-- FR-019-035 (refinement half) — the agent may not retire, pause or delete a
-  topic. The lifecycle half is scope 2.
-- FR-019-036 — no dossier, registry entry or published record contains a position,
-  a size, a cost basis or a profit-or-loss figure; subjects are public market
-  objects and public tickers only (P13).
-- FR-019-038 — each generation publishes an agenda read that reaches the brief,
-  carrying every topic's identifier and outcome state. Filing into the tool-read
-  channel is necessary but not sufficient; the page-artifact key and the rendering
-  section are equally required.
-- NFR-019-003 — every published artifact stays inside the committed
-  `artifact-budget/v1` contract.
-- NFR-019-004 — the refinement guard and the private-field guard each carry an
-  adversarial case that fails when the guard is removed.
+FR-019-032 through FR-019-038 and NFR-019-003 through NFR-019-004. This scope
+also renders the current, stale, unavailable, reversed, and historical states
+created by SCN-019-012 through SCN-019-017 without changing their semantics.
 
 ## Gherkin Scenarios
 
 ```gherkin
-Scenario: SCN-019-017 A refinement narrows, it does not replace
-  Given a topic whose declared question admits a narrower sub-question the evidence now supports
-  When the agent proposes a refinement
-  Then the refinement is recorded as an addition inside the declared question
-  And the operator's declared question text is unchanged
-  And the refinement is attributed to the agent and dated
-
 Scenario: SCN-019-018 A refinement outside the boundary is refused
   Given a proposed refinement whose subject falls outside the topic's declared scope boundary
   When the refinement is validated
@@ -62,271 +58,701 @@ Scenario: SCN-019-019 Public scope only
   Then it contains no position, no size, no cost basis and no profit or loss figure
   And every subject it names is a public market object or a public ticker
 
-Scenario: SCN-019-020 The research read reaches the brief
+Scenario: SCN-019-020 A tool and read that do not reach the reader do not ship
   Given a generation in which at least one topic was reviewed
-  When the published payload and the brief page artifact are inspected
-  Then the payload carries a research read for the agenda under its registered tool id, with each topic's outcome state
+  When the registered research tool, published payload and brief page artifact are inspected
+  Then the tool exposes the current dossier, prior versions, sustained models, charts and review history
+  And the payload carries a research read for the agenda under its registered tool id, with each topic's outcome state
   And the brief page artifact carries the agenda material the reader-facing section renders
   And the read is visible on a brief surface the reader opens, rather than only present in the payload or confined to a dossier file
 ```
 
-## Implementation Files
+## UI Scenario Matrix
 
-### New
+| Scenario | Preconditions | User steps | Visible outcome | Test category |
+| --- | --- | --- | --- | --- |
+| SCN-019-014 | current review is stale and prior dossier exists | open brief read, then owning tool | age and stale reason are visible; prior dossier is dated history, not current | e2e-ui |
+| SCN-019-015 | current mandatory review is unavailable | open the current topic | named reason is visible; no fabricated current finding or chart appears | e2e-ui |
+| SCN-019-017 | current model sharply reverses predecessor | compare current and prior in Power | causal evidence, refuter/invalidation, prior view, current view, and deterministic reversal label are visible | e2e-ui |
+| SCN-019-019 | nested artifact contains a private sentinel | load the tool and brief through production validation | publication refuses; sentinel appears nowhere in DOM, requests, URL, storage, or public JSON | security/e2e-ui |
+| SCN-019-020 | a validated generation and registered tool exist | open brief, follow topic deep link, switch Simple/Power, move a lever | compact read is visible, full tool resolves, both modes agree, and lever recomputation makes no request | e2e-ui |
 
-- `research-agenda-lab.html` — the registered owning tool page
-- `tests/fixtures/research-agenda/refinement-inside-boundary.json`
-- `tests/fixtures/research-agenda/refinement-outside-boundary.json`
-- `tests/fixtures/research-agenda/topic-with-private-field.json`
-- `tests/fixtures/research-agenda/read-reaches-brief.json`
-- `research-agenda-lab.spec.mjs` — a new Playwright browser spec, matched by the
-  committed `testMatch` of `**/*.spec.mjs` and run under `--project=system-chrome`
-  (its directory is the repository's existing browser-spec directory; the literal
-  path is omitted here because `scripts/validate-spec-test-paths.mjs` refuses a
-  spec-artifact reference to a file that does not yet exist)
+## Planned Production Paths
 
-### Modified
-
-- `rlagenda.js` — `admitRefinement`, `buildAgendaRead`, `buildAgendaToolRead`,
-  `readerSentence`
-- `tools.json` — a 25th entry for `research-agenda-lab`
-- `index.html` — one `TOOLS` array entry
-- `rlnav.js` — one `TOOLS` array entry, kept in sync with `index.html` and
-  `tools.json` as that file's own header requires
-- `README.md` — one row
-- `notes/README.md` — one row, plus `notes/research-agenda-lab.md` as the tool's
-  `notes` target
-- `tool-experience.config.json` — the `experience` block naming an existing Simple
-  model definition, an adapter already inside the module allowlist, and journey
-  definitions that already exist
-- `scripts/build-pages-site.mjs` — `'research'` added to `PUBLIC_DIRECTORIES`
-- `scripts/build-brief-page-artifacts.mjs` — the additive `researchAgenda`
-  projection into `market-brief.page.json`
-- `scripts/validate-brief-payload.mjs` — acceptance of `payload.researchAgenda`
-- `scripts/brief-narrative-parallel.mjs` — the collector merge of
-  `payload.toolReads['research-agenda-lab']` after every fragment is assigned
-- `market-brief.html` — the agenda section between `#nextSession` and
-  `#decisionAttention`
-- `rlbrief.js` — the agenda section renderer
-- `rlapp.js`, `rlviews.js` — the additive `publicTargetIds` seam
-- `scripts/selftest.mjs` — one new assertion group
-- `notes/research-agenda-lab.md` — the reader vocabulary and the registration
-  record
+| Path | Disposition | Purpose |
+| --- | --- | --- |
+| `research-agenda-lab.html` | planned new | owning Simple/Power research tool |
+| `rlexperience-adapters/research-agenda.js` | planned new | thin ordinary-view adapter delegating to `rlagenda.js` |
+| `notes/research-agenda-lab.md` | planned new | method, contracts, controls, and verification guide |
+| `tools.json`, `index.html`, `rlnav.js` | existing, planned modification | registry and navigation parity |
+| `README.md`, `notes/README.md` | existing, planned modification | discoverability and notes parity |
+| `simple-models.json`, `tool-experience.config.json`, `journeys.json` | existing, planned modification | Simple model, adapter, module allowlist, and two journeys |
+| `scripts/build-pages-site.mjs` | existing, planned modification | publish `research/` and enforce registered-page reachability |
+| `scripts/build-brief-page-artifacts.mjs` | existing, planned modification | additive page `researchAgenda` projection |
+| `market-brief.experimental.json` | existing generated artifact, regeneration only | byte-current derived brief artifact with no item-composition change |
+| `market-brief.tools.page.json` | existing generated artifact, planned regeneration | compact registered-tool artifact containing the agenda tool |
+| `scripts/validate-brief-payload.mjs` | existing, planned modification | toolRead, page read, safety, balance, and boundary validation |
+| `rlexperience.js` | existing, planned modification | bind the agenda adapter into the shared experience runtime |
+| `scripts/validate-tool-experience.mjs` | existing, planned modification | validate agenda tool, adapter, model, and journey registry parity |
+| `scripts/brief-narrative-parallel.mjs` | existing after Scope 4, planned modification | registered toolRead merge after coverage assignment |
+| `market-brief.html`, `rlbrief.js` | existing, planned modification | visible compact standing-research section |
+| `rlapp.js`, `rlviews.js` | existing, planned modification | additive durable public topic targets |
+| `tests/tool-experience.support.mjs` | existing, planned modification | shared agenda-adapter module inventory for experience canaries |
+| `tests/tool-experience.unit.mjs` | existing, planned modification | adapter allowlist boundary regression canary |
+| `tests/tool-experience-registry.functional.mjs` | existing, planned modification | registry/adapter/model/journey parity |
+| `tests/tool-experience.spec.mjs` | existing, planned modification | real tool browser behavior |
+| `tests/market-brief-scorecard.spec.mjs` | existing, planned modification | compact brief read and deep link |
+| `tests/deployed-site-parity.spec.mjs` | existing, planned modification | built-site artifact reachability |
+| `tests/tool-discovery.spec.mjs` | existing, planned modification | navigation and public target reachability |
+| `tests/contextual-tooltip.spec.mjs` | existing, planned modification | shared tooltip content and accessibility |
 
 ## Implementation Plan
 
-1. Implement `admitRefinement(topic, proposal)` returning
-   `{ admitted, code, reason }`. A proposal naming a subject, geography,
-   instrument or horizon outside `scopeBoundary` is refused
-   `RLAGENDA-REFINEMENT`, and so is any proposal whose application would change
-   `declaredQuestion`. An admitted refinement is appended to the dossier's
-   `refinements[]` with its date and `by: "agent"`.
-2. Carry `declaredQuestionSha256` on every dossier as the byte-identity proof, and
-   assert the hash of the registry's current `declaredQuestion` equals it before
-   and after any refinement is applied.
-3. Refuse `RLAGENDA-PRIVATE` for any of the four frozen private field names
-   anywhere in a topic, a dossier or a read, and `RLAGENDA-SUBJECT` for a subject
-   that is not a public market object or a public ticker.
-4. Implement `buildAgendaRead(plan, dossiers)` producing `research-agenda-read/v1`
-   with `registryState`, `declaredTopicCount`, `reviewBudget`, the verbatim
-   `selectionOrder`, the per-topic rows and the `refusals[]`. Assert
-   `topics.length + refusals.length === declaredTopicCount` in the published read
-   itself, not only in the validator.
-5. Implement `buildAgendaToolRead(read)` producing the `payload.toolReads` entry
-   with `deepLink: "research-agenda-lab.html"`. Merge it in the collector **after**
-   every fragment is assigned, because the `coverage` lane owns `toolReads` and
-   replaces it wholesale during the fragment assign. This is a collector write, so
-   no lane's key ownership widens.
-6. Register the tool. Registration is atomic with the page it registers, because
-   `scripts/build-pages-site.mjs` asserts every registered page exists and is not
-   excluded, and that every unregistered root `.html` is listed in
-   `site-exclusions.json`. Land in one change: the `tools.json` entry, the
-   `index.html` and `rlnav.js` `TOOLS` rows, the `README.md` and `notes/README.md`
-   rows, the `notes/research-agenda-lab.md` target, the `experience` block, and
-   `research-agenda-lab.html` itself. `toolCoverage` in the payload and the
-   snapshot follows automatically, because the `coverage` lane derives its list
-   from `tools.json`.
-7. Add `'research'` to the frozen `PUBLIC_DIRECTORIES` list in
-   `scripts/build-pages-site.mjs`. Without it the dossier directory is committed
-   but never published, and every per-finding link would land nowhere.
-8. Settle design open question 1 by reading the closest existing adapter before
-   authoring the `experience` block: reuse an existing `simpleModelDefinitionId`,
-   an existing `simpleAdapterId` whose module is already inside the adapter module
-   allowlist, and existing `journeyDefinitionIds`. Add an allowlist entry only if
-   reading proves no existing adapter fits, and record which was true.
-9. Add the additive `researchAgenda` key to `market-brief.page.json` through
-   `scripts/build-brief-page-artifacts.mjs`. This is the half registration does
-   not supply: the brief's evidence drawer renders the snapshot tool reads, and
-   the page artifact carries no tool-read key, so a read published only into the
-   payload is invisible to the reader.
-10. Render the agenda section in `market-brief.html` and `rlbrief.js` as a peer
-    `h2.sec` section between `#nextSession` and `#decisionAttention`, inside the
-    existing `brief` view. No new tier, no new view, no second feed. The
-    `declaredQuestion` is quoted verbatim as a quotation and never paraphrased.
-11. Put every machine value on a `data-*` attribute and render only
-    `readerSentence(row)` as visible text, following the shipped pattern in
-    `market-brief.html` where a machine gate slug rides `data-mac-gate` while the
-    visible words stay plain. A raw `updated` / `unchanged` / `stale` /
-    `unavailable` token, any `RLAGENDA-` code and any `…/vN` contract slug are
-    banned from reader prose; `scripts/reader-vocabulary.mjs` classes are
-    publication-blocking and `scripts/validate-brief-payload.mjs` enforces them.
-12. Extend the durable-link seam additively: a page sets `root.__rlPublicTargetIds`,
-    `rlapp.js` copies it onto the registration as `publicTargetIds` filtered to
-    the existing id pattern and defaulting to `[]`, and `rlviews.js` passes
-    `registration.publicTargetIds || []`. Every other page sets nothing and keeps
-    byte-identical behaviour. If the seam is descoped, the declared degraded mode
-    applies: the link lands on the brief view without the topic expanded and the
-    link text says so. A link that quietly does not arrive is not an option.
-13. Register a `research-agenda — read reaches the brief` group in
-    `scripts/selftest.mjs`, author the browser spec, and record the reader
-    vocabulary and the registration in `notes/research-agenda-lab.md`.
+1. Build `research-agenda-lab.html` as a real static tool. Load the committed
+   registry, current pointer, referenced definitions/calibration/reviews/
+   dossiers, and same-origin bars. Fetch no external source in the browser.
+2. Use one `computeViewState(definition, review, leverState)` wrapper over
+   `rlagenda.js`. Simple and Power render the same object. Reject canonical
+   mismatch between stored and browser-recomputed models before chart render.
+3. Make Simple the default. Show current-generation status, posture, scenario
+   probabilities, physical versus rerouting exposures, evidence changes,
+   triggers/invalidations, five explicit levers, freshness/source summary, and
+   the Power link in that order.
+4. Make Power render the complete actor, flow, scenario, transmission, proxy,
+   evidence, source, comparison, and history architecture from design section
+   12.4. Indirect evidence shows causal path, weighted impact, and refuter.
+   Conflicts remain separate rows.
+5. Build every figure and adjacent semantic table from the same
+   `buildAgendaChartSeries` rows. Keep fixed responsive dimensions. Draw any
+   canvas synchronously. Provide table fallback, accessible name, unit,
+   limitation, and source for each figure.
+6. Implement five slider-plus-number levers for Hormuz pass, Bab el-Mandeb
+   pass, rerouted share, policy/inventory offset, and demand offset. A lever
+   recomputes both modes synchronously, labels changed values as user
+   assumptions, and never fetches, writes history, changes evidence, or mutates
+   the published review. Reset restores published inputs.
+7. Validate bounded refinements and recursive public safety through
+   `rlagenda.js`. Preserve declared question and boundary bytes. Reject private
+   names at every nested location and escape all model-authored text at DOM
+   sinks.
+8. Build the compact read once. Add it to `payload.researchAgenda`,
+   `payload.toolReads['research-agenda-lab']`, and `market-brief.page.json`.
+   Render a standing-research section in `market-brief.html`; full detail stays
+   in the tool. Regenerate `market-brief.tools.page.json` from the registered
+   tool inventory and `market-brief.experimental.json` as a derived artifact
+   without changing experimental-item composition.
+9. Register the tool atomically across all inventory surfaces. Add
+   `simple-model/research-agenda-posture/v1`,
+   `simple-adapter/research-agenda-posture/v1`, and the reversal-review and
+   chokepoint-transmission journeys. Bind the adapter through `rlexperience.js`
+   and validate it through the existing experience validator and support/unit
+   canaries. The adapter maps only; it copies no math.
+10. Publish durable targets such as
+    `research-agenda-lab.html#power/geopolitical-supply-shock`. A reload focuses
+    the topic heading. Existing pages that declare no public target retain
+    identical routing.
+11. Expose Feature 020 a validated read-only dossier/finding reference with
+    immutable source/evidence/trigger/invalidation anchors. Assert the read
+    shape contains none of Feature 020's destination or routing fields.
+12. Add focused functional and browser tests to existing real test files. Each
+    Playwright case starts the repository's real ephemeral static server and
+    loads checked-in production files. `page.route`, request interception,
+    response fulfillment, page-content substitution, and inline canned payload
+    injection are forbidden.
 
 ## Shared Infrastructure Impact Sweep
 
-| Shared surface | Change in this scope | Downstream consumers | Blast radius | Canary | Rollback proof |
-| --- | --- | --- | --- | --- | --- |
-| `tools.json` and the ten sibling registration surfaces | One 25th entry plus its page, nav rows, README rows, notes target and `experience` block | The Pages build, the payload's `toolCoverage`, the snapshot's `toolCoverage`, `market-brief.tools.page.json`, every attention deep-link resolution | **Highest in this scope** — registration is binary and atomic; a registered page that does not exist fails the site build outright, and a `toolCoverage` missing a registered id fails the publish gate | Run `node scripts/build-pages-site.mjs` and `node scripts/validate-brief-payload.mjs` in the same change that adds the entry, before anything else in the scope is wired | Revert all eleven surfaces together; a partial revert is itself a red build, which is the property that makes the atomicity self-enforcing |
-| `PUBLIC_DIRECTORIES` in `scripts/build-pages-site.mjs` | `'research'` appended to a frozen allowlist | Every dossier link | Medium — omit it and the dossiers are committed but unreachable; add the wrong name and an unintended directory ships | Assert the built site contains a written dossier path and contains no directory outside the allowlist | Remove the entry |
-| `scripts/build-brief-page-artifacts.mjs` | One additive projection | `market-brief.page.json` and the reader | Medium — the page artifact is what the reader actually paints from | Assert every pre-existing page-artifact key is byte-identical and only `researchAgenda` is added | Remove the projection |
-| `market-brief.html` and `rlbrief.js` | One section and one renderer | Every reader of the brief | High — this is the page the whole product is | Assert `#nextSession` and `#decisionAttention` render byte-identically with the agenda section present and with it absent | Remove the section and the renderer |
-| `rlapp.js` and `rlviews.js` | The additive `publicTargetIds` seam | All twenty-four existing pages | High — a regression in the shared view router breaks every tool page at once | Assert a page that sets nothing resolves the identical route it resolves today, across the existing pages, before the agenda page uses the seam | Remove the seam; the declared degraded mode covers the link |
-| `scripts/validate-brief-payload.mjs` | One acceptance branch | Every publish | High — the gate is what stops a malformed brief shipping | Assert a payload with no `researchAgenda` key still passes exactly as today | Remove the branch |
-| `scripts/brief-narrative-parallel.mjs` | One collector merge after the fragment assign | Every generation | Medium — placed before the assign it would be overwritten by the `coverage` lane's wholesale `toolReads` replacement | Assert the merged entry survives the assign and no lane's declared key set widened | Remove the merge |
+| Surface | Risk | Canary | Restore boundary |
+| --- | --- | --- | --- |
+| tool/nav/site registries | a partial registration breaks discovery or Pages | all registry ids, pages, notes, simple models, adapters, journeys, and target ids agree in one run | revert all registration surfaces together |
+| shared router (`rlapp.js`, `rlviews.js`) | public target change can break every tool | every existing tool route resolves identically when no target ids are declared | remove only the additive target seam |
+| brief reader (`market-brief.html`, `rlbrief.js`) | agenda section can destabilize the primary page | existing sections render identically with agenda present, unavailable, and absent | remove section and renderer together |
+| shared chart/tooltip behavior | visual and table values can diverge | canonical model, chart series, table cells, and tooltip value/unit match | restore the shared projection call, not copied math |
 
-## Change Boundary And Protected Paths
+## Change Boundary
 
-**Allowed:** `rlagenda.js` · `research-agenda-lab.html` ·
-`research-agenda-lab.spec.mjs` · `tools.json` · `index.html` · `rlnav.js` ·
-`README.md` · `notes/README.md` · `notes/research-agenda-lab.md` ·
-`tool-experience.config.json` · `scripts/build-pages-site.mjs` ·
-`scripts/build-brief-page-artifacts.mjs` · `scripts/validate-brief-payload.mjs` ·
-`scripts/brief-narrative-parallel.mjs` · `market-brief.html` · `rlbrief.js` ·
-`rlapp.js` · `rlviews.js` · `tests/fixtures/research-agenda/*` ·
-`scripts/selftest.mjs`.
-
-**Excluded (must remain byte-identical in this scope):**
-`rlattention.js` · `rlmarketaction.js` · `scripts/build-attention-items.mjs` ·
-`scripts/recommendation-body.mjs` · `scripts/evaluate-recommendations.mjs` ·
-`scripts/brief-distributed-publish.mjs` · `watchlist.json` ·
-`market-brief.config.json` · `research-agenda.json` ·
-`research/agenda/history.jsonl` · `site-exclusions.json` ·
-`scripts/reader-vocabulary.mjs` · `brief-history.jsonl` ·
-`scripts/brief-refresh-scheduled.sh` · `scripts/brief-refresh-and-push.sh`.
-
-`site-exclusions.json` is excluded because this page is registered rather than
-excluded, and a diff there would mean registration went the wrong way.
-`scripts/reader-vocabulary.mjs` is excluded because this scope must satisfy the
-leak classes rather than widen them.
-
-**Allowed file families.**
-
-| Family | Members | Why this scope may touch it |
-| --- | --- | --- |
-| Owning module | `rlagenda.js` | Refinement admission and read composition belong to the one owning module. |
-| Registration surfaces | `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/README.md`, `notes/research-agenda-lab.md`, `tool-experience.config.json`, `research-agenda-lab.html`, `scripts/build-pages-site.mjs` | Registration is atomic; a partial registration is a red site build. |
-| Publish path | `scripts/validate-brief-payload.mjs`, `scripts/build-brief-page-artifacts.mjs`, `scripts/brief-narrative-parallel.mjs` | The read must reach both the payload and the page artifact. |
-| Reader surface | `market-brief.html`, `rlbrief.js`, `rlapp.js`, `rlviews.js` | The rendering half of FR-019-038 and the durable-link seam. |
-| Reachability fixtures and specs | `tests/fixtures/research-agenda/*`, `research-agenda-lab.spec.mjs`, `scripts/selftest.mjs` | Where the reachability and refusal behaviour is proven. |
-
-**Excluded surfaces.**
-
-| Surface | Members | Owner |
-| --- | --- | --- |
-| Action list, attention tier, alert pipeline | `scripts/recommendation-body.mjs`, `rlattention.js`, `rlmarketaction.js`, `scripts/build-attention-items.mjs` | Feature 020 — this scope never writes `nextSession`, composes an attention item, or asserts alert state |
-| Ledger and scorecard | `scripts/evaluate-recommendations.mjs`, `scripts/brief-distributed-publish.mjs` | Feature 020 |
-| Registry and ledger content | `research-agenda.json`, `research/agenda/history.jsonl` | Scopes 1, 2 and 4; this scope reads them |
-| Reader-vocabulary policy | `scripts/reader-vocabulary.mjs` | Satisfied here, never widened |
-
-## Rollback
-
-Revert all eleven registration surfaces together with `research-agenda-lab.html`;
-remove the `'research'` entry from `PUBLIC_DIRECTORIES`, the page-artifact
-projection, the publish-gate acceptance branch, the collector merge, the brief
-section and its renderer, and the `publicTargetIds` seam; remove
-`admitRefinement`, `buildAgendaRead`, `buildAgendaToolRead` and `readerSentence`
-from `rlagenda.js`; delete the four fixtures and the browser spec; remove the
-appended selftest group. Prove the restore by running
-`node scripts/selftest.mjs`, `node scripts/validate-brief-payload.mjs`,
-`node scripts/build-pages-site.mjs` and `node scripts/pii-scan.mjs`, recording
-exit 0 for each with unfiltered output. A partial revert is a red site build by
-construction, so the rollback is all-or-nothing and self-checking.
-
-## Scenario-First RED/GREEN Contract
-
-RED: author the four scenarios and the four fixtures first. Record the
-outside-boundary refinement being applied before `RLAGENDA-REFINEMENT` exists —
-the agent silently widening the operator's question. Record the private-field
-topic reaching a committed public artifact before `RLAGENDA-PRIVATE` exists.
-Record the read published only into `payload.toolReads` and prove the reader sees
-nothing: the evidence drawer renders the snapshot tool reads and the page artifact
-carries no tool-read key, so registration alone leaves the surface invisible. That
-is the exact failure the page-artifact key removes.
-
-GREEN: an inside-boundary refinement is recorded dated and attributed with the
-declared question byte-identical; an outside-boundary proposal is refused by name
-with the question and boundary unchanged; a private field anywhere is refused; the
-payload carries the tool read under the registered id and the page artifact
-carries `researchAgenda`; the browser spec observes each topic's state sentence
-rendered on the brief page itself; and no contract code, enum token or contract
-slug appears in visible reader text.
+Allowed families are the production and test paths listed above plus
+`rlagenda.js`, `market-brief.page.json` generation, and Feature 019 fixtures.
+`market-brief.experimental.json` is admitted only as a derived regeneration
+target; no experimental-item, attention, or destination composition is authorized.
+Excluded are holdings, watchlist position data, scorecard call creation,
+`nextSession.actions`, attention composition, anomaly seeds, candidates, alert
+publication, Feature 020 thresholds, and any new credential or external source.
 
 ## Test Plan
 
-| ID | Type | Category | Scenario | File | Exact Behavior / Persistent Title | Command | Live System | Evidence Anchor |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| TP-05-01 | Refinement | unit | SCN-019-017 | `scripts/selftest.mjs` | a refinement narrowing inside the declared scope boundary is admitted, recorded as a dated addition attributed to the agent, and the operator's declared question text is byte-identical before and after, proven by comparing `declaredQuestionSha256` | `node scripts/selftest.mjs` | No | `report.md#tp-05-01` |
-| TP-05-02 | Refusal | unit | SCN-019-018 | `scripts/selftest.mjs` | a proposed refinement whose subject falls outside the topic's declared scope boundary is refused `RLAGENDA-REFINEMENT` with a named reason, and the topic's declared question and scope boundary are byte-identical afterwards | `node scripts/selftest.mjs` | No | `report.md#tp-05-02` |
-| TP-05-03 | Adversarial | unit | SCN-019-017 | `scripts/selftest.mjs` | Regression: a refinement whose application would rewrite the declared question text is refused, and a mutated admitter without the byte-identity check is proven to rewrite the operator's words — the guard can actually fail | `node scripts/selftest.mjs` | No | `report.md#tp-05-03` |
-| TP-05-04 | Refusal | unit | SCN-019-018 | `scripts/selftest.mjs` | an agent-attempted retire, pause or delete is refused; lifecycle transitions remain operator-owned and no refinement path can reach one | `node scripts/selftest.mjs` | No | `report.md#tp-05-04` |
-| TP-05-05 | Privacy | unit | SCN-019-019 | `scripts/selftest.mjs` | any dossier produced by this feature is inspected and contains no position, no size, no cost basis and no profit or loss figure, and a constructed topic or dossier carrying one of the four private field names is refused `RLAGENDA-PRIVATE` with the field named | `node scripts/selftest.mjs` | No | `report.md#tp-05-05` |
-| TP-05-06 | Privacy | unit | SCN-019-019 | `scripts/selftest.mjs` | every subject named by a committed dossier, registry entry or published read is a public market object or a public ticker, and a non-public subject is refused `RLAGENDA-SUBJECT` | `node scripts/selftest.mjs` | No | `report.md#tp-05-06` |
-| TP-05-07 | Privacy | integration | SCN-019-019 | `scripts/pii-scan.mjs` | Regression: the repository-wide scan across `git ls-files` exits 0 with the registry, every written dossier, the ledger and the tool page committed | `node scripts/pii-scan.mjs` | No | `report.md#tp-05-07` |
-| TP-05-08 | Reachability | integration | SCN-019-020 | `scripts/selftest.mjs` | in a generation where at least one topic was reviewed, the published payload carries a research read for the agenda under the registered tool id `research-agenda-lab`, and every declared topic's identifier and outcome state is present in it | `node scripts/selftest.mjs` | No | `report.md#tp-05-08` |
-| TP-05-09 | Reachability | integration | SCN-019-020 | `scripts/selftest.mjs` | the brief page artifact carries the additive `researchAgenda` key holding the agenda material the reader-facing section renders, every pre-existing page-artifact key is byte-identical, and a payload carrying the tool read but no page key is asserted to leave the reader with nothing — filing into the tool-read channel alone does not satisfy reachability | `node scripts/selftest.mjs` | No | `report.md#tp-05-09` |
-| TP-05-10 | Reachability | browser | SCN-019-020 | `research-agenda-lab.spec.mjs` | on the brief page the reader opens, the agenda section renders each topic's title, its verbatim declared question and its plain-words state sentence, so the read is visible on a brief surface rather than only present in the payload or confined to a dossier file | `npx playwright test --project=system-chrome` | Yes | `report.md#tp-05-10` |
-| TP-05-11 | Reader vocabulary | integration | SCN-019-020 | `scripts/validate-brief-payload.mjs` | Regression: no `RLAGENDA-` code, no raw `updated` / `unchanged` / `stale` / `unavailable` enum token and no `…/vN` contract slug appears in visible reader text; each machine value rides a `data-*` attribute and the publication-blocking leak classes stay clean | `node scripts/validate-brief-payload.mjs` | No | `report.md#tp-05-11` |
-| TP-05-12 | Registration | integration | SCN-019-020 | `scripts/build-pages-site.mjs` | the site build plans successfully with `research-agenda-lab` registered and `research-agenda-lab.html` present and not excluded, with `'research'` in `PUBLIC_DIRECTORIES` so a written dossier path is published, and with no unregistered root page lacking a deploy decision | `node scripts/build-pages-site.mjs` | No | `report.md#tp-05-12` |
-| TP-05-13 | Registration | integration | SCN-019-020 | `scripts/validate-brief-payload.mjs` | `toolCoverage` in both the payload and the snapshot contains every registered id exactly once including the new one and no unregistered id, and the tool read's deep link is a member of the registry's own file values so it is publishable | `node scripts/validate-brief-payload.mjs` | No | `report.md#tp-05-13` |
-| TP-05-14 | Balance | unit | SCN-019-020 | `scripts/selftest.mjs` | the published read asserts `topics.length + refusals.length === declaredTopicCount` in the read itself, so a topic cannot disappear between the registry and the reader | `node scripts/selftest.mjs` | No | `report.md#tp-05-14` |
-| TP-05-15 | Shared seam | browser | SCN-019-020 | `research-agenda-lab.spec.mjs` | Regression: a page that sets no `__rlPublicTargetIds` resolves the identical route it resolves today, and a per-topic link either survives a reload or the link text states where it lands — a link that quietly does not arrive fails this row | `npx playwright test --project=system-chrome` | Yes | `report.md#tp-05-15` |
-| TP-05-16 | Accessibility | browser | SCN-019-020 | `research-agenda-lab.spec.mjs` | every agenda row's state is carried by glyph, word and pill rather than colour alone; each row expander is a native details/summary operable with Tab, Enter and Space; the section reflows to a single column at 320px with no horizontal page scroll; and the review record renders as a real table | `npx playwright test --project=system-chrome` | Yes | `report.md#tp-05-16` |
-| TP-05-17 | Path guard | unit | SCN-019-020 | `scripts/validate-spec-test-paths.mjs` | the spec-artifact test-path guard reports zero new missing paths after the browser spec is created, so every declared verification path resolves | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-05-17` |
+| ID | Category | Scenario | Existing test surface | Exact planned test title | Command | Live system |
+| --- | --- | --- | --- | --- | --- | --- |
+| TP-05-01 | unit | SCN-019-018 | `scripts/selftest.mjs` | `SCN-019-018 out-of-boundary refinement is refused and question and boundary bytes remain equal` | `node scripts/selftest.mjs` | No |
+| TP-05-02 | security | SCN-019-019 | `scripts/selftest.mjs` | `SCN-019-019 recursive private fields and non-public subjects are refused at every artifact layer` | `node scripts/selftest.mjs` | No |
+| TP-05-03 | functional | SCN-019-020 | `tests/tool-experience-registry.functional.mjs` | `SCN-019-020 tool model adapter module journey and public target registries are in parity` | `node --test tests/tool-experience-registry.functional.mjs` | No |
+| TP-05-04 | integration | SCN-019-020 | `scripts/validate-brief-payload.mjs` | `SCN-019-020 payload toolRead and page read agree and expose no destination routing fields` | `node scripts/validate-brief-payload.mjs` | Yes |
+| TP-05-05 | e2e-ui | SCN-019-020 | `tests/tool-experience.spec.mjs` | `SCN-019-020 research agenda opens in Simple and Power reveals the complete dossier workspace` | `npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-019-020 research agenda opens in Simple and Power reveals the complete dossier workspace" --reporter=list` | Yes |
+| TP-05-06 | e2e-ui | SCN-019-017 | `tests/tool-experience.spec.mjs` | `SCN-019-017 reversal comparison shows causal evidence invalidation prior view and current view` | `npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-019-017 reversal comparison shows causal evidence invalidation prior view and current view" --reporter=list` | Yes |
+| TP-05-07 | e2e-ui | SCN-019-014, SCN-019-015 | `tests/tool-experience.spec.mjs` | `Regression: stale and unavailable current reviews cannot masquerade as the prior dossier` | `npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: stale and unavailable current reviews cannot masquerade as the prior dossier" --reporter=list` | Yes |
+| TP-05-08 | e2e-ui | SCN-019-017, SCN-019-020 | `tests/tool-experience.spec.mjs` | `Regression: browser model chart table and tooltip values match canonical rlagenda output` | `npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: browser model chart table and tooltip values match canonical rlagenda output" --reporter=list` | Yes |
+| TP-05-09 | e2e-ui | SCN-019-020 | `tests/tool-experience.spec.mjs` | `Regression: research levers recompute both modes without refetching or mutating history` | `npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: research levers recompute both modes without refetching or mutating history" --reporter=list` | Yes |
+| TP-05-10 | security/e2e-ui | SCN-019-019 | `tests/tool-experience.spec.mjs` | `Regression: private corpus sentinel reaches no DOM request URL storage or public artifact` | `npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: private corpus sentinel reaches no DOM request URL storage or public artifact" --reporter=list` | Yes |
+| TP-05-11 | e2e-ui | SCN-019-020 | `tests/market-brief-scorecard.spec.mjs` | `SCN-019-020 compact standing research read is visible on the brief and deep-links to its owner` | `npx --no-install playwright test tests/market-brief-scorecard.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-019-020 compact standing research read is visible on the brief and deep-links to its owner" --reporter=list` | Yes |
+| TP-05-12 | e2e-ui | SCN-019-020 | `tests/contextual-tooltip.spec.mjs` | `Research charts tables tickers sources and tooltips retain units provenance limits and keyboard access` | `npx --no-install playwright test tests/contextual-tooltip.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Research charts tables tickers sources and tooltips retain units provenance limits and keyboard access" --reporter=list` | Yes |
+| TP-05-13 | e2e-ui | SCN-019-020 | `tests/deployed-site-parity.spec.mjs` | `SCN-019-020 deployed site contains every agenda artifact registry target and dossier link` | `npx --no-install playwright test tests/deployed-site-parity.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-019-020 deployed site contains every agenda artifact registry target and dossier link" --reporter=list` | Yes |
+| TP-05-14 | e2e-ui | SCN-019-020 | `tests/tool-discovery.spec.mjs` | `Regression: existing tool routes and journeys remain reachable after research agenda registration` | `npx --no-install playwright test tests/tool-discovery.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: existing tool routes and journeys remain reachable after research agenda registration" --reporter=list` | Yes |
 
-### Definition of Done
+### Definition of Done - Tiered Validation
 
-- [ ] SCN-019-017 — a refinement narrowing inside the declared boundary is recorded as an addition inside the declared question, the operator's declared question text is unchanged, and the refinement is attributed to the agent and dated, proven by TP-05-01 and TP-05-03.
-- [ ] SCN-019-018 — a proposed refinement whose subject falls outside the topic's declared scope boundary is refused with a named reason, and the topic's declared question and scope boundary are unchanged, proven by TP-05-02 and TP-05-04.
-- [ ] SCN-019-019 — any dossier produced by this feature contains no position, no size, no cost basis and no profit or loss figure, and every subject it names is a public market object or a public ticker, proven by TP-05-05, TP-05-06 and TP-05-07.
-- [ ] SCN-019-020 — the payload carries a research read for the agenda under its registered tool id with each topic's outcome state, the brief page artifact carries the agenda material the reader-facing section renders, and the read is visible on a brief surface the reader opens rather than only present in the payload or confined to a dossier file, proven by TP-05-08, TP-05-09 and TP-05-10.
-- [ ] Both halves of FR-019-038 are asserted independently, and a payload carrying only the tool read is proven to leave the reader with nothing, proven by TP-05-09.
-- [ ] Registration lands atomically: the `tools.json` entry, `research-agenda-lab.html`, the `index.html` and `rlnav.js` rows, the `README.md` and `notes/README.md` rows, the notes target and the `experience` block are all present in the same change, proven by TP-05-12 and TP-05-13.
-- [ ] `'research'` is present in `PUBLIC_DIRECTORIES` and a written dossier path appears in the built site, proven by TP-05-12.
-- [ ] The `experience` block names an existing Simple model definition, an adapter already inside the module allowlist and existing journey definitions — or records, with the file read, that no existing adapter fits and why an allowlist entry was added. Design open question 1 is settled by reading rather than guessing.
-- [ ] The tool read is merged by the collector after every fragment is assigned, so the `coverage` lane's wholesale `toolReads` replacement does not drop it and no lane's declared key set widened.
-- [ ] `market-brief.page.json` gains exactly one additive key and every pre-existing key is byte-identical, proven by TP-05-09.
-- [ ] No `RLAGENDA-` code, raw outcome enum token or contract slug appears in visible reader text; machine values ride `data-*` attributes, proven by TP-05-11.
-- [ ] The published read asserts its own balance, so a topic cannot disappear between the registry and the reader, proven by TP-05-14.
-- [ ] A page setting no `__rlPublicTargetIds` resolves the identical route it resolves today, and a per-topic link either survives a reload or says where it lands, proven by TP-05-15.
-- [ ] The agenda section is a peer section inside the existing `brief` view — no new tier, no new top-level view, no second feed — and is accessible per TP-05-16.
-- [ ] `node scripts/selftest.mjs` exits 0 with the reachability group registered and zero skipped assertions, evidenced by unfiltered output.
-- [ ] `node scripts/validate-brief-payload.mjs`, `node scripts/build-pages-site.mjs` and `node scripts/pii-scan.mjs` each exit 0, evidenced by unfiltered output.
-- [ ] `npx playwright test --project=system-chrome` passes with the new spec included and zero skipped tests.
-- [ ] `node scripts/validate-spec-test-paths.mjs` exits 0 with zero new missing paths, proven by TP-05-17.
-- [ ] No path excluded from this scope was modified BY this scope; `git diff --name-only` output is recorded verbatim and names only files in the Allowed table.
-- [ ] TP-05-01 executed with raw output recorded at `report.md#tp-05-01`.
-- [ ] TP-05-02 executed with raw output recorded at `report.md#tp-05-02`.
-- [ ] TP-05-03 executed with raw output recorded at `report.md#tp-05-03`.
-- [ ] TP-05-04 executed with raw output recorded at `report.md#tp-05-04`.
-- [ ] TP-05-05 executed with raw output recorded at `report.md#tp-05-05`.
-- [ ] TP-05-06 executed with raw output recorded at `report.md#tp-05-06`.
-- [ ] TP-05-07 executed with raw output recorded at `report.md#tp-05-07`.
-- [ ] TP-05-08 executed with raw output recorded at `report.md#tp-05-08`.
-- [ ] TP-05-09 executed with raw output recorded at `report.md#tp-05-09`.
-- [ ] TP-05-10 executed with raw output recorded at `report.md#tp-05-10`.
-- [ ] TP-05-11 executed with raw output recorded at `report.md#tp-05-11`.
-- [ ] TP-05-12 executed with raw output recorded at `report.md#tp-05-12`.
-- [ ] TP-05-13 executed with raw output recorded at `report.md#tp-05-13`.
-- [ ] TP-05-14 executed with raw output recorded at `report.md#tp-05-14`.
-- [ ] TP-05-15 executed with raw output recorded at `report.md#tp-05-15`.
-- [ ] TP-05-16 executed with raw output recorded at `report.md#tp-05-16`.
-- [ ] TP-05-17 executed with raw output recorded at `report.md#tp-05-17`.
+<!-- markdownlint-disable MD010 -->
+
+#### Tier 1 - Behavior
+
+- [x] SCN-019-018 through SCN-019-020 satisfy the exact Given/When/Then contracts above.
+
+   ```text
+   SCN-019-018 out-of-boundary refinement is refused and question and boundary bytes remain equal
+	✓ TP-05-01: refinement preserves question and boundary bytes and refuses an out-of-boundary subject by name
+   SCN-019-019 recursive private fields and non-public subjects are refused at every artifact layer
+	✓ TP-05-02: recursive private fields and non-public subjects are refused while the read-only seam exposes no routing state
+   TP-05-03_EXECUTION_BEGIN
+   PLANNED_COMMAND=node --test tests/tool-experience-registry.functional.mjs
+   SELECTOR=--test-name-pattern
+   TARGET_TITLE=SCN-019-020 tool model adapter module journey and public target registries are in parity
+   ✔ SCN-019-020 tool model adapter module journey and public target registries are in parity (33.981666ms)
+   ℹ tests 1
+   ℹ suites 0
+   ℹ pass 1
+   ℹ fail 0
+   ℹ cancelled 0
+   ℹ skipped 0
+   ℹ todo 0
+   ℹ duration_ms 92.136833
+   TP-05-03_EXECUTION_EXIT=0
+   TP-05-03_EXECUTION_END
+   TP-05-04_EXECUTION_BEGIN
+   PLANNED_COMMAND=node scripts/validate-brief-payload.mjs
+   TARGET_TITLE=SCN-019-020 payload toolRead and page read agree and expose no destination routing fields
+   LIVE_SYSTEM=Yes
+   RUNNER=node
+   [brief-contract] SCN-019-020 payload toolRead and page read agree and expose no destination routing fields: PASS
+   [brief-contract] Every declared topic and section is accounted and every mandatory review belongs to the current generation: PASS
+   [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+   TP-05-04_EXECUTION_EXIT=0
+   TP-05-04_EXECUTION_END
+   ```
+
+- [x] Simple and Power expose one canonical current model, complete sustained state, prior versions, honest missing/stale states, and deterministic reversal comparison.
+
+   ```text
+   TP-05-05_EXECUTION_BEGIN
+   TARGET_TITLE=SCN-019-020 research agenda opens in Simple and Power reveals the complete dossier workspace
+   LIVE_SYSTEM=Yes
+   Running 1 test using 1 worker
+	✓  1 …opens in Simple and Power reveals the complete dossier workspace (885ms)
+	1 passed (2.0s)
+   TP-05-05_EXECUTION_EXIT=0
+   TP-05-05_EXECUTION_END
+   TP-05-06_EXECUTION_BEGIN
+   TARGET_TITLE=SCN-019-017 reversal comparison shows causal evidence invalidation prior view and current view
+   LIVE_SYSTEM=Yes
+   Running 1 test using 1 worker
+	✓  1 …n shows causal evidence invalidation prior view and current view (473ms)
+	1 passed (1.2s)
+   TP-05-06_EXECUTION_EXIT=0
+   TP-05-06_EXECUTION_END
+   TP-05-07_EXECUTION_BEGIN
+   TARGET_TITLE=Regression: stale and unavailable current reviews cannot masquerade as the prior dossier
+   LIVE_SYSTEM=Yes
+   Running 1 test using 1 worker
+	✓  1 …available current reviews cannot masquerade as the prior dossier (683ms)
+	1 passed (1.9s)
+   TP-05-07_EXECUTION_EXIT=0
+   TP-05-07_EXECUTION_END
+   TP-05-08_EXECUTION_BEGIN
+   TARGET_TITLE=Regression: browser model chart table and tooltip values match canonical rlagenda output
+   LIVE_SYSTEM=Yes
+   Running 1 test using 1 worker
+	✓  1 …l chart table and tooltip values match canonical rlagenda output (657ms)
+	1 passed (1.5s)
+   TP-05-08_EXECUTION_EXIT=0
+   TP-05-08_EXECUTION_END
+   TP-05-09_EXECUTION_BEGIN
+   TARGET_TITLE=Regression: research levers recompute both modes without refetching or mutating history
+   LIVE_SYSTEM=Yes
+   Running 1 test using 1 worker
+	✓  1 …vers recompute both modes without refetching or mutating history (724ms)
+	1 passed (1.4s)
+   TP-05-09_EXECUTION_EXIT=0
+   TP-05-09_EXECUTION_END
+   ```
+
+- [x] The compact brief read, registered toolRead, page artifact, rendered brief section, owning tool, and durable topic links resolve as one reader journey.
+
+   ```text
+   TP-05-11_EXECUTION_BEGIN
+   TARGET_TITLE=SCN-019-020 compact standing research read is visible on the brief and deep-links to its owner
+   LIVE_SYSTEM=Yes
+   Running 1 test using 1 worker
+	✓  1 …research read is visible on the brief and deep-links to its owner (1.2s)
+	1 passed (1.8s)
+   TP-05-11_EXECUTION_EXIT=0
+   TP-05-11_EXECUTION_END
+   TP-05-13_EXECUTION_BEGIN
+   TARGET_TITLE=SCN-019-020 deployed site contains every agenda artifact registry target and dossier link
+   LIVE_SYSTEM=Yes
+   Running 1 test using 1 worker
+	✓  1 … contains every agenda artifact registry target and dossier link (564ms)
+	1 passed (4.0s)
+   TP-05-13_EXECUTION_EXIT=0
+   TP-05-13_EXECUTION_END
+   TP-05-14_EXECUTION_BEGIN
+   TARGET_TITLE=Regression: existing tool routes and journeys remain reachable after research agenda registration
+   LIVE_SYSTEM=Yes
+   Running 1 test using 1 worker
+	✓  1 …and journeys remain reachable after research agenda registration (696ms)
+	1 passed (1.4s)
+   TP-05-14_EXECUTION_EXIT=0
+   TP-05-14_EXECUTION_END
+   ```
+
+- [x] Feature 020 receives a validated read-only finding seam, while Feature 019 writes no destination or routing state.
+
+   ```text
+   SCN-019-019 recursive private fields and non-public subjects are refused at every artifact layer
+	✓ TP-05-02: recursive private fields and non-public subjects are refused while the read-only seam exposes no routing state
+	✓ TP-05-04: the registered agenda tool read is canonical and the collector carries the transaction-composed read
+   TP-05-04_EXECUTION_BEGIN
+   TARGET_TITLE=SCN-019-020 payload toolRead and page read agree and expose no destination routing fields
+   LIVE_SYSTEM=Yes
+   [brief-contract] SCN-019-020 payload toolRead and page read agree and expose no destination routing fields: PASS
+   TP-05-04_EXECUTION_EXIT=0
+   TP-05-04_EXECUTION_END
+   CANONICAL_FORBIDDEN_FIELD_CHANGES=0
+   RECURSIVE_JSON_FILES=19
+   RECURSIVE_FORBIDDEN_KEY_CHANGES=0
+   SOURCE_ASSIGNMENT_FILES=20
+   SOURCE_FORBIDDEN_ASSIGNMENTS=0
+   SCOPE05_BOUNDARY_CLASSIFIER_LITERAL_PROBE_EXIT=0
+   ```
+
+#### Tier 2 - Test Evidence (14 rows)
+
+The fourteen items below are the complete test-related DoD inventory for this
+scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
+`test-plan.json`.
+
+- [x] TP-05-01: `scripts/selftest.mjs` executes `SCN-019-018 out-of-boundary refinement is refused and question and boundary bytes remain equal` with fresh evidence.
+
+  ```text
+  TP-05-01_REMEDIATION_BEGIN
+  # TP-05-01 remediation re-execution
+  $ node scripts/selftest.mjs
+  exit: 0
+  lines: 1998
+  sha256: c916690a349425687bb7aa8b2ebaed6872a8afbe71d6cb42eb6e792b21487e10
+  --- first 20 ---
+
+  Step 1 security — escaped model sinks and CSP on every page
+   ✓ every shipped HTML page carries a Content-Security-Policy meta
+   ✓ all pages use one identical CSP instead of drifting per page
+   ✓ CSP keeps the single-file inline-script design while defaulting to self
+   ✓ CSP blocks object, base-tag, and form exfiltration paths
+   ✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+   ✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+   ✓ CSP allows no open URL-forwarding relay origin
+   ✓ production pages and shared runtime contain no open URL-forwarding relay chain
+   ✓ no model/config-authored field reaches innerHTML without esc()
+   ✓ the sink detector catches an unescaped model-authored title
+
+  Feature 004 RLFX/RLDATA foundation
+   ✓ RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic
+   ✓ RLFX universe is bounded closed and asserts no live source authorization
+   ✓ RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows
+   ✓ RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes
+   ✓ RLDATA Twelve Data mapping: interval/symbol translate, values sort newest-first → oldest-first with UTC epochs, empty volume → null, error/malformed → null
+   ✓ RLFX broad dollar keeps Broad AFE EME and proxy states separate
+  --- omitted 1958 line(s); sha256 above covers the full output ---
+  --- last 20 ---
+  Feature 019 candidate contract accounts for new sourced unchanged stale and unavailable reviews before publication
+   ✓ TP-04-03: new sourced evidence creates one complete updated review and one sustained dossier
+   ✓ TP-04-03: a quiet complete pass writes an unchanged review reusing the prior dossier without inventing a finding
+   ✓ TP-04-03: stale evidence records its age and publishes no current model output or dossier
+   ✓ TP-04-03: a failed lane creates a named unavailable review with no partial finding or dossier
+
+  SCN-019-014 stale evidence publishes its age has zero model impact and never masquerades as current
+   ✓ TP-04-05: stale evidence has zero impact and the compact read labels stale with its age
+   ✓ TP-04-05: stale current review never points at or masquerades as the prior dossier
+
+  SCN-019-018 out-of-boundary refinement is refused and question and boundary bytes remain equal
+   ✓ TP-05-01: refinement preserves question and boundary bytes and refuses an out-of-boundary subject by name
+
+  SCN-019-019 recursive private fields and non-public subjects are refused at every artifact layer
+   ✓ TP-05-02: recursive private fields and non-public subjects are refused while the read-only seam exposes no routing state
+   ✓ TP-05-04: the registered agenda tool read is canonical and the collector carries the transaction-composed read
+
+  ================================================
+  Research-Lab self-test: 1699 passed, 0 failed
+  ================================================
+  TP-05-01_REMEDIATION_OUTER_EXIT=0
+  TP-05-01_REMEDIATION_END
+  ```
+
+- [x] TP-05-02: `scripts/selftest.mjs` executes `SCN-019-019 recursive private fields and non-public subjects are refused at every artifact layer` with fresh evidence.
+
+   ```text
+   TP-05-02_REMEDIATION_BEGIN
+   # TP-05-02 remediation re-execution
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1998
+   sha256: 8a2fec20fd9cebebe979cd438af5b16974c77f520f5d8f635e8b6c3fd076ca18
+   --- first 20 ---
+
+   Step 1 security — escaped model sinks and CSP on every page
+	✓ every shipped HTML page carries a Content-Security-Policy meta
+	✓ all pages use one identical CSP instead of drifting per page
+	✓ CSP keeps the single-file inline-script design while defaulting to self
+	✓ CSP blocks object, base-tag, and form exfiltration paths
+	✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+	✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+	✓ CSP allows no open URL-forwarding relay origin
+	✓ production pages and shared runtime contain no open URL-forwarding relay chain
+	✓ no model/config-authored field reaches innerHTML without esc()
+	✓ the sink detector catches an unescaped model-authored title
+
+   Feature 004 RLFX/RLDATA foundation
+	✓ RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic
+	✓ RLFX universe is bounded closed and asserts no live source authorization
+	✓ RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows
+	✓ RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes
+	✓ RLDATA Twelve Data mapping: interval/symbol translate, values sort newest-first → oldest-first with UTC epochs, empty volume → null, error/malformed → null
+	✓ RLFX broad dollar keeps Broad AFE EME and proxy states separate
+   --- omitted 1958 line(s); sha256 above covers the full output ---
+   --- last 20 ---
+   Feature 019 candidate contract accounts for new sourced unchanged stale and unavailable reviews before publication
+	✓ TP-04-03: new sourced evidence creates one complete updated review and one sustained dossier
+	✓ TP-04-03: a quiet complete pass writes an unchanged review reusing the prior dossier without inventing a finding
+	✓ TP-04-03: stale evidence records its age and publishes no current model output or dossier
+	✓ TP-04-03: a failed lane creates a named unavailable review with no partial finding or dossier
+
+   SCN-019-014 stale evidence publishes its age has zero model impact and never masquerades as current
+	✓ TP-04-05: stale evidence has zero impact and the compact read labels stale with its age
+	✓ TP-04-05: stale current review never points at or masquerades as the prior dossier
+
+   SCN-019-018 out-of-boundary refinement is refused and question and boundary bytes remain equal
+	✓ TP-05-01: refinement preserves question and boundary bytes and refuses an out-of-boundary subject by name
+
+   SCN-019-019 recursive private fields and non-public subjects are refused at every artifact layer
+	✓ TP-05-02: recursive private fields and non-public subjects are refused while the read-only seam exposes no routing state
+	✓ TP-05-04: the registered agenda tool read is canonical and the collector carries the transaction-composed read
+
+   ================================================
+   Research-Lab self-test: 1699 passed, 0 failed
+   ================================================
+   TP-05-02_REMEDIATION_OUTER_EXIT=0
+   TP-05-02_REMEDIATION_END
+   ```
+
+- [x] TP-05-03: `tests/tool-experience-registry.functional.mjs` executes `SCN-019-020 tool model adapter module journey and public target registries are in parity` with fresh evidence.
+
+   ```text
+   TP-05-03_EXECUTION_BEGIN
+   PLANNED_COMMAND=node --test tests/tool-experience-registry.functional.mjs
+   SELECTOR=--test-name-pattern
+   TARGET_TITLE=SCN-019-020 tool model adapter module journey and public target registries are in parity
+   ✔ SCN-019-020 tool model adapter module journey and public target registries are in parity (33.981666ms)
+   ℹ tests 1
+   ℹ suites 0
+   ℹ pass 1
+   ℹ fail 0
+   ℹ cancelled 0
+   ℹ skipped 0
+   ℹ todo 0
+   ℹ duration_ms 92.136833
+   TP-05-03_EXECUTION_EXIT=0
+   TP-05-03_EXECUTION_END
+   ```
+
+- [x] TP-05-04: `scripts/validate-brief-payload.mjs` executes `SCN-019-020 payload toolRead and page read agree and expose no destination routing fields` with fresh evidence.
+
+   ```text
+   TP-05-04_EXECUTION_BEGIN
+   PLANNED_COMMAND=node scripts/validate-brief-payload.mjs
+   TARGET_TITLE=SCN-019-020 payload toolRead and page read agree and expose no destination routing fields
+   LIVE_SYSTEM=Yes
+   RUNNER=node
+   [brief-contract] SCN-019-020 payload toolRead and page read agree and expose no destination routing fields: PASS
+   [brief-contract] Every declared topic and section is accounted and every mandatory review belongs to the current generation: PASS
+   [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+   TP-05-04_EXECUTION_EXIT=0
+   TP-05-04_EXECUTION_END
+   ```
+
+- [x] TP-05-05: `tests/tool-experience.spec.mjs` executes `SCN-019-020 research agenda opens in Simple and Power reveals the complete dossier workspace` with fresh evidence.
+
+   ```text
+   TP-05-05_EXECUTION_BEGIN
+   PLANNED_COMMAND=npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-019-020 research agenda opens in Simple and Power reveals the complete dossier workspace" --reporter=list
+   TARGET_TITLE=SCN-019-020 research agenda opens in Simple and Power reveals the complete dossier workspace
+   LIVE_SYSTEM=Yes
+
+   Running 1 test using 1 worker
+
+	✓  1 …opens in Simple and Power reveals the complete dossier workspace (885ms)
+
+	1 passed (2.0s)
+   TP-05-05_EXECUTION_EXIT=0
+   TP-05-05_EXECUTION_END
+   ```
+
+- [x] TP-05-06: `tests/tool-experience.spec.mjs` executes `SCN-019-017 reversal comparison shows causal evidence invalidation prior view and current view` with fresh evidence.
+
+   ```text
+   TP-05-06_EXECUTION_BEGIN
+   PLANNED_COMMAND=npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-019-017 reversal comparison shows causal evidence invalidation prior view and current view" --reporter=list
+   TARGET_TITLE=SCN-019-017 reversal comparison shows causal evidence invalidation prior view and current view
+   LIVE_SYSTEM=Yes
+
+   Running 1 test using 1 worker
+
+	✓  1 …n shows causal evidence invalidation prior view and current view (473ms)
+
+	1 passed (1.2s)
+   TP-05-06_EXECUTION_EXIT=0
+   TP-05-06_EXECUTION_END
+   ```
+
+- [x] TP-05-07: `tests/tool-experience.spec.mjs` executes `Regression: stale and unavailable current reviews cannot masquerade as the prior dossier` with fresh evidence.
+
+   ```text
+   TP-05-07_EXECUTION_BEGIN
+   PLANNED_COMMAND=npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: stale and unavailable current reviews cannot masquerade as the prior dossier" --reporter=list
+   TARGET_TITLE=Regression: stale and unavailable current reviews cannot masquerade as the prior dossier
+   LIVE_SYSTEM=Yes
+
+   Running 1 test using 1 worker
+
+	✓  1 …available current reviews cannot masquerade as the prior dossier (683ms)
+
+	1 passed (1.9s)
+   TP-05-07_EXECUTION_EXIT=0
+   TP-05-07_EXECUTION_END
+   ```
+
+- [x] TP-05-08: `tests/tool-experience.spec.mjs` executes `Regression: browser model chart table and tooltip values match canonical rlagenda output` with fresh evidence.
+
+   ```text
+   TP-05-08_EXECUTION_BEGIN
+   PLANNED_COMMAND=npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: browser model chart table and tooltip values match canonical rlagenda output" --reporter=list
+   TARGET_TITLE=Regression: browser model chart table and tooltip values match canonical rlagenda output
+   LIVE_SYSTEM=Yes
+
+   Running 1 test using 1 worker
+
+	✓  1 …l chart table and tooltip values match canonical rlagenda output (657ms)
+
+	1 passed (1.5s)
+   TP-05-08_EXECUTION_EXIT=0
+   TP-05-08_EXECUTION_END
+   ```
+
+- [x] TP-05-09: `tests/tool-experience.spec.mjs` executes `Regression: research levers recompute both modes without refetching or mutating history` with fresh evidence.
+
+   ```text
+   TP-05-09_EXECUTION_BEGIN
+   PLANNED_COMMAND=npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: research levers recompute both modes without refetching or mutating history" --reporter=list
+   TARGET_TITLE=Regression: research levers recompute both modes without refetching or mutating history
+   LIVE_SYSTEM=Yes
+
+   Running 1 test using 1 worker
+
+	✓  1 …vers recompute both modes without refetching or mutating history (724ms)
+
+	1 passed (1.4s)
+   TP-05-09_EXECUTION_EXIT=0
+   TP-05-09_EXECUTION_END
+   ```
+
+- [x] TP-05-10: `tests/tool-experience.spec.mjs` executes `Regression: private corpus sentinel reaches no DOM request URL storage or public artifact` with fresh evidence.
+
+   ```text
+   TP-05-10_EXECUTION_BEGIN
+   PLANNED_COMMAND=npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: private corpus sentinel reaches no DOM request URL storage or public artifact" --reporter=list
+   TARGET_TITLE=Regression: private corpus sentinel reaches no DOM request URL storage or public artifact
+   LIVE_SYSTEM=Yes
+
+   Running 1 test using 1 worker
+
+	✓  1 …s sentinel reaches no DOM request URL storage or public artifact (519ms)
+
+	1 passed (1.2s)
+   TP-05-10_EXECUTION_EXIT=0
+   TP-05-10_EXECUTION_END
+   ```
+
+- [x] TP-05-11: `tests/market-brief-scorecard.spec.mjs` executes `SCN-019-020 compact standing research read is visible on the brief and deep-links to its owner` with fresh evidence.
+
+   ```text
+   TP-05-11_EXECUTION_BEGIN
+   PLANNED_COMMAND=npx --no-install playwright test tests/market-brief-scorecard.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-019-020 compact standing research read is visible on the brief and deep-links to its owner" --reporter=list
+   TARGET_TITLE=SCN-019-020 compact standing research read is visible on the brief and deep-links to its owner
+   LIVE_SYSTEM=Yes
+
+   Running 1 test using 1 worker
+
+	✓  1 …research read is visible on the brief and deep-links to its owner (1.2s)
+
+	1 passed (1.8s)
+   TP-05-11_EXECUTION_EXIT=0
+   TP-05-11_EXECUTION_END
+   ```
+
+- [x] TP-05-12: `tests/contextual-tooltip.spec.mjs` executes `Research charts tables tickers sources and tooltips retain units provenance limits and keyboard access` with fresh evidence.
+
+   ```text
+   TP-05-12_EXECUTION_BEGIN
+   PLANNED_COMMAND=npx --no-install playwright test tests/contextual-tooltip.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Research charts tables tickers sources and tooltips retain units provenance limits and keyboard access" --reporter=list
+   TARGET_TITLE=Research charts tables tickers sources and tooltips retain units provenance limits and keyboard access
+   LIVE_SYSTEM=Yes
+
+   Running 1 test using 1 worker
+
+	✓  1 … and tooltips retain units provenance limits and keyboard access (579ms)
+
+	1 passed (1.2s)
+   TP-05-12_EXECUTION_EXIT=0
+   TP-05-12_EXECUTION_END
+   ```
+
+- [x] TP-05-13: `tests/deployed-site-parity.spec.mjs` executes `SCN-019-020 deployed site contains every agenda artifact registry target and dossier link` with fresh evidence.
+
+   ```text
+   TP-05-13_EXECUTION_BEGIN
+   PLANNED_COMMAND=npx --no-install playwright test tests/deployed-site-parity.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-019-020 deployed site contains every agenda artifact registry target and dossier link" --reporter=list
+   TARGET_TITLE=SCN-019-020 deployed site contains every agenda artifact registry target and dossier link
+   LIVE_SYSTEM=Yes
+
+   Running 1 test using 1 worker
+
+	✓  1 … contains every agenda artifact registry target and dossier link (564ms)
+
+	1 passed (4.0s)
+   TP-05-13_EXECUTION_EXIT=0
+   TP-05-13_EXECUTION_END
+   ```
+
+- [x] TP-05-14: `tests/tool-discovery.spec.mjs` executes `Regression: existing tool routes and journeys remain reachable after research agenda registration` with fresh evidence.
+
+   ```text
+   TP-05-14_EXECUTION_BEGIN
+   PLANNED_COMMAND=npx --no-install playwright test tests/tool-discovery.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: existing tool routes and journeys remain reachable after research agenda registration" --reporter=list
+   TARGET_TITLE=Regression: existing tool routes and journeys remain reachable after research agenda registration
+   LIVE_SYSTEM=Yes
+
+   Running 1 test using 1 worker
+
+	✓  1 …and journeys remain reachable after research agenda registration (696ms)
+
+	1 passed (1.4s)
+   TP-05-14_EXECUTION_EXIT=0
+   TP-05-14_EXECUTION_END
+   ```
+
+#### Tier 3 - Parity And Policy
+
+- [x] Markdown Test Plan rows, `test-plan.json`, and `scenario-manifest.json` contain the same row and scenario mappings.
+
+   ```text
+   | Exact Test Plan rows executed | 14 |
+   | Passed exact rows | 14 |
+   | Failed exact rows | 0 |
+   | Skipped exact rows | 0 |
+   | TP-05-01 | unit | SCN-019-018 out-of-boundary refinement is refused and question and boundary bytes remain equal | `node scripts/selftest.mjs` | PASS |
+   | TP-05-02 | security | SCN-019-019 recursive private fields and non-public subjects are refused at every artifact layer | `node scripts/selftest.mjs` | PASS |
+   | TP-05-03 | functional | SCN-019-020 tool model adapter module journey and public target registries are in parity | `node --test tests/tool-experience-registry.functional.mjs` | PASS |
+   | TP-05-04 | integration | SCN-019-020 payload toolRead and page read agree and expose no destination routing fields | `node scripts/validate-brief-payload.mjs` | PASS |
+   | TP-05-13 | e2e-ui | SCN-019-020 deployed site contains every agenda artifact registry target and dossier link | `npx --no-install playwright test tests/deployed-site-parity.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-019-020 deployed site contains every agenda artifact registry target and dossier link" --reporter=list` | PASS |
+   | TP-05-14 | e2e-ui | Regression: existing tool routes and journeys remain reachable after research agenda registration | `npx --no-install playwright test tests/tool-discovery.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: existing tool routes and journeys remain reachable after research agenda registration" --reporter=list` | PASS |
+   | T3R-09 | `gtimeout 240 bash .github/bubbles/scripts/artifact-lint.sh specs/019-custom-recurring-research-agenda` | 0 | 94 lines; sha256 `77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c` |
+   | T3R-10 | `gtimeout 240 bash .github/bubbles/scripts/traceability-guard.sh specs/019-custom-recurring-research-agenda --all-scopes` | 0 | 159 lines; 20 scenarios and 59 rows; sha256 `a1f9c83fbe17090a88747bbe5155097c606dba837761db4aeecab325647d9e64` |
+   ```
+
+- [x] Tool, navigation, note, site, simple-model, adapter, module-allowlist, experience, journey, public-target, payload, and page registries are in parity.
+
+   ```text
+   | T3R-02 | `gtimeout 240 npx --no-install playwright test tests/tool-discovery.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep 'Regression: existing tool routes and journeys remain reachable after research agenda registration' --reporter=list` | 0 | TP-05-14: 1 passed, 6 lines, sha256 `5b8def13d9ae00e5ceb618fff75c57a3496e14c540d5932e1dd62bf024910acb` |
+   | T3R-03 | `gtimeout 540 npx --no-install playwright test tests/tool-discovery.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | 0 | 5 passed, 10 lines, sha256 `6ad890a33cd9529914c54d54aa90a5b795cd716a2eb0b0b5fbb67dc96b1fec4d` |
+   | T3R-04 | `gtimeout 1140 npx --no-install playwright test tests/tool-experience.spec.mjs tests/market-brief-scorecard.spec.mjs tests/contextual-tooltip.spec.mjs tests/deployed-site-parity.spec.mjs tests/tool-discovery.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | 0 | 56 passed, 67 lines, sha256 `61fa6e8e2ce9e1c8483fabef87b59dae646b8238a9db8b1ba2b86c4b714a5ae9` |
+   | T3R-05 | `gtimeout 240 bash .github/bubbles/scripts/regression-quality-guard.sh tests/tool-experience.spec.mjs tests/market-brief-scorecard.spec.mjs tests/contextual-tooltip.spec.mjs tests/deployed-site-parity.spec.mjs tests/tool-discovery.spec.mjs tests/tool-experience-registry.functional.mjs` | 0 | 23 lines, 0 violations, 0 warnings, sha256 `83b11d0f39948ef59c61b1bd163b7d306ca860413e39b66e5d7e1b4a0d10cff5` |
+   | T3R-16 | `gtimeout 240 node scripts/build-pages-site.mjs --dry-run` | 0 | 1 line; 26 registered pages; sha256 `aa66a885ca60750c3b92284e118e86387df100f305cf1624539764dd8b6293eb` |
+   | T3R-17 | `gtimeout 240 node scripts/build-brief-page-artifacts.mjs --check` | 0 | 1 line; `stale=false`; sha256 `ab698c0f0b3529476d586a359432aa2e04ee1c0b01bc5d93ad0e2b6d512176f7` |
+   | T3R-18 | `gtimeout 240 node scripts/validate-tool-experience.mjs` | 0 | 32 lines; 26 tools, 13 adversarial rejections; sha256 `4bc90c059c6bee91ba1a3da346805521f6ec986d77eacc1f9604e997ca88b607` |
+   | T3R-19 | `gtimeout 240 node scripts/validate-node-source-lock.mjs` | 0 | 22 lines; actual graph and 16 adversarial rejections; sha256 `e9bb9b552e92cd5b05328a34448e33d4bcc2b39dfe4f5ae0e430911374c711b1` |
+   | Required assertion quality | PASS: 0 optional-required-assertion violations |
+   | TP-05-14 and full discovery file | PASS: 1/1 and 5/5 |
+   | Scope 5 touched browser surfaces | PASS: 56/56 |
+   | Public build, experience, source-lock, PII, and framework integrity | PASS |
+   ```
+
+- [x] Recursive public-safety and reader-vocabulary checks expose no private sentinel, raw refusal code, contract slug, or misleading current-state claim.
+
+   ```text
+   | T3R-07 | `gtimeout 1140 node scripts/selftest.mjs` through `evidence-capture.sh` | 0 | 1,699 passed, 0 failed; 1,998 lines; sha256 `33264cb0ab5c53d5cbc05b48fe80140db7de953ed5d480757d6c3c29802f21a6` |
+   | T3R-08 | `gtimeout 240 node scripts/validate-brief-payload.mjs` | 0 | 3 lines; sha256 `d30b047ef8a57b383285c85607ff48bfbbedf160fb719798174e0ab71a99e9dc` |
+   | T3R-20 | `gtimeout 540 node scripts/pii-scan.mjs` | 0 | 1 line; 6,342 files, 1,246 messages, 0 findings; sha256 `a9b7c60c95774d9797422adf9d2395a6ec8023a40013a10e8e51b5c9ca1139c0` |
+   ANTI_MOCK_FILES=6
+   tests/tool-experience.spec.mjs executable_calls=0
+   tests/market-brief-scorecard.spec.mjs executable_calls=0
+   tests/contextual-tooltip.spec.mjs executable_calls=0
+   tests/deployed-site-parity.spec.mjs executable_calls=0
+   tests/tool-discovery.spec.mjs executable_calls=0
+   tests/tool-experience-registry.functional.mjs executable_calls=0
+   ANTI_MOCK_EXECUTABLE_FINDINGS=0
+   CANONICAL_FORBIDDEN_FIELD_CHANGES=0
+   RECURSIVE_JSON_FILES=19
+   RECURSIVE_FORBIDDEN_KEY_CHANGES=0
+   SOURCE_ASSIGNMENT_FILES=20
+   SOURCE_FORBIDDEN_ASSIGNMENTS=0
+   ```
+
+- [x] Artifact lint, traceability, capability foundation, artifact freshness, payload, site, PII, test-path, reference-existence, fence-parity, and diff checks pass.
+
+   ```text
+   | T3R-09 | `gtimeout 240 bash .github/bubbles/scripts/artifact-lint.sh specs/019-custom-recurring-research-agenda` | 0 | 94 lines; sha256 `77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c` |
+   | T3R-11 | `gtimeout 240 bash .github/bubbles/scripts/artifact-freshness-guard.sh specs/019-custom-recurring-research-agenda` | 0 | 24 lines; 0 failures, 0 warnings; sha256 `7fc76be2b2615eae641ccf475de92eb27c185606fef3d3e7740a1703378e9cbf` |
+   | T3R-12 | `gtimeout 240 bash .github/bubbles/scripts/capability-foundation-guard.sh specs/019-custom-recurring-research-agenda` | 0 | 6 lines; Gate G094 pass; sha256 `1690ce979fffad8404589a4736402cd54da8be6eef0e71926ce74baa2c1873cf` |
+   | T3R-13 | `gtimeout 240 bash .github/bubbles/scripts/reference-existence-lint.sh specs/019-custom-recurring-research-agenda` | 0 | 1 line; 14 Markdown files; sha256 `25085caa8385a79d310472d6a305b34eb7f549f54032b969db5fb203ee46aa12` |
+   | T3R-14 | `gtimeout 240 node scripts/validate-spec-test-paths.mjs` | 0 | 6 lines; 0 new missing paths, 3 stale baseline rows; sha256 `5787fd18c03aec38c102bae3eebae7a1934d772bd7ecdf4c01eb190d23ea43e2` |
+   | T3R-16 | `gtimeout 240 node scripts/build-pages-site.mjs --dry-run` | 0 | 1 line; 26 registered pages; sha256 `aa66a885ca60750c3b92284e118e86387df100f305cf1624539764dd8b6293eb` |
+   | T3R-17 | `gtimeout 240 node scripts/build-brief-page-artifacts.mjs --check` | 0 | 1 line; `stale=false`; sha256 `ab698c0f0b3529476d586a359432aa2e04ee1c0b01bc5d93ad0e2b6d512176f7` |
+   | T3R-20 | `gtimeout 540 node scripts/pii-scan.mjs` | 0 | 1 line; 6,342 files, 1,246 messages, 0 findings; sha256 `a9b7c60c95774d9797422adf9d2395a6ec8023a40013a10e8e51b5c9ca1139c0` |
+   | T3R-21 | `gtimeout 240 bash .github/bubbles/scripts/downstream-framework-write-guard.sh` | 0 | 6 lines; installed snapshot unchanged; sha256 `60692529891cd94b1be31c00d768e90ae2a35f7ef250445a6e7d928d7e9a09b5` |
+   | T3R-22 | `gtimeout 240 git diff --check` plus the current-session exact-hard-break classifier under marker `SCOPE05_DIFF_CHECK_BEGIN` | 2, 0 | 192 lines; sha256 `101d376e5c06c763f6f23d807ef815eeecc856051ba53e4c02c105cd5674e788`; 96 report-only exact hard breaks, 0 source/test diagnostics |
+   | T3R-23 | Current-session bounded JSON/JSONL, fence, report-prefix, skip-marker, and assertion-integrity check under marker `SCOPE05_PRE_REPORT_INTEGRITY_CORRECTED_BEGIN` | 0 | 29 JSON/JSONL files parsed; 14 Feature 019 Markdown files with 206 even fences; controlling historical prefix unchanged; full output below |
+   SCOPE05_REPORT_APPEND_INTEGRITY_CORRECTED_EXIT=0
+   REPORT_PREFIX_HARD_BREAKS=96
+   REPORT_SUFFIX_TRAILING_WHITESPACE_LINES=0
+   REPORT_CURRENT_FENCES_EVEN=true
+   SCOPE05_FINAL_DIFF_CHECK_CLASSIFIED_EXIT=0
+   ```
+
+- [x] The implementation diff stays inside the declared boundary and contains no action, attention, anomaly, candidate, alert, score, or Feature 020 policy write.
+
+   ```text
+   CHANGED_PATHS=82
+   SCOPE_TEST_PLAN_PATHS=65
+   SUPPORT_COMPANIONS=1
+   SUPPORT_COMPANION=tests/brief-refresh-atomicity.support.mjs
+   GOVERNANCE_PATHS=16
+   UNDECLARED_PATHS=0
+   OWNER_FAILURES=0
+   JSON_JSONL_FILES=29
+   JSON_PARSE_FAILURES=0
+   FORBIDDEN_JSON_CHANGES=0
+   SOURCE_ASSIGNMENT_FILES=20
+   FORBIDDEN_SOURCE_ASSIGNMENTS=0
+   SCOPE05_BOUNDARY_CLASSIFIER_LITERAL_PROBE_EXIT=0
+   ```
+
+<!-- markdownlint-enable MD010 -->
+
+---
+
+*Educational models only - not investment advice.*

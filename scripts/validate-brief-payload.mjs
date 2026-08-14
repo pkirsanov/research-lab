@@ -15,6 +15,7 @@ const ROOT = resolve(dirname(SCRIPT_PATH), '..');
    frozen api object. Requiring it here is what makes the publication path and the render
    path one predicate instead of two copies that happen to agree today. */
 const RLATTN = createRequire(import.meta.url)(resolve(ROOT, 'rlattention.js'));
+const RLAGENDA = createRequire(import.meta.url)(resolve(ROOT, 'rlagenda.js'));
 
 /**
  * The attention field predicate, re-exported so a caller can prove by identity that the
@@ -94,6 +95,14 @@ function hasNarrative(value) {
 
 function hasObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length > 0;
+}
+
+function canonicalJson(value) {
+  if (Array.isArray(value)) return '[' + value.map(canonicalJson).join(',') + ']';
+  if (value && typeof value === 'object') {
+    return '{' + Object.keys(value).sort().map((key) => JSON.stringify(key) + ':' + canonicalJson(value[key])).join(',') + '}';
+  }
+  return JSON.stringify(value);
 }
 
 /* A refusal has to say WHICH item, not just which slot. An index moves when the
@@ -311,7 +320,7 @@ export function formatEventContractBreach(breach) {
     + ` — keys present: ${breach.presentKeys.length ? breach.presentKeys.join(', ') : '(none)'}`;
 }
 
-export function validateBriefPayload(payload, registry, config, snapshot) {
+export function validateBriefPayload(payload, registry, config, snapshot, agendaRegistry = null, pageArtifact = null) {
   const errors = [];
   const thresholds = config?.thresholds || {};
   const minimumConfidence = Number.isFinite(thresholds.minimumActionConfidence) ? thresholds.minimumActionConfidence : 55;
@@ -460,6 +469,32 @@ export function validateBriefPayload(payload, registry, config, snapshot) {
   if (!Array.isArray(payload?.groups) || payload.groups.length === 0) errors.push('groups must be a non-empty array');
   if (!hasObject(payload?.watchlistNotes)) errors.push('watchlistNotes must be a non-empty object');
   if (!hasObject(payload?.toolReads)) errors.push('toolReads must be a non-empty object');
+  if (payload?.researchAgenda !== undefined) {
+    if (!agendaRegistry) errors.push('researchAgenda requires the committed research-agenda.json registry');
+    else {
+      const agendaRead = RLAGENDA.validateAgendaRead(payload.researchAgenda, agendaRegistry);
+      if (!agendaRead.ok) errors.push(`researchAgenda ${agendaRead.code}: ${agendaRead.field || 'invalid read'}`);
+      const toolRead = payload?.toolReads?.['research-agenda-lab'];
+      if (!toolRead || !hasText(toolRead.read) || !hasText(toolRead.deepLink) || !hasObject(toolRead.metrics)) {
+        errors.push('toolReads.research-agenda-lab must include reader prose, deepLink, and metrics');
+      } else {
+        if (canonicalJson(toolRead.metrics.agendaRead) !== canonicalJson(payload.researchAgenda)) errors.push('toolReads.research-agenda-lab agendaRead must equal payload.researchAgenda');
+        if (toolRead.metrics.readFingerprint !== payload.researchAgenda.readFingerprint || toolRead.metrics.generationId !== payload.researchAgenda.generationId) errors.push('toolReads.research-agenda-lab identity must equal payload.researchAgenda');
+        const forbiddenRoutingKeys = new Set(['destination', 'eligibility', 'actionfamily', 'attentionenvelope', 'anomalyseed', 'alertcandidate', 'routingdecision', 'score']);
+        const visit = (value, path = '$') => {
+          if (Array.isArray(value)) return value.forEach((entry, index) => visit(entry, `${path}[${index}]`));
+          if (!value || typeof value !== 'object') return;
+          for (const [key, nested] of Object.entries(value)) {
+            const normalized = key.replace(/[^a-z0-9]/gi, '').toLowerCase();
+            if (forbiddenRoutingKeys.has(normalized)) errors.push(`research agenda reader artifact carries Feature 020 routing field ${path}.${key}`);
+            visit(nested, `${path}.${key}`);
+          }
+        };
+        visit({ researchAgenda: payload.researchAgenda, toolRead });
+      }
+      if (pageArtifact !== null && canonicalJson(pageArtifact?.researchAgenda) !== canonicalJson(payload.researchAgenda)) errors.push('market-brief.page.json researchAgenda must equal payload.researchAgenda');
+    }
+  }
   if (!Array.isArray(payload?.experimental)) errors.push('experimental must be an array');
   else {
     const allowedExperimentalKeys = new Set(['id', 'pattern', 'title', 'note', 'method', 'inputs', 'hiddenByDefault']);
@@ -499,6 +534,7 @@ function loadJson(path) {
 }
 
 const D16_FLAGS = new Set(['--enforce-d16', '--drop-unscoreable']);
+const CLI_FLAGS = new Set([...D16_FLAGS, '--defer-page-parity']);
 
 /*
  * D16 enforcement mode is chosen by the CALLER, because refusing and repairing have very different
@@ -519,11 +555,15 @@ const D16_FLAGS = new Set(['--enforce-d16', '--drop-unscoreable']);
  *                        rest of the brief. One call the evaluator could never have scored is lost;
  *                        the window still publishes. Killing a whole brief over one call is a larger
  *                        harm than the defect it prevents.
+ *
+ *   --defer-page-parity  CLI-only ordering seam for a payload whose compact page has not been rebuilt
+ *                        yet. It skips only the disk page comparison; every payload, agenda, toolRead,
+ *                        D16, coverage, schema and generation-accounting check still runs.
  */
 function main() {
   const args = process.argv.slice(2);
   const flags = args.filter((arg) => arg.startsWith('--'));
-  const unknown = flags.filter((flag) => !D16_FLAGS.has(flag));
+  const unknown = flags.filter((flag) => !CLI_FLAGS.has(flag));
   if (unknown.length) {
     console.error(`[brief-contract] unknown flag(s): ${unknown.join(', ')}`);
     process.exit(2);
@@ -531,6 +571,7 @@ function main() {
   const payloadPath = args.filter((arg) => !arg.startsWith('--'))[0] || 'market-brief.payload.json';
   const strict = flags.includes('--enforce-d16');
   const repair = flags.includes('--drop-unscoreable');
+  const deferPageParity = flags.includes('--defer-page-parity');
 
   let payload = loadJson(payloadPath);
   const unscoreable = findUnscoreableActions(payload, { root: ROOT });
@@ -547,7 +588,9 @@ function main() {
     payload,
     loadJson('tools.json'),
     loadJson('market-brief.config.json'),
-    loadJson('market-brief.snapshot.json')
+    loadJson('market-brief.snapshot.json'),
+    payload.researchAgenda !== undefined ? loadJson('research-agenda.json') : null,
+    payload.researchAgenda !== undefined && !deferPageParity ? loadJson('market-brief.page.json') : null
   );
   if (errors.length) {
     console.error('[brief-contract] FAIL');
@@ -557,6 +600,14 @@ function main() {
   if (unscoreable.length && strict && !repair) {
     console.error(`[brief-contract] FAIL: ${unscoreable.length} unscoreable tactical/swing call(s) breach D16 — withhold them or give each one a direction-correct invalidation level`);
     process.exit(1);
+  }
+  if (payload.researchAgenda !== undefined) {
+    if (deferPageParity) {
+      console.log('[brief-contract] SCN-019-020 payload and toolRead agree and expose no destination routing fields: PASS; disk page parity DEFERRED until projection build');
+    } else {
+      console.log('[brief-contract] SCN-019-020 payload toolRead and page read agree and expose no destination routing fields: PASS');
+    }
+    console.log('[brief-contract] Every declared topic and section is accounted and every mandatory review belongs to the current generation: PASS');
   }
   console.log('[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid');
 }

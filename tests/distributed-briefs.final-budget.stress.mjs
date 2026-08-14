@@ -28,6 +28,12 @@ import { createRequire } from 'node:module';
 import test from 'node:test';
 
 import { singleSourceScenario, conflictScenario, mergedScenario } from './fixtures/feature-002/final/final-fixture-builder.mjs';
+import {
+  RESEARCH_AGENDA_CONTRACTS,
+  resolveResearchAgendaPolicy,
+  runResearchSidePool,
+  validateResearchAgendaAcquisitionUsage
+} from '../scripts/research-agenda-generation.mjs';
 
 const require = createRequire(import.meta.url);
 const RLCONTRACTS = require('../rlcontracts.js');
@@ -163,4 +169,98 @@ test('Repeated final compaction of identical inputs is byte-stable', () => {
       }
     }
   }
+});
+
+test('Agenda acquisition and authoring remain within explicit topic byte concurrency and timeout budgets', async () => {
+  const fs = require('node:fs');
+  const registry = JSON.parse(fs.readFileSync(new URL('../research-agenda.json', import.meta.url), 'utf8'));
+  const config = JSON.parse(fs.readFileSync(new URL('../market-brief.config.json', import.meta.url), 'utf8'));
+  const policyResult = resolveResearchAgendaPolicy(config);
+  assert.equal(policyResult.ok, true);
+  const webPolicy = policyResult.value;
+  assert.equal(webPolicy.maxQueries, 12);
+  assert.equal(webPolicy.maxCandidateUrls, 48);
+  assert.equal(webPolicy.totalAcquisitionMs, 90000);
+  assert.equal(webPolicy.maxConcurrentFetches, 4);
+  assert.equal(registry.reviewPolicy.maxConcurrentTopicAcquisitions, 2);
+  const usage = {
+    queryCount: webPolicy.maxQueries,
+    candidateUrlCount: webPolicy.maxCandidateUrls,
+    retainedOriginCount: webPolicy.maxRetainedOrigins,
+    retainedExcerptCount: webPolicy.maxRetainedExcerpts,
+    maxExcerptBytes: webPolicy.maxExcerptBytes,
+    maxResponseBytesPerUrl: webPolicy.maxResponseBytesPerUrl,
+    bundleBytes: webPolicy.maxBundleBytes,
+    maxRequestMs: webPolicy.perRequestTimeoutMs,
+    totalAcquisitionMs: webPolicy.totalAcquisitionMs,
+    peakConcurrentFetches: webPolicy.maxConcurrentFetches
+  };
+  assert.equal(validateResearchAgendaAcquisitionUsage(usage, webPolicy).ok, true);
+
+  const selectedTopics = registry.topics.slice(0, 2).map((topic) => ({
+    topic,
+    definition: JSON.parse(fs.readFileSync(new URL('../' + topic.definitionRef, import.meta.url), 'utf8')),
+    acquisition: null,
+    committedEvidence: []
+  }));
+  const generationId = `generation-${'8'.repeat(64)}`;
+  const authorPolicy = { timeoutSeconds: 900, attempts: 1, concurrency: 1, maxInputBytes: 524288, maxOutputBytes: 524288 };
+  let active = 0;
+  let peak = 0;
+  const authorFn = async (request) => {
+    active += 1;
+    peak = Math.max(peak, active);
+    await Promise.resolve();
+    active -= 1;
+    return {
+      contractVersion: RESEARCH_AGENDA_CONTRACTS.situation,
+      generationId,
+      topicId: request.topicId,
+      authoredAt: '2026-08-13T12:00:00.000Z',
+      completePass: true,
+      evidenceRecords: [],
+      sectionInterpretations: request.definition.analyticalSections.map((section) => ({ sectionId: section.sectionId, status: 'unchanged', interpretation: 'No new evidence.', gaps: [] })),
+      findings: [],
+      sourceLedger: [],
+      newEvidenceIds: [],
+      modelInputs: { chokepointState: {}, inventoryGapByChannel: {}, levers: {} }
+    };
+  };
+  const pool = await runResearchSidePool({ topics: selectedTopics, generationId, policy: authorPolicy, authorFn });
+  assert.equal(pool.ok, true);
+  assert.equal(pool.value.telemetry.calls, 2);
+  assert.equal(pool.value.telemetry.attempts, 2, 'one attempt per selected topic');
+  assert.equal(pool.value.telemetry.peakConcurrency, 1);
+  assert.equal(peak, 1, 'independent observation confirms serial authoring');
+  assert.equal(pool.value.telemetry.timeoutSeconds, 900);
+
+  const inputRefusal = await runResearchSidePool({
+    topics: selectedTopics.slice(0, 1),
+    generationId,
+    policy: { ...authorPolicy, maxInputBytes: 1 },
+    authorFn
+  });
+  assert.equal(inputRefusal.ok, true);
+  assert.equal(inputRefusal.value.failuresByTopicId[selectedTopics[0].topic.topicId], 'author-input-over-budget');
+  assert.equal(inputRefusal.value.telemetry.calls, 0);
+
+  const outputRefusal = await runResearchSidePool({
+    topics: selectedTopics.slice(0, 1),
+    generationId,
+    policy: { ...authorPolicy, maxOutputBytes: 1 },
+    authorFn
+  });
+  assert.equal(outputRefusal.ok, true);
+  assert.equal(outputRefusal.value.failuresByTopicId[selectedTopics[0].topic.topicId], 'author-output-over-budget');
+
+  const timeout = Object.assign(new Error('timeout'), { code: 'ETIMEDOUT' });
+  const timeoutRefusal = await runResearchSidePool({
+    topics: selectedTopics.slice(0, 1),
+    generationId,
+    policy: authorPolicy,
+    authorFn: async () => new Promise(() => {}),
+    timer: { withTimeout: async (_promise, milliseconds) => { assert.equal(milliseconds, 900000); throw timeout; } }
+  });
+  assert.equal(timeoutRefusal.ok, true);
+  assert.equal(timeoutRefusal.value.failuresByTopicId[selectedTopics[0].topic.topicId], 'author-timeout');
 });

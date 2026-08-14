@@ -61,7 +61,10 @@ test('every registered tool renders inside a named group, and the groups come fr
   });
 
   for (const tool of registry.tools) {
-    expect(placement[tool.id], `${tool.id} is rendered on the landing page`).toBeDefined();
+    expect(
+      Object.prototype.hasOwnProperty.call(placement, tool.id),
+      `${tool.id} is rendered on the landing page`,
+    ).toBe(true);
     expect(placement[tool.id], `${tool.id} sits in its registry group`).toBe(tool.group);
   }
   expect(Object.keys(placement).length).toBe(registry.tools.length);
@@ -120,6 +123,35 @@ test('the filter narrows to matching tools and hides groups that no longer match
   // Clearing restores everything — the filter must not be destructive.
   await filter.fill('');
   await expect(page.locator('#grid .card:not([hidden])')).toHaveCount(registry.tools.length);
+});
+
+test('Regression: existing tool routes and journeys remain reachable after research agenda registration', async ({ page, request }) => {
+  await openIndex(page);
+  const agendaTools = registry.tools.filter((tool) => tool.id === 'research-agenda-lab');
+  expect(agendaTools, 'research-agenda-lab has exactly one registry entry').toHaveLength(1);
+  const [agendaTool] = agendaTools;
+  await expect(page.locator('[data-tool-group="Rotation & Macro"] .card[data-tool-id="research-agenda-lab"]')).toHaveCount(1);
+  await expect(page.locator('.card[data-tool-id="research-agenda-lab"] a.open')).toHaveAttribute('href', agendaTool.file);
+
+  const existingTools = registry.tools.filter((tool) => tool.id !== agendaTool.id);
+  for (const tool of existingTools) {
+    await expect(page.locator(`.card[data-tool-id="${tool.id}"] a.open`)).toHaveAttribute('href', tool.file);
+    const response = await request.get(`${site.baseUrl}/${tool.file}`);
+    expect(response.status(), `${tool.id} route remains reachable`).toBe(200);
+  }
+
+  await page.goto(`${site.baseUrl}/research-agenda-lab.html#journey/geopolitical-supply-shock`, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
+  await expect(page.locator('body')).toHaveAttribute('data-rlview', 'journey');
+  const journeyMount = page.locator('[data-rlexperience-panel="journey"] [data-rljourney-mount]');
+  await expect(journeyMount).toHaveAttribute('data-rljourney-state', 'ready', { timeout: 15000 });
+  const expectedGoals = agendaTool.experience.journeyDefinitionIds;
+  await expect(journeyMount.locator('[data-rljourney-tool="research-agenda-lab"]')).toHaveAttribute('data-rljourney-goal-count', String(expectedGoals.length));
+  for (const definitionId of expectedGoals) {
+    const goal = journeyMount.locator(`[data-rljourney-goal="${definitionId}"]`);
+    await expect(goal).toBeVisible();
+    await expect(goal).toHaveAttribute('data-rljourney-tool-id', 'research-agenda-lab');
+  }
 });
 
 test('the rail navigation renders the same groups, in the same order, as the landing page', async ({ page }) => {

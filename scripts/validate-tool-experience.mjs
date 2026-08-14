@@ -633,8 +633,8 @@ function runAdversarialChecks(packet) {
 }
 
 /* SCN-012-032 — journey-definition / registry coverage. Drives the REAL production rljourney runtime
-   against the REAL journeys.json + tools.json registry and proves every ordinary tool exposes at least
-   two concrete goals, the Market Action Center exposes exactly four, and all 48 definitions resolve. */
+  against the REAL journeys.json + tools.json registry and proves every ordinary tool exposes at least
+  two concrete goals, the Market Action Center exposes exactly four, and every definition resolves. */
 function validateJourneyRegistryCoverage(packet) {
   const RLJOURNEY = require('../rljourney.js');
   const inventory = packet.registry.tools.map((tool) => ({
@@ -644,10 +644,13 @@ function validateJourneyRegistryCoverage(packet) {
   }));
   const completeness = RLJOURNEY.validateRegistryCompleteness(packet.journeys, inventory);
   invariant(completeness.ok, `SCN-012-032 journey coverage rejected: ${completeness.error && completeness.error.code} ${completeness.error && completeness.error.fieldPath} ${completeness.error && completeness.error.reason}`);
-  invariant(completeness.value.ordinaryTools === 25, `SCN-012-032 expected 25 ordinary tools with concrete goals, got ${completeness.value.ordinaryTools}`);
-  invariant(completeness.value.centerGoals === 4, `SCN-012-032 Market Action Center must expose exactly four goals, got ${completeness.value.centerGoals}`);
-  invariant(completeness.value.totalGoals === 54, `SCN-012-032 expected 54 total goals, got ${completeness.value.totalGoals}`);
-  invariant(completeness.value.definitionCount === 54, `SCN-012-032 expected 54 journey definitions, got ${completeness.value.definitionCount}`);
+  const expectedOrdinaryTools = inventory.filter((row) => row.kind !== 'market-action-center').length;
+  const expectedCenterGoals = inventory.filter((row) => row.kind === 'market-action-center').reduce((sum, row) => sum + row.journeyDefinitionIds.length, 0);
+  const expectedTotalGoals = inventory.reduce((sum, row) => sum + row.journeyDefinitionIds.length, 0);
+  invariant(completeness.value.ordinaryTools === expectedOrdinaryTools, `SCN-012-032 expected ${expectedOrdinaryTools} ordinary tools with concrete goals, got ${completeness.value.ordinaryTools}`);
+  invariant(completeness.value.centerGoals === expectedCenterGoals, `SCN-012-032 Market Action Center goal count drifted: expected ${expectedCenterGoals}, got ${completeness.value.centerGoals}`);
+  invariant(completeness.value.totalGoals === expectedTotalGoals, `SCN-012-032 expected ${expectedTotalGoals} total goals, got ${completeness.value.totalGoals}`);
+  invariant(completeness.value.definitionCount === packet.journeys.definitions.length, `SCN-012-032 expected ${packet.journeys.definitions.length} journey definitions, got ${completeness.value.definitionCount}`);
   for (const row of inventory) {
     if (row.kind === 'market-action-center') {
       invariant(row.journeyDefinitionIds.length === 4, `${row.registryId} (Center) must reference exactly four journey goals`);

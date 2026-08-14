@@ -1,50 +1,43 @@
-# Scope 2: Topic Lifecycle And Append-Only Ledger
+# Scope 2: Immutable Lifecycle And Historical Seed
 
-## 02-topic-lifecycle
-
-**Status:** Not started
+**Scope ID:** `02-topic-lifecycle`
+**Scope Dir:** `scopes/02-topic-lifecycle`
+**Status:** Done
+**Depends On:** `01-agenda-registry-contract` (foundation)
 **Scope-Kind:** runtime-behavior
-**Tags:** lifecycle, append-only, ledger, named-refusal, operator-owned
-Depends On: Scope 1 — the topic contract, the `topicId` and the closed lifecycle vocabulary
 
-**Primary Outcome:** A topic moves through `active`, `paused` and `retired` by
-operator commit only, and every transition is a new dated row in
-`research/agenda/history.jsonl` rather than an edit of anything already written. A
-topic that has never been reviewed is due on the next generation. A paused topic
-is skipped with its own published state, distinct from `unavailable`, and keeps
-its history readable. A retired topic is never researched again and loses no prior
-version. One invalid topic is refused by name without disabling the rest of the
-agenda, and the operator's three real research sessions are expressible as three
-committed topics.
+Related artifacts: [spec.md](../../spec.md), [design.md](../../design.md),
+[scope index](../_index.md).
+
+## Replan Evidence Boundary
+
+The existing `report.md` records historical evidence for the superseded
+implementation contract. It cannot satisfy any DoD item below. Implementation
+must execute every current `TP-02-*` row and append fresh evidence under a
+`replanned-contract-tp-02-*` anchor before checking the matching item.
+
+## Outcome
+
+Introduce immutable generation, review, dossier, source, lifecycle-event, and
+ledger identities before any live research is wired. A paused or retired topic
+is classified without deleting history. A new lifecycle state is a dated event,
+never an edit. Existing immutable paths reject overwrite attempts. The current
+pointer contract moves last and may point only to validated immutable records.
+
+Seed the primary topic's history from
+`notes/us-iran-oil-market-intervention-patterns.md` as a dated historical
+dossier and source/calibration record. Its claims retain their 2026-08-10
+observation context and never become a current-generation review merely because
+they are the first available history.
 
 ## Requirement Coverage
 
-- FR-019-010 — adding a topic requires nothing but a committed registry edit; no
-  code change and no schema migration.
-- FR-019-011 — a topic that has never been reviewed is due on the next generation.
-- FR-019-012 — a `paused` topic is not researched, retains its history, and
-  publishes an explicit paused state distinct from `unavailable`.
-- FR-019-013 — a `retired` topic is not researched and has no prior dossier
-  deleted or rewritten.
-- FR-019-014 — every lifecycle change is a new dated event referencing the
-  `topicId`, never an in-place rewrite of history (P21).
-- FR-019-015 — an invalid topic is refused by name with its reason and does not
-  prevent the remaining topics from being reviewed.
-- FR-019-035 (lifecycle half) — the agent may not retire, pause or delete a topic;
-  an agent-attempted transition is `RLAGENDA-LIFECYCLE`. The refinement half is
-  scope 5.
-- NFR-019-004 — the append-only guard carries an adversarial case that fails when
-  the guard is removed.
+FR-019-010, FR-019-012 through FR-019-014, FR-019-030 through FR-019-031,
+FR-019-035, and NFR-019-003 through NFR-019-004.
 
 ## Gherkin Scenarios
 
 ```gherkin
-Scenario: SCN-019-004 A newly declared topic enters the review cycle
-  Given the operator commits a new topic with a declared question and a cadence
-  When the next generation runs
-  Then the topic is treated as due because it has never been reviewed
-  And a first dossier is produced or a named outcome is recorded
-
 Scenario: SCN-019-005 Pausing suspends review and preserves history
   Given a topic whose lifecycle state is paused
   When the generation reviews the agenda
@@ -59,184 +52,367 @@ Scenario: SCN-019-006 Retirement is append-only
   And no prior dossier version is deleted or rewritten
   And the retirement is recorded as a new lifecycle event referencing the topic
 
-Scenario: SCN-019-007 The operator's actual research history is expressible
-  Given the operator declares a defense production and earnings-acceleration topic
-  And a U.S.-Iran oil and Strait of Hormuz topic
-  And a food, grains and fertilizer topic
-  When the agenda is validated
-  Then all three are accepted with their own declared questions, scope boundaries and cadences
+Scenario: SCN-019-016 History is append-only
+  Given a topic with an existing dossier
+  When a new review produces an updated dossier
+  Then the new version references the version it supersedes
+  And the superseded version is still readable
+  And no prior finding, model state, chart series or scenario weight is edited in place
 ```
 
-## Implementation Files
+## Planned Production Paths
 
-### New
-
-- `research/agenda/history.jsonl` — the append-only review and lifecycle ledger,
-  seeded empty
-- `tests/fixtures/research-agenda/ledger-empty.jsonl`
-- `tests/fixtures/research-agenda/ledger-with-prior-reviews.jsonl`
-- `tests/fixtures/research-agenda/registry-paused-and-retired.json`
-- `tests/fixtures/research-agenda/registry-three-real-topics.json`
-
-### Modified
-
-- `rlagenda.js` — `readLedgerState`, `appendLedgerRow`, `lifecycleOutcome`
-- `research-agenda.json` — the three real topics carry their final declared
-  questions, scope boundaries and cadences
-- `scripts/selftest.mjs` — one new assertion group
-- `notes/research-agenda-lab.md` — the lifecycle and ledger contract
+| Path | Disposition | Purpose |
+| --- | --- | --- |
+| `research/agenda/generations/` | planned new | create-only generation manifests |
+| `research/agenda/reviews/<topicId>/` | planned new | create-only current-generation attempts |
+| `research/agenda/dossiers/<topicId>/` | planned new | create-only substantive versions |
+| `research/agenda/history.jsonl` | planned new | append-only lifecycle/review/correction ledger |
+| `research/agenda/current.json` | planned new | validated current pointers, moved last by Scope 4 |
+| `research/agenda/dossiers/geopolitical-supply-shock/historical-2026-08-10-v1.json` | planned new | dated historical seed, never current by implication |
+| `rlagenda.js` | existing after Scope 1, planned modification | identities, append/correction validation, pointer validation |
+| `scripts/selftest.mjs` | existing, planned modification | identity, lifecycle, seed, and overwrite tests |
 
 ## Implementation Plan
 
-1. Define `research-agenda-history-row/v1` in `rlagenda.js`: one JSON object per
-   line carrying `topicId`, `generatedAt`, `window`, `lifecycleState`, `outcome`,
-   `reviewed`, `dossierRef`, `supersedes`, `triggerBecause`, `refusalCode` and,
-   for a lifecycle event, `event: "lifecycle"` with the previous and next states.
-   The shape follows `brief-history.jsonl`, which is already one JSON object per
-   line and already append-only.
-2. Implement `readLedgerState(lines)` as a top-level `function` declaration
-   returning, per `topicId`, the last recorded review instant, the current
-   dossier reference and the recorded lifecycle history. It reads; it never
-   writes.
-3. Implement `appendLedgerRow(existingLines, row)` returning a new array with the
-   row appended. It has no branch that rewrites, reorders or removes an existing
-   line, and a call that would produce a shorter or reordered array refuses
-   `RLAGENDA-SUPERSEDE` rather than proceeding.
-4. Implement `lifecycleOutcome(topic, ledgerState)` returning the non-researched
-   outcome for a topic that will not be researched: `paused` with
-   `reviewed: false` for `lifecycleState: "paused"`, and `null` with
-   `reviewed: false` for `retired`. Neither resolves to `unavailable`, because
-   `unavailable` means the pipeline tried and failed, and neither of these tried.
-5. Treat an absent `lastReviewedAt` as due inside `isDue`'s never-reviewed branch,
-   so a newly committed topic enters the cycle on the next generation with no
-   backfill and no migration.
-6. Refuse an agent-attempted lifecycle transition with `RLAGENDA-LIFECYCLE`.
-   Lifecycle is operator-owned and moves only by committed registry edit; the
-   published surface therefore shows the state and its date and offers no control
-   implying otherwise.
-7. Write the three real topics into `research-agenda.json` with their own declared
-   questions in the operator's words, their own scope boundaries and their own
-   cadences. The defense topic's `scopeBoundary.instruments` names only public
-   tickers the repository can resolve; the Hormuz and grains topics name their
-   public benchmarks. No position, size, cost basis or P&L appears anywhere.
-8. Register a `research-agenda — lifecycle and ledger` group in
-   `scripts/selftest.mjs` driving the four fixtures.
-9. Record the lifecycle rules, the ledger row shape and the append-only rule in
-   `notes/research-agenda-lab.md`.
+1. Derive `generationId` from the canonical snapshot digest, registry digest,
+   brief window, and generation cutoff. Derive `reviewId` from generation,
+   topic, definition, calibration, and evidence-bundle digests. Derive
+   `dossierId` from the canonical substantive dossier body. Repeated inputs must
+   produce the same id; changed inputs must not collide.
+2. Validate create-only paths for generation, review, dossier, source, and
+   calibration artifacts. An existing target refuses before write. A new
+   dossier must name its predecessor when one exists.
+3. Define append-only generation, review, lifecycle, correction, and historical
+   seed rows in `history.jsonl`. A correction carries `correctsEventId`; no row
+   can shorten, reorder, replace, or delete prior bytes.
+4. Classify `paused` and `retired` before review selection. Paused produces an
+   explicit non-researched state and preserves history. Retired produces a new
+   lifecycle event and no review attempt. Neither is `unavailable`.
+5. Validate `current.json` as pointers only. It cannot point to missing,
+   mismatched, unvalidated, or historical-only records. This scope defines and
+   tests pointer-last semantics; Scope 4 performs the transaction.
+6. Convert the existing Iran note into the initial historical dossier/source
+   seed without editing the note. Preserve source links, observed/as-of dates,
+   limitations, and the historical label. Do not assign a current generation
+   id or current pointer to this seed.
+7. Add focused real-function tests to `scripts/selftest.mjs` and history-path
+   tests to the existing history E2E surface. Include attempted overwrite of
+   each immutable family and verify predecessor bytes remain identical.
 
 ## Shared Infrastructure Impact Sweep
 
-| Shared surface | Change in this scope | Downstream consumers | Blast radius | Canary | Rollback proof |
-| --- | --- | --- | --- | --- | --- |
-| `research/agenda/history.jsonl` (new committed ledger) | Created, seeded empty | Scopes 3, 4, 5 and every future generation | High — this is the only record of what was reviewed when; a writer that rewrites a line destroys history irrecoverably, because the file is the history | Run the append helper against the prior-reviews fixture and assert every pre-existing line is byte-identical afterwards, BEFORE any producer is wired | Delete the file and the two ledger fixtures; scope 3 has not consumed them yet |
-| `rlagenda.js` | Three functions added; no existing branch changed | Scopes 3–5 | Medium — a lifecycle outcome that resolved to `unavailable` would make "you paused it" indistinguishable from "we failed", which is the exact P2 confusion the outcome vocabulary exists to prevent | Assert `paused` and `retired` never yield `unavailable` for any input | Remove the three functions |
-| `research-agenda.json` | The three real topics written | The plan, the read, the reader | Medium — this file ships to Pages, so a private field is public immediately | `node scripts/pii-scan.mjs` plus a `RLAGENDA-PRIVATE` fixture | Revert to the scope 1 content |
-| The `research/` directory | Created | The Pages build | Low in this scope, load-bearing later — `PUBLIC_DIRECTORIES` at `scripts/build-pages-site.mjs:13` is a frozen allowlist of `briefs`, `data`, `docs`, `notes`, `pictures`, `rlexperience-adapters` and `tests/fixtures`, and does not contain `research` | Assert `node scripts/build-pages-site.mjs` still exits 0 with the directory present and unpublished; adding `research` to the allowlist is scope 5's registration change | Delete the directory |
+| Surface | Risk | Canary | Restore boundary |
+| --- | --- | --- | --- |
+| immutable research tree | overwrite destroys the audit trail | second create at every identity path refuses and original digest remains equal | remove only newly created records before Scope 3 consumes them |
+| `history.jsonl` | reordering or correction-in-place destroys chronology | append result retains the exact original byte prefix | restore the pre-scope file bytes |
+| `current.json` | an early pointer exposes partial state | missing referenced record and pointer-before-record cases refuse | restore the prior pointer bytes |
+| historical Iran seed | dated analysis could masquerade as current | no current pointer resolves to `historical-2026-08-10-v1` | delete the derived seed, never alter the source note |
 
-## Change Boundary And Protected Paths
+## Change Boundary
 
-**Allowed:** `rlagenda.js` · `research-agenda.json` ·
-`research/agenda/history.jsonl` · `tests/fixtures/research-agenda/*` ·
-`scripts/selftest.mjs` · `notes/research-agenda-lab.md`.
-
-**Excluded (must remain byte-identical in this scope):**
-`scripts/brief-narrative-parallel.mjs` · `scripts/validate-brief-payload.mjs` ·
-`scripts/build-attention-items.mjs` · `scripts/build-brief-page-artifacts.mjs` ·
-`scripts/build-pages-site.mjs` · `tools.json` · `index.html` · `rlnav.js` ·
-`README.md` · `site-exclusions.json` · `tool-experience.config.json` ·
-`rlattention.js` · `rlmarketaction.js` · `rlbrief.js` · `market-brief.html` ·
-`market-brief.config.json` · `market-brief.payload.json` ·
-`market-brief.page.json` · `market-brief.snapshot.json` · `brief-history.jsonl` ·
-`watchlist.json`.
-
-`brief-history.jsonl` is on the excluded list because this scope copies its
-*shape* and must not touch its *contents*; a diff there would mean the agenda
-ledger was written into the brief's history file.
-
-**Allowed file families.**
-
-| Family | Members | Why this scope may touch it |
-| --- | --- | --- |
-| Owning module | `rlagenda.js` | The lifecycle and ledger functions belong to the one owning module. |
-| Registry artifact | `research-agenda.json` | The three real topics are the operator's declarations. |
-| Agenda ledger | `research/agenda/history.jsonl` | The deliverable of this scope. |
-| Lifecycle fixtures | `tests/fixtures/research-agenda/*` | The registries and ledgers the behaviour is proven against. |
-| Project test harness | `scripts/selftest.mjs` | Where the deterministic group lives. |
-| Tool notes | `notes/research-agenda-lab.md` | Where the lifecycle contract is recorded. |
-
-**Excluded surfaces.**
-
-| Surface | Members | Owner |
-| --- | --- | --- |
-| Dueness and selection | the `isDue` cadence and trigger branches | Scope 3 |
-| Lane, dossier writes and outcomes | `scripts/brief-narrative-parallel.mjs` | Scope 4 |
-| Registration and the published read | `tools.json`, `index.html`, `rlnav.js`, `README.md`, `site-exclusions.json`, `tool-experience.config.json`, `scripts/validate-brief-payload.mjs`, `scripts/build-brief-page-artifacts.mjs`, `scripts/build-pages-site.mjs` | Scope 5 |
-| Routing to actions, attention or alerts | `rlattention.js`, `rlmarketaction.js`, `scripts/build-attention-items.mjs` | Feature 020 |
-
-## Rollback
-
-Remove the three functions from `rlagenda.js`, delete
-`research/agenda/history.jsonl` and the four fixtures, revert
-`research-agenda.json` to its scope 1 content, and remove the appended selftest
-group. Prove the restore by running `node scripts/selftest.mjs` and recording exit
-0 with unfiltered output. Nothing downstream is affected, because scope 3 has not
-consumed the ledger at the point this scope closes.
-
-## Scenario-First RED/GREEN Contract
-
-RED: author the four scenarios and the four fixtures first. Record the
-paused-and-retired fixture resolving `unavailable` before `lifecycleOutcome`
-exists — that is the "your choice looks like our failure" defect. Record the
-append helper rewriting a line before the append-only refusal exists, with the
-prior-reviews fixture proving the loss.
-
-GREEN: a never-reviewed topic is due; a paused topic is not researched, publishes
-`paused` with `reviewed: false`, and its prior dossier reference is still
-resolvable; a retired topic is not researched and every prior version reference in
-the ledger still resolves; a lifecycle transition appends a row and leaves every
-pre-existing line byte-identical; and the three real topics validate with zero
-refusals.
+Allowed families are `rlagenda.js`, `research/agenda/**`,
+`tests/fixtures/research-agenda/**`, `scripts/selftest.mjs`, and the existing
+`tests/distributed-briefs.history.e2e.mjs`. The source note is read-only.
+Excluded are acquisition, authoring lanes, deterministic model changes,
+payload/page publication, UI/registration, and all Feature 020 destinations.
 
 ## Test Plan
 
-| ID | Type | Category | Scenario | File | Exact Behavior / Persistent Title | Command | Live System | Evidence Anchor |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| TP-02-01 | Lifecycle | unit | SCN-019-004 | `scripts/selftest.mjs` | a newly committed topic with a declared question and a cadence, absent from the ledger entirely, is treated as due because it has never been reviewed, and the plan places it in the selected or deferred set rather than in not-due | `node scripts/selftest.mjs` | No | `report.md#tp-02-01` |
-| TP-02-02 | Lifecycle | unit | SCN-019-004 | `scripts/selftest.mjs` | adding a topic requires only a registry edit: the same module version accepts a registry with one extra topic and produces a first outcome for it with no code change and no migration step | `node scripts/selftest.mjs` | No | `report.md#tp-02-02` |
-| TP-02-03 | Lifecycle | unit | SCN-019-005 | `scripts/selftest.mjs` | a paused topic is not researched, is published with outcome `paused` and `reviewed: false`, is asserted to be distinct from `unavailable`, and its existing dossier reference from the prior-reviews ledger remains readable | `node scripts/selftest.mjs` | No | `report.md#tp-02-03` |
-| TP-02-04 | Lifecycle | unit | SCN-019-006 | `scripts/selftest.mjs` | a retired topic is not researched, and every prior dossier version referenced by the ledger is still present and byte-identical after the generation completes — nothing is deleted and nothing is rewritten | `node scripts/selftest.mjs` | No | `report.md#tp-02-04` |
-| TP-02-05 | Append-only | unit | SCN-019-006 | `scripts/selftest.mjs` | a retirement appends a new dated `event: "lifecycle"` row referencing the topic identifier and carrying the previous and next states, and every pre-existing ledger line is byte-identical afterwards | `node scripts/selftest.mjs` | No | `report.md#tp-02-05` |
-| TP-02-06 | Adversarial | unit | SCN-019-006 | `scripts/selftest.mjs` | Regression: an append call that would shorten, reorder or overwrite an existing ledger line is refused `RLAGENDA-SUPERSEDE`, and a deliberately mutated helper without the refusal is proven to destroy a prior line — the append-only guard can actually fail | `node scripts/selftest.mjs` | No | `report.md#tp-02-06` |
-| TP-02-07 | Refusal | unit | SCN-019-007 | `scripts/selftest.mjs` | an agent-attempted lifecycle transition is refused `RLAGENDA-LIFECYCLE` with the field `lifecycleState`, so a topic can be paused or retired only by a committed operator edit | `node scripts/selftest.mjs` | No | `report.md#tp-02-07` |
-| TP-02-08 | Contract | unit | SCN-019-007 | `scripts/selftest.mjs` | the committed registry's defense production and earnings-acceleration topic, U.S.-Iran oil and Strait of Hormuz topic, and food grains and fertilizer topic are all accepted, each with its own non-empty declared question, its own scope boundary and its own cadence — three distinct questions, not one shared one | `node scripts/selftest.mjs` | No | `report.md#tp-02-08` |
-| TP-02-09 | Refusal | unit | SCN-019-007 | `scripts/selftest.mjs` | Regression: with one topic invalid, the remaining topics are still reviewed and the balance `accepted + refusals === declared` holds against the three-real-topics fixture extended by one malformed entry | `node scripts/selftest.mjs` | No | `report.md#tp-02-09` |
-| TP-02-10 | Privacy | unit | SCN-019-007 | `scripts/selftest.mjs` | no committed topic, ledger row or fixture contains `size`, `quantity`, `costBasis` or `pnl`, and a constructed topic carrying one is refused `RLAGENDA-PRIVATE` with the offending field named | `node scripts/selftest.mjs` | No | `report.md#tp-02-10` |
-| TP-02-11 | Publication safety | unit | SCN-019-005 | `scripts/build-pages-site.mjs` | the Pages build still plans successfully with the new `research/` directory present and absent from the frozen `PUBLIC_DIRECTORIES` allowlist, so the ledger is committed but not yet published and no publication rule changed in this scope | `node scripts/build-pages-site.mjs` | No | `report.md#tp-02-11` |
+| ID | Category | Scenario | Existing test surface | Exact planned test title | Command | Live system |
+| --- | --- | --- | --- | --- | --- | --- |
+| TP-02-01 | functional | SCN-019-005 | `scripts/selftest.mjs` | `SCN-019-005 paused topic skips review and preserves every historical reference` | `node scripts/selftest.mjs` | No |
+| TP-02-02 | functional | SCN-019-006 | `scripts/selftest.mjs` | `SCN-019-006 retirement appends one lifecycle event without deleting history` | `node scripts/selftest.mjs` | No |
+| TP-02-03 | unit | SCN-019-016 | `scripts/selftest.mjs` | `SCN-019-016 generation review dossier and event identities are deterministic and immutable` | `node scripts/selftest.mjs` | No |
+| TP-02-04 | adversarial | SCN-019-016 | `scripts/selftest.mjs` | `Regression: overwrite attempts refuse before mutation and preserve predecessor bytes` | `node scripts/selftest.mjs` | No |
+| TP-02-05 | unit | SCN-019-016 | `scripts/selftest.mjs` | `Regression: correction appends a new event and current pointer accepts only validated immutable refs` | `node scripts/selftest.mjs` | No |
+| TP-02-06 | functional | SCN-019-016 | `scripts/selftest.mjs` | `Historical Iran seed retains its dated source context and is never inferred current` | `node scripts/selftest.mjs` | No |
+| TP-02-07 | e2e-api | SCN-019-005, SCN-019-006, SCN-019-016 | `tests/distributed-briefs.history.e2e.mjs` | `SCN-019-016 real history resolves current and predecessor records without rewriting either` | `node --test tests/distributed-briefs.history.e2e.mjs` | Yes |
 
-### Definition of Done
+### Definition of Done - Tiered Validation
 
-- [ ] SCN-019-004 — a newly committed topic with a declared question and a cadence is treated as due because it has never been reviewed, and a first dossier is produced or a named outcome is recorded, proven by TP-02-01 and TP-02-02.
-- [ ] SCN-019-005 — a paused topic is not researched, its existing dossier history remains readable, and the published record states that it is paused rather than unavailable, proven by TP-02-03.
-- [ ] SCN-019-006 — a retired topic is not researched, no prior dossier version is deleted or rewritten, and the retirement is recorded as a new lifecycle event referencing the topic, proven by TP-02-04 and TP-02-05.
-- [ ] SCN-019-007 — the defense production and earnings-acceleration topic, the U.S.-Iran oil and Strait of Hormuz topic, and the food grains and fertilizer topic are all accepted with their own declared questions, scope boundaries and cadences, proven by TP-02-08.
-- [ ] `research/agenda/history.jsonl` exists as a committed append-only ledger, one JSON object per line, following the `brief-history.jsonl` shape, and `brief-history.jsonl` itself is byte-identical at the end of this scope.
-- [ ] `appendLedgerRow` has no branch that rewrites, reorders or removes an existing line, and the append-only guard is proven able to fail, proven by TP-02-06.
-- [ ] Adding a topic requires only a committed registry edit — no code change and no schema migration (FR-019-010), proven by TP-02-02.
-- [ ] An agent-attempted lifecycle transition is refused `RLAGENDA-LIFECYCLE`; lifecycle is operator-owned (FR-019-035), proven by TP-02-07.
-- [ ] One invalid topic is refused by name and does not prevent the remaining topics from being reviewed, with the balance holding, proven by TP-02-09.
-- [ ] No committed artifact this scope writes contains a position, a size, a cost basis or a profit-or-loss figure, proven by TP-02-10 and by `node scripts/pii-scan.mjs` exiting 0.
-- [ ] `node scripts/selftest.mjs` exits 0 with the lifecycle group registered and zero skipped assertions, evidenced by unfiltered output.
-- [ ] `node scripts/build-pages-site.mjs` exits 0 with the new `research/` directory present and not yet in `PUBLIC_DIRECTORIES`, proven by TP-02-11.
-- [ ] `node scripts/validate-spec-test-paths.mjs` exits 0 with zero new missing paths.
-- [ ] No path excluded from this scope was modified BY this scope; `git diff --name-only` output is recorded verbatim and names only files in the Allowed table.
-- [ ] TP-02-01 executed with raw output recorded at `report.md#tp-02-01`.
-- [ ] TP-02-02 executed with raw output recorded at `report.md#tp-02-02`.
-- [ ] TP-02-03 executed with raw output recorded at `report.md#tp-02-03`.
-- [ ] TP-02-04 executed with raw output recorded at `report.md#tp-02-04`.
-- [ ] TP-02-05 executed with raw output recorded at `report.md#tp-02-05`.
-- [ ] TP-02-06 executed with raw output recorded at `report.md#tp-02-06`.
-- [ ] TP-02-07 executed with raw output recorded at `report.md#tp-02-07`.
-- [ ] TP-02-08 executed with raw output recorded at `report.md#tp-02-08`.
-- [ ] TP-02-09 executed with raw output recorded at `report.md#tp-02-09`.
-- [ ] TP-02-10 executed with raw output recorded at `report.md#tp-02-10`.
-- [ ] TP-02-11 executed with raw output recorded at `report.md#tp-02-11`.
+#### Tier 1 - Behavior
+
+- [x] SCN-019-005, SCN-019-006, and SCN-019-016 satisfy the exact Given/When/Then contracts above.
+
+   Evidence:
+
+   ```text
+   # Scope 2 Tier 1 Gherkin behavior validation
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1932
+   sha256: a658cee67354353a94d04e7558088d6407295192b5a86e2c46783096d264a10d
+   SCN-019-005 paused topic skips review and preserves every historical reference
+   TP-02-01: paused is an explicit non-researched outcome and preserves every historical ref
+   SCN-019-006 retirement appends one lifecycle event without deleting history
+   TP-02-02: retirement adds exactly one dated lifecycle row after the unchanged prior ledger
+   SCN-019-016 generation review dossier and event identities are deterministic and immutable
+   Research-Lab self-test: 1663 passed, 0 failed
+   ```
+
+- [x] Every generation, review, dossier, source, lifecycle, and correction identity is deterministic and create-only.
+
+   Evidence:
+
+   ```text
+   # Scope 2 Tier 1 immutable identity validation
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1932
+   sha256: f82d7136ce136fba901f811ee781dfa6b9675b4de503872d2155231083608237
+   SCN-019-016 generation review dossier and event identities are deterministic and immutable
+   TP-02-03: generation review and substantive dossier identities repeat exactly and change with inputs
+   TP-02-03: source and ledger event identities are deterministic without clock or filesystem input
+   TP-02-04: generation review dossier source and calibration paths all reject a second create before mutation
+   TP-02-04: mismatched identity paths and missing predecessors refuse while predecessor bytes remain identical
+   Research-Lab self-test: 1663 passed, 0 failed
+   ```
+
+- [x] The historical Iran seed is traceable to the existing note, visibly dated, and absent from current pointers until a real current review exists.
+
+   Evidence:
+
+   ```text
+   # Scope 2 committed artifact contract validation
+   $ node -e '<committed artifact contract validation>'
+   exit: 0
+   dossier-contract=PASS
+   historical-only=PASS
+   no-generation=PASS
+   no-review=PASS
+   note-digest=PASS
+   single-ledger-row=PASS
+   event-identity=PASS
+   artifact-ref=PASS
+   current-valid=PASS
+   current-empty=PASS
+   SCOPE2_ARTIFACT_CONTRACT=PASS
+   ```
+
+- [x] Paused and retired states preserve all prior records and remain distinct from a failed attempted review.
+
+   Evidence:
+
+   ```text
+   # Scope 2 Tier 1 paused and retired distinction validation
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1932
+   sha256: 623c40cb32331a109fd35679f337932ffb9ab692f216b73354449276780796b1
+   SCN-019-005 paused topic skips review and preserves every historical reference
+   TP-02-01: classification mutates no history and never reports a failed review
+   SCN-019-006 retirement appends one lifecycle event without deleting history
+   TP-02-02: retirement leaves the historical dossier and its reference byte-identical
+   Research-Lab self-test: 1663 passed, 0 failed
+   verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 623c40cb32331a109fd35679f337932ffb9ab692f216b73354449276780796b1 -- node scripts/selftest.mjs
+   ```
+
+#### Tier 2 - Test Evidence (7 rows)
+
+The seven items below are the complete test-related DoD inventory for this
+scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
+`test-plan.json`.
+
+- [x] TP-02-01: `scripts/selftest.mjs` executes `SCN-019-005 paused topic skips review and preserves every historical reference` with fresh evidence.
+
+   Evidence:
+
+   ```text
+   # TP-02-01 paused lifecycle and history preservation
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1932
+   sha256: 2adf56592ed38389d5301b6c66f8c8ae2befc3971dc5f6a6806666fc1c916a30
+   SCN-019-005 paused topic skips review and preserves every historical reference
+   TP-02-01: paused is an explicit non-researched outcome and preserves every historical ref
+   TP-02-01: classification mutates no history and never reports a failed review
+   Research-Lab self-test: 1663 passed, 0 failed
+   verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 2adf56592ed38389d5301b6c66f8c8ae2befc3971dc5f6a6806666fc1c916a30 -- node scripts/selftest.mjs
+   ```
+
+- [x] TP-02-02: `scripts/selftest.mjs` executes `SCN-019-006 retirement appends one lifecycle event without deleting history` with fresh evidence.
+
+   Evidence:
+
+   ```text
+   # TP-02-02 retirement append-only lifecycle event
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1932
+   sha256: 22c6b9df7617b70891c101bb9c5a18c56e2229dd2405fbb97cc66903e6aecb85
+   SCN-019-006 retirement appends one lifecycle event without deleting history
+   TP-02-02: retirement adds exactly one dated lifecycle row after the unchanged prior ledger
+   TP-02-02: retirement leaves the historical dossier and its reference byte-identical
+   Research-Lab self-test: 1663 passed, 0 failed
+   verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 22c6b9df7617b70891c101bb9c5a18c56e2229dd2405fbb97cc66903e6aecb85 -- node scripts/selftest.mjs
+   ```
+
+- [x] TP-02-03: `scripts/selftest.mjs` executes `SCN-019-016 generation review dossier and event identities are deterministic and immutable` with fresh evidence.
+
+   Evidence:
+
+   ```text
+   # TP-02-03 deterministic immutable identities
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1932
+   sha256: 54c0f37423f66288244dc79fe8c941a045d74420ce4750bbe0d31776f4d807e0
+   SCN-019-016 generation review dossier and event identities are deterministic and immutable
+   TP-02-03: generation review and substantive dossier identities repeat exactly and change with inputs
+   TP-02-03: source and ledger event identities are deterministic without clock or filesystem input
+   Research-Lab self-test: 1663 passed, 0 failed
+   verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 54c0f37423f66288244dc79fe8c941a045d74420ce4750bbe0d31776f4d807e0 -- node scripts/selftest.mjs
+   ```
+
+- [x] TP-02-04: `scripts/selftest.mjs` executes `Regression: overwrite attempts refuse before mutation and preserve predecessor bytes` with fresh evidence.
+
+   Evidence:
+
+   ```text
+   # TP-02-04 immutable overwrite refusal and byte preservation
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1932
+   sha256: 6f08a066c97b9a9f5e8feb9d0d78e4c2ee3acc909a0b3c18d5bd727e6623df3a
+   Regression: overwrite attempts refuse before mutation and preserve predecessor bytes
+   TP-02-04: generation review dossier source and calibration paths all reject a second create before mutation
+   TP-02-04: mismatched identity paths and missing predecessors refuse while predecessor bytes remain identical
+   Research-Lab self-test: 1663 passed, 0 failed
+   verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 6f08a066c97b9a9f5e8feb9d0d78e4c2ee3acc909a0b3c18d5bd727e6623df3a -- node scripts/selftest.mjs
+   ```
+
+- [x] TP-02-05: `scripts/selftest.mjs` executes `Regression: correction appends a new event and current pointer accepts only validated immutable refs` with fresh evidence.
+
+   Evidence:
+
+   ```text
+   # TP-02-05 correction append and current pointer integrity
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1932
+   sha256: 176c2d1f1cef3033599ab2120a1291e81f196882870b8f2975c4998ca457510d
+   Regression: correction appends a new event and current pointer accepts only validated immutable refs
+   TP-02-05: a correction is a new deterministic row and cannot target an absent event
+   TP-02-05: current accepts complete refs and refuses missing historical unvalidated incomplete or path-mismatched targets
+   Research-Lab self-test: 1663 passed, 0 failed
+   verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 176c2d1f1cef3033599ab2120a1291e81f196882870b8f2975c4998ca457510d -- node scripts/selftest.mjs
+   ```
+
+- [x] TP-02-06: `scripts/selftest.mjs` executes `Historical Iran seed retains its dated source context and is never inferred current` with fresh evidence.
+
+   Evidence:
+
+   ```text
+   # TP-02-06 dated historical seed is never current
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1932
+   sha256: e75eff78cf0f59382471e4549b467be2a465d93a655a5e454ececf37c31a7ba0
+   Historical Iran seed retains its dated source context and is never inferred current
+   TP-02-06: the seed is visibly historical and byte-traceable to the unchanged August 10 source note
+   TP-02-06: every dated finding carries provenance and the eight historical sections retain public source links
+   TP-02-06: the ledger records the dated seed while the initial pointer infers no current generation or review
+   Research-Lab self-test: 1663 passed, 0 failed
+   verify: bash .github/bubbles/scripts/evidence-capture.sh --verify e75eff78cf0f59382471e4549b467be2a465d93a655a5e454ececf37c31a7ba0 -- node scripts/selftest.mjs
+   ```
+
+- [x] TP-02-07: `tests/distributed-briefs.history.e2e.mjs` executes `SCN-019-016 real history resolves current and predecessor records without rewriting either` with fresh evidence.
+
+   Evidence:
+
+   ```text
+   # TP-02-07 real history current and predecessor round trip
+   $ node --test tests/distributed-briefs.history.e2e.mjs
+   exit: 0
+   lines: 11
+   sha256: 4550e54a58e5804c3d3fd892b764b00a9c0c84f904630867f7e8dbc1f9b695d3
+   Regression: SCN-002-007 one tool current and monthly history resolve without unrelated narrative reads
+   Regression: SCN-002-008 duplicate projection index rebuild and rollback preserve append-only authority
+   SCN-019-016 real history resolves current and predecessor records without rewriting either
+   tests 3
+   pass 3
+   fail 0
+   cancelled 0
+   skipped 0
+   todo 0
+   ```
+
+#### Tier 3 - Parity And Policy
+
+- [x] Markdown Test Plan rows, `test-plan.json`, and `scenario-manifest.json` contain the same row and scenario mappings.
+
+   Evidence:
+
+   ```text
+   # Feature 019 traceability guard with Scope 2 active
+   $ bash .github/bubbles/scripts/traceability-guard.sh specs/019-custom-recurring-research-agenda --all-scopes
+   exit: 0
+   lines: 159
+   sha256: f79906af9811cc76c5b5fe293f70b0ddc8b83aa46bec207b8fb37171c86e3de4
+   scenario-manifest.json covers 20 scenario contract(s)
+   scenario-manifest.json records evidenceRefs
+   All linked tests from scenario-manifest.json exist
+   DoD fidelity: 20 scenarios checked, 20 mapped to DoD, 0 unmapped
+   RESULT: PASSED (0 warnings)
+   ```
+
+- [x] Artifact and reference checks resolve every planned immutable family while treating the source note as read-only.
+
+   Evidence:
+
+   ```text
+   # Feature 019 artifact freshness with Scope 2 active
+   $ bash .github/bubbles/scripts/artifact-freshness-guard.sh specs/019-custom-recurring-research-agenda
+   exit: 0
+   lines: 24
+   sha256: 8007101a590c6628d5b9fb68672979fbe2580174bb07014bd52c999f88429139
+   spec.md has no superseded/suppressed sections
+   design.md has no superseded/suppressed sections
+   No superseded scope sections detected
+   All per-scope directories are referenced by scopes/_index.md
+   RESULT: PASS (0 failures, 0 warnings)
+   verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 8007101a590c6628d5b9fb68672979fbe2580174bb07014bd52c999f88429139 -- bash .github/bubbles/scripts/artifact-freshness-guard.sh specs/019-custom-recurring-research-agenda
+   ```
+
+- [x] The implementation diff stays inside the declared change boundary; the note and every excluded brief/destination surface remain byte-identical.
+
+   Evidence:
+
+   ```text
+   # Scope 2 change-boundary classifier
+   exit: 0
+   lines: 13
+   sha256: 63a2995edeb7361cc9f87f3652559c807b5d6bc6a18b4e1f748d28252d81df36
+   changedPaths=31
+   scope2Paths=9
+   inheritedPaths=22
+   unknownPaths=0
+   feature020OrBriefDestinations=0
+   sourceNoteDiffExit=0
+   unknownList=none
+   destinationList=none
+   SCOPE2_BOUNDARY=PASS
+   ```
+
+- [x] Artifact lint, traceability, artifact freshness, test-path, reference-existence, fence-parity, and diff checks pass.
+
+   Evidence:
+
+   ```text
+   # Scope 2 artifact lint before status transition
+   $ bash .github/bubbles/scripts/artifact-lint.sh specs/019-custom-recurring-research-agenda
+   exit: 0
+   lines: 94
+   sha256: 77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c
+   Per-scope layout contains 5 scope file(s)
+   Every per-scope directory has a report.md file
+   All DoD bullet items use checkbox syntax in scopes/02-topic-lifecycle/scope.md
+   No unfilled evidence template placeholders in scopes/02-topic-lifecycle/report.md
+   Artifact lint PASSED.
+   verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c -- bash .github/bubbles/scripts/artifact-lint.sh specs/019-custom-recurring-research-agenda
+   ```
+
+---
+
+*Educational models only - not investment advice.*

@@ -1,0 +1,51 @@
+{
+  "contractVersion": "research-review/v1",
+  "generationId": "generation-2dd4385a0919e49a28e2eed63fc014d8e2d8a4a077a3595a57811e23e9622a5e",
+  "topicId": "defense-earnings-acceleration",
+  "mode": "cadence",
+  "selectionReason": "first-review",
+  "attemptedAt": "2026-08-13T22:45:15.063Z",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "research-lane-unavailable",
+  "newestEvidenceAgeHours": null,
+  "sectionStates": [
+    {
+      "sectionId": "consensus-revisions",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "production-capacity",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "backlog-conversion",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    }
+  ],
+  "evidenceIds": [],
+  "modelOutputs": null,
+  "predecessorDossierId": null,
+  "dossierId": null,
+  "reviewId": "review-d36d4c18cd0030f4be22064dfae4c79e82348ca655ad5574cb4db219a52da3f2",
+  "validationState": "validated",
+  "historicalOnly": false
+}

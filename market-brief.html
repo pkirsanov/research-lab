@@ -924,6 +924,53 @@
             margin: 0
         }
 
+        #standingResearch {
+            padding: 14px 0 20px;
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line)
+        }
+
+        .research-agenda-list {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1px;
+            background: var(--line);
+            border: 1px solid var(--line)
+        }
+
+        .research-agenda-row {
+            min-width: 0;
+            padding: 14px;
+            background: var(--panel2)
+        }
+
+        .research-agenda-row h3 {
+            margin: 0 0 7px;
+            font-size: 14px;
+            overflow-wrap: anywhere
+        }
+
+        .research-agenda-row p {
+            color: var(--muted);
+            min-height: 3.8em;
+            overflow-wrap: anywhere
+        }
+
+        .research-agenda-state {
+            display: inline-block;
+            padding: 3px 8px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            color: var(--muted);
+            font-size: 11px;
+            text-transform: uppercase
+        }
+
+        @media (max-width: 720px) {
+            .research-agenda-list { grid-template-columns: 1fr }
+            .research-agenda-row p { min-height: 0 }
+        }
+
         .attn-record-label {
             font-size: 11px;
             text-transform: uppercase;
@@ -986,6 +1033,10 @@
             title="Only recommendations that clear the immediate-action bar: a concrete action, trigger and minimum confidence. Watch-only ideas stay in their owning tools.">
             Next trading session — actions only</h2>
         <div id="nextSession"></div>
+
+        <h2 class="sec" title="Recurring public research reviewed on its declared generation or cadence. Missing current evidence is shown as unavailable rather than filled from a prior dossier.">
+            Standing research — current generation</h2>
+        <section id="standingResearch" aria-label="Standing research agenda"></section>
 
         <details class="drawer">
             <summary>⌄ Structural backdrop and invalidation map</summary>
@@ -1569,6 +1620,7 @@
                 RLBRIEF.renderScorecard(el("scorecard"), SCORECARD);
                 RLBRIEF.renderRegimeStrip(el("regimeStrip"), PAYLOAD && PAYLOAD.regime);
                 RLBRIEF.renderNextSession(el("nextSession"), PAYLOAD && PAYLOAD.nextSession, PAYLOAD && PAYLOAD.recommendations, CFG, SNAP);
+                RLBRIEF.renderResearchAgenda(el("standingResearch"), PAYLOAD && PAYLOAD.researchAgenda);
                 RLBRIEF.renderBackdrop(el("backdrop"), PAYLOAD && PAYLOAD.backdrop);
                 renderAttentionFromPayload();
                 /* H-4: the two lists are held to different standards, so they

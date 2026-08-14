@@ -1,0 +1,262 @@
+{
+  "contractVersion": "research-dossier/v1",
+  "dossierId": "historical-2026-08-10-v1",
+  "topicId": "geopolitical-supply-shock",
+  "generationId": null,
+  "reviewId": null,
+  "historicalOnly": true,
+  "validationState": "validated",
+  "recordedAt": "2026-08-10T23:59:59.000Z",
+  "observedThrough": "2026-08-10T14:44:00.000Z",
+  "outcome": "historical-seed",
+  "predecessorDossierId": null,
+  "supersedesDossierId": null,
+  "declaredQuestionSha256": "sha256:54b82ad812c22fff4f5d2f3553fcd9d0f25431da5f52b5eccfc64bb880e38319",
+  "sourceNote": {
+    "path": "notes/us-iran-oil-market-intervention-patterns.md",
+    "sha256": "sha256:626ac878b64b4c704aace7b09f7ecbb190a9cd0aa22f9126a51408638cab2d44",
+    "title": "U.S.-Iran Oil-Market Intervention Patterns",
+    "snapshotDate": "2026-08-10",
+    "readOnly": true
+  },
+  "calibrationContext": {
+    "ref": "research/agenda/topics/geopolitical-supply-shock.calibration.json",
+    "version": "v1.0.0",
+    "use": "historical-context-only"
+  },
+  "sectionSnapshots": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "historical",
+      "summary": "The United States alternated physical tightening, inventory suppression, and communication easing; Iran used selective transit control as negotiating leverage."
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "historical",
+      "summary": "The dated estimate assigned 50 percent to managed coercion, 30 percent to staged reopening, and 20 percent to a dual-route or infrastructure shock."
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "historical",
+      "summary": "Reported Hormuz crossings remained far below the pre-war level, and bypass capacity could not replace normal flow."
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "historical",
+      "summary": "The snapshot linked disruption to seaborne crude, refined products, LNG, shipping insurance, inflation, and broad risk assets."
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "historical",
+      "summary": "The note identified producers as potential beneficiaries and airlines, transports, chemicals, and consumers as exposed to higher costs without publishing a current trade instruction."
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "historical",
+      "summary": "Physical transit, insurance, loadings, new attacks, blockade enforcement, and written sequencing were the principal confirmation variables."
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "historical",
+      "summary": "The snapshot cited public wire, official, company, and news sources available through August 10, 2026."
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "historical",
+      "summary": "No predecessor existed; this record is historical context and cannot smooth or substitute for a current-generation review."
+    }
+  ],
+  "scenarioSnapshot": [
+    {
+      "scenarioId": "managed-coercion",
+      "probability": 0.5,
+      "brentRangeUsd": [80, 95],
+      "wtiRangeUsd": [74, 89]
+    },
+    {
+      "scenarioId": "staged-reopening",
+      "probability": 0.3,
+      "brentRangeUsd": [75, 82],
+      "wtiRangeUsd": [69, 77]
+    },
+    {
+      "scenarioId": "dual-route-or-infrastructure-shock",
+      "probability": 0.2,
+      "brentRangeUsd": [95, 115],
+      "wtiRangeUsd": [88, 107]
+    }
+  ],
+  "findings": [
+    {
+      "findingId": "historical-hormuz-flow-share",
+      "observedAt": "2026-03-03T00:00:00.000Z",
+      "claim": "EIA estimated first-half 2025 Hormuz flow at 20.9 million barrels per day, about one fifth of global liquids consumption, while Saudi and UAE bypass capacity was about 4.7 million barrels per day.",
+      "source": {
+        "sourceIds": ["eia-world-oil-transit-chokepoints"]
+      },
+      "statedConfidence": {
+        "grade": "high",
+        "basis": "direct public statistical source"
+      },
+      "provenanceClass": "observed-fact",
+      "evidenceRole": "direct",
+      "causalPath": ["hormuz-flow", "global-marginal-supply", "seaborne-crude-price"],
+      "limitations": ["The cited flow estimate predates the August 2026 snapshot."]
+    },
+    {
+      "findingId": "historical-august-8-vessel-incident",
+      "observedAt": "2026-08-08T00:00:00.000Z",
+      "claim": "The UAE attributed a missile strike on an ADNOC-affiliated tanker to Iran; UKMTO independently reported a projectile hit and contained fire but did not independently attribute the attacker.",
+      "source": {
+        "sourceIds": ["reuters-2026-08-08-hormuz", "cnbc-2026-08-08-uae-ship", "aljazeera-2026-08-08-adnoc-tanker"]
+      },
+      "statedConfidence": {
+        "grade": "moderate",
+        "basis": "incident corroboration without independent attacker attribution"
+      },
+      "provenanceClass": "observed-fact",
+      "evidenceRole": "direct",
+      "causalPath": ["vessel-incident", "transit-risk", "insurance-and-flow-capacity"],
+      "limitations": ["The snapshot found no immediate Iranian confirmation in the cited report."]
+    },
+    {
+      "findingId": "historical-us-reaction-function",
+      "observedAt": "2026-08-10T14:44:00.000Z",
+      "claim": "Across the dated chronology, the United States escalated physical pressure after failed deterrence while using reserve releases, insurance support, escorts, pauses, and deal communication to limit price and inflation effects.",
+      "source": {
+        "sourceIds": ["reuters-2026-03-11-spr", "reuters-2026-06-10-escalation", "reuters-2026-07-27-pause"]
+      },
+      "statedConfidence": {
+        "grade": "moderate",
+        "basis": "analyst synthesis across multiple public dated interventions"
+      },
+      "provenanceClass": "model-estimate",
+      "evidenceRole": "model-inference",
+      "causalPath": ["us-policy-choice", "physical-or-inventory-flow", "oil-risk-premium"],
+      "limitations": ["Same-day oil moves have confounding macroeconomic and inventory drivers."]
+    },
+    {
+      "findingId": "historical-iran-reaction-function",
+      "observedAt": "2026-08-10T14:44:00.000Z",
+      "claim": "The dated evidence supported coercive control of transit and selective enforcement as Iranian bargaining mechanisms, with reopening linked to compensation, sanctions relief, released assets, and limits on force.",
+      "source": {
+        "sourceIds": ["reuters-2026-08-05-route-and-fees", "reuters-2026-08-10-reopening-terms", "cnbc-2026-08-10-hormuz-conditions"]
+      },
+      "statedConfidence": {
+        "grade": "moderate",
+        "basis": "public terms and repeated observed behavior, with intent inferred"
+      },
+      "provenanceClass": "model-estimate",
+      "evidenceRole": "indirect",
+      "causalPath": ["selective-enforcement", "negotiating-leverage", "insured-effective-flow"],
+      "limitations": ["The evidence did not establish a secret order or a singular motive."]
+    },
+    {
+      "findingId": "historical-failed-reopening-upward-skew",
+      "observedAt": "2026-08-10T14:44:00.000Z",
+      "claim": "The snapshot assessed upward oil skew because reopening optimism had reversed while the reported physical system remained impaired, alongside substantial two-way headline risk.",
+      "source": {
+        "sourceIds": ["reuters-2026-08-10-oil-repricing"]
+      },
+      "statedConfidence": {
+        "grade": "moderate",
+        "basis": "dated market observation plus analyst scenario interpretation"
+      },
+      "provenanceClass": "model-estimate",
+      "evidenceRole": "model-inference",
+      "causalPath": ["failed-reopening-narrative", "persistent-flow-impairment", "oil-upside-skew"],
+      "limitations": ["The ranges were analyst estimates, not a supply-demand valuation model."]
+    },
+    {
+      "findingId": "historical-no-price-manipulation-proof",
+      "observedAt": "2026-08-10T14:44:00.000Z",
+      "claim": "The review found no proof that Iran selected the August 8 target specifically to raise oil prices and no evidence that the March 5 U.S. futures-market proposal was implemented.",
+      "source": {
+        "sourceIds": ["historical-source-note"]
+      },
+      "statedConfidence": {
+        "grade": "high",
+        "basis": "explicit no-evidence boundary of the source review"
+      },
+      "provenanceClass": "observed-fact",
+      "evidenceRole": "direct",
+      "causalPath": ["evidence-boundary", "withheld-causal-claim"],
+      "limitations": ["Absence in the reviewed public sources is not proof that no private motive existed."]
+    }
+  ],
+  "sourceLedger": [
+    {
+      "sourceId": "eia-world-oil-transit-chokepoints",
+      "publisher": "U.S. Energy Information Administration",
+      "canonicalUrl": "https://www.eia.gov/international/content/analysis/special_topics/World_Oil_Transit_Chokepoints/",
+      "observedAt": "2026-03-03T00:00:00.000Z"
+    },
+    {
+      "sourceId": "reuters-2026-08-08-hormuz",
+      "publisher": "Reuters",
+      "canonicalUrl": "https://www.reuters.com/world/middle-east/iran-says-deal-strait-hormuz-is-close-will-not-open-waterway-by-itself-2026-08-08/",
+      "observedAt": "2026-08-08T00:00:00.000Z"
+    },
+    {
+      "sourceId": "cnbc-2026-08-08-uae-ship",
+      "publisher": "CNBC",
+      "canonicalUrl": "https://www.cnbc.com/2026/08/08/uae-ship-targeted-missile-us-iran-tensions-stay-high.html",
+      "observedAt": "2026-08-08T00:00:00.000Z"
+    },
+    {
+      "sourceId": "aljazeera-2026-08-08-adnoc-tanker",
+      "publisher": "Al Jazeera",
+      "canonicalUrl": "https://www.aljazeera.com/news/2026/8/8/uae-says-iran-targeted-adnoc-tanker-in-hormuz-no-casualties-2",
+      "observedAt": "2026-08-08T00:00:00.000Z"
+    },
+    {
+      "sourceId": "reuters-2026-03-11-spr",
+      "publisher": "Reuters",
+      "canonicalUrl": "https://www.reuters.com/business/energy/us-release-172-million-barrels-oil-strategic-petroleum-reserve-2026-03-11/",
+      "observedAt": "2026-03-11T00:00:00.000Z"
+    },
+    {
+      "sourceId": "reuters-2026-06-10-escalation",
+      "publisher": "Reuters",
+      "canonicalUrl": "https://www.reuters.com/business/energy/oil-rises-nearly-1-us-launches-new-strikes-against-iran-supply-tightens-2026-06-10/",
+      "observedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "sourceId": "reuters-2026-07-27-pause",
+      "publisher": "Reuters",
+      "canonicalUrl": "https://www.reuters.com/business/energy/oil-slips-more-than-5-after-us-pauses-strikes-iran-2026-07-26/",
+      "observedAt": "2026-07-27T00:00:00.000Z"
+    },
+    {
+      "sourceId": "reuters-2026-08-05-route-and-fees",
+      "publisher": "Reuters",
+      "canonicalUrl": "https://www.reuters.com/world/middle-east/us-iran-having-very-good-discussions-trump-says-2026-08-05/",
+      "observedAt": "2026-08-05T00:00:00.000Z"
+    },
+    {
+      "sourceId": "reuters-2026-08-10-reopening-terms",
+      "publisher": "Reuters",
+      "canonicalUrl": "https://www.reuters.com/world/middle-east/iran-ties-hormuz-reopening-us-concessions-several-demands-2026-08-09/",
+      "observedAt": "2026-08-10T00:00:00.000Z"
+    },
+    {
+      "sourceId": "cnbc-2026-08-10-hormuz-conditions",
+      "publisher": "CNBC",
+      "canonicalUrl": "https://www.cnbc.com/2026/08/10/us-iran-war-trump-hormuz-oman-ships-blockade-shipping.html",
+      "observedAt": "2026-08-10T00:00:00.000Z"
+    },
+    {
+      "sourceId": "reuters-2026-08-10-oil-repricing",
+      "publisher": "Reuters",
+      "canonicalUrl": "https://www.reuters.com/business/energy/oil-rises-uncertainty-continues-over-reopening-strait-2026-08-09/",
+      "observedAt": "2026-08-10T14:44:00.000Z"
+    }
+  ],
+  "limitations": [
+    "This is a historical snapshot through 2026-08-10, not a current-generation review.",
+    "Daily price reactions are contemporaneous observations, not clean causal estimates.",
+    "Scenario probabilities and price bands are dated analyst estimates and not investment advice.",
+    "The dossier does not establish illegal market manipulation by either state.",
+    "No current pointer may reference this historical-only record."
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "contractVersion": "research-agenda/v1",
+  "defaultReviewMode": "cadence",
+  "reviewPolicy": {
+    "maxActiveEveryGenerationTopics": 1,
+    "cadenceTopicReviewBudget": 1,
+    "cadenceSelectionOrder": [
+      "trigger-fired-first",
+      "oldest-last-review",
+      "declaration-order",
+      "topic-id"
+    ],
+    "maxConcurrentTopicAcquisitions": 2,
+    "researchAuthoring": {
+      "timeoutSeconds": 900,
+      "attempts": 1,
+      "concurrency": 1,
+      "maxInputBytes": 524288,
+      "maxOutputBytes": 524288
+    }
+  },
+  "topics": []
+}

@@ -591,6 +591,21 @@
                 "redirects": "none",
                 "scheme": "https",
                 "port": 443
+            },
+            "research-agenda": {
+                "maxQueries": 12,
+                "maxCandidateUrls": 48,
+                "maxRetainedOrigins": 16,
+                "maxRetainedExcerpts": 48,
+                "maxExcerptBytes": 1200,
+                "maxResponseBytesPerUrl": 1048576,
+                "maxBundleBytes": 524288,
+                "perRequestTimeoutMs": 10000,
+                "totalAcquisitionMs": 90000,
+                "maxConcurrentFetches": 4,
+                "redirects": "none",
+                "scheme": "https",
+                "port": 443
             }
         }
     },

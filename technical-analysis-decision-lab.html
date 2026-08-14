@@ -927,6 +927,417 @@
       return digest.ok ? tadDeepFreeze({ ok: true, value: "tad-source-set:" + digest.value, digest: digest.value, sources: identityRows, errors: [] }) : digest;
     }
 
+    /* ---------- Feature 007 Scope 02: technique engine ---------- */
+
+    function tadTechniqueOutcome(techniqueId, familyId, clusterId, status, metrics) {
+      return tadDeepFreeze({ ok: true, techniqueId: techniqueId, familyId: familyId, clusterId: clusterId, status: status, metrics: metrics, errors: [] });
+    }
+
+    function tadTechniqueRefusal(techniqueId, code, observed, required, action, message) {
+      return tadDeepFreeze({ ok: false, techniqueId: techniqueId, familyId: null, clusterId: null, status: "unavailable", metrics: {}, errors: [tadError(code, "error", "$", null, observed, required, action, message)] });
+    }
+
+    function tadTechniqueColumns(bars, fields, techniqueId, minimum) {
+      if (!Array.isArray(bars) || bars.length < minimum) return { ok: false, refusal: tadTechniqueRefusal(techniqueId, "TAD-TECHNIQUE-HISTORY", Array.isArray(bars) ? bars.length : 0, minimum + " qualified bars", "extend the qualified history", "Technique history is insufficient.") };
+      var columns = {}, index = 0;
+      for (; index < fields.length; index += 1) {
+        var field = fields[index], series = [];
+        for (var row = 0; row < bars.length; row += 1) {
+          var value = bars[row] ? bars[row][field] : undefined;
+          if (typeof value !== "number" || !Number.isFinite(value)) return { ok: false, refusal: tadTechniqueRefusal(techniqueId, "TAD-TECHNIQUE-FINITE", value, "finite " + field, "supply finite qualified bars", "Technique input is not finite.") };
+          series.push(value);
+        }
+        columns[field] = series;
+      }
+      return { ok: true, columns: columns };
+    }
+
+    function tadEmaValues(values, length) {
+      var multiplier = 2 / (length + 1), seed = 0, out = [], index = 0;
+      for (; index < length; index += 1) seed += values[index];
+      var previous = seed / length;
+      out.push(previous);
+      for (index = length; index < values.length; index += 1) { previous = (values[index] - previous) * multiplier + previous; out.push(previous); }
+      return out;
+    }
+
+    function tadWilderValues(values, length) {
+      var sum = 0, out = [], index = 0;
+      for (; index < length; index += 1) sum += values[index];
+      var previous = sum / length;
+      out.push(previous);
+      for (index = length; index < values.length; index += 1) { previous = (previous * (length - 1) + values[index]) / length; out.push(previous); }
+      return out;
+    }
+
+    function tadSmaSeries(bars, parameters) {
+      var lengths = parameters && Array.isArray(parameters.lengths) ? parameters.lengths.slice() : [20, 50, 200];
+      if (!lengths.length || lengths.some(function (n) { return !Number.isFinite(n) || n !== Math.floor(n) || n < 2 || n > 500; })) return tadTechniqueRefusal("sma-stack/v1", "TAD-TECHNIQUE-PARAMETER", lengths, "integer lengths within 2..500", "correct the declared lengths", "Moving-average length is out of declared bounds.");
+      var ordered = lengths.slice().sort(function (a, b) { return a - b; }), longest = ordered[ordered.length - 1];
+      var input = tadTechniqueColumns(bars, ["c"], "sma-stack/v1", longest);
+      if (!input.ok) return input.refusal;
+      var closes = input.columns.c, latest = {}, shortest = null;
+      ordered.forEach(function (n) {
+        var series = [];
+        for (var i = n - 1; i < closes.length; i += 1) { var sum = 0; for (var k = i - n + 1; k <= i; k += 1) sum += closes[k]; series.push(sum / n); }
+        latest[n] = series[series.length - 1];
+        if (shortest === null) shortest = series;
+      });
+      var up = true, down = true;
+      for (var step = 1; step < ordered.length; step += 1) {
+        if (!(latest[ordered[step - 1]] > latest[ordered[step]])) up = false;
+        if (!(latest[ordered[step - 1]] < latest[ordered[step]])) down = false;
+      }
+      var close = closes[closes.length - 1], slope = shortest.length >= 2 ? shortest[shortest.length - 1] - shortest[shortest.length - 2] : 0;
+      return tadTechniqueOutcome("sma-stack/v1", "trend-filters", "moving-average", up ? "stacked-up" : down ? "stacked-down" : "tangled", { lengths: ordered, averages: ordered.map(function (n) { return latest[n]; }), slope: slope, close: close, distanceFromLongest: close - latest[longest] });
+    }
+
+    function tadEmaSeries(bars, parameters) {
+      var lengths = parameters && Array.isArray(parameters.lengths) ? parameters.lengths.slice() : [20, 50, 200];
+      if (!lengths.length || lengths.some(function (n) { return !Number.isFinite(n) || n !== Math.floor(n) || n < 2 || n > 500; })) return tadTechniqueRefusal("ema-stack/v1", "TAD-TECHNIQUE-PARAMETER", lengths, "integer lengths within 2..500", "correct the declared lengths", "Moving-average length is out of declared bounds.");
+      var ordered = lengths.slice().sort(function (a, b) { return a - b; }), longest = ordered[ordered.length - 1];
+      var input = tadTechniqueColumns(bars, ["c"], "ema-stack/v1", longest);
+      if (!input.ok) return input.refusal;
+      var closes = input.columns.c, latest = {}, shortest = null;
+      ordered.forEach(function (n) { var series = tadEmaValues(closes, n); latest[n] = series[series.length - 1]; if (shortest === null) shortest = series; });
+      var up = true, down = true;
+      for (var step = 1; step < ordered.length; step += 1) {
+        if (!(latest[ordered[step - 1]] > latest[ordered[step]])) up = false;
+        if (!(latest[ordered[step - 1]] < latest[ordered[step]])) down = false;
+      }
+      var close = closes[closes.length - 1], slope = shortest.length >= 2 ? shortest[shortest.length - 1] - shortest[shortest.length - 2] : 0;
+      return tadTechniqueOutcome("ema-stack/v1", "trend-filters", "moving-average", up ? "stacked-up" : down ? "stacked-down" : "tangled", { lengths: ordered, averages: ordered.map(function (n) { return latest[n]; }), slope: slope, close: close, distanceFromLongest: close - latest[longest] });
+    }
+
+    function tadAtrSeries(bars, parameters) {
+      var lookback = parameters && Number.isFinite(parameters.lookback) ? parameters.lookback : 14;
+      if (lookback !== Math.floor(lookback) || lookback < 2 || lookback > 500) return tadTechniqueRefusal("atr-atrp/v1", "TAD-TECHNIQUE-PARAMETER", lookback, "integer lookback within 2..500", "correct the declared lookback", "ATR lookback is out of declared bounds.");
+      var input = tadTechniqueColumns(bars, ["h", "l", "c"], "atr-atrp/v1", lookback + 1);
+      if (!input.ok) return input.refusal;
+      var high = input.columns.h, low = input.columns.l, close = input.columns.c, ranges = [];
+      for (var i = 1; i < close.length; i += 1) ranges.push(Math.max(high[i] - low[i], Math.abs(high[i] - close[i - 1]), Math.abs(low[i] - close[i - 1])));
+      var atrValues = tadWilderValues(ranges, lookback), atr = atrValues[atrValues.length - 1], last = close[close.length - 1];
+      if (!(last > 0)) return tadTechniqueRefusal("atr-atrp/v1", "TAD-TECHNIQUE-FINITE", last, "positive close for percentage scaling", "supply a positive close", "ATR percentage requires a positive close.");
+      var atrp = atr / last * 100, sorted = atrValues.slice().sort(function (a, b) { return a - b; });
+      var lowBand = sorted[Math.floor(sorted.length * 0.33)], highBand = sorted[Math.floor(sorted.length * 0.67)];
+      return tadTechniqueOutcome("atr-atrp/v1", "volatility-displacement", "true-range", atr <= lowBand ? "low" : atr >= highBand ? "high" : "normal", { atr: atr, atrPercent: atrp, lookback: lookback, observations: atrValues.length });
+    }
+
+    function tadRsiSeries(bars, parameters) {
+      var lookback = parameters && Number.isFinite(parameters.lookback) ? parameters.lookback : 14;
+      if (lookback !== Math.floor(lookback) || lookback < 2 || lookback > 500) return tadTechniqueRefusal("rsi-wilder/v1", "TAD-TECHNIQUE-PARAMETER", lookback, "integer lookback within 2..500", "correct the declared lookback", "RSI lookback is out of declared bounds.");
+      var input = tadTechniqueColumns(bars, ["c"], "rsi-wilder/v1", lookback + 1);
+      if (!input.ok) return input.refusal;
+      var closes = input.columns.c, gains = [], losses = [];
+      for (var i = 1; i < closes.length; i += 1) { var change = closes[i] - closes[i - 1]; gains.push(change > 0 ? change : 0); losses.push(change < 0 ? -change : 0); }
+      var avgGain = tadWilderValues(gains, lookback), avgLoss = tadWilderValues(losses, lookback);
+      var gain = avgGain[avgGain.length - 1], loss = avgLoss[avgLoss.length - 1];
+      var rsi = loss === 0 ? 100 : 100 - 100 / (1 + gain / loss);
+      var status = rsi >= 70 ? "overbought-context" : rsi <= 30 ? "oversold-context" : rsi >= 50 ? "strong" : "weak";
+      return tadTechniqueOutcome("rsi-wilder/v1", "momentum-transforms", "bounded-momentum", status, { rsi: rsi, averageGain: gain, averageLoss: loss, lookback: lookback });
+    }
+
+    function tadMacdSeries(bars, parameters) {
+      var fast = parameters && Number.isFinite(parameters.fast) ? parameters.fast : 12;
+      var slow = parameters && Number.isFinite(parameters.slow) ? parameters.slow : 26;
+      var signalLength = parameters && Number.isFinite(parameters.signal) ? parameters.signal : 9;
+      if ([fast, slow, signalLength].some(function (n) { return n !== Math.floor(n) || n < 2 || n > 500; }) || fast >= slow) return tadTechniqueRefusal("macd/v1", "TAD-TECHNIQUE-PARAMETER", [fast, slow, signalLength], "integer fast < slow within 2..500", "correct the declared MACD parameters", "MACD parameters are out of declared bounds.");
+      var input = tadTechniqueColumns(bars, ["c"], "macd/v1", slow + signalLength);
+      if (!input.ok) return input.refusal;
+      var closes = input.columns.c, fastValues = tadEmaValues(closes, fast), slowValues = tadEmaValues(closes, slow);
+      var offset = fastValues.length - slowValues.length, line = [];
+      for (var i = 0; i < slowValues.length; i += 1) line.push(fastValues[i + offset] - slowValues[i]);
+      if (line.length < signalLength) return tadTechniqueRefusal("macd/v1", "TAD-TECHNIQUE-HISTORY", line.length, signalLength + " MACD observations", "extend the qualified history", "MACD signal history is insufficient.");
+      var signalValues = tadEmaValues(line, signalLength), macd = line[line.length - 1], signal = signalValues[signalValues.length - 1];
+      var histogram = macd - signal, previousHistogram = signalValues.length >= 2 ? line[line.length - 2] - signalValues[signalValues.length - 2] : histogram;
+      var rising = histogram > previousHistogram;
+      var status = macd > 0 ? (rising ? "positive" : "weakening") : (rising ? "strengthening" : "negative");
+      return tadTechniqueOutcome("macd/v1", "momentum-transforms", "ema-momentum", status, { macd: macd, signal: signal, histogram: histogram, fast: fast, slow: slow, signalLength: signalLength });
+    }
+
+    function tadBollingerSeries(bars, parameters) {
+      var lookback = parameters && Number.isFinite(parameters.lookback) ? parameters.lookback : 20;
+      var deviations = parameters && Number.isFinite(parameters.deviations) ? parameters.deviations : 2;
+      if (lookback !== Math.floor(lookback) || lookback < 2 || lookback > 500 || !(deviations > 0) || deviations > 10) return tadTechniqueRefusal("bollinger/v1", "TAD-TECHNIQUE-PARAMETER", [lookback, deviations], "integer lookback within 2..500 and positive deviations", "correct the declared Bollinger parameters", "Bollinger parameters are out of declared bounds.");
+      var input = tadTechniqueColumns(bars, ["c"], "bollinger/v1", lookback);
+      if (!input.ok) return input.refusal;
+      var closes = input.columns.c, widths = [], center = 0, dispersion = 0, upper = 0, lower = 0;
+      for (var i = lookback - 1; i < closes.length; i += 1) {
+        var sum = 0, k;
+        for (k = i - lookback + 1; k <= i; k += 1) sum += closes[k];
+        center = sum / lookback;
+        var variance = 0;
+        for (k = i - lookback + 1; k <= i; k += 1) variance += (closes[k] - center) * (closes[k] - center);
+        dispersion = lookback > 1 ? Math.sqrt(variance / (lookback - 1)) : 0;
+        upper = center + deviations * dispersion; lower = center - deviations * dispersion;
+        widths.push(center !== 0 ? (upper - lower) / center : 0);
+      }
+      var close = closes[closes.length - 1], width = widths[widths.length - 1];
+      var sortedWidths = widths.slice().sort(function (a, b) { return a - b; });
+      var compressed = sortedWidths[Math.floor(sortedWidths.length * 0.33)], expanded = sortedWidths[Math.floor(sortedWidths.length * 0.67)];
+      var status = close > upper ? "upper-extension" : close < lower ? "lower-extension" : width <= compressed ? "compressed" : width >= expanded ? "expanded" : "compressed";
+      var position = upper > lower ? (close - lower) / (upper - lower) : 0.5;
+      return tadTechniqueOutcome("bollinger/v1", "volatility-displacement", "dispersion-envelope", status, { center: center, upper: upper, lower: lower, width: width, position: position, dispersion: dispersion, lookback: lookback, deviations: deviations });
+    }
+
+    function tadAdxDmiSeries(bars, parameters) {
+      var lookback = parameters && Number.isFinite(parameters.lookback) ? parameters.lookback : 14;
+      if (lookback !== Math.floor(lookback) || lookback < 2 || lookback > 500) return tadTechniqueRefusal("adx-dmi/v1", "TAD-TECHNIQUE-PARAMETER", lookback, "integer lookback within 2..500", "correct the declared lookback", "ADX lookback is out of declared bounds.");
+      var input = tadTechniqueColumns(bars, ["h", "l", "c"], "adx-dmi/v1", lookback * 2 + 1);
+      if (!input.ok) return input.refusal;
+      var high = input.columns.h, low = input.columns.l, close = input.columns.c, plus = [], minus = [], ranges = [];
+      for (var i = 1; i < close.length; i += 1) {
+        var upMove = high[i] - high[i - 1], downMove = low[i - 1] - low[i];
+        plus.push(upMove > downMove && upMove > 0 ? upMove : 0);
+        minus.push(downMove > upMove && downMove > 0 ? downMove : 0);
+        ranges.push(Math.max(high[i] - low[i], Math.abs(high[i] - close[i - 1]), Math.abs(low[i] - close[i - 1])));
+      }
+      var trValues = tadWilderValues(ranges, lookback), plusValues = tadWilderValues(plus, lookback), minusValues = tadWilderValues(minus, lookback), dx = [];
+      for (var k = 0; k < trValues.length; k += 1) {
+        var tr = trValues[k];
+        if (!(tr > 0)) { dx.push(0); continue; }
+        var plusDi = plusValues[k] / tr * 100, minusDi = minusValues[k] / tr * 100, total = plusDi + minusDi;
+        dx.push(total > 0 ? Math.abs(plusDi - minusDi) / total * 100 : 0);
+      }
+      if (dx.length < lookback) return tadTechniqueRefusal("adx-dmi/v1", "TAD-TECHNIQUE-HISTORY", dx.length, lookback + " directional observations", "extend the qualified history", "ADX smoothing history is insufficient.");
+      var adxValues = tadWilderValues(dx, lookback), adx = adxValues[adxValues.length - 1];
+      var lastTr = trValues[trValues.length - 1];
+      var lastPlusDi = lastTr > 0 ? plusValues[plusValues.length - 1] / lastTr * 100 : 0;
+      var lastMinusDi = lastTr > 0 ? minusValues[minusValues.length - 1] / lastTr * 100 : 0;
+      var status = adx < 25 ? "weak" : lastPlusDi > lastMinusDi ? "strong-plus" : "strong-minus";
+      return tadTechniqueOutcome("adx-dmi/v1", "trend-filters", "directional-movement", status, { adx: adx, plusDi: lastPlusDi, minusDi: lastMinusDi, lookback: lookback });
+    }
+
+    function tadObvSeries(bars) {
+      var input = tadTechniqueColumns(bars, ["c", "v"], "obv/v1", 3);
+      if (!input.ok) return input.refusal;
+      var closes = input.columns.c, volumes = input.columns.v, obv = 0, series = [0];
+      for (var i = 1; i < closes.length; i += 1) { obv += closes[i] > closes[i - 1] ? volumes[i] : closes[i] < closes[i - 1] ? -volumes[i] : 0; series.push(obv); }
+      var priceChange = closes[closes.length - 1] - closes[0], obvChange = series[series.length - 1] - series[0];
+      var status = obvChange === 0 || priceChange === 0 ? "flat" : (priceChange > 0) === (obvChange > 0) ? "confirms" : "diverges";
+      return tadTechniqueOutcome("obv/v1", "participation-proxy", "ohlcv-participation", status, { obv: series[series.length - 1], obvChange: obvChange, priceChange: priceChange, proxy: "ohlcv-volume-transform", actorIdentified: false });
+    }
+
+    function tadCmfSeries(bars, parameters) {
+      var lookback = parameters && Number.isFinite(parameters.lookback) ? parameters.lookback : 20;
+      if (lookback !== Math.floor(lookback) || lookback < 2 || lookback > 500) return tadTechniqueRefusal("cmf/v1", "TAD-TECHNIQUE-PARAMETER", lookback, "integer lookback within 2..500", "correct the declared lookback", "CMF lookback is out of declared bounds.");
+      var input = tadTechniqueColumns(bars, ["h", "l", "c", "v"], "cmf/v1", lookback);
+      if (!input.ok) return input.refusal;
+      var high = input.columns.h, low = input.columns.l, close = input.columns.c, volume = input.columns.v;
+      var start = close.length - lookback, flowVolume = 0, totalVolume = 0;
+      for (var i = start; i < close.length; i += 1) {
+        var span = high[i] - low[i];
+        var multiplier = span > 0 ? ((close[i] - low[i]) - (high[i] - close[i])) / span : 0;
+        flowVolume += multiplier * volume[i]; totalVolume += volume[i];
+      }
+      if (!(totalVolume > 0)) return tadTechniqueRefusal("cmf/v1", "TAD-TECHNIQUE-FINITE", totalVolume, "positive traded volume in the window", "supply a window with traded volume", "Chaikin money flow requires positive volume.");
+      var cmf = flowVolume / totalVolume;
+      return tadTechniqueOutcome("cmf/v1", "participation-proxy", "ohlcv-participation", cmf > 0.05 ? "positive" : cmf < -0.05 ? "negative" : "mixed", { cmf: cmf, lookback: lookback, proxy: "ohlcv-volume-transform", actorIdentified: false });
+    }
+
+    function tadRelativeVolume(bars, parameters) {
+      var lookback = parameters && Number.isFinite(parameters.lookback) ? parameters.lookback : 20;
+      if (lookback !== Math.floor(lookback) || lookback < 2 || lookback > 500) return tadTechniqueRefusal("relative-volume/v1", "TAD-TECHNIQUE-PARAMETER", lookback, "integer lookback within 2..500", "correct the declared lookback", "Relative-volume lookback is out of declared bounds.");
+      var input = tadTechniqueColumns(bars, ["v"], "relative-volume/v1", lookback + 1);
+      if (!input.ok) return input.refusal;
+      var volumes = input.columns.v, current = volumes[volumes.length - 1], sum = 0;
+      for (var i = volumes.length - 1 - lookback; i < volumes.length - 1; i += 1) sum += volumes[i];
+      var baseline = sum / lookback;
+      if (!(baseline > 0)) return tadTechniqueRefusal("relative-volume/v1", "TAD-TECHNIQUE-FINITE", baseline, "positive baseline volume", "supply a window with traded volume", "Relative volume requires a positive baseline.");
+      var ratio = current / baseline;
+      return tadTechniqueOutcome("relative-volume/v1", "participation-proxy", "ohlcv-participation", ratio >= 1.5 ? "expanding" : ratio <= 0.5 ? "contracting" : "normal", { ratio: ratio, current: current, baseline: baseline, lookback: lookback, proxy: "ohlcv-volume-transform", actorIdentified: false });
+    }
+
+    function tadEffortResult(bars, parameters) {
+      var lookback = parameters && Number.isFinite(parameters.lookback) ? parameters.lookback : 20;
+      if (lookback !== Math.floor(lookback) || lookback < 2 || lookback > 500) return tadTechniqueRefusal("effort-result/v1", "TAD-TECHNIQUE-PARAMETER", lookback, "integer lookback within 2..500", "correct the declared lookback", "Effort-result lookback is out of declared bounds.");
+      var input = tadTechniqueColumns(bars, ["h", "l", "c", "v"], "effort-result/v1", lookback + 1);
+      if (!input.ok) return input.refusal;
+      var high = input.columns.h, low = input.columns.l, close = input.columns.c, volume = input.columns.v;
+      var volumeSum = 0, rangeSum = 0, start = close.length - 1 - lookback;
+      for (var i = start; i < close.length - 1; i += 1) { volumeSum += volume[i]; rangeSum += high[i] - low[i]; }
+      var baselineVolume = volumeSum / lookback, baselineRange = rangeSum / lookback;
+      if (!(baselineVolume > 0) || !(baselineRange > 0)) return tadTechniqueRefusal("effort-result/v1", "TAD-TECHNIQUE-FINITE", [baselineVolume, baselineRange], "positive baseline volume and range", "supply a window with traded volume and range", "Effort-result requires positive baselines.");
+      var effort = volume[volume.length - 1] / baselineVolume, result = (high[high.length - 1] - low[low.length - 1]) / baselineRange;
+      var status = effort >= 1.5 && result >= 1.2 ? "confirms" : effort >= 1.5 && result <= 0.8 ? "diverges" : "unresolved";
+      return tadTechniqueOutcome("effort-result/v1", "participation-proxy", "ohlcv-participation", status, { effort: effort, result: result, lookback: lookback, proxy: "ohlcv-volume-transform", actorIdentified: false, motiveInferred: false });
+    }
+
+    function tadVolumeProfile(bars, parameters) {
+      var buckets = parameters && Number.isFinite(parameters.buckets) ? parameters.buckets : 48;
+      var valueAreaShare = parameters && Number.isFinite(parameters.valueAreaShare) ? parameters.valueAreaShare : 0.7;
+      var allocation = parameters && typeof parameters.allocation === "string" ? parameters.allocation : "uniform-bar-range";
+      if (buckets !== Math.floor(buckets) || buckets < 2 || buckets > 1000 || !(valueAreaShare > 0) || valueAreaShare >= 1 || allocation !== "uniform-bar-range") return tadTechniqueRefusal("volume-profile/v1", "TAD-TECHNIQUE-PARAMETER", [buckets, valueAreaShare, allocation], "integer buckets 2..1000, share in (0,1), uniform-bar-range allocation", "correct the declared profile parameters", "Volume-profile parameters are out of declared bounds.");
+      var input = tadTechniqueColumns(bars, ["o", "h", "l", "c", "v"], "volume-profile/v1", 2);
+      if (!input.ok) return input.refusal;
+      var open = input.columns.o, high = input.columns.h, low = input.columns.l, close = input.columns.c, volume = input.columns.v;
+      var lowest = Math.min.apply(null, low), highest = Math.max.apply(null, high);
+      if (!(highest > lowest)) return tadTechniqueRefusal("volume-profile/v1", "TAD-TECHNIQUE-FINITE", [lowest, highest], "a positive price range", "supply bars with a non-zero range", "Volume profile requires a positive price range.");
+      var width = (highest - lowest) / buckets, histogram = [], upVolume = [], downVolume = [], index = 0;
+      for (; index < buckets; index += 1) { histogram.push(0); upVolume.push(0); downVolume.push(0); }
+      for (var row = 0; row < close.length; row += 1) {
+        var first = Math.min(buckets - 1, Math.max(0, Math.floor((low[row] - lowest) / width)));
+        var last = Math.min(buckets - 1, Math.max(0, Math.floor((high[row] - lowest) / width)));
+        var span = last - first + 1, share = volume[row] / span, rising = close[row] >= open[row];
+        for (var bucket = first; bucket <= last; bucket += 1) { histogram[bucket] += share; if (rising) upVolume[bucket] += share; else downVolume[bucket] += share; }
+      }
+      var total = histogram.reduce(function (sum, value) { return sum + value; }, 0);
+      if (!(total > 0)) return tadTechniqueRefusal("volume-profile/v1", "TAD-TECHNIQUE-FINITE", total, "positive traded volume", "supply bars with traded volume", "Volume profile requires positive volume.");
+      var pocIndex = 0;
+      for (index = 1; index < buckets; index += 1) if (histogram[index] > histogram[pocIndex]) pocIndex = index;
+      var lowIndex = pocIndex, highIndex = pocIndex, captured = histogram[pocIndex], target = total * valueAreaShare;
+      while (captured < target && (lowIndex > 0 || highIndex < buckets - 1)) {
+        var below = lowIndex > 0 ? histogram[lowIndex - 1] : -1, above = highIndex < buckets - 1 ? histogram[highIndex + 1] : -1;
+        if (above >= below) { highIndex += 1; captured += histogram[highIndex]; } else { lowIndex -= 1; captured += histogram[lowIndex]; }
+      }
+      var mean = total / buckets, highNodes = [], lowNodes = [];
+      for (index = 0; index < buckets; index += 1) { if (histogram[index] >= mean * 1.5) highNodes.push(index); else if (histogram[index] > 0 && histogram[index] <= mean * 0.5) lowNodes.push(index); }
+      var priceAt = function (bucket) { return lowest + (bucket + 0.5) * width; };
+      return tadTechniqueOutcome("volume-profile/v1", "auction-value", "historical-volume-at-price", "poc", { poc: priceAt(pocIndex), valueAreaHigh: priceAt(highIndex), valueAreaLow: priceAt(lowIndex), valueAreaShare: captured / total, highVolumeNodes: highNodes.map(priceAt), lowVolumeNodes: lowNodes.map(priceAt), buckets: buckets, allocation: allocation, sourceInterval: bars[0] && bars[0].interval ? bars[0].interval : null, upVolumeProxy: upVolume[pocIndex], downVolumeProxy: downVolume[pocIndex], restingLiquidityClaimed: false });
+    }
+
+    function tadVwapEnvelope(bars, parameters) {
+      var deviations = parameters && Array.isArray(parameters.deviations) ? parameters.deviations.slice() : [1, 2];
+      if (!deviations.length || deviations.some(function (n) { return !Number.isFinite(n) || !(n > 0) || n > 10; })) return tadTechniqueRefusal("vwap-envelope/v1", "TAD-TECHNIQUE-PARAMETER", deviations, "positive deviation multiples within 0..10", "correct the declared deviations", "VWAP deviation multiples are out of declared bounds.");
+      var input = tadTechniqueColumns(bars, ["h", "l", "c", "v"], "vwap-envelope/v1", 2);
+      if (!input.ok) return input.refusal;
+      var high = input.columns.h, low = input.columns.l, close = input.columns.c, volume = input.columns.v;
+      var weighted = 0, totalVolume = 0, typical = [];
+      for (var i = 0; i < close.length; i += 1) { var price = (high[i] + low[i] + close[i]) / 3; typical.push(price); weighted += price * volume[i]; totalVolume += volume[i]; }
+      if (!(totalVolume > 0)) return tadTechniqueRefusal("vwap-envelope/v1", "TAD-TECHNIQUE-FINITE", totalVolume, "positive traded volume", "supply intraday bars with traded volume", "VWAP requires positive volume.");
+      var vwap = weighted / totalVolume, variance = 0;
+      for (i = 0; i < typical.length; i += 1) variance += volume[i] * (typical[i] - vwap) * (typical[i] - vwap);
+      var dispersion = Math.sqrt(variance / totalVolume), last = close[close.length - 1];
+      var bands = deviations.slice().sort(function (a, b) { return a - b; }).map(function (multiple) { return { multiple: multiple, upper: vwap + multiple * dispersion, lower: vwap - multiple * dispersion }; });
+      var widest = bands[bands.length - 1];
+      var status = last > widest.upper ? "above" : last < widest.lower ? "below" : "inside";
+      return tadTechniqueOutcome("vwap-envelope/v1", "auction-value", "statistical-vwap", status, { vwap: vwap, dispersion: dispersion, bands: bands, close: last, restingLiquidityClaimed: false });
+    }
+
+    function tadPivots(bars, parameters) {
+      var left = parameters && Number.isFinite(parameters.left) ? parameters.left : 3;
+      var right = parameters && Number.isFinite(parameters.right) ? parameters.right : 3;
+      if ([left, right].some(function (n) { return n !== Math.floor(n) || n < 1 || n > 100; })) return tadTechniqueRefusal("closing-pivots/v1", "TAD-TECHNIQUE-PARAMETER", [left, right], "integer left and right within 1..100", "correct the declared pivot widths", "Pivot widths are out of declared bounds.");
+      var input = tadTechniqueColumns(bars, ["h", "l", "c"], "closing-pivots/v1", left + right + 1);
+      if (!input.ok) return input.refusal;
+      var high = input.columns.h, low = input.columns.l, close = input.columns.c, highs = [], lows = [];
+      for (var i = left; i < close.length - right; i += 1) {
+        var isHigh = true, isLow = true;
+        for (var k = i - left; k <= i + right; k += 1) { if (k === i) continue; if (high[k] >= high[i]) isHigh = false; if (low[k] <= low[i]) isLow = false; }
+        if (isHigh) highs.push({ index: i, price: high[i], state: "confirmed" });
+        if (isLow) lows.push({ index: i, price: low[i], state: "confirmed" });
+      }
+      var provisional = [];
+      for (i = Math.max(left, close.length - right); i < close.length; i += 1) {
+        var candidateHigh = true, candidateLow = true;
+        for (k = i - left; k < close.length; k += 1) { if (k === i) continue; if (high[k] >= high[i]) candidateHigh = false; if (low[k] <= low[i]) candidateLow = false; }
+        if (candidateHigh) provisional.push({ index: i, price: high[i], kind: "high", state: "provisional" });
+        if (candidateLow) provisional.push({ index: i, price: low[i], kind: "low", state: "provisional" });
+      }
+      if (!highs.length && !lows.length) return tadTechniqueOutcome("closing-pivots/v1", "closing-structure", "closing-pivots", "range", { confirmedHighs: [], confirmedLows: [], provisional: provisional, left: left, right: right });
+      var lastClose = close[close.length - 1];
+      var lastHigh = highs.length ? highs[highs.length - 1] : null, lastLow = lows.length ? lows[lows.length - 1] : null;
+      var status = "range";
+      if (highs.length >= 2 && lows.length >= 2) {
+        var risingHighs = highs[highs.length - 1].price > highs[highs.length - 2].price, risingLows = lows[lows.length - 1].price > lows[lows.length - 2].price;
+        if (risingHighs && risingLows) status = "up"; else if (!risingHighs && !risingLows) status = "down";
+      }
+      if (lastHigh && lastClose > lastHigh.price) status = "break-candidate";
+      else if (lastLow && lastClose < lastLow.price) status = "warning";
+      return tadTechniqueOutcome("closing-pivots/v1", "closing-structure", "closing-pivots", status, { confirmedHighs: highs, confirmedLows: lows, provisional: provisional, close: lastClose, left: left, right: right });
+    }
+
+    function tadRelativeStrength(seriesEntries, parameters) {
+      var normalization = parameters && typeof parameters.normalization === "string" ? parameters.normalization : "total-return-ratio";
+      if (normalization !== "total-return-ratio") return tadTechniqueRefusal("relative-strength/v1", "TAD-TECHNIQUE-PARAMETER", normalization, "total-return-ratio normalization", "declare the supported normalization", "Relative-strength normalization is unsupported.");
+      var aligned = tadAlignSeries(seriesEntries);
+      if (!aligned.ok) return tadTechniqueRefusal("relative-strength/v1", "TAD-COMPARISON-SERIES", "unaligned series", "two comparable qualified series", "supply compatible series", "Relative-strength inputs cannot be aligned.");
+      if (aligned.timestamps.length < 2) return tadTechniqueRefusal("relative-strength/v1", "TAD-TECHNIQUE-HISTORY", aligned.timestamps.length, "at least two aligned observations", "extend the overlapping history", "Relative-strength overlap is insufficient.");
+      var policies = seriesEntries.map(function (entry) { return [entry.adjustmentPolicyId || null, entry.sessionContractId || null].join("|"); });
+      if (policies.some(function (policy) { return policy !== policies[0]; })) return tadTechniqueOutcome("relative-strength/v1", "relative-context", "normalized-ratio", "incompatible", { reason: "mixed adjustment or session contracts", policies: policies });
+      var base = aligned.aligned[0].rows, peer = aligned.aligned[1].rows;
+      var baseFirst = base[0].c, baseLast = base[base.length - 1].c, peerFirst = peer[0].c, peerLast = peer[peer.length - 1].c;
+      if (![baseFirst, baseLast, peerFirst, peerLast].every(function (value) { return typeof value === "number" && Number.isFinite(value) && value > 0; })) return tadTechniqueRefusal("relative-strength/v1", "TAD-TECHNIQUE-FINITE", [baseFirst, baseLast, peerFirst, peerLast], "positive finite closes", "supply positive qualified closes", "Relative strength requires positive closes.");
+      var baseReturn = baseLast / baseFirst - 1, peerReturn = peerLast / peerFirst - 1, spread = baseReturn - peerReturn;
+      var status = Math.abs(spread) < 0.005 ? "confirms" : spread > 0 ? "leads" : "lags";
+      if ((baseReturn > 0) !== (peerReturn > 0) && Math.abs(spread) >= 0.005) status = "diverges";
+      return tadTechniqueOutcome("relative-strength/v1", "relative-context", "normalized-ratio", status, { baseReturn: baseReturn, peerReturn: peerReturn, spread: spread, observations: aligned.timestamps.length, normalization: normalization });
+    }
+
+    function tadEvaluateTechnique(definition, inputs, claimLedger) {
+      var keyCheck = tadHasExactKeys(definition, ["techniqueId", "version", "familyId", "clusterId", "owner", "formula", "parameters", "parameterBounds", "requiredInputs", "supportedRoles", "eligibility", "outputVocabulary", "limitations", "claimIds"], "$", "TAD-TECHNIQUE-KEY");
+      if (!keyCheck.ok) return tadDeepFreeze({ ok: false, techniqueId: definition && definition.techniqueId ? definition.techniqueId : null, familyId: null, clusterId: null, status: "unavailable", metrics: {}, errors: keyCheck.errors });
+      // Closed id-to-code dispatch. JSON selects a known implementation and its parameters; it can
+      // never supply the code path, so `formula` stays inspectable prose and is never evaluated.
+      var dispatch = {
+        "sma-stack/v1": function (data, parameters) { return tadSmaSeries(data.bars, parameters); },
+        "ema-stack/v1": function (data, parameters) { return tadEmaSeries(data.bars, parameters); },
+        "macd/v1": function (data, parameters) { return tadMacdSeries(data.bars, parameters); },
+        "rsi-wilder/v1": function (data, parameters) { return tadRsiSeries(data.bars, parameters); },
+        "bollinger/v1": function (data, parameters) { return tadBollingerSeries(data.bars, parameters); },
+        "adx-dmi/v1": function (data, parameters) { return tadAdxDmiSeries(data.bars, parameters); },
+        "atr-atrp/v1": function (data, parameters) { return tadAtrSeries(data.bars, parameters); },
+        "obv/v1": function (data) { return tadObvSeries(data.bars); },
+        "cmf/v1": function (data, parameters) { return tadCmfSeries(data.bars, parameters); },
+        "relative-volume/v1": function (data, parameters) { return tadRelativeVolume(data.bars, parameters); },
+        "effort-result/v1": function (data, parameters) { return tadEffortResult(data.bars, parameters); },
+        "volume-profile/v1": function (data, parameters) { return tadVolumeProfile(data.bars, parameters); },
+        "vwap-envelope/v1": function (data, parameters) { return tadVwapEnvelope(data.bars, parameters); },
+        "closing-pivots/v1": function (data, parameters) { return tadPivots(data.bars, parameters); },
+        "relative-strength/v1": function (data, parameters) { return tadRelativeStrength(data.series, parameters); }
+      };
+      if (!Object.prototype.hasOwnProperty.call(dispatch, definition.techniqueId)) return tadTechniqueRefusal(definition.techniqueId, "TAD-TECHNIQUE-UNKNOWN", definition.techniqueId, "a registered technique id", "select a registered technique", "Technique id is not part of the closed dispatch.");
+      var ledger = Array.isArray(claimLedger) ? claimLedger : [];
+      var claimIds = Array.isArray(definition.claimIds) ? definition.claimIds : [];
+      for (var index = 0; index < claimIds.length; index += 1) {
+        var claimId = claimIds[index], record = null;
+        for (var row = 0; row < ledger.length; row += 1) if (ledger[row] && ledger[row].claimId === claimId) record = ledger[row];
+        if (!record) return tadTechniqueRefusal(definition.techniqueId, "TAD-CLAIM-UNGROUNDED", claimId, "a claim ledger record", "record the claim before activating the method", "Technique cites a claim with no ledger record.");
+        if (record.verdict !== "supported" && record.verdict !== "bounded") return tadTechniqueRefusal(definition.techniqueId, "TAD-CLAIM-REJECTED", record.verdict, "supported or bounded verdict", "keep the rejected claim audit-only", "Technique cites a rejected claim.");
+        if (!record.grounding || !record.evidenceTier || !record.scope || !record.limitation || !record.allowedTreatment) return tadTechniqueRefusal(definition.techniqueId, "TAD-CLAIM-INCOMPLETE", claimId, "grounding tier scope limitation and allowed treatment", "complete the claim record", "Claim record is incomplete.");
+      }
+      var outcome = dispatch[definition.techniqueId](inputs || {}, definition.parameters);
+      if (outcome.ok && definition.outputVocabulary.indexOf(outcome.status) < 0) return tadTechniqueRefusal(definition.techniqueId, "TAD-TECHNIQUE-VOCABULARY", outcome.status, definition.outputVocabulary, "return a declared output state", "Technique produced an undeclared output state.");
+      return outcome;
+    }
+
+    function tadClusterEvidenceFamilies(outcomes, families) {
+      if (!Array.isArray(outcomes)) return tadDeepFreeze({ ok: false, clusters: [], families: [], errors: [tadError("TAD-FAMILY-INPUT", "error", "$", null, outcomes, "an array of technique outcomes", "supply technique outcomes", "Family clustering input is invalid.")] });
+      var declared = Array.isArray(families) ? families : [];
+      // Only states that name a DIRECTION vote. Strength, location, and context states are
+      // deliberately absent: `weak` ADX, `strong`/`weak` RSI, band touches, and volume expansion
+      // qualify a reading without pointing anywhere, and counting them as direction is how a
+      // strength reading silently becomes a directional opinion.
+      var directional = { "stacked-up": 1, "stacked-down": -1, "strong-plus": 1, "strong-minus": -1, positive: 1, negative: -1, up: 1, down: -1, leads: 1, lags: -1, confirms: 1, diverges: -1 };
+      var clusters = {};
+      outcomes.forEach(function (outcome) {
+        if (!outcome || !outcome.familyId || !outcome.clusterId) return;
+        var key = outcome.familyId + "::" + outcome.clusterId;
+        if (!clusters[key]) clusters[key] = { familyId: outcome.familyId, clusterId: outcome.clusterId, members: [], directions: [] };
+        clusters[key].members.push(outcome.techniqueId);
+        if (outcome.ok && Object.prototype.hasOwnProperty.call(directional, outcome.status)) clusters[key].directions.push(directional[outcome.status]);
+      });
+      var clusterList = Object.keys(clusters).sort().map(function (key) {
+        var cluster = clusters[key], positive = cluster.directions.filter(function (value) { return value > 0; }).length, negative = cluster.directions.filter(function (value) { return value < 0; }).length;
+        // A cluster contributes ONE vote however many correlated members it holds, so a family cannot
+        // inflate its own weight by adding a related transform. Opposing members cancel to `unstable`.
+        var state = !cluster.directions.length ? "unavailable" : positive && negative ? "unstable" : positive ? "supports" : "contradicts";
+        return { familyId: cluster.familyId, clusterId: cluster.clusterId, members: cluster.members.slice(), memberCount: cluster.members.length, state: state, vote: state === "supports" ? 1 : state === "contradicts" ? -1 : 0 };
+      });
+      var familyList = declared.map(function (family) {
+        var owned = clusterList.filter(function (cluster) { return cluster.familyId === family.familyId; });
+        var supports = owned.filter(function (cluster) { return cluster.state === "supports"; }).length;
+        var contradicts = owned.filter(function (cluster) { return cluster.state === "contradicts"; }).length;
+        var unstable = owned.filter(function (cluster) { return cluster.state === "unstable"; }).length;
+        var unavailable = owned.filter(function (cluster) { return cluster.state === "unavailable"; }).length;
+        var state = !owned.length ? "unavailable" : unstable ? "unstable" : supports && contradicts ? "unstable" : supports ? "supports" : contradicts ? "contradicts" : "unavailable";
+        return { familyId: family.familyId, independencePolicy: family.independencePolicy, clusterCount: owned.length, supports: supports, contradicts: contradicts, unstable: unstable, unavailable: unavailable, state: state };
+      });
+      return tadDeepFreeze({ ok: true, clusters: clusterList, families: familyList, errors: [] });
+    }
+
+    /* ---------- End Feature 007 Scope 02: technique engine ---------- */
+
     var pageRuntime = { config: null, index: null, sourceFixture: null, analyticFixture: null, diagnostics: null };
     function byId(id) { return document.getElementById(id); }
     function setText(id, value) { var element = byId(id); if (element) element.textContent = value; }

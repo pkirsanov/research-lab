@@ -65,9 +65,50 @@ try {
     'tadResolveAsOf', 'tadResolveSession', 'tadClassifyBarStatus', 'tadAggregateBars',
     'tadBuildTimeframeProfile', 'tadAlignSeries', 'tadBuildVariantIdentity', 'tadBuildSourceSetIdentity'
   ];
-  const tad = buildFunctions(pageSource, scope01Names);
+  const scope02Names = [
+    'tadSmaSeries', 'tadEmaSeries', 'tadAtrSeries', 'tadRsiSeries', 'tadMacdSeries',
+    'tadBollingerSeries', 'tadAdxDmiSeries', 'tadObvSeries', 'tadCmfSeries', 'tadRelativeVolume',
+    'tadEffortResult', 'tadVolumeProfile', 'tadVwapEnvelope', 'tadPivots', 'tadRelativeStrength',
+    'tadEvaluateTechnique', 'tadClusterEvidenceFamilies'
+  ];
+  // Scope 02 helpers are shared infrastructure, not owned declarations: one EMA and one Wilder
+  // smoother serve every technique that needs them rather than each carrying a private copy.
+  const scope02Helpers = ['tadTechniqueOutcome', 'tadTechniqueRefusal', 'tadTechniqueColumns', 'tadEmaValues', 'tadWilderValues'];
+  const tad = buildFunctions(pageSource, scope01Names.concat(scope02Helpers, scope02Names));
   const physicalTadNames = [...pageSource.matchAll(/function\s+(tad[A-Za-z0-9]+)\s*\(/g)].map((match) => match[1]);
-  check(physicalTadNames.length === 20 && new Set(physicalTadNames).size === 20 && scope01Names.every((name) => physicalTadNames.includes(name)), 'scope01-production-declarations-20-exact');
+  const declaredNames = scope01Names.concat(scope02Helpers, scope02Names);
+  check(physicalTadNames.length === declaredNames.length && new Set(physicalTadNames).size === declaredNames.length && scope01Names.every((name) => physicalTadNames.includes(name)), 'scope01-production-declarations-20-exact');
+  check(scope02Names.length === 17 && scope02Names.every((name) => physicalTadNames.includes(name)), 'scope02-production-declarations-17-exact');
+
+  // Every committed technique must dispatch through the closed map and answer inside its own
+  // declared vocabulary. A formula that drifts from its contract fails here, not in front of a reader.
+  const scope02Bars = (() => {
+    const rows = [];
+    let price = 100;
+    for (let i = 0; i < 260; i += 1) {
+      price = price * (1 + ((i % 7) - 3) / 1000) + 0.05;
+      const open = price, close = price * (1 + ((i % 5) - 2) / 1000);
+      rows.push({ barId: 'b' + i, interval: '1d', sessionId: 's', openedAt: new Date(Date.UTC(2025, 0, 1 + i)).toISOString(), closedAt: new Date(Date.UTC(2025, 0, 1 + i, 20)).toISOString(), availableAt: new Date(Date.UTC(2025, 0, 1 + i, 21)).toISOString(), o: open, h: Math.max(open, close) * 1.006, l: Math.min(open, close) * 0.994, c: close, v: 1000 + (i % 11) * 50, adjustmentPolicyId: 'a', status: 'closed', expectedDurationMs: 1, actualDurationMs: 1, qualityFlags: [], sourceRowIds: ['r' + i] });
+    }
+    return rows;
+  })();
+  const scope02Series = [
+    { id: 'base', rows: scope02Bars.map((bar, i) => ({ closedAt: bar.closedAt, c: bar.c * (1 + i * 0.001) })), adjustmentPolicyId: 'a', sessionContractId: 's' },
+    { id: 'peer', rows: scope02Bars.map((bar) => ({ closedAt: bar.closedAt, c: bar.c })), adjustmentPolicyId: 'a', sessionContractId: 's' }
+  ];
+  const scope02Outcomes = config.techniques.map((definition) => tad.tadEvaluateTechnique(definition, definition.techniqueId === 'relative-strength/v1' ? { series: scope02Series } : { bars: scope02Bars }, config.claimLedger));
+  check(scope02Outcomes.length === config.techniques.length && scope02Outcomes.every((outcome, index) => outcome.ok && config.techniques[index].outputVocabulary.includes(outcome.status)), 'scope02-technique-output-vocabulary-parity');
+  check(scope02Outcomes.every((outcome, index) => outcome.familyId === config.techniques[index].familyId && outcome.clusterId === config.techniques[index].clusterId), 'scope02-technique-family-cluster-parity');
+  check(config.techniques.every((definition) => definition.claimIds.every((claimId) => config.claimLedger.some((record) => record.claimId === claimId))), 'scope02-technique-claim-reference-parity');
+  check(config.techniques.every((definition) => config.evidenceFamilies.some((family) => family.familyId === definition.familyId)), 'scope02-technique-family-reference-parity');
+  check(config.claimLedger.every((record) => ['supported', 'bounded', 'rejected'].includes(record.verdict) && record.grounding && record.evidenceTier && record.scope && record.limitation && record.allowedTreatment), 'scope02-claim-ledger-record-completeness');
+  const rejectedClaim = config.claimLedger.find((record) => record.verdict === 'rejected');
+  const rejectedDefinition = JSON.parse(JSON.stringify(config.techniques[0]));
+  rejectedDefinition.claimIds = [rejectedClaim.claimId];
+  check(!tad.tadEvaluateTechnique(rejectedDefinition, { bars: scope02Bars }, config.claimLedger).ok, 'scope02-rejected-claim-cannot-activate-a-technique');
+  const injectedDefinition = JSON.parse(JSON.stringify(config.techniques[0]));
+  injectedDefinition.techniqueId = 'injected/v1';
+  check(!tad.tadEvaluateTechnique(injectedDefinition, { bars: scope02Bars }, config.claimLedger).ok, 'scope02-unknown-technique-id-refused');
   check(config.display.declarationInventory.length === 65 && new Set(config.display.declarationInventory).size === 65 && config.display.scope01Declarations.join('|') === scope01Names.join('|'), 'planned-declaration-inventory-65-unique-and-owned');
 
   const configResult = tad.tadValidateConfig(config);

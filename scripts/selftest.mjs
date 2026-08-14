@@ -3986,6 +3986,165 @@ try {
   const sharedDsr = validationApi.rlvDeflatedSharpe(equity, 7, 252);
   assert(sharedDsr.ok && approx(localDsr.psr, sharedDsr.psr, 1e-12) && approx(localDsr.dsr, sharedDsr.dsr, 1e-12) && approx(localDsr.srAnn, sharedDsr.srAnn, 1e-12) && localDsr.nTrials === sharedDsr.nTrials && localDsr.n === sharedDsr.n, 'Strategy Validation local control and RLVALID adapter retain exact generic statistic parity');
   assert(strategySource.includes('Feature 007: RLVALID parity adapter') && strategySource.includes('return RLVALID.rlvDeflatedSharpe'), 'Strategy Validation delegates only through the marker-bounded RLVALID parity adapter');
+
+  /* ---------- Scope 02: technique engine ---------- */
+  const tad02Names = [
+    'tadTechniqueOutcome', 'tadTechniqueRefusal', 'tadTechniqueColumns', 'tadEmaValues', 'tadWilderValues',
+    'tadSmaSeries', 'tadEmaSeries', 'tadAtrSeries', 'tadRsiSeries', 'tadMacdSeries', 'tadBollingerSeries',
+    'tadAdxDmiSeries', 'tadObvSeries', 'tadCmfSeries', 'tadRelativeVolume', 'tadEffortResult',
+    'tadVolumeProfile', 'tadVwapEnvelope', 'tadPivots', 'tadRelativeStrength', 'tadEvaluateTechnique',
+    'tadClusterEvidenceFamilies'
+  ];
+  const tad02Owned = [
+    'tadSmaSeries', 'tadEmaSeries', 'tadAtrSeries', 'tadRsiSeries', 'tadMacdSeries', 'tadBollingerSeries',
+    'tadAdxDmiSeries', 'tadObvSeries', 'tadCmfSeries', 'tadRelativeVolume', 'tadEffortResult',
+    'tadVolumeProfile', 'tadVwapEnvelope', 'tadPivots', 'tadRelativeStrength', 'tadEvaluateTechnique',
+    'tadClusterEvidenceFamilies'
+  ];
+  const tad02 = build(
+    tadNames.concat(tad02Names).map((name) => extractFn(tadSource, name)),
+    tadNames.concat(tad02Names)
+  );
+  assert(tad02Owned.length === 17 && tad02Owned.every((name) => (tadSource.match(new RegExp('function\\s+' + name + '\\s*\\(', 'g')) || []).length === 1),
+    'Technical Analysis Decision exposes each of the 17 Scope 02 top-level declarations exactly once');
+
+  // One deterministic qualified series drives every formula row, so a failure names the formula
+  // rather than the fixture.
+  const tad02Bars = (() => {
+    const rows = [];
+    let price = 100;
+    for (let i = 0; i < 260; i += 1) {
+      price = price * (1 + ((i % 7) - 3) / 1000) + 0.05;
+      const open = price, close = price * (1 + ((i % 5) - 2) / 1000);
+      rows.push({
+        barId: 'b' + i, interval: '1d', sessionId: 's',
+        openedAt: new Date(Date.UTC(2025, 0, 1 + i)).toISOString(),
+        closedAt: new Date(Date.UTC(2025, 0, 1 + i, 20)).toISOString(),
+        availableAt: new Date(Date.UTC(2025, 0, 1 + i, 21)).toISOString(),
+        o: open, h: Math.max(open, close) * 1.006, l: Math.min(open, close) * 0.994, c: close,
+        v: 1000 + (i % 11) * 50, adjustmentPolicyId: 'a', status: 'closed',
+        expectedDurationMs: 1, actualDurationMs: 1, qualityFlags: [], sourceRowIds: ['r' + i]
+      });
+    }
+    return rows;
+  })();
+  const tad02Rows = (drift) => tad02Bars.map((bar, i) => ({ closedAt: bar.closedAt, c: bar.c * (1 + i * drift) }));
+  const tad02Series = [
+    { id: 'base', rows: tad02Rows(0.001), adjustmentPolicyId: 'a', sessionContractId: 's' },
+    { id: 'peer', rows: tad02Rows(0), adjustmentPolicyId: 'a', sessionContractId: 's' }
+  ];
+
+  // Every technique runs through the COMMITTED config, so a formula that drifts from its declared
+  // output vocabulary fails here rather than reaching a reader.
+  const tad02Dispatch = tadConfig.techniques.map((definition) => ({
+    definition,
+    outcome: tad02.tadEvaluateTechnique(
+      definition,
+      definition.techniqueId === 'relative-strength/v1' ? { series: tad02Series } : { bars: tad02Bars },
+      tadConfig.claimLedger
+    )
+  }));
+  assert(tad02Dispatch.length === 15 && tad02Dispatch.every(({ definition, outcome }) => outcome.ok && definition.outputVocabulary.indexOf(outcome.status) >= 0),
+    'Every committed technique dispatches and returns a state inside its own declared output vocabulary');
+  assert(tad02Dispatch.every(({ definition, outcome }) => outcome.familyId === definition.familyId && outcome.clusterId === definition.clusterId),
+    'Each technique outcome carries the family and cluster its config declares');
+
+  const tad02Sma = tad02.tadSmaSeries(tad02Bars, { lengths: [20, 50, 200] });
+  const tad02Ema = tad02.tadEmaSeries(tad02Bars, { lengths: [20, 50, 200] });
+  const tad02Rsi = tad02.tadRsiSeries(tad02Bars, { lookback: 14 });
+  const tad02Macd = tad02.tadMacdSeries(tad02Bars, { fast: 12, slow: 26, signal: 9 });
+  const tad02Atr = tad02.tadAtrSeries(tad02Bars, { lookback: 14 });
+  const tad02Adx = tad02.tadAdxDmiSeries(tad02Bars, { lookback: 14 });
+  const tad02Boll = tad02.tadBollingerSeries(tad02Bars, { lookback: 20, deviations: 2 });
+  assert(tad02Sma.ok && tad02Ema.ok && Math.abs(tad02Sma.metrics.averages[0] - tad02Ema.metrics.averages[0]) > 0,
+    'Simple and exponential stacks are distinct transforms rather than one relabelled average');
+  assert(tad02Rsi.ok && tad02Rsi.metrics.rsi >= 0 && tad02Rsi.metrics.rsi <= 100, 'Wilder RSI stays inside its bounded 0..100 range');
+  assert(tad02Macd.ok && approx(tad02Macd.metrics.histogram, tad02Macd.metrics.macd - tad02Macd.metrics.signal, 1e-12), 'MACD histogram equals the line minus its signal exactly');
+  assert(tad02Atr.ok && tad02Atr.metrics.atr > 0 && approx(tad02Atr.metrics.atrPercent, tad02Atr.metrics.atr / tad02Bars[tad02Bars.length - 1].c * 100, 1e-9), 'Wilder ATR percent is the true-range average scaled by the closing price');
+  assert(tad02Adx.ok && tad02Adx.metrics.adx >= 0 && tad02Adx.metrics.adx <= 100 && tad02Adx.metrics.plusDi >= 0 && tad02Adx.metrics.minusDi >= 0, 'ADX and both directional indicators stay non-negative and bounded');
+  assert(tad02Boll.ok && tad02Boll.metrics.upper > tad02Boll.metrics.center && tad02Boll.metrics.center > tad02Boll.metrics.lower, 'Bollinger bands bracket their own centre by the declared sample dispersion');
+
+  // Participation transforms are proxies. They may qualify a move; they may never name who traded.
+  const tad02Participation = [
+    tad02.tadObvSeries(tad02Bars),
+    tad02.tadCmfSeries(tad02Bars, { lookback: 20 }),
+    tad02.tadRelativeVolume(tad02Bars, { lookback: 20 }),
+    tad02.tadEffortResult(tad02Bars, { lookback: 20 })
+  ];
+  assert(tad02Participation.every((outcome) => outcome.ok && outcome.metrics.proxy === 'ohlcv-volume-transform' && outcome.metrics.actorIdentified === false),
+    'Every participation transform declares its OHLCV proxy lineage and identifies no actor');
+  assert(tad02Participation.every((outcome) => outcome.familyId === 'participation-proxy' && outcome.clusterId === 'ohlcv-participation'),
+    'All four volume transforms share one participation family and one cluster');
+
+  const tad02Profile = tad02.tadVolumeProfile(tad02Bars, { buckets: 48, valueAreaShare: 0.7, allocation: 'uniform-bar-range' });
+  assert(tad02Profile.ok && tad02Profile.metrics.valueAreaLow <= tad02Profile.metrics.poc && tad02Profile.metrics.poc <= tad02Profile.metrics.valueAreaHigh && tad02Profile.metrics.valueAreaShare >= 0.7,
+    'Volume profile brackets its point of control inside a value area meeting the declared share');
+  assert(tad02Profile.metrics.restingLiquidityClaimed === false && tad02Profile.metrics.allocation === 'uniform-bar-range',
+    'Volume profile discloses its allocation method and claims no resting liquidity');
+  const tad02Vwap = tad02.tadVwapEnvelope(tad02Bars, { deviations: [1, 2] });
+  assert(tad02Vwap.ok && tad02Vwap.metrics.bands.length === 2 && tad02Vwap.metrics.bands[1].upper > tad02Vwap.metrics.bands[0].upper,
+    'VWAP envelopes widen monotonically with their declared deviation multiples');
+
+  const tad02Pivots = tad02.tadPivots(tad02Bars, { left: 3, right: 3 });
+  assert(tad02Pivots.ok && tad02Pivots.metrics.confirmedHighs.every((pivot) => pivot.state === 'confirmed') && tad02Pivots.metrics.provisional.every((pivot) => pivot.state === 'provisional'),
+    'Pivot structure keeps confirmed and provisional records in separate states');
+  const tad02Rs = tad02.tadRelativeStrength(tad02Series, { normalization: 'total-return-ratio' });
+  assert(tad02Rs.ok && tad02Rs.status === 'leads' && approx(tad02Rs.metrics.spread, tad02Rs.metrics.baseReturn - tad02Rs.metrics.peerReturn, 1e-12),
+    'Relative strength reports a total-return spread rather than a raw price comparison');
+  const tad02Mixed = tad02.tadRelativeStrength(
+    [tad02Series[0], { id: 'peer', rows: tad02Rows(0), adjustmentPolicyId: 'OTHER', sessionContractId: 's' }],
+    { normalization: 'total-return-ratio' }
+  );
+  assert(tad02Mixed.status === 'incompatible', 'Mixed adjustment policies fail explicitly as incompatible rather than being compared anyway');
+
+  // Missing history must stay missing. A neutral number here would be the BI-2 failure.
+  const tad02Short = tad02.tadSmaSeries(tad02Bars.slice(0, 5), { lengths: [20, 50, 200] });
+  assert(!tad02Short.ok && tad02Short.status === 'unavailable' && tad02Short.errors[0].code === 'TAD-TECHNIQUE-HISTORY',
+    'Insufficient history returns an unavailable reason instead of a neutral value');
+  assert(!tad02.tadSmaSeries(tad02Bars, { lengths: [1] }).ok && tad02.tadSmaSeries(tad02Bars, { lengths: [1] }).errors[0].code === 'TAD-TECHNIQUE-PARAMETER',
+    'A length outside the declared parameter bounds is refused before any computation');
+  assert(JSON.stringify(tad02.tadSmaSeries(tad02Bars, { lengths: [20, 50, 200] })) === JSON.stringify(tad02Sma),
+    'Identical technique inputs repeat byte-identical results');
+
+  // Closed dispatch: JSON selects a known implementation; it can never supply one.
+  const tad02Unknown = JSON.parse(JSON.stringify(tadConfig.techniques[0]));
+  tad02Unknown.techniqueId = 'injected/v1';
+  tad02Unknown.formula = 'process.exit(1)';
+  const tad02UnknownOutcome = tad02.tadEvaluateTechnique(tad02Unknown, { bars: tad02Bars }, tadConfig.claimLedger);
+  assert(!tad02UnknownOutcome.ok && tad02UnknownOutcome.errors[0].code === 'TAD-TECHNIQUE-UNKNOWN',
+    'An unknown technique id is refused and its formula text is never executed');
+
+  // Claim admission: a rejected ledger verdict cannot activate a method.
+  const tad02Hidden = JSON.parse(JSON.stringify(tadConfig.techniques[0]));
+  tad02Hidden.claimIds = ['claim-hidden-actor'];
+  const tad02HiddenOutcome = tad02.tadEvaluateTechnique(tad02Hidden, { bars: tad02Bars }, tadConfig.claimLedger);
+  assert(!tad02HiddenOutcome.ok && tad02HiddenOutcome.errors[0].code === 'TAD-CLAIM-REJECTED',
+    'A rejected claim stays audit-only and cannot activate a technique');
+  const tad02Ungrounded = JSON.parse(JSON.stringify(tadConfig.techniques[0]));
+  tad02Ungrounded.claimIds = ['claim-not-in-the-ledger'];
+  assert(tad02.tadEvaluateTechnique(tad02Ungrounded, { bars: tad02Bars }, tadConfig.claimLedger).errors[0].code === 'TAD-CLAIM-UNGROUNDED',
+    'A technique citing a claim with no ledger record is refused as ungrounded');
+  assert(tadConfig.claimLedger.every((record) => record.claimId && record.verdict && record.evidenceTier && record.grounding && record.scope && record.limitation && record.allowedTreatment),
+    'Every committed claim record carries grounding, tier, scope, limitation, and allowed treatment');
+
+  // Anti-double-counting: correlated members contribute ONE vote, opposing members cancel.
+  const tad02Clustered = tad02.tadClusterEvidenceFamilies([tad02Sma, tad02Ema, tad02Adx], tadConfig.evidenceFamilies);
+  const tad02Ma = tad02Clustered.clusters.find((cluster) => cluster.clusterId === 'moving-average');
+  assert(tad02Ma && tad02Ma.memberCount === 2 && Math.abs(tad02Ma.vote) === 1,
+    'Two correlated moving-average members contribute one cluster vote, not two');
+  const tad02Opposed = tad02.tadClusterEvidenceFamilies([
+    { ok: true, techniqueId: 'a/v1', familyId: 'trend-filters', clusterId: 'moving-average', status: 'stacked-up' },
+    { ok: true, techniqueId: 'b/v1', familyId: 'trend-filters', clusterId: 'moving-average', status: 'stacked-down' }
+  ], tadConfig.evidenceFamilies);
+  assert(tad02Opposed.clusters[0].state === 'unstable' && tad02Opposed.clusters[0].vote === 0,
+    'Opposing methods inside one cluster resolve to unstable rather than cancelling into support');
+  // Strength is not direction. This is the assertion that stops a volatility or participation
+  // reading from quietly becoming a directional opinion.
+  assert(['weak', 'strong', 'expanding', 'contracting', 'above', 'below', 'strengthening', 'weakening'].every((status) =>
+    tad02.tadClusterEvidenceFamilies([{ ok: true, techniqueId: 'x/v1', familyId: 'trend-filters', clusterId: 'c', status }], tadConfig.evidenceFamilies).clusters[0].vote === 0),
+    'Strength, location, and context states cast no directional vote');
+  assert(tad02Clustered.families.every((family) => ['supports', 'contradicts', 'unstable', 'unavailable'].indexOf(family.state) >= 0 && family.supports + family.contradicts + family.unstable + family.unavailable === family.clusterCount),
+    'Family denominators account for every cluster separately across support, contradiction, instability, and absence');
 } catch (e) { failures++; console.log('  ✗ FAIL (Technical Analysis Decision foundation group threw): ' + e.message); }
 /* ---------- End Feature 007 Technical Analysis Decision foundation ---------- */
 

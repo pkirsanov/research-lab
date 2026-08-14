@@ -204,3 +204,158 @@ test('Regression: Feature 008 Allocation refuses rather than showing candidate w
 
   expect(await panel.locator('#allocationTable').count(), 'no table without evidence').toBe(0);
 });
+
+/* ---------------------------------------------------------------------------
+   Scope 14 — sensitivity ranges and the explicit Black-Litterman editor
+   --------------------------------------------------------------------------- */
+
+test('Regression: SCN-008-028 unstable allocation shows weight ranges and reversal conditions', async ({ page }) => {
+  await seedPortfolio(page, 'TP-14-03 sensitivity');
+  const panel = await openAllocation(page);
+
+  await expect(panel.locator('#allocationSensitivity')).toHaveAttribute('data-sensitivity-state', 'ok');
+
+  // Trial accounting is visible: a range built on an undisclosed number of
+  // trials cannot be judged by a reader.
+  const trials = await panel.locator('#sensitivityTrials').textContent();
+  expect(trials).toMatch(/\d+ valid trials?/);
+  expect(trials).toMatch(/\d+ failed/);
+  expect(trials).toContain('declared perturbations');
+  expect(trials).toContain('instability threshold');
+
+  // Cells are read row-wise rather than by nth-child, because nth-child counts
+  // the row-header th and every td index would otherwise be off by one.
+  const sensitivityRows = await panel.locator('#sensitivityTable tbody tr').evaluateAll(
+    (rows) => rows.map((row) => Array.from(row.querySelectorAll('td')).map((cell) => cell.textContent))
+  );
+  expect(sensitivityRows.length).toBeGreaterThan(1);
+
+  // Every holding shows a RANGE, never a bare point weight.
+  for (const cells of sensitivityRows) {
+    expect(cells[0], 'a weight must be shown as a low-to-high range').toMatch(/%\s+to\s+.*%/);
+  }
+
+  // Each row carries an explicit stability verdict from the declared set,
+  // rather than a blank a reader cannot distinguish from "not checked".
+  for (const cells of sensitivityRows) {
+    expect(['Unstable across the declared set', 'Stable on this set']).toContain(cells[2]);
+  }
+
+  // Reversal conditions are always reported, including the honest "none" case.
+  await expect(panel.locator('#sensitivityReversals')).toBeVisible();
+  expect(await panel.locator('#sensitivityReversals li').count()).toBeGreaterThan(0);
+
+  const claim = await panel.locator('#sensitivityClaimBoundary').textContent();
+  expect(claim).toContain('perturbations');
+});
+
+test('Regression: SCN-008-030 behavior cannot alter Black Litterman views returns or confidence', async ({ page }) => {
+  await seedPortfolio(page, 'TP-14-04 behavior exclusion');
+  const panel = await openAllocation(page);
+
+  await expect(panel.locator('#blackLittermanEditor')).toBeVisible();
+
+  // With no stated view the candidate is equilibrium-only and the posterior
+  // equals the implied equilibrium on every row.
+  await expect(panel.locator('#blackLittermanEditor')).toHaveAttribute('data-posterior-state', 'equilibrium-only');
+  const before = await panel.locator('#blTable tbody tr').evaluateAll((rows) => rows.map((row) => {
+    const cells = Array.from(row.querySelectorAll('td')).map((cell) => cell.textContent);
+    return { equilibrium: cells[0], view: cells[1], posterior: cells[2] };
+  }));
+  expect(before.length).toBeGreaterThan(1);
+  for (const row of before) {
+    expect(row.view).toBe('None stated');
+    expect(row.posterior, 'with no view the posterior IS the equilibrium').toBe(row.equilibrium);
+  }
+
+  // The exclusion statement is rendered from the engine's own accounting, so it
+  // cannot drift from what actually happened.
+  const exclusion = await panel.locator('#blExclusionStatement').textContent();
+  expect(exclusion).toMatch(/behaviour signal|No behaviour signal/);
+
+  const note = await panel.locator('#blNote').textContent();
+  expect(note).toContain('0 views derived');
+  expect(note).toContain('No expected return, confidence, or view is prefilled or suggested');
+
+  // Nothing is prefilled: the editor fields start empty regardless of holdings.
+  expect(await panel.locator('#blExpectedReturn').inputValue()).toBe('');
+  expect(await panel.locator('#blConfidence').inputValue()).toBe('');
+
+  // An incomplete view is refused rather than part-accepted.
+  await panel.locator('#blApply').click();
+  await expect(panel.locator('#blError')).toContainText('requires an expected return and a confidence');
+  await expect(panel.locator('#blackLittermanEditor')).toHaveAttribute('data-posterior-state', 'equilibrium-only');
+});
+
+test('Regression: SCN-008-030 explicit Black Litterman view keeps equilibrium view posterior and uncertainty separate', async ({ page }) => {
+  await seedPortfolio(page, 'TP-14-05 explicit view');
+  const panel = await openAllocation(page);
+
+  const readBlColumn = (index) => panel.locator('#blTable tbody tr').evaluateAll(
+    (rows, i) => rows.map((row) => Array.from(row.querySelectorAll('td'))[i].textContent), index
+  );
+
+  const equilibriumBefore = await readBlColumn(0);
+  const subject = await panel.locator('#blSubject').inputValue();
+
+  await panel.locator('#blExpectedReturn').fill('0.2');
+  await panel.locator('#blConfidence').fill('0.8');
+  await panel.locator('#blApply').click();
+
+  await expect(panel.locator('#blackLittermanEditor')).toHaveAttribute('data-posterior-state', 'ok');
+
+  // The equilibrium column is UNCHANGED by the view. If stating a view rewrote
+  // the equilibrium, the reader could no longer see what the market thought.
+  const equilibriumAfter = await readBlColumn(0);
+  expect(equilibriumAfter, 'a stated view must not alter the implied equilibrium').toEqual(equilibriumBefore);
+
+  // The stated view is shown as the user's own, with its confidence.
+  const viewCells = await readBlColumn(1);
+  const stated = viewCells.filter((cell) => cell !== 'None stated');
+  expect(stated.length).toBe(1);
+  expect(stated[0]).toContain('20.00%');
+  expect(stated[0]).toContain('confidence 0.8');
+
+  // The posterior moved and is now distinct from the equilibrium on the viewed row.
+  const rowCells = await panel.locator('#bl-' + subject).locator('td').allTextContents();
+  expect(rowCells[2], 'the posterior must differ from the equilibrium once a view is stated').not.toBe(rowCells[0]);
+
+  const note = await panel.locator('#blNote').textContent();
+  expect(note).toContain('which part of the answer is the market');
+  expect(note).toContain('0 views derived');
+});
+
+test('Regression: Feature 008 allocation sensitivity ranges and Black Litterman editor preserve mobile table parity', async ({ page }) => {
+  await seedPortfolio(page, 'TP-14-06 parity');
+  const panel = await openAllocation(page);
+
+  const sensitivityRows = await panel.locator('#sensitivityTable tbody tr').count();
+  const blRows = await panel.locator('#blTable tbody tr').count();
+  expect(sensitivityRows).toBeGreaterThan(1);
+  expect(blRows).toBe(sensitivityRows);
+
+  const unresolved = await panel.evaluate(() => {
+    const rows = Array.from(document.querySelectorAll('#sensitivityTable tbody tr[id], #blTable tbody tr[id]'));
+    return rows.filter((row) => document.querySelectorAll('#' + CSS.escape(row.id)).length !== 1).length;
+  });
+  expect(unresolved, 'every sensitivity and BL row is a unique link target').toBe(0);
+
+  for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    await expect(panel.locator('#sensitivityTable')).toBeVisible();
+    await expect(panel.locator('#blTable')).toBeVisible();
+    await expect(panel.locator('#allocationCanvas')).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `no horizontal overflow at ${viewport.width}px`).toBeLessThanOrEqual(1);
+    expect(await panel.locator('#sensitivityTable tbody tr').count()).toBe(sensitivityRows);
+    expect(await panel.locator('#blTable tbody tr').count()).toBe(blRows);
+  }
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.evaluate(() => { document.documentElement.style.fontSize = '130%'; });
+  await expect(panel.locator('#sensitivityTable')).toBeVisible();
+  await expect(panel.locator('#blTable')).toBeVisible();
+  const overflowZoom = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflowZoom, 'no horizontal overflow at 130% text').toBeLessThanOrEqual(1);
+  await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
+});

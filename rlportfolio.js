@@ -74,7 +74,8 @@
       "minimumDistinctUtcDates", "outcomeCommands", "outcomeStates", "recentSupportDays"
     ]),
     analytics: Object.freeze([
-      "benchmarkSymbol", "concentrationAlertWeight", "concentrationLenses", "contractVersion",
+      "allocationUnstableRangeThreshold", "benchmarkSymbol", "blackLittermanRiskAversion",
+      "blackLittermanTau", "concentrationAlertWeight", "concentrationLenses", "contractVersion",
       "covarianceSensitivity", "covarianceShrinkageLambda", "hedgeBasisCorrelation",
       "hedgeCommissionFraction", "hedgeInstrumentClass", "hedgeLiquidity",
       "hedgeRebalancesPerYear", "hedgeSlippageFraction", "hedgeSpreadFraction",
@@ -399,6 +400,10 @@
         !value.analytics.concentrationLenses.every(function (lens) { return HOLDING_FIELDS.indexOf(lens) !== -1; }) ||
         !finitePositive(value.analytics.concentrationAlertWeight) || value.analytics.concentrationAlertWeight > 1 ||
         !finitePositive(value.analytics.lowerTailQuantile) || value.analytics.lowerTailQuantile >= 0.5 ||
+        !finitePositive(value.analytics.allocationUnstableRangeThreshold) ||
+        value.analytics.allocationUnstableRangeThreshold > 1 ||
+        !finitePositive(value.analytics.blackLittermanRiskAversion) ||
+        !finitePositive(value.analytics.blackLittermanTau) || value.analytics.blackLittermanTau > 1 ||
         !finiteNonNegative(value.analytics.hedgeCommissionFraction) ||
         !finiteNonNegative(value.analytics.hedgeSpreadFraction) ||
         !finiteNonNegative(value.analytics.hedgeSlippageFraction) ||

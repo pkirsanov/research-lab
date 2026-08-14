@@ -1458,7 +1458,268 @@
                     "is applied, and your current portfolio is not modified by viewing this comparison.";
                 band.appendChild(boundary);
 
+                appendAllocationSensitivity(band, model);
+                appendBlackLittermanEditor(band, model);
+
                 panel.appendChild(band);
+            }
+
+            /* ---------------------------------- Scope 14 sensitivity + BL editor */
+
+            function appendAllocationSensitivity(band, model) {
+                var policy = (state.policy && state.policy.analytics) || {};
+                var probe = riskProjection();
+                var sensitivityBand = document.createElement("div");
+                sensitivityBand.className = "band";
+                sensitivityBand.id = "allocationSensitivity";
+                var heading = document.createElement("h5");
+                heading.textContent = "Estimation sensitivity";
+                sensitivityBand.appendChild(heading);
+
+                var result = window.RLPORTFOLIOANALYTICS.allocationSensitivity({
+                    symbols: model.comparison.symbols,
+                    covariance: probe.covariance.conditioned,
+                    currentWeights: model.comparison.candidates[0].weights,
+                    perturbations: policy.covarianceSensitivity,
+                    unstableRangeThreshold: policy.allocationUnstableRangeThreshold
+                });
+                sensitivityBand.dataset.sensitivityState = result.state;
+
+                if (result.state !== "ok") {
+                    var unavailable = document.createElement("p");
+                    unavailable.id = "sensitivityUnavailable";
+                    unavailable.className = "state-message";
+                    unavailable.textContent = "Sensitivity unavailable · " + result.reason +
+                        " · no weight range, stability verdict, or reversal condition is shown, and a " +
+                        "point-weight vector is NOT shown in its place.";
+                    sensitivityBand.appendChild(unavailable);
+                    band.appendChild(sensitivityBand);
+                    return;
+                }
+
+                var trials = document.createElement("p");
+                trials.id = "sensitivityTrials";
+                trials.className = "microcopy";
+                trials.textContent = result.validTrials + " valid trial" + (result.validTrials === 1 ? "" : "s") +
+                    " · " + result.failedTrials + " failed · declared perturbations " +
+                    result.declaredPerturbations.join(", ") + " · instability threshold " +
+                    (result.unstableRangeThreshold * 100).toFixed(0) + " weight points";
+                sensitivityBand.appendChild(trials);
+
+                var wrap = document.createElement("div");
+                wrap.style.overflowX = "auto";
+                wrap.style.maxWidth = "100%";
+                var table = document.createElement("table");
+                table.id = "sensitivityTable";
+                table.innerHTML = "<thead><tr><th scope=\"col\">Holding</th><th scope=\"col\">Weight range</th>" +
+                    "<th scope=\"col\">Span</th><th scope=\"col\">Stability</th></tr></thead>";
+                var body = document.createElement("tbody");
+                result.ranges.forEach(function (row) {
+                    var tr = document.createElement("tr");
+                    tr.id = "sensitivity-" + row.symbol;
+                    tr.dataset.unstable = row.unstable ? "true" : "false";
+                    /* Precision follows the range. Printing two decimals on a band
+                       that spans thirty weight points would be false precision. */
+                    var lowText = (row.low * 100).toFixed(row.decimals);
+                    var highText = (row.high * 100).toFixed(row.decimals);
+                    var cells = [
+                        row.symbol,
+                        lowText + "% to " + highText + "%",
+                        (row.span * 100).toFixed(row.decimals) + " points",
+                        row.unstable ? "Unstable across the declared set" : "Stable on this set"
+                    ];
+                    cells.forEach(function (value, i) {
+                        var cell = document.createElement(i === 0 ? "th" : "td");
+                        if (i === 0) cell.setAttribute("scope", "row");
+                        cell.textContent = value;
+                        tr.appendChild(cell);
+                    });
+                    body.appendChild(tr);
+                });
+                table.appendChild(body);
+                wrap.appendChild(table);
+                sensitivityBand.appendChild(wrap);
+
+                var reversals = document.createElement("ul");
+                reversals.id = "sensitivityReversals";
+                reversals.className = "route-states";
+                if (result.reversalConditions.length) {
+                    result.reversalConditions.forEach(function (reversal, index) {
+                        var li = document.createElement("li");
+                        li.id = "reversal-" + index;
+                        li.textContent = reversal.statement;
+                        reversals.appendChild(li);
+                    });
+                } else {
+                    var none = document.createElement("li");
+                    none.id = "reversal-none";
+                    none.textContent = "No pair swaps order across the declared perturbation set.";
+                    reversals.appendChild(none);
+                }
+                sensitivityBand.appendChild(reversals);
+
+                var claim = document.createElement("p");
+                claim.id = "sensitivityClaimBoundary";
+                claim.className = "microcopy";
+                claim.textContent = result.claimBoundary;
+                sensitivityBand.appendChild(claim);
+
+                band.appendChild(sensitivityBand);
+            }
+
+            function appendBlackLittermanEditor(band, model) {
+                var policy = (state.policy && state.policy.analytics) || {};
+                var probe = riskProjection();
+                var blBand = document.createElement("div");
+                blBand.className = "band";
+                blBand.id = "blackLittermanEditor";
+                var heading = document.createElement("h5");
+                heading.textContent = "Black-Litterman views";
+                blBand.appendChild(heading);
+
+                /* The exclusion statement is rendered from the engine's own
+                   accounting, so it can never drift from what actually happened. */
+                var behaviorSignals = state.opened && state.opened.workspace
+                    ? state.opened.workspace.interestSignals
+                    : [];
+                var viewAudit = window.RLPORTFOLIOANALYTICS.blackLittermanViews({
+                    statedViews: state.blViews || [],
+                    behaviorSignals: behaviorSignals
+                });
+                var exclusion = document.createElement("p");
+                exclusion.id = "blExclusionStatement";
+                exclusion.className = "microcopy";
+                exclusion.textContent = viewAudit.exclusionStatement;
+                blBand.appendChild(exclusion);
+
+                var form = document.createElement("div");
+                form.className = "row";
+                var subject = document.createElement("select");
+                subject.id = "blSubject";
+                subject.setAttribute("aria-label", "Black-Litterman view subject");
+                model.comparison.symbols.forEach(function (symbol) {
+                    var option = document.createElement("option");
+                    option.value = symbol;
+                    option.textContent = symbol;
+                    subject.appendChild(option);
+                });
+                var expected = document.createElement("input");
+                expected.id = "blExpectedReturn";
+                expected.type = "number";
+                expected.step = "0.01";
+                expected.placeholder = "Expected return";
+                expected.setAttribute("aria-label", "Black-Litterman expected return");
+                var confidence = document.createElement("input");
+                confidence.id = "blConfidence";
+                confidence.type = "number";
+                confidence.step = "0.1";
+                confidence.min = "0";
+                confidence.max = "1";
+                confidence.placeholder = "Confidence 0-1";
+                confidence.setAttribute("aria-label", "Black-Litterman confidence");
+                var apply = document.createElement("button");
+                apply.id = "blApply";
+                apply.type = "button";
+                apply.textContent = "Add view";
+                apply.addEventListener("click", function () {
+                    var e = Number(byId("blExpectedReturn").value);
+                    var c = Number(byId("blConfidence").value);
+                    if (byId("blExpectedReturn").value === "" || byId("blConfidence").value === "" ||
+                        !isFiniteNumber(e) || !isFiniteNumber(c) || c <= 0 || c > 1) {
+                        state.blError = "A view requires an expected return and a confidence between 0 and 1. " +
+                            "Neither is inferred, and no value is prefilled from your holdings or behavior.";
+                        refreshWorkspaceViews();
+                        return;
+                    }
+                    state.blError = null;
+                    state.blViews = (state.blViews || []).concat([{
+                        subject: byId("blSubject").value,
+                        expectedReturn: e,
+                        confidence: c,
+                        source: "user-stated"
+                    }]);
+                    refreshWorkspaceViews();
+                });
+                [subject, expected, confidence, apply].forEach(function (el) { form.appendChild(el); });
+                blBand.appendChild(form);
+
+                if (state.blError) {
+                    var error = document.createElement("p");
+                    error.id = "blError";
+                    error.className = "state-message";
+                    error.textContent = state.blError;
+                    blBand.appendChild(error);
+                }
+
+                var posterior = window.RLPORTFOLIOANALYTICS.blackLittermanPosterior({
+                    symbols: model.comparison.symbols,
+                    covariance: probe.covariance.conditioned,
+                    benchmarkWeights: model.comparison.candidates[1].weights,
+                    riskAversion: policy.blackLittermanRiskAversion,
+                    tau: policy.blackLittermanTau,
+                    views: state.blViews || []
+                });
+                blBand.dataset.posteriorState = posterior.state;
+
+                if (posterior.state === "unavailable") {
+                    var unavailable = document.createElement("p");
+                    unavailable.id = "blUnavailable";
+                    unavailable.className = "state-message";
+                    unavailable.textContent = "Black-Litterman unavailable · " + posterior.reason +
+                        " · no equilibrium, view, or posterior estimate is shown.";
+                    blBand.appendChild(unavailable);
+                    band.appendChild(blBand);
+                    return;
+                }
+
+                /* Equilibrium, view and posterior are three separate columns on
+                   purpose: a single posterior number cannot show the reader which
+                   part of the answer is the market's and which is their own. */
+                var wrap = document.createElement("div");
+                wrap.style.overflowX = "auto";
+                wrap.style.maxWidth = "100%";
+                var table = document.createElement("table");
+                table.id = "blTable";
+                table.innerHTML = "<thead><tr><th scope=\"col\">Holding</th>" +
+                    "<th scope=\"col\">Implied equilibrium</th><th scope=\"col\">Your stated view</th>" +
+                    "<th scope=\"col\">Posterior</th></tr></thead>";
+                var body = document.createElement("tbody");
+                posterior.symbols.forEach(function (symbol, i) {
+                    var stated = (state.blViews || []).filter(function (view) { return view.subject === symbol; });
+                    var tr = document.createElement("tr");
+                    tr.id = "bl-" + symbol;
+                    tr.dataset.hasView = stated.length ? "true" : "false";
+                    var cells = [
+                        symbol,
+                        (posterior.impliedEquilibriumReturns[i] * 100).toFixed(2) + "%",
+                        stated.length
+                            ? (stated[stated.length - 1].expectedReturn * 100).toFixed(2) + "% at confidence " +
+                              stated[stated.length - 1].confidence
+                            : "None stated",
+                        (posterior.posteriorMean[i] * 100).toFixed(2) + "%"
+                    ];
+                    cells.forEach(function (value, k) {
+                        var cell = document.createElement(k === 0 ? "th" : "td");
+                        if (k === 0) cell.setAttribute("scope", "row");
+                        cell.textContent = value;
+                        tr.appendChild(cell);
+                    });
+                    body.appendChild(tr);
+                });
+                table.appendChild(body);
+                wrap.appendChild(table);
+                blBand.appendChild(wrap);
+
+                var note = document.createElement("p");
+                note.id = "blNote";
+                note.className = "microcopy";
+                note.textContent = posterior.note + " Behavior-derived interest contributes none: " +
+                    viewAudit.behaviorSignalsSeen + " signal" + (viewAudit.behaviorSignalsSeen === 1 ? "" : "s") +
+                    " seen, " + viewAudit.behaviorDerivedViews + " views derived. No expected return, " +
+                    "confidence, or view is prefilled or suggested from what you have looked at.";
+                blBand.appendChild(note);
+
+                band.appendChild(blBand);
             }
 
             /* ------------------------------------------ Scope 11 Diversification */

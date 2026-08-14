@@ -155,3 +155,67 @@ test('TP-13-08 a saved allocation survives a reread and is emptied by the full p
   assert.equal(afterClear.value.workspace.allocations.length, 0,
     'the full personal clear removes every saved allocation');
 });
+
+test('TP-14-02 production sensitivity and Black-Litterman lifecycle run on the common basis', () => {
+  const { api, analytics, policy } = loadRuntime();
+  const covariance = [[0.04, 0.01], [0.01, 0.09]];
+
+  // The perturbation set and the stability threshold come from the SAME visible
+  // policy the page reads. A test that invented its own would prove the engine
+  // works on numbers nothing in production uses.
+  const sensitivity = analytics.allocationSensitivity({
+    symbols: ['BND', 'MSFT'],
+    covariance,
+    currentWeights: [0.4, 0.6],
+    perturbations: policy.analytics.covarianceSensitivity,
+    unstableRangeThreshold: policy.analytics.allocationUnstableRangeThreshold
+  });
+  assert.equal(sensitivity.state, 'ok');
+  assert.equal(sensitivity.validTrials, policy.analytics.covarianceSensitivity.length);
+  assert.equal(sensitivity.failedTrials, 0);
+  assert.deepEqual(sensitivity.declaredPerturbations, policy.analytics.covarianceSensitivity);
+  assert.equal(sensitivity.ranges.length, 2);
+  assert.ok(Array.isArray(sensitivity.reversalConditions));
+
+  // The equilibrium is computed from the policy's own risk aversion and tau.
+  const equilibriumOnly = analytics.blackLittermanPosterior({
+    symbols: ['BND', 'MSFT'],
+    covariance,
+    benchmarkWeights: [0.5, 0.5],
+    riskAversion: policy.analytics.blackLittermanRiskAversion,
+    tau: policy.analytics.blackLittermanTau,
+    views: []
+  });
+  assert.equal(equilibriumOnly.state, 'equilibrium-only');
+  assert.deepEqual(equilibriumOnly.posteriorMean, equilibriumOnly.impliedEquilibriumReturns);
+
+  // Adding a stated view moves the posterior and leaves the equilibrium intact.
+  const withView = analytics.blackLittermanPosterior({
+    symbols: ['BND', 'MSFT'],
+    covariance,
+    benchmarkWeights: [0.5, 0.5],
+    riskAversion: policy.analytics.blackLittermanRiskAversion,
+    tau: policy.analytics.blackLittermanTau,
+    views: [{ subject: 'MSFT', expectedReturn: 0.25, confidence: 0.7, source: 'user-stated' }]
+  });
+  assert.equal(withView.state, 'ok');
+  assert.deepEqual(withView.impliedEquilibriumReturns, equilibriumOnly.impliedEquilibriumReturns,
+    'stating a view must not rewrite the implied equilibrium');
+  assert.ok(withView.posteriorMean[1] > equilibriumOnly.posteriorMean[1],
+    'a bullish view raises the posterior for its subject');
+  assert.equal(withView.behaviorContribution, 'none');
+
+  // A workspace holding real behavioural interest is passed through the view
+  // audit and contributes nothing, which is the lifecycle claim this row makes.
+  const audit = analytics.blackLittermanViews({
+    statedViews: [{ subject: 'MSFT', expectedReturn: 0.25, confidence: 0.7, source: 'user-stated' }],
+    behaviorSignals: [{ subject: 'MSFT', weight: 0.99 }, { subject: 'BND', weight: 0.4 }]
+  });
+  assert.equal(audit.behaviorSignalsSeen, 2);
+  assert.equal(audit.behaviorDerivedViews, 0);
+  assert.equal(audit.admittedViews.length, 1);
+  assert.ok(audit.exclusionStatement.includes('contributed NO view'));
+
+  // The policy the page loads is the policy this row exercised.
+  assert.equal(api.validatePolicy(policy).ok, true);
+});

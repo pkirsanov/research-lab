@@ -1,35 +1,35 @@
 {
-  "asOf": "2026-08-13T22:45:15.063Z",
-  "generatedAt": "2026-08-13T22:45:15.063Z",
-  "window": "after-hours",
+  "asOf": "2026-08-14T11:01:08.375Z",
+  "generatedAt": "2026-08-14T11:01:08.375Z",
+  "window": "pre-market",
   "marketClosed": false,
   "nextSessionDate": "2026-08-14",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-13T22:44:31.505Z",
+      "updated": "2026-08-14T11:00:19.951Z",
       "symbolCount": 289,
       "expectedSessionDate": "2026-08-13",
-      "refreshDate": "2026-08-13",
-      "refreshWindow": "after-hours",
+      "refreshDate": "2026-08-14",
+      "refreshWindow": "pre-market",
       "freshSymbolCount": 289,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-08-13T22:44:35.458Z",
+      "updated": "2026-08-14T11:00:24.409Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
-      "refreshDate": "2026-08-13",
-      "refreshWindow": "after-hours",
+      "refreshDate": "2026-08-14",
+      "refreshWindow": "pre-market",
       "freshSymbolCount": 22,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     }
   },
   "regime": {
-    "band": "VIX 14.6",
+    "band": "VIX 14.5",
     "score": 1,
-    "vix": 14.63,
+    "vix": 14.53,
     "fearGreed": null
   },
   "bench": {
@@ -80,15 +80,15 @@
     },
     "FMTM": {
       "px": 40.33,
-      "mom5": 4.28,
-      "mom21": 1.27,
-      "mom63": -2.88,
-      "mom126": 10.48,
-      "mom252": 46.93,
-      "ma50Dist": 0.12,
-      "ma200Dist": 10.44,
+      "mom5": 2.35,
+      "mom21": -0.45,
+      "mom63": -1.78,
+      "mom126": 11.52,
+      "mom252": 49.98,
+      "ma50Dist": -0.02,
+      "ma200Dist": 10.57,
       "maStack": "tangled",
-      "pctFrom52wHigh": -7.6
+      "pctFrom52wHigh": -7.59
     },
     "XLK": {
       "px": 190.77,
@@ -202,17 +202,17 @@
       "ma200Dist": 21.47
     },
     "XLC": {
-      "rsMom1m": -3.79,
-      "rsMom3m": -8.42,
-      "rsMom6m": -16.04,
-      "rsRatio": 99.04,
-      "rsMom": 100.46,
-      "quad": "I",
-      "accel": 2.1,
-      "rrgState": "Improving ↑",
-      "rotation": "into",
+      "rsMom1m": -2.07,
+      "rsMom3m": -7.67,
+      "rsMom6m": -16.74,
+      "rsRatio": 99.01,
+      "rsMom": 97.92,
+      "quad": "A",
+      "accel": -2.42,
+      "rrgState": "Lagging",
+      "rotation": "neutral",
       "maStack": "bear-stack",
-      "ma200Dist": -0.98
+      "ma200Dist": -1
     },
     "XLY": {
       "rsMom1m": -1.82,
@@ -306,17 +306,17 @@
       "ma200Dist": 6.73
     },
     "XLRE": {
-      "rsMom1m": -1.8,
-      "rsMom3m": -2.11,
-      "rsMom6m": -5.96,
-      "rsRatio": 98.9,
-      "rsMom": 98.62,
+      "rsMom1m": -1.62,
+      "rsMom3m": -2.96,
+      "rsMom6m": -6.06,
+      "rsRatio": 98.85,
+      "rsMom": 97.59,
       "quad": "A",
-      "accel": -1.51,
+      "accel": -4.56,
       "rrgState": "Lagging",
       "rotation": "neutral",
       "maStack": "bull-stack",
-      "ma200Dist": 6.75
+      "ma200Dist": 6.78
     },
     "XLU": {
       "rsMom1m": -5.67,
@@ -627,22 +627,22 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-13T22:45:14.060Z",
-      "read": "Rotate toward XLC as XLE weakens.",
+      "asOf": "2026-08-14T11:01:06.584Z",
+      "read": "Rotate toward XLK as XLE weakens.",
       "metrics": {
         "into": {
-          "ticker": "XLC",
-          "rsMom1m": -3.79,
-          "rsMom3m": -8.42,
-          "rsMom6m": -16.04,
-          "rsRatio": 99.04,
-          "rsMom": 100.46,
-          "quad": "I",
-          "accel": 2.1,
-          "rrgState": "Improving ↑",
+          "ticker": "XLK",
+          "rsMom1m": 2,
+          "rsMom3m": 2.94,
+          "rsMom6m": 20.74,
+          "rsRatio": 100.08,
+          "rsMom": 102.08,
+          "quad": "L",
+          "accel": 1.75,
+          "rrgState": "Leading",
           "rotation": "into",
-          "maStack": "bear-stack",
-          "ma200Dist": -0.98
+          "maStack": "tangled",
+          "ma200Dist": 21.47
         },
         "out": {
           "ticker": "XLE",
@@ -699,10 +699,10 @@
           {
             "ticker": "JMOM",
             "signal": 20.62,
-            "score": 0.3706,
-            "annVol": 16.66,
-            "sharpeGeometric": 1.656,
-            "sharpeArithmetic": 1.493,
+            "score": 0.3701,
+            "annVol": 16.7,
+            "sharpeGeometric": 1.652,
+            "sharpeArithmetic": 1.497,
             "volatilityDrag": 1.39,
             "asOf": "2026-08-13T13:30:00.000Z"
           },
@@ -729,11 +729,11 @@
           {
             "ticker": "MTUM",
             "signal": 24.11,
-            "score": 0.2845,
-            "annVol": 25.82,
-            "sharpeGeometric": 0.967,
-            "sharpeArithmetic": 0.961,
-            "volatilityDrag": 3.34,
+            "score": 0.2838,
+            "annVol": 25.89,
+            "sharpeGeometric": 0.964,
+            "sharpeArithmetic": 0.963,
+            "volatilityDrag": 3.36,
             "asOf": "2026-08-13T13:30:00.000Z"
           }
         ],
@@ -843,7 +843,7 @@
           "horizonSessions": 63,
           "observationSet": {
             "contractVersion": "rlfx-observation-set/v1",
-            "setId": "set-v1-38fb61c5",
+            "setId": "set-v1-d12e79cb",
             "purpose": "global-usd-leadership",
             "horizonSessions": 63,
             "legs": [
@@ -853,7 +853,7 @@
                 "subject": "EWS",
                 "orientation": "etf",
                 "adjustment": "adjusted-close",
-                "validDateCount": 515
+                "validDateCount": 501
               },
               {
                 "legId": "benchmark",
@@ -861,7 +861,7 @@
                 "subject": "ACWI",
                 "orientation": "benchmark",
                 "adjustment": "adjusted-close",
-                "validDateCount": 515
+                "validDateCount": 501
               }
             ],
             "alignedRows": [
@@ -1316,8 +1316,8 @@
             ],
             "coverage": {
               "requiredRowCount": 64,
-              "commonRowCount": 515,
-              "earliestCommonDate": "2024-07-25",
+              "commonRowCount": 501,
+              "earliestCommonDate": "2024-08-14",
               "latestCommonDate": "2026-08-13",
               "unmatchedNewerDates": {
                 "etf": [],
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": 0.0491121508678487,
           "usdRelativeReturn": 0.11057916650501642,
           "asOf": "2026-08-13T00:00:00.000Z",
-          "computedAt": "2026-08-13T22:45:14.376Z",
+          "computedAt": "2026-08-14T11:01:06.802Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1351,7 +1351,7 @@
           "horizonSessions": 63,
           "observationSet": {
             "contractVersion": "rlfx-observation-set/v1",
-            "setId": "set-v1-fa4e2306",
+            "setId": "set-v1-03535f58",
             "purpose": "global-decomposition",
             "horizonSessions": 63,
             "legs": [
@@ -1361,7 +1361,7 @@
                 "subject": "EWS",
                 "orientation": "etf",
                 "adjustment": "adjusted-close",
-                "validDateCount": 515
+                "validDateCount": 501
               },
               {
                 "legId": "benchmark",
@@ -1369,7 +1369,7 @@
                 "subject": "ACWI",
                 "orientation": "benchmark",
                 "adjustment": "adjusted-close",
-                "validDateCount": 515
+                "validDateCount": 501
               },
               {
                 "legId": "fx",
@@ -1896,13 +1896,15 @@
             ],
             "coverage": {
               "requiredRowCount": 64,
-              "commonRowCount": 400,
-              "earliestCommonDate": "2024-11-05",
+              "commonRowCount": 399,
+              "earliestCommonDate": "2024-11-06",
               "latestCommonDate": "2026-08-13",
               "unmatchedNewerDates": {
                 "etf": [],
                 "benchmark": [],
-                "fx": []
+                "fx": [
+                  "2026-08-14"
+                ]
               },
               "duplicateDatesDropped": {
                 "etf": 0,
@@ -1930,7 +1932,7 @@
           "interaction": -0.0006767863578180858,
           "relationship": "Local-Equity-Led With FX Drag",
           "asOf": "2026-08-13T00:00:00.000Z",
-          "computedAt": "2026-08-13T22:45:14.376Z",
+          "computedAt": "2026-08-14T11:01:06.802Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1954,7 +1956,7 @@
               "usdLeadership": {
                 "asOf": "2026-08-13T00:00:00.000Z",
                 "benchmarkReturn": 0.0491121508678487,
-                "computedAt": "2026-08-13T22:45:14.376Z",
+                "computedAt": "2026-08-14T11:01:06.802Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2411,12 +2413,12 @@
                   ],
                   "contractVersion": "rlfx-observation-set/v1",
                   "coverage": {
-                    "commonRowCount": 515,
+                    "commonRowCount": 501,
                     "duplicateDatesDropped": {
                       "benchmark": 0,
                       "etf": 0
                     },
-                    "earliestCommonDate": "2024-07-25",
+                    "earliestCommonDate": "2024-08-14",
                     "latestCommonDate": "2026-08-13",
                     "requiredRowCount": 64,
                     "unmatchedNewerDates": {
@@ -2432,7 +2434,7 @@
                       "observationId": "EWS",
                       "orientation": "etf",
                       "subject": "EWS",
-                      "validDateCount": 515
+                      "validDateCount": 501
                     },
                     {
                       "adjustment": "adjusted-close",
@@ -2440,7 +2442,7 @@
                       "observationId": "ACWI",
                       "orientation": "benchmark",
                       "subject": "ACWI",
-                      "validDateCount": 515
+                      "validDateCount": 501
                     }
                   ],
                   "lineage": {
@@ -2451,7 +2453,7 @@
                     "uniqueRelationshipIds": []
                   },
                   "purpose": "global-usd-leadership",
-                  "setId": "set-v1-38fb61c5",
+                  "setId": "set-v1-d12e79cb",
                   "state": "aligned"
                 },
                 "state": "ready",
@@ -2463,7 +2465,7 @@
                 "approximateLocalReturn": 0.20244903745493903,
                 "asOf": "2026-08-13T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": 0.09300627383765248,
-                "computedAt": "2026-08-13T22:45:14.376Z",
+                "computedAt": "2026-08-14T11:01:06.802Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "SGD",
                 "freshUntil": null,
@@ -2990,19 +2992,21 @@
                   ],
                   "contractVersion": "rlfx-observation-set/v1",
                   "coverage": {
-                    "commonRowCount": 400,
+                    "commonRowCount": 399,
                     "duplicateDatesDropped": {
                       "benchmark": 0,
                       "etf": 0,
                       "fx": 0
                     },
-                    "earliestCommonDate": "2024-11-05",
+                    "earliestCommonDate": "2024-11-06",
                     "latestCommonDate": "2026-08-13",
                     "requiredRowCount": 64,
                     "unmatchedNewerDates": {
                       "benchmark": [],
                       "etf": [],
-                      "fx": []
+                      "fx": [
+                        "2026-08-14"
+                      ]
                     }
                   },
                   "horizonSessions": 63,
@@ -3013,7 +3017,7 @@
                       "observationId": "EWS",
                       "orientation": "etf",
                       "subject": "EWS",
-                      "validDateCount": 515
+                      "validDateCount": 501
                     },
                     {
                       "adjustment": "adjusted-close",
@@ -3021,7 +3025,7 @@
                       "observationId": "ACWI",
                       "orientation": "benchmark",
                       "subject": "ACWI",
-                      "validDateCount": 515
+                      "validDateCount": 501
                     },
                     {
                       "adjustment": "adjusted-close",
@@ -3041,7 +3045,7 @@
                     "uniqueRelationshipIds": []
                   },
                   "purpose": "global-decomposition",
-                  "setId": "set-v1-fa4e2306",
+                  "setId": "set-v1-03535f58",
                   "state": "aligned"
                 },
                 "relationship": "Local-Equity-Led With FX Drag",
@@ -3055,7 +3059,7 @@
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-08-13T22:45:14.376Z",
+          "computedAt": "2026-08-14T11:01:06.802Z",
           "freshUntil": null
         }
       },
@@ -3065,7 +3069,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-08-13T13:30:00.000Z",
-      "read": "CPER leads real assets at 50.2/100; GLD 33.4, BTC 41.2, SLV 10.2.",
+      "read": "CPER leads real assets at 50.2/100; GLD 33.4, BTC 35.4, SLV 10.2.",
       "metrics": {
         "leader": {
           "ticker": "CPER",
@@ -3137,12 +3141,12 @@
           {
             "ticker": "ETH-USD",
             "model": "crypto",
-            "score": 48.1,
+            "score": 46.8,
             "trend": "Mixed",
-            "mom21": 0.64,
-            "mom63": 12.97,
-            "mom126": -13.71,
-            "vol": 47.48,
+            "mom21": 0.73,
+            "mom63": 12.53,
+            "mom126": -16.54,
+            "vol": 47.25,
             "maxDrawdown": 35.37,
             "riskPenalty": 7.21,
             "confirmations": [
@@ -3159,21 +3163,21 @@
                 "symbols": [
                   "BTC-USD"
                 ],
-                "score": 49.84375961632082,
+                "score": 48.208035023417565,
                 "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
               }
             ],
-            "asOf": "2026-08-13T00:00:00.000Z"
+            "asOf": "2026-08-14T00:00:00.000Z"
           },
           {
             "ticker": "PDBC",
             "model": "broad",
-            "score": 45.3,
+            "score": 45.4,
             "trend": "Uptrend",
-            "mom21": 3.49,
-            "mom63": -4.97,
-            "mom126": 22.64,
-            "vol": 23.87,
+            "mom21": 4.04,
+            "mom63": -6.03,
+            "mom126": 23.92,
+            "vol": 23.92,
             "maxDrawdown": 16.55,
             "riskPenalty": 2.89,
             "confirmations": [
@@ -3265,33 +3269,37 @@
             "asOf": "2026-08-13T13:30:00.000Z"
           },
           {
-            "ticker": "BTC-USD",
-            "model": "bitcoin",
-            "score": 41.2,
+            "ticker": "USO",
+            "model": "energy",
+            "score": 40.6,
             "trend": "Mixed",
-            "mom21": -2.39,
-            "mom63": -0.11,
-            "mom126": -11.53,
-            "vol": 33.85,
-            "maxDrawdown": 28.71,
-            "riskPenalty": 5.68,
+            "mom21": 3.01,
+            "mom63": -11.98,
+            "mom126": 58.49,
+            "vol": 62.18,
+            "maxDrawdown": 32.49,
+            "riskPenalty": 18.35,
             "confirmations": [
               {
-                "label": "Equity risk appetite",
+                "label": "Energy equities",
                 "symbols": [
-                  "QQQ"
+                  "XLE"
                 ],
-                "score": 57.942237958511456,
-                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used."
+                "score": 68.65517653355637,
+                "detail": "Energy-equity direction confirms or diverges from the oil-linked price trend."
               },
               {
-                "label": "Volatility / drawdown",
-                "symbols": [],
-                "score": 77.26905847685842,
-                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
+                "label": "Commodity breadth",
+                "symbols": [
+                  "DBC",
+                  "CPER",
+                  "DBA"
+                ],
+                "score": 0,
+                "detail": "Share of commodity vehicles with positive medium-term trends."
               }
             ],
-            "asOf": "2026-08-13T00:00:00.000Z"
+            "asOf": "2026-08-13T13:30:00.000Z"
           }
         ],
         "specific": {
@@ -3321,7 +3329,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 47.15131686614839,
+                "score": 47.15131786267068,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -3370,12 +3378,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 41.2,
-            "trend": "Mixed",
-            "mom21": -2.39,
-            "mom63": -0.11,
-            "mom126": -11.53,
-            "vol": 33.85,
+            "score": 35.4,
+            "trend": "Downtrend",
+            "mom21": -2.11,
+            "mom63": -1.25,
+            "mom126": -14.02,
+            "vol": 33.75,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -3394,7 +3402,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-08-13T00:00:00.000Z"
+            "asOf": "2026-08-14T00:00:00.000Z"
           },
           "IBIT": {
             "ticker": "IBIT",
@@ -3664,27 +3672,27 @@
     "options-structure-lab": {
       "id": "options-structure-lab",
       "asOf": "2026-08-13T16:00:00.000Z",
-      "read": "SPY sits in positive dealer gamma with the flip near 770.66; call wall 780, put wall 770, front expected move ±3.21.",
+      "read": "SPY sits in positive dealer gamma with the flip near 772.51; call wall 780, put wall 777, front expected move ±3.25.",
       "deepLink": "options-structure-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
       "metrics": {
         "symbol": "SPY",
-        "spot": 777.96,
+        "spot": 778.45,
         "regime": "positive",
-        "flipLevel": 770.66,
-        "signedNetGEX": 15812766742.6257,
+        "flipLevel": 772.51,
+        "signedNetGEX": 13183468309.3455,
         "callWall": 780,
-        "putWall": 770,
-        "expectedMove": 3.21,
-        "atmIV": 0.1115,
+        "putWall": 777,
+        "expectedMove": 3.25,
+        "atmIV": 0.1127,
         "expiriesPriced": 3
       }
     },
     "gamma-trading-lab": {
       "id": "gamma-trading-lab",
       "asOf": "2026-08-13T16:00:00.000Z",
-      "read": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 770.66, walls 770/780.",
+      "read": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 772.51, walls 777/780.",
       "deepLink": "gamma-trading-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
@@ -3694,11 +3702,11 @@
         "scenario": "pin-to-maxpain",
         "conviction": "patient",
         "hold": "same-session-fade",
-        "signedNetGEX": 15812766742.63,
+        "signedNetGEX": 13183468309.35,
         "flipPresent": true,
-        "flip": 770.66,
+        "flip": 772.51,
         "callWall": 780,
-        "putWall": 770,
+        "putWall": 777,
         "oviState": "unavailable",
         "opexWindow": null
       }
@@ -3706,23 +3714,23 @@
     "options-flow-feed-lab": {
       "id": "options-flow-feed-lab",
       "asOf": "2026-08-13T16:00:00.000Z",
-      "read": "Option flow is call-heavy (leaning bullish) across 12 tickers: 1764 contracts clear the $250k premium bar inside 30 days; the most unusual is SPY 777 calls at $70.5M on 90.3× its open interest.",
+      "read": "Option flow is call-heavy (leaning bullish) across 12 tickers: 1765 contracts clear the $250k premium bar inside 30 days; the most unusual is SPY 777 calls at $70.5M on 90.3× its open interest.",
       "deepLink": "options-flow-feed-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
       "metrics": {
         "tickers": 12,
-        "contractsFlagged": 1764,
+        "contractsFlagged": 1765,
         "windowDays": 30,
         "premiumThreshold": 250000,
         "lean": "call-heavy (leaning bullish)",
         "callPremium": 2752419447.5,
-        "putPremium": 1118294017.5,
-        "callFraction": 0.7111,
+        "putPremium": 1124539119.5,
+        "callFraction": 0.7099,
         "netPremium": null,
-        "consideredCount": 19940,
-        "clearedCount": 693,
-        "clearedFraction": 0.0348,
+        "consideredCount": 19990,
+        "clearedCount": 408,
+        "clearedFraction": 0.0204,
         "maxScore": 87,
         "top": [
           {
@@ -3734,7 +3742,7 @@
             "openInterest": 10143,
             "volOI": 90.264,
             "premium": 70497196,
-            "iv": 14.31,
+            "iv": 14.27,
             "score": 87
           },
           {
@@ -3743,10 +3751,10 @@
             "strike": 225,
             "dte": 1,
             "volume": 221770,
-            "openInterest": 65376,
-            "volOI": 3.3922,
+            "openInterest": 65104,
+            "volOI": 3.4064,
             "premium": 41249220,
-            "iv": 34.09,
+            "iv": 34.3,
             "score": 86
           },
           {
@@ -3755,10 +3763,10 @@
             "strike": 335,
             "dte": 1,
             "volume": 140358,
-            "openInterest": 19157,
-            "volOI": 7.3267,
+            "openInterest": 17112,
+            "volOI": 8.2023,
             "premium": 85618380,
-            "iv": 40.27,
+            "iv": 38.97,
             "score": 85
           }
         ]
@@ -3855,7 +3863,7 @@
             "verdict": "current",
             "errorCode": null,
             "lastGoodObservedAt": "2026-08-13",
-            "elapsedDays": 0,
+            "elapsedDays": 1,
             "windowDays": 4,
             "basis": "observed-gap-max-3d-over-9-gaps-plus-lag-1d"
           },
@@ -3863,7 +3871,7 @@
             "verdict": "current",
             "errorCode": null,
             "lastGoodObservedAt": "2026-08-13",
-            "elapsedDays": 0,
+            "elapsedDays": 1,
             "windowDays": 4,
             "basis": "observed-gap-max-3d-over-9-gaps-plus-lag-1d"
           }
@@ -3902,15 +3910,15 @@
     },
     "fx-regime-relative-value-lab": {
       "id": "fx-regime-relative-value-lab",
-      "asOf": "2026-08-13T22:45:14.769Z",
+      "asOf": "2026-08-14T11:01:08.144Z",
       "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "source": "owning-tool-functions",
       "state": "unavailable",
       "metrics": {
         "state": "unavailable",
-        "ownerDecisionId": "fxo-v1-449e8d23",
-        "evidenceIdentity": "fxe-v1-29e74079",
+        "ownerDecisionId": "fxo-v1-3a715d7a",
+        "evidenceIdentity": "fxe-v1-5dbdcdad",
         "objective": "foreign-currency-strength",
         "subjectId": "JPY",
         "horizon": "swing",
@@ -4033,8 +4041,8 @@
           "read": "The available evidence does not support a complete attributable recommendation.",
           "metrics": {
             "contractVersion": "rlfx-tool-read/v2",
-            "ownerDecisionId": "fxo-v1-449e8d23",
-            "evidenceIdentity": "fxe-v1-29e74079",
+            "ownerDecisionId": "fxo-v1-3a715d7a",
+            "evidenceIdentity": "fxe-v1-5dbdcdad",
             "state": "unavailable",
             "objective": "foreign-currency-strength",
             "subjectId": "JPY",
@@ -4154,7 +4162,7 @@
                 "REQUIRED_FACT_MISSING",
                 "TRACKING_EVIDENCE_INCOMPLETE"
               ],
-              "evidenceIdentity": "fxe-v1-29e74079",
+              "evidenceIdentity": "fxe-v1-5dbdcdad",
               "evidenceCutoff": null,
               "provenance": [],
               "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
@@ -4179,7 +4187,7 @@
             "executionAvailable": false
           },
           "deepLink": "fx-regime-relative-value-lab.html#power",
-          "computedAt": "2026-08-13T22:45:14.769Z",
+          "computedAt": "2026-08-14T11:01:08.144Z",
           "freshUntil": null
         }
       }
@@ -4205,7 +4213,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-08-13T22:45:14.863Z",
+      "asOf": "2026-08-14T11:01:08.217Z",
       "read": "Leadership is broad — 65.06% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -4323,7 +4331,7 @@
       "id": "options-flow-feed-lab",
       "deepLink": "options-flow-feed-lab.html",
       "status": "fresh-headless",
-      "reason": "Option flow is call-heavy (leaning bullish) across 12 tickers: 1764 contracts clear the $250k premium bar inside 30 days; the most unusual is SPY 777 calls at $70.5M on 90.3× its open interest."
+      "reason": "Option flow is call-heavy (leaning bullish) across 12 tickers: 1765 contracts clear the $250k premium bar inside 30 days; the most unusual is SPY 777 calls at $70.5M on 90.3× its open interest."
     },
     {
       "id": "intraday-tape-lab",
@@ -4341,19 +4349,19 @@
       "id": "options-structure-lab",
       "deepLink": "options-structure-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY sits in positive dealer gamma with the flip near 770.66; call wall 780, put wall 770, front expected move ±3.21."
+      "reason": "SPY sits in positive dealer gamma with the flip near 772.51; call wall 780, put wall 777, front expected move ±3.25."
     },
     {
       "id": "gamma-trading-lab",
       "deepLink": "gamma-trading-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 770.66, walls 770/780."
+      "reason": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 772.51, walls 777/780."
     },
     {
       "id": "sector-research-lab",
       "deepLink": "sector-research-lab.html",
       "status": "fresh-headless",
-      "reason": "Rotate toward XLC as XLE weakens."
+      "reason": "Rotate toward XLK as XLE weakens."
     },
     {
       "id": "global-rotation-lab",
@@ -4365,7 +4373,7 @@
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "CPER leads real assets at 50.2/100; GLD 33.4, BTC 41.2, SLV 10.2."
+      "reason": "CPER leads real assets at 50.2/100; GLD 33.4, BTC 35.4, SLV 10.2."
     },
     {
       "id": "bond-regime-lab",

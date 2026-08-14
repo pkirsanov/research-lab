@@ -126,6 +126,15 @@ function bucketForPath(relativePath) {
   return 'in-scope-source-or-tests';
 }
 
+/* Directories that are DERIVED from the source tree rather than part of it.
+ * `_site` and `test-results` are gitignored build/run output; `_site` in
+ * particular contains a byte copy of every published page, so counting it would
+ * report two `market-brief.html` route files the moment anyone builds the site
+ * locally. That is a false positive, and a check that goes red on a normal local
+ * build is a check people learn to ignore. The assertions here are about SOURCE
+ * singularity, so derived mirrors are excluded exactly as `node_modules` is. */
+const DERIVED_DIRECTORIES = new Set(['.git', 'node_modules', '_site', 'test-results', 'playwright-report']);
+
 function walkRepository() {
   const files = [];
   const stack = [''];
@@ -133,7 +142,7 @@ function walkRepository() {
     const relDir = stack.pop();
     const absDir = relDir ? `${REPO_ROOT}${relDir}` : REPO_ROOT;
     for (const entry of readdirSync(absDir, { withFileTypes: true })) {
-      if (entry.name === '.git' || entry.name === 'node_modules') continue;
+      if (DERIVED_DIRECTORIES.has(entry.name)) continue;
       const rel = relDir ? `${relDir}/${entry.name}` : entry.name;
       if (entry.isDirectory()) { stack.push(rel); continue; }
       if (!entry.isFile()) continue;

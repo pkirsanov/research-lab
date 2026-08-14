@@ -66,7 +66,7 @@ The page-local rows contain exactly 65 unique `tad*` declarations. Scope 05 cons
 | # | Scope | Tags | Depends On | Primary Surfaces | Status |
 | --- | --- | --- | --- | --- | --- |
 | 01 | [Capability Foundation And Shared Contracts](./01-capability-foundation/scope.md) | `foundation:true`, `runtime-behavior` | - | `rldata.js`, `rlvalidation.js`, Strategy Validation parity, config/page foundation, validator, fixtures, selftest, browser test | Done |
-| 02 | [Technique Engine And Evidence Independence](./02-technique-engine/scope.md) | `overlay:true`, `runtime-behavior` | 01 | Feature page/config, validator, selftest, fixtures, browser test | Not Started |
+| 02 | [Technique Engine And Evidence Independence](./02-technique-engine/scope.md) | `overlay:true`, `runtime-behavior` | 01 | Feature page/config, validator, selftest, fixtures, browser test | Done |
 | 03 | [Level Geometry And Setup Lifecycle](./03-setup-lifecycle/scope.md) | `overlay:true`, `runtime-behavior` | 01, 02 | Feature page/config, validator, selftest, fixtures, browser test | Not Started |
 | 04 | [Five-Gate Synthesis And Candidate Selection](./04-five-gate-synthesis/scope.md) | `overlay:true`, `runtime-behavior` | 01, 02, 03 | Feature page/config, validator, selftest, fixtures, browser test | Not Started |
 | 05 | [Existing-Owner Publication And Strict Adapters](./05-owner-publication/scope.md) | `publisher:true`, `runtime-behavior` | 01, 02, 03, 04 | Six owner pages, Strategy Validation canary, Feature page adapters, selftest, browser test | Not Started |

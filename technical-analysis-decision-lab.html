@@ -539,7 +539,7 @@
     <section class="band" aria-labelledby="hypothesisHeading">
       <h2 id="hypothesisHeading">Competing readings and published setups</h2>
       <div id="competingHypotheses" class="state-message">No series selected.</div>
-      <div id="setupReceipt" class="state-message"><strong>Scope 02 publishes no setup, entry, trigger, target, stop, or
+      <div id="setupReceipt" class="state-message"><strong>This page publishes no setup, entry, trigger, target, stop, or
           probability.</strong> It publishes method readings and their independence only.</div>
     </section>
 
@@ -1545,8 +1545,8 @@
       var probe = { claimId: rejectedRecord.claimId, refused: !probeResult.ok, code: probeResult.ok ? null : probeResult.errors[0].code, requiredEvidence: rejectedRecord.allowedTreatment };
       setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled");
       setTruth("degraded", "Deterministic analytic series. Every reading below is the exact output of its own formula; no current-market claim is made and no instrument is named.");
-      setFoundationReceipt({ name: copy.name, session: "Analytic daily clock, " + contract.sessionId, aggregation: contract.interval + " closed analytic bars", partial: "Every analytic bar is closed; no partial remainder exists", primary: "Primary 1d analytic", setup: "Setup not published by Scope 02", trigger: "Trigger not published by Scope 02", variant: tadBuildVariantIdentity({ toolId: config.toolId, seriesId: fixtureId, barCount: bars.length, derivation: pageRuntime.techniqueFixture.derivation[fixtureId] }).value, observed: copy.observed, required: copy.required, action: copy.action });
-      setText("resultReceipt", "No signal, neutral, setup, or probability is published by Scope 02. The page publishes method readings, their declared independence, and their claim admission only.");
+      setFoundationReceipt({ name: copy.name, session: "Analytic daily clock, " + contract.sessionId, aggregation: contract.interval + " closed analytic bars", partial: "Every analytic bar is closed; no partial remainder exists", primary: "Primary 1d analytic", setup: "Setup not published by this page", trigger: "Trigger not published by this page", variant: tadBuildVariantIdentity({ toolId: config.toolId, seriesId: fixtureId, barCount: bars.length, derivation: pageRuntime.techniqueFixture.derivation[fixtureId] }).value, observed: copy.observed, required: copy.required, action: copy.action });
+      setText("resultReceipt", "No signal, neutral, setup, or probability is published here. This page publishes method readings, their declared independence, and their claim admission only.");
       renderTechniqueOutcomes(config.techniques, outcomes);
       renderEvidenceIndependence(clustered);
       renderCompetingHypotheses(clustered);

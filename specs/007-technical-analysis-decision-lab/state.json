@@ -52,7 +52,7 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": "02-technique-engine",
+        "currentScope": "03-setup-lifecycle",
         "runStartedAt": "2026-07-15T18:01:42Z",
         "completedPhaseClaims": [],
         "pendingTransitionRequests": [],
@@ -72,7 +72,7 @@
                 "scope": 2,
                 "scopeId": "02-technique-engine",
                 "name": "Technique Engine And Evidence Independence",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     "1"
                 ],
@@ -220,13 +220,14 @@
                 "scope": 2,
                 "scopeId": "02-technique-engine",
                 "name": "Technique Engine And Evidence Independence",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     "1"
                 ],
                 "scopeDir": "scopes/02-technique-engine",
                 "scopeArtifact": "scopes/02-technique-engine/scope.md",
-                "reportArtifact": "scopes/02-technique-engine/report.md"
+                "reportArtifact": "scopes/02-technique-engine/report.md",
+                "certifiedAt": "2026-08-14T22:10:00Z"
             },
             {
                 "scope": 3,

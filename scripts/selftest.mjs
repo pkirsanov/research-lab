@@ -2725,8 +2725,12 @@ try {
      atomic: a half-move that registered the tool but left the exclusion standing fails here. */
   assert(!sitePlan.excludedPaths.includes('trend-dynamics-cycle-lab.html') && sitePlan.registeredPages.includes('trend-dynamics-cycle-lab.html'),
     'the registered Trend Dynamics route ships and is no longer excluded');
-  assert(sitePlan.excludedPaths.includes('rlcausal.js') && sitePlan.excludedPaths.includes('rlportfolio.js'),
-    'shared modules with no registered production consumer are removed from the public artifact');
+  assert(sitePlan.excludedPaths.includes('rlcausal.js'),
+    'an unconsumed shared module is removed from the public artifact');
+  assert(!sitePlan.excludedPaths.includes('rlportfolio.js'),
+    'a shared module consumed by a registered page is shipped');
+  assert(read('portfolio-survival-allocation-lab.html').includes('src="rlportfolio.js"'),
+    'the registered Portfolio page is the production consumer for rlportfolio.js');
   /* Feature 004 Scope 3: global-rotation-lab.html is registered and now loads rlfx.js, so the
      module must ship. An excluded path is never copied, which would 404 on a live page. */
   assert(!sitePlan.excludedPaths.includes('rlfx.js'), 'a shared module consumed by a registered page is shipped, not excluded');

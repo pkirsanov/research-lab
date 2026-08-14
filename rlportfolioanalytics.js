@@ -2458,6 +2458,207 @@
     };
   }
 
+  /* ---------------------------------------------------------------------
+     Scope 15 - walk-forward dossier and claim boundaries
+     --------------------------------------------------------------------- */
+
+  /**
+   * Split a return sample into walk-forward folds and evaluate each separately.
+   *
+   * In-sample, walk-forward and cost-adjusted results are returned as THREE
+   * separate figures. Collapsing them into one "backtest return" is how a rule
+   * that was fitted to its own history comes to look like a discovery: the
+   * in-sample number is the one the rule was chosen to maximise, so it is the
+   * one that means least.
+   */
+  function walkForwardDossier(request) {
+    if (!request || typeof request !== "object") return { state: "unavailable", reason: "request-invalid" };
+    var returns = request.returns;
+    if (!Array.isArray(returns) || returns.length < 4 || !returns.every(isNum)) {
+      return { state: "unavailable", reason: "insufficient-sample" };
+    }
+    if (!Number.isInteger(request.folds) || request.folds < 2) return { state: "unavailable", reason: "folds-required" };
+    if (!isNum(request.perRebalanceCostFraction) || request.perRebalanceCostFraction < 0) {
+      return { state: "unavailable", reason: "cost-required" };
+    }
+    if (!Number.isInteger(request.rebalancesPerFold) || request.rebalancesPerFold < 0) {
+      return { state: "unavailable", reason: "rebalance-count-required" };
+    }
+    if (!Number.isInteger(request.trialsSearched) || request.trialsSearched < 1) {
+      return { state: "unavailable", reason: "trial-count-required" };
+    }
+    if (request.folds > Math.floor(returns.length / 2)) {
+      return { state: "unavailable", reason: "folds-exceed-sample" };
+    }
+
+    var totalReturn = function (slice) {
+      var wealth = 1;
+      for (var i = 0; i < slice.length; i += 1) wealth = wealth * (1 + slice[i]);
+      return wealth - 1;
+    };
+
+    var inSample = totalReturn(returns);
+
+    /* Walk-forward: each fold is evaluated on the segment AFTER the one used to
+       fit it. The first segment is training only and never scored, which is the
+       whole point - scoring it would put the fitted window back into the result. */
+    var foldSize = Math.floor(returns.length / request.folds);
+    var outOfSample = [];
+    for (var f = 1; f < request.folds; f += 1) {
+      var start = f * foldSize;
+      var end = f === request.folds - 1 ? returns.length : start + foldSize;
+      outOfSample.push(totalReturn(returns.slice(start, end)));
+    }
+    var walkForwardWealth = 1;
+    for (var w = 0; w < outOfSample.length; w += 1) walkForwardWealth *= (1 + outOfSample[w]);
+    var walkForward = walkForwardWealth - 1;
+
+    var totalCost = request.perRebalanceCostFraction * request.rebalancesPerFold * outOfSample.length;
+    var costAdjusted = walkForward - totalCost;
+
+    /* A multiple-testing correction on the reported significance. Searching many
+       rules and reporting the best one without saying how many were searched is
+       the single most common way a backtest overstates itself. */
+    var snoopingNote = request.trialsSearched > 1
+      ? request.trialsSearched + " candidate rules were searched. The best of " + request.trialsSearched +
+        " will look good by chance alone, so the reported edge must be discounted for that search."
+      : "One rule was evaluated, so no selection was made across candidates. That does not remove " +
+        "the risk that the rule itself was chosen after looking at this history.";
+
+    return {
+      state: "ok",
+      inSampleReturn: inSample,
+      walkForwardReturn: walkForward,
+      costAdjustedReturn: costAdjusted,
+      totalCostFraction: totalCost,
+      folds: request.folds,
+      scoredFolds: outOfSample.length,
+      perFoldReturns: outOfSample,
+      trialsSearched: request.trialsSearched,
+      dataSnoopingNote: snoopingNote,
+      limitations: [
+        "Selection bias: this rule was chosen while its own history was visible.",
+        "Survivorship: the universe contains only securities that still exist and still report.",
+        "Regime dependence: the sample covers one set of market conditions, not all of them.",
+        "Cost model: costs are the flat per-rebalance fraction you stated, not realised fills."
+      ],
+      /* The refusal that defines this scope. No arrangement of historical
+         numbers licenses a claim about the future. */
+      provesFutureSuperiority: false,
+      claimBoundary: "In-sample, walk-forward and cost-adjusted results are shown separately because " +
+        "they answer different questions. None of them is evidence that this rule will outperform in " +
+        "future. A historical result is a description of what happened, not a prediction, and this " +
+        "dossier makes no claim of future superiority."
+    };
+  }
+
+  var EFFICIENCY_FORMS = ["weak", "semi-strong", "strong"];
+
+  /**
+   * Scope a market-efficiency finding to the exact proposition that was tested.
+   *
+   * "The market is inefficient" is not a testable sentence. A test uses one
+   * information set over one sample, so its conclusion binds one form over that
+   * sample and nothing else. The generalisation is the error this guards.
+   */
+  function marketEfficiencyClaim(request) {
+    if (!request || typeof request !== "object") return { state: "unavailable", reason: "request-invalid" };
+    var missing = [];
+    if (EFFICIENCY_FORMS.indexOf(request.form) === -1) missing.push("form");
+    if (typeof request.informationSet !== "string" || !request.informationSet) missing.push("informationSet");
+    if (typeof request.sample !== "string" || !request.sample) missing.push("sample");
+    if (typeof request.test !== "string" || !request.test) missing.push("test");
+    if (!isNum(request.costAdjustedEdge)) missing.push("costAdjustedEdge");
+    if (missing.length) {
+      return {
+        state: "unavailable",
+        reason: "incomplete-claim-evidence",
+        missing: missing,
+        note: "A market-efficiency conclusion needs the form tested, the information set, the sample, " +
+          "the test, and a cost-adjusted edge. Without all five there is no proposition to report on."
+      };
+    }
+
+    var untested = EFFICIENCY_FORMS.filter(function (form) { return form !== request.form; });
+    return {
+      state: "ok",
+      form: request.form,
+      informationSet: request.informationSet,
+      sample: request.sample,
+      test: request.test,
+      costAdjustedEdge: request.costAdjustedEdge,
+      untestedForms: untested,
+      alternativeExplanations: [
+        "Compensation for a risk the test does not model.",
+        "A cost, liquidity or capacity limit that removes the edge in practice.",
+        "Data snooping across the candidates that were searched.",
+        "A regime present in this sample and absent from others."
+      ],
+      allFormsRefuted: false,
+      claimBoundary: "This result speaks to the " + request.form + " form over " + request.sample +
+        " using " + request.informationSet + ", and to nothing else. The " + untested.join(" and ") +
+        " form" + (untested.length === 1 ? " is" : "s are") + " untested here. A cost-adjusted edge on " +
+        "one sample is not evidence that markets are inefficient in general, and this product does not " +
+        "claim that all market-efficiency hypotheses are false."
+    };
+  }
+
+  /**
+   * Research inputs for a replacement comparison — and an explicit refusal.
+   *
+   * "Substantially identical" is a legal and tax determination. No correlation
+   * number adjudicates it, and a tool that printed a threshold would be handing
+   * the user a conclusion it has no standing to reach, in a domain where being
+   * wrong has consequences with a tax authority rather than a portfolio.
+   */
+  function replacementComparison(request) {
+    if (!request || typeof request !== "object") return { state: "unavailable", reason: "request-invalid" };
+    if (typeof request.subject !== "string" || !request.subject) return { state: "unavailable", reason: "subject-required" };
+    if (typeof request.candidate !== "string" || !request.candidate) return { state: "unavailable", reason: "candidate-required" };
+
+    var facts = [];
+    if (isNum(request.correlation)) {
+      facts.push({ kind: "correlation", value: request.correlation, label: "Historical return correlation" });
+    }
+    if (isNum(request.holdingsOverlapFraction)) {
+      facts.push({ kind: "holdings-overlap", value: request.holdingsOverlapFraction, label: "Holdings overlap" });
+    }
+    if (typeof request.subjectIssuer === "string" && typeof request.candidateIssuer === "string") {
+      facts.push({
+        kind: "issuer",
+        value: request.subjectIssuer === request.candidateIssuer ? 1 : 0,
+        label: "Same issuer: " + (request.subjectIssuer === request.candidateIssuer ? "yes" : "no")
+      });
+    }
+    if (typeof request.subjectIndex === "string" && typeof request.candidateIndex === "string") {
+      facts.push({
+        kind: "index",
+        value: request.subjectIndex === request.candidateIndex ? 1 : 0,
+        label: "Same tracked index: " + (request.subjectIndex === request.candidateIndex ? "yes" : "no")
+      });
+    }
+    if (isNum(request.trackingDifferenceAnnual)) {
+      facts.push({ kind: "tracking", value: request.trackingDifferenceAnnual, label: "Annual tracking difference" });
+    }
+
+    return {
+      state: facts.length ? "ok" : "no-evidence",
+      subject: request.subject,
+      candidate: request.candidate,
+      researchInputs: facts,
+      /* All three null and false BY CONTRACT. A future change that computes a
+         verdict has to delete these fields, which the tests notice. */
+      substantiallyIdentical: null,
+      notSubstantiallyIdentical: null,
+      identityThreshold: null,
+      adjudicated: false,
+      claimBoundary: "These are research inputs, not a determination. Whether two securities are " +
+        "substantially identical is a legal and tax question decided by tax authorities and your own " +
+        "adviser on the specific facts. No correlation, overlap, issuer or tracking number decides it, " +
+        "and this product applies no threshold and reaches no conclusion either way."
+    };
+  }
+
   return {
     TRADING_DAYS: TRADING_DAYS,
     alignPortfolioReturns: alignPortfolioReturns,
@@ -2495,6 +2696,9 @@
     allocationSensitivity: allocationSensitivity,
     blackLittermanViews: blackLittermanViews,
     blackLittermanPosterior: blackLittermanPosterior,
+    walkForwardDossier: walkForwardDossier,
+    marketEfficiencyClaim: marketEfficiencyClaim,
+    replacementComparison: replacementComparison,
     analyticsIdentity: analyticsIdentity
   };
 });

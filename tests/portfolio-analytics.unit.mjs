@@ -1818,3 +1818,169 @@ test('TP-14-01 sensitivity reports reversal conditions when two holdings swap or
   assert.deepEqual(stable.reversalConditions, [],
     'a pair whose ordering never flips must report no reversal');
 });
+
+/* ---------------------------------------------------------------------------
+   Scope 15 - walk-forward dossier and claim boundaries
+   --------------------------------------------------------------------------- */
+
+test('TP-15-01 in-sample, walk-forward and cost-adjusted results stay three separate figures', () => {
+  // A sample that is strongly positive early and flat later: the in-sample total
+  // therefore flatters the rule relative to what a later period delivered.
+  const returns = [0.05, 0.05, 0.05, 0.05, 0.0, 0.0, 0.0, 0.0];
+  const out = RLPA.walkForwardDossier({
+    returns,
+    folds: 2,
+    perRebalanceCostFraction: 0.001,
+    rebalancesPerFold: 4,
+    trialsSearched: 20
+  });
+  assert.equal(out.state, 'ok');
+
+  // Independently calculated. In-sample compounds all eight: 1.05^4 - 1.
+  assert.ok(near(out.inSampleReturn, Math.pow(1.05, 4) - 1, 1e-12));
+
+  // Walk-forward scores only the segment AFTER the training fold, which here is
+  // the flat half, so it is 0. The first fold is training and is never scored;
+  // scoring it would put the fitted window back into the result.
+  assert.equal(out.scoredFolds, 1);
+  assert.ok(near(out.walkForwardReturn, 0, 1e-12));
+
+  // The three figures are genuinely different, which is the entire point.
+  assert.ok(out.inSampleReturn > out.walkForwardReturn,
+    'the in-sample figure is the one the rule was chosen to maximise');
+  assert.ok(near(out.totalCostFraction, 0.001 * 4 * 1, 1e-12));
+  assert.ok(near(out.costAdjustedReturn, 0 - 0.004, 1e-12));
+  assert.ok(out.costAdjustedReturn < out.walkForwardReturn, 'costs can only reduce the result');
+});
+
+test('TP-15-01 the dossier reports its trial count and refuses any future-superiority claim', () => {
+  const returns = [0.02, -0.01, 0.03, 0.01, 0.02, -0.02, 0.01, 0.0];
+  const searched = RLPA.walkForwardDossier({
+    returns, folds: 4, perRebalanceCostFraction: 0.0005, rebalancesPerFold: 2, trialsSearched: 50
+  });
+  assert.equal(searched.state, 'ok');
+  assert.equal(searched.trialsSearched, 50);
+  assert.ok(searched.dataSnoopingNote.includes('50 candidate rules were searched'));
+  assert.ok(searched.dataSnoopingNote.includes('will look good by chance alone'));
+
+  // A single trial still carries a caveat: the rule itself may have been chosen
+  // after looking at this history, which no trial count can detect.
+  const single = RLPA.walkForwardDossier({
+    returns, folds: 4, perRebalanceCostFraction: 0.0005, rebalancesPerFold: 2, trialsSearched: 1
+  });
+  assert.ok(single.dataSnoopingNote.includes('does not remove the risk that the rule itself was chosen'));
+
+  // The refusal that defines this scope.
+  assert.equal(searched.provesFutureSuperiority, false);
+  assert.ok(searched.claimBoundary.includes('makes no claim of future superiority'));
+  assert.ok(searched.claimBoundary.includes('not a prediction'));
+
+  // Four named limitations, not a vague disclaimer.
+  assert.equal(searched.limitations.length, 4);
+  assert.ok(searched.limitations.join(' ').includes('Survivorship'));
+  assert.ok(searched.limitations.join(' ').includes('Selection bias'));
+});
+
+test('TP-15-01 the dossier refuses without costs, folds or a trial count', () => {
+  const base = {
+    returns: [0.02, -0.01, 0.03, 0.01, 0.02, -0.02, 0.01, 0.0],
+    folds: 4,
+    perRebalanceCostFraction: 0.0005,
+    rebalancesPerFold: 2,
+    trialsSearched: 10
+  };
+  for (const key of ['folds', 'perRebalanceCostFraction', 'rebalancesPerFold', 'trialsSearched']) {
+    const partial = { ...base };
+    delete partial[key];
+    const out = RLPA.walkForwardDossier(partial);
+    assert.equal(out.state, 'unavailable', key + ' must be required');
+    assert.equal(out.inSampleReturn, undefined, 'no figure is emitted from incomplete evidence');
+  }
+
+  // More folds than the sample supports refuses rather than producing folds of
+  // one observation, which would report noise as an out-of-sample result.
+  assert.equal(RLPA.walkForwardDossier({ ...base, folds: 8 }).reason, 'folds-exceed-sample');
+});
+
+test('TP-15-01 a market-efficiency conclusion is scoped to the one form it tested', () => {
+  const out = RLPA.marketEfficiencyClaim({
+    form: 'weak',
+    informationSet: 'past prices and volume',
+    sample: 'US large cap 2010-2025',
+    test: 'autocorrelation of 5-day returns',
+    costAdjustedEdge: 0.004
+  });
+  assert.equal(out.state, 'ok');
+  assert.equal(out.form, 'weak');
+  assert.deepEqual(out.untestedForms, ['semi-strong', 'strong']);
+
+  // The generalisation this guards against, refused explicitly.
+  assert.equal(out.allFormsRefuted, false);
+  assert.ok(out.claimBoundary.includes('and to nothing else'));
+  assert.ok(out.claimBoundary.includes('does not claim that all market-efficiency hypotheses are false'));
+  assert.ok(out.claimBoundary.includes('semi-strong and strong'));
+
+  // Alternative explanations are enumerated, so a positive edge is not presented
+  // as the only reading of the evidence.
+  assert.equal(out.alternativeExplanations.length, 4);
+  assert.ok(out.alternativeExplanations.join(' ').includes('Compensation for a risk'));
+  assert.ok(out.alternativeExplanations.join(' ').includes('Data snooping'));
+
+  // Every one of the five inputs is required and named when missing.
+  const complete = {
+    form: 'semi-strong', informationSet: 'public filings', sample: '2015-2025',
+    test: 'event study', costAdjustedEdge: 0.001
+  };
+  for (const key of Object.keys(complete)) {
+    const partial = { ...complete };
+    delete partial[key];
+    const missing = RLPA.marketEfficiencyClaim(partial);
+    assert.equal(missing.state, 'unavailable', key + ' must be required');
+    assert.deepEqual(missing.missing, [key]);
+  }
+
+  // An invented form is refused rather than passed through into the copy.
+  assert.deepEqual(RLPA.marketEfficiencyClaim({ ...complete, form: 'ultra' }).missing, ['form']);
+});
+
+test('TP-15-01 no correlation number adjudicates substantially identical', () => {
+  // Near-perfect correlation, identical index, identical issuer: the strongest
+  // case a numeric rule would call "substantially identical". It must not.
+  const out = RLPA.replacementComparison({
+    subject: 'VOO',
+    candidate: 'IVV',
+    correlation: 0.9998,
+    holdingsOverlapFraction: 0.999,
+    subjectIssuer: 'IssuerA',
+    candidateIssuer: 'IssuerA',
+    subjectIndex: 'S&P 500',
+    candidateIndex: 'S&P 500',
+    trackingDifferenceAnnual: 0.0001
+  });
+  assert.equal(out.state, 'ok');
+
+  // All three verdict fields are null and adjudication is false BY CONTRACT.
+  assert.equal(out.substantiallyIdentical, null);
+  assert.equal(out.notSubstantiallyIdentical, null);
+  assert.equal(out.identityThreshold, null, 'no threshold exists, not even an unused one');
+  assert.equal(out.adjudicated, false);
+
+  // The facts are still delivered - the refusal is to CONCLUDE, not to inform.
+  assert.equal(out.researchInputs.length, 5);
+  const kinds = out.researchInputs.map((f) => f.kind).sort();
+  assert.deepEqual(kinds, ['correlation', 'holdings-overlap', 'index', 'issuer', 'tracking']);
+
+  assert.ok(out.claimBoundary.includes('legal and tax question'));
+  assert.ok(out.claimBoundary.includes('applies no threshold and reaches no conclusion either way'));
+
+  // The opposite extreme is treated identically: no verdict in either direction.
+  const different = RLPA.replacementComparison({
+    subject: 'VOO', candidate: 'GLD', correlation: 0.02,
+    subjectIssuer: 'IssuerA', candidateIssuer: 'IssuerB',
+    subjectIndex: 'S&P 500', candidateIndex: 'Gold spot'
+  });
+  assert.equal(different.substantiallyIdentical, null);
+  assert.equal(different.notSubstantiallyIdentical, null,
+    'refusing to say "not substantially identical" matters as much as refusing to say it IS');
+  assert.equal(different.adjudicated, false);
+});

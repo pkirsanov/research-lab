@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab",
   "featureName": "Portfolio Survival and Brief Lab",
   "createdAt": "2026-07-15T17:29:27Z",
-  "status": "in_progress",
+  "status": "blocked",
   "statusReconciliation": {
     "recordedBy": "orchestrator",
     "recordedAt": "2026-08-02T05:03:12Z",
@@ -180,7 +180,7 @@
       {
         "scope": 16,
         "name": "Integrated Route Accessibility And Atomic Release",
-        "status": "not_started",
+        "status": "blocked",
         "dependsOn": [
           "15"
         ],
@@ -214,7 +214,7 @@
     ]
   },
   "certification": {
-    "status": "in_progress",
+    "status": "blocked",
     "completedScopes": [
       "01-private-portfolio-import-and-atomic-store",
       "02-mandate-and-cash-need-authority",
@@ -393,7 +393,7 @@
       {
         "scope": 16,
         "name": "Integrated Route Accessibility And Atomic Release",
-        "status": "not_started",
+        "status": "blocked",
         "dependsOn": [
           "15"
         ],
@@ -567,5 +567,6 @@
     "06-explainable-research-action-lifecycle",
     "07-return-and-drawdown-x-ray",
     "08-concentration-capm-and-risk-contribution"
-  ]
+  ],
+  "blockedReason": "Scope 16 atomic five-surface registration is blocked by a cross-feature contract change the plan predates. Registering a tool now additionally requires a Feature 012 experience contract (Simple-model definition, Simple adapter implementation, two journey definitions, brief mount anchor) plus movement of exact-count pins owned by Feature 012 scopes 05-08 - all of which Scope 16 Change Boundary explicitly excludes. The full registration was implemented and reached selftest 1640/0 with Feature 008 browser 72/72, but each layer uncovered another (per-tool adapter fixtures, packet validators, module inventories) and left 8 new node-test failures inside Feature 012 contracts, so it was reverted rather than shipped red. OPERATOR ACTION TO UNBLOCK: authorize a Feature 012 scope to onboard portfolio-survival-allocation-lab into the experience registry as Feature 012 work with its own boundary. Feature 008 route work is complete, tested and reachable directly; it does not need to change. See specs/008-portfolio-survival-and-brief-lab/scopes/16-integrated-route-accessibility-and-atomic-release/report.md#s16-registration-finding."
 }

@@ -1663,3 +1663,158 @@ test('TP-14-01 with no stated view the candidate stays equilibrium-only', () => 
   assert.deepEqual(partial.rejectedViews.map((r) => r.reason),
     ['confidence-required', 'expected-return-required', 'subject-required']);
 });
+
+test('TP-14-01 implied equilibrium returns are delta times Sigma times benchmark weights', () => {
+  const sigma = [[0.04, 0.01], [0.01, 0.09]];
+  const out = RLPA.blackLittermanPosterior({
+    symbols: ['A', 'B'],
+    covariance: sigma,
+    benchmarkWeights: [0.6, 0.4],
+    riskAversion: 2.5,
+    tau: 0.05,
+    views: []
+  });
+
+  // Independently calculated. Sigma*w = [0.04*0.6 + 0.01*0.4, 0.01*0.6 + 0.09*0.4]
+  //                                   = [0.028, 0.042]; times delta 2.5 = [0.07, 0.105].
+  assert.equal(out.state, 'equilibrium-only');
+  assert.ok(near(out.impliedEquilibriumReturns[0], 0.07, 1e-12));
+  assert.ok(near(out.impliedEquilibriumReturns[1], 0.105, 1e-12));
+
+  // With no view the posterior IS the equilibrium: nothing added, nothing inferred.
+  assert.deepEqual(out.posteriorMean, out.impliedEquilibriumReturns);
+  assert.deepEqual(out.viewMatrix, []);
+  assert.deepEqual(out.viewReturns, []);
+  assert.equal(out.behaviorContribution, 'none');
+  assert.ok(out.note.includes("the market's own view is shown unaltered"));
+});
+
+test('TP-14-01 a stated view moves the posterior between equilibrium and the view', () => {
+  const sigma = [[0.04, 0.01], [0.01, 0.09]];
+  const out = RLPA.blackLittermanPosterior({
+    symbols: ['A', 'B'],
+    covariance: sigma,
+    benchmarkWeights: [0.6, 0.4],
+    riskAversion: 2.5,
+    tau: 0.05,
+    views: [{ subject: 'A', expectedReturn: 0.12, confidence: 0.8, source: 'user-stated' }]
+  });
+  assert.equal(out.state, 'ok');
+
+  // The defining property of Black-Litterman: a bullish view pulls the posterior
+  // toward it WITHOUT reaching it. Landing exactly on the view would mean the
+  // equilibrium was discarded; not moving would mean the view was ignored.
+  assert.ok(out.posteriorMean[0] > 0.07, 'the bullish view pulls A up from equilibrium');
+  assert.ok(out.posteriorMean[0] < 0.12, 'the posterior never reaches the raw view');
+
+  // The correlated asset moves too, which is the whole point of using the
+  // covariance rather than adjusting one number in isolation.
+  assert.ok(out.posteriorMean[1] > 0.105, 'a positively correlated asset is pulled along');
+
+  // Every stage stays separately inspectable.
+  assert.ok(near(out.impliedEquilibriumReturns[0], 0.07, 1e-12), 'equilibrium is preserved unchanged');
+  assert.deepEqual(out.viewMatrix, [[1, 0]], 'P picks exactly the asset the view speaks about');
+  assert.deepEqual(out.viewReturns, [0.12]);
+  assert.equal(out.viewUncertainty.length, 1);
+  assert.ok(out.viewUncertainty[0][0] > 0, 'Omega carries the uncertainty of the stated confidence');
+  assert.equal(out.tau, 0.05);
+  assert.ok(Array.isArray(out.posteriorCovariance));
+  assert.ok(out.note.includes('which part of the answer is the market'));
+});
+
+test('TP-14-01 a lower stated confidence moves the posterior less', () => {
+  const sigma = [[0.04, 0.01], [0.01, 0.09]];
+  const base = {
+    symbols: ['A', 'B'], covariance: sigma, benchmarkWeights: [0.6, 0.4], riskAversion: 2.5, tau: 0.05
+  };
+  const confident = RLPA.blackLittermanPosterior({
+    ...base, views: [{ subject: 'A', expectedReturn: 0.12, confidence: 0.9, source: 'user-stated' }]
+  });
+  const tentative = RLPA.blackLittermanPosterior({
+    ...base, views: [{ subject: 'A', expectedReturn: 0.12, confidence: 0.1, source: 'user-stated' }]
+  });
+
+  // The confidence the user stated must actually do something. If Omega were
+  // ignored, these two would be identical.
+  assert.ok(confident.posteriorMean[0] > tentative.posteriorMean[0],
+    'a confidently held view moves the posterior further than a tentative one');
+  assert.ok(tentative.posteriorMean[0] > 0.07, 'even a tentative view still moves it');
+});
+
+test('TP-14-01 behavior, settings, holdings and display mode cannot alter any Black-Litterman field', () => {
+  const sigma = [[0.04, 0.01], [0.01, 0.09]];
+  const request = {
+    symbols: ['A', 'B'],
+    covariance: sigma,
+    benchmarkWeights: [0.6, 0.4],
+    riskAversion: 2.5,
+    tau: 0.05,
+    views: [{ subject: 'A', expectedReturn: 0.12, confidence: 0.8, source: 'user-stated' }]
+  };
+  const baseline = RLPA.blackLittermanPosterior(request);
+
+  // Every mutation below is a field the surface DOES hold elsewhere: behaviour
+  // events, derived interests, holdings presence, display mode, research
+  // frequency. Passing each one in and getting a byte-identical result is what
+  // proves the exclusion, rather than the absence of a parameter proving nothing.
+  const intrusions = [
+    { behaviorEvents: [{ subject: 'A', kind: 'opened' }] },
+    { interestSignals: [{ subject: 'A', weight: 0.99 }] },
+    { holdings: [{ symbol: 'A', derivedValue: 100000 }] },
+    { displayMode: 'power' },
+    { researchFrequency: 'daily' },
+    { behaviorDerivedViews: [{ subject: 'B', expectedReturn: 0.30, confidence: 1 }] }
+  ];
+  for (const intrusion of intrusions) {
+    const mutated = RLPA.blackLittermanPosterior({ ...request, ...intrusion });
+    const key = Object.keys(intrusion)[0];
+    assert.deepEqual(mutated.posteriorMean, baseline.posteriorMean, key + ' must not move the posterior');
+    assert.deepEqual(mutated.impliedEquilibriumReturns, baseline.impliedEquilibriumReturns, key + ' must not move pi');
+    assert.deepEqual(mutated.viewMatrix, baseline.viewMatrix, key + ' must not alter P');
+    assert.deepEqual(mutated.viewReturns, baseline.viewReturns, key + ' must not alter q');
+    assert.deepEqual(mutated.viewUncertainty, baseline.viewUncertainty, key + ' must not alter Omega');
+    assert.equal(mutated.behaviorContribution, 'none');
+  }
+
+  // A view claiming behaviour provenance is dropped even when well formed.
+  const behavioural = RLPA.blackLittermanPosterior({
+    ...request,
+    views: [{ subject: 'A', expectedReturn: 0.30, confidence: 1, source: 'behavior-derived' }]
+  });
+  assert.equal(behavioural.state, 'equilibrium-only', 'a behaviour-sourced view yields no posterior shift');
+  assert.deepEqual(behavioural.posteriorMean, behavioural.impliedEquilibriumReturns);
+});
+
+test('TP-14-01 sensitivity reports reversal conditions when two holdings swap order', () => {
+  // Two assets whose relative minimum-variance weight ordering flips as the
+  // correlation term is perturbed.
+  const out = RLPA.allocationSensitivity({
+    symbols: ['A', 'B'],
+    covariance: [[0.05, 0.0499], [0.0499, 0.0501]],
+    currentWeights: [0.5, 0.5],
+    perturbations: [-0.05, -0.02, 0, 0.02, 0.05],
+    unstableRangeThreshold: 0.05
+  });
+  assert.equal(out.state, 'ok');
+  assert.equal(out.reversalConditions.length, 1,
+    'this near-degenerate pair must report exactly one reversal, or the assertions below are vacuous');
+
+  const reversal = out.reversalConditions[0];
+  assert.ok(typeof reversal.higher === 'string' && typeof reversal.lower === 'string');
+  assert.ok(Number.isFinite(reversal.reversesAtPerturbation));
+  assert.ok(reversal.statement.includes('swap order at a covariance perturbation of'));
+  assert.ok(reversal.statement.includes('not a stable conclusion'));
+
+  // A well-separated pair must NOT report a spurious reversal, or the field
+  // would be noise rather than a finding.
+  const stable = RLPA.allocationSensitivity({
+    symbols: ['A', 'B'],
+    covariance: [[0.01, 0.0005], [0.0005, 0.25]],
+    currentWeights: [0.5, 0.5],
+    perturbations: [-0.02, 0, 0.02],
+    unstableRangeThreshold: 0.05
+  });
+  assert.equal(stable.state, 'ok');
+  assert.deepEqual(stable.reversalConditions, [],
+    'a pair whose ordering never flips must report no reversal');
+});

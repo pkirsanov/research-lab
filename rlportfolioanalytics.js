@@ -2082,6 +2082,180 @@
     };
   }
 
+  /* Matrix helpers for the Black-Litterman posterior. Kept local and small: the
+     posterior needs one inverse and a handful of products, and pulling in a
+     general linear-algebra layer for that would be more code to trust. */
+  function matrixInverse(A) {
+    var n = A.length;
+    var identity = [];
+    for (var i = 0; i < n; i += 1) {
+      identity.push([]);
+      for (var j = 0; j < n; j += 1) identity[i].push(i === j ? 1 : 0);
+    }
+    var columns = [];
+    for (var c = 0; c < n; c += 1) {
+      var rhs = identity.map(function (row) { return row[c]; });
+      var solved = solveSymmetric(A, rhs);
+      if (!solved || solved.length !== n || !solved.every(isNum)) return null;
+      columns.push(solved);
+    }
+    var inverse = [];
+    for (var r = 0; r < n; r += 1) {
+      inverse.push([]);
+      for (var k = 0; k < n; k += 1) inverse[r].push(columns[k][r]);
+    }
+    return inverse;
+  }
+
+  function matrixMultiply(A, B) {
+    var rows = A.length, inner = B.length, cols = B[0].length;
+    var out = [];
+    for (var i = 0; i < rows; i += 1) {
+      out.push([]);
+      for (var j = 0; j < cols; j += 1) {
+        var sum = 0;
+        for (var k = 0; k < inner; k += 1) sum += A[i][k] * B[k][j];
+        out[i].push(sum);
+      }
+    }
+    return out;
+  }
+
+  function matrixTranspose(A) {
+    var out = [];
+    for (var j = 0; j < A[0].length; j += 1) {
+      out.push([]);
+      for (var i = 0; i < A.length; i += 1) out[j].push(A[i][j]);
+    }
+    return out;
+  }
+
+  function matrixVector(A, v) {
+    return A.map(function (row) {
+      var sum = 0;
+      for (var i = 0; i < v.length; i += 1) sum += row[i] * v[i];
+      return sum;
+    });
+  }
+
+  function matrixScale(A, s) {
+    return A.map(function (row) { return row.map(function (v) { return v * s; }); });
+  }
+
+  function matrixAdd(A, B) {
+    return A.map(function (row, i) { return row.map(function (v, j) { return v + B[i][j]; }); });
+  }
+
+  /**
+   * Exact Black-Litterman posterior.
+   *
+   * Every stage is returned SEPARATELY — implied equilibrium `pi`, the view
+   * structure `P`/`q`/`Omega`, and the posterior mean and covariance — because
+   * a single blended expected-return vector hides which part of the answer came
+   * from the market and which came from the user. A reader who cannot separate
+   * those two cannot tell whether they are looking at a consensus or at their
+   * own opinion reflected back.
+   */
+  function blackLittermanPosterior(request) {
+    if (!request || typeof request !== "object") return { state: "unavailable", reason: "request-invalid" };
+    var symbols = request.symbols;
+    var sigma = request.covariance;
+    if (!Array.isArray(symbols) || symbols.length < 2) return { state: "unavailable", reason: "insufficient-universe" };
+    if (!Array.isArray(sigma) || sigma.length !== symbols.length) return { state: "unavailable", reason: "covariance-required" };
+    if (!Array.isArray(request.benchmarkWeights) || request.benchmarkWeights.length !== symbols.length ||
+        !request.benchmarkWeights.every(isNum)) {
+      return { state: "unavailable", reason: "benchmark-weights-required" };
+    }
+    if (!isNum(request.riskAversion) || request.riskAversion <= 0) return { state: "unavailable", reason: "risk-aversion-required" };
+    if (!isNum(request.tau) || request.tau <= 0) return { state: "unavailable", reason: "tau-required" };
+
+    var n = symbols.length;
+    // Implied equilibrium excess returns: pi = delta * Sigma * w_benchmark.
+    var pi = matrixVector(sigma, request.benchmarkWeights).map(function (v) { return v * request.riskAversion; });
+
+    var views = Array.isArray(request.views) ? request.views : [];
+    var admitted = [];
+    for (var v = 0; v < views.length; v += 1) {
+      var view = views[v];
+      if (!view || typeof view !== "object") continue;
+      if (view.source !== "user-stated") continue;
+      var index = symbols.indexOf(view.subject);
+      if (index === -1) continue;
+      if (!isNum(view.expectedReturn) || !isNum(view.confidence) || view.confidence <= 0 || view.confidence > 1) continue;
+      admitted.push({ index: index, subject: view.subject, expectedReturn: view.expectedReturn, confidence: view.confidence });
+    }
+
+    if (!admitted.length) {
+      return {
+        state: "equilibrium-only",
+        symbols: symbols.slice(),
+        impliedEquilibriumReturns: pi,
+        viewMatrix: [],
+        viewReturns: [],
+        viewUncertainty: [],
+        tau: request.tau,
+        posteriorMean: pi.slice(),
+        posteriorCovariance: null,
+        behaviorContribution: "none",
+        note: "No view was stated, so the posterior IS the implied equilibrium. Nothing was added " +
+          "and nothing was inferred; the market's own view is shown unaltered."
+      };
+    }
+
+    // P picks the asset each view speaks about; q carries its stated return.
+    var P = admitted.map(function (row) {
+      var line = [];
+      for (var j = 0; j < n; j += 1) line.push(j === row.index ? 1 : 0);
+      return line;
+    });
+    var q = admitted.map(function (row) { return row.expectedReturn; });
+
+    /* Omega is DIAGONAL and derived from the stated confidence: a fully
+       confident view gets small variance, a tentative one large. The confidence
+       is the user's, so the uncertainty attached to their view is theirs too. */
+    var tauSigma = matrixScale(sigma, request.tau);
+    var Omega = [];
+    for (var a = 0; a < admitted.length; a += 1) {
+      Omega.push([]);
+      for (var b = 0; b < admitted.length; b += 1) Omega[a].push(0);
+      var base = tauSigma[admitted[a].index][admitted[a].index];
+      Omega[a][a] = base * (1 / admitted[a].confidence);
+    }
+
+    var tauSigmaInverse = matrixInverse(tauSigma);
+    var omegaInverse = matrixInverse(Omega);
+    if (!tauSigmaInverse || !omegaInverse) return { state: "unavailable", reason: "matrix-not-invertible" };
+
+    var Pt = matrixTranspose(P);
+    var middle = matrixAdd(tauSigmaInverse, matrixMultiply(matrixMultiply(Pt, omegaInverse), P));
+    var posteriorCovariance = matrixInverse(middle);
+    if (!posteriorCovariance) return { state: "unavailable", reason: "posterior-not-invertible" };
+
+    var rhs = matrixVector(tauSigmaInverse, pi);
+    var viewTerm = matrixVector(matrixMultiply(Pt, omegaInverse), q);
+    for (var r = 0; r < n; r += 1) rhs[r] += viewTerm[r];
+    var posteriorMean = matrixVector(posteriorCovariance, rhs);
+
+    return {
+      state: "ok",
+      symbols: symbols.slice(),
+      impliedEquilibriumReturns: pi,
+      viewMatrix: P,
+      viewReturns: q,
+      viewUncertainty: Omega,
+      tau: request.tau,
+      admittedViews: admitted.map(function (row) {
+        return { subject: row.subject, expectedReturn: row.expectedReturn, confidence: row.confidence, source: "user-stated" };
+      }),
+      posteriorMean: posteriorMean,
+      posteriorCovariance: posteriorCovariance,
+      behaviorContribution: "none",
+      note: "The posterior blends the implied equilibrium with " + admitted.length + " view you stated. " +
+        "Equilibrium, view and posterior are reported separately so you can see which part of the " +
+        "answer is the market's and which is yours."
+    };
+  }
+
   /* ---------------------------------------------------------------------
      Scope 14 - allocation sensitivity and explicit Black-Litterman
      --------------------------------------------------------------------- */
@@ -2178,6 +2352,35 @@
     }
 
     var unstable = ranges.filter(function (row) { return row.unstable; });
+
+    /* Reversal conditions: pairs whose weight ORDER flips somewhere inside the
+       declared perturbation set. A range alone can hide this — two holdings can
+       both move a little and still swap places, which changes the conclusion a
+       reader would draw far more than the numbers suggest. */
+    var reversals = [];
+    for (var x = 0; x < n; x += 1) {
+      for (var y = x + 1; y < n; y += 1) {
+        var firstSign = null;
+        for (var tr = 0; tr < trials.length; tr += 1) {
+          var diff = trials[tr].weights[x] - trials[tr].weights[y];
+          var sign = diff > 0 ? 1 : (diff < 0 ? -1 : 0);
+          if (sign === 0) continue;
+          if (firstSign === null) { firstSign = sign; continue; }
+          if (sign !== firstSign) {
+            reversals.push({
+              higher: symbols[firstSign > 0 ? x : y],
+              lower: symbols[firstSign > 0 ? y : x],
+              reversesAtPerturbation: trials[tr].perturbation,
+              statement: symbols[x] + " and " + symbols[y] + " swap order at a covariance perturbation of " +
+                trials[tr].perturbation + ". Which one carries more weight is not a stable conclusion " +
+                "across the declared set."
+            });
+            break;
+          }
+        }
+      }
+    }
+
     return {
       state: "ok",
       validTrials: trials.length,
@@ -2185,6 +2388,7 @@
       declaredPerturbations: request.perturbations.slice(),
       unstableRangeThreshold: request.unstableRangeThreshold,
       ranges: ranges,
+      reversalConditions: reversals,
       unstableSymbols: unstable.map(function (row) { return row.symbol; }),
       pointVectorTrustworthy: unstable.length === 0,
       worstCaseTurnover: turnover,
@@ -2290,6 +2494,7 @@
     compareAllocationMethods: compareAllocationMethods,
     allocationSensitivity: allocationSensitivity,
     blackLittermanViews: blackLittermanViews,
+    blackLittermanPosterior: blackLittermanPosterior,
     analyticsIdentity: analyticsIdentity
   };
 });

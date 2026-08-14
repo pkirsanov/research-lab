@@ -420,6 +420,9 @@
           <option value="provisional-week">Closed and provisional week</option>
           <option value="calendar-events">Holiday and DST records</option>
           <option value="cached-refresh-failure">Cached truth with failed delta</option>
+          <option value="breakout-participation">Breakout participation (analytic)</option>
+          <option value="correlated-uptrend">Correlated indicator agreement (analytic)</option>
+          <option value="unresolved-range">Unresolved range after decline (analytic)</option>
         </select>
         <p class="subtle" style="margin:10px 0 0">Credentials remain owned by <a href="index.html#data-settings">Data
             Settings</a>. This page contains no credential editor.</p>
@@ -503,6 +506,49 @@
       <h2 id="eventsHeading">Calendar and source audit</h2>
       <div id="sessionEvents" class="state-message">Loading explicit holiday, early-close, and daylight-saving records.
       </div>
+    </section>
+
+    <section class="band" aria-labelledby="techniqueHeading">
+      <h2 id="techniqueHeading">Technique readings</h2>
+      <p id="techniqueReceipt" class="state-message">No technique has been evaluated. Select an analytic series to read
+        every method exactly as it computes.</p>
+      <div id="techniqueOutcomes" class="catalog" aria-live="off"></div>
+    </section>
+
+    <section class="band" aria-labelledby="familyHeading">
+      <h2 id="familyHeading">Evidence independence</h2>
+      <p id="independenceReceipt" class="state-message">Correlated methods collapse into one declared cluster before
+        anything is counted. The raw number of methods is not a confidence level and is never presented as one.</p>
+      <div class="facts">
+        <div class="fact">
+          <div class="k">Raw methods that produced a reading</div>
+          <div id="rawMethodCount" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Independent cluster votes</div>
+          <div id="independentClusterCount" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Largest single cluster</div>
+          <div id="largestCluster" class="v">None</div>
+        </div>
+      </div>
+      <div id="evidenceFamilies" class="catalog" aria-live="off"></div>
+    </section>
+
+    <section class="band" aria-labelledby="hypothesisHeading">
+      <h2 id="hypothesisHeading">Competing readings and published setups</h2>
+      <div id="competingHypotheses" class="state-message">No series selected.</div>
+      <div id="setupReceipt" class="state-message"><strong>Scope 02 publishes no setup, entry, trigger, target, stop, or
+          probability.</strong> It publishes method readings and their independence only.</div>
+    </section>
+
+    <section class="band" aria-labelledby="claimHeading">
+      <h2 id="claimHeading">Claim admission ledger</h2>
+      <p id="claimReceipt" class="state-message">A method may only run when every claim it cites carries a supported or
+        bounded ledger record. A rejected record cannot reach a default, a reading, a gate, or any copy on this page.</p>
+      <div id="claimLedger" class="catalog" aria-live="off"></div>
+      <div id="rejectedProbe" class="state-message">No rejected-claim probe has run.</div>
     </section>
 
     <section class="band" aria-labelledby="stateHeading">
@@ -1313,32 +1359,39 @@
       outcomes.forEach(function (outcome) {
         if (!outcome || !outcome.familyId || !outcome.clusterId) return;
         var key = outcome.familyId + "::" + outcome.clusterId;
-        if (!clusters[key]) clusters[key] = { familyId: outcome.familyId, clusterId: outcome.clusterId, members: [], directions: [] };
+        if (!clusters[key]) clusters[key] = { familyId: outcome.familyId, clusterId: outcome.clusterId, members: [], directions: [], readCount: 0 };
         clusters[key].members.push(outcome.techniqueId);
+        if (outcome.ok) clusters[key].readCount += 1;
         if (outcome.ok && Object.prototype.hasOwnProperty.call(directional, outcome.status)) clusters[key].directions.push(directional[outcome.status]);
       });
       var clusterList = Object.keys(clusters).sort().map(function (key) {
         var cluster = clusters[key], positive = cluster.directions.filter(function (value) { return value > 0; }).length, negative = cluster.directions.filter(function (value) { return value < 0; }).length;
         // A cluster contributes ONE vote however many correlated members it holds, so a family cannot
         // inflate its own weight by adding a related transform. Opposing members cancel to `unstable`.
-        var state = !cluster.directions.length ? "unavailable" : positive && negative ? "unstable" : positive ? "supports" : "contradicts";
-        return { familyId: cluster.familyId, clusterId: cluster.clusterId, members: cluster.members.slice(), memberCount: cluster.members.length, state: state, vote: state === "supports" ? 1 : state === "contradicts" ? -1 : 0 };
+        // `qualifying` and `unavailable` are different facts and must not share a bucket: a cluster
+        // whose members all READ but point nowhere (ATR `high`, pivots `range`) has qualified the
+        // picture, while an `unavailable` cluster could not produce a reading at all. Reporting the
+        // first as the second would understate the evidence actually on the page.
+        var state = !cluster.readCount ? "unavailable" : !cluster.directions.length ? "qualifying" : positive && negative ? "unstable" : positive ? "supports" : "contradicts";
+        return { familyId: cluster.familyId, clusterId: cluster.clusterId, members: cluster.members.slice(), memberCount: cluster.members.length, readCount: cluster.readCount, state: state, vote: state === "supports" ? 1 : state === "contradicts" ? -1 : 0 };
       });
       var familyList = declared.map(function (family) {
         var owned = clusterList.filter(function (cluster) { return cluster.familyId === family.familyId; });
-        var supports = owned.filter(function (cluster) { return cluster.state === "supports"; }).length;
-        var contradicts = owned.filter(function (cluster) { return cluster.state === "contradicts"; }).length;
-        var unstable = owned.filter(function (cluster) { return cluster.state === "unstable"; }).length;
-        var unavailable = owned.filter(function (cluster) { return cluster.state === "unavailable"; }).length;
-        var state = !owned.length ? "unavailable" : unstable ? "unstable" : supports && contradicts ? "unstable" : supports ? "supports" : contradicts ? "contradicts" : "unavailable";
-        return { familyId: family.familyId, independencePolicy: family.independencePolicy, clusterCount: owned.length, supports: supports, contradicts: contradicts, unstable: unstable, unavailable: unavailable, state: state };
+        var countState = function (name) { return owned.filter(function (cluster) { return cluster.state === name; }).length; };
+        var supports = countState("supports"), contradicts = countState("contradicts"), unstable = countState("unstable"), qualifying = countState("qualifying"), unavailable = countState("unavailable");
+        // methodCount is the RAW number of transforms in the family; clusterCount is how many
+        // independent votes they are worth. Publishing both is the whole point: the gap between
+        // them is what stops a long list of correlated indicators from reading as agreement.
+        var methodCount = owned.reduce(function (total, cluster) { return total + cluster.memberCount; }, 0);
+        var state = !owned.length ? "unavailable" : unstable ? "unstable" : supports && contradicts ? "unstable" : supports ? "supports" : contradicts ? "contradicts" : qualifying ? "qualifying" : "unavailable";
+        return { familyId: family.familyId, independencePolicy: family.independencePolicy, clusterCount: owned.length, methodCount: methodCount, supports: supports, contradicts: contradicts, unstable: unstable, qualifying: qualifying, unavailable: unavailable, state: state };
       });
       return tadDeepFreeze({ ok: true, clusters: clusterList, families: familyList, errors: [] });
     }
 
     /* ---------- End Feature 007 Scope 02: technique engine ---------- */
 
-    var pageRuntime = { config: null, index: null, sourceFixture: null, analyticFixture: null, diagnostics: null };
+    var pageRuntime = { config: null, index: null, sourceFixture: null, analyticFixture: null, techniqueFixture: null, diagnostics: null };
     function byId(id) { return document.getElementById(id); }
     function setText(id, value) { var element = byId(id); if (element) element.textContent = value; }
     function setFixtureBand(label) { var band = byId("fixtureBand"); band.textContent = label; band.className = "fixture visible"; }
@@ -1400,6 +1453,117 @@
         window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({ fixtureId: "cached-refresh-failure", ownerReadPublished: false, seriesEnvelope: JSON.parse(JSON.stringify(pageRuntime.sourceFixture.seriesEnvelope)), refresh: { httpStatus: response.status, cachedClose: cached.close, exactAgeHours: cached.ageHours, truthState: "stale", failedResource: cached.failedResource, requiredSource: cached.requiredSource }, errors: [] });
       }).catch(function (error) { renderUnavailable("TAD-SOURCE-REFRESH", String(error), "real HTTP missing-resource receipt", "inspect the static server and retry"); });
     }
+    function expandAnalyticBars(seriesId) {
+      var fixture = pageRuntime.techniqueFixture, contract = fixture.barContract, start = Date.parse(contract.firstOpenedAt);
+      return fixture.series[seriesId].rows.map(function (row, index) {
+        var openedAt = start + index * contract.barSpacingMs, closedAt = openedAt + contract.sessionDurationMs;
+        return { barId: seriesId + "-" + String(index + 1), interval: contract.interval, sessionId: contract.sessionId, openedAt: new Date(openedAt).toISOString(), closedAt: new Date(closedAt).toISOString(), availableAt: new Date(closedAt + contract.availableAfterCloseMs).toISOString(), o: row[0], h: row[1], l: row[2], c: row[3], v: row[4], adjustmentPolicyId: contract.adjustmentPolicyId, status: contract.status, expectedDurationMs: contract.sessionDurationMs, actualDurationMs: contract.sessionDurationMs, qualityFlags: [], sourceRowIds: ["analytic-" + seriesId + "-" + (index + 1)] };
+      });
+    }
+    function renderTechniqueOutcomes(definitions, outcomes) {
+      var host = byId("techniqueOutcomes"); host.textContent = "";
+      definitions.forEach(function (definition, position) {
+        var outcome = outcomes[position], article = document.createElement("article"), heading = document.createElement("h3"), copy = document.createElement("p"), lineage = document.createElement("p");
+        heading.textContent = definition.techniqueId + " - " + (outcome.ok ? outcome.status : "refused");
+        copy.textContent = outcome.ok
+          ? "Family " + definition.familyId + " / cluster " + definition.clusterId + ". " + definition.formula
+          : outcome.errors[0].code + ". Observed: " + outcome.errors[0].observed + ". Required: " + outcome.errors[0].required + ".";
+        // Participation and auction transforms must carry their proxy boundary wherever they are shown,
+        // not only in the diagnostics object, or the page states more than the method can support.
+        var metrics = outcome.ok && outcome.metrics ? outcome.metrics : null;
+        lineage.className = "identity";
+        lineage.textContent = metrics && metrics.proxy
+          ? "Proxy " + metrics.proxy + ". No participant identity is inferred. No motive is inferred."
+          : metrics && metrics.allocation
+            ? "Allocation " + metrics.allocation + ", value-area share " + metrics.valueAreaShare.toFixed(3) + ". No resting liquidity is claimed."
+            : "Declared limitations: " + definition.limitations.join(" ");
+        article.appendChild(heading); article.appendChild(copy); article.appendChild(lineage); host.appendChild(article);
+      });
+      setText("techniqueReceipt", outcomes.filter(function (outcome) { return outcome.ok; }).length + " of " + definitions.length + " methods produced a reading. Each reading is the exact output of its own formula over the selected analytic series.");
+    }
+    function renderEvidenceIndependence(clustered) {
+      var host = byId("evidenceFamilies"); host.textContent = "";
+      var active = clustered.families.filter(function (family) { return family.clusterCount > 0; });
+      active.forEach(function (family) {
+        var article = document.createElement("article"), heading = document.createElement("h3"), copy = document.createElement("p"), policy = document.createElement("p");
+        heading.textContent = family.familyId + " - " + family.state;
+        copy.textContent = family.methodCount + " raw methods resolve to " + family.clusterCount + " independent cluster " + (family.clusterCount === 1 ? "vote" : "votes") + ". Supports " + family.supports + ", contradicts " + family.contradicts + ", unstable " + family.unstable + ", qualifying " + family.qualifying + ", unavailable " + family.unavailable + ".";
+        policy.className = "identity"; policy.textContent = family.independencePolicy;
+        article.appendChild(heading); article.appendChild(copy); article.appendChild(policy); host.appendChild(article);
+      });
+      var rawMethods = active.reduce(function (total, family) { return total + family.methodCount; }, 0);
+      var clusterVotes = active.reduce(function (total, family) { return total + family.clusterCount; }, 0);
+      var largest = clustered.clusters.slice().sort(function (a, b) { return b.memberCount - a.memberCount; })[0];
+      setText("rawMethodCount", String(rawMethods));
+      setText("independentClusterCount", String(clusterVotes));
+      setText("largestCluster", largest ? largest.clusterId + " holds " + largest.memberCount + " correlated " + (largest.memberCount === 1 ? "method" : "methods") + " and casts one vote" : "None");
+      setText("independenceReceipt", "Correlated methods collapse into one declared cluster before anything is counted. " + rawMethods + " raw method readings are worth " + clusterVotes + " independent cluster votes. The raw number of methods is not a confidence level and is never presented as one.");
+    }
+    function renderCompetingHypotheses(clustered) {
+      var host = byId("competingHypotheses"); host.textContent = "";
+      var list = document.createElement("ul");
+      clustered.families.filter(function (family) { return family.clusterCount > 0; }).forEach(function (family) {
+        var item = document.createElement("li");
+        item.textContent = family.familyId + ": " + family.state + " (" + family.supports + " supporting, " + family.contradicts + " contradicting, " + family.unstable + " unstable, " + family.qualifying + " qualifying)";
+        list.appendChild(item);
+      });
+      host.appendChild(list);
+      var contradicting = clustered.families.filter(function (family) { return family.contradicts > 0 || family.unstable > 0; });
+      var note = document.createElement("p");
+      note.textContent = contradicting.length
+        ? "Contradicting and unstable readings remain visible and are not resolved away: " + contradicting.map(function (family) { return family.familyId; }).join(", ") + ". Competing explanations stay open until a confirmed event settles them."
+        : "No family currently contradicts another. Agreement between families is still not a setup, a trigger, or a probability.";
+      host.appendChild(note);
+    }
+    function renderClaimAdmission(config, probe) {
+      var host = byId("claimLedger"); host.textContent = "";
+      config.claimLedger.forEach(function (record) {
+        var article = document.createElement("article"), heading = document.createElement("h3"), copy = document.createElement("p"), bound = document.createElement("p");
+        heading.textContent = record.claimId + " - " + record.verdict;
+        copy.textContent = record.grounding + " Tier " + record.evidenceTier + ". Scope: " + record.scope;
+        bound.className = "identity"; bound.textContent = "Limitation: " + record.limitation + " Allowed treatment: " + record.allowedTreatment;
+        article.appendChild(heading); article.appendChild(copy); article.appendChild(bound); host.appendChild(article);
+      });
+      setText("rejectedProbe", probe.refused
+        ? "Rejected-claim probe: a method citing " + probe.claimId + " was refused with " + probe.code + ". It contributes no reading, no default, no gate input, and no wording anywhere on this page. Required for reconsideration: " + probe.requiredEvidence
+        : "Rejected-claim probe did not refuse. This is a defect and the reading must not be trusted.");
+    }
+    function renderTechniqueSeries(fixtureId, copy) {
+      var config = pageRuntime.config, bars = expandAnalyticBars(fixtureId), peer = expandAnalyticBars("peer-benchmark"), contract = pageRuntime.techniqueFixture.barContract;
+      var comparison = function (rows) { return { id: rows === bars ? fixtureId : "peer-benchmark", rows: rows.map(function (bar) { return { closedAt: bar.closedAt, c: bar.c }; }), adjustmentPolicyId: contract.adjustmentPolicyId, sessionContractId: contract.sessionId }; };
+      var outcomes = config.techniques.map(function (definition) {
+        var inputs = definition.requiredInputs.indexOf("qualified-comparison-series") >= 0 ? { series: [comparison(bars), comparison(peer)] } : { bars: bars };
+        return tadEvaluateTechnique(definition, inputs, config.claimLedger);
+      });
+      var clustered = tadClusterEvidenceFamilies(outcomes.filter(function (outcome) { return outcome.ok; }), config.evidenceFamilies);
+      // The rejected record is exercised as a live probe rather than asserted in prose: a method that
+      // cites it is actually dispatched, and the refusal it returns is what the page reports.
+      var rejectedRecord = config.claimLedger.filter(function (record) { return record.verdict === "rejected"; })[0];
+      var probeDefinition = JSON.parse(JSON.stringify(config.techniques[0]));
+      probeDefinition.claimIds = [rejectedRecord.claimId];
+      var probeResult = tadEvaluateTechnique(probeDefinition, { bars: bars }, config.claimLedger);
+      var probe = { claimId: rejectedRecord.claimId, refused: !probeResult.ok, code: probeResult.ok ? null : probeResult.errors[0].code, requiredEvidence: rejectedRecord.allowedTreatment };
+      setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled");
+      setTruth("degraded", "Deterministic analytic series. Every reading below is the exact output of its own formula; no current-market claim is made and no instrument is named.");
+      setFoundationReceipt({ name: copy.name, session: "Analytic daily clock, " + contract.sessionId, aggregation: contract.interval + " closed analytic bars", partial: "Every analytic bar is closed; no partial remainder exists", primary: "Primary 1d analytic", setup: "Setup not published by Scope 02", trigger: "Trigger not published by Scope 02", variant: tadBuildVariantIdentity({ toolId: config.toolId, seriesId: fixtureId, barCount: bars.length, derivation: pageRuntime.techniqueFixture.derivation[fixtureId] }).value, observed: copy.observed, required: copy.required, action: copy.action });
+      setText("resultReceipt", "No signal, neutral, setup, or probability is published by Scope 02. The page publishes method readings, their declared independence, and their claim admission only.");
+      renderTechniqueOutcomes(config.techniques, outcomes);
+      renderEvidenceIndependence(clustered);
+      renderCompetingHypotheses(clustered);
+      renderClaimAdmission(config, probe);
+      window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({
+        fixtureId: fixtureId, ownerReadPublished: false, truthState: "degraded", setupPublished: false, probabilityPublished: false,
+        techniques: config.techniques.map(function (definition, position) {
+          var outcome = outcomes[position];
+          return { techniqueId: definition.techniqueId, familyId: definition.familyId, clusterId: definition.clusterId, ok: outcome.ok, status: outcome.ok ? outcome.status : null, code: outcome.ok ? null : outcome.errors[0].code, metrics: outcome.ok && outcome.metrics ? JSON.parse(JSON.stringify(outcome.metrics)) : null };
+        }),
+        clusters: JSON.parse(JSON.stringify(clustered.clusters)),
+        families: JSON.parse(JSON.stringify(clustered.families)),
+        claims: config.claimLedger.map(function (record) { return { claimId: record.claimId, verdict: record.verdict }; }),
+        rejectedProbe: probe,
+        errors: []
+      });
+    }
     function renderProfileSelection(fixtureId) {
       var source = pageRuntime.sourceFixture, analytic = pageRuntime.analyticFixture;
       var cases = {
@@ -1412,6 +1576,12 @@
       if (cases[fixtureId]) { var selected = cases[fixtureId]; renderAggregateFixture(fixtureId, selected.profileId, selected.envelope, selected.request, selected.copy); return; }
       if (fixtureId === "provisional-week") { renderWeeklyFixture(); return; }
       if (fixtureId === "cached-refresh-failure") { renderCachedFailureFixture(); return; }
+      var techniqueCases = {
+        "breakout-participation": { name: "Breakout participation without an actor", observed: "A close beyond the prior base boundary on expanding volume.", required: "Source-qualified volume with a declared normalization window.", action: "Read participation as an OHLCV proxy only; it identifies no participant." },
+        "correlated-uptrend": { name: "Correlated indicator agreement", observed: "Several related trend and momentum transforms read positive together.", required: "Declared families and clusters before any count is shown.", action: "Read the independent cluster count, never the raw method count." },
+        "unresolved-range": { name: "Unresolved range after a decline", observed: "A mature sideways range following a decline, with no completed spring, sign of strength, or confirmed break.", required: "A confirmed range event before any phase is asserted.", action: "Keep every competing explanation open; no setup is published." }
+      };
+      if (Object.prototype.hasOwnProperty.call(techniqueCases, fixtureId)) { renderTechniqueSeries(fixtureId, techniqueCases[fixtureId]); return; }
       if (fixtureId === "daily-close") {
         var daily = pageRuntime.index.profilesById["daily-close-v1"], dailyVariant = tadBuildVariantIdentity({ profileId: daily.profileId, roles: daily.roles, policies: [daily.partialBarPolicy, daily.earlyClosePolicy, daily.extendedHoursPolicy] });
         setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled"); setTruth("degraded", "Analytic profile receipt only; no source series or market result is asserted."); setFoundationReceipt({ name: daily.label, session: "Source-declared daily and weekly boundaries", aggregation: daily.aggregationPolicy, partial: daily.partialBarPolicy, primary: "Primary 1w / closed", setup: "Setup 1d / closed", trigger: "Trigger 1d-close / daily-eligible variants only", variant: dailyVariant.value, observed: "Only weekly and daily source contracts are selected.", required: "A closed daily event for any eligible trigger.", action: "Keep every intraday-only technique unavailable." }); window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({ fixtureId: fixtureId, ownerReadPublished: false, truthState: "degraded", profile: { profileId: daily.profileId, variantId: dailyVariant.value }, errors: [] }); return;
@@ -1433,11 +1603,12 @@
       Promise.all([
         fetch("technical-analysis-decision-universe.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("config HTTP " + response.status); return response.json(); }),
         fetch("tests/fixtures/technical-analysis-decision/source-qualified/us-equity-sessions.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("source fixture HTTP " + response.status); return response.json(); }),
-        fetch("tests/fixtures/technical-analysis-decision/analytic/session-profiles.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("analytic fixture HTTP " + response.status); return response.json(); })
+        fetch("tests/fixtures/technical-analysis-decision/analytic/session-profiles.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("analytic fixture HTTP " + response.status); return response.json(); }),
+        fetch("tests/fixtures/technical-analysis-decision/analytic/technique-series.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("technique fixture HTTP " + response.status); return response.json(); })
       ]).then(function (resources) {
         var configResult = tadValidateConfig(resources[0]); if (!configResult.ok) throw configResult.errors[0];
         var indexResult = tadIndexConfig(resources[0]); if (!indexResult.ok) throw indexResult.errors[0];
-        pageRuntime.config = resources[0]; pageRuntime.index = indexResult.index; pageRuntime.sourceFixture = resources[1]; pageRuntime.analyticFixture = resources[2];
+        pageRuntime.config = resources[0]; pageRuntime.index = indexResult.index; pageRuntime.sourceFixture = resources[1]; pageRuntime.analyticFixture = resources[2]; pageRuntime.techniqueFixture = resources[3];
         renderCatalog(resources[0]); renderEvents(resources[1]); renderProfileSelection(fixtureId);
       }).catch(function (error) {
         var known = error && typeof error.code === "string";

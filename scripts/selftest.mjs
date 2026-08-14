@@ -4147,8 +4147,21 @@ try {
   assert(['weak', 'strong', 'expanding', 'contracting', 'above', 'below', 'strengthening', 'weakening'].every((status) =>
     tad02.tadClusterEvidenceFamilies([{ ok: true, techniqueId: 'x/v1', familyId: 'trend-filters', clusterId: 'c', status }], tadConfig.evidenceFamilies).clusters[0].vote === 0),
     'Strength, location, and context states cast no directional vote');
-  assert(tad02Clustered.families.every((family) => ['supports', 'contradicts', 'unstable', 'unavailable'].indexOf(family.state) >= 0 && family.supports + family.contradicts + family.unstable + family.unavailable === family.clusterCount),
-    'Family denominators account for every cluster separately across support, contradiction, instability, and absence');
+  assert(tad02Clustered.families.every((family) => ['supports', 'contradicts', 'unstable', 'qualifying', 'unavailable'].indexOf(family.state) >= 0 && family.supports + family.contradicts + family.unstable + family.qualifying + family.unavailable === family.clusterCount),
+    'Family denominators account for every cluster separately across support, contradiction, instability, qualification, and absence');
+  // `qualifying` and `unavailable` are different facts. A cluster whose members all READ but point
+  // nowhere has qualified the picture; an unavailable cluster produced no reading at all. Collapsing
+  // the first into the second would understate the evidence that is actually on the page.
+  const tad02Qualifying = tad02.tadClusterEvidenceFamilies([{ ok: true, techniqueId: 'atr-atrp/v1', familyId: 'volatility-displacement', clusterId: 'true-range', status: 'high' }], tadConfig.evidenceFamilies);
+  const tad02Absent = tad02.tadClusterEvidenceFamilies([{ ok: false, techniqueId: 'atr-atrp/v1', familyId: 'volatility-displacement', clusterId: 'true-range', errors: [{ code: 'TAD-TECHNIQUE-HISTORY' }] }], tadConfig.evidenceFamilies);
+  assert(tad02Qualifying.clusters[0].state === 'qualifying' && tad02Qualifying.clusters[0].vote === 0 && tad02Qualifying.clusters[0].readCount === 1
+    && tad02Absent.clusters[0].state === 'unavailable' && tad02Absent.clusters[0].readCount === 0,
+    'A method that reads without pointing is qualifying, not unavailable');
+  // Raw method count and independent vote count must both be published, because the gap between
+  // them is exactly what stops a long list of correlated indicators from reading as agreement.
+  const tad02TrendFamily = tad02Clustered.families.filter((family) => family.familyId === 'trend-filters')[0];
+  assert(tad02TrendFamily.methodCount === 3 && tad02TrendFamily.clusterCount === 2 && tad02TrendFamily.methodCount > tad02TrendFamily.clusterCount,
+    'Family rollups publish raw method count alongside the smaller independent cluster count');
 } catch (e) { failures++; console.log('  ✗ FAIL (Technical Analysis Decision foundation group threw): ' + e.message); }
 /* ---------- End Feature 007 Technical Analysis Decision foundation ---------- */
 

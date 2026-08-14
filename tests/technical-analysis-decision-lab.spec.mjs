@@ -152,6 +152,175 @@ test('Regression: SCN-007-030 failed delta refresh preserves cached source-quali
   console.log('[SCN-007-030] neutralEvidence=omitted');
 });
 
+// The page has two different kinds of surface and they must be scanned differently.
+// The READING surface is where the tool states what it found; it may never assert an actor,
+// a motive, resting liquidity, a universal edge, or a setup. The DISCLOSURE surface (the claim
+// ledger and the rejection probe) has to be able to NAME those same forbidden ideas, because
+// naming them is how it reports that they are rejected. Banning the words everywhere would
+// make the tool fail for being honest, so the ban applies to the reading surface only.
+const READING_SURFACE = ['#techniqueReceipt', '#techniqueOutcomes', '#independenceReceipt', '#evidenceFamilies', '#competingHypotheses', '#setupReceipt', '#resultReceipt', '#observedState', '#requiredState', '#actionState'];
+async function readingSurfaceText(page) {
+  const parts = [];
+  for (const selector of READING_SURFACE) parts.push(await page.locator(selector).innerText());
+  return parts.join('\n').replace(/\s+/g, ' ');
+}
+async function normalizedText(page, selector) {
+  return (await page.locator(selector).innerText()).replace(/\s+/g, ' ');
+}
+
+test('Regression: SCN-007-009 breakout volume supports one proxy family without actor identity', async ({ page }) => {
+  await page.goto(`${baseUrl}/technical-analysis-decision-lab.html?fixture=breakout-participation&clock=${CLOCK}`);
+  await page.waitForFunction(() => window.__TAD_DIAGNOSTICS__?.fixtureId === 'breakout-participation');
+  await expect(page.locator('#fixtureBand')).toContainText('TEST FIXTURE - ANALYTIC DETERMINISTIC');
+
+  const diagnostics = await page.evaluate(() => window.__TAD_DIAGNOSTICS__);
+  const participation = diagnostics.techniques.filter((technique) => technique.familyId === 'participation-proxy');
+  // Every participation transform must read, and each must carry its OHLCV proxy boundary.
+  expect(participation).toHaveLength(4);
+  expect(participation.every((technique) => technique.ok)).toBeTruthy();
+  expect(participation.every((technique) => technique.metrics.proxy === 'ohlcv-volume-transform')).toBeTruthy();
+  expect(participation.every((technique) => technique.metrics.actorIdentified === false)).toBeTruthy();
+  const relativeVolume = participation.find((technique) => technique.techniqueId === 'relative-volume/v1');
+  expect(relativeVolume.status).toBe('expanding');
+  expect(relativeVolume.metrics.ratio).toBeGreaterThan(1);
+
+  // Four correlated methods are worth exactly one independent vote.
+  const family = diagnostics.families.find((entry) => entry.familyId === 'participation-proxy');
+  expect(family.methodCount).toBe(4);
+  expect(family.clusterCount).toBe(1);
+  expect(family.supports).toBe(1);
+  expect(family.state).toBe('supports');
+
+  // The visible page, not just the diagnostics object, must state the proxy boundary and name no actor.
+  const outcomesText = await normalizedText(page, '#techniqueOutcomes');
+  expect(outcomesText).toContain('No participant identity is inferred');
+  expect(await readingSurfaceText(page)).not.toMatch(/institution|smart money|whale|dark pool|accumulating by|who is buying/i);
+  console.log(`[SCN-007-009] participationMethods=${family.methodCount} clusterVotes=${family.clusterCount}`);
+  console.log(`[SCN-007-009] relativeVolume=${relativeVolume.status} ratio=${relativeVolume.metrics.ratio.toFixed(3)}`);
+  console.log('[SCN-007-009] actorIdentified=false');
+  console.log('[SCN-007-009] proxy=ohlcv-volume-transform');
+  console.log(`[SCN-007-009] familyState=${family.state}`);
+});
+
+test('Regression: SCN-007-010 correlated indicators count once and raw count is not confidence', async ({ page }) => {
+  await page.goto(`${baseUrl}/technical-analysis-decision-lab.html?fixture=correlated-uptrend&clock=${CLOCK}`);
+  await page.waitForFunction(() => window.__TAD_DIAGNOSTICS__?.fixtureId === 'correlated-uptrend');
+
+  const diagnostics = await page.evaluate(() => window.__TAD_DIAGNOSTICS__);
+  const byId = (id) => diagnostics.techniques.find((technique) => technique.techniqueId === id);
+  // The premise of the scenario: these correlated transforms all read positive at once.
+  expect(byId('sma-stack/v1').status).toBe('stacked-up');
+  expect(byId('ema-stack/v1').status).toBe('stacked-up');
+  expect(byId('macd/v1').status).toBe('positive');
+  expect(byId('adx-dmi/v1').status).toBe('strong-plus');
+
+  // SMA and EMA are one cluster and cast one vote between them.
+  const movingAverage = diagnostics.clusters.find((cluster) => cluster.clusterId === 'moving-average');
+  expect(movingAverage.members.sort()).toEqual(['ema-stack/v1', 'sma-stack/v1']);
+  expect(movingAverage.memberCount).toBe(2);
+  expect(Math.abs(movingAverage.vote)).toBe(1);
+
+  // MACD and RSI stay in their own declared clusters rather than merging.
+  expect(byId('macd/v1').clusterId).toBe('ema-momentum');
+  expect(byId('rsi-wilder/v1').clusterId).toBe('bounded-momentum');
+
+  // Raw methods must exceed independent votes, and both must be visible to the reader.
+  const rawMethods = Number(await page.locator('#rawMethodCount').innerText());
+  const clusterVotes = Number(await page.locator('#independentClusterCount').innerText());
+  expect(rawMethods).toBe(15);
+  expect(clusterVotes).toBeLessThan(rawMethods);
+  expect(await normalizedText(page, '#largestCluster')).toContain('casts one vote');
+  expect(await normalizedText(page, '#independenceReceipt')).toContain('not a confidence level');
+
+  // A raw count must never be dressed up as a confidence or probability.
+  const readingText = await readingSurfaceText(page);
+  expect(readingText).not.toMatch(/\b\d+\s*(of|\/)\s*\d+\s*(indicators?\s*)?(agree|confidence)/i);
+  expect(readingText).not.toMatch(/confidence[:\s]*\d+\s*%/i);
+  console.log(`[SCN-007-010] rawMethods=${rawMethods} independentClusterVotes=${clusterVotes}`);
+  console.log(`[SCN-007-010] movingAverageMembers=${movingAverage.members.join(',')} vote=${movingAverage.vote}`);
+  console.log('[SCN-007-010] macdCluster=ema-momentum rsiCluster=bounded-momentum');
+  console.log('[SCN-007-010] countPresentedAsConfidence=false');
+  console.log('[SCN-007-010] rawMethodsInspectable=true');
+});
+
+test('Regression: SCN-007-011 unresolved range preserves competing phase hypotheses and no long trigger', async ({ page }) => {
+  await page.goto(`${baseUrl}/technical-analysis-decision-lab.html?fixture=unresolved-range&clock=${CLOCK}`);
+  await page.waitForFunction(() => window.__TAD_DIAGNOSTICS__?.fixtureId === 'unresolved-range');
+
+  const diagnostics = await page.evaluate(() => window.__TAD_DIAGNOSTICS__);
+  // The range has not resolved: no confirmed pivot break exists.
+  const pivots = diagnostics.techniques.find((technique) => technique.techniqueId === 'closing-pivots/v1');
+  expect(pivots.status).not.toBe('reversal-confirmed');
+  expect(pivots.status).not.toBe('break-candidate');
+
+  // Competing readings must remain visible rather than being resolved into one story.
+  const trend = diagnostics.families.find((entry) => entry.familyId === 'trend-filters');
+  expect(trend.supports).toBeGreaterThan(0);
+  expect(trend.contradicts).toBeGreaterThan(0);
+  expect(trend.state).toBe('unstable');
+  const hypotheses = await normalizedText(page, '#competingHypotheses');
+  expect(hypotheses).toContain('remain visible and are not resolved away');
+  expect(hypotheses).toContain('trend-filters');
+
+  // Nothing here may become a setup, a trigger, or a probability.
+  expect(diagnostics.setupPublished).toBe(false);
+  expect(diagnostics.probabilityPublished).toBe(false);
+  const setupReceipt = await normalizedText(page, '#setupReceipt');
+  expect(setupReceipt).toContain('publishes no setup, entry, trigger, target, stop, or probability');
+  expect(await readingSurfaceText(page)).not.toMatch(/accumulation (is|has) (confirmed|complete)|buy (now|here)|long (entry|trigger) at|enter long/i);
+  console.log(`[SCN-007-011] pivotState=${pivots.status}`);
+  console.log(`[SCN-007-011] trendFilters=${trend.state} supports=${trend.supports} contradicts=${trend.contradicts}`);
+  console.log('[SCN-007-011] competingHypothesesVisible=true');
+  console.log('[SCN-007-011] setupPublished=false');
+  console.log('[SCN-007-011] longTriggerPublished=false');
+});
+
+test('Regression: SCN-007-031 ungrounded transcript claim stays rejected across model and copy', async ({ page }) => {
+  await page.goto(`${baseUrl}/technical-analysis-decision-lab.html?fixture=correlated-uptrend&clock=${CLOCK}`);
+  await page.waitForFunction(() => window.__TAD_DIAGNOSTICS__?.fixtureId === 'correlated-uptrend');
+
+  const diagnostics = await page.evaluate(() => window.__TAD_DIAGNOSTICS__);
+  const rejected = diagnostics.claims.filter((claim) => claim.verdict === 'rejected');
+  expect(rejected.length).toBeGreaterThan(0);
+
+  // No shipped technique may cite a rejected claim.
+  const config = await page.evaluate(async () => (await fetch('technical-analysis-decision-universe.json')).json());
+  const rejectedIds = config.claimLedger.filter((record) => record.verdict === 'rejected').map((record) => record.claimId);
+  const citing = config.techniques.filter((technique) => technique.claimIds.some((claimId) => rejectedIds.includes(claimId)));
+  expect(citing).toHaveLength(0);
+
+  // A live probe proves the refusal rather than asserting it in prose: a method citing the
+  // rejected claim is actually dispatched, and the engine refuses it.
+  expect(diagnostics.rejectedProbe.refused).toBe(true);
+  expect(diagnostics.rejectedProbe.code).toBe('TAD-CLAIM-REJECTED');
+  expect(rejectedIds).toContain(diagnostics.rejectedProbe.claimId);
+  const probeText = await normalizedText(page, '#rejectedProbe');
+  expect(probeText).toContain('was refused');
+  expect(probeText).toContain('TAD-CLAIM-REJECTED');
+  expect(probeText).toContain('Required for reconsideration');
+
+  // The DISCLOSURE surface must name the rejected claim and its bound. This is required, not banned.
+  const ledgerText = await normalizedText(page, '#claimLedger');
+  expect(ledgerText).toContain(diagnostics.rejectedProbe.claimId);
+  expect(ledgerText).toContain('rejected');
+  expect(ledgerText).toMatch(/No hidden actor motive|no independent source/i);
+
+  // The READING surface must never make the claim the ledger rejects. The ban targets the
+  // AFFIRMATIVE form only: the page is required to say "No resting liquidity is claimed", so a
+  // polarity-blind word ban would fail the tool precisely for making the disclaimer it must make.
+  const readingText = await readingSurfaceText(page);
+  expect(readingText).not.toMatch(/win rate of \d|\d+\s*% win rate|always (works|leads to)|guaranteed|proves? that price will|stop.hunts? (by|from)|(?<!no )(?<!not )(?<!never )\b(hidden (actor|hand)|resting liquidity)\b/i);
+  // And the disclaimers themselves must actually be present, not merely absent of their opposite.
+  expect(readingText).toContain('No resting liquidity is claimed');
+  expect(readingText).toContain('No participant identity is inferred');
+  expect(readingText).toContain('No motive is inferred');
+  console.log(`[SCN-007-031] rejectedClaims=${rejected.map((claim) => claim.claimId).join(',')}`);
+  console.log('[SCN-007-031] techniquesCitingRejected=0');
+  console.log(`[SCN-007-031] probeRefused=${diagnostics.rejectedProbe.refused} code=${diagnostics.rejectedProbe.code}`);
+  console.log('[SCN-007-031] ledgerNamesRequiredEvidence=true');
+  console.log('[SCN-007-031] universalEdgeOrHiddenActorCopy=absent');
+});
+
 test('Regression: Feature 007 qualified series and RLVALID preserve legacy shared behavior', async ({ page }) => {
   await page.goto(`${baseUrl}/technical-analysis-decision-lab.html?fixture=us-equity-4h-core&clock=${CLOCK}`);
   await page.waitForFunction(() => {

@@ -424,3 +424,58 @@ registered `ordinary` tool that owns its own in-page routing coexists with the
 shell's hash-based view selection. The cheapest correct answer is probably for
 `rlviews` to leave the hash alone when a page declares its own route ownership,
 but that is Feature 012's decision to make, not this scope's to force.
+
+#### Residual CLOSED — the reconciliation shipped
+
+The residual described above no longer exists. The brief mount anchor is
+installed, the mount-anchor canary passes, and node failures dropped 29 to 28
+with zero new.
+
+The fix is the Feature 012 reconciliation this scope said was needed: a page that
+renders every view itself and routes its own hash declares `data-owns-route` on
+its mount anchor. `rlviews` then leaves four things alone, and each was found by
+a failing test rather than assumed:
+
+| What the shell did | Why it must not, for an owns-route page |
+|---|---|
+| Read `location.hash` as a view mode and rewrite it to `#simple` | Two owners of one URL field is not a resolvable state |
+| Apply `rlv-focused`, hiding every child of `body` | The page renders its own views; hiding them leaves nothing |
+| Hide the page's view control via CSS and `aria-hidden` | Suppressing it leaves the reader no way to switch views |
+| Synthesise clicks on that control to sync state | It persisted a display mode the reader never chose |
+
+Without the declaration every path behaves exactly as before, so no existing tool
+changed - 147/147 existing-consumer rows still pass.
+
+One correction mid-flight is worth recording. I first computed the ownership in
+`rlapp.js`, which broke a Feature 012 canary that extracts that expression from
+source and evaluates it in isolation with a fixed parameter list. The canary was
+right to refuse: an expression that only works in its original closure is not the
+contract it claims to be. The expression is restored untouched and the rule now
+lives in `rlviews.js` beside `OWNS_ROUTE`, which is its proper home.
+
+**Command:** `node --test tests/distributed-briefs.consumer-trace.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+# pass 1
+# fail 0
+```
+
+**Command:** the seven-file Feature 008 Playwright matrix
+**Exit Code:** 0
+**Output:**
+
+```text
+  72 passed (52.8s)
+```
+
+**Command:** the seven-file existing-consumer Playwright matrix
+**Exit Code:** 0
+**Output:**
+
+```text
+  147 passed (1.6m)
+```
+
+Scope 16 and Feature 008 are `done`. No residual remains.

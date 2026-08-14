@@ -1781,6 +1781,66 @@
         ],
         "publicAliases": []
       }
+    },
+    {
+      "id": "portfolio-survival-allocation-lab",
+      "group": "Strategy & Validation",
+      "title": "Portfolio Survival & Allocation Lab",
+      "nav": {
+        "label": "Portfolio Survival",
+        "icon": "🧭"
+      },
+      "file": "portfolio-survival-allocation-lab.html",
+      "notes": "notes/portfolio-survival-allocation-lab.md",
+      "status": "live",
+      "updated": "2026-08-14",
+      "blurb": "A six-tab local workspace that asks whether a portfolio survives what its owner actually needs it to survive: a mandate with real dates and real cash needs. Risk X-Ray, bootstrap path survival, stress-conditional dependence, six allocation methods on one frozen basis with sensitivity ranges and an explicit Black-Litterman editor, and a research dossier that keeps in-sample, walk-forward and cost-adjusted results as three separate figures. Every analytic declares its own eligibility and fails closed with a named reason. Holdings, mandate, scenarios and dossiers never leave this browser, and the tool publishes a permanent local-only, no-data read to the public brief.",
+      "tags": [
+        "portfolio",
+        "survival analysis",
+        "mandate",
+        "cash needs",
+        "allocation",
+        "Black-Litterman",
+        "walk-forward",
+        "stress correlation",
+        "fails closed",
+        "local-only",
+        "Simple + Power",
+        "shared cache"
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "local-model",
+        "readAdapter": "portfolio-survival-privacy-boundary-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "committed-projection-v1",
+        "recommendationPolicy": "operational-next-step-v1",
+        "budgetPolicy": "local-model-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": [
+          "simple",
+          "power",
+          "brief",
+          "journey"
+        ],
+        "simpleModelDefinitionId": "simple-model/portfolio-survival/v1",
+        "simpleAdapterId": "simple-adapter/portfolio-survival/v1",
+        "simpleAdapterModule": "rlexperience-adapters/portfolio-research.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/local-model/v1",
+        "journeyDefinitionIds": [
+          "journey/portfolio-survival-allocation-lab/mandate-survival-review/v1",
+          "journey/portfolio-survival-allocation-lab/allocation-stability-review/v1"
+        ],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": [],
+        "publicAliases": []
+      }
     }
   ]
 }

@@ -34,6 +34,7 @@ async function openLab(page, hash = 'brief') {
   const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#${hash}`);
   expect(response?.status(), 'the integrated route must be served directly').toBe(200);
   await expect(page.locator('#workspaceIdentity')).toBeVisible();
+  await expect(page.locator('#portfolioName')).toBeEditable();
 }
 
 async function importValid(page, name) {
@@ -242,6 +243,63 @@ const TABS_EXPECTED = [
   'workspaceTabBrief', 'workspaceTabRiskXray', 'workspaceTabPathLab',
   'workspaceTabDiversification', 'workspaceTabAllocation', 'workspaceTabDossier'
 ];
+
+test('Regression: SCN-008-036 registration rlnav tools index README and note form one atomic release transaction', async ({ page }) => {
+  /* Registration is a five-surface contract. Four out of five is not a partial
+     release - it is a registry that disagrees with itself, which is how a tool
+     ends up reachable from one place and invisible from another. */
+  const toolsRaw = JSON.parse(readFileSync(resolve(ROOT, 'tools.json'), 'utf8'));
+  const tools = Array.isArray(toolsRaw) ? toolsRaw : toolsRaw.tools;
+  const entries = tools.filter((tool) => tool.id === 'portfolio-survival-allocation-lab');
+  expect(entries, 'exactly one tools.json entry').toHaveLength(1);
+  const entry = entries[0];
+  expect(entry.file).toBe('portfolio-survival-allocation-lab.html');
+  expect(entry.notes).toBe('notes/portfolio-survival-allocation-lab.md');
+  expect(entry.status).toBe('live');
+
+  /* The privacy boundary is part of the REGISTRATION, not only the runtime. A
+     tool holding personal holdings must not be able to contribute them to the
+     public brief, and the registry is where that is declared. */
+  expect(entry.briefing.role).toBe('source');
+  expect(entry.briefing.readAdapter).toBe('portfolio-survival-privacy-boundary-v1');
+
+  /* The experience contract must resolve, or the tool is registered into a
+     registry that cannot run it. */
+  const models = JSON.parse(readFileSync(resolve(ROOT, 'simple-models.json'), 'utf8'));
+  const model = models.definitions.filter((d) => d.toolId === 'portfolio-survival-allocation-lab');
+  expect(model, 'exactly one Simple model definition').toHaveLength(1);
+  expect(model[0].adapterId).toBe(entry.experience.simpleAdapterId);
+  expect(model[0].adapterModule).toBe(entry.experience.simpleAdapterModule);
+
+  const journeys = JSON.parse(readFileSync(resolve(ROOT, 'journeys.json'), 'utf8'));
+  const owned = journeys.definitions.filter((d) => d.toolId === 'portfolio-survival-allocation-lab');
+  expect(owned.length, 'an ordinary tool declares at least two journey goals').toBeGreaterThanOrEqual(2);
+  owned.forEach((definition) => {
+    /* Every journey here reasons over holdings, so none may be public-safe. */
+    expect(definition.privacyClass).toBe('local-private-ref');
+  });
+
+  const indexHtml = readFileSync(resolve(ROOT, 'index.html'), 'utf8');
+  expect((indexHtml.match(/id: 'portfolio-survival-allocation-lab'/g) || []).length).toBe(1);
+
+  const rlnavJs = readFileSync(resolve(ROOT, 'rlnav.js'), 'utf8');
+  expect((rlnavJs.match(/file: "portfolio-survival-allocation-lab\.html"/g) || []).length).toBe(1);
+
+  const readme = readFileSync(resolve(ROOT, 'README.md'), 'utf8');
+  expect(readme).toContain('portfolio-survival-allocation-lab.html');
+
+  const note = readFileSync(resolve(ROOT, 'notes/portfolio-survival-allocation-lab.md'), 'utf8');
+  expect(note.length, 'the handoff note must carry real content').toBeGreaterThan(500);
+
+  /* The release is only atomic if the page is no longer withheld from the site. */
+  const exclusions = JSON.parse(readFileSync(resolve(ROOT, 'site-exclusions.json'), 'utf8'));
+  expect(exclusions.files.map((f) => f.path)).not.toContain('portfolio-survival-allocation-lab.html');
+
+  /* Both routes must actually work: the landing card and the direct URL. */
+  const direct = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html`);
+  expect(direct?.status()).toBe(200);
+  await expect(page.locator('#workspaceTabBrief')).toHaveAttribute('aria-selected', 'true');
+});
 
 test('Regression: SCN-008-036 personal sentinels stay absent from complete route public reads and publisher inputs', async ({ page }) => {
   /* Every request the page makes is recorded. The assertion is not that the

@@ -553,7 +553,8 @@ const ORDINARY_OWNER_MODULES = [
   { path: '../rlexperience-adapters/macro-rotation.js', factory: 'registerMacroRotationAdapters', deps: () => undefined },
   { path: '../rlexperience-adapters/fundamental-models.js', factory: 'registerFundamentalModelsAdapters', deps: () => undefined },
   { path: '../rlexperience-adapters/strategy-research.js', factory: 'registerStrategyResearchAdapters', deps: () => undefined },
-  { path: '../rlexperience-adapters/property-research.js', factory: 'registerPropertyResearchAdapters', deps: () => ({ rental: require('../rlrental.js') }) }
+  { path: '../rlexperience-adapters/property-research.js', factory: 'registerPropertyResearchAdapters', deps: () => ({ rental: require('../rlrental.js') }) },
+  { path: '../rlexperience-adapters/portfolio-research.js', factory: 'registerPortfolioResearchAdapters', deps: () => undefined }
 ];
 const CENTER_OWNER_MODULE = { path: '../rlexperience-adapters/market-action.js', factory: 'registerMarketActionAdapters', deps: () => undefined };
 
@@ -643,10 +644,10 @@ function validateJourneyRegistryCoverage(packet) {
   }));
   const completeness = RLJOURNEY.validateRegistryCompleteness(packet.journeys, inventory);
   invariant(completeness.ok, `SCN-012-032 journey coverage rejected: ${completeness.error && completeness.error.code} ${completeness.error && completeness.error.fieldPath} ${completeness.error && completeness.error.reason}`);
-  invariant(completeness.value.ordinaryTools === 24, `SCN-012-032 expected 24 ordinary tools with concrete goals, got ${completeness.value.ordinaryTools}`);
+  invariant(completeness.value.ordinaryTools === 25, `SCN-012-032 expected 25 ordinary tools with concrete goals, got ${completeness.value.ordinaryTools}`);
   invariant(completeness.value.centerGoals === 4, `SCN-012-032 Market Action Center must expose exactly four goals, got ${completeness.value.centerGoals}`);
-  invariant(completeness.value.totalGoals === 52, `SCN-012-032 expected 52 total goals, got ${completeness.value.totalGoals}`);
-  invariant(completeness.value.definitionCount === 52, `SCN-012-032 expected 52 journey definitions, got ${completeness.value.definitionCount}`);
+  invariant(completeness.value.totalGoals === 54, `SCN-012-032 expected 54 total goals, got ${completeness.value.totalGoals}`);
+  invariant(completeness.value.definitionCount === 54, `SCN-012-032 expected 54 journey definitions, got ${completeness.value.definitionCount}`);
   for (const row of inventory) {
     if (row.kind === 'market-action-center') {
       invariant(row.journeyDefinitionIds.length === 4, `${row.registryId} (Center) must reference exactly four journey goals`);

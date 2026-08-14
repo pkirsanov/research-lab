@@ -1298,6 +1298,12 @@
       "deepLink": "trend-dynamics-cycle-lab.html",
       "status": "stale",
       "reason": "The trend, dynamics and cycle lab registered this window and is brief-relevant, but it carries no deterministic owner read in this snapshot: its owner read is published client-side into the shared cache when the route renders, so a headless composition run has nothing to read yet. No trend or turning-point call to carry into the 2026-08-12 after-hours view; open the owning tool for the direction, strength and confirmation-lag reads before citing a trend state. No call this cycle."
+    },
+    {
+      "id": "portfolio-survival-allocation-lab",
+      "deepLink": "portfolio-survival-allocation-lab.html",
+      "status": "stale",
+      "reason": "The portfolio survival and allocation lab is registered and brief-relevant, but it contributes no evidence to this or any brief BY DESIGN: every result it produces is personal to the reader’s device, so its published read is permanently unavailable with personalDataIncluded false. There is no call to carry into this window and never will be. Open the owning tool for local mandate survival, allocation stability and dossier reads; nothing about a private portfolio can be summarized here."
     }
   ],
   "watchlistNotes": {

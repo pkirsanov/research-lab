@@ -3,10 +3,6 @@
   "note": "These are retained implementation or research artifacts that are not part of the public product. scripts/build-pages-site.mjs refuses any unregistered root HTML not listed here and refuses a listed file once it becomes a registered tool. This is the deploy-time form of D2/D3: source may remain available for an in-progress feature, but Pages ships only reachable product surfaces and their production dependencies.",
   "files": [
     {
-      "path": "portfolio-survival-allocation-lab.html",
-      "reason": "Feature 008 is in progress and its own Scope 16 declares registration as the atomic release boundary."
-    },
-    {
       "path": "portfolio-survival-allocation.config.json",
       "reason": "Configuration is consumed only by the excluded in-progress Portfolio page."
     },

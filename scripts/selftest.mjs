@@ -2681,8 +2681,8 @@ try {
   const registeredFiles = new Set(registry.map((tool) => tool.file));
   assert(sitePlan.registeredPages.length === registry.length, 'the Pages artifact includes every registered tool page');
   assert(sitePlan.registeredPages.every((file) => registeredFiles.has(file)), 'the Pages artifact includes no unregistered tool page');
-  assert(sitePlan.excludedPaths.includes('portfolio-survival-allocation-lab.html'),
-    'in-progress root pages are explicitly removed from the public artifact');
+  assert(sitePlan.registeredPages.includes('portfolio-survival-allocation-lab.html'),
+    'the released portfolio route is published rather than excluded');
   /* Feature 006 Scope 4: the Trend Dynamics route is now registered, so the build MUST ship it and
      MUST NOT still carry it as an exclusion. Asserting both directions is what makes registration
      atomic: a half-move that registered the tool but left the exclusion standing fails here. */
@@ -3824,7 +3824,7 @@ try {
   assert(JSON.stringify(sharedApi.toolRead('feature-006-canary')) === toolReadBefore && JSON.stringify(sharedApi.dataState()) === dataStateBefore, 'Trend Dynamics shared canary leaves RLDATA toolReads and RLAPP resource state unchanged');
   assert(sharedStorage.getItem('rlApiKeys') === credentialsBefore && tdcSource.indexOf('localStorage.rlApiKeys') < 0 && tdcSource.indexOf("localStorage.setItem('rlApiKeys'") < 0, 'Trend Dynamics shared canary leaves central credential ownership unchanged');
   const toolIds = JSON.parse(read('tools.json')).tools.map((tool) => tool.id);
-  assert(toolIds.indexOf('trend-dynamics-cycle-lab') === toolIds.length - 1, 'Trend Dynamics registers last, appending to the registry rather than reordering existing entries');
+  assert(toolIds.indexOf('portfolio-survival-allocation-lab') === toolIds.length - 1, 'Portfolio Survival registers last, appending to the registry rather than reordering existing entries');
 } catch (e) { failures++; console.log('  ✗ FAIL (Trend Dynamics foundation group threw): ' + e.message); }
 
 /* ---------- Feature 007: Technical Analysis Decision foundation ---------- */
@@ -5370,11 +5370,11 @@ try {
   // literal), requires exactly one non-recursive final aggregator, and content-addresses the frozen set.
   const frozen5 = RLCONTRACTS5.validateRegistry(registry5, config5);
   const derivedSources5 = registry5.tools.filter((entry) => entry.briefing.role === 'source').map((entry) => entry.id);
-  assert(frozen5.ok === true && frozen5.value.participantCount === 25 && frozen5.value.sourceCount === 24 && frozen5.value.sourceCount === derivedSources5.length && frozen5.value.aggregatorToolId === 'market-brief' && frozen5.value.orderedSourceToolIds.indexOf('market-brief') < 0 && /^sha256:[a-f0-9]{64}$/.test(frozen5.value.registryFingerprint), 'Feature 002 Scope 05 validateRegistry derives 25 participants / 24 sources with one non-recursive Market Brief aggregator');
+  assert(frozen5.ok === true && frozen5.value.participantCount === 26 && frozen5.value.sourceCount === 25 && frozen5.value.sourceCount === derivedSources5.length && frozen5.value.aggregatorToolId === 'market-brief' && frozen5.value.orderedSourceToolIds.indexOf('market-brief') < 0 && /^sha256:[a-f0-9]{64}$/.test(frozen5.value.registryFingerprint), 'Feature 002 Scope 05 validateRegistry derives 26 participants / 25 sources with one non-recursive Market Brief aggregator');
 
   // Every entry carries a complete unique-adapter briefing block; missing field, role/profile mismatch,
   // duplicate adapter, and policy mismatch each fail loud before acquisition.
-  assert(new Set(registry5.tools.map((entry) => entry.briefing.readAdapter)).size === 25, 'Feature 002 Scope 05 all 25 tools.json entries carry a unique briefing read adapter');
+  assert(new Set(registry5.tools.map((entry) => entry.briefing.readAdapter)).size === 26, 'Feature 002 Scope 05 all 26 tools.json entries carry a unique briefing read adapter');
   const dropField5 = JSON.parse(JSON.stringify(registry5)); delete dropField5.tools[1].briefing.budgetPolicy;
   const roleSwap5 = JSON.parse(JSON.stringify(registry5)); roleSwap5.tools[1].briefing.role = 'final-aggregator';
   const dupAdapter5 = JSON.parse(JSON.stringify(registry5)); dupAdapter5.tools[2].briefing.readAdapter = registry5.tools[1].briefing.readAdapter;
@@ -5385,7 +5385,7 @@ try {
   const added5 = JSON.parse(JSON.stringify(registry5));
   added5.tools.push({ id: 'demo-added-source-lab', title: 'Demo', file: 'demo-added-source-lab.html', briefing: { role: 'source', profile: 'live-market', readAdapter: 'demo-added-source-owning-model-v1', readContractVersion: 'tool-model-read/v1', freshnessPolicy: 'daily-market-bars-v1', recommendationPolicy: 'market-action-v1', budgetPolicy: 'live-market-v1' } });
   const addedFrozen5 = RLCONTRACTS5.validateRegistry(added5, config5);
-  assert(addedFrozen5.ok === true && addedFrozen5.value.participantCount === 26 && addedFrozen5.value.sourceCount === 25 && addedFrozen5.value.orderedSourceToolIds[addedFrozen5.value.orderedSourceToolIds.length - 1] === 'demo-added-source-lab', 'Feature 002 Scope 05 a valid added source derives 26 participants / 25 sources generically');
+  assert(addedFrozen5.ok === true && addedFrozen5.value.participantCount === 27 && addedFrozen5.value.sourceCount === 26 && addedFrozen5.value.orderedSourceToolIds[addedFrozen5.value.orderedSourceToolIds.length - 1] === 'demo-added-source-lab', 'Feature 002 Scope 05 a valid added source derives 27 participants / 26 sources generically');
 
   // The registry form of freezeToolReads emits exactly one validated ToolModelRead/v1 per derived source
   // over a frozen evidence bundle (aggregator never self-consumed); the legacy Scope 04 evidence-first
@@ -5397,7 +5397,7 @@ try {
   const registryFrozen5 = brief5.freezeToolReads(registry5, { evidence: bundle5, registryConfig: config5 }, { symbol: 'SPY' });
   const allValid5 = registryFrozen5.orderedSourceToolIds.every((id) => RLDATA5.validateToolModelRead(registryFrozen5.reads[id]).ok === true);
   const legacyFrozen5 = brief5.freezeToolReads(bundle5, { symbol: 'SPY' }, [{ toolId: 'options-flow-lab', profile: 'live-market' }]);
-  assert(Object.keys(registryFrozen5.reads).length === 24 && registryFrozen5.reads['market-brief'] === undefined && allValid5 === true && Object.keys(legacyFrozen5.owners).length === 6 && !!legacyFrozen5.others['options-flow-lab'], 'Feature 002 Scope 05 freezeToolReads registry form emits 24 validated source reads while the legacy evidence-first form is unchanged');
+  assert(Object.keys(registryFrozen5.reads).length === 25 && registryFrozen5.reads['market-brief'] === undefined && allValid5 === true && Object.keys(legacyFrozen5.owners).length === 6 && !!legacyFrozen5.others['options-flow-lab'], 'Feature 002 Scope 05 freezeToolReads registry form emits 25 validated source reads while the legacy evidence-first form is unchanged');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 05 group threw): ' + e.message); }
 /* FEATURE-002-MARKET-SESSION-SCOPE5-END */
 
@@ -5656,13 +5656,13 @@ try {
   const feature012 = feature012Validator.validateActualToolExperience();
 
   assert(
-    feature012.summary.toolCount === 25 &&
-    feature012.summary.ordinaryCount === 24 &&
+    feature012.summary.toolCount === 26 &&
+    feature012.summary.ordinaryCount === 25 &&
     feature012.summary.marketActionCount === 1 &&
-    feature012.summary.simpleModelDefinitionCount === 25 &&
-    feature012.summary.journeyDefinitionCount === 52 &&
-    feature012.summary.journeyStepCount === 67,
-    'Feature 012 Scope 01 production validator derives the current 25-tool, 25-model, 52-Journey, 67-step inventory'
+    feature012.summary.simpleModelDefinitionCount === 26 &&
+    feature012.summary.journeyDefinitionCount === 54 &&
+    feature012.summary.journeyStepCount === 69,
+    'Feature 012 Scope 01 production validator derives the current 26-tool, 26-model, 54-Journey, 69-step inventory'
   );
   assert(
     feature012.identities.toolIds.length === new Set(feature012.identities.toolIds).size &&
@@ -5697,10 +5697,10 @@ try {
   );
   assert(
     feature012.scaling.toolId === 'feature-012-scaling-probe' &&
-    feature012.scaling.toolCount === 26 &&
-    feature012.scaling.modelCount === 26 &&
-    feature012.scaling.journeyCount === 54 &&
-    feature012.scaling.stepCount === 69,
+    feature012.scaling.toolCount === 27 &&
+    feature012.scaling.modelCount === 27 &&
+    feature012.scaling.journeyCount === 56 &&
+    feature012.scaling.stepCount === 71,
     'Feature 012 Scope 01 valid added-tool probe scales through registry membership without a production tool-ID branch'
   );
   assert(
@@ -6092,12 +6092,12 @@ try {
   // (1) SCN-012-032 all-tool coverage: 23 ordinary tools (>=2 goals) + the Market Action Center (exactly 4), 50 defs.
   const inventory = registryTools.map((t) => ({ registryId: t.id, kind: (t.experience && t.experience.kind) || 'ordinary', journeyDefinitionIds: (t.experience && t.experience.journeyDefinitionIds) || [] }));
   const completeness = RJ.validateRegistryCompleteness(journeys, inventory);
-  assert(completeness.ok && completeness.value.ordinaryTools === 24 && completeness.value.centerGoals === 4 && completeness.value.totalGoals === 52 && completeness.value.definitionCount === 52, 'RLJOURNEY validates all 24 ordinary tools (>=2 goals) + the 4 Market Action Center goals across 52 definitions');
+  assert(completeness.ok && completeness.value.ordinaryTools === 25 && completeness.value.centerGoals === 4 && completeness.value.totalGoals === 54 && completeness.value.definitionCount === 54, 'RLJOURNEY validates all 25 ordinary tools (>=2 goals) + the 4 Market Action Center goals across 54 definitions');
 
-  // (2) the 48-definition registry compiles, and a function value anywhere in a definition is rejected.
+  // (2) the 54-definition registry compiles, and a function value anywhere in a definition is rejected.
   const compiledRegistry = RJ.compileRegistry(journeys);
   const breadth = compiledRegistry.ok ? compiledRegistry.value.definitions['journey/market-heatmap-lab/breadth/v1'] : null;
-  assert(compiledRegistry.ok && !!breadth, 'the 48-definition journey registry compiles under the runtime');
+  assert(compiledRegistry.ok && !!breadth, 'the 54-definition journey registry compiles under the runtime');
   const badDef = JSON.parse(JSON.stringify(journeys.definitions.find((d) => d.definitionId === 'journey/market-heatmap-lab/breadth/v1')));
   const badSteps = journeys.steps.filter((s) => badDef.stepIds.includes(s.stepId)).map((s) => JSON.parse(JSON.stringify(s)));
   badDef.injected = () => 'boom';

@@ -4250,9 +4250,11 @@
                 byId("briefIdentity").setAttribute("data-revision", String(identity.portfolioRevisionId));
                 byId("briefIdentity").setAttribute("data-policy-version", String(identity.behaviorPolicyVersion));
                 byId("briefIdentity").setAttribute("data-action-signature", identity.actionSignature);
+                /* The exact policy contract version stays on the data-policy-version
+                   attribute for machines. A reader gets the revision, the window and the
+                   action count, which are the facts they can act on. */
                 setText("briefIdentity", "revision " + identity.portfolioRevisionId +
                     " · window " + identity.windowId +
-                    " · policy " + identity.behaviorPolicyVersion +
                     " · " + identity.itemCount + " actions");
 
                 var states = value.states;
@@ -4622,12 +4624,14 @@
                     return;
                 }
                 var behaviorPolicy = state.policy.behavior;
+                /* The thresholds are what a reader can act on; the policy's contract
+                   version is machine vocabulary and belongs in diagnostics, not here. */
+                byId("behaviorPolicyInputs").setAttribute("data-policy-version", String(behaviorPolicy.contractVersion));
                 setText("behaviorPolicyInputs", "Declared relevance inputs · floor " +
                     countCopy(behaviorPolicy.minimumDistinctCompletions, "completion", "completions") + " on " +
                     countCopy(behaviorPolicy.minimumDistinctUtcDates, "UTC date", "UTC dates") + " · half-life " +
                     countCopy(behaviorPolicy.halfLifeDays, "day", "days") + " · maximum evidence age " +
-                    countCopy(behaviorPolicy.maximumEvidenceAgeDays, "day", "days") + " · policy " +
-                    behaviorPolicy.contractVersion);
+                    countCopy(behaviorPolicy.maximumEvidenceAgeDays, "day", "days"));
                 var ranking = behaviorRanking();
                 if (!ranking || ranking.subjects.length === 0) {
                     setText("behaviorInfluence", BEHAVIOR_NO_INFLUENCE);
@@ -4965,7 +4969,10 @@
                         populateDuplicateChoices();
                         populateBehaviorVocabulary();
                         resetCompletionPreview();
-                        setText("policyVersion", state.policy.display.policyLabel + " · " + state.policy.contractVersion);
+                        /* The exact contract version stays in __PORTFOLIO_DIAGNOSTICS__ where
+                           machines read it. A reader gets the policy's own label and a plain
+                           statement of what validated means. */
+                        setText("policyVersion", state.policy.display.policyLabel + " · validated");
                         setText("exportWarning", state.policy.display.privateExportWarning);
                         renderStorage();
                         renderCurrent();
@@ -5501,13 +5508,6 @@
             boot();
         })();
     </script>
-
-    <!-- Registered-source brief mount. This tool's published read is the permanent
-         privacy-boundary read, so the mount renders that refusal rather than a
-         personal result - the anchor still has to exist, because a registered source
-         with no mount is invisible to the shared shell. -->
-    <section data-rlbrief-mount data-tool-id="portfolio-survival-allocation-lab" data-simple-target="rlbrief-simple"
-        data-power-target="rlbrief-power"></section>
 </body>
 
 </html>

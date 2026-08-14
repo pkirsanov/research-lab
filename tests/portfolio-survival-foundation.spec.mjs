@@ -765,9 +765,13 @@ test('Regression: SCN-008-011 clear behavior removes ranking influence and prese
   expect(await page.locator('#behaviorRankRows li').allInnerTexts()).toEqual(rankedBefore);
   expect(await page.locator('#behaviorRankRows li').evaluateAll((rows) => rows.map((row) => row.dataset.behaviorSubject)))
     .toEqual(['msft', 'bnd']);
-  // FR-036: the versioned floor and decay inputs the ranking uses are visible, not implied.
+  // FR-036: the floor and decay inputs the ranking uses are visible, not implied. The policy
+  // CONTRACT VERSION moved to a data attribute because a `name/v1` slug in reader-facing copy is
+  // framework vocabulary reaching the reader (D13). Both halves are asserted, so the version is
+  // still pinned and traceable — it is simply no longer prose.
   await expect(page.locator('#behaviorPolicyInputs')).toHaveText(
-    'Declared relevance inputs · floor 2 completions on 2 UTC dates · half-life 14 days · maximum evidence age 56 days · policy portfolio-behavior-policy/v1');
+    'Declared relevance inputs · floor 2 completions on 2 UTC dates · half-life 14 days · maximum evidence age 56 days');
+  await expect(page.locator('#behaviorPolicyInputs')).toHaveAttribute('data-policy-version', 'portfolio-behavior-policy/v1');
 
   await page.locator('#openPrivacy').click();
   await expect(page.locator('#privacyCategoryRows li[data-privacy-category="behavior-events"]'))

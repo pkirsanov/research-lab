@@ -24,6 +24,8 @@ Three properties carried the design, and each is pinned by an assertion proven t
 
 **The rejected claim is exercised, not asserted.** Rather than printing prose that the rejected record is inert, the page constructs a probe method citing `claim-hidden-actor`, dispatches it for real, and reports the refusal it receives. The claim's inertness is therefore demonstrated on every render.
 
+**The technique fixture loads lazily.** It was first added as a fourth resource in `boot()`, which made every Scope 01 foundation receipt wait on a 92 KB fixture it never reads. After a large unrelated merge, `SCN-007-005` — the first test in the file, and the one that pays server warm-up — failed once on timing and then passed on four consecutive re-runs. Rather than treat a flaky required regression as acceptable or paper over it with a longer wait, the cause was removed: the technique series is fetched only when a technique view is selected. Scope 01 paths no longer pay for a Scope 02 fixture, and the suite got faster (11.7s to 9.7s). Three consecutive post-fix runs were clean.
+
 **Fixture posture.** `tests/fixtures/technical-analysis-decision/analytic/technique-series.json` is analytic-deterministic and declares `liveClaim: false`. Rows are compact `[o,h,l,c,v]` with the constant envelope fields declared once, and each series carries its closed-form derivation, so a reviewer can regenerate and diff rather than trust 840 opaque objects. Series were designed from each scenario's economic description *before* the engine was consulted; the recorded states are what the engine then reported.
 
 ## Completion Statement

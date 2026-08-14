@@ -1581,7 +1581,15 @@
         "correlated-uptrend": { name: "Correlated indicator agreement", observed: "Several related trend and momentum transforms read positive together.", required: "Declared families and clusters before any count is shown.", action: "Read the independent cluster count, never the raw method count." },
         "unresolved-range": { name: "Unresolved range after a decline", observed: "A mature sideways range following a decline, with no completed spring, sign of strength, or confirmed break.", required: "A confirmed range event before any phase is asserted.", action: "Keep every competing explanation open; no setup is published." }
       };
-      if (Object.prototype.hasOwnProperty.call(techniqueCases, fixtureId)) { renderTechniqueSeries(fixtureId, techniqueCases[fixtureId]); return; }
+      // The technique series is fetched ONLY when a technique view is selected. Loading it during
+      // boot would make every foundation receipt wait on a fixture it never reads.
+      if (Object.prototype.hasOwnProperty.call(techniqueCases, fixtureId)) {
+        fetch("tests/fixtures/technical-analysis-decision/analytic/technique-series.json", { cache: "no-store" })
+          .then(function (response) { if (!response.ok) throw new Error("technique fixture HTTP " + response.status); return response.json(); })
+          .then(function (techniqueFixture) { pageRuntime.techniqueFixture = techniqueFixture; renderTechniqueSeries(fixtureId, techniqueCases[fixtureId]); })
+          .catch(function (error) { renderUnavailable("TAD-TECHNIQUE-FIXTURE", String(error), "the checked-in analytic technique series", "restore the static analytic fixture and reload"); });
+        return;
+      }
       if (fixtureId === "daily-close") {
         var daily = pageRuntime.index.profilesById["daily-close-v1"], dailyVariant = tadBuildVariantIdentity({ profileId: daily.profileId, roles: daily.roles, policies: [daily.partialBarPolicy, daily.earlyClosePolicy, daily.extendedHoursPolicy] });
         setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled"); setTruth("degraded", "Analytic profile receipt only; no source series or market result is asserted."); setFoundationReceipt({ name: daily.label, session: "Source-declared daily and weekly boundaries", aggregation: daily.aggregationPolicy, partial: daily.partialBarPolicy, primary: "Primary 1w / closed", setup: "Setup 1d / closed", trigger: "Trigger 1d-close / daily-eligible variants only", variant: dailyVariant.value, observed: "Only weekly and daily source contracts are selected.", required: "A closed daily event for any eligible trigger.", action: "Keep every intraday-only technique unavailable." }); window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({ fixtureId: fixtureId, ownerReadPublished: false, truthState: "degraded", profile: { profileId: daily.profileId, variantId: dailyVariant.value }, errors: [] }); return;
@@ -1603,12 +1611,11 @@
       Promise.all([
         fetch("technical-analysis-decision-universe.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("config HTTP " + response.status); return response.json(); }),
         fetch("tests/fixtures/technical-analysis-decision/source-qualified/us-equity-sessions.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("source fixture HTTP " + response.status); return response.json(); }),
-        fetch("tests/fixtures/technical-analysis-decision/analytic/session-profiles.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("analytic fixture HTTP " + response.status); return response.json(); }),
-        fetch("tests/fixtures/technical-analysis-decision/analytic/technique-series.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("technique fixture HTTP " + response.status); return response.json(); })
+        fetch("tests/fixtures/technical-analysis-decision/analytic/session-profiles.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("analytic fixture HTTP " + response.status); return response.json(); })
       ]).then(function (resources) {
         var configResult = tadValidateConfig(resources[0]); if (!configResult.ok) throw configResult.errors[0];
         var indexResult = tadIndexConfig(resources[0]); if (!indexResult.ok) throw indexResult.errors[0];
-        pageRuntime.config = resources[0]; pageRuntime.index = indexResult.index; pageRuntime.sourceFixture = resources[1]; pageRuntime.analyticFixture = resources[2]; pageRuntime.techniqueFixture = resources[3];
+        pageRuntime.config = resources[0]; pageRuntime.index = indexResult.index; pageRuntime.sourceFixture = resources[1]; pageRuntime.analyticFixture = resources[2];
         renderCatalog(resources[0]); renderEvents(resources[1]); renderProfileSelection(fixtureId);
       }).catch(function (error) {
         var known = error && typeof error.code === "string";

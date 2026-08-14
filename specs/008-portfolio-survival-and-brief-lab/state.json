@@ -24,7 +24,7 @@
   "execution": {
     "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
-    "currentScope": 14,
+    "currentScope": 15,
     "runStartedAt": "2026-07-15T23:25:05Z",
     "completedPhaseClaims": [],
     "pendingTransitionRequests": [],
@@ -160,7 +160,7 @@
       {
         "scope": 14,
         "name": "Allocation Sensitivity And Explicit Black-Litterman",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "13"
         ],
@@ -208,7 +208,8 @@
       10,
       11,
       12,
-      13
+      13,
+      14
     ]
   },
   "certification": {
@@ -369,7 +370,7 @@
       {
         "scope": 14,
         "name": "Allocation Sensitivity And Explicit Black-Litterman",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "13"
         ],

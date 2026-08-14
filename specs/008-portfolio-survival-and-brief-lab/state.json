@@ -24,7 +24,7 @@
   "execution": {
     "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
-    "currentScope": 15,
+    "currentScope": 16,
     "runStartedAt": "2026-07-15T23:25:05Z",
     "completedPhaseClaims": [],
     "pendingTransitionRequests": [],
@@ -170,7 +170,7 @@
       {
         "scope": 15,
         "name": "Walk-Forward Research Dossier And Claim Boundaries",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "14"
         ],
@@ -209,7 +209,8 @@
       11,
       12,
       13,
-      14
+      14,
+      15
     ]
   },
   "certification": {
@@ -381,7 +382,7 @@
       {
         "scope": 15,
         "name": "Walk-Forward Research Dossier And Claim Boundaries",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "14"
         ],

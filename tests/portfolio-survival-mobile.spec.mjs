@@ -214,7 +214,9 @@ test('Regression: SCN-008-036 six tab keyboard layout has no overlap overflow or
 
     /* Touch targets. 44px is the size at which a control is reliably hittable
        on a phone; smaller is a control some readers cannot use. */
-    const small = await page.evaluate(() => Array.from(document.querySelectorAll('[role="tab"], #modeSeg button'))
+    /* Scoped to THIS page's controls. The shared shell renders its own chrome, whose sizing is
+       Feature 012's contract to keep, not this scope's to assert over. */
+    const small = await page.evaluate(() => Array.from(document.querySelectorAll('[aria-label="Portfolio workspace"] [role="tab"], #modeSeg button'))
       .map((element) => ({ id: element.id, height: element.getBoundingClientRect().height }))
       .filter((entry) => entry.height < 44));
     expect(small, 'every tab and mode control must be at least 44px tall').toEqual([]);

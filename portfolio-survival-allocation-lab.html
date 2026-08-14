@@ -5508,6 +5508,12 @@
             boot();
         })();
     </script>
+
+    <!-- Registered-source brief mount. data-owns-route declares that this page renders
+         every view itself and routes its own hash, so the shell must not claim
+         location.hash: two owners of one URL field is not a resolvable state. -->
+    <section data-rlbrief-mount data-owns-route data-tool-id="portfolio-survival-allocation-lab"
+        data-simple-target="rlbrief-simple" data-power-target="rlbrief-power"></section>
 </body>
 
 </html>

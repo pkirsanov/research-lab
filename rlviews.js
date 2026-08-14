@@ -15,7 +15,12 @@
   var ANCHOR = registration.anchor;
   var MODES = SHELL.viewIds.slice();
   var TOOL = SHELL.toolId;
+  /* When the page owns its route, location.hash belongs to the page. The shell reads
+     its stored mode instead and writes no history entry. */
+  var OWNS_ROUTE = registration.ownsRoute === true;
   var ownerModes = Array.isArray(registration.ownerModes) ? registration.ownerModes.slice() : [];
+  /* An owns-route page renders every view itself, so no mode may focus the shell over it. */
+  if (OWNS_ROUTE) ownerModes = MODES.slice();
   var labels = {};
   var current = SHELL.defaultViewId;
   var panels = {};
@@ -51,7 +56,7 @@
       ".rlexperience-placeholder h2{margin:0 0 8px;font-size:18px}.rlexperience-placeholder p{margin:6px 0;color:#9fb2c4}",
       "[data-rlexperience-gate]{padding:12px 14px;border-left:3px solid #f5b942;background:rgba(245,185,66,.08)}",
       "[data-rlexperience-gate] h2{margin:0 0 8px;font-size:17px}[data-rlexperience-gate] p{margin:5px 0}",
-      "#modeSeg,#simpleTab,#powerTab{display:none!important}",
+      OWNS_ROUTE ? "" : "#modeSeg,#simpleTab,#powerTab{display:none!important}",
       "@media(max-width:560px){#rlviews{top:auto;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));left:8px;transform:none;max-width:none;overflow-x:auto;overscroll-behavior-inline:contain}#rlviews button{min-height:44px;padding:8px 12px}body{padding-top:0;padding-bottom:calc(68px + env(safe-area-inset-bottom))}}",
       "@media(prefers-reduced-motion:reduce){#rlviews button{transition:none}}"
     ].join("");
@@ -59,6 +64,9 @@
   }
 
   function driveLegacy(mode) {
+    /* An owns-route page drives its own control; synthesising clicks here would
+       persist a mode the reader never chose. */
+    if (OWNS_ROUTE) return;
     if (drivingLegacy || (mode !== "simple" && mode !== "power")) return;
     var button = null;
     var legacyControl = document.getElementById("modeSeg");
@@ -82,6 +90,9 @@
   }
 
   function suppressLegacyControls() {
+    /* A page that owns its route also owns its view control; suppressing it would
+       leave the reader no way to switch views at all. */
+    if (OWNS_ROUTE) return;
     function suppress() {
       var controls = [
         document.getElementById("modeSeg"),
@@ -220,8 +231,8 @@
   function resolveCurrentRoute(includeLocalRecord) {
     var options = { publicTargetIds: [] };
     if (includeLocalRecord) options.localModeRecord = readModeRecord();
-    var routeHash = location.hash;
-    if (SHELL.kind === "ordinary" && MODES.indexOf(String(routeHash || "").replace(/^#/, "").split("/")[0]) === -1) {
+    var routeHash = OWNS_ROUTE ? "" : location.hash;
+    if (!OWNS_ROUTE && SHELL.kind === "ordinary" && MODES.indexOf(String(routeHash || "").replace(/^#/, "").split("/")[0]) === -1) {
       try {
         var legacyMode = new URLSearchParams(location.search).get("mode");
         if (legacyMode === "simple" || legacyMode === "power") routeHash = "#" + legacyMode;
@@ -246,7 +257,7 @@
         noFetch: true
       }, { type: "select", mode: mode, savedAt: new Date().toISOString() });
       if (!transition.ok) return;
-      if (transition.value.historyAction === "push") {
+      if (!OWNS_ROUTE && transition.value.historyAction === "push") {
         history.pushState({ contractVersion: "experience-history/v1", toolId: TOOL, mode: mode }, "", transition.value.route.canonicalHash);
       }
     }
@@ -292,11 +303,12 @@
     suppressLegacyControls();
     var route = resolveCurrentRoute(true);
     var initialMode = route ? route.mode : SHELL.defaultViewId;
-    if (route && route.historyAction === "replace") {
+    if (!OWNS_ROUTE && route && route.historyAction === "replace") {
       history.replaceState({ contractVersion: "experience-history/v1", toolId: TOOL, mode: initialMode }, "", route.canonicalHash);
     }
     apply(initialMode, "boot");
     root.addEventListener("popstate", function () {
+      if (OWNS_ROUTE) return;
       var restored = resolveCurrentRoute(false);
       if (!restored) return;
       if (restored.historyAction === "replace") {

@@ -325,6 +325,11 @@
           simpleModels: simpleModels,
           dependencyStates: dependencyStates,
           anchor: anchor,
+          /* A page that renders every view ITSELF and routes its own hash declares
+             data-owns-route. The shell then builds nothing over it and never touches
+             location.hash: two owners of one URL field is not a resolvable state.
+             Without the declaration the existing provider-gated behaviour is unchanged. */
+          ownsRoute: anchor.hasAttribute("data-owns-route"),
           /* Provider-gated Model B rollout (Scope 15): an ordinary tool becomes an
              adapter-panel Simple (ownerModes ["power"]) ONLY when its page has
              registered an owner-state provider; otherwise it keeps native Simple

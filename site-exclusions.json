@@ -3,14 +3,6 @@
   "note": "These are retained implementation or research artifacts that are not part of the public product. scripts/build-pages-site.mjs refuses any unregistered root HTML not listed here and refuses a listed file once it becomes a registered tool. This is the deploy-time form of D2/D3: source may remain available for an in-progress feature, but Pages ships only reachable product surfaces and their production dependencies.",
   "files": [
     {
-      "path": "portfolio-survival-allocation.config.json",
-      "reason": "Configuration is consumed only by the excluded in-progress Portfolio page."
-    },
-    {
-      "path": "rlportfolio.js",
-      "reason": "Private portfolio foundation is consumed only by the excluded in-progress Portfolio page; tests are not production consumers."
-    },
-    {
       "path": "rlcausal.js",
       "reason": "No registered production page consumes this shared module; tests are not production consumers."
     },

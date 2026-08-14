@@ -837,7 +837,7 @@
       "id": "company-fundamentals-lab",
       "deepLink": "company-fundamentals-lab.html",
       "status": "analyzed",
-      "reason": "Consumed as a committed owner read (a static single-name model, asOf 2026-04-29T20:06:24Z): the hash-verified MSFT fundamentals (sec-cik-0000789019) read direction Unavailable with brief status partial and confidence constrained; statement 2026-03-31, model 2026-03-31, market not present. Coverage is partial through 2026-03-31. Educational company research only, no recommendation, and no market-moving fundamental delta carries into the 2026-08-14 after-hours view."
+      "reason": "Consumed from company-fundamentals-owner-v1 as a committed owner read (a static single-name model, asOf 2026-04-29T20:06:24Z): the hash-verified MSFT fundamentals (sec-cik-0000789019) read direction Unavailable with brief status partial and confidence constrained; statement 2026-03-31, model 2026-03-31, market not present. Coverage is partial through 2026-03-31. Educational company research only; no recommendation is produced, and no market-moving fundamental delta carries into the 2026-08-14 after-hours view."
     },
     {
       "id": "etf-momentum-lab",

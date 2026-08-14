@@ -29,9 +29,9 @@
       ]
     },
     "FEATURE008": {
-      "status": "in_progress",
+      "status": "blocked",
       "certification": {
-        "status": "in_progress"
+        "status": "blocked"
       }
     }
   }

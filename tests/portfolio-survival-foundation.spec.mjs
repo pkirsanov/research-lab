@@ -37,7 +37,7 @@ async function blockStorage(page, mode) {
 async function openRoute(page) {
   const browserRequests = [];
   page.on('request', (request) => browserRequests.push(request.url()));
-  const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#brief`);
+  const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#workspace`);
   expect(response?.status(), 'unregistered portfolio route foundation must be served').toBe(200);
   await expect(page.getByRole('heading', { name: 'Portfolio Brief' })).toBeVisible();
   await expect(page.locator('#localBoundary')).toContainText('Local-only');
@@ -721,7 +721,7 @@ test('Regression: SCN-008-011 clear behavior removes ranking influence and prese
         asOf: null,
         freshUntil: null,
         computedAt: '2026-08-14T00:00:00.000Z',
-        deepLink: 'portfolio-survival-allocation-lab.html#brief'
+        deepLink: 'portfolio-survival-allocation-lab.html#workspace'
       }
     }
   })));
@@ -1529,7 +1529,7 @@ test('Regression: SCN-008-035 partial data corrupt schema and localStorage disab
   // Phase E — storage degraded to session-only. Truth must still render and still not substitute.
   const sessionPage = await page.context().newPage();
   await blockStorage(sessionPage, 'session');
-  await sessionPage.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#brief`);
+  await sessionPage.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#workspace`);
   await expect(sessionPage.locator('#storageMode')).toContainText('Session-only');
   await expect(sessionPage.locator('#truthSummary'), 'with no durable revision the surface states unavailability rather than inventing rows')
     .toContainText('Holding evidence unavailable');

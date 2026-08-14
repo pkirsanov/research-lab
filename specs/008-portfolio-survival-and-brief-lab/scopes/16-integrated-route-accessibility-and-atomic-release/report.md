@@ -389,3 +389,38 @@ registered tools (`fx-regime-relative-value-lab`, `trend-dynamics-cycle-lab`)
 already report `enabled source mount state=idle (expected ready)` in the same
 canary, so this is a shell-side gap that predates this tool rather than something
 unique to it.
+
+#### Residual root cause — corrected, and much more precise
+
+My first diagnosis said the shell "destabilises the import editor". That was a
+symptom, and I reported it as a cause. The real cause is a **hash-ownership
+conflict**, found by sampling the collapsed layout rather than the element:
+
+1. Installing the brief mount anchor activates `rlviews.js`.
+2. `rlviews` treats this tool as `ordinary` and takes ownership of
+   `location.hash`, which it reads as a VIEW MODE from its reserved set
+   `simple | power | brief | journey`.
+3. This route's own hash `#brief` was inside that reserved set, so the shell read
+   it as "show the Brief view", set `body.rlv-focused`, and applied its own CSS
+   rule `body.rlv-focused > *:not(...) { display: none !important }` — which hid
+   `<main>` entirely. The editor was not destabilised; the whole page was hidden,
+   and the input measured 0x0 rather than being covered.
+4. Renaming the route hash to `#workspace` fixed that specific collision and took
+   the suite from 1/5 to 3/5. The shell then **rewrote the hash to `#simple`**,
+   because owning the hash is not conditional on the name colliding.
+
+So the conflict is structural, not nominal. `rlviews` claims `location.hash` for
+view modes; SCN-008-036 requires this route to carry its six workspace routes in
+a fixed hash and to survive a deep-link return. Both contracts are reasonable and
+both want the same field. No amount of renaming resolves it.
+
+**What shipped:** the hash rename to `#workspace` is kept. It is correct hygiene
+regardless — a tool route should not squat a reserved shell view name — and it
+removes one of the two conflicts permanently. The mount anchor is not installed,
+so `rlviews` does not activate and the route keeps its own hash routing.
+
+**Operator action, restated precisely:** a Feature 012 scope should decide how a
+registered `ordinary` tool that owns its own in-page routing coexists with the
+shell's hash-based view selection. The cheapest correct answer is probably for
+`rlviews` to leave the hash alone when a page declares its own route ownership,
+but that is Feature 012's decision to make, not this scope's to force.

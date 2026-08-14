@@ -36,7 +36,7 @@ const EVIDENCE_DAY = shiftDay(BRIEF_CONFIG.asOf, -1);
 const LATE_DAY = shiftDay(BRIEF_CONFIG.asOf, 2);
 
 async function openBrief(page) {
-  const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#brief`);
+  const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#workspace`);
   expect(response?.status(), 'the brief route must be served').toBe(200);
   await expect(page.locator('#portfolioBrief')).toBeVisible();
   // The window select is populated from the PUBLIC generic config, so its option count is

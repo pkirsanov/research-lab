@@ -1062,7 +1062,7 @@
                 mandateDraft: null,
                 behaviorDraft: null,
                 routeStates: null,
-                route: "brief",
+                route: "workspace",
                 configReady: false,
                 adapters: null,
                 /* Scope 05 brief inputs. `briefWindows` is READ from the public generic config;
@@ -1096,7 +1096,7 @@
             var MILLISECONDS_PER_DAY = 86400000;
 
             var ROUTE_TABS = Object.freeze([
-                { hash: "brief", tab: "workspaceTabBrief" },
+                { hash: "workspace", tab: "workspaceTabBrief" },
                 { hash: "risk-xray", tab: "workspaceTabRiskXray" },
                 { hash: "path-lab", tab: "workspaceTabPathLab" },
                 { hash: "diversification", tab: "workspaceTabDiversification" },
@@ -4428,7 +4428,7 @@
                 ROUTE_TABS.forEach(function (route) {
                     byId(route.tab).setAttribute("aria-selected", String(route.hash === hash));
                 });
-                var brief = hash === "brief";
+                var brief = hash === "workspace";
                 byId("briefWorkspace").hidden = !brief;
                 byId("portfolioEditor").hidden = !brief;
                 byId("routeStates").hidden = brief;
@@ -4439,7 +4439,7 @@
 
             function routeFromHash() {
                 var raw = (window.location.hash || "").replace(/^#/, "");
-                return ROUTE_TABS.some(function (route) { return route.hash === raw; }) ? raw : "brief";
+                return ROUTE_TABS.some(function (route) { return route.hash === raw; }) ? raw : "workspace";
             }
 
             function renderCurrent(prefix) {

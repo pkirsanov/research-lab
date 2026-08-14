@@ -21,7 +21,7 @@ number produced from evidence that does not exist is not.
 
 | Tab | Hash | What it answers |
 |-----|------|-----------------|
-| Portfolio Brief | `#brief` | Import a revision, declare a mandate, see what the held evidence does and does not support. |
+| Portfolio Brief | `#workspace` | Import a revision, declare a mandate, see what the held evidence does and does not support. |
 | Risk X-Ray | `#risk-xray` | Return, drag, drawdown, concentration, CAPM and factor decomposition, risk and return contributions — each with its own eligibility. |
 | Path Lab | `#path-lab` | Stationary-bootstrap paths, cash-flow scheduling, survival to a dated goal, and the separation of path randomness from parameter uncertainty. |
 | Diversification | `#diversification` | Correlation under stress vs calm, Forbes-Rigobon adjustment, lower-tail dependence, desmoothed alternatives, hedge variants after costs. |

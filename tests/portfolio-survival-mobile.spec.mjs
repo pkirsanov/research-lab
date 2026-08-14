@@ -20,7 +20,7 @@ test.afterAll(async () => {
   if (server) await server.close();
 });
 
-const ROUTES = ['brief', 'risk-xray', 'path-lab', 'diversification', 'allocation', 'dossier'];
+const ROUTES = ['workspace', 'risk-xray', 'path-lab', 'diversification', 'allocation', 'dossier'];
 const TABS = [
   'workspaceTabBrief', 'workspaceTabRiskXray', 'workspaceTabPathLab',
   'workspaceTabDiversification', 'workspaceTabAllocation', 'workspaceTabDossier'
@@ -30,7 +30,7 @@ const TABS = [
    appears in a public read or a publisher input, the boundary has failed. */
 const SENTINEL_NAME = 'ZZSENTINELPORTFOLIO';
 
-async function openLab(page, hash = 'brief') {
+async function openLab(page, hash = 'workspace') {
   const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#${hash}`);
   expect(response?.status(), 'the integrated route must be served directly').toBe(200);
   await expect(page.locator('#workspaceIdentity')).toBeVisible();
@@ -99,7 +99,7 @@ test('Regression: SCN-008-036 Simple Power mobile and deep link return preserve 
 
   /* The evidence Power adds must actually appear, or "Power" is a no-op label.
      The Brief tab renders its own workspace and has no route panel. */
-  for (const route of ROUTES.filter((name) => name !== 'brief')) {
+  for (const route of ROUTES.filter((name) => name !== 'workspace')) {
     await page.locator(`#${TABS[ROUTES.indexOf(route)]}`).click();
     await expect(page.locator(`[data-power-evidence="${route}"]`)).toBeVisible();
   }
@@ -134,7 +134,7 @@ test('Regression: SCN-008-036 every canvas is synchronous nonblank and equivalen
 
   for (const size of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(size);
-    for (const route of ROUTES.filter((name) => name !== 'brief')) {
+    for (const route of ROUTES.filter((name) => name !== 'workspace')) {
       await page.locator(`#${TABS[ROUTES.indexOf(route)]}`).click();
 
       /* Synchronous: pixels are asserted with no wait. A chart that needs a
@@ -191,7 +191,9 @@ test('Regression: SCN-008-036 six tab keyboard layout has no overlap overflow or
 
   /* One tablist, six tabs, each reachable. A tab that exists but is not in the
      tablist is unreachable by assistive technology. */
-  const tabs = await page.evaluate(() => Array.from(document.querySelectorAll('[role="tablist"] [role="tab"]'))
+  /* Scoped to the WORKSPACE tablist. The shared shell injects its own view tabs once the tool is
+     registered, so an unscoped query would assert over both and conflate two navigations. */
+  const tabs = await page.evaluate(() => Array.from(document.querySelectorAll('[aria-label="Portfolio workspace"] [role="tab"]'))
     .map((tab) => ({ id: tab.id, selected: tab.getAttribute('aria-selected'), disabled: tab.disabled })));
   expect(tabs.map((tab) => tab.id)).toEqual(TABS_EXPECTED);
   tabs.forEach((tab) => expect(tab.disabled, `${tab.id} must not be disabled`).toBe(false));
@@ -226,7 +228,7 @@ test('Regression: SCN-008-036 six tab keyboard layout has no overlap overflow or
        rather than merely moving it. */
     const overlapping = await page.evaluate(() => {
       const identity = document.getElementById('workspaceIdentity').getBoundingClientRect();
-      const tablist = document.querySelector('[role="tablist"]').getBoundingClientRect();
+      const tablist = document.querySelector('[aria-label="Portfolio workspace"]').getBoundingClientRect();
       return !(identity.bottom <= tablist.top || tablist.bottom <= identity.top
         || identity.right <= tablist.left || tablist.right <= identity.left);
     });

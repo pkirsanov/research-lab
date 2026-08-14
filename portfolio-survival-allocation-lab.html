@@ -606,7 +606,7 @@
             <button id="workspaceTabDiversification" type="button" role="tab" aria-selected="false">Diversification</button>
             <button id="workspaceTabAllocation" type="button" role="tab" aria-selected="false">Allocation
                 Comparison</button>
-            <button type="button" role="tab" aria-selected="false" disabled>Research Dossier</button>
+            <button id="workspaceTabDossier" type="button" role="tab" aria-selected="false">Research Dossier</button>
         </nav>
 
         <section id="privacyPanel" class="band" aria-labelledby="privacyHeading" hidden>
@@ -1057,12 +1057,14 @@
                 { hash: "risk-xray", tab: "workspaceTabRiskXray" },
                 { hash: "path-lab", tab: "workspaceTabPathLab" },
                 { hash: "diversification", tab: "workspaceTabDiversification" },
-                { hash: "allocation", tab: "workspaceTabAllocation" }
+                { hash: "allocation", tab: "workspaceTabAllocation" },
+                { hash: "dossier", tab: "workspaceTabDossier" }
             ]);
 
             var ROUTE_LABELS = Object.freeze({
                 "allocation": "Allocation Comparison",
                 "diversification": "Diversification",
+                "dossier": "Research Dossier",
                 "path-lab": "Path Lab",
                 "risk-xray": "Risk X-Ray"
             });
@@ -1241,7 +1243,240 @@
                 if (entry.route === "path-lab") appendPathLab(panel);
                 if (entry.route === "diversification") appendDiversification(panel);
                 if (entry.route === "allocation") appendAllocationComparison(panel);
+                if (entry.route === "dossier") appendResearchDossier(panel);
                 return panel;
+            }
+
+            /* ------------------------------------------ Scope 15 Research Dossier */
+
+            function appendResearchDossier(panel) {
+                var band = document.createElement("div");
+                band.className = "band";
+                band.id = "researchDossier";
+                var heading = document.createElement("h4");
+                heading.textContent = "Research dossier";
+                band.appendChild(heading);
+
+                var probe = riskProjection();
+                if (!probe.available) {
+                    band.dataset.dossierState = probe.state;
+                    var unavailable = document.createElement("p");
+                    unavailable.id = "dossierUnavailable";
+                    unavailable.className = "state-message";
+                    unavailable.textContent = "Dossier unavailable · " + probe.state +
+                        " · no backtest, efficiency finding, or replacement comparison is shown, " +
+                        "because none can be formed from held evidence.";
+                    band.appendChild(unavailable);
+                    panel.appendChild(band);
+                    return;
+                }
+
+                var policy = (state.policy && state.policy.analytics) || {};
+                var dossier = window.RLPORTFOLIOANALYTICS.walkForwardDossier({
+                    returns: probe.alignedReturns || [],
+                    folds: policy.walkForwardFolds,
+                    perRebalanceCostFraction: policy.hedgeCommissionFraction,
+                    rebalancesPerFold: policy.hedgeRebalancesPerYear,
+                    trialsSearched: policy.dossierTrialsSearched
+                });
+                band.dataset.dossierState = dossier.state;
+
+                if (dossier.state !== "ok") {
+                    var refused = document.createElement("p");
+                    refused.id = "dossierRefused";
+                    refused.className = "state-message";
+                    refused.textContent = "Walk-forward dossier unavailable · " + dossier.reason +
+                        " · no in-sample, walk-forward, or cost-adjusted figure is shown, and no " +
+                        "single blended backtest number is shown in their place.";
+                    band.appendChild(refused);
+                } else {
+                    /* Three separate rows on purpose. One blended backtest number is
+                       how a rule fitted to its own history comes to look like a
+                       discovery. */
+                    var wrap = document.createElement("div");
+                    wrap.style.overflowX = "auto";
+                    wrap.style.maxWidth = "100%";
+                    var table = document.createElement("table");
+                    table.id = "dossierTable";
+                    table.innerHTML = "<thead><tr><th scope=\"col\">Measure</th><th scope=\"col\">Result</th>" +
+                        "<th scope=\"col\">What it answers</th></tr></thead>";
+                    var body = document.createElement("tbody");
+                    [
+                        ["in-sample", "In sample", dossier.inSampleReturn,
+                            "The figure the rule was chosen to maximise, so the one that means least."],
+                        ["walk-forward", "Walk forward", dossier.walkForwardReturn,
+                            "Scored only on segments after the one used to fit, across " + dossier.scoredFolds + " fold(s)."],
+                        ["cost-adjusted", "Cost adjusted", dossier.costAdjustedReturn,
+                            "Walk forward minus " + (dossier.totalCostFraction * 100).toFixed(2) + "% of stated costs."]
+                    ].forEach(function (row) {
+                        var tr = document.createElement("tr");
+                        tr.id = "dossier-" + row[0];
+                        tr.dataset.measure = row[0];
+                        var c1 = document.createElement("th");
+                        c1.setAttribute("scope", "row");
+                        c1.textContent = row[1];
+                        var c2 = document.createElement("td");
+                        c2.textContent = (row[2] * 100).toFixed(2) + "%";
+                        var c3 = document.createElement("td");
+                        c3.textContent = row[3];
+                        [c1, c2, c3].forEach(function (cell) { tr.appendChild(cell); });
+                        body.appendChild(tr);
+                    });
+                    table.appendChild(body);
+                    wrap.appendChild(table);
+                    band.appendChild(wrap);
+
+                    var trials = document.createElement("p");
+                    trials.id = "dossierTrials";
+                    trials.className = "microcopy";
+                    trials.textContent = dossier.dataSnoopingNote;
+                    band.appendChild(trials);
+
+                    var limitations = document.createElement("ul");
+                    limitations.id = "dossierLimitations";
+                    limitations.className = "route-states";
+                    dossier.limitations.forEach(function (limitation, index) {
+                        var li = document.createElement("li");
+                        li.id = "dossier-limitation-" + index;
+                        li.textContent = limitation;
+                        limitations.appendChild(li);
+                    });
+                    band.appendChild(limitations);
+
+                    var claim = document.createElement("p");
+                    claim.id = "dossierClaimBoundary";
+                    claim.className = "microcopy";
+                    claim.textContent = dossier.claimBoundary;
+                    band.appendChild(claim);
+                }
+
+                appendEfficiencyClaim(band, dossier);
+                appendReplacementComparison(band, probe);
+                panel.appendChild(band);
+            }
+
+            function appendEfficiencyClaim(band, dossier) {
+                var policy = (state.policy && state.policy.analytics) || {};
+                var efficiencyBand = document.createElement("div");
+                efficiencyBand.className = "band";
+                efficiencyBand.id = "efficiencyClaim";
+                var heading = document.createElement("h5");
+                heading.textContent = "Market-efficiency finding";
+                efficiencyBand.appendChild(heading);
+
+                var claim = window.RLPORTFOLIOANALYTICS.marketEfficiencyClaim({
+                    form: policy.efficiencyFormTested,
+                    informationSet: policy.efficiencyInformationSet,
+                    sample: "the held common-date sample",
+                    test: "walk-forward cost-adjusted excess return",
+                    costAdjustedEdge: dossier.state === "ok" ? dossier.costAdjustedReturn : null
+                });
+                efficiencyBand.dataset.efficiencyState = claim.state;
+                /* Structural, not prose. A negative substring check on the copy
+                   also matches the sentence that does the refusing ("does not
+                   claim that all ... are false"), so the contract is exposed as
+                   a flag a test can read without parsing English. */
+                efficiencyBand.dataset.allFormsRefuted = String(claim.allFormsRefuted === true);
+
+                if (claim.state !== "ok") {
+                    var unavailable = document.createElement("p");
+                    unavailable.id = "efficiencyUnavailable";
+                    unavailable.className = "state-message";
+                    unavailable.textContent = "Efficiency finding unavailable · missing " +
+                        claim.missing.join(", ") + " · " + claim.note;
+                    efficiencyBand.appendChild(unavailable);
+                    band.appendChild(efficiencyBand);
+                    return;
+                }
+
+                var scoped = document.createElement("p");
+                scoped.id = "efficiencyScope";
+                scoped.textContent = "Tested: " + claim.form + " form · information set " +
+                    claim.informationSet + " · sample " + claim.sample + " · test " + claim.test +
+                    " · untested here: " + claim.untestedForms.join(", ");
+                efficiencyBand.appendChild(scoped);
+
+                var alternatives = document.createElement("ul");
+                alternatives.id = "efficiencyAlternatives";
+                alternatives.className = "route-states";
+                claim.alternativeExplanations.forEach(function (text, index) {
+                    var li = document.createElement("li");
+                    li.id = "efficiency-alternative-" + index;
+                    li.textContent = text;
+                    alternatives.appendChild(li);
+                });
+                efficiencyBand.appendChild(alternatives);
+
+                var boundary = document.createElement("p");
+                boundary.id = "efficiencyClaimBoundary";
+                boundary.className = "microcopy";
+                boundary.textContent = claim.claimBoundary;
+                efficiencyBand.appendChild(boundary);
+
+                band.appendChild(efficiencyBand);
+            }
+
+            function appendReplacementComparison(band, probe) {
+                var replacementBand = document.createElement("div");
+                replacementBand.className = "band";
+                replacementBand.id = "replacementComparison";
+                var heading = document.createElement("h5");
+                heading.textContent = "Replacement comparison";
+                replacementBand.appendChild(heading);
+
+                var symbols = probe.symbols || [];
+                if (symbols.length < 2) {
+                    var none = document.createElement("p");
+                    none.id = "replacementUnavailable";
+                    none.className = "state-message";
+                    none.textContent = "Replacement comparison unavailable · fewer than two held symbols.";
+                    replacementBand.appendChild(none);
+                    band.appendChild(replacementBand);
+                    return;
+                }
+
+                var a = (probe.perSymbolReturns || {})[symbols[0]] || [];
+                var b = (probe.perSymbolReturns || {})[symbols[1]] || [];
+                var pairwise = window.RLPORTFOLIOANALYTICS.compareStressDependence({
+                    tranquil: { name: "held sample", a: a, b: b },
+                    stress: { name: "held sample", a: a, b: b }
+                });
+                var comparison = window.RLPORTFOLIOANALYTICS.replacementComparison({
+                    subject: symbols[0],
+                    candidate: symbols[1],
+                    correlation: pairwise.state === "ok" ? pairwise.samples[0].correlation : null
+                });
+                replacementBand.dataset.adjudicated = String(comparison.adjudicated);
+                replacementBand.dataset.replacementState = comparison.state;
+
+                var inputs = document.createElement("ul");
+                inputs.id = "replacementInputs";
+                inputs.className = "route-states";
+                comparison.researchInputs.forEach(function (fact, index) {
+                    var li = document.createElement("li");
+                    li.id = "replacement-input-" + index;
+                    li.dataset.factKind = fact.kind;
+                    li.textContent = fact.label + " · " +
+                        (fact.kind === "correlation" || fact.kind === "holdings-overlap" || fact.kind === "tracking"
+                            ? fact.value.toFixed(4)
+                            : "");
+                    inputs.appendChild(li);
+                });
+                if (!comparison.researchInputs.length) {
+                    var empty = document.createElement("li");
+                    empty.id = "replacement-input-none";
+                    empty.textContent = "No comparable evidence is held for this pair.";
+                    inputs.appendChild(empty);
+                }
+                replacementBand.appendChild(inputs);
+
+                var boundary = document.createElement("p");
+                boundary.id = "replacementClaimBoundary";
+                boundary.className = "microcopy";
+                boundary.textContent = comparison.claimBoundary;
+                replacementBand.appendChild(boundary);
+
+                band.appendChild(replacementBand);
             }
 
             /* ------------------------------------- Scope 13 Allocation Comparison */

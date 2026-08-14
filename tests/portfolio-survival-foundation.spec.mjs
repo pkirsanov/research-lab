@@ -139,7 +139,7 @@ test('Regression: SCN-008-003 explicit mandate alone supplies every hard constra
   const projection = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__.routeStates);
   expect(projection.behaviorContribution).toBe('none');
   expect(projection.settingsContribution).toBe('none');
-  expect(projection.routes.map((entry) => entry.route).sort()).toEqual(['allocation', 'diversification', 'path-lab', 'risk-xray']);
+  expect(projection.routes.map((entry) => entry.route).sort()).toEqual(['allocation', 'diversification', 'dossier', 'path-lab', 'risk-xray']);
   for (const entry of projection.routes) {
     expect(entry.constraints.map((constraint) => constraint.subject).sort()).toEqual(['BND', 'MSFT']);
     expect(entry.constraints.every((constraint) => constraint.inputAuthority === 'user')).toBe(true);
@@ -1074,7 +1074,7 @@ const FOUNDATION_KEYS = Object.freeze([...FOUNDATION_LOCAL_KEYS, ...FOUNDATION_S
  * disagree with the contract about what a category should DO; the name set is pinned here so the
  * matrix cannot quietly stop covering a category that someone adds. */
 const DECLARED_PRIVACY_CATEGORIES = Object.freeze([
-  'action-outcomes', 'allocations', 'behavior-events', 'cash-needs', 'interest-signals',
+  'action-outcomes', 'allocations', 'behavior-events', 'cash-needs', 'dossiers', 'interest-signals',
   'mandate-revisions', 'portfolio-revisions', 'quarantine', 'scenarios', 'session-fallback'
 ]);
 

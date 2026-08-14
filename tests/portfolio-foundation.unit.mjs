@@ -456,7 +456,7 @@ test('route projection cites one mandate revision and reports mandate-absent sta
   const portfolio = store.commitWorkspace(api.buildWorkspaceCandidate(validDraft(api, policy), store.openWorkspace(NOW).value.workspace, { name: 'Route projection portfolio', now: NOW }, policy).value, 0, NOW);
   const withoutMandate = api.projectRouteStates(portfolio.value.workspace, policy);
   assert.equal(withoutMandate.ok, true);
-  assert.deepEqual(withoutMandate.value.routes.map((route) => route.route), ['allocation', 'diversification', 'path-lab', 'risk-xray']);
+  assert.deepEqual(withoutMandate.value.routes.map((route) => route.route), ['allocation', 'diversification', 'dossier', 'path-lab', 'risk-xray']);
   assert.equal(withoutMandate.value.routes.every((route) => route.descriptive.available === true && route.descriptive.citedPortfolioId === portfolio.value.workspace.currentPortfolioId), true);
   assert.equal(withoutMandate.value.routes.every((route) => route.mandateDependent.every((entry) => entry.available === false && entry.reason === 'mandate-absent' && entry.citedMandateId === null)), true);
   assert.deepEqual(
@@ -717,7 +717,7 @@ test('privacy inventory reports real category counts and carries no stored subje
   // telling an owner less than the full-personal clear actually deletes.
   assert.equal(inventory.value.categories.every((entry) => entry.clearedBy.split('-and-').includes('all-personal')), true,
     'every category must name the all-personal clear, which empties all of them');
-  assert.equal(inventory.value.categories.length, 10, 'every declared category must be projected, so the clearedBy sweep above is not run over a short list');
+  assert.equal(inventory.value.categories.length, 11, 'every declared category must be projected, so the clearedBy sweep above is not run over a short list');
 
   /* The serialized sweep above is a DENYLIST: it catches only the five values it names. A leak it
    * was never told to look for passes it silently — proven by injecting a `subjectValue` field into
@@ -1070,16 +1070,33 @@ test('the two personal sections Scope 03 could not populate now have real write 
   assert.equal(withAllocation.value.workspace.allocations.length > 0, true,
     'allocations now has a real write path');
 
+  /* Scope 15 declared `dossiers`. Same rule, same reason. A dossier records a
+   * research CLAIM, so leaving it unpopulatable would make the sweep's emptiness
+   * assertion vacuous over precisely the section whose contents are most
+   * sensitive. */
+  const withDossier = api.buildDossierCandidate(
+    'basis=exact-common-date-intersection|cutoff=2026-05-08|symbols=BND,MSFT',
+    'Sweep limit dossier',
+    'This result speaks to the weak form over the held sample and to nothing else.',
+    { walkForwardReturn: 0.0412, costAdjustedReturn: 0.0388, trialsSearched: 12 },
+    withAllocation.value.workspace,
+    NOW,
+    policy
+  );
+  assert.equal(withDossier.ok, true, `dossier build must succeed: ${JSON.stringify(withDossier.error || {})}`);
+  assert.equal(withDossier.value.workspace.dossiers.length > 0, true,
+    'dossiers now has a real write path');
+
   // Every derived personal section is reachable, so no emptiness claim in the sweep is vacuous.
-  const stillUnreachable = sections.filter((section) => withAllocation.value.workspace[section].length === 0);
+  const stillUnreachable = sections.filter((section) => withDossier.value.workspace[section].length === 0);
   assert.deepEqual(stillUnreachable, [],
     'no derived personal section may remain unpopulatable, or the sweep would still assert emptiness over an empty-by-construction container');
 
   // A populated workspace must validate, or the write paths above produced something unstorable.
-  assert.equal(api.validateWorkspace(withAllocation.value.workspace, policy).ok, true);
+  assert.equal(api.validateWorkspace(withDossier.value.workspace, policy).ok, true);
 
   // And the behavior clear genuinely empties both, which is the claim Scope 03 could not test.
-  const cleared = api.buildBehaviorClearCandidate(withAllocation.value.workspace, NOW, policy);
+  const cleared = api.buildBehaviorClearCandidate(withDossier.value.workspace, NOW, policy);
   assert.equal(cleared.ok, true);
   assert.equal(cleared.value.workspace.interestSignals.length, 0);
   assert.equal(cleared.value.workspace.actionOutcomes.length, 0,

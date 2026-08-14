@@ -139,6 +139,7 @@
         "descriptiveRouteStates": [
             "allocation",
             "diversification",
+            "dossier",
             "path-lab",
             "risk-xray"
         ],
@@ -240,6 +241,10 @@
         "hedgeRebalancesPerYear": 4,
         "hedgeBasisCorrelation": 0.9,
         "hedgeInstrumentClass": "listed-proxy-etf",
+        "walkForwardFolds": 4,
+        "dossierTrialsSearched": 12,
+        "efficiencyFormTested": "weak",
+        "efficiencyInformationSet": "past prices and returns held in this workspace",
         "hedgeLiquidity": "high",
         "covarianceShrinkageLambda": 0.2,
         "covarianceSensitivity": [

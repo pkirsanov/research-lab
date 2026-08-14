@@ -219,3 +219,178 @@ test('TP-14-02 production sensitivity and Black-Litterman lifecycle run on the c
   // The policy the page loads is the policy this row exercised.
   assert.equal(api.validatePolicy(policy).ok, true);
 });
+
+/* TP-15-02 — the production dossier projection, exercised through the real
+ * analytics engine rather than a hand-built fixture. The point of the row is
+ * that the SEPARATION survives the trip through the projection: a dossier that
+ * merges in-sample with walk-forward on the way to storage would look correct
+ * in the unit suite and still mislead a reader on reload. */
+test('TP-15-02 production dossier projection preserves separation, costs, trials and the claim boundary', () => {
+  const { api, analytics, policy } = loadRuntime();
+
+  const returns = [0.021, -0.014, 0.033, 0.008, -0.022, 0.017, 0.026, -0.009, 0.012, 0.031, -0.018, 0.014];
+  const dossier = analytics.walkForwardDossier({
+    returns,
+    folds: policy.analytics.walkForwardFolds,
+    perRebalanceCostFraction: policy.analytics.hedgeCommissionFraction,
+    rebalancesPerFold: policy.analytics.hedgeRebalancesPerYear,
+    trialsSearched: policy.analytics.dossierTrialsSearched
+  });
+  assert.equal(dossier.state, 'ok', `dossier must resolve: ${dossier.reason || ''}`);
+
+  /* Three distinct figures survive projection. Equality between any pair would
+     mean the projection collapsed a distinction the engine drew. */
+  const figures = [dossier.inSampleReturn, dossier.walkForwardReturn, dossier.costAdjustedReturn];
+  figures.forEach((value) => assert.equal(Number.isFinite(value), true));
+  assert.equal(new Set(figures.map((v) => v.toFixed(10))).size, 3,
+    'in-sample, walk-forward and cost-adjusted must remain three distinct numbers through the projection');
+  assert.equal(dossier.costAdjustedReturn < dossier.walkForwardReturn, true,
+    'stated costs must reduce the walk-forward figure, or the cost row is decorative');
+
+  /* The first fold is training only. Scoring it would put the fitted window back
+     into the result, which is the whole failure walk-forward exists to avoid. */
+  assert.equal(dossier.scoredFolds, policy.analytics.walkForwardFolds - 1,
+    'exactly one fold is training-only and is never scored');
+  assert.equal(dossier.trialsSearched, policy.analytics.dossierTrialsSearched);
+  assert.equal(dossier.provesFutureSuperiority, false);
+
+  const claim = analytics.marketEfficiencyClaim({
+    form: policy.analytics.efficiencyFormTested,
+    informationSet: policy.analytics.efficiencyInformationSet,
+    sample: 'the held common-date sample',
+    test: 'walk-forward cost-adjusted excess return',
+    costAdjustedEdge: dossier.costAdjustedReturn
+  });
+  assert.equal(claim.state, 'ok');
+  assert.equal(claim.allFormsRefuted, false);
+  assert.equal(claim.untestedForms.length, 2, 'the two forms not tested are named, never left implicit');
+
+  /* The persisted record carries its claim boundary. Storing the finding without
+     the boundary would let a reload present a scoped, cost-adjusted,
+     trial-discounted result as an unqualified one. */
+  const store = api.createPortfolioStore({ localStorage: createStorage(), sessionStorage: createStorage() }, policy);
+  const opened = store.openWorkspace(NOW);
+  assert.equal(opened.ok, true);
+  const built = api.buildDossierCandidate(
+    'basis=exact-common-date-intersection|cutoff=2026-05-08|symbols=BND,MSFT',
+    'Walk-forward research dossier',
+    claim.claimBoundary,
+    {
+      inSampleReturn: dossier.inSampleReturn,
+      walkForwardReturn: dossier.walkForwardReturn,
+      costAdjustedReturn: dossier.costAdjustedReturn,
+      trialsSearched: dossier.trialsSearched,
+      scoredFolds: dossier.scoredFolds
+    },
+    opened.value.workspace,
+    NOW,
+    policy
+  );
+  assert.equal(built.ok, true, `dossier must persist: ${JSON.stringify(built.error || {})}`);
+  const stored = built.value.workspace.dossiers[0];
+  assert.equal(stored.summary.inSampleReturn, dossier.inSampleReturn);
+  assert.equal(stored.summary.walkForwardReturn, dossier.walkForwardReturn);
+  assert.equal(stored.summary.costAdjustedReturn, dossier.costAdjustedReturn);
+  assert.equal(stored.claimBoundary.length > 0, true);
+  assert.match(stored.claimBoundary, /nothing else|does not claim/);
+
+  /* A dossier stored WITHOUT its boundary must be refused, not accepted with an
+     empty string. An unqualified stored claim is the failure mode. */
+  const unqualified = api.buildDossierCandidate(
+    'basis=exact-common-date-intersection|cutoff=2026-05-08|symbols=BND,MSFT',
+    'Unqualified claim',
+    '   ',
+    { walkForwardReturn: 0.04 },
+    opened.value.workspace,
+    NOW,
+    policy
+  );
+  assert.equal(unqualified.ok, false, 'a dossier with no claim boundary must be refused');
+  assert.equal(unqualified.error.reason, 'dossier-input-invalid');
+
+  /* The engine REFUSES rather than inventing folds. Both refusals are asserted
+     by name, because they are different failures: too little data at all, and
+     enough data but not enough to support the declared fold count. The second is
+     the state the browser fixture had to be lengthened to escape, so it is
+     proven here rather than left as an unexercised branch. */
+  const tooShort = analytics.walkForwardDossier({
+    returns: returns.slice(0, 3),
+    folds: policy.analytics.walkForwardFolds,
+    perRebalanceCostFraction: policy.analytics.hedgeCommissionFraction,
+    rebalancesPerFold: policy.analytics.hedgeRebalancesPerYear,
+    trialsSearched: policy.analytics.dossierTrialsSearched
+  });
+  assert.equal(tooShort.state, 'unavailable');
+  assert.equal(tooShort.reason, 'insufficient-sample');
+  /* A refusal publishes NO figure. Asserting "not a finite number" rather than
+     "=== null" covers both shapes a refusal could take (absent key or explicit
+     null) while still failing if any number leaks out - which is the only thing
+     that actually matters to a reader. */
+  ['inSampleReturn', 'walkForwardReturn', 'costAdjustedReturn'].forEach((key) => {
+    assert.equal(Number.isFinite(tooShort[key]), false, `a refused dossier must publish no ${key}`);
+  });
+
+  const tooFewPerFold = analytics.walkForwardDossier({
+    returns: returns.slice(0, 5),
+    folds: policy.analytics.walkForwardFolds,
+    perRebalanceCostFraction: policy.analytics.hedgeCommissionFraction,
+    rebalancesPerFold: policy.analytics.hedgeRebalancesPerYear,
+    trialsSearched: policy.analytics.dossierTrialsSearched
+  });
+  assert.equal(tooFewPerFold.state, 'unavailable');
+  assert.equal(tooFewPerFold.reason, 'folds-exceed-sample');
+  assert.equal(Number.isFinite(tooFewPerFold.walkForwardReturn), false,
+    'a sample too short for the declared folds yields no walk-forward figure rather than a fold count quietly reduced to fit');
+});
+
+/* TP-15-08 — Scope 03 recorded that its full-personal clear swept `dossiers`
+ * vacuously, because no write path existed. That conjunct is discharged here:
+ * the section is populated through the REAL builder and then observed to be
+ * emptied by the clear that names it, and preserved by the clear that does not. */
+test('TP-15-08 a persisted dossier is swept by the full-personal clear and survives the behavior clear', () => {
+  const { api, policy } = loadRuntime();
+  const localStorage = createStorage();
+  const sessionStorage = createStorage();
+  const store = api.createPortfolioStore({ localStorage, sessionStorage }, policy);
+  const opened = store.openWorkspace(NOW);
+  assert.equal(opened.ok, true);
+
+  const built = api.buildDossierCandidate(
+    'basis=exact-common-date-intersection|cutoff=2026-05-08|symbols=BND,MSFT',
+    'Discharged clear conjunct dossier',
+    'This result speaks to the weak form over the held sample and to nothing else.',
+    { walkForwardReturn: 0.0412, costAdjustedReturn: 0.0388, trialsSearched: 12 },
+    opened.value.workspace,
+    NOW,
+    policy
+  );
+  assert.equal(built.ok, true, `dossier must build: ${JSON.stringify(built.error || {})}`);
+  const committed = store.commitWorkspace(built.value.workspace, opened.value.workspace.generation, NOW);
+  assert.equal(committed.ok, true, `dossier must commit: ${JSON.stringify(committed.error || {})}`);
+  assert.equal(committed.value.workspace.dossiers.length, 1,
+    'the section must genuinely hold a record, or every emptiness assertion below is vacuous');
+
+  /* A saved dossier is explicitly saved, not behavior-derived, so the
+     behavior-only clear must LEAVE it exactly as it leaves holdings. Deleting a
+     user's saved research on a behavior clear would be a silent data loss. */
+  const behaviorCleared = api.buildBehaviorClearCandidate(committed.value.workspace, NOW, policy);
+  assert.equal(behaviorCleared.ok, true);
+  assert.equal(behaviorCleared.value.workspace.dossiers.length, 1,
+    'a behavior-only clear must not remove an explicitly saved dossier');
+
+  /* The full-personal clear removes it. Proven by REREADING storage, not by
+     inspecting the in-memory object - a clear that only updated the variable
+     would leave the record on disk for the next session to surface. */
+  const inventoryBefore = api.privacyInventory(committed.value.workspace, { localStorage, sessionStorage }, policy);
+  assert.equal(inventoryBefore.ok, true);
+  const dossierCategory = inventoryBefore.value.categories.find((entry) => entry.category === 'dossiers');
+  assert.equal(dossierCategory.recordCount, 1, 'the inventory must report the real held count');
+  assert.equal(dossierCategory.clearedBy.split('-and-').includes('all-personal'), true);
+
+  const cleared = api.clearFoundationStorage({ localStorage, sessionStorage });
+  assert.equal(cleared.ok, true, `clear must succeed: ${JSON.stringify(cleared.error || {})}`);
+  const reread = api.createPortfolioStore({ localStorage, sessionStorage }, policy).openWorkspace(NOW);
+  assert.equal(reread.ok, true);
+  assert.equal(reread.value.workspace.dossiers.length, 0,
+    'the full-personal clear must empty the dossier section on a storage REREAD, not merely in memory');
+});

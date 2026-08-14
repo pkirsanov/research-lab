@@ -359,3 +359,180 @@ test('Regression: Feature 008 allocation sensitivity ranges and Black Litterman 
   expect(overflowZoom, 'no horizontal overflow at 130% text').toBeLessThanOrEqual(1);
   await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
 });
+
+/* Scope 15 needs a history long enough for real walk-forward folds. The dossier
+   REFUSES on a short sample ('folds-exceed-sample'), which is correct behaviour
+   and is asserted separately below - so the satisfied path has to be fed a
+   sample that genuinely supports the declared fold count rather than the fold
+   count being lowered to fit the fixture. */
+const LONG_DATES = Array.from({ length: 16 }, (_, i) => {
+  const day = new Date(Date.UTC(2026, 3, 6 + i));
+  return day.toISOString().slice(0, 10);
+});
+
+async function seedLongHistory(page, name) {
+  await openLab(page);
+  await importValid(page, name);
+  await seedBars(page, 'MSFT', series(LONG_DATES, [100, 104, 99, 107, 112, 108, 115, 111, 119, 124, 118, 127, 131, 126, 134, 139]));
+  await seedBars(page, 'BND', series(LONG_DATES, [50, 50.2, 50.1, 50.4, 50.3, 50.6, 50.5, 50.8, 50.7, 51, 50.9, 51.2, 51.1, 51.4, 51.3, 51.6]));
+}
+
+async function openDossier(page) {
+  await page.locator('#workspaceTabDossier').click();
+  await expect(page).toHaveURL(/#dossier$/);
+  const panel = page.locator('[data-route="dossier"]');
+  await expect(panel).toBeVisible();
+  return panel;
+}
+
+test('Regression: SCN-008-031 dossier separates in sample walk forward costs and trials', async ({ page }) => {
+  await seedLongHistory(page, 'TP-15-03 dossier separation');
+  const panel = await openDossier(page);
+  await expect(panel.locator('#researchDossier')).toBeVisible();
+  await expect(panel.locator('#dossierTable')).toBeVisible();
+
+  /* Three separate figures. A single blended "backtest return" is exactly the
+     shape this scope exists to refuse: the in-sample number is the one the rule
+     was chosen to maximise, so presenting it merged with the others hides the
+     part that means least. Cells are read row-wise because nth-child counts the
+     row header. */
+  const rows = await panel.evaluate((root) => Array.from(root.querySelectorAll('#dossierTable tbody tr')).map((tr) => ({
+    measure: tr.dataset.measure,
+    result: Array.from(tr.querySelectorAll('td'))[0].textContent.trim(),
+    answers: Array.from(tr.querySelectorAll('td'))[1].textContent.trim()
+  })));
+  expect(rows.map((r) => r.measure)).toEqual(['in-sample', 'walk-forward', 'cost-adjusted']);
+  rows.forEach((row) => expect(row.result).toMatch(/^-?\d+\.\d\d%$/));
+
+  /* Costs must strictly reduce the walk-forward figure, or the cost row is
+     decorative rather than an adjustment. */
+  const asNumber = (text) => Number(text.replace('%', ''));
+  expect(asNumber(rows[2].result)).toBeLessThan(asNumber(rows[1].result));
+  expect(rows[1].answers).toContain('after the one used to fit');
+
+  /* The trial count must be on screen with its consequence stated. A count
+     alone invites the reader to skip past it; searching many rules and
+     publishing the best is the commonest way a backtest overstates itself. */
+  const trials = (await panel.locator('#dossierTrials').textContent()).trim();
+  expect(trials).toMatch(/\d+/);
+  expect(trials.toLowerCase()).toContain('searched');
+  expect(trials.toLowerCase()).toContain('chance');
+
+  const limitations = await panel.evaluate((root) => Array.from(root.querySelectorAll('#dossierLimitations li')).map((li) => li.textContent.trim()));
+  expect(limitations.length).toBeGreaterThanOrEqual(4);
+  const joined = limitations.join(' | ').toLowerCase();
+  expect(joined).toContain('selection');
+  expect(joined).toContain('survivorship');
+
+  /* No historical result may be described as proof of future superiority. The
+     boundary has to REFUSE explicitly, not merely omit the claim. */
+  const boundary = (await panel.locator('#dossierClaimBoundary').textContent()).toLowerCase();
+  expect(boundary).toMatch(/no claim|makes no claim|not a prediction/);
+  const bodyText = (await panel.locator('#researchDossier').textContent()).toLowerCase();
+  expect(bodyText).not.toMatch(/\bproves\b/);
+  expect(bodyText).not.toMatch(/\bguaranteed\b/);
+  expect(bodyText).not.toMatch(/this rule will outperform(?! in future\.)/);
+});
+
+test('Regression: SCN-008-032 efficiency claim is scoped to one tested information set', async ({ page }) => {
+  await seedLongHistory(page, 'TP-15-03 efficiency scope');
+  const panel = await openDossier(page);
+  await expect(panel.locator('#efficiencyClaim')).toBeVisible();
+  expect(await panel.locator('#efficiencyClaim').getAttribute('data-efficiency-state')).toBe('ok');
+
+  /* "The market is inefficient" is not a testable sentence. A test uses one
+     information set over one sample, so the conclusion binds that and nothing
+     else - and the two forms NOT tested have to be named, or a reader will
+     silently generalise from one result to all three. */
+  const scope = (await panel.locator('#efficiencyScope').textContent()).trim();
+  expect(scope).toContain('weak');
+  expect(scope).toContain('information set');
+  expect(scope).toContain('sample');
+  expect(scope).toContain('untested here');
+  expect(scope).toContain('semi-strong');
+  expect(scope).toContain('strong');
+
+  const alternatives = await panel.evaluate((root) => Array.from(root.querySelectorAll('#efficiencyAlternatives li')).map((li) => li.textContent.trim()));
+  expect(alternatives.length).toBeGreaterThanOrEqual(4);
+  const altText = alternatives.join(' | ').toLowerCase();
+  expect(altText).toContain('data snooping');
+  expect(altText).toContain('risk');
+
+  /* The product must never ASSERT that efficiency is refuted. This is checked
+     STRUCTURALLY, because a negative substring check on the prose also matches
+     the sentence that does the refusing ("...does not claim that all
+     market-efficiency hypotheses are false"). Banning the phrase would ban the
+     disclaimer along with the claim. */
+  expect(await panel.locator('#efficiencyClaim').getAttribute('data-all-forms-refuted')).toBe('false');
+  const claimText = (await panel.locator('#efficiencyClaim').textContent()).toLowerCase();
+  expect(claimText).not.toMatch(/\bproves? (that )?markets/);
+  expect(claimText).not.toMatch(/markets are inefficient\.(?! )/);
+  const efficiencyBoundary = (await panel.locator('#efficiencyClaimBoundary').textContent()).toLowerCase();
+  expect(efficiencyBoundary).toMatch(/does not claim|and to nothing else/);
+  expect(efficiencyBoundary).toContain('untested here');
+});
+
+test('Regression: SCN-008-033 correlation never emits a substantially identical verdict', async ({ page }) => {
+  await seedLongHistory(page, 'TP-15-03 replacement research');
+  const panel = await openDossier(page);
+  await expect(panel.locator('#replacementComparison')).toBeVisible();
+
+  /* Whether two securities are substantially identical is a legal and tax
+     question. This tool has no standing to answer it, and the cost of being
+     wrong is owed to a tax authority - so it delivers the evidence and stops. */
+  expect(await panel.locator('#replacementComparison').getAttribute('data-adjudicated')).toBe('false');
+
+  const inputs = await panel.evaluate((root) => Array.from(root.querySelectorAll('#replacementInputs li')).map((li) => ({
+    kind: li.dataset.factKind || null,
+    text: li.textContent.trim()
+  })));
+  expect(inputs.length).toBeGreaterThanOrEqual(1);
+  expect(inputs.some((row) => row.kind === 'correlation')).toBe(true);
+
+  /* Refusing "not substantially identical" matters exactly as much as refusing
+     "substantially identical" - a false clearance is the more expensive error. */
+  const text = (await panel.locator('#replacementComparison').textContent()).toLowerCase();
+  expect(text).not.toMatch(/\bis substantially identical\b/);
+  expect(text).not.toMatch(/\bnot substantially identical\b/);
+  expect(text).not.toContain('safe to');
+  expect(text).not.toContain('wash sale is');
+  const boundary = (await panel.locator('#replacementClaimBoundary').textContent()).toLowerCase();
+  expect(boundary).toMatch(/not a determination|no conclusion/);
+  expect(boundary).toMatch(/tax|legal/);
+  expect(boundary).toContain('no threshold');
+});
+
+test('Regression: Feature 008 dossier ledgers claims corrections and private export remain accessible without mobile overlap', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seedLongHistory(page, 'TP-15-04 dossier mobile parity');
+  const panel = await openDossier(page);
+  await expect(panel.locator('#dossierTable')).toBeVisible();
+
+  /* A dossier that overflows the body on a phone is a dossier nobody reads, and
+     the claim boundaries are the part most worth reading. */
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow, 'no horizontal body overflow at phone width').toBeLessThanOrEqual(1);
+
+  const boxes = await panel.evaluate((root) => ['#dossierTable', '#dossierTrials', '#dossierLimitations', '#dossierClaimBoundary', '#efficiencyScope', '#replacementInputs', '#replacementClaimBoundary']
+    .map((selector) => {
+      const node = root.querySelector(selector);
+      const rect = node.getBoundingClientRect();
+      return { selector, top: rect.top, bottom: rect.bottom, width: rect.width };
+    }));
+  boxes.forEach((box) => expect(box.width, `${box.selector} is rendered`).toBeGreaterThan(0));
+  for (let i = 1; i < boxes.length; i += 1) {
+    expect(boxes[i].top, `${boxes[i].selector} does not overlap ${boxes[i - 1].selector}`).toBeGreaterThanOrEqual(boxes[i - 1].bottom - 1);
+  }
+
+  /* Every dossier figure stays reachable as exact table text at phone width -
+     the numbers are the evidence, so they may not be reduced to a graphic. */
+  const cells = await panel.evaluate((root) => Array.from(root.querySelectorAll('#dossierTable tbody tr')).map((tr) => Array.from(tr.querySelectorAll('td'))[0].textContent.trim()));
+  expect(cells).toHaveLength(3);
+  cells.forEach((cell) => expect(cell).toMatch(/%$/));
+
+  /* The private export stays reachable while the dossier work is open - a claim
+     boundary the user cannot act on is inert. */
+  await page.locator('#workspaceTabBrief').click();
+  await expect(page.locator('#exportPortfolio')).toBeVisible();
+  await expect(page.locator('#exportWarning')).toBeVisible();
+});

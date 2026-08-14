@@ -284,7 +284,7 @@ test('one reloaded constraint set reaches every consumer and absent or conflicti
   const mandate = durable.mandateRevisions[0];
   const projected = api.projectRouteStates(durable, policy);
   assert.equal(projected.ok, true);
-  assert.deepEqual(projected.value.routes.map((route) => route.route), ['allocation', 'diversification', 'path-lab', 'risk-xray']);
+  assert.deepEqual(projected.value.routes.map((route) => route.route), ['allocation', 'diversification', 'dossier', 'path-lab', 'risk-xray']);
   assert.equal(projected.value.currentMandateId, committed.workspace.currentMandateId);
 
   // The consumer list is taken from the policy that declares it, so a consumer the
@@ -1256,11 +1256,28 @@ function seedEveryPopulatableCategory(api, policy, localStorage, sessionStorage)
   const withAllocation = store.commitWorkspace(allocation.value.workspace, withScenario.value.workspace.generation, NOW);
   assert.equal(withAllocation.ok, true, `allocation commit must succeed: ${JSON.stringify(withAllocation.error || {})}`);
 
+  // Scope 15 gave `dossiers` a real write path, so it too moves out of the
+  // not-representable pin below and into the proven set. A saved research claim
+  // is the most sensitive thing this workspace holds, so proving the clear
+  // actually reaches it matters more here than for any other category.
+  const dossier = api.buildDossierCandidate(
+    'basis=exact-common-date-intersection|cutoff=2026-05-08|symbols=BND,MSFT',
+    'Category clear dossier',
+    'This result speaks to the weak form over the held sample and to nothing else.',
+    { walkForwardReturn: 0.0412, costAdjustedReturn: 0.0388, trialsSearched: 12 },
+    withAllocation.value.workspace,
+    NOW,
+    policy
+  );
+  assert.equal(dossier.ok, true, `dossier candidate must build: ${JSON.stringify(dossier.error || {})}`);
+  const withDossier = store.commitWorkspace(dossier.value.workspace, withAllocation.value.workspace.generation, NOW);
+  assert.equal(withDossier.ok, true, `dossier commit must succeed: ${JSON.stringify(withDossier.error || {})}`);
+
   localStorage.setItem(policy.storage.quarantineKey, 'quarantine-sentinel');
   sessionStorage.setItem(policy.storage.sessionKey, 'session-fallback-sentinel');
   sessionStorage.setItem(policy.storage.returnContextKey, 'return-context-sentinel');
 
-  return { store, workspace: withAllocation.value.workspace };
+  return { store, workspace: withDossier.value.workspace };
 }
 
 test('each declared privacy category is deleted by the clear that names it and survives the clear that does not, one category at a time', () => {
@@ -1282,8 +1299,8 @@ test('each declared privacy category is deleted by the clear that names it and s
   const notRepresentable = before.categories.filter((entry) => !entry.present).map((entry) => entry.category).sort();
   assert.deepEqual(
     populated,
-    ['allocations', 'behavior-events', 'cash-needs', 'mandate-revisions', 'portfolio-revisions', 'quarantine', 'scenarios', 'session-fallback'],
-    'eight declared categories must genuinely hold records before any clear, or every emptiness assertion below is vacuous'
+    ['allocations', 'behavior-events', 'cash-needs', 'dossiers', 'mandate-revisions', 'portfolio-revisions', 'quarantine', 'scenarios', 'session-fallback'],
+    'nine declared categories must genuinely hold records before any clear, or every emptiness assertion below is vacuous'
   );
   // Pinned, not counted. These two sections have no write path through the builders this
   // scope exports, so asserting their emptiness proves nothing and no clear can be OBSERVED
@@ -1392,7 +1409,7 @@ test('each declared privacy category is deleted by the clear that names it and s
     allPersonalClear: verifiedEmpty ? 'deleted' : 'preserved'
   }));
   assert.deepEqual(matrix, declaredMatrix, 'every populatable category must behave exactly as its clearedBy declaration and the all-personal verified-empty contract say');
-  assert.equal(matrix.filter((row) => row.behaviorClear === 'preserved').length, 7, 'seven categories must be observed surviving the behavior clear, or "category-by-category" collapses to one whole-store wipe');
+  assert.equal(matrix.filter((row) => row.behaviorClear === 'preserved').length, 8, 'eight categories must be observed surviving the behavior clear, or "category-by-category" collapses to one whole-store wipe');
 
   // --- Red-ability: the same checker against the blunt whole-store alternative ----------
   // The all-personal clear is a real, executed operation that empties everything. Pointing
@@ -1400,10 +1417,10 @@ test('each declared privacy category is deleted by the clear that names it and s
   // If it reported none, the preservation half above would be inert and a blunt wipe would
   // pass as a correct per-category delete.
   const bluntViolations = categoryViolations(before, afterAll, 'behavior');
-  assert.equal(bluntViolations.length, 7, `a whole-store wipe must violate the behavior contract for all seven preserved categories, got: ${JSON.stringify(bluntViolations)}`);
+  assert.equal(bluntViolations.length, 8, `a whole-store wipe must violate the behavior contract for all eight preserved categories, got: ${JSON.stringify(bluntViolations)}`);
   assert.deepEqual(
     bluntViolations.map((entry) => entry.split(':')[0]).sort(),
-    ['allocations', 'cash-needs', 'mandate-revisions', 'portfolio-revisions', 'quarantine', 'scenarios', 'session-fallback'],
+    ['allocations', 'cash-needs', 'dossiers', 'mandate-revisions', 'portfolio-revisions', 'quarantine', 'scenarios', 'session-fallback'],
     'the checker must name every category a blunt wipe destroyed, so the behavior arm passing above is a real distinction'
   );
 });

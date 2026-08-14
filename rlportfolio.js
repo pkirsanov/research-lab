@@ -76,13 +76,15 @@
     analytics: Object.freeze([
       "allocationUnstableRangeThreshold", "benchmarkSymbol", "blackLittermanRiskAversion",
       "blackLittermanTau", "concentrationAlertWeight", "concentrationLenses", "contractVersion",
-      "covarianceSensitivity", "covarianceShrinkageLambda", "hedgeBasisCorrelation",
+      "covarianceSensitivity", "covarianceShrinkageLambda", "dossierTrialsSearched",
+      "efficiencyFormTested", "efficiencyInformationSet", "hedgeBasisCorrelation",
       "hedgeCommissionFraction", "hedgeInstrumentClass", "hedgeLiquidity",
       "hedgeRebalancesPerYear", "hedgeSlippageFraction", "hedgeSpreadFraction",
       "lowerTailQuantile", "maximumListedAssets",
       "minimumCapmObservations", "minimumJointTailEvents", "minimumRiskObservations", "minimumTailObservations",
       "proxyFactors", "proxyFactorsVersion",
-      "riskFreeAnnual", "riskReconciliationTolerance", "targetHistoryCalendarYears"
+      "riskFreeAnnual", "riskReconciliationTolerance", "targetHistoryCalendarYears",
+      "walkForwardFolds"
     ]),
     solver: Object.freeze(["contractVersion", "convergenceTolerance", "maximumIterations"]),
     calibration: Object.freeze([
@@ -119,7 +121,7 @@
   var WORKSPACE_FIELDS = Object.freeze([
     "actionOutcomes", "behaviorEvents", "contentSha256", "contractVersion", "createdAt", "currentMandateId",
     "currentPortfolioId", "generation", "interestSignals", "mandateRevisions", "policyRefs", "portfolioRevisions",
-    "allocations", "scenarios", "semanticFingerprint", "updatedAt"
+    "allocations", "dossiers", "scenarios", "semanticFingerprint", "updatedAt"
   ]);
   var ERROR_FIELDS = Object.freeze([
     "code", "contractVersion", "field", "reason", "recoverable", "row", "valueEchoed"
@@ -377,7 +379,7 @@
         !exactStringSet(mandatePolicy.constraintUnits, ["currency", "portfolio-fraction"]) ||
         !exactStringSet(mandatePolicy.cashNeedUnits, ["currency", "portfolio-fraction"]) ||
         !exactStringSet(mandatePolicy.treatmentTimings, ["start-of-step", "end-of-step"]) ||
-        !exactStringSet(mandatePolicy.descriptiveRouteStates, ["risk-xray", "path-lab", "diversification", "allocation"]) ||
+        !exactStringSet(mandatePolicy.descriptiveRouteStates, ["risk-xray", "path-lab", "diversification", "allocation", "dossier"]) ||
         !stringArray(mandatePolicy.constraintTypes, false) || !stringArray(mandatePolicy.forbiddenInputSources, false) ||
         !stringArray(mandatePolicy.mandateDependentStates, false) || !stringArray(mandatePolicy.neverInferredFields, false) ||
         !Number.isInteger(mandatePolicy.maxConstraints) || mandatePolicy.maxConstraints <= 0 ||
@@ -410,6 +412,10 @@
         !finiteNonNegative(value.analytics.hedgeRebalancesPerYear) ||
         !finiteNonNegative(value.analytics.hedgeBasisCorrelation) || value.analytics.hedgeBasisCorrelation > 1 ||
         typeof value.analytics.hedgeInstrumentClass !== "string" || !value.analytics.hedgeInstrumentClass.trim() ||
+        !Number.isInteger(value.analytics.walkForwardFolds) || value.analytics.walkForwardFolds < 2 ||
+        !Number.isInteger(value.analytics.dossierTrialsSearched) || value.analytics.dossierTrialsSearched < 1 ||
+        ["weak", "semi-strong", "strong"].indexOf(value.analytics.efficiencyFormTested) < 0 ||
+        typeof value.analytics.efficiencyInformationSet !== "string" || !value.analytics.efficiencyInformationSet.trim() ||
         typeof value.analytics.hedgeLiquidity !== "string" || !value.analytics.hedgeLiquidity.trim() ||
         typeof value.analytics.proxyFactorsVersion !== "string" || !value.analytics.proxyFactorsVersion.trim() ||
         !Array.isArray(value.analytics.proxyFactors) || !value.analytics.proxyFactors.length ||
@@ -979,6 +985,7 @@
       interestSignals: value.interestSignals,
       actionOutcomes: value.actionOutcomes,
       allocations: value.allocations,
+      dossiers: value.dossiers,
       scenarios: value.scenarios,
       policyRefs: value.policyRefs
     };
@@ -1008,6 +1015,7 @@
       interestSignals: [],
       actionOutcomes: [],
       allocations: [],
+      dossiers: [],
       scenarios: [],
       policyRefs: policyRefs(policy),
       createdAt: now,
@@ -1133,7 +1141,7 @@
     if (unknown || Object.keys(value).length !== WORKSPACE_FIELDS.length) return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown || "workspace", null, false);
     if (value.contractVersion !== WORKSPACE_VERSION || !Number.isInteger(value.generation) || value.generation < 0 ||
         !Array.isArray(value.portfolioRevisions) || !Array.isArray(value.mandateRevisions) || !Array.isArray(value.behaviorEvents) ||
-        !Array.isArray(value.interestSignals) || !Array.isArray(value.actionOutcomes) || !Array.isArray(value.scenarios) || !Array.isArray(value.allocations) || !isPlainObject(value.policyRefs) ||
+        !Array.isArray(value.interestSignals) || !Array.isArray(value.actionOutcomes) || !Array.isArray(value.scenarios) || !Array.isArray(value.allocations) || !Array.isArray(value.dossiers) || !isPlainObject(value.policyRefs) ||
         !canonicalTimestamp(value.createdAt) || !canonicalTimestamp(value.updatedAt) || !HASH_PATTERN.test(value.semanticFingerprint || "") ||
         !HASH_PATTERN.test(value.contentSha256 || "") || (value.currentPortfolioId !== null && !HASH_PATTERN.test(value.currentPortfolioId || "")) ||
         (value.currentMandateId !== null && !HASH_PATTERN.test(value.currentMandateId || ""))) {
@@ -1177,6 +1185,15 @@
         return failure("P008-IDENTITY", "duplicate-allocation-id", "allocations", null, false);
       }
       allocationIds[value.allocations[allocationIndex].allocationId] = true;
+    }
+    var dossierIds = Object.create(null);
+    for (var dossierIndex = 0; dossierIndex < value.dossiers.length; dossierIndex += 1) {
+      var dossierResult = validateDossier(value.dossiers[dossierIndex]);
+      if (!dossierResult.ok) return dossierResult;
+      if (dossierIds[value.dossiers[dossierIndex].dossierId]) {
+        return failure("P008-IDENTITY", "duplicate-dossier-id", "dossiers", null, false);
+      }
+      dossierIds[value.dossiers[dossierIndex].dossierId] = true;
     }
     var mandateIds = Object.create(null);
     for (var mandateIndex = 0; mandateIndex < value.mandateRevisions.length; mandateIndex += 1) {
@@ -2087,6 +2104,89 @@
     "allocationId", "basisIdentity", "computedAt", "label", "method", "summary"
   ]);
 
+  var DOSSIER_FIELDS = Object.freeze([
+    "basisIdentity", "claimBoundary", "corrections", "dossierId", "recordedAt", "summary", "title"
+  ]);
+
+  /* A saved dossier is a research CLAIM about the owner's own holdings, so it
+     carries its claim boundary with it. Storing the finding without the boundary
+     would let a re-read present a scoped, cost-adjusted, trial-discounted result
+     as an unqualified one - the exact failure this scope exists to prevent, and
+     the reason the boundary is a required field rather than presentation copy.
+
+     Corrections append; they never overwrite. A dossier whose earlier claim can
+     be edited out of existence is not a record, and the correction history is
+     the part that shows a reader the claim moved. */
+  function validateDossier(value) {
+    if (!isPlainObject(value)) return failure("P008-SCHEMA-CORRUPT", "dossier-invalid", "dossiers", null, false);
+    var unknown = hasOnlyFields(value, DOSSIER_FIELDS);
+    if (unknown || Object.keys(value).length !== DOSSIER_FIELDS.length) {
+      return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown || "dossiers", null, false);
+    }
+    if (!HASH_PATTERN.test(value.dossierId || "") || !nonEmptyString(value.basisIdentity) ||
+        !nonEmptyString(value.title) || value.title.length > 120 ||
+        !nonEmptyString(value.claimBoundary) ||
+        !canonicalTimestamp(value.recordedAt) || !isPlainObject(value.summary) ||
+        !Array.isArray(value.corrections)) {
+      return failure("P008-SCHEMA-CORRUPT", "dossier-invalid", "dossiers", null, false);
+    }
+    for (var correctionIndex = 0; correctionIndex < value.corrections.length; correctionIndex += 1) {
+      var correction = value.corrections[correctionIndex];
+      if (!isPlainObject(correction) || !nonEmptyString(correction.note) ||
+          correction.note.length > 400 || !canonicalTimestamp(correction.recordedAt) ||
+          Object.keys(correction).length !== 2) {
+        return failure("P008-SCHEMA-CORRUPT", "dossier-correction-invalid", "dossiers", null, false);
+      }
+    }
+    return success(value);
+  }
+
+  /* The real write path for the dossiers section. Scope 03 pins that no personal
+     section may be declared without one, so that its clear sweep cannot be
+     vacuously true over an empty-by-construction container. */
+  function buildDossierCandidate(basisIdentity, title, claimBoundary, summary, currentWorkspace, now, policy) {
+    var workspaceResult = validateWorkspace(currentWorkspace, policy);
+    if (!workspaceResult.ok) return workspaceResult;
+    if (!nonEmptyString(basisIdentity) || !nonEmptyString(title) || title.length > 120 ||
+        !nonEmptyString(claimBoundary) || !isPlainObject(summary)) {
+      return failure("P008-SCHEMA-CORRUPT", "dossier-input-invalid", "dossiers", null, false);
+    }
+    if (!canonicalTimestamp(now)) return failure("P008-SCHEMA-CORRUPT", "timestamp-invalid", "now", null, false);
+
+    var dossier = {
+      dossierId: contracts.fingerprint("portfolio-dossier", {
+        contractVersion: "portfolio-dossier-identity/v1",
+        basisIdentity: basisIdentity,
+        title: title
+      }),
+      basisIdentity: basisIdentity,
+      title: title,
+      claimBoundary: claimBoundary,
+      summary: clone(summary),
+      corrections: [],
+      recordedAt: now
+    };
+    var validated = validateDossier(dossier);
+    if (!validated.ok) return validated;
+
+    var candidate = clone(currentWorkspace);
+    // Saving the same basis and title twice is a no-op, not a second dossier.
+    var duplicate = candidate.dossiers.some(function (entry) { return entry.dossierId === dossier.dossierId; });
+    if (!duplicate) candidate.dossiers.push(dossier);
+    candidate.updatedAt = now;
+    candidate.policyRefs = policyRefs(policy);
+    var hashedDossier = withWorkspaceHashes(candidate);
+    var dossierWorkspaceValid = validateWorkspace(hashedDossier, policy);
+    if (!dossierWorkspaceValid.ok) return dossierWorkspaceValid;
+    return success({
+      contractVersion: "portfolio-dossier-candidate/v1",
+      workspace: hashedDossier,
+      dossier: dossier,
+      accepted: !duplicate,
+      reason: duplicate ? "duplicate-dossier" : null
+    });
+  }
+
   /* A saved allocation stores its BASIS identity and a summary, never the full
      candidate matrix. The basis reproduces the candidate exactly, so persisting
      the weights would duplicate derivable data in private storage and widen
@@ -2623,6 +2723,10 @@
         // holdings; only the full-personal clear removes it.
         category("scenarios", workspace.scenarios.length, "all-personal"),
         category("allocations", workspace.allocations.length, "all-personal"),
+        // A saved dossier records a research CLAIM about the owner's own holdings.
+        // It is explicitly saved, so the behavior clear leaves it; only the
+        // full-personal clear removes it. Scope 03 discharges that conjunct here.
+        category("dossiers", workspace.dossiers.length, "all-personal"),
         // Explicitly saved by the owner, so the behavior clear leaves it exactly as it leaves
         // holdings; only the full-personal clear removes it.
         category("quarantine", storageResult.value.presentKeys.filter(function (entry) { return entry.key === policy.storage.quarantineKey; }).length, "all-personal"),
@@ -2777,6 +2881,8 @@
     buildActionOutcomeCandidate: buildActionOutcomeCandidate,
     buildScenarioCandidate: buildScenarioCandidate,
     buildAllocationCandidate: buildAllocationCandidate,
+    buildDossierCandidate: buildDossierCandidate,
+    validateDossier: validateDossier,
     validateScenario: validateScenario,
     buildInterestSignalCandidate: buildInterestSignalCandidate,
     deriveInterestSignals: deriveInterestSignals,

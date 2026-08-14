@@ -2401,6 +2401,43 @@ try {
     'Owner routing A04-05: the published artifact carries domainsProduced plus per-read domainId and ownerDeepLink, so the page has real routes to resolve');
 } catch (e) { failures++; console.log('  ✗ FAIL (portfolio owner routing group threw): ' + e.message); }
 
+/* ---------- Portfolio Survival: no user-typed value may reach an innerHTML sink ----------
+
+   This tool renders data the OWNER TYPES: symbols, holding labels, cash-need descriptions. That
+   makes it the one tool in this repo where an innerHTML sink is a real XSS path rather than a
+   theoretical one — a holding labelled `<img src=x onerror=...>` would execute if it were ever
+   concatenated into markup.
+
+   The delivered code is already correct: every user-derived value is written with textContent, and
+   every innerHTML assignment is a static header literal or a clear. That is exactly the property
+   worth pinning, because it is invisible in review — the next person adding a column has no signal
+   that reaching for `+ symbol +` here is different from reaching for it in a chart label.
+
+   The pin asserts the RHS of every innerHTML assignment is literal-only: no template interpolation,
+   and nothing left over once string literals are removed. An identifier indirection would defeat it,
+   so the one that existed (`var head = ...; table.innerHTML = head;`) was inlined rather than
+   allowlisted — an allowlist entry is a hole that grows. */
+try {
+  group('portfolio survival — innerHTML sinks stay literal-only');
+  const portfolioPage = read('portfolio-survival-allocation-lab.html');
+
+  // Capture each assignment RHS up to the terminating semicolon, across line breaks.
+  const sinks = [...portfolioPage.matchAll(/\.innerHTML\s*=\s*([\s\S]*?);/g)].map((m) => m[1]);
+  assert(sinks.length > 0, 'Portfolio XSS pin covers a real surface: at least one innerHTML assignment was found to check');
+
+  const dynamic = sinks.filter((rhs) => {
+    if (/\$\{/.test(rhs)) return true;              // template interpolation
+    const withoutLiterals = rhs.replace(/"(?:[^"\\]|\\.)*"/g, '').replace(/'(?:[^'\\]|\\.)*'/g, '');
+    return /[A-Za-z_$]/.test(withoutLiterals);      // any surviving identifier == dynamic
+  });
+  assert(dynamic.length === 0,
+    `Portfolio XSS: every innerHTML assignment is a static literal, so an owner-typed symbol or label cannot become markup (dynamic sinks found: ${JSON.stringify(dynamic.map((d) => d.trim().slice(0, 60)))})`);
+
+  // The safe path must actually be in use, or the pin above is satisfied by a page that renders nothing.
+  assert(/textContent\s*=\s*[^;]*(rowSymbol|columnSymbol|symbol|label)/.test(portfolioPage),
+    'Portfolio XSS: owner-typed symbols and labels are written through textContent, which is what makes the literal-only sink rule sufficient rather than merely narrow');
+} catch (e) { failures++; console.log('  ✗ FAIL (portfolio innerHTML sink group threw): ' + e.message); }
+
 /* ---------- Market Brief: §6c larger-picture / anti-reactivity helpers ---------- */
 try {
   group('rlbrief.js — §6c structural frame + anti-reactivity (MA stack, horizon cap, persistence gate)');

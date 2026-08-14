@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab",
   "featureName": "Portfolio Survival and Brief Lab",
   "createdAt": "2026-07-15T17:29:27Z",
-  "status": "done_with_concerns",
+  "status": "blocked",
   "statusReconciliation": {
     "recordedBy": "orchestrator",
     "recordedAt": "2026-08-02T05:03:12Z",
@@ -22,8 +22,8 @@
   "certifiedAt": null,
   "requiresRevalidation": false,
   "execution": {
-    "activeAgent": "bubbles.implement",
-    "currentPhase": "implement",
+    "activeAgent": null,
+    "currentPhase": "blocked",
     "currentScope": 16,
     "runStartedAt": "2026-07-15T23:25:05Z",
     "completedPhaseClaims": [],
@@ -180,15 +180,16 @@
       {
         "scope": 16,
         "name": "Integrated Route Accessibility And Atomic Release",
-        "status": "done_with_concerns",
+        "status": "in_progress",
         "dependsOn": [
           "15"
         ],
         "scopeDir": "scopes/16-integrated-route-accessibility-and-atomic-release",
         "evidenceFile": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md"
-      }
+      },
+      "Done"
     ],
-    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredOwner": "human",
     "audit": {
       "schemaVersion": "audit-run/v1",
       "runId": null,
@@ -215,7 +216,7 @@
     ]
   },
   "certification": {
-    "status": "done_with_concerns",
+    "status": "blocked",
     "completedScopes": [
       "01-private-portfolio-import-and-atomic-store",
       "02-mandate-and-cash-need-authority",
@@ -394,14 +395,15 @@
       {
         "scope": 16,
         "name": "Integrated Route Accessibility And Atomic Release",
-        "status": "done_with_concerns",
+        "status": "in_progress",
         "dependsOn": [
           "15"
         ],
         "scopeDir": "scopes/16-integrated-route-accessibility-and-atomic-release",
         "evidenceFile": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md",
         "certifiedAt": null
-      }
+      },
+      "Done"
     ],
     "lockdownState": {
       "active": false,
@@ -569,5 +571,5 @@
     "07-return-and-drawdown-x-ray",
     "08-concentration-capm-and-risk-contribution"
   ],
-  "concernsReason": "All 16 scopes are delivered and the product work is complete: the tool is registered and live, the Feature 012 route-ownership reconciliation shipped, and the last residual is closed (mount-anchor canary passes; node failures 29 -> 28 with zero new). The concern is NOT product state, it is workflow certification: certification.certifiedCompletedPhases is empty, so the Bubbles specialist phase chain (implement/test/regression/simplify/gaps/harden/stabilize/security/docs/validate/audit/chaos) was never run and certified for this feature. The substance of implement, test, regression, docs and validate was executed directly with recorded evidence, but claiming status done would assert a certified phase chain that does not exist - Gate G022 refuses it correctly. OPERATOR ACTION to reach clean done: run the specialist phase chain over the delivered feature and certify it."
+  "blockedReason": "BLOCKED ON HUMAN ACCEPTANCE (Gate G136), which no agent may clear.\n\nuservalidation.md carries 18 unchecked acceptance items against 5 checked. Gate G136 states the\ncondition plainly: \"checking a box on the author's behalf would fabricate the acceptance this gate\nrequires\" — so the remaining 18 are not agent-actionable by construction, regardless of how much\nevidence the packet accumulates.\n\nOPERATOR ACTION TO UNBLOCK: open specs/008-portfolio-survival-and-brief-lab/uservalidation.md, use\nthe tool at portfolio-survival-allocation-lab.html, and for each of the 18 items either check it\n(the behaviour is accepted) or leave it unchecked and file the regression it represents.\n\nSTATE OF THE WORK, honestly:\n- All 16 scopes are implemented. Feature 008 browser suite 72/72 (twice, deterministic);\n  existing consumers 147/147; selftest 1643/0; reader-legibility 0 leaks across 26 pages;\n  node suite shows zero new failures against an empirical pre-registration worktree baseline\n  (825/28 at HEAD, 825/28 at 813813d4^).\n- The specialist phases were executed directly this session because runSubagent dispatch returned\n  no output on this packet. Their raw command output is recorded in scope 16 report.md under\n  \"Specialist Phase Execution\". Two real defects were found and fixed by that work: a stale\n  dependency-gate projection and 7 stale test-path baseline entries. A genuine XSS surface was\n  closed with an adversarially-verified pin, and finding F008-IMPL-010 (a silent-pass risk in\n  TP-01-05) was fixed rather than carried.\n- No phase is CLAIMED in state.json: per-phase timestamps were never recorded, and inventing\n  distinct ones to pass the provenance check would be the fabrication the check exists to catch.\n\nREMAINING NON-HUMAN DEBT (does not block the human gate, but blocks `done` independently):\nstate-transition-guard reports 172 failures across G053, G027, G040, G068, G088 and G136 —\nchiefly per-DoD evidence anchors under 10 lines in scopes 09/10/14/15/16, missing regression-E2E\nand consumer-trace planning requirements, and residual deferral phrasing in 4 scope reports."
 }

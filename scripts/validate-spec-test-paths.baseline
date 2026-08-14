@@ -117,16 +117,9 @@ tests/market-action-publication.integration.mjs
 tests/market-regime-consumer-migration.spec.mjs
 tests/market-regime-lab.spec.mjs
 tests/market-regime-lab.stress.spec.mjs
-tests/portfolio-allocation.functional.mjs
-tests/portfolio-analytics.unit.mjs
 tests/portfolio-matrix-privacy.functional.mjs
 tests/portfolio-private.spec.mjs
 tests/portfolio-stress-journey.functional.mjs
-tests/portfolio-survival-allocation.spec.mjs
-tests/portfolio-survival-diversification.spec.mjs
-tests/portfolio-survival-mobile.spec.mjs
-tests/portfolio-survival-paths.spec.mjs
-tests/portfolio-survival-risk.spec.mjs
 tests/private-portfolio-adapter.unit.mjs
 tests/recommendation-track-record-lab.spec.mjs
 tests/recommendation-track-record.canary.mjs

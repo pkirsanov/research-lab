@@ -2229,11 +2229,21 @@ Every failure is classified mechanically rather than read off the summary line, 
 | `F008-IMPL-006` | Open | **Resolved** | 0 `MD060` occurrences; diagnostics clean on 14 files | closed |
 | `F008-IMPL-007` | Open | **Resolved** | artifact lint exit 0, `status` matches `certification.status` | closed |
 | `F008-IMPL-008` | Open | **Resolved** | both Scope 01 scenarios map to DoD items under G068 | closed |
-| `F008-IMPL-009` | Open | Open, carried | diagnostic prints lag assertions in TP-01-03 | `bubbles.test` |
-| `F008-IMPL-010` | Open | Open, carried | TP-01-05 lacks a per-mode render assertion | `bubbles.test` |
-| `F008-IMPL-011` | Open | Open, carried | `XDG_RUNTIME_DIR` trailing-slash refusal | upstream `bubbles` |
+| `F008-IMPL-009` | Open | **Resolved** | TP-01-03 prints now separate `firstImport.*` from final state | closed |
+| `F008-IMPL-010` | Open | **Resolved** | TP-01-05 asserts the rendered rejection per mode | closed |
+| `F008-IMPL-011` | Open | Open, upstream-only | `XDG_RUNTIME_DIR` trailing-slash refusal | upstream `bubbles` |
 
-`F008-IMPL-009`, `-010`, and `-011` are carried, not silently dropped. None is named by this gate, none leaves a clause unproven, and the first two each require a Test Plan change, which is planning-owned. `-011` requires a patch to `.github/bubbles/`, which is framework-managed install surface this repo forbids patching locally.
+`F008-IMPL-009` and `-010` were closed rather than left open. `-009` no longer reproduces: the TP-01-03
+diagnostics distinguish the earlier `firstImport.*` snapshot from the unprefixed final committed state,
+so the transcript no longer reads as though it lags its assertions. `-010` was a genuine silent-pass
+risk — `#confirmImport` being disabled proves nothing about *why*, so a mode where the preview never
+ran would still have passed — and TP-01-05 now asserts the rendered rejection (`#previewRejected` is
+non-zero and `#importErrors` names `P008-IMPORT-SECRET`) before checking the button, in every one of
+the three persistence modes.
+
+`-011` is the only finding that remains open, and it is not this repository's to close: it requires a
+patch to `.github/bubbles/`, which is framework-managed install surface this repo forbids patching
+locally. It is filed upstream and has a documented `BUBBLES_SESSION_CONTROL_HOME` workaround.
 
 ### Build Quality Gate Verdict
 

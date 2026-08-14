@@ -538,6 +538,13 @@ test('Regression: Feature 008 atomic slots preserve last valid portfolio in dura
     const modeSentinel = COMMITTED_ARTIFACT_SENTINEL + '-' + mode + '-' + Date.now();
     const invalidBytes = (await import('node:fs')).readFileSync(resolve(FIXTURE_ROOT, 'invalid-secret-portfolio.csv'), 'utf8').replaceAll('__PRIVATE_SENTINEL__', modeSentinel);
     await page.locator('#portfolioFile').setInputFiles({ name: 'invalid.csv', mimeType: 'text/csv', buffer: Buffer.from(invalidBytes) });
+    /* Closes F008-IMPL-010. Asserting only that #confirmImport is disabled would also pass if the
+     * preview never rendered at all — a disabled button proves nothing about WHY it is disabled.
+     * Pinning the rendered rejection first means this iteration fails when the preview silently
+     * does not run in a mode, instead of reporting a pass for the wrong reason. */
+    await expect(page.locator('#previewRejected'),
+      `the invalid preview must actually render and report rejected rows in ${mode} mode, not merely leave the button disabled`).not.toHaveText('0');
+    await expect(page.locator('#importErrors')).toContainText('P008-IMPORT-SECRET');
     await expect(page.locator('#confirmImport')).toBeDisabled();
     const after = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
     expect(after.currentPortfolioId).toBe(before.currentPortfolioId);

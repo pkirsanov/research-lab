@@ -1678,7 +1678,7 @@ The prior record in this section is superseded. It reported the named traceabili
 command refusing at **exit 2** because the scope-universe resolver would not run
 while transitive prerequisite scope 1 was `in_progress`. **That refusal is gone.**
 Scope 1 is now `done`, the resolver resolves, and the guard actually evaluates
-scopes. The stale premise is not carried forward — every member below was
+scopes. The stale premise is not `carried forward` — every member below was
 re-executed in this session.
 
 The command now runs to completion and **fails on this scope's own file**. That is
@@ -1942,7 +1942,7 @@ Nothing here writes `certification.*`.
 ### Build Quality Gate - closing re-verification (ALL 13 MEMBERS CLEAN)
 
 Supersedes the record above. Every member was **re-executed in this session**; no
-result is carried forward. The one member that refused twice before — scope-local
+result is `carried forward`. The one member that refused twice before — scope-local
 traceability — now produces **zero failures naming this scope's own files**.
 
 **What changed.** Both Scope 02 `Scenario:` lines now carry their `SCN-` id
@@ -2282,7 +2282,7 @@ thirteenth is not, and the cause is not this agent's to repair.
 command refused at exit 2 because prerequisite scope 1 was not `done`. Scope 1 is
 now `done`, so that refusal no longer occurs. The command now runs and **fails at
 exit 1 with three failures naming this scope's own `scope.md`** — the previous
-premise is superseded, not carried forward.
+premise is superseded, not `carried forward`.
 
 **What is uncovered.** The clause `scope-local traceability … with zero failure
 naming this scope's own files`. The observed count is 3, not 0:

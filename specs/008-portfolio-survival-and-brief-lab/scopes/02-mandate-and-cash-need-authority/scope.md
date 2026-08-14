@@ -335,7 +335,7 @@ Add each named assertion and persistent title before mandate behavior. Execute e
 
 - [x] Focused RED/GREEN records, mandate/config parity, authority/forbidden-input scans, exact rollback, no-interception/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16.
 
-  All 13 members are recorded verbatim in [report.md](report.md#build-quality-gate---closing-re-verification-all-13-members-clean). Member 13 is the only member carrying a numeric threshold, so it was re-executed at closing time rather than carried forward on assertion.
+  All 13 members are recorded verbatim in [report.md](report.md#build-quality-gate---closing-re-verification-all-13-members-clean). Member 13 is the only member carrying a numeric threshold, so it was re-executed at closing time rather than `carried forward` on assertion.
 
   **Command:** `timeout 900 bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
 

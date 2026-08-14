@@ -2268,9 +2268,8 @@
                 matrixWrap.style.maxWidth = "100%";
                 var matrixTable = document.createElement("table");
                 matrixTable.id = "dependenceTable";
-                var head = "<thead><tr><th scope=\"col\">Pair</th><th scope=\"col\">Correlation</th>" +
+                matrixTable.innerHTML = "<thead><tr><th scope=\"col\">Pair</th><th scope=\"col\">Correlation</th>" +
                     "<th scope=\"col\">Sample</th><th scope=\"col\">Observations</th></tr></thead>";
-                matrixTable.innerHTML = head;
                 var matrixBody = document.createElement("tbody");
                 model.cells.forEach(function (cell) {
                     var tr = document.createElement("tr");

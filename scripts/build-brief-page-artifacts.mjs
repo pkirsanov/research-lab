@@ -38,7 +38,8 @@ export function buildBriefPageArtifacts(root = process.cwd()) {
       attention: payload.attention,
       recommendations: payload.recommendations,
       events: payload.events,
-      watchlistNotes: payload.watchlistNotes
+      watchlistNotes: payload.watchlistNotes,
+      researchAgenda: payload.researchAgenda
     },
     [OUTPUTS.config]: {
       contractVersion: 'market-brief-config-page/v1',

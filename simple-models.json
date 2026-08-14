@@ -5236,5 +5236,34 @@
       },
       "definitionFingerprint": null
     }
+    ,
+    {
+      "contractVersion": "simple-model-definition/v1",
+      "definitionId": "simple-model/research-agenda-posture/v1",
+      "toolId": "research-agenda-lab",
+      "modelId": "research-agenda-posture",
+      "modelVersion": "v1",
+      "researchQuestion": "How does the current public research posture and its transmission change under five explicit physical-flow, rerouting, policy and demand assumptions without changing evidence or history",
+      "resultSchemaId": "simple-model-output/generic-scenario/v1",
+      "adapterId": "simple-adapter/research-agenda-posture/v1",
+      "adapterModule": "rlexperience-adapters/research-agenda.js",
+      "inputRequirements": [{"requirementId":"owner-evidence","sourceClass":"owner-evidence","required":true,"stalePolicy":"reject"}],
+      "parameterDefinitions": [
+        {"parameterId":"hormuz-pass","label":"Hormuz physical pass","kind":"number","unit":"normalized-share","domain":{"min":0,"max":1,"step":0.01},"defaultValue":1,"defaultSource":"registry","interpretation":"Sets the explicit physical pass fraction at Hormuz.","affectsOutputPaths":["summary.posture","summary.scenarios","summary.transmission"],"disabledWhen":[],"identityBearing":true},
+        {"parameterId":"bab-el-mandeb-pass","label":"Bab el-Mandeb physical pass","kind":"number","unit":"normalized-share","domain":{"min":0,"max":1,"step":0.01},"defaultValue":1,"defaultSource":"registry","interpretation":"Sets the explicit physical pass fraction at Bab el-Mandeb.","affectsOutputPaths":["summary.posture","summary.scenarios","summary.transmission"],"disabledWhen":[],"identityBearing":true},
+        {"parameterId":"rerouted-share","label":"Rerouted share","kind":"number","unit":"normalized-share","domain":{"min":0,"max":1,"step":0.01},"defaultValue":0,"defaultSource":"registry","interpretation":"Sets the explicit share eligible for declared alternate-route capacity.","affectsOutputPaths":["summary.transmission"],"disabledWhen":[],"identityBearing":true},
+        {"parameterId":"policy-response-offset","label":"Inventory and policy response","kind":"number","unit":"decimal-return","domain":{"min":-1,"max":1,"step":0.01},"defaultValue":0,"defaultSource":"registry","interpretation":"Adds an explicit inventory and policy response offset inside the declared channel bounds.","affectsOutputPaths":["summary.transmission"],"disabledWhen":[],"identityBearing":true},
+        {"parameterId":"demand-offset","label":"Demand offset","kind":"number","unit":"decimal-return","domain":{"min":-1,"max":1,"step":0.01},"defaultValue":0,"defaultSource":"registry","interpretation":"Adds an explicit demand-side offset inside the declared channel bounds.","affectsOutputPaths":["summary.transmission"],"disabledWhen":[],"identityBearing":true}
+      ],
+      "scenarioDefinitions": [{"scenarioId":"baseline","label":"Baseline","parameterOverrides":{}}],
+      "seedPolicy": {"required":false,"defaultSeed":null,"defaultSource":null,"randomnessClass":"none","commonRandomNumbersForSensitivity":false},
+      "sensitivityPolicy": {"method":"one-at-a-time","requireOutputEffect":true,"flatRegionPolicy":"explicit-proof"},
+      "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
+      "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
+      "performancePolicy": {"maxComputeMs":250,"deterministic":true},
+      "limitations": ["An unavailable current review stays unavailable; dated history cannot supply current model output, and changed assumptions never alter evidence or the immutable review."],
+      "deepLinkTargets": {"power":"research-agenda-lab.html#power/geopolitical-supply-shock","journey":"research-agenda-lab.html#journey"},
+      "definitionFingerprint": null
+    }
   ]
 }

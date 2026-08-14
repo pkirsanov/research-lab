@@ -1,0 +1,948 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:* https://*.ts.net:* https://api.nasdaq.com https://api.stlouisfed.org https://api.twelvedata.com https://cdn.cboe.com https://data.sec.gov https://finnhub.io https://home.treasury.gov https://production.dataviz.cnn.io https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://stockanalysis.com https://www.alphavantage.co; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; manifest-src 'self'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="A recurring public-market research agenda with current review truth, durable models, dated history, explicit assumptions, and falsifiable reversal conditions.">
+  <title>Research Agenda Lab | Research Lab</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #162126;
+      --muted: #5d6c70;
+      --paper: #f2f0ea;
+      --surface: #fffefa;
+      --line: #c8cec9;
+      --red: #a53c2d;
+      --teal: #176a63;
+      --gold: #9a6a13;
+      --blue: #275f8c;
+      --unavailable: #7d4d43;
+      --deferred: #7b641f;
+      --ready: #176a4d;
+      --shadow: 0 10px 28px rgba(22, 33, 38, 0.08);
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--paper); color: var(--ink); font-family: Georgia, "Times New Roman", serif; }
+    body { margin: 0; min-width: 0; background: linear-gradient(90deg, rgba(39,95,140,.045) 1px, transparent 1px), linear-gradient(rgba(39,95,140,.035) 1px, transparent 1px), var(--paper); background-size: 48px 48px; }
+    button, input, select { font: inherit; }
+    button, a, input { -webkit-tap-highlight-color: transparent; }
+    a { color: var(--teal); text-underline-offset: 3px; }
+    button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #0077b6; outline-offset: 3px; }
+    .shell { border-bottom: 1px solid var(--line); background: rgba(242,240,234,.96); }
+    .shell-inner, main, footer { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+    .shell-inner { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 0; }
+    .brand, .eyebrow, .label, th, .status, .topic-button, .mode-button, .lever-meta { font-family: "Trebuchet MS", Verdana, sans-serif; letter-spacing: 0; }
+    .brand { font-size: .78rem; text-transform: uppercase; font-weight: 800; }
+    .asof { color: var(--muted); font: 700 .76rem/1.3 "Trebuchet MS", Verdana, sans-serif; text-align: right; }
+    main { padding: 28px 0 68px; }
+    .cockpit-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; padding-bottom: 18px; border-bottom: 3px solid var(--ink); }
+    .eyebrow { color: var(--red); font-size: .74rem; text-transform: uppercase; font-weight: 900; }
+    h1 { margin: 5px 0 8px; font-size: clamp(2rem, 4.5vw, 3.6rem); line-height: 1; font-weight: 500; }
+    .dek { max-width: 790px; margin: 0; color: var(--muted); font-size: 1.02rem; line-height: 1.52; }
+    .mode-control { display: inline-flex; align-items: center; gap: 3px; padding: 3px; border: 1px solid var(--line); background: var(--surface); }
+    .mode-button { min-height: 38px; padding: 7px 14px; border: 0; background: transparent; color: var(--muted); font-size: .8rem; font-weight: 800; cursor: pointer; }
+    .mode-button[aria-selected="true"] { background: var(--ink); color: white; }
+    .topic-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-bottom: 1px solid var(--line); }
+    .topic-button { min-width: 0; min-height: 72px; padding: 12px 14px; border: 0; border-right: 1px solid var(--line); background: rgba(255,254,250,.68); text-align: left; cursor: pointer; }
+    .topic-button:last-child { border-right: 0; }
+    .topic-button[aria-selected="true"] { box-shadow: inset 0 -5px 0 var(--teal); background: var(--surface); }
+    .topic-title { display: block; font-size: .82rem; font-weight: 900; overflow-wrap: anywhere; }
+    .topic-state { display: block; margin-top: 5px; color: var(--muted); font-size: .74rem; }
+    .status-band { display: grid; grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(120px, .5fr)); gap: 1px; margin-top: 22px; border: 1px solid var(--line); background: var(--line); }
+    .status-main, .status-cell { min-width: 0; padding: 18px; background: var(--surface); }
+    .status-main { border-left: 6px solid var(--unavailable); }
+    .status-main[data-state="reviewed"] { border-left-color: var(--ready); }
+    .status-main[data-state="deferred"] { border-left-color: var(--deferred); }
+    .label { display: block; color: var(--muted); font-size: .68rem; text-transform: uppercase; font-weight: 900; }
+    .status { display: block; margin-top: 5px; font-size: 1.12rem; font-weight: 900; overflow-wrap: anywhere; }
+    .status-reason { margin: 7px 0 0; color: var(--muted); line-height: 1.45; }
+    .status-value { display: block; margin-top: 7px; font: 800 .88rem/1.35 "Trebuchet MS", Verdana, sans-serif; overflow-wrap: anywhere; }
+    .band { padding: 30px 0; border-bottom: 1px solid var(--line); }
+    .band-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: end; margin-bottom: 16px; }
+    h2 { margin: 0; font-size: clamp(1.35rem, 2.5vw, 2rem); font-weight: 500; }
+    h3 { margin: 0; font: 900 .8rem/1.3 "Trebuchet MS", Verdana, sans-serif; text-transform: uppercase; }
+    .band-note, .muted { margin: 5px 0 0; color: var(--muted); line-height: 1.5; }
+    .state-empty { border-left: 5px solid var(--unavailable); padding: 14px 18px; background: rgba(255,254,250,.72); color: var(--muted); line-height: 1.5; }
+    .split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(300px, .9fr); gap: 26px; }
+    .metric-row { display: grid; grid-template-columns: minmax(150px, .7fr) minmax(0, 1.3fr) 74px; gap: 12px; align-items: center; min-height: 42px; border-bottom: 1px solid var(--line); }
+    .metric-name { font: 800 .8rem/1.3 "Trebuchet MS", Verdana, sans-serif; overflow-wrap: anywhere; }
+    .metric-track { height: 14px; background: #dfe3df; overflow: hidden; }
+    .metric-fill { height: 100%; background: var(--teal); }
+    .metric-value { text-align: right; font: 800 .8rem/1 "Trebuchet MS", Verdana, sans-serif; font-variant-numeric: tabular-nums; }
+    .lever-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .lever { min-width: 0; padding: 15px; border: 1px solid var(--line); background: var(--surface); }
+    .lever label { display: block; font: 800 .8rem/1.3 "Trebuchet MS", Verdana, sans-serif; }
+    .lever-controls { display: grid; grid-template-columns: minmax(0, 1fr) 92px; gap: 10px; align-items: center; margin-top: 10px; }
+    .lever input[type="range"] { width: 100%; accent-color: var(--teal); }
+    .lever input[type="number"] { width: 100%; min-height: 38px; border: 1px solid var(--line); background: white; padding: 6px 8px; }
+    .lever-meta { min-height: 1.3em; margin-top: 7px; color: var(--muted); font-size: .69rem; }
+    .lever[data-changed="true"] { border-color: var(--gold); box-shadow: inset 0 3px 0 var(--gold); }
+    .lever[data-changed="true"] .lever-meta { color: #704805; font-weight: 900; }
+    .control-actions { display: flex; align-items: center; gap: 12px; margin-top: 13px; }
+    .reset { min-height: 40px; border: 1px solid var(--ink); background: var(--ink); color: white; padding: 8px 14px; cursor: pointer; }
+    .reset:disabled { opacity: .45; cursor: not-allowed; }
+    .two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .matrix { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; border: 1px solid var(--line); background: var(--line); }
+    .matrix-cell { min-width: 0; background: var(--surface); padding: 16px; }
+    .matrix-cell p { margin: 8px 0 0; color: var(--muted); line-height: 1.45; }
+    .history-band { border-top: 6px solid var(--gold); background: #fff8df; padding: 20px; }
+    .history-badge { display: inline-block; padding: 5px 8px; border: 1px solid var(--gold); color: #69470a; font: 900 .68rem/1 "Trebuchet MS", Verdana, sans-serif; text-transform: uppercase; }
+    .history-band h2 { margin-top: 10px; }
+    .history-band .warning { font-weight: 700; color: #69470a; }
+    .table-wrap { width: 100%; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; background: var(--surface); }
+    th, td { padding: 11px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+    th { color: var(--muted); font-size: .68rem; text-transform: uppercase; }
+    td { line-height: 1.42; }
+    .evidence-list, .source-list, .history-list { display: grid; gap: 8px; }
+    .evidence-row, .source-row, .history-row { min-width: 0; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 14px; }
+    .evidence-row strong, .source-row strong { overflow-wrap: anywhere; }
+    .row-meta { margin-top: 7px; color: var(--muted); font: 700 .72rem/1.45 "Trebuchet MS", Verdana, sans-serif; overflow-wrap: anywhere; }
+    .pill { display: inline-block; margin: 0 4px 4px 0; border: 1px solid var(--line); border-radius: 999px; padding: 4px 7px; font: 800 .66rem/1 "Trebuchet MS", Verdana, sans-serif; }
+    .historical-chart { display: grid; gap: 10px; min-height: 180px; padding: 16px; border: 1px solid var(--line); background: var(--surface); }
+    .question { margin-top: 12px; padding-left: 14px; border-left: 3px solid var(--blue); font-size: 1.05rem; line-height: 1.5; }
+    #fixtureBand { margin-top: 16px; border-left: 6px solid var(--gold); background: #fff2bd; color: #684608; padding: 12px 14px; font: 900 .76rem/1.4 "Trebuchet MS", Verdana, sans-serif; }
+    #fixtureBand[hidden] { display: none; }
+    .pw { display: none; }
+    body.power .pw { display: block; }
+    body.power #simpleOnly { display: none; }
+    footer { padding: 24px 0 50px; color: var(--muted); line-height: 1.5; }
+    body.research-agenda-page {
+      color-scheme: light;
+      color: #162126 !important;
+      background: linear-gradient(90deg, rgba(39,95,140,.045) 1px, transparent 1px), linear-gradient(rgba(39,95,140,.035) 1px, transparent 1px), #f2f0ea !important;
+      background-size: 48px 48px !important;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+    body.research-agenda-page a { color: #176a63; }
+    body.research-agenda-page .shell { color: #162126; background: rgba(242,240,234,.97); border-bottom-color: #c8cec9; }
+    body.research-agenda-page .brand { color: #162126; }
+    body.research-agenda-page .asof,
+    body.research-agenda-page .dek,
+    body.research-agenda-page .topic-state,
+    body.research-agenda-page .label,
+    body.research-agenda-page .status-reason,
+    body.research-agenda-page .band-note,
+    body.research-agenda-page .muted,
+    body.research-agenda-page .lever-meta,
+    body.research-agenda-page .matrix-cell p,
+    body.research-agenda-page th,
+    body.research-agenda-page .row-meta,
+    body.research-agenda-page footer { color: #53656a; }
+    body.research-agenda-page .cockpit-head { border-bottom-color: #162126; }
+    body.research-agenda-page .eyebrow { color: #a53c2d; }
+    body.research-agenda-page .mode-control,
+    body.research-agenda-page .status-main,
+    body.research-agenda-page .status-cell,
+    body.research-agenda-page .lever,
+    body.research-agenda-page .matrix-cell,
+    body.research-agenda-page table,
+    body.research-agenda-page .evidence-row,
+    body.research-agenda-page .source-row,
+    body.research-agenda-page .history-row,
+    body.research-agenda-page .historical-chart { color: #162126; background: #fffefa; border-color: #c8cec9; }
+    body.research-agenda-page .topic-button { color: #162126; background: #e8e5de; border-color: #c8cec9; font-family: "Trebuchet MS", Verdana, sans-serif; }
+    body.research-agenda-page .topic-button[aria-selected="true"] { color: #162126; background: #fffefa; box-shadow: inset 0 -5px 0 #176a63; }
+    body.research-agenda-page .status-band,
+    body.research-agenda-page .matrix { color: #162126; background: #c8cec9; border-color: #c8cec9; }
+    body.research-agenda-page .band,
+    body.research-agenda-page .metric-row,
+    body.research-agenda-page th,
+    body.research-agenda-page td { border-color: #c8cec9; }
+    body.research-agenda-page .state-empty { color: #485a5f; background: #f8f5ed; border-left-color: #7d4d43; }
+    body.research-agenda-page .metric-track { background: #dfe3df; }
+    body.research-agenda-page .metric-fill { background: #176a63; }
+    body.research-agenda-page .lever input[type="number"] { color: #162126; background: white; border-color: #aeb8b5; }
+    body.research-agenda-page .reset { color: white; background: #162126; border-color: #162126; }
+    body.research-agenda-page .history-band { color: #392b12; background: #fff8df; border-top-color: #9a6a13; }
+    body.research-agenda-page .history-band .warning { color: #69470a; }
+    body.research-agenda-page .question { border-left-color: #275f8c; }
+    @media (max-width: 820px) {
+      .cockpit-head, .split, .two-col { grid-template-columns: 1fr; }
+      .mode-control { justify-self: start; }
+      .status-band { grid-template-columns: 1fr 1fr; }
+      .status-main { grid-column: 1 / -1; }
+      .lever-grid, .matrix { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .shell-inner, main, footer { width: min(100% - 20px, 1180px); }
+      main { padding-top: 18px; }
+      .topic-strip { grid-template-columns: 1fr; }
+      .topic-button { min-height: 54px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .status-band { grid-template-columns: 1fr; }
+      .status-main { grid-column: auto; }
+      .band-head { grid-template-columns: 1fr; }
+      .metric-row { grid-template-columns: 1fr 64px; padding: 9px 0; }
+      .metric-track { grid-column: 1 / -1; grid-row: 2; }
+      table, thead, tbody, th, td, tr { display: block; }
+      thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+      tr { border-bottom: 1px solid var(--line); padding: 9px 0; }
+      td { display: grid; grid-template-columns: minmax(90px, .7fr) minmax(0, 1.3fr); gap: 8px; border: 0; padding: 6px 10px; }
+      td::before { content: attr(data-label); color: var(--muted); font: 800 .68rem/1.3 "Trebuchet MS", Verdana, sans-serif; text-transform: uppercase; }
+      .table-wrap { overflow: visible; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
+  </style>
+</head>
+<body class="research-agenda-page">
+  <header class="shell">
+    <div class="shell-inner">
+      <div class="brand">Research Lab / Standing Research</div>
+      <div class="asof" id="headerAsOf">Loading current generation</div>
+    </div>
+  </header>
+  <main>
+    <section class="cockpit-head" aria-labelledby="pageTitle">
+      <div>
+        <div class="eyebrow">Current truth, dated history, explicit assumptions</div>
+        <h1 id="pageTitle">Research Agenda Lab</h1>
+        <p class="dek">A recurring public-market research workspace that preserves the current generation, its evidence boundary, durable models, reversal conditions, and prior versions without filling gaps from history.</p>
+      </div>
+      <div class="mode-control" id="modeSeg" role="tablist" aria-label="View mode">
+        <button class="mode-button" type="button" data-mode="simple" role="tab" aria-selected="true">Simple</button>
+        <button class="mode-button" type="button" data-mode="power" role="tab" aria-selected="false">Power</button>
+      </div>
+    </section>
+    <div id="fixtureBand" role="status" hidden>TEST FIXTURE - committed reversal scenario; never current market evidence and never published.</div>
+
+    <nav class="topic-strip" id="topicStrip" aria-label="Research topics"></nav>
+
+    <section class="status-band" aria-labelledby="topicHeading">
+      <div class="status-main" id="statusMain" data-state="unavailable">
+        <span class="label">Current posture</span>
+        <strong class="status" id="currentPosture">Loading</strong>
+        <p class="status-reason" id="currentReason">Reading the immutable current pointer.</p>
+      </div>
+      <div class="status-cell"><span class="label">Generation</span><span class="status-value" id="generationValue">Loading</span></div>
+      <div class="status-cell"><span class="label">Review</span><span class="status-value" id="reviewValue">Loading</span></div>
+      <div class="status-cell"><span class="label">Model parity</span><span class="status-value" id="parityValue">Not applicable</span></div>
+    </section>
+
+    <section class="band" id="topicSection">
+      <div class="band-head">
+        <div>
+          <span class="label">Selected research question</span>
+          <h2 id="topicHeading" tabindex="-1">Loading topic</h2>
+        </div>
+        <a id="powerLink" href="#power">Open Power detail</a>
+      </div>
+      <p class="question" id="topicQuestion">Loading the declared question.</p>
+    </section>
+
+    <div id="simpleOnly">
+      <section class="band" aria-labelledby="scenarioHeading">
+        <div class="band-head"><div><span class="label">Current model</span><h2 id="scenarioHeading">Scenario probabilities</h2></div><span class="muted" id="probabilityTotal">No current total</span></div>
+        <div id="currentScenarios" aria-live="polite"></div>
+      </section>
+
+      <section class="band split" aria-labelledby="transmissionHeading">
+        <div>
+          <span class="label">Physical before financial</span>
+          <h2 id="transmissionHeading">Transmission exposures</h2>
+          <p class="band-note">Physical loss, delay, rerouting, inventory response, policy response, and demand remain separate model components.</p>
+        </div>
+        <div id="currentTransmission"></div>
+      </section>
+
+      <section class="band two-col">
+        <div><span class="label">What changed</span><h2>Evidence delta</h2><div id="evidenceDelta" class="state-empty">No current dossier exists, so no current evidence delta can be claimed.</div></div>
+        <div><span class="label">What would reverse it</span><h2>Triggers and invalidations</h2><div id="triggerSummary"></div></div>
+      </section>
+    </div>
+
+    <section class="band" aria-labelledby="leverHeading">
+      <div class="band-head">
+        <div><span class="label">Local scenario inputs</span><h2 id="leverHeading">Five explicit assumptions</h2><p class="band-note">A change recomputes both view projections from already-loaded published inputs. It does not fetch, rewrite evidence, or alter the review.</p></div>
+        <span class="muted" id="leverAvailability">Waiting for current model inputs</span>
+      </div>
+      <div class="lever-grid" id="leverGrid"></div>
+      <div class="control-actions"><button class="reset" id="resetLevers" type="button" disabled>Reset published values</button><span class="muted" id="recomputeNote">No local recomputation has run.</span></div>
+    </section>
+
+    <section class="band" aria-labelledby="freshnessHeading">
+      <div class="band-head"><div><span class="label">Source truth</span><h2 id="freshnessHeading">Freshness and coverage</h2></div><a href="research/agenda/current.json">Open current pointer</a></div>
+      <div class="two-col"><p id="freshnessSummary" class="state-empty">Loading source state.</p><p class="state-empty">All research artifacts are public. No account, holding, quantity, cost basis, profit and loss, credential, action, alert, or destination is accepted by this capability.</p></div>
+    </section>
+
+    <div class="pw" id="powerWorkspace">
+      <section class="band" aria-labelledby="powerScenarioHeading">
+        <div class="band-head"><div><span class="label">Canonical chart and table</span><h2 id="powerScenarioHeading">Scenario probability fan</h2></div><span class="muted">Probability; root scenarios sum to 100%</span></div>
+        <div id="powerScenarios"></div>
+        <div id="powerScenarioTable"></div>
+      </section>
+
+      <section class="band" aria-labelledby="reviewArchitectureHeading">
+        <div class="band-head"><div><span class="label">Current generation</span><h2 id="reviewArchitectureHeading">Review architecture</h2></div><span class="muted">Every required section remains visible when unavailable.</span></div>
+        <div class="matrix" id="sectionMatrix"></div>
+      </section>
+
+      <section class="band" aria-labelledby="actorHeading">
+        <div class="band-head"><div><span class="label">Sustained model</span><h2 id="actorHeading">Actor reaction matrix</h2></div><span class="muted">Declared dimensions and falsifiable limits</span></div>
+        <div class="matrix" id="actorMatrix"></div>
+      </section>
+
+      <section class="band" aria-labelledby="flowHeading">
+        <div class="band-head"><div><span class="label">Unique-flow network</span><h2 id="flowHeading">Chokepoints and rerouting</h2></div><span class="muted">Normalized share and incremental ton-miles</span></div>
+        <div id="flowWorkspace"></div>
+      </section>
+
+      <section class="band" aria-labelledby="channelHeading">
+        <div class="band-head"><div><span class="label">Six declared channels</span><h2 id="channelHeading">Transmission model</h2></div><span class="muted">Decimal-return ranges, not price targets</span></div>
+        <div id="channelWorkspace"></div>
+      </section>
+
+      <section class="band" aria-labelledby="proxyHeading">
+        <div class="band-head"><div><span class="label">Public listed proxies</span><h2 id="proxyHeading">Sensitivity and calibration</h2></div><span class="muted">Ticker links open the public quote owner</span></div>
+        <div id="proxyWorkspace"></div>
+      </section>
+
+      <section class="band history-band" id="historicalBand" aria-labelledby="historicalHeading">
+        <span class="history-badge">Dated history - never current</span>
+        <h2 id="historicalHeading">Historical context unavailable</h2>
+        <p class="warning" id="historicalWarning">No historical dossier is loaded for this topic.</p>
+        <div id="historicalWorkspace"></div>
+      </section>
+
+      <section class="band two-col">
+        <div><span class="label">Evidence chronology</span><h2>Direct, indirect, and inference records</h2><div class="evidence-list" id="evidenceList"></div></div>
+        <div><span class="label">Source ledger</span><h2>Public provenance</h2><div class="source-list" id="sourceList"></div></div>
+      </section>
+
+      <section class="band two-col">
+        <div><span class="label">Current versus predecessor</span><h2>Deterministic comparison</h2><div id="comparisonWorkspace" class="state-empty">No validated current dossier and predecessor pair exists.</div></div>
+        <div><span class="label">Immutable records</span><h2>Review history</h2><div class="history-list" id="historyList"></div></div>
+      </section>
+    </div>
+  </main>
+  <footer>
+    Educational public-market research only. No investment advice, trade action, portfolio instruction, or routing decision is produced.
+    <a href="notes/research-agenda-lab.md">Method and handoff notes</a>.
+  </footer>
+
+  <script src="rlagenda.js"></script>
+  <script src="rlexperience-adapters/research-agenda.js"></script>
+  <script src="rldata.js"></script>
+  <script src="rlapp.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      var LEVERS = [
+        { id: "hormuzPhysicalPassFraction", label: "Hormuz physical pass", min: 0, max: 1, step: .01, unit: "share" },
+        { id: "babElMandebPhysicalPassFraction", label: "Bab el-Mandeb physical pass", min: 0, max: 1, step: .01, unit: "share" },
+        { id: "reroutedShare", label: "Rerouted share", min: 0, max: 1, step: .01, unit: "share" },
+        { id: "inventoryPolicyResponseOffset", label: "Inventory / policy response", min: -1, max: 1, step: .01, unit: "decimal return" },
+        { id: "demandOffset", label: "Demand offset", min: -1, max: 1, step: .01, unit: "decimal return" }
+      ];
+      var state = {
+        mode: "simple", agenda: null, current: null, history: [], selectedTopicId: null,
+        topic: null, definition: null, review: null, dossier: null, view: null,
+        currentDossier: null, predecessorDossier: null, comparison: null, fixture: null,
+        leverState: null, fetchCount: 0, renderCount: 0, assetCache: Object.create(null)
+      };
+
+      function byId(id) { return document.getElementById(id); }
+      function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+      function element(tag, className, text) {
+        var node = document.createElement(tag);
+        if (className) node.className = className;
+        if (typeof text === "string") node.textContent = text;
+        return node;
+      }
+      function human(value) {
+        return String(value || "unavailable").replace(/[-_]+/g, " ").replace(/\b\w/g, function (letter) { return letter.toUpperCase(); });
+      }
+      function reasonText(reason) {
+        var reasons = {
+          "research-lane-unavailable": "The optional research lane did not produce a validated current dossier for this generation.",
+          "cadence-budget": "This cadence topic was not selected inside this generation's declared review budget.",
+          "not-due": "The topic is not due under its declared cadence.",
+          "stale-evidence": "The current review has no supporting observation inside its freshness window."
+        };
+        return reasons[reason] || (reason ? human(reason) + "." : "No additional reason was published.");
+      }
+      function shortId(value) {
+        if (!value) return "None";
+        var parts = String(value).split("-");
+        return parts[0] + "-" + parts[parts.length - 1].slice(0, 10);
+      }
+      function formatInstant(value) {
+        if (!value) return "Unavailable";
+        var date = new Date(value);
+        return isNaN(date.getTime()) ? "Unavailable" : date.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }) + " UTC";
+      }
+      function formatPercent(value) { return typeof value === "number" && isFinite(value) ? (value * 100).toFixed(1) + "%" : "Unavailable"; }
+      function formatRange(range) {
+        return range && typeof range.low === "number" ? formatPercent(range.low) + " / " + formatPercent(range.base) + " / " + formatPercent(range.high) : "Unavailable";
+      }
+      function fetchText(path) {
+        state.fetchCount += 1;
+        return fetch(path, { cache: "no-store" }).then(function (response) {
+          if (!response.ok) throw new Error("same-origin resource unavailable: " + path);
+          return response.text();
+        });
+      }
+      function fetchJson(path) {
+        if (state.assetCache[path]) return Promise.resolve(state.assetCache[path]);
+        return fetchText(path).then(function (text) {
+          var parsed = JSON.parse(text);
+          state.assetCache[path] = parsed;
+          return parsed;
+        });
+      }
+      function parseHistory(text) {
+        return text.split(/\r?\n/).filter(Boolean).map(function (line) { return JSON.parse(line); });
+      }
+      function routeParts() {
+        var parts = String(location.hash || "#simple").replace(/^#/, "").split("/");
+        return { mode: parts[0] === "power" ? "power" : "simple", topicId: parts[1] || null };
+      }
+      function canonicalRoute() { return "#" + state.mode + "/" + state.selectedTopicId; }
+      function applyMode(mode, writeRoute) {
+        state.mode = mode === "power" ? "power" : "simple";
+        document.body.classList.toggle("power", state.mode === "power");
+        var buttons = byId("modeSeg").querySelectorAll("button[data-mode]");
+        Array.prototype.forEach.call(buttons, function (button) { button.setAttribute("aria-selected", button.getAttribute("data-mode") === state.mode ? "true" : "false"); });
+        if (writeRoute && state.selectedTopicId) history.replaceState({ mode: state.mode, topicId: state.selectedTopicId }, "", canonicalRoute());
+      }
+      function topicRef(topicId) { return state.current.topicRefs.find(function (reference) { return reference.topicId === topicId; }) || null; }
+      function selectedHistory() { return state.history.filter(function (event) { return event.topicId === state.selectedTopicId; }); }
+
+      function renderTopics() {
+        var strip = byId("topicStrip");
+        clear(strip);
+        state.agenda.topics.forEach(function (topic) {
+          var reference = topicRef(topic.topicId);
+          var button = element("button", "topic-button");
+          button.type = "button";
+          button.setAttribute("aria-selected", topic.topicId === state.selectedTopicId ? "true" : "false");
+          button.dataset.topicId = topic.topicId;
+          button.appendChild(element("span", "topic-title", topic.title));
+          button.appendChild(element("span", "topic-state", (reference && reference.state === "reviewed" ? "● " : reference && reference.state === "deferred" ? "◐ " : "○ ") + human(reference && reference.state)));
+          button.addEventListener("click", function () { selectTopic(topic.topicId, true); });
+          strip.appendChild(button);
+        });
+      }
+
+      function renderStatus() {
+        var reference = topicRef(state.selectedTopicId);
+        var outcome = state.review ? state.review.outcome : (reference ? reference.state : "unavailable");
+        var modelAvailable = !!(state.view && state.view.modelAvailable);
+        byId("statusMain").dataset.state = reference ? reference.state : "unavailable";
+        byId("currentPosture").textContent = modelAvailable ? dominantScenarioLabel() : "○ " + human(outcome);
+        byId("currentReason").textContent = modelAvailable ? "A validated current model was recomputed from its immutable published inputs." : reasonText(state.review ? state.review.reason : reference && reference.state);
+        byId("generationValue").textContent = shortId(state.current.generationRef.generationId);
+        byId("reviewValue").textContent = state.review ? shortId(state.review.reviewId) : "No review this generation";
+        byId("parityValue").textContent = state.view ? human(state.view.parity) : "Not applicable";
+        byId("headerAsOf").textContent = "Current generation as of " + formatInstant(state.current.updatedAt);
+        var topicHeading = byId("topicHeading");
+        topicHeading.textContent = state.topic.title;
+        topicHeading.setAttribute("data-public-target-id", state.selectedTopicId);
+        byId("topicQuestion").textContent = state.topic.declaredQuestion;
+        byId("powerLink").href = "#power/" + state.selectedTopicId;
+      }
+
+      function dominantScenarioLabel() {
+        if (!state.view || !state.view.modelAvailable) return "Unavailable";
+        var probabilities = state.view.modelOutputs.scenarioProbability;
+        var roots = state.definition.scenarioTree.nodes.filter(function (node) { return node.parentId === null; });
+        roots.sort(function (left, right) { return probabilities[right.scenarioId].unconditional - probabilities[left.scenarioId].unconditional; });
+        return roots.length ? human(roots[0].title || roots[0].scenarioId) : "Unavailable";
+      }
+
+      function renderScenarioRows(container, rows, historical) {
+        clear(container);
+        if (!rows.length) {
+          container.appendChild(element("div", "state-empty", "No validated current scenario probabilities were published. Historical estimates remain separate in Power."));
+          return;
+        }
+        rows.forEach(function (row) {
+          var probability = row.probability;
+          var metric = element("div", "metric-row");
+          var tooltip = row.label + ": " + formatPercent(probability) + " probability. " + (historical ? "Dated analyst estimate; not current." : "Current canonical model estimate. Limited by the published evidence and declared scenario tree.");
+          metric.tabIndex = 0;
+          metric.setAttribute("title", tooltip);
+          metric.setAttribute("aria-label", tooltip);
+          metric.appendChild(element("span", "metric-name", row.label));
+          var track = element("div", "metric-track");
+          var fill = element("div", "metric-fill");
+          fill.style.width = Math.max(0, Math.min(100, probability * 100)) + "%";
+          track.appendChild(fill);
+          metric.appendChild(track);
+          metric.appendChild(element("span", "metric-value", formatPercent(probability)));
+          container.appendChild(metric);
+        });
+      }
+
+      function currentScenarioRows() {
+        if (!state.view || !state.view.modelAvailable) return [];
+        var probabilities = state.view.modelOutputs.scenarioProbability;
+        return state.definition.scenarioTree.nodes.filter(function (node) { return node.parentId === null; }).map(function (node) {
+          return { scenarioId: node.scenarioId, label: human(node.title || node.scenarioId), probability: probabilities[node.scenarioId].unconditional };
+        });
+      }
+
+      function renderCurrentModels() {
+        var rows = currentScenarioRows();
+        renderScenarioRows(byId("currentScenarios"), rows, false);
+        var total = rows.reduce(function (sum, row) { return sum + row.probability; }, 0);
+        byId("probabilityTotal").textContent = rows.length ? "Root total " + formatPercent(total) : "No current total";
+        var transmission = byId("currentTransmission");
+        clear(transmission);
+        if (!state.view || !state.view.modelAvailable) {
+          transmission.appendChild(element("div", "state-empty", "No current transmission ranges are available. Nothing is carried forward from the dated dossier."));
+          return;
+        }
+        Object.keys(state.view.modelOutputs.channelRanges).forEach(function (channelId) {
+          var row = element("div", "metric-row");
+          row.appendChild(element("span", "metric-name", human(channelId)));
+          row.appendChild(element("span", "muted", "Low / base / high"));
+          row.appendChild(element("span", "metric-value", formatRange(state.view.modelOutputs.channelRanges[channelId])));
+          transmission.appendChild(row);
+        });
+      }
+
+      function renderTriggers() {
+        var container = byId("triggerSummary");
+        clear(container);
+        if (!state.definition.triggers || !state.definition.triggers.length) {
+          container.appendChild(element("div", "state-empty", "This topic has no declared trigger model."));
+          return;
+        }
+        state.definition.triggers.forEach(function (trigger) {
+          var row = element("div", "evidence-row");
+          row.appendChild(element("strong", "", "Trigger: " + trigger.description));
+          row.appendChild(element("div", "row-meta", trigger.targetIds.join(", ") + " | condition " + human(trigger.condition.field) + " " + human(trigger.condition.operator) + " " + String(trigger.condition.value)));
+          container.appendChild(row);
+        });
+        state.definition.invalidations.forEach(function (invalidation) {
+          var row = element("div", "evidence-row");
+          row.appendChild(element("strong", "", "Invalidation: " + invalidation.description));
+          row.appendChild(element("div", "row-meta", invalidation.targetIds.join(", ") + " | condition " + human(invalidation.condition.field) + " " + human(invalidation.condition.operator) + " " + String(invalidation.condition.value)));
+          container.appendChild(row);
+        });
+      }
+
+      function buildLeverControls() {
+        var grid = byId("leverGrid");
+        clear(grid);
+        var available = !!(state.view && state.view.modelAvailable && state.view.baselineLeverState);
+        LEVERS.forEach(function (definition) {
+          var wrapper = element("div", "lever");
+          wrapper.dataset.leverId = definition.id;
+          var label = element("label", "", definition.label);
+          label.htmlFor = "lever-range-" + definition.id;
+          wrapper.appendChild(label);
+          var controls = element("div", "lever-controls");
+          var range = document.createElement("input");
+          range.type = "range"; range.id = "lever-range-" + definition.id; range.min = definition.min; range.max = definition.max; range.step = definition.step; range.disabled = !available;
+          var number = document.createElement("input");
+          number.type = "number"; number.id = "lever-number-" + definition.id; number.min = definition.min; number.max = definition.max; number.step = definition.step; number.disabled = !available;
+          var published = available ? state.view.baselineLeverState[definition.id] : null;
+          range.value = published === null ? 0 : published;
+          number.value = published === null ? "" : published;
+          number.setAttribute("aria-label", definition.label + " numeric value");
+          function changed(value) {
+            if (!available) return;
+            var bounded = Math.max(definition.min, Math.min(definition.max, Number(value)));
+            range.value = bounded; number.value = bounded;
+            state.leverState[definition.id] = bounded;
+            recomputeFromLevers();
+          }
+          range.addEventListener("input", function () { changed(range.value); });
+          number.addEventListener("change", function () { changed(number.value); });
+          controls.appendChild(range); controls.appendChild(number); wrapper.appendChild(controls);
+          wrapper.appendChild(element("div", "lever-meta", available ? ("Published " + published + " " + definition.unit) : "Unavailable until a current model is published"));
+          grid.appendChild(wrapper);
+        });
+        byId("resetLevers").disabled = !available;
+        byId("leverAvailability").textContent = available ? "Published values loaded" : "Unavailable - no current model inputs";
+      }
+
+      function updateLeverLabels() {
+        if (!state.view || !state.view.modelAvailable) return;
+        LEVERS.forEach(function (definition) {
+          var wrapper = document.querySelector('[data-lever-id="' + definition.id + '"]');
+          var changed = state.view.changedLeverIds.indexOf(definition.id) >= 0;
+          wrapper.dataset.changed = changed ? "true" : "false";
+          wrapper.querySelector(".lever-meta").textContent = changed ? "Your assumption" : ("Published " + state.view.baselineLeverState[definition.id] + " " + definition.unit);
+        });
+      }
+
+      function recomputeFromLevers() {
+        var result = RLAGENDA.computeAgendaViewState(state.definition, state.review, state.leverState);
+        if (!result.ok) {
+          byId("recomputeNote").textContent = "The bounded assumption was refused.";
+          return;
+        }
+        state.view = result.value;
+        state.renderCount += 1;
+        renderStatus();
+        renderCurrentModels();
+        renderPowerModels();
+        updateLeverLabels();
+        byId("recomputeNote").textContent = state.view.changedLeverIds.length ? state.view.changedLeverIds.length + " user assumption(s); no request or history write." : "Published assumptions restored.";
+      }
+
+      function renderReviewArchitecture() {
+        var container = byId("sectionMatrix");
+        clear(container);
+        var sections = state.review ? state.review.sectionStates : state.definition.analyticalSections.map(function (section) { return { sectionId: section.sectionId, status: "unavailable", interpretation: "", gaps: [] }; });
+        sections.forEach(function (section) {
+          var declared = state.definition.analyticalSections.find(function (candidate) { return candidate.sectionId === section.sectionId; });
+          var cell = element("div", "matrix-cell");
+          cell.appendChild(element("h3", "", declared ? declared.title : human(section.sectionId)));
+          cell.appendChild(element("p", "", "○ " + human(section.status) + (section.interpretation ? ": " + section.interpretation : ". No current interpretation was published.")));
+          container.appendChild(cell);
+        });
+      }
+
+      function renderActors() {
+        var container = byId("actorMatrix");
+        clear(container);
+        (state.definition.actors || []).forEach(function (actor) {
+          var cell = element("div", "matrix-cell");
+          cell.appendChild(element("h3", "", actor.title));
+          cell.appendChild(element("p", "", "Dimensions: " + actor.dimensions.map(human).join(", ") + "."));
+          var limits = [];
+          actor.reactionRules.forEach(function (rule) { limits = limits.concat(rule.limitations || []); });
+          cell.appendChild(element("p", "", limits.length ? "Limit: " + limits.join(" ") : "No active reaction rule is claimed from the unavailable current review."));
+          container.appendChild(cell);
+        });
+      }
+
+      function table(headers, rows) {
+        var wrapper = element("div", "table-wrap");
+        var tableNode = document.createElement("table");
+        var head = document.createElement("thead");
+        var headRow = document.createElement("tr");
+        headers.forEach(function (header) { headRow.appendChild(element("th", "", header)); });
+        head.appendChild(headRow); tableNode.appendChild(head);
+        var body = document.createElement("tbody");
+        rows.forEach(function (values) {
+          var row = document.createElement("tr");
+          values.forEach(function (value, index) {
+            var cell = document.createElement("td");
+            cell.dataset.label = headers[index];
+            if (value && value.nodeType) cell.appendChild(value); else cell.textContent = String(value === null || typeof value === "undefined" ? "Unavailable" : value);
+            row.appendChild(cell);
+          });
+          body.appendChild(row);
+        });
+        tableNode.appendChild(body); wrapper.appendChild(tableNode);
+        return wrapper;
+      }
+
+      function renderPowerModels() {
+        var flow = byId("flowWorkspace"); clear(flow);
+        var channels = byId("channelWorkspace"); clear(channels);
+        var proxies = byId("proxyWorkspace"); clear(proxies);
+        var scenarios = byId("powerScenarios"); clear(scenarios);
+        var scenarioTable = byId("powerScenarioTable"); clear(scenarioTable);
+        if (!state.view || !state.view.modelAvailable) {
+          scenarios.appendChild(element("div", "state-empty", "No current scenario chart is rendered because the current review has no validated model output."));
+          scenarioTable.appendChild(table(["Scenario", "Probability", "Unit", "Limitation"], [["Current model", "Unavailable", "probability", "Dated history cannot fill a current chart."]]));
+          flow.appendChild(element("div", "state-empty", "Current physical loss, delay, rerouting, and ton-mile rows are unavailable because no current model was published."));
+          channels.appendChild(table(["Channel", "Current range", "Unit", "Limitation"], (state.definition.transmissionModels || []).map(function (model) { return [human(model.channelId), "Unavailable", "decimal return", "Declared model retained; current output withheld."]; })));
+          proxies.appendChild(table(["Ticker", "Channel", "Current range", "Calibration", "Limitation"], (state.definition.proxyDefinitions || []).map(function (proxy) {
+            var link = element("a", "", proxy.ticker); link.href = "https://finance.yahoo.com/quote/" + encodeURIComponent(proxy.ticker); link.rel = "noopener noreferrer"; link.referrerPolicy = "no-referrer";
+            return [link, human(proxy.channelId), "Unavailable", proxy.minimumCalibrationEvents + " event minimum", (proxy.limitations || []).join(" ")];
+          })));
+          return;
+        }
+        var scenarioRows = currentScenarioRows();
+        renderScenarioRows(scenarios, scenarioRows, false);
+        scenarioTable.appendChild(table(["Scenario", "Probability", "Unit", "Provenance"], scenarioRows.map(function (row) {
+          return [row.label, formatPercent(row.probability), "probability", "Canonical current model"];
+        })));
+        var dominant = dominantScenarioLabel();
+        var dominantNode = state.definition.scenarioTree.nodes.find(function (node) { return node.title === dominant; });
+        var flowRows = dominantNode ? state.view.modelOutputs.physicalFlow[dominantNode.scenarioId].flows : [];
+        flow.appendChild(table(["Flow", "Baseline", "Physical unavailable", "Rerouted", "Incremental ton-miles"], flowRows.map(function (row) {
+          return [human(row.flowId), row.baselineVolume, formatRange(row.physicallyUnavailable), formatRange(row.rerouted), formatRange(row.incrementalTonMiles)];
+        })));
+        channels.appendChild(table(["Channel", "Low / base / high", "Unit", "Provenance"], Object.keys(state.view.modelOutputs.channelRanges).map(function (channelId) {
+          return [human(channelId), formatRange(state.view.modelOutputs.channelRanges[channelId]), "decimal return", "Canonical current model"];
+        })));
+        var publishedInputs = state.review.modelOutputs.publishedInputs;
+        proxies.appendChild(table(["Ticker", "Low / base / high", "Bar date", "Calibration", "Limitation"], state.definition.proxyDefinitions.map(function (proxy) {
+          var link = element("a", "", proxy.ticker); link.href = "https://finance.yahoo.com/quote/" + encodeURIComponent(proxy.ticker); link.rel = "noopener noreferrer"; link.referrerPolicy = "no-referrer";
+          var calibrationCount = publishedInputs.calibrationEvents.filter(function (event) { return event.proxyReturns && typeof event.proxyReturns[proxy.ticker] === "number"; }).length;
+          var bar = publishedInputs.currentBars[proxy.ticker];
+          return [link, formatRange(state.view.modelOutputs.proxyRanges[proxy.proxyId]), bar && bar.asof ? bar.asof : "Unavailable", calibrationCount + " event(s)", (proxy.limitations || []).join(" ")];
+        })));
+      }
+
+      function renderHistorical() {
+        var workspace = byId("historicalWorkspace"); clear(workspace);
+        if (!state.dossier) {
+          byId("historicalHeading").textContent = "No dated dossier for " + state.topic.title;
+          byId("historicalWarning").textContent = "The absence of history is not a current conclusion.";
+          workspace.appendChild(element("div", "state-empty", "No immutable historical dossier is linked from the append-only history."));
+          return;
+        }
+        byId("historicalHeading").textContent = state.dossier.sourceNote.title + " - " + state.dossier.sourceNote.snapshotDate;
+        byId("historicalWarning").textContent = "This dossier was observed through " + formatInstant(state.dossier.observedThrough) + ". It is dated context only and does not replace the unavailable current review.";
+        var chart = element("figure", "historical-chart");
+        chart.setAttribute("aria-label", "Historical scenario probabilities dated " + state.dossier.sourceNote.snapshotDate);
+        var chartRows = state.dossier.scenarioSnapshot.map(function (scenario) { return { scenarioId: scenario.scenarioId, label: human(scenario.scenarioId), probability: scenario.probability }; });
+        renderScenarioRows(chart, chartRows, true);
+        workspace.appendChild(chart);
+        workspace.appendChild(table(["Historical scenario", "Probability", "Brent range (USD)", "WTI range (USD)"], state.dossier.scenarioSnapshot.map(function (scenario) {
+          return [human(scenario.scenarioId), formatPercent(scenario.probability), scenario.brentRangeUsd.join(" to "), scenario.wtiRangeUsd.join(" to ")];
+        })));
+      }
+
+      function renderEvidenceAndSources() {
+        var evidence = byId("evidenceList"); clear(evidence);
+        var sources = byId("sourceList"); clear(sources);
+        var evidenceDossier = state.currentDossier || state.dossier;
+        if (!evidenceDossier) {
+          evidence.appendChild(element("div", "state-empty", "No current or historical evidence records."));
+          sources.appendChild(element("div", "state-empty", "No current or historical source records."));
+          return;
+        }
+        (evidenceDossier.findings || []).forEach(function (finding) {
+          var row = element("article", "evidence-row");
+          var title = element("strong", "", finding.claim); row.appendChild(title);
+          row.appendChild(element("div", "row-meta", human(finding.evidenceRole) + " | " + human(finding.provenanceClass) + (finding.weightedImpact !== undefined ? " | weighted impact " + finding.weightedImpact : "") + (finding.observedAt ? " | observed " + formatInstant(finding.observedAt) : "")));
+          row.appendChild(element("div", "row-meta", "Causal path: " + (finding.causalPath || []).join(" -> ") + "." + (finding.refutedBy ? " Refuted by: " + finding.refutedBy + "." : "") + (finding.invalidation ? " Invalidation: " + finding.invalidation + "." : "") + " Limitation: " + (finding.limitations || []).join(" ")));
+          evidence.appendChild(row);
+        });
+        (evidenceDossier.sourceLedger || []).forEach(function (source) {
+          var row = element("div", "source-row");
+          var link = element("a", "", source.publisher + " - " + source.sourceId); link.href = source.canonicalUrl; link.rel = "noopener noreferrer"; link.referrerPolicy = "no-referrer";
+          row.appendChild(link); row.appendChild(element("div", "row-meta", "Observed " + formatInstant(source.observedAt) + " | public source")); sources.appendChild(row);
+        });
+      }
+
+      function renderComparison() {
+        var container = byId("comparisonWorkspace");
+        clear(container);
+        if (!state.currentDossier || !state.predecessorDossier || !state.view || !state.view.modelAvailable) {
+          container.className = "state-empty";
+          container.textContent = "No validated current dossier and predecessor pair exists. The historical seed is not treated as a predecessor.";
+          state.comparison = null;
+          return;
+        }
+        var roots = state.definition.scenarioTree.nodes.filter(function (node) { return node.parentId === null; });
+        var currentProbabilities = {};
+        roots.forEach(function (node) { currentProbabilities[node.scenarioId] = state.view.modelOutputs.scenarioProbability[node.scenarioId].unconditional; });
+        var currentOutput = {
+          probabilities: currentProbabilities,
+          evidenceIds: state.currentDossier.findings.map(function (finding) { return finding.findingId; }),
+          conflictIds: [],
+          directionScore: state.currentDossier.modelOutputs.directionScore,
+          dominantScenarioId: state.currentDossier.modelOutputs.dominantScenarioId,
+          evidenceCoverage: 1,
+          declaredQuestionSha256: state.definition.declaredQuestionSha256
+        };
+        var comparison = RLAGENDA.compareScenarioOutputs(currentOutput, state.predecessorDossier.modelOutputs);
+        var direction = comparison.ok ? RLAGENDA.classifyChangeDirection(currentOutput, comparison, state.fixture.comparisonThresholds) : null;
+        if (!comparison.ok || !direction || !direction.ok) {
+          container.className = "state-empty";
+          container.textContent = "The deterministic comparison was refused.";
+          state.comparison = null;
+          return;
+        }
+        state.comparison = { comparison: comparison, direction: direction.direction };
+        container.className = "evidence-row";
+        container.setAttribute("data-change-direction", direction.direction);
+        container.appendChild(element("strong", "", "◆ " + human(direction.direction)));
+        container.appendChild(element("p", "", "Prior view: " + state.predecessorDossier.summary));
+        container.appendChild(element("p", "", "Current view: " + human(currentOutput.dominantScenarioId) + " is dominant after the current public evidence impacts."));
+        var finding = state.currentDossier.findings[0];
+        container.appendChild(element("p", "", "Causal evidence: " + finding.claim));
+        container.appendChild(element("p", "", "Refuter: " + finding.refutedBy + " Invalidation: " + finding.invalidation));
+      }
+
+      function renderHistory() {
+        var container = byId("historyList"); clear(container);
+        var events = selectedHistory().slice().sort(function (left, right) { return Date.parse(right.occurredAt) - Date.parse(left.occurredAt); });
+        if (!events.length) { container.appendChild(element("div", "state-empty", "No history events for this topic.")); return; }
+        events.forEach(function (event) {
+          var row = element("div", "history-row");
+          var link = element("a", "", human(event.eventType) + " - " + formatInstant(event.occurredAt));
+          link.href = event.artifactRef.path; row.appendChild(link);
+          row.appendChild(element("div", "row-meta", (event.dossierId ? "Dossier " + event.dossierId : event.reviewId ? "Review " + shortId(event.reviewId) : "Immutable event") + (event.artifactRef.historicalOnly ? " | historical only" : " | current-generation record")));
+          container.appendChild(row);
+        });
+      }
+
+      function renderFreshness() {
+        var reference = topicRef(state.selectedTopicId);
+        var text = state.review ? ("Review attempted " + formatInstant(state.review.attemptedAt) + ". Newest evidence age: " + (state.review.newestEvidenceAgeHours === null ? "unavailable" : state.review.newestEvidenceAgeHours + " hours") + ". Outcome: " + human(state.review.outcome) + ".") : ("No review record was created for this topic in the current generation. Current state: " + human(reference && reference.state) + ".");
+        byId("freshnessSummary").textContent = text;
+      }
+
+      function renderAll() {
+        state.renderCount += 1;
+        renderTopics(); renderStatus(); renderCurrentModels(); renderTriggers(); buildLeverControls();
+        renderFreshness(); renderReviewArchitecture(); renderActors(); renderPowerModels(); renderHistorical(); renderEvidenceAndSources(); renderComparison(); renderHistory();
+      }
+
+      function fixturePublishedInputs(fixture, definition, calibration) {
+        var currentBars = {};
+        definition.transmissionModels.forEach(function (model) { currentBars[model.barId] = { sym: model.barId, asof: fixture.attemptedAt.slice(0, 10), latest: { c: 100 } }; });
+        definition.proxyDefinitions.forEach(function (proxy) { currentBars[proxy.ticker] = { sym: proxy.ticker, asof: fixture.attemptedAt.slice(0, 10), latest: { c: 100 } }; });
+        return {
+          evidenceImpacts: JSON.parse(JSON.stringify(fixture.evidenceImpacts)),
+          chokepointState: JSON.parse(JSON.stringify(fixture.chokepointState)),
+          inventoryGapByChannel: JSON.parse(JSON.stringify(fixture.inventoryGapByChannel)),
+          levers: JSON.parse(JSON.stringify(fixture.levers)),
+          currentBars: currentBars,
+          calibrationEvents: JSON.parse(JSON.stringify(calibration.events))
+        };
+      }
+
+      function installReversalFixture(fixture, definition, calibration, historicalDossier) {
+        var inputs = fixturePublishedInputs(fixture, definition, calibration);
+        var replay = RLAGENDA.recomputeAgendaModelOutputs(definition, inputs, null);
+        if (!replay.ok) throw new Error("fixture canonical model failed: " + replay.code);
+        var rootNodes = definition.scenarioTree.nodes.filter(function (node) { return node.parentId === null; });
+        var probabilities = replay.value.modelOutputs.scenarioProbability;
+        var directionScore = rootNodes.reduce(function (sum, node) { return sum + probabilities[node.scenarioId].unconditional * node.directionValue; }, 0);
+        var dominant = rootNodes.slice().sort(function (left, right) { return probabilities[right.scenarioId].unconditional - probabilities[left.scenarioId].unconditional; })[0].scenarioId;
+        var modelOutputs = Object.assign({}, JSON.parse(JSON.stringify(replay.value.modelOutputs)), {
+          directionScore: directionScore,
+          dominantScenarioId: dominant,
+          evidenceCoverage: 1,
+          publishedInputs: inputs
+        });
+        var review = {
+          contractVersion: RLAGENDA.REVIEW_VERSION,
+          generationId: fixture.generationId,
+          topicId: fixture.topicId,
+          mode: "every-generation",
+          selectionReason: "test-fixture",
+          attemptedAt: fixture.attemptedAt,
+          completePass: true,
+          outcome: "updated",
+          reason: null,
+          newestEvidenceAgeHours: 1,
+          sectionStates: definition.analyticalSections.map(function (section) { return { sectionId: section.sectionId, status: "current", interpretation: "Fixture current section available.", gaps: [] }; }),
+          evidenceIds: fixture.currentFindings.map(function (finding) { return finding.findingId; }),
+          modelOutputs: modelOutputs,
+          predecessorDossierId: fixture.predecessorDossierId,
+          dossierId: fixture.dossierId,
+          reviewId: fixture.reviewId,
+          validationState: "validated",
+          historicalOnly: false
+        };
+        var priorOutput = {
+          probabilities: fixture.predecessor.probabilities,
+          evidenceIds: fixture.predecessor.evidenceIds,
+          conflictIds: [],
+          directionScore: fixture.predecessor.directionScore,
+          dominantScenarioId: fixture.predecessor.dominantScenarioId,
+          evidenceCoverage: 1,
+          declaredQuestionSha256: definition.declaredQuestionSha256
+        };
+        state.fixture = fixture;
+        state.definition = definition;
+        state.review = review;
+        state.dossier = historicalDossier;
+        state.currentDossier = { dossierId: fixture.dossierId, findings: fixture.currentFindings, sourceLedger: fixture.sourceLedger, modelOutputs: modelOutputs };
+        state.predecessorDossier = { dossierId: fixture.predecessorDossierId, summary: fixture.predecessor.summary, modelOutputs: priorOutput };
+        state.view = RLAGENDA.computeAgendaViewState(definition, review, null).value;
+        state.leverState = JSON.parse(JSON.stringify(state.view.baselineLeverState));
+        state.current = {
+          contractVersion: RLAGENDA.CURRENT_VERSION,
+          updatedAt: fixture.attemptedAt,
+          generationRef: { generationId: fixture.generationId },
+          topicRefs: state.agenda.topics.map(function (topic) {
+            return topic.topicId === fixture.topicId
+              ? { topicId: topic.topicId, state: "reviewed", reviewRef: { path: "tests/fixtures/research-agenda/reversal-ui.json" }, dossierRef: { path: "tests/fixtures/research-agenda/reversal-ui.json" } }
+              : { topicId: topic.topicId, state: "deferred", reviewRef: null, dossierRef: null };
+          })
+        };
+        state.history = state.history.concat([
+          { topicId: fixture.topicId, eventType: "review", occurredAt: fixture.attemptedAt, reviewId: fixture.reviewId, dossierId: fixture.dossierId, artifactRef: { path: "tests/fixtures/research-agenda/reversal-ui.json", historicalOnly: false } }
+        ]);
+        byId("fixtureBand").hidden = false;
+        renderAll();
+      }
+
+      function loadHistoricalDossier(topicId) {
+        var event = state.history.find(function (candidate) { return candidate.topicId === topicId && candidate.eventType === "historical-seed" && candidate.artifactRef && candidate.artifactRef.historicalOnly === true; });
+        return event ? fetchJson(event.artifactRef.path) : Promise.resolve(null);
+      }
+
+      function selectTopic(topicId, writeRoute) {
+        var topic = state.agenda.topics.find(function (candidate) { return candidate.topicId === topicId; });
+        if (!topic) topic = state.agenda.topics[0];
+        state.selectedTopicId = topic.topicId;
+        state.topic = topic;
+        var reference = topicRef(topic.topicId);
+        var tasks = [fetchJson(topic.definitionRef), reference && reference.reviewRef ? fetchJson(reference.reviewRef.path) : Promise.resolve(null), loadHistoricalDossier(topic.topicId)];
+        return Promise.all(tasks).then(function (values) {
+          state.fixture = null; state.currentDossier = null; state.predecessorDossier = null; state.comparison = null;
+          byId("fixtureBand").hidden = true;
+          state.definition = values[0]; state.review = values[1]; state.dossier = values[2]; state.leverState = null;
+          var computed = state.review ? RLAGENDA.computeAgendaViewState(state.definition, state.review, null) : null;
+          state.view = computed && computed.ok ? computed.value : null;
+          state.leverState = state.view && state.view.baselineLeverState ? JSON.parse(JSON.stringify(state.view.baselineLeverState)) : null;
+          if (writeRoute) history.replaceState({ mode: state.mode, topicId: state.selectedTopicId }, "", canonicalRoute());
+          renderAll();
+        });
+      }
+
+      function boot() {
+        var route = routeParts(); state.mode = route.mode;
+        var fixtureId = new URLSearchParams(location.search).get("fixture");
+        byId("modeSeg").addEventListener("click", function (event) {
+          var button = event.target.closest("button[data-mode]");
+          if (button) applyMode(button.getAttribute("data-mode"), true);
+        });
+        byId("resetLevers").addEventListener("click", function () {
+          if (!state.view || !state.view.baselineLeverState) return;
+          state.leverState = JSON.parse(JSON.stringify(state.view.baselineLeverState));
+          LEVERS.forEach(function (definition) {
+            byId("lever-range-" + definition.id).value = state.leverState[definition.id];
+            byId("lever-number-" + definition.id).value = state.leverState[definition.id];
+          });
+          recomputeFromLevers();
+        });
+        applyMode(state.mode, false);
+        Promise.all([fetchJson("research-agenda.json"), fetchJson("research/agenda/current.json"), fetchText("research/agenda/history.jsonl").then(parseHistory)]).then(function (values) {
+          state.agenda = values[0]; state.current = values[1]; state.history = values[2];
+          var selected = state.agenda.topics.some(function (topic) { return topic.topicId === route.topicId; }) ? route.topicId : state.agenda.topics[0].topicId;
+          state.selectedTopicId = selected;
+          state.topic = state.agenda.topics.find(function (topic) { return topic.topicId === selected; });
+          if (fixtureId === "reversal" && selected === "geopolitical-supply-shock") {
+            return Promise.all([
+              fetchJson(state.topic.definitionRef),
+              fetchJson("research/agenda/topics/geopolitical-supply-shock.calibration.json"),
+              fetchJson("tests/fixtures/research-agenda/reversal-ui.json"),
+              loadHistoricalDossier(selected)
+            ]).then(function (fixtureValues) {
+              installReversalFixture(fixtureValues[2], fixtureValues[0], fixtureValues[1], fixtureValues[3]);
+              if (route.topicId !== selected) history.replaceState({ mode: state.mode, topicId: selected }, "", canonicalRoute());
+            });
+          }
+          return selectTopic(selected, route.topicId !== selected);
+        }).catch(function (error) {
+          byId("currentPosture").textContent = "○ Unavailable";
+          byId("currentReason").textContent = "Required same-origin research artifacts could not be loaded. " + error.message;
+        });
+      }
+
+      window.__researchAgendaDebug = {
+        getViewState: function () { return state.view ? JSON.parse(JSON.stringify(state.view)) : null; },
+        getFetchCount: function () { return state.fetchCount; },
+        getRenderCount: function () { return state.renderCount; },
+        getHistoryFingerprint: function () { return JSON.stringify(state.history); },
+        getCurrentReview: function () { return state.review ? JSON.parse(JSON.stringify(state.review)) : null; },
+        getHistoricalDossier: function () { return state.dossier ? JSON.parse(JSON.stringify(state.dossier)) : null; },
+        getDefinition: function () { return state.definition ? JSON.parse(JSON.stringify(state.definition)) : null; },
+        getComparison: function () { return state.comparison ? JSON.parse(JSON.stringify(state.comparison)) : null; }
+      };
+      document.addEventListener("DOMContentLoaded", boot);
+    })();
+  </script>
+  <script src="rlnav.js"></script>
+  <section data-rlbrief-mount data-tool-id="research-agenda-lab" data-simple-target="research-agenda-simple" data-power-target="research-agenda-power" data-public-target-ids="geopolitical-supply-shock,defense-earnings-acceleration,food-inputs-outlook"></section>
+</body>
+</html>

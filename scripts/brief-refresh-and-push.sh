@@ -82,7 +82,9 @@ CONFIG="market-brief.config.json"
 PAGE_FILES=(market-brief.page.json market-brief.config.page.json market-brief.snapshot.page.json market-brief.tools.page.json market-brief.experimental.json)
 DERIVED_FILES=(brief-history.recent.jsonl market-brief.scorecard.json market-brief.owner-reads.json)
 DERIVED_DIRS=(briefs/tier-a)
-OWNED_PATHS=("${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" "${PAGE_FILES[@]}" "${DERIVED_FILES[@]}" "${DERIVED_DIRS[@]}" data)
+DISTRIBUTED_DIR="briefs"
+AGENDA_DIR="research/agenda"
+OWNED_PATHS=("${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" "${PAGE_FILES[@]}" "${DERIVED_FILES[@]}" "${DERIVED_DIRS[@]}" "$AGENDA_DIR" data)
 
 # Refuse before any fetch or refresh when a wrapper-owned path is staged,
 # unstaged, or untracked. Unrelated dirt is intentionally outside this query.
@@ -143,6 +145,18 @@ for baseline_dir in "${DERIVED_DIRS[@]}"; do
     exit 1
   }
 done
+# The distributed graph is deliberately not an owned-path refusal input, so a
+# pre-existing local graph must survive both dry-run and a later parity refusal.
+# Capture it separately from DERIVED_DIRS so rollback can remove newly generated
+# content-addressed objects without changing that startup policy.
+if [ -d "$DISTRIBUTED_DIR" ]; then
+  cp -R "$DISTRIBUTED_DIR" "$BASELINE_DIR/distributed-briefs" || {
+    echo "[brief-timer] cannot capture baseline directory $DISTRIBUTED_DIR"
+    exit 1
+  }
+else
+  : >"$BASELINE_DIR/distributed-briefs.absent"
+fi
 if [ -d data ]; then
   cp -R data "$BASELINE_DIR/data" || {
     echo "[brief-timer] cannot capture baseline bytes for data"
@@ -151,9 +165,26 @@ if [ -d data ]; then
 else
   : >"$BASELINE_DIR/data-absent"
 fi
+mkdir -p "$BASELINE_DIR/research"
+if [ -d "$AGENDA_DIR" ]; then
+  cp -R "$AGENDA_DIR" "$BASELINE_DIR/$AGENDA_DIR" || {
+    echo "[brief-timer] cannot capture baseline bytes for $AGENDA_DIR"
+    exit 1
+  }
+else
+  : >"$BASELINE_DIR/research-agenda-absent"
+fi
+
+restore_agenda_baseline() {
+  rm -rf "$AGENDA_DIR"
+  if [ ! -f "$BASELINE_DIR/research-agenda-absent" ]; then
+    mkdir -p "$(dirname "$AGENDA_DIR")" || return 1
+    cp -R "$BASELINE_DIR/$AGENDA_DIR" "$AGENDA_DIR" || return 1
+  fi
+}
 
 restore_narrative_baseline() {
-  cp "$BASELINE_DIR/$PAYLOAD" "$PAYLOAD" && cp "$BASELINE_DIR/$CONFIG" "$CONFIG"
+  cp "$BASELINE_DIR/$PAYLOAD" "$PAYLOAD" && cp "$BASELINE_DIR/$CONFIG" "$CONFIG" && restore_agenda_baseline
 }
 
 restore_page_baseline() {
@@ -182,16 +213,27 @@ restore_derived_baseline() {
   done
 }
 
+restore_distributed_baseline() {
+  rm -rf "$DISTRIBUTED_DIR"
+  if [ ! -f "$BASELINE_DIR/distributed-briefs.absent" ]; then
+    cp -R "$BASELINE_DIR/distributed-briefs" "$DISTRIBUTED_DIR" || return 1
+  fi
+}
+
 restore_pair_baseline() {
   cp "$BASELINE_DIR/${DATA_FILES[0]}" "${DATA_FILES[0]}" && cp "$BASELINE_DIR/${DATA_FILES[1]}" "${DATA_FILES[1]}"
 }
 
 restore_owned_baseline() {
-  "$GIT_BIN" restore --staged -- "${OWNED_PATHS[@]}" 2>/dev/null || true
+  local owned_path
+  for owned_path in "${OWNED_PATHS[@]}"; do
+    "$GIT_BIN" restore --staged -- "$owned_path" 2>/dev/null || true
+  done
   restore_pair_baseline || return 1
   restore_narrative_baseline || return 1
   restore_page_baseline || return 1
   restore_derived_baseline || return 1
+  restore_distributed_baseline || return 1
   rm -rf data
   if [ ! -f "$BASELINE_DIR/data-absent" ]; then
     cp -R "$BASELINE_DIR/data" data || return 1
@@ -429,9 +471,10 @@ else
           BRIEF_WINDOW="$WINDOW" \
           BRIEF_TODAY="$TODAY" \
           BRIEF_TOOL_BUNDLE="$TOOL_BRIEF_BUNDLE" \
+          BRIEF_RESEARCH_CACHE="$BASELINE_DIR/research-generation-cache.json" \
           "$NODE_BIN" scripts/brief-narrative-parallel.mjs \
        && "$NODE_BIN" scripts/build-attention-items.mjs --recompose --write \
-       && "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD" --drop-unscoreable; then
+         && "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD" --drop-unscoreable --defer-page-parity; then
       NARRATIVE_OK=1
       echo "[brief-timer] parallel narrative collected + schema-valid (attempt $attempt/$NARRATIVE_ATTEMPTS)"
       break
@@ -462,7 +505,7 @@ if [ "$NARRATIVE_OK" != "1" ]; then
     restore_owned_baseline || true
     exit 1
   fi
-  if "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD"; then
+  if "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD" --defer-page-parity; then
     RETAINED_TIER_B_OK=1
     echo "[brief-timer] retained narrative matches candidate Tier A — same-target data-only publication selected"
   else
@@ -477,6 +520,7 @@ fi
 
 if [ "$NARRATIVE_OK" = "1" ]; then
   SELECTED_FILES=("${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data)
+  [ -d "$AGENDA_DIR" ] && SELECTED_FILES+=("$AGENDA_DIR")
   SELECTION="matching-pair"
 elif [ "$RETAINED_TIER_B_OK" = "1" ]; then
   SELECTED_FILES=("${DATA_FILES[@]}" data)
@@ -494,7 +538,7 @@ if ! "$NODE_BIN" scripts/validate-brief-cache.mjs; then
   exit 1
 fi
 if [ "$SELECTION" != "raw-data-only" ]; then
-  if ! "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD"; then
+  if ! "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD" --defer-page-parity; then
     echo "[brief-timer] selected publication pair failed final validation — restoring owned baseline"
     restore_owned_baseline || echo "[brief-timer] ERROR: owned baseline restoration failed"
     exit 1
@@ -577,8 +621,12 @@ fi
 # it renders on first paint, while hidden experimental prose is fetched on demand. A stale projection
 # is a contradictory public surface, so unlike optional distributed publication this is fail-closed.
 if [ "$DRY_RUN" = "1" ]; then
-  run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/build-brief-page-artifacts.mjs --dry-run \
-    || { echo "[brief-timer] compact page projection dry-run failed"; exit 1; }
+  if run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/build-brief-page-artifacts.mjs --dry-run; then
+    echo "[brief-timer] DRY-RUN — compact page projection validation passed; disk page parity was not asserted"
+  else
+    echo "[brief-timer] compact page projection dry-run failed"
+    exit 1
+  fi
 else
   run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/build-brief-page-artifacts.mjs \
     || { echo "[brief-timer] compact page projection failed — restoring owned baseline"; restore_owned_baseline || true; exit 1; }
@@ -589,6 +637,16 @@ else
     market-brief.tools.page.json
     market-brief.experimental.json
   )
+  if [ "$SELECTION" != "raw-data-only" ]; then
+    if ! "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD"; then
+      echo "[brief-timer] post-build page parity validation failed — restoring owned baseline"
+      restore_owned_baseline || echo "[brief-timer] ERROR: owned baseline restoration failed"
+      exit 1
+    fi
+    echo "[brief-timer] post-build payload + disk page parity validation passed"
+  else
+    echo "[brief-timer] post-build payload/page validation not applicable — raw-data-only publishes no brief pair"
+  fi
 fi
 
 if ! "$GIT_BIN" add -- "${SELECTED_FILES[@]}"; then

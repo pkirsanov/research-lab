@@ -45,6 +45,7 @@
       "rlexperience-adapters/strategy-research.js",
       "rlexperience-adapters/property-research.js",
       "rlexperience-adapters/portfolio-research.js",
+      "rlexperience-adapters/research-agenda.js",
       "rlexperience-adapters/market-action.js"
     ],
     "registrationPolicy": "exact-declared-adapter-ids"

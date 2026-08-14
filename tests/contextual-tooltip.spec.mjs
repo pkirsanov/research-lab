@@ -108,6 +108,47 @@ test('Regression: SCN-012-004 label-only context fails the exact Power item with
   await expect(page.locator('#rlcontext-disclosure')).not.toContainText('Advancing breadth 64%');
 });
 
+test('Research charts tables tickers sources and tooltips retain units provenance limits and keyboard access', async ({ page }) => {
+  await page.goto(`${site.baseUrl}/research-agenda-lab.html?fixture=reversal#power/geopolitical-supply-shock`, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
+  await page.waitForFunction(() => globalThis.__researchAgendaDebug && globalThis.__researchAgendaDebug.getViewState());
+
+  const chartRows = page.locator('#powerScenarios .metric-row');
+  const tableRows = page.locator('#powerScenarioTable tbody tr');
+  await expect(chartRows).toHaveCount(3);
+  await expect(tableRows).toHaveCount(3);
+  for (let index = 0; index < 3; index += 1) {
+    const chartValue = await chartRows.nth(index).locator('.metric-value').textContent();
+    await chartRows.nth(index).focus();
+    await expect(chartRows.nth(index)).toBeFocused();
+    await expect(chartRows.nth(index)).toHaveAttribute('title', /probability.*Current canonical model estimate.*Limited by/i);
+    await expect(chartRows.nth(index)).toHaveAttribute('aria-label', /probability.*published evidence.*scenario tree/i);
+    await expect(tableRows.nth(index).locator('td').nth(1)).toHaveText(chartValue);
+    await expect(tableRows.nth(index).locator('td').nth(2)).toHaveText('probability');
+    await expect(tableRows.nth(index).locator('td').nth(3)).toHaveText('Canonical current model');
+  }
+
+  const proxyRows = page.locator('#proxyWorkspace tbody tr');
+  await expect(proxyRows).toHaveCount(12);
+  const tickerLinks = page.locator('#proxyWorkspace tbody a');
+  await expect(tickerLinks).toHaveCount(12);
+  await tickerLinks.first().focus();
+  await expect(tickerLinks.first()).toBeFocused();
+  await expect(tickerLinks.first()).toHaveAttribute('href', /^https:\/\/finance\.yahoo\.com\/quote\//);
+  await expect(proxyRows.first().locator('td').nth(1)).toContainText('%');
+  await expect(proxyRows.first().locator('td').nth(2)).toHaveText(/^\d{4}-\d{2}-\d{2}$/);
+  await expect(proxyRows.first().locator('td').nth(3)).toContainText('event');
+  await expect(proxyRows.first().locator('td').nth(4)).not.toHaveText('');
+
+  const sources = page.locator('#sourceList .source-row a');
+  await expect(sources).toHaveCount(2);
+  await sources.first().focus();
+  await expect(sources.first()).toBeFocused();
+  await expect(sources.first()).toHaveAttribute('href', /^https:\/\//);
+  await expect(page.locator('#sourceList .source-row').first()).toContainText('Observed');
+  await expect(page.locator('#sourceList .source-row').first()).toContainText('public source');
+});
+
 test('Regression: contextual disclosure fits mobile returns focus and promotes same-data table without canvas', async ({ page }) => {
   test.slow();
   await page.setViewportSize({ width: 390, height: 844 });

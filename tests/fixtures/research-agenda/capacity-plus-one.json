@@ -1,0 +1,51 @@
+{
+  "contractVersion": "research-agenda/v1",
+  "reviewPolicy": {
+    "maxActiveEveryGenerationTopics": 1,
+    "cadenceTopicReviewBudget": 1,
+    "cadenceSelectionOrder": [
+      "trigger-fired-first",
+      "oldest-last-review",
+      "declaration-order",
+      "topic-id"
+    ],
+    "maxConcurrentTopicAcquisitions": 2,
+    "researchAuthoring": {
+      "timeoutSeconds": 900,
+      "attempts": 1,
+      "concurrency": 1,
+      "maxInputBytes": 524288,
+      "maxOutputBytes": 524288
+    }
+  },
+  "topics": [
+    {
+      "topicId": "geopolitical-supply-shock",
+      "title": "Geopolitical supply shock",
+      "declaredQuestion": "How are U.S.-Iran reaction functions, Hormuz, the Red Sea and Bab el-Mandeb changing the probability and transmission of a public-market supply shock?",
+      "scopeBoundary": {
+        "publicOnly": true
+      },
+      "lifecycleState": "active",
+      "reviewPolicy": {
+        "mode": "every-generation",
+        "freshnessWindowHours": 24
+      },
+      "definitionRef": "research/agenda/topics/geopolitical-supply-shock.definition.json"
+    },
+    {
+      "topicId": "defense-earnings-acceleration",
+      "title": "Defense earnings acceleration",
+      "declaredQuestion": "Which public defense manufacturers are accelerating versus consensus over three, six and twelve months?",
+      "scopeBoundary": {
+        "publicOnly": true
+      },
+      "lifecycleState": "active",
+      "reviewPolicy": {
+        "mode": "every-generation",
+        "freshnessWindowHours": 24
+      },
+      "definitionRef": "research/agenda/topics/defense-earnings-acceleration.definition.json"
+    }
+  ]
+}

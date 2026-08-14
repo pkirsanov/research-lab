@@ -16,6 +16,7 @@ export const ADAPTER_MODULES = Object.freeze([
   'rlexperience-adapters/fundamental-models.js',
   'rlexperience-adapters/strategy-research.js',
   'rlexperience-adapters/property-research.js',
+  'rlexperience-adapters/research-agenda.js',
   'rlexperience-adapters/market-action.js'
 ]);
 

@@ -330,6 +330,7 @@
              location.hash: two owners of one URL field is not a resolvable state.
              Without the declaration the existing provider-gated behaviour is unchanged. */
           ownsRoute: anchor.hasAttribute("data-owns-route"),
+          publicTargetIds: String(anchor.getAttribute("data-public-target-ids") || "").split(",").map(function (value) { return value.trim(); }).filter(function (value) { return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value); }),
           /* Provider-gated Model B rollout (Scope 15): an ordinary tool becomes an
              adapter-panel Simple (ownerModes ["power"]) ONLY when its page has
              registered an owner-state provider; otherwise it keeps native Simple

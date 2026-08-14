@@ -1217,6 +1217,53 @@
     el.innerHTML = '<div class="next-head"><b>' + esc(sessionDate) + '</b>' + ((snap && snap.marketClosed) ? ' <span class="pill warn">latest completed bars</span>' : '') + (thesis ? '<span class="sub">' + esc(thesis) + '</span>' : '') + '</div><div class="grid2">' + host.innerHTML + '</div>';
   }
 
+  function renderResearchAgenda(el, read) {
+    if (!el) return;
+    while (el.firstChild) el.removeChild(el.firstChild);
+    if (!read || !Array.isArray(read.topics)) {
+      var unavailable = document.createElement("p");
+      unavailable.className = "sub";
+      unavailable.textContent = "No standing research read is present in this brief generation.";
+      el.appendChild(unavailable);
+      return;
+    }
+    var intro = document.createElement("p");
+    intro.className = "sub research-agenda-intro";
+    intro.textContent = "Generation " + String(read.generationId || "unavailable").replace(/^generation-/, "").slice(0, 12) + " · as of " + String(read.asOf || "unavailable") + ". Current gaps stay gaps; dated dossiers are available only in the owning tool.";
+    el.appendChild(intro);
+    var list = document.createElement("div");
+    list.className = "research-agenda-list";
+    var reasonText = {
+      "research-lane-unavailable": "The research lane did not produce a validated current dossier.",
+      "cadence-budget": "Deferred by this generation's cadence budget.",
+      "not-due": "Not due under its declared cadence.",
+      "stale-evidence": "No supporting observation remains inside the freshness window."
+    };
+    var glyph = { reviewed: "●", unavailable: "○", stale: "◐", deferred: "◐", "not-due": "◐" };
+    read.topics.forEach(function (topic) {
+      var article = document.createElement("article");
+      article.className = "research-agenda-row";
+      article.setAttribute("data-research-topic", topic.topicId);
+      var heading = document.createElement("h3");
+      heading.textContent = String(topic.topicId || "unavailable").replace(/-/g, " ").replace(/\b\w/g, function (letter) { return letter.toUpperCase(); });
+      article.appendChild(heading);
+      var state = document.createElement("span");
+      state.className = "research-agenda-state state-" + String(topic.state || "unavailable");
+      state.textContent = (glyph[topic.state] || "○") + " " + String(topic.state || "unavailable").replace(/-/g, " ");
+      state.setAttribute("aria-label", String(topic.state || "unavailable").replace(/-/g, " "));
+      article.appendChild(state);
+      var reason = document.createElement("p");
+      reason.textContent = topic.state === "reviewed" ? "A validated current review is available." : (reasonText[topic.reason] || "No current conclusion is available.");
+      article.appendChild(reason);
+      var linkNode = document.createElement("a");
+      linkNode.href = "research-agenda-lab.html#power/" + encodeURIComponent(topic.topicId);
+      linkNode.textContent = "Open topic detail ▸";
+      article.appendChild(linkNode);
+      list.appendChild(article);
+    });
+    el.appendChild(list);
+  }
+
   function renderToolReads(el, tools, snapshotReads, localReads) {
     if (!el) return;
     snapshotReads = snapshotReads || {}; localReads = localReads || {};
@@ -1436,6 +1483,7 @@
   root.RLBRIEF.renderAttention = renderAttention;
   root.RLBRIEF.renderRecs = renderRecs;
   root.RLBRIEF.renderNextSession = renderNextSession;
+  root.RLBRIEF.renderResearchAgenda = renderResearchAgenda;
   root.RLBRIEF.renderToolReads = renderToolReads;
   root.RLBRIEF.renderEvents = renderEvents;
   root.RLBRIEF.renderWatchlist = renderWatchlist;

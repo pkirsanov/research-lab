@@ -81,6 +81,30 @@ test('the scorecard renders above the attention feed and reports the committed o
   }
 });
 
+test('SCN-019-020 compact standing research read is visible on the brief and deep-links to its owner', async ({ page }) => {
+  const server = await startStaticServer();
+  try {
+    await openBrief(page, server);
+    const section = page.locator('#standingResearch');
+    await expect(section).toBeVisible();
+    await expect(section.locator('.research-agenda-row')).toHaveCount(3);
+    await expect(section.locator('[data-research-topic="geopolitical-supply-shock"]')).toContainText('unavailable');
+    await expect(section.locator('[data-research-topic="geopolitical-supply-shock"]')).toContainText('did not produce a validated current dossier');
+    await expect(section.locator('[data-research-topic="defense-earnings-acceleration"]')).toContainText('unavailable');
+    await expect(section.locator('[data-research-topic="food-inputs-outlook"]')).toContainText('deferred');
+    await expect(section.locator('[data-research-topic="food-inputs-outlook"]')).toContainText('cadence budget');
+    const ownerLink = section.locator('[data-research-topic="geopolitical-supply-shock"] a');
+    await expect(ownerLink).toHaveAttribute('href', 'research-agenda-lab.html#power/geopolitical-supply-shock');
+    await ownerLink.click();
+    await expect(page).toHaveURL(/research-agenda-lab\.html#power\/geopolitical-supply-shock$/);
+    await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
+    await expect(page.locator('body')).toHaveAttribute('data-rlview', 'power');
+    await expect(page.locator('[data-public-target-id="geopolitical-supply-shock"]')).toBeFocused();
+  } finally {
+    await server.close();
+  }
+});
+
 test('a below-minimum sample withholds the rate and shows the sample size instead', async ({ page }) => {
   test.setTimeout(90_000);
   const server = await startStaticServer({

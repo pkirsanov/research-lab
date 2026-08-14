@@ -21,6 +21,7 @@
   var ownerModes = Array.isArray(registration.ownerModes) ? registration.ownerModes.slice() : [];
   /* An owns-route page renders every view itself, so no mode may focus the shell over it. */
   if (OWNS_ROUTE) ownerModes = MODES.slice();
+  var publicTargetIds = Array.isArray(registration.publicTargetIds) ? registration.publicTargetIds.slice() : [];
   var labels = {};
   var current = SHELL.defaultViewId;
   var panels = {};
@@ -209,16 +210,27 @@
     } catch (error) { }
   }
 
-  function apply(mode, source) {
+  function focusPublicTarget(targetId) {
+    if (!targetId || publicTargetIds.indexOf(targetId) === -1) return;
+    root.setTimeout(function () {
+      var target = document.querySelector('[data-public-target-id="' + targetId + '"]') || document.getElementById(targetId);
+      if (!target || typeof target.focus !== "function") return;
+      if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+      target.focus();
+    }, 0);
+  }
+
+  function apply(mode, source, targetId) {
     var previous = current;
     applyVisual(mode);
     driveLegacy(mode);
     if (source !== "boot" && source !== "popstate") persistMode(mode);
     try {
       root.dispatchEvent(new CustomEvent("rlviews:change", {
-        detail: { mode: mode, previousMode: previous, baseMode: mode, toolId: TOOL }
+        detail: { mode: mode, previousMode: previous, baseMode: mode, toolId: TOOL, targetId: targetId || null }
       }));
     } catch (error) { }
+    focusPublicTarget(targetId);
   }
 
   function readModeRecord() {
@@ -229,7 +241,7 @@
   }
 
   function resolveCurrentRoute(includeLocalRecord) {
-    var options = { publicTargetIds: [] };
+    var options = { publicTargetIds: publicTargetIds };
     if (includeLocalRecord) options.localModeRecord = readModeRecord();
     var routeHash = OWNS_ROUTE ? "" : location.hash;
     if (!OWNS_ROUTE && SHELL.kind === "ordinary" && MODES.indexOf(String(routeHash || "").replace(/^#/, "").split("/")[0]) === -1) {
@@ -242,14 +254,18 @@
     return result.ok ? result.value : null;
   }
 
-  function selectMode(mode, source) {
+  function selectMode(mode, source, targetId) {
     if (mode === current && source !== "popstate") return;
+    if (typeof targetId === "undefined") {
+      var currentRoute = resolveCurrentRoute(false);
+      targetId = currentRoute ? currentRoute.targetId : null;
+    }
     if (source !== "popstate") {
       var transition = EXPERIENCE.transitionRoute(SHELL, {
         contractVersion: "experience-route/v1",
         mode: current,
-        targetId: null,
-        canonicalHash: "#" + current,
+        targetId: targetId || null,
+        canonicalHash: "#" + current + (targetId ? "/" + targetId : ""),
         source: "current",
         historyAction: "none",
         focusPolicy: "preserve",
@@ -261,7 +277,7 @@
         history.pushState({ contractVersion: "experience-history/v1", toolId: TOOL, mode: mode }, "", transition.value.route.canonicalHash);
       }
     }
-    apply(mode, source);
+    apply(mode, source, targetId || null);
   }
 
   function buildControl() {
@@ -306,7 +322,7 @@
     if (!OWNS_ROUTE && route && route.historyAction === "replace") {
       history.replaceState({ contractVersion: "experience-history/v1", toolId: TOOL, mode: initialMode }, "", route.canonicalHash);
     }
-    apply(initialMode, "boot");
+    apply(initialMode, "boot", route ? route.targetId : null);
     root.addEventListener("popstate", function () {
       if (OWNS_ROUTE) return;
       var restored = resolveCurrentRoute(false);
@@ -314,7 +330,7 @@
       if (restored.historyAction === "replace") {
         history.replaceState({ contractVersion: "experience-history/v1", toolId: TOOL, mode: restored.mode }, "", restored.canonicalHash);
       }
-      selectMode(restored.mode, "popstate");
+      selectMode(restored.mode, "popstate", restored.targetId);
     });
   }
 

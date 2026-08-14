@@ -1,51 +1,42 @@
-# Scope 1: Agenda Registry Contract And Owning Module
+# Scope 1: Agenda Foundation And Topic Definitions
 
-## 01-agenda-registry-contract
+**Scope ID:** `01-agenda-registry-contract`
+**Scope Dir:** `scopes/01-agenda-registry-contract`
+**Status:** Done
+**Depends On:** none
+**Scope-Kind:** runtime-behavior
+**Tags:** foundation:true
 
-**Status:** Not started
-**Scope-Kind:** capability-foundation
-**Tags:** foundation, contract, closed-vocabulary, named-refusal, committed-state
-Depends On: none — this is the only root scope
-Foundation: true
+Related artifacts: [spec.md](../../spec.md), [design.md](../../design.md),
+[scope index](../_index.md).
 
-**Primary Outcome:** `research-agenda.json` exists as a committed root artifact
-carrying `research-agenda/v1`, and `rlagenda.js` exists as the single UMD module
-that owns the topic shape, the three closed vocabularies, the fourteen
-`RLAGENDA-*` refusal codes and the balancing assertion. A disposable clone can
-read the registry with no network and no browser. An absent registry is a named
-absence, never a synthesised default set. One malformed topic is refused by name
-and the remaining topics survive. Nothing is researched and nothing is published
-in this scope.
+## Replan Evidence Boundary
+
+The existing `report.md` records historical evidence for the superseded
+implementation contract. It cannot satisfy any DoD item below. Implementation
+must execute every current `TP-01-*` row and append fresh evidence under a
+`replanned-contract-tp-01-*` anchor before checking the matching item.
+
+## Outcome
+
+Commit the topic-neutral agenda foundation without running research. The root
+`research-agenda.json` declares explicit review modes, freshness, two topic
+capacities, acquisition capacity, and authoring limits. The UMD `rlagenda.js`
+owns all closed vocabularies, exact-shape validation, refusal families, and
+deterministic function signatures. Three initial topic definitions use that
+foundation: `geopolitical-supply-shock` in `every-generation` mode, and
+`defense-earnings-acceleration` plus `food-inputs-outlook` in `cadence` mode.
+
+The geopolitical definition carries all eight required analytical sections,
+stable actor/scenario/flow/transmission/proxy/chart definitions, explicit
+quality weights and impact caps, and a versioned calibration contract. Shared
+foundation fields never hard-code Iran or geopolitical sections into the two
+cadence topics.
 
 ## Requirement Coverage
 
-- FR-019-001 — the registry is a committed repository file readable by a Node run
-  with no network and no browser.
-- FR-019-002 — no `localStorage`, no session storage, no uncommitted local file,
-  and no state absent from a fresh `git clone --single-branch`.
-- FR-019-003 — a versioned `contractVersion`, following the
-  `market-brief-experimental/v1` precedent already committed in
-  `market-brief.experimental.json`.
-- FR-019-004 — a stable `topicId` matching `^[a-z0-9]([a-z0-9-]*[a-z0-9])?$`, the
-  same pattern a public route target must satisfy, refused by `RLAGENDA-ID` and
-  `RLAGENDA-DUPLICATE`.
-- FR-019-005 — the operator's `declaredQuestion` in the operator's own words;
-  absent or empty is `RLAGENDA-QUESTION`.
-- FR-019-006 — an explicit `scopeBoundary` naming subjects, geographies,
-  instruments or horizons; absent is `RLAGENDA-BOUNDARY`.
-- FR-019-007 — `reviewCadenceDays` and `freshnessWindowDays` both required, neither
-  inferred from a default; absent or non-positive is `RLAGENDA-CADENCE`.
-- FR-019-008 — `lifecycleState` from the closed `active | paused | retired`
-  vocabulary; anything else is `RLAGENDA-LIFECYCLE`.
-- FR-019-009 — the contract, the lifecycle vocabulary and the due decision are
-  defined in exactly one module and every consumer reads them from it (P19).
-- FR-019-015 (contract half) — an invalid topic is refused by name with its reason
-  and does not prevent the remaining topics from being reviewed. The lifecycle
-  half is scope 2.
-- FR-019-020 (contract half) — `reviewBudget` is a required positive integer;
-  absent or malformed is `RLAGENDA-BUDGET`. Its enforcement is scope 3.
-- NFR-019-004 — every guard introduced here carries an adversarial case that fails
-  when the guard is removed.
+FR-019-001 through FR-019-009, FR-019-011, FR-019-015, FR-019-020, and
+NFR-019-003 through NFR-019-004.
 
 ## Gherkin Scenarios
 
@@ -65,188 +56,367 @@ Scenario: SCN-019-002 An absent agenda is a named absence
   And the rest of the brief still generates
 
 Scenario: SCN-019-003 One invalid topic does not disable the others
-  Given the agenda declares three topics and one is missing its declared question
+  Given the agenda declares three topics and one is missing its review mode
   When the agenda is validated
   Then the invalid topic is refused with a named reason
   And the remaining two topics are still reviewed
+
+Scenario: SCN-019-007 The operator's actual research history is expressible
+  Given the operator declares the primary geopolitical supply-shock topic in every-generation mode
+  And its current scope covers U.S.-Iran reaction functions, Hormuz, the Red Sea and Bab el-Mandeb
+  And it covers oil, refined products, LNG, fertilizer, aluminum, shipping and U.S.-listed proxy sensitivity
+  And the operator declares defense-acceleration and food-input topics in cadence mode
+  When the agenda is validated
+  Then all three are accepted as instances of the same agenda foundation
+  And each retains its own question, boundary, analytical sections and review mode
 ```
 
-## Implementation Files
+## Planned Production Paths
 
-### New
-
-- `research-agenda.json` — the committed operator-owned registry
-- `rlagenda.js` — the single UMD owning module
-- `tests/fixtures/research-agenda/registry-valid.json`
-- `tests/fixtures/research-agenda/registry-one-topic-no-question.json`
-- `tests/fixtures/research-agenda/registry-duplicate-topic-id.json`
-- `tests/fixtures/research-agenda/registry-missing-cadence.json`
-- `tests/fixtures/research-agenda/registry-bad-contract-version.json`
-
-### Modified
-
-- `scripts/selftest.mjs` — one new assertion group
-- `notes/README.md` — the notes-index row for the tool's notes target
-- `notes/research-agenda-lab.md` — created here as the contract note; the tool
-  registration that makes it a registered `notes` target is scope 5
+| Path | Disposition | Purpose |
+| --- | --- | --- |
+| `research-agenda.json` | planned new | committed operator registry and all required capacities |
+| `rlagenda.js` | planned new | single UMD owner of contracts, validation, models, charts, and reader vocabulary |
+| `research/agenda/topics/geopolitical-supply-shock.definition.json` | planned new | eight-section primary topic definition |
+| `research/agenda/topics/geopolitical-supply-shock.calibration.json` | planned new | immutable historical-event calibration contract |
+| `research/agenda/topics/defense-earnings-acceleration.definition.json` | planned new | cadence topic definition |
+| `research/agenda/topics/food-inputs-outlook.definition.json` | planned new | cadence topic definition |
+| `tests/fixtures/research-agenda/` | planned new | contract, refusal, mode, capacity, definition, and calibration fixtures |
+| `scripts/selftest.mjs` | existing, planned modification | pure production-helper and contract assertions |
+| `scripts/build-pages-site.mjs` | existing, planned modification | publish `research/**` in the public site projection |
 
 ## Implementation Plan
 
-1. Author `rlagenda.js` as a UMD dual module at the repository root beside
-   `rlattention.js` and `rlmarketaction.js`. Never ESM, no build step, loadable
-   from `file://` (P10). Copy the shape of `rlattention.js` exactly: frozen
-   vocabularies, a closed `REFUSAL_CODES` array, and a `refuse(code, field,
-   message)` helper that returns `{ ok: false, code, field, message }` rather
-   than throwing.
-2. Freeze `CONTRACT_VERSION`, `DOSSIER_CONTRACT_VERSION` and
-   `READ_CONTRACT_VERSION` as string constants, plus `LIFECYCLE_STATES`,
-   `OUTCOME_STATES`, `TRIGGER_KINDS`, `CONFIDENCE_LEVELS`, `PRIVATE_FIELDS` and
-   `REFUSAL_CODES` as frozen arrays. `PRIVATE_FIELDS` is the same four names
-   `rlattention.js` already freezes, read from one place rather than restated.
-3. Implement `validateTopic(topic)` as a top-level `function` declaration
-   returning `{ ok, code, field, message }`. Every branch names its field. No
-   branch supplies a default, an inference or a fallback value.
-4. Implement `validateAgenda(registry)` returning `{ topics, refusals }` where a
-   refusal is `{ index, topicId, code, field, reason }` — the same five-member
-   shape `payload.attentionExclusions[]` already uses and
-   `scripts/validate-brief-payload.mjs` already validates for attention.
-5. Assert the balance inside `validateAgenda` itself: `topics.length +
-   refusals.length === registry.topics.length`. This is the accounting
-   `scripts/build-attention-items.mjs` already enforces for attention, and it is
-   what makes "one bad topic does not sink the agenda" mechanical rather than
-   hoped for.
-6. Return `registryState: 'absent'` for a missing file and `'unreadable'` with
-   `RLAGENDA-CONTRACT` for an unparseable body or an unknown `contractVersion`.
-   Neither path synthesises a topic, and neither throws into the caller.
-7. Commit `research-agenda.json` with the three real topics — defense production
-   and earnings acceleration, U.S.–Iran oil and the Strait of Hormuz, and food,
-   grains and fertilizer — plus a fourth drafted topic, which settles design open
-   question 2 by exercising the contract against a shape beyond the three it was
-   designed from. The fourth topic is committed only if it validates unchanged;
-   if it does not, the contract is amended in this scope rather than after it is
-   frozen.
-8. Register a `research-agenda — registry contract` group in
-   `scripts/selftest.mjs`, loading `rlagenda.js` through
-   `createRequire(import.meta.url)` exactly as `scripts/build-attention-items.mjs`
-   loads `rlattention.js`, so the Node consumer and the browser hold the identical
-   frozen object.
-9. Record the contract, its field rules and its refusal table in
-   `notes/research-agenda-lab.md`.
+1. Implement `rlagenda.js` as a root UMD module loaded by Node through
+   `createRequire` and by browsers through a normal script tag. Export top-level
+   `function name(...)` declarations so the current selftest extractor executes
+   the real production functions.
+2. Define exact closed contracts for `research-agenda/v1`,
+   `research-topic-definition/v1`, and `research-evidence-record/v1`. Reject
+   unknown members and missing values. Supply no mode, cadence, freshness,
+   capacity, timeout, weight, cap, or model fallback.
+3. Validate `every-generation` and `cadence` as discriminated shapes.
+   `every-generation` requires `freshnessWindowHours` and rejects cadence
+   members. `cadence` requires positive `cadenceDays` and
+   `freshnessWindowDays`.
+4. Require positive `maxActiveEveryGenerationTopics`,
+   `cadenceTopicReviewBudget`, `maxConcurrentTopicAcquisitions`, and every
+   `researchAuthoring` member shown in design section 6.1. Reject the active
+   mandatory count at capacity plus one.
+5. Commit exactly the three initial topics. Validate stable ids, byte-stable
+   questions, explicit boundaries, lifecycle state, review policy, and
+   definition references. Do not add a speculative fourth topic.
+6. Encode the primary topic's stable actors, scenario priors, unique-flow
+   network, channel-specific transmission models, U.S.-listed proxies, chart
+   definitions, evidence-quality policy, triggers, invalidations, and
+   calibration reference. Keep the defense and food definitions independent.
+7. Make absent/unreadable registry state and per-topic refusal first-class.
+   Assert `accepted + refusals === declared` without disabling valid topics.
+8. Add contract fixtures and focused assertions to `scripts/selftest.mjs`.
+   Add a real-static-server regression to the existing deployed-site parity
+   spec. No research lane, generation record, dossier, payload key, page, or
+   registration surface is implemented in this scope.
 
 ## Shared Infrastructure Impact Sweep
 
-| Shared surface | Change in this scope | Downstream consumers | Blast radius | Canary | Rollback proof |
-| --- | --- | --- | --- | --- | --- |
-| `rlagenda.js` (new root module) | Created | Scopes 2–5, the publish gate, both pages | High — a second copy of any vocabulary anywhere downstream breaks P19 permanently and silently | Assert the module is loaded through `createRequire` and that the repository holds exactly one declaration of each vocabulary name | Delete the file; nothing consumes it until scope 2 |
-| `research-agenda.json` (new root artifact) | Created | The offline plan, the published read, the Pages build | Medium — a root `.json` ships to Pages by the ordinary root-file rule, so a private field here becomes public immediately | `node scripts/pii-scan.mjs` over the committed tree, and a fixture carrying `size` proving `RLAGENDA-PRIVATE` fires | Delete the file; the absent path is a named absence by construction |
-| `scripts/selftest.mjs` | One group appended | The whole-repo gate and the Pages verify job | Medium — a group that reads the real registry rather than a fixture would flake as the operator edits topics | Every case drives a committed fixture; the real registry is asserted only for validity, never for content | Remove the appended group |
-| `notes/README.md` | One index row | The notes index | Low | The row points at a file created in this scope | Revert the row |
+| Surface | Risk | Canary | Restore boundary |
+| --- | --- | --- | --- |
+| `rlagenda.js` | every later producer and reader consumes one owner | repository scan finds one owner for each vocabulary and formula | remove the new module before downstream scopes start |
+| root registry and public definitions | committed public files can leak private fields | recursive private-field fixture fails validation | remove only the new registry/definition tree |
+| `scripts/selftest.mjs` | shared project gate | existing groups retain their prior pass count and the new group executes | remove only the Feature 019 group |
 
-## Change Boundary And Protected Paths
+## Change Boundary
 
-**Allowed:** `research-agenda.json` · `rlagenda.js` ·
-`tests/fixtures/research-agenda/*.json` · `scripts/selftest.mjs` ·
-`notes/research-agenda-lab.md` · `notes/README.md`.
-
-**Excluded (must remain byte-identical in this scope):**
-`scripts/brief-narrative-parallel.mjs` · `scripts/validate-brief-payload.mjs` ·
-`scripts/build-attention-items.mjs` · `scripts/build-brief-page-artifacts.mjs` ·
-`scripts/build-pages-site.mjs` · `tools.json` · `index.html` · `rlnav.js` ·
-`rlattention.js` · `rlmarketaction.js` · `rlbrief.js` · `rlviews.js` · `rlapp.js` ·
-`rlexperience.js` · `market-brief.html` · `market-brief.config.json` ·
-`market-brief.payload.json` · `market-brief.page.json` ·
-`market-brief.snapshot.json` · `site-exclusions.json` ·
-`tool-experience.config.json` · `watchlist.json` · `README.md`.
-
-`tools.json` is on the excluded list for a reason that is not stylistic:
-`scripts/build-pages-site.mjs` asserts at `:41-43` that every registered page
-exists, so registering the tool before its page exists leaves the site build red.
-Registration is atomic and belongs entirely to scope 5.
-
-**Allowed file families.**
-
-| Family | Members | Why this scope may touch it |
-| --- | --- | --- |
-| Owning module | `rlagenda.js` | The deliverable. |
-| Registry artifact | `research-agenda.json` | The committed operator surface the whole feature reads. |
-| Contract fixtures | `tests/fixtures/research-agenda/*.json` | The registries the refusals are proven against. `tests/fixtures` is already in the frozen `PUBLIC_DIRECTORIES` list at `scripts/build-pages-site.mjs:13`, so no publication rule changes. |
-| Project test harness | `scripts/selftest.mjs` | Where the deterministic group lives. |
-| Tool notes | `notes/research-agenda-lab.md`, `notes/README.md` | Where the contract is recorded beside the tool. |
-
-**Excluded surfaces.**
-
-| Surface | Members | Owner |
-| --- | --- | --- |
-| Publisher lane wiring | `scripts/brief-narrative-parallel.mjs` | Scope 4 |
-| Publish gate and page artifacts | `scripts/validate-brief-payload.mjs`, `scripts/build-brief-page-artifacts.mjs` | Scope 5 |
-| Registration surfaces | `tools.json`, `index.html`, `rlnav.js`, `README.md`, `site-exclusions.json`, `tool-experience.config.json`, `scripts/build-pages-site.mjs` | Scope 5 |
-| Attention and alert modules | `rlattention.js`, `rlmarketaction.js`, `scripts/build-attention-items.mjs` | Feature 020, and not this feature at all |
-
-## Rollback
-
-Delete `research-agenda.json`, `rlagenda.js`, the five fixtures and
-`notes/research-agenda-lab.md`; remove the appended selftest group and the
-`notes/README.md` row. Prove the restore by running `node scripts/selftest.mjs`
-and recording exit 0 with the unfiltered output. Nothing downstream is affected,
-because no consumer exists until scope 2.
-
-## Scenario-First RED/GREEN Contract
-
-RED: author the three scenarios and the five fixtures first. Record the
-one-topic-no-question fixture returning three accepted topics before
-`RLAGENDA-QUESTION` exists — that is the silent-acceptance defect the refusal
-removes. Record the absent-registry path throwing before the named-absence branch
-exists.
-
-GREEN: the valid fixture yields three accepted topics and zero refusals; the
-no-question fixture yields two accepted topics and exactly one refusal carrying
-`RLAGENDA-QUESTION` and the field `declaredQuestion`; the balance holds in every
-case; the absent path returns `registryState: 'absent'` with zero synthesised
-topics; the bad-contract-version path returns `registryState: 'unreadable'` with
-`RLAGENDA-CONTRACT`; and the offline case runs with global `fetch` stubbed to
-throw.
+Allowed families are the six planned production paths above,
+`tests/fixtures/research-agenda/**`, `scripts/selftest.mjs`,
+`scripts/build-pages-site.mjs` only to publish `research/**`, and the existing
+`tests/deployed-site-parity.spec.mjs` canary. Excluded are brief generation,
+payload/page publication, tool registration, UI, action, attention, anomaly,
+candidate, and alert surfaces.
 
 ## Test Plan
 
-| ID | Type | Category | Scenario | File | Exact Behavior / Persistent Title | Command | Live System | Evidence Anchor |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| TP-01-01 | Contract | unit | SCN-019-001 | `scripts/selftest.mjs` | the committed `research-agenda.json` is read by a Node run with global `fetch` stubbed to throw and with no `localStorage` binding present, and every topic the file declares is returned by `validateAgenda`; the set of files opened during the read is recorded and contains no path outside the repository checkout | `node scripts/selftest.mjs` | No | `report.md#tp-01-01` |
-| TP-01-02 | Named absence | unit | SCN-019-002 | `scripts/selftest.mjs` | reading an absent registry path returns `registryState: 'absent'` with a named reason, returns exactly zero topics, and is asserted to synthesise no default topic set — the returned topic array is empty rather than populated with an example | `node scripts/selftest.mjs` | No | `report.md#tp-01-02` |
-| TP-01-03 | Named absence | unit | SCN-019-002 | `scripts/selftest.mjs` | an unparseable body and an unknown `contractVersion` both return `registryState: 'unreadable'` with `RLAGENDA-CONTRACT`, neither throws into the caller, and the caller's remaining work continues so the rest of the brief still generates | `node scripts/selftest.mjs` | No | `report.md#tp-01-03` |
-| TP-01-04 | Refusal | unit | SCN-019-003 | `scripts/selftest.mjs` | the three-topic fixture whose middle topic is missing its declared question yields exactly two accepted topics and exactly one refusal carrying `RLAGENDA-QUESTION`, the field `declaredQuestion` and a named reason, and both surviving topics are still reviewed | `node scripts/selftest.mjs` | No | `report.md#tp-01-04` |
-| TP-01-05 | Adversarial | unit | SCN-019-003 | `scripts/selftest.mjs` | Regression: the balancing assertion `accepted + refusals === declared` is asserted for every fixture, and a deliberately mutated validator that drops a refused topic without recording it is proven to fail the assertion — the guard can actually fail | `node scripts/selftest.mjs` | No | `report.md#tp-01-05` |
-| TP-01-06 | Contract | unit | SCN-019-003 | `scripts/selftest.mjs` | each of the fourteen `RLAGENDA-*` codes is raised by at least one fixture or constructed input, every code raised is a member of the frozen `REFUSAL_CODES` array, and no validation branch returns a code absent from that array | `node scripts/selftest.mjs` | No | `report.md#tp-01-06` |
-| TP-01-07 | Contract | unit | SCN-019-001 | `scripts/selftest.mjs` | `topicId` accepts `^[a-z0-9]([a-z0-9-]*[a-z0-9])?$` and refuses a leading hyphen, a trailing hyphen, an uppercase character and an empty string with `RLAGENDA-ID`; two topics sharing an id are refused `RLAGENDA-DUPLICATE` | `node scripts/selftest.mjs` | No | `report.md#tp-01-07` |
-| TP-01-08 | Contract | unit | SCN-019-001 | `scripts/selftest.mjs` | `reviewCadenceDays`, `freshnessWindowDays` and `reviewBudget` are each refused when absent, zero, negative or non-integer, with `RLAGENDA-CADENCE` and `RLAGENDA-BUDGET` respectively, and no branch substitutes a default value for any of the three | `node scripts/selftest.mjs` | No | `report.md#tp-01-08` |
-| TP-01-09 | Single-definition | unit | SCN-019-001 | `scripts/selftest.mjs` | Regression: `rlagenda.js` is loaded through `createRequire` and the repository is scanned for a second literal declaration of `LIFECYCLE_STATES`, `OUTCOME_STATES`, `TRIGGER_KINDS` or `REFUSAL_CODES`; exactly one declaration of each exists, so no consumer holds a divergent copy | `node scripts/selftest.mjs` | No | `report.md#tp-01-09` |
-| TP-01-10 | Contract | unit | SCN-019-001 | `scripts/selftest.mjs` | the committed `research-agenda.json` validates with zero refusals, including the fourth drafted topic, proving the contract holds against a topic shape beyond the three it was designed from | `node scripts/selftest.mjs` | No | `report.md#tp-01-10` |
-| TP-01-11 | Path guard | unit | SCN-019-001 | `scripts/validate-spec-test-paths.mjs` | the spec-artifact test-path guard reports zero new missing paths for this scope's artifacts, so no declared verification path is stale | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-01-11` |
+| ID | Category | Scenario | Existing test surface | Exact planned test title | Command | Live system |
+| --- | --- | --- | --- | --- | --- | --- |
+| TP-01-01 | unit | SCN-019-001 | `scripts/selftest.mjs` | `SCN-019-001 committed agenda loads from repository state without browser or network input` | `node scripts/selftest.mjs` | No |
+| TP-01-02 | functional | SCN-019-002 | `scripts/selftest.mjs` | `SCN-019-002 absent agenda is named and never replaced with default topics` | `node scripts/selftest.mjs` | No |
+| TP-01-03 | unit | SCN-019-003 | `scripts/selftest.mjs` | `SCN-019-003 missing review mode refuses only the invalid topic` | `node scripts/selftest.mjs` | No |
+| TP-01-04 | unit | SCN-019-007 | `scripts/selftest.mjs` | `SCN-019-007 three initial topics validate through one topic-neutral foundation` | `node scripts/selftest.mjs` | No |
+| TP-01-05 | adversarial | SCN-019-001, SCN-019-003 | `scripts/selftest.mjs` | `Regression: agenda modes capacities vocabularies and formulas fail closed and have one owner` | `node scripts/selftest.mjs` | No |
+| TP-01-06 | integration | SCN-019-001 | `scripts/validate-spec-test-paths.mjs` | `Regression: Feature 019 planning names only existing test files under the spec path ratchet` | `node scripts/validate-spec-test-paths.mjs` | No |
+| TP-01-07 | e2e-api | SCN-019-001, SCN-019-007 | `tests/deployed-site-parity.spec.mjs` | `SCN-019-001 foundation artifacts are served from committed files by the real static server` | `npx --no-install playwright test tests/deployed-site-parity.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-019-001 foundation artifacts are served from committed files by the real static server" --reporter=list` | Yes |
 
-### Definition of Done
+### Definition of Done - Tiered Validation
 
-- [ ] SCN-019-001 — a Node run in a disposable-clone-equivalent checkout, with `fetch` stubbed to throw, sees every topic the operator declared on the branch and reads no browser state and no uncommitted local file, proven by TP-01-01.
-- [ ] SCN-019-002 — an absent agenda registry records a named absence with a reason, synthesises no default topic set, and the rest of the brief still generates, proven by TP-01-02 and TP-01-03.
-- [ ] SCN-019-003 — one invalid topic missing its declared question is refused with a named reason while the remaining two topics are still reviewed, proven by TP-01-04.
-- [ ] `research-agenda.json` exists at the repository root, carries `contractVersion: "research-agenda/v1"` and a positive-integer `reviewBudget`, and is committed — not `localStorage`, not session storage, not an uncommitted file (FR-019-001, FR-019-002, FR-019-003), proven by TP-01-01 and TP-01-08.
-- [ ] Every topic carries a stable `topicId` matching the public-target pattern, and duplicate ids are refused, proven by TP-01-07.
-- [ ] Every topic carries `declaredQuestion`, `scopeBoundary`, `reviewCadenceDays`, `freshnessWindowDays` and `lifecycleState`, each refused by its own named code when absent, with no default substituted for any of them, proven by TP-01-04, TP-01-06 and TP-01-08.
-- [ ] `rlagenda.js` is the only module declaring the lifecycle vocabulary, the outcome vocabulary, the trigger vocabulary and the refusal codes, proven by TP-01-09.
-- [ ] All fourteen `RLAGENDA-*` codes are members of one frozen array and every validation branch returns a member of it, proven by TP-01-06.
-- [ ] The balancing assertion `accepted + refusals === declared` holds for every fixture, and a mutated validator that drops a refused topic is proven to fail it, proven by TP-01-05.
-- [ ] Every public function in `rlagenda.js` is authored as a top-level `function name(...)` declaration, so `extractFn` in `scripts/selftest.mjs:46` can extract it for headless testing.
-- [ ] The committed registry validates with zero refusals including a fourth drafted topic, settling design open question 2 with an observation rather than an assumption, proven by TP-01-10.
-- [ ] `node scripts/selftest.mjs` exits 0 with the new group registered and zero skipped assertions, evidenced by unfiltered output.
-- [ ] `node scripts/validate-spec-test-paths.mjs` exits 0 with zero new missing paths, proven by TP-01-11.
-- [ ] `node scripts/pii-scan.mjs` exits 0 across `git ls-files` with the new registry and fixtures committed.
-- [ ] No path excluded from this scope was modified BY this scope; `git diff --name-only` output is recorded verbatim and names only files in the Allowed table.
-- [ ] TP-01-01 executed with raw output recorded at `report.md#tp-01-01`.
-- [ ] TP-01-02 executed with raw output recorded at `report.md#tp-01-02`.
-- [ ] TP-01-03 executed with raw output recorded at `report.md#tp-01-03`.
-- [ ] TP-01-04 executed with raw output recorded at `report.md#tp-01-04`.
-- [ ] TP-01-05 executed with raw output recorded at `report.md#tp-01-05`.
-- [ ] TP-01-06 executed with raw output recorded at `report.md#tp-01-06`.
-- [ ] TP-01-07 executed with raw output recorded at `report.md#tp-01-07`.
-- [ ] TP-01-08 executed with raw output recorded at `report.md#tp-01-08`.
-- [ ] TP-01-09 executed with raw output recorded at `report.md#tp-01-09`.
-- [ ] TP-01-10 executed with raw output recorded at `report.md#tp-01-10`.
-- [ ] TP-01-11 executed with raw output recorded at `report.md#tp-01-11`.
+#### Tier 1 - Behavior
+
+- [x] SCN-019-001 through SCN-019-003 and SCN-019-007 satisfy the exact Given/When/Then contracts above.
+
+   Evidence:
+
+   ```text
+   # Scope 1 Gherkin behavior validation
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1907
+   sha256: 5a9d5a1846f85288cccb52bf8eb89a8311ccb20806be8b8e1883da4fb870246b
+   SCN-019-002 absent agenda is named and never replaced with default topics
+   TP-01-02: absence is explicit and carries no synthesized topic
+   SCN-019-003 missing review mode refuses only the invalid topic
+   TP-01-03: one missing mode yields one named refusal while two topics remain accepted
+   SCN-019-007 three initial topics validate through one topic-neutral foundation
+   Research-Lab self-test: 1650 passed, 0 failed
+   ```
+
+- [x] The committed registry carries explicit modes, freshness, both topic capacities, acquisition capacity, and every authoring limit with no fallback.
+
+   Evidence:
+
+   ```text
+   # Scope 1 explicit registry policy validation
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1907
+   sha256: 372084cf53020f10f2ba196d1da613b11c5191e5a3efae0f952bcceda84bcadc
+   Regression: agenda modes capacities vocabularies and formulas fail closed and have one owner
+   TP-01-05: unknown members, mandatory capacity plus one, and unknown evidence vocabulary are refused
+   TP-01-05: evidence weighting uses only explicit policy values and exposes every factor
+   TP-01-05: one UMD module owns the closed vocabulary and every deterministic function declaration
+   Research-Lab self-test: 1650 passed, 0 failed
+   ```
+
+- [x] The three initial topics retain independent definitions; the primary topic contains all eight required sections and the shared foundation contains no Iran-only field.
+
+   Evidence:
+
+   ```text
+   # Scope 1 topic independence validation
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1907
+   sha256: 7fc29df8f22f5e2c076836b3400201184f1012d3a80aa6a0b725ff431d76aebb
+   SCN-019-007 three initial topics validate through one topic-neutral foundation
+   TP-01-04: all definitions and the versioned primary calibration satisfy the shared contracts
+   TP-01-04: cadence topics remain independent and the shared contract has no Iran-only field
+   Research-Lab self-test: 1650 passed, 0 failed
+   SCOPE1_BEHAVIOR_TOPIC_INDEPENDENCE_EXIT=0
+   ```
+
+- [x] Scope 1 performs no runtime research and publishes no review, dossier, payload read, page artifact, action, attention item, candidate, anomaly seed, or alert.
+
+   Evidence:
+
+   ```text
+   SCOPE1_NO_RUNTIME_RESEARCH_BEGIN
+   scope=01-agenda-registry-contract
+   files=6
+   network-fetch=0
+   xhr=0
+   runtime-dossier-path=0
+   runtime-generation-path=0
+   brief-payload-write=0
+   feature020-action-write=0
+   attention-write=0
+   alert-write=0
+   findings=0
+   SCOPE1_NO_RUNTIME_RESEARCH_EXIT=0
+   ```
+
+#### Tier 2 - Test Evidence (7 rows)
+
+The seven items below are the complete test-related DoD inventory for this
+scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
+`test-plan.json`.
+
+- [x] TP-01-01: `scripts/selftest.mjs` executes `SCN-019-001 committed agenda loads from repository state without browser or network input` with fresh evidence.
+
+   Evidence:
+
+   ```text
+   # TP-01-01 committed agenda validation
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1907
+   sha256: 8eb8825336bc932e57b72a3cdfb67439e336d5603e83d5d61ec930fe0fc76a77
+   TP-01-01: the committed agenda validates all three topics from repository bytes
+   TP-01-01: the agenda foundation reads no browser state and embeds no network input
+   Research-Lab self-test: 1650 passed, 0 failed
+   TP-01-01_EXECUTION_EXIT=0
+   ```
+
+- [x] TP-01-02: `scripts/selftest.mjs` executes `SCN-019-002 absent agenda is named and never replaced with default topics` with fresh evidence.
+
+   Evidence:
+
+   ```text
+   # TP-01-02 absent agenda validation
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1907
+   sha256: 066bc22389e30d449dec5c1242b360c357db29349dde6c1cf97de7a97fcc83c3
+   SCN-019-002 absent agenda is named and never replaced with default topics
+   TP-01-02: absence is explicit and carries no synthesized topic
+   Research-Lab self-test: 1650 passed, 0 failed
+   TP-01-02_EXECUTION_EXIT=0
+   ```
+
+- [x] TP-01-03: `scripts/selftest.mjs` executes `SCN-019-003 missing review mode refuses only the invalid topic` with fresh evidence.
+
+   Evidence:
+
+   ```text
+   # TP-01-03 per-topic refusal validation
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1907
+   sha256: 527d163d75681af0b453cf5e6d4cbbf6cb5aad9bd2ba83dccac38dfeed3d12ed
+   SCN-019-003 missing review mode refuses only the invalid topic
+   TP-01-03: one missing mode yields one named refusal while two topics remain accepted
+   TP-01-03: accepted plus refused accounts for every declared topic without disabling valid peers
+   Research-Lab self-test: 1650 passed, 0 failed
+   ```
+
+- [x] TP-01-04: `scripts/selftest.mjs` executes `SCN-019-007 three initial topics validate through one topic-neutral foundation` with fresh evidence.
+
+   Evidence:
+
+   ```text
+   # TP-01-04 topic-neutral foundation validation
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1907
+   sha256: 7095765baedce413489435ddc27224897a848c956dc3bfe241a1f405fdb46666
+   SCN-019-007 three initial topics validate through one topic-neutral foundation
+   TP-01-04: all definitions and the versioned primary calibration satisfy the shared contracts
+   TP-01-04: cadence topics remain independent and the shared contract has no Iran-only field
+   Research-Lab self-test: 1650 passed, 0 failed
+   ```
+
+- [x] TP-01-05: `scripts/selftest.mjs` executes `Regression: agenda modes capacities vocabularies and formulas fail closed and have one owner` with fresh evidence.
+
+   Evidence:
+
+   ```text
+   # TP-01-05 fail-closed ownership validation
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 1907
+   sha256: ec2ccc4b6d112b32efeba78582b3770cc95f1069d752fa8e33dabc63a60306d8
+   TP-01-05: unknown members, mandatory capacity plus one, and unknown evidence vocabulary are refused
+   TP-01-05: evidence weighting uses only explicit policy values and exposes every factor
+   TP-01-05: one UMD module owns the closed vocabulary and every deterministic function declaration
+   Research-Lab self-test: 1650 passed, 0 failed
+   ```
+
+- [x] TP-01-06: `scripts/validate-spec-test-paths.mjs` executes `Regression: Feature 019 planning names only existing test files under the spec path ratchet` with fresh evidence.
+
+   Evidence:
+
+   ```text
+   # TP-01-06 spec test path ratchet
+   $ node scripts/validate-spec-test-paths.mjs
+   exit: 0
+   lines: 6
+   sha256: b113b5367037bc92819035c35f0f41a956d1c58056b79bb5eae65700c5dfceee
+   [spec-test-paths] scanned=553 references=12502 distinctPaths=218 missingPaths=81 baseline=84 new=0 stale=3
+   STALE-BASELINE: tests/portfolio-analytics.unit.mjs
+   STALE-BASELINE: tests/portfolio-survival-paths.spec.mjs
+   STALE-BASELINE: tests/portfolio-survival-risk.spec.mjs
+   [spec-test-paths] OK — no new missing test path(s) (3 stale baseline entries to remove)
+   TP-01-06_CAPTURE_EXIT=0
+   ```
+
+- [x] TP-01-07: `tests/deployed-site-parity.spec.mjs` executes `SCN-019-001 foundation artifacts are served from committed files by the real static server` with fresh evidence.
+
+   Evidence:
+
+   ```text
+   # TP-01-07 deployed foundation reachability
+   $ npx --no-install playwright test tests/deployed-site-parity.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-019-001 foundation artifacts are served from committed files by the real static server" --reporter=list
+   exit: 0
+   lines: 6
+   sha256: 6df162f5b046be15a560ce053d38984256047894bca58df3e3e7e25c47674597
+   Running 1 test using 1 worker
+   ✓ 1 [system-chrome] › tests/deployed-site-parity.spec.mjs:61:1 › SCN-019-001 foundation artifacts are served from committed files by the real static server
+   1 passed (2.9s)
+   TP-01-07_CAPTURE_EXIT=0
+   ```
+
+#### Tier 3 - Parity And Policy
+
+- [x] Markdown Test Plan rows, `test-plan.json`, and `scenario-manifest.json` contain the same row and scenario mappings.
+
+   Evidence:
+
+   ```text
+   SCOPE1_CROSS_ARTIFACT_PARITY_BEGIN
+   scope=01-agenda-registry-contract
+   markdownRows=7
+   dodRows=7
+   jsonRows=7
+   declaredRowCount=7
+   manifestRows=7
+   markdownIds=TP-01-01,TP-01-02,TP-01-03,TP-01-04,TP-01-05,TP-01-06,TP-01-07
+   dodIds=TP-01-01,TP-01-02,TP-01-03,TP-01-04,TP-01-05,TP-01-06,TP-01-07
+   jsonIds=TP-01-01,TP-01-02,TP-01-03,TP-01-04,TP-01-05,TP-01-06,TP-01-07
+   manifestIds=TP-01-01,TP-01-02,TP-01-03,TP-01-04,TP-01-05,TP-01-06,TP-01-07
+   parity=PASS
+   SCOPE1_CROSS_ARTIFACT_PARITY_EXIT=0
+   ```
+
+- [x] The capability-foundation guard recognizes this scope as `foundation:true`, and all downstream scope dependencies resolve to it.
+
+   Evidence:
+
+   ```text
+   # Scope 1 capability foundation ordering
+   $ bash .github/bubbles/scripts/capability-foundation-guard.sh specs/019-custom-recurring-research-agenda
+   exit: 0
+   lines: 6
+   sha256: d2b244e1749f54de2414b79c9220ccde7bce2e649bb2d4e3b07a47cee7a2501b
+   capability-foundation-guard: Gate G094 applies: triggerHits=44 concreteImplementationEntries=11
+   capability-foundation-guard: spec.md contains Domain Capability Model
+   capability-foundation-guard: design.md contains capability foundation split with sufficient variation axes
+   capability-foundation-guard: scopes include foundation:true and overlay Depends On foundation ordering
+   capability-foundation-guard: PASS Gate G094 - capability foundation requirements satisfied
+   ```
+- [x] Artifact lint, traceability, artifact freshness, test-path, reference-existence, fence-parity, and diff checks pass.
+
+   Evidence:
+
+   ```text
+   # Scope 1 post-evidence quality gate
+   artifact-lint exit=0 lines=85 sha256=94730cbebe047519718fb6242d3c5da7cb7320e68c057fa7f9bd14bac251da15
+   traceability exit=0 lines=159 sha256=e642857ec9019ad784e5d1a26c921671e0918f4a0f74b3f877a5c252f1805d3f
+   artifact-freshness exit=0 failures=0 warnings=0
+   reference-existence exit=0 files=14 unresolved=0
+   spec-test-paths exit=0 newMissing=0 staleBaseline=3
+   JSON_PARSE_EXIT=0
+   MARKDOWN_FENCE_EXIT=0
+   PII_SCAN_EXIT=0 findings=0
+   DIFF_CHECK_EXIT=0
+   SCOPE1_POST_EVIDENCE_SAFETY_END
+   ```
+- [x] The implementation diff stays inside the declared change boundary and contains no Feature 020 destination write.
+
+   Evidence:
+
+   ```text
+   SCOPE1_DIFF_BOUNDARY_ASSERT_V2_BEGIN
+   changedPaths=25
+   scope1Paths=14
+   outsidePaths=0
+   feature020DestinationWrites=0
+   boundary=PASS
+   scope1 scripts/build-pages-site.mjs
+   scope1 scripts/selftest.mjs
+   scope1 tests/deployed-site-parity.spec.mjs
+   scope1 research-agenda.json
+   scope1 rlagenda.js
+   planning specs/019-custom-recurring-research-agenda/test-plan.json
+   SCOPE1_DIFF_BOUNDARY_ASSERT_V2_EXIT=0
+   ```
+
+---
+
+*Educational models only - not investment advice.*

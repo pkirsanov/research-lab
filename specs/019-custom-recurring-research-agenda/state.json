@@ -3,10 +3,10 @@
     "featureDir": "specs/019-custom-recurring-research-agenda",
     "featureName": "Custom Recurring Research Agenda",
     "createdAt": "2026-08-10T00:00:00Z",
-    "lastUpdatedAt": "2026-08-10T00:00:00Z",
+    "lastUpdatedAt": "2026-08-14T16:45:13Z",
     "status": "not_started",
     "blockedReason": null,
-    "workflowMode": null,
+    "workflowMode": "full-delivery",
     "planningOnly": false,
     "planningOnlyJustification": null,
     "linkedImplementationSpec": null,
@@ -29,29 +29,36 @@
     },
     "execution": {
         "goalContractRef": null,
-        "activeAgent": "bubbles.analyst",
-        "currentPhase": "discover",
-        "currentPhaseStatus": "completed",
-        "currentScope": null,
-        "substate": "spec-authored",
-        "runStartedAt": "2026-08-10T00:00:00Z",
+        "activeAgent": "bubbles.regression",
+        "currentPhase": "regression",
+        "currentPhaseStatus": "not_started",
+        "currentScope": 5,
+        "runStartedAt": "2026-08-14T06:00:32Z",
         "completedAt": null,
-        "completedPhaseClaims": [],
+        "completedPhaseClaims": [
+            "analyze",
+            "design",
+            "plan"
+        ],
         "pendingTransitionRequests": [],
-        "nextRequiredOwner": "bubbles.design",
-        "nextRequiredTarget": "specs/019-custom-recurring-research-agenda/design.md",
+        "nextRequiredOwner": "bubbles.regression",
+        "nextRequiredTarget": "specs/019-custom-recurring-research-agenda/scopes/05-refinement-public-safety-and-brief-read",
         "scopeProgress": [
             {
                 "scope": 1,
                 "scopeId": "01-agenda-registry-contract",
-                "status": "not_started",
+                "scopeDir": "scopes/01-agenda-registry-contract",
+                "scopeKind": "runtime-behavior",
+                "status": "done",
                 "foundation": true,
                 "dependsOn": []
             },
             {
                 "scope": 2,
                 "scopeId": "02-topic-lifecycle",
-                "status": "not_started",
+                "scopeDir": "scopes/02-topic-lifecycle",
+                "scopeKind": "runtime-behavior",
+                "status": "done",
                 "foundation": false,
                 "dependsOn": [
                     1
@@ -60,7 +67,9 @@
             {
                 "scope": 3,
                 "scopeId": "03-per-generation-review-policy",
-                "status": "not_started",
+                "scopeDir": "scopes/03-per-generation-review-policy",
+                "scopeKind": "runtime-behavior",
+                "status": "done",
                 "foundation": false,
                 "dependsOn": [
                     1,
@@ -70,7 +79,9 @@
             {
                 "scope": 4,
                 "scopeId": "04-dossier-and-outcome-states",
-                "status": "not_started",
+                "scopeDir": "scopes/04-dossier-and-outcome-states",
+                "scopeKind": "runtime-behavior",
+                "status": "done",
                 "foundation": false,
                 "dependsOn": [
                     1,
@@ -80,7 +91,9 @@
             {
                 "scope": 5,
                 "scopeId": "05-refinement-public-safety-and-brief-read",
-                "status": "not_started",
+                "scopeDir": "scopes/05-refinement-public-safety-and-brief-read",
+                "scopeKind": "runtime-behavior",
+                "status": "done",
                 "foundation": false,
                 "dependsOn": [
                     1,
@@ -160,7 +173,85 @@
     },
     "transitionRequests": [],
     "reworkQueue": [],
-    "executionHistory": [],
+    "executionHistory": [
+        {
+            "agent": "bubbles.analyst",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "startedAt": "2026-08-14T02:39:58Z",
+            "completedAt": "2026-08-14T03:02:18Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "summary": "Reconciled analyst-owned Feature 019 requirements around an explicit every-generation or cadence review mode, a primary reusable geopolitical supply-shock topic, full per-generation research for mandatory topics, durable models and chart history, evidence-driven reversals, first-class tool exposure, and the strict Feature 020 routing boundary. Preserved 38 functional requirements, 20 stable business scenario identifiers, and five intended scopes. Verified markdown fence parity, scenario and requirement cardinality, required analyst sections, and a passing repository artifact lint. The installed ownership registry assigns scenario-manifest.json and scope artifacts to bubbles.plan and design.md to bubbles.design, so those files were not edited. Their cadence-only contracts are now stale and require owner reconciliation before implementation."
+        },
+        {
+            "agent": "bubbles.design",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "startedAt": "2026-08-14T03:28:08Z",
+            "completedAt": "2026-08-14T03:28:50Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "summary": "Comprehensively reconciled design.md to the revised explicit every-generation and cadence contract. Preserved the reusable agenda foundation and made geopolitical-supply-shock the primary every-generation implementation. Defined immutable generation/review/dossier state, a governed direct/indirect evidence graph, non-additive chokepoint flow accounting, deterministic browser-recomputed models, the optional bounded research side pool, pointer-last publication, the full Simple/Power tool, brief and Feature 020 integration, and test coverage for all 20 scenarios. Artifact lint, active Markdown structure, reference existence, design-experiment isolation, editor diagnostics, and the design portion of G094 passed. Artifact freshness remains blocked by five plan-owned scopeProgress.scopeDir omissions, and G094 remains blocked by missing overlay-to-foundation scope dependencies; routed to bubbles.plan without editing foreign-owned scope or certification fields."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "startedAt": "2026-08-14T04:29:21Z",
+            "completedAt": "2026-08-14T04:29:21Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "summary": "Reconciled the plan-owned Feature 019 artifacts to five sequential vertical slices. Preserved SCN-019-001 through SCN-019-020, added the machine-readable test plan, kept every scope and DoD item not started, added exact scope directories and dependencies, and routed Scope 1 to bubbles.implement without modifying certification state."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "startedAt": "2026-08-14T04:47:31Z",
+            "completedAt": "2026-08-14T04:54:06Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "summary": "Completed the interrupted Feature 019 replan on plan-owned artifacts only. Reconciled all five scopes to runtime-behavior while retaining Scope 1 as foundation:true, established exact 54-row Markdown/test-plan/DoD parity, preserved SCN-019-001 through SCN-019-020, added fresh replanned-contract evidence anchors, synchronized scope paths and dependencies, and kept every scope not_started. Current-session artifact lint, test-path, capability-foundation, artifact-freshness, traceability, context-fit, JSON, cross-artifact, Markdown-fence, editor-diagnostic, and git diff checks exited clean. The dependency-depth guard exited 0 as a documented no-op because its installed parser does not read execution.scopeProgress; the explicit DAG and scopeDir check exited 0. No implementation, report evidence, or certification state changed."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implementation"
+            ],
+            "startedAt": "2026-08-14T06:00:32Z",
+            "completedAt": "2026-08-14T06:43:24Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "summary": "Completed Scope 2 immutable lifecycle and historical seed. Added deterministic identities, create-only paths, append-only corrections, validated pointers, dated seed history, and focused tests. Fresh selftest, history E2E, artifact, traceability, freshness, privacy, reference, boundary, and integrity checks passed. Routed Scope 3 next without changing certification."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implementation"
+            ],
+            "startedAt": "2026-08-14T06:43:24Z",
+            "completedAt": "2026-08-14T07:24:38Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "summary": "Completed Scope 3 offline planning and deterministic models. Added mandatory and cadence selection, trigger rearming, capacity accounting, evidence and refuter rules, stable-prior probabilities, unique-flow math, attributed intervals, comparison-only predecessor state, and chart/table parity. Fresh selftest, functional, E2E, traceability, privacy, boundary, purity, and artifact checks passed. Routed Scope 4 next without changing certification."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implementation"
+            ],
+            "startedAt": "2026-08-14T07:24:38Z",
+            "completedAt": "2026-08-14T16:44:00Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "summary": "Completed Scope 4 governed generation and atomic publication. Added missing-or-stale-only allowlisted acquisition, bounded exact-byte retrieval, a networkless research author, fully fingerprinted once-per-generation retry reuse, explicit honest outcomes, payload accounting, immutable create-only artifacts, rollback, and pointer-last publication. All 13 replanned rows, 1,696 project selftests, 30 atomic wrapper tests, focused integration/security/stress checks, traceability, source lock, privacy, and change-boundary checks passed. Routed Scope 5 next without changing certification."
+        }
+    ],
     "activeBugs": [],
     "resolvedBugs": [],
     "failures": [],
@@ -171,7 +262,8 @@
         "scopes": "scopes/_index.md",
         "report": "scopes/NN-name/report.md",
         "uservalidation": "uservalidation.md",
-        "scenarioManifest": "scenario-manifest.json"
+        "scenarioManifest": "scenario-manifest.json",
+        "testPlan": "test-plan.json"
     },
     "statusDiscipline": {
         "validStatuses": [
@@ -186,5 +278,5 @@
         "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
         "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
     },
-    "notes": "Spec-level planning artifacts authored by bubbles.analyst. spec.md, scenario-manifest.json and this file only. design.md, scopes and test-plan.json are not yet authored. 38 functional requirements and 5 intended scopes, inside the P25 cap."
+    "notes": "Scopes 1 through 5 are done with fresh replanned-contract evidence. Full-delivery execution is routed to bubbles.regression, the next unexecuted specialist after the recorded test evidence. Top-level and certification status remain not_started until the remaining full-delivery phases execute and bubbles.validate certifies promotion."
 }

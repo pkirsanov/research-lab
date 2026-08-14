@@ -468,8 +468,9 @@ try {
   const briefConfig = JSON.parse(read('market-brief.config.json'));
   const briefSnapshot = JSON.parse(read('market-brief.snapshot.json'));
   const briefRegistry = JSON.parse(read('tools.json'));
+  const briefAgendaRegistry = JSON.parse(read('research-agenda.json'));
   const volCoverage = (briefPayload.toolCoverage || []).find((entry) => entry.id === 'volatility-sizing-lab');
-  const briefErrors = validateBriefPayload(briefPayload, briefRegistry, briefConfig, briefSnapshot);
+  const briefErrors = validateBriefPayload(briefPayload, briefRegistry, briefConfig, briefSnapshot, briefAgendaRegistry);
   assert(
     volCoverage && volCoverage.deepLink === 'volatility-sizing-lab.html' && typeof volCoverage.reason === 'string' && volCoverage.reason.trim().length > 0 &&
     briefErrors.length === 0,
@@ -2813,27 +2814,28 @@ try {
   const registry = JSON.parse(read('tools.json'));
   const config = JSON.parse(read('market-brief.config.json'));
   const snapshot = JSON.parse(read('market-brief.snapshot.json'));
-  const validErrors = validateBriefPayload(payload, registry, config, snapshot);
+  const agendaRegistry = JSON.parse(read('research-agenda.json'));
+  const validErrors = validateBriefPayload(payload, registry, config, snapshot, agendaRegistry);
   assert(validErrors.length === 0, 'current payload satisfies the executable brief contract' + (validErrors.length ? ': ' + validErrors.join('; ') : ''));
   const missingCoverage = JSON.parse(JSON.stringify(payload));
   missingCoverage.toolCoverage = missingCoverage.toolCoverage.slice(1);
-  assert(validateBriefPayload(missingCoverage, registry, config, snapshot).some((error) => /missing registered tools/.test(error)), 'contract rejects omission of a registered tool');
+  assert(validateBriefPayload(missingCoverage, registry, config, snapshot, agendaRegistry).some((error) => /missing registered tools/.test(error)), 'contract rejects omission of a registered tool');
   const genericRealAssets = JSON.parse(JSON.stringify(payload));
   genericRealAssets.toolReads['real-assets-lab'].metrics = { score: 50 };
-  assert(validateBriefPayload(genericRealAssets, registry, config, snapshot).some((error) => /model-specific GLD/.test(error)), 'contract rejects a generic real-assets read without GLD/BTC/SLV detail');
+  assert(validateBriefPayload(genericRealAssets, registry, config, snapshot, agendaRegistry).some((error) => /model-specific GLD/.test(error)), 'contract rejects a generic real-assets read without GLD/BTC/SLV detail');
   const vagueAction = JSON.parse(JSON.stringify(payload));
   vagueAction.nextSession.actions = [{ action: 'watch', subject: 'SPY', confidence: 80 }];
-  assert(validateBriefPayload(vagueAction, registry, config, snapshot).some((error) => /action must be/.test(error)), 'contract rejects watch-only or incomplete next-session output');
+  assert(validateBriefPayload(vagueAction, registry, config, snapshot, agendaRegistry).some((error) => /action must be/.test(error)), 'contract rejects watch-only or incomplete next-session output');
   const missingSection = JSON.parse(JSON.stringify(payload));
   delete missingSection.events;
-  assert(validateBriefPayload(missingSection, registry, config, snapshot).some((error) => /events must be/.test(error)), 'contract rejects a missing visible brief section');
+  assert(validateBriefPayload(missingSection, registry, config, snapshot, agendaRegistry).some((error) => /events must be/.test(error)), 'contract rejects a missing visible brief section');
 
   /* The §9 events contract. `events` used to be checked only for being a non-empty ARRAY, so
      nothing below the array was checked at all: a run that renamed prob→probability and
      expectedEffect→detail and dropped psychologyNote entirely passed this gate and shipped. The
      selftest caught it only after commit. Proven in BOTH directions, because a gate that refuses
      every payload is not a fix. */
-  const eventErrors = (mutated) => validateBriefPayload(mutated, registry, config, snapshot)
+  const eventErrors = (mutated) => validateBriefPayload(mutated, registry, config, snapshot, agendaRegistry)
     .filter((error) => /^events-contract:/.test(error));
   const conforming = JSON.parse(JSON.stringify(payload));
   conforming.events.forEach((event) => {
@@ -2951,10 +2953,10 @@ try {
     'the freshness record exposes no bare `count` — that name was read as a session count and produced a false staleness claim');
   const incompleteBackdrop = JSON.parse(JSON.stringify(payload));
   delete incompleteBackdrop.backdrop.whatWouldChangeIt;
-  assert(validateBriefPayload(incompleteBackdrop, registry, config, snapshot).some((error) => /backdrop\.whatWouldChangeIt/.test(error)), 'contract rejects an incomplete structural backdrop');
+  assert(validateBriefPayload(incompleteBackdrop, registry, config, snapshot, agendaRegistry).some((error) => /backdrop\.whatWouldChangeIt/.test(error)), 'contract rejects an incomplete structural backdrop');
   const missingGenerationTime = JSON.parse(JSON.stringify(payload));
   delete missingGenerationTime.generatedAt;
-  assert(validateBriefPayload(missingGenerationTime, registry, config, snapshot).some((error) => /generatedAt/.test(error)), 'contract rejects a missing generation timestamp');
+  assert(validateBriefPayload(missingGenerationTime, registry, config, snapshot, agendaRegistry).some((error) => /generatedAt/.test(error)), 'contract rejects a missing generation timestamp');
 } catch (e) { failures++; console.log('  ✗ FAIL (brief payload contract group threw): ' + e.message); }
 
 /* ---------- D13 on the publish path — reader vocabulary in brief narrative ---------- */
@@ -2964,8 +2966,9 @@ try {
   const registry = JSON.parse(read('tools.json'));
   const config = JSON.parse(read('market-brief.config.json'));
   const snapshot = JSON.parse(read('market-brief.snapshot.json'));
+  const agendaRegistry = JSON.parse(read('research-agenda.json'));
   const clone = () => JSON.parse(JSON.stringify(payload));
-  const vocabularyErrors = (mutated) => validateBriefPayload(mutated, registry, config, snapshot)
+  const vocabularyErrors = (mutated) => validateBriefPayload(mutated, registry, config, snapshot, agendaRegistry)
     .filter((error) => /^reader-vocabulary:/.test(error));
 
   assert(findBriefNarrativeVocabularyLeaks(payload).length === 0,
@@ -3865,7 +3868,7 @@ try {
   assert(JSON.stringify(sharedApi.toolRead('feature-006-canary')) === toolReadBefore && JSON.stringify(sharedApi.dataState()) === dataStateBefore, 'Trend Dynamics shared canary leaves RLDATA toolReads and RLAPP resource state unchanged');
   assert(sharedStorage.getItem('rlApiKeys') === credentialsBefore && tdcSource.indexOf('localStorage.rlApiKeys') < 0 && tdcSource.indexOf("localStorage.setItem('rlApiKeys'") < 0, 'Trend Dynamics shared canary leaves central credential ownership unchanged');
   const toolIds = JSON.parse(read('tools.json')).tools.map((tool) => tool.id);
-  assert(toolIds.indexOf('portfolio-survival-allocation-lab') === toolIds.length - 1, 'Portfolio Survival registers last, appending to the registry rather than reordering existing entries');
+  assert(toolIds.indexOf('trend-dynamics-cycle-lab') === toolIds.indexOf('portfolio-survival-allocation-lab') - 1 && toolIds.indexOf('portfolio-survival-allocation-lab') === toolIds.indexOf('research-agenda-lab') - 1 && toolIds.indexOf('research-agenda-lab') === toolIds.length - 1, 'Portfolio Survival and Research Agenda append after Trend Dynamics without reordering the prior registry');
 } catch (e) { failures++; console.log('  ✗ FAIL (Trend Dynamics foundation group threw): ' + e.message); }
 
 /* ---------- Feature 007: Technical Analysis Decision foundation ---------- */
@@ -5579,26 +5582,26 @@ try {
     }
   };
 
-  // validateRegistry derives 23 participants / 22 sources from the live committed tools.json (never a
-  // literal), requires exactly one non-recursive final aggregator, and content-addresses the frozen set.
+  // validateRegistry derives participants and sources from the live committed tools.json, requires
+  // exactly one non-recursive final aggregator, and content-addresses the frozen set.
   const frozen5 = RLCONTRACTS5.validateRegistry(registry5, config5);
   const derivedSources5 = registry5.tools.filter((entry) => entry.briefing.role === 'source').map((entry) => entry.id);
-  assert(frozen5.ok === true && frozen5.value.participantCount === 26 && frozen5.value.sourceCount === 25 && frozen5.value.sourceCount === derivedSources5.length && frozen5.value.aggregatorToolId === 'market-brief' && frozen5.value.orderedSourceToolIds.indexOf('market-brief') < 0 && /^sha256:[a-f0-9]{64}$/.test(frozen5.value.registryFingerprint), 'Feature 002 Scope 05 validateRegistry derives 26 participants / 25 sources with one non-recursive Market Brief aggregator');
+  assert(frozen5.ok === true && frozen5.value.participantCount === registry5.tools.length && frozen5.value.sourceCount === derivedSources5.length && frozen5.value.aggregatorToolId === 'market-brief' && frozen5.value.orderedSourceToolIds.indexOf('market-brief') < 0 && /^sha256:[a-f0-9]{64}$/.test(frozen5.value.registryFingerprint), 'Feature 002 Scope 05 validateRegistry derives every participant and source with one non-recursive Market Brief aggregator');
 
   // Every entry carries a complete unique-adapter briefing block; missing field, role/profile mismatch,
   // duplicate adapter, and policy mismatch each fail loud before acquisition.
-  assert(new Set(registry5.tools.map((entry) => entry.briefing.readAdapter)).size === 26, 'Feature 002 Scope 05 all 26 tools.json entries carry a unique briefing read adapter');
+  assert(new Set(registry5.tools.map((entry) => entry.briefing.readAdapter)).size === registry5.tools.length, 'Feature 002 Scope 05 every tools.json entry carries a unique briefing read adapter');
   const dropField5 = JSON.parse(JSON.stringify(registry5)); delete dropField5.tools[1].briefing.budgetPolicy;
   const roleSwap5 = JSON.parse(JSON.stringify(registry5)); roleSwap5.tools[1].briefing.role = 'final-aggregator';
   const dupAdapter5 = JSON.parse(JSON.stringify(registry5)); dupAdapter5.tools[2].briefing.readAdapter = registry5.tools[1].briefing.readAdapter;
   const policyBad5 = JSON.parse(JSON.stringify(registry5)); policyBad5.tools[1].briefing.budgetPolicy = 'off-theme-v1';
   assert(RLCONTRACTS5.validateRegistry(dropField5).error.reason === 'briefing-field-missing' && RLCONTRACTS5.validateRegistry(roleSwap5).error.reason === 'briefing-role-profile-mismatch' && RLCONTRACTS5.validateRegistry(dupAdapter5).error.reason === 'briefing-duplicate-adapter' && RLCONTRACTS5.validateRegistry(policyBad5, config5).error.reason === 'briefing-policy-mismatch', 'Feature 002 Scope 05 validateRegistry fails loud on missing metadata, role/profile mismatch, duplicate adapter, and policy mismatch');
 
-  // A registry-only addition derives 25/24 through the same loops with no literal-count rule.
+  // A registry-only addition derives the incremented inventory through the same loops with no literal-count rule.
   const added5 = JSON.parse(JSON.stringify(registry5));
   added5.tools.push({ id: 'demo-added-source-lab', title: 'Demo', file: 'demo-added-source-lab.html', briefing: { role: 'source', profile: 'live-market', readAdapter: 'demo-added-source-owning-model-v1', readContractVersion: 'tool-model-read/v1', freshnessPolicy: 'daily-market-bars-v1', recommendationPolicy: 'market-action-v1', budgetPolicy: 'live-market-v1' } });
   const addedFrozen5 = RLCONTRACTS5.validateRegistry(added5, config5);
-  assert(addedFrozen5.ok === true && addedFrozen5.value.participantCount === 27 && addedFrozen5.value.sourceCount === 26 && addedFrozen5.value.orderedSourceToolIds[addedFrozen5.value.orderedSourceToolIds.length - 1] === 'demo-added-source-lab', 'Feature 002 Scope 05 a valid added source derives 27 participants / 26 sources generically');
+  assert(addedFrozen5.ok === true && addedFrozen5.value.participantCount === registry5.tools.length + 1 && addedFrozen5.value.sourceCount === derivedSources5.length + 1 && addedFrozen5.value.orderedSourceToolIds[addedFrozen5.value.orderedSourceToolIds.length - 1] === 'demo-added-source-lab', 'Feature 002 Scope 05 a valid added source increments participant and source counts generically');
 
   // The registry form of freezeToolReads emits exactly one validated ToolModelRead/v1 per derived source
   // over a frozen evidence bundle (aggregator never self-consumed); the legacy Scope 04 evidence-first
@@ -5610,7 +5613,7 @@ try {
   const registryFrozen5 = brief5.freezeToolReads(registry5, { evidence: bundle5, registryConfig: config5 }, { symbol: 'SPY' });
   const allValid5 = registryFrozen5.orderedSourceToolIds.every((id) => RLDATA5.validateToolModelRead(registryFrozen5.reads[id]).ok === true);
   const legacyFrozen5 = brief5.freezeToolReads(bundle5, { symbol: 'SPY' }, [{ toolId: 'options-flow-lab', profile: 'live-market' }]);
-  assert(Object.keys(registryFrozen5.reads).length === 25 && registryFrozen5.reads['market-brief'] === undefined && allValid5 === true && Object.keys(legacyFrozen5.owners).length === 6 && !!legacyFrozen5.others['options-flow-lab'], 'Feature 002 Scope 05 freezeToolReads registry form emits 25 validated source reads while the legacy evidence-first form is unchanged');
+  assert(Object.keys(registryFrozen5.reads).length === derivedSources5.length && registryFrozen5.reads['market-brief'] === undefined && allValid5 === true && Object.keys(legacyFrozen5.owners).length === 6 && !!legacyFrozen5.others['options-flow-lab'], 'Feature 002 Scope 05 freezeToolReads registry form emits one validated read per source while the legacy evidence-first form is unchanged');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 05 group threw): ' + e.message); }
 /* FEATURE-002-MARKET-SESSION-SCOPE5-END */
 
@@ -5867,15 +5870,19 @@ try {
   group('Feature 012 Scope 01 tool-experience contract and registry foundation');
   const feature012Validator = await import('./validate-tool-experience.mjs');
   const feature012 = feature012Validator.validateActualToolExperience();
+  const feature012Tools = JSON.parse(read('tools.json')).tools;
+  const feature012Models = JSON.parse(read('simple-models.json')).definitions;
+  const feature012Journeys = JSON.parse(read('journeys.json'));
+  const feature012Ordinary = feature012Tools.filter((tool) => tool.experience.kind === 'ordinary').length;
 
   assert(
-    feature012.summary.toolCount === 26 &&
-    feature012.summary.ordinaryCount === 25 &&
-    feature012.summary.marketActionCount === 1 &&
-    feature012.summary.simpleModelDefinitionCount === 26 &&
-    feature012.summary.journeyDefinitionCount === 54 &&
-    feature012.summary.journeyStepCount === 69,
-    'Feature 012 Scope 01 production validator derives the current 26-tool, 26-model, 54-Journey, 69-step inventory'
+    feature012.summary.toolCount === feature012Tools.length &&
+    feature012.summary.ordinaryCount === feature012Ordinary &&
+    feature012.summary.marketActionCount === feature012Tools.length - feature012Ordinary &&
+    feature012.summary.simpleModelDefinitionCount === feature012Models.length &&
+    feature012.summary.journeyDefinitionCount === feature012Journeys.definitions.length &&
+    feature012.summary.journeyStepCount === feature012Journeys.steps.length,
+    'Feature 012 Scope 01 production validator derives the current tool, model, Journey, and step inventory'
   );
   assert(
     feature012.identities.toolIds.length === new Set(feature012.identities.toolIds).size &&
@@ -5910,10 +5917,10 @@ try {
   );
   assert(
     feature012.scaling.toolId === 'feature-012-scaling-probe' &&
-    feature012.scaling.toolCount === 27 &&
-    feature012.scaling.modelCount === 27 &&
-    feature012.scaling.journeyCount === 56 &&
-    feature012.scaling.stepCount === 71,
+    feature012.scaling.toolCount === feature012Tools.length + 1 &&
+    feature012.scaling.modelCount === feature012Models.length + 1 &&
+    feature012.scaling.journeyCount === feature012Journeys.definitions.length + 2 &&
+    feature012.scaling.stepCount === feature012Journeys.steps.length + 2,
     'Feature 012 Scope 01 valid added-tool probe scales through registry membership without a production tool-ID branch'
   );
   assert(
@@ -6290,8 +6297,8 @@ try {
 }
 
 /* ---------- Feature 012 Scope 08 RLJOURNEY runtime + all-tool + no-execution canaries ----------
-   Drives the REAL production rljourney.js runtime against the REAL journeys.json (50 definitions) and
-   the REAL tools.json registry: proves all-22-ordinary-tool + 4-Center goal coverage, the
+  Drives the REAL production rljourney.js runtime against the REAL journeys.json and
+  the REAL tools.json registry: proves every ordinary-tool goal plus exact Center goal coverage, the
    no-executable-code invariant, the NON-EXECUTING signed-off completion packet (SCN-012-011), and
    dependency-aware transitive-stale backtracking (SCN-012-010). Pure Node, no browser. */
 try {
@@ -6302,15 +6309,18 @@ try {
   const journeys = JSON.parse(read('journeys.json'));
   const registryTools = JSON.parse(read('tools.json')).tools;
 
-  // (1) SCN-012-032 all-tool coverage: 23 ordinary tools (>=2 goals) + the Market Action Center (exactly 4), 50 defs.
+  // (1) SCN-012-032 all-tool coverage is derived from the registries so adding a conformant tool cannot stale this canary.
   const inventory = registryTools.map((t) => ({ registryId: t.id, kind: (t.experience && t.experience.kind) || 'ordinary', journeyDefinitionIds: (t.experience && t.experience.journeyDefinitionIds) || [] }));
   const completeness = RJ.validateRegistryCompleteness(journeys, inventory);
-  assert(completeness.ok && completeness.value.ordinaryTools === 25 && completeness.value.centerGoals === 4 && completeness.value.totalGoals === 54 && completeness.value.definitionCount === 54, 'RLJOURNEY validates all 25 ordinary tools (>=2 goals) + the 4 Market Action Center goals across 54 definitions');
+  const expectedOrdinaryTools = inventory.filter((entry) => entry.kind === 'ordinary').length;
+  const expectedCenterGoals = inventory.filter((entry) => entry.kind === 'market-action-center').reduce((sum, entry) => sum + entry.journeyDefinitionIds.length, 0);
+  const expectedTotalGoals = inventory.reduce((sum, entry) => sum + entry.journeyDefinitionIds.length, 0);
+  assert(completeness.ok && completeness.value.ordinaryTools === expectedOrdinaryTools && completeness.value.centerGoals === expectedCenterGoals && completeness.value.totalGoals === expectedTotalGoals && completeness.value.definitionCount === journeys.definitions.length, 'RLJOURNEY validates every registered ordinary tool and exact Market Action Center goal against the journey registry');
 
-  // (2) the 54-definition registry compiles, and a function value anywhere in a definition is rejected.
+  // (2) the complete registry compiles, and a function value anywhere in a definition is rejected.
   const compiledRegistry = RJ.compileRegistry(journeys);
   const breadth = compiledRegistry.ok ? compiledRegistry.value.definitions['journey/market-heatmap-lab/breadth/v1'] : null;
-  assert(compiledRegistry.ok && !!breadth, 'the 54-definition journey registry compiles under the runtime');
+  assert(compiledRegistry.ok && !!breadth, 'the complete journey registry compiles under the runtime');
   const badDef = JSON.parse(JSON.stringify(journeys.definitions.find((d) => d.definitionId === 'journey/market-heatmap-lab/breadth/v1')));
   const badSteps = journeys.steps.filter((s) => badDef.stepIds.includes(s.stepId)).map((s) => JSON.parse(JSON.stringify(s)));
   badDef.injected = () => 'boom';
@@ -8201,6 +8211,967 @@ try {
   assert(!/MSFT|BND|holdings|costBasis|mandate|behaviorEvents|interestSignals|rlPortfolioWorkspace/.test(publicState8),
     'Scope 04 TP-04-04: the shared public cache carries no holding, conclusion, or personal storage name');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 008 Scope 04 canary group threw): ' + e.message); }
+
+/* ---------- Feature 019 Scope 01: agenda registry contract ---------- */
+try {
+  const agendaRequire = (await import('node:module')).createRequire(import.meta.url);
+  const RLAGENDA = agendaRequire('../rlagenda.js');
+  const agendaSource = read('rlagenda.js');
+  const registryText = read('research-agenda.json');
+  const registry = JSON.parse(registryText);
+  const primaryDefinition = JSON.parse(read('research/agenda/topics/geopolitical-supply-shock.definition.json'));
+  const primaryCalibration = JSON.parse(read('research/agenda/topics/geopolitical-supply-shock.calibration.json'));
+  const defenseDefinition = JSON.parse(read('research/agenda/topics/defense-earnings-acceleration.definition.json'));
+  const foodDefinition = JSON.parse(read('research/agenda/topics/food-inputs-outlook.definition.json'));
+
+  group('SCN-019-001 committed agenda loads from repository state without browser or network input');
+  const committedResult = RLAGENDA.readAgendaText(registryText, 'research-agenda.json');
+  assert(committedResult.ok && committedResult.status === 'available'
+    && committedResult.declaredCount === 3 && committedResult.accepted.length === 3
+    && committedResult.refusals.length === 0,
+  'TP-01-01: the committed agenda validates all three topics from repository bytes');
+  assert(!/localStorage|sessionStorage|\bfetch\s*\(|XMLHttpRequest|https?:\/\//.test(agendaSource + registryText),
+    'TP-01-01: the agenda foundation reads no browser state and embeds no network input');
+
+  group('SCN-019-002 absent agenda is named and never replaced with default topics');
+  const absentResult = RLAGENDA.readAgendaText(null, 'research-agenda.json');
+  assert(!absentResult.ok && absentResult.status === 'absent'
+    && absentResult.declaredCount === 0 && absentResult.accepted.length === 0
+    && absentResult.refusals.length === 1
+    && absentResult.refusals[0].code === 'RLAGENDA-CONTRACT-ABSENT',
+  'TP-01-02: absence is explicit and carries no synthesized topic');
+
+  group('SCN-019-003 missing review mode refuses only the invalid topic');
+  const missingModeFixture = JSON.parse(read('tests/fixtures/research-agenda/missing-review-mode.json'));
+  const partialResult = RLAGENDA.validateAgenda(missingModeFixture);
+  assert(!partialResult.ok && partialResult.status === 'partial'
+    && partialResult.declaredCount === 3 && partialResult.accepted.length === 2
+    && partialResult.refusals.length === 1
+    && partialResult.refusals[0].topicId === 'geopolitical-supply-shock'
+    && partialResult.refusals[0].code === 'RLAGENDA-MODE-MISSING',
+  'TP-01-03: one missing mode yields one named refusal while two topics remain accepted');
+  assert(partialResult.accepted.map((topic) => topic.topicId).join(',') === 'defense-earnings-acceleration,food-inputs-outlook'
+    && partialResult.accepted.length + partialResult.refusals.length === partialResult.declaredCount,
+  'TP-01-03: accepted plus refused accounts for every declared topic without disabling valid peers');
+
+  group('SCN-019-007 three initial topics validate through one topic-neutral foundation');
+  const definitionRows = [
+    [primaryDefinition, registry.topics[0]],
+    [defenseDefinition, registry.topics[1]],
+    [foodDefinition, registry.topics[2]]
+  ];
+  const definitionResults = definitionRows.map((row) => RLAGENDA.validateTopicDefinition(row[0], row[1]));
+  const primarySectionIds = primaryDefinition.analyticalSections.map((section) => section.sectionId);
+  assert(definitionResults.every((result) => result.ok)
+    && primarySectionIds.length === 8 && new Set(primarySectionIds).size === 8
+    && RLAGENDA.validateCalibration(primaryCalibration, primaryDefinition).ok,
+  'TP-01-04: all definitions and the versioned primary calibration satisfy the shared contracts');
+  assert(!Object.prototype.hasOwnProperty.call(defenseDefinition, 'actors')
+    && !Object.prototype.hasOwnProperty.call(defenseDefinition, 'flowNetwork')
+    && !Object.prototype.hasOwnProperty.call(foodDefinition, 'actors')
+    && !Object.prototype.hasOwnProperty.call(foodDefinition, 'flowNetwork')
+    && !/iran|hormuz|bab-el-mandeb|red-sea/i.test(JSON.stringify(RLAGENDA.CONTRACT_SHAPES)),
+  'TP-01-04: cadence topics remain independent and the shared contract has no Iran-only field');
+
+  group('Regression: agenda modes capacities vocabularies and formulas fail closed and have one owner');
+  const unknownMember = RLAGENDA.validateAgenda(JSON.parse(read('tests/fixtures/research-agenda/unknown-registry-member.json')));
+  const capacityPlusOne = RLAGENDA.validateAgenda(JSON.parse(read('tests/fixtures/research-agenda/capacity-plus-one.json')));
+  const invalidEvidence = RLAGENDA.validateEvidenceRecord(
+    JSON.parse(read('tests/fixtures/research-agenda/invalid-evidence-record.json')),
+    primaryDefinition.evidencePolicy
+  );
+  const validEvidence = JSON.parse(read('tests/fixtures/research-agenda/valid-evidence-record.json'));
+  const weighted = RLAGENDA.computeEvidenceWeight(validEvidence, primaryDefinition.evidencePolicy, '2026-08-13T12:00:00.000Z');
+  assert(!unknownMember.ok && unknownMember.refusals.some((row) => row.code === 'RLAGENDA-CONTRACT-UNKNOWN-MEMBER')
+    && !capacityPlusOne.ok && capacityPlusOne.refusals.some((row) => row.code === 'RLAGENDA-CAPACITY-EVERY-GENERATION')
+    && !invalidEvidence.ok && invalidEvidence.code === 'RLAGENDA-EVIDENCE-VOCABULARY',
+  'TP-01-05: unknown members, mandatory capacity plus one, and unknown evidence vocabulary are refused');
+  assert(weighted.ok && weighted.weight === 0.195 && weighted.boundedImpact === 0.195
+    && weighted.factors.confidence === 0.65 && weighted.factors.provenance === 1
+    && weighted.factors.role === 0.6 && weighted.factors.corroboration === 0.5
+    && weighted.factors.freshness === 1,
+  'TP-01-05: evidence weighting uses only explicit policy values and exposes every factor');
+  const owningModules = readdirSync(ROOT)
+    .filter((file) => /^rl.*\.js$/.test(file))
+    .filter((file) => /RLAGENDA-|computeEvidenceWeight|research-evidence-record\/v1/.test(read(file)));
+  assert(owningModules.length === 1 && owningModules[0] === 'rlagenda.js'
+    && ['computeEvidenceWeight', 'updateEscalationProbabilities', 'computeFlowState',
+      'computeCommodityShockRanges', 'computeEquityProxyRanges', 'compareScenarioOutputs',
+      'classifyChangeDirection', 'buildAgendaChartSeries'].every((name) => {
+      extractFn(agendaSource, name);
+      return typeof RLAGENDA[name] === 'function';
+    }),
+  'TP-01-05: one UMD module owns the closed vocabulary and every deterministic function declaration');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 019 Scope 01 agenda registry contract group threw): ' + e.message); }
+
+/* ---------- Feature 019 Scope 02: immutable lifecycle and historical seed ---------- */
+try {
+  const lifecycleRequire = (await import('node:module')).createRequire(import.meta.url);
+  const RLAGENDA = lifecycleRequire('../rlagenda.js');
+  const ZERO_HASH = 'sha256:' + '0'.repeat(64);
+  const ONE_HASH = 'sha256:' + '1'.repeat(64);
+  const TWO_HASH = 'sha256:' + '2'.repeat(64);
+  const topicId = 'geopolitical-supply-shock';
+  const historicalPath = 'research/agenda/dossiers/geopolitical-supply-shock/historical-2026-08-10-v1.json';
+  const historicalDossierText = read(historicalPath);
+  const historicalDossier = JSON.parse(historicalDossierText);
+  const historicalRefResult = RLAGENDA.buildArtifactRef(historicalPath, historicalDossier);
+  const eventBody = (overrides = {}) => ({
+    contractVersion: RLAGENDA.HISTORY_EVENT_VERSION,
+    eventType: 'historical-seed',
+    occurredAt: '2026-08-10T23:59:59.000Z',
+    topicId,
+    generationId: null,
+    reviewId: null,
+    dossierId: historicalDossier.dossierId,
+    correctsEventId: null,
+    supersedesEventId: null,
+    artifactRef: historicalRefResult.ref,
+    ...overrides
+  });
+
+  group('SCN-019-005 paused topic skips review and preserves every historical reference');
+  const priorHistoryRefs = Object.freeze([
+    Object.freeze({ dossierId: historicalDossier.dossierId, path: historicalPath })
+  ]);
+  const priorHistoryBytes = JSON.stringify(priorHistoryRefs);
+  const paused = RLAGENDA.classifyTopicLifecycle({ topicId, lifecycleState: 'paused' }, priorHistoryRefs);
+  assert(paused.ok && paused.lifecycleState === 'paused' && paused.outcome === 'paused'
+    && paused.shouldResearch === false && JSON.stringify(paused.historyRefs) === priorHistoryBytes,
+  'TP-02-01: paused is an explicit non-researched outcome and preserves every historical ref');
+  assert(JSON.stringify(priorHistoryRefs) === priorHistoryBytes && paused.outcome !== 'unavailable',
+  'TP-02-01: classification mutates no history and never reports a failed review');
+
+  group('SCN-019-006 retirement appends one lifecycle event without deleting history');
+  const seedEvent = RLAGENDA.buildHistoryEvent(eventBody());
+  const seedHistoryText = RLAGENDA.canonicalizeAgenda(seedEvent.event) + '\n';
+  const retirementEvent = RLAGENDA.buildHistoryEvent(eventBody({
+    eventType: 'lifecycle',
+    occurredAt: '2026-08-11T12:00:00.000Z',
+    dossierId: null,
+    supersedesEventId: seedEvent.event.eventId,
+    artifactRef: null
+  }));
+  const retired = RLAGENDA.classifyTopicLifecycle({ topicId, lifecycleState: 'retired' }, priorHistoryRefs);
+  const retirementAppend = RLAGENDA.appendHistoryEvents(seedHistoryText, [retirementEvent.event]);
+  assert(retired.ok && retired.shouldResearch === false && retired.outcome === 'retired'
+    && retirementAppend.ok && retirementAppend.candidateText.startsWith(seedHistoryText)
+    && retirementAppend.candidateText.split('\n').filter(Boolean).length === 2,
+  'TP-02-02: retirement adds exactly one dated lifecycle row after the unchanged prior ledger');
+  assert(historicalDossierText === read(historicalPath) && JSON.stringify(retired.historyRefs) === priorHistoryBytes,
+  'TP-02-02: retirement leaves the historical dossier and its reference byte-identical');
+
+  group('SCN-019-016 generation review dossier and event identities are deterministic and immutable');
+  const generationInput = {
+    snapshotDigest: ZERO_HASH,
+    registryDigest: ONE_HASH,
+    briefWindow: { start: '2026-08-11T00:00:00.000Z', end: '2026-08-11T12:00:00.000Z' },
+    generationCutoff: '2026-08-11T12:00:00.000Z'
+  };
+  const generationA = RLAGENDA.deriveGenerationId(generationInput);
+  const generationB = RLAGENDA.deriveGenerationId(JSON.parse(JSON.stringify(generationInput)));
+  const generationChanged = RLAGENDA.deriveGenerationId({ ...generationInput, generationCutoff: '2026-08-11T12:00:01.000Z' });
+  const reviewInput = {
+    generationId: generationA.id,
+    topicId,
+    definitionDigest: ZERO_HASH,
+    calibrationDigest: ONE_HASH,
+    evidenceBundleDigest: TWO_HASH
+  };
+  const reviewA = RLAGENDA.deriveReviewId(reviewInput);
+  const reviewB = RLAGENDA.deriveReviewId({ ...reviewInput });
+  const reviewChanged = RLAGENDA.deriveReviewId({ ...reviewInput, evidenceBundleDigest: ZERO_HASH });
+  const dossierBody = {
+    contractVersion: RLAGENDA.DOSSIER_VERSION,
+    topicId,
+    generationId: generationA.id,
+    reviewId: reviewA.id,
+    supersedesDossierId: historicalDossier.dossierId,
+    substantiveState: { scenario: 'managed-coercion', probability: 0.5 }
+  };
+  const dossierA = RLAGENDA.deriveDossierId(dossierBody);
+  const dossierB = RLAGENDA.deriveDossierId(JSON.parse(JSON.stringify(dossierBody)));
+  const dossierChanged = RLAGENDA.deriveDossierId({ ...dossierBody, substantiveState: { scenario: 'managed-coercion', probability: 0.49 } });
+  const sourceInput = { canonicalUrl: 'https://example.com/public-source', observedAt: '2026-08-11T11:00:00.000Z', contentSha256: TWO_HASH };
+  const sourceA = RLAGENDA.deriveSourceId(sourceInput);
+  const sourceB = RLAGENDA.deriveSourceId({ ...sourceInput });
+  const sourceChanged = RLAGENDA.deriveSourceId({ ...sourceInput, observedAt: '2026-08-11T11:00:01.000Z' });
+  const repeatedEvent = RLAGENDA.buildHistoryEvent(eventBody());
+  const changedEvent = RLAGENDA.buildHistoryEvent(eventBody({ occurredAt: '2026-08-10T23:59:58.000Z' }));
+  assert(generationA.ok && generationA.id === generationB.id && generationA.id !== generationChanged.id
+    && reviewA.ok && reviewA.id === reviewB.id && reviewA.id !== reviewChanged.id
+    && dossierA.ok && dossierA.id === dossierB.id && dossierA.id !== dossierChanged.id,
+  'TP-02-03: generation review and substantive dossier identities repeat exactly and change with inputs');
+  assert(sourceA.ok && sourceA.id === sourceB.id && sourceA.id !== sourceChanged.id
+    && seedEvent.ok && seedEvent.event.eventId === repeatedEvent.event.eventId
+    && seedEvent.event.eventId !== changedEvent.event.eventId,
+  'TP-02-03: source and ledger event identities are deterministic without clock or filesystem input');
+
+  group('Regression: overwrite attempts refuse before mutation and preserve predecessor bytes');
+  const immutableFixtures = [
+    ['generation', `research/agenda/generations/${generationA.id}.json`, { contractVersion: RLAGENDA.GENERATION_VERSION, generationId: generationA.id }],
+    ['review', `research/agenda/reviews/${topicId}/${generationA.id}.json`, { contractVersion: RLAGENDA.REVIEW_VERSION, reviewId: reviewA.id, generationId: generationA.id, topicId }],
+    ['dossier', `research/agenda/dossiers/${topicId}/${dossierA.id}.json`, { ...dossierBody, dossierId: dossierA.id, historicalOnly: false }],
+    ['source', `research/agenda/sources/${sourceA.id}.json`, { contractVersion: RLAGENDA.SOURCE_VERSION, sourceId: sourceA.id }],
+    ['calibration', `research/agenda/calibrations/${topicId}/v1.0.0.json`, { contractVersion: RLAGENDA.CALIBRATION_VERSION, topicId, calibrationVersion: 'v1.0.0' }]
+  ];
+  const overwriteResults = immutableFixtures.map(([family, artifactPath, value]) => {
+    const originalBytes = JSON.stringify(value);
+    const predecessorRecords = family === 'dossier' ? { [historicalPath]: historicalDossier } : {};
+    const existing = { ...predecessorRecords, [artifactPath]: value };
+    const first = RLAGENDA.prepareImmutableCreate(artifactPath, value, predecessorRecords);
+    const overwrite = RLAGENDA.prepareImmutableCreate(artifactPath, { ...value, attemptedMutation: family }, existing);
+    return first.ok && !overwrite.ok && overwrite.code === 'RLAGENDA-IMMUTABLE-OVERWRITE'
+      && JSON.stringify(existing[artifactPath]) === originalBytes;
+  });
+  assert(overwriteResults.every(Boolean) && overwriteResults.length === 5,
+  'TP-02-04: generation review dossier source and calibration paths all reject a second create before mutation');
+  const mismatchedPathCreate = RLAGENDA.prepareImmutableCreate(
+    `research/agenda/generations/generation-${'9'.repeat(64)}.json`,
+    immutableFixtures[0][2],
+    {}
+  );
+  const predecessorMissing = RLAGENDA.prepareImmutableCreate(immutableFixtures[2][1], immutableFixtures[2][2], {});
+  assert(historicalDossierText === read(historicalPath) && !mismatchedPathCreate.ok
+    && mismatchedPathCreate.code === 'RLAGENDA-IDENTITY-INVALID'
+    && !predecessorMissing.ok && predecessorMissing.code === 'RLAGENDA-IDENTITY-INVALID',
+  'TP-02-04: mismatched identity paths and missing predecessors refuse while predecessor bytes remain identical');
+
+  group('Regression: correction appends a new event and current pointer accepts only validated immutable refs');
+  const correction = RLAGENDA.buildHistoryEvent(eventBody({
+    eventType: 'correction',
+    occurredAt: '2026-08-11T12:30:00.000Z',
+    dossierId: null,
+    correctsEventId: seedEvent.event.eventId,
+    supersedesEventId: null,
+    artifactRef: null
+  }));
+  const correctedHistory = RLAGENDA.appendHistoryEvents(seedHistoryText, [correction.event]);
+  const unknownCorrection = RLAGENDA.buildHistoryEvent(eventBody({
+    eventType: 'correction',
+    occurredAt: '2026-08-11T12:31:00.000Z',
+    dossierId: null,
+    correctsEventId: 'event-not-present',
+    supersedesEventId: null,
+    artifactRef: null
+  }));
+  const unknownCorrectionAppend = RLAGENDA.appendHistoryEvents(seedHistoryText, [unknownCorrection.event]);
+  const generationRecord = {
+    contractVersion: RLAGENDA.GENERATION_VERSION,
+    generationId: generationA.id,
+    validationState: 'validated',
+    historicalOnly: false
+  };
+  const reviewRecord = {
+    contractVersion: RLAGENDA.REVIEW_VERSION,
+    reviewId: reviewA.id,
+    generationId: generationA.id,
+    topicId,
+    validationState: 'validated',
+    historicalOnly: false
+  };
+  const currentDossierRecord = {
+    contractVersion: RLAGENDA.DOSSIER_VERSION,
+    dossierId: dossierA.id,
+    generationId: generationA.id,
+    reviewId: reviewA.id,
+    topicId,
+    supersedesDossierId: historicalDossier.dossierId,
+    validationState: 'validated',
+    historicalOnly: false
+  };
+  const generationPath = `research/agenda/generations/${generationA.id}.json`;
+  const reviewPath = `research/agenda/reviews/${topicId}/${generationA.id}.json`;
+  const dossierPath = `research/agenda/dossiers/${topicId}/${dossierA.id}.json`;
+  const generationRef = RLAGENDA.buildArtifactRef(generationPath, generationRecord).ref;
+  const reviewRef = RLAGENDA.buildArtifactRef(reviewPath, reviewRecord).ref;
+  const dossierRef = RLAGENDA.buildArtifactRef(dossierPath, currentDossierRecord).ref;
+  const recordsByPath = {
+    [generationPath]: generationRecord,
+    [reviewPath]: reviewRecord,
+    [dossierPath]: currentDossierRecord,
+    [historicalPath]: historicalDossier
+  };
+  const currentPointer = {
+    contractVersion: RLAGENDA.CURRENT_VERSION,
+    updatedAt: '2026-08-11T13:00:00.000Z',
+    generationRef,
+    topicRefs: [{ topicId, state: 'reviewed', reviewRef, dossierRef }]
+  };
+  const validCurrent = RLAGENDA.validateCurrentPointer(currentPointer, recordsByPath);
+  const missingRecordCurrent = RLAGENDA.validateCurrentPointer(currentPointer, { [generationPath]: generationRecord });
+  const historicalCurrent = RLAGENDA.validateCurrentPointer({
+    ...currentPointer,
+    topicRefs: [{ topicId, state: 'reviewed', reviewRef, dossierRef: historicalRefResult.ref }]
+  }, recordsByPath);
+  const unvalidatedGeneration = { ...generationRecord, validationState: 'candidate' };
+  const unvalidatedPath = `research/agenda/generations/generation-${'3'.repeat(64)}.json`;
+  const unvalidatedPointer = {
+    ...currentPointer,
+    generationRef: RLAGENDA.buildArtifactRef(unvalidatedPath, unvalidatedGeneration).ref
+  };
+  const unvalidatedCurrent = RLAGENDA.validateCurrentPointer(unvalidatedPointer, { ...recordsByPath, [unvalidatedPath]: unvalidatedGeneration });
+  const incompleteReviewedCurrent = RLAGENDA.validateCurrentPointer({
+    ...currentPointer,
+    topicRefs: [{ topicId, state: 'reviewed', reviewRef: null, dossierRef: null }]
+  }, recordsByPath);
+  const mismatchedGenerationPath = `research/agenda/generations/generation-${'4'.repeat(64)}.json`;
+  const mismatchedPathCurrent = RLAGENDA.validateCurrentPointer({
+    ...currentPointer,
+    generationRef: { ...generationRef, path: mismatchedGenerationPath }
+  }, { ...recordsByPath, [mismatchedGenerationPath]: generationRecord });
+  assert(correction.ok && correctedHistory.ok && correctedHistory.candidateText.startsWith(seedHistoryText)
+    && correctedHistory.appendedEventIds[0] === correction.event.eventId
+    && !unknownCorrectionAppend.ok && unknownCorrectionAppend.code === 'RLAGENDA-CORRECTION-INVALID',
+  'TP-02-05: a correction is a new deterministic row and cannot target an absent event');
+  assert(validCurrent.ok && !missingRecordCurrent.ok && missingRecordCurrent.code === 'RLAGENDA-CURRENT-INVALID'
+    && !historicalCurrent.ok && historicalCurrent.code === 'RLAGENDA-CURRENT-HISTORICAL'
+    && !unvalidatedCurrent.ok && unvalidatedCurrent.code === 'RLAGENDA-CURRENT-INVALID'
+    && !incompleteReviewedCurrent.ok && !mismatchedPathCurrent.ok,
+  'TP-02-05: current accepts complete refs and refuses missing historical unvalidated incomplete or path-mismatched targets');
+
+  group('Historical Iran seed retains its dated source context and is never inferred current');
+  const sourceNoteText = read('notes/us-iran-oil-market-intervention-patterns.md');
+  const committedCurrent = JSON.parse(read('research/agenda/current.json'));
+  const initialHistoryText = read('research/agenda/history.jsonl');
+  const committedCurrentRecords = {};
+  if (committedCurrent.generationRef) committedCurrentRecords[committedCurrent.generationRef.path] = JSON.parse(read(committedCurrent.generationRef.path));
+  committedCurrent.topicRefs.forEach((topicRef) => {
+    if (topicRef.reviewRef) committedCurrentRecords[topicRef.reviewRef.path] = JSON.parse(read(topicRef.reviewRef.path));
+    if (topicRef.dossierRef) committedCurrentRecords[topicRef.dossierRef.path] = JSON.parse(read(topicRef.dossierRef.path));
+  });
+  const validatedInitialCurrent = RLAGENDA.validateCurrentPointer(committedCurrent, committedCurrentRecords);
+  const committedHistoryLines = initialHistoryText.split('\n').filter(Boolean);
+  const requiredFindingFields = ['observedAt', 'source', 'statedConfidence', 'provenanceClass', 'evidenceRole'];
+  assert(historicalDossier.contractVersion === RLAGENDA.DOSSIER_VERSION
+    && historicalDossier.dossierId === 'historical-2026-08-10-v1'
+    && historicalDossier.historicalOnly === true && historicalDossier.validationState === 'validated'
+    && historicalDossier.generationId === null && historicalDossier.reviewId === null
+    && historicalDossier.sourceNote.snapshotDate === '2026-08-10'
+    && historicalDossier.sourceNote.sha256 === RLAGENDA.sha256Text(sourceNoteText),
+  'TP-02-06: the seed is visibly historical and byte-traceable to the unchanged August 10 source note');
+  assert(historicalDossier.sectionSnapshots.length === 8
+    && historicalDossier.findings.length > 0
+    && historicalDossier.findings.every((finding) => requiredFindingFields.every((field) => Object.hasOwn(finding, field)))
+    && historicalDossier.sourceLedger.every((source) => source.canonicalUrl.startsWith('https://')),
+  'TP-02-06: every dated finding carries provenance and the eight historical sections retain public source links');
+  assert(validatedInitialCurrent.ok && committedCurrent.generationRef !== null && committedCurrent.topicRefs.length === 3
+    && !JSON.stringify(committedCurrent).includes(historicalDossier.dossierId)
+    && !JSON.stringify(committedCurrent).includes(historicalPath)
+    && committedHistoryLines[0] === RLAGENDA.canonicalizeAgenda(seedEvent.event)
+    && committedHistoryLines.length > 1,
+  'TP-02-06: the ledger retains the dated seed while the real current graph never references it as current');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 019 Scope 02 lifecycle group threw): ' + e.message); }
+
+/* ---------- Feature 019 Scope 03: offline generation plan ---------- */
+try {
+  const planRequire = (await import('node:module')).createRequire(import.meta.url);
+  const RLAGENDA = planRequire('../rlagenda.js');
+  const registry = JSON.parse(read('research-agenda.json'));
+  const definitionsByTopicId = Object.fromEntries(registry.topics.map((topic) => [
+    topic.topicId,
+    JSON.parse(read(topic.definitionRef))
+  ]));
+  const seedHistory = read('research/agenda/history.jsonl').split('\n').filter(Boolean)
+    .map((line) => JSON.parse(line))
+    .filter((event) => event.eventType === 'historical-seed')
+    .map((event) => RLAGENDA.canonicalizeAgenda(event)).join('\n') + '\n';
+  const ZERO_ID = '0'.repeat(64);
+  const ONE_ID = '1'.repeat(64);
+  const reviewEvent = (topicId, occurredAt, suffix) => RLAGENDA.buildHistoryEvent({
+    contractVersion: RLAGENDA.HISTORY_EVENT_VERSION,
+    eventType: 'review',
+    occurredAt,
+    topicId,
+    generationId: `generation-${ZERO_ID}`,
+    reviewId: `review-${suffix.repeat(64)}`,
+    dossierId: null,
+    correctsEventId: null,
+    supersedesEventId: null,
+    artifactRef: null
+  }).event;
+  const historyWith = (...events) => RLAGENDA.appendHistoryEvents(seedHistory, events).candidateText;
+  const noTriggers = { definitionsByTopicId, triggerObservations: [] };
+  const cutoff = '2026-08-13T12:00:00.000Z';
+
+  group('SCN-019-008 explicit cadence separates not-due and elapsed topics offline');
+  const cadenceHistory = historyWith(
+    reviewEvent('defense-earnings-acceleration', '2026-08-10T12:00:00.000Z', '1'),
+    reviewEvent('food-inputs-outlook', '2026-08-01T12:00:00.000Z', '2')
+  );
+  const cadencePlan = RLAGENDA.planGeneration(registry, cadenceHistory, noTriggers, cutoff);
+  const cadenceById = Object.fromEntries(cadencePlan.classifications.map((row) => [row.topicId, row]));
+  assert(cadencePlan.ok && cadenceById['defense-earnings-acceleration'].status === 'not-due'
+    && cadenceById['defense-earnings-acceleration'].reason === 'cadence-not-elapsed'
+    && cadenceById['food-inputs-outlook'].status === 'selected'
+    && cadenceById['food-inputs-outlook'].reason === 'cadence-elapsed',
+  'TP-03-01: explicit review clocks separate inside-cadence and elapsed topics with no network input');
+  assert(cadencePlan.selected[0].topicId === 'geopolitical-supply-shock'
+    && cadencePlan.selectedEveryGenerationCount === 1 && cadencePlan.selectedCadenceCount === 1,
+  'TP-03-01: active every-generation work remains first and separate from cadence capacity');
+
+  group('SCN-019-010 committed-evidence trigger rearms cadence and names itself');
+  const recentHistory = historyWith(
+    reviewEvent('defense-earnings-acceleration', '2026-08-10T12:00:00.000Z', '3'),
+    reviewEvent('food-inputs-outlook', '2026-08-10T12:00:00.000Z', '4')
+  );
+  const triggerPlan = RLAGENDA.planGeneration(registry, recentHistory, {
+    definitionsByTopicId,
+    triggerObservations: [{
+      topicId: 'defense-earnings-acceleration',
+      triggerId: 'material-guidance-change',
+      observedAt: '2026-08-13T11:00:00.000Z',
+      values: { materialChange: true }
+    }]
+  }, cutoff);
+  const triggered = triggerPlan.classifications.find((row) => row.topicId === 'defense-earnings-acceleration');
+  assert(triggerPlan.ok && triggered.status === 'selected' && triggered.reason === 'trigger-fired'
+    && triggered.triggerId === 'material-guidance-change'
+    && triggerPlan.classifications.find((row) => row.topicId === 'food-inputs-outlook').status === 'not-due',
+  'TP-03-03: a matching committed observation rearms only its cadence topic and names the trigger');
+  const afterCutoffPlan = RLAGENDA.planGeneration(registry, recentHistory, {
+    definitionsByTopicId,
+    triggerObservations: [{
+      topicId: 'defense-earnings-acceleration',
+      triggerId: 'material-guidance-change',
+      observedAt: '2026-08-13T13:00:00.000Z',
+      values: { materialChange: true }
+    }]
+  }, cutoff);
+  assert(afterCutoffPlan.classifications.find((row) => row.topicId === 'defense-earnings-acceleration').status === 'not-due',
+  'TP-03-03: an observation after the generation cutoff cannot fire the trigger');
+  const beforeLastReviewPlan = RLAGENDA.planGeneration(registry, recentHistory, {
+    definitionsByTopicId,
+    triggerObservations: [{
+      topicId: 'defense-earnings-acceleration',
+      triggerId: 'material-guidance-change',
+      observedAt: '2026-08-09T11:00:00.000Z',
+      values: { materialChange: true }
+    }]
+  }, cutoff);
+  assert(beforeLastReviewPlan.classifications.find((row) => row.topicId === 'defense-earnings-acceleration').status === 'not-due',
+  'TP-03-03: an observation already absorbed by the last review cannot rearm cadence forever');
+
+  group('Regression: mandatory capacity plus one refuses and cadence budget plus one preserves mandatory work');
+  const extraMandatory = JSON.parse(JSON.stringify(registry.topics[0]));
+  extraMandatory.topicId = 'second-mandatory-topic';
+  extraMandatory.title = 'Second mandatory topic';
+  extraMandatory.declaredQuestion = 'Does the mandatory capacity refuse an additional every-generation topic?';
+  extraMandatory.definitionRef = 'research/agenda/topics/second-mandatory-topic.definition.json';
+  const overCapacityRegistry = { ...registry, topics: [...registry.topics, extraMandatory] };
+  const overCapacity = RLAGENDA.planGeneration(overCapacityRegistry, seedHistory, noTriggers, cutoff);
+  assert(!overCapacity.ok && overCapacity.code === 'RLAGENDA-CAPACITY-EVERY-GENERATION'
+    && overCapacity.selected.length === 0,
+  'TP-03-04: mandatory capacity plus one refuses the generation rather than converting or deferring work');
+  const budgetPlan = RLAGENDA.planGeneration(registry, seedHistory, noTriggers, cutoff);
+  assert(budgetPlan.ok && budgetPlan.selected[0].topicId === 'geopolitical-supply-shock'
+    && budgetPlan.classifications.filter((row) => row.mode === 'cadence' && row.status === 'selected').length === 1
+    && budgetPlan.classifications.filter((row) => row.mode === 'cadence' && row.status === 'deferred').length === 1,
+  'TP-03-04: cadence budget plus one preserves mandatory work and accounts for the deferred cadence topic');
+
+  group('SCN-019-011 deterministic cadence ordering and all-topic accounting preserve every unselected topic');
+  const repeatBudgetPlan = RLAGENDA.planGeneration(JSON.parse(JSON.stringify(registry)), seedHistory, {
+    definitionsByTopicId: JSON.parse(JSON.stringify(definitionsByTopicId)),
+    triggerObservations: []
+  }, cutoff);
+  const defenseBudget = budgetPlan.classifications.find((row) => row.topicId === 'defense-earnings-acceleration');
+  const foodBudget = budgetPlan.classifications.find((row) => row.topicId === 'food-inputs-outlook');
+  assert(RLAGENDA.canonicalizeAgenda(budgetPlan) === RLAGENDA.canonicalizeAgenda(repeatBudgetPlan)
+    && defenseBudget.status === 'selected' && defenseBudget.reason === 'first-review'
+    && foodBudget.status === 'deferred' && foodBudget.reason === 'cadence-budget',
+  'TP-03-05: declaration order deterministically selects defense first and records food as deferred');
+  assert(budgetPlan.accountedTopicCount === budgetPlan.declaredTopicCount
+    && budgetPlan.classifications.length === registry.topics.length
+    && budgetPlan.selected.length === 2,
+  'TP-03-05: every registry row has exactly one classification and every selected row remains visible');
+  const partialRegistry = JSON.parse(JSON.stringify(registry));
+  delete partialRegistry.topics[2].reviewPolicy.mode;
+  const partialPlan = RLAGENDA.planGeneration(partialRegistry, seedHistory, noTriggers, cutoff);
+  assert(partialPlan.ok && partialPlan.status === 'partial'
+    && partialPlan.classifications.find((row) => row.topicId === 'food-inputs-outlook').status === 'refused'
+    && partialPlan.selected.some((row) => row.topicId === 'geopolitical-supply-shock')
+    && partialPlan.selected.some((row) => row.topicId === 'defense-earnings-acceleration'),
+  'TP-03-05: one invalid topic is refused by name while valid mandatory and cadence topics remain executable');
+
+  const geoDefinition = definitionsByTopicId['geopolitical-supply-shock'];
+  const evidenceFixture = JSON.parse(read('tests/fixtures/research-agenda/valid-evidence-record.json'));
+
+  group('Regression: predecessor probabilities cannot smooth or seed current scenario probabilities');
+  const currentImpacts = [
+    { targetId: 'staged-reopening', weightedImpact: 0.4 },
+    { targetId: 'escalation', weightedImpact: -0.4 }
+  ];
+  const probabilityBeforeComparison = RLAGENDA.updateEscalationProbabilities(
+    geoDefinition.scenarioTree,
+    currentImpacts,
+    { maxAbsoluteImpact: 0.45 }
+  );
+  const frozenCurrentProbabilityBytes = RLAGENDA.canonicalizeAgenda(probabilityBeforeComparison);
+  const currentView = Object.freeze({
+    probabilities: Object.fromEntries(Object.entries(probabilityBeforeComparison.probabilities).map(([id, row]) => [id, row.unconditional])),
+    evidenceIds: ['current-direct-evidence'],
+    conflictIds: [],
+    directionScore: -0.8,
+    dominantScenarioId: 'staged-reopening',
+    declaredQuestion: registry.topics[0].declaredQuestion,
+    evidenceCoverage: 1
+  });
+  const oppositePredecessor = {
+    probabilities: { 'staged-reopening': 0.05, 'managed-coercion': 0.05, escalation: 0.9 },
+    evidenceIds: ['prior-evidence'],
+    conflictIds: [],
+    directionScore: 0.8,
+    dominantScenarioId: 'escalation',
+    declaredQuestion: registry.topics[0].declaredQuestion
+  };
+  const comparison = RLAGENDA.compareScenarioOutputs(currentView, oppositePredecessor);
+  const reversal = RLAGENDA.classifyChangeDirection(currentView, comparison, {
+    minimumEvidenceCoverage: 0.6,
+    materialDelta: 0.2,
+    reversalThreshold: 0.5
+  });
+  assert(probabilityBeforeComparison.ok && reversal.ok && reversal.direction === 'reversed'
+    && RLAGENDA.canonicalizeAgenda(probabilityBeforeComparison) === frozenCurrentProbabilityBytes,
+  'TP-03-06: opposite predecessor output creates a reversal label but leaves current probabilities byte-identical');
+  assert(!/predecessor/i.test(extractFn(read('rlagenda.js'), 'updateEscalationProbabilities'))
+    && !Object.hasOwn(currentView, 'predecessorDirectionScore')
+    && comparison.predecessorDirectionScore === 0.8,
+  'TP-03-06: current probability math has no predecessor input and prior score lives only in comparison');
+  const changedQuestionComparison = RLAGENDA.compareScenarioOutputs(currentView, {
+    ...oppositePredecessor,
+    declaredQuestion: 'A different operator question'
+  });
+  const changedQuestionDirection = RLAGENDA.classifyChangeDirection(
+    { ...currentView, evidenceCoverage: 0 },
+    changedQuestionComparison,
+    { minimumEvidenceCoverage: 0.6, materialDelta: 0.2, reversalThreshold: 0.5 }
+  );
+  const insufficientDirection = RLAGENDA.classifyChangeDirection(
+    { ...currentView, evidenceCoverage: 0.2 },
+    comparison,
+    { minimumEvidenceCoverage: 0.6, materialDelta: 0.2, reversalThreshold: 0.5 }
+  );
+  assert(!changedQuestionDirection.ok && changedQuestionDirection.code === 'RLAGENDA-MODEL-INVALID'
+    && insufficientDirection.ok && insufficientDirection.direction === 'insufficient-evidence',
+  'TP-03-06: question-byte drift refuses before classification while low valid coverage remains insufficient evidence');
+
+  group('Regression: indirect evidence without a causal path or refuter is refused before model impact');
+  const missingPath = RLAGENDA.validateEvidenceRecord({ ...evidenceFixture, causalPath: [] }, geoDefinition.evidencePolicy);
+  const missingRefuter = RLAGENDA.validateEvidenceRecord({ ...evidenceFixture, refutedBy: [] }, geoDefinition.evidencePolicy);
+  const missingAffectedTarget = RLAGENDA.validateEvidenceRecord({
+    ...evidenceFixture,
+    actorIds: [],
+    channelIds: [],
+    claimIds: []
+  }, geoDefinition.evidencePolicy);
+  const selfReferentialInference = RLAGENDA.validateEvidenceRecord({
+    ...evidenceFixture,
+    evidenceId: 'self-referential-inference',
+    evidenceRole: 'model-inference',
+    causalPath: [],
+    refutedBy: [],
+    modelFunctionId: 'computeEvidenceWeight',
+    inputEvidenceIds: ['self-referential-inference'],
+    generatedOutputField: 'modelOutputs.weight'
+  }, geoDefinition.evidencePolicy);
+  assert(!missingPath.ok && missingPath.code === 'RLAGENDA-EVIDENCE-SHAPE'
+    && !missingRefuter.ok && missingRefuter.code === 'RLAGENDA-EVIDENCE-SHAPE'
+    && !missingAffectedTarget.ok && missingAffectedTarget.code === 'RLAGENDA-EVIDENCE-SHAPE',
+  'TP-03-07: indirect evidence needs a causal path refuter and at least one affected actor channel or claim');
+  assert(!selfReferentialInference.ok && selfReferentialInference.field === 'modelFunctionId',
+  'TP-03-07: model inference cannot cite itself as an input record');
+
+  group('Regression: stale evidence and fired refuters have zero impact while conflicts remain visible');
+  const staleEvidence = JSON.parse(JSON.stringify(evidenceFixture));
+  staleEvidence.freshness = { ...staleEvidence.freshness, state: 'stale', ageHours: 48 };
+  staleEvidence.conflicts = { state: 'unresolved', evidenceIds: ['counter-evidence'], effect: 'reduces-confidence' };
+  const staleWeight = RLAGENDA.computeEvidenceWeight(staleEvidence, geoDefinition.evidencePolicy, cutoff);
+  const firedEvidence = JSON.parse(JSON.stringify(evidenceFixture));
+  firedEvidence.firedRefuters = [firedEvidence.refutedBy[0]];
+  firedEvidence.conflicts = { state: 'resolved-by-refuter', evidenceIds: ['normalization-evidence'], effect: 'zero-impact' };
+  const firedWeight = RLAGENDA.computeEvidenceWeight(firedEvidence, geoDefinition.evidencePolicy, cutoff);
+  assert(staleWeight.ok && staleWeight.weight === 0 && staleWeight.boundedImpact === 0
+    && staleWeight.exclusionReason === 'freshness' && staleWeight.conflicts.state === 'unresolved',
+  'TP-03-08: stale evidence has zero impact while its unresolved conflict remains visible');
+  assert(firedWeight.ok && firedWeight.weight === 0 && firedWeight.boundedImpact === 0
+    && firedWeight.exclusionReason === 'fired-refuter' && firedWeight.firedRefuters.length === 1
+    && firedWeight.conflicts.state === 'resolved-by-refuter',
+  'TP-03-08: a fired declared refuter zeros impact and preserves the refuter and conflict record');
+
+  group('Scenario probabilities use stable priors current evidence and sum to one at every sibling set');
+  const baselineProbabilities = RLAGENDA.updateEscalationProbabilities(
+    geoDefinition.scenarioTree,
+    [],
+    { maxAbsoluteImpact: 0.45 }
+  );
+  const impactedProbabilities = RLAGENDA.updateEscalationProbabilities(
+    geoDefinition.scenarioTree,
+    currentImpacts,
+    { maxAbsoluteImpact: 0.45 }
+  );
+  const rootIds = ['staged-reopening', 'managed-coercion', 'escalation'];
+  const childIds = ['single-route-disruption', 'dual-route-or-infrastructure-shock'];
+  const rootConditionalSum = rootIds.reduce((sum, id) => sum + impactedProbabilities.probabilities[id].conditional, 0);
+  const childConditionalSum = childIds.reduce((sum, id) => sum + impactedProbabilities.probabilities[id].conditional, 0);
+  const childUnconditionalSum = childIds.reduce((sum, id) => sum + impactedProbabilities.probabilities[id].unconditional, 0);
+  assert(baselineProbabilities.ok
+    && baselineProbabilities.probabilities['staged-reopening'].conditional === 0.3
+    && baselineProbabilities.probabilities['managed-coercion'].conditional === 0.5
+    && baselineProbabilities.probabilities.escalation.conditional === 0.2,
+  'TP-03-09: zero current impacts reproduce the stable definition priors exactly');
+  assert(impactedProbabilities.ok && approx(rootConditionalSum, 1, 1e-12)
+    && approx(childConditionalSum, 1, 1e-12)
+    && approx(childUnconditionalSum, impactedProbabilities.probabilities.escalation.unconditional, 1e-12)
+    && impactedProbabilities.probabilities['staged-reopening'].conditional > baselineProbabilities.probabilities['staged-reopening'].conditional,
+  'TP-03-09: current weighted impacts move the softmax while every sibling set and child branch remain normalized');
+
+  group('Regression: one flow crossing Hormuz and Bab el-Mandeb counts physical loss once and reroute ton-miles separately');
+  const multiEdgeNetwork = {
+    flows: [{
+      flowId: 'multi-route-flow',
+      commodity: 'oil',
+      baselineVolume: 1,
+      unit: 'normalized-share',
+      routeEdges: ['hormuz', 'bab-el-mandeb'],
+      alternateRoute: {
+        capacityFraction: { low: 0.5, base: 0.5, high: 0.5 },
+        distanceMultiplier: { low: 1.5, base: 1.5, high: 1.5 }
+      },
+      scenarioIds: ['shock']
+    }]
+  };
+  const edgeHalfOpen = {
+    hormuz: {
+      physicalPassFraction: { low: 0.5, base: 0.5, high: 0.5 },
+      insuredPassFraction: { low: 0.8, base: 0.8, high: 0.8 },
+      delayDays: { low: 3, base: 3, high: 3 }
+    },
+    'bab-el-mandeb': {
+      physicalPassFraction: { low: 0.5, base: 0.5, high: 0.5 },
+      insuredPassFraction: { low: 0.8, base: 0.8, high: 0.8 },
+      delayDays: { low: 6, base: 6, high: 6 }
+    }
+  };
+  const multiEdgeFlow = RLAGENDA.computeFlowState(multiEdgeNetwork, edgeHalfOpen, 'shock');
+  const filteredFlow = RLAGENDA.computeFlowState(multiEdgeNetwork, edgeHalfOpen, 'calm');
+  const multiRow = multiEdgeFlow.flows[0];
+  assert(multiEdgeFlow.ok && multiEdgeFlow.flows.length === 1
+    && approx(multiRow.physicallyUnavailable.base, 0.25, 1e-12)
+    && approx(multiRow.reroutedDelivered.base, 0.5, 1e-12)
+    && approx(multiRow.physicallyUnavailable.base + multiRow.reroutedDelivered.base, 0.75, 1e-12),
+  'TP-03-10: two half-open route edges produce one 75 percent impairment rather than two additive losses');
+  assert(approx(multiRow.incrementalTonMiles.base, 0.25, 1e-12)
+    && approx(multiRow.insuredEffectiveThroughput.base, 0.16, 1e-12)
+    && filteredFlow.ok && filteredFlow.flows.length === 0,
+  'TP-03-10: reroute ton-miles and insured throughput remain separate and scenario filtering excludes unrelated flows');
+
+  group('Commodity and proxy ranges preserve low base high order attribution and insufficient-evidence states');
+  const calmFlow = RLAGENDA.computeFlowState(multiEdgeNetwork, edgeHalfOpen, 'calm');
+  const rangeFlowStates = {
+    byScenario: { shock: multiEdgeFlow, calm: calmFlow },
+    inventoryGapByChannel: { oil: { low: 0.05, base: 0.1, high: 0.15 } }
+  };
+  const transmissionFixture = [{
+    channelId: 'oil',
+    flowStateId: 'multi-route-flow',
+    barId: 'BNO',
+    physicalSensitivity: { low: 0.2, base: 0.4, high: 0.6 },
+    rerouteSensitivity: { low: 0.1, base: 0.2, high: 0.3 },
+    inventorySensitivity: { low: 0.1, base: 0.2, high: 0.3 },
+    policyResponseOffset: { low: -0.1, base: 0, high: 0.1 },
+    demandOffset: { low: -0.05, base: 0, high: 0.05 },
+    bounds: { low: -1, base: 0, high: 1 }
+  }];
+  const barFixture = { BNO: { sym: 'BNO', asof: '2026-08-13', rows: [{ t: 1, c: 30 }] } };
+  const shockRanges = RLAGENDA.computeCommodityShockRanges(
+    { shock: 1, calm: 0 },
+    rangeFlowStates,
+    transmissionFixture,
+    barFixture,
+    { inventoryPolicyResponseOffset: 0, demandOffset: 0 }
+  );
+  const calmRanges = RLAGENDA.computeCommodityShockRanges(
+    { shock: 0, calm: 1 },
+    rangeFlowStates,
+    transmissionFixture,
+    barFixture,
+    { inventoryPolicyResponseOffset: 0, demandOffset: 0 }
+  );
+  const missingBarRanges = RLAGENDA.computeCommodityShockRanges(
+    { shock: 1, calm: 0 },
+    rangeFlowStates,
+    transmissionFixture,
+    {},
+    { inventoryPolicyResponseOffset: 0, demandOffset: 0 }
+  );
+  assert(shockRanges.ok && shockRanges.channels[0].range.low <= shockRanges.channels[0].range.base
+    && shockRanges.channels[0].range.base <= shockRanges.channels[0].range.high
+    && shockRanges.channels[0].components.physical.base > calmRanges.channels[0].components.physical.base,
+  'TP-03-11: scenario probability is load-bearing and attributed commodity intervals preserve low base high order');
+  assert(!missingBarRanges.ok && missingBarRanges.channels[0].state === 'unavailable'
+    && missingBarRanges.channels[0].reason === 'missing-required-component',
+  'TP-03-11: a missing required current bar yields unavailable rather than a zero range');
+  const proxyFixture = [{
+    proxyId: 'bno',
+    ticker: 'BNO',
+    channelId: 'oil',
+    channelSensitivity: { low: 0.8, base: 1, high: 1.2 },
+    operatingExposureOffset: { low: 0, base: 0, high: 0 },
+    minimumCalibrationEvents: 1
+  }];
+  const proxyRanges = RLAGENDA.computeEquityProxyRanges(
+    { oil: shockRanges.channels[0].range },
+    proxyFixture,
+    [{ proxyReturns: { BNO: 0.05 } }],
+    barFixture,
+    { proxyAdjustment: 0 }
+  );
+  const thinProxyRanges = RLAGENDA.computeEquityProxyRanges(
+    { oil: shockRanges.channels[0].range },
+    [{ ...proxyFixture[0], minimumCalibrationEvents: 2 }],
+    [{ proxyReturns: { BNO: 0.05 } }],
+    barFixture,
+    { proxyAdjustment: 0 }
+  );
+  assert(proxyRanges.ok && proxyRanges.proxies[0].range.low <= proxyRanges.proxies[0].range.base
+    && proxyRanges.proxies[0].range.base <= proxyRanges.proxies[0].range.high
+    && proxyRanges.proxies[0].components.calibrationResidual.base === 0.05,
+  'TP-03-11: proxy range exposes ordered channel calibration and operating components');
+  assert(!thinProxyRanges.ok && thinProxyRanges.proxies[0].state === 'insufficient-evidence',
+  'TP-03-11: a proxy below its explicit calibration minimum publishes insufficient evidence');
+
+  group('Chart series and adjacent table rows share values units order and immutable review identities');
+  const chartReviews = [
+    {
+      reviewId: `review-${'a'.repeat(64)}`,
+      attemptedAt: '2026-08-12T12:00:00.000Z',
+      modelOutputs: { scenarioProbability: { escalation: 0.2 } },
+      annotations: [{ annotationId: 'prior-view', label: 'Prior view' }]
+    },
+    {
+      reviewId: `review-${'b'.repeat(64)}`,
+      attemptedAt: '2026-08-13T12:00:00.000Z',
+      modelOutputs: { scenarioProbability: { escalation: 0.1 } },
+      annotations: [{ annotationId: 'current-refuter', label: 'Refuter fired' }]
+    }
+  ];
+  const chartProjection = RLAGENDA.buildAgendaChartSeries(chartReviews, [geoDefinition.chartDefinitions[0]]);
+  const chart = chartProjection.charts[0];
+  assert(chartProjection.ok && chart.series.map((row) => row.reviewId).join(',') === chartReviews.map((row) => row.reviewId).join(',')
+    && chart.series.every((row) => row.unit === 'probability')
+    && RLAGENDA.canonicalizeAgenda(chart.series) === RLAGENDA.canonicalizeAgenda(chart.tableRows),
+  'TP-03-12: chart and table consume the same ordered immutable review rows and units');
+  assert(Object.isFrozen(chartProjection) && Object.isFrozen(chart.series[0])
+    && chart.series[1].annotations[0].annotationId === 'current-refuter'
+    && RLAGENDA.canonicalizeAgenda(chartReviews[1].modelOutputs.scenarioProbability) === RLAGENDA.canonicalizeAgenda(chart.series[1].value),
+  'TP-03-12: the projection is frozen and preserves annotation identity and canonical values without second math');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 019 Scope 03 offline plan group threw): ' + e.message); }
+
+/* ---------- Feature 019 Scope 04: candidate outcomes before publication ---------- */
+try {
+  const generationModule = await import('./research-agenda-generation.mjs');
+  const agendaRequire4 = (await import('node:module')).createRequire(import.meta.url);
+  const RLAGENDA4 = agendaRequire4('../rlagenda.js');
+  const registry4 = JSON.parse(read('research-agenda.json'));
+  const topic4 = registry4.topics[0];
+  const definition4 = JSON.parse(read(topic4.definitionRef));
+  const evidence4 = JSON.parse(read('tests/fixtures/research-agenda/valid-evidence-record.json'));
+  const generation4 = RLAGENDA4.deriveGenerationId({
+    snapshotDigest: 'sha256:' + '4'.repeat(64),
+    registryDigest: RLAGENDA4.agendaDigest(registry4),
+    briefWindow: { start: '2026-08-13T07:30:00.000Z', end: '2026-08-13T12:00:00.000Z' },
+    generationCutoff: '2026-08-13T12:00:00.000Z'
+  });
+  const oneTopicRegistry4 = { ...registry4, topics: [topic4] };
+  const oneTopicPlan4 = {
+    ok: true,
+    refusals: [],
+    selected: [{ topicId: topic4.topicId, mode: 'every-generation', reason: 'mode-required', triggerId: null, sectionIds: definition4.analyticalSections.map((section) => section.sectionId) }],
+    classifications: [{ topicId: topic4.topicId, lifecycleState: 'active', mode: 'every-generation', status: 'selected', reason: 'mode-required', triggerId: null }]
+  };
+  const sectionRows4 = (status) => definition4.analyticalSections.map((section) => ({
+    sectionId: section.sectionId,
+    status,
+    interpretation: status === 'unavailable' ? '' : 'Evidence-bounded section interpretation.',
+    gaps: []
+  }));
+  const finding4 = {
+    findingId: 'current-evidence-finding',
+    observedAt: evidence4.observedAt,
+    claim: evidence4.claim,
+    source: evidence4.source,
+    statedConfidence: evidence4.confidence,
+    provenanceClass: evidence4.provenanceClass,
+    evidenceRole: evidence4.evidenceRole,
+    causalPath: evidence4.causalPath,
+    refutedBy: evidence4.refutedBy,
+    limitations: ['Bounded fixture finding.']
+  };
+  const situation4 = (overrides = {}) => ({
+    contractVersion: generationModule.RESEARCH_AGENDA_CONTRACTS.situation,
+    generationId: generation4.id,
+    topicId: topic4.topicId,
+    authoredAt: '2026-08-13T12:00:00.000Z',
+    completePass: true,
+    evidenceRecords: [evidence4],
+    sectionInterpretations: sectionRows4('changed'),
+    findings: [finding4],
+    sourceLedger: [evidence4.source],
+    newEvidenceIds: [evidence4.evidenceId],
+    modelInputs: { chokepointState: {}, inventoryGapByChannel: {}, levers: {} },
+    ...overrides
+  });
+  const compose4 = (input = {}) => generationModule.composeResearchAgendaCandidate({
+    registry: oneTopicRegistry4,
+    plan: oneTopicPlan4,
+    definitionsByTopicId: { [topic4.topicId]: definition4 },
+    generationId: generation4.id,
+    generationCutoff: '2026-08-13T12:00:00.000Z',
+    situationsByTopicId: {},
+    failuresByTopicId: {},
+    deterministicOutputsByTopicId: {},
+    priorDossiersByTopicId: {},
+    ...input
+  });
+
+  group('Feature 019 candidate contract accounts for new sourced unchanged stale and unavailable reviews before publication');
+  const updatedCandidate4 = compose4({
+    situationsByTopicId: { [topic4.topicId]: situation4() },
+    deterministicOutputsByTopicId: { [topic4.topicId]: { scenarioProbability: { escalation: 0.2 }, chartSeries: [{ chartId: 'scenario-probabilities' }] } }
+  });
+  const priorDossier4 = { dossierId: `dossier-${'d'.repeat(64)}`, topicId: topic4.topicId, historicalOnly: false };
+  const unchangedCandidate4 = compose4({
+    situationsByTopicId: { [topic4.topicId]: situation4({ newEvidenceIds: [], findings: [], sectionInterpretations: sectionRows4('unchanged') }) },
+    priorDossiersByTopicId: { [topic4.topicId]: priorDossier4 }
+  });
+  const staleEvidence4 = JSON.parse(JSON.stringify(evidence4));
+  staleEvidence4.observedAt = '2026-08-10T10:00:00.000Z';
+  staleEvidence4.availableAt = '2026-08-10T10:05:00.000Z';
+  staleEvidence4.freshness = { ...staleEvidence4.freshness, state: 'stale', ageHours: 74 };
+  const staleCandidate4 = compose4({
+    situationsByTopicId: { [topic4.topicId]: situation4({ evidenceRecords: [staleEvidence4], newEvidenceIds: [staleEvidence4.evidenceId], sectionInterpretations: sectionRows4('stale') }) },
+    deterministicOutputsByTopicId: { [topic4.topicId]: { shouldNotPublish: true } },
+    priorDossiersByTopicId: { [topic4.topicId]: priorDossier4 }
+  });
+  const unavailableCandidate4 = compose4({ failuresByTopicId: { [topic4.topicId]: 'author-timeout' } });
+  assert(updatedCandidate4.ok && updatedCandidate4.value.reviews[0].outcome === 'updated'
+    && updatedCandidate4.value.dossiers.length === 1
+    && updatedCandidate4.value.reviews[0].sectionStates.length === definition4.analyticalSections.length
+    && updatedCandidate4.value.classifications[0].state === 'reviewed',
+  'TP-04-03: new sourced evidence creates one complete updated review and one sustained dossier');
+  assert(unchangedCandidate4.ok && unchangedCandidate4.value.reviews[0].outcome === 'unchanged'
+    && unchangedCandidate4.value.reviews[0].dossierId === priorDossier4.dossierId
+    && unchangedCandidate4.value.reviews[0].evidenceIds.length === 1
+    && unchangedCandidate4.value.dossiers.length === 0,
+  'TP-04-03: a quiet complete pass writes an unchanged review reusing the prior dossier without inventing a finding');
+  assert(staleCandidate4.ok && staleCandidate4.value.reviews[0].outcome === 'stale'
+    && staleCandidate4.value.reviews[0].newestEvidenceAgeHours === 74
+    && staleCandidate4.value.reviews[0].modelOutputs === null
+    && staleCandidate4.value.dossiers.length === 0,
+  'TP-04-03: stale evidence records its age and publishes no current model output or dossier');
+  assert(unavailableCandidate4.ok && unavailableCandidate4.value.reviews[0].outcome === 'unavailable'
+    && unavailableCandidate4.value.reviews[0].reason === 'author-timeout'
+    && unavailableCandidate4.value.reviews[0].evidenceIds.length === 0
+    && unavailableCandidate4.value.dossiers.length === 0,
+  'TP-04-03: a failed lane creates a named unavailable review with no partial finding or dossier');
+
+  group('SCN-019-014 stale evidence publishes its age has zero model impact and never masquerades as current');
+  const staleWeight4 = RLAGENDA4.computeEvidenceWeight(staleEvidence4, definition4.evidencePolicy, '2026-08-13T12:00:00.000Z');
+  const staleRead4 = generationModule.buildResearchAgendaRead(staleCandidate4.value);
+  assert(staleWeight4.ok && staleWeight4.weight === 0 && staleWeight4.boundedImpact === 0
+    && staleRead4.ok && staleRead4.value.topics[0].outcome === 'stale'
+    && staleRead4.value.topics[0].newestEvidenceAgeHours === 74,
+  'TP-04-05: stale evidence has zero impact and the compact read labels stale with its age');
+  assert(staleCandidate4.value.reviews[0].dossierId === null
+    && staleRead4.value.topics[0].dossierId === null
+    && staleRead4.value.topics[0].state === 'reviewed',
+  'TP-04-05: stale current review never points at or masquerades as the prior dossier');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 019 Scope 04 candidate group threw): ' + e.message); }
+
+/* ---------- Feature 019 Scope 05: refinement and public-safety owner contracts ---------- */
+try {
+  const scope5Require = (await import('node:module')).createRequire(import.meta.url);
+  const RLAGENDA5 = scope5Require('../rlagenda.js');
+  const registry5 = JSON.parse(read('research-agenda.json'));
+  const topic5 = registry5.topics.find((topic) => topic.topicId === 'geopolitical-supply-shock');
+  const definition5 = JSON.parse(read(topic5.definitionRef));
+
+  group('SCN-019-018 out-of-boundary refinement is refused and question and boundary bytes remain equal');
+  const refinement5 = {
+    contractVersion: 'research-refinement-proposal/v1',
+    topicId: topic5.topicId,
+    declaredQuestion: topic5.declaredQuestion,
+    scopeBoundary: JSON.parse(JSON.stringify(topic5.scopeBoundary)),
+    subjects: [
+      { kind: 'geography', value: 'Iran' },
+      { kind: 'channel', value: 'oil' },
+      { kind: 'horizon', value: '1-4w' },
+      { kind: 'public-ticker', value: 'XLE' }
+    ]
+  };
+  const questionBytes5 = RLAGENDA5.canonicalizeAgenda(topic5.declaredQuestion);
+  const boundaryBytes5 = RLAGENDA5.canonicalizeAgenda(topic5.scopeBoundary);
+  const acceptedRefinement5 = RLAGENDA5.validateAgendaRefinement(topic5, refinement5);
+  const outsideRefinement5 = RLAGENDA5.validateAgendaRefinement(topic5, {
+    ...refinement5,
+    subjects: [{ kind: 'geography', value: 'Mars' }]
+  });
+  const questionDrift5 = RLAGENDA5.validateAgendaRefinement(topic5, {
+    ...refinement5,
+    declaredQuestion: topic5.declaredQuestion + ' changed'
+  });
+  const boundaryDrift5 = RLAGENDA5.validateAgendaRefinement(topic5, {
+    ...refinement5,
+    scopeBoundary: { ...topic5.scopeBoundary, publicOnly: false }
+  });
+  assert(acceptedRefinement5.ok
+    && !outsideRefinement5.ok && outsideRefinement5.code === 'RLAGENDA-REFINEMENT-OUTSIDE-BOUNDARY'
+    && !questionDrift5.ok && questionDrift5.code === 'RLAGENDA-REFINEMENT-QUESTION-DRIFT'
+    && !boundaryDrift5.ok && boundaryDrift5.code === 'RLAGENDA-REFINEMENT-BOUNDARY-DRIFT'
+    && RLAGENDA5.canonicalizeAgenda(topic5.declaredQuestion) === questionBytes5
+    && RLAGENDA5.canonicalizeAgenda(topic5.scopeBoundary) === boundaryBytes5,
+  'TP-05-01: refinement preserves question and boundary bytes and refuses an out-of-boundary subject by name');
+
+  group('SCN-019-019 recursive private fields and non-public subjects are refused at every artifact layer');
+  const privateKeys5 = ['position', 'size', 'quantity', 'costBasis', 'profitAndLoss', 'account', 'mandate', 'token', 'key', 'password', 'secret'];
+  const privateLayers5 = privateKeys5.map((key, index) => ({
+    contractVersion: 'fixture-public-artifact/v1',
+    layer: ['registry', 'review', 'dossier', 'payload', 'feature020-seam'][index % 5],
+    nested: { rows: [{ publicValue: 'XLE', deeper: { [key]: 'private-sentinel-' + index } }] }
+  }));
+  const privateResults5 = privateLayers5.map((artifact) => RLAGENDA5.validatePublicResearchArtifact(artifact));
+  const publicDossier5 = {
+    contractVersion: RLAGENDA5.DOSSIER_VERSION,
+    dossierId: `dossier-${'5'.repeat(64)}`,
+    topicId: topic5.topicId,
+    historicalOnly: false,
+    findings: [{
+      findingId: 'public-finding-one',
+      claim: 'Public evidence changed the observed transit state.',
+      source: { sourceIds: ['public-source-one'] }
+    }],
+    evidenceRecords: [{ evidenceId: 'public-evidence-one' }]
+  };
+  const seam5 = RLAGENDA5.buildFeature020ResearchSeam(topic5, definition5, publicDossier5);
+  const nonPublicTopic5 = JSON.parse(JSON.stringify(topic5));
+  nonPublicTopic5.scopeBoundary.publicOnly = false;
+  const nonPublicSeam5 = RLAGENDA5.buildFeature020ResearchSeam(nonPublicTopic5, definition5, publicDossier5);
+  assert(privateResults5.every((result, index) => !result.ok
+      && result.code === 'RLAGENDA-PUBLIC-PRIVATE'
+      && result.field.endsWith(privateKeys5[index]))
+    && seam5.ok && seam5.value.contractVersion === 'research-finding-reference-seam/v1'
+    && seam5.value.findings.length === 1
+    && !JSON.stringify(seam5.value).match(/destination|eligibility|actionFamily|attention|anomaly|alert|routingDecision|score/)
+    && !nonPublicSeam5.ok && nonPublicSeam5.code === 'RLAGENDA-PUBLIC-SUBJECT',
+  'TP-05-02: recursive private fields and non-public subjects are refused while the read-only seam exposes no routing state');
+
+  const payload5 = JSON.parse(read('market-brief.payload.json'));
+  const toolRead5 = RLAGENDA5.buildAgendaToolRead(payload5.researchAgenda, registry5);
+  assert(toolRead5.ok
+    && RLAGENDA5.canonicalizeAgenda(toolRead5.value) === RLAGENDA5.canonicalizeAgenda(payload5.toolReads['research-agenda-lab'])
+    && /payload\.toolReads\s*=\s*finalized\.transaction\.payload\.toolReads/.test(read('scripts/brief-narrative-parallel.mjs')),
+  'TP-05-04: the registered agenda tool read is canonical and the collector carries the transaction-composed read');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 019 Scope 05 public-safety group threw): ' + e.message); }
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

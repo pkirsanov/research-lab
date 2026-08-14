@@ -1,0 +1,62 @@
+{
+  "contractVersion": "research-evidence-record/v1",
+  "evidenceId": "fixture-evidence-001",
+  "observedAt": "2026-08-13T10:00:00.000Z",
+  "availableAt": "2026-08-13T10:05:00.000Z",
+  "source": {
+    "sourceId": "fixture-public-record",
+    "canonicalUrl": "https://example.invalid/evidence",
+    "publisher": "Fixture publisher",
+    "sourceClass": "public-record",
+    "independentOriginGroup": "fixture:public-record",
+    "contentSha256": "sha256:c8cbabab7cb28048c0773b2081a8ca685376431b6f837210e8293b2e907ab314"
+  },
+  "provenanceClass": "observed-fact",
+  "evidenceRole": "indirect",
+  "claim": "The fixture records a precursor without asserting a final outcome.",
+  "actorIds": [
+    "shipping-insurers"
+  ],
+  "channelIds": [
+    "insured-flow"
+  ],
+  "claimIds": [
+    "insured-flow-normalization"
+  ],
+  "confidence": {
+    "grade": "moderate",
+    "basis": "one explicit fixture origin"
+  },
+  "corroboration": {
+    "state": "uncorroborated",
+    "supportingEvidenceIds": [],
+    "independentOriginCount": 1
+  },
+  "conflicts": {
+    "state": "none",
+    "evidenceIds": [],
+    "effect": "none"
+  },
+  "causalPath": [
+    "precursor",
+    "effective-throughput"
+  ],
+  "freshness": {
+    "state": "current",
+    "ageHours": 2,
+    "policyRef": "fixture-policy"
+  },
+  "modelImpacts": [
+    {
+      "targetKind": "scenario-weight",
+      "targetId": "managed-coercion",
+      "direction": "increase",
+      "rawMagnitude": 1,
+      "causalPathRef": "fixture-causal-path",
+      "rationale": "The fixture proves explicit multiplicative weighting and role capping."
+    }
+  ],
+  "refutedBy": [
+    "the precursor returns to its declared baseline"
+  ]
+}

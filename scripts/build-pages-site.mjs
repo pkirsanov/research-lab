@@ -9,7 +9,7 @@ const SKIP_TOP_LEVEL = new Set([
   '.git', '.github', '.specify', '.codegraph', '.brief-work',
   'node_modules', 'playwright-report', 'test-results', 'specs', 'scripts', DESTINATION
 ]);
-const PUBLIC_DIRECTORIES = Object.freeze(['briefs', 'data', 'docs', 'notes', 'pictures', 'rlexperience-adapters', 'tests/fixtures']);
+const PUBLIC_DIRECTORIES = Object.freeze(['briefs', 'data', 'docs', 'notes', 'pictures', 'research', 'rlexperience-adapters', 'tests/fixtures']);
 const SPECIAL_ROOT_FILES = Object.freeze(['.nojekyll']);
 const NON_PUBLIC_ROOT_FILES = new Set([
   '.gitignore', '.npmrc', 'package.json', 'package-lock.json', 'playwright.config.mjs',

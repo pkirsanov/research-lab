@@ -41,7 +41,7 @@ test('SCN-012-033 config contract rejects unknown versions fields view order and
 
   const unsafeModule = makeConfig();
   unsafeModule.adapterPolicy.moduleAllowlist.push('../escape.js');
-  expectError(api.validateConfig(unsafeModule), 'E012-REGISTRY', '$.adapterPolicy.moduleAllowlist[7]');
+  expectError(api.validateConfig(unsafeModule), 'E012-REGISTRY', `$.adapterPolicy.moduleAllowlist[${unsafeModule.adapterPolicy.moduleAllowlist.length - 1}]`);
 });
 
 test('SCN-012-033 model definitions reject invalid parameters seed policy duplicates and unknown fields', () => {

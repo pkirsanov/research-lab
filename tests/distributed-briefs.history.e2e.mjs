@@ -7,12 +7,16 @@
  * preserve append-only authority.
  */
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
 import { buildPublishSet, validatePublishSet, regenerateIndexes, rollbackPublication, pointerBytes, selectHistory } from '../scripts/brief-publication.mjs';
 import { buildRun, priorFromStaging, isolatedRoot, writeStagingToRoot } from './fixtures/feature-002/history/history-fixture-builder.mjs';
+
+const RLAGENDA = createRequire(import.meta.url)('../rlagenda.js');
 
 test('Regression: SCN-002-007 one tool current and monthly history resolve without unrelated narrative reads', () => {
   const { dir, cleanup } = isolatedRoot();
@@ -88,5 +92,155 @@ test('Regression: SCN-002-008 duplicate projection index rebuild and rollback pr
     assert.equal(runsAfter.length, 2, 'history partition still holds both appended rows after rollback');
   } finally {
     cleanup();
+  }
+});
+
+test('SCN-019-016 real history resolves current and predecessor records without rewriting either', () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'rlagenda-history-'));
+  const writes = [];
+  const write = (relativePath, bytes) => {
+    const absolutePath = path.join(root, relativePath);
+    mkdirSync(path.dirname(absolutePath), { recursive: true });
+    writeFileSync(absolutePath, bytes);
+    writes.push(relativePath);
+  };
+  const readBytes = (relativePath) => readFileSync(path.join(root, relativePath));
+  const ZERO_HASH = 'sha256:' + '0'.repeat(64);
+  const ONE_HASH = 'sha256:' + '1'.repeat(64);
+  const TWO_HASH = 'sha256:' + '2'.repeat(64);
+  const topicId = 'geopolitical-supply-shock';
+  const predecessorPath = 'research/agenda/dossiers/geopolitical-supply-shock/historical-2026-08-10-v1.json';
+
+  try {
+    const predecessorBytes = readFileSync(path.join(process.cwd(), predecessorPath));
+    const predecessor = JSON.parse(predecessorBytes.toString('utf8'));
+    write(predecessorPath, predecessorBytes);
+    const predecessorBytesBefore = readBytes(predecessorPath);
+
+    const generationIdentity = RLAGENDA.deriveGenerationId({
+      snapshotDigest: ZERO_HASH,
+      registryDigest: ONE_HASH,
+      briefWindow: { start: '2026-08-11T00:00:00.000Z', end: '2026-08-11T12:00:00.000Z' },
+      generationCutoff: '2026-08-11T12:00:00.000Z'
+    });
+    const reviewIdentity = RLAGENDA.deriveReviewId({
+      generationId: generationIdentity.id,
+      topicId,
+      definitionDigest: ZERO_HASH,
+      calibrationDigest: ONE_HASH,
+      evidenceBundleDigest: TWO_HASH
+    });
+    const dossierBody = {
+      contractVersion: RLAGENDA.DOSSIER_VERSION,
+      topicId,
+      generationId: generationIdentity.id,
+      reviewId: reviewIdentity.id,
+      supersedesDossierId: predecessor.dossierId,
+      substantiveState: { scenario: 'managed-coercion', probability: 0.48 }
+    };
+    const dossierIdentity = RLAGENDA.deriveDossierId(dossierBody);
+    const generationPath = `research/agenda/generations/${generationIdentity.id}.json`;
+    const reviewPath = `research/agenda/reviews/${topicId}/${generationIdentity.id}.json`;
+    const dossierPath = `research/agenda/dossiers/${topicId}/${dossierIdentity.id}.json`;
+    const generationRecord = {
+      contractVersion: RLAGENDA.GENERATION_VERSION,
+      generationId: generationIdentity.id,
+      validationState: 'validated',
+      historicalOnly: false,
+      topicStates: [{ topicId, state: 'reviewed', reviewId: reviewIdentity.id }]
+    };
+    const reviewRecord = {
+      contractVersion: RLAGENDA.REVIEW_VERSION,
+      reviewId: reviewIdentity.id,
+      generationId: generationIdentity.id,
+      topicId,
+      validationState: 'validated',
+      historicalOnly: false,
+      outcome: 'updated',
+      predecessorDossierId: predecessor.dossierId,
+      dossierId: dossierIdentity.id
+    };
+    const dossierRecord = {
+      ...dossierBody,
+      dossierId: dossierIdentity.id,
+      validationState: 'validated',
+      historicalOnly: false
+    };
+    const immutableRecords = [
+      [generationPath, generationRecord],
+      [reviewPath, reviewRecord],
+      [dossierPath, dossierRecord]
+    ];
+    for (const [relativePath, record] of immutableRecords) {
+      const existing = relativePath === dossierPath ? { [predecessorPath]: predecessor } : {};
+      assert.equal(RLAGENDA.prepareImmutableCreate(relativePath, record, existing).ok, true);
+      write(relativePath, JSON.stringify(record, null, 2) + '\n');
+    }
+
+    const recordsByPath = Object.fromEntries(immutableRecords);
+    recordsByPath[predecessorPath] = predecessor;
+    const generationRef = RLAGENDA.buildArtifactRef(generationPath, generationRecord).ref;
+    const reviewRef = RLAGENDA.buildArtifactRef(reviewPath, reviewRecord).ref;
+    const dossierRef = RLAGENDA.buildArtifactRef(dossierPath, dossierRecord).ref;
+    const predecessorRef = RLAGENDA.buildArtifactRef(predecessorPath, predecessor).ref;
+    const predecessorEvent = RLAGENDA.buildHistoryEvent({
+      contractVersion: RLAGENDA.HISTORY_EVENT_VERSION,
+      eventType: 'historical-seed',
+      occurredAt: '2026-08-10T23:59:59.000Z',
+      topicId,
+      generationId: null,
+      reviewId: null,
+      dossierId: predecessor.dossierId,
+      correctsEventId: null,
+      supersedesEventId: null,
+      artifactRef: predecessorRef
+    });
+    const currentEvent = RLAGENDA.buildHistoryEvent({
+      contractVersion: RLAGENDA.HISTORY_EVENT_VERSION,
+      eventType: 'review',
+      occurredAt: '2026-08-11T12:30:00.000Z',
+      topicId,
+      generationId: generationIdentity.id,
+      reviewId: reviewIdentity.id,
+      dossierId: dossierIdentity.id,
+      correctsEventId: null,
+      supersedesEventId: predecessorEvent.event.eventId,
+      artifactRef: dossierRef
+    });
+    const appendedHistory = RLAGENDA.appendHistoryEvents('', [predecessorEvent.event, currentEvent.event]);
+    assert.equal(appendedHistory.ok, true);
+    write('research/agenda/history.jsonl', appendedHistory.candidateText);
+
+    const pointer = {
+      contractVersion: RLAGENDA.CURRENT_VERSION,
+      updatedAt: '2026-08-11T12:30:00.000Z',
+      generationRef,
+      topicRefs: [{ topicId, state: 'reviewed', reviewRef, dossierRef }]
+    };
+    assert.equal(RLAGENDA.validateCurrentPointer(pointer, recordsByPath).ok, true);
+    write('research/agenda/current.json', JSON.stringify(pointer, null, 2) + '\n');
+    assert.equal(writes.at(-1), 'research/agenda/current.json', 'the current pointer is the last publication write');
+
+    const diskPointer = JSON.parse(readBytes('research/agenda/current.json').toString('utf8'));
+    const diskRecords = {};
+    diskRecords[diskPointer.generationRef.path] = JSON.parse(readBytes(diskPointer.generationRef.path).toString('utf8'));
+    const diskTopicRef = diskPointer.topicRefs[0];
+    diskRecords[diskTopicRef.reviewRef.path] = JSON.parse(readBytes(diskTopicRef.reviewRef.path).toString('utf8'));
+    diskRecords[diskTopicRef.dossierRef.path] = JSON.parse(readBytes(diskTopicRef.dossierRef.path).toString('utf8'));
+    const resolved = RLAGENDA.validateCurrentPointer(diskPointer, diskRecords);
+    assert.equal(resolved.ok, true, 'the real pointer resolves through all immutable records');
+    const diskDossier = diskRecords[diskTopicRef.dossierRef.path];
+    assert.equal(diskDossier.supersedesDossierId, predecessor.dossierId);
+    assert.equal(JSON.parse(readBytes(predecessorPath).toString('utf8')).dossierId, diskDossier.supersedesDossierId);
+
+    const currentBytesBefore = readBytes(dossierPath);
+    const overwrite = RLAGENDA.prepareImmutableCreate(dossierPath, { ...dossierRecord, attemptedMutation: true }, { [dossierPath]: dossierRecord });
+    assert.equal(overwrite.ok, false);
+    assert.equal(overwrite.code, 'RLAGENDA-IMMUTABLE-OVERWRITE');
+    assert.deepEqual(readBytes(predecessorPath), predecessorBytesBefore, 'predecessor bytes remain unchanged');
+    assert.deepEqual(readBytes(dossierPath), currentBytesBefore, 'current dossier bytes remain unchanged');
+    assert.equal(readBytes('research/agenda/history.jsonl').toString('utf8').startsWith(RLAGENDA.canonicalizeAgenda(predecessorEvent.event) + '\n'), true);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
   }
 });

@@ -319,3 +319,173 @@ test('Regression: BUG-001 options flow shell is ready before heavy hydration beg
   expect(new Set(deltaStarts.map((entry) => entry.pathname)).size).toBe(12);
   expect(deltaStarts.every((entry) => entry.shellReady)).toBe(true);
 });
+
+async function openResearchAgenda(page, { fixture = null, mode = 'simple' } = {}) {
+  const query = fixture ? `?fixture=${fixture}` : '';
+  await page.goto(`${site.baseUrl}/research-agenda-lab.html${query}#${mode}/geopolitical-supply-shock`, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
+  await page.waitForFunction(() => globalThis.__researchAgendaDebug && globalThis.__researchAgendaDebug.getViewState());
+  await expect(page.locator('body')).toHaveAttribute('data-rlview', mode);
+}
+
+test('SCN-019-020 research agenda opens in Simple and Power reveals the complete dossier workspace', async ({ page }) => {
+  await openResearchAgenda(page);
+  await expect(page.locator('#currentPosture')).toContainText('Unavailable');
+  await expect(page.locator('#currentReason')).toContainText('did not produce a validated current dossier');
+  await expect(page.locator('#currentScenarios .metric-row')).toHaveCount(0);
+  await expect(page.locator('#historicalBand')).toBeHidden();
+
+  await page.getByRole('tab', { name: 'Power', exact: true }).click();
+  await expect(page).toHaveURL(/#power\/geopolitical-supply-shock$/);
+  await expect(page.locator('#historicalBand')).toBeVisible();
+  await expect(page.locator('#historicalHeading')).toContainText('2026-08-10');
+  await expect(page.locator('#historicalWarning')).toContainText('dated context only');
+  await expect(page.locator('#sectionMatrix .matrix-cell')).toHaveCount(8);
+  await expect(page.locator('#actorMatrix .matrix-cell')).toHaveCount(7);
+  await expect(page.locator('#channelWorkspace table tbody tr')).toHaveCount(6);
+  await expect(page.locator('#proxyWorkspace table tbody tr')).toHaveCount(12);
+  await expect(page.locator('#evidenceList .evidence-row')).toHaveCount(6);
+  await expect(page.locator('#sourceList .source-row')).toHaveCount(11);
+  await expect(page.locator('#historyList .history-row')).toHaveCount(2);
+  await expect(page.locator('#fixtureBand')).toBeHidden();
+});
+
+test('SCN-019-017 reversal comparison shows causal evidence invalidation prior view and current view', async ({ page }) => {
+  await openResearchAgenda(page, { fixture: 'reversal', mode: 'power' });
+  await expect(page.locator('#fixtureBand')).toBeVisible();
+  await expect(page.locator('#fixtureBand')).toContainText('TEST FIXTURE');
+  await expect(page.locator('#parityValue')).toHaveText('Matched');
+  const comparison = page.locator('#comparisonWorkspace[data-change-direction="reversed"]');
+  await expect(comparison).toBeVisible();
+  await expect(comparison).toContainText('Reversed');
+  await expect(comparison).toContainText('Prior view:');
+  await expect(comparison).toContainText('Current view:');
+  await expect(comparison).toContainText('Causal evidence:');
+  await expect(comparison).toContainText('Refuter:');
+  await expect(comparison).toContainText('Invalidation:');
+  expect(await page.evaluate(() => globalThis.__researchAgendaDebug.getComparison())).toMatchObject({ direction: 'reversed' });
+});
+
+test('Regression: stale and unavailable current reviews cannot masquerade as the prior dossier', async ({ page }) => {
+  await openResearchAgenda(page);
+  const states = await page.evaluate(() => {
+    const current = globalThis.__researchAgendaDebug.getCurrentReview();
+    const historical = globalThis.__researchAgendaDebug.getHistoricalDossier();
+    const stale = JSON.parse(JSON.stringify(current));
+    stale.outcome = 'stale';
+    stale.reason = 'newest-evidence-outside-window';
+    stale.newestEvidenceAgeHours = 72;
+    stale.modelOutputs = null;
+    stale.dossierId = null;
+    const staleProjection = globalThis.RLAGENDA.computeAgendaViewState(
+      globalThis.__researchAgendaDebug.getDefinition(), stale, null
+    );
+    return { current, historical, staleProjection };
+  });
+  expect(states.current.outcome).toBe('unavailable');
+  expect(states.current.dossierId).toBeNull();
+  expect(states.historical.historicalOnly).toBe(true);
+  expect(states.staleProjection.ok).toBe(true);
+  expect(states.staleProjection.value.outcome).toBe('stale');
+  expect(states.staleProjection.value.modelAvailable).toBe(false);
+  await expect(page.locator('#currentScenarios .metric-row')).toHaveCount(0);
+  await page.getByRole('tab', { name: 'Power', exact: true }).click();
+  await expect(page.locator('#historicalWarning')).toContainText('does not replace the unavailable current review');
+});
+
+test('Regression: browser model chart table and tooltip values match canonical rlagenda output', async ({ page }) => {
+  await openResearchAgenda(page, { fixture: 'reversal', mode: 'power' });
+  const expected = await page.evaluate(() => {
+    const view = globalThis.__researchAgendaDebug.getViewState();
+    const definition = globalThis.__researchAgendaDebug.getDefinition();
+    return definition.scenarioTree.nodes.filter((node) => node.parentId === null).map((node) => ({
+      label: String(node.title || node.scenarioId).replace(/[-_]+/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()),
+      value: view.modelOutputs.scenarioProbability[node.scenarioId].unconditional,
+      shown: (view.modelOutputs.scenarioProbability[node.scenarioId].unconditional * 100).toFixed(1) + '%'
+    }));
+  });
+  const chartRows = page.locator('#powerScenarios .metric-row');
+  const tableRows = page.locator('#powerScenarioTable tbody tr');
+  await expect(chartRows).toHaveCount(expected.length);
+  await expect(tableRows).toHaveCount(expected.length);
+  for (let index = 0; index < expected.length; index += 1) {
+    await expect(chartRows.nth(index).locator('.metric-name')).toHaveText(expected[index].label);
+    await expect(chartRows.nth(index).locator('.metric-value')).toHaveText(expected[index].shown);
+    await expect(chartRows.nth(index)).toHaveAttribute('title', new RegExp(expected[index].shown.replace('%', '\\%')));
+    await expect(tableRows.nth(index).locator('td').nth(1)).toHaveText(expected[index].shown);
+    await expect(tableRows.nth(index).locator('td').nth(2)).toHaveText('probability');
+  }
+  const total = expected.reduce((sum, row) => sum + row.value, 0);
+  expect(total).toBeCloseTo(1, 9);
+
+  const mismatch = await page.evaluate(() => {
+    const review = globalThis.__researchAgendaDebug.getCurrentReview();
+    const definition = globalThis.__researchAgendaDebug.getDefinition();
+    review.modelOutputs.channelRanges.oil.base += 0.01;
+    return globalThis.RLAGENDA.computeAgendaViewState(definition, review, null);
+  });
+  expect(mismatch).toEqual({ ok: false, code: 'RLAGENDA-MODEL-INVALID', field: 'storedModelOutputs' });
+});
+
+test('Regression: research levers recompute both modes without refetching or mutating history', async ({ page }) => {
+  const requests = [];
+  page.on('request', (request) => requests.push(request.url()));
+  await openResearchAgenda(page, { fixture: 'reversal' });
+  await settleThenClearRequests(page, requests);
+  const before = await page.evaluate(() => ({
+    fetches: globalThis.__researchAgendaDebug.getFetchCount(),
+    historyLength: history.length,
+    historyFingerprint: globalThis.__researchAgendaDebug.getHistoryFingerprint()
+  }));
+  const simpleOil = page.locator('#currentTransmission .metric-row').filter({ hasText: 'Oil' }).locator('.metric-value');
+  const priorSimple = await simpleOil.textContent();
+  await page.locator('#lever-number-inventoryPolicyResponseOffset').fill('0.05');
+  await page.locator('#lever-number-inventoryPolicyResponseOffset').press('Enter');
+  await expect(page.locator('[data-lever-id="inventoryPolicyResponseOffset"] .lever-meta')).toHaveText('Your assumption');
+  await expect(simpleOil).not.toHaveText(priorSimple);
+  const changedSimple = await simpleOil.textContent();
+
+  await page.getByRole('tab', { name: 'Power', exact: true }).click();
+  const powerOil = page.locator('#channelWorkspace tbody tr').filter({ hasText: 'Oil' }).locator('td').nth(1);
+  await expect(powerOil).toHaveText(changedSimple);
+  const after = await page.evaluate(() => ({
+    fetches: globalThis.__researchAgendaDebug.getFetchCount(),
+    historyLength: history.length,
+    historyFingerprint: globalThis.__researchAgendaDebug.getHistoryFingerprint(),
+    changedLeverIds: globalThis.__researchAgendaDebug.getViewState().changedLeverIds
+  }));
+  expect(after.fetches).toBe(before.fetches);
+  expect(after.historyLength).toBe(before.historyLength + 1);
+  expect(after.historyFingerprint).toBe(before.historyFingerprint);
+  expect(after.changedLeverIds).toContain('inventoryPolicyResponseOffset');
+  expect(requests).toEqual([]);
+});
+
+test('Regression: private corpus sentinel reaches no DOM request URL storage or public artifact', async ({ page }) => {
+  const sentinel = 'RL_PRIVATE_CORPUS_SENTINEL_019';
+  const requestUrls = [];
+  page.on('request', (request) => requestUrls.push(request.url()));
+  await openResearchAgenda(page);
+  const result = await page.evaluate((value) => globalThis.RLAGENDA.validatePublicResearchArtifact({
+    contractVersion: 'fixture-public-artifact/v1',
+    nested: { rows: [{ publicTicker: 'XLE', account: value }] }
+  }), sentinel);
+  expect(result.ok).toBe(false);
+  expect(result.code).toBe('RLAGENDA-PUBLIC-PRIVATE');
+  expect(JSON.stringify(result)).not.toContain(sentinel);
+  const observed = await page.evaluate(async (value) => {
+    const publicPaths = ['research-agenda.json', 'research/agenda/current.json', 'market-brief.page.json'];
+    const artifacts = await Promise.all(publicPaths.map((path) => fetch(path).then((response) => response.text())));
+    return {
+      dom: document.documentElement.textContent,
+      href: location.href,
+      local: Object.keys(localStorage).map((key) => key + '=' + localStorage.getItem(key)).join('|'),
+      session: Object.keys(sessionStorage).map((key) => key + '=' + sessionStorage.getItem(key)).join('|'),
+      resources: performance.getEntriesByType('resource').map((entry) => entry.name).join('|'),
+      artifacts: artifacts.join('|'),
+      value
+    };
+  }, sentinel);
+  for (const field of ['dom', 'href', 'local', 'session', 'resources', 'artifacts']) expect(observed[field]).not.toContain(sentinel);
+  expect(requestUrls.join('|')).not.toContain(sentinel);
+});

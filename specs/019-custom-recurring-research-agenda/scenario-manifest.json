@@ -1,412 +1,412 @@
 {
-    "contractVersion": "scenario-manifest/v1",
-    "featureDir": "specs/019-custom-recurring-research-agenda",
-    "generatedBy": "bubbles.analyst",
-    "generatedAt": "2026-08-10T00:00:00Z",
-    "stage": "spec-level-planning",
-    "stageNote": "Authored at spec level before scopes.md and test-plan.json exist. scopeId values name the intended scope decomposition recorded in spec.md and are subject to change when bubbles.plan authors the scopes. linkedTests, testRows and evidenceRefs are deliberately empty because no test plan has been authored; populating them now would be a fabricated linkage.",
-    "scenarioCount": 20,
-    "businessScenarioMapping": "SCN-019-001 through SCN-019-020 map one-to-one onto BS-019-001 through BS-019-020 in spec.md.",
-    "scenarios": [
-        {
-            "scenarioId": "SCN-019-001",
-            "businessScenario": "BS-019-001",
-            "scopeId": "01-agenda-registry-contract",
-            "scope": 1,
-            "status": "not_started",
-            "title": "A disposable clone sees every declared topic",
-            "gherkin": {
-                "given": "the agenda registry is a committed repository file and the scheduler has cloned origin/main into a disposable checkout",
-                "when": "the generation reads the agenda",
-                "then": "it sees every topic the operator declared on the branch and reads no browser state and no uncommitted local file"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-002",
-            "businessScenario": "BS-019-002",
-            "scopeId": "01-agenda-registry-contract",
-            "scope": 1,
-            "status": "not_started",
-            "title": "An absent agenda is a named absence",
-            "gherkin": {
-                "given": "no agenda registry exists in the checkout",
-                "when": "the generation reads the agenda",
-                "then": "it records a named absence with a reason, does not synthesise a default topic set, and the rest of the brief still generates"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-003",
-            "businessScenario": "BS-019-003",
-            "scopeId": "01-agenda-registry-contract",
-            "scope": 1,
-            "status": "not_started",
-            "title": "One invalid topic does not disable the others",
-            "gherkin": {
-                "given": "the agenda declares three topics and one is missing its declared question",
-                "when": "the agenda is validated",
-                "then": "the invalid topic is refused with a named reason and the remaining two topics are still reviewed"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-004",
-            "businessScenario": "BS-019-004",
-            "scopeId": "02-topic-lifecycle",
-            "scope": 2,
-            "status": "not_started",
-            "title": "A newly declared topic enters the review cycle",
-            "gherkin": {
-                "given": "the operator commits a new topic with a declared question and a cadence",
-                "when": "the next generation runs",
-                "then": "the topic is treated as due because it has never been reviewed, and a first dossier is produced or a named outcome is recorded"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-005",
-            "businessScenario": "BS-019-005",
-            "scopeId": "02-topic-lifecycle",
-            "scope": 2,
-            "status": "not_started",
-            "title": "Pausing suspends review and preserves history",
-            "gherkin": {
-                "given": "a topic whose lifecycle state is paused",
-                "when": "the generation reviews the agenda",
-                "then": "the topic is not researched, its dossier history remains readable, and the published record states paused rather than unavailable"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-006",
-            "businessScenario": "BS-019-006",
-            "scopeId": "02-topic-lifecycle",
-            "scope": 2,
-            "status": "not_started",
-            "title": "Retirement is append-only",
-            "gherkin": {
-                "given": "the operator retires a topic",
-                "when": "the generation runs",
-                "then": "the topic is not researched, no prior dossier version is deleted or rewritten, and the retirement is recorded as a new lifecycle event"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-007",
-            "businessScenario": "BS-019-007",
-            "scopeId": "02-topic-lifecycle",
-            "scope": 2,
-            "status": "not_started",
-            "title": "The operator's actual research history is expressible",
-            "gherkin": {
-                "given": "the operator declares a defense production and earnings-acceleration topic, a U.S.-Iran oil and Strait of Hormuz topic, and a food, grains and fertilizer topic",
-                "when": "the agenda is validated",
-                "then": "all three are accepted with their own declared questions, scope boundaries and cadences"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-008",
-            "businessScenario": "BS-019-008",
-            "scopeId": "03-per-generation-review-policy",
-            "scope": 3,
-            "status": "not_started",
-            "title": "Cadence prevents pointless work",
-            "gherkin": {
-                "given": "a topic reviewed one generation ago with a weekly cadence and no material-change trigger fired",
-                "when": "the generation reviews the agenda",
-                "then": "the topic is not due, its most recent dossier remains current, and the published outcome is unchanged rather than updated"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-009",
-            "businessScenario": "BS-019-009",
-            "scopeId": "03-per-generation-review-policy",
-            "scope": 3,
-            "status": "not_started",
-            "title": "Time makes a topic due",
-            "gherkin": {
-                "given": "a topic whose declared cadence has elapsed since its last review",
-                "when": "the generation reviews the agenda",
-                "then": "the topic is due and is queued for research this generation"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-010",
-            "businessScenario": "BS-019-010",
-            "scopeId": "03-per-generation-review-policy",
-            "scope": 3,
-            "status": "not_started",
-            "title": "A material change overrides the cadence",
-            "gherkin": {
-                "given": "a topic declaring a material-change trigger whose condition is observable in this generation's committed evidence",
-                "when": "the generation reviews the agenda",
-                "then": "the topic is due even though its cadence has not elapsed, and the published record names the trigger"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-011",
-            "businessScenario": "BS-019-011",
-            "scopeId": "03-per-generation-review-policy",
-            "scope": 3,
-            "status": "not_started",
-            "title": "More due topics than the budget allows",
-            "gherkin": {
-                "given": "more topics are due than the declared per-generation review budget",
-                "when": "the generation selects topics to research",
-                "then": "it researches up to the budget in a declared deterministic order and every deferred topic publishes a named deferred outcome with its reason"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-012",
-            "businessScenario": "BS-019-012",
-            "scopeId": "04-dossier-and-outcome-states",
-            "scope": 4,
-            "status": "not_started",
-            "title": "A dossier carries provenance",
-            "gherkin": {
-                "given": "a due topic researched successfully this generation",
-                "when": "the dossier is written",
-                "then": "every finding carries an observation date, a source and a stated confidence, the dossier carries the generation instant and topic identifier, and the outcome state is updated"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-013",
-            "businessScenario": "BS-019-013",
-            "scopeId": "04-dossier-and-outcome-states",
-            "scope": 4,
-            "status": "not_started",
-            "title": "No new evidence is a real answer",
-            "gherkin": {
-                "given": "a due topic whose research surfaced no new evidence since its last dossier",
-                "when": "the review completes",
-                "then": "the outcome state is unchanged, no new finding is invented, and the prior dossier remains current"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-014",
-            "businessScenario": "BS-019-014",
-            "scopeId": "04-dossier-and-outcome-states",
-            "scope": 4,
-            "status": "not_started",
-            "title": "Old evidence is labelled, never presented as current",
-            "gherkin": {
-                "given": "a due topic whose newest available evidence predates its declared freshness window",
-                "when": "the review completes",
-                "then": "the outcome state is stale, the record names the age of the newest evidence, and the findings are not presented as a current read"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-015",
-            "businessScenario": "BS-019-015",
-            "scopeId": "04-dossier-and-outcome-states",
-            "scope": 4,
-            "status": "not_started",
-            "title": "A failed lane is a named absence",
-            "gherkin": {
-                "given": "a due topic whose research lane failed or returned nothing usable",
-                "when": "the review completes",
-                "then": "the outcome state is unavailable with a named reason, no partial or inferred finding is published, and the remaining topics are unaffected"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-016",
-            "businessScenario": "BS-019-016",
-            "scopeId": "04-dossier-and-outcome-states",
-            "scope": 4,
-            "status": "not_started",
-            "title": "History is append-only",
-            "gherkin": {
-                "given": "a topic with an existing dossier",
-                "when": "a new review produces an updated dossier",
-                "then": "the new version references the version it supersedes, the superseded version is still readable, and no prior finding is edited in place"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-017",
-            "businessScenario": "BS-019-017",
-            "scopeId": "05-refinement-public-safety-and-brief-read",
-            "scope": 5,
-            "status": "not_started",
-            "title": "A refinement narrows, it does not replace",
-            "gherkin": {
-                "given": "a topic whose declared question admits a narrower sub-question the evidence now supports",
-                "when": "the agent proposes a refinement",
-                "then": "the refinement is recorded as a dated attributed addition inside the declared question and the operator's declared question text is unchanged"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-018",
-            "businessScenario": "BS-019-018",
-            "scopeId": "05-refinement-public-safety-and-brief-read",
-            "scope": 5,
-            "status": "not_started",
-            "title": "A refinement outside the boundary is refused",
-            "gherkin": {
-                "given": "a proposed refinement whose subject falls outside the topic's declared scope boundary",
-                "when": "the refinement is validated",
-                "then": "it is refused with a named reason and the topic's declared question and scope boundary are unchanged"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-019",
-            "businessScenario": "BS-019-019",
-            "scopeId": "05-refinement-public-safety-and-brief-read",
-            "scope": 5,
-            "status": "not_started",
-            "title": "Public scope only",
-            "gherkin": {
-                "given": "any dossier produced by this feature",
-                "when": "it is inspected",
-                "then": "it contains no position, size, cost basis or profit-or-loss figure and every subject it names is a public market object or public ticker"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        },
-        {
-            "scenarioId": "SCN-019-020",
-            "businessScenario": "BS-019-020",
-            "scopeId": "05-refinement-public-safety-and-brief-read",
-            "scope": 5,
-            "status": "not_started",
-            "title": "A read that does not reach the brief does not ship",
-            "gherkin": {
-                "given": "a generation in which at least one topic was reviewed",
-                "when": "the published payload and the brief page artifact are inspected",
-                "then": "the payload carries a research read for the agenda under its registered tool id with each topic's outcome state, the brief page artifact carries the agenda material the reader-facing section renders, and the read is visible on a brief surface the reader opens rather than only present in the payload or confined to a dossier file"
-            },
-            "behaviorClass": "api",
-            "changeType": "new",
-            "requiredTestType": "unit",
-            "regressionRequired": true,
-            "linkedTests": [],
-            "testRows": [],
-            "evidenceRefs": []
-        }
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/019-custom-recurring-research-agenda",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-08-13T00:00:00Z",
+  "stage": "scope-level-planning",
+  "stageNote": "Reconciled after spec.md and design.md established explicit every-generation and cadence modes, immutable review/dossier history, deterministic current-only models, governed generation integration, and the first-class research tool. Existing report evidence is historical and cannot satisfy this replan. Each evidenceRefs entry names a fresh replanned-contract anchor that implementation must append after executing the current row. Exact planned test titles live in test-plan.json and the five scope files.",
+  "scenarioCount": 20,
+  "businessScenarioMapping": "SCN-019-001 through SCN-019-020 map one-to-one onto BS-019-001 through BS-019-020 in spec.md. No scenario identifier is added, dropped, or duplicated.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-019-001",
+      "businessScenario": "BS-019-001",
+      "scopeId": "01-agenda-registry-contract",
+      "scope": 1,
+      "status": "done",
+      "title": "A disposable clone sees every declared topic",
+      "gherkin": {
+        "given": "the agenda registry is a committed repository file and the scheduler has cloned origin/main into a disposable checkout",
+        "when": "the generation reads the agenda",
+        "then": "it sees every topic the operator declared on the branch and reads no browser state and no uncommitted local file"
+      },
+      "behaviorClass": "pipeline",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "linkedTests": ["scripts/selftest.mjs", "scripts/validate-spec-test-paths.mjs", "tests/deployed-site-parity.spec.mjs"],
+      "testRows": ["TP-01-01", "TP-01-05", "TP-01-06", "TP-01-07"],
+      "evidenceRefs": ["scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-01", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-05", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-06", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-07"]
+    },
+    {
+      "scenarioId": "SCN-019-002",
+      "businessScenario": "BS-019-002",
+      "scopeId": "01-agenda-registry-contract",
+      "scope": 1,
+      "status": "done",
+      "title": "An absent agenda is a named absence",
+      "gherkin": {
+        "given": "no agenda registry exists in the checkout",
+        "when": "the generation reads the agenda",
+        "then": "it records a named absence with a reason, does not synthesise a default topic set, and the rest of the brief still generates"
+      },
+      "behaviorClass": "pipeline",
+      "changeType": "new",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "linkedTests": ["scripts/selftest.mjs"],
+      "testRows": ["TP-01-02"],
+      "evidenceRefs": ["scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-02"]
+    },
+    {
+      "scenarioId": "SCN-019-003",
+      "businessScenario": "BS-019-003",
+      "scopeId": "01-agenda-registry-contract",
+      "scope": 1,
+      "status": "done",
+      "title": "One invalid topic does not disable the others",
+      "gherkin": {
+        "given": "the agenda declares three topics and one is missing its review mode",
+        "when": "the agenda is validated",
+        "then": "the invalid topic is refused with a named reason and the remaining two topics are still reviewed"
+      },
+      "behaviorClass": "contract",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": ["scripts/selftest.mjs"],
+      "testRows": ["TP-01-03", "TP-01-05"],
+      "evidenceRefs": ["scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-03", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-05"]
+    },
+    {
+      "scenarioId": "SCN-019-004",
+      "businessScenario": "BS-019-004",
+      "scopeId": "04-dossier-and-outcome-states",
+      "scope": 4,
+      "status": "done",
+      "title": "A newly declared topic enters the review cycle",
+      "gherkin": {
+        "given": "the operator commits a new topic with a declared question and an explicit review mode",
+        "when": "the next generation runs",
+        "then": "an every-generation topic is selected as mandatory, a never-reviewed cadence topic is due, and a first dossier or named outcome is recorded"
+      },
+      "behaviorClass": "pipeline",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.final.e2e.mjs"],
+      "testRows": ["TP-04-03", "TP-04-01", "TP-04-13"],
+      "evidenceRefs": ["scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-03", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-01", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-13"]
+    },
+    {
+      "scenarioId": "SCN-019-005",
+      "businessScenario": "BS-019-005",
+      "scopeId": "02-topic-lifecycle",
+      "scope": 2,
+      "status": "done",
+      "title": "Pausing suspends review and preserves history",
+      "gherkin": {
+        "given": "a topic whose lifecycle state is paused",
+        "when": "the generation reviews the agenda",
+        "then": "the topic is not researched, its dossier history remains readable, and the published record states paused rather than unavailable"
+      },
+      "behaviorClass": "lifecycle",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.history.e2e.mjs"],
+      "testRows": ["TP-02-01", "TP-02-07"],
+      "evidenceRefs": ["scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-01", "scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-07"]
+    },
+    {
+      "scenarioId": "SCN-019-006",
+      "businessScenario": "BS-019-006",
+      "scopeId": "02-topic-lifecycle",
+      "scope": 2,
+      "status": "done",
+      "title": "Retirement is append-only",
+      "gherkin": {
+        "given": "the operator retires a topic",
+        "when": "the generation runs",
+        "then": "the topic is not researched, no prior dossier is deleted or rewritten, and a new lifecycle event references the topic"
+      },
+      "behaviorClass": "lifecycle",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.history.e2e.mjs"],
+      "testRows": ["TP-02-02", "TP-02-07"],
+      "evidenceRefs": ["scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-02", "scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-07"]
+    },
+    {
+      "scenarioId": "SCN-019-007",
+      "businessScenario": "BS-019-007",
+      "scopeId": "01-agenda-registry-contract",
+      "scope": 1,
+      "status": "done",
+      "title": "The operator's actual research history is expressible",
+      "gherkin": {
+        "given": "the primary geopolitical supply-shock topic is every-generation and covers the named actors, chokepoints, channels, proxies, triggers, invalidations, and evidence roles, while defense and food-input topics are cadence",
+        "when": "the agenda is validated",
+        "then": "all three are accepted through one topic-neutral foundation and retain independent questions, boundaries, sections, and modes"
+      },
+      "behaviorClass": "contract",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "linkedTests": ["scripts/selftest.mjs", "tests/deployed-site-parity.spec.mjs"],
+      "testRows": ["TP-01-04", "TP-01-07"],
+      "evidenceRefs": ["scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-04", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-07"]
+    },
+    {
+      "scenarioId": "SCN-019-008",
+      "businessScenario": "BS-019-008",
+      "scopeId": "03-per-generation-review-policy",
+      "scope": 3,
+      "status": "done",
+      "title": "Cadence mode honours its explicit schedule",
+      "gherkin": {
+        "given": "two cadence topics share an explicit weekly cadence, one remains inside it, one has elapsed it, and no trigger fired",
+        "when": "the generation reviews the agenda",
+        "then": "the first topic is not researched and keeps its prior dossier while the second is due"
+      },
+      "behaviorClass": "model",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.final.e2e.mjs"],
+      "testRows": ["TP-03-01", "TP-03-13"],
+      "evidenceRefs": ["scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-01", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-13"]
+    },
+    {
+      "scenarioId": "SCN-019-009",
+      "businessScenario": "BS-019-009",
+      "scopeId": "03-per-generation-review-policy",
+      "scope": 3,
+      "status": "done",
+      "title": "Every-generation work cannot be skipped as not due",
+      "gherkin": {
+        "given": "an active every-generation topic whose prior dossier reported unchanged",
+        "when": "the generation reviews the agenda",
+        "then": "the topic is mandatory, every section is re-evaluated, and this generation publishes a review or named unavailable outcome instead of presenting the predecessor as current"
+      },
+      "behaviorClass": "pipeline",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "linkedTests": ["tests/distributed-briefs.final.unit.mjs", "tests/distributed-briefs.final.e2e.mjs", "scripts/validate-brief-payload.mjs"],
+      "testRows": ["TP-03-02", "TP-03-13", "TP-04-11"],
+      "evidenceRefs": ["scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-02", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-13", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-11"]
+    },
+    {
+      "scenarioId": "SCN-019-010",
+      "businessScenario": "BS-019-010",
+      "scopeId": "03-per-generation-review-policy",
+      "scope": 3,
+      "status": "done",
+      "title": "A material change overrides the cadence",
+      "gherkin": {
+        "given": "a cadence topic declares a material-change trigger observable in this generation's committed evidence",
+        "when": "the generation reviews the agenda",
+        "then": "the topic is due before cadence elapsed and the published record names the trigger"
+      },
+      "behaviorClass": "model",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.final.e2e.mjs"],
+      "testRows": ["TP-03-03", "TP-03-13"],
+      "evidenceRefs": ["scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-03", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-13"]
+    },
+    {
+      "scenarioId": "SCN-019-011",
+      "businessScenario": "BS-019-011",
+      "scopeId": "03-per-generation-review-policy",
+      "scope": 3,
+      "status": "done",
+      "title": "Mandatory reviews are protected before cadence capacity is applied",
+      "gherkin": {
+        "given": "an active every-generation topic and more due cadence topics than the cadence budget allows",
+        "when": "the generation selects research",
+        "then": "mandatory work is selected first, cadence work follows deterministic order up to budget, and every unselected cadence topic is named with its deferred reason"
+      },
+      "behaviorClass": "model",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.final.e2e.mjs", "tests/distributed-briefs.final-budget.stress.mjs"],
+      "testRows": ["TP-03-04", "TP-03-05", "TP-03-13", "TP-04-12"],
+      "evidenceRefs": ["scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-04", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-05", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-13", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-12"]
+    },
+    {
+      "scenarioId": "SCN-019-012",
+      "businessScenario": "BS-019-012",
+      "scopeId": "04-dossier-and-outcome-states",
+      "scope": 4,
+      "status": "done",
+      "title": "A dossier carries provenance",
+      "gherkin": {
+        "given": "a due topic researched successfully this generation",
+        "when": "the dossier is written",
+        "then": "every finding carries date, source, confidence, evidence role, provenance, the dossier carries identity and comparison, and every section persists model and chart state"
+      },
+      "behaviorClass": "pipeline",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "linkedTests": ["tests/web-evidence.functional.mjs", "tests/web-evidence.security.mjs", "scripts/selftest.mjs", "tests/brief-refresh-atomicity.test.mjs", "scripts/validate-brief-payload.mjs", "tests/distributed-briefs.final.e2e.mjs"],
+      "testRows": ["TP-04-03", "TP-04-02", "TP-04-08", "TP-04-09", "TP-04-10", "TP-04-11", "TP-04-13"],
+      "evidenceRefs": ["scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-03", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-02", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-08", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-09", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-10", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-11", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-13"]
+    },
+    {
+      "scenarioId": "SCN-019-013",
+      "businessScenario": "BS-019-013",
+      "scopeId": "04-dossier-and-outcome-states",
+      "scope": 4,
+      "status": "done",
+      "title": "No new evidence is a real answer",
+      "gherkin": {
+        "given": "a due topic whose complete research surfaced no new evidence since its last dossier",
+        "when": "the review completes",
+        "then": "the outcome is unchanged, no finding is invented, and the prior dossier remains current"
+      },
+      "behaviorClass": "pipeline",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.authorship.integration.mjs", "tests/distributed-briefs.final.e2e.mjs"],
+      "testRows": ["TP-04-03", "TP-04-04", "TP-04-13"],
+      "evidenceRefs": ["scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-03", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-04", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-13"]
+    },
+    {
+      "scenarioId": "SCN-019-014",
+      "businessScenario": "BS-019-014",
+      "scopeId": "04-dossier-and-outcome-states",
+      "scope": 4,
+      "status": "done",
+      "title": "Old evidence is labelled, never presented as current",
+      "gherkin": {
+        "given": "a due topic whose newest available evidence predates its explicit freshness window",
+        "when": "the review completes",
+        "then": "the outcome is stale, names the evidence age, and presents no stale finding as a current read"
+      },
+      "behaviorClass": "pipeline-ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.final.e2e.mjs", "tests/tool-experience.spec.mjs"],
+      "testRows": ["TP-04-03", "TP-04-05", "TP-04-13", "TP-05-07"],
+      "evidenceRefs": ["scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-03", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-05", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-13", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-07"]
+    },
+    {
+      "scenarioId": "SCN-019-015",
+      "businessScenario": "BS-019-015",
+      "scopeId": "04-dossier-and-outcome-states",
+      "scope": 4,
+      "status": "done",
+      "title": "A failed lane is a named absence",
+      "gherkin": {
+        "given": "a due topic whose research lane failed or returned nothing usable",
+        "when": "the review completes",
+        "then": "the outcome is unavailable with a named reason, no partial or inferred finding is published, and remaining topics and critical lanes are unaffected"
+      },
+      "behaviorClass": "pipeline-ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.authorship.integration.mjs", "tests/brief-refresh-atomicity.test.mjs", "tests/distributed-briefs.final-budget.stress.mjs", "tests/distributed-briefs.final.e2e.mjs", "tests/tool-experience.spec.mjs"],
+      "testRows": ["TP-04-03", "TP-04-06", "TP-04-07", "TP-04-10", "TP-04-12", "TP-04-13", "TP-05-07"],
+      "evidenceRefs": ["scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-03", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-06", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-07", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-10", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-12", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-13", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-07"]
+    },
+    {
+      "scenarioId": "SCN-019-016",
+      "businessScenario": "BS-019-016",
+      "scopeId": "02-topic-lifecycle",
+      "scope": 2,
+      "status": "done",
+      "title": "History is append-only",
+      "gherkin": {
+        "given": "a topic with an existing dossier",
+        "when": "a new review produces an updated dossier",
+        "then": "the new version references its predecessor, the predecessor remains readable, and no prior finding, model state, chart series, or scenario weight changes in place"
+      },
+      "behaviorClass": "lifecycle",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.history.e2e.mjs"],
+      "testRows": ["TP-02-03", "TP-02-04", "TP-02-05", "TP-02-06", "TP-02-07"],
+      "evidenceRefs": ["scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-03", "scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-04", "scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-05", "scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-06", "scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-07"]
+    },
+    {
+      "scenarioId": "SCN-019-017",
+      "businessScenario": "BS-019-017",
+      "scopeId": "03-per-generation-review-policy",
+      "scope": 3,
+      "status": "done",
+      "title": "New direct or indirect evidence can force a sharp reversal",
+      "gherkin": {
+        "given": "current direct or second-order indirect evidence inside the declared boundary invalidates the prior view",
+        "when": "the current dossier is completed",
+        "then": "direction, scenario weights, or conviction may reverse sharply with causal evidence and invalidation named while predecessor and question bytes remain unchanged"
+      },
+      "behaviorClass": "model-ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.final.e2e.mjs", "tests/tool-experience.spec.mjs"],
+      "testRows": ["TP-03-06", "TP-03-07", "TP-03-08", "TP-03-09", "TP-03-10", "TP-03-11", "TP-03-12", "TP-03-13", "TP-05-06", "TP-05-08"],
+      "evidenceRefs": ["scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-06", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-07", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-08", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-09", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-10", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-11", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-12", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-13", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-06", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-08"]
+    },
+    {
+      "scenarioId": "SCN-019-018",
+      "businessScenario": "BS-019-018",
+      "scopeId": "05-refinement-public-safety-and-brief-read",
+      "scope": 5,
+      "status": "not_started",
+      "title": "A refinement outside the boundary is refused",
+      "gherkin": {
+        "given": "a proposed refinement whose subject falls outside the topic's declared scope boundary",
+        "when": "the refinement is validated",
+        "then": "it is refused with a named reason and the declared question and boundary remain unchanged"
+      },
+      "behaviorClass": "contract",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": ["scripts/selftest.mjs"],
+      "testRows": ["TP-05-01"],
+      "evidenceRefs": ["scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-01"]
+    },
+    {
+      "scenarioId": "SCN-019-019",
+      "businessScenario": "BS-019-019",
+      "scopeId": "05-refinement-public-safety-and-brief-read",
+      "scope": 5,
+      "status": "not_started",
+      "title": "Public scope only",
+      "gherkin": {
+        "given": "any dossier produced by this feature",
+        "when": "it is inspected",
+        "then": "it contains no position, size, cost basis, or profit-or-loss figure and every subject is a public market object or public ticker"
+      },
+      "behaviorClass": "security-ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": ["scripts/selftest.mjs", "tests/tool-experience.spec.mjs"],
+      "testRows": ["TP-05-02", "TP-05-10"],
+      "evidenceRefs": ["scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-02", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-10"]
+    },
+    {
+      "scenarioId": "SCN-019-020",
+      "businessScenario": "BS-019-020",
+      "scopeId": "05-refinement-public-safety-and-brief-read",
+      "scope": 5,
+      "status": "not_started",
+      "title": "The first-class tool and research read reach the brief",
+      "gherkin": {
+        "given": "a generation in which at least one topic was reviewed",
+        "when": "the registered tool, payload, and brief page artifact are inspected",
+        "then": "the tool exposes current and prior models, charts, and history, the payload and page carry the agenda read, and the reader sees it on the brief and can reach the owning tool"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": ["tests/tool-experience-registry.functional.mjs", "scripts/validate-brief-payload.mjs", "tests/tool-experience.spec.mjs", "tests/market-brief-scorecard.spec.mjs", "tests/contextual-tooltip.spec.mjs", "tests/deployed-site-parity.spec.mjs", "tests/tool-discovery.spec.mjs"],
+      "testRows": ["TP-05-03", "TP-05-04", "TP-05-05", "TP-05-08", "TP-05-09", "TP-05-11", "TP-05-12", "TP-05-13", "TP-05-14"],
+      "evidenceRefs": ["scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-03", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-04", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-05", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-08", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-09", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-11", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-12", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-13", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-14"]
+    }
     ]
-}
+  }

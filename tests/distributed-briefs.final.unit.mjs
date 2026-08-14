@@ -10,12 +10,17 @@
  */
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { singleSourceScenario, makeHash } from './fixtures/feature-002/final/final-fixture-builder.mjs';
 
 const require = createRequire(import.meta.url);
 const RLCONTRACTS = require('../rlcontracts.js');
+const RLAGENDA = require('../rlagenda.js');
+
+const readJson = (relativePath) => JSON.parse(readFileSync(new URL('../' + relativePath, import.meta.url), 'utf8'));
+const readText = (relativePath) => readFileSync(new URL('../' + relativePath, import.meta.url), 'utf8');
 
 test('SCN-002-025: final compaction retains every source owner ref and window-required field', () => {
   const scenario = singleSourceScenario('pre-market');
@@ -119,4 +124,29 @@ test('SCN-002-027: low-noise gate requires owner plus structural persistence or 
   const thin = RLCONTRACTS.evaluateLowNoiseGate({ ...base, thin: true }).value;
   assert.equal(thin.destination, 'context');
   assert.ok(thin.reasons.includes('thin-baseline'));
+});
+
+test('SCN-019-009 every-generation topic is mandatory and every analytical section is planned', () => {
+  const registry = readJson('research-agenda.json');
+  const definitionsByTopicId = Object.fromEntries(registry.topics.map((topic) => [topic.topicId, readJson(topic.definitionRef)]));
+  const historyText = readText('research/agenda/history.jsonl');
+  const plan = RLAGENDA.planGeneration(
+    registry,
+    historyText,
+    { definitionsByTopicId, triggerObservations: [] },
+    '2026-08-13T12:00:00.000Z'
+  );
+
+  assert.equal(plan.ok, true, JSON.stringify(plan));
+  assert.equal(plan.accountedTopicCount, registry.topics.length);
+  const mandatory = plan.selected.find((row) => row.topicId === 'geopolitical-supply-shock');
+  const definition = definitionsByTopicId['geopolitical-supply-shock'];
+  assert.ok(mandatory, 'the active every-generation topic must be selected');
+  assert.equal(mandatory.mode, 'every-generation');
+  assert.equal(mandatory.reason, 'mode-required');
+  assert.deepEqual(mandatory.sectionIds, definition.analyticalSections.map((section) => section.sectionId));
+  assert.equal(mandatory.sectionIds.length, 8);
+  assert.equal(new Set(mandatory.sectionIds).size, 8);
+  assert.equal(plan.classifications.find((row) => row.topicId === mandatory.topicId).status, 'selected');
+  assert.equal(plan.classifications.some((row) => row.topicId === mandatory.topicId && row.status === 'not-due'), false);
 });

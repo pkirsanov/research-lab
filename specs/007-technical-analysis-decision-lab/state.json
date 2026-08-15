@@ -52,7 +52,7 @@
   "execution": {
     "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
-    "currentScope": "06-comparison-optional-evidence",
+    "currentScope": "07-validation-risk-process",
     "runStartedAt": "2026-07-15T18:01:42Z",
     "completedPhaseClaims": [],
     "pendingTransitionRequests": [],
@@ -126,7 +126,7 @@
         "scope": 6,
         "scopeId": "06-comparison-optional-evidence",
         "name": "Comparison And Optional Evidence",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "1",
           "2",
@@ -278,7 +278,7 @@
         "scope": 6,
         "scopeId": "06-comparison-optional-evidence",
         "name": "Comparison And Optional Evidence",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "1",
           "2",
@@ -288,7 +288,8 @@
         ],
         "scopeDir": "scopes/06-comparison-optional-evidence",
         "scopeArtifact": "scopes/06-comparison-optional-evidence/scope.md",
-        "reportArtifact": "scopes/06-comparison-optional-evidence/report.md"
+        "reportArtifact": "scopes/06-comparison-optional-evidence/report.md",
+        "certifiedAt": "2026-08-15T04:10:00Z"
       },
       {
         "scope": 7,

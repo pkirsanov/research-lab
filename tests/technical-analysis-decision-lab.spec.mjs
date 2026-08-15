@@ -965,3 +965,104 @@ test('Regression: Feature 007 owner integrations preserve source cutoffs limitat
   console.log(`[Feature-007-owner] strategyValidationParity=true rlvalidKeys=${rlvalidDeclarations}`);
 });
 /* ---------- End Feature 007 Scope 05: owner publication and strict adapters ---------- */
+
+/* ---------- Feature 007 Scope 06: comparison and optional evidence ---------- */
+async function comparisonDiagnostics(page, baseUrl2) {
+  await page.goto(`${baseUrl2}/technical-analysis-decision-lab.html?fixture=comparison-roles&clock=${CLOCK}`);
+  await page.waitForFunction(() => window.__TAD_DIAGNOSTICS__?.fixtureId === 'comparison-roles');
+  return page.evaluate(() => window.__TAD_DIAGNOSTICS__);
+}
+
+test('Regression: SCN-007-014 market sector and peer roles expose relative weakness separately', async ({ page }) => {
+  const diagnostics = await comparisonDiagnostics(page, baseUrl);
+  const confirmed = diagnostics.situations.find((entry) => entry.key === 'confirmed');
+  expect(confirmed.results.map((r) => r.role)).toEqual(['broad-market', 'sector-industry', 'direct-peer', 'optional-context']);
+
+  // Each role reports only its own declared members, so one role cannot stand in for another.
+  const byRole = Object.fromEntries(confirmed.results.map((r) => [r.role, r]));
+  expect(byRole['broad-market'].symbolIds).toEqual(['MKT']);
+  expect(byRole['sector-industry'].symbolIds).toEqual(['SEC']);
+  expect(byRole['direct-peer'].symbolIds).toEqual(['P1', 'P2', 'P3']);
+  expect(byRole['optional-context'].symbolIds).toEqual(['CTX']);
+
+  // The subject lags market, sector and every peer while leading optional context. A single
+  // blended score would hide exactly that disagreement, so the roles are reported apart.
+  expect(byRole['broad-market'].state).toBe('relative-weakness');
+  expect(byRole['sector-industry'].state).toBe('relative-weakness');
+  expect(byRole['direct-peer'].state).toBe('relative-weakness');
+  expect(byRole['optional-context'].state).toBe('confirms-strength');
+  expect(confirmed.contradictions.sort()).toEqual(['broad-market', 'direct-peer', 'sector-industry']);
+
+  // Ratios are normalized total return, never raw-price similarity.
+  expect(byRole['direct-peer'].ratios.length).toBe(3);
+  expect(byRole['direct-peer'].ratios.every((entry) => Number.isFinite(entry.ratio) && entry.ratio < 1)).toBe(true);
+
+  const rolesText = (await page.locator('#comparisonRoles').innerText()).replace(/\s+/g, ' ');
+  expect(rolesText).toContain('broad-market: relative-weakness');
+  expect(rolesText).toContain('sector-industry: relative-weakness');
+  expect(rolesText).toContain('direct-peer: relative-weakness');
+  expect(rolesText).toContain('optional-context: confirms-strength');
+  await expect(page.locator('#comparisonContradictions')).toContainText('broad-market');
+  await expect(page.locator('#comparisonContradictions')).toContainText('direct-peer');
+
+  // The Dow industrial/transport rule must be disclaimed, not silently generalized. Ban the
+  // affirmative equivalence claim; the disclaimer itself is required and asserted present.
+  expect(diagnostics.dowEquivalenceClaimed).toBe(false);
+  expect(rolesText).toMatch(/not an identical substitute for Dow's industrial and transport averages/);
+  expect(rolesText).not.toMatch(/(?<!not )(?<!never )(?<!no )(?:equivalent to|identical to) Dow/i);
+
+  // Incompatible comparators are excluded by name and never auto-replaced.
+  const incompatible = diagnostics.situations.find((entry) => entry.key === 'incompatible-comparators');
+  const incompatiblePeer = incompatible.results.find((r) => r.role === 'direct-peer');
+  expect(incompatiblePeer.symbolIds).toEqual(['P1', 'PX-ADJ', 'PX-FX']);
+  expect(incompatiblePeer.eligibleIds).toEqual(['P1']);
+  expect(incompatiblePeer.excluded.map((e) => e.reason).sort()).toEqual(['incompatible-adjustment', 'incompatible-currency']);
+  expect(rolesText).toContain('No comparator is automatically replaced');
+
+  // Denominator rule: below the minimum the percentile is withheld but ratios survive.
+  const thin = diagnostics.situations.find((entry) => entry.key === 'thin-peer-set');
+  const thinPeer = thin.results.find((r) => r.role === 'direct-peer');
+  expect(thinPeer.denominator).toBe(2);
+  expect(thinPeer.percentile).toBeNull();
+  expect(thinPeer.percentileState).toBe('denominator-below-minimum');
+  expect(thinPeer.ratios.length).toBe(2);
+  expect(byRole['direct-peer'].denominator).toBe(3);
+  expect(byRole['direct-peer'].percentileState).toBe('available');
+  await expect(page.locator('#comparisonDenominator')).toContainText('3 eligible of 3 declared; minimum 3');
+});
+
+test('Regression: SCN-007-028 comparison membership change creates a new variant and preserves prior validation', async ({ page }) => {
+  const diagnostics = await comparisonDiagnostics(page, baseUrl);
+  const baseline = diagnostics.baselineComparisonSetId;
+  expect(baseline).toMatch(/^tad-comparison:[a-f0-9]{64}$/);
+
+  // Every membership change produces a distinct identity. Reclassifying a symbol counts, because
+  // it changes which role the evidence belongs to even though the symbol set is unchanged.
+  const changed = diagnostics.situations.filter((entry) => entry.key !== 'confirmed');
+  expect(changed.length).toBe(3);
+  expect(changed.every((entry) => entry.identityChanged === true)).toBe(true);
+  expect(new Set(diagnostics.situations.map((entry) => entry.comparisonSetId)).size).toBe(diagnostics.situations.length);
+  expect(new Set(diagnostics.situations.map((entry) => entry.membershipDigest)).size).toBe(diagnostics.situations.length);
+
+  const reclassified = diagnostics.situations.find((entry) => entry.key === 'reclassified-membership');
+  expect(reclassified.comparisonSetId).not.toBe(baseline);
+  expect(reclassified.results.find((r) => r.role === 'direct-peer').symbolIds).toEqual(['P1', 'P2']);
+  expect(reclassified.results.find((r) => r.role === 'optional-context').symbolIds).toEqual(['P3', 'CTX']);
+  // Moving a symbol out of the peer set lowers the denominator, so the percentile is withheld.
+  expect(reclassified.results.find((r) => r.role === 'direct-peer').percentileState).toBe('denominator-below-minimum');
+
+  // The prior validation record stays attached to the membership it was produced against.
+  expect(diagnostics.priorValidation.attachedComparisonSetId).toBe(baseline);
+  const variantText = (await page.locator('#comparisonVariants').innerText()).replace(/\s+/g, ' ');
+  expect(variantText).toContain('new identity');
+  expect(variantText).not.toContain('identity unchanged');
+  expect(variantText).toContain(`remains attached to ${baseline} only`);
+  expect(variantText).toContain(diagnostics.priorValidation.validationRecordId);
+
+  await expect(page.locator('#comparisonIdentity')).toHaveText(baseline);
+  const receipt = (await page.locator('#comparisonVariantReceipt').innerText()).replace(/\s+/g, ' ');
+  expect(receipt).toContain('3 membership changes evaluated');
+  expect(receipt).toContain('stays attached only to the membership it was produced against');
+  console.log(`[SCN-007-028] baseline=${baseline.slice(0, 30)} distinctIdentities=${new Set(diagnostics.situations.map((e) => e.comparisonSetId)).size}`);
+});
+/* ---------- End Feature 007 Scope 06: comparison and optional evidence ---------- */

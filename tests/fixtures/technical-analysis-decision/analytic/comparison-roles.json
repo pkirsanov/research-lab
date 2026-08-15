@@ -1,0 +1,69 @@
+{
+  "fixtureId": "comparison-roles",
+  "note": "Deterministic analytic comparison evidence. Closes are explicit so every ratio, denominator, and identity below is reproducible by hand. No instrument is named and no market claim is made.",
+  "decisionVintage": "2026-02-13T21:00:00.000Z",
+  "subject": {
+    "id": "SUBJ",
+    "adjustmentPolicyId": "total-return",
+    "sessionContractId": "daily-close",
+    "currencyId": "USD",
+    "sourceVintageId": "vintage-SUBJ",
+    "closes": [100, 102, 104, 106, 108, 110, 112, 114, 116, 118, 119, 120]
+  },
+  "comparators": [
+    { "id": "MKT", "adjustmentPolicyId": "total-return", "sessionContractId": "daily-close", "currencyId": "USD", "sourceVintageId": "vintage-MKT", "closes": [100, 103, 106, 109, 112, 115, 118, 121, 124, 127, 129, 130] },
+    { "id": "SEC", "adjustmentPolicyId": "total-return", "sessionContractId": "daily-close", "currencyId": "USD", "sourceVintageId": "vintage-SEC", "closes": [100, 103, 105, 108, 111, 114, 117, 120, 123, 125, 127, 128] },
+    { "id": "P1", "adjustmentPolicyId": "total-return", "sessionContractId": "daily-close", "currencyId": "USD", "sourceVintageId": "vintage-P1", "closes": [100, 102, 105, 108, 110, 113, 116, 119, 121, 123, 125, 126] },
+    { "id": "P2", "adjustmentPolicyId": "total-return", "sessionContractId": "daily-close", "currencyId": "USD", "sourceVintageId": "vintage-P2", "closes": [100, 102, 104, 107, 110, 112, 115, 117, 119, 121, 123, 124] },
+    { "id": "P3", "adjustmentPolicyId": "total-return", "sessionContractId": "daily-close", "currencyId": "USD", "sourceVintageId": "vintage-P3", "closes": [100, 102, 104, 106, 109, 111, 113, 116, 118, 120, 121, 122] },
+    { "id": "CTX", "adjustmentPolicyId": "total-return", "sessionContractId": "daily-close", "currencyId": "USD", "sourceVintageId": "vintage-CTX", "closes": [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 110] },
+    { "id": "PX-ADJ", "adjustmentPolicyId": "price-only", "sessionContractId": "daily-close", "currencyId": "USD", "sourceVintageId": "vintage-PXADJ", "closes": [100, 102, 104, 106, 108, 110, 112, 114, 116, 118, 119, 121] },
+    { "id": "PX-FX", "adjustmentPolicyId": "total-return", "sessionContractId": "daily-close", "currencyId": "EUR", "sourceVintageId": "vintage-PXFX", "closes": [100, 102, 104, 106, 108, 110, 112, 114, 116, 118, 119, 121] }
+  ],
+  "situations": {
+    "confirmed": {
+      "label": "Declared membership with three eligible peers",
+      "roles": [
+        { "role": "broad-market", "symbol": "MKT", "rationale": "declared broad-market reference", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" },
+        { "role": "sector-industry", "symbol": "SEC", "rationale": "declared sector reference", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" },
+        { "role": "direct-peer", "symbol": "P1", "rationale": "declared direct peer", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" },
+        { "role": "direct-peer", "symbol": "P2", "rationale": "declared direct peer", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" },
+        { "role": "direct-peer", "symbol": "P3", "rationale": "declared direct peer", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" },
+        { "role": "optional-context", "symbol": "CTX", "rationale": "declared optional context", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" }
+      ]
+    },
+    "thin-peer-set": {
+      "label": "Two eligible peers, below the declared minimum denominator",
+      "roles": [
+        { "role": "broad-market", "symbol": "MKT", "rationale": "declared broad-market reference", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" },
+        { "role": "direct-peer", "symbol": "P1", "rationale": "declared direct peer", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" },
+        { "role": "direct-peer", "symbol": "P2", "rationale": "declared direct peer", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" }
+      ]
+    },
+    "incompatible-comparators": {
+      "label": "Two declared peers carry incompatible adjustment and currency policies",
+      "roles": [
+        { "role": "broad-market", "symbol": "MKT", "rationale": "declared broad-market reference", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" },
+        { "role": "direct-peer", "symbol": "P1", "rationale": "declared direct peer", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" },
+        { "role": "direct-peer", "symbol": "PX-ADJ", "rationale": "declared direct peer", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" },
+        { "role": "direct-peer", "symbol": "PX-FX", "rationale": "declared direct peer", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" }
+      ]
+    },
+    "reclassified-membership": {
+      "label": "The same symbols with one peer reclassified as optional context",
+      "roles": [
+        { "role": "broad-market", "symbol": "MKT", "rationale": "declared broad-market reference", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" },
+        { "role": "sector-industry", "symbol": "SEC", "rationale": "declared sector reference", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" },
+        { "role": "direct-peer", "symbol": "P1", "rationale": "declared direct peer", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" },
+        { "role": "direct-peer", "symbol": "P2", "rationale": "declared direct peer", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" },
+        { "role": "optional-context", "symbol": "P3", "rationale": "reclassified from direct peer", "classificationSource": "test-classification", "classificationAsOf": "2026-02-01" },
+        { "role": "optional-context", "symbol": "CTX", "rationale": "declared optional context", "classificationSource": "test-classification", "classificationAsOf": "2026-01-02" }
+      ]
+    }
+  },
+  "priorValidation": {
+    "validationRecordId": "tad-validation:comparison-baseline",
+    "attachedSituation": "confirmed",
+    "note": "This record was produced against the confirmed membership only. It stays attached to that comparison identity and is never inherited by a changed membership."
+  }
+}

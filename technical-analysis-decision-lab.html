@@ -426,6 +426,7 @@
           <option value="setup-lifecycle">Level confluence and setup lifecycle (analytic)</option>
           <option value="gate-synthesis">Five-gate synthesis and candidate competition (analytic)</option>
           <option value="owner-publication">Owner evidence admission and strict adapters (analytic)</option>
+          <option value="comparison-roles">Comparison roles and membership identity (analytic)</option>
         </select>
         <p class="subtle" style="margin:10px 0 0">Credentials remain owned by <a href="index.html#data-settings">Data
             Settings</a>. This page contains no credential editor.</p>
@@ -632,6 +633,36 @@
       <p id="competitionReceipt" class="state-message">No candidates compared.</p>
       <div id="candidateRanking" class="catalog" aria-live="off"></div>
     </section>
+
+    <!-- ---------- Feature 007 Scope 06: comparison and optional evidence ---------- -->
+    <section class="band" aria-labelledby="comparisonHeading">
+      <h2 id="comparisonHeading">Comparison roles</h2>
+      <p id="comparisonReceipt" class="state-message">No comparison evidence resolved. Broad-market, sector/industry,
+        direct-peer, and optional-context roles are always reported separately; one role never stands in for another.</p>
+      <div class="facts">
+        <div class="fact">
+          <div class="k">Comparison identity</div>
+          <div id="comparisonIdentity" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Peer denominator</div>
+          <div id="comparisonDenominator" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Peer percentile</div>
+          <div id="comparisonPercentile" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Relative weakness</div>
+          <div id="comparisonContradictions" class="v">None</div>
+        </div>
+      </div>
+      <div id="comparisonRoles" class="catalog" aria-live="off"></div>
+      <h3 id="comparisonIdentityHeading">Membership change and prior validation</h3>
+      <p id="comparisonVariantReceipt" class="state-message">No membership change evaluated.</p>
+      <div id="comparisonVariants" class="catalog" aria-live="off"></div>
+    </section>
+    <!-- ---------- End Feature 007 Scope 06: comparison and optional evidence ---------- -->
 
     <!-- ---------- Feature 007 Scope 05: owner publication and strict adapters ---------- -->
     <section class="band" aria-labelledby="ownerHeading">
@@ -2048,6 +2079,157 @@
     }
     /* ---------- End Feature 007 Scope 05: owner publication and strict adapters ---------- */
 
+    /* ---------- Feature 007 Scope 06: comparison and optional evidence ---------- */
+    // Roles stay separate on purpose. A sector reading is not a substitute for a peer reading,
+    // and neither is Dow's industrial/transport confirmation rule, which was a claim about two
+    // specific averages and does not generalize to an arbitrary pair of modern symbols.
+    var TAD_COMPARISON_ROLES = ["broad-market", "sector-industry", "direct-peer", "optional-context"];
+
+    function tadComparisonRefusal(code, observed, required, action, message) {
+      return tadDeepFreeze({ ok: false, errors: [tadError(code, "error", "$", null, observed, required, action, message)] });
+    }
+
+    function tadBuildComparisonSet(request, policy) {
+      if (!tadIsPlainObject(request) || !tadIsPlainObject(policy)) {
+        return tadComparisonRefusal("TAD-COMPARISON-REQUEST", request, "an explicit comparison request and policy", "declare both before building a comparison set", "Comparison set inputs are invalid.");
+      }
+      if (policy.contractVersion !== "tad-comparison-policy/v1") {
+        return tadComparisonRefusal("TAD-COMPARISON-POLICY", String(policy.contractVersion), "tad-comparison-policy/v1", "declare the supported comparison policy contract", "Comparison policy contract is unsupported.");
+      }
+      if (!Array.isArray(request.roles) || request.roles.length === 0) {
+        return tadComparisonRefusal("TAD-COMPARISON-MEMBERSHIP", request.roles, "at least one declared comparison member", "declare membership before comparing", "Comparison membership is empty.");
+      }
+      var required = ["role", "symbol", "rationale", "classificationSource", "classificationAsOf"], errors = [];
+      request.roles.forEach(function (member, index) {
+        if (!tadIsPlainObject(member)) { errors.push(tadError("TAD-COMPARISON-MEMBER", "error", "$.roles[" + index + "]", null, member, "a member object", "declare the member", "Comparison member is not an object.")); return; }
+        required.forEach(function (key) {
+          if (typeof member[key] !== "string" || member[key].length === 0) {
+            // Rationale and classification provenance are REQUIRED, not decorative. A peer set
+            // whose membership cannot be explained is not auditable and cannot be frozen.
+            errors.push(tadError("TAD-COMPARISON-MEMBER", "error", "$.roles[" + index + "]." + key, null, member[key], "a non-empty " + key, "declare " + key + " for this member", "Comparison member is missing " + key + "."));
+          }
+        });
+        if (TAD_COMPARISON_ROLES.indexOf(member.role) < 0) {
+          errors.push(tadError("TAD-COMPARISON-ROLE", "error", "$.roles[" + index + "].role", null, member.role, "one of " + TAD_COMPARISON_ROLES.join(", "), "declare a registered comparison role", "Comparison role is not registered."));
+        }
+      });
+      if (errors.length) return tadDeepFreeze({ ok: false, errors: errors });
+      if (typeof request.decisionVintage !== "string" || !Number.isFinite(Date.parse(request.decisionVintage))) {
+        return tadComparisonRefusal("TAD-COMPARISON-VINTAGE", request.decisionVintage, "an ISO decision vintage", "declare the decision vintage", "Comparison decision vintage is invalid.");
+      }
+      var normalizationId = typeof request.normalizationId === "string" ? request.normalizationId : policy.normalizationId;
+      if (normalizationId !== policy.normalizationId) {
+        return tadComparisonRefusal("TAD-COMPARISON-NORMALIZATION", normalizationId, policy.normalizationId, "use the declared normalization", "Comparison normalization is unsupported.");
+      }
+      var minimumPeerDenominator = tadFiniteNumber(request.minimumPeerDenominator, "$.minimumPeerDenominator").ok
+        ? request.minimumPeerDenominator : policy.minimumPeerDenominator;
+      // Every behaviour-bearing field is in the digest. Anything omitted here could change a
+      // published result without changing its identity, which is what makes a passport a lie.
+      var membership = request.roles.map(function (member) {
+        return { role: member.role, symbol: member.symbol, rationale: member.rationale, classificationSource: member.classificationSource, classificationAsOf: member.classificationAsOf };
+      });
+      var digestPayload = {
+        membership: membership, normalizationId: normalizationId,
+        currencyPolicy: policy.currencyPolicy, sessionPolicy: policy.sessionPolicy, adjustmentPolicy: policy.adjustmentPolicy,
+        minimumPeerDenominator: minimumPeerDenominator, decisionVintage: request.decisionVintage
+      };
+      var membershipDigest = tadIdentity("tad-comparison-membership:", digestPayload);
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        comparisonSet: {
+          comparisonSetId: tadIdentity("tad-comparison:", digestPayload),
+          version: "tad-comparison-set/v1",
+          decisionVintage: request.decisionVintage,
+          roles: membership,
+          normalizationId: normalizationId,
+          currencyPolicy: policy.currencyPolicy,
+          sessionPolicy: policy.sessionPolicy,
+          adjustmentPolicy: policy.adjustmentPolicy,
+          replacementPolicy: policy.replacementPolicy,
+          minimumPeerDenominator: minimumPeerDenominator,
+          membershipDigest: membershipDigest
+        }
+      });
+    }
+
+    function tadEvaluateComparisonRole(role, comparisonSet, subject, seriesById) {
+      var members = comparisonSet.roles.filter(function (member) { return member.role === role; });
+      var symbolIds = members.map(function (member) { return member.symbol; });
+      var excluded = [], eligibleIds = [], evaluations = [];
+      members.forEach(function (member) {
+        var series = seriesById[member.symbol];
+        if (!series || !Array.isArray(series.rows) || series.rows.length < 2) {
+          excluded.push({ symbol: member.symbol, reason: "no-qualified-series" }); return;
+        }
+        // An incompatible comparator is NEVER swapped for a convenient one. It is excluded with
+        // a named reason and the requested role stays partial until the user changes membership.
+        if (series.adjustmentPolicyId !== subject.adjustmentPolicyId) { excluded.push({ symbol: member.symbol, reason: "incompatible-adjustment" }); return; }
+        if (series.sessionContractId !== subject.sessionContractId) { excluded.push({ symbol: member.symbol, reason: "incompatible-session" }); return; }
+        if (series.currencyId !== subject.currencyId) { excluded.push({ symbol: member.symbol, reason: "incompatible-currency" }); return; }
+        var outcome = tadRelativeStrength([subject, series], { normalization: comparisonSet.normalizationId });
+        if (!outcome || outcome.ok !== true || !outcome.metrics || !Number.isFinite(outcome.metrics.spread)) {
+          excluded.push({ symbol: member.symbol, reason: "relative-strength-unavailable" }); return;
+        }
+        if (outcome.status === "incompatible") { excluded.push({ symbol: member.symbol, reason: "incompatible-policies" }); return; }
+        eligibleIds.push(member.symbol);
+        evaluations.push({
+          symbol: member.symbol, state: outcome.status, spread: outcome.metrics.spread,
+          normalizedReturn: outcome.metrics.baseReturn, comparatorReturn: outcome.metrics.peerReturn,
+          ratio: (1 + outcome.metrics.baseReturn) / (1 + outcome.metrics.peerReturn),
+          alignedCount: outcome.metrics.observations,
+          sourceVintageId: series.sourceVintageId || null
+        });
+      });
+      var denominator = eligibleIds.length;
+      var leads = evaluations.filter(function (entry) { return entry.spread > 0; }).length;
+      var percentile = null, percentileState = "unavailable";
+      if (role === "direct-peer") {
+        if (denominator >= comparisonSet.minimumPeerDenominator) {
+          percentile = denominator === 0 ? null : leads / denominator;
+          percentileState = "available";
+        } else {
+          // Below the minimum the pairwise ratios remain, but a percentile over two peers would
+          // read as a population statistic it is not. Named ratios survive; the percentile does not.
+          percentileState = "denominator-below-minimum";
+        }
+      } else {
+        percentileState = "not-applicable";
+      }
+      var state = denominator === 0 ? "unavailable"
+        : evaluations.every(function (entry) { return entry.state === "leads"; }) ? "confirms-strength"
+          : evaluations.every(function (entry) { return entry.state === "lags"; }) ? "relative-weakness"
+            : "mixed";
+      return {
+        role: role, symbolIds: symbolIds, eligibleIds: eligibleIds, excluded: excluded,
+        alignedCount: evaluations.reduce(function (total, entry) { return Math.max(total, entry.alignedCount); }, 0),
+        denominator: denominator, state: state, evaluations: evaluations,
+        percentile: percentile, percentileState: percentileState,
+        minimumPeerDenominator: comparisonSet.minimumPeerDenominator,
+        sourceVintageIds: evaluations.map(function (entry) { return entry.sourceVintageId; }).filter(function (value, index, all) { return value && all.indexOf(value) === index; }),
+        observed: denominator + " of " + symbolIds.length + " declared " + role + " comparators are eligible",
+        required: role === "direct-peer" ? "at least " + comparisonSet.minimumPeerDenominator + " eligible peers for a percentile" : "at least one eligible aligned comparator"
+      };
+    }
+
+    function tadBuildComparisonEvidence(comparisonSet, subject, seriesById) {
+      if (!tadIsPlainObject(comparisonSet) || !tadIsPlainObject(subject) || !tadIsPlainObject(seriesById)) {
+        return tadComparisonRefusal("TAD-COMPARISON-EVIDENCE", null, "a comparison set, subject series, and comparator series", "supply all three", "Comparison evidence inputs are invalid.");
+      }
+      var results = TAD_COMPARISON_ROLES.map(function (role) { return tadEvaluateComparisonRole(role, comparisonSet, subject, seriesById); });
+      var weakRoles = results.filter(function (result) { return result.state === "relative-weakness"; }).map(function (result) { return result.role; });
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        comparisonSetId: comparisonSet.comparisonSetId,
+        membershipDigest: comparisonSet.membershipDigest,
+        results: results,
+        // Relative weakness is a CONTRADICTION, not a veto and not a signal. It is surfaced so a
+        // reader sees the disagreement rather than a single blended number that hides it.
+        contradictions: weakRoles.map(function (role) { return { role: role, kind: "relative-weakness", observed: "the subject lags every eligible " + role + " comparator", required: "corresponding strength before this role confirms" }; }),
+        dowEquivalenceClaimed: false
+      });
+    }
+    /* ---------- End Feature 007 Scope 06: comparison and optional evidence ---------- */
+
     var pageRuntime = { config: null, index: null, sourceFixture: null, analyticFixture: null, techniqueFixture: null, diagnostics: null };
     function byId(id) { return document.getElementById(id); }
     function setText(id, value) { var element = byId(id); if (element) element.textContent = value; }
@@ -2474,6 +2656,91 @@
       });
     }
 
+    function renderComparisonRoles(fixture) {
+      var policy = pageRuntime.config.comparisonPolicies[0];
+      function hydrate(entry) {
+        return {
+          id: entry.id, adjustmentPolicyId: entry.adjustmentPolicyId, sessionContractId: entry.sessionContractId,
+          currencyId: entry.currencyId, sourceVintageId: entry.sourceVintageId,
+          rows: entry.closes.map(function (close, index) { return { closedAt: new Date(Date.UTC(2026, 0, 5 + index)).toISOString(), c: close }; })
+        };
+      }
+      var subject = hydrate(fixture.subject), seriesById = {};
+      fixture.comparators.forEach(function (entry) { seriesById[entry.id] = hydrate(entry); });
+
+      var groups = Object.keys(fixture.situations).map(function (key) {
+        var situation = fixture.situations[key];
+        var built = tadBuildComparisonSet({ decisionVintage: fixture.decisionVintage, roles: situation.roles }, policy);
+        return {
+          key: key, label: situation.label, built: built,
+          evidence: built.ok ? tadBuildComparisonEvidence(built.comparisonSet, subject, seriesById) : null
+        };
+      });
+      var primary = groups.filter(function (group) { return group.key === "confirmed"; })[0];
+      var peer = primary.evidence.results.filter(function (result) { return result.role === "direct-peer"; })[0];
+
+      setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled");
+      setTruth("degraded", "Deterministic analytic comparison evidence. Every ratio, denominator, and identity below is the exact output of the owned comparison functions over explicit closes; no current-market claim is made and no instrument is named.");
+      setFoundationReceipt({ name: "Comparison roles and membership identity", session: "Analytic daily clock", aggregation: "Aligned closed observations only", partial: "No partial remainder exists in this receipt", primary: "Comparison roles are context, never a trigger", setup: "Comparison evidence contributes contradictions, not signals", trigger: "Comparison never confirms a trigger on its own", variant: primary.built.comparisonSet.comparisonSetId, observed: groups.length + " declared memberships across " + primary.built.comparisonSet.roles.length + " comparison members.", required: "Explicit role, rationale, classification source, and as-of date for every member.", action: "Read each role on its own terms; no role substitutes for another." });
+      setText("resultReceipt", "No signal, neutral, setup recommendation, or probability is published here. This page publishes comparison role outcomes, denominators, exclusions, and identity changes.");
+
+      setText("comparisonIdentity", primary.built.comparisonSet.comparisonSetId);
+      setText("comparisonDenominator", peer.denominator + " eligible of " + peer.symbolIds.length + " declared; minimum " + peer.minimumPeerDenominator);
+      setText("comparisonPercentile", peer.percentileState === "available" ? String(peer.percentile) : "withheld - " + peer.percentileState);
+      setText("comparisonContradictions", primary.evidence.contradictions.length ? primary.evidence.contradictions.map(function (entry) { return entry.role; }).join(", ") : "none");
+
+      var host = byId("comparisonRoles"); host.textContent = "";
+      groups.forEach(function (group) {
+        var article = document.createElement("article"), heading = document.createElement("h3"), copy = document.createElement("p"), detail = document.createElement("p");
+        heading.textContent = group.label + " - identity " + group.built.comparisonSet.comparisonSetId.slice(0, 24);
+        copy.textContent = group.evidence.results.map(function (result) {
+          return result.role + ": " + result.state + " (" + result.denominator + " of " + result.symbolIds.length + " eligible"
+            + (result.percentileState === "available" ? ", percentile " + result.percentile : result.percentileState === "not-applicable" ? "" : ", percentile withheld: " + result.percentileState) + ")";
+        }).join(" ");
+        var exclusions = group.evidence.results.reduce(function (all, result) { return all.concat(result.excluded.map(function (entry) { return result.role + " " + entry.symbol + ": " + entry.reason; })); }, []);
+        detail.textContent = "Observed " + group.evidence.results.map(function (r) { return r.observed; }).join("; ") + ". "
+          + (exclusions.length ? "Excluded " + exclusions.join("; ") + ". No comparator is automatically replaced; the requested membership stands until it is changed deliberately. " : "No comparator was excluded. ")
+          + "Modern comparison roles are separate context and are not an identical substitute for Dow's industrial and transport averages.";
+        article.appendChild(heading); article.appendChild(copy); article.appendChild(detail); host.appendChild(article);
+      });
+
+      var baseline = primary.built.comparisonSet.comparisonSetId;
+      var changed = groups.filter(function (group) { return group.key !== "confirmed"; });
+      setText("comparisonVariantReceipt", changed.length + " membership changes evaluated. Each produces a distinct comparison identity, so the prior validation record stays attached only to the membership it was produced against.");
+      var variantHost = byId("comparisonVariants"); variantHost.textContent = "";
+      changed.forEach(function (group) {
+        var article = document.createElement("article"), heading = document.createElement("h4"), copy = document.createElement("p");
+        heading.textContent = group.label + " - " + (group.built.comparisonSet.comparisonSetId === baseline ? "identity unchanged" : "new identity");
+        copy.textContent = "Identity " + group.built.comparisonSet.comparisonSetId + "; membership digest " + group.built.comparisonSet.membershipDigest
+          + ". Prior validation record " + fixture.priorValidation.validationRecordId + " remains attached to " + baseline + " only.";
+        article.appendChild(heading); article.appendChild(copy); variantHost.appendChild(article);
+      });
+
+      window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({
+        fixtureId: "comparison-roles", ownerReadPublished: false, truthState: "degraded",
+        baselineComparisonSetId: baseline,
+        priorValidation: { validationRecordId: fixture.priorValidation.validationRecordId, attachedComparisonSetId: baseline },
+        situations: groups.map(function (group) {
+          return {
+            key: group.key, comparisonSetId: group.built.comparisonSet.comparisonSetId, membershipDigest: group.built.comparisonSet.membershipDigest,
+            identityChanged: group.built.comparisonSet.comparisonSetId !== baseline,
+            contradictions: group.evidence.contradictions.map(function (entry) { return entry.role; }),
+            results: group.evidence.results.map(function (result) {
+              return {
+                role: result.role, state: result.state, symbolIds: result.symbolIds.slice(), eligibleIds: result.eligibleIds.slice(),
+                excluded: result.excluded.map(function (entry) { return { symbol: entry.symbol, reason: entry.reason }; }),
+                denominator: result.denominator, minimumPeerDenominator: result.minimumPeerDenominator,
+                percentile: result.percentile, percentileState: result.percentileState,
+                ratios: result.evaluations.map(function (entry) { return { symbol: entry.symbol, ratio: entry.ratio, state: entry.state }; })
+              };
+            })
+          };
+        }),
+        dowEquivalenceClaimed: primary.evidence.dowEquivalenceClaimed,
+        errors: []
+      });
+    }
+
     function renderProfileSelection(fixtureId) {
       var source = pageRuntime.sourceFixture, analytic = pageRuntime.analyticFixture;
       var cases = {
@@ -2491,6 +2758,13 @@
         "correlated-uptrend": { name: "Correlated indicator agreement", observed: "Several related trend and momentum transforms read positive together.", required: "Declared families and clusters before any count is shown.", action: "Read the independent cluster count, never the raw method count." },
         "unresolved-range": { name: "Unresolved range after a decline", observed: "A mature sideways range following a decline, with no completed spring, sign of strength, or confirmed break.", required: "A confirmed range event before any phase is asserted.", action: "Keep every competing explanation open; no setup is published." }
       };
+      if (fixtureId === "comparison-roles") {
+        fetch("tests/fixtures/technical-analysis-decision/analytic/comparison-roles.json", { cache: "no-store" })
+          .then(function (response) { if (!response.ok) throw new Error("comparison fixture HTTP " + response.status); return response.json(); })
+          .then(function (comparisonFixture) { renderComparisonRoles(comparisonFixture); })
+          .catch(function (error) { renderUnavailable("TAD-COMPARISON-FIXTURE", String(error), "the checked-in analytic comparison fixture", "restore the static analytic fixture and reload"); });
+        return;
+      }
       if (fixtureId === "owner-publication") {
         fetch("tests/fixtures/technical-analysis-decision/analytic/owner-publication.json", { cache: "no-store" })
           .then(function (response) { if (!response.ok) throw new Error("owner fixture HTTP " + response.status); return response.json(); })

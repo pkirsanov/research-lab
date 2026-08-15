@@ -87,14 +87,18 @@ try {
   // Scope 05 owns no analytic primitive. These four are strict ADAPTERS: they admit or refuse an
   // owner's already-published read and compute no owner quantity of their own.
   const scope05Names = ['tadAdmitOwnerRead', 'tadAdmitOptionPositioning', 'tadEvaluateMicrostructure', 'tadAdaptFeatureSixRead'];
+  // Scope 06 completes the comparison contract over the foundation's alignment primitive and the
+  // Scope 02 relative-strength technique. It derives no new ratio of its own.
+  const scope06Names = ['tadComparisonRefusal', 'tadBuildComparisonSet', 'tadEvaluateComparisonRole', 'tadBuildComparisonEvidence'];
   const tad = buildFunctions(pageSource, scope01Names.concat(scope02Helpers, scope02Names));
   const physicalTadNames = [...pageSource.matchAll(/function\s+(tad[A-Za-z0-9]+)\s*\(/g)].map((match) => match[1]);
-  const declaredNames = scope01Names.concat(scope02Helpers, scope02Names, scope03Helpers, scope03Names, scope04Helpers, scope04Names, scope05Names);
+  const declaredNames = scope01Names.concat(scope02Helpers, scope02Names, scope03Helpers, scope03Names, scope04Helpers, scope04Names, scope05Names, scope06Names);
   check(physicalTadNames.length === declaredNames.length && new Set(physicalTadNames).size === declaredNames.length && scope01Names.every((name) => physicalTadNames.includes(name)), 'scope01-production-declarations-20-exact');
   check(scope02Names.length === 17 && scope02Names.every((name) => physicalTadNames.includes(name)), 'scope02-production-declarations-17-exact');
   check(scope03Names.length === 8 && scope03Names.every((name) => physicalTadNames.includes(name)), 'scope03-production-declarations-8-exact');
   check(scope04Names.length === 8 && scope04Names.every((name) => physicalTadNames.includes(name)), 'scope04-production-declarations-8-exact');
   check(scope05Names.length === 4 && scope05Names.every((name) => physicalTadNames.includes(name)), 'scope05-adapter-declarations-4-exact');
+  check(scope06Names.length === 4 && scope06Names.every((name) => physicalTadNames.includes(name)), 'scope06-comparison-declarations-4-exact');
 
   // The five mandatory gates are ordered and closed. A sixth gate, a reordering, or a renamed gate
   // would change what "every mandatory gate passed" means without any test noticing.
@@ -341,6 +345,39 @@ try {
   check(ownerFixture.situations.complete.ownerReads.length === 6
     && scope05Capabilities.every((capability) => ownerFixture.situations.complete.ownerReads.some((entry) => entry.metrics.ownerRead.capabilityVersion === capability)), 'scope05-owner-fixture-covers-every-capability');
 
+  // ---------- Scope 06: comparison and optional evidence ----------
+  const comparisonPolicy = config.comparisonPolicies[0];
+  check(config.comparisonPolicies.length === 1 && comparisonPolicy.contractVersion === 'tad-comparison-policy/v1', 'scope06-comparison-policy-contract');
+  check(JSON.stringify(comparisonPolicy.roles) === JSON.stringify(['broad-market', 'sector-industry', 'direct-peer', 'optional-context']), 'scope06-comparison-roles-closed-and-ordered');
+  check(comparisonPolicy.normalizationId === 'total-return-ratio', 'scope06-normalization-is-total-return-not-raw-price');
+  check(Number.isInteger(comparisonPolicy.minimumPeerDenominator) && comparisonPolicy.minimumPeerDenominator >= 3, 'scope06-minimum-peer-denominator-declared');
+  check(comparisonPolicy.replacementPolicy === 'never-automatic', 'scope06-replacement-never-automatic');
+  check(typeof comparisonPolicy.membershipPolicy === 'string' && /freeze/.test(comparisonPolicy.membershipPolicy), 'scope06-membership-frozen');
+  check(config.initialSelection.comparisonPolicyId === comparisonPolicy.comparisonPolicyId, 'scope06-initial-selection-references-committed-policy');
+  const scope06Block = pageSource.slice(pageSource.indexOf('Feature 007 Scope 06: comparison and optional evidence'), pageSource.lastIndexOf('End Feature 007 Scope 06: comparison and optional evidence'));
+  check(scope06Block.length > 0, 'scope06-marker-block-present');
+  check(scope06Names.every((name) => scope06Block.includes(`function ${name}(`)), 'scope06-declarations-inside-marker-block');
+  check(/var TAD_COMPARISON_ROLES = \["broad-market", "sector-industry", "direct-peer", "optional-context"\];/.test(pageSource), 'scope06-role-order-exact');
+  // Comparison must build on the owned primitives rather than re-deriving a ratio inline.
+  check(/tadRelativeStrength\(/.test(scope06Block), 'scope06-reuses-owned-relative-strength');
+  check(/tadIdentity\("tad-comparison:/.test(scope06Block) && /tadIdentity\("tad-comparison-membership:/.test(scope06Block), 'scope06-content-addressed-identity');
+  // Every behaviour-bearing field must be inside the digest payload, or a change would not
+  // change the identity and a stale passport would silently survive it.
+  const digestPayload = scope06Block.slice(scope06Block.indexOf('var digestPayload'), scope06Block.indexOf('var membershipDigest'));
+  check(['membership', 'normalizationId', 'currencyPolicy', 'sessionPolicy', 'adjustmentPolicy', 'minimumPeerDenominator', 'decisionVintage']
+    .every((key) => new RegExp(`\\b${key}:`).test(digestPayload)), 'scope06-identity-covers-every-behaviour-bearing-field');
+  // A percentile may only exist at or above the declared minimum.
+  check(/denominator >= comparisonSet\.minimumPeerDenominator/.test(scope06Block), 'scope06-percentile-gated-by-denominator');
+  check(/excluded\.push\(\{ symbol: member\.symbol, reason: "incompatible-adjustment" \}\)/.test(scope06Block)
+    && /reason: "incompatible-session"/.test(scope06Block) && /reason: "incompatible-currency"/.test(scope06Block), 'scope06-incompatibility-reasons-named');
+  const comparisonFixture = json('tests/fixtures/technical-analysis-decision/analytic/comparison-roles.json');
+  check(Object.keys(comparisonFixture.situations).length === 4, 'scope06-comparison-fixture-situations-4');
+  check(comparisonFixture.comparators.length === 8 && comparisonFixture.comparators.some((entry) => entry.adjustmentPolicyId === 'price-only')
+    && comparisonFixture.comparators.some((entry) => entry.currencyId === 'EUR'), 'scope06-comparison-fixture-carries-incompatible-comparators');
+  check(comparisonFixture.subject.closes.length === 12 && comparisonFixture.comparators.every((entry) => entry.closes.length === 12), 'scope06-comparison-fixture-aligned-lengths');
+  // The Dow limitation must remain a committed claim rather than only page prose.
+  check(config.claimLedger.some((entry) => /Dow/.test(entry.limitation || '') && /separate market sector and peer/.test(entry.allowedTreatment || '')), 'scope06-dow-limitation-recorded');
+
   const expectedTitles = [
     'Regression: SCN-007-005 stock four-hour profile exposes session remainder and variant identity',
     'Regression: SCN-007-006 continuous-market four-hour profile has equal session boundaries',
@@ -351,7 +388,9 @@ try {
     'Regression: SCN-007-016 option flip walls and GEX preserve one inherited convention',
     'Regression: SCN-007-017 OHLCV leaves footprint depth and large-trade modules unavailable',
     'Regression: SCN-007-024 daily-only read stays useful while tactical evidence remains unavailable',
-    'Regression: Feature 007 owner integrations preserve source cutoffs limitations and existing reads'
+    'Regression: Feature 007 owner integrations preserve source cutoffs limitations and existing reads',
+    'Regression: SCN-007-014 market sector and peer roles expose relative weakness separately',
+    'Regression: SCN-007-028 comparison membership change creates a new variant and preserves prior validation'
   ];
   check(expectedTitles.every((title) => testSource.includes(`test('${title}'`)), 'scope01-regression-titles-exact');
   check(!/page\.route|context\.route|\.fulfill\s*\(|serviceWorker|test\.(?:skip|only)/.test(testSource), 'browser-suite-no-internal-substitution-or-skip');

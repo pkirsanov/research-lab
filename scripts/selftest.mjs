@@ -4571,6 +4571,137 @@ try {
   const tad05Validation = read('strategy-validation-lab.html');
   assert(tad05Validation.indexOf('rl-ta-owner-read/v1') < 0 && tad05Validation.indexOf('Feature 007 owner read') < 0,
     'Strategy Validation remains read-only and gains no nested Feature 007 passport');
+  /* ---------- Scope 06: comparison and optional evidence ---------- */
+  const tad06Names = ['tadComparisonRefusal', 'tadBuildComparisonSet', 'tadEvaluateComparisonRole', 'tadBuildComparisonEvidence'];
+  assert(tad06Names.every((name) => (tadSource.match(new RegExp('function\\s+' + name + '\\s*\\(', 'g')) || []).length === 1),
+    'All 4 Scope 06 comparison declarations exist exactly once in the page');
+  const tad06 = build(
+    [tadSource.match(/var TAD_COMPARISON_ROLES = [\s\S]*?;\n/)[0]]
+      .concat(tadNames.concat(tad02Names, ['tadIdentity'], tad06Names).map((name) => extractFn(tadSource, name))),
+    tadNames.concat(tad02Names, ['tadIdentity'], tad06Names).concat(['TAD_COMPARISON_ROLES'])
+  );
+  const tad06Policy = tadConfig.comparisonPolicies[0];
+  assert(tad06Policy.contractVersion === 'tad-comparison-policy/v1' && tad06Policy.minimumPeerDenominator === 3
+    && tad06Policy.replacementPolicy === 'never-automatic',
+    'The committed comparison policy declares its contract, minimum peer denominator, and never-automatic replacement');
+
+  // Deterministic daily closes. The subject rises 20%; comparators are built to lead or lag it.
+  const tad06Days = 40;
+  const tad06Series = (id, start, endValue) => ({
+    id, adjustmentPolicyId: 'total-return', sessionContractId: 'daily-close', currencyId: 'USD', sourceVintageId: 'vintage-' + id,
+    rows: Array.from({ length: tad06Days }, (_, i) => ({
+      closedAt: new Date(Date.UTC(2026, 0, 5 + i)).toISOString(),
+      c: start + (endValue - start) * (i / (tad06Days - 1))
+    }))
+  });
+  const tad06Subject = tad06Series('SUBJ', 100, 120);              // +20%
+  const tad06By = {
+    MKT: tad06Series('MKT', 100, 130),                             // +30% -> subject lags
+    SEC: tad06Series('SEC', 100, 128),                             // +28% -> subject lags
+    P1: tad06Series('P1', 100, 126), P2: tad06Series('P2', 100, 124), P3: tad06Series('P3', 100, 122),
+    CTX: tad06Series('CTX', 100, 110)                              // +10% -> subject leads
+  };
+  const tad06Member = (role, symbol) => ({ role, symbol, rationale: 'declared ' + role, classificationSource: 'test-classification', classificationAsOf: '2026-01-02' });
+  const tad06Request = {
+    decisionVintage: '2026-02-13T21:00:00.000Z',
+    roles: [tad06Member('broad-market', 'MKT'), tad06Member('sector-industry', 'SEC'),
+      tad06Member('direct-peer', 'P1'), tad06Member('direct-peer', 'P2'), tad06Member('direct-peer', 'P3'),
+      tad06Member('optional-context', 'CTX')]
+  };
+  const tad06Set = tad06.tadBuildComparisonSet(tad06Request, tad06Policy);
+  assert(tad06Set.ok && /^tad-comparison:[a-f0-9]{64}$/.test(tad06Set.comparisonSet.comparisonSetId)
+    && /^tad-comparison-membership:[a-f0-9]{64}$/.test(tad06Set.comparisonSet.membershipDigest),
+    'A complete comparison request builds a content-addressed comparison set and membership digest');
+  assert(tad06Set.comparisonSet.minimumPeerDenominator === 3 && tad06Set.comparisonSet.replacementPolicy === 'never-automatic',
+    'The comparison set inherits the policy denominator and never-automatic replacement rule');
+
+  // Rationale and classification provenance are required, not decorative.
+  ['rationale', 'classificationSource', 'classificationAsOf'].forEach((key) => {
+    const partial = JSON.parse(JSON.stringify(tad06Request));
+    delete partial.roles[0][key];
+    assert(tad06.tadBuildComparisonSet(partial, tad06Policy).ok === false,
+      'A comparison member missing ' + key + ' is refused');
+  });
+  assert(tad06.tadBuildComparisonSet({ ...tad06Request, roles: [tad06Member('rival', 'X')] }, tad06Policy).errors[0].code === 'TAD-COMPARISON-ROLE',
+    'An unregistered comparison role is refused');
+  assert(tad06.tadBuildComparisonSet({ ...tad06Request, decisionVintage: 'soon' }, tad06Policy).errors[0].code === 'TAD-COMPARISON-VINTAGE',
+    'A comparison set without a real decision vintage is refused');
+  assert(tad06.tadBuildComparisonSet(tad06Request, { ...tad06Policy, contractVersion: 'tad-comparison-policy/v2' }).errors[0].code === 'TAD-COMPARISON-POLICY',
+    'An unsupported comparison policy contract is refused');
+  assert(tad06.tadBuildComparisonSet({ ...tad06Request, normalizationId: 'raw-price' }, tad06Policy).errors[0].code === 'TAD-COMPARISON-NORMALIZATION',
+    'Raw-price similarity is refused as a comparison normalization');
+
+  // SCN-007-014: market, sector, and peer outcomes stay separate and expose relative weakness.
+  const tad06Evidence = tad06.tadBuildComparisonEvidence(tad06Set.comparisonSet, tad06Subject, tad06By);
+  assert(tad06Evidence.ok && tad06Evidence.results.length === 4
+    && tad06Evidence.results.map((r) => r.role).join(',') === 'broad-market,sector-industry,direct-peer,optional-context',
+    'All four comparison roles are reported separately and in declared order');
+  const tad06Role = (role) => tad06Evidence.results.filter((r) => r.role === role)[0];
+  assert(tad06Role('broad-market').state === 'relative-weakness' && tad06Role('sector-industry').state === 'relative-weakness'
+    && tad06Role('direct-peer').state === 'relative-weakness',
+    'A subject lagging every eligible comparator reports relative weakness in each role');
+  assert(tad06Role('optional-context').state === 'confirms-strength',
+    'A role the subject leads is reported on its own terms rather than absorbed into the others');
+  assert(tad06Evidence.contradictions.length === 3 && tad06Evidence.contradictions.every((c) => c.kind === 'relative-weakness'),
+    'Relative weakness is surfaced as a contradiction rather than blended away');
+  // No role may be silently substituted for another.
+  assert(tad06Role('broad-market').symbolIds.join(',') === 'MKT' && tad06Role('sector-industry').symbolIds.join(',') === 'SEC'
+    && tad06Role('direct-peer').symbolIds.join(',') === 'P1,P2,P3',
+    'Each role reports only its own declared members, so one role never stands in for another');
+  // The Dow industrial/transport rule is not generalized to arbitrary symbols.
+  assert(tad06Evidence.dowEquivalenceClaimed === false, 'No Dow industrial/transport equivalence is claimed for modern roles');
+  const tad06Claim = tadConfig.claimLedger.filter((entry) => /Dow/.test(entry.limitation || ''))[0];
+  assert(tad06Claim && /separate market sector and peer evidence/.test(tad06Claim.allowedTreatment),
+    'The claim ledger records that modern roles are not identical to the Dow averages');
+
+  // Denominator rule: a percentile needs the declared minimum; ratios survive below it.
+  assert(tad06Role('direct-peer').denominator === 3 && tad06Role('direct-peer').percentileState === 'available'
+    && tad06Role('direct-peer').percentile === 0,
+    'Three eligible peers meet the minimum denominator and produce a percentile');
+  const tad06TwoPeers = tad06.tadBuildComparisonSet({ ...tad06Request, roles: tad06Request.roles.filter((m) => m.symbol !== 'P3') }, tad06Policy);
+  const tad06Thin = tad06.tadBuildComparisonEvidence(tad06TwoPeers.comparisonSet, tad06Subject, tad06By);
+  const tad06ThinPeer = tad06Thin.results.filter((r) => r.role === 'direct-peer')[0];
+  assert(tad06ThinPeer.denominator === 2 && tad06ThinPeer.percentile === null && tad06ThinPeer.percentileState === 'denominator-below-minimum',
+    'Below the minimum denominator no peer percentile is published');
+  assert(tad06ThinPeer.evaluations.length === 2 && tad06ThinPeer.evaluations.every((e) => Number.isFinite(e.ratio)),
+    'Named pairwise ratios remain available when the percentile is withheld');
+
+  // An incompatible comparator is excluded with a named reason and never auto-replaced.
+  const tad06Incompatible = { ...tad06By, P2: { ...tad06By.P2, adjustmentPolicyId: 'price-only' }, P3: { ...tad06By.P3, currencyId: 'EUR' } };
+  const tad06Excluded = tad06.tadBuildComparisonEvidence(tad06Set.comparisonSet, tad06Subject, tad06Incompatible);
+  const tad06ExcludedPeer = tad06Excluded.results.filter((r) => r.role === 'direct-peer')[0];
+  assert(tad06ExcludedPeer.excluded.map((e) => e.reason).sort().join(',') === 'incompatible-adjustment,incompatible-currency',
+    'Incompatible comparators are excluded with their exact reason');
+  assert(tad06ExcludedPeer.eligibleIds.join(',') === 'P1' && tad06ExcludedPeer.symbolIds.join(',') === 'P1,P2,P3',
+    'The requested membership is preserved while only eligible comparators contribute');
+  assert(tad06ExcludedPeer.percentileState === 'denominator-below-minimum' && tad06ExcludedPeer.percentile === null,
+    'Excluding comparators lowers the denominator rather than substituting replacements');
+  const tad06Missing = tad06.tadBuildComparisonEvidence(tad06Set.comparisonSet, tad06Subject, { MKT: tad06By.MKT });
+  assert(tad06Missing.results.filter((r) => r.role === 'direct-peer')[0].state === 'unavailable',
+    'A role with no eligible comparator is unavailable rather than defaulted');
+
+  // SCN-007-028: any behaviour-bearing membership change creates a new identity.
+  const tad06Baseline = tad06Set.comparisonSet.comparisonSetId;
+  const tad06Variants = {
+    'added member': { ...tad06Request, roles: tad06Request.roles.concat([tad06Member('direct-peer', 'P4')]) },
+    'removed member': { ...tad06Request, roles: tad06Request.roles.filter((m) => m.symbol !== 'P3') },
+    'reclassified member': { ...tad06Request, roles: tad06Request.roles.map((m) => (m.symbol === 'P3' ? { ...m, role: 'optional-context' } : m)) },
+    'changed classification as-of': { ...tad06Request, roles: tad06Request.roles.map((m) => (m.symbol === 'P3' ? { ...m, classificationAsOf: '2026-02-01' } : m)) },
+    'changed rationale': { ...tad06Request, roles: tad06Request.roles.map((m) => (m.symbol === 'P3' ? { ...m, rationale: 'different reason' } : m)) },
+    'changed decision vintage': { ...tad06Request, decisionVintage: '2026-02-14T21:00:00.000Z' }
+  };
+  Object.keys(tad06Variants).forEach((label) => {
+    const built = tad06.tadBuildComparisonSet(tad06Variants[label], tad06Policy);
+    assert(built.ok && built.comparisonSet.comparisonSetId !== tad06Baseline,
+      'A ' + label + ' creates a distinct comparison identity');
+  });
+  assert(tad06.tadBuildComparisonSet(tad06Request, { ...tad06Policy, minimumPeerDenominator: 4 }).comparisonSet.comparisonSetId !== tad06Baseline,
+    'A changed denominator policy creates a distinct comparison identity');
+  // Rebuilding the same request reproduces the same identity, so a passport stays attached.
+  assert(tad06.tadBuildComparisonSet(JSON.parse(JSON.stringify(tad06Request)), tad06Policy).comparisonSet.comparisonSetId === tad06Baseline,
+    'An unchanged comparison request reproduces its identity so a prior passport stays attached');
+  assert(tad06.tadBuildComparisonSet({ ...tad06Request, roles: tad06Request.roles.slice().reverse() }, tad06Policy).comparisonSet.comparisonSetId !== tad06Baseline,
+    'Declared membership order is part of the frozen identity rather than silently normalized');
 
 } catch (e) { failures++; console.log('  ✗ FAIL (Technical Analysis Decision foundation group threw): ' + e.message); }
 /* ---------- End Feature 007 Technical Analysis Decision foundation ---------- */

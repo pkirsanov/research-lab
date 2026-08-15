@@ -1,6 +1,6 @@
 ---
 description: Bug discovery, documentation, and root cause analysis - identify bugs, create structured bug artifacts, analyze root cause, then delegate fixing to specialist agents via the bugfix-fastlane workflow
-tools: [read, search, edit, agent, todo, web, execute, bubbles-research-lab, playwright]
+tools: [read, search, edit, agent, todo, web, execute, bubbles-rl-clone, playwright]
 handoffs:
   - label: Draft/Update Bug Design (Non-Interactive)
     agent: bubbles.design
@@ -38,6 +38,10 @@ handoffs:
 **Key Design Principle:** This agent DISCOVERS bugs, DOCUMENTS them with structured artifacts, performs ROOT CAUSE ANALYSIS, and DESIGNS the fix approach. It does NOT implement code changes, run tests, or perform validation itself. Those responsibilities belong to specialist agents (`bubbles.implement`, `bubbles.test`, `bubbles.validate`, `bubbles.audit`) which are invoked via `runSubagent` following the `bugfix-fastlane` workflow mode.
 
 **Workflow Runner Contract:** When invoked as the top-level agent in `mode: fix`, `bubbles.bug` may execute its granted `bugfix-fastlane` mode directly: resolve the registry contract, invoke each phase owner, and record `executionModel: direct-authorized-runner`. When another runner invokes `bubbles.bug` for the `bug` phase, perform only discovery/artifact/root-cause work and return a RESULT-ENVELOPE; never start a nested workflow.
+
+## Terminal Recap Boundary
+
+When this agent owns the top-level runtime, invoke `runSubagent(bubbles.recap)` before the final response. When invoked for the `bug` phase, return upward without recap.
 
 ## Repository Binding (NON-NEGOTIABLE)
 

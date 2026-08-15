@@ -5176,9 +5176,28 @@ try {
   assert(validatorReasons.length > 0, `The situation validator's refusal reasons were harvested (${validatorReasons.length})`);
   assert(!validatorBody.includes('side-pool-config-invalid') && !validatorBody.includes('runResearchSidePool'),
     'The harvested body stops at the validator and does not spill into the author helper');
+
+  /* The deterministic-model stage refuses through the SAME per-topic failure channel, so its codes
+     reach the reader too. This was not a theory: a live generation published `flow-model-invalid`
+     while this guard was reporting "unmapped: none", because the harvest only covered the situation
+     validator. A completeness check that omits a whole producer stage is worse than none — it
+     certifies coverage it never measured. Bounded the same way, for the same reason. */
+  const modelStart = generationSource.indexOf('export function computeResearchAgendaOutputs(');
+  assert(modelStart !== -1, 'The deterministic-model stage was located in the generation producer');
+  const modelOpen = generationSource.indexOf(') {', modelStart) + 2;
+  let modelDepth = 0, modelCursor = modelOpen;
+  for (; modelCursor < generationSource.length; modelCursor += 1) {
+    const ch = generationSource[modelCursor];
+    if (ch === '{') modelDepth += 1;
+    else if (ch === '}') { modelDepth -= 1; if (modelDepth === 0) break; }
+  }
+  const modelBody = generationSource.slice(modelOpen, modelCursor + 1);
+  const modelReasons = [...modelBody.matchAll(/failure\([^,]+, '([a-z-]+)'/g)].map((m) => m[1]);
+  assert(modelReasons.includes('flow-model-invalid'),
+    `The model stage's refusal reasons were harvested including the one observed live (${modelReasons.length})`);
   const planReasons = [...read('rlagenda.js').matchAll(/classification\.reason = "([a-z-]+)"/g)].map((m) => m[1]);
-  const reachable = [...new Set(outcomeReasons.concat(validatorReasons).concat(planReasons))].filter((code) => code !== 'lifecycle-');
-  assert(reachable.length >= 15, `Reader-reachable reason vocabulary was discovered from the producers (${reachable.length} codes)`);
+  const reachable = [...new Set(outcomeReasons.concat(validatorReasons).concat(modelReasons).concat(planReasons))].filter((code) => code !== 'lifecycle-');
+  assert(reachable.length >= 20, `Reader-reachable reason vocabulary was discovered from the producers (${reachable.length} codes)`);
   const unmapped = reachable.filter((code) => !briefMap.includes(`"${code}":`));
   assert(unmapped.length === 0,
     `Every producer reason code has a reader sentence (unmapped: ${unmapped.join(', ') || 'none'})`);

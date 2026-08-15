@@ -104,8 +104,16 @@ test('SCN-019-020 compact standing research read is visible on the brief and dee
       expect(text, `${topicId} states its topic state`).toMatch(/reviewed|unavailable|stale|deferred|not.due/i);
       expect(text, `${topicId} carries a terminated reader sentence`).toMatch(/[.!?](\s|$)/);
       expect(text, `${topicId} must not print a Title-Cased machine slug as prose: ${text}`).not.toMatch(slugAsProse);
-      // Adversarial on the raw code itself: a reason code must never be pasted in verbatim either.
-      expect(text, `${topicId} must not leak a raw hyphenated reason code`).not.toMatch(/\b[a-z]+(?:-[a-z]+){2,}\b/);
+      /* Adversarial on the raw code itself. A hyphenated code may appear ONLY inside the explicit
+         "Reason code: <code>." frame the fallback uses when a producer emits a code the shared map
+         has not yet been taught — that frame is honest, because it presents the code AS a code. A
+         bare code dropped into the sentence is the leak. Banning every hyphenated token outright
+         (the first version of this assertion) would have forbidden the honest fallback itself. */
+      const codeTokens = [...text.matchAll(/\b[a-z]+(?:-[a-z]+){2,}\b/g)].map((m) => m[0]);
+      for (const token of codeTokens) {
+        expect(text, `${topicId} may print the code ${token} only inside the "Reason code:" frame`)
+          .toContain(`Reason code: ${token}.`);
+      }
     }
     const ownerLink = section.locator('[data-research-topic="geopolitical-supply-shock"] a');
     await expect(ownerLink).toHaveAttribute('href', 'research-agenda-lab.html#power/geopolitical-supply-shock');

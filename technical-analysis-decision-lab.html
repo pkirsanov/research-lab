@@ -1391,6 +1391,259 @@
 
     /* ---------- End Feature 007 Scope 02: technique engine ---------- */
 
+    /* ---------- Feature 007 Scope 03: levels and setup lifecycle ---------- */
+    var TAD_CONFLUENCE_LABEL = "historical/model level confluence";
+    var TAD_LEVEL_STATES = ["candidate", "active", "tested", "held", "broken", "reclaimed", "stale", "expired"];
+    var TAD_LEVEL_TYPES = ["swing", "moving-average", "vwap", "profile-node", "range-edge", "gap-edge", "expected-move", "option-strike"];
+    var TAD_CANDIDATE_TRANSITIONS = { SCANNING: ["NO_EDGE", "WATCH"], NO_EDGE: ["WATCH"], WATCH: ["ARMED", "NO_EDGE", "EXPIRED"], ARMED: ["TRIGGERED", "WATCH", "INVALIDATED", "EXPIRED"], TRIGGERED: ["INVALIDATED", "EXPIRED", "COMPLETED_EVALUATION"], INVALIDATED: [], EXPIRED: [], COMPLETED_EVALUATION: [] };
+    var TAD_TERMINAL_STATES = ["INVALIDATED", "EXPIRED", "COMPLETED_EVALUATION"];
+
+    function tadLevelRefusal(code, observed, required, action, message) {
+      return tadDeepFreeze({ ok: false, levels: [], zones: [], errors: [tadError(code, "error", "$", null, observed, required, action, message)] });
+    }
+    function tadSetupRefusal(code, observed, required, action, message) {
+      return tadDeepFreeze({ ok: false, state: null, reasonCodes: [], events: [], errors: [tadError(code, "error", "$", null, observed, required, action, message)] });
+    }
+    // tadStableDigest returns a result object, not a string. Concatenating it directly yields
+    // "[object Object]" for every identity, collapsing distinct levels, events and plans into one id.
+    // tadFiniteNumber returns a result object, so using it directly in a condition is always
+    // truthy and the guard never fires. This is the boolean form the Scope 03 guards need.
+    function tadIsFinite(value) {
+      return tadFiniteNumber(value).ok === true;
+    }
+    function tadIdentity(prefix, payload) {
+      var digest = tadStableDigest(payload);
+      return digest.ok ? prefix + digest.value : null;
+    }
+
+    function tadNormalizeLevels(rawLevels, context) {
+      if (!Array.isArray(rawLevels)) return tadLevelRefusal("TAD-LEVEL-INPUT", rawLevels, "an array of raw level records", "supply sourced level records", "Level normalization input is invalid.");
+      if (!tadIsPlainObject(context) || typeof context.sourceVintageId !== "string" || typeof context.observationCutoff !== "string") return tadLevelRefusal("TAD-LEVEL-CONTEXT", context, "a context with sourceVintageId and observationCutoff", "supply the resolved source vintage and cutoff", "Level normalization requires an explicit source context.");
+      var cutoffMs = Date.parse(context.observationCutoff), normalized = [], errors = [];
+      for (var i = 0; i < rawLevels.length; i += 1) {
+        var raw = rawLevels[i], path = "$[" + i + "]";
+        if (!tadIsPlainObject(raw)) { errors.push(tadError("TAD-LEVEL-SHAPE", "error", path, null, raw, "a level record object", "supply an object per level", "A level record is not an object.")); continue; }
+        if (TAD_LEVEL_TYPES.indexOf(raw.type) < 0) { errors.push(tadError("TAD-LEVEL-TYPE", "error", path, null, raw.type, "one of " + TAD_LEVEL_TYPES.join(", "), "declare a known level type", "A level declares an unknown type.")); continue; }
+        if (!tadIsFinite(raw.price) || !tadIsFinite(raw.lower) || !tadIsFinite(raw.upper)) { errors.push(tadError("TAD-LEVEL-FINITE", "error", path, null, raw.price, "finite price, lower, and upper", "supply finite level geometry", "A level carries non-finite geometry.")); continue; }
+        if (raw.lower > raw.upper) { errors.push(tadError("TAD-LEVEL-BOUNDS", "error", path, null, raw.lower, "lower at or below upper", "correct the zone bounds", "A level zone is inverted.")); continue; }
+        if (typeof raw.methodId !== "string" || !raw.methodId) { errors.push(tadError("TAD-LEVEL-METHOD", "error", path, null, raw.methodId, "a method identifier", "declare the method that produced the level", "A level does not name its method.")); continue; }
+        var observedMs = Date.parse(raw.observedAt);
+        if (!Number.isFinite(observedMs)) { errors.push(tadError("TAD-LEVEL-OBSERVED", "error", path, null, raw.observedAt, "an ISO observedAt", "declare when the level was observed", "A level does not declare an observation time.")); continue; }
+        if (observedMs > cutoffMs) { errors.push(tadError("TAD-LEVEL-CUTOFF", "error", path, null, raw.observedAt, "observedAt at or before " + context.observationCutoff, "exclude levels observed after the cutoff", "A level is newer than the observation cutoff.")); continue; }
+        normalized.push({
+          levelId: tadIdentity("tad-level:", { type: raw.type, methodId: raw.methodId, price: raw.price, interval: raw.interval, observedAt: raw.observedAt, sourceVintageId: context.sourceVintageId }),
+          type: raw.type, methodId: raw.methodId, sourceVintageId: context.sourceVintageId,
+          timeframeRole: typeof raw.timeframeRole === "string" ? raw.timeframeRole : "unspecified",
+          interval: typeof raw.interval === "string" ? raw.interval : "unspecified",
+          window: tadIsFinite(raw.window) ? raw.window : null,
+          observedAt: raw.observedAt, availableAt: typeof raw.availableAt === "string" ? raw.availableAt : raw.observedAt,
+          price: raw.price, lower: raw.lower, upper: raw.upper,
+          widthUnit: typeof raw.widthUnit === "string" ? raw.widthUnit : "price",
+          uncertainty: tadIsFinite(raw.uncertainty) ? raw.uncertainty : (raw.upper - raw.lower) / 2,
+          ageBars: tadIsFinite(raw.ageBars) ? raw.ageBars : null,
+          state: TAD_LEVEL_STATES.indexOf(raw.state) >= 0 ? raw.state : "candidate",
+          invalidation: typeof raw.invalidation === "string" ? raw.invalidation : "closed-break-beyond-zone",
+          limitations: Array.isArray(raw.limitations) ? raw.limitations.slice() : []
+        });
+      }
+      if (errors.length) return tadDeepFreeze({ ok: false, levels: [], zones: [], errors: errors });
+      normalized.sort(function (a, b) { return a.price - b.price || a.levelId.localeCompare(b.levelId); });
+      return tadDeepFreeze({ ok: true, levels: normalized, zones: [], errors: [] });
+    }
+
+    function tadClusterConfluence(levels, options) {
+      if (!Array.isArray(levels)) return tadLevelRefusal("TAD-ZONE-INPUT", levels, "an array of normalized levels", "normalize levels first", "Confluence input is invalid.");
+      if (!tadIsPlainObject(options) || !tadIsFinite(options.atr) || options.atr <= 0 || !tadIsFinite(options.atrDistance) || options.atrDistance <= 0) return tadLevelRefusal("TAD-ZONE-DISTANCE", options, "a positive atr and atrDistance", "declare the volatility distance that defines a zone", "Confluence requires an explicit volatility distance.");
+      if (typeof options.sourceCutoff !== "string") return tadLevelRefusal("TAD-ZONE-CUTOFF", options, "a sourceCutoff", "declare the observation cutoff", "Confluence requires an explicit cutoff.");
+      var maximumSpread = options.atr * options.atrDistance;
+      var ordered = levels.slice().sort(function (a, b) { return a.price - b.price || a.levelId.localeCompare(b.levelId); });
+      var groups = [], current = null;
+      for (var i = 0; i < ordered.length; i += 1) {
+        var level = ordered[i];
+        if (current && (level.price - current.anchor) <= maximumSpread) current.members.push(level);
+        else { current = { anchor: level.price, members: [level] }; groups.push(current); }
+      }
+      var families = tadIsPlainObject(options.familyByMethodId) ? options.familyByMethodId : {};
+      var zones = groups.map(function (group) {
+        var prices = group.members.map(function (member) { return member.price; });
+        var independent = [];
+        // Independence is by declared family, not member count: three moving averages are one
+        // family and therefore one independent reason for the zone, not three.
+        group.members.forEach(function (member) {
+          var family = Object.prototype.hasOwnProperty.call(families, member.methodId) ? families[member.methodId] : member.type;
+          if (independent.indexOf(family) < 0) independent.push(family);
+        });
+        return {
+          zoneId: tadIdentity("tad-zone:", { members: group.members.map(function (member) { return member.levelId; }), cutoff: options.sourceCutoff }),
+          lower: Math.min.apply(null, group.members.map(function (member) { return member.lower; })),
+          upper: Math.max.apply(null, group.members.map(function (member) { return member.upper; })),
+          center: prices.reduce(function (total, price) { return total + price; }, 0) / prices.length,
+          atrDistance: options.atrDistance,
+          memberLevelIds: group.members.map(function (member) { return member.levelId; }),
+          memberCount: group.members.length,
+          independentFamilyIds: independent.slice().sort(),
+          label: TAD_CONFLUENCE_LABEL,
+          state: "active",
+          sourceCutoff: options.sourceCutoff
+        };
+      });
+      return tadDeepFreeze({ ok: true, levels: ordered.slice(), zones: zones, errors: [] });
+    }
+
+    function tadUpdateLevelLifecycle(level, observations, policy) {
+      if (!tadIsPlainObject(level) || typeof level.levelId !== "string") return tadLevelRefusal("TAD-LEVEL-LIFECYCLE-INPUT", level, "a normalized level", "normalize the level first", "Level lifecycle input is invalid.");
+      if (!Array.isArray(observations)) return tadLevelRefusal("TAD-LEVEL-LIFECYCLE-BARS", observations, "an array of closed bars", "supply closed observations", "Level lifecycle requires closed observations.");
+      var staleAfterBars = tadIsPlainObject(policy) && tadIsFinite(policy.staleAfterBars) ? policy.staleAfterBars : null;
+      var closed = observations.filter(function (bar) { return tadIsPlainObject(bar) && bar.status === "closed" && tadIsFinite(bar.h) && tadIsFinite(bar.l) && tadIsFinite(bar.c); });
+      // A level only means something relative to the side price approaches it from. Without that
+      // side a support reads as broken the moment price closes ABOVE it, which is the level doing
+      // its job. An intrabar excursion is an extreme beyond the zone with no close beyond it:
+      // a failed-break candidate under a configured rule, never a confirmed break.
+      var side = "inside";
+      if (closed.length) side = closed[0].c > level.upper ? "support" : closed[0].c < level.lower ? "resistance" : "inside";
+      var state = level.state, reasons = [], touched = false, intrabarExcursion = false, closedBeyond = false, reclaimed = false;
+      for (var j = 0; j < closed.length; j += 1) {
+        var bar = closed[j];
+        if (bar.l <= level.upper && bar.h >= level.lower) touched = true;
+        if (side === "support") {
+          if (bar.l < level.lower && bar.c >= level.lower) intrabarExcursion = true;
+          if (bar.c < level.lower) closedBeyond = true;
+          else if (closedBeyond) reclaimed = true;
+        } else if (side === "resistance") {
+          if (bar.h > level.upper && bar.c <= level.upper) intrabarExcursion = true;
+          if (bar.c > level.upper) closedBeyond = true;
+          else if (closedBeyond) reclaimed = true;
+        }
+      }
+      if (reclaimed) { state = "reclaimed"; reasons.push("closed-back-through-zone"); }
+      else if (closedBeyond) { state = "broken"; reasons.push("closed-beyond-zone"); }
+      else if (intrabarExcursion) { state = "held"; reasons.push("intrabar-excursion-without-closed-break"); }
+      else if (touched) { state = "tested"; reasons.push("touched-without-closed-break"); }
+      else if (level.state === "candidate") { state = "active"; reasons.push("no-interaction-yet"); }
+      if (staleAfterBars !== null && tadIsFinite(level.ageBars) && level.ageBars > staleAfterBars && state !== "broken" && state !== "reclaimed") { state = "stale"; reasons.push("older-than-declared-window"); }
+      return tadDeepFreeze({ ok: true, levelId: level.levelId, fromState: level.state, state: state, side: side, reasonCodes: reasons, intrabarExcursion: intrabarExcursion, closedBeyond: closedBeyond, decidedFromClosedBars: closed.length, errors: [] });
+    }
+
+    function tadEvaluateSetupDefinition(definition, context) {
+      if (!tadIsPlainObject(definition) || typeof definition.setupDefinitionId !== "string") return tadSetupRefusal("TAD-SETUP-DEFINITION", definition, "a setup definition record", "supply a committed setup definition", "Setup evaluation requires a definition.");
+      if (!tadIsPlainObject(context)) return tadSetupRefusal("TAD-SETUP-CONTEXT", context, "an evaluation context", "supply observations and family states", "Setup evaluation requires a context.");
+      if (!Array.isArray(definition.supportedProfileIds) || definition.supportedProfileIds.indexOf(context.profileId) < 0) return tadSetupRefusal("TAD-SETUP-PROFILE", context.profileId, "a supported timeframe profile", "select a supported timeframe profile", "This setup does not support the selected profile.");
+      var familyStates = tadIsPlainObject(context.familyStates) ? context.familyStates : {};
+      var satisfied = [], missing = [];
+      (definition.requiredFamilyIds || []).forEach(function (familyId) {
+        var familyState = Object.prototype.hasOwnProperty.call(familyStates, familyId) ? familyStates[familyId] : "unavailable";
+        if (familyState === "supports") satisfied.push(familyId); else missing.push(familyId + ":" + familyState);
+      });
+      var inZone = context.inGovernedZone === true;
+      var triggerFired = typeof context.triggerEventId === "string" && (definition.triggerEvents || []).indexOf(context.triggerEventId) >= 0;
+      var state, reasons = [];
+      // ARMED cannot be skipped. A trigger only means something once prerequisites and location
+      // already hold, so a trigger observed without them is not an entry — it is not even a setup.
+      if (missing.length) { state = "NO_EDGE"; reasons.push("required-families-unmet:" + missing.join("|")); }
+      else if (!inZone) { state = "WATCH"; reasons.push("prerequisites-met-location-pending"); }
+      else if (!triggerFired) { state = "ARMED"; reasons.push("location-met-awaiting-" + (definition.triggerEvents || []).join("-or-")); }
+      else { state = "TRIGGERED"; reasons.push("trigger-observed:" + context.triggerEventId); }
+      if (typeof context.triggerEventId === "string" && !triggerFired) reasons.push("declared-trigger-not-recognized:" + context.triggerEventId);
+      return tadDeepFreeze({ ok: true, state: state, reasonCodes: reasons, setupDefinitionId: definition.setupDefinitionId, satisfiedFamilyIds: satisfied, unmetFamilyIds: missing, triggerEventIds: (definition.triggerEvents || []).slice(), expiry: definition.expiry, evaluationHorizon: definition.evaluationHorizon, mandatoryGateIds: (definition.mandatoryGateIds || []).slice(), events: [], errors: [] });
+    }
+
+    function tadTransitionCandidate(candidateId, priorEvents, request) {
+      if (typeof candidateId !== "string" || !candidateId) return tadSetupRefusal("TAD-CANDIDATE-ID", candidateId, "a candidate identity", "build the candidate identity first", "A transition requires a candidate identity.");
+      if (!Array.isArray(priorEvents)) return tadSetupRefusal("TAD-CANDIDATE-LOG", priorEvents, "an append-only event array", "supply the candidate event log", "A transition requires the prior event log.");
+      if (!tadIsPlainObject(request) || typeof request.toState !== "string") return tadSetupRefusal("TAD-CANDIDATE-REQUEST", request, "a transition request with toState", "declare the requested state", "A transition requires a requested state.");
+      var owned = priorEvents.filter(function (event) { return tadIsPlainObject(event) && event.candidateId === candidateId; });
+      var fromState = owned.length ? owned[owned.length - 1].toState : "SCANNING";
+      // A terminal record is the point of the log. Reopening it would let an expired setup quietly
+      // become a live one, which is how a backtest turns into a story.
+      if (TAD_TERMINAL_STATES.indexOf(fromState) >= 0) return tadSetupRefusal("TAD-CANDIDATE-TERMINAL", fromState, "no transition out of a terminal state", "create a new candidate for a later pattern", "A terminal candidate cannot reopen.");
+      var allowed = Object.prototype.hasOwnProperty.call(TAD_CANDIDATE_TRANSITIONS, fromState) ? TAD_CANDIDATE_TRANSITIONS[fromState] : null;
+      if (!allowed) return tadSetupRefusal("TAD-CANDIDATE-STATE", fromState, "a known candidate state", "repair the candidate log", "The candidate log holds an unknown state.");
+      if (allowed.indexOf(request.toState) < 0) return tadSetupRefusal("TAD-CANDIDATE-TRANSITION", fromState + " to " + request.toState, "a declared onward state", "follow the declared transition graph", "That candidate transition is not legal.");
+      var decisionMs = Date.parse(request.decisionTime), cutoffMs = Date.parse(request.observationCutoff);
+      if (!Number.isFinite(decisionMs) || !Number.isFinite(cutoffMs)) return tadSetupRefusal("TAD-CANDIDATE-TIME", request.decisionTime, "ISO decisionTime and observationCutoff", "declare both times", "A transition requires explicit decision and cutoff times.");
+      if (cutoffMs > decisionMs) return tadSetupRefusal("TAD-CANDIDATE-ASOF", request.observationCutoff, "observationCutoff at or before decisionTime", "decide only from observations already available", "A transition would use information from after its own decision time.");
+      if (owned.length) {
+        var previousMs = Date.parse(owned[owned.length - 1].decisionTime);
+        if (Number.isFinite(previousMs) && decisionMs < previousMs) return tadSetupRefusal("TAD-CANDIDATE-BACKDATE", request.decisionTime, "a decisionTime at or after the prior event", "append forward in time only", "A transition would be backdated behind the prior event.");
+      }
+      var terminal = TAD_TERMINAL_STATES.indexOf(request.toState) >= 0;
+      if (terminal && typeof request.terminalConditionId !== "string") return tadSetupRefusal("TAD-CANDIDATE-TERMINAL-REASON", request.terminalConditionId, "a terminalConditionId", "name the condition that ended the candidate", "A terminal transition must name its terminal condition.");
+      var event = {
+        eventId: tadIdentity("tad-event:", { candidateId: candidateId, sequence: owned.length, fromState: fromState, toState: request.toState, decisionTime: request.decisionTime }),
+        candidateId: candidateId, sequence: owned.length, fromState: fromState, toState: request.toState,
+        decisionTime: request.decisionTime, observationCutoff: request.observationCutoff,
+        sourceSetId: typeof request.sourceSetId === "string" ? request.sourceSetId : null,
+        variantId: typeof request.variantId === "string" ? request.variantId : null,
+        gateSnapshotId: typeof request.gateSnapshotId === "string" ? request.gateSnapshotId : null,
+        reasonCodes: Array.isArray(request.reasonCodes) ? request.reasonCodes.slice() : [],
+        terminalConditionId: terminal ? request.terminalConditionId : null,
+        hypotheticalOutcome: terminal && tadIsPlainObject(request.hypotheticalOutcome) ? JSON.parse(JSON.stringify(request.hypotheticalOutcome)) : null
+      };
+      return tadDeepFreeze({ ok: true, state: request.toState, fromState: fromState, reasonCodes: event.reasonCodes.slice(), event: event, events: priorEvents.concat([event]), terminal: terminal, errors: [] });
+    }
+
+    function tadDeriveNaturalTargets(definition, levels, context) {
+      if (!tadIsPlainObject(definition) || !Array.isArray(definition.naturalTargetSelectors)) return tadSetupRefusal("TAD-TARGET-DEFINITION", definition, "a definition with naturalTargetSelectors", "supply a committed setup definition", "Target derivation requires a definition.");
+      if (!Array.isArray(levels)) return tadSetupRefusal("TAD-TARGET-LEVELS", levels, "an array of normalized levels", "normalize levels first", "Target derivation requires levels.");
+      if (!tadIsPlainObject(context) || (context.direction !== "long" && context.direction !== "short") || !tadIsFinite(context.triggerPrice)) return tadSetupRefusal("TAD-TARGET-CONTEXT", context, "a direction and finite triggerPrice", "declare the hypothetical trigger", "Target derivation requires a direction and trigger price.");
+      var cutoffMs = Date.parse(context.observationCutoff);
+      if (!Number.isFinite(cutoffMs)) return tadSetupRefusal("TAD-TARGET-CUTOFF", context.observationCutoff, "an ISO observationCutoff", "declare the cutoff", "Target derivation requires an observation cutoff.");
+      // Targets are SELECTED from levels that already existed, never invented to make a number work.
+      var eligible = levels.filter(function (level) {
+        var observedMs = Date.parse(level.observedAt);
+        if (!Number.isFinite(observedMs) || observedMs > cutoffMs) return false;
+        return context.direction === "long" ? level.price > context.triggerPrice : level.price < context.triggerPrice;
+      });
+      var ordered = eligible.slice().sort(function (a, b) { return context.direction === "long" ? a.price - b.price : b.price - a.price; });
+      var targets = ordered.map(function (level, position) {
+        return { targetId: level.levelId, order: position + 1, price: level.price, type: level.type, methodId: level.methodId, sourceVintageId: level.sourceVintageId, observedAt: level.observedAt, derivedFrom: "pre-existing-sourced-level" };
+      });
+      return tadDeepFreeze({ ok: true, direction: context.direction, triggerPrice: context.triggerPrice, targets: targets, selectorOrder: definition.naturalTargetSelectors.slice(), observationCutoff: context.observationCutoff, errors: [] });
+    }
+
+    function tadBuildRiskPlan(definition, plan) {
+      if (!tadIsPlainObject(definition) || typeof definition.setupDefinitionId !== "string") return tadSetupRefusal("TAD-RISK-DEFINITION", definition, "a setup definition record", "supply a committed setup definition", "A risk plan requires a definition.");
+      if (!tadIsPlainObject(plan) || !tadIsFinite(plan.triggerPrice) || !tadIsFinite(plan.invalidationPrice)) return tadSetupRefusal("TAD-RISK-GEOMETRY", plan, "finite triggerPrice and invalidationPrice", "declare the hypothetical trigger and invalidation", "A risk plan requires explicit geometry.");
+      if (!Array.isArray(plan.targets) || !plan.targets.length) return tadSetupRefusal("TAD-RISK-TARGETS", plan.targets, "at least one pre-derived target", "derive natural targets before building the plan", "A risk plan requires targets that already exist.");
+      if (typeof plan.costPolicyId !== "string" || !plan.costPolicyId) return tadSetupRefusal("TAD-RISK-COST", plan.costPolicyId, "an explicit cost policy identity", "declare the cost policy", "A risk plan requires an explicit cost policy.");
+      var riskPerUnit = Math.abs(plan.triggerPrice - plan.invalidationPrice);
+      if (riskPerUnit === 0) return tadSetupRefusal("TAD-RISK-ZERO", riskPerUnit, "a non-zero distance between trigger and invalidation", "separate the trigger from its invalidation", "A risk plan cannot have zero risk distance.");
+      var direction = plan.triggerPrice > plan.invalidationPrice ? "long" : "short";
+      var targets = plan.targets.map(function (target, position) {
+        var reward = direction === "long" ? target.price - plan.triggerPrice : plan.triggerPrice - target.price;
+        return { targetId: target.targetId, order: position + 1, price: target.price, rewardToRisk: reward / riskPerUnit, derivedFrom: target.derivedFrom || "pre-existing-sourced-level" };
+      });
+      var frozen = {
+        riskPlanId: tadIdentity("tad-risk:", { setup: definition.setupDefinitionId, trigger: plan.triggerPrice, invalidation: plan.invalidationPrice, targets: targets.map(function (target) { return target.targetId; }), cost: plan.costPolicyId }),
+        setupDefinitionId: definition.setupDefinitionId, direction: direction,
+        triggerPrice: plan.triggerPrice, invalidationPrice: plan.invalidationPrice, riskPerUnit: riskPerUnit,
+        orderedTargetIds: targets.map(function (target) { return target.targetId; }), targets: targets,
+        expiry: plan.expiry || definition.expiry, evaluationHorizon: plan.evaluationHorizon || definition.evaluationHorizon,
+        costPolicyId: plan.costPolicyId, riskUnit: tadIsFinite(plan.riskUnit) ? plan.riskUnit : null,
+        frozenAt: typeof plan.frozenAt === "string" ? plan.frozenAt : null
+      };
+      return tadDeepFreeze({ ok: true, riskPlan: frozen, errors: [] });
+    }
+
+    function tadAuditTargets(riskPlan, observedTargets) {
+      if (!tadIsPlainObject(riskPlan) || !Array.isArray(riskPlan.orderedTargetIds)) return tadSetupRefusal("TAD-AUDIT-PLAN", riskPlan, "a frozen risk plan", "build the risk plan first", "Target audit requires a frozen plan.");
+      if (!Array.isArray(observedTargets)) return tadSetupRefusal("TAD-AUDIT-TARGETS", observedTargets, "an array of currently claimed targets", "supply the claimed target set", "Target audit requires the claimed targets.");
+      var frozenIds = riskPlan.orderedTargetIds.slice();
+      var observedIds = observedTargets.map(function (target) { return tadIsPlainObject(target) ? target.targetId : String(target); });
+      var added = observedIds.filter(function (id) { return frozenIds.indexOf(id) < 0; });
+      var removed = frozenIds.filter(function (id) { return observedIds.indexOf(id) < 0; });
+      var reordered = false;
+      for (var k = 0; k < Math.min(frozenIds.length, observedIds.length); k += 1) if (frozenIds[k] !== observedIds[k]) reordered = true;
+      // Adding a target after the plan froze is target fitting: it improves the reward number with
+      // no new evidence. Removing or reordering rewrites the plan that was committed to.
+      var findings = [];
+      if (added.length) findings.push({ code: "TAD-TARGET-FITTING", detail: added.slice() });
+      if (removed.length) findings.push({ code: "TAD-TARGET-REMOVED", detail: removed.slice() });
+      if (reordered) findings.push({ code: "TAD-TARGET-REORDERED", detail: observedIds.slice() });
+      return tadDeepFreeze({ ok: findings.length === 0, matchesFrozenPlan: findings.length === 0, findings: findings, frozenTargetIds: frozenIds, observedTargetIds: observedIds, errors: [] });
+    }
+    /* ---------- End Feature 007 Scope 03: levels and setup lifecycle ---------- */
+
     var pageRuntime = { config: null, index: null, sourceFixture: null, analyticFixture: null, techniqueFixture: null, diagnostics: null };
     function byId(id) { return document.getElementById(id); }
     function setText(id, value) { var element = byId(id); if (element) element.textContent = value; }

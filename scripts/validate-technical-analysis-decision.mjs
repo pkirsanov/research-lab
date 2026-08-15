@@ -74,11 +74,48 @@ try {
   // Scope 02 helpers are shared infrastructure, not owned declarations: one EMA and one Wilder
   // smoother serve every technique that needs them rather than each carrying a private copy.
   const scope02Helpers = ['tadTechniqueOutcome', 'tadTechniqueRefusal', 'tadTechniqueColumns', 'tadEmaValues', 'tadWilderValues'];
+  const scope03Names = [
+    'tadNormalizeLevels', 'tadClusterConfluence', 'tadUpdateLevelLifecycle', 'tadEvaluateSetupDefinition',
+    'tadTransitionCandidate', 'tadDeriveNaturalTargets', 'tadBuildRiskPlan', 'tadAuditTargets'
+  ];
+  const scope03Helpers = ['tadIsFinite', 'tadIdentity', 'tadLevelRefusal', 'tadSetupRefusal'];
   const tad = buildFunctions(pageSource, scope01Names.concat(scope02Helpers, scope02Names));
   const physicalTadNames = [...pageSource.matchAll(/function\s+(tad[A-Za-z0-9]+)\s*\(/g)].map((match) => match[1]);
-  const declaredNames = scope01Names.concat(scope02Helpers, scope02Names);
+  const declaredNames = scope01Names.concat(scope02Helpers, scope02Names, scope03Helpers, scope03Names);
   check(physicalTadNames.length === declaredNames.length && new Set(physicalTadNames).size === declaredNames.length && scope01Names.every((name) => physicalTadNames.includes(name)), 'scope01-production-declarations-20-exact');
   check(scope02Names.length === 17 && scope02Names.every((name) => physicalTadNames.includes(name)), 'scope02-production-declarations-17-exact');
+  check(scope03Names.length === 8 && scope03Names.every((name) => physicalTadNames.includes(name)), 'scope03-production-declarations-8-exact');
+
+  // Scope 03 config contract: every setup definition must be fully specified and closed against
+  // the registries it references, so a definition can never point at something that is not there.
+  const setups = config.setupDefinitions;
+  check(Array.isArray(setups) && setups.length === 8 && setups.length <= config.limits.maximumSetupDefinitions, 'scope03-setup-definition-count');
+  check(setups.every((setup) => typeof setup.setupDefinitionId === 'string' && /\/v\d+$/.test(setup.setupDefinitionId) && typeof setup.version === 'string'), 'scope03-setup-definition-versioned-ids');
+  check(new Set(setups.map((setup) => setup.setupDefinitionId)).size === setups.length, 'scope03-setup-definition-ids-unique');
+  check(setups.every((setup) => Array.isArray(setup.prerequisites) && Array.isArray(setup.armedCondition) && Array.isArray(setup.triggerEvents)
+    && typeof setup.invalidation === 'string' && Array.isArray(setup.naturalTargetSelectors)
+    && typeof setup.expiry === 'string' && typeof setup.evaluationHorizon === 'string'
+    && Array.isArray(setup.mandatoryGateIds) && typeof setup.costRequirement === 'string'), 'scope03-setup-definition-required-predicates');
+  check(setups.every((setup) => (setup.requiredFamilyIds || []).concat(setup.optionalFamilyIds || []).every((familyId) => config.evidenceFamilies.some((family) => family.familyId === familyId))), 'scope03-setup-family-reference-parity');
+  check(setups.every((setup) => (setup.supportedProfileIds || []).every((profileId) => config.timeframeProfiles.some((profile) => profile.profileId === profileId))), 'scope03-setup-profile-reference-parity');
+  check(setups.every((setup) => (setup.claimIds || []).every((claimId) => config.claimLedger.some((record) => record.claimId === claimId))), 'scope03-setup-claim-reference-parity');
+  const rejectedClaimIds = config.claimLedger.filter((record) => record.verdict === 'rejected').map((record) => record.claimId);
+  check(setups.every((setup) => (setup.claimIds || []).every((claimId) => !rejectedClaimIds.includes(claimId))), 'scope03-no-setup-cites-a-rejected-claim');
+  check(setups.every((setup) => Object.values(setup.parameterBounds || {}).every((bound) => typeof bound.min === 'number' && typeof bound.max === 'number' && bound.min <= bound.max && typeof bound.step === 'number' && bound.step > 0)), 'scope03-setup-parameter-bounds-well-formed');
+  // A trigger-bearing setup must also declare where it can go: targets and an invalidation.
+  check(setups.every((setup) => setup.triggerEvents.length === 0 || (setup.naturalTargetSelectors.length > 0 && setup.invalidation.length > 0)), 'scope03-triggerable-setups-declare-targets-and-invalidation');
+  check(setups.every((setup) => setup.triggerEvents.every((event) => /^(closed|time-distance)-/.test(event))), 'scope03-trigger-events-are-closed-or-acceptance-events');
+
+  // The confluence label is a hard-coded literal so it can never drift into book/order language.
+  check(/var TAD_CONFLUENCE_LABEL = "historical\/model level confluence";/.test(pageSource), 'scope03-confluence-label-is-a-fixed-literal');
+  const scope03Block = pageSource.slice(pageSource.indexOf('Feature 007 Scope 03: levels'), pageSource.indexOf('End Feature 007 Scope 03'));
+  check(scope03Block.length > 0 && !/order.?book|resting liquidity|liquidity (pool|heatmap|map)|stop.?hunt|smart money/i.test(scope03Block), 'scope03-no-order-book-or-liquidity-language');
+  // The transition graph must stay exactly as designed; a stray edge would let ARMED be skipped.
+  check(/SCANNING: \["NO_EDGE", "WATCH"\]/.test(pageSource) && /WATCH: \["ARMED", "NO_EDGE", "EXPIRED"\]/.test(pageSource)
+    && /ARMED: \["TRIGGERED", "WATCH", "INVALIDATED", "EXPIRED"\]/.test(pageSource)
+    && /TRIGGERED: \["INVALIDATED", "EXPIRED", "COMPLETED_EVALUATION"\]/.test(pageSource)
+    && /INVALIDATED: \[\], EXPIRED: \[\], COMPLETED_EVALUATION: \[\]/.test(pageSource), 'scope03-candidate-transition-graph-exact');
+  check(/var TAD_TERMINAL_STATES = \["INVALIDATED", "EXPIRED", "COMPLETED_EVALUATION"\];/.test(pageSource), 'scope03-terminal-states-exact');
 
   // Every committed technique must dispatch through the closed map and answer inside its own
   // declared vocabulary. A formula that drifts from its contract fails here, not in front of a reader.

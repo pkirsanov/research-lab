@@ -4165,6 +4165,155 @@ try {
   const tad02TrendFamily = tad02Clustered.families.filter((family) => family.familyId === 'trend-filters')[0];
   assert(tad02TrendFamily.methodCount === 3 && tad02TrendFamily.clusterCount === 2 && tad02TrendFamily.methodCount > tad02TrendFamily.clusterCount,
     'Family rollups publish raw method count alongside the smaller independent cluster count');
+
+  /* ---------- Scope 03: levels and setup lifecycle ---------- */
+  const tad03Names = ['tadIsFinite', 'tadIdentity', 'tadLevelRefusal', 'tadNormalizeLevels', 'tadClusterConfluence', 'tadUpdateLevelLifecycle',
+    'tadSetupRefusal', 'tadEvaluateSetupDefinition', 'tadTransitionCandidate', 'tadDeriveNaturalTargets', 'tadBuildRiskPlan', 'tadAuditTargets'];
+  const tad03Owned = ['tadNormalizeLevels', 'tadClusterConfluence', 'tadUpdateLevelLifecycle', 'tadEvaluateSetupDefinition',
+    'tadTransitionCandidate', 'tadDeriveNaturalTargets', 'tadBuildRiskPlan', 'tadAuditTargets'];
+  assert(tad03Owned.every((name) => (tadSource.match(new RegExp('function\\s+' + name + '\\s*\\(', 'g')) || []).length === 1),
+    'All 8 Scope 03 declarations exist exactly once in the page');
+  const tad03Vars = ['TAD_CONFLUENCE_LABEL', 'TAD_LEVEL_STATES', 'TAD_LEVEL_TYPES', 'TAD_CANDIDATE_TRANSITIONS', 'TAD_TERMINAL_STATES']
+    .map((name) => tadSource.match(new RegExp('var ' + name + ' = [\\s\\S]*?;\\n'))[0]).join('\n');
+  const tad03 = build(
+    [tad03Vars].concat(tadNames.concat(tad03Names).map((name) => extractFn(tadSource, name))),
+    tadNames.concat(tad03Names)
+  );
+
+  const TAD03_CUTOFF = '2025-06-30T20:00:00.000Z';
+  const tad03RawLevels = [
+    { type: 'swing', methodId: 'daily-swing-low', price: 100, lower: 99.6, upper: 100.4, interval: '1d', timeframeRole: 'setup', observedAt: '2025-06-02T20:00:00.000Z', ageBars: 20 },
+    { type: 'moving-average', methodId: 'sma-50', price: 100.3, lower: 100.1, upper: 100.5, interval: '1d', timeframeRole: 'setup', observedAt: '2025-06-27T20:00:00.000Z', ageBars: 1 },
+    { type: 'profile-node', methodId: 'composite-hvn', price: 100.6, lower: 100.4, upper: 100.8, interval: '1d', timeframeRole: 'primary', observedAt: '2025-06-20T20:00:00.000Z', ageBars: 7 },
+    { type: 'swing', methodId: 'daily-swing-high', price: 108, lower: 107.6, upper: 108.4, interval: '1d', timeframeRole: 'setup', observedAt: '2025-06-10T20:00:00.000Z', ageBars: 14 },
+    { type: 'range-edge', methodId: 'range-top', price: 112, lower: 111.7, upper: 112.3, interval: '1d', timeframeRole: 'primary', observedAt: '2025-06-05T20:00:00.000Z', ageBars: 18 }
+  ];
+  const tad03Norm = tad03.tadNormalizeLevels(tad03RawLevels, { sourceVintageId: 'fixture:2025-06-30', observationCutoff: TAD03_CUTOFF });
+  assert(tad03Norm.ok && tad03Norm.levels.length === 5
+    && tad03Norm.levels.every((level) => /^tad-level:[a-f0-9]{64}$/.test(level.levelId))
+    && new Set(tad03Norm.levels.map((level) => level.levelId)).size === 5,
+    'Normalized levels carry distinct content-addressed identities');
+  assert(tad03Norm.levels.every((level) => level.methodId && level.sourceVintageId && level.interval && level.observedAt && typeof level.uncertainty === 'number' && Array.isArray(level.limitations)),
+    'Every normalized level retains method, source vintage, interval, observation time, and uncertainty');
+  // A level observed after the cutoff would let later information reach an earlier decision.
+  assert(!tad03.tadNormalizeLevels([{ ...tad03RawLevels[0], observedAt: '2025-07-05T20:00:00.000Z' }], { sourceVintageId: 'v', observationCutoff: TAD03_CUTOFF }).ok,
+    'A level observed after the cutoff is refused rather than silently used');
+  assert(!tad03.tadNormalizeLevels([{ ...tad03RawLevels[0], type: 'order-book-liquidity' }], { sourceVintageId: 'v', observationCutoff: TAD03_CUTOFF }).ok,
+    'An unknown level type is refused');
+  assert(!tad03.tadNormalizeLevels([{ ...tad03RawLevels[0], lower: 101, upper: 99 }], { sourceVintageId: 'v', observationCutoff: TAD03_CUTOFF }).ok,
+    'An inverted level zone is refused');
+
+  const tad03Zones = tad03.tadClusterConfluence(tad03Norm.levels, {
+    atr: 1.5, atrDistance: 0.5, sourceCutoff: TAD03_CUTOFF,
+    familyByMethodId: { 'daily-swing-low': 'closing-structure', 'sma-50': 'trend-filters', 'composite-hvn': 'auction-value', 'daily-swing-high': 'closing-structure', 'range-top': 'closing-structure' }
+  });
+  const tad03Cluster = tad03Zones.zones.filter((zone) => zone.memberCount > 1)[0];
+  assert(tad03Zones.ok && tad03Cluster && tad03Cluster.memberCount === 3 && tad03Cluster.memberLevelIds.length === 3,
+    'Nearby levels cluster into one zone without losing any member');
+  assert(tad03Cluster.independentFamilyIds.length === 3 && tad03Cluster.independentFamilyIds.join(',') === 'auction-value,closing-structure,trend-filters',
+    'A confluence zone reports the independent families behind it, not just a member count');
+  // The label is a hard-coded literal precisely so it can never drift into book/order/liquidity language.
+  assert(tad03Zones.zones.every((zone) => zone.label === 'historical/model level confluence'),
+    'Every confluence zone carries the historical/model level confluence label');
+  const tad03ZoneText = JSON.stringify(tad03Zones.zones).toLowerCase();
+  assert(!/liquidity|order.?book|resting|heatmap|depth/.test(tad03ZoneText),
+    'Confluence output contains no liquidity, order-book, resting, heatmap, or depth language');
+  assert(!tad03.tadClusterConfluence(tad03Norm.levels, { atr: 1.5, sourceCutoff: TAD03_CUTOFF }).ok,
+    'Confluence without an explicit volatility distance is refused');
+
+  const tad03Support = tad03Norm.levels.filter((level) => level.methodId === 'daily-swing-low')[0];
+  const tad03Above = { status: 'closed', o: 101, h: 101.6, l: 100.8, c: 101.3 };
+  const tad03Life = (bars) => tad03.tadUpdateLevelLifecycle(tad03Support, bars, { staleAfterBars: 500 });
+  const tad03Wick = tad03Life([tad03Above, { status: 'closed', o: 101, h: 101.5, l: 99.2, c: 101.2 }]);
+  const tad03Break = tad03Life([tad03Above, { status: 'closed', o: 101, h: 101.2, l: 98.5, c: 98.8 }]);
+  const tad03Reclaim = tad03Life([tad03Above, { status: 'closed', o: 101, h: 101.2, l: 98.5, c: 98.8 }, { status: 'closed', o: 99, h: 101.5, l: 98.9, c: 101.1 }]);
+  // This is the assertion that keeps a wick from becoming a confirmed break.
+  assert(tad03Wick.state === 'held' && tad03Wick.intrabarExcursion === true && tad03Wick.closedBeyond === false,
+    'An intrabar excursion with a close back inside is held, never broken');
+  assert(tad03Break.state === 'broken' && tad03Break.closedBeyond === true, 'A close beyond the zone breaks the level');
+  assert(tad03Reclaim.state === 'reclaimed', 'A close back through the zone after a break is a reclaim');
+  assert(tad03Life([tad03Above, { status: 'closed', o: 101, h: 101.2, l: 100.2, c: 100.9 }]).state === 'tested', 'A touch without a closed break is tested');
+  assert(tad03Life([tad03Above, { status: 'closed', o: 101.3, h: 102, l: 101.1, c: 101.8 }]).state === 'active', 'A level with no interaction stays active');
+  assert(tad03.tadUpdateLevelLifecycle(tad03Support, [{ status: 'provisional', o: 101, h: 101, l: 98, c: 98 }], {}).decidedFromClosedBars === 0,
+    'Level lifecycle decides only from closed bars');
+
+  const tad03Definition = tadConfig.setupDefinitions.filter((definition) => definition.setupDefinitionId === 'trend-pullback-continuation/v1')[0];
+  const tad03Base = { profileId: 'us-equity-session-v1', familyStates: { 'closing-structure': 'supports', 'trend-filters': 'supports' } };
+  const tad03Setup = (extra) => tad03.tadEvaluateSetupDefinition(tad03Definition, { ...tad03Base, ...extra });
+  assert(tad03Setup({ familyStates: { 'closing-structure': 'unavailable', 'trend-filters': 'supports' } }).state === 'NO_EDGE',
+    'Unmet required families produce NO_EDGE rather than a setup');
+  assert(tad03Setup({ inGovernedZone: false }).state === 'WATCH', 'Prerequisites without location produce WATCH');
+  assert(tad03Setup({ inGovernedZone: true }).state === 'ARMED', 'Location without a trigger produces ARMED');
+  assert(tad03Setup({ inGovernedZone: true, triggerEventId: 'closed-reclaim' }).state === 'TRIGGERED', 'A declared trigger produces TRIGGERED');
+  // A trigger the definition does not declare cannot promote the candidate past ARMED.
+  const tad03Unknown = tad03Setup({ inGovernedZone: true, triggerEventId: 'wick-through' });
+  assert(tad03Unknown.state === 'ARMED' && tad03Unknown.reasonCodes.some((reason) => reason.indexOf('declared-trigger-not-recognized') === 0),
+    'An undeclared trigger event cannot trigger a setup');
+  assert(!tad03Setup({ profileId: 'unsupported-profile-v1' }).ok, 'A setup refuses an unsupported timeframe profile');
+  assert(tadConfig.setupDefinitions.length === 8 && tadConfig.setupDefinitions.every((definition) => tad03.tadEvaluateSetupDefinition(definition, {
+    profileId: definition.supportedProfileIds[0],
+    familyStates: (definition.requiredFamilyIds || []).reduce((states, familyId) => Object.assign(states, { [familyId]: 'supports' }), {}),
+    inGovernedZone: true
+  }).ok), 'All eight committed setup definitions evaluate through the same owned evaluator');
+
+  const tad03Candidate = 'tad-candidate:selftest';
+  const tad03Step = (events, toState, extra) => tad03.tadTransitionCandidate(tad03Candidate, events, {
+    toState, decisionTime: '2025-06-30T20:00:00.000Z', observationCutoff: '2025-06-30T19:00:00.000Z', reasonCodes: ['selftest'], ...extra
+  });
+  const tad03Watch = tad03Step([], 'WATCH');
+  assert(tad03Watch.ok && tad03Watch.fromState === 'SCANNING' && tad03Watch.event.sequence === 0 && /^tad-event:[a-f0-9]{64}$/.test(tad03Watch.event.eventId),
+    'A first transition starts from SCANNING and appends an identified event');
+  // ARMED cannot be skipped: WATCH has no edge straight to TRIGGERED.
+  assert(!tad03Step(tad03Watch.events, 'TRIGGERED').ok, 'A candidate cannot skip ARMED and jump from WATCH to TRIGGERED');
+  const tad03Armed = tad03Step(tad03Watch.events, 'ARMED', { decisionTime: '2025-06-30T21:00:00.000Z', observationCutoff: '2025-06-30T20:00:00.000Z' });
+  const tad03Trig = tad03Step(tad03Armed.events, 'TRIGGERED', { decisionTime: '2025-06-30T22:00:00.000Z', observationCutoff: '2025-06-30T21:00:00.000Z' });
+  const tad03Done = tad03Step(tad03Trig.events, 'COMPLETED_EVALUATION', { decisionTime: '2025-07-01T20:00:00.000Z', observationCutoff: '2025-07-01T19:00:00.000Z', terminalConditionId: 'target-1-reached', hypotheticalOutcome: { grossR: 1.2, netR: 1.05 } });
+  assert(tad03Done.ok && tad03Done.terminal === true && tad03Done.event.terminalConditionId === 'target-1-reached' && tad03Done.event.hypotheticalOutcome.netR === 1.05,
+    'A terminal transition records its terminal condition and hypothetical outcome');
+  assert(tad03Done.events.length === 4 && tad03Done.events.every((event, index) => event.sequence === index),
+    'The candidate log is append-only and sequentially ordered');
+  // A terminal record must never reopen; a later similar pattern gets a new candidate identity.
+  assert(!tad03Step(tad03Done.events, 'WATCH', { decisionTime: '2025-07-02T20:00:00.000Z', observationCutoff: '2025-07-02T19:00:00.000Z' }).ok,
+    'A terminal candidate cannot reopen');
+  assert(!tad03Step(tad03Trig.events, 'COMPLETED_EVALUATION', { decisionTime: '2025-07-01T20:00:00.000Z', observationCutoff: '2025-07-01T19:00:00.000Z' }).ok,
+    'A terminal transition without a terminal condition is refused');
+  assert(tad03.tadTransitionCandidate(tad03Candidate, [], { toState: 'WATCH', decisionTime: '2025-06-01T00:00:00.000Z', observationCutoff: '2025-06-02T00:00:00.000Z' }).errors[0].code === 'TAD-CANDIDATE-ASOF',
+    'A transition cannot use observations from after its own decision time');
+  assert(tad03Step(tad03Armed.events, 'TRIGGERED', { decisionTime: '2025-06-29T20:00:00.000Z', observationCutoff: '2025-06-29T19:00:00.000Z' }).errors[0].code === 'TAD-CANDIDATE-BACKDATE',
+    'A transition cannot be backdated behind the prior event');
+
+  const tad03Targets = tad03.tadDeriveNaturalTargets(tad03Definition, tad03Norm.levels, { direction: 'long', triggerPrice: 101, observationCutoff: TAD03_CUTOFF });
+  assert(tad03Targets.ok && tad03Targets.targets.length === 2 && tad03Targets.targets[0].price === 108 && tad03Targets.targets[1].price === 112,
+    'Natural targets are the pre-existing sourced levels beyond the trigger, in natural order');
+  assert(tad03Targets.targets.every((target) => target.derivedFrom === 'pre-existing-sourced-level' && target.sourceVintageId && target.methodId),
+    'Every target names the sourced level it came from');
+  const tad03LateLevels = tad03Norm.levels.concat([{ ...tad03Norm.levels[3], levelId: 'tad-level:late', price: 105, observedAt: '2025-07-05T20:00:00.000Z' }]);
+  assert(tad03.tadDeriveNaturalTargets(tad03Definition, tad03LateLevels, { direction: 'long', triggerPrice: 101, observationCutoff: TAD03_CUTOFF }).targets.every((target) => target.targetId !== 'tad-level:late'),
+    'A level observed after the cutoff cannot become a target');
+
+  const tad03Risk = tad03.tadBuildRiskPlan(tad03Definition, { triggerPrice: 101, invalidationPrice: 99.5, targets: tad03Targets.targets, costPolicyId: 'cost/v1', frozenAt: TAD03_CUTOFF });
+  assert(tad03Risk.ok && tad03Risk.riskPlan.direction === 'long' && Math.abs(tad03Risk.riskPlan.riskPerUnit - 1.5) < 1e-9
+    && tad03Risk.riskPlan.orderedTargetIds.length === 2 && /^tad-risk:[a-f0-9]{64}$/.test(tad03Risk.riskPlan.riskPlanId),
+    'The risk plan freezes trigger, invalidation, ordered targets, and its own identity');
+  assert(Math.abs(tad03Risk.riskPlan.targets[0].rewardToRisk - (108 - 101) / 1.5) < 1e-9,
+    'Reward-to-risk is computed from targets that already existed, not fitted to a desired number');
+  assert(!tad03.tadBuildRiskPlan(tad03Definition, { triggerPrice: 101, invalidationPrice: 99.5, targets: [], costPolicyId: 'cost/v1' }).ok,
+    'A risk plan without pre-derived targets is refused');
+  assert(!tad03.tadBuildRiskPlan(tad03Definition, { triggerPrice: 101, invalidationPrice: 101, targets: tad03Targets.targets, costPolicyId: 'cost/v1' }).ok,
+    'A risk plan with zero distance between trigger and invalidation is refused');
+  assert(!tad03.tadBuildRiskPlan(tad03Definition, { triggerPrice: 101, invalidationPrice: 99.5, targets: tad03Targets.targets }).ok,
+    'A risk plan without an explicit cost policy is refused');
+
+  assert(tad03.tadAuditTargets(tad03Risk.riskPlan, tad03Targets.targets).matchesFrozenPlan === true,
+    'The unchanged target set audits clean against the frozen plan');
+  // Adding a target after the plan froze is target fitting: it improves the reward number with no new evidence.
+  assert(tad03.tadAuditTargets(tad03Risk.riskPlan, tad03Targets.targets.concat([{ targetId: 'tad-level:invented', price: 130 }])).findings.some((finding) => finding.code === 'TAD-TARGET-FITTING'),
+    'A target added after the plan froze is reported as target fitting');
+  assert(tad03.tadAuditTargets(tad03Risk.riskPlan, tad03Targets.targets.slice().reverse()).findings.some((finding) => finding.code === 'TAD-TARGET-REORDERED'),
+    'A reordered target path is reported rather than silently accepted');
+  assert(tad03.tadAuditTargets(tad03Risk.riskPlan, [tad03Targets.targets[0]]).findings.some((finding) => finding.code === 'TAD-TARGET-REMOVED'),
+    'A removed target is reported rather than silently accepted');
+
 } catch (e) { failures++; console.log('  ✗ FAIL (Technical Analysis Decision foundation group threw): ' + e.message); }
 /* ---------- End Feature 007 Technical Analysis Decision foundation ---------- */
 

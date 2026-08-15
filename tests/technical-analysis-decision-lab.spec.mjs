@@ -1440,3 +1440,71 @@ test('Regression: SCN-007-023 imported labels stay text and sanitized export omi
   console.log(`[SCN-007-023] xss=blocked omittedKeys=${exported.omittedKeys.length}`);
 });
 /* ---------- End Feature 007 Scope 08: experience publication and registration ---------- */
+
+/* ---------- Feature 007 Scope 09: protected regression and governance closure ---------- */
+test('Regression: SCN-007-032 complete Feature 007 protected matrix remains executable', async ({ page }) => {
+  const { readFileSync } = await import('node:fs');
+  const specSource = readFileSync(new URL('./technical-analysis-decision-lab.spec.mjs', import.meta.url), 'utf8');
+
+  // Every one of the 31 business scenarios must own a persistent heading title. A scenario that
+  // lost its title would otherwise vanish silently while the suite still reported all green.
+  // SCN-007-032 is this closure scenario itself, so it is counted separately rather than folded
+  // into the business set.
+  const headings = [...specSource.matchAll(/test\('Regression: SCN-007-(\d{3})/g)].map((match) => match[1]);
+  const covered = new Set(headings);
+  const business = Array.from({ length: 31 }, (_, index) => String(index + 1).padStart(3, '0'));
+  expect(business.filter((id) => !covered.has(id))).toEqual([]);
+  expect([...covered].filter((id) => !business.includes(id)).sort()).toEqual(['032']);
+  expect(covered.size).toBe(32);
+
+  // Live-stack integrity: no interception, no fulfillment, no service-worker substitution, and no
+  // skipped or exclusive title anywhere in the Feature 007 suite. This guard block is excluded
+  // from its own scan: it NAMES the forbidden tokens in order to ban them, and a scanner that
+  // matched itself would force deleting the ban to make the ban pass.
+  const guardStart = specSource.indexOf('Feature 007 Scope 09: protected regression');
+  const scanned = specSource.slice(0, guardStart);
+  expect(guardStart).toBeGreaterThan(0);
+  expect(scanned).not.toMatch(/page\.route\(|context\.route\(|\.fulfill\s*\(|serviceWorker|cy\.intercept|\bmsw\b|\bnock\b/);
+  expect(scanned).not.toMatch(/test\.(?:skip|only)\(/);
+  expect(scanned).not.toMatch(/test\.describe\.(?:skip|only)\(/);
+  // A required test must never bail out early instead of asserting.
+  expect(scanned).not.toMatch(/if \([^)]*\)\s*\{\s*return;\s*\}/);
+
+  // The 7 shared RLVALID declarations are all resolvable from the running page.
+  const booted = await page.goto(`${baseUrl}/technical-analysis-decision-lab.html?fixture=gate-synthesis&clock=${CLOCK}`);
+  expect(booted && booted.ok()).toBeTruthy();
+  const rlvalidCount = await page.evaluate(() => (typeof globalThis.RLVALID === 'object' && globalThis.RLVALID ? Object.keys(globalThis.RLVALID).length : 0));
+  expect(rlvalidCount).toBe(7);
+
+  // The page still boots, publishes, and answers with an honest fixture band and truth state.
+  await page.waitForFunction(() => window.__TAD_DIAGNOSTICS__?.fixtureId === 'gate-synthesis');
+  await expect(page.locator('#fixtureBand')).toContainText('TEST FIXTURE');
+  await expect(page.locator('#truthState')).toHaveText('DEGRADED');
+  const published = await page.evaluate(() => globalThis.RLDATA?.toolRead?.('technical-analysis-decision-lab') ?? null);
+  expect(published?.metrics?.decisionRead?.contractVersion).toBe('tad-tool-decision-read/v1');
+
+  // Every analytic fixture route still resolves, so no scope's evidence surface has rotted.
+  const fixtures = ['us-equity-65m', 'us-equity-4h-core', 'us-equity-4h-extended', 'continuous-4h', 'early-close',
+    'provisional-week', 'cached-refresh-failure', 'daily-close', 'custom-130m', 'calendar-events',
+    'breakout-participation', 'correlated-uptrend', 'unresolved-range', 'setup-lifecycle', 'gate-synthesis',
+    'owner-publication', 'comparison-roles', 'validation-risk-process'];
+  const unresolved = [];
+  for (const fixture of fixtures) {
+    const response = await page.goto(`${baseUrl}/technical-analysis-decision-lab.html?fixture=${fixture}&clock=${CLOCK}`);
+    if (!response || !response.ok()) { unresolved.push(`${fixture}:http`); continue; }
+    const state = await page.evaluate(async (id) => {
+      for (let attempt = 0; attempt < 40; attempt += 1) {
+        const diagnostics = window.__TAD_DIAGNOSTICS__;
+        if (diagnostics) return { fixtureId: diagnostics.fixtureId, truthState: diagnostics.truthState };
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      return null;
+    }, fixture);
+    // A route that renders an honest unavailable receipt still counts as resolved; a route that
+    // never produces any diagnostic at all does not.
+    if (!state) unresolved.push(`${fixture}:no-diagnostics`);
+  }
+  expect(unresolved).toEqual([]);
+  console.log(`[SCN-007-032] scenarioTitles=${covered.size} fixtures=${fixtures.length} rlvalid=${rlvalidCount} interception=none`);
+});
+/* ---------- End Feature 007 Scope 09: protected regression and governance closure ---------- */

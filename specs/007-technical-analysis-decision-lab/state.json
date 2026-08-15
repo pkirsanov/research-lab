@@ -3,8 +3,8 @@
   "featureDir": "specs/007-technical-analysis-decision-lab",
   "featureName": "Technical Analysis Decision Lab",
   "createdAt": "2026-07-15T15:54:54Z",
-  "status": "in_progress",
-  "blockedReason": null,
+  "status": "blocked",
+  "blockedReason": "OPERATOR ACTION REQUIRED — Gate G136 human acceptance. All nine scopes are Done with executed evidence, but specs/007-technical-analysis-decision-lab/uservalidation.md has 17 unchecked acceptance items. A terminal transition to done claims human acceptance of every one, and an agent checking those boxes would fabricate that acceptance, so no agent can clear this. UNBLOCK BY: reviewing the 17 items in uservalidation.md and checking or rejecting each. A rejection routes to /bubbles.validate for root cause. SECONDARY (non-blocking for the operator, agent-actionable in a dedicated planning pass): state-transition-guard reports 160 residual findings, all planning-artifact template shape requirements applied uniformly to all nine scope.md files (DoD-Gherkin content fidelity, shared-infrastructure canary Test Plan rows and rollback/canary DoD items, change-boundary surface enumeration, consumer-impact-sweep sections, scenario-specific and broader E2E DoD items) plus deferral-language hits confined to scopes 01-04. These predate this delivery session and apply identically to scopes 01-04 authored earlier. They were NOT retrofitted here because authoring planning artifacts after delivery purely to satisfy a guard is the fabrication pattern the framework exists to prevent; they need a real planning pass.",
   "supersededBlockedReason": "The owner five-gate decision model is unimplemented: `computeTechnicalFiveGateSummary` in rlexperience-adapters/market-structure.js returns state `unavailable` unconditionally and publishes the gap verbatim as \"The owner five-gate model (context/location/confirmation/validation gate scoring plus setup-state and expectancy) is not implemented in technical-analysis-decision-lab.html, a Scope-01 foundation-receipt validator that publishes no analytic result (ownerReadPublished:false).\" The shipped page is therefore a data-foundation receipt only, not an analytic surface. This capability is unbuilt rather than merely unrecorded: 8 of this spec's 9 scopes are Not Started — including 04-five-gate-synthesis, 03-setup-lifecycle, and 07-validation-risk-process, the scopes that would build the gate scoring, setup-state, and expectancy the runtime names as missing — and the ninth, 01-capability-foundation, is Blocked. Unblocking Scope 01 requires the canonical traceability run recorded in statusReconciliation.resolution; Scopes 02-09 cannot start until it clears.",
   "statusReconciliation": {
     "recordedBy": "orchestrator",
@@ -52,7 +52,7 @@
   "execution": {
     "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
-    "currentScope": "09-regression-closure",
+    "currentScope": null,
     "runStartedAt": "2026-07-15T18:01:42Z",
     "completedPhaseClaims": [],
     "pendingTransitionRequests": [],
@@ -177,7 +177,7 @@
         "scope": 9,
         "scopeId": "09-regression-closure",
         "name": "Protected Regression And Governance Closure",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "1",
           "2",
@@ -201,7 +201,7 @@
     }
   },
   "certification": {
-    "status": "in_progress",
+    "status": "blocked",
     "completedScopes": [],
     "certifiedCompletedPhases": [],
     "scopeProgress": [
@@ -332,7 +332,7 @@
         "scope": 9,
         "scopeId": "09-regression-closure",
         "name": "Protected Regression And Governance Closure",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "1",
           "2",
@@ -345,7 +345,8 @@
         ],
         "scopeDir": "scopes/09-regression-closure",
         "scopeArtifact": "scopes/09-regression-closure/scope.md",
-        "reportArtifact": "scopes/09-regression-closure/report.md"
+        "reportArtifact": "scopes/09-regression-closure/report.md",
+        "certifiedAt": "2026-08-15T07:45:00Z"
       }
     ],
     "lockdownState": {
@@ -446,7 +447,7 @@
   "activeBugs": [],
   "resolvedBugs": [],
   "failures": [],
-  "lastUpdatedAt": "2026-07-15T18:11:17Z",
+  "lastUpdatedAt": "2026-08-15T20:48:05Z",
   "scopeLayout": "per-scope-directory",
   "artifacts": {
     "spec": "spec.md",

@@ -186,7 +186,7 @@ All nine Test Plan rows executed with recorded output. Selftest 1863/0, validato
 
 ## Audit Verdict
 
-Three defects were found by probing observed behaviour, and all three were fixed rather than deferred.
+Three defects were found by probing observed behaviour, and all three were fixed inside this scope.
 
 **D1 — summary facts described one situation while five were displayed.** The band populated its four facts from the `complete` situation only, so a reader would have seen "Option positioning: eligible" directly above a record refusing it. Found because the SCN-007-015 assertion read the visible fact and disagreed with the per-situation record. Fixed by aggregating across every situation and naming the distinct refusal codes.
 

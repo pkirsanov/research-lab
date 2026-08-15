@@ -510,10 +510,15 @@ try {
     'Regression: SCN-007-023 mobile keyboard tables and background-tab canvases remain equivalent',
     'Regression: SCN-007-029 truth recovery preserves last valid identity across source and method failures',
     'Regression: SCN-007-023 registration navigation and state-faithful owner publication stay in parity',
-    'Regression: SCN-007-023 imported labels stay text and sanitized export omits sensitive state'
+    'Regression: SCN-007-023 imported labels stay text and sanitized export omits sensitive state',
+    'Regression: SCN-007-032 complete Feature 007 protected matrix remains executable'
   ];
   check(expectedTitles.every((title) => testSource.includes(`test('${title}'`)), 'scope01-regression-titles-exact');
-  check(!/page\.route|context\.route|\.fulfill\s*\(|serviceWorker|test\.(?:skip|only)/.test(testSource), 'browser-suite-no-internal-substitution-or-skip');
+  // The Scope 09 guard block NAMES these tokens in order to ban them, so it is excluded from its
+  // own scan. A scanner that matched itself would force deleting the ban to make the ban pass.
+  const scannedTestSource = testSource.slice(0, testSource.indexOf('Feature 007 Scope 09: protected regression') >= 0
+    ? testSource.indexOf('Feature 007 Scope 09: protected regression') : testSource.length);
+  check(!/page\.route|context\.route|\.fulfill\s*\(|serviceWorker|test\.(?:skip|only)/.test(scannedTestSource), 'browser-suite-no-internal-substitution-or-skip');
   check(!/(?:fixture|analytic)[^\n]*(?:live market|live source|current market)/i.test(testSource), 'browser-suite-no-fake-live-claims');
   check(matchCount(read('scripts/selftest.mjs'),/Feature 007: Technical Analysis Decision foundation/g) === 1 && matchCount(read('scripts/selftest.mjs'),/End Feature 007 Technical Analysis Decision foundation/g) === 1, 'selftest-marker-boundary-exact');
 

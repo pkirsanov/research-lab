@@ -4929,6 +4929,182 @@ try {
     'A later complete run replaces the committed result atomically with its own identity');
   assert(/setTimeout\(function \(\) \{ step\(index \+ 1\); \}, 0\)/.test(tad07RunnerSource),
     'Work units yield to the event loop between units rather than blocking the page');
+  /* ---------- Scope 08: experience publication and registration ---------- */
+  const tad08Names = ['tadExperienceRefusal', 'tadBuildViewModel', 'tadBuildToolDecisionRead', 'tadBuildExport'];
+  assert(tad08Names.every((name) => (tadSource.match(new RegExp('function\\s+' + name + '\\s*\\(', 'g')) || []).length === 1),
+    'All 3 Scope 08 declarations plus their refusal helper exist exactly once in the page');
+  const tad08 = build(
+    [tadSource.match(/var TAD_SENSITIVE_KEYS = [\s\S]*?;\n/)[0]]
+      .concat(tadNames.concat(['tadIdentity', 'tadIsFinite'], tad08Names).map((name) => extractFn(tadSource, name))),
+    tadNames.concat(['tadIdentity', 'tadIsFinite'], tad08Names).concat(['TAD_SENSITIVE_KEYS'])
+  );
+
+  // All 65 exact design declarations exist in the page exactly once.
+  const tad08Design = [...read('specs/007-technical-analysis-decision-lab/design.md').matchAll(/\btad[A-Z][A-Za-z0-9]*/g)]
+    .map((match) => match[0]).filter((name, index, all) => all.indexOf(name) === index).sort();
+  assert(tad08Design.length === 65, 'design.md declares exactly 65 tad* symbols');
+  const tad08Missing = tad08Design.filter((name) => (tadSource.match(new RegExp('function\\s+' + name + '\\s*\\(', 'g')) || []).length !== 1);
+  assert(tad08Missing.length === 0, 'All 65 design-declared tad* symbols are implemented exactly once in the page');
+
+  // The page routes lookups through byId() and setText(), so the literal getElementById gate
+  // passes vacuously (refs=0). Resolve BOTH helpers against the document's declared ids instead.
+  const tad08Ids = new Set([...tadSource.matchAll(/\bid=["']([^"']+)["']/g)].map((match) => match[1]));
+  const tad08Refs = [...tadSource.matchAll(/\bbyId\(\s*["']([^"']+)["']\s*\)/g)].map((match) => match[1])
+    .concat([...tadSource.matchAll(/\bsetText\(\s*["']([^"']+)["']/g)].map((match) => match[1]));
+  const tad08BadRefs = [...new Set(tad08Refs.filter((id) => !tad08Ids.has(id)))];
+  assert(tad08Refs.length > 100 && tad08BadRefs.length === 0,
+    'Every byId and setText reference in the page resolves to a declared element id (' + tad08Refs.length + ' references)');
+
+  const tad08Read = {
+    readId: 'tad-read:' + 'f'.repeat(64), state: 'NO_EDGE', selectedCandidateId: null,
+    selectionBasis: 'no-candidate-cleared-every-mandatory-gate', nearestMissingCondition: 'location',
+    ranked: [{ candidateId: 'c-1', rank: 1, setupDefinitionId: 'balanced-breakout/v1' }]
+  };
+  const tad08Context = {
+    gates: [{ order: 1, gateId: 'primary', outcome: 'pass', diagnosticOnly: false, observed: 'aligned', required: 'aligned' },
+      { order: 3, gateId: 'location', outcome: 'fail', diagnosticOnly: false, observed: 'extended', required: 'in zone' }],
+    comparison: { comparisonSetId: 'tad-comparison:abc', results: [{ role: 'direct-peer', state: 'relative-weakness', denominator: 3, percentileState: 'available' }], contradictions: [{ role: 'direct-peer' }] },
+    passport: { passportId: 'tad-passport:def', status: 'descriptive-only', netAvailable: false },
+    process: { state: 'caution', findings: [{ code: 'CHANGED-PRECOMMITMENT' }] },
+    truthState: 'degraded', decisionCutoff: '2026-02-13T21:00:00.000Z', sourceSetId: 'analytic',
+    caveats: ['Analytic deterministic fixture.'], mode: 'simple'
+  };
+  const tad08Model = tad08.tadBuildViewModel(tad08Read, tad08Context);
+  assert(tad08Model.ok && tad08Model.viewModel.contractVersion === 'tad-view-model/v1'
+    && /^tad-view:[a-f0-9]{64}$/.test(tad08Model.viewModel.projectionIdentity),
+    'A resolved unified read builds a content-addressed view model');
+
+  // SCN-007-023: display state is EXCLUDED from the identity, so Simple and Power cannot disagree.
+  ['power', 'simple'].forEach((mode) => {
+    ['a', 'b'].forEach((sortKey) => {
+      [true, false].forEach((disclosureOpen) => {
+        const projected = tad08.tadBuildViewModel(tad08Read, { ...tad08Context, mode, sortKey, disclosureOpen, focusId: mode + sortKey });
+        assert(projected.viewModel.projectionIdentity === tad08Model.viewModel.projectionIdentity,
+          'Changing mode, sort, disclosure or focus never changes the projection identity');
+      });
+    });
+  });
+  assert(tad08.tadBuildViewModel(tad08Read, { ...tad08Context, truthState: 'current' }).viewModel.projectionIdentity !== tad08Model.viewModel.projectionIdentity,
+    'A changed truth state DOES change the projection identity, so the exclusion is scoped rather than blanket');
+  assert(tad08.tadBuildViewModel(tad08Read, { ...tad08Context, mode: 'power' }).viewModel.display.mode === 'power',
+    'The view model still records the current display mode for rendering');
+  // A view model carrying a callback could let one mode compute what the other never saw.
+  const tad08Flat = JSON.stringify(tad08Model.viewModel);
+  assert(tad08Flat.indexOf('function') < 0 && Object.keys(tad08Model.viewModel).every((key) => typeof tad08Model.viewModel[key] !== 'function'),
+    'The view model is presentation-safe and carries no calculation callback');
+  assert(tad08.tadBuildViewModel({}, tad08Context).errors[0].code === 'TAD-VIEWMODEL-INPUT',
+    'A view model refuses to build without a resolved unified read');
+
+  // Tool decision read: exact contract, truth carried through, incomplete never published.
+  const tad08Decision = tad08.tadBuildToolDecisionRead(tad08Model.viewModel, { asOf: '2026-02-13T21:00:00.000Z', fixtureId: 'gate-synthesis', complete: true });
+  assert(tad08Decision.ok && tad08Decision.toolRead.contractVersion === 'rl-tool-read/v1'
+    && tad08Decision.toolRead.metrics.decisionRead.contractVersion === 'tad-tool-decision-read/v1',
+    'The published read nests an exact tad-tool-decision-read/v1 inside rl-tool-read/v1');
+  assert(tad08Decision.toolRead.metrics.decisionRead.truthState === 'degraded'
+    && tad08Decision.toolRead.metrics.decisionRead.validationStatus === 'descriptive-only'
+    && tad08Decision.toolRead.metrics.decisionRead.processState === 'caution',
+    'Truth, validation and process states are carried through exactly and never upgraded');
+  assert(tad08Decision.toolRead.metrics.decisionRead.educationalOnly === true
+    && tad08Decision.toolRead.metrics.decisionRead.limitations.some((entry) => /not investment advice/.test(entry)),
+    'The published read carries the educational-only marker and its limitation');
+  assert(tad08Decision.toolRead.deepLink === 'technical-analysis-decision-lab.html?fixture=gate-synthesis',
+    'The deep link is a safe same-origin route with an encoded fixture id');
+  assert(tad08.tadBuildToolDecisionRead(tad08Model.viewModel, { asOf: '2026-02-13T21:00:00.000Z', complete: false }).errors[0].code === 'TAD-TOOLREAD-INCOMPLETE',
+    'An incomplete or cancelled run publishes nothing');
+  assert(tad08.tadBuildToolDecisionRead(tad08Model.viewModel, {}).errors[0].code === 'TAD-TOOLREAD-ASOF',
+    'A read without an as-of timestamp is refused');
+  // A non-finite metric is OMITTED, because a zero count and an unmeasured count read identically.
+  const tad08NoComparison = tad08.tadBuildViewModel(tad08Read, { ...tad08Context, comparison: null });
+  const tad08NoComparisonRead = tad08.tadBuildToolDecisionRead(tad08NoComparison.viewModel, { asOf: '2026-02-13T21:00:00.000Z', complete: true });
+  assert(!Object.prototype.hasOwnProperty.call(tad08NoComparisonRead.toolRead.metrics, 'contradictionCount')
+    && Object.prototype.hasOwnProperty.call(tad08Decision.toolRead.metrics, 'contradictionCount'),
+    'An unmeasured numeric metric is omitted rather than published as zero or null');
+
+  // SCN-007-023: the sanitized export omits sensitive state and says what it withheld.
+  const tad08Export = tad08.tadBuildExport(tad08Model.viewModel, {
+    sourceVintage: 'vintage-1', apiKey: 'SHOULD-NOT-APPEAR', credentials: { token: 'SHOULD-NOT-APPEAR' },
+    holdings: [{ symbol: 'X', costBasis: 1 }], account: { balance: 5 }, privateNotes: 'SHOULD-NOT-APPEAR',
+    nested: { authorization: 'SHOULD-NOT-APPEAR', keep: 'public' }
+  });
+  assert(tad08Export.ok && tad08Export.export.contractVersion === 'tad-export/v1'
+    && tad08Export.export.resultIdentity === tad08Model.viewModel.resultIdentity,
+    'The export carries the exact result identity under its own contract version');
+  const tad08ExportFlat = JSON.stringify(tad08Export.export);
+  assert(tad08ExportFlat.indexOf('SHOULD-NOT-APPEAR') < 0,
+    'No credential, token, authorization, or private note value survives into the export');
+  ['apiKey', 'credentials', 'holdings', 'account', 'privateNotes', 'authorization'].forEach((key) => {
+    assert(tad08ExportFlat.indexOf('"' + key + '"') < 0, 'The export omits the ' + key + ' key entirely');
+  });
+  assert(tad08Export.export.audit.nested.keep === 'public', 'Public audit fields survive sanitization');
+  assert(tad08Export.omittedKeys.length >= 6 && tad08Export.omittedKeys.some((path) => /apiKey/.test(path)),
+    'The export reports which paths it withheld rather than silently dropping them');
+  assert(tad08Export.export.educationalOnly === true && /Not investment advice/.test(tad08Export.export.boundary),
+    'The export states the educational boundary');
+  // Executable markup must not survive as an executable field.
+  const tad08Hostile = tad08.tadBuildExport(tad08Model.viewModel, { label: '<img src=x onerror=alert(1)>' });
+  assert(typeof tad08Hostile.export.audit.label === 'string',
+    'A hostile imported label stays a string value in the export rather than becoming markup');
+
+  // Registration parity across all three registries, in identical order.
+  const tad08Tools = JSON.parse(read('tools.json'));
+  const tad08ToolList = Array.isArray(tad08Tools) ? tad08Tools : tad08Tools.tools;
+  const tad08Entry = tad08ToolList.filter((entry) => entry.id === 'technical-analysis-decision-lab')[0];
+  assert(tad08Entry && tad08Entry.file === 'technical-analysis-decision-lab.html'
+    && tad08Entry.notes === 'notes/technical-analysis-decision-lab.md'
+    && tad08Entry.data === 'technical-analysis-decision-universe.json' && tad08Entry.status === 'live',
+    'tools.json registers the route, note, config and live status exactly');
+  const tad08Index = read('index.html'), tad08Nav = read('rlnav.js');
+  assert(tad08Index.indexOf("id: 'technical-analysis-decision-lab'") >= 0
+    && tad08Index.indexOf("file: 'technical-analysis-decision-lab.html'") >= 0
+    && tad08Index.indexOf("notes: 'notes/technical-analysis-decision-lab.md'") >= 0,
+    'index.html registers the same route and note');
+  assert(tad08Nav.indexOf('file: "technical-analysis-decision-lab.html"') >= 0,
+    'rlnav.js registers the same route');
+  // Order parity across the three registries. The requirement is order-EQUALITY across the common
+  // tool set, not that the entry sits last: it was registered by an earlier scope and sits
+  // mid-list, and rlnav.js additionally carries the home link, so a naive length or last-position
+  // comparison would be wrong rather than strict.
+  const tad08ToolIds = tad08ToolList.map((entry) => entry.id);
+  const tad08IndexOrder = [...tad08Index.matchAll(/^\s*id: '([a-z0-9-]+)',$/gm)].map((match) => match[1]);
+  const tad08NavOrder = [...tad08Nav.matchAll(/file: "([a-z0-9.-]+)\.html"/g)].map((match) => match[1]);
+  assert(tad08ToolIds.indexOf('technical-analysis-decision-lab') >= 0
+    && tad08IndexOrder.indexOf('technical-analysis-decision-lab') >= 0
+    && tad08NavOrder.indexOf('technical-analysis-decision-lab') >= 0,
+    'The tool is registered in tools.json, index.html and rlnav.js');
+  const tad08Common = tad08ToolIds.filter((id) => tad08IndexOrder.includes(id) && tad08NavOrder.includes(id));
+  assert(tad08Common.length === tad08ToolIds.length,
+    'Every tools.json entry is also present in index.html and rlnav.js, so no registry is stale');
+  const tad08ByIndex = tad08Common.slice().sort((left, right) => tad08IndexOrder.indexOf(left) - tad08IndexOrder.indexOf(right));
+  const tad08ByNav = tad08Common.slice().sort((left, right) => tad08NavOrder.indexOf(left) - tad08NavOrder.indexOf(right));
+  assert(JSON.stringify(tad08Common) === JSON.stringify(tad08ByIndex),
+    'tools.json and index.html declare every tool in identical relative order');
+  assert(JSON.stringify(tad08Common) === JSON.stringify(tad08ByNav),
+    'tools.json and rlnav.js declare every tool in identical relative order');
+  assert(existsSync(join(ROOT, 'notes/technical-analysis-decision-lab.md')), 'The registered note file exists');
+  const tad08Note = read('notes/technical-analysis-decision-lab.md');
+  assert(/technical-analysis-decision-lab\.html/.test(tad08Note) && /technical-analysis-decision-universe\.json/.test(tad08Note)
+    && /node scripts\/selftest\.mjs/.test(tad08Note) && /node scripts\/validate-technical-analysis-decision\.mjs/.test(tad08Note),
+    'The note resolves the route, the config and the exact validation commands');
+  assert(/E = p\*W - \(1-p\)\*L/.test(tad08Note) && /3\.738R/.test(tad08Note) && /186\.9R/.test(tad08Note)
+    && /signApplied/.test(tad08Note) && /prefers-reduced-motion/.test(tad08Note),
+    'The note carries the key formulas, the option-convention rule and the accessibility contract');
+
+  // Shared script order on the page.
+  const tad08Order = ['rldata.js', 'rlapp.js', 'rlg.js', 'rlvalidation.js', 'rlchart.js', 'rlticker.js'].map((file) => tadSource.indexOf('src="' + file + '"'));
+  assert(tad08Order.every((position) => position > 0) && tad08Order.every((position, index) => index === 0 || position > tad08Order[index - 1]),
+    'The shared shell scripts load in the declared order');
+  assert(tadSource.indexOf('src="rlnav.js"') > tadSource.indexOf('src="rlapp.js"'),
+    'rlnav.js loads after rlapp.js');
+
+  // Simple and Power are one page with a display-only toggle.
+  assert(/id="modeSeg"/.test(tadSource) && /data-mode="simple"/.test(tadSource) && /data-mode="power"/.test(tadSource),
+    'The page exposes a Simple and Power mode segment');
+  assert(/body\.power \.band\.pw/.test(tadSource) && /\.band\.pw \{\s*display: none;/.test(tadSource),
+    'Power-only bands are hidden until the mode is switched, so Simple is the default');
+  assert(/prefers-reduced-motion/.test(tadSource) && /max-width: 600px/.test(tadSource),
+    'The page honours reduced motion and collapses to one column on a narrow viewport');
+  assert(/RLCHART\.attach\(/.test(tadSource) && /a11y-table/.test(tadSource),
+    'The gate canvas attaches a hover contract and has an equivalent accessible table');
 
 } catch (e) { failures++; console.log('  ✗ FAIL (Technical Analysis Decision foundation group threw): ' + e.message); }
 /* ---------- End Feature 007 Technical Analysis Decision foundation ---------- */

@@ -95,9 +95,12 @@ try {
   const scope07Helpers = ['tadValidationRefusal'];
   const scope07Names = ['tadBuildPurgedEvaluation', 'tadSimulateSetupVariant', 'tadApplyCosts', 'tadSummarizeValidation',
     'tadBuildValidationPassport', 'tadAuditExpectancy', 'tadLossStreakScenario', 'tadEvaluateBehaviorGuard'];
+  // Scope 08 completes the 65 design-declared symbols with the projection, publication and export builders.
+  const scope08Helpers = ['tadExperienceRefusal'];
+  const scope08Names = ['tadBuildViewModel', 'tadBuildToolDecisionRead', 'tadBuildExport'];
   const tad = buildFunctions(pageSource, scope01Names.concat(scope02Helpers, scope02Names));
   const physicalTadNames = [...pageSource.matchAll(/function\s+(tad[A-Za-z0-9]+)\s*\(/g)].map((match) => match[1]);
-  const declaredNames = scope01Names.concat(scope02Helpers, scope02Names, scope03Helpers, scope03Names, scope04Helpers, scope04Names, scope05Names, scope06Names, scope07Helpers, scope07Names);
+  const declaredNames = scope01Names.concat(scope02Helpers, scope02Names, scope03Helpers, scope03Names, scope04Helpers, scope04Names, scope05Names, scope06Names, scope07Helpers, scope07Names, scope08Helpers, scope08Names);
   check(physicalTadNames.length === declaredNames.length && new Set(physicalTadNames).size === declaredNames.length && scope01Names.every((name) => physicalTadNames.includes(name)), 'scope01-production-declarations-20-exact');
   check(scope02Names.length === 17 && scope02Names.every((name) => physicalTadNames.includes(name)), 'scope02-production-declarations-17-exact');
   check(scope03Names.length === 8 && scope03Names.every((name) => physicalTadNames.includes(name)), 'scope03-production-declarations-8-exact');
@@ -105,6 +108,12 @@ try {
   check(scope05Names.length === 4 && scope05Names.every((name) => physicalTadNames.includes(name)), 'scope05-adapter-declarations-4-exact');
   check(scope06Names.length === 4 && scope06Names.every((name) => physicalTadNames.includes(name)), 'scope06-comparison-declarations-4-exact');
   check(scope07Names.length === 8 && scope07Names.every((name) => physicalTadNames.includes(name)), 'scope07-validation-declarations-8-exact');
+  check(scope08Names.length === 3 && scope08Names.every((name) => physicalTadNames.includes(name)), 'scope08-experience-declarations-3-exact');
+  // The 65 design-declared symbols are now complete. This is derived from design.md, never a literal.
+  const designSymbols = [...read('specs/007-technical-analysis-decision-lab/design.md').matchAll(/\btad[A-Z][A-Za-z0-9]*/g)]
+    .map((match) => match[0]).filter((name, index, all) => all.indexOf(name) === index);
+  check(designSymbols.length === 65, 'scope08-design-declares-65-symbols');
+  check(designSymbols.every((name) => matchCount(pageSource, new RegExp(`function\\s+${name}\\s*\\(`, 'g')) === 1), 'scope08-all-65-symbols-implemented-once');
 
   // The five mandatory gates are ordered and closed. A sixth gate, a reordering, or a renamed gate
   // would change what "every mandatory gate passed" means without any test noticing.
@@ -431,6 +440,54 @@ try {
   check(/cancelled: true, committed: self\.committed/.test(runnerBlock), 'scope07-cancelled-run-preserves-prior-commit');
   check(!/function\s+tadValidationRunner/.test(pageSource) && !physicalTadNames.includes('tadValidationRunner'), 'scope07-runner-is-not-a-pure-symbol');
 
+  // ---------- Scope 08: experience publication and registration ----------
+  const scope08Block = pageSource.slice(pageSource.indexOf('Feature 007 Scope 08: experience publication'), pageSource.lastIndexOf('End Feature 007 Scope 08: experience publication'));
+  check(scope08Block.length > 0, 'scope08-marker-block-present');
+  check(scope08Names.every((name) => scope08Block.includes(`function ${name}(`)), 'scope08-declarations-inside-marker-block');
+  // Display state must be outside the projection identity, or the two modes could diverge.
+  const identityCall = scope08Block.slice(scope08Block.indexOf('model.projectionIdentity = tadIdentity'), scope08Block.indexOf('return tadDeepFreeze({ ok: true, errors: [], viewModel'));
+  check(identityCall.length > 0 && !/\bdisplay\b/.test(identityCall), 'scope08-display-state-excluded-from-identity');
+  check(/resultIdentity: model\.resultIdentity/.test(identityCall) && /truth: model\.truth/.test(identityCall), 'scope08-identity-covers-result-and-truth');
+  check(/TAD-TOOLREAD-INCOMPLETE/.test(scope08Block), 'scope08-incomplete-run-never-published');
+  check(/if \(tadIsFinite\(pair\[1\]\)\) numeric\[pair\[0\]\] = pair\[1\];/.test(scope08Block), 'scope08-non-finite-metric-omitted');
+  check(/var TAD_SENSITIVE_KEYS = \[/.test(pageSource) && ['credential', 'token', 'holdings', 'account', 'costBasis', 'pnl', 'privateNote']
+    .every((key) => new RegExp(`"${key}`, 'i').test(pageSource.slice(pageSource.indexOf('var TAD_SENSITIVE_KEYS'), pageSource.indexOf('var TAD_SENSITIVE_KEYS') + 600))), 'scope08-sensitive-key-list-complete');
+  check(/omitted\.push\(path \+ "\." \+ key\)/.test(scope08Block), 'scope08-export-reports-what-it-withheld');
+  check(/educationalOnly: true/.test(scope08Block), 'scope08-educational-marker-published');
+  // Simple/Power shell, accessibility and responsive contracts.
+  check(/id="modeSeg"/.test(pageSource) && /data-mode="simple"/.test(pageSource) && /data-mode="power"/.test(pageSource), 'scope08-mode-segment-present');
+  check(/\.band\.pw \{\s*display: none;/.test(pageSource) && /body\.power \.band\.pw \{\s*display: block;/.test(pageSource), 'scope08-simple-is-default-power-hidden');
+  check(/RLCHART\.attach\(/.test(pageSource), 'scope08-canvas-attaches-hover-contract');
+  check(/id="simpleGateTable"/.test(pageSource) && /class="a11y-table"/.test(pageSource), 'scope08-canvas-has-equivalent-accessible-table');
+  check(/prefers-reduced-motion/.test(pageSource), 'scope08-reduced-motion-honoured');
+  check(/@media \(max-width: 600px\)/.test(pageSource), 'scope08-single-column-below-600px');
+  check(/min-height: 44px/.test(pageSource), 'scope08-44px-touch-targets');
+  // Registration parity, derived rather than asserted from a literal list.
+  const toolsRegistry = json('tools.json');
+  const toolEntries = Array.isArray(toolsRegistry) ? toolsRegistry : toolsRegistry.tools;
+  const toolIds = toolEntries.map((entry) => entry.id);
+  const registered = toolEntries.filter((entry) => entry.id === 'technical-analysis-decision-lab')[0];
+  check(!!registered && registered.file === 'technical-analysis-decision-lab.html'
+    && registered.notes === 'notes/technical-analysis-decision-lab.md'
+    && registered.data === 'technical-analysis-decision-universe.json' && registered.status === 'live', 'scope08-tools-json-entry-exact');
+  const indexSource = read('index.html'), navSource = read('rlnav.js');
+  const indexIds = [...indexSource.matchAll(/^\s*id: '([a-z0-9-]+)',$/gm)].map((match) => match[1]);
+  const navIds = [...navSource.matchAll(/file: "([a-z0-9.-]+)\.html"/g)].map((match) => match[1]);
+  check(toolIds.every((id) => indexIds.includes(id)) && toolIds.every((id) => navIds.includes(id)), 'scope08-no-stale-registry-reference');
+  const byIndex = toolIds.slice().sort((left, right) => indexIds.indexOf(left) - indexIds.indexOf(right));
+  const byNav = toolIds.slice().sort((left, right) => navIds.indexOf(left) - navIds.indexOf(right));
+  check(JSON.stringify(toolIds) === JSON.stringify(byIndex) && JSON.stringify(toolIds) === JSON.stringify(byNav), 'scope08-registry-order-equal');
+  // Shared script order.
+  const scriptOrder = ['rldata.js', 'rlapp.js', 'rlg.js', 'rlvalidation.js', 'rlchart.js', 'rlticker.js'].map((file) => pageSource.indexOf(`src="${file}"`));
+  check(scriptOrder.every((position) => position > 0) && scriptOrder.every((position, index) => index === 0 || position > scriptOrder[index - 1]), 'scope08-shared-script-order-exact');
+  check(pageSource.indexOf('src="rlnav.js"') > pageSource.indexOf('src="rlapp.js"'), 'scope08-rlnav-loads-last');
+  // Note handoff resolves every referenced path and command.
+  const noteSource = read('notes/technical-analysis-decision-lab.md');
+  ['technical-analysis-decision-lab.html', 'technical-analysis-decision-universe.json', 'tools.json', 'rlnav.js']
+    .forEach((reference) => check(noteSource.includes(reference), `scope08-note-references-${reference.replace(/[^a-z0-9]/gi, '-')}`));
+  ['node scripts/selftest.mjs', 'node scripts/validate-technical-analysis-decision.mjs', 'node scripts/audit-reader-legibility.mjs']
+    .forEach((command) => check(noteSource.includes(command), `scope08-note-declares-${command.split('/').pop().replace(/[^a-z0-9]/gi, '-')}`));
+
   const expectedTitles = [
     'Regression: SCN-007-005 stock four-hour profile exposes session remainder and variant identity',
     'Regression: SCN-007-006 continuous-market four-hour profile has equal session boundaries',
@@ -447,7 +504,13 @@ try {
     'Regression: SCN-007-018 explicit costs separate gross and net expectancy and breakeven',
     'Regression: SCN-007-019 expectancy audit computes 186',
     'Regression: SCN-007-020 changed setup parameters create descriptive-only identity without inherited passport',
-    'Regression: SCN-007-021 chase distance blocks the frozen plan without diagnosing emotion'
+    'Regression: SCN-007-021 chase distance blocks the frozen plan without diagnosing emotion',
+    'Regression: SCN-007-023 Simple and Power preserve one result with zero display-mode requests',
+    'Regression: SCN-007-029 invalid configuration preserves last valid identity and corrects without refetch',
+    'Regression: SCN-007-023 mobile keyboard tables and background-tab canvases remain equivalent',
+    'Regression: SCN-007-029 truth recovery preserves last valid identity across source and method failures',
+    'Regression: SCN-007-023 registration navigation and state-faithful owner publication stay in parity',
+    'Regression: SCN-007-023 imported labels stay text and sanitized export omits sensitive state'
   ];
   check(expectedTitles.every((title) => testSource.includes(`test('${title}'`)), 'scope01-regression-titles-exact');
   check(!/page\.route|context\.route|\.fulfill\s*\(|serviceWorker|test\.(?:skip|only)/.test(testSource), 'browser-suite-no-internal-substitution-or-skip');

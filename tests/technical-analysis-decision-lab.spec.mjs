@@ -1205,3 +1205,238 @@ test('Regression: SCN-007-021 chase distance blocks the frozen plan without diag
   console.log(`[SCN-007-021] chasing=${byKey.chasing.state} withinPlan=${byKey.withinPlan.state} changedRR=${byKey.chasing.changedRewardToRisk.toFixed(4)}`);
 });
 /* ---------- End Feature 007 Scope 07: validation risk and process ---------- */
+
+/* ---------- Feature 007 Scope 08: experience publication and registration ---------- */
+async function projection(page, baseUrl2) {
+  // The view mode is a persisted local preference, so a prior run could otherwise decide which
+  // mode this test starts in. Pin it to the product default before the page boots.
+  await page.addInitScript(() => { try { localStorage.setItem('tad-view-mode', 'simple'); } catch (error) { /* preference only */ } });
+  await page.goto(`${baseUrl2}/technical-analysis-decision-lab.html?fixture=gate-synthesis&clock=${CLOCK}`);
+  await page.waitForFunction(() => window.__TAD_DIAGNOSTICS__?.fixtureId === 'gate-synthesis');
+  await page.waitForFunction(() => document.getElementById('simpleResultIdentity')?.textContent !== 'None');
+  return page;
+}
+
+test('Regression: SCN-007-023 Simple and Power preserve one result with zero display-mode requests', async ({ page }) => {
+  await projection(page, baseUrl);
+
+  const simple = {
+    identity: await page.locator('#simpleResultIdentity').innerText(),
+    truth: await page.locator('#simpleTruth').innerText(),
+    validation: await page.locator('#simpleValidation').innerText(),
+    process: await page.locator('#simpleProcess').innerText(),
+    gates: await page.locator('#simpleGateTableBody').innerText()
+  };
+  expect(simple.identity).toMatch(/^tad-read:[a-f0-9]{64}$/);
+  // Simple is the default and Power bands are hidden until the mode is switched.
+  await expect(page.locator('body')).not.toHaveClass(/power/);
+  await expect(page.locator('#simpleCockpit')).toBeVisible();
+  await expect(page.locator('section.band.pw').first()).toBeHidden();
+
+  // Count every request made from the moment the result is committed. Switching mode must add none.
+  const requests = [];
+  page.on('request', (request) => requests.push(new URL(request.url()).pathname));
+  await page.locator('#modeSeg button[data-mode="power"]').click();
+  await expect(page.locator('body')).toHaveClass(/power/);
+  await expect(page.locator('section.band.pw').first()).toBeVisible();
+  await expect(page.locator('#simpleCockpit')).toBeHidden();
+  await page.locator('#modeSeg button[data-mode="simple"]').click();
+  await expect(page.locator('body')).not.toHaveClass(/power/);
+  expect(requests).toEqual([]);
+
+  // The same immutable result is still projected after the round trip.
+  expect(await page.locator('#simpleResultIdentity').innerText()).toBe(simple.identity);
+  expect(await page.locator('#simpleTruth').innerText()).toBe(simple.truth);
+  expect(await page.locator('#simpleValidation').innerText()).toBe(simple.validation);
+  expect(await page.locator('#simpleProcess').innerText()).toBe(simple.process);
+  expect(await page.locator('#simpleGateTableBody').innerText()).toBe(simple.gates);
+
+  const published = await page.evaluate(() => globalThis.RLDATA?.toolRead?.('technical-analysis-decision-lab') ?? null);
+  expect(published?.metrics?.decisionRead?.resultIdentity).toBe(simple.identity);
+  console.log(`[SCN-007-023] identity=${simple.identity.slice(0, 30)} modeSwitchRequests=${requests.length}`);
+});
+
+test('Regression: SCN-007-029 invalid configuration preserves last valid identity and corrects without refetch', async ({ page }) => {
+  await projection(page, baseUrl);
+  const valid = await page.locator('#simpleResultIdentity').innerText();
+  const validGates = await page.locator('#simpleGateTableBody').innerText();
+
+  const requests = [];
+  page.on('request', (request) => requests.push(new URL(request.url()).pathname));
+
+  // An invalid request must be REFUSED with observed/required/action and must not overwrite the
+  // last valid result, nor recompute it under a fallback.
+  const rejected = await page.evaluate(() => publishProjection({}, {}, { asOf: '2026-02-13T21:00:00.000Z', complete: true }));
+  expect(rejected.ok).toBe(false);
+  expect(rejected.errors[0].code).toBe('TAD-VIEWMODEL-INPUT');
+  expect(await page.locator('#simpleResultIdentity').innerText()).toBe(valid);
+  expect(await page.locator('#simpleGateTableBody').innerText()).toBe(validGates);
+  const message = (await page.locator('#simpleVerdict').innerText()).replace(/\s+/g, ' ');
+  expect(message).toContain('was rejected');
+  expect(message).toContain('Required:');
+  expect(message).toContain('Action:');
+  expect(message).toContain('remains shown below and is unchanged');
+  expect(message).toContain(valid);
+
+  // Correcting the input recomputes the requested identity with no source refetch.
+  const corrected = await page.evaluate(() => {
+    const model = tadProjection.lastValid;
+    return publishProjection(
+      { readId: model.resultIdentity, state: 'NO_EDGE', ranked: [] },
+      { gates: model.gates, truthState: 'degraded', decisionCutoff: model.truth.decisionCutoff, sourceSetId: model.truth.sourceSetId, caveats: model.caveats },
+      { asOf: '2026-02-13T21:00:00.000Z', complete: true }
+    );
+  });
+  expect(corrected.ok).toBe(true);
+  expect(await page.locator('#simpleResultIdentity').innerText()).toBe(valid);
+  expect(requests).toEqual([]);
+  console.log(`[SCN-007-029] refusedCode=${rejected.errors[0].code} recomputeRequests=${requests.length}`);
+});
+
+test('Regression: SCN-007-023 mobile keyboard tables and background-tab canvases remain equivalent', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await projection(page, baseUrl);
+
+  // Nothing overflows the body at a phone width.
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+  // Touch targets meet the 44px minimum.
+  const modeBox = await page.locator('#modeSeg button[data-mode="power"]').boundingBox();
+  expect(modeBox.height).toBeGreaterThanOrEqual(44);
+  expect(modeBox.width).toBeGreaterThanOrEqual(44);
+
+  // Keyboard reaches the mode control and activates it without a pointer.
+  await page.locator('#modeSeg button[data-mode="simple"]').focus();
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#modeSeg button[data-mode="power"]')).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('body')).toHaveClass(/power/);
+  await page.locator('#modeSeg button[data-mode="simple"]').click();
+
+  // The accessible table carries the same gate facts as the canvas.
+  const tableRows = await page.locator('#simpleGateTableBody tr').count();
+  const canvasGates = await page.evaluate(() => tadProjection.viewModel.gates.length);
+  expect(tableRows).toBe(canvasGates);
+  expect(tableRows).toBeGreaterThan(0);
+  const firstRow = (await page.locator('#simpleGateTableBody tr').first().innerText()).replace(/\s+/g, ' ');
+  const firstGate = await page.evaluate(() => tadProjection.viewModel.gates[0]);
+  expect(firstRow).toContain(firstGate.gateId);
+  expect(firstRow).toContain(firstGate.outcome);
+
+  // A canvas drawn while its tab is backgrounded must still contain pixels.
+  const nonBlank = await page.evaluate(() => {
+    const canvas = document.getElementById('simpleGateCanvas');
+    drawGateCanvas();
+    const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+    for (let i = 3; i < data.length; i += 4) if (data[i] !== 0) return true;
+    return false;
+  });
+  expect(nonBlank).toBe(true);
+
+  // Redrawing after a mode round trip leaves it non-blank too, which is the real background case:
+  // a canvas hidden at draw time has zero client width and would otherwise render empty.
+  await page.locator('#modeSeg button[data-mode="power"]').click();
+  await page.locator('#modeSeg button[data-mode="simple"]').click();
+  const stillNonBlank = await page.evaluate(() => {
+    const canvas = document.getElementById('simpleGateCanvas');
+    const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+    for (let i = 3; i < data.length; i += 4) if (data[i] !== 0) return true;
+    return false;
+  });
+  expect(stillNonBlank).toBe(true);
+  console.log(`[SCN-007-023] mobileOverflow=${overflow} tableRows=${tableRows} canvasNonBlank=${nonBlank && stillNonBlank}`);
+});
+
+test('Regression: SCN-007-029 truth recovery preserves last valid identity across source and method failures', async ({ page }) => {
+  await projection(page, baseUrl);
+  const valid = await page.locator('#simpleResultIdentity').innerText();
+
+  // Each failure mode must refuse with its own code and leave the committed result untouched.
+  const failures = await page.evaluate(() => ({
+    noRead: publishProjection(null, {}, { asOf: '2026-02-13T21:00:00.000Z', complete: true }).errors[0].code,
+    noReadId: publishProjection({ state: 'NO_EDGE' }, {}, { asOf: '2026-02-13T21:00:00.000Z', complete: true }).errors[0].code,
+    incomplete: tadBuildToolDecisionRead(tadProjection.viewModel, { asOf: '2026-02-13T21:00:00.000Z', complete: false }).errors[0].code,
+    noAsOf: tadBuildToolDecisionRead(tadProjection.viewModel, { complete: true }).errors[0].code
+  }));
+  expect(failures.noRead).toBe('TAD-VIEWMODEL-INPUT');
+  expect(failures.noReadId).toBe('TAD-VIEWMODEL-INPUT');
+  expect(failures.incomplete).toBe('TAD-TOOLREAD-INCOMPLETE');
+  expect(failures.noAsOf).toBe('TAD-TOOLREAD-ASOF');
+  expect(await page.locator('#simpleResultIdentity').innerText()).toBe(valid);
+
+  // A degraded truth state is carried through, never upgraded to current by a later projection.
+  const truth = await page.evaluate(() => ({
+    viewModel: tadProjection.viewModel.truth.state,
+    published: globalThis.RLDATA?.toolRead?.('technical-analysis-decision-lab')?.metrics?.decisionRead?.truthState ?? null
+  }));
+  expect(truth.viewModel).toBe('degraded');
+  expect(truth.published).toBe('degraded');
+  const truthWord = (await page.locator('#truthState').innerText()).trim();
+  expect(truthWord).toBe('DEGRADED');
+  // The visible read must not claim a neutral or current substitute for a degraded state.
+  const simpleTruth = (await page.locator('#simpleTruth').innerText()).replace(/\s+/g, ' ');
+  expect(simpleTruth).toContain('degraded');
+  expect(simpleTruth).not.toMatch(/(?<!not )(?<!never )\bcurrent\b/);
+  console.log(`[SCN-007-029] failures=${JSON.stringify(failures)} truth=${truth.published}`);
+});
+
+test('Regression: SCN-007-023 registration navigation and state-faithful owner publication stay in parity', async ({ page }) => {
+  // The registered route is reachable from the landing page, from the shared nav, and directly.
+  const landing = await page.goto(`${baseUrl}/index.html`);
+  expect(landing && landing.ok()).toBeTruthy();
+  const landingLink = page.locator('a[href="technical-analysis-decision-lab.html"]').first();
+  await expect(landingLink).toHaveCount(1);
+
+  await projection(page, baseUrl);
+  const identity = await page.locator('#simpleResultIdentity').innerText();
+
+  // The shared nav on the tool page also carries the registered route.
+  const navHrefs = await page.evaluate(() => Array.from(document.querySelectorAll('a[href]')).map((a) => a.getAttribute('href')));
+  expect(navHrefs).toContain('technical-analysis-decision-lab.html');
+
+  // Publication is state-faithful: it carries the exact committed identity and truth, and it
+  // upgrades nothing. The nested contract is the Feature 007 one, not a generic stand-in.
+  const published = await page.evaluate(() => globalThis.RLDATA?.toolRead?.('technical-analysis-decision-lab') ?? null);
+  expect(published).toBeTruthy();
+  expect(published.contractVersion).toBe('rl-tool-read/v1');
+  expect(published.id).toBe('technical-analysis-decision-lab');
+  expect(published.metrics.decisionRead.contractVersion).toBe('tad-tool-decision-read/v1');
+  expect(published.metrics.decisionRead.resultIdentity).toBe(identity);
+  expect(published.metrics.decisionRead.truthState).toBe('degraded');
+  expect(published.metrics.decisionRead.educationalOnly).toBe(true);
+  expect(published.deepLink).toBe('technical-analysis-decision-lab.html?fixture=gate-synthesis');
+  expect(published.metrics.decisionRead.limitations.join(' ')).toMatch(/not investment advice/);
+  console.log(`[SCN-007-023] registeredRoute=ok publishedIdentity=${published.metrics.decisionRead.resultIdentity.slice(0, 30)}`);
+});
+
+test('Regression: SCN-007-023 imported labels stay text and sanitized export omits sensitive state', async ({ page }) => {
+  await projection(page, baseUrl);
+
+  // A hostile label must reach the DOM as TEXT. If it were injected as markup the img would exist.
+  const hostile = '<img src=x onerror="window.__TAD_XSS__=1">';
+  await page.evaluate((label) => { setText('simpleVerdict', label); }, hostile);
+  expect(await page.evaluate(() => window.__TAD_XSS__ ?? null)).toBeNull();
+  expect(await page.locator('#simpleVerdict').innerText()).toContain('<img');
+  expect(await page.evaluate(() => document.querySelectorAll('#simpleVerdict img').length)).toBe(0);
+
+  // The export carries the full public identity and drops every sensitive key, naming what it dropped.
+  const exported = await page.evaluate(() => tadBuildExport(tadProjection.viewModel, {
+    sourceVintage: 'analytic-gate-fixture',
+    apiKey: 'SHOULD-NOT-APPEAR', credentials: { token: 'SHOULD-NOT-APPEAR' },
+    holdings: [{ symbol: 'X', costBasis: 1 }], account: { balance: 5 },
+    privateNotes: 'SHOULD-NOT-APPEAR', nested: { authorization: 'SHOULD-NOT-APPEAR', keep: 'public' }
+  }));
+  expect(exported.ok).toBe(true);
+  expect(exported.export.contractVersion).toBe('tad-export/v1');
+  expect(exported.export.resultIdentity).toMatch(/^tad-read:[a-f0-9]{64}$/);
+  const flat = JSON.stringify(exported.export);
+  expect(flat).not.toContain('SHOULD-NOT-APPEAR');
+  ['apiKey', 'credentials', 'holdings', 'account', 'privateNotes', 'authorization', 'costBasis', 'balance']
+    .forEach((key) => expect(flat).not.toContain(`"${key}"`));
+  expect(exported.export.audit.nested.keep).toBe('public');
+  expect(exported.omittedKeys.length).toBeGreaterThanOrEqual(6);
+  expect(exported.export.educationalOnly).toBe(true);
+  expect(exported.export.boundary).toMatch(/Not investment advice/);
+  console.log(`[SCN-007-023] xss=blocked omittedKeys=${exported.omittedKeys.length}`);
+});
+/* ---------- End Feature 007 Scope 08: experience publication and registration ---------- */

@@ -52,7 +52,7 @@
   "execution": {
     "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
-    "currentScope": "08-experience-publication",
+    "currentScope": "09-regression-closure",
     "runStartedAt": "2026-07-15T18:01:42Z",
     "completedPhaseClaims": [],
     "pendingTransitionRequests": [],
@@ -159,7 +159,7 @@
         "scope": 8,
         "scopeId": "08-experience-publication",
         "name": "Complete Experience Publication And Registration",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "1",
           "2",
@@ -313,7 +313,7 @@
         "scope": 8,
         "scopeId": "08-experience-publication",
         "name": "Complete Experience Publication And Registration",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "1",
           "2",
@@ -325,7 +325,8 @@
         ],
         "scopeDir": "scopes/08-experience-publication",
         "scopeArtifact": "scopes/08-experience-publication/scope.md",
-        "reportArtifact": "scopes/08-experience-publication/report.md"
+        "reportArtifact": "scopes/08-experience-publication/report.md",
+        "certifiedAt": "2026-08-15T06:30:00Z"
       },
       {
         "scope": 9,

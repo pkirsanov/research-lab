@@ -237,6 +237,72 @@
       background: var(--band);
     }
 
+    /* Simple is the default. Power-only bands are hidden until the mode is switched; the
+       switch is display-only and never triggers a fetch or a recompute. */
+    .band.pw {
+      display: none;
+    }
+
+    body.power .band.pw {
+      display: block;
+    }
+
+    body.power #simpleCockpit {
+      display: none;
+    }
+
+    #modeSeg button {
+      min-height: 44px;
+      min-width: 44px;
+      cursor: pointer;
+    }
+
+    #simpleGateCanvas {
+      display: block;
+      width: 100%;
+      max-width: 640px;
+      aspect-ratio: 16 / 3;
+      height: auto;
+      margin: 12px 0;
+    }
+
+    /* The accessible table carries the same facts as the canvas, so a screen-reader user and a
+       sighted user read identical evidence. It is visually compact rather than hidden. */
+    .a11y-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .a11y-table caption {
+      text-align: left;
+      padding: 4px 0;
+      color: var(--muted);
+    }
+
+    .a11y-table th,
+    .a11y-table td {
+      border: 1px solid var(--line);
+      padding: 4px 6px;
+      text-align: left;
+    }
+
+    @media (max-width: 600px) {
+      .facts {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+
     .band>h2 {
       margin: 0;
       padding: 14px 16px;
@@ -386,16 +452,49 @@
         <div class="subtle">Source, session, timeframe, identity, and validation contracts before any decision signal
           exists.</div>
       </div>
-      <div id="modeSeg" role="tablist" aria-label="View mode">
-        <button type="button" class="active" role="tab" aria-selected="true">Simple</button>
-        <button type="button" role="tab" aria-selected="false" aria-disabled="true"
-          title="Power opens once a complete read is available. This tool does not publish an analytic result yet.">Power</button>
+      <div id="modeSeg" role="tablist" aria-label="View mode"
+        title="Simple is the decision-first read; Power exposes every evidence band behind it. Both project the same immutable result.">
+        <button type="button" data-mode="simple" class="active" role="tab" aria-selected="true">Simple</button>
+        <button type="button" data-mode="power" role="tab" aria-selected="false">Power</button>
       </div>
     </div>
   </header>
 
   <main>
     <div id="fixtureBand" class="fixture" role="status">TEST FIXTURE</div>
+    <section class="band" id="simpleCockpit" aria-labelledby="simpleHeading">
+      <h2 id="simpleHeading">Decision read</h2>
+      <p id="simpleVerdict" class="state-message">No complete read has resolved. Simple and Power project the same
+        immutable result; switching view changes what is shown, never what was computed.</p>
+      <div class="facts">
+        <div class="fact">
+          <div class="k">Result identity</div>
+          <div id="simpleResultIdentity" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Truth</div>
+          <div id="simpleTruth" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Validation</div>
+          <div id="simpleValidation" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Process</div>
+          <div id="simpleProcess" class="v">None</div>
+        </div>
+      </div>
+      <canvas id="simpleGateCanvas" width="640" height="120" aria-hidden="true"></canvas>
+      <table id="simpleGateTable" class="a11y-table">
+        <caption>Gate outcomes, equivalent to the chart above</caption>
+        <thead>
+          <tr><th scope="col">Order</th><th scope="col">Gate</th><th scope="col">Outcome</th><th scope="col">Diagnostic only</th></tr>
+        </thead>
+        <tbody id="simpleGateTableBody"></tbody>
+      </table>
+      <p id="educationalBoundary" class="state-message">Educational analysis of public price behaviour. Not investment
+        advice, not an order, and not a recommendation.</p>
+    </section>
     <section class="truth-band" aria-labelledby="truthHeading">
       <div id="truthState" class="truth-word">LOADING</div>
       <div>
@@ -440,7 +539,7 @@
       </div>
     </section>
 
-    <section class="band" aria-labelledby="contractHeading">
+    <section class="band pw" aria-labelledby="contractHeading">
       <h2 id="contractHeading">Resolved contract receipt</h2>
       <div class="facts">
         <div class="fact">
@@ -482,7 +581,7 @@
       </div>
     </section>
 
-    <section class="band" aria-labelledby="refreshHeading">
+    <section class="band pw" aria-labelledby="refreshHeading">
       <h2 id="refreshHeading">Cache and delta truth</h2>
       <div class="facts">
         <div class="fact">
@@ -502,25 +601,25 @@
         source-qualified truth.</div>
     </section>
 
-    <section class="band" aria-labelledby="catalogHeading">
+    <section class="band pw" aria-labelledby="catalogHeading">
       <h2 id="catalogHeading">Closed profile catalog</h2>
       <div id="profileCatalog" class="catalog" aria-live="off"></div>
     </section>
 
-    <section class="band" aria-labelledby="eventsHeading">
+    <section class="band pw" aria-labelledby="eventsHeading">
       <h2 id="eventsHeading">Calendar and source audit</h2>
       <div id="sessionEvents" class="state-message">Loading explicit holiday, early-close, and daylight-saving records.
       </div>
     </section>
 
-    <section class="band" aria-labelledby="techniqueHeading">
+    <section class="band pw" aria-labelledby="techniqueHeading">
       <h2 id="techniqueHeading">Technique readings</h2>
       <p id="techniqueReceipt" class="state-message">No technique has been evaluated. Select an analytic series to read
         every method exactly as it computes.</p>
       <div id="techniqueOutcomes" class="catalog" aria-live="off"></div>
     </section>
 
-    <section class="band" aria-labelledby="familyHeading">
+    <section class="band pw" aria-labelledby="familyHeading">
       <h2 id="familyHeading">Evidence independence</h2>
       <p id="independenceReceipt" class="state-message">Correlated methods collapse into one declared cluster before
         anything is counted. The raw number of methods is not a confidence level and is never presented as one.</p>
@@ -541,14 +640,14 @@
       <div id="evidenceFamilies" class="catalog" aria-live="off"></div>
     </section>
 
-    <section class="band" aria-labelledby="hypothesisHeading">
+    <section class="band pw" aria-labelledby="hypothesisHeading">
       <h2 id="hypothesisHeading">Competing readings and published setups</h2>
       <div id="competingHypotheses" class="state-message">No series selected.</div>
       <div id="setupReceipt" class="state-message"><strong>This page publishes no setup, entry, trigger, target, stop, or
           probability.</strong> It publishes method readings and their independence only.</div>
     </section>
 
-    <section class="band" aria-labelledby="claimHeading">
+    <section class="band pw" aria-labelledby="claimHeading">
       <h2 id="claimHeading">Claim admission ledger</h2>
       <p id="claimReceipt" class="state-message">A method may only run when every claim it cites carries a supported or
         bounded ledger record. A rejected record cannot reach a default, a reading, a gate, or any copy on this page.</p>
@@ -556,7 +655,7 @@
       <div id="rejectedProbe" class="state-message">No rejected-claim probe has run.</div>
     </section>
 
-    <section class="band" aria-labelledby="confluenceHeading">
+    <section class="band pw" aria-labelledby="confluenceHeading">
       <h2 id="confluenceHeading">Level confluence</h2>
       <p id="confluenceReceipt" class="state-message">No levels selected. Each zone below is a cluster of sourced
         historical and model levels; every member keeps its own method, timeframe, and source.</p>
@@ -577,19 +676,19 @@
       <div id="confluenceZones" class="catalog" aria-live="off"></div>
     </section>
 
-    <section class="band" aria-labelledby="levelStateHeading">
+    <section class="band pw" aria-labelledby="levelStateHeading">
       <h2 id="levelStateHeading">Level interaction</h2>
       <div id="levelLifecycle" class="state-message">No level interaction evaluated.</div>
     </section>
 
-    <section class="band" aria-labelledby="candidateHeading">
+    <section class="band pw" aria-labelledby="candidateHeading">
       <h2 id="candidateHeading">Setup candidates</h2>
       <p id="candidateReceipt" class="state-message">No candidate evaluated. A candidate records what was observed and
         when; it is never a record that anyone entered, exited, or realised anything.</p>
       <div id="candidateTimelines" class="catalog" aria-live="off"></div>
     </section>
 
-    <section class="band" aria-labelledby="riskHeading">
+    <section class="band pw" aria-labelledby="riskHeading">
       <h2 id="riskHeading">Hypothetical geometry</h2>
       <div class="facts">
         <div class="fact">
@@ -608,7 +707,7 @@
       <div id="targetAudit" class="state-message">No target audit has run.</div>
     </section>
 
-    <section class="band" aria-labelledby="gateHeading">
+    <section class="band pw" aria-labelledby="gateHeading">
       <h2 id="gateHeading">Five mandatory gates</h2>
       <p id="gateReceipt" class="state-message">No gate evidence evaluated. All five gates are always shown; a gate
         after the first failure is diagnostic only and cannot restore eligibility.</p>
@@ -629,14 +728,14 @@
       <div id="gateRecords" class="catalog" aria-live="off"></div>
     </section>
 
-    <section class="band" aria-labelledby="competitionHeading">
+    <section class="band pw" aria-labelledby="competitionHeading">
       <h2 id="competitionHeading">Competing candidates</h2>
       <p id="competitionReceipt" class="state-message">No candidates compared.</p>
       <div id="candidateRanking" class="catalog" aria-live="off"></div>
     </section>
 
     <!-- ---------- Feature 007 Scope 07: validation risk and process ---------- -->
-    <section class="band" aria-labelledby="validationHeading">
+    <section class="band pw" aria-labelledby="validationHeading">
       <h2 id="validationHeading">Validation, cost and expectancy</h2>
       <p id="validationReceipt" class="state-message">No validation evaluated. Gross geometry is never called an edge;
         a net claim requires every applicable cost component stated explicitly, including an explicit zero.</p>
@@ -670,7 +769,7 @@
     <!-- ---------- End Feature 007 Scope 07: validation risk and process ---------- -->
 
     <!-- ---------- Feature 007 Scope 06: comparison and optional evidence ---------- -->
-    <section class="band" aria-labelledby="comparisonHeading">
+    <section class="band pw" aria-labelledby="comparisonHeading">
       <h2 id="comparisonHeading">Comparison roles</h2>
       <p id="comparisonReceipt" class="state-message">No comparison evidence resolved. Broad-market, sector/industry,
         direct-peer, and optional-context roles are always reported separately; one role never stands in for another.</p>
@@ -700,7 +799,7 @@
     <!-- ---------- End Feature 007 Scope 06: comparison and optional evidence ---------- -->
 
     <!-- ---------- Feature 007 Scope 05: owner publication and strict adapters ---------- -->
-    <section class="band" aria-labelledby="ownerHeading">
+    <section class="band pw" aria-labelledby="ownerHeading">
       <h2 id="ownerHeading">Owner evidence admission</h2>
       <p id="ownerReceipt" class="state-message">No owner reads evaluated. Every specialist page publishes its own
         result; this page admits or refuses that published read and never recomputes an owner's formula.</p>
@@ -2603,6 +2702,148 @@
     };
     /* ---------- End Feature 007 Scope 07 runtime: deterministic work units ---------- */
 
+    /* ---------- Feature 007 Scope 08: experience publication and registration ---------- */
+    // One immutable result drives every projection. Simple and Power read the SAME view model, so
+    // they cannot disagree; switching modes is display-only and triggers no recompute or fetch.
+    var TAD_SENSITIVE_KEYS = ["credential", "credentials", "apiKey", "apikey", "token", "auth", "authorization",
+      "password", "secret", "holdings", "position", "positions", "accountId", "account", "balance", "costBasis", "pnl", "privateNote", "privateNotes"];
+
+    function tadExperienceRefusal(code, observed, required, action, message) {
+      return tadDeepFreeze({ ok: false, errors: [tadError(code, "error", "$", null, observed, required, action, message)] });
+    }
+
+    function tadBuildViewModel(unifiedRead, context) {
+      if (!tadIsPlainObject(unifiedRead) || typeof unifiedRead.readId !== "string") {
+        return tadExperienceRefusal("TAD-VIEWMODEL-INPUT", unifiedRead && unifiedRead.readId, "a frozen unified read carrying a readId", "resolve a unified read first", "View model requires a resolved unified read.");
+      }
+      var safeContext = tadIsPlainObject(context) ? context : {};
+      // Presentation-safe: every field below is a value, never a callback. A view model that
+      // carried a calculation could let one mode compute something the other mode never saw.
+      var model = {
+        contractVersion: "tad-view-model/v1",
+        resultIdentity: unifiedRead.readId,
+        verdict: { state: unifiedRead.state, selectedCandidateId: unifiedRead.selectedCandidateId || null, selectionBasis: unifiedRead.selectionBasis || null, nearestMissingCondition: unifiedRead.nearestMissingCondition || null },
+        gates: Array.isArray(safeContext.gates) ? safeContext.gates.map(function (gate) {
+          return { order: gate.order, gateId: gate.gateId, outcome: gate.outcome, diagnosticOnly: gate.diagnosticOnly === true, observed: gate.observed, required: gate.required };
+        }) : [],
+        candidates: Array.isArray(unifiedRead.ranked) ? unifiedRead.ranked.map(function (entry) {
+          return { candidateId: entry.candidateId, rank: entry.rank, setupDefinitionId: entry.setupDefinitionId || null };
+        }) : [],
+        comparison: tadIsPlainObject(safeContext.comparison) ? { comparisonSetId: safeContext.comparison.comparisonSetId, roles: (safeContext.comparison.results || []).map(function (result) { return { role: result.role, state: result.state, denominator: result.denominator, percentileState: result.percentileState }; }), contradictions: (safeContext.comparison.contradictions || []).map(function (entry) { return entry.role; }) } : null,
+        validation: tadIsPlainObject(safeContext.passport) ? { passportId: safeContext.passport.passportId, status: safeContext.passport.status, netAvailable: safeContext.passport.netAvailable === true } : null,
+        process: tadIsPlainObject(safeContext.process) ? { state: safeContext.process.state, codes: (safeContext.process.findings || []).map(function (finding) { return finding.code; }) } : null,
+        truth: { state: safeContext.truthState || "unavailable", detail: safeContext.truthDetail || null, decisionCutoff: safeContext.decisionCutoff || null, sourceSetId: safeContext.sourceSetId || null },
+        // Display state is declared here so a test can prove it is EXCLUDED from the identity.
+        display: { mode: safeContext.mode === "power" ? "power" : "simple", sortKey: safeContext.sortKey || null, disclosureOpen: safeContext.disclosureOpen === true, focusId: safeContext.focusId || null },
+        caveats: Array.isArray(safeContext.caveats) ? safeContext.caveats.slice() : [],
+        educationalOnly: true
+      };
+      // The identity covers the RESULT only. Mode, sort, disclosure and focus are deliberately
+      // outside it, which is what makes switching modes provably display-only.
+      model.projectionIdentity = tadIdentity("tad-view:", {
+        resultIdentity: model.resultIdentity, verdict: model.verdict, gates: model.gates, candidates: model.candidates,
+        comparison: model.comparison, validation: model.validation, process: model.process, truth: model.truth, caveats: model.caveats
+      });
+      return tadDeepFreeze({ ok: true, errors: [], viewModel: model });
+    }
+
+    function tadBuildToolDecisionRead(viewModel, meta) {
+      if (!tadIsPlainObject(viewModel) || viewModel.contractVersion !== "tad-view-model/v1") {
+        return tadExperienceRefusal("TAD-TOOLREAD-INPUT", viewModel && viewModel.contractVersion, "tad-view-model/v1", "build the view model first", "Tool decision read requires a view model.");
+      }
+      var safeMeta = tadIsPlainObject(meta) ? meta : {};
+      if (safeMeta.complete === false) {
+        // An incomplete or cancelled run publishes NOTHING. A partial read would be indistinguishable
+        // from a finished one to every downstream consumer.
+        return tadExperienceRefusal("TAD-TOOLREAD-INCOMPLETE", "an incomplete or cancelled run", "a complete committed result", "wait for the run to finish or rerun it", "An incomplete result is never published.");
+      }
+      var asOf = typeof safeMeta.asOf === "string" ? safeMeta.asOf : null;
+      if (asOf === null) {
+        return tadExperienceRefusal("TAD-TOOLREAD-ASOF", safeMeta.asOf, "an ISO as-of timestamp", "supply the decision as-of", "Tool decision read requires an as-of timestamp.");
+      }
+      var numeric = {};
+      // A non-finite metric is OMITTED rather than published as null or zero, because a zero
+      // gate count and an unmeasured gate count read identically once they are both numbers.
+      [["gateCount", viewModel.gates.length], ["candidateCount", viewModel.candidates.length],
+        ["contradictionCount", viewModel.comparison ? viewModel.comparison.contradictions.length : null]].forEach(function (pair) {
+        if (tadIsFinite(pair[1])) numeric[pair[0]] = pair[1];
+      });
+      // RLDATA's strict rl-tool-read/v1 contract accepts only current, stale, or unavailable, and
+      // an unavailable read must carry null clocks. Emitting anything else is silently REJECTED,
+      // so the mapping is explicit rather than assumed.
+      var availability = viewModel.truth.state === "unavailable" ? "unavailable"
+        : viewModel.truth.state === "current" ? "current" : "stale";
+      var unavailable = availability === "unavailable";
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        toolRead: {
+          contractVersion: "rl-tool-read/v1",
+          id: "technical-analysis-decision-lab",
+          availability: availability,
+          asOf: unavailable ? null : asOf,
+          computedAt: asOf,
+          freshUntil: unavailable ? null : (safeMeta.freshUntil || asOf),
+          read: safeMeta.read || (viewModel.verdict.state + " - educational analysis only, not investment advice"),
+          metrics: Object.assign({}, numeric, {
+            decisionRead: {
+              contractVersion: "tad-tool-decision-read/v1",
+              resultIdentity: viewModel.resultIdentity,
+              projectionIdentity: viewModel.projectionIdentity,
+              state: viewModel.verdict.state,
+              selectionBasis: viewModel.verdict.selectionBasis,
+              // Truth is carried through exactly. Nothing here upgrades a degraded read.
+              truthState: viewModel.truth.state,
+              decisionCutoff: viewModel.truth.decisionCutoff,
+              sourceSetId: viewModel.truth.sourceSetId,
+              validationStatus: viewModel.validation ? viewModel.validation.status : "unavailable",
+              processState: viewModel.process ? viewModel.process.state : "unavailable",
+              caveats: viewModel.caveats.slice(),
+              educationalOnly: true,
+              limitations: [
+                "This is educational analysis of public price behaviour, not investment advice.",
+                "The published state describes the exact evaluated identity only."
+              ]
+            }
+          }),
+          deepLink: "technical-analysis-decision-lab.html" + (safeMeta.fixtureId ? "?fixture=" + encodeURIComponent(safeMeta.fixtureId) : "")
+        }
+      });
+    }
+
+    function tadBuildExport(viewModel, audit) {
+      if (!tadIsPlainObject(viewModel) || viewModel.contractVersion !== "tad-view-model/v1") {
+        return tadExperienceRefusal("TAD-EXPORT-INPUT", viewModel && viewModel.contractVersion, "tad-view-model/v1", "build the view model first", "Export requires a view model.");
+      }
+      var safeAudit = tadIsPlainObject(audit) ? audit : {};
+      var omitted = [];
+      function sanitize(value, path) {
+        if (value === null || typeof value !== "object") return value;
+        if (Array.isArray(value)) return value.map(function (entry, index) { return sanitize(entry, path + "[" + index + "]"); });
+        var output = {};
+        Object.keys(value).forEach(function (key) {
+          var lower = key.toLowerCase();
+          // Sensitive keys are DROPPED and recorded, so a reader can see that something was
+          // withheld rather than wondering whether it was simply absent.
+          if (TAD_SENSITIVE_KEYS.some(function (blocked) { return lower === blocked.toLowerCase() || lower.indexOf(blocked.toLowerCase()) >= 0; })) { omitted.push(path + "." + key); return; }
+          output[key] = sanitize(value[key], path + "." + key);
+        });
+        return output;
+      }
+      var payload = sanitize({
+        contractVersion: "tad-export/v1",
+        resultIdentity: viewModel.resultIdentity,
+        projectionIdentity: viewModel.projectionIdentity,
+        verdict: viewModel.verdict, gates: viewModel.gates, candidates: viewModel.candidates,
+        comparison: viewModel.comparison, validation: viewModel.validation, process: viewModel.process,
+        truth: viewModel.truth, caveats: viewModel.caveats,
+        audit: safeAudit,
+        educationalOnly: true,
+        boundary: "Educational analysis of public price behaviour. Not investment advice, not an order, and not a recommendation."
+      }, "$");
+      return tadDeepFreeze({ ok: true, errors: [], export: payload, omittedKeys: omitted });
+    }
+    /* ---------- End Feature 007 Scope 08: experience publication and registration ---------- */
+
     var pageRuntime = { config: null, index: null, sourceFixture: null, analyticFixture: null, techniqueFixture: null, diagnostics: null };
     function byId(id) { return document.getElementById(id); }
     function setText(id, value) { var element = byId(id); if (element) element.textContent = value; }
@@ -2798,6 +3039,14 @@
       }
       var competition = buildCompetition(fixture.competition);
       var noEdge = buildCompetition(fixture.noEdgeCompetition);
+      // One immutable result drives both projections and the published owner read.
+      publishProjection(competition.read, {
+        gates: situations[Object.keys(situations)[0]].synthesis.gates,
+        truthState: "degraded", truthDetail: "Deterministic analytic gate evidence.",
+        decisionCutoff: fixture.competition.observationCutoff,
+        sourceSetId: "analytic-gate-fixture",
+        caveats: ["Analytic deterministic fixture; no current-market claim is made and no instrument is named."]
+      }, { asOf: fixture.competition.observationCutoff, fixtureId: "gate-synthesis", complete: true, read: "Analytic gate receipt - educational analysis only, not investment advice" });
 
       setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled");
       setTruth("degraded", "Deterministic analytic gate evidence. Every gate outcome, rank, and read state below is the exact output of the owned synthesis functions; no current-market claim is made and no instrument is named.");
@@ -3028,6 +3277,113 @@
         errors: []
       });
     }
+
+    /* ---------- Feature 007 Scope 08 runtime: one result, two projections ---------- */
+    // The committed projection. Both modes read this same object, so they cannot disagree.
+    var tadProjection = { viewModel: null, meta: null, audit: null, publishedReadId: null, lastValid: null };
+
+    function readViewMode() {
+      try { return localStorage.getItem("tad-view-mode") === "power" ? "power" : "simple"; } catch (error) { return "simple"; }
+    }
+
+    function applyViewMode(mode) {
+      document.body.classList.toggle("power", mode === "power");
+      var buttons = byId("modeSeg").querySelectorAll("button[data-mode]");
+      Array.prototype.forEach.call(buttons, function (button) {
+        var active = button.getAttribute("data-mode") === mode;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-selected", active ? "true" : "false");
+      });
+      try { localStorage.setItem("tad-view-mode", mode); } catch (error) { /* preference only */ }
+      // Redraw because a canvas that was hidden when the mode changed has nothing rendered in it.
+      drawGateCanvas();
+    }
+
+    function drawGateCanvas() {
+      var canvas = byId("simpleGateCanvas"); if (!canvas || !canvas.getContext) return;
+      var ratio = window.devicePixelRatio || 1;
+      var width = canvas.clientWidth || 640, height = Math.round(width * 3 / 16);
+      canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);
+      var context = canvas.getContext("2d"); context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      context.clearRect(0, 0, width, height);
+      var gates = tadProjection.viewModel ? tadProjection.viewModel.gates : [];
+      var slot = gates.length ? width / gates.length : width;
+      var boxes = [];
+      if (!gates.length) {
+        context.fillStyle = "#8a94a6"; context.font = "12px system-ui, sans-serif";
+        context.fillText("No gate evidence in this receipt", 8, Math.round(height / 2));
+      }
+      gates.forEach(function (gate, index) {
+        var x = index * slot + 4, w = Math.max(8, slot - 8), y = 8, h = Math.max(8, height - 34);
+        // State is carried by BOTH fill and a text label, so meaning never depends on colour alone.
+        context.fillStyle = gate.outcome === "pass" ? "#2f7d4f" : gate.outcome === "fail" ? "#8c3030" : "#5a5f6a";
+        context.fillRect(x, y, w, h);
+        context.fillStyle = "#e8ecf3"; context.font = "11px system-ui, sans-serif";
+        context.fillText(String(gate.order), x + 4, y + 14);
+        context.fillStyle = "#8a94a6";
+        context.fillText(gate.gateId.slice(0, 12), x, height - 14);
+        context.fillText(gate.outcome, x, height - 3);
+        boxes.push({ x: x, y: y, w: w, h: h, gate: gate });
+      });
+      if (window.RLCHART && typeof RLCHART.attach === "function") {
+        RLCHART.attach(canvas, function (mx, my) {
+          for (var index = 0; index < boxes.length; index += 1) {
+            var box = boxes[index];
+            if (mx >= box.x && mx <= box.x + box.w && my >= box.y && my <= box.y + box.h) {
+              return RLCHART.tip("Gate " + box.gate.order + ": " + box.gate.gateId,
+                [["outcome", box.gate.outcome], ["diagnostic only", String(box.gate.diagnosticOnly)], ["observed", String(box.gate.observed)], ["required", String(box.gate.required)]],
+                box.gate.outcome === "pass" ? "This mandatory gate is satisfied." : box.gate.diagnosticOnly ? "Computed after the first blocking gate, so it cannot restore eligibility." : "This gate blocks the transition.");
+            }
+          }
+          return null;
+        });
+      }
+    }
+
+    function publishProjection(unifiedRead, context, meta) {
+      var built = tadBuildViewModel(unifiedRead, context);
+      if (!built.ok) {
+        // An invalid request never overwrites the last valid result. The prior read stays visible
+        // and stays LABELLED as the last valid one rather than being recomputed under a fallback.
+        setText("simpleVerdict", "The requested configuration was rejected: " + built.errors[0].observed
+          + ". Required: " + built.errors[0].required + ". Action: " + built.errors[0].action
+          + (tadProjection.lastValid ? " The last valid result " + tadProjection.lastValid.resultIdentity + " remains shown below and is unchanged." : ""));
+        return { ok: false, errors: built.errors };
+      }
+      tadProjection.viewModel = built.viewModel;
+      tadProjection.meta = meta || {};
+      tadProjection.lastValid = built.viewModel;
+      var decision = tadBuildToolDecisionRead(built.viewModel, tadProjection.meta);
+      var exported = tadBuildExport(built.viewModel, (meta && meta.audit) || {});
+      tadProjection.audit = exported.ok ? exported : null;
+      if (decision.ok && window.RLDATA && typeof RLDATA.putToolRead === "function") {
+        RLDATA.putToolRead("technical-analysis-decision-lab", decision.toolRead);
+        tadProjection.publishedReadId = decision.toolRead.metrics.decisionRead.resultIdentity;
+      }
+      renderProjection();
+      return { ok: true, viewModel: built.viewModel, decision: decision, exported: exported };
+    }
+
+    function renderProjection() {
+      var model = tadProjection.viewModel; if (!model) return;
+      setText("simpleVerdict", model.verdict.state + (model.verdict.selectionBasis ? " - selected on " + model.verdict.selectionBasis : "")
+        + (model.verdict.nearestMissingCondition ? "; nearest missing condition " + model.verdict.nearestMissingCondition : "")
+        + ". Simple and Power project this same result; switching view changes what is shown, never what was computed.");
+      setText("simpleResultIdentity", model.resultIdentity);
+      setText("simpleTruth", model.truth.state + (model.truth.decisionCutoff ? " as of " + model.truth.decisionCutoff : ""));
+      setText("simpleValidation", model.validation ? model.validation.status + (model.validation.netAvailable ? " with net metrics" : " without complete costs") : "unavailable");
+      setText("simpleProcess", model.process ? model.process.state + (model.process.codes.length ? " - " + model.process.codes.join(", ") : "") : "unavailable");
+      var body = byId("simpleGateTableBody"); body.textContent = "";
+      model.gates.forEach(function (gate) {
+        var row = document.createElement("tr");
+        [String(gate.order), gate.gateId, gate.outcome, gate.diagnosticOnly ? "yes" : "no"].forEach(function (value) {
+          var cell = document.createElement("td"); cell.textContent = value; row.appendChild(cell);
+        });
+        body.appendChild(row);
+      });
+      drawGateCanvas();
+    }
+    /* ---------- End Feature 007 Scope 08 runtime: one result, two projections ---------- */
 
     function renderValidationRiskProcess(fixture) {
       var policy = pageRuntime.config.validationPolicies[0], schema = pageRuntime.config.costPolicySchema;
@@ -3288,6 +3644,13 @@
         var indexResult = tadIndexConfig(resources[0]); if (!indexResult.ok) throw indexResult.errors[0];
         pageRuntime.config = resources[0]; pageRuntime.index = indexResult.index; pageRuntime.sourceFixture = resources[1]; pageRuntime.analyticFixture = resources[2];
         renderCatalog(resources[0]); renderEvents(resources[1]); renderProfileSelection(fixtureId);
+        applyViewMode(readViewMode());
+        byId("modeSeg").addEventListener("click", function (event) {
+          var button = event.target.closest("button[data-mode]"); if (!button) return;
+          // Display-only: re-project the ALREADY COMMITTED result. Nothing is fetched or recomputed.
+          applyViewMode(button.getAttribute("data-mode"));
+          if (tadProjection.viewModel) renderProjection();
+        });
       }).catch(function (error) {
         var known = error && typeof error.code === "string";
         renderUnavailable(known ? error.code : "TAD-INTERNAL", known ? error.observed : String(error), known ? error.required : "successful closed config and fixture validation", known ? error.action : "inspect the reported defect and restore the required static resources");
@@ -3336,8 +3699,11 @@
     };
   </script>
   <script src="rlnav.js"></script>
-  <section data-rlbrief-mount data-tool-id="technical-analysis-decision-lab" data-simple-target="rlbrief-simple"
-    data-power-target="rlbrief-power"></section>
+  <!-- data-owns-route declares that this page renders its own Simple and Power views through
+       #modeSeg and routes its own state, so the shell must not claim location.hash or apply
+       rlv-focused: two owners of one URL field is not a resolvable state. -->
+  <section data-rlbrief-mount data-owns-route data-tool-id="technical-analysis-decision-lab"
+    data-simple-target="rlbrief-simple" data-power-target="rlbrief-power"></section>
 </body>
 
 </html>

@@ -4314,6 +4314,125 @@ try {
   assert(tad03.tadAuditTargets(tad03Risk.riskPlan, [tad03Targets.targets[0]]).findings.some((finding) => finding.code === 'TAD-TARGET-REMOVED'),
     'A removed target is reported rather than silently accepted');
 
+  /* ---------- Scope 04: five-gate synthesis ---------- */
+  const tad04Names = ['tadGateResult', 'tadTimeframeConflict', 'tadEvaluatePrimaryGate', 'tadEvaluateRegimeGate', 'tadEvaluateLocationGate',
+    'tadEvaluateTriggerGate', 'tadEvaluateValidationRiskProcessGate', 'tadSynthesizeFiveGates', 'tadRankCandidates', 'tadBuildUnifiedRead'];
+  const tad04Owned = ['tadRankCandidates', 'tadEvaluatePrimaryGate', 'tadEvaluateRegimeGate', 'tadEvaluateLocationGate', 'tadEvaluateTriggerGate',
+    'tadEvaluateValidationRiskProcessGate', 'tadSynthesizeFiveGates', 'tadBuildUnifiedRead'];
+  assert(tad04Owned.length === 8 && tad04Owned.every((name) => (tadSource.match(new RegExp('function\\s+' + name + '\\s*\\(', 'g')) || []).length === 1),
+    'All 8 Scope 04 declarations exist exactly once in the page');
+  const tad04 = build(
+    [tadSource.match(/var TAD_GATE_ORDER = [\s\S]*?;\n/)[0], tad03Vars].concat(tadNames.concat(tad03Names, tad04Names).map((name) => extractFn(tadSource, name))),
+    tadNames.concat(tad03Names, tad04Names)
+  );
+
+  const tad04Full = {
+    roles: { primary: { state: 'uptrend', confirmed: true }, setup: { state: 'uptrend', confirmed: true }, trigger: { state: 'uptrend' } },
+    regime: { state: 'trend', eligibleSetupFamilyIds: ['trend-pullback'] },
+    location: { inGovernedZone: true, structuralRoomR: 3.2, atrDistanceToZone: 0.2 },
+    trigger: { declaredEventIds: ['closed-reclaim'], observedEventId: 'closed-reclaim', confirmedOnClosedBar: true, invalidated: false },
+    validationRiskProcess: { validationStatus: 'supported', planFrozen: true, costsExplicit: true, targetAuditClean: true, netRewardToRisk: 2.4, minimumNetRewardToRisk: 1.5 }
+  };
+  const tad04Pass = tad04.tadSynthesizeFiveGates(tad04Full);
+  assert(tad04Pass.ok && tad04Pass.gates.length === 5 && tad04Pass.gates.map((gate) => gate.gateId).join(',') === 'primary,regime,location,trigger,validation-risk-process',
+    'Synthesis always produces exactly five gate records in the declared order');
+  assert(tad04Pass.transitionEligible === true && tad04Pass.passCount === 5 && tad04Pass.firstBlockingGateId === null,
+    'Every mandatory gate passing makes the candidate transition-eligible');
+
+  // SCN-007-001: an aligned trend that is extended away from every governed zone is NO EDGE.
+  const tad04Extended = tad04.tadSynthesizeFiveGates({ ...tad04Full, location: { inGovernedZone: false, atrDistanceToZone: 4.1 } });
+  assert(tad04Extended.gates[0].outcome === 'pass' && tad04Extended.gates[2].outcome === 'fail'
+    && tad04Extended.transitionEligible === false && tad04Extended.firstBlockingGateId === 'location',
+    'An aligned primary trend still fails when price is extended away from every governed zone');
+  assert(tad04Extended.gates[2].reasonCodes.indexOf('chase-risk') >= 0, 'The location gate names chase risk when price is extended');
+
+  // A failed mandatory gate cannot be outvoted: later gates still compute, but only as diagnostics.
+  assert(tad04Extended.gates[3].outcome === 'pass' && tad04Extended.gates[3].diagnosticOnly === true
+    && tad04Extended.gates[4].diagnosticOnly === true && tad04Extended.gates[2].blocksTransition === true,
+    'Gates after the first mandatory failure remain diagnostic and cannot restore eligibility');
+  assert(tad04Extended.gates.slice(0, 3).every((gate) => gate.diagnosticOnly === false), 'Gates up to the first failure are not marked diagnostic-only');
+
+  // SCN-007-003: a structural break fails the trigger gate no matter how many indicators are bullish.
+  const tad04Invalidated = tad04.tadSynthesizeFiveGates({ ...tad04Full, trigger: { ...tad04Full.trigger, invalidated: true } });
+  assert(tad04Invalidated.gates[3].outcome === 'fail' && tad04Invalidated.gates[3].reasonCodes.indexOf('closed-beyond-invalidation') >= 0 && tad04Invalidated.transitionEligible === false,
+    'A close beyond invalidation fails the trigger gate and cannot be outvoted');
+  assert(tad04.tadSynthesizeFiveGates({ ...tad04Full, trigger: { ...tad04Full.trigger, confirmedOnClosedBar: false } }).gates[3].reasonCodes.indexOf('provisional-bar-cannot-confirm') >= 0,
+    'A provisional bar cannot confirm a trigger');
+  assert(tad04.tadSynthesizeFiveGates({ ...tad04Full, trigger: { ...tad04Full.trigger, observedEventId: 'wick-through' } }).gates[3].reasonCodes.indexOf('undeclared-trigger-event') >= 0,
+    'An undeclared trigger event fails the trigger gate');
+
+  // Missing costs or validation can never become a pass.
+  assert(tad04.tadSynthesizeFiveGates({ ...tad04Full, validationRiskProcess: { ...tad04Full.validationRiskProcess, costsExplicit: false } }).gates[4].reasonCodes.indexOf('costs-not-explicit') >= 0,
+    'Absent required costs fail the validation gate rather than passing silently');
+  assert(tad04.tadSynthesizeFiveGates({ ...tad04Full, validationRiskProcess: { ...tad04Full.validationRiskProcess, validationStatus: 'unsupported' } }).gates[4].outcome === 'fail',
+    'An unsupported validation record fails the validation gate');
+  assert(tad04.tadSynthesizeFiveGates({ ...tad04Full, validationRiskProcess: { ...tad04Full.validationRiskProcess, targetAuditClean: false } }).gates[4].reasonCodes.indexOf('target-audit-dirty') >= 0,
+    'A target path differing from the frozen plan fails the validation gate');
+  assert(tad04.tadSynthesizeFiveGates({ ...tad04Full, validationRiskProcess: { ...tad04Full.validationRiskProcess, netRewardToRisk: 0.8 } }).gates[4].reasonCodes.indexOf('net-reward-below-minimum') >= 0,
+    'Net reward-to-risk below the configured minimum fails the validation gate');
+  assert(tad04.tadSynthesizeFiveGates({ ...tad04Full, regime: null }).gates[1].outcome === 'unavailable',
+    'Absent regime evidence is unavailable rather than a pass');
+
+  // SCN-007-004: a conflicting trigger role never reverses the confirmed primary.
+  const tad04ConflictRoles = { ...tad04Full.roles, trigger: { state: 'downtrend' } };
+  const tad04Conflict = tad04.tadSynthesizeFiveGates({ ...tad04Full, roles: tad04ConflictRoles });
+  assert(tad04Conflict.gates[0].outcome === 'pass' && tad04Conflict.gates[0].reasonCodes.some((reason) => reason.indexOf('timeframe-conflict:') === 0),
+    'A conflicting trigger role is recorded as a timeframe conflict, not a primary reversal');
+  assert(tad04Conflict.gates[1].outcome === 'fail' && tad04Conflict.gates[1].reasonCodes.indexOf('timeframe-conflict-without-countertrend-eligible-family') >= 0,
+    'Under a timeframe conflict a family not declared for countertrend research cannot stay armed');
+  const tad04ConflictAllowed = tad04.tadSynthesizeFiveGates({ ...tad04Full, roles: tad04ConflictRoles, regime: { state: 'trend', eligibleSetupFamilyIds: ['trend-pullback'], countertrendEligibleSetupFamilyIds: ['trend-pullback'] } });
+  assert(tad04ConflictAllowed.gates[1].outcome === 'pass' && tad04ConflictAllowed.gates[1].reasonCodes.indexOf('primary-not-reversed') >= 0,
+    'A family explicitly eligible for countertrend research may remain armed under a conflict');
+  assert(tad04.tadTimeframeConflict({ primary: { state: 'uptrend', confirmed: true }, trigger: { state: 'uptrend' } }) === null,
+    'Agreeing roles report no timeframe conflict');
+
+  // SCN-007-027: selection is by gate and validation quality, never by direction.
+  const tad04Candidates = [
+    { candidateId: 'c-bullish-breakout', setupDefinitionId: 'breakout-acceptance-retest/v1', direction: 'long', synthesis: { transitionEligible: false, passCount: 3, firstBlockingGateId: 'trigger' }, validationStatus: 'supported', truthState: 'current', contradictionCount: 1, contradictionSeverity: 2, specificity: 5, registryIndex: 0 },
+    { candidateId: 'c-bearish-failed-break', setupDefinitionId: 'failed-break-reclaim/v1', direction: 'short', synthesis: { transitionEligible: true, passCount: 5, firstBlockingGateId: null }, validationStatus: 'supported', truthState: 'current', contradictionCount: 0, contradictionSeverity: 0, specificity: 4, registryIndex: 1 },
+    { candidateId: 'c-two-sided-reversion', setupDefinitionId: 'balance-extreme-mean-reversion/v1', direction: 'two-sided', synthesis: { transitionEligible: false, passCount: 4, firstBlockingGateId: 'validation-risk-process' }, validationStatus: 'bounded', truthState: 'degraded', contradictionCount: 2, contradictionSeverity: 3, specificity: 3, registryIndex: 2 }
+  ];
+  const tad04Ranked = tad04.tadRankCandidates(tad04Candidates);
+  assert(tad04Ranked.ok && tad04Ranked.ranked[0].candidateId === 'c-bearish-failed-break' && tad04Ranked.ranked[0].rank === 1,
+    'The candidate with the strongest complete gate evidence ranks first regardless of direction');
+  assert(tad04Ranked.rankDimensions.indexOf('direction') < 0 && JSON.stringify(tad04Ranked.ranked).indexOf('"direction"') < 0,
+    'Direction is absent from every rank dimension and from the ranked output');
+  assert(tad04Ranked.ranked.length === 3 && new Set(tad04Ranked.ranked.map((entry) => entry.rank)).size === 3,
+    'Non-selected candidates remain visible with their own rank');
+  // Ranking must be deterministic: the same input in a different order yields the same order.
+  assert(JSON.stringify(tad04.tadRankCandidates(tad04Candidates.slice().reverse()).ranked) === JSON.stringify(tad04Ranked.ranked),
+    'Candidate ranking is deterministic and independent of input order');
+
+  const tad04Read = tad04.tadBuildUnifiedRead({ candidates: tad04Candidates, observationCutoff: '2025-06-30T20:00:00.000Z' });
+  assert(tad04Read.ok && tad04Read.read.state === 'TRIGGERED' && tad04Read.read.selectedCandidateId === 'c-bearish-failed-break'
+    && /^tad-read:[a-f0-9]{64}$/.test(tad04Read.read.readId),
+    'One eligible candidate produces a TRIGGERED read with a content-addressed identity');
+  assert(tad04Read.read.selectionBasis === 'strongest-complete-gate-and-validation-evidence' && tad04Read.read.directionPublished === false && tad04Read.read.executionClaimed === false,
+    'The unified read names its selection basis and publishes no direction or execution claim');
+  assert(tad04Read.read.ranked.length === 3, 'The unified read preserves every candidate, not only the selected one');
+
+  // SCN-007-022: a no-trade day is a valid result rather than a forced low-confidence direction.
+  const tad04NoneEligible = tad04Candidates.map((candidate) => ({ ...candidate, synthesis: { ...candidate.synthesis, transitionEligible: false } }));
+  const tad04Abstain = tad04.tadBuildUnifiedRead({ candidates: tad04NoneEligible, observationCutoff: '2025-06-30T20:00:00.000Z' });
+  assert(['NO_EDGE', 'MIXED'].indexOf(tad04Abstain.read.state) >= 0 && tad04Abstain.read.selectedCandidateId === null,
+    'No candidate clearing every mandatory gate produces NO EDGE or MIXED rather than a forced signal');
+  assert(tad04Abstain.read.nearestReadyCandidateId !== null, 'The abstaining read may still name the nearest candidate');
+  const tad04SingleBlocked = tad04.tadBuildUnifiedRead({ candidates: [{ candidateId: 'only', synthesis: { transitionEligible: false, passCount: 1, firstBlockingGateId: 'location' }, contradictionCount: 0 }], observationCutoff: '2025-06-30T20:00:00.000Z' });
+  assert(tad04SingleBlocked.read.state === 'NO_EDGE' && tad04SingleBlocked.read.nearestMissingCondition === 'location',
+    'A single blocked candidate produces NO EDGE and names its missing condition');
+  assert(tad04.tadBuildUnifiedRead({ candidates: [{ candidateId: 'x', invalidated: true, synthesis: { transitionEligible: false, passCount: 3, firstBlockingGateId: 'trigger' } }], observationCutoff: '2025-06-30T20:00:00.000Z' }).read.state === 'INVALIDATED',
+    'An invalidated candidate produces an INVALIDATED read');
+  assert(!tad04.tadBuildUnifiedRead({ candidates: tad04Candidates }).ok, 'The unified read refuses to build without an observation cutoff');
+  assert(!tad04.tadBuildUnifiedRead({ observationCutoff: '2025-06-30T20:00:00.000Z' }).ok, 'The unified read refuses to build without candidates');
+  // A watch-only setup declares no trigger events, so it can be armed but can never reach TRIGGERED.
+  const tad04Watch = tadConfig.setupDefinitions.filter((setup) => setup.triggerEvents.length === 0)[0];
+  assert(tad04Watch && tad03.tadEvaluateSetupDefinition(tad04Watch, {
+    profileId: tad04Watch.supportedProfileIds[0],
+    familyStates: (tad04Watch.requiredFamilyIds || []).reduce((states, familyId) => Object.assign(states, { [familyId]: 'supports' }), {}),
+    inGovernedZone: true, triggerEventId: 'closed-reclaim'
+  }).state === 'ARMED', 'A watch-only setup can be armed but never triggers, even when a trigger event is supplied');
+
+
 } catch (e) { failures++; console.log('  ✗ FAIL (Technical Analysis Decision foundation group threw): ' + e.message); }
 /* ---------- End Feature 007 Technical Analysis Decision foundation ---------- */
 

@@ -1697,6 +1697,196 @@
     }
     /* ---------- End Feature 007 Scope 03: levels and setup lifecycle ---------- */
 
+    /* ---------- Feature 007 Scope 04: five-gate synthesis ---------- */
+    var TAD_GATE_ORDER = ["primary", "regime", "location", "trigger", "validation-risk-process"];
+
+    function tadGateResult(gateId, outcome, observed, required, reasonCodes, dependencies) {
+      return { gateId: gateId, outcome: outcome, observed: observed, required: required, reasonCodes: (reasonCodes || []).slice(), dependencies: (dependencies || []).slice(), blocking: outcome !== "pass" };
+    }
+
+    // A trigger role pointing against a confirmed primary is a CONFLICT, never a reversal of the
+    // primary. Both the primary and regime gates read it from one place so they cannot disagree.
+    function tadTimeframeConflict(roles) {
+      if (!tadIsPlainObject(roles) || !tadIsPlainObject(roles.primary) || !tadIsPlainObject(roles.trigger)) return null;
+      var primary = roles.primary, trigger = roles.trigger;
+      if (primary.confirmed !== true || typeof primary.state !== "string" || typeof trigger.state !== "string") return null;
+      if (primary.state === trigger.state || primary.state === "range" || trigger.state === "range") return null;
+      return { primaryState: primary.state, triggerState: trigger.state };
+    }
+
+    function tadEvaluatePrimaryGate(context) {
+      var primary = tadIsPlainObject(context) && tadIsPlainObject(context.roles) ? context.roles.primary : null;
+      if (!tadIsPlainObject(primary) || typeof primary.state !== "string") return tadGateResult("primary", "unavailable", "no closed primary role state", "a closed primary role direction", ["primary-role-unavailable"], []);
+      if (primary.confirmed !== true) return tadGateResult("primary", "unavailable", "primary role " + primary.state + " is not confirmed", "a confirmed closed primary role", ["primary-not-confirmed"], []);
+      // Tactical strength cannot rewrite the closed primary direction. A trigger role pointing the
+      // other way is recorded as a conflict, never as a reversal of the primary.
+      var conflict = tadTimeframeConflict(context.roles);
+      var reasons = ["primary-" + primary.state + "-confirmed"];
+      if (conflict) reasons.push("timeframe-conflict:trigger-" + conflict.triggerState + "-vs-primary-" + conflict.primaryState);
+      return tadGateResult("primary", "pass", "closed primary role is a confirmed " + primary.state + (conflict ? " with a conflicting trigger role" : ""), "a confirmed closed primary role", reasons, []);
+    }
+
+    function tadEvaluateRegimeGate(context) {
+      var regime = tadIsPlainObject(context) ? context.regime : null;
+      if (!tadIsPlainObject(regime) || typeof regime.state !== "string") return tadGateResult("regime", "unavailable", "no regime evidence", "a declared regime or phase state", ["regime-unavailable"], ["primary"]);
+      var eligible = Array.isArray(regime.eligibleSetupFamilyIds) ? regime.eligibleSetupFamilyIds.slice() : [];
+      if (!eligible.length) return tadGateResult("regime", "fail", "regime " + regime.state + " names no eligible setup family", "at least one eligible setup family for the regime", ["regime-names-no-eligible-family"], ["primary"]);
+      // Under a timeframe conflict only families explicitly declared eligible for countertrend
+      // research may stay armed. Without this a tactical turn against a confirmed primary would
+      // quietly arm a trend-continuation setup.
+      var conflict = tadTimeframeConflict(context.roles);
+      if (conflict) {
+        var countertrend = Array.isArray(regime.countertrendEligibleSetupFamilyIds) ? regime.countertrendEligibleSetupFamilyIds : [];
+        var stillEligible = eligible.filter(function (familyId) { return countertrend.indexOf(familyId) >= 0; });
+        if (!stillEligible.length) return tadGateResult("regime", "fail", "trigger " + conflict.triggerState + " conflicts with the confirmed primary " + conflict.primaryState + " and no eligible family is declared for countertrend research", "a setup family explicitly eligible for countertrend research", ["timeframe-conflict-without-countertrend-eligible-family", "primary-not-reversed"], ["primary"]);
+        return tadGateResult("regime", "pass", "regime " + regime.state + " under a timeframe conflict, limited to " + stillEligible.length + " countertrend-eligible " + (stillEligible.length === 1 ? "family" : "families"), "a setup family explicitly eligible for countertrend research", ["regime-" + regime.state, "countertrend-eligible-families:" + stillEligible.join("|"), "primary-not-reversed"], ["primary"]);
+      }
+      var reasons = ["regime-" + regime.state, "eligible-families:" + eligible.join("|")];
+      // Unresolved or contradictory phase evidence stays visible instead of being resolved away.
+      if (Array.isArray(regime.unresolvedHypotheses) && regime.unresolvedHypotheses.length) reasons.push("unresolved-phase-hypotheses:" + regime.unresolvedHypotheses.join("|"));
+      return tadGateResult("regime", "pass", "regime " + regime.state + " with " + eligible.length + " eligible setup " + (eligible.length === 1 ? "family" : "families"), "at least one eligible setup family for the regime", reasons, ["primary"]);
+    }
+
+    function tadEvaluateLocationGate(context) {
+      var location = tadIsPlainObject(context) ? context.location : null;
+      if (!tadIsPlainObject(location)) return tadGateResult("location", "unavailable", "no location evidence", "a governed zone, a volatility-normalized distance, and structural room", ["location-unavailable"], ["primary", "regime"]);
+      if (location.inGovernedZone !== true) {
+        // Being extended away from every governed zone is exactly the chase this gate exists to stop.
+        var distance = tadIsFinite(location.atrDistanceToZone) ? location.atrDistanceToZone.toFixed(2) + " ATR from the nearest governed zone" : "no governed zone within the configured distance";
+        return tadGateResult("location", "fail", "price is " + distance, "price inside a governed support or value zone", ["outside-governed-zone", "chase-risk"], ["primary", "regime"]);
+      }
+      if (!tadIsFinite(location.structuralRoomR) || location.structuralRoomR <= 0) return tadGateResult("location", "fail", "no measurable structural room to the first natural target", "positive structural room to a pre-derived target", ["insufficient-structural-room"], ["primary", "regime"]);
+      return tadGateResult("location", "pass", "inside a governed zone with " + location.structuralRoomR.toFixed(2) + "R of structural room", "price inside a governed support or value zone", ["inside-governed-zone", "structural-room-" + location.structuralRoomR.toFixed(2) + "R"], ["primary", "regime"]);
+    }
+
+    function tadEvaluateTriggerGate(context) {
+      var trigger = tadIsPlainObject(context) ? context.trigger : null;
+      if (!tadIsPlainObject(trigger)) return tadGateResult("trigger", "unavailable", "no trigger evidence", "a closed-bar trigger event declared by the setup", ["trigger-unavailable"], ["primary", "regime", "location"]);
+      if (trigger.invalidated === true) return tadGateResult("trigger", "fail", "the setup structure closed beyond its invalidation", "structure holding above its invalidation", ["closed-beyond-invalidation"], ["primary", "regime", "location"]);
+      if (typeof trigger.observedEventId !== "string") return tadGateResult("trigger", "fail", "no declared trigger event has occurred", "a closed-bar trigger event declared by the setup", ["trigger-not-yet-observed"], ["primary", "regime", "location"]);
+      var declared = Array.isArray(trigger.declaredEventIds) ? trigger.declaredEventIds : [];
+      if (declared.indexOf(trigger.observedEventId) < 0) return tadGateResult("trigger", "fail", "observed event " + trigger.observedEventId + " is not declared by the setup", "a trigger event the setup declares", ["undeclared-trigger-event"], ["primary", "regime", "location"]);
+      // A provisional bar cannot confirm; only a closed bar can.
+      if (trigger.confirmedOnClosedBar !== true) return tadGateResult("trigger", "fail", "trigger " + trigger.observedEventId + " is not confirmed on a closed bar", "confirmation on a closed bar", ["provisional-bar-cannot-confirm"], ["primary", "regime", "location"]);
+      return tadGateResult("trigger", "pass", "closed-bar " + trigger.observedEventId, "a closed-bar trigger event declared by the setup", ["trigger-confirmed:" + trigger.observedEventId], ["primary", "regime", "location"]);
+    }
+
+    function tadEvaluateValidationRiskProcessGate(context) {
+      var process = tadIsPlainObject(context) ? context.validationRiskProcess : null;
+      if (!tadIsPlainObject(process)) return tadGateResult("validation-risk-process", "unavailable", "no validation, cost, or process evidence", "a supported validation record, a frozen plan, and an explicit cost posture", ["validation-risk-process-unavailable"], TAD_GATE_ORDER.slice(0, 4));
+      if (process.validationStatus !== "supported") return tadGateResult("validation-risk-process", "fail", "validation status " + process.validationStatus, "a supported validation record", ["validation-not-supported:" + process.validationStatus], TAD_GATE_ORDER.slice(0, 4));
+      if (process.planFrozen !== true) return tadGateResult("validation-risk-process", "fail", "the plan is not frozen", "a frozen trigger, invalidation, and target path", ["plan-not-frozen"], TAD_GATE_ORDER.slice(0, 4));
+      // A missing cost component can never become a pass, because a net claim without costs is a
+      // claim about money that was never measured.
+      if (process.costsExplicit !== true) return tadGateResult("validation-risk-process", "fail", "required cost components are absent", "an explicit cost posture for every required component", ["costs-not-explicit"], TAD_GATE_ORDER.slice(0, 4));
+      if (process.targetAuditClean !== true) return tadGateResult("validation-risk-process", "fail", "the published target path differs from the frozen plan", "a target path matching the frozen plan", ["target-audit-dirty"], TAD_GATE_ORDER.slice(0, 4));
+      if (!tadIsFinite(process.netRewardToRisk)) return tadGateResult("validation-risk-process", "fail", "net reward-to-risk is not computable", "a finite net reward-to-risk after costs", ["net-reward-to-risk-unavailable"], TAD_GATE_ORDER.slice(0, 4));
+      if (tadIsFinite(process.minimumNetRewardToRisk) && process.netRewardToRisk < process.minimumNetRewardToRisk) return tadGateResult("validation-risk-process", "fail", "net " + process.netRewardToRisk.toFixed(2) + "R after costs", "at least " + process.minimumNetRewardToRisk.toFixed(2) + "R after costs", ["net-reward-below-minimum"], TAD_GATE_ORDER.slice(0, 4));
+      return tadGateResult("validation-risk-process", "pass", "supported validation, frozen plan, explicit costs, net " + process.netRewardToRisk.toFixed(2) + "R", "a supported validation record, a frozen plan, and an explicit cost posture", ["validation-supported", "plan-frozen", "costs-explicit"], TAD_GATE_ORDER.slice(0, 4));
+    }
+
+    function tadSynthesizeFiveGates(context) {
+      if (!tadIsPlainObject(context)) return tadDeepFreeze({ ok: false, gates: [], errors: [tadError("TAD-GATE-CONTEXT", "error", "$", null, context, "a synthesis context", "supply gate evidence", "Five-gate synthesis requires a context.")] });
+      // All five records are always computed so the reader can see the whole picture, but transition
+      // eligibility stops at the first mandatory fail or unavailable. A later pass cannot revive it.
+      var gates = [tadEvaluatePrimaryGate(context), tadEvaluateRegimeGate(context), tadEvaluateLocationGate(context), tadEvaluateTriggerGate(context), tadEvaluateValidationRiskProcessGate(context)];
+      var firstBlockingIndex = -1;
+      for (var i = 0; i < gates.length; i += 1) if (gates[i].outcome !== "pass") { firstBlockingIndex = i; break; }
+      var eligible = firstBlockingIndex < 0;
+      var decorated = gates.map(function (gate, index) {
+        return { gateId: gate.gateId, order: index + 1, outcome: gate.outcome, observed: gate.observed, required: gate.required, reasonCodes: gate.reasonCodes.slice(), dependencies: gate.dependencies.slice(), blocking: gate.blocking, blocksTransition: firstBlockingIndex >= 0 && index === firstBlockingIndex, diagnosticOnly: firstBlockingIndex >= 0 && index > firstBlockingIndex };
+      });
+      return tadDeepFreeze({
+        ok: true, gates: decorated, gateOrder: TAD_GATE_ORDER.slice(),
+        transitionEligible: eligible,
+        firstBlockingGateId: firstBlockingIndex < 0 ? null : gates[firstBlockingIndex].gateId,
+        passCount: gates.filter(function (gate) { return gate.outcome === "pass"; }).length,
+        failCount: gates.filter(function (gate) { return gate.outcome === "fail"; }).length,
+        unavailableCount: gates.filter(function (gate) { return gate.outcome === "unavailable"; }).length,
+        errors: []
+      });
+    }
+
+    function tadRankCandidates(candidates) {
+      if (!Array.isArray(candidates)) return tadDeepFreeze({ ok: false, ranked: [], errors: [tadError("TAD-RANK-INPUT", "error", "$", null, candidates, "an array of evaluated candidates", "supply evaluated candidates", "Candidate ranking input is invalid.")] });
+      var validationRank = { supported: 0, bounded: 1, unsupported: 2, unavailable: 3 };
+      var truthRank = { current: 0, degraded: 1, stale: 2, unavailable: 3 };
+      var scored = candidates.map(function (candidate, index) {
+        var synthesis = candidate.synthesis || {};
+        return {
+          candidateId: candidate.candidateId, setupDefinitionId: candidate.setupDefinitionId, sourceIndex: index,
+          transitionEligible: synthesis.transitionEligible === true,
+          passCount: tadIsFinite(synthesis.passCount) ? synthesis.passCount : 0,
+          validationStatus: typeof candidate.validationStatus === "string" ? candidate.validationStatus : "unavailable",
+          truthState: typeof candidate.truthState === "string" ? candidate.truthState : "unavailable",
+          contradictionSeverity: tadIsFinite(candidate.contradictionSeverity) ? candidate.contradictionSeverity : 0,
+          contradictionCount: tadIsFinite(candidate.contradictionCount) ? candidate.contradictionCount : 0,
+          specificity: tadIsFinite(candidate.specificity) ? candidate.specificity : 0,
+          registryIndex: tadIsFinite(candidate.registryIndex) ? candidate.registryIndex : 0
+        };
+      });
+      // Direction is deliberately absent from every rank dimension. A candidate wins on complete
+      // gate and validation evidence, never on being the most bullish thing on the page.
+      var ranked = scored.slice().sort(function (a, b) {
+        if (a.transitionEligible !== b.transitionEligible) return a.transitionEligible ? -1 : 1;
+        if (a.passCount !== b.passCount) return b.passCount - a.passCount;
+        var aValidation = Object.prototype.hasOwnProperty.call(validationRank, a.validationStatus) ? validationRank[a.validationStatus] : 9;
+        var bValidation = Object.prototype.hasOwnProperty.call(validationRank, b.validationStatus) ? validationRank[b.validationStatus] : 9;
+        if (aValidation !== bValidation) return aValidation - bValidation;
+        var aTruth = Object.prototype.hasOwnProperty.call(truthRank, a.truthState) ? truthRank[a.truthState] : 9;
+        var bTruth = Object.prototype.hasOwnProperty.call(truthRank, b.truthState) ? truthRank[b.truthState] : 9;
+        if (aTruth !== bTruth) return aTruth - bTruth;
+        if (a.contradictionSeverity !== b.contradictionSeverity) return a.contradictionSeverity - b.contradictionSeverity;
+        if (a.contradictionCount !== b.contradictionCount) return a.contradictionCount - b.contradictionCount;
+        if (a.specificity !== b.specificity) return b.specificity - a.specificity;
+        if (a.registryIndex !== b.registryIndex) return a.registryIndex - b.registryIndex;
+        return String(a.candidateId).localeCompare(String(b.candidateId));
+      }).map(function (entry, position) { return { rank: position + 1, candidateId: entry.candidateId, setupDefinitionId: entry.setupDefinitionId, transitionEligible: entry.transitionEligible, passCount: entry.passCount, validationStatus: entry.validationStatus, truthState: entry.truthState, contradictionSeverity: entry.contradictionSeverity, contradictionCount: entry.contradictionCount, specificity: entry.specificity }; });
+      return tadDeepFreeze({ ok: true, ranked: ranked, rankDimensions: ["transitionEligible", "passCount", "validationStatus", "truthState", "contradictionSeverity", "contradictionCount", "specificity", "registryIndex", "candidateId"], errors: [] });
+    }
+
+    function tadBuildUnifiedRead(input) {
+      if (!tadIsPlainObject(input) || !Array.isArray(input.candidates)) return tadDeepFreeze({ ok: false, read: null, errors: [tadError("TAD-READ-INPUT", "error", "$", null, input, "an input with a candidates array", "supply evaluated candidates", "The unified read requires evaluated candidates.")] });
+      if (typeof input.observationCutoff !== "string") return tadDeepFreeze({ ok: false, read: null, errors: [tadError("TAD-READ-CUTOFF", "error", "$", null, input.observationCutoff, "an ISO observationCutoff", "declare the cutoff", "The unified read requires an observation cutoff.")] });
+      var ranking = tadRankCandidates(input.candidates);
+      if (!ranking.ok) return tadDeepFreeze({ ok: false, read: null, errors: ranking.errors.slice() });
+      var byId = {};
+      input.candidates.forEach(function (candidate) { byId[candidate.candidateId] = candidate; });
+      var eligible = ranking.ranked.filter(function (entry) { return entry.transitionEligible; });
+      var selected = eligible.length ? byId[eligible[0].candidateId] : null;
+      // Abstaining is a real answer. With no candidate clearing every mandatory gate the read is
+      // NO_EDGE or MIXED; it never manufactures a low-confidence direction to avoid saying nothing.
+      var contradictions = input.candidates.filter(function (candidate) { return tadIsFinite(candidate.contradictionCount) && candidate.contradictionCount > 0; }).length;
+      var state;
+      if (selected) state = "TRIGGERED";
+      else if (input.candidates.some(function (candidate) { return candidate.invalidated === true; })) state = "INVALIDATED";
+      else if (contradictions > 0 && input.candidates.length > 1) state = "MIXED";
+      else state = "NO_EDGE";
+      var nearest = !selected && ranking.ranked.length ? ranking.ranked[0] : null;
+      var nearestCandidate = nearest ? byId[nearest.candidateId] : null;
+      var timeframeConflict = input.candidates.some(function (candidate) {
+        return candidate.synthesis && Array.isArray(candidate.synthesis.gates) && candidate.synthesis.gates.some(function (gate) { return gate.reasonCodes.some(function (reason) { return reason.indexOf("timeframe-conflict") === 0; }); });
+      });
+      var read = {
+        readId: tadIdentity("tad-read:", { cutoff: input.observationCutoff, candidates: ranking.ranked.map(function (entry) { return entry.candidateId; }), state: state }),
+        state: state, observationCutoff: input.observationCutoff,
+        selectedCandidateId: selected ? selected.candidateId : null,
+        selectionBasis: selected ? "strongest-complete-gate-and-validation-evidence" : "no-candidate-cleared-every-mandatory-gate",
+        nearestReadyCandidateId: nearestCandidate ? nearestCandidate.candidateId : null,
+        nearestMissingCondition: nearestCandidate && nearestCandidate.synthesis ? nearestCandidate.synthesis.firstBlockingGateId : null,
+        ranked: ranking.ranked.slice(),
+        rankDimensions: ranking.rankDimensions.slice(),
+        timeframeConflict: timeframeConflict,
+        candidateCount: input.candidates.length,
+        contradictingCandidateCount: contradictions,
+        directionPublished: false,
+        executionClaimed: false,
+        caveats: Array.isArray(input.caveats) ? input.caveats.slice() : []
+      };
+      return tadDeepFreeze({ ok: true, read: read, errors: [] });
+    }
+    /* ---------- End Feature 007 Scope 04: five-gate synthesis ---------- */
+
     var pageRuntime = { config: null, index: null, sourceFixture: null, analyticFixture: null, techniqueFixture: null, diagnostics: null };
     function byId(id) { return document.getElementById(id); }
     function setText(id, value) { var element = byId(id); if (element) element.textContent = value; }

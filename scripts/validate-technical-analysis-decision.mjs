@@ -79,12 +79,31 @@ try {
     'tadTransitionCandidate', 'tadDeriveNaturalTargets', 'tadBuildRiskPlan', 'tadAuditTargets'
   ];
   const scope03Helpers = ['tadIsFinite', 'tadIdentity', 'tadLevelRefusal', 'tadSetupRefusal'];
+  const scope04Names = [
+    'tadRankCandidates', 'tadEvaluatePrimaryGate', 'tadEvaluateRegimeGate', 'tadEvaluateLocationGate', 'tadEvaluateTriggerGate',
+    'tadEvaluateValidationRiskProcessGate', 'tadSynthesizeFiveGates', 'tadBuildUnifiedRead'
+  ];
+  const scope04Helpers = ['tadGateResult', 'tadTimeframeConflict'];
   const tad = buildFunctions(pageSource, scope01Names.concat(scope02Helpers, scope02Names));
   const physicalTadNames = [...pageSource.matchAll(/function\s+(tad[A-Za-z0-9]+)\s*\(/g)].map((match) => match[1]);
-  const declaredNames = scope01Names.concat(scope02Helpers, scope02Names, scope03Helpers, scope03Names);
+  const declaredNames = scope01Names.concat(scope02Helpers, scope02Names, scope03Helpers, scope03Names, scope04Helpers, scope04Names);
   check(physicalTadNames.length === declaredNames.length && new Set(physicalTadNames).size === declaredNames.length && scope01Names.every((name) => physicalTadNames.includes(name)), 'scope01-production-declarations-20-exact');
   check(scope02Names.length === 17 && scope02Names.every((name) => physicalTadNames.includes(name)), 'scope02-production-declarations-17-exact');
   check(scope03Names.length === 8 && scope03Names.every((name) => physicalTadNames.includes(name)), 'scope03-production-declarations-8-exact');
+  check(scope04Names.length === 8 && scope04Names.every((name) => physicalTadNames.includes(name)), 'scope04-production-declarations-8-exact');
+
+  // The five mandatory gates are ordered and closed. A sixth gate, a reordering, or a renamed gate
+  // would change what "every mandatory gate passed" means without any test noticing.
+  check(/var TAD_GATE_ORDER = \["primary", "regime", "location", "trigger", "validation-risk-process"\];/.test(pageSource), 'scope04-gate-order-exact');
+  const scope04Block = pageSource.slice(pageSource.indexOf('Feature 007 Scope 04: five-gate synthesis'), pageSource.indexOf('End Feature 007 Scope 04'));
+  check(scope04Block.length > 0, 'scope04-marker-block-present');
+  // Direction must never enter ranking. This is the check that stops "most bullish" from winning.
+  check(!/\bdirection\b/.test(scope04Block.slice(scope04Block.indexOf('function tadRankCandidates'), scope04Block.indexOf('function tadBuildUnifiedRead'))), 'scope04-ranking-never-reads-direction');
+  check(config.setupDefinitions.every((setup) => (setup.mandatoryGateIds || []).every((gateId) => ['primary', 'regime', 'location', 'trigger', 'validation-risk-process'].includes(gateId))), 'scope04-setup-mandatory-gate-ids-closed');
+  // A setup that can trigger must declare all five mandatory gates. A watch-only setup declares
+  // no trigger events, so it legitimately declares the subset that applies and can never trigger.
+  check(config.setupDefinitions.every((setup) => setup.triggerEvents.length === 0 || (setup.mandatoryGateIds || []).length === 5), 'scope04-triggerable-setups-declare-all-five-mandatory-gates');
+  check(config.setupDefinitions.every((setup) => setup.triggerEvents.length > 0 || ((setup.mandatoryGateIds || []).indexOf('trigger') < 0 && (setup.mandatoryGateIds || []).indexOf('validation-risk-process') < 0)), 'scope04-watch-only-setups-declare-no-trigger-gate');
 
   // Scope 03 config contract: every setup definition must be fully specified and closed against
   // the registries it references, so a definition can never point at something that is not there.

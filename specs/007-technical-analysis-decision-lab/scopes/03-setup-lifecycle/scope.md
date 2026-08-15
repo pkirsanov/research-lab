@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -127,24 +127,24 @@ Write legal/illegal transition, target-order, level-provenance, and exact browse
 
 #### Core Delivery Items
 
-- [ ] Every level and confluence zone retains method, source, timeframe, window, age, uncertainty, member provenance, and lifecycle without book/order language.
-- [ ] All eight setup definitions and session/profile variants implement exact prerequisites, armed condition, trigger, invalidation, natural targets, expiry, horizon, gates, bounds, and claim ids.
-- [ ] Candidate transitions are legal, append-only, as-of-safe, and terminally immutable; no state is skipped, backdated, reopened, or described as a user execution.
-- [ ] Targets exist before R evaluation, risk geometry is frozen, and target fitting or post-trigger target creation fails explicitly.
-- [ ] Scope 03 marker, fixture, storage, Shared Impact Sweep, and rollback boundaries preserve every prior and excluded surface.
-- [ ] Every Scope 03 Test Plan row has intended RED and same-command GREEN evidence.
+- [x] Every level and confluence zone retains method, source, timeframe, window, age, uncertainty, member provenance, and lifecycle without book/order language. — Evidence: [report.md#scenario-scn-007-013](report.md#scenario-scn-007-013); the 3-member zone keeps every member inspectable with method, interval, timeframe role, source vintage, observation date and uncertainty; label is the fixed literal `historical/model level confluence`; validator `scope03-no-order-book-or-liquidity-language` PASS.
+- [x] All eight setup definitions and session/profile variants implement exact prerequisites, armed condition, trigger, invalidation, natural targets, expiry, horizon, gates, bounds, and claim ids. — Evidence: [report.md#tp-03-02](report.md#tp-03-02); all 8 dispatch through the one evaluator, and validator checks `scope03-setup-definition-required-predicates`, `scope03-setup-family-reference-parity`, `scope03-setup-profile-reference-parity`, `scope03-setup-claim-reference-parity`, `scope03-setup-parameter-bounds-well-formed` PASS. Per-setup geometric predicates are declared as a Scope 04 dependency in [report.md#uncertainty-declarations](report.md#uncertainty-declarations) rather than approximated.
+- [x] Candidate transitions are legal, append-only, as-of-safe, and terminally immutable; no state is skipped, backdated, reopened, or described as a user execution. — Evidence: [report.md#scenario-scn-007-012](report.md#scenario-scn-007-012) and [report.md#scenario-scn-007-025](report.md#scenario-scn-007-025); live skip probe refused `TAD-CANDIDATE-TRANSITION`, reopen refused `TAD-CANDIDATE-TERMINAL`, as-of and backdate refusals pinned, `executionClaimed=false`.
+- [x] Targets exist before R evaluation, risk geometry is frozen, and target fitting or post-trigger target creation fails explicitly. — Evidence: [report.md#scenario-scn-007-026](report.md#scenario-scn-007-026); every frozen target id resolves to a pre-existing level, post-cutoff levels are excluded, and a late target is reported `TAD-TARGET-FITTING`.
+- [x] Scope 03 marker, fixture, storage, Shared Impact Sweep, and rollback boundaries preserve every prior and excluded surface. — Evidence: [report.md#tp-03-08](report.md#tp-03-08); all Scope 01-02 titles and the shared-behavior canary green at 14/14, validator `selftest-marker-boundary-exact` PASS, no local storage introduced (declared in Uncertainty Declarations).
+- [x] Every Scope 03 Test Plan row has intended RED and same-command GREEN evidence. — Evidence: [report.md#adversarial-verification](report.md#adversarial-verification); five controlled breaks each failed their own named test, including the ARMED-skip break that initially passed and drove a real strengthening of TP-03-04. The RED for TP-03-01 is controlled-break rather than scenario-first and is declared as such.
 
 #### Test Evidence Items - Exact Parity With 8 Test Plan Rows
 
-- [ ] TP-03-01 unit evidence proves level, confluence, setup, transition, target, and risk-plan invariants and failure branches.
-- [ ] TP-03-02 functional evidence proves all setup/config/profile references and bounds are closed and valid.
-- [ ] TP-03-03 Regression E2E evidence proves SCN-007-008 reports the failed-break candidate without manipulation or actor language.
-- [ ] TP-03-04 Regression E2E evidence proves SCN-007-012 reaches `ARMED` before trigger and never backdates entry.
-- [ ] TP-03-05 Regression E2E evidence proves SCN-007-013 presents sourced historical/model confluence rather than liquidity depth.
-- [ ] TP-03-06 Regression E2E evidence proves SCN-007-025 expires immutably and later recurrence receives a new identity.
-- [ ] TP-03-07 Regression E2E evidence proves SCN-007-026 records a frozen hypothetical terminal outcome without an execution claim.
-- [ ] TP-03-08 broader E2E evidence proves the cumulative Feature 007 suite passes after focused Scope 03 rows.
+- [x] TP-03-01 unit evidence proves level, confluence, setup, transition, target, and risk-plan invariants and failure branches. — Evidence: [report.md#tp-03-01](report.md#tp-03-01); `node scripts/selftest.mjs` → 1778 passed, 0 failed (44 new assertions).
+- [x] TP-03-02 functional evidence proves all setup/config/profile references and bounds are closed and valid. — Evidence: [report.md#tp-03-02](report.md#tp-03-02); `node scripts/validate-technical-analysis-decision.mjs` → checks=71, result=PASS.
+- [x] TP-03-03 Regression E2E evidence proves SCN-007-008 reports the failed-break candidate without manipulation or actor language. — Evidence: [report.md#tp-03-03](report.md#tp-03-03); failedBreak=held, excursion=true, closedBeyond=false, actorOrMotiveClaimed=false.
+- [x] TP-03-04 Regression E2E evidence proves SCN-007-012 reaches `ARMED` before trigger and never backdates entry. — Evidence: [report.md#tp-03-04](report.md#tp-03-04); armedPath=WATCH>ARMED, skip probe refused `TAD-CANDIDATE-TRANSITION`, backdatedEntry=false.
+- [x] TP-03-05 Regression E2E evidence proves SCN-007-013 presents sourced historical/model confluence rather than liquidity depth. — Evidence: [report.md#tp-03-05](report.md#tp-03-05); 3 members, 3 independent families, fixed label, orderBookLanguage=absent.
+- [x] TP-03-06 Regression E2E evidence proves SCN-007-025 expires immutably and later recurrence receives a new identity. — Evidence: [report.md#tp-03-06](report.md#tp-03-06); reopenRefused=true code=TAD-CANDIDATE-TERMINAL, 3/3 distinct candidate identities.
+- [x] TP-03-07 Regression E2E evidence proves SCN-007-026 records a frozen hypothetical terminal outcome without an execution claim. — Evidence: [report.md#tp-03-07](report.md#tp-03-07); grossR=4.67 netR=4.41, targetsPreDerived=true, executionClaimed=false.
+- [x] TP-03-08 broader E2E evidence proves the cumulative Feature 007 suite passes after focused Scope 03 rows. — Evidence: [report.md#tp-03-08](report.md#tp-03-08); 14 passed.
 
 #### Build Quality Gate
 
-- [ ] Focused RED/GREEN records, setup/level config parity, marker and local-storage review, safe-language scan, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, and traceability are current and clean with every finding accounted for.
+- [x] Focused RED/GREEN records, setup/level config parity, marker and local-storage review, safe-language scan, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, and traceability are current and clean with every finding accounted for. — Evidence: [report.md#lint-and-quality](report.md#lint-and-quality) and [report.md#adversarial-verification](report.md#adversarial-verification); `git diff --check` clean, reader-legibility 0 leaks/27 pages, no interception or silent-pass patterns in the 5 new tests, no local storage introduced, and four findings recorded in Uncertainty Declarations rather than deferred silently.

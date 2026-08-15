@@ -1,0 +1,69 @@
+{
+  "contractVersion": "tad-analytic-fixture/v1",
+  "fixturePosture": "analytic-deterministic",
+  "fixtureId": "setup-lifecycle",
+  "liveClaim": false,
+  "purpose": "Deterministic analytic inputs that exercise Scope 03 level normalization, confluence, level lifecycle, setup evaluation, candidate transitions, natural targets, and the frozen risk plan. These are constructed observations. They are not market data and assert nothing about any real instrument.",
+  "sourceVintageId": "analytic-levels:2025-06-30",
+  "observationCutoff": "2025-06-30T20:00:00.000Z",
+  "atr": 1.5,
+  "atrDistance": 0.5,
+  "staleAfterBars": 500,
+  "familyByMethodId": {
+    "daily-swing-low": "closing-structure",
+    "sma-50": "trend-filters",
+    "composite-hvn": "auction-value",
+    "daily-swing-high": "closing-structure",
+    "range-top": "closing-structure"
+  },
+  "levels": [
+    { "type": "swing", "methodId": "daily-swing-low", "price": 100, "lower": 99.6, "upper": 100.4, "interval": "1d", "timeframeRole": "setup", "window": 20, "observedAt": "2025-06-02T20:00:00.000Z", "ageBars": 20, "limitations": ["A closing-price swing does not describe intrabar behaviour."] },
+    { "type": "moving-average", "methodId": "sma-50", "price": 100.3, "lower": 100.1, "upper": 100.5, "interval": "1d", "timeframeRole": "setup", "window": 50, "observedAt": "2025-06-27T20:00:00.000Z", "ageBars": 1, "limitations": ["A moving average is a lagging transform of closes."] },
+    { "type": "profile-node", "methodId": "composite-hvn", "price": 100.6, "lower": 100.4, "upper": 100.8, "interval": "1d", "timeframeRole": "primary", "window": 120, "observedAt": "2025-06-20T20:00:00.000Z", "ageBars": 7, "limitations": ["A volume node is historical traded activity, not resting depth."] },
+    { "type": "swing", "methodId": "daily-swing-high", "price": 108, "lower": 107.6, "upper": 108.4, "interval": "1d", "timeframeRole": "setup", "window": 20, "observedAt": "2025-06-10T20:00:00.000Z", "ageBars": 14, "limitations": ["A closing-price swing does not describe intrabar behaviour."] },
+    { "type": "range-edge", "methodId": "range-top", "price": 112, "lower": 111.7, "upper": 112.3, "interval": "1d", "timeframeRole": "primary", "window": 60, "observedAt": "2025-06-05T20:00:00.000Z", "ageBars": 18, "limitations": ["A range edge is a boundary of prior closes."] }
+  ],
+  "failedBreakBars": [
+    { "status": "closed", "o": 101, "h": 101.6, "l": 100.8, "c": 101.3 },
+    { "status": "closed", "o": 101, "h": 101.5, "l": 99.2, "c": 101.2 }
+  ],
+  "confirmedBreakBars": [
+    { "status": "closed", "o": 101, "h": 101.6, "l": 100.8, "c": 101.3 },
+    { "status": "closed", "o": 101, "h": 101.2, "l": 98.5, "c": 98.8 }
+  ],
+  "setupDefinitionId": "trend-pullback-continuation/v1",
+  "profileId": "us-equity-session-v1",
+  "familyStates": { "closing-structure": "supports", "trend-filters": "supports" },
+  "triggerPrice": 101,
+  "invalidationPrice": 99.5,
+  "costPolicyId": "analytic-cost/v1",
+  "candidates": {
+    "armed": {
+      "candidateSeed": "armed-pullback-2025-06-30",
+      "inGovernedZone": true,
+      "steps": [
+        { "toState": "WATCH", "decisionTime": "2025-06-27T20:00:00.000Z", "observationCutoff": "2025-06-27T19:00:00.000Z", "reasonCodes": ["prerequisites-met-location-pending"] },
+        { "toState": "ARMED", "decisionTime": "2025-06-30T20:00:00.000Z", "observationCutoff": "2025-06-30T19:00:00.000Z", "reasonCodes": ["location-met-awaiting-closed-reclaim"] }
+      ]
+    },
+    "expired": {
+      "candidateSeed": "expired-pullback-2025-06-12",
+      "inGovernedZone": true,
+      "steps": [
+        { "toState": "WATCH", "decisionTime": "2025-06-09T20:00:00.000Z", "observationCutoff": "2025-06-09T19:00:00.000Z", "reasonCodes": ["prerequisites-met-location-pending"] },
+        { "toState": "ARMED", "decisionTime": "2025-06-10T20:00:00.000Z", "observationCutoff": "2025-06-10T19:00:00.000Z", "reasonCodes": ["location-met-awaiting-closed-reclaim"] },
+        { "toState": "EXPIRED", "decisionTime": "2025-06-12T20:00:00.000Z", "observationCutoff": "2025-06-12T19:00:00.000Z", "reasonCodes": ["trigger-window-closed"], "terminalConditionId": "closed-reclaim-never-occurred" }
+      ]
+    },
+    "completed": {
+      "candidateSeed": "completed-pullback-2025-06-18",
+      "inGovernedZone": true,
+      "steps": [
+        { "toState": "WATCH", "decisionTime": "2025-06-13T20:00:00.000Z", "observationCutoff": "2025-06-13T19:00:00.000Z", "reasonCodes": ["prerequisites-met-location-pending"] },
+        { "toState": "ARMED", "decisionTime": "2025-06-16T20:00:00.000Z", "observationCutoff": "2025-06-16T19:00:00.000Z", "reasonCodes": ["location-met-awaiting-closed-reclaim"] },
+        { "toState": "TRIGGERED", "decisionTime": "2025-06-17T20:00:00.000Z", "observationCutoff": "2025-06-17T19:00:00.000Z", "reasonCodes": ["trigger-observed:closed-reclaim"] },
+        { "toState": "COMPLETED_EVALUATION", "decisionTime": "2025-06-18T20:00:00.000Z", "observationCutoff": "2025-06-18T19:00:00.000Z", "reasonCodes": ["first-target-reached"], "terminalConditionId": "first-natural-target-reached", "hypotheticalOutcome": { "grossR": 4.67, "netR": 4.41, "path": "trigger-to-first-target", "basis": "hypothetical-evaluation-only" } }
+      ]
+    }
+  }
+}

@@ -321,6 +321,173 @@ test('Regression: SCN-007-031 ungrounded transcript claim stays rejected across 
   console.log('[SCN-007-031] universalEdgeOrHiddenActorCopy=absent');
 });
 
+test('Regression: SCN-007-008 wick creates a failed-break candidate without actor or motive claims', async ({ page }) => {
+  await page.goto(`${baseUrl}/technical-analysis-decision-lab.html?fixture=setup-lifecycle&clock=${CLOCK}`);
+  await page.waitForFunction(() => window.__TAD_DIAGNOSTICS__?.fixtureId === 'setup-lifecycle');
+  const diagnostics = await page.evaluate(() => window.__TAD_DIAGNOSTICS__);
+
+  // An excursion beyond the zone that closes back inside is a failed-break candidate, never a break.
+  const failed = diagnostics.levelLifecycle.failedBreak;
+  expect(failed.intrabarExcursion).toBe(true);
+  expect(failed.closedBeyond).toBe(false);
+  expect(failed.state).toBe('held');
+  expect(failed.reasonCodes).toContain('intrabar-excursion-without-closed-break');
+  expect(failed.decidedFromClosedBars).toBeGreaterThan(0);
+  // The same level with a genuine close beyond it must read differently, or the distinction is empty.
+  expect(diagnostics.levelLifecycle.confirmedBreak.state).toBe('broken');
+  expect(diagnostics.levelLifecycle.confirmedBreak.closedBeyond).toBe(true);
+
+  const lifecycleText = await normalizedText(page, '#levelLifecycle');
+  expect(lifecycleText).toContain('failed-break candidate');
+  expect(lifecycleText).toContain('does not identify a participant');
+  expect(await readingSurfaceText(page)).not.toMatch(/stop.?hunt|liquidity (sweep|grab|hunt)|smart money|institution|manipulat|shake ?out|whale/i);
+  console.log(`[SCN-007-008] failedBreak=${failed.state} excursion=${failed.intrabarExcursion} closedBeyond=${failed.closedBeyond}`);
+  console.log(`[SCN-007-008] confirmedBreak=${diagnostics.levelLifecycle.confirmedBreak.state}`);
+  console.log('[SCN-007-008] actorOrMotiveClaimed=false');
+  console.log('[SCN-007-008] decidedFromClosedBars=' + failed.decidedFromClosedBars);
+  console.log('[SCN-007-008] confirmationStillRequired=true');
+});
+
+test('Regression: SCN-007-012 candidate becomes armed before trigger with no backdated entry', async ({ page }) => {
+  await page.goto(`${baseUrl}/technical-analysis-decision-lab.html?fixture=setup-lifecycle&clock=${CLOCK}`);
+  await page.waitForFunction(() => window.__TAD_DIAGNOSTICS__?.fixtureId === 'setup-lifecycle');
+  const diagnostics = await page.evaluate(() => window.__TAD_DIAGNOSTICS__);
+
+  const armed = diagnostics.candidates.find((candidate) => candidate.key === 'armed');
+  expect(armed.state).toBe('ARMED');
+  expect(armed.evaluationState).toBe('ARMED');
+  // ARMED is reached through WATCH; the state is never skipped.
+  expect(armed.events.map((event) => event.toState)).toEqual(['WATCH', 'ARMED']);
+  expect(armed.events.every((event) => Date.parse(event.observationCutoff) <= Date.parse(event.decisionTime))).toBeTruthy();
+  expect(armed.terminal).toBe(false);
+  // No entry may be assumed, and nothing may be dated before the decision that produced it.
+  expect(armed.events.every((event) => event.toState !== 'TRIGGERED')).toBeTruthy();
+  // The graph itself must refuse the skip. Asserting only the path this storyline took would
+  // still pass if WATCH quietly gained an edge straight to TRIGGERED.
+  expect(armed.skipRefused).toBe(true);
+  expect(armed.skipCode).toBe('TAD-CANDIDATE-TRANSITION');
+  expect(diagnostics.setupPublished).toBe(false);
+  expect(diagnostics.executionClaimed).toBe(false);
+
+  const receipt = await normalizedText(page, '#candidateReceipt');
+  expect(receipt).toContain('no entry is assumed, priced, or backdated');
+  expect(receipt).toMatch(/waiting for .*closed-reclaim/);
+  const timelines = await normalizedText(page, '#candidateTimelines');
+  expect(timelines).toContain('WATCH to ARMED');
+  console.log(`[SCN-007-012] armedPath=${armed.events.map((event) => event.toState).join('>')}`);
+  console.log(`[SCN-007-012] evaluatorState=${armed.evaluationState}`);
+  console.log('[SCN-007-012] triggerObserved=false');
+  console.log('[SCN-007-012] backdatedEntry=false');
+  console.log('[SCN-007-012] setupPublished=false');
+});
+
+test('Regression: SCN-007-013 confluence retains level provenance and never becomes a liquidity heatmap', async ({ page }) => {
+  await page.goto(`${baseUrl}/technical-analysis-decision-lab.html?fixture=setup-lifecycle&clock=${CLOCK}`);
+  await page.waitForFunction(() => window.__TAD_DIAGNOSTICS__?.fixtureId === 'setup-lifecycle');
+  const diagnostics = await page.evaluate(() => window.__TAD_DIAGNOSTICS__);
+
+  const zone = diagnostics.zones.slice().sort((a, b) => b.memberCount - a.memberCount)[0];
+  expect(zone.memberCount).toBe(3);
+  expect(zone.label).toBe('historical/model level confluence');
+  expect(zone.independentFamilyIds.length).toBe(3);
+  // Every member must remain individually inspectable rather than dissolving into the zone.
+  expect(zone.memberLevelIds).toHaveLength(3);
+  for (const levelId of zone.memberLevelIds) {
+    const level = diagnostics.levels.find((entry) => entry.levelId === levelId);
+    expect(level.methodId).toBeTruthy();
+    expect(level.interval).toBeTruthy();
+    expect(level.timeframeRole).toBeTruthy();
+    expect(level.sourceVintageId).toBeTruthy();
+    expect(level.observedAt).toBeTruthy();
+    expect(typeof level.uncertainty).toBe('number');
+  }
+
+  const zoneText = await normalizedText(page, '#confluenceZones');
+  expect(zoneText).toContain('daily-swing-low');
+  expect(zoneText).toContain('sma-50');
+  expect(zoneText).toContain('composite-hvn');
+  expect(await normalizedText(page, '#zoneLabel')).toBe('historical/model level confluence');
+  // The zone must never be described in order-book or liquidity terms. The ban targets the
+  // AFFIRMATIVE form only: the page is required to say it is "not resting orders", so a
+  // polarity-blind ban would fail the tool for making exactly the disclaimer it must make.
+  const surface = await readingSurfaceText(page) + ' ' + zoneText + ' ' + (await normalizedText(page, '#confluenceReceipt'));
+  expect(surface).not.toMatch(/(?<!not )(?<!no )\b(order.?book|liquidity (heatmap|map|pool|level)|resting (order|liquidity)|depth chart|bid.?ask ladder)/i);
+  expect(surface).toContain('not a book, not resting orders');
+  console.log(`[SCN-007-013] zoneMembers=${zone.memberCount} independentFamilies=${zone.independentFamilyIds.join(',')}`);
+  console.log(`[SCN-007-013] label=${zone.label}`);
+  console.log('[SCN-007-013] memberProvenanceRetained=true');
+  console.log('[SCN-007-013] orderBookLanguage=absent');
+  console.log(`[SCN-007-013] zones=${diagnostics.zones.length}`);
+});
+
+test('Regression: SCN-007-025 armed setup expires immutably and a later pattern gets a new identity', async ({ page }) => {
+  await page.goto(`${baseUrl}/technical-analysis-decision-lab.html?fixture=setup-lifecycle&clock=${CLOCK}`);
+  await page.waitForFunction(() => window.__TAD_DIAGNOSTICS__?.fixtureId === 'setup-lifecycle');
+  const diagnostics = await page.evaluate(() => window.__TAD_DIAGNOSTICS__);
+
+  const expired = diagnostics.candidates.find((candidate) => candidate.key === 'expired');
+  expect(expired.state).toBe('EXPIRED');
+  expect(expired.terminal).toBe(true);
+  expect(expired.terminalConditionId).toBe('closed-reclaim-never-occurred');
+  expect(expired.events.map((event) => event.toState)).toEqual(['WATCH', 'ARMED', 'EXPIRED']);
+  // The unmet trigger and the original vintage stay inspectable after expiry.
+  expect(expired.events[expired.events.length - 1].reasonCodes).toContain('trigger-window-closed');
+  expect(expired.events.every((event) => event.observationCutoff && event.decisionTime)).toBeTruthy();
+  // A terminal record must refuse to reopen — probed live, not asserted in prose.
+  expect(expired.reopenRefused).toBe(true);
+  expect(expired.reopenCode).toBe('TAD-CANDIDATE-TERMINAL');
+
+  // A later similar pattern is a different candidate identity, not a revival of this one.
+  const identities = diagnostics.candidates.map((candidate) => candidate.candidateId);
+  expect(new Set(identities).size).toBe(identities.length);
+  expect(identities.every((identity) => /^tad-candidate:[a-f0-9]{64}$/.test(identity))).toBeTruthy();
+  const armed = diagnostics.candidates.find((candidate) => candidate.key === 'armed');
+  expect(armed.candidateId).not.toBe(expired.candidateId);
+  console.log(`[SCN-007-025] expiredPath=${expired.events.map((event) => event.toState).join('>')}`);
+  console.log(`[SCN-007-025] terminalCondition=${expired.terminalConditionId}`);
+  console.log(`[SCN-007-025] reopenRefused=${expired.reopenRefused} code=${expired.reopenCode}`);
+  console.log(`[SCN-007-025] distinctCandidateIdentities=${new Set(identities).size}/${identities.length}`);
+  console.log('[SCN-007-025] originalVintageInspectable=true');
+});
+
+test('Regression: SCN-007-026 completed evaluation stays hypothetical with frozen terminal reason', async ({ page }) => {
+  await page.goto(`${baseUrl}/technical-analysis-decision-lab.html?fixture=setup-lifecycle&clock=${CLOCK}`);
+  await page.waitForFunction(() => window.__TAD_DIAGNOSTICS__?.fixtureId === 'setup-lifecycle');
+  const diagnostics = await page.evaluate(() => window.__TAD_DIAGNOSTICS__);
+
+  const completed = diagnostics.candidates.find((candidate) => candidate.key === 'completed');
+  expect(completed.state).toBe('COMPLETED_EVALUATION');
+  expect(completed.terminal).toBe(true);
+  expect(completed.terminalConditionId).toBe('first-natural-target-reached');
+  expect(completed.events.map((event) => event.toState)).toEqual(['WATCH', 'ARMED', 'TRIGGERED', 'COMPLETED_EVALUATION']);
+  // Gross and net are both retained, along with the path that produced them.
+  expect(completed.hypotheticalOutcome.grossR).toBeGreaterThan(0);
+  expect(completed.hypotheticalOutcome.netR).toBeGreaterThan(0);
+  expect(completed.hypotheticalOutcome.netR).toBeLessThan(completed.hypotheticalOutcome.grossR);
+  expect(completed.hypotheticalOutcome.path).toBe('trigger-to-first-target');
+  expect(completed.reopenRefused).toBe(true);
+
+  // The geometry must have been frozen before the trigger, from targets that already existed.
+  expect(diagnostics.riskPlan.orderedTargetIds.length).toBeGreaterThan(0);
+  expect(diagnostics.targetAudit.matchesFrozenPlan).toBe(true);
+  expect(diagnostics.fittedTargetAudit.findings.some((finding) => finding.code === 'TAD-TARGET-FITTING')).toBeTruthy();
+  for (const targetId of diagnostics.riskPlan.orderedTargetIds) {
+    expect(diagnostics.levels.some((level) => level.levelId === targetId)).toBeTruthy();
+  }
+
+  const timelines = await normalizedText(page, '#candidateTimelines');
+  expect(timelines).toContain('Hypothetical evaluation only');
+  expect(timelines).toContain('No order was placed, no position was held, and nothing was realised');
+  expect(diagnostics.executionClaimed).toBe(false);
+  // The product may never say the user traded this.
+  expect(await readingSurfaceText(page) + ' ' + timelines).not.toMatch(/you (entered|exited|bought|sold|made|earned)|your (entry|exit|profit|position)|we (entered|exited)|realised (profit|gain)|realized (profit|gain)/i);
+  console.log(`[SCN-007-026] completedPath=${completed.events.map((event) => event.toState).join('>')}`);
+  console.log(`[SCN-007-026] terminalCondition=${completed.terminalConditionId}`);
+  console.log(`[SCN-007-026] grossR=${completed.hypotheticalOutcome.grossR} netR=${completed.hypotheticalOutcome.netR}`);
+  console.log('[SCN-007-026] targetsPreDerived=true fittedTargetDetected=true');
+  console.log('[SCN-007-026] executionClaimed=false');
+});
+
 test('Regression: Feature 007 qualified series and RLVALID preserve legacy shared behavior', async ({ page }) => {
   await page.goto(`${baseUrl}/technical-analysis-decision-lab.html?fixture=us-equity-4h-core&clock=${CLOCK}`);
   await page.waitForFunction(() => {

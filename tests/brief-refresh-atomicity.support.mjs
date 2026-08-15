@@ -227,6 +227,23 @@ if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
   fixturePayload.asOf = `${baselineDate}T14:05:00.000Z`;
   fixturePayload.generatedAt = `${baselineDate}T14:05:00.000Z`;
   fixturePayload.nextSession.sessionDate = baselineDate;
+  /* The fixture already normalises the window and the clocks so the baseline is a VALID starting
+     point rather than whatever the last cron publish happened to contain. `dataAsOf.labels` needs
+     the same treatment: the 2026-08-15 after-hours publish dropped it, the payload gate correctly
+     refuses an incomplete brief, and every rollover scenario here would then fail at the pipeline's
+     first rung — reporting "payload incomplete" while claiming to test session-date rollover. The
+     real loss is still reported where it belongs (the gate refuses the LIVE payload, and the
+     selftest names the missing field); this only stops one upstream content gap from masquerading
+     as a rollover regression. Backfilled ONLY when absent, so a complete payload passes through
+     untouched and the fixture never invents copy that already exists. */
+  if (fixturePayload.dataAsOf && !fixturePayload.dataAsOf.labels) {
+    fixturePayload.dataAsOf.labels = {
+      bars: 'Daily bars as of the baseline session.',
+      options: 'Option chain as of the baseline session.',
+      macro: 'Macro series as of the baseline session.',
+      events: 'Event calendar as of the baseline session.'
+    };
+  }
   writeFileSync(fixturePayloadPath, JSON.stringify(fixturePayload, null, 2) + '\n');
   copyFileSync(resolve(ROOT, 'market-brief.config.json'), resolve(repoRoot, 'market-brief.config.json'));
   copyFileSync(resolve(ROOT, 'market-brief.scorecard.json'), resolve(repoRoot, 'market-brief.scorecard.json'));

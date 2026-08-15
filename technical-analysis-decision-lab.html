@@ -424,6 +424,7 @@
           <option value="correlated-uptrend">Correlated indicator agreement (analytic)</option>
           <option value="unresolved-range">Unresolved range after decline (analytic)</option>
           <option value="setup-lifecycle">Level confluence and setup lifecycle (analytic)</option>
+          <option value="gate-synthesis">Five-gate synthesis and candidate competition (analytic)</option>
         </select>
         <p class="subtle" style="margin:10px 0 0">Credentials remain owned by <a href="index.html#data-settings">Data
             Settings</a>. This page contains no credential editor.</p>
@@ -602,6 +603,33 @@
         </div>
       </div>
       <div id="targetAudit" class="state-message">No target audit has run.</div>
+    </section>
+
+    <section class="band" aria-labelledby="gateHeading">
+      <h2 id="gateHeading">Five mandatory gates</h2>
+      <p id="gateReceipt" class="state-message">No gate evidence evaluated. All five gates are always shown; a gate
+        after the first failure is diagnostic only and cannot restore eligibility.</p>
+      <div class="facts">
+        <div class="fact">
+          <div class="k">Read</div>
+          <div id="readState" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">First blocking gate</div>
+          <div id="firstBlockingGate" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Selection basis</div>
+          <div id="selectionBasis" class="v">None</div>
+        </div>
+      </div>
+      <div id="gateRecords" class="catalog" aria-live="off"></div>
+    </section>
+
+    <section class="band" aria-labelledby="competitionHeading">
+      <h2 id="competitionHeading">Competing candidates</h2>
+      <p id="competitionReceipt" class="state-message">No candidates compared.</p>
+      <div id="candidateRanking" class="catalog" aria-live="off"></div>
     </section>
 
     <section class="band" aria-labelledby="stateHeading">
@@ -2060,6 +2088,71 @@
         errors: []
       });
     }
+    function renderGateSynthesis(fixture) {
+      var situations = {};
+      Object.keys(fixture.situations).forEach(function (key) {
+        var situation = fixture.situations[key];
+        situations[key] = { label: situation.label, synthesis: tadSynthesizeFiveGates(situation) };
+      });
+      function buildCompetition(group) {
+        var candidates = group.candidates.map(function (entry) {
+          return {
+            candidateId: tadIdentity("tad-candidate:", { seed: entry.candidateSeed, cutoff: group.observationCutoff }),
+            setupDefinitionId: entry.setupDefinitionId, situation: entry.situation,
+            synthesis: situations[entry.situation].synthesis,
+            validationStatus: entry.validationStatus, truthState: entry.truthState,
+            contradictionCount: entry.contradictionCount, contradictionSeverity: entry.contradictionSeverity,
+            specificity: entry.specificity, registryIndex: entry.registryIndex,
+            invalidated: situations[entry.situation].synthesis.gates[3].reasonCodes.indexOf("closed-beyond-invalidation") >= 0
+          };
+        });
+        return { candidates: candidates, read: tadBuildUnifiedRead({ candidates: candidates, observationCutoff: group.observationCutoff }).read };
+      }
+      var competition = buildCompetition(fixture.competition);
+      var noEdge = buildCompetition(fixture.noEdgeCompetition);
+
+      setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled");
+      setTruth("degraded", "Deterministic analytic gate evidence. Every gate outcome, rank, and read state below is the exact output of the owned synthesis functions; no current-market claim is made and no instrument is named.");
+      setFoundationReceipt({ name: "Five-gate synthesis and candidate competition", session: "Analytic daily clock", aggregation: "Closed analytic evidence only", partial: "No partial remainder exists in this receipt", primary: "Primary role state supplied as analytic evidence", setup: "Setups are evaluated, never recommended", trigger: "Trigger states are recorded, never performed", variant: tadIdentity("tad-variant:", { fixture: "gate-synthesis", cutoff: fixture.observationCutoff }), observed: Object.keys(fixture.situations).length + " analytic gate situations and two candidate competitions.", required: "Five ordered mandatory gates and a complete candidate set.", action: "Read the first blocking gate before reading anything downstream of it." });
+      setText("resultReceipt", "No signal, neutral, setup recommendation, or probability is published here. This page publishes gate outcomes, candidate ranking, and an abstaining read when nothing clears every mandatory gate.");
+
+      var primaryRead = competition.read;
+      setText("readState", primaryRead.state);
+      setText("firstBlockingGate", primaryRead.nearestMissingCondition || "none");
+      setText("selectionBasis", primaryRead.selectionBasis);
+
+      var gateHost = byId("gateRecords"); gateHost.textContent = "";
+      Object.keys(situations).forEach(function (key) {
+        var situation = situations[key], article = document.createElement("article"), heading = document.createElement("h3"), copy = document.createElement("p"), detail = document.createElement("p");
+        heading.textContent = situation.label + " - " + (situation.synthesis.transitionEligible ? "all five gates satisfied" : "blocked at " + situation.synthesis.firstBlockingGateId);
+        copy.textContent = situation.synthesis.gates.map(function (gate) {
+          return gate.order + ") " + gate.gateId + ": " + gate.outcome + (gate.diagnosticOnly ? " (diagnostic only)" : "") + " - observed " + gate.observed + "; required " + gate.required;
+        }).join(" ");
+        detail.className = "identity";
+        detail.textContent = "Reasons: " + situation.synthesis.gates.map(function (gate) { return gate.reasonCodes.join(", "); }).filter(function (text) { return text.length; }).join(" / ");
+        article.appendChild(heading); article.appendChild(copy); article.appendChild(detail); gateHost.appendChild(article);
+      });
+      setText("gateReceipt", "All five gates are always evaluated so the whole picture stays visible. A gate after the first failure is marked diagnostic only: optional support and later passes cannot outvote a failed mandatory gate or restore eligibility.");
+
+      var rankHost = byId("candidateRanking"); rankHost.textContent = "";
+      primaryRead.ranked.forEach(function (entry) {
+        var candidate = competition.candidates.filter(function (item) { return item.candidateId === entry.candidateId; })[0];
+        var article = document.createElement("article"), heading = document.createElement("h3"), copy = document.createElement("p"), identity = document.createElement("p");
+        heading.textContent = "Rank " + entry.rank + " - " + candidate.setupDefinitionId + (entry.candidateId === primaryRead.selectedCandidateId ? " (selected)" : "");
+        copy.textContent = entry.passCount + " of 5 mandatory gates satisfied, validation " + entry.validationStatus + ", source truth " + entry.truthState + ", " + entry.contradictionCount + " unresolved " + (entry.contradictionCount === 1 ? "contradiction" : "contradictions") + "." + (entry.transitionEligible ? "" : " Missing: " + candidate.synthesis.firstBlockingGateId + ".");
+        identity.className = "identity"; identity.textContent = entry.candidateId;
+        article.appendChild(heading); article.appendChild(copy); article.appendChild(identity); rankHost.appendChild(article);
+      });
+      setText("competitionReceipt", "Candidates are ordered by " + primaryRead.rankDimensions.join(", ") + ". Direction is not a ranking dimension: a candidate is selected for the strength and completeness of its gate and validation evidence, never for pointing a particular way. Every candidate that was not selected stays visible with its own weaker or missing condition.");
+
+      window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({
+        fixtureId: "gate-synthesis", ownerReadPublished: false, truthState: "degraded", setupPublished: false, probabilityPublished: false, executionClaimed: false,
+        situations: JSON.parse(JSON.stringify(situations)),
+        competition: { candidates: competition.candidates.map(function (candidate) { return { candidateId: candidate.candidateId, setupDefinitionId: candidate.setupDefinitionId, situation: candidate.situation, invalidated: candidate.invalidated }; }), read: JSON.parse(JSON.stringify(competition.read)) },
+        noEdgeCompetition: { candidates: noEdge.candidates.map(function (candidate) { return { candidateId: candidate.candidateId, setupDefinitionId: candidate.setupDefinitionId, situation: candidate.situation, invalidated: candidate.invalidated }; }), read: JSON.parse(JSON.stringify(noEdge.read)) },
+        errors: []
+      });
+    }
     function renderSetupLifecycle(fixture) {
       var config = pageRuntime.config;
       var normalized = tadNormalizeLevels(fixture.levels, { sourceVintageId: fixture.sourceVintageId, observationCutoff: fixture.observationCutoff });
@@ -2183,6 +2276,13 @@
         "correlated-uptrend": { name: "Correlated indicator agreement", observed: "Several related trend and momentum transforms read positive together.", required: "Declared families and clusters before any count is shown.", action: "Read the independent cluster count, never the raw method count." },
         "unresolved-range": { name: "Unresolved range after a decline", observed: "A mature sideways range following a decline, with no completed spring, sign of strength, or confirmed break.", required: "A confirmed range event before any phase is asserted.", action: "Keep every competing explanation open; no setup is published." }
       };
+      if (fixtureId === "gate-synthesis") {
+        fetch("tests/fixtures/technical-analysis-decision/analytic/gate-synthesis.json", { cache: "no-store" })
+          .then(function (response) { if (!response.ok) throw new Error("gate fixture HTTP " + response.status); return response.json(); })
+          .then(function (gateFixture) { renderGateSynthesis(gateFixture); })
+          .catch(function (error) { renderUnavailable("TAD-GATE-FIXTURE", String(error), "the checked-in analytic gate fixture", "restore the static analytic fixture and reload"); });
+        return;
+      }
       if (fixtureId === "setup-lifecycle") {
         fetch("tests/fixtures/technical-analysis-decision/analytic/setup-lifecycle.json", { cache: "no-store" })
           .then(function (response) { if (!response.ok) throw new Error("setup fixture HTTP " + response.status); return response.json(); })

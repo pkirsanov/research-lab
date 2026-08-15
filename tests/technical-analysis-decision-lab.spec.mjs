@@ -488,6 +488,174 @@ test('Regression: SCN-007-026 completed evaluation stays hypothetical with froze
   console.log('[SCN-007-026] executionClaimed=false');
 });
 
+async function gateDiagnostics(page, baseUrl2) {
+  await page.goto(`${baseUrl2}/technical-analysis-decision-lab.html?fixture=gate-synthesis&clock=${CLOCK}`);
+  await page.waitForFunction(() => window.__TAD_DIAGNOSTICS__?.fixtureId === 'gate-synthesis');
+  return page.evaluate(() => window.__TAD_DIAGNOSTICS__);
+}
+
+test('Regression: SCN-007-001 aligned trend without governed location remains no edge', async ({ page }) => {
+  const diagnostics = await gateDiagnostics(page, baseUrl);
+  const gates = diagnostics.situations['aligned-but-extended'].synthesis;
+
+  expect(gates.gates[0].gateId).toBe('primary');
+  expect(gates.gates[0].outcome).toBe('pass');
+  expect(gates.gates[2].gateId).toBe('location');
+  expect(gates.gates[2].outcome).toBe('fail');
+  expect(gates.gates[2].reasonCodes).toContain('outside-governed-zone');
+  expect(gates.gates[2].reasonCodes).toContain('chase-risk');
+  expect(gates.transitionEligible).toBe(false);
+  expect(gates.firstBlockingGateId).toBe('location');
+
+  // The aligned trend must not become a bullish trigger just because primary passed.
+  const read = diagnostics.noEdgeCompetition.read;
+  expect(read.state).not.toBe('TRIGGERED');
+  expect(read.selectedCandidateId).toBeNull();
+  expect(read.directionPublished).toBe(false);
+  const surface = await readingSurfaceText(page) + ' ' + (await normalizedText(page, '#gateRecords'));
+  expect(surface).not.toMatch(/bullish trigger|buy (now|here)|go long/i);
+  console.log(`[SCN-007-001] primary=${gates.gates[0].outcome} location=${gates.gates[2].outcome}`);
+  console.log(`[SCN-007-001] firstBlockingGate=${gates.firstBlockingGateId}`);
+  console.log(`[SCN-007-001] readState=${read.state} selected=${read.selectedCandidateId}`);
+  console.log('[SCN-007-001] chaseRiskNamed=true');
+  console.log('[SCN-007-001] directionPublished=false');
+});
+
+test('Regression: SCN-007-002 five mandatory gates produce one complete triggered read', async ({ page }) => {
+  const diagnostics = await gateDiagnostics(page, baseUrl);
+  const gates = diagnostics.situations['complete-trigger'].synthesis;
+
+  expect(gates.gates).toHaveLength(5);
+  expect(gates.gates.map((gate) => gate.gateId)).toEqual(['primary', 'regime', 'location', 'trigger', 'validation-risk-process']);
+  expect(gates.gates.every((gate) => gate.outcome === 'pass')).toBeTruthy();
+  expect(gates.transitionEligible).toBe(true);
+  expect(gates.firstBlockingGateId).toBeNull();
+  expect(gates.passCount).toBe(5);
+
+  const read = diagnostics.competition.read;
+  expect(read.state).toBe('TRIGGERED');
+  expect(read.selectedCandidateId).toBeTruthy();
+  expect(read.readId).toMatch(/^tad-read:[a-f0-9]{64}$/);
+  expect(read.selectionBasis).toBe('strongest-complete-gate-and-validation-evidence');
+  // Every gate must state what it observed and what it required, or the read is not explainable.
+  expect(gates.gates.every((gate) => typeof gate.observed === 'string' && gate.observed.length > 0)).toBeTruthy();
+  expect(gates.gates.every((gate) => typeof gate.required === 'string' && gate.required.length > 0)).toBeTruthy();
+  expect(await normalizedText(page, '#readState')).toBe('TRIGGERED');
+  console.log(`[SCN-007-002] gates=${gates.gates.map((gate) => gate.gateId + ':' + gate.outcome).join(' ')}`);
+  console.log(`[SCN-007-002] readState=${read.state} selected=${read.selectedCandidateId.slice(0, 24)}`);
+  console.log(`[SCN-007-002] selectionBasis=${read.selectionBasis}`);
+  console.log('[SCN-007-002] everyGateStatesObservedAndRequired=true');
+  console.log(`[SCN-007-002] passCount=${gates.passCount}`);
+});
+
+test('Regression: SCN-007-003 structural invalidation defeats correlated bullish indicators', async ({ page }) => {
+  const diagnostics = await gateDiagnostics(page, baseUrl);
+  const gates = diagnostics.situations['structural-invalidation'].synthesis;
+
+  // Primary, regime and location all pass, so nothing here is failing for lack of bullish evidence.
+  expect(gates.gates[0].outcome).toBe('pass');
+  expect(gates.gates[1].outcome).toBe('pass');
+  expect(gates.gates[2].outcome).toBe('pass');
+  expect(gates.gates[3].outcome).toBe('fail');
+  expect(gates.gates[3].reasonCodes).toContain('closed-beyond-invalidation');
+  expect(gates.transitionEligible).toBe(false);
+  // The fifth gate still passes and is still shown — but it is diagnostic only and cannot outvote.
+  expect(gates.gates[4].outcome).toBe('pass');
+  expect(gates.gates[4].diagnosticOnly).toBe(true);
+  expect(gates.gates[3].blocksTransition).toBe(true);
+
+  const gateText = await normalizedText(page, '#gateRecords');
+  expect(gateText).toContain('diagnostic only');
+  expect(await normalizedText(page, '#gateReceipt')).toContain('cannot outvote a failed mandatory gate');
+  console.log(`[SCN-007-003] passedBefore=${gates.gates.slice(0, 3).map((gate) => gate.gateId).join(',')}`);
+  console.log(`[SCN-007-003] trigger=${gates.gates[3].outcome} reason=closed-beyond-invalidation`);
+  console.log(`[SCN-007-003] laterGatePass=${gates.gates[4].outcome} diagnosticOnly=${gates.gates[4].diagnosticOnly}`);
+  console.log(`[SCN-007-003] transitionEligible=${gates.transitionEligible}`);
+  console.log('[SCN-007-003] outvotedByIndicators=false');
+});
+
+test('Regression: SCN-007-004 tactical strength preserves primary downtrend conflict and eligibility', async ({ page }) => {
+  const diagnostics = await gateDiagnostics(page, baseUrl);
+  const conflict = diagnostics.situations['timeframe-conflict'].synthesis;
+  const eligible = diagnostics.situations['timeframe-conflict-countertrend-eligible'].synthesis;
+
+  // The conflict is stated, and the primary is never called reversed.
+  expect(conflict.gates[0].outcome).toBe('pass');
+  expect(conflict.gates[0].reasonCodes.some((reason) => reason.startsWith('timeframe-conflict:'))).toBeTruthy();
+  expect(conflict.gates[0].reasonCodes.some((reason) => reason.includes('primary-downtrend-confirmed'))).toBeTruthy();
+  // Only a family declared for countertrend research may remain armed.
+  expect(conflict.gates[1].outcome).toBe('fail');
+  expect(conflict.gates[1].reasonCodes).toContain('timeframe-conflict-without-countertrend-eligible-family');
+  expect(conflict.gates[1].reasonCodes).toContain('primary-not-reversed');
+  expect(eligible.gates[1].outcome).toBe('pass');
+  expect(eligible.gates[1].reasonCodes).toContain('primary-not-reversed');
+
+  const gateText = await normalizedText(page, '#gateRecords');
+  expect(gateText).toContain('conflicts with the confirmed primary');
+  expect(await readingSurfaceText(page) + ' ' + gateText).not.toMatch(/primary (trend )?(has )?reversed|trend reversal confirmed/i);
+  console.log(`[SCN-007-004] primaryGate=${conflict.gates[0].outcome} conflictStated=true`);
+  console.log(`[SCN-007-004] regimeWithoutCountertrendFamily=${conflict.gates[1].outcome}`);
+  console.log(`[SCN-007-004] regimeWithCountertrendFamily=${eligible.gates[1].outcome}`);
+  console.log('[SCN-007-004] primaryCalledReversed=false');
+  console.log('[SCN-007-004] onlyCountertrendEligibleFamiliesArmed=true');
+});
+
+test('Regression: SCN-007-022 unresolved candidates produce no edge or mixed without a weak signal', async ({ page }) => {
+  const diagnostics = await gateDiagnostics(page, baseUrl);
+  const read = diagnostics.noEdgeCompetition.read;
+
+  expect(['NO_EDGE', 'MIXED']).toContain(read.state);
+  expect(read.selectedCandidateId).toBeNull();
+  expect(read.selectionBasis).toBe('no-candidate-cleared-every-mandatory-gate');
+  expect(read.directionPublished).toBe(false);
+  expect(read.executionClaimed).toBe(false);
+  // Every candidate is blocked, and the read may still name the nearest one and what it lacks.
+  expect(read.ranked.every((entry) => entry.transitionEligible === false)).toBeTruthy();
+  expect(read.nearestReadyCandidateId).toBeTruthy();
+  expect(read.nearestMissingCondition).toBeTruthy();
+  expect(read.ranked.length).toBe(3);
+
+  const surface = await readingSurfaceText(page) + ' ' + (await normalizedText(page, '#candidateRanking'));
+  expect(surface).not.toMatch(/low.confidence (buy|sell|long|short)|weak (buy|sell) signal|slight(ly)? bullish|slight(ly)? bearish/i);
+  expect(diagnostics.setupPublished).toBe(false);
+  console.log(`[SCN-007-022] readState=${read.state} selected=${read.selectedCandidateId}`);
+  console.log(`[SCN-007-022] nearestReady=${read.nearestReadyCandidateId.slice(0, 24)} missing=${read.nearestMissingCondition}`);
+  console.log(`[SCN-007-022] blockedCandidates=${read.ranked.length}`);
+  console.log('[SCN-007-022] forcedWeakSignal=false');
+  console.log(`[SCN-007-022] selectionBasis=${read.selectionBasis}`);
+});
+
+test('Regression: SCN-007-027 candidate ranking favors complete evidence and keeps alternatives visible', async ({ page }) => {
+  const diagnostics = await gateDiagnostics(page, baseUrl);
+  const read = diagnostics.competition.read;
+  const byId = Object.fromEntries(diagnostics.competition.candidates.map((candidate) => [candidate.candidateId, candidate]));
+
+  // The selected candidate is the one with complete gate evidence, not the most bullish one.
+  const selected = byId[read.selectedCandidateId];
+  expect(selected.setupDefinitionId).toBe('failed-break-reclaim/v1');
+  expect(read.ranked[0].candidateId).toBe(read.selectedCandidateId);
+  expect(read.ranked[0].passCount).toBe(5);
+  const bullish = diagnostics.competition.candidates.find((candidate) => candidate.setupDefinitionId === 'breakout-acceptance-retest/v1');
+  const bullishRank = read.ranked.find((entry) => entry.candidateId === bullish.candidateId);
+  expect(bullishRank.rank).toBeGreaterThan(1);
+
+  // Direction must not appear as a ranking dimension or in the ranked output.
+  expect(read.rankDimensions).not.toContain('direction');
+  expect(JSON.stringify(read.ranked)).not.toContain('"direction"');
+  // Non-selected candidates stay visible with their missing condition.
+  expect(read.ranked).toHaveLength(3);
+  const rankingText = await normalizedText(page, '#candidateRanking');
+  expect(rankingText).toContain('breakout-acceptance-retest/v1');
+  expect(rankingText).toContain('balance-extreme-mean-reversion/v1');
+  expect(rankingText).toContain('Missing:');
+  expect(await normalizedText(page, '#competitionReceipt')).toContain('Direction is not a ranking dimension');
+  console.log(`[SCN-007-027] selected=${selected.setupDefinitionId} passCount=${read.ranked[0].passCount}`);
+  console.log(`[SCN-007-027] bullishCandidateRank=${bullishRank.rank}`);
+  console.log(`[SCN-007-027] rankDimensions=${read.rankDimensions.join(',')}`);
+  console.log(`[SCN-007-027] alternativesVisible=${read.ranked.length - 1}`);
+  console.log('[SCN-007-027] directionInRanking=false');
+});
+
 test('Regression: Feature 007 qualified series and RLVALID preserve legacy shared behavior', async ({ page }) => {
   await page.goto(`${baseUrl}/technical-analysis-decision-lab.html?fixture=us-equity-4h-core&clock=${CLOCK}`);
   await page.waitForFunction(() => {

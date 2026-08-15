@@ -1,0 +1,83 @@
+{
+  "contractVersion": "tad-analytic-fixture/v1",
+  "fixturePosture": "analytic-deterministic",
+  "fixtureId": "gate-synthesis",
+  "liveClaim": false,
+  "purpose": "Deterministic analytic gate evidence that exercises Scope 04 five-gate synthesis, candidate ranking, and the unified read. Each situation supplies gate inputs only; every gate outcome, rank, and read state on the page is computed by the owned functions rather than carried as an expected verdict.",
+  "observationCutoff": "2025-06-30T20:00:00.000Z",
+  "situations": {
+    "aligned-but-extended": {
+      "label": "Aligned trend, extended away from every governed zone",
+      "roles": { "primary": { "state": "uptrend", "confirmed": true }, "setup": { "state": "uptrend", "confirmed": true }, "trigger": { "state": "uptrend" } },
+      "regime": { "state": "trend", "eligibleSetupFamilyIds": ["trend-pullback"] },
+      "location": { "inGovernedZone": false, "atrDistanceToZone": 4.1 },
+      "trigger": { "declaredEventIds": ["closed-reclaim"], "observedEventId": "closed-reclaim", "confirmedOnClosedBar": true, "invalidated": false },
+      "validationRiskProcess": { "validationStatus": "supported", "planFrozen": true, "costsExplicit": true, "targetAuditClean": true, "netRewardToRisk": 2.4, "minimumNetRewardToRisk": 1.5 }
+    },
+    "complete-trigger": {
+      "label": "Every mandatory gate satisfied for one configured setup",
+      "roles": { "primary": { "state": "uptrend", "confirmed": true }, "setup": { "state": "uptrend", "confirmed": true }, "trigger": { "state": "uptrend" } },
+      "regime": { "state": "trend", "eligibleSetupFamilyIds": ["trend-pullback"] },
+      "location": { "inGovernedZone": true, "structuralRoomR": 3.2, "atrDistanceToZone": 0.2 },
+      "trigger": { "declaredEventIds": ["closed-reclaim"], "observedEventId": "closed-reclaim", "confirmedOnClosedBar": true, "invalidated": false },
+      "validationRiskProcess": { "validationStatus": "supported", "planFrozen": true, "costsExplicit": true, "targetAuditClean": true, "netRewardToRisk": 2.4, "minimumNetRewardToRisk": 1.5, "grossRewardToRisk": 2.9 }
+    },
+    "structural-invalidation": {
+      "label": "Correlated bullish indicators against a closed structural break",
+      "roles": { "primary": { "state": "uptrend", "confirmed": true }, "setup": { "state": "uptrend", "confirmed": true }, "trigger": { "state": "uptrend" } },
+      "regime": { "state": "trend", "eligibleSetupFamilyIds": ["trend-pullback"] },
+      "location": { "inGovernedZone": true, "structuralRoomR": 2.1, "atrDistanceToZone": 0.3 },
+      "trigger": { "declaredEventIds": ["closed-reclaim"], "observedEventId": "closed-reclaim", "confirmedOnClosedBar": true, "invalidated": true },
+      "validationRiskProcess": { "validationStatus": "supported", "planFrozen": true, "costsExplicit": true, "targetAuditClean": true, "netRewardToRisk": 2.2, "minimumNetRewardToRisk": 1.5 },
+      "bullishFamilySupport": ["trend-filters", "momentum-transforms"]
+    },
+    "timeframe-conflict": {
+      "label": "Tactical strength against a confirmed primary downtrend",
+      "roles": { "primary": { "state": "downtrend", "confirmed": true }, "setup": { "state": "downtrend", "confirmed": true }, "trigger": { "state": "uptrend" } },
+      "regime": { "state": "trend", "eligibleSetupFamilyIds": ["trend-pullback"] },
+      "location": { "inGovernedZone": true, "structuralRoomR": 2.0, "atrDistanceToZone": 0.4 },
+      "trigger": { "declaredEventIds": ["closed-reclaim"], "observedEventId": "closed-reclaim", "confirmedOnClosedBar": true, "invalidated": false },
+      "validationRiskProcess": { "validationStatus": "supported", "planFrozen": true, "costsExplicit": true, "targetAuditClean": true, "netRewardToRisk": 1.9, "minimumNetRewardToRisk": 1.5 }
+    },
+    "timeframe-conflict-countertrend-eligible": {
+      "label": "Same conflict where a family is declared eligible for countertrend research",
+      "roles": { "primary": { "state": "downtrend", "confirmed": true }, "setup": { "state": "downtrend", "confirmed": true }, "trigger": { "state": "uptrend" } },
+      "regime": { "state": "trend", "eligibleSetupFamilyIds": ["failed-break"], "countertrendEligibleSetupFamilyIds": ["failed-break"] },
+      "location": { "inGovernedZone": true, "structuralRoomR": 2.0, "atrDistanceToZone": 0.4 },
+      "trigger": { "declaredEventIds": ["closed-reclaim"], "observedEventId": "closed-reclaim", "confirmedOnClosedBar": true, "invalidated": false },
+      "validationRiskProcess": { "validationStatus": "supported", "planFrozen": true, "costsExplicit": true, "targetAuditClean": true, "netRewardToRisk": 1.9, "minimumNetRewardToRisk": 1.5 }
+    },
+    "reversal-unconfirmed": {
+      "label": "Reversal model with an unresolved contradiction and no confirmed trigger",
+      "roles": { "primary": { "state": "downtrend", "confirmed": true }, "setup": { "state": "range", "confirmed": true }, "trigger": { "state": "range" } },
+      "regime": { "state": "transition", "eligibleSetupFamilyIds": ["failed-break"], "unresolvedHypotheses": ["reversal", "continuation"] },
+      "location": { "inGovernedZone": true, "structuralRoomR": 1.8, "atrDistanceToZone": 0.5 },
+      "trigger": { "declaredEventIds": ["closed-reclaim"], "confirmedOnClosedBar": false, "invalidated": false },
+      "validationRiskProcess": { "validationStatus": "supported", "planFrozen": true, "costsExplicit": true, "targetAuditClean": true, "netRewardToRisk": 1.7, "minimumNetRewardToRisk": 1.5 }
+    },
+    "unresolved-contradictions": {
+      "label": "Trend, range, and reversal models each carry unresolved contradictions",
+      "roles": { "primary": { "state": "range", "confirmed": true }, "setup": { "state": "range", "confirmed": true }, "trigger": { "state": "range" } },
+      "regime": { "state": "transition", "eligibleSetupFamilyIds": ["mean-reversion"], "unresolvedHypotheses": ["accumulation", "distribution", "continuation"] },
+      "location": { "inGovernedZone": true, "structuralRoomR": 0.4, "atrDistanceToZone": 0.9 },
+      "trigger": { "declaredEventIds": ["closed-rejection"], "confirmedOnClosedBar": false, "invalidated": false },
+      "validationRiskProcess": { "validationStatus": "bounded", "planFrozen": true, "costsExplicit": true, "targetAuditClean": true, "netRewardToRisk": 0.9, "minimumNetRewardToRisk": 1.5 }
+    }
+  },
+  "competition": {
+    "observationCutoff": "2025-06-30T20:00:00.000Z",
+    "candidates": [
+      { "candidateSeed": "bullish-breakout", "setupDefinitionId": "breakout-acceptance-retest/v1", "direction": "long", "situation": "aligned-but-extended", "validationStatus": "supported", "truthState": "current", "contradictionCount": 1, "contradictionSeverity": 2, "specificity": 5, "registryIndex": 0 },
+      { "candidateSeed": "bearish-failed-break", "setupDefinitionId": "failed-break-reclaim/v1", "direction": "short", "situation": "complete-trigger", "validationStatus": "supported", "truthState": "current", "contradictionCount": 0, "contradictionSeverity": 0, "specificity": 4, "registryIndex": 1 },
+      { "candidateSeed": "two-sided-reversion", "setupDefinitionId": "balance-extreme-mean-reversion/v1", "direction": "two-sided", "situation": "unresolved-contradictions", "validationStatus": "bounded", "truthState": "degraded", "contradictionCount": 2, "contradictionSeverity": 3, "specificity": 3, "registryIndex": 2 }
+    ]
+  },
+  "noEdgeCompetition": {
+    "observationCutoff": "2025-06-30T20:00:00.000Z",
+    "candidates": [
+      { "candidateSeed": "trend-blocked", "setupDefinitionId": "trend-pullback-continuation/v1", "direction": "long", "situation": "aligned-but-extended", "validationStatus": "supported", "truthState": "current", "contradictionCount": 1, "contradictionSeverity": 2, "specificity": 5, "registryIndex": 0 },
+      { "candidateSeed": "range-blocked", "setupDefinitionId": "balance-extreme-mean-reversion/v1", "direction": "two-sided", "situation": "unresolved-contradictions", "validationStatus": "bounded", "truthState": "degraded", "contradictionCount": 2, "contradictionSeverity": 3, "specificity": 3, "registryIndex": 1 },
+      { "candidateSeed": "reversal-blocked", "setupDefinitionId": "failed-break-reclaim/v1", "direction": "short", "situation": "reversal-unconfirmed", "validationStatus": "supported", "truthState": "current", "contradictionCount": 1, "contradictionSeverity": 1, "specificity": 4, "registryIndex": 2 }
+    ]
+  }
+}

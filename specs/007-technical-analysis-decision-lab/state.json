@@ -52,7 +52,7 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": "04-five-gate-synthesis",
+        "currentScope": "05-owner-publication",
         "runStartedAt": "2026-07-15T18:01:42Z",
         "completedPhaseClaims": [],
         "pendingTransitionRequests": [],
@@ -97,7 +97,7 @@
                 "scope": 4,
                 "scopeId": "04-five-gate-synthesis",
                 "name": "Five-Gate Synthesis And Candidate Selection",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     "1",
                     "2",
@@ -247,7 +247,7 @@
                 "scope": 4,
                 "scopeId": "04-five-gate-synthesis",
                 "name": "Five-Gate Synthesis And Candidate Selection",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     "1",
                     "2",
@@ -255,7 +255,8 @@
                 ],
                 "scopeDir": "scopes/04-five-gate-synthesis",
                 "scopeArtifact": "scopes/04-five-gate-synthesis/scope.md",
-                "reportArtifact": "scopes/04-five-gate-synthesis/report.md"
+                "reportArtifact": "scopes/04-five-gate-synthesis/report.md",
+                "certifiedAt": "2026-08-15T01:30:00Z"
             },
             {
                 "scope": 5,

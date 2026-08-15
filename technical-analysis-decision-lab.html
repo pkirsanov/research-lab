@@ -427,6 +427,7 @@
           <option value="gate-synthesis">Five-gate synthesis and candidate competition (analytic)</option>
           <option value="owner-publication">Owner evidence admission and strict adapters (analytic)</option>
           <option value="comparison-roles">Comparison roles and membership identity (analytic)</option>
+          <option value="validation-risk-process">Validation, cost, expectancy and process (analytic)</option>
         </select>
         <p class="subtle" style="margin:10px 0 0">Credentials remain owned by <a href="index.html#data-settings">Data
             Settings</a>. This page contains no credential editor.</p>
@@ -633,6 +634,40 @@
       <p id="competitionReceipt" class="state-message">No candidates compared.</p>
       <div id="candidateRanking" class="catalog" aria-live="off"></div>
     </section>
+
+    <!-- ---------- Feature 007 Scope 07: validation risk and process ---------- -->
+    <section class="band" aria-labelledby="validationHeading">
+      <h2 id="validationHeading">Validation, cost and expectancy</h2>
+      <p id="validationReceipt" class="state-message">No validation evaluated. Gross geometry is never called an edge;
+        a net claim requires every applicable cost component stated explicitly, including an explicit zero.</p>
+      <div class="facts">
+        <div class="fact">
+          <div class="k">Passport status</div>
+          <div id="passportStatus" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Gross expectancy</div>
+          <div id="grossExpectancy" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Net expectancy</div>
+          <div id="netExpectancy" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Breakeven win rate</div>
+          <div id="breakevenWinRate" class="v">None</div>
+        </div>
+      </div>
+      <div id="validationRecords" class="catalog" aria-live="off"></div>
+      <h3 id="expectancyAuditHeading">Transcript arithmetic audit</h3>
+      <p id="expectancyAudit" class="state-message">No transcript audited.</p>
+      <h3 id="riskScenarioHeading">Hypothetical loss-streak scenarios</h3>
+      <p id="riskScenarios" class="state-message">No scenario computed.</p>
+      <h3 id="processHeading">Process guard</h3>
+      <p id="processReceipt" class="state-message">No proposal evaluated.</p>
+      <div id="processRecords" class="catalog" aria-live="off"></div>
+    </section>
+    <!-- ---------- End Feature 007 Scope 07: validation risk and process ---------- -->
 
     <!-- ---------- Feature 007 Scope 06: comparison and optional evidence ---------- -->
     <section class="band" aria-labelledby="comparisonHeading">
@@ -2230,6 +2265,344 @@
     }
     /* ---------- End Feature 007 Scope 06: comparison and optional evidence ---------- */
 
+    /* ---------- Feature 007 Scope 07: validation risk and process ---------- */
+    // Costs are applied per event before any net summary. Gross geometry is reported, but it is
+    // never called an edge: an edge is a net claim and it needs every applicable cost component.
+    var TAD_COST_COMPONENTS = ["commissionPerOrder", "regulatoryFees", "halfSpreadBps", "entrySlippageBps", "exitSlippageBps", "gapModel", "borrowBps", "financingBps", "sizingSemantics"];
+    var TAD_VALIDATION_STATUSES = ["supported", "fragile", "descriptive-only", "insufficient", "rejected", "unavailable"];
+    var TAD_PROCESS_STATES = ["clear", "caution", "blocked"];
+
+    function tadValidationRefusal(code, observed, required, action, message) {
+      return tadDeepFreeze({ ok: false, errors: [tadError(code, "error", "$", null, observed, required, action, message)] });
+    }
+
+    function tadBuildPurgedEvaluation(request, policy) {
+      if (!tadIsPlainObject(request) || !tadIsPlainObject(policy) || policy.contractVersion !== "tad-validation-policy/v1") {
+        return tadValidationRefusal("TAD-VALIDATION-POLICY", policy && policy.contractVersion, "tad-validation-policy/v1", "declare the supported validation policy", "Validation policy contract is unsupported.");
+      }
+      var observations = Array.isArray(request.observations) ? request.observations : null;
+      if (!observations || observations.length < 2) {
+        return tadValidationRefusal("TAD-VALIDATION-HISTORY", observations && observations.length, "at least two source-qualified observations", "extend the qualified history", "Validation history is insufficient.");
+      }
+      if (typeof request.decisionCutoff !== "string" || !Number.isFinite(Date.parse(request.decisionCutoff))) {
+        return tadValidationRefusal("TAD-VALIDATION-CUTOFF", request.decisionCutoff, "an ISO decision cutoff", "declare the decision cutoff", "Validation decision cutoff is invalid.");
+      }
+      // As-of safety: an observation that was not available at or before the decision cutoff
+      // cannot inform a decision made at that cutoff. Dropping this filter is label leakage.
+      var cutoff = Date.parse(request.decisionCutoff);
+      var eligible = observations.filter(function (row) { return Number.isFinite(Date.parse(row.closedAt)) && Date.parse(row.closedAt) <= cutoff; });
+      var excludedAsOf = observations.length - eligible.length;
+      if (eligible.length < 2) {
+        return tadValidationRefusal("TAD-VALIDATION-ASOF", eligible.length, "at least two observations available at or before the decision cutoff", "extend history before the cutoff", "No observation predates the decision cutoff.");
+      }
+      var foldCount = Number.isInteger(request.foldCount) ? request.foldCount : 3;
+      var trainRatio = tadFiniteNumber(request.trainRatio, "$.trainRatio").ok ? request.trainRatio : 0.7;
+      var folds = RLVALID.rlvBuildPurgedFolds(eligible.length, foldCount, trainRatio, policy.purgeBars, policy.embargoBars);
+      if (!folds.ok) {
+        return tadValidationRefusal("TAD-VALIDATION-FOLDS", folds.observed, folds.required, "supply a fold configuration the generic primitive accepts", "Purged fold construction refused.");
+      }
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        evaluation: {
+          decisionCutoff: request.decisionCutoff, eligibleCount: eligible.length, excludedAsOfCount: excludedAsOf,
+          foldMethod: policy.foldMethod, purgeBars: policy.purgeBars, embargoBars: policy.embargoBars,
+          selectionEvaluation: policy.selectionEvaluation, folds: folds.folds,
+          asOfPolicy: policy.asOfPolicy
+        }
+      });
+    }
+
+    function tadSimulateSetupVariant(variant, observations, semantics) {
+      if (!tadIsPlainObject(variant) || !Array.isArray(observations) || !tadIsPlainObject(semantics)) {
+        return tadValidationRefusal("TAD-SIMULATION-INPUT", null, "a variant, observations, and explicit semantics", "supply all three", "Setup simulation inputs are invalid.");
+      }
+      var required = ["triggerRule", "invalidationRule", "targetRule", "expiryBars", "sessionContractId"];
+      var missing = required.filter(function (key) { return semantics[key] === undefined || semantics[key] === null; });
+      if (missing.length) {
+        return tadValidationRefusal("TAD-SIMULATION-SEMANTICS", missing.join(","), required.join(", "), "declare every simulation semantic explicitly", "Setup simulation semantics are incomplete.");
+      }
+      var events = [];
+      observations.forEach(function (row, index) {
+        if (row.triggered !== true) return;
+        var horizon = observations.slice(index + 1, index + 1 + semantics.expiryBars);
+        var outcome = null, bars = 0, mae = 0, mfe = 0;
+        for (var step = 0; step < horizon.length; step += 1) {
+          bars = step + 1;
+          var excursion = horizon[step].c - row.c;
+          mae = Math.min(mae, excursion); mfe = Math.max(mfe, excursion);
+          if (horizon[step].c <= row.c - semantics.invalidationRule) { outcome = "loss"; break; }
+          if (horizon[step].c >= row.c + semantics.targetRule) { outcome = "win"; break; }
+        }
+        // An unresolved path is RECORDED, never dropped. Dropping open trades is the classic way
+        // a backtest reports a win rate it never earned.
+        events.push({
+          index: index, entryAt: row.closedAt, entryPrice: row.c,
+          outcome: outcome === null ? "unresolved" : outcome,
+          grossR: outcome === "win" ? semantics.targetRule / semantics.invalidationRule : outcome === "loss" ? -1 : 0,
+          bars: bars, mae: mae, mfe: mfe, resolved: outcome !== null
+        });
+      });
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        variantId: variant.variantId || null, events: events,
+        signalCount: events.length,
+        unresolvedCount: events.filter(function (event) { return event.resolved === false; }).length,
+        semantics: { triggerRule: semantics.triggerRule, invalidationRule: semantics.invalidationRule, targetRule: semantics.targetRule, expiryBars: semantics.expiryBars, sessionContractId: semantics.sessionContractId }
+      });
+    }
+
+    function tadApplyCosts(events, costPolicy, schema) {
+      if (!Array.isArray(events) || !tadIsPlainObject(costPolicy) || !tadIsPlainObject(schema)) {
+        return tadValidationRefusal("TAD-COST-INPUT", null, "events, a cost policy, and the cost schema", "supply all three", "Cost application inputs are invalid.");
+      }
+      var applicable = Array.isArray(costPolicy.applicableComponents) ? costPolicy.applicableComponents : TAD_COST_COMPONENTS;
+      var unknown = applicable.filter(function (component) { return schema.components.indexOf(component) < 0; });
+      if (unknown.length) {
+        return tadValidationRefusal("TAD-COST-COMPONENT", unknown.join(","), "components declared by the cost schema", "declare only registered cost components", "Cost component is not registered.");
+      }
+      // A missing component makes NET unavailable. It is not treated as zero, because an
+      // unstated cost and a stated zero are different claims. Zero must be said out loud.
+      var missing = applicable.filter(function (component) { return costPolicy.components[component] === undefined || costPolicy.components[component] === null; });
+      if (missing.length) {
+        return tadDeepFreeze({
+          ok: true, errors: [], netAvailable: false, missingComponents: missing,
+          missingComponentPolicy: schema.missingComponentPolicy, events: events.map(function (event) { return { index: event.index, grossR: event.grossR, netR: null }; }),
+          observed: "the cost policy omits " + missing.join(", "), required: "every applicable cost component stated explicitly, including an explicit zero",
+          action: "state each missing component before any net expectancy is published"
+        });
+      }
+      var components = costPolicy.components;
+      var roundTripBps = components.halfSpreadBps * 2 + components.entrySlippageBps + components.exitSlippageBps + components.borrowBps + components.financingBps;
+      var perEventCostR = tadFiniteNumber(costPolicy.riskUnitPrice, "$.riskUnitPrice").ok && costPolicy.riskUnitPrice > 0
+        ? (components.commissionPerOrder * 2 + components.regulatoryFees) / costPolicy.riskUnitPrice + roundTripBps / 10000 * (costPolicy.notionalPerRiskUnit || 1)
+        : null;
+      if (perEventCostR === null) {
+        return tadValidationRefusal("TAD-COST-RISK-UNIT", costPolicy.riskUnitPrice, "a positive hypothetical risk-unit price", "declare the hypothetical risk unit", "Cost application requires an explicit hypothetical risk unit.");
+      }
+      return tadDeepFreeze({
+        ok: true, errors: [], netAvailable: true, missingComponents: [],
+        missingComponentPolicy: schema.missingComponentPolicy,
+        perEventCostR: perEventCostR,
+        componentBreakdown: TAD_COST_COMPONENTS.reduce(function (all, key) { all[key] = components[key]; return all; }, {}),
+        events: events.map(function (event) { return { index: event.index, grossR: event.grossR, netR: event.grossR - perEventCostR }; })
+      });
+    }
+
+    function tadSummarizeValidation(simulation, costed, policy) {
+      if (!tadIsPlainObject(simulation) || !tadIsPlainObject(costed) || !tadIsPlainObject(policy)) {
+        return tadValidationRefusal("TAD-SUMMARY-INPUT", null, "a simulation, a cost application, and a policy", "supply all three", "Validation summary inputs are invalid.");
+      }
+      if (simulation.signalCount === 0) {
+        return tadDeepFreeze({ ok: true, errors: [], summary: { signalCount: 0, status: "insufficient", observed: "no qualifying signal in the evaluated history", required: "at least one qualifying signal", action: "extend the qualified history or relax nothing" } });
+      }
+      var resolved = simulation.events.filter(function (event) { return event.resolved; });
+      var wins = resolved.filter(function (event) { return event.outcome === "win"; });
+      var losses = resolved.filter(function (event) { return event.outcome === "loss"; });
+      var grossOutcomes = simulation.events.map(function (event) { return event.grossR; });
+      var grossSummary = RLVALID.rlvSummarizeOutcomes(grossOutcomes);
+      var wilson = resolved.length ? RLVALID.rlvWilsonInterval(wins.length, resolved.length, 1.96) : null;
+      var grossExpectancy = grossOutcomes.reduce(function (total, value) { return total + value; }, 0) / grossOutcomes.length;
+      var netExpectancy = costed.netAvailable
+        ? costed.events.reduce(function (total, event) { return total + event.netR; }, 0) / costed.events.length
+        : null;
+      var averageWin = wins.length ? wins.reduce(function (total, event) { return total + event.grossR; }, 0) / wins.length : null;
+      var averageLoss = losses.length ? Math.abs(losses.reduce(function (total, event) { return total + event.grossR; }, 0) / losses.length) : null;
+      var breakevenWinRate = averageWin !== null && averageLoss !== null && averageWin + averageLoss > 0
+        ? averageLoss / (averageWin + averageLoss) : null;
+      var equity = 1, peak = 1, drawdown = 0;
+      (costed.netAvailable ? costed.events.map(function (e) { return e.netR; }) : grossOutcomes).forEach(function (value) {
+        equity += value; peak = Math.max(peak, equity); drawdown = Math.min(drawdown, equity - peak);
+      });
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        summary: {
+          signalCount: simulation.signalCount, wins: wins.length, losses: losses.length,
+          unresolved: simulation.unresolvedCount,
+          winRate: resolved.length ? wins.length / resolved.length : null,
+          wilsonLower: wilson && wilson.ok ? wilson.lower : null, wilsonUpper: wilson && wilson.ok ? wilson.upper : null,
+          averageWin: averageWin, averageLoss: averageLoss,
+          payoffDistribution: grossSummary.ok ? { median: grossSummary.median, quantiles: grossSummary.quantiles } : null,
+          grossExpectancy: grossExpectancy,
+          // Net stays null when a cost component was never stated. It is not filled with gross.
+          netExpectancy: netExpectancy, netAvailable: costed.netAvailable,
+          breakevenWinRate: breakevenWinRate,
+          drawdown: drawdown,
+          mae: Math.min.apply(null, simulation.events.map(function (event) { return event.mae; })),
+          mfe: Math.max.apply(null, simulation.events.map(function (event) { return event.mfe; })),
+          averageDurationBars: simulation.events.reduce(function (total, event) { return total + event.bars; }, 0) / simulation.events.length,
+          uncertainty: wilson && wilson.ok ? wilson.upper - wilson.lower : null,
+          requiredOutcomes: policy.requiredOutcomes.slice()
+        }
+      });
+    }
+
+    function tadBuildValidationPassport(request) {
+      if (!tadIsPlainObject(request) || !tadIsPlainObject(request.summary) || !tadIsPlainObject(request.evaluation)) {
+        return tadValidationRefusal("TAD-PASSPORT-INPUT", null, "a summary, an evaluation, and an identity", "supply all three", "Validation passport inputs are invalid.");
+      }
+      var identityPayload = {
+        variantId: request.variantId, populationId: request.populationId, sourceVintagePolicyId: request.sourceVintagePolicyId,
+        foldSignature: request.evaluation.foldMethod + ":" + request.evaluation.purgeBars + ":" + request.evaluation.embargoBars + ":" + request.evaluation.folds.length,
+        trialCount: request.trialCount, costPolicyId: request.costPolicyId, horizonBars: request.horizonBars,
+        comparisonSetId: request.comparisonSetId
+      };
+      var summary = request.summary, status;
+      if (summary.signalCount === 0) status = "insufficient";
+      else if (!summary.netAvailable) status = "descriptive-only";
+      else if (request.adjustedPValue !== undefined && request.adjustedPValue !== null && request.adjustedPValue > 0.05) status = "rejected";
+      else if (summary.signalCount < (request.minimumSignals || 30)) status = "fragile";
+      else if (summary.netExpectancy !== null && summary.netExpectancy > 0) status = "supported";
+      else status = "rejected";
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        passport: {
+          passportId: tadIdentity("tad-passport:", identityPayload),
+          contractVersion: "tad-validation-passport/v1",
+          status: status,
+          variantId: request.variantId, populationId: request.populationId,
+          sourceVintagePolicyId: request.sourceVintagePolicyId, costPolicyId: request.costPolicyId,
+          comparisonSetId: request.comparisonSetId, horizonBars: request.horizonBars,
+          trialCount: request.trialCount, adjustedPValue: request.adjustedPValue === undefined ? null : request.adjustedPValue,
+          foldCount: request.evaluation.folds.length,
+          signalCount: summary.signalCount, netAvailable: summary.netAvailable,
+          limitations: [
+            "This passport describes the exact evaluated variant only; a changed parameter is a different variant.",
+            summary.netAvailable ? "Net metrics assume the declared cost components exactly as stated." : "Net metrics are unavailable because a required cost component was never stated."
+          ]
+        }
+      });
+    }
+
+    function tadAuditExpectancy(claim) {
+      if (!tadIsPlainObject(claim)) return tadValidationRefusal("TAD-EXPECTANCY-INPUT", claim, "an expectancy claim", "supply the claim", "Expectancy audit input is invalid.");
+      var p = claim.winRate, w = claim.averageWinR, l = claim.averageLossR, n = claim.tradeCount;
+      if (!tadIsFinite(p) || p < 0 || p > 1 || !tadIsFinite(w) || w <= 0 || !tadIsFinite(l) || l <= 0 || !Number.isInteger(n) || n < 1) {
+        return tadValidationRefusal("TAD-EXPECTANCY-FINITE", [p, w, l, n], "a probability, positive average win and loss in R, and a positive trade count", "supply complete claim inputs", "Expectancy audit inputs are incomplete.");
+      }
+      var expectancyR = p * w - (1 - p) * l;
+      var grossTotalR = expectancyR * n;
+      var breakevenWinRate = l / (w + l);
+      var tolerance = tadIsFinite(claim.toleranceR) ? claim.toleranceR : 0.5;
+      var claimed = tadIsFinite(claim.claimedTotalR) ? claim.claimedTotalR : null;
+      var consistent = claimed === null ? null : Math.abs(claimed - grossTotalR) <= tolerance;
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        audit: {
+          expectancyR: expectancyR, grossTotalR: grossTotalR, breakevenWinRate: breakevenWinRate,
+          tradeCount: n, claimedTotalR: claimed, consistent: consistent,
+          equation: "E = p*W - (1-p)*L; total = E*N",
+          // The audit never asserts the user is lying. It states that the arithmetic does not
+          // reconcile under equal risk and names the inputs that could reconcile it.
+          reconciliationInputs: consistent === false
+            ? ["variable position size per trade", "partial exits or scaling", "cost sequence and financing", "transcription of the recorded results"]
+            : [],
+          observed: consistent === false
+            ? "a claimed total of " + claimed + "R against a computed " + grossTotalR.toFixed(3) + "R under equal risk"
+            : "a computed gross total of " + grossTotalR.toFixed(3) + "R under equal risk",
+          required: "equal risk per trade, or an explicit sizing, sequencing, cost, or transcription record",
+          action: consistent === false ? "supply the reconciliation inputs before the transcript total is used" : "treat this as gross arithmetic only, not an edge"
+        }
+      });
+    }
+
+    function tadLossStreakScenario(riskFraction, streakLengths) {
+      if (!tadIsFinite(riskFraction) || riskFraction <= 0 || riskFraction >= 1 || !Array.isArray(streakLengths) || !streakLengths.length) {
+        return tadValidationRefusal("TAD-STREAK-INPUT", [riskFraction, streakLengths], "a risk fraction between zero and one and at least one streak length", "declare both", "Loss-streak scenario inputs are invalid.");
+      }
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        // Compounding, not linear: losing 1% ten times leaves 90.44%, not 90%. And these are
+        // SCENARIOS over a hypothetical risk unit, not a forecast and not risk advice.
+        scenarios: streakLengths.map(function (length) {
+          var remaining = Math.pow(1 - riskFraction, length);
+          return { streakLength: length, remainingFraction: remaining, drawdownFraction: 1 - remaining, recoveryGainRequired: 1 / remaining - 1 };
+        }),
+        riskFraction: riskFraction,
+        basis: "hypothetical-risk-unit",
+        limitations: ["These are compounding scenarios over a hypothetical risk unit, not a forecast and not universal risk advice."]
+      });
+    }
+
+    function tadEvaluateBehaviorGuard(plan, proposal, bounds) {
+      if (!tadIsPlainObject(plan) || !tadIsPlainObject(proposal) || !tadIsPlainObject(bounds)) {
+        return tadValidationRefusal("TAD-PROCESS-INPUT", null, "a frozen plan, a proposal, and configured bounds", "supply all three", "Process guard inputs are invalid.");
+      }
+      var findings = [];
+      if (tadIsFinite(plan.entry) && tadIsFinite(proposal.entry) && tadIsFinite(plan.invalidation) && tadIsFinite(bounds.chaseDistanceR)) {
+        var riskDistance = Math.abs(plan.entry - plan.invalidation);
+        var chaseR = riskDistance > 0 ? (proposal.entry - plan.entry) / riskDistance : null;
+        if (chaseR !== null && chaseR > bounds.chaseDistanceR) {
+          var newRisk = Math.abs(proposal.entry - plan.invalidation);
+          findings.push({
+            code: "CHASE", severity: "blocked",
+            observed: "the proposed entry is " + chaseR.toFixed(2) + "R beyond the frozen entry",
+            required: "an entry within " + bounds.chaseDistanceR + "R of the frozen plan",
+            action: "the original plan is blocked; re-evaluate as a new hypothetical setup rather than extending this one",
+            changedRewardToRisk: tadIsFinite(plan.target) && newRisk > 0 ? (plan.target - proposal.entry) / newRisk : null,
+            changedInvalidationDistance: newRisk
+          });
+        }
+      }
+      if (proposal.contradictionsAcknowledged === false) {
+        findings.push({ code: "UNACKNOWLEDGED-CONTRADICTION", severity: "caution", observed: "recorded contradictions were not acknowledged", required: "explicit acknowledgment of every recorded contradiction", action: "review each contradiction before proceeding" });
+      }
+      if (Array.isArray(proposal.changedPrecommitmentFields) && proposal.changedPrecommitmentFields.length) {
+        findings.push({ code: "CHANGED-PRECOMMITMENT", severity: "caution", observed: "changed after precommitment: " + proposal.changedPrecommitmentFields.join(", "), required: "a frozen plan, or a new variant identity", action: "record the change as a new variant rather than editing the frozen plan" });
+      }
+      if (Number.isInteger(proposal.unvalidatedVariantCount) && Number.isInteger(bounds.maximumUnvalidatedVariants) && proposal.unvalidatedVariantCount > bounds.maximumUnvalidatedVariants) {
+        findings.push({ code: "UNVALIDATED-VARIANT-COUNT", severity: "caution", observed: proposal.unvalidatedVariantCount + " unvalidated variants", required: "at most " + bounds.maximumUnvalidatedVariants, action: "validate or retire variants before adding more" });
+      }
+      var state = findings.some(function (finding) { return finding.severity === "blocked"; }) ? "blocked"
+        : findings.length ? "caution" : "clear";
+      return tadDeepFreeze({
+        ok: true, errors: [], state: state, findings: findings,
+        // Observable plan facts only. No emotion, intent, mental state, or suitability is inferred.
+        inferredEmotion: null, inferredIntent: null, suitabilityAssessed: false,
+        basis: "observable-plan-deviation-only"
+      });
+    }
+    /* ---------- End Feature 007 Scope 07: validation risk and process ---------- */
+
+    /* ---------- Feature 007 Scope 07 runtime: deterministic work units ---------- */
+    // Impure on purpose, so it is NOT one of the eight pure Scope 07 symbols. Long validation is
+    // executed as discrete work units that yield to the event loop, so the page stays responsive
+    // and a run can be cancelled. A cancelled run publishes NOTHING: the previously committed
+    // result stays exactly as it was, because a half-finished validation is not a validation.
+    var tadValidationRunner = {
+      runSequence: 0, activeRunId: null, committed: null, lastCancelledRunId: null,
+      start: function (units, options) {
+        var self = this;
+        self.runSequence += 1;
+        var runId = "tad-run:" + self.runSequence;
+        self.activeRunId = runId;
+        var state = { runId: runId, completed: 0, total: units.length, cancelled: false, results: [] };
+        return new Promise(function (resolve) {
+          function step(index) {
+            // A superseded or cancelled run stops here and commits nothing. Latest-run identity
+            // is what makes a stale run unable to overwrite a newer one.
+            if (self.activeRunId !== runId) {
+              state.cancelled = true; self.lastCancelledRunId = runId;
+              resolve({ runId: runId, cancelled: true, committed: self.committed, progress: state.completed / state.total });
+              return;
+            }
+            if (index >= units.length) {
+              self.committed = { runId: runId, results: state.results.slice(), completedAt: options && options.now ? options.now : null };
+              self.activeRunId = null;
+              resolve({ runId: runId, cancelled: false, committed: self.committed, progress: 1 });
+              return;
+            }
+            state.results.push(units[index]());
+            state.completed = index + 1;
+            if (options && typeof options.onProgress === "function") options.onProgress(state.completed / state.total, runId);
+            setTimeout(function () { step(index + 1); }, 0);
+          }
+          setTimeout(function () { step(0); }, 0);
+        });
+      },
+      cancel: function () { this.activeRunId = null; }
+    };
+    /* ---------- End Feature 007 Scope 07 runtime: deterministic work units ---------- */
+
     var pageRuntime = { config: null, index: null, sourceFixture: null, analyticFixture: null, techniqueFixture: null, diagnostics: null };
     function byId(id) { return document.getElementById(id); }
     function setText(id, value) { var element = byId(id); if (element) element.textContent = value; }
@@ -2656,6 +3029,92 @@
       });
     }
 
+    function renderValidationRiskProcess(fixture) {
+      var policy = pageRuntime.config.validationPolicies[0], schema = pageRuntime.config.costPolicySchema;
+      var evaluation = tadBuildPurgedEvaluation({ observations: fixture.observations, decisionCutoff: fixture.decisionCutoff, foldCount: 3, trainRatio: 0.7 }, policy);
+      if (!evaluation.ok) { renderUnavailable(evaluation.errors[0].code, evaluation.errors[0].observed, evaluation.errors[0].required, evaluation.errors[0].action); return; }
+      var simulation = tadSimulateSetupVariant({ variantId: fixture.variants.baseline.variantId }, fixture.observations, fixture.semantics);
+      var complete = tadApplyCosts(simulation.events, fixture.costPolicies.complete, schema);
+      var incomplete = tadApplyCosts(simulation.events, fixture.costPolicies.incomplete, schema);
+      var netSummary = tadSummarizeValidation(simulation, complete, policy);
+      var grossSummary = tadSummarizeValidation(simulation, incomplete, policy);
+      var passports = Object.keys(fixture.variants).map(function (key) {
+        var variant = fixture.variants[key];
+        var summary = key === "baseline" ? netSummary.summary : netSummary.summary;
+        return { key: key, variant: variant, passport: tadBuildValidationPassport(Object.assign({ summary: summary, evaluation: evaluation.evaluation }, variant)).passport };
+      });
+      var descriptiveOnly = tadBuildValidationPassport(Object.assign({ summary: grossSummary.summary, evaluation: evaluation.evaluation }, fixture.variants.baseline)).passport;
+      var audit = tadAuditExpectancy(fixture.transcriptClaim);
+      var streak = tadLossStreakScenario(fixture.lossStreak.riskFraction, fixture.lossStreak.streakLengths);
+      var guards = Object.keys(fixture.proposals).map(function (key) {
+        return { key: key, guard: tadEvaluateBehaviorGuard(fixture.frozenPlan, fixture.proposals[key], fixture.processBounds) };
+      });
+
+      setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled");
+      setTruth("degraded", "Deterministic analytic validation evidence. Every expectancy, cost, passport identity, and process state below is the exact output of the owned validation functions over an explicit generated series; no current-market claim is made and no instrument is named.");
+      setFoundationReceipt({ name: "Validation, cost, expectancy and process", session: "Analytic daily clock", aggregation: "Purged and embargoed walk-forward folds", partial: "Unresolved terminal paths are recorded, never dropped", primary: "Validation describes the exact evaluated variant only", setup: "A changed parameter is a different variant", trigger: "Simulation uses the declared trigger, invalidation, target and expiry semantics", variant: passports[0].passport.passportId, observed: evaluation.evaluation.eligibleCount + " observations available at or before the decision cutoff; " + evaluation.evaluation.excludedAsOfCount + " excluded as later than it.", required: "As-of safe folds, explicit costs, and multiplicity control before any support claim.", action: "Read gross as geometry and net as the only cost-complete claim." });
+      setText("resultReceipt", "No signal, neutral, setup recommendation, or probability is published here. This page publishes validation status, gross and net expectancy, transcript arithmetic, hypothetical risk scenarios, and observable process findings.");
+
+      setText("passportStatus", passports[0].passport.status);
+      setText("grossExpectancy", netSummary.summary.grossExpectancy.toFixed(4) + "R gross geometry, which is not an edge on its own");
+      setText("netExpectancy", netSummary.summary.netAvailable ? netSummary.summary.netExpectancy.toFixed(4) + "R net after every stated cost component" : "unavailable");
+      setText("breakevenWinRate", netSummary.summary.breakevenWinRate === null ? "unavailable" : (netSummary.summary.breakevenWinRate * 100).toFixed(2) + "% from the observed payoff distribution");
+
+      var host = byId("validationRecords"); host.textContent = "";
+      var records = [
+        { title: "Cost-complete evaluation", body: "Signals " + netSummary.summary.signalCount + "; wins " + netSummary.summary.wins + "; losses " + netSummary.summary.losses + "; unresolved " + netSummary.summary.unresolved + " (recorded, never dropped). Gross expectancy " + netSummary.summary.grossExpectancy.toFixed(4) + "R; net expectancy " + netSummary.summary.netExpectancy.toFixed(4) + "R after a per-event cost of " + complete.perEventCostR.toFixed(4) + "R. Wilson interval " + netSummary.summary.wilsonLower.toFixed(4) + " to " + netSummary.summary.wilsonUpper.toFixed(4) + ". Passport " + passports[0].passport.status + "." },
+        { title: "Incomplete cost policy", body: "Missing components: " + incomplete.missingComponents.join(", ") + ". Net expectancy is unavailable rather than assumed zero, so the passport is " + descriptiveOnly.status + " and gross " + grossSummary.summary.grossExpectancy.toFixed(4) + "R remains geometry only. An unstated cost and a stated zero are different claims." },
+        { title: "As-of safety and folds", body: evaluation.evaluation.foldMethod + " with " + evaluation.evaluation.purgeBars + " purge bars and " + evaluation.evaluation.embargoBars + " embargo bars across " + evaluation.evaluation.folds.length + " folds. Selection and evaluation are " + evaluation.evaluation.selectionEvaluation + ". " + evaluation.evaluation.excludedAsOfCount + " observations later than the decision cutoff were excluded." }
+      ];
+      records.forEach(function (record) {
+        var article = document.createElement("article"), heading = document.createElement("h4"), copy = document.createElement("p");
+        heading.textContent = record.title; copy.textContent = record.body;
+        article.appendChild(heading); article.appendChild(copy); host.appendChild(article);
+      });
+      passports.forEach(function (entry) {
+        var article = document.createElement("article"), heading = document.createElement("h4"), copy = document.createElement("p");
+        heading.textContent = "Variant " + entry.variant.variantId + " - passport " + entry.passport.status;
+        copy.textContent = "Passport " + entry.passport.passportId + (entry.key === "baseline" ? " is the evaluated baseline." : " is a different identity, so the baseline passport is not inherited by it. Until it is evaluated on its own terms it is descriptive-only.");
+        article.appendChild(heading); article.appendChild(copy); host.appendChild(article);
+      });
+
+      setText("expectancyAudit", audit.audit.equation + ". For a " + (fixture.transcriptClaim.winRate * 100) + "% win rate with " + fixture.transcriptClaim.averageWinR + "R winners and " + fixture.transcriptClaim.averageLossR + "R losers, expectancy is " + audit.audit.expectancyR.toFixed(3) + "R and " + audit.audit.tradeCount + " trades total " + audit.audit.grossTotalR.toFixed(1) + "R gross under equal risk. Breakeven win rate is " + (audit.audit.breakevenWinRate * 100).toFixed(2) + "%. The claimed total of " + audit.audit.claimedTotalR + "R is " + (audit.audit.consistent === false ? "inconsistent" : "consistent") + " with those inputs. Reconciliation would require: " + audit.audit.reconciliationInputs.join("; ") + ". This is arithmetic, not an accusation, and gross expectancy is not an edge.");
+
+      setText("riskScenarios", "At a " + (streak.riskFraction * 100) + "% hypothetical risk unit, losses compound: " + streak.scenarios.map(function (entry) {
+        return entry.streakLength + " losses leave " + (entry.remainingFraction * 100).toFixed(2) + "% (drawdown " + (entry.drawdownFraction * 100).toFixed(2) + "%, recovery gain required " + (entry.recoveryGainRequired * 100).toFixed(2) + "%)";
+      }).join("; ") + ". " + streak.limitations.join(" "));
+
+      var blocked = guards.filter(function (entry) { return entry.guard.state === "blocked"; });
+      setText("processReceipt", guards.length + " proposals evaluated against the frozen plan; " + blocked.length + " blocked. Findings describe observable deviation from the precommitted plan only. No emotion, intent, mental state, or suitability is inferred.");
+      var processHost = byId("processRecords"); processHost.textContent = "";
+      guards.forEach(function (entry) {
+        var article = document.createElement("article"), heading = document.createElement("h4"), copy = document.createElement("p");
+        heading.textContent = entry.key + " - " + entry.guard.state;
+        copy.textContent = entry.guard.findings.length
+          ? entry.guard.findings.map(function (finding) {
+            return finding.code + " (" + finding.severity + "): observed " + finding.observed + "; required " + finding.required + "; action " + finding.action
+              + (finding.changedRewardToRisk !== null && finding.changedRewardToRisk !== undefined ? " Changed reward-to-risk " + finding.changedRewardToRisk.toFixed(3) + " with invalidation distance " + finding.changedInvalidationDistance.toFixed(3) + "." : "");
+          }).join(" ")
+          : "No observable deviation from the frozen plan.";
+        article.appendChild(heading); article.appendChild(copy); processHost.appendChild(article);
+      });
+
+      window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({
+        fixtureId: "validation-risk-process", ownerReadPublished: false, truthState: "degraded",
+        evaluation: { eligibleCount: evaluation.evaluation.eligibleCount, excludedAsOfCount: evaluation.evaluation.excludedAsOfCount, foldCount: evaluation.evaluation.folds.length, purgeBars: evaluation.evaluation.purgeBars, embargoBars: evaluation.evaluation.embargoBars, selectionEvaluation: evaluation.evaluation.selectionEvaluation },
+        simulation: { signalCount: simulation.signalCount, unresolvedCount: simulation.unresolvedCount },
+        costs: { netAvailable: complete.netAvailable, perEventCostR: complete.perEventCostR, missingComponents: incomplete.missingComponents.slice(), incompleteNetAvailable: incomplete.netAvailable },
+        summary: { grossExpectancy: netSummary.summary.grossExpectancy, netExpectancy: netSummary.summary.netExpectancy, netAvailable: netSummary.summary.netAvailable, breakevenWinRate: netSummary.summary.breakevenWinRate, wins: netSummary.summary.wins, losses: netSummary.summary.losses, unresolved: netSummary.summary.unresolved },
+        grossOnlySummary: { grossExpectancy: grossSummary.summary.grossExpectancy, netExpectancy: grossSummary.summary.netExpectancy, netAvailable: grossSummary.summary.netAvailable },
+        passports: passports.map(function (entry) { return { key: entry.key, variantId: entry.variant.variantId, passportId: entry.passport.passportId, status: entry.passport.status }; }),
+        descriptiveOnlyPassport: { passportId: descriptiveOnly.passportId, status: descriptiveOnly.status },
+        audit: { expectancyR: audit.audit.expectancyR, grossTotalR: audit.audit.grossTotalR, breakevenWinRate: audit.audit.breakevenWinRate, claimedTotalR: audit.audit.claimedTotalR, consistent: audit.audit.consistent, reconciliationInputs: audit.audit.reconciliationInputs.slice() },
+        lossStreak: streak.scenarios.map(function (entry) { return { streakLength: entry.streakLength, remainingFraction: entry.remainingFraction, drawdownFraction: entry.drawdownFraction }; }),
+        process: guards.map(function (entry) { return { key: entry.key, state: entry.guard.state, codes: entry.guard.findings.map(function (f) { return f.code; }), inferredEmotion: entry.guard.inferredEmotion, inferredIntent: entry.guard.inferredIntent, suitabilityAssessed: entry.guard.suitabilityAssessed, basis: entry.guard.basis, changedRewardToRisk: entry.guard.findings.length && entry.guard.findings[0].changedRewardToRisk !== undefined ? entry.guard.findings[0].changedRewardToRisk : null, changedInvalidationDistance: entry.guard.findings.length && entry.guard.findings[0].changedInvalidationDistance !== undefined ? entry.guard.findings[0].changedInvalidationDistance : null }; }),
+        errors: []
+      });
+    }
+
     function renderComparisonRoles(fixture) {
       var policy = pageRuntime.config.comparisonPolicies[0];
       function hydrate(entry) {
@@ -2758,6 +3217,13 @@
         "correlated-uptrend": { name: "Correlated indicator agreement", observed: "Several related trend and momentum transforms read positive together.", required: "Declared families and clusters before any count is shown.", action: "Read the independent cluster count, never the raw method count." },
         "unresolved-range": { name: "Unresolved range after a decline", observed: "A mature sideways range following a decline, with no completed spring, sign of strength, or confirmed break.", required: "A confirmed range event before any phase is asserted.", action: "Keep every competing explanation open; no setup is published." }
       };
+      if (fixtureId === "validation-risk-process") {
+        fetch("tests/fixtures/technical-analysis-decision/analytic/validation-risk-process.json", { cache: "no-store" })
+          .then(function (response) { if (!response.ok) throw new Error("validation fixture HTTP " + response.status); return response.json(); })
+          .then(function (validationFixture) { renderValidationRiskProcess(validationFixture); })
+          .catch(function (error) { renderUnavailable("TAD-VALIDATION-FIXTURE", String(error), "the checked-in analytic validation fixture", "restore the static analytic fixture and reload"); });
+        return;
+      }
       if (fixtureId === "comparison-roles") {
         fetch("tests/fixtures/technical-analysis-decision/analytic/comparison-roles.json", { cache: "no-store" })
           .then(function (response) { if (!response.ok) throw new Error("comparison fixture HTTP " + response.status); return response.json(); })

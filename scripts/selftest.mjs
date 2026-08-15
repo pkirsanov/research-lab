@@ -4702,6 +4702,233 @@ try {
     'An unchanged comparison request reproduces its identity so a prior passport stays attached');
   assert(tad06.tadBuildComparisonSet({ ...tad06Request, roles: tad06Request.roles.slice().reverse() }, tad06Policy).comparisonSet.comparisonSetId !== tad06Baseline,
     'Declared membership order is part of the frozen identity rather than silently normalized');
+  /* ---------- Scope 07: validation risk and process ---------- */
+  const tad07Names = ['tadValidationRefusal', 'tadBuildPurgedEvaluation', 'tadSimulateSetupVariant', 'tadApplyCosts',
+    'tadSummarizeValidation', 'tadBuildValidationPassport', 'tadAuditExpectancy', 'tadLossStreakScenario', 'tadEvaluateBehaviorGuard'];
+  const tad07Owned = ['tadBuildPurgedEvaluation', 'tadSimulateSetupVariant', 'tadApplyCosts', 'tadSummarizeValidation',
+    'tadBuildValidationPassport', 'tadAuditExpectancy', 'tadLossStreakScenario', 'tadEvaluateBehaviorGuard'];
+  assert(tad07Owned.length === 8 && tad07Names.every((name) => (tadSource.match(new RegExp('function\\s+' + name + '\\s*\\(', 'g')) || []).length === 1),
+    'All 8 Scope 07 declarations plus their refusal helper exist exactly once in the page');
+  globalThis.__TAD_RLVALID__ = validationApi;
+  const tad07 = build(
+    [tadSource.match(/var TAD_COST_COMPONENTS = [\s\S]*?;\n/)[0], tadSource.match(/var TAD_VALIDATION_STATUSES = [\s\S]*?;\n/)[0], tadSource.match(/var TAD_PROCESS_STATES = [\s\S]*?;\n/)[0]]
+      .concat(tadNames.concat(['tadIdentity', 'tadIsFinite'], tad07Names).map((name) => extractFn(tadSource, name))),
+    tadNames.concat(['tadIdentity', 'tadIsFinite'], tad07Names).concat(['TAD_COST_COMPONENTS', 'TAD_VALIDATION_STATUSES', 'TAD_PROCESS_STATES']),
+    'var RLVALID = globalThis.__TAD_RLVALID__;\n'
+  );
+  const tad07Policy = tadConfig.validationPolicies[0], tad07Schema = tadConfig.costPolicySchema;
+  assert(tad07Policy.contractVersion === 'tad-validation-policy/v1' && tad07Policy.selectionEvaluation === 'separate'
+    && tad07Policy.asOfPolicy === 'available-at-or-before-decision' && tad07Policy.trialPolicy === 'every-behavior-bearing-attempt-counts',
+    'The committed validation policy separates selection from evaluation, is as-of safe, and counts every attempt');
+  assert(JSON.stringify(tad07Policy.statusVocabulary) === JSON.stringify(['supported', 'fragile', 'descriptive-only', 'insufficient', 'rejected', 'unavailable']),
+    'The validation status vocabulary is closed and ordered');
+
+  // SCN-007-019: the exact arithmetic the scenario names. p=.71 W=6R L=1.8R -> E=3.738R, N=50 -> 186.9R.
+  const tad07Audit = tad07.tadAuditExpectancy({ winRate: 0.71, averageWinR: 6, averageLossR: 1.8, tradeCount: 50, claimedTotalR: -50 });
+  assert(tad07Audit.ok && Math.abs(tad07Audit.audit.expectancyR - 3.738) < 1e-9,
+    'Expectancy for a 71 percent win rate with 6R winners and 1.8R losers is 3.738R');
+  assert(Math.abs(tad07Audit.audit.grossTotalR - 186.9) < 1e-9,
+    'Fifty trades at 3.738R expectancy total 186.9R gross under equal risk');
+  assert(Math.abs(tad07Audit.audit.breakevenWinRate - 1.8 / 7.8) < 1e-12,
+    'Breakeven win rate reflects the configured payoff rather than a fixed constant');
+  assert(tad07Audit.audit.consistent === false,
+    'A claimed negative fifty-trade total is flagged as inconsistent with the stated inputs');
+  // The audit names what could reconcile it rather than accusing the user of lying.
+  assert(tad07Audit.audit.reconciliationInputs.length === 4
+    && tad07Audit.audit.reconciliationInputs.some((entry) => /position size/.test(entry))
+    && tad07Audit.audit.reconciliationInputs.some((entry) => /partial exits|scaling/.test(entry))
+    && tad07Audit.audit.reconciliationInputs.some((entry) => /cost sequence/.test(entry))
+    && tad07Audit.audit.reconciliationInputs.some((entry) => /transcription/.test(entry)),
+    'An inconsistent transcript names sizing, sequencing, costs, and transcription as reconciliation inputs');
+  assert(tad07.tadAuditExpectancy({ winRate: 0.71, averageWinR: 6, averageLossR: 1.8, tradeCount: 50, claimedTotalR: 186.9 }).audit.consistent === true,
+    'A claimed total matching the computed total reconciles');
+  assert(/not an edge/.test(tad07.tadAuditExpectancy({ winRate: 0.6, averageWinR: 2, averageLossR: 1, tradeCount: 10 }).audit.action),
+    'Gross expectancy arithmetic is explicitly not called an edge');
+  assert(tad07.tadAuditExpectancy({ winRate: 1.4, averageWinR: 6, averageLossR: 1.8, tradeCount: 50 }).ok === false,
+    'An impossible win rate is refused rather than computed');
+
+  // As-of safety: an observation after the decision cutoff cannot inform that decision.
+  // 120 bars with a cutoff at index 99 leaves 100 eligible, which is enough history for the
+  // committed 5-bar purge and 5-bar embargo to still leave a non-empty test window per fold.
+  const tad07Bars = Array.from({ length: 120 }, (_, i) => ({
+    closedAt: new Date(Date.UTC(2026, 0, 5 + i)).toISOString(),
+    c: 100 + (i % 7) - (i % 3) + i * 0.4,
+    triggered: i % 6 === 0
+  }));
+  const tad07Eval = tad07.tadBuildPurgedEvaluation({ observations: tad07Bars, decisionCutoff: tad07Bars[99].closedAt, foldCount: 3, trainRatio: 0.7 }, tad07Policy);
+  assert(tad07Eval.ok && tad07Eval.evaluation.eligibleCount === 100 && tad07Eval.evaluation.excludedAsOfCount === 20,
+    'Observations after the decision cutoff are excluded rather than leaking into evaluation');
+  assert(tad07Eval.evaluation.purgeBars === tad07Policy.purgeBars && tad07Eval.evaluation.embargoBars === tad07Policy.embargoBars
+    && tad07Eval.evaluation.folds.length === 3,
+    'Purged folds carry the committed purge and embargo bars from the policy');
+  assert(tad07Eval.evaluation.folds.every((fold) => fold.testStart >= fold.trainEnd),
+    'Every fold keeps its test window at or after its purged training window');
+  assert(tad07.tadBuildPurgedEvaluation({ observations: tad07Bars, decisionCutoff: '2020-01-01T00:00:00.000Z' }, tad07Policy).errors[0].code === 'TAD-VALIDATION-ASOF',
+    'A cutoff before all history refuses rather than silently evaluating on nothing');
+  // Purge and embargo can consume a short fold entirely. That must REFUSE, because an empty test
+  // window would otherwise report a clean evaluation that tested nothing at all.
+  const tad07Overconstrained = tad07.tadBuildPurgedEvaluation({ observations: tad07Bars.slice(0, 52), decisionCutoff: tad07Bars[49].closedAt, foldCount: 3, trainRatio: 0.7 }, tad07Policy);
+  assert(tad07Overconstrained.ok === false && tad07Overconstrained.errors[0].code === 'TAD-VALIDATION-FOLDS',
+    'A purge and embargo that consume the whole test window refuses instead of evaluating on nothing');
+
+  // Simulation records unresolved paths instead of dropping them.
+  const tad07Semantics = { triggerRule: 'closed-reclaim', invalidationRule: 2, targetRule: 4, expiryBars: 8, sessionContractId: 'daily-close' };
+  const tad07Sim = tad07.tadSimulateSetupVariant({ variantId: 'variant-a' }, tad07Bars, tad07Semantics);
+  assert(tad07Sim.ok && tad07Sim.signalCount === tad07Bars.filter((row) => row.triggered).length,
+    'Every triggered observation produces exactly one simulated event');
+  assert(tad07Sim.events.every((event) => ['win', 'loss', 'unresolved'].indexOf(event.outcome) >= 0),
+    'Each simulated event carries a closed outcome vocabulary');
+  assert(tad07Sim.unresolvedCount === tad07Sim.events.filter((e) => e.outcome === 'unresolved').length,
+    'Unresolved terminal paths are counted rather than dropped from the population');
+  assert(tad07.tadSimulateSetupVariant({ variantId: 'v' }, tad07Bars, { triggerRule: 'x', invalidationRule: 2, targetRule: 4, expiryBars: 8 }).errors[0].code === 'TAD-SIMULATION-SEMANTICS',
+    'Simulation refuses when any required semantic is undeclared');
+
+  // A missing cost component makes NET unavailable; it is never treated as zero.
+  const tad07FullCosts = {
+    costPolicyId: 'explicit-round-trip-costs-v1', riskUnitPrice: 200, notionalPerRiskUnit: 10,
+    components: { commissionPerOrder: 1, regulatoryFees: 0.1, halfSpreadBps: 2, entrySlippageBps: 1, exitSlippageBps: 1, gapModel: 'next-open', borrowBps: 0, financingBps: 0, sizingSemantics: 'fixed-risk' }
+  };
+  const tad07Costed = tad07.tadApplyCosts(tad07Sim.events, tad07FullCosts, tad07Schema);
+  assert(tad07Costed.ok && tad07Costed.netAvailable === true && tad07Costed.perEventCostR > 0,
+    'A complete cost policy produces a positive per-event cost and enables net metrics');
+  assert(tad07Costed.events.every((event, i) => Math.abs(event.netR - (tad07Sim.events[i].grossR - tad07Costed.perEventCostR)) < 1e-12),
+    'Net outcome is gross minus the applied cost for every event');
+  tad07.TAD_COST_COMPONENTS.forEach((component) => {
+    const partial = { ...tad07FullCosts, components: { ...tad07FullCosts.components } };
+    delete partial.components[component];
+    const result = tad07.tadApplyCosts(tad07Sim.events, partial, tad07Schema);
+    assert(result.netAvailable === false && result.missingComponents.indexOf(component) >= 0
+      && result.events.every((event) => event.netR === null),
+      'A cost policy missing ' + component + ' makes net metrics unavailable rather than assuming zero');
+  });
+  // An explicit zero is a stated observation and must NOT be treated as missing.
+  const tad07Zeroed = tad07.tadApplyCosts(tad07Sim.events, { ...tad07FullCosts, components: { ...tad07FullCosts.components, borrowBps: 0, financingBps: 0 } }, tad07Schema);
+  assert(tad07Zeroed.netAvailable === true, 'An explicitly stated zero cost component is an observation, not an omission');
+  assert(tad07.tadApplyCosts(tad07Sim.events, { ...tad07FullCosts, applicableComponents: ['inventedCost'] }, tad07Schema).errors[0].code === 'TAD-COST-COMPONENT',
+    'An unregistered cost component is refused');
+
+  // SCN-007-018: gross and net are both reported and never conflated.
+  const tad07Summary = tad07.tadSummarizeValidation(tad07Sim, tad07Costed, tad07Policy);
+  assert(tad07Summary.ok && Number.isFinite(tad07Summary.summary.grossExpectancy) && Number.isFinite(tad07Summary.summary.netExpectancy),
+    'A complete cost policy yields both gross and net expectancy');
+  assert(tad07Summary.summary.netExpectancy < tad07Summary.summary.grossExpectancy,
+    'Applying real costs lowers net expectancy below gross');
+  assert(Math.abs(tad07Summary.summary.netExpectancy - (tad07Summary.summary.grossExpectancy - tad07Costed.perEventCostR)) < 1e-12,
+    'Net expectancy is gross expectancy less the per-event cost, reproducibly');
+  const tad07NoCost = tad07.tadApplyCosts(tad07Sim.events, { ...tad07FullCosts, components: { ...tad07FullCosts.components, halfSpreadBps: null } }, tad07Schema);
+  const tad07GrossOnly = tad07.tadSummarizeValidation(tad07Sim, tad07NoCost, tad07Policy);
+  assert(tad07GrossOnly.summary.netExpectancy === null && tad07GrossOnly.summary.netAvailable === false
+    && Number.isFinite(tad07GrossOnly.summary.grossExpectancy),
+    'Gross survives without a complete cost policy while net stays unavailable rather than borrowing gross');
+  assert(tad07Summary.summary.breakevenWinRate === null || (tad07Summary.summary.breakevenWinRate > 0 && tad07Summary.summary.breakevenWinRate < 1),
+    'Breakeven win rate is a probability derived from the observed payoff distribution');
+  assert(Number.isFinite(tad07Summary.summary.wilsonLower) && Number.isFinite(tad07Summary.summary.wilsonUpper)
+    && tad07Summary.summary.wilsonLower < tad07Summary.summary.wilsonUpper,
+    'The summary reports a Wilson interval rather than a bare win rate');
+  assert(tad07Summary.summary.unresolved === tad07Sim.unresolvedCount && tad07Summary.summary.drawdown <= 0,
+    'The summary preserves unresolved count and reports a non-positive drawdown');
+  assert(tad07Policy.requiredOutcomes.every((outcome) => JSON.stringify(tad07Summary.summary).length > 0 && tad07Summary.summary.requiredOutcomes.indexOf(outcome) >= 0),
+    'The summary carries the committed required-outcome list');
+
+  // SCN-007-020: a changed parameter is a different variant and loses inherited proof.
+  const tad07PassportRequest = {
+    summary: tad07Summary.summary, evaluation: tad07Eval.evaluation,
+    variantId: 'variant-a', populationId: 'population-1', sourceVintagePolicyId: 'vintage-1',
+    costPolicyId: 'explicit-round-trip-costs-v1', comparisonSetId: 'comparison-1', horizonBars: 8, trialCount: 4, adjustedPValue: 0.01, minimumSignals: 5
+  };
+  const tad07Passport = tad07.tadBuildValidationPassport(tad07PassportRequest);
+  assert(tad07Passport.ok && /^tad-passport:[a-f0-9]{64}$/.test(tad07Passport.passport.passportId),
+    'A validation passport is content-addressed over its exact evaluated identity');
+  assert(tad07.TAD_VALIDATION_STATUSES.indexOf(tad07Passport.passport.status) >= 0,
+    'The passport status comes from the committed status vocabulary');
+  [['variantId', 'variant-b'], ['populationId', 'population-2'], ['sourceVintagePolicyId', 'vintage-2'],
+    ['costPolicyId', 'other-costs'], ['comparisonSetId', 'comparison-2'], ['horizonBars', 12], ['trialCount', 9]].forEach(([key, value]) => {
+    assert(tad07.tadBuildValidationPassport({ ...tad07PassportRequest, [key]: value }).passport.passportId !== tad07Passport.passport.passportId,
+      'A changed ' + key + ' produces a different passport identity so prior proof is not inherited');
+  });
+  assert(tad07.tadBuildValidationPassport(JSON.parse(JSON.stringify(tad07PassportRequest))).passport.passportId === tad07Passport.passport.passportId,
+    'An unchanged evaluated identity reproduces its passport identity');
+  // Without complete costs the passport can only be descriptive, never supported.
+  assert(tad07.tadBuildValidationPassport({ ...tad07PassportRequest, summary: tad07GrossOnly.summary }).passport.status === 'descriptive-only',
+    'A variant without complete costs is descriptive-only rather than supported');
+  assert(tad07.tadBuildValidationPassport({ ...tad07PassportRequest, adjustedPValue: 0.4 }).passport.status === 'rejected',
+    'A multiplicity-adjusted p-value above the threshold rejects rather than supports');
+  assert(tad07.tadBuildValidationPassport({ ...tad07PassportRequest, minimumSignals: 10000 }).passport.status === 'fragile',
+    'Too few signals for the declared minimum is fragile rather than supported');
+
+  // Multiplicity: every behaviour-bearing attempt counts, including rejected runs.
+  const tad07Raw = [0.004, 0.02, 0.03, 0.2];
+  const tad07Bh = validationApi.rlvAdjustBenjaminiHochberg(tad07Raw), tad07Holm = validationApi.rlvAdjustHolm(tad07Raw);
+  assert(tad07Bh.ok && tad07Holm.ok && tad07Bh.adjusted.every((value, i) => value >= tad07Raw[i]) && tad07Holm.adjusted.every((value, i) => value >= tad07Raw[i]),
+    'Both multiplicity adjustments raise every raw p-value, so more trials never look more significant');
+  assert(tad07Holm.adjusted[0] >= tad07Bh.adjusted[0],
+    'Holm activation control is at least as strict as Benjamini-Hochberg discovery control');
+  assert(tad07Policy.multiplicityMethods.join(',') === 'benjamini-hochberg,holm,deflated-sharpe',
+    'The committed policy declares all three multiplicity controls');
+
+  // Loss streaks compound, and they are scenarios rather than forecasts.
+  const tad07Streak = tad07.tadLossStreakScenario(0.01, [1, 5, 10, 20]);
+  assert(tad07Streak.ok && Math.abs(tad07Streak.scenarios[2].remainingFraction - Math.pow(0.99, 10)) < 1e-12,
+    'A ten-loss streak at one percent risk compounds to 0.99^10 rather than a linear ten percent');
+  assert(tad07Streak.scenarios[2].drawdownFraction > 0.0956 && tad07Streak.scenarios[2].drawdownFraction < 0.0957,
+    'Ten one-percent losses draw down about 9.56 percent, not 10 percent');
+  assert(tad07Streak.scenarios.every((entry) => entry.recoveryGainRequired > entry.drawdownFraction),
+    'Recovering a drawdown always requires a larger gain than the drawdown itself');
+  assert(tad07Streak.basis === 'hypothetical-risk-unit' && tad07Streak.limitations.some((entry) => /not a forecast/.test(entry)),
+    'Loss-streak output is a hypothetical scenario and says so');
+  assert(tad07.tadLossStreakScenario(1.5, [5]).ok === false, 'An impossible risk fraction is refused');
+
+  // SCN-007-021: the guard blocks on observable plan deviation and diagnoses no emotion.
+  const tad07Plan = { entry: 100, invalidation: 98, target: 106 };
+  const tad07Guard = tad07.tadEvaluateBehaviorGuard(tad07Plan, { entry: 104, contradictionsAcknowledged: true }, { chaseDistanceR: 1, maximumUnvalidatedVariants: 3 });
+  assert(tad07Guard.ok && tad07Guard.state === 'blocked' && tad07Guard.findings[0].code === 'CHASE',
+    'An entry beyond the configured chase distance blocks the frozen plan');
+  assert(Math.abs(tad07Guard.findings[0].changedInvalidationDistance - 6) < 1e-12
+    && Math.abs(tad07Guard.findings[0].changedRewardToRisk - (106 - 104) / 6) < 1e-12,
+    'The chase finding explains the changed reward-to-risk and invalidation distance');
+  assert(tad07Guard.inferredEmotion === null && tad07Guard.inferredIntent === null && tad07Guard.suitabilityAssessed === false
+    && tad07Guard.basis === 'observable-plan-deviation-only',
+    'The process guard infers no emotion, intent, or suitability');
+  const tad07GuardText = JSON.stringify(tad07Guard);
+  assert(!/\b(fear|greed|panic|emotional|discipline problem|revenge)\b/i.test(tad07GuardText),
+    'No emotional diagnosis appears anywhere in the process guard output');
+  assert(tad07.tadEvaluateBehaviorGuard(tad07Plan, { entry: 101, contradictionsAcknowledged: true }, { chaseDistanceR: 1, maximumUnvalidatedVariants: 3 }).state === 'clear',
+    'An entry inside the configured chase distance is clear');
+  assert(tad07.tadEvaluateBehaviorGuard(tad07Plan, { entry: 100, contradictionsAcknowledged: false }, { chaseDistanceR: 1, maximumUnvalidatedVariants: 3 }).state === 'caution',
+    'An unacknowledged contradiction is caution rather than a block');
+  assert(tad07.tadEvaluateBehaviorGuard(tad07Plan, { entry: 100, contradictionsAcknowledged: true, changedPrecommitmentFields: ['target'] }, { chaseDistanceR: 1, maximumUnvalidatedVariants: 3 }).findings[0].code === 'CHANGED-PRECOMMITMENT',
+    'Editing a precommitted field is reported as a changed precommitment');
+  assert(tad07.TAD_PROCESS_STATES.indexOf(tad07Guard.state) >= 0, 'The process state comes from the closed process vocabulary');
+
+  // Deterministic work units: progress is monotonic, cancellation commits nothing, and the
+  // previously committed result survives a cancelled run byte-identical.
+  const tad07RunnerSource = tadSource.match(/var tadValidationRunner = [\s\S]*?\n {4}};\n/)[0];
+  const tad07Runner = Function('setTimeout', tad07RunnerSource + '\nreturn tadValidationRunner;')(
+    (fn) => fn()   // synchronous pump: the yield POINT is what matters, not real wall-clock delay
+  );
+  const tad07Progress = [];
+  const tad07FirstRun = await tad07Runner.start([() => 'a', () => 'b', () => 'c'], { onProgress: (p) => tad07Progress.push(p), now: '2026-02-13T21:00:00.000Z' });
+  assert(tad07FirstRun.cancelled === false && tad07FirstRun.progress === 1 && tad07FirstRun.committed.results.join(',') === 'a,b,c',
+    'A completed validation run commits every work unit in order');
+  assert(tad07Progress.length === 3 && tad07Progress.every((value, i) => i === 0 || value > tad07Progress[i - 1]),
+    'Work-unit progress is monotonic and reported once per unit');
+  const tad07CommittedBefore = JSON.stringify(tad07Runner.committed);
+  const tad07Cancelled = await tad07Runner.start([() => 'x', () => { tad07Runner.cancel(); return 'y'; }, () => 'z'], {});
+  assert(tad07Cancelled.cancelled === true && tad07Cancelled.progress < 1,
+    'A cancelled run reports cancellation and incomplete progress');
+  assert(JSON.stringify(tad07Runner.committed) === tad07CommittedBefore,
+    'A cancelled run commits nothing and leaves the prior complete result byte-identical');
+  assert(tad07Runner.committed.results.indexOf('x') < 0 && tad07Runner.committed.results.indexOf('z') < 0,
+    'No partial work unit from a cancelled run leaks into the committed result');
+  // Latest-run identity: a superseded run cannot overwrite a newer one.
+  assert(tad07Runner.lastCancelledRunId !== null && tad07Runner.lastCancelledRunId !== tad07FirstRun.runId,
+    'Each run carries its own identity so a stale run is recognisable as superseded');
+  const tad07SecondRun = await tad07Runner.start([() => 'p', () => 'q'], {});
+  assert(tad07SecondRun.cancelled === false && tad07SecondRun.runId !== tad07FirstRun.runId
+    && tad07Runner.committed.results.join(',') === 'p,q',
+    'A later complete run replaces the committed result atomically with its own identity');
+  assert(/setTimeout\(function \(\) \{ step\(index \+ 1\); \}, 0\)/.test(tad07RunnerSource),
+    'Work units yield to the event loop between units rather than blocking the page');
 
 } catch (e) { failures++; console.log('  ✗ FAIL (Technical Analysis Decision foundation group threw): ' + e.message); }
 /* ---------- End Feature 007 Technical Analysis Decision foundation ---------- */

@@ -1066,3 +1066,142 @@ test('Regression: SCN-007-028 comparison membership change creates a new variant
   console.log(`[SCN-007-028] baseline=${baseline.slice(0, 30)} distinctIdentities=${new Set(diagnostics.situations.map((e) => e.comparisonSetId)).size}`);
 });
 /* ---------- End Feature 007 Scope 06: comparison and optional evidence ---------- */
+
+/* ---------- Feature 007 Scope 07: validation risk and process ---------- */
+async function validationDiagnostics(page, baseUrl2) {
+  await page.goto(`${baseUrl2}/technical-analysis-decision-lab.html?fixture=validation-risk-process&clock=${CLOCK}`);
+  await page.waitForFunction(() => window.__TAD_DIAGNOSTICS__?.fixtureId === 'validation-risk-process');
+  return page.evaluate(() => window.__TAD_DIAGNOSTICS__);
+}
+
+test('Regression: SCN-007-018 explicit costs separate gross and net expectancy and breakeven', async ({ page }) => {
+  const diagnostics = await validationDiagnostics(page, baseUrl);
+
+  // Both numbers exist and they are different. Net is strictly worse because costs are real.
+  expect(Number.isFinite(diagnostics.summary.grossExpectancy)).toBe(true);
+  expect(Number.isFinite(diagnostics.summary.netExpectancy)).toBe(true);
+  expect(diagnostics.summary.netAvailable).toBe(true);
+  expect(diagnostics.summary.netExpectancy).toBeLessThan(diagnostics.summary.grossExpectancy);
+  expect(Math.abs(diagnostics.summary.netExpectancy - (diagnostics.summary.grossExpectancy - diagnostics.costs.perEventCostR))).toBeLessThan(1e-9);
+
+  // A missing cost component makes net UNAVAILABLE. It is never quietly treated as zero, and
+  // gross is never promoted into the net slot to fill the gap.
+  expect(diagnostics.costs.missingComponents).toContain('halfSpreadBps');
+  expect(diagnostics.costs.incompleteNetAvailable).toBe(false);
+  expect(diagnostics.grossOnlySummary.netExpectancy).toBeNull();
+  expect(diagnostics.grossOnlySummary.netAvailable).toBe(false);
+  expect(Number.isFinite(diagnostics.grossOnlySummary.grossExpectancy)).toBe(true);
+  expect(diagnostics.descriptiveOnlyPassport.status).toBe('descriptive-only');
+
+  // Breakeven reflects the observed payoff distribution rather than a fixed constant.
+  expect(diagnostics.summary.breakevenWinRate).toBeGreaterThan(0);
+  expect(diagnostics.summary.breakevenWinRate).toBeLessThan(1);
+
+  const gross = (await page.locator('#grossExpectancy').innerText()).replace(/\s+/g, ' ');
+  const net = (await page.locator('#netExpectancy').innerText()).replace(/\s+/g, ' ');
+  // Gross must be shown WITH its disclaimer. Ban the affirmative claim, require the disclaimer.
+  expect(gross).toContain('gross geometry');
+  expect(gross).toMatch(/not an edge/);
+  expect(gross).not.toMatch(/(?<!not )(?<!never )gross (?:reward-to-risk )?is an edge/i);
+  expect(net).toContain('net after every stated cost component');
+  await expect(page.locator('#breakevenWinRate')).toContainText('from the observed payoff distribution');
+
+  const records = (await page.locator('#validationRecords').innerText()).replace(/\s+/g, ' ');
+  expect(records).toContain('Net expectancy is unavailable rather than assumed zero');
+  expect(records).toContain('An unstated cost and a stated zero are different claims');
+  expect(records).toContain('unresolved');
+  expect(records).toContain('recorded, never dropped');
+  console.log(`[SCN-007-018] gross=${diagnostics.summary.grossExpectancy.toFixed(4)} net=${diagnostics.summary.netExpectancy.toFixed(4)} perEventCost=${diagnostics.costs.perEventCostR.toFixed(4)}`);
+});
+
+test('Regression: SCN-007-019 expectancy audit computes 186', async ({ page }) => {
+  const diagnostics = await validationDiagnostics(page, baseUrl);
+
+  // The exact arithmetic the scenario names: p=.71, W=6R, L=1.8R -> E=3.738R, N=50 -> 186.9R.
+  expect(Math.abs(diagnostics.audit.expectancyR - 3.738)).toBeLessThan(1e-9);
+  expect(Math.abs(diagnostics.audit.grossTotalR - 186.9)).toBeLessThan(1e-9);
+  expect(Math.abs(diagnostics.audit.breakevenWinRate - 1.8 / 7.8)).toBeLessThan(1e-12);
+
+  // A claimed negative fifty-trade total cannot follow from those inputs under equal risk.
+  expect(diagnostics.audit.claimedTotalR).toBe(-50);
+  expect(diagnostics.audit.consistent).toBe(false);
+
+  // The audit names what could reconcile it. It does not accuse the user of anything.
+  expect(diagnostics.audit.reconciliationInputs.length).toBe(4);
+  expect(diagnostics.audit.reconciliationInputs.join(' ')).toMatch(/position size/);
+  expect(diagnostics.audit.reconciliationInputs.join(' ')).toMatch(/partial exits|scaling/);
+  expect(diagnostics.audit.reconciliationInputs.join(' ')).toMatch(/cost sequence/);
+  expect(diagnostics.audit.reconciliationInputs.join(' ')).toMatch(/transcription/);
+
+  const audit = (await page.locator('#expectancyAudit').innerText()).replace(/\s+/g, ' ');
+  expect(audit).toContain('E = p*W - (1-p)*L; total = E*N');
+  expect(audit).toContain('3.738R');
+  expect(audit).toContain('186.9R');
+  expect(audit).toContain('23.08%');
+  expect(audit).toContain('is inconsistent');
+  expect(audit).toContain('arithmetic, not an accusation');
+  expect(audit).toMatch(/gross expectancy is not an edge/);
+  // No accusatory or emotional framing of the user's records.
+  expect(audit).not.toMatch(/\b(lying|dishonest|fabricated|made up)\b/i);
+  console.log(`[SCN-007-019] E=${diagnostics.audit.expectancyR} total=${diagnostics.audit.grossTotalR} consistent=${diagnostics.audit.consistent}`);
+});
+
+test('Regression: SCN-007-020 changed setup parameters create descriptive-only identity without inherited passport', async ({ page }) => {
+  const diagnostics = await validationDiagnostics(page, baseUrl);
+  const byKey = Object.fromEntries(diagnostics.passports.map((entry) => [entry.key, entry]));
+  expect(Object.keys(byKey).sort()).toEqual(['baseline', 'changedDisplacement', 'changedTarget']);
+
+  // Every changed parameter is a different variant with a different passport identity.
+  expect(byKey.changedDisplacement.passportId).not.toBe(byKey.baseline.passportId);
+  expect(byKey.changedTarget.passportId).not.toBe(byKey.baseline.passportId);
+  expect(new Set(diagnostics.passports.map((entry) => entry.passportId)).size).toBe(3);
+  expect(new Set(diagnostics.passports.map((entry) => entry.variantId)).size).toBe(3);
+
+  // Without a complete cost policy a variant can only be descriptive, never supported.
+  expect(diagnostics.descriptiveOnlyPassport.status).toBe('descriptive-only');
+  expect(diagnostics.descriptiveOnlyPassport.passportId).toBe(byKey.baseline.passportId);
+
+  const records = (await page.locator('#validationRecords').innerText()).replace(/\s+/g, ' ');
+  expect(records).toContain('is a different identity, so the baseline passport is not inherited by it');
+  expect(records).toContain('descriptive-only');
+  expect(records).toContain('balanced-breakout/v1+displacement');
+  expect(records).toContain('balanced-breakout/v1+target');
+  await expect(page.locator('#passportStatus')).not.toHaveText('None');
+  console.log(`[SCN-007-020] distinctPassports=${new Set(diagnostics.passports.map((e) => e.passportId)).size} baselineStatus=${byKey.baseline.status}`);
+});
+
+test('Regression: SCN-007-021 chase distance blocks the frozen plan without diagnosing emotion', async ({ page }) => {
+  const diagnostics = await validationDiagnostics(page, baseUrl);
+  const byKey = Object.fromEntries(diagnostics.process.map((entry) => [entry.key, entry]));
+
+  // An entry beyond the configured chase distance blocks the frozen plan.
+  expect(byKey.chasing.state).toBe('blocked');
+  expect(byKey.chasing.codes).toContain('CHASE');
+  expect(byKey.withinPlan.state).toBe('clear');
+  expect(byKey.unacknowledged.state).toBe('caution');
+
+  // It explains the changed reward-to-risk and invalidation distance rather than just refusing.
+  expect(Math.abs(byKey.chasing.changedInvalidationDistance - 6)).toBeLessThan(1e-9);
+  expect(Math.abs(byKey.chasing.changedRewardToRisk - 2 / 6)).toBeLessThan(1e-9);
+
+  // Nothing about the user's mind. Findings are observable plan deviation only.
+  diagnostics.process.forEach((entry) => {
+    expect(entry.inferredEmotion).toBeNull();
+    expect(entry.inferredIntent).toBeNull();
+    expect(entry.suitabilityAssessed).toBe(false);
+    expect(entry.basis).toBe('observable-plan-deviation-only');
+  });
+
+  const processText = (await page.locator('#processRecords').innerText()).replace(/\s+/g, ' ');
+  expect(processText).toContain('CHASE (blocked)');
+  expect(processText).toContain('the original plan is blocked');
+  expect(processText).toContain('Changed reward-to-risk');
+  expect(processText).toContain('invalidation distance');
+  // No emotional or psychological diagnosis anywhere in the rendered guard.
+  expect(processText).not.toMatch(/\b(fear|greed|panic|revenge|emotional|impulsive|undisciplined)\b/i);
+  const receipt = (await page.locator('#processReceipt').innerText()).replace(/\s+/g, ' ');
+  expect(receipt).toContain('observable deviation from the precommitted plan only');
+  expect(receipt).toContain('No emotion, intent, mental state, or suitability is inferred');
+  console.log(`[SCN-007-021] chasing=${byKey.chasing.state} withinPlan=${byKey.withinPlan.state} changedRR=${byKey.chasing.changedRewardToRisk.toFixed(4)}`);
+});
+/* ---------- End Feature 007 Scope 07: validation risk and process ---------- */

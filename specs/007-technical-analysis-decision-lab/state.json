@@ -52,7 +52,7 @@
   "execution": {
     "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
-    "currentScope": "07-validation-risk-process",
+    "currentScope": "08-experience-publication",
     "runStartedAt": "2026-07-15T18:01:42Z",
     "completedPhaseClaims": [],
     "pendingTransitionRequests": [],
@@ -142,7 +142,7 @@
         "scope": 7,
         "scopeId": "07-validation-risk-process",
         "name": "Validation Cost Expectancy And Process",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "1",
           "2",
@@ -295,7 +295,7 @@
         "scope": 7,
         "scopeId": "07-validation-risk-process",
         "name": "Validation Cost Expectancy And Process",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "1",
           "2",
@@ -306,7 +306,8 @@
         ],
         "scopeDir": "scopes/07-validation-risk-process",
         "scopeArtifact": "scopes/07-validation-risk-process/scope.md",
-        "reportArtifact": "scopes/07-validation-risk-process/report.md"
+        "reportArtifact": "scopes/07-validation-risk-process/report.md",
+        "certifiedAt": "2026-08-15T05:00:00Z"
       },
       {
         "scope": 8,

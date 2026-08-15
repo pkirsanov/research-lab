@@ -90,15 +90,21 @@ try {
   // Scope 06 completes the comparison contract over the foundation's alignment primitive and the
   // Scope 02 relative-strength technique. It derives no new ratio of its own.
   const scope06Names = ['tadComparisonRefusal', 'tadBuildComparisonSet', 'tadEvaluateComparisonRole', 'tadBuildComparisonEvidence'];
+  // Scope 07 owns the validation, cost, expectancy, risk-scenario, and process surface. It
+  // consumes the RLVALID generic primitives without editing them.
+  const scope07Helpers = ['tadValidationRefusal'];
+  const scope07Names = ['tadBuildPurgedEvaluation', 'tadSimulateSetupVariant', 'tadApplyCosts', 'tadSummarizeValidation',
+    'tadBuildValidationPassport', 'tadAuditExpectancy', 'tadLossStreakScenario', 'tadEvaluateBehaviorGuard'];
   const tad = buildFunctions(pageSource, scope01Names.concat(scope02Helpers, scope02Names));
   const physicalTadNames = [...pageSource.matchAll(/function\s+(tad[A-Za-z0-9]+)\s*\(/g)].map((match) => match[1]);
-  const declaredNames = scope01Names.concat(scope02Helpers, scope02Names, scope03Helpers, scope03Names, scope04Helpers, scope04Names, scope05Names, scope06Names);
+  const declaredNames = scope01Names.concat(scope02Helpers, scope02Names, scope03Helpers, scope03Names, scope04Helpers, scope04Names, scope05Names, scope06Names, scope07Helpers, scope07Names);
   check(physicalTadNames.length === declaredNames.length && new Set(physicalTadNames).size === declaredNames.length && scope01Names.every((name) => physicalTadNames.includes(name)), 'scope01-production-declarations-20-exact');
   check(scope02Names.length === 17 && scope02Names.every((name) => physicalTadNames.includes(name)), 'scope02-production-declarations-17-exact');
   check(scope03Names.length === 8 && scope03Names.every((name) => physicalTadNames.includes(name)), 'scope03-production-declarations-8-exact');
   check(scope04Names.length === 8 && scope04Names.every((name) => physicalTadNames.includes(name)), 'scope04-production-declarations-8-exact');
   check(scope05Names.length === 4 && scope05Names.every((name) => physicalTadNames.includes(name)), 'scope05-adapter-declarations-4-exact');
   check(scope06Names.length === 4 && scope06Names.every((name) => physicalTadNames.includes(name)), 'scope06-comparison-declarations-4-exact');
+  check(scope07Names.length === 8 && scope07Names.every((name) => physicalTadNames.includes(name)), 'scope07-validation-declarations-8-exact');
 
   // The five mandatory gates are ordered and closed. A sixth gate, a reordering, or a renamed gate
   // would change what "every mandatory gate passed" means without any test noticing.
@@ -378,6 +384,53 @@ try {
   // The Dow limitation must remain a committed claim rather than only page prose.
   check(config.claimLedger.some((entry) => /Dow/.test(entry.limitation || '') && /separate market sector and peer/.test(entry.allowedTreatment || '')), 'scope06-dow-limitation-recorded');
 
+  // ---------- Scope 07: validation risk and process ----------
+  const validationPolicy = config.validationPolicies[0], costSchema = config.costPolicySchema;
+  check(validationPolicy.contractVersion === 'tad-validation-policy/v1', 'scope07-validation-policy-contract');
+  check(validationPolicy.selectionEvaluation === 'separate', 'scope07-selection-separated-from-evaluation');
+  check(validationPolicy.asOfPolicy === 'available-at-or-before-decision', 'scope07-asof-policy-declared');
+  check(validationPolicy.trialPolicy === 'every-behavior-bearing-attempt-counts', 'scope07-every-attempt-counts');
+  check(Number.isInteger(validationPolicy.purgeBars) && validationPolicy.purgeBars > 0
+    && Number.isInteger(validationPolicy.embargoBars) && validationPolicy.embargoBars > 0, 'scope07-purge-and-embargo-positive');
+  check(JSON.stringify(validationPolicy.multiplicityMethods) === JSON.stringify(['benjamini-hochberg', 'holm', 'deflated-sharpe']), 'scope07-three-multiplicity-controls');
+  check(JSON.stringify(validationPolicy.statusVocabulary) === JSON.stringify(['supported', 'fragile', 'descriptive-only', 'insufficient', 'rejected', 'unavailable']), 'scope07-status-vocabulary-closed');
+  check(costSchema.contractVersion === 'tad-cost-policy-schema/v1' && costSchema.missingComponentPolicy === 'net-unavailable', 'scope07-missing-cost-makes-net-unavailable');
+  check(costSchema.components.length === 9 && costSchema.policies[0].zeroTreatment === 'zero-is-an-explicit-observation'
+    && costSchema.policies[0].identityBearing === true, 'scope07-cost-components-complete-and-identity-bearing');
+  const scope07Block = pageSource.slice(pageSource.indexOf('Feature 007 Scope 07: validation risk and process'), pageSource.lastIndexOf('End Feature 007 Scope 07: validation risk and process'));
+  check(scope07Block.length > 0, 'scope07-marker-block-present');
+  check(scope07Names.every((name) => scope07Block.includes(`function ${name}(`)), 'scope07-declarations-inside-marker-block');
+  check(new RegExp(`var TAD_COST_COMPONENTS = \\[${costSchema.components.map((c) => `"${c}"`).join(', ')}\\];`).test(pageSource), 'scope07-cost-components-match-committed-schema');
+  // The page must consume the generic primitives rather than reimplementing the statistics.
+  ['rlvBuildPurgedFolds', 'rlvSummarizeOutcomes', 'rlvWilsonInterval'].forEach((primitive) => {
+    check(new RegExp(`RLVALID\\.${primitive}\\(`).test(scope07Block), `scope07-uses-generic-${primitive}`);
+  });
+  check(!/function\s+rlv[A-Z]/.test(pageSource), 'scope07-no-local-copy-of-a-generic-primitive');
+  // Net can never borrow gross, and a missing component can never be read as a stated zero.
+  check(/netAvailable: false/.test(scope07Block) && /netR: null/.test(scope07Block), 'scope07-missing-cost-yields-null-net');
+  check(/netExpectancy: netExpectancy/.test(scope07Block) && /costed\.netAvailable\s*\n?\s*\?/.test(scope07Block), 'scope07-net-expectancy-gated-by-cost-completeness');
+  // The published expectancy equation must stay reproducible from the page itself.
+  check(/E = p\*W - \(1-p\)\*L; total = E\*N/.test(scope07Block), 'scope07-expectancy-equation-published');
+  check(/l \/ \(w \+ l\)/.test(scope07Block), 'scope07-breakeven-from-configured-payoff');
+  check(/Math\.pow\(1 - riskFraction, length\)/.test(scope07Block), 'scope07-loss-streak-compounds');
+  // The process guard must not diagnose emotion, intent, or suitability.
+  check(/inferredEmotion: null/.test(scope07Block) && /inferredIntent: null/.test(scope07Block)
+    && /suitabilityAssessed: false/.test(scope07Block) && /basis: "observable-plan-deviation-only"/.test(scope07Block), 'scope07-process-guard-observable-only');
+  check(!/\b(fear|greed|panic|revenge|emotional state)\b/i.test(scope07Block.replace(/\/\/.*$/gm, '')), 'scope07-no-emotional-vocabulary-in-process-code');
+  const validationFixture = json('tests/fixtures/technical-analysis-decision/analytic/validation-risk-process.json');
+  check(validationFixture.transcriptClaim.winRate === 0.71 && validationFixture.transcriptClaim.averageWinR === 6
+    && validationFixture.transcriptClaim.averageLossR === 1.8 && validationFixture.transcriptClaim.tradeCount === 50, 'scope07-transcript-fixture-matches-scenario');
+  check(validationFixture.observations.length >= 100, 'scope07-validation-fixture-has-enough-history');
+  check(validationFixture.costPolicies.complete && validationFixture.costPolicies.incomplete, 'scope07-validation-fixture-carries-both-cost-policies');
+  // Long validation runs as yielding work units with latest-run identity and a cancellation that
+  // commits nothing. The runner is impure, so it is deliberately NOT one of the eight pure symbols.
+  const runnerBlock = pageSource.slice(pageSource.indexOf('Feature 007 Scope 07 runtime: deterministic work units'), pageSource.lastIndexOf('End Feature 007 Scope 07 runtime: deterministic work units'));
+  check(runnerBlock.length > 0 && /var tadValidationRunner = \{/.test(runnerBlock), 'scope07-work-unit-runner-present');
+  check(/setTimeout\(function \(\) \{ step\(index \+ 1\); \}, 0\)/.test(runnerBlock), 'scope07-work-units-yield-between-units');
+  check(/self\.activeRunId !== runId/.test(runnerBlock), 'scope07-latest-run-identity-enforced');
+  check(/cancelled: true, committed: self\.committed/.test(runnerBlock), 'scope07-cancelled-run-preserves-prior-commit');
+  check(!/function\s+tadValidationRunner/.test(pageSource) && !physicalTadNames.includes('tadValidationRunner'), 'scope07-runner-is-not-a-pure-symbol');
+
   const expectedTitles = [
     'Regression: SCN-007-005 stock four-hour profile exposes session remainder and variant identity',
     'Regression: SCN-007-006 continuous-market four-hour profile has equal session boundaries',
@@ -390,7 +443,11 @@ try {
     'Regression: SCN-007-024 daily-only read stays useful while tactical evidence remains unavailable',
     'Regression: Feature 007 owner integrations preserve source cutoffs limitations and existing reads',
     'Regression: SCN-007-014 market sector and peer roles expose relative weakness separately',
-    'Regression: SCN-007-028 comparison membership change creates a new variant and preserves prior validation'
+    'Regression: SCN-007-028 comparison membership change creates a new variant and preserves prior validation',
+    'Regression: SCN-007-018 explicit costs separate gross and net expectancy and breakeven',
+    'Regression: SCN-007-019 expectancy audit computes 186',
+    'Regression: SCN-007-020 changed setup parameters create descriptive-only identity without inherited passport',
+    'Regression: SCN-007-021 chase distance blocks the frozen plan without diagnosing emotion'
   ];
   check(expectedTitles.every((title) => testSource.includes(`test('${title}'`)), 'scope01-regression-titles-exact');
   check(!/page\.route|context\.route|\.fulfill\s*\(|serviceWorker|test\.(?:skip|only)/.test(testSource), 'browser-suite-no-internal-substitution-or-skip');

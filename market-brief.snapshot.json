@@ -1,26 +1,26 @@
 {
-  "asOf": "2026-08-15T18:31:12.449Z",
-  "generatedAt": "2026-08-15T18:31:12.449Z",
-  "window": "pre-close",
+  "asOf": "2026-08-15T21:14:42.392Z",
+  "generatedAt": "2026-08-15T21:14:42.392Z",
+  "window": "after-hours",
   "marketClosed": true,
   "nextSessionDate": "2026-08-17",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-15T18:30:21.777Z",
+      "updated": "2026-08-15T21:13:55.916Z",
       "symbolCount": 289,
       "expectedSessionDate": "2026-08-14",
       "refreshDate": "2026-08-15",
-      "refreshWindow": "pre-close",
+      "refreshWindow": "after-hours",
       "freshSymbolCount": 289,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-08-15T18:30:26.112Z",
+      "updated": "2026-08-15T21:13:59.572Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-08-15",
-      "refreshWindow": "pre-close",
+      "refreshWindow": "after-hours",
       "freshSymbolCount": 22,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-15T18:31:10.576Z",
+      "asOf": "2026-08-15T21:14:40.693Z",
       "read": "Rotate toward XLK as XLE weakens.",
       "metrics": {
         "into": {
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": 0.04273453577748976,
           "usdRelativeReturn": 0.13632090153286192,
           "asOf": "2026-08-14T00:00:00.000Z",
-          "computedAt": "2026-08-15T18:31:10.842Z",
+          "computedAt": "2026-08-15T21:14:40.855Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1932,7 +1932,7 @@
           "interaction": 0.0001663147539020955,
           "relationship": "Mixed",
           "asOf": "2026-08-14T00:00:00.000Z",
-          "computedAt": "2026-08-15T18:31:10.842Z",
+          "computedAt": "2026-08-15T21:14:40.855Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1956,7 +1956,7 @@
               "usdLeadership": {
                 "asOf": "2026-08-14T00:00:00.000Z",
                 "benchmarkReturn": 0.04273453577748976,
-                "computedAt": "2026-08-15T18:31:10.842Z",
+                "computedAt": "2026-08-15T21:14:40.855Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2465,7 +2465,7 @@
                 "approximateLocalReturn": 0.2149084204670546,
                 "asOf": "2026-08-14T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": 0.09524177297193104,
-                "computedAt": "2026-08-15T18:31:10.842Z",
+                "computedAt": "2026-08-15T21:14:40.855Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "SGD",
                 "freshUntil": null,
@@ -3059,7 +3059,7 @@
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-08-15T18:31:10.842Z",
+          "computedAt": "2026-08-15T21:14:40.855Z",
           "freshUntil": null
         }
       },
@@ -3069,7 +3069,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-08-14T13:30:00.000Z",
-      "read": "CPER leads real assets at 53.3/100; GLD 38.2, BTC 34, SLV 14.1.",
+      "read": "CPER leads real assets at 53.3/100; GLD 38.2, BTC 34.1, SLV 14.1.",
       "metrics": {
         "leader": {
           "ticker": "CPER",
@@ -3240,11 +3240,11 @@
           {
             "ticker": "ETH-USD",
             "model": "crypto",
-            "score": 45.1,
+            "score": 45.2,
             "trend": "Mixed",
-            "mom21": 0.4,
-            "mom63": 11.94,
-            "mom126": -17.7,
+            "mom21": 0.49,
+            "mom63": 12.03,
+            "mom126": -17.63,
             "vol": 47.14,
             "maxDrawdown": 35.37,
             "riskPenalty": 7.21,
@@ -3262,7 +3262,7 @@
                 "symbols": [
                   "BTC-USD"
                 ],
-                "score": 46.79475621447961,
+                "score": 46.923988808226966,
                 "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
               }
             ],
@@ -3386,11 +3386,11 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 34,
+            "score": 34.1,
             "trend": "Downtrend",
-            "mom21": -2.08,
-            "mom63": -2.24,
-            "mom126": -13.8,
+            "mom21": -1.99,
+            "mom63": -2.15,
+            "mom126": -13.72,
             "vol": 33.73,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
@@ -3680,7 +3680,7 @@
     "options-structure-lab": {
       "id": "options-structure-lab",
       "asOf": "2026-08-14T15:59:59.000Z",
-      "read": "SPY sits in positive dealer gamma with the flip near 766.93; call wall 780, put wall 776, front expected move ±1.77.",
+      "read": "SPY sits in positive dealer gamma with the flip near 775.35; call wall 780, put wall 775, front expected move ±3.13.",
       "deepLink": "options-structure-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
@@ -3688,19 +3688,19 @@
         "symbol": "SPY",
         "spot": 776.34,
         "regime": "positive",
-        "flipLevel": 766.93,
-        "signedNetGEX": 4211456950.5322,
+        "flipLevel": 775.35,
+        "signedNetGEX": 375246632.7781,
         "callWall": 780,
-        "putWall": 776,
-        "expectedMove": 1.77,
-        "atmIV": 0.0616,
+        "putWall": 775,
+        "expectedMove": 3.13,
+        "atmIV": 0.0545,
         "expiriesPriced": 3
       }
     },
     "gamma-trading-lab": {
       "id": "gamma-trading-lab",
       "asOf": "2026-08-14T15:59:59.000Z",
-      "read": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 766.93, walls 776/780.",
+      "read": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 775.35, walls 775/780.",
       "deepLink": "gamma-trading-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
@@ -3710,11 +3710,11 @@
         "scenario": "pin-to-maxpain",
         "conviction": "patient",
         "hold": "same-session-fade",
-        "signedNetGEX": 4211456950.53,
+        "signedNetGEX": 375246632.78,
         "flipPresent": true,
-        "flip": 766.93,
+        "flip": 775.35,
         "callWall": 780,
-        "putWall": 776,
+        "putWall": 775,
         "oviState": "unavailable",
         "opexWindow": null
       }
@@ -3722,60 +3722,60 @@
     "options-flow-feed-lab": {
       "id": "options-flow-feed-lab",
       "asOf": "2026-08-14T16:00:00.000Z",
-      "read": "Option flow is call-heavy (leaning bullish) across 12 tickers: 1806 contracts clear the $250k premium bar inside 30 days; the most unusual is TSLA 340 calls at $67.7M on 15.4× its open interest.",
+      "read": "Option flow is call-heavy (leaning bullish) across 12 tickers: 1459 contracts clear the $250k premium bar inside 30 days; the most unusual is NVDA 227.5 calls at $19.8M on 4.6× its open interest.",
       "deepLink": "options-flow-feed-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
       "metrics": {
         "tickers": 12,
-        "contractsFlagged": 1806,
+        "contractsFlagged": 1459,
         "windowDays": 30,
         "premiumThreshold": 250000,
         "lean": "call-heavy (leaning bullish)",
-        "callPremium": 2231427542.5,
-        "putPremium": 1120174922.5,
-        "callFraction": 0.6658,
+        "callPremium": 1339810451.5,
+        "putPremium": 674499997.5,
+        "callFraction": 0.6651,
         "netPremium": null,
-        "consideredCount": 19976,
-        "clearedCount": 794,
-        "clearedFraction": 0.0397,
-        "maxScore": 88,
+        "consideredCount": 18292,
+        "clearedCount": 568,
+        "clearedFraction": 0.0311,
+        "maxScore": 90,
         "top": [
           {
-            "ticker": "TSLA",
+            "ticker": "NVDA",
             "type": "C",
-            "strike": 340,
-            "dte": 0,
-            "volume": 277663,
-            "openInterest": 18075,
-            "volOI": 15.3617,
-            "premium": 67749772,
-            "iv": 68.88,
-            "score": 88
-          },
-          {
-            "ticker": "AMD",
-            "type": "C",
-            "strike": 505,
-            "dte": 0,
-            "volume": 46472,
-            "openInterest": 2433,
-            "volOI": 19.1007,
-            "premium": 43916040,
-            "iv": 102.42,
-            "score": 85
+            "strike": 227.5,
+            "dte": 7,
+            "volume": 73756,
+            "openInterest": 15884,
+            "volOI": 4.6434,
+            "premium": 19803486,
+            "iv": 29.21,
+            "score": 90
           },
           {
             "ticker": "QQQ",
             "type": "C",
             "strike": 730,
-            "dte": 0,
-            "volume": 530158,
-            "openInterest": 16430,
-            "volOI": 32.2677,
-            "premium": 37376139,
-            "iv": 0,
-            "score": 85
+            "dte": 3,
+            "volume": 64309,
+            "openInterest": 1851,
+            "volOI": 34.7428,
+            "premium": 18135138,
+            "iv": 9,
+            "score": 90
+          },
+          {
+            "ticker": "SPY",
+            "type": "P",
+            "strike": 776,
+            "dte": 3,
+            "volume": 102027,
+            "openInterest": 4498,
+            "volOI": 22.6827,
+            "premium": 16018239,
+            "iv": 5.46,
+            "score": 89
           }
         ]
       }
@@ -3918,15 +3918,15 @@
     },
     "fx-regime-relative-value-lab": {
       "id": "fx-regime-relative-value-lab",
-      "asOf": "2026-08-15T18:31:12.191Z",
+      "asOf": "2026-08-15T21:14:42.205Z",
       "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "source": "owning-tool-functions",
       "state": "unavailable",
       "metrics": {
         "state": "unavailable",
-        "ownerDecisionId": "fxo-v1-19eb0425",
-        "evidenceIdentity": "fxe-v1-2b9582ed",
+        "ownerDecisionId": "fxo-v1-4dc42828",
+        "evidenceIdentity": "fxe-v1-770b6ea2",
         "objective": "foreign-currency-strength",
         "subjectId": "JPY",
         "horizon": "swing",
@@ -4049,8 +4049,8 @@
           "read": "The available evidence does not support a complete attributable recommendation.",
           "metrics": {
             "contractVersion": "rlfx-tool-read/v2",
-            "ownerDecisionId": "fxo-v1-19eb0425",
-            "evidenceIdentity": "fxe-v1-2b9582ed",
+            "ownerDecisionId": "fxo-v1-4dc42828",
+            "evidenceIdentity": "fxe-v1-770b6ea2",
             "state": "unavailable",
             "objective": "foreign-currency-strength",
             "subjectId": "JPY",
@@ -4170,7 +4170,7 @@
                 "REQUIRED_FACT_MISSING",
                 "TRACKING_EVIDENCE_INCOMPLETE"
               ],
-              "evidenceIdentity": "fxe-v1-2b9582ed",
+              "evidenceIdentity": "fxe-v1-770b6ea2",
               "evidenceCutoff": null,
               "provenance": [],
               "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
@@ -4195,7 +4195,7 @@
             "executionAvailable": false
           },
           "deepLink": "fx-regime-relative-value-lab.html#power",
-          "computedAt": "2026-08-15T18:31:12.191Z",
+          "computedAt": "2026-08-15T21:14:42.205Z",
           "freshUntil": null
         }
       }
@@ -4221,7 +4221,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-08-15T18:31:12.268Z",
+      "asOf": "2026-08-15T21:14:42.276Z",
       "read": "Leadership is narrow — 51.05% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -4339,7 +4339,7 @@
       "id": "options-flow-feed-lab",
       "deepLink": "options-flow-feed-lab.html",
       "status": "fresh-headless",
-      "reason": "Option flow is call-heavy (leaning bullish) across 12 tickers: 1806 contracts clear the $250k premium bar inside 30 days; the most unusual is TSLA 340 calls at $67.7M on 15.4× its open interest."
+      "reason": "Option flow is call-heavy (leaning bullish) across 12 tickers: 1459 contracts clear the $250k premium bar inside 30 days; the most unusual is NVDA 227.5 calls at $19.8M on 4.6× its open interest."
     },
     {
       "id": "intraday-tape-lab",
@@ -4357,13 +4357,13 @@
       "id": "options-structure-lab",
       "deepLink": "options-structure-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY sits in positive dealer gamma with the flip near 766.93; call wall 780, put wall 776, front expected move ±1.77."
+      "reason": "SPY sits in positive dealer gamma with the flip near 775.35; call wall 780, put wall 775, front expected move ±3.13."
     },
     {
       "id": "gamma-trading-lab",
       "deepLink": "gamma-trading-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 766.93, walls 776/780."
+      "reason": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 775.35, walls 775/780."
     },
     {
       "id": "sector-research-lab",
@@ -4381,7 +4381,7 @@
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "CPER leads real assets at 53.3/100; GLD 38.2, BTC 34, SLV 14.1."
+      "reason": "CPER leads real assets at 53.3/100; GLD 38.2, BTC 34.1, SLV 14.1."
     },
     {
       "id": "bond-regime-lab",

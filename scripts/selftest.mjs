@@ -5109,6 +5109,94 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Technical Analysis Decision foundation group threw): ' + e.message); }
 /* ---------- End Feature 007 Technical Analysis Decision foundation ---------- */
 
+/* ---------- Research-agenda reason copy: one map, and never a slug as prose ----------
+   A published research-agenda read carries a machine `reason` code. Two renderers turn it into
+   reader copy: rlbrief.js (the compact standing-research rows on the Brief) and
+   research-agenda-lab.html (`#currentReason` on the owning tool). Both previously held their OWN
+   4-entry map and, on a miss, fell back to title-casing the slug — so when the producer emitted
+   `situation-shape-invalid` the reader was shown the sentence "Situation Shape Invalid.", which
+   has the cadence of an explanation while explaining nothing. Two independent maps had also
+   already drifted (the same key carried two different sentences).
+
+   These assertions lock both halves. They are adversarial in the sense that matters: each one
+   fails if the specific defect returns, and the last one fails if the fallback ever again
+   fabricates prose out of an unmapped code. */
+console.log('\n— Research-agenda reason copy (single map, no machine slug as reader prose) —');
+try {
+  const briefSource = read('rlbrief.js');
+  const agendaSource = read('research-agenda-lab.html');
+
+  const grabMap = (src, label) => {
+    const start = src.indexOf('REASON_SENTENCES = {');
+    assert(start !== -1, `${label} declares a REASON_SENTENCES map`);
+    const open = src.indexOf('{', start);
+    let depth = 0, i = open;
+    for (; i < src.length; i += 1) {
+      if (src[i] === '{') depth += 1;
+      else if (src[i] === '}') { depth -= 1; if (depth === 0) break; }
+    }
+    // Normalise indentation only — key order, keys and sentences must match exactly.
+    return src.slice(open, i + 1).split('\n').map((line) => line.trim()).join('\n');
+  };
+
+  const briefMap = grabMap(briefSource, 'rlbrief.js');
+  const agendaMap = grabMap(agendaSource, 'research-agenda-lab.html');
+  assert(briefMap === agendaMap,
+    'The Brief and the owning tool carry the SAME reason-sentence map (no silent copy drift)');
+
+  // Every reason code a producer can put on a published topic read has a reader sentence.
+  // Three producers feed that field and ALL THREE must be harvested. The first version of this
+  // guard read only the literal `reason = '...'` assignments and reported a healthy 10 codes — yet
+  // it stayed green when `situation-shape-invalid` was deleted from the map, because that code
+  // arrives through `reason = validated.error.reason`, a VALUE, not a literal. That is precisely
+  // the family that shipped a machine slug to the reader, so a check that cannot see it is a check
+  // that cannot do its job. The validator's own `failure(code, 'reason')` calls are harvested here.
+  const generationSource = read('scripts/research-agenda-generation.mjs');
+  const outcomeReasons = [...generationSource.matchAll(/reason = (?:validated\.ok \? )?'([a-z-]+)'/g)]
+    .map((m) => m[1])
+    .concat([...generationSource.matchAll(/reason = reusablePrior \? '([a-z-]+)' : '([a-z-]+)'/g)].flatMap((m) => [m[1], m[2]]));
+  const validatorStart = generationSource.indexOf('export function validateResearchSituation(');
+  assert(validatorStart !== -1, 'The situation validator was located in the generation producer');
+  // Brace-balance the validator's OWN body. Slicing to the next `export function` swallowed the
+  // neighbouring author helper and dragged in two E019-AGENDA-AUTHOR codes that can never land on
+  // a topic read — which would have made the guard demand invented reader copy for unreachable
+  // codes. Balancing must also start AFTER the parameter list: this signature destructures its
+  // second argument, so the first `{` belongs to the pattern, not the body, and balancing from
+  // there closes immediately and harvests nothing. A reachability check is only worth having if it
+  // models reachability exactly, so both boundaries are pinned and then re-verified below.
+  const validatorOpen = generationSource.indexOf(') {', validatorStart) + 2;
+  let validatorDepth = 0, validatorCursor = validatorOpen;
+  for (; validatorCursor < generationSource.length; validatorCursor += 1) {
+    const ch = generationSource[validatorCursor];
+    if (ch === '{') validatorDepth += 1;
+    else if (ch === '}') { validatorDepth -= 1; if (validatorDepth === 0) break; }
+  }
+  const validatorBody = generationSource.slice(validatorOpen, validatorCursor + 1);
+  const validatorReasons = [...validatorBody.matchAll(/failure\('E019-[A-Z-]+', '([a-z-]+)'/g)].map((m) => m[1]);
+  assert(validatorReasons.length > 0, `The situation validator's refusal reasons were harvested (${validatorReasons.length})`);
+  assert(!validatorBody.includes('side-pool-config-invalid') && !validatorBody.includes('runResearchSidePool'),
+    'The harvested body stops at the validator and does not spill into the author helper');
+  const planReasons = [...read('rlagenda.js').matchAll(/classification\.reason = "([a-z-]+)"/g)].map((m) => m[1]);
+  const reachable = [...new Set(outcomeReasons.concat(validatorReasons).concat(planReasons))].filter((code) => code !== 'lifecycle-');
+  assert(reachable.length >= 15, `Reader-reachable reason vocabulary was discovered from the producers (${reachable.length} codes)`);
+  const unmapped = reachable.filter((code) => !briefMap.includes(`"${code}":`));
+  assert(unmapped.length === 0,
+    `Every producer reason code has a reader sentence (unmapped: ${unmapped.join(', ') || 'none'})`);
+
+  // The fallback states the absence and surfaces the code AS a code. It must never Title-Case a
+  // slug into a sentence — that is the exact regression this group exists to stop.
+  for (const [label, src] of [['rlbrief.js', briefSource], ['research-agenda-lab.html', agendaSource]]) {
+    const fnStart = src.indexOf(label === 'rlbrief.js' ? 'function reasonSentence(' : 'function reasonText(');
+    assert(fnStart !== -1, `${label} exposes its reason resolver`);
+    const body = src.slice(fnStart, fnStart + 700);
+    assert(body.includes('Reason code: '),
+      `${label} surfaces an unmapped code as a code, not as prose`);
+    assert(!/human\(\s*reason\s*\)/.test(body) && !/\\b\\w/.test(body),
+      `${label} never title-cases a reason slug into a reader sentence`);
+  }
+} catch (e) { failures++; console.log('  ✗ FAIL (research-agenda reason copy group threw): ' + e.message); }
+/* ---------- End research-agenda reason copy ---------- */
+
 /* ---------- D4 single-source: etf-momentum-lab deflated Sharpe is RLVALID-owned ----------
    etf-momentum-lab.html used to carry its OWN private `deflatedSharpe`, a second definition of a
    metric RLVALID already owns. These assertions are deliberately adversarial: they execute the

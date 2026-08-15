@@ -452,10 +452,19 @@
         <div class="subtle">Source, session, timeframe, identity, and validation contracts before any decision signal
           exists.</div>
       </div>
-      <div id="modeSeg" role="tablist" aria-label="View mode"
+      <!-- Detail-level toggle, NOT a second view tablist. This page owns its route, so the shared
+           four-view shell (#rlviews: Simple/Power/Brief/Journey) stays visible rather than hiding this
+           control the way it does on non-owns-route pages. Two tablists whose tabs are both named
+           "Simple"/"Power" would put one duplicate accessible name on top of another — a screen reader
+           would announce two "Power" tabs and two controls would each claim to own the view. So this
+           control takes role="group" + aria-pressed toggle buttons, exactly as the other owns-route
+           page (portfolio-survival-allocation-lab.html) already does. aria-pressed is also the more
+           truthful semantic: this switches how much evidence the SAME result shows, it does not select
+           a different view panel. -->
+      <div id="modeSeg" role="group" aria-label="Detail level"
         title="Simple is the decision-first read; Power exposes every evidence band behind it. Both project the same immutable result.">
-        <button type="button" data-mode="simple" class="active" role="tab" aria-selected="true">Simple</button>
-        <button type="button" data-mode="power" role="tab" aria-selected="false">Power</button>
+        <button type="button" data-mode="simple" class="active" aria-pressed="true">Simple</button>
+        <button type="button" data-mode="power" aria-pressed="false">Power</button>
       </div>
     </div>
   </header>
@@ -3292,7 +3301,7 @@
       Array.prototype.forEach.call(buttons, function (button) {
         var active = button.getAttribute("data-mode") === mode;
         button.classList.toggle("active", active);
-        button.setAttribute("aria-selected", active ? "true" : "false");
+        button.setAttribute("aria-pressed", active ? "true" : "false");
       });
       try { localStorage.setItem("tad-view-mode", mode); } catch (error) { /* preference only */ }
       // Redraw because a canvas that was hidden when the mode changed has nothing rendered in it.

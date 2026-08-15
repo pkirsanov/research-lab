@@ -394,7 +394,16 @@ const TOOLS = {
     base: (definition) => ({ ...defaults(definition), entry: 100 }),
     changes: () => [['context-threshold', 0.7], ['location-threshold', 0.7]],
     adapterId: 'simple-adapter/technical-five-gate/v1',
-    expectFlat: true
+    expectFlat: true,
+    /* This page declares data-owns-route: Feature 007 gave it a real native Simple decision cockpit,
+       so the production Simple bridge DECLINES here (rlexperience.js resolveSimpleContext) rather
+       than painting a second, competing Simple answer beside the page's own one. Consequences that
+       are DOCUMENTED, not mysterious: the bridge never writes data-rlexperience-simple-state, so
+       there is no bridge write to wait for and no pre-drive state to read. Waiting for one would
+       simply burn the 20s timeout, and asserting 'unavailable' would assert a panel the reader is
+       deliberately never shown. Everything below this line is unchanged: the real adapter module is
+       still injected and driven, and the five-gate flat-region contract is still proved in full. */
+    rendersOwnSimple: true
   },
   'options-flow-feed-lab': {
     title: 'Regression: options flow Simple anomaly controls recompute without trade-side inference or new chain owner',
@@ -495,6 +504,12 @@ async function driveSimple(page, toolId) {
   // looks at the expected state, so it cannot mask a wrong one. The read and every assertion below
   // are unchanged — a wired tool that renders 'unavailable' still fails exactly as before.
   await page.getByRole('tab', { name: 'Power', exact: true }).click();
+  if (descriptor.rendersOwnSimple) {
+    /* An owns-route page renders its own Simple view and the bridge stands down, so there is no
+       bridge write to observe. Switch back to Simple and read the panel directly: it must carry no
+       state at all. */
+    await page.getByRole('tab', { name: 'Simple', exact: true }).click();
+  } else {
   await page.evaluate(() => {
     const node = document.querySelector('[data-rlexperience-panel="simple"]');
     globalThis.__rlSimpleBridgeRendered = false;
@@ -505,6 +520,7 @@ async function driveSimple(page, toolId) {
   // MutationObserver reports every setAttribute, including a same-value write, so this settles on
   // the unwired 'unavailable' → 'unavailable' render too.
   await page.waitForFunction(() => globalThis.__rlSimpleBridgeRendered === true, null, { timeout: 20000 });
+  }
   const placeholderState = await page.locator('[data-rlexperience-panel="simple"]').getAttribute('data-rlexperience-simple-state');
 
   // Inject the REAL production adapter UMD module (the same file the owning pages load).
@@ -596,7 +612,10 @@ async function assertVisibleSensitivity(page, toolId) {
   //   • Wired tool whose provider returns null in this harness (intraday-tape-lab — no hydratable
   //     intraday session bars) and every still-unwired tool: the honest "owner adapter required"
   //     panel — 'unavailable'. Both are truthful degradation, never an invented signal.
-  if (descriptor.wiredInProduction) {
+  if (descriptor.rendersOwnSimple) {
+    // The page owns Simple; the shell painted nothing, so there is no state to carry.
+    expect(placeholderState).toBeNull();
+  } else if (descriptor.wiredInProduction) {
     expect(placeholderState).toBe('ready');
   } else {
     expect(placeholderState).toBe('unavailable');

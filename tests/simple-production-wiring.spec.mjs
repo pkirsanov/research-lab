@@ -482,6 +482,17 @@ function pageDeclaresElementId(toolId, elementId) {
   return !!source && new RegExp(`id="${elementId}"`).test(source);
 }
 
+/* Derived from the DEPLOYED PAGE, by the same page-source rule as everything else here — never a
+   hard-coded tool list. A page that declares data-owns-route renders every view ITSELF, so the
+   production Simple bridge deliberately declines to paint the shell's Simple panel on it
+   (rlexperience.js resolveSimpleContext): painting would put a second, contradictory Simple answer
+   beside the page's own one. Such a page therefore has no shell adapter panel to assert about, and
+   a page that gains or loses the declaration joins or leaves this sweep automatically. */
+function pageOwnsRoute(toolId) {
+  const source = readRepoFile(`${toolId}.html`);
+  return !!source && /data-owns-route/.test(source);
+}
+
 function wiredTools() {
   const registry = readJson('simple-models.json');
   return registry.definitions
@@ -490,6 +501,7 @@ function wiredTools() {
       toolId: definition.toolId,
       adapterId: definition.adapterId,
       declaredUnavailable: registryDeclaresUnavailable(definition),
+      ownsRoute: pageOwnsRoute(definition.toolId),
       nativeSimpleView: pageDeclaresElementId(definition.toolId, 'simpleView'),
       nativePowerView: pageDeclaresElementId(definition.toolId, 'powerView')
     }));
@@ -854,19 +866,30 @@ test('TP-15-04 every wired ordinary tool paints its real Simple adapter panel wi
   // Non-vacuity: an empty or truncated derivation must fail here, not pass silently.
   expect(wired.length).toBeGreaterThan(0);
 
+  /* A page that owns its route renders every view itself, so the production bridge stands down and
+     there is no shell adapter panel for this sweep to assert about. The exclusion is DERIVED from
+     the page source and printed, so it is evidence produced by the run rather than a quiet skip;
+     and the swept set is asserted to be exactly the complement, so an over-broad exclusion that
+     silently dropped a real tool would fail here instead of shrinking the sweep unnoticed. */
+  const ownsRouteTools = wired.filter((entry) => entry.ownsRoute);
+  const panelTools = wired.filter((entry) => !entry.ownsRoute);
+  console.log(`TP-15-04 shell-adapter-panel sweep: ${panelTools.length} of ${wired.length} wired tools; ${ownsRouteTools.length} render their own views and are excluded — ${ownsRouteTools.map((entry) => entry.toolId).join(' ') || 'none'}`);
+  expect(panelTools.length, 'the adapter-panel sweep must still cover tools').toBeGreaterThan(0);
+  expect(panelTools.length + ownsRouteTools.length).toBe(wired.length);
+
   /* SCN-012-041 membership, derived from the DEPLOYED PAGES by the same page-source rule
      that derives wiring — never a hard-coded list, and never a count assumed by this test.
      Printed so the number is evidence produced by the run rather than an assertion of the
      author's. #powerView membership is derived the same way and is not assumed to be the
      same set. */
-  const nativeSimpleTools = wired.filter((entry) => entry.nativeSimpleView);
+  const nativeSimpleTools = panelTools.filter((entry) => entry.nativeSimpleView);
   const nativePowerTools = nativeSimpleTools.filter((entry) => entry.nativePowerView);
   expect(nativeSimpleTools.length, 'SCN-012-041 must actually cover native #simpleView tools').toBeGreaterThan(0);
-  console.log(`TP-15-04/SCN-012-041 derived native #simpleView tools: ${nativeSimpleTools.length} of ${wired.length} wired (${nativePowerTools.length} also declare #powerView) — ${nativeSimpleTools.map((entry) => `${entry.toolId}${entry.nativePowerView ? '+#powerView' : ''}`).join(' ')}`);
+  console.log(`TP-15-04/SCN-012-041 derived native #simpleView tools: ${nativeSimpleTools.length} of ${panelTools.length} swept (${nativePowerTools.length} also declare #powerView) — ${nativeSimpleTools.map((entry) => `${entry.toolId}${entry.nativePowerView ? '+#powerView' : ''}`).join(' ')}`);
 
   const nativeDemotion = [];
   const results = [];
-  for (const entry of wired) {
+  for (const entry of panelTools) {
     const settledOwnerEvidence = await openAndAwaitOwnerEvidence(page, entry.toolId);
     const { observed, attempts } = await driveUntilOwnerParity(page, entry.toolId, entry.adapterId);
     expect(observed.fatal, `${entry.toolId}: ${observed.fatal}`).toBeUndefined();
@@ -945,7 +968,7 @@ test('TP-15-04 every wired ordinary tool paints its real Simple adapter panel wi
   }
 
   // Non-vacuity guards: the sweep really covered the derived set, and really saw ready panels.
-  expect(results.length, 'every wired tool must be swept').toBe(wired.length);
+  expect(results.length, 'every swept tool must be recorded').toBe(panelTools.length);
   expect(results.filter((row) => row.outcome === 'ready').length, 'the sweep must observe real ready adapter panels').toBeGreaterThan(0);
   // Every derived native-#simpleView tool was really exercised — a silently skipped one fails here.
   expect(nativeDemotion.length, 'every derived native #simpleView tool must be checked for SCN-012-041').toBe(nativeSimpleTools.length);

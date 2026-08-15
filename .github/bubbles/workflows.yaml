@@ -22,6 +22,13 @@ workflowExecutionPolicy:
 # registry is caught by bubbles/scripts/gates-registry-selftest.sh (which runs
 # `generate-gates-block.sh --check`) inside framework-validate.
 #
+# This copy was deleted under IMP-042 SCOPE-13 and RESTORED, because that
+# scope's own precondition — byte-equivalent queries for EVERY remaining
+# reader — had not actually been met. Six readers were fingerprinted; the
+# readers that grep this file for gate NAMES rather than definitions were
+# missed, and `agent-ownership-lint.sh` fails without the block. Deleting the
+# copy is still the right destination; it needs the full reader inventory first.
+#
 # GENERATED:GATE_BANDS_START — do not edit by hand; run bubbles/scripts/gate-bands.sh
 # Gate-ID bands: the framework RESERVES G001-G199 (currently G001-G016 plus G018-G029 plus G031-G038 plus G040-G044 plus G047-G048 plus G051-G053 plus G055-G061 plus G063-G064 plus G066-G095 plus G097-G101 plus G110-G136).
 # GENERATED:GATE_BANDS_END
@@ -201,7 +208,7 @@ gates:
     classification: modelCompensation
     retireWhen: { minTier: opus-class, metric: fabricated-evidence-rate, threshold: 0.005, window: 50 }
     enforcedBy: [ script:bubbles/scripts/release-delivery-reconciliation-guard.sh ]
-    description: ABSOLUTE BLOCKING gate. EVERY DoD item marked [x] MUST have raw terminal output evidence (≥10 lines) recorded INLINE directly beneath it in scopes.md. Items without evidence are INVALID even if checked. Each item MUST be individually validated — batch-checking is forbidden. Test-related DoD items MUST show real test execution covering ALL scenarios (Gherkin, error paths, boundary conditions, parameter permutations) with 100% business logic coverage. Tests MUST be real (no internal mocks, real test DBs, real assertions that fail if feature is broken). Agents MUST verify each [x] item has evidence before marking scope Done.
+    description: ABSOLUTE BLOCKING gate. EVERY DoD item marked [x] MUST have raw terminal output evidence (≥10 lines) recorded INLINE directly beneath it in scopes.md, OR behind one of the two reference forms that state-transition-guard.sh Check 9 resolves (a report.md#anchor link, or a structured tool-log record). A resolved reference is equivalent to an inline block; an unresolvable one FAILS the item and is never a silent pass. See agents/bubbles_shared/evidence-rules.md for the canonical location contract. Items without evidence are INVALID even if checked. Each item MUST be individually validated — batch-checking is forbidden. Test-related DoD items MUST show real test execution covering ALL scenarios (Gherkin, error paths, boundary conditions, parameter permutations) with 100% business logic coverage. Tests MUST be real (no internal mocks, real test DBs, real assertions that fail if feature is broken). Agents MUST verify each [x] item has evidence before marking scope Done.
   G026:
     since: "5.2.0"
     sinceDate: "2026-06-04"
@@ -612,7 +619,7 @@ gates:
     classification: businessInvariant
     enforcedBy: [ script:bubbles/scripts/compaction-discipline-guard-selftest.sh, script:bubbles/scripts/compaction-discipline-guard.sh, script:bubbles/scripts/context-compactor.sh, script:bubbles/scripts/state-snapshot.sh ]
     description: >-
-      BLOCKING gate. Enforces the in-loop compaction rule from `agents/bubbles_shared/operating-baseline.md` → "Context Compaction Discipline": orchestrator agents (bubbles.workflow, bubbles.goal, bubbles.iterate, bubbles.sprint) MUST keep the trailing transition-packet log inside per-spec budgets. The eligible slice — all envelopes for a spec EXCEPT the latest 2 (kept raw on purpose) — MUST satisfy BOTH `count <= 3` AND `cumulative rawSizeBytes <= 8192` UNLESS each over-budget envelope carries a `compactedAt` timestamp. Thresholds are framework constants (NOT workflows.yaml-configurable). Enforced mechanically by `bubbles/scripts/compaction-discipline-guard.sh`, which reads `.specify/memory/bubbles.session.json` `envelopesReceived[]` (schema `{specDir, agent, receivedAt, rawSizeBytes, incomingMessage, compactedAt, rawPointer}`). SECOND OBLIGATION (IMP-039 SCOPE-4): the rules above govern the repository LEDGER only, so the gate could pass on every envelope while the live model transcript grew monotonically. The guard therefore ALSO checks the session's `contextBoundary` object `{kind, checkpointId, at}`, where `kind` is `host-checkpoint` (a real host compaction checkpoint; `checkpointId` REQUIRED, because a checkpoint claim with no id cannot be checked against anything), `fresh-context` (a new specialist context carrying only the persisted envelope), or `unavailable` (the host exposes no compaction primitive). A malformed boundary is ALWAYS a finding. An ABSENT boundary is a finding only when the session actually compacted at least one envelope, so an upgrade never retroactively blocks a session that never exercised compaction. `unavailable` is always declarable, so remediation is never blocked by the host: declaring unavailability is honest, passing while the transcript grows is not. The boundary is recorded at a phase transition via `bubbles/scripts/state-snapshot.sh --context-boundary <kind>[:<checkpointId>]`. The guard exits 0 (pass), 1 (violation — count or size breach with uncompacted eligible entries, OR a missing/malformed live-transcript boundary), or 2 (malformed/missing structured fields). State-transition-guard.sh invokes this guard as Check 24. Exceeding either threshold without compaction MUST emit a `blocked` RESULT-ENVELOPE with finding `G083`; remediate by running `bubbles/scripts/context-compactor.sh` against the over-budget envelopes (it stamps `compactedAt` additively). Hermetic selftest: `bubbles/scripts/compaction-discipline-guard-selftest.sh`. Wired into `bubbles/scripts/framework-validate.sh`.
+      BLOCKING gate. Enforces the in-loop compaction rule from `agents/bubbles_shared/operating-baseline.md` → "Context Compaction Discipline": orchestrator agents (bubbles.workflow, bubbles.goal, bubbles.iterate, bubbles.sprint) MUST keep the trailing transition-packet log inside per-spec budgets. The eligible slice — all envelopes for a spec EXCEPT the latest 2 (kept raw on purpose) — MUST satisfy BOTH `count <= 3` AND `cumulative rawSizeBytes <= 8192` UNLESS each over-budget envelope carries a `compactedAt` timestamp. Thresholds are framework constants (NOT workflows.yaml-configurable). Enforced mechanically by `bubbles/scripts/compaction-discipline-guard.sh`, which reads `.specify/memory/bubbles.session.json` `envelopesReceived[]` (schema `{specDir, agent, receivedAt, rawSizeBytes, incomingMessage, compactedAt, rawPointer}`). SECOND OBLIGATION (IMP-039 SCOPE-4): the rules above govern the repository LEDGER only, so the gate could pass on every envelope while the live model transcript grew monotonically. The guard therefore ALSO checks the session's `contextBoundary` object `{kind, checkpointId, at}`, where `kind` is `host-checkpoint` (a real host compaction checkpoint; `checkpointId` REQUIRED, because a checkpoint claim with no id cannot be checked against anything), `fresh-context` (a new specialist context carrying only the persisted envelope), or `unavailable` (the host exposes no compaction primitive). A malformed boundary is ALWAYS a finding. An ABSENT boundary is a finding only when the session actually compacted at least one envelope, so an upgrade never retroactively blocks a session that never exercised compaction. `unavailable` is always declarable, so remediation is never blocked by the host: declaring unavailability is honest, passing while the transcript grows is not. The boundary is recorded at a phase transition via `bubbles/scripts/state-snapshot.sh --context-boundary <kind>[:<checkpointId>]`. The guard exits 0 (pass), 1 (violation — count or size breach with uncompacted eligible entries, OR a missing/malformed live-transcript boundary), or 2 (malformed/missing structured fields). State-transition-guard.sh invokes this guard as Check 24. Exceeding either threshold without compaction MUST emit a `blocked` RESULT-ENVELOPE with finding `G083`; remediate by running `bubbles/scripts/context-compactor.sh` against the over-budget envelopes (it stamps `compactedAt` additively).       THIRD OBLIGATION (IMP-042 SCOPE-7). A `compactedAt` stamp asserts the raw envelope was replaced by a durable summary, so that summary MUST exist. When the session carries a `compactedHistory` key, every stamped envelope MUST have a matching entry whose `rawPointer` equals the envelope's own. Checking the stamp alone allowed an envelope to be marked compacted while its record was lost, discarding the raw content and the justification for discarding it together, with the gate still green. `context-compactor.sh` now writes the stamp and the record in ONE rewrite of the session file and refuses a half-written compaction instead of reporting success. A session with no `compactedHistory` key predates this contract and is not retroactively blocked. Hermetic selftest: `bubbles/scripts/compaction-discipline-guard-selftest.sh`. Wired into `bubbles/scripts/framework-validate.sh`.
   G084:
     since: "5.2.0"
     sinceDate: "2026-06-04"
@@ -638,7 +645,7 @@ gates:
     classification: businessInvariant
     enforcedBy: [ script:bubbles/scripts/orchestrator-persistence-lint-selftest.sh, script:bubbles/scripts/orchestrator-persistence-lint.sh ]
     description: >-
-      BLOCKING gate. Orchestrator prompt files MUST make autonomous persistence the default operating mode: after any non-terminal phase, automatically continue to the next phase, stopping only for convergence achieved, max iterations reached, user requests stop, or fundamental impossibility. Enforced mechanically by `bubbles/scripts/orchestrator-persistence-lint.sh`, which scans exactly `agents/bubbles.goal.agent.md`, `agents/bubbles.workflow.agent.md`, `agents/bubbles.iterate.agent.md`, and `agents/bubbles.sprint.agent.md` for forbidden continuation-prompt phrases outside explicit FORBIDDEN examples and for the required persistence-default language. The guard exits 0 (clean), 1 (findings), or 2 (missing/unreadable target files or invalid invocation). State-transition-guard.sh invokes this guard as Check 27. Hermetic selftest: `bubbles/scripts/orchestrator-persistence-lint-selftest.sh`. Persistent regression: `tests/regression/test_05_orchestrator_persistence.sh`. Wired into `bubbles/scripts/framework-validate.sh`.
+      BLOCKING gate. The four generic orchestrators MUST classify continuation before target/work parsing and auto-continue every non-terminal phase. A closed independent 15-agent minimum roster MUST match workflow grants plus `terminalRecapPolicy.additionalAgents`; every roster agent invokes non-recursive `bubbles.recap` at terminal stops and returns control instead of selecting unrelated work. Enforced mechanically by `bubbles/scripts/orchestrator-persistence-lint.sh`, including classifier ordering, targeted-continuation contradiction, phase-owner upward-return, and recap non-recursion checks. The guard exits 0 (clean), 1 (findings), or 2 (missing/unreadable targets, an empty policy, or invalid invocation). State-transition-guard.sh invokes this guard as Check 27. Hermetic selftest: `bubbles/scripts/orchestrator-persistence-lint-selftest.sh`. Persistent regression: `tests/regression/test_05_orchestrator_persistence.sh`. Wired into `bubbles/scripts/framework-validate.sh`.
   G087:
     since: "5.2.0"
     sinceDate: "2026-06-04"
@@ -1268,8 +1275,11 @@ customGatesDiscovery:
 lessonsMemory:
   file: .specify/memory/lessons.md
   archiveFile: .specify/memory/lessons-archive.md
+  # Read by bubbles_lessons_max_lines() in cli.sh, which compacts at capture.
+  # There is deliberately no trigger key here: `autoCompactTrigger: workflow_start`
+  # named an event the framework cannot fire, so compaction never ran unless a
+  # human typed the subcommand (IMP-043 SCOPE-3).
   maxLines: 150
-  autoCompactTrigger: workflow_start
   recencyTiers:
     recent: 30d # Full detail
     aging: 90d # Problem + fix only
@@ -1309,7 +1319,9 @@ skillEvolution:
   autoCreate: false # Propose only, user approves
   autoUpdate: false # Propose only, user approves
   reviewAgent: bubbles.super
-  reviewTrigger: workflow_start # Surface proposals at start of workflow
+  # No reviewTrigger key: `workflow_start` was an event nothing fires. Proposals
+  # are regenerated on every `skill-proposals` call, so the surface is already
+  # self-refreshing (IMP-043 SCOPE-3).
   proposalFormat: |
     ## Skill Proposal: {skill_name}
     - Pattern: {pattern_description}
@@ -1352,7 +1364,8 @@ developerProfile:
     agingDays: 180 # Entries older than this only suggest, don't auto-resolve
     staleAction: surface_for_review # Surfaced for user review
     reviewAgent: bubbles.super
-    reviewTrigger: workflow_start
+    # No reviewTrigger key: `workflow_start` names an event no host fires
+    # (IMP-043 SCOPE-3). Staleness surfaces when the profile is read.
     reviewMessage: |
       Your developer profile has {N} stale preferences (>180 days).
       Review and confirm/remove? [Show / Skip / Clear all stale]
@@ -1400,21 +1413,59 @@ metrics:
     perAgentTracking: true
     perSpecTracking: true
     perScopeTracking: true
+    # IMP-044 SCOPE-2 (REG-14). This list previously declared eight dimensions
+    # against a store whose records carry timestamp, command, subcommand,
+    # result, durationMs, target and args. Six of the eight named no producer
+    # anywhere, so the registry described a measurement nobody took. A declared
+    # dimension the record shape cannot carry is a claim, not a setting.
+    #
+    # What remains is what THIS plane actually produces.
     measuredDimensions:
-    - invocationCount # How many times each agent was called
-    - phaseDuration # Wall-clock seconds per phase (from terminal timestamps)
+    - invocationCount # Counted from one activity record per CLI invocation
+    - durationMs # Wall-clock milliseconds, written on the same record
+    # The dimensions removed from this list were not deleted from the framework;
+    # they moved to the block that names their real producer, below.
+
+  # Produced by bubbles/scripts/gate-hit-log.sh into an ALWAYS-ON runtime store,
+  # independent of the `metrics.enabled` toggle above. Records carry per-gate
+  # outcomes, which is why gate history survives even when event metrics are off.
+  gateTelemetry:
+    storageFile: .specify/runtime/gate-hits.jsonl
+    producer: bubbles/scripts/gate-hit-log.sh
+    reportCommand: "bubbles/scripts/gate-hit-log.sh report"
+    measuredDimensions:
+    - gatePassFailRate # Per gate ID pass/fail ratio, from kind:"gate" records
+    - parentExpansionRate # Runs using parent-expansion, from kind:"run" records
+    # Retirement evidence counts sourceClass=product only; fixture and selftest
+    # runs are excluded by default (IMP-042 SCOPE-17).
+
+  # Derived from state.json executionHistory, which is the only place agent
+  # identity per phase actually exists. bubbles.retro already computes these the
+  # same way; naming the source here stops the registry implying the activity
+  # store holds them.
+  derivedFromState:
+    source: state.json executionHistory
+    measuredDimensions:
+    - phaseDuration # Wall-clock seconds per phase
     - retryCount # Self-healing retries consumed vs budget
-    - gatePassFailRate # Per gate ID pass/fail ratio
     - scopeCompletionTime # First implement invocation to Done status
-    - linesChanged # git diff --stat per scope
     - phaseSkipRate # Skipped vs executed phases
-    # bundleCostProxy = effective bundle bytes x dispatch count, from
-    # bundle-cost-report.sh. NOT a token count and NOT a dollar figure: it is a
-    # measured byte size multiplied by a counted dispatch, so it is comparable
-    # over time without inventing either of the two numbers below. Bundle size
-    # alone under-states the orchestrator, which is dispatched far more often
-    # than any specialist. (IMP-027 SCOPE-6 / COST-1.)
-    - bundleCostProxy
+
+  # Produced by bubbles/scripts/bundle-cost-report.sh, not by any store above.
+  referenceClosure:
+    producer: bubbles/scripts/bundle-cost-report.sh
+    measuredDimensions:
+    # referenceClosureProxy = effective bundle bytes x dispatch count. NOT a
+    # token count and NOT a dollar figure: it is a measured byte size multiplied
+    # by a counted dispatch, so it is comparable over time without inventing
+    # either of the two numbers below. Bundle size alone under-states the
+    # orchestrator, which is dispatched far more often than any specialist.
+    # Named for reachability rather than spend, because a reference closure is
+    # not a cost. (IMP-027 SCOPE-6 / COST-1; renamed IMP-039, registry aligned
+    # IMP-044 REG-14 after the declared name outlived the emitted one.)
+    - referenceClosureProxy
+    # linesChanged is git-derived, not stored: `git diff --stat` per scope.
+    - linesChanged
     # Dimensions explicitly NOT tracked (not measurable):
     # - tokenCount            # Not exposed by the VS Code Copilot API; readable
     #                         # ONLY through a configured usage adapter
@@ -1726,7 +1777,7 @@ phases:
 #   specs_hardened   - Planning artifacts improved, no implementation done
 #   docs_updated     - Documentation updated, no implementation done
 #   validated        - Validation/audit completed, no implementation done
-#   in_progress      - Partial work, used for resume-only
+#   in_progress      - Partial work; transient resume requests recover the original mode
 
 # Mode Defaults (applied to ALL modes with statusCeiling: done)
 #
@@ -1830,7 +1881,7 @@ executionOptions:
         full: grillMode off, socratic false; mechanical decisions auto-resolve via decisionPolicy.mechanicalPrinciples, but taste decisions still batch to each phase boundary and security decisions always escalate (today's default)
         guarded: grillMode required-on-ambiguity plus a conditional clarify consistency gate — stop only on genuine ambiguity
         interactive: grillMode on-demand plus socratic true — human-in-the-loop; taste decisions surfaced
-        unattended: opt-in posture above `full`, never the default — interactive questions forbidden, taste-decision overflow auto-resolves and is logged, autoCommit scope, and a `blocked` on an agent-solvable cause requires a recorded remediation attempt first (an operator-only blocker stays a truthful terminal state). REQUIRES a non-null sessionBudget, because a run that will not stop on its own forfeits the right to be unbounded. Mechanically enforced TODAY only for the budget rule — autonomy-resolve.sh exits 3 with E039-UNATTENDED-UNBOUNDED when every cap is null; the remaining deltas are declared contract awaiting the decision ledger and posture guard.
+        unattended: opt-in posture above `full`, never the default — interactive questions forbidden, taste-decision overflow auto-resolves and is logged, autoCommit scope, and a `blocked` on an agent-solvable cause requires a recorded remediation attempt first (an operator-only blocker stays a truthful terminal state). REQUIRES a non-null sessionBudget, because a run that will not stop on its own forfeits the right to be unbounded. Mechanically enforced TODAY only for the budget rule — autonomy-resolve.sh exits 3 with E039-UNATTENDED-UNBOUNDED when every cap is null. The decision ledger (state-snapshot.sh) and the posture guard (G135) have since shipped, so the remaining deltas are no longer awaiting them — they are unimplemented in the four runner agents, which still document only full/guarded/interactive. Requesting this value today therefore changes budget enforcement only.
       meaning: Convenience alias that sets grillMode/socratic/clarify together. Explicit flags override this alias. Default `full` preserves current behavior. Resolved by bubbles/scripts/autonomy-resolve.sh; precedence is per-run directive -> BUBBLES_AUTONOMY env -> .github/bubbles-project.yaml `autonomy:` -> this default. The env and project-config layers are what let a posture survive a session restart without re-asserting it in the prompt. The posture governs interaction only and never waives a gate (see agents/bubbles_shared/critical-requirements.md -> Autonomy Floor).
     socratic:
       type: boolean

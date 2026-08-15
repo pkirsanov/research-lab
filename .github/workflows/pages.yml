@@ -3,10 +3,7 @@ on:
   push:
     branches: [ "main" ]
   workflow_dispatch: {}
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+permissions: {}
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -16,6 +13,8 @@ jobs:
   #    market-data API was slow. A gate that goes red for reasons unrelated to the change is a gate
   #    people learn to ignore, and an ignored gate is worse than no gate.
   verify:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -65,6 +64,10 @@ jobs:
 
   deploy:
     needs: verify
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

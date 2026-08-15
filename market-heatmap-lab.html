@@ -501,15 +501,48 @@
                 if (lag && isFinite(lag.pct)) txt += ", laggard " + lag.ticker + " " + (lag.pct >= 0 ? "+" : "") + lag.pct.toFixed(2) + "%";
                 txt += ".";
                 function slim(c) { return c ? { ticker: c.ticker, sector: c.sector, pct: isFinite(c.pct) ? Math.round(c.pct * 100) / 100 : null } : null; }
+                var heatAsOf = new Date().toISOString();
                 return {
                     id: "market-heatmap-lab",
-                    asOf: new Date().toISOString(),
+                    asOf: heatAsOf,
                     read: txt,
                     metrics: {
                         bias: b.bias, green: b.green, total: b.total,
                         breadthPct: b.total ? Math.round(b.frac * 100) : null, window: win,
                         leader: slim(lead), laggard: slim(lag),
-                        ranked: (ranked || []).slice(0, 5).map(slim)
+                        ranked: (ranked || []).slice(0, 5).map(slim),
+                        /* ---------- Feature 007 owner read: market-breadth/v1 ---------- */
+                        ownerRead: {
+                            contractVersion: "rl-ta-owner-read/v1",
+                            capabilityVersion: "market-breadth/v1",
+                            ownerId: "market-heatmap-lab",
+                            resultId: "breadth:" + win + ":" + heatAsOf,
+                            sourceSetId: "sector-etf-universe",
+                            symbol: "US-SECTOR-UNIVERSE",
+                            sessionContractId: "daily-close",
+                            decisionCutoff: heatAsOf,
+                            truthState: b.total ? "current" : "unavailable",
+                            closedCoverage: b.total,
+                            provisionalCoverage: 0,
+                            payload: {
+                                window: win,
+                                // The denominator is published beside the count so a partial universe
+                                // can never read as full-universe breadth.
+                                denominator: b.total,
+                                greenCount: b.green,
+                                breadthFraction: b.frac,
+                                bias: b.bias,
+                                leader: slim(lead),
+                                laggard: slim(lag),
+                                members: (ranked || []).map(slim)
+                            },
+                            limitations: [
+                                "Breadth is measured across the sector-ETF universe only, not the full market.",
+                                "The denominator counts sectors with a finite return; a sector without data is excluded rather than counted flat.",
+                                "A sector ETF is a proxy for its sector and does not describe any individual constituent."
+                            ]
+                        }
+                        /* ---------- End Feature 007 owner read: market-breadth/v1 ---------- */
                     },
                     deepLink: "market-heatmap-lab.html"
                 };

@@ -84,13 +84,17 @@ try {
     'tadEvaluateValidationRiskProcessGate', 'tadSynthesizeFiveGates', 'tadBuildUnifiedRead'
   ];
   const scope04Helpers = ['tadGateResult', 'tadTimeframeConflict'];
+  // Scope 05 owns no analytic primitive. These four are strict ADAPTERS: they admit or refuse an
+  // owner's already-published read and compute no owner quantity of their own.
+  const scope05Names = ['tadAdmitOwnerRead', 'tadAdmitOptionPositioning', 'tadEvaluateMicrostructure', 'tadAdaptFeatureSixRead'];
   const tad = buildFunctions(pageSource, scope01Names.concat(scope02Helpers, scope02Names));
   const physicalTadNames = [...pageSource.matchAll(/function\s+(tad[A-Za-z0-9]+)\s*\(/g)].map((match) => match[1]);
-  const declaredNames = scope01Names.concat(scope02Helpers, scope02Names, scope03Helpers, scope03Names, scope04Helpers, scope04Names);
+  const declaredNames = scope01Names.concat(scope02Helpers, scope02Names, scope03Helpers, scope03Names, scope04Helpers, scope04Names, scope05Names);
   check(physicalTadNames.length === declaredNames.length && new Set(physicalTadNames).size === declaredNames.length && scope01Names.every((name) => physicalTadNames.includes(name)), 'scope01-production-declarations-20-exact');
   check(scope02Names.length === 17 && scope02Names.every((name) => physicalTadNames.includes(name)), 'scope02-production-declarations-17-exact');
   check(scope03Names.length === 8 && scope03Names.every((name) => physicalTadNames.includes(name)), 'scope03-production-declarations-8-exact');
   check(scope04Names.length === 8 && scope04Names.every((name) => physicalTadNames.includes(name)), 'scope04-production-declarations-8-exact');
+  check(scope05Names.length === 4 && scope05Names.every((name) => physicalTadNames.includes(name)), 'scope05-adapter-declarations-4-exact');
 
   // The five mandatory gates are ordered and closed. A sixth gate, a reordering, or a renamed gate
   // would change what "every mandatory gate passed" means without any test noticing.
@@ -269,12 +273,85 @@ try {
   check(firstDsr.ok && ['psr','dsr','srAnn','nTrials','n'].every((field) => strategyLocal[field] === firstDsr[field]), 'strategy-validation-generic-statistic-parity');
   check(matchCount(strategySource,/Feature 007: RLVALID parity adapter/g) === 1 && matchCount(strategySource,/End Feature 007 RLVALID parity adapter/g) === 1 && strategySource.includes('<script src="rlvalidation.js"></script>') && strategySource.includes('deflatedSharpe = strategyValidationParityDeflatedSharpe'), 'strategy-validation-marker-load-and-runtime-delegation');
 
+  // ---------- Scope 05: owner publication and strict adapters ----------
+  // Six capabilities, six owner pages, one marker-bounded publisher each. The inventory is
+  // derived from this map so adding a seventh publisher without registering it fails here.
+  const scope05Owners = {
+    'swing-structure/v1': 'swing-structure-lab.html',
+    'intraday-auction/v1': 'intraday-tape-lab.html',
+    'options-positioning/v1': 'options-structure-lab.html',
+    'gamma-playbook/v1': 'gamma-trading-lab.html',
+    'market-breadth/v1': 'market-heatmap-lab.html',
+    'relative-context/v1': 'sector-research-lab.html'
+  };
+  const scope05Capabilities = Object.keys(scope05Owners);
+  check(scope05Capabilities.length === 6 && new Set(Object.values(scope05Owners)).size === 6, 'scope05-owner-matrix-6-distinct-pages');
+  const scope05Nested = ['contractVersion', 'capabilityVersion', 'ownerId', 'resultId', 'sourceSetId', 'symbol',
+    'sessionContractId', 'decisionCutoff', 'truthState', 'closedCoverage', 'provisionalCoverage', 'payload', 'limitations'];
+  scope05Capabilities.forEach((capability) => {
+    const ownerSource = read(scope05Owners[capability]);
+    const escaped = capability.replace('/', '\\/');
+    check(matchCount(ownerSource, new RegExp(`Feature 007 owner read: ${escaped}`, 'g')) === 2, `scope05-marker-pair-${capability.replace(/[^a-z0-9]/gi, '-')}`);
+    const start = ownerSource.indexOf(`Feature 007 owner read: ${capability}`);
+    const block = ownerSource.slice(start, ownerSource.indexOf(`End Feature 007 owner read: ${capability}`));
+    check(block.length > 0 && /rl-ta-owner-read\/v1/.test(block), `scope05-nested-contract-${capability.replace(/[^a-z0-9]/gi, '-')}`);
+    check(scope05Nested.every((key) => new RegExp(`\\b${key}\\s*:`).test(block)), `scope05-nested-keys-complete-${capability.replace(/[^a-z0-9]/gi, '-')}`);
+    check(new RegExp(`capabilityVersion:\\s*["']${escaped}["']`).test(block), `scope05-capability-discriminator-${capability.replace(/[^a-z0-9]/gi, '-')}`);
+    // A publisher may only READ owner state. It must not fetch, mutate storage, or call a formula
+    // that belongs to another page; a publisher that fetched would make the owner's own render
+    // depend on the network for a downstream consumer's benefit.
+    check(!/\bfetch\s*\(|XMLHttpRequest|localStorage\.setItem|sessionStorage\.setItem|import\s*\(/.test(block), `scope05-publisher-read-only-${capability.replace(/[^a-z0-9]/gi, '-')}`);
+    check(/limitations:\s*(?:\[|[A-Za-z0-9_$.]+\s*\?)/.test(block), `scope05-limitations-declared-${capability.replace(/[^a-z0-9]/gi, '-')}`);
+  });
+
+  // The two option owners apply the dealer convention at different points. Each must declare
+  // signApplied so a consumer never has to guess, and never re-signs an already-signed snapshot.
+  const optionsBlock = (() => { const s = read('options-structure-lab.html'); return s.slice(s.indexOf('Feature 007 owner read: options-positioning/v1'), s.indexOf('End Feature 007 owner read: options-positioning/v1')); })();
+  const gammaBlock = (() => { const s = read('gamma-trading-lab.html'); return s.slice(s.indexOf('Feature 007 owner read: gamma-playbook/v1'), s.indexOf('End Feature 007 owner read: gamma-playbook/v1')); })();
+  check(/signApplied:\s*true/.test(optionsBlock), 'scope05-options-sign-applied-true');
+  check(/signApplied:\s*false/.test(gammaBlock), 'scope05-gamma-sign-applied-false');
+  check(/signConventionId:/.test(optionsBlock) && /signConventionId:/.test(gammaBlock), 'scope05-sign-convention-id-declared-both');
+  // Neither publisher may multiply by a sign factor: that would re-sign what the owner already signed.
+  check(!/signMul|\*\s*-1\b|\?\s*-1\s*:\s*1/.test(optionsBlock) && !/signMul|\*\s*-1\b|\?\s*-1\s*:\s*1/.test(gammaBlock), 'scope05-no-publisher-re-signing');
+  // Option eligibility travels with its snapshot clocks, coverage, liquidity filter and assumptions.
+  check(['snapshotClocks', 'expirationCoverage', 'liquidityFilters', 'assumptions'].every((key) => new RegExp(`\\b${key}:`).test(optionsBlock)), 'scope05-option-eligibility-contract-complete');
+  // Absence is published as absence. A publisher that emitted 0 here would look like flat gamma.
+  check(/snapshotAvailable/.test(optionsBlock) && /levels:\s*f7Have\s*\?/.test(optionsBlock) && /aggregates:\s*f7Have\s*\?/.test(optionsBlock), 'scope05-option-absence-is-null-not-zero');
+
+  // The Feature 007 page admits published reads. It never reaches into an owner page.
+  // Comments are stripped: prose that NAMES the forbidden act is documentation, not the act.
+  const scope05Code = pageSource.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+  check(!/iframe|contentWindow|importScripts|postMessage/.test(scope05Code), 'scope05-no-cross-page-reach');
+  const scope05Block = pageSource.slice(pageSource.indexOf('Feature 007 Scope 05: owner publication'), pageSource.lastIndexOf('End Feature 007 Scope 05: owner publication'));
+  check(scope05Block.length > 0, 'scope05-marker-block-present');
+  check(scope05Names.every((name) => scope05Block.includes(`function ${name}(`)), 'scope05-adapters-inside-marker-block');
+  check(/tadValidateOwnerRead\(/.test(scope05Block), 'scope05-reuses-scope01-owner-validator');
+  // Feature 006 stays read-only: accepted by contract match, never reconstructed.
+  check(/tdc-tool-read\/v1/.test(scope05Block) && /TAD-F006-ABSENT/.test(scope05Block), 'scope05-feature006-adapter-strict');
+  check(!/tdcBuild|tdcCompute|RLTRENDDYNAMICS/.test(pageSource), 'scope05-feature006-read-only');
+  // Strategy Validation keeps its Scope 01 parity and gains no nested passport in this scope.
+  const scope05ValidationSource = read('strategy-validation-lab.html');
+  check(!/rl-ta-owner-read\/v1/.test(scope05ValidationSource) && !/Feature 007 owner read/.test(scope05ValidationSource), 'scope05-strategy-validation-read-only');
+  // Microstructure contracts must stay unsatisfiable by OHLCV or an option snapshot.
+  check(/hasTickVolumeAtPrice/.test(scope05Block) && /hasBidAskOrAggressor/.test(scope05Block)
+    && /hasTimestampedFullBookEvents/.test(scope05Block) && /hasSizePriceTimeClassification/.test(scope05Block), 'scope05-microstructure-contracts-explicit');
+  const ownerFixture = json('tests/fixtures/technical-analysis-decision/analytic/owner-publication.json');
+  check(ownerFixture.microstructureRequests.length === 3 && ownerFixture.microstructureRequests.every((request) => ['ohlcv-bars', 'option-chain-snapshot'].includes(request.offered.kind)), 'scope05-microstructure-fixture-offers-proxies-only');
+  check(Object.keys(ownerFixture.situations).length === 5, 'scope05-owner-fixture-situations-5');
+  check(ownerFixture.situations.complete.ownerReads.length === 6
+    && scope05Capabilities.every((capability) => ownerFixture.situations.complete.ownerReads.some((entry) => entry.metrics.ownerRead.capabilityVersion === capability)), 'scope05-owner-fixture-covers-every-capability');
+
   const expectedTitles = [
     'Regression: SCN-007-005 stock four-hour profile exposes session remainder and variant identity',
     'Regression: SCN-007-006 continuous-market four-hour profile has equal session boundaries',
     'Regression: SCN-007-007 provisional weekly break never rewrites confirmed history',
     'Regression: SCN-007-030 failed delta refresh preserves cached source-qualified truth',
-    'Regression: Feature 007 qualified series and RLVALID preserve legacy shared behavior'
+    'Regression: Feature 007 qualified series and RLVALID preserve legacy shared behavior',
+    'Regression: SCN-007-015 missing option snapshot stays unavailable and never becomes neutral gamma',
+    'Regression: SCN-007-016 option flip walls and GEX preserve one inherited convention',
+    'Regression: SCN-007-017 OHLCV leaves footprint depth and large-trade modules unavailable',
+    'Regression: SCN-007-024 daily-only read stays useful while tactical evidence remains unavailable',
+    'Regression: Feature 007 owner integrations preserve source cutoffs limitations and existing reads'
   ];
   check(expectedTitles.every((title) => testSource.includes(`test('${title}'`)), 'scope01-regression-titles-exact');
   check(!/page\.route|context\.route|\.fulfill\s*\(|serviceWorker|test\.(?:skip|only)/.test(testSource), 'browser-suite-no-internal-substitution-or-skip');

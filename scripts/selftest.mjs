@@ -4432,6 +4432,145 @@ try {
     inGovernedZone: true, triggerEventId: 'closed-reclaim'
   }).state === 'ARMED', 'A watch-only setup can be armed but never triggers, even when a trigger event is supplied');
 
+  /* ---------- Scope 05: owner publication and strict adapters ---------- */
+  const tad05Names = ['tadAdmitOwnerRead', 'tadAdmitOptionPositioning', 'tadEvaluateMicrostructure', 'tadAdaptFeatureSixRead'];
+  assert(tad05Names.every((name) => (tadSource.match(new RegExp('function\\s+' + name + '\\s*\\(', 'g')) || []).length === 1),
+    'All 4 Scope 05 adapter declarations exist exactly once in the page');
+  const tad05 = build(
+    [tadSource.match(/var TAD_CAPABILITY_OWNERS = [\s\S]*?\n {4}};\n/)[0], tadSource.match(/var TAD_TACTICAL_CAPABILITIES = [\s\S]*?;\n/)[0]]
+      .concat(tadNames.concat(tad05Names).map((name) => extractFn(tadSource, name))),
+    tadNames.concat(tad05Names).concat(['TAD_CAPABILITY_OWNERS'])
+  );
+
+  const tad05Fixture = JSON.parse(read('tests/fixtures/technical-analysis-decision/analytic/owner-publication.json'));
+  const tad05Expected = { symbol: tad05Fixture.symbol, sessionContractId: tad05Fixture.sessionContractId, decisionCutoff: tad05Fixture.decisionCutoff };
+  const tad05Admit = (situationKey) => tad05Fixture.situations[situationKey].ownerReads.map((read) => tad05.tadAdmitOwnerRead(read, tad05Expected));
+
+  // Every one of the six registered capabilities has exactly one owning page, and each real
+  // owner page carries exactly one marker-bounded publisher for the capability it owns.
+  const tad05Owners = tad05.TAD_CAPABILITY_OWNERS;
+  assert(Object.keys(tad05Owners).length === 6 && new Set(Object.values(tad05Owners)).size === 6,
+    'Six capability versions map to six distinct owner pages');
+  Object.keys(tad05Owners).forEach((capability) => {
+    const ownerSource = read(tad05Owners[capability] + '.html');
+    assert((ownerSource.match(new RegExp('Feature 007 owner read: ' + capability.replace('/', '\\/'), 'g')) || []).length === 2,
+      capability + ' is published from ' + tad05Owners[capability] + ' inside exactly one marker-bounded block');
+    assert(ownerSource.indexOf('"rl-ta-owner-read/v1"') >= 0 || ownerSource.indexOf("'rl-ta-owner-read/v1'") >= 0,
+      tad05Owners[capability] + ' nests an rl-ta-owner-read/v1 envelope');
+  });
+  // The publishers serialize owner state only. Feature 007 never reaches into an owner page.
+  // Comments are stripped first: a comment SAYING the page never inspects an iframe is
+  // documentation, and banning the word there would flag the disclaimer instead of the act.
+  const tad05Code = tadSource.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+  ['iframe', 'contentWindow', 'importScripts', 'querySelector('].forEach((forbidden) => {
+    assert(tad05Code.indexOf(forbidden) < 0, 'The Feature 007 page never uses ' + forbidden + ' to reach owner state');
+  });
+  assert(tadSource.indexOf('inspect an iframe') >= 0, 'The adapter states in the source that it never inspects an owner iframe');
+
+  const tad05Complete = tad05Admit('complete');
+  assert(tad05Complete.length === 6 && tad05Complete.every((entry) => entry.admitted),
+    'Six compatible owner reads are all admitted');
+  assert(tad05Complete.map((entry) => entry.capabilityVersion).sort().join(',') === Object.keys(tad05Owners).sort().join(','),
+    'The admitted set covers every registered capability exactly once');
+
+  // A read whose capability is published by the wrong page is refused, not trusted.
+  const tad05Impostor = JSON.parse(JSON.stringify(tad05Fixture.situations.complete.ownerReads[0]));
+  tad05Impostor.metrics.ownerRead.ownerId = 'gamma-trading-lab';
+  assert(tad05.tadAdmitOwnerRead(tad05Impostor, tad05Expected).code === 'TAD-OWNER-IDENTITY',
+    'A capability published by a page that does not own it is refused');
+  assert(tad05.tadAdmitOwnerRead(null, tad05Expected).code === 'TAD-OWNER-ABSENT',
+    'An absent owner read is explicitly unavailable rather than defaulted');
+  const tad05NoLimits = JSON.parse(JSON.stringify(tad05Fixture.situations.complete.ownerReads[0]));
+  tad05NoLimits.metrics.ownerRead.limitations = [];
+  assert(tad05.tadAdmitOwnerRead(tad05NoLimits, tad05Expected).admitted === false,
+    'An owner read that declares no limitation is refused');
+
+  // SCN-007-015: a missing option snapshot stays unavailable and never becomes neutral gamma.
+  const tad05Missing = tad05Admit('missing-option-snapshot');
+  const tad05MissingOption = tad05.tadAdmitOptionPositioning(tad05Missing);
+  assert(tad05MissingOption.eligible === false && tad05MissingOption.code === 'TAD-OPTION-SNAPSHOT-UNAVAILABLE',
+    'A missing option chain snapshot makes option positioning unavailable');
+  assert(tad05Missing.filter((entry) => entry.capabilityVersion === 'options-positioning/v1')[0].truthState === 'unavailable',
+    'The option owner truth state is preserved as unavailable and never upgraded to current');
+  const tad05MissingPayload = tad05Missing.filter((entry) => entry.capabilityVersion === 'options-positioning/v1')[0].owner.payload;
+  assert(tad05MissingPayload.levels === null && tad05MissingPayload.aggregates === null,
+    'Absent option evidence carries null levels and aggregates rather than zeroes');
+  // Ban the AFFIRMATIVE neutral claim, not the word. The refusal text is REQUIRED to say
+  // "neutral dealer positioning are not inferred", so a bare word ban would flag the very
+  // disclaimer this scenario exists to guarantee. Assert the disclaimer is present too.
+  assert(!/(?<!not )(?<!no )(?<!never )(?:dealerPositioning|positioning)\s*[:=]\s*["']neutral["']/.test(JSON.stringify(tad05MissingOption))
+    && !/"(?:netGEX|callWall|putWall|flip|netVanna)":\s*0(?:\D|$)/.test(JSON.stringify(tad05MissingPayload)),
+    'Absence never produces a zero net gamma or an affirmative neutral dealer reading');
+  assert(/not inferred/.test(tad05MissingOption.action) && /neutral/.test(tad05MissingOption.action),
+    'The option refusal explicitly states that neutral dealer positioning is not inferred from absence');
+  assert(tad05Missing.filter((entry) => entry.capabilityVersion === 'swing-structure/v1')[0].admitted === true,
+    'A daily owner remains admitted while option positioning is unavailable');
+
+  // SCN-007-016: one inherited dealer convention, and no silent re-signing.
+  const tad05CompleteOption = tad05.tadAdmitOptionPositioning(tad05Complete);
+  assert(tad05CompleteOption.eligible === true && tad05CompleteOption.signConventionId === 'dealer-long-calls-short-puts'
+    && tad05CompleteOption.distinctConventions.length === 1,
+    'Both option owners share exactly one inherited dealer sign convention');
+  // The two option owners apply the convention at DIFFERENT points, so signApplied differs.
+  // The eligibility rule reads that flag rather than assuming both pages behave alike.
+  const tad05Applied = tad05CompleteOption.conventions.reduce((map, entry) => Object.assign(map, { [entry.ownerId]: entry.signApplied }), {});
+  assert(tad05Applied['options-structure-lab'] === true && tad05Applied['gamma-trading-lab'] === false,
+    'The option owners declare where the convention was applied instead of being assumed identical');
+  const tad05GammaOnly = tad05Complete.filter((entry) => entry.capabilityVersion === 'gamma-playbook/v1');
+  assert(tad05.tadAdmitOptionPositioning(tad05GammaOnly).code === 'TAD-OPTION-POSITIONING-ABSENT',
+    'A gamma playbook read whose values are not signed cannot supply option positioning on its own');
+  const tad05Conflict = tad05.tadAdmitOptionPositioning(tad05Admit('conflicting-convention'));
+  assert(tad05Conflict.eligible === false && tad05Conflict.code === 'TAD-OPTION-CONVENTION-CONFLICT' && tad05Conflict.distinctConventions.length === 2,
+    'Two disagreeing dealer conventions refuse option positioning instead of silently re-signing one');
+  // Every element of the option eligibility contract is required, not optional.
+  ['snapshotClocks', 'expirationCoverage', 'liquidityFilters', 'assumptions'].forEach((key) => {
+    const partial = JSON.parse(JSON.stringify(tad05Fixture.situations.complete.ownerReads));
+    partial.forEach((read) => { if (read.metrics.ownerRead.capabilityVersion === 'options-positioning/v1') delete read.metrics.ownerRead.payload[key]; });
+    const admitted = partial.map((read) => tad05.tadAdmitOwnerRead(read, tad05Expected));
+    assert(tad05.tadAdmitOptionPositioning(admitted).code === 'TAD-OPTION-CONTRACT-INCOMPLETE',
+      'Option positioning refuses a snapshot missing ' + key);
+  });
+
+  // SCN-007-017: footprint, depth, and large-trade fail honestly on OHLCV and option snapshots.
+  const tad05Micro = tad05.tadEvaluateMicrostructure(tad05Fixture.microstructureRequests);
+  assert(tad05Micro.length === 3 && tad05Micro.every((entry) => entry.eligible === false),
+    'OHLCV bars and an option snapshot satisfy no microstructure contract');
+  assert(tad05Micro.map((entry) => entry.requestId).join(',') === 'footprint,depth,large-trade',
+    'Every microstructure module is evaluated rather than quietly omitted');
+  assert(tad05Micro.every((entry) => /not substituted/.test(entry.action)),
+    'Each refused microstructure module states that no proxy is substituted for the real feed');
+  assert(tad05Micro[0].required.indexOf('bid/ask or aggressor') >= 0 && tad05Micro[1].required.indexOf('full-book') >= 0
+    && tad05Micro[2].required.indexOf('classification') >= 0,
+    'Each microstructure refusal names the exact feed contract it needs');
+  assert(tad05.tadEvaluateMicrostructure([{ requestId: 'footprint', offered: { kind: 'tick-tape', hasTickVolumeAtPrice: true, hasBidAskOrAggressor: true } }])[0].eligible === true,
+    'A genuine tick feed with aggressor classification does satisfy the footprint contract');
+
+  // SCN-007-024: daily-only stays useful while tactical evidence remains unavailable.
+  const tad05Daily = tad05Admit('daily-only');
+  assert(tad05Daily.length === 2 && tad05Daily.every((entry) => entry.admitted),
+    'A daily-only situation still admits its daily owner reads');
+  assert(!tad05Daily.some((entry) => entry.capabilityVersion === 'intraday-auction/v1'),
+    'No tactical owner is admitted when none published');
+  assert(tad05Daily.some((entry) => entry.capabilityVersion === 'swing-structure/v1' && entry.truthState === 'current'),
+    'Daily structure remains current and usable without any intraday evidence');
+
+  // Feature 006 adapter: accept only an exactly matching tdc-tool-read/v1.
+  const tad05F6Expected = Object.assign({ selectedSourceId: 'analytic-daily' }, tad05Expected);
+  assert(tad05.tadAdaptFeatureSixRead(tad05Fixture.featureSixReads.compatible, tad05F6Expected).admitted === true,
+    'A matching Feature 006 read is admitted');
+  assert(tad05.tadAdaptFeatureSixRead(tad05Fixture.featureSixReads.wrongSymbol, tad05F6Expected).code === 'TAD-F006-SYMBOL',
+    'A Feature 006 read for another symbol is refused');
+  assert(tad05.tadAdaptFeatureSixRead(tad05Fixture.featureSixReads.wrongContract, tad05F6Expected).code === 'TAD-F006-CONTRACT',
+    'A Feature 006 read carrying the wrong contract version is refused');
+  assert(tad05.tadAdaptFeatureSixRead(null, tad05F6Expected).code === 'TAD-F006-ABSENT',
+    'An absent Feature 006 read is explicit unavailable evidence rather than a default');
+  assert(tad05.tadAdaptFeatureSixRead({ ...tad05Fixture.featureSixReads.compatible, decisionCutoff: '2026-07-15T21:30:00.000Z' }, tad05F6Expected).code === 'TAD-F006-CUTOFF',
+    'A Feature 006 read published after the decision cutoff is refused');
+
+  // Strategy Validation stays read-only in this scope: it must not gain a nested passport.
+  const tad05Validation = read('strategy-validation-lab.html');
+  assert(tad05Validation.indexOf('rl-ta-owner-read/v1') < 0 && tad05Validation.indexOf('Feature 007 owner read') < 0,
+    'Strategy Validation remains read-only and gains no nested Feature 007 passport');
 
 } catch (e) { failures++; console.log('  ✗ FAIL (Technical Analysis Decision foundation group threw): ' + e.message); }
 /* ---------- End Feature 007 Technical Analysis Decision foundation ---------- */

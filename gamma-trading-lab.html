@@ -1399,6 +1399,62 @@
                 renderSnap();
                 renderRibbon();
                 drawGex(); drawOvi();
+                /* ---------- Feature 007 owner read: gamma-playbook/v1 ---------- */
+                try {
+                    if (window.RLDATA && typeof RLDATA.putToolRead === "function") {
+                        // Unlike options-structure-lab, computeGamma always emits raw convention-A
+                        // values and the dealer flip is applied at READ time. So the raw snapshot is
+                        // published unsigned, the flip is published beside it, and the regime is
+                        // taken from ev.env, which already has the flip applied.
+                        var f7Verdict = state._v || null;
+                        var f7Cutoff = new Date(state.dataAt || Date.now()).toISOString();
+                        RLDATA.putToolRead("gamma-trading-lab", {
+                            asOf: f7Cutoff,
+                            read: f7Verdict && f7Verdict.one ? f7Verdict.one : "Gamma playbook read",
+                            metrics: {
+                                env: state.ev ? state.ev.env : null, netGEX: snap.netGEX,
+                                ownerRead: {
+                                    contractVersion: "rl-ta-owner-read/v1",
+                                    capabilityVersion: "gamma-playbook/v1",
+                                    ownerId: "gamma-trading-lab",
+                                    resultId: "gamma:" + state.ticker + ":" + f7Cutoff,
+                                    sourceSetId: state.src || state.provider || "unknown",
+                                    symbol: state.ticker,
+                                    sessionContractId: "option-chain-snapshot",
+                                    decisionCutoff: f7Cutoff,
+                                    truthState: "current",
+                                    closedCoverage: snap.gexRows ? snap.gexRows.length : 0,
+                                    provisionalCoverage: 0,
+                                    payload: {
+                                        signConventionId: state.dealerFlip ? "dealer-short-calls-long-puts" : "dealer-long-calls-short-puts",
+                                        signConventionLabel: state.dealerFlip ? "calls -gamma, puts +gamma (dealers short calls, long puts)" : "calls +gamma, puts -gamma (dealers long calls, short puts)",
+                                        // False on purpose: computeGamma always stores the base convention and this
+                                        // page applies the flip at read time. Because signApplied is false, this
+                                        // capability cannot itself qualify as option-positioning evidence.
+                                        signApplied: false,
+                                        rawSnapshot: { spot: snap.spot, netGEX: snap.netGEX, callWall: snap.callWall, putWall: snap.putWall, flip: snap.flip, vannaFlip: snap.vannaFlip, maxPain: snap.maxPain, netVanna: snap.netVanna, netCharm: snap.netCharm, atmIV: snap.atmIV, pcOI: snap.pcOI },
+                                        // Already carries the flip, so it is the safe source of the regime word.
+                                        environment: state.ev ? state.ev.env : null,
+                                        playbooks: state.ev && state.ev.list ? state.ev.list.map(function (p) { return { id: p.id, name: p.name, live: p.live, direction: p.dir, score: p.score }; }) : [],
+                                        verdict: f7Verdict ? { id: f7Verdict.id, word: f7Verdict.word, environment: f7Verdict.env, confidence: f7Verdict.conf } : null,
+                                        // A shared snapshot predating OVI carries null, which is not a zero ratio.
+                                        openingVolumeImbalance: snap.ovi === null ? null : { ratio: snap.ovi, quantity: snap.oviQty, signal: snap.oviSig },
+                                        openingVolumeImbalanceMeasured: snap.ovi !== null
+                                    },
+                                    limitations: [
+                                        "The raw snapshot is stored under the base convention and is not re-signed; apply the declared convention once when reading it.",
+                                        "The environment state already has the declared convention applied; do not apply it a second time.",
+                                        "Because the convention is not applied to the stored values, this read is not admissible as option-positioning evidence on its own.",
+                                        "Option volume is a participation proxy from listed contracts and identifies no dealer or participant.",
+                                        snap.ovi === null ? "Opening volume imbalance was not measured for this snapshot and is unavailable rather than zero." : "Opening volume imbalance is an OHLCV-derived proxy."
+                                    ]
+                                }
+                            },
+                            deepLink: "gamma-trading-lab.html?t=" + encodeURIComponent(state.ticker)
+                        });
+                    }
+                } catch (f7Err) { /* publication is additive */ }
+                /* ---------- End Feature 007 owner read: gamma-playbook/v1 ---------- */
             }
 
             function updatePills() {

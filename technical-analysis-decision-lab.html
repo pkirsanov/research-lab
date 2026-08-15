@@ -425,6 +425,7 @@
           <option value="unresolved-range">Unresolved range after decline (analytic)</option>
           <option value="setup-lifecycle">Level confluence and setup lifecycle (analytic)</option>
           <option value="gate-synthesis">Five-gate synthesis and candidate competition (analytic)</option>
+          <option value="owner-publication">Owner evidence admission and strict adapters (analytic)</option>
         </select>
         <p class="subtle" style="margin:10px 0 0">Credentials remain owned by <a href="index.html#data-settings">Data
             Settings</a>. This page contains no credential editor.</p>
@@ -631,6 +632,36 @@
       <p id="competitionReceipt" class="state-message">No candidates compared.</p>
       <div id="candidateRanking" class="catalog" aria-live="off"></div>
     </section>
+
+    <!-- ---------- Feature 007 Scope 05: owner publication and strict adapters ---------- -->
+    <section class="band" aria-labelledby="ownerHeading">
+      <h2 id="ownerHeading">Owner evidence admission</h2>
+      <p id="ownerReceipt" class="state-message">No owner reads evaluated. Every specialist page publishes its own
+        result; this page admits or refuses that published read and never recomputes an owner's formula.</p>
+      <div class="facts">
+        <div class="fact">
+          <div class="k">Admitted owners</div>
+          <div id="ownerAdmitted" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Option positioning</div>
+          <div id="ownerOptionState" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Dealer sign convention</div>
+          <div id="ownerSignConvention" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Tactical trigger evidence</div>
+          <div id="ownerTacticalState" class="v">None</div>
+        </div>
+      </div>
+      <div id="ownerRecords" class="catalog" aria-live="off"></div>
+      <h3 id="microstructureHeading">Microstructure evidence</h3>
+      <p id="microstructureReceipt" class="state-message">No microstructure contract evaluated.</p>
+      <div id="microstructureRecords" class="catalog" aria-live="off"></div>
+    </section>
+    <!-- ---------- End Feature 007 Scope 05: owner publication and strict adapters ---------- -->
 
     <section class="band" aria-labelledby="stateHeading">
       <h2 id="stateHeading">Observed / required / action</h2>
@@ -1915,6 +1946,108 @@
     }
     /* ---------- End Feature 007 Scope 04: five-gate synthesis ---------- */
 
+    /* ---------- Feature 007 Scope 05: owner publication and strict adapters ---------- */
+    // These adapters admit or refuse an owner's ALREADY-PUBLISHED read. They never call an
+    // owner's private function, load an owner's script, inspect an iframe, parse owner DOM,
+    // or reproduce an owner's formula. Refusal is always explicit; nothing silently upgrades.
+    var TAD_CAPABILITY_OWNERS = {
+      "swing-structure/v1": "swing-structure-lab",
+      "intraday-auction/v1": "intraday-tape-lab",
+      "options-positioning/v1": "options-structure-lab",
+      "gamma-playbook/v1": "gamma-trading-lab",
+      "market-breadth/v1": "market-heatmap-lab",
+      "relative-context/v1": "sector-research-lab"
+    };
+    var TAD_TACTICAL_CAPABILITIES = ["intraday-auction/v1"];
+
+    function tadAdmitOwnerRead(toolRead, expected) {
+      var refusal = function (code, observed, required, action) {
+        return { admitted: false, code: code, observed: observed, required: required, action: action };
+      };
+      if (!toolRead || typeof toolRead !== "object") return refusal("TAD-OWNER-ABSENT", "no published owner read", "a published rl-tool-read/v1 envelope", "open the owner page so it publishes its own result");
+      var schema = tadValidateOwnerRead(toolRead, expected);
+      if (!schema.ok) {
+        var first = schema.errors[0];
+        return refusal(first.code || "TAD-OWNER-SCHEMA", first.observed || first.message || "schema mismatch", first.required || "an exact rl-ta-owner-read/v1 envelope", first.action || "correct the owner publisher");
+      }
+      var owner = toolRead.metrics.ownerRead;
+      var expectedOwner = TAD_CAPABILITY_OWNERS[owner.capabilityVersion];
+      if (!expectedOwner) return refusal("TAD-OWNER-CAPABILITY", "capability " + owner.capabilityVersion, "a registered Feature 007 capability version", "register the capability before admitting it");
+      if (expectedOwner !== owner.ownerId) return refusal("TAD-OWNER-IDENTITY", owner.ownerId + " published " + owner.capabilityVersion, expectedOwner + " owns " + owner.capabilityVersion, "publish the capability from its owning page");
+      // truthState is preserved exactly. A stale, degraded, partial, failed, or unavailable
+      // owner is carried through at its own level and is never promoted to current.
+      return { admitted: true, owner: owner, truthState: owner.truthState, capabilityVersion: owner.capabilityVersion };
+    }
+
+    function tadAdmitOptionPositioning(admissions) {
+      var positioning = null, conventions = [];
+      admissions.forEach(function (entry) {
+        if (!entry.admitted) return;
+        var payload = entry.owner.payload;
+        if (payload && typeof payload.signConventionId === "string") conventions.push({ ownerId: entry.owner.ownerId, signConventionId: payload.signConventionId, signApplied: payload.signApplied === true });
+        if (entry.capabilityVersion === "options-positioning/v1") positioning = entry;
+      });
+      var distinct = conventions.map(function (c) { return c.signConventionId; }).filter(function (v, i, a) { return a.indexOf(v) === i; });
+      if (distinct.length > 1) {
+        return { eligible: false, code: "TAD-OPTION-CONVENTION-CONFLICT", conventions: conventions, distinctConventions: distinct,
+          observed: distinct.length + " different dealer sign conventions across option owners", required: "one inherited dealer sign convention shared by every sign-dependent output",
+          action: "resolve the owners to a single declared convention; this page will not silently re-sign a snapshot" };
+      }
+      if (!positioning) return { eligible: false, code: "TAD-OPTION-POSITIONING-ABSENT", conventions: conventions, distinctConventions: distinct, observed: "no options-positioning/v1 read was admitted", required: "a current options-positioning/v1 read with signApplied true", action: "open the option owner so it publishes a compatible snapshot" };
+      var payload = positioning.owner.payload;
+      if (positioning.owner.truthState !== "current" || payload.snapshotAvailable !== true) {
+        // The absence of a snapshot is published as unavailable. It is never read as flat
+        // gamma, a zero wall, or neutral dealer positioning.
+        return { eligible: false, code: "TAD-OPTION-SNAPSHOT-UNAVAILABLE", conventions: conventions, distinctConventions: distinct,
+          observed: "the option owner reports truth " + positioning.owner.truthState + " with no snapshot", required: "a current compatible option chain snapshot",
+          action: "treat option positioning as unavailable; zero gamma and neutral dealer positioning are not inferred from absence" };
+      }
+      if (payload.signApplied !== true) {
+        return { eligible: false, code: "TAD-OPTION-SIGN-NOT-APPLIED", conventions: conventions, distinctConventions: distinct,
+          observed: "the option read declares signApplied false", required: "signApplied true so every sign-dependent value shares one applied convention",
+          action: "admit only a read whose stored values already carry the declared convention" };
+      }
+      var required = ["snapshotClocks", "expirationCoverage", "liquidityFilters", "assumptions"], missing = required.filter(function (key) { return !payload[key]; });
+      if (missing.length) {
+        return { eligible: false, code: "TAD-OPTION-CONTRACT-INCOMPLETE", conventions: conventions, distinctConventions: distinct,
+          observed: "the option read omits " + missing.join(", "), required: "snapshot clocks, expiration coverage, liquidity filters, and rate/dividend/volatility assumptions",
+          action: "publish the full option eligibility contract before the snapshot can contribute" };
+      }
+      return { eligible: true, code: null, conventions: conventions, distinctConventions: distinct, signConventionId: payload.signConventionId,
+        observed: "one applied convention " + payload.signConventionId + " shared by " + conventions.length + " option owner(s)",
+        required: "one inherited convention with signApplied true", action: "read every option level under the declared convention exactly once" };
+    }
+
+    function tadEvaluateMicrostructure(requests) {
+      var contracts = {
+        footprint: { label: "Footprint / volume-at-price by aggressor", required: "tick-level volume at price with bid/ask or aggressor classification", check: function (o) { return o.hasTickVolumeAtPrice === true && o.hasBidAskOrAggressor === true; } },
+        depth: { label: "Order-book depth", required: "time-stamped full-book add, move, cancel, and execute events", check: function (o) { return o.hasTimestampedFullBookEvents === true; } },
+        "large-trade": { label: "Large-trade classification", required: "per-trade size, price, time, and classification", check: function (o) { return o.hasSizePriceTimeClassification === true; } }
+      };
+      return requests.map(function (request) {
+        var contract = contracts[request.requestId];
+        if (!contract) return { requestId: request.requestId, eligible: false, label: request.requestId, observed: "unknown microstructure request", required: "a registered microstructure contract", action: "register the contract before requesting it" };
+        var satisfied = contract.check(request.offered || {});
+        return {
+          requestId: request.requestId, label: contract.label, eligible: satisfied, offeredKind: (request.offered && request.offered.kind) || "none",
+          observed: satisfied ? "the offered feed satisfies the contract" : "the offered feed is " + ((request.offered && request.offered.kind) || "absent"),
+          required: contract.required,
+          // No proxy is ever styled as the real feed. The module stays unavailable.
+          action: satisfied ? "read the module normally" : "keep this module unavailable; an OHLCV or option-snapshot proxy is not substituted for it"
+        };
+      });
+    }
+
+    function tadAdaptFeatureSixRead(read, expected) {
+      if (!read || typeof read !== "object") return { admitted: false, code: "TAD-F006-ABSENT", observed: "no Feature 006 read is published", required: "a valid tdc-tool-read/v1 envelope", action: "open the Trend Dynamics page; this page's own trend methods continue from qualified observations" };
+      if (read.contractVersion !== "tdc-tool-read/v1") return { admitted: false, code: "TAD-F006-CONTRACT", observed: "contract " + String(read.contractVersion), required: "tdc-tool-read/v1", action: "publish the Feature 006 contract version exactly" };
+      if (read.symbol !== expected.symbol) return { admitted: false, code: "TAD-F006-SYMBOL", observed: "symbol " + String(read.symbol), required: "symbol " + expected.symbol, action: "align the Feature 006 selection to this symbol" };
+      if (read.decisionCutoff !== expected.decisionCutoff) return { admitted: false, code: "TAD-F006-CUTOFF", observed: "cutoff " + String(read.decisionCutoff), required: "cutoff " + expected.decisionCutoff, action: "align the Feature 006 cutoff to this decision cutoff" };
+      if (read.selectedSourceId !== expected.selectedSourceId) return { admitted: false, code: "TAD-F006-SOURCE", observed: "source " + String(read.selectedSourceId), required: "source " + expected.selectedSourceId, action: "align the Feature 006 source selection" };
+      return { admitted: true, code: null, selectionId: read.selectionId, observed: "a compatible Feature 006 read", required: "matching symbol, source, cutoff, and selection", action: "read Feature 006 dynamics under its own semantics only" };
+    }
+    /* ---------- End Feature 007 Scope 05: owner publication and strict adapters ---------- */
+
     var pageRuntime = { config: null, index: null, sourceFixture: null, analyticFixture: null, techniqueFixture: null, diagnostics: null };
     function byId(id) { return document.getElementById(id); }
     function setText(id, value) { var element = byId(id); if (element) element.textContent = value; }
@@ -2259,6 +2392,88 @@
         errors: []
       });
     }
+    function renderOwnerPublication(fixture) {
+      var expected = { symbol: fixture.symbol, sessionContractId: fixture.sessionContractId, decisionCutoff: fixture.decisionCutoff };
+      var groups = Object.keys(fixture.situations).map(function (key) {
+        var situation = fixture.situations[key];
+        var admissions = situation.ownerReads.map(function (toolRead) {
+          var result = tadAdmitOwnerRead(toolRead, expected);
+          result.publishedBy = toolRead.id;
+          return result;
+        });
+        return { key: key, label: situation.label, admissions: admissions, option: tadAdmitOptionPositioning(admissions) };
+      });
+      var primary = groups.filter(function (g) { return g.key === "complete"; })[0] || groups[0];
+      var micro = tadEvaluateMicrostructure(fixture.microstructureRequests);
+      var featureSix = {
+        compatible: tadAdaptFeatureSixRead(fixture.featureSixReads.compatible, Object.assign({ selectedSourceId: "analytic-daily" }, expected)),
+        wrongSymbol: tadAdaptFeatureSixRead(fixture.featureSixReads.wrongSymbol, Object.assign({ selectedSourceId: "analytic-daily" }, expected)),
+        wrongContract: tadAdaptFeatureSixRead(fixture.featureSixReads.wrongContract, Object.assign({ selectedSourceId: "analytic-daily" }, expected)),
+        absent: tadAdaptFeatureSixRead(fixture.featureSixReads.absent, Object.assign({ selectedSourceId: "analytic-daily" }, expected))
+      };
+      var dailyOnly = groups.filter(function (g) { return g.key === "daily-only"; })[0];
+      var tacticalAdmitted = dailyOnly ? dailyOnly.admissions.some(function (entry) { return entry.admitted && TAD_TACTICAL_CAPABILITIES.indexOf(entry.capabilityVersion) >= 0; }) : false;
+
+      setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled");
+      setTruth("degraded", "Deterministic owner-admission evidence. Every entry below is an owner's own published read admitted or refused by contract; no owner formula is recomputed here and no current-market claim is made.");
+      setFoundationReceipt({ name: "Owner evidence admission and strict adapters", session: "Analytic daily clock", aggregation: "Published owner reads only", partial: "No partial remainder exists in this receipt", primary: "Primary evidence is whatever the owner published", setup: "Owner reads are admitted, never authored here", trigger: "Tactical triggers require an admitted tactical owner", variant: tadIdentity("tad-variant:", { fixture: "owner-publication", cutoff: fixture.decisionCutoff }), observed: groups.length + " owner-admission situations across " + Object.keys(TAD_CAPABILITY_OWNERS).length + " registered capabilities.", required: "An exact rl-ta-owner-read/v1 envelope from the owning page.", action: "Read each refusal code before reading anything downstream of it." });
+      setText("resultReceipt", "No signal, neutral, setup recommendation, or probability is published here. This page publishes which owner evidence was admitted, which was refused, and why.");
+
+      // These facts summarize EVERY situation on the page. Reporting only the healthy one would
+      // read as if option evidence were eligible while a refused situation sat directly below it.
+      var admittedTotal = 0, admissionTotal = 0;
+      groups.forEach(function (group) { admittedTotal += group.admissions.filter(function (a) { return a.admitted; }).length; admissionTotal += group.admissions.length; });
+      var eligibleGroups = groups.filter(function (group) { return group.option.eligible; });
+      var refusalCodes = groups.filter(function (group) { return !group.option.eligible; }).map(function (group) { return group.option.code; }).filter(function (code, index, all) { return all.indexOf(code) === index; });
+      var establishedConventions = groups.map(function (group) { return group.option.signConventionId; }).filter(function (value, index, all) { return value && all.indexOf(value) === index; });
+      var conflictGroups = groups.filter(function (group) { return group.option.code === "TAD-OPTION-CONVENTION-CONFLICT"; });
+
+      setText("ownerAdmitted", admittedTotal + " of " + admissionTotal + " owner reads across " + groups.length + " situations");
+      setText("ownerOptionState", eligibleGroups.length + " of " + groups.length + " situations eligible; unavailable in the rest - " + (refusalCodes.length ? refusalCodes.join(", ") : "none"));
+      setText("ownerSignConvention", (establishedConventions.length ? establishedConventions.join(", ") : "not established") + (conflictGroups.length ? " (" + conflictGroups.length + " situation refused for conflicting conventions)" : ""));
+      setText("ownerTacticalState", tacticalAdmitted ? "available" : "unavailable - no admitted tactical owner; daily-eligible reads remain usable");
+
+      var host = byId("ownerRecords"); host.textContent = "";
+      groups.forEach(function (group) {
+        var article = document.createElement("article"), heading = document.createElement("h3"), copy = document.createElement("p"), detail = document.createElement("p");
+        heading.textContent = group.label + " - " + group.admissions.filter(function (a) { return a.admitted; }).length + " of " + group.admissions.length + " owner reads admitted";
+        copy.textContent = group.admissions.map(function (entry) {
+          return entry.publishedBy + ": " + (entry.admitted ? "admitted as " + entry.capabilityVersion + " with truth " + entry.truthState : "refused " + entry.code + " - observed " + entry.observed + "; required " + entry.required);
+        }).join(" ");
+        detail.textContent = "Option positioning: " + (group.option.eligible ? "eligible. " : "unavailable (" + group.option.code + "). ") + "Observed " + group.option.observed + "; required " + group.option.required + "; action " + group.option.action + ".";
+        article.appendChild(heading); article.appendChild(copy); article.appendChild(detail); host.appendChild(article);
+      });
+
+      setText("microstructureReceipt", micro.filter(function (m) { return m.eligible; }).length + " of " + micro.length + " microstructure contracts are satisfied. An OHLCV bar series and an option chain snapshot satisfy none of them, so the affected modules stay unavailable rather than being filled with a proxy.");
+      var microHost = byId("microstructureRecords"); microHost.textContent = "";
+      micro.forEach(function (entry) {
+        var article = document.createElement("article"), heading = document.createElement("h4"), copy = document.createElement("p");
+        heading.textContent = entry.label + " - " + (entry.eligible ? "available" : "unavailable");
+        copy.textContent = "Observed " + entry.observed + " (" + entry.offeredKind + "); required " + entry.required + "; action " + entry.action + ".";
+        article.appendChild(heading); article.appendChild(copy); microHost.appendChild(article);
+      });
+
+      setText("observedState", "Admitted " + primary.admissions.filter(function (a) { return a.admitted; }).length + " owner reads; option positioning " + (primary.option.eligible ? "eligible" : "unavailable") + "; Feature 006 " + (featureSix.compatible.admitted ? "compatible" : "unavailable"));
+      setText("requiredState", "An exact owner envelope per capability, one inherited dealer sign convention, and a matching Feature 006 tdc-tool-read/v1 before any of it contributes.");
+      setText("actionState", "Open the owning page for any refused capability; nothing here is reconstructed on an owner's behalf.");
+
+      window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({
+        fixtureId: "owner-publication", ownerReadPublished: false, truthState: "degraded",
+        registeredCapabilities: Object.keys(TAD_CAPABILITY_OWNERS).slice(),
+        situations: groups.map(function (group) {
+          return {
+            key: group.key,
+            admissions: group.admissions.map(function (entry) { return { publishedBy: entry.publishedBy, admitted: entry.admitted, code: entry.code || null, capabilityVersion: entry.capabilityVersion || null, truthState: entry.truthState || null }; }),
+            option: { eligible: group.option.eligible, code: group.option.code, signConventionId: group.option.signConventionId || null, distinctConventions: group.option.distinctConventions.slice(), conventions: group.option.conventions.map(function (c) { return { ownerId: c.ownerId, signConventionId: c.signConventionId, signApplied: c.signApplied }; }) }
+          };
+        }),
+        microstructure: micro.map(function (entry) { return { requestId: entry.requestId, eligible: entry.eligible, offeredKind: entry.offeredKind, required: entry.required }; }),
+        featureSix: { compatible: featureSix.compatible.admitted, wrongSymbol: featureSix.wrongSymbol.code, wrongContract: featureSix.wrongContract.code, absent: featureSix.absent.code },
+        tacticalAvailable: tacticalAdmitted,
+        errors: []
+      });
+    }
+
     function renderProfileSelection(fixtureId) {
       var source = pageRuntime.sourceFixture, analytic = pageRuntime.analyticFixture;
       var cases = {
@@ -2276,6 +2491,13 @@
         "correlated-uptrend": { name: "Correlated indicator agreement", observed: "Several related trend and momentum transforms read positive together.", required: "Declared families and clusters before any count is shown.", action: "Read the independent cluster count, never the raw method count." },
         "unresolved-range": { name: "Unresolved range after a decline", observed: "A mature sideways range following a decline, with no completed spring, sign of strength, or confirmed break.", required: "A confirmed range event before any phase is asserted.", action: "Keep every competing explanation open; no setup is published." }
       };
+      if (fixtureId === "owner-publication") {
+        fetch("tests/fixtures/technical-analysis-decision/analytic/owner-publication.json", { cache: "no-store" })
+          .then(function (response) { if (!response.ok) throw new Error("owner fixture HTTP " + response.status); return response.json(); })
+          .then(function (ownerFixture) { renderOwnerPublication(ownerFixture); })
+          .catch(function (error) { renderUnavailable("TAD-OWNER-FIXTURE", String(error), "the checked-in analytic owner fixture", "restore the static analytic fixture and reload"); });
+        return;
+      }
       if (fixtureId === "gate-synthesis") {
         fetch("tests/fixtures/technical-analysis-decision/analytic/gate-synthesis.json", { cache: "no-store" })
           .then(function (response) { if (!response.ok) throw new Error("gate fixture HTTP " + response.status); return response.json(); })

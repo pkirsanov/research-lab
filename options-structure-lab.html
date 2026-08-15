@@ -1848,6 +1848,64 @@
       chartMap(); chartGEX(); chartGamCurve(); chartOIStrike(); chartVolStrike(); chartOIChg(); chartVPVR();
       chartGreeks(); chartVanna(); chartIV(); chartEM(); chartMaxPain(); chartExpLadder(); chartMom(); chartSqueeze(); chartPCHist();
       renderChainTable();
+      /* ---------- Feature 007 owner read: options-positioning/v1 ---------- */
+      try {
+        if (window.RLDATA && typeof RLDATA.putToolRead === "function") {
+          // state.agg is null when no compatible snapshot exists. That absence is published as
+          // unavailable; it must never be read as flat gamma or neutral dealer positioning.
+          var f7Have = !!(state.agg && state.levels);
+          var f7Read = f7Have ? optRead() : null;
+          var f7Cutoff = new Date(state.dataAt || Date.now()).toISOString();
+          RLDATA.putToolRead("options-structure-lab", {
+            asOf: f7Cutoff,
+            read: f7Have && f7Read ? f7Read.word : "Option positioning unavailable",
+            metrics: {
+              netGEX: f7Have ? state.agg.netGEX : null, regime: f7Have && f7Read ? f7Read.regime : null,
+              ownerRead: {
+                contractVersion: "rl-ta-owner-read/v1",
+                capabilityVersion: "options-positioning/v1",
+                ownerId: "options-structure-lab",
+                resultId: "options:" + state.ticker + ":" + f7Cutoff,
+                sourceSetId: state.provider || "unknown",
+                symbol: state.ticker,
+                sessionContractId: "option-chain-snapshot",
+                decisionCutoff: f7Cutoff,
+                truthState: f7Have ? "current" : "unavailable",
+                closedCoverage: f7Have ? state.agg.rows.length : 0,
+                provisionalCoverage: 0,
+                payload: {
+                  // The convention is inherited verbatim. Every value below was already signed
+                  // under it by computeAll, which is what signApplied records; a consumer that
+                  // re-applies the convention would double-sign the whole snapshot.
+                  signConventionId: state.sign === "A" ? "dealer-long-calls-short-puts" : "dealer-short-calls-long-puts",
+                  signConventionLabel: state.sign === "A" ? "calls +gamma, puts -gamma (dealers long calls, short puts)" : "calls -gamma, puts +gamma (dealers short calls, long puts)",
+                  signApplied: true,
+                  snapshotAvailable: f7Have,
+                  snapshotClocks: { chainAsOf: state.pagesAsOf || state.avChainDate || null, computedAt: f7Cutoff },
+                  expirationCoverage: f7Have ? { requested: state.nExp, resolved: state.chains.length, epochs: state.chains.map(function (c) { return c.epoch; }) } : null,
+                  liquidityFilters: { minOpenInterest: state.minOI },
+                  assumptions: { riskFreeRate: state.rate, dividendYield: state.div, volatilitySource: "chain-implied", atmIV: f7Have ? state.agg.atmIV : null },
+                  levels: f7Have ? { spot: state.levels.spot, callWall: state.levels.callWall, putWall: state.levels.putWall, flip: state.levels.flip, maxPain: state.levels.maxPain, hvl: state.levels.hvl, poc: state.levels.poc, expectedMove: state.levels.em } : null,
+                  aggregates: f7Have ? { netGEX: state.agg.netGEX, netVanna: state.agg.netVanna, pcOI: state.agg.pcOI, pcVol: state.agg.pcVol, skew: state.agg.skew, atmIV: state.agg.atmIV } : null,
+                  verdict: f7Have && f7Read ? { regime: f7Read.regime, lean: f7Read.lean, word: f7Read.word } : null
+                },
+                limitations: f7Have ? [
+                  "Every gamma and vanna value is already signed under the declared convention; do not re-sign it.",
+                  "Dealer positioning is inferred from open interest under a stated assumption, not observed from dealer books.",
+                  "Greeks depend on the stated rate, dividend, and implied-volatility assumptions; a different assumption changes them.",
+                  "An option chain snapshot describes listed contracts only; it is not order-book depth."
+                ] : [
+                  "No compatible option chain snapshot is available.",
+                  "Absent option evidence is unavailable; zero gamma, no wall, and neutral dealer positioning are not inferred.",
+                  "A current chain for this symbol is required before any option-derived level can contribute."
+                ]
+              }
+            },
+            deepLink: "options-structure-lab.html?t=" + encodeURIComponent(state.ticker)
+          });
+        }
+      } catch (f7Err) { /* publication is additive */ }
+      /* ---------- End Feature 007 owner read: options-positioning/v1 ---------- */
     }
     function loadMsg(base) { return busy ? 'Fetching…' : base; }
 

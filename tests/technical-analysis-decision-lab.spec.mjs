@@ -717,3 +717,251 @@ test('Regression: Feature 007 qualified series and RLVALID preserve legacy share
   console.log('[Feature-007-canary] rlvalidDeclarations=7');
   console.log('[Feature-007-canary] strategyParity=true');
 });
+
+/* ---------- Feature 007 Scope 05: owner publication and strict adapters ---------- */
+// Every owner assertion below reads the real page over HTTP and inspects the actual RLDATA
+// envelope the page published. Nothing is stubbed and no request is intercepted.
+const SCOPE05_OWNERS = {
+  'swing-structure/v1': 'swing-structure-lab',
+  'intraday-auction/v1': 'intraday-tape-lab',
+  'options-positioning/v1': 'options-structure-lab',
+  'gamma-playbook/v1': 'gamma-trading-lab',
+  'market-breadth/v1': 'market-heatmap-lab',
+  'relative-context/v1': 'sector-research-lab'
+};
+
+async function ownerDiagnostics(page, baseUrl2) {
+  await page.goto(`${baseUrl2}/technical-analysis-decision-lab.html?fixture=owner-publication&clock=${CLOCK}`);
+  await page.waitForFunction(() => window.__TAD_DIAGNOSTICS__?.fixtureId === 'owner-publication');
+  return page.evaluate(() => window.__TAD_DIAGNOSTICS__);
+}
+
+test('Regression: SCN-007-015 missing option snapshot stays unavailable and never becomes neutral gamma', async ({ page }) => {
+  const diagnostics = await ownerDiagnostics(page, baseUrl);
+  const missing = diagnostics.situations.find((entry) => entry.key === 'missing-option-snapshot');
+  expect(missing).toBeTruthy();
+  expect(missing.option.eligible).toBe(false);
+  expect(missing.option.code).toBe('TAD-OPTION-SNAPSHOT-UNAVAILABLE');
+
+  // The option owner's own truth state survives intact. Nothing promotes it to current.
+  const optionEntry = missing.admissions.find((entry) => entry.capabilityVersion === 'options-positioning/v1');
+  expect(optionEntry.admitted).toBe(true);
+  expect(optionEntry.truthState).toBe('unavailable');
+
+  // The daily owner in the same situation remains usable, so absence is scoped, not contagious.
+  const swingEntry = missing.admissions.find((entry) => entry.capabilityVersion === 'swing-structure/v1');
+  expect(swingEntry.truthState).toBe('current');
+
+  await expect(page.locator('#ownerOptionState')).toContainText('unavailable');
+  await expect(page.locator('#ownerOptionState')).toContainText('TAD-OPTION-SNAPSHOT-UNAVAILABLE');
+
+  // The visible refusal must say absence is not read as neutral, and must not show a zero level.
+  const ownerRecords = (await page.locator('#ownerRecords').innerText()).replace(/\s+/g, ' ');
+  expect(ownerRecords).toContain('No option chain snapshot exists for this symbol');
+  expect(ownerRecords).toMatch(/neutral dealer positioning are not inferred/);
+  expect(ownerRecords).not.toMatch(/(?<!not )(?<!no )(?<!never )net gamma (?:is|reads) 0\b/);
+  expect(ownerRecords).not.toMatch(/(?<!not )(?<!no )(?<!never )positioning is neutral/);
+});
+
+test('Regression: SCN-007-016 option flip walls and GEX preserve one inherited convention', async ({ page }) => {
+  const diagnostics = await ownerDiagnostics(page, baseUrl);
+  const complete = diagnostics.situations.find((entry) => entry.key === 'complete');
+  expect(complete.option.eligible).toBe(true);
+  expect(complete.option.distinctConventions).toEqual(['dealer-long-calls-short-puts']);
+
+  // The two option owners apply the convention at different points and each says so. This is the
+  // asymmetry that makes a single blanket "apply the flip" rule wrong for both pages.
+  const applied = Object.fromEntries(complete.option.conventions.map((entry) => [entry.ownerId, entry.signApplied]));
+  expect(applied['options-structure-lab']).toBe(true);
+  expect(applied['gamma-trading-lab']).toBe(false);
+
+  // Two owners disagreeing refuses rather than silently re-signing one of them.
+  const conflict = diagnostics.situations.find((entry) => entry.key === 'conflicting-convention');
+  expect(conflict.option.eligible).toBe(false);
+  expect(conflict.option.code).toBe('TAD-OPTION-CONVENTION-CONFLICT');
+  expect(conflict.option.distinctConventions.length).toBe(2);
+
+  await expect(page.locator('#ownerSignConvention')).toContainText('dealer-long-calls-short-puts');
+  await expect(page.locator('#ownerSignConvention')).toContainText('refused for conflicting conventions');
+  const ownerRecords = (await page.locator('#ownerRecords').innerText()).replace(/\s+/g, ' ');
+  expect(ownerRecords).toContain('will not silently re-sign a snapshot');
+
+  // The real option owner pages must declare the convention and must not re-sign inside the block.
+  // A source-token check cannot observe runtime, so where the page actually publishes, assert the
+  // REAL emitted signApplied value. That is what a consumer will read; the source text is not.
+  const observedSignApplied = {};
+  for (const ownerId of ['options-structure-lab', 'gamma-trading-lab']) {
+    const ownerResponse = await page.goto(`${baseUrl}/${ownerId}.html`);
+    expect(ownerResponse && ownerResponse.ok()).toBeTruthy();
+    const source = await page.content();
+    expect(source).toContain('signConventionId');
+    expect(source).toContain('Feature 007 owner read:');
+    const emitted = await page.evaluate(async (id) => {
+      for (let attempt = 0; attempt < 12; attempt += 1) {
+        const read = globalThis.RLDATA?.toolRead?.(id) ?? null;
+        if (read?.metrics?.ownerRead?.payload) return read.metrics.ownerRead.payload;
+        await new Promise((r) => setTimeout(r, 250));
+      }
+      return globalThis.RLDATA?.toolRead?.(id)?.metrics?.ownerRead?.payload ?? null;
+    }, ownerId);
+    if (emitted) {
+      observedSignApplied[ownerId] = emitted.signApplied;
+      expect(typeof emitted.signConventionId).toBe('string');
+      expect(typeof emitted.signApplied).toBe('boolean');
+    }
+  }
+  // options-structure bakes the convention into its stored values; gamma-trading applies it at
+  // read time. If either page ever flipped, a consumer would double-sign or under-sign a snapshot.
+  if ('options-structure-lab' in observedSignApplied) expect(observedSignApplied['options-structure-lab']).toBe(true);
+  if ('gamma-trading-lab' in observedSignApplied) expect(observedSignApplied['gamma-trading-lab']).toBe(false);
+  console.log(`[Feature-007-owner] observedSignApplied=${JSON.stringify(observedSignApplied)}`);
+});
+
+test('Regression: SCN-007-017 OHLCV leaves footprint depth and large-trade modules unavailable', async ({ page }) => {
+  const diagnostics = await ownerDiagnostics(page, baseUrl);
+  expect(diagnostics.microstructure.map((entry) => entry.requestId)).toEqual(['footprint', 'depth', 'large-trade']);
+  expect(diagnostics.microstructure.every((entry) => entry.eligible === false)).toBe(true);
+  expect(diagnostics.microstructure.every((entry) => ['ohlcv-bars', 'option-chain-snapshot'].includes(entry.offeredKind))).toBe(true);
+
+  const microText = (await page.locator('#microstructureRecords').innerText()).replace(/\s+/g, ' ');
+  expect(microText).toContain('Footprint / volume-at-price by aggressor - unavailable');
+  expect(microText).toContain('Order-book depth - unavailable');
+  expect(microText).toContain('Large-trade classification - unavailable');
+  // Each module names the exact feed it needs, so the gap is legible rather than mysterious.
+  expect(microText).toContain('tick-level volume at price with bid/ask or aggressor classification');
+  expect(microText).toContain('time-stamped full-book add, move, cancel, and execute events');
+  expect(microText).toContain('per-trade size, price, time, and classification');
+  // No proxy may be dressed up as the real feed.
+  expect(microText).toMatch(/an OHLCV or option-snapshot proxy is not substituted for it/);
+  expect(microText).not.toMatch(/(?<!not )(?<!no )(?<!never )(?:footprint|depth) (?:feed )?available/i);
+
+  const receipt = (await page.locator('#microstructureReceipt').innerText()).replace(/\s+/g, ' ');
+  expect(receipt).toContain('0 of 3 microstructure contracts are satisfied');
+});
+
+test('Regression: SCN-007-024 daily-only read stays useful while tactical evidence remains unavailable', async ({ page }) => {
+  const diagnostics = await ownerDiagnostics(page, baseUrl);
+  const daily = diagnostics.situations.find((entry) => entry.key === 'daily-only');
+  expect(daily.admissions.length).toBe(2);
+  expect(daily.admissions.every((entry) => entry.admitted)).toBe(true);
+  expect(daily.admissions.some((entry) => entry.capabilityVersion === 'intraday-auction/v1')).toBe(false);
+  expect(daily.admissions.find((entry) => entry.capabilityVersion === 'swing-structure/v1').truthState).toBe('current');
+  expect(diagnostics.tacticalAvailable).toBe(false);
+
+  const tactical = (await page.locator('#ownerTacticalState').innerText()).replace(/\s+/g, ' ');
+  expect(tactical).toContain('unavailable');
+  // The daily read must stay usable. An honest gap is not the same as a dead page.
+  expect(tactical).toContain('daily-eligible reads remain usable');
+  const ownerRecords = (await page.locator('#ownerRecords').innerText()).replace(/\s+/g, ' ');
+  expect(ownerRecords).toContain('Daily evidence only; no intraday owner published');
+  expect(ownerRecords).toContain('swing-structure-lab: admitted as swing-structure/v1 with truth current');
+});
+
+test('Regression: Feature 007 owner integrations preserve source cutoffs limitations and existing reads', async ({ page }) => {
+  test.setTimeout(180000);
+  const nested = ['contractVersion', 'capabilityVersion', 'ownerId', 'resultId', 'sourceSetId', 'symbol',
+    'sessionContractId', 'decisionCutoff', 'truthState', 'closedCoverage', 'provisionalCoverage', 'payload', 'limitations'];
+  let publishedCount = 0;
+
+  // Open each REAL owner page and inspect the envelope it actually published to RLDATA.
+  for (const [capability, ownerId] of Object.entries(SCOPE05_OWNERS)) {
+    const response = await page.goto(`${baseUrl}/${ownerId}.html`);
+    expect(response && response.ok()).toBeTruthy();
+    const published = await page.evaluate(async (id) => {
+      // Give the page's own render a chance to publish; never force it and never stub it.
+      for (let attempt = 0; attempt < 12; attempt += 1) {
+        const read = globalThis.RLDATA?.toolRead?.(id) ?? null;
+        if (read && read.metrics && read.metrics.ownerRead) return read;
+        await new Promise((r) => setTimeout(r, 250));
+      }
+      return globalThis.RLDATA?.toolRead?.(id) ?? null;
+    }, ownerId);
+
+    if (published && published.metrics && published.metrics.ownerRead) {
+      publishedCount += 1;
+      const owner = published.metrics.ownerRead;
+      expect(owner.contractVersion).toBe('rl-ta-owner-read/v1');
+      expect(owner.capabilityVersion).toBe(capability);
+      expect(owner.ownerId).toBe(ownerId);
+      expect(Object.keys(owner).sort()).toEqual(nested.slice().sort());
+      expect(Array.isArray(owner.limitations) && owner.limitations.length > 0).toBe(true);
+      expect(typeof owner.sourceSetId).toBe('string');
+      expect(typeof owner.decisionCutoff).toBe('string');
+      console.log(`[Feature-007-owner] ${ownerId}=published truth=${owner.truthState}`);
+    } else {
+      // A page with no data must publish NOTHING rather than a fabricated read. That is a
+      // legitimate outcome here, and it is exactly what must not become a fake payload.
+      expect(published === null || published.metrics?.ownerRead === undefined).toBe(true);
+      console.log(`[Feature-007-owner] ${ownerId}=no-data-no-publication`);
+    }
+
+    // The publisher must never break the owner's own page, and its marker pair must be intact.
+    const source = await page.content();
+    expect(source.split(`Feature 007 owner read: ${capability}`).length - 1).toBe(2);
+  }
+
+  // Seeding the SHARED cache through the product's own documented cache-first path makes a real
+  // owner compute and publish for real. Without this the envelope assertion above could pass
+  // vacuously on a machine with no market data, which would make this canary decorative.
+  const seeded = await page.goto(`${baseUrl}/swing-structure-lab.html`);
+  expect(seeded && seeded.ok()).toBeTruthy();
+  const seedOutcome = await page.evaluate(() => {
+    if (!globalThis.RLDATA?.putBars) return { seeded: false, reason: 'putBars unavailable' };
+    const rows = [];
+    let close = 100;
+    const start = Date.UTC(2023, 0, 3);
+    for (let i = 0; i < 320; i += 1) {
+      close += Math.sin(i / 9) * 0.6 + 0.05;
+      rows.push({ t: start + i * 86400000, o: close - 0.4, h: close + 0.8, l: close - 0.9, c: close, v: 1000000 + i * 100 });
+    }
+    globalThis.RLDATA.putBars('SPY', '1d', rows, 'selftest-seed');
+    globalThis.RLDATA.putBars('SPY', '1wk', rows.filter((_, i) => i % 5 === 0), 'selftest-seed');
+    return { seeded: true, rows: rows.length };
+  });
+  expect(seedOutcome.seeded).toBe(true);
+  await page.goto(`${baseUrl}/swing-structure-lab.html?t=SPY`);
+  const seededRead = await page.evaluate(async () => {
+    for (let attempt = 0; attempt < 24; attempt += 1) {
+      const read = globalThis.RLDATA?.toolRead?.('swing-structure-lab') ?? null;
+      if (read && read.metrics && read.metrics.ownerRead) return read;
+      await new Promise((r) => setTimeout(r, 250));
+    }
+    return globalThis.RLDATA?.toolRead?.('swing-structure-lab') ?? null;
+  });
+  expect(seededRead && seededRead.metrics && seededRead.metrics.ownerRead).toBeTruthy();
+  const seededOwner = seededRead.metrics.ownerRead;
+  expect(Object.keys(seededOwner).sort()).toEqual(nested.slice().sort());
+  expect(seededOwner.contractVersion).toBe('rl-ta-owner-read/v1');
+  expect(seededOwner.capabilityVersion).toBe('swing-structure/v1');
+  expect(seededOwner.ownerId).toBe('swing-structure-lab');
+  expect(seededOwner.symbol).toBe('SPY');
+  expect(seededOwner.limitations.length).toBeGreaterThan(0);
+  expect(seededOwner.closedCoverage).toBeGreaterThan(0);
+  // The outer generic read the page already published is preserved alongside the nested passport.
+  expect(seededRead.id).toBe('swing-structure-lab');
+  expect(typeof seededRead.read).toBe('string');
+  expect(seededRead.read.length).toBeGreaterThan(0);
+  // No option snapshot was seeded, so option evidence must be an explicit absence, not a zero.
+  expect(seededOwner.payload.optionSnapshotAvailable).toBe(false);
+  expect(seededOwner.payload.optionSnapshot).toBeNull();
+  console.log(`[Feature-007-owner] seededPublication=true closedCoverage=${seededOwner.closedCoverage} liveOwnersPublished=${publishedCount}`);
+
+  // Strategy Validation stays read-only: it must publish no nested Feature 007 passport.
+  const validationResponse = await page.goto(`${baseUrl}/strategy-validation-lab.html`);
+  expect(validationResponse && validationResponse.ok()).toBeTruthy();
+  const validationSource = await page.content();
+  expect(validationSource).not.toContain('rl-ta-owner-read/v1');
+  expect(validationSource).not.toContain('Feature 007 owner read');
+  const rlvalidDeclarations = await page.evaluate(() => (globalThis.RLVALID ? Object.keys(globalThis.RLVALID).length : 0));
+  expect(rlvalidDeclarations).toBeGreaterThan(0);
+
+  // An absent Feature 006 read is explicit unavailable evidence, never a silent default.
+  const diagnostics = await ownerDiagnostics(page, baseUrl);
+  expect(diagnostics.featureSix.compatible).toBe(true);
+  expect(diagnostics.featureSix.wrongSymbol).toBe('TAD-F006-SYMBOL');
+  expect(diagnostics.featureSix.wrongContract).toBe('TAD-F006-CONTRACT');
+  expect(diagnostics.featureSix.absent).toBe('TAD-F006-ABSENT');
+  expect(diagnostics.registeredCapabilities.sort()).toEqual(Object.keys(SCOPE05_OWNERS).sort());
+  console.log(`[Feature-007-owner] strategyValidationParity=true rlvalidKeys=${rlvalidDeclarations}`);
+});
+/* ---------- End Feature 007 Scope 05: owner publication and strict adapters ---------- */

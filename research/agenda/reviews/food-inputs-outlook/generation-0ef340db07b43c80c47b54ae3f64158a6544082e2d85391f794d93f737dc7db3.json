@@ -1,0 +1,84 @@
+{
+  "contractVersion": "research-review/v1",
+  "generationId": "generation-0ef340db07b43c80c47b54ae3f64158a6544082e2d85391f794d93f737dc7db3",
+  "topicId": "food-inputs-outlook",
+  "mode": "cadence",
+  "selectionReason": "first-review",
+  "attemptedAt": "2026-08-15T11:01:11.341Z",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "search-fragment-invalid",
+  "newestEvidenceAgeHours": null,
+  "sectionStates": [
+    {
+      "sectionId": "grains-outlook",
+      "status": "unavailable",
+      "interpretation": "No public grains observation is available. Acquisition state is failed with a null bundle and no committed evidence; requirement 'public-crop-and-input-observations' (official and industry-data classes, 720h freshness) returned missing-or-stale. No production, inventory, trade or weather observation for grains was retained, so no situation-side grains read is authored.",
+      "gaps": [
+        "Requirement 'public-crop-and-input-observations' (claim coverage: grains, fertilizer, catalyst) is missing-or-stale with a null record.",
+        "No official or industry-data grains observation was acquired within the 720h window."
+      ]
+    },
+    {
+      "sectionId": "fertilizer-inputs",
+      "status": "unavailable",
+      "interpretation": "No public fertilizer-input observation is available. The same 'public-crop-and-input-observations' requirement that covers fertilizer returned missing-or-stale, so no nitrogen, phosphate, potash or feedstock observation exists to condition the fertilizer read. No finding is authored.",
+      "gaps": [
+        "Requirement 'public-crop-and-input-observations' is missing-or-stale; its fertilizer claim coverage is unmet.",
+        "No observed fertilizer production, inventory or trade input this generation."
+      ]
+    },
+    {
+      "sectionId": "declared-catalysts",
+      "status": "unavailable",
+      "interpretation": "No declared catalyst is confirmed. Catalyst coverage rides on the same missing-or-stale 'public-crop-and-input-observations' requirement, so no public crop or fertilizer catalyst (report, policy, or weather event) was observed within the freshness window.",
+      "gaps": [
+        "Catalyst claim coverage is unmet because 'public-crop-and-input-observations' returned missing-or-stale.",
+        "No material-input-observation trigger can be evaluated without an observed change."
+      ]
+    },
+    {
+      "sectionId": "move-ranges",
+      "status": "unavailable",
+      "interpretation": "No situation-side move interpretation is authored and no range is asserted (move ranges are model-owned). There is neither a current input observation nor committed public bars to ground any move interpretation this generation.",
+      "gaps": [
+        "Requirement 'committed-public-bars' (claim coverage: public-bar) is missing-or-stale with a null record.",
+        "No agriculture or materials proxy bars were retained, so no bar-grounded context is available."
+      ]
+    },
+    {
+      "sectionId": "invalidations",
+      "status": "unavailable",
+      "interpretation": "No invalidation state can be confirmed. input-observation-superseded requires a later public observation to supersede a prior input; none was acquired. The cadence-elapsed trigger is a timing condition, not evidence, and no situation-side finding depends on it.",
+      "gaps": [
+        "No later public crop or fertilizer observation acquired to evaluate the superseded condition.",
+        "No prior input remains supported inside the 30-day freshness window."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "No sources were acquired to enter the ledger. Both declared requirements ('public-crop-and-input-observations' and 'committed-public-bars') returned missing-or-stale with null records, committedEvidence is empty, and the acquisition bundle is null. The source ledger is empty for this generation.",
+      "gaps": [
+        "'public-crop-and-input-observations' missing-or-stale (official, industry-data).",
+        "'committed-public-bars' missing-or-stale (committed-bar)."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "No change assessment is authored (it is a model-side output). No predecessor situation is available: priorDossier is null for this topic, so there is no prior state against which an evidence-level change could be observed.",
+      "gaps": [
+        "priorDossier is null — no predecessor situation to compare.",
+        "No current findings exist this generation, so no observed delta can be described."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelOutputs": null,
+  "predecessorDossierId": null,
+  "dossierId": null,
+  "reviewId": "review-80d23bece5dbb84685cda400a48c6109d9b36037312213ab18a0a39f938d152b",
+  "validationState": "validated",
+  "historicalOnly": false
+}

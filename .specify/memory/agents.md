@@ -118,7 +118,7 @@ the E2E command.
 
 ### Build, lint, and format
 
-- Build: not applicable. GitHub Pages uploads the repository root unchanged.
+- Build: `node scripts/build-pages-site.mjs` (produces `_site/`). GitHub Pages uploads `_site/`, not the repository root.
 - Lint: no repository lint command is declared.
 - Format: no repository format command is declared.
 - Typecheck: no repository typecheck command is declared.
@@ -324,17 +324,17 @@ with an IDE file tool before installing it.
 
 There is no manual deploy command in this repository.
 
-- A push to `main`, manual workflow dispatch, or weekday cron at
-  `14:00`, `17:00`, or `20:00` UTC triggers `.github/workflows/pages.yml`.
+- A push to `main` or a manual workflow dispatch triggers `.github/workflows/pages.yml`. There is no scheduled cron.
 - The blocking `verify` job uses Node 20, validates the Node source lock,
    provisions with browser downloads and lifecycle scripts disabled, checks
    exact runner identity, and runs the complete Palm Springs `system-chrome`
    suite.
 - The dependent `deploy` job performs a separate clean checkout, runs
-   `node scripts/fetch-options.mjs` as a non-blocking best-effort snapshot step,
-   uploads `.` as the Pages artifact, and deploys it with GitHub's Pages actions.
+   `node scripts/build-pages-site.mjs` to produce `_site/`, uploads `_site/` as
+   the Pages artifact, and deploys it with GitHub's Pages actions. There is no
+   `fetch-options.mjs` step in the deploy job.
 - Dependency provisioning occurs only in `verify`; installed packages and test
-   output do not enter the fresh deploy checkout or root Pages artifact.
+   output do not enter the fresh deploy checkout or built `_site/` Pages artifact.
 - `.nojekyll` keeps the static files untransformed.
 - Pages must be configured with GitHub Actions as its source.
 - A successful Git push is not proof of successful Pages deployment; inspect
@@ -384,7 +384,7 @@ tracked snapshots or Git state.
 
 | Verification class | Enabled | Command source |
 | --- | --- | --- |
-| Static artifact/build posture | true | Build-free Pages workflow and root artifact |
+| Static artifact/build posture | true | Pages workflow builds `_site/` via `build-pages-site.mjs` and uploads it |
 | Dependency source and runner identity | true | Source-lock validator and exact checkout-local Playwright version |
 | Production helper unit/invariant checks | true | `node scripts/selftest.mjs` |
 | Contract/integration validation | true | Brief and causal validators |

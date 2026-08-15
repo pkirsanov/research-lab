@@ -1,0 +1,97 @@
+{
+  "contractVersion": "research-review/v1",
+  "generationId": "generation-d1f7a1df6e03512acce8df9495ff144ad275a02e1b1c6d7e3a77d71cdbaa5494",
+  "topicId": "geopolitical-supply-shock",
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "attemptedAt": "2026-08-15T14:31:12.588Z",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "flow-model-invalid",
+  "newestEvidenceAgeHours": null,
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "No current-window observed evidence for actor state. The official-policy-and-statements requirement is missing-or-stale and its material claim was rejected (authorable false, freshnessState unsupported), so no declared policy or verified statement can be attributed to any actor. No actor reaction function is authored because no source-backed actor-state observation exists inside the freshness window.",
+      "gaps": [
+        "official-policy-and-statements requirement returned no retained source (state missing-or-stale).",
+        "No verified statement or declared policy for United States, Iran, or Gulf/Red Sea actors inside the 24h freshness window.",
+        "actor-state claim coverage is unsupported; reaction-rule dimensions cannot be grounded in an observed change."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "No scenario probability is authored by this research pass. Scenario probability updates are model outputs owned downstream and are explicitly not produced here; separately, the evidence needed to justify any escalation-state change (actor statements, measured transit impairment) is absent, so no qualitative scenario read can be grounded either.",
+      "gaps": [
+        "No observed trigger firing (transit-restriction-observed, insured-capacity-tightens, inventory-response-confirmed) is supported by evidence.",
+        "Escalation vs managed-coercion state cannot be distinguished without official-statement or maritime-flow evidence."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "No measured maritime flow evidence was retained. The measured-maritime-flow requirement (Hormuz, Bab el-Mandeb, Red Sea transit, loadings, delay, insured capacity) is missing-or-stale with its physical-flow and insured-flow claim rejected. Physical and insured pass fractions are therefore not observed; no impairment and no normalization can be asserted, and chokepointState is left empty rather than assigned an unsupported baseline.",
+      "gaps": [
+        "measured-maritime-flow requirement returned no retained maritime-observation or official source.",
+        "No measured physicalPassFraction / insuredPassFraction / delayDays for hormuz, bab-el-mandeb, or red-sea.",
+        "Cannot evaluate transit-restriction or insured-capacity thresholds without route measurements."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "No energy-and-input-balance evidence was retained. The energy-and-input-balances requirement (inventory, production, export, policy response by channel) is missing-or-stale with its transmission-input claim rejected. Transmission inputs (inventory gaps, policy response) for oil, refined-products, lng, fertilizer, aluminum, and shipping are unsupported; inventoryGapByChannel is left empty rather than populated with an unsourced value.",
+      "gaps": [
+        "energy-and-input-balances requirement returned no retained official or industry-data source.",
+        "No inventory / production / export or confirmed policy-response observation for any declared channel.",
+        "transmission-input claim coverage is unsupported."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "Committed daily bars for the declared public proxies (BNO, MPC, XLE, DBA, XLB, XLI, USO, PSX, XOM, CVX, COP, DBC) were reused and are fresh within the 48h window, providing price context only. Proxy sensitivity as a current-situation read still requires channel-shock conditioning from the maritime-flow and energy-balance evidence, which is absent. No proxy sensitivity range is authored (ranges are downstream model outputs), and no situation-level sensitivity claim can be grounded.",
+      "gaps": [
+        "Committed bars provide proxy-bar coverage but no narrative or flow evidence to condition sensitivity.",
+        "Channel-shock evidence absent, so proxy-to-channel calibration cannot be exercised against a current shock."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "No declared trigger or invalidation condition can be evaluated because the underlying observed fields are unsupported. physicalPassFraction and insuredPassFraction are not measured (no maritime-flow evidence) and policyResponse is not confirmed (no energy-balance evidence). No trigger is reported as fired and no invalidation as met; the evidence-staleness invalidation is the only condition consistent with the current unsupported state.",
+      "gaps": [
+        "physicalPassFraction change and >=0.95 normalization cannot be evaluated (no route measurements).",
+        "insuredPassFraction threshold (0.8 / 0.95) cannot be evaluated (no insured-capacity observation).",
+        "policyResponse=confirmed cannot be evaluated (no inventory/policy-response source)."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "The acquisition bundle retained zero sources (retainedSourceCount 0, independentOriginCount 0) and rejected all three material claims. There are no https sources with content hashes to enter into the ledger for this pass. The only reused artifact is the same-origin committed public bars snapshot, which is a proxy-bar data commitment rather than a narrative web source.",
+      "gaps": [
+        "No retained web sources (official, maritime-observation, or industry-data) for this generation.",
+        "Source ledger has no entries beyond the reused committed-bar reference, which is not a narrative source."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "No change assessment is authored by this research pass; change direction and change classification are downstream outputs and are explicitly not produced here. Independently, no current-window evidence exists to compare against any predecessor dossier, so no substantive change could be grounded even qualitatively.",
+      "gaps": [
+        "No new corroborated evidence this generation to compare against a predecessor state.",
+        "newEvidenceIds is empty; a predecessor-versus-current delta cannot be evidenced."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelOutputs": null,
+  "predecessorDossierId": null,
+  "dossierId": null,
+  "reviewId": "review-e0ce046abb5564df84709575b513797b1952e877110e40938b95ff887b7211bc",
+  "validationState": "validated",
+  "historicalOnly": false
+}

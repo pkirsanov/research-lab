@@ -3340,6 +3340,25 @@ try {
   assert(tdcConfig.methods.map((method) => method.id).join(',') === 'M01-ols-hac,M02-theil-kendall,M03-local-quadratic,M04-local-linear-state,M05-cusum,M06-bocpd,M07-scale-shift,M08-distribution-shift,M09-correlation-shift,M10-linear-segments,M11-gaussian-hmm2,M12-prominent-extrema,M13-harmonic-decomposition,M14-welch-acf,M15-generalized-lomb,M16-rolling-spectrum,M17-lead-lag,M18-event-study', 'Trend Dynamics method registry is finite, ordered, and exact');
   assert(new Set(tdcConfig.cycleCatalog.map((entry) => entry.domain)).size === 10, 'Trend Dynamics cycle catalog covers exactly ten initial domains');
 
+  // A source contract that no production data can satisfy is a DEAD contract: the tool refuses its
+  // own bars forever and publishes nothing, while the suite stays green because the browser tests
+  // inject the required tag by hand. That is exactly what happened here — spy-daily demanded
+  // `option-snapshot` while every one of the committed bar snapshots is tagged `yahoo`, so
+  // tdcSharedBarsEnvelope answered TDC-SOURCE-PROVIDER-MISMATCH on every real render and the tool
+  // never reached the brief. The descriptor's own authority already said "Yahoo Finance through the
+  // existing Research Lab checked-in bar snapshot", so the tag contradicted its own contract.
+  // Assert satisfiability against the committed corpus rather than against a hand-written list.
+  for (const series of (tdcConfig.series || [])) {
+    if (series.adapter !== 'shared-bars-v1') continue;
+    const snapshotPath = `data/bars/${series.symbol}.json`;
+    assert(existsSync(join(ROOT, snapshotPath)), `${series.id}: its shared-bars symbol has a committed snapshot at ${snapshotPath}`);
+    const committedSrc = JSON.parse(read(snapshotPath)).src;
+    const tags = (series.source && series.source.providerTags) || [];
+    assert(tags.includes(committedSrc),
+      `${series.id}: the source contract accepts the provider tag the committed bars actually carry `
+      + `(tags ${JSON.stringify(tags)} must include "${committedSrc}"), so the production read path is reachable`);
+  }
+
   const configUnknown = JSON.parse(JSON.stringify(tdcConfig));
   configUnknown.hiddenDefault = true;
   const configVersion = JSON.parse(JSON.stringify(tdcConfig));

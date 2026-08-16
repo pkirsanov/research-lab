@@ -317,7 +317,8 @@
       "regressionRequired": true,
       "linkedTests": ["tests/simple-model-source-ownership.functional.mjs"],
       "expectedAssertions": [
-        "approved keyless path order remains unchanged",
+        "approved keyless path order remains unchanged: Tier-1 tailnet proxy when active, then the fixed provider origin direct",
+        "no open URL-forwarding relay is reachable from the keyless chain",
         "no keyed-provider local key is read or attached",
         "Feature 012 adapters consume RLDATA output rather than recreate transport"
       ],

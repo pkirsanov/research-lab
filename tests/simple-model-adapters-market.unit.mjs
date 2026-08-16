@@ -73,7 +73,7 @@ function defaultValues(definition) {
 
 test('TP-05-01 market-structure module exposes the delivered market-structure adapters with no forbidden authority', () => {
   const ms = loadMarketStructure();
-  assert.deepEqual(ms.supportedAdapterIds, ['simple-adapter/market-breadth/v1', 'simple-adapter/conditional-volatility/v1', 'simple-adapter/session-auction/v1', 'simple-adapter/swing-transition/v1', 'simple-adapter/technical-five-gate/v1']);
+  assert.deepEqual(ms.supportedAdapterIds, ['simple-adapter/market-breadth/v1', 'simple-adapter/conditional-volatility/v1', 'simple-adapter/session-auction/v1', 'simple-adapter/swing-transition/v1', 'simple-adapter/technical-five-gate/v1', 'simple-adapter/trend-confirmation/v1']);
   const raw = readFileSync(new URL('../rlexperience-adapters/market-structure.js', import.meta.url), 'utf8');
   // Strip comments so the scan targets real authority CALLS, not the doc prose that
   // names the forbidden capabilities it deliberately avoids.

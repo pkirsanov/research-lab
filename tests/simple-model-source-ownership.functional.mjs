@@ -197,15 +197,30 @@ test('SCN-012-016 scripts/fetch-options.mjs remains the sole data/options produc
 
 /* ═══════════════════════ SCN-012-014 — Yahoo keeps its keyless chain in rldata.js ═══════════════════════ */
 
-test('SCN-012-014 rldata.js preserves the ordered Yahoo keyless chain and reads no keyed-provider key on the keyless path', () => {
+test('SCN-012-014 rldata.js preserves the approved Yahoo keyless chain and reads no keyed-provider key on the keyless path', () => {
   const proxied = extractFnSource(RLDATA_RAW, 'proxied');
-  // Direct request first, then the approved public CORS proxies in the existing order.
+  // The approved keyless order: the Tier-1 tailnet proxy first WHEN ACTIVE, then the fixed
+  // provider origin directly. Open URL-forwarding relays were removed deliberately, because an
+  // origin that forwards an arbitrary ?url= turns the connect-src allowlist into an exfiltration
+  // path. This assertion previously pinned that relay chain by name, which meant the test could
+  // only go green while the exfiltration path existed -- it defended the defect. Pin the reachable
+  // hops and the ordering instead, so the property survives a transport change but a reintroduced
+  // relay still fails.
+  const tierOne = proxied.indexOf('proxyBaseUrl()');
   const direct = proxied.indexOf('chain.push(url');
-  const cors = proxied.indexOf('corsproxy.io');
-  const allo = proxied.indexOf('allorigins.win');
-  const code = proxied.indexOf('codetabs.com');
-  assert.ok(direct !== -1 && cors !== -1 && allo !== -1 && code !== -1, 'the keyless chain names direct Yahoo + the three public proxies');
-  assert.ok(direct < cors && cors < allo && allo < code, 'the keyless chain keeps its existing direct → corsproxy → allorigins → codetabs order');
+  assert.ok(tierOne !== -1, 'the keyless chain offers the Tier-1 tailnet proxy hop');
+  assert.ok(direct !== -1, 'the keyless chain reaches the fixed provider origin directly');
+  assert.ok(tierOne < direct, 'the keyless chain keeps the Tier-1 proxy ahead of the direct origin');
+  assert.match(proxied, /proxyActive\(\)/, 'the Tier-1 hop is conditional on the proxy being active, so the direct origin is the keyless default');
+
+  // No open URL-forwarding relay may return to the keyless chain.
+  const relayHosts = ['corsproxy.io', 'allorigins.win', 'codetabs.com'];
+  const namesRelay = (source) => relayHosts.some((host) => source.includes(host));
+  assert.equal(namesRelay(proxied), false, 'the keyless chain names no open URL-forwarding relay');
+
+  /* ADVERSARIAL: prove the relay detector fails on the exact chain this test used to demand. */
+  const reintroduced = 'chain.push(url, "https://corsproxy.io/?url=" + encodeURIComponent(url));';
+  assert.equal(namesRelay(reintroduced), true, 'the relay detector catches a reintroduced open forwarding relay');
 
   // The keyless request builders attach NO keyed-provider local key.
   const fetchJson = extractFnSource(RLDATA_RAW, 'fetchJson');

@@ -815,7 +815,12 @@
             row.appendChild(element("strong", "", title));
           }
           var recordKind = event.artifactRef && event.artifactRef.historicalOnly ? "historical only" : event.artifactRef ? "current-generation record" : "state transition";
-          row.appendChild(element("div", "row-meta", (event.dossierId ? "Dossier " + event.dossierId : event.reviewId ? "Review " + shortId(event.reviewId) : "Immutable event") + " | " + recordKind));
+          // A row that claims a record names it. Only a state transition, which has no artifact at all, says so.
+          var recordName = event.dossierId ? "Dossier " + event.dossierId
+            : event.reviewId ? "Review " + shortId(event.reviewId)
+              : event.artifactRef && event.generationId ? "Generation " + shortId(event.generationId)
+                : "Immutable event";
+          row.appendChild(element("div", "row-meta", recordName + " | " + recordKind));
           container.appendChild(row);
         });
       }

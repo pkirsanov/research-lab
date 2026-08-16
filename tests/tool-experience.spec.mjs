@@ -420,10 +420,18 @@ test('SCN-019-020 research agenda opens in Simple and Power reveals the complete
      added since this scenario was written. */
   const newestFirst = stamps.slice().sort((left, right) => right - left);
   expect(stamps, 'history renders newest-first').toEqual(newestFirst);
-  const ids = await page.evaluate(() => Array.from(document.querySelectorAll('#historyList .history-row'))
-    .map((row) => (row.innerText.match(/\b(?:review-[0-9a-f]+|historical-[0-9a-z-]+)\b/) || [null])[0]));
-  expect(ids.filter(Boolean).length, 'every history row names its record').toBe(historyCount);
-  expect(new Set(ids).size, 'no record is appended twice').toBe(historyCount);
+  /* A row that CLAIMS a record must name it; a state transition has no artifact and must not pretend
+     to. Demanding an id from every row conflated the two and went red the moment the scheduler
+     appended a lifecycle event, which names nothing precisely because there is nothing to name. */
+  const rowText = await page.evaluate(() => Array.from(document.querySelectorAll('#historyList .history-row'))
+    .map((row) => row.innerText.replace(/\s+/g, ' ')));
+  const recordRows = rowText.filter((text) => !text.includes('state transition'));
+  const transitionRows = rowText.filter((text) => text.includes('state transition'));
+  expect(recordRows.length, 'the history carries at least one real record').toBeGreaterThanOrEqual(2);
+  const ids = recordRows.map((text) => (text.match(/\b(?:review|historical|generation)-[0-9a-z-]+\b/) || [null])[0]);
+  expect(ids.filter(Boolean).length, 'every row that claims a record names it').toBe(recordRows.length);
+  expect(new Set(ids).size, 'no record is appended twice').toBe(recordRows.length);
+  transitionRows.forEach((text) => expect(text, 'a state transition claims no record it does not have').toContain('Immutable event'));
   // The dated seed stays labelled historical, so it can never be read as a current conclusion.
   const rows = await page.evaluate(() => Array.from(document.querySelectorAll('#historyList .history-row'))
     .map((row) => row.innerText.replace(/\s+/g, ' ')));

@@ -1,26 +1,26 @@
 {
-  "asOf": "2026-08-16T18:31:08.932Z",
-  "generatedAt": "2026-08-16T18:31:08.932Z",
-  "window": "pre-close",
+  "asOf": "2026-08-16T20:31:10.883Z",
+  "generatedAt": "2026-08-16T20:31:10.883Z",
+  "window": "after-hours",
   "marketClosed": true,
   "nextSessionDate": "2026-08-17",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-16T18:30:23.233Z",
+      "updated": "2026-08-16T20:30:24.872Z",
       "symbolCount": 289,
       "expectedSessionDate": "2026-08-14",
       "refreshDate": "2026-08-16",
-      "refreshWindow": "pre-close",
+      "refreshWindow": "after-hours",
       "freshSymbolCount": 289,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-08-16T18:30:27.324Z",
+      "updated": "2026-08-16T20:30:28.183Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-08-16",
-      "refreshWindow": "pre-close",
+      "refreshWindow": "after-hours",
       "freshSymbolCount": 22,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-16T18:31:06.942Z",
+      "asOf": "2026-08-16T20:31:08.815Z",
       "read": "Rotate toward XLK as XLE weakens.",
       "metrics": {
         "into": {
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": 0.04273453577748976,
           "usdRelativeReturn": 0.13632090153286192,
           "asOf": "2026-08-14T00:00:00.000Z",
-          "computedAt": "2026-08-16T18:31:07.348Z",
+          "computedAt": "2026-08-16T20:31:09.017Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1351,7 +1351,7 @@
           "horizonSessions": 63,
           "observationSet": {
             "contractVersion": "rlfx-observation-set/v1",
-            "setId": "set-v1-0b48b194",
+            "setId": "set-v1-e9c9b2ce",
             "purpose": "global-decomposition",
             "horizonSessions": 63,
             "legs": [
@@ -1377,7 +1377,7 @@
                 "subject": "SGD/USD",
                 "orientation": "fx",
                 "adjustment": "adjusted-close",
-                "validDateCount": 458
+                "validDateCount": 457
               }
             ],
             "alignedRows": [
@@ -1896,8 +1896,8 @@
             ],
             "coverage": {
               "requiredRowCount": 64,
-              "commonRowCount": 393,
-              "earliestCommonDate": "2024-11-15",
+              "commonRowCount": 392,
+              "earliestCommonDate": "2024-11-18",
               "latestCommonDate": "2026-08-14",
               "unmatchedNewerDates": {
                 "etf": [],
@@ -1933,7 +1933,7 @@
           "interaction": 0.0001663147539020955,
           "relationship": "Mixed",
           "asOf": "2026-08-14T00:00:00.000Z",
-          "computedAt": "2026-08-16T18:31:07.348Z",
+          "computedAt": "2026-08-16T20:31:09.017Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1957,7 +1957,7 @@
               "usdLeadership": {
                 "asOf": "2026-08-14T00:00:00.000Z",
                 "benchmarkReturn": 0.04273453577748976,
-                "computedAt": "2026-08-16T18:31:07.348Z",
+                "computedAt": "2026-08-16T20:31:09.017Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2466,7 +2466,7 @@
                 "approximateLocalReturn": 0.2149084204670546,
                 "asOf": "2026-08-14T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": 0.09524177297193104,
-                "computedAt": "2026-08-16T18:31:07.348Z",
+                "computedAt": "2026-08-16T20:31:09.017Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "SGD",
                 "freshUntil": null,
@@ -2993,13 +2993,13 @@
                   ],
                   "contractVersion": "rlfx-observation-set/v1",
                   "coverage": {
-                    "commonRowCount": 393,
+                    "commonRowCount": 392,
                     "duplicateDatesDropped": {
                       "benchmark": 0,
                       "etf": 0,
                       "fx": 0
                     },
-                    "earliestCommonDate": "2024-11-15",
+                    "earliestCommonDate": "2024-11-18",
                     "latestCommonDate": "2026-08-14",
                     "requiredRowCount": 64,
                     "unmatchedNewerDates": {
@@ -3035,7 +3035,7 @@
                       "observationId": "fx:SGD",
                       "orientation": "fx",
                       "subject": "SGD/USD",
-                      "validDateCount": 458
+                      "validDateCount": 457
                     }
                   ],
                   "lineage": {
@@ -3047,7 +3047,7 @@
                     "uniqueRelationshipIds": []
                   },
                   "purpose": "global-decomposition",
-                  "setId": "set-v1-0b48b194",
+                  "setId": "set-v1-e9c9b2ce",
                   "state": "aligned"
                 },
                 "relationship": "Mixed",
@@ -3061,7 +3061,7 @@
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-08-16T18:31:07.348Z",
+          "computedAt": "2026-08-16T20:31:09.017Z",
           "freshUntil": null
         }
       },
@@ -3071,7 +3071,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-08-14T13:30:00.000Z",
-      "read": "CPER leads real assets at 53.3/100; GLD 38.2, BTC 32.6, SLV 14.1.",
+      "read": "CPER leads real assets at 53.3/100; GLD 38.2, BTC 32.4, SLV 14.1.",
       "metrics": {
         "leader": {
           "ticker": "CPER",
@@ -3390,11 +3390,11 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 32.6,
+            "score": 32.4,
             "trend": "Downtrend",
-            "mom21": -3.45,
-            "mom63": -4,
-            "mom126": -10.84,
+            "mom21": -3.54,
+            "mom63": -4.09,
+            "mom126": -10.92,
             "vol": 33.32,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
@@ -3922,15 +3922,15 @@
     },
     "fx-regime-relative-value-lab": {
       "id": "fx-regime-relative-value-lab",
-      "asOf": "2026-08-16T18:31:08.700Z",
+      "asOf": "2026-08-16T20:31:10.514Z",
       "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "source": "owning-tool-functions",
       "state": "unavailable",
       "metrics": {
         "state": "unavailable",
-        "ownerDecisionId": "fxo-v1-e7d26205",
-        "evidenceIdentity": "fxe-v1-646223d6",
+        "ownerDecisionId": "fxo-v1-3bf5bc08",
+        "evidenceIdentity": "fxe-v1-2cfc079b",
         "objective": "foreign-currency-strength",
         "subjectId": "JPY",
         "horizon": "swing",
@@ -4053,8 +4053,8 @@
           "read": "The available evidence does not support a complete attributable recommendation.",
           "metrics": {
             "contractVersion": "rlfx-tool-read/v2",
-            "ownerDecisionId": "fxo-v1-e7d26205",
-            "evidenceIdentity": "fxe-v1-646223d6",
+            "ownerDecisionId": "fxo-v1-3bf5bc08",
+            "evidenceIdentity": "fxe-v1-2cfc079b",
             "state": "unavailable",
             "objective": "foreign-currency-strength",
             "subjectId": "JPY",
@@ -4174,7 +4174,7 @@
                 "REQUIRED_FACT_MISSING",
                 "TRACKING_EVIDENCE_INCOMPLETE"
               ],
-              "evidenceIdentity": "fxe-v1-646223d6",
+              "evidenceIdentity": "fxe-v1-2cfc079b",
               "evidenceCutoff": null,
               "provenance": [],
               "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
@@ -4199,7 +4199,7 @@
             "executionAvailable": false
           },
           "deepLink": "fx-regime-relative-value-lab.html#power",
-          "computedAt": "2026-08-16T18:31:08.700Z",
+          "computedAt": "2026-08-16T20:31:10.514Z",
           "freshUntil": null
         }
       }
@@ -4225,7 +4225,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-08-16T18:31:08.770Z",
+      "asOf": "2026-08-16T20:31:10.678Z",
       "read": "Leadership is narrow — 51.05% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -4385,7 +4385,7 @@
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "CPER leads real assets at 53.3/100; GLD 38.2, BTC 32.6, SLV 14.1."
+      "reason": "CPER leads real assets at 53.3/100; GLD 38.2, BTC 32.4, SLV 14.1."
     },
     {
       "id": "bond-regime-lab",

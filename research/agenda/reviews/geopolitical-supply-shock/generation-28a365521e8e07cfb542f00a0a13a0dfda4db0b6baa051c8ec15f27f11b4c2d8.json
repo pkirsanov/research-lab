@@ -1,0 +1,94 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-a604196e2e2e6b161deaaa5cdc21b3d5d28ae226f2231c91c263ea334730ee92",
+  "generationId": "generation-28a365521e8e07cfb542f00a0a13a0dfda4db0b6baa051c8ec15f27f11b4c2d8",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-08-16T20:31:10.883Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "No current interpretation can be authored. The acquisition bundle for this generation returned zero retained sources (bundle.sources is empty) and the official-policy-and-statements claim has no source excerpts or owner evidence, so no verified actor state exists for the United States, Iran, Oman mediators, Gulf exporters, Houthis, shipping insurers, or OPEC buffer producers. No unobserved intent is inferred.",
+      "gaps": [
+        "official-policy-and-statements requirement (sourceClasses: official) freshness<=24h covering actor-state for United States and Iran reaction dimensions is missing.",
+        "No verified statement establishes any change to military-pressure, transit-control, negotiation-posture, or escort-and-reinsurance dimensions."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "No current situation evidence supports characterizing the escalation state. Scenario probabilities are computed downstream and are not authored here; the underlying observed inputs needed to describe the current tree state are absent because no sources were retained this generation.",
+      "gaps": [
+        "No observed actor-state or transit-state evidence to describe current escalation posture as input to downstream probability computation."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "No measured maritime flow or insured-capacity evidence was acquired. There are no maritime-observation or official sources for Hormuz, Bab el-Mandeb, or the Red Sea, so physicalPassFraction, insuredPassFraction, and delayDays for the declared chokepoints cannot be observed or interpreted for the current window.",
+      "gaps": [
+        "measured-maritime-flow requirement (sourceClasses: official, maritime-observation) freshness<=24h covering physical-flow and insured-flow is missing for hormuz, bab-el-mandeb, and red-sea.",
+        "No insured effective-throughput observation to evaluate the 0.8 impairment threshold."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "No energy or input-balance evidence was acquired, so transmission from any chokepoint to the declared channels cannot be described. No inventory, production, export, or policy-response observation exists for oil, refined-products, lng, fertilizer, aluminum, or shipping.",
+      "gaps": [
+        "energy-and-input-balances requirement (sourceClasses: official, industry-data) freshness<=72h covering transmission-input is missing for every declared channel.",
+        "No confirmed public inventory or coordinated policy response for oil or refined-products."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "No proxy sensitivity interpretation can be authored. Reusable-ledger references to committed public bars exist for calibration inputs, but no retained source excerpts or calibration evidence accompany them this generation, and proxy ranges are downstream model outputs not authored here.",
+      "gaps": [
+        "committed-public-bars requirement (sourceClasses: committed-bar) freshness<=48h yielded ledger references but no verifiable current proxy-bar evidence retained for interpretation.",
+        "No calibration event evidence tying declared public proxies to a current situation read."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "No observation exists that would fire or clear any declared trigger or invalidation. transit-restriction-observed, insured-capacity-tightens, and inventory-response-confirmed cannot be evaluated without measured maritime, insured, or inventory evidence; transit-normalizes, insurance-normalizes, and evidence-stales likewise cannot be confirmed from acquired evidence.",
+      "gaps": [
+        "No physicalPassFraction or insuredPassFraction observation to evaluate transit or insurance triggers/invalidations.",
+        "No confirmed policyResponse observation for the inventory-response trigger."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "The acquisition bundle retained zero sources (bundle.sources is empty) and every claim carries empty sourceExcerptRefs and ownerEvidenceRefs. Only reusable-ledger requirement references are present; no independently corroborated current source backs any claim, so no source ledger entries are carried.",
+      "gaps": [
+        "No retained, freshness-valid sources for official-policy-and-statements, measured-maritime-flow, or energy-and-input-balances this generation."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "No change assessment is authored by this role; predecessor comparison and directional classification are downstream model responsibilities. With no current findings produced this generation, there is no current-state basis against which a predecessor delta could be described.",
+      "gaps": [
+        "No current findings authored, so no current-vs-predecessor evidence delta can be provided as input to downstream change assessment."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

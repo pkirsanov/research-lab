@@ -7738,11 +7738,27 @@ try {
   assert(Number.isFinite(reads['volatility-sizing-lab'].metrics.forecastPct) && reads['volatility-sizing-lab'].metrics.regime,
     'the volatility read carries a real conditional forecast and its regime band');
 
-  // The five-gate adapter is a foundation receipt only. Reporting it "fresh" would be the exact
-  // fabrication this wiring exists to remove, so it must stay an honest, reasoned absence.
-  assert(reads['technical-analysis-decision-lab'].state === 'owner-model-unavailable'
-    && /not implemented/i.test(reads['technical-analysis-decision-lab'].read),
-    'the five-gate tool publishes an honest unavailable naming the missing owner capability, never a fabricated read');
+  // The five-gate tool must stay an honest, reasoned absence: its owner model computes from committed
+  // fixtures that declare `liveClaim:false`, so carrying its read would put canned analysis into a brief
+  // a reader acts on during market hours. This locks BOTH directions, because each has already failed
+  // once. (a) The fixture read must never be carried as a live one. (b) The stated reason must not
+  // assert a code fact the code contradicts: the prose claimed the model was "not implemented" long
+  // after the five gates landed, and the previous assertion here PINNED that falsehood by requiring
+  // /not implemented/ to appear. So the page fact is derived, never hardcoded — if the owner model is
+  // genuinely removed later, this guard follows the code instead of contradicting it.
+  const tadRead = reads['technical-analysis-decision-lab'];
+  const tadPageSource = read('technical-analysis-decision-lab.html');
+  const tadModelImplemented = /function\s+tadSynthesizeFiveGates\s*\(/.test(tadPageSource)
+    && /function\s+tadBuildToolDecisionRead\s*\(/.test(tadPageSource);
+  assert(tadRead.state === 'owner-model-unavailable' && tadRead.metrics.ownerReadPublished === false,
+    'the five-gate tool publishes an honest unavailable and never carries its fixture read as a live one');
+  assert(tadModelImplemented, 'the owner five-gate synthesis and decision-read builder are present on the page');
+  assert(!/not implemented|Scope-01 foundation-receipt validator/i.test(tadRead.read),
+    'the five-gate absence is not explained by a claim the page contradicts (the model IS implemented)');
+  assert(/liveClaim:false|fixture/i.test(tadRead.read),
+    'the five-gate absence names the fact that actually blocks it: the owner model is fixture-bound, not missing');
+  assert(!(/publishes no read/i.test(tadRead.read) && /publishes a decision read/i.test(tadRead.read)),
+    'the five-gate reason does not contradict itself in the same sentence');
 
   // ADVERSARIAL: a read whose owner state is missing must degrade, never emit a plausible number.
   const starved = refresh.buildOptionsSurfaceToolRead({ symbol: 'NO-SUCH-SYMBOL' });

@@ -519,7 +519,8 @@ rotation math (§4).
     "bias": "bull|bear|neutral", "score": 0,
     "fearGreed": { "score": 0, "band": "", "delta": 0 },
     "vix": { "level": 0, "delta": 0, "term": "contango|backwardation" },
-    "breadth": {}, "note": ""
+    "breadth": {}, "note": "",
+    "macroCycle": "<regime-scoped macro read: what the current policy/rates/liquidity setting means for THIS regime — distinct from backdrop.macroCycle, which carries the structural direction>"
   },
   "backdrop": {
     "primaryTrend": "<the structural regime + WHERE-in-cycle (early/mid/late/topping/bottoming) + the 20/50/200 MA structure>",

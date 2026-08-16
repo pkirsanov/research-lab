@@ -31,13 +31,13 @@ This is a nine-scope, per-scope-directory plan for the active `full-delivery` wo
 
 | Owning scope | Exact declarations |
 | --- | --- |
-| 01 | `tadError`, `tadIsPlainObject`, `tadHasExactKeys`, `tadFiniteNumber`, `tadStableSerialize`, `tadStableDigest`, `tadDeepFreeze`, `tadValidateConfig`, `tadIndexConfig`, `tadValidateSourceVintage`, `tadValidateSeriesEnvelope`, `tadValidateOwnerRead`, `tadResolveAsOf`, `tadResolveSession`, `tadClassifyBarStatus`, `tadAggregateBars`, `tadBuildTimeframeProfile`, `tadAlignSeries`, `tadBuildVariantIdentity`, `tadBuildSourceSetIdentity` |
-| 02 | `tadSmaSeries`, `tadEmaSeries`, `tadAtrSeries`, `tadRsiSeries`, `tadMacdSeries`, `tadBollingerSeries`, `tadAdxDmiSeries`, `tadObvSeries`, `tadCmfSeries`, `tadRelativeVolume`, `tadEffortResult`, `tadVolumeProfile`, `tadVwapEnvelope`, `tadPivots`, `tadRelativeStrength`, `tadEvaluateTechnique`, `tadClusterEvidenceFamilies` |
-| 03 | `tadNormalizeLevels`, `tadClusterConfluence`, `tadUpdateLevelLifecycle`, `tadEvaluateSetupDefinition`, `tadTransitionCandidate`, `tadDeriveNaturalTargets`, `tadBuildRiskPlan`, `tadAuditTargets` |
-| 04 | `tadRankCandidates`, `tadEvaluatePrimaryGate`, `tadEvaluateRegimeGate`, `tadEvaluateLocationGate`, `tadEvaluateTriggerGate`, `tadEvaluateValidationRiskProcessGate`, `tadSynthesizeFiveGates`, `tadBuildUnifiedRead` |
-| 06 | `tadBuildComparisonSet` |
-| 07 | `tadBuildPurgedEvaluation`, `tadSimulateSetupVariant`, `tadApplyCosts`, `tadSummarizeValidation`, `tadBuildValidationPassport`, `tadAuditExpectancy`, `tadLossStreakScenario`, `tadEvaluateBehaviorGuard` |
-| 08 | `tadBuildViewModel`, `tadBuildToolDecisionRead`, `tadBuildExport` |
+| Scope 01 | `tadError`, `tadIsPlainObject`, `tadHasExactKeys`, `tadFiniteNumber`, `tadStableSerialize`, `tadStableDigest`, `tadDeepFreeze`, `tadValidateConfig`, `tadIndexConfig`, `tadValidateSourceVintage`, `tadValidateSeriesEnvelope`, `tadValidateOwnerRead`, `tadResolveAsOf`, `tadResolveSession`, `tadClassifyBarStatus`, `tadAggregateBars`, `tadBuildTimeframeProfile`, `tadAlignSeries`, `tadBuildVariantIdentity`, `tadBuildSourceSetIdentity` |
+| Scope 02 | `tadSmaSeries`, `tadEmaSeries`, `tadAtrSeries`, `tadRsiSeries`, `tadMacdSeries`, `tadBollingerSeries`, `tadAdxDmiSeries`, `tadObvSeries`, `tadCmfSeries`, `tadRelativeVolume`, `tadEffortResult`, `tadVolumeProfile`, `tadVwapEnvelope`, `tadPivots`, `tadRelativeStrength`, `tadEvaluateTechnique`, `tadClusterEvidenceFamilies` |
+| Scope 03 | `tadNormalizeLevels`, `tadClusterConfluence`, `tadUpdateLevelLifecycle`, `tadEvaluateSetupDefinition`, `tadTransitionCandidate`, `tadDeriveNaturalTargets`, `tadBuildRiskPlan`, `tadAuditTargets` |
+| Scope 04 | `tadRankCandidates`, `tadEvaluatePrimaryGate`, `tadEvaluateRegimeGate`, `tadEvaluateLocationGate`, `tadEvaluateTriggerGate`, `tadEvaluateValidationRiskProcessGate`, `tadSynthesizeFiveGates`, `tadBuildUnifiedRead` |
+| Scope 06 | `tadBuildComparisonSet` |
+| Scope 07 | `tadBuildPurgedEvaluation`, `tadSimulateSetupVariant`, `tadApplyCosts`, `tadSummarizeValidation`, `tadBuildValidationPassport`, `tadAuditExpectancy`, `tadLossStreakScenario`, `tadEvaluateBehaviorGuard` |
+| Scope 08 | `tadBuildViewModel`, `tadBuildToolDecisionRead`, `tadBuildExport` |
 | Shared Scope 01 helper | `rlvBuildPurgedFolds`, `rlvAdjustBenjaminiHochberg`, `rlvAdjustHolm`, `rlvDeflatedSharpe`, `rlvWilsonInterval`, `rlvQuantiles`, `rlvSummarizeOutcomes` |
 
 The page-local rows contain exactly 65 unique `tad*` declarations. Scope 05 consumes the owner-read foundation and adds publisher wiring rather than a new pure declaration; Scope 09 validates the complete symbol inventory rather than re-owning it.
@@ -66,13 +66,13 @@ The page-local rows contain exactly 65 unique `tad*` declarations. Scope 05 cons
 | # | Scope | Tags | Depends On | Primary Surfaces | Status |
 | --- | --- | --- | --- | --- | --- |
 | 01 | [Capability Foundation And Shared Contracts](./01-capability-foundation/scope.md) | `foundation:true`, `runtime-behavior` | - | `rldata.js`, `rlvalidation.js`, Strategy Validation parity, config/page foundation, validator, fixtures, selftest, browser test | Done |
-| 02 | [Technique Engine And Evidence Independence](./02-technique-engine/scope.md) | `overlay:true`, `runtime-behavior` | 01 | Feature page/config, validator, selftest, fixtures, browser test | Not Started |
-| 03 | [Level Geometry And Setup Lifecycle](./03-setup-lifecycle/scope.md) | `overlay:true`, `runtime-behavior` | 01, 02 | Feature page/config, validator, selftest, fixtures, browser test | Not Started |
-| 04 | [Five-Gate Synthesis And Candidate Selection](./04-five-gate-synthesis/scope.md) | `overlay:true`, `runtime-behavior` | 01, 02, 03 | Feature page/config, validator, selftest, fixtures, browser test | Not Started |
-| 05 | [Existing-Owner Publication And Strict Adapters](./05-owner-publication/scope.md) | `publisher:true`, `runtime-behavior` | 01, 02, 03, 04 | Six owner pages, Strategy Validation canary, Feature page adapters, selftest, browser test | Not Started |
-| 06 | [Comparison And Optional Evidence](./06-comparison-optional-evidence/scope.md) | `overlay:true`, `runtime-behavior` | 01, 02, 03, 04, 05 | Feature page/config, owner adapters, validator, selftest, fixtures, browser test | Not Started |
-| 07 | [Validation Cost Expectancy And Process](./07-validation-risk-process/scope.md) | `overlay:true`, `runtime-behavior` | 01, 02, 03, 04, 05, 06 | Feature page/config, `rlvalidation.js` consumer, validator, selftest, fixtures, browser test | Not Started |
-| 08 | [Complete Experience Publication And Registration](./08-experience-publication/scope.md) | `ui:true`, `publisher:true`, `runtime-behavior` | 01, 02, 03, 04, 05, 06, 07 | Feature page/note, registries/navigation, validator, selftest, browser test | Not Started |
-| 09 | [Protected Regression And Governance Closure](./09-regression-closure/scope.md) | `validation-hardening:true`, `runtime-behavior` | 01, 02, 03, 04, 05, 06, 07, 08 | Feature tests plus declared existing canaries and governance checks | Not Started |
+| 02 | [Technique Engine And Evidence Independence](./02-technique-engine/scope.md) | `overlay:true`, `runtime-behavior` | 01 | Feature page/config, validator, selftest, fixtures, browser test | Done |
+| 03 | [Level Geometry And Setup Lifecycle](./03-setup-lifecycle/scope.md) | `overlay:true`, `runtime-behavior` | 01, 02 | Feature page/config, validator, selftest, fixtures, browser test | Done |
+| 04 | [Five-Gate Synthesis And Candidate Selection](./04-five-gate-synthesis/scope.md) | `overlay:true`, `runtime-behavior` | 01, 02, 03 | Feature page/config, validator, selftest, fixtures, browser test | Done |
+| 05 | [Existing-Owner Publication And Strict Adapters](./05-owner-publication/scope.md) | `publisher:true`, `runtime-behavior` | 01, 02, 03, 04 | Six owner pages, Strategy Validation canary, Feature page adapters, selftest, browser test | Done |
+| 06 | [Comparison And Optional Evidence](./06-comparison-optional-evidence/scope.md) | `overlay:true`, `runtime-behavior` | 01, 02, 03, 04, 05 | Feature page/config, owner adapters, validator, selftest, fixtures, browser test | Done |
+| 07 | [Validation Cost Expectancy And Process](./07-validation-risk-process/scope.md) | `overlay:true`, `runtime-behavior` | 01, 02, 03, 04, 05, 06 | Feature page/config, `rlvalidation.js` consumer, validator, selftest, fixtures, browser test | Done |
+| 08 | [Complete Experience Publication And Registration](./08-experience-publication/scope.md) | `ui:true`, `publisher:true`, `runtime-behavior` | 01, 02, 03, 04, 05, 06, 07 | Feature page/note, registries/navigation, validator, selftest, browser test | Done |
+| 09 | [Protected Regression And Governance Closure](./09-regression-closure/scope.md) | `validation-hardening:true`, `runtime-behavior` | 01, 02, 03, 04, 05, 06, 07, 08 | Feature tests plus declared existing canaries and governance checks | Done |
 
 **Pickup rule:** Scope 01 is the only eligible scope. After it is `Done`, pick the lowest-numbered `Not Started` scope whose dependencies are all `Done`; the strict lower-number gate makes the effective order 01 through 09.

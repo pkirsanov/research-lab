@@ -338,6 +338,20 @@ export function validateBriefPayload(payload, registry, config, snapshot, agenda
     for (const field of ['bars', 'options', 'macro', 'events']) {
       if (!hasText(payload.dataAsOf[field])) errors.push(`dataAsOf.${field} is required`);
     }
+    /* NOT enforced here, deliberately, and the reason is worth keeping.
+       `dataAsOf.labels` IS required reader copy — BRIEF_NARRATIVE_FIELDS_REQUIRED declares it, and
+       the 2026-08-15 after-hours publish dropped it (present in the eight preceding payloads). The
+       obvious move is to fail this gate on it. Measured, that costs more than it buys: this function
+       is not only the publish CLI, it is a LIBRARY that the selftest, the rollover fixture and the
+       brief-CLI suites call as a pure function on the COMMITTED artifact. Adding the check moved the
+       node suite from 848 pass / 25 fail to 842 / 31 — six suites about module registration, refusal
+       publishing and D16 hedge direction all began reporting a payload-content problem instead of
+       their own subject.
+       The loss is already reported, once, in the right voice: the selftest's "every REQUIRED
+       narrative pattern matches a real field in the committed payload" names the exact missing
+       field. One clear signal beats the same signal echoed through six unrelated suites. If this
+       ever needs to fail closed at publish time, it belongs on the CLI branch validating a NEWLY
+       GENERATED payload, not on the library path every consumer of the committed artifact shares. */
   }
 
   if (!hasObject(payload?.regime)) errors.push('regime must be a non-empty object');

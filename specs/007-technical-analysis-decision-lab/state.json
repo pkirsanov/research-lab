@@ -1,487 +1,495 @@
 {
-    "version": 3,
-    "featureDir": "specs/007-technical-analysis-decision-lab",
-    "featureName": "Technical Analysis Decision Lab",
-    "createdAt": "2026-07-15T15:54:54Z",
-    "status": "in_progress",
-    "blockedReason": null,
-    "supersededBlockedReason": "The owner five-gate decision model is unimplemented: `computeTechnicalFiveGateSummary` in rlexperience-adapters/market-structure.js returns state `unavailable` unconditionally and publishes the gap verbatim as \"The owner five-gate model (context/location/confirmation/validation gate scoring plus setup-state and expectancy) is not implemented in technical-analysis-decision-lab.html, a Scope-01 foundation-receipt validator that publishes no analytic result (ownerReadPublished:false).\" The shipped page is therefore a data-foundation receipt only, not an analytic surface. This capability is unbuilt rather than merely unrecorded: 8 of this spec's 9 scopes are Not Started — including 04-five-gate-synthesis, 03-setup-lifecycle, and 07-validation-risk-process, the scopes that would build the gate scoring, setup-state, and expectancy the runtime names as missing — and the ninth, 01-capability-foundation, is Blocked. Unblocking Scope 01 requires the canonical traceability run recorded in statusReconciliation.resolution; Scopes 02-09 cannot start until it clears.",
-    "statusReconciliation": {
-        "recordedBy": "orchestrator",
-        "recordedAt": "2026-08-02T05:03:12Z",
-        "previousStatus": "not_started",
-        "why": "`not_started` contradicted this spec's own artifacts. `scopes/01-capability-foundation/scope.md` line 5 declares `**Status:** Blocked`, `execution` records `activeAgent: bubbles.implement` / `currentPhase: implement` / `currentScope: 01-capability-foundation`, and `execution.nextRequiredOwner` is already `bubbles.bug`. The tool `technical-analysis-decision-lab.html` is shipped AND registered in `tools.json`, and it is swept live by the TP-15-04 owner-parity browser test.",
-        "blocker": "Recorded verbatim in the Scope 01 Uncertainty Declaration: the canonical traceability guard exits 1 with 37 findings — 28 originating from not-started Scopes 02-09 because the guard has no scope-status filter for sequential execution, plus 9 G068 'no DoD items' findings caused by the extractor stopping at artifact-lint-accepted tiered DoD subheadings. Implementation reality itself exits 0 with zero violations. This is a guard-tooling limitation, not a product defect, and its nonzero verdict cannot be overridden by interpretation.",
-        "resolution": "A canonical traceability run that evaluates Scope 01 under sequential scope semantics and recognizes tiered DoD checkboxes, exiting 0 without rewriting plan-owned scenarios, Test Plan rows, or DoD claims.",
-        "blockerResolution": {
-            "resolvedAt": "2026-08-12T19:40:00Z",
-            "resolvedBy": "upstream framework fix consumed by refresh; no plan-owned artifact rewritten",
-            "upstreamCommits": [
-                "bubbles 52b100c - traceability guard carries each scenario's declared SCN- heading ID alongside its title and lets a shared trace ID establish a match before the word-overlap floor is consulted; scenario title bytes are unchanged so previously passing inferred matches score identically. This is the exact defect recorded in blockerReverification.rootCauseOfTheLargestClass and routed as proposals/20260812-traceability-scenario-id-declared-mapping.md.",
-                "bubbles 7754ea8 - a scope whose Status is Not Started no longer owes report evidence; those references are counted in deferred_evidence_total and surfaced in the summary instead of failing. This addresses the 18 honest missing-evidence findings by deferring them to their own scopes rather than discharging them.",
-                "bubbles cdb70b9 - bubbles_mcp_core_tools_for() lets a restricted orchestrator declare a narrower core tool allowlist, repairing a framework-write-guard integrity break that otherwise blocked consuming the two guard fixes."
-            ],
-            "verificationCommand": "timeout 600 bash .github/bubbles/scripts/traceability-guard.sh specs/007-technical-analysis-decision-lab",
-            "exitCode": 0,
-            "observed": "RESULT: PASSED (0 warnings). Scenarios checked 32; DoD fidelity mapped 32, unmapped 0. Report evidence DEFERRED to their own execution (Not Started scopes): 28. Edge confidence: declared=56 inferred=4 ambiguous=4.",
-            "deltaFromPriorMeasurement": "Prior re-measurement at blockerReverification recorded exit 1 with 54 failures, mapped 7 / unmapped 25, declared=0. The declared=0 that proved the defect was structural is now declared=56, and unmapped 25 is now 0.",
-            "statusJustificationSuperseded": "blockerReverification.statusJustification retained 'blocked' because the largest failure class was a real external dependency on an upstream fix. That dependency is discharged: the fix was made in the canonical framework and consumed here. Nothing external now gates this spec, so the lifecycle status is corrected to in_progress. The remaining 8 scopes are unbuilt, which is in_progress work, not a blocker.",
-            "notCertified": "Scope 01 is implement-complete with its full closure battery recorded in scopes/01-capability-foundation/report.md. certification.* remains validate-owned and untouched; no scope is claimed as certified."
-        },
-        "noScopeClaimed": "No scope was marked complete and no certification field was touched. This edit corrects the lifecycle status only.",
-        "blockerReverification": {
-            "reverifiedAt": "2026-08-12T18:45:00Z",
-            "command": "timeout 600 bash .github/bubbles/scripts/traceability-guard.sh specs/007-technical-analysis-decision-lab",
-            "exitCode": 1,
-            "observed": "RESULT: FAILED (54 failures, 0 warnings). Scenarios checked 32; DoD fidelity mapped 7, unmapped 25. Edge confidence: declared=0 inferred=19 ambiguous=10.",
-            "correctionToPriorRecord": "The stored blocker said 37 findings split 28 not-started-scope plus 9 G068 'no DoD items'. Re-measured at this HEAD the split is different and the prior characterisation is only partly right. The 53 scope-attributed failures are 25 'no faithful DoD item', 18 'report is missing evidence reference for concrete test file', and 10 'scenario has no traceable Test Plan row'. The 9 'no DoD items' class no longer appears at all: every one of the 9 scopes now yields DoD checkboxes (16/14/15/16/16/12/14/19/25), so the tiered-DoD extractor defect that class described was already repaired upstream by BUG-026.",
-            "rootCauseOfTheLargestClass": "The 25 'no faithful DoD item' findings are guard false positives, confirmed by reading guard source rather than inferred from the count. classify_match_kind already extracts trace IDs from both sides and returns 'declared' on a shared ID, but it runs only AFTER scenario_matches_dod has succeeded, so an explicit ID can never establish a match — only grade one word-overlap already found. Compounding that, the matcher receives the 'Scenario:' title while the SCN- ID lives on the preceding '###' heading, so no ID reaches the comparison at all. The guard's own 'declared=0' is the proof: it is structural, not an authoring property. Worked example: DoD item 'TP-01-04 Regression E2E evidence proves SCN-007-005 discloses the U.S. core-session remainder' names SCN-007-005 outright, and its scenario 'Four-hour U.S. stock bars require an explicit session policy' is still reported unmapped. Routed upstream as .github/bubbles-project/proposals/20260812-traceability-scenario-id-declared-mapping.md.",
-            "whatIsNotAGuardDefect": "The 18 missing-evidence findings are honest: they target scopes 02-09, whose status is Not Started and whose tests therefore do not exist yet. They are not false positives and are deliberately excluded from the upstream proposal. Feature 007 does not become clean by fixing the ID mapping alone.",
-            "statusJustification": "'blocked' is retained rather than corrected to 'in_progress' as Feature 001 was. Feature 001's own record established that nothing external gated it, so its status was wrong. Here Scope 01's DoD genuinely requires a clean traceability run that the installed guard cannot produce for the largest failure class, which is a real external dependency on an upstream fix. The remaining 8 scopes are separately unbuilt."
-        }
+  "version": 3,
+  "featureDir": "specs/007-technical-analysis-decision-lab",
+  "featureName": "Technical Analysis Decision Lab",
+  "createdAt": "2026-07-15T15:54:54Z",
+  "status": "blocked",
+  "blockedReason": "OPERATOR ACTION REQUIRED — Gate G136 human acceptance. All nine scopes are Done with executed evidence, but specs/007-technical-analysis-decision-lab/uservalidation.md has 17 unchecked acceptance items. A terminal transition to done claims human acceptance of every one, and an agent checking those boxes would fabricate that acceptance, so no agent can clear this. UNBLOCK BY: reviewing the 17 items in uservalidation.md and checking or rejecting each. A rejection routes to /bubbles.validate for root cause. SECONDARY (non-blocking for the operator, agent-actionable in a dedicated planning pass): state-transition-guard reports 160 residual findings, all planning-artifact template shape requirements applied uniformly to all nine scope.md files (DoD-Gherkin content fidelity, shared-infrastructure canary Test Plan rows and rollback/canary DoD items, change-boundary surface enumeration, consumer-impact-sweep sections, scenario-specific and broader E2E DoD items) plus deferral-language hits confined to scopes 01-04. These predate this delivery session and apply identically to scopes 01-04 authored earlier. They were NOT retrofitted here because authoring planning artifacts after delivery purely to satisfy a guard is the fabrication pattern the framework exists to prevent; they need a real planning pass.",
+  "supersededBlockedReason": "The owner five-gate decision model is unimplemented: `computeTechnicalFiveGateSummary` in rlexperience-adapters/market-structure.js returns state `unavailable` unconditionally and publishes the gap verbatim as \"The owner five-gate model (context/location/confirmation/validation gate scoring plus setup-state and expectancy) is not implemented in technical-analysis-decision-lab.html, a Scope-01 foundation-receipt validator that publishes no analytic result (ownerReadPublished:false).\" The shipped page is therefore a data-foundation receipt only, not an analytic surface. This capability is unbuilt rather than merely unrecorded: 8 of this spec's 9 scopes are Not Started — including 04-five-gate-synthesis, 03-setup-lifecycle, and 07-validation-risk-process, the scopes that would build the gate scoring, setup-state, and expectancy the runtime names as missing — and the ninth, 01-capability-foundation, is Blocked. Unblocking Scope 01 requires the canonical traceability run recorded in statusReconciliation.resolution; Scopes 02-09 cannot start until it clears.",
+  "statusReconciliation": {
+    "recordedBy": "orchestrator",
+    "recordedAt": "2026-08-02T05:03:12Z",
+    "previousStatus": "not_started",
+    "why": "`not_started` contradicted this spec's own artifacts. `scopes/01-capability-foundation/scope.md` line 5 declares `**Status:** Blocked`, `execution` records `activeAgent: bubbles.implement` / `currentPhase: implement` / `currentScope: 01-capability-foundation`, and `execution.nextRequiredOwner` is already `bubbles.bug`. The tool `technical-analysis-decision-lab.html` is shipped AND registered in `tools.json`, and it is swept live by the TP-15-04 owner-parity browser test.",
+    "blocker": "Recorded verbatim in the Scope 01 Uncertainty Declaration: the canonical traceability guard exits 1 with 37 findings — 28 originating from not-started Scopes 02-09 because the guard has no scope-status filter for sequential execution, plus 9 G068 'no DoD items' findings caused by the extractor stopping at artifact-lint-accepted tiered DoD subheadings. Implementation reality itself exits 0 with zero violations. This is a guard-tooling limitation, not a product defect, and its nonzero verdict cannot be overridden by interpretation.",
+    "resolution": "A canonical traceability run that evaluates Scope 01 under sequential scope semantics and recognizes tiered DoD checkboxes, exiting 0 without rewriting plan-owned scenarios, Test Plan rows, or DoD claims.",
+    "blockerResolution": {
+      "resolvedAt": "2026-08-12T19:40:00Z",
+      "resolvedBy": "upstream framework fix consumed by refresh; no plan-owned artifact rewritten",
+      "upstreamCommits": [
+        "bubbles 52b100c - traceability guard carries each scenario's declared SCN- heading ID alongside its title and lets a shared trace ID establish a match before the word-overlap floor is consulted; scenario title bytes are unchanged so previously passing inferred matches score identically. This is the exact defect recorded in blockerReverification.rootCauseOfTheLargestClass and routed as proposals/20260812-traceability-scenario-id-declared-mapping.md.",
+        "bubbles 7754ea8 - a scope whose Status is Not Started no longer owes report evidence; those references are counted in deferred_evidence_total and surfaced in the summary instead of failing. This addresses the 18 honest missing-evidence findings by deferring them to their own scopes rather than discharging them.",
+        "bubbles cdb70b9 - bubbles_mcp_core_tools_for() lets a restricted orchestrator declare a narrower core tool allowlist, repairing a framework-write-guard integrity break that otherwise blocked consuming the two guard fixes."
+      ],
+      "verificationCommand": "timeout 600 bash .github/bubbles/scripts/traceability-guard.sh specs/007-technical-analysis-decision-lab",
+      "exitCode": 0,
+      "observed": "RESULT: PASSED (0 warnings). Scenarios checked 32; DoD fidelity mapped 32, unmapped 0. Report evidence DEFERRED to their own execution (Not Started scopes): 28. Edge confidence: declared=56 inferred=4 ambiguous=4.",
+      "deltaFromPriorMeasurement": "Prior re-measurement at blockerReverification recorded exit 1 with 54 failures, mapped 7 / unmapped 25, declared=0. The declared=0 that proved the defect was structural is now declared=56, and unmapped 25 is now 0.",
+      "statusJustificationSuperseded": "blockerReverification.statusJustification retained 'blocked' because the largest failure class was a real external dependency on an upstream fix. That dependency is discharged: the fix was made in the canonical framework and consumed here. Nothing external now gates this spec, so the lifecycle status is corrected to in_progress. The remaining 8 scopes are unbuilt, which is in_progress work, not a blocker.",
+      "notCertified": "Scope 01 is implement-complete with its full closure battery recorded in scopes/01-capability-foundation/report.md. certification.* remains validate-owned and untouched; no scope is claimed as certified."
     },
-    "workflowMode": "full-delivery",
-    "linkedImplementationSpec": null,
-    "linkedPlanningPacket": null,
-    "planningOnly": false,
-    "planningOnlyJustification": null,
-    "specDependsOn": [],
-    "flagsIntroduced": [],
-    "certifiedAt": null,
-    "requiresRevalidation": false,
-    "execution": {
-        "activeAgent": "bubbles.implement",
-        "currentPhase": "implement",
-        "currentScope": "02-technique-engine",
-        "runStartedAt": "2026-07-15T18:01:42Z",
-        "completedPhaseClaims": [],
-        "pendingTransitionRequests": [],
-        "nextRequiredOwner": "bubbles.implement",
-        "scopeProgress": [
-            {
-                "scope": 1,
-                "scopeId": "01-capability-foundation",
-                "name": "Capability Foundation And Shared Contracts",
-                "status": "done",
-                "dependsOn": [],
-                "scopeDir": "scopes/01-capability-foundation",
-                "scopeArtifact": "scopes/01-capability-foundation/scope.md",
-                "reportArtifact": "scopes/01-capability-foundation/report.md"
-            },
-            {
-                "scope": 2,
-                "scopeId": "02-technique-engine",
-                "name": "Technique Engine And Evidence Independence",
-                "status": "not_started",
-                "dependsOn": [
-                    "1"
-                ],
-                "scopeDir": "scopes/02-technique-engine",
-                "scopeArtifact": "scopes/02-technique-engine/scope.md",
-                "reportArtifact": "scopes/02-technique-engine/report.md"
-            },
-            {
-                "scope": 3,
-                "scopeId": "03-setup-lifecycle",
-                "name": "Level Geometry And Setup Lifecycle",
-                "status": "not_started",
-                "dependsOn": [
-                    "1",
-                    "2"
-                ],
-                "scopeDir": "scopes/03-setup-lifecycle",
-                "scopeArtifact": "scopes/03-setup-lifecycle/scope.md",
-                "reportArtifact": "scopes/03-setup-lifecycle/report.md"
-            },
-            {
-                "scope": 4,
-                "scopeId": "04-five-gate-synthesis",
-                "name": "Five-Gate Synthesis And Candidate Selection",
-                "status": "not_started",
-                "dependsOn": [
-                    "1",
-                    "2",
-                    "3"
-                ],
-                "scopeDir": "scopes/04-five-gate-synthesis",
-                "scopeArtifact": "scopes/04-five-gate-synthesis/scope.md",
-                "reportArtifact": "scopes/04-five-gate-synthesis/report.md"
-            },
-            {
-                "scope": 5,
-                "scopeId": "05-owner-publication",
-                "name": "Existing-Owner Publication And Strict Adapters",
-                "status": "not_started",
-                "dependsOn": [
-                    "1",
-                    "2",
-                    "3",
-                    "4"
-                ],
-                "scopeDir": "scopes/05-owner-publication",
-                "scopeArtifact": "scopes/05-owner-publication/scope.md",
-                "reportArtifact": "scopes/05-owner-publication/report.md"
-            },
-            {
-                "scope": 6,
-                "scopeId": "06-comparison-optional-evidence",
-                "name": "Comparison And Optional Evidence",
-                "status": "not_started",
-                "dependsOn": [
-                    "1",
-                    "2",
-                    "3",
-                    "4",
-                    "5"
-                ],
-                "scopeDir": "scopes/06-comparison-optional-evidence",
-                "scopeArtifact": "scopes/06-comparison-optional-evidence/scope.md",
-                "reportArtifact": "scopes/06-comparison-optional-evidence/report.md"
-            },
-            {
-                "scope": 7,
-                "scopeId": "07-validation-risk-process",
-                "name": "Validation Cost Expectancy And Process",
-                "status": "not_started",
-                "dependsOn": [
-                    "1",
-                    "2",
-                    "3",
-                    "4",
-                    "5",
-                    "6"
-                ],
-                "scopeDir": "scopes/07-validation-risk-process",
-                "scopeArtifact": "scopes/07-validation-risk-process/scope.md",
-                "reportArtifact": "scopes/07-validation-risk-process/report.md"
-            },
-            {
-                "scope": 8,
-                "scopeId": "08-experience-publication",
-                "name": "Complete Experience Publication And Registration",
-                "status": "not_started",
-                "dependsOn": [
-                    "1",
-                    "2",
-                    "3",
-                    "4",
-                    "5",
-                    "6",
-                    "7"
-                ],
-                "scopeDir": "scopes/08-experience-publication",
-                "scopeArtifact": "scopes/08-experience-publication/scope.md",
-                "reportArtifact": "scopes/08-experience-publication/report.md"
-            },
-            {
-                "scope": 9,
-                "scopeId": "09-regression-closure",
-                "name": "Protected Regression And Governance Closure",
-                "status": "not_started",
-                "dependsOn": [
-                    "1",
-                    "2",
-                    "3",
-                    "4",
-                    "5",
-                    "6",
-                    "7",
-                    "8"
-                ],
-                "scopeDir": "scopes/09-regression-closure",
-                "scopeArtifact": "scopes/09-regression-closure/scope.md",
-                "reportArtifact": "scopes/09-regression-closure/report.md"
-            }
+    "noScopeClaimed": "No scope was marked complete and no certification field was touched. This edit corrects the lifecycle status only.",
+    "blockerReverification": {
+      "reverifiedAt": "2026-08-12T18:45:00Z",
+      "command": "timeout 600 bash .github/bubbles/scripts/traceability-guard.sh specs/007-technical-analysis-decision-lab",
+      "exitCode": 1,
+      "observed": "RESULT: FAILED (54 failures, 0 warnings). Scenarios checked 32; DoD fidelity mapped 7, unmapped 25. Edge confidence: declared=0 inferred=19 ambiguous=10.",
+      "correctionToPriorRecord": "The stored blocker said 37 findings split 28 not-started-scope plus 9 G068 'no DoD items'. Re-measured at this HEAD the split is different and the prior characterisation is only partly right. The 53 scope-attributed failures are 25 'no faithful DoD item', 18 'report is missing evidence reference for concrete test file', and 10 'scenario has no traceable Test Plan row'. The 9 'no DoD items' class no longer appears at all: every one of the 9 scopes now yields DoD checkboxes (16/14/15/16/16/12/14/19/25), so the tiered-DoD extractor defect that class described was already repaired upstream by BUG-026.",
+      "rootCauseOfTheLargestClass": "The 25 'no faithful DoD item' findings are guard false positives, confirmed by reading guard source rather than inferred from the count. classify_match_kind already extracts trace IDs from both sides and returns 'declared' on a shared ID, but it runs only AFTER scenario_matches_dod has succeeded, so an explicit ID can never establish a match — only grade one word-overlap already found. Compounding that, the matcher receives the 'Scenario:' title while the SCN- ID lives on the preceding '###' heading, so no ID reaches the comparison at all. The guard's own 'declared=0' is the proof: it is structural, not an authoring property. Worked example: DoD item 'TP-01-04 Regression E2E evidence proves SCN-007-005 discloses the U.S. core-session remainder' names SCN-007-005 outright, and its scenario 'Four-hour U.S. stock bars require an explicit session policy' is still reported unmapped. Routed upstream as .github/bubbles-project/proposals/20260812-traceability-scenario-id-declared-mapping.md.",
+      "whatIsNotAGuardDefect": "The 18 missing-evidence findings are honest: they target scopes 02-09, whose status is Not Started and whose tests therefore do not exist yet. They are not false positives and are deliberately excluded from the upstream proposal. Feature 007 does not become clean by fixing the ID mapping alone.",
+      "statusJustification": "'blocked' is retained rather than corrected to 'in_progress' as Feature 001 was. Feature 001's own record established that nothing external gated it, so its status was wrong. Here Scope 01's DoD genuinely requires a clean traceability run that the installed guard cannot produce for the largest failure class, which is a real external dependency on an upstream fix. The remaining 8 scopes are separately unbuilt."
+    }
+  },
+  "workflowMode": "full-delivery",
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "specDependsOn": [],
+  "flagsIntroduced": [],
+  "certifiedAt": null,
+  "requiresRevalidation": false,
+  "execution": {
+    "activeAgent": "bubbles.implement",
+    "currentPhase": "implement",
+    "currentScope": null,
+    "runStartedAt": "2026-07-15T18:01:42Z",
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": [],
+    "nextRequiredOwner": "bubbles.implement",
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "01-capability-foundation",
+        "name": "Capability Foundation And Shared Contracts",
+        "status": "done",
+        "dependsOn": [],
+        "scopeDir": "scopes/01-capability-foundation",
+        "scopeArtifact": "scopes/01-capability-foundation/scope.md",
+        "reportArtifact": "scopes/01-capability-foundation/report.md"
+      },
+      {
+        "scope": 2,
+        "scopeId": "02-technique-engine",
+        "name": "Technique Engine And Evidence Independence",
+        "status": "done",
+        "dependsOn": [
+          "1"
         ],
-        "audit": {
-            "schemaVersion": "audit-run/v1",
-            "runId": null,
-            "currentAttemptId": null,
-            "attempts": []
-        }
-    },
-    "certification": {
-        "status": "in_progress",
-        "completedScopes": [],
-        "certifiedCompletedPhases": [],
-        "scopeProgress": [
-            {
-                "scope": 1,
-                "scopeId": "01-capability-foundation",
-                "name": "Capability Foundation And Shared Contracts",
-                "status": "done",
-                "dependsOn": [],
-                "scopeDir": "scopes/01-capability-foundation",
-                "scopeArtifact": "scopes/01-capability-foundation/scope.md",
-                "reportArtifact": "scopes/01-capability-foundation/report.md",
-                "certifiedAt": "2026-08-13T04:05:00Z"
-            },
-            {
-                "scope": 2,
-                "scopeId": "02-technique-engine",
-                "name": "Technique Engine And Evidence Independence",
-                "status": "not_started",
-                "dependsOn": [
-                    "1"
-                ],
-                "scopeDir": "scopes/02-technique-engine",
-                "scopeArtifact": "scopes/02-technique-engine/scope.md",
-                "reportArtifact": "scopes/02-technique-engine/report.md"
-            },
-            {
-                "scope": 3,
-                "scopeId": "03-setup-lifecycle",
-                "name": "Level Geometry And Setup Lifecycle",
-                "status": "not_started",
-                "dependsOn": [
-                    "1",
-                    "2"
-                ],
-                "scopeDir": "scopes/03-setup-lifecycle",
-                "scopeArtifact": "scopes/03-setup-lifecycle/scope.md",
-                "reportArtifact": "scopes/03-setup-lifecycle/report.md"
-            },
-            {
-                "scope": 4,
-                "scopeId": "04-five-gate-synthesis",
-                "name": "Five-Gate Synthesis And Candidate Selection",
-                "status": "not_started",
-                "dependsOn": [
-                    "1",
-                    "2",
-                    "3"
-                ],
-                "scopeDir": "scopes/04-five-gate-synthesis",
-                "scopeArtifact": "scopes/04-five-gate-synthesis/scope.md",
-                "reportArtifact": "scopes/04-five-gate-synthesis/report.md"
-            },
-            {
-                "scope": 5,
-                "scopeId": "05-owner-publication",
-                "name": "Existing-Owner Publication And Strict Adapters",
-                "status": "not_started",
-                "dependsOn": [
-                    "1",
-                    "2",
-                    "3",
-                    "4"
-                ],
-                "scopeDir": "scopes/05-owner-publication",
-                "scopeArtifact": "scopes/05-owner-publication/scope.md",
-                "reportArtifact": "scopes/05-owner-publication/report.md"
-            },
-            {
-                "scope": 6,
-                "scopeId": "06-comparison-optional-evidence",
-                "name": "Comparison And Optional Evidence",
-                "status": "not_started",
-                "dependsOn": [
-                    "1",
-                    "2",
-                    "3",
-                    "4",
-                    "5"
-                ],
-                "scopeDir": "scopes/06-comparison-optional-evidence",
-                "scopeArtifact": "scopes/06-comparison-optional-evidence/scope.md",
-                "reportArtifact": "scopes/06-comparison-optional-evidence/report.md"
-            },
-            {
-                "scope": 7,
-                "scopeId": "07-validation-risk-process",
-                "name": "Validation Cost Expectancy And Process",
-                "status": "not_started",
-                "dependsOn": [
-                    "1",
-                    "2",
-                    "3",
-                    "4",
-                    "5",
-                    "6"
-                ],
-                "scopeDir": "scopes/07-validation-risk-process",
-                "scopeArtifact": "scopes/07-validation-risk-process/scope.md",
-                "reportArtifact": "scopes/07-validation-risk-process/report.md"
-            },
-            {
-                "scope": 8,
-                "scopeId": "08-experience-publication",
-                "name": "Complete Experience Publication And Registration",
-                "status": "not_started",
-                "dependsOn": [
-                    "1",
-                    "2",
-                    "3",
-                    "4",
-                    "5",
-                    "6",
-                    "7"
-                ],
-                "scopeDir": "scopes/08-experience-publication",
-                "scopeArtifact": "scopes/08-experience-publication/scope.md",
-                "reportArtifact": "scopes/08-experience-publication/report.md"
-            },
-            {
-                "scope": 9,
-                "scopeId": "09-regression-closure",
-                "name": "Protected Regression And Governance Closure",
-                "status": "not_started",
-                "dependsOn": [
-                    "1",
-                    "2",
-                    "3",
-                    "4",
-                    "5",
-                    "6",
-                    "7",
-                    "8"
-                ],
-                "scopeDir": "scopes/09-regression-closure",
-                "scopeArtifact": "scopes/09-regression-closure/scope.md",
-                "reportArtifact": "scopes/09-regression-closure/report.md"
-            }
+        "scopeDir": "scopes/02-technique-engine",
+        "scopeArtifact": "scopes/02-technique-engine/scope.md",
+        "reportArtifact": "scopes/02-technique-engine/report.md"
+      },
+      {
+        "scope": 3,
+        "scopeId": "03-setup-lifecycle",
+        "name": "Level Geometry And Setup Lifecycle",
+        "status": "done",
+        "dependsOn": [
+          "1",
+          "2"
         ],
-        "lockdownState": {
-            "active": false,
-            "lockedScenarioIds": []
-        }
-    },
-    "policySnapshot": {
-        "grill": {
-            "mode": "off",
-            "source": "repo-default"
-        },
-        "tdd": {
-            "mode": "scenario-first",
-            "source": "repo-default"
-        },
-        "autoCommit": {
-            "mode": "off",
-            "source": "repo-default"
-        },
-        "lockdown": {
-            "mode": "off",
-            "source": "repo-default"
-        },
-        "regression": {
-            "mode": "protected-scenarios",
-            "source": "repo-default"
-        },
-        "validation": {
-            "mode": "certification-required",
-            "source": "repo-default"
-        }
-    },
-    "transitionRequests": [],
-    "reworkQueue": [],
-    "executionHistory": [
-        {
-            "agent": "bubbles.analyst",
-            "phasesExecuted": [
-                "analyze"
-            ],
-            "statusBefore": "not_started",
-            "statusAfter": "not_started",
-            "startedAt": "2026-07-15T15:54:54Z",
-            "finishedAt": "2026-07-15T16:08:17Z",
-            "outcome": "route_required",
-            "summary": "Created the greenfield Technical Analysis Decision Lab business specification from Research Lab capability evidence and independently researched historical, academic, regulatory, exchange, indicator, microstructure, option, behavioral, and competitor sources. Defined 8 actors, 10 use cases, 24 Gherkin business scenarios, 98 functional requirements, 20 non-functional requirements, 9 specialist models, 8 actionable setup definitions, one five-gate overview model, an evidence-tier policy, asset/session-aware timeframe profiles, comparison roles, exact-variant validation, and 6 ranked proposals. Reconciled all four transcripts through an explicit claim ledger: retained bounded Dow/Wyckoff and risk hypotheses, corrected 4h stock-session and VWAP/value-area assumptions, rejected unsupported trader-failure and institutional-intent claims, and rejected Transcript 3's inconsistent arithmetic. Focused analyst checks and artifact freshness passed. Artifact lint accepted spec.md, state.json, and sidecar absence but remained nonzero for design.md, scopes.md, report.md, and uservalidation.md owned by downstream specialists. G094 accepted the Domain Capability Model and remained nonzero only because bubbles.design has not authored design.md. No design, scope, report, user-validation, source, test, registry, status, completed-phase claim, policy snapshot, or certification field was changed."
-        },
-        {
-            "agent": "bubbles.analyst",
-            "phasesExecuted": [
-                "analyze"
-            ],
-            "statusBefore": "not_started",
-            "statusAfter": "not_started",
-            "startedAt": "2026-07-15T16:48:13Z",
-            "finishedAt": "2026-07-15T16:54:00Z",
-            "outcome": "route_required",
-            "summary": "Reconciled and strengthened the existing source-backed analyst specification without replacing its prior research. Preserved 8 actors, 10 use cases, 9 specialist models, 8 setup definitions, and the five-gate framework; expanded business coverage from 24 to 31 Gherkin scenarios, functional requirements from 98 to 107, and acceptance criteria from 10 to 14. Added an auditable repository/source grounding matrix, fail-closed transcript-claim admission, cross-model family independence, explicit terminal setup lifecycle, denominator- and vintage-aware comparison policy, candidate competition, invalid-configuration recovery, failed-refresh truth preservation, and transcript-admission scenarios. Corrected the prior overclaim that Strategy Validation already provides cost-aware validation: its current backtest/walkForward/deflatedSharpe surface supports embargo, robustness, and multiplicity but not a first-class transaction-cost contract. The focused analyst check passed with 8 source-grounded actor rows, 6 source-grounded proposal blocks, 10 live source anchors, one-to-one 31/31 Gherkin parity, 107 requirements, 14 acceptance criteria, and zero placeholder/deferral markers; artifact freshness passed. G094 accepted the analyst Domain Capability Model and reported only missing design.md. Artifact lint reported exactly four downstream-owned missing artifacts: design.md, scopes.md, report.md, and uservalidation.md. No design, scope, report, user-validation, scenario-manifest, source, test, registry, status, completed-phase claim, policy snapshot, or certification field was changed. Next required owner is bubbles.ux under the full-delivery planning chain."
-        },
-        {
-            "agent": "bubbles.ux",
-            "phasesExecuted": [
-                "analyze"
-            ],
-            "statusBefore": "not_started",
-            "statusAfter": "not_started",
-            "startedAt": "2026-07-15T16:59:32Z",
-            "finishedAt": "2026-07-15T17:09:27Z",
-            "outcome": "route_required",
-            "summary": "Authored and reconciled the complete UX contract inline in spec.md without changing analyst-owned requirements. Defined 10 same-route Simple, Power, truth-state, audit, and mobile screen compositions; 23 reusable UI primitives; one compact default Simple cockpit with five ordered gates, setup lifecycle, model-by-timeframe evidence, historical/model level confluence, all nine specialist summaries, explicit comparisons, exact validation, precommitted trigger/invalidation/targets/asymmetry, and no-edge/unavailable behavior; and Power evidence, model configuration, setup history, comparison/option/microstructure eligibility, validation/expectancy, source/vintage, claim-ledger, and owner-read surfaces. Added 9 Mermaid user flows, explicit one-to-one BS-001 through BS-031 screen/flow outcomes, and contiguous FR-001 through FR-107 UX coverage. Focused UX1-UX9 validation passed with 10/10 wireframes carrying interactions, responsive rules, and accessibility; no forbidden sidecars exist; all 31 scenario rows and all 107 requirement ranges were present. Artifact freshness passed with zero findings. Artifact lint remained nonzero only for four downstream-owned missing artifacts: design.md, scopes.md, report.md, and uservalidation.md. G094 accepted the Domain Capability Model and UI Primitives and remained nonzero only because bubbles.design has not authored design.md. No design, scope, report, user-validation, scenario-manifest, source, test, registry, documentation, status, completed-phase claim, policy snapshot, or certification field was changed."
-        },
-        {
-            "agent": "bubbles.design",
-            "phasesExecuted": [
-                "bootstrap"
-            ],
-            "statusBefore": "not_started",
-            "statusAfter": "not_started",
-            "startedAt": "2026-07-15T17:27:47Z",
-            "finishedAt": "2026-07-15T17:38:53Z",
-            "outcome": "route_required",
-            "summary": "Created the substantive contract-grade design.md from the current analyst and UX handoff. Defined the build-free static architecture, capability-first source/vintage and session/timeframe foundation, detailed owner-read boundaries for seven existing tools plus Feature 006, source-qualified intraday extension, shared validation primitives, nine specialist overlays, eight setup implementations, exact data/error/truth contracts, append-only setup lifecycle, deterministic candidate ranking, variant and validation identity, cost/risk/arithmetic/process controls, five ordered gates, one immutable UnifiedRead, synchronous canvas rendering, local persistence and safety boundaries, 65 extractable pure symbols, 31 technical scenario mappings, and complete FR-001 through FR-107 coverage. Focused design validation passed. Artifact freshness passed. G094 accepted the domain, design, UI, concrete implementation, and variation-axis contracts and reported one plan-owned missing foundation scope. Artifact lint accepted spec.md, design.md, state.json, and sidecar absence and reported only missing scopes.md, report.md, and uservalidation.md owned by bubbles.plan. No analyst/UX content, plan artifact, scenario manifest, product code, test, registry, top-level status, certification field, completed phase claim, or policy snapshot was changed."
-        },
-        {
-            "agent": "bubbles.plan",
-            "phasesExecuted": [
-                "bootstrap"
-            ],
-            "statusBefore": "not_started",
-            "statusAfter": "not_started",
-            "startedAt": "2026-07-15T18:01:42Z",
-            "finishedAt": "2026-07-15T18:11:17Z",
-            "outcome": "completed_owned",
-            "summary": "Created the complete nine-scope per-directory execution plan and planning-owned handoff artifacts. Scope 01 is tagged foundation:true and every technique, setup, gate, owner, comparison, validation, UI, publication, and regression overlay depends on it. The plan assigns all 65 exact page-local tad declarations and seven shared RLVALID declarations once; covers six nested owner publishers, Strategy Validation parity, and an honest optional Feature 006 adapter; records marker-bounded shared-surface sweeps, independent canaries, rollback paths, and preservation of Feature 005/006 dirty work; and defines 81 synchronized Markdown/JSON/DoD test rows with scenario-first RED/GREEN obligations, real system-Chrome static-page E2E, accessibility/mobile/background-canvas checks, validation/cost arithmetic, owner/registry canaries, and no unjustified stress/load category. Created nine report templates, a substantive user-validation baseline, and scenario-manifest.json with 31 exact BS contracts plus SCN-007-032 and verified SHA-256 hashes. Focused plan sync and symbol sync passed; artifact lint, artifact freshness, and G094 passed. Traceability reported only implementation-owned missing links to the planned tests/technical-analysis-decision-lab.spec.mjs file. Updated only execution routing/scope paths and artifact paths in state.json; top-level status, policy snapshot, completed phase claims, completed scopes, and certification remain unchanged. Next required owner is bubbles.implement."
-        }
+        "scopeDir": "scopes/03-setup-lifecycle",
+        "scopeArtifact": "scopes/03-setup-lifecycle/scope.md",
+        "reportArtifact": "scopes/03-setup-lifecycle/report.md"
+      },
+      {
+        "scope": 4,
+        "scopeId": "04-five-gate-synthesis",
+        "name": "Five-Gate Synthesis And Candidate Selection",
+        "status": "done",
+        "dependsOn": [
+          "1",
+          "2",
+          "3"
+        ],
+        "scopeDir": "scopes/04-five-gate-synthesis",
+        "scopeArtifact": "scopes/04-five-gate-synthesis/scope.md",
+        "reportArtifact": "scopes/04-five-gate-synthesis/report.md"
+      },
+      {
+        "scope": 5,
+        "scopeId": "05-owner-publication",
+        "name": "Existing-Owner Publication And Strict Adapters",
+        "status": "done",
+        "dependsOn": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "scopeDir": "scopes/05-owner-publication",
+        "scopeArtifact": "scopes/05-owner-publication/scope.md",
+        "reportArtifact": "scopes/05-owner-publication/report.md"
+      },
+      {
+        "scope": 6,
+        "scopeId": "06-comparison-optional-evidence",
+        "name": "Comparison And Optional Evidence",
+        "status": "done",
+        "dependsOn": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "scopeDir": "scopes/06-comparison-optional-evidence",
+        "scopeArtifact": "scopes/06-comparison-optional-evidence/scope.md",
+        "reportArtifact": "scopes/06-comparison-optional-evidence/report.md"
+      },
+      {
+        "scope": 7,
+        "scopeId": "07-validation-risk-process",
+        "name": "Validation Cost Expectancy And Process",
+        "status": "done",
+        "dependsOn": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "scopeDir": "scopes/07-validation-risk-process",
+        "scopeArtifact": "scopes/07-validation-risk-process/scope.md",
+        "reportArtifact": "scopes/07-validation-risk-process/report.md"
+      },
+      {
+        "scope": 8,
+        "scopeId": "08-experience-publication",
+        "name": "Complete Experience Publication And Registration",
+        "status": "done",
+        "dependsOn": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7"
+        ],
+        "scopeDir": "scopes/08-experience-publication",
+        "scopeArtifact": "scopes/08-experience-publication/scope.md",
+        "reportArtifact": "scopes/08-experience-publication/report.md"
+      },
+      {
+        "scope": 9,
+        "scopeId": "09-regression-closure",
+        "name": "Protected Regression And Governance Closure",
+        "status": "done",
+        "dependsOn": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8"
+        ],
+        "scopeDir": "scopes/09-regression-closure",
+        "scopeArtifact": "scopes/09-regression-closure/scope.md",
+        "reportArtifact": "scopes/09-regression-closure/report.md"
+      }
     ],
-    "activeBugs": [],
-    "resolvedBugs": [],
-    "failures": [],
-    "lastUpdatedAt": "2026-07-15T18:11:17Z",
-    "scopeLayout": "per-scope-directory",
-    "artifacts": {
-        "spec": "spec.md",
-        "design": "design.md",
-        "scopes": "scopes/_index.md",
-        "report": "scopes/*/report.md",
-        "scopeReports": "scopes/*/report.md",
-        "uservalidation": "uservalidation.md",
-        "scenarioManifest": "scenario-manifest.json",
-        "testPlan": "test-plan.json",
-        "lockdownApprovals": "lockdown-approvals.json",
-        "invalidationLedger": "invalidation-ledger.json",
-        "transitionRequests": "transition-requests.json",
-        "reworkQueue": "rework-queue.json"
-    },
-    "statusDiscipline": {
-        "validStatuses": [
-            "not_started",
-            "in_progress",
-            "blocked",
-            "specs_hardened",
-            "docs_updated",
-            "validated",
-            "done"
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": null,
+      "currentAttemptId": null,
+      "attempts": []
+    }
+  },
+  "certification": {
+    "status": "blocked",
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "01-capability-foundation",
+        "name": "Capability Foundation And Shared Contracts",
+        "status": "done",
+        "dependsOn": [],
+        "scopeDir": "scopes/01-capability-foundation",
+        "scopeArtifact": "scopes/01-capability-foundation/scope.md",
+        "reportArtifact": "scopes/01-capability-foundation/report.md",
+        "certifiedAt": "2026-08-13T04:05:00Z"
+      },
+      {
+        "scope": 2,
+        "scopeId": "02-technique-engine",
+        "name": "Technique Engine And Evidence Independence",
+        "status": "done",
+        "dependsOn": [
+          "1"
         ],
-        "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
-        "scopeDoneGates": [
-            "G020",
-            "G021",
-            "G022",
-            "G023",
-            "G024",
-            "G025",
-            "G055",
-            "G056",
-            "G057",
-            "G058",
-            "G059",
-            "G060",
-            "G061"
+        "scopeDir": "scopes/02-technique-engine",
+        "scopeArtifact": "scopes/02-technique-engine/scope.md",
+        "reportArtifact": "scopes/02-technique-engine/report.md",
+        "certifiedAt": "2026-08-14T22:10:00Z"
+      },
+      {
+        "scope": 3,
+        "scopeId": "03-setup-lifecycle",
+        "name": "Level Geometry And Setup Lifecycle",
+        "status": "done",
+        "dependsOn": [
+          "1",
+          "2"
         ],
-        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+        "scopeDir": "scopes/03-setup-lifecycle",
+        "scopeArtifact": "scopes/03-setup-lifecycle/scope.md",
+        "reportArtifact": "scopes/03-setup-lifecycle/report.md",
+        "certifiedAt": "2026-08-15T00:55:00Z"
+      },
+      {
+        "scope": 4,
+        "scopeId": "04-five-gate-synthesis",
+        "name": "Five-Gate Synthesis And Candidate Selection",
+        "status": "done",
+        "dependsOn": [
+          "1",
+          "2",
+          "3"
+        ],
+        "scopeDir": "scopes/04-five-gate-synthesis",
+        "scopeArtifact": "scopes/04-five-gate-synthesis/scope.md",
+        "reportArtifact": "scopes/04-five-gate-synthesis/report.md",
+        "certifiedAt": "2026-08-15T01:30:00Z"
+      },
+      {
+        "scope": 5,
+        "scopeId": "05-owner-publication",
+        "name": "Existing-Owner Publication And Strict Adapters",
+        "status": "done",
+        "dependsOn": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "scopeDir": "scopes/05-owner-publication",
+        "scopeArtifact": "scopes/05-owner-publication/scope.md",
+        "reportArtifact": "scopes/05-owner-publication/report.md",
+        "certifiedAt": "2026-08-15T03:20:00Z"
+      },
+      {
+        "scope": 6,
+        "scopeId": "06-comparison-optional-evidence",
+        "name": "Comparison And Optional Evidence",
+        "status": "done",
+        "dependsOn": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "scopeDir": "scopes/06-comparison-optional-evidence",
+        "scopeArtifact": "scopes/06-comparison-optional-evidence/scope.md",
+        "reportArtifact": "scopes/06-comparison-optional-evidence/report.md",
+        "certifiedAt": "2026-08-15T04:10:00Z"
+      },
+      {
+        "scope": 7,
+        "scopeId": "07-validation-risk-process",
+        "name": "Validation Cost Expectancy And Process",
+        "status": "done",
+        "dependsOn": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "scopeDir": "scopes/07-validation-risk-process",
+        "scopeArtifact": "scopes/07-validation-risk-process/scope.md",
+        "reportArtifact": "scopes/07-validation-risk-process/report.md",
+        "certifiedAt": "2026-08-15T05:00:00Z"
+      },
+      {
+        "scope": 8,
+        "scopeId": "08-experience-publication",
+        "name": "Complete Experience Publication And Registration",
+        "status": "done",
+        "dependsOn": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7"
+        ],
+        "scopeDir": "scopes/08-experience-publication",
+        "scopeArtifact": "scopes/08-experience-publication/scope.md",
+        "reportArtifact": "scopes/08-experience-publication/report.md",
+        "certifiedAt": "2026-08-15T06:30:00Z"
+      },
+      {
+        "scope": 9,
+        "scopeId": "09-regression-closure",
+        "name": "Protected Regression And Governance Closure",
+        "status": "done",
+        "dependsOn": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8"
+        ],
+        "scopeDir": "scopes/09-regression-closure",
+        "scopeArtifact": "scopes/09-regression-closure/scope.md",
+        "reportArtifact": "scopes/09-regression-closure/report.md",
+        "certifiedAt": "2026-08-15T07:45:00Z"
+      }
+    ],
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
     },
-    "notes": "Planning created a nine-scope per-directory execution DAG with a foundation-first dependency chain, per-scope evidence templates, a 32-contract scenario manifest, an 81-row machine-readable Test Plan, and a substantive user-validation baseline. Status, policy, completed-phase claims, completed scopes, and certification remain at their design-phase baseline."
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "repo-default"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-15T15:54:54Z",
+      "finishedAt": "2026-07-15T16:08:17Z",
+      "outcome": "route_required",
+      "summary": "Created the greenfield Technical Analysis Decision Lab business specification from Research Lab capability evidence and independently researched historical, academic, regulatory, exchange, indicator, microstructure, option, behavioral, and competitor sources. Defined 8 actors, 10 use cases, 24 Gherkin business scenarios, 98 functional requirements, 20 non-functional requirements, 9 specialist models, 8 actionable setup definitions, one five-gate overview model, an evidence-tier policy, asset/session-aware timeframe profiles, comparison roles, exact-variant validation, and 6 ranked proposals. Reconciled all four transcripts through an explicit claim ledger: retained bounded Dow/Wyckoff and risk hypotheses, corrected 4h stock-session and VWAP/value-area assumptions, rejected unsupported trader-failure and institutional-intent claims, and rejected Transcript 3's inconsistent arithmetic. Focused analyst checks and artifact freshness passed. Artifact lint accepted spec.md, state.json, and sidecar absence but remained nonzero for design.md, scopes.md, report.md, and uservalidation.md owned by downstream specialists. G094 accepted the Domain Capability Model and remained nonzero only because bubbles.design has not authored design.md. No design, scope, report, user-validation, source, test, registry, status, completed-phase claim, policy snapshot, or certification field was changed."
+    },
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-15T16:48:13Z",
+      "finishedAt": "2026-07-15T16:54:00Z",
+      "outcome": "route_required",
+      "summary": "Reconciled and strengthened the existing source-backed analyst specification without replacing its prior research. Preserved 8 actors, 10 use cases, 9 specialist models, 8 setup definitions, and the five-gate framework; expanded business coverage from 24 to 31 Gherkin scenarios, functional requirements from 98 to 107, and acceptance criteria from 10 to 14. Added an auditable repository/source grounding matrix, fail-closed transcript-claim admission, cross-model family independence, explicit terminal setup lifecycle, denominator- and vintage-aware comparison policy, candidate competition, invalid-configuration recovery, failed-refresh truth preservation, and transcript-admission scenarios. Corrected the prior overclaim that Strategy Validation already provides cost-aware validation: its current backtest/walkForward/deflatedSharpe surface supports embargo, robustness, and multiplicity but not a first-class transaction-cost contract. The focused analyst check passed with 8 source-grounded actor rows, 6 source-grounded proposal blocks, 10 live source anchors, one-to-one 31/31 Gherkin parity, 107 requirements, 14 acceptance criteria, and zero placeholder/deferral markers; artifact freshness passed. G094 accepted the analyst Domain Capability Model and reported only missing design.md. Artifact lint reported exactly four downstream-owned missing artifacts: design.md, scopes.md, report.md, and uservalidation.md. No design, scope, report, user-validation, scenario-manifest, source, test, registry, status, completed-phase claim, policy snapshot, or certification field was changed. Next required owner is bubbles.ux under the full-delivery planning chain."
+    },
+    {
+      "agent": "bubbles.ux",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-15T16:59:32Z",
+      "finishedAt": "2026-07-15T17:09:27Z",
+      "outcome": "route_required",
+      "summary": "Authored and reconciled the complete UX contract inline in spec.md without changing analyst-owned requirements. Defined 10 same-route Simple, Power, truth-state, audit, and mobile screen compositions; 23 reusable UI primitives; one compact default Simple cockpit with five ordered gates, setup lifecycle, model-by-timeframe evidence, historical/model level confluence, all nine specialist summaries, explicit comparisons, exact validation, precommitted trigger/invalidation/targets/asymmetry, and no-edge/unavailable behavior; and Power evidence, model configuration, setup history, comparison/option/microstructure eligibility, validation/expectancy, source/vintage, claim-ledger, and owner-read surfaces. Added 9 Mermaid user flows, explicit one-to-one BS-001 through BS-031 screen/flow outcomes, and contiguous FR-001 through FR-107 UX coverage. Focused UX1-UX9 validation passed with 10/10 wireframes carrying interactions, responsive rules, and accessibility; no forbidden sidecars exist; all 31 scenario rows and all 107 requirement ranges were present. Artifact freshness passed with zero findings. Artifact lint remained nonzero only for four downstream-owned missing artifacts: design.md, scopes.md, report.md, and uservalidation.md. G094 accepted the Domain Capability Model and UI Primitives and remained nonzero only because bubbles.design has not authored design.md. No design, scope, report, user-validation, scenario-manifest, source, test, registry, documentation, status, completed-phase claim, policy snapshot, or certification field was changed."
+    },
+    {
+      "agent": "bubbles.design",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-15T17:27:47Z",
+      "finishedAt": "2026-07-15T17:38:53Z",
+      "outcome": "route_required",
+      "summary": "Created the substantive contract-grade design.md from the current analyst and UX handoff. Defined the build-free static architecture, capability-first source/vintage and session/timeframe foundation, detailed owner-read boundaries for seven existing tools plus Feature 006, source-qualified intraday extension, shared validation primitives, nine specialist overlays, eight setup implementations, exact data/error/truth contracts, append-only setup lifecycle, deterministic candidate ranking, variant and validation identity, cost/risk/arithmetic/process controls, five ordered gates, one immutable UnifiedRead, synchronous canvas rendering, local persistence and safety boundaries, 65 extractable pure symbols, 31 technical scenario mappings, and complete FR-001 through FR-107 coverage. Focused design validation passed. Artifact freshness passed. G094 accepted the domain, design, UI, concrete implementation, and variation-axis contracts and reported one plan-owned missing foundation scope. Artifact lint accepted spec.md, design.md, state.json, and sidecar absence and reported only missing scopes.md, report.md, and uservalidation.md owned by bubbles.plan. No analyst/UX content, plan artifact, scenario manifest, product code, test, registry, top-level status, certification field, completed phase claim, or policy snapshot was changed."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-15T18:01:42Z",
+      "finishedAt": "2026-07-15T18:11:17Z",
+      "outcome": "completed_owned",
+      "summary": "Created the complete nine-scope per-directory execution plan and planning-owned handoff artifacts. Scope 01 is tagged foundation:true and every technique, setup, gate, owner, comparison, validation, UI, publication, and regression overlay depends on it. The plan assigns all 65 exact page-local tad declarations and seven shared RLVALID declarations once; covers six nested owner publishers, Strategy Validation parity, and an honest optional Feature 006 adapter; records marker-bounded shared-surface sweeps, independent canaries, rollback paths, and preservation of Feature 005/006 dirty work; and defines 81 synchronized Markdown/JSON/DoD test rows with scenario-first RED/GREEN obligations, real system-Chrome static-page E2E, accessibility/mobile/background-canvas checks, validation/cost arithmetic, owner/registry canaries, and no unjustified stress/load category. Created nine report templates, a substantive user-validation baseline, and scenario-manifest.json with 31 exact BS contracts plus SCN-007-032 and verified SHA-256 hashes. Focused plan sync and symbol sync passed; artifact lint, artifact freshness, and G094 passed. Traceability reported only implementation-owned missing links to the planned tests/technical-analysis-decision-lab.spec.mjs file. Updated only execution routing/scope paths and artifact paths in state.json; top-level status, policy snapshot, completed phase claims, completed scopes, and certification remain unchanged. Next required owner is bubbles.implement."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "failures": [],
+  "lastUpdatedAt": "2026-08-15T20:48:05Z",
+  "scopeLayout": "per-scope-directory",
+  "artifacts": {
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes/_index.md",
+    "report": "scopes/*/report.md",
+    "scopeReports": "scopes/*/report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json",
+    "lockdownApprovals": "lockdown-approvals.json",
+    "invalidationLedger": "invalidation-ledger.json",
+    "transitionRequests": "transition-requests.json",
+    "reworkQueue": "rework-queue.json"
+  },
+  "statusDiscipline": {
+    "validStatuses": [
+      "not_started",
+      "in_progress",
+      "blocked",
+      "specs_hardened",
+      "docs_updated",
+      "validated",
+      "done"
+    ],
+    "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+    "scopeDoneGates": [
+      "G020",
+      "G021",
+      "G022",
+      "G023",
+      "G024",
+      "G025",
+      "G055",
+      "G056",
+      "G057",
+      "G058",
+      "G059",
+      "G060",
+      "G061"
+    ],
+    "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+  },
+  "notes": "Planning created a nine-scope per-directory execution DAG with a foundation-first dependency chain, per-scope evidence templates, a 32-contract scenario manifest, an 81-row machine-readable Test Plan, and a substantive user-validation baseline. Status, policy, completed-phase claims, completed scopes, and certification remain at their design-phase baseline."
 }

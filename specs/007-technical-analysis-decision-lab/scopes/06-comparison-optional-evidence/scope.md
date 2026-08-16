@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -89,21 +89,21 @@ Write role-separation, alignment, denominator, incompatibility, identity, and br
 
 #### Core Delivery Items
 
-- [ ] Every comparison role retains explicit membership, rationale, source/as-of, alignment, normalization, denominator, eligibility, exclusion, and truth state across all projections.
-- [ ] Normalized ratios/corresponding swings and denominator-aware peer evidence are correct; raw-price similarity, silent role substitution, auto-replacement, and unsupported Dow equivalence are absent.
-- [ ] Any membership, role, classification, normalization, or denominator-policy change creates a distinct variant and leaves the prior passport attached only to its prior identity.
-- [ ] Option and microstructure evidence stays separately optional, source/convention faithful, and unavailable when its exact contract is absent.
-- [ ] Scope 06 marker, Shared Impact Sweep, owner-read canaries, fixtures, and rollback preserve every prior and excluded surface.
-- [ ] Every Scope 06 Test Plan row has intended RED and same-command GREEN evidence.
+- [x] Every comparison role retains explicit membership, rationale, source/as-of, alignment, normalization, denominator, eligibility, exclusion, and truth state across all projections. Evidence: report.md#coverage-report — role/rationale/source/as-of required and refused when absent; per-role symbolIds, eligibleIds, excluded, denominator, state
+- [x] Normalized ratios/corresponding swings and denominator-aware peer evidence are correct; raw-price similarity, silent role substitution, auto-replacement, and unsupported Dow equivalence are absent. Evidence: report.md#scenario-scn-007-014 — total-return normalization enforced, raw-price refused, no auto-replacement, Dow equivalence disclaimed and pinned
+- [x] Any membership, role, classification, normalization, or denominator-policy change creates a distinct variant and leaves the prior passport attached only to its prior identity. Evidence: report.md#scenario-scn-007-028 — six behaviour-bearing dimensions each yield a distinct identity; break F proves the digest is load-bearing
+- [x] Option and microstructure evidence stays separately optional, source/convention faithful, and unavailable when its exact contract is absent. Evidence: report.md#uncertainty-declarations — rendered by the Scope 05 band; Scope 05 owner matrix GREEN inside the cumulative suite
+- [x] Scope 06 marker, Shared Impact Sweep, owner-read canaries, fixtures, and rollback preserve every prior and excluded surface. Evidence: report.md#tp-06-05 — cumulative suite 27/27 with the Scope 05 owner matrix green; no owner page edited
+- [x] Every Scope 06 Test Plan row has intended RED and same-command GREEN evidence. Evidence: report.md#audit-verdict — validator RED before declaration registration and before the two titles existed; breaks E and F
 
 #### Test Evidence Items - Exact Parity With 5 Test Plan Rows
 
-- [ ] TP-06-01 unit evidence proves comparison construction, alignment, ratios, roles, denominators, incompatibility, identity, and prior-passport preservation.
-- [ ] TP-06-02 functional evidence proves comparison/config/owner references and universe JSON parity.
-- [ ] TP-06-03 Regression E2E evidence proves SCN-007-014 keeps market, sector, and peer outcomes separate and exposes relative weakness.
-- [ ] TP-06-04 Regression E2E evidence proves SCN-007-028 creates a new identity for changed membership and preserves prior validation.
-- [ ] TP-06-05 broader E2E evidence proves the cumulative Feature 007 suite passes after focused Scope 06 rows.
+- [x] TP-06-01 unit evidence proves comparison construction, alignment, ratios, roles, denominators, incompatibility, identity, and prior-passport preservation. Evidence: report.md#tp-06-01 — selftest 1897 passed, 0 failed (baseline 1863)
+- [x] TP-06-02 functional evidence proves comparison/config/owner references and universe JSON parity. Evidence: report.md#tp-06-02 — validator checks=153 result=PASS (baseline 133)
+- [x] TP-06-03 Regression E2E evidence proves SCN-007-014 keeps market, sector, and peer outcomes separate and exposes relative weakness. Evidence: report.md#scenario-scn-007-014 — GREEN; controlled break E turns it RED
+- [x] TP-06-04 Regression E2E evidence proves SCN-007-028 creates a new identity for changed membership and preserves prior validation. Evidence: report.md#scenario-scn-007-028 — GREEN; controlled break F turns it RED
+- [x] TP-06-05 broader E2E evidence proves the cumulative Feature 007 suite passes after focused Scope 06 rows. Evidence: report.md#tp-06-05 — 27 passed
 
 #### Build Quality Gate
 
-- [ ] Focused RED/GREEN records, comparison identity/denominator audit, source-qualified fixture review, marker diffs, owner matrix, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, and traceability are current and clean with every finding accounted for.
+- [x] Focused RED/GREEN records, comparison identity/denominator audit, source-qualified fixture review, marker diffs, owner matrix, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, and traceability are current and clean with every finding accounted for. Evidence: report.md#lint-and-quality — legibility 0 leaks/27 pages, git diff --check clean, artifact lint PASSED

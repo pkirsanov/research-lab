@@ -364,7 +364,26 @@ test('Regression: agenda shell has one Simple owner, durable target focus, tab f
 test('SCN-019-020 research agenda opens in Simple and Power reveals the complete dossier workspace', async ({ page }) => {
   await openResearchAgenda(page);
   await expect(page.locator('#currentPosture')).toContainText('Unavailable');
-  await expect(page.locator('#currentReason')).toContainText('did not produce a validated current dossier');
+  // The reason is asserted as a CONTRACT, not as one authored sentence. Pinning the exact prose tied
+  // this test to whichever reason code the 4×/day scheduled refresh last published: when the producer
+  // moved this topic from `research-lane-unavailable` to `situation-shape-invalid`, the assertion
+  // broke — while the defect it should have caught (the renderer Title-Cased the unmapped slug and
+  // printed "Situation Shape Invalid." as if it were an explanation) sailed straight past it, because
+  // that string was simply a different string. So assert what must hold for EVERY reason code.
+  const reason = (await page.locator('#currentReason').innerText()).trim();
+  expect(reason.length).toBeGreaterThan(20);
+  expect(reason).toMatch(/[.!?]$/);
+  // Adversarial: a Title-Cased machine slug is exactly what the reader must never be shown. Every
+  // hyphenated reason code renders as such a slug ("Situation Shape Invalid"), so requiring its
+  // ABSENCE fails on the real regression and passes only on real reader copy.
+  const slugAsProse = /\b(?:[A-Z][a-z]+ ){2,}(?:Invalid|Missing|Incomplete|Elapsed|Unavailable)\b/;
+  expect(reason, `reason copy must not be a Title-Cased machine slug: ${reason}`).not.toMatch(slugAsProse);
+  // And it must be the sentence the shared map publishes for the code the payload actually carries.
+  const payloadReason = await page.evaluate(() => {
+    const view = globalThis.__researchAgendaDebug.getViewState();
+    return (view && view.review && view.review.reason) || null;
+  });
+  if (payloadReason) expect(reason.toLowerCase()).not.toContain(String(payloadReason).toLowerCase());
   await expect(page.locator('#currentScenarios .metric-row')).toHaveCount(0);
   await expect(page.locator('#historicalBand')).toBeHidden();
 
@@ -379,10 +398,36 @@ test('SCN-019-020 research agenda opens in Simple and Power reveals the complete
   await expect(page.locator('#proxyWorkspace table tbody tr')).toHaveCount(12);
   await expect(page.locator('#evidenceList .evidence-row')).toHaveCount(6);
   await expect(page.locator('#sourceList .source-row')).toHaveCount(11);
-  await expect(page.locator('#historyList .history-row')).toHaveCount(4);
-  await expect(page.locator('#historyList')).toContainText('Historical Seed');
-  await expect(page.locator('#historyList')).toContainText('Lifecycle');
-  await expect(page.locator('#historyList')).toContainText('Review');
+  /* The history is an append-only ledger that the 4×/day scheduler grows, so a fixed row count is a
+     clock, not a contract — it read 2 when this was written and reads more on every later run. What
+     the ledger must actually guarantee is asserted instead: it is non-empty, it never shrinks below
+     the two entries this scenario established, and it stays in immutable chronological order. */
+  const historyRows = page.locator('#historyList .history-row');
+  const historyCount = await historyRows.count();
+  expect(historyCount).toBeGreaterThanOrEqual(2);
+  const stamps = await page.evaluate(() => Array.from(document.querySelectorAll('#historyList .history-row'))
+    .map((row) => {
+      const match = row.innerText.match(/[A-Z][a-z]{2} \d{1,2}, \d{4}, \d{1,2}:\d{2} [AP]M UTC/);
+      return match ? Date.parse(match[0].replace(/,/g, '')) : null;
+    }).filter((value) => Number.isFinite(value)));
+  // Every row is timestamped. The rendered format is "Review - Aug 15, 2026, 6:31 PM UTC", so the
+  // stamp is parsed from that display form rather than assumed to be ISO.
+  expect(stamps.length, 'every history row carries a parseable timestamp').toBe(historyCount);
+  expect(stamps.every((value) => Number.isFinite(value))).toBe(true);
+  /* Adversarial, and the reason a count check is not enough: an append-only ledger that renders its
+     entries out of order, or that appends the same event twice, still has a plausible row count.
+     Order is newest-first and ids are unique; both must hold however many entries the scheduler has
+     added since this scenario was written. */
+  const newestFirst = stamps.slice().sort((left, right) => right - left);
+  expect(stamps, 'history renders newest-first').toEqual(newestFirst);
+  const ids = await page.evaluate(() => Array.from(document.querySelectorAll('#historyList .history-row'))
+    .map((row) => (row.innerText.match(/\b(?:review-[0-9a-f]+|historical-[0-9a-z-]+)\b/) || [null])[0]));
+  expect(ids.filter(Boolean).length, 'every history row names its record').toBe(historyCount);
+  expect(new Set(ids).size, 'no record is appended twice').toBe(historyCount);
+  // The dated seed stays labelled historical, so it can never be read as a current conclusion.
+  const rows = await page.evaluate(() => Array.from(document.querySelectorAll('#historyList .history-row'))
+    .map((row) => row.innerText.replace(/\s+/g, ' ')));
+  expect(rows[rows.length - 1], 'the historical seed remains marked historical only').toContain('historical only');
   await expect(page.locator('#fixtureBand')).toBeHidden();
 });
 

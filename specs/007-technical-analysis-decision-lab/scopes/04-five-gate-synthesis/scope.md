@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -141,25 +141,25 @@ Write the exact gate/rank assertions first, capture intended RED, implement one 
 
 #### Core Delivery Items
 
-- [ ] All five exact gate functions expose observed, required, outcome, reasons, dependencies, weakest evidence, closed state, and cutoff in fixed order.
-- [ ] Mandatory fail/unavailable precedence, family-level counting, timeframe conflict, warning-versus-reversal, no-edge/mixed abstention, and diagnostic completion work exactly as specified.
-- [ ] Candidate ranking is deterministic, validation/truth/contradiction aware, direction neutral, and preserves every non-selected candidate and losing dimension.
-- [ ] `tadBuildUnifiedRead` commits one frozen complete identity and never publishes a partial, canceled, invalid, or internally inconsistent result.
-- [ ] Scope 04 marker, Shared Impact Sweep, fixtures, lifecycle preservation, and rollback boundaries preserve all prior and excluded work.
-- [ ] Every Scope 04 Test Plan row has intended RED and same-command GREEN evidence.
+- [x] All five exact gate functions expose observed, required, outcome, reasons, dependencies, weakest evidence, closed state, and cutoff in fixed order. — Evidence: [report.md#scenario-scn-007-002](report.md#scenario-scn-007-002); five records in the declared order, every gate stating `observed` and `required` on passes as well as failures, with dependencies declared per gate. Validator `scope04-gate-order-exact` PASS.
+- [x] Mandatory fail/unavailable precedence, family-level counting, timeframe conflict, warning-versus-reversal, no-edge/mixed abstention, and diagnostic completion work exactly as specified. — Evidence: [report.md#scenario-scn-007-003](report.md#scenario-scn-007-003) and [report.md#scenario-scn-007-004](report.md#scenario-scn-007-004); a later passing gate is `diagnosticOnly` and cannot restore eligibility, the conflict never calls the primary reversed, and abstention yields NO_EDGE/MIXED.
+- [x] Candidate ranking is deterministic, validation/truth/contradiction aware, direction neutral, and preserves every non-selected candidate and losing dimension. — Evidence: [report.md#scenario-scn-007-027](report.md#scenario-scn-007-027); identical ranking under reversed input, direction absent from dimensions and output, all 3 candidates retained with their missing condition. Validator `scope04-ranking-never-reads-direction` PASS.
+- [x] `tadBuildUnifiedRead` commits one frozen complete identity and never publishes a partial, canceled, invalid, or internally inconsistent result. — Evidence: [report.md#tp-04-01](report.md#tp-04-01); frozen via `tadDeepFreeze` with a 64-hex `tad-read:` identity, and it refuses to build without candidates or without an observation cutoff.
+- [x] Scope 04 marker, Shared Impact Sweep, fixtures, lifecycle preservation, and rollback boundaries preserve all prior and excluded work. — Evidence: [report.md#tp-04-09](report.md#tp-04-09); 20/20 with every Scope 01-03 title and the shared-behavior canary green, synthesis appends no candidate event, validator `scope04-marker-block-present` PASS.
+- [x] Every Scope 04 Test Plan row has intended RED and same-command GREEN evidence. — Evidence: [report.md#adversarial-verification](report.md#adversarial-verification); four controlled breaks each failed the tests asserting the removed property and no others. The RED for TP-04-01 is controlled-break rather than scenario-first and is declared as such.
 
 #### Test Evidence Items - Exact Parity With 9 Test Plan Rows
 
-- [ ] TP-04-01 unit evidence proves every gate, ranking, precedence, tie, completeness, and deterministic-repeat branch.
-- [ ] TP-04-02 functional evidence proves gate/setup/ranking/UnifiedRead config and contract closure.
-- [ ] TP-04-03 Regression E2E evidence proves SCN-007-001 fails location and remains `NO EDGE` despite aligned trend.
-- [ ] TP-04-04 Regression E2E evidence proves SCN-007-002 exposes one fully explained `TRIGGERED` read after all gates pass.
-- [ ] TP-04-05 Regression E2E evidence proves SCN-007-003 invalidation defeats correlated bullish methods.
-- [ ] TP-04-06 Regression E2E evidence proves SCN-007-004 preserves tactical/primary conflict and countertrend eligibility.
-- [ ] TP-04-07 Regression E2E evidence proves SCN-007-022 emits complete no-edge/mixed abstention without a weak substitute.
-- [ ] TP-04-08 Regression E2E evidence proves SCN-007-027 selects by complete evidence and retains alternatives.
-- [ ] TP-04-09 broader E2E evidence proves the cumulative Feature 007 suite passes after focused Scope 04 rows.
+- [x] TP-04-01 unit evidence proves every gate, ranking, precedence, tie, completeness, and deterministic-repeat branch. — Evidence: [report.md#tp-04-01](report.md#tp-04-01); `node scripts/selftest.mjs` → 1811 passed, 0 failed (33 new assertions).
+- [x] TP-04-02 functional evidence proves gate/setup/ranking/UnifiedRead config and contract closure. — Evidence: [report.md#tp-04-02](report.md#tp-04-02); `node scripts/validate-technical-analysis-decision.mjs` → checks=78, result=PASS.
+- [x] TP-04-03 Regression E2E evidence proves SCN-007-001 fails location and remains `NO EDGE` despite aligned trend. — Evidence: [report.md#tp-04-03](report.md#tp-04-03); primary=pass, location=fail, readState=NO_EDGE, chaseRiskNamed=true.
+- [x] TP-04-04 Regression E2E evidence proves SCN-007-002 exposes one fully explained `TRIGGERED` read after all gates pass. — Evidence: [report.md#tp-04-04](report.md#tp-04-04); five passes in order, passCount=5, every gate stating observed and required.
+- [x] TP-04-05 Regression E2E evidence proves SCN-007-003 invalidation defeats correlated bullish methods. — Evidence: [report.md#tp-04-05](report.md#tp-04-05); trigger=fail on closed-beyond-invalidation with the later passing gate marked diagnosticOnly.
+- [x] TP-04-06 Regression E2E evidence proves SCN-007-004 preserves tactical/primary conflict and countertrend eligibility. — Evidence: [report.md#tp-04-06](report.md#tp-04-06); regime fails without a countertrend-eligible family and passes with one, both recording primary-not-reversed.
+- [x] TP-04-07 Regression E2E evidence proves SCN-007-022 emits complete no-edge/mixed abstention without a weak substitute. — Evidence: [report.md#tp-04-07](report.md#tp-04-07); readState=NO_EDGE, no selection, nearest candidate and missing condition named, forcedWeakSignal=false.
+- [x] TP-04-08 Regression E2E evidence proves SCN-007-027 selects by complete evidence and retains alternatives. — Evidence: [report.md#tp-04-08](report.md#tp-04-08); the short failed-break wins on passCount=5, the long breakout ranks 2, direction absent from ranking.
+- [x] TP-04-09 broader E2E evidence proves the cumulative Feature 007 suite passes after focused Scope 04 rows. — Evidence: [report.md#tp-04-09](report.md#tp-04-09); 20 passed.
 
 #### Build Quality Gate
 
-- [ ] Focused RED/GREEN records, gate/rank semantic review, candidate-ledger immutability, marker diffs, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, and traceability are current and clean with every finding accounted for.
+- [x] Focused RED/GREEN records, gate/rank semantic review, candidate-ledger immutability, marker diffs, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, and traceability are current and clean with every finding accounted for. — Evidence: [report.md#lint-and-quality](report.md#lint-and-quality); `git diff --check` clean, reader-legibility 0 leaks/27 pages, no interception or silent-pass patterns in the 6 new tests, Scope 03 ledger assertions unchanged, and four findings recorded in Uncertainty Declarations rather than deferred silently.

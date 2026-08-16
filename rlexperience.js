@@ -1999,7 +1999,17 @@
       if (!current) return null;
       var registration = current.registration;
       var tool = current.tool;
+      /* Two independent ways a page already answers Simple itself. Painting the shell's panel in
+         either case puts a SECOND Simple answer beside the page's own one, and the two can flatly
+         contradict each other: the placeholder reads "this tool's own model is not loaded, so there
+         is no result to show" while the page's own cockpit, directly beneath it, renders a resolved
+         decision. The shell already stands down for these pages everywhere else it would compete —
+         it leaves location.hash alone, it keeps the page's own #modeSeg, and applyVisual never
+         focuses over them — so declining here is the same rule applied to the one surface that
+         still painted. Both conditions are generic properties of the registration, never a tool
+         identity. Declining is silent by contract, exactly as for the cases above. */
       if (Array.isArray(registration.ownerModes) && registration.ownerModes.indexOf("simple") !== -1) return null;
+      if (registration.ownsRoute === true) return null;
       if (document.body.getAttribute("data-rlview") !== "simple") return null;
       var panel = document.querySelector('[data-rlexperience-panel="simple"]');
       if (!panel) return null;

@@ -1,0 +1,458 @@
+{
+  "fixtureId": "owner-publication",
+  "decisionCutoff": "2026-07-15T20:00:00.000Z",
+  "symbol": "SYNTH-A",
+  "sessionContractId": "daily-close",
+  "note": "Deterministic analytic owner reads. Each entry is shaped exactly as a specialist page publishes it under metrics.ownerRead, so the admission path here exercises the same contract the real pages emit.",
+  "situations": {
+    "complete": {
+      "label": "Every owner published a compatible read",
+      "ownerReads": [
+        {
+          "contractVersion": "rl-tool-read/v1",
+          "id": "swing-structure-lab",
+          "availability": "available",
+          "asOf": "2026-07-15T20:00:00.000Z",
+          "computedAt": "2026-07-15T20:00:00.000Z",
+          "freshUntil": "2026-07-16T20:00:00.000Z",
+          "read": "Structure is aligned upward on the closed daily.",
+          "deepLink": "swing-structure-lab.html",
+          "metrics": {
+            "ownerRead": {
+              "contractVersion": "rl-ta-owner-read/v1",
+              "capabilityVersion": "swing-structure/v1",
+              "ownerId": "swing-structure-lab",
+              "resultId": "swing:SYNTH-A:2026-07-15T20:00:00.000Z",
+              "sourceSetId": "analytic-daily",
+              "symbol": "SYNTH-A",
+              "sessionContractId": "daily-close",
+              "decisionCutoff": "2026-07-15T20:00:00.000Z",
+              "truthState": "current",
+              "closedCoverage": 260,
+              "provisionalCoverage": 0,
+              "payload": { "alignment": { "label": "Aligned up", "trend": "up" }, "regime": { "band": "expansion" } },
+              "limitations": ["Daily closing-price structure only; intrabar behaviour is not described."]
+            }
+          }
+        },
+        {
+          "contractVersion": "rl-tool-read/v1",
+          "id": "intraday-tape-lab",
+          "availability": "available",
+          "asOf": "2026-07-15T20:00:00.000Z",
+          "computedAt": "2026-07-15T20:00:00.000Z",
+          "freshUntil": "2026-07-15T21:00:00.000Z",
+          "read": "Value is building above the opening range.",
+          "deepLink": "intraday-tape-lab.html",
+          "metrics": {
+            "ownerRead": {
+              "contractVersion": "rl-ta-owner-read/v1",
+              "capabilityVersion": "intraday-auction/v1",
+              "ownerId": "intraday-tape-lab",
+              "resultId": "intraday:SYNTH-A:65m:2026-07-15T20:00:00.000Z",
+              "sourceSetId": "analytic-intraday",
+              "symbol": "SYNTH-A",
+              "sessionContractId": "daily-close",
+              "decisionCutoff": "2026-07-15T20:00:00.000Z",
+              "truthState": "current",
+              "closedCoverage": 6,
+              "provisionalCoverage": 1,
+              "payload": { "dayType": { "type": "trend-day" }, "control": { "label": "buyers" } },
+              "limitations": ["Delta and control readings are OHLCV proxies; no tick-level bid/ask traded volume is available."]
+            }
+          }
+        },
+        {
+          "contractVersion": "rl-tool-read/v1",
+          "id": "options-structure-lab",
+          "availability": "available",
+          "asOf": "2026-07-15T20:00:00.000Z",
+          "computedAt": "2026-07-15T20:00:00.000Z",
+          "freshUntil": "2026-07-15T21:00:00.000Z",
+          "read": "Positive gamma into the call wall.",
+          "deepLink": "options-structure-lab.html",
+          "metrics": {
+            "ownerRead": {
+              "contractVersion": "rl-ta-owner-read/v1",
+              "capabilityVersion": "options-positioning/v1",
+              "ownerId": "options-structure-lab",
+              "resultId": "options:SYNTH-A:2026-07-15T20:00:00.000Z",
+              "sourceSetId": "analytic-chain",
+              "symbol": "SYNTH-A",
+              "sessionContractId": "daily-close",
+              "decisionCutoff": "2026-07-15T20:00:00.000Z",
+              "truthState": "current",
+              "closedCoverage": 48,
+              "provisionalCoverage": 0,
+              "payload": {
+                "signConventionId": "dealer-long-calls-short-puts",
+                "signApplied": true,
+                "snapshotAvailable": true,
+                "snapshotClocks": { "chainAsOf": "2026-07-15T19:55:00.000Z", "computedAt": "2026-07-15T20:00:00.000Z" },
+                "expirationCoverage": { "requested": 3, "resolved": 3, "epochs": [1784160000, 1784764800, 1785369600] },
+                "liquidityFilters": { "minOpenInterest": 25 },
+                "assumptions": { "riskFreeRate": 0.043, "dividendYield": 0, "volatilitySource": "chain-implied", "atmIV": 0.21 },
+                "levels": { "spot": 100, "callWall": 105, "putWall": 95, "flip": 99 },
+                "aggregates": { "netGEX": 1400000, "netVanna": 220000 }
+              },
+              "limitations": ["Every gamma and vanna value is already signed under the declared convention; do not re-sign it."]
+            }
+          }
+        },
+        {
+          "contractVersion": "rl-tool-read/v1",
+          "id": "gamma-trading-lab",
+          "availability": "available",
+          "asOf": "2026-07-15T20:00:00.000Z",
+          "computedAt": "2026-07-15T20:00:00.000Z",
+          "freshUntil": "2026-07-15T21:00:00.000Z",
+          "read": "Pinning environment.",
+          "deepLink": "gamma-trading-lab.html",
+          "metrics": {
+            "ownerRead": {
+              "contractVersion": "rl-ta-owner-read/v1",
+              "capabilityVersion": "gamma-playbook/v1",
+              "ownerId": "gamma-trading-lab",
+              "resultId": "gamma:SYNTH-A:2026-07-15T20:00:00.000Z",
+              "sourceSetId": "analytic-chain",
+              "symbol": "SYNTH-A",
+              "sessionContractId": "daily-close",
+              "decisionCutoff": "2026-07-15T20:00:00.000Z",
+              "truthState": "current",
+              "closedCoverage": 48,
+              "provisionalCoverage": 0,
+              "payload": {
+                "signConventionId": "dealer-long-calls-short-puts",
+                "signApplied": false,
+                "rawSnapshot": { "spot": 100, "netGEX": 1400000, "callWall": 105, "putWall": 95, "flip": 99 },
+                "environment": "pinning",
+                "openingVolumeImbalance": null,
+                "openingVolumeImbalanceMeasured": false
+              },
+              "limitations": ["Because the convention is not applied to the stored values, this read is not admissible as option-positioning evidence on its own."]
+            }
+          }
+        },
+        {
+          "contractVersion": "rl-tool-read/v1",
+          "id": "market-heatmap-lab",
+          "availability": "available",
+          "asOf": "2026-07-15T20:00:00.000Z",
+          "computedAt": "2026-07-15T20:00:00.000Z",
+          "freshUntil": "2026-07-16T20:00:00.000Z",
+          "read": "Risk-on breadth.",
+          "deepLink": "market-heatmap-lab.html",
+          "metrics": {
+            "ownerRead": {
+              "contractVersion": "rl-ta-owner-read/v1",
+              "capabilityVersion": "market-breadth/v1",
+              "ownerId": "market-heatmap-lab",
+              "resultId": "breadth:1d:2026-07-15T20:00:00.000Z",
+              "sourceSetId": "analytic-breadth",
+              "symbol": "SYNTH-A",
+              "sessionContractId": "daily-close",
+              "decisionCutoff": "2026-07-15T20:00:00.000Z",
+              "truthState": "current",
+              "closedCoverage": 11,
+              "provisionalCoverage": 0,
+              "payload": { "denominator": 11, "greenCount": 8, "bias": "risk-on" },
+              "limitations": ["Breadth is measured across the sector-ETF universe only, not the full market."]
+            }
+          }
+        },
+        {
+          "contractVersion": "rl-tool-read/v1",
+          "id": "sector-research-lab",
+          "availability": "available",
+          "asOf": "2026-07-15T20:00:00.000Z",
+          "computedAt": "2026-07-15T20:00:00.000Z",
+          "freshUntil": "2026-07-16T20:00:00.000Z",
+          "read": "Rotation into cyclicals.",
+          "deepLink": "sector-research-lab.html",
+          "metrics": {
+            "ownerRead": {
+              "contractVersion": "rl-ta-owner-read/v1",
+              "capabilityVersion": "relative-context/v1",
+              "ownerId": "sector-research-lab",
+              "resultId": "relative:BENCH:sector:2026-07-15T20:00:00.000Z",
+              "sourceSetId": "analytic-relative",
+              "symbol": "SYNTH-A",
+              "sessionContractId": "daily-close",
+              "decisionCutoff": "2026-07-15T20:00:00.000Z",
+              "truthState": "current",
+              "closedCoverage": 11,
+              "provisionalCoverage": 0,
+              "payload": { "benchmark": "BENCH", "denominator": 11, "leader": { "id": "cyclicals" } },
+              "limitations": ["Relative strength is measured against the declared benchmark only; a different benchmark changes every reading."]
+            }
+          }
+        }
+      ]
+    },
+    "missing-option-snapshot": {
+      "label": "No option chain snapshot exists for this symbol",
+      "ownerReads": [
+        {
+          "contractVersion": "rl-tool-read/v1",
+          "id": "swing-structure-lab",
+          "availability": "available",
+          "asOf": "2026-07-15T20:00:00.000Z",
+          "computedAt": "2026-07-15T20:00:00.000Z",
+          "freshUntil": "2026-07-16T20:00:00.000Z",
+          "read": "Structure is aligned upward on the closed daily.",
+          "deepLink": "swing-structure-lab.html",
+          "metrics": {
+            "ownerRead": {
+              "contractVersion": "rl-ta-owner-read/v1",
+              "capabilityVersion": "swing-structure/v1",
+              "ownerId": "swing-structure-lab",
+              "resultId": "swing:SYNTH-A:2026-07-15T20:00:00.000Z",
+              "sourceSetId": "analytic-daily",
+              "symbol": "SYNTH-A",
+              "sessionContractId": "daily-close",
+              "decisionCutoff": "2026-07-15T20:00:00.000Z",
+              "truthState": "current",
+              "closedCoverage": 260,
+              "provisionalCoverage": 0,
+              "payload": { "alignment": { "label": "Aligned up", "trend": "up" }, "optionSnapshot": null, "optionSnapshotAvailable": false },
+              "limitations": ["No option snapshot is available; option positioning is unavailable rather than neutral."]
+            }
+          }
+        },
+        {
+          "contractVersion": "rl-tool-read/v1",
+          "id": "options-structure-lab",
+          "availability": "unavailable",
+          "asOf": "2026-07-15T20:00:00.000Z",
+          "computedAt": "2026-07-15T20:00:00.000Z",
+          "freshUntil": "2026-07-15T21:00:00.000Z",
+          "read": "Option positioning unavailable",
+          "deepLink": "options-structure-lab.html",
+          "metrics": {
+            "ownerRead": {
+              "contractVersion": "rl-ta-owner-read/v1",
+              "capabilityVersion": "options-positioning/v1",
+              "ownerId": "options-structure-lab",
+              "resultId": "options:SYNTH-A:2026-07-15T20:00:00.000Z",
+              "sourceSetId": "analytic-chain",
+              "symbol": "SYNTH-A",
+              "sessionContractId": "daily-close",
+              "decisionCutoff": "2026-07-15T20:00:00.000Z",
+              "truthState": "unavailable",
+              "closedCoverage": 0,
+              "provisionalCoverage": 0,
+              "payload": {
+                "signConventionId": "dealer-long-calls-short-puts",
+                "signApplied": true,
+                "snapshotAvailable": false,
+                "snapshotClocks": { "chainAsOf": null, "computedAt": "2026-07-15T20:00:00.000Z" },
+                "expirationCoverage": null,
+                "liquidityFilters": { "minOpenInterest": 25 },
+                "assumptions": { "riskFreeRate": 0.043, "dividendYield": 0, "volatilitySource": "chain-implied", "atmIV": null },
+                "levels": null,
+                "aggregates": null
+              },
+              "limitations": ["No compatible option chain snapshot is available.", "Absent option evidence is unavailable; zero gamma, no wall, and neutral dealer positioning are not inferred."]
+            }
+          }
+        }
+      ]
+    },
+    "conflicting-convention": {
+      "label": "Two option owners disagree about the dealer sign convention",
+      "ownerReads": [
+        {
+          "contractVersion": "rl-tool-read/v1",
+          "id": "options-structure-lab",
+          "availability": "available",
+          "asOf": "2026-07-15T20:00:00.000Z",
+          "computedAt": "2026-07-15T20:00:00.000Z",
+          "freshUntil": "2026-07-15T21:00:00.000Z",
+          "read": "Positive gamma into the call wall.",
+          "deepLink": "options-structure-lab.html",
+          "metrics": {
+            "ownerRead": {
+              "contractVersion": "rl-ta-owner-read/v1",
+              "capabilityVersion": "options-positioning/v1",
+              "ownerId": "options-structure-lab",
+              "resultId": "options:SYNTH-A:2026-07-15T20:00:00.000Z",
+              "sourceSetId": "analytic-chain",
+              "symbol": "SYNTH-A",
+              "sessionContractId": "daily-close",
+              "decisionCutoff": "2026-07-15T20:00:00.000Z",
+              "truthState": "current",
+              "closedCoverage": 48,
+              "provisionalCoverage": 0,
+              "payload": {
+                "signConventionId": "dealer-long-calls-short-puts",
+                "signApplied": true,
+                "snapshotAvailable": true,
+                "snapshotClocks": { "chainAsOf": "2026-07-15T19:55:00.000Z", "computedAt": "2026-07-15T20:00:00.000Z" },
+                "expirationCoverage": { "requested": 3, "resolved": 3, "epochs": [1784160000] },
+                "liquidityFilters": { "minOpenInterest": 25 },
+                "assumptions": { "riskFreeRate": 0.043, "dividendYield": 0, "volatilitySource": "chain-implied", "atmIV": 0.21 },
+                "levels": { "spot": 100, "callWall": 105, "putWall": 95, "flip": 99 },
+                "aggregates": { "netGEX": 1400000, "netVanna": 220000 }
+              },
+              "limitations": ["Every gamma and vanna value is already signed under the declared convention; do not re-sign it."]
+            }
+          }
+        },
+        {
+          "contractVersion": "rl-tool-read/v1",
+          "id": "gamma-trading-lab",
+          "availability": "available",
+          "asOf": "2026-07-15T20:00:00.000Z",
+          "computedAt": "2026-07-15T20:00:00.000Z",
+          "freshUntil": "2026-07-15T21:00:00.000Z",
+          "read": "Pinning environment.",
+          "deepLink": "gamma-trading-lab.html",
+          "metrics": {
+            "ownerRead": {
+              "contractVersion": "rl-ta-owner-read/v1",
+              "capabilityVersion": "gamma-playbook/v1",
+              "ownerId": "gamma-trading-lab",
+              "resultId": "gamma:SYNTH-A:2026-07-15T20:00:00.000Z",
+              "sourceSetId": "analytic-chain",
+              "symbol": "SYNTH-A",
+              "sessionContractId": "daily-close",
+              "decisionCutoff": "2026-07-15T20:00:00.000Z",
+              "truthState": "current",
+              "closedCoverage": 48,
+              "provisionalCoverage": 0,
+              "payload": {
+                "signConventionId": "dealer-short-calls-long-puts",
+                "signApplied": false,
+                "rawSnapshot": { "spot": 100, "netGEX": 1400000, "callWall": 105, "putWall": 95, "flip": 99 },
+                "environment": "negative-gamma",
+                "openingVolumeImbalance": null,
+                "openingVolumeImbalanceMeasured": false
+              },
+              "limitations": ["The raw snapshot is stored under the base convention and is not re-signed; apply the declared convention once when reading it."]
+            }
+          }
+        }
+      ]
+    },
+    "stale-owner-cutoff": {
+      "label": "An owner published after the decision cutoff",
+      "ownerReads": [
+        {
+          "contractVersion": "rl-tool-read/v1",
+          "id": "swing-structure-lab",
+          "availability": "available",
+          "asOf": "2026-07-15T21:30:00.000Z",
+          "computedAt": "2026-07-15T21:30:00.000Z",
+          "freshUntil": "2026-07-16T21:30:00.000Z",
+          "read": "Structure is aligned upward on the closed daily.",
+          "deepLink": "swing-structure-lab.html",
+          "metrics": {
+            "ownerRead": {
+              "contractVersion": "rl-ta-owner-read/v1",
+              "capabilityVersion": "swing-structure/v1",
+              "ownerId": "swing-structure-lab",
+              "resultId": "swing:SYNTH-A:2026-07-15T21:30:00.000Z",
+              "sourceSetId": "analytic-daily",
+              "symbol": "SYNTH-A",
+              "sessionContractId": "daily-close",
+              "decisionCutoff": "2026-07-15T21:30:00.000Z",
+              "truthState": "current",
+              "closedCoverage": 260,
+              "provisionalCoverage": 0,
+              "payload": { "alignment": { "label": "Aligned up", "trend": "up" } },
+              "limitations": ["Daily closing-price structure only; intrabar behaviour is not described."]
+            }
+          }
+        }
+      ]
+    },
+    "daily-only": {
+      "label": "Daily evidence only; no intraday owner published",
+      "ownerReads": [
+        {
+          "contractVersion": "rl-tool-read/v1",
+          "id": "swing-structure-lab",
+          "availability": "available",
+          "asOf": "2026-07-15T20:00:00.000Z",
+          "computedAt": "2026-07-15T20:00:00.000Z",
+          "freshUntil": "2026-07-16T20:00:00.000Z",
+          "read": "Structure is aligned upward on the closed daily.",
+          "deepLink": "swing-structure-lab.html",
+          "metrics": {
+            "ownerRead": {
+              "contractVersion": "rl-ta-owner-read/v1",
+              "capabilityVersion": "swing-structure/v1",
+              "ownerId": "swing-structure-lab",
+              "resultId": "swing:SYNTH-A:2026-07-15T20:00:00.000Z",
+              "sourceSetId": "analytic-daily",
+              "symbol": "SYNTH-A",
+              "sessionContractId": "daily-close",
+              "decisionCutoff": "2026-07-15T20:00:00.000Z",
+              "truthState": "current",
+              "closedCoverage": 260,
+              "provisionalCoverage": 0,
+              "payload": { "alignment": { "label": "Aligned up", "trend": "up" }, "regime": { "band": "expansion" } },
+              "limitations": ["Daily closing-price structure only; intrabar behaviour is not described."]
+            }
+          }
+        },
+        {
+          "contractVersion": "rl-tool-read/v1",
+          "id": "market-heatmap-lab",
+          "availability": "available",
+          "asOf": "2026-07-15T20:00:00.000Z",
+          "computedAt": "2026-07-15T20:00:00.000Z",
+          "freshUntil": "2026-07-16T20:00:00.000Z",
+          "read": "Risk-on breadth.",
+          "deepLink": "market-heatmap-lab.html",
+          "metrics": {
+            "ownerRead": {
+              "contractVersion": "rl-ta-owner-read/v1",
+              "capabilityVersion": "market-breadth/v1",
+              "ownerId": "market-heatmap-lab",
+              "resultId": "breadth:1d:2026-07-15T20:00:00.000Z",
+              "sourceSetId": "analytic-breadth",
+              "symbol": "SYNTH-A",
+              "sessionContractId": "daily-close",
+              "decisionCutoff": "2026-07-15T20:00:00.000Z",
+              "truthState": "current",
+              "closedCoverage": 11,
+              "provisionalCoverage": 0,
+              "payload": { "denominator": 11, "greenCount": 8, "bias": "risk-on" },
+              "limitations": ["Breadth is measured across the sector-ETF universe only, not the full market."]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "microstructureRequests": [
+    { "requestId": "footprint", "offered": { "kind": "ohlcv-bars", "hasTickVolumeAtPrice": false, "hasBidAskOrAggressor": false } },
+    { "requestId": "depth", "offered": { "kind": "option-chain-snapshot", "hasTimestampedFullBookEvents": false } },
+    { "requestId": "large-trade", "offered": { "kind": "ohlcv-bars", "hasSizePriceTimeClassification": false } }
+  ],
+  "featureSixReads": {
+    "compatible": {
+      "contractVersion": "tdc-tool-read/v1",
+      "symbol": "SYNTH-A",
+      "selectedSourceId": "analytic-daily",
+      "decisionCutoff": "2026-07-15T20:00:00.000Z",
+      "selectionId": "trend-dynamics-baseline"
+    },
+    "wrongSymbol": {
+      "contractVersion": "tdc-tool-read/v1",
+      "symbol": "SYNTH-B",
+      "selectedSourceId": "analytic-daily",
+      "decisionCutoff": "2026-07-15T20:00:00.000Z",
+      "selectionId": "trend-dynamics-baseline"
+    },
+    "wrongContract": {
+      "contractVersion": "rl-tool-read/v1",
+      "symbol": "SYNTH-A",
+      "selectedSourceId": "analytic-daily",
+      "decisionCutoff": "2026-07-15T20:00:00.000Z",
+      "selectionId": "trend-dynamics-baseline"
+    },
+    "absent": null
+  }
+}

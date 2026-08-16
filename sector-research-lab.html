@@ -2271,9 +2271,43 @@
     function publishSectorRead(into, out, leader, count) {
       if (typeof RLDATA === 'undefined' || !RLDATA.putToolRead) return;
       var read = into && out ? ('Rotate toward ' + into.id + ' as ' + out.id + ' weakens.') : into ? (into.id + ' is the clearest improving rotation.') : out ? (out.id + ' is weakening; no replacement is confirmed.') : leader ? (leader.id + ' leads but no new rotation is confirmed.') : 'No priced rotation rows.';
+      var sectorAsOf = new Date().toISOString();
       RLDATA.putToolRead('sector-research-lab', {
-        asOf: new Date().toISOString(), read: read,
-        metrics: { into: into && into.id || null, out: out && out.id || null, leader: leader && leader.id || null, scope: state.simple.scope, tempo: state.simple.tempo, confirmation: state.simple.confirmation, benchmark: state.benchmark, count: count },
+        asOf: sectorAsOf, read: read,
+        metrics: {
+          into: into && into.id || null, out: out && out.id || null, leader: leader && leader.id || null, scope: state.simple.scope, tempo: state.simple.tempo, confirmation: state.simple.confirmation, benchmark: state.benchmark, count: count,
+          /* ---------- Feature 007 owner read: relative-context/v1 ---------- */
+          ownerRead: {
+            contractVersion: 'rl-ta-owner-read/v1',
+            capabilityVersion: 'relative-context/v1',
+            ownerId: 'sector-research-lab',
+            resultId: 'relative:' + state.benchmark + ':' + state.simple.scope + ':' + sectorAsOf,
+            sourceSetId: 'sector-research-universe',
+            symbol: state.benchmark,
+            sessionContractId: 'daily-close',
+            decisionCutoff: sectorAsOf,
+            truthState: count ? 'current' : 'unavailable',
+            closedCoverage: count || 0,
+            provisionalCoverage: 0,
+            payload: {
+              benchmark: state.benchmark,
+              scope: state.simple.scope,
+              tempo: state.simple.tempo,
+              confirmation: state.simple.confirmation,
+              // The peer denominator travels with the result; a percentile without it is unreadable.
+              denominator: count || 0,
+              rotatingInto: into ? { id: into.id, accel: into.accel } : null,
+              rotatingOut: out ? { id: out.id, accel: out.accel } : null,
+              leader: leader ? { id: leader.id, blend: leader.blend } : null
+            },
+            limitations: [
+              'Relative strength is measured against the declared benchmark only; a different benchmark changes every reading.',
+              'Sector membership is a classification as of the stated date and is not a statement about any constituent.',
+              'A rotation reading is relative context, not a directional forecast for either leg.'
+            ]
+          }
+          /* ---------- End Feature 007 owner read: relative-context/v1 ---------- */
+        },
         deepLink: 'sector-research-lab.html'
       });
     }

@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -133,28 +133,28 @@ No stress or load row is planned because there is no numeric responsiveness SLA.
 
 #### Core Delivery Items
 
-- [ ] Every specified Simple, Power, mobile, truth-recovery, audit, chart/table, control, explanation, focus, live-region, reduced-motion, and educational/privacy surface renders from one view model and one immutable result.
-- [ ] Mode/focus/sort/disclosure/cursor/overlay changes are display-only with zero fetch/private recompute; invalid or canceled requests preserve the labeled prior result and cannot publish.
-- [ ] All canvases draw synchronously when measurable, remain nonblank in foreground/background-tab activation, attach pointer/touch behavior, and match accessible tables across desktop/mobile.
-- [ ] ToolDecisionRead, export, deep links, imported text, source URLs, local preferences, and lifecycle storage are exact-versioned, sanitized, source/truth faithful, and free of credentials/auth/payment/account/position state.
-- [ ] Route/config/note/owner identity is atomic and order-equal across all registries/navigation; Consumer Impact Sweep finds zero stale first-party references.
-- [ ] Every high-fan-out registry/selftest/page change has marker/additive boundaries, independent canaries, exact rollback, and zero excluded or Feature 005/006 edits.
-- [ ] Every Scope 08 Test Plan row has intended RED and same-command GREEN evidence.
+- [x] Every specified Simple, Power, mobile, truth-recovery, audit, chart/table, control, explanation, focus, live-region, reduced-motion, and educational/privacy surface renders from one view model and one immutable result. Evidence: report.md#scenario-scn-007-023 — Simple default, Power bands, mobile 0px overflow, 44px targets, keyboard activation, accessible table parity, educational boundary
+- [x] Mode/focus/sort/disclosure/cursor/overlay changes are display-only with zero fetch/private recompute; invalid or canceled requests preserve the labeled prior result and cannot publish. Evidence: report.md#scenario-scn-007-023 — Simple/Power round trip made ZERO requests; invalid request refused and last valid identity preserved and labelled
+- [x] All canvases draw synchronously when measurable, remain nonblank in foreground/background-tab activation, attach pointer/touch behavior, and match accessible tables across desktop/mobile. Evidence: report.md#scenario-scn-007-023 — canvas non-blank on first draw and after a hidden-then-shown round trip; RLCHART.attach hover contract; table rows == gate count
+- [x] ToolDecisionRead, export, deep links, imported text, source URLs, local preferences, and lifecycle storage are exact-versioned, sanitized, source/truth faithful, and free of credentials/auth/payment/account/position state. Evidence: report.md#audit-verdict — A-08-1 availability mapping; export drops 6 sensitive key families and names what it withheld; hostile label stays text
+- [x] Route/config/note/owner identity is atomic and order-equal across all registries/navigation; Consumer Impact Sweep finds zero stale first-party references. Evidence: report.md#audit-verdict — registration verified (already present from an earlier scope); order equality across all three registries pinned
+- [x] Every high-fan-out registry/selftest/page change has marker/additive boundaries, independent canaries, exact rollback, and zero excluded or Feature 005/006 edits. Evidence: report.md#tp-08-10-and-the-consumer-sweep — 21 shared-consumer tests green after data-owns-route; node suite at exact clean-tree parity
+- [x] Every Scope 08 Test Plan row has intended RED and same-command GREEN evidence. Evidence: report.md#audit-verdict — validator RED on declaration inventory and on the six titles; breaks J and K
 
 #### Test Evidence Items - Exact Parity With 11 Test Plan Rows
 
-- [ ] TP-08-01 unit evidence proves complete symbol, view-model, one-result, owner-read, export, safe-text, identity, and registry invariants.
-- [ ] TP-08-02 functional evidence proves complete page/config/note/registry/source and universe JSON parity.
-- [ ] TP-08-03 functional evidence proves inline script syntax and literal ID integrity.
-- [ ] TP-08-04 Regression E2E evidence proves SCN-007-023 identical Simple/Power result and zero display-mode requests.
-- [ ] TP-08-05 Regression E2E evidence proves SCN-007-029 invalid edit preservation and correction without refetch.
-- [ ] TP-08-06 Regression E2E evidence proves mobile/desktop keyboard/touch/table/layout/background-canvas equivalence.
-- [ ] TP-08-07 Regression E2E evidence proves the complete truth/error/recovery vocabulary preserves last-valid identity without neutral substitutes.
-- [ ] TP-08-08 Regression E2E evidence proves registry/navigation and state-faithful owner publication parity.
-- [ ] TP-08-09 Regression E2E evidence proves hostile imported labels remain text and export omits sensitive state.
-- [ ] TP-08-10 provider-credential browser evidence proves central settings ownership remains unchanged.
-- [ ] TP-08-11 broader E2E evidence proves the cumulative Feature 007 suite passes after every focused Scope 08 row.
+- [x] TP-08-01 unit evidence proves complete symbol, view-model, one-result, owner-read, export, safe-text, identity, and registry invariants. Evidence: report.md#tp-08-01 — selftest 2027 passed, 0 failed (baseline 1975)
+- [x] TP-08-02 functional evidence proves complete page/config/note/registry/source and universe JSON parity. Evidence: report.md#tp-08-02 — validator checks=216 result=PASS (baseline 185); all 65 design symbols implemented once
+- [x] TP-08-03 functional evidence proves inline script syntax and literal ID integrity. Evidence: report.md#tp-08-03 — TAD-PAGE-INLINE-ID OK inline=2 refs=0, with the vacuity declared and covered by a 109-reference selftest check
+- [x] TP-08-04 Regression E2E evidence proves SCN-007-023 identical Simple/Power result and zero display-mode requests. Evidence: report.md#scenario-scn-007-023 — modeSwitchRequests=0
+- [x] TP-08-05 Regression E2E evidence proves SCN-007-029 invalid edit preservation and correction without refetch. Evidence: report.md#scenario-scn-007-029 — refusedCode=TAD-VIEWMODEL-INPUT, recomputeRequests=0
+- [x] TP-08-06 Regression E2E evidence proves mobile/desktop keyboard/touch/table/layout/background-canvas equivalence. Evidence: report.md#scenario-scn-007-023 — mobileOverflow=0, tableRows=5, canvasNonBlank=true
+- [x] TP-08-07 Regression E2E evidence proves the complete truth/error/recovery vocabulary preserves last-valid identity without neutral substitutes. Evidence: report.md#scenario-scn-007-029 — four distinct refusal codes, truth=degraded preserved end to end
+- [x] TP-08-08 Regression E2E evidence proves registry/navigation and state-faithful owner publication parity. Evidence: report.md#scenario-scn-007-023 — registeredRoute=ok, published identity matches the committed result
+- [x] TP-08-09 Regression E2E evidence proves hostile imported labels remain text and export omits sensitive state. Evidence: report.md#scenario-scn-007-023 — xss=blocked, omittedKeys=6
+- [x] TP-08-10 provider-credential browser evidence proves central settings ownership remains unchanged. Evidence: report.md#tp-08-10-and-the-consumer-sweep — 21 passed including the credential canary
+- [x] TP-08-11 broader E2E evidence proves the cumulative Feature 007 suite passes after every focused Scope 08 row. Evidence: report.md#tp-08-04-through-tp-08-09-tp-08-11 — 37 passed
 
 #### Build Quality Gate
 
-- [ ] Focused RED/GREEN records, UI matrix, Consumer/Shared Impact Sweeps, registry/source-order parity, safe-text/export/privacy review, viewport/focus/canvas pixel checks, marker diffs, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, traceability, framework write guard, and repository readiness are current and clean with every finding accounted for.
+- [x] Focused RED/GREEN records, UI matrix, Consumer/Shared Impact Sweeps, registry/source-order parity, safe-text/export/privacy review, viewport/focus/canvas pixel checks, marker diffs, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, traceability, framework write guard, and repository readiness are current and clean with every finding accounted for. Evidence: report.md#lint-and-quality — legibility 0 leaks/27 pages, node suite exact clean-tree parity, git diff --check clean, artifact lint PASSED

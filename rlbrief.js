@@ -1233,12 +1233,54 @@
     el.appendChild(intro);
     var list = document.createElement("div");
     list.className = "research-agenda-list";
-    var reasonText = {
+    /* Canonical reader sentences for every reason code that can reach a published research-agenda
+       read. Producers: scripts/research-agenda-generation.mjs (per-topic outcome path) and
+       rlagenda.js (plan classification). An IDENTICAL copy lives in research-agenda-lab.html —
+       market-brief.html does not load rlagenda.js, so the map cannot be hoisted there without
+       changing that page's guarded script order. scripts/selftest.mjs asserts the two copies stay
+       byte-identical, so the duplication cannot drift the way the previous two 4-entry maps
+       already had. */
+    var REASON_SENTENCES = {
       "research-lane-unavailable": "The research lane did not produce a validated current dossier.",
+      "research-situation-missing": "No research situation was captured for this topic in this generation, so no conclusion was produced.",
+      "research-pass-incomplete": "The research pass for this topic did not complete, so no conclusion was produced.",
+      "situation-shape-invalid": "The captured research situation did not match its published shape, so no conclusion was accepted.",
+      "section-shape-invalid": "A captured research section did not match its published shape, so no conclusion was accepted.",
+      "section-accounting-invalid": "The captured sections did not account for every declared section, so no conclusion was accepted.",
+      "finding-shape-invalid": "A captured finding did not match its published shape, so no conclusion was accepted.",
+      "new-evidence-ref-invalid": "A cited new-evidence reference did not resolve, so no conclusion was accepted.",
+      "no-usable-evidence": "The research pass completed with no usable evidence, and no prior dossier can be carried forward.",
+      "complete-pass-no-new-evidence": "The research pass completed with no new evidence, so the prior dossier still stands.",
+      "newest-evidence-outside-window": "The newest supporting observation falls outside this topic's freshness window.",
+      "deterministic-output-missing": "The topic's deterministic model output was unavailable, so no conclusion was produced.",
+      "model-input-invalid": "The model inputs for this topic were incomplete, so no conclusion was produced.",
+      "evidence-weight-invalid": "A piece of evidence could not be weighted under the topic's evidence policy, so no conclusion was accepted.",
+      "topic-model-not-applicable": "This topic declares no scenario, flow and transmission model, so the deterministic model does not apply to it.",
+      "probability-model-invalid": "The scenario-probability update did not resolve, so no conclusion was produced.",
+      "flow-model-invalid": "The chokepoint flow model did not resolve for a scenario, so no conclusion was produced.",
+      "commodity-model-unavailable": "The commodity shock-range model was unavailable, so no conclusion was produced.",
+      "proxy-model-insufficient": "The equity proxy model had insufficient calibration, so no conclusion was produced.",
+      "cadence-not-elapsed": "Not due yet — this topic's declared review cadence has not elapsed.",
+      "cadence-elapsed": "Due for review — this topic's declared review cadence has elapsed.",
+      "first-review": "Selected for its first review; no prior review exists.",
+      "trigger-fired": "Selected because a declared trigger fired.",
+      "mode-required": "Reviewed in every generation by its declared review mode.",
       "cadence-budget": "Deferred by this generation's cadence budget.",
       "not-due": "Not due under its declared cadence.",
       "stale-evidence": "No supporting observation remains inside the freshness window."
     };
+    /* An unmapped code is NOT title-cased into prose. Doing that printed the machine slug
+       "situation-shape-invalid" to the reader as the sentence "Situation Shape Invalid.", which
+       reads like an explanation while explaining nothing. The honest shape states the absence and
+       surfaces the raw code AS a code, so it stays auditable without impersonating reader copy. */
+    function reasonSentence(reason) {
+      if (!reason) return "No current conclusion is available.";
+      if (REASON_SENTENCES[reason]) return REASON_SENTENCES[reason];
+      if (String(reason).indexOf("lifecycle-") === 0) {
+        return "This topic is not active; its lifecycle state is " + String(reason).slice("lifecycle-".length) + ".";
+      }
+      return "No current conclusion is published. Reason code: " + String(reason) + ".";
+    }
     var glyph = { reviewed: "●", unavailable: "○", stale: "◐", deferred: "◐", "not-due": "◐" };
     function humanizeMetadataToken(value) {
       if (typeof value !== "string" || !value.trim()) return "unavailable";
@@ -1261,7 +1303,7 @@
       metadata.textContent = "Mode: " + humanizeMetadataToken(topic.mode) + " · Change assessment: " + humanizeMetadataToken(topic.changeAssessment);
       article.appendChild(metadata);
       var reason = document.createElement("p");
-      reason.textContent = topic.state === "reviewed" ? "A validated current review is available." : (reasonText[topic.reason] || "No current conclusion is available.");
+      reason.textContent = topic.state === "reviewed" ? "A validated current review is available." : reasonSentence(topic.reason);
       article.appendChild(reason);
       var linkNode = document.createElement("a");
       linkNode.href = "research-agenda-lab.html#power/" + encodeURIComponent(topic.topicId);

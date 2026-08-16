@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -118,23 +118,23 @@ No stress or load row is planned because Feature 007 declares no numeric latency
 
 #### Core Delivery Items
 
-- [ ] As-of setup simulation, purged/embargoed evaluation, trial accounting, multiplicity, outcome summaries/slices, selected-stock fit, and cross-instrument robustness implement the exact design and retain source/vintage identity.
-- [ ] Every cost component and missing requirement is explicit; gross geometry, gross expectancy, net expectancy, breakeven, target audit, and uncertainty remain separate and no gross metric is called an edge.
-- [ ] Parameter/comparison/profile/cost/population changes produce new identities, preserve prior passports, and remain descriptive-only until the exact variant is evaluated.
-- [ ] Expectancy arithmetic and optional reconciliation are reproducible; compounding loss streaks remain scenarios; process guards use observable actions only.
-- [ ] Deterministic work units, progress, cancellation, atomic commit, Shared Impact Sweep, marker boundaries, and rollback preserve prior read/passport/ledger and every excluded surface.
-- [ ] Every Scope 07 Test Plan row has intended RED and same-command GREEN evidence.
+- [x] As-of setup simulation, purged/embargoed evaluation, trial accounting, multiplicity, outcome summaries/slices, selected-stock fit, and cross-instrument robustness implement the exact design and retain source/vintage identity. Evidence: report.md#coverage-report — as-of exclusion, over-constrained fold refusal, unresolved recorded, both multiplicity controls asserted
+- [x] Every cost component and missing requirement is explicit; gross geometry, gross expectancy, net expectancy, breakeven, target audit, and uncertainty remain separate and no gross metric is called an edge. Evidence: report.md#scenario-scn-007-018 — all nine components individually pinned; explicit zero accepted; net null when a component is unstated
+- [x] Parameter/comparison/profile/cost/population changes produce new identities, preserve prior passports, and remain descriptive-only until the exact variant is evaluated. Evidence: report.md#scenario-scn-007-020 — seven identity dimensions each yield a distinct passport; unchanged request reproduces it
+- [x] Expectancy arithmetic and optional reconciliation are reproducible; compounding loss streaks remain scenarios; process guards use observable actions only. Evidence: report.md#scenario-scn-007-019 — E=3.738R, 50 trades 186.9R, breakeven 23.08%, four reconciliation inputs; streaks compound to 0.99^10
+- [x] Deterministic work units, progress, cancellation, atomic commit, Shared Impact Sweep, marker boundaries, and rollback preserve prior read/passport/ledger and every excluded surface. Evidence: report.md#audit-verdict — D-07-7 runner delivered; ordering, monotonic progress, cancellation preserving prior commit, latest-run identity all pinned
+- [x] Every Scope 07 Test Plan row has intended RED and same-command GREEN evidence. Evidence: report.md#audit-verdict — validator RED before declaration registration and before the four titles existed; breaks G, H, I
 
 #### Test Evidence Items - Exact Parity With 7 Test Plan Rows
 
-- [ ] TP-07-01 unit evidence proves simulation, folds, multiplicity, summaries, costs, arithmetic, identity, process, work-unit, and cancellation branches.
-- [ ] TP-07-02 functional evidence proves validation/cost/config/reference and fixture-provenance closure.
-- [ ] TP-07-03 Regression E2E evidence proves SCN-007-018 shows separate gross/net expectancy and cost-adjusted breakeven.
-- [ ] TP-07-04 Regression E2E evidence proves SCN-007-019 computes positive expectancy and rejects the inconsistent negative total.
-- [ ] TP-07-05 Regression E2E evidence proves SCN-007-020 creates a new descriptive-only identity without inherited validation.
-- [ ] TP-07-06 Regression E2E evidence proves SCN-007-021 blocks a chased plan through observable distance/R changes without mind-reading.
-- [ ] TP-07-07 broader E2E evidence proves the cumulative Feature 007 suite passes after focused Scope 07 rows.
+- [x] TP-07-01 unit evidence proves simulation, folds, multiplicity, summaries, costs, arithmetic, identity, process, work-unit, and cancellation branches. Evidence: report.md#tp-07-01 — selftest 1975 passed, 0 failed (baseline 1897)
+- [x] TP-07-02 functional evidence proves validation/cost/config/reference and fixture-provenance closure. Evidence: report.md#tp-07-02 — validator checks=185 result=PASS (baseline 153)
+- [x] TP-07-03 Regression E2E evidence proves SCN-007-018 shows separate gross/net expectancy and cost-adjusted breakeven. Evidence: report.md#scenario-scn-007-018 — GREEN; controlled break G turns it RED
+- [x] TP-07-04 Regression E2E evidence proves SCN-007-019 computes positive expectancy and rejects the inconsistent negative total. Evidence: report.md#scenario-scn-007-019 — GREEN; stayed GREEN under breaks G and I, proving isolation
+- [x] TP-07-05 Regression E2E evidence proves SCN-007-020 creates a new descriptive-only identity without inherited validation. Evidence: report.md#scenario-scn-007-020 — GREEN, three distinct passport identities
+- [x] TP-07-06 Regression E2E evidence proves SCN-007-021 blocks a chased plan through observable distance/R changes without mind-reading. Evidence: report.md#scenario-scn-007-021 — GREEN; controlled break I turns it RED
+- [x] TP-07-07 broader E2E evidence proves the cumulative Feature 007 suite passes after focused Scope 07 rows. Evidence: report.md#tp-07-07 — 31 passed
 
 #### Build Quality Gate
 
-- [ ] Focused RED/GREEN records, exact arithmetic cross-check, validation/cost/config parity, RLVALID and Strategy Validation canaries, cancellation immutability, marker diffs, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, and traceability are current and clean with every finding accounted for.
+- [x] Focused RED/GREEN records, exact arithmetic cross-check, validation/cost/config parity, RLVALID and Strategy Validation canaries, cancellation immutability, marker diffs, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, and traceability are current and clean with every finding accounted for. Evidence: report.md#lint-and-quality — legibility 0 leaks/27 pages, RLVALID unedited and no copied primitive, git diff --check clean, artifact lint PASSED

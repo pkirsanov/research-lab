@@ -901,7 +901,9 @@
         "measure": "Adjusted daily close",
         "url": "https://finance.yahoo.com/quote/SPY/history/",
         "providerTags": [
-          "option-snapshot"
+          "option-snapshot",
+          "yahoo",
+          "yahoo-daily+intraday-repair"
         ],
         "sourceUsePolicyId": "research-lab-checked-in-market-snapshot/v1",
         "sourceUseReviewRef": "notes/shared-data-layer.md",

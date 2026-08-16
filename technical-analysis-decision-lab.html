@@ -237,6 +237,72 @@
       background: var(--band);
     }
 
+    /* Simple is the default. Power-only bands are hidden until the mode is switched; the
+       switch is display-only and never triggers a fetch or a recompute. */
+    .band.pw {
+      display: none;
+    }
+
+    body.power .band.pw {
+      display: block;
+    }
+
+    body.power #simpleCockpit {
+      display: none;
+    }
+
+    #modeSeg button {
+      min-height: 44px;
+      min-width: 44px;
+      cursor: pointer;
+    }
+
+    #simpleGateCanvas {
+      display: block;
+      width: 100%;
+      max-width: 640px;
+      aspect-ratio: 16 / 3;
+      height: auto;
+      margin: 12px 0;
+    }
+
+    /* The accessible table carries the same facts as the canvas, so a screen-reader user and a
+       sighted user read identical evidence. It is visually compact rather than hidden. */
+    .a11y-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .a11y-table caption {
+      text-align: left;
+      padding: 4px 0;
+      color: var(--muted);
+    }
+
+    .a11y-table th,
+    .a11y-table td {
+      border: 1px solid var(--line);
+      padding: 4px 6px;
+      text-align: left;
+    }
+
+    @media (max-width: 600px) {
+      .facts {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+
     .band>h2 {
       margin: 0;
       padding: 14px 16px;
@@ -386,16 +452,58 @@
         <div class="subtle">Source, session, timeframe, identity, and validation contracts before any decision signal
           exists.</div>
       </div>
-      <div id="modeSeg" role="tablist" aria-label="View mode">
-        <button type="button" class="active" role="tab" aria-selected="true">Simple</button>
-        <button type="button" role="tab" aria-selected="false" aria-disabled="true"
-          title="Power opens once a complete read is available. This tool does not publish an analytic result yet.">Power</button>
+      <!-- Detail-level toggle, NOT a second view tablist. This page owns its route, so the shared
+           four-view shell (#rlviews: Simple/Power/Brief/Journey) stays visible rather than hiding this
+           control the way it does on non-owns-route pages. Two tablists whose tabs are both named
+           "Simple"/"Power" would put one duplicate accessible name on top of another — a screen reader
+           would announce two "Power" tabs and two controls would each claim to own the view. So this
+           control takes role="group" + aria-pressed toggle buttons, exactly as the other owns-route
+           page (portfolio-survival-allocation-lab.html) already does. aria-pressed is also the more
+           truthful semantic: this switches how much evidence the SAME result shows, it does not select
+           a different view panel. -->
+      <div id="modeSeg" role="group" aria-label="Detail level"
+        title="Simple is the decision-first read; Power exposes every evidence band behind it. Both project the same immutable result.">
+        <button type="button" data-mode="simple" class="active" aria-pressed="true">Simple</button>
+        <button type="button" data-mode="power" aria-pressed="false">Power</button>
       </div>
     </div>
   </header>
 
   <main>
     <div id="fixtureBand" class="fixture" role="status">TEST FIXTURE</div>
+    <section class="band" id="simpleCockpit" aria-labelledby="simpleHeading">
+      <h2 id="simpleHeading">Decision read</h2>
+      <p id="simpleVerdict" class="state-message">No complete read has resolved. Simple and Power project the same
+        immutable result; switching view changes what is shown, never what was computed.</p>
+      <div class="facts">
+        <div class="fact">
+          <div class="k">Result identity</div>
+          <div id="simpleResultIdentity" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Truth</div>
+          <div id="simpleTruth" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Validation</div>
+          <div id="simpleValidation" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Process</div>
+          <div id="simpleProcess" class="v">None</div>
+        </div>
+      </div>
+      <canvas id="simpleGateCanvas" width="640" height="120" aria-hidden="true"></canvas>
+      <table id="simpleGateTable" class="a11y-table">
+        <caption>Gate outcomes, equivalent to the chart above</caption>
+        <thead>
+          <tr><th scope="col">Order</th><th scope="col">Gate</th><th scope="col">Outcome</th><th scope="col">Diagnostic only</th></tr>
+        </thead>
+        <tbody id="simpleGateTableBody"></tbody>
+      </table>
+      <p id="educationalBoundary" class="state-message">Educational analysis of public price behaviour. Not investment
+        advice, not an order, and not a recommendation.</p>
+    </section>
     <section class="truth-band" aria-labelledby="truthHeading">
       <div id="truthState" class="truth-word">LOADING</div>
       <div>
@@ -423,6 +531,11 @@
           <option value="breakout-participation">Breakout participation (analytic)</option>
           <option value="correlated-uptrend">Correlated indicator agreement (analytic)</option>
           <option value="unresolved-range">Unresolved range after decline (analytic)</option>
+          <option value="setup-lifecycle">Level confluence and setup lifecycle (analytic)</option>
+          <option value="gate-synthesis">Five-gate synthesis and candidate competition (analytic)</option>
+          <option value="owner-publication">Owner evidence admission and strict adapters (analytic)</option>
+          <option value="comparison-roles">Comparison roles and membership identity (analytic)</option>
+          <option value="validation-risk-process">Validation, cost, expectancy and process (analytic)</option>
         </select>
         <p class="subtle" style="margin:10px 0 0">Credentials remain owned by <a href="index.html#data-settings">Data
             Settings</a>. This page contains no credential editor.</p>
@@ -435,7 +548,7 @@
       </div>
     </section>
 
-    <section class="band" aria-labelledby="contractHeading">
+    <section class="band pw" aria-labelledby="contractHeading">
       <h2 id="contractHeading">Resolved contract receipt</h2>
       <div class="facts">
         <div class="fact">
@@ -477,7 +590,7 @@
       </div>
     </section>
 
-    <section class="band" aria-labelledby="refreshHeading">
+    <section class="band pw" aria-labelledby="refreshHeading">
       <h2 id="refreshHeading">Cache and delta truth</h2>
       <div class="facts">
         <div class="fact">
@@ -497,25 +610,25 @@
         source-qualified truth.</div>
     </section>
 
-    <section class="band" aria-labelledby="catalogHeading">
+    <section class="band pw" aria-labelledby="catalogHeading">
       <h2 id="catalogHeading">Closed profile catalog</h2>
       <div id="profileCatalog" class="catalog" aria-live="off"></div>
     </section>
 
-    <section class="band" aria-labelledby="eventsHeading">
+    <section class="band pw" aria-labelledby="eventsHeading">
       <h2 id="eventsHeading">Calendar and source audit</h2>
       <div id="sessionEvents" class="state-message">Loading explicit holiday, early-close, and daylight-saving records.
       </div>
     </section>
 
-    <section class="band" aria-labelledby="techniqueHeading">
+    <section class="band pw" aria-labelledby="techniqueHeading">
       <h2 id="techniqueHeading">Technique readings</h2>
       <p id="techniqueReceipt" class="state-message">No technique has been evaluated. Select an analytic series to read
         every method exactly as it computes.</p>
       <div id="techniqueOutcomes" class="catalog" aria-live="off"></div>
     </section>
 
-    <section class="band" aria-labelledby="familyHeading">
+    <section class="band pw" aria-labelledby="familyHeading">
       <h2 id="familyHeading">Evidence independence</h2>
       <p id="independenceReceipt" class="state-message">Correlated methods collapse into one declared cluster before
         anything is counted. The raw number of methods is not a confidence level and is never presented as one.</p>
@@ -536,20 +649,193 @@
       <div id="evidenceFamilies" class="catalog" aria-live="off"></div>
     </section>
 
-    <section class="band" aria-labelledby="hypothesisHeading">
+    <section class="band pw" aria-labelledby="hypothesisHeading">
       <h2 id="hypothesisHeading">Competing readings and published setups</h2>
       <div id="competingHypotheses" class="state-message">No series selected.</div>
-      <div id="setupReceipt" class="state-message"><strong>Scope 02 publishes no setup, entry, trigger, target, stop, or
+      <div id="setupReceipt" class="state-message"><strong>This page publishes no setup, entry, trigger, target, stop, or
           probability.</strong> It publishes method readings and their independence only.</div>
     </section>
 
-    <section class="band" aria-labelledby="claimHeading">
+    <section class="band pw" aria-labelledby="claimHeading">
       <h2 id="claimHeading">Claim admission ledger</h2>
       <p id="claimReceipt" class="state-message">A method may only run when every claim it cites carries a supported or
         bounded ledger record. A rejected record cannot reach a default, a reading, a gate, or any copy on this page.</p>
       <div id="claimLedger" class="catalog" aria-live="off"></div>
       <div id="rejectedProbe" class="state-message">No rejected-claim probe has run.</div>
     </section>
+
+    <section class="band pw" aria-labelledby="confluenceHeading">
+      <h2 id="confluenceHeading">Level confluence</h2>
+      <p id="confluenceReceipt" class="state-message">No levels selected. Each zone below is a cluster of sourced
+        historical and model levels; every member keeps its own method, timeframe, and source.</p>
+      <div class="facts">
+        <div class="fact">
+          <div class="k">Zone label</div>
+          <div id="zoneLabel" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Largest zone members</div>
+          <div id="zoneMembers" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Independent families in that zone</div>
+          <div id="zoneFamilies" class="v">None</div>
+        </div>
+      </div>
+      <div id="confluenceZones" class="catalog" aria-live="off"></div>
+    </section>
+
+    <section class="band pw" aria-labelledby="levelStateHeading">
+      <h2 id="levelStateHeading">Level interaction</h2>
+      <div id="levelLifecycle" class="state-message">No level interaction evaluated.</div>
+    </section>
+
+    <section class="band pw" aria-labelledby="candidateHeading">
+      <h2 id="candidateHeading">Setup candidates</h2>
+      <p id="candidateReceipt" class="state-message">No candidate evaluated. A candidate records what was observed and
+        when; it is never a record that anyone entered, exited, or realised anything.</p>
+      <div id="candidateTimelines" class="catalog" aria-live="off"></div>
+    </section>
+
+    <section class="band pw" aria-labelledby="riskHeading">
+      <h2 id="riskHeading">Hypothetical geometry</h2>
+      <div class="facts">
+        <div class="fact">
+          <div class="k">Hypothetical trigger</div>
+          <div id="riskTrigger" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Invalidation</div>
+          <div id="riskInvalidation" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Ordered natural targets</div>
+          <div id="riskTargets" class="v">None</div>
+        </div>
+      </div>
+      <div id="targetAudit" class="state-message">No target audit has run.</div>
+    </section>
+
+    <section class="band pw" aria-labelledby="gateHeading">
+      <h2 id="gateHeading">Five mandatory gates</h2>
+      <p id="gateReceipt" class="state-message">No gate evidence evaluated. All five gates are always shown; a gate
+        after the first failure is diagnostic only and cannot restore eligibility.</p>
+      <div class="facts">
+        <div class="fact">
+          <div class="k">Read</div>
+          <div id="readState" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">First blocking gate</div>
+          <div id="firstBlockingGate" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Selection basis</div>
+          <div id="selectionBasis" class="v">None</div>
+        </div>
+      </div>
+      <div id="gateRecords" class="catalog" aria-live="off"></div>
+    </section>
+
+    <section class="band pw" aria-labelledby="competitionHeading">
+      <h2 id="competitionHeading">Competing candidates</h2>
+      <p id="competitionReceipt" class="state-message">No candidates compared.</p>
+      <div id="candidateRanking" class="catalog" aria-live="off"></div>
+    </section>
+
+    <!-- ---------- Feature 007 Scope 07: validation risk and process ---------- -->
+    <section class="band pw" aria-labelledby="validationHeading">
+      <h2 id="validationHeading">Validation, cost and expectancy</h2>
+      <p id="validationReceipt" class="state-message">No validation evaluated. Gross geometry is never called an edge;
+        a net claim requires every applicable cost component stated explicitly, including an explicit zero.</p>
+      <div class="facts">
+        <div class="fact">
+          <div class="k">Passport status</div>
+          <div id="passportStatus" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Gross expectancy</div>
+          <div id="grossExpectancy" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Net expectancy</div>
+          <div id="netExpectancy" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Breakeven win rate</div>
+          <div id="breakevenWinRate" class="v">None</div>
+        </div>
+      </div>
+      <div id="validationRecords" class="catalog" aria-live="off"></div>
+      <h3 id="expectancyAuditHeading">Transcript arithmetic audit</h3>
+      <p id="expectancyAudit" class="state-message">No transcript audited.</p>
+      <h3 id="riskScenarioHeading">Hypothetical loss-streak scenarios</h3>
+      <p id="riskScenarios" class="state-message">No scenario computed.</p>
+      <h3 id="processHeading">Process guard</h3>
+      <p id="processReceipt" class="state-message">No proposal evaluated.</p>
+      <div id="processRecords" class="catalog" aria-live="off"></div>
+    </section>
+    <!-- ---------- End Feature 007 Scope 07: validation risk and process ---------- -->
+
+    <!-- ---------- Feature 007 Scope 06: comparison and optional evidence ---------- -->
+    <section class="band pw" aria-labelledby="comparisonHeading">
+      <h2 id="comparisonHeading">Comparison roles</h2>
+      <p id="comparisonReceipt" class="state-message">No comparison evidence resolved. Broad-market, sector/industry,
+        direct-peer, and optional-context roles are always reported separately; one role never stands in for another.</p>
+      <div class="facts">
+        <div class="fact">
+          <div class="k">Comparison identity</div>
+          <div id="comparisonIdentity" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Peer denominator</div>
+          <div id="comparisonDenominator" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Peer percentile</div>
+          <div id="comparisonPercentile" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Relative weakness</div>
+          <div id="comparisonContradictions" class="v">None</div>
+        </div>
+      </div>
+      <div id="comparisonRoles" class="catalog" aria-live="off"></div>
+      <h3 id="comparisonIdentityHeading">Membership change and prior validation</h3>
+      <p id="comparisonVariantReceipt" class="state-message">No membership change evaluated.</p>
+      <div id="comparisonVariants" class="catalog" aria-live="off"></div>
+    </section>
+    <!-- ---------- End Feature 007 Scope 06: comparison and optional evidence ---------- -->
+
+    <!-- ---------- Feature 007 Scope 05: owner publication and strict adapters ---------- -->
+    <section class="band pw" aria-labelledby="ownerHeading">
+      <h2 id="ownerHeading">Owner evidence admission</h2>
+      <p id="ownerReceipt" class="state-message">No owner reads evaluated. Every specialist page publishes its own
+        result; this page admits or refuses that published read and never recomputes an owner's formula.</p>
+      <div class="facts">
+        <div class="fact">
+          <div class="k">Admitted owners</div>
+          <div id="ownerAdmitted" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Option positioning</div>
+          <div id="ownerOptionState" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Dealer sign convention</div>
+          <div id="ownerSignConvention" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Tactical trigger evidence</div>
+          <div id="ownerTacticalState" class="v">None</div>
+        </div>
+      </div>
+      <div id="ownerRecords" class="catalog" aria-live="off"></div>
+      <h3 id="microstructureHeading">Microstructure evidence</h3>
+      <p id="microstructureReceipt" class="state-message">No microstructure contract evaluated.</p>
+      <div id="microstructureRecords" class="catalog" aria-live="off"></div>
+    </section>
+    <!-- ---------- End Feature 007 Scope 05: owner publication and strict adapters ---------- -->
 
     <section class="band" aria-labelledby="stateHeading">
       <h2 id="stateHeading">Observed / required / action</h2>
@@ -1391,6 +1677,1182 @@
 
     /* ---------- End Feature 007 Scope 02: technique engine ---------- */
 
+    /* ---------- Feature 007 Scope 03: levels and setup lifecycle ---------- */
+    var TAD_CONFLUENCE_LABEL = "historical/model level confluence";
+    var TAD_LEVEL_STATES = ["candidate", "active", "tested", "held", "broken", "reclaimed", "stale", "expired"];
+    var TAD_LEVEL_TYPES = ["swing", "moving-average", "vwap", "profile-node", "range-edge", "gap-edge", "expected-move", "option-strike"];
+    var TAD_CANDIDATE_TRANSITIONS = { SCANNING: ["NO_EDGE", "WATCH"], NO_EDGE: ["WATCH"], WATCH: ["ARMED", "NO_EDGE", "EXPIRED"], ARMED: ["TRIGGERED", "WATCH", "INVALIDATED", "EXPIRED"], TRIGGERED: ["INVALIDATED", "EXPIRED", "COMPLETED_EVALUATION"], INVALIDATED: [], EXPIRED: [], COMPLETED_EVALUATION: [] };
+    var TAD_TERMINAL_STATES = ["INVALIDATED", "EXPIRED", "COMPLETED_EVALUATION"];
+
+    function tadLevelRefusal(code, observed, required, action, message) {
+      return tadDeepFreeze({ ok: false, levels: [], zones: [], errors: [tadError(code, "error", "$", null, observed, required, action, message)] });
+    }
+    function tadSetupRefusal(code, observed, required, action, message) {
+      return tadDeepFreeze({ ok: false, state: null, reasonCodes: [], events: [], errors: [tadError(code, "error", "$", null, observed, required, action, message)] });
+    }
+    // tadStableDigest returns a result object, not a string. Concatenating it directly yields
+    // "[object Object]" for every identity, collapsing distinct levels, events and plans into one id.
+    // tadFiniteNumber returns a result object, so using it directly in a condition is always
+    // truthy and the guard never fires. This is the boolean form the Scope 03 guards need.
+    function tadIsFinite(value) {
+      return tadFiniteNumber(value).ok === true;
+    }
+    function tadIdentity(prefix, payload) {
+      var digest = tadStableDigest(payload);
+      return digest.ok ? prefix + digest.value : null;
+    }
+
+    function tadNormalizeLevels(rawLevels, context) {
+      if (!Array.isArray(rawLevels)) return tadLevelRefusal("TAD-LEVEL-INPUT", rawLevels, "an array of raw level records", "supply sourced level records", "Level normalization input is invalid.");
+      if (!tadIsPlainObject(context) || typeof context.sourceVintageId !== "string" || typeof context.observationCutoff !== "string") return tadLevelRefusal("TAD-LEVEL-CONTEXT", context, "a context with sourceVintageId and observationCutoff", "supply the resolved source vintage and cutoff", "Level normalization requires an explicit source context.");
+      var cutoffMs = Date.parse(context.observationCutoff), normalized = [], errors = [];
+      for (var i = 0; i < rawLevels.length; i += 1) {
+        var raw = rawLevels[i], path = "$[" + i + "]";
+        if (!tadIsPlainObject(raw)) { errors.push(tadError("TAD-LEVEL-SHAPE", "error", path, null, raw, "a level record object", "supply an object per level", "A level record is not an object.")); continue; }
+        if (TAD_LEVEL_TYPES.indexOf(raw.type) < 0) { errors.push(tadError("TAD-LEVEL-TYPE", "error", path, null, raw.type, "one of " + TAD_LEVEL_TYPES.join(", "), "declare a known level type", "A level declares an unknown type.")); continue; }
+        if (!tadIsFinite(raw.price) || !tadIsFinite(raw.lower) || !tadIsFinite(raw.upper)) { errors.push(tadError("TAD-LEVEL-FINITE", "error", path, null, raw.price, "finite price, lower, and upper", "supply finite level geometry", "A level carries non-finite geometry.")); continue; }
+        if (raw.lower > raw.upper) { errors.push(tadError("TAD-LEVEL-BOUNDS", "error", path, null, raw.lower, "lower at or below upper", "correct the zone bounds", "A level zone is inverted.")); continue; }
+        if (typeof raw.methodId !== "string" || !raw.methodId) { errors.push(tadError("TAD-LEVEL-METHOD", "error", path, null, raw.methodId, "a method identifier", "declare the method that produced the level", "A level does not name its method.")); continue; }
+        var observedMs = Date.parse(raw.observedAt);
+        if (!Number.isFinite(observedMs)) { errors.push(tadError("TAD-LEVEL-OBSERVED", "error", path, null, raw.observedAt, "an ISO observedAt", "declare when the level was observed", "A level does not declare an observation time.")); continue; }
+        if (observedMs > cutoffMs) { errors.push(tadError("TAD-LEVEL-CUTOFF", "error", path, null, raw.observedAt, "observedAt at or before " + context.observationCutoff, "exclude levels observed after the cutoff", "A level is newer than the observation cutoff.")); continue; }
+        normalized.push({
+          levelId: tadIdentity("tad-level:", { type: raw.type, methodId: raw.methodId, price: raw.price, interval: raw.interval, observedAt: raw.observedAt, sourceVintageId: context.sourceVintageId }),
+          type: raw.type, methodId: raw.methodId, sourceVintageId: context.sourceVintageId,
+          timeframeRole: typeof raw.timeframeRole === "string" ? raw.timeframeRole : "unspecified",
+          interval: typeof raw.interval === "string" ? raw.interval : "unspecified",
+          window: tadIsFinite(raw.window) ? raw.window : null,
+          observedAt: raw.observedAt, availableAt: typeof raw.availableAt === "string" ? raw.availableAt : raw.observedAt,
+          price: raw.price, lower: raw.lower, upper: raw.upper,
+          widthUnit: typeof raw.widthUnit === "string" ? raw.widthUnit : "price",
+          uncertainty: tadIsFinite(raw.uncertainty) ? raw.uncertainty : (raw.upper - raw.lower) / 2,
+          ageBars: tadIsFinite(raw.ageBars) ? raw.ageBars : null,
+          state: TAD_LEVEL_STATES.indexOf(raw.state) >= 0 ? raw.state : "candidate",
+          invalidation: typeof raw.invalidation === "string" ? raw.invalidation : "closed-break-beyond-zone",
+          limitations: Array.isArray(raw.limitations) ? raw.limitations.slice() : []
+        });
+      }
+      if (errors.length) return tadDeepFreeze({ ok: false, levels: [], zones: [], errors: errors });
+      normalized.sort(function (a, b) { return a.price - b.price || a.levelId.localeCompare(b.levelId); });
+      return tadDeepFreeze({ ok: true, levels: normalized, zones: [], errors: [] });
+    }
+
+    function tadClusterConfluence(levels, options) {
+      if (!Array.isArray(levels)) return tadLevelRefusal("TAD-ZONE-INPUT", levels, "an array of normalized levels", "normalize levels first", "Confluence input is invalid.");
+      if (!tadIsPlainObject(options) || !tadIsFinite(options.atr) || options.atr <= 0 || !tadIsFinite(options.atrDistance) || options.atrDistance <= 0) return tadLevelRefusal("TAD-ZONE-DISTANCE", options, "a positive atr and atrDistance", "declare the volatility distance that defines a zone", "Confluence requires an explicit volatility distance.");
+      if (typeof options.sourceCutoff !== "string") return tadLevelRefusal("TAD-ZONE-CUTOFF", options, "a sourceCutoff", "declare the observation cutoff", "Confluence requires an explicit cutoff.");
+      var maximumSpread = options.atr * options.atrDistance;
+      var ordered = levels.slice().sort(function (a, b) { return a.price - b.price || a.levelId.localeCompare(b.levelId); });
+      var groups = [], current = null;
+      for (var i = 0; i < ordered.length; i += 1) {
+        var level = ordered[i];
+        if (current && (level.price - current.anchor) <= maximumSpread) current.members.push(level);
+        else { current = { anchor: level.price, members: [level] }; groups.push(current); }
+      }
+      var families = tadIsPlainObject(options.familyByMethodId) ? options.familyByMethodId : {};
+      var zones = groups.map(function (group) {
+        var prices = group.members.map(function (member) { return member.price; });
+        var independent = [];
+        // Independence is by declared family, not member count: three moving averages are one
+        // family and therefore one independent reason for the zone, not three.
+        group.members.forEach(function (member) {
+          var family = Object.prototype.hasOwnProperty.call(families, member.methodId) ? families[member.methodId] : member.type;
+          if (independent.indexOf(family) < 0) independent.push(family);
+        });
+        return {
+          zoneId: tadIdentity("tad-zone:", { members: group.members.map(function (member) { return member.levelId; }), cutoff: options.sourceCutoff }),
+          lower: Math.min.apply(null, group.members.map(function (member) { return member.lower; })),
+          upper: Math.max.apply(null, group.members.map(function (member) { return member.upper; })),
+          center: prices.reduce(function (total, price) { return total + price; }, 0) / prices.length,
+          atrDistance: options.atrDistance,
+          memberLevelIds: group.members.map(function (member) { return member.levelId; }),
+          memberCount: group.members.length,
+          independentFamilyIds: independent.slice().sort(),
+          label: TAD_CONFLUENCE_LABEL,
+          state: "active",
+          sourceCutoff: options.sourceCutoff
+        };
+      });
+      return tadDeepFreeze({ ok: true, levels: ordered.slice(), zones: zones, errors: [] });
+    }
+
+    function tadUpdateLevelLifecycle(level, observations, policy) {
+      if (!tadIsPlainObject(level) || typeof level.levelId !== "string") return tadLevelRefusal("TAD-LEVEL-LIFECYCLE-INPUT", level, "a normalized level", "normalize the level first", "Level lifecycle input is invalid.");
+      if (!Array.isArray(observations)) return tadLevelRefusal("TAD-LEVEL-LIFECYCLE-BARS", observations, "an array of closed bars", "supply closed observations", "Level lifecycle requires closed observations.");
+      var staleAfterBars = tadIsPlainObject(policy) && tadIsFinite(policy.staleAfterBars) ? policy.staleAfterBars : null;
+      var closed = observations.filter(function (bar) { return tadIsPlainObject(bar) && bar.status === "closed" && tadIsFinite(bar.h) && tadIsFinite(bar.l) && tadIsFinite(bar.c); });
+      // A level only means something relative to the side price approaches it from. Without that
+      // side a support reads as broken the moment price closes ABOVE it, which is the level doing
+      // its job. An intrabar excursion is an extreme beyond the zone with no close beyond it:
+      // a failed-break candidate under a configured rule, never a confirmed break.
+      var side = "inside";
+      if (closed.length) side = closed[0].c > level.upper ? "support" : closed[0].c < level.lower ? "resistance" : "inside";
+      var state = level.state, reasons = [], touched = false, intrabarExcursion = false, closedBeyond = false, reclaimed = false;
+      for (var j = 0; j < closed.length; j += 1) {
+        var bar = closed[j];
+        if (bar.l <= level.upper && bar.h >= level.lower) touched = true;
+        if (side === "support") {
+          if (bar.l < level.lower && bar.c >= level.lower) intrabarExcursion = true;
+          if (bar.c < level.lower) closedBeyond = true;
+          else if (closedBeyond) reclaimed = true;
+        } else if (side === "resistance") {
+          if (bar.h > level.upper && bar.c <= level.upper) intrabarExcursion = true;
+          if (bar.c > level.upper) closedBeyond = true;
+          else if (closedBeyond) reclaimed = true;
+        }
+      }
+      if (reclaimed) { state = "reclaimed"; reasons.push("closed-back-through-zone"); }
+      else if (closedBeyond) { state = "broken"; reasons.push("closed-beyond-zone"); }
+      else if (intrabarExcursion) { state = "held"; reasons.push("intrabar-excursion-without-closed-break"); }
+      else if (touched) { state = "tested"; reasons.push("touched-without-closed-break"); }
+      else if (level.state === "candidate") { state = "active"; reasons.push("no-interaction-yet"); }
+      if (staleAfterBars !== null && tadIsFinite(level.ageBars) && level.ageBars > staleAfterBars && state !== "broken" && state !== "reclaimed") { state = "stale"; reasons.push("older-than-declared-window"); }
+      return tadDeepFreeze({ ok: true, levelId: level.levelId, fromState: level.state, state: state, side: side, reasonCodes: reasons, intrabarExcursion: intrabarExcursion, closedBeyond: closedBeyond, decidedFromClosedBars: closed.length, errors: [] });
+    }
+
+    function tadEvaluateSetupDefinition(definition, context) {
+      if (!tadIsPlainObject(definition) || typeof definition.setupDefinitionId !== "string") return tadSetupRefusal("TAD-SETUP-DEFINITION", definition, "a setup definition record", "supply a committed setup definition", "Setup evaluation requires a definition.");
+      if (!tadIsPlainObject(context)) return tadSetupRefusal("TAD-SETUP-CONTEXT", context, "an evaluation context", "supply observations and family states", "Setup evaluation requires a context.");
+      if (!Array.isArray(definition.supportedProfileIds) || definition.supportedProfileIds.indexOf(context.profileId) < 0) return tadSetupRefusal("TAD-SETUP-PROFILE", context.profileId, "a supported timeframe profile", "select a supported timeframe profile", "This setup does not support the selected profile.");
+      var familyStates = tadIsPlainObject(context.familyStates) ? context.familyStates : {};
+      var satisfied = [], missing = [];
+      (definition.requiredFamilyIds || []).forEach(function (familyId) {
+        var familyState = Object.prototype.hasOwnProperty.call(familyStates, familyId) ? familyStates[familyId] : "unavailable";
+        if (familyState === "supports") satisfied.push(familyId); else missing.push(familyId + ":" + familyState);
+      });
+      var inZone = context.inGovernedZone === true;
+      var triggerFired = typeof context.triggerEventId === "string" && (definition.triggerEvents || []).indexOf(context.triggerEventId) >= 0;
+      var state, reasons = [];
+      // ARMED cannot be skipped. A trigger only means something once prerequisites and location
+      // already hold, so a trigger observed without them is not an entry — it is not even a setup.
+      if (missing.length) { state = "NO_EDGE"; reasons.push("required-families-unmet:" + missing.join("|")); }
+      else if (!inZone) { state = "WATCH"; reasons.push("prerequisites-met-location-pending"); }
+      else if (!triggerFired) { state = "ARMED"; reasons.push("location-met-awaiting-" + (definition.triggerEvents || []).join("-or-")); }
+      else { state = "TRIGGERED"; reasons.push("trigger-observed:" + context.triggerEventId); }
+      if (typeof context.triggerEventId === "string" && !triggerFired) reasons.push("declared-trigger-not-recognized:" + context.triggerEventId);
+      return tadDeepFreeze({ ok: true, state: state, reasonCodes: reasons, setupDefinitionId: definition.setupDefinitionId, satisfiedFamilyIds: satisfied, unmetFamilyIds: missing, triggerEventIds: (definition.triggerEvents || []).slice(), expiry: definition.expiry, evaluationHorizon: definition.evaluationHorizon, mandatoryGateIds: (definition.mandatoryGateIds || []).slice(), events: [], errors: [] });
+    }
+
+    function tadTransitionCandidate(candidateId, priorEvents, request) {
+      if (typeof candidateId !== "string" || !candidateId) return tadSetupRefusal("TAD-CANDIDATE-ID", candidateId, "a candidate identity", "build the candidate identity first", "A transition requires a candidate identity.");
+      if (!Array.isArray(priorEvents)) return tadSetupRefusal("TAD-CANDIDATE-LOG", priorEvents, "an append-only event array", "supply the candidate event log", "A transition requires the prior event log.");
+      if (!tadIsPlainObject(request) || typeof request.toState !== "string") return tadSetupRefusal("TAD-CANDIDATE-REQUEST", request, "a transition request with toState", "declare the requested state", "A transition requires a requested state.");
+      var owned = priorEvents.filter(function (event) { return tadIsPlainObject(event) && event.candidateId === candidateId; });
+      var fromState = owned.length ? owned[owned.length - 1].toState : "SCANNING";
+      // A terminal record is the point of the log. Reopening it would let an expired setup quietly
+      // become a live one, which is how a backtest turns into a story.
+      if (TAD_TERMINAL_STATES.indexOf(fromState) >= 0) return tadSetupRefusal("TAD-CANDIDATE-TERMINAL", fromState, "no transition out of a terminal state", "create a new candidate for a later pattern", "A terminal candidate cannot reopen.");
+      var allowed = Object.prototype.hasOwnProperty.call(TAD_CANDIDATE_TRANSITIONS, fromState) ? TAD_CANDIDATE_TRANSITIONS[fromState] : null;
+      if (!allowed) return tadSetupRefusal("TAD-CANDIDATE-STATE", fromState, "a known candidate state", "repair the candidate log", "The candidate log holds an unknown state.");
+      if (allowed.indexOf(request.toState) < 0) return tadSetupRefusal("TAD-CANDIDATE-TRANSITION", fromState + " to " + request.toState, "a declared onward state", "follow the declared transition graph", "That candidate transition is not legal.");
+      var decisionMs = Date.parse(request.decisionTime), cutoffMs = Date.parse(request.observationCutoff);
+      if (!Number.isFinite(decisionMs) || !Number.isFinite(cutoffMs)) return tadSetupRefusal("TAD-CANDIDATE-TIME", request.decisionTime, "ISO decisionTime and observationCutoff", "declare both times", "A transition requires explicit decision and cutoff times.");
+      if (cutoffMs > decisionMs) return tadSetupRefusal("TAD-CANDIDATE-ASOF", request.observationCutoff, "observationCutoff at or before decisionTime", "decide only from observations already available", "A transition would use information from after its own decision time.");
+      if (owned.length) {
+        var previousMs = Date.parse(owned[owned.length - 1].decisionTime);
+        if (Number.isFinite(previousMs) && decisionMs < previousMs) return tadSetupRefusal("TAD-CANDIDATE-BACKDATE", request.decisionTime, "a decisionTime at or after the prior event", "append forward in time only", "A transition would be backdated behind the prior event.");
+      }
+      var terminal = TAD_TERMINAL_STATES.indexOf(request.toState) >= 0;
+      if (terminal && typeof request.terminalConditionId !== "string") return tadSetupRefusal("TAD-CANDIDATE-TERMINAL-REASON", request.terminalConditionId, "a terminalConditionId", "name the condition that ended the candidate", "A terminal transition must name its terminal condition.");
+      var event = {
+        eventId: tadIdentity("tad-event:", { candidateId: candidateId, sequence: owned.length, fromState: fromState, toState: request.toState, decisionTime: request.decisionTime }),
+        candidateId: candidateId, sequence: owned.length, fromState: fromState, toState: request.toState,
+        decisionTime: request.decisionTime, observationCutoff: request.observationCutoff,
+        sourceSetId: typeof request.sourceSetId === "string" ? request.sourceSetId : null,
+        variantId: typeof request.variantId === "string" ? request.variantId : null,
+        gateSnapshotId: typeof request.gateSnapshotId === "string" ? request.gateSnapshotId : null,
+        reasonCodes: Array.isArray(request.reasonCodes) ? request.reasonCodes.slice() : [],
+        terminalConditionId: terminal ? request.terminalConditionId : null,
+        hypotheticalOutcome: terminal && tadIsPlainObject(request.hypotheticalOutcome) ? JSON.parse(JSON.stringify(request.hypotheticalOutcome)) : null
+      };
+      return tadDeepFreeze({ ok: true, state: request.toState, fromState: fromState, reasonCodes: event.reasonCodes.slice(), event: event, events: priorEvents.concat([event]), terminal: terminal, errors: [] });
+    }
+
+    function tadDeriveNaturalTargets(definition, levels, context) {
+      if (!tadIsPlainObject(definition) || !Array.isArray(definition.naturalTargetSelectors)) return tadSetupRefusal("TAD-TARGET-DEFINITION", definition, "a definition with naturalTargetSelectors", "supply a committed setup definition", "Target derivation requires a definition.");
+      if (!Array.isArray(levels)) return tadSetupRefusal("TAD-TARGET-LEVELS", levels, "an array of normalized levels", "normalize levels first", "Target derivation requires levels.");
+      if (!tadIsPlainObject(context) || (context.direction !== "long" && context.direction !== "short") || !tadIsFinite(context.triggerPrice)) return tadSetupRefusal("TAD-TARGET-CONTEXT", context, "a direction and finite triggerPrice", "declare the hypothetical trigger", "Target derivation requires a direction and trigger price.");
+      var cutoffMs = Date.parse(context.observationCutoff);
+      if (!Number.isFinite(cutoffMs)) return tadSetupRefusal("TAD-TARGET-CUTOFF", context.observationCutoff, "an ISO observationCutoff", "declare the cutoff", "Target derivation requires an observation cutoff.");
+      // Targets are SELECTED from levels that already existed, never invented to make a number work.
+      var eligible = levels.filter(function (level) {
+        var observedMs = Date.parse(level.observedAt);
+        if (!Number.isFinite(observedMs) || observedMs > cutoffMs) return false;
+        return context.direction === "long" ? level.price > context.triggerPrice : level.price < context.triggerPrice;
+      });
+      var ordered = eligible.slice().sort(function (a, b) { return context.direction === "long" ? a.price - b.price : b.price - a.price; });
+      var targets = ordered.map(function (level, position) {
+        return { targetId: level.levelId, order: position + 1, price: level.price, type: level.type, methodId: level.methodId, sourceVintageId: level.sourceVintageId, observedAt: level.observedAt, derivedFrom: "pre-existing-sourced-level" };
+      });
+      return tadDeepFreeze({ ok: true, direction: context.direction, triggerPrice: context.triggerPrice, targets: targets, selectorOrder: definition.naturalTargetSelectors.slice(), observationCutoff: context.observationCutoff, errors: [] });
+    }
+
+    function tadBuildRiskPlan(definition, plan) {
+      if (!tadIsPlainObject(definition) || typeof definition.setupDefinitionId !== "string") return tadSetupRefusal("TAD-RISK-DEFINITION", definition, "a setup definition record", "supply a committed setup definition", "A risk plan requires a definition.");
+      if (!tadIsPlainObject(plan) || !tadIsFinite(plan.triggerPrice) || !tadIsFinite(plan.invalidationPrice)) return tadSetupRefusal("TAD-RISK-GEOMETRY", plan, "finite triggerPrice and invalidationPrice", "declare the hypothetical trigger and invalidation", "A risk plan requires explicit geometry.");
+      if (!Array.isArray(plan.targets) || !plan.targets.length) return tadSetupRefusal("TAD-RISK-TARGETS", plan.targets, "at least one pre-derived target", "derive natural targets before building the plan", "A risk plan requires targets that already exist.");
+      if (typeof plan.costPolicyId !== "string" || !plan.costPolicyId) return tadSetupRefusal("TAD-RISK-COST", plan.costPolicyId, "an explicit cost policy identity", "declare the cost policy", "A risk plan requires an explicit cost policy.");
+      var riskPerUnit = Math.abs(plan.triggerPrice - plan.invalidationPrice);
+      if (riskPerUnit === 0) return tadSetupRefusal("TAD-RISK-ZERO", riskPerUnit, "a non-zero distance between trigger and invalidation", "separate the trigger from its invalidation", "A risk plan cannot have zero risk distance.");
+      var direction = plan.triggerPrice > plan.invalidationPrice ? "long" : "short";
+      var targets = plan.targets.map(function (target, position) {
+        var reward = direction === "long" ? target.price - plan.triggerPrice : plan.triggerPrice - target.price;
+        return { targetId: target.targetId, order: position + 1, price: target.price, rewardToRisk: reward / riskPerUnit, derivedFrom: target.derivedFrom || "pre-existing-sourced-level" };
+      });
+      var frozen = {
+        riskPlanId: tadIdentity("tad-risk:", { setup: definition.setupDefinitionId, trigger: plan.triggerPrice, invalidation: plan.invalidationPrice, targets: targets.map(function (target) { return target.targetId; }), cost: plan.costPolicyId }),
+        setupDefinitionId: definition.setupDefinitionId, direction: direction,
+        triggerPrice: plan.triggerPrice, invalidationPrice: plan.invalidationPrice, riskPerUnit: riskPerUnit,
+        orderedTargetIds: targets.map(function (target) { return target.targetId; }), targets: targets,
+        expiry: plan.expiry || definition.expiry, evaluationHorizon: plan.evaluationHorizon || definition.evaluationHorizon,
+        costPolicyId: plan.costPolicyId, riskUnit: tadIsFinite(plan.riskUnit) ? plan.riskUnit : null,
+        frozenAt: typeof plan.frozenAt === "string" ? plan.frozenAt : null
+      };
+      return tadDeepFreeze({ ok: true, riskPlan: frozen, errors: [] });
+    }
+
+    function tadAuditTargets(riskPlan, observedTargets) {
+      if (!tadIsPlainObject(riskPlan) || !Array.isArray(riskPlan.orderedTargetIds)) return tadSetupRefusal("TAD-AUDIT-PLAN", riskPlan, "a frozen risk plan", "build the risk plan first", "Target audit requires a frozen plan.");
+      if (!Array.isArray(observedTargets)) return tadSetupRefusal("TAD-AUDIT-TARGETS", observedTargets, "an array of currently claimed targets", "supply the claimed target set", "Target audit requires the claimed targets.");
+      var frozenIds = riskPlan.orderedTargetIds.slice();
+      var observedIds = observedTargets.map(function (target) { return tadIsPlainObject(target) ? target.targetId : String(target); });
+      var added = observedIds.filter(function (id) { return frozenIds.indexOf(id) < 0; });
+      var removed = frozenIds.filter(function (id) { return observedIds.indexOf(id) < 0; });
+      var reordered = false;
+      for (var k = 0; k < Math.min(frozenIds.length, observedIds.length); k += 1) if (frozenIds[k] !== observedIds[k]) reordered = true;
+      // Adding a target after the plan froze is target fitting: it improves the reward number with
+      // no new evidence. Removing or reordering rewrites the plan that was committed to.
+      var findings = [];
+      if (added.length) findings.push({ code: "TAD-TARGET-FITTING", detail: added.slice() });
+      if (removed.length) findings.push({ code: "TAD-TARGET-REMOVED", detail: removed.slice() });
+      if (reordered) findings.push({ code: "TAD-TARGET-REORDERED", detail: observedIds.slice() });
+      return tadDeepFreeze({ ok: findings.length === 0, matchesFrozenPlan: findings.length === 0, findings: findings, frozenTargetIds: frozenIds, observedTargetIds: observedIds, errors: [] });
+    }
+    /* ---------- End Feature 007 Scope 03: levels and setup lifecycle ---------- */
+
+    /* ---------- Feature 007 Scope 04: five-gate synthesis ---------- */
+    var TAD_GATE_ORDER = ["primary", "regime", "location", "trigger", "validation-risk-process"];
+
+    function tadGateResult(gateId, outcome, observed, required, reasonCodes, dependencies) {
+      return { gateId: gateId, outcome: outcome, observed: observed, required: required, reasonCodes: (reasonCodes || []).slice(), dependencies: (dependencies || []).slice(), blocking: outcome !== "pass" };
+    }
+
+    // A trigger role pointing against a confirmed primary is a CONFLICT, never a reversal of the
+    // primary. Both the primary and regime gates read it from one place so they cannot disagree.
+    function tadTimeframeConflict(roles) {
+      if (!tadIsPlainObject(roles) || !tadIsPlainObject(roles.primary) || !tadIsPlainObject(roles.trigger)) return null;
+      var primary = roles.primary, trigger = roles.trigger;
+      if (primary.confirmed !== true || typeof primary.state !== "string" || typeof trigger.state !== "string") return null;
+      if (primary.state === trigger.state || primary.state === "range" || trigger.state === "range") return null;
+      return { primaryState: primary.state, triggerState: trigger.state };
+    }
+
+    function tadEvaluatePrimaryGate(context) {
+      var primary = tadIsPlainObject(context) && tadIsPlainObject(context.roles) ? context.roles.primary : null;
+      if (!tadIsPlainObject(primary) || typeof primary.state !== "string") return tadGateResult("primary", "unavailable", "no closed primary role state", "a closed primary role direction", ["primary-role-unavailable"], []);
+      if (primary.confirmed !== true) return tadGateResult("primary", "unavailable", "primary role " + primary.state + " is not confirmed", "a confirmed closed primary role", ["primary-not-confirmed"], []);
+      // Tactical strength cannot rewrite the closed primary direction. A trigger role pointing the
+      // other way is recorded as a conflict, never as a reversal of the primary.
+      var conflict = tadTimeframeConflict(context.roles);
+      var reasons = ["primary-" + primary.state + "-confirmed"];
+      if (conflict) reasons.push("timeframe-conflict:trigger-" + conflict.triggerState + "-vs-primary-" + conflict.primaryState);
+      return tadGateResult("primary", "pass", "closed primary role is a confirmed " + primary.state + (conflict ? " with a conflicting trigger role" : ""), "a confirmed closed primary role", reasons, []);
+    }
+
+    function tadEvaluateRegimeGate(context) {
+      var regime = tadIsPlainObject(context) ? context.regime : null;
+      if (!tadIsPlainObject(regime) || typeof regime.state !== "string") return tadGateResult("regime", "unavailable", "no regime evidence", "a declared regime or phase state", ["regime-unavailable"], ["primary"]);
+      var eligible = Array.isArray(regime.eligibleSetupFamilyIds) ? regime.eligibleSetupFamilyIds.slice() : [];
+      if (!eligible.length) return tadGateResult("regime", "fail", "regime " + regime.state + " names no eligible setup family", "at least one eligible setup family for the regime", ["regime-names-no-eligible-family"], ["primary"]);
+      // Under a timeframe conflict only families explicitly declared eligible for countertrend
+      // research may stay armed. Without this a tactical turn against a confirmed primary would
+      // quietly arm a trend-continuation setup.
+      var conflict = tadTimeframeConflict(context.roles);
+      if (conflict) {
+        var countertrend = Array.isArray(regime.countertrendEligibleSetupFamilyIds) ? regime.countertrendEligibleSetupFamilyIds : [];
+        var stillEligible = eligible.filter(function (familyId) { return countertrend.indexOf(familyId) >= 0; });
+        if (!stillEligible.length) return tadGateResult("regime", "fail", "trigger " + conflict.triggerState + " conflicts with the confirmed primary " + conflict.primaryState + " and no eligible family is declared for countertrend research", "a setup family explicitly eligible for countertrend research", ["timeframe-conflict-without-countertrend-eligible-family", "primary-not-reversed"], ["primary"]);
+        return tadGateResult("regime", "pass", "regime " + regime.state + " under a timeframe conflict, limited to " + stillEligible.length + " countertrend-eligible " + (stillEligible.length === 1 ? "family" : "families"), "a setup family explicitly eligible for countertrend research", ["regime-" + regime.state, "countertrend-eligible-families:" + stillEligible.join("|"), "primary-not-reversed"], ["primary"]);
+      }
+      var reasons = ["regime-" + regime.state, "eligible-families:" + eligible.join("|")];
+      // Unresolved or contradictory phase evidence stays visible instead of being resolved away.
+      if (Array.isArray(regime.unresolvedHypotheses) && regime.unresolvedHypotheses.length) reasons.push("unresolved-phase-hypotheses:" + regime.unresolvedHypotheses.join("|"));
+      return tadGateResult("regime", "pass", "regime " + regime.state + " with " + eligible.length + " eligible setup " + (eligible.length === 1 ? "family" : "families"), "at least one eligible setup family for the regime", reasons, ["primary"]);
+    }
+
+    function tadEvaluateLocationGate(context) {
+      var location = tadIsPlainObject(context) ? context.location : null;
+      if (!tadIsPlainObject(location)) return tadGateResult("location", "unavailable", "no location evidence", "a governed zone, a volatility-normalized distance, and structural room", ["location-unavailable"], ["primary", "regime"]);
+      if (location.inGovernedZone !== true) {
+        // Being extended away from every governed zone is exactly the chase this gate exists to stop.
+        var distance = tadIsFinite(location.atrDistanceToZone) ? location.atrDistanceToZone.toFixed(2) + " ATR from the nearest governed zone" : "no governed zone within the configured distance";
+        return tadGateResult("location", "fail", "price is " + distance, "price inside a governed support or value zone", ["outside-governed-zone", "chase-risk"], ["primary", "regime"]);
+      }
+      if (!tadIsFinite(location.structuralRoomR) || location.structuralRoomR <= 0) return tadGateResult("location", "fail", "no measurable structural room to the first natural target", "positive structural room to a pre-derived target", ["insufficient-structural-room"], ["primary", "regime"]);
+      return tadGateResult("location", "pass", "inside a governed zone with " + location.structuralRoomR.toFixed(2) + "R of structural room", "price inside a governed support or value zone", ["inside-governed-zone", "structural-room-" + location.structuralRoomR.toFixed(2) + "R"], ["primary", "regime"]);
+    }
+
+    function tadEvaluateTriggerGate(context) {
+      var trigger = tadIsPlainObject(context) ? context.trigger : null;
+      if (!tadIsPlainObject(trigger)) return tadGateResult("trigger", "unavailable", "no trigger evidence", "a closed-bar trigger event declared by the setup", ["trigger-unavailable"], ["primary", "regime", "location"]);
+      if (trigger.invalidated === true) return tadGateResult("trigger", "fail", "the setup structure closed beyond its invalidation", "structure holding above its invalidation", ["closed-beyond-invalidation"], ["primary", "regime", "location"]);
+      if (typeof trigger.observedEventId !== "string") return tadGateResult("trigger", "fail", "no declared trigger event has occurred", "a closed-bar trigger event declared by the setup", ["trigger-not-yet-observed"], ["primary", "regime", "location"]);
+      var declared = Array.isArray(trigger.declaredEventIds) ? trigger.declaredEventIds : [];
+      if (declared.indexOf(trigger.observedEventId) < 0) return tadGateResult("trigger", "fail", "observed event " + trigger.observedEventId + " is not declared by the setup", "a trigger event the setup declares", ["undeclared-trigger-event"], ["primary", "regime", "location"]);
+      // A provisional bar cannot confirm; only a closed bar can.
+      if (trigger.confirmedOnClosedBar !== true) return tadGateResult("trigger", "fail", "trigger " + trigger.observedEventId + " is not confirmed on a closed bar", "confirmation on a closed bar", ["provisional-bar-cannot-confirm"], ["primary", "regime", "location"]);
+      return tadGateResult("trigger", "pass", "closed-bar " + trigger.observedEventId, "a closed-bar trigger event declared by the setup", ["trigger-confirmed:" + trigger.observedEventId], ["primary", "regime", "location"]);
+    }
+
+    function tadEvaluateValidationRiskProcessGate(context) {
+      var process = tadIsPlainObject(context) ? context.validationRiskProcess : null;
+      if (!tadIsPlainObject(process)) return tadGateResult("validation-risk-process", "unavailable", "no validation, cost, or process evidence", "a supported validation record, a frozen plan, and an explicit cost posture", ["validation-risk-process-unavailable"], TAD_GATE_ORDER.slice(0, 4));
+      if (process.validationStatus !== "supported") return tadGateResult("validation-risk-process", "fail", "validation status " + process.validationStatus, "a supported validation record", ["validation-not-supported:" + process.validationStatus], TAD_GATE_ORDER.slice(0, 4));
+      if (process.planFrozen !== true) return tadGateResult("validation-risk-process", "fail", "the plan is not frozen", "a frozen trigger, invalidation, and target path", ["plan-not-frozen"], TAD_GATE_ORDER.slice(0, 4));
+      // A missing cost component can never become a pass, because a net claim without costs is a
+      // claim about money that was never measured.
+      if (process.costsExplicit !== true) return tadGateResult("validation-risk-process", "fail", "required cost components are absent", "an explicit cost posture for every required component", ["costs-not-explicit"], TAD_GATE_ORDER.slice(0, 4));
+      if (process.targetAuditClean !== true) return tadGateResult("validation-risk-process", "fail", "the published target path differs from the frozen plan", "a target path matching the frozen plan", ["target-audit-dirty"], TAD_GATE_ORDER.slice(0, 4));
+      if (!tadIsFinite(process.netRewardToRisk)) return tadGateResult("validation-risk-process", "fail", "net reward-to-risk is not computable", "a finite net reward-to-risk after costs", ["net-reward-to-risk-unavailable"], TAD_GATE_ORDER.slice(0, 4));
+      if (tadIsFinite(process.minimumNetRewardToRisk) && process.netRewardToRisk < process.minimumNetRewardToRisk) return tadGateResult("validation-risk-process", "fail", "net " + process.netRewardToRisk.toFixed(2) + "R after costs", "at least " + process.minimumNetRewardToRisk.toFixed(2) + "R after costs", ["net-reward-below-minimum"], TAD_GATE_ORDER.slice(0, 4));
+      return tadGateResult("validation-risk-process", "pass", "supported validation, frozen plan, explicit costs, net " + process.netRewardToRisk.toFixed(2) + "R", "a supported validation record, a frozen plan, and an explicit cost posture", ["validation-supported", "plan-frozen", "costs-explicit"], TAD_GATE_ORDER.slice(0, 4));
+    }
+
+    function tadSynthesizeFiveGates(context) {
+      if (!tadIsPlainObject(context)) return tadDeepFreeze({ ok: false, gates: [], errors: [tadError("TAD-GATE-CONTEXT", "error", "$", null, context, "a synthesis context", "supply gate evidence", "Five-gate synthesis requires a context.")] });
+      // All five records are always computed so the reader can see the whole picture, but transition
+      // eligibility stops at the first mandatory fail or unavailable. A later pass cannot revive it.
+      var gates = [tadEvaluatePrimaryGate(context), tadEvaluateRegimeGate(context), tadEvaluateLocationGate(context), tadEvaluateTriggerGate(context), tadEvaluateValidationRiskProcessGate(context)];
+      var firstBlockingIndex = -1;
+      for (var i = 0; i < gates.length; i += 1) if (gates[i].outcome !== "pass") { firstBlockingIndex = i; break; }
+      var eligible = firstBlockingIndex < 0;
+      var decorated = gates.map(function (gate, index) {
+        return { gateId: gate.gateId, order: index + 1, outcome: gate.outcome, observed: gate.observed, required: gate.required, reasonCodes: gate.reasonCodes.slice(), dependencies: gate.dependencies.slice(), blocking: gate.blocking, blocksTransition: firstBlockingIndex >= 0 && index === firstBlockingIndex, diagnosticOnly: firstBlockingIndex >= 0 && index > firstBlockingIndex };
+      });
+      return tadDeepFreeze({
+        ok: true, gates: decorated, gateOrder: TAD_GATE_ORDER.slice(),
+        transitionEligible: eligible,
+        firstBlockingGateId: firstBlockingIndex < 0 ? null : gates[firstBlockingIndex].gateId,
+        passCount: gates.filter(function (gate) { return gate.outcome === "pass"; }).length,
+        failCount: gates.filter(function (gate) { return gate.outcome === "fail"; }).length,
+        unavailableCount: gates.filter(function (gate) { return gate.outcome === "unavailable"; }).length,
+        errors: []
+      });
+    }
+
+    function tadRankCandidates(candidates) {
+      if (!Array.isArray(candidates)) return tadDeepFreeze({ ok: false, ranked: [], errors: [tadError("TAD-RANK-INPUT", "error", "$", null, candidates, "an array of evaluated candidates", "supply evaluated candidates", "Candidate ranking input is invalid.")] });
+      var validationRank = { supported: 0, bounded: 1, unsupported: 2, unavailable: 3 };
+      var truthRank = { current: 0, degraded: 1, stale: 2, unavailable: 3 };
+      var scored = candidates.map(function (candidate, index) {
+        var synthesis = candidate.synthesis || {};
+        return {
+          candidateId: candidate.candidateId, setupDefinitionId: candidate.setupDefinitionId, sourceIndex: index,
+          transitionEligible: synthesis.transitionEligible === true,
+          passCount: tadIsFinite(synthesis.passCount) ? synthesis.passCount : 0,
+          validationStatus: typeof candidate.validationStatus === "string" ? candidate.validationStatus : "unavailable",
+          truthState: typeof candidate.truthState === "string" ? candidate.truthState : "unavailable",
+          contradictionSeverity: tadIsFinite(candidate.contradictionSeverity) ? candidate.contradictionSeverity : 0,
+          contradictionCount: tadIsFinite(candidate.contradictionCount) ? candidate.contradictionCount : 0,
+          specificity: tadIsFinite(candidate.specificity) ? candidate.specificity : 0,
+          registryIndex: tadIsFinite(candidate.registryIndex) ? candidate.registryIndex : 0
+        };
+      });
+      // Direction is deliberately absent from every rank dimension. A candidate wins on complete
+      // gate and validation evidence, never on being the most bullish thing on the page.
+      var ranked = scored.slice().sort(function (a, b) {
+        if (a.transitionEligible !== b.transitionEligible) return a.transitionEligible ? -1 : 1;
+        if (a.passCount !== b.passCount) return b.passCount - a.passCount;
+        var aValidation = Object.prototype.hasOwnProperty.call(validationRank, a.validationStatus) ? validationRank[a.validationStatus] : 9;
+        var bValidation = Object.prototype.hasOwnProperty.call(validationRank, b.validationStatus) ? validationRank[b.validationStatus] : 9;
+        if (aValidation !== bValidation) return aValidation - bValidation;
+        var aTruth = Object.prototype.hasOwnProperty.call(truthRank, a.truthState) ? truthRank[a.truthState] : 9;
+        var bTruth = Object.prototype.hasOwnProperty.call(truthRank, b.truthState) ? truthRank[b.truthState] : 9;
+        if (aTruth !== bTruth) return aTruth - bTruth;
+        if (a.contradictionSeverity !== b.contradictionSeverity) return a.contradictionSeverity - b.contradictionSeverity;
+        if (a.contradictionCount !== b.contradictionCount) return a.contradictionCount - b.contradictionCount;
+        if (a.specificity !== b.specificity) return b.specificity - a.specificity;
+        if (a.registryIndex !== b.registryIndex) return a.registryIndex - b.registryIndex;
+        return String(a.candidateId).localeCompare(String(b.candidateId));
+      }).map(function (entry, position) { return { rank: position + 1, candidateId: entry.candidateId, setupDefinitionId: entry.setupDefinitionId, transitionEligible: entry.transitionEligible, passCount: entry.passCount, validationStatus: entry.validationStatus, truthState: entry.truthState, contradictionSeverity: entry.contradictionSeverity, contradictionCount: entry.contradictionCount, specificity: entry.specificity }; });
+      return tadDeepFreeze({ ok: true, ranked: ranked, rankDimensions: ["transitionEligible", "passCount", "validationStatus", "truthState", "contradictionSeverity", "contradictionCount", "specificity", "registryIndex", "candidateId"], errors: [] });
+    }
+
+    function tadBuildUnifiedRead(input) {
+      if (!tadIsPlainObject(input) || !Array.isArray(input.candidates)) return tadDeepFreeze({ ok: false, read: null, errors: [tadError("TAD-READ-INPUT", "error", "$", null, input, "an input with a candidates array", "supply evaluated candidates", "The unified read requires evaluated candidates.")] });
+      if (typeof input.observationCutoff !== "string") return tadDeepFreeze({ ok: false, read: null, errors: [tadError("TAD-READ-CUTOFF", "error", "$", null, input.observationCutoff, "an ISO observationCutoff", "declare the cutoff", "The unified read requires an observation cutoff.")] });
+      var ranking = tadRankCandidates(input.candidates);
+      if (!ranking.ok) return tadDeepFreeze({ ok: false, read: null, errors: ranking.errors.slice() });
+      var byId = {};
+      input.candidates.forEach(function (candidate) { byId[candidate.candidateId] = candidate; });
+      var eligible = ranking.ranked.filter(function (entry) { return entry.transitionEligible; });
+      var selected = eligible.length ? byId[eligible[0].candidateId] : null;
+      // Abstaining is a real answer. With no candidate clearing every mandatory gate the read is
+      // NO_EDGE or MIXED; it never manufactures a low-confidence direction to avoid saying nothing.
+      var contradictions = input.candidates.filter(function (candidate) { return tadIsFinite(candidate.contradictionCount) && candidate.contradictionCount > 0; }).length;
+      var state;
+      if (selected) state = "TRIGGERED";
+      else if (input.candidates.some(function (candidate) { return candidate.invalidated === true; })) state = "INVALIDATED";
+      else if (contradictions > 0 && input.candidates.length > 1) state = "MIXED";
+      else state = "NO_EDGE";
+      var nearest = !selected && ranking.ranked.length ? ranking.ranked[0] : null;
+      var nearestCandidate = nearest ? byId[nearest.candidateId] : null;
+      var timeframeConflict = input.candidates.some(function (candidate) {
+        return candidate.synthesis && Array.isArray(candidate.synthesis.gates) && candidate.synthesis.gates.some(function (gate) { return gate.reasonCodes.some(function (reason) { return reason.indexOf("timeframe-conflict") === 0; }); });
+      });
+      var read = {
+        readId: tadIdentity("tad-read:", { cutoff: input.observationCutoff, candidates: ranking.ranked.map(function (entry) { return entry.candidateId; }), state: state }),
+        state: state, observationCutoff: input.observationCutoff,
+        selectedCandidateId: selected ? selected.candidateId : null,
+        selectionBasis: selected ? "strongest-complete-gate-and-validation-evidence" : "no-candidate-cleared-every-mandatory-gate",
+        nearestReadyCandidateId: nearestCandidate ? nearestCandidate.candidateId : null,
+        nearestMissingCondition: nearestCandidate && nearestCandidate.synthesis ? nearestCandidate.synthesis.firstBlockingGateId : null,
+        ranked: ranking.ranked.slice(),
+        rankDimensions: ranking.rankDimensions.slice(),
+        timeframeConflict: timeframeConflict,
+        candidateCount: input.candidates.length,
+        contradictingCandidateCount: contradictions,
+        directionPublished: false,
+        executionClaimed: false,
+        caveats: Array.isArray(input.caveats) ? input.caveats.slice() : []
+      };
+      return tadDeepFreeze({ ok: true, read: read, errors: [] });
+    }
+    /* ---------- End Feature 007 Scope 04: five-gate synthesis ---------- */
+
+    /* ---------- Feature 007 Scope 05: owner publication and strict adapters ---------- */
+    // These adapters admit or refuse an owner's ALREADY-PUBLISHED read. They never call an
+    // owner's private function, load an owner's script, inspect an iframe, parse owner DOM,
+    // or reproduce an owner's formula. Refusal is always explicit; nothing silently upgrades.
+    var TAD_CAPABILITY_OWNERS = {
+      "swing-structure/v1": "swing-structure-lab",
+      "intraday-auction/v1": "intraday-tape-lab",
+      "options-positioning/v1": "options-structure-lab",
+      "gamma-playbook/v1": "gamma-trading-lab",
+      "market-breadth/v1": "market-heatmap-lab",
+      "relative-context/v1": "sector-research-lab"
+    };
+    var TAD_TACTICAL_CAPABILITIES = ["intraday-auction/v1"];
+
+    function tadAdmitOwnerRead(toolRead, expected) {
+      var refusal = function (code, observed, required, action) {
+        return { admitted: false, code: code, observed: observed, required: required, action: action };
+      };
+      if (!toolRead || typeof toolRead !== "object") return refusal("TAD-OWNER-ABSENT", "no published owner read", "a published rl-tool-read/v1 envelope", "open the owner page so it publishes its own result");
+      var schema = tadValidateOwnerRead(toolRead, expected);
+      if (!schema.ok) {
+        var first = schema.errors[0];
+        return refusal(first.code || "TAD-OWNER-SCHEMA", first.observed || first.message || "schema mismatch", first.required || "an exact rl-ta-owner-read/v1 envelope", first.action || "correct the owner publisher");
+      }
+      var owner = toolRead.metrics.ownerRead;
+      var expectedOwner = TAD_CAPABILITY_OWNERS[owner.capabilityVersion];
+      if (!expectedOwner) return refusal("TAD-OWNER-CAPABILITY", "capability " + owner.capabilityVersion, "a registered Feature 007 capability version", "register the capability before admitting it");
+      if (expectedOwner !== owner.ownerId) return refusal("TAD-OWNER-IDENTITY", owner.ownerId + " published " + owner.capabilityVersion, expectedOwner + " owns " + owner.capabilityVersion, "publish the capability from its owning page");
+      // truthState is preserved exactly. A stale, degraded, partial, failed, or unavailable
+      // owner is carried through at its own level and is never promoted to current.
+      return { admitted: true, owner: owner, truthState: owner.truthState, capabilityVersion: owner.capabilityVersion };
+    }
+
+    function tadAdmitOptionPositioning(admissions) {
+      var positioning = null, conventions = [];
+      admissions.forEach(function (entry) {
+        if (!entry.admitted) return;
+        var payload = entry.owner.payload;
+        if (payload && typeof payload.signConventionId === "string") conventions.push({ ownerId: entry.owner.ownerId, signConventionId: payload.signConventionId, signApplied: payload.signApplied === true });
+        if (entry.capabilityVersion === "options-positioning/v1") positioning = entry;
+      });
+      var distinct = conventions.map(function (c) { return c.signConventionId; }).filter(function (v, i, a) { return a.indexOf(v) === i; });
+      if (distinct.length > 1) {
+        return { eligible: false, code: "TAD-OPTION-CONVENTION-CONFLICT", conventions: conventions, distinctConventions: distinct,
+          observed: distinct.length + " different dealer sign conventions across option owners", required: "one inherited dealer sign convention shared by every sign-dependent output",
+          action: "resolve the owners to a single declared convention; this page will not silently re-sign a snapshot" };
+      }
+      if (!positioning) return { eligible: false, code: "TAD-OPTION-POSITIONING-ABSENT", conventions: conventions, distinctConventions: distinct, observed: "no options-positioning/v1 read was admitted", required: "a current options-positioning/v1 read with signApplied true", action: "open the option owner so it publishes a compatible snapshot" };
+      var payload = positioning.owner.payload;
+      if (positioning.owner.truthState !== "current" || payload.snapshotAvailable !== true) {
+        // The absence of a snapshot is published as unavailable. It is never read as flat
+        // gamma, a zero wall, or neutral dealer positioning.
+        return { eligible: false, code: "TAD-OPTION-SNAPSHOT-UNAVAILABLE", conventions: conventions, distinctConventions: distinct,
+          observed: "the option owner reports truth " + positioning.owner.truthState + " with no snapshot", required: "a current compatible option chain snapshot",
+          action: "treat option positioning as unavailable; zero gamma and neutral dealer positioning are not inferred from absence" };
+      }
+      if (payload.signApplied !== true) {
+        return { eligible: false, code: "TAD-OPTION-SIGN-NOT-APPLIED", conventions: conventions, distinctConventions: distinct,
+          observed: "the option read declares signApplied false", required: "signApplied true so every sign-dependent value shares one applied convention",
+          action: "admit only a read whose stored values already carry the declared convention" };
+      }
+      var required = ["snapshotClocks", "expirationCoverage", "liquidityFilters", "assumptions"], missing = required.filter(function (key) { return !payload[key]; });
+      if (missing.length) {
+        return { eligible: false, code: "TAD-OPTION-CONTRACT-INCOMPLETE", conventions: conventions, distinctConventions: distinct,
+          observed: "the option read omits " + missing.join(", "), required: "snapshot clocks, expiration coverage, liquidity filters, and rate/dividend/volatility assumptions",
+          action: "publish the full option eligibility contract before the snapshot can contribute" };
+      }
+      return { eligible: true, code: null, conventions: conventions, distinctConventions: distinct, signConventionId: payload.signConventionId,
+        observed: "one applied convention " + payload.signConventionId + " shared by " + conventions.length + " option owner(s)",
+        required: "one inherited convention with signApplied true", action: "read every option level under the declared convention exactly once" };
+    }
+
+    function tadEvaluateMicrostructure(requests) {
+      var contracts = {
+        footprint: { label: "Footprint / volume-at-price by aggressor", required: "tick-level volume at price with bid/ask or aggressor classification", check: function (o) { return o.hasTickVolumeAtPrice === true && o.hasBidAskOrAggressor === true; } },
+        depth: { label: "Order-book depth", required: "time-stamped full-book add, move, cancel, and execute events", check: function (o) { return o.hasTimestampedFullBookEvents === true; } },
+        "large-trade": { label: "Large-trade classification", required: "per-trade size, price, time, and classification", check: function (o) { return o.hasSizePriceTimeClassification === true; } }
+      };
+      return requests.map(function (request) {
+        var contract = contracts[request.requestId];
+        if (!contract) return { requestId: request.requestId, eligible: false, label: request.requestId, observed: "unknown microstructure request", required: "a registered microstructure contract", action: "register the contract before requesting it" };
+        var satisfied = contract.check(request.offered || {});
+        return {
+          requestId: request.requestId, label: contract.label, eligible: satisfied, offeredKind: (request.offered && request.offered.kind) || "none",
+          observed: satisfied ? "the offered feed satisfies the contract" : "the offered feed is " + ((request.offered && request.offered.kind) || "absent"),
+          required: contract.required,
+          // No proxy is ever styled as the real feed. The module stays unavailable.
+          action: satisfied ? "read the module normally" : "keep this module unavailable; an OHLCV or option-snapshot proxy is not substituted for it"
+        };
+      });
+    }
+
+    function tadAdaptFeatureSixRead(read, expected) {
+      if (!read || typeof read !== "object") return { admitted: false, code: "TAD-F006-ABSENT", observed: "no Feature 006 read is published", required: "a valid tdc-tool-read/v1 envelope", action: "open the Trend Dynamics page; this page's own trend methods continue from qualified observations" };
+      if (read.contractVersion !== "tdc-tool-read/v1") return { admitted: false, code: "TAD-F006-CONTRACT", observed: "contract " + String(read.contractVersion), required: "tdc-tool-read/v1", action: "publish the Feature 006 contract version exactly" };
+      if (read.symbol !== expected.symbol) return { admitted: false, code: "TAD-F006-SYMBOL", observed: "symbol " + String(read.symbol), required: "symbol " + expected.symbol, action: "align the Feature 006 selection to this symbol" };
+      if (read.decisionCutoff !== expected.decisionCutoff) return { admitted: false, code: "TAD-F006-CUTOFF", observed: "cutoff " + String(read.decisionCutoff), required: "cutoff " + expected.decisionCutoff, action: "align the Feature 006 cutoff to this decision cutoff" };
+      if (read.selectedSourceId !== expected.selectedSourceId) return { admitted: false, code: "TAD-F006-SOURCE", observed: "source " + String(read.selectedSourceId), required: "source " + expected.selectedSourceId, action: "align the Feature 006 source selection" };
+      return { admitted: true, code: null, selectionId: read.selectionId, observed: "a compatible Feature 006 read", required: "matching symbol, source, cutoff, and selection", action: "read Feature 006 dynamics under its own semantics only" };
+    }
+    /* ---------- End Feature 007 Scope 05: owner publication and strict adapters ---------- */
+
+    /* ---------- Feature 007 Scope 06: comparison and optional evidence ---------- */
+    // Roles stay separate on purpose. A sector reading is not a substitute for a peer reading,
+    // and neither is Dow's industrial/transport confirmation rule, which was a claim about two
+    // specific averages and does not generalize to an arbitrary pair of modern symbols.
+    var TAD_COMPARISON_ROLES = ["broad-market", "sector-industry", "direct-peer", "optional-context"];
+
+    function tadComparisonRefusal(code, observed, required, action, message) {
+      return tadDeepFreeze({ ok: false, errors: [tadError(code, "error", "$", null, observed, required, action, message)] });
+    }
+
+    function tadBuildComparisonSet(request, policy) {
+      if (!tadIsPlainObject(request) || !tadIsPlainObject(policy)) {
+        return tadComparisonRefusal("TAD-COMPARISON-REQUEST", request, "an explicit comparison request and policy", "declare both before building a comparison set", "Comparison set inputs are invalid.");
+      }
+      if (policy.contractVersion !== "tad-comparison-policy/v1") {
+        return tadComparisonRefusal("TAD-COMPARISON-POLICY", String(policy.contractVersion), "tad-comparison-policy/v1", "declare the supported comparison policy contract", "Comparison policy contract is unsupported.");
+      }
+      if (!Array.isArray(request.roles) || request.roles.length === 0) {
+        return tadComparisonRefusal("TAD-COMPARISON-MEMBERSHIP", request.roles, "at least one declared comparison member", "declare membership before comparing", "Comparison membership is empty.");
+      }
+      var required = ["role", "symbol", "rationale", "classificationSource", "classificationAsOf"], errors = [];
+      request.roles.forEach(function (member, index) {
+        if (!tadIsPlainObject(member)) { errors.push(tadError("TAD-COMPARISON-MEMBER", "error", "$.roles[" + index + "]", null, member, "a member object", "declare the member", "Comparison member is not an object.")); return; }
+        required.forEach(function (key) {
+          if (typeof member[key] !== "string" || member[key].length === 0) {
+            // Rationale and classification provenance are REQUIRED, not decorative. A peer set
+            // whose membership cannot be explained is not auditable and cannot be frozen.
+            errors.push(tadError("TAD-COMPARISON-MEMBER", "error", "$.roles[" + index + "]." + key, null, member[key], "a non-empty " + key, "declare " + key + " for this member", "Comparison member is missing " + key + "."));
+          }
+        });
+        if (TAD_COMPARISON_ROLES.indexOf(member.role) < 0) {
+          errors.push(tadError("TAD-COMPARISON-ROLE", "error", "$.roles[" + index + "].role", null, member.role, "one of " + TAD_COMPARISON_ROLES.join(", "), "declare a registered comparison role", "Comparison role is not registered."));
+        }
+      });
+      if (errors.length) return tadDeepFreeze({ ok: false, errors: errors });
+      if (typeof request.decisionVintage !== "string" || !Number.isFinite(Date.parse(request.decisionVintage))) {
+        return tadComparisonRefusal("TAD-COMPARISON-VINTAGE", request.decisionVintage, "an ISO decision vintage", "declare the decision vintage", "Comparison decision vintage is invalid.");
+      }
+      var normalizationId = typeof request.normalizationId === "string" ? request.normalizationId : policy.normalizationId;
+      if (normalizationId !== policy.normalizationId) {
+        return tadComparisonRefusal("TAD-COMPARISON-NORMALIZATION", normalizationId, policy.normalizationId, "use the declared normalization", "Comparison normalization is unsupported.");
+      }
+      var minimumPeerDenominator = tadFiniteNumber(request.minimumPeerDenominator, "$.minimumPeerDenominator").ok
+        ? request.minimumPeerDenominator : policy.minimumPeerDenominator;
+      // Every behaviour-bearing field is in the digest. Anything omitted here could change a
+      // published result without changing its identity, which is what makes a passport a lie.
+      var membership = request.roles.map(function (member) {
+        return { role: member.role, symbol: member.symbol, rationale: member.rationale, classificationSource: member.classificationSource, classificationAsOf: member.classificationAsOf };
+      });
+      var digestPayload = {
+        membership: membership, normalizationId: normalizationId,
+        currencyPolicy: policy.currencyPolicy, sessionPolicy: policy.sessionPolicy, adjustmentPolicy: policy.adjustmentPolicy,
+        minimumPeerDenominator: minimumPeerDenominator, decisionVintage: request.decisionVintage
+      };
+      var membershipDigest = tadIdentity("tad-comparison-membership:", digestPayload);
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        comparisonSet: {
+          comparisonSetId: tadIdentity("tad-comparison:", digestPayload),
+          version: "tad-comparison-set/v1",
+          decisionVintage: request.decisionVintage,
+          roles: membership,
+          normalizationId: normalizationId,
+          currencyPolicy: policy.currencyPolicy,
+          sessionPolicy: policy.sessionPolicy,
+          adjustmentPolicy: policy.adjustmentPolicy,
+          replacementPolicy: policy.replacementPolicy,
+          minimumPeerDenominator: minimumPeerDenominator,
+          membershipDigest: membershipDigest
+        }
+      });
+    }
+
+    function tadEvaluateComparisonRole(role, comparisonSet, subject, seriesById) {
+      var members = comparisonSet.roles.filter(function (member) { return member.role === role; });
+      var symbolIds = members.map(function (member) { return member.symbol; });
+      var excluded = [], eligibleIds = [], evaluations = [];
+      members.forEach(function (member) {
+        var series = seriesById[member.symbol];
+        if (!series || !Array.isArray(series.rows) || series.rows.length < 2) {
+          excluded.push({ symbol: member.symbol, reason: "no-qualified-series" }); return;
+        }
+        // An incompatible comparator is NEVER swapped for a convenient one. It is excluded with
+        // a named reason and the requested role stays partial until the user changes membership.
+        if (series.adjustmentPolicyId !== subject.adjustmentPolicyId) { excluded.push({ symbol: member.symbol, reason: "incompatible-adjustment" }); return; }
+        if (series.sessionContractId !== subject.sessionContractId) { excluded.push({ symbol: member.symbol, reason: "incompatible-session" }); return; }
+        if (series.currencyId !== subject.currencyId) { excluded.push({ symbol: member.symbol, reason: "incompatible-currency" }); return; }
+        var outcome = tadRelativeStrength([subject, series], { normalization: comparisonSet.normalizationId });
+        if (!outcome || outcome.ok !== true || !outcome.metrics || !Number.isFinite(outcome.metrics.spread)) {
+          excluded.push({ symbol: member.symbol, reason: "relative-strength-unavailable" }); return;
+        }
+        if (outcome.status === "incompatible") { excluded.push({ symbol: member.symbol, reason: "incompatible-policies" }); return; }
+        eligibleIds.push(member.symbol);
+        evaluations.push({
+          symbol: member.symbol, state: outcome.status, spread: outcome.metrics.spread,
+          normalizedReturn: outcome.metrics.baseReturn, comparatorReturn: outcome.metrics.peerReturn,
+          ratio: (1 + outcome.metrics.baseReturn) / (1 + outcome.metrics.peerReturn),
+          alignedCount: outcome.metrics.observations,
+          sourceVintageId: series.sourceVintageId || null
+        });
+      });
+      var denominator = eligibleIds.length;
+      var leads = evaluations.filter(function (entry) { return entry.spread > 0; }).length;
+      var percentile = null, percentileState = "unavailable";
+      if (role === "direct-peer") {
+        if (denominator >= comparisonSet.minimumPeerDenominator) {
+          percentile = denominator === 0 ? null : leads / denominator;
+          percentileState = "available";
+        } else {
+          // Below the minimum the pairwise ratios remain, but a percentile over two peers would
+          // read as a population statistic it is not. Named ratios survive; the percentile does not.
+          percentileState = "denominator-below-minimum";
+        }
+      } else {
+        percentileState = "not-applicable";
+      }
+      var state = denominator === 0 ? "unavailable"
+        : evaluations.every(function (entry) { return entry.state === "leads"; }) ? "confirms-strength"
+          : evaluations.every(function (entry) { return entry.state === "lags"; }) ? "relative-weakness"
+            : "mixed";
+      return {
+        role: role, symbolIds: symbolIds, eligibleIds: eligibleIds, excluded: excluded,
+        alignedCount: evaluations.reduce(function (total, entry) { return Math.max(total, entry.alignedCount); }, 0),
+        denominator: denominator, state: state, evaluations: evaluations,
+        percentile: percentile, percentileState: percentileState,
+        minimumPeerDenominator: comparisonSet.minimumPeerDenominator,
+        sourceVintageIds: evaluations.map(function (entry) { return entry.sourceVintageId; }).filter(function (value, index, all) { return value && all.indexOf(value) === index; }),
+        observed: denominator + " of " + symbolIds.length + " declared " + role + " comparators are eligible",
+        required: role === "direct-peer" ? "at least " + comparisonSet.minimumPeerDenominator + " eligible peers for a percentile" : "at least one eligible aligned comparator"
+      };
+    }
+
+    function tadBuildComparisonEvidence(comparisonSet, subject, seriesById) {
+      if (!tadIsPlainObject(comparisonSet) || !tadIsPlainObject(subject) || !tadIsPlainObject(seriesById)) {
+        return tadComparisonRefusal("TAD-COMPARISON-EVIDENCE", null, "a comparison set, subject series, and comparator series", "supply all three", "Comparison evidence inputs are invalid.");
+      }
+      var results = TAD_COMPARISON_ROLES.map(function (role) { return tadEvaluateComparisonRole(role, comparisonSet, subject, seriesById); });
+      var weakRoles = results.filter(function (result) { return result.state === "relative-weakness"; }).map(function (result) { return result.role; });
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        comparisonSetId: comparisonSet.comparisonSetId,
+        membershipDigest: comparisonSet.membershipDigest,
+        results: results,
+        // Relative weakness is a CONTRADICTION, not a veto and not a signal. It is surfaced so a
+        // reader sees the disagreement rather than a single blended number that hides it.
+        contradictions: weakRoles.map(function (role) { return { role: role, kind: "relative-weakness", observed: "the subject lags every eligible " + role + " comparator", required: "corresponding strength before this role confirms" }; }),
+        dowEquivalenceClaimed: false
+      });
+    }
+    /* ---------- End Feature 007 Scope 06: comparison and optional evidence ---------- */
+
+    /* ---------- Feature 007 Scope 07: validation risk and process ---------- */
+    // Costs are applied per event before any net summary. Gross geometry is reported, but it is
+    // never called an edge: an edge is a net claim and it needs every applicable cost component.
+    var TAD_COST_COMPONENTS = ["commissionPerOrder", "regulatoryFees", "halfSpreadBps", "entrySlippageBps", "exitSlippageBps", "gapModel", "borrowBps", "financingBps", "sizingSemantics"];
+    var TAD_VALIDATION_STATUSES = ["supported", "fragile", "descriptive-only", "insufficient", "rejected", "unavailable"];
+    var TAD_PROCESS_STATES = ["clear", "caution", "blocked"];
+
+    function tadValidationRefusal(code, observed, required, action, message) {
+      return tadDeepFreeze({ ok: false, errors: [tadError(code, "error", "$", null, observed, required, action, message)] });
+    }
+
+    function tadBuildPurgedEvaluation(request, policy) {
+      if (!tadIsPlainObject(request) || !tadIsPlainObject(policy) || policy.contractVersion !== "tad-validation-policy/v1") {
+        return tadValidationRefusal("TAD-VALIDATION-POLICY", policy && policy.contractVersion, "tad-validation-policy/v1", "declare the supported validation policy", "Validation policy contract is unsupported.");
+      }
+      var observations = Array.isArray(request.observations) ? request.observations : null;
+      if (!observations || observations.length < 2) {
+        return tadValidationRefusal("TAD-VALIDATION-HISTORY", observations && observations.length, "at least two source-qualified observations", "extend the qualified history", "Validation history is insufficient.");
+      }
+      if (typeof request.decisionCutoff !== "string" || !Number.isFinite(Date.parse(request.decisionCutoff))) {
+        return tadValidationRefusal("TAD-VALIDATION-CUTOFF", request.decisionCutoff, "an ISO decision cutoff", "declare the decision cutoff", "Validation decision cutoff is invalid.");
+      }
+      // As-of safety: an observation that was not available at or before the decision cutoff
+      // cannot inform a decision made at that cutoff. Dropping this filter is label leakage.
+      var cutoff = Date.parse(request.decisionCutoff);
+      var eligible = observations.filter(function (row) { return Number.isFinite(Date.parse(row.closedAt)) && Date.parse(row.closedAt) <= cutoff; });
+      var excludedAsOf = observations.length - eligible.length;
+      if (eligible.length < 2) {
+        return tadValidationRefusal("TAD-VALIDATION-ASOF", eligible.length, "at least two observations available at or before the decision cutoff", "extend history before the cutoff", "No observation predates the decision cutoff.");
+      }
+      var foldCount = Number.isInteger(request.foldCount) ? request.foldCount : 3;
+      var trainRatio = tadFiniteNumber(request.trainRatio, "$.trainRatio").ok ? request.trainRatio : 0.7;
+      var folds = RLVALID.rlvBuildPurgedFolds(eligible.length, foldCount, trainRatio, policy.purgeBars, policy.embargoBars);
+      if (!folds.ok) {
+        return tadValidationRefusal("TAD-VALIDATION-FOLDS", folds.observed, folds.required, "supply a fold configuration the generic primitive accepts", "Purged fold construction refused.");
+      }
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        evaluation: {
+          decisionCutoff: request.decisionCutoff, eligibleCount: eligible.length, excludedAsOfCount: excludedAsOf,
+          foldMethod: policy.foldMethod, purgeBars: policy.purgeBars, embargoBars: policy.embargoBars,
+          selectionEvaluation: policy.selectionEvaluation, folds: folds.folds,
+          asOfPolicy: policy.asOfPolicy
+        }
+      });
+    }
+
+    function tadSimulateSetupVariant(variant, observations, semantics) {
+      if (!tadIsPlainObject(variant) || !Array.isArray(observations) || !tadIsPlainObject(semantics)) {
+        return tadValidationRefusal("TAD-SIMULATION-INPUT", null, "a variant, observations, and explicit semantics", "supply all three", "Setup simulation inputs are invalid.");
+      }
+      var required = ["triggerRule", "invalidationRule", "targetRule", "expiryBars", "sessionContractId"];
+      var missing = required.filter(function (key) { return semantics[key] === undefined || semantics[key] === null; });
+      if (missing.length) {
+        return tadValidationRefusal("TAD-SIMULATION-SEMANTICS", missing.join(","), required.join(", "), "declare every simulation semantic explicitly", "Setup simulation semantics are incomplete.");
+      }
+      var events = [];
+      observations.forEach(function (row, index) {
+        if (row.triggered !== true) return;
+        var horizon = observations.slice(index + 1, index + 1 + semantics.expiryBars);
+        var outcome = null, bars = 0, mae = 0, mfe = 0;
+        for (var step = 0; step < horizon.length; step += 1) {
+          bars = step + 1;
+          var excursion = horizon[step].c - row.c;
+          mae = Math.min(mae, excursion); mfe = Math.max(mfe, excursion);
+          if (horizon[step].c <= row.c - semantics.invalidationRule) { outcome = "loss"; break; }
+          if (horizon[step].c >= row.c + semantics.targetRule) { outcome = "win"; break; }
+        }
+        // An unresolved path is RECORDED, never dropped. Dropping open trades is the classic way
+        // a backtest reports a win rate it never earned.
+        events.push({
+          index: index, entryAt: row.closedAt, entryPrice: row.c,
+          outcome: outcome === null ? "unresolved" : outcome,
+          grossR: outcome === "win" ? semantics.targetRule / semantics.invalidationRule : outcome === "loss" ? -1 : 0,
+          bars: bars, mae: mae, mfe: mfe, resolved: outcome !== null
+        });
+      });
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        variantId: variant.variantId || null, events: events,
+        signalCount: events.length,
+        unresolvedCount: events.filter(function (event) { return event.resolved === false; }).length,
+        semantics: { triggerRule: semantics.triggerRule, invalidationRule: semantics.invalidationRule, targetRule: semantics.targetRule, expiryBars: semantics.expiryBars, sessionContractId: semantics.sessionContractId }
+      });
+    }
+
+    function tadApplyCosts(events, costPolicy, schema) {
+      if (!Array.isArray(events) || !tadIsPlainObject(costPolicy) || !tadIsPlainObject(schema)) {
+        return tadValidationRefusal("TAD-COST-INPUT", null, "events, a cost policy, and the cost schema", "supply all three", "Cost application inputs are invalid.");
+      }
+      var applicable = Array.isArray(costPolicy.applicableComponents) ? costPolicy.applicableComponents : TAD_COST_COMPONENTS;
+      var unknown = applicable.filter(function (component) { return schema.components.indexOf(component) < 0; });
+      if (unknown.length) {
+        return tadValidationRefusal("TAD-COST-COMPONENT", unknown.join(","), "components declared by the cost schema", "declare only registered cost components", "Cost component is not registered.");
+      }
+      // A missing component makes NET unavailable. It is not treated as zero, because an
+      // unstated cost and a stated zero are different claims. Zero must be said out loud.
+      var missing = applicable.filter(function (component) { return costPolicy.components[component] === undefined || costPolicy.components[component] === null; });
+      if (missing.length) {
+        return tadDeepFreeze({
+          ok: true, errors: [], netAvailable: false, missingComponents: missing,
+          missingComponentPolicy: schema.missingComponentPolicy, events: events.map(function (event) { return { index: event.index, grossR: event.grossR, netR: null }; }),
+          observed: "the cost policy omits " + missing.join(", "), required: "every applicable cost component stated explicitly, including an explicit zero",
+          action: "state each missing component before any net expectancy is published"
+        });
+      }
+      var components = costPolicy.components;
+      var roundTripBps = components.halfSpreadBps * 2 + components.entrySlippageBps + components.exitSlippageBps + components.borrowBps + components.financingBps;
+      var perEventCostR = tadFiniteNumber(costPolicy.riskUnitPrice, "$.riskUnitPrice").ok && costPolicy.riskUnitPrice > 0
+        ? (components.commissionPerOrder * 2 + components.regulatoryFees) / costPolicy.riskUnitPrice + roundTripBps / 10000 * (costPolicy.notionalPerRiskUnit || 1)
+        : null;
+      if (perEventCostR === null) {
+        return tadValidationRefusal("TAD-COST-RISK-UNIT", costPolicy.riskUnitPrice, "a positive hypothetical risk-unit price", "declare the hypothetical risk unit", "Cost application requires an explicit hypothetical risk unit.");
+      }
+      return tadDeepFreeze({
+        ok: true, errors: [], netAvailable: true, missingComponents: [],
+        missingComponentPolicy: schema.missingComponentPolicy,
+        perEventCostR: perEventCostR,
+        componentBreakdown: TAD_COST_COMPONENTS.reduce(function (all, key) { all[key] = components[key]; return all; }, {}),
+        events: events.map(function (event) { return { index: event.index, grossR: event.grossR, netR: event.grossR - perEventCostR }; })
+      });
+    }
+
+    function tadSummarizeValidation(simulation, costed, policy) {
+      if (!tadIsPlainObject(simulation) || !tadIsPlainObject(costed) || !tadIsPlainObject(policy)) {
+        return tadValidationRefusal("TAD-SUMMARY-INPUT", null, "a simulation, a cost application, and a policy", "supply all three", "Validation summary inputs are invalid.");
+      }
+      if (simulation.signalCount === 0) {
+        return tadDeepFreeze({ ok: true, errors: [], summary: { signalCount: 0, status: "insufficient", observed: "no qualifying signal in the evaluated history", required: "at least one qualifying signal", action: "extend the qualified history or relax nothing" } });
+      }
+      var resolved = simulation.events.filter(function (event) { return event.resolved; });
+      var wins = resolved.filter(function (event) { return event.outcome === "win"; });
+      var losses = resolved.filter(function (event) { return event.outcome === "loss"; });
+      var grossOutcomes = simulation.events.map(function (event) { return event.grossR; });
+      var grossSummary = RLVALID.rlvSummarizeOutcomes(grossOutcomes);
+      var wilson = resolved.length ? RLVALID.rlvWilsonInterval(wins.length, resolved.length, 1.96) : null;
+      var grossExpectancy = grossOutcomes.reduce(function (total, value) { return total + value; }, 0) / grossOutcomes.length;
+      var netExpectancy = costed.netAvailable
+        ? costed.events.reduce(function (total, event) { return total + event.netR; }, 0) / costed.events.length
+        : null;
+      var averageWin = wins.length ? wins.reduce(function (total, event) { return total + event.grossR; }, 0) / wins.length : null;
+      var averageLoss = losses.length ? Math.abs(losses.reduce(function (total, event) { return total + event.grossR; }, 0) / losses.length) : null;
+      var breakevenWinRate = averageWin !== null && averageLoss !== null && averageWin + averageLoss > 0
+        ? averageLoss / (averageWin + averageLoss) : null;
+      var equity = 1, peak = 1, drawdown = 0;
+      (costed.netAvailable ? costed.events.map(function (e) { return e.netR; }) : grossOutcomes).forEach(function (value) {
+        equity += value; peak = Math.max(peak, equity); drawdown = Math.min(drawdown, equity - peak);
+      });
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        summary: {
+          signalCount: simulation.signalCount, wins: wins.length, losses: losses.length,
+          unresolved: simulation.unresolvedCount,
+          winRate: resolved.length ? wins.length / resolved.length : null,
+          wilsonLower: wilson && wilson.ok ? wilson.lower : null, wilsonUpper: wilson && wilson.ok ? wilson.upper : null,
+          averageWin: averageWin, averageLoss: averageLoss,
+          payoffDistribution: grossSummary.ok ? { median: grossSummary.median, quantiles: grossSummary.quantiles } : null,
+          grossExpectancy: grossExpectancy,
+          // Net stays null when a cost component was never stated. It is not filled with gross.
+          netExpectancy: netExpectancy, netAvailable: costed.netAvailable,
+          breakevenWinRate: breakevenWinRate,
+          drawdown: drawdown,
+          mae: Math.min.apply(null, simulation.events.map(function (event) { return event.mae; })),
+          mfe: Math.max.apply(null, simulation.events.map(function (event) { return event.mfe; })),
+          averageDurationBars: simulation.events.reduce(function (total, event) { return total + event.bars; }, 0) / simulation.events.length,
+          uncertainty: wilson && wilson.ok ? wilson.upper - wilson.lower : null,
+          requiredOutcomes: policy.requiredOutcomes.slice()
+        }
+      });
+    }
+
+    function tadBuildValidationPassport(request) {
+      if (!tadIsPlainObject(request) || !tadIsPlainObject(request.summary) || !tadIsPlainObject(request.evaluation)) {
+        return tadValidationRefusal("TAD-PASSPORT-INPUT", null, "a summary, an evaluation, and an identity", "supply all three", "Validation passport inputs are invalid.");
+      }
+      var identityPayload = {
+        variantId: request.variantId, populationId: request.populationId, sourceVintagePolicyId: request.sourceVintagePolicyId,
+        foldSignature: request.evaluation.foldMethod + ":" + request.evaluation.purgeBars + ":" + request.evaluation.embargoBars + ":" + request.evaluation.folds.length,
+        trialCount: request.trialCount, costPolicyId: request.costPolicyId, horizonBars: request.horizonBars,
+        comparisonSetId: request.comparisonSetId
+      };
+      var summary = request.summary, status;
+      if (summary.signalCount === 0) status = "insufficient";
+      else if (!summary.netAvailable) status = "descriptive-only";
+      else if (request.adjustedPValue !== undefined && request.adjustedPValue !== null && request.adjustedPValue > 0.05) status = "rejected";
+      else if (summary.signalCount < (request.minimumSignals || 30)) status = "fragile";
+      else if (summary.netExpectancy !== null && summary.netExpectancy > 0) status = "supported";
+      else status = "rejected";
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        passport: {
+          passportId: tadIdentity("tad-passport:", identityPayload),
+          contractVersion: "tad-validation-passport/v1",
+          status: status,
+          variantId: request.variantId, populationId: request.populationId,
+          sourceVintagePolicyId: request.sourceVintagePolicyId, costPolicyId: request.costPolicyId,
+          comparisonSetId: request.comparisonSetId, horizonBars: request.horizonBars,
+          trialCount: request.trialCount, adjustedPValue: request.adjustedPValue === undefined ? null : request.adjustedPValue,
+          foldCount: request.evaluation.folds.length,
+          signalCount: summary.signalCount, netAvailable: summary.netAvailable,
+          limitations: [
+            "This passport describes the exact evaluated variant only; a changed parameter is a different variant.",
+            summary.netAvailable ? "Net metrics assume the declared cost components exactly as stated." : "Net metrics are unavailable because a required cost component was never stated."
+          ]
+        }
+      });
+    }
+
+    function tadAuditExpectancy(claim) {
+      if (!tadIsPlainObject(claim)) return tadValidationRefusal("TAD-EXPECTANCY-INPUT", claim, "an expectancy claim", "supply the claim", "Expectancy audit input is invalid.");
+      var p = claim.winRate, w = claim.averageWinR, l = claim.averageLossR, n = claim.tradeCount;
+      if (!tadIsFinite(p) || p < 0 || p > 1 || !tadIsFinite(w) || w <= 0 || !tadIsFinite(l) || l <= 0 || !Number.isInteger(n) || n < 1) {
+        return tadValidationRefusal("TAD-EXPECTANCY-FINITE", [p, w, l, n], "a probability, positive average win and loss in R, and a positive trade count", "supply complete claim inputs", "Expectancy audit inputs are incomplete.");
+      }
+      var expectancyR = p * w - (1 - p) * l;
+      var grossTotalR = expectancyR * n;
+      var breakevenWinRate = l / (w + l);
+      var tolerance = tadIsFinite(claim.toleranceR) ? claim.toleranceR : 0.5;
+      var claimed = tadIsFinite(claim.claimedTotalR) ? claim.claimedTotalR : null;
+      var consistent = claimed === null ? null : Math.abs(claimed - grossTotalR) <= tolerance;
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        audit: {
+          expectancyR: expectancyR, grossTotalR: grossTotalR, breakevenWinRate: breakevenWinRate,
+          tradeCount: n, claimedTotalR: claimed, consistent: consistent,
+          equation: "E = p*W - (1-p)*L; total = E*N",
+          // The audit never asserts the user is lying. It states that the arithmetic does not
+          // reconcile under equal risk and names the inputs that could reconcile it.
+          reconciliationInputs: consistent === false
+            ? ["variable position size per trade", "partial exits or scaling", "cost sequence and financing", "transcription of the recorded results"]
+            : [],
+          observed: consistent === false
+            ? "a claimed total of " + claimed + "R against a computed " + grossTotalR.toFixed(3) + "R under equal risk"
+            : "a computed gross total of " + grossTotalR.toFixed(3) + "R under equal risk",
+          required: "equal risk per trade, or an explicit sizing, sequencing, cost, or transcription record",
+          action: consistent === false ? "supply the reconciliation inputs before the transcript total is used" : "treat this as gross arithmetic only, not an edge"
+        }
+      });
+    }
+
+    function tadLossStreakScenario(riskFraction, streakLengths) {
+      if (!tadIsFinite(riskFraction) || riskFraction <= 0 || riskFraction >= 1 || !Array.isArray(streakLengths) || !streakLengths.length) {
+        return tadValidationRefusal("TAD-STREAK-INPUT", [riskFraction, streakLengths], "a risk fraction between zero and one and at least one streak length", "declare both", "Loss-streak scenario inputs are invalid.");
+      }
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        // Compounding, not linear: losing 1% ten times leaves 90.44%, not 90%. And these are
+        // SCENARIOS over a hypothetical risk unit, not a forecast and not risk advice.
+        scenarios: streakLengths.map(function (length) {
+          var remaining = Math.pow(1 - riskFraction, length);
+          return { streakLength: length, remainingFraction: remaining, drawdownFraction: 1 - remaining, recoveryGainRequired: 1 / remaining - 1 };
+        }),
+        riskFraction: riskFraction,
+        basis: "hypothetical-risk-unit",
+        limitations: ["These are compounding scenarios over a hypothetical risk unit, not a forecast and not universal risk advice."]
+      });
+    }
+
+    function tadEvaluateBehaviorGuard(plan, proposal, bounds) {
+      if (!tadIsPlainObject(plan) || !tadIsPlainObject(proposal) || !tadIsPlainObject(bounds)) {
+        return tadValidationRefusal("TAD-PROCESS-INPUT", null, "a frozen plan, a proposal, and configured bounds", "supply all three", "Process guard inputs are invalid.");
+      }
+      var findings = [];
+      if (tadIsFinite(plan.entry) && tadIsFinite(proposal.entry) && tadIsFinite(plan.invalidation) && tadIsFinite(bounds.chaseDistanceR)) {
+        var riskDistance = Math.abs(plan.entry - plan.invalidation);
+        var chaseR = riskDistance > 0 ? (proposal.entry - plan.entry) / riskDistance : null;
+        if (chaseR !== null && chaseR > bounds.chaseDistanceR) {
+          var newRisk = Math.abs(proposal.entry - plan.invalidation);
+          findings.push({
+            code: "CHASE", severity: "blocked",
+            observed: "the proposed entry is " + chaseR.toFixed(2) + "R beyond the frozen entry",
+            required: "an entry within " + bounds.chaseDistanceR + "R of the frozen plan",
+            action: "the original plan is blocked; re-evaluate as a new hypothetical setup rather than extending this one",
+            changedRewardToRisk: tadIsFinite(plan.target) && newRisk > 0 ? (plan.target - proposal.entry) / newRisk : null,
+            changedInvalidationDistance: newRisk
+          });
+        }
+      }
+      if (proposal.contradictionsAcknowledged === false) {
+        findings.push({ code: "UNACKNOWLEDGED-CONTRADICTION", severity: "caution", observed: "recorded contradictions were not acknowledged", required: "explicit acknowledgment of every recorded contradiction", action: "review each contradiction before proceeding" });
+      }
+      if (Array.isArray(proposal.changedPrecommitmentFields) && proposal.changedPrecommitmentFields.length) {
+        findings.push({ code: "CHANGED-PRECOMMITMENT", severity: "caution", observed: "changed after precommitment: " + proposal.changedPrecommitmentFields.join(", "), required: "a frozen plan, or a new variant identity", action: "record the change as a new variant rather than editing the frozen plan" });
+      }
+      if (Number.isInteger(proposal.unvalidatedVariantCount) && Number.isInteger(bounds.maximumUnvalidatedVariants) && proposal.unvalidatedVariantCount > bounds.maximumUnvalidatedVariants) {
+        findings.push({ code: "UNVALIDATED-VARIANT-COUNT", severity: "caution", observed: proposal.unvalidatedVariantCount + " unvalidated variants", required: "at most " + bounds.maximumUnvalidatedVariants, action: "validate or retire variants before adding more" });
+      }
+      var state = findings.some(function (finding) { return finding.severity === "blocked"; }) ? "blocked"
+        : findings.length ? "caution" : "clear";
+      return tadDeepFreeze({
+        ok: true, errors: [], state: state, findings: findings,
+        // Observable plan facts only. No emotion, intent, mental state, or suitability is inferred.
+        inferredEmotion: null, inferredIntent: null, suitabilityAssessed: false,
+        basis: "observable-plan-deviation-only"
+      });
+    }
+    /* ---------- End Feature 007 Scope 07: validation risk and process ---------- */
+
+    /* ---------- Feature 007 Scope 07 runtime: deterministic work units ---------- */
+    // Impure on purpose, so it is NOT one of the eight pure Scope 07 symbols. Long validation is
+    // executed as discrete work units that yield to the event loop, so the page stays responsive
+    // and a run can be cancelled. A cancelled run publishes NOTHING: the previously committed
+    // result stays exactly as it was, because a half-finished validation is not a validation.
+    var tadValidationRunner = {
+      runSequence: 0, activeRunId: null, committed: null, lastCancelledRunId: null,
+      start: function (units, options) {
+        var self = this;
+        self.runSequence += 1;
+        var runId = "tad-run:" + self.runSequence;
+        self.activeRunId = runId;
+        var state = { runId: runId, completed: 0, total: units.length, cancelled: false, results: [] };
+        return new Promise(function (resolve) {
+          function step(index) {
+            // A superseded or cancelled run stops here and commits nothing. Latest-run identity
+            // is what makes a stale run unable to overwrite a newer one.
+            if (self.activeRunId !== runId) {
+              state.cancelled = true; self.lastCancelledRunId = runId;
+              resolve({ runId: runId, cancelled: true, committed: self.committed, progress: state.completed / state.total });
+              return;
+            }
+            if (index >= units.length) {
+              self.committed = { runId: runId, results: state.results.slice(), completedAt: options && options.now ? options.now : null };
+              self.activeRunId = null;
+              resolve({ runId: runId, cancelled: false, committed: self.committed, progress: 1 });
+              return;
+            }
+            state.results.push(units[index]());
+            state.completed = index + 1;
+            if (options && typeof options.onProgress === "function") options.onProgress(state.completed / state.total, runId);
+            setTimeout(function () { step(index + 1); }, 0);
+          }
+          setTimeout(function () { step(0); }, 0);
+        });
+      },
+      cancel: function () { this.activeRunId = null; }
+    };
+    /* ---------- End Feature 007 Scope 07 runtime: deterministic work units ---------- */
+
+    /* ---------- Feature 007 Scope 08: experience publication and registration ---------- */
+    // One immutable result drives every projection. Simple and Power read the SAME view model, so
+    // they cannot disagree; switching modes is display-only and triggers no recompute or fetch.
+    var TAD_SENSITIVE_KEYS = ["credential", "credentials", "apiKey", "apikey", "token", "auth", "authorization",
+      "password", "secret", "holdings", "position", "positions", "accountId", "account", "balance", "costBasis", "pnl", "privateNote", "privateNotes"];
+
+    function tadExperienceRefusal(code, observed, required, action, message) {
+      return tadDeepFreeze({ ok: false, errors: [tadError(code, "error", "$", null, observed, required, action, message)] });
+    }
+
+    function tadBuildViewModel(unifiedRead, context) {
+      if (!tadIsPlainObject(unifiedRead) || typeof unifiedRead.readId !== "string") {
+        return tadExperienceRefusal("TAD-VIEWMODEL-INPUT", unifiedRead && unifiedRead.readId, "a frozen unified read carrying a readId", "resolve a unified read first", "View model requires a resolved unified read.");
+      }
+      var safeContext = tadIsPlainObject(context) ? context : {};
+      // Presentation-safe: every field below is a value, never a callback. A view model that
+      // carried a calculation could let one mode compute something the other mode never saw.
+      var model = {
+        contractVersion: "tad-view-model/v1",
+        resultIdentity: unifiedRead.readId,
+        verdict: { state: unifiedRead.state, selectedCandidateId: unifiedRead.selectedCandidateId || null, selectionBasis: unifiedRead.selectionBasis || null, nearestMissingCondition: unifiedRead.nearestMissingCondition || null },
+        gates: Array.isArray(safeContext.gates) ? safeContext.gates.map(function (gate) {
+          return { order: gate.order, gateId: gate.gateId, outcome: gate.outcome, diagnosticOnly: gate.diagnosticOnly === true, observed: gate.observed, required: gate.required };
+        }) : [],
+        candidates: Array.isArray(unifiedRead.ranked) ? unifiedRead.ranked.map(function (entry) {
+          return { candidateId: entry.candidateId, rank: entry.rank, setupDefinitionId: entry.setupDefinitionId || null };
+        }) : [],
+        comparison: tadIsPlainObject(safeContext.comparison) ? { comparisonSetId: safeContext.comparison.comparisonSetId, roles: (safeContext.comparison.results || []).map(function (result) { return { role: result.role, state: result.state, denominator: result.denominator, percentileState: result.percentileState }; }), contradictions: (safeContext.comparison.contradictions || []).map(function (entry) { return entry.role; }) } : null,
+        validation: tadIsPlainObject(safeContext.passport) ? { passportId: safeContext.passport.passportId, status: safeContext.passport.status, netAvailable: safeContext.passport.netAvailable === true } : null,
+        process: tadIsPlainObject(safeContext.process) ? { state: safeContext.process.state, codes: (safeContext.process.findings || []).map(function (finding) { return finding.code; }) } : null,
+        truth: { state: safeContext.truthState || "unavailable", detail: safeContext.truthDetail || null, decisionCutoff: safeContext.decisionCutoff || null, sourceSetId: safeContext.sourceSetId || null },
+        // Display state is declared here so a test can prove it is EXCLUDED from the identity.
+        display: { mode: safeContext.mode === "power" ? "power" : "simple", sortKey: safeContext.sortKey || null, disclosureOpen: safeContext.disclosureOpen === true, focusId: safeContext.focusId || null },
+        caveats: Array.isArray(safeContext.caveats) ? safeContext.caveats.slice() : [],
+        educationalOnly: true
+      };
+      // The identity covers the RESULT only. Mode, sort, disclosure and focus are deliberately
+      // outside it, which is what makes switching modes provably display-only.
+      model.projectionIdentity = tadIdentity("tad-view:", {
+        resultIdentity: model.resultIdentity, verdict: model.verdict, gates: model.gates, candidates: model.candidates,
+        comparison: model.comparison, validation: model.validation, process: model.process, truth: model.truth, caveats: model.caveats
+      });
+      return tadDeepFreeze({ ok: true, errors: [], viewModel: model });
+    }
+
+    function tadBuildToolDecisionRead(viewModel, meta) {
+      if (!tadIsPlainObject(viewModel) || viewModel.contractVersion !== "tad-view-model/v1") {
+        return tadExperienceRefusal("TAD-TOOLREAD-INPUT", viewModel && viewModel.contractVersion, "tad-view-model/v1", "build the view model first", "Tool decision read requires a view model.");
+      }
+      var safeMeta = tadIsPlainObject(meta) ? meta : {};
+      if (safeMeta.complete === false) {
+        // An incomplete or cancelled run publishes NOTHING. A partial read would be indistinguishable
+        // from a finished one to every downstream consumer.
+        return tadExperienceRefusal("TAD-TOOLREAD-INCOMPLETE", "an incomplete or cancelled run", "a complete committed result", "wait for the run to finish or rerun it", "An incomplete result is never published.");
+      }
+      var asOf = typeof safeMeta.asOf === "string" ? safeMeta.asOf : null;
+      if (asOf === null) {
+        return tadExperienceRefusal("TAD-TOOLREAD-ASOF", safeMeta.asOf, "an ISO as-of timestamp", "supply the decision as-of", "Tool decision read requires an as-of timestamp.");
+      }
+      var numeric = {};
+      // A non-finite metric is OMITTED rather than published as null or zero, because a zero
+      // gate count and an unmeasured gate count read identically once they are both numbers.
+      [["gateCount", viewModel.gates.length], ["candidateCount", viewModel.candidates.length],
+        ["contradictionCount", viewModel.comparison ? viewModel.comparison.contradictions.length : null]].forEach(function (pair) {
+        if (tadIsFinite(pair[1])) numeric[pair[0]] = pair[1];
+      });
+      // RLDATA's strict rl-tool-read/v1 contract accepts only current, stale, or unavailable, and
+      // an unavailable read must carry null clocks. Emitting anything else is silently REJECTED,
+      // so the mapping is explicit rather than assumed.
+      var availability = viewModel.truth.state === "unavailable" ? "unavailable"
+        : viewModel.truth.state === "current" ? "current" : "stale";
+      var unavailable = availability === "unavailable";
+      return tadDeepFreeze({
+        ok: true, errors: [],
+        toolRead: {
+          contractVersion: "rl-tool-read/v1",
+          id: "technical-analysis-decision-lab",
+          availability: availability,
+          asOf: unavailable ? null : asOf,
+          computedAt: asOf,
+          freshUntil: unavailable ? null : (safeMeta.freshUntil || asOf),
+          read: safeMeta.read || (viewModel.verdict.state + " - educational analysis only, not investment advice"),
+          metrics: Object.assign({}, numeric, {
+            decisionRead: {
+              contractVersion: "tad-tool-decision-read/v1",
+              resultIdentity: viewModel.resultIdentity,
+              projectionIdentity: viewModel.projectionIdentity,
+              state: viewModel.verdict.state,
+              selectionBasis: viewModel.verdict.selectionBasis,
+              // Truth is carried through exactly. Nothing here upgrades a degraded read.
+              truthState: viewModel.truth.state,
+              decisionCutoff: viewModel.truth.decisionCutoff,
+              sourceSetId: viewModel.truth.sourceSetId,
+              validationStatus: viewModel.validation ? viewModel.validation.status : "unavailable",
+              processState: viewModel.process ? viewModel.process.state : "unavailable",
+              caveats: viewModel.caveats.slice(),
+              educationalOnly: true,
+              limitations: [
+                "This is educational analysis of public price behaviour, not investment advice.",
+                "The published state describes the exact evaluated identity only."
+              ]
+            }
+          }),
+          deepLink: "technical-analysis-decision-lab.html" + (safeMeta.fixtureId ? "?fixture=" + encodeURIComponent(safeMeta.fixtureId) : "")
+        }
+      });
+    }
+
+    function tadBuildExport(viewModel, audit) {
+      if (!tadIsPlainObject(viewModel) || viewModel.contractVersion !== "tad-view-model/v1") {
+        return tadExperienceRefusal("TAD-EXPORT-INPUT", viewModel && viewModel.contractVersion, "tad-view-model/v1", "build the view model first", "Export requires a view model.");
+      }
+      var safeAudit = tadIsPlainObject(audit) ? audit : {};
+      var omitted = [];
+      function sanitize(value, path) {
+        if (value === null || typeof value !== "object") return value;
+        if (Array.isArray(value)) return value.map(function (entry, index) { return sanitize(entry, path + "[" + index + "]"); });
+        var output = {};
+        Object.keys(value).forEach(function (key) {
+          var lower = key.toLowerCase();
+          // Sensitive keys are DROPPED and recorded, so a reader can see that something was
+          // withheld rather than wondering whether it was simply absent.
+          if (TAD_SENSITIVE_KEYS.some(function (blocked) { return lower === blocked.toLowerCase() || lower.indexOf(blocked.toLowerCase()) >= 0; })) { omitted.push(path + "." + key); return; }
+          output[key] = sanitize(value[key], path + "." + key);
+        });
+        return output;
+      }
+      var payload = sanitize({
+        contractVersion: "tad-export/v1",
+        resultIdentity: viewModel.resultIdentity,
+        projectionIdentity: viewModel.projectionIdentity,
+        verdict: viewModel.verdict, gates: viewModel.gates, candidates: viewModel.candidates,
+        comparison: viewModel.comparison, validation: viewModel.validation, process: viewModel.process,
+        truth: viewModel.truth, caveats: viewModel.caveats,
+        audit: safeAudit,
+        educationalOnly: true,
+        boundary: "Educational analysis of public price behaviour. Not investment advice, not an order, and not a recommendation."
+      }, "$");
+      return tadDeepFreeze({ ok: true, errors: [], export: payload, omittedKeys: omitted });
+    }
+    /* ---------- End Feature 007 Scope 08: experience publication and registration ---------- */
+
     var pageRuntime = { config: null, index: null, sourceFixture: null, analyticFixture: null, techniqueFixture: null, diagnostics: null };
     function byId(id) { return document.getElementById(id); }
     function setText(id, value) { var element = byId(id); if (element) element.textContent = value; }
@@ -1545,8 +3007,8 @@
       var probe = { claimId: rejectedRecord.claimId, refused: !probeResult.ok, code: probeResult.ok ? null : probeResult.errors[0].code, requiredEvidence: rejectedRecord.allowedTreatment };
       setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled");
       setTruth("degraded", "Deterministic analytic series. Every reading below is the exact output of its own formula; no current-market claim is made and no instrument is named.");
-      setFoundationReceipt({ name: copy.name, session: "Analytic daily clock, " + contract.sessionId, aggregation: contract.interval + " closed analytic bars", partial: "Every analytic bar is closed; no partial remainder exists", primary: "Primary 1d analytic", setup: "Setup not published by Scope 02", trigger: "Trigger not published by Scope 02", variant: tadBuildVariantIdentity({ toolId: config.toolId, seriesId: fixtureId, barCount: bars.length, derivation: pageRuntime.techniqueFixture.derivation[fixtureId] }).value, observed: copy.observed, required: copy.required, action: copy.action });
-      setText("resultReceipt", "No signal, neutral, setup, or probability is published by Scope 02. The page publishes method readings, their declared independence, and their claim admission only.");
+      setFoundationReceipt({ name: copy.name, session: "Analytic daily clock, " + contract.sessionId, aggregation: contract.interval + " closed analytic bars", partial: "Every analytic bar is closed; no partial remainder exists", primary: "Primary 1d analytic", setup: "Setup not published by this page", trigger: "Trigger not published by this page", variant: tadBuildVariantIdentity({ toolId: config.toolId, seriesId: fixtureId, barCount: bars.length, derivation: pageRuntime.techniqueFixture.derivation[fixtureId] }).value, observed: copy.observed, required: copy.required, action: copy.action });
+      setText("resultReceipt", "No signal, neutral, setup, or probability is published here. This page publishes method readings, their declared independence, and their claim admission only.");
       renderTechniqueOutcomes(config.techniques, outcomes);
       renderEvidenceIndependence(clustered);
       renderCompetingHypotheses(clustered);
@@ -1564,6 +3026,545 @@
         errors: []
       });
     }
+    function renderGateSynthesis(fixture) {
+      var situations = {};
+      Object.keys(fixture.situations).forEach(function (key) {
+        var situation = fixture.situations[key];
+        situations[key] = { label: situation.label, synthesis: tadSynthesizeFiveGates(situation) };
+      });
+      function buildCompetition(group) {
+        var candidates = group.candidates.map(function (entry) {
+          return {
+            candidateId: tadIdentity("tad-candidate:", { seed: entry.candidateSeed, cutoff: group.observationCutoff }),
+            setupDefinitionId: entry.setupDefinitionId, situation: entry.situation,
+            synthesis: situations[entry.situation].synthesis,
+            validationStatus: entry.validationStatus, truthState: entry.truthState,
+            contradictionCount: entry.contradictionCount, contradictionSeverity: entry.contradictionSeverity,
+            specificity: entry.specificity, registryIndex: entry.registryIndex,
+            invalidated: situations[entry.situation].synthesis.gates[3].reasonCodes.indexOf("closed-beyond-invalidation") >= 0
+          };
+        });
+        return { candidates: candidates, read: tadBuildUnifiedRead({ candidates: candidates, observationCutoff: group.observationCutoff }).read };
+      }
+      var competition = buildCompetition(fixture.competition);
+      var noEdge = buildCompetition(fixture.noEdgeCompetition);
+      // One immutable result drives both projections and the published owner read.
+      publishProjection(competition.read, {
+        gates: situations[Object.keys(situations)[0]].synthesis.gates,
+        truthState: "degraded", truthDetail: "Deterministic analytic gate evidence.",
+        decisionCutoff: fixture.competition.observationCutoff,
+        sourceSetId: "analytic-gate-fixture",
+        caveats: ["Analytic deterministic fixture; no current-market claim is made and no instrument is named."]
+      }, { asOf: fixture.competition.observationCutoff, fixtureId: "gate-synthesis", complete: true, read: "Analytic gate receipt - educational analysis only, not investment advice" });
+
+      setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled");
+      setTruth("degraded", "Deterministic analytic gate evidence. Every gate outcome, rank, and read state below is the exact output of the owned synthesis functions; no current-market claim is made and no instrument is named.");
+      setFoundationReceipt({ name: "Five-gate synthesis and candidate competition", session: "Analytic daily clock", aggregation: "Closed analytic evidence only", partial: "No partial remainder exists in this receipt", primary: "Primary role state supplied as analytic evidence", setup: "Setups are evaluated, never recommended", trigger: "Trigger states are recorded, never performed", variant: tadIdentity("tad-variant:", { fixture: "gate-synthesis", cutoff: fixture.observationCutoff }), observed: Object.keys(fixture.situations).length + " analytic gate situations and two candidate competitions.", required: "Five ordered mandatory gates and a complete candidate set.", action: "Read the first blocking gate before reading anything downstream of it." });
+      setText("resultReceipt", "No signal, neutral, setup recommendation, or probability is published here. This page publishes gate outcomes, candidate ranking, and an abstaining read when nothing clears every mandatory gate.");
+
+      var primaryRead = competition.read;
+      setText("readState", primaryRead.state);
+      setText("firstBlockingGate", primaryRead.nearestMissingCondition || "none");
+      setText("selectionBasis", primaryRead.selectionBasis);
+
+      var gateHost = byId("gateRecords"); gateHost.textContent = "";
+      Object.keys(situations).forEach(function (key) {
+        var situation = situations[key], article = document.createElement("article"), heading = document.createElement("h3"), copy = document.createElement("p"), detail = document.createElement("p");
+        heading.textContent = situation.label + " - " + (situation.synthesis.transitionEligible ? "all five gates satisfied" : "blocked at " + situation.synthesis.firstBlockingGateId);
+        copy.textContent = situation.synthesis.gates.map(function (gate) {
+          return gate.order + ") " + gate.gateId + ": " + gate.outcome + (gate.diagnosticOnly ? " (diagnostic only)" : "") + " - observed " + gate.observed + "; required " + gate.required;
+        }).join(" ");
+        detail.className = "identity";
+        detail.textContent = "Reasons: " + situation.synthesis.gates.map(function (gate) { return gate.reasonCodes.join(", "); }).filter(function (text) { return text.length; }).join(" / ");
+        article.appendChild(heading); article.appendChild(copy); article.appendChild(detail); gateHost.appendChild(article);
+      });
+      setText("gateReceipt", "All five gates are always evaluated so the whole picture stays visible. A gate after the first failure is marked diagnostic only: optional support and later passes cannot outvote a failed mandatory gate or restore eligibility.");
+
+      var rankHost = byId("candidateRanking"); rankHost.textContent = "";
+      primaryRead.ranked.forEach(function (entry) {
+        var candidate = competition.candidates.filter(function (item) { return item.candidateId === entry.candidateId; })[0];
+        var article = document.createElement("article"), heading = document.createElement("h3"), copy = document.createElement("p"), identity = document.createElement("p");
+        heading.textContent = "Rank " + entry.rank + " - " + candidate.setupDefinitionId + (entry.candidateId === primaryRead.selectedCandidateId ? " (selected)" : "");
+        copy.textContent = entry.passCount + " of 5 mandatory gates satisfied, validation " + entry.validationStatus + ", source truth " + entry.truthState + ", " + entry.contradictionCount + " unresolved " + (entry.contradictionCount === 1 ? "contradiction" : "contradictions") + "." + (entry.transitionEligible ? "" : " Missing: " + candidate.synthesis.firstBlockingGateId + ".");
+        identity.className = "identity"; identity.textContent = entry.candidateId;
+        article.appendChild(heading); article.appendChild(copy); article.appendChild(identity); rankHost.appendChild(article);
+      });
+      setText("competitionReceipt", "Candidates are ordered by " + primaryRead.rankDimensions.join(", ") + ". Direction is not a ranking dimension: a candidate is selected for the strength and completeness of its gate and validation evidence, never for pointing a particular way. Every candidate that was not selected stays visible with its own weaker or missing condition.");
+
+      window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({
+        fixtureId: "gate-synthesis", ownerReadPublished: false, truthState: "degraded", setupPublished: false, probabilityPublished: false, executionClaimed: false,
+        situations: JSON.parse(JSON.stringify(situations)),
+        competition: { candidates: competition.candidates.map(function (candidate) { return { candidateId: candidate.candidateId, setupDefinitionId: candidate.setupDefinitionId, situation: candidate.situation, invalidated: candidate.invalidated }; }), read: JSON.parse(JSON.stringify(competition.read)) },
+        noEdgeCompetition: { candidates: noEdge.candidates.map(function (candidate) { return { candidateId: candidate.candidateId, setupDefinitionId: candidate.setupDefinitionId, situation: candidate.situation, invalidated: candidate.invalidated }; }), read: JSON.parse(JSON.stringify(noEdge.read)) },
+        errors: []
+      });
+    }
+    function renderSetupLifecycle(fixture) {
+      var config = pageRuntime.config;
+      var normalized = tadNormalizeLevels(fixture.levels, { sourceVintageId: fixture.sourceVintageId, observationCutoff: fixture.observationCutoff });
+      if (!normalized.ok) { renderUnavailable(normalized.errors[0].code, normalized.errors[0].observed, normalized.errors[0].required, normalized.errors[0].action); return; }
+      var clustered = tadClusterConfluence(normalized.levels, { atr: fixture.atr, atrDistance: fixture.atrDistance, sourceCutoff: fixture.observationCutoff, familyByMethodId: fixture.familyByMethodId });
+      if (!clustered.ok) { renderUnavailable(clustered.errors[0].code, clustered.errors[0].observed, clustered.errors[0].required, clustered.errors[0].action); return; }
+      var support = normalized.levels.filter(function (level) { return level.methodId === "daily-swing-low"; })[0];
+      var failedBreak = tadUpdateLevelLifecycle(support, fixture.failedBreakBars, { staleAfterBars: fixture.staleAfterBars });
+      var confirmedBreak = tadUpdateLevelLifecycle(support, fixture.confirmedBreakBars, { staleAfterBars: fixture.staleAfterBars });
+      var definition = config.setupDefinitions.filter(function (setup) { return setup.setupDefinitionId === fixture.setupDefinitionId; })[0];
+      var targets = tadDeriveNaturalTargets(definition, normalized.levels, { direction: "long", triggerPrice: fixture.triggerPrice, observationCutoff: fixture.observationCutoff });
+      var risk = tadBuildRiskPlan(definition, { triggerPrice: fixture.triggerPrice, invalidationPrice: fixture.invalidationPrice, targets: targets.targets, costPolicyId: fixture.costPolicyId, frozenAt: fixture.observationCutoff });
+      var audit = tadAuditTargets(risk.riskPlan, targets.targets);
+      // The fitted probe is run for real rather than described: a target that did not exist when the
+      // plan froze is offered to the audit, and whatever the audit answers is what the page reports.
+      var fittedAudit = tadAuditTargets(risk.riskPlan, targets.targets.concat([{ targetId: "tad-level:not-in-frozen-plan", price: fixture.triggerPrice * 1.4 }]));
+
+      var storylines = Object.keys(fixture.candidates).map(function (key) {
+        var storyline = fixture.candidates[key];
+        var candidateId = tadIdentity("tad-candidate:", { seed: storyline.candidateSeed, setup: definition.setupDefinitionId, cutoff: fixture.observationCutoff });
+        var evaluation = tadEvaluateSetupDefinition(definition, { profileId: fixture.profileId, familyStates: fixture.familyStates, inGovernedZone: storyline.inGovernedZone });
+        var events = [], refusals = [];
+        storyline.steps.forEach(function (step) {
+          var result = tadTransitionCandidate(candidateId, events, step);
+          if (result.ok) events = result.events; else refusals.push(result.errors[0].code);
+        });
+        var last = events.length ? events[events.length - 1] : null;
+        var terminal = last && TAD_TERMINAL_STATES.indexOf(last.toState) >= 0;
+        // Reopening is probed on the real log, so the page reports an observed refusal.
+        var reopen = terminal ? tadTransitionCandidate(candidateId, events, { toState: "WATCH", decisionTime: "2025-07-31T20:00:00.000Z", observationCutoff: "2025-07-31T19:00:00.000Z" }) : null;
+        // Skipping ARMED is probed the same way. Asserting only the path a storyline happens to
+        // take would still pass if the graph itself started permitting the skip.
+        var skip = events.length ? tadTransitionCandidate(candidateId, events.slice(0, 1), { toState: "TRIGGERED", decisionTime: "2025-07-30T20:00:00.000Z", observationCutoff: "2025-07-30T19:00:00.000Z" }) : null;
+        return { key: key, candidateId: candidateId, evaluationState: evaluation.state, evaluationReasons: evaluation.reasonCodes.slice(), events: events, state: last ? last.toState : "SCANNING", terminal: !!terminal, terminalConditionId: last ? last.terminalConditionId : null, hypotheticalOutcome: last ? last.hypotheticalOutcome : null, reopenRefused: reopen ? !reopen.ok : null, reopenCode: reopen && !reopen.ok ? reopen.errors[0].code : null, skipRefused: skip ? !skip.ok : null, skipCode: skip && !skip.ok ? skip.errors[0].code : null, refusals: refusals };
+      });
+
+      setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled");
+      setTruth("degraded", "Deterministic analytic levels and candidates. Every state below is the exact output of the owned lifecycle functions; no current-market claim is made and no instrument is named.");
+      setFoundationReceipt({ name: "Level geometry and setup lifecycle", session: "Analytic daily clock", aggregation: "Closed analytic observations only", partial: "No partial remainder exists in this receipt", primary: "Primary 1d analytic", setup: "Setup candidates are observations, not executions", trigger: "Trigger states are recorded, never performed", variant: tadIdentity("tad-variant:", { fixture: "setup-lifecycle", cutoff: fixture.observationCutoff, levels: normalized.levels.length }), observed: "Sourced levels, one governed zone, and three candidate storylines.", required: "A closed configuration, a source vintage, and an observation cutoff.", action: "Read each candidate as a recorded observation with its own identity." });
+      setText("resultReceipt", "No signal, neutral, setup recommendation, or probability is published here. This page publishes level provenance, candidate states, and hypothetical geometry only.");
+
+      var zonesHost = byId("confluenceZones"); zonesHost.textContent = "";
+      clustered.zones.forEach(function (zone) {
+        var article = document.createElement("article"), heading = document.createElement("h3"), copy = document.createElement("p"), members = document.createElement("p");
+        heading.textContent = zone.label + " - " + zone.lower.toFixed(2) + " to " + zone.upper.toFixed(2);
+        copy.textContent = zone.memberCount + " sourced " + (zone.memberCount === 1 ? "level" : "levels") + " within " + zone.atrDistance + " ATR. Independent families: " + zone.independentFamilyIds.join(", ") + ".";
+        members.className = "identity";
+        members.textContent = zone.memberLevelIds.map(function (levelId) {
+          var level = normalized.levels.filter(function (candidate) { return candidate.levelId === levelId; })[0];
+          return level.methodId + " (" + level.type + ", " + level.interval + ", observed " + level.observedAt.slice(0, 10) + ")";
+        }).join(" / ");
+        article.appendChild(heading); article.appendChild(copy); article.appendChild(members); zonesHost.appendChild(article);
+      });
+      var largest = clustered.zones.slice().sort(function (a, b) { return b.memberCount - a.memberCount; })[0];
+      setText("zoneLabel", largest.label);
+      setText("zoneMembers", String(largest.memberCount));
+      setText("zoneFamilies", largest.independentFamilyIds.join(", "));
+      setText("confluenceReceipt", "Each zone is a cluster of sourced historical and model levels within a declared volatility distance. Every member keeps its own method, timeframe, and source. This is a record of prior price behaviour, not a book, not resting orders, and not a map of anyone's intent.");
+
+      var lifecycleHost = byId("levelLifecycle"); lifecycleHost.textContent = "";
+      var lifecycleList = document.createElement("ul");
+      [["Excursion below the zone with a close back inside", failedBreak], ["Close beyond the zone", confirmedBreak]].forEach(function (entry) {
+        var item = document.createElement("li");
+        item.textContent = entry[0] + ": level state " + entry[1].state + ", intrabar excursion " + entry[1].intrabarExcursion + ", closed beyond " + entry[1].closedBeyond + ", decided from " + entry[1].decidedFromClosedBars + " closed bars (" + entry[1].reasonCodes.join(", ") + ").";
+        lifecycleList.appendChild(item);
+      });
+      lifecycleHost.appendChild(lifecycleList);
+      var lifecycleNote = document.createElement("p");
+      lifecycleNote.textContent = "An excursion beyond the zone that closes back inside is a failed-break candidate under a configured rule. It reports the extreme, the close, and the confirmation still required. It does not identify a participant, a motive, or an intent, and it does not confirm structure.";
+      lifecycleHost.appendChild(lifecycleNote);
+
+      var timelineHost = byId("candidateTimelines"); timelineHost.textContent = "";
+      storylines.forEach(function (storyline) {
+        var article = document.createElement("article"), heading = document.createElement("h3"), copy = document.createElement("p"), identity = document.createElement("p");
+        heading.textContent = storyline.key + " - " + storyline.state;
+        copy.textContent = storyline.events.map(function (event) { return event.fromState + " to " + event.toState + " at " + event.decisionTime.slice(0, 16).replace("T", " ") + " (cutoff " + event.observationCutoff.slice(0, 16).replace("T", " ") + ")"; }).join("; ") + ".";
+        identity.className = "identity";
+        identity.textContent = storyline.candidateId + (storyline.terminal ? " / terminal condition " + storyline.terminalConditionId + " / reopen refused " + storyline.reopenCode : " / evaluator says " + storyline.evaluationState);
+        article.appendChild(heading); article.appendChild(copy); article.appendChild(identity);
+        if (storyline.hypotheticalOutcome) {
+          var outcome = document.createElement("p");
+          outcome.textContent = "Hypothetical evaluation only: gross " + storyline.hypotheticalOutcome.grossR + "R, net " + storyline.hypotheticalOutcome.netR + "R along " + storyline.hypotheticalOutcome.path + ". No order was placed, no position was held, and nothing was realised.";
+          article.appendChild(outcome);
+        }
+        timelineHost.appendChild(article);
+      });
+      var armed = storylines.filter(function (storyline) { return storyline.state === "ARMED"; })[0];
+      setText("candidateReceipt", "A candidate records what was observed and when. The armed candidate is waiting for " + definition.triggerEvents.join(" or ") + "; no entry is assumed, priced, or backdated to the pullback. Expired and completed candidates are terminal and keep their original identity, so a later similar pattern receives a new candidate rather than reopening an old one." + (armed ? " Armed since " + armed.events[armed.events.length - 1].decisionTime.slice(0, 10) + "." : ""));
+
+      setText("riskTrigger", risk.riskPlan.triggerPrice.toFixed(2));
+      setText("riskInvalidation", risk.riskPlan.invalidationPrice.toFixed(2) + " (risk " + risk.riskPlan.riskPerUnit.toFixed(2) + " per unit)");
+      setText("riskTargets", risk.riskPlan.targets.map(function (target) { return target.order + ") " + target.price.toFixed(2) + " at " + target.rewardToRisk.toFixed(2) + "R"; }).join("  "));
+      setText("targetAudit", "Targets were selected from levels that already existed before the trigger, then frozen. Audit of the published path: " + (audit.matchesFrozenPlan ? "matches the frozen plan" : "differs from the frozen plan") + ". A target that did not exist when the plan froze is reported as " + fittedAudit.findings.map(function (finding) { return finding.code; }).join(", ") + " rather than quietly improving the reward figure.");
+
+      window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({
+        fixtureId: "setup-lifecycle", ownerReadPublished: false, truthState: "degraded", setupPublished: false, probabilityPublished: false, executionClaimed: false,
+        levels: JSON.parse(JSON.stringify(normalized.levels)),
+        zones: JSON.parse(JSON.stringify(clustered.zones)),
+        levelLifecycle: { failedBreak: JSON.parse(JSON.stringify(failedBreak)), confirmedBreak: JSON.parse(JSON.stringify(confirmedBreak)) },
+        candidates: JSON.parse(JSON.stringify(storylines)),
+        riskPlan: JSON.parse(JSON.stringify(risk.riskPlan)),
+        targetAudit: JSON.parse(JSON.stringify(audit)),
+        fittedTargetAudit: JSON.parse(JSON.stringify(fittedAudit)),
+        errors: []
+      });
+    }
+    function renderOwnerPublication(fixture) {
+      var expected = { symbol: fixture.symbol, sessionContractId: fixture.sessionContractId, decisionCutoff: fixture.decisionCutoff };
+      var groups = Object.keys(fixture.situations).map(function (key) {
+        var situation = fixture.situations[key];
+        var admissions = situation.ownerReads.map(function (toolRead) {
+          var result = tadAdmitOwnerRead(toolRead, expected);
+          result.publishedBy = toolRead.id;
+          return result;
+        });
+        return { key: key, label: situation.label, admissions: admissions, option: tadAdmitOptionPositioning(admissions) };
+      });
+      var primary = groups.filter(function (g) { return g.key === "complete"; })[0] || groups[0];
+      var micro = tadEvaluateMicrostructure(fixture.microstructureRequests);
+      var featureSix = {
+        compatible: tadAdaptFeatureSixRead(fixture.featureSixReads.compatible, Object.assign({ selectedSourceId: "analytic-daily" }, expected)),
+        wrongSymbol: tadAdaptFeatureSixRead(fixture.featureSixReads.wrongSymbol, Object.assign({ selectedSourceId: "analytic-daily" }, expected)),
+        wrongContract: tadAdaptFeatureSixRead(fixture.featureSixReads.wrongContract, Object.assign({ selectedSourceId: "analytic-daily" }, expected)),
+        absent: tadAdaptFeatureSixRead(fixture.featureSixReads.absent, Object.assign({ selectedSourceId: "analytic-daily" }, expected))
+      };
+      var dailyOnly = groups.filter(function (g) { return g.key === "daily-only"; })[0];
+      var tacticalAdmitted = dailyOnly ? dailyOnly.admissions.some(function (entry) { return entry.admitted && TAD_TACTICAL_CAPABILITIES.indexOf(entry.capabilityVersion) >= 0; }) : false;
+
+      setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled");
+      setTruth("degraded", "Deterministic owner-admission evidence. Every entry below is an owner's own published read admitted or refused by contract; no owner formula is recomputed here and no current-market claim is made.");
+      setFoundationReceipt({ name: "Owner evidence admission and strict adapters", session: "Analytic daily clock", aggregation: "Published owner reads only", partial: "No partial remainder exists in this receipt", primary: "Primary evidence is whatever the owner published", setup: "Owner reads are admitted, never authored here", trigger: "Tactical triggers require an admitted tactical owner", variant: tadIdentity("tad-variant:", { fixture: "owner-publication", cutoff: fixture.decisionCutoff }), observed: groups.length + " owner-admission situations across " + Object.keys(TAD_CAPABILITY_OWNERS).length + " registered capabilities.", required: "An exact rl-ta-owner-read/v1 envelope from the owning page.", action: "Read each refusal code before reading anything downstream of it." });
+      setText("resultReceipt", "No signal, neutral, setup recommendation, or probability is published here. This page publishes which owner evidence was admitted, which was refused, and why.");
+
+      // These facts summarize EVERY situation on the page. Reporting only the healthy one would
+      // read as if option evidence were eligible while a refused situation sat directly below it.
+      var admittedTotal = 0, admissionTotal = 0;
+      groups.forEach(function (group) { admittedTotal += group.admissions.filter(function (a) { return a.admitted; }).length; admissionTotal += group.admissions.length; });
+      var eligibleGroups = groups.filter(function (group) { return group.option.eligible; });
+      var refusalCodes = groups.filter(function (group) { return !group.option.eligible; }).map(function (group) { return group.option.code; }).filter(function (code, index, all) { return all.indexOf(code) === index; });
+      var establishedConventions = groups.map(function (group) { return group.option.signConventionId; }).filter(function (value, index, all) { return value && all.indexOf(value) === index; });
+      var conflictGroups = groups.filter(function (group) { return group.option.code === "TAD-OPTION-CONVENTION-CONFLICT"; });
+
+      setText("ownerAdmitted", admittedTotal + " of " + admissionTotal + " owner reads across " + groups.length + " situations");
+      setText("ownerOptionState", eligibleGroups.length + " of " + groups.length + " situations eligible; unavailable in the rest - " + (refusalCodes.length ? refusalCodes.join(", ") : "none"));
+      setText("ownerSignConvention", (establishedConventions.length ? establishedConventions.join(", ") : "not established") + (conflictGroups.length ? " (" + conflictGroups.length + " situation refused for conflicting conventions)" : ""));
+      setText("ownerTacticalState", tacticalAdmitted ? "available" : "unavailable - no admitted tactical owner; daily-eligible reads remain usable");
+
+      var host = byId("ownerRecords"); host.textContent = "";
+      groups.forEach(function (group) {
+        var article = document.createElement("article"), heading = document.createElement("h3"), copy = document.createElement("p"), detail = document.createElement("p");
+        heading.textContent = group.label + " - " + group.admissions.filter(function (a) { return a.admitted; }).length + " of " + group.admissions.length + " owner reads admitted";
+        copy.textContent = group.admissions.map(function (entry) {
+          return entry.publishedBy + ": " + (entry.admitted ? "admitted as " + entry.capabilityVersion + " with truth " + entry.truthState : "refused " + entry.code + " - observed " + entry.observed + "; required " + entry.required);
+        }).join(" ");
+        detail.textContent = "Option positioning: " + (group.option.eligible ? "eligible. " : "unavailable (" + group.option.code + "). ") + "Observed " + group.option.observed + "; required " + group.option.required + "; action " + group.option.action + ".";
+        article.appendChild(heading); article.appendChild(copy); article.appendChild(detail); host.appendChild(article);
+      });
+
+      setText("microstructureReceipt", micro.filter(function (m) { return m.eligible; }).length + " of " + micro.length + " microstructure contracts are satisfied. An OHLCV bar series and an option chain snapshot satisfy none of them, so the affected modules stay unavailable rather than being filled with a proxy.");
+      var microHost = byId("microstructureRecords"); microHost.textContent = "";
+      micro.forEach(function (entry) {
+        var article = document.createElement("article"), heading = document.createElement("h4"), copy = document.createElement("p");
+        heading.textContent = entry.label + " - " + (entry.eligible ? "available" : "unavailable");
+        copy.textContent = "Observed " + entry.observed + " (" + entry.offeredKind + "); required " + entry.required + "; action " + entry.action + ".";
+        article.appendChild(heading); article.appendChild(copy); microHost.appendChild(article);
+      });
+
+      setText("observedState", "Admitted " + primary.admissions.filter(function (a) { return a.admitted; }).length + " owner reads; option positioning " + (primary.option.eligible ? "eligible" : "unavailable") + "; Feature 006 " + (featureSix.compatible.admitted ? "compatible" : "unavailable"));
+      setText("requiredState", "An exact owner envelope per capability, one inherited dealer sign convention, and a matching Feature 006 tdc-tool-read/v1 before any of it contributes.");
+      setText("actionState", "Open the owning page for any refused capability; nothing here is reconstructed on an owner's behalf.");
+
+      window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({
+        fixtureId: "owner-publication", ownerReadPublished: false, truthState: "degraded",
+        registeredCapabilities: Object.keys(TAD_CAPABILITY_OWNERS).slice(),
+        situations: groups.map(function (group) {
+          return {
+            key: group.key,
+            admissions: group.admissions.map(function (entry) { return { publishedBy: entry.publishedBy, admitted: entry.admitted, code: entry.code || null, capabilityVersion: entry.capabilityVersion || null, truthState: entry.truthState || null }; }),
+            option: { eligible: group.option.eligible, code: group.option.code, signConventionId: group.option.signConventionId || null, distinctConventions: group.option.distinctConventions.slice(), conventions: group.option.conventions.map(function (c) { return { ownerId: c.ownerId, signConventionId: c.signConventionId, signApplied: c.signApplied }; }) }
+          };
+        }),
+        microstructure: micro.map(function (entry) { return { requestId: entry.requestId, eligible: entry.eligible, offeredKind: entry.offeredKind, required: entry.required }; }),
+        featureSix: { compatible: featureSix.compatible.admitted, wrongSymbol: featureSix.wrongSymbol.code, wrongContract: featureSix.wrongContract.code, absent: featureSix.absent.code },
+        tacticalAvailable: tacticalAdmitted,
+        errors: []
+      });
+    }
+
+    /* ---------- Feature 007 Scope 08 runtime: one result, two projections ---------- */
+    // The committed projection. Both modes read this same object, so they cannot disagree.
+    var tadProjection = { viewModel: null, meta: null, audit: null, publishedReadId: null, lastValid: null };
+
+    function readViewMode() {
+      try { return localStorage.getItem("tad-view-mode") === "power" ? "power" : "simple"; } catch (error) { return "simple"; }
+    }
+
+    function applyViewMode(mode) {
+      document.body.classList.toggle("power", mode === "power");
+      var buttons = byId("modeSeg").querySelectorAll("button[data-mode]");
+      Array.prototype.forEach.call(buttons, function (button) {
+        var active = button.getAttribute("data-mode") === mode;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+      try { localStorage.setItem("tad-view-mode", mode); } catch (error) { /* preference only */ }
+      // Redraw because a canvas that was hidden when the mode changed has nothing rendered in it.
+      drawGateCanvas();
+    }
+
+    function drawGateCanvas() {
+      var canvas = byId("simpleGateCanvas"); if (!canvas || !canvas.getContext) return;
+      var ratio = window.devicePixelRatio || 1;
+      var width = canvas.clientWidth || 640, height = Math.round(width * 3 / 16);
+      canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);
+      var context = canvas.getContext("2d"); context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      context.clearRect(0, 0, width, height);
+      var gates = tadProjection.viewModel ? tadProjection.viewModel.gates : [];
+      var slot = gates.length ? width / gates.length : width;
+      var boxes = [];
+      if (!gates.length) {
+        context.fillStyle = "#8a94a6"; context.font = "12px system-ui, sans-serif";
+        context.fillText("No gate evidence in this receipt", 8, Math.round(height / 2));
+      }
+      gates.forEach(function (gate, index) {
+        var x = index * slot + 4, w = Math.max(8, slot - 8), y = 8, h = Math.max(8, height - 34);
+        // State is carried by BOTH fill and a text label, so meaning never depends on colour alone.
+        context.fillStyle = gate.outcome === "pass" ? "#2f7d4f" : gate.outcome === "fail" ? "#8c3030" : "#5a5f6a";
+        context.fillRect(x, y, w, h);
+        context.fillStyle = "#e8ecf3"; context.font = "11px system-ui, sans-serif";
+        context.fillText(String(gate.order), x + 4, y + 14);
+        context.fillStyle = "#8a94a6";
+        context.fillText(gate.gateId.slice(0, 12), x, height - 14);
+        context.fillText(gate.outcome, x, height - 3);
+        boxes.push({ x: x, y: y, w: w, h: h, gate: gate });
+      });
+      if (window.RLCHART && typeof RLCHART.attach === "function") {
+        RLCHART.attach(canvas, function (mx, my) {
+          for (var index = 0; index < boxes.length; index += 1) {
+            var box = boxes[index];
+            if (mx >= box.x && mx <= box.x + box.w && my >= box.y && my <= box.y + box.h) {
+              return RLCHART.tip("Gate " + box.gate.order + ": " + box.gate.gateId,
+                [["outcome", box.gate.outcome], ["diagnostic only", String(box.gate.diagnosticOnly)], ["observed", String(box.gate.observed)], ["required", String(box.gate.required)]],
+                box.gate.outcome === "pass" ? "This mandatory gate is satisfied." : box.gate.diagnosticOnly ? "Computed after the first blocking gate, so it cannot restore eligibility." : "This gate blocks the transition.");
+            }
+          }
+          return null;
+        });
+      }
+    }
+
+    function publishProjection(unifiedRead, context, meta) {
+      var built = tadBuildViewModel(unifiedRead, context);
+      if (!built.ok) {
+        // An invalid request never overwrites the last valid result. The prior read stays visible
+        // and stays LABELLED as the last valid one rather than being recomputed under a fallback.
+        setText("simpleVerdict", "The requested configuration was rejected: " + built.errors[0].observed
+          + ". Required: " + built.errors[0].required + ". Action: " + built.errors[0].action
+          + (tadProjection.lastValid ? " The last valid result " + tadProjection.lastValid.resultIdentity + " remains shown below and is unchanged." : ""));
+        return { ok: false, errors: built.errors };
+      }
+      tadProjection.viewModel = built.viewModel;
+      tadProjection.meta = meta || {};
+      tadProjection.lastValid = built.viewModel;
+      var decision = tadBuildToolDecisionRead(built.viewModel, tadProjection.meta);
+      var exported = tadBuildExport(built.viewModel, (meta && meta.audit) || {});
+      tadProjection.audit = exported.ok ? exported : null;
+      if (decision.ok && window.RLDATA && typeof RLDATA.putToolRead === "function") {
+        RLDATA.putToolRead("technical-analysis-decision-lab", decision.toolRead);
+        tadProjection.publishedReadId = decision.toolRead.metrics.decisionRead.resultIdentity;
+      }
+      renderProjection();
+      return { ok: true, viewModel: built.viewModel, decision: decision, exported: exported };
+    }
+
+    function renderProjection() {
+      var model = tadProjection.viewModel; if (!model) return;
+      setText("simpleVerdict", model.verdict.state + (model.verdict.selectionBasis ? " - selected on " + model.verdict.selectionBasis : "")
+        + (model.verdict.nearestMissingCondition ? "; nearest missing condition " + model.verdict.nearestMissingCondition : "")
+        + ". Simple and Power project this same result; switching view changes what is shown, never what was computed.");
+      setText("simpleResultIdentity", model.resultIdentity);
+      setText("simpleTruth", model.truth.state + (model.truth.decisionCutoff ? " as of " + model.truth.decisionCutoff : ""));
+      setText("simpleValidation", model.validation ? model.validation.status + (model.validation.netAvailable ? " with net metrics" : " without complete costs") : "unavailable");
+      setText("simpleProcess", model.process ? model.process.state + (model.process.codes.length ? " - " + model.process.codes.join(", ") : "") : "unavailable");
+      var body = byId("simpleGateTableBody"); body.textContent = "";
+      model.gates.forEach(function (gate) {
+        var row = document.createElement("tr");
+        [String(gate.order), gate.gateId, gate.outcome, gate.diagnosticOnly ? "yes" : "no"].forEach(function (value) {
+          var cell = document.createElement("td"); cell.textContent = value; row.appendChild(cell);
+        });
+        body.appendChild(row);
+      });
+      drawGateCanvas();
+    }
+    /* ---------- End Feature 007 Scope 08 runtime: one result, two projections ---------- */
+
+    function renderValidationRiskProcess(fixture) {
+      var policy = pageRuntime.config.validationPolicies[0], schema = pageRuntime.config.costPolicySchema;
+      var evaluation = tadBuildPurgedEvaluation({ observations: fixture.observations, decisionCutoff: fixture.decisionCutoff, foldCount: 3, trainRatio: 0.7 }, policy);
+      if (!evaluation.ok) { renderUnavailable(evaluation.errors[0].code, evaluation.errors[0].observed, evaluation.errors[0].required, evaluation.errors[0].action); return; }
+      var simulation = tadSimulateSetupVariant({ variantId: fixture.variants.baseline.variantId }, fixture.observations, fixture.semantics);
+      var complete = tadApplyCosts(simulation.events, fixture.costPolicies.complete, schema);
+      var incomplete = tadApplyCosts(simulation.events, fixture.costPolicies.incomplete, schema);
+      var netSummary = tadSummarizeValidation(simulation, complete, policy);
+      var grossSummary = tadSummarizeValidation(simulation, incomplete, policy);
+      var passports = Object.keys(fixture.variants).map(function (key) {
+        var variant = fixture.variants[key];
+        var summary = key === "baseline" ? netSummary.summary : netSummary.summary;
+        return { key: key, variant: variant, passport: tadBuildValidationPassport(Object.assign({ summary: summary, evaluation: evaluation.evaluation }, variant)).passport };
+      });
+      var descriptiveOnly = tadBuildValidationPassport(Object.assign({ summary: grossSummary.summary, evaluation: evaluation.evaluation }, fixture.variants.baseline)).passport;
+      var audit = tadAuditExpectancy(fixture.transcriptClaim);
+      var streak = tadLossStreakScenario(fixture.lossStreak.riskFraction, fixture.lossStreak.streakLengths);
+      var guards = Object.keys(fixture.proposals).map(function (key) {
+        return { key: key, guard: tadEvaluateBehaviorGuard(fixture.frozenPlan, fixture.proposals[key], fixture.processBounds) };
+      });
+
+      setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled");
+      setTruth("degraded", "Deterministic analytic validation evidence. Every expectancy, cost, passport identity, and process state below is the exact output of the owned validation functions over an explicit generated series; no current-market claim is made and no instrument is named.");
+      setFoundationReceipt({ name: "Validation, cost, expectancy and process", session: "Analytic daily clock", aggregation: "Purged and embargoed walk-forward folds", partial: "Unresolved terminal paths are recorded, never dropped", primary: "Validation describes the exact evaluated variant only", setup: "A changed parameter is a different variant", trigger: "Simulation uses the declared trigger, invalidation, target and expiry semantics", variant: passports[0].passport.passportId, observed: evaluation.evaluation.eligibleCount + " observations available at or before the decision cutoff; " + evaluation.evaluation.excludedAsOfCount + " excluded as later than it.", required: "As-of safe folds, explicit costs, and multiplicity control before any support claim.", action: "Read gross as geometry and net as the only cost-complete claim." });
+      setText("resultReceipt", "No signal, neutral, setup recommendation, or probability is published here. This page publishes validation status, gross and net expectancy, transcript arithmetic, hypothetical risk scenarios, and observable process findings.");
+
+      setText("passportStatus", passports[0].passport.status);
+      setText("grossExpectancy", netSummary.summary.grossExpectancy.toFixed(4) + "R gross geometry, which is not an edge on its own");
+      setText("netExpectancy", netSummary.summary.netAvailable ? netSummary.summary.netExpectancy.toFixed(4) + "R net after every stated cost component" : "unavailable");
+      setText("breakevenWinRate", netSummary.summary.breakevenWinRate === null ? "unavailable" : (netSummary.summary.breakevenWinRate * 100).toFixed(2) + "% from the observed payoff distribution");
+
+      var host = byId("validationRecords"); host.textContent = "";
+      var records = [
+        { title: "Cost-complete evaluation", body: "Signals " + netSummary.summary.signalCount + "; wins " + netSummary.summary.wins + "; losses " + netSummary.summary.losses + "; unresolved " + netSummary.summary.unresolved + " (recorded, never dropped). Gross expectancy " + netSummary.summary.grossExpectancy.toFixed(4) + "R; net expectancy " + netSummary.summary.netExpectancy.toFixed(4) + "R after a per-event cost of " + complete.perEventCostR.toFixed(4) + "R. Wilson interval " + netSummary.summary.wilsonLower.toFixed(4) + " to " + netSummary.summary.wilsonUpper.toFixed(4) + ". Passport " + passports[0].passport.status + "." },
+        { title: "Incomplete cost policy", body: "Missing components: " + incomplete.missingComponents.join(", ") + ". Net expectancy is unavailable rather than assumed zero, so the passport is " + descriptiveOnly.status + " and gross " + grossSummary.summary.grossExpectancy.toFixed(4) + "R remains geometry only. An unstated cost and a stated zero are different claims." },
+        { title: "As-of safety and folds", body: evaluation.evaluation.foldMethod + " with " + evaluation.evaluation.purgeBars + " purge bars and " + evaluation.evaluation.embargoBars + " embargo bars across " + evaluation.evaluation.folds.length + " folds. Selection and evaluation are " + evaluation.evaluation.selectionEvaluation + ". " + evaluation.evaluation.excludedAsOfCount + " observations later than the decision cutoff were excluded." }
+      ];
+      records.forEach(function (record) {
+        var article = document.createElement("article"), heading = document.createElement("h4"), copy = document.createElement("p");
+        heading.textContent = record.title; copy.textContent = record.body;
+        article.appendChild(heading); article.appendChild(copy); host.appendChild(article);
+      });
+      passports.forEach(function (entry) {
+        var article = document.createElement("article"), heading = document.createElement("h4"), copy = document.createElement("p");
+        heading.textContent = "Variant " + entry.variant.variantId + " - passport " + entry.passport.status;
+        copy.textContent = "Passport " + entry.passport.passportId + (entry.key === "baseline" ? " is the evaluated baseline." : " is a different identity, so the baseline passport is not inherited by it. Until it is evaluated on its own terms it is descriptive-only.");
+        article.appendChild(heading); article.appendChild(copy); host.appendChild(article);
+      });
+
+      setText("expectancyAudit", audit.audit.equation + ". For a " + (fixture.transcriptClaim.winRate * 100) + "% win rate with " + fixture.transcriptClaim.averageWinR + "R winners and " + fixture.transcriptClaim.averageLossR + "R losers, expectancy is " + audit.audit.expectancyR.toFixed(3) + "R and " + audit.audit.tradeCount + " trades total " + audit.audit.grossTotalR.toFixed(1) + "R gross under equal risk. Breakeven win rate is " + (audit.audit.breakevenWinRate * 100).toFixed(2) + "%. The claimed total of " + audit.audit.claimedTotalR + "R is " + (audit.audit.consistent === false ? "inconsistent" : "consistent") + " with those inputs. Reconciliation would require: " + audit.audit.reconciliationInputs.join("; ") + ". This is arithmetic, not an accusation, and gross expectancy is not an edge.");
+
+      setText("riskScenarios", "At a " + (streak.riskFraction * 100) + "% hypothetical risk unit, losses compound: " + streak.scenarios.map(function (entry) {
+        return entry.streakLength + " losses leave " + (entry.remainingFraction * 100).toFixed(2) + "% (drawdown " + (entry.drawdownFraction * 100).toFixed(2) + "%, recovery gain required " + (entry.recoveryGainRequired * 100).toFixed(2) + "%)";
+      }).join("; ") + ". " + streak.limitations.join(" "));
+
+      var blocked = guards.filter(function (entry) { return entry.guard.state === "blocked"; });
+      setText("processReceipt", guards.length + " proposals evaluated against the frozen plan; " + blocked.length + " blocked. Findings describe observable deviation from the precommitted plan only. No emotion, intent, mental state, or suitability is inferred.");
+      var processHost = byId("processRecords"); processHost.textContent = "";
+      guards.forEach(function (entry) {
+        var article = document.createElement("article"), heading = document.createElement("h4"), copy = document.createElement("p");
+        heading.textContent = entry.key + " - " + entry.guard.state;
+        copy.textContent = entry.guard.findings.length
+          ? entry.guard.findings.map(function (finding) {
+            return finding.code + " (" + finding.severity + "): observed " + finding.observed + "; required " + finding.required + "; action " + finding.action
+              + (finding.changedRewardToRisk !== null && finding.changedRewardToRisk !== undefined ? " Changed reward-to-risk " + finding.changedRewardToRisk.toFixed(3) + " with invalidation distance " + finding.changedInvalidationDistance.toFixed(3) + "." : "");
+          }).join(" ")
+          : "No observable deviation from the frozen plan.";
+        article.appendChild(heading); article.appendChild(copy); processHost.appendChild(article);
+      });
+
+      window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({
+        fixtureId: "validation-risk-process", ownerReadPublished: false, truthState: "degraded",
+        evaluation: { eligibleCount: evaluation.evaluation.eligibleCount, excludedAsOfCount: evaluation.evaluation.excludedAsOfCount, foldCount: evaluation.evaluation.folds.length, purgeBars: evaluation.evaluation.purgeBars, embargoBars: evaluation.evaluation.embargoBars, selectionEvaluation: evaluation.evaluation.selectionEvaluation },
+        simulation: { signalCount: simulation.signalCount, unresolvedCount: simulation.unresolvedCount },
+        costs: { netAvailable: complete.netAvailable, perEventCostR: complete.perEventCostR, missingComponents: incomplete.missingComponents.slice(), incompleteNetAvailable: incomplete.netAvailable },
+        summary: { grossExpectancy: netSummary.summary.grossExpectancy, netExpectancy: netSummary.summary.netExpectancy, netAvailable: netSummary.summary.netAvailable, breakevenWinRate: netSummary.summary.breakevenWinRate, wins: netSummary.summary.wins, losses: netSummary.summary.losses, unresolved: netSummary.summary.unresolved },
+        grossOnlySummary: { grossExpectancy: grossSummary.summary.grossExpectancy, netExpectancy: grossSummary.summary.netExpectancy, netAvailable: grossSummary.summary.netAvailable },
+        passports: passports.map(function (entry) { return { key: entry.key, variantId: entry.variant.variantId, passportId: entry.passport.passportId, status: entry.passport.status }; }),
+        descriptiveOnlyPassport: { passportId: descriptiveOnly.passportId, status: descriptiveOnly.status },
+        audit: { expectancyR: audit.audit.expectancyR, grossTotalR: audit.audit.grossTotalR, breakevenWinRate: audit.audit.breakevenWinRate, claimedTotalR: audit.audit.claimedTotalR, consistent: audit.audit.consistent, reconciliationInputs: audit.audit.reconciliationInputs.slice() },
+        lossStreak: streak.scenarios.map(function (entry) { return { streakLength: entry.streakLength, remainingFraction: entry.remainingFraction, drawdownFraction: entry.drawdownFraction }; }),
+        process: guards.map(function (entry) { return { key: entry.key, state: entry.guard.state, codes: entry.guard.findings.map(function (f) { return f.code; }), inferredEmotion: entry.guard.inferredEmotion, inferredIntent: entry.guard.inferredIntent, suitabilityAssessed: entry.guard.suitabilityAssessed, basis: entry.guard.basis, changedRewardToRisk: entry.guard.findings.length && entry.guard.findings[0].changedRewardToRisk !== undefined ? entry.guard.findings[0].changedRewardToRisk : null, changedInvalidationDistance: entry.guard.findings.length && entry.guard.findings[0].changedInvalidationDistance !== undefined ? entry.guard.findings[0].changedInvalidationDistance : null }; }),
+        errors: []
+      });
+    }
+
+    function renderComparisonRoles(fixture) {
+      var policy = pageRuntime.config.comparisonPolicies[0];
+      function hydrate(entry) {
+        return {
+          id: entry.id, adjustmentPolicyId: entry.adjustmentPolicyId, sessionContractId: entry.sessionContractId,
+          currencyId: entry.currencyId, sourceVintageId: entry.sourceVintageId,
+          rows: entry.closes.map(function (close, index) { return { closedAt: new Date(Date.UTC(2026, 0, 5 + index)).toISOString(), c: close }; })
+        };
+      }
+      var subject = hydrate(fixture.subject), seriesById = {};
+      fixture.comparators.forEach(function (entry) { seriesById[entry.id] = hydrate(entry); });
+
+      var groups = Object.keys(fixture.situations).map(function (key) {
+        var situation = fixture.situations[key];
+        var built = tadBuildComparisonSet({ decisionVintage: fixture.decisionVintage, roles: situation.roles }, policy);
+        return {
+          key: key, label: situation.label, built: built,
+          evidence: built.ok ? tadBuildComparisonEvidence(built.comparisonSet, subject, seriesById) : null
+        };
+      });
+      var primary = groups.filter(function (group) { return group.key === "confirmed"; })[0];
+      var peer = primary.evidence.results.filter(function (result) { return result.role === "direct-peer"; })[0];
+
+      setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled");
+      setTruth("degraded", "Deterministic analytic comparison evidence. Every ratio, denominator, and identity below is the exact output of the owned comparison functions over explicit closes; no current-market claim is made and no instrument is named.");
+      setFoundationReceipt({ name: "Comparison roles and membership identity", session: "Analytic daily clock", aggregation: "Aligned closed observations only", partial: "No partial remainder exists in this receipt", primary: "Comparison roles are context, never a trigger", setup: "Comparison evidence contributes contradictions, not signals", trigger: "Comparison never confirms a trigger on its own", variant: primary.built.comparisonSet.comparisonSetId, observed: groups.length + " declared memberships across " + primary.built.comparisonSet.roles.length + " comparison members.", required: "Explicit role, rationale, classification source, and as-of date for every member.", action: "Read each role on its own terms; no role substitutes for another." });
+      setText("resultReceipt", "No signal, neutral, setup recommendation, or probability is published here. This page publishes comparison role outcomes, denominators, exclusions, and identity changes.");
+
+      setText("comparisonIdentity", primary.built.comparisonSet.comparisonSetId);
+      setText("comparisonDenominator", peer.denominator + " eligible of " + peer.symbolIds.length + " declared; minimum " + peer.minimumPeerDenominator);
+      setText("comparisonPercentile", peer.percentileState === "available" ? String(peer.percentile) : "withheld - " + peer.percentileState);
+      setText("comparisonContradictions", primary.evidence.contradictions.length ? primary.evidence.contradictions.map(function (entry) { return entry.role; }).join(", ") : "none");
+
+      var host = byId("comparisonRoles"); host.textContent = "";
+      groups.forEach(function (group) {
+        var article = document.createElement("article"), heading = document.createElement("h3"), copy = document.createElement("p"), detail = document.createElement("p");
+        heading.textContent = group.label + " - identity " + group.built.comparisonSet.comparisonSetId.slice(0, 24);
+        copy.textContent = group.evidence.results.map(function (result) {
+          return result.role + ": " + result.state + " (" + result.denominator + " of " + result.symbolIds.length + " eligible"
+            + (result.percentileState === "available" ? ", percentile " + result.percentile : result.percentileState === "not-applicable" ? "" : ", percentile withheld: " + result.percentileState) + ")";
+        }).join(" ");
+        var exclusions = group.evidence.results.reduce(function (all, result) { return all.concat(result.excluded.map(function (entry) { return result.role + " " + entry.symbol + ": " + entry.reason; })); }, []);
+        detail.textContent = "Observed " + group.evidence.results.map(function (r) { return r.observed; }).join("; ") + ". "
+          + (exclusions.length ? "Excluded " + exclusions.join("; ") + ". No comparator is automatically replaced; the requested membership stands until it is changed deliberately. " : "No comparator was excluded. ")
+          + "Modern comparison roles are separate context and are not an identical substitute for Dow's industrial and transport averages.";
+        article.appendChild(heading); article.appendChild(copy); article.appendChild(detail); host.appendChild(article);
+      });
+
+      var baseline = primary.built.comparisonSet.comparisonSetId;
+      var changed = groups.filter(function (group) { return group.key !== "confirmed"; });
+      setText("comparisonVariantReceipt", changed.length + " membership changes evaluated. Each produces a distinct comparison identity, so the prior validation record stays attached only to the membership it was produced against.");
+      var variantHost = byId("comparisonVariants"); variantHost.textContent = "";
+      changed.forEach(function (group) {
+        var article = document.createElement("article"), heading = document.createElement("h4"), copy = document.createElement("p");
+        heading.textContent = group.label + " - " + (group.built.comparisonSet.comparisonSetId === baseline ? "identity unchanged" : "new identity");
+        copy.textContent = "Identity " + group.built.comparisonSet.comparisonSetId + "; membership digest " + group.built.comparisonSet.membershipDigest
+          + ". Prior validation record " + fixture.priorValidation.validationRecordId + " remains attached to " + baseline + " only.";
+        article.appendChild(heading); article.appendChild(copy); variantHost.appendChild(article);
+      });
+
+      window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({
+        fixtureId: "comparison-roles", ownerReadPublished: false, truthState: "degraded",
+        baselineComparisonSetId: baseline,
+        priorValidation: { validationRecordId: fixture.priorValidation.validationRecordId, attachedComparisonSetId: baseline },
+        situations: groups.map(function (group) {
+          return {
+            key: group.key, comparisonSetId: group.built.comparisonSet.comparisonSetId, membershipDigest: group.built.comparisonSet.membershipDigest,
+            identityChanged: group.built.comparisonSet.comparisonSetId !== baseline,
+            contradictions: group.evidence.contradictions.map(function (entry) { return entry.role; }),
+            results: group.evidence.results.map(function (result) {
+              return {
+                role: result.role, state: result.state, symbolIds: result.symbolIds.slice(), eligibleIds: result.eligibleIds.slice(),
+                excluded: result.excluded.map(function (entry) { return { symbol: entry.symbol, reason: entry.reason }; }),
+                denominator: result.denominator, minimumPeerDenominator: result.minimumPeerDenominator,
+                percentile: result.percentile, percentileState: result.percentileState,
+                ratios: result.evaluations.map(function (entry) { return { symbol: entry.symbol, ratio: entry.ratio, state: entry.state }; })
+              };
+            })
+          };
+        }),
+        dowEquivalenceClaimed: primary.evidence.dowEquivalenceClaimed,
+        errors: []
+      });
+    }
+
     function renderProfileSelection(fixtureId) {
       var source = pageRuntime.sourceFixture, analytic = pageRuntime.analyticFixture;
       var cases = {
@@ -1581,7 +3582,50 @@
         "correlated-uptrend": { name: "Correlated indicator agreement", observed: "Several related trend and momentum transforms read positive together.", required: "Declared families and clusters before any count is shown.", action: "Read the independent cluster count, never the raw method count." },
         "unresolved-range": { name: "Unresolved range after a decline", observed: "A mature sideways range following a decline, with no completed spring, sign of strength, or confirmed break.", required: "A confirmed range event before any phase is asserted.", action: "Keep every competing explanation open; no setup is published." }
       };
-      if (Object.prototype.hasOwnProperty.call(techniqueCases, fixtureId)) { renderTechniqueSeries(fixtureId, techniqueCases[fixtureId]); return; }
+      if (fixtureId === "validation-risk-process") {
+        fetch("tests/fixtures/technical-analysis-decision/analytic/validation-risk-process.json", { cache: "no-store" })
+          .then(function (response) { if (!response.ok) throw new Error("validation fixture HTTP " + response.status); return response.json(); })
+          .then(function (validationFixture) { renderValidationRiskProcess(validationFixture); })
+          .catch(function (error) { renderUnavailable("TAD-VALIDATION-FIXTURE", String(error), "the checked-in analytic validation fixture", "restore the static analytic fixture and reload"); });
+        return;
+      }
+      if (fixtureId === "comparison-roles") {
+        fetch("tests/fixtures/technical-analysis-decision/analytic/comparison-roles.json", { cache: "no-store" })
+          .then(function (response) { if (!response.ok) throw new Error("comparison fixture HTTP " + response.status); return response.json(); })
+          .then(function (comparisonFixture) { renderComparisonRoles(comparisonFixture); })
+          .catch(function (error) { renderUnavailable("TAD-COMPARISON-FIXTURE", String(error), "the checked-in analytic comparison fixture", "restore the static analytic fixture and reload"); });
+        return;
+      }
+      if (fixtureId === "owner-publication") {
+        fetch("tests/fixtures/technical-analysis-decision/analytic/owner-publication.json", { cache: "no-store" })
+          .then(function (response) { if (!response.ok) throw new Error("owner fixture HTTP " + response.status); return response.json(); })
+          .then(function (ownerFixture) { renderOwnerPublication(ownerFixture); })
+          .catch(function (error) { renderUnavailable("TAD-OWNER-FIXTURE", String(error), "the checked-in analytic owner fixture", "restore the static analytic fixture and reload"); });
+        return;
+      }
+      if (fixtureId === "gate-synthesis") {
+        fetch("tests/fixtures/technical-analysis-decision/analytic/gate-synthesis.json", { cache: "no-store" })
+          .then(function (response) { if (!response.ok) throw new Error("gate fixture HTTP " + response.status); return response.json(); })
+          .then(function (gateFixture) { renderGateSynthesis(gateFixture); })
+          .catch(function (error) { renderUnavailable("TAD-GATE-FIXTURE", String(error), "the checked-in analytic gate fixture", "restore the static analytic fixture and reload"); });
+        return;
+      }
+      if (fixtureId === "setup-lifecycle") {
+        fetch("tests/fixtures/technical-analysis-decision/analytic/setup-lifecycle.json", { cache: "no-store" })
+          .then(function (response) { if (!response.ok) throw new Error("setup fixture HTTP " + response.status); return response.json(); })
+          .then(function (setupFixture) { renderSetupLifecycle(setupFixture); })
+          .catch(function (error) { renderUnavailable("TAD-SETUP-FIXTURE", String(error), "the checked-in analytic setup fixture", "restore the static analytic fixture and reload"); });
+        return;
+      }
+      // The technique series is fetched ONLY when a technique view is selected. Loading it during
+      // boot would make every foundation receipt wait on a fixture it never reads.
+      if (Object.prototype.hasOwnProperty.call(techniqueCases, fixtureId)) {
+        fetch("tests/fixtures/technical-analysis-decision/analytic/technique-series.json", { cache: "no-store" })
+          .then(function (response) { if (!response.ok) throw new Error("technique fixture HTTP " + response.status); return response.json(); })
+          .then(function (techniqueFixture) { pageRuntime.techniqueFixture = techniqueFixture; renderTechniqueSeries(fixtureId, techniqueCases[fixtureId]); })
+          .catch(function (error) { renderUnavailable("TAD-TECHNIQUE-FIXTURE", String(error), "the checked-in analytic technique series", "restore the static analytic fixture and reload"); });
+        return;
+      }
       if (fixtureId === "daily-close") {
         var daily = pageRuntime.index.profilesById["daily-close-v1"], dailyVariant = tadBuildVariantIdentity({ profileId: daily.profileId, roles: daily.roles, policies: [daily.partialBarPolicy, daily.earlyClosePolicy, daily.extendedHoursPolicy] });
         setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled"); setTruth("degraded", "Analytic profile receipt only; no source series or market result is asserted."); setFoundationReceipt({ name: daily.label, session: "Source-declared daily and weekly boundaries", aggregation: daily.aggregationPolicy, partial: daily.partialBarPolicy, primary: "Primary 1w / closed", setup: "Setup 1d / closed", trigger: "Trigger 1d-close / daily-eligible variants only", variant: dailyVariant.value, observed: "Only weekly and daily source contracts are selected.", required: "A closed daily event for any eligible trigger.", action: "Keep every intraday-only technique unavailable." }); window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({ fixtureId: fixtureId, ownerReadPublished: false, truthState: "degraded", profile: { profileId: daily.profileId, variantId: dailyVariant.value }, errors: [] }); return;
@@ -1603,13 +3647,19 @@
       Promise.all([
         fetch("technical-analysis-decision-universe.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("config HTTP " + response.status); return response.json(); }),
         fetch("tests/fixtures/technical-analysis-decision/source-qualified/us-equity-sessions.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("source fixture HTTP " + response.status); return response.json(); }),
-        fetch("tests/fixtures/technical-analysis-decision/analytic/session-profiles.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("analytic fixture HTTP " + response.status); return response.json(); }),
-        fetch("tests/fixtures/technical-analysis-decision/analytic/technique-series.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("technique fixture HTTP " + response.status); return response.json(); })
+        fetch("tests/fixtures/technical-analysis-decision/analytic/session-profiles.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("analytic fixture HTTP " + response.status); return response.json(); })
       ]).then(function (resources) {
         var configResult = tadValidateConfig(resources[0]); if (!configResult.ok) throw configResult.errors[0];
         var indexResult = tadIndexConfig(resources[0]); if (!indexResult.ok) throw indexResult.errors[0];
-        pageRuntime.config = resources[0]; pageRuntime.index = indexResult.index; pageRuntime.sourceFixture = resources[1]; pageRuntime.analyticFixture = resources[2]; pageRuntime.techniqueFixture = resources[3];
+        pageRuntime.config = resources[0]; pageRuntime.index = indexResult.index; pageRuntime.sourceFixture = resources[1]; pageRuntime.analyticFixture = resources[2];
         renderCatalog(resources[0]); renderEvents(resources[1]); renderProfileSelection(fixtureId);
+        applyViewMode(readViewMode());
+        byId("modeSeg").addEventListener("click", function (event) {
+          var button = event.target.closest("button[data-mode]"); if (!button) return;
+          // Display-only: re-project the ALREADY COMMITTED result. Nothing is fetched or recomputed.
+          applyViewMode(button.getAttribute("data-mode"));
+          if (tadProjection.viewModel) renderProjection();
+        });
       }).catch(function (error) {
         var known = error && typeof error.code === "string";
         renderUnavailable(known ? error.code : "TAD-INTERNAL", known ? error.observed : String(error), known ? error.required : "successful closed config and fixture validation", known ? error.action : "inspect the reported defect and restore the required static resources");
@@ -1658,8 +3708,11 @@
     };
   </script>
   <script src="rlnav.js"></script>
-  <section data-rlbrief-mount data-tool-id="technical-analysis-decision-lab" data-simple-target="rlbrief-simple"
-    data-power-target="rlbrief-power"></section>
+  <!-- data-owns-route declares that this page renders its own Simple and Power views through
+       #modeSeg and routes its own state, so the shell must not claim location.hash or apply
+       rlv-focused: two owners of one URL field is not a resolvable state. -->
+  <section data-rlbrief-mount data-owns-route data-tool-id="technical-analysis-decision-lab"
+    data-simple-target="rlbrief-simple" data-power-target="rlbrief-power"></section>
 </body>
 
 </html>

@@ -1640,6 +1640,61 @@
                 drawDaily(); drawProfile();
                 renderRegime(regime); renderAD(state.ad);
                 renderKpis(align, ma); renderSignals(sig); renderOpt(); renderAnalogs();
+                /* ---------- Feature 007 owner read: swing-structure/v1 ---------- */
+                // Serializes state this render already computed. It calls no private function of
+                // another page and re-derives no level; consumers read this, never the DOM.
+                try {
+                    if (window.RLDATA && typeof RLDATA.putToolRead === "function") {
+                        var f7Info = (RLDATA.barInfo && RLDATA.barInfo(state.ticker, "1d")) || null;
+                        var f7Cutoff = new Date(state.dataAt || Date.now()).toISOString();
+                        var f7Levels = []
+                            .concat((nl && nl.res ? nl.res : []).map(function (x) { return { kind: "resistance", name: x.name, price: x.p }; }))
+                            .concat((nl && nl.sup ? nl.sup : []).map(function (x) { return { kind: "support", name: x.name, price: x.p }; }));
+                        if (state.prof) f7Levels = f7Levels.concat([
+                            { kind: "profile-node", name: "POC", price: state.prof.poc },
+                            { kind: "profile-node", name: "VAH", price: state.prof.vah },
+                            { kind: "profile-node", name: "VAL", price: state.prof.val }
+                        ]);
+                        RLDATA.putToolRead("swing-structure-lab", {
+                            asOf: f7Cutoff,
+                            read: v && v.one ? v.one : "Swing structure read",
+                            metrics: {
+                                bias: v ? v.bias : null, trend: align ? align.trend : null, regime: regime ? regime.band : null,
+                                ownerRead: {
+                                    contractVersion: "rl-ta-owner-read/v1",
+                                    capabilityVersion: "swing-structure/v1",
+                                    ownerId: "swing-structure-lab",
+                                    resultId: "swing:" + state.ticker + ":" + f7Cutoff,
+                                    sourceSetId: (f7Info && f7Info.src) || (state.provider || "unknown"),
+                                    symbol: state.ticker,
+                                    sessionContractId: "daily-close",
+                                    decisionCutoff: f7Cutoff,
+                                    truthState: state.full && state.full.length ? "current" : "unavailable",
+                                    closedCoverage: state.full ? state.full.length : 0,
+                                    provisionalCoverage: 0,
+                                    payload: {
+                                        alignment: align ? { label: align.label, trend: align.trend } : null,
+                                        regime: regime ? { band: regime.band, note: regime.note } : null,
+                                        verdict: v ? { bias: v.bias, word: v.word, confidence: v.conf, driver: v.driver } : null,
+                                        structure: state.struct ? { pattern: state.struct.pattern, stage: state.struct.stage, invalid: state.struct.invalid } : null,
+                                        levels: f7Levels,
+                                        lastClose: last,
+                                        // A null option snapshot is an absence, never a neutral or zero reading.
+                                        optionSnapshot: state.opt ? { spot: state.opt.spot, callWall: state.opt.callWall, putWall: state.opt.putWall, flip: state.opt.flip, netGEX: state.opt.netGEX, source: state.opt.src } : null,
+                                        optionSnapshotAvailable: !!state.opt
+                                    },
+                                    limitations: [
+                                        "Daily closing-price structure only; intrabar behaviour is not described.",
+                                        "Levels are historical and model-derived, not resting orders or order-book depth.",
+                                        state.opt ? "Option levels are inherited from the shared snapshot under its own convention and are not re-signed here." : "No option snapshot is available; option positioning is unavailable rather than neutral."
+                                    ]
+                                }
+                            },
+                            deepLink: "swing-structure-lab.html?t=" + encodeURIComponent(state.ticker)
+                        });
+                    }
+                } catch (f7Err) { /* publication is additive; it never blocks the owner's own render */ }
+                /* ---------- End Feature 007 owner read: swing-structure/v1 ---------- */
             }
 
             function updatePills(align, regime) {

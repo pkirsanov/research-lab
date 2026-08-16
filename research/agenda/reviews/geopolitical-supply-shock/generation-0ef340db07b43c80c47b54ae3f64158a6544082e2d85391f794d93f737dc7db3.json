@@ -1,0 +1,93 @@
+{
+  "contractVersion": "research-review/v1",
+  "generationId": "generation-0ef340db07b43c80c47b54ae3f64158a6544082e2d85391f794d93f737dc7db3",
+  "topicId": "geopolitical-supply-shock",
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "attemptedAt": "2026-08-15T11:01:11.341Z",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "search-fragment-invalid",
+  "newestEvidenceAgeHours": null,
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "No current actor-state finding is authored. Acquisition for requirement 'official-policy-and-statements' (official source class, 24h freshness) returned missing-or-stale, so no verified declared policy or statement for the United States, Iran, Oman mediators, Gulf exporters, Houthis, shipping insurers or OPEC buffer producers is available inside the freshness window. Reaction rules that key off observed changes cannot be evaluated without observed inputs, and no unobserved intent is inferred.",
+      "gaps": [
+        "Requirement 'official-policy-and-statements' (sourceClasses: official; freshnessHours: 24; claim coverage: actor-state) is missing-or-stale with a null record.",
+        "No verified statement acquired for any declared actor, so dimension states (military-pressure, transit-control, cover-availability, etc.) remain unobserved."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "No situation-side interpretation of the escalation tree is asserted. Scenario probabilities are authored by the model side, not here. No current evidence was acquired to observe the entry-trigger states (transit-restriction-observed, insured-capacity-tightens) or invalidation states (transit-normalizes, insurance-normalizes) that would update node standing.",
+      "gaps": [
+        "Entry-trigger fields physicalPassFraction and insuredPassFraction are unobserved because 'measured-maritime-flow' is missing-or-stale.",
+        "policyResponse for the inventory-response-confirmed trigger is unobserved because 'energy-and-input-balances' is missing-or-stale."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "No measured physical or insured flow state is available. Acquisition for requirement 'measured-maritime-flow' (official and maritime-observation classes, 24h freshness) returned missing-or-stale, so no measured transit, loadings, delay or insured capacity for Hormuz, Bab el-Mandeb or the Red Sea can be reported. Premium changes alone would not prove physical loss, and none were observed either.",
+      "gaps": [
+        "Requirement 'measured-maritime-flow' (freshnessHours: 24; claim coverage: physical-flow, insured-flow) is missing-or-stale with a null record.",
+        "physicalPassFraction (hormuz, bab-el-mandeb, red-sea) and insuredPassFraction (shipping-insurers) are unobserved."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "No transmission inputs are available for the oil, refined-products, lng, fertilizer, aluminum or shipping channels. Acquisition for requirement 'energy-and-input-balances' (official and industry-data classes, 72h freshness) returned missing-or-stale, so no inventory, production, export or policy-response observation exists to condition channel transmission. Sensitivity parameters remain model-owned and are not authored here.",
+      "gaps": [
+        "Requirement 'energy-and-input-balances' (freshnessHours: 72; claim coverage: transmission-input) is missing-or-stale with a null record.",
+        "No observed inventory/production/export/policy-response input for any declared channel."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "No situation-side proxy interpretation is authored and no proxy sensitivity range is asserted (ranges are model-owned). The only current evidence retained by acquisition is the committed same-origin daily bars for the twelve declared proxies (BNO, MPC, XLE, DBA, XLB, XLI, USO, PSX, XOM, CVX, COP, DBC), reused from 2026-08-14T23:59:59Z; those bars are consumed directly by the model side as currentBars, not as narrative findings. No narrative confirmation of proxy sensitivity was acquired.",
+      "gaps": [
+        "Committed proxy bars cover only the 'proxy-bar' claim; they carry no actor, flow or transmission narrative.",
+        "The three narrative requirements needed to interpret proxy sensitivity in context are missing-or-stale."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "No trigger or invalidation state change is observed. transit-restriction-observed and transit-normalizes both depend on measured physicalPassFraction; insured-capacity-tightens and insurance-normalizes depend on measured insuredPassFraction; inventory-response-confirmed depends on a confirmed policyResponse. All required observations are missing-or-stale, so no trigger fires and no invalidation is confirmed from acquired evidence.",
+      "gaps": [
+        "physicalPassFraction, insuredPassFraction and policyResponse are all unobserved this generation.",
+        "The evidence-stales invalidation (ageHours above 24) is the operative state: no supporting observation remains inside the freshness window."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "No qualifying narrative sources were acquired to enter the ledger. Acquisition state is failed and the evidence bundle is null; the only retained artifact is committed proxy-bar evidence, which is a deterministic model input rather than a research source. The source ledger is therefore empty for this generation.",
+      "gaps": [
+        "official-policy-and-statements, measured-maritime-flow and energy-and-input-balances all returned missing-or-stale with null records.",
+        "sourceLedger contains no entries because no official, maritime-observation or industry-data source was retained."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "No change assessment is authored (change assessment is a model-side output and is not authored here). No predecessor situation is available for comparison: priorDossier is null for this topic, so there is no prior state against which a direction of change could be observed even at the evidence level.",
+      "gaps": [
+        "priorDossier is null — no predecessor situation to compare.",
+        "No current findings exist this generation, so no observed delta can be described."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelOutputs": null,
+  "predecessorDossierId": null,
+  "dossierId": null,
+  "reviewId": "review-60c656446c70ceab0d0c068e2dd2fccf152cb48b3e5584fa45ccfbbbd95ec7a3",
+  "validationState": "validated",
+  "historicalOnly": false
+}

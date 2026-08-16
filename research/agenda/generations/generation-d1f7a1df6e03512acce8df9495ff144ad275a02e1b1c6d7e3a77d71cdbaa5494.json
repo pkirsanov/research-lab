@@ -1,0 +1,32 @@
+{
+  "contractVersion": "research-generation/v1",
+  "generationId": "generation-d1f7a1df6e03512acce8df9495ff144ad275a02e1b1c6d7e3a77d71cdbaa5494",
+  "generationCutoff": "2026-08-15T14:31:12.588Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "declaredTopicCount": 3,
+  "classifications": [
+    {
+      "dossierId": null,
+      "reason": "flow-model-invalid",
+      "reviewId": "review-e0ce046abb5564df84709575b513797b1952e877110e40938b95ff887b7211bc",
+      "state": "unavailable",
+      "topicId": "geopolitical-supply-shock"
+    },
+    {
+      "dossierId": null,
+      "reason": "cadence-not-elapsed",
+      "reviewId": null,
+      "state": "not-due",
+      "topicId": "defense-earnings-acceleration"
+    },
+    {
+      "dossierId": null,
+      "reason": "cadence-not-elapsed",
+      "reviewId": null,
+      "state": "not-due",
+      "topicId": "food-inputs-outlook"
+    }
+  ],
+  "candidateFingerprint": "sha256:666951026b013ec55797d282910c8ad31fa94c6fe2ca994d7806dc236688ad44"
+}

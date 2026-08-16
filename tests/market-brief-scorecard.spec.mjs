@@ -93,11 +93,33 @@ test('SCN-019-020 compact standing research read is visible on the brief and dee
     const section = page.locator('#standingResearch');
     await expect(section).toBeVisible();
     await expect(section.locator('.research-agenda-row')).toHaveCount(3);
-    await expect(section.locator('[data-research-topic="geopolitical-supply-shock"]')).toContainText('unavailable');
-    await expect(section.locator('[data-research-topic="geopolitical-supply-shock"]')).toContainText('did not produce a validated current dossier');
-    await expect(section.locator('[data-research-topic="defense-earnings-acceleration"]')).toContainText('not due');
-    await expect(section.locator('[data-research-topic="food-inputs-outlook"]')).toContainText('unavailable');
-    await expect(section.locator('[data-research-topic="food-inputs-outlook"]')).toContainText('did not produce a validated current dossier');
+    // Every row is asserted as a CONTRACT, not against one authored sentence for one reason code.
+    // The prior version pinned the exact prose of whichever reason the 4×/day scheduled refresh had
+    // last published, so a routine producer change from `research-lane-unavailable` to
+    // `situation-shape-invalid` broke it — while the defect that change actually exposed (the
+    // renderer Title-Cased the unmapped slug into "Situation Shape Invalid.") was invisible to it,
+    // because that is just a different string. These assertions hold for every reason code and fail
+    // on the regression.
+    const slugAsProse = /\b(?:[A-Z][a-z]+ ){2,}(?:Invalid|Missing|Incomplete|Elapsed|Unavailable)\b/;
+    for (const topicId of ['geopolitical-supply-shock', 'defense-earnings-acceleration', 'food-inputs-outlook']) {
+      const row = section.locator(`[data-research-topic="${topicId}"]`);
+      await expect(row).toBeVisible();
+      const text = (await row.innerText()).trim();
+      // The state glyph and word are always present, and the row always carries a reader sentence.
+      expect(text, `${topicId} states its topic state`).toMatch(/reviewed|unavailable|stale|deferred|not.due/i);
+      expect(text, `${topicId} carries a terminated reader sentence`).toMatch(/[.!?](\s|$)/);
+      expect(text, `${topicId} must not print a Title-Cased machine slug as prose: ${text}`).not.toMatch(slugAsProse);
+      /* Adversarial on the raw code itself. A hyphenated code may appear ONLY inside the explicit
+         "Reason code: <code>." frame the fallback uses when a producer emits a code the shared map
+         has not yet been taught — that frame is honest, because it presents the code AS a code. A
+         bare code dropped into the sentence is the leak. Banning every hyphenated token outright
+         (the first version of this assertion) would have forbidden the honest fallback itself. */
+      const codeTokens = [...text.matchAll(/\b[a-z]+(?:-[a-z]+){2,}\b/g)].map((m) => m[0]);
+      for (const token of codeTokens) {
+        expect(text, `${topicId} may print the code ${token} only inside the "Reason code:" frame`)
+          .toContain(`Reason code: ${token}.`);
+      }
+    }
     const ownerLink = section.locator('[data-research-topic="geopolitical-supply-shock"] a');
     await expect(ownerLink).toHaveAttribute('href', 'research-agenda-lab.html#power/geopolitical-supply-shock');
     await ownerLink.click();

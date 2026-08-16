@@ -1809,6 +1809,54 @@
                 renderSignals(sig);
                 renderOpt();
                 renderAnalogs(ova);
+                /* ---------- Feature 007 owner read: intraday-auction/v1 ---------- */
+                try {
+                    if (window.RLDATA && typeof RLDATA.putToolRead === "function") {
+                        var f7Info = (RLDATA.barInfo && RLDATA.barInfo(state.ticker, state.iv)) || null;
+                        var f7LastBar = t.bars && t.bars.length ? t.bars[t.bars.length - 1] : null;
+                        var f7Cutoff = new Date(f7LastBar ? f7LastBar.t : (state.dataAt || Date.now())).toISOString();
+                        RLDATA.putToolRead("intraday-tape-lab", {
+                            asOf: f7Cutoff,
+                            read: v && v.one ? v.one : "Intraday auction read",
+                            metrics: {
+                                bias: v ? v.bias : null, dayType: st ? st.type : null, control: ctl ? ctl.label : null,
+                                ownerRead: {
+                                    contractVersion: "rl-ta-owner-read/v1",
+                                    capabilityVersion: "intraday-auction/v1",
+                                    ownerId: "intraday-tape-lab",
+                                    resultId: "intraday:" + state.ticker + ":" + state.iv + ":" + f7Cutoff,
+                                    sourceSetId: (f7Info && f7Info.src) || "unknown",
+                                    symbol: state.ticker,
+                                    sessionContractId: "regular-hours:" + (state.sel || "unknown"),
+                                    decisionCutoff: f7Cutoff,
+                                    truthState: t.bars && t.bars.length ? "current" : "unavailable",
+                                    closedCoverage: t.bars ? t.bars.length : 0,
+                                    provisionalCoverage: 1,
+                                    payload: {
+                                        interval: state.iv,
+                                        session: { key: state.sel, open: t.open, last: t.last, high: t.hi, low: t.lo, range: t.range, bars: t.n },
+                                        vwap: { value: t.vwap, dispersion: t.sd, aboveFraction: t.aboveFrac, crosses: t.crosses },
+                                        profile: { poc: t.poc, vah: t.vah, val: t.val, step: t.step },
+                                        openingRange: { high: t.orHi, low: t.orLo, minutes: t.orMin },
+                                        openingState: ova ? { location: ova.loc, gap: ova.gap, priorVAH: ova.priorVAH, priorVAL: ova.priorVAL, priorPOC: ova.priorPOC } : null,
+                                        dayType: st ? { type: st.type, confidence: st.conf } : null,
+                                        control: ctl ? { label: ctl.label, score: ctl.score } : null,
+                                        verdict: v ? { bias: v.bias, word: v.word, confidence: v.conf, driver: v.driver } : null,
+                                        optionSnapshot: state.opt ? { spot: state.opt.spot, callWall: state.opt.callWall, putWall: state.opt.putWall, flip: state.opt.flip, netGEX: state.opt.netGEX, source: state.opt.src } : null,
+                                        optionSnapshotAvailable: !!state.opt
+                                    },
+                                    limitations: [
+                                        "Delta and control readings are OHLCV proxies; no tick-level bid/ask traded volume is available.",
+                                        "Volume at price is a bar-allocated proxy, not resting depth or an order book.",
+                                        "The current session bar is provisional and cannot confirm a closed-bar trigger."
+                                    ]
+                                }
+                            },
+                            deepLink: "intraday-tape-lab.html?t=" + encodeURIComponent(state.ticker)
+                        });
+                    }
+                } catch (f7Err) { /* publication is additive */ }
+                /* ---------- End Feature 007 owner read: intraday-auction/v1 ---------- */
             }
 
             function activeRegime() {

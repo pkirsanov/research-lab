@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -111,34 +111,34 @@ No stress/load row is present because Feature 007 has no numeric latency, throug
 
 #### Core Delivery Items
 
-- [ ] Every SCN-007-001 through SCN-007-032 contract has an exact persistent title, non-silent assertion, test-plan entry, scenario-manifest entry, and evidence anchor; all 31 business scenarios retain exact Gherkin hashes.
-- [ ] Complete formula, contract, source/vintage, owner, setup/gate, comparison, validation/cost, lifecycle, truth-state, accessibility/mobile/background-canvas, one-model, publication, registry, and privacy matrices have current evidence.
-- [ ] Shared data, validation, owner, selftest, credential, navigation, Market Brief, Feature 005/006, Causal, Bond, and FX canaries retain their frozen title/outcome inventory or have an owner-attributed blocking finding.
-- [ ] Live browser tests use real HTTP pages and no interception, fulfillment, service-worker substitution, internal mock, silent pass, or fixture-as-live claim.
-- [ ] Every discovered finding is fixed and revalidated inside the allowed boundary or preserved verbatim in an owner-targeted result; no finding disappears from accounting.
-- [ ] Change Boundary is respected with zero unexplained Feature 007 hunks outside allowed files/markers and zero Feature 005/006 or unrelated dirty edits.
-- [ ] Scope/report/state/scenario/test-plan artifacts agree; top-level status, completed scopes, completed phase claims, policy snapshot, and certification remain unchanged by implementation/testing agents except through their authorized workflow owners.
-- [ ] SCN-007-032 has intended RED and same-command GREEN evidence; all earlier RED/GREEN records remain intact.
+- [x] Every SCN-007-001 through SCN-007-032 contract has an exact persistent title, non-silent assertion, test-plan entry, scenario-manifest entry, and evidence anchor; all 31 business scenarios retain exact Gherkin hashes. Evidence: report.md#tp-09-06-and-tp-09-07 — all 31 business titles present, only extra id is 032; break L proves the guard fails when one is lost
+- [x] Complete formula, contract, source/vintage, owner, setup/gate, comparison, validation/cost, lifecycle, truth-state, accessibility/mobile/background-canvas, one-model, publication, registry, and privacy matrices have current evidence. Evidence: report.md#tp-09-03 — selftest 2027/0; report.md#tp-09-04 — validator 216 checks PASS
+- [x] Shared data, validation, owner, selftest, credential, navigation, Market Brief, Feature 005/006, Causal, Bond, and FX canaries retain their frozen title/outcome inventory or have an owner-attributed blocking finding. Evidence: report.md#tp-09-08-tp-09-12-tp-09-13 — 85 passed; report.md#tp-09-09-tp-09-10-tp-09-11 — 57 passed; brief and causal validators PASS
+- [x] Live browser tests use real HTTP pages and no interception, fulfillment, service-worker substitution, internal mock, silent pass, or fixture-as-live claim. Evidence: report.md#tp-09-16-live-test-integrity-scan — scan green with the guard block excluded from its own scan (D-09-1)
+- [x] Every discovered finding is fixed and revalidated inside the allowed boundary or preserved verbatim in an owner-targeted result; no finding disappears from accounting. Evidence: report.md#finding-ledger — F-09-1 pre-existing brief gap FIXED and revalidated, F-09-2 and F-09-3 fixed
+- [x] Change Boundary is respected with zero unexplained Feature 007 hunks outside allowed files/markers and zero Feature 005/006 or unrelated dirty edits. Evidence: report.md#finding-ledger — Feature 005/006 untouched and green; only the brief narrative declaration and runbook contract changed outside Feature 007, recorded as F-09-1
+- [x] Scope/report/state/scenario/test-plan artifacts agree; top-level status, completed scopes, completed phase claims, policy snapshot, and certification remain unchanged by implementation/testing agents except through their authorized workflow owners. Evidence: report.md#validation-summary — artifact lint PASSED, all nine scopes Done, evidence anchors resolve
+- [x] SCN-007-032 has intended RED and same-command GREEN evidence; all earlier RED/GREEN records remain intact. Evidence: report.md#adversarial-verification — break L RED then restored GREEN on the identical command
 
 #### Test Evidence Items - Exact Parity With 16 Test Plan Rows
 
-- [ ] TP-09-01 functional evidence proves the committed Node source-lock contract remains valid.
-- [ ] TP-09-02 functional evidence proves the checkout-local runner reports exactly `Version 1.61.1`.
-- [ ] TP-09-03 unit evidence proves the full repository selftest and all 65+7 Feature 007 symbols/canaries pass.
-- [ ] TP-09-04 functional evidence proves the complete Feature 007 validator and rejection inventory pass.
-- [ ] TP-09-05 functional evidence proves page inline-script syntax and ID integrity.
-- [ ] TP-09-06 Regression E2E evidence proves SCN-007-032 protects the complete required title/receipt matrix.
-- [ ] TP-09-07 broader E2E evidence proves every Feature 007 persistent browser regression passes over real HTTP.
-- [ ] TP-09-08 provider-credential browser evidence proves central credential/settings ownership remains green.
-- [ ] TP-09-09 Feature 006 browser evidence retains its accepted owner-attributed behavior and title inventory.
-- [ ] TP-09-10 Feature 005 browser evidence retains its owner-attributed dirty-work outcome without Feature 007 edits.
-- [ ] TP-09-11 Causal browser evidence remains green after shared data and registry changes.
-- [ ] TP-09-12 Bond browser evidence remains green for source, decision, owner-read, responsive, and canvas behavior.
-- [ ] TP-09-13 FX browser evidence remains green for source, decision, consumer, responsive, and canvas behavior.
-- [ ] TP-09-14 functional evidence proves Market Brief registry-derived coverage remains valid without duplicated Feature 007 authority.
-- [ ] TP-09-15 functional evidence proves Causal source/time/ledger contracts remain green.
-- [ ] TP-09-16 functional evidence proves zero interception, fulfillment, service-worker substitution, skip/only, silent-pass, or fixture-as-live pattern.
+- [x] TP-09-01 functional evidence proves the committed Node source-lock contract remains valid. Evidence: report.md#tp-09-01-source-lock-contract — PASS, 16 adversarial rejections, 0 unexpected acceptances
+- [x] TP-09-02 functional evidence proves the checkout-local runner reports exactly `Version 1.61.1`. Evidence: report.md#tp-09-02-runner-identity — Version 1.61.1
+- [x] TP-09-03 unit evidence proves the full repository selftest and all 65+7 Feature 007 symbols/canaries pass. Evidence: report.md#tp-09-03-broad-production-helper-suite — 2027 passed, 0 failed
+- [x] TP-09-04 functional evidence proves the complete Feature 007 validator and rejection inventory pass. Evidence: report.md#tp-09-04-complete-feature-validator — checks=216 result=PASS
+- [x] TP-09-05 functional evidence proves page inline-script syntax and ID integrity. Evidence: report.md#tp-09-05-page-integrity — OK inline=2 refs=0, vacuity declared and covered by the 109-reference selftest check
+- [x] TP-09-06 Regression E2E evidence proves SCN-007-032 protects the complete required title/receipt matrix. Evidence: report.md#tp-09-06-and-tp-09-07 — scenarioTitles=32 fixtures=18 rlvalid=7 interception=none
+- [x] TP-09-07 broader E2E evidence proves every Feature 007 persistent browser regression passes over real HTTP. Evidence: report.md#tp-09-06-and-tp-09-07 — 38 passed over real HTTP
+- [x] TP-09-08 provider-credential browser evidence proves central credential/settings ownership remains green. Evidence: report.md#tp-09-08-tp-09-12-tp-09-13 — 85 passed including the credential suite
+- [x] TP-09-09 Feature 006 browser evidence retains its accepted owner-attributed behavior and title inventory. Evidence: report.md#tp-09-09-tp-09-10-tp-09-11 — Trend Dynamics green, zero Feature 007 edits
+- [x] TP-09-10 Feature 005 browser evidence retains its owner-attributed dirty-work outcome without Feature 007 edits. Evidence: report.md#tp-09-09-tp-09-10-tp-09-11 — Palm Springs green, owner-attributed and unrepaired
+- [x] TP-09-11 Causal browser evidence remains green after shared data and registry changes. Evidence: report.md#tp-09-09-tp-09-10-tp-09-11 — Causal Rotation green
+- [x] TP-09-12 Bond browser evidence remains green for source, decision, owner-read, responsive, and canvas behavior. Evidence: report.md#tp-09-08-tp-09-12-tp-09-13 — Bond Regime green incl. colour-removed and 200% zoom
+- [x] TP-09-13 FX browser evidence remains green for source, decision, consumer, responsive, and canvas behavior. Evidence: report.md#tp-09-08-tp-09-12-tp-09-13 — FX Regime green
+- [x] TP-09-14 functional evidence proves Market Brief registry-derived coverage remains valid without duplicated Feature 007 authority. Evidence: report.md#tp-09-14-and-tp-09-15 — brief contract PASS with registry-derived coverage
+- [x] TP-09-15 functional evidence proves Causal source/time/ledger contracts remain green. Evidence: report.md#tp-09-14-and-tp-09-15 — causal contract PASS, 8 adversarial fixtures
+- [x] TP-09-16 functional evidence proves zero interception, fulfillment, service-worker substitution, skip/only, silent-pass, or fixture-as-live pattern. Evidence: report.md#tp-09-16-live-test-integrity-scan — zero interception/fulfillment/skip/only/bailout
 
 #### Build Quality Gate
 
-- [ ] All focused and broad commands, RED/GREEN records, title/outcome comparison, changed-path and marker classification, finding ledger, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, traceability, no-deferral/fabrication scans, framework write guard, Bubbles doctor, and repository readiness are current and clean for owned work; terminal status and certification remain owned by `bubbles.validate`.
+- [x] All focused and broad commands, RED/GREEN records, title/outcome comparison, changed-path and marker classification, finding ledger, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, traceability, no-deferral/fabrication scans, framework write guard, Bubbles doctor, and repository readiness are current and clean for owned work; terminal status and certification remain owned by `bubbles.validate`. Evidence: report.md#audit-verdict — three findings fixed and revalidated; git diff --check clean; artifact lint PASSED

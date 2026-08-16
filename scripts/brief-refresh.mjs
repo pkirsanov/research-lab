@@ -1945,10 +1945,11 @@ export async function buildIntradayToolRead(deps = {}) {
 }
 
 /**
- * technical-analysis-decision-lab. Its adapter is a foundation receipt only — computeTechnicalFiveGateSummary
- * returns `unavailable` unconditionally because the five-gate model is not implemented behind it. So the
- * only truthful Tier-A read is that absence, stated with the capability that is missing. That is strictly
- * more useful than the old silent "consume its browser read", which implied a read exists.
+ * technical-analysis-decision-lab. The owner five-gate model IS implemented and does publish a decision
+ * read in the browser — but it projects committed deterministic fixtures that declare `liveClaim:false`,
+ * so there is no live-market read to carry. The only truthful Tier-A read is therefore that absence,
+ * stated with the reason that actually blocks it. Carrying the fixture read instead would put canned
+ * analysis into a brief a reader acts on during market hours, which is the failure this guards against.
  */
 export function buildTechnicalToolRead(deps = {}) {
   const id = 'technical-analysis-decision-lab', deepLink = 'technical-analysis-decision-lab.html';
@@ -1964,7 +1965,7 @@ export function buildTechnicalToolRead(deps = {}) {
       foundationReceipt: { present: !!bars, name: 'Daily close integrity', session: 'XNYS venue-local daily boundary', primary: 'Primary 1d closed', ownerReadPublished: false }
     };
     const summary = model.computeTechnicalFiveGateSummary(ownerState, OWNER.registryDefaults(root, 'simple-adapter/technical-five-gate/v1'));
-    const read = `The five-gate decision model publishes no read: ${summary.missingOwnerCapability || 'the owner model is not implemented'}. Its data foundation is ${summary.foundationReceipt.present ? 'present' : 'absent'}.`;
+    const read = `The five-gate decision model contributes no current-market read: ${summary.missingOwnerCapability || 'the owner model publishes no live read'} Its data foundation is ${summary.foundationReceipt.present ? 'present' : 'absent'}.`;
     return {
       id, asOf: ownerState.asOf, read, deepLink, source: 'owning-tool-functions', state: 'owner-model-unavailable',
       metrics: {

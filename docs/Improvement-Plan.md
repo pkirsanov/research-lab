@@ -786,7 +786,7 @@ where committed evidence exists to run one.
 | `options-flow-feed-lab` | 23 committed chains in `data/options/` | **feasible** |
 | `ai-capex-strategy-lab` | `ai-capex-universe.json` + bars | **feasible** |
 | `smart-money-flow-lab` | `data/` holds only bars, calendars, company-fundamentals, options | **BLOCKED** — filings/congressional-flow data is not committed. An adapter would have to invent its input. |
-| `technical-analysis-decision-lab` | adapter EXISTS and runs | **different defect** — the five-gate owner model returns `owner-model-unavailable`, so coverage is correctly `unavailable`. Fixing this is an owner-model gap, not an adapter gap. |
+| `technical-analysis-decision-lab` | adapter EXISTS and runs | **different defect, and not the one first recorded** — the five-gate owner model is fully implemented and does publish a decision read in the browser. It computes that read from committed fixtures declaring `liveClaim:false`, so there is no live-market read to carry and coverage is correctly withheld. This is a DATA-TIER gap: wiring the tool into the brief before it reads live market data would put canned analysis into a brief a reader acts on during market hours. |
 
 **The original `11 -> 16` target was unreachable and should not be chased.** Three adapters are buildable, so
 the honest ceiling is **`11 -> 14`**. The remaining two are named blockers, not effort gaps — the same

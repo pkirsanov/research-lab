@@ -81,6 +81,10 @@ export const BRIEF_NARRATIVE_FIELDS_REQUIRED = [
   'regime.name',
   'regime.scoreNote',
   'regime.crowdPsychology',
+  /* The brief author writes a regime-scoped macro read alongside the structural backdrop.macroCycle.
+     It is reader prose, so it is declared here and leak-checked like its siblings; leaving it
+     undeclared is what the 200-character coverage gate caught. */
+  'regime.macroCycle',
   'regime.structuralTrend',
   'regime.pricedIn',
   'regime.asymmetry',

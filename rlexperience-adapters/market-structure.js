@@ -1692,12 +1692,18 @@
        context/location/confirmation/validation-threshold          -> summary.gates.<gate>
        entry / stop-distance / cost                                -> summary.expectancy
 
-     This adapter performs NO page rewire: there is no owner formula to single-source until the owner
-     five-gate model is implemented. If/when the owner model lands, this compute is replaced with the
-     extracted single-source owner functions and the flat regions become real steerable effects. */
+     This adapter performs NO page rewire, but NOT because the owner model is missing. The owner
+     five-gate model IS implemented on the page and does publish a decision read in the browser. It
+     computes that read from committed deterministic fixtures that declare `liveClaim:false`, so
+     single-sourcing it here would hand the market brief a fixture projection wearing the clothes of a
+     live read. Carrying an absence is the honest option; carrying canned analysis as current market
+     evidence is not. The rewire becomes correct only once the owner model reads live market data. */
 
   var TECHNICAL_OWNER_PAGE = "technical-analysis-decision-lab.html";
-  var TECHNICAL_MISSING_CAPABILITY = "The owner five-gate model (context/location/confirmation/validation gate scoring plus setup-state and expectancy) is not implemented in " + TECHNICAL_OWNER_PAGE + ", a Scope-01 foundation-receipt validator that publishes no analytic result (ownerReadPublished:false).";
+  // Says WHY there is no read, and says it truthfully. Claiming the model is "not implemented" was
+  // accurate at Scope 01 and became false once the five gates landed; the sentence still reached
+  // readers through the brief. The blocking fact is the data tier, not the missing model.
+  var TECHNICAL_MISSING_CAPABILITY = "The owner five-gate model is implemented in " + TECHNICAL_OWNER_PAGE + " and publishes a decision read in the browser, but it projects committed deterministic fixtures that declare liveClaim:false rather than live market data, so it has no current-market read to contribute this window (ownerReadPublished:false).";
 
   var TECHNICAL_OUTPUT_PATHS = {
     "timeframe": ["summary.setupState"],

@@ -3340,6 +3340,25 @@ try {
   assert(tdcConfig.methods.map((method) => method.id).join(',') === 'M01-ols-hac,M02-theil-kendall,M03-local-quadratic,M04-local-linear-state,M05-cusum,M06-bocpd,M07-scale-shift,M08-distribution-shift,M09-correlation-shift,M10-linear-segments,M11-gaussian-hmm2,M12-prominent-extrema,M13-harmonic-decomposition,M14-welch-acf,M15-generalized-lomb,M16-rolling-spectrum,M17-lead-lag,M18-event-study', 'Trend Dynamics method registry is finite, ordered, and exact');
   assert(new Set(tdcConfig.cycleCatalog.map((entry) => entry.domain)).size === 10, 'Trend Dynamics cycle catalog covers exactly ten initial domains');
 
+  // A source contract that no production data can satisfy is a DEAD contract: the tool refuses its
+  // own bars forever and publishes nothing, while the suite stays green because the browser tests
+  // inject the required tag by hand. That is exactly what happened here — spy-daily demanded
+  // `option-snapshot` while every one of the committed bar snapshots is tagged `yahoo`, so
+  // tdcSharedBarsEnvelope answered TDC-SOURCE-PROVIDER-MISMATCH on every real render and the tool
+  // never reached the brief. The descriptor's own authority already said "Yahoo Finance through the
+  // existing Research Lab checked-in bar snapshot", so the tag contradicted its own contract.
+  // Assert satisfiability against the committed corpus rather than against a hand-written list.
+  for (const series of (tdcConfig.series || [])) {
+    if (series.adapter !== 'shared-bars-v1') continue;
+    const snapshotPath = `data/bars/${series.symbol}.json`;
+    assert(existsSync(join(ROOT, snapshotPath)), `${series.id}: its shared-bars symbol has a committed snapshot at ${snapshotPath}`);
+    const committedSrc = JSON.parse(read(snapshotPath)).src;
+    const tags = (series.source && series.source.providerTags) || [];
+    assert(tags.includes(committedSrc),
+      `${series.id}: the source contract accepts the provider tag the committed bars actually carry `
+      + `(tags ${JSON.stringify(tags)} must include "${committedSrc}"), so the production read path is reachable`);
+  }
+
   const configUnknown = JSON.parse(JSON.stringify(tdcConfig));
   configUnknown.hiddenDefault = true;
   const configVersion = JSON.parse(JSON.stringify(tdcConfig));
@@ -4165,8 +4184,1056 @@ try {
   const tad02TrendFamily = tad02Clustered.families.filter((family) => family.familyId === 'trend-filters')[0];
   assert(tad02TrendFamily.methodCount === 3 && tad02TrendFamily.clusterCount === 2 && tad02TrendFamily.methodCount > tad02TrendFamily.clusterCount,
     'Family rollups publish raw method count alongside the smaller independent cluster count');
+
+  /* ---------- Scope 03: levels and setup lifecycle ---------- */
+  const tad03Names = ['tadIsFinite', 'tadIdentity', 'tadLevelRefusal', 'tadNormalizeLevels', 'tadClusterConfluence', 'tadUpdateLevelLifecycle',
+    'tadSetupRefusal', 'tadEvaluateSetupDefinition', 'tadTransitionCandidate', 'tadDeriveNaturalTargets', 'tadBuildRiskPlan', 'tadAuditTargets'];
+  const tad03Owned = ['tadNormalizeLevels', 'tadClusterConfluence', 'tadUpdateLevelLifecycle', 'tadEvaluateSetupDefinition',
+    'tadTransitionCandidate', 'tadDeriveNaturalTargets', 'tadBuildRiskPlan', 'tadAuditTargets'];
+  assert(tad03Owned.every((name) => (tadSource.match(new RegExp('function\\s+' + name + '\\s*\\(', 'g')) || []).length === 1),
+    'All 8 Scope 03 declarations exist exactly once in the page');
+  const tad03Vars = ['TAD_CONFLUENCE_LABEL', 'TAD_LEVEL_STATES', 'TAD_LEVEL_TYPES', 'TAD_CANDIDATE_TRANSITIONS', 'TAD_TERMINAL_STATES']
+    .map((name) => tadSource.match(new RegExp('var ' + name + ' = [\\s\\S]*?;\\n'))[0]).join('\n');
+  const tad03 = build(
+    [tad03Vars].concat(tadNames.concat(tad03Names).map((name) => extractFn(tadSource, name))),
+    tadNames.concat(tad03Names)
+  );
+
+  const TAD03_CUTOFF = '2025-06-30T20:00:00.000Z';
+  const tad03RawLevels = [
+    { type: 'swing', methodId: 'daily-swing-low', price: 100, lower: 99.6, upper: 100.4, interval: '1d', timeframeRole: 'setup', observedAt: '2025-06-02T20:00:00.000Z', ageBars: 20 },
+    { type: 'moving-average', methodId: 'sma-50', price: 100.3, lower: 100.1, upper: 100.5, interval: '1d', timeframeRole: 'setup', observedAt: '2025-06-27T20:00:00.000Z', ageBars: 1 },
+    { type: 'profile-node', methodId: 'composite-hvn', price: 100.6, lower: 100.4, upper: 100.8, interval: '1d', timeframeRole: 'primary', observedAt: '2025-06-20T20:00:00.000Z', ageBars: 7 },
+    { type: 'swing', methodId: 'daily-swing-high', price: 108, lower: 107.6, upper: 108.4, interval: '1d', timeframeRole: 'setup', observedAt: '2025-06-10T20:00:00.000Z', ageBars: 14 },
+    { type: 'range-edge', methodId: 'range-top', price: 112, lower: 111.7, upper: 112.3, interval: '1d', timeframeRole: 'primary', observedAt: '2025-06-05T20:00:00.000Z', ageBars: 18 }
+  ];
+  const tad03Norm = tad03.tadNormalizeLevels(tad03RawLevels, { sourceVintageId: 'fixture:2025-06-30', observationCutoff: TAD03_CUTOFF });
+  assert(tad03Norm.ok && tad03Norm.levels.length === 5
+    && tad03Norm.levels.every((level) => /^tad-level:[a-f0-9]{64}$/.test(level.levelId))
+    && new Set(tad03Norm.levels.map((level) => level.levelId)).size === 5,
+    'Normalized levels carry distinct content-addressed identities');
+  assert(tad03Norm.levels.every((level) => level.methodId && level.sourceVintageId && level.interval && level.observedAt && typeof level.uncertainty === 'number' && Array.isArray(level.limitations)),
+    'Every normalized level retains method, source vintage, interval, observation time, and uncertainty');
+  // A level observed after the cutoff would let later information reach an earlier decision.
+  assert(!tad03.tadNormalizeLevels([{ ...tad03RawLevels[0], observedAt: '2025-07-05T20:00:00.000Z' }], { sourceVintageId: 'v', observationCutoff: TAD03_CUTOFF }).ok,
+    'A level observed after the cutoff is refused rather than silently used');
+  assert(!tad03.tadNormalizeLevels([{ ...tad03RawLevels[0], type: 'order-book-liquidity' }], { sourceVintageId: 'v', observationCutoff: TAD03_CUTOFF }).ok,
+    'An unknown level type is refused');
+  assert(!tad03.tadNormalizeLevels([{ ...tad03RawLevels[0], lower: 101, upper: 99 }], { sourceVintageId: 'v', observationCutoff: TAD03_CUTOFF }).ok,
+    'An inverted level zone is refused');
+
+  const tad03Zones = tad03.tadClusterConfluence(tad03Norm.levels, {
+    atr: 1.5, atrDistance: 0.5, sourceCutoff: TAD03_CUTOFF,
+    familyByMethodId: { 'daily-swing-low': 'closing-structure', 'sma-50': 'trend-filters', 'composite-hvn': 'auction-value', 'daily-swing-high': 'closing-structure', 'range-top': 'closing-structure' }
+  });
+  const tad03Cluster = tad03Zones.zones.filter((zone) => zone.memberCount > 1)[0];
+  assert(tad03Zones.ok && tad03Cluster && tad03Cluster.memberCount === 3 && tad03Cluster.memberLevelIds.length === 3,
+    'Nearby levels cluster into one zone without losing any member');
+  assert(tad03Cluster.independentFamilyIds.length === 3 && tad03Cluster.independentFamilyIds.join(',') === 'auction-value,closing-structure,trend-filters',
+    'A confluence zone reports the independent families behind it, not just a member count');
+  // The label is a hard-coded literal precisely so it can never drift into book/order/liquidity language.
+  assert(tad03Zones.zones.every((zone) => zone.label === 'historical/model level confluence'),
+    'Every confluence zone carries the historical/model level confluence label');
+  const tad03ZoneText = JSON.stringify(tad03Zones.zones).toLowerCase();
+  assert(!/liquidity|order.?book|resting|heatmap|depth/.test(tad03ZoneText),
+    'Confluence output contains no liquidity, order-book, resting, heatmap, or depth language');
+  assert(!tad03.tadClusterConfluence(tad03Norm.levels, { atr: 1.5, sourceCutoff: TAD03_CUTOFF }).ok,
+    'Confluence without an explicit volatility distance is refused');
+
+  const tad03Support = tad03Norm.levels.filter((level) => level.methodId === 'daily-swing-low')[0];
+  const tad03Above = { status: 'closed', o: 101, h: 101.6, l: 100.8, c: 101.3 };
+  const tad03Life = (bars) => tad03.tadUpdateLevelLifecycle(tad03Support, bars, { staleAfterBars: 500 });
+  const tad03Wick = tad03Life([tad03Above, { status: 'closed', o: 101, h: 101.5, l: 99.2, c: 101.2 }]);
+  const tad03Break = tad03Life([tad03Above, { status: 'closed', o: 101, h: 101.2, l: 98.5, c: 98.8 }]);
+  const tad03Reclaim = tad03Life([tad03Above, { status: 'closed', o: 101, h: 101.2, l: 98.5, c: 98.8 }, { status: 'closed', o: 99, h: 101.5, l: 98.9, c: 101.1 }]);
+  // This is the assertion that keeps a wick from becoming a confirmed break.
+  assert(tad03Wick.state === 'held' && tad03Wick.intrabarExcursion === true && tad03Wick.closedBeyond === false,
+    'An intrabar excursion with a close back inside is held, never broken');
+  assert(tad03Break.state === 'broken' && tad03Break.closedBeyond === true, 'A close beyond the zone breaks the level');
+  assert(tad03Reclaim.state === 'reclaimed', 'A close back through the zone after a break is a reclaim');
+  assert(tad03Life([tad03Above, { status: 'closed', o: 101, h: 101.2, l: 100.2, c: 100.9 }]).state === 'tested', 'A touch without a closed break is tested');
+  assert(tad03Life([tad03Above, { status: 'closed', o: 101.3, h: 102, l: 101.1, c: 101.8 }]).state === 'active', 'A level with no interaction stays active');
+  assert(tad03.tadUpdateLevelLifecycle(tad03Support, [{ status: 'provisional', o: 101, h: 101, l: 98, c: 98 }], {}).decidedFromClosedBars === 0,
+    'Level lifecycle decides only from closed bars');
+
+  const tad03Definition = tadConfig.setupDefinitions.filter((definition) => definition.setupDefinitionId === 'trend-pullback-continuation/v1')[0];
+  const tad03Base = { profileId: 'us-equity-session-v1', familyStates: { 'closing-structure': 'supports', 'trend-filters': 'supports' } };
+  const tad03Setup = (extra) => tad03.tadEvaluateSetupDefinition(tad03Definition, { ...tad03Base, ...extra });
+  assert(tad03Setup({ familyStates: { 'closing-structure': 'unavailable', 'trend-filters': 'supports' } }).state === 'NO_EDGE',
+    'Unmet required families produce NO_EDGE rather than a setup');
+  assert(tad03Setup({ inGovernedZone: false }).state === 'WATCH', 'Prerequisites without location produce WATCH');
+  assert(tad03Setup({ inGovernedZone: true }).state === 'ARMED', 'Location without a trigger produces ARMED');
+  assert(tad03Setup({ inGovernedZone: true, triggerEventId: 'closed-reclaim' }).state === 'TRIGGERED', 'A declared trigger produces TRIGGERED');
+  // A trigger the definition does not declare cannot promote the candidate past ARMED.
+  const tad03Unknown = tad03Setup({ inGovernedZone: true, triggerEventId: 'wick-through' });
+  assert(tad03Unknown.state === 'ARMED' && tad03Unknown.reasonCodes.some((reason) => reason.indexOf('declared-trigger-not-recognized') === 0),
+    'An undeclared trigger event cannot trigger a setup');
+  assert(!tad03Setup({ profileId: 'unsupported-profile-v1' }).ok, 'A setup refuses an unsupported timeframe profile');
+  assert(tadConfig.setupDefinitions.length === 8 && tadConfig.setupDefinitions.every((definition) => tad03.tadEvaluateSetupDefinition(definition, {
+    profileId: definition.supportedProfileIds[0],
+    familyStates: (definition.requiredFamilyIds || []).reduce((states, familyId) => Object.assign(states, { [familyId]: 'supports' }), {}),
+    inGovernedZone: true
+  }).ok), 'All eight committed setup definitions evaluate through the same owned evaluator');
+
+  const tad03Candidate = 'tad-candidate:selftest';
+  const tad03Step = (events, toState, extra) => tad03.tadTransitionCandidate(tad03Candidate, events, {
+    toState, decisionTime: '2025-06-30T20:00:00.000Z', observationCutoff: '2025-06-30T19:00:00.000Z', reasonCodes: ['selftest'], ...extra
+  });
+  const tad03Watch = tad03Step([], 'WATCH');
+  assert(tad03Watch.ok && tad03Watch.fromState === 'SCANNING' && tad03Watch.event.sequence === 0 && /^tad-event:[a-f0-9]{64}$/.test(tad03Watch.event.eventId),
+    'A first transition starts from SCANNING and appends an identified event');
+  // ARMED cannot be skipped: WATCH has no edge straight to TRIGGERED.
+  assert(!tad03Step(tad03Watch.events, 'TRIGGERED').ok, 'A candidate cannot skip ARMED and jump from WATCH to TRIGGERED');
+  const tad03Armed = tad03Step(tad03Watch.events, 'ARMED', { decisionTime: '2025-06-30T21:00:00.000Z', observationCutoff: '2025-06-30T20:00:00.000Z' });
+  const tad03Trig = tad03Step(tad03Armed.events, 'TRIGGERED', { decisionTime: '2025-06-30T22:00:00.000Z', observationCutoff: '2025-06-30T21:00:00.000Z' });
+  const tad03Done = tad03Step(tad03Trig.events, 'COMPLETED_EVALUATION', { decisionTime: '2025-07-01T20:00:00.000Z', observationCutoff: '2025-07-01T19:00:00.000Z', terminalConditionId: 'target-1-reached', hypotheticalOutcome: { grossR: 1.2, netR: 1.05 } });
+  assert(tad03Done.ok && tad03Done.terminal === true && tad03Done.event.terminalConditionId === 'target-1-reached' && tad03Done.event.hypotheticalOutcome.netR === 1.05,
+    'A terminal transition records its terminal condition and hypothetical outcome');
+  assert(tad03Done.events.length === 4 && tad03Done.events.every((event, index) => event.sequence === index),
+    'The candidate log is append-only and sequentially ordered');
+  // A terminal record must never reopen; a later similar pattern gets a new candidate identity.
+  assert(!tad03Step(tad03Done.events, 'WATCH', { decisionTime: '2025-07-02T20:00:00.000Z', observationCutoff: '2025-07-02T19:00:00.000Z' }).ok,
+    'A terminal candidate cannot reopen');
+  assert(!tad03Step(tad03Trig.events, 'COMPLETED_EVALUATION', { decisionTime: '2025-07-01T20:00:00.000Z', observationCutoff: '2025-07-01T19:00:00.000Z' }).ok,
+    'A terminal transition without a terminal condition is refused');
+  assert(tad03.tadTransitionCandidate(tad03Candidate, [], { toState: 'WATCH', decisionTime: '2025-06-01T00:00:00.000Z', observationCutoff: '2025-06-02T00:00:00.000Z' }).errors[0].code === 'TAD-CANDIDATE-ASOF',
+    'A transition cannot use observations from after its own decision time');
+  assert(tad03Step(tad03Armed.events, 'TRIGGERED', { decisionTime: '2025-06-29T20:00:00.000Z', observationCutoff: '2025-06-29T19:00:00.000Z' }).errors[0].code === 'TAD-CANDIDATE-BACKDATE',
+    'A transition cannot be backdated behind the prior event');
+
+  const tad03Targets = tad03.tadDeriveNaturalTargets(tad03Definition, tad03Norm.levels, { direction: 'long', triggerPrice: 101, observationCutoff: TAD03_CUTOFF });
+  assert(tad03Targets.ok && tad03Targets.targets.length === 2 && tad03Targets.targets[0].price === 108 && tad03Targets.targets[1].price === 112,
+    'Natural targets are the pre-existing sourced levels beyond the trigger, in natural order');
+  assert(tad03Targets.targets.every((target) => target.derivedFrom === 'pre-existing-sourced-level' && target.sourceVintageId && target.methodId),
+    'Every target names the sourced level it came from');
+  const tad03LateLevels = tad03Norm.levels.concat([{ ...tad03Norm.levels[3], levelId: 'tad-level:late', price: 105, observedAt: '2025-07-05T20:00:00.000Z' }]);
+  assert(tad03.tadDeriveNaturalTargets(tad03Definition, tad03LateLevels, { direction: 'long', triggerPrice: 101, observationCutoff: TAD03_CUTOFF }).targets.every((target) => target.targetId !== 'tad-level:late'),
+    'A level observed after the cutoff cannot become a target');
+
+  const tad03Risk = tad03.tadBuildRiskPlan(tad03Definition, { triggerPrice: 101, invalidationPrice: 99.5, targets: tad03Targets.targets, costPolicyId: 'cost/v1', frozenAt: TAD03_CUTOFF });
+  assert(tad03Risk.ok && tad03Risk.riskPlan.direction === 'long' && Math.abs(tad03Risk.riskPlan.riskPerUnit - 1.5) < 1e-9
+    && tad03Risk.riskPlan.orderedTargetIds.length === 2 && /^tad-risk:[a-f0-9]{64}$/.test(tad03Risk.riskPlan.riskPlanId),
+    'The risk plan freezes trigger, invalidation, ordered targets, and its own identity');
+  assert(Math.abs(tad03Risk.riskPlan.targets[0].rewardToRisk - (108 - 101) / 1.5) < 1e-9,
+    'Reward-to-risk is computed from targets that already existed, not fitted to a desired number');
+  assert(!tad03.tadBuildRiskPlan(tad03Definition, { triggerPrice: 101, invalidationPrice: 99.5, targets: [], costPolicyId: 'cost/v1' }).ok,
+    'A risk plan without pre-derived targets is refused');
+  assert(!tad03.tadBuildRiskPlan(tad03Definition, { triggerPrice: 101, invalidationPrice: 101, targets: tad03Targets.targets, costPolicyId: 'cost/v1' }).ok,
+    'A risk plan with zero distance between trigger and invalidation is refused');
+  assert(!tad03.tadBuildRiskPlan(tad03Definition, { triggerPrice: 101, invalidationPrice: 99.5, targets: tad03Targets.targets }).ok,
+    'A risk plan without an explicit cost policy is refused');
+
+  assert(tad03.tadAuditTargets(tad03Risk.riskPlan, tad03Targets.targets).matchesFrozenPlan === true,
+    'The unchanged target set audits clean against the frozen plan');
+  // Adding a target after the plan froze is target fitting: it improves the reward number with no new evidence.
+  assert(tad03.tadAuditTargets(tad03Risk.riskPlan, tad03Targets.targets.concat([{ targetId: 'tad-level:invented', price: 130 }])).findings.some((finding) => finding.code === 'TAD-TARGET-FITTING'),
+    'A target added after the plan froze is reported as target fitting');
+  assert(tad03.tadAuditTargets(tad03Risk.riskPlan, tad03Targets.targets.slice().reverse()).findings.some((finding) => finding.code === 'TAD-TARGET-REORDERED'),
+    'A reordered target path is reported rather than silently accepted');
+  assert(tad03.tadAuditTargets(tad03Risk.riskPlan, [tad03Targets.targets[0]]).findings.some((finding) => finding.code === 'TAD-TARGET-REMOVED'),
+    'A removed target is reported rather than silently accepted');
+
+  /* ---------- Scope 04: five-gate synthesis ---------- */
+  const tad04Names = ['tadGateResult', 'tadTimeframeConflict', 'tadEvaluatePrimaryGate', 'tadEvaluateRegimeGate', 'tadEvaluateLocationGate',
+    'tadEvaluateTriggerGate', 'tadEvaluateValidationRiskProcessGate', 'tadSynthesizeFiveGates', 'tadRankCandidates', 'tadBuildUnifiedRead'];
+  const tad04Owned = ['tadRankCandidates', 'tadEvaluatePrimaryGate', 'tadEvaluateRegimeGate', 'tadEvaluateLocationGate', 'tadEvaluateTriggerGate',
+    'tadEvaluateValidationRiskProcessGate', 'tadSynthesizeFiveGates', 'tadBuildUnifiedRead'];
+  assert(tad04Owned.length === 8 && tad04Owned.every((name) => (tadSource.match(new RegExp('function\\s+' + name + '\\s*\\(', 'g')) || []).length === 1),
+    'All 8 Scope 04 declarations exist exactly once in the page');
+  const tad04 = build(
+    [tadSource.match(/var TAD_GATE_ORDER = [\s\S]*?;\n/)[0], tad03Vars].concat(tadNames.concat(tad03Names, tad04Names).map((name) => extractFn(tadSource, name))),
+    tadNames.concat(tad03Names, tad04Names)
+  );
+
+  const tad04Full = {
+    roles: { primary: { state: 'uptrend', confirmed: true }, setup: { state: 'uptrend', confirmed: true }, trigger: { state: 'uptrend' } },
+    regime: { state: 'trend', eligibleSetupFamilyIds: ['trend-pullback'] },
+    location: { inGovernedZone: true, structuralRoomR: 3.2, atrDistanceToZone: 0.2 },
+    trigger: { declaredEventIds: ['closed-reclaim'], observedEventId: 'closed-reclaim', confirmedOnClosedBar: true, invalidated: false },
+    validationRiskProcess: { validationStatus: 'supported', planFrozen: true, costsExplicit: true, targetAuditClean: true, netRewardToRisk: 2.4, minimumNetRewardToRisk: 1.5 }
+  };
+  const tad04Pass = tad04.tadSynthesizeFiveGates(tad04Full);
+  assert(tad04Pass.ok && tad04Pass.gates.length === 5 && tad04Pass.gates.map((gate) => gate.gateId).join(',') === 'primary,regime,location,trigger,validation-risk-process',
+    'Synthesis always produces exactly five gate records in the declared order');
+  assert(tad04Pass.transitionEligible === true && tad04Pass.passCount === 5 && tad04Pass.firstBlockingGateId === null,
+    'Every mandatory gate passing makes the candidate transition-eligible');
+
+  // SCN-007-001: an aligned trend that is extended away from every governed zone is NO EDGE.
+  const tad04Extended = tad04.tadSynthesizeFiveGates({ ...tad04Full, location: { inGovernedZone: false, atrDistanceToZone: 4.1 } });
+  assert(tad04Extended.gates[0].outcome === 'pass' && tad04Extended.gates[2].outcome === 'fail'
+    && tad04Extended.transitionEligible === false && tad04Extended.firstBlockingGateId === 'location',
+    'An aligned primary trend still fails when price is extended away from every governed zone');
+  assert(tad04Extended.gates[2].reasonCodes.indexOf('chase-risk') >= 0, 'The location gate names chase risk when price is extended');
+
+  // A failed mandatory gate cannot be outvoted: later gates still compute, but only as diagnostics.
+  assert(tad04Extended.gates[3].outcome === 'pass' && tad04Extended.gates[3].diagnosticOnly === true
+    && tad04Extended.gates[4].diagnosticOnly === true && tad04Extended.gates[2].blocksTransition === true,
+    'Gates after the first mandatory failure remain diagnostic and cannot restore eligibility');
+  assert(tad04Extended.gates.slice(0, 3).every((gate) => gate.diagnosticOnly === false), 'Gates up to the first failure are not marked diagnostic-only');
+
+  // SCN-007-003: a structural break fails the trigger gate no matter how many indicators are bullish.
+  const tad04Invalidated = tad04.tadSynthesizeFiveGates({ ...tad04Full, trigger: { ...tad04Full.trigger, invalidated: true } });
+  assert(tad04Invalidated.gates[3].outcome === 'fail' && tad04Invalidated.gates[3].reasonCodes.indexOf('closed-beyond-invalidation') >= 0 && tad04Invalidated.transitionEligible === false,
+    'A close beyond invalidation fails the trigger gate and cannot be outvoted');
+  assert(tad04.tadSynthesizeFiveGates({ ...tad04Full, trigger: { ...tad04Full.trigger, confirmedOnClosedBar: false } }).gates[3].reasonCodes.indexOf('provisional-bar-cannot-confirm') >= 0,
+    'A provisional bar cannot confirm a trigger');
+  assert(tad04.tadSynthesizeFiveGates({ ...tad04Full, trigger: { ...tad04Full.trigger, observedEventId: 'wick-through' } }).gates[3].reasonCodes.indexOf('undeclared-trigger-event') >= 0,
+    'An undeclared trigger event fails the trigger gate');
+
+  // Missing costs or validation can never become a pass.
+  assert(tad04.tadSynthesizeFiveGates({ ...tad04Full, validationRiskProcess: { ...tad04Full.validationRiskProcess, costsExplicit: false } }).gates[4].reasonCodes.indexOf('costs-not-explicit') >= 0,
+    'Absent required costs fail the validation gate rather than passing silently');
+  assert(tad04.tadSynthesizeFiveGates({ ...tad04Full, validationRiskProcess: { ...tad04Full.validationRiskProcess, validationStatus: 'unsupported' } }).gates[4].outcome === 'fail',
+    'An unsupported validation record fails the validation gate');
+  assert(tad04.tadSynthesizeFiveGates({ ...tad04Full, validationRiskProcess: { ...tad04Full.validationRiskProcess, targetAuditClean: false } }).gates[4].reasonCodes.indexOf('target-audit-dirty') >= 0,
+    'A target path differing from the frozen plan fails the validation gate');
+  assert(tad04.tadSynthesizeFiveGates({ ...tad04Full, validationRiskProcess: { ...tad04Full.validationRiskProcess, netRewardToRisk: 0.8 } }).gates[4].reasonCodes.indexOf('net-reward-below-minimum') >= 0,
+    'Net reward-to-risk below the configured minimum fails the validation gate');
+  assert(tad04.tadSynthesizeFiveGates({ ...tad04Full, regime: null }).gates[1].outcome === 'unavailable',
+    'Absent regime evidence is unavailable rather than a pass');
+
+  // SCN-007-004: a conflicting trigger role never reverses the confirmed primary.
+  const tad04ConflictRoles = { ...tad04Full.roles, trigger: { state: 'downtrend' } };
+  const tad04Conflict = tad04.tadSynthesizeFiveGates({ ...tad04Full, roles: tad04ConflictRoles });
+  assert(tad04Conflict.gates[0].outcome === 'pass' && tad04Conflict.gates[0].reasonCodes.some((reason) => reason.indexOf('timeframe-conflict:') === 0),
+    'A conflicting trigger role is recorded as a timeframe conflict, not a primary reversal');
+  assert(tad04Conflict.gates[1].outcome === 'fail' && tad04Conflict.gates[1].reasonCodes.indexOf('timeframe-conflict-without-countertrend-eligible-family') >= 0,
+    'Under a timeframe conflict a family not declared for countertrend research cannot stay armed');
+  const tad04ConflictAllowed = tad04.tadSynthesizeFiveGates({ ...tad04Full, roles: tad04ConflictRoles, regime: { state: 'trend', eligibleSetupFamilyIds: ['trend-pullback'], countertrendEligibleSetupFamilyIds: ['trend-pullback'] } });
+  assert(tad04ConflictAllowed.gates[1].outcome === 'pass' && tad04ConflictAllowed.gates[1].reasonCodes.indexOf('primary-not-reversed') >= 0,
+    'A family explicitly eligible for countertrend research may remain armed under a conflict');
+  assert(tad04.tadTimeframeConflict({ primary: { state: 'uptrend', confirmed: true }, trigger: { state: 'uptrend' } }) === null,
+    'Agreeing roles report no timeframe conflict');
+
+  // SCN-007-027: selection is by gate and validation quality, never by direction.
+  const tad04Candidates = [
+    { candidateId: 'c-bullish-breakout', setupDefinitionId: 'breakout-acceptance-retest/v1', direction: 'long', synthesis: { transitionEligible: false, passCount: 3, firstBlockingGateId: 'trigger' }, validationStatus: 'supported', truthState: 'current', contradictionCount: 1, contradictionSeverity: 2, specificity: 5, registryIndex: 0 },
+    { candidateId: 'c-bearish-failed-break', setupDefinitionId: 'failed-break-reclaim/v1', direction: 'short', synthesis: { transitionEligible: true, passCount: 5, firstBlockingGateId: null }, validationStatus: 'supported', truthState: 'current', contradictionCount: 0, contradictionSeverity: 0, specificity: 4, registryIndex: 1 },
+    { candidateId: 'c-two-sided-reversion', setupDefinitionId: 'balance-extreme-mean-reversion/v1', direction: 'two-sided', synthesis: { transitionEligible: false, passCount: 4, firstBlockingGateId: 'validation-risk-process' }, validationStatus: 'bounded', truthState: 'degraded', contradictionCount: 2, contradictionSeverity: 3, specificity: 3, registryIndex: 2 }
+  ];
+  const tad04Ranked = tad04.tadRankCandidates(tad04Candidates);
+  assert(tad04Ranked.ok && tad04Ranked.ranked[0].candidateId === 'c-bearish-failed-break' && tad04Ranked.ranked[0].rank === 1,
+    'The candidate with the strongest complete gate evidence ranks first regardless of direction');
+  assert(tad04Ranked.rankDimensions.indexOf('direction') < 0 && JSON.stringify(tad04Ranked.ranked).indexOf('"direction"') < 0,
+    'Direction is absent from every rank dimension and from the ranked output');
+  assert(tad04Ranked.ranked.length === 3 && new Set(tad04Ranked.ranked.map((entry) => entry.rank)).size === 3,
+    'Non-selected candidates remain visible with their own rank');
+  // Ranking must be deterministic: the same input in a different order yields the same order.
+  assert(JSON.stringify(tad04.tadRankCandidates(tad04Candidates.slice().reverse()).ranked) === JSON.stringify(tad04Ranked.ranked),
+    'Candidate ranking is deterministic and independent of input order');
+
+  const tad04Read = tad04.tadBuildUnifiedRead({ candidates: tad04Candidates, observationCutoff: '2025-06-30T20:00:00.000Z' });
+  assert(tad04Read.ok && tad04Read.read.state === 'TRIGGERED' && tad04Read.read.selectedCandidateId === 'c-bearish-failed-break'
+    && /^tad-read:[a-f0-9]{64}$/.test(tad04Read.read.readId),
+    'One eligible candidate produces a TRIGGERED read with a content-addressed identity');
+  assert(tad04Read.read.selectionBasis === 'strongest-complete-gate-and-validation-evidence' && tad04Read.read.directionPublished === false && tad04Read.read.executionClaimed === false,
+    'The unified read names its selection basis and publishes no direction or execution claim');
+  assert(tad04Read.read.ranked.length === 3, 'The unified read preserves every candidate, not only the selected one');
+
+  // SCN-007-022: a no-trade day is a valid result rather than a forced low-confidence direction.
+  const tad04NoneEligible = tad04Candidates.map((candidate) => ({ ...candidate, synthesis: { ...candidate.synthesis, transitionEligible: false } }));
+  const tad04Abstain = tad04.tadBuildUnifiedRead({ candidates: tad04NoneEligible, observationCutoff: '2025-06-30T20:00:00.000Z' });
+  assert(['NO_EDGE', 'MIXED'].indexOf(tad04Abstain.read.state) >= 0 && tad04Abstain.read.selectedCandidateId === null,
+    'No candidate clearing every mandatory gate produces NO EDGE or MIXED rather than a forced signal');
+  assert(tad04Abstain.read.nearestReadyCandidateId !== null, 'The abstaining read may still name the nearest candidate');
+  const tad04SingleBlocked = tad04.tadBuildUnifiedRead({ candidates: [{ candidateId: 'only', synthesis: { transitionEligible: false, passCount: 1, firstBlockingGateId: 'location' }, contradictionCount: 0 }], observationCutoff: '2025-06-30T20:00:00.000Z' });
+  assert(tad04SingleBlocked.read.state === 'NO_EDGE' && tad04SingleBlocked.read.nearestMissingCondition === 'location',
+    'A single blocked candidate produces NO EDGE and names its missing condition');
+  assert(tad04.tadBuildUnifiedRead({ candidates: [{ candidateId: 'x', invalidated: true, synthesis: { transitionEligible: false, passCount: 3, firstBlockingGateId: 'trigger' } }], observationCutoff: '2025-06-30T20:00:00.000Z' }).read.state === 'INVALIDATED',
+    'An invalidated candidate produces an INVALIDATED read');
+  assert(!tad04.tadBuildUnifiedRead({ candidates: tad04Candidates }).ok, 'The unified read refuses to build without an observation cutoff');
+  assert(!tad04.tadBuildUnifiedRead({ observationCutoff: '2025-06-30T20:00:00.000Z' }).ok, 'The unified read refuses to build without candidates');
+  // A watch-only setup declares no trigger events, so it can be armed but can never reach TRIGGERED.
+  const tad04Watch = tadConfig.setupDefinitions.filter((setup) => setup.triggerEvents.length === 0)[0];
+  assert(tad04Watch && tad03.tadEvaluateSetupDefinition(tad04Watch, {
+    profileId: tad04Watch.supportedProfileIds[0],
+    familyStates: (tad04Watch.requiredFamilyIds || []).reduce((states, familyId) => Object.assign(states, { [familyId]: 'supports' }), {}),
+    inGovernedZone: true, triggerEventId: 'closed-reclaim'
+  }).state === 'ARMED', 'A watch-only setup can be armed but never triggers, even when a trigger event is supplied');
+
+  /* ---------- Scope 05: owner publication and strict adapters ---------- */
+  const tad05Names = ['tadAdmitOwnerRead', 'tadAdmitOptionPositioning', 'tadEvaluateMicrostructure', 'tadAdaptFeatureSixRead'];
+  assert(tad05Names.every((name) => (tadSource.match(new RegExp('function\\s+' + name + '\\s*\\(', 'g')) || []).length === 1),
+    'All 4 Scope 05 adapter declarations exist exactly once in the page');
+  const tad05 = build(
+    [tadSource.match(/var TAD_CAPABILITY_OWNERS = [\s\S]*?\n {4}};\n/)[0], tadSource.match(/var TAD_TACTICAL_CAPABILITIES = [\s\S]*?;\n/)[0]]
+      .concat(tadNames.concat(tad05Names).map((name) => extractFn(tadSource, name))),
+    tadNames.concat(tad05Names).concat(['TAD_CAPABILITY_OWNERS'])
+  );
+
+  const tad05Fixture = JSON.parse(read('tests/fixtures/technical-analysis-decision/analytic/owner-publication.json'));
+  const tad05Expected = { symbol: tad05Fixture.symbol, sessionContractId: tad05Fixture.sessionContractId, decisionCutoff: tad05Fixture.decisionCutoff };
+  const tad05Admit = (situationKey) => tad05Fixture.situations[situationKey].ownerReads.map((read) => tad05.tadAdmitOwnerRead(read, tad05Expected));
+
+  // Every one of the six registered capabilities has exactly one owning page, and each real
+  // owner page carries exactly one marker-bounded publisher for the capability it owns.
+  const tad05Owners = tad05.TAD_CAPABILITY_OWNERS;
+  assert(Object.keys(tad05Owners).length === 6 && new Set(Object.values(tad05Owners)).size === 6,
+    'Six capability versions map to six distinct owner pages');
+  Object.keys(tad05Owners).forEach((capability) => {
+    const ownerSource = read(tad05Owners[capability] + '.html');
+    assert((ownerSource.match(new RegExp('Feature 007 owner read: ' + capability.replace('/', '\\/'), 'g')) || []).length === 2,
+      capability + ' is published from ' + tad05Owners[capability] + ' inside exactly one marker-bounded block');
+    assert(ownerSource.indexOf('"rl-ta-owner-read/v1"') >= 0 || ownerSource.indexOf("'rl-ta-owner-read/v1'") >= 0,
+      tad05Owners[capability] + ' nests an rl-ta-owner-read/v1 envelope');
+  });
+  // The publishers serialize owner state only. Feature 007 never reaches into an owner page.
+  // Comments are stripped first: a comment SAYING the page never inspects an iframe is
+  // documentation, and banning the word there would flag the disclaimer instead of the act.
+  const tad05Code = tadSource.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+  ['iframe', 'contentWindow', 'importScripts', 'querySelector('].forEach((forbidden) => {
+    assert(tad05Code.indexOf(forbidden) < 0, 'The Feature 007 page never uses ' + forbidden + ' to reach owner state');
+  });
+  assert(tadSource.indexOf('inspect an iframe') >= 0, 'The adapter states in the source that it never inspects an owner iframe');
+
+  const tad05Complete = tad05Admit('complete');
+  assert(tad05Complete.length === 6 && tad05Complete.every((entry) => entry.admitted),
+    'Six compatible owner reads are all admitted');
+  assert(tad05Complete.map((entry) => entry.capabilityVersion).sort().join(',') === Object.keys(tad05Owners).sort().join(','),
+    'The admitted set covers every registered capability exactly once');
+
+  // A read whose capability is published by the wrong page is refused, not trusted.
+  const tad05Impostor = JSON.parse(JSON.stringify(tad05Fixture.situations.complete.ownerReads[0]));
+  tad05Impostor.metrics.ownerRead.ownerId = 'gamma-trading-lab';
+  assert(tad05.tadAdmitOwnerRead(tad05Impostor, tad05Expected).code === 'TAD-OWNER-IDENTITY',
+    'A capability published by a page that does not own it is refused');
+  assert(tad05.tadAdmitOwnerRead(null, tad05Expected).code === 'TAD-OWNER-ABSENT',
+    'An absent owner read is explicitly unavailable rather than defaulted');
+  const tad05NoLimits = JSON.parse(JSON.stringify(tad05Fixture.situations.complete.ownerReads[0]));
+  tad05NoLimits.metrics.ownerRead.limitations = [];
+  assert(tad05.tadAdmitOwnerRead(tad05NoLimits, tad05Expected).admitted === false,
+    'An owner read that declares no limitation is refused');
+
+  // SCN-007-015: a missing option snapshot stays unavailable and never becomes neutral gamma.
+  const tad05Missing = tad05Admit('missing-option-snapshot');
+  const tad05MissingOption = tad05.tadAdmitOptionPositioning(tad05Missing);
+  assert(tad05MissingOption.eligible === false && tad05MissingOption.code === 'TAD-OPTION-SNAPSHOT-UNAVAILABLE',
+    'A missing option chain snapshot makes option positioning unavailable');
+  assert(tad05Missing.filter((entry) => entry.capabilityVersion === 'options-positioning/v1')[0].truthState === 'unavailable',
+    'The option owner truth state is preserved as unavailable and never upgraded to current');
+  const tad05MissingPayload = tad05Missing.filter((entry) => entry.capabilityVersion === 'options-positioning/v1')[0].owner.payload;
+  assert(tad05MissingPayload.levels === null && tad05MissingPayload.aggregates === null,
+    'Absent option evidence carries null levels and aggregates rather than zeroes');
+  // Ban the AFFIRMATIVE neutral claim, not the word. The refusal text is REQUIRED to say
+  // "neutral dealer positioning are not inferred", so a bare word ban would flag the very
+  // disclaimer this scenario exists to guarantee. Assert the disclaimer is present too.
+  assert(!/(?<!not )(?<!no )(?<!never )(?:dealerPositioning|positioning)\s*[:=]\s*["']neutral["']/.test(JSON.stringify(tad05MissingOption))
+    && !/"(?:netGEX|callWall|putWall|flip|netVanna)":\s*0(?:\D|$)/.test(JSON.stringify(tad05MissingPayload)),
+    'Absence never produces a zero net gamma or an affirmative neutral dealer reading');
+  assert(/not inferred/.test(tad05MissingOption.action) && /neutral/.test(tad05MissingOption.action),
+    'The option refusal explicitly states that neutral dealer positioning is not inferred from absence');
+  assert(tad05Missing.filter((entry) => entry.capabilityVersion === 'swing-structure/v1')[0].admitted === true,
+    'A daily owner remains admitted while option positioning is unavailable');
+
+  // SCN-007-016: one inherited dealer convention, and no silent re-signing.
+  const tad05CompleteOption = tad05.tadAdmitOptionPositioning(tad05Complete);
+  assert(tad05CompleteOption.eligible === true && tad05CompleteOption.signConventionId === 'dealer-long-calls-short-puts'
+    && tad05CompleteOption.distinctConventions.length === 1,
+    'Both option owners share exactly one inherited dealer sign convention');
+  // The two option owners apply the convention at DIFFERENT points, so signApplied differs.
+  // The eligibility rule reads that flag rather than assuming both pages behave alike.
+  const tad05Applied = tad05CompleteOption.conventions.reduce((map, entry) => Object.assign(map, { [entry.ownerId]: entry.signApplied }), {});
+  assert(tad05Applied['options-structure-lab'] === true && tad05Applied['gamma-trading-lab'] === false,
+    'The option owners declare where the convention was applied instead of being assumed identical');
+  const tad05GammaOnly = tad05Complete.filter((entry) => entry.capabilityVersion === 'gamma-playbook/v1');
+  assert(tad05.tadAdmitOptionPositioning(tad05GammaOnly).code === 'TAD-OPTION-POSITIONING-ABSENT',
+    'A gamma playbook read whose values are not signed cannot supply option positioning on its own');
+  const tad05Conflict = tad05.tadAdmitOptionPositioning(tad05Admit('conflicting-convention'));
+  assert(tad05Conflict.eligible === false && tad05Conflict.code === 'TAD-OPTION-CONVENTION-CONFLICT' && tad05Conflict.distinctConventions.length === 2,
+    'Two disagreeing dealer conventions refuse option positioning instead of silently re-signing one');
+  // Every element of the option eligibility contract is required, not optional.
+  ['snapshotClocks', 'expirationCoverage', 'liquidityFilters', 'assumptions'].forEach((key) => {
+    const partial = JSON.parse(JSON.stringify(tad05Fixture.situations.complete.ownerReads));
+    partial.forEach((read) => { if (read.metrics.ownerRead.capabilityVersion === 'options-positioning/v1') delete read.metrics.ownerRead.payload[key]; });
+    const admitted = partial.map((read) => tad05.tadAdmitOwnerRead(read, tad05Expected));
+    assert(tad05.tadAdmitOptionPositioning(admitted).code === 'TAD-OPTION-CONTRACT-INCOMPLETE',
+      'Option positioning refuses a snapshot missing ' + key);
+  });
+
+  // SCN-007-017: footprint, depth, and large-trade fail honestly on OHLCV and option snapshots.
+  const tad05Micro = tad05.tadEvaluateMicrostructure(tad05Fixture.microstructureRequests);
+  assert(tad05Micro.length === 3 && tad05Micro.every((entry) => entry.eligible === false),
+    'OHLCV bars and an option snapshot satisfy no microstructure contract');
+  assert(tad05Micro.map((entry) => entry.requestId).join(',') === 'footprint,depth,large-trade',
+    'Every microstructure module is evaluated rather than quietly omitted');
+  assert(tad05Micro.every((entry) => /not substituted/.test(entry.action)),
+    'Each refused microstructure module states that no proxy is substituted for the real feed');
+  assert(tad05Micro[0].required.indexOf('bid/ask or aggressor') >= 0 && tad05Micro[1].required.indexOf('full-book') >= 0
+    && tad05Micro[2].required.indexOf('classification') >= 0,
+    'Each microstructure refusal names the exact feed contract it needs');
+  assert(tad05.tadEvaluateMicrostructure([{ requestId: 'footprint', offered: { kind: 'tick-tape', hasTickVolumeAtPrice: true, hasBidAskOrAggressor: true } }])[0].eligible === true,
+    'A genuine tick feed with aggressor classification does satisfy the footprint contract');
+
+  // SCN-007-024: daily-only stays useful while tactical evidence remains unavailable.
+  const tad05Daily = tad05Admit('daily-only');
+  assert(tad05Daily.length === 2 && tad05Daily.every((entry) => entry.admitted),
+    'A daily-only situation still admits its daily owner reads');
+  assert(!tad05Daily.some((entry) => entry.capabilityVersion === 'intraday-auction/v1'),
+    'No tactical owner is admitted when none published');
+  assert(tad05Daily.some((entry) => entry.capabilityVersion === 'swing-structure/v1' && entry.truthState === 'current'),
+    'Daily structure remains current and usable without any intraday evidence');
+
+  // Feature 006 adapter: accept only an exactly matching tdc-tool-read/v1.
+  const tad05F6Expected = Object.assign({ selectedSourceId: 'analytic-daily' }, tad05Expected);
+  assert(tad05.tadAdaptFeatureSixRead(tad05Fixture.featureSixReads.compatible, tad05F6Expected).admitted === true,
+    'A matching Feature 006 read is admitted');
+  assert(tad05.tadAdaptFeatureSixRead(tad05Fixture.featureSixReads.wrongSymbol, tad05F6Expected).code === 'TAD-F006-SYMBOL',
+    'A Feature 006 read for another symbol is refused');
+  assert(tad05.tadAdaptFeatureSixRead(tad05Fixture.featureSixReads.wrongContract, tad05F6Expected).code === 'TAD-F006-CONTRACT',
+    'A Feature 006 read carrying the wrong contract version is refused');
+  assert(tad05.tadAdaptFeatureSixRead(null, tad05F6Expected).code === 'TAD-F006-ABSENT',
+    'An absent Feature 006 read is explicit unavailable evidence rather than a default');
+  assert(tad05.tadAdaptFeatureSixRead({ ...tad05Fixture.featureSixReads.compatible, decisionCutoff: '2026-07-15T21:30:00.000Z' }, tad05F6Expected).code === 'TAD-F006-CUTOFF',
+    'A Feature 006 read published after the decision cutoff is refused');
+
+  // Strategy Validation stays read-only in this scope: it must not gain a nested passport.
+  const tad05Validation = read('strategy-validation-lab.html');
+  assert(tad05Validation.indexOf('rl-ta-owner-read/v1') < 0 && tad05Validation.indexOf('Feature 007 owner read') < 0,
+    'Strategy Validation remains read-only and gains no nested Feature 007 passport');
+  /* ---------- Scope 06: comparison and optional evidence ---------- */
+  const tad06Names = ['tadComparisonRefusal', 'tadBuildComparisonSet', 'tadEvaluateComparisonRole', 'tadBuildComparisonEvidence'];
+  assert(tad06Names.every((name) => (tadSource.match(new RegExp('function\\s+' + name + '\\s*\\(', 'g')) || []).length === 1),
+    'All 4 Scope 06 comparison declarations exist exactly once in the page');
+  const tad06 = build(
+    [tadSource.match(/var TAD_COMPARISON_ROLES = [\s\S]*?;\n/)[0]]
+      .concat(tadNames.concat(tad02Names, ['tadIdentity'], tad06Names).map((name) => extractFn(tadSource, name))),
+    tadNames.concat(tad02Names, ['tadIdentity'], tad06Names).concat(['TAD_COMPARISON_ROLES'])
+  );
+  const tad06Policy = tadConfig.comparisonPolicies[0];
+  assert(tad06Policy.contractVersion === 'tad-comparison-policy/v1' && tad06Policy.minimumPeerDenominator === 3
+    && tad06Policy.replacementPolicy === 'never-automatic',
+    'The committed comparison policy declares its contract, minimum peer denominator, and never-automatic replacement');
+
+  // Deterministic daily closes. The subject rises 20%; comparators are built to lead or lag it.
+  const tad06Days = 40;
+  const tad06Series = (id, start, endValue) => ({
+    id, adjustmentPolicyId: 'total-return', sessionContractId: 'daily-close', currencyId: 'USD', sourceVintageId: 'vintage-' + id,
+    rows: Array.from({ length: tad06Days }, (_, i) => ({
+      closedAt: new Date(Date.UTC(2026, 0, 5 + i)).toISOString(),
+      c: start + (endValue - start) * (i / (tad06Days - 1))
+    }))
+  });
+  const tad06Subject = tad06Series('SUBJ', 100, 120);              // +20%
+  const tad06By = {
+    MKT: tad06Series('MKT', 100, 130),                             // +30% -> subject lags
+    SEC: tad06Series('SEC', 100, 128),                             // +28% -> subject lags
+    P1: tad06Series('P1', 100, 126), P2: tad06Series('P2', 100, 124), P3: tad06Series('P3', 100, 122),
+    CTX: tad06Series('CTX', 100, 110)                              // +10% -> subject leads
+  };
+  const tad06Member = (role, symbol) => ({ role, symbol, rationale: 'declared ' + role, classificationSource: 'test-classification', classificationAsOf: '2026-01-02' });
+  const tad06Request = {
+    decisionVintage: '2026-02-13T21:00:00.000Z',
+    roles: [tad06Member('broad-market', 'MKT'), tad06Member('sector-industry', 'SEC'),
+      tad06Member('direct-peer', 'P1'), tad06Member('direct-peer', 'P2'), tad06Member('direct-peer', 'P3'),
+      tad06Member('optional-context', 'CTX')]
+  };
+  const tad06Set = tad06.tadBuildComparisonSet(tad06Request, tad06Policy);
+  assert(tad06Set.ok && /^tad-comparison:[a-f0-9]{64}$/.test(tad06Set.comparisonSet.comparisonSetId)
+    && /^tad-comparison-membership:[a-f0-9]{64}$/.test(tad06Set.comparisonSet.membershipDigest),
+    'A complete comparison request builds a content-addressed comparison set and membership digest');
+  assert(tad06Set.comparisonSet.minimumPeerDenominator === 3 && tad06Set.comparisonSet.replacementPolicy === 'never-automatic',
+    'The comparison set inherits the policy denominator and never-automatic replacement rule');
+
+  // Rationale and classification provenance are required, not decorative.
+  ['rationale', 'classificationSource', 'classificationAsOf'].forEach((key) => {
+    const partial = JSON.parse(JSON.stringify(tad06Request));
+    delete partial.roles[0][key];
+    assert(tad06.tadBuildComparisonSet(partial, tad06Policy).ok === false,
+      'A comparison member missing ' + key + ' is refused');
+  });
+  assert(tad06.tadBuildComparisonSet({ ...tad06Request, roles: [tad06Member('rival', 'X')] }, tad06Policy).errors[0].code === 'TAD-COMPARISON-ROLE',
+    'An unregistered comparison role is refused');
+  assert(tad06.tadBuildComparisonSet({ ...tad06Request, decisionVintage: 'soon' }, tad06Policy).errors[0].code === 'TAD-COMPARISON-VINTAGE',
+    'A comparison set without a real decision vintage is refused');
+  assert(tad06.tadBuildComparisonSet(tad06Request, { ...tad06Policy, contractVersion: 'tad-comparison-policy/v2' }).errors[0].code === 'TAD-COMPARISON-POLICY',
+    'An unsupported comparison policy contract is refused');
+  assert(tad06.tadBuildComparisonSet({ ...tad06Request, normalizationId: 'raw-price' }, tad06Policy).errors[0].code === 'TAD-COMPARISON-NORMALIZATION',
+    'Raw-price similarity is refused as a comparison normalization');
+
+  // SCN-007-014: market, sector, and peer outcomes stay separate and expose relative weakness.
+  const tad06Evidence = tad06.tadBuildComparisonEvidence(tad06Set.comparisonSet, tad06Subject, tad06By);
+  assert(tad06Evidence.ok && tad06Evidence.results.length === 4
+    && tad06Evidence.results.map((r) => r.role).join(',') === 'broad-market,sector-industry,direct-peer,optional-context',
+    'All four comparison roles are reported separately and in declared order');
+  const tad06Role = (role) => tad06Evidence.results.filter((r) => r.role === role)[0];
+  assert(tad06Role('broad-market').state === 'relative-weakness' && tad06Role('sector-industry').state === 'relative-weakness'
+    && tad06Role('direct-peer').state === 'relative-weakness',
+    'A subject lagging every eligible comparator reports relative weakness in each role');
+  assert(tad06Role('optional-context').state === 'confirms-strength',
+    'A role the subject leads is reported on its own terms rather than absorbed into the others');
+  assert(tad06Evidence.contradictions.length === 3 && tad06Evidence.contradictions.every((c) => c.kind === 'relative-weakness'),
+    'Relative weakness is surfaced as a contradiction rather than blended away');
+  // No role may be silently substituted for another.
+  assert(tad06Role('broad-market').symbolIds.join(',') === 'MKT' && tad06Role('sector-industry').symbolIds.join(',') === 'SEC'
+    && tad06Role('direct-peer').symbolIds.join(',') === 'P1,P2,P3',
+    'Each role reports only its own declared members, so one role never stands in for another');
+  // The Dow industrial/transport rule is not generalized to arbitrary symbols.
+  assert(tad06Evidence.dowEquivalenceClaimed === false, 'No Dow industrial/transport equivalence is claimed for modern roles');
+  const tad06Claim = tadConfig.claimLedger.filter((entry) => /Dow/.test(entry.limitation || ''))[0];
+  assert(tad06Claim && /separate market sector and peer evidence/.test(tad06Claim.allowedTreatment),
+    'The claim ledger records that modern roles are not identical to the Dow averages');
+
+  // Denominator rule: a percentile needs the declared minimum; ratios survive below it.
+  assert(tad06Role('direct-peer').denominator === 3 && tad06Role('direct-peer').percentileState === 'available'
+    && tad06Role('direct-peer').percentile === 0,
+    'Three eligible peers meet the minimum denominator and produce a percentile');
+  const tad06TwoPeers = tad06.tadBuildComparisonSet({ ...tad06Request, roles: tad06Request.roles.filter((m) => m.symbol !== 'P3') }, tad06Policy);
+  const tad06Thin = tad06.tadBuildComparisonEvidence(tad06TwoPeers.comparisonSet, tad06Subject, tad06By);
+  const tad06ThinPeer = tad06Thin.results.filter((r) => r.role === 'direct-peer')[0];
+  assert(tad06ThinPeer.denominator === 2 && tad06ThinPeer.percentile === null && tad06ThinPeer.percentileState === 'denominator-below-minimum',
+    'Below the minimum denominator no peer percentile is published');
+  assert(tad06ThinPeer.evaluations.length === 2 && tad06ThinPeer.evaluations.every((e) => Number.isFinite(e.ratio)),
+    'Named pairwise ratios remain available when the percentile is withheld');
+
+  // An incompatible comparator is excluded with a named reason and never auto-replaced.
+  const tad06Incompatible = { ...tad06By, P2: { ...tad06By.P2, adjustmentPolicyId: 'price-only' }, P3: { ...tad06By.P3, currencyId: 'EUR' } };
+  const tad06Excluded = tad06.tadBuildComparisonEvidence(tad06Set.comparisonSet, tad06Subject, tad06Incompatible);
+  const tad06ExcludedPeer = tad06Excluded.results.filter((r) => r.role === 'direct-peer')[0];
+  assert(tad06ExcludedPeer.excluded.map((e) => e.reason).sort().join(',') === 'incompatible-adjustment,incompatible-currency',
+    'Incompatible comparators are excluded with their exact reason');
+  assert(tad06ExcludedPeer.eligibleIds.join(',') === 'P1' && tad06ExcludedPeer.symbolIds.join(',') === 'P1,P2,P3',
+    'The requested membership is preserved while only eligible comparators contribute');
+  assert(tad06ExcludedPeer.percentileState === 'denominator-below-minimum' && tad06ExcludedPeer.percentile === null,
+    'Excluding comparators lowers the denominator rather than substituting replacements');
+  const tad06Missing = tad06.tadBuildComparisonEvidence(tad06Set.comparisonSet, tad06Subject, { MKT: tad06By.MKT });
+  assert(tad06Missing.results.filter((r) => r.role === 'direct-peer')[0].state === 'unavailable',
+    'A role with no eligible comparator is unavailable rather than defaulted');
+
+  // SCN-007-028: any behaviour-bearing membership change creates a new identity.
+  const tad06Baseline = tad06Set.comparisonSet.comparisonSetId;
+  const tad06Variants = {
+    'added member': { ...tad06Request, roles: tad06Request.roles.concat([tad06Member('direct-peer', 'P4')]) },
+    'removed member': { ...tad06Request, roles: tad06Request.roles.filter((m) => m.symbol !== 'P3') },
+    'reclassified member': { ...tad06Request, roles: tad06Request.roles.map((m) => (m.symbol === 'P3' ? { ...m, role: 'optional-context' } : m)) },
+    'changed classification as-of': { ...tad06Request, roles: tad06Request.roles.map((m) => (m.symbol === 'P3' ? { ...m, classificationAsOf: '2026-02-01' } : m)) },
+    'changed rationale': { ...tad06Request, roles: tad06Request.roles.map((m) => (m.symbol === 'P3' ? { ...m, rationale: 'different reason' } : m)) },
+    'changed decision vintage': { ...tad06Request, decisionVintage: '2026-02-14T21:00:00.000Z' }
+  };
+  Object.keys(tad06Variants).forEach((label) => {
+    const built = tad06.tadBuildComparisonSet(tad06Variants[label], tad06Policy);
+    assert(built.ok && built.comparisonSet.comparisonSetId !== tad06Baseline,
+      'A ' + label + ' creates a distinct comparison identity');
+  });
+  assert(tad06.tadBuildComparisonSet(tad06Request, { ...tad06Policy, minimumPeerDenominator: 4 }).comparisonSet.comparisonSetId !== tad06Baseline,
+    'A changed denominator policy creates a distinct comparison identity');
+  // Rebuilding the same request reproduces the same identity, so a passport stays attached.
+  assert(tad06.tadBuildComparisonSet(JSON.parse(JSON.stringify(tad06Request)), tad06Policy).comparisonSet.comparisonSetId === tad06Baseline,
+    'An unchanged comparison request reproduces its identity so a prior passport stays attached');
+  assert(tad06.tadBuildComparisonSet({ ...tad06Request, roles: tad06Request.roles.slice().reverse() }, tad06Policy).comparisonSet.comparisonSetId !== tad06Baseline,
+    'Declared membership order is part of the frozen identity rather than silently normalized');
+  /* ---------- Scope 07: validation risk and process ---------- */
+  const tad07Names = ['tadValidationRefusal', 'tadBuildPurgedEvaluation', 'tadSimulateSetupVariant', 'tadApplyCosts',
+    'tadSummarizeValidation', 'tadBuildValidationPassport', 'tadAuditExpectancy', 'tadLossStreakScenario', 'tadEvaluateBehaviorGuard'];
+  const tad07Owned = ['tadBuildPurgedEvaluation', 'tadSimulateSetupVariant', 'tadApplyCosts', 'tadSummarizeValidation',
+    'tadBuildValidationPassport', 'tadAuditExpectancy', 'tadLossStreakScenario', 'tadEvaluateBehaviorGuard'];
+  assert(tad07Owned.length === 8 && tad07Names.every((name) => (tadSource.match(new RegExp('function\\s+' + name + '\\s*\\(', 'g')) || []).length === 1),
+    'All 8 Scope 07 declarations plus their refusal helper exist exactly once in the page');
+  globalThis.__TAD_RLVALID__ = validationApi;
+  const tad07 = build(
+    [tadSource.match(/var TAD_COST_COMPONENTS = [\s\S]*?;\n/)[0], tadSource.match(/var TAD_VALIDATION_STATUSES = [\s\S]*?;\n/)[0], tadSource.match(/var TAD_PROCESS_STATES = [\s\S]*?;\n/)[0]]
+      .concat(tadNames.concat(['tadIdentity', 'tadIsFinite'], tad07Names).map((name) => extractFn(tadSource, name))),
+    tadNames.concat(['tadIdentity', 'tadIsFinite'], tad07Names).concat(['TAD_COST_COMPONENTS', 'TAD_VALIDATION_STATUSES', 'TAD_PROCESS_STATES']),
+    'var RLVALID = globalThis.__TAD_RLVALID__;\n'
+  );
+  const tad07Policy = tadConfig.validationPolicies[0], tad07Schema = tadConfig.costPolicySchema;
+  assert(tad07Policy.contractVersion === 'tad-validation-policy/v1' && tad07Policy.selectionEvaluation === 'separate'
+    && tad07Policy.asOfPolicy === 'available-at-or-before-decision' && tad07Policy.trialPolicy === 'every-behavior-bearing-attempt-counts',
+    'The committed validation policy separates selection from evaluation, is as-of safe, and counts every attempt');
+  assert(JSON.stringify(tad07Policy.statusVocabulary) === JSON.stringify(['supported', 'fragile', 'descriptive-only', 'insufficient', 'rejected', 'unavailable']),
+    'The validation status vocabulary is closed and ordered');
+
+  // SCN-007-019: the exact arithmetic the scenario names. p=.71 W=6R L=1.8R -> E=3.738R, N=50 -> 186.9R.
+  const tad07Audit = tad07.tadAuditExpectancy({ winRate: 0.71, averageWinR: 6, averageLossR: 1.8, tradeCount: 50, claimedTotalR: -50 });
+  assert(tad07Audit.ok && Math.abs(tad07Audit.audit.expectancyR - 3.738) < 1e-9,
+    'Expectancy for a 71 percent win rate with 6R winners and 1.8R losers is 3.738R');
+  assert(Math.abs(tad07Audit.audit.grossTotalR - 186.9) < 1e-9,
+    'Fifty trades at 3.738R expectancy total 186.9R gross under equal risk');
+  assert(Math.abs(tad07Audit.audit.breakevenWinRate - 1.8 / 7.8) < 1e-12,
+    'Breakeven win rate reflects the configured payoff rather than a fixed constant');
+  assert(tad07Audit.audit.consistent === false,
+    'A claimed negative fifty-trade total is flagged as inconsistent with the stated inputs');
+  // The audit names what could reconcile it rather than accusing the user of lying.
+  assert(tad07Audit.audit.reconciliationInputs.length === 4
+    && tad07Audit.audit.reconciliationInputs.some((entry) => /position size/.test(entry))
+    && tad07Audit.audit.reconciliationInputs.some((entry) => /partial exits|scaling/.test(entry))
+    && tad07Audit.audit.reconciliationInputs.some((entry) => /cost sequence/.test(entry))
+    && tad07Audit.audit.reconciliationInputs.some((entry) => /transcription/.test(entry)),
+    'An inconsistent transcript names sizing, sequencing, costs, and transcription as reconciliation inputs');
+  assert(tad07.tadAuditExpectancy({ winRate: 0.71, averageWinR: 6, averageLossR: 1.8, tradeCount: 50, claimedTotalR: 186.9 }).audit.consistent === true,
+    'A claimed total matching the computed total reconciles');
+  assert(/not an edge/.test(tad07.tadAuditExpectancy({ winRate: 0.6, averageWinR: 2, averageLossR: 1, tradeCount: 10 }).audit.action),
+    'Gross expectancy arithmetic is explicitly not called an edge');
+  assert(tad07.tadAuditExpectancy({ winRate: 1.4, averageWinR: 6, averageLossR: 1.8, tradeCount: 50 }).ok === false,
+    'An impossible win rate is refused rather than computed');
+
+  // As-of safety: an observation after the decision cutoff cannot inform that decision.
+  // 120 bars with a cutoff at index 99 leaves 100 eligible, which is enough history for the
+  // committed 5-bar purge and 5-bar embargo to still leave a non-empty test window per fold.
+  const tad07Bars = Array.from({ length: 120 }, (_, i) => ({
+    closedAt: new Date(Date.UTC(2026, 0, 5 + i)).toISOString(),
+    c: 100 + (i % 7) - (i % 3) + i * 0.4,
+    triggered: i % 6 === 0
+  }));
+  const tad07Eval = tad07.tadBuildPurgedEvaluation({ observations: tad07Bars, decisionCutoff: tad07Bars[99].closedAt, foldCount: 3, trainRatio: 0.7 }, tad07Policy);
+  assert(tad07Eval.ok && tad07Eval.evaluation.eligibleCount === 100 && tad07Eval.evaluation.excludedAsOfCount === 20,
+    'Observations after the decision cutoff are excluded rather than leaking into evaluation');
+  assert(tad07Eval.evaluation.purgeBars === tad07Policy.purgeBars && tad07Eval.evaluation.embargoBars === tad07Policy.embargoBars
+    && tad07Eval.evaluation.folds.length === 3,
+    'Purged folds carry the committed purge and embargo bars from the policy');
+  assert(tad07Eval.evaluation.folds.every((fold) => fold.testStart >= fold.trainEnd),
+    'Every fold keeps its test window at or after its purged training window');
+  assert(tad07.tadBuildPurgedEvaluation({ observations: tad07Bars, decisionCutoff: '2020-01-01T00:00:00.000Z' }, tad07Policy).errors[0].code === 'TAD-VALIDATION-ASOF',
+    'A cutoff before all history refuses rather than silently evaluating on nothing');
+  // Purge and embargo can consume a short fold entirely. That must REFUSE, because an empty test
+  // window would otherwise report a clean evaluation that tested nothing at all.
+  const tad07Overconstrained = tad07.tadBuildPurgedEvaluation({ observations: tad07Bars.slice(0, 52), decisionCutoff: tad07Bars[49].closedAt, foldCount: 3, trainRatio: 0.7 }, tad07Policy);
+  assert(tad07Overconstrained.ok === false && tad07Overconstrained.errors[0].code === 'TAD-VALIDATION-FOLDS',
+    'A purge and embargo that consume the whole test window refuses instead of evaluating on nothing');
+
+  // Simulation records unresolved paths instead of dropping them.
+  const tad07Semantics = { triggerRule: 'closed-reclaim', invalidationRule: 2, targetRule: 4, expiryBars: 8, sessionContractId: 'daily-close' };
+  const tad07Sim = tad07.tadSimulateSetupVariant({ variantId: 'variant-a' }, tad07Bars, tad07Semantics);
+  assert(tad07Sim.ok && tad07Sim.signalCount === tad07Bars.filter((row) => row.triggered).length,
+    'Every triggered observation produces exactly one simulated event');
+  assert(tad07Sim.events.every((event) => ['win', 'loss', 'unresolved'].indexOf(event.outcome) >= 0),
+    'Each simulated event carries a closed outcome vocabulary');
+  assert(tad07Sim.unresolvedCount === tad07Sim.events.filter((e) => e.outcome === 'unresolved').length,
+    'Unresolved terminal paths are counted rather than dropped from the population');
+  assert(tad07.tadSimulateSetupVariant({ variantId: 'v' }, tad07Bars, { triggerRule: 'x', invalidationRule: 2, targetRule: 4, expiryBars: 8 }).errors[0].code === 'TAD-SIMULATION-SEMANTICS',
+    'Simulation refuses when any required semantic is undeclared');
+
+  // A missing cost component makes NET unavailable; it is never treated as zero.
+  const tad07FullCosts = {
+    costPolicyId: 'explicit-round-trip-costs-v1', riskUnitPrice: 200, notionalPerRiskUnit: 10,
+    components: { commissionPerOrder: 1, regulatoryFees: 0.1, halfSpreadBps: 2, entrySlippageBps: 1, exitSlippageBps: 1, gapModel: 'next-open', borrowBps: 0, financingBps: 0, sizingSemantics: 'fixed-risk' }
+  };
+  const tad07Costed = tad07.tadApplyCosts(tad07Sim.events, tad07FullCosts, tad07Schema);
+  assert(tad07Costed.ok && tad07Costed.netAvailable === true && tad07Costed.perEventCostR > 0,
+    'A complete cost policy produces a positive per-event cost and enables net metrics');
+  assert(tad07Costed.events.every((event, i) => Math.abs(event.netR - (tad07Sim.events[i].grossR - tad07Costed.perEventCostR)) < 1e-12),
+    'Net outcome is gross minus the applied cost for every event');
+  tad07.TAD_COST_COMPONENTS.forEach((component) => {
+    const partial = { ...tad07FullCosts, components: { ...tad07FullCosts.components } };
+    delete partial.components[component];
+    const result = tad07.tadApplyCosts(tad07Sim.events, partial, tad07Schema);
+    assert(result.netAvailable === false && result.missingComponents.indexOf(component) >= 0
+      && result.events.every((event) => event.netR === null),
+      'A cost policy missing ' + component + ' makes net metrics unavailable rather than assuming zero');
+  });
+  // An explicit zero is a stated observation and must NOT be treated as missing.
+  const tad07Zeroed = tad07.tadApplyCosts(tad07Sim.events, { ...tad07FullCosts, components: { ...tad07FullCosts.components, borrowBps: 0, financingBps: 0 } }, tad07Schema);
+  assert(tad07Zeroed.netAvailable === true, 'An explicitly stated zero cost component is an observation, not an omission');
+  assert(tad07.tadApplyCosts(tad07Sim.events, { ...tad07FullCosts, applicableComponents: ['inventedCost'] }, tad07Schema).errors[0].code === 'TAD-COST-COMPONENT',
+    'An unregistered cost component is refused');
+
+  // SCN-007-018: gross and net are both reported and never conflated.
+  const tad07Summary = tad07.tadSummarizeValidation(tad07Sim, tad07Costed, tad07Policy);
+  assert(tad07Summary.ok && Number.isFinite(tad07Summary.summary.grossExpectancy) && Number.isFinite(tad07Summary.summary.netExpectancy),
+    'A complete cost policy yields both gross and net expectancy');
+  assert(tad07Summary.summary.netExpectancy < tad07Summary.summary.grossExpectancy,
+    'Applying real costs lowers net expectancy below gross');
+  assert(Math.abs(tad07Summary.summary.netExpectancy - (tad07Summary.summary.grossExpectancy - tad07Costed.perEventCostR)) < 1e-12,
+    'Net expectancy is gross expectancy less the per-event cost, reproducibly');
+  const tad07NoCost = tad07.tadApplyCosts(tad07Sim.events, { ...tad07FullCosts, components: { ...tad07FullCosts.components, halfSpreadBps: null } }, tad07Schema);
+  const tad07GrossOnly = tad07.tadSummarizeValidation(tad07Sim, tad07NoCost, tad07Policy);
+  assert(tad07GrossOnly.summary.netExpectancy === null && tad07GrossOnly.summary.netAvailable === false
+    && Number.isFinite(tad07GrossOnly.summary.grossExpectancy),
+    'Gross survives without a complete cost policy while net stays unavailable rather than borrowing gross');
+  assert(tad07Summary.summary.breakevenWinRate === null || (tad07Summary.summary.breakevenWinRate > 0 && tad07Summary.summary.breakevenWinRate < 1),
+    'Breakeven win rate is a probability derived from the observed payoff distribution');
+  assert(Number.isFinite(tad07Summary.summary.wilsonLower) && Number.isFinite(tad07Summary.summary.wilsonUpper)
+    && tad07Summary.summary.wilsonLower < tad07Summary.summary.wilsonUpper,
+    'The summary reports a Wilson interval rather than a bare win rate');
+  assert(tad07Summary.summary.unresolved === tad07Sim.unresolvedCount && tad07Summary.summary.drawdown <= 0,
+    'The summary preserves unresolved count and reports a non-positive drawdown');
+  assert(tad07Policy.requiredOutcomes.every((outcome) => JSON.stringify(tad07Summary.summary).length > 0 && tad07Summary.summary.requiredOutcomes.indexOf(outcome) >= 0),
+    'The summary carries the committed required-outcome list');
+
+  // SCN-007-020: a changed parameter is a different variant and loses inherited proof.
+  const tad07PassportRequest = {
+    summary: tad07Summary.summary, evaluation: tad07Eval.evaluation,
+    variantId: 'variant-a', populationId: 'population-1', sourceVintagePolicyId: 'vintage-1',
+    costPolicyId: 'explicit-round-trip-costs-v1', comparisonSetId: 'comparison-1', horizonBars: 8, trialCount: 4, adjustedPValue: 0.01, minimumSignals: 5
+  };
+  const tad07Passport = tad07.tadBuildValidationPassport(tad07PassportRequest);
+  assert(tad07Passport.ok && /^tad-passport:[a-f0-9]{64}$/.test(tad07Passport.passport.passportId),
+    'A validation passport is content-addressed over its exact evaluated identity');
+  assert(tad07.TAD_VALIDATION_STATUSES.indexOf(tad07Passport.passport.status) >= 0,
+    'The passport status comes from the committed status vocabulary');
+  [['variantId', 'variant-b'], ['populationId', 'population-2'], ['sourceVintagePolicyId', 'vintage-2'],
+    ['costPolicyId', 'other-costs'], ['comparisonSetId', 'comparison-2'], ['horizonBars', 12], ['trialCount', 9]].forEach(([key, value]) => {
+    assert(tad07.tadBuildValidationPassport({ ...tad07PassportRequest, [key]: value }).passport.passportId !== tad07Passport.passport.passportId,
+      'A changed ' + key + ' produces a different passport identity so prior proof is not inherited');
+  });
+  assert(tad07.tadBuildValidationPassport(JSON.parse(JSON.stringify(tad07PassportRequest))).passport.passportId === tad07Passport.passport.passportId,
+    'An unchanged evaluated identity reproduces its passport identity');
+  // Without complete costs the passport can only be descriptive, never supported.
+  assert(tad07.tadBuildValidationPassport({ ...tad07PassportRequest, summary: tad07GrossOnly.summary }).passport.status === 'descriptive-only',
+    'A variant without complete costs is descriptive-only rather than supported');
+  assert(tad07.tadBuildValidationPassport({ ...tad07PassportRequest, adjustedPValue: 0.4 }).passport.status === 'rejected',
+    'A multiplicity-adjusted p-value above the threshold rejects rather than supports');
+  assert(tad07.tadBuildValidationPassport({ ...tad07PassportRequest, minimumSignals: 10000 }).passport.status === 'fragile',
+    'Too few signals for the declared minimum is fragile rather than supported');
+
+  // Multiplicity: every behaviour-bearing attempt counts, including rejected runs.
+  const tad07Raw = [0.004, 0.02, 0.03, 0.2];
+  const tad07Bh = validationApi.rlvAdjustBenjaminiHochberg(tad07Raw), tad07Holm = validationApi.rlvAdjustHolm(tad07Raw);
+  assert(tad07Bh.ok && tad07Holm.ok && tad07Bh.adjusted.every((value, i) => value >= tad07Raw[i]) && tad07Holm.adjusted.every((value, i) => value >= tad07Raw[i]),
+    'Both multiplicity adjustments raise every raw p-value, so more trials never look more significant');
+  assert(tad07Holm.adjusted[0] >= tad07Bh.adjusted[0],
+    'Holm activation control is at least as strict as Benjamini-Hochberg discovery control');
+  assert(tad07Policy.multiplicityMethods.join(',') === 'benjamini-hochberg,holm,deflated-sharpe',
+    'The committed policy declares all three multiplicity controls');
+
+  // Loss streaks compound, and they are scenarios rather than forecasts.
+  const tad07Streak = tad07.tadLossStreakScenario(0.01, [1, 5, 10, 20]);
+  assert(tad07Streak.ok && Math.abs(tad07Streak.scenarios[2].remainingFraction - Math.pow(0.99, 10)) < 1e-12,
+    'A ten-loss streak at one percent risk compounds to 0.99^10 rather than a linear ten percent');
+  assert(tad07Streak.scenarios[2].drawdownFraction > 0.0956 && tad07Streak.scenarios[2].drawdownFraction < 0.0957,
+    'Ten one-percent losses draw down about 9.56 percent, not 10 percent');
+  assert(tad07Streak.scenarios.every((entry) => entry.recoveryGainRequired > entry.drawdownFraction),
+    'Recovering a drawdown always requires a larger gain than the drawdown itself');
+  assert(tad07Streak.basis === 'hypothetical-risk-unit' && tad07Streak.limitations.some((entry) => /not a forecast/.test(entry)),
+    'Loss-streak output is a hypothetical scenario and says so');
+  assert(tad07.tadLossStreakScenario(1.5, [5]).ok === false, 'An impossible risk fraction is refused');
+
+  // SCN-007-021: the guard blocks on observable plan deviation and diagnoses no emotion.
+  const tad07Plan = { entry: 100, invalidation: 98, target: 106 };
+  const tad07Guard = tad07.tadEvaluateBehaviorGuard(tad07Plan, { entry: 104, contradictionsAcknowledged: true }, { chaseDistanceR: 1, maximumUnvalidatedVariants: 3 });
+  assert(tad07Guard.ok && tad07Guard.state === 'blocked' && tad07Guard.findings[0].code === 'CHASE',
+    'An entry beyond the configured chase distance blocks the frozen plan');
+  assert(Math.abs(tad07Guard.findings[0].changedInvalidationDistance - 6) < 1e-12
+    && Math.abs(tad07Guard.findings[0].changedRewardToRisk - (106 - 104) / 6) < 1e-12,
+    'The chase finding explains the changed reward-to-risk and invalidation distance');
+  assert(tad07Guard.inferredEmotion === null && tad07Guard.inferredIntent === null && tad07Guard.suitabilityAssessed === false
+    && tad07Guard.basis === 'observable-plan-deviation-only',
+    'The process guard infers no emotion, intent, or suitability');
+  const tad07GuardText = JSON.stringify(tad07Guard);
+  assert(!/\b(fear|greed|panic|emotional|discipline problem|revenge)\b/i.test(tad07GuardText),
+    'No emotional diagnosis appears anywhere in the process guard output');
+  assert(tad07.tadEvaluateBehaviorGuard(tad07Plan, { entry: 101, contradictionsAcknowledged: true }, { chaseDistanceR: 1, maximumUnvalidatedVariants: 3 }).state === 'clear',
+    'An entry inside the configured chase distance is clear');
+  assert(tad07.tadEvaluateBehaviorGuard(tad07Plan, { entry: 100, contradictionsAcknowledged: false }, { chaseDistanceR: 1, maximumUnvalidatedVariants: 3 }).state === 'caution',
+    'An unacknowledged contradiction is caution rather than a block');
+  assert(tad07.tadEvaluateBehaviorGuard(tad07Plan, { entry: 100, contradictionsAcknowledged: true, changedPrecommitmentFields: ['target'] }, { chaseDistanceR: 1, maximumUnvalidatedVariants: 3 }).findings[0].code === 'CHANGED-PRECOMMITMENT',
+    'Editing a precommitted field is reported as a changed precommitment');
+  assert(tad07.TAD_PROCESS_STATES.indexOf(tad07Guard.state) >= 0, 'The process state comes from the closed process vocabulary');
+
+  // Deterministic work units: progress is monotonic, cancellation commits nothing, and the
+  // previously committed result survives a cancelled run byte-identical.
+  const tad07RunnerSource = tadSource.match(/var tadValidationRunner = [\s\S]*?\n {4}};\n/)[0];
+  const tad07Runner = Function('setTimeout', tad07RunnerSource + '\nreturn tadValidationRunner;')(
+    (fn) => fn()   // synchronous pump: the yield POINT is what matters, not real wall-clock delay
+  );
+  const tad07Progress = [];
+  const tad07FirstRun = await tad07Runner.start([() => 'a', () => 'b', () => 'c'], { onProgress: (p) => tad07Progress.push(p), now: '2026-02-13T21:00:00.000Z' });
+  assert(tad07FirstRun.cancelled === false && tad07FirstRun.progress === 1 && tad07FirstRun.committed.results.join(',') === 'a,b,c',
+    'A completed validation run commits every work unit in order');
+  assert(tad07Progress.length === 3 && tad07Progress.every((value, i) => i === 0 || value > tad07Progress[i - 1]),
+    'Work-unit progress is monotonic and reported once per unit');
+  const tad07CommittedBefore = JSON.stringify(tad07Runner.committed);
+  const tad07Cancelled = await tad07Runner.start([() => 'x', () => { tad07Runner.cancel(); return 'y'; }, () => 'z'], {});
+  assert(tad07Cancelled.cancelled === true && tad07Cancelled.progress < 1,
+    'A cancelled run reports cancellation and incomplete progress');
+  assert(JSON.stringify(tad07Runner.committed) === tad07CommittedBefore,
+    'A cancelled run commits nothing and leaves the prior complete result byte-identical');
+  assert(tad07Runner.committed.results.indexOf('x') < 0 && tad07Runner.committed.results.indexOf('z') < 0,
+    'No partial work unit from a cancelled run leaks into the committed result');
+  // Latest-run identity: a superseded run cannot overwrite a newer one.
+  assert(tad07Runner.lastCancelledRunId !== null && tad07Runner.lastCancelledRunId !== tad07FirstRun.runId,
+    'Each run carries its own identity so a stale run is recognisable as superseded');
+  const tad07SecondRun = await tad07Runner.start([() => 'p', () => 'q'], {});
+  assert(tad07SecondRun.cancelled === false && tad07SecondRun.runId !== tad07FirstRun.runId
+    && tad07Runner.committed.results.join(',') === 'p,q',
+    'A later complete run replaces the committed result atomically with its own identity');
+  assert(/setTimeout\(function \(\) \{ step\(index \+ 1\); \}, 0\)/.test(tad07RunnerSource),
+    'Work units yield to the event loop between units rather than blocking the page');
+  /* ---------- Scope 08: experience publication and registration ---------- */
+  const tad08Names = ['tadExperienceRefusal', 'tadBuildViewModel', 'tadBuildToolDecisionRead', 'tadBuildExport'];
+  assert(tad08Names.every((name) => (tadSource.match(new RegExp('function\\s+' + name + '\\s*\\(', 'g')) || []).length === 1),
+    'All 3 Scope 08 declarations plus their refusal helper exist exactly once in the page');
+  const tad08 = build(
+    [tadSource.match(/var TAD_SENSITIVE_KEYS = [\s\S]*?;\n/)[0]]
+      .concat(tadNames.concat(['tadIdentity', 'tadIsFinite'], tad08Names).map((name) => extractFn(tadSource, name))),
+    tadNames.concat(['tadIdentity', 'tadIsFinite'], tad08Names).concat(['TAD_SENSITIVE_KEYS'])
+  );
+
+  // All 65 exact design declarations exist in the page exactly once.
+  const tad08Design = [...read('specs/007-technical-analysis-decision-lab/design.md').matchAll(/\btad[A-Z][A-Za-z0-9]*/g)]
+    .map((match) => match[0]).filter((name, index, all) => all.indexOf(name) === index).sort();
+  assert(tad08Design.length === 65, 'design.md declares exactly 65 tad* symbols');
+  const tad08Missing = tad08Design.filter((name) => (tadSource.match(new RegExp('function\\s+' + name + '\\s*\\(', 'g')) || []).length !== 1);
+  assert(tad08Missing.length === 0, 'All 65 design-declared tad* symbols are implemented exactly once in the page');
+
+  // The page routes lookups through byId() and setText(), so the literal getElementById gate
+  // passes vacuously (refs=0). Resolve BOTH helpers against the document's declared ids instead.
+  const tad08Ids = new Set([...tadSource.matchAll(/\bid=["']([^"']+)["']/g)].map((match) => match[1]));
+  const tad08Refs = [...tadSource.matchAll(/\bbyId\(\s*["']([^"']+)["']\s*\)/g)].map((match) => match[1])
+    .concat([...tadSource.matchAll(/\bsetText\(\s*["']([^"']+)["']/g)].map((match) => match[1]));
+  const tad08BadRefs = [...new Set(tad08Refs.filter((id) => !tad08Ids.has(id)))];
+  assert(tad08Refs.length > 100 && tad08BadRefs.length === 0,
+    'Every byId and setText reference in the page resolves to a declared element id (' + tad08Refs.length + ' references)');
+
+  const tad08Read = {
+    readId: 'tad-read:' + 'f'.repeat(64), state: 'NO_EDGE', selectedCandidateId: null,
+    selectionBasis: 'no-candidate-cleared-every-mandatory-gate', nearestMissingCondition: 'location',
+    ranked: [{ candidateId: 'c-1', rank: 1, setupDefinitionId: 'balanced-breakout/v1' }]
+  };
+  const tad08Context = {
+    gates: [{ order: 1, gateId: 'primary', outcome: 'pass', diagnosticOnly: false, observed: 'aligned', required: 'aligned' },
+      { order: 3, gateId: 'location', outcome: 'fail', diagnosticOnly: false, observed: 'extended', required: 'in zone' }],
+    comparison: { comparisonSetId: 'tad-comparison:abc', results: [{ role: 'direct-peer', state: 'relative-weakness', denominator: 3, percentileState: 'available' }], contradictions: [{ role: 'direct-peer' }] },
+    passport: { passportId: 'tad-passport:def', status: 'descriptive-only', netAvailable: false },
+    process: { state: 'caution', findings: [{ code: 'CHANGED-PRECOMMITMENT' }] },
+    truthState: 'degraded', decisionCutoff: '2026-02-13T21:00:00.000Z', sourceSetId: 'analytic',
+    caveats: ['Analytic deterministic fixture.'], mode: 'simple'
+  };
+  const tad08Model = tad08.tadBuildViewModel(tad08Read, tad08Context);
+  assert(tad08Model.ok && tad08Model.viewModel.contractVersion === 'tad-view-model/v1'
+    && /^tad-view:[a-f0-9]{64}$/.test(tad08Model.viewModel.projectionIdentity),
+    'A resolved unified read builds a content-addressed view model');
+
+  // SCN-007-023: display state is EXCLUDED from the identity, so Simple and Power cannot disagree.
+  ['power', 'simple'].forEach((mode) => {
+    ['a', 'b'].forEach((sortKey) => {
+      [true, false].forEach((disclosureOpen) => {
+        const projected = tad08.tadBuildViewModel(tad08Read, { ...tad08Context, mode, sortKey, disclosureOpen, focusId: mode + sortKey });
+        assert(projected.viewModel.projectionIdentity === tad08Model.viewModel.projectionIdentity,
+          'Changing mode, sort, disclosure or focus never changes the projection identity');
+      });
+    });
+  });
+  assert(tad08.tadBuildViewModel(tad08Read, { ...tad08Context, truthState: 'current' }).viewModel.projectionIdentity !== tad08Model.viewModel.projectionIdentity,
+    'A changed truth state DOES change the projection identity, so the exclusion is scoped rather than blanket');
+  assert(tad08.tadBuildViewModel(tad08Read, { ...tad08Context, mode: 'power' }).viewModel.display.mode === 'power',
+    'The view model still records the current display mode for rendering');
+  // A view model carrying a callback could let one mode compute what the other never saw.
+  const tad08Flat = JSON.stringify(tad08Model.viewModel);
+  assert(tad08Flat.indexOf('function') < 0 && Object.keys(tad08Model.viewModel).every((key) => typeof tad08Model.viewModel[key] !== 'function'),
+    'The view model is presentation-safe and carries no calculation callback');
+  assert(tad08.tadBuildViewModel({}, tad08Context).errors[0].code === 'TAD-VIEWMODEL-INPUT',
+    'A view model refuses to build without a resolved unified read');
+
+  // Tool decision read: exact contract, truth carried through, incomplete never published.
+  const tad08Decision = tad08.tadBuildToolDecisionRead(tad08Model.viewModel, { asOf: '2026-02-13T21:00:00.000Z', fixtureId: 'gate-synthesis', complete: true });
+  assert(tad08Decision.ok && tad08Decision.toolRead.contractVersion === 'rl-tool-read/v1'
+    && tad08Decision.toolRead.metrics.decisionRead.contractVersion === 'tad-tool-decision-read/v1',
+    'The published read nests an exact tad-tool-decision-read/v1 inside rl-tool-read/v1');
+  assert(tad08Decision.toolRead.metrics.decisionRead.truthState === 'degraded'
+    && tad08Decision.toolRead.metrics.decisionRead.validationStatus === 'descriptive-only'
+    && tad08Decision.toolRead.metrics.decisionRead.processState === 'caution',
+    'Truth, validation and process states are carried through exactly and never upgraded');
+  assert(tad08Decision.toolRead.metrics.decisionRead.educationalOnly === true
+    && tad08Decision.toolRead.metrics.decisionRead.limitations.some((entry) => /not investment advice/.test(entry)),
+    'The published read carries the educational-only marker and its limitation');
+  assert(tad08Decision.toolRead.deepLink === 'technical-analysis-decision-lab.html?fixture=gate-synthesis',
+    'The deep link is a safe same-origin route with an encoded fixture id');
+  assert(tad08.tadBuildToolDecisionRead(tad08Model.viewModel, { asOf: '2026-02-13T21:00:00.000Z', complete: false }).errors[0].code === 'TAD-TOOLREAD-INCOMPLETE',
+    'An incomplete or cancelled run publishes nothing');
+  assert(tad08.tadBuildToolDecisionRead(tad08Model.viewModel, {}).errors[0].code === 'TAD-TOOLREAD-ASOF',
+    'A read without an as-of timestamp is refused');
+  // A non-finite metric is OMITTED, because a zero count and an unmeasured count read identically.
+  const tad08NoComparison = tad08.tadBuildViewModel(tad08Read, { ...tad08Context, comparison: null });
+  const tad08NoComparisonRead = tad08.tadBuildToolDecisionRead(tad08NoComparison.viewModel, { asOf: '2026-02-13T21:00:00.000Z', complete: true });
+  assert(!Object.prototype.hasOwnProperty.call(tad08NoComparisonRead.toolRead.metrics, 'contradictionCount')
+    && Object.prototype.hasOwnProperty.call(tad08Decision.toolRead.metrics, 'contradictionCount'),
+    'An unmeasured numeric metric is omitted rather than published as zero or null');
+
+  // SCN-007-023: the sanitized export omits sensitive state and says what it withheld.
+  const tad08Export = tad08.tadBuildExport(tad08Model.viewModel, {
+    sourceVintage: 'vintage-1', apiKey: 'SHOULD-NOT-APPEAR', credentials: { token: 'SHOULD-NOT-APPEAR' },
+    holdings: [{ symbol: 'X', costBasis: 1 }], account: { balance: 5 }, privateNotes: 'SHOULD-NOT-APPEAR',
+    nested: { authorization: 'SHOULD-NOT-APPEAR', keep: 'public' }
+  });
+  assert(tad08Export.ok && tad08Export.export.contractVersion === 'tad-export/v1'
+    && tad08Export.export.resultIdentity === tad08Model.viewModel.resultIdentity,
+    'The export carries the exact result identity under its own contract version');
+  const tad08ExportFlat = JSON.stringify(tad08Export.export);
+  assert(tad08ExportFlat.indexOf('SHOULD-NOT-APPEAR') < 0,
+    'No credential, token, authorization, or private note value survives into the export');
+  ['apiKey', 'credentials', 'holdings', 'account', 'privateNotes', 'authorization'].forEach((key) => {
+    assert(tad08ExportFlat.indexOf('"' + key + '"') < 0, 'The export omits the ' + key + ' key entirely');
+  });
+  assert(tad08Export.export.audit.nested.keep === 'public', 'Public audit fields survive sanitization');
+  assert(tad08Export.omittedKeys.length >= 6 && tad08Export.omittedKeys.some((path) => /apiKey/.test(path)),
+    'The export reports which paths it withheld rather than silently dropping them');
+  assert(tad08Export.export.educationalOnly === true && /Not investment advice/.test(tad08Export.export.boundary),
+    'The export states the educational boundary');
+  // Executable markup must not survive as an executable field.
+  const tad08Hostile = tad08.tadBuildExport(tad08Model.viewModel, { label: '<img src=x onerror=alert(1)>' });
+  assert(typeof tad08Hostile.export.audit.label === 'string',
+    'A hostile imported label stays a string value in the export rather than becoming markup');
+
+  // Registration parity across all three registries, in identical order.
+  const tad08Tools = JSON.parse(read('tools.json'));
+  const tad08ToolList = Array.isArray(tad08Tools) ? tad08Tools : tad08Tools.tools;
+  const tad08Entry = tad08ToolList.filter((entry) => entry.id === 'technical-analysis-decision-lab')[0];
+  assert(tad08Entry && tad08Entry.file === 'technical-analysis-decision-lab.html'
+    && tad08Entry.notes === 'notes/technical-analysis-decision-lab.md'
+    && tad08Entry.data === 'technical-analysis-decision-universe.json' && tad08Entry.status === 'live',
+    'tools.json registers the route, note, config and live status exactly');
+  const tad08Index = read('index.html'), tad08Nav = read('rlnav.js');
+  assert(tad08Index.indexOf("id: 'technical-analysis-decision-lab'") >= 0
+    && tad08Index.indexOf("file: 'technical-analysis-decision-lab.html'") >= 0
+    && tad08Index.indexOf("notes: 'notes/technical-analysis-decision-lab.md'") >= 0,
+    'index.html registers the same route and note');
+  assert(tad08Nav.indexOf('file: "technical-analysis-decision-lab.html"') >= 0,
+    'rlnav.js registers the same route');
+  // Order parity across the three registries. The requirement is order-EQUALITY across the common
+  // tool set, not that the entry sits last: it was registered by an earlier scope and sits
+  // mid-list, and rlnav.js additionally carries the home link, so a naive length or last-position
+  // comparison would be wrong rather than strict.
+  const tad08ToolIds = tad08ToolList.map((entry) => entry.id);
+  const tad08IndexOrder = [...tad08Index.matchAll(/^\s*id: '([a-z0-9-]+)',$/gm)].map((match) => match[1]);
+  const tad08NavOrder = [...tad08Nav.matchAll(/file: "([a-z0-9.-]+)\.html"/g)].map((match) => match[1]);
+  assert(tad08ToolIds.indexOf('technical-analysis-decision-lab') >= 0
+    && tad08IndexOrder.indexOf('technical-analysis-decision-lab') >= 0
+    && tad08NavOrder.indexOf('technical-analysis-decision-lab') >= 0,
+    'The tool is registered in tools.json, index.html and rlnav.js');
+  const tad08Common = tad08ToolIds.filter((id) => tad08IndexOrder.includes(id) && tad08NavOrder.includes(id));
+  assert(tad08Common.length === tad08ToolIds.length,
+    'Every tools.json entry is also present in index.html and rlnav.js, so no registry is stale');
+  const tad08ByIndex = tad08Common.slice().sort((left, right) => tad08IndexOrder.indexOf(left) - tad08IndexOrder.indexOf(right));
+  const tad08ByNav = tad08Common.slice().sort((left, right) => tad08NavOrder.indexOf(left) - tad08NavOrder.indexOf(right));
+  assert(JSON.stringify(tad08Common) === JSON.stringify(tad08ByIndex),
+    'tools.json and index.html declare every tool in identical relative order');
+  assert(JSON.stringify(tad08Common) === JSON.stringify(tad08ByNav),
+    'tools.json and rlnav.js declare every tool in identical relative order');
+  assert(existsSync(join(ROOT, 'notes/technical-analysis-decision-lab.md')), 'The registered note file exists');
+  const tad08Note = read('notes/technical-analysis-decision-lab.md');
+  assert(/technical-analysis-decision-lab\.html/.test(tad08Note) && /technical-analysis-decision-universe\.json/.test(tad08Note)
+    && /node scripts\/selftest\.mjs/.test(tad08Note) && /node scripts\/validate-technical-analysis-decision\.mjs/.test(tad08Note),
+    'The note resolves the route, the config and the exact validation commands');
+  assert(/E = p\*W - \(1-p\)\*L/.test(tad08Note) && /3\.738R/.test(tad08Note) && /186\.9R/.test(tad08Note)
+    && /signApplied/.test(tad08Note) && /prefers-reduced-motion/.test(tad08Note),
+    'The note carries the key formulas, the option-convention rule and the accessibility contract');
+
+  // Shared script order on the page.
+  const tad08Order = ['rldata.js', 'rlapp.js', 'rlg.js', 'rlvalidation.js', 'rlchart.js', 'rlticker.js'].map((file) => tadSource.indexOf('src="' + file + '"'));
+  assert(tad08Order.every((position) => position > 0) && tad08Order.every((position, index) => index === 0 || position > tad08Order[index - 1]),
+    'The shared shell scripts load in the declared order');
+  assert(tadSource.indexOf('src="rlnav.js"') > tadSource.indexOf('src="rlapp.js"'),
+    'rlnav.js loads after rlapp.js');
+
+  // Simple and Power are one page with a display-only toggle.
+  assert(/id="modeSeg"/.test(tadSource) && /data-mode="simple"/.test(tadSource) && /data-mode="power"/.test(tadSource),
+    'The page exposes a Simple and Power mode segment');
+  assert(/body\.power \.band\.pw/.test(tadSource) && /\.band\.pw \{\s*display: none;/.test(tadSource),
+    'Power-only bands are hidden until the mode is switched, so Simple is the default');
+  assert(/prefers-reduced-motion/.test(tadSource) && /max-width: 600px/.test(tadSource),
+    'The page honours reduced motion and collapses to one column on a narrow viewport');
+  assert(/RLCHART\.attach\(/.test(tadSource) && /a11y-table/.test(tadSource),
+    'The gate canvas attaches a hover contract and has an equivalent accessible table');
+
 } catch (e) { failures++; console.log('  ✗ FAIL (Technical Analysis Decision foundation group threw): ' + e.message); }
 /* ---------- End Feature 007 Technical Analysis Decision foundation ---------- */
+
+/* ---------- Research-agenda reason copy: one map, and never a slug as prose ----------
+   A published research-agenda read carries a machine `reason` code. Two renderers turn it into
+   reader copy: rlbrief.js (the compact standing-research rows on the Brief) and
+   research-agenda-lab.html (`#currentReason` on the owning tool). Both previously held their OWN
+   4-entry map and, on a miss, fell back to title-casing the slug — so when the producer emitted
+   `situation-shape-invalid` the reader was shown the sentence "Situation Shape Invalid.", which
+   has the cadence of an explanation while explaining nothing. Two independent maps had also
+   already drifted (the same key carried two different sentences).
+
+   These assertions lock both halves. They are adversarial in the sense that matters: each one
+   fails if the specific defect returns, and the last one fails if the fallback ever again
+   fabricates prose out of an unmapped code. */
+console.log('\n— Research-agenda reason copy (single map, no machine slug as reader prose) —');
+try {
+  const briefSource = read('rlbrief.js');
+  const agendaSource = read('research-agenda-lab.html');
+
+  const grabMap = (src, label) => {
+    const start = src.indexOf('REASON_SENTENCES = {');
+    assert(start !== -1, `${label} declares a REASON_SENTENCES map`);
+    const open = src.indexOf('{', start);
+    let depth = 0, i = open;
+    for (; i < src.length; i += 1) {
+      if (src[i] === '{') depth += 1;
+      else if (src[i] === '}') { depth -= 1; if (depth === 0) break; }
+    }
+    // Normalise indentation only — key order, keys and sentences must match exactly.
+    return src.slice(open, i + 1).split('\n').map((line) => line.trim()).join('\n');
+  };
+
+  const briefMap = grabMap(briefSource, 'rlbrief.js');
+  const agendaMap = grabMap(agendaSource, 'research-agenda-lab.html');
+  assert(briefMap === agendaMap,
+    'The Brief and the owning tool carry the SAME reason-sentence map (no silent copy drift)');
+
+  // Every reason code a producer can put on a published topic read has a reader sentence.
+  // Three producers feed that field and ALL THREE must be harvested. The first version of this
+  // guard read only the literal `reason = '...'` assignments and reported a healthy 10 codes — yet
+  // it stayed green when `situation-shape-invalid` was deleted from the map, because that code
+  // arrives through `reason = validated.error.reason`, a VALUE, not a literal. That is precisely
+  // the family that shipped a machine slug to the reader, so a check that cannot see it is a check
+  // that cannot do its job. The validator's own `failure(code, 'reason')` calls are harvested here.
+  const generationSource = read('scripts/research-agenda-generation.mjs');
+  const outcomeReasons = [...generationSource.matchAll(/reason = (?:validated\.ok \? )?'([a-z-]+)'/g)]
+    .map((m) => m[1])
+    .concat([...generationSource.matchAll(/reason = reusablePrior \? '([a-z-]+)' : '([a-z-]+)'/g)].flatMap((m) => [m[1], m[2]]));
+  const validatorStart = generationSource.indexOf('export function validateResearchSituation(');
+  assert(validatorStart !== -1, 'The situation validator was located in the generation producer');
+  // Brace-balance the validator's OWN body. Slicing to the next `export function` swallowed the
+  // neighbouring author helper and dragged in two E019-AGENDA-AUTHOR codes that can never land on
+  // a topic read — which would have made the guard demand invented reader copy for unreachable
+  // codes. Balancing must also start AFTER the parameter list: this signature destructures its
+  // second argument, so the first `{` belongs to the pattern, not the body, and balancing from
+  // there closes immediately and harvests nothing. A reachability check is only worth having if it
+  // models reachability exactly, so both boundaries are pinned and then re-verified below.
+  const validatorOpen = generationSource.indexOf(') {', validatorStart) + 2;
+  let validatorDepth = 0, validatorCursor = validatorOpen;
+  for (; validatorCursor < generationSource.length; validatorCursor += 1) {
+    const ch = generationSource[validatorCursor];
+    if (ch === '{') validatorDepth += 1;
+    else if (ch === '}') { validatorDepth -= 1; if (validatorDepth === 0) break; }
+  }
+  const validatorBody = generationSource.slice(validatorOpen, validatorCursor + 1);
+  const validatorReasons = [...validatorBody.matchAll(/failure\('E019-[A-Z-]+', '([a-z-]+)'/g)].map((m) => m[1]);
+  assert(validatorReasons.length > 0, `The situation validator's refusal reasons were harvested (${validatorReasons.length})`);
+  assert(!validatorBody.includes('side-pool-config-invalid') && !validatorBody.includes('runResearchSidePool'),
+    'The harvested body stops at the validator and does not spill into the author helper');
+
+  /* The deterministic-model stage refuses through the SAME per-topic failure channel, so its codes
+     reach the reader too. This was not a theory: a live generation published `flow-model-invalid`
+     while this guard was reporting "unmapped: none", because the harvest only covered the situation
+     validator. A completeness check that omits a whole producer stage is worse than none — it
+     certifies coverage it never measured. Bounded the same way, for the same reason. */
+  const modelStart = generationSource.indexOf('export function computeResearchAgendaOutputs(');
+  assert(modelStart !== -1, 'The deterministic-model stage was located in the generation producer');
+  const modelOpen = generationSource.indexOf(') {', modelStart) + 2;
+  let modelDepth = 0, modelCursor = modelOpen;
+  for (; modelCursor < generationSource.length; modelCursor += 1) {
+    const ch = generationSource[modelCursor];
+    if (ch === '{') modelDepth += 1;
+    else if (ch === '}') { modelDepth -= 1; if (modelDepth === 0) break; }
+  }
+  const modelBody = generationSource.slice(modelOpen, modelCursor + 1);
+  const modelReasons = [...modelBody.matchAll(/failure\([^,]+, '([a-z-]+)'/g)].map((m) => m[1]);
+  assert(modelReasons.includes('flow-model-invalid'),
+    `The model stage's refusal reasons were harvested including the one observed live (${modelReasons.length})`);
+  const planReasons = [...read('rlagenda.js').matchAll(/classification\.reason = "([a-z-]+)"/g)].map((m) => m[1]);
+  const reachable = [...new Set(outcomeReasons.concat(validatorReasons).concat(modelReasons).concat(planReasons))].filter((code) => code !== 'lifecycle-');
+  assert(reachable.length >= 20, `Reader-reachable reason vocabulary was discovered from the producers (${reachable.length} codes)`);
+  const unmapped = reachable.filter((code) => !briefMap.includes(`"${code}":`));
+  assert(unmapped.length === 0,
+    `Every producer reason code has a reader sentence (unmapped: ${unmapped.join(', ') || 'none'})`);
+
+  // The fallback states the absence and surfaces the code AS a code. It must never Title-Case a
+  // slug into a sentence — that is the exact regression this group exists to stop.
+  for (const [label, src] of [['rlbrief.js', briefSource], ['research-agenda-lab.html', agendaSource]]) {
+    const fnStart = src.indexOf(label === 'rlbrief.js' ? 'function reasonSentence(' : 'function reasonText(');
+    assert(fnStart !== -1, `${label} exposes its reason resolver`);
+    const body = src.slice(fnStart, fnStart + 700);
+    assert(body.includes('Reason code: '),
+      `${label} surfaces an unmapped code as a code, not as prose`);
+    assert(!/human\(\s*reason\s*\)/.test(body) && !/\\b\\w/.test(body),
+      `${label} never title-cases a reason slug into a reader sentence`);
+  }
+} catch (e) { failures++; console.log('  ✗ FAIL (research-agenda reason copy group threw): ' + e.message); }
+/* ---------- End research-agenda reason copy ---------- */
 
 /* ---------- D4 single-source: etf-momentum-lab deflated Sharpe is RLVALID-owned ----------
    etf-momentum-lab.html used to carry its OWN private `deflatedSharpe`, a second definition of a
@@ -6690,11 +7757,27 @@ try {
   assert(Number.isFinite(reads['volatility-sizing-lab'].metrics.forecastPct) && reads['volatility-sizing-lab'].metrics.regime,
     'the volatility read carries a real conditional forecast and its regime band');
 
-  // The five-gate adapter is a foundation receipt only. Reporting it "fresh" would be the exact
-  // fabrication this wiring exists to remove, so it must stay an honest, reasoned absence.
-  assert(reads['technical-analysis-decision-lab'].state === 'owner-model-unavailable'
-    && /not implemented/i.test(reads['technical-analysis-decision-lab'].read),
-    'the five-gate tool publishes an honest unavailable naming the missing owner capability, never a fabricated read');
+  // The five-gate tool must stay an honest, reasoned absence: its owner model computes from committed
+  // fixtures that declare `liveClaim:false`, so carrying its read would put canned analysis into a brief
+  // a reader acts on during market hours. This locks BOTH directions, because each has already failed
+  // once. (a) The fixture read must never be carried as a live one. (b) The stated reason must not
+  // assert a code fact the code contradicts: the prose claimed the model was "not implemented" long
+  // after the five gates landed, and the previous assertion here PINNED that falsehood by requiring
+  // /not implemented/ to appear. So the page fact is derived, never hardcoded — if the owner model is
+  // genuinely removed later, this guard follows the code instead of contradicting it.
+  const tadRead = reads['technical-analysis-decision-lab'];
+  const tadPageSource = read('technical-analysis-decision-lab.html');
+  const tadModelImplemented = /function\s+tadSynthesizeFiveGates\s*\(/.test(tadPageSource)
+    && /function\s+tadBuildToolDecisionRead\s*\(/.test(tadPageSource);
+  assert(tadRead.state === 'owner-model-unavailable' && tadRead.metrics.ownerReadPublished === false,
+    'the five-gate tool publishes an honest unavailable and never carries its fixture read as a live one');
+  assert(tadModelImplemented, 'the owner five-gate synthesis and decision-read builder are present on the page');
+  assert(!/not implemented|Scope-01 foundation-receipt validator/i.test(tadRead.read),
+    'the five-gate absence is not explained by a claim the page contradicts (the model IS implemented)');
+  assert(/liveClaim:false|fixture/i.test(tadRead.read),
+    'the five-gate absence names the fact that actually blocks it: the owner model is fixture-bound, not missing');
+  assert(!(/publishes no read/i.test(tadRead.read) && /publishes a decision read/i.test(tadRead.read)),
+    'the five-gate reason does not contradict itself in the same sentence');
 
   // ADVERSARIAL: a read whose owner state is missing must degrade, never emit a plausible number.
   const starved = refresh.buildOptionsSurfaceToolRead({ symbol: 'NO-SUCH-SYMBOL' });

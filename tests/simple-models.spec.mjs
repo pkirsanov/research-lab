@@ -13,34 +13,43 @@ test('Regression: SCN-012-034 missing owner adapter stays unavailable without de
   await page.waitForTimeout(150);
   requests.length = 0;
 
+  /* This page declares data-owns-route: Feature 007 gave it a real native Simple decision cockpit,
+     so the shell now stands down here rather than painting its own Simple panel over/next to it.
+     Previously it painted anyway, and the reader was shown two Simple answers at once — an
+     "…there is no result to show" placeholder sitting directly above a rendered five-gate decision
+     read. The RULE this regression exists to enforce is unchanged and is still enforced below:
+     a missing owner model must never fetch a default and never fabricate a result. What changed is
+     WHERE the honest answer comes from — the page's own read, not a shell placeholder. */
   await page.getByRole('tab', { name: 'Power', exact: true }).click();
   await page.getByRole('tab', { name: 'Simple', exact: true }).click();
-  const panel = page.locator('[data-rlexperience-panel="simple"][data-rlexperience-simple-state="unavailable"]');
-  await expect(panel).toBeVisible();
-  await expect(panel.getByRole('heading')).toHaveText('No result yet');
-  /* The reader is told, in words, that the model is missing and that nothing was
-     invented to cover for it. The adapter id is provenance, so per D13 it stays
-     machine-readable on the host and out of the visible copy. */
-  await expect(panel).toContainText("This tool's own model is not loaded, so there is no result to show.");
-  await expect(panel).toContainText('Nothing was requested, saved, published, or filled in from a default.');
-  await expect(panel).not.toContainText('simple-adapter/technical-five-gate/v1');
-  await expect(panel).not.toContainText(/simple-adapter\//);
-  const host = page.locator('[data-rlexperience-adapter]');
-  await expect(host).toHaveAttribute('data-rlexperience-adapter', 'simple-adapter/technical-five-gate/v1');
-  await expect(panel.locator('[data-simple-numeric-value]')).toHaveCount(0);
-  await expect(panel.locator('input, select, textarea, button')).toHaveCount(0);
-  await expect(panel).not.toContainText(/neutral|average|prior result/i);
+
+  const panel = page.locator('[data-rlexperience-panel="simple"]');
+  await expect(panel).toBeHidden();
+  // The shell declined silently: it claimed no adapter and published no state on this page. The
+  // attributes are ABSENT rather than empty — the bridge is the only writer and it never ran.
+  expect(await panel.getAttribute('data-rlexperience-adapter')).toBeNull();
+  expect(await panel.getAttribute('data-rlexperience-simple-state')).toBeNull();
+
+  // Adversarial: the exact contradiction that shipped must not be renderable again. The shell's
+  // placeholder copy must be absent from everything the reader can see while the page's own read is
+  // on screen. If the bridge ever repaints here, this fails — asserting only `toBeHidden()` would
+  // not, because a repaint also re-shows it.
+  const visibleText = await page.evaluate(() => document.body.innerText);
+  expect(visibleText).not.toContain("This tool's own model is not loaded, so there is no result to show.");
+  expect(visibleText).toContain('DECISION READ');
+
+  // Nothing was fetched and nothing was fabricated — the original intent of SCN-012-034.
   expect(requests).toEqual([]);
+  await expect(page.locator('[data-simple-numeric-value]')).toHaveCount(0);
 
   const state = await page.evaluate(() => ({
     bodyFocused: document.body.classList.contains('rlv-focused'),
-    adapterId: document.querySelector('[data-rlexperience-panel="simple"]')?.getAttribute('data-rlexperience-adapter'),
     runtimeSourceHasToolBranch: globalThis.RLEXPERIENCE.runtimeDiagnostic().value.toolIdBranchCount,
     registeredAdapters: globalThis.RLEXPERIENCE.runtimeDiagnostic().value.registeredAdapterCount
   }));
   expect(state).toEqual({
-    bodyFocused: true,
-    adapterId: 'simple-adapter/technical-five-gate/v1',
+    // An owns-route page renders every view itself, so the shell never focuses over it.
+    bodyFocused: false,
     runtimeSourceHasToolBranch: 0,
     registeredAdapters: 0
   });
@@ -246,26 +255,36 @@ test('Regression: Simple core preserves last valid run across invalid stale miss
   expect(result.numericNodes).toBe(0);
 });
 
-test('Regression: technical-analysis-decision-lab native detail is reachable under Power (Simple stays honest-unavailable, nothing deleted)', async ({ page }) => {
+test('Regression: technical-analysis-decision-lab native detail is reachable in BOTH modes (one Simple answer, nothing deleted)', async ({ page }) => {
   await page.goto(`${site.baseUrl}/technical-analysis-decision-lab.html`);
   await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
 
-  // Simple: the page's registered owner-state provider gates ownerModes to ["power"], so applyVisual
-  // focuses the page — the honest-unavailable adapter panel is shown and the native foundation-receipt
-  // detail is hidden (bodyFocused === true). The full honest-unavailable panel contract (heading, text,
-  // adapter id, zero side effects) is proved by SCN-012-034 above; here we only establish the focused-
-  // Simple context so we can prove the native detail is REACHABLE AGAIN under Power (no content lost).
+  /* "Nothing deleted" is the durable half of this regression and it still holds — but the shape it
+     holds in has changed, because Feature 007 gave this page a real native Simple decision cockpit.
+     The page therefore declares data-owns-route and renders BOTH views itself; the shell no longer
+     focuses over it, and no longer paints a competing Simple panel beside it. */
   await page.getByRole('tab', { name: 'Simple', exact: true }).click();
-  await expect(page.locator('[data-rlexperience-panel="simple"][data-rlexperience-simple-state="unavailable"]')).toBeVisible();
-  await expect(page.locator('body')).toHaveClass(/rlv-focused/);
-  await expect(page.locator('#stateHeading')).toBeHidden();
+  await expect(page.locator('body')).not.toHaveClass(/rlv-focused/);
+  await expect(page.locator('[data-rlexperience-panel="simple"]')).toBeHidden();
+  // Simple shows the page's OWN decision read — one answer, from the page that owns it.
+  await expect(page.locator('#simpleCockpit')).toBeVisible();
 
-  // Power: applyVisual drops rlv-focused (bodyFocused === false), the Simple panel and the shell's
-  // owner-placeholder power panel are hidden, and the page's NATIVE foundation-receipt detail is
-  // reachable again — nothing deleted, just reorganized so Simple is the honest-unavailable panel.
+  // Power: the native evidence detail is reachable, and Simple's panel stays stood down.
   await page.getByRole('tab', { name: 'Power', exact: true }).click();
   await expect(page.locator('body')).not.toHaveClass(/rlv-focused/);
   await expect(page.locator('[data-rlexperience-panel="simple"]')).toBeHidden();
   await expect(page.locator('#stateHeading')).toBeVisible();
   await expect(page.locator('#profileSelect')).toBeVisible();
+
+  /* Adversarial: exactly ONE control may claim to switch this page's view. Before this fix the page
+     carried its own role="tablist" whose tabs were also named "Simple" and "Power", so the shared
+     shell's tabs and the page's tabs collided — a screen reader announced two "Power" tabs, and
+     every shared harness that resolves a tab by name broke on the ambiguity. Counting the roles is
+     what makes that regression detectable; asserting visibility alone would not see it. */
+  const tabCounts = await page.evaluate(() => {
+    const named = (name) => Array.from(document.querySelectorAll('[role="tab"]'))
+      .filter((node) => (node.textContent || '').trim() === name).length;
+    return { simple: named('Simple'), power: named('Power'), modeSegRole: document.getElementById('modeSeg')?.getAttribute('role') };
+  });
+  expect(tabCounts).toEqual({ simple: 1, power: 1, modeSegRole: 'group' });
 });

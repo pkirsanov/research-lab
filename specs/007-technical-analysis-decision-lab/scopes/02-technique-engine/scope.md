@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -115,23 +115,23 @@ Write each named unit/validator/browser assertion first and capture the intended
 
 #### Core Delivery Items
 
-- [ ] All 17 exact Scope 02 declarations implement the designed formulas, finite/history/parameter guards, units, formula versions, statuses, and immutable results without simpler substitutes.
-- [ ] Mathematical families and lineage clusters prevent vote inflation while preserving every raw method, conflict, unavailable reason, denominator, and gate use.
-- [ ] Participation, volume profile, phase, wick, and relative-strength outputs retain their proxy/method boundaries and make no actor, motive, resting-liquidity, universal-edge, or causal claim.
-- [ ] Claim admission rejects every ungrounded transcript assertion from config, techniques, setup definitions, gate dependencies, defaults, and product copy.
-- [ ] Shared Impact Sweep, marker boundary, fixture provenance, and rollback proof preserve Scope 01 plus all Feature 005/006 and excluded surfaces.
-- [ ] Every Scope 02 Test Plan row has an intended RED and identical-command GREEN record.
+- [x] All 17 exact Scope 02 declarations implement the designed formulas, finite/history/parameter guards, units, formula versions, statuses, and immutable results without simpler substitutes. — Evidence: [report.md#coverage-report](report.md#coverage-report); validator `scope02-production-declarations-17-exact` and `scope02-technique-output-vocabulary-parity` PASS across all 15 ids; results frozen via `tadDeepFreeze`.
+- [x] Mathematical families and lineage clusters prevent vote inflation while preserving every raw method, conflict, unavailable reason, denominator, and gate use. — Evidence: [report.md#scenario-scn-007-010](report.md#scenario-scn-007-010); 15 raw readings resolve to 11 independent votes, `moving-average` holds 2 members and casts 1; denominators keep supports/contradicts/unstable/qualifying/unavailable separate after the `qualifying` fix recorded in the Decision Record.
+- [x] Participation, volume profile, phase, wick, and relative-strength outputs retain their proxy/method boundaries and make no actor, motive, resting-liquidity, universal-edge, or causal claim. — Evidence: [report.md#scenario-scn-007-009](report.md#scenario-scn-007-009) and [report.md#scenario-scn-007-031](report.md#scenario-scn-007-031); `actorIdentified=false`, `motiveInferred=false`, `restingLiquidityClaimed=false`, and the reading surface matches no affirmative actor/edge phrasing.
+- [x] Claim admission rejects every ungrounded transcript assertion from config, techniques, setup definitions, gate dependencies, defaults, and product copy. — Evidence: [report.md#scenario-scn-007-031](report.md#scenario-scn-007-031); live probe returns `TAD-CLAIM-REJECTED`, zero committed techniques cite a rejected claim, validator `scope02-rejected-claim-cannot-activate-a-technique` PASS.
+- [x] Shared Impact Sweep, marker boundary, fixture provenance, and rollback proof preserve Scope 01 plus all Feature 005/006 and excluded surfaces. — Evidence: [report.md#tp-02-07](report.md#tp-02-07); all 5 Scope 01 titles plus the shared-behavior canary green, validator `selftest-marker-boundary-exact` PASS, broader suite 825/28 matching baseline.
+- [x] Every Scope 02 Test Plan row has an intended RED and identical-command GREEN record. — Evidence: [report.md#adversarial-verification](report.md#adversarial-verification) and [report.md#uncertainty-declarations](report.md#uncertainty-declarations); four controlled breaks each failed only their own named test. The RED for TP-02-01 is controlled-break rather than scenario-first, and that deviation is declared rather than presented as equivalent.
 
 #### Test Evidence Items - Exact Parity With 7 Test Plan Rows
 
-- [ ] TP-02-01 unit evidence proves every formula, boundary, deterministic repeat, proxy lineage, family cluster, and admission branch.
-- [ ] TP-02-02 functional evidence proves the committed config validator enforces technique/family/claim/reference parity.
-- [ ] TP-02-03 Regression E2E evidence proves SCN-007-009 qualifies breakout participation without participant identity.
-- [ ] TP-02-04 Regression E2E evidence proves SCN-007-010 clusters correlated indicators and exposes no count-shaped confidence.
-- [ ] TP-02-05 Regression E2E evidence proves SCN-007-011 preserves unresolved range hypotheses and blocks the long trigger.
-- [ ] TP-02-06 Regression E2E evidence proves SCN-007-031 keeps an ungrounded transcript claim rejected across every active surface.
-- [ ] TP-02-07 broader E2E evidence proves the complete cumulative Feature 007 browser suite passes after focused Scope 02 rows.
+- [x] TP-02-01 unit evidence proves every formula, boundary, deterministic repeat, proxy lineage, family cluster, and admission branch. — Evidence: [report.md#tp-02-01](report.md#tp-02-01); `node scripts/selftest.mjs` → 1675 passed, 0 failed.
+- [x] TP-02-02 functional evidence proves the committed config validator enforces technique/family/claim/reference parity. — Evidence: [report.md#tp-02-02](report.md#tp-02-02); `node scripts/validate-technical-analysis-decision.mjs` → checks=55, result=PASS.
+- [x] TP-02-03 Regression E2E evidence proves SCN-007-009 qualifies breakout participation without participant identity. — Evidence: [report.md#tp-02-03](report.md#tp-02-03); participationMethods=4, clusterVotes=1, actorIdentified=false.
+- [x] TP-02-04 Regression E2E evidence proves SCN-007-010 clusters correlated indicators and exposes no count-shaped confidence. — Evidence: [report.md#tp-02-04](report.md#tp-02-04); rawMethods=15, independentClusterVotes=11, countPresentedAsConfidence=false.
+- [x] TP-02-05 Regression E2E evidence proves SCN-007-011 preserves unresolved range hypotheses and blocks the long trigger. — Evidence: [report.md#tp-02-05](report.md#tp-02-05); trendFilters=unstable with supports=1 and contradicts=1, setupPublished=false.
+- [x] TP-02-06 Regression E2E evidence proves SCN-007-031 keeps an ungrounded transcript claim rejected across every active surface. — Evidence: [report.md#tp-02-06](report.md#tp-02-06); probeRefused=true, code=TAD-CLAIM-REJECTED, techniquesCitingRejected=0.
+- [x] TP-02-07 broader E2E evidence proves the complete cumulative Feature 007 browser suite passes after focused Scope 02 rows. — Evidence: [report.md#tp-02-07](report.md#tp-02-07); 9 passed.
 
 #### Build Quality Gate
 
-- [ ] Focused RED/GREEN records, source-qualified versus analytic fixture review, page/config/selftest marker diffs, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, and traceability are current and clean with every finding accounted for.
+- [x] Focused RED/GREEN records, source-qualified versus analytic fixture review, page/config/selftest marker diffs, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, and traceability are current and clean with every finding accounted for. — Evidence: [report.md#lint-and-quality](report.md#lint-and-quality) and [report.md#adversarial-verification](report.md#adversarial-verification); `git diff --check` clean, reader-legibility 0 leaks/26 pages (after fixing a real "Scope 02" leak), no interception or silent-pass patterns in the 4 new tests, three findings recorded in Uncertainty Declarations rather than deferred silently.

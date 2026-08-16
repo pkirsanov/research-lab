@@ -3,9 +3,9 @@
     "featureDir": "specs/019-custom-recurring-research-agenda",
     "featureName": "Custom Recurring Research Agenda",
     "createdAt": "2026-08-10T00:00:00Z",
-    "lastUpdatedAt": "2026-08-15T15:30:00Z",
-    "status": "in_progress",
-    "blockedReason": null,
+    "lastUpdatedAt": "2026-08-16T05:10:00Z",
+    "status": "blocked",
+    "blockedReason": "Promotion to done is blocked on the INSTALLED framework copy, not on this feature's work. specDoneRequires is already satisfied: all 5 scopes are done, certification.completedScopes carries all 5 scope IDs, and bubbles.validate certified promotion. state-transition-guard.sh nonetheless refuses with 3 remaining G022 failures, and all 3 are framework defects that this repository must not patch locally because .github/bubbles/ is framework-managed. (1) and (2) Check 6B derives the owning agent as bubbles.${phase}, so it demands a bubbles.analyze that has never existed while the real owner of the analyze phase is bubbles.analyst, and it reports the honest bubbles.analyst record as phase impersonation. A fix adding a phase-owner table plus orchestrator provenance for the five orchestrator-run phases exists in the bubbles working tree and passes the guard selftest with an adversarial case proving an unrelated agent claiming analyze is still refused. (3) The evidence-receipt CLONE check treats a stdout hash shared across two subjects of the SAME tool as forgery, but artifact-lint and capability-foundation-guard never print their subject, so two structurally identical specs emit byte-identical output. Every cited receipt in .specify/runtime/tool-calls.jsonl is dated 2026-07-15 to 2026-07-18 and belongs to features 002/004/005/006 and BUG-001/002/003, none to this feature. A deterministic-sibling fix for this exists in the bubbles working tree as another session's in-progress work. Unblocking requires those bubbles changes to land and this repository to upgrade its framework copy, which is currently v7.28.0 and identical to bubbles origin/main. The product work itself is complete and deployed: selftest 2412 passed 0 failed, playwright 437/437, pii-scan 0 findings, and two full brief regenerations published to origin/main.",
     "workflowMode": "full-delivery",
     "planningOnly": false,
     "planningOnlyJustification": null,
@@ -123,9 +123,9 @@
         }
     },
     "certification": {
-        "status": "in_progress",
+        "status": "blocked",
         "certifiedAt": null,
-        "certificationNote": "Independent audit passed (bubbles.audit, 2026-08-15). All 5 scopes done, 109/109 DoD items checked, 20/20 scenarios done, Feature 020 boundary clean, 2097 selftest passes, artifact-lint exit 0. One advisory finding A019-SCOPE02-ANCHOR-001 (LOW, broken anchor in scope 02, content present). Finalize owns terminal status=done and top-level promotion.",
+        "certificationNote": "Independent audit passed (bubbles.audit, 2026-08-15). All 5 scopes done, 109/109 DoD items checked, 20/20 scenarios done, Feature 020 boundary clean, 2097 selftest passes, artifact-lint exit 0. One advisory finding A019-SCOPE02-ANCHOR-001 (LOW, broken anchor in scope 02, content present). Finalize owns terminal status=done and top-level promotion. Certification is held at blocked, matching the top-level status, because state-transition-guard.sh refuses promotion on 3 remaining G022 failures that are defects in the INSTALLED framework copy rather than in this feature. The full reason, the two fixes that already exist in the bubbles working tree, and the evidence that no cited receipt belongs to this feature are recorded in the top-level blockedReason. Certification is deliberately NOT advanced to done while that guard refuses; the product work is complete and deployed, but a terminal certification claim would assert a promotion the guard did not grant.",
         "completedScopes": [
             "01-agenda-registry-contract",
             "02-topic-lifecycle",

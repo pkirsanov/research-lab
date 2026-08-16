@@ -686,3 +686,114 @@ therefore eligible to start, which is what the DoD item's second clause governs.
 are still Not Started, `causal-rotation-lab.html` still does not exist, and
 `causal-rotation-ledger.jsonl` is still 0 bytes. Nothing about this closure
 asserts the owner-facing lab is built.
+
+## SCOPE-02 Closure — Causal Rotation Lab owner UI
+
+**Claim Source:** executed in session. `causal-rotation-lab.html` now exists (it did not at
+SCOPE-01 closure, which that section explicitly recorded).
+
+### TP — live browser, real served page, no evaluator mocks
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome --reporter=line tests/causal-rotation-lab.spec.mjs
+
+Running 13 tests using 1 worker
+
+  13 passed (8.6s)
+```
+
+The 13 are the 4 SCOPE-01 foundation regressions plus 9 SCOPE-02 tests: assets over live HTTP,
+SCN-001-B01, SCN-001-B02, SCN-001-B03, keyboard/screen-reader operability, no-refetch on control
+change, all-or-nothing import, private-field refusal, and the shared RLDATA/RLAPP canary.
+
+### TP — UI-unit groups in scripts/selftest.mjs
+
+```
+$ node scripts/selftest.mjs
+  ✓ causal Simple and Power projections use the same evaluated candidate identity
+  ✓ causal clock view orders blocking contradictions before support
+  ✓ causal persistence reports recorded only after a successful local append
+  ✓ causal owner publishes a compact toolRead without copying full history into rlData
+Research-Lab self-test: 2417 passed, 0 failed
+```
+
+### Adversarial verification (guard proven, not assumed)
+
+The persistence guard was proven by breaking the page and confirming the break landed before
+trusting the red:
+
+```
+$ node -e '...move runtime.lastSaved above the !appended.ok guard...'
+BREAK LANDED
+1257:        runtime.lastSaved = record;
+1266:        runtime.lastSaved = record;
+$ node scripts/selftest.mjs
+  ✗ FAIL: causal persistence reports recorded only after a successful local append
+Research-Lab self-test: 2416 passed, 1 failed
+$ (restore)
+Research-Lab self-test: 2417 passed, 0 failed
+```
+
+### Regression surface
+
+```
+$ node --test $(ls tests/*.mjs | grep -vE '\.spec\.mjs|playwright')
+# tests 888
+# pass 888
+# fail 0
+```
+
+### Design correction made during execution
+
+The evidence timeline was first written to draw whenever a window and any one clock existed. A
+probe over the committed observations showed that rule made **every** candidate drawable, so the
+"chart replaced by a structured unavailable state" branch was unreachable and its DoD item would
+have been untestable. The contract was corrected to what SCN-001-B03 actually describes: the
+timeline requires every REQUIRED evidence class to be present. With committed data the three
+`financial-credit-selectivity` candidates draw (pixel-checked non-blank) and the two semiconductor
+candidates report unavailable naming `evidenceClass:valuation`, `valuation.provider` and the rest.
+Both branches are now reachable from real data rather than from a fixture.
+
+### Honest scope notes
+
+- **Not claimed:** SCOPE-03 through SCOPE-06 remain Not Started and the feature stays
+  `in_progress`. The page is deliberately **unregistered**; registration, navigation and the
+  operator documentation belong to SCOPE-05, so `site-exclusions.json` carries the page as an
+  explicit deploy decision and Pages does not ship it yet.
+- **Mobile:** the repository has no mobile Playwright project, so the desktop/mobile DoD clause is
+  met by driving both viewports (1280x900 and 390x844) inside the scenario tests.
+- **Outside the SCOPE-02 change boundary:** `fx-regime-relative-value-lab.html` gained an explicit
+  `rlexperience.js` load. That is not SCOPE-02 work; it is a separate latent defect found while
+  building this scope and is described in its own section below.
+
+## Defect found while executing SCOPE-02 — structured charts raced their own validator
+
+`rlchart`'s structured adapter requires `RLCTX`, and `RLCTX` validates against the `RLEXPERIENCE`
+foundation. `rlapp.js` only injects that shared script **asynchronously** (`ensureSharedScript`,
+rlapp.js:299). A page that loads `rlcontext.js` without also loading `rlexperience.js` can therefore
+attach a structured chart before the foundation lands, and the chart rejects its own context as
+`E012-CONTEXT-MISSING`.
+
+This was observed directly. A live probe of the causal page showed `RLCTX` present,
+`RLEXPERIENCE: 'undefined'`, and a hand-built valid context refused at `$`. Auditing every page that
+loads `rlcontext.js` found exactly one that omitted the foundation:
+
+```
+OK       company-fundamentals-lab.html
+AT-RISK  fx-regime-relative-value-lab.html
+OK       market-heatmap-lab.html
+OK       options-structure-lab.html
+OK       portfolio-survival-allocation-lab.html
+```
+
+fx was the only outlier — and fx was the only page that had shown an intermittent
+`E012-CONTEXT-MISSING` failure on `#vehicleChart` under load. An earlier run in this session had
+attributed that failure to machine contention. That was incomplete: contention widened the race, it
+did not create it. The fix loads the foundation explicitly.
+
+```
+$ npx --no-install playwright test ... tests/fx-regime-relative-value-lab.spec.mjs
+Running 39 tests using 1 worker
+  39 passed (44.5s)
+```

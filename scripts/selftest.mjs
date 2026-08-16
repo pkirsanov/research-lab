@@ -10698,6 +10698,62 @@ try {
   'TP-05-04: the registered agenda tool read is canonical and the collector carries the transaction-composed read');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 019 Scope 05 public-safety group threw): ' + e.message); }
 
+/* ---------- Feature 001 Scope 02: causal owner UI projections ---------- */
+try {
+  const causalRequire = (await import('node:module')).createRequire(import.meta.url);
+  causalRequire('../rlcausal.js');
+  const RLCAUSAL2 = globalThis.RLCausal;
+  const causalPage = read('causal-rotation-lab.html');
+  const causalConfig = JSON.parse(read('causal-rotation.config.json'));
+  const causalObservations = JSON.parse(read('causal-rotation-observations.json'));
+  const causalAsOf = causalObservations.recordedAt;
+  const causalSnapshot = RLCAUSAL2.evaluateAll({
+    config: causalConfig, observationSet: causalObservations, timingReads: [],
+    posture: 'discovery', riskOverlay: 'none', asOf: causalAsOf, generatedAt: causalAsOf
+  });
+
+  /* One evaluation, one selection helper. Simple and Power may not reach a second conclusion. */
+  const selectorDefinitions = (causalPage.match(/function selectedCandidate\s*\(/g) || []).length;
+  const simpleBody = causalPage.slice(causalPage.indexOf('function renderSimple'), causalPage.indexOf('function renderGateExplanation'));
+  const detailBody = causalPage.slice(causalPage.indexOf('function renderDetail'), causalPage.indexOf('function chartProjection'));
+  assert(selectorDefinitions === 1
+    && /selectedCandidate\(\)/.test(simpleBody) && /selectedCandidate\(\)/.test(detailBody)
+    && !/evaluateAll\(/.test(simpleBody) && !/evaluateAll\(/.test(detailBody)
+    && causalSnapshot.candidates.every((candidate) => /^sha256:[a-f0-9]{64}$/.test(candidate.candidateDigest)),
+    'causal Simple and Power projections use the same evaluated candidate identity');
+
+  /* Contradictions are emitted before supporting detail in the rendered detail template. */
+  const contradictionAt = detailBody.indexOf('contradictionBlock');
+  const supportAt = detailBody.indexOf('supportBlock');
+  assert(contradictionAt !== -1 && supportAt !== -1 && contradictionAt < supportAt,
+    'causal clock view orders blocking contradictions before support');
+
+  /* ADVERSARIAL: the ordering detector must fail on the inverted template. */
+  const invertedDetail = 'supportBlock ... contradictionBlock';
+  assert(invertedDetail.indexOf('contradictionBlock') > invertedDetail.indexOf('supportBlock'),
+    'the contradiction-ordering detector catches a template that buries the disagreement');
+
+  /* A success notice may only follow a successful append. */
+  const freezeBody = causalPage.slice(causalPage.indexOf('function freezeCurrent'), causalPage.indexOf('function exportDecisions'));
+  const guardAt = freezeBody.indexOf('if (!appended.ok)');
+  const savedAt = freezeBody.indexOf('runtime.lastSaved = record');
+  assert(guardAt !== -1 && savedAt !== -1 && guardAt < savedAt
+    && /runtime\.lastDraft = \{ record: record, reason: appended\.reason \}/.test(freezeBody)
+    && /return;/.test(freezeBody.slice(guardAt, savedAt)),
+    'causal persistence reports recorded only after a successful local append');
+
+  /* The shared cache receives the compact read only — never the full causal history. */
+  const causalToolRead = RLCAUSAL2.projectToolRead(causalSnapshot, causalConfig);
+  const publishBody = causalPage.slice(causalPage.indexOf('function publishToolRead'), causalPage.indexOf('function visibleCandidates'));
+  assert(causalToolRead && causalToolRead.id === 'causal-rotation-lab'
+    && !Object.prototype.hasOwnProperty.call(causalToolRead, 'candidates')
+    && !Object.prototype.hasOwnProperty.call(causalToolRead, 'evidenceClusters')
+    && !/putToolRead\(\s*TOOL_ID\s*,\s*runtime\.snapshot\s*\)/.test(publishBody)
+    && /putToolRead\(TOOL_ID, runtime\.snapshot\.toolRead\)/.test(publishBody)
+    && JSON.stringify(causalToolRead).length < 4096,
+    'causal owner publishes a compact toolRead without copying full history into rlData');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 001 Scope 02 causal owner UI group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

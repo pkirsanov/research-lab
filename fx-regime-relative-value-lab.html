@@ -238,7 +238,12 @@
     <script src="rlapp.js"></script>
     <script src="rlg.js"></script>
     <script src="rlticker.js"></script>
-    <!-- rlcontext defines RLCTX, which rlchart's structured-adapter validator requires. -->
+    <!-- rlcontext defines RLCTX, which rlchart's structured-adapter validator requires. RLCTX in
+         turn validates against the rlexperience foundation, and rlapp only injects that shared
+         script asynchronously (ensureSharedScript). Without this explicit load the vehicle chart
+         can attach before the foundation lands and reject its own context as
+         E012-CONTEXT-MISSING — a race that surfaces as an intermittent failure under load. -->
+    <script src="rlexperience.js"></script>
     <script src="rlcontext.js"></script>
     <script src="rlchart.js"></script>
     <script src="rlnav.js"></script>

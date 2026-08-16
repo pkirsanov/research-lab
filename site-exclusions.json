@@ -3,6 +3,10 @@
   "note": "These are retained implementation or research artifacts that are not part of the public product. scripts/build-pages-site.mjs refuses any unregistered root HTML not listed here and refuses a listed file once it becomes a registered tool. This is the deploy-time form of D2/D3: source may remain available for an in-progress feature, but Pages ships only reachable product surfaces and their production dependencies.",
   "files": [
     {
+      "path": "causal-rotation-lab.html",
+      "reason": "The causal owner UI is built but deliberately unregistered until its consumer, brief and registry scopes land; shipping an unreachable page would advertise a surface the navigation cannot reach."
+    },
+    {
       "path": "rlcausal.js",
       "reason": "No registered production page consumes this shared module; tests are not production consumers."
     },

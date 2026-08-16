@@ -192,7 +192,7 @@ SCOPE-01 production code, source contracts, validator, fixtures, selftests, and 
 ## Scope 2: Causal Rotation Lab Simple/Power Owner UI
 
 **Scope ID:** SCOPE-02  
-**Status:** Not Started  
+**Status:** Done  
 **Depends On:** SCOPE-01  
 **Tags:** `owner-ui`, `simple-power`, `accessibility`, `local-persistence`
 
@@ -287,22 +287,24 @@ Shared helper changes require a separate explicit blast-radius amendment before 
 
 ### Definition of Done - SCOPE-02
 
-- [ ] SCN-001-B01 - A sourced policy mechanism leads market confirmation: Discovery shows cause-emerging without action copy, with source age/window/confirmation/invalidation and an explanation of changed versus invariant gates.
-- [ ] SCN-001-B02 - Fundamental evidence contradicts an oversold semiconductor rebound: Power shows contradiction before support, separates regime consequences, and does not label the move durable repair.
-- [ ] SCN-001-B03 - A required chart input is unavailable and local decision storage fails: the UI replaces the chart with exact unavailable fields and keeps the decision as an unsaved exportable draft without a recorded announcement.
-- [ ] Simple is the default; Power uses the exact same candidate evaluation and preserves all disagreements.
-- [ ] Every scenario-specific Regression E2E test passes on desktop and mobile with a real served page and no evaluator mocks.
-- [ ] Sensitivity changes only documented visibility/market gates and reports all invariant gates.
-- [ ] Canvas pixel checks prove complete charts are nonblank and unavailable charts are not rendered as invented continuity.
-- [ ] Keyboard, focus, labels, fallback text, text-equivalent stage/freshness, and bounded `aria-live` behavior pass.
-- [ ] Local decisions are append-only, imports are atomic, failures remain unsaved, and private/credential fields are rejected.
-- [ ] RLDATA/RLAPP canaries pass and no excluded shared or consumer file changes.
-- [ ] SCOPE-02 is marked Done only after executable evidence is recorded; only then may SCOPE-03 start.
+- [x] SCN-001-B01 - A sourced policy mechanism leads market confirmation: Discovery shows cause-emerging without action copy, with source age/window/confirmation/invalidation and an explanation of changed versus invariant gates.
+- [x] SCN-001-B02 - Fundamental evidence contradicts an oversold semiconductor rebound: Power shows contradiction before support, separates regime consequences, and does not label the move durable repair.
+- [x] SCN-001-B03 - A required chart input is unavailable and local decision storage fails: the UI replaces the chart with exact unavailable fields and keeps the decision as an unsaved exportable draft without a recorded announcement.
+- [x] Simple is the default; Power uses the exact same candidate evaluation and preserves all disagreements.
+- [x] Every scenario-specific Regression E2E test passes on desktop and mobile with a real served page and no evaluator mocks.
+- [x] Sensitivity changes only documented visibility/market gates and reports all invariant gates.
+- [x] Canvas pixel checks prove complete charts are nonblank and unavailable charts are not rendered as invented continuity.
+- [x] Keyboard, focus, labels, fallback text, text-equivalent stage/freshness, and bounded `aria-live` behavior pass.
+- [x] Local decisions are append-only, imports are atomic, failures remain unsaved, and private/credential fields are rejected.
+- [x] RLDATA/RLAPP canaries pass and no excluded shared or consumer file changes.
+- [x] SCOPE-02 is marked Done only after executable evidence is recorded; only then may SCOPE-03 start.
 
 ### Uncertainty Declaration - SCOPE-02
 
-**Claim Source:** not-run  
-All SCOPE-02 DoD items remain unchecked because this invocation did not create or run the owner UI. Each item is resolved by the named live-browser/UI-unit checks in the SCOPE-02 Test Plan plus item-specific raw evidence in [report.md](report.md).
+**Claim Source:** executed  
+All SCOPE-02 DoD items are checked against commands executed in session and recorded in [report.md](report.md): `tests/causal-rotation-lab.spec.mjs` 13/13 on a real served page with no evaluator mocks, `scripts/selftest.mjs` 2417 passed / 0 failed including the four named causal UI-unit groups, and the node suite at 888/888.
+
+Two honest notes. First, the repository has no mobile Playwright project, so the desktop/mobile requirement is met by driving both viewports (1280x900 and 390x844) inside the scenario tests rather than by a separate project. Second, the page is deliberately left unregistered and is recorded in `site-exclusions.json` as a deploy decision; registration and navigation belong to SCOPE-05, so the tool is built and tested but not yet shipped to Pages.
 
 ## Scope 3: Sector, Global, and Real Assets Consumer Integration
 

@@ -20,6 +20,16 @@
             "env": {
                 "BUBBLES_MCP_LOG_LEVEL": "INFO"
             }
+        },
+        "bubbles-research-lab-c2": {
+            "type": "stdio",
+            "command": "python3",
+            "args": [
+                "${workspaceFolder}/.github/bubbles/mcp/server.py"
+            ],
+            "env": {
+                "BUBBLES_MCP_LOG_LEVEL": "INFO"
+            }
         }
     }
 }

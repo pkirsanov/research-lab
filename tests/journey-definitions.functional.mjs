@@ -59,9 +59,9 @@ test('TP-08-02 SCN-012-032 every registered tool resolves concrete Journey goals
   const registry = journeyRegistry();
   const summary = requireValue(RJ.validateRegistryCompleteness(registry, inventory));
   assert.equal(summary.centerGoals, 4, 'Market Action Center must expose exactly four global goals');
-  assert.equal(summary.ordinaryTools, 22, 'twenty-two ordinary tools must resolve');
-  assert.equal(summary.totalGoals, 48, 'twenty-two ordinary tools x2 goals plus four Center goals');
-  assert.equal(summary.definitionCount, 48, 'the journey registry defines exactly 48 goals');
+  assert.equal(summary.ordinaryTools, 26, 'twenty-six ordinary tools must resolve');
+  assert.equal(summary.totalGoals, 56, 'twenty-six ordinary tools x2 goals plus four Center goals');
+  assert.equal(summary.definitionCount, 56, 'the journey registry defines exactly 56 goals');
 });
 
 test('TP-08-02 SCN-012-032 each ordinary tool has at least two concrete same-tool goals with a mechanism', () => {
@@ -70,7 +70,7 @@ test('TP-08-02 SCN-012-032 each ordinary tool has at least two concrete same-too
   const compiled = requireValue(RJ.compileRegistry(registry));
 
   const ordinary = inventory.filter((row) => row.kind === 'ordinary');
-  assert.equal(ordinary.length, 22);
+  assert.equal(ordinary.length, 26);
   const center = inventory.filter((row) => row.kind === 'market-action-center');
   assert.equal(center.length, 1);
   assert.equal(center[0].registryId, 'market-brief');
@@ -118,10 +118,10 @@ test('TP-08-02 SCN-012-032 no goal is generic, example-only, or a placeholder', 
   }
 });
 
-test('TP-08-02 every one of the 48 definitions compiles under the runtime schema with a fingerprint', () => {
+test('TP-08-02 every one of the 56 definitions compiles under the runtime schema with a fingerprint', () => {
   const registry = journeyRegistry();
   const compiled = requireValue(RJ.compileRegistry(registry));
-  assert.equal(compiled.definitionIds.length, 48);
+  assert.equal(compiled.definitionIds.length, 56);
   for (const definitionId of compiled.definitionIds) {
     const definition = compiled.definitions[definitionId];
     assert.match(definition.definitionFingerprint, /^sha256:[0-9a-f]{64}$/, `${definitionId} must carry a canonical fingerprint`);
@@ -136,8 +136,12 @@ test('TP-08-02 cross-checks that rlexperience.js still validates the same journe
   const registry = journeyRegistry();
   const result = RLEXPERIENCE.validateJourneyRegistry(registry, config);
   assert.equal(result.ok, true, result.error && `${result.error.code} ${result.error.fieldPath}`);
-  assert.equal(result.value.definitions.length, 48);
-  assert.equal(result.value.steps.length, 48);
+  assert.equal(result.value.definitions.length, 56);
+  // Steps are not 1:1 with definitions (measured 1..6 per definition), so the total is pinned
+  // separately and every definition is required to compile to at least one step.
+  assert.equal(result.value.steps.length, 75);
+  const stepped = new Set(result.value.steps.map((step) => step.definitionId || step.goalId));
+  assert.equal(stepped.size, result.value.definitions.length, 'every definition compiles to at least one step');
 });
 
 test('TP-08-02 the runtime rejects an inventory that regresses goal completeness (non-tautological)', () => {

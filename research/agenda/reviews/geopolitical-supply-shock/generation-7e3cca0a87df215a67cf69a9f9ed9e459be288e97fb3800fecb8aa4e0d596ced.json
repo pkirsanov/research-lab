@@ -1,0 +1,103 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-5c14d968236d8b6c881b2f28f9609795f844fa69e50be4aac55488791791b7f6",
+  "generationId": "generation-7e3cca0a87df215a67cf69a9f9ed9e459be288e97fb3800fecb8aa4e0d596ced",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-08-16T18:31:08.932Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "No current authorable observation of U.S., Iran, Oman-mediator, Gulf-exporter, Houthi, insurer, or OPEC-buffer actor state is available this generation. The acquisition bundle retained zero sources and the 'official-policy-and-statements' requirement (actor-state coverage, 24h freshness) is missing-or-stale with its material claim marked unauthorable, so no actor reaction-function reading is asserted. Reaction rules remain observed-change-only by definition; with no observed change, no direction is inferred and no private intent is imputed.",
+      "gaps": [
+        "official-policy-and-statements requirement is missing-or-stale; no retained official source for actor-state.",
+        "geopolitical-supply-shock:official-policy-and-statements claim is uncorroborated with freshnessState unsupported (authorable false).",
+        "No verified named-actor statement inside the 24h freshness window to update any actor dimension."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "No current evidence supports updating the staged-reopening, managed-coercion, or escalation branches (nor the single-route-disruption / dual-route-or-infrastructure-shock children). Entry triggers and invalidations are unobserved this generation. Scenario probabilities are computed by the deterministic layer and are not authored here; with no supporting observation the tree state is carried as unavailable rather than re-scored.",
+      "gaps": [
+        "No observed entry-trigger or invalidation state change (transit-restriction-observed, insured-capacity-tightens, transit-normalizes, insurance-normalizes) inside the freshness window.",
+        "No fresh actor-state or flow evidence to inform scenario branch conditioning."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "No measured transit, loadings, delay, or insured-capacity observation is available for Hormuz, Bab el-Mandeb, or the Red Sea. The 'measured-maritime-flow' requirement (physical-flow + insured-flow coverage, 24h freshness) is missing-or-stale and its material claim is unauthorable, so neither physicalPassFraction nor insuredPassFraction can be sourced this generation. No flow-state figure is asserted.",
+      "gaps": [
+        "measured-maritime-flow requirement is missing-or-stale; zero retained maritime-observation or official flow source.",
+        "geopolitical-supply-shock:measured-maritime-flow claim (physical-flow, insured-flow) is uncorroborated, freshnessState unsupported (authorable false).",
+        "No basis to evaluate transit-restriction-observed or insured-capacity-tightens conditions."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "No current inventory, production, export, or policy-response evidence is available for the oil, refined-products, LNG, fertilizer, aluminum, or shipping channels. The 'energy-and-input-balances' requirement (transmission-input coverage, 72h freshness) is missing-or-stale and unauthorable. Channel transmission structure is defined in the topic scaffolding, but no transmission-input reading is asserted and no channel shock range is authored here.",
+      "gaps": [
+        "energy-and-input-balances requirement is missing-or-stale; zero retained official or industry-data source.",
+        "geopolitical-supply-shock:energy-and-input-balances claim (transmission-input) is uncorroborated, freshnessState unsupported (authorable false).",
+        "No inventory-response confirmation to evaluate the inventory-response-confirmed trigger."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "Committed same-origin daily bars for the declared public proxies are reused (committed-public-bars, observed 2026-08-14T23:59:59Z, proxy-bar coverage, within its 48h freshness policy) and remain available to the deterministic sensitivity layer. However, there is no fresh, authorable geopolitical event evidence to anchor proxy sensitivity to a current shock, so no proxy sensitivity range or calibration is authored here and the interpretive read is carried as unavailable.",
+      "gaps": [
+        "Proxy sensitivity requires current shock evidence (actor-state, physical/insured-flow, transmission-input) that is unavailable this generation.",
+        "Bars are present for the deterministic layer only; no authored proxy range or direction is provided (by contract)."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "No trigger fired and no invalidation cleared this generation. transit-restriction-observed, insured-capacity-tightens, and inventory-response-confirmed have no supporting observation; transit-normalizes and insurance-normalizes cannot be evaluated without measured flow/insurance data. The evidence-stales invalidation (ageHours > 24 on the source ledger) is effectively active because no supporting material observation exists inside the 24h window.",
+      "gaps": [
+        "No measured physicalPassFraction or insuredPassFraction to test transit or insurance triggers/invalidations.",
+        "No confirmed policyResponse to test inventory-response-confirmed.",
+        "Source ledger holds no fresh material observation, so evidence-stales conditions are met."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "The acquisition bundle retained zero sources across three material requirements (queryCount 3, retainedSourceCount 0, corroboratedMaterialClaimCount 0, rejectedMaterialClaimCount 3). The only reused evidence is committed-public-bars (sourceId geopolitical-supply-shock-committed-public-bars-committed-bars, observed 2026-08-14T23:59:59Z, proxy-bar coverage), which does not support any actor, flow, or transmission material claim. No source-backed finding is authored; sourceLedger is intentionally empty.",
+      "gaps": [
+        "official-policy-and-statements: no retained source (actor-state uncovered).",
+        "measured-maritime-flow: no retained source (physical-flow, insured-flow uncovered).",
+        "energy-and-input-balances: no retained source (transmission-input uncovered).",
+        "Only committed proxy bars are present; no independent origin group corroborates any material claim."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "priorDossier is null, so there is no predecessor situation to compare against, and no changeAssessment is authored here (change direction is owned by the deterministic layer). With this generation carrying no authorable current evidence, no change relative to a prior state can be established.",
+      "gaps": [
+        "No prior dossier available for comparison (priorDossier is null).",
+        "No current authorable evidence, so no predecessor-to-current delta can be computed."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

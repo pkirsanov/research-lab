@@ -232,6 +232,20 @@ if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
   fixturePayload.asOf = `${baselineDate}T14:05:00.000Z`;
   fixturePayload.generatedAt = `${baselineDate}T14:05:00.000Z`;
   fixturePayload.nextSession.sessionDate = baselineDate;
+  /* This suite tests publication ATOMICITY, not narrative completeness, and its stub lane echoes
+     this baseline as the "generated" payload. The publish path now refuses a generated narrative
+     that omits required reader copy, so a baseline copied from a live payload that happens to be
+     missing `dataAsOf.labels` would fail the lane gate and silently reroute every test onto the
+     degraded branch. Backfilled only when absent, exactly like the window/asOf normalisation above,
+     so these tests assert transaction behaviour rather than whatever today's publish contained. */
+  if (fixturePayload.dataAsOf && !fixturePayload.dataAsOf.labels) {
+    fixturePayload.dataAsOf.labels = {
+      bars: 'Daily bars are fresh for this window and the last completed session is closed.',
+      events: 'The tracked calendar items are resolved and no scheduled release lands in this window.',
+      macro: 'The volatility headline is calm and the sizing model agrees with it.',
+      options: 'Option chains are fresh and the dealer map is unchanged from the last close.'
+    };
+  }
   writeFileSync(fixturePayloadPath, JSON.stringify(fixturePayload, null, 2) + '\n');
   copyFileSync(resolve(ROOT, 'market-brief.config.json'), resolve(repoRoot, 'market-brief.config.json'));
   copyFileSync(resolve(ROOT, 'market-brief.scorecard.json'), resolve(repoRoot, 'market-brief.scorecard.json'));

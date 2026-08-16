@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { BRIEF_NARRATIVE_FIELDS_REQUIRED, findBriefNarrativeVocabularyLeaks } from './reader-vocabulary.mjs';
+import { BRIEF_NARRATIVE_FIELDS_REQUIRED, findBriefNarrativeVocabularyLeaks, matchesFieldPatterns, walkBriefStrings } from './reader-vocabulary.mjs';
 import { ACTION_DIRECTION, buildRecommendationBody, loadInstrumentUniverse } from './recommendation-body.mjs';
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
@@ -548,7 +548,28 @@ function loadJson(path) {
 }
 
 const D16_FLAGS = new Set(['--enforce-d16', '--drop-unscoreable']);
-const CLI_FLAGS = new Set([...D16_FLAGS, '--defer-page-parity']);
+const CLI_FLAGS = new Set([...D16_FLAGS, '--defer-page-parity', '--require-narrative-fields']);
+
+/*
+ * `--require-narrative-fields` asserts every BRIEF_NARRATIVE_FIELDS_REQUIRED pattern resolves in the
+ * payload. It is CALLER-SELECTED for the same reason the D16 flags are, and the asymmetry is the
+ * whole point: the lane-authored fields are only the AUTHOR's obligation on a payload the lane just
+ * produced. The 2026-08-15 after-hours publish dropped `dataAsOf.labels` — present in the eight
+ * preceding payloads — and nothing on the publish path noticed.
+ *
+ * It must therefore run ONLY on a newly generated payload (brief-refresh-and-push.sh's post-lane
+ * validation, which retries the lane and degrades to data-only if it keeps failing). Running it on
+ * the baseline check would refuse EVERY future publish, because the currently published payload is
+ * the one missing the field — a gate that locks the door on the way out. Running it on the final
+ * selected-pair check would block the degraded publishes that deliberately retain the older
+ * narrative. Both would trade a missing label for no brief at all.
+ */
+function findMissingRequiredNarrativeFields(payload) {
+  const present = walkBriefStrings(payload);
+  return BRIEF_NARRATIVE_FIELDS_REQUIRED.filter(
+    (pattern) => !present.some((entry) => matchesFieldPatterns([pattern], entry.segments))
+  );
+}
 
 /*
  * D16 enforcement mode is chosen by the CALLER, because refusing and repairing have very different
@@ -586,8 +607,19 @@ function main() {
   const strict = flags.includes('--enforce-d16');
   const repair = flags.includes('--drop-unscoreable');
   const deferPageParity = flags.includes('--defer-page-parity');
+  const requireNarrativeFields = flags.includes('--require-narrative-fields');
 
   let payload = loadJson(payloadPath);
+
+  if (requireNarrativeFields) {
+    const missing = findMissingRequiredNarrativeFields(payload);
+    if (missing.length) {
+      console.error(`[brief-contract] FAIL: the generated narrative omits required reader copy: ${missing.join(', ')}`);
+      process.exit(1);
+    }
+    console.log('[brief-contract] every required narrative field is present in the generated payload: PASS');
+  }
+
   const unscoreable = findUnscoreableActions(payload, { root: ROOT });
   const verdict = strict || repair ? 'D16 REFUSED' : 'D16 WARNING';
   unscoreable.forEach((finding) => console.error(`[brief-contract] ${verdict} ${formatUnscoreableFinding(finding)}`));

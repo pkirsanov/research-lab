@@ -506,7 +506,10 @@ rotation math (§4).
   "window": "pre-market|morning|pre-close|after-hours",
   "asOf": "<ISO8601 — the window/session this brief analyzes>",
   "generatedAt": "<ISO8601 — actual wall-clock when THIS payload was (re)generated>",
-  "dataAsOf": { "bars": "", "options": "", "macro": "", "events": "" },
+  "dataAsOf": {
+    "bars": "", "options": "", "macro": "", "events": "",
+    "labels": { "bars": "", "options": "", "macro": "", "events": "" }
+  },
   "nextSession": {
     "sessionDate": "YYYY-MM-DD", "thesis": "<one-line next-session frame>",
     "actions": [

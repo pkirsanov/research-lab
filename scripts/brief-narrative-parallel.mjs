@@ -57,7 +57,7 @@ const lanes = [
         id: 'core',
         keys: ['nextSession', 'dataAsOf', 'regime', 'backdrop', 'psychology'],
         web: true,
-        instructions: `Own the posture and structural frame. Author nextSession FIRST for snapshot.nextSessionDate with at most config.thresholds.nextSessionMaxActions. Every action must use hold|trim|add|hedge|rotate and include subject, rationale, horizon, structuralAnchor, trigger, invalidation, confidence, and deepLink. Keep tactical confidence at or below the configured cap. dataAsOf must truthfully label bars, options, macro, and events. Name the regime and crowd psychology, structural trend, macro cycle, priced-in view, asymmetry, levels, and falsifiers.`
+        instructions: `Own the posture and structural frame. Author nextSession FIRST for snapshot.nextSessionDate with at most config.thresholds.nextSessionMaxActions. Every action must use hold|trim|add|hedge|rotate and include subject, rationale, horizon, structuralAnchor, trigger, invalidation, confidence, and deepLink. Keep tactical confidence at or below the configured cap. dataAsOf must truthfully label bars, options, macro, and events, and dataAsOf.labels must carry the SAME four keys as condensed reader-facing versions of those four narratives — both are required reader copy and the publish path refuses a payload that omits either. Name the regime and crowd psychology, structural trend, macro cycle, priced-in view, asymmetry, levels, and falsifiers.`
     },
     {
         id: 'signals',

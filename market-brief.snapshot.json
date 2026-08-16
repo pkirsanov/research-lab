@@ -1,12 +1,12 @@
 {
-  "asOf": "2026-08-15T21:14:42.392Z",
-  "generatedAt": "2026-08-15T21:14:42.392Z",
+  "asOf": "2026-08-16T03:54:44.384Z",
+  "generatedAt": "2026-08-16T03:54:44.384Z",
   "window": "after-hours",
   "marketClosed": true,
   "nextSessionDate": "2026-08-17",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-15T21:13:55.916Z",
+      "updated": "2026-08-16T03:54:02.148Z",
       "symbolCount": 289,
       "expectedSessionDate": "2026-08-14",
       "refreshDate": "2026-08-15",
@@ -16,7 +16,7 @@
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-08-15T21:13:59.572Z",
+      "updated": "2026-08-16T03:54:02.220Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-08-15",
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-15T21:14:40.693Z",
+      "asOf": "2026-08-16T03:54:41.591Z",
       "read": "Rotate toward XLK as XLE weakens.",
       "metrics": {
         "into": {
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": 0.04273453577748976,
           "usdRelativeReturn": 0.13632090153286192,
           "asOf": "2026-08-14T00:00:00.000Z",
-          "computedAt": "2026-08-15T21:14:40.855Z",
+          "computedAt": "2026-08-16T03:54:41.834Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1351,7 +1351,7 @@
           "horizonSessions": 63,
           "observationSet": {
             "contractVersion": "rlfx-observation-set/v1",
-            "setId": "set-v1-d340620e",
+            "setId": "set-v1-893cfddb",
             "purpose": "global-decomposition",
             "horizonSessions": 63,
             "legs": [
@@ -1377,10 +1377,34 @@
                 "subject": "SGD/USD",
                 "orientation": "fx",
                 "adjustment": "adjusted-close",
-                "validDateCount": 459
+                "validDateCount": 519
               }
             ],
             "alignedRows": [
+              {
+                "date": "2026-04-23",
+                "values": {
+                  "etf": 28.23125648498535,
+                  "benchmark": 148.28660583496094,
+                  "fx": 0.7825951073811898
+                }
+              },
+              {
+                "date": "2026-04-27",
+                "values": {
+                  "etf": 28.103559494018555,
+                  "benchmark": 149.53846740722656,
+                  "fx": 0.7849478353506908
+                }
+              },
+              {
+                "date": "2026-04-28",
+                "values": {
+                  "etf": 27.936567306518555,
+                  "benchmark": 148.6542205810547,
+                  "fx": 0.7836990455035677
+                }
+              },
               {
                 "date": "2026-04-29",
                 "values": {
@@ -1806,14 +1830,6 @@
                 }
               },
               {
-                "date": "2026-07-31",
-                "values": {
-                  "etf": 32.279998779296875,
-                  "benchmark": 156.42999267578125,
-                  "fx": 0.7801954830253282
-                }
-              },
-              {
                 "date": "2026-08-03",
                 "values": {
                   "etf": 32.380001068115234,
@@ -1843,14 +1859,6 @@
                   "etf": 32.54999923706055,
                   "benchmark": 160.10000610351562,
                   "fx": 0.7791621010624835
-                }
-              },
-              {
-                "date": "2026-08-07",
-                "values": {
-                  "etf": 33.25,
-                  "benchmark": 161.44000244140625,
-                  "fx": 0.7820993164305964
                 }
               },
               {
@@ -1884,24 +1892,20 @@
                   "benchmark": 162.47999572753906,
                   "fx": 0.7810852517713978
                 }
-              },
-              {
-                "date": "2026-08-14",
-                "values": {
-                  "etf": 33.68000030517578,
-                  "benchmark": 162.2899932861328,
-                  "fx": 0.7816774954885345
-                }
               }
             ],
             "coverage": {
               "requiredRowCount": 64,
-              "commonRowCount": 395,
-              "earliestCommonDate": "2024-11-13",
-              "latestCommonDate": "2026-08-14",
+              "commonRowCount": 444,
+              "earliestCommonDate": "2024-08-15",
+              "latestCommonDate": "2026-08-13",
               "unmatchedNewerDates": {
-                "etf": [],
-                "benchmark": [],
+                "etf": [
+                  "2026-08-14"
+                ],
+                "benchmark": [
+                  "2026-08-14"
+                ],
                 "fx": [
                   "2026-08-15"
                 ]
@@ -1922,17 +1926,17 @@
             },
             "state": "aligned"
           },
-          "usdReturnOnDecompositionDates": 0.21584862185387999,
-          "benchmarkReturnOnDecompositionDates": 0.09524177297193104,
-          "usdRelativeReturnOnDecompositionDates": 0.12060684888194895,
-          "fxReturn": 0.0007738866329232152,
-          "approximateLocalReturn": 0.2149084204670546,
-          "approximateLocalRelativeReturn": 0.11966664749512357,
-          "translation": 0.0009402013868253789,
-          "interaction": 0.0001663147539020955,
+          "usdReturnOnDecompositionDates": 0.1859195696813032,
+          "benchmarkReturnOnDecompositionDates": 0.0957159266857519,
+          "usdRelativeReturnOnDecompositionDates": 0.09020364299555128,
+          "fxReturn": -0.00192929344376358,
+          "approximateLocalReturn": 0.18821197926269595,
+          "approximateLocalRelativeReturn": 0.09249605257694404,
+          "translation": -0.0022924095813927625,
+          "interaction": -0.0003631161376292862,
           "relationship": "Mixed",
-          "asOf": "2026-08-14T00:00:00.000Z",
-          "computedAt": "2026-08-15T21:14:40.855Z",
+          "asOf": "2026-08-13T00:00:00.000Z",
+          "computedAt": "2026-08-16T03:54:41.834Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1956,7 +1960,7 @@
               "usdLeadership": {
                 "asOf": "2026-08-14T00:00:00.000Z",
                 "benchmarkReturn": 0.04273453577748976,
-                "computedAt": "2026-08-15T21:14:40.855Z",
+                "computedAt": "2026-08-16T03:54:41.834Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2461,22 +2465,46 @@
                 "usdRelativeReturn": 0.13632090153286192
               },
               "decomposition": {
-                "approximateLocalRelativeReturn": 0.11966664749512357,
-                "approximateLocalReturn": 0.2149084204670546,
-                "asOf": "2026-08-14T00:00:00.000Z",
-                "benchmarkReturnOnDecompositionDates": 0.09524177297193104,
-                "computedAt": "2026-08-15T21:14:40.855Z",
+                "approximateLocalRelativeReturn": 0.09249605257694404,
+                "approximateLocalReturn": 0.18821197926269595,
+                "asOf": "2026-08-13T00:00:00.000Z",
+                "benchmarkReturnOnDecompositionDates": 0.0957159266857519,
+                "computedAt": "2026-08-16T03:54:41.834Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "SGD",
                 "freshUntil": null,
-                "fxReturn": 0.0007738866329232152,
+                "fxReturn": -0.00192929344376358,
                 "horizonSessions": 63,
-                "interaction": 0.0001663147539020955,
+                "interaction": -0.0003631161376292862,
                 "limitations": [
                   "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
                 ],
                 "observationSet": {
                   "alignedRows": [
+                    {
+                      "date": "2026-04-23",
+                      "values": {
+                        "benchmark": 148.28660583496094,
+                        "etf": 28.23125648498535,
+                        "fx": 0.7825951073811898
+                      }
+                    },
+                    {
+                      "date": "2026-04-27",
+                      "values": {
+                        "benchmark": 149.53846740722656,
+                        "etf": 28.103559494018555,
+                        "fx": 0.7849478353506908
+                      }
+                    },
+                    {
+                      "date": "2026-04-28",
+                      "values": {
+                        "benchmark": 148.6542205810547,
+                        "etf": 27.936567306518555,
+                        "fx": 0.7836990455035677
+                      }
+                    },
                     {
                       "date": "2026-04-29",
                       "values": {
@@ -2902,14 +2930,6 @@
                       }
                     },
                     {
-                      "date": "2026-07-31",
-                      "values": {
-                        "benchmark": 156.42999267578125,
-                        "etf": 32.279998779296875,
-                        "fx": 0.7801954830253282
-                      }
-                    },
-                    {
                       "date": "2026-08-03",
                       "values": {
                         "benchmark": 157.94000244140625,
@@ -2939,14 +2959,6 @@
                         "benchmark": 160.10000610351562,
                         "etf": 32.54999923706055,
                         "fx": 0.7791621010624835
-                      }
-                    },
-                    {
-                      "date": "2026-08-07",
-                      "values": {
-                        "benchmark": 161.44000244140625,
-                        "etf": 33.25,
-                        "fx": 0.7820993164305964
                       }
                     },
                     {
@@ -2980,30 +2992,26 @@
                         "etf": 33.47999954223633,
                         "fx": 0.7810852517713978
                       }
-                    },
-                    {
-                      "date": "2026-08-14",
-                      "values": {
-                        "benchmark": 162.2899932861328,
-                        "etf": 33.68000030517578,
-                        "fx": 0.7816774954885345
-                      }
                     }
                   ],
                   "contractVersion": "rlfx-observation-set/v1",
                   "coverage": {
-                    "commonRowCount": 395,
+                    "commonRowCount": 444,
                     "duplicateDatesDropped": {
                       "benchmark": 0,
                       "etf": 0,
                       "fx": 0
                     },
-                    "earliestCommonDate": "2024-11-13",
-                    "latestCommonDate": "2026-08-14",
+                    "earliestCommonDate": "2024-08-15",
+                    "latestCommonDate": "2026-08-13",
                     "requiredRowCount": 64,
                     "unmatchedNewerDates": {
-                      "benchmark": [],
-                      "etf": [],
+                      "benchmark": [
+                        "2026-08-14"
+                      ],
+                      "etf": [
+                        "2026-08-14"
+                      ],
                       "fx": [
                         "2026-08-15"
                       ]
@@ -3033,7 +3041,7 @@
                       "observationId": "fx:SGD",
                       "orientation": "fx",
                       "subject": "SGD/USD",
-                      "validDateCount": 459
+                      "validDateCount": 519
                     }
                   ],
                   "lineage": {
@@ -3045,21 +3053,21 @@
                     "uniqueRelationshipIds": []
                   },
                   "purpose": "global-decomposition",
-                  "setId": "set-v1-d340620e",
+                  "setId": "set-v1-893cfddb",
                   "state": "aligned"
                 },
                 "relationship": "Mixed",
                 "state": "ready",
-                "translation": 0.0009402013868253789,
-                "usdRelativeReturnOnDecompositionDates": 0.12060684888194895,
-                "usdReturnOnDecompositionDates": 0.21584862185387999
+                "translation": -0.0022924095813927625,
+                "usdRelativeReturnOnDecompositionDates": 0.09020364299555128,
+                "usdReturnOnDecompositionDates": 0.1859195696813032
               }
             },
             "unavailableStates": [],
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-08-15T21:14:40.855Z",
+          "computedAt": "2026-08-16T03:54:41.834Z",
           "freshUntil": null
         }
       },
@@ -3069,7 +3077,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-08-14T13:30:00.000Z",
-      "read": "CPER leads real assets at 53.3/100; GLD 38.2, BTC 34.1, SLV 14.1.",
+      "read": "CPER leads real assets at 53.3/100; GLD 38.2, BTC 34.2, SLV 14.1.",
       "metrics": {
         "leader": {
           "ticker": "CPER",
@@ -3242,9 +3250,9 @@
             "model": "crypto",
             "score": 45.2,
             "trend": "Mixed",
-            "mom21": 0.49,
-            "mom63": 12.03,
-            "mom126": -17.63,
+            "mom21": 0.42,
+            "mom63": 11.96,
+            "mom126": -17.69,
             "vol": 47.14,
             "maxDrawdown": 35.37,
             "riskPenalty": 7.21,
@@ -3262,11 +3270,11 @@
                 "symbols": [
                   "BTC-USD"
                 ],
-                "score": 46.923988808226966,
+                "score": 46.97732248204575,
                 "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
               }
             ],
-            "asOf": "2026-08-15T00:00:00.000Z"
+            "asOf": "2026-08-16T00:00:00.000Z"
           },
           {
             "ticker": "DBA",
@@ -3386,11 +3394,11 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 34.1,
+            "score": 34.2,
             "trend": "Downtrend",
-            "mom21": -1.99,
-            "mom63": -2.15,
-            "mom126": -13.72,
+            "mom21": -1.95,
+            "mom63": -2.12,
+            "mom126": -13.68,
             "vol": 33.73,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
@@ -3410,7 +3418,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-08-15T00:00:00.000Z"
+            "asOf": "2026-08-16T00:00:00.000Z"
           },
           "IBIT": {
             "ticker": "IBIT",
@@ -3871,7 +3879,7 @@
             "verdict": "current",
             "errorCode": null,
             "lastGoodObservedAt": "2026-08-14",
-            "elapsedDays": 1,
+            "elapsedDays": 2,
             "windowDays": 4,
             "basis": "observed-gap-max-3d-over-9-gaps-plus-lag-1d"
           },
@@ -3879,7 +3887,7 @@
             "verdict": "current",
             "errorCode": null,
             "lastGoodObservedAt": "2026-08-14",
-            "elapsedDays": 1,
+            "elapsedDays": 2,
             "windowDays": 4,
             "basis": "observed-gap-max-3d-over-9-gaps-plus-lag-1d"
           }
@@ -3918,15 +3926,15 @@
     },
     "fx-regime-relative-value-lab": {
       "id": "fx-regime-relative-value-lab",
-      "asOf": "2026-08-15T21:14:42.205Z",
+      "asOf": "2026-08-16T03:54:44.087Z",
       "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "source": "owning-tool-functions",
       "state": "unavailable",
       "metrics": {
         "state": "unavailable",
-        "ownerDecisionId": "fxo-v1-4dc42828",
-        "evidenceIdentity": "fxe-v1-770b6ea2",
+        "ownerDecisionId": "fxo-v1-2fc07a90",
+        "evidenceIdentity": "fxe-v1-4c39c93c",
         "objective": "foreign-currency-strength",
         "subjectId": "JPY",
         "horizon": "swing",
@@ -4049,8 +4057,8 @@
           "read": "The available evidence does not support a complete attributable recommendation.",
           "metrics": {
             "contractVersion": "rlfx-tool-read/v2",
-            "ownerDecisionId": "fxo-v1-4dc42828",
-            "evidenceIdentity": "fxe-v1-770b6ea2",
+            "ownerDecisionId": "fxo-v1-2fc07a90",
+            "evidenceIdentity": "fxe-v1-4c39c93c",
             "state": "unavailable",
             "objective": "foreign-currency-strength",
             "subjectId": "JPY",
@@ -4170,7 +4178,7 @@
                 "REQUIRED_FACT_MISSING",
                 "TRACKING_EVIDENCE_INCOMPLETE"
               ],
-              "evidenceIdentity": "fxe-v1-770b6ea2",
+              "evidenceIdentity": "fxe-v1-4c39c93c",
               "evidenceCutoff": null,
               "provenance": [],
               "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
@@ -4195,7 +4203,7 @@
             "executionAvailable": false
           },
           "deepLink": "fx-regime-relative-value-lab.html#power",
-          "computedAt": "2026-08-15T21:14:42.205Z",
+          "computedAt": "2026-08-16T03:54:44.087Z",
           "freshUntil": null
         }
       }
@@ -4221,7 +4229,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-08-15T21:14:42.276Z",
+      "asOf": "2026-08-16T03:54:44.158Z",
       "read": "Leadership is narrow — 51.05% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -4287,14 +4295,14 @@
     "technical-analysis-decision-lab": {
       "id": "technical-analysis-decision-lab",
       "asOf": "2026-08-14T13:30:00.000Z",
-      "read": "The five-gate decision model publishes no read: The owner five-gate model (context/location/confirmation/validation gate scoring plus setup-state and expectancy) is not implemented in technical-analysis-decision-lab.html, a Scope-01 foundation-receipt validator that publishes no analytic result (ownerReadPublished:false).. Its data foundation is present.",
+      "read": "The five-gate decision model contributes no current-market read: The owner five-gate model is implemented in technical-analysis-decision-lab.html and publishes a decision read in the browser, but it projects committed deterministic fixtures that declare liveClaim:false rather than live market data, so it has no current-market read to contribute this window (ownerReadPublished:false). Its data foundation is present.",
       "deepLink": "technical-analysis-decision-lab.html",
       "source": "owning-tool-functions",
       "state": "owner-model-unavailable",
       "metrics": {
         "symbol": "SPY",
         "state": "unavailable",
-        "missingOwnerCapability": "The owner five-gate model (context/location/confirmation/validation gate scoring plus setup-state and expectancy) is not implemented in technical-analysis-decision-lab.html, a Scope-01 foundation-receipt validator that publishes no analytic result (ownerReadPublished:false).",
+        "missingOwnerCapability": "The owner five-gate model is implemented in technical-analysis-decision-lab.html and publishes a decision read in the browser, but it projects committed deterministic fixtures that declare liveClaim:false rather than live market data, so it has no current-market read to contribute this window (ownerReadPublished:false).",
         "foundationPresent": true,
         "ownerReadPublished": false,
         "setupState": "unavailable",
@@ -4381,7 +4389,7 @@
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "CPER leads real assets at 53.3/100; GLD 38.2, BTC 34.1, SLV 14.1."
+      "reason": "CPER leads real assets at 53.3/100; GLD 38.2, BTC 34.2, SLV 14.1."
     },
     {
       "id": "bond-regime-lab",
@@ -4459,7 +4467,7 @@
       "id": "technical-analysis-decision-lab",
       "deepLink": "technical-analysis-decision-lab.html",
       "status": "unavailable",
-      "reason": "The five-gate decision model publishes no read: The owner five-gate model (context/location/confirmation/validation gate scoring plus setup-state and expectancy) is not implemented in technical-analysis-decision-lab.html, a Scope-01 foundation-receipt validator that publishes no analytic result (ownerReadPublished:false).. Its data foundation is present."
+      "reason": "The five-gate decision model contributes no current-market read: The owner five-gate model is implemented in technical-analysis-decision-lab.html and publishes a decision read in the browser, but it projects committed deterministic fixtures that declare liveClaim:false rather than live market data, so it has no current-market read to contribute this window (ownerReadPublished:false). Its data foundation is present."
     },
     {
       "id": "fx-regime-relative-value-lab",

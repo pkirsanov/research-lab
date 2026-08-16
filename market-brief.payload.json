@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-08-14T20:31:08.653Z",
+  "asOf": "2026-08-16T03:54:44.384Z",
   "attention": [],
   "attentionExclusions": [
     {
@@ -20,6 +20,13 @@
       "code": "RLATTN-PROVENANCE",
       "field": "gateResult",
       "index": 2,
+      "reason": "an attention item is built from an observed gate result",
+      "subject": null
+    },
+    {
+      "code": "RLATTN-PROVENANCE",
+      "field": "gateResult",
+      "index": 3,
       "reason": "an attention item is built from an observed gate result",
       "subject": null
     }
@@ -108,7 +115,6 @@
   "events": [
     {
       "consensus": "ESTIMATE (re-confirm on the next chart) - a positioning/gamma mechanic, NOT a scheduled data release, so it carries no consensus number; it is the next-session resolution in a quiet calendar gap (the 8/7 jobs print has cleared and nothing high-tier is scheduled before the 8/21 monthly expiration). Inputs this window: SPY chain spot 775.95 about 0.89% above the 769.10 flip in positive gamma (GEX ~+5.93e9), put wall 775 only ~0.12% below spot, price at the 776.63 VWAP on a mixed developing tape ~0.2% under the 52-week high, breadth NARROW at 51.05% (below the 60% line), flow call-heavy at call fraction 0.6696 with loud TSLA/QQQ/AMD upside call prints, vol calm (conditional 12.86%, VIX 14.25, throttle x1.17).",
-      "deepLink": "gamma-trading-lab.html",
       "event": "8/17 (Mon) next-session positioning - the dominant near-term mechanic is a firm positive dealer-gamma tape carried by narrowing breadth: on the fresh chain SPY dealers sit in positive gamma (signed net GEX ~+5.93e9) with spot 775.95 about 0.89% above the 769.10 flip, put wall 775 (only ~0.12% below spot), call wall 780, playbook pin-to-maxpain, so hedging still pins toward max-pain rather than amplifies. But breadth has flipped NARROW - market-heatmap-lab reads 51.05% of 134 constituents positive against the 60% line (margin -8.95) - so fewer names are carrying the index, and aggregate flow is call-heavy (call fraction 0.6696) with the loudest single prints TSLA 340C $67.7M on 15.4x OI (0DTE), QQQ 730C $45.1M on 32.3x OI (0DTE) and AMD 505C $43.9M on 19.1x OI (0DTE). The SPY proxy still sits ~0.2% under the 52-week high with VIX 14.25, and the intraday tape reads a Mixed / developing auction with spot at the 776.63 VWAP. Does the tape HOLD the 775-780 positive-gamma pin band, push through the 780 call wall HIGHER, or LOSE the 775 put wall / 769.10 flip back toward the 756.20 50-day? Gamma levels are the fresh chain - re-pull on the next chart.",
       "impliedMovePct": 0.22,
       "psychologyNote": "The odds still favour a pinned hold because dealers sit ~0.89% above the 769.10 flip in firm positive gamma (GEX ~+5.93e9), so the hedging mechanic pins price toward max-pain rather than amplifying it, and the calendar between now and 8/21 is quiet with no high-tier release to force a break. The downside break edges the upside break because the put wall sits only ~0.12% below spot and breadth has flipped NARROW to 51.05% - fewer names carrying the index is the classic precondition for a pin that fails lower. The upside break stays live on the intact bull-stack and the loud call-heavy flow (TSLA/QQQ/AMD 0DTE calls), but a thin put-wall cushion under narrowing breadth is why the downside path is ranked ahead of it this cycle.",
@@ -134,7 +140,6 @@
     },
     {
       "consensus": "ESTIMATE - a structural monthly expiration, not a scheduled data binary, so it carries no consensus magnitude; inputs are the current firm positive dealer-gamma posture (net ~+5.93e9, flip 769.10, band 775/780) sitting on a ~0.89% cushion above the flip but only ~0.12% above the put wall, a calm normal-regime vol read (12.86%, VIX 14.25, throttle x1.17), a narrow breadth read of 51.05% (below the 60% line), and a quiet macro calendar with no high-tier release on file between now and 8/21. Treat the gamma posture as the current chain and re-verify nearer the date.",
-      "deepLink": "gamma-trading-lab.html",
       "event": "8/21 (Fri) - the standard third-Friday August monthly options expiration - the next structural positioning event, roughly 5 trading sessions out. Dealers currently carry the fresh chain in firm positive gamma (signed net GEX ~+5.93e9, flip 769.10, walls 775/780), so the usual pre-expiry pinning magnet is PRESENT; the question is whether positioning holds that positive-gamma pin into the date or whether the gamma sign flips and the expiry rolls exposure off into a wider range. Re-pull the chain approaching 8/21 - the gamma sign can shift session to session, and breadth has already flipped narrow this window.",
       "impliedMovePct": null,
       "psychologyNote": "The odds favour a pinned range because dealers currently sit in firm positive gamma that supplies a strong pre-expiry pinning magnet, and the macro calendar between now and 8/21 is quiet with no high-tier release to force a break. The downside expansion edges the upside expansion because the put wall sits only ~0.12% below spot and breadth has flipped narrow to 51.05%, so a bearish repositioning is the more natural break if the pin fails. The upside expansion stays live on the intact bull-stack and the call-heavy flow, but needs positive gamma to hold and hedges to roll off cleanly, which narrowing breadth makes less likely than it was a window ago.",
@@ -160,7 +165,6 @@
     },
     {
       "consensus": "ESTIMATE - a preliminary benchmark revision to the establishment-survey payroll level, not a monthly binary; no consensus magnitude is on file this run and it sits at the edge of the near window, so treat it as a watch item and re-pull nearer the date. Inputs: prior preliminary benchmark revisions have skewed the payroll level downward in recent cycles (carried context, re-verify); a large downward revision would firm the labor-softening narrative, a neutral one would be a non-event.",
-      "deepLink": "swing-structure-lab.html",
       "event": "8/28 (Fri) - BLS preliminary payrolls benchmark revision - the next scheduled labor-market data event after the 8/7 jobs report, sitting at the edge of the near window (roughly 10 sessions out); flagged for calendar awareness, not as an actionable near-term catalyst. With only the 8/21 monthly expiration between now and this revision, the near window (8/17 through ~8/27) is a quiet calendar gap that leaves the gamma mechanic as the dominant driver.",
       "impliedMovePct": null,
       "psychologyNote": "The odds tilt to a downward revision because the recent run of preliminary benchmark revisions has repeatedly cut the reported payroll level, so the market's prior is that the establishment survey has been over-counting jobs - a soft-landing / rate-cut-friendly bias. It is only a labelled lean, not conviction, because the event sits at the edge of the near window and the magnitude is unknown; that distance is also why even a downward surprise is a slow-burn narrative input rather than an imminent tradable catalyst, and why the near window itself is a quiet calendar gap that leaves the gamma mechanic as the dominant driver.",
@@ -188,31 +192,32 @@
   "experimental": [
     {
       "inputs": [
-        "gamma-trading-lab.regime=positive; flip=769.1; walls=775/780",
-        "options-structure-lab.callWall=780; putWall=775; expectedMove=1.71",
-        "options-flow-feed-lab.lean=call-heavy; contracts=1804; topUnusual=TSLA 340C $67.7M (15.4x OI)",
-        "market-heatmap-lab.breadthPct=51.05; threshold=60; constituents=134",
-        "intraday-tape-lab.sessionType=Mixed / developing; vwap=776.63"
+        "gamma-trading-lab.regime=positive; scenario=pin-to-maxpain; flip=775.35; walls=775/780",
+        "options-structure-lab.flip=775.35; callWall=780; putWall=775; expectedMove=3.13; spot=776.34",
+        "options-flow-feed-lab.lean=call-heavy; contracts=1459; topUnusual=NVDA 227.5C $19.8M (4.6x OI); SPY 776P near put wall",
+        "market-heatmap-lab.breadthPct=51.05; threshold=60; margin=-8.95; constituents=134",
+        "intraday-tape-lab.sessionType=Mixed / developing; control=Algo-controlled; vwap=776.63",
+        "regime.vix=14.25"
       ],
-      "method": "Cross-read the gamma dealer regime with its flip and wall levels, the options-structure walls and expected move, the options-flow lean, the market-heatmap breadth percentage against its 60% threshold, and the intraday session type and VWAP, then judge whether the positive-gamma call-led structure is confirmed or contradicted by breadth and the live tape.",
-      "note": "Four surfaces disagree on conviction. SPY dealers sit in positive gamma with the flip near 769.1 beneath a 775/780 wall band and a tight front expected move of plus or minus 1.71, and unusual options flow is call-heavy and leaning bullish — 1804 contracts clear the $250k bar within 30 days, headlined by TSLA 340 calls at $67.7M on 15.4x open interest — a backdrop that favors a pinned, mean-reverting drift toward the walls rather than a directional break. Yet market-heatmap breadth is narrow at 51.05% of 134 names, below the 60% threshold, and the live SPY tape is a mixed, developing auction under algo control with VWAP 776.63. The positive-gamma, call-led structure therefore lacks breadth and tape confirmation this window, so a probe toward the 780 call wall above or the 769.1 flip below is better read as a range extreme to respect than as a trend to chase.",
-      "title": "Positive dealer gamma and call-led flow argue for drift, but narrow breadth and a mixed tape withhold trend confirmation"
+      "method": "Cross-read the gamma dealer regime with its flip and wall levels, the options-structure walls and front expected move, the options-flow lean and most-unusual prints, the market-heatmap breadth percentage against its 60% threshold, and the intraday session type and VWAP with the VIX band, then judge whether the positive-gamma call-led structure is confirmed or contradicted by breadth and the live tape.",
+      "note": "Four surfaces disagree on conviction. SPY spot 776.34 sits just above the 775.35 gamma flip inside a 775/780 wall band with a tight front expected move of plus or minus 3.13, and VIX 14.25 is low and calm — a backdrop that favors a pinned, mean-reverting drift toward the walls rather than a directional break. Unusual options flow is call-heavy and leaning bullish, with 1459 contracts clearing the $250k bar inside 30 days and the top print NVDA 227.5 calls at $19.8M on 4.6x open interest, yet the third-most-unusual print is a SPY 776 put sitting right on the 775 put wall. Against that, market-heatmap breadth is narrow at 51.05% of 134 names, an -8.95-point shortfall to the 60% threshold, and the live SPY tape is a mixed, developing auction under algo control with VWAP 776.63. The positive-gamma, call-led structure therefore lacks breadth and tape confirmation this window, so a probe toward the 780 call wall above or the 775.35 flip below is better read as a range extreme to respect than a trend to chase.",
+      "title": "Positive dealer gamma and call-led flow argue for a pin, but narrow breadth and a mixed tape withhold trend confirmation"
     },
     {
       "inputs": [
-        "sector-research-lab.into=XLK; out=XLE",
+        "sector-research-lab.into=XLK; out=XLE; fading=XLV",
         "etf-momentum-lab.leader=VGT; signal=34.68",
-        "global-rotation-lab.leader=EWS (89); next=EWC (75.4)",
-        "real-assets-lab.leader=CPER; score=53.3",
+        "global-rotation-lab.leader=EWS (89); next=EWC (75.4); benchmark=ACWI",
+        "real-assets-lab.leader=CPER (53.3, Uptrend); DBC=49.2 (Uptrend); USO=43.9 (Uptrend)",
         "real-assets-lab.specific.GLD=38.2 (Mixed); SLV=14.1 (Mixed)",
-        "real-assets-lab.specific.BTC-USD=34.9 (Downtrend); IBIT=23.8 (Downtrend)"
+        "real-assets-lab.specific.BTC-USD=34.2 (Downtrend); IBIT=23.8 (Downtrend)"
       ],
       "method": "Compare the sector rotation into and out tickers and the ETF-momentum and global-rotation leaders against the real-assets model scores and trends, flagging the sign divergence between equity leadership and hard-asset momentum.",
-      "note": "Leadership is concentrated in equities. Sector rotation is into XLK as XLE weakens, ETF momentum is led by tech (VGT 34.68%), and the global-rotation board is topped by ex-US names EWS (Singapore, 89/100) and EWC (Canada, 75.4). The real-assets book, by contrast, is broadly soft: only industrial copper (CPER 53.3) and broad commodities (DBC 49.2) with oil (USO 43.9) hold uptrends, while gold (GLD 38.2) and silver (SLV 14.1) are mixed and both bitcoin proxies (BTC-USD 34.9, IBIT 23.8) are in downtrends. The divergence reads as a risk-on equity advance rather than a reflation or hard-asset hedge bid, so real-asset vehicles are a weak diversifier and a poor confirmation source this window.",
+      "note": "Leadership is concentrated in equities. Sector rotation is into XLK as XLE weakens and XLV leadership fades, ETF momentum is led by tech (VGT 34.68%), and the global-rotation board is topped by ex-US names EWS (Singapore, 89/100) and EWC (Canada, 75.4) versus ACWI. The real-assets book, by contrast, is broadly soft: only industrial copper (CPER 53.3), broad commodities (DBC 49.2) and oil (USO 43.9) hold uptrends, while gold (GLD 38.2) and silver (SLV 14.1) are mixed and both bitcoin proxies (BTC-USD 34.2, IBIT 23.8) are in downtrends. The divergence reads as a risk-on equity advance rather than a reflation or hard-asset hedge bid, so real-asset vehicles are a weak diversifier and a poor confirmation source this window.",
       "title": "US-tech and ex-US equity leadership advances while real assets broadly trail"
     }
   ],
-  "generatedAt": "2026-08-14T20:52:49.199Z",
+  "generatedAt": "2026-08-16T04:07:20.863Z",
   "groups": [
     {
       "breadth": {
@@ -243,7 +248,7 @@
           "maStack": "bull-stack",
           "mom21": 8.56,
           "mom5": 0.54,
-          "reason": "the group's firmest bull-stack and one of only two green 5-day tapes here — +15.62% over its 200-day (~194.7), +9.03% above its 50-day (~206.5), mom5 +0.54 / mom21 +8.56 both green with mom126 +20.59 intact and only -4.38% off high, and it sits inside Technology, the sector-lab's rotation-in sector this run: the bull-stack breaks on a daily close below its 50-day (~206.5)",
+          "reason": "the group's firmest bull-stack and one of only two green 5-day tapes here — +15.62% over its 200-day (~194.7), +9.03% above its 50-day (~206.5), mom5 +0.54 / mom21 +8.56 both green with mom126 +20.59 intact and only -4.38% off high, it sits inside Technology, the sector-lab's rotation-in sector this run, and it carries this cycle's single most unusual options print (an NVDA 227.5-strike 7-day call, $19.8M at 4.64× open interest, IV 29.21): the bull-stack breaks on a daily close below its 50-day (~206.5)",
           "ticker": "NVDA"
         },
         {
@@ -261,11 +266,11 @@
           "maStack": "bear-stack",
           "mom21": -12.48,
           "mom5": 4.17,
-          "reason": "the bear-stacked deep laggard — -30.13% off high, -15.71% below its 200-day (~406.1) and -7.77% under its 50-day (~371.1); mom21 -12.48 and mom63 -22.79 the deepest sustained reds, though mom5 +4.17 is the group's firmest 5-day bounce and a 0-day TSLA 340-strike call is this cycle's single most unusual options print ($67.7M at 15.36× open interest) — the deep-laggard read is invalidated on a daily close back above its 200-day (~406.1)",
+          "reason": "the bear-stacked deep laggard — -30.13% off high, -15.71% below its 200-day (~406.1) and -7.77% under its 50-day (~371.1); mom21 -12.48 and mom63 -22.79 the deepest sustained reds, though mom5 +4.17 is the group's firmest 5-day bounce; TSLA prints no unusual options flow this cycle — the deep-laggard read is invalidated on a daily close back above its 200-day (~406.1)",
           "ticker": "TSLA"
         }
       ],
-      "note": "MAGS reads Improving ↑ (quad I, rotation INTO) in the 2026-08-14 after-hours window off the 2026-08-14 close — rsMom 100.28 sits just over 100, rsRatio 99.54 is still under the line, and the 2-week accel is POSITIVE (+0.19); the ETF holds +5.01% over its 200-day (~65.0) with a bull-stacked MA stack. Breadth is 3/7 bull-stacked by MA order (AAPL, NVDA, AMZN), above-50-day 3/7 (MSFT +20.02 (~412.8), NVDA +9.03 (~206.5), AMZN +5.84 (~248.2); below AAPL -0.98 (~309.0), GOOGL -2.26 (~353.9), META -1.21 (~597.1), TSLA -7.77 (~371.1)), above-200-day 5/7 (NVDA +15.62 (~194.7), MSFT +14.86 (~431.3), AMZN +10.5 (~237.7), AAPL +9.27 (~280.0), GOOGL +4.47 (~331.1); below META -5.9 (~626.8), TSLA -15.71 (~406.1)), and 21-day upMom 3/7 (MSFT +23.51, NVDA +8.56, AMZN +5.11 green; red AAPL -8.12, GOOGL -2.41, META -11.24, TSLA -12.48). The 5-day tape is only 2/7 green — NVDA +0.54 and TSLA +4.17 — with MSFT -0.92, META -0.38, AAPL -2.28, GOOGL -2.37 and AMZN -4.31 (the group's weakest 5-day) the five reds. MSFT is still the engine: mom21 +23.51 the group's strongest one-month read keeps it ABOVE both its 50-day (+20.02%, ~412.8) and 200-day (+14.86%, ~431.3), the MA stack still tangled (the 50-day sits under the 200-day), mom63 +21.26 green but mom252 -4.08 and -8% off high — an earnings breakout on price with the long-term order not yet healed; HOLD, invalidated on a daily close below its 200-day (~431.3). NVDA is the firmest bull-stack — +15.62% over its 200-day (~194.7), +9.03% above its 50-day (~206.5), mom5 +0.54 / mom21 +8.56 both green, mom126 +20.59, only -4.38% off high; the bull-stack breaks on a daily close below its 50-day (~206.5). AMZN is the group's cleanest quiet bull-stack — only -7.52% off its high, +10.5% over its 200-day (~237.7) and +5.84% above its 50-day (~248.2), mom21 +5.11 green though mom5 -4.31 is the group's deepest 5-day red. AAPL is bull-ordered on its MAs but fractionally under its 50-day — +9.27% over its 200-day (~280.0), -0.98% under its 50-day (~309.0), mom252 +31.6 green, but mom5 -2.28 and mom21 -8.12 soft. GOOGL sits under its 50-day (-2.26%, ~353.9) with mom21 -2.41 and mom5 -2.37 red and mom63 -13.7 a deeper 3-month decline — still +4.47% over its 200-day (~331.1), mom252 +71.76 the group's deepest structural gain; a near-term wobble under the 50-day inside an intact long structure, invalidated on a daily close below its 200-day (~331.1). META still carries structural damage — -5.9% UNDER its 200-day (~626.8), -1.21% under its 50-day (~597.1), -24.64% off high, mom126 -9.07 / mom252 -24.14 — with mom21 -11.24 red and mom5 -0.38 fractionally red. TSLA is the bear-stacked deep laggard (-30.13% off high, -15.71% under its 200-day (~406.1), -7.77% under its 50-day (~371.1)); mom21 -12.48 / mom63 -22.79 the deepest sustained reds, though mom5 +4.17 is the group's firmest 5-day bounce and a 0-day TSLA 340-strike call is this cycle's single most unusual options print — the deep-laggard read is invalidated on a daily close back above its 200-day (~406.1). The sector backdrop now DOES favor this group's Technology engines: sector-research-lab (owning-tool read, asOf 2026-08-14T20:31:07Z, benchmark SPY, 11 sectors) rotates INTO Technology (XLK — Leading, quad L, rsRatio 100.01, rsMom 102.37, accel +2.55) and OUT of Energy (XLE — Weakening ↓, quad W, accel -0.68), with Health Care (XLV) still the RS leader as it weakens — Technology houses the group's AAPL, MSFT and NVDA, so the rotation-in touches the group's Technology engines rather than its Communication-Services names (GOOGL, META) or its Consumer-Discretionary names (AMZN, TSLA). options-flow-feed-lab reads call-heavy (leaning bullish) this cycle (callFraction 0.6696 — call premium $2.2409B against put premium $1.1055B) across 12 tickers (1804 contracts clear the $250k premium bar inside 30 days, asOf 2026-08-14T16:00Z); its top prints are the TSLA 340-strike 0-day call ($67.7M at 15.36× open interest, IV 70.88, the single most unusual), a QQQ 730-strike 0-day call ($45.06M at 32.26× open interest) and an AMD 505-strike 0-day call ($43.9M at 19.1× open interest, IV 102.42) — the only MAG7 single name to print this cycle is TSLA, the deep laggard, on a 0-day call, so bullish but very short-dated positioning on the group's weakest name; no MSFT, NVDA, AAPL, AMZN, GOOGL or META single name ranks this run. Confirm on breadth broadening (>3/7 bull-stacked, rsRatio crossing back above 100) and MSFT's 50-day crossing back above its 200-day to turn the earnings gap into a healed trend. (rsMom1m/3m/6m and accel are sector-lab RRG proxies vs SPY — labeled proxies; MA levels are ~ approximations derived from price and MA-distance; regime is calm by VIX 14.25 and dealers sit in POSITIVE gamma: SPY flip ~769.1 with spot ~775.95 above it, walls put 775 / call 780, expected move ±1.71, atm IV ~5.9%, and gamma-trading-lab reads a pin-to-maxpain playbook at patient conviction; intraday-tape-lab reads SPY a Mixed / developing auction under Algo-controlled control (VWAP ~776.63, gap +0.1%, 79 bars, asOf 2026-08-14T20:00Z) and market-heatmap-lab shows narrow leadership — 51.05% of 134 constituents positive against a 60% threshold; swing-structure-lab reads SPY Bull-stacked (20>50>200) with a Double bottom pattern (asOf 2026-08-14T13:30Z). This is the 2026-08-14 after-hours window; the 2026-08-14 regular session has closed and is the latest completed daily bar, next session 2026-08-17, snapshot asOf 2026-08-14T20:31:08.653Z; daily structure counts are read off that single distinct market-bar date — no multi-session persistence is claimed. Educational only — not investment advice.)",
+      "note": "MAGS reads Improving ↑ (quad I, rotation INTO) in the 2026-08-15 after-hours window off the 2026-08-14 close — rsMom 100.28 sits just over 100, rsRatio 99.54 is still under the line, and the 2-week accel is POSITIVE (+0.19); the ETF holds +5.01% over its 200-day (~65.0) with a bull-stacked MA stack. Breadth is 3/7 bull-stacked by MA order (AAPL, NVDA, AMZN), above-50-day 3/7 (MSFT +20.02 (~412.8), NVDA +9.03 (~206.5), AMZN +5.84 (~248.2); below AAPL -0.98 (~309.0), GOOGL -2.26 (~353.9), META -1.21 (~597.1), TSLA -7.77 (~371.1)), above-200-day 5/7 (NVDA +15.62 (~194.7), MSFT +14.86 (~431.3), AMZN +10.5 (~237.7), AAPL +9.27 (~280.0), GOOGL +4.47 (~331.1); below META -5.9 (~626.8), TSLA -15.71 (~406.1)), and 21-day upMom 3/7 (MSFT +23.51, NVDA +8.56, AMZN +5.11 green; red AAPL -8.12, GOOGL -2.41, META -11.24, TSLA -12.48). The 5-day tape is only 2/7 green — NVDA +0.54 and TSLA +4.17 — with MSFT -0.92, META -0.38, AAPL -2.28, GOOGL -2.37 and AMZN -4.31 (the group's weakest 5-day) the five reds. MSFT is still the engine: mom21 +23.51 the group's strongest one-month read keeps it ABOVE both its 50-day (+20.02%, ~412.8) and 200-day (+14.86%, ~431.3), the MA stack still tangled (the 50-day sits under the 200-day), mom63 +21.26 green but mom252 -4.08 and -8% off high — an earnings breakout on price with the long-term order not yet healed; HOLD, invalidated on a daily close below its 200-day (~431.3). NVDA is the firmest bull-stack — +15.62% over its 200-day (~194.7), +9.03% above its 50-day (~206.5), mom5 +0.54 / mom21 +8.56 both green, mom126 +20.59, only -4.38% off high — and it carries this cycle's single most unusual options print, an NVDA 227.5-strike 7-day call ($19.8M at 4.64× open interest, IV 29.21); the bull-stack breaks on a daily close below its 50-day (~206.5). AMZN is the group's cleanest quiet bull-stack — only -7.52% off its high, +10.5% over its 200-day (~237.7) and +5.84% above its 50-day (~248.2), mom21 +5.11 green though mom5 -4.31 is the group's deepest 5-day red. AAPL is bull-ordered on its MAs but fractionally under its 50-day — +9.27% over its 200-day (~280.0), -0.98% under its 50-day (~309.0), mom252 +31.6 green, but mom5 -2.28 and mom21 -8.12 soft. GOOGL sits under its 50-day (-2.26%, ~353.9) with mom21 -2.41 and mom5 -2.37 red and mom63 -13.7 a deeper 3-month decline — still +4.47% over its 200-day (~331.1), mom252 +71.76 the group's deepest structural gain; a near-term wobble under the 50-day inside an intact long structure, invalidated on a daily close below its 200-day (~331.1). META still carries structural damage — -5.9% UNDER its 200-day (~626.8), -1.21% under its 50-day (~597.1), -24.64% off high, mom126 -9.07 / mom252 -24.14 — with mom21 -11.24 red and mom5 -0.38 fractionally red. TSLA is the bear-stacked deep laggard (-30.13% off high, -15.71% under its 200-day (~406.1), -7.77% under its 50-day (~371.1)); mom21 -12.48 / mom63 -22.79 the deepest sustained reds, though mom5 +4.17 is the group's firmest 5-day bounce; TSLA prints no unusual options flow this cycle — the deep-laggard read is invalidated on a daily close back above its 200-day (~406.1). The sector backdrop now DOES favor this group's Technology engines: sector-research-lab (owning-tool read, asOf 2026-08-16T03:54:41Z, benchmark SPY, 11 sectors) rotates INTO Technology (XLK — Leading, quad L, rsRatio 100.01, rsMom 102.37, accel +2.55) and OUT of Energy (XLE — Weakening ↓, quad W, accel -0.68), with Health Care (XLV) still the RS leader as it weakens — Technology houses the group's AAPL, MSFT and NVDA, so the rotation-in touches the group's Technology engines rather than its Communication-Services names (GOOGL, META) or its Consumer-Discretionary names (AMZN, TSLA). options-flow-feed-lab reads call-heavy (leaning bullish) this cycle (callFraction 0.6651 — call premium $1.3398B against put premium $674.5M) across 12 tickers (1459 contracts clear the $250k premium bar inside 30 days, asOf 2026-08-14T16:00Z); its top prints are an NVDA 227.5-strike 7-day call ($19.8M at 4.64× open interest, IV 29.21, the single most unusual), a QQQ 730-strike 3-day call ($18.14M at 34.74× open interest) and a SPY 776-strike 3-day put ($16.02M at 22.68× open interest, IV 5.46) — the only MAG7 single name to print this cycle is NVDA, the group's firmest bull-stack, on a 7-day call, so bullish positioning on the group's own leader rather than a laggard chase (no MSFT, AAPL, AMZN, GOOGL, META or TSLA single name ranks this run). Confirm on breadth broadening (>3/7 bull-stacked, rsRatio crossing back above 100) and MSFT's 50-day crossing back above its 200-day to turn the earnings gap into a healed trend. (rsMom1m/3m/6m and accel are sector-lab RRG proxies vs SPY — labeled proxies; MA levels are ~ approximations derived from price and MA-distance; regime is calm by VIX 14.25 and dealers sit in POSITIVE gamma: SPY flip ~775.35 with spot ~776.34 above it, walls put 775 / call 780, expected move ±3.13, atm IV ~5.45%, and gamma-trading-lab reads a pin-to-maxpain playbook at patient conviction; intraday-tape-lab reads SPY a Mixed / developing auction under Algo-controlled control (VWAP ~776.63, gap +0.1%, 79 bars, asOf 2026-08-14T20:00Z) and market-heatmap-lab shows narrow leadership — 51.05% of 134 constituents positive against a 60% threshold; swing-structure-lab reads SPY Bull-stacked (20>50>200) with a Double bottom pattern (asOf 2026-08-14T13:30Z). This is the 2026-08-15 after-hours window; the 2026-08-14 regular session is the latest completed daily bar, next session 2026-08-17, snapshot asOf 2026-08-16T03:54:44.384Z; daily structure counts are read off that single distinct market-bar date — no multi-session persistence is claimed. Educational only — not investment advice.)",
       "read": {
         "accel": 0.19,
         "etf": "MAGS",
@@ -302,7 +307,7 @@
           "maStack": "bull-stack",
           "mom21": 8.56,
           "mom5": 0.54,
-          "reason": "one of the group's two bull-stacks and its leader — +15.62% over its 200-day (~194.7), +9.03% above its 50-day (~206.5), mom5 +0.54 / mom21 +8.56 both green: clean structure in the complex, only -4.38% off high — the bull-stack breaks on a daily close below its 50-day (~206.5)",
+          "reason": "one of the group's two bull-stacks and its leader — +15.62% over its 200-day (~194.7), +9.03% above its 50-day (~206.5), mom5 +0.54 / mom21 +8.56 both green: clean structure in the complex, only -4.38% off high, and it carries this cycle's single most unusual options print (an NVDA 227.5-strike 7-day call, $19.8M at 4.64× open interest, IV 29.21) — the bull-stack breaks on a daily close below its 50-day (~206.5)",
           "ticker": "NVDA"
         },
         {
@@ -333,7 +338,7 @@
           "ticker": "MU"
         }
       ],
-      "note": "SOXX reads Improving ↑ (quad I, rotation INTO) in the 2026-08-14 after-hours window off the 2026-08-14 close: rsMom 101.67 is above 100, the 2-week accel is POSITIVE (+2.07) and the ETF holds +32.67% over its 200-day (~414.9), though rsRatio 99.3 is still under the line and the ETF's own MA stack is tangled (-2.07% under its 50-day, ~562.1). Its long-term STRUCTURE is the board's deepest but not unanimous — 11/12 above the 200-day, because QCOM (-1.12%, ~167.7) sits below it this run (MU +75.88, AMD +58.6, MRVL +57.04 the most extended survivors) — while the bull-stack count is just 2/12 (NVDA and AVGO) and above-50-day breadth is 5/12 (NVDA +9.03 (~206.5), MU +1.15 (~960.6), AMD +0.78 (~510.4), AVGO +0.68 (~390.3), TSM +0.3 (~425.1); nearest below LRCX -1.5 (~337.4), ADI -0.56 (~391.6)). Short-term the tape has thrust: the 5-day is 7/12 green — MU +10.72 (firmest), LRCX +6.75, AMD +6.42, KLAC +2.83, MRVL +1.51, TSM +1.5, NVDA +0.54 — with AVGO -8.13 (deepest), AMAT -5.93, TXN -2.27, QCOM -1.23 and ADI -0.14 the five 5-day reds. The 21-day is firmer: upMom 8/12 (green NVDA +8.56, AVGO +4.95, AMD +2.68, TSM +4.05, LRCX +3.55, MU +13.88, MRVL +17.91, ADI +2.33; red KLAC -7.13, TXN -3.51, QCOM -2.83, AMAT -9.58). NVDA is one of the two bull-stacks and the leader (+15.62% over its 200-day (~194.7), +9.03% above its 50-day (~206.5), mom5 +0.54 / mom21 +8.56 both green); its bull-stack breaks on a daily close below its 50-day (~206.5). AVGO is the other bull-stack, now above both MAs — +6.72% over its 200-day (~368.2), +0.68% above its 50-day (~390.3), mom21 +4.95 among the firmer one-month reads and the top ai-capex-strategy-lab holding (weight 0.473); mom5 -8.13 is the group's deepest 5-day red and its long structure cracks on a daily close below its 200-day (~368.2). QCOM is the broken structure — -1.12% under its 200-day (~167.7), the one member below it, -9.83% under its 50-day (~183.9), mom21 -2.83, mom63 -16.83, -33.71% off high; the lost-structure read is invalidated on a daily close back above its 200-day (~167.7). AMD is the stalled extension (+58.6% over its 200-day (~324.3), mom126 +149.78 / mom252 +178.92) — now tangled, +0.78% over its 50-day (~510.4), mom21 +2.68 barely green and mom5 +6.42 firming; it also carries this cycle's semis options print (see below). MU is the most-extended member (+75.88% over its 200-day (~552.5), mom252 +683.15) — just +1.15% over its 50-day (~960.6) and tangled, with mom21 +13.88 and mom5 +10.72 both the group's firmest greens; the extended long trend cracks on a daily close below its 200-day (~552.5). MRVL is the deepest-drawdown extension (+57.04% over its 200-day (~141.4) but -6.74% under its 50-day (~238.1), -29.82% off high) — an extended long structure turning up on the 21-day (mom21 +17.91, the group's firmest) with a flat 5-day (+1.51). Honest split signal: the RRG reads Improving ↑ with rotation INTO, accel positive and rsMom over 100 on deep long-term structure (11/12 above-200, +32.67% over it on the ETF) — yet rsRatio is still under 100, the bull-stack count is only 2/12 and above-50 breadth is 5/12: a firming turn on long structure while intermediate internals still lag, and the RRG needs rsRatio to cross back above 100 (and the bull-stack count to widen) to confirm the turn. The wider sector tape now DOES support the complex this run: sector-research-lab (asOf 2026-08-14T20:31:07Z, benchmark SPY) rotates INTO Technology (XLK — Leading, quad L, rsRatio 100.01, rsMom 102.37, accel +2.55) and OUT of Energy (XLE) with Health Care (XLV) still the RS leader as it weakens — Technology being the sector-lab's INTO pick gives the semis complex a fresh sector-rotation tailwind on top of its own firming RRG. options-flow-feed-lab (call-heavy, leaning bullish, callFraction 0.6696 — call premium $2.2409B against put premium $1.1055B, asOf 2026-08-14T16:00Z) ranks the TSLA 340-strike 0-day call ($67.7M at 15.36× open interest, IV 70.88) as its single most unusual print, alongside a QQQ 730-strike 0-day call ($45.06M at 32.26× open interest) and — the one semis single name — an AMD 505-strike 0-day call ($43.9M at 19.1× open interest, IV 102.42), a bullish but very short-dated 0-day print on the stalled extension (no NVDA, AVGO, MU or TSM single name ranks). (rsMom1m/3m/6m and accel are sector-lab RRG proxies vs SPY — labeled proxies; MA levels are ~ approximations derived from price and MA-distance; regime is calm by VIX 14.25 and dealers sit in POSITIVE gamma: SPY flip ~769.1 with spot ~775.95 above it, walls put 775 / call 780, expected move ±1.71, atm IV ~5.9%, gamma-trading-lab reads a pin-to-maxpain playbook at patient conviction; intraday-tape-lab reads SPY a Mixed / developing auction under Algo-controlled control (VWAP ~776.63, gap +0.1%, 79 bars, asOf 2026-08-14T20:00Z) and market-heatmap-lab shows narrow leadership — 51.05% of 134 constituents positive against a 60% threshold; swing-structure-lab reads SPY Bull-stacked (20>50>200) with a Double bottom pattern (asOf 2026-08-14T13:30Z). This is the 2026-08-14 after-hours window; the 2026-08-14 regular session has closed and is the latest completed daily bar, next session 2026-08-17, snapshot asOf 2026-08-14T20:31:08.653Z; daily structure counts are read off that single distinct market-bar date — no multi-session persistence is claimed. Educational only — not investment advice.)",
+      "note": "SOXX reads Improving ↑ (quad I, rotation INTO) in the 2026-08-15 after-hours window off the 2026-08-14 close: rsMom 101.67 is above 100, the 2-week accel is POSITIVE (+2.07) and the ETF holds +32.67% over its 200-day (~414.9), though rsRatio 99.3 is still under the line and the ETF's own MA stack is tangled (-2.07% under its 50-day, ~562.1). Its long-term STRUCTURE is the board's deepest but not unanimous — 11/12 above the 200-day, because QCOM (-1.12%, ~167.7) sits below it this run (MU +75.88, AMD +58.6, MRVL +57.04 the most extended survivors) — while the bull-stack count is just 2/12 (NVDA and AVGO) and above-50-day breadth is 5/12 (NVDA +9.03 (~206.5), MU +1.15 (~960.6), AMD +0.78 (~510.4), AVGO +0.68 (~390.3), TSM +0.3 (~425.1); nearest below LRCX -1.5 (~337.4), ADI -0.56 (~391.6)). Short-term the tape has thrust: the 5-day is 7/12 green — MU +10.72 (firmest), LRCX +6.75, AMD +6.42, KLAC +2.83, MRVL +1.51, TSM +1.5, NVDA +0.54 — with AVGO -8.13 (deepest), AMAT -5.93, TXN -2.27, QCOM -1.23 and ADI -0.14 the five 5-day reds. The 21-day is firmer: upMom 8/12 (green NVDA +8.56, AVGO +4.95, AMD +2.68, TSM +4.05, LRCX +3.55, MU +13.88, MRVL +17.91, ADI +2.33; red KLAC -7.13, TXN -3.51, QCOM -2.83, AMAT -9.58). NVDA is one of the two bull-stacks and the leader (+15.62% over its 200-day (~194.7), +9.03% above its 50-day (~206.5), mom5 +0.54 / mom21 +8.56 both green) and it carries this cycle's single most unusual options print (an NVDA 227.5-strike 7-day call, $19.8M at 4.64× open interest, IV 29.21); its bull-stack breaks on a daily close below its 50-day (~206.5). AVGO is the other bull-stack, now above both MAs — +6.72% over its 200-day (~368.2), +0.68% above its 50-day (~390.3), mom21 +4.95 among the firmer one-month reads and the top ai-capex-strategy-lab holding (weight 0.473); mom5 -8.13 is the group's deepest 5-day red and its long structure cracks on a daily close below its 200-day (~368.2). QCOM is the broken structure — -1.12% under its 200-day (~167.7), the one member below it, -9.83% under its 50-day (~183.9), mom21 -2.83, mom63 -16.83, -33.71% off high; the lost-structure read is invalidated on a daily close back above its 200-day (~167.7). AMD is the stalled extension (+58.6% over its 200-day (~324.3), mom126 +149.78 / mom252 +178.92) — now tangled, +0.78% over its 50-day (~510.4), mom21 +2.68 barely green and mom5 +6.42 firming. MU is the most-extended member (+75.88% over its 200-day (~552.5), mom252 +683.15) — just +1.15% over its 50-day (~960.6) and tangled, with mom21 +13.88 and mom5 +10.72 both the group's firmest greens; the extended long trend cracks on a daily close below its 200-day (~552.5). MRVL is the deepest-drawdown extension (+57.04% over its 200-day (~141.4) but -6.74% under its 50-day (~238.1), -29.82% off high) — an extended long structure turning up on the 21-day (mom21 +17.91, the group's firmest) with a flat 5-day (+1.51). Honest split signal: the RRG reads Improving ↑ with rotation INTO, accel positive and rsMom over 100 on deep long-term structure (11/12 above-200, +32.67% over it on the ETF) — yet rsRatio is still under 100, the bull-stack count is only 2/12 and above-50 breadth is 5/12: a firming turn on long structure while intermediate internals still lag, and the RRG needs rsRatio to cross back above 100 (and the bull-stack count to widen) to confirm the turn. The wider sector tape now DOES support the complex this run: sector-research-lab (asOf 2026-08-16T03:54:41Z, benchmark SPY) rotates INTO Technology (XLK — Leading, quad L, rsRatio 100.01, rsMom 102.37, accel +2.55) and OUT of Energy (XLE) with Health Care (XLV) still the RS leader as it weakens — Technology being the sector-lab's INTO pick gives the semis complex a fresh sector-rotation tailwind on top of its own firming RRG. options-flow-feed-lab (call-heavy, leaning bullish, callFraction 0.6651 — call premium $1.3398B against put premium $674.5M, asOf 2026-08-14T16:00Z) ranks the NVDA 227.5-strike 7-day call ($19.8M at 4.64× open interest, IV 29.21) as its single most unusual print — NVDA being a semis member, so the group's leader carries this cycle's most unusual single-name flow — alongside a QQQ 730-strike 3-day call ($18.14M at 34.74× open interest) and a SPY 776-strike 3-day put ($16.02M at 22.68× open interest, IV 5.46); no AVGO, MU, TSM or AMD single name ranks this run. (rsMom1m/3m/6m and accel are sector-lab RRG proxies vs SPY — labeled proxies; MA levels are ~ approximations derived from price and MA-distance; regime is calm by VIX 14.25 and dealers sit in POSITIVE gamma: SPY flip ~775.35 with spot ~776.34 above it, walls put 775 / call 780, expected move ±3.13, atm IV ~5.45%, gamma-trading-lab reads a pin-to-maxpain playbook at patient conviction; intraday-tape-lab reads SPY a Mixed / developing auction under Algo-controlled control (VWAP ~776.63, gap +0.1%, 79 bars, asOf 2026-08-14T20:00Z) and market-heatmap-lab shows narrow leadership — 51.05% of 134 constituents positive against a 60% threshold; swing-structure-lab reads SPY Bull-stacked (20>50>200) with a Double bottom pattern (asOf 2026-08-14T13:30Z). This is the 2026-08-15 after-hours window; the 2026-08-14 regular session is the latest completed daily bar, next session 2026-08-17, snapshot asOf 2026-08-16T03:54:44.384Z; daily structure counts are read off that single distinct market-bar date — no multi-session persistence is claimed. Educational only — not investment advice.)",
       "read": {
         "accel": 2.07,
         "etf": "SOXX",
@@ -475,23 +480,23 @@
     "structuralTrend": "Extended structural bull, intact on the multi-month frame with the completed 8/14 close holding at the highs but breadth narrowing — SPY closed 772.49 on 8/12, 777.88 on 8/13 (a fresh 52-week high) and 776.34 on the completed 8/14 bar (pctFrom52wHigh -0.2, +3.71% above its 50-day ~748.6, +10.47% over its 200-day ~702.8, mom126/252 +14.56%/+21.72%), holding a deterministic 20>50>200 bull-stack (swing-structure-lab Bull-stacked, Double bottom pattern-qualified). The 8/14 session read a Mixed / developing auction under Algo-controlled control (intraday-tape-lab, VWAP 776.63, gap +0.1%, 79 bars), and the dealer read is POSITIVE gamma with a thinner cushion (spot 775.95 above the 769.1 flip, GEX +5.93B, walls 775/780, atmIV 5.94%). Completed-bar breadth held above 60% on 8/7 (61.77%) and 8/10 (60.25%), broke on 8/11 (56.47%) and 8/12 (49.85%), reclaimed on 8/13 (65.06%) and slipped back to 51.05% on 8/14 — the reclaim a one-bar spike, three-bar persistence not re-established. SPMO 153.31 holds its 50-day (+1.85%) with mom21 +5.53; QQQ 731.07 and XLK 190.01 hold their 50-days; MSFT 495.40 (maStack tangled, mom252 -4.08 still negative).",
     "vix": {
       "delta": null,
-      "falsifier": "VIX re-taking and closing above 22.0 or IVTS/term-structure backwardation (>1.0) confirms a calm-regime break; dealers are POSITIVE gamma (GEX +5.93B) with the spot 775.95 above the 769.1 flip, so a close back below the 775 put wall and the 769.1 flip would flip dealers to amplifying and expand realized range even with headline VIX low, while holding above the flip keeps the dampening pin. VIX, conditional vol and options atmIV all read calm this window — re-pull the VIX9D/VIX3M term structure before leaning on either.",
+      "falsifier": "VIX re-taking and closing above 22.0 or IVTS/term-structure backwardation (>1.0) confirms a calm-regime break; dealers are POSITIVE gamma with a thinner cushion and the spot 775.95 above the 769.1 flip, so a SPY close below the 775 put wall and the 769.1 flip flips them back to amplifying.",
       "level": 14.25,
       "regimeLabel": "calm headline held, sizing model NORMAL, options IV BELOW the headline and dealer gamma a thinner-but-positive pin — VIX 14.25 (band VIX 14.3) holds well under the 20 handle and the +3 single-reference regime-change threshold, so the calm headline regime is intact and volatility-sizing-lab reads a NORMAL regime (conditional vol 12.859%, throttle x1.17, percentile 54.2), in line with the headline; options atmIV is 5.94%, below the headline; the dealer map is POSITIVE gamma with a thinner cushion (GEX +5.93B) and the spot 775.95 above the 769.1 flip, so dealers dampen and pin though SPY closed at the lower edge of the range."
     }
   },
   "researchAgenda": {
     "contractVersion": "research-agenda-read/v1",
-    "generationId": "generation-92401c5c9ebe94c5f07e43e1e2af0b28e6cba3c8eba81b81d4c3c6bcf5f34bb7",
-    "asOf": "2026-08-14T20:31:08.653Z",
+    "generationId": "generation-1f2f202598ea67bc99e2c83a8162df2dfd2469945ab90d80f81e882bce3f0a9c",
+    "asOf": "2026-08-16T03:54:44.384Z",
     "topics": [
       {
         "topicId": "geopolitical-supply-shock",
         "mode": "every-generation",
         "state": "unavailable",
-        "reason": "research-lane-unavailable",
+        "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
         "selectionReason": "mode-required",
-        "reviewId": "review-acdb2bafc0a396a0506a8dd4cd549b3dddd71b3c384bed2a1ac1f6d7909984e6",
+        "reviewId": "review-2baab0d25c5818c3ee68d25b1057241389ce9adb82ce3c89d2a362c725242819",
         "dossierId": null,
         "outcome": "unavailable",
         "changeAssessment": "insufficient-evidence",
@@ -520,12 +525,12 @@
       {
         "topicId": "food-inputs-outlook",
         "mode": "cadence",
-        "state": "unavailable",
-        "reason": "research-lane-unavailable",
-        "selectionReason": "first-review",
-        "reviewId": "review-1b5f5aad6d43ad3d0311b071d8b8c4c7612cbd3bcdc1231aa1ada929b5fe7ee4",
+        "state": "not-due",
+        "reason": "cadence-not-elapsed",
+        "selectionReason": "cadence-not-elapsed",
+        "reviewId": null,
         "dossierId": null,
-        "outcome": "unavailable",
+        "outcome": "not-due",
         "changeAssessment": "insufficient-evidence",
         "newestEvidenceAgeHours": null,
         "modelState": "unavailable",
@@ -534,7 +539,7 @@
         "supersedesDossierId": null
       }
     ],
-    "readFingerprint": "sha256:343eb4954a4fca5e960789c9ca9d56b66e8e7579dc2d29bb889f891f55a82361"
+    "readFingerprint": "sha256:229edaabf751d95ff31a45b66785863676105e3ef1b34228d0200ac9016a531b"
   },
   "toolCoverage": [
     {
@@ -546,37 +551,37 @@
     {
       "deepLink": "market-heatmap-lab.html",
       "id": "market-heatmap-lab",
-      "reason": "Current breadth read analyzed: leadership is narrow — 51.05% of 134 constituents are positive against the 60% broad-market threshold, on a 1d window as of 2026-08-14.",
+      "reason": "Current breadth read analyzed: leadership is narrow — 51.05% of 134 constituents are positive against the 60% broad-market threshold, a margin of -8.95 points on a 1d sector-grouped window.",
       "status": "analyzed"
     },
     {
       "deepLink": "options-flow-feed-lab.html",
       "id": "options-flow-feed-lab",
-      "reason": "Current options-flow read analyzed: flow is call-heavy and leaning bullish across 12 tickers; 1804 contracts clear the $250k premium bar within 30 days, and the most unusual is TSLA 340 calls at $67.7M on 15.4x open interest.",
+      "reason": "Current options-flow read analyzed: flow is call-heavy and leaning bullish across 12 tickers; 1459 contracts clear the $250k premium bar within 30 days (call premium $1.34B against put $0.67B, 66.5% calls), and the most unusual is NVDA 227.5 calls at $19.8M on 4.6x open interest.",
       "status": "analyzed"
     },
     {
       "deepLink": "intraday-tape-lab.html",
       "id": "intraday-tape-lab",
-      "reason": "Current tape read analyzed: SPY's session is a mixed, developing auction under algo-controlled control with VWAP at 776.63.",
+      "reason": "Current tape read analyzed: SPY's session is a mixed, developing auction under algo-controlled control with VWAP at 776.63 and a +0.1% gap.",
       "status": "analyzed"
     },
     {
       "deepLink": "swing-structure-lab.html",
       "id": "swing-structure-lab",
-      "reason": "Current structure read analyzed: SPY is bull-stacked (20>50>200) with an active double-bottom pattern; regime unknown.",
+      "reason": "Current structure read analyzed: SPY is bull-stacked (20>50>200) with an active double-bottom pattern over 516 bars; regime unknown.",
       "status": "analyzed"
     },
     {
       "deepLink": "options-structure-lab.html",
       "id": "options-structure-lab",
-      "reason": "Current dealer-positioning read analyzed: SPY sits in positive dealer gamma with the flip near 769.1, call wall 780, put wall 775, and a front expected move of plus or minus 1.71.",
+      "reason": "Current dealer-positioning read analyzed: SPY sits in positive dealer gamma with the flip near 775.35, call wall 780, put wall 775, and a front expected move of plus or minus 3.13.",
       "status": "analyzed"
     },
     {
       "deepLink": "gamma-trading-lab.html",
       "id": "gamma-trading-lab",
-      "reason": "Current gamma playbook analyzed: SPY dealers are positive gamma, a pin-to-maxpain scenario with patient conviction; flip 769.1, walls 775/780.",
+      "reason": "Current gamma playbook analyzed: SPY dealers are positive gamma, a pin-to-maxpain scenario with patient conviction and a same-session-fade hold; flip 775.35, walls 775/780.",
       "status": "analyzed"
     },
     {
@@ -594,7 +599,7 @@
     {
       "deepLink": "real-assets-lab.html",
       "id": "real-assets-lab",
-      "reason": "Current real-assets read analyzed: CPER leads at 53.3/100 (uptrend) while gold (GLD) 38.2 and silver (SLV) 14.1 are mixed, bitcoin (BTC-USD) 34.9 and IBIT 23.8 are in downtrends, and broad commodities (DBC) 49.2 and oil (USO) 43.9 hold uptrends; 14 vehicles scored on a swing horizon, so real assets broadly trail equities.",
+      "reason": "Current real-assets read analyzed: CPER leads at 53.3/100 (uptrend) while gold (GLD) 38.2 and silver (SLV) 14.1 are mixed, bitcoin (BTC-USD) 34.2 and IBIT 23.8 are in downtrends, and broad commodities (DBC) 49.2 and oil (USO) 43.9 hold uptrends; 14 vehicles scored on a swing horizon, so real assets broadly trail equities.",
       "status": "analyzed"
     },
     {
@@ -606,19 +611,19 @@
     {
       "deepLink": "ai-capex-strategy-lab.html",
       "id": "ai-capex-strategy-lab",
-      "reason": "Analyzed but carried on a 45-day-old assumption universe (2026-06-30) that models supplier assumptions rather than measured returns: Grid & Electrical leads at 20.4% across 16 priced names of 16; the 6m band centres on 8.6% (-17.7% to 43.3%) with a 47.0% chance of clearing target and a -23.1% worst-case tail.",
+      "reason": "Analyzed but carried on a 47-day-old assumption universe (2026-06-30) that models supplier assumptions rather than measured returns: Grid & Electrical leads at 20.4% across 16 priced names of 16; the 6m band centres on 8.6% (-17.7% to 43.3%) with a 47.0% chance of clearing target and a -23.1% worst-case tail.",
       "status": "stale"
     },
     {
       "deepLink": "msft-july-print-model.html",
       "id": "msft-july-print-model",
-      "reason": "No deterministic owner adapter and no current browser read on file, so this single-name print model does not feed the brief this window; inspect the owning tool before any authoring that needs it.",
+      "reason": "No deterministic owner adapter and no current browser read on file, so this single-name print model produces no call this cycle; inspect the owning tool before any authoring that needs it.",
       "status": "not-relevant"
     },
     {
       "deepLink": "company-fundamentals-lab.html",
       "id": "company-fundamentals-lab",
-      "reason": "Consumed from company-fundamentals-owner-v1 as a committed owner read (a static single-name model, asOf 2026-04-29T20:06:24Z): the hash-verified MSFT fundamentals (sec-cik-0000789019) read direction Unavailable with brief status partial and confidence constrained; statement 2026-03-31, model 2026-03-31, market not present. Coverage is partial through 2026-03-31. Educational company research only; no recommendation is produced, and no market-moving fundamental delta carries into the 2026-08-14 after-hours view.",
+      "reason": "Consumed from company-fundamentals-owner-v1 as a committed owner read (a static single-name model, asOf 2026-04-29T20:06:24Z): the hash-verified MSFT fundamentals (sec-cik-0000789019) read direction Unavailable with brief status partial and confidence constrained; statement 2026-03-31, model 2026-03-31, market not present. Coverage is partial through 2026-03-31. Educational company research only; no recommendation is produced, and no market-moving fundamental delta carries into this after-hours view.",
       "status": "analyzed"
     },
     {
@@ -630,19 +635,19 @@
     {
       "deepLink": "strategy-self-improvement-lab.html",
       "id": "strategy-self-improvement-lab",
-      "reason": "Walk-forward strategy-tuning tool with no deterministic owner adapter and no current browser read; it contributes no market read this window.",
+      "reason": "Walk-forward strategy-tuning tool with no deterministic owner adapter and no current browser read; it produces no call this cycle.",
       "status": "not-relevant"
     },
     {
       "deepLink": "strategy-validation-lab.html",
       "id": "strategy-validation-lab",
-      "reason": "Strategy walk-forward validation tool with no deterministic owner adapter and no current browser read; it contributes no market read this window.",
+      "reason": "Strategy walk-forward validation tool with no deterministic owner adapter and no current browser read; it produces no call this cycle.",
       "status": "not-relevant"
     },
     {
       "deepLink": "smart-money-flow-lab.html",
       "id": "smart-money-flow-lab",
-      "reason": "Smart-money and congressional-flow tool with no deterministic owner adapter and no current browser read on file, so there is nothing to fold into this window.",
+      "reason": "Smart-money and congressional-flow tool with no deterministic owner adapter and no current browser read on file, so it produces no call this cycle.",
       "status": "not-relevant"
     },
     {
@@ -654,7 +659,7 @@
     {
       "deepLink": "volatility-sizing-lab.html",
       "id": "volatility-sizing-lab",
-      "reason": "Current sizing read analyzed: SPY conditional volatility forecasts 12.859% in a normal regime and the capped vol-target throttle sizes to x1.17.",
+      "reason": "Current sizing read analyzed: SPY conditional volatility forecasts 12.859% in a normal regime (54th percentile) and the capped vol-target throttle sizes to x1.17.",
       "status": "analyzed"
     },
     {
@@ -672,7 +677,7 @@
     {
       "deepLink": "technical-analysis-decision-lab.html",
       "id": "technical-analysis-decision-lab",
-      "reason": "The owner five-gate decision model (context / location / confirmation / validation gate scoring plus setup-state and expectancy) is not implemented — the page is a Scope-01 foundation-receipt validator that publishes no analytic result — so nothing feeds the brief this window even though its data foundation is present.",
+      "reason": "The owner five-gate decision model is implemented and publishes a decision read in the browser, but it projects committed deterministic fixtures that declare liveClaim false rather than live market data, so it published no owner read and contributes no current-market read this window even though its data foundation is present.",
       "status": "not-relevant"
     },
     {
@@ -684,7 +689,7 @@
     {
       "deepLink": "trend-dynamics-cycle-lab.html",
       "id": "trend-dynamics-cycle-lab",
-      "reason": "Registered and brief-relevant, but it carries no deterministic owner read in this snapshot: its owner read is published client-side into the shared cache when the route renders, so a headless composition run has nothing to read yet. There is no trend or turning-point call to carry into the 2026-08-14 after-hours view; open the owning tool for the direction, strength and confirmation-lag reads before citing a trend state.",
+      "reason": "Registered and brief-relevant, but it has no deterministic Tier-A adapter and does not feed the brief yet in a headless composition run: its owner read is published client-side into the shared cache when the route renders. There is no trend or turning-point call to carry into this after-hours view; open the owning tool for the direction, strength and confirmation-lag reads before citing a trend state.",
       "status": "stale"
     },
     {
@@ -694,9 +699,9 @@
       "status": "stale"
     },
     {
-      "deepLink": "research-agenda-lab.html#power/geopolitical-supply-shock",
+      "deepLink": "research-agenda-lab.html",
       "id": "research-agenda-lab",
-      "reason": "The latest committed standing-research generation is from 2026-08-13 and was not refreshed for this 2026-08-14 after-hours brief. Its geopolitical supply-shock and defense-earnings reviews remain explicitly unavailable because no validated current dossier was produced, while food inputs was deferred by the cadence budget. No historical dossier is promoted to current and no market call is made from the stale generation.",
+      "reason": "Registered and brief-relevant, but it has no deterministic Tier-A adapter and does not feed the brief yet in a headless composition run: its standing-research dossiers are published client-side when the route renders. No current dossier is on file to promote and no market call is made this window; open the owning tool for its latest standing-research reviews before citing one.",
       "status": "stale"
     }
   ],
@@ -721,11 +726,11 @@
             "volatilityDrag": 3
           },
           {
-            "annVol": 16.65,
+            "annVol": 16.69,
             "asOf": "2026-08-14T13:30:00.000Z",
-            "score": 0.387,
-            "sharpeArithmetic": 1.517,
-            "sharpeGeometric": 1.687,
+            "score": 0.3865,
+            "sharpeArithmetic": 1.521,
+            "sharpeGeometric": 1.684,
             "signal": 22.51,
             "ticker": "JMOM",
             "volatilityDrag": 1.39
@@ -751,14 +756,14 @@
             "volatilityDrag": 1.91
           },
           {
-            "annVol": 25.82,
+            "annVol": 25.89,
             "asOf": "2026-08-14T13:30:00.000Z",
-            "score": 0.3075,
-            "sharpeArithmetic": 0.98,
-            "sharpeGeometric": 0.992,
+            "score": 0.3068,
+            "sharpeArithmetic": 0.982,
+            "sharpeGeometric": 0.989,
             "signal": 27.04,
             "ticker": "MTUM",
-            "volatilityDrag": 3.34
+            "volatilityDrag": 3.36
           }
         ],
         "risk": "balanced",
@@ -860,7 +865,12 @@
             "vol": 14.62
           }
         ],
-        "scored": 13
+        "scored": 13,
+        "usdLeadership": {
+          "contractVersion": "rlfx-global-usd-leadership/v1",
+          "horizonSessions": 63,
+          "state": "ready"
+        }
       },
       "read": "EWS (Singapore) leads global rotation at 89/100 versus ACWI; EWC is next.",
       "source": "owning-tool-functions"
@@ -884,20 +894,100 @@
           "trend": "Uptrend",
           "vol": 27.2
         },
+        "ranked": [
+          {
+            "asOf": "2026-08-14T13:30:00.000Z",
+            "maxDrawdown": 12.28,
+            "model": "industrial",
+            "mom126": 12.67,
+            "mom21": 5.12,
+            "mom63": -0.02,
+            "riskPenalty": 2.77,
+            "score": 53.3,
+            "ticker": "CPER",
+            "trend": "Uptrend",
+            "vol": 27.2
+          },
+          {
+            "asOf": "2026-08-14T13:30:00.000Z",
+            "maxDrawdown": 16.54,
+            "model": "broad",
+            "mom126": 26.05,
+            "mom21": 5.41,
+            "mom63": -3.69,
+            "riskPenalty": 2.88,
+            "score": 49.2,
+            "ticker": "DBC",
+            "trend": "Uptrend",
+            "vol": 23.57
+          },
+          {
+            "asOf": "2026-08-14T13:30:00.000Z",
+            "maxDrawdown": 16.55,
+            "model": "broad",
+            "mom126": 23.6,
+            "mom21": 4.31,
+            "mom63": -4.22,
+            "riskPenalty": 2.89,
+            "score": 47.3,
+            "ticker": "PDBC",
+            "trend": "Uptrend",
+            "vol": 23.9
+          },
+          {
+            "asOf": "2026-08-14T13:30:00.000Z",
+            "maxDrawdown": 34.46,
+            "model": "energy",
+            "mom126": 58.85,
+            "mom21": 8.25,
+            "mom63": -9.91,
+            "riskPenalty": 17.66,
+            "score": 47.2,
+            "ticker": "BNO",
+            "trend": "Uptrend",
+            "vol": 59.26
+          },
+          {
+            "asOf": "2026-08-16T00:00:00.000Z",
+            "maxDrawdown": 35.37,
+            "model": "crypto",
+            "mom126": -17.69,
+            "mom21": 0.42,
+            "mom63": 11.96,
+            "riskPenalty": 7.21,
+            "score": 45.2,
+            "ticker": "ETH-USD",
+            "trend": "Mixed",
+            "vol": 47.14
+          },
+          {
+            "asOf": "2026-08-14T13:30:00.000Z",
+            "maxDrawdown": 8.67,
+            "model": "agriculture",
+            "mom126": 7.26,
+            "mom21": 0.65,
+            "mom63": -1.7,
+            "riskPenalty": 1.07,
+            "score": 44,
+            "ticker": "DBA",
+            "trend": "Mixed",
+            "vol": 11.81
+          }
+        ],
         "scored": 14,
         "specific": {
           "BTC-USD": {
-            "asOf": "2026-08-14T00:00:00.000Z",
+            "asOf": "2026-08-16T00:00:00.000Z",
             "maxDrawdown": 28.71,
             "model": "bitcoin",
-            "mom126": -13.85,
-            "mom21": -1.91,
-            "mom63": -1.06,
+            "mom126": -13.68,
+            "mom21": -1.95,
+            "mom63": -2.12,
             "riskPenalty": 5.68,
-            "score": 34.9,
+            "score": 34.2,
             "ticker": "BTC-USD",
             "trend": "Downtrend",
-            "vol": 33.74
+            "vol": 33.73
           },
           "DBC": {
             "asOf": "2026-08-14T13:30:00.000Z",
@@ -966,19 +1056,19 @@
           }
         }
       },
-      "read": "CPER leads real assets at 53.3/100; GLD 38.2, BTC 34.9, SLV 14.1.",
+      "read": "CPER leads real assets at 53.3/100; GLD 38.2, BTC 34.2, SLV 14.1.",
       "source": "owning-tool-functions"
     },
     "research-agenda-lab": {
-      "asOf": "2026-08-14T20:31:08.653Z",
+      "asOf": "2026-08-16T03:54:44.384Z",
       "deepLink": "research-agenda-lab.html#power/geopolitical-supply-shock",
       "id": "research-agenda-lab",
       "metrics": {
         "agendaRead": {
-          "asOf": "2026-08-14T20:31:08.653Z",
+          "asOf": "2026-08-16T03:54:44.384Z",
           "contractVersion": "research-agenda-read/v1",
-          "generationId": "generation-92401c5c9ebe94c5f07e43e1e2af0b28e6cba3c8eba81b81d4c3c6bcf5f34bb7",
-          "readFingerprint": "sha256:343eb4954a4fca5e960789c9ca9d56b66e8e7579dc2d29bb889f891f55a82361",
+          "generationId": "generation-1f2f202598ea67bc99e2c83a8162df2dfd2469945ab90d80f81e882bce3f0a9c",
+          "readFingerprint": "sha256:229edaabf751d95ff31a45b66785863676105e3ef1b34228d0200ac9016a531b",
           "topics": [
             {
               "changeAssessment": "insufficient-evidence",
@@ -989,8 +1079,8 @@
               "newestEvidenceAgeHours": null,
               "outcome": "unavailable",
               "predecessorDossierId": null,
-              "reason": "research-lane-unavailable",
-              "reviewId": "review-acdb2bafc0a396a0506a8dd4cd549b3dddd71b3c384bed2a1ac1f6d7909984e6",
+              "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
+              "reviewId": "review-2baab0d25c5818c3ee68d25b1057241389ce9adb82ce3c89d2a362c725242819",
               "selectionReason": "mode-required",
               "state": "unavailable",
               "supersedesDossierId": null,
@@ -1019,30 +1109,30 @@
               "mode": "cadence",
               "modelState": "unavailable",
               "newestEvidenceAgeHours": null,
-              "outcome": "unavailable",
+              "outcome": "not-due",
               "predecessorDossierId": null,
-              "reason": "research-lane-unavailable",
-              "reviewId": "review-1b5f5aad6d43ad3d0311b071d8b8c4c7612cbd3bcdc1231aa1ada929b5fe7ee4",
-              "selectionReason": "first-review",
-              "state": "unavailable",
+              "reason": "cadence-not-elapsed",
+              "reviewId": null,
+              "selectionReason": "cadence-not-elapsed",
+              "state": "not-due",
               "supersedesDossierId": null,
               "topicId": "food-inputs-outlook"
             }
           ]
         },
         "contractVersion": "research-agenda-tool-read/v1",
-        "deferredTopicCount": 1,
-        "generationId": "generation-92401c5c9ebe94c5f07e43e1e2af0b28e6cba3c8eba81b81d4c3c6bcf5f34bb7",
-        "readFingerprint": "sha256:343eb4954a4fca5e960789c9ca9d56b66e8e7579dc2d29bb889f891f55a82361",
+        "deferredTopicCount": 2,
+        "generationId": "generation-1f2f202598ea67bc99e2c83a8162df2dfd2469945ab90d80f81e882bce3f0a9c",
+        "readFingerprint": "sha256:229edaabf751d95ff31a45b66785863676105e3ef1b34228d0200ac9016a531b",
         "reviewedTopicCount": 0,
-        "unavailableTopicCount": 2
+        "unavailableTopicCount": 1
       },
-      "read": "Geopolitical supply shock: the current research lane did not produce a validated dossier. Defense earnings acceleration: the current outcome is not due. Food, grains and fertilizer: the current research lane did not produce a validated dossier.",
+      "read": "Geopolitical supply shock: the current outcome is unavailable. Defense earnings acceleration: the current outcome is not due. Food, grains and fertilizer: the current outcome is not due.",
       "source": "research-agenda-current",
       "state": "unavailable"
     },
     "sector-research-lab": {
-      "asOf": "2026-08-14T20:31:07.611Z",
+      "asOf": "2026-08-16T03:54:41.591Z",
       "deepLink": "sector-research-lab.html",
       "id": "sector-research-lab",
       "metrics": {
@@ -1098,51 +1188,51 @@
   "watchlistNotes": {
     "FBTC": {
       "deepLink": "real-assets-lab.html",
-      "status": "$54.74 (2026-08-14 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session has closed and is the latest completed daily bar; next session 2026-08-17; the developing tape printed 79 bars today (intraday-tape-lab); snapshot asOf 2026-08-14T20:31:08.653Z) — weak and below trend: -0.67% just under its 50-day (~55.1) and -18.21% UNDER its 200-day (~66.9), MA stack tangled, -49.98% off its 52-week high. mom5 -3.17 and mom21 -2.13 are one-month reds while mom63 -22.78 stays deeply negative. real-assets-lab owning-tool read (asOf 2026-08-14T13:30Z): the bitcoin model scores BTC-USD 34.9/100 Downtrend (mom21 -1.91, mom63 -1.06) and the bitcoin-ETF proxy IBIT 23.8/100 Downtrend (mom63 -22.83), with CPER (53.3 Uptrend) leading the wider real-assets ranking — a soft crypto backdrop with the bitcoin side in a downtrend this run. HOLD/AVOID while below the 200-day; the avoid read is invalidated on a daily close back above the 200-day (~66.9). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
+      "status": "$54.74 (2026-08-15 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session is the latest completed daily bar; next session 2026-08-17; the latest session's tape printed 79 bars (intraday-tape-lab, 2026-08-14T20:00Z); snapshot asOf 2026-08-16T03:54:44.384Z) — weak and below trend: -0.67% just under its 50-day (~55.1) and -18.21% UNDER its 200-day (~66.9), MA stack tangled, -49.98% off its 52-week high. mom5 -3.17 and mom21 -2.13 are one-month reds while mom63 -22.78 stays deeply negative. real-assets-lab owning-tool read (asOf 2026-08-14T13:30Z): the bitcoin model scores BTC-USD 34.2/100 Downtrend (mom21 -1.95, mom63 -2.12) and the bitcoin-ETF proxy IBIT 23.8/100 Downtrend (mom63 -22.83), with CPER (53.3 Uptrend) leading the wider real-assets ranking — a soft crypto backdrop with the bitcoin side in a downtrend this run. HOLD/AVOID while below the 200-day; the avoid read is invalidated on a daily close back above the 200-day (~66.9). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     },
     "FETH": {
       "deepLink": "real-assets-lab.html",
-      "status": "$18.72 (2026-08-14 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session has closed and is the latest completed daily bar; next session 2026-08-17; the developing tape printed 79 bars today (intraday-tape-lab); snapshot asOf 2026-08-14T20:31:08.653Z) — +5.09% above its 50-day (~17.8) but still -20.97% UNDER its 200-day (~23.7), MA stack tangled; -61.32% off its 52-week high — the deepest drawdown in the watchlist. mom5 -1.99 and mom21 +0.21 mark a soft one-month tape while mom63 -18.25 is still negative. real-assets-lab's read (asOf 2026-08-14T13:30Z) scores the ether side directly — ETH-USD 46.7/100 Mixed (mom21 +0.95, mom63 +12.78, mom126 -16.36) — alongside the bitcoin reads (BTC-USD 34.9/100 Downtrend, IBIT 23.8/100 Downtrend); the wider ranking is led by CPER (53.3 Uptrend) — a soft crypto backdrop, with the ETF itself still below its own 200-day. HOLD/AVOID while below the 200-day; the avoid read is invalidated on a daily close back above the 200-day (~23.7). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
+      "status": "$18.72 (2026-08-15 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session is the latest completed daily bar; next session 2026-08-17; the latest session's tape printed 79 bars (intraday-tape-lab, 2026-08-14T20:00Z); snapshot asOf 2026-08-16T03:54:44.384Z) — +5.09% above its 50-day (~17.8) but still -20.97% UNDER its 200-day (~23.7), MA stack tangled; -61.32% off its 52-week high — the deepest drawdown in the watchlist. mom5 -1.99 and mom21 +0.21 mark a soft one-month tape while mom63 -18.25 is still negative. real-assets-lab's read (asOf 2026-08-14T13:30Z) scores the ether side directly — ETH-USD 45.2/100 Mixed (mom21 +0.42, mom63 +11.96, mom126 -17.69) — alongside the bitcoin reads (BTC-USD 34.2/100 Downtrend, IBIT 23.8/100 Downtrend); the wider ranking is led by CPER (53.3 Uptrend) — a soft crypto backdrop, with the ETF itself still below its own 200-day. HOLD/AVOID while below the 200-day; the avoid read is invalidated on a daily close back above the 200-day (~23.7). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     },
     "FMTM": {
       "deepLink": "etf-momentum-lab.html",
-      "status": "$39.95 (2026-08-14 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session has closed and is the latest completed daily bar; next session 2026-08-17; the developing tape printed 79 bars today (intraday-tape-lab); snapshot asOf 2026-08-14T20:31:08.653Z) — sitting just below its 50-day (-0.69%, ~40.2) and +9.27% over the 200-day (~36.6); the MA stack is tangled, -8.46% off its high. mom5 +1.94 is a near-term green, mom21 +3.77 a firm one-month green and mom63 -4.65 a soft 3-month red — a shallow chop pinned to the 50-day with a soft medium-term trend. FMTM is not among etf-momentum-lab's shown top names this run (the 6M balanced ranking, asOf 2026-08-14T13:30Z, leads VGT 0.413 > JMOM 0.387 > SPMO 0.3486 > QQQ 0.3162 > MTUM 0.3075), so no top-tier momentum-factor edge is shown for it. HOLD; the long-term structure is intact above the 200-day (~36.6) with the 50-day (~40.2) the near-term reclaim line — invalidated on a daily close below the 200-day (~36.6). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
+      "status": "$39.95 (2026-08-15 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session is the latest completed daily bar; next session 2026-08-17; the latest session's tape printed 79 bars (intraday-tape-lab, 2026-08-14T20:00Z); snapshot asOf 2026-08-16T03:54:44.384Z) — sitting just below its 50-day (-0.85%, ~40.3) and +9.4% over the 200-day (~36.5); the MA stack is tangled, -8.46% off its high. mom5 +3.31 is a firm near-term green, mom21 +0.33 is barely green and mom63 -3.78 a soft 3-month red — a shallow chop pinned to the 50-day with a soft medium-term trend. FMTM is not among etf-momentum-lab's shown top names this run (the 6M balanced ranking, asOf 2026-08-14T13:30Z, leads VGT 0.413 > JMOM 0.3865 > SPMO 0.3486 > QQQ 0.3162 > MTUM 0.3068), so no top-tier momentum-factor edge is shown for it. HOLD; the long-term structure is intact above the 200-day (~36.5) with the 50-day (~40.3) the near-term reclaim line — invalidated on a daily close below the 200-day (~36.5). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     },
     "GLD": {
       "deepLink": "real-assets-lab.html",
-      "status": "$401.48 (2026-08-14 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session has closed and is the latest completed daily bar; next session 2026-08-17; the developing tape printed 79 bars today (intraday-tape-lab); snapshot asOf 2026-08-14T20:31:08.653Z) — above its 50-day but below its 200-day: +5.29% over its 50-day (~381.3) yet -2.64% UNDER its 200-day (~412.4), MA stack tangled, -19.04% off its 52-week high. mom5 +0.76 and mom21 +10.01 have firmed near-term while mom63 -6.02 stays negative. real-assets-lab owning-tool read (asOf 2026-08-14T13:30Z): the gold model scores GLD 38.2/100 Mixed (mom21 +10.01, mom63 -6.02), with CPER (53.3 Uptrend) leading the complex and SLV at 14.1 Mixed — gold is a mid-pack laggard in the complex this run. HOLD/underweight while below the 200-day; the underweight read is invalidated on a daily close back above the 200-day (~412.4). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
+      "status": "$401.48 (2026-08-15 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session is the latest completed daily bar; next session 2026-08-17; the latest session's tape printed 79 bars (intraday-tape-lab, 2026-08-14T20:00Z); snapshot asOf 2026-08-16T03:54:44.384Z) — above its 50-day but below its 200-day: +5.29% over its 50-day (~381.3) yet -2.64% UNDER its 200-day (~412.4), MA stack tangled, -19.04% off its 52-week high. mom5 +0.76 and mom21 +10.01 have firmed near-term while mom63 -6.02 stays negative. real-assets-lab owning-tool read (asOf 2026-08-14T13:30Z): the gold model scores GLD 38.2/100 Mixed (mom21 +10.01, mom63 -6.02), with CPER (53.3 Uptrend) leading the complex and SLV at 14.1 Mixed — gold is a mid-pack laggard in the complex this run. HOLD/underweight while below the 200-day; the underweight read is invalidated on a daily close back above the 200-day (~412.4). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     },
     "MSFT": {
       "deepLink": "msft-july-print-model.html",
-      "status": "$495.40 (2026-08-14 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session has closed and is the latest completed daily bar; next session 2026-08-17; the developing tape printed 79 bars today (intraday-tape-lab); snapshot asOf 2026-08-14T20:31:08.653Z) — the July print holds: mom5 -0.92 has cooled fractionally red but mom21 +23.51 keeps it ABOVE both its 50-day (+20.02%, ~412.8) and 200-day (+14.86%, ~431.3), by far the strongest one-month momentum name in the watchlist (VGT mom21 +7.28, XLK +7.04, SPMO +5.53). The MA stack is still tangled — the 50-day sits under the 200-day — and it is -8.03% off its high (mom63 +21.26, mom252 -4.08): a breakout above both MAs on price with the long-term order not yet healed, not repaired until the 50-day crosses back above the 200-day and holds; HOLD, invalidated on a daily close below its 200-day (~431.3). company-fundamentals-lab publishes no directional read for the print — its fundamentals remain only partial (statement 2026-03-31, model 2026-03-31, brief 2026-04-29T20:06:24Z, direction Unavailable), with normalized and market-observation evidence still absent, so there is no fundamental call to lean on. The bespoke msft-july-print-model makes no call this cycle — deep-link only. options-flow-feed-lab ranks NO MSFT single-name print this cycle — its top prints are a TSLA 340-strike 0-day call ($67.7M at 15.36× open interest), a QQQ 730-strike 0-day call ($45.06M at 32.26× open interest) and an AMD 505-strike 0-day call ($43.9M at 19.1× open interest), none of them MSFT. (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
+      "status": "$495.40 (2026-08-15 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session is the latest completed daily bar; next session 2026-08-17; the latest session's tape printed 79 bars (intraday-tape-lab, 2026-08-14T20:00Z); snapshot asOf 2026-08-16T03:54:44.384Z) — the July print holds: mom5 -0.92 has cooled fractionally red but mom21 +23.51 keeps it ABOVE both its 50-day (+20.02%, ~412.8) and 200-day (+14.86%, ~431.3), by far the strongest one-month momentum name in the watchlist (VGT mom21 +7.28, XLK +7.04, SPMO +5.53). The MA stack is still tangled — the 50-day sits under the 200-day — and it is -8.03% off its high (mom63 +21.26, mom252 -4.08): a breakout above both MAs on price with the long-term order not yet healed, not repaired until the 50-day crosses back above the 200-day and holds; HOLD, invalidated on a daily close below its 200-day (~431.3). company-fundamentals-lab publishes no directional read for the print — its fundamentals remain only partial (statement 2026-03-31, model 2026-03-31, brief 2026-04-29T20:06:24Z, direction Unavailable), with normalized and market-observation evidence still absent, so there is no fundamental call to lean on. The bespoke msft-july-print-model makes no call this cycle — deep-link only. options-flow-feed-lab ranks NO MSFT single-name print this cycle — its top prints are an NVDA 227.5-strike 7-day call ($19.8M at 4.64× open interest, IV 29.21, the single most unusual), a QQQ 730-strike 3-day call ($18.14M at 34.74× open interest) and a SPY 776-strike 3-day put ($16.02M at 22.68× open interest), none of them MSFT. (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     },
     "QQQ": {
       "deepLink": "etf-momentum-lab.html",
-      "status": "$731.07 (2026-08-14 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session has closed and is the latest completed daily bar; next session 2026-08-17; the developing tape printed 79 bars today (intraday-tape-lab); snapshot asOf 2026-08-14T20:31:08.653Z) — +2.57% above its 50-day (~712.7) with the MA stack tangled and +12.55% over the 200-day (~649.5); only -1.91% off its 52-week high. mom5 +1.11 / mom21 +3.56 read as a firm one-month tape above the 50-day, with the 3-month trend positive (mom63 +1.68). etf-momentum-lab owning-tool read (6M balanced ranking, asOf 2026-08-14T13:30Z; 13 funds scored): VGT (score 0.413, signal 34.68%) > JMOM (0.387) > SPMO (0.3486) > QQQ (0.3162, signal 22%) > MTUM (0.3075) — QQQ sits fourth of the shown names, i.e. no top-tier momentum-factor edge this run. This cycle's call-heavy flow flags a QQQ 730-strike 0-day call ($45.06M at 32.26× open interest) among options-flow-feed-lab's top three prints — a very short-dated upside print on the fund itself, not a durable directional signal. HOLD on the firm tape above both MAs; the 50-day (~712.7) is the near-term pivot and the read is invalidated on a daily close below the 200-day (~649.5). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
+      "status": "$731.07 (2026-08-15 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session is the latest completed daily bar; next session 2026-08-17; the latest session's tape printed 79 bars (intraday-tape-lab, 2026-08-14T20:00Z); snapshot asOf 2026-08-16T03:54:44.384Z) — +2.57% above its 50-day (~712.7) with the MA stack tangled and +12.55% over the 200-day (~649.5); only -1.91% off its 52-week high. mom5 +1.11 / mom21 +3.56 read as a firm one-month tape above the 50-day, with the 3-month trend positive (mom63 +1.68). etf-momentum-lab owning-tool read (6M balanced ranking, asOf 2026-08-14T13:30Z; 13 funds scored): VGT (score 0.413, signal 34.68%) > JMOM (0.3865) > SPMO (0.3486) > QQQ (0.3162, signal 22%) > MTUM (0.3068) — QQQ sits fourth of the shown names, i.e. no top-tier momentum-factor edge this run. This cycle's call-heavy flow flags a QQQ 730-strike 3-day call ($18.14M at 34.74× open interest) among options-flow-feed-lab's top three prints — a short-dated upside print on the fund itself, not a durable directional signal. HOLD on the firm tape above both MAs; the 50-day (~712.7) is the near-term pivot and the read is invalidated on a daily close below the 200-day (~649.5). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     },
     "SOXX": {
       "deepLink": "sector-research-lab.html",
-      "status": "$550.42 (2026-08-14 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session has closed and is the latest completed daily bar; next session 2026-08-17; the developing tape printed 79 bars today (intraday-tape-lab); snapshot asOf 2026-08-14T20:31:08.653Z) — the watchlist's semiconductor ETF and the brief's SOXX group proxy: -2.07% below its 50-day (~562.1) but a deep +32.67% over the 200-day (~414.9), MA stack tangled; -15.97% off its high. mom5 +1.32 has firmed near-term, mom21 +3.75 is a green one-month read and mom63 +3.9 is green over three months. The SOXX group read is Improving ↑ (quad I, rotation into, rsMom 101.67 over 100, accel +2.07) though rsRatio 99.3 is still under 100, with 11/12 members above their 200-day (QCOM the one below it) but only 2/12 bull-stacked and 5/12 above their 50-day, and a 7/12-green 5-day tape (AVGO, AMAT, TXN, QCOM and ADI the reds) against an 8/12 21-day upMom count — deep long-term structure and a near-term thrust against still-mixed intermediate internals. sector-research-lab now DOES flag Technology as its rotation-in pick this run (XLK Leading), so the complex carries a fresh sector tailwind on top of its own RRG; options-flow-feed-lab's semis single-name print this cycle is an AMD 505-strike 0-day call ($43.9M at 19.1× open interest) — a bullish, short-dated single-name print on a group member (no NVDA or AVGO single name ranks). HOLD on the intact long-term structure, with the 50-day (~562.1) the reclaim line; invalidated on a daily close below the 200-day (~414.9). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
+      "status": "$550.42 (2026-08-15 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session is the latest completed daily bar; next session 2026-08-17; the latest session's tape printed 79 bars (intraday-tape-lab, 2026-08-14T20:00Z); snapshot asOf 2026-08-16T03:54:44.384Z) — the watchlist's semiconductor ETF and the brief's SOXX group proxy: -2.07% below its 50-day (~562.1) but a deep +32.67% over the 200-day (~414.9), MA stack tangled; -15.97% off its high. mom5 +1.32 has firmed near-term, mom21 +3.75 is a green one-month read and mom63 +3.9 is green over three months. The SOXX group read is Improving ↑ (quad I, rotation into, rsMom 101.67 over 100, accel +2.07) though rsRatio 99.3 is still under 100, with 11/12 members above their 200-day (QCOM the one below it) but only 2/12 bull-stacked and 5/12 above their 50-day, and a 7/12-green 5-day tape (AVGO, AMAT, TXN, QCOM and ADI the reds) against an 8/12 21-day upMom count — deep long-term structure and a near-term thrust against still-mixed intermediate internals. sector-research-lab now DOES flag Technology as its rotation-in pick this run (XLK Leading, asOf 2026-08-16T03:54:41Z), so the complex carries a fresh sector tailwind on top of its own RRG; options-flow-feed-lab's semis single-name print this cycle is an NVDA 227.5-strike 7-day call ($19.8M at 4.64× open interest, IV 29.21) — this cycle's single most unusual print and a bullish single-name print on the group's leader (no AVGO, MU, TSM or AMD single name ranks). HOLD on the intact long-term structure, with the 50-day (~562.1) the reclaim line; invalidated on a daily close below the 200-day (~414.9). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     },
     "SPCX": {
       "deepLink": "swing-structure-lab.html",
-      "status": "$140.00 (2026-08-14 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session has closed and is the latest completed daily bar; next session 2026-08-17; the developing tape printed 79 bars today (intraday-tape-lab); snapshot asOf 2026-08-14T20:31:08.653Z) — a private-company proxy with a thin price history: mom63 is not computable and no 50-/200-day MA stack is computable (no MA stack, MA-distances not computable), so no moving-average level can be published. mom5 +5.18 is a firm short-term green and mom21 +6.78 a firm one-month read, and it is -33.77% off its 52-week high. No owning deep-analysis model feeds the brief for this name, so this is a computed status card only; with no attributable price level, no tactical call is published — MONITOR. (Single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
+      "status": "$140.00 (2026-08-15 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session is the latest completed daily bar; next session 2026-08-17; the latest session's tape printed 79 bars (intraday-tape-lab, 2026-08-14T20:00Z); snapshot asOf 2026-08-16T03:54:44.384Z) — a private-company proxy with a thin price history: mom63 is not computable and no 50-/200-day MA stack is computable (no MA stack, MA-distances not computable), so no moving-average level can be published. mom5 +5.18 is a firm short-term green and mom21 +6.78 a firm one-month read, and it is -33.77% off its 52-week high. No owning deep-analysis model feeds the brief for this name, so this is a computed status card only; with no attributable price level, no tactical call is published — MONITOR. (Single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     },
     "SPMO": {
       "deepLink": "etf-momentum-lab.html",
-      "status": "$153.31 (2026-08-14 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session has closed and is the latest completed daily bar; next session 2026-08-17; the developing tape printed 79 bars today (intraday-tape-lab); snapshot asOf 2026-08-14T20:31:08.653Z) — sits ABOVE its 50-day (+1.85%, ~150.5) while holding +17.9% over the 200-day (~130.0); the MA stack is tangled, -5.17% off its high. mom5 +2.42 and mom21 +5.53 are both green, with mom63 +4.08 still positive — a firm one-month tape inside an intact long-term uptrend. etf-momentum-lab owning-tool read (6M balanced, asOf 2026-08-14T13:30Z; 13 funds) ranks SPMO third by balanced score (0.3486, signal 30.19%), behind VGT (0.413) and JMOM (0.387) and ahead of QQQ (0.3162) and MTUM (0.3075) — a mid-tier momentum-factor reading this run. HOLD on the intact structure above both MAs; the 50-day (~150.5) is the near-term pivot and the read is invalidated on a daily close below the 200-day (~130.0). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
+      "status": "$153.31 (2026-08-15 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session is the latest completed daily bar; next session 2026-08-17; the latest session's tape printed 79 bars (intraday-tape-lab, 2026-08-14T20:00Z); snapshot asOf 2026-08-16T03:54:44.384Z) — sits ABOVE its 50-day (+1.85%, ~150.5) while holding +17.9% over the 200-day (~130.0); the MA stack is tangled, -5.17% off its high. mom5 +2.42 and mom21 +5.53 are both green, with mom63 +4.08 still positive — a firm one-month tape inside an intact long-term uptrend. etf-momentum-lab owning-tool read (6M balanced, asOf 2026-08-14T13:30Z; 13 funds) ranks SPMO third by balanced score (0.3486, signal 30.19%), behind VGT (0.413) and JMOM (0.3865) and ahead of QQQ (0.3162) and MTUM (0.3068) — a mid-tier momentum-factor reading this run. HOLD on the intact structure above both MAs; the 50-day (~150.5) is the near-term pivot and the read is invalidated on a daily close below the 200-day (~130.0). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     },
     "VGT": {
       "deepLink": "etf-momentum-lab.html",
-      "status": "$122.56 (2026-08-14 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session has closed and is the latest completed daily bar; next session 2026-08-17; the developing tape printed 79 bars today (intraday-tape-lab); snapshot asOf 2026-08-14T20:31:08.653Z) — +5.1% above its 50-day (~116.6) and +20.29% over the 200-day (~101.9), the watchlist's one bull-stacked equity ETF; -2.44% off its high (mom5 +0.91, mom21 +7.28, mom63 +6.52). etf-momentum-lab owning-tool read (6M balanced, asOf 2026-08-14T13:30Z; 13 funds) ranks VGT #1 by both balanced score (0.413) and raw momentum signal (34.68%), ahead of JMOM (0.387), SPMO (0.3486), QQQ (0.3162) and MTUM (0.3075) — the momentum-factor leader this run, though its annualised volatility (24.48%) is among the higher readings in the shown set. sector-research-lab now flags Technology as its rotation-in sector this run (XLK Leading), so the tech-heavy fund carries a fresh sector tailwind on top of its momentum lead and bull-stacked structure. HOLD on the firm bull-stack above both MAs; invalidated on a daily close below the 50-day (~116.6). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
+      "status": "$122.56 (2026-08-15 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session is the latest completed daily bar; next session 2026-08-17; the latest session's tape printed 79 bars (intraday-tape-lab, 2026-08-14T20:00Z); snapshot asOf 2026-08-16T03:54:44.384Z) — +5.1% above its 50-day (~116.6) and +20.29% over the 200-day (~101.9), the watchlist's one bull-stacked equity ETF; -2.44% off its high (mom5 +0.91, mom21 +7.28, mom63 +6.52). etf-momentum-lab owning-tool read (6M balanced, asOf 2026-08-14T13:30Z; 13 funds) ranks VGT #1 by both balanced score (0.413) and raw momentum signal (34.68%), ahead of JMOM (0.3865), SPMO (0.3486), QQQ (0.3162) and MTUM (0.3068) — the momentum-factor leader this run, though its annualised volatility (24.48%) is among the higher readings in the shown set. sector-research-lab now flags Technology as its rotation-in sector this run (XLK Leading, asOf 2026-08-16T03:54:41Z), so the tech-heavy fund carries a fresh sector tailwind on top of its momentum lead and bull-stacked structure. HOLD on the firm bull-stack above both MAs; invalidated on a daily close below the 50-day (~116.6). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     },
     "XLE": {
       "deepLink": "real-assets-lab.html",
-      "status": "$61.91 (2026-08-14 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session has closed and is the latest completed daily bar; next session 2026-08-17; the developing tape printed 79 bars today (intraday-tape-lab); snapshot asOf 2026-08-14T20:31:08.653Z) — the watchlist's one bull-stacked sector name: +8.84% above its 50-day (~56.9) and +17.08% over the 200-day (~52.9), only -0.33% off its high and the watchlist's firmest 5-day mover. mom21 +8.58 is a firm one-month read and mom63 +7.38 a solid green, with mom5 +7.67 a strong near-term gain. But sector-research-lab (asOf 2026-08-14T20:31:07Z, benchmark SPY) again flags Energy as its OUT sector this run (rotation INTO Technology (XLK) / OUT of XLE — XLE Weakening ↓, quad W, rsRatio 101.12, rsMom 99.92, accel -0.68) — a sector-rotation headwind against an otherwise firm own structure; real-assets-lab's energy models score BNO 47.2 Uptrend and USO 43.9 Uptrend. HOLD on the bull-stacked structure above both MAs despite the rotation-out headwind; invalidated on a daily close below the 50-day (~56.9). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
+      "status": "$61.91 (2026-08-15 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session is the latest completed daily bar; next session 2026-08-17; the latest session's tape printed 79 bars (intraday-tape-lab, 2026-08-14T20:00Z); snapshot asOf 2026-08-16T03:54:44.384Z) — the watchlist's one bull-stacked sector name: +8.84% above its 50-day (~56.9) and +17.08% over the 200-day (~52.9), only -0.33% off its high and the watchlist's firmest 5-day mover. mom21 +8.58 is a firm one-month read and mom63 +7.38 a solid green, with mom5 +7.67 a strong near-term gain. But sector-research-lab (asOf 2026-08-16T03:54:41Z, benchmark SPY) again flags Energy as its OUT sector this run (rotation INTO Technology (XLK) / OUT of XLE — XLE Weakening ↓, quad W, rsRatio 101.12, rsMom 99.92, accel -0.68) — a sector-rotation headwind against an otherwise firm own structure; real-assets-lab's energy models score BNO 47.2 Uptrend and USO 43.9 Uptrend. HOLD on the bull-stacked structure above both MAs despite the rotation-out headwind; invalidated on a daily close below the 50-day (~56.9). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     },
     "XLK": {
       "deepLink": "sector-research-lab.html",
-      "status": "$190.01 (2026-08-14 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session has closed and is the latest completed daily bar; next session 2026-08-17; the developing tape printed 79 bars today (intraday-tape-lab); snapshot asOf 2026-08-14T20:31:08.653Z) — +3.96% above its 50-day (~182.8) and +20.82% over the 200-day (~157.3), MA stack tangled; -4.02% off its high (mom5 +1.09, mom21 +7.04, mom63 +5.98). sector-research-lab owning-tool read (asOf 2026-08-14T20:31:07Z, benchmark SPY, 11 sectors) now flags Technology as its rotation-in pick this run — XLK Leading (quad L, rsRatio 100.01, rsMom 102.37, accel +2.55), rotating OUT of Energy (XLE) with Health Care (XLV) the RS leader as it weakens — so XLK carries a fresh sector-rotation tailwind this window on top of its firm own structure. HOLD on price above both MAs; invalidated on a daily close below the 50-day (~182.8). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
+      "status": "$190.01 (2026-08-15 after-hours window off the 2026-08-14 close — the 2026-08-14 regular session is the latest completed daily bar; next session 2026-08-17; the latest session's tape printed 79 bars (intraday-tape-lab, 2026-08-14T20:00Z); snapshot asOf 2026-08-16T03:54:44.384Z) — +3.96% above its 50-day (~182.8) and +20.82% over the 200-day (~157.3), MA stack tangled; -4.02% off its high (mom5 +1.09, mom21 +7.04, mom63 +5.98). sector-research-lab owning-tool read (asOf 2026-08-16T03:54:41Z, benchmark SPY, 11 sectors) now flags Technology as its rotation-in pick this run — XLK Leading (quad L, rsRatio 100.01, rsMom 102.37, accel +2.55), rotating OUT of Energy (XLE) with Health Care (XLV) the RS leader as it weakens — so XLK carries a fresh sector-rotation tailwind this window on top of its firm own structure. HOLD on price above both MAs; invalidated on a daily close below the 50-day (~182.8). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-14 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     }
   },
   "window": "after-hours"

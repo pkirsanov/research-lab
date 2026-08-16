@@ -16,6 +16,7 @@ import {
 import { resolve } from 'node:path';
 import { RESEARCH_AGENDA_CONTRACTS, runResearchSidePool } from './research-agenda-generation.mjs';
 import { briefEventContractInstruction } from './validate-brief-payload.mjs';
+import { BRIEF_NARRATIVE_FIELDS_REQUIRED } from './reader-vocabulary.mjs';
 import { NARRATIVE_WEB_ALLOWLIST } from './web-evidence-policy.mjs';
 
 const ROOT = process.cwd();
@@ -150,7 +151,8 @@ function readCompleteFragment(path, keys, maxBytes = Number.POSITIVE_INFINITY) {
     try {
         if (statSync(path).size > maxBytes) return null;
         const fragment = JSON.parse(readFileSync(path, 'utf8'));
-        return hasExactFragmentKeys(fragment, keys) ? fragment : null;
+        if (!hasExactFragmentKeys(fragment, keys)) return null;
+        return missingRequiredLeaves(fragment, keys).length === 0 ? fragment : null;
     } catch {
         return null;
     }
@@ -159,6 +161,36 @@ function readCompleteFragment(path, keys, maxBytes = Number.POSITIVE_INFINITY) {
 function hasExactFragmentKeys(fragment, keys) {
     return !!fragment && typeof fragment === 'object' && !Array.isArray(fragment) &&
         Object.keys(fragment).sort().join('|') === [...keys].sort().join('|');
+}
+
+/* Owning the top-level key is not the same as answering it. `hasExactFragmentKeys`
+   accepted a `regime` object with no `regime.macroCycle`, so a lane could drop a field
+   the runbook asks for and still collect, publish and push; the omission only surfaced
+   later as a red D13 coverage assertion against the already-committed payload. The
+   required list in reader-vocabulary.mjs is the canonical answer to "which narrative
+   fields must exist", so it is enforced HERE too, at the point a lane can still be
+   retried. Only literal paths are checked: the wildcard patterns ('*', '[]', '**')
+   describe shapes whose arity depends on the publish, and a lane that legitimately
+   emits zero of them is not incomplete. */
+function requiredLeavesFor(keys) {
+    const owned = new Set(keys);
+    return BRIEF_NARRATIVE_FIELDS_REQUIRED
+        .filter((pattern) => !pattern.includes('*') && !pattern.includes('[]'))
+        .map((pattern) => pattern.split('.'))
+        .filter((segments) => segments.length > 1 && owned.has(segments[0]));
+}
+
+function missingRequiredLeaves(fragment, keys) {
+    const missing = [];
+    for (const segments of requiredLeavesFor(keys)) {
+        let node = fragment;
+        for (const segment of segments) {
+            if (node === null || typeof node !== 'object' || !(segment in node)) { node = undefined; break; }
+            node = node[segment];
+        }
+        if (node === undefined || node === null || node === '') missing.push(segments.join('.'));
+    }
+    return missing;
 }
 
 function terminateProcessGroup(child, signal) {

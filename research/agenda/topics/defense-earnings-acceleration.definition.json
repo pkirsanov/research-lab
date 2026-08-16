@@ -1,13 +1,25 @@
 {
   "contractVersion": "research-topic-definition/v1",
   "topicId": "defense-earnings-acceleration",
-  "definitionVersion": "v1.0.0",
+  "definitionVersion": "v1.1.0",
   "declaredQuestionSha256": "sha256:054393f3f2a4cc775e6eb35cfadfd52e8a1d9a5f9c90278ea35dadbd6f2d4b2a",
   "analyticalSections": [
     {
       "sectionId": "consensus-revisions",
       "title": "Consensus revisions",
       "kind": "earnings-analysis",
+      "required": true
+    },
+    {
+      "sectionId": "revision-gap-ranking",
+      "title": "Revision gap ranking",
+      "kind": "earnings-analysis",
+      "required": true
+    },
+    {
+      "sectionId": "funded-program-catalysts",
+      "title": "Funded program catalysts",
+      "kind": "catalyst-analysis",
       "required": true
     },
     {
@@ -85,6 +97,19 @@
       ]
     },
     {
+      "requirementId": "consensus-estimates-and-funded-programs",
+      "sourceClasses": [
+        "official-filing",
+        "company-guidance"
+      ],
+      "queryTemplate": "named funded program award appropriation or multi-year framework plus current consensus earnings estimate for the declared manufacturer",
+      "freshnessHours": 720,
+      "requiredClaimCoverage": [
+        "earnings-revision",
+        "catalyst"
+      ]
+    },
+    {
       "requirementId": "committed-public-bars",
       "sourceClasses": [
         "committed-bar"
@@ -109,6 +134,20 @@
         "field": "materialChange",
         "operator": "equals",
         "value": true
+      }
+    },
+    {
+      "triggerId": "funded-award-observed",
+      "kind": "threshold",
+      "description": "An observed award or appropriation is large enough to move a declared production or backlog input, so the funded ceiling is re-read rather than carried.",
+      "targetIds": [
+        "funded-program-catalysts",
+        "revision-gap-ranking"
+      ],
+      "condition": {
+        "field": "awardUsdBillions",
+        "operator": "at-least",
+        "value": 1
       }
     },
     {

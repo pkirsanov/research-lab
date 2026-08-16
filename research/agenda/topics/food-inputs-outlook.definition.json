@@ -1,7 +1,7 @@
 {
   "contractVersion": "research-topic-definition/v1",
   "topicId": "food-inputs-outlook",
-  "definitionVersion": "v1.0.0",
+  "definitionVersion": "v1.1.0",
   "declaredQuestionSha256": "sha256:422a5e6fab7ba3c65b16aad8acfbaa94866c48880e22e8e777908e71e76bf529",
   "analyticalSections": [
     {
@@ -14,6 +14,12 @@
       "sectionId": "fertilizer-inputs",
       "title": "Fertilizer inputs",
       "kind": "commodity-analysis",
+      "required": true
+    },
+    {
+      "sectionId": "input-cost-transmission",
+      "title": "Input cost transmission",
+      "kind": "transmission-analysis",
       "required": true
     },
     {
@@ -97,6 +103,19 @@
       ]
     },
     {
+      "requirementId": "fertilizer-cost-and-energy-inputs",
+      "sourceClasses": [
+        "official",
+        "industry-data"
+      ],
+      "queryTemplate": "nitrogen phosphate potash and ammonia price plus natural gas feedstock cost and export restriction affecting declared crop input economics",
+      "freshnessHours": 720,
+      "requiredClaimCoverage": [
+        "fertilizer",
+        "catalyst"
+      ]
+    },
+    {
       "requirementId": "committed-public-bars",
       "sourceClasses": [
         "committed-bar"
@@ -121,6 +140,20 @@
         "field": "materialChange",
         "operator": "equals",
         "value": true
+      }
+    },
+    {
+      "triggerId": "input-cost-threshold",
+      "kind": "threshold",
+      "description": "A declared fertilizer or feedstock input moves far enough that the crop-economics transmission is re-read rather than carried from the prior review.",
+      "targetIds": [
+        "input-cost-transmission",
+        "fertilizer-inputs"
+      ],
+      "condition": {
+        "field": "inputCostChangePercent",
+        "operator": "at-least",
+        "value": 10
       }
     },
     {

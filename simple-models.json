@@ -4868,7 +4868,7 @@
           "defaultSource": "registry",
           "interpretation": "Structure and reset rules are enforced against this holding horizon.",
           "affectsOutputPaths": [
-            "summary.outcomes"
+            "summary.evaluations"
           ],
           "disabledWhen": [],
           "identityBearing": true
@@ -4902,7 +4902,7 @@
           "defaultSource": "registry",
           "interpretation": "Constrains exposure mechanism, legal structure, leverage, and reset policy.",
           "affectsOutputPaths": [
-            "summary.outcomes"
+            "summary.evaluations"
           ],
           "disabledWhen": [],
           "identityBearing": true
@@ -4928,7 +4928,7 @@
           "defaultSource": "registry",
           "interpretation": "Excluding reset products rejects them regardless of direction match.",
           "affectsOutputPaths": [
-            "summary.outcomes"
+            "summary.evaluations"
           ],
           "disabledWhen": [],
           "identityBearing": true

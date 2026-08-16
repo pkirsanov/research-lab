@@ -324,8 +324,66 @@ function surfaceOwnerState() {
    [parameterId, value] cases that cover EVERY enabled declared parameter. Owner-relative case
    values (session control-threshold, swing thresholds) are computed against the real owner
    primitives so each change is a genuine state flip, never a tautological echo of the raw value. */
+/* Trend-dynamics owner state: the committed SPY closes the page itself consumes, so the trend read
+   is exercised against real observations rather than a synthetic ramp that could pass a slope test
+   nothing real would. */
+function trendOwnerState() {
+  const rows = readJson('data/bars/SPY.json').rows.slice(-180);
+  return {
+    contractVersion: 'trend-owner-state/v1',
+    toolId: 'trend-dynamics-cycle-lab',
+    symbol: 'SPY',
+    asOf: '2026-08-14',
+    observations: rows.map((row) => ({ observedAt: new Date(row.t).toISOString(), value: row.c }))
+  };
+}
+
+/* FX vehicle owner state: the committed vehicle registry with one frozen owner disposition per
+   member, which is the shape the page's vehicle-fit decision publishes. Every member is carried so
+   the adapter is proved to pass the WHOLE registry through rather than only the selected one. */
+function fxVehicleOwnerState() {
+  const vehicles = readJson('fx-vehicle-universe.json').vehicles;
+  const evaluations = vehicles.map((vehicle) => ({
+    vehicleId: vehicle.vehicleId,
+    ticker: vehicle.ticker,
+    state: 'Eligible',
+    reasonCodes: []
+  }));
+  return {
+    contractVersion: 'fx-owner-state/v1',
+    toolId: 'fx-regime-relative-value-lab',
+    state: 'ready',
+    evidenceCutoff: '2026-08-14',
+    vehicleFit: {
+      state: 'Eligible',
+      selected: { vehicleId: evaluations[0].vehicleId },
+      evaluations
+    }
+  };
+}
+
 function makeDescriptors(ms, opts, rlvol) {
   return {
+    'trend-dynamics-cycle-lab': {
+      ownerState: () => trendOwnerState(),
+      base: (definition) => defaultValues(definition),
+      expectFlat: false,
+      ownerFact: ({ summary, owner }) => {
+        assert.equal(summary.state, 'ready', 'the trend summary reaches ready on the committed SPY series');
+        assert.ok(summary.trend && summary.strength && summary.turn, 'the trend summary carries trend, strength and turn');
+        // The read windows by its own echoed lookback, so the expected count is derived from that
+        // rather than assumed to be every frozen observation.
+        assert.equal(summary.observationCount, Math.min(owner.observations.length, summary.params.lookback),
+          'the counted observations are exactly the echoed lookback window over the frozen series');
+      },
+      // The definition declares no parameters, so there is no lever to exercise and none is invented.
+      cases: () => [
+        ['lookback', 63],
+        ['smoothing', 9],
+        ['strength-threshold', 3],
+        ['confirmation-delay', 5]
+      ]
+    },
     'market-heatmap-lab': {
       ownerState: () => breadthOwnerState(ms),
       base: (definition) => defaultValues(definition),
@@ -550,7 +608,7 @@ async function exerciseAdapter(runtime, api, definition, descriptor) {
   }
 }
 
-test('TP-05-02 market structure and options adapters: registry-derived loop runs all eight at owner-parity with real parameter effects', async () => {
+test('TP-05-02 market structure and options adapters: registry-derived loop runs all nine at owner-parity with real parameter effects', async () => {
   const api = loadProductionApi();
   const ms = loadMarketStructure();
   const opts = loadOptions();
@@ -565,7 +623,7 @@ test('TP-05-02 market structure and options adapters: registry-derived loop runs
   const derivedAdapterIds = definitions.map((definition) => definition.adapterId).sort();
   const registeredAdapterIds = Object.keys(results).sort();
   assert.deepEqual(registeredAdapterIds, derivedAdapterIds, 'registered adapters == registry-derived adapter set');
-  assert.equal(registeredAdapterIds.length, 8, 'all eight Scope-05 adapters registered into one runtime');
+  assert.equal(registeredAdapterIds.length, 9, 'all nine Scope-05 adapters registered into one runtime');
   for (const adapterId of registeredAdapterIds) {
     assert.equal(results[adapterId].ok, true, `${adapterId} registered: ${JSON.stringify(results[adapterId].error || {})}`);
   }
@@ -592,7 +650,7 @@ test('TP-05-02 market structure and options adapters: a missing definition remov
   const runtime = makeRuntime(api, missing);
   const results = registerAll(runtime, api, ms, opts, rlvol, missing);
   const registeredAdapterIds = Object.keys(results).sort();
-  assert.equal(registeredAdapterIds.length, 7, 'exactly seven adapters register when one definition is missing');
+  assert.equal(registeredAdapterIds.length, 8, 'exactly eight adapters register when one definition is missing');
   assert.equal(registeredAdapterIds.includes('simple-adapter/options-surface/v1'), false, 'the missing tool has no registered adapter');
   assert.deepEqual(registeredAdapterIds, missing.map((definition) => definition.adapterId).sort(), 'registered set shrinks with the registry');
 });
@@ -613,7 +671,7 @@ test('TP-05-02 market structure and options adapters: adding a valid definition 
   const runtime = makeRuntime(api, augmented);
   const results = registerAll(runtime, api, ms, opts, rlvol, augmented);
   const registeredAdapterIds = Object.keys(results).sort();
-  assert.equal(registeredAdapterIds.length, 8, 'adding a valid definition grows the registered set back to eight');
+  assert.equal(registeredAdapterIds.length, 9, 'adding a valid definition grows the registered set back to nine');
   assert.equal(results['simple-adapter/options-surface/v1'] && results['simple-adapter/options-surface/v1'].ok, true, 'the added adapter registers successfully');
 
   // The added adapter is not just registered — it executes a real ready owner run.
@@ -880,6 +938,22 @@ function msftOwnerFixture() {
 
 function makeScope6Descriptors(mr, fm) {
   return {
+    'fx-regime-relative-value-lab': {
+      ownerState: () => fxVehicleOwnerState(),
+      base: (definition) => defaultValues(definition),
+      ownerFact: ({ summary, owner }) => {
+        assert.equal(summary.evaluationCount, owner.vehicleFit.evaluations.length, 'every registry vehicle is carried through, not just the selected one');
+        assert.equal(summary.selectedVehicleId, owner.vehicleFit.selected.vehicleId, 'the owner selection passes through unchanged');
+        assert.equal(summary.eligibleCount, owner.vehicleFit.evaluations.filter((entry) => entry.state === 'Eligible').length, 'the eligible count is the owner disposition, not a recount');
+      },
+      // Every lever is exercised; each one is a PROVED flat region because the owner decision is frozen.
+      expectFlatParameters: true,
+      cases: () => [
+        ['horizon', 'tactical'],
+        ['vehicle-class', 'broad-dollar-basket'],
+        ['daily-reset', 'permit-tactical']
+      ]
+    },
     'sector-research-lab': {
       ownerState: () => sectorOwnerFixture(),
       base: (definition) => defaultValues(definition),
@@ -1092,7 +1166,15 @@ async function exerciseScope6Adapter(runtime, api, definition, descriptor) {
     assert.deepEqual(run.changedParameters, [parameterId], `${definition.toolId} changed ${parameterId}`);
     const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
     assert.ok(effect, `${definition.toolId} sensitivity effect present for ${parameterId}`);
-    assert.equal(effect.outputChanged, true, `${definition.toolId} ${parameterId} moves ${declaredPaths.join(',')}`);
+    /* A frozen-owner adapter proves a FLAT region instead of moving output: the projection cannot
+       change because the owner decision is settled. Demanding movement there would force a real
+       adapter to fake an effect, so the flat case is asserted as flat WITH its proof. */
+    if (descriptor.expectFlatParameters) {
+      assert.equal(effect.outputChanged, false, `${definition.toolId} ${parameterId} is a proved flat region (owner decision frozen)`);
+      assert.notEqual(effect.flatRegionProof, null, `${definition.toolId} ${parameterId} carries a proved flat region`);
+    } else {
+      assert.equal(effect.outputChanged, true, `${definition.toolId} ${parameterId} moves ${declaredPaths.join(',')}`);
+    }
     assert.deepEqual(effect.resultPaths, declaredPaths, `${definition.toolId} ${parameterId} resultPaths == definition.affectsOutputPaths`);
     await runtime.recompute({ parameterValues: { ...base }, seed: seedArg, scenarioIds: ['baseline'], computedAt: '2026-07-25T20:03:30.000Z' });
   }
@@ -1104,7 +1186,7 @@ test('TP-06-02 macro rotation and fundamental adapters: registry-derived loop ru
   const fm = loadFundamentalModels();
 
   const definitions = scope6Definitions();
-  assert.equal(definitions.length, 8, 'all eight Scope-06 definitions are declared in the registry');
+  assert.equal(definitions.length, 9, 'all nine Scope-06 definitions are declared in the registry');
 
   const runtime = makeRuntime(api, definitions);
   const results = registerScope6(runtime, api, mr, fm, definitions);
@@ -1136,7 +1218,7 @@ test('TP-06-02 macro rotation and fundamental adapters: Scope 05 adapter set and
   const fm = loadFundamentalModels();
 
   // Scope 05 supportedAdapterIds are byte-unchanged (no Scope-06 edit leaked into the Scope-05 modules).
-  assert.deepEqual(ms.supportedAdapterIds.slice().sort(), ['simple-adapter/conditional-volatility/v1', 'simple-adapter/market-breadth/v1', 'simple-adapter/session-auction/v1', 'simple-adapter/swing-transition/v1', 'simple-adapter/technical-five-gate/v1'], 'market-structure supportedAdapterIds unchanged (5)');
+  assert.deepEqual(ms.supportedAdapterIds.slice().sort(), ['simple-adapter/conditional-volatility/v1', 'simple-adapter/market-breadth/v1', 'simple-adapter/session-auction/v1', 'simple-adapter/swing-transition/v1', 'simple-adapter/technical-five-gate/v1', 'simple-adapter/trend-confirmation/v1'], 'market-structure supportedAdapterIds unchanged (6)');
   assert.deepEqual(opts.supportedAdapterIds.slice().sort(), ['simple-adapter/dealer-gamma-playbook/v1', 'simple-adapter/options-anomaly/v1', 'simple-adapter/options-surface/v1'], 'options supportedAdapterIds unchanged (3)');
 
   const breadthDefinition = clone(readJson('simple-models.json').definitions.find((definition) => definition.toolId === 'market-heatmap-lab'));
@@ -1206,6 +1288,24 @@ function loadMarketAction() {
 
 function loadRentalEngine() {
   const path = require.resolve('../rlrental.js');
+  delete require.cache[path];
+  return require(path);
+}
+
+function loadPortfolioResearch() {
+  const path = require.resolve('../rlexperience-adapters/portfolio-research.js');
+  delete require.cache[path];
+  return require(path);
+}
+
+function loadResearchAgenda() {
+  const path = require.resolve('../rlexperience-adapters/research-agenda.js');
+  delete require.cache[path];
+  return require(path);
+}
+
+function loadAgendaEngine() {
+  const path = require.resolve('../rlagenda.js');
   delete require.cache[path];
   return require(path);
 }
@@ -1692,8 +1792,11 @@ test('TP-07-02 SCN-012-036 completeness: all 22 ordinary adapters plus the in-Br
   const pr = loadPropertyResearch();
   const ma = loadMarketAction();
   const rental = loadRentalEngine();
+  const pfr = loadPortfolioResearch();
+  const ra = loadResearchAgenda();
 
-  // Register ALL 22 ordinary owner adapters (Scope 05/06/07) + the one in-Brief Center model into ONE runtime over
+  // Register ALL 26 ordinary owner adapters (Scope 05/06/07 plus the later portfolio-research and
+  // research-agenda modules) + the one in-Brief Center model into ONE runtime over
   // the FULL model registry. Each factory self-filters by its own tool IDs, so the union is the complete inventory.
   const definitions = readJson('simple-models.json').definitions.map(clone);
   const runtime = makeRuntime(api, definitions);
@@ -1705,7 +1808,9 @@ test('TP-07-02 SCN-012-036 completeness: all 22 ordinary adapters plus the in-Br
     fm.registerFundamentalModelsAdapters(runtime, api, definitions),
     sr.registerStrategyResearchAdapters(runtime, api, definitions),
     pr.registerPropertyResearchAdapters(runtime, api, definitions, { rental }),
-    ma.registerMarketActionAdapters(runtime, api, definitions)
+    ma.registerMarketActionAdapters(runtime, api, definitions),
+    pfr.registerPortfolioResearchAdapters(runtime, api, definitions),
+    ra.registerResearchAgendaAdapters(runtime, api, definitions, { agenda: loadAgendaEngine() })
   );
   for (const [adapterId, result] of Object.entries(results)) {
     assert.equal(result.ok, true, `${adapterId} registered: ${JSON.stringify(result.error || {})}`);
@@ -1714,7 +1819,7 @@ test('TP-07-02 SCN-012-036 completeness: all 22 ordinary adapters plus the in-Br
   const registry = readJson('tools.json');
   const ordinaryToolIds = registry.tools.filter((tool) => tool.experience.kind === 'ordinary').map((tool) => tool.id);
   const centerToolIds = registry.tools.filter((tool) => tool.experience.kind === 'market-action-center').map((tool) => tool.id);
-  assert.equal(ordinaryToolIds.length, 22, 'the registry declares 22 ordinary tools');
+  assert.equal(ordinaryToolIds.length, 26, 'the registry declares 26 ordinary tools');
   assert.equal(centerToolIds.length, 1, 'the registry declares exactly one in-Brief Center model');
 
   // Every ordinary registry tool resolves EXACTLY one registered owner adapter (adapterStatus.registered = true).
@@ -1729,7 +1834,7 @@ test('TP-07-02 SCN-012-036 completeness: all 22 ordinary adapters plus the in-Br
   // Zero generic fallback: the runtime registered EXACTLY 22 ordinary + 1 Center = 23 owner adapters, owns no
   // tool-id branch, and owns no forbidden authority.
   const diagnostic = requireValue(runtime.diagnostic());
-  assert.equal(diagnostic.registeredAdapterCount, 23, 'exactly 22 ordinary + 1 Center owner adapters are registered (no extras, no generic fallback)');
+  assert.equal(diagnostic.registeredAdapterCount, 27, 'exactly 26 ordinary + 1 Center owner adapters are registered (no extras, no generic fallback)');
   assert.equal(diagnostic.toolIdBranchCount, 0, 'the shared runtime owns no tool-id branch');
   assert.equal(Object.values(diagnostic.authority).every((owned) => owned === false), true, 'the shared runtime owns no forbidden authority');
 });

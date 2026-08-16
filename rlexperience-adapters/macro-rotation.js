@@ -1452,7 +1452,7 @@
   function buildFxVehicleEvidence(api, ownerState) {
     var cutoff = String((ownerState && ownerState.evidenceCutoff) || "unavailable");
     var ready = ownerState && ownerState.state === "ready";
-    return {
+    var evidence = {
       contractVersion: "simple-evidence-snapshot/v1",
       toolId: "fx-regime-relative-value-lab",
       state: ready ? "ready" : "unavailable",
@@ -1469,8 +1469,20 @@
         valueState: ready ? "ready" : "unavailable"
       }],
       parameterValues: {},
-      evidenceIdentity: ownerStateFingerprint(api, ownerState)
+      assumptions: [
+        "Every disposition is the frozen owner vehicle-fit evaluation captured for this cutoff."
+      ],
+      limitations: [
+        "The vehicle fit describes eligibility under the owner's active constraints and establishes no expected return."
+      ],
+      invalidationConditions: [
+        "The frozen owner snapshot changes, gains or loses a registry vehicle, or a later evaluation replaces the current fit."
+      ],
+      evidenceIdentity: null
     };
+    // Computed over the COMPLETE evidence, so the identity covers the declared assumptions too.
+    evidence.evidenceIdentity = evidenceIdentityOf(api, evidence);
+    return evidence;
   }
 
   function fxVehicleOutput(input, summary) {
@@ -1492,7 +1504,17 @@
         state: ready ? "bounded" : "wide",
         rangeOrBand: summary.selectedVehicleId ? ("Selected " + summary.selectedVehicleId) : "No vehicle selected",
         reason: "Every disposition is the frozen owner evaluation for that registry member; no constraint is relaxed to produce one."
-      }
+      },
+      assumptions: [
+        "Every disposition is the frozen owner vehicle-fit evaluation captured for this cutoff."
+      ],
+      limitations: [
+        "The vehicle fit describes eligibility under the owner's active constraints and establishes no expected return."
+      ],
+      invalidationConditions: [
+        "The frozen owner snapshot changes, gains or loses a registry vehicle, or a later evaluation replaces the current fit."
+      ],
+      flatRegionProofs: []
     };
   }
 
@@ -1527,7 +1549,7 @@
         }
         return { ok: true, value: fxVehicleOutput(input, fxVehicleSummary(ownerState)) };
       },
-      compareSensitivity: function (baselineInput, currentInput) {
+      compareSensitivity: function (baselineInput, currentInput, sharedRandomness) {
         var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
         if (!ownerState) {
           return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
@@ -1558,7 +1580,32 @@
             }
           });
         });
-        return { ok: true, value: { contractVersion: "simple-sensitivity/v1", effects: effects } };
+        return {
+          ok: true,
+          value: {
+            contractVersion: "simple-sensitivity/v1",
+            sharedRandomness: sharedRandomness,
+            seedChanged: baselineInput.seed !== currentInput.seed,
+            effects: effects
+          }
+        };
+      },
+      projectOwnerEvidence: function (output) {
+        var summary = output.values.summary;
+        return {
+          ok: true,
+          value: {
+            contractVersion: "owner-evidence-projection/v1",
+            state: output.state,
+            valueText: summary.selectedVehicleId ? (summary.selectedVehicleId + " selected") : "No vehicle selected",
+            numericValue: summary.eligibleCount,
+            unit: "eligible-vehicle-count",
+            summary: summary.selectedVehicleId
+              ? (summary.selectedVehicleId + " is the owner-selected vehicle; " + summary.eligibleCount + " of " + summary.evaluationCount + " registry vehicles are eligible under the active constraints.")
+              : (summary.eligibleCount + " of " + summary.evaluationCount + " registry vehicles are eligible and the owner selected none."),
+            sourceRefs: ["owner-evidence"]
+          }
+        };
       }
     };
   }

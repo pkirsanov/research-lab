@@ -16,6 +16,7 @@ import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { dirname, extname, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { conformantNarrativePayload } from './required-narrative-fields.support.mjs';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -235,18 +236,11 @@ if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
   /* This suite tests publication ATOMICITY, not narrative completeness, and its stub lane echoes
      this baseline as the "generated" payload. The publish path now refuses a generated narrative
      that omits required reader copy, so a baseline copied from a live payload that happens to be
-     missing `dataAsOf.labels` would fail the lane gate and silently reroute every test onto the
-     degraded branch. Backfilled only when absent, exactly like the window/asOf normalisation above,
-     so these tests assert transaction behaviour rather than whatever today's publish contained. */
-  if (fixturePayload.dataAsOf && !fixturePayload.dataAsOf.labels) {
-    fixturePayload.dataAsOf.labels = {
-      bars: 'Daily bars are fresh for this window and the last completed session is closed.',
-      events: 'The tracked calendar items are resolved and no scheduled release lands in this window.',
-      macro: 'The volatility headline is calm and the sizing model agrees with it.',
-      options: 'Option chains are fresh and the dealer map is unchanged from the last close.'
-    };
-  }
-  writeFileSync(fixturePayloadPath, JSON.stringify(fixturePayload, null, 2) + '\n');
+     missing one would fail the lane gate and silently reroute every test onto the degraded branch.
+     Derived from the required list rather than naming a field, because which field is missing
+     changes per publish. */
+  const conformedPayload = conformantNarrativePayload(fixturePayload);
+  writeFileSync(fixturePayloadPath, JSON.stringify(conformedPayload, null, 2) + '\n');
   copyFileSync(resolve(ROOT, 'market-brief.config.json'), resolve(repoRoot, 'market-brief.config.json'));
   copyFileSync(resolve(ROOT, 'market-brief.scorecard.json'), resolve(repoRoot, 'market-brief.scorecard.json'));
   copyFileSync(resolve(ROOT, 'tools.json'), resolve(repoRoot, 'tools.json'));

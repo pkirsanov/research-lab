@@ -28,6 +28,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { BRIEF_NARRATIVE_FIELDS_REQUIRED } from '../scripts/reader-vocabulary.mjs';
+import { conformantNarrativePayload, missingRequiredNarrativeFields } from './required-narrative-fields.support.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const VALIDATOR = resolve(ROOT, 'scripts/validate-brief-payload.mjs');
@@ -44,22 +45,8 @@ function committedPayload() {
   return JSON.parse(readFileSync(resolve(ROOT, 'market-brief.payload.json'), 'utf8'));
 }
 
-/* Condensed reader-facing versions of the four freshness narratives — the shape the thirteen
-   payloads before the regression carried. Kept plain so the vocabulary leak gate is not the thing
-   under test here. */
-function withLabels(payload) {
-  const next = JSON.parse(JSON.stringify(payload));
-  next.dataAsOf.labels = {
-    bars: 'Daily bars are fresh for this window, with the last completed session already closed.',
-    events: 'The tracked calendar items are resolved and no scheduled release lands in this window.',
-    macro: 'The volatility headline is calm and the sizing model agrees with it.',
-    options: 'Option chains are fresh and the dealer map is unchanged from the last close.'
-  };
-  return next;
-}
-
 function withoutLabels(payload) {
-  const next = JSON.parse(JSON.stringify(payload));
+  const next = conformantNarrativePayload(payload);
   delete next.dataAsOf.labels;
   return next;
 }
@@ -72,7 +59,10 @@ test('the required-field list actually declares the field this gate exists to pr
 });
 
 test('a generated narrative carrying every required field is accepted', () => {
-  const result = runValidator(withLabels(committedPayload()), [FLAG, '--defer-page-parity']);
+  const payload = conformantNarrativePayload(committedPayload());
+  assert.deepEqual(missingRequiredNarrativeFields(payload), [],
+    'the fixture must actually reach conformance, or the acceptance below proves nothing');
+  const result = runValidator(payload, [FLAG, '--defer-page-parity']);
   assert.equal(result.status, 0, `expected acceptance, got:\n${result.stdout}\n${result.stderr}`);
   assert.match(result.stdout, /every required narrative field is present/);
 });

@@ -304,6 +304,8 @@
             ],
             "startedAt": "2026-08-14T04:29:21Z",
             "completedAt": "2026-08-14T04:29:21Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "The agent captured one completion instant with date -u and never recorded a start, so the span is declared unmeasured rather than asserted as zero elapsed time.",
             "statusBefore": "not_started",
             "statusAfter": "not_started",
             "summary": "Reconciled the plan-owned Feature 019 artifacts to five sequential vertical slices. Preserved SCN-019-001 through SCN-019-020, added the machine-readable test plan, kept every scope and DoD item not started, added exact scope directories and dependencies, and routed Scope 1 to bubbles.implement without modifying certification state."
@@ -408,6 +410,8 @@
             ],
             "startedAt": "2026-08-15T00:58:33Z",
             "completedAt": "2026-08-15T00:58:33Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "The agent captured one completion instant with date -u and never recorded a start, so the span is declared unmeasured rather than asserted as zero elapsed time.",
             "statusBefore": "not_started",
             "statusAfter": "not_started",
             "summary": "Reconciled plan-owned Feature 019 artifacts after the gaps verdict invalidated completion. Reopened Scope 1 as in_progress and dependency-blocked Scopes 2 through 5 as not_started; preserved 38 functional requirements, 20 stable scenarios, five scopes, dependencies, Feature 020 boundary, historical evidence, top-level status, and certification. Added 14 unchecked adversarial repair rows for GAP-01 through GAP-10, synchronized Markdown and machine-readable planning contracts, and retained gaps as the active phase and owner."
@@ -419,6 +423,8 @@
             ],
             "startedAt": "2026-08-15T04:33:20Z",
             "completedAt": "2026-08-15T04:33:20Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "The agent captured one completion instant with date -u and never recorded a start, so the span is declared unmeasured rather than asserted as zero elapsed time.",
             "statusBefore": "not_started",
             "statusAfter": "not_started",
             "summary": "Recorded independent and current-session evidence for reopened Scope 3 under active gaps remediation. Verified all 24 Scope 3 DoD items, all 16 Scope 3 Test Plan rows, exact 68-row cross-artifact parity, source ownership and purity, protected input boundaries, canonical validators, JSON, fences, diff integrity, and diagnostics. Marked Scope 3 done and Scope 4 in_progress while retaining gaps/in_progress, bubbles.gaps ownership, top-level status, and certification."
@@ -430,6 +436,8 @@
             ],
             "startedAt": "2026-08-15T09:29:15Z",
             "completedAt": "2026-08-15T09:29:15Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "The agent captured one completion instant with date -u and never recorded a start, so the span is declared unmeasured rather than asserted as zero elapsed time.",
             "statusBefore": "not_started",
             "statusAfter": "not_started",
             "summary": "Reconciled current independent Scope 4 test evidence under active gaps remediation. Corrected the Tier 2 inventory to 18 rows, checked all 26 Scope 4 DoD items with item-local provenance and evidence references, verified exact 68-row parity plus planning and integrity guards, marked Scope 4 done, and opened Scope 5 as the sole in_progress scope. Preserved gaps/in_progress, bubbles.gaps as active owner, top-level status, all certification fields, historical evidence, and the independent S4-FRAMEWORK-001 framework finding."
@@ -441,6 +449,8 @@
             ],
             "startedAt": "2026-08-15T10:40:21Z",
             "completedAt": "2026-08-15T10:40:21Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "The agent captured one completion instant with date -u and never recorded a start, so the span is declared unmeasured rather than asserted as zero elapsed time.",
             "statusBefore": "not_started",
             "statusAfter": "not_started",
             "summary": "Reconciled current independent Scope 5 evidence under active gaps remediation. Corrected the stale Tier 2 inventory to 18 rows, checked all 27 Scope 5 DoD items with current provenance and evidence references, preserved historical failure and remediation blocks, verified exact 68-row planning parity, marked Scope 5 and its mapped scenarios done, and routed the unchanged gaps/in_progress phase to bubbles.gaps for complete GAP-01 through GAP-10 revalidation. Preserved top-level status, all certification fields, report evidence, source, tests, design, spec, Feature 020, and all independently routed framework and boundary findings."
@@ -463,6 +473,8 @@
             ],
             "startedAt": "2026-08-15T11:46:46Z",
             "completedAt": "2026-08-15T11:46:46Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "The agent captured one completion instant with date -u and never recorded a start, so the span is declared unmeasured rather than asserted as zero elapsed time.",
             "statusBefore": "not_started",
             "statusAfter": "not_started",
             "summary": "Reclosed Scope 2 only after fresh item-local TP-02-07 and TP-02-08 evidence proved both exact titles, the full history E2E passed 4/4 with zero failed or skipped tests, and the project selftest passed 2,095/0. Restored SCN-019-006 and Scope 2 to done, returned Scope 3 to done because no own claim was invalidated, opened Scope 4 as the next in-progress eligible repair for TP-04-15 and TP-04-17, and kept Scope 5 dependency-blocked and not_started without unchecking unrelated rows. Preserved gaps/in_progress, bubbles.gaps ownership, next owner bubbles.test, top-level status, all certification fields, historical evidence, GAP-07, GAP-10, framework findings, Feature 020 routing, and named observations."
@@ -474,6 +486,8 @@
             ],
             "startedAt": "2026-08-15T12:09:53Z",
             "completedAt": "2026-08-15T12:09:53Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "The agent captured one completion instant with date -u and never recorded a start, so the span is declared unmeasured rather than asserted as zero elapsed time.",
             "statusBefore": "not_started",
             "statusAfter": "not_started",
             "summary": "Reclosed only Scope 4 TP-04-15 and TP-04-17 plus their directly dependent GAP-07 and GAP-10 claims from the fresh required-publicSubjects remediation anchor. Restored Scope 5 to done because its own eighteen checked rows and evidence were never invalidated, returned SCN-019-012 and SCN-019-015 to done, and synchronized all scope and scenario mirrors. Preserved gaps/in_progress with bubbles.gaps as active and next owner, currentScope null, the Feature 019 root as next target, top-level status, all certification fields, historical evidence, source, tests, reports, spec, design, Feature 020, framework and transition findings, and test-path, editor, and environment observations."
@@ -485,6 +499,8 @@
             ],
             "startedAt": "2026-08-15T12:31:55Z",
             "completedAt": "2026-08-15T12:31:55Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "The agent captured one completion instant with date -u and never recorded a start, so the span is declared unmeasured rather than asserted as zero elapsed time.",
             "timestampBasis": "Unmeasured single-instant completion record captured by date -u. Current-session commands below carry their own output hashes; no earlier start time is reconstructed.",
             "statusBefore": "not_started",
             "statusAfter": "not_started",
@@ -905,6 +921,8 @@
             ],
             "startedAt": "2026-08-15T15:40:28Z",
             "completedAt": "2026-08-15T15:40:28Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "The agent captured one completion instant with date -u and never recorded a start, so the span is declared unmeasured rather than asserted as zero elapsed time.",
             "timestampBasis": "Unmeasured single-instant completion record captured by date -u. Current-session commands carry their own output and bounded durations. No earlier start time is reconstructed.",
             "statusBefore": "not_started",
             "statusAfter": "not_started",
@@ -1050,6 +1068,8 @@
             ],
             "startedAt": "2026-08-15T16:14:20Z",
             "completedAt": "2026-08-15T16:14:20Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "The agent captured one completion instant with date -u and never recorded a start, so the span is declared unmeasured rather than asserted as zero elapsed time.",
             "timestampBasis": "Unmeasured single-instant completion record captured by date -u. Current-session commands carry bounded execution evidence. No earlier start time is reconstructed.",
             "statusBefore": "not_started",
             "statusAfter": "not_started",
@@ -1523,8 +1543,19 @@
             "phasesExecuted": [
                 "chaos"
             ],
-            "startedAt": "2026-08-15T11:00:00Z",
-            "completedAt": "2026-08-15T12:00:00Z",
+            "startedAt": "2026-08-16T00:20:00Z",
+            "completedAt": "2026-08-16T00:50:00Z",
+            "timestampBasis": "Ordered, unmeasured window. The chaos phase was dispatched after the audit phase completed at 2026-08-16T00:15:00Z and before the redteam dispatch; the bounds record that ORDER, not an instrumented duration.",
+            "recordCorrection": {
+                "correctedBy": "bubbles.validate",
+                "correctedAt": "2026-08-16T04:45:00Z",
+                "field": "startedAt/completedAt",
+                "originalValue": [
+                    "2026-08-15T11:00:00Z",
+                    "2026-08-15T12:00:00Z"
+                ],
+                "reason": "The original window placed the chaos phase twelve hours BEFORE the harden, stabilize, devops, security, test, validate and audit phases it actually followed, which is why Gate G022 reported overlapping executionHistory entries: sequential agent execution is impossible if the recorded runs overlap. The corrected bounds follow the audit entry in the real dispatch order. The original value is preserved so the correction is auditable and no history is silently rewritten."
+            },
             "statusBefore": "in_progress",
             "statusAfter": "in_progress",
             "liveOperations": "No destructive operations. All tests create isolated tmp fixtures and clean up on completion. Worktree had 50 dirty files before and after; git status --porcelain count unchanged.",
@@ -1538,9 +1569,19 @@
             "phasesExecuted": [
                 "redteam"
             ],
-            "startedAt": "2026-08-15T22:55:00Z",
-            "completedAt": "2026-08-15T23:20:00Z",
-            "timestampBasis": "Unmeasured completion record. The redteam specialist was dispatched in this session and wrote its full '## Red Team Evidence' section to the scope 05 report, but its process terminated before it persisted its state.json changes. The orchestrator verified the evidence section on disk and recorded this entry. Times bound the dispatch window and are not instrumented measurements.",
+            "startedAt": "2026-08-16T00:55:00Z",
+            "completedAt": "2026-08-16T01:25:00Z",
+            "timestampBasis": "Ordered, unmeasured window. The redteam specialist was dispatched after the chaos phase and before the docs phase; the bounds record that ORDER, not an instrumented duration. The specialist wrote its evidence section but terminated before persisting state, so the orchestrator recorded this entry after verifying that section on disk.",
+            "recordCorrection": {
+                "correctedBy": "bubbles.validate",
+                "correctedAt": "2026-08-16T04:45:00Z",
+                "field": "startedAt/completedAt",
+                "originalValue": [
+                    "2026-08-15T22:55:00Z",
+                    "2026-08-15T23:20:00Z"
+                ],
+                "reason": "The orchestrator's original estimate overlapped the validate entry (2026-08-15T23:00:00Z..23:30:00Z) and preceded the audit phase, even though redteam ran after both. Gate G022 correctly reported the overlap. The corrected bounds follow the chaos entry in the real dispatch order; the original estimate is preserved rather than discarded."
+            },
             "statusBefore": "in_progress",
             "statusAfter": "in_progress",
             "outcome": "completed_diagnostic",
@@ -1593,9 +1634,19 @@
             "phasesExecuted": [
                 "docs"
             ],
-            "startedAt": "2026-08-15T15:00:00Z",
-            "completedAt": "2026-08-15T15:30:00Z",
-            "timestampBasis": "Bounded timestamps. Session-relative; not instrumented.",
+            "startedAt": "2026-08-16T01:30:00Z",
+            "completedAt": "2026-08-16T02:00:00Z",
+            "timestampBasis": "Ordered, unmeasured window. The docs phase was dispatched after the redteam phase and before the brief regeneration that published at 2026-08-16T03:54Z; the bounds record that ORDER, not an instrumented duration.",
+            "recordCorrection": {
+                "correctedBy": "bubbles.validate",
+                "correctedAt": "2026-08-16T04:45:00Z",
+                "field": "startedAt/completedAt",
+                "originalValue": [
+                    "2026-08-15T15:00:00Z",
+                    "2026-08-15T15:30:00Z"
+                ],
+                "reason": "The original window overlapped the harden entry (2026-08-15T14:59:16Z..15:15:26Z) and placed the docs phase before the stabilize, devops, security, test, validate, audit, chaos and redteam phases it actually followed. Gate G022 correctly reported the overlap. The corrected bounds follow the redteam entry in the real dispatch order; the original value is preserved rather than discarded."
+            },
             "statusBefore": "in_progress",
             "statusAfter": "in_progress",
             "outcome": "completed_owned",

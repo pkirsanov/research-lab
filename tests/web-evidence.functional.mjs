@@ -14,7 +14,10 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { renderQueryPlan, validateBundle } from '../scripts/web-evidence-acquire.mjs';
 import {
   acquireResearchAgendaEvidence,
@@ -23,7 +26,9 @@ import {
   resolveResearchAgendaPolicy
 } from '../scripts/research-agenda-generation.mjs';
 import {
+  bindResearchAgendaAcquisition,
   createResearchAgendaLiveBoundary,
+  prepareResearchAgendaRuntime,
   RESEARCH_ACQUISITION_SEARCH_VERSION
 } from '../scripts/research-agenda-refresh.mjs';
 import { NARRATIVE_WEB_ALLOWLIST } from '../scripts/web-evidence-policy.mjs';
@@ -38,6 +43,17 @@ import {
 const config = loadConfig();
 const policies = resolveFixturePolicies(config);
 const toolBrief = policies['tool-brief'];
+const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
+
+function freshnessPolicyRefFor(definition, requirement) {
+  return [
+    'research-topic-source-freshness/v1',
+    definition.topicId,
+    definition.definitionVersion,
+    requirement.requirementId,
+    String(requirement.freshnessHours)
+  ].join(':');
+}
 
 test('SCN-012-037 acquisition freezes a safe bounded WebEvidenceBundle/v1 with no raw or hostile content', async () => {
   const { acquireResult, requestedUrls } = await runFixtureAcquisition(loadFixture('primary-independent'), toolBrief);
@@ -156,17 +172,21 @@ test('SCN-019-012 generation reuses current evidence and acquires only missing o
   const requirements = definition.sourceRequirements;
   const current = {
     requirementId: requirements[0].requirementId,
+    sourceId: 'current-source',
     observedAt: '2026-08-13T10:00:00.000Z',
     availableAt: '2026-08-13T10:05:00.000Z',
     contentSha256: 'sha256:' + 'a'.repeat(64),
-    claimCoverage: requirements[0].requiredClaimCoverage.slice()
+    claimCoverage: requirements[0].requiredClaimCoverage.slice(),
+    freshnessPolicyRef: freshnessPolicyRefFor(definition, requirements[0])
   };
   const stale = {
     requirementId: requirements[1].requirementId,
+    sourceId: 'stale-source',
     observedAt: '2026-08-10T10:00:00.000Z',
     availableAt: '2026-08-10T10:05:00.000Z',
     contentSha256: 'sha256:' + 'b'.repeat(64),
-    claimCoverage: requirements[1].requiredClaimCoverage.slice()
+    claimCoverage: requirements[1].requiredClaimCoverage.slice(),
+    freshnessPolicyRef: freshnessPolicyRefFor(definition, requirements[1])
   };
   const planned = planResearchAgendaAcquisition({
     plan: selectedPlan,
@@ -192,6 +212,138 @@ test('SCN-019-012 generation reuses current evidence and acquires only missing o
   assert.equal(queryInput.ok, true);
   assert.equal(queryInput.value.templates.length, requirements.length - 1);
   assert.equal(queryInput.value.templates.some((template) => template.templateId.endsWith(current.requirementId)), false, 'reused requirement produces no query');
+});
+
+test('Regression: fresh complete prior source-ledger row wins once and suppresses its query while missing coverage emits one query', async (context) => {
+  const root = mkdtempSync(resolve(tmpdir(), 'research-agenda-gap06-'));
+  context.after(() => rmSync(root, { recursive: true, force: true }));
+  cpSync(resolve(REPO_ROOT, 'research'), resolve(root, 'research'), { recursive: true });
+  cpSync(resolve(REPO_ROOT, 'data'), resolve(root, 'data'), { recursive: true });
+  cpSync(resolve(REPO_ROOT, 'rlexperience-adapters'), resolve(root, 'rlexperience-adapters'), { recursive: true });
+  cpSync(resolve(REPO_ROOT, 'notes'), resolve(root, 'notes'), { recursive: true });
+  for (const relativePath of ['tools.json', 'rlagenda.js', 'research-agenda-lab.html']) {
+    cpSync(resolve(REPO_ROOT, relativePath), resolve(root, relativePath));
+  }
+
+  const registry = JSON.parse(readFileSync(resolve(REPO_ROOT, 'research-agenda.json'), 'utf8'));
+  const topic = registry.topics.find((entry) => entry.topicId === 'geopolitical-supply-shock');
+  registry.topics = [topic];
+  writeFileSync(resolve(root, 'research-agenda.json'), JSON.stringify(registry, null, 2) + '\n');
+
+  const definition = JSON.parse(readFileSync(resolve(root, topic.definitionRef), 'utf8'));
+  const targetRequirement = definition.sourceRequirements[0];
+  const cutoffAt = '2026-08-13T12:00:00.000Z';
+  const requiredLedgerMembers = [
+    'availableAt', 'claimCoverage', 'contentSha256', 'freshnessPolicyRef',
+    'observedAt', 'requirementId', 'sourceId'
+  ];
+  const ledgerRow = (requirement, sourceId, observedAt, availableAt, digestCharacter) => ({
+    requirementId: requirement.requirementId,
+    sourceId,
+    contentSha256: 'sha256:' + digestCharacter.repeat(64),
+    observedAt,
+    availableAt,
+    claimCoverage: requirement.requiredClaimCoverage.slice(),
+    freshnessPolicyRef: freshnessPolicyRefFor(definition, requirement)
+  });
+  const targetCandidates = [
+    ledgerRow(targetRequirement, 'source-newer-observation', '2026-08-13T11:30:00.000Z', '2026-08-13T11:35:00.000Z', '1'),
+    ledgerRow(targetRequirement, 'source-lower-availability', '2026-08-13T11:40:00.000Z', '2026-08-13T11:41:00.000Z', '2'),
+    ledgerRow(targetRequirement, 'source-z', '2026-08-13T11:40:00.000Z', '2026-08-13T11:45:00.000Z', '3'),
+    ledgerRow(targetRequirement, 'source-a', '2026-08-13T11:40:00.000Z', '2026-08-13T11:45:00.000Z', '4'),
+    ledgerRow(targetRequirement, 'source-stale', '2026-08-10T11:40:00.000Z', '2026-08-10T11:45:00.000Z', '5')
+  ];
+  const validLedgerRows = targetCandidates.concat(definition.sourceRequirements.slice(1).map((requirement, index) =>
+    ledgerRow(requirement, 'source-' + requirement.requirementId, '2026-08-13T11:00:00.000Z', '2026-08-13T11:05:00.000Z', String(index + 6))
+  ));
+  for (const row of validLedgerRows) {
+    assert.deepEqual(Object.keys(row).sort(), requiredLedgerMembers);
+    const requirement = definition.sourceRequirements.find((entry) => entry.requirementId === row.requirementId);
+    assert.equal(row.freshnessPolicyRef, freshnessPolicyRefFor(definition, requirement));
+  }
+  const malformedShape = {
+    ...ledgerRow(targetRequirement, 'source-malformed-newest', '2026-08-13T11:55:00.000Z', '2026-08-13T11:56:00.000Z', '9'),
+    unexpectedMember: true
+  };
+  const missingSourceIdentity = ledgerRow(targetRequirement, '', '2026-08-13T11:54:00.000Z', '2026-08-13T11:55:00.000Z', '8');
+  const wrongFreshnessPolicy = {
+    ...ledgerRow(targetRequirement, 'source-wrong-policy', '2026-08-13T11:53:00.000Z', '2026-08-13T11:54:00.000Z', '7'),
+    freshnessPolicyRef: 'research-topic-source-freshness/v1:wrong-authority'
+  };
+  const sourceLedger = validLedgerRows.concat([malformedShape, missingSourceIdentity, wrongFreshnessPolicy]);
+
+  const dossierRelativePath = 'research/agenda/dossiers/geopolitical-supply-shock/gap06-prior.json';
+  const dossierPath = resolve(root, dossierRelativePath);
+  const dossier = {
+    contractVersion: 'research-dossier/v1',
+    topicId: topic.topicId,
+    historicalOnly: false,
+    sourceLedger
+  };
+  writeFileSync(dossierPath, JSON.stringify(dossier, null, 2) + '\n');
+  const currentPath = resolve(root, 'research/agenda/current.json');
+  const current = JSON.parse(readFileSync(currentPath, 'utf8'));
+  current.topicRefs = [{
+    topicId: topic.topicId,
+    state: 'updated',
+    reviewRef: null,
+    dossierRef: { path: dossierRelativePath }
+  }];
+  writeFileSync(currentPath, JSON.stringify(current, null, 2) + '\n');
+
+  const snapshot = JSON.parse(readFileSync(resolve(REPO_ROOT, 'market-brief.snapshot.json'), 'utf8'));
+  snapshot.generatedAt = cutoffAt;
+  const runtimeInputs = {
+    snapshot,
+    config: JSON.parse(readFileSync(resolve(REPO_ROOT, 'market-brief.config.json'), 'utf8')),
+    payload: JSON.parse(readFileSync(resolve(REPO_ROOT, 'market-brief.payload.json'), 'utf8'))
+  };
+  const preparation = prepareResearchAgendaRuntime({ root, ...runtimeInputs });
+  const topicPlan = preparation.acquisitionPlan.topics.find((entry) => entry.topicId === topic.topicId);
+  const targetPlan = topicPlan.requirements.find((entry) => entry.requirementId === targetRequirement.requirementId);
+  assert.equal(preparation.acquisitionPlan.reusedCount, definition.sourceRequirements.length);
+  assert.equal(preparation.acquisitionPlan.missingOrStaleCount, 0);
+  assert.equal(targetPlan.state, 'reused');
+  assert.equal(targetPlan.record.sourceId, 'source-a');
+  assert.equal(targetPlan.record.observedAt, '2026-08-13T11:40:00.000Z');
+  assert.equal(targetPlan.record.availableAt, '2026-08-13T11:45:00.000Z');
+  assert.deepEqual(Object.keys(targetPlan.record).sort(), requiredLedgerMembers);
+  assert.equal(preparation.queryInput, null);
+  assert.equal(preparation.queryPlan, null);
+  assert.equal(preparation.acquisitionInput, null);
+  let acquisitionCalls = 0;
+  const bound = await bindResearchAgendaAcquisition({
+    preparation,
+    searchFragment: null,
+    fetchImpl: async () => {
+      acquisitionCalls += 1;
+      throw new Error('fully reused requirements must not acquire');
+    }
+  });
+  assert.equal(bound.ok, true);
+  assert.equal(acquisitionCalls, 0);
+  assert.equal(bound.value.acquisitionResult.value.state, 'fully-reused');
+  const authorTopic = bound.value.authorInput.selectedTopics.find((entry) => entry.topic.topicId === topic.topicId);
+  assert.equal(authorTopic.acquisition.requirementPlan.requirements.length, definition.sourceRequirements.length);
+  assert.deepEqual(authorTopic.acquisition.requirementPlan.requirements.map((entry) => entry.requirementId), definition.sourceRequirements.map((entry) => entry.requirementId));
+  assert.deepEqual(authorTopic.definition.analyticalSections, definition.analyticalSections);
+  assert.equal(authorTopic.definition.analyticalSections.every((section) => section.required), true);
+  assert.deepEqual(JSON.parse(readFileSync(dossierPath, 'utf8')).sourceLedger, sourceLedger, 'planning must not mutate prior ledger records');
+
+  dossier.sourceLedger = sourceLedger.map((row) => row.requirementId === targetRequirement.requirementId
+    ? { ...row, claimCoverage: row.claimCoverage.filter((claim) => claim !== targetRequirement.requiredClaimCoverage[0]) }
+    : row);
+  writeFileSync(dossierPath, JSON.stringify(dossier, null, 2) + '\n');
+  const missingPreparation = prepareResearchAgendaRuntime({ root, ...runtimeInputs });
+  const missingTopicPlan = missingPreparation.acquisitionPlan.topics.find((entry) => entry.topicId === topic.topicId);
+  const missingTargetPlan = missingTopicPlan.requirements.find((entry) => entry.requirementId === targetRequirement.requirementId);
+  assert.equal(missingPreparation.acquisitionPlan.reusedCount, definition.sourceRequirements.length - 1);
+  assert.equal(missingPreparation.acquisitionPlan.missingOrStaleCount, 1);
+  assert.equal(missingTargetPlan.state, 'missing-or-stale');
+  assert.equal(missingTargetPlan.record, null);
+  assert.equal(missingPreparation.queryInput.templates.length, 1);
+  assert.equal(missingPreparation.queryInput.templates[0].templateId, topic.topicId + '-' + targetRequirement.requirementId);
+  assert.equal(missingTopicPlan.requirements.filter((entry) => entry.requirementId === targetRequirement.requirementId && entry.state === 'reused').length, 0);
 });
 
 test('Regression: shared web policy preserves all existing lane allowlist arguments byte for byte', () => {

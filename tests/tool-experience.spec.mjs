@@ -328,6 +328,39 @@ async function openResearchAgenda(page, { fixture = null, mode = 'simple' } = {}
   await expect(page.locator('body')).toHaveAttribute('data-rlview', mode);
 }
 
+test('Regression: agenda shell has one Simple owner, durable target focus, tab focus retention, and inert closed navigation', async ({ page }) => {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    await page.goto(`${site.baseUrl}/research-agenda-lab.html#simple/geopolitical-supply-shock`, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => globalThis.__researchAgendaDebug && globalThis.__researchAgendaDebug.getViewState());
+    await expect(page.locator('[data-public-target-id="geopolitical-supply-shock"]')).toBeFocused();
+  }
+
+  const simplePanel = page.locator('[data-rlexperience-panel="simple"]');
+  await expect(simplePanel).toBeHidden();
+  await expect(page.getByRole('heading', { name: 'No result yet' })).toHaveCount(0);
+  await expect(page.locator('#currentPosture')).toBeVisible();
+
+  const drawer = page.locator('#rlnav');
+  await expect(drawer).toHaveAttribute('aria-hidden', 'true');
+  await expect(drawer).toHaveAttribute('inert', '');
+  expect(await drawer.evaluate((node) => node.inert)).toBe(true);
+
+  const simpleTab = page.locator('#rlviews').getByRole('tab', { name: 'Simple', exact: true });
+  const powerTab = page.locator('#rlviews').getByRole('tab', { name: 'Power', exact: true });
+  await simpleTab.focus();
+  await simpleTab.press('ArrowRight');
+  await expect(powerTab).toHaveAttribute('aria-selected', 'true');
+  await page.waitForTimeout(100);
+  await expect(powerTab).toBeFocused();
+
+  await page.locator('#rlnav-launcher').click();
+  await expect(drawer).toHaveAttribute('aria-hidden', 'false');
+  await expect(drawer).not.toHaveAttribute('inert', '');
+  await drawer.getByRole('button', { name: 'Close navigation' }).click();
+  await expect(drawer).toHaveAttribute('aria-hidden', 'true');
+  await expect(page.locator('#rlnav-launcher')).toBeFocused();
+});
+
 test('SCN-019-020 research agenda opens in Simple and Power reveals the complete dossier workspace', async ({ page }) => {
   await openResearchAgenda(page);
   await expect(page.locator('#currentPosture')).toContainText('Unavailable');
@@ -346,7 +379,10 @@ test('SCN-019-020 research agenda opens in Simple and Power reveals the complete
   await expect(page.locator('#proxyWorkspace table tbody tr')).toHaveCount(12);
   await expect(page.locator('#evidenceList .evidence-row')).toHaveCount(6);
   await expect(page.locator('#sourceList .source-row')).toHaveCount(11);
-  await expect(page.locator('#historyList .history-row')).toHaveCount(2);
+  await expect(page.locator('#historyList .history-row')).toHaveCount(4);
+  await expect(page.locator('#historyList')).toContainText('Historical Seed');
+  await expect(page.locator('#historyList')).toContainText('Lifecycle');
+  await expect(page.locator('#historyList')).toContainText('Review');
   await expect(page.locator('#fixtureBand')).toBeHidden();
 });
 
@@ -375,22 +411,103 @@ test('Regression: stale and unavailable current reviews cannot masquerade as the
     stale.outcome = 'stale';
     stale.reason = 'newest-evidence-outside-window';
     stale.newestEvidenceAgeHours = 72;
-    stale.modelOutputs = null;
-    stale.dossierId = null;
     const staleProjection = globalThis.RLAGENDA.computeAgendaViewState(
-      globalThis.__researchAgendaDebug.getDefinition(), stale, null
+      globalThis.__researchAgendaDebug.getDefinition(), stale, null, null
     );
     return { current, historical, staleProjection };
   });
   expect(states.current.outcome).toBe('unavailable');
-  expect(states.current.dossierId).toBeNull();
+  expect(states.current.dossierRef).toBeNull();
+  expect(states.current.modelSnapshotRef).toBeNull();
   expect(states.historical.historicalOnly).toBe(true);
   expect(states.staleProjection.ok).toBe(true);
   expect(states.staleProjection.value.outcome).toBe('stale');
   expect(states.staleProjection.value.modelAvailable).toBe(false);
+  expect(states.staleProjection.value.modelUnavailableReason).toBe('review-model-unavailable');
   await expect(page.locator('#currentScenarios .metric-row')).toHaveCount(0);
   await page.getByRole('tab', { name: 'Power', exact: true }).click();
   await expect(page.locator('#historicalWarning')).toContainText('does not replace the unavailable current review');
+});
+
+test('Regression: unchanged current review renders identical Simple and Power sustained models and tampered snapshot refs render unavailable', async ({ page }) => {
+  const requests = [];
+  page.on('request', (request) => requests.push(request.url()));
+  await openResearchAgenda(page, { fixture: 'reversal' });
+  await settleThenClearRequests(page, requests);
+
+  const simple = await page.evaluate(() => ({
+    review: globalThis.__researchAgendaDebug.getCurrentReview(),
+    dossier: globalThis.__researchAgendaDebug.getResolvedDossier(),
+    historical: globalThis.__researchAgendaDebug.getHistoricalDossier(),
+    view: globalThis.__researchAgendaDebug.getViewState()
+  }));
+  expect(simple.review.outcome).toBe('unchanged');
+  expect(Object.hasOwn(simple.review, 'modelOutputs')).toBe(false);
+  expect(simple.review.dossierRef).toEqual(simple.review.predecessorDossierRef);
+  expect(simple.review.modelSnapshotRef.dossierRef).toEqual(simple.review.dossierRef);
+  expect(simple.dossier.contractVersion).toBe('research-dossier/v1');
+  expect(simple.dossier.historicalOnly).toBe(false);
+  expect(simple.dossier.generationId).toBe(simple.review.generationId);
+  expect(simple.historical.historicalOnly).toBe(true);
+  expect(simple.view.modelAvailable).toBe(true);
+  expect(simple.view.parity).toBe('matched');
+
+  await page.getByRole('tab', { name: 'Power', exact: true }).click();
+  const power = await page.evaluate(() => globalThis.__researchAgendaDebug.getViewState());
+  expect(power.modelAvailable).toBe(true);
+  expect(power.modelOutputs).toEqual(simple.view.modelOutputs);
+  expect(power.charts).toEqual(simple.view.charts);
+
+  const invalidCases = await page.evaluate(() => {
+    const definition = globalThis.__researchAgendaDebug.getDefinition();
+    const originalReview = globalThis.__researchAgendaDebug.getCurrentReview();
+    const originalDossier = globalThis.__researchAgendaDebug.getResolvedDossier();
+    const clone = (value) => JSON.parse(JSON.stringify(value));
+    const hash = 'sha256:' + '0'.repeat(64);
+    const cases = [];
+    cases.push(['resolved-dossier-missing', originalReview, null]);
+
+    const missingDossierRef = clone(originalReview);
+    delete missingDossierRef.dossierRef;
+    cases.push(['dossier-ref-missing', missingDossierRef, originalDossier]);
+
+    const missingSnapshotRef = clone(originalReview);
+    missingSnapshotRef.modelSnapshotRef = null;
+    cases.push(['model-snapshot-ref-missing', missingSnapshotRef, originalDossier]);
+
+    const wrongPath = clone(originalReview);
+    wrongPath.dossierRef.path = wrongPath.dossierRef.path.replace('/geopolitical-supply-shock/', '/wrong-topic/');
+    wrongPath.predecessorDossierRef.path = wrongPath.dossierRef.path;
+    wrongPath.modelSnapshotRef.dossierRef.path = wrongPath.dossierRef.path;
+    cases.push(['dossier-path-mismatch', wrongPath, originalDossier]);
+
+    const wrongIdDossier = clone(originalDossier);
+    wrongIdDossier.dossierId = 'dossier-' + 'f'.repeat(64);
+    cases.push(['dossier-id-mismatch', originalReview, wrongIdDossier]);
+
+    const wrongHash = clone(originalReview);
+    wrongHash.dossierRef.sha256 = hash;
+    wrongHash.predecessorDossierRef.sha256 = hash;
+    wrongHash.modelSnapshotRef.dossierRef.sha256 = hash;
+    cases.push(['dossier-digest-mismatch', wrongHash, originalDossier]);
+
+    const tamperedSnapshot = clone(originalReview);
+    tamperedSnapshot.modelSnapshotRef.modelOutputsSha256 = hash;
+    cases.push(['model-snapshot-digest-mismatch', tamperedSnapshot, originalDossier]);
+
+    return cases.map(([reason, review, dossier]) => ({
+      reason,
+      result: globalThis.RLAGENDA.computeAgendaViewState(definition, review, dossier, null)
+    }));
+  });
+  for (const probe of invalidCases) {
+    expect(probe.result.ok, probe.reason).toBe(true);
+    expect(probe.result.value.modelAvailable, probe.reason).toBe(false);
+    expect(probe.result.value.modelUnavailableReason, probe.reason).toBe(probe.reason);
+    expect(probe.result.value.modelOutputs, probe.reason).toBeNull();
+    expect(probe.result.value.charts, probe.reason).toEqual([]);
+  }
+  expect(requests).toEqual([]);
 });
 
 test('Regression: browser model chart table and tooltip values match canonical rlagenda output', async ({ page }) => {
@@ -421,10 +538,15 @@ test('Regression: browser model chart table and tooltip values match canonical r
   const mismatch = await page.evaluate(() => {
     const review = globalThis.__researchAgendaDebug.getCurrentReview();
     const definition = globalThis.__researchAgendaDebug.getDefinition();
-    review.modelOutputs.channelRanges.oil.base += 0.01;
-    return globalThis.RLAGENDA.computeAgendaViewState(definition, review, null);
+    const dossier = globalThis.__researchAgendaDebug.getResolvedDossier();
+    dossier.modelOutputs.channelRanges.oil.base += 0.01;
+    return globalThis.RLAGENDA.computeAgendaViewState(definition, review, dossier, null);
   });
-  expect(mismatch).toEqual({ ok: false, code: 'RLAGENDA-MODEL-INVALID', field: 'storedModelOutputs' });
+  expect(mismatch.ok).toBe(true);
+  expect(mismatch.value.modelAvailable).toBe(false);
+  expect(mismatch.value.modelUnavailableReason).toBe('resolved-dossier-invalid');
+  expect(mismatch.value.modelOutputs).toBeNull();
+  expect(mismatch.value.charts).toEqual([]);
 });
 
 test('Regression: research levers recompute both modes without refetching or mutating history', async ({ page }) => {
@@ -458,6 +580,80 @@ test('Regression: research levers recompute both modes without refetching or mut
   expect(after.historyLength).toBe(before.historyLength + 1);
   expect(after.historyFingerprint).toBe(before.historyFingerprint);
   expect(after.changedLeverIds).toContain('inventoryPolicyResponseOffset');
+  expect(requests).toEqual([]);
+});
+
+test('Regression: all five visible levers produce exact changed ids and identical Simple and Power outputs with no hidden proxy adjustment', async ({ page }) => {
+  const expectedLeverIds = [
+    'hormuzPhysicalPassFraction',
+    'babElMandebPhysicalPassFraction',
+    'reroutedShare',
+    'inventoryPolicyResponseOffset',
+    'demandOffset'
+  ];
+  const requests = [];
+  page.on('request', (request) => requests.push(request.url()));
+  await openResearchAgenda(page, { fixture: 'reversal' });
+  await settleThenClearRequests(page, requests);
+
+  const controls = page.locator('#leverGrid [data-lever-id]');
+  await expect(controls).toHaveCount(5);
+  expect((await controls.evaluateAll((nodes) => nodes.map((node) => node.dataset.leverId))).sort()).toEqual(expectedLeverIds.slice().sort());
+
+  const before = await page.evaluate(() => ({
+    fetches: globalThis.__researchAgendaDebug.getFetchCount(),
+    historyFingerprint: globalThis.__researchAgendaDebug.getHistoryFingerprint(),
+    review: globalThis.__researchAgendaDebug.getCurrentReview(),
+    published: globalThis.__researchAgendaDebug.getViewState().baselineLeverState
+  }));
+  expect(Object.hasOwn(before.published, 'proxyAdjustment')).toBe(false);
+
+  const invalidLevers = await page.evaluate(() => {
+    const definition = globalThis.__researchAgendaDebug.getDefinition();
+    const review = globalThis.__researchAgendaDebug.getCurrentReview();
+    const dossier = globalThis.__researchAgendaDebug.getResolvedDossier();
+    const published = globalThis.__researchAgendaDebug.getViewState().baselineLeverState;
+    const missing = JSON.parse(JSON.stringify(published));
+    delete missing.demandOffset;
+    const unknown = { ...published, unknownControl: 0 };
+    const hiddenProxy = { ...published, proxyAdjustment: 0 };
+    return [missing, unknown, hiddenProxy].map((leverState) => globalThis.RLAGENDA.computeAgendaViewState(definition, review, dossier, leverState));
+  });
+  for (const refusal of invalidLevers) {
+    expect(refusal).toMatchObject({ ok: false, code: 'RLAGENDA-MODEL-INVALID', field: 'leverState' });
+  }
+
+  for (const leverId of expectedLeverIds) {
+    const baseline = before.published[leverId];
+    const changed = baseline >= 0.99 ? baseline - 0.01 : baseline + 0.01;
+    const input = page.locator(`#lever-number-${leverId}`);
+    await input.fill(String(changed));
+    await input.press('Enter');
+    await expect(page.locator(`[data-lever-id="${leverId}"] .lever-meta`)).toHaveText('Your assumption');
+    const simple = await page.evaluate(() => globalThis.__researchAgendaDebug.getViewState());
+    expect(simple.changedLeverIds).toEqual([leverId]);
+
+    await page.getByRole('tab', { name: 'Power', exact: true }).click();
+    const power = await page.evaluate(() => globalThis.__researchAgendaDebug.getViewState());
+    expect(power.modelOutputs).toEqual(simple.modelOutputs);
+    expect(power.charts).toEqual(simple.charts);
+    expect(power.changedLeverIds).toEqual([leverId]);
+
+    await page.getByRole('button', { name: 'Reset published values' }).click();
+    const reset = await page.evaluate(() => globalThis.__researchAgendaDebug.getViewState());
+    expect(reset.leverState).toEqual(before.published);
+    expect(reset.changedLeverIds).toEqual([]);
+    await page.getByRole('tab', { name: 'Simple', exact: true }).click();
+  }
+
+  const after = await page.evaluate(() => ({
+    fetches: globalThis.__researchAgendaDebug.getFetchCount(),
+    historyFingerprint: globalThis.__researchAgendaDebug.getHistoryFingerprint(),
+    review: globalThis.__researchAgendaDebug.getCurrentReview()
+  }));
+  expect(after.fetches).toBe(before.fetches);
+  expect(after.historyFingerprint).toBe(before.historyFingerprint);
+  expect(after.review).toEqual(before.review);
   expect(requests).toEqual([]);
 });
 

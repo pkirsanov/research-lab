@@ -125,6 +125,8 @@ export function createBriefRefreshFixture(options = {}) {
   }
   chmodSync(wrapperPath, 0o755);
   copyFileSync(resolve(ROOT, 'scripts/brief-narrative-parallel.mjs'), resolve(repoRoot, 'scripts/brief-narrative-parallel.mjs'));
+  copyFileSync(resolve(ROOT, 'scripts/research-agenda-generation.mjs'), resolve(repoRoot, 'scripts/research-agenda-generation.mjs'));
+  copyFileSync(resolve(ROOT, 'scripts/web-evidence-acquire.mjs'), resolve(repoRoot, 'scripts/web-evidence-acquire.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/web-evidence-policy.mjs'), resolve(repoRoot, 'scripts/web-evidence-policy.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/brief-distributed-publish.mjs'), resolve(repoRoot, 'scripts/brief-distributed-publish.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/brief-publication.mjs'), resolve(repoRoot, 'scripts/brief-publication.mjs'));
@@ -149,11 +151,14 @@ export function createBriefRefreshFixture(options = {}) {
   copyFileSync(resolve(ROOT, 'rlagenda.js'), resolve(repoRoot, 'rlagenda.js'));
   if (options.agendaAssets) {
     copyFileSync(resolve(ROOT, 'research-agenda.json'), resolve(repoRoot, 'research-agenda.json'));
-    copyFileSync(resolve(ROOT, 'scripts/research-agenda-generation.mjs'), resolve(repoRoot, 'scripts/research-agenda-generation.mjs'));
     copyFileSync(resolve(ROOT, 'scripts/research-agenda-refresh.mjs'), resolve(repoRoot, 'scripts/research-agenda-refresh.mjs'));
-    copyFileSync(resolve(ROOT, 'scripts/web-evidence-acquire.mjs'), resolve(repoRoot, 'scripts/web-evidence-acquire.mjs'));
+    copyFileSync(resolve(ROOT, 'research-agenda-lab.html'), resolve(repoRoot, 'research-agenda-lab.html'));
     mkdirSync(resolve(repoRoot, 'research'), { recursive: true });
     cpSync(resolve(ROOT, 'research/agenda'), resolve(repoRoot, 'research/agenda'), { recursive: true });
+    mkdirSync(resolve(repoRoot, 'rlexperience-adapters'), { recursive: true });
+    copyFileSync(resolve(ROOT, 'rlexperience-adapters/research-agenda.js'), resolve(repoRoot, 'rlexperience-adapters/research-agenda.js'));
+    mkdirSync(resolve(repoRoot, 'notes'), { recursive: true });
+    copyFileSync(resolve(ROOT, 'notes/research-agenda-lab.md'), resolve(repoRoot, 'notes/research-agenda-lab.md'));
   }
   // build-owner-reads.mjs requires this at MODULE LOAD, so without it the producer aborts before
   // running and the wrapper refuses the whole publication. It is also the single definition of the
@@ -334,6 +339,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 const attempt = Number(process.env.BRIEF_NARRATIVE_ATTEMPT || 1);
 const lane = process.env.BRIEF_LANE_ID;
+const researchTopicLane = typeof lane === 'string' && lane.startsWith('research-') && lane !== 'research-acquisition';
 const laneAttempt = Number(process.env.BRIEF_LANE_ATTEMPT || 1);
 const keys = JSON.parse(process.env.BRIEF_LANE_KEYS || '[]');
 const outputPath = process.env.BRIEF_LANE_OUTPUT;
@@ -369,7 +375,7 @@ const fragment = lane === 'research-acquisition'
       generationId: laneInput.generationId,
       queries: laneInput.queryPlan.queries.map((query) => ({ queryId: query.queryId, candidates: [] }))
     }
-  : lane === 'research'
+  : researchTopicLane
     ? { contractVersion: 'research-situation-set/v1', generationId: laneInput.generationId, situations: [] }
     : Object.fromEntries(keys.map((key) => [key, payload[key]]));
 /* The signals lane AUTHORS its attention candidates; it does not inherit them.

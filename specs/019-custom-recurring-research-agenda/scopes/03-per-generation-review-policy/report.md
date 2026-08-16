@@ -54,7 +54,7 @@ TP-03-03: an observation already absorbed by the last review cannot rearm cadenc
 Research-Lab self-test: 1690 passed, 0 failed
 ```
 
-### replanned-contract-tp-03-04
+### historical-replanned-contract-tp-03-04
 
 ```text
 # TP-03-04 separate capacity boundaries
@@ -164,7 +164,7 @@ physical-impairment: 0.75
 additive-double-count: REFUSED
 ```
 
-### replanned-contract-tp-03-11
+### historical-replanned-contract-tp-03-11
 
 ```text
 # TP-03-11 attributed commodity and proxy intervals
@@ -196,7 +196,7 @@ chart-table-parity: PASS
 projection-frozen: PASS
 ```
 
-### replanned-contract-tp-03-13
+### historical-replanned-contract-tp-03-13
 
 ```text
 # TP-03-13 real offline committed-artifact model run
@@ -230,7 +230,225 @@ Markdown and JSON: exit 0
 diff check: exit 0
 ```
 
+## Gaps Reconciliation 2026-08-15
+
+**Phase:** plan
+**Claim Source:** interpreted
+**Interpretation:** GAP-02, GAP-03, and the change-assessment part of GAP-09 require exact model-input shape, an exact five-lever contract with no hidden proxy adjustment, and integrated post-freeze change assessment. The historical evidence above does not prove those discriminators. Scope 3 is `Not Started` and remains dependency-blocked by Scopes 1 and 2.
+
+### planning-replanned-contract-tp-03-14
+
+**Phase:** plan
+**Claim Source:** interpreted
+**Interpretation:** This anchor records the unexecuted GAP-02 exact model-input contract. It is not test evidence.
+**Planned command:** `node scripts/selftest.mjs`
+**Result:** PLANNED, NOT EXECUTED
+
+### planning-replanned-contract-tp-03-15
+
+**Phase:** plan
+**Claim Source:** interpreted
+**Interpretation:** This anchor records the unexecuted GAP-03 exact five-lever contract. It is not test evidence.
+**Planned command:** `node scripts/selftest.mjs`
+**Result:** PLANNED, NOT EXECUTED
+
+### planning-replanned-contract-tp-03-16
+
+**Phase:** plan
+**Claim Source:** interpreted
+**Interpretation:** This anchor records the unexecuted GAP-09 integrated change-assessment contract. It is not test evidence.
+**Planned command:** `node --test tests/distributed-briefs.final.e2e.mjs`
+**Result:** PLANNED, NOT EXECUTED
+
+## Fresh Independent Scope 3 Acceptance Evidence
+
+The raw blocks below were executed by the independent test owner. This
+reconciliation independently inspected the cited assertion paths and reran both
+commands against the current tree. The corroborating full captures passed with
+hashes `6059649b09d20d125f9c0c64fee48137d677af1346ca42f8b5b80cf0102c10bd`
+for the 2,091-check selftest and
+`3c55fc0e7476bc34ca23e52fa0df83f2c089aff081b15446e4ebd74fdc06f5fb`
+for the six-test E2E. Those rerun hashes remain separate because full output
+contains run-specific lines and timing.
+
+### replanned-contract-tp-03-04
+
+**Phase:** test
+**Claim Source:** executed
+
+```text
+# Feature 019 Scope 3 exact model contract acceptance
+$ node scripts/selftest.mjs
+exit: 0
+sha256: bfd557fb2582bc815a2e1f28c20e0ab81e2884d573f4f22150330161c0f11606
+TP-03-04: mandatory capacity plus one refuses; cadence budget preserves mandatory work
+TP-03-11: ordered commodity/proxy ranges; missing bar unavailable; thin calibration insufficient
+TP-03-14: complete exact input validates and freezes before arithmetic
+TP-03-14: deleting levers.demandOffset refuses before arithmetic
+TP-03-14: unknown levers.proxyAdjustment refuses before arithmetic
+TP-03-14: missing demandOffset is not substituted with 0; non-finite and pass-mismatch inputs refuse
+TP-03-15: published input exposes exactly five visible levers
+TP-03-15: proxyAdjustment is an unknown-member refusal
+TP-03-15: each lever change reports exactly that one changedLeverId
+TP-03-15: proxy ranges contain no hidden proxy-adjustment term
+Research-Lab self-test: 2091 passed, 0 failed
+```
+
+### replanned-contract-tp-03-11
+
+**Phase:** test
+**Claim Source:** executed
+
+```text
+# Feature 019 Scope 3 exact model contract acceptance
+$ node scripts/selftest.mjs
+exit: 0
+sha256: bfd557fb2582bc815a2e1f28c20e0ab81e2884d573f4f22150330161c0f11606
+TP-03-04: mandatory capacity plus one refuses; cadence budget preserves mandatory work
+TP-03-11: ordered commodity/proxy ranges; missing bar unavailable; thin calibration insufficient
+TP-03-14: complete exact input validates and freezes before arithmetic
+TP-03-14: deleting levers.demandOffset refuses before arithmetic
+TP-03-14: unknown levers.proxyAdjustment refuses before arithmetic
+TP-03-14: missing demandOffset is not substituted with 0; non-finite and pass-mismatch inputs refuse
+TP-03-15: published input exposes exactly five visible levers
+TP-03-15: proxyAdjustment is an unknown-member refusal
+TP-03-15: each lever change reports exactly that one changedLeverId
+TP-03-15: proxy ranges contain no hidden proxy-adjustment term
+Research-Lab self-test: 2091 passed, 0 failed
+```
+
+### replanned-contract-tp-03-13
+
+**Phase:** test
+**Claim Source:** executed
+
+```text
+# Feature 019 Scope 3 committed model and integrated assessment acceptance
+$ node --test tests/distributed-briefs.final.e2e.mjs
+exit: 0
+sha256: 406b31c3b13b403ae52d473d84a26b22ba880613f5b2a6199c6668388f636543
+SCN-019-009 real committed agenda produces an offline mandatory plan and deterministic current-only models
+Regression: current deterministic outputs feed one integrated change assessment after exact model input validation
+tests 6
+pass 6
+fail 0
+skipped 0
+todo 0
+```
+
+### replanned-contract-tp-03-14
+
+**Phase:** test
+**Claim Source:** interpreted
+**Interpretation:** The passing selftest executes the required-member deletion
+matrix, the unknown-member matrix, non-finite and range probes, and the
+published-pass mismatch probe against `validateResearchModelInput` and
+`recomputeAgendaModelOutputs`. Every refusal occurs before a value is returned;
+the selected raw lines below are representative outputs from that complete
+matrix.
+
+```text
+# Feature 019 Scope 3 exact model contract acceptance
+$ node scripts/selftest.mjs
+exit: 0
+sha256: bfd557fb2582bc815a2e1f28c20e0ab81e2884d573f4f22150330161c0f11606
+TP-03-04: mandatory capacity plus one refuses; cadence budget preserves mandatory work
+TP-03-11: ordered commodity/proxy ranges; missing bar unavailable; thin calibration insufficient
+TP-03-14: complete exact input validates and freezes before arithmetic
+TP-03-14: deleting levers.demandOffset refuses before arithmetic
+TP-03-14: unknown levers.proxyAdjustment refuses before arithmetic
+TP-03-14: missing demandOffset is not substituted with 0; non-finite and pass-mismatch inputs refuse
+TP-03-15: published input exposes exactly five visible levers
+TP-03-15: proxyAdjustment is an unknown-member refusal
+TP-03-15: each lever change reports exactly that one changedLeverId
+TP-03-15: proxy ranges contain no hidden proxy-adjustment term
+Research-Lab self-test: 2091 passed, 0 failed
+```
+
+### replanned-contract-tp-03-15
+
+**Phase:** test
+**Claim Source:** executed
+
+```text
+# Feature 019 Scope 3 exact model contract acceptance
+$ node scripts/selftest.mjs
+exit: 0
+sha256: bfd557fb2582bc815a2e1f28c20e0ab81e2884d573f4f22150330161c0f11606
+TP-03-04: mandatory capacity plus one refuses; cadence budget preserves mandatory work
+TP-03-11: ordered commodity/proxy ranges; missing bar unavailable; thin calibration insufficient
+TP-03-14: complete exact input validates and freezes before arithmetic
+TP-03-14: deleting levers.demandOffset refuses before arithmetic
+TP-03-14: unknown levers.proxyAdjustment refuses before arithmetic
+TP-03-14: missing demandOffset is not substituted with 0; non-finite and pass-mismatch inputs refuse
+TP-03-15: published input exposes exactly five visible levers
+TP-03-15: proxyAdjustment is an unknown-member refusal
+TP-03-15: each lever change reports exactly that one changedLeverId
+TP-03-15: proxy ranges contain no hidden proxy-adjustment term
+Research-Lab self-test: 2091 passed, 0 failed
+```
+
+### replanned-contract-tp-03-16
+
+**Phase:** test
+**Claim Source:** interpreted
+**Interpretation:** The named passing E2E contains 31 assertions. They accept a
+null predecessor, prove byte-identical current outputs with opposite and extreme
+predecessors, verify the exact assessment and causal shapes, and refuse changed
+question bytes as `E019-AGENDA-CHANGE-ASSESSMENT` with reason
+`RLAGENDA-MODEL-INVALID`, no published value, and a frozen refusal.
+
+```text
+# Feature 019 Scope 3 committed model and integrated assessment acceptance
+$ node --test tests/distributed-briefs.final.e2e.mjs
+exit: 0
+sha256: 406b31c3b13b403ae52d473d84a26b22ba880613f5b2a6199c6668388f636543
+SCN-019-009 real committed agenda produces an offline mandatory plan and deterministic current-only models
+Regression: current deterministic outputs feed one integrated change assessment after exact model input validation
+tests 6
+pass 6
+fail 0
+skipped 0
+todo 0
+```
+
+## Final Reconciliation Validation
+
+**Phase:** test
+**Claim Source:** executed
+
+```text
+# Feature 019 Scope 3 final reconciliation ledger
+scope3 checked=24 unchecked=0 status=done
+scope4 status=in_progress currentScope=4
+execution phase=gaps phaseStatus=in_progress activeAgent=bubbles.gaps nextRequiredOwner=bubbles.gaps
+artifact-lint exit=0 lines=94 sha256=77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c
+traceability exit=0 lines=159 sha256=08cfa6b046340d9860068976bb601c8e87b8de9188df81b5c027fe9400c2fb4b warnings=0
+capability-foundation exit=0 lines=6 sha256=2a1af0b0e21edd1b532758bfdce68edc3fcb0d44f43a785c785ef3bde32356ff
+spec-test-paths exit=0 lines=2 sha256=f9e0b27468a1c2e6cb7661d3ab55a0785e32697f1499dc7903171a66e8a91b0b new=0 stale=0
+artifact-freshness exit=0 lines=24 sha256=9359bdd2559ef8b417bb5d03bdb6bea23f25dce56fa65b2144e9eaef0f2ef8c7 failures=0 warnings=0
+reference-existence exit=0 lines=1 sha256=25085caa8385a79d310472d6a305b34eb7f549f54032b969db5fb203ee46aa12 unresolved=0
+claim-source-provenance exit=0 lines=1 sha256=6210f5e85489b86b19520504105d7179d5a7ea0713dc6e42187cd3d35c5d4653 findings=0
+JSON_PARSE_EXIT=0 files=3
+MARKDOWN_FENCES files=14 unbalanced=0
+FEATURE019_68_ROW_PARITY_EXIT=0 rows=68 duplicates=0
+DIFF_CHECK_EXIT=0
+EDITOR_DIAGNOSTICS_EXIT=0 files=6
+CERTIFICATION_DIGEST_SHA256=a9011f07ea470adc55bbb0fd9f1e76358d3230bec1bd4bc6073bc69312872b80
+```
+
 ## Completion Statement
+
+Scope 3 is complete under the reconciled GAP-02, GAP-03, and GAP-09 contracts.
+All 24 DoD items are checked with item-local provenance, all 16 Test Plan rows
+have active evidence anchors, and the exact 68-row cross-artifact parity is
+green. Scope 4 is now the active remediation target. The overall workflow
+remains `gaps` / `in_progress` with `bubbles.gaps` as `activeAgent` and
+`nextRequiredOwner`; the next implementation handoff is `bubbles.implement`
+for Scope 4. No whole-feature or gaps-completion claim is made, and no
+certification-owned field changes.
+
+## Historical Completion Statement (Superseded)
 
 Scope 3 implementation and all 13 replanned Test Plan rows passed current-
 session validation. The full selftest passed 1,690 checks. The functional and

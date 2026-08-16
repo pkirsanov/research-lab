@@ -19,12 +19,12 @@ import { extname, join, normalize, relative, resolve, sep } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import {
+  browserLaunchOptions,
   loadPlaywright,
   startStaticServer
 } from './provider-credentials.support.mjs';
 import { readJson } from './tool-experience.support.mjs';
 
-const SYSTEM_CHROME = '/opt/google/chrome/chrome';
 const REPOSITORY_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const SCOPE02_CURRENT_PATHS = Object.freeze([
   'rlviews.js',
@@ -116,37 +116,36 @@ function copyRepositoryForReplay(targetRoot) {
 // The compatibility-rollback rehearsal (SCN-012-031) reconstructs the TRUE
 // pre-Scope-02 legacy bytes of the shared shell files: the legacy simple/power
 // switch WITHOUT the modern four-view `data-rlexperience-shell` shell. HEAD is
-// NOT a usable baseline authority. Scope 02 (commit c81d808d) committed the
-// modern shell into rlviews.js at HEAD, so `git show HEAD:rlviews.js` now
-// returns MODERN bytes; sourcing the "legacy" rehearsal from HEAD would make it
-// wrongly mount the shell (currentShellCount 1 instead of 0). Pin instead to the
-// immutable pre-Scope-02 tree — the parent of the Scope 02 commit — which
-// predates the shell marker and can never drift as HEAD advances. The two guards
+// NOT a usable baseline authority. The current-history Feature 012 delivery
+// commit d94a5b906 committed the modern shell, so pin its immutable parent tree,
+// which contains both legacy files and predates the shell marker. The two guards
 // below make the reconstruction fail LOUD (never silently read modern bytes) if
-// the pin is ever (re)pointed at post-Scope-02 content, keeping SCN-012-031
-// adversarial.
-const LEGACY_BASELINE_COMMIT = '767732db04e0cd32bf107b2a95030a6771bd16f2';
+// the pin is ever changed to post-Scope-02 content, keeping SCN-012-031 adversarial.
+const LEGACY_BASELINE_COMMIT = 'b533b972a473ffca9252362ecc5d73de52423da9';
 const MODERN_SHELL_MARKER = 'data-rlexperience-shell';
-const LEGACY_BASELINE_SHA256 = Object.freeze({
-  'rlviews.js': '9695b8cacf613546a82a60f18e6b382892073a50ff6031b14ca09a71bad98ee0',
-  'rlapp.js': 'b481a7323595f176fca7c7e5b1c25bccc0ed0a27f43a92bb57583f8ad1a5cdb9'
+const LEGACY_BASELINE_BLOB_IDS = Object.freeze({
+  'rlviews.js': '3fd725a15eb10861f71a187f15fc2fe75df36dfd',
+  'rlapp.js': 'b0b421102da9ee6542ae330e6495d75bc892da33'
 });
 
 function baselineBytes(relativePath) {
+  const expectedBlobId = LEGACY_BASELINE_BLOB_IDS[relativePath];
+  if (expectedBlobId) {
+    const actualBlobId = execFileSync('git', ['rev-parse', `${LEGACY_BASELINE_COMMIT}:${relativePath}`], { cwd: REPOSITORY_ROOT })
+      .toString('utf8')
+      .trim();
+    assert.equal(
+      actualBlobId,
+      expectedBlobId,
+      `legacy baseline ${relativePath} @ ${LEGACY_BASELINE_COMMIT} drifted from its pinned Git blob`
+    );
+  }
   const bytes = execFileSync('git', ['show', `${LEGACY_BASELINE_COMMIT}:${relativePath}`], { cwd: REPOSITORY_ROOT });
   assert.equal(
     bytes.includes(MODERN_SHELL_MARKER),
     false,
     `legacy baseline ${relativePath} @ ${LEGACY_BASELINE_COMMIT} must not contain the modern shell marker "${MODERN_SHELL_MARKER}"`
   );
-  const expectedSha256 = LEGACY_BASELINE_SHA256[relativePath];
-  if (expectedSha256) {
-    assert.equal(
-      sha256(bytes),
-      expectedSha256,
-      `legacy baseline ${relativePath} @ ${LEGACY_BASELINE_COMMIT} sha256 drifted from the pinned pre-Scope-02 bytes`
-    );
-  }
   return bytes;
 }
 
@@ -196,9 +195,8 @@ async function readStorageSentinels(page) {
 }
 
 test.before(async () => {
-  assert.equal(existsSync(SYSTEM_CHROME), true, 'source-locked system Chrome must exist');
   const { chromium } = await loadPlaywright();
-  browser = await chromium.launch({ executablePath: SYSTEM_CHROME, headless: true });
+  browser = await chromium.launch(browserLaunchOptions());
   site = await startStaticServer();
 });
 
@@ -207,9 +205,10 @@ test.after(async () => {
   if (site) await site.close();
 });
 
-test('SCN-012-028 and SCN-012-029 all 23 registry pages bootstrap one exact shell without script-order drift', async () => {
+test('SCN-012-028 and SCN-012-029 all registry pages bootstrap one exact shell without script-order drift', async () => {
   const registry = readJson('tools.json');
-  assert.equal(registry.tools.length, 23);
+  assert.ok(Array.isArray(registry.tools) && registry.tools.length > 0, 'tools.json must declare a non-empty tool population');
+  assert.equal(new Set(registry.tools.map((tool) => tool.id)).size, registry.tools.length, 'tools.json tool IDs must be unique');
   const failures = [];
 
   for (const tool of registry.tools) {
@@ -242,22 +241,29 @@ test('SCN-012-028 and SCN-012-029 all 23 registry pages bootstrap one exact shel
             && node.getAttribute('aria-hidden') === 'true'
             && node.tabIndex === -1
           )),
+          legacyVisible: legacy.some((node) => (
+            getComputedStyle(node).display !== 'none'
+            && getComputedStyle(node).visibility !== 'hidden'
+            && node.getBoundingClientRect().height > 0
+          )),
+          ownsRoute: Boolean(document.querySelector('[data-rlbrief-mount][data-owns-route]')),
           bodyView: document.body.dataset.rlview,
           shellState: shell.getAttribute('data-rlexperience-canary')
         };
       });
       assert.deepEqual(actual.labels, tool.experience.kind === 'market-action-center'
         ? ['Brief', 'Portfolio', 'Red Alert', 'Journey']
-        : ['Simple', 'Power', 'Brief', 'Journey']);
-      assert.equal(actual.shellCount, 1);
-      assert.equal(actual.readyShellCount, 1);
-      assert.equal(actual.statusCount, 1);
-      assert.equal(actual.panelCount, 4);
-      assert.equal(actual.legacySuppressed, true);
-      assert.equal(actual.bodyView, tool.experience.kind === 'market-action-center' ? 'brief' : 'simple');
-      assert.equal(actual.shellState, 'shadow-safe');
-      assert.deepEqual(pageErrors, []);
-      console.log(`[shell-canary] tool=${tool.id} views=${actual.labels.join('|')} panels=${actual.panelCount} legacySuppressed=${actual.legacySuppressed} statusControls=${actual.statusCount}`);
+        : ['Simple', 'Power', 'Brief', 'Journey'], `${tool.id} shell labels`);
+      assert.equal(actual.shellCount, 1, `${tool.id} shellCount`);
+      assert.equal(actual.readyShellCount, 1, `${tool.id} readyShellCount`);
+      assert.equal(actual.statusCount, 1, `${tool.id} statusCount`);
+      assert.equal(actual.panelCount, 4, `${tool.id} panelCount`);
+      assert.equal(actual.legacySuppressed, !actual.ownsRoute, `${tool.id} legacy suppression must match route ownership`);
+      if (actual.ownsRoute) assert.equal(actual.legacyVisible, true, `${tool.id} route owner must retain a visible native view control`);
+      assert.equal(actual.bodyView, tool.experience.kind === 'market-action-center' ? 'brief' : 'simple', `${tool.id} bodyView`);
+      assert.equal(actual.shellState, 'shadow-safe', `${tool.id} shellState`);
+      assert.deepEqual(pageErrors, [], `${tool.id} pageErrors`);
+      console.log(`[shell-canary] tool=${tool.id} views=${actual.labels.join('|')} panels=${actual.panelCount} ownsRoute=${actual.ownsRoute} legacySuppressed=${actual.legacySuppressed} statusControls=${actual.statusCount}`);
     } catch (error) {
       failures.push(`${tool.id}: ${error.message}`);
     } finally {
@@ -348,7 +354,7 @@ test('SCN-012-031 compatibility rollback restores legacy controls then exact cur
     const migrationPolicy = reconstructScope01MigrationPolicy(sandboxRoot);
     const sandboxRegistry = JSON.parse(readFileSync(join(sandboxRoot, 'tools.json'), 'utf8'));
 
-    assert.equal(sandboxRegistry.tools.length, 23);
+    assert.equal(sandboxRegistry.tools.length, registry.tools.length, 'rollback sandbox must preserve the complete SST tool population');
     assert.equal(sandboxRegistry.tools.every((tool) => Object.hasOwn(tool, 'experience')), true, 'Scope 01 registry declarations must remain intact');
     assert.deepEqual(migrationPolicy, {
       contractVersion: 'experience-migration-policy/v1',
@@ -456,14 +462,14 @@ test('SCN-012-031 compatibility rollback restores legacy controls then exact cur
     assert.deepEqual(hashInventory(REPOSITORY_ROOT, SCOPE02_CURRENT_PATHS), allowedBefore);
     assert.deepEqual(hashInventory(REPOSITORY_ROOT, protectedPaths), protectedBefore);
 
-    console.log(`[scope02-rollback] sandbox=${temporaryRoot.split(sep).at(-1)} browser=${SYSTEM_CHROME} server=no-store-static`);
-    console.log('[scope02-rollback] baselineAuthority=git:767732db(pre-Scope-02,parent-of-c81d808d) sharedFiles=rlviews.js,rlapp.js configReconstruction=scope01-explicit-contract');
+    console.log(`[scope02-rollback] sandbox=${temporaryRoot.split(sep).at(-1)} browser=shared-resolver server=no-store-static`);
+    console.log('[scope02-rollback] baselineAuthority=git:b533b972(pre-Scope-02,parent-of-d94a5b906) sharedFiles=rlviews.js,rlapp.js configReconstruction=scope01-explicit-contract');
     console.log(`[scope02-rollback] boundary allowedFiles=${SCOPE02_CURRENT_PATHS.length} protectedFiles=${protectedPaths.length} worktreeFiles=${worktreePaths.length}`);
     console.log(`[scope02-rollback] protectedDigest=${inventoryDigest(protectedBefore)} byteEqual=true`);
     console.log(`[scope02-rollback] dataFiles=${dataPaths.length} dataDigest=${inventoryDigest(sandboxDataBefore)} byteEqual=true`);
     console.log(`[scope02-rollback] optionFiles=${optionPaths.length} optionDigest=${inventoryDigest(sandboxOptionsBefore)} byteEqual=true`);
     console.log(`[scope02-rollback] protectedHtmlFiles=${protectedHtmlPaths.length} htmlDigest=${inventoryDigest(sandboxHtmlBefore)} byteEqual=true`);
-    console.log('[scope02-rollback] scope01Registry tools=23 experiences=23 phase=contract-shadow shadowOnly=true visibleModeCutover=false panelBootstrap=false');
+    console.log(`[scope02-rollback] scope01Registry tools=${sandboxRegistry.tools.length} experiences=${sandboxRegistry.tools.filter((tool) => Object.hasOwn(tool, 'experience')).length} phase=contract-shadow shadowOnly=true visibleModeCutover=false panelBootstrap=false`);
     console.log(`[scope02-rollback] legacyControls simpleVisible=${legacyState.simple.visible} powerVisible=${legacyState.power.visible} currentShellCount=${legacyState.currentShellCount}`);
     console.log(`[scope02-rollback] legacyPower bodyPower=${powerBehavior.bodyPower} visiblePowerPanels=${powerBehavior.visiblePowerPanels}`);
     console.log(`[scope02-rollback] legacySimple bodyPower=${simpleBehavior.bodyPower} visiblePowerPanels=${simpleBehavior.visiblePowerPanels}`);

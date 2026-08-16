@@ -65,7 +65,7 @@
   }
 
   function computeSummary(agenda, ownerState, parameters) {
-    var computed = agenda.computeAgendaViewState(ownerState.definition, ownerState.review, leverState(parameters));
+    var computed = agenda.computeAgendaViewState(ownerState.definition, ownerState.review, ownerState.resolvedDossier, leverState(parameters));
     if (!computed.ok || !computed.value.modelAvailable) return null;
     var model = computed.value.modelOutputs;
     var roots = ownerState.definition.scenarioTree.nodes.filter(function (node) { return node.parentId === null; });
@@ -93,7 +93,7 @@
 
   function buildEvidence(api, definition, ownerState) {
     var agenda = ownerState.agenda;
-    var baseline = agenda.computeAgendaViewState(ownerState.definition, ownerState.review, null);
+    var baseline = agenda.computeAgendaViewState(ownerState.definition, ownerState.review, ownerState.resolvedDossier, null);
     var ready = baseline.ok && baseline.value.modelAvailable;
     var cutoff = ownerState.review.attemptedAt;
     var snapshot = {
@@ -104,7 +104,7 @@
       evidenceRefs: [{
         requirementId: "owner-evidence",
         evidenceRef: "owner:research-agenda:" + ownerState.review.reviewId,
-        semanticFingerprint: api.fingerprint({ definition: ownerState.definition, review: ownerState.review }),
+        semanticFingerprint: api.fingerprint({ definition: ownerState.definition, review: ownerState.review, resolvedDossier: ownerState.resolvedDossier }),
         sourceClass: ready ? "model-estimate" : "unavailable",
         observedAsOf: cutoff,
         retrievedOrPublishedAt: cutoff,
@@ -179,7 +179,12 @@
         if (!ownerContext || !ownerContext.definition || !ownerContext.review) {
           return { ok: false, error: { reason: "agenda owner context required" } };
         }
-        var ownerState = { agenda: agenda, definition: clone(ownerContext.definition), review: clone(ownerContext.review) };
+        var ownerState = {
+          agenda: agenda,
+          definition: clone(ownerContext.definition),
+          review: clone(ownerContext.review),
+          resolvedDossier: ownerContext.resolvedDossier ? clone(ownerContext.resolvedDossier) : null
+        };
         var evidence = buildEvidence(api, definition, ownerState);
         ownerByIdentity.set(evidence.evidenceIdentity, ownerState);
         return { ok: true, value: evidence };

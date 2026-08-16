@@ -1718,6 +1718,12 @@
           "macro-rotation"
         ],
         "publicAliases": []
+      },
+      "simpleWiring": {
+        "contractVersion": "simple-wiring/v1",
+        "state": "declared-unwired",
+        "reason": "The page deliberately owns its native Simple and Power projections: recompute() assigns one RLFX owner decision to runtime.owner, derives the reader and published tool read from that same object, and renders every native surface from it. Registering the generic provider would create a second Simple truth surface over the owner decision.",
+        "decisionRef": "fx-regime-relative-value-lab.html:754"
       }
     },
     {
@@ -1780,6 +1786,12 @@
           "technical"
         ],
         "publicAliases": []
+      },
+      "simpleWiring": {
+        "contractVersion": "simple-wiring/v1",
+        "state": "declared-unwired",
+        "reason": "The page deliberately owns its native Simple and Power projections: tdcApplyMode is a view-only switch over the last complete result, and tdcAssembleResult creates the one frozen result consumed by every renderer, history, and owner read. Registering the generic provider would create a second Simple truth surface over that result.",
+        "decisionRef": "trend-dynamics-cycle-lab.html:3785"
       }
     },
     {
@@ -1840,6 +1852,12 @@
         "contextPolicyId": "contextual-tooltip/v1",
         "matrixDomains": [],
         "publicAliases": []
+      },
+      "simpleWiring": {
+        "contractVersion": "simple-wiring/v1",
+        "state": "declared-unwired",
+        "reason": "The page deliberately owns its native Simple and Power projections: appendPowerEvidence reads the same projection already rendered by Simple, and the display-mode switch only reveals that evidence and re-renders routes without rerunning analytics. Registering the generic provider would create a second Simple truth surface over the same projection.",
+        "decisionRef": "portfolio-survival-allocation-lab.html:1239"
       }
     },
     {
@@ -1904,6 +1922,12 @@
         "publicAliases": [
           "Standing Research Agenda"
         ]
+      },
+      "simpleWiring": {
+        "contractVersion": "simple-wiring/v1",
+        "state": "declared-unwired",
+        "reason": "The page deliberately owns its native Simple and Power projections: recomputeFromLevers computes one RLAGENDA view into state.view, then renders the native current and Power model surfaces from that shared value without another read. Registering the generic provider would create a second Simple truth surface over the same review.",
+        "decisionRef": "research-agenda-lab.html:580"
       }
     }
   ]

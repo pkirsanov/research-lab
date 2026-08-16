@@ -110,6 +110,8 @@ BASELINE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/research-lab-brief.XXXXXX")" || {
   echo "[brief-timer] cannot create private transaction baseline"
   exit 1
 }
+RESEARCH_PUBLICATION_CANDIDATE="$BASELINE_DIR/research-agenda-publication-candidate.json"
+RESEARCH_PAYLOAD_CANDIDATE="$BASELINE_DIR/market-brief.payload.candidate.json"
 cleanup_baseline() {
   rm -rf "$BASELINE_DIR"
 }
@@ -192,6 +194,23 @@ restore_page_baseline() {
   for page_file in "${PAGE_FILES[@]}"; do
     cp "$BASELINE_DIR/$page_file" "$page_file" || return 1
   done
+}
+
+restore_research_publication_baseline() {
+  restore_narrative_baseline && restore_page_baseline
+}
+
+promote_research_agenda_candidate() {
+  if [ ! -f research-agenda.json ]; then
+    return 0
+  fi
+  if [ ! -f "$RESEARCH_PUBLICATION_CANDIDATE" ] || [ ! -f "$RESEARCH_PAYLOAD_CANDIDATE" ]; then
+    echo "[brief-timer] research agenda private publication candidate is incomplete"
+    return 1
+  fi
+  "$NODE_BIN" scripts/research-agenda-refresh.mjs \
+    --promote-candidate "$RESEARCH_PUBLICATION_CANDIDATE" \
+    --payload-candidate "$RESEARCH_PAYLOAD_CANDIDATE"
 }
 
 restore_derived_baseline() {
@@ -442,10 +461,15 @@ else
   attempt=1
   while [ "$attempt" -le "$NARRATIVE_ATTEMPTS" ]; do
     echo "[brief-timer] narrative attempt $attempt/${NARRATIVE_ATTEMPTS}…"
-    if ! restore_narrative_baseline; then
+    if ! restore_research_publication_baseline; then
       echo "[brief-timer] cannot restore payload/config baseline before narrative attempt"
       restore_owned_baseline || true
       exit 1
+    fi
+    rm -f "$RESEARCH_PUBLICATION_CANDIDATE" "$RESEARCH_PAYLOAD_CANDIDATE"
+    ATTENTION_PAYLOAD="$PAYLOAD"
+    if [ -f research-agenda.json ]; then
+      ATTENTION_PAYLOAD="$RESEARCH_PAYLOAD_CANDIDATE"
     fi
     # F-017-06: the lane authors JUDGEMENT ONLY; the envelope is composed here.
     #
@@ -472,15 +496,18 @@ else
           BRIEF_TODAY="$TODAY" \
           BRIEF_TOOL_BUNDLE="$TOOL_BRIEF_BUNDLE" \
           BRIEF_RESEARCH_CACHE="$BASELINE_DIR/research-generation-cache.json" \
+          BRIEF_RESEARCH_PUBLICATION_CANDIDATE="$RESEARCH_PUBLICATION_CANDIDATE" \
+          BRIEF_RESEARCH_PAYLOAD_CANDIDATE="$RESEARCH_PAYLOAD_CANDIDATE" \
           "$NODE_BIN" scripts/brief-narrative-parallel.mjs \
-       && "$NODE_BIN" scripts/build-attention-items.mjs --recompose --write \
+       && "$NODE_BIN" scripts/build-attention-items.mjs --recompose --write --payload "$ATTENTION_PAYLOAD" \
+         && promote_research_agenda_candidate \
          && "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD" --drop-unscoreable --defer-page-parity; then
       NARRATIVE_OK=1
       echo "[brief-timer] parallel narrative collected + schema-valid (attempt $attempt/$NARRATIVE_ATTEMPTS)"
       break
     fi
     echo "[brief-timer] narrative attempt $attempt failed/invalid — restoring payload/config before retry"
-    if ! restore_narrative_baseline; then
+    if ! restore_research_publication_baseline; then
       echo "[brief-timer] cannot restore payload/config after failed narrative attempt"
       restore_owned_baseline || true
       exit 1
@@ -584,10 +611,12 @@ else
     DISTRIBUTED_OK=1
     echo "[brief-timer] distributed briefs/ graph generated + graph-validated — will ride the same commit"
   else
-    echo "[brief-timer] distributed publisher failed — discarding briefs/ changes"
-    "$GIT_BIN" restore --staged -- briefs 2>/dev/null || true
-    "$GIT_BIN" checkout -- briefs 2>/dev/null || true
-    "$GIT_BIN" clean -fdq -- briefs 2>/dev/null || true
+    echo "[brief-timer] distributed publisher failed — restoring captured briefs/ baseline"
+    if ! restore_distributed_baseline; then
+      echo "[brief-timer] distributed baseline restoration failed — refusing ambiguous publication state"
+      restore_owned_baseline || echo "[brief-timer] ERROR: owned baseline restoration failed"
+      exit 1
+    fi
     if [ "$REQUIRE_COMPLETE_RUN" = "1" ]; then
       echo "[brief-timer] exact all-tool/final publication is required — refusing the scheduled run"
       restore_owned_baseline || true
@@ -628,8 +657,14 @@ if [ "$DRY_RUN" = "1" ]; then
     exit 1
   fi
 else
-  run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/build-brief-page-artifacts.mjs \
-    || { echo "[brief-timer] compact page projection failed — restoring owned baseline"; restore_owned_baseline || true; exit 1; }
+  if [ "$NARRATIVE_OK" = "1" ] && [ -f research-agenda.json ]; then
+    run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/build-brief-page-artifacts.mjs --check \
+      || { echo "[brief-timer] agenda transaction page projection parity failed — restoring owned baseline"; restore_owned_baseline || true; exit 1; }
+    echo "[brief-timer] agenda transaction page projections verified without rewriting targets"
+  else
+    run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/build-brief-page-artifacts.mjs \
+      || { echo "[brief-timer] compact page projection failed — restoring owned baseline"; restore_owned_baseline || true; exit 1; }
+  fi
   SELECTED_FILES+=(
     market-brief.page.json
     market-brief.config.page.json

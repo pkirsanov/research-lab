@@ -14,6 +14,7 @@ import test from 'node:test';
 import { freezeToolReads, runToolAuthorPool } from '../scripts/brief-refresh.mjs';
 import {
   composeResearchAgendaCandidate,
+  computeResearchAgendaOutputs,
   RESEARCH_AGENDA_CONTRACTS,
   runResearchSidePool,
   runResearchSidePoolAlongsideCritical
@@ -22,6 +23,7 @@ import { profileBudgets, runBudget, authorIdentity, noRecommendationTransport } 
 
 const require = createRequire(import.meta.url);
 const RLCONTRACTS = require('../rlcontracts.js');
+const RLAGENDA = require('../rlagenda.js');
 
 function readRegistry() {
   return JSON.parse(require('node:fs').readFileSync(new URL('../tools.json', import.meta.url), 'utf8'));
@@ -111,6 +113,17 @@ function agendaFixture() {
   const registry = JSON.parse(fs.readFileSync(new URL('../research-agenda.json', import.meta.url), 'utf8'));
   const topic = registry.topics[0];
   const definition = JSON.parse(fs.readFileSync(new URL('../' + topic.definitionRef, import.meta.url), 'utf8'));
+  const evidence = JSON.parse(fs.readFileSync(new URL('./fixtures/research-agenda/valid-evidence-record.json', import.meta.url), 'utf8'));
+  const modelFixture = JSON.parse(fs.readFileSync(new URL('./fixtures/research-agenda/reversal-ui.json', import.meta.url), 'utf8'));
+  const calibration = JSON.parse(fs.readFileSync(new URL('../' + definition.calibrationRef, import.meta.url), 'utf8'));
+  const barIds = [...new Set([
+    ...definition.transmissionModels.map((model) => model.barId),
+    ...definition.proxyDefinitions.map((proxy) => proxy.ticker)
+  ])];
+  const currentBars = Object.fromEntries(barIds.map((barId) => [
+    barId,
+    JSON.parse(fs.readFileSync(new URL(`../data/bars/${barId}.json`, import.meta.url), 'utf8'))
+  ]));
   const generationId = `generation-${'e'.repeat(64)}`;
   const plan = {
     ok: true,
@@ -118,8 +131,11 @@ function agendaFixture() {
     selected: [{ topicId: topic.topicId, mode: topic.reviewPolicy.mode, reason: 'mode-required', sectionIds: definition.analyticalSections.map((section) => section.sectionId) }],
     classifications: [{ topicId: topic.topicId, lifecycleState: 'active', mode: topic.reviewPolicy.mode, status: 'selected', reason: 'mode-required' }]
   };
-  const policy = { timeoutSeconds: 900, attempts: 1, concurrency: 1, maxInputBytes: 524288, maxOutputBytes: 524288 };
-  return { registry: { ...registry, topics: [topic] }, topic, definition, generationId, plan, policy };
+  const policy = RLAGENDA.resolveAgendaPolicy(registry.reviewPolicy);
+  return {
+    registry: { ...registry, topics: [topic] }, topic, definition, evidence, modelFixture, calibration,
+    currentBars, generationId, plan, policy: policy.value, policyDigest: policy.digest
+  };
 }
 
 function quietSituation(fixture) {
@@ -143,12 +159,62 @@ function quietSituation(fixture) {
   };
 }
 
+function producePriorDossier(fixture) {
+  const generationId = `generation-${'d'.repeat(64)}`;
+  const generationCutoff = '2026-08-13T12:00:00.000Z';
+  const situation = {
+    contractVersion: RESEARCH_AGENDA_CONTRACTS.situation,
+    generationId,
+    topicId: fixture.topic.topicId,
+    authoredAt: generationCutoff,
+    completePass: true,
+    evidenceRecords: [fixture.evidence],
+    sectionInterpretations: fixture.definition.analyticalSections.map((section) => ({
+      sectionId: section.sectionId,
+      status: 'changed',
+      interpretation: 'Current evidence changed this section.',
+      gaps: []
+    })),
+    findings: [],
+    sourceLedger: [fixture.evidence.source],
+    newEvidenceIds: [fixture.evidence.evidenceId],
+    modelInputs: {
+      chokepointState: fixture.modelFixture.chokepointState,
+      inventoryGapByChannel: fixture.modelFixture.inventoryGapByChannel,
+      levers: fixture.modelFixture.levers
+    }
+  };
+  const outputs = computeResearchAgendaOutputs({
+    definition: fixture.definition,
+    calibration: fixture.calibration,
+    situation,
+    currentBars: fixture.currentBars,
+    generationCutoff,
+    declaredQuestion: fixture.topic.declaredQuestion,
+    predecessorOutput: null
+  });
+  assert.equal(outputs.ok, true, JSON.stringify(outputs));
+  const candidate = composeResearchAgendaCandidate({
+    registry: fixture.registry,
+    plan: fixture.plan,
+    definitionsByTopicId: { [fixture.topic.topicId]: fixture.definition },
+    generationId,
+    generationCutoff,
+    situationsByTopicId: { [fixture.topic.topicId]: situation },
+    deterministicOutputsByTopicId: { [fixture.topic.topicId]: outputs.value }
+  });
+  assert.equal(candidate.ok, true, JSON.stringify(candidate));
+  assert.equal(candidate.value.dossiers.length, 1, 'substantive pass must produce one prior dossier');
+  return candidate.value.dossiers[0];
+}
+
 test('SCN-019-013 quiet complete pass writes an unchanged review and reuses the substantive dossier', async () => {
   const fixture = agendaFixture();
   const pool = await runResearchSidePool({
     topics: [{ topic: fixture.topic, definition: fixture.definition, acquisition: null, committedEvidence: [] }],
     generationId: fixture.generationId,
     policy: fixture.policy,
+    policyDigest: fixture.policyDigest,
     authorFn: async () => quietSituation(fixture)
   });
   assert.equal(pool.ok, true);
@@ -156,7 +222,20 @@ test('SCN-019-013 quiet complete pass writes an unchanged review and reuses the 
   assert.equal(pool.value.telemetry.attempts, 1);
   assert.equal(pool.value.telemetry.peakConcurrency, 1);
 
-  const prior = { dossierId: `dossier-${'f'.repeat(64)}`, topicId: fixture.topic.topicId, historicalOnly: false };
+  const prior = producePriorDossier(fixture);
+  const priorValidation = RLAGENDA.validateActiveDossier(prior, fixture.definition);
+  assert.equal(priorValidation.ok, true, JSON.stringify(priorValidation));
+  for (const member of Object.keys(prior)) {
+    const incompletePrior = structuredClone(prior);
+    delete incompletePrior[member];
+    const incompleteValidation = RLAGENDA.validateActiveDossier(incompletePrior, fixture.definition);
+    assert.equal(incompleteValidation.ok, false, `${member} must remain required by the active dossier contract`);
+    assert.equal(incompleteValidation.code, 'RLAGENDA-CONTRACT-MISSING-MEMBER');
+    assert.equal(incompleteValidation.field, member);
+  }
+  const priorPath = `research/agenda/dossiers/${prior.topicId}/${prior.dossierId}.json`;
+  const priorRef = RLAGENDA.buildArtifactRef(priorPath, prior);
+  assert.equal(priorRef.ok, true, JSON.stringify(priorRef));
   const candidate = composeResearchAgendaCandidate({
     registry: fixture.registry,
     plan: fixture.plan,
@@ -167,11 +246,25 @@ test('SCN-019-013 quiet complete pass writes an unchanged review and reuses the 
     failuresByTopicId: pool.value.failuresByTopicId,
     priorDossiersByTopicId: { [fixture.topic.topicId]: prior }
   });
-  assert.equal(candidate.ok, true);
-  assert.equal(candidate.value.reviews[0].outcome, 'unchanged');
-  assert.equal(candidate.value.reviews[0].dossierId, prior.dossierId);
+  assert.equal(candidate.ok, true, JSON.stringify(candidate));
+  const review = candidate.value.reviews[0];
+  assert.equal(review.outcome, 'unchanged');
+  assert.notEqual(review.reviewId, prior.reviewId, 'quiet pass must write a new immutable review');
+  assert.equal(candidate.value.classifications[0].dossierId, prior.dossierId);
+  assert.deepEqual(review.dossierRef, priorRef.ref);
+  assert.deepEqual(review.predecessorDossierRef, priorRef.ref);
+  assert.deepEqual(review.modelSnapshotRef.dossierRef, priorRef.ref);
+  assert.equal(review.dossierRef.sha256, RLAGENDA.agendaDigest(prior));
+  assert.equal(review.modelSnapshotRef.modelInputsSha256, RLAGENDA.agendaDigest(prior.modelInputs));
+  assert.equal(review.modelSnapshotRef.modelOutputsSha256, RLAGENDA.agendaDigest(prior.modelOutputs));
+  assert.equal(review.modelSnapshotRef.chartSeriesSha256, RLAGENDA.agendaDigest(prior.chartStates));
+  const reviewValidation = RLAGENDA.validateActiveReview(review, { [priorRef.ref.path]: prior });
+  assert.equal(reviewValidation.ok, true, JSON.stringify(reviewValidation));
   assert.equal(candidate.value.dossiers.length, 0, 'quiet pass must not invent a dossier');
-  assert.equal(candidate.value.reviews[0].sectionStates.every((section) => section.status === 'unchanged'), true);
+  assert.deepEqual(pool.value.situationsByTopicId[fixture.topic.topicId].findings, []);
+  assert.deepEqual(review.evidenceIds, []);
+  assert.deepEqual(review.sectionStates, pool.value.situationsByTopicId[fixture.topic.topicId].sectionInterpretations);
+  assert.equal(review.sectionStates.every((section) => section.status === 'unchanged'), true);
 });
 
 test('SCN-019-015 failed research lane publishes named unavailable without a partial finding', async () => {
@@ -180,6 +273,7 @@ test('SCN-019-015 failed research lane publishes named unavailable without a par
     topics: [{ topic: fixture.topic, definition: fixture.definition, acquisition: null, committedEvidence: [] }],
     generationId: fixture.generationId,
     policy: fixture.policy,
+    policyDigest: fixture.policyDigest,
     authorFn: async () => ({ malformed: true })
   });
   assert.equal(pool.ok, true);
@@ -216,6 +310,7 @@ test('Regression: research lane timeout leaves every critical lane output byte-i
       topics: [{ topic: fixture.topic, definition: fixture.definition, acquisition: null, committedEvidence: [] }],
       generationId: fixture.generationId,
       policy: fixture.policy,
+      policyDigest: fixture.policyDigest,
       authorFn: async () => new Promise(() => {}),
       timer: { withTimeout: async () => { throw timeout; } }
     }

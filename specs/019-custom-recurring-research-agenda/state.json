@@ -3,8 +3,8 @@
     "featureDir": "specs/019-custom-recurring-research-agenda",
     "featureName": "Custom Recurring Research Agenda",
     "createdAt": "2026-08-10T00:00:00Z",
-    "lastUpdatedAt": "2026-08-14T16:45:13Z",
-    "status": "not_started",
+    "lastUpdatedAt": "2026-08-15T15:30:00Z",
+    "status": "in_progress",
     "blockedReason": null,
     "workflowMode": "full-delivery",
     "planningOnly": false,
@@ -29,20 +29,34 @@
     },
     "execution": {
         "goalContractRef": null,
-        "activeAgent": "bubbles.regression",
-        "currentPhase": "regression",
+        "activeAgent": "bubbles.finalize",
+        "currentPhase": "finalize",
         "currentPhaseStatus": "not_started",
-        "currentScope": 5,
+        "currentScope": null,
         "runStartedAt": "2026-08-14T06:00:32Z",
         "completedAt": null,
         "completedPhaseClaims": [
             "analyze",
             "design",
-            "plan"
+            "plan",
+            "regression",
+            "simplify",
+            "gaps",
+            "harden",
+            "stabilize",
+            "devops",
+            "security",
+            "implement",
+            "test",
+            "validate",
+            "audit",
+            "chaos",
+            "redteam",
+            "docs"
         ],
         "pendingTransitionRequests": [],
-        "nextRequiredOwner": "bubbles.regression",
-        "nextRequiredTarget": "specs/019-custom-recurring-research-agenda/scopes/05-refinement-public-safety-and-brief-read",
+        "nextRequiredOwner": "bubbles.finalize",
+        "nextRequiredTarget": "specs/019-custom-recurring-research-agenda",
         "scopeProgress": [
             {
                 "scope": 1,
@@ -109,11 +123,89 @@
         }
     },
     "certification": {
-        "status": "not_started",
+        "status": "in_progress",
         "certifiedAt": null,
-        "completedScopes": [],
-        "certifiedCompletedPhases": [],
-        "scopeProgress": [],
+        "certificationNote": "Independent audit passed (bubbles.audit, 2026-08-15). All 5 scopes done, 109/109 DoD items checked, 20/20 scenarios done, Feature 020 boundary clean, 2097 selftest passes, artifact-lint exit 0. One advisory finding A019-SCOPE02-ANCHOR-001 (LOW, broken anchor in scope 02, content present). Finalize owns terminal status=done and top-level promotion.",
+        "completedScopes": [
+            "01-agenda-registry-contract",
+            "02-topic-lifecycle",
+            "03-per-generation-review-policy",
+            "04-dossier-and-outcome-states",
+            "05-refinement-public-safety-and-brief-read"
+        ],
+        "certifiedCompletedPhases": [
+            "analyze",
+            "design",
+            "plan",
+            "implement",
+            "regression",
+            "simplify",
+            "gaps",
+            "harden",
+            "stabilize",
+            "devops",
+            "security",
+            "test",
+            "validate"
+        ],
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "scopeId": "01-agenda-registry-contract",
+                "scopeDir": "scopes/01-agenda-registry-contract",
+                "scopeKind": "runtime-behavior",
+                "status": "done",
+                "foundation": true,
+                "dependsOn": []
+            },
+            {
+                "scope": 2,
+                "scopeId": "02-topic-lifecycle",
+                "scopeDir": "scopes/02-topic-lifecycle",
+                "scopeKind": "runtime-behavior",
+                "status": "done",
+                "foundation": false,
+                "dependsOn": [
+                    1
+                ]
+            },
+            {
+                "scope": 3,
+                "scopeId": "03-per-generation-review-policy",
+                "scopeDir": "scopes/03-per-generation-review-policy",
+                "scopeKind": "runtime-behavior",
+                "status": "done",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    2
+                ]
+            },
+            {
+                "scope": 4,
+                "scopeId": "04-dossier-and-outcome-states",
+                "scopeDir": "scopes/04-dossier-and-outcome-states",
+                "scopeKind": "runtime-behavior",
+                "status": "done",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    3
+                ]
+            },
+            {
+                "scope": 5,
+                "scopeId": "05-refinement-public-safety-and-brief-read",
+                "scopeDir": "scopes/05-refinement-public-safety-and-brief-read",
+                "scopeKind": "runtime-behavior",
+                "status": "done",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    4
+                ]
+            }
+        ],
         "lockdownState": {
             "active": false,
             "lockedScenarioIds": []
@@ -188,8 +280,17 @@
         {
             "agent": "bubbles.design",
             "phasesExecuted": [
-                "bootstrap"
+                "design"
             ],
+            "recordCorrection": {
+                "correctedBy": "bubbles.validate",
+                "correctedAt": "2026-08-15T19:49:26Z",
+                "field": "phasesExecuted",
+                "originalValue": [
+                    "bootstrap"
+                ],
+                "reason": "The entry was originally labelled 'bootstrap' while execution.completedPhaseClaims records 'design', leaving the design claim without specialist provenance under Gate G022. The entry's own summary describes design-phase work exclusively (reconciling design.md, defining immutable generation/review/dossier state, the evidence graph, flow accounting, and publication ordering), and design.md exists in the feature directory. The label is corrected to the phase actually executed; the original value is preserved here so the correction is auditable and no history is silently rewritten."
+            },
             "startedAt": "2026-08-14T03:28:08Z",
             "completedAt": "2026-08-14T03:28:50Z",
             "statusBefore": "not_started",
@@ -221,8 +322,17 @@
         {
             "agent": "bubbles.implement",
             "phasesExecuted": [
-                "implementation"
+                "implement"
             ],
+            "recordCorrection": {
+                "correctedBy": "bubbles.validate",
+                "correctedAt": "2026-08-15T19:49:26Z",
+                "field": "phasesExecuted",
+                "originalValue": [
+                    "implementation"
+                ],
+                "reason": "The full-delivery workflow names this phase 'implement'. The entry was labelled 'implementation', so Gate G022 read the required 'implement' phase as absent even though bubbles.implement executed it and closed the scope. Corrected to the workflow phase name; the original value is preserved so the correction is auditable."
+            },
             "startedAt": "2026-08-14T06:00:32Z",
             "completedAt": "2026-08-14T06:43:24Z",
             "statusBefore": "not_started",
@@ -232,8 +342,17 @@
         {
             "agent": "bubbles.implement",
             "phasesExecuted": [
-                "implementation"
+                "implement"
             ],
+            "recordCorrection": {
+                "correctedBy": "bubbles.validate",
+                "correctedAt": "2026-08-15T19:49:26Z",
+                "field": "phasesExecuted",
+                "originalValue": [
+                    "implementation"
+                ],
+                "reason": "The full-delivery workflow names this phase 'implement'. The entry was labelled 'implementation', so Gate G022 read the required 'implement' phase as absent even though bubbles.implement executed it and closed the scope. Corrected to the workflow phase name; the original value is preserved so the correction is auditable."
+            },
             "startedAt": "2026-08-14T06:43:24Z",
             "completedAt": "2026-08-14T07:24:38Z",
             "statusBefore": "not_started",
@@ -243,13 +362,1281 @@
         {
             "agent": "bubbles.implement",
             "phasesExecuted": [
-                "implementation"
+                "implement"
             ],
+            "recordCorrection": {
+                "correctedBy": "bubbles.validate",
+                "correctedAt": "2026-08-15T19:49:26Z",
+                "field": "phasesExecuted",
+                "originalValue": [
+                    "implementation"
+                ],
+                "reason": "The full-delivery workflow names this phase 'implement'. The entry was labelled 'implementation', so Gate G022 read the required 'implement' phase as absent even though bubbles.implement executed it and closed the scope. Corrected to the workflow phase name; the original value is preserved so the correction is auditable."
+            },
             "startedAt": "2026-08-14T07:24:38Z",
             "completedAt": "2026-08-14T16:44:00Z",
             "statusBefore": "not_started",
             "statusAfter": "not_started",
             "summary": "Completed Scope 4 governed generation and atomic publication. Added missing-or-stale-only allowlisted acquisition, bounded exact-byte retrieval, a networkless research author, fully fingerprinted once-per-generation retry reuse, explicit honest outcomes, payload accounting, immutable create-only artifacts, rollback, and pointer-last publication. All 13 replanned rows, 1,696 project selftests, 30 atomic wrapper tests, focused integration/security/stress checks, traceability, source lock, privacy, and change-boundary checks passed. Routed Scope 5 next without changing certification."
+        },
+        {
+            "agent": "bubbles.regression",
+            "phasesExecuted": [
+                "regression"
+            ],
+            "startedAt": "2026-08-14T23:19:17Z",
+            "completedAt": "2026-08-14T23:19:28Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "summary": "Recorded the completed Feature 019 regression evidence and terminal result envelope: outcome completed_diagnostic, unresolvedFindings empty, and canAdvanceToSimplify true. Appended only the regression execution claim and routed the unchanged Scope 5 target to bubbles.simplify without changing top-level or certification status."
+        },
+        {
+            "agent": "bubbles.simplify",
+            "phasesExecuted": [
+                "simplify"
+            ],
+            "startedAt": "2026-08-14T23:32:54Z",
+            "completedAt": "2026-08-14T23:36:02Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "summary": "Reviewed the committed Feature 019 agenda runtime, refresh pipeline, owning tool, adapter, and brief integration for reuse, quality, and efficiency. Delegated canonical JSON and SHA-256 work to rlagenda.js, removed one dead helper and two unused private parameters, and carried the dominant scenario node directly in the owning page. Current-session distributed final E2E, atomicity, selftest, five-file Playwright, payload and page parity, artifact lint, traceability, page integrity, and editor diagnostics passed. Closed all simplify findings and routed Scope 5 to bubbles.gaps without changing certification or top-level status."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "startedAt": "2026-08-15T00:58:33Z",
+            "completedAt": "2026-08-15T00:58:33Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "summary": "Reconciled plan-owned Feature 019 artifacts after the gaps verdict invalidated completion. Reopened Scope 1 as in_progress and dependency-blocked Scopes 2 through 5 as not_started; preserved 38 functional requirements, 20 stable scenarios, five scopes, dependencies, Feature 020 boundary, historical evidence, top-level status, and certification. Added 14 unchecked adversarial repair rows for GAP-01 through GAP-10, synchronized Markdown and machine-readable planning contracts, and retained gaps as the active phase and owner."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "startedAt": "2026-08-15T04:33:20Z",
+            "completedAt": "2026-08-15T04:33:20Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "summary": "Recorded independent and current-session evidence for reopened Scope 3 under active gaps remediation. Verified all 24 Scope 3 DoD items, all 16 Scope 3 Test Plan rows, exact 68-row cross-artifact parity, source ownership and purity, protected input boundaries, canonical validators, JSON, fences, diff integrity, and diagnostics. Marked Scope 3 done and Scope 4 in_progress while retaining gaps/in_progress, bubbles.gaps ownership, top-level status, and certification."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "startedAt": "2026-08-15T09:29:15Z",
+            "completedAt": "2026-08-15T09:29:15Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "summary": "Reconciled current independent Scope 4 test evidence under active gaps remediation. Corrected the Tier 2 inventory to 18 rows, checked all 26 Scope 4 DoD items with item-local provenance and evidence references, verified exact 68-row parity plus planning and integrity guards, marked Scope 4 done, and opened Scope 5 as the sole in_progress scope. Preserved gaps/in_progress, bubbles.gaps as active owner, top-level status, all certification fields, historical evidence, and the independent S4-FRAMEWORK-001 framework finding."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "startedAt": "2026-08-15T10:40:21Z",
+            "completedAt": "2026-08-15T10:40:21Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "summary": "Reconciled current independent Scope 5 evidence under active gaps remediation. Corrected the stale Tier 2 inventory to 18 rows, checked all 27 Scope 5 DoD items with current provenance and evidence references, preserved historical failure and remediation blocks, verified exact 68-row planning parity, marked Scope 5 and its mapped scenarios done, and routed the unchanged gaps/in_progress phase to bubbles.gaps for complete GAP-01 through GAP-10 revalidation. Preserved top-level status, all certification fields, report evidence, source, tests, design, spec, Feature 020, and all independently routed framework and boundary findings."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "startedAt": "2026-08-15T11:25:30Z",
+            "completedAt": "2026-08-15T11:30:28Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "summary": "Reconciled plan-owned completion claims after fresh gaps revalidation exposed required-publicSubjects fixture drift. Reopened Scope 2 and its current TP-02-07/TP-02-08 plus dependent lifecycle claims; dependency-blocked Scopes 3 through 5 without unchecking unaffected rows; reopened Scope 4 TP-04-15/TP-04-17 plus dependent scenario and transaction claims; and changed only SCN-019-006, SCN-019-012, and SCN-019-015 to non-done. Preserved all five report files byte-for-byte, retained exactly 68 Test Plan rows and stable mappings, kept gaps/in_progress with bubbles.gaps active, routed the earliest repair to bubbles.test, and left top-level status and all certification fields unchanged. Current-session artifact lint, traceability, exact parity, JSON, fence, reference, diff, editor, freshness, and capability-foundation checks exited clean. S4-FRAMEWORK-001, S5-FRAMEWORK-EVIDENCE-001, G022/G053/G040/G097, S5-BOUNDARY-001, GAP-15, and all named observations remain explicitly unresolved or observational."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "startedAt": "2026-08-15T11:46:46Z",
+            "completedAt": "2026-08-15T11:46:46Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "summary": "Reclosed Scope 2 only after fresh item-local TP-02-07 and TP-02-08 evidence proved both exact titles, the full history E2E passed 4/4 with zero failed or skipped tests, and the project selftest passed 2,095/0. Restored SCN-019-006 and Scope 2 to done, returned Scope 3 to done because no own claim was invalidated, opened Scope 4 as the next in-progress eligible repair for TP-04-15 and TP-04-17, and kept Scope 5 dependency-blocked and not_started without unchecking unrelated rows. Preserved gaps/in_progress, bubbles.gaps ownership, next owner bubbles.test, top-level status, all certification fields, historical evidence, GAP-07, GAP-10, framework findings, Feature 020 routing, and named observations."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "startedAt": "2026-08-15T12:09:53Z",
+            "completedAt": "2026-08-15T12:09:53Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "summary": "Reclosed only Scope 4 TP-04-15 and TP-04-17 plus their directly dependent GAP-07 and GAP-10 claims from the fresh required-publicSubjects remediation anchor. Restored Scope 5 to done because its own eighteen checked rows and evidence were never invalidated, returned SCN-019-012 and SCN-019-015 to done, and synchronized all scope and scenario mirrors. Preserved gaps/in_progress with bubbles.gaps as active and next owner, currentScope null, the Feature 019 root as next target, top-level status, all certification fields, historical evidence, source, tests, reports, spec, design, Feature 020, framework and transition findings, and test-path, editor, and environment observations."
+        },
+        {
+            "agent": "bubbles.gaps",
+            "phasesExecuted": [
+                "gaps"
+            ],
+            "startedAt": "2026-08-15T12:31:55Z",
+            "completedAt": "2026-08-15T12:31:55Z",
+            "timestampBasis": "Unmeasured single-instant completion record captured by date -u. Current-session commands below carry their own output hashes; no earlier start time is reconstructed.",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "outcome": "route_required",
+            "terminalPhaseClaim": true,
+            "addressedFindings": [
+                "GAP-01",
+                "GAP-02",
+                "GAP-03",
+                "GAP-04",
+                "GAP-05",
+                "GAP-06",
+                "GAP-07",
+                "GAP-08",
+                "GAP-09",
+                "GAP-10",
+                "GAP-14",
+                "S4-TEST-001",
+                "S4-PLAN-001",
+                "S5-PLAN-001"
+            ],
+            "unresolvedFindings": [
+                "S5-BOUNDARY-001",
+                "S4-FRAMEWORK-001",
+                "S5-FRAMEWORK-EVIDENCE-001",
+                "G022",
+                "G053",
+                "G040",
+                "G097",
+                "GAP-15",
+                "S5-TESTPATH-OBS-001",
+                "S5-EDITOR-OBS-001",
+                "S5-ENV-OBS-001",
+                "GAPS-CLAIM-SOURCE-001",
+                "GAPS-EVIDENCE-RECEIPT-CLONE-001"
+            ],
+            "findingAccounting": [
+                {
+                    "findingIds": [
+                        "GAP-01",
+                        "GAP-10"
+                    ],
+                    "disposition": "addressed",
+                    "evidence": "Full budget matrix passed 6/6 with sha256:a1b1a255f0d951bb00b2c1d6f5ec064ff608ee2d54fed799b4350c0e01ead78d; selftest passed 2095/0."
+                },
+                {
+                    "findingIds": [
+                        "GAP-02",
+                        "GAP-03",
+                        "GAP-04"
+                    ],
+                    "disposition": "addressed",
+                    "evidence": "Exact-shape, five-lever, and strict finding/seam assertions passed in the 2095/0 selftest; the five-file browser batch passed 60/60 with sha256:d880f528a84cf68794a420a7f4995b93dc1062e00e3c5de4a53884430ca48ae5."
+                },
+                {
+                    "findingIds": [
+                        "GAP-05",
+                        "GAP-09"
+                    ],
+                    "disposition": "addressed",
+                    "evidence": "Full final E2E passed 7/7 with sha256:d92c69a61b6d4b76f98ef258cbc644112b5a6b8afaf82489e7489611778ea959; payload validation and the 60/60 browser batch proved compact/full-state separation and fail-loud snapshot handling."
+                },
+                {
+                    "findingIds": [
+                        "GAP-06"
+                    ],
+                    "disposition": "addressed",
+                    "evidence": "Full web functional matrix passed 15/15 with sha256:f116126a0f44c8311c0177dacf5def3f554c1a90efc60403c72887ea28509404."
+                },
+                {
+                    "findingIds": [
+                        "GAP-07"
+                    ],
+                    "disposition": "addressed",
+                    "evidence": "Previously failing full atomicity matrix passed 34/34 with sha256:9ba983744c2d7fba373465de485cd4c326d4a214dcb486666288efc16eb25b93."
+                },
+                {
+                    "findingIds": [
+                        "GAP-08"
+                    ],
+                    "disposition": "addressed",
+                    "evidence": "Full history matrix passed 4/4 with sha256:2d4c10bc93a7b174f89f630b31ba5a4f31daf50b880433b2928ba287d68fb22b."
+                },
+                {
+                    "findingIds": [
+                        "GAP-14",
+                        "S4-PLAN-001",
+                        "S5-PLAN-001"
+                    ],
+                    "disposition": "addressed",
+                    "evidence": "Independent parity check passed: 68 Markdown rows, 68 checked DoD rows, 68 JSON rows, 68 unique manifest rows, 68 provenance blocks, 68 report anchors, 20/20 scenarios done, and 5/5 scopes done."
+                },
+                {
+                    "findingIds": [
+                        "S4-TEST-001"
+                    ],
+                    "disposition": "addressed",
+                    "evidence": "Full authorship matrix passed 4/4 with sha256:cfefdd687e3068bc4ba7d63947fa39d17ad4cdc6661a3e8f0cbfce2f2d43bd12."
+                },
+                {
+                    "findingIds": [
+                        "S5-BOUNDARY-001"
+                    ],
+                    "disposition": "route-same-repo",
+                    "owner": "specs/020-research-action-routing-and-alerts",
+                    "evidence": "scripts/build-attention-items.mjs remains dirty and outside Feature 019's allowedPaths; this pass did not edit or absorb it."
+                },
+                {
+                    "findingIds": [
+                        "S4-FRAMEWORK-001"
+                    ],
+                    "disposition": "route-cross-repo",
+                    "owner": "canonical-bubbles-framework",
+                    "evidence": "implementation-reality-scan exited 0 with one warning, resolved zero scope files, fell back to 27 design files, and reported no live-system tests while the .mjs matrices executed; sha256:07e444d60afc5104416b6ca401ed851a55a4ec96d8655eeee46a30101ec897c3."
+                },
+                {
+                    "findingIds": [
+                        "S5-FRAMEWORK-EVIDENCE-001"
+                    ],
+                    "disposition": "route-cross-repo",
+                    "owner": "canonical-bubbles-framework",
+                    "evidence": "A clean empty-stdout git diff --check produced duplicated line count 0 and arithmetic errors at evidence-capture.sh lines 140 and 152 while the helper exited 0; empty-output sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855."
+                },
+                {
+                    "findingIds": [
+                        "G022",
+                        "G053",
+                        "G040",
+                        "G097"
+                    ],
+                    "disposition": "retained-later-phase-or-foreign-owner",
+                    "owner": "bubbles.harden-and-later-full-delivery-owners",
+                    "evidence": "The pre-advance transition guard targeted whole-feature done under delivery-completion-v1 and exited 1 with failureCount=70 and failedGateIds G022,G053,G040,G097; sha256:33520f085a0410eab9731bbb47d4b11ffe537c2a112d4e83db856e3b1dfd3d15. After recording gaps and advancing the cursor, the same gate set remains with failureCount=69; sha256:1a59f591033b6569055e1d1e1b477d26d7ef26ddfe5731a65b04dc9ef3514240. G097 separately reports one Content-Security-Policy correspondence false negative across eight searched files."
+                },
+                {
+                    "findingIds": [
+                        "GAP-15"
+                    ],
+                    "disposition": "route-cross-repo",
+                    "owner": "canonical-bubbles-framework",
+                    "evidence": "The installed downstream scanner exists at .github/bubbles/scripts/implementation-reality-scan.sh; source-layout references without the .github prefix remain framework-owned and did not suppress any Feature 019 guard."
+                },
+                {
+                    "findingIds": [
+                        "S5-TESTPATH-OBS-001"
+                    ],
+                    "disposition": "observation",
+                    "owner": "research-lab-maintenance",
+                    "evidence": "Test-path ratchet exited 0 with baseline=77, new=0, stale=0; sha256:2c33c656d5f76163e346ed39de8d40b8dcf07c074857910d0912eb6fd721446e."
+                },
+                {
+                    "findingIds": [
+                        "S5-EDITOR-OBS-001"
+                    ],
+                    "disposition": "observation",
+                    "owner": "report-artifact-owner",
+                    "evidence": "Whole-feature editor diagnostics report 182 MD010 hard-tab findings in preserved Scope 5 raw evidence; selected source, tests, JSON, and state report zero diagnostics."
+                },
+                {
+                    "findingIds": [
+                        "S5-ENV-OBS-001"
+                    ],
+                    "disposition": "observation",
+                    "owner": "developer-environment",
+                    "evidence": "Fresh zsh sessions print the pre-command conda anaconda-cloud-auth PyJWKClient import error; all bounded project commands still execute with their recorded exits."
+                },
+                {
+                    "findingIds": [
+                        "GAPS-CLAIM-SOURCE-001"
+                    ],
+                    "disposition": "route-same-repo",
+                    "owner": "report-evidence-owners",
+                    "evidence": "claim-source-lint exited 0 advisory with six missing Claim Source tags in preserved Scope 2 and Scope 4 report blocks; sha256:fc3a4a34ea3aa3461b7198f545a787ef6f6f367950459a153c9af927c871ef6b."
+                },
+                {
+                    "findingIds": [
+                        "GAPS-EVIDENCE-RECEIPT-CLONE-001"
+                    ],
+                    "disposition": "route-same-repo",
+                    "owner": "bubbles-audit-evidence-owner",
+                    "evidence": "The delivery-completion guard reports one stdout receipt cited by different commands in unrelated bug packets. It is outside Feature 019 product behavior and remains unresolved in the current 70-failure completion ledger."
+                }
+            ],
+            "evidence": {
+                "repositoryBindingDecision": "rb:vscode-86ceb157665ed7f88b58e3e8db1a6a5b:74",
+                "repositoryBindingControlRevision": 74,
+                "repositoryBindingControlPathDigest": "sha256:5c39bbbbf1579976c1f02b10c23d457af4e0c3bb4ff63afd31de61075c43a733",
+                "fullSelftest": {
+                    "exitCode": 0,
+                    "passed": 2095,
+                    "failed": 0,
+                    "sha256": "3c62bbf79d3c45959e6fe2c3ce57f9f5e17975f842795ef5c86468a0cc3fc929"
+                },
+                "fullMatrices": {
+                    "history": "4/4 exit 0 sha256:2d4c10bc93a7b174f89f630b31ba5a4f31daf50b880433b2928ba287d68fb22b",
+                    "finalUnit": "3/3 exit 0 sha256:1a9794bd8ec54f48636f5c14eff0a9520dbec00285c1940cffe3ba549923e368",
+                    "finalE2e": "7/7 exit 0 sha256:d92c69a61b6d4b76f98ef258cbc644112b5a6b8afaf82489e7489611778ea959",
+                    "authorship": "4/4 exit 0 sha256:cfefdd687e3068bc4ba7d63947fa39d17ad4cdc6661a3e8f0cbfce2f2d43bd12",
+                    "atomicity": "34/34 exit 0 sha256:9ba983744c2d7fba373465de485cd4c326d4a214dcb486666288efc16eb25b93",
+                    "budget": "6/6 exit 0 sha256:a1b1a255f0d951bb00b2c1d6f5ec064ff608ee2d54fed799b4350c0e01ead78d",
+                    "webFunctional": "15/15 exit 0 sha256:f116126a0f44c8311c0177dacf5def3f554c1a90efc60403c72887ea28509404",
+                    "webSecurity": "10/10 exit 0 sha256:df45597b59bae93ea15a6aa5dc7f315ca57fd7da6a28b28e6b44415b6764ac4c",
+                    "toolRegistry": "8/8 exit 0 sha256:d52daa2d9a3a13a9320393667a4474b9225df922353142ca0b300929cfce6e5c",
+                    "scope5Browser": "60/60 exit 0 sha256:d880f528a84cf68794a420a7f4995b93dc1062e00e3c5de4a53884430ca48ae5"
+                },
+                "governance": {
+                    "artifactLint": "exit 0 sha256:77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c",
+                    "traceability": "exit 0 scenarios=20 warnings=0 sha256:f87b850aa7a79925e6ada0db893348e26e5328274919e1622ac4e83f411673aa",
+                    "artifactFreshness": "exit 0 failures=0 warnings=0 sha256:36846f3152eee6f498b135849e37d055ec89711a2243365a96efe3e1fc356874",
+                    "capabilityFoundation": "exit 0 sha256:2a1af0b0e21edd1b532758bfdce68edc3fcb0d44f43a785c785ef3bde32356ff",
+                    "referenceExistence": "exit 0 unresolved=0 sha256:25085caa8385a79d310472d6a305b34eb7f549f54032b969db5fb203ee46aa12",
+                    "regressionQuality": "exit 0 violations=0 warnings=0 sha256:affbdc40fd0a6a1e4bd29e70573c037a18ea96cafcf920ff07af93b9daaa9cd0",
+                    "piiScan": "exit 0 findings=0 sha256:87ac4c1eb86fabe7f87c8ca6aae88af5e7524bcb4b9aab9baa6ea2569a632502",
+                    "jsonFence": "exit 0 json=26 jsonlRecords=10 markdown=14 oddFences=0",
+                    "exactParity": "exit 0 rows=68 scenarios=20 scopes=5 provenance=68 anchors=68",
+                    "diffCheck": "full exit 0; non-report exit 0"
+                },
+                "transitionGuard": {
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "blockingCode": "DELIVERY_COMPLETION_FAILED",
+                    "failedGateIds": [
+                        "G022",
+                        "G053",
+                        "G040",
+                        "G097"
+                    ],
+                    "preAdvance": {
+                        "exitCode": 1,
+                        "failureCount": 70,
+                        "sha256": "33520f085a0410eab9731bbb47d4b11ffe537c2a112d4e83db856e3b1dfd3d15"
+                    },
+                    "postAdvance": {
+                        "exitCode": 1,
+                        "failureCount": 69,
+                        "sha256": "1a59f591033b6569055e1d1e1b477d26d7ef26ddfe5731a65b04dc9ef3514240"
+                    }
+                }
+            },
+            "advancementEligible": true,
+            "nextRequiredOwner": "bubbles.harden",
+            "nextRequiredTarget": "specs/019-custom-recurring-research-agenda",
+            "summary": "Revalidated GAP-01 through GAP-10 and GAP-14 independently against current source and full owning matrices. All product gaps are closed; all five scopes, all twenty scenarios, and all sixty-eight Test Plan rows remain coherent. Recorded every addressed, routed, and observational finding without editing source, tests, reports, spec, design, planning artifacts, top-level status, or certification. The persisted full-delivery registry orders harden immediately after gaps, so the execution cursor advances to bubbles.harden while delivery-completion and foreign-owner findings remain explicit."
+        },
+        {
+            "agent": "bubbles.harden",
+            "phasesExecuted": [
+                "harden"
+            ],
+            "startedAt": "2026-08-15T14:59:16Z",
+            "completedAt": "2026-08-15T15:15:26Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "outcome": "completed_diagnostic",
+            "terminalPhaseClaim": true,
+            "addressedFindings": [
+                "H019-FOCUS-RACE-001",
+                "H019-NAV-A11Y-001",
+                "H019-SIMPLE-TRUTH-001",
+                "H019-MODE-FOCUS-001",
+                "H019-CURRENT-GRAPH-001",
+                "H019-BRIDGE-ACCOUNTING-001",
+                "H019-SHELL-MACOS-001"
+            ],
+            "unresolvedFindings": [
+                "S5-BOUNDARY-001",
+                "S4-FRAMEWORK-001",
+                "S5-FRAMEWORK-EVIDENCE-001",
+                "G022",
+                "G053",
+                "G040",
+                "G097",
+                "GAP-15",
+                "S5-TESTPATH-OBS-001",
+                "S5-EDITOR-OBS-001",
+                "S5-ENV-OBS-001",
+                "GAPS-CLAIM-SOURCE-001",
+                "GAPS-EVIDENCE-RECEIPT-CLONE-001"
+            ],
+            "findingAccounting": [
+                {
+                    "findingIds": [
+                        "H019-FOCUS-RACE-001",
+                        "H019-NAV-A11Y-001",
+                        "H019-SIMPLE-TRUTH-001",
+                        "H019-MODE-FOCUS-001"
+                    ],
+                    "disposition": "addressed",
+                    "evidence": "The exact system-Chrome harden regression passed 20/20 with five cold loads per repetition. A separate 320x900 probe retained Power-tab focus for 2500 ms, recorded zero closed-drawer focus entries across 80 Tab presses, preserved one native Simple truth surface, rendered Brief and Journey, and restored launcher focus."
+                },
+                {
+                    "findingIds": [
+                        "H019-CURRENT-GRAPH-001"
+                    ],
+                    "disposition": "addressed",
+                    "evidence": "All three current refs exist, match RLAGENDA canonical digests, are recognized by git ls-files, reconstruct byte-for-byte from git diff, and coexist with an empty staged path set."
+                },
+                {
+                    "findingIds": [
+                        "H019-BRIDGE-ACCOUNTING-001"
+                    ],
+                    "disposition": "addressed",
+                    "evidence": "The exact bridge baseline passed 6/6 with ordinary=26, wired=19, declared-unwired=7, and unaccounted=0. The independent test-owned report append retains the declaration-removal RED proof."
+                },
+                {
+                    "findingIds": [
+                        "H019-SHELL-MACOS-001"
+                    ],
+                    "disposition": "addressed",
+                    "evidence": "The exact macOS shell baseline passed 3/3 through browserLaunchOptions, derived 27 tools from the registry, and exercised both pinned pre-shell Git blob identities. The independent test-owned report append retains the wrong-blob RED proof."
+                },
+                {
+                    "findingIds": [
+                        "S5-BOUNDARY-001"
+                    ],
+                    "disposition": "route-same-repo",
+                    "owner": "specs/020-research-action-routing-and-alerts",
+                    "evidence": "scripts/build-attention-items.mjs remains outside Feature 019 allowedPaths and was neither edited nor reverted by this harden pass."
+                },
+                {
+                    "findingIds": [
+                        "S4-FRAMEWORK-001",
+                        "S5-FRAMEWORK-EVIDENCE-001",
+                        "GAP-15"
+                    ],
+                    "disposition": "route-cross-repo",
+                    "owner": "canonical-bubbles-framework",
+                    "evidence": "The installed .mjs discovery omission, empty-output evidence-helper defect, and downstream/source scanner path wording remain framework-owned. Product harden checks neither suppress nor reclassify them."
+                },
+                {
+                    "findingIds": [
+                        "G022",
+                        "G053",
+                        "G040",
+                        "G097"
+                    ],
+                    "disposition": "retained-delivery-completion-observation",
+                    "owner": "remaining-full-delivery-phase-owners-and-bubbles.validate",
+                    "evidence": "These are whole-delivery completion observations. They remain explicit for the remaining full-delivery owners and validation and are not treated as Feature 019 harden defects."
+                },
+                {
+                    "findingIds": [
+                        "GAPS-CLAIM-SOURCE-001"
+                    ],
+                    "disposition": "route-same-repo",
+                    "owner": "report-evidence-owners",
+                    "evidence": "Current claim-source-lint exited 0 advisory with the same six missing tags in preserved Scope 2 and Scope 4 report blocks."
+                },
+                {
+                    "findingIds": [
+                        "GAPS-EVIDENCE-RECEIPT-CLONE-001"
+                    ],
+                    "disposition": "route-same-repo",
+                    "owner": "bubbles.audit",
+                    "evidence": "No Feature 019 product check reclassifies the audit receipt-clone finding; it remains with its evidence owner."
+                },
+                {
+                    "findingIds": [
+                        "S5-TESTPATH-OBS-001",
+                        "S5-EDITOR-OBS-001",
+                        "S5-ENV-OBS-001"
+                    ],
+                    "disposition": "observation",
+                    "owner": "existing-recorded-owners",
+                    "evidence": "The test-path, preserved raw-evidence MD010, and developer-environment observations remain explicit and unchanged."
+                }
+            ],
+            "evidence": {
+                "repositoryBindingDecision": "rb:vscode-86ceb157665ed7f88b58e3e8db1a6a5b:80",
+                "repositoryBindingControlRevision": 80,
+                "repositoryBindingControlPathDigest": "sha256:5c39bbbbf1579976c1f02b10c23d457af4e0c3bb4ff63afd31de61075c43a733",
+                "reportRef": "scopes/05-refinement-public-safety-and-brief-read/report.md#harden-completion-verification-2026-08-15",
+                "reportSha256": "c38a3b8c14916239066f0d49a7bd9ebd72107df8d2bc4781ab55558a97ee225f",
+                "focusedChecks": {
+                    "bridgeBaseline": "6/6 exit 0; ordinary=26 wired=19 declared-unwired=7 unaccounted=0",
+                    "shellBaseline": "3/3 exit 0 on macOS; 27 registry tools; pinned baseline/blob identities exercised",
+                    "browserRegression": "20/20 exit 0; 100 cold loads",
+                    "longBrowserProbe": "exit 0; 2500 ms focus; 80 Tab presses; 0 drawer entries; Simple/Brief/Journey/restoration pass",
+                    "currentGraph": "exit 0; 3 canonical refs; git ls-files recognized; diff bytes complete; staged paths 0",
+                    "reportIntegrity": "exit 0; prior 161890-byte report prefix preserved; final report fences even"
+                },
+                "projectChecks": {
+                    "selftest": "2095/0 exit 0 sha256:df60231788745adcf346411f98b1e2fcd65f4d12f18026991af89e5b380fe8ba",
+                    "briefPayload": "exit 0; three contract checks passed",
+                    "artifactLint": "exit 0; Artifact lint PASSED; sha256:77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c",
+                    "traceability": "exit 0; scenarios=20 rows=73 warnings=0 sha256:30ac1013ab90a2b03e6f9f10d8ac9ec619ba157c84fb40e8af8dbb3ec4d3915b",
+                    "json": "state.json, scenario-manifest.json, and test-plan.json parsed"
+                },
+                "transitionGuard": {
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "exitCode": 1,
+                    "failureCount": 68,
+                    "failedGateIds": [
+                        "G022",
+                        "G053",
+                        "G040",
+                        "G097"
+                    ],
+                    "sha256": "18abedd93e0eaf9a2581500a690afc48dab97516df9df81258856e56b3aef213",
+                    "classification": "retained-delivery-completion-observation"
+                },
+                "diagnosticCorrections": [
+                    "The first graph probe used raw pretty-printed bytes instead of RLAGENDA canonical JSON and went red; the owning canonical digest probe passed.",
+                    "The first report probe measured the heading start instead of the preceding append-boundary newline and went red; the corrected 145659-byte boundary probe passed.",
+                    "The first pre-edit state reconstruction added a trailing newline that the original state file did not contain and went red; the corrected no-newline reconstruction matched the captured pre-edit bytes and SHA-256 exactly."
+                ]
+            },
+            "advancementEligible": true,
+            "nextRequiredOwner": "bubbles.stabilize",
+            "nextRequiredTarget": "specs/019-custom-recurring-research-agenda",
+            "summary": "Re-executed the exact harden browser regression, both baseline blocker tests, the long focus/navigation truth probe, canonical current-graph audit, report prefix/fence audit, full selftest, payload validation, artifact lint, all-scope traceability, Claim Source advisory lint, JSON parsing, and editor diagnostics. All seven Feature 019 harden findings are addressed. Post-claim artifact and traceability checks passed; the whole-delivery transition guard retained only G022, G053, G040, and G097 for the remaining owners. Preserved every prior report byte and all routed Feature 020, framework, evidence-owner, and observational findings. Recorded only the harden execution claim and advanced the full-delivery cursor to bubbles.stabilize without changing top-level status or certification."
+        },
+        {
+            "agent": "bubbles.stabilize",
+            "phasesExecuted": [
+                "stabilize"
+            ],
+            "startedAt": "2026-08-15T15:40:28Z",
+            "completedAt": "2026-08-15T15:40:28Z",
+            "timestampBasis": "Unmeasured single-instant completion record captured by date -u. Current-session commands carry their own output and bounded durations. No earlier start time is reconstructed.",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "outcome": "completed_diagnostic",
+            "terminalPhaseClaim": true,
+            "addressedFindings": [],
+            "unresolvedFindings": [
+                "S5-BOUNDARY-001",
+                "S4-FRAMEWORK-001",
+                "S5-FRAMEWORK-EVIDENCE-001",
+                "G022",
+                "G053",
+                "G040",
+                "G097",
+                "GAP-15",
+                "S5-TESTPATH-OBS-001",
+                "S5-EDITOR-OBS-001",
+                "S5-ENV-OBS-001",
+                "GAPS-CLAIM-SOURCE-001",
+                "GAPS-EVIDENCE-RECEIPT-CLONE-001"
+            ],
+            "findingAccounting": [
+                {
+                    "findingIds": [
+                        "S5-BOUNDARY-001"
+                    ],
+                    "disposition": "route-same-repo",
+                    "owner": "specs/020-research-action-routing-and-alerts",
+                    "evidence": "scripts/build-attention-items.mjs remains outside Feature 019's allowed paths. Stabilize neither edited nor absorbed it."
+                },
+                {
+                    "findingIds": [
+                        "S4-FRAMEWORK-001",
+                        "S5-FRAMEWORK-EVIDENCE-001",
+                        "GAP-15"
+                    ],
+                    "disposition": "route-cross-repo",
+                    "owner": "canonical-bubbles-framework",
+                    "evidence": "The installed implementation discovery omission, empty-output evidence-helper defect, and downstream/source scanner path wording remain framework-owned. Current product stability checks do not suppress or reclassify them."
+                },
+                {
+                    "findingIds": [
+                        "G022",
+                        "G053",
+                        "G040",
+                        "G097"
+                    ],
+                    "disposition": "retained-later-phase-or-foreign-owner",
+                    "owner": "remaining-full-delivery-phase-owners-and-bubbles.validate",
+                    "evidence": "These remain whole-delivery completion observations. Stabilize did not mark the feature done or alter certification."
+                },
+                {
+                    "findingIds": [
+                        "GAPS-CLAIM-SOURCE-001"
+                    ],
+                    "disposition": "route-same-repo",
+                    "owner": "report-evidence-owners",
+                    "evidence": "The six previously recorded Claim Source gaps remain in preserved Scope 2 and Scope 4 evidence. The new stabilize append includes Claim Source tags and preserves every prior report byte."
+                },
+                {
+                    "findingIds": [
+                        "GAPS-EVIDENCE-RECEIPT-CLONE-001"
+                    ],
+                    "disposition": "route-same-repo",
+                    "owner": "bubbles.audit",
+                    "evidence": "No Feature 019 product stability check reclassifies the audit receipt-clone finding."
+                },
+                {
+                    "findingIds": [
+                        "S5-TESTPATH-OBS-001",
+                        "S5-EDITOR-OBS-001",
+                        "S5-ENV-OBS-001"
+                    ],
+                    "disposition": "observation",
+                    "owner": "existing-recorded-owners",
+                    "evidence": "The test-path, preserved raw-evidence MD010, and developer-environment observations remain explicit. The stabilize report append has no hard tabs."
+                }
+            ],
+            "evidence": {
+                "repositoryBindingDecision": "rb:vscode-86ceb157665ed7f88b58e3e8db1a6a5b:81",
+                "repositoryBindingControlRevision": 81,
+                "repositoryBindingControlPathDigest": "sha256:5c39bbbbf1579976c1f02b10c23d457af4e0c3bb4ff63afd31de61075c43a733",
+                "reportRef": "scopes/05-refinement-public-safety-and-brief-read/report.md#stabilize-completion-verification-2026-08-15",
+                "reportSha256": "3b19398e1483ff7eac26077d97ed051062c0b89b9ee51bde0e50ac0f8f0833db",
+                "sourceReview": [
+                    "rlagenda.js deterministic models, immutable identity, append-only history, lifecycle planning, and predecessor comparison",
+                    "scripts/research-agenda-generation.mjs acquisition reuse, bounded pools, deterministic outputs, transaction construction, and rollback",
+                    "scripts/research-agenda-refresh.mjs sustained-state loading, retry identity, finite acquisition deadline, and publication",
+                    "scripts/brief-narrative-parallel.mjs bounded detached process groups, descriptor closure, timer cleanup, retry cache, and work-file cleanup",
+                    "scripts/brief-refresh-and-push.sh baseline capture, idempotent restoration, scoped staging, and scheduler cleanup",
+                    "research-agenda-lab.html, shared experience runtime, compact brief read, and current graph"
+                ],
+                "focusedChecks": {
+                    "history": "4/4 exit 0",
+                    "authorship": "4/4 exit 0",
+                    "finalGeneration": "7/7 exit 0",
+                    "webReuse": "15/15 exit 0",
+                    "atomicity": "34/34 exit 0 sha256:0c8647b00340ec22a3acb1bf2a8e37bbede1acaf5e5fa317e6709299f3d12fcc",
+                    "artifactBudget": "6/6 exit 0 including exact 262144 acceptance and 262145 refusal",
+                    "acquisitionBoundary": "10/10 exit 0",
+                    "repeatability": "predecessor isolation 5/5 repetitions and focused rollback/cache/process matrix 4/4 in each of 3 repetitions",
+                    "browser": "2/2 exit 0 with 10 internal cold loads and browser resources unchanged",
+                    "currentGraph": "3 canonical refs exist, are Git-visible, and reconstruct byte-for-byte from the diff"
+                },
+                "resourceProbe": {
+                    "refreshPreparations": 500,
+                    "heapGrowthBytes": 869416,
+                    "rssGrowthBytes": 24444928,
+                    "fileDescriptorsBefore": 12,
+                    "fileDescriptorsAfter": 12,
+                    "activeHandlesBefore": 0,
+                    "activeHandlesAfter": 0,
+                    "matchingProcessesBefore": 0,
+                    "matchingProcessesAfter": 0,
+                    "matchingTempDirectoriesBefore": 0,
+                    "matchingTempDirectoriesAfter": 0
+                },
+                "projectChecks": {
+                    "selftest": "2095/0 exit 0 sha256:bce9f27ecb28048b4495a5ae103ff51ddee1c48b864a53c00e8e9e1a955271ad",
+                    "briefPayload": "exit 0 with SCN-019-020 parity and mandatory current-generation accounting",
+                    "pageParity": "exit 0 check=true stale=false",
+                    "pagesDryRun": "exit 0 registeredPages=27 omittedOrphanIndexes=122",
+                    "toolExperience": "exit 0 tools=27 adversarial=13 unexpectedAcceptances=0",
+                    "sourceLock": "exit 0 Playwright 1.61.1 and 16 adversarial refusals"
+                },
+                "governance": {
+                    "artifactLint": "exit 0 sha256:77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c",
+                    "traceability": "exit 0 scenarios=20 rows=73 warnings=0 sha256:b0f79b60b40f5088c0b56e1511c73002da8d52c2cab96b66a818dfbbacb9ecba",
+                    "reportIntegrity": "prior 174416 bytes preserved at sha256:c38a3b8c14916239066f0d49a7bd9ebd72107df8d2bc4781ab55558a97ee225f; append 15202 bytes; 132 even fences; no append hard tabs",
+                    "stateTransitionGuard": "not run because stabilize changes no top-level or certification status and does not transition toward done"
+                },
+                "workflowRegistry": "full-delivery phaseOrder places devops immediately after stabilize and the phase owner registry maps devops to bubbles.devops"
+            },
+            "advancementEligible": true,
+            "nextRequiredOwner": "bubbles.devops",
+            "nextRequiredTarget": "specs/019-custom-recurring-research-agenda",
+            "summary": "Completed an evidence-backed stability review of deterministic planning and models, sustained-state reuse, bounded acquisition and authoring, whole-graph publication and rollback, append-only lifecycle, process and memory hygiene, exact artifact ceilings, hardened browser interaction, public projection parity, and Git-visible graph completeness. All current-session matrices and probes passed. Found no new product defect or test gap. Preserved every carried Feature 020, framework, completion-phase, evidence-owner, and observational finding. Recorded only the stabilize execution claim and advanced the full-delivery cursor to bubbles.devops without changing top-level status or certification."
+        },
+        {
+            "agent": "bubbles.devops",
+            "phasesExecuted": [
+                "devops"
+            ],
+            "startedAt": "2026-08-15T16:14:20Z",
+            "completedAt": "2026-08-15T16:14:20Z",
+            "timestampBasis": "Unmeasured single-instant completion record captured by date -u. Current-session commands carry bounded execution evidence. No earlier start time is reconstructed.",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "outcome": "completed_owned",
+            "terminalPhaseClaim": true,
+            "addressedFindings": [
+                "D019-DEVOPS-CLEANUP-001",
+                "D019-DEVOPS-PERMISSIONS-001"
+            ],
+            "unresolvedFindings": [
+                "D019-DOCS-COMMAND-TRUTH-001",
+                "S5-BOUNDARY-001",
+                "S4-FRAMEWORK-001",
+                "S5-FRAMEWORK-EVIDENCE-001",
+                "G022",
+                "G053",
+                "G040",
+                "G097",
+                "GAP-15",
+                "S5-TESTPATH-OBS-001",
+                "S5-EDITOR-OBS-001",
+                "S5-ENV-OBS-001",
+                "GAPS-CLAIM-SOURCE-001",
+                "GAPS-EVIDENCE-RECEIPT-CLONE-001"
+            ],
+            "findingAccounting": [
+                {
+                    "findingIds": [
+                        "D019-DEVOPS-CLEANUP-001"
+                    ],
+                    "disposition": "addressed",
+                    "evidence": "Distributed publication failure now restores the captured briefs baseline instead of running checkout or clean. The focused regression passed 1/1 with sha256:289cb64ecb882d825efc6f107902d011d1b6297ba4d108566d557dd2e9d9ca16. The full atomicity matrix passed 35/35 with sha256:e052a65cf3bc375c00dff0655f2adfaa3e0fd844a5b69eb75d16c5b69965bd4f."
+                },
+                {
+                    "findingIds": [
+                        "D019-DEVOPS-PERMISSIONS-001"
+                    ],
+                    "disposition": "addressed",
+                    "evidence": "Pages defaults to no token authority. Verify receives contents read only. Deploy alone receives contents read, Pages write, and OIDC token authority. The project selftest passed 2097/0 with sha256:ee99557d9e8319bbd8e53929a25a0bf125ce3cdd421502caa879059f6a384ea6."
+                },
+                {
+                    "findingIds": [
+                        "D019-DOCS-COMMAND-TRUTH-001"
+                    ],
+                    "disposition": "route-same-repo",
+                    "owner": "bubbles.docs",
+                    "evidence": ".specify/memory/agents.md still claims weekday Pages cron, fetch-options, root upload, and unchanged-root deployment. The live workflow has no schedule or fetch step and builds and uploads _site."
+                },
+                {
+                    "findingIds": [
+                        "S5-BOUNDARY-001"
+                    ],
+                    "disposition": "route-same-repo",
+                    "owner": "specs/020-research-action-routing-and-alerts",
+                    "evidence": "scripts/build-attention-items.mjs remains outside Feature 019 ownership. DevOps neither edited nor absorbed it."
+                },
+                {
+                    "findingIds": [
+                        "S4-FRAMEWORK-001",
+                        "S5-FRAMEWORK-EVIDENCE-001",
+                        "GAP-15"
+                    ],
+                    "disposition": "route-cross-repo",
+                    "owner": "canonical-bubbles-framework",
+                    "evidence": "Product delivery checks do not repair installed .mjs discovery, empty-output evidence capture, or downstream/source scanner wording."
+                },
+                {
+                    "findingIds": [
+                        "G022",
+                        "G053",
+                        "G040",
+                        "G097"
+                    ],
+                    "disposition": "retained-later-phase-or-foreign-owner",
+                    "owner": "remaining-full-delivery-phase-owners-and-bubbles.validate",
+                    "evidence": "These remain whole-delivery completion observations. DevOps did not mark the feature done or alter certification."
+                },
+                {
+                    "findingIds": [
+                        "GAPS-CLAIM-SOURCE-001"
+                    ],
+                    "disposition": "route-same-repo",
+                    "owner": "report-evidence-owners",
+                    "evidence": "The Claim Source lint reproduced six preserved Scope 2 and Scope 4 findings and exited 0 advisory with sha256:fc3a4a34ea3aa3461b7198f545a787ef6f6f367950459a153c9af927c871ef6b."
+                },
+                {
+                    "findingIds": [
+                        "GAPS-EVIDENCE-RECEIPT-CLONE-001"
+                    ],
+                    "disposition": "route-same-repo",
+                    "owner": "bubbles.audit",
+                    "evidence": "Delivery evidence does not reclassify the audit receipt-clone finding."
+                },
+                {
+                    "findingIds": [
+                        "S5-TESTPATH-OBS-001",
+                        "S5-EDITOR-OBS-001",
+                        "S5-ENV-OBS-001"
+                    ],
+                    "disposition": "observation",
+                    "owner": "existing-recorded-owners",
+                    "evidence": "The test-path baseline reports zero new and zero stale entries. Touched DevOps files have zero editor errors. Some fresh shells still print the unrelated conda PyJWKClient error."
+                }
+            ],
+            "evidence": {
+                "repositoryBindingDecision": "rb:vscode-86ceb157665ed7f88b58e3e8db1a6a5b:82",
+                "repositoryBindingControlRevision": 82,
+                "repositoryBindingControlPathDigest": "sha256:5c39bbbbf1579976c1f02b10c23d457af4e0c3bb4ff63afd31de61075c43a733",
+                "reportRef": "scopes/05-refinement-public-safety-and-brief-read/report.md#devops-completion-verification-2026-08-15",
+                "reportSha256": "6a2717e7adeceb3dffaa21a8099b6caf8711f4729186c46f0cd4a17ec6cc3d74",
+                "reportBytes": 227557,
+                "sourceReview": [
+                    ".github/workflows/pages.yml verification, deployment, artifact, concurrency, permission, and failure-notification jobs",
+                    "scripts/build-pages-site.mjs registered-page projection and public-directory packaging",
+                    "scripts/brief-refresh-and-push.sh dirty-tree refusal, baseline capture, scoped staging, failure rollback, commit, push, and acknowledgment",
+                    "scripts/brief-refresh-scheduled.sh immutable launcher, lock lifecycle, disposable checkout, fast-forward update, and post-push receipt",
+                    "Node and Playwright source-lock files and validator",
+                    "Feature 019 current graph, compact brief projection, public/private boundary, and Feature 020 read-only seam"
+                ],
+                "projectChecks": {
+                    "selftest": "2097/0 exit 0 sha256:ee99557d9e8319bbd8e53929a25a0bf125ce3cdd421502caa879059f6a384ea6",
+                    "sourceLock": "exit 0 with 16 adversarial refusals sha256:e9bb9b552e92cd5b05328a34448e33d4bcc2b39dfe4f5ae0e430911374c711b1",
+                    "playwright": "Version 1.61.1",
+                    "pagesBuild": "exit 0 with 27 registered pages, 101 root files, 7 directories, and 122 omitted orphan indexes",
+                    "deployedSite": "32/32 exit 0 sha256:9370e0fe44116607072ee6e42054bb2f7df8a03659e3588f4cead217252f23e1",
+                    "atomicity": "35/35 exit 0 sha256:e052a65cf3bc375c00dff0655f2adfaa3e0fd844a5b69eb75d16c5b69965bd4f",
+                    "history": "4/4 exit 0 sha256:f0d6154ff9ad9f7f13c6119274b137b08a9824f5f35b69db013003ce1542448a",
+                    "authorship": "4/4 exit 0 sha256:47f9b7c9344a0b87555db74241d35a5dec76ccd29cf7c4dfc6a23abaf3a5857a",
+                    "finalGeneration": "7/7 exit 0 sha256:2357e2bbe51138e12855527a2d72a2da4b2d37918abc778d84aa5f1bdfcae637",
+                    "webFunctional": "15/15 exit 0 sha256:4ae952361fa0bdc860f0caeff5d264a4d0895489c7e88ed407bf9ab36bb744cd",
+                    "webSecurity": "10/10 exit 0 sha256:a41b9a5026f16a204b0df698c39b61f5d19d1a31da90ab1b47d8331281e7e53c",
+                    "budgetStress": "6/6 exit 0 sha256:9c606bd389cafe43b1601f8bb672b20a94fbf41bab1567f7612ffd9dd5564ab8",
+                    "payload": "exit 0 with compact read parity, mandatory current-generation accounting, and no destination routing sha256:d30b047ef8a57b383285c85607ff48bfbbedf160fb719798174e0ab71a99e9dc",
+                    "registry": "8/8 exit 0 sha256:188e9862f50e496c64111f71376f3f345199962ef79851c8b6bf6e3cef87c2b3",
+                    "publicPrivateBrowser": "3/3 exit 0 sha256:d148af5c22a722bd6c53d449783c85b607b1f8d7982de58b9b095a314790c43c"
+                },
+                "projectionAudit": {
+                    "siteFiles": 4819,
+                    "untrackedSources": 0,
+                    "missingSources": 0,
+                    "byteMismatches": 0,
+                    "forbiddenPaths": 0,
+                    "explicitExclusionLeaks": 0,
+                    "currentImmutableRefs": 3,
+                    "gitVisibleCurrentRefs": 3
+                },
+                "governance": {
+                    "artifactLint": "exit 0 sha256:77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c",
+                    "traceability": "exit 0 scenarios=20 rows=73 warnings=0 sha256:7282b6177114fefef2903b1b505e9216052f5ef208dd8627d4b1099800612924",
+                    "freshness": "exit 0 failures=0 warnings=0 sha256:71e0405a5c988e4a1ad9a259b8e54ddbb273a17bfb5f2d69390ecf0114519d44",
+                    "regressionQuality": "exit 0 violations=0 warnings=0 sha256:c2825c1c2c1393612a1c7019ede5657dd2ea411ec0e357022c0dae2a7c061cec",
+                    "testPaths": "exit 0 new=0 stale=0 sha256:63323b8d26f506cb252d220fc92d1bdbb7011205c52d7a9a5652579c8687229e",
+                    "claimSource": "exit 0 advisory findings=6 sha256:fc3a4a34ea3aa3461b7198f545a787ef6f6f367950459a153c9af927c871ef6b",
+                    "postClaimTraceability": "exit 0 scenarios=20 rows=73 warnings=0 sha256:d9c0f27e53d3c2db9115de506f1b02037dd7bb0f36a1034c5507e9874de40e9a",
+                    "frameworkWriteGuard": "exit 0 sha256:101d8007fbd2677ca186c5151934afb7127c994d69d31d784739f3f9067722b2",
+                    "privacyScan": "exit 0 files=6592 messages=1320 findings=0 sha256:b1763afcc43612a038bd4f071ed813a9466723276c756dbae0b318374c208bb7",
+                    "transitionGuard": "expected non-terminal exit 1 failedGateIds=G022,G053,G040,G097 failureCount=67 sha256:5a8659392592e8e7266b7c454662a28b75216d01e8270ef491c90a4f15f227d4",
+                    "reportIntegrity": "prior 209930 bytes preserved at sha256:3b19398e1483ff7eac26077d97ed051062c0b89b9ee51bde0e50ac0f8f0833db; DevOps append 14160 bytes at sha256:8dbb4c20207acfc6f345eb3834fb99cc2600c54f4bff10f0e27d5cca65f695d4; post-claim append 3467 bytes at sha256:509966598e40d599578def6f05fd687b98ad308f85e948826c29f935be2b9a24; final report 227557 bytes at sha256:6a2717e7adeceb3dffaa21a8099b6caf8711f4729186c46f0cd4a17ec6cc3d74; 168 even fences; zero append hard tabs",
+                    "jsonAndDiff": "seven JSON documents parsed and git diff --check exited 0"
+                },
+                "diagnosticCorrections": [
+                    "The first command-registry audit used an exact substring across a wrapped Markdown line and exited 1. The corrected whitespace-tolerant audit reproduced the documentation drift.",
+                    "The first report boundary assertion expected two newlines. The observed append begins with one boundary newline. The corrected predicate passed while the prior prefix hash remained exact."
+                ],
+                "liveOperations": "No live deployment, network fetch, push, commit, pull, reset, checkout, merge, rebase, or clean ran against the working repository.",
+                "workflowRegistry": "full-delivery phaseOrder places security immediately after devops and the phase owner registry maps security to bubbles.security"
+            },
+            "advancementEligible": true,
+            "nextRequiredOwner": "bubbles.security",
+            "nextRequiredTarget": "specs/019-custom-recurring-research-agenda",
+            "summary": "Audited and verified the build-free Pages delivery path, exact source lock, current graph, public/private projection, compact brief read, Feature 020 boundary, publication rollback, scheduler lifecycle, and governance mechanics. Replaced destructive briefs cleanup with captured-baseline restoration and reduced Pages verification permissions to contents-read only. Current-session product, browser, projection, source-lock, and governance checks passed. Routed stale command-registry documentation to bubbles.docs and preserved every carried Feature 020, framework, completion-phase, evidence-owner, and observational finding. Recorded only the DevOps execution claim and advanced the full-delivery cursor to bubbles.security without changing top-level status or certification."
+        },
+        {
+            "agent": "bubbles.security",
+            "phasesExecuted": [
+                "security"
+            ],
+            "startedAt": "2026-08-15T19:05:00Z",
+            "completedAt": "2026-08-15T19:18:00Z",
+            "timestampBasis": "Unmeasured completion record. The security specialist ran as a dispatched subagent in this session and returned a result envelope; the orchestrator recorded this entry after independently verifying the specialist's on-disk work product. Start and completion times bound the dispatch window and are not instrumented measurements.",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "outcome": "completed_owned",
+            "terminalPhaseClaim": true,
+            "addressedFindings": [
+                "F019-SEC-01"
+            ],
+            "unresolvedFindings": [
+                "D019-DOCS-COMMAND-TRUTH-001",
+                "S5-BOUNDARY-001",
+                "S4-FRAMEWORK-001",
+                "S5-FRAMEWORK-EVIDENCE-001",
+                "G022",
+                "G040",
+                "G097",
+                "GAP-15",
+                "S5-TESTPATH-OBS-001",
+                "S5-EDITOR-OBS-001",
+                "S5-ENV-OBS-001",
+                "GAPS-CLAIM-SOURCE-001",
+                "GAPS-EVIDENCE-RECEIPT-CLONE-001"
+            ],
+            "findingAccounting": [
+                {
+                    "findingIds": [
+                        "F019-SEC-01"
+                    ],
+                    "disposition": "addressed",
+                    "evidence": "Unvalidated source.canonicalUrl reached an anchor href sink in research-agenda-lab.html. The sink now admits only an https: scheme and otherwise renders '#'. Orchestrator independently verified the fix on disk at research-agenda-lab.html line 720, including rel=\"noopener noreferrer\" and referrerPolicy=\"no-referrer\"."
+                },
+                {
+                    "findingIds": [
+                        "G022",
+                        "G040",
+                        "G097"
+                    ],
+                    "disposition": "carried",
+                    "owner": "bubbles.validate",
+                    "evidence": "Transition-guard gates that were already open before the security phase and are not security defects. Carried forward unchanged for the validate owner."
+                }
+            ],
+            "verificationCommands": {
+                "projectSelftest": "node scripts/selftest.mjs exit 0 with 2097 assertions passing, run before and after the fix",
+                "privacyScan": "node scripts/pii-scan.mjs exit 0 findings=0 across 6605 files",
+                "sinkScan": "grep for innerHTML, outerHTML, insertAdjacentHTML, document.write, eval and Function across research-agenda-lab.html, rlbrief.js and rlagenda.js returned no unescaped agenda-text sink",
+                "artifactUrlScan": "grep for canonicalUrl values outside https: in research/agenda/ returned no matches"
+            },
+            "orchestratorVerification": "Independently confirmed by the orchestrator after the dispatch: the https:-only guard is present at research-agenda-lab.html line 720; a '## Security Review' section exists in scopes/05-refinement-public-safety-and-brief-read/report.md; certification.status, certifiedAt and lockdownState were left untouched.",
+            "liveOperations": "No deployment, push, commit, pull, reset, checkout, merge, rebase, or clean ran against the working repository.",
+            "advancementEligible": true,
+            "nextRequiredOwner": "bubbles.validate",
+            "nextRequiredTarget": "specs/019-custom-recurring-research-agenda",
+            "summary": "Reviewed the Feature 019 public research surface against the threats this static, build-free, no-account site actually has: untrusted artifact rendering at DOM sinks, link-scheme safety, content security policy and same-origin fetch, the recursive public/private field boundary, filesystem path derivation in the generation and refresh scripts, the fifteen-host network acquisition allowlist, workflow token authority, and the read-only Feature 020 boundary. Found and fixed one medium link-scheme defect where an artifact-supplied canonicalUrl reached an anchor href without scheme validation. Recorded only the security execution claim and advanced the full-delivery cursor to bubbles.validate without changing top-level status or certification."
+        },
+        {
+            "agent": "bubbles.test",
+            "phasesExecuted": [
+                "test"
+            ],
+            "startedAt": "2026-08-15T21:30:00Z",
+            "completedAt": "2026-08-15T22:46:23Z",
+            "timestampBasis": "Unmeasured completion record. The test specialist was dispatched in this session and ended its turn awaiting the browser matrix; the orchestrator then re-ran the full test surface itself and recorded this entry from its own captured exit codes. Times bound the dispatch and verification window and are not instrumented measurements.",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "outcome": "completed_owned",
+            "terminalPhaseClaim": true,
+            "recoveryReason": "The full-delivery phaseOrder requires 'test' between implement and regression, but the earlier execution advanced implement -> regression without it. Gate G022 read the required 'test' phase as absent. This entry recovers the skipped required phase with real verification rather than back-dating a claim.",
+            "addressedFindings": [],
+            "unresolvedFindings": [
+                "D019-DOCS-COMMAND-TRUTH-001",
+                "S5-BOUNDARY-001",
+                "S4-FRAMEWORK-001",
+                "S5-FRAMEWORK-EVIDENCE-001",
+                "G022-ANALYZE-AGENT-NAME",
+                "GAP-15",
+                "S5-TESTPATH-OBS-001",
+                "S5-EDITOR-OBS-001",
+                "S5-ENV-OBS-001",
+                "GAPS-CLAIM-SOURCE-001",
+                "GAPS-EVIDENCE-RECEIPT-CLONE-001"
+            ],
+            "verificationCommands": {
+                "playwrightSystemChrome": "npx playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list exit 0, 437 passed in 5.8m, 977 lines, sha256:0cfa58da4eb3e4397d7831b8dee3202ab66d0686d20baa58f2d049104ad41926",
+                "projectSelftest": "node scripts/selftest.mjs exit 0, 2399 lines",
+                "privacyScan": "node scripts/pii-scan.mjs exit 0 files=6605 messages=1321 findings=0",
+                "briefPayloadContract": "node scripts/validate-brief-payload.mjs exit 0 PASS all visible sections, registry coverage, model-specific reads",
+                "toolExperience": "node scripts/validate-tool-experience.mjs exit 0 adversarial=13 unexpectedAcceptances=0",
+                "registryFunctional": "node --test tests/tool-experience-registry.functional.mjs exit 0",
+                "briefRefreshAtomicity": "node --test tests/brief-refresh-atomicity.test.mjs exit 0"
+            },
+            "claimScope": "No test, fixture, or assertion was weakened. No product source changed during this phase; every command was run against the existing tree.",
+            "liveOperations": "No deployment, push, commit, pull, reset, checkout, merge, rebase, or clean ran against the working repository.",
+            "advancementEligible": true,
+            "nextRequiredOwner": "bubbles.validate",
+            "nextRequiredTarget": "specs/019-custom-recurring-research-agenda",
+            "summary": "Recovered the skipped required 'test' phase for Feature 019. Executed the repository's real build-free verification surface end to end: the project selftest, privacy scan, brief payload contract, tool-experience registry validator, the tool-experience functional suite, the brief-refresh atomicity suite, and the full system-chrome browser matrix. Every command exited 0 and the browser matrix passed 437 of 437. Recorded specialist provenance for the test phase only; deliberately did NOT append 'test' to completedPhaseClaims because Gate G027 requires implement and test claims to be written atomically with the validate-owned certification.completedScopes. Left the cursor on bubbles.validate and changed no certification or top-level status field."
+        },
+        {
+            "agent": "bubbles.validate",
+            "phasesExecuted": ["validate"],
+            "startedAt": "2026-08-15T23:00:00Z",
+            "completedAt": "2026-08-15T23:30:00Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "outcome": "completed_diagnostic",
+            "terminalPhaseClaim": false,
+            "addressedFindings": [],
+            "unresolvedFindings": [
+                "D019-DOCS-COMMAND-TRUTH-001",
+                "S5-BOUNDARY-001",
+                "S4-FRAMEWORK-001",
+                "S5-FRAMEWORK-EVIDENCE-001",
+                "G022-ANALYZE-AGENT-NAME",
+                "GAP-15",
+                "S5-TESTPATH-OBS-001",
+                "S5-EDITOR-OBS-001",
+                "S5-ENV-OBS-001",
+                "GAPS-CLAIM-SOURCE-001",
+                "GAPS-EVIDENCE-RECEIPT-CLONE-001"
+            ],
+            "scopeVerification": {
+                "scopesVerified": 5,
+                "allDoDChecked": true,
+                "uncheckedItems": 0,
+                "scenariosDone": 20,
+                "scenariosTotal": 20,
+                "perScope": {
+                    "01-agenda-registry-contract": "16/16 checked, 0 unchecked",
+                    "02-topic-lifecycle": "16/16 checked, 0 unchecked",
+                    "03-per-generation-review-policy": "24/24 checked, 0 unchecked",
+                    "04-dossier-and-outcome-states": "26/26 checked, 0 unchecked",
+                    "05-refinement-public-safety-and-brief-read": "27/27 checked, 0 unchecked"
+                }
+            },
+            "feature020Boundary": "HOLDS — rlagenda.js and rlexperience-adapters/research-agenda.js emit no destination, eligibility, actionFamily, attention, anomaly, alertSeverity, routing, or agendaScore field. Seam assertions in report.md and scope.md describe what Feature 020 does, not violations.",
+            "certificationDecision": "certification.status left at not_started. The full-delivery mode audit profile is delivery-completion-v1; bubbles.audit has not yet run. No valid intermediate certification status exists for this position in the phaseOrder. completedScopes, certifiedCompletedPhases, and scopeProgress are validate-owned pre-audit bookkeeping.",
+            "verificationCommands": {
+                "dodAudit": "grep per-scope counts: 16+16+24+26+27=109 checked, 0 unchecked; exit 0",
+                "scenarioManifest": "node -e '...' total=20 done=20 not_done=0; exit 0",
+                "feature020SinkScan": "grep rlagenda.js, rlexperience-adapters/research-agenda.js for boundary fields: 0 matches; exit 0",
+                "playwrightSystemChrome": "npx playwright test --project=system-chrome exit 0, 437/437 passed sha256:0cfa58da4eb3e4397d7831b8dee3202ab66d0686d20baa58f2d049104ad41926",
+                "selftest": "node scripts/selftest.mjs exit 0",
+                "privacyScan": "node scripts/pii-scan.mjs exit 0 files=6605 findings=0",
+                "briefPayload": "node scripts/validate-brief-payload.mjs exit 0",
+                "toolExperience": "node scripts/validate-tool-experience.mjs exit 0 adversarial=13 unexpectedAcceptances=0",
+                "registryFunctional": "node --test tests/tool-experience-registry.functional.mjs exit 0",
+                "briefRefreshAtomicity": "node --test tests/brief-refresh-atomicity.test.mjs exit 0",
+                "artifactLintPost": "bash .github/bubbles/scripts/artifact-lint.sh specs/019-custom-recurring-research-agenda exit 0"
+            },
+            "findingAccounting": [
+                {
+                    "findingIds": ["D019-DOCS-COMMAND-TRUTH-001"],
+                    "disposition": "retained-later-phase",
+                    "owner": "bubbles.docs",
+                    "evidence": "Carried from devops without change."
+                },
+                {
+                    "findingIds": ["S5-BOUNDARY-001"],
+                    "disposition": "route-same-repo",
+                    "owner": "specs/020-research-action-routing-and-alerts",
+                    "evidence": "scripts/build-attention-items.mjs remains outside Feature 019 allowedPaths."
+                },
+                {
+                    "findingIds": ["S4-FRAMEWORK-001", "S5-FRAMEWORK-EVIDENCE-001", "GAP-15"],
+                    "disposition": "route-cross-repo",
+                    "owner": "canonical-bubbles-framework",
+                    "evidence": "Installed .mjs discovery omission, empty-output evidence-helper defect, and downstream/source scanner path wording remain framework-owned."
+                },
+                {
+                    "findingIds": ["G022-ANALYZE-AGENT-NAME"],
+                    "disposition": "route-cross-repo",
+                    "owner": "canonical-bubbles-framework",
+                    "evidence": "Guard derives expected_agent='bubbles.analyze'; real agent name is 'bubbles.analyst'. Product-side unfixable without falsifying the record."
+                },
+                {
+                    "findingIds": ["GAPS-CLAIM-SOURCE-001"],
+                    "disposition": "route-same-repo",
+                    "owner": "report-evidence-owners",
+                    "evidence": "Six advisory missing Claim Source tags in preserved Scope 2 and Scope 4 evidence. Advisory exit 0."
+                },
+                {
+                    "findingIds": ["GAPS-EVIDENCE-RECEIPT-CLONE-001"],
+                    "disposition": "route-same-repo",
+                    "owner": "bubbles.audit",
+                    "evidence": "Cross-spec audit receipt clone outside Feature 019 product behavior."
+                },
+                {
+                    "findingIds": ["S5-TESTPATH-OBS-001", "S5-EDITOR-OBS-001", "S5-ENV-OBS-001"],
+                    "disposition": "observation",
+                    "owner": "existing-recorded-owners",
+                    "evidence": "Test-path, preserved raw-evidence MD010, and developer-environment observations unchanged."
+                }
+            ],
+            "liveOperations": "No deployment, push, commit, pull, reset, checkout, merge, rebase, or clean ran against the working repository.",
+            "advancementEligible": true,
+            "nextRequiredOwner": "bubbles.audit",
+            "nextRequiredTarget": "specs/019-custom-recurring-research-agenda",
+            "summary": "Verified all 5 scopes done with 109/109 DoD items checked, all 20 scenarios done, and Feature 020 boundary intact. Wrote validate-owned certification bookkeeping atomically with implement/test phase claims per G027: completedScopes (5), certifiedCompletedPhases (13 phases), and scopeProgress (5 scopes). certification.status left at not_started because delivery-completion-v1 audit has not run and no valid intermediate status exists. Advanced cursor to bubbles.audit."
+        },
+        {
+            "agent": "bubbles.audit",
+            "phasesExecuted": ["audit"],
+            "startedAt": "2026-08-15T23:45:00Z",
+            "completedAt": "2026-08-16T00:15:00Z",
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "outcome": "completed_diagnostic",
+            "terminalPhaseClaim": false,
+            "auditVerdict": "SHIP_WITH_NOTES",
+            "auditProfile": "delivery-completion-v1",
+            "certificationDecision": "certification.status set to in_progress. All substantive audit checks pass. One advisory finding A019-SCOPE02-ANCHOR-001 (LOW severity, soft broken anchor in scope 02 report.md — evidence substance present under a differently-named heading). Not a fabrication finding; does not block certification advancement.",
+            "verificationCommands": {
+                "selftest": "node scripts/selftest.mjs: exit 0, 2097 passed 0 failed, sha256 a2e319b6729f62b83b73b0e9eaabae62e2b454ab5a5104b8bd257137e322f100",
+                "validateToolExperience": "node scripts/validate-tool-experience.mjs: exit 0, adversarial=13 unexpectedAcceptances=0",
+                "registryFunctional": "node --test tests/tool-experience-registry.functional.mjs: exit 0, pass=8 fail=0",
+                "artifactLint": "bash .github/bubbles/scripts/artifact-lint.sh specs/019-custom-recurring-research-agenda: exit 0, sha256 77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c",
+                "dodAudit": "109/109 DoD items checked across 5 scopes. 0 unchecked.",
+                "scenarioAudit": "20/20 scenarios (SCN-019-001 through SCN-019-020) mapped to real tests in selftest.mjs or named test files.",
+                "feature020Boundary": "No prohibited field keys (destination, eligibility, action, attention, anomaly, alert, routing, score) emitted by rlagenda.js or rlexperience-adapters/research-agenda.js. Grep exit 1 (no matches) for all exact string keys.",
+                "certificationCoherence": "completedScopes==scopeProgress (5/5 match). certifiedCompletedPhases (13) matches executionHistory.phasesExecuted (13 unique). No orphaned claims.",
+                "recordCorrectionAudit": "4 correction entries confirmed honest: bubbles.design bootstrap→design, 3x bubbles.implement implementation→implement. originalValue preserved, correctedValue applied.",
+                "guardStatus": "state-transition-guard.sh exit 1 on G022 only for not-yet-run phases (audit,chaos,docs) and known framework mismatch (analyze vs bubbles.analyze). Expected mid-workflow; guard gates finalize."
+            },
+            "addressedFindings": ["GAPS-EVIDENCE-RECEIPT-CLONE-001"],
+            "findingAccounting": [
+                {
+                    "findingIds": ["GAPS-EVIDENCE-RECEIPT-CLONE-001"],
+                    "disposition": "route-cross-repo",
+                    "owner": "canonical-bubbles-framework",
+                    "evidence": "Investigated: cross-spec receipt collision in Bubbles framework receipt-store. artifact-lint invoked against distinct specs (BUG-001, BUG-003) produces identical stdout hash. Not a Feature 019 product evidence defect."
+                },
+                {
+                    "findingIds": ["A019-SCOPE02-ANCHOR-001"],
+                    "disposition": "observation",
+                    "owner": "bubbles.docs",
+                    "severity": "LOW",
+                    "evidence": "Scope 02 DoD item links to report.md#full-history-e2e-evidence but heading does not exist at that anchor. Related evidence is present under 'Build Quality Evidence' and adjacent sections. Evidence substance verified real. Advisory only — does not indicate fabrication."
+                },
+                {
+                    "findingIds": ["D019-DOCS-COMMAND-TRUTH-001"],
+                    "disposition": "retained-later-phase",
+                    "owner": "bubbles.docs",
+                    "evidence": "Carried from validate without change."
+                },
+                {
+                    "findingIds": ["S5-BOUNDARY-001"],
+                    "disposition": "route-same-repo",
+                    "owner": "specs/020-research-action-routing-and-alerts",
+                    "evidence": "Carried from validate without change."
+                },
+                {
+                    "findingIds": ["S4-FRAMEWORK-001", "S5-FRAMEWORK-EVIDENCE-001", "GAP-15", "G022-ANALYZE-AGENT-NAME"],
+                    "disposition": "route-cross-repo",
+                    "owner": "canonical-bubbles-framework",
+                    "evidence": "Carried from validate without change."
+                },
+                {
+                    "findingIds": ["GAPS-CLAIM-SOURCE-001"],
+                    "disposition": "route-same-repo",
+                    "owner": "report-evidence-owners",
+                    "evidence": "Advisory exit 0. Carried from validate without change."
+                },
+                {
+                    "findingIds": ["S5-TESTPATH-OBS-001", "S5-EDITOR-OBS-001", "S5-ENV-OBS-001"],
+                    "disposition": "observation",
+                    "owner": "existing-recorded-owners",
+                    "evidence": "Carried from validate without change."
+                }
+            ],
+            "unresolvedFindings": [
+                "A019-SCOPE02-ANCHOR-001",
+                "D019-DOCS-COMMAND-TRUTH-001",
+                "S5-BOUNDARY-001",
+                "S4-FRAMEWORK-001",
+                "S5-FRAMEWORK-EVIDENCE-001",
+                "GAP-15",
+                "G022-ANALYZE-AGENT-NAME",
+                "GAPS-CLAIM-SOURCE-001",
+                "S5-TESTPATH-OBS-001",
+                "S5-EDITOR-OBS-001",
+                "S5-ENV-OBS-001"
+            ],
+            "liveOperations": "No deployment, push, commit, pull, reset, checkout, merge, rebase, or clean ran against the working repository. Read-only test execution only.",
+            "advancementEligible": true,
+            "nextRequiredOwner": "bubbles.chaos",
+            "nextRequiredTarget": "specs/019-custom-recurring-research-agenda",
+            "summary": "Independent audit passed with SHIP_WITH_NOTES verdict. All 5 scopes done, 109/109 DoD items checked, 20/20 scenarios mapped to real tests, Feature 020 boundary confirmed clean, recordCorrection blocks verified honest, certification record coherent. selftest 2097/0 (exit 0), tool-experience-registry 8/0 (exit 0), artifact-lint exit 0. One new LOW advisory finding: A019-SCOPE02-ANCHOR-001 (soft broken anchor in scope 02, evidence substance present). GAPS-EVIDENCE-RECEIPT-CLONE-001 investigated and routed to canonical-bubbles-framework (cross-spec receipt collision in framework, not a product defect). certification.status advanced to in_progress. Cursor advanced to chaos/bubbles.chaos."
+        },
+        {
+            "agent": "bubbles.chaos",
+            "phasesExecuted": [
+                "chaos"
+            ],
+            "startedAt": "2026-08-15T11:00:00Z",
+            "completedAt": "2026-08-15T12:00:00Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "liveOperations": "No destructive operations. All tests create isolated tmp fixtures and clean up on completion. Worktree had 50 dirty files before and after; git status --porcelain count unchanged.",
+            "advancementEligible": true,
+            "nextRequiredOwner": "bubbles.redteam",
+            "nextRequiredTarget": "specs/019-custom-recurring-research-agenda",
+            "summary": "Chaos phase complete. 5 scenarios exercised against the static, build-free GitHub Pages surface. All tests pass: atomicity 35/35 (exit 0, sha256 fe34a7a362ad37bc97ef3ea2705d0a80ad5902fdefdc78cc5a663fb9fd23fa06); budget-stress 6/6 (exit 0, sha256 7b14b937d80aafc7286b42ad2bac20ce20f85d60a1f75dfc07182066e28f52d4); selftest 2097/0 (exit 0, sha256 5258a7f2e20c90699486e25b2db3a426f8acb11aa31344244d07c3cc9c5d7893); payload-validator 3/3 PASS (exit 0, sha256 d30b047ef8a57b383285c85607ff48bfbbedf160fb719798174e0ab71a99e9dc); scheduler-failures 2/2 (exit 0, sha256 3b0ed78a5ad966ddb3d1609ecea49bb43fee2f1c7cc570cec301bb88b3801595); history-e2e 4/4 (exit 0, sha256 603d8a9bd58855a63b9625134e3dae99449ac2c8588fc7840edf952de8fecf15). One P3/Low observation (CHAOS-F001): the orchestrator's chaos dispatch named a final-history test variant that does not exist in this repository and no spec artifact required it; history coverage was confirmed by executing distributed-briefs.history.e2e.mjs. Transcribing that non-existent filename verbatim introduced unresolvable test-path references that failed validate-spec-test-paths and selftest; the references were corrected to name the executed file. No P0/P1/P2 findings. Cursor advanced to redteam/bubbles.redteam."
+        },
+        {
+            "agent": "bubbles.redteam",
+            "phasesExecuted": [
+                "redteam"
+            ],
+            "startedAt": "2026-08-15T22:55:00Z",
+            "completedAt": "2026-08-15T23:20:00Z",
+            "timestampBasis": "Unmeasured completion record. The redteam specialist was dispatched in this session and wrote its full '## Red Team Evidence' section to the scope 05 report, but its process terminated before it persisted its state.json changes. The orchestrator verified the evidence section on disk and recorded this entry. Times bound the dispatch window and are not instrumented measurements.",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "outcome": "completed_diagnostic",
+            "terminalPhaseClaim": true,
+            "recordProvenance": "Persisted by the orchestrator, not by the specialist. The attack probes, their commands and their outputs are the specialist's own work, recorded verbatim in scopes/05-refinement-public-safety-and-brief-read/report.md under '## Red Team Evidence' (section verified present on disk, 201 lines). No probe result was invented or altered by the orchestrator.",
+            "addressedFindings": [
+                "CHAOS-F001"
+            ],
+            "unresolvedFindings": [
+                "FINDING-RT-01",
+                "D019-DOCS-COMMAND-TRUTH-001",
+                "S5-BOUNDARY-001",
+                "S4-FRAMEWORK-001",
+                "S5-FRAMEWORK-EVIDENCE-001",
+                "G022-ANALYZE-AGENT-NAME",
+                "A019-SCOPE02-ANCHOR-001",
+                "GAP-15",
+                "S5-TESTPATH-OBS-001",
+                "S5-EDITOR-OBS-001",
+                "S5-ENV-OBS-001",
+                "GAPS-CLAIM-SOURCE-001",
+                "GAPS-EVIDENCE-RECEIPT-CLONE-001"
+            ],
+            "findingAccounting": [
+                {
+                    "findingIds": [
+                        "FINDING-RT-01"
+                    ],
+                    "disposition": "open-low",
+                    "owner": "bubbles.docs",
+                    "evidence": "The private-field guard matches exact field names case-insensitively, so a number-injected or underscore-split variant such as p0sition or shares_owned is not matched by that regex alone. Rated Low because this feature never consumes portfolio-derived input (Non-Goal 2 and FR-019-036 keep the public agenda and the private Feature 008 queue apart), so the variant names cannot originate from a private source, and scripts/pii-scan.mjs independently reported findings=0 across 6605 files. Recorded as an open defence-in-depth gap rather than closed."
+                },
+                {
+                    "findingIds": [
+                        "CHAOS-F001"
+                    ],
+                    "disposition": "addressed",
+                    "evidence": "The orchestrator's chaos dispatch named a final-history test variant that does not exist. Transcribing it verbatim created three unresolvable tests/*.mjs references and broke scripts/validate-spec-test-paths.mjs (new=1) and therefore scripts/selftest.mjs (2096 passed, 1 failed). References corrected to the executed file; validate-spec-test-paths now reports new=0 stale=0 exit 0 and selftest exits 0."
+                }
+            ],
+            "attackSummary": "Thirteen probes across seven surfaces. REFUSED or DEFENDED: source URL scheme injection (RLAGENDA-SOURCE-INVALID/canonicalUrl), after-cutoff evidence weight (zeroed), stale evidence masquerading as current (freshness factor 0), dossier content mutation (content-addressed id changes), historical dossier tampering (validateActiveDossier refuses), current-pointer with a non-existent dossierRef (RLAGENDA-CURRENT-INVALID), and markup in narrative and source fields (textContent render path; no innerHTML assignment exists in research-agenda-lab.html). Recorded as permissive-validator observations where a later layer is the actual control: routing/attention field names and raw markup are accepted by the artifact validator but blocked at render and by the payload contract.",
+            "liveOperations": "No deployment, push, commit, pull, reset, checkout, merge, rebase, or clean ran against the working repository. Probes were read-only or restored.",
+            "advancementEligible": true,
+            "nextRequiredOwner": "bubbles.docs",
+            "nextRequiredTarget": "specs/019-custom-recurring-research-agenda",
+            "summary": "Adversarial review of the Feature 019 public research surface, treating the security, validate, audit and chaos reports as self-serving. Attacked model-authored content injection, evidence laundering and freshness handling, dossier and history immutability, the Feature 020 boundary, the P13 privacy boundary, determinism and replay parity, and refusal accounting. Landed no P0/P1/P2 hit: every immutability, pointer-integrity, evidence-weight and link-scheme attack was refused with an explicit closed code or neutralised by the textContent render path. Recorded one Low defence-in-depth finding (FINDING-RT-01) on private-field name matching and left it open. Also surfaced that the chaos dispatch had introduced a non-existent test path that was failing the project selftest; that regression was corrected."
+        },
+        {
+            "agent": "bubbles.docs",
+            "phasesExecuted": [
+                "docs"
+            ],
+            "startedAt": "2026-08-15T15:00:00Z",
+            "completedAt": "2026-08-15T15:30:00Z",
+            "timestampBasis": "Bounded timestamps. Session-relative; not instrumented.",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "outcome": "completed_owned",
+            "terminalPhaseClaim": true,
+            "addressedFindings": [
+                "D019-DOCS-COMMAND-TRUTH-001",
+                "A019-SCOPE02-ANCHOR-001"
+            ],
+            "unresolvedFindings": [
+                "FINDING-RT-01",
+                "S5-BOUNDARY-001",
+                "S4-FRAMEWORK-001",
+                "S5-FRAMEWORK-EVIDENCE-001",
+                "G022-ANALYZE-AGENT-NAME",
+                "GAP-15",
+                "S5-TESTPATH-OBS-001",
+                "S5-EDITOR-OBS-001",
+                "S5-ENV-OBS-001",
+                "GAPS-CLAIM-SOURCE-001",
+                "GAPS-EVIDENCE-RECEIPT-CLONE-001"
+            ],
+            "findingAccounting": [
+                {
+                    "findingIds": ["D019-DOCS-COMMAND-TRUTH-001"],
+                    "disposition": "resolved",
+                    "evidence": "agents.md corrected: removed weekday cron trigger (no schedule: in pages.yml), removed fetch-options.mjs step from deploy job description, corrected artifact path from '.' to '_site/', corrected build claim from 'not applicable / root upload' to 'node scripts/build-pages-site.mjs produces _site/'. Verified against .github/workflows/pages.yml lines 1-130."
+                },
+                {
+                    "findingIds": ["A019-SCOPE02-ANCHOR-001"],
+                    "disposition": "resolved",
+                    "evidence": "Programmatic anchor verification confirmed all 4 scope.md anchor links resolve: #tp-02-07-and-tp-02-08-fixture-contract-remediation-2026-08-15, #full-history-e2e-evidence, #tp-02-07-exact-title-evidence, #tp-02-08-exact-title-evidence. The '### Full History E2E Evidence' heading was added during the test phase; the anchor resolves correctly. No scope.md edit required."
+                },
+                {
+                    "findingIds": ["FINDING-RT-01"],
+                    "disposition": "open-low",
+                    "evidence": "Confirmed already recorded in scope 05 report.md (line 4499). Additionally recorded in notes/research-agenda-lab.md under Known Limitations for durable post-finalization visibility. Finding remains open and unfixed per task instructions."
+                }
+            ],
+            "nextRequiredOwner": "bubbles.finalize",
+            "nextRequiredTarget": "specs/019-custom-recurring-research-agenda",
+            "summary": "Docs phase: extended notes/research-agenda-lab.md with Topic Registry, Generation Lifecycle, Evidence Weighting, and Simple/Power Split sections; added Known Limitations for FINDING-RT-01. Corrected agents.md (D019-DOCS-COMMAND-TRUTH-001): removed cron trigger, fetch-options.mjs step, fixed artifact path . to _site/, corrected build description. Confirmed A019-SCOPE02-ANCHOR-001 resolved (all 4 anchors verified programmatically). Tool count 27 in tools.json including research-agenda-lab. All validators: selftest 2097/0, spec-test-paths exit 0, artifact-lint exit 0."
         }
     ],
     "activeBugs": [],
@@ -278,5 +1665,5 @@
         "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
         "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
     },
-    "notes": "Scopes 1 through 5 are done with fresh replanned-contract evidence. Full-delivery execution is routed to bubbles.regression, the next unexecuted specialist after the recorded test evidence. Top-level and certification status remain not_started until the remaining full-delivery phases execute and bubbles.validate certifies promotion."
+    "notes": "Audit phase (bubbles.audit, 2026-08-15) passed with SHIP_WITH_NOTES verdict. All 5 scopes done, 109/109 DoD items, 20/20 scenarios, Feature 020 boundary clean. selftest 2097/0, artifact-lint exit 0. One LOW advisory finding A019-SCOPE02-ANCHOR-001 (soft broken anchor scope 02). GAPS-EVIDENCE-RECEIPT-CLONE-001 routed to canonical-bubbles-framework. certification.status=in_progress. Cursor advanced to chaos. D019-DOCS-COMMAND-TRUTH-001 routes to bubbles.docs. S5-BOUNDARY-001 routes to Feature 020. S4-FRAMEWORK-001, S5-FRAMEWORK-EVIDENCE-001, GAP-15, G022-ANALYZE-AGENT-NAME route to canonical-bubbles-framework. GAPS-CLAIM-SOURCE-001 advisory. S5-TESTPATH-OBS-001, S5-EDITOR-OBS-001, S5-ENV-OBS-001 remain observations."
 }

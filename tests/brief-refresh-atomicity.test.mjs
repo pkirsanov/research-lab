@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
-import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 
 import {
   createBriefRefreshFixture,
@@ -15,9 +15,12 @@ import {
 import {
   buildResearchAgendaTransaction,
   composeResearchAgendaCandidate,
+  computeResearchAgendaOutputs,
   promoteResearchAgendaTransaction,
-  RESEARCH_AGENDA_CONTRACTS
+  RESEARCH_AGENDA_CONTRACTS,
+  validateResearchSituation
 } from '../scripts/research-agenda-generation.mjs';
+import { prepareResearchAgendaRuntime } from '../scripts/research-agenda-refresh.mjs';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
@@ -77,6 +80,16 @@ if (process.env.NODE_TEST_CONTEXT) {
     const topic = registry.topics[0];
     const definition = JSON.parse(readFileSync(new URL('../' + topic.definitionRef, import.meta.url), 'utf8'));
     const evidence = JSON.parse(readFileSync(new URL('../tests/fixtures/research-agenda/valid-evidence-record.json', import.meta.url), 'utf8'));
+    const modelFixture = JSON.parse(readFileSync(new URL('../tests/fixtures/research-agenda/reversal-ui.json', import.meta.url), 'utf8'));
+    const calibration = JSON.parse(readFileSync(new URL('../' + definition.calibrationRef, import.meta.url), 'utf8'));
+    const barIds = [...new Set([
+      ...definition.transmissionModels.map((model) => model.barId),
+      ...definition.proxyDefinitions.map((proxy) => proxy.ticker)
+    ])];
+    const currentBars = Object.fromEntries(barIds.map((barId) => [
+      barId,
+      JSON.parse(readFileSync(new URL(`../data/bars/${barId}.json`, import.meta.url), 'utf8'))
+    ]));
     const historicalPath = 'research/agenda/dossiers/geopolitical-supply-shock/historical-2026-08-10-v1.json';
     const historical = JSON.parse(readFileSync(new URL('../' + historicalPath, import.meta.url), 'utf8'));
     const generation = RLAGENDA.deriveGenerationId({
@@ -115,8 +128,22 @@ if (process.env.NODE_TEST_CONTEXT) {
       findings: [finding],
       sourceLedger: [evidence.source],
       newEvidenceIds: [evidence.evidenceId],
-      modelInputs: { chokepointState: {}, inventoryGapByChannel: {}, levers: {} }
+      modelInputs: {
+        chokepointState: modelFixture.chokepointState,
+        inventoryGapByChannel: modelFixture.inventoryGapByChannel,
+        levers: modelFixture.levers
+      }
     };
+    const deterministicOutputs = computeResearchAgendaOutputs({
+      definition,
+      calibration,
+      situation,
+      currentBars,
+      generationCutoff: '2026-08-13T12:00:00.000Z',
+      declaredQuestion: topic.declaredQuestion,
+      predecessorOutput: null
+    });
+    assert.equal(deterministicOutputs.ok, true, JSON.stringify(deterministicOutputs));
     const candidate = composeResearchAgendaCandidate({
       registry: oneTopicRegistry,
       plan,
@@ -124,18 +151,24 @@ if (process.env.NODE_TEST_CONTEXT) {
       generationId: generation.id,
       generationCutoff: '2026-08-13T12:00:00.000Z',
       situationsByTopicId: { [topic.topicId]: situation },
-      deterministicOutputsByTopicId: { [topic.topicId]: { scenarioProbability: { escalation: 0.2 } } },
+      deterministicOutputsByTopicId: { [topic.topicId]: deterministicOutputs.value },
       priorDossiersByTopicId: { [topic.topicId]: historical }
     });
     assert.equal(candidate.ok, true, JSON.stringify(candidate));
     const baselineHistory = readFileSync(new URL('../research/agenda/history.jsonl', import.meta.url), 'utf8');
     const baselineCurrent = readFileSync(new URL('../research/agenda/current.json', import.meta.url), 'utf8');
     const baselinePayload = readFileSync(new URL('../market-brief.payload.json', import.meta.url), 'utf8');
+    const pageInputs = {
+      config: JSON.parse(readFileSync(new URL('../market-brief.config.json', import.meta.url), 'utf8')),
+      snapshot: JSON.parse(readFileSync(new URL('../market-brief.snapshot.json', import.meta.url), 'utf8')),
+      tools: JSON.parse(readFileSync(new URL('../tools.json', import.meta.url), 'utf8'))
+    };
     const transactionInput = {
       candidate: candidate.value,
       payload: JSON.parse(baselinePayload),
       historyText: baselineHistory,
-      existingRecordsByPath: { [historicalPath]: historical }
+      existingRecordsByPath: { [historicalPath]: historical },
+      pageInputs
     };
     for (const invalidRegistry of [undefined, []]) {
       const invalidTransaction = buildResearchAgendaTransaction({ ...transactionInput, registry: invalidRegistry });
@@ -156,17 +189,19 @@ if (process.env.NODE_TEST_CONTEXT) {
 
     const writes = [];
     const full = (relativePath) => resolve(root, relativePath);
+    cpSync(new URL('../research/agenda', import.meta.url), resolve(root, 'research/agenda'), { recursive: true });
     const io = {
       exists: (relativePath) => existsSync(full(relativePath)),
       read: (relativePath) => readFileSync(full(relativePath), 'utf8'),
-      create: (relativePath, bytes) => { mkdirSync(resolve(full(relativePath), '..'), { recursive: true }); writeFileSync(full(relativePath), bytes, { flag: 'wx' }); writes.push(relativePath); },
-      replace: (relativePath, bytes) => { mkdirSync(resolve(full(relativePath), '..'), { recursive: true }); writeFileSync(full(relativePath), bytes); writes.push(relativePath); },
-      remove: (relativePath) => rmSync(full(relativePath), { recursive: true, force: true })
+      create: (relativePath, bytes) => { mkdirSync(resolve(full(relativePath), '..'), { recursive: true }); writeFileSync(full(relativePath), bytes, { flag: 'wx' }); },
+      rename: (sourcePath, targetPath) => renameSync(full(sourcePath), full(targetPath)),
+      remove: (relativePath) => rmSync(full(relativePath), { recursive: true, force: true }),
+      afterStep: (step) => writes.push(step.path)
     };
     for (const [relativePath, bytes] of [[historicalPath, JSON.stringify(historical, null, 2) + '\n'], ['research/agenda/history.jsonl', baselineHistory], ['research/agenda/current.json', baselineCurrent], ['market-brief.payload.json', baselinePayload]]) {
-      io.replace(relativePath, bytes);
+      mkdirSync(resolve(full(relativePath), '..'), { recursive: true });
+      writeFileSync(full(relativePath), bytes);
     }
-    writes.length = 0;
     const promoted = promoteResearchAgendaTransaction(transaction.value, io);
     assert.equal(promoted.ok, true, JSON.stringify(promoted));
     assert.deepEqual(writes, transaction.value.writeOrder);
@@ -179,20 +214,18 @@ if (process.env.NODE_TEST_CONTEXT) {
     const rollbackRoot = mkdtempSync(resolve(tmpdir(), 'research-agenda-rollback-'));
     context.after(() => rmSync(rollbackRoot, { recursive: true, force: true }));
     const rollbackFull = (relativePath) => resolve(rollbackRoot, relativePath);
-    let failPayloadOnce = true;
+    cpSync(new URL('../research/agenda', import.meta.url), resolve(rollbackRoot, 'research/agenda'), { recursive: true });
     const rollbackIo = {
       exists: (relativePath) => existsSync(rollbackFull(relativePath)),
       read: (relativePath) => readFileSync(rollbackFull(relativePath), 'utf8'),
       create: (relativePath, bytes) => { mkdirSync(resolve(rollbackFull(relativePath), '..'), { recursive: true }); writeFileSync(rollbackFull(relativePath), bytes, { flag: 'wx' }); },
-      replace: (relativePath, bytes) => {
-        if (relativePath === 'market-brief.payload.json' && failPayloadOnce) {
-          failPayloadOnce = false;
+      rename: (sourcePath, targetPath) => renameSync(rollbackFull(sourcePath), rollbackFull(targetPath)),
+      remove: (relativePath) => rmSync(rollbackFull(relativePath), { recursive: true, force: true }),
+      afterStep: (step) => {
+        if (step.kind === 'mutable-rename' && step.path === 'market-brief.payload.json') {
           throw new Error('forced pre-pointer failure');
         }
-        mkdirSync(resolve(rollbackFull(relativePath), '..'), { recursive: true });
-        writeFileSync(rollbackFull(relativePath), bytes);
-      },
-      remove: (relativePath) => rmSync(rollbackFull(relativePath), { recursive: true, force: true })
+      }
     };
     for (const [relativePath, bytes] of [['research/agenda/history.jsonl', baselineHistory], ['research/agenda/current.json', baselineCurrent], ['market-brief.payload.json', baselinePayload]]) {
       mkdirSync(resolve(rollbackFull(relativePath), '..'), { recursive: true });
@@ -204,6 +237,342 @@ if (process.env.NODE_TEST_CONTEXT) {
     assert.equal(rollbackIo.read('research/agenda/current.json'), baselineCurrent);
     assert.equal(rollbackIo.read('market-brief.payload.json'), baselinePayload);
     for (const path of Object.keys(transaction.value.immutableFiles)) assert.equal(rollbackIo.exists(path), false, `${path} removed on rollback`);
+  });
+
+  test('Regression: whole agenda graph rollback restores every mutable baseline and moves current pointer only after all candidates validate', (context) => {
+    const fixture = createBriefRefreshFixture({
+      narrativeMode: 'success',
+      agendaAssets: true,
+      baselineDate: '2026-08-13',
+      candidateDate: '2026-08-14'
+    });
+    context.after(() => fixture.cleanup());
+    const readJson = (relativePath) => JSON.parse(readFileSync(resolve(fixture.repoRoot, relativePath), 'utf8'));
+    const snapshot = readJson('market-brief.snapshot.json');
+    const config = readJson('market-brief.config.json');
+    const payload = readJson('market-brief.payload.json');
+    const tools = readJson('tools.json');
+    const preparation = prepareResearchAgendaRuntime({ root: fixture.repoRoot, snapshot, config, payload });
+    const selected = preparation.plan.selected[0];
+    assert.ok(selected, 'TP-04-15 requires at least one selected research topic');
+    const topic = preparation.registry.topics.find((row) => row.topicId === selected.topicId);
+    assert.ok(topic, 'TP-04-15 requires the selected topic contract');
+    const definition = preparation.definitionsByTopicId[selected.topicId];
+    const evidence = JSON.parse(readFileSync(new URL('../tests/fixtures/research-agenda/valid-evidence-record.json', import.meta.url), 'utf8'));
+    evidence.observedAt = new Date(Date.parse(preparation.cutoffAt) - 2 * 3600000).toISOString();
+    evidence.availableAt = new Date(Date.parse(preparation.cutoffAt) - 1.5 * 3600000).toISOString();
+    const modelFixture = JSON.parse(readFileSync(new URL('../tests/fixtures/research-agenda/reversal-ui.json', import.meta.url), 'utf8'));
+    const calibration = JSON.parse(readFileSync(new URL('../' + definition.calibrationRef, import.meta.url), 'utf8'));
+    const barIds = [...new Set([
+      ...definition.transmissionModels.map((model) => model.barId),
+      ...definition.proxyDefinitions.map((proxy) => proxy.ticker)
+    ])];
+    const currentBars = Object.fromEntries(barIds.map((barId) => [
+      barId,
+      JSON.parse(readFileSync(new URL(`../data/bars/${barId}.json`, import.meta.url), 'utf8'))
+    ]));
+    const situation = {
+      contractVersion: RESEARCH_AGENDA_CONTRACTS.situation,
+      generationId: preparation.generationId,
+      topicId: selected.topicId,
+      authoredAt: preparation.cutoffAt,
+      completePass: true,
+      evidenceRecords: [evidence],
+      sectionInterpretations: definition.analyticalSections.map((section) => ({
+        sectionId: section.sectionId,
+        status: 'changed',
+        interpretation: 'Fresh TP-04-15 transaction evidence changes this section.',
+        gaps: []
+      })),
+      findings: [{
+        findingId: 'tp-04-15-fresh-finding',
+        observedAt: evidence.observedAt,
+        claim: evidence.claim,
+        publicSubjects: [
+          { kind: 'channel', value: topic.scopeBoundary.channels[0] },
+          { kind: 'public-ticker', value: definition.proxyDefinitions[0].ticker }
+        ],
+        horizon: 'swing',
+        source: { sourceIds: [evidence.source.sourceId] },
+        statedConfidence: evidence.confidence,
+        provenanceClass: evidence.provenanceClass,
+        evidenceRole: evidence.evidenceRole,
+        evidenceRefs: [evidence.evidenceId],
+        triggerRefs: [definition.triggers[0].triggerId],
+        invalidationRefs: [definition.invalidations[0].invalidationId],
+        causalPath: evidence.causalPath,
+        refutedBy: evidence.refutedBy,
+        limitations: ['Atomicity fault-matrix fixture.']
+      }],
+      sourceLedger: [evidence.source],
+      newEvidenceIds: [evidence.evidenceId],
+      modelInputs: {
+        chokepointState: modelFixture.chokepointState,
+        inventoryGapByChannel: modelFixture.inventoryGapByChannel,
+        levers: modelFixture.levers
+      }
+    };
+    const missingPublicSubjectsSituation = structuredClone(situation);
+    delete missingPublicSubjectsSituation.findings[0].publicSubjects;
+    const missingPublicSubjectsRefusal = validateResearchSituation(missingPublicSubjectsSituation, {
+      generationId: preparation.generationId,
+      topic,
+      definition
+    });
+    assert.equal(missingPublicSubjectsRefusal.ok, false, 'TP-04-15 missing publicSubjects refuses before the valid fixture proceeds');
+    assert.deepEqual(missingPublicSubjectsRefusal.error, {
+      code: 'RLAGENDA-CONTRACT-MISSING-MEMBER',
+      reason: 'finding-shape-invalid',
+      field: 'publicSubjects',
+      topicId: selected.topicId
+    });
+    const validatedSituation = validateResearchSituation(situation, {
+      generationId: preparation.generationId,
+      topic,
+      definition
+    });
+    assert.equal(validatedSituation.ok, true, JSON.stringify(validatedSituation));
+    const deterministicOutputs = computeResearchAgendaOutputs({
+      definition,
+      calibration,
+      situation: validatedSituation.value,
+      currentBars,
+      generationCutoff: preparation.cutoffAt,
+      declaredQuestion: topic.declaredQuestion,
+      predecessorOutput: null
+    });
+    assert.equal(deterministicOutputs.ok, true, JSON.stringify(deterministicOutputs));
+    const failuresByTopicId = Object.fromEntries(preparation.plan.selected.slice(1)
+      .map((row) => [row.topicId, 'tp-04-15-unavailable']));
+    const candidate = composeResearchAgendaCandidate({
+      registry: preparation.registry,
+      plan: preparation.plan,
+      definitionsByTopicId: preparation.definitionsByTopicId,
+      generationId: preparation.generationId,
+      generationCutoff: preparation.cutoffAt,
+      situationsByTopicId: { [selected.topicId]: validatedSituation.value },
+      failuresByTopicId,
+      deterministicOutputsByTopicId: { [selected.topicId]: deterministicOutputs.value },
+      priorDossiersByTopicId: preparation.priorDossiersByTopicId
+    });
+    assert.equal(candidate.ok, true, JSON.stringify(candidate));
+    assert.ok(candidate.value.reviews.some((review) => review.topicId === selected.topicId), 'fresh situation produces a review');
+    assert.ok(candidate.value.dossiers.some((dossier) => dossier.topicId === selected.topicId), 'fresh situation produces a dossier');
+    const transaction = buildResearchAgendaTransaction({
+      candidate: candidate.value,
+      payload,
+      historyText: preparation.historyText,
+      registry: preparation.registry,
+      existingRecordsByPath: preparation.existingRecordsByPath,
+      pageInputs: { config, snapshot, tools }
+    });
+    assert.equal(transaction.ok, true, JSON.stringify(transaction));
+
+    const designRequiredMutableOrder = [
+      'research/agenda/history.jsonl',
+      'market-brief.payload.json',
+      'market-brief.page.json',
+      'market-brief.config.page.json',
+      'market-brief.snapshot.page.json',
+      'market-brief.tools.page.json',
+      'market-brief.experimental.json',
+      'research/agenda/current.json'
+    ];
+    assert.deepEqual(transaction.value.mutableOrder, designRequiredMutableOrder);
+    const mutableOrder = [...transaction.value.mutableOrder];
+    assert.equal(transaction.value.immutableOrder.some((path) => path.startsWith('research/agenda/generations/')), true,
+      'fault inventory includes the generated generation record');
+    assert.equal(transaction.value.immutableOrder.some((path) => path.startsWith('research/agenda/reviews/')), true,
+      'fault inventory includes at least one generated review');
+    assert.equal(transaction.value.immutableOrder.some((path) => path.startsWith('research/agenda/dossiers/')), true,
+      'fault inventory includes at least one generated dossier');
+    assert.deepEqual(transaction.value.writeOrder, [...transaction.value.immutableOrder, ...mutableOrder]);
+    assert.deepEqual(Object.keys(transaction.value.mutableFiles), mutableOrder);
+    assert.deepEqual(Object.keys(transaction.value.candidatePaths), mutableOrder);
+    assert.equal(transaction.value.pointerLast, mutableOrder.at(-1));
+    for (const target of mutableOrder) {
+      assert.equal(dirname(transaction.value.candidatePaths[target]), dirname(target), `${target} candidate is on the target filesystem`);
+      assert.notEqual(transaction.value.candidatePaths[target], target);
+      assert.equal(typeof transaction.value.mutableFiles[target], 'string', `${target} has candidate bytes`);
+    }
+    const payloadCandidate = JSON.parse(transaction.value.mutableFiles['market-brief.payload.json']);
+    const pageCandidate = JSON.parse(transaction.value.mutableFiles['market-brief.page.json']);
+    assert.equal(payloadCandidate.researchAgenda.generationId, candidate.value.generationId);
+    assert.equal(payloadCandidate.toolReads['research-agenda-lab'].metrics.generationId, candidate.value.generationId);
+    assert.deepEqual(pageCandidate.researchAgenda, payloadCandidate.researchAgenda);
+
+    const unrelatedPath = 'tp-04-15-unrelated.txt';
+    const unrelatedBytes = Buffer.from('pre-existing unrelated bytes\n');
+    const makeRunRoot = () => {
+      const root = mkdtempSync(resolve(tmpdir(), 'research-agenda-whole-graph-'));
+      context.after(() => rmSync(root, { recursive: true, force: true }));
+      cpSync(resolve(fixture.repoRoot, 'research'), resolve(root, 'research'), { recursive: true });
+      for (const path of mutableOrder.filter((relativePath) => !relativePath.startsWith('research/'))) {
+        if (existsSync(resolve(fixture.repoRoot, path))) {
+          mkdirSync(dirname(resolve(root, path)), { recursive: true });
+          copyFileSync(resolve(fixture.repoRoot, path), resolve(root, path));
+        }
+      }
+      rmSync(resolve(root, 'market-brief.experimental.json'), { force: true });
+      writeFileSync(resolve(root, unrelatedPath), unrelatedBytes);
+      return root;
+    };
+    const baselineAt = (root) => Object.fromEntries(mutableOrder.map((path) => [path, {
+      exists: existsSync(resolve(root, path)),
+      bytes: existsSync(resolve(root, path)) ? readFileSync(resolve(root, path)) : null
+    }]));
+    const assertCurrentReachable = (root, bytes, label) => {
+      const current = JSON.parse(Buffer.from(bytes).toString('utf8'));
+      const refs = [current.generationRef, ...current.topicRefs.flatMap((row) => [row.reviewRef, row.dossierRef])].filter(Boolean);
+      for (const ref of refs) assert.equal(existsSync(resolve(root, ref.path)), true, `${label}: ${ref.path}`);
+    };
+    const assertBaseline = (root, baseline) => {
+      for (const path of mutableOrder) {
+        assert.equal(existsSync(resolve(root, path)), baseline[path].exists, `${path} existence restored`);
+        if (baseline[path].exists) assert.ok(readFileSync(resolve(root, path)).equals(baseline[path].bytes), `${path} exact bytes restored`);
+      }
+      assertCurrentReachable(root, baseline[transaction.value.pointerLast].bytes, 'old pointer ref remains reachable');
+      assert.ok(readFileSync(resolve(root, unrelatedPath)).equals(unrelatedBytes), 'rollback preserves unrelated pre-existing bytes');
+    };
+    const assertOnlyTransactionFilesRemoved = (baseline, operations) => {
+      const allowed = new Set([
+        ...transaction.value.immutableOrder,
+        ...Object.values(transaction.value.candidatePaths),
+        ...Object.values(transaction.value.candidatePaths).map((path) => `${path}.rollback`),
+        ...mutableOrder.filter((path) => !baseline[path].exists)
+      ]);
+      assert.deepEqual(operations.filter((step) => step.kind === 'remove' && !allowed.has(step.path)), [],
+        'rollback removes only transaction-created paths');
+    };
+    const makeIo = (root, fault, operations, baseline, rollbackSabotageTarget = null) => {
+      const full = (relativePath) => resolve(root, relativePath);
+      return {
+        exists: (relativePath) => existsSync(full(relativePath)),
+        read: (relativePath) => readFileSync(full(relativePath)),
+        create: (relativePath, bytes) => {
+          mkdirSync(dirname(full(relativePath)), { recursive: true });
+          writeFileSync(full(relativePath), bytes, { flag: 'wx' });
+          operations.push({ kind: 'create', path: relativePath });
+        },
+        rename: (sourcePath, targetPath) => {
+          if (targetPath === transaction.value.pointerLast && sourcePath === transaction.value.candidatePaths[targetPath]) {
+            assert.ok(readFileSync(full(targetPath)).equals(baseline[targetPath].bytes), 'old current is exact before the final rename');
+            assertCurrentReachable(root, baseline[targetPath].bytes, 'old current is reachable before the final rename');
+          }
+          if (targetPath === rollbackSabotageTarget && sourcePath === `${transaction.value.candidatePaths[targetPath]}.rollback`) {
+            rmSync(full(sourcePath), { force: true });
+            operations.push({ kind: 'rollback-sabotage', path: targetPath, sourcePath });
+            return;
+          }
+          mkdirSync(dirname(full(targetPath)), { recursive: true });
+          renameSync(full(sourcePath), full(targetPath));
+          operations.push({ kind: 'rename', path: targetPath, sourcePath });
+        },
+        remove: (relativePath) => {
+          operations.push({ kind: 'remove', path: relativePath });
+          rmSync(full(relativePath), { recursive: true, force: true });
+        },
+        afterStep: (step) => {
+          operations.push(step);
+          if (fault && step.kind === fault.kind && step.path === fault.path) {
+            throw Object.assign(new Error(`injected ${step.kind} failure at ${step.path}`), { code: 'tp-04-15-injected' });
+          }
+        }
+      };
+    };
+    const faultInventory = [
+      ...transaction.value.immutableOrder.map((path) => ({ kind: 'immutable-create', path })),
+      ...mutableOrder.map((path) => ({ kind: 'mutable-rename', path }))
+    ];
+    console.log('[tp04-15] immutableOrder=' + JSON.stringify(transaction.value.immutableOrder));
+    console.log('[tp04-15] mutableOrder=' + JSON.stringify(mutableOrder));
+    console.log('[tp04-15] faultInventory=' + JSON.stringify(faultInventory));
+    console.log('[tp04-15] candidatePaths=' + JSON.stringify(transaction.value.candidatePaths));
+    console.log('[tp04-15] renameOrder=' + JSON.stringify(mutableOrder));
+    for (const fault of faultInventory) {
+      const root = makeRunRoot();
+      const baseline = baselineAt(root);
+      assert.ok(mutableOrder.some((path) => baseline[path].exists) && mutableOrder.some((path) => !baseline[path].exists),
+        'fault matrix includes present and absent mutable baselines');
+      const operations = [];
+      const refused = promoteResearchAgendaTransaction(transaction.value, makeIo(root, fault, operations, baseline));
+      assert.equal(refused.ok, false, `${fault.kind}:${fault.path} is refused`);
+      assert.equal(refused.error.reason, 'tp-04-15-injected');
+      const actualKind = fault.kind === 'immutable-create' ? 'create' : 'rename';
+      assert.equal(operations.some((step) => step.kind === actualKind && step.path === fault.path), true,
+        `${fault.kind}:${fault.path} is injected only after the actual filesystem operation`);
+      assertBaseline(root, baseline);
+      assertOnlyTransactionFilesRemoved(baseline, operations);
+      for (const path of transaction.value.immutableOrder) assert.equal(existsSync(resolve(root, path)), false, `${path} transaction create removed`);
+      for (const path of Object.values(transaction.value.candidatePaths)) assert.equal(existsSync(resolve(root, path)), false, `${path} private candidate removed`);
+    }
+
+    const existingRoot = makeRunRoot();
+    const existingBaseline = baselineAt(existingRoot);
+    const existingImmutable = transaction.value.immutableOrder[0];
+    const sentinel = Buffer.from('pre-existing-immutable\n');
+    mkdirSync(dirname(resolve(existingRoot, existingImmutable)), { recursive: true });
+    writeFileSync(resolve(existingRoot, existingImmutable), sentinel, { flag: 'wx' });
+    const existingOperations = [];
+    const existingRefusal = promoteResearchAgendaTransaction(transaction.value,
+      makeIo(existingRoot, null, existingOperations, existingBaseline));
+    assert.equal(existingRefusal.ok, false);
+    assert.equal(existingRefusal.error.reason, 'immutable-overwrite');
+    assert.ok(readFileSync(resolve(existingRoot, existingImmutable)).equals(sentinel), 'pre-existing immutable is never removed');
+    assertBaseline(existingRoot, existingBaseline);
+    assertOnlyTransactionFilesRemoved(existingBaseline, existingOperations);
+
+    for (const [label, mutate] of [
+      ['missing candidate inventory', (value) => { delete value.candidatePaths['market-brief.page.json']; }],
+      ['unknown candidate inventory', (value) => { value.candidatePaths['unknown-candidate.json'] = '.unknown-candidate.json'; }]
+    ]) {
+      const invalid = structuredClone(transaction.value);
+      mutate(invalid);
+      const root = makeRunRoot();
+      const baseline = baselineAt(root);
+      const operations = [];
+      const refused = promoteResearchAgendaTransaction(invalid, makeIo(root, null, operations, baseline));
+      assert.equal(refused.ok, false);
+      assert.equal(refused.error.reason, 'transaction-inventory-invalid');
+      assert.deepEqual(operations, [], `${label} is refused before side effects`);
+      assertBaseline(root, baseline);
+    }
+
+    const sabotageRoot = makeRunRoot();
+    const sabotageBaseline = baselineAt(sabotageRoot);
+    const sabotageOperations = [];
+    const sabotageTarget = 'market-brief.payload.json';
+    const sabotageFault = { kind: 'mutable-rename', path: transaction.value.pointerLast };
+    const sabotageRefusal = promoteResearchAgendaTransaction(transaction.value,
+      makeIo(sabotageRoot, sabotageFault, sabotageOperations, sabotageBaseline, sabotageTarget));
+    assert.notEqual(sabotageRefusal.ok, true, 'a failed rollback is never reported as success');
+    assert.equal(sabotageRefusal.error.reason, 'rollback-verification-failed');
+    assert.equal(sabotageOperations.some((step) => step.kind === 'rollback-sabotage' && step.path === sabotageTarget), true,
+      'rollback restoration was intentionally prevented');
+    assert.equal(readFileSync(resolve(sabotageRoot, sabotageTarget)).equals(sabotageBaseline[sabotageTarget].bytes), false,
+      'sabotaged baseline remains detectably unrestored');
+    assert.ok(readFileSync(resolve(sabotageRoot, unrelatedPath)).equals(unrelatedBytes), 'failed rollback preserves unrelated bytes');
+    assertOnlyTransactionFilesRemoved(sabotageBaseline, sabotageOperations);
+
+    const successRoot = makeRunRoot();
+    const successBaseline = baselineAt(successRoot);
+    const successOperations = [];
+    const successIo = makeIo(successRoot, null, successOperations, successBaseline);
+    assert.equal(Object.hasOwn(successIo, 'replace'), false, 'promotion IO exposes no in-place mutable replace operation');
+    const promoted = promoteResearchAgendaTransaction(transaction.value, successIo);
+    assert.equal(promoted.ok, true, JSON.stringify(promoted));
+    const renameOrder = successOperations.filter((step) => step.kind === 'rename').map((step) => step.path);
+    assert.deepEqual(renameOrder, mutableOrder);
+    assert.equal(renameOrder.at(-1), 'research/agenda/current.json');
+    assert.equal(successOperations.some((step) => step.kind === 'create' && mutableOrder.includes(step.path)), false,
+      'mutable targets are never created or overwritten in place');
+    const firstImmutableStep = successOperations.findIndex((step) => step.kind === 'immutable-create');
+    assert.ok(firstImmutableStep >= 0, 'at least one immutable create is observed');
+    assert.ok(Object.values(transaction.value.candidatePaths).every((path) => {
+      const candidateCreate = successOperations.findIndex((step) => step.kind === 'create' && step.path === path);
+      return candidateCreate >= 0 && candidateCreate < firstImmutableStep;
+    }), 'all same-directory candidates are prepared before the first immutable create');
+    for (const path of Object.values(transaction.value.candidatePaths)) assert.equal(existsSync(resolve(successRoot, path)), false, `${path} private candidate consumed`);
   });
 
   /* The fixture's authored attention tier must not be a function of the live brief.
@@ -320,6 +689,34 @@ if (process.env.NODE_TEST_CONTEXT) {
     assert.equal(validator.status, 0, validator.stderr);
   });
 
+  test('distributed publication failure restores captured briefs without destructive Git cleanup', (context) => {
+    const fixture = createBriefRefreshFixture({ narrativeMode: 'success' });
+    context.after(() => fixture.cleanup());
+    const preservedPath = 'briefs/user-owned/staged-before-run.json';
+    const preservedBytes = Buffer.from('{"owner":"developer"}\n');
+    const partialPath = resolve(fixture.repoRoot, 'briefs/objects/generated/partial.json');
+    mkdirSync(resolve(fixture.repoRoot, 'briefs/user-owned'), { recursive: true });
+    writeFileSync(resolve(fixture.repoRoot, preservedPath), preservedBytes);
+    gitFixture(fixture, ['add', '--', preservedPath]);
+    writeFileSync(resolve(fixture.repoRoot, 'scripts/brief-distributed-publish.mjs'), `
+import { mkdirSync, writeFileSync } from 'node:fs';
+const partial = new URL('../briefs/objects/generated/partial.json', import.meta.url);
+mkdirSync(new URL('../briefs/objects/generated/', import.meta.url), { recursive: true });
+writeFileSync(partial, '{"partial":true}\\n');
+console.error('[fixture-distributed] forced failure after partial write');
+process.exit(1);
+`);
+    const beforeIndex = gitFixture(fixture, ['diff', '--cached', '--name-only', '--', 'briefs']);
+
+    const result = runBriefRefreshFixture(fixture);
+
+    assert.equal(result.status, 0, `wrapper failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+    assert.match(result.stdout, /distributed publisher failed — restoring captured briefs\/ baseline/);
+    assert.ok(readFileSync(resolve(fixture.repoRoot, preservedPath)).equals(preservedBytes), 'pre-existing staged bytes survive');
+    assert.equal(gitFixture(fixture, ['diff', '--cached', '--name-only', '--', 'briefs']), beforeIndex, 'pre-existing briefs index state survives');
+    assert.equal(existsSync(partialPath), false, 'partial publisher output is removed by exact baseline restoration');
+  });
+
   test('SCN-019-012 real generation publishes one atomic agenda and brief payload transaction', (context) => {
     const fixture = createBriefRefreshFixture({ narrativeMode: 'success', agendaAssets: true });
     context.after(() => fixture.cleanup());
@@ -330,10 +727,15 @@ if (process.env.NODE_TEST_CONTEXT) {
     const validator = runFixtureValidator(fixture);
 
     assert.equal(result.status, 0, `wrapper failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
-    for (const lane of ['core', 'signals', 'groups', 'coverage', 'research-acquisition', 'research']) {
+    for (const lane of ['core', 'signals', 'groups', 'coverage', 'research-acquisition']) {
       assert.equal(result.stdout.match(new RegExp(`lane=${lane} started`, 'g'))?.length, 1,
         `${lane} must start exactly once\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
     }
+    const researchAuthorStarts = [...result.stdout.matchAll(/lane=(research-[a-z0-9-]+) started/g)]
+      .map((match) => match[1])
+      .filter((lane) => lane !== 'research-acquisition');
+    assert.equal(researchAuthorStarts.length > 0, true, 'at least one selected topic must enter the author side pool');
+    assert.equal(new Set(researchAuthorStarts).size, researchAuthorStarts.length, 'each selected topic author starts exactly once');
     assert.match(result.stdout, /collected final payload from 4 critical lanes plus the research side lane/);
     assert.match(result.stdout, /pointerLast=research\/agenda\/current\.json/);
     assert.equal(publication.snapshotDate, fixture.candidateDate);
@@ -464,7 +866,11 @@ if (process.env.NODE_TEST_CONTEXT) {
     assert.equal(result.status, 0, `wrapper failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
     assert.equal(result.stdout.match(/lane=core started/g)?.length, 2, 'critical core lane retries with the outer narrative');
     assert.equal(result.stdout.match(/lane=research-acquisition started/g)?.length, 1, 'research discovery runs once per generation');
-    assert.equal(result.stdout.match(/lane=research started/g)?.length, 1, 'research authoring runs once per generation');
+    const researchAuthorStarts = [...result.stdout.matchAll(/lane=(research-[a-z0-9-]+) started/g)]
+      .map((match) => match[1])
+      .filter((lane) => lane !== 'research-acquisition');
+    assert.equal(researchAuthorStarts.length > 0, true, 'selected topic authoring runs during the first outer attempt');
+    assert.equal(new Set(researchAuthorStarts).size, researchAuthorStarts.length, 'each selected topic author runs once per generation and is reused by the outer retry');
     assert.match(result.stdout, /research cache stored generation=/);
     assert.match(result.stdout, /research cache reused generation=/);
   });

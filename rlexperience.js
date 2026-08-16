@@ -1999,6 +1999,7 @@
       if (!current) return null;
       var registration = current.registration;
       var tool = current.tool;
+      if (Array.isArray(registration.ownerModes) && registration.ownerModes.indexOf("simple") !== -1) return null;
       if (document.body.getAttribute("data-rlview") !== "simple") return null;
       var panel = document.querySelector('[data-rlexperience-panel="simple"]');
       if (!panel) return null;

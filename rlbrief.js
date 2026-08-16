@@ -1240,6 +1240,10 @@
       "stale-evidence": "No supporting observation remains inside the freshness window."
     };
     var glyph = { reviewed: "●", unavailable: "○", stale: "◐", deferred: "◐", "not-due": "◐" };
+    function humanizeMetadataToken(value) {
+      if (typeof value !== "string" || !value.trim()) return "unavailable";
+      return value.trim().replace(/-/g, " ").replace(/\s+/g, " ");
+    }
     read.topics.forEach(function (topic) {
       var article = document.createElement("article");
       article.className = "research-agenda-row";
@@ -1252,6 +1256,10 @@
       state.textContent = (glyph[topic.state] || "○") + " " + String(topic.state || "unavailable").replace(/-/g, " ");
       state.setAttribute("aria-label", String(topic.state || "unavailable").replace(/-/g, " "));
       article.appendChild(state);
+      var metadata = document.createElement("p");
+      metadata.className = "sub research-agenda-meta";
+      metadata.textContent = "Mode: " + humanizeMetadataToken(topic.mode) + " · Change assessment: " + humanizeMetadataToken(topic.changeAssessment);
+      article.appendChild(metadata);
       var reason = document.createElement("p");
       reason.textContent = topic.state === "reviewed" ? "A validated current review is available." : (reasonText[topic.reason] || "No current conclusion is available.");
       article.appendChild(reason);

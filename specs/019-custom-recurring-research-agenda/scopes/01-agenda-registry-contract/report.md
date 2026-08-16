@@ -88,6 +88,25 @@ Research-Lab self-test: 1650 passed, 0 failed
 verify: bash .github/bubbles/scripts/evidence-capture.sh --verify ec2ccc4b6d112b32efeba78582b3770cc95f1069d752fa8e33dabc63a60306d8 -- node scripts/selftest.mjs
 ```
 
+#### Fresh independent TP-01-05 execution evidence
+
+**Phase:** test
+**Claim Source:** executed
+
+```text
+# TP-01-05 full project selftest
+$ node scripts/selftest.mjs
+exit: 0
+lines: 2032
+sha256: 971a84cb50294e4d68c2a776e615bc292469d7f9e6d461f506daf9a44eb76ffd
+Regression: agenda modes capacities vocabularies and formulas fail closed and have one owner
+  ✓ TP-01-05: unknown and missing policy members, mandatory capacity plus one, and unknown evidence vocabulary are refused
+  ✓ TP-01-05: evidence weighting uses only explicit policy values and exposes every factor
+  ✓ TP-01-05: preparation scheduling live author controls and retry cache identity consume one explicit policy digest without a 900-second source literal
+  ✓ TP-01-05: one UMD module owns the closed vocabulary and every deterministic function declaration
+TP_01_05_FULL_SELFTEST_CAPTURE_EXIT=0
+```
+
 ### replanned-contract-tp-01-06
 
 ```text
@@ -133,7 +152,127 @@ Diff check: exit 0
 Scope boundary: changedPaths=25 scope1Paths=14 outsidePaths=0 feature020DestinationWrites=0 PASS
 ```
 
+### Fresh reconciliation quality evidence
+
+**Phase:** test
+**Claim Source:** executed
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/019-custom-recurring-research-agenda
+exit: 0
+lines: 94
+sha256: 77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c
+Artifact lint PASSED.
+```
+
+## Gaps Reconciliation 2026-08-15
+
+**Phase:** plan
+**Claim Source:** interpreted
+**Interpretation:** GAP-01 requires runtime policy mutation and author/acquisition capacity-plus-one proof that the historical evidence above does not contain. Scope 1 is `In Progress`; no implementation or test completion is claimed here.
+
+### replanned-contract-tp-01-08
+
+**Phase:** plan
+**Claim Source:** interpreted
+**Interpretation:** This anchor records an unexecuted GAP-01 validation contract. It is not test evidence and cannot satisfy the unchecked DoD item.
+**Planned command:** `node --test tests/distributed-briefs.final-budget.stress.mjs`
+**Result:** PLANNED, NOT EXECUTED
+
+#### Fresh independent TP-01-08 execution evidence
+
+**Phase:** test
+**Claim Source:** executed
+
+```text
+$ node --test --test-name-pattern='Regression: every registry policy member drives runtime behavior and author and acquisition capacity plus one refuses before work' tests/distributed-briefs.final-budget.stress.mjs
+exit: 0
+lines: 9
+sha256: b73ea7ad24a061d0918890f69b3d5e8cd15b635b387c8aad6d1ca53f5049b7a6
+✔ Regression: every registry policy member drives runtime behavior and author and acquisition capacity plus one refuses before work (221.502042ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 275.518166
+TP_01_08_EXACT_PLUS_ONE_CAPTURE_EXIT=0
+```
+
+#### Full stress regression
+
+**Phase:** test
+**Claim Source:** executed
+
+```text
+$ node --test tests/distributed-briefs.final-budget.stress.mjs
+exit: 0
+lines: 12
+sha256: 61f43e61c4e592df6769599b12da5bb20464c8903b41d018f61b7e389e0097a1
+✔ Final budget boundary refuses honestly and never truncates mandatory material under sweep (193.525916ms)
+✔ Repeated final compaction of identical inputs is byte-stable (159.306333ms)
+✔ Agenda acquisition and authoring remain within explicit topic byte concurrency and timeout budgets (4.909625ms)
+✔ Regression: every registry policy member drives runtime behavior and author and acquisition capacity plus one refuses before work (128.512334ms)
+ℹ tests 4
+ℹ pass 4
+ℹ fail 0
+ℹ skipped 0
+ℹ duration_ms 537.844625
+```
+
+#### Affected integration regression
+
+**Phase:** test
+**Claim Source:** executed
+
+```text
+$ node --test tests/distributed-briefs.authorship.integration.mjs tests/brief-refresh-atomicity.test.mjs
+exit: 0
+lines: 773
+sha256: 4bf933afc34247fe735972281474c66408e52ec7d61d01bc52d0f51c9dda5970
+✔ production pool resolves every registry source outcome with at most four active author processes (59.486625ms)
+✔ SCN-019-013 quiet complete pass writes an unchanged review and reuses the substantive dossier (4.565ms)
+✔ SCN-019-015 failed research lane publishes named unavailable without a partial finding (2.269833ms)
+✔ Regression: research lane timeout leaves every critical lane output byte-identical (1.077958ms)
+ℹ tests 37
+ℹ pass 37
+ℹ fail 0
+ℹ skipped 0
+ℹ duration_ms 52038.822666
+```
+
+#### Regression quality
+
+**Phase:** test
+**Claim Source:** executed
+
+```text
+$ bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/distributed-briefs.final-budget.stress.mjs tests/distributed-briefs.authorship.integration.mjs tests/brief-refresh-atomicity.test.mjs
+exit: 0
+lines: 19
+sha256: 4df91c513388daa59647d33154af365055e42aa5f472d567b78f3623d4fec134
+ℹ️  Scanning tests/distributed-briefs.final-budget.stress.mjs
+✅ Adversarial signal detected in tests/distributed-briefs.final-budget.stress.mjs
+ℹ️  Scanning tests/distributed-briefs.authorship.integration.mjs
+✅ Adversarial signal detected in tests/distributed-briefs.authorship.integration.mjs
+ℹ️  Scanning tests/brief-refresh-atomicity.test.mjs
+✅ Adversarial signal detected in tests/brief-refresh-atomicity.test.mjs
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 3
+Files with adversarial signals: 3
+```
+
 ## Completion Statement
+
+Scope 1 is complete under the reconciled gaps contract. All 16 Scope 1 DoD
+items carry item-local provenance, TP-01-05 and TP-01-08 carry fresh executed
+evidence, and the 68-row parity plus required quality guards pass. This is an
+execution-scope completion claim only; certification remains `not_started`, the
+overall gaps phase remains active, and Scope 2 is the next eligible scope.
+
+## Historical Completion Statement (Superseded)
 
 Scope 1 implementation and fresh test evidence passed the post-evidence artifact,
 traceability, freshness, reference, privacy, test-path, JSON, fence, and diff

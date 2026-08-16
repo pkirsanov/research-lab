@@ -14,6 +14,7 @@ import {
     writeFileSync
 } from 'node:fs';
 import { resolve } from 'node:path';
+import { RESEARCH_AGENDA_CONTRACTS, runResearchSidePool } from './research-agenda-generation.mjs';
 import { briefEventContractInstruction } from './validate-brief-payload.mjs';
 import { NARRATIVE_WEB_ALLOWLIST } from './web-evidence-policy.mjs';
 
@@ -29,7 +30,11 @@ const TOOL_BUNDLE_PATH = process.env.BRIEF_TOOL_BUNDLE ? resolve(process.env.BRI
 const REQUIRE_TOOL_BUNDLE = process.env.BRIEF_REQUIRE_COMPLETE_RUN === '1';
 const RESEARCH_AGENDA_PATH = resolve(ROOT, 'research-agenda.json');
 const RESEARCH_CACHE_PATH = process.env.BRIEF_RESEARCH_CACHE ? resolve(process.env.BRIEF_RESEARCH_CACHE) : null;
-const RESEARCH_CACHE_VERSION = 'research-generation-cache/v1';
+const RESEARCH_PUBLICATION_CANDIDATE_PATH = process.env.BRIEF_RESEARCH_PUBLICATION_CANDIDATE
+    ? resolve(process.env.BRIEF_RESEARCH_PUBLICATION_CANDIDATE) : null;
+const RESEARCH_PAYLOAD_CANDIDATE_PATH = process.env.BRIEF_RESEARCH_PAYLOAD_CANDIDATE
+    ? resolve(process.env.BRIEF_RESEARCH_PAYLOAD_CANDIDATE) : null;
+const RESEARCH_CACHE_VERSION = 'research-generation-cache/v2';
 let researchPreparation = null;
 let researchRuntime = null;
 let researchTreeBaseline = null;
@@ -93,12 +98,23 @@ const researchLane = {
     id: 'research',
     keys: ['contractVersion', 'generationId', 'situations'],
     web: false,
-    attempts: 1,
-    timeoutSeconds: 900,
-    maxInputBytes: 524288,
-    maxOutputBytes: 524288,
     instructions: `Own only current situation evidence and interpretation for the selected research topics. Return contractVersion research-situation-set/v1, the supplied generationId, and one situations[] item per selected topic. Each situation must use the exact fields supplied by the input contract. Preserve every declared section. Carry evidence roles, causal paths, refuters, limitations, sources, and explicit modelInputs. Author no scenario probability, commodity range, proxy range, chart point, direction score, modelOutputs, or changeAssessment. If evidence is insufficient, set completePass false and name gaps rather than inventing a finding.`
 };
+
+function configuredResearchLane(input, topicId) {
+    const policy = researchPreparation.authorInput.policy;
+    return {
+        ...researchLane,
+        id: `research-${topicId}`,
+        kind: 'research',
+        input,
+        attempts: policy.attempts,
+        timeoutSeconds: policy.timeoutSeconds,
+        maxInputBytes: policy.maxInputBytes,
+        maxOutputBytes: policy.maxOutputBytes,
+        policyDigest: researchPreparation.policyDigest
+    };
+}
 
 const researchAcquisitionLane = {
     id: 'research-acquisition',
@@ -191,12 +207,14 @@ function readResearchCache() {
     if (!RESEARCH_CACHE_PATH || !existsSync(RESEARCH_CACHE_PATH)) return null;
     const cached = readJson(RESEARCH_CACHE_PATH);
     const keys = Object.keys(cached || {}).sort().join('|');
-    if (keys !== ['acquisitionFailuresByTopicId', 'contractVersion', 'generationId', 'inputFingerprint', 'researchFragment'].sort().join('|') ||
+    if (keys !== ['contractVersion', 'failuresByTopicId', 'generationId', 'inputFingerprint', 'policyDigest', 'researchFragment', 'retryCacheIdentity'].sort().join('|') ||
         cached.contractVersion !== RESEARCH_CACHE_VERSION || cached.generationId !== researchPreparation.generationId ||
         cached.inputFingerprint !== researchPreparation.inputFingerprint ||
+        cached.policyDigest !== researchPreparation.policyDigest ||
+        cached.retryCacheIdentity !== researchPreparation.retryCacheIdentity ||
                 !(cached.researchFragment === null || hasExactFragmentKeys(cached.researchFragment, researchLane.keys)) ||
-        !cached.acquisitionFailuresByTopicId || typeof cached.acquisitionFailuresByTopicId !== 'object' || Array.isArray(cached.acquisitionFailuresByTopicId) ||
-        Object.values(cached.acquisitionFailuresByTopicId).some((reason) => typeof reason !== 'string' || !reason)) {
+        !cached.failuresByTopicId || typeof cached.failuresByTopicId !== 'object' || Array.isArray(cached.failuresByTopicId) ||
+        Object.values(cached.failuresByTopicId).some((reason) => typeof reason !== 'string' || !reason)) {
         throw new Error('research cache does not match the frozen generation inputs');
     }
     return cached;
@@ -208,7 +226,9 @@ function writeResearchCache(execution) {
         contractVersion: RESEARCH_CACHE_VERSION,
         generationId: researchPreparation.generationId,
         inputFingerprint: researchPreparation.inputFingerprint,
-        acquisitionFailuresByTopicId: execution.acquisitionFailuresByTopicId,
+        policyDigest: researchPreparation.policyDigest,
+        retryCacheIdentity: researchPreparation.retryCacheIdentity,
+        failuresByTopicId: execution.failuresByTopicId,
         researchFragment: execution.authorResult && !execution.authorResult.laneError ? execution.authorResult.fragment : null
     };
     mkdirSync(resolve(RESEARCH_CACHE_PATH, '..'), { recursive: true });
@@ -261,7 +281,7 @@ function baseSnapshot() {
 
 function laneInput(lane) {
     if (lane.id === 'research-acquisition') return researchPreparation.acquisitionInput;
-    if (lane.id === 'research') return researchPreparation.authorInput;
+    if (lane.kind === 'research') return lane.input;
     const current = pick(payload, lane.keys);
     const meta = { lane: lane.id, ownedKeys: lane.keys, window: windowId, todayEt };
     const commonConfig = {
@@ -348,7 +368,7 @@ function runLane(lane, laneAttempt) {
        integer, so no `above` level survived either. Enforced by
        scripts/validate-brief-payload.mjs on the publish path (D16). */
     const evaluabilityInstruction = 'Every tactical or swing call MUST carry, in its invalidation field, a numeric price level on a named instrument that is in the committed universe, written with an explicit direction word AND on the side that would prove the call WRONG. The side is decided by the call, not by preference: for a long-biased call (add, rotate, hold) the invalidation level must be BELOW a price (for example "a daily close below 740.09"); for a short-biased call (trim, hedge) it must be ABOVE a price (for example "a daily close above ~765.0"). A level describing the call WORKING is a TRIGGER, not an invalidation, and it will not be accepted: a hedge is not invalidated by the market falling, and a long is not invalidated by the market rising. Write the number with a decimal or a leading tilde ("~765.0", "765.00"); a bare integer ("765"), a percentage, a relative-strength threshold, a moving-average name with no number, or a purely qualitative condition is NOT a level. The publish gate re-derives this from your own prose and withholds any tactical or swing call that resolves to unscoreable, so a call written with only the working side is dropped from the brief. If the thesis genuinely has no direction-correct price level, withhold the call yourself rather than publishing one that can never be scored.';
-    const prompt = lane.id === 'research-acquisition' || lane.id === 'research'
+    const prompt = lane.id === 'research-acquisition' || lane.kind === 'research'
         ? `You are the ${lane.id} side process for generation ${researchPreparation.generationId}. Read only .brief-work/${lane.id}.input.json. Do not edit any tracked file. Overwrite only .brief-work/${lane.id}.json with one strict JSON object, no markdown, containing exactly these top-level keys: ${lane.keys.join(', ')}. ${lane.instructions}`
         : `You are one parallel lane of the Actionable Market Brief for window=${windowId}, today ET=${todayEt}. All allowed repository evidence, current schema examples, and relevant recent history for this lane have already been compacted into .brief-work/${lane.id}.input.json. Read that one input file and no other repository file. The deterministic data and owning-tool reads are already refreshed. ${bundleInstruction} ${vocabularyInstruction} ${evaluabilityInstruction} Structure first, tactical noise last. Count persistence by distinct market-bar dates, not repeated intraday runs. Label estimates, proxies, carried data, and unavailable inputs honestly. Do not edit market-brief.payload.json, market-brief.config.json, the tool bundle, or any other repository file. Overwrite only .brief-work/${lane.id}.json with one strict JSON object, no markdown, containing exactly these top-level keys: ${lane.keys.join(', ')}. ${lane.instructions}`;
 
@@ -363,7 +383,8 @@ function runLane(lane, laneAttempt) {
     const startedAt = Date.now();
     const laneAttemptLimit = lane.attempts || laneAttempts;
     const laneTimeoutSeconds = lane.timeoutSeconds || timeoutSeconds;
-    console.log(`[brief-parallel] lane=${lane.id} started attempt=${laneAttempt}/${laneAttemptLimit} keys=${lane.keys.join(',')} inputBytes=${inputBytes}`);
+    const policyTelemetry = lane.policyDigest ? ` policyDigest=${lane.policyDigest}` : '';
+    console.log(`[brief-parallel] lane=${lane.id} started attempt=${laneAttempt}/${laneAttemptLimit} keys=${lane.keys.join(',')} inputBytes=${inputBytes}${policyTelemetry}`);
 
     return new Promise((resolveLane) => {
         let settled = false;
@@ -499,7 +520,7 @@ async function runResearchPipeline() {
         console.log(`[brief-parallel] research cache reused generation=${cached.generationId}`);
         return {
             acquisitionResult: null,
-            acquisitionFailuresByTopicId: cached.acquisitionFailuresByTopicId,
+            failuresByTopicId: cached.failuresByTopicId,
             authorResult: { fragment: cached.researchFragment, laneError: null },
             cached: true
         };
@@ -514,11 +535,64 @@ async function runResearchPipeline() {
         deadlineAtMs: acquisitionStartedAt + researchPreparation.policy.totalAcquisitionMs
     });
     if (!bound.ok) throw new Error(`research acquisition binding failed: ${bound.error?.reason || 'unknown'}`);
+    const acquisitionTelemetry = bound.value.acquisitionResult.value.telemetry;
+    console.log(`[brief-parallel] research acquisition telemetry calls=${acquisitionTelemetry.calls} peakConcurrency=${acquisitionTelemetry.peakConcurrency}/${acquisitionTelemetry.concurrency} maxConcurrentFetchesPerTopic=${acquisitionTelemetry.maxConcurrentFetchesPerTopic} elapsedMs=${acquisitionTelemetry.elapsedMs} policyDigest=${acquisitionTelemetry.policyDigest}`);
     researchPreparation.authorInput = bound.value.authorInput;
-    const authorResult = await runLaneWithRetries(researchLane);
+    const authorTopics = researchPreparation.authorInput.selectedTopics.filter(
+        (entry) => !Object.prototype.hasOwnProperty.call(bound.value.acquisitionFailuresByTopicId, entry.topic.topicId)
+    );
+    const authorPool = await runResearchSidePool({
+        topics: authorTopics,
+        generationId: researchPreparation.generationId,
+        policy: researchPreparation.agendaPolicy,
+        policyDigest: researchPreparation.policyDigest,
+        authorFn: async (request, authorContext) => {
+            const selectedTopic = authorTopics.find((entry) => entry.topic.topicId === request.topicId);
+            const input = {
+                ...researchPreparation.authorInput,
+                selectedTopics: [selectedTopic]
+            };
+            const lane = configuredResearchLane(input, request.topicId);
+            let laneResult = null;
+            try {
+                laneResult = await runLane(lane, authorContext.attempt);
+                const fragment = validateLaneResult(laneResult);
+                if (fragment.contractVersion !== RESEARCH_AGENDA_CONTRACTS.situationSet ||
+                    fragment.generationId !== researchPreparation.generationId ||
+                    !Array.isArray(fragment.situations) || fragment.situations.length !== 1 ||
+                    fragment.situations[0]?.topicId !== request.topicId) {
+                    throw new Error(`lane ${lane.id} did not return exactly one matching research situation`);
+                }
+                return fragment.situations[0];
+            } finally {
+                rmSync(resolve(WORK_DIR, `${lane.id}.input.json`), { force: true });
+                rmSync(resolve(WORK_DIR, `${lane.id}.json`), { force: true });
+            }
+        }
+    });
+    if (!authorPool.ok) throw new Error(`research author side pool failed: ${authorPool.error?.reason || 'unknown'}`);
+    const authorTelemetry = authorPool.value.telemetry;
+    console.log(`[brief-parallel] research author telemetry calls=${authorTelemetry.calls} attempts=${authorTelemetry.attempts} peakConcurrency=${authorTelemetry.peakConcurrency}/${authorTelemetry.concurrency} inputBytes=${authorTelemetry.maxObservedInputBytes}/${authorTelemetry.maxInputBytes} outputBytes=${authorTelemetry.maxObservedOutputBytes}/${authorTelemetry.maxOutputBytes} elapsedMs=${authorTelemetry.elapsedMs} policyDigest=${authorTelemetry.policyDigest}`);
+    const researchFragment = {
+        contractVersion: RESEARCH_AGENDA_CONTRACTS.situationSet,
+        generationId: researchPreparation.generationId,
+        situations: authorTopics
+            .map((entry) => authorPool.value.situationsByTopicId[entry.topic.topicId])
+            .filter(Boolean)
+    };
+    writeFileSync(resolve(WORK_DIR, 'research.json'), JSON.stringify(researchFragment) + '\n');
+    const authorResult = {
+        fragment: researchFragment,
+        laneError: null,
+        telemetry: authorPool.value.telemetry
+    };
+    const failuresByTopicId = {
+        ...bound.value.acquisitionFailuresByTopicId,
+        ...authorPool.value.failuresByTopicId
+    };
     const execution = {
         acquisitionResult,
-        acquisitionFailuresByTopicId: bound.value.acquisitionFailuresByTopicId,
+        failuresByTopicId,
         authorResult
     };
     writeResearchCache(execution);
@@ -557,6 +631,9 @@ rmSync(WORK_DIR, { recursive: true, force: true });
 mkdirSync(WORK_DIR, { recursive: true });
 
 if (existsSync(RESEARCH_AGENDA_PATH)) {
+    if (!RESEARCH_PUBLICATION_CANDIDATE_PATH || !RESEARCH_PAYLOAD_CANDIDATE_PATH) {
+        throw new Error('research agenda publication requires private publication and payload candidate paths');
+    }
     researchRuntime = await import('./research-agenda-refresh.mjs');
     researchPreparation = researchRuntime.prepareResearchAgendaRuntime({ root: ROOT, snapshot, config, payload });
     researchTreeBaseline = captureTree(resolve(ROOT, 'research/agenda'));
@@ -604,12 +681,19 @@ try {
             preparation: researchPreparation,
             researchFragment,
             payload,
-            acquisitionFailuresByTopicId: researchExecution?.acquisitionFailuresByTopicId || {}
+            acquisitionFailuresByTopicId: researchExecution?.failuresByTopicId || {},
+            promote: false
         });
         if (!finalized.ok) throw new Error(`research agenda transaction failed: ${finalized.error?.reason || 'unknown'}`);
         payload.researchAgenda = finalized.transaction.payload.researchAgenda;
         payload.toolReads = finalized.transaction.payload.toolReads;
-        console.log(`[brief-parallel] research agenda generation=${researchPreparation.generationId} failures=${Object.keys(finalized.failuresByTopicId).length} pointerLast=${finalized.promotion.pointerLast}`);
+        writeFileSync(RESEARCH_PAYLOAD_CANDIDATE_PATH, JSON.stringify(finalized.transaction.payload, null, 2) + '\n');
+        writeFileSync(RESEARCH_PUBLICATION_CANDIDATE_PATH, JSON.stringify({
+            contractVersion: researchRuntime.RESEARCH_AGENDA_PUBLICATION_CANDIDATE_VERSION,
+            candidate: finalized.candidate,
+            failuresByTopicId: finalized.failuresByTopicId
+        }) + '\n');
+        console.log(`[brief-parallel] research agenda generation=${researchPreparation.generationId} failures=${Object.keys(finalized.failuresByTopicId).length} publication=private-candidate`);
     } else {
         const candidatePath = `${PAYLOAD_PATH}.candidate`;
         writeFileSync(candidatePath, JSON.stringify(payload, null, 2) + '\n');
@@ -622,6 +706,8 @@ try {
 } catch (error) {
     writeFileSync(PAYLOAD_PATH, payloadBaseline);
     writeFileSync(CONFIG_PATH, configBaseline);
+    if (RESEARCH_PUBLICATION_CANDIDATE_PATH) rmSync(RESEARCH_PUBLICATION_CANDIDATE_PATH, { force: true });
+    if (RESEARCH_PAYLOAD_CANDIDATE_PATH) rmSync(RESEARCH_PAYLOAD_CANDIDATE_PATH, { force: true });
     if (researchPreparation && researchTreeBaseline) restoreTree(resolve(ROOT, 'research/agenda'), researchTreeBaseline);
     console.error(`[brief-parallel] FAIL: ${error.message}`);
     process.exitCode = 1;

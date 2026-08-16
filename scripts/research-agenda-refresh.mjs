@@ -3,6 +3,7 @@ import {
   mkdirSync,
   readFileSync,
   readdirSync,
+  renameSync,
   rmSync,
   statSync,
   writeFileSync
@@ -16,10 +17,16 @@ import {
   buildResearchAgendaTransaction,
   composeResearchAgendaCandidate,
   computeResearchAgendaOutputs,
+  feature019ArtifactFamilyForCandidate,
   planResearchAgendaAcquisition,
   promoteResearchAgendaTransaction,
+  researchAgendaFreshnessPolicyRef,
   RESEARCH_AGENDA_CONTRACTS,
+  resolveFeature019ArtifactBudgetPolicy,
   resolveResearchAgendaPolicy,
+  runResearchTopicAcquisitionPool,
+  validateFeature019ArtifactBytes,
+  validateFeature019ModelInputBudget,
   validateResearchSituation
 } from './research-agenda-generation.mjs';
 import { renderQueryPlan } from './web-evidence-acquire.mjs';
@@ -28,6 +35,7 @@ const require = createRequire(import.meta.url);
 const RLAGENDA = require('../rlagenda.js');
 
 export const RESEARCH_ACQUISITION_SEARCH_VERSION = 'research-acquisition-search/v1';
+export const RESEARCH_AGENDA_PUBLICATION_CANDIDATE_VERSION = 'research-agenda-publication-candidate/v1';
 const SEARCH_FRAGMENT_FIELDS = Object.freeze(['contractVersion', 'generationId', 'queries']);
 const SEARCH_QUERY_FIELDS = Object.freeze(['queryId', 'candidates']);
 const SEARCH_CANDIDATE_FIELDS = Object.freeze([
@@ -41,6 +49,45 @@ function readJson(root, relativePath) {
 
 function readText(root, relativePath) {
   return readFileSync(resolve(root, relativePath), 'utf8');
+}
+
+function artifactBudgetError(result) {
+  const details = result.error;
+  const error = new Error([
+    details.code,
+    details.reason,
+    details.family ? `family=${details.family}` : null,
+    details.path ? `path=${details.path}` : null,
+    Number.isInteger(details.observedBytes) ? `observed=${details.observedBytes}` : null,
+    Number.isInteger(details.limitBytes) ? `limit=${details.limitBytes}` : null,
+    Number.isInteger(details.observedSymbols) ? `observedSymbols=${details.observedSymbols}` : null,
+    Number.isInteger(details.limitSymbols) ? `limitSymbols=${details.limitSymbols}` : null,
+    Number.isInteger(details.observedRows) ? `observedRows=${details.observedRows}` : null,
+    Number.isInteger(details.limitRows) ? `limitRows=${details.limitRows}` : null
+  ].filter(Boolean).join(' '));
+  Object.assign(error, details);
+  return error;
+}
+
+function enforceArtifactBytes(policy, checks, family, relativePath, bytes) {
+  const result = validateFeature019ArtifactBytes({ policy, family, path: relativePath, bytes });
+  if (!result.ok) throw artifactBudgetError(result);
+  checks.push({
+    family,
+    path: relativePath,
+    observedBytes: result.value.observedBytes,
+    limitBytes: result.value.limitBytes,
+    serialization: 'on-disk'
+  });
+  return bytes;
+}
+
+function readBudgetedText(root, relativePath, family, policy, checks) {
+  return enforceArtifactBytes(policy, checks, family, relativePath, readText(root, relativePath));
+}
+
+function readBudgetedJson(root, relativePath, family, policy, checks) {
+  return JSON.parse(readBudgetedText(root, relativePath, family, policy, checks));
 }
 
 function exactKeys(value, fields) {
@@ -183,26 +230,27 @@ function barIdsForDefinition(definition) {
   ])];
 }
 
-function committedBarRecords(root, topic, definition, cutoffAt) {
+function committedBarRecords(definition, cutoffAt, barInputsBySymbol) {
   const records = [];
   const barIds = barIdsForDefinition(definition);
   for (const requirement of definition.sourceRequirements || []) {
     if (!requirement.sourceClasses.includes('committed-bar') || barIds.length === 0) continue;
-    const bars = barIds.filter((barId) => existsSync(resolve(root, `data/bars/${barId}.json`)));
+    const bars = barIds.filter((barId) => Object.hasOwn(barInputsBySymbol, barId));
     if (bars.length !== barIds.length) continue;
     const observedAt = bars.map((barId) => {
-      const bar = readJson(root, `data/bars/${barId}.json`);
+      const bar = barInputsBySymbol[barId].value;
       return `${bar.asof}T23:59:59.000Z`;
     }).sort().at(-1);
     if (Date.parse(observedAt) > Date.parse(cutoffAt)) continue;
-    const digest = RLAGENDA.agendaDigest(Object.fromEntries(bars.map((barId) => [barId, RLAGENDA.sha256Text(readText(root, `data/bars/${barId}.json`))])));
+    const digest = RLAGENDA.agendaDigest(Object.fromEntries(bars.map((barId) => [barId, RLAGENDA.sha256Text(barInputsBySymbol[barId].bytes)])));
     records.push({
       requirementId: requirement.requirementId,
+      sourceId: `${definition.topicId}-${requirement.requirementId}-committed-bars`,
       observedAt,
       availableAt: observedAt,
       contentSha256: digest,
       claimCoverage: requirement.requiredClaimCoverage.slice(),
-      barIds
+      freshnessPolicyRef: researchAgendaFreshnessPolicyRef(definition, requirement)
     });
   }
   return records;
@@ -219,18 +267,30 @@ function compactSnapshot(snapshot) {
   };
 }
 
-function loadExistingRecords(root) {
+function loadExistingRecords(root, artifactBudgetPolicy, artifactBudgetChecks) {
   return Object.fromEntries(walkJson(root, 'research/agenda').filter(([, record]) => [
     RLAGENDA.GENERATION_VERSION,
     RLAGENDA.REVIEW_VERSION,
-    RLAGENDA.DOSSIER_VERSION
-  ].includes(record.contractVersion)));
+    RLAGENDA.DOSSIER_VERSION,
+    RLAGENDA.SOURCE_VERSION
+  ].includes(record.contractVersion)).map(([relativePath, record]) => {
+    const family = feature019ArtifactFamilyForCandidate(relativePath, record);
+    if (!family) {
+      throw artifactBudgetError({
+        ok: false,
+        error: { code: 'E019-ARTIFACT-BUDGET', reason: 'artifact-family-unknown', family: null, path: relativePath }
+      });
+    }
+    readBudgetedText(root, relativePath, family, artifactBudgetPolicy, artifactBudgetChecks);
+    return [relativePath, record];
+  }));
 }
 
-function currentPriorDossiers(root, current, existingRecordsByPath) {
+function currentPriorDossiers(current, existingRecordsByPath) {
   const priors = {};
   for (const topicRef of current.topicRefs || []) {
-    const path = topicRef.dossierRef?.path;
+    const review = topicRef.reviewRef?.path ? existingRecordsByPath[topicRef.reviewRef.path] : null;
+    const path = topicRef.dossierRef?.path || review?.predecessorDossierRef?.path;
     const dossier = path ? existingRecordsByPath[path] : null;
     if (dossier && dossier.historicalOnly !== true) priors[topicRef.topicId] = dossier;
   }
@@ -238,9 +298,30 @@ function currentPriorDossiers(root, current, existingRecordsByPath) {
 }
 
 export function prepareResearchAgendaRuntime({ root = process.cwd(), snapshot, config, payload }) {
-  const registry = readJson(root, 'research-agenda.json');
-  const historyText = readText(root, 'research/agenda/history.jsonl');
-  const current = readJson(root, 'research/agenda/current.json');
+  const artifactBudgetResult = resolveFeature019ArtifactBudgetPolicy(config);
+  if (!artifactBudgetResult.ok) throw artifactBudgetError(artifactBudgetResult);
+  const artifactBudgetPolicy = artifactBudgetResult.value;
+  const artifactBudgetChecks = [];
+  const registry = readBudgetedJson(root, 'research-agenda.json', 'registry', artifactBudgetPolicy, artifactBudgetChecks);
+  const tools = readJson(root, 'tools.json');
+  for (const [relativePath, family] of [
+    ['rlagenda.js', 'umd-module'],
+    ['rlexperience-adapters/research-agenda.js', 'experience-adapter'],
+    ['research-agenda-lab.html', 'tool-page']
+  ]) {
+    readBudgetedText(root, relativePath, family, artifactBudgetPolicy, artifactBudgetChecks);
+  }
+  const researchAgendaTool = tools.tools.find((tool) => tool.id === 'research-agenda-lab');
+  if (!researchAgendaTool || typeof researchAgendaTool.notes !== 'string' || researchAgendaTool.notes.length === 0) {
+    throw new Error('research agenda tool note path missing');
+  }
+  readBudgetedText(root, researchAgendaTool.notes, 'tool-note', artifactBudgetPolicy, artifactBudgetChecks);
+  const agendaPolicyResult = RLAGENDA.resolveAgendaPolicy(registry.reviewPolicy);
+  if (!agendaPolicyResult.ok) throw new Error(`research agenda registry policy failed: ${agendaPolicyResult.code}`);
+  const agendaPolicy = agendaPolicyResult.value;
+  const policyDigest = agendaPolicyResult.digest;
+  const historyText = readBudgetedText(root, 'research/agenda/history.jsonl', 'history-ledger', artifactBudgetPolicy, artifactBudgetChecks);
+  const current = readBudgetedJson(root, 'research/agenda/current.json', 'current', artifactBudgetPolicy, artifactBudgetChecks);
   const cutoffAt = snapshot.generatedAt || snapshot.asOf;
   const generation = RLAGENDA.deriveGenerationId({
     snapshotDigest: RLAGENDA.agendaDigest(snapshot),
@@ -249,14 +330,37 @@ export function prepareResearchAgendaRuntime({ root = process.cwd(), snapshot, c
     generationCutoff: cutoffAt
   });
   if (!generation.ok) throw new Error(`research agenda generation identity failed: ${generation.field}`);
-  const definitionsByTopicId = Object.fromEntries(registry.topics.map((topic) => [topic.topicId, readJson(root, topic.definitionRef)]));
+  const definitionsByTopicId = Object.fromEntries(registry.topics.map((topic) => [
+    topic.topicId,
+    readBudgetedJson(root, topic.definitionRef, 'definition', artifactBudgetPolicy, artifactBudgetChecks)
+  ]));
   const calibrationsByTopicId = Object.fromEntries(registry.topics.map((topic) => {
     const ref = definitionsByTopicId[topic.topicId].calibrationRef;
-    return [topic.topicId, ref ? readJson(root, ref) : { contractVersion: RLAGENDA.CALIBRATION_VERSION, topicId: topic.topicId, calibrationVersion: 'v1.0.0', events: [] }];
+    return [topic.topicId, ref
+      ? readBudgetedJson(root, ref, 'calibration', artifactBudgetPolicy, artifactBudgetChecks)
+      : { contractVersion: RLAGENDA.CALIBRATION_VERSION, topicId: topic.topicId, calibrationVersion: 'v1.0.0', events: [] }];
   }));
+  const requestedBarIds = [...new Set(Object.values(definitionsByTopicId).flatMap(barIdsForDefinition))];
+  const barInputsBySymbol = Object.fromEntries(requestedBarIds.filter((barId) => existsSync(resolve(root, `data/bars/${barId}.json`))).map((barId) => {
+    const bytes = readText(root, `data/bars/${barId}.json`);
+    return [barId, { bytes, value: JSON.parse(bytes) }];
+  }));
+  const modelInputBudget = validateFeature019ModelInputBudget({
+    policy: artifactBudgetPolicy,
+    symbols: requestedBarIds,
+    barsBySymbol: Object.fromEntries(Object.entries(barInputsBySymbol).map(([barId, input]) => [barId, input.value]))
+  });
+  if (!modelInputBudget.ok) throw artifactBudgetError(modelInputBudget);
+  const existingRecordsByPath = loadExistingRecords(root, artifactBudgetPolicy, artifactBudgetChecks);
+  const priorDossiersByTopicId = currentPriorDossiers(current, existingRecordsByPath);
   const evidenceByTopicId = Object.fromEntries(registry.topics.map((topic) => [
     topic.topicId,
-    committedBarRecords(root, topic, definitionsByTopicId[topic.topicId], cutoffAt)
+    [
+      ...committedBarRecords(definitionsByTopicId[topic.topicId], cutoffAt, barInputsBySymbol),
+      ...(Array.isArray(priorDossiersByTopicId[topic.topicId]?.sourceLedger)
+        ? priorDossiersByTopicId[topic.topicId].sourceLedger
+        : [])
+    ]
   ]));
   const plan = RLAGENDA.planGeneration(registry, historyText, { definitionsByTopicId, triggerObservations: [] }, cutoffAt);
   if (!plan.ok) throw new Error(`research agenda plan failed: ${plan.code || plan.status}`);
@@ -277,11 +381,9 @@ export function prepareResearchAgendaRuntime({ root = process.cwd(), snapshot, c
       normalizedClaim: requirement.requiredClaimCoverage.join(', ')
     };
   });
-  const existingRecordsByPath = loadExistingRecords(root);
-  const priorDossiersByTopicId = currentPriorDossiers(root, current, existingRecordsByPath);
   const currentBarsByTopicId = Object.fromEntries(registry.topics.map((topic) => {
     const definition = definitionsByTopicId[topic.topicId];
-    return [topic.topicId, Object.fromEntries(barIdsForDefinition(definition).filter((barId) => existsSync(resolve(root, `data/bars/${barId}.json`))).map((barId) => [barId, readJson(root, `data/bars/${barId}.json`)]))];
+    return [topic.topicId, Object.fromEntries(barIdsForDefinition(definition).filter((barId) => Object.hasOwn(barInputsBySymbol, barId)).map((barId) => [barId, barInputsBySymbol[barId].value]))];
   }));
   const selectedEntries = plan.selected.map((selected) => {
     const topic = registry.topics.find((row) => row.topicId === selected.topicId);
@@ -306,17 +408,30 @@ export function prepareResearchAgendaRuntime({ root = process.cwd(), snapshot, c
     current,
     historyText
   });
+  const retryCacheIdentity = RLAGENDA.agendaDigest({
+    generationId: generation.id,
+    inputFingerprint,
+    policyDigest
+  });
   return {
     root,
     registry,
+    agendaPolicy,
+    policyDigest,
     historyText,
     current,
     payload,
+    snapshot,
+    tools,
     cutoffAt,
     generationId: generation.id,
     inputFingerprint,
+    retryCacheIdentity,
     plan,
     config,
+    artifactBudgetPolicy,
+    artifactBudgetChecks,
+    modelInputBudget: modelInputBudget.value,
     policy: policy.value,
     queryInput: queryInput.value,
     queryPlan: queryPlan?.value || null,
@@ -332,50 +447,138 @@ export function prepareResearchAgendaRuntime({ root = process.cwd(), snapshot, c
       contractVersion: 'research-author-input/v1',
       generationId: generation.id,
       cutoffAt,
-      policy: { timeoutSeconds: 900, attempts: 1, concurrency: 1, maxInputBytes: 524288, maxOutputBytes: 524288 },
+      policy: agendaPolicy.researchAuthoring,
+      policyDigest,
       selectedTopics: selectedEntries
     },
     acquisitionInput: queryPlan?.value ? {
       contractVersion: 'research-acquisition-author-input/v1',
       generationId: generation.id,
+      policy: agendaPolicy,
+      policyDigest,
       queryPlan: queryPlan.value,
       claimSpecs
     } : null
   };
 }
 
+function topicAcquisitionTasks(preparation, searchFragment) {
+  if (preparation.queryInput === null || preparation.queryPlan === null) return [];
+  const globalQueryByTemplateId = new Map(preparation.queryPlan.queries.map((query) => [query.templateId, query]));
+  const searchRowsByQueryId = new Map((searchFragment?.queries || []).map((row) => [row.queryId, row]));
+  return preparation.plan.selected.map((selected) => {
+    const templatePrefix = selected.topicId + '-';
+    const templates = preparation.queryInput.templates.filter((template) => template.templateId.startsWith(templatePrefix));
+    if (templates.length === 0) return null;
+    const queryInput = {
+      ...preparation.queryInput,
+      runId: preparation.generationId + ':' + selected.topicId,
+      templates
+    };
+    const rendered = renderQueryPlan(queryInput, preparation.policy);
+    if (!rendered.ok) throw new Error(`research agenda topic query plan failed: ${rendered.error.detail}`);
+    const queryPlan = rendered.value;
+    const topicSearchFragment = searchFragment ? {
+      contractVersion: searchFragment.contractVersion,
+      generationId: queryPlan.runId,
+      queries: queryPlan.queries.map((query) => {
+        const globalQuery = globalQueryByTemplateId.get(query.templateId);
+        const globalRow = globalQuery ? searchRowsByQueryId.get(globalQuery.queryId) : null;
+        return {
+          queryId: query.queryId,
+          candidates: (globalRow?.candidates || []).map((candidate, index) => ({
+            ...candidate,
+            candidateId: query.queryId + ':c' + index
+          }))
+        };
+      })
+    } : null;
+    return {
+      topicId: selected.topicId,
+      queryInput,
+      queryPlan,
+      searchFragment: topicSearchFragment,
+      claimSpecs: preparation.claimSpecs.filter((claim) => claim.claimId.startsWith(selected.topicId + ':'))
+    };
+  }).filter(Boolean);
+}
+
 export async function bindResearchAgendaAcquisition({ preparation, searchFragment, fetchImpl = globalThis.fetch, now = Date.now, deadlineAtMs = Number.POSITIVE_INFINITY }) {
-  let acquisitionResult;
-  if (preparation.queryPlan === null) {
-    acquisitionResult = { ok: true, value: { state: 'fully-reused', policy: preparation.policy, bundle: null } };
-  } else {
-    const boundary = createResearchAgendaLiveBoundary({ searchFragment, queryPlan: preparation.queryPlan, fetchImpl, now, deadlineAtMs });
-    if (!boundary.ok) acquisitionResult = boundary;
-    else {
-      acquisitionResult = await acquireResearchAgendaEvidence({
+  const globalBoundary = preparation.queryPlan === null ? null : createResearchAgendaLiveBoundary({
+    searchFragment,
+    queryPlan: preparation.queryPlan,
+    fetchImpl,
+    now,
+    deadlineAtMs
+  });
+  const tasks = topicAcquisitionTasks(preparation, globalBoundary && !globalBoundary.ok ? null : searchFragment);
+  const pool = await runResearchTopicAcquisitionPool({
+    topics: tasks,
+    policy: preparation.agendaPolicy,
+    policyDigest: preparation.policyDigest,
+    acquireFn: async (task) => {
+      if (globalBoundary && !globalBoundary.ok) return globalBoundary;
+      const boundary = createResearchAgendaLiveBoundary({
+        searchFragment: task.searchFragment,
+        queryPlan: task.queryPlan,
+        fetchImpl,
+        now,
+        deadlineAtMs
+      });
+      if (!boundary.ok) return boundary;
+      return acquireResearchAgendaEvidence({
         config: preparation.config,
-        queryInput: preparation.queryInput,
+        queryInput: task.queryInput,
         boundary: boundary.value,
         acquisitionStartedAt: preparation.cutoffAt,
         frozenAt: preparation.cutoffAt,
-        claimSpecs: preparation.claimSpecs,
+        claimSpecs: task.claimSpecs,
         ownerEvidence: {}
       });
     }
+  });
+  if (!pool.ok) return pool;
+  const successfulBundles = Object.values(pool.value.resultsByTopicId)
+    .map((result) => result?.value?.bundle)
+    .filter(Boolean);
+  const aggregateBundleBytes = successfulBundles.reduce((sum, bundle) => sum + (bundle.byteInventory?.bundleBytes || 0), 0);
+  const aggregateOrigins = new Set(successfulBundles.flatMap((bundle) => bundle.sources.map((source) => source.independentOriginGroup)));
+  let aggregateFailure = null;
+  if (aggregateBundleBytes > preparation.policy.maxBundleBytes) aggregateFailure = 'response-bytes-over-cap';
+  else if (aggregateOrigins.size > preparation.policy.maxRetainedOrigins) aggregateFailure = 'candidate-cardinality-over-cap';
+  else if (pool.value.telemetry.elapsedMs > preparation.policy.totalAcquisitionMs) aggregateFailure = 'request-timeout';
+
+  const acquisitionFailuresByTopicId = { ...pool.value.failuresByTopicId };
+  if (aggregateFailure) tasks.forEach((task) => { acquisitionFailuresByTopicId[task.topicId] = aggregateFailure; });
+  const acquisitionResult = {
+    ok: Object.keys(acquisitionFailuresByTopicId).length === 0,
+    value: {
+      state: tasks.length === 0 ? 'fully-reused' : (Object.keys(acquisitionFailuresByTopicId).length === 0 ? 'acquired' : 'partial'),
+      policy: preparation.policy,
+      policyDigest: preparation.policyDigest,
+      resultsByTopicId: pool.value.resultsByTopicId,
+      telemetry: {
+        ...pool.value.telemetry,
+        aggregateBundleBytes,
+        retainedOriginCount: aggregateOrigins.size,
+        maxConcurrentFetchesPerTopic: preparation.policy.maxConcurrentFetches
+      }
+    }
+  };
+  if (tasks.length === 0) {
+    acquisitionResult.value.resultsByTopicId = {};
   }
-  const acquisitionFailuresByTopicId = {};
-  const failureReason = acquisitionResult.ok ? null : (acquisitionResult.error?.reason || acquisitionResult.error?.detail || 'acquisition-failed');
   const selectedTopics = preparation.authorInput.selectedTopics.map((entry) => {
     const requirementPlan = preparation.acquisitionPlan.topics.find((row) => row.topicId === entry.topic.topicId);
-    if (failureReason && requirementPlan.requirements.some((row) => row.state === 'missing-or-stale')) {
-      acquisitionFailuresByTopicId[entry.topic.topicId] = failureReason;
-    }
+    const topicResult = pool.value.resultsByTopicId[entry.topic.topicId];
+    const failureReason = acquisitionFailuresByTopicId[entry.topic.topicId] || null;
     return {
       ...entry,
       acquisition: {
-        state: acquisitionResult.ok ? acquisitionResult.value.state : 'failed',
+        state: failureReason ? 'failed' : (topicResult?.value?.state || 'fully-reused'),
         requirementPlan,
-        bundle: acquisitionResult.ok ? acquisitionResult.value.bundle : null
+        bundle: failureReason ? null : (topicResult?.value?.bundle || null),
+        policyDigest: preparation.policyDigest
       }
     };
   });
@@ -411,32 +614,48 @@ function fsIo(root) {
   const full = (relativePath) => resolve(root, relativePath);
   return {
     exists: (relativePath) => existsSync(full(relativePath)),
-    read: (relativePath) => readFileSync(full(relativePath), 'utf8'),
+    read: (relativePath) => readFileSync(full(relativePath)),
     create: (relativePath, bytes) => {
       mkdirSync(dirname(full(relativePath)), { recursive: true });
       writeFileSync(full(relativePath), bytes, { flag: 'wx' });
     },
-    replace: (relativePath, bytes) => {
-      mkdirSync(dirname(full(relativePath)), { recursive: true });
-      writeFileSync(full(relativePath), bytes);
-    },
+    rename: (sourcePath, targetPath) => renameSync(full(sourcePath), full(targetPath)),
     remove: (relativePath) => rmSync(full(relativePath), { recursive: true, force: true })
   };
 }
 
-export function finalizeResearchAgendaRuntime({ preparation, researchFragment, payload, acquisitionFailuresByTopicId = {} }) {
+function predecessorComparisonOutput(dossier, definition) {
+  if (!dossier || dossier.historicalOnly === true) return null;
+  const model = dossier.modelOutputs;
+  if (!model || typeof model !== 'object' || !Array.isArray(model.evidenceLedger)) return {};
+  const rootNodes = definition.scenarioTree.nodes.filter((node) => node.parentId === null);
+  return {
+    probabilities: Object.fromEntries(rootNodes.map((node) => [node.scenarioId, model.scenarioProbabilities[node.scenarioId].unconditional])),
+    evidenceIds: model.evidenceLedger.map((row) => row.evidenceId),
+    conflictIds: [...new Set(model.evidenceLedger.flatMap((row) => row.conflicts.evidenceIds))].sort(),
+    directionScore: model.directionScore,
+    dominantScenarioId: model.dominantScenarioId,
+    declaredQuestionSha256: dossier.declaredQuestionSha256
+  };
+}
+
+export function finalizeResearchAgendaRuntime({ preparation, researchFragment, payload, acquisitionFailuresByTopicId = {}, promote = true }) {
   const mapped = situationMap(preparation, researchFragment);
   const situations = mapped.situations;
   const failures = { ...mapped.failures, ...acquisitionFailuresByTopicId };
   const deterministicOutputsByTopicId = {};
   for (const [topicId, situation] of Object.entries(situations)) {
     if (failures[topicId]) continue;
+    const topic = preparation.registry.topics.find((row) => row.topicId === topicId);
+    const definition = preparation.definitionsByTopicId[topicId];
     const output = computeResearchAgendaOutputs({
-      definition: preparation.definitionsByTopicId[topicId],
+      definition,
       calibration: preparation.calibrationsByTopicId[topicId],
       situation,
       currentBars: preparation.currentBarsByTopicId[topicId],
-      generationCutoff: preparation.cutoffAt
+      generationCutoff: preparation.cutoffAt,
+      declaredQuestion: topic.declaredQuestion,
+      predecessorOutput: predecessorComparisonOutput(preparation.priorDossiersByTopicId[topicId] || null, definition)
     });
     if (output.ok) deterministicOutputsByTopicId[topicId] = output.value;
     else failures[topicId] = output.error.reason;
@@ -458,24 +677,87 @@ export function finalizeResearchAgendaRuntime({ preparation, researchFragment, p
     payload,
     historyText: preparation.historyText,
     registry: preparation.registry,
-    existingRecordsByPath: preparation.existingRecordsByPath
+    existingRecordsByPath: preparation.existingRecordsByPath,
+    pageInputs: { config: preparation.config, snapshot: preparation.snapshot, tools: preparation.tools }
   });
   if (!transaction.ok) return transaction;
-  const promoted = promoteResearchAgendaTransaction(transaction.value, fsIo(preparation.root));
-  if (!promoted.ok) return promoted;
+  const promoted = promote ? promoteResearchAgendaTransaction(transaction.value, fsIo(preparation.root)) : null;
+  if (promoted && !promoted.ok) return promoted;
   return {
     ok: true,
     candidate: candidate.value,
     transaction: transaction.value,
-    promotion: promoted.value,
+    promotion: promoted?.value || null,
     failuresByTopicId: failures
   };
 }
 
+export function promoteResearchAgendaPublicationCandidate({ root = process.cwd(), candidate, payload }) {
+  const snapshot = readJson(root, 'market-brief.snapshot.json');
+  const config = readJson(root, 'market-brief.config.json');
+  const preparation = prepareResearchAgendaRuntime({ root, snapshot, config, payload });
+  if (!candidate || candidate.generationId !== preparation.generationId) {
+    return { ok: false, error: { code: 'E019-AGENDA-TRANSACTION', reason: 'publication-candidate-generation-mismatch' } };
+  }
+  const transaction = buildResearchAgendaTransaction({
+    candidate,
+    payload,
+    historyText: preparation.historyText,
+    registry: preparation.registry,
+    existingRecordsByPath: preparation.existingRecordsByPath,
+    pageInputs: { config: preparation.config, snapshot: preparation.snapshot, tools: preparation.tools }
+  });
+  if (!transaction.ok) return transaction;
+  const promotion = promoteResearchAgendaTransaction(transaction.value, fsIo(root));
+  if (!promotion.ok) return promotion;
+  return { ok: true, transaction: transaction.value, promotion: promotion.value };
+}
+
 function main() {
   const args = process.argv.slice(2);
+  if (args[0] === '--promote-candidate') {
+    const payloadFlag = args.indexOf('--payload-candidate');
+    if (args.length !== 4 || payloadFlag !== 2 || !args[1] || !args[3]) {
+      console.error('Usage: node scripts/research-agenda-refresh.mjs --promote-candidate <path> --payload-candidate <path>');
+      process.exit(2);
+    }
+    const publicationPath = resolve(args[1]);
+    const payloadPath = resolve(args[3]);
+    try {
+      const publication = JSON.parse(readFileSync(publicationPath, 'utf8'));
+      const publicationKeys = publication && typeof publication === 'object' && !Array.isArray(publication)
+        ? Object.keys(publication).sort().join('|')
+        : '';
+      if (publicationKeys !== 'candidate|contractVersion|failuresByTopicId' ||
+          publication.contractVersion !== RESEARCH_AGENDA_PUBLICATION_CANDIDATE_VERSION) {
+        throw new Error('publication candidate shape is invalid');
+      }
+      const result = promoteResearchAgendaPublicationCandidate({
+        root: process.cwd(),
+        candidate: publication.candidate,
+        payload: JSON.parse(readFileSync(payloadPath, 'utf8'))
+      });
+      if (!result.ok) throw new Error(`${result.error?.code || 'E019'} ${result.error?.reason || 'publication failed'}`);
+      console.log(`[research-agenda] generation=${publication.candidate.generationId} pointerLast=${result.promotion.pointerLast}`);
+      console.log(JSON.stringify({
+        contractVersion: 'research-agenda-promotion-result/v1',
+        generationId: publication.candidate.generationId,
+        unavailableTopicCount: Object.keys(publication.failuresByTopicId).length,
+        immutableCount: result.promotion.immutableCount,
+        pointerLast: result.promotion.pointerLast
+      }));
+      return;
+    } catch (error) {
+      console.error(`[research-agenda] FAIL ${error.message}`);
+      process.exitCode = 1;
+      return;
+    } finally {
+      rmSync(publicationPath, { force: true });
+      rmSync(payloadPath, { force: true });
+    }
+  }
   if (args.length !== 1 || args[0] !== '--publish-unavailable') {
-    console.error('Usage: node scripts/research-agenda-refresh.mjs --publish-unavailable');
+    console.error('Usage: node scripts/research-agenda-refresh.mjs --publish-unavailable | --promote-candidate <path> --payload-candidate <path>');
     process.exit(2);
   }
   const root = process.cwd();

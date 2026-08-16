@@ -2,9 +2,9 @@
   "contractVersion": "scenario-manifest/v1",
   "featureDir": "specs/019-custom-recurring-research-agenda",
   "generatedBy": "bubbles.plan",
-  "generatedAt": "2026-08-13T00:00:00Z",
+  "generatedAt": "2026-08-15T12:09:53Z",
   "stage": "scope-level-planning",
-  "stageNote": "Reconciled after spec.md and design.md established explicit every-generation and cadence modes, immutable review/dossier history, deterministic current-only models, governed generation integration, and the first-class research tool. Existing report evidence is historical and cannot satisfy this replan. Each evidenceRefs entry names a fresh replanned-contract anchor that implementation must append after executing the current row. Exact planned test titles live in test-plan.json and the five scope files.",
+  "stageNote": "Active gaps remediation after fresh item-local TP-04-15/17 fixture repair. Historical report output and unaffected checked rows remain preserved. The plan retains 68 exact Markdown and JSON Test Plan rows. SCN-019-012 and SCN-019-015 return to done on the required publicSubjects remediation evidence. All five scopes and all twenty scenarios are done again. The gaps phase remains in_progress, activeAgent remains bubbles.gaps, currentScope is null, and the next required owner is bubbles.gaps at the Feature 019 root; top-level feature and certification status remain unchanged.",
   "scenarioCount": 20,
   "businessScenarioMapping": "SCN-019-001 through SCN-019-020 map one-to-one onto BS-019-001 through BS-019-020 in spec.md. No scenario identifier is added, dropped, or duplicated.",
   "scenarios": [
@@ -24,9 +24,9 @@
       "changeType": "new",
       "requiredTestType": "e2e-api",
       "regressionRequired": true,
-      "linkedTests": ["scripts/selftest.mjs", "scripts/validate-spec-test-paths.mjs", "tests/deployed-site-parity.spec.mjs"],
-      "testRows": ["TP-01-01", "TP-01-05", "TP-01-06", "TP-01-07"],
-      "evidenceRefs": ["scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-01", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-05", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-06", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-07"]
+      "linkedTests": ["scripts/selftest.mjs", "scripts/validate-spec-test-paths.mjs", "tests/deployed-site-parity.spec.mjs", "tests/distributed-briefs.final-budget.stress.mjs"],
+      "testRows": ["TP-01-01", "TP-01-05", "TP-01-06", "TP-01-07", "TP-01-08"],
+      "evidenceRefs": ["scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-01", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-05", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-06", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-07", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-08"]
     },
     {
       "scenarioId": "SCN-019-002",
@@ -64,9 +64,9 @@
       "changeType": "new",
       "requiredTestType": "unit",
       "regressionRequired": true,
-      "linkedTests": ["scripts/selftest.mjs"],
-      "testRows": ["TP-01-03", "TP-01-05"],
-      "evidenceRefs": ["scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-03", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-05"]
+      "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.final-budget.stress.mjs"],
+      "testRows": ["TP-01-03", "TP-01-05", "TP-01-08"],
+      "evidenceRefs": ["scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-03", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-05", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-08"]
     },
     {
       "scenarioId": "SCN-019-004",
@@ -106,7 +106,7 @@
       "regressionRequired": true,
       "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.history.e2e.mjs"],
       "testRows": ["TP-02-01", "TP-02-07"],
-      "evidenceRefs": ["scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-01", "scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-07"]
+      "evidenceRefs": ["scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-01", "scopes/02-topic-lifecycle/report.md#tp-02-07-exact-title-evidence"]
     },
     {
       "scenarioId": "SCN-019-006",
@@ -125,8 +125,8 @@
       "requiredTestType": "e2e-api",
       "regressionRequired": true,
       "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.history.e2e.mjs"],
-      "testRows": ["TP-02-02", "TP-02-07"],
-      "evidenceRefs": ["scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-02", "scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-07"]
+      "testRows": ["TP-02-02", "TP-02-07", "TP-02-08"],
+      "evidenceRefs": ["scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-02", "scopes/02-topic-lifecycle/report.md#tp-02-07-exact-title-evidence", "scopes/02-topic-lifecycle/report.md#tp-02-08-exact-title-evidence"]
     },
     {
       "scenarioId": "SCN-019-007",
@@ -144,9 +144,9 @@
       "changeType": "new",
       "requiredTestType": "e2e-api",
       "regressionRequired": true,
-      "linkedTests": ["scripts/selftest.mjs", "tests/deployed-site-parity.spec.mjs"],
-      "testRows": ["TP-01-04", "TP-01-07"],
-      "evidenceRefs": ["scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-04", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-07"]
+      "linkedTests": ["scripts/selftest.mjs", "tests/deployed-site-parity.spec.mjs", "tests/distributed-briefs.final-budget.stress.mjs"],
+      "testRows": ["TP-01-04", "TP-01-07", "TP-01-08"],
+      "evidenceRefs": ["scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-04", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-07", "scopes/01-agenda-registry-contract/report.md#replanned-contract-tp-01-08"]
     },
     {
       "scenarioId": "SCN-019-008",
@@ -184,9 +184,9 @@
       "changeType": "new",
       "requiredTestType": "e2e-api",
       "regressionRequired": true,
-      "linkedTests": ["tests/distributed-briefs.final.unit.mjs", "tests/distributed-briefs.final.e2e.mjs", "scripts/validate-brief-payload.mjs"],
-      "testRows": ["TP-03-02", "TP-03-13", "TP-04-11"],
-      "evidenceRefs": ["scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-02", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-13", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-11"]
+      "linkedTests": ["tests/distributed-briefs.final.unit.mjs", "tests/distributed-briefs.final.e2e.mjs", "scripts/validate-brief-payload.mjs", "scripts/selftest.mjs"],
+      "testRows": ["TP-03-02", "TP-03-13", "TP-03-14", "TP-03-16", "TP-04-11", "TP-04-16"],
+      "evidenceRefs": ["scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-02", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-13", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-14", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-16", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-11", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-16"]
     },
     {
       "scenarioId": "SCN-019-010",
@@ -225,8 +225,8 @@
       "requiredTestType": "e2e-api",
       "regressionRequired": true,
       "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.final.e2e.mjs", "tests/distributed-briefs.final-budget.stress.mjs"],
-      "testRows": ["TP-03-04", "TP-03-05", "TP-03-13", "TP-04-12"],
-      "evidenceRefs": ["scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-04", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-05", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-13", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-12"]
+      "testRows": ["TP-03-04", "TP-03-05", "TP-03-13", "TP-04-12", "TP-04-18"],
+      "evidenceRefs": ["scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-04", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-05", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-13", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-12", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-18"]
     },
     {
       "scenarioId": "SCN-019-012",
@@ -244,9 +244,9 @@
       "changeType": "new",
       "requiredTestType": "e2e-api",
       "regressionRequired": true,
-      "linkedTests": ["tests/web-evidence.functional.mjs", "tests/web-evidence.security.mjs", "scripts/selftest.mjs", "tests/brief-refresh-atomicity.test.mjs", "scripts/validate-brief-payload.mjs", "tests/distributed-briefs.final.e2e.mjs"],
-      "testRows": ["TP-04-03", "TP-04-02", "TP-04-08", "TP-04-09", "TP-04-10", "TP-04-11", "TP-04-13"],
-      "evidenceRefs": ["scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-03", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-02", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-08", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-09", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-10", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-11", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-13"]
+      "linkedTests": ["tests/web-evidence.functional.mjs", "tests/web-evidence.security.mjs", "scripts/selftest.mjs", "tests/brief-refresh-atomicity.test.mjs", "scripts/validate-brief-payload.mjs", "tests/distributed-briefs.final.e2e.mjs", "tests/distributed-briefs.final-budget.stress.mjs"],
+      "testRows": ["TP-04-02", "TP-04-03", "TP-04-08", "TP-04-09", "TP-04-10", "TP-04-11", "TP-04-13", "TP-04-14", "TP-04-15", "TP-04-16", "TP-04-17", "TP-04-18"],
+      "evidenceRefs": ["scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-02", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-03", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-08", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-09", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-10", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-11", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-13", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-14", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-15", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-16", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-17", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-18", "scopes/04-dossier-and-outcome-states/report.md#required-publicsubjects-fixture-remediation---2026-08-15"]
     },
     {
       "scenarioId": "SCN-019-013",
@@ -264,9 +264,9 @@
       "changeType": "new",
       "requiredTestType": "e2e-api",
       "regressionRequired": true,
-      "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.authorship.integration.mjs", "tests/distributed-briefs.final.e2e.mjs"],
-      "testRows": ["TP-04-03", "TP-04-04", "TP-04-13"],
-      "evidenceRefs": ["scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-03", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-04", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-13"]
+      "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.authorship.integration.mjs", "tests/distributed-briefs.final.e2e.mjs", "tests/tool-experience.spec.mjs"],
+      "testRows": ["TP-04-03", "TP-04-04", "TP-04-13", "TP-05-16"],
+      "evidenceRefs": ["scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-03", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-04", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-13", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-16"]
     },
     {
       "scenarioId": "SCN-019-014",
@@ -305,8 +305,8 @@
       "requiredTestType": "e2e-ui",
       "regressionRequired": true,
       "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.authorship.integration.mjs", "tests/brief-refresh-atomicity.test.mjs", "tests/distributed-briefs.final-budget.stress.mjs", "tests/distributed-briefs.final.e2e.mjs", "tests/tool-experience.spec.mjs"],
-      "testRows": ["TP-04-03", "TP-04-06", "TP-04-07", "TP-04-10", "TP-04-12", "TP-04-13", "TP-05-07"],
-      "evidenceRefs": ["scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-03", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-06", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-07", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-10", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-12", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-13", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-07"]
+      "testRows": ["TP-04-03", "TP-04-06", "TP-04-07", "TP-04-10", "TP-04-12", "TP-04-13", "TP-04-15", "TP-04-17", "TP-04-18", "TP-05-07"],
+      "evidenceRefs": ["scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-03", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-06", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-07", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-10", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-12", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-13", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-15", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-17", "scopes/04-dossier-and-outcome-states/report.md#replanned-contract-tp-04-18", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-07", "scopes/04-dossier-and-outcome-states/report.md#required-publicsubjects-fixture-remediation---2026-08-15"]
     },
     {
       "scenarioId": "SCN-019-016",
@@ -326,7 +326,7 @@
       "regressionRequired": true,
       "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.history.e2e.mjs"],
       "testRows": ["TP-02-03", "TP-02-04", "TP-02-05", "TP-02-06", "TP-02-07"],
-      "evidenceRefs": ["scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-03", "scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-04", "scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-05", "scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-06", "scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-07"]
+      "evidenceRefs": ["scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-03", "scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-04", "scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-05", "scopes/02-topic-lifecycle/report.md#replanned-contract-tp-02-06", "scopes/02-topic-lifecycle/report.md#tp-02-07-exact-title-evidence"]
     },
     {
       "scenarioId": "SCN-019-017",
@@ -345,15 +345,15 @@
       "requiredTestType": "e2e-ui",
       "regressionRequired": true,
       "linkedTests": ["scripts/selftest.mjs", "tests/distributed-briefs.final.e2e.mjs", "tests/tool-experience.spec.mjs"],
-      "testRows": ["TP-03-06", "TP-03-07", "TP-03-08", "TP-03-09", "TP-03-10", "TP-03-11", "TP-03-12", "TP-03-13", "TP-05-06", "TP-05-08"],
-      "evidenceRefs": ["scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-06", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-07", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-08", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-09", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-10", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-11", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-12", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-13", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-06", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-08"]
+      "testRows": ["TP-03-06", "TP-03-07", "TP-03-08", "TP-03-09", "TP-03-10", "TP-03-11", "TP-03-12", "TP-03-13", "TP-03-14", "TP-03-15", "TP-03-16", "TP-05-06", "TP-05-08", "TP-05-18"],
+      "evidenceRefs": ["scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-06", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-07", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-08", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-09", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-10", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-11", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-12", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-13", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-14", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-15", "scopes/03-per-generation-review-policy/report.md#replanned-contract-tp-03-16", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-06", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-08", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-18"]
     },
     {
       "scenarioId": "SCN-019-018",
       "businessScenario": "BS-019-018",
       "scopeId": "05-refinement-public-safety-and-brief-read",
       "scope": 5,
-      "status": "not_started",
+      "status": "done",
       "title": "A refinement outside the boundary is refused",
       "gherkin": {
         "given": "a proposed refinement whose subject falls outside the topic's declared scope boundary",
@@ -373,7 +373,7 @@
       "businessScenario": "BS-019-019",
       "scopeId": "05-refinement-public-safety-and-brief-read",
       "scope": 5,
-      "status": "not_started",
+      "status": "done",
       "title": "Public scope only",
       "gherkin": {
         "given": "any dossier produced by this feature",
@@ -385,15 +385,15 @@
       "requiredTestType": "e2e-ui",
       "regressionRequired": true,
       "linkedTests": ["scripts/selftest.mjs", "tests/tool-experience.spec.mjs"],
-      "testRows": ["TP-05-02", "TP-05-10"],
-      "evidenceRefs": ["scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-02", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-10"]
+      "testRows": ["TP-05-02", "TP-05-10", "TP-05-15"],
+      "evidenceRefs": ["scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-02", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-10", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-15"]
     },
     {
       "scenarioId": "SCN-019-020",
       "businessScenario": "BS-019-020",
       "scopeId": "05-refinement-public-safety-and-brief-read",
       "scope": 5,
-      "status": "not_started",
+      "status": "done",
       "title": "The first-class tool and research read reach the brief",
       "gherkin": {
         "given": "a generation in which at least one topic was reviewed",
@@ -405,8 +405,8 @@
       "requiredTestType": "e2e-ui",
       "regressionRequired": true,
       "linkedTests": ["tests/tool-experience-registry.functional.mjs", "scripts/validate-brief-payload.mjs", "tests/tool-experience.spec.mjs", "tests/market-brief-scorecard.spec.mjs", "tests/contextual-tooltip.spec.mjs", "tests/deployed-site-parity.spec.mjs", "tests/tool-discovery.spec.mjs"],
-      "testRows": ["TP-05-03", "TP-05-04", "TP-05-05", "TP-05-08", "TP-05-09", "TP-05-11", "TP-05-12", "TP-05-13", "TP-05-14"],
-      "evidenceRefs": ["scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-03", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-04", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-05", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-08", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-09", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-11", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-12", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-13", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-14"]
+      "testRows": ["TP-05-03", "TP-05-04", "TP-05-05", "TP-05-08", "TP-05-09", "TP-05-11", "TP-05-12", "TP-05-13", "TP-05-14", "TP-05-16", "TP-05-17", "TP-05-18"],
+      "evidenceRefs": ["scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-03", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-04", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-05", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-08", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-09", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-11", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-12", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-13", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-14", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-16", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-17", "scopes/05-refinement-public-safety-and-brief-read/report.md#replanned-contract-tp-05-18"]
     }
     ]
   }

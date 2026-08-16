@@ -27,6 +27,8 @@
   var panels = {};
   var shellControl;
   var drivingLegacy = false;
+  var targetFocusObserver = null;
+  var targetFocusTimeout = null;
 
   for (var labelIndex = 0; labelIndex < MODES.length; labelIndex += 1) {
     labels[MODES[labelIndex]] = SHELL.labels[labelIndex];
@@ -210,17 +212,34 @@
     } catch (error) { }
   }
 
+  function cancelPublicTargetFocus() {
+    if (targetFocusObserver) targetFocusObserver.disconnect();
+    if (targetFocusTimeout !== null) root.clearTimeout(targetFocusTimeout);
+    targetFocusObserver = null;
+    targetFocusTimeout = null;
+  }
+
   function focusPublicTarget(targetId) {
+    cancelPublicTargetFocus();
     if (!targetId || publicTargetIds.indexOf(targetId) === -1) return;
-    root.setTimeout(function () {
+    function focusWhenPresent() {
       var target = document.querySelector('[data-public-target-id="' + targetId + '"]') || document.getElementById(targetId);
-      if (!target || typeof target.focus !== "function") return;
+      if (!target || typeof target.focus !== "function") return false;
       if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
       target.focus();
-    }, 0);
+      cancelPublicTargetFocus();
+      return true;
+    }
+    if (focusWhenPresent()) return;
+    if (root.MutationObserver && document.body) {
+      targetFocusObserver = new root.MutationObserver(focusWhenPresent);
+      targetFocusObserver.observe(document.body, { attributes: true, childList: true, subtree: true });
+    }
+    targetFocusTimeout = root.setTimeout(cancelPublicTargetFocus, 2000);
   }
 
   function apply(mode, source, targetId) {
+    cancelPublicTargetFocus();
     var previous = current;
     applyVisual(mode);
     driveLegacy(mode);
@@ -230,7 +249,7 @@
         detail: { mode: mode, previousMode: previous, baseMode: mode, toolId: TOOL, targetId: targetId || null }
       }));
     } catch (error) { }
-    focusPublicTarget(targetId);
+    if (source === "boot" || source === "popstate") focusPublicTarget(targetId);
   }
 
   function readModeRecord() {

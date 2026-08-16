@@ -444,12 +444,17 @@
         byId("powerLink").href = "#power/" + state.selectedTopicId;
       }
 
-      function dominantScenarioLabel() {
-        if (!state.view || !state.view.modelAvailable) return "Unavailable";
+      function dominantScenario() {
+        if (!state.view || !state.view.modelAvailable) return null;
         var probabilities = state.view.modelOutputs.scenarioProbability;
         var roots = state.definition.scenarioTree.nodes.filter(function (node) { return node.parentId === null; });
         roots.sort(function (left, right) { return probabilities[right.scenarioId].unconditional - probabilities[left.scenarioId].unconditional; });
-        return roots.length ? human(roots[0].title || roots[0].scenarioId) : "Unavailable";
+        return roots[0] || null;
+      }
+
+      function dominantScenarioLabel() {
+        var scenario = dominantScenario();
+        return scenario ? human(scenario.title || scenario.scenarioId) : "Unavailable";
       }
 
       function renderScenarioRows(container, rows, historical) {
@@ -572,7 +577,7 @@
       }
 
       function recomputeFromLevers() {
-        var result = RLAGENDA.computeAgendaViewState(state.definition, state.review, state.leverState);
+        var result = RLAGENDA.computeAgendaViewState(state.definition, state.review, state.currentDossier, state.leverState);
         if (!result.ok) {
           byId("recomputeNote").textContent = "The bounded assumption was refused.";
           return;
@@ -657,8 +662,7 @@
         scenarioTable.appendChild(table(["Scenario", "Probability", "Unit", "Provenance"], scenarioRows.map(function (row) {
           return [row.label, formatPercent(row.probability), "probability", "Canonical current model"];
         })));
-        var dominant = dominantScenarioLabel();
-        var dominantNode = state.definition.scenarioTree.nodes.find(function (node) { return node.title === dominant; });
+        var dominantNode = dominantScenario();
         var flowRows = dominantNode ? state.view.modelOutputs.physicalFlow[dominantNode.scenarioId].flows : [];
         flow.appendChild(table(["Flow", "Baseline", "Physical unavailable", "Rerouted", "Incremental ton-miles"], flowRows.map(function (row) {
           return [human(row.flowId), row.baselineVolume, formatRange(row.physicallyUnavailable), formatRange(row.rerouted), formatRange(row.incrementalTonMiles)];
@@ -666,12 +670,12 @@
         channels.appendChild(table(["Channel", "Low / base / high", "Unit", "Provenance"], Object.keys(state.view.modelOutputs.channelRanges).map(function (channelId) {
           return [human(channelId), formatRange(state.view.modelOutputs.channelRanges[channelId]), "decimal return", "Canonical current model"];
         })));
-        var publishedInputs = state.review.modelOutputs.publishedInputs;
+        var publishedInputs = state.currentDossier.modelInputs;
         proxies.appendChild(table(["Ticker", "Low / base / high", "Bar date", "Calibration", "Limitation"], state.definition.proxyDefinitions.map(function (proxy) {
           var link = element("a", "", proxy.ticker); link.href = "https://finance.yahoo.com/quote/" + encodeURIComponent(proxy.ticker); link.rel = "noopener noreferrer"; link.referrerPolicy = "no-referrer";
           var calibrationCount = publishedInputs.calibrationEvents.filter(function (event) { return event.proxyReturns && typeof event.proxyReturns[proxy.ticker] === "number"; }).length;
           var bar = publishedInputs.currentBars[proxy.ticker];
-          return [link, formatRange(state.view.modelOutputs.proxyRanges[proxy.proxyId]), bar && bar.asof ? bar.asof : "Unavailable", calibrationCount + " event(s)", (proxy.limitations || []).join(" ")];
+          return [link, formatRange(state.view.modelOutputs.proxyRanges[proxy.proxyId]), bar && bar.asof ? bar.asof.slice(0, 10) : "Unavailable", calibrationCount + " event(s)", (proxy.limitations || []).join(" ")];
         })));
       }
 
@@ -708,12 +712,12 @@
           var row = element("article", "evidence-row");
           var title = element("strong", "", finding.claim); row.appendChild(title);
           row.appendChild(element("div", "row-meta", human(finding.evidenceRole) + " | " + human(finding.provenanceClass) + (finding.weightedImpact !== undefined ? " | weighted impact " + finding.weightedImpact : "") + (finding.observedAt ? " | observed " + formatInstant(finding.observedAt) : "")));
-          row.appendChild(element("div", "row-meta", "Causal path: " + (finding.causalPath || []).join(" -> ") + "." + (finding.refutedBy ? " Refuted by: " + finding.refutedBy + "." : "") + (finding.invalidation ? " Invalidation: " + finding.invalidation + "." : "") + " Limitation: " + (finding.limitations || []).join(" ")));
+          row.appendChild(element("div", "row-meta", "Causal path: " + (finding.causalPath || []).join(" -> ") + "." + ((finding.refutedBy || []).length ? " Refuted by: " + finding.refutedBy.join(" ") + "." : "") + ((finding.invalidationRefs || []).length ? " Invalidation refs: " + finding.invalidationRefs.join(", ") + "." : "") + " Limitation: " + (finding.limitations || []).join(" ")));
           evidence.appendChild(row);
         });
         (evidenceDossier.sourceLedger || []).forEach(function (source) {
           var row = element("div", "source-row");
-          var link = element("a", "", source.publisher + " - " + source.sourceId); link.href = source.canonicalUrl; link.rel = "noopener noreferrer"; link.referrerPolicy = "no-referrer";
+          var link = element("a", "", source.publisher + " - " + source.sourceId); link.href = (typeof source.canonicalUrl === "string" && /^https:\/\//.test(source.canonicalUrl)) ? source.canonicalUrl : "#"; link.rel = "noopener noreferrer"; link.referrerPolicy = "no-referrer";
           row.appendChild(link); row.appendChild(element("div", "row-meta", "Observed " + formatInstant(source.observedAt) + " | public source")); sources.appendChild(row);
         });
       }
@@ -755,7 +759,7 @@
         container.appendChild(element("p", "", "Current view: " + human(currentOutput.dominantScenarioId) + " is dominant after the current public evidence impacts."));
         var finding = state.currentDossier.findings[0];
         container.appendChild(element("p", "", "Causal evidence: " + finding.claim));
-        container.appendChild(element("p", "", "Refuter: " + finding.refutedBy + " Invalidation: " + finding.invalidation));
+        container.appendChild(element("p", "", "Refuter: " + finding.refutedBy.join(" ") + " Invalidation: " + finding.invalidationRefs.join(", ")));
       }
 
       function renderHistory() {
@@ -764,9 +768,16 @@
         if (!events.length) { container.appendChild(element("div", "state-empty", "No history events for this topic.")); return; }
         events.forEach(function (event) {
           var row = element("div", "history-row");
-          var link = element("a", "", human(event.eventType) + " - " + formatInstant(event.occurredAt));
-          link.href = event.artifactRef.path; row.appendChild(link);
-          row.appendChild(element("div", "row-meta", (event.dossierId ? "Dossier " + event.dossierId : event.reviewId ? "Review " + shortId(event.reviewId) : "Immutable event") + (event.artifactRef.historicalOnly ? " | historical only" : " | current-generation record")));
+          var title = human(event.eventType) + " - " + formatInstant(event.occurredAt);
+          if (event.artifactRef && event.artifactRef.path) {
+            var link = element("a", "", title);
+            link.href = event.artifactRef.path;
+            row.appendChild(link);
+          } else {
+            row.appendChild(element("strong", "", title));
+          }
+          var recordKind = event.artifactRef && event.artifactRef.historicalOnly ? "historical only" : event.artifactRef ? "current-generation record" : "state transition";
+          row.appendChild(element("div", "row-meta", (event.dossierId ? "Dossier " + event.dossierId : event.reviewId ? "Review " + shortId(event.reviewId) : "Immutable event") + " | " + recordKind));
           container.appendChild(row);
         });
       }
@@ -783,11 +794,9 @@
         renderFreshness(); renderReviewArchitecture(); renderActors(); renderPowerModels(); renderHistorical(); renderEvidenceAndSources(); renderComparison(); renderHistory();
       }
 
-      function fixturePublishedInputs(fixture, definition, calibration) {
-        var currentBars = {};
-        definition.transmissionModels.forEach(function (model) { currentBars[model.barId] = { sym: model.barId, asof: fixture.attemptedAt.slice(0, 10), latest: { c: 100 } }; });
-        definition.proxyDefinitions.forEach(function (proxy) { currentBars[proxy.ticker] = { sym: proxy.ticker, asof: fixture.attemptedAt.slice(0, 10), latest: { c: 100 } }; });
+      function fixturePublishedInputs(fixture, calibration, currentBars) {
         return {
+          contractVersion: RLAGENDA.MODEL_INPUT_VERSION,
           evidenceImpacts: JSON.parse(JSON.stringify(fixture.evidenceImpacts)),
           chokepointState: JSON.parse(JSON.stringify(fixture.chokepointState)),
           inventoryGapByChannel: JSON.parse(JSON.stringify(fixture.inventoryGapByChannel)),
@@ -797,9 +806,27 @@
         };
       }
 
-      function installReversalFixture(fixture, definition, calibration, historicalDossier) {
-        var inputs = fixturePublishedInputs(fixture, definition, calibration);
-        var replay = RLAGENDA.recomputeAgendaModelOutputs(definition, inputs, null);
+      function loadFixtureBars(definition, generationCutoff) {
+        var barIds = [];
+        definition.transmissionModels.forEach(function (model) { if (barIds.indexOf(model.barId) === -1) barIds.push(model.barId); });
+        definition.proxyDefinitions.forEach(function (proxy) { if (barIds.indexOf(proxy.ticker) === -1) barIds.push(proxy.ticker); });
+        return Promise.all(barIds.map(function (barId) {
+          return fetchJson("data/bars/" + barId + ".json").then(function (barFile) {
+            var rows = barFile.rows.filter(function (row) { return row.t <= Date.parse(generationCutoff); });
+            var latest = rows[rows.length - 1];
+            if (!latest) throw new Error("fixture bar unavailable at cutoff: " + barId);
+            return [barId, {
+              sym: barId,
+              asof: new Date(latest.t).toISOString(),
+              latest: { t: latest.t, o: latest.o, h: latest.h, l: latest.l, c: latest.c, v: latest.v }
+            }];
+          });
+        })).then(function (entries) { return Object.fromEntries(entries); });
+      }
+
+      function installReversalFixture(fixture, definition, calibration, historicalDossier, currentBars) {
+        var inputs = fixturePublishedInputs(fixture, calibration, currentBars);
+        var replay = RLAGENDA.recomputeAgendaModelOutputs(definition, inputs, null, fixture.attemptedAt);
         if (!replay.ok) throw new Error("fixture canonical model failed: " + replay.code);
         var rootNodes = definition.scenarioTree.nodes.filter(function (node) { return node.parentId === null; });
         var probabilities = replay.value.modelOutputs.scenarioProbability;
@@ -808,28 +835,79 @@
         var modelOutputs = Object.assign({}, JSON.parse(JSON.stringify(replay.value.modelOutputs)), {
           directionScore: directionScore,
           dominantScenarioId: dominant,
-          evidenceCoverage: 1,
-          publishedInputs: inputs
+          evidenceCoverage: 1
         });
-        var review = {
-          contractVersion: RLAGENDA.REVIEW_VERSION,
-          generationId: fixture.generationId,
+        var sectionStates = definition.analyticalSections.map(function (section) { return { sectionId: section.sectionId, status: "current", interpretation: "Fixture current section available.", gaps: [] }; });
+        var chartProjection = RLAGENDA.buildAgendaChartSeries([{
+          reviewId: fixture.reviewId,
+          attemptedAt: fixture.attemptedAt,
+          modelOutputs: modelOutputs,
+          annotations: []
+        }], definition.chartDefinitions);
+        if (!chartProjection.ok) throw new Error("fixture chart projection failed: " + chartProjection.code);
+        var chartStates = chartProjection.charts.map(function (chart) {
+          return { chartId: chart.chartId, state: "available", series: chart.series, annotations: [] };
+        });
+        var dossierBody = {
+          contractVersion: RLAGENDA.DOSSIER_VERSION,
           topicId: fixture.topicId,
+          generationId: fixture.generationId,
+          reviewId: fixture.reviewId,
           mode: "every-generation",
           selectionReason: "test-fixture",
-          attemptedAt: fixture.attemptedAt,
-          completePass: true,
-          outcome: "updated",
-          reason: null,
-          newestEvidenceAgeHours: 1,
-          sectionStates: definition.analyticalSections.map(function (section) { return { sectionId: section.sectionId, status: "current", interpretation: "Fixture current section available.", gaps: [] }; }),
-          evidenceIds: fixture.currentFindings.map(function (finding) { return finding.findingId; }),
-          modelOutputs: modelOutputs,
-          predecessorDossierId: fixture.predecessorDossierId,
-          dossierId: fixture.dossierId,
-          reviewId: fixture.reviewId,
+          historicalOnly: false,
           validationState: "validated",
-          historicalOnly: false
+          observedThrough: fixture.attemptedAt,
+          outcome: "updated",
+          changeAssessment: "reversed",
+          declaredQuestionSha256: definition.declaredQuestionSha256,
+          sectionStates: sectionStates,
+          findings: JSON.parse(JSON.stringify(fixture.currentFindings)),
+          evidenceRecords: JSON.parse(JSON.stringify(fixture.evidenceRecords)),
+          sourceLedger: JSON.parse(JSON.stringify(fixture.sourceLedger)),
+          modelInputs: inputs,
+          modelOutputs: modelOutputs,
+          chartStates: chartStates,
+          triggerStates: definition.triggers.map(function (trigger) { return { triggerId: trigger.triggerId, state: "not-fired", observedAt: null, evidenceRefs: [] }; }),
+          invalidationStates: definition.invalidations.map(function (invalidation) { return { invalidationId: invalidation.invalidationId, state: "not-fired", observedAt: null, evidenceRefs: [] }; }),
+          predecessorDossierRef: null,
+          supersedesDossierRef: null
+        };
+        var dossierIdentity = RLAGENDA.deriveDossierId(dossierBody);
+        if (!dossierIdentity.ok) throw new Error("fixture dossier identity failed");
+        var dossier = Object.assign({ dossierId: dossierIdentity.id }, dossierBody);
+        var dossierPath = "research/agenda/dossiers/" + fixture.topicId + "/" + dossier.dossierId + ".json";
+        var dossierRefResult = RLAGENDA.buildArtifactRef(dossierPath, dossier);
+        if (!dossierRefResult.ok) throw new Error("fixture dossier ref failed");
+        var dossierRef = dossierRefResult.ref;
+        var review = {
+          contractVersion: RLAGENDA.REVIEW_VERSION,
+          reviewId: fixture.reviewId,
+          generationId: fixture.generationId,
+          topicId: fixture.topicId,
+          attemptedAt: fixture.attemptedAt,
+          validationState: "validated",
+          historicalOnly: false,
+          mode: "every-generation",
+          selectionReason: "test-fixture",
+          completePass: true,
+          outcome: "unchanged",
+          reason: "complete-pass-no-substantive-change",
+          newestEvidenceAgeHours: 1,
+          changeAssessment: "unchanged",
+          sectionStates: sectionStates,
+          evidenceIds: fixture.evidenceRecords.map(function (record) { return record.evidenceId; }),
+          modelSnapshotRef: {
+            dossierRef: dossierRef,
+            modelInputsSha256: RLAGENDA.agendaDigest(dossier.modelInputs),
+            modelOutputsSha256: RLAGENDA.agendaDigest(dossier.modelOutputs),
+            chartSeriesSha256: RLAGENDA.agendaDigest(dossier.chartStates)
+          },
+          chartState: "available",
+          triggerStates: "available",
+          invalidationStates: "available",
+          dossierRef: dossierRef,
+          predecessorDossierRef: dossierRef
         };
         var priorOutput = {
           probabilities: fixture.predecessor.probabilities,
@@ -844,9 +922,11 @@
         state.definition = definition;
         state.review = review;
         state.dossier = historicalDossier;
-        state.currentDossier = { dossierId: fixture.dossierId, findings: fixture.currentFindings, sourceLedger: fixture.sourceLedger, modelOutputs: modelOutputs };
+        state.currentDossier = dossier;
         state.predecessorDossier = { dossierId: fixture.predecessorDossierId, summary: fixture.predecessor.summary, modelOutputs: priorOutput };
-        state.view = RLAGENDA.computeAgendaViewState(definition, review, null).value;
+        var computed = RLAGENDA.computeAgendaViewState(definition, review, dossier, null);
+        if (!computed.ok || !computed.value.modelAvailable) throw new Error("fixture view unavailable: " + (computed.value && computed.value.modelUnavailableReason || computed.code));
+        state.view = computed.value;
         state.leverState = JSON.parse(JSON.stringify(state.view.baselineLeverState));
         state.current = {
           contractVersion: RLAGENDA.CURRENT_VERSION,
@@ -854,12 +934,12 @@
           generationRef: { generationId: fixture.generationId },
           topicRefs: state.agenda.topics.map(function (topic) {
             return topic.topicId === fixture.topicId
-              ? { topicId: topic.topicId, state: "reviewed", reviewRef: { path: "tests/fixtures/research-agenda/reversal-ui.json" }, dossierRef: { path: "tests/fixtures/research-agenda/reversal-ui.json" } }
+              ? { topicId: topic.topicId, state: "reviewed", reviewRef: { path: "tests/fixtures/research-agenda/reversal-ui.json" }, dossierRef: dossierRef }
               : { topicId: topic.topicId, state: "deferred", reviewRef: null, dossierRef: null };
           })
         };
         state.history = state.history.concat([
-          { topicId: fixture.topicId, eventType: "review", occurredAt: fixture.attemptedAt, reviewId: fixture.reviewId, dossierId: fixture.dossierId, artifactRef: { path: "tests/fixtures/research-agenda/reversal-ui.json", historicalOnly: false } }
+          { topicId: fixture.topicId, eventType: "review", occurredAt: fixture.attemptedAt, reviewId: fixture.reviewId, dossierId: dossier.dossierId, artifactRef: dossierRef }
         ]);
         byId("fixtureBand").hidden = false;
         renderAll();
@@ -881,11 +961,18 @@
           state.fixture = null; state.currentDossier = null; state.predecessorDossier = null; state.comparison = null;
           byId("fixtureBand").hidden = true;
           state.definition = values[0]; state.review = values[1]; state.dossier = values[2]; state.leverState = null;
-          var computed = state.review ? RLAGENDA.computeAgendaViewState(state.definition, state.review, null) : null;
-          state.view = computed && computed.ok ? computed.value : null;
-          state.leverState = state.view && state.view.baselineLeverState ? JSON.parse(JSON.stringify(state.view.baselineLeverState)) : null;
-          if (writeRoute) history.replaceState({ mode: state.mode, topicId: state.selectedTopicId }, "", canonicalRoute());
-          renderAll();
+          var reviewValidation = state.review ? RLAGENDA.validateActiveReview(state.review) : null;
+          var currentDossierTask = reviewValidation && reviewValidation.ok && state.review.dossierRef ? fetchJson(state.review.dossierRef.path) : Promise.resolve(null);
+          var predecessorTask = reviewValidation && reviewValidation.ok && state.review.predecessorDossierRef ? fetchJson(state.review.predecessorDossierRef.path) : Promise.resolve(null);
+          return Promise.all([currentDossierTask, predecessorTask]).then(function (resolved) {
+            state.currentDossier = resolved[0];
+            state.predecessorDossier = resolved[1];
+            var computed = state.review ? RLAGENDA.computeAgendaViewState(state.definition, state.review, state.currentDossier, null) : null;
+            state.view = computed && computed.ok ? computed.value : null;
+            state.leverState = state.view && state.view.baselineLeverState ? JSON.parse(JSON.stringify(state.view.baselineLeverState)) : null;
+            if (writeRoute) history.replaceState({ mode: state.mode, topicId: state.selectedTopicId }, "", canonicalRoute());
+            renderAll();
+          });
         });
       }
 
@@ -918,8 +1005,10 @@
               fetchJson("tests/fixtures/research-agenda/reversal-ui.json"),
               loadHistoricalDossier(selected)
             ]).then(function (fixtureValues) {
-              installReversalFixture(fixtureValues[2], fixtureValues[0], fixtureValues[1], fixtureValues[3]);
-              if (route.topicId !== selected) history.replaceState({ mode: state.mode, topicId: selected }, "", canonicalRoute());
+              return loadFixtureBars(fixtureValues[0], fixtureValues[2].attemptedAt).then(function (currentBars) {
+                installReversalFixture(fixtureValues[2], fixtureValues[0], fixtureValues[1], fixtureValues[3], currentBars);
+                if (route.topicId !== selected) history.replaceState({ mode: state.mode, topicId: selected }, "", canonicalRoute());
+              });
             });
           }
           return selectTopic(selected, route.topicId !== selected);
@@ -935,6 +1024,7 @@
         getRenderCount: function () { return state.renderCount; },
         getHistoryFingerprint: function () { return JSON.stringify(state.history); },
         getCurrentReview: function () { return state.review ? JSON.parse(JSON.stringify(state.review)) : null; },
+        getResolvedDossier: function () { return state.currentDossier ? JSON.parse(JSON.stringify(state.currentDossier)) : null; },
         getHistoricalDossier: function () { return state.dossier ? JSON.parse(JSON.stringify(state.dossier)) : null; },
         getDefinition: function () { return state.definition ? JSON.parse(JSON.stringify(state.definition)) : null; },
         getComparison: function () { return state.comparison ? JSON.parse(JSON.stringify(state.comparison)) : null; }

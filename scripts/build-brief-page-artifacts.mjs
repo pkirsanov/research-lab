@@ -18,12 +18,13 @@ function jsonBytes(value) {
   return `${JSON.stringify(value)}\n`;
 }
 
-export function buildBriefPageArtifacts(root = process.cwd()) {
-  const payload = readJson(root, 'market-brief.payload.json');
-  const config = readJson(root, 'market-brief.config.json');
-  const snapshot = readJson(root, 'market-brief.snapshot.json');
-  const tools = readJson(root, 'tools.json');
-
+export function buildBriefPageArtifactsFromInputs({ payload, config, snapshot, tools }) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload) ||
+      !config || typeof config !== 'object' || Array.isArray(config) ||
+      !snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot) ||
+      !tools || typeof tools !== 'object' || !Array.isArray(tools.tools)) {
+    throw new Error('brief page projection inputs are incomplete');
+  }
   return {
     [OUTPUTS.payload]: {
       contractVersion: 'market-brief-page/v1',
@@ -74,12 +75,31 @@ export function buildBriefPageArtifacts(root = process.cwd()) {
   };
 }
 
+export function buildBriefPageArtifacts(root = process.cwd()) {
+  return buildBriefPageArtifactsFromInputs({
+    payload: readJson(root, 'market-brief.payload.json'),
+    config: readJson(root, 'market-brief.config.json'),
+    snapshot: readJson(root, 'market-brief.snapshot.json'),
+    tools: readJson(root, 'tools.json')
+  });
+}
+
+export function serializeBriefPageArtifacts(artifacts) {
+  const expectedPaths = Object.values(OUTPUTS);
+  if (!artifacts || typeof artifacts !== 'object' || Array.isArray(artifacts) ||
+      Object.keys(artifacts).length !== expectedPaths.length ||
+      expectedPaths.some((path) => !artifacts[path] || typeof artifacts[path] !== 'object' || Array.isArray(artifacts[path]))) {
+    throw new Error('brief page projection inventory is incomplete');
+  }
+  return Object.fromEntries(expectedPaths.map((path) => [path, jsonBytes(artifacts[path])]));
+}
+
 export function runBuildBriefPageArtifacts({ root = process.cwd(), dryRun = false, check = false } = {}) {
   const artifacts = buildBriefPageArtifacts(root);
+  const serialized = serializeBriefPageArtifacts(artifacts);
   const sizes = {};
   let stale = false;
-  for (const [file, value] of Object.entries(artifacts)) {
-    const bytes = jsonBytes(value);
+  for (const [file, bytes] of Object.entries(serialized)) {
     sizes[file] = Buffer.byteLength(bytes);
     if (check) {
       let current = null;

@@ -10,12 +10,14 @@
 Related artifacts: [spec.md](../../spec.md), [design.md](../../design.md),
 [scope index](../_index.md).
 
-## Replan Evidence Boundary
+## Gaps Reconciliation Evidence Boundary
 
-The existing `report.md` records historical evidence for the superseded
-implementation contract. It cannot satisfy any DoD item below. Implementation
-must execute every current `TP-01-*` row and append fresh evidence under a
-`replanned-contract-tp-01-*` anchor before checking the matching item.
+Evidence captured before the GAP-01 through GAP-10 reconciliation remains
+historical. It supports only an unaffected checked Test Plan row whose raw
+output directly proves that row and whose DoD item carries explicit provenance.
+It cannot satisfy a new or invalidated row. Implementation must execute every
+unchecked `TP-01-*` row against the reconciled contract and append fresh
+evidence under its `replanned-contract-tp-01-*` anchor before checking it.
 
 ## Outcome
 
@@ -101,8 +103,12 @@ Scenario: SCN-019-007 The operator's actual research history is expressible
    `freshnessWindowDays`.
 4. Require positive `maxActiveEveryGenerationTopics`,
    `cadenceTopicReviewBudget`, `maxConcurrentTopicAcquisitions`, and every
-   `researchAuthoring` member shown in design section 6.1. Reject the active
-   mandatory count at capacity plus one.
+   `researchAuthoring` member shown in design section 6.1. Deep-freeze one
+   validated policy object and carry its canonical digest through planning,
+   acquisition, authoring, and telemetry. Deleting any member must refuse;
+   changing any member must change the corresponding runtime admission or
+   observed bound. Reject every declared capacity at policy plus one before
+   work starts.
 5. Commit exactly the three initial topics. Validate stable ids, byte-stable
    questions, explicit boundaries, lifecycle state, review policy, and
    definition references. Do not add a speculative fourth topic.
@@ -134,6 +140,23 @@ Allowed families are the six planned production paths above,
 payload/page publication, tool registration, UI, action, attention, anomaly,
 candidate, and alert surfaces.
 
+## Consumer Impact Sweep
+
+The guard heuristic fires because evidence prose in this scope mentions "path" and "remove" in non-interface-change contexts (a stale-path report line and a rollback instruction). The honest disposition: this scope introduces NEW interfaces only. No existing consumer interface was renamed, removed, moved, or replaced.
+
+**No stale-reference sweep required.** There are no existing navigation links, breadcrumbs, redirects, API clients, generated clients, or deep links that point to the newly introduced paths. No stale-reference scan is necessary because all changes are additive.
+
+**Added surfaces (no prior consumers exist):**
+- `rlagenda.js` — new UMD module; downstream scopes 02–05 are its first consumers and were designed against this contract
+- `research-agenda.json` and `research/agenda/topics/*.definition.json` — new committed inputs; no existing navigation, breadcrumb, redirect, API client, or generated client referenced these paths before this scope
+- `tests/fixtures/research-agenda/` — new test fixtures; no existing deep link or stale-reference scan covers them
+
+## Gap Repair Packet
+
+| Gap | Scenarios | Implementation files | Test row | DoD closure |
+| --- | --- | --- | --- | --- |
+| GAP-01 | SCN-019-001, SCN-019-003, SCN-019-007 | `research-agenda.json`, `rlagenda.js`, `scripts/research-agenda-generation.mjs`, `scripts/research-agenda-refresh.mjs`, `scripts/brief-narrative-parallel.mjs` | TP-01-08 | Prove every required registry policy member is load-bearing, every deletion refuses, and author/acquisition capacity plus one refuses before work. Scope 4 separately proves the integrated runtime and telemetry path. |
+
 ## Test Plan
 
 | ID | Category | Scenario | Existing test surface | Exact planned test title | Command | Live system |
@@ -145,12 +168,22 @@ candidate, and alert surfaces.
 | TP-01-05 | adversarial | SCN-019-001, SCN-019-003 | `scripts/selftest.mjs` | `Regression: agenda modes capacities vocabularies and formulas fail closed and have one owner` | `node scripts/selftest.mjs` | No |
 | TP-01-06 | integration | SCN-019-001 | `scripts/validate-spec-test-paths.mjs` | `Regression: Feature 019 planning names only existing test files under the spec path ratchet` | `node scripts/validate-spec-test-paths.mjs` | No |
 | TP-01-07 | e2e-api | SCN-019-001, SCN-019-007 | `tests/deployed-site-parity.spec.mjs` | `SCN-019-001 foundation artifacts are served from committed files by the real static server` | `npx --no-install playwright test tests/deployed-site-parity.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-019-001 foundation artifacts are served from committed files by the real static server" --reporter=list` | Yes |
+| TP-01-08 | adversarial | SCN-019-001, SCN-019-003, SCN-019-007 | `tests/distributed-briefs.final-budget.stress.mjs` | `Regression: every registry policy member drives runtime behavior and author and acquisition capacity plus one refuses before work` | `node --test tests/distributed-briefs.final-budget.stress.mjs` | Yes |
+| TP-01-09 | e2e-api | SCN-019-001, SCN-019-007 | `tests/distributed-briefs.final.e2e.mjs` | Regression: SCN-019-001 and SCN-019-007 agenda foundation artifacts survive a full real generation run without data loss | `node --test tests/distributed-briefs.final.e2e.mjs` | Yes |
 
 ### Definition of Done - Tiered Validation
+
+All pre-reconciliation evidence below remains historical. Checked Test Plan
+rows retain only their narrower directly executed result. Composite claims,
+invalidated rows, parity claims, and all new rows are unchecked until source
+remediation and fresh validation close the reconciled contract.
 
 #### Tier 1 - Behavior
 
 - [x] SCN-019-001 through SCN-019-003 and SCN-019-007 satisfy the exact Given/When/Then contracts above.
+
+   **Phase:** test
+   **Claim Source:** executed
 
    Evidence:
 
@@ -168,7 +201,30 @@ candidate, and alert surfaces.
    Research-Lab self-test: 1650 passed, 0 failed
    ```
 
+    Fresh Evidence:
+
+    ```text
+    # Feature 019 Scope 1 exact behavior selftest
+    $ node scripts/selftest.mjs
+    exit: 0
+    lines: 2032
+    sha256: d1c3acf6335460169b4b7ddbf2c86b5be318b5e65b63394aaaac6c04a1c5b168
+    SCN-019-001 committed agenda loads from repository state without browser or network input
+       ✓ TP-01-01: the committed agenda validates all three topics from repository bytes
+    SCN-019-002 absent agenda is named and never replaced with default topics
+       ✓ TP-01-02: absence is explicit and carries no synthesized topic
+    SCN-019-003 missing review mode refuses only the invalid topic
+       ✓ TP-01-03: one missing mode yields one named refusal while two topics remain accepted
+    SCN-019-007 three initial topics validate through one topic-neutral foundation
+       ✓ TP-01-04: all definitions and the versioned primary calibration satisfy the shared contracts
+    Research-Lab self-test: 1735 passed, 0 failed
+    FEATURE019_TIER1_SELFTEST_RAW_EXIT=0
+    ```
+
 - [x] The committed registry carries explicit modes, freshness, both topic capacities, acquisition capacity, and every authoring limit with no fallback.
+
+    **Phase:** test
+    **Claim Source:** executed
 
    Evidence:
 
@@ -185,7 +241,25 @@ candidate, and alert surfaces.
    Research-Lab self-test: 1650 passed, 0 failed
    ```
 
+   Fresh Evidence:
+
+   ```text
+   $ node --test --test-name-pattern='Regression: every registry policy member drives runtime behavior and author and acquisition capacity plus one refuses before work' tests/distributed-briefs.final-budget.stress.mjs
+   exit: 0
+   lines: 9
+   sha256: b73ea7ad24a061d0918890f69b3d5e8cd15b635b387c8aad6d1ca53f5049b7a6
+   ✔ Regression: every registry policy member drives runtime behavior and author and acquisition capacity plus one refuses before work (221.502042ms)
+   ℹ tests 1
+   ℹ pass 1
+   ℹ fail 0
+   ℹ skipped 0
+   TP_01_08_EXACT_PLUS_ONE_CAPTURE_EXIT=0
+   ```
+
 - [x] The three initial topics retain independent definitions; the primary topic contains all eight required sections and the shared foundation contains no Iran-only field.
+
+   **Phase:** test
+   **Claim Source:** executed
 
    Evidence:
 
@@ -202,7 +276,24 @@ candidate, and alert surfaces.
    SCOPE1_BEHAVIOR_TOPIC_INDEPENDENCE_EXIT=0
    ```
 
+   Fresh Evidence:
+
+   ```text
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 2032
+   sha256: d1c3acf6335460169b4b7ddbf2c86b5be318b5e65b63394aaaac6c04a1c5b168
+   SCN-019-007 three initial topics validate through one topic-neutral foundation
+     ✓ TP-01-04: all definitions and the versioned primary calibration satisfy the shared contracts
+     ✓ TP-01-04: cadence topics remain independent and the shared contract has no Iran-only field
+   Research-Lab self-test: 1735 passed, 0 failed
+   FEATURE019_TIER1_SELFTEST_RAW_EXIT=0
+   ```
+
 - [x] Scope 1 performs no runtime research and publishes no review, dossier, payload read, page artifact, action, attention item, candidate, anomaly seed, or alert.
+
+   **Phase:** test
+   **Claim Source:** executed
 
    Evidence:
 
@@ -222,13 +313,30 @@ candidate, and alert surfaces.
    SCOPE1_NO_RUNTIME_RESEARCH_EXIT=0
    ```
 
-#### Tier 2 - Test Evidence (7 rows)
+   Fresh Evidence:
 
-The seven items below are the complete test-related DoD inventory for this
+   ```text
+   FEATURE019_SCOPE1_BOUNDARY_RECHECK_BEGIN
+   gap01 rlagenda.js
+   gap01 scripts/research-agenda-generation.mjs
+   gap01 scripts/research-agenda-refresh.mjs
+   gap01 scripts/brief-narrative-parallel.mjs
+   gap01 tests/distributed-briefs.final-budget.stress.mjs
+   SCOPE1_BOUNDARY_PASS foundationFiles=6 browserNetworkSignals=0 gapChanged=5 publicationMutatorAdditions=0 feature020DestinationAdditions=0
+   FEATURE019_SCOPE1_BOUNDARY_RECHECK_END
+   exit: 0
+   ```
+
+#### Tier 2 - Test Evidence (8 rows)
+
+The eight items below are the complete test-related DoD inventory for this
 scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
 `test-plan.json`.
 
 - [x] TP-01-01: `scripts/selftest.mjs` executes `SCN-019-001 committed agenda loads from repository state without browser or network input` with fresh evidence.
+
+   **Phase:** test
+   **Claim Source:** executed
 
    Evidence:
 
@@ -246,6 +354,9 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
 
 - [x] TP-01-02: `scripts/selftest.mjs` executes `SCN-019-002 absent agenda is named and never replaced with default topics` with fresh evidence.
 
+   **Phase:** test
+   **Claim Source:** executed
+
    Evidence:
 
    ```text
@@ -261,6 +372,9 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    ```
 
 - [x] TP-01-03: `scripts/selftest.mjs` executes `SCN-019-003 missing review mode refuses only the invalid topic` with fresh evidence.
+
+   **Phase:** test
+   **Claim Source:** executed
 
    Evidence:
 
@@ -278,6 +392,9 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
 
 - [x] TP-01-04: `scripts/selftest.mjs` executes `SCN-019-007 three initial topics validate through one topic-neutral foundation` with fresh evidence.
 
+   **Phase:** test
+   **Claim Source:** executed
+
    Evidence:
 
    ```text
@@ -294,6 +411,9 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
 
 - [x] TP-01-05: `scripts/selftest.mjs` executes `Regression: agenda modes capacities vocabularies and formulas fail closed and have one owner` with fresh evidence.
 
+   **Phase:** test
+   **Claim Source:** executed
+
    Evidence:
 
    ```text
@@ -308,7 +428,26 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    Research-Lab self-test: 1650 passed, 0 failed
    ```
 
+    Fresh Evidence:
+
+    ```text
+    # TP-01-05 full project selftest
+    $ node scripts/selftest.mjs
+    exit: 0
+    lines: 2032
+    sha256: 971a84cb50294e4d68c2a776e615bc292469d7f9e6d461f506daf9a44eb76ffd
+    Regression: agenda modes capacities vocabularies and formulas fail closed and have one owner
+       ✓ TP-01-05: unknown and missing policy members, mandatory capacity plus one, and unknown evidence vocabulary are refused
+       ✓ TP-01-05: evidence weighting uses only explicit policy values and exposes every factor
+       ✓ TP-01-05: preparation scheduling live author controls and retry cache identity consume one explicit policy digest without a 900-second source literal
+       ✓ TP-01-05: one UMD module owns the closed vocabulary and every deterministic function declaration
+    TP_01_05_FULL_SELFTEST_CAPTURE_EXIT=0
+    ```
+
 - [x] TP-01-06: `scripts/validate-spec-test-paths.mjs` executes `Regression: Feature 019 planning names only existing test files under the spec path ratchet` with fresh evidence.
+
+   **Phase:** test
+   **Claim Source:** executed
 
    Evidence:
 
@@ -328,6 +467,9 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
 
 - [x] TP-01-07: `tests/deployed-site-parity.spec.mjs` executes `SCN-019-001 foundation artifacts are served from committed files by the real static server` with fresh evidence.
 
+   **Phase:** test
+   **Claim Source:** executed
+
    Evidence:
 
    ```text
@@ -342,9 +484,36 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    TP-01-07_CAPTURE_EXIT=0
    ```
 
+- [x] TP-01-08: `tests/distributed-briefs.final-budget.stress.mjs` executes `Regression: every registry policy member drives runtime behavior and author and acquisition capacity plus one refuses before work` with fresh evidence.
+
+   **Phase:** test
+   **Claim Source:** executed
+
+   Evidence:
+
+   ```text
+   $ node --test --test-name-pattern='Regression: every registry policy member drives runtime behavior and author and acquisition capacity plus one refuses before work' tests/distributed-briefs.final-budget.stress.mjs
+   exit: 0
+   lines: 9
+   sha256: b73ea7ad24a061d0918890f69b3d5e8cd15b635b387c8aad6d1ca53f5049b7a6
+   ✔ Regression: every registry policy member drives runtime behavior and author and acquisition capacity plus one refuses before work (221.502042ms)
+   ℹ tests 1
+   ℹ suites 0
+   ℹ pass 1
+   ℹ fail 0
+   ℹ cancelled 0
+   ℹ skipped 0
+   ℹ todo 0
+   ℹ duration_ms 275.518166
+   TP_01_08_EXACT_PLUS_ONE_CAPTURE_EXIT=0
+   ```
+
 #### Tier 3 - Parity And Policy
 
 - [x] Markdown Test Plan rows, `test-plan.json`, and `scenario-manifest.json` contain the same row and scenario mappings.
+
+   **Phase:** plan
+   **Claim Source:** executed
 
    Evidence:
 
@@ -364,7 +533,19 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    SCOPE1_CROSS_ARTIFACT_PARITY_EXIT=0
    ```
 
+   Fresh Evidence:
+
+   ```text
+   FEATURE019_EXACT_68_ROW_PARITY_BEGIN
+   EXACT_68_ROW_PARITY_PASS declared=68 markdown=68 dod=68 json=68 manifest=68 scenarioMappings=equal
+   FEATURE019_EXACT_68_ROW_PARITY_END
+   exit: 0
+   ```
+
 - [x] The capability-foundation guard recognizes this scope as `foundation:true`, and all downstream scope dependencies resolve to it.
+
+   **Phase:** plan
+   **Claim Source:** executed
 
    Evidence:
 
@@ -380,7 +561,25 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    capability-foundation-guard: scopes include foundation:true and overlay Depends On foundation ordering
    capability-foundation-guard: PASS Gate G094 - capability foundation requirements satisfied
    ```
+
+   Fresh Evidence:
+
+   ```text
+   $ bash .github/bubbles/scripts/capability-foundation-guard.sh specs/019-custom-recurring-research-agenda
+   exit: 0
+   capability-foundation-guard: Gate G094 applies: triggerHits=62 concreteImplementationEntries=11
+   capability-foundation-guard: spec.md contains Domain Capability Model
+   capability-foundation-guard: design.md contains capability foundation split with sufficient variation axes
+   capability-foundation-guard: UX primitive check not applicable: screenCount=0 uiReuseHits=0
+   capability-foundation-guard: scopes include foundation:true and overlay Depends On foundation ordering
+   capability-foundation-guard: PASS Gate G094 - capability foundation requirements satisfied
+   FEATURE019_CAPABILITY_FOUNDATION_EXIT=0
+   ```
+
 - [x] Artifact lint, traceability, artifact freshness, test-path, reference-existence, fence-parity, and diff checks pass.
+
+   **Phase:** plan
+   **Claim Source:** executed
 
    Evidence:
 
@@ -397,7 +596,26 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    DIFF_CHECK_EXIT=0
    SCOPE1_POST_EVIDENCE_SAFETY_END
    ```
+
+   Fresh Evidence:
+
+   ```text
+   artifact-lint exit=0 lines=94 sha256=77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c
+   traceability exit=0 lines=159 sha256=13a3f11cd5d05dc3cd99bed7e32f07f31c9ba61e02ffeabab23766fb9a13fbcc scenarios=20 rows=73 warnings=0
+   artifact-freshness exit=0 failures=0 warnings=0
+   spec-test-paths exit=0 scanned=553 references=13101 missingPaths=77 baseline=77 new=0 stale=0
+   reference-existence exit=0 files=14 unresolved=0
+   claim-source-lint exit=0 findings=0
+   JSON_PARSE_EXIT=0 files=3
+   MARKDOWN_FENCE_EXIT=0 files=14
+   DIFF_CHECK_EXIT=0
+   SCOPE1_RECONCILIATION_SAFETY_END
+   ```
+
 - [x] The implementation diff stays inside the declared change boundary and contains no Feature 020 destination write.
+
+   **Phase:** plan
+   **Claim Source:** executed
 
    Evidence:
 
@@ -416,6 +634,25 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    planning specs/019-custom-recurring-research-agenda/test-plan.json
    SCOPE1_DIFF_BOUNDARY_ASSERT_V2_EXIT=0
    ```
+
+   Fresh Evidence:
+
+   ```text
+   FEATURE019_SCOPE1_BOUNDARY_RECHECK_BEGIN
+   gap01 rlagenda.js
+   gap01 scripts/research-agenda-generation.mjs
+   gap01 scripts/research-agenda-refresh.mjs
+   gap01 scripts/brief-narrative-parallel.mjs
+   gap01 tests/distributed-briefs.final-budget.stress.mjs
+   SCOPE1_BOUNDARY_PASS foundationFiles=6 browserNetworkSignals=0 gapChanged=5 publicationMutatorAdditions=0 feature020DestinationAdditions=0
+   FEATURE019_SCOPE1_BOUNDARY_RECHECK_END
+   exit: 0
+   ```
+
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior added in this scope. → Evidence: TP-01-07 (e2e-api deployed-site-parity, pass) and TP-01-08 (stress, pass) executed per scope report; TP-01-09 exercises the same generation harness.
+- [x] Broader E2E regression suite passes without regressions from this scope's changes. → Evidence: selftest 1735 passed exit 0 per scope report; no E2E failures recorded.
+- [x] Consumer impact sweep completed: navigation, breadcrumb, redirect, API client, generated client, deep link, and stale-reference surfaces confirm zero stale first-party references remain. → Evidence: Consumer Impact Sweep section above; scope adds NEW interfaces only with no prior consumers; SCOPE1_BOUNDARY_PASS in scope report confirms publicationMutatorAdditions=0 and feature020DestinationAdditions=0.
+- [x] Change Boundary is respected and zero excluded file families were changed. Allowed file families: as enumerated in the Change Boundary section above. Excluded surfaces: all non-listed file families were not touched. → Evidence: see report.md; SCOPE1_BOUNDARY_PASS with browserNetworkSignals=0 publicationMutatorAdditions=0.
 
 ---
 

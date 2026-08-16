@@ -1,0 +1,67 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-1b5f5aad6d43ad3d0311b071d8b8c4c7612cbd3bcdc1231aa1ada929b5fe7ee4",
+  "generationId": "generation-92401c5c9ebe94c5f07e43e1e2af0b28e6cba3c8eba81b81d4c3c6bcf5f34bb7",
+  "topicId": "food-inputs-outlook",
+  "attemptedAt": "2026-08-14T20:31:08.653Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "cadence",
+  "selectionReason": "first-review",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "research-lane-unavailable",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "grains-outlook",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "fertilizer-inputs",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "declared-catalysts",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "move-ranges",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "invalidations",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

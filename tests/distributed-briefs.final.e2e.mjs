@@ -18,7 +18,13 @@ import { resolve } from 'node:path';
 import test from 'node:test';
 
 import { runFinalAuthor } from '../scripts/brief-refresh.mjs';
-import { composeResearchAgendaCandidate } from '../scripts/research-agenda-generation.mjs';
+import {
+  buildResearchAgendaRead,
+  buildResearchAgendaTransaction,
+  composeResearchAgendaCandidate,
+  computeResearchAgendaOutputs,
+  validateResearchAgendaRead
+} from '../scripts/research-agenda-generation.mjs';
 import { singleSourceScenario, windowContext, buildFinalFromInput, makeHash } from './fixtures/feature-002/final/final-fixture-builder.mjs';
 import { envelopeFinalAuthorFn } from './fixtures/feature-002/final/final-fixture-builder.mjs';
 import {
@@ -182,8 +188,7 @@ test('SCN-019-009 real committed agenda produces an offline mandatory plan and d
       channelRanges,
       definition.proxyDefinitions,
       calibration.events,
-      currentBars,
-      { proxyAdjustment: 0 }
+      currentBars
     );
     assert.equal(proxyModel.ok, true, JSON.stringify(proxyModel.proxies.filter((row) => row.state !== 'available')));
 
@@ -246,6 +251,394 @@ test('SCN-019-009 real committed agenda produces an offline mandatory plan and d
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test('Regression: current deterministic outputs feed one integrated change assessment after exact model input validation', () => {
+  const registry = readAgendaJson('research-agenda.json');
+  const topic = registry.topics.find((row) => row.topicId === 'geopolitical-supply-shock');
+  const definition = readAgendaJson(topic.definitionRef);
+  const calibration = readAgendaJson(definition.calibrationRef);
+  const evidence = readAgendaJson('tests/fixtures/research-agenda/valid-evidence-record.json');
+  const fixture = readAgendaJson('tests/fixtures/research-agenda/reversal-ui.json');
+  const cutoff = '2026-08-13T12:00:00.000Z';
+  const barIds = [...new Set([
+    ...definition.transmissionModels.map((model) => model.barId),
+    ...definition.proxyDefinitions.map((proxy) => proxy.ticker)
+  ])];
+  const currentBars = Object.fromEntries(barIds.map((barId) => [barId, readAgendaJson(`data/bars/${barId}.json`)]));
+  const situation = {
+    evidenceRecords: [evidence],
+    modelInputs: {
+      chokepointState: fixture.chokepointState,
+      inventoryGapByChannel: fixture.inventoryGapByChannel,
+      levers: fixture.levers
+    }
+  };
+  const run = (predecessorOutput) => computeResearchAgendaOutputs({
+    definition,
+    calibration,
+    situation,
+    currentBars,
+    generationCutoff: cutoff,
+    declaredQuestion: topic.declaredQuestion,
+    predecessorOutput
+  });
+  const currentBytes = (result) => {
+    const { changeAssessment, ...current } = result.value;
+    return RLAGENDA.canonicalizeAgenda(current);
+  };
+
+  const initial = run(null);
+  assert.equal(initial.ok, true, JSON.stringify(initial));
+  assert.equal(initial.value.publishedInputs.contractVersion, 'research-model-input/v1');
+  assert.deepEqual(Object.keys(initial.value.publishedInputs.levers).sort(), [
+    'babElMandebPhysicalPassFraction', 'demandOffset', 'hormuzPhysicalPassFraction',
+    'inventoryPolicyResponseOffset', 'reroutedShare'
+  ]);
+  assert.equal(initial.value.changeAssessment.direction, 'insufficient-evidence');
+  assert.equal(initial.value.changeAssessment.predecessorAvailable, false);
+
+  const opposite = {
+    probabilities: { 'staged-reopening': 0.9, 'managed-coercion': 0.05, escalation: 0.05 },
+    evidenceIds: ['historical-opposite-evidence'],
+    conflictIds: [],
+    directionScore: -1,
+    dominantScenarioId: 'staged-reopening',
+    declaredQuestionSha256: RLAGENDA.sha256Text(topic.declaredQuestion)
+  };
+  const compared = run(opposite);
+  assert.equal(compared.ok, true, JSON.stringify(compared));
+  assert.equal(currentBytes(compared), currentBytes(initial), 'predecessor data cannot change current deterministic output bytes');
+  assert.equal(compared.value.changeAssessment.predecessorAvailable, true);
+  assert.notEqual(RLAGENDA.canonicalizeAgenda(compared.value.changeAssessment), RLAGENDA.canonicalizeAgenda(initial.value.changeAssessment));
+  assert.deepEqual(Object.keys(compared.value.changeAssessment).sort(), [
+    'addedEvidenceIds', 'causalExplanation', 'conflictEvidenceIds', 'currentDirectionScore',
+    'currentDominantScenarioId', 'direction', 'predecessorAvailable', 'predecessorDirectionScore',
+    'predecessorDominantScenarioId', 'probabilityDeltas', 'questionUnchanged', 'removedEvidenceIds'
+  ]);
+  assert.deepEqual(Object.keys(compared.value.changeAssessment.causalExplanation).sort(), [
+    'evidence', 'invalidationIds', 'triggerIds'
+  ]);
+  assert.deepEqual(Object.keys(compared.value.changeAssessment.causalExplanation.evidence[0]).sort(), [
+    'causalPath', 'conflictEvidenceIds', 'evidenceId', 'firedRefuters', 'modelImpacts'
+  ]);
+  assert.deepEqual(compared.value.changeAssessment.causalExplanation.evidence[0], {
+    evidenceId: evidence.evidenceId,
+    causalPath: evidence.causalPath,
+    modelImpacts: evidence.modelImpacts,
+    firedRefuters: [],
+    conflictEvidenceIds: []
+  });
+  assert.deepEqual(compared.value.changeAssessment.causalExplanation.triggerIds, ['insured-capacity-tightens']);
+  assert.deepEqual(compared.value.changeAssessment.causalExplanation.invalidationIds, ['insurance-normalizes']);
+  assert.equal(compared.value.changeAssessment.currentDirectionScore, initial.value.directionScore);
+  assert.equal(compared.value.changeAssessment.predecessorDirectionScore, opposite.directionScore);
+  assert.equal(compared.value.changeAssessment.currentDominantScenarioId, initial.value.dominantScenarioId);
+  assert.equal(compared.value.changeAssessment.predecessorDominantScenarioId, opposite.dominantScenarioId);
+  assert.deepEqual(compared.value.changeAssessment.addedEvidenceIds, [evidence.evidenceId]);
+  assert.deepEqual(compared.value.changeAssessment.removedEvidenceIds, ['historical-opposite-evidence']);
+  assert.equal(Object.keys(compared.value.changeAssessment.probabilityDeltas).length, 3);
+
+  const extreme = {
+    ...opposite,
+    probabilities: { 'staged-reopening': 0, 'managed-coercion': 0, escalation: 1 },
+    evidenceIds: ['historical-extreme-evidence'],
+    directionScore: 1,
+    dominantScenarioId: 'escalation'
+  };
+  const extremeCompared = run(extreme);
+  assert.equal(extremeCompared.ok, true, JSON.stringify(extremeCompared));
+  assert.equal(currentBytes(extremeCompared), currentBytes(initial), 'extreme predecessor data cannot change current deterministic output bytes');
+  assert.equal(extremeCompared.value.changeAssessment.predecessorDirectionScore, extreme.directionScore);
+  assert.equal(extremeCompared.value.changeAssessment.predecessorDominantScenarioId, extreme.dominantScenarioId);
+
+  const changedQuestion = run({
+    ...opposite,
+    declaredQuestionSha256: RLAGENDA.sha256Text('A changed operator question')
+  });
+  assert.equal(changedQuestion.ok, false, JSON.stringify(changedQuestion));
+  assert.equal(changedQuestion.error.code, 'E019-AGENDA-CHANGE-ASSESSMENT');
+  assert.equal(changedQuestion.error.reason, 'RLAGENDA-MODEL-INVALID');
+  assert.equal('value' in changedQuestion, false, 'question drift refuses before an assessment value is published');
+  assert.equal(Object.isFrozen(changedQuestion), true);
+});
+
+test('Regression: publication refuses each missing review dossier or compact read member and keeps full state only in the dossier graph', () => {
+  const REVIEW_FIELDS = [
+    'contractVersion', 'reviewId', 'generationId', 'topicId', 'attemptedAt', 'validationState', 'historicalOnly',
+    'mode', 'selectionReason', 'completePass', 'outcome', 'reason', 'newestEvidenceAgeHours', 'changeAssessment',
+    'sectionStates', 'evidenceIds', 'modelSnapshotRef', 'chartState', 'triggerStates', 'invalidationStates',
+    'dossierRef', 'predecessorDossierRef'
+  ];
+  const DOSSIER_FIELDS = [
+    'contractVersion', 'dossierId', 'topicId', 'generationId', 'reviewId', 'mode', 'selectionReason',
+    'historicalOnly', 'validationState', 'observedThrough', 'outcome', 'changeAssessment',
+    'declaredQuestionSha256', 'sectionStates', 'findings', 'evidenceRecords', 'sourceLedger', 'modelInputs',
+    'modelOutputs', 'chartStates', 'triggerStates', 'invalidationStates', 'predecessorDossierRef', 'supersedesDossierRef'
+  ];
+  const READ_FIELDS = ['contractVersion', 'generationId', 'asOf', 'topics', 'readFingerprint'];
+  const READ_TOPIC_FIELDS = [
+    'topicId', 'mode', 'state', 'reason', 'selectionReason', 'reviewId', 'dossierId', 'outcome',
+    'changeAssessment', 'newestEvidenceAgeHours', 'modelState', 'chartState',
+    'predecessorDossierId', 'supersedesDossierId'
+  ];
+  const clone = (value) => structuredClone(value);
+  const exactKeys = (value, fields) => assert.deepEqual(Object.keys(value).sort(), fields.slice().sort());
+  const refreshCandidateFingerprint = (candidate) => {
+    const { candidateFingerprint: ignored, ...body } = candidate;
+    candidate.candidateFingerprint = RLAGENDA.agendaDigest(body);
+  };
+  const refreshReadFingerprint = (read) => {
+    if (!Object.hasOwn(read, 'readFingerprint')) return;
+    const body = clone(read);
+    delete body.readFingerprint;
+    read.readFingerprint = RLAGENDA.agendaDigest(body);
+  };
+
+  const registry = readAgendaJson('research-agenda.json');
+  const topic = registry.topics.find((row) => row.topicId === 'geopolitical-supply-shock');
+  const definitionsByTopicId = Object.fromEntries(registry.topics.map((row) => [row.topicId, readAgendaJson(row.definitionRef)]));
+  const definition = definitionsByTopicId[topic.topicId];
+  const calibration = readAgendaJson(definition.calibrationRef);
+  const evidence = readAgendaJson('tests/fixtures/research-agenda/valid-evidence-record.json');
+  const modelFixture = readAgendaJson('tests/fixtures/research-agenda/reversal-ui.json');
+  const generationCutoff = '2026-08-13T12:00:00.000Z';
+  const historyText = readAgendaText('research/agenda/history.jsonl');
+  const plan = RLAGENDA.planGeneration(registry, historyText, { definitionsByTopicId, triggerObservations: [] }, generationCutoff);
+  assert.equal(plan.ok, true, JSON.stringify(plan));
+  const generation = RLAGENDA.deriveGenerationId({
+    snapshotDigest: 'sha256:' + '9'.repeat(64),
+    registryDigest: RLAGENDA.agendaDigest(registry),
+    briefWindow: { start: generationCutoff, end: generationCutoff },
+    generationCutoff
+  });
+  assert.equal(generation.ok, true, JSON.stringify(generation));
+  const barIds = [...new Set([
+    ...definition.transmissionModels.map((model) => model.barId),
+    ...definition.proxyDefinitions.map((proxy) => proxy.ticker)
+  ])];
+  const currentBars = Object.fromEntries(barIds.map((barId) => [barId, readAgendaJson(`data/bars/${barId}.json`)]));
+  const situation = {
+    contractVersion: 'research-situation/v1',
+    generationId: generation.id,
+    topicId: topic.topicId,
+    authoredAt: generationCutoff,
+    completePass: true,
+    evidenceRecords: [evidence],
+    sectionInterpretations: definition.analyticalSections.map((section) => ({
+      sectionId: section.sectionId,
+      status: 'changed',
+      interpretation: `Validated ${section.sectionId}`,
+      gaps: []
+    })),
+    findings: [],
+    sourceLedger: [],
+    newEvidenceIds: [evidence.evidenceId],
+    modelInputs: {
+      chokepointState: modelFixture.chokepointState,
+      inventoryGapByChannel: modelFixture.inventoryGapByChannel,
+      levers: modelFixture.levers
+    }
+  };
+  const outputs = computeResearchAgendaOutputs({
+    definition,
+    calibration,
+    situation,
+    currentBars,
+    generationCutoff,
+    declaredQuestion: topic.declaredQuestion,
+    predecessorOutput: null
+  });
+  assert.equal(outputs.ok, true, JSON.stringify(outputs));
+  const candidate = composeResearchAgendaCandidate({
+    registry,
+    plan,
+    definitionsByTopicId,
+    generationId: generation.id,
+    generationCutoff,
+    situationsByTopicId: { [topic.topicId]: situation },
+    deterministicOutputsByTopicId: { [topic.topicId]: outputs.value }
+  });
+  assert.equal(candidate.ok, true, JSON.stringify(candidate));
+
+  const transactionInputs = {
+    payload: readAgendaJson('market-brief.payload.json'),
+    historyText,
+    registry,
+    existingRecordsByPath: {},
+    pageInputs: {
+      config: readAgendaJson('market-brief.config.json'),
+      snapshot: readAgendaJson('market-brief.snapshot.json'),
+      tools: readAgendaJson('tools.json')
+    }
+  };
+  const transaction = buildResearchAgendaTransaction({ candidate: candidate.value, ...transactionInputs });
+  assert.equal(transaction.ok, true, JSON.stringify(transaction));
+  assert.equal(RLAGENDA.validateCurrentPointer(transaction.value.current, transaction.value.recordsByPath).ok, true);
+
+  const review = candidate.value.reviews.find((row) => row.topicId === topic.topicId);
+  const dossier = candidate.value.dossiers.find((row) => row.topicId === topic.topicId);
+  assert.ok(review && dossier, 'the valid graph contains one active review and its substantive dossier');
+  exactKeys(review, REVIEW_FIELDS);
+  exactKeys(dossier, DOSSIER_FIELDS);
+  assert.equal(RLAGENDA.validateActiveReview(review, transaction.value.recordsByPath).ok, true);
+  assert.equal(RLAGENDA.validateActiveDossier(dossier).ok, true);
+
+  const predecessorBody = clone(dossier);
+  delete predecessorBody.dossierId;
+  predecessorBody.selectionReason = 'adversarial-predecessor-fixture';
+  const predecessorIdentity = RLAGENDA.deriveDossierId(predecessorBody);
+  assert.equal(predecessorIdentity.ok, true, JSON.stringify(predecessorIdentity));
+  const predecessor = { ...predecessorBody, dossierId: predecessorIdentity.id };
+  assert.equal(RLAGENDA.validateActiveDossier(predecessor).ok, true);
+  const predecessorPath = `research/agenda/dossiers/${predecessor.topicId}/${predecessor.dossierId}.json`;
+  const predecessorRef = RLAGENDA.buildArtifactRef(predecessorPath, predecessor);
+  assert.equal(predecessorRef.ok, true, JSON.stringify(predecessorRef));
+  const linkedReview = { ...clone(review), predecessorDossierRef: predecessorRef.ref };
+  const linkedRecords = { ...transaction.value.recordsByPath, [predecessorPath]: predecessor };
+  assert.equal(RLAGENDA.validateActiveReview(linkedReview, linkedRecords).ok, true);
+
+  const missingPredecessorRecords = { ...linkedRecords };
+  delete missingPredecessorRecords[predecessorPath];
+  const missingPredecessor = RLAGENDA.validateActiveReview(linkedReview, missingPredecessorRecords);
+  assert.equal(missingPredecessor.ok, false, 'an omitted referenced predecessor must refuse');
+  assert.equal(missingPredecessor.code, 'RLAGENDA-CONTRACT-SHAPE');
+  assert.equal(missingPredecessor.field, null);
+
+  const tamperedPredecessorBody = clone(predecessor);
+  delete tamperedPredecessorBody.dossierId;
+  tamperedPredecessorBody.selectionReason = 'tampered-predecessor-fixture';
+  const tamperedPredecessorIdentity = RLAGENDA.deriveDossierId(tamperedPredecessorBody);
+  assert.equal(tamperedPredecessorIdentity.ok, true, JSON.stringify(tamperedPredecessorIdentity));
+  const tamperedPredecessor = { ...tamperedPredecessorBody, dossierId: tamperedPredecessorIdentity.id };
+  assert.equal(RLAGENDA.validateActiveDossier(tamperedPredecessor).ok, true);
+  const tamperedPredecessorResult = RLAGENDA.validateActiveReview(
+    linkedReview,
+    { ...linkedRecords, [predecessorPath]: tamperedPredecessor }
+  );
+  assert.equal(tamperedPredecessorResult.ok, false, 'a tampered referenced predecessor must refuse');
+  assert.equal(tamperedPredecessorResult.code, 'RLAGENDA-CURRENT-INVALID');
+  assert.equal(tamperedPredecessorResult.field, 'predecessorDossierRef');
+
+  assert.equal(review.changeAssessment, outputs.value.changeAssessment.direction);
+  assert.deepEqual(Object.keys(review.modelSnapshotRef).sort(), [
+    'chartSeriesSha256', 'dossierRef', 'modelInputsSha256', 'modelOutputsSha256'
+  ]);
+  const resolvedDossier = transaction.value.recordsByPath[review.modelSnapshotRef.dossierRef.path];
+  assert.equal(resolvedDossier.dossierId, dossier.dossierId);
+  assert.equal(review.modelSnapshotRef.dossierRef.sha256, RLAGENDA.agendaDigest(resolvedDossier));
+  assert.equal(review.modelSnapshotRef.modelInputsSha256, RLAGENDA.agendaDigest(resolvedDossier.modelInputs));
+  assert.equal(review.modelSnapshotRef.modelOutputsSha256, RLAGENDA.agendaDigest(resolvedDossier.modelOutputs));
+  assert.equal(review.modelSnapshotRef.chartSeriesSha256, RLAGENDA.agendaDigest(resolvedDossier.chartStates));
+  assert.ok(resolvedDossier.chartStates.length > 0);
+  assert.equal(resolvedDossier.chartStates.length, definition.chartDefinitions.length);
+  resolvedDossier.chartStates.forEach((chart) => exactKeys(chart, ['chartId', 'state', 'series', 'annotations']));
+  resolvedDossier.triggerStates.forEach((row) => exactKeys(row, ['triggerId', 'state', 'observedAt', 'evidenceRefs']));
+  resolvedDossier.invalidationStates.forEach((row) => exactKeys(row, ['invalidationId', 'state', 'observedAt', 'evidenceRefs']));
+  assert.deepEqual(resolvedDossier.chartStates.map((row) => row.chartId), definition.chartDefinitions.map((row) => row.chartId));
+  assert.deepEqual(resolvedDossier.triggerStates.map((row) => row.triggerId), definition.triggers.map((row) => row.triggerId));
+  assert.deepEqual(resolvedDossier.invalidationStates.map((row) => row.invalidationId), definition.invalidations.map((row) => row.invalidationId));
+  for (const forbidden of ['modelInputs', 'modelOutputs', 'chartStates', 'evidenceRecords', 'sourceLedger', 'findings']) {
+    assert.equal(Object.hasOwn(review, forbidden), false, `review cannot embed dossier field ${forbidden}`);
+  }
+
+  for (const field of REVIEW_FIELDS) {
+    const changed = clone(candidate.value);
+    delete changed.reviews.find((row) => row.topicId === topic.topicId)[field];
+    refreshCandidateFingerprint(changed);
+    const refused = buildResearchAgendaTransaction({ candidate: changed, ...transactionInputs });
+    assert.equal(refused.ok, false, `missing review.${field} must refuse`);
+    assert.equal(refused.error.reason, 'review-shape-invalid', `missing review.${field}`);
+    assert.equal(refused.error.field, field, `missing review.${field}`);
+  }
+  {
+    const changed = clone(candidate.value);
+    changed.reviews.find((row) => row.topicId === topic.topicId).unknownReviewMember = true;
+    refreshCandidateFingerprint(changed);
+    const refused = buildResearchAgendaTransaction({ candidate: changed, ...transactionInputs });
+    assert.equal(refused.ok, false);
+    assert.equal(refused.error.reason, 'review-shape-invalid');
+    assert.equal(refused.error.field, 'unknownReviewMember');
+  }
+  for (const field of DOSSIER_FIELDS) {
+    const changed = clone(candidate.value);
+    delete changed.dossiers.find((row) => row.topicId === topic.topicId)[field];
+    refreshCandidateFingerprint(changed);
+    const refused = buildResearchAgendaTransaction({ candidate: changed, ...transactionInputs });
+    assert.equal(refused.ok, false, `missing dossier.${field} must refuse`);
+    assert.equal(refused.error.reason, 'dossier-shape-invalid', `missing dossier.${field}`);
+    assert.equal(refused.error.field, field, `missing dossier.${field}`);
+  }
+  {
+    const changed = clone(candidate.value);
+    changed.dossiers.find((row) => row.topicId === topic.topicId).unknownDossierMember = true;
+    refreshCandidateFingerprint(changed);
+    const refused = buildResearchAgendaTransaction({ candidate: changed, ...transactionInputs });
+    assert.equal(refused.ok, false);
+    assert.equal(refused.error.reason, 'dossier-shape-invalid');
+    assert.equal(refused.error.field, 'unknownDossierMember');
+  }
+
+  const read = buildResearchAgendaRead(candidate.value);
+  assert.equal(read.ok, true, JSON.stringify(read));
+  exactKeys(read.value, READ_FIELDS);
+  read.value.topics.forEach((row) => exactKeys(row, READ_TOPIC_FIELDS));
+  const activeRead = read.value.topics.find((row) => row.topicId === topic.topicId);
+  assert.equal(activeRead.mode, 'every-generation');
+  assert.equal(activeRead.changeAssessment, outputs.value.changeAssessment.direction);
+  assert.equal(activeRead.modelState, 'available');
+  assert.equal(activeRead.chartState, 'available');
+  const fullStateKeys = new Set(['modelInputs', 'modelOutputs', 'scenarioProbabilities', 'commodityRanges', 'proxyRanges', 'chartStates', 'series', 'annotations', 'triggerStates', 'invalidationStates']);
+  const visitRead = (value) => {
+    if (Array.isArray(value)) return value.forEach(visitRead);
+    if (!value || typeof value !== 'object') return;
+    for (const [key, nested] of Object.entries(value)) {
+      assert.equal(fullStateKeys.has(key), false, `compact read cannot contain ${key}`);
+      visitRead(nested);
+    }
+  };
+  visitRead(read.value);
+  for (const field of READ_FIELDS) {
+    const changed = clone(read.value);
+    delete changed[field];
+    refreshReadFingerprint(changed);
+    const refused = validateResearchAgendaRead(changed, registry);
+    assert.equal(refused.ok, false, `missing read.${field} must refuse`);
+    assert.equal(refused.error.field, field, `missing read.${field}`);
+  }
+  {
+    const changed = clone(read.value);
+    changed.unknownReadMember = true;
+    refreshReadFingerprint(changed);
+    const refused = validateResearchAgendaRead(changed, registry);
+    assert.equal(refused.ok, false);
+    assert.equal(refused.error.field, 'unknownReadMember');
+  }
+  for (const field of READ_TOPIC_FIELDS) {
+    const changed = clone(read.value);
+    delete changed.topics[0][field];
+    refreshReadFingerprint(changed);
+    const refused = validateResearchAgendaRead(changed, registry);
+    assert.equal(refused.ok, false, `missing read.topics[0].${field} must refuse`);
+    assert.equal(refused.error.field, field, `missing read.topics[0].${field}`);
+  }
+  {
+    const changed = clone(read.value);
+    changed.topics[0].unknownTopicMember = true;
+    refreshReadFingerprint(changed);
+    const refused = validateResearchAgendaRead(changed, registry);
+    assert.equal(refused.ok, false);
+    assert.equal(refused.error.field, 'unknownTopicMember');
+  }
+
+  const publishedRead = transaction.value.payload.researchAgenda;
+  const toolRead = transaction.value.payload.toolReads['research-agenda-lab'].metrics.agendaRead;
+  const pageRead = JSON.parse(transaction.value.mutableFiles['market-brief.page.json']).researchAgenda;
+  assert.deepEqual(publishedRead, read.value);
+  assert.deepEqual(toolRead, read.value);
+  assert.deepEqual(pageRead, read.value);
+  assert.equal(pageRead.topics.find((row) => row.topicId === topic.topicId).mode, 'every-generation');
+  assert.equal(pageRead.topics.find((row) => row.topicId === topic.topicId).changeAssessment, outputs.value.changeAssessment.direction);
 });
 
 test('SCN-019-004 newly committed topic receives its first current review or named outcome', () => {

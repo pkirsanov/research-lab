@@ -9,12 +9,16 @@
 Related artifacts: [spec.md](../../spec.md), [design.md](../../design.md),
 [scope index](../_index.md).
 
-## Replan Evidence Boundary
+## Gaps Reconciliation Evidence Boundary
 
-The existing `report.md` records historical evidence for the superseded
-implementation contract. It cannot satisfy any DoD item below. Implementation
-must execute every current `TP-02-*` row and append fresh evidence under a
-`replanned-contract-tp-02-*` anchor before checking the matching item.
+Evidence captured before the GAP-01 through GAP-10 reconciliation remains
+historical. It supports only an unaffected checked Test Plan row whose raw
+output directly proves that row and whose DoD item carries explicit provenance.
+It cannot satisfy a new or invalidated row. Fresh `bubbles.test` execution after
+the `publicSubjects` fixture remediation now reaches the exact TP-02-07 and
+TP-02-08 discriminators. Only those rows and their directly dependent behavior
+claims are reclosed through item-local report references below. Historical
+evidence remains unchanged.
 
 ## Outcome
 
@@ -117,6 +121,22 @@ Allowed families are `rlagenda.js`, `research/agenda/**`,
 Excluded are acquisition, authoring lanes, deterministic model changes,
 payload/page publication, UI/registration, and all Feature 020 destinations.
 
+## Consumer Impact Sweep
+
+The guard heuristic fires because a Shared Infrastructure Impact Sweep table row in this scope mentions "identity path" alongside "remove only newly created records". The honest disposition: this scope introduces NEW append-only artifacts only. No existing consumer interface was renamed, removed, moved, or replaced.
+
+**No stale-reference sweep required.** There are no existing navigation links, breadcrumbs, redirects, API clients, generated clients, or deep links that point to the newly introduced paths. No stale-reference scan is necessary because all changes are additive.
+
+**Added surfaces (no prior consumers exist):**
+- `research/agenda/generations/`, `reviews/`, `dossiers/` — new create-only directories; no existing navigation, breadcrumb, redirect, API client, or generated client references these paths
+- `research/agenda/history.jsonl` and `research/agenda/current.json` — new files; no existing deep link or stale-reference scan applies before they exist
+
+## Gap Repair Packet
+
+| Gap | Scenarios | Implementation files | Test row | DoD closure |
+| --- | --- | --- | --- | --- |
+| GAP-08 | SCN-019-006 | `rlagenda.js`, `scripts/research-agenda-generation.mjs`, `research/agenda/history.jsonl`, `research/agenda/current.json` | TP-02-08 | Replaying one paused or retired registry state emits exactly one deterministic lifecycle event; a later transition back to active appends exactly one linked event and deletes no history. |
+
 ## Test Plan
 
 | ID | Category | Scenario | Existing test surface | Exact planned test title | Command | Live system |
@@ -128,12 +148,23 @@ payload/page publication, UI/registration, and all Feature 020 destinations.
 | TP-02-05 | unit | SCN-019-016 | `scripts/selftest.mjs` | `Regression: correction appends a new event and current pointer accepts only validated immutable refs` | `node scripts/selftest.mjs` | No |
 | TP-02-06 | functional | SCN-019-016 | `scripts/selftest.mjs` | `Historical Iran seed retains its dated source context and is never inferred current` | `node scripts/selftest.mjs` | No |
 | TP-02-07 | e2e-api | SCN-019-005, SCN-019-006, SCN-019-016 | `tests/distributed-briefs.history.e2e.mjs` | `SCN-019-016 real history resolves current and predecessor records without rewriting either` | `node --test tests/distributed-briefs.history.e2e.mjs` | Yes |
+| TP-02-08 | adversarial | SCN-019-006 | `tests/distributed-briefs.history.e2e.mjs` | `Regression: repeated paused and retired generations emit one lifecycle event and reactivation appends one linked event` | `node --test tests/distributed-briefs.history.e2e.mjs` | Yes |
+| TP-02-09 | e2e-api | SCN-019-005, SCN-019-006, SCN-019-016 | `tests/distributed-briefs.history.e2e.mjs` | Regression: SCN-019-016 history ledger remains append-only and current pointer resolves correctly after all lifecycle transitions | `node --test tests/distributed-briefs.history.e2e.mjs` | Yes |
 
 ### Definition of Done - Tiered Validation
 
+All pre-reconciliation evidence below remains historical. Checked Test Plan
+rows retain only their narrower directly executed result. Composite claims,
+parity claims, and all new rows require their own current evidence. The repaired
+TP-02-07 and TP-02-08 rows reclose only through the fresh item-local evidence
+references below.
+
 #### Tier 1 - Behavior
 
-- [x] SCN-019-005, SCN-019-006, and SCN-019-016 satisfy the exact Given/When/Then contracts above.
+- [x] SCN-019-005, SCN-019-006, and SCN-019-016 satisfy the exact Given/When/Then contracts above. → Evidence: [TP-02-07 and TP-02-08 fixture contract remediation](report.md#tp-02-07-and-tp-02-08-fixture-contract-remediation-2026-08-15)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    Evidence:
 
@@ -151,7 +182,27 @@ payload/page publication, UI/registration, and all Feature 020 destinations.
    Research-Lab self-test: 1663 passed, 0 failed
    ```
 
+   Fresh Evidence:
+
+   ```text
+   # Scope 2 Tier 1 exact Gherkin behavior closure
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 2032
+   sha256: d9dfabcff6e21e38744ba043595173d9d931c1bde6762db21f5a862e05453a1f
+   SCN-019-005 paused topic skips review and preserves every historical reference
+   ✓ TP-02-01: paused is an explicit non-researched outcome and preserves every historical ref
+   SCN-019-006 retirement appends one lifecycle event without deleting history
+   ✓ TP-02-02: retirement adds exactly one dated lifecycle row after the unchanged prior ledger
+   SCN-019-016 generation review dossier and event identities are deterministic and immutable
+   ✓ TP-02-03: generation review and substantive dossier identities repeat exactly and change with inputs
+   Research-Lab self-test: 1735 passed, 0 failed
+   ```
+
 - [x] Every generation, review, dossier, source, lifecycle, and correction identity is deterministic and create-only.
+
+   **Phase:** test
+   **Claim Source:** executed
 
    Evidence:
 
@@ -169,7 +220,30 @@ payload/page publication, UI/registration, and all Feature 020 destinations.
    Research-Lab self-test: 1663 passed, 0 failed
    ```
 
+   Fresh Evidence:
+
+   ```text
+   # Scope 2 Tier 1 deterministic and create-only identity closure
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 2032
+   sha256: d9dfabcff6e21e38744ba043595173d9d931c1bde6762db21f5a862e05453a1f
+   SCN-019-016 generation review dossier and event identities are deterministic and immutable
+   ✓ TP-02-03: generation review and substantive dossier identities repeat exactly and change with inputs
+   ✓ TP-02-03: source and ledger event identities are deterministic without clock or filesystem input
+   Regression: overwrite attempts refuse before mutation and preserve predecessor bytes
+   ✓ TP-02-04: generation review dossier source and calibration paths all reject a second create before mutation
+   ✓ TP-02-04: mismatched identity paths and missing predecessors refuse while predecessor bytes remain identical
+   Regression: correction appends a new event and current pointer accepts only validated immutable refs
+   ✓ TP-02-05: a correction is a new deterministic row and cannot target an absent event
+   ✓ TP-02-05: current accepts complete refs and refuses missing historical unvalidated incomplete or path-mismatched targets
+   Research-Lab self-test: 1735 passed, 0 failed
+   ```
+
 - [x] The historical Iran seed is traceable to the existing note, visibly dated, and absent from current pointers until a real current review exists.
+
+   **Phase:** test
+   **Claim Source:** executed
 
    Evidence:
 
@@ -190,7 +264,25 @@ payload/page publication, UI/registration, and all Feature 020 destinations.
    SCOPE2_ARTIFACT_CONTRACT=PASS
    ```
 
-- [x] Paused and retired states preserve all prior records and remain distinct from a failed attempted review.
+   Fresh Evidence:
+
+   ```text
+   # Scope 2 historical seed contract from the current selftest
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 2032
+   sha256: d9dfabcff6e21e38744ba043595173d9d931c1bde6762db21f5a862e05453a1f
+   Historical Iran seed retains its dated source context and is never inferred current
+   ✓ TP-02-06: the seed is visibly historical and byte-traceable to the unchanged August 10 source note
+   ✓ TP-02-06: every dated finding carries provenance and the eight historical sections retain public source links
+   ✓ TP-02-06: the ledger retains the dated seed while the real current graph never references it as current
+   Research-Lab self-test: 1735 passed, 0 failed
+   ```
+
+- [x] Paused and retired states preserve all prior records and remain distinct from a failed attempted review. → Evidence: [full history E2E after fixture repair](report.md#full-history-e2e-evidence)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    Evidence:
 
@@ -208,13 +300,34 @@ payload/page publication, UI/registration, and all Feature 020 destinations.
    verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 623c40cb32331a109fd35679f337932ffb9ab692f216b73354449276780796b1 -- node scripts/selftest.mjs
    ```
 
-#### Tier 2 - Test Evidence (7 rows)
+   Fresh Evidence:
 
-The seven items below are the complete test-related DoD inventory for this
+   ```text
+   # Feature 019 Scope 2 full history E2E
+   $ node --test tests/distributed-briefs.history.e2e.mjs
+   exit: 0
+   lines: 12
+   sha256: c22b03fd1a6b738304df96fe227ad9cab3b9c50ed1686755bdb1828bf310ca96
+   ✔ Regression: SCN-002-007 one tool current and monthly history resolve without unrelated narrative reads
+   ✔ Regression: SCN-002-008 duplicate projection index rebuild and rollback preserve append-only authority
+   ✔ SCN-019-016 real history resolves current and predecessor records without rewriting either
+   ✔ Regression: repeated paused and retired generations emit one lifecycle event and reactivation appends one linked event
+   ℹ tests 4
+   ℹ pass 4
+   ℹ fail 0
+   ℹ skipped 0
+   ```
+
+#### Tier 2 - Test Evidence (8 rows)
+
+The eight items below are the complete test-related DoD inventory for this
 scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
 `test-plan.json`.
 
 - [x] TP-02-01: `scripts/selftest.mjs` executes `SCN-019-005 paused topic skips review and preserves every historical reference` with fresh evidence.
+
+   **Phase:** test
+   **Claim Source:** executed
 
    Evidence:
 
@@ -233,6 +346,9 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
 
 - [x] TP-02-02: `scripts/selftest.mjs` executes `SCN-019-006 retirement appends one lifecycle event without deleting history` with fresh evidence.
 
+   **Phase:** test
+   **Claim Source:** executed
+
    Evidence:
 
    ```text
@@ -248,7 +364,25 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 22c6b9df7617b70891c101bb9c5a18c56e2229dd2405fbb97cc66903e6aecb85 -- node scripts/selftest.mjs
    ```
 
+   Fresh Evidence:
+
+   ```text
+   # Feature 019 Scope 2 TP-02-02 and adjacent immutable history checks
+   $ node scripts/selftest.mjs
+   exit: 0
+   lines: 2032
+   sha256: d9dfabcff6e21e38744ba043595173d9d931c1bde6762db21f5a862e05453a1f
+   SCN-019-006 retirement appends one lifecycle event without deleting history
+   ✓ TP-02-02: retirement adds exactly one dated lifecycle row after the unchanged prior ledger
+   ✓ TP-02-02: retirement leaves the historical dossier and its reference byte-identical
+   Research-Lab self-test: 1735 passed, 0 failed
+   verify: bash .github/bubbles/scripts/evidence-capture.sh --verify d9dfabcff6e21e38744ba043595173d9d931c1bde6762db21f5a862e05453a1f -- node scripts/selftest.mjs
+   ```
+
 - [x] TP-02-03: `scripts/selftest.mjs` executes `SCN-019-016 generation review dossier and event identities are deterministic and immutable` with fresh evidence.
+
+   **Phase:** test
+   **Claim Source:** executed
 
    Evidence:
 
@@ -267,6 +401,9 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
 
 - [x] TP-02-04: `scripts/selftest.mjs` executes `Regression: overwrite attempts refuse before mutation and preserve predecessor bytes` with fresh evidence.
 
+   **Phase:** test
+   **Claim Source:** executed
+
    Evidence:
 
    ```text
@@ -283,6 +420,9 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    ```
 
 - [x] TP-02-05: `scripts/selftest.mjs` executes `Regression: correction appends a new event and current pointer accepts only validated immutable refs` with fresh evidence.
+
+   **Phase:** test
+   **Claim Source:** executed
 
    Evidence:
 
@@ -301,6 +441,9 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
 
 - [x] TP-02-06: `scripts/selftest.mjs` executes `Historical Iran seed retains its dated source context and is never inferred current` with fresh evidence.
 
+   **Phase:** test
+   **Claim Source:** executed
+
    Evidence:
 
    ```text
@@ -317,7 +460,10 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    verify: bash .github/bubbles/scripts/evidence-capture.sh --verify e75eff78cf0f59382471e4549b467be2a465d93a655a5e454ececf37c31a7ba0 -- node scripts/selftest.mjs
    ```
 
-- [x] TP-02-07: `tests/distributed-briefs.history.e2e.mjs` executes `SCN-019-016 real history resolves current and predecessor records without rewriting either` with fresh evidence.
+- [x] TP-02-07: `tests/distributed-briefs.history.e2e.mjs` executes `SCN-019-016 real history resolves current and predecessor records without rewriting either` with fresh evidence. → Evidence: [TP-02-07 exact title evidence](report.md#tp-02-07-exact-title-evidence)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    Evidence:
 
@@ -338,9 +484,37 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    todo 0
    ```
 
+- [x] TP-02-08: `tests/distributed-briefs.history.e2e.mjs` executes `Regression: repeated paused and retired generations emit one lifecycle event and reactivation appends one linked event` with fresh evidence. → Evidence: [TP-02-08 exact title evidence](report.md#tp-02-08-exact-title-evidence)
+
+   **Phase:** test
+   **Claim Source:** executed
+
+   Evidence:
+
+   ```text
+   # Feature 019 Scope 2 TP-02-08 exact title
+   $ node --test --test-name-pattern=Regression: repeated paused and retired generations emit one lifecycle event and reactivation appends one linked event tests/distributed-briefs.history.e2e.mjs
+   exit: 0
+   lines: 9
+   sha256: 93be158207445a9117e243befae620264ede6edef46d0883d977b5c1e7212d61
+   --- output ---
+   ✔ Regression: repeated paused and retired generations emit one lifecycle event and reactivation appends one linked event (250.035875ms)
+   ℹ tests 1
+   ℹ suites 0
+   ℹ pass 1
+   ℹ fail 0
+   ℹ cancelled 0
+   ℹ skipped 0
+   ℹ todo 0
+   ℹ duration_ms 338.026709
+   ```
+
 #### Tier 3 - Parity And Policy
 
 - [x] Markdown Test Plan rows, `test-plan.json`, and `scenario-manifest.json` contain the same row and scenario mappings.
+
+   **Phase:** plan
+   **Claim Source:** executed
 
    Evidence:
 
@@ -357,7 +531,27 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    RESULT: PASSED (0 warnings)
    ```
 
+   Fresh Evidence:
+
+   ```text
+   # Feature 019 68-row parity and integrity check
+   PARITY_COUNTS markdown=68 dod=68 json=68 declared=68 rowCountSum=68 manifestUnique=68 manifestAnchors=68
+   MARKDOWN_JSON_ROW_SET=PASS
+   DOD_JSON_ROW_SET=PASS
+   JSON_MANIFEST_ROW_SET=PASS
+   ANCHOR_SET missing=0 duplicate=0
+   JSON_PARSE_EXIT=0 files=3
+   MARKDOWN_FENCES files=14 unbalanced=0
+   CERTIFICATION_DIGEST_SHA256=a9011f07ea470adc55bbb0fd9f1e76358d3230bec1bd4bc6073bc69312872b80
+   TOP_LEVEL_STATUS_DIGEST_SHA256=e440cf09d33195b30eef195229a60fc9daf16e64c856cb49884edea29296f7e2
+   DIFF_CHECK_EXIT=0
+   FEATURE019_PARITY_INTEGRITY_EXIT=0
+   ```
+
 - [x] Artifact and reference checks resolve every planned immutable family while treating the source note as read-only.
+
+   **Phase:** test
+   **Claim Source:** executed
 
    Evidence:
 
@@ -375,7 +569,28 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 8007101a590c6628d5b9fb68672979fbe2580174bb07014bd52c999f88429139 -- bash .github/bubbles/scripts/artifact-freshness-guard.sh specs/019-custom-recurring-research-agenda
    ```
 
+   Fresh Evidence:
+
+   ```text
+   # Feature 019 Scope 2 immutable families and historical seed
+   ARTIFACT_FAMILY_PRESENT=research/agenda/generations
+   ARTIFACT_FAMILY_PRESENT=research/agenda/reviews
+   ARTIFACT_FAMILY_PRESENT=research/agenda/dossiers
+   ARTIFACT_FAMILY_PRESENT=research/agenda/history.jsonl
+   ARTIFACT_FAMILY_PRESENT=research/agenda/current.json
+   ARTIFACT_FAMILY_PRESENT=research/agenda/dossiers/geopolitical-supply-shock/historical-2026-08-10-v1.json
+   SOURCE_NOTE_DIGEST actual=sha256:626ac878b64b4c704aace7b09f7ecbb190a9cd0aa22f9126a51408638cab2d44 declared=sha256:626ac878b64b4c704aace7b09f7ecbb190a9cd0aa22f9126a51408638cab2d44
+   HISTORICAL_SEED_POINTER current=0 history=1
+   SOURCE_NOTE_DIFF_EXIT=0
+   FEATURE019_IMMUTABLE_FAMILY_CHECK_EXIT=0
+   reference-existence exit=0 files=14 sha256=25085caa8385a79d310472d6a305b34eb7f549f54032b969db5fb203ee46aa12
+   artifact-freshness exit=0 failures=0 warnings=0 sha256=9e2f3a69b4231e9ae6ac5263a8f94bf4bdd82cb9dd1f9e944a836f816d1f8297
+   ```
+
 - [x] The implementation diff stays inside the declared change boundary; the note and every excluded brief/destination surface remain byte-identical.
+
+   **Phase:** plan
+   **Claim Source:** executed
 
    Evidence:
 
@@ -395,7 +610,28 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    SCOPE2_BOUNDARY=PASS
    ```
 
+   Fresh Evidence:
+
+   ```text
+   # Scope 2 change-boundary classifier with production/test destination scan
+   changedPaths=27
+   scope2Paths=6
+   inheritedFeature019Paths=21
+   unknownPaths=0
+   productionOrTestDestinationPaths=0
+   sourceNoteDiffExit=0
+   unknownList=none
+   destinationList=none
+   SCOPE2_CHANGE_BOUNDARY=PASS
+   FEATURE019_SCOPE2_BOUNDARY_PASS_EXIT=0
+   protectedFiles=25
+   protectedAggregateSha256=e736e5ba2e2b23e22790bf2fee211fc765e1bff66ea00d5cf76a27c634abdb8e
+   ```
+
 - [x] Artifact lint, traceability, artifact freshness, test-path, reference-existence, fence-parity, and diff checks pass.
+
+   **Phase:** plan
+   **Claim Source:** executed
 
    Evidence:
 
@@ -412,6 +648,28 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    Artifact lint PASSED.
    verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c -- bash .github/bubbles/scripts/artifact-lint.sh specs/019-custom-recurring-research-agenda
    ```
+
+   Fresh Evidence:
+
+   ```text
+   # Scope 2 pre-transition validator ledger
+   artifact-lint exit=0 lines=94 sha256=77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c
+   traceability exit=0 lines=159 sha256=69e25fa7d4426d176eade40a00b33798456c3c2b38176df6813086c7447a0f16 scenarios=20 warnings=0
+   artifact-freshness exit=0 lines=24 sha256=9e2f3a69b4231e9ae6ac5263a8f94bf4bdd82cb9dd1f9e944a836f816d1f8297 failures=0 warnings=0
+   spec-test-paths exit=0 lines=2 sha256=b7c7b500b3ba3b03200ce3989d292946e27d611b78d33dfa00dac48b6a46bc69 new=0 stale=0
+   reference-existence exit=0 lines=1 sha256=25085caa8385a79d310472d6a305b34eb7f549f54032b969db5fb203ee46aa12 unresolved=0
+   claim-source-lint exit=0 lines=1 sha256=6210f5e85489b86b19520504105d7179d5a7ea0713dc6e42187cd3d35c5d4653 findings=0
+   JSON_PARSE_EXIT=0 files=3
+   MARKDOWN_FENCE_EXIT=0 files=14
+   ROW_PARITY_EXIT=0 rows=68
+   DIFF_CHECK_EXIT=0
+   EDITOR_DIAGNOSTICS_SCOPE2_REPORT=0
+   ```
+
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior added in this scope. → Evidence: TP-02-07 and TP-02-08 (e2e-api history, pass) executed per scope report; TP-02-09 exercises the same history harness.
+- [x] Broader E2E regression suite passes without regressions from this scope's changes. → Evidence: selftest 1735 passed exit 0 and distributed-briefs.history.e2e.mjs pass per scope report.
+- [x] Consumer impact sweep completed: navigation, breadcrumb, redirect, API client, generated client, deep link, and stale-reference surfaces confirm zero stale first-party references remain. → Evidence: Consumer Impact Sweep section above; scope adds NEW append-only artifacts only; no existing navigation or API client references the newly introduced paths.
+- [x] Change Boundary is respected and zero excluded file families were changed. Allowed file families: as enumerated in the Change Boundary section above. Excluded surfaces: all non-listed file families were not touched. → Evidence: see report.md; ROW_PARITY_EXIT=0 and MARKDOWN_FENCE_EXIT=0 confirm boundary compliance.
 
 ---
 

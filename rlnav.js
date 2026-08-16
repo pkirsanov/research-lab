@@ -167,7 +167,14 @@
 
   function render() {
     var open = pinned || preview;
-    if (panel) panel.classList.toggle("open", open);
+    if (panel) {
+      panel.classList.toggle("open", open);
+      panel.setAttribute("aria-hidden", open ? "false" : "true");
+      panel.inert = !open;
+      if (open) panel.removeAttribute("inert");
+      else panel.setAttribute("inert", "");
+      if (!open && panel.contains(document.activeElement) && launcher) launcher.focus();
+    }
     if (edge) edge.classList.toggle("hide", open);
     if (launcher) launcher.classList.toggle("hidden", open);
     if (headBtn) {

@@ -11,6 +11,11 @@ import { startStaticServer } from './provider-credentials.support.mjs';
  */
 
 const REAL_SCORECARD = JSON.parse(readFileSync(new URL('../market-brief.scorecard.json', import.meta.url), 'utf8'));
+const REAL_PAYLOAD = JSON.parse(readFileSync(new URL('../market-brief.page.json', import.meta.url), 'utf8'));
+
+function humanizeToken(value) {
+  return String(value ?? 'unavailable').replace(/-/g, ' ');
+}
 
 /** A scorecard with a chosen resolved sample, otherwise shaped exactly like the committed one. */
 function scorecardWith({ satisfied, invalidated, minResolvedSample, misses = [] }) {
@@ -90,9 +95,9 @@ test('SCN-019-020 compact standing research read is visible on the brief and dee
     await expect(section.locator('.research-agenda-row')).toHaveCount(3);
     await expect(section.locator('[data-research-topic="geopolitical-supply-shock"]')).toContainText('unavailable');
     await expect(section.locator('[data-research-topic="geopolitical-supply-shock"]')).toContainText('did not produce a validated current dossier');
-    await expect(section.locator('[data-research-topic="defense-earnings-acceleration"]')).toContainText('unavailable');
-    await expect(section.locator('[data-research-topic="food-inputs-outlook"]')).toContainText('deferred');
-    await expect(section.locator('[data-research-topic="food-inputs-outlook"]')).toContainText('cadence budget');
+    await expect(section.locator('[data-research-topic="defense-earnings-acceleration"]')).toContainText('not due');
+    await expect(section.locator('[data-research-topic="food-inputs-outlook"]')).toContainText('unavailable');
+    await expect(section.locator('[data-research-topic="food-inputs-outlook"]')).toContainText('did not produce a validated current dossier');
     const ownerLink = section.locator('[data-research-topic="geopolitical-supply-shock"] a');
     await expect(ownerLink).toHaveAttribute('href', 'research-agenda-lab.html#power/geopolitical-supply-shock');
     await ownerLink.click();
@@ -100,6 +105,57 @@ test('SCN-019-020 compact standing research read is visible on the brief and dee
     await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
     await expect(page.locator('body')).toHaveAttribute('data-rlview', 'power');
     await expect(page.locator('[data-public-target-id="geopolitical-supply-shock"]')).toBeFocused();
+  } finally {
+    await server.close();
+  }
+});
+
+test('Regression: compact agenda read renders exact mode and change assessment while dossier-only fields remain out of the brief', async ({ page }) => {
+  test.setTimeout(90_000);
+  const server = await startStaticServer();
+  try {
+    await openBrief(page, server);
+    const section = page.locator('#standingResearch');
+    const topics = REAL_PAYLOAD.researchAgenda?.topics;
+    expect(Array.isArray(topics)).toBe(true);
+    expect(topics.length).toBeGreaterThan(0);
+
+    const exactTopicFields = [
+      'topicId', 'mode', 'state', 'reason', 'selectionReason', 'reviewId',
+      'dossierId', 'outcome', 'changeAssessment', 'newestEvidenceAgeHours',
+      'modelState', 'chartState', 'predecessorDossierId', 'supersedesDossierId'
+    ].sort();
+    const dossierOnlyFields = new Set([
+      'modelInputs', 'modelOutputs', 'chartSeries', 'chartStates', 'triggerStates',
+      'invalidationStates', 'findings', 'evidenceRecords', 'sourceLedger'
+    ]);
+    const feature020Fields = new Set([
+      'destination', 'eligibility', 'actionFamily', 'attentionEnvelope', 'anomalySeed',
+      'alertCandidate', 'routingDecision', 'verb', 'proposedAction', 'score'
+    ]);
+    const forbiddenPaths = [];
+    const visit = (value, path = '$') => {
+      if (Array.isArray(value)) return value.forEach((entry, index) => visit(entry, `${path}[${index}]`));
+      if (!value || typeof value !== 'object') return;
+      for (const [key, nested] of Object.entries(value)) {
+        if (dossierOnlyFields.has(key) || feature020Fields.has(key)) forbiddenPaths.push(`${path}.${key}`);
+        visit(nested, `${path}.${key}`);
+      }
+    };
+    visit({ topics });
+    expect(forbiddenPaths).toEqual([]);
+
+    for (const topic of topics) {
+      expect(Object.keys(topic).sort()).toEqual(exactTopicFields);
+      const row = section.locator(`[data-research-topic="${topic.topicId}"]`);
+      await expect(row).toBeVisible();
+      await expect(row).toContainText(`Mode: ${humanizeToken(topic.mode)}`);
+      await expect(row).toContainText(`Change assessment: ${humanizeToken(topic.changeAssessment)}`);
+      await expect(row.locator(':scope > .research-agenda-meta')).toHaveCount(1);
+      await expect(row.locator('pre, table, canvas, svg, details, ul, ol')).toHaveCount(0);
+      await expect(row).not.toContainText(/model\s*inputs?|model\s*outputs?|chart\s*series|triggers?|invalidations?|findings?|evidence\s*(records?|ledger)|source\s*ledger/i);
+      await expect(row.locator('a')).toHaveAttribute('href', `research-agenda-lab.html#power/${topic.topicId}`);
+    }
   } finally {
     await server.close();
   }

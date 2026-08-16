@@ -23,6 +23,7 @@
   var FINDING_SEAM_VERSION = "research-finding-reference-seam/v1";
   var VIEW_STATE_VERSION = "research-agenda-view-state/v1";
   var TOOL_READ_VERSION = "research-agenda-tool-read/v1";
+  var MODEL_INPUT_VERSION = "research-model-input/v1";
   var ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
   var IMMUTABLE_ID_PATTERN = /^(?:generation|review|dossier|source|event)-[a-f0-9]{64}$/;
   var HASH_PATTERN = /^sha256:[a-f0-9]{64}$/;
@@ -52,6 +53,10 @@
   var CURRENT_TOPIC_STATES = Object.freeze(["reviewed", "unavailable", "paused", "retired", "deferred", "not-due", "refused"]);
   var PLAN_TOPIC_STATES = Object.freeze(["selected", "not-due", "paused", "retired", "deferred", "refused"]);
   var TRIGGER_OPERATORS = Object.freeze(["equals", "at-least", "below", "above", "changed"]);
+  var REVIEW_OUTCOMES = Object.freeze(["updated", "unchanged", "stale", "unavailable"]);
+  var CHANGE_ASSESSMENTS = Object.freeze(["strengthened", "weakened", "reversed", "unchanged", "insufficient-evidence"]);
+  var AVAILABILITY_STATES = Object.freeze(["available", "unavailable"]);
+  var OBSERVATION_STATES = Object.freeze(["fired", "not-fired"]);
   var REFUSAL_CODES = Object.freeze([
     "RLAGENDA-CONTRACT-ABSENT", "RLAGENDA-CONTRACT-UNREADABLE", "RLAGENDA-CONTRACT-SHAPE",
     "RLAGENDA-CONTRACT-UNKNOWN-MEMBER", "RLAGENDA-CONTRACT-MISSING-MEMBER",
@@ -135,26 +140,73 @@
     "contractVersion", "eventType", "occurredAt", "topicId", "generationId",
     "reviewId", "dossierId", "correctsEventId", "supersedesEventId", "artifactRef"
   ]);
-  var HISTORY_EVENT_FIELDS = Object.freeze(["eventId"].concat(HISTORY_EVENT_BODY_FIELDS));
+  var LIFECYCLE_EVENT_BODY_FIELDS = Object.freeze(HISTORY_EVENT_BODY_FIELDS.concat([
+    "fromState", "toState", "registryTopicSha256"
+  ]));
   var ARTIFACT_REF_FIELDS = Object.freeze(["path", "sha256", "contractVersion", "generationId", "topicId", "historicalOnly"]);
+  var MODEL_SNAPSHOT_REF_FIELDS = Object.freeze(["dossierRef", "modelInputsSha256", "modelOutputsSha256", "chartSeriesSha256"]);
+  var ACTIVE_REVIEW_FIELDS = Object.freeze([
+    "contractVersion", "reviewId", "generationId", "topicId", "attemptedAt", "validationState", "historicalOnly",
+    "mode", "selectionReason", "completePass", "outcome", "reason", "newestEvidenceAgeHours", "changeAssessment",
+    "sectionStates", "evidenceIds", "modelSnapshotRef", "chartState", "triggerStates", "invalidationStates",
+    "dossierRef", "predecessorDossierRef"
+  ]);
+  var ACTIVE_DOSSIER_FIELDS = Object.freeze([
+    "contractVersion", "dossierId", "topicId", "generationId", "reviewId", "mode", "selectionReason",
+    "historicalOnly", "validationState", "observedThrough", "outcome", "changeAssessment",
+    "declaredQuestionSha256", "sectionStates", "findings", "evidenceRecords", "sourceLedger", "modelInputs",
+    "modelOutputs", "chartStates", "triggerStates", "invalidationStates", "predecessorDossierRef", "supersedesDossierRef"
+  ]);
+  var DOSSIER_CHART_STATE_FIELDS = Object.freeze(["chartId", "state", "series", "annotations"]);
+  var DOSSIER_TRIGGER_STATE_FIELDS = Object.freeze(["triggerId", "state", "observedAt", "evidenceRefs"]);
+  var DOSSIER_INVALIDATION_STATE_FIELDS = Object.freeze(["invalidationId", "state", "observedAt", "evidenceRefs"]);
   var CURRENT_FIELDS = Object.freeze(["contractVersion", "updatedAt", "generationRef", "topicRefs"]);
   var CURRENT_TOPIC_FIELDS = Object.freeze(["topicId", "state", "reviewRef", "dossierRef"]);
   var READ_FIELDS = Object.freeze(["contractVersion", "generationId", "asOf", "topics", "readFingerprint"]);
-  var READ_TOPIC_FIELDS = Object.freeze(["topicId", "state", "reason", "reviewId", "dossierId", "outcome", "newestEvidenceAgeHours"]);
+  var READ_TOPIC_FIELDS = Object.freeze([
+    "topicId", "mode", "state", "reason", "selectionReason", "reviewId", "dossierId", "outcome",
+    "changeAssessment", "newestEvidenceAgeHours", "modelState", "chartState",
+    "predecessorDossierId", "supersedesDossierId"
+  ]);
   var PLAN_EVIDENCE_FIELDS = Object.freeze(["definitionsByTopicId", "triggerObservations"]);
   var TRIGGER_OBSERVATION_FIELDS = Object.freeze(["topicId", "triggerId", "observedAt", "values"]);
   var REFINEMENT_FIELDS = Object.freeze(["contractVersion", "topicId", "declaredQuestion", "scopeBoundary", "subjects"]);
   var REFINEMENT_SUBJECT_FIELDS = Object.freeze(["kind", "value"]);
   var REFINEMENT_SUBJECT_KINDS = Object.freeze(["geography", "channel", "horizon", "public-ticker", "public-market-object"]);
+  var PUBLISHED_FINDING_FIELDS = Object.freeze([
+    "findingId", "observedAt", "claim", "publicSubjects", "horizon", "source",
+    "statedConfidence", "provenanceClass", "evidenceRole", "evidenceRefs",
+    "triggerRefs", "invalidationRefs", "causalPath", "refutedBy", "limitations"
+  ]);
+  var FINDING_SOURCE_FIELDS = Object.freeze(["sourceIds"]);
+  var FINDING_CONFIDENCE_FIELDS = Object.freeze(["grade", "basis"]);
+  var FINDING_PUBLIC_SUBJECT_FIELDS = Object.freeze(["kind", "value"]);
+  var FINDING_HORIZONS = Object.freeze(["structural", "swing", "tactical"]);
   var FINDING_SEAM_FIELDS = Object.freeze(["contractVersion", "topicId", "dossierId", "definitionVersion", "declaredQuestionSha256", "findings"]);
   var FINDING_REFERENCE_FIELDS = Object.freeze([
-    "findingId", "claim", "publicSubjects", "horizon", "evidenceRefs",
-    "sourceRefs", "triggerRefs", "invalidationRefs", "topicId", "dossierId"
+    "findingId", "observedAt", "claim", "publicSubjects", "horizon", "statedConfidence",
+    "provenanceClass", "evidenceRole", "evidenceRefs", "sourceRefs", "triggerRefs",
+    "invalidationRefs", "topicId", "dossierId"
   ]);
   var VIEW_LEVER_FIELDS = Object.freeze([
     "hormuzPhysicalPassFraction", "babElMandebPhysicalPassFraction", "reroutedShare",
     "inventoryPolicyResponseOffset", "demandOffset"
   ]);
+  var MODEL_INPUT_FIELDS = Object.freeze([
+    "contractVersion", "chokepointState", "inventoryGapByChannel", "levers",
+    "currentBars", "calibrationEvents", "evidenceImpacts"
+  ]);
+  var CHOKEPOINT_STATE_FIELDS = Object.freeze(["physicalPassFraction", "insuredPassFraction", "delayDays"]);
+  var INTERVAL_FIELDS = Object.freeze(["low", "base", "high"]);
+  var CURRENT_BAR_FIELDS = Object.freeze(["sym", "asof", "latest"]);
+  var CURRENT_BAR_ROW_FIELDS = Object.freeze(["t", "o", "h", "l", "c", "v"]);
+  var MODEL_IMPACT_FIELDS = Object.freeze(["targetId", "weightedImpact"]);
+  var COMMODITY_LEVER_FIELDS = Object.freeze(["inventoryPolicyResponseOffset", "demandOffset"]);
+  var CHANGE_ASSESSMENT_THRESHOLDS = Object.freeze({
+    minimumEvidenceCoverage: 0.5,
+    materialDelta: 0.1,
+    reversalThreshold: 0.1
+  });
   var PRIVATE_FIELD_PATTERN = /^(position|positions|quantity|quantities|sharecount|shares|costbasis|pnl|profitloss)$/i;
   var PUBLIC_PRIVATE_FIELD_TOKENS = Object.freeze([
     "position", "positions", "size", "quantity", "quantities", "costbasis",
@@ -197,6 +249,16 @@
     if (!Array.isArray(value) || (!allowEmpty && value.length === 0)) return false;
     for (var index = 0; index < value.length; index += 1) {
       if (!isNonEmptyString(value[index])) return false;
+    }
+    return true;
+  }
+
+  function isUniqueStringList(value, allowEmpty) {
+    if (!isStringList(value, allowEmpty)) return false;
+    var seen = Object.create(null);
+    for (var index = 0; index < value.length; index += 1) {
+      if (seen[value[index]]) return false;
+      seen[value[index]] = true;
     }
     return true;
   }
@@ -347,6 +409,12 @@
     return Object.freeze(value);
   }
 
+  function isDeepFrozenAgenda(value) {
+    if (!value || typeof value !== "object") return true;
+    if (!Object.isFrozen(value)) return false;
+    return Object.keys(value).every(function (key) { return isDeepFrozenAgenda(value[key]); });
+  }
+
   function cloneAgenda(value) {
     return JSON.parse(canonicalizeAgenda(value));
   }
@@ -434,20 +502,20 @@
 
   function predecessorDossierExists(value, existingByPath) {
     if (value.contractVersion !== DOSSIER_VERSION || value.historicalOnly === true) return true;
-    var predecessorId = value.supersedesDossierId;
-    if (predecessorId === null) {
+    var predecessorRef = value.supersedesDossierRef;
+    if (predecessorRef === null) {
       return !Object.keys(existingByPath).some(function (path) {
         var existing = existingByPath[path];
         return isPlainObject(existing) && existing.contractVersion === DOSSIER_VERSION &&
           existing.topicId === value.topicId && existing.historicalOnly !== true;
       });
     }
-    if (!ID_PATTERN.test(predecessorId || "")) return false;
-    return Object.keys(existingByPath).some(function (path) {
-      var existing = existingByPath[path];
-      return isPlainObject(existing) && existing.contractVersion === DOSSIER_VERSION &&
-        existing.topicId === value.topicId && existing.dossierId === predecessorId;
-    });
+    var refShape = exactShape(predecessorRef, ARTIFACT_REF_FIELDS, ARTIFACT_REF_FIELDS);
+    if (refShape || predecessorRef.contractVersion !== DOSSIER_VERSION || predecessorRef.topicId !== value.topicId ||
+        predecessorRef.historicalOnly || !hasOwn(existingByPath, predecessorRef.path)) return false;
+    var existing = existingByPath[predecessorRef.path];
+    return isPlainObject(existing) && existing.contractVersion === DOSSIER_VERSION && existing.topicId === value.topicId &&
+      existing.historicalOnly === false && predecessorRef.sha256 === agendaDigest(existing);
   }
 
   function prepareImmutableCreate(path, value, existingByPath) {
@@ -491,7 +559,8 @@
   }
 
   function deriveHistoryEventId(eventBody) {
-    var shape = exactShape(eventBody, HISTORY_EVENT_BODY_FIELDS, HISTORY_EVENT_BODY_FIELDS);
+    var bodyFields = eventBody && eventBody.eventType === "lifecycle" ? LIFECYCLE_EVENT_BODY_FIELDS : HISTORY_EVENT_BODY_FIELDS;
+    var shape = exactShape(eventBody, bodyFields, bodyFields);
     if (shape) return identityFailure(shape.field || "historyEvent");
     try { return identitySuccess("event", agendaDigest(eventBody)); } catch (error) { return identityFailure("historyEvent"); }
   }
@@ -507,6 +576,16 @@
     }
     if (eventBody.eventType !== "correction" && eventBody.correctsEventId !== null) {
       return Object.freeze({ ok: false, code: "RLAGENDA-CORRECTION-INVALID" });
+    }
+    if (eventBody.eventType === "lifecycle" &&
+      !((eventBody.fromState === null || includesValue(LIFECYCLE_STATES, eventBody.fromState)) &&
+        includesValue(LIFECYCLE_STATES, eventBody.toState) && eventBody.fromState !== eventBody.toState &&
+        /^generation-[a-f0-9]{64}$/.test(eventBody.generationId || "") &&
+        eventBody.reviewId === null && eventBody.dossierId === null && eventBody.artifactRef === null &&
+        HASH_PATTERN.test(eventBody.registryTopicSha256 || "") &&
+        ((eventBody.fromState === null && eventBody.supersedesEventId === null) ||
+          (eventBody.fromState !== null && IMMUTABLE_ID_PATTERN.test(eventBody.supersedesEventId || ""))))) {
+      return Object.freeze({ ok: false, code: "RLAGENDA-LIFECYCLE-INVALID" });
     }
     if (eventBody.supersedesEventId !== null && !IMMUTABLE_ID_PATTERN.test(eventBody.supersedesEventId || "")) {
       return Object.freeze({ ok: false, code: "RLAGENDA-HISTORY-INVALID" });
@@ -530,7 +609,9 @@
     for (var index = 0; index < lines.length; index += 1) {
       try {
         var event = JSON.parse(lines[index]);
-        var shape = exactShape(event, HISTORY_EVENT_FIELDS, HISTORY_EVENT_FIELDS);
+        var bodyFields = event && event.eventType === "lifecycle" ? LIFECYCLE_EVENT_BODY_FIELDS : HISTORY_EVENT_BODY_FIELDS;
+        var eventFields = ["eventId"].concat(bodyFields);
+        var shape = exactShape(event, eventFields, eventFields);
         if (shape || canonicalizeAgenda(event) !== lines[index]) return { ok: false, code: "RLAGENDA-HISTORY-INVALID" };
         var body = cloneAgenda(event); delete body.eventId;
         var built = buildHistoryEvent(body);
@@ -552,7 +633,9 @@
     var appended = [];
     for (var index = 0; index < newEvents.length; index += 1) {
       var event = newEvents[index];
-      var shape = exactShape(event, HISTORY_EVENT_FIELDS, HISTORY_EVENT_FIELDS);
+      var bodyFields = event && event.eventType === "lifecycle" ? LIFECYCLE_EVENT_BODY_FIELDS : HISTORY_EVENT_BODY_FIELDS;
+      var eventFields = ["eventId"].concat(bodyFields);
+      var shape = exactShape(event, eventFields, eventFields);
       if (shape || seen[event.eventId]) return Object.freeze({ ok: false, code: "RLAGENDA-HISTORY-INVALID" });
       var body = cloneAgenda(event); delete body.eventId;
       var built = buildHistoryEvent(body);
@@ -569,6 +652,50 @@
       candidateText: existingText + suffix,
       appendedEventIds: appended.map(function (event) { return event.eventId; })
     });
+  }
+
+  function planLifecycleEvents(registry, historyText, generationId, occurredAt) {
+    if (!isPlainObject(registry) || !Array.isArray(registry.topics) ||
+      !/^generation-[a-f0-9]{64}$/.test(generationId || "") || !isCanonicalInstant(occurredAt)) {
+      return Object.freeze({ ok: false, code: "RLAGENDA-LIFECYCLE-INVALID" });
+    }
+    var prior = parseHistoryText(historyText);
+    if (!prior.ok) return Object.freeze({ ok: false, code: prior.code });
+    var latestByTopicId = Object.create(null);
+    prior.events.forEach(function (event) {
+      if (event.eventType === "lifecycle") latestByTopicId[event.topicId] = event;
+    });
+    var seenTopics = Object.create(null);
+    var events = [];
+    for (var index = 0; index < registry.topics.length; index += 1) {
+      var topic = registry.topics[index];
+      if (!isPlainObject(topic) || !ID_PATTERN.test(topic.topicId || "") || seenTopics[topic.topicId] ||
+        !includesValue(LIFECYCLE_STATES, topic.lifecycleState)) {
+        return Object.freeze({ ok: false, code: "RLAGENDA-LIFECYCLE-INVALID" });
+      }
+      seenTopics[topic.topicId] = true;
+      var previous = latestByTopicId[topic.topicId] || null;
+      var fromState = previous ? previous.toState : null;
+      if (fromState === topic.lifecycleState) continue;
+      var built = buildHistoryEvent({
+        contractVersion: HISTORY_EVENT_VERSION,
+        eventType: "lifecycle",
+        occurredAt: occurredAt,
+        topicId: topic.topicId,
+        generationId: generationId,
+        reviewId: null,
+        dossierId: null,
+        correctsEventId: null,
+        supersedesEventId: previous ? previous.eventId : null,
+        artifactRef: null,
+        fromState: fromState,
+        toState: topic.lifecycleState,
+        registryTopicSha256: agendaDigest(topic)
+      });
+      if (!built.ok) return Object.freeze({ ok: false, code: built.code });
+      events.push(built.event);
+    }
+    return freezeAgenda({ ok: true, events: events });
   }
 
   function buildArtifactRef(path, record) {
@@ -588,10 +715,191 @@
     });
   }
 
+  function validateDossierArtifactRef(ref, topicId, allowNull) {
+    if (ref === null) return allowNull ? null : { code: "RLAGENDA-CONTRACT-SHAPE", field: "dossierRef" };
+    var shape = exactShape(ref, ARTIFACT_REF_FIELDS, ARTIFACT_REF_FIELDS);
+    if (shape) return shape;
+    if (!validImmutablePath(ref.path) || ref.contractVersion !== DOSSIER_VERSION || ref.topicId !== topicId ||
+        ref.historicalOnly !== false || !HASH_PATTERN.test(ref.sha256) || !IMMUTABLE_ID_PATTERN.test(ref.generationId || "")) {
+      return { code: "RLAGENDA-CONTRACT-SHAPE", field: "dossierRef" };
+    }
+    return null;
+  }
+
+  function dossierIdFromRef(ref) {
+    if (ref === null) return null;
+    var filename = ref.path.slice(ref.path.lastIndexOf("/") + 1);
+    return filename.slice(0, -".json".length);
+  }
+
+  function validateActiveDossier(dossier, definition) {
+    var shape = exactShape(dossier, ACTIVE_DOSSIER_FIELDS, ACTIVE_DOSSIER_FIELDS);
+    if (shape) return freezeAgenda({ ok: false, code: shape.code, field: shape.field });
+    if (dossier.contractVersion !== DOSSIER_VERSION || dossier.historicalOnly !== false || dossier.validationState !== "validated" ||
+        !IMMUTABLE_ID_PATTERN.test(dossier.dossierId || "") || !ID_PATTERN.test(dossier.topicId || "") ||
+        !IMMUTABLE_ID_PATTERN.test(dossier.generationId || "") || !IMMUTABLE_ID_PATTERN.test(dossier.reviewId || "") ||
+        !includesValue(REVIEW_MODES, dossier.mode) || !isNonEmptyString(dossier.selectionReason) ||
+        !isCanonicalInstant(dossier.observedThrough) || dossier.outcome !== "updated" ||
+        !includesValue(CHANGE_ASSESSMENTS, dossier.changeAssessment) || !HASH_PATTERN.test(dossier.declaredQuestionSha256 || "") ||
+        !Array.isArray(dossier.sectionStates) || !Array.isArray(dossier.findings) || !Array.isArray(dossier.evidenceRecords) ||
+        !Array.isArray(dossier.sourceLedger) || !isPlainObject(dossier.modelInputs) || !isPlainObject(dossier.modelOutputs) ||
+        !Array.isArray(dossier.chartStates) || !Array.isArray(dossier.triggerStates) || !Array.isArray(dossier.invalidationStates)) {
+      return freezeAgenda({ ok: false, code: "RLAGENDA-CONTRACT-SHAPE", field: "dossier" });
+    }
+    var modelInputShape = exactShape(dossier.modelInputs, MODEL_INPUT_FIELDS, MODEL_INPUT_FIELDS);
+    if (modelInputShape || dossier.modelInputs.contractVersion !== MODEL_INPUT_VERSION) {
+      return freezeAgenda({ ok: false, code: modelInputShape ? modelInputShape.code : "RLAGENDA-MODEL-INVALID", field: modelInputShape ? modelInputShape.field : "contractVersion" });
+    }
+    if (typeof definition !== "undefined") {
+      var inputValidation = validateResearchModelInput(dossier.modelInputs, definition, dossier.observedThrough);
+      if (!inputValidation.ok) return freezeAgenda({ ok: false, code: inputValidation.code, field: inputValidation.field || "modelInputs" });
+    }
+    var predecessorShape = validateDossierArtifactRef(dossier.predecessorDossierRef, dossier.topicId, true);
+    var supersedesShape = validateDossierArtifactRef(dossier.supersedesDossierRef, dossier.topicId, true);
+    if (predecessorShape) return freezeAgenda({ ok: false, code: predecessorShape.code, field: "predecessorDossierRef" });
+    if (supersedesShape) return freezeAgenda({ ok: false, code: supersedesShape.code, field: "supersedesDossierRef" });
+    if (canonicalizeAgenda(dossier.predecessorDossierRef) !== canonicalizeAgenda(dossier.supersedesDossierRef)) {
+      return freezeAgenda({ ok: false, code: "RLAGENDA-CONTRACT-SHAPE", field: "supersedesDossierRef" });
+    }
+    for (var chartIndex = 0; chartIndex < dossier.chartStates.length; chartIndex += 1) {
+      var chart = dossier.chartStates[chartIndex];
+      var chartShape = exactShape(chart, DOSSIER_CHART_STATE_FIELDS, DOSSIER_CHART_STATE_FIELDS);
+      if (chartShape || !ID_PATTERN.test(chart.chartId || "") || !includesValue(AVAILABILITY_STATES, chart.state) ||
+          !Array.isArray(chart.series) || !Array.isArray(chart.annotations)) {
+        return freezeAgenda({ ok: false, code: chartShape ? chartShape.code : "RLAGENDA-CONTRACT-SHAPE", field: chartShape ? chartShape.field : "chartStates" });
+      }
+    }
+    for (var triggerIndex = 0; triggerIndex < dossier.triggerStates.length; triggerIndex += 1) {
+      var trigger = dossier.triggerStates[triggerIndex];
+      var triggerShape = exactShape(trigger, DOSSIER_TRIGGER_STATE_FIELDS, DOSSIER_TRIGGER_STATE_FIELDS);
+      if (triggerShape || !ID_PATTERN.test(trigger.triggerId || "") || !includesValue(OBSERVATION_STATES, trigger.state) ||
+          (trigger.observedAt !== null && !isCanonicalInstant(trigger.observedAt)) || !isStringList(trigger.evidenceRefs, true)) {
+        return freezeAgenda({ ok: false, code: triggerShape ? triggerShape.code : "RLAGENDA-CONTRACT-SHAPE", field: triggerShape ? triggerShape.field : "triggerStates" });
+      }
+    }
+    for (var invalidationIndex = 0; invalidationIndex < dossier.invalidationStates.length; invalidationIndex += 1) {
+      var invalidation = dossier.invalidationStates[invalidationIndex];
+      var invalidationShape = exactShape(invalidation, DOSSIER_INVALIDATION_STATE_FIELDS, DOSSIER_INVALIDATION_STATE_FIELDS);
+      if (invalidationShape || !ID_PATTERN.test(invalidation.invalidationId || "") || !includesValue(OBSERVATION_STATES, invalidation.state) ||
+          (invalidation.observedAt !== null && !isCanonicalInstant(invalidation.observedAt)) || !isStringList(invalidation.evidenceRefs, true)) {
+        return freezeAgenda({ ok: false, code: invalidationShape ? invalidationShape.code : "RLAGENDA-CONTRACT-SHAPE", field: invalidationShape ? invalidationShape.field : "invalidationStates" });
+      }
+    }
+    if (typeof definition !== "undefined") {
+      if (!isPlainObject(definition) || definition.topicId !== dossier.topicId || !Array.isArray(definition.chartDefinitions) ||
+          !Array.isArray(definition.triggers) || !Array.isArray(definition.invalidations)) {
+        return freezeAgenda({ ok: false, code: "RLAGENDA-CONTRACT-SHAPE", field: "definition" });
+      }
+      var chartIds = dossier.chartStates.map(function (row) { return row.chartId; });
+      var triggerIds = dossier.triggerStates.map(function (row) { return row.triggerId; });
+      var invalidationIds = dossier.invalidationStates.map(function (row) { return row.invalidationId; });
+      if (canonicalizeAgenda(chartIds) !== canonicalizeAgenda(definition.chartDefinitions.map(function (row) { return row.chartId; })) ||
+          canonicalizeAgenda(triggerIds) !== canonicalizeAgenda(definition.triggers.map(function (row) { return row.triggerId; })) ||
+          canonicalizeAgenda(invalidationIds) !== canonicalizeAgenda(definition.invalidations.map(function (row) { return row.invalidationId; }))) {
+        return freezeAgenda({ ok: false, code: "RLAGENDA-CONTRACT-SHAPE", field: "definition" });
+      }
+    }
+    var dossierBody = cloneAgenda(dossier);
+    delete dossierBody.dossierId;
+    var identity = deriveDossierId(dossierBody);
+    if (!identity.ok || identity.id !== dossier.dossierId) return freezeAgenda({ ok: false, code: "RLAGENDA-IDENTITY-INVALID", field: "dossierId" });
+    return freezeAgenda({ ok: true, dossier: cloneAgenda(dossier) });
+  }
+
+  function validateActiveReview(review, recordsByPath) {
+    var shape = exactShape(review, ACTIVE_REVIEW_FIELDS, ACTIVE_REVIEW_FIELDS);
+    if (shape) return freezeAgenda({ ok: false, code: shape.code, field: shape.field });
+    if (review.contractVersion !== REVIEW_VERSION || review.historicalOnly !== false || review.validationState !== "validated" ||
+        !IMMUTABLE_ID_PATTERN.test(review.reviewId || "") || !IMMUTABLE_ID_PATTERN.test(review.generationId || "") ||
+        !ID_PATTERN.test(review.topicId || "") || !isCanonicalInstant(review.attemptedAt) || !includesValue(REVIEW_MODES, review.mode) ||
+        !isNonEmptyString(review.selectionReason) || typeof review.completePass !== "boolean" || !includesValue(REVIEW_OUTCOMES, review.outcome) ||
+        !includesValue(CHANGE_ASSESSMENTS, review.changeAssessment) || !Array.isArray(review.sectionStates) ||
+        !isStringList(review.evidenceIds, true) || !includesValue(AVAILABILITY_STATES, review.chartState) ||
+        !includesValue(AVAILABILITY_STATES, review.triggerStates) || !includesValue(AVAILABILITY_STATES, review.invalidationStates) ||
+        (review.newestEvidenceAgeHours !== null && (!isFiniteNumber(review.newestEvidenceAgeHours) || review.newestEvidenceAgeHours < 0))) {
+      return freezeAgenda({ ok: false, code: "RLAGENDA-CONTRACT-SHAPE", field: "review" });
+    }
+    var dossierShape = validateDossierArtifactRef(review.dossierRef, review.topicId, true);
+    var predecessorShape = validateDossierArtifactRef(review.predecessorDossierRef, review.topicId, true);
+    if (dossierShape) return freezeAgenda({ ok: false, code: dossierShape.code, field: "dossierRef" });
+    if (predecessorShape) return freezeAgenda({ ok: false, code: predecessorShape.code, field: "predecessorDossierRef" });
+    if (review.outcome === "updated" && (review.reason !== null || review.completePass !== true || review.dossierRef === null)) {
+      return freezeAgenda({ ok: false, code: "RLAGENDA-CONTRACT-SHAPE", field: "outcome" });
+    }
+    if (review.outcome !== "updated" && !isNonEmptyString(review.reason)) {
+      return freezeAgenda({ ok: false, code: "RLAGENDA-CONTRACT-SHAPE", field: "reason" });
+    }
+    if (includesValue(["unchanged", "stale"], review.outcome) && review.completePass !== true) {
+      return freezeAgenda({ ok: false, code: "RLAGENDA-CONTRACT-SHAPE", field: "completePass" });
+    }
+    if (review.outcome === "unavailable" && (review.dossierRef !== null || review.modelSnapshotRef !== null)) {
+      return freezeAgenda({ ok: false, code: "RLAGENDA-CONTRACT-SHAPE", field: "modelSnapshotRef" });
+    }
+    if (review.outcome === "unchanged" && (review.dossierRef === null || review.predecessorDossierRef === null ||
+        canonicalizeAgenda(review.dossierRef) !== canonicalizeAgenda(review.predecessorDossierRef))) {
+      return freezeAgenda({ ok: false, code: "RLAGENDA-CONTRACT-SHAPE", field: "dossierRef" });
+    }
+    if (review.outcome === "stale" && review.dossierRef !== null &&
+        canonicalizeAgenda(review.dossierRef) !== canonicalizeAgenda(review.predecessorDossierRef)) {
+      return freezeAgenda({ ok: false, code: "RLAGENDA-CONTRACT-SHAPE", field: "dossierRef" });
+    }
+    if (review.modelSnapshotRef === null) {
+      if (typeof recordsByPath !== "undefined" && review.predecessorDossierRef !== null) {
+        var prior = isPlainObject(recordsByPath) ? recordsByPath[review.predecessorDossierRef.path] : null;
+        var priorValidation = validateActiveDossier(prior);
+        if (!priorValidation.ok || review.predecessorDossierRef.sha256 !== agendaDigest(prior) || dossierIdFromRef(review.predecessorDossierRef) !== prior.dossierId) {
+          return freezeAgenda({ ok: false, code: priorValidation.ok ? "RLAGENDA-CURRENT-INVALID" : priorValidation.code, field: priorValidation.ok ? "predecessorDossierRef" : priorValidation.field });
+        }
+      }
+      if (review.dossierRef !== null || review.chartState !== "unavailable" || review.triggerStates !== "unavailable" || review.invalidationStates !== "unavailable") {
+        return freezeAgenda({ ok: false, code: "RLAGENDA-CONTRACT-SHAPE", field: "modelSnapshotRef" });
+      }
+      return freezeAgenda({ ok: true, review: cloneAgenda(review) });
+    }
+    var snapshotShape = exactShape(review.modelSnapshotRef, MODEL_SNAPSHOT_REF_FIELDS, MODEL_SNAPSHOT_REF_FIELDS);
+    if (snapshotShape || review.dossierRef === null ||
+        canonicalizeAgenda(review.modelSnapshotRef.dossierRef) !== canonicalizeAgenda(review.dossierRef) ||
+        !HASH_PATTERN.test(review.modelSnapshotRef.modelInputsSha256 || "") ||
+        !HASH_PATTERN.test(review.modelSnapshotRef.modelOutputsSha256 || "") ||
+        !HASH_PATTERN.test(review.modelSnapshotRef.chartSeriesSha256 || "") ||
+        review.chartState !== "available" || review.triggerStates !== "available" || review.invalidationStates !== "available") {
+      return freezeAgenda({ ok: false, code: snapshotShape ? snapshotShape.code : "RLAGENDA-CONTRACT-SHAPE", field: snapshotShape ? snapshotShape.field : "modelSnapshotRef" });
+    }
+    if (typeof recordsByPath !== "undefined") {
+      if (review.predecessorDossierRef !== null) {
+        var predecessor = isPlainObject(recordsByPath) ? recordsByPath[review.predecessorDossierRef.path] : null;
+        var predecessorValidation = validateActiveDossier(predecessor);
+        if (!predecessorValidation.ok || review.predecessorDossierRef.sha256 !== agendaDigest(predecessor) || dossierIdFromRef(review.predecessorDossierRef) !== predecessor.dossierId) {
+          return freezeAgenda({ ok: false, code: predecessorValidation.ok ? "RLAGENDA-CURRENT-INVALID" : predecessorValidation.code, field: predecessorValidation.ok ? "predecessorDossierRef" : predecessorValidation.field });
+        }
+      }
+      if (!isPlainObject(recordsByPath) || !hasOwn(recordsByPath, review.dossierRef.path)) {
+        return freezeAgenda({ ok: false, code: "RLAGENDA-CURRENT-INVALID", field: "dossierRef" });
+      }
+      var dossier = recordsByPath[review.dossierRef.path];
+      var dossierValidation = validateActiveDossier(dossier);
+      if (!dossierValidation.ok || review.dossierRef.sha256 !== agendaDigest(dossier) || dossierIdFromRef(review.dossierRef) !== dossier.dossierId ||
+          review.modelSnapshotRef.modelInputsSha256 !== agendaDigest(dossier.modelInputs) ||
+          review.modelSnapshotRef.modelOutputsSha256 !== agendaDigest(dossier.modelOutputs) ||
+          review.modelSnapshotRef.chartSeriesSha256 !== agendaDigest(dossier.chartStates)) {
+        return freezeAgenda({ ok: false, code: dossierValidation.ok ? "RLAGENDA-CURRENT-INVALID" : dossierValidation.code, field: dossierValidation.ok ? "modelSnapshotRef" : dossierValidation.field });
+      }
+    }
+    return freezeAgenda({ ok: true, review: cloneAgenda(review) });
+  }
+
   function validateCurrentRef(ref, recordsByPath, expectedVersion, allowHistorical) {
     var shape = exactShape(ref, ARTIFACT_REF_FIELDS, ARTIFACT_REF_FIELDS);
     if (shape || !validImmutablePath(ref.path) || !hasOwn(recordsByPath, ref.path)) return { ok: false, code: "RLAGENDA-CURRENT-INVALID" };
     var record = recordsByPath[ref.path];
+    if (expectedVersion === REVIEW_VERSION && record && record.historicalOnly !== true) {
+      var reviewValidation = validateActiveReview(record, recordsByPath);
+      if (!reviewValidation.ok) return { ok: false, code: reviewValidation.code, field: reviewValidation.field };
+    }
+    if (expectedVersion === DOSSIER_VERSION && record && record.historicalOnly !== true) {
+      var dossierValidation = validateActiveDossier(record);
+      if (!dossierValidation.ok) return { ok: false, code: dossierValidation.code, field: dossierValidation.field };
+    }
     if (!isPlainObject(record) || record.contractVersion !== expectedVersion || record.validationState !== "validated" || immutablePathForRecord(record) !== ref.path ||
         ref.sha256 !== agendaDigest(record) || ref.contractVersion !== record.contractVersion ||
         ref.generationId !== (hasOwn(record, "generationId") ? record.generationId : null) ||
@@ -634,13 +942,13 @@
       }
       if (topicRef.reviewRef !== null) {
         var review = validateCurrentRef(topicRef.reviewRef, recordsByPath, REVIEW_VERSION, false);
-        if (!review.ok || review.record.topicId !== topicRef.topicId || review.record.generationId !== generation.record.generationId) return Object.freeze({ ok: false, code: review.code || "RLAGENDA-CURRENT-INVALID" });
+        if (!review.ok || review.record.topicId !== topicRef.topicId || review.record.generationId !== generation.record.generationId) return Object.freeze({ ok: false, code: review.code || "RLAGENDA-CURRENT-INVALID", field: review.field || null });
         if (topicRef.state === "reviewed" && includesValue(["updated", "unchanged"], review.record.outcome) && topicRef.dossierRef === null) return Object.freeze({ ok: false, code: "RLAGENDA-CURRENT-INVALID" });
         resolved.push(review.record);
       }
       if (topicRef.dossierRef !== null) {
         var dossier = validateCurrentRef(topicRef.dossierRef, recordsByPath, DOSSIER_VERSION, false);
-        if (!dossier.ok || dossier.record.topicId !== topicRef.topicId) return Object.freeze({ ok: false, code: dossier.code || "RLAGENDA-CURRENT-INVALID" });
+        if (!dossier.ok || dossier.record.topicId !== topicRef.topicId) return Object.freeze({ ok: false, code: dossier.code || "RLAGENDA-CURRENT-INVALID", field: dossier.field || null });
         resolved.push(dossier.record);
       }
     }
@@ -660,7 +968,15 @@
       var row = read.topics[index];
       var rowShape = exactShape(row, READ_TOPIC_FIELDS, READ_TOPIC_FIELDS);
       if (rowShape || !ID_PATTERN.test(row.topicId || "") || !expectedById[row.topicId] || seen[row.topicId] ||
-          !includesValue(CURRENT_TOPIC_STATES, row.state) || !isNonEmptyString(row.outcome || "")) {
+          !includesValue(REVIEW_MODES, row.mode) || !includesValue(CURRENT_TOPIC_STATES, row.state) ||
+          !(row.reason === null || isNonEmptyString(row.reason)) || !isNonEmptyString(row.selectionReason) ||
+          !(row.reviewId === null || IMMUTABLE_ID_PATTERN.test(row.reviewId || "")) ||
+          !(row.dossierId === null || IMMUTABLE_ID_PATTERN.test(row.dossierId || "")) ||
+          !includesValue(REVIEW_OUTCOMES.concat(["paused", "retired", "deferred", "not-due", "refused"]), row.outcome) ||
+          !includesValue(CHANGE_ASSESSMENTS, row.changeAssessment) || !includesValue(AVAILABILITY_STATES, row.modelState) ||
+          !includesValue(AVAILABILITY_STATES, row.chartState) ||
+          !(row.predecessorDossierId === null || IMMUTABLE_ID_PATTERN.test(row.predecessorDossierId || "")) ||
+          !(row.supersedesDossierId === null || IMMUTABLE_ID_PATTERN.test(row.supersedesDossierId || ""))) {
         return Object.freeze({ ok: false, code: "RLAGENDA-CURRENT-INVALID", field: rowShape ? rowShape.field : "topics" });
       }
       seen[row.topicId] = true;
@@ -892,6 +1208,15 @@
       }
     }
     return null;
+  }
+
+  function resolveAgendaPolicy(policy) {
+    var policyFailure = validateAgendaPolicy(policy);
+    if (policyFailure) {
+      return freezeAgenda({ ok: false, code: policyFailure.code, field: policyFailure.field });
+    }
+    var value = isDeepFrozenAgenda(policy) ? policy : freezeAgenda(cloneAgenda(policy));
+    return freezeAgenda({ ok: true, value: value, digest: agendaDigest(value) });
   }
 
   function validateBoundary(boundary, topicId) {
@@ -1148,10 +1473,6 @@
     };
   }
 
-  function validateEvidencePolicyMap(value, labels) {
-    return validateWeightMap(value, labels) === null;
-  }
-
   function validateSectionList(sections) {
     if (!Array.isArray(sections) || sections.length === 0) return false;
     var seen = Object.create(null);
@@ -1239,6 +1560,190 @@
       seen[value[index].path] = true;
     }
     return true;
+  }
+
+  function modelInputRefusal(code, field) {
+    return freezeAgenda({ ok: false, code: code, field: field || null });
+  }
+
+  function prefixedShape(value, allowedFields, requiredFields, prefix) {
+    var shape = exactShape(value, allowedFields, requiredFields);
+    if (!shape) return null;
+    return modelInputRefusal(shape.code, shape.field === null ? prefix : prefix + "." + shape.field);
+  }
+
+  function exactKeyMap(value, requiredKeys, prefix) {
+    if (!isPlainObject(value)) return modelInputRefusal("RLAGENDA-CONTRACT-SHAPE", prefix);
+    var keys = Object.keys(value);
+    for (var keyIndex = 0; keyIndex < keys.length; keyIndex += 1) {
+      if (requiredKeys.indexOf(keys[keyIndex]) === -1) return modelInputRefusal("RLAGENDA-CONTRACT-UNKNOWN-MEMBER", prefix + "." + keys[keyIndex]);
+    }
+    for (var requiredIndex = 0; requiredIndex < requiredKeys.length; requiredIndex += 1) {
+      if (!hasOwn(value, requiredKeys[requiredIndex])) return modelInputRefusal("RLAGENDA-CONTRACT-MISSING-MEMBER", prefix + "." + requiredKeys[requiredIndex]);
+    }
+    return null;
+  }
+
+  function validateExactInterval(value, prefix, lowLimit, highLimit) {
+    var shape = prefixedShape(value, INTERVAL_FIELDS, INTERVAL_FIELDS, prefix);
+    if (shape) return shape;
+    if (!validateInterval(value) || value.low < lowLimit || value.high > highLimit) return modelInputRefusal("RLAGENDA-MODEL-INVALID", prefix);
+    return null;
+  }
+
+  function uniqueDefinitionValues(rows, field) {
+    return rows.map(function (row) { return row[field]; }).filter(function (value, index, values) {
+      return isNonEmptyString(value) && values.indexOf(value) === index;
+    });
+  }
+
+  function requiredModelEdgeIds(definition) {
+    var edges = [];
+    definition.flowNetwork.flows.forEach(function (flow) {
+      if (Array.isArray(flow.routeEdges)) edges = edges.concat(flow.routeEdges);
+    });
+    return edges.filter(function (edgeId, index) { return isNonEmptyString(edgeId) && edges.indexOf(edgeId) === index; });
+  }
+
+  function requiredModelBarIds(definition) {
+    var barIds = uniqueDefinitionValues(definition.transmissionModels, "barId")
+      .concat(uniqueDefinitionValues(definition.proxyDefinitions, "ticker"));
+    return barIds.filter(function (barId, index) { return barIds.indexOf(barId) === index; });
+  }
+
+  function validateModelCalibrationEvent(event, eventIndex, definition, requiredBarIds, requiredChannelIds, scenarioIds, generationCutoff) {
+    var prefix = "calibrationEvents." + eventIndex;
+    var shape = prefixedShape(event, CALIBRATION_EVENT_FIELDS, CALIBRATION_EVENT_FIELDS, prefix);
+    if (shape) return shape;
+    if (!ID_PATTERN.test(event.eventId) || !VERSION_PATTERN.test(event.eventVersion) || !isFinite(Date.parse(event.eventTime)) ||
+        !isFinite(Date.parse(event.cutoffTime)) || Date.parse(event.cutoffTime) < Date.parse(event.eventTime) ||
+        Date.parse(event.cutoffTime) > Date.parse(generationCutoff) || !isStringList(event.sourceRefs, false) ||
+        scenarioIds.indexOf(event.scenarioId) === -1 || !isStringList(event.affectedChannelIds, false) ||
+        event.affectedChannelIds.some(function (channelId) { return requiredChannelIds.indexOf(channelId) === -1; }) ||
+        !isStringList(event.confounds, true) || !isStringList(event.limitations, false)) {
+      return modelInputRefusal("RLAGENDA-CALIBRATION-INVALID", prefix);
+    }
+    var windowFields = ["preWindow", "postWindow"];
+    for (var windowIndex = 0; windowIndex < windowFields.length; windowIndex += 1) {
+      var windowField = windowFields[windowIndex];
+      shape = prefixedShape(event[windowField], ["start", "end"], ["start", "end"], prefix + "." + windowField);
+      if (shape) return shape;
+      if (!isFinite(Date.parse(event[windowField].start)) || !isFinite(Date.parse(event[windowField].end)) || Date.parse(event[windowField].start) > Date.parse(event[windowField].end)) {
+        return modelInputRefusal("RLAGENDA-CALIBRATION-INVALID", prefix + "." + windowField);
+      }
+    }
+    if (!Array.isArray(event.barFiles) || event.barFiles.length !== requiredBarIds.length) return modelInputRefusal("RLAGENDA-CALIBRATION-INVALID", prefix + ".barFiles");
+    var observedBarIds = [];
+    for (var barIndex = 0; barIndex < event.barFiles.length; barIndex += 1) {
+      shape = prefixedShape(event.barFiles[barIndex], ["path", "sha256"], ["path", "sha256"], prefix + ".barFiles." + barIndex);
+      if (shape) return shape;
+      var match = /^data\/bars\/([A-Z0-9.-]+)\.json$/.exec(event.barFiles[barIndex].path);
+      if (!match || requiredBarIds.indexOf(match[1]) === -1 || observedBarIds.indexOf(match[1]) !== -1 || !HASH_PATTERN.test(event.barFiles[barIndex].sha256)) {
+        return modelInputRefusal("RLAGENDA-CALIBRATION-INVALID", prefix + ".barFiles." + barIndex);
+      }
+      observedBarIds.push(match[1]);
+    }
+    if (requiredBarIds.some(function (barId) { return observedBarIds.indexOf(barId) === -1; }) || requiredBarIds.indexOf(event.benchmark) === -1) {
+      return modelInputRefusal("RLAGENDA-CALIBRATION-INVALID", prefix + ".barFiles");
+    }
+    var mapFields = ["proxyReturns", "maximumAdverseExcursion", "maximumFavorableExcursion"];
+    for (var mapIndex = 0; mapIndex < mapFields.length; mapIndex += 1) {
+      var mapField = mapFields[mapIndex];
+      shape = exactKeyMap(event[mapField], requiredBarIds, prefix + "." + mapField);
+      if (shape) return shape;
+      if (requiredBarIds.some(function (barId) { return !isFiniteNumber(event[mapField][barId]); })) return modelInputRefusal("RLAGENDA-CALIBRATION-INVALID", prefix + "." + mapField);
+    }
+    return null;
+  }
+
+  function validateResearchModelInput(input, definition, generationCutoff) {
+    var shape = prefixedShape(input, MODEL_INPUT_FIELDS, MODEL_INPUT_FIELDS, "publishedInputs");
+    if (shape) {
+      if (shape.field && shape.field.indexOf("publishedInputs.") === 0) shape = modelInputRefusal(shape.code, shape.field.slice("publishedInputs.".length));
+      return shape;
+    }
+    if (input.contractVersion !== MODEL_INPUT_VERSION || !isPlainObject(definition) || !isCanonicalInstant(generationCutoff) ||
+        !isPlainObject(definition.flowNetwork) || !Array.isArray(definition.flowNetwork.flows) ||
+        !Array.isArray(definition.transmissionModels) || !Array.isArray(definition.proxyDefinitions) ||
+        !isPlainObject(definition.scenarioTree) || !Array.isArray(definition.scenarioTree.nodes) || !isPlainObject(definition.evidencePolicy)) {
+      return modelInputRefusal("RLAGENDA-MODEL-INVALID", "contractVersion");
+    }
+
+    var edgeIds = requiredModelEdgeIds(definition);
+    var channelIds = uniqueDefinitionValues(definition.transmissionModels, "channelId");
+    var barIds = requiredModelBarIds(definition);
+    var scenarioIds = uniqueDefinitionValues(definition.scenarioTree.nodes, "scenarioId");
+    if (edgeIds.length === 0 || channelIds.length !== definition.transmissionModels.length || barIds.length === 0 || scenarioIds.length !== definition.scenarioTree.nodes.length) {
+      return modelInputRefusal("RLAGENDA-MODEL-INVALID", "definition");
+    }
+
+    shape = exactKeyMap(input.chokepointState, edgeIds, "chokepointState");
+    if (shape) return shape;
+    for (var edgeIndex = 0; edgeIndex < edgeIds.length; edgeIndex += 1) {
+      var edgeId = edgeIds[edgeIndex];
+      shape = prefixedShape(input.chokepointState[edgeId], CHOKEPOINT_STATE_FIELDS, CHOKEPOINT_STATE_FIELDS, "chokepointState." + edgeId);
+      if (shape) return shape;
+      shape = validateExactInterval(input.chokepointState[edgeId].physicalPassFraction, "chokepointState." + edgeId + ".physicalPassFraction", 0, 1) ||
+        validateExactInterval(input.chokepointState[edgeId].insuredPassFraction, "chokepointState." + edgeId + ".insuredPassFraction", 0, 1) ||
+        validateExactInterval(input.chokepointState[edgeId].delayDays, "chokepointState." + edgeId + ".delayDays", 0, Number.MAX_VALUE);
+      if (shape) return shape;
+    }
+
+    shape = exactKeyMap(input.inventoryGapByChannel, channelIds, "inventoryGapByChannel");
+    if (shape) return shape;
+    for (var channelIndex = 0; channelIndex < channelIds.length; channelIndex += 1) {
+      shape = validateExactInterval(input.inventoryGapByChannel[channelIds[channelIndex]], "inventoryGapByChannel." + channelIds[channelIndex], 0, 1);
+      if (shape) return shape;
+    }
+
+    shape = prefixedShape(input.levers, VIEW_LEVER_FIELDS, VIEW_LEVER_FIELDS, "levers");
+    if (shape) return shape;
+    if (!validateAgendaLeverState(input.levers) || !input.chokepointState.hormuz || !input.chokepointState["bab-el-mandeb"] ||
+        input.levers.hormuzPhysicalPassFraction !== input.chokepointState.hormuz.physicalPassFraction.base ||
+        input.levers.babElMandebPhysicalPassFraction !== input.chokepointState["bab-el-mandeb"].physicalPassFraction.base) {
+      return modelInputRefusal("RLAGENDA-MODEL-INVALID", "levers");
+    }
+
+    shape = exactKeyMap(input.currentBars, barIds, "currentBars");
+    if (shape) return shape;
+    for (var currentBarIndex = 0; currentBarIndex < barIds.length; currentBarIndex += 1) {
+      var barId = barIds[currentBarIndex];
+      var bar = input.currentBars[barId];
+      shape = prefixedShape(bar, CURRENT_BAR_FIELDS, CURRENT_BAR_FIELDS, "currentBars." + barId);
+      if (shape) return shape;
+      shape = prefixedShape(bar.latest, CURRENT_BAR_ROW_FIELDS, CURRENT_BAR_ROW_FIELDS, "currentBars." + barId + ".latest");
+      if (shape) return shape;
+      if (bar.sym !== barId || !isCanonicalInstant(bar.asof) || Date.parse(bar.asof) !== bar.latest.t || bar.latest.t > Date.parse(generationCutoff) ||
+          CURRENT_BAR_ROW_FIELDS.some(function (field) { return !isFiniteNumber(bar.latest[field]); }) || bar.latest.v < 0 ||
+          bar.latest.l > Math.min(bar.latest.o, bar.latest.c) || bar.latest.h < Math.max(bar.latest.o, bar.latest.c) || bar.latest.l > bar.latest.h) {
+        return modelInputRefusal("RLAGENDA-MODEL-INVALID", "currentBars." + barId);
+      }
+    }
+
+    if (!Array.isArray(input.calibrationEvents) || (definition.proxyDefinitions.length > 0 && input.calibrationEvents.length === 0)) {
+      return modelInputRefusal("RLAGENDA-CONTRACT-MISSING-MEMBER", "calibrationEvents.0");
+    }
+    var calibrationIds = Object.create(null);
+    for (var calibrationIndex = 0; calibrationIndex < input.calibrationEvents.length; calibrationIndex += 1) {
+      var calibrationEvent = input.calibrationEvents[calibrationIndex];
+      shape = validateModelCalibrationEvent(calibrationEvent, calibrationIndex, definition, barIds, channelIds, scenarioIds, generationCutoff);
+      if (shape) return shape;
+      if (calibrationIds[calibrationEvent.eventId]) return modelInputRefusal("RLAGENDA-CALIBRATION-INVALID", "calibrationEvents." + calibrationIndex + ".eventId");
+      calibrationIds[calibrationEvent.eventId] = true;
+    }
+
+    if (!Array.isArray(input.evidenceImpacts)) return modelInputRefusal("RLAGENDA-CONTRACT-SHAPE", "evidenceImpacts");
+    var impactCap = definition.evidencePolicy.impactCaps && definition.evidencePolicy.impactCaps.direct;
+    if (!isFiniteNumber(impactCap) || impactCap <= 0) return modelInputRefusal("RLAGENDA-MODEL-INVALID", "definition.evidencePolicy.impactCaps.direct");
+    for (var impactIndex = 0; impactIndex < input.evidenceImpacts.length; impactIndex += 1) {
+      shape = prefixedShape(input.evidenceImpacts[impactIndex], MODEL_IMPACT_FIELDS, MODEL_IMPACT_FIELDS, "evidenceImpacts." + impactIndex);
+      if (shape) return shape;
+      if (scenarioIds.indexOf(input.evidenceImpacts[impactIndex].targetId) === -1 || !isFiniteNumber(input.evidenceImpacts[impactIndex].weightedImpact) ||
+          Math.abs(input.evidenceImpacts[impactIndex].weightedImpact) > impactCap) {
+        return modelInputRefusal("RLAGENDA-EVIDENCE-IMPACT", "evidenceImpacts." + impactIndex);
+      }
+    }
+    return freezeAgenda({ ok: true, value: freezeAgenda(cloneAgenda(input)) });
   }
 
   function updateEscalationProbabilities(scenarioTree, evidenceImpacts, caps) {
@@ -1330,8 +1835,9 @@
     var seenFlowIds = Object.create(null);
     for (var index = 0; index < flowNetwork.flows.length; index += 1) {
       var flow = flowNetwork.flows[index];
-      if (!ID_PATTERN.test(flow.flowId) || seenFlowIds[flow.flowId] || !isFiniteNumber(flow.baselineVolume) || flow.baselineVolume <= 0 ||
-          !isStringList(flow.routeEdges, false) || !isStringList(flow.scenarioIds, false)) return { ok: false, code: "RLAGENDA-FLOW-INVALID" };
+        if (!ID_PATTERN.test(flow.flowId) || seenFlowIds[flow.flowId] || !isFiniteNumber(flow.baselineVolume) || flow.baselineVolume <= 0 ||
+          !isStringList(flow.routeEdges, false) || !isStringList(flow.scenarioIds, false) || !isPlainObject(flow.alternateRoute) ||
+          !validateInterval(flow.alternateRoute.capacityFraction) || !validateInterval(flow.alternateRoute.distanceMultiplier)) return { ok: false, code: "RLAGENDA-FLOW-INVALID" };
       seenFlowIds[flow.flowId] = true;
       if (flow.scenarioIds.indexOf(scenarioId) === -1) continue;
       var physicalIntervals = [];
@@ -1346,7 +1852,7 @@
       }
       var deliveredFraction = intervalProduct(physicalIntervals);
       var insuredFraction = intervalProduct(insuredIntervals);
-      var rerouteFraction = flow.alternateRoute && validateInterval(flow.alternateRoute.capacityFraction) ? flow.alternateRoute.capacityFraction : { low: 0, base: 0, high: 0 };
+      var rerouteFraction = flow.alternateRoute.capacityFraction;
       var rerouted = {
         low: flow.baselineVolume * Math.min(rerouteFraction.low, 1 - deliveredFraction.high),
         base: flow.baselineVolume * Math.min(rerouteFraction.base, 1 - deliveredFraction.base),
@@ -1365,7 +1871,7 @@
         base: flow.baselineVolume * deliveredFraction.base * Math.min(maximumDelay.base / 30, 1),
         high: flow.baselineVolume * deliveredFraction.high * Math.min(maximumDelay.high / 30, 1)
       };
-      var distanceMultiplier = flow.alternateRoute && validateInterval(flow.alternateRoute.distanceMultiplier) ? flow.alternateRoute.distanceMultiplier : { low: 1, base: 1, high: 1 };
+      var distanceMultiplier = flow.alternateRoute.distanceMultiplier;
       var tonMiles = {
         low: rerouted.low * Math.max(0, distanceMultiplier.low - 1),
         base: rerouted.base * Math.max(0, distanceMultiplier.base - 1),
@@ -1455,7 +1961,10 @@
   }
 
   function computeCommodityShockRanges(scenarioProbabilities, flowStates, transmissionDefinitions, currentBars, levers) {
-    if (!isPlainObject(scenarioProbabilities) || !isPlainObject(flowStates) || !Array.isArray(transmissionDefinitions) || !isPlainObject(currentBars) || !isPlainObject(levers)) return { ok: false, code: "RLAGENDA-MODEL-INVALID" };
+    if (!isPlainObject(scenarioProbabilities) || !isPlainObject(flowStates) || !Array.isArray(transmissionDefinitions) || !isPlainObject(currentBars) ||
+        prefixedShape(levers, COMMODITY_LEVER_FIELDS, COMMODITY_LEVER_FIELDS, "levers") ||
+        !isFiniteNumber(levers.inventoryPolicyResponseOffset) || levers.inventoryPolicyResponseOffset < -1 || levers.inventoryPolicyResponseOffset > 1 ||
+        !isFiniteNumber(levers.demandOffset) || levers.demandOffset < -1 || levers.demandOffset > 1) return { ok: false, code: "RLAGENDA-MODEL-INVALID" };
     var channels = [];
     for (var index = 0; index < transmissionDefinitions.length; index += 1) {
       var definition = transmissionDefinitions[index];
@@ -1466,8 +1975,8 @@
         channels.push({ channelId: definition.channelId, state: "unavailable", reason: "missing-required-component" });
         continue;
       }
-      var inventoryPolicyLever = isFiniteNumber(levers.inventoryPolicyResponseOffset) ? levers.inventoryPolicyResponseOffset : 0;
-      var demandLever = isFiniteNumber(levers.demandOffset) ? levers.demandOffset : 0;
+      var inventoryPolicyLever = levers.inventoryPolicyResponseOffset;
+      var demandLever = levers.demandOffset;
       var components = {
         physical: multiplyIntervals(definition.physicalSensitivity, flow.physicalLossShare),
         reroute: multiplyIntervals(definition.rerouteSensitivity, flow.incrementalTonMileShare),
@@ -1498,8 +2007,8 @@
     return { ok: channels.every(function (row) { return row.state === "available"; }), channels: channels };
   }
 
-  function computeEquityProxyRanges(commodityRanges, proxyDefinitions, calibrationEvents, currentBars, levers) {
-    if (!isPlainObject(commodityRanges) || !Array.isArray(proxyDefinitions) || !Array.isArray(calibrationEvents) || !isPlainObject(currentBars) || !isPlainObject(levers)) return { ok: false, code: "RLAGENDA-MODEL-INVALID" };
+  function computeEquityProxyRanges(commodityRanges, proxyDefinitions, calibrationEvents, currentBars) {
+    if (!isPlainObject(commodityRanges) || !Array.isArray(proxyDefinitions) || !Array.isArray(calibrationEvents) || !isPlainObject(currentBars)) return { ok: false, code: "RLAGENDA-MODEL-INVALID" };
     var proxies = proxyDefinitions.map(function (definition) {
       var channel = commodityRanges[definition.channelId];
       var bar = currentBars[definition.ticker];
@@ -1513,8 +2022,7 @@
       var residualBase = residuals.length % 2 === 1 ? residuals[(residuals.length - 1) / 2] : (residuals[residuals.length / 2 - 1] + residuals[residuals.length / 2]) / 2;
       var channelComponent = multiplyIntervals(channel, definition.channelSensitivity);
       var residualComponent = { low: residualLow, base: residualBase, high: residualHigh };
-      var lever = isFiniteNumber(levers.proxyAdjustment) ? levers.proxyAdjustment : 0;
-      var rawRange = sumIntervals([channelComponent, residualComponent, definition.operatingExposureOffset, { low: lever, base: lever, high: lever }]);
+      var rawRange = sumIntervals([channelComponent, residualComponent, definition.operatingExposureOffset]);
       if (!validateInterval(rawRange)) return { proxyId: definition.proxyId, state: "insufficient-evidence" };
       return {
         proxyId: definition.proxyId,
@@ -1525,7 +2033,7 @@
           base: roundNumber(rawRange.base),
           high: roundNumber(rawRange.high)
         },
-        components: { channel: channelComponent, calibrationResidual: residualComponent, operatingExposure: cloneAgenda(definition.operatingExposureOffset), lever: lever },
+        components: { channel: channelComponent, calibrationResidual: residualComponent, operatingExposure: cloneAgenda(definition.operatingExposureOffset) },
         calibrationCount: eligibleEvents.length,
         bar: cloneAgenda(bar)
       };
@@ -1534,16 +2042,22 @@
   }
 
   function compareScenarioOutputs(currentOutput, predecessorOutput) {
-    if (!isPlainObject(currentOutput)) return { ok: false, code: "RLAGENDA-MODEL-INVALID" };
-    if (predecessorOutput === null) return { ok: true, predecessorAvailable: false, probabilityDeltas: {}, addedEvidenceIds: (currentOutput.evidenceIds || []).slice(), removedEvidenceIds: [], conflicts: (currentOutput.conflictIds || []).slice(), currentDirectionScore: currentOutput.directionScore, predecessorDirectionScore: null, questionUnchanged: true };
-    if (!isPlainObject(predecessorOutput)) return { ok: false, code: "RLAGENDA-MODEL-INVALID" };
+    if (!isPlainObject(currentOutput) || !isPlainObject(currentOutput.probabilities) || !isStringList(currentOutput.evidenceIds, true) ||
+      !isStringList(currentOutput.conflictIds, true) || !isFiniteNumber(currentOutput.directionScore) ||
+      !isNonEmptyString(currentOutput.dominantScenarioId) || !isFiniteNumber(currentOutput.evidenceCoverage)) return { ok: false, code: "RLAGENDA-MODEL-INVALID" };
+    var currentIds = Object.keys(currentOutput.probabilities);
+    if (currentIds.length === 0 || currentIds.some(function (id) { return !isFiniteNumber(currentOutput.probabilities[id]) || currentOutput.probabilities[id] < 0 || currentOutput.probabilities[id] > 1; })) return { ok: false, code: "RLAGENDA-MODEL-INVALID" };
+    if (predecessorOutput === null) return { ok: true, predecessorAvailable: false, probabilityDeltas: {}, addedEvidenceIds: currentOutput.evidenceIds.slice(), removedEvidenceIds: [], conflicts: currentOutput.conflictIds.slice(), currentDirectionScore: currentOutput.directionScore, predecessorDirectionScore: null, currentDominantScenarioId: currentOutput.dominantScenarioId, predecessorDominantScenarioId: null, questionUnchanged: true };
+    if (!isPlainObject(predecessorOutput) || !isPlainObject(predecessorOutput.probabilities) || !isStringList(predecessorOutput.evidenceIds, true) ||
+      !isStringList(predecessorOutput.conflictIds, true) || !isFiniteNumber(predecessorOutput.directionScore) || !isNonEmptyString(predecessorOutput.dominantScenarioId)) return { ok: false, code: "RLAGENDA-MODEL-INVALID" };
     var probabilityDeltas = Object.create(null);
-    var currentProbabilities = currentOutput.probabilities || {};
-    var priorProbabilities = predecessorOutput.probabilities || {};
-    var ids = Object.keys(currentProbabilities).concat(Object.keys(priorProbabilities)).filter(function (id, index, rows) { return rows.indexOf(id) === index; });
-    ids.forEach(function (id) { probabilityDeltas[id] = roundNumber((currentProbabilities[id] || 0) - (priorProbabilities[id] || 0)); });
-    var currentEvidence = currentOutput.evidenceIds || [];
-    var priorEvidence = predecessorOutput.evidenceIds || [];
+    var currentProbabilities = currentOutput.probabilities;
+    var priorProbabilities = predecessorOutput.probabilities;
+    var priorIds = Object.keys(priorProbabilities);
+    if (currentIds.length !== priorIds.length || currentIds.some(function (id) { return !hasOwn(priorProbabilities, id) || !isFiniteNumber(priorProbabilities[id]) || priorProbabilities[id] < 0 || priorProbabilities[id] > 1; })) return { ok: false, code: "RLAGENDA-MODEL-INVALID" };
+    currentIds.forEach(function (id) { probabilityDeltas[id] = roundNumber(currentProbabilities[id] - priorProbabilities[id]); });
+    var currentEvidence = currentOutput.evidenceIds;
+    var priorEvidence = predecessorOutput.evidenceIds;
     var questionUnchanged = false;
     if (isNonEmptyString(currentOutput.declaredQuestion) && isNonEmptyString(predecessorOutput.declaredQuestion)) {
       questionUnchanged = currentOutput.declaredQuestion === predecessorOutput.declaredQuestion;
@@ -1563,6 +2077,35 @@
       predecessorDominantScenarioId: predecessorOutput.dominantScenarioId || null,
       questionUnchanged: questionUnchanged
     };
+  }
+
+  function buildAgendaChangeAssessment(currentOutput, predecessorOutput, causalExplanation) {
+    if (!isPlainObject(causalExplanation)) return freezeAgenda({ ok: false, code: "RLAGENDA-MODEL-INVALID", field: "causalExplanation" });
+    var comparison = compareScenarioOutputs(currentOutput, predecessorOutput);
+    if (!comparison.ok) return freezeAgenda(comparison);
+    var direction = "insufficient-evidence";
+    if (comparison.predecessorAvailable) {
+      var classified = classifyChangeDirection(currentOutput, comparison, CHANGE_ASSESSMENT_THRESHOLDS);
+      if (!classified.ok) return freezeAgenda(classified);
+      direction = classified.direction;
+    }
+    return freezeAgenda({
+      ok: true,
+      value: freezeAgenda({
+        direction: direction,
+        predecessorAvailable: comparison.predecessorAvailable,
+        probabilityDeltas: cloneAgenda(comparison.probabilityDeltas),
+        addedEvidenceIds: comparison.addedEvidenceIds.slice(),
+        removedEvidenceIds: comparison.removedEvidenceIds.slice(),
+        conflictEvidenceIds: comparison.conflicts.slice(),
+        currentDirectionScore: comparison.currentDirectionScore,
+        predecessorDirectionScore: comparison.predecessorDirectionScore,
+        currentDominantScenarioId: comparison.currentDominantScenarioId,
+        predecessorDominantScenarioId: comparison.predecessorDominantScenarioId,
+        questionUnchanged: comparison.questionUnchanged,
+        causalExplanation: freezeAgenda(cloneAgenda(causalExplanation))
+      })
+    });
   }
 
   function classifyChangeDirection(currentOutput, comparison, thresholds) {
@@ -1694,48 +2237,125 @@
     return freezeAgenda({ ok: true, value: cloneAgenda(value) });
   }
 
-  function findingPublicSubjects(finding) {
-    if (!Array.isArray(finding.publicSubjects)) return [];
-    return finding.publicSubjects.filter(function (subject) {
-      return isPlainObject(subject) && includesValue(["public-ticker", "public-market-object", "geography", "channel"], subject.kind) && isNonEmptyString(subject.value);
-    }).map(function (subject) { return cloneAgenda(subject); });
+  function findingFailure(code, field) {
+    return freezeAgenda({ ok: false, code: code || "RLAGENDA-CONTRACT-SHAPE", field: field || null });
   }
 
-  function findingSourceRefs(finding) {
-    if (!isPlainObject(finding.source)) return [];
-    if (isStringList(finding.source.sourceIds, true)) return finding.source.sourceIds.slice();
-    if (isNonEmptyString(finding.source.sourceId)) return [finding.source.sourceId];
-    return [];
+  function prefixedFindingField(prefix, field) {
+    return prefix + (field ? "." + field : "");
+  }
+
+  function validateFindingPublicSubject(subject, topic) {
+    var shape = exactShape(subject, FINDING_PUBLIC_SUBJECT_FIELDS, FINDING_PUBLIC_SUBJECT_FIELDS);
+    if (shape) return shape;
+    if (!includesValue(REFINEMENT_SUBJECT_KINDS, subject.kind) || !isNonEmptyString(subject.value) || topic.scopeBoundary.publicOnly !== true) {
+      return { code: "RLAGENDA-PUBLIC-SUBJECT", field: "publicSubjects" };
+    }
+    if (subject.kind === "geography" && !includesValue(topic.scopeBoundary.geographies || [], subject.value)) return { code: "RLAGENDA-PUBLIC-SUBJECT", field: "publicSubjects" };
+    if (subject.kind === "channel" && !includesValue(topic.scopeBoundary.channels || [], subject.value)) return { code: "RLAGENDA-PUBLIC-SUBJECT", field: "publicSubjects" };
+    if (subject.kind === "horizon" && !includesValue(topic.scopeBoundary.horizons || [], subject.value)) return { code: "RLAGENDA-PUBLIC-SUBJECT", field: "publicSubjects" };
+    if (subject.kind === "public-ticker" && !/^[A-Z^][A-Z0-9.^=-]{0,19}$/.test(subject.value)) return { code: "RLAGENDA-PUBLIC-SUBJECT", field: "publicSubjects" };
+    if (subject.kind === "public-market-object" && !ID_PATTERN.test(subject.value)) return { code: "RLAGENDA-PUBLIC-SUBJECT", field: "publicSubjects" };
+    return null;
+  }
+
+  function validatePublishedFinding(finding, topic, definition, evidenceRecords, sourceLedger) {
+    var shape = exactShape(finding, PUBLISHED_FINDING_FIELDS, PUBLISHED_FINDING_FIELDS);
+    if (shape) return findingFailure(shape.code, shape.field);
+    if (!isPlainObject(topic) || !isPlainObject(topic.scopeBoundary) || !isPlainObject(definition) || definition.topicId !== topic.topicId) {
+      return findingFailure("RLAGENDA-CONTRACT-SHAPE", "topicId");
+    }
+    if (!ID_PATTERN.test(finding.findingId || "")) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "findingId");
+    if (!isCanonicalInstant(finding.observedAt)) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "observedAt");
+    if (!isNonEmptyString(finding.claim)) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "claim");
+    if (!Array.isArray(finding.publicSubjects) || finding.publicSubjects.length === 0) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "publicSubjects");
+    var subjectKeys = Object.create(null);
+    for (var subjectIndex = 0; subjectIndex < finding.publicSubjects.length; subjectIndex += 1) {
+      var subjectResult = validateFindingPublicSubject(finding.publicSubjects[subjectIndex], topic);
+      if (subjectResult) return findingFailure(subjectResult.code, "publicSubjects." + subjectIndex + (subjectResult.field && subjectResult.field !== "publicSubjects" ? "." + subjectResult.field : ""));
+      var subjectKey = canonicalizeAgenda(finding.publicSubjects[subjectIndex]);
+      if (subjectKeys[subjectKey]) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "publicSubjects." + subjectIndex);
+      subjectKeys[subjectKey] = true;
+    }
+    if (!includesValue(FINDING_HORIZONS, finding.horizon)) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "horizon");
+    var sourceShape = exactShape(finding.source, FINDING_SOURCE_FIELDS, FINDING_SOURCE_FIELDS);
+    if (sourceShape) return findingFailure(sourceShape.code, prefixedFindingField("source", sourceShape.field));
+    if (!isUniqueStringList(finding.source.sourceIds, false)) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "source.sourceIds");
+    var confidenceShape = exactShape(finding.statedConfidence, FINDING_CONFIDENCE_FIELDS, FINDING_CONFIDENCE_FIELDS);
+    if (confidenceShape) return findingFailure(confidenceShape.code, prefixedFindingField("statedConfidence", confidenceShape.field));
+    if (!includesValue(CONFIDENCE_GRADES, finding.statedConfidence.grade)) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "statedConfidence.grade");
+    if (!isNonEmptyString(finding.statedConfidence.basis)) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "statedConfidence.basis");
+    if (!includesValue(PROVENANCE_CLASSES, finding.provenanceClass)) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "provenanceClass");
+    if (!includesValue(EVIDENCE_ROLES, finding.evidenceRole)) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "evidenceRole");
+    if (!isUniqueStringList(finding.evidenceRefs, false)) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "evidenceRefs");
+    if (!isUniqueStringList(finding.triggerRefs, false)) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "triggerRefs");
+    if (!isUniqueStringList(finding.invalidationRefs, false)) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "invalidationRefs");
+    if (!isStringList(finding.causalPath, true)) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "causalPath");
+    if (!isStringList(finding.refutedBy, true)) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "refutedBy");
+    if (!isStringList(finding.limitations, true)) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "limitations");
+    if (finding.evidenceRole === "indirect" && (finding.causalPath.length < 2 || finding.refutedBy.length === 0)) {
+      return findingFailure("RLAGENDA-CONTRACT-SHAPE", finding.causalPath.length < 2 ? "causalPath" : "refutedBy");
+    }
+    var evidenceIds = Array.isArray(evidenceRecords) ? evidenceRecords.map(function (record) { return record && record.evidenceId; }) : [];
+    var sourceIds = Array.isArray(sourceLedger) ? sourceLedger.map(function (record) { return record && record.sourceId; }) : [];
+    var triggerIds = Array.isArray(definition.triggers) ? definition.triggers.map(function (trigger) { return trigger.triggerId; }) : [];
+    var invalidationIds = Array.isArray(definition.invalidations) ? definition.invalidations.map(function (invalidation) { return invalidation.invalidationId; }) : [];
+    if (!finding.evidenceRefs.every(function (reference) { return includesValue(evidenceIds, reference); })) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "evidenceRefs");
+    if (!finding.source.sourceIds.every(function (reference) { return includesValue(sourceIds, reference); })) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "source.sourceIds");
+    if (!finding.triggerRefs.every(function (reference) { return includesValue(triggerIds, reference); })) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "triggerRefs");
+    if (!finding.invalidationRefs.every(function (reference) { return includesValue(invalidationIds, reference); })) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "invalidationRefs");
+    var publicSafety = validatePublicResearchArtifact({ contractVersion: "research-published-finding/v1", finding: finding });
+    if (!publicSafety.ok) return findingFailure(publicSafety.code, publicSafety.field);
+    return freezeAgenda({ ok: true, value: cloneAgenda(finding) });
   }
 
   function buildFeature020ResearchSeam(topic, definition, dossier) {
     var topicShape = exactShape(topic, TOPIC_FIELDS, TOPIC_FIELDS);
+    if (topicShape) return findingFailure(topicShape.code, prefixedFindingField("topic", topicShape.field));
+    if (!ID_PATTERN.test(topic.topicId || "")) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "topicId");
+    if (!topic.scopeBoundary || topic.scopeBoundary.publicOnly !== true) return findingFailure("RLAGENDA-PUBLIC-SUBJECT", "topic.scopeBoundary.publicOnly");
     var definitionResult = validateTopicDefinition(definition, topic);
+    if (!definitionResult.ok) return findingFailure(definitionResult.code, definitionResult.field || "definition");
     var dossierSafety = validatePublicResearchArtifact(dossier);
-    if (topicShape || topic.scopeBoundary.publicOnly !== true || !definitionResult.ok || !dossierSafety.ok ||
-        dossier.contractVersion !== DOSSIER_VERSION || dossier.topicId !== topic.topicId || !IMMUTABLE_ID_PATTERN.test(dossier.dossierId || "") ||
-        !Array.isArray(dossier.findings) || !Array.isArray(dossier.evidenceRecords)) {
-      return freezeAgenda({ ok: false, code: topic.scopeBoundary && topic.scopeBoundary.publicOnly !== true ? "RLAGENDA-PUBLIC-SUBJECT" : (dossierSafety.ok ? "RLAGENDA-CONTRACT-SHAPE" : dossierSafety.code), field: dossierSafety.field || null });
-    }
-    var evidenceIds = dossier.evidenceRecords.map(function (record) { return record.evidenceId; }).filter(isNonEmptyString);
-    var findings = dossier.findings.map(function (finding) {
-      return {
+    if (!dossierSafety.ok) return findingFailure(dossierSafety.code, dossierSafety.field);
+    if (dossier.contractVersion !== DOSSIER_VERSION) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "contractVersion");
+    if (dossier.topicId !== topic.topicId) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "topicId");
+    if (!IMMUTABLE_ID_PATTERN.test(dossier.dossierId || "")) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "dossierId");
+    if (dossier.historicalOnly !== false) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "historicalOnly");
+    if (dossier.validationState !== "validated") return findingFailure("RLAGENDA-CONTRACT-SHAPE", "validationState");
+    if (!Array.isArray(dossier.findings)) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "findings");
+    if (!Array.isArray(dossier.evidenceRecords)) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "evidenceRecords");
+    if (!Array.isArray(dossier.sourceLedger)) return findingFailure("RLAGENDA-CONTRACT-SHAPE", "sourceLedger");
+    var findings = [];
+    for (var findingIndex = 0; findingIndex < dossier.findings.length; findingIndex += 1) {
+      var findingValidation = validatePublishedFinding(dossier.findings[findingIndex], topic, definition, dossier.evidenceRecords, dossier.sourceLedger);
+      if (!findingValidation.ok) return findingFailure(findingValidation.code, prefixedFindingField("findings." + findingIndex, findingValidation.field));
+      var finding = findingValidation.value;
+      findings.push({
         findingId: finding.findingId,
+        observedAt: finding.observedAt,
         claim: finding.claim,
-        publicSubjects: findingPublicSubjects(finding),
-        horizon: isNonEmptyString(finding.horizon) ? finding.horizon : null,
-        evidenceRefs: Array.isArray(finding.evidenceRefs) ? finding.evidenceRefs.filter(isNonEmptyString) : evidenceIds.slice(),
-        sourceRefs: findingSourceRefs(finding),
-        triggerRefs: Array.isArray(finding.triggerRefs) ? finding.triggerRefs.filter(isNonEmptyString) : definition.triggers.map(function (trigger) { return trigger.triggerId; }),
-        invalidationRefs: Array.isArray(finding.invalidationRefs) ? finding.invalidationRefs.filter(isNonEmptyString) : definition.invalidations.map(function (invalidation) { return invalidation.invalidationId; }),
+        publicSubjects: cloneAgenda(finding.publicSubjects),
+        horizon: finding.horizon,
+        statedConfidence: cloneAgenda(finding.statedConfidence),
+        provenanceClass: finding.provenanceClass,
+        evidenceRole: finding.evidenceRole,
+        evidenceRefs: finding.evidenceRefs.slice(),
+        sourceRefs: finding.source.sourceIds.slice(),
+        triggerRefs: finding.triggerRefs.slice(),
+        invalidationRefs: finding.invalidationRefs.slice(),
         topicId: topic.topicId,
         dossierId: dossier.dossierId
-      };
-    });
+      });
+    }
     for (var index = 0; index < findings.length; index += 1) {
       var findingShape = exactShape(findings[index], FINDING_REFERENCE_FIELDS, FINDING_REFERENCE_FIELDS);
-      if (findingShape || !ID_PATTERN.test(findings[index].findingId || "") || !isNonEmptyString(findings[index].claim)) {
-        return freezeAgenda({ ok: false, code: "RLAGENDA-CONTRACT-SHAPE", field: "findings." + index });
+      if (findingShape) return findingFailure(findingShape.code, prefixedFindingField("findings." + index, findingShape.field));
+      if (!ID_PATTERN.test(findings[index].findingId || "") || !isCanonicalInstant(findings[index].observedAt) || !isNonEmptyString(findings[index].claim) ||
+          !isUniqueStringList(findings[index].evidenceRefs, false) || !isUniqueStringList(findings[index].sourceRefs, false) ||
+          !isUniqueStringList(findings[index].triggerRefs, false) || !isUniqueStringList(findings[index].invalidationRefs, false) ||
+          findings[index].topicId !== topic.topicId || findings[index].dossierId !== dossier.dossierId) {
+        return findingFailure("RLAGENDA-CONTRACT-SHAPE", "findings." + index);
       }
     }
     var seam = {
@@ -1748,7 +2368,8 @@
     };
     var seamShape = exactShape(seam, FINDING_SEAM_FIELDS, FINDING_SEAM_FIELDS);
     var seamSafety = validatePublicResearchArtifact(seam);
-    if (seamShape || !seamSafety.ok) return freezeAgenda({ ok: false, code: seamSafety.code || "RLAGENDA-CONTRACT-SHAPE", field: seamSafety.field || null });
+    if (seamShape) return findingFailure(seamShape.code, seamShape.field);
+    if (!seamSafety.ok) return findingFailure(seamSafety.code, seamSafety.field);
     return freezeAgenda({ ok: true, value: freezeAgenda(cloneAgenda(seam)) });
   }
 
@@ -1802,20 +2423,6 @@
     return Math.max(low, Math.min(high, value));
   }
 
-  function baselineAgendaLevers(publishedInputs) {
-    var chokepoints = publishedInputs.chokepointState;
-    var flowLevers = publishedInputs.levers;
-    var hormuz = chokepoints.hormuz && chokepoints.hormuz.physicalPassFraction;
-    var bab = chokepoints["bab-el-mandeb"] && chokepoints["bab-el-mandeb"].physicalPassFraction;
-    return {
-      hormuzPhysicalPassFraction: validateInterval(hormuz) ? hormuz.base : 1,
-      babElMandebPhysicalPassFraction: validateInterval(bab) ? bab.base : 1,
-      reroutedShare: isFiniteNumber(flowLevers.reroutedShare) ? flowLevers.reroutedShare : 0,
-      inventoryPolicyResponseOffset: isFiniteNumber(flowLevers.inventoryPolicyResponseOffset) ? flowLevers.inventoryPolicyResponseOffset : 0,
-      demandOffset: isFiniteNumber(flowLevers.demandOffset) ? flowLevers.demandOffset : 0
-    };
-  }
-
   function validateAgendaLeverState(leverState) {
     var shape = exactShape(leverState, VIEW_LEVER_FIELDS, VIEW_LEVER_FIELDS);
     if (shape) return false;
@@ -1849,14 +2456,11 @@
     return copied;
   }
 
-  function recomputeAgendaModelOutputs(definition, inputs, leverState) {
-    if (!isPlainObject(definition) || !isPlainObject(inputs) || !isPlainObject(inputs.chokepointState) ||
-        !isPlainObject(inputs.inventoryGapByChannel) || !isPlainObject(inputs.levers) ||
-        !isPlainObject(inputs.currentBars) || !Array.isArray(inputs.calibrationEvents) ||
-        !Array.isArray(inputs.evidenceImpacts)) {
-      return freezeAgenda({ ok: false, code: "RLAGENDA-MODEL-INVALID", field: "publishedInputs" });
-    }
-    var baseline = baselineAgendaLevers(inputs);
+  function recomputeAgendaModelOutputs(definition, inputs, leverState, generationCutoff) {
+    var validation = validateResearchModelInput(inputs, definition, generationCutoff);
+    if (!validation.ok) return validation;
+    inputs = validation.value;
+    var baseline = cloneAgenda(inputs.levers);
     var effective = typeof leverState === "undefined" || leverState === null ? baseline : leverState;
     if (!validateAgendaLeverState(effective)) return freezeAgenda({ ok: false, code: "RLAGENDA-MODEL-INVALID", field: "leverState" });
     var chokepointState = cloneAgenda(inputs.chokepointState);
@@ -1872,13 +2476,12 @@
     if (Object.keys(byScenario).some(function (scenarioId) { return !byScenario[scenarioId].ok; })) return freezeAgenda({ ok: false, code: "RLAGENDA-FLOW-INVALID" });
     var modelLevers = {
       inventoryPolicyResponseOffset: effective.inventoryPolicyResponseOffset,
-      demandOffset: effective.demandOffset,
-      proxyAdjustment: isFiniteNumber(inputs.levers.proxyAdjustment) ? inputs.levers.proxyAdjustment : 0
+      demandOffset: effective.demandOffset
     };
     var commodity = computeCommodityShockRanges(probabilities.probabilities, { byScenario: byScenario, inventoryGapByChannel: inputs.inventoryGapByChannel }, definition.transmissionModels, inputs.currentBars, modelLevers);
     if (!commodity.ok) return freezeAgenda({ ok: false, code: "RLAGENDA-MODEL-INVALID", field: "channelRanges" });
     var channelRanges = Object.fromEntries(commodity.channels.map(function (row) { return [row.channelId, row.range]; }));
-    var proxies = computeEquityProxyRanges(channelRanges, definition.proxyDefinitions, inputs.calibrationEvents, inputs.currentBars, modelLevers);
+    var proxies = computeEquityProxyRanges(channelRanges, definition.proxyDefinitions, inputs.calibrationEvents, inputs.currentBars);
     if (!proxies.ok) return freezeAgenda({ ok: false, code: "RLAGENDA-MODEL-INVALID", field: "proxyRanges" });
     return freezeAgenda({
       ok: true,
@@ -1898,35 +2501,64 @@
     });
   }
 
-  function computeAgendaViewState(definition, review, leverState) {
+  function unavailableAgendaView(review, unavailableReason) {
+    return freezeAgenda({
+      ok: true,
+      value: freezeAgenda({
+        contractVersion: VIEW_STATE_VERSION,
+        topicId: review.topicId,
+        generationId: review.generationId,
+        reviewId: review.reviewId,
+        outcome: review.outcome,
+        reason: review.reason,
+        completePass: review.completePass === true,
+        modelAvailable: false,
+        modelUnavailableReason: unavailableReason,
+        resolvedDossierId: null,
+        parity: "not-applicable",
+        baselineLeverState: null,
+        leverState: null,
+        changedLeverIds: [],
+        modelOutputs: null,
+        charts: [],
+        sectionStates: cloneAgenda(Array.isArray(review.sectionStates) ? review.sectionStates : [])
+      })
+    });
+  }
+
+  function computeAgendaViewState(definition, review, resolvedDossier, leverState) {
     if (!isPlainObject(definition) || !isPlainObject(review) || definition.topicId !== review.topicId ||
         review.contractVersion !== REVIEW_VERSION || !IMMUTABLE_ID_PATTERN.test(review.reviewId || "") ||
         !isCanonicalInstant(review.attemptedAt)) {
       return freezeAgenda({ ok: false, code: "RLAGENDA-MODEL-INVALID", field: "review" });
     }
-    if (!isPlainObject(review.modelOutputs) || !isPlainObject(review.modelOutputs.publishedInputs)) {
-      return freezeAgenda({
-        ok: true,
-        value: freezeAgenda({
-          contractVersion: VIEW_STATE_VERSION,
-          topicId: review.topicId,
-          generationId: review.generationId,
-          reviewId: review.reviewId,
-          outcome: review.outcome,
-          reason: review.reason,
-          completePass: review.completePass === true,
-          modelAvailable: false,
-          parity: "not-applicable",
-          baselineLeverState: null,
-          leverState: null,
-          changedLeverIds: [],
-          modelOutputs: null,
-          charts: [],
-          sectionStates: cloneAgenda(review.sectionStates || [])
-        })
-      });
+    if (!hasOwn(review, "dossierRef")) return unavailableAgendaView(review, "dossier-ref-missing");
+    if (!hasOwn(review, "modelSnapshotRef")) return unavailableAgendaView(review, "model-snapshot-ref-missing");
+    if (review.dossierRef === null && review.modelSnapshotRef === null) return unavailableAgendaView(review, "review-model-unavailable");
+    if (review.dossierRef === null) return unavailableAgendaView(review, "dossier-ref-missing");
+    if (review.modelSnapshotRef === null) return unavailableAgendaView(review, "model-snapshot-ref-missing");
+    var reviewValidation = validateActiveReview(review);
+    if (!reviewValidation.ok) return unavailableAgendaView(review, "review-contract-invalid");
+    if (!isPlainObject(resolvedDossier)) return unavailableAgendaView(review, "resolved-dossier-missing");
+    var expectedDossierPath = immutablePathForRecord(resolvedDossier);
+    if (dossierIdFromRef(review.dossierRef) !== resolvedDossier.dossierId) return unavailableAgendaView(review, "dossier-id-mismatch");
+    if (expectedDossierPath === null || review.dossierRef.path !== expectedDossierPath) return unavailableAgendaView(review, "dossier-path-mismatch");
+    if (resolvedDossier.contractVersion !== DOSSIER_VERSION || resolvedDossier.topicId !== review.topicId ||
+        resolvedDossier.generationId !== review.generationId || resolvedDossier.historicalOnly !== false) {
+      return unavailableAgendaView(review, "dossier-identity-mismatch");
     }
-    var replay = recomputeAgendaModelOutputs(definition, review.modelOutputs.publishedInputs, leverState);
+    var dossierValidation = validateActiveDossier(resolvedDossier, definition);
+    if (!dossierValidation.ok) return unavailableAgendaView(review, "resolved-dossier-invalid");
+    if (review.dossierRef.sha256 !== agendaDigest(resolvedDossier)) return unavailableAgendaView(review, "dossier-digest-mismatch");
+    if (canonicalizeAgenda(review.modelSnapshotRef.dossierRef) !== canonicalizeAgenda(review.dossierRef)) {
+      return unavailableAgendaView(review, "model-snapshot-dossier-ref-mismatch");
+    }
+    if (review.modelSnapshotRef.modelInputsSha256 !== agendaDigest(resolvedDossier.modelInputs) ||
+        review.modelSnapshotRef.modelOutputsSha256 !== agendaDigest(resolvedDossier.modelOutputs) ||
+        review.modelSnapshotRef.chartSeriesSha256 !== agendaDigest(resolvedDossier.chartStates)) {
+      return unavailableAgendaView(review, "model-snapshot-digest-mismatch");
+    }
+    var replay = recomputeAgendaModelOutputs(definition, resolvedDossier.modelInputs, leverState, resolvedDossier.observedThrough);
     if (!replay.ok) return replay;
     var modelOutputs = replay.value.modelOutputs;
     var chartReview = {
@@ -1938,10 +2570,10 @@
     var charts = buildAgendaChartSeries([chartReview], definition.chartDefinitions);
     if (!charts.ok) return charts;
     var storedComparable = {
-      scenarioProbability: review.modelOutputs.scenarioProbability || review.modelOutputs.scenarioProbabilities,
-      physicalFlow: review.modelOutputs.physicalFlow || review.modelOutputs.flowStates,
-      channelRanges: review.modelOutputs.channelRanges,
-      proxyRanges: review.modelOutputs.proxyRanges
+      scenarioProbability: resolvedDossier.modelOutputs.scenarioProbability || resolvedDossier.modelOutputs.scenarioProbabilities,
+      physicalFlow: resolvedDossier.modelOutputs.physicalFlow || resolvedDossier.modelOutputs.flowStates,
+      channelRanges: resolvedDossier.modelOutputs.channelRanges,
+      proxyRanges: resolvedDossier.modelOutputs.proxyRanges
     };
     var recomputedComparable = {
       scenarioProbability: modelOutputs.scenarioProbability,
@@ -1951,7 +2583,7 @@
     };
     var baselineRun = replay.value.changedLeverIds.length === 0;
     var storedMatches = canonicalizeAgenda(storedComparable) === canonicalizeAgenda(recomputedComparable);
-    if (baselineRun && !storedMatches) return freezeAgenda({ ok: false, code: "RLAGENDA-MODEL-INVALID", field: "storedModelOutputs" });
+    if (baselineRun && !storedMatches) return unavailableAgendaView(review, "stored-model-output-mismatch");
     return freezeAgenda({
       ok: true,
       value: freezeAgenda({
@@ -1963,6 +2595,8 @@
         reason: review.reason,
         completePass: review.completePass === true,
         modelAvailable: true,
+        modelUnavailableReason: null,
+        resolvedDossierId: resolvedDossier.dossierId,
         parity: baselineRun ? "matched" : "user-assumption",
         baselineLeverState: replay.value.baselineLeverState,
         leverState: replay.value.leverState,
@@ -2003,6 +2637,8 @@
     FINDING_SEAM_VERSION: FINDING_SEAM_VERSION,
     VIEW_STATE_VERSION: VIEW_STATE_VERSION,
     TOOL_READ_VERSION: TOOL_READ_VERSION,
+    MODEL_INPUT_VERSION: MODEL_INPUT_VERSION,
+    CHANGE_ASSESSMENT_THRESHOLDS: CHANGE_ASSESSMENT_THRESHOLDS,
     REVIEW_MODES: REVIEW_MODES,
     LIFECYCLE_STATES: LIFECYCLE_STATES,
     EVIDENCE_ROLES: EVIDENCE_ROLES,
@@ -2016,6 +2652,9 @@
     TRIGGER_KINDS: TRIGGER_KINDS,
     HISTORY_EVENT_TYPES: HISTORY_EVENT_TYPES,
     CURRENT_TOPIC_STATES: CURRENT_TOPIC_STATES,
+    REVIEW_OUTCOMES: REVIEW_OUTCOMES,
+    CHANGE_ASSESSMENTS: CHANGE_ASSESSMENTS,
+    AVAILABILITY_STATES: AVAILABILITY_STATES,
     PLAN_TOPIC_STATES: PLAN_TOPIC_STATES,
     TRIGGER_OPERATORS: TRIGGER_OPERATORS,
     REFUSAL_CODES: REFUSAL_CODES,
@@ -2032,14 +2671,19 @@
     deriveHistoryEventId: deriveHistoryEventId,
     buildHistoryEvent: buildHistoryEvent,
     appendHistoryEvents: appendHistoryEvents,
+    planLifecycleEvents: planLifecycleEvents,
     buildArtifactRef: buildArtifactRef,
+    validateActiveReview: validateActiveReview,
+    validateActiveDossier: validateActiveDossier,
     validateCurrentPointer: validateCurrentPointer,
     validateAgendaRead: validateAgendaRead,
     planGeneration: planGeneration,
     readAgendaText: readAgendaText,
     validateAgenda: validateAgenda,
+    resolveAgendaPolicy: resolveAgendaPolicy,
     validateTopicDefinition: validateTopicDefinition,
     validateCalibration: validateCalibration,
+    validateResearchModelInput: validateResearchModelInput,
     validateEvidenceRecord: validateEvidenceRecord,
     computeEvidenceWeight: computeEvidenceWeight,
     updateEscalationProbabilities: updateEscalationProbabilities,
@@ -2048,9 +2692,11 @@
     computeEquityProxyRanges: computeEquityProxyRanges,
     compareScenarioOutputs: compareScenarioOutputs,
     classifyChangeDirection: classifyChangeDirection,
+    buildAgendaChangeAssessment: buildAgendaChangeAssessment,
     buildAgendaChartSeries: buildAgendaChartSeries,
     validateAgendaRefinement: validateAgendaRefinement,
     validatePublicResearchArtifact: validatePublicResearchArtifact,
+    validatePublishedFinding: validatePublishedFinding,
     buildFeature020ResearchSeam: buildFeature020ResearchSeam,
     buildAgendaToolRead: buildAgendaToolRead,
     recomputeAgendaModelOutputs: recomputeAgendaModelOutputs,

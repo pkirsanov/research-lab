@@ -319,7 +319,14 @@ export function recomposePayloadAttention(payload, config) {
  * of reading a candidate file, and `--write` persists the result.
  */
 function main(argv) {
-  const payload = loadJson('market-brief.payload.json');
+  const payloadArg = argv.indexOf('--payload');
+  if (payloadArg !== -1 && !argv[payloadArg + 1]) {
+    console.error('build-attention-items: --payload requires a path');
+    return 2;
+  }
+  const payloadPath = payloadArg === -1 ? resolve(ROOT, 'market-brief.payload.json') : resolve(ROOT, argv[payloadArg + 1]);
+  const defaultPayloadPath = resolve(ROOT, 'market-brief.payload.json');
+  const payload = JSON.parse(readFileSync(payloadPath, 'utf8'));
   const config = loadJson('market-brief.config.json');
 
   if (argv.includes('--recompose')) {
@@ -342,8 +349,8 @@ function main(argv) {
       return 2;
     }
     if (argv.includes('--write')) {
-      writeFileSync(resolve(ROOT, 'market-brief.payload.json'), `${JSON.stringify(result.payload, null, 2)}\n`);
-      console.log('[build-attention-items] wrote market-brief.payload.json');
+      writeFileSync(payloadPath, `${JSON.stringify(result.payload, null, 2)}\n`);
+      console.log(`[build-attention-items] wrote ${payloadPath === defaultPayloadPath ? 'market-brief.payload.json' : 'private payload candidate'}`);
     } else {
       console.log('[build-attention-items] --recompose without --write: nothing written');
     }

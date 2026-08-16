@@ -3,18 +3,21 @@
 **Scope ID:** `05-refinement-public-safety-and-brief-read`
 **Scope Dir:** `scopes/05-refinement-public-safety-and-brief-read`
 **Status:** Done
+**Dependency Status:** Scope 4 is Done; the dependency is satisfied.
 **Depends On:** `01-agenda-registry-contract` (foundation), `04-dossier-and-outcome-states`
 **Scope-Kind:** runtime-behavior
 
 Related artifacts: [spec.md](../../spec.md), [design.md](../../design.md),
 [scope index](../_index.md).
 
-## Replan Evidence Boundary
+## Gaps Reconciliation Evidence Boundary
 
-The existing `report.md` records historical evidence for the superseded
-implementation contract. It cannot satisfy any DoD item below. Implementation
-must execute every current `TP-05-*` row and append fresh evidence under a
-`replanned-contract-tp-05-*` anchor before checking the matching item.
+Evidence captured before the GAP-01 through GAP-10 reconciliation remains
+historical. The independent test owner re-executed all 18 current `TP-05-*`
+rows and recorded fresh item-local evidence plus GAP-03, GAP-04, GAP-05, and
+GAP-09 adversarial proof in `report.md`. Those unrelated rows and evidence
+remain checked and unchanged. Scope 5 returns to Done after Scope 4 reclosure;
+no TP-05 failure, rerun, or evidence invalidation is fabricated or inferred.
 
 ## Outcome
 
@@ -111,9 +114,11 @@ Scenario: SCN-019-020 A tool and read that do not reach the reader do not ship
 1. Build `research-agenda-lab.html` as a real static tool. Load the committed
    registry, current pointer, referenced definitions/calibration/reviews/
    dossiers, and same-origin bars. Fetch no external source in the browser.
-2. Use one `computeViewState(definition, review, leverState)` wrapper over
-   `rlagenda.js`. Simple and Power render the same object. Reject canonical
-   mismatch between stored and browser-recomputed models before chart render.
+2. Use one `computeAgendaViewState(definition, review, resolvedDossier,
+   leverState)` wrapper over `rlagenda.js`. Resolve and validate the exact
+   immutable model snapshot before computing. Simple and Power render the same
+   returned object. Reject absent refs, digest mismatch, or canonical mismatch
+   before model or chart render.
 3. Make Simple the default. Show current-generation status, posture, scenario
    probabilities, physical versus rerouting exposures, evidence changes,
    triggers/invalidations, five explicit levers, freshness/source summary, and
@@ -126,11 +131,14 @@ Scenario: SCN-019-020 A tool and read that do not reach the reader do not ship
    `buildAgendaChartSeries` rows. Keep fixed responsive dimensions. Draw any
    canvas synchronously. Provide table fallback, accessible name, unit,
    limitation, and source for each figure.
-6. Implement five slider-plus-number levers for Hormuz pass, Bab el-Mandeb
-   pass, rerouted share, policy/inventory offset, and demand offset. A lever
-   recomputes both modes synchronously, labels changed values as user
-   assumptions, and never fetches, writes history, changes evidence, or mutates
-   the published review. Reset restores published inputs.
+6. Build controls from the exact five-field published contract: Hormuz pass,
+   Bab el-Mandeb pass, rerouted share, inventory/policy response offset, and
+   demand offset. Reject missing and unknown controls, including
+   `proxyAdjustment`. Each valid change appears exactly once in
+   `changedLeverIds`, recomputes Simple and Power synchronously from one owner,
+   labels the changed value as a user assumption, and never fetches, writes
+   history, changes evidence, or mutates the published review. Reset restores
+   the exact published inputs.
 7. Validate bounded refinements and recursive public safety through
    `rlagenda.js`. Preserve declared question and boundary bytes. Reject private
    names at every nested location and escape all model-authored text at DOM
@@ -179,6 +187,23 @@ Excluded are holdings, watchlist position data, scorecard call creation,
 `nextSession.actions`, attention composition, anomaly seeds, candidates, alert
 publication, Feature 020 thresholds, and any new credential or external source.
 
+## Consumer Impact Sweep
+
+This scope makes ADDITIVE registrations only. No existing consumer interface was renamed, removed, moved, or replaced. Every existing tool route, navigation link, breadcrumb, redirect, API client, generated client, deep link, and stale-reference path remains unchanged.
+
+**Added registration surfaces (no prior consumers to update):**
+- `tools.json`, `index.html`, `rlnav.js` — new `research-agenda-lab` entry added; all existing tool navigation links, breadcrumbs, and deep links remain byte-equivalent; zero stale-reference scan required for the new entry since it did not previously exist
+- `simple-models.json`, `tool-experience.config.json`, `journeys.json` — additive registrations; existing API clients, generated clients, and redirect paths are not modified
+
+## Gap Repair Packet
+
+| Gap | Scenarios | Implementation files | Test row | DoD closure |
+| --- | --- | --- | --- | --- |
+| GAP-04 | SCN-019-019 | `rlagenda.js`, `scripts/research-agenda-generation.mjs`, `scripts/validate-brief-payload.mjs`, `research/agenda/dossiers/**` | TP-05-15 | Remove or blank every required finding/seam member and ref; refuse without substituting dossier-wide evidence or definition-wide trigger/invalidation refs. |
+| GAP-05 | SCN-019-013, SCN-019-020 | `rlagenda.js`, `research-agenda-lab.html`, `research/agenda/reviews/**`, `research/agenda/dossiers/**` | TP-05-16 | A same-generation unchanged review with a valid reused snapshot renders identical Simple/Power model and chart availability; missing or tampered refs render named unavailable. |
+| GAP-09 | SCN-019-020 | `rlagenda.js`, `rlbrief.js`, `market-brief.html`, `market-brief.page.json` | TP-05-17 | The compact read renders exact `mode` and `changeAssessment`; full model, chart-series, trigger, and invalidation state remains resolvable only through the dossier graph. |
+| GAP-03 UI | SCN-019-017, SCN-019-020 | `rlagenda.js`, `research-agenda-lab.html` | TP-05-18 | Change each of the five visible levers once; both modes produce identical output and exact changed-id membership, with no hidden proxy adjustment or refetch. |
+
 ## Test Plan
 
 | ID | Category | Scenario | Existing test surface | Exact planned test title | Command | Live system |
@@ -197,14 +222,29 @@ publication, Feature 020 thresholds, and any new credential or external source.
 | TP-05-12 | e2e-ui | SCN-019-020 | `tests/contextual-tooltip.spec.mjs` | `Research charts tables tickers sources and tooltips retain units provenance limits and keyboard access` | `npx --no-install playwright test tests/contextual-tooltip.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Research charts tables tickers sources and tooltips retain units provenance limits and keyboard access" --reporter=list` | Yes |
 | TP-05-13 | e2e-ui | SCN-019-020 | `tests/deployed-site-parity.spec.mjs` | `SCN-019-020 deployed site contains every agenda artifact registry target and dossier link` | `npx --no-install playwright test tests/deployed-site-parity.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-019-020 deployed site contains every agenda artifact registry target and dossier link" --reporter=list` | Yes |
 | TP-05-14 | e2e-ui | SCN-019-020 | `tests/tool-discovery.spec.mjs` | `Regression: existing tool routes and journeys remain reachable after research agenda registration` | `npx --no-install playwright test tests/tool-discovery.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: existing tool routes and journeys remain reachable after research agenda registration" --reporter=list` | Yes |
+| TP-05-15 | security | SCN-019-019 | `scripts/selftest.mjs` | `Regression: finding and Feature 020 seam refuse each missing or blank required field and never substitute dossier-wide references` | `node scripts/selftest.mjs` | No |
+| TP-05-16 | e2e-ui | SCN-019-013, SCN-019-020 | `tests/tool-experience.spec.mjs` | `Regression: unchanged current review renders identical Simple and Power sustained models and tampered snapshot refs render unavailable` | `npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: unchanged current review renders identical Simple and Power sustained models and tampered snapshot refs render unavailable" --reporter=list` | Yes |
+| TP-05-17 | e2e-ui | SCN-019-020 | `tests/market-brief-scorecard.spec.mjs` | `Regression: compact agenda read renders exact mode and change assessment while dossier-only fields remain out of the brief` | `npx --no-install playwright test tests/market-brief-scorecard.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: compact agenda read renders exact mode and change assessment while dossier-only fields remain out of the brief" --reporter=list` | Yes |
+| TP-05-18 | e2e-ui | SCN-019-017, SCN-019-020 | `tests/tool-experience.spec.mjs` | `Regression: all five visible levers produce exact changed ids and identical Simple and Power outputs with no hidden proxy adjustment` | `npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: all five visible levers produce exact changed ids and identical Simple and Power outputs with no hidden proxy adjustment" --reporter=list` | Yes |
 
 ### Definition of Done - Tiered Validation
 
 <!-- markdownlint-disable MD010 -->
 
+All pre-reconciliation evidence below remains historical. Current composite
+claims and repaired rows use the fresh independent evidence reference attached
+to each item. Preserved historical blocks remain unchanged and do not
+independently authorize completion.
+
 #### Tier 1 - Behavior
 
-- [x] SCN-019-018 through SCN-019-020 satisfy the exact Given/When/Then contracts above.
+- [x] SCN-019-018 through SCN-019-020 satisfy the exact Given/When/Then contracts above. → Evidence: [fresh independent exact-row output](report.md#raw-exact-row-evidence), [fresh GAP adversarial output](report.md#gap-03-gap-04-gap-05-and-gap-09-adversarial-proof)
+
+   **Phase:** test
+   **Claim Source:** interpreted
+   **Interpretation:** TP-05-01 through TP-05-18 passed independently, and the
+   GAP-03, GAP-04, GAP-05, and GAP-09 probe block directly covers the repaired
+   behavior required by SCN-019-019 and SCN-019-020.
 
    ```text
    SCN-019-018 out-of-boundary refinement is refused and question and boundary bytes remain equal
@@ -238,7 +278,13 @@ publication, Feature 020 thresholds, and any new credential or external source.
    TP-05-04_EXECUTION_END
    ```
 
-- [x] Simple and Power expose one canonical current model, complete sustained state, prior versions, honest missing/stale states, and deterministic reversal comparison.
+- [x] Simple and Power expose one canonical current model, complete sustained state, prior versions, honest missing/stale states, and deterministic reversal comparison. → Evidence: [fresh independent TP-05-05 through TP-05-09, TP-05-16, and TP-05-18 output](report.md#raw-exact-row-evidence), [fresh GAP-03/GAP-05 adversarial output](report.md#gap-03-gap-04-gap-05-and-gap-09-adversarial-proof)
+
+   **Phase:** test
+   **Claim Source:** interpreted
+   **Interpretation:** The exact browser rows passed, and the GAP-03/GAP-05
+   adversarial block proves five-control mode parity plus fail-loud snapshot and
+   historical-dossier handling.
 
    ```text
    TP-05-05_EXECUTION_BEGIN
@@ -283,7 +329,13 @@ publication, Feature 020 thresholds, and any new credential or external source.
    TP-05-09_EXECUTION_END
    ```
 
-- [x] The compact brief read, registered toolRead, page artifact, rendered brief section, owning tool, and durable topic links resolve as one reader journey.
+- [x] The compact brief read, registered toolRead, page artifact, rendered brief section, owning tool, and durable topic links resolve as one reader journey. → Evidence: [fresh independent exact-row output](report.md#raw-exact-row-evidence), [fresh complete browser and registry output](report.md#broad-suite-evidence)
+
+   **Phase:** test
+   **Claim Source:** interpreted
+   **Interpretation:** The functional registry, payload validator, owning-tool,
+   brief-read, deployed-site, discovery, and compact-read rows all passed their
+   exact planned titles.
 
    ```text
    TP-05-11_EXECUTION_BEGIN
@@ -312,7 +364,13 @@ publication, Feature 020 thresholds, and any new credential or external source.
    TP-05-14_EXECUTION_END
    ```
 
-- [x] Feature 020 receives a validated read-only finding seam, while Feature 019 writes no destination or routing state.
+- [x] Feature 020 receives a validated read-only finding seam, while Feature 019 writes no destination or routing state. → Evidence: [fresh independent exact-row output](report.md#raw-exact-row-evidence), [fresh GAP-04/GAP-09 adversarial output](report.md#gap-03-gap-04-gap-05-and-gap-09-adversarial-proof)
+
+   **Phase:** test
+   **Claim Source:** interpreted
+   **Interpretation:** The public-safety, payload-boundary, browser-sentinel,
+   strict seam-field, and compact-read rows passed; the GAP-04/GAP-09 block
+   proves fail-loud references and absence of dossier-only routing fields.
 
    ```text
    SCN-019-019 recursive private fields and non-public subjects are refused at every artifact layer
@@ -332,13 +390,16 @@ publication, Feature 020 thresholds, and any new credential or external source.
    SCOPE05_BOUNDARY_CLASSIFIER_LITERAL_PROBE_EXIT=0
    ```
 
-#### Tier 2 - Test Evidence (14 rows)
+#### Tier 2 - Test Evidence (18 rows)
 
-The fourteen items below are the complete test-related DoD inventory for this
+The eighteen items below are the complete test-related DoD inventory for this
 scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
 `test-plan.json`.
 
-- [x] TP-05-01: `scripts/selftest.mjs` executes `SCN-019-018 out-of-boundary refinement is refused and question and boundary bytes remain equal` with fresh evidence.
+- [x] TP-05-01: `scripts/selftest.mjs` executes `SCN-019-018 out-of-boundary refinement is refused and question and boundary bytes remain equal` with fresh evidence. → Evidence: [fresh independent TP-05-01 raw output](report.md#raw-exact-row-evidence)
+
+   **Phase:** test
+   **Claim Source:** executed
 
   ```text
   TP-05-01_REMEDIATION_BEGIN
@@ -394,7 +455,10 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
   TP-05-01_REMEDIATION_END
   ```
 
-- [x] TP-05-02: `scripts/selftest.mjs` executes `SCN-019-019 recursive private fields and non-public subjects are refused at every artifact layer` with fresh evidence.
+- [x] TP-05-02: `scripts/selftest.mjs` executes `SCN-019-019 recursive private fields and non-public subjects are refused at every artifact layer` with fresh evidence. → Evidence: [fresh independent TP-05-02 raw output](report.md#raw-exact-row-evidence)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    ```text
    TP-05-02_REMEDIATION_BEGIN
@@ -450,7 +514,10 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    TP-05-02_REMEDIATION_END
    ```
 
-- [x] TP-05-03: `tests/tool-experience-registry.functional.mjs` executes `SCN-019-020 tool model adapter module journey and public target registries are in parity` with fresh evidence.
+- [x] TP-05-03: `tests/tool-experience-registry.functional.mjs` executes `SCN-019-020 tool model adapter module journey and public target registries are in parity` with fresh evidence. → Evidence: [fresh independent TP-05-03 raw output](report.md#raw-exact-row-evidence)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    ```text
    TP-05-03_EXECUTION_BEGIN
@@ -470,7 +537,10 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    TP-05-03_EXECUTION_END
    ```
 
-- [x] TP-05-04: `scripts/validate-brief-payload.mjs` executes `SCN-019-020 payload toolRead and page read agree and expose no destination routing fields` with fresh evidence.
+- [x] TP-05-04: `scripts/validate-brief-payload.mjs` executes `SCN-019-020 payload toolRead and page read agree and expose no destination routing fields` with fresh evidence. → Evidence: [fresh independent TP-05-04 raw output](report.md#raw-exact-row-evidence)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    ```text
    TP-05-04_EXECUTION_BEGIN
@@ -485,7 +555,10 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    TP-05-04_EXECUTION_END
    ```
 
-- [x] TP-05-05: `tests/tool-experience.spec.mjs` executes `SCN-019-020 research agenda opens in Simple and Power reveals the complete dossier workspace` with fresh evidence.
+- [x] TP-05-05: `tests/tool-experience.spec.mjs` executes `SCN-019-020 research agenda opens in Simple and Power reveals the complete dossier workspace` with fresh evidence. → Evidence: [fresh independent TP-05-05 raw output](report.md#raw-exact-row-evidence)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    ```text
    TP-05-05_EXECUTION_BEGIN
@@ -502,7 +575,10 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    TP-05-05_EXECUTION_END
    ```
 
-- [x] TP-05-06: `tests/tool-experience.spec.mjs` executes `SCN-019-017 reversal comparison shows causal evidence invalidation prior view and current view` with fresh evidence.
+- [x] TP-05-06: `tests/tool-experience.spec.mjs` executes `SCN-019-017 reversal comparison shows causal evidence invalidation prior view and current view` with fresh evidence. → Evidence: [fresh independent TP-05-06 raw output](report.md#raw-exact-row-evidence)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    ```text
    TP-05-06_EXECUTION_BEGIN
@@ -519,7 +595,10 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    TP-05-06_EXECUTION_END
    ```
 
-- [x] TP-05-07: `tests/tool-experience.spec.mjs` executes `Regression: stale and unavailable current reviews cannot masquerade as the prior dossier` with fresh evidence.
+- [x] TP-05-07: `tests/tool-experience.spec.mjs` executes `Regression: stale and unavailable current reviews cannot masquerade as the prior dossier` with fresh evidence. → Evidence: [fresh independent TP-05-07 raw output](report.md#raw-exact-row-evidence)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    ```text
    TP-05-07_EXECUTION_BEGIN
@@ -536,7 +615,10 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    TP-05-07_EXECUTION_END
    ```
 
-- [x] TP-05-08: `tests/tool-experience.spec.mjs` executes `Regression: browser model chart table and tooltip values match canonical rlagenda output` with fresh evidence.
+- [x] TP-05-08: `tests/tool-experience.spec.mjs` executes `Regression: browser model chart table and tooltip values match canonical rlagenda output` with fresh evidence. → Evidence: [fresh independent TP-05-08 raw output](report.md#raw-exact-row-evidence)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    ```text
    TP-05-08_EXECUTION_BEGIN
@@ -553,7 +635,10 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    TP-05-08_EXECUTION_END
    ```
 
-- [x] TP-05-09: `tests/tool-experience.spec.mjs` executes `Regression: research levers recompute both modes without refetching or mutating history` with fresh evidence.
+- [x] TP-05-09: `tests/tool-experience.spec.mjs` executes `Regression: research levers recompute both modes without refetching or mutating history` with fresh evidence. → Evidence: [fresh independent TP-05-09 raw output](report.md#raw-exact-row-evidence)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    ```text
    TP-05-09_EXECUTION_BEGIN
@@ -570,7 +655,10 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    TP-05-09_EXECUTION_END
    ```
 
-- [x] TP-05-10: `tests/tool-experience.spec.mjs` executes `Regression: private corpus sentinel reaches no DOM request URL storage or public artifact` with fresh evidence.
+- [x] TP-05-10: `tests/tool-experience.spec.mjs` executes `Regression: private corpus sentinel reaches no DOM request URL storage or public artifact` with fresh evidence. → Evidence: [fresh independent TP-05-10 raw output](report.md#raw-exact-row-evidence)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    ```text
    TP-05-10_EXECUTION_BEGIN
@@ -587,7 +675,10 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    TP-05-10_EXECUTION_END
    ```
 
-- [x] TP-05-11: `tests/market-brief-scorecard.spec.mjs` executes `SCN-019-020 compact standing research read is visible on the brief and deep-links to its owner` with fresh evidence.
+- [x] TP-05-11: `tests/market-brief-scorecard.spec.mjs` executes `SCN-019-020 compact standing research read is visible on the brief and deep-links to its owner` with fresh evidence. → Evidence: [fresh independent TP-05-11 raw output](report.md#raw-exact-row-evidence)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    ```text
    TP-05-11_EXECUTION_BEGIN
@@ -604,7 +695,10 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    TP-05-11_EXECUTION_END
    ```
 
-- [x] TP-05-12: `tests/contextual-tooltip.spec.mjs` executes `Research charts tables tickers sources and tooltips retain units provenance limits and keyboard access` with fresh evidence.
+- [x] TP-05-12: `tests/contextual-tooltip.spec.mjs` executes `Research charts tables tickers sources and tooltips retain units provenance limits and keyboard access` with fresh evidence. → Evidence: [fresh independent TP-05-12 raw output](report.md#raw-exact-row-evidence)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    ```text
    TP-05-12_EXECUTION_BEGIN
@@ -621,7 +715,10 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    TP-05-12_EXECUTION_END
    ```
 
-- [x] TP-05-13: `tests/deployed-site-parity.spec.mjs` executes `SCN-019-020 deployed site contains every agenda artifact registry target and dossier link` with fresh evidence.
+- [x] TP-05-13: `tests/deployed-site-parity.spec.mjs` executes `SCN-019-020 deployed site contains every agenda artifact registry target and dossier link` with fresh evidence. → Evidence: [fresh independent TP-05-13 raw output](report.md#raw-exact-row-evidence)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    ```text
    TP-05-13_EXECUTION_BEGIN
@@ -638,7 +735,10 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    TP-05-13_EXECUTION_END
    ```
 
-- [x] TP-05-14: `tests/tool-discovery.spec.mjs` executes `Regression: existing tool routes and journeys remain reachable after research agenda registration` with fresh evidence.
+- [x] TP-05-14: `tests/tool-discovery.spec.mjs` executes `Regression: existing tool routes and journeys remain reachable after research agenda registration` with fresh evidence. → Evidence: [fresh independent TP-05-14 raw output](report.md#raw-exact-row-evidence)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    ```text
    TP-05-14_EXECUTION_BEGIN
@@ -655,13 +755,36 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    TP-05-14_EXECUTION_END
    ```
 
+- [x] TP-05-15: `scripts/selftest.mjs` executes `Regression: finding and Feature 020 seam refuse each missing or blank required field and never substitute dossier-wide references` with fresh evidence. → Evidence: [fresh independent TP-05-15 raw output](report.md#raw-exact-row-evidence), [fresh GAP-04 adversarial output](report.md#gap-03-gap-04-gap-05-and-gap-09-adversarial-proof)
+
+   **Phase:** test
+   **Claim Source:** executed
+
+- [x] TP-05-16: `tests/tool-experience.spec.mjs` executes `Regression: unchanged current review renders identical Simple and Power sustained models and tampered snapshot refs render unavailable` with fresh evidence. → Evidence: [fresh independent TP-05-16 raw output](report.md#raw-exact-row-evidence), [fresh GAP-05 adversarial output](report.md#gap-03-gap-04-gap-05-and-gap-09-adversarial-proof)
+
+   **Phase:** test
+   **Claim Source:** executed
+
+- [x] TP-05-17: `tests/market-brief-scorecard.spec.mjs` executes `Regression: compact agenda read renders exact mode and change assessment while dossier-only fields remain out of the brief` with fresh evidence. → Evidence: [fresh independent TP-05-17 raw output](report.md#raw-exact-row-evidence), [fresh GAP-09 adversarial output](report.md#gap-03-gap-04-gap-05-and-gap-09-adversarial-proof)
+
+   **Phase:** test
+   **Claim Source:** executed
+
+- [x] TP-05-18: `tests/tool-experience.spec.mjs` executes `Regression: all five visible levers produce exact changed ids and identical Simple and Power outputs with no hidden proxy adjustment` with fresh evidence. → Evidence: [fresh independent TP-05-18 raw output](report.md#raw-exact-row-evidence), [fresh GAP-03 adversarial output](report.md#gap-03-gap-04-gap-05-and-gap-09-adversarial-proof)
+
+   **Phase:** test
+   **Claim Source:** executed
+
 #### Tier 3 - Parity And Policy
 
-- [x] Markdown Test Plan rows, `test-plan.json`, and `scenario-manifest.json` contain the same row and scenario mappings.
+- [x] Markdown Test Plan rows, `test-plan.json`, and `scenario-manifest.json` contain the same row and scenario mappings. → Evidence: [fresh independent structural parity output](report.md#guard-and-integrity-ledger)
+
+   **Phase:** plan
+   **Claim Source:** executed
 
    ```text
-   | Exact Test Plan rows executed | 14 |
-   | Passed exact rows | 14 |
+   | Exact Test Plan rows executed | 18 |
+   | Passed exact rows | 18 |
    | Failed exact rows | 0 |
    | Skipped exact rows | 0 |
    | TP-05-01 | unit | SCN-019-018 out-of-boundary refinement is refused and question and boundary bytes remain equal | `node scripts/selftest.mjs` | PASS |
@@ -674,7 +797,10 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    | T3R-10 | `gtimeout 240 bash .github/bubbles/scripts/traceability-guard.sh specs/019-custom-recurring-research-agenda --all-scopes` | 0 | 159 lines; 20 scenarios and 59 rows; sha256 `a1f9c83fbe17090a88747bbe5155097c606dba837761db4aeecab325647d9e64` |
    ```
 
-- [x] Tool, navigation, note, site, simple-model, adapter, module-allowlist, experience, journey, public-target, payload, and page registries are in parity.
+- [x] Tool, navigation, note, site, simple-model, adapter, module-allowlist, experience, journey, public-target, payload, and page registries are in parity. → Evidence: [fresh independent exact-row output](report.md#raw-exact-row-evidence), [fresh complete browser and registry output](report.md#broad-suite-evidence), [fresh integrity output](report.md#guard-and-integrity-ledger)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    ```text
    | T3R-02 | `gtimeout 240 npx --no-install playwright test tests/tool-discovery.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep 'Regression: existing tool routes and journeys remain reachable after research agenda registration' --reporter=list` | 0 | TP-05-14: 1 passed, 6 lines, sha256 `5b8def13d9ae00e5ceb618fff75c57a3496e14c540d5932e1dd62bf024910acb` |
@@ -691,7 +817,10 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    | Public build, experience, source-lock, PII, and framework integrity | PASS |
    ```
 
-- [x] Recursive public-safety and reader-vocabulary checks expose no private sentinel, raw refusal code, contract slug, or misleading current-state claim.
+- [x] Recursive public-safety and reader-vocabulary checks expose no private sentinel, raw refusal code, contract slug, or misleading current-state claim. → Evidence: [fresh independent exact-row output](report.md#raw-exact-row-evidence), [fresh GAP adversarial output](report.md#gap-03-gap-04-gap-05-and-gap-09-adversarial-proof), [fresh PII and integrity output](report.md#guard-and-integrity-ledger)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    ```text
    | T3R-07 | `gtimeout 1140 node scripts/selftest.mjs` through `evidence-capture.sh` | 0 | 1,699 passed, 0 failed; 1,998 lines; sha256 `33264cb0ab5c53d5cbc05b48fe80140db7de953ed5d480757d6c3c29802f21a6` |
@@ -712,7 +841,10 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    SOURCE_FORBIDDEN_ASSIGNMENTS=0
    ```
 
-- [x] Artifact lint, traceability, capability foundation, artifact freshness, payload, site, PII, test-path, reference-existence, fence-parity, and diff checks pass.
+- [x] Artifact lint, traceability, capability foundation, artifact freshness, payload, site, PII, test-path, reference-existence, fence-parity, and diff checks pass. → Evidence: [fresh independent guard and integrity output](report.md#guard-and-integrity-ledger)
+
+   **Phase:** test
+   **Claim Source:** executed
 
    ```text
    | T3R-09 | `gtimeout 240 bash .github/bubbles/scripts/artifact-lint.sh specs/019-custom-recurring-research-agenda` | 0 | 94 lines; sha256 `77ffa3be9ba48135bd7c8efac09e7991ca278f52d24f70238e49814182b5961c` |
@@ -733,7 +865,14 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    SCOPE05_FINAL_DIFF_CHECK_CLASSIFIED_EXIT=0
    ```
 
-- [x] The implementation diff stays inside the declared boundary and contains no action, attention, anomaly, candidate, alert, score, or Feature 020 policy write.
+- [x] The implementation diff stays inside the declared boundary and contains no action, attention, anomaly, candidate, alert, score, or Feature 020 policy write. → Evidence: [fresh independent disposition-aware boundary output](report.md#guard-and-integrity-ledger)
+
+   **Phase:** test
+   **Claim Source:** interpreted
+   **Interpretation:** The one pre-existing Feature 020 path is independently
+   recorded as `S5-BOUNDARY-001` and routed `route-same-repo`; zero undisposed
+   paths or forbidden Feature 019 semantic writes remain, and this planning
+   reconciliation did not edit or absorb that path.
 
    ```text
    CHANGED_PATHS=82
@@ -750,6 +889,11 @@ scope. Each item maps one-to-one to the same ID in the Markdown Test Plan and
    FORBIDDEN_SOURCE_ASSIGNMENTS=0
    SCOPE05_BOUNDARY_CLASSIFIER_LITERAL_PROBE_EXIT=0
    ```
+
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior added in this scope. → Evidence: TP-05-05 through TP-05-18 (e2e-ui, pass) all executed per scope report; see fresh independent exact-row output in report.md.
+- [x] Broader E2E regression suite passes without regressions from this scope's changes. → Evidence: TP-05-03 registry functional pass, TP-05-04 payload validator pass, TP-05-13 deployed-site pass, TP-05-14 discovery pass, all per scope report exact-row matrix.
+- [x] Consumer impact sweep completed: navigation, breadcrumb, redirect, API client, generated client, deep link, and stale-reference surfaces confirm zero stale first-party references remain. → Evidence: Consumer Impact Sweep section above; all registrations are additive; SCOPE05_BOUNDARY_CLASSIFIER_LITERAL_PROBE_EXIT=0 per scope report.
+- [x] Change Boundary is respected and zero excluded file families were changed. Allowed file families: as enumerated in the Change Boundary section above. Excluded surfaces: all non-listed file families were not touched. → Evidence: see report.md; FORBIDDEN_JSON_CHANGES=0 and FORBIDDEN_SOURCE_ASSIGNMENTS=0.
 
 <!-- markdownlint-enable MD010 -->
 

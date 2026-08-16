@@ -10,21 +10,23 @@ certification.
 the repository's existing build-free static Pages, UMD module, shared data,
 ordinary four-view, and Simple/Power conventions.
 
-**Delivery truth.** Nothing introduced by this design exists yet. Existing
-files and symbols are described as current. Every new file, contract, function,
-lane, registry entry, and UI surface is explicitly described as planned.
+**Delivery truth.** The registry, UMD foundation, recurring refresh runtime,
+immutable agenda store, owning tool, brief read, and public page projection are
+committed and reachable. This design describes those surfaces as delivered and
+identifies contract corrections that remain required. Repository presence is
+not certification. `state.json.status` and `state.json.certification.status`
+remain `not_started` until the full-delivery quality chain certifies them.
 
 ## Design Brief
 
 **Current State.** `scripts/brief-refresh-scheduled.sh` runs each publication in
-a disposable single-branch clone, so unattended generation can read committed
-state only. `scripts/brief-narrative-parallel.mjs` currently launches four
-write-disjoint lanes named `core`, `signals`, `groups`, and `coverage`; only the
-first two receive the script's 15-host `webAllow` list. It atomically renames a
-candidate `market-brief.payload.json`, but no current runtime owns standing
-topics, recurring dossiers, or agenda history.
+a disposable single-branch clone, so unattended generation reads committed
+state only. `research-agenda.json`, `rlagenda.js`, and
+`scripts/research-agenda-refresh.mjs` now own standing topics, recurring
+reviews, dossiers, and agenda history. `research-agenda-lab.html` and the brief
+page expose the committed read. Full-delivery certification remains pending.
 
-The repository already has the required primitives. `data/bars/` contains
+The delivered runtime uses existing repository primitives. `data/bars/` contains
 same-origin history for the primary topic's initial U.S.-listed proxies,
 including `BNO`, `USO`, `XLE`, `MPC`, `PSX`, `XOM`, `CVX`, `COP`, `DBC`, `DBA`,
 `XLB`, and `XLI`. `scripts/web-evidence-acquire.mjs` already defines a bounded,
@@ -33,14 +35,13 @@ fail-closed, injected acquisition boundary that produces frozen
 in `notes/us-iran-oil-market-intervention-patterns.md`; it is historical input,
 not a live dossier.
 
-**Target State.** A committed `research-agenda.json` registry declares every
-topic's lifecycle, explicit `every-generation | cadence` review mode,
-freshness, analytical sections, and capacity. One planned UMD module,
-`rlagenda.js`, owns validation, selection, evidence weighting, deterministic
-models, immutable review/dossier contracts, chart projections, and reader
-sentences. The primary `geopolitical-supply-shock` topic is an
-`every-generation` concrete implementation. Defense acceleration and food
-inputs are independent cadence implementations of the same foundation.
+**Target State.** Keep the delivered architecture and close the contract gaps
+without weakening its requirements. The committed registry remains the only
+source for lifecycle, review modes, freshness, and runtime capacity.
+`rlagenda.js` remains the single owner of validation, selection, evidence
+weighting, deterministic models, immutable records, chart projections, and
+reader sentences. The runtime must consume every validated policy value and
+must refuse missing model, finding, publication, or budget input.
 
 Every brief generation creates an immutable generation manifest. Every active
 every-generation topic also receives either a complete current-generation
@@ -49,7 +50,7 @@ record with `outcome: "unchanged"` while leaving the prior substantive dossier
 current. Prior outputs are comparison evidence only; they never seed, smooth,
 or constrain current probabilities or direction.
 
-**Patterns To Follow.** The planned `rlagenda.js` follows the frozen UMD and
+**Patterns To Follow.** The delivered `rlagenda.js` follows the frozen UMD and
 closed-refusal style of current `rlattention.js` and `rlcausal.js`. Node loads
 the same UMD module used by the browser. Evidence acquisition extends the
 current `web-evidence-acquisition/v1` policy and reuses
@@ -67,20 +68,20 @@ governed acquisition stage. Do not publish a prior dossier as the current
 every-generation result. Do not write actions, attention items, anomaly seeds,
 or alerts; Feature 020 owns those destinations.
 
-**Resolved Decisions.** The registry uses explicit mode-tagged review policies
-and two separate required capacities. Reviews and dossiers are distinct:
-reviews exist for every attempted generation, while dossiers version only a
-substantive analytical state. A planned fifth research lane runs as a
-soft-failing, separately bounded side pool concurrent with the four existing
-critical lanes. It is networkless and consumes frozen governed evidence. The
-collector recomputes every model through `rlagenda.js`, validates a candidate
-agenda transaction, and moves the current pointer last. The owning tool is the
-planned registered `research-agenda-lab.html`, Simple by default with Power as
-the detailed research surface.
+**Resolved Decisions.** The committed registry and config policy objects are
+the only numeric policy sources. Runtime code consumes the validated objects
+without restating their values. Reviews and dossiers stay distinct. Each
+attempted generation creates a review, while a dossier versions substantive
+analytical state. The networkless research author remains a soft-failing side
+pool beside the four critical lanes. The five visible controls are the complete
+user-lever surface. A whole-publication transaction validates immutable data,
+history, payload, and page projections before moving the current pointer last.
+The registered `research-agenda-lab.html` remains Simple by default with Power
+as the detailed research surface.
 
-**Open Questions.** None blocking. Numeric review, acquisition, and authoring
-limits are explicit initial contract values below and must be changed by a
-reviewed registry or policy edit, never by fallback code.
+**Open Questions.** None blocking. Policy changes require a reviewed edit to
+`research-agenda.json` or `market-brief.config.json`. Code literals and fallback
+values cannot change runtime capacity.
 
 ## 1. Purpose And Change Boundary
 
@@ -161,15 +162,16 @@ The architecture has six load-bearing invariants.
 5. **Every mandatory topic is accounted for.** Each generation contains one
    current review or named unavailable record for every active
    every-generation topic.
-6. **Publication is pointer-last and one commit.** Immutable assets are written
-   and validated before `current.json`; the agenda, payload, page artifacts,
-   and registry projections enter the same scoped commit.
+6. **Publication is pointer-last and one commit.** Immutable assets are created
+  first. Mutable candidates are built and validated in private same-filesystem
+  paths. `current.json` becomes reachable only after history, payload, and all
+  page projections are ready.
 
 ## Capability Foundation
 
 ### 3.1 Foundation Contract
 
-The planned root UMD module `rlagenda.js` is the single owner of these concepts:
+The root UMD module `rlagenda.js` is the single owner of these concepts:
 
 | Contract | Responsibility | Consumers |
 | --- | --- | --- |
@@ -177,7 +179,7 @@ The planned root UMD module `rlagenda.js` is the single owner of these concepts:
 | `research-topic-definition/v1` | Stable sections, actors, scenarios, flows, transmission, models, charts | planner, model engine, tool |
 | `research-evidence-record/v1` | Direct/indirect/inference semantics, provenance, conflicts, causal impacts | acquisition adapter, agent validator, model engine, UI |
 | `research-generation/v1` | One immutable classification record for every declared topic in one brief generation | publisher, brief, tool |
-| `research-review/v1` | One attempted current-generation pass or named unavailable result | publisher, charts, comparison UI |
+| `research-review/v1` | One attempted current-generation pass or named `unavailable` result | publisher, charts, comparison UI |
 | `research-dossier/v1` | One immutable substantive analytical version | tool, Feature 020 read boundary |
 | `research-agenda-read/v1` | Compact brief and tool-read projection | payload validator, brief, tool |
 
@@ -219,7 +221,7 @@ committed registry and definition edit only.
 
 ### 4.1 Geopolitical Supply Shock - Every Generation
 
-The planned topic id is `geopolitical-supply-shock`. Its review mode is
+The topic id is `geopolitical-supply-shock`. Its review mode is
 `every-generation`. It supplies topic-specific actor, scenario, flow,
 transmission, proxy, calibration, source-requirement, trigger, invalidation, and
 chart definitions while relying on the foundation for all lifecycle,
@@ -241,14 +243,14 @@ All eight are evaluated on every generation. A section may be `changed`,
 
 ### 4.2 Defense Earnings Acceleration - Cadence
 
-The planned `defense-earnings-acceleration` topic uses an explicit seven-day
+The `defense-earnings-acceleration` topic uses an explicit seven-day
 cadence and a declared material-change trigger over committed earnings and bar
 observations. Its topic definition supplies consensus-revision and production
 capacity sections. It does not inherit geopolitical sections.
 
 ### 4.3 Food Inputs - Cadence
 
-The planned `food-inputs-outlook` topic uses an explicit seven-day cadence and
+The `food-inputs-outlook` topic uses an explicit seven-day cadence and
 a declared trigger over current public commodity observations. Its definition
 supplies grains, fertilizer, catalysts, move ranges, and invalidations. It does
 not inherit the primary topic's actors or chokepoints.
@@ -262,11 +264,11 @@ not inherit the primary topic's actors or chokepoints.
 | Evidence mix | public web, official observations, committed bars, deterministic inference | common evidence graph and quality policy |
 | Model family | probability tree, flow network, shock range, proxy sensitivity | pure dispatch and output validation |
 | UI composition | compact brief read; Simple tool; Power drill-down; version comparison | shared read and chart/table contracts |
-| Failure state | unchanged, stale, unavailable, paused, deferred, refused | closed outcomes and reader vocabulary |
+| Failure state | `unchanged`, `stale`, `unavailable`, `paused`, `deferred`, `refused` | closed outcomes and reader vocabulary |
 
-## 5. Planned Artifact And Consumer Inventory
+## 5. Delivered Artifact And Consumer Inventory
 
-| Planned artifact | Role | Mutation rule | Production consumers |
+| Artifact | Role | Mutation rule | Production consumers |
 | --- | --- | --- | --- |
 | `research-agenda.json` | operator-owned registry and required review/runtime capacities | ordinary visible commit | planner, validator, tool |
 | `rlagenda.js` | UMD foundation and all deterministic math | source change | Node publisher, validators, browser |
@@ -281,86 +283,39 @@ not inherit the primary topic's actors or chokepoints.
 | `rlexperience-adapters/research-agenda.js` | thin ordinary-view bridge to `rlagenda.js` | no copied math | shared experience runtime |
 | `notes/research-agenda-lab.md` | methodology and operator-facing checks | source change | reader/developer |
 
-`research/` must be added to the current `PUBLIC_DIRECTORIES` allowlist in
-`scripts/build-pages-site.mjs`. Root artifacts already follow the existing root
-file packaging rule. All planned paths are public by design and therefore must
-pass the current PII scan.
+`research/` is part of the `PUBLIC_DIRECTORIES` allowlist in
+`scripts/build-pages-site.mjs`. Root artifacts follow the existing root-file
+packaging rule. Every path is public by design and must pass the current PII
+scan.
 
 ## 6. Registry And Topic Definition Contracts
 
 ### 6.1 Root Registry
 
-The initial planned registry has this shape. Every policy member shown is
-required. `rlagenda.js` refuses a missing member; it supplies no fallback.
+The committed `research-agenda.json` file is the runtime policy source. This
+design does not duplicate its numeric values. `rlagenda.validateAgenda()` must
+validate and deep-freeze the exact `reviewPolicy` object before any planner,
+acquirer, or author receives it.
 
-```jsonc
-{
-  "contractVersion": "research-agenda/v1",
-  "reviewPolicy": {
-    "maxActiveEveryGenerationTopics": 1,
-    "cadenceTopicReviewBudget": 1,
-    "cadenceSelectionOrder": [
-      "trigger-fired-first",
-      "oldest-last-review",
-      "declaration-order",
-      "topic-id"
-    ],
-    "maxConcurrentTopicAcquisitions": 2,
-    "researchAuthoring": {
-      "timeoutSeconds": 900,
-      "attempts": 1,
-      "concurrency": 1,
-      "maxInputBytes": 524288,
-      "maxOutputBytes": 524288
-    }
-  },
-  "topics": [
-    {
-      "topicId": "geopolitical-supply-shock",
-      "title": "Geopolitical supply shock",
-      "declaredQuestion": "How are U.S.-Iran reaction functions, Hormuz, the Red Sea and Bab el-Mandeb changing the probability and transmission of a public-market supply shock?",
-      "scopeBoundary": {
-        "geographies": ["United States", "Iran", "Gulf", "Red Sea"],
-        "channels": ["oil", "refined-products", "lng", "fertilizer", "aluminum", "shipping"],
-        "horizons": ["current", "1-4w", "3-12m"],
-        "publicOnly": true
-      },
-      "lifecycleState": "active",
-      "reviewPolicy": {
-        "mode": "every-generation",
-        "freshnessWindowHours": 24
-      },
-      "definitionRef": "research/agenda/topics/geopolitical-supply-shock.definition.json"
-    },
-    {
-      "topicId": "defense-earnings-acceleration",
-      "title": "Defense earnings acceleration",
-      "declaredQuestion": "Which public defense manufacturers are accelerating versus consensus over three, six and twelve months?",
-      "scopeBoundary": { "publicOnly": true },
-      "lifecycleState": "active",
-      "reviewPolicy": {
-        "mode": "cadence",
-        "cadenceDays": 7,
-        "freshnessWindowDays": 30
-      },
-      "definitionRef": "research/agenda/topics/defense-earnings-acceleration.definition.json"
-    },
-    {
-      "topicId": "food-inputs-outlook",
-      "title": "Food, grains and fertilizer",
-      "declaredQuestion": "What is the public three-to-twelve-month outlook for grains and fertilizer inputs?",
-      "scopeBoundary": { "publicOnly": true },
-      "lifecycleState": "active",
-      "reviewPolicy": {
-        "mode": "cadence",
-        "cadenceDays": 7,
-        "freshnessWindowDays": 30
-      },
-      "definitionRef": "research/agenda/topics/food-inputs-outlook.definition.json"
-    }
-  ]
-}
-```
+| Registry member | Runtime obligation |
+| --- | --- |
+| `maxActiveEveryGenerationTopics` | Bound mandatory selection and reject count plus one before authoring. |
+| `cadenceTopicReviewBudget` | Bound due cadence selection after mandatory work. |
+| `cadenceSelectionOrder` | Drive the exact deterministic comparator. |
+| `maxConcurrentTopicAcquisitions` | Bound the topic-acquisition worker queue. It is distinct from per-lane HTTP concurrency. |
+| `researchAuthoring.timeoutSeconds` | Bound each author attempt through the timer boundary. |
+| `researchAuthoring.attempts` | Bound actual author invocations per topic. |
+| `researchAuthoring.concurrency` | Bound the author worker queue and reported peak concurrency. |
+| `researchAuthoring.maxInputBytes` | Bound canonical UTF-8 request bytes before invocation. |
+| `researchAuthoring.maxOutputBytes` | Bound canonical UTF-8 response bytes before parsing or publication. |
+
+The planner passes one frozen policy value and its canonical digest through
+`research-author-input/v1`, acquisition scheduling, side-pool scheduling, and
+telemetry validation. Equality to a copied literal is forbidden. Every
+validated member must affect scheduling or admission. Telemetry must prove that
+attempt count, peak author concurrency, peak topic-acquisition concurrency,
+elapsed author time, input bytes, and output bytes stayed within that same
+policy object.
 
 Mode validation is discriminated and exact:
 
@@ -370,8 +325,13 @@ Mode validation is discriminated and exact:
   `freshnessWindowDays`;
 - a missing/unknown mode is a named topic refusal;
 - active every-generation count above the declared maximum refuses the
-  generation before authoring; it is never converted to cadence or deferred;
+  generation before authoring; it is never converted to `cadence` or
+  `deferred`;
 - cadence capacity applies only after all mandatory topics are selected.
+
+`maxConcurrentTopicAcquisitions` limits selected topics being acquired at one
+time. The `research-agenda` lane's `maxConcurrentFetches` limits HTTP requests
+inside one topic acquisition. Both limits apply. Neither can replace the other.
 
 ### 6.2 Topic Definition
 
@@ -447,27 +407,55 @@ and they run after current output is frozen.
 
 ### 7.3 Review Versus Dossier
 
-Every attempted selected topic receives an immutable `research-review/v1`:
+Every attempted selected topic receives one immutable `research-review/v1`.
+The validator requires this exact active field set:
 
-- `generationId`, `reviewId`, `topicId`, review mode, and selection reason;
-- `attemptedAt`, `completePass`, outcome, and named failure reason;
-- all declared section ids with one status each;
-- definition, calibration, registry, evidence-bundle, bar, and source digests;
-- current deterministic model outputs or an explicit unavailable state;
-- comparison with the prior dossier when one exists;
-- `dossierRef`, which may continue to point at the prior dossier on unchanged
-  or unavailable reviews.
+| Field group | Required fields |
+| --- | --- |
+| Identity | `contractVersion`, `reviewId`, `generationId`, `topicId`, `attemptedAt`, `validationState`, `historicalOnly` |
+| Selection | `mode`, `selectionReason`, `completePass` |
+| Result | `outcome`, `reason`, `newestEvidenceAgeHours`, `changeAssessment`, `sectionStates`, `evidenceIds` |
+| Sustained state | `modelSnapshotRef`, `chartState`, `triggerStates`, `invalidationStates` |
+| Lineage | `dossierRef`, `predecessorDossierRef` |
 
-A new immutable dossier is written only when the complete pass changes a
-finding, stable analytical state, interpretation, scenario/model output, trigger,
-invalidation, or source ledger. A quiet pass writes a new review with
-`outcome: "unchanged"`, `completePass: true`, and the prior `dossierRef`; it
-does not manufacture a dossier version merely to look productive. A failed pass
-writes `outcome: "unavailable"`, `completePass: false`, and a named reason.
+`outcome` is exactly `updated`, `unchanged`, `stale`, or `unavailable`. The
+generation classification row separately carries `state` from the FR-019-026
+classification vocabulary. `reason` is required for `unavailable` and every
+non-reviewed classification. `changeAssessment` is exactly `strengthened`,
+`weakened`, `reversed`, `unchanged`, or `insufficient-evidence` when a
+predecessor exists. It is `insufficient-evidence` when no comparison can be
+supported.
 
-This distinction satisfies both truths: every-generation work has a record for
-the current generation, while the current substantive dossier is not rewritten
-or duplicated when nothing changed.
+Each generation classification row is exactly `topicId`, `state`, `reason`,
+`reviewRef`, and `dossierRef`. `state` is exactly `reviewed`, `unavailable`,
+`paused`, `retired`, `not-due`, `deferred`, or `refused`. A `reviewed` or
+`unavailable` row resolves a same-generation review. Every other state has no
+review and repeats its classification token as the read `outcome`.
+
+`modelSnapshotRef` is either `null` or an exact immutable reference containing
+`dossierRef`, `modelInputsSha256`, `modelOutputsSha256`, and
+`chartSeriesSha256`. An `updated` review references its new dossier. An
+`unchanged` review references the reused current dossier. A complete `stale`
+review may reference that dossier but must preserve the stale label. An
+`unavailable` review cannot invent a snapshot.
+
+Every non-historical `research-dossier/v1` requires exactly
+`contractVersion`, `dossierId`, `topicId`, `generationId`, `reviewId`, `mode`,
+`selectionReason`, `historicalOnly`, `validationState`, `observedThrough`,
+`outcome`, `changeAssessment`, `declaredQuestionSha256`, `sectionStates`,
+`findings`, `evidenceRecords`, `sourceLedger`, `modelInputs`, `modelOutputs`,
+`chartStates`, `triggerStates`, `invalidationStates`,
+`predecessorDossierRef`, and `supersedesDossierRef`. A chart state is exactly
+`chartId`, `state`, `series`, and `annotations`. A trigger or invalidation state
+is exactly its definition id, current state, observed-at time, and evidence
+refs. A new dossier is written only when substantive state changes. No active
+field may be omitted because its value is unchanged.
+
+A quiet pass writes a new same-generation review with `outcome: "unchanged"`,
+`completePass: true`, and the prior immutable dossier and model snapshot refs.
+It does not manufacture a dossier version. The current substantive dossier
+stays readable and drives the current sustained model without becoming new
+evidence.
 
 ### 7.4 Generation Manifest And History
 
@@ -482,14 +470,25 @@ For every active every-generation topic, status must be `reviewed` or
 `deferred` are invalid for that mode.
 
 `history.jsonl` appends compact generation, review, lifecycle, and correction
-events. Corrections are new events with `correctsEventId`; no prior line, review,
-dossier, model output, or chart point is edited.
+events. Corrections are new events with `correctsEventId`; no prior line,
+review, dossier, model output, or chart point is edited.
+
+Lifecycle detection compares each current registry topic with the latest
+validated lifecycle event for that topic. A topic with no event emits one
+baseline lifecycle event with `fromState: null`. A changed topic emits exactly
+one event with `fromState`, `toState`, `topicId`, `occurredAt`,
+`registryTopicSha256`, and `supersedesEventId`. An unchanged topic emits
+none. The event id hashes those transition fields and the generation identity.
+Retries of one generation therefore derive the same id, and append validation
+rejects a duplicate. Later generations see the latest `toState` and do not
+repeat `paused` or `retired` events. A later transition back to `active` creates
+a new linked event. No transition deletes history.
 
 ## 8. Evidence Graph And Model Impact Contract
 
 ### 8.1 Evidence Record
 
-Every planned evidence record has this exact semantic content:
+Every evidence record has this exact semantic content:
 
 ```jsonc
 {
@@ -548,7 +547,46 @@ Every planned evidence record has this exact semantic content:
 `confidence` is evidence quality only. It is never displayed or consumed as a
 scenario probability, price probability, or chance of success.
 
-### 8.2 Direct Evidence
+### 8.2 Published Finding And Feature 020 Seam
+
+Every published finding uses this exact required field set:
+
+```text
+findingId, observedAt, claim, publicSubjects, horizon, source,
+statedConfidence, provenanceClass, evidenceRole, evidenceRefs,
+triggerRefs, invalidationRefs, causalPath, refutedBy, limitations
+```
+
+`observedAt` is a canonical instant at or before the generation cutoff.
+`claim` and `statedConfidence.basis` are non-empty. `source` is exactly
+`{ sourceIds: string[] }` with at least one unique id that resolves through the
+dossier source ledger. `statedConfidence` is exactly `{ grade, basis }`, and
+`grade` uses the declared confidence vocabulary. `provenanceClass` and
+`evidenceRole` use their closed vocabularies. `publicSubjects`, `evidenceRefs`,
+`triggerRefs`, and `invalidationRefs` are non-empty unique arrays. Every ref
+must resolve inside the same validated dossier or topic definition. Each public
+subject is exactly `{ kind, value }` and must remain inside the topic's public
+scope. A seam-capable finding's `horizon` is exactly `structural | swing |
+tactical`; Feature 020 must copy it without reclassification.
+
+The `research-finding-reference-seam/v1` object contains only
+`contractVersion`, `topicId`, `dossierId`, `definitionVersion`,
+`declaredQuestionSha256`, and `findings`. Its finding projection contains
+`findingId`, `observedAt`, `claim`, `publicSubjects`, `horizon`,
+`statedConfidence`, `provenanceClass`, `evidenceRole`, `evidenceRefs`,
+`sourceRefs`, `triggerRefs`, `invalidationRefs`, `topicId`, and `dossierId`.
+
+The seam may derive `topicId`, `dossierId`, `definitionVersion`, and
+`declaredQuestionSha256` from validated parent artifacts. It may derive
+`sourceRefs` only by exact copy from the finding's required
+`source.sourceIds`. The finding itself must supply every other member. The seam
+must not fall back to every dossier evidence id or every definition trigger and
+invalidation. It deep-copies without filtering, validates, and freezes the
+projection. It rejects an empty or unresolved member. It carries no
+`destination`, `eligibility`, action, attention, anomaly, alert, score, or
+routing field.
+
+### 8.3 Direct Evidence
 
 `direct` evidence observes the claim or channel itself: a verified official
 statement, independently confirmed incident, measured transit/loadings, current
@@ -558,7 +596,7 @@ infallible. Source class, corroboration, conflicts, and freshness still apply.
 Direct evidence may update an observed channel and scenario weight. It may not
 skip the impact declaration or causal rationale.
 
-### 8.3 Indirect Evidence
+### 8.4 Indirect Evidence
 
 `indirect` evidence observes a precursor or consequence rather than the target
 claim. It is valid only when it supplies:
@@ -576,14 +614,14 @@ shows the path and exact weighted impact, and places the refutation condition
 beside it. If a refuter fires, its model impact becomes zero and the conflict is
 shown; the record is not deleted.
 
-### 8.4 Model Inference
+### 8.5 Model Inference
 
 `model-inference` evidence must name the pure `modelFunctionId`, all input
 evidence ids, and the generated output field. It cannot cite itself, carry a web
 source as proof, or exceed the lower inference cap. The UI labels it
 "model inference" and links to the input records and formula.
 
-### 8.5 Initial Explicit Quality Policy
+### 8.6 Initial Explicit Quality Policy
 
 The primary topic definition requires these initial values; no function embeds
 them as defaults:
@@ -698,7 +736,7 @@ tool's price model, and deep-links rather than duplicating that model.
 
 ### 9.6 Historical Event Calibration
 
-The planned calibration file is immutable by event id and version. Each event
+The calibration file is immutable by event id and version. Each event
 stores event/cutoff times, source refs, scenario label, affected channels,
 pre/post bar windows, bar file digests, benchmark, proxy returns, maximum
 adverse/favorable excursion, and confound/limitation notes. New calibration
@@ -724,7 +762,7 @@ there is no continuity penalty.
 
 ## 10. Deterministic Model And Chart Contract
 
-All planned functions are top-level `function name(...)` declarations in
+All model functions are top-level `function name(...)` declarations in
 `rlagenda.js`, matching the extraction convention used by
 `scripts/selftest.mjs`. They are pure: no DOM, clock, fetch, storage, or file
 access.
@@ -734,10 +772,10 @@ access.
 | `computeEvidenceWeight` | evidence record, explicit quality policy, generation cutoff | bounded weight, each multiplicative factor, exclusion reason |
 | `updateEscalationProbabilities` | stable scenario tree, current evidence impacts, explicit caps | conditional/unconditional probabilities summing to one, contribution ledger |
 | `computeFlowState` | stable flow network, current chokepoint intervals, scenario id | physical loss, delay, reroute, ton-mile, insured-throughput ranges |
-| `computeCommodityShockRanges` | scenario probabilities, per-scenario flow states, transmission definitions, current bars, explicit user levers | low/base/high channel ranges with component attribution |
-| `computeEquityProxyRanges` | commodity/shipping ranges, proxy definitions, calibration events, current bars, explicit user levers | low/base/high proxy ranges and sensitivity attribution |
+| `computeCommodityShockRanges` | scenario probabilities, per-scenario flow states, transmission definitions, current bars, exact inventory/policy and demand offsets | low/base/high channel ranges with component attribution |
+| `computeEquityProxyRanges` | commodity/shipping ranges, proxy definitions, calibration events, current bars | low/base/high proxy ranges and sensitivity attribution |
 | `compareScenarioOutputs` | frozen current output, frozen predecessor output or null | deltas, rank changes, evidence additions/removals/conflicts |
-| `classifyChangeDirection` | current output, comparison, explicit thresholds and evidence coverage | strengthened, weakened, reversed, unchanged, or insufficient-evidence |
+| `classifyChangeDirection` | current output, comparison, explicit thresholds and evidence coverage | `strengthened`, `weakened`, `reversed`, `unchanged`, or `insufficient-evidence` |
 | `buildAgendaChartSeries` | ordered immutable reviews, chart definitions | SVG/canvas series plus identical table rows |
 
 ### 10.1 Evidence Weight
@@ -802,13 +840,50 @@ insufficient evidence coverage wins over every directional label.
 Comparison never feeds the current model. It describes a completed current
 model.
 
-### 10.6 Browser Recalculation And Chart Consistency
+### 10.6 Published Model Input And Five-Lever Contract
 
-The collector stores inputs and expected deterministic outputs in each review.
-The publish gate recomputes and requires canonical equality. The browser loads
-the same `rlagenda.js`, recomputes from the stored inputs, and renders only when
-its canonical result matches the stored output. A mismatch is a named
-unavailable model state, not a best-effort chart.
+Every reviewable model snapshot persists one exact
+`research-model-input/v1` object with these required members:
+
+```text
+contractVersion, chokepointState, inventoryGapByChannel, levers,
+currentBars, calibrationEvents, evidenceImpacts
+```
+
+`levers` has exactly five finite numeric members. No sixth member is accepted.
+
+| Lever id | Range | Meaning |
+| --- | ---: | --- |
+| `hormuzPhysicalPassFraction` | `0..1` | Published base physical pass fraction for Hormuz. |
+| `babElMandebPhysicalPassFraction` | `0..1` | Published base physical pass fraction for Bab el-Mandeb. |
+| `reroutedShare` | `0..1` | Share delivered through declared alternate routes. |
+| `inventoryPolicyResponseOffset` | `-1..1` | Visible decimal-return offset for inventory and policy response. |
+| `demandOffset` | `-1..1` | Visible decimal-return offset for demand. |
+
+The two pass values must equal the matching validated interval bases in
+`chokepointState`. Every declared channel needs an exact interval in
+`inventoryGapByChannel`. Every bar, calibration event, and evidence impact must
+resolve to the topic definition and generation cutoff. Exact-shape validation
+runs before any arithmetic. A missing member, unknown member, unresolved ref,
+non-finite value, range breach, or interval mismatch refuses the model input.
+No required value becomes `0`, `1`, an empty object, or an empty array.
+
+`proxyAdjustment` is removed from the user-lever and published-input surfaces.
+It is an unknown-member refusal and cannot affect proxy ranges outside
+`changedLeverIds`. Proxy computation uses the declared channel sensitivity,
+calibration residual, and the definition's source-qualified
+`operatingExposureOffset`. A new proxy component requires a versioned topic
+definition field with provenance and tests. It cannot enter through a hidden
+lever. `computeEquityProxyRanges` therefore receives no user-lever object.
+
+### 10.7 Browser Recalculation And Chart Consistency
+
+The dossier model snapshot stores inputs and expected deterministic outputs.
+The review carries the validated `modelSnapshotRef`. The publish gate resolves
+that ref, recomputes, and requires canonical equality. The browser loads the
+same `rlagenda.js`, resolves the same immutable dossier, recomputes from its
+stored inputs, and renders only when its canonical result matches the stored
+output. A mismatch is a named unavailable model state, not a best-effort chart.
 
 Every chart series comes from `buildAgendaChartSeries`. The adjacent accessible
 table consumes the same returned rows. SVG paths/canvas pixels are projections
@@ -835,58 +910,61 @@ Before network or model work, the collector:
 A prior unchanged outcome, quiet market, authoring cost, cadence pressure, or
 not-due check cannot remove an active every-generation topic.
 
+The collector receives the frozen validated `reviewPolicy` object from section
+6.1. It does not construct another policy object. Selection, acquisition, and
+author telemetry carry the same policy digest.
+
 ### 11.2 Reuse Before Acquisition
 
 For every selected topic and source requirement, the planner checks current
-committed owner observations, current bars, the generation snapshot, frozen
-evidence bundles, and the prior source ledger. A source is reused only when its
-identity, digest, observed/available times, freshness policy, and required claim
-coverage remain valid at the current cutoff.
+owner observations, bars, the generation snapshot, frozen evidence bundles,
+and the current dossier's source ledger. A prior-ledger row participates only
+when it carries `requirementId`, `sourceId`, `contentSha256`, `observedAt`,
+`availableAt`, `claimCoverage`, and `freshnessPolicyRef`. Its source identity,
+digest, timestamps, required claim coverage, and policy must validate at the
+current cutoff.
 
-Only missing or stale requirements become query-plan entries. A quiet pass may
-therefore make zero web requests and still perform the complete analytical pass
-over current evidence. Reuse is visible in the source ledger as `reused`, never
-mislabelled as newly fetched.
+The planner chooses at most one reusable row per requirement. It orders valid
+candidates by newest `observedAt`, then `availableAt`, then `sourceId`. The
+acquisition plan marks the winning row `reused` and retains its original source
+and observation times. Only requirements without a valid winner become
+`missing-or-stale` query entries. A reused requirement cannot also be queried
+in the same generation.
+
+Zero missing requirements means zero web requests, not zero analysis. The
+author still receives every reused observation, reevaluates every declared
+section, and emits a complete pass or a named failure. The new dossier source
+ledger records `reuseState: "reused"` for carried observations and
+`reuseState: "acquired"` for new ones. Neither label changes provenance.
 
 ### 11.3 Governed Web Acquisition
 
-The planned change adds a required `research-agenda` lane policy under the
-current `market-brief.config.json` `web-evidence-acquisition/v1` block:
-
-| Required budget | Initial value |
-| --- | ---: |
-| `maxQueries` | 12 |
-| `maxCandidateUrls` | 48 |
-| `maxRetainedOrigins` | 16 |
-| `maxRetainedExcerpts` | 48 |
-| `maxExcerptBytes` | 1200 |
-| `maxResponseBytesPerUrl` | 1048576 |
-| `maxBundleBytes` | 524288 |
-| `perRequestTimeoutMs` | 10000 |
-| `totalAcquisitionMs` | 90000 |
-| `maxConcurrentFetches` | 4 |
-| redirects/scheme/port | none / https / 443 |
+The committed `market-brief.config.json` member
+`web-evidence-acquisition/v1.lanes.research-agenda` is the only source for
+query, URL, origin, excerpt, response, bundle, request-time, total-time, fetch
+concurrency, redirect, scheme, and port limits. The runtime resolves and
+validates that exact lane object. It does not restate values in source or this
+design.
 
 Topic query templates may name only hosts and path prefixes drawn from the
-existing 15-host lane allowlist. The implementation extracts that current list
-into one small shared policy module consumed by the four existing lanes and the
-agenda acquisition planner; this prevents a second host list. A canary asserts
-that the four existing lane arguments are byte-equivalent after extraction.
+committed shared allowlist in `scripts/web-evidence-policy.mjs`. The agenda
+planner and the existing lanes consume that one list. A canary asserts that the
+existing lane arguments remain byte-equivalent.
 
 `scripts/web-evidence-acquire.mjs` remains the only transform from query plan to
 frozen evidence bundle. Its robots, HTTPS, no-redirect, byte, instruction,
 private-field, freshness, corroboration, and raw-body-discard behavior remains
 unchanged. No credential or licensed source is added.
 
-With at most two selected topics initially and
-`maxConcurrentTopicAcquisitions: 2`, maximum web wall time is 90 seconds and
-maximum planned query count is 24. Both budgets have boundary tests that fail at
-the next integer.
+The topic worker queue uses the registry's
+`maxConcurrentTopicAcquisitions`. Each worker uses the resolved lane's
+`maxConcurrentFetches`. Telemetry validates both observed peaks. Capacity plus
+one fails before a request starts.
 
-### 11.4 Fifth Lane As An Optional Side Pool
+### 11.4 Research Author As An Optional Side Pool
 
-The four current critical lanes retain their current pool and failure behavior.
-The planned fifth lane is `research`, owns exactly one fragment file
+The four critical lanes retain their pool and failure behavior. The `research`
+lane owns exactly one fragment file
 `.brief-work/research.json`, has no shell and no web, and consumes only:
 
 - the validated selected-topic plan;
@@ -899,13 +977,12 @@ It writes one exact-shape `research-situation/v1` per authorable selected topic.
 It cannot write the payload, registry, definitions, review, dossier, history,
 or current pointer.
 
-The research lane runs in a separate optional side pool with its explicit
-`concurrency: 1`, `attempts: 1`, and `timeoutSeconds: 900`, concurrently with
-the unchanged critical pool. Peak model concurrency rises from two to three,
-but the existing four-lane critical path does not gain a third queue wave. The
-research side contributes at most 990 seconds including acquisition, and it is
-executed once per `generationId`, not once per outer narrative retry. A retry
-reuses the validated candidate by matching all input digests.
+The research lane runs in a separate optional side pool with the validated
+`researchAuthoring` policy from the registry. The scheduler honors its
+`attempts`, `concurrency`, and `timeoutSeconds` values directly. Canonical input
+and output bytes are checked against the same object. The lane executes once
+per `generationId`, not once per outer narrative retry. A retry reuses the
+validated candidate only when every input digest and the policy digest match.
 
 This is preferred to placing research inside `signals` or `coverage`. Those
 alternatives couple a topic failure to actions/events or registry coverage. A
@@ -922,39 +999,70 @@ selected topic receives the same lane-level named reason; topics already marked
 unavailable by acquisition retain their more specific reason. The four critical
 lanes, cadence accounting, and prior immutable history are unaffected.
 
-The feature does not retain a prior dossier as current. The brief row for the
-active mandatory topic points to this generation's unavailable review and may
-offer the prior dossier only as clearly dated history.
+An `unavailable` review does not promote a prior dossier as current-generation
+evidence. Its brief row points to the same-generation unavailable review and
+may offer the prior dossier only as clearly dated history. An `unchanged`
+review may retain that dossier as the current substantive model through its
+validated snapshot ref, while preserving the dossier's original evidence date.
 
-### 11.6 Candidate Transaction And Atomic Publication
+### 11.6 Whole-Publication Transaction And Atomic Publication
 
-The narrative collector writes a private agenda candidate keyed by
-`generationId` outside tracked paths. `rlagenda.js` recomputes model output,
-validates every section, and builds the compact read. The brief payload gains
-`researchAgenda`, and the collector adds
-`payload.toolReads['research-agenda-lab']` only after the current `coverage`
-lane output is assigned.
+The narrative collector writes one private candidate keyed by `generationId`.
+`rlagenda.js` recomputes models, validates sections, and builds the compact
+read. The wrapper then executes one logical publication transaction:
 
-After the final payload validates, the wrapper:
+1. Capture exact bytes and existence for every mutable target in a private
+  baseline directory.
+2. Build generation, review, dossier, source, lifecycle, and correction
+  immutable bytes. Validate identities, refs, model parity, and budgets.
+3. Create immutable final paths with exclusive no-overwrite semantics. They
+  remain unreachable because the current pointer still names the prior graph.
+4. Write agenda history, brief payload, agenda read, tool read, and the page
+  candidates to private same-filesystem paths.
+5. Build and validate `market-brief.page.json`,
+  `market-brief.config.page.json`, `market-brief.snapshot.page.json`,
+  `market-brief.tools.page.json`, and `market-brief.experimental.json` from the
+  private candidates before any mutable target changes.
+6. Create and validate a private `current.json` candidate against the immutable
+  files and every private mutable candidate.
+7. Rename history, payload, and page candidates over their targets using
+  same-filesystem atomic rename. No mutable target is written in place.
+8. Rename `research/agenda/current.json` last. This is the only reachability
+  switch for the new agenda graph.
+9. Stage the exact enumerated paths and commit the complete publication graph.
 
-1. validates the complete agenda candidate and canonical recomputation;
-2. builds all immutable generation/review/dossier files in a private transaction
-   directory;
-3. prepares the append-only ledger candidate and `current.json` candidate;
-4. builds and validates page artifacts from the same candidate read;
-5. creates immutable tracked files with no-overwrite semantics;
-6. atomically renames the ledger candidate;
-7. atomically renames `current.json` last;
-8. stages the exact enumerated new files and modified pointers with the existing
-   scoped `git add --` path list;
-9. commits and pushes them with the brief payload/page graph.
+Any failure before commit restores each mutable target from its exact baseline
+bytes, removes targets that were absent at baseline, removes only immutable
+files created by this transaction, and verifies byte equality. Rollback never
+regenerates a baseline. A push failure retains the complete local commit for
+the next push.
 
-The wrapper adds the agenda registry/current/history/tree to its owned-path
-dirty check and baseline restoration. A failure before staging restores mutable
-pointers and ledger bytes. Immutable files are unreachable until the pointer
-moves and are removed on rollback. A push failure follows the existing rule:
-the complete local commit remains intact for the next push; no partial public
-state exists.
+### 11.7 Artifact Budget Binding
+
+Every Feature 019 artifact resolves `artifact-budget/v1` through
+`market-brief.config.json`. The applicable byte authority is
+`maxNormalizedObservationBytes: 262144`. No larger Feature 019 artifact ceiling
+is authorized by that policy.
+
+| Artifact family | Exact admission ceiling |
+| --- | ---: |
+| Registry, definitions, calibrations, UMD module, adapter, tool page, and tool note | `262144` UTF-8 bytes per file |
+| Generation, review, dossier, source, lifecycle, correction, current, and Feature 020 seam JSON | `262144` canonical UTF-8 bytes per file |
+| `research/agenda/history.jsonl` | `262144` UTF-8 bytes for the whole candidate ledger |
+| Feature 019 `researchAgenda` and tool-read projections | `262144` canonical UTF-8 bytes each |
+| Resulting `market-brief.payload.json` and each page candidate | `262144` UTF-8 bytes for the whole candidate file |
+
+The same policy limits model inputs to at most `48` symbols and each consumed
+bar artifact to at most `200` rows per symbol and trading date. The web lane's
+bundle and response caps and the registry's author envelope caps remain
+separate, additive authorities. A generated public artifact must satisfy the
+strictest applicable cap.
+
+Admission computes byte length after canonical serialization and before the
+first immutable create or mutable rename. Exactly `262144` bytes passes.
+`262145` bytes refuses the whole transaction. The publisher cannot truncate a
+finding, omit a topic, split a dossier, or delete history to fit. Raising the
+ceiling requires a reviewed config-policy version change.
 
 ## 12. Reader Surface And Component Specification
 
@@ -972,12 +1080,27 @@ radius at or below 8px. Page sections remain unframed bands.
 
 ### 12.2 Shared Single Compute
 
-Both modes call one `computeViewState(definition, review, leverState)` wrapper
-over `rlagenda.js`. Simple and Power consume the same returned object. A lever
-update runs synchronously, updates both hidden and visible projections, and
-does not fetch, mutate history, or change the published review.
+Both modes call one
+`computeAgendaViewState(definition, review, resolvedDossier, leverState)`
+function from `rlagenda.js`. The loader resolves `review.modelSnapshotRef` to an
+immutable dossier, verifies the dossier and snapshot digests, and passes that
+resolved object explicitly. The function never searches history or substitutes
+an arbitrary prior dossier.
 
-The initial steerable levers are explicit scenario inputs:
+For `updated`, `unchanged`, or reusable `stale` reviews, the function recomputes
+from `resolvedDossier.modelInputs`, compares with
+`resolvedDossier.modelOutputs`, and builds charts from its persisted chart
+state. An `unchanged` same-generation review therefore keeps Simple and Power
+models available through the reused current dossier. The review is current;
+the reused evidence and model snapshot keep their original dates. An absent,
+unresolved, or mismatched snapshot returns `modelAvailable: false` with a named
+reason. It never invents evidence.
+
+Simple and Power consume the same returned object. A lever update runs
+synchronously, updates both projections, and does not fetch, mutate history, or
+change the published review.
+
+The complete steerable lever surface is:
 
 - Hormuz physical pass fraction;
 - Bab el-Mandeb physical pass fraction;
@@ -988,6 +1111,11 @@ The initial steerable levers are explicit scenario inputs:
 Each control displays its published value, allowed range, unit, and the label
 "your assumption" when changed. A Reset control restores published inputs. No
 lever changes evidence, source truth, or saved dossier state.
+
+The UI builds controls from the exact five-field contract in section 10.6.
+`changedLeverIds` is a subset of those five ids and includes every changed
+value. Unknown controls are refused. A missing published value disables model
+rendering instead of supplying `0` or `1`.
 
 ### 12.3 Simple Default
 
@@ -1082,11 +1210,18 @@ generation.
 
 ### 13.1 Brief Payload And Page
 
-The planned payload key `researchAgenda` carries the compact
-`research-agenda-read/v1` with generation id, registry state, policy capacities,
-topic mode, selection reason, current outcome, review/dossier refs, change
-assessment, freshness, top exposures, trigger/invalidation summary, and refusal
-records.
+The payload key `researchAgenda` carries the compact
+`research-agenda-read/v1`. Its exact top-level fields are `contractVersion`,
+`generationId`, `asOf`, `topics`, and `readFingerprint`.
+
+Each topic row contains exactly `topicId`, `mode`, `state`, `reason`,
+`selectionReason`, `reviewId`, `dossierId`, `outcome`, `changeAssessment`,
+`newestEvidenceAgeHours`, `modelState`, `chartState`,
+`predecessorDossierId`, and `supersedesDossierId`. `modelState` and
+`chartState` are compact availability tokens, not embedded model or series
+data. Full inputs, outputs, chart series, triggers, and invalidations stay in
+the immutable review/dossier graph. The brief therefore shows topic mode and
+change assessment without becoming a second dossier.
 
 `scripts/build-brief-page-artifacts.mjs` adds the same compact read to
 `market-brief.page.json`. `market-brief.html` renders it in a standing-research
@@ -1100,17 +1235,16 @@ by `rlagenda.js` after the current `coverage` lane output is assigned.
 
 ### 13.2 Tool And Site Parity
 
-The implementation updates the new tool atomically across `tools.json`, the
-`index.html` tool array, the `rlnav.js` tool array, `README.md`,
-`notes/README.md`, and the planned tool note/page/data references. The compact
-tools page artifact is regenerated. `scripts/build-pages-site.mjs` gains the
-`research` public directory and refuses a registered page that is absent or
-excluded.
+The delivered tool is registered across `tools.json`, the `index.html` tool
+array, the `rlnav.js` tool array, `README.md`, `notes/README.md`, and its tool
+note/page/data references. The compact tools page artifact is regenerated.
+`scripts/build-pages-site.mjs` includes the `research` public directory and
+refuses a registered page that is absent or excluded.
 
-The tool uses `ordinary-four-view/v1`. Planned experience additions are:
+The tool uses `ordinary-four-view/v1`. Delivered experience declarations are:
 
 - `simple-model/research-agenda-posture/v1` in `simple-models.json`;
-- `simple-adapter/research-agenda-posture/v1` in a planned thin
+- `simple-adapter/research-agenda-posture/v1` in the thin
   `rlexperience-adapters/research-agenda.js` module;
 - that module in `tool-experience.config.json` `moduleAllowlist`;
 - `journey/research-agenda-lab/reversal-review/v1` and
@@ -1121,7 +1255,7 @@ owner state into the shared experience contract.
 
 ### 13.3 Durable Topic Links
 
-The agenda page and brief publish topic ids through the existing planned
+The agenda page and brief publish topic ids through the existing
 `publicTargetIds` registration seam so links such as
 `research-agenda-lab.html#power/geopolitical-supply-shock` survive reload and
 focus the topic heading. Topic ids already use the public target grammar. A
@@ -1130,10 +1264,12 @@ presented as a successful deep link.
 
 ### 13.4 Feature 020 Boundary
 
-Feature 019 exposes immutable finding identity, claim, public subjects,
-horizon, evidence refs, source refs, trigger/invalidation refs, topic id, and
-dossier version. It does not emit a `destination`, `eligibility`, action family,
-attention envelope, anomaly seed, alert candidate, routing decision, or score.
+Feature 019 exposes only the exact validated seam in section 8.2. It preserves
+immutable finding identity, claim, public subjects, horizon, evidence refs,
+source refs, trigger refs, invalidation refs, topic id, and dossier id. It does
+not emit a `destination`, `eligibility`, action family, attention envelope,
+anomaly seed, alert candidate, routing decision, verb, proposed action, or
+score.
 
 Feature 020 may read only a validated dossier/finding reference and apply its
 own destination contracts. It cannot mutate Feature 019 history or promote an
@@ -1167,9 +1303,9 @@ routing out of the agenda lane.
 | Topic missing mode/policy/definition | topic refusal; other topics continue | named topic reason |
 | Mandatory count over capacity | generation refuses before model work | no partial current agenda publication |
 | Cadence count over budget | mandatory selected; deterministic cadence subset; rest accounted | named not reached state |
-| Current evidence complete | zero web queries; full model pass still runs | current reviewed or unchanged result |
-| Required evidence missing/stale and acquisition fails | affected review unavailable | prior dossier shown only as dated history |
-| Research lane timeout/non-zero/incomplete output | affected selected topics unavailable; critical lanes continue | named research-step failure |
+| Current evidence complete | zero web queries; full model pass still runs | current `reviewed` or `unchanged` result |
+| Required evidence missing/stale and acquisition fails | affected review `unavailable` | prior dossier shown only as dated history |
+| Research lane timeout/non-zero/incomplete output | affected selected topics `unavailable`; critical lanes continue | named research-step failure |
 | Evidence conflict | both records retained; configured conflict factor and explicit model impact | conflict and refuters visible |
 | Definition/calibration/bar digest mismatch | model unavailable; no chart | named integrity failure |
 | Model/browser recomputation mismatch | publish gate refuses; browser does not render discrepant numbers | unavailable if encountered on old artifact |
@@ -1181,7 +1317,7 @@ routing out of the agenda lane.
 
 ### 16.1 Test Surfaces
 
-Planned test surfaces are named without file extensions because the current spec
+Test surfaces are named without file extensions because the current spec
 path validator rejects nonexistent literal test paths in planning artifacts.
 
 | Surface | Category | Purpose |
@@ -1203,7 +1339,7 @@ path validator rejects nonexistent literal test paths in planning artifacts.
 | SCN-019-002 | functional/adversarial | absent registry is named and no default topics appear |
 | SCN-019-003 | unit | missing mode refuses only that topic |
 | SCN-019-004 | functional | new every-generation topic is mandatory; new cadence topic is due |
-| SCN-019-005 | functional | paused topic is not researched and immutable history survives |
+| SCN-019-005 | functional | `paused` topic is not researched and immutable history survives |
 | SCN-019-006 | adversarial | retirement adds a lifecycle event and cannot delete history |
 | SCN-019-007 | contract | three initial topics validate through one foundation; primary has all eight sections |
 | SCN-019-008 | unit | explicit cadence distinguishes due from not due without network |
@@ -1211,9 +1347,9 @@ path validator rejects nonexistent literal test paths in planning artifacts.
 | SCN-019-010 | unit | declared committed-evidence trigger re-arms cadence and is named |
 | SCN-019-011 | unit/stress | mandatory work precedes cadence; both capacity limits fail at boundary + 1 |
 | SCN-019-012 | functional | dossier carries evidence graph, deterministic outputs, models, charts, and provenance |
-| SCN-019-013 | integration | quiet run creates current-generation unchanged review, no invented finding, same dossier ref |
-| SCN-019-014 | unit/e2e-ui | stale evidence has zero impact and age is visibly labeled |
-| SCN-019-015 | integration | one acquisition/lane failure yields named unavailable and leaves critical lanes/topics intact |
+| SCN-019-013 | integration | quiet run creates current-generation `unchanged` review, no invented finding, same dossier ref |
+| SCN-019-014 | unit/e2e-ui | `stale` evidence has zero impact and age is visibly labeled |
+| SCN-019-015 | integration | one acquisition/lane failure yields named `unavailable` and leaves critical lanes/topics intact |
 | SCN-019-016 | adversarial | existing review/dossier path cannot be overwritten; predecessor bytes stay equal |
 | SCN-019-017 | unit/functional/e2e-ui | current evidence can sharply reverse without prior smoothing; causal evidence/invalidation is visible |
 | SCN-019-018 | unit/adversarial | out-of-boundary refinement is refused and question bytes remain equal |
@@ -1221,6 +1357,22 @@ path validator rejects nonexistent literal test paths in planning artifacts.
 | SCN-019-020 | integration/e2e-ui | registry parity, same-origin artifacts, brief section, tool read, current/prior models/charts all resolve |
 
 ### 16.3 Required Cross-Cutting Adversarial Cases
+
+| Gap | Adversarial discriminator |
+| --- | --- |
+| GAP-01 | Change each committed registry policy value away from its current value and prove scheduler behavior and telemetry change with it. Delete each member and require refusal. Drive observed attempts or either concurrency peak to policy plus one and require pre-work refusal. |
+| GAP-02 | Delete each `research-model-input/v1` member in turn. Supply an unknown member. Require a named refusal before arithmetic and prove no missing value becomes `0` or `1`. |
+| GAP-03 | Delete each of the five levers, add `proxyAdjustment`, and change each visible lever once. Require exact-shape refusal for the first two cases and exact `changedLeverIds` membership for each valid change. |
+| GAP-04 | Blank or remove observation date, source id, confidence grade or basis, provenance, evidence role, subjects, horizon, or any seam ref. Require finding and seam refusal. Prove no dossier-wide or definition-wide refs are substituted. |
+| GAP-05 | Publish a same-generation `unchanged` review with a valid reused snapshot ref and require identical Simple/Power model and chart availability. Remove or tamper with one ref digest and require a named unavailable model state. |
+| GAP-06 | Put one fresh, claim-complete prior-ledger row beside a stale row for one requirement. Require one `reused` winner, zero request for that requirement, and a full section pass. Remove claim coverage and require exactly one missing-or-stale query. |
+| GAP-07 | Inject failure after each immutable create and mutable rename. Require exact baseline bytes, absence restoration, removal of only transaction-created immutables, and the old current pointer until every payload/page/history target is ready. |
+| GAP-08 | Generate the same `paused` or `retired` registry state twice and require one lifecycle event. Transition back to `active` and require one new linked event with no deleted history. |
+| GAP-09 | Remove each required review, dossier, or read member. Require exact-shape refusal. Assert that the compact brief still renders `mode` and `changeAssessment` while full models, chart series, triggers, and invalidations resolve only through the dossier graph. |
+| GAP-10 | Serialize every artifact family at exactly `262144` and `262145` bytes. Require the first to pass and the second to fail before publication, with no truncation, topic omission, or history deletion. |
+| GAP-11 | Attempt `updated` as a classification and `paused` as a review outcome. Require vocabulary refusal. Scan active design prose so classification and review tokens appear as code, not deferral claims. |
+| GAP-12 | Scan active design sections for greenfield absence claims. Require committed-surface truth plus the explicit pending-certification statement. |
+| GAP-15 | Resolve the installed scanner path independently from Feature 019 checks. A framework path mismatch must not suppress artifact lint, traceability, design, reference, or Feature 019 adversarial validation. |
 
 - Delete current-generation review for the mandatory topic: publication fails.
 - Feed prior probabilities into the current update: canonical output differs and
@@ -1264,37 +1416,32 @@ Browser tests verify:
 - no private corpus sentinel appears in DOM, network request, URL, storage, or
   published JSON.
 
-## 17. Configuration, Migration, And Rollout
+## 17. Configuration, Migration, And Certification Boundary
 
 There is no database migration. Delivery is additive and static.
 
-1. Land `rlagenda.js`, registry/definition/calibration contracts, pure unit
-   tests, and validators while no tool is registered.
-2. Seed the primary definition and historical calibration from
-   `notes/us-iran-oil-market-intervention-patterns.md`. Preserve that note as a
-   dated source. Its 2026-08-10 claims are never relabeled current.
-3. Add explicit registry modes/capacities and all three initial topics.
-4. Add governed acquisition policy and fifth-lane side-pool integration behind
-   the complete publication validator, not a runtime fallback.
-5. Add immutable transaction publication and current-generation guards.
-6. Add the real tool, experience declarations, registry/site parity, brief page
-   projection, and E2E coverage in one atomic registration change.
-7. Add the Feature 020 read seam without any destination write.
+| Surface | Current committed truth | Admission boundary |
+| --- | --- | --- |
+| Foundation and registry | `rlagenda.js`, `research-agenda.json`, topic definitions, and calibration are committed. | Corrected exact-shape and policy-consumption tests must pass. |
+| Runtime and history | Refresh, generation, immutable records, current pointer, and historical seed are committed. | Whole-publication, lifecycle, reuse, and budget discriminators must pass. |
+| Reader exposure | Tool registration, Simple/Power UI, brief read, page projection, and experience adapter are committed. | Dossier-backed unchanged models and compact read parity must pass. |
+| Feature 020 seam | Feature 019 owns a destination-free seam only. | Missing required refs fail loud; no routing field enters Feature 019. |
 
-No feature flag is introduced. Until the complete registered surface and
-validators ship together, the existing site remains unchanged and no agenda
-capability is claimed delivered.
+No feature flag is introduced. Any contract-shape migration is additive through
+a reviewed version and keeps prior immutable artifacts readable. Committed and
+reachable does not mean certified. Top-level and certification status remain
+`not_started` until independent validation completes the full-delivery chain.
 
 ## 18. Product Principle Alignment And Current Truth
 
 | Principle | Design enforcement |
 | --- | --- |
 | P1 provenance | every evidence/model/chart value links to source/input/digest |
-| P2 missing is missing | unavailable/stale/conflict states; no retained prior as current |
+| P2 missing is missing | `unavailable`/`stale`/conflict states; no retained prior as current evidence |
 | P3 confidence meaning | confidence is evidence quality and has no probability consumer |
 | P6 age | observed/available/fetched times and freshness shown |
 | P7 no black-box numbers | pure functions, explicit inputs, Node/browser equality |
-| P9 works with nothing | public allowlisted sources only; named unavailable with no credential |
+| P9 works with nothing | public allowlisted sources only; named `unavailable` with no credential |
 | P10 UMD/file operation | `rlagenda.js` UMD, no build, ordinary scripts and same-origin JSON |
 | P11 reuse | current bars/observations/evidence reused; only missing/stale requirements queried |
 | P12 cache-first | current pointer and committed reviews paint before any interaction |
@@ -1310,11 +1457,11 @@ capability is claimed delivered.
 | P23 adversarial guards | each guard has a case that fails when removed |
 | P25 scope boundary | dossier/tool/read only; Feature 020 destination routing remains separate |
 
-Current truth remains: the repository has a dated geopolitical note, scheduled
-brief scripts, governed web-evidence acquisition, same-origin bars, and the
-ordinary tool framework. It has no agenda registry, `rlagenda.js`, recurring
-review, dossier store, agenda tool, or brief agenda read. Every such surface in
-this design is planned.
+Current truth is committed but uncertified. The repository has the agenda
+registry, `rlagenda.js`, recurring refresh path, immutable agenda tree, owning
+tool, brief read, page projection, and historical source note. The gap contracts
+in this reconciliation remain admission requirements. Their presence in this
+design does not assert implementation conformance or certification.
 
 ## 19. Alternatives And Tradeoffs
 
@@ -1361,6 +1508,12 @@ Risks and their decision paths:
   cadence budget, author input/output bytes, and artifact budget bound growth.
 - **Deep-link registration touches shared routing.** A focused canary verifies
   all existing page routes plus the new topic route before broad browser tests.
+- **Installed reality-scan path mismatch is framework-owned.** This checkout
+  installs the scanner at
+  `.github/bubbles/scripts/implementation-reality-scan.sh`; the framework
+  source-layout command omits the downstream `.github/` prefix. Treat that
+  mismatch as a routed framework observation. It does not weaken or skip any
+  Feature 019 validation, and it is not an unresolved design decision.
 
 ## 22. Requirement Traceability
 
@@ -1372,15 +1525,32 @@ Risks and their decision paths:
 | FR-019-016..019 | § 11 offline mode classification, mandatory pass, cadence triggers, named reason |
 | FR-019-020..023 | §§ 6.1, 11.1 separate required capacities, deterministic order, no every-generation not-due |
 | FR-019-024..025 | §§ 7-8 review/dossier and complete evidence graph |
-| FR-019-026..029 | §§ 7.3-7.4, 15 closed outcomes and honest unchanged/stale/unavailable |
-| FR-019-030..031 | §§ 5, 7, 10.6, 11.6 immutable versions, sustained models/charts, pointer-last |
+| FR-019-026..029 | §§ 7.3-7.4, 15 closed outcomes and honest `unchanged`/`stale`/`unavailable` |
+| FR-019-030..031 | §§ 5, 7, 10.7, 11.6 immutable versions, sustained models/charts, pointer-last |
 | FR-019-032..035 | §§ 7.2, 8, 10.5 current-only model, sharp reversal, bounded refinement, operator lifecycle |
 | FR-019-036..037 | §§ 11.2-11.3, 14 public-only safety, reuse, governed allowlisted acquisition |
 | FR-019-038 | §§ 12-13 registered usable tool, payload toolRead, page artifact, rendered brief section |
 | NFR-019-001 | § 11.1 offline plan |
 | NFR-019-002 | §§ 6.1, 11.3-11.4 explicit topic/acquisition/author capacities |
-| NFR-019-003 | §§ 5, 11.3, 16 boundary-tested artifact/web budgets |
+| NFR-019-003 | §§ 5, 11.3, 11.7, 16 boundary-tested artifact/web budgets |
 | NFR-019-004 | § 16.3 adversarial case for every guard |
+
+### Gap Ledger Traceability
+
+| Finding | Design contract | Adversarial discriminator |
+| --- | --- | --- |
+| GAP-01 | §§ 6.1, 11.1, 11.3-11.4 | § 16.3 GAP-01 |
+| GAP-02/GAP-03 | §§ 10.6-10.7, 12.2 | § 16.3 GAP-02 and GAP-03 |
+| GAP-04 | §§ 7.3, 8.2, 13.4 | § 16.3 GAP-04 |
+| GAP-05 | §§ 7.3, 10.7, 12.2 | § 16.3 GAP-05 |
+| GAP-06 | §§ 11.1-11.2 | § 16.3 GAP-06 |
+| GAP-07 | § 11.6 | § 16.3 GAP-07 |
+| GAP-08 | § 7.4 | § 16.3 GAP-08 |
+| GAP-09 | §§ 7.3, 13.1 | § 16.3 GAP-09 |
+| GAP-10 | § 11.7 | § 16.3 GAP-10 |
+| GAP-11 | §§ 7.3-7.4, 15 | § 16.3 GAP-11 |
+| GAP-12 | Design Brief, §§ 17-18 | § 16.3 GAP-12 |
+| GAP-15 | § 21 | § 16.3 GAP-15 |
 
 ## 23. Archive Of Superseded Design Decisions (Non-Authoritative)
 

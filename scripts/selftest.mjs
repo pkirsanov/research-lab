@@ -7505,7 +7505,16 @@ try {
   group('Step 9 durability — CI gates the whole product and scheduled output is bounded');
   const pagesWorkflow = read('.github/workflows/pages.yml');
   const tierAWorkflow = read('.github/workflows/tier-a.yml');
+  const verifyJob = pagesWorkflow.match(/\n  verify:\n([\s\S]*?)\n  deploy:\n/);
+  const deployJob = pagesWorkflow.match(/\n  deploy:\n([\s\S]*?)\n  notify-failure:\n/);
 
+  assert(/^permissions:\s*\{\}\s*$/m.test(pagesWorkflow)
+    && verifyJob && /^    permissions:\n      contents: read\s*$/m.test(verifyJob[1])
+    && !/\b(?:pages|id-token):\s*write\b/.test(verifyJob[1]),
+    'Pages defaults to no token authority and verify receives contents read only');
+  assert(deployJob
+    && /^    permissions:\n      contents: read\n      pages: write\n      id-token: write\s*$/m.test(deployJob[1]),
+    'Pages deploy alone receives contents read, Pages write, and OIDC token authority');
   assert(/- name: Self-test \(all assertions\)[\s\S]*?run: node scripts\/selftest\.mjs/.test(pagesWorkflow),
     'Pages verify runs the complete selftest');
   assert(/verify:[\s\S]*?- name: Checkout\s+uses: actions\/checkout@v4\s+with:\s+fetch-depth: 0[\s\S]*?- name: Setup Node/.test(pagesWorkflow),
@@ -8276,6 +8285,21 @@ try {
   group('Regression: agenda modes capacities vocabularies and formulas fail closed and have one owner');
   const unknownMember = RLAGENDA.validateAgenda(JSON.parse(read('tests/fixtures/research-agenda/unknown-registry-member.json')));
   const capacityPlusOne = RLAGENDA.validateAgenda(JSON.parse(read('tests/fixtures/research-agenda/capacity-plus-one.json')));
+  const reviewPolicyFields = ['maxActiveEveryGenerationTopics', 'cadenceTopicReviewBudget', 'cadenceSelectionOrder', 'maxConcurrentTopicAcquisitions', 'researchAuthoring'];
+  const authorPolicyFields = ['timeoutSeconds', 'attempts', 'concurrency', 'maxInputBytes', 'maxOutputBytes'];
+  const missingPolicyResults = reviewPolicyFields.map((field) => {
+    const candidate = JSON.parse(registryText);
+    delete candidate.reviewPolicy[field];
+    return RLAGENDA.validateAgenda(candidate);
+  }).concat(authorPolicyFields.map((field) => {
+    const candidate = JSON.parse(registryText);
+    delete candidate.reviewPolicy.researchAuthoring[field];
+    return RLAGENDA.validateAgenda(candidate);
+  }));
+  const unknownReviewPolicy = JSON.parse(registryText);
+  unknownReviewPolicy.reviewPolicy.defaultConcurrency = 1;
+  const unknownAuthorPolicy = JSON.parse(registryText);
+  unknownAuthorPolicy.reviewPolicy.researchAuthoring.defaultTimeoutSeconds = 900;
   const invalidEvidence = RLAGENDA.validateEvidenceRecord(
     JSON.parse(read('tests/fixtures/research-agenda/invalid-evidence-record.json')),
     primaryDefinition.evidencePolicy
@@ -8284,13 +8308,29 @@ try {
   const weighted = RLAGENDA.computeEvidenceWeight(validEvidence, primaryDefinition.evidencePolicy, '2026-08-13T12:00:00.000Z');
   assert(!unknownMember.ok && unknownMember.refusals.some((row) => row.code === 'RLAGENDA-CONTRACT-UNKNOWN-MEMBER')
     && !capacityPlusOne.ok && capacityPlusOne.refusals.some((row) => row.code === 'RLAGENDA-CAPACITY-EVERY-GENERATION')
+    && missingPolicyResults.every((result) => !result.ok && result.status === 'invalid')
+    && !RLAGENDA.validateAgenda(unknownReviewPolicy).ok
+    && !RLAGENDA.validateAgenda(unknownAuthorPolicy).ok
     && !invalidEvidence.ok && invalidEvidence.code === 'RLAGENDA-EVIDENCE-VOCABULARY',
-  'TP-01-05: unknown members, mandatory capacity plus one, and unknown evidence vocabulary are refused');
+  'TP-01-05: unknown and missing policy members, mandatory capacity plus one, and unknown evidence vocabulary are refused');
   assert(weighted.ok && weighted.weight === 0.195 && weighted.boundedImpact === 0.195
     && weighted.factors.confidence === 0.65 && weighted.factors.provenance === 1
     && weighted.factors.role === 0.6 && weighted.factors.corroboration === 0.5
     && weighted.factors.freshness === 1,
   'TP-01-05: evidence weighting uses only explicit policy values and exposes every factor');
+  const agendaRefreshSource = read('scripts/research-agenda-refresh.mjs');
+  const agendaGenerationSource = read('scripts/research-agenda-generation.mjs');
+  const narrativeParallelSource = read('scripts/brief-narrative-parallel.mjs');
+  assert(!/timeoutSeconds\s*:\s*900/.test(agendaRefreshSource + agendaGenerationSource + narrativeParallelSource)
+    && /RLAGENDA\.resolveAgendaPolicy\(registry\.reviewPolicy\)/.test(agendaRefreshSource)
+    && /runResearchTopicAcquisitionPool\(\{/.test(agendaRefreshSource)
+    && /function configuredResearchLane\(input, topicId\)/.test(narrativeParallelSource)
+    && /await runResearchSidePool\(\{/.test(narrativeParallelSource)
+    && /research acquisition telemetry calls=/.test(narrativeParallelSource)
+    && /research author telemetry calls=/.test(narrativeParallelSource)
+    && /cached\.policyDigest !== researchPreparation\.policyDigest/.test(narrativeParallelSource)
+    && /cached\.retryCacheIdentity !== researchPreparation\.retryCacheIdentity/.test(narrativeParallelSource),
+  'TP-01-05: preparation scheduling live author controls and retry cache identity consume one explicit policy digest without a 900-second source literal');
   const owningModules = readdirSync(ROOT)
     .filter((file) => /^rl.*\.js$/.test(file))
     .filter((file) => /RLAGENDA-|computeEvidenceWeight|research-evidence-record\/v1/.test(read(file)));
@@ -8348,9 +8388,13 @@ try {
   const retirementEvent = RLAGENDA.buildHistoryEvent(eventBody({
     eventType: 'lifecycle',
     occurredAt: '2026-08-11T12:00:00.000Z',
+    generationId: 'generation-' + '3'.repeat(64),
     dossierId: null,
-    supersedesEventId: seedEvent.event.eventId,
-    artifactRef: null
+    supersedesEventId: null,
+    artifactRef: null,
+    fromState: null,
+    toState: 'retired',
+    registryTopicSha256: RLAGENDA.agendaDigest({ topicId, lifecycleState: 'retired' })
   }));
   const retired = RLAGENDA.classifyTopicLifecycle({ topicId, lifecycleState: 'retired' }, priorHistoryRefs);
   const retirementAppend = RLAGENDA.appendHistoryEvents(seedHistoryText, [retirementEvent.event]);
@@ -8386,12 +8430,38 @@ try {
     topicId,
     generationId: generationA.id,
     reviewId: reviewA.id,
-    supersedesDossierId: historicalDossier.dossierId,
-    substantiveState: { scenario: 'managed-coercion', probability: 0.5 }
+    mode: 'every-generation',
+    selectionReason: 'mode-required',
+    historicalOnly: false,
+    validationState: 'validated',
+    observedThrough: '2026-08-11T12:00:00.000Z',
+    outcome: 'updated',
+    changeAssessment: 'insufficient-evidence',
+    declaredQuestionSha256: RLAGENDA.sha256Text('Fixture question'),
+    sectionStates: [],
+    findings: [],
+    evidenceRecords: [],
+    sourceLedger: [],
+    modelInputs: {
+      contractVersion: RLAGENDA.MODEL_INPUT_VERSION,
+      chokepointState: {},
+      inventoryGapByChannel: {},
+      levers: {},
+      currentBars: {},
+      calibrationEvents: [],
+      evidenceImpacts: []
+    },
+    modelOutputs: {},
+    chartStates: [],
+    triggerStates: [],
+    invalidationStates: [],
+    predecessorDossierRef: null,
+    supersedesDossierRef: null
   };
   const dossierA = RLAGENDA.deriveDossierId(dossierBody);
   const dossierB = RLAGENDA.deriveDossierId(JSON.parse(JSON.stringify(dossierBody)));
-  const dossierChanged = RLAGENDA.deriveDossierId({ ...dossierBody, substantiveState: { scenario: 'managed-coercion', probability: 0.49 } });
+  const dossierChanged = RLAGENDA.deriveDossierId({ ...dossierBody, changeAssessment: 'unchanged' });
+  const dossierRecord = { ...dossierBody, dossierId: dossierA.id };
   const sourceInput = { canonicalUrl: 'https://example.com/public-source', observedAt: '2026-08-11T11:00:00.000Z', contentSha256: TWO_HASH };
   const sourceA = RLAGENDA.deriveSourceId(sourceInput);
   const sourceB = RLAGENDA.deriveSourceId({ ...sourceInput });
@@ -8411,7 +8481,7 @@ try {
   const immutableFixtures = [
     ['generation', `research/agenda/generations/${generationA.id}.json`, { contractVersion: RLAGENDA.GENERATION_VERSION, generationId: generationA.id }],
     ['review', `research/agenda/reviews/${topicId}/${generationA.id}.json`, { contractVersion: RLAGENDA.REVIEW_VERSION, reviewId: reviewA.id, generationId: generationA.id, topicId }],
-    ['dossier', `research/agenda/dossiers/${topicId}/${dossierA.id}.json`, { ...dossierBody, dossierId: dossierA.id, historicalOnly: false }],
+    ['dossier', `research/agenda/dossiers/${topicId}/${dossierA.id}.json`, dossierRecord],
     ['source', `research/agenda/sources/${sourceA.id}.json`, { contractVersion: RLAGENDA.SOURCE_VERSION, sourceId: sourceA.id }],
     ['calibration', `research/agenda/calibrations/${topicId}/v1.0.0.json`, { contractVersion: RLAGENDA.CALIBRATION_VERSION, topicId, calibrationVersion: 'v1.0.0' }]
   ];
@@ -8431,7 +8501,21 @@ try {
     immutableFixtures[0][2],
     {}
   );
-  const predecessorMissing = RLAGENDA.prepareImmutableCreate(immutableFixtures[2][1], immutableFixtures[2][2], {});
+  const predecessorRefForMissing = RLAGENDA.buildArtifactRef(immutableFixtures[2][1], immutableFixtures[2][2]).ref;
+  const successorBody = {
+    ...dossierBody,
+    generationId: generationChanged.id,
+    reviewId: reviewChanged.id,
+    predecessorDossierRef: predecessorRefForMissing,
+    supersedesDossierRef: predecessorRefForMissing
+  };
+  const successorIdentity = RLAGENDA.deriveDossierId(successorBody);
+  const successorRecord = { ...successorBody, dossierId: successorIdentity.id };
+  const predecessorMissing = RLAGENDA.prepareImmutableCreate(
+    `research/agenda/dossiers/${topicId}/${successorIdentity.id}.json`,
+    successorRecord,
+    {}
+  );
   assert(historicalDossierText === read(historicalPath) && !mismatchedPathCreate.ok
     && mismatchedPathCreate.code === 'RLAGENDA-IDENTITY-INVALID'
     && !predecessorMissing.ok && predecessorMissing.code === 'RLAGENDA-IDENTITY-INVALID',
@@ -8462,34 +8546,45 @@ try {
     validationState: 'validated',
     historicalOnly: false
   };
+  const generationPath = `research/agenda/generations/${generationA.id}.json`;
+  const reviewPath = `research/agenda/reviews/${topicId}/${generationA.id}.json`;
+  const dossierPath = `research/agenda/dossiers/${topicId}/${dossierA.id}.json`;
+  const generationRef = RLAGENDA.buildArtifactRef(generationPath, generationRecord).ref;
+  const dossierRef = RLAGENDA.buildArtifactRef(dossierPath, dossierRecord).ref;
   const reviewRecord = {
     contractVersion: RLAGENDA.REVIEW_VERSION,
     reviewId: reviewA.id,
     generationId: generationA.id,
     topicId,
+    attemptedAt: '2026-08-11T12:00:00.000Z',
     validationState: 'validated',
-    historicalOnly: false
+    historicalOnly: false,
+    mode: 'every-generation',
+    selectionReason: 'mode-required',
+    completePass: true,
+    outcome: 'updated',
+    reason: null,
+    newestEvidenceAgeHours: null,
+    changeAssessment: 'insufficient-evidence',
+    sectionStates: [],
+    evidenceIds: [],
+    modelSnapshotRef: {
+      dossierRef,
+      modelInputsSha256: RLAGENDA.agendaDigest(dossierRecord.modelInputs),
+      modelOutputsSha256: RLAGENDA.agendaDigest(dossierRecord.modelOutputs),
+      chartSeriesSha256: RLAGENDA.agendaDigest(dossierRecord.chartStates)
+    },
+    chartState: 'available',
+    triggerStates: 'available',
+    invalidationStates: 'available',
+    dossierRef,
+    predecessorDossierRef: null
   };
-  const currentDossierRecord = {
-    contractVersion: RLAGENDA.DOSSIER_VERSION,
-    dossierId: dossierA.id,
-    generationId: generationA.id,
-    reviewId: reviewA.id,
-    topicId,
-    supersedesDossierId: historicalDossier.dossierId,
-    validationState: 'validated',
-    historicalOnly: false
-  };
-  const generationPath = `research/agenda/generations/${generationA.id}.json`;
-  const reviewPath = `research/agenda/reviews/${topicId}/${generationA.id}.json`;
-  const dossierPath = `research/agenda/dossiers/${topicId}/${dossierA.id}.json`;
-  const generationRef = RLAGENDA.buildArtifactRef(generationPath, generationRecord).ref;
   const reviewRef = RLAGENDA.buildArtifactRef(reviewPath, reviewRecord).ref;
-  const dossierRef = RLAGENDA.buildArtifactRef(dossierPath, currentDossierRecord).ref;
   const recordsByPath = {
     [generationPath]: generationRecord,
     [reviewPath]: reviewRecord,
-    [dossierPath]: currentDossierRecord,
+    [dossierPath]: dossierRecord,
     [historicalPath]: historicalDossier
   };
   const currentPointer = {
@@ -8717,7 +8812,13 @@ try {
     evidenceCoverage: 1
   });
   const oppositePredecessor = {
-    probabilities: { 'staged-reopening': 0.05, 'managed-coercion': 0.05, escalation: 0.9 },
+    probabilities: {
+      'staged-reopening': 0.05,
+      'managed-coercion': 0.05,
+      escalation: 0.9,
+      'single-route-disruption': 0.54,
+      'dual-route-or-infrastructure-shock': 0.36
+    },
     evidenceIds: ['prior-evidence'],
     conflictIds: [],
     directionScore: 0.8,
@@ -8923,19 +9024,18 @@ try {
     { oil: shockRanges.channels[0].range },
     proxyFixture,
     [{ proxyReturns: { BNO: 0.05 } }],
-    barFixture,
-    { proxyAdjustment: 0 }
+    barFixture
   );
   const thinProxyRanges = RLAGENDA.computeEquityProxyRanges(
     { oil: shockRanges.channels[0].range },
     [{ ...proxyFixture[0], minimumCalibrationEvents: 2 }],
     [{ proxyReturns: { BNO: 0.05 } }],
-    barFixture,
-    { proxyAdjustment: 0 }
+    barFixture
   );
   assert(proxyRanges.ok && proxyRanges.proxies[0].range.low <= proxyRanges.proxies[0].range.base
     && proxyRanges.proxies[0].range.base <= proxyRanges.proxies[0].range.high
-    && proxyRanges.proxies[0].components.calibrationResidual.base === 0.05,
+    && proxyRanges.proxies[0].components.calibrationResidual.base === 0.05
+    && Object.keys(proxyRanges.proxies[0].components).sort().join(',') === 'calibrationResidual,channel,operatingExposure',
   'TP-03-11: proxy range exposes ordered channel calibration and operating components');
   assert(!thinProxyRanges.ok && thinProxyRanges.proxies[0].state === 'insufficient-evidence',
   'TP-03-11: a proxy below its explicit calibration minimum publishes insufficient evidence');
@@ -8965,6 +9065,243 @@ try {
     && chart.series[1].annotations[0].annotationId === 'current-refuter'
     && RLAGENDA.canonicalizeAgenda(chartReviews[1].modelOutputs.scenarioProbability) === RLAGENDA.canonicalizeAgenda(chart.series[1].value),
   'TP-03-12: the projection is frozen and preserves annotation identity and canonical values without second math');
+
+  const reversalFixture = JSON.parse(read('tests/fixtures/research-agenda/reversal-ui.json'));
+  const calibrationFixture = JSON.parse(read(geoDefinition.calibrationRef));
+  const modelBarIds = Array.from(new Set(
+    geoDefinition.transmissionModels.map((definition) => definition.barId)
+      .concat(geoDefinition.proxyDefinitions.map((definition) => definition.ticker))
+  ));
+  const modelCurrentBars = Object.fromEntries(modelBarIds.map(function (barId) {
+    const sourceBar = JSON.parse(read('data/bars/' + barId + '.json'));
+    const eligibleRows = sourceBar.rows.filter(function (row) { return row.t <= Date.parse(cutoff); });
+    const latest = eligibleRows[eligibleRows.length - 1];
+    return [barId, {
+      sym: barId,
+      asof: new Date(latest.t).toISOString(),
+      latest: { t: latest.t, o: latest.o, h: latest.h, l: latest.l, c: latest.c, v: latest.v }
+    }];
+  }));
+  const exactModelInput = {
+    contractVersion: 'research-model-input/v1',
+    chokepointState: JSON.parse(JSON.stringify(reversalFixture.chokepointState)),
+    inventoryGapByChannel: JSON.parse(JSON.stringify(reversalFixture.inventoryGapByChannel)),
+    levers: JSON.parse(JSON.stringify(reversalFixture.levers)),
+    currentBars: modelCurrentBars,
+    calibrationEvents: JSON.parse(JSON.stringify(calibrationFixture.events)),
+    evidenceImpacts: JSON.parse(JSON.stringify(currentImpacts))
+  };
+  const deleteModelPath = function (source, path) {
+    const copy = JSON.parse(JSON.stringify(source));
+    let target = copy;
+    for (let index = 0; index < path.length - 1; index += 1) target = target[path[index]];
+    delete target[path[path.length - 1]];
+    return copy;
+  };
+
+  group('Regression: research-model-input exact shape rejects each missing or unknown member before arithmetic with no zero or one substitution');
+  assert(RLAGENDA.MODEL_INPUT_VERSION === 'research-model-input/v1'
+    && typeof RLAGENDA.validateResearchModelInput === 'function',
+  'TP-03-14: one exported owner defines the versioned research model input contract');
+  if (typeof RLAGENDA.validateResearchModelInput === 'function') {
+    const validModelInput = RLAGENDA.validateResearchModelInput(exactModelInput, geoDefinition, cutoff);
+    assert(validModelInput.ok && Object.isFrozen(validModelInput.value),
+    'TP-03-14: the complete exact model input validates and freezes before arithmetic');
+
+    const requiredModelPaths = [
+      ['contractVersion'], ['chokepointState'], ['inventoryGapByChannel'], ['levers'],
+      ['currentBars'], ['calibrationEvents'], ['evidenceImpacts']
+    ];
+    Object.keys(exactModelInput.chokepointState).forEach(function (edgeId) {
+      requiredModelPaths.push(['chokepointState', edgeId]);
+      ['physicalPassFraction', 'insuredPassFraction', 'delayDays'].forEach(function (member) {
+        requiredModelPaths.push(['chokepointState', edgeId, member]);
+        ['low', 'base', 'high'].forEach(function (bound) {
+          requiredModelPaths.push(['chokepointState', edgeId, member, bound]);
+        });
+      });
+    });
+    Object.keys(exactModelInput.inventoryGapByChannel).forEach(function (channelId) {
+      requiredModelPaths.push(['inventoryGapByChannel', channelId]);
+      ['low', 'base', 'high'].forEach(function (bound) {
+        requiredModelPaths.push(['inventoryGapByChannel', channelId, bound]);
+      });
+    });
+    Object.keys(exactModelInput.levers).forEach(function (leverId) {
+      requiredModelPaths.push(['levers', leverId]);
+    });
+    Object.keys(exactModelInput.currentBars).forEach(function (barId) {
+      requiredModelPaths.push(['currentBars', barId]);
+      ['sym', 'asof', 'latest'].forEach(function (member) {
+        requiredModelPaths.push(['currentBars', barId, member]);
+      });
+      ['t', 'o', 'h', 'l', 'c', 'v'].forEach(function (member) {
+        requiredModelPaths.push(['currentBars', barId, 'latest', member]);
+      });
+    });
+    exactModelInput.calibrationEvents.forEach(function (calibrationEvent, eventIndex) {
+      Object.keys(calibrationEvent).forEach(function (member) {
+        requiredModelPaths.push(['calibrationEvents', eventIndex, member]);
+      });
+      ['preWindow', 'postWindow'].forEach(function (windowField) {
+        ['start', 'end'].forEach(function (member) {
+          requiredModelPaths.push(['calibrationEvents', eventIndex, windowField, member]);
+        });
+      });
+      calibrationEvent.barFiles.forEach(function (_barFile, barFileIndex) {
+        ['path', 'sha256'].forEach(function (member) {
+          requiredModelPaths.push(['calibrationEvents', eventIndex, 'barFiles', barFileIndex, member]);
+        });
+      });
+      ['proxyReturns', 'maximumAdverseExcursion', 'maximumFavorableExcursion'].forEach(function (mapField) {
+        Object.keys(calibrationEvent[mapField]).forEach(function (barId) {
+          requiredModelPaths.push(['calibrationEvents', eventIndex, mapField, barId]);
+        });
+      });
+    });
+    exactModelInput.evidenceImpacts.forEach(function (_impact, impactIndex) {
+      ['targetId', 'weightedImpact'].forEach(function (member) {
+        requiredModelPaths.push(['evidenceImpacts', impactIndex, member]);
+      });
+    });
+    requiredModelPaths.forEach(function (path) {
+      const missingInput = deleteModelPath(exactModelInput, path);
+      const refusal = RLAGENDA.validateResearchModelInput(missingInput, geoDefinition, cutoff);
+      const replay = RLAGENDA.recomputeAgendaModelOutputs(geoDefinition, missingInput, null, cutoff);
+      assert(!refusal.ok && refusal.code === 'RLAGENDA-CONTRACT-MISSING-MEMBER'
+        && !replay.ok && !Object.hasOwn(replay, 'value'),
+      'TP-03-14: deleting ' + path.join('.') + ' refuses before model arithmetic');
+    });
+
+    const unknownModelInputs = [
+      { path: [], key: 'unknownTopLevel' },
+      { path: ['chokepointState'], key: 'unknown-edge' },
+      { path: ['chokepointState', 'hormuz'], key: 'unknownState' },
+      { path: ['chokepointState', 'hormuz', 'physicalPassFraction'], key: 'unknownBound' },
+      { path: ['inventoryGapByChannel'], key: 'unknown-channel' },
+      { path: ['inventoryGapByChannel', 'oil'], key: 'unknownBound' },
+      { path: ['levers'], key: 'proxyAdjustment' },
+      { path: ['currentBars'], key: 'UNKNOWN' },
+    ];
+    modelBarIds.forEach(function (barId) {
+      unknownModelInputs.push({ path: ['currentBars', barId], key: 'unknownBarField' });
+      unknownModelInputs.push({ path: ['currentBars', barId, 'latest'], key: 'unknownRowField' });
+    });
+    exactModelInput.calibrationEvents.forEach(function (calibrationEvent, eventIndex) {
+      unknownModelInputs.push({ path: ['calibrationEvents', eventIndex], key: 'unknownEventField' });
+      ['preWindow', 'postWindow'].forEach(function (windowField) {
+        unknownModelInputs.push({ path: ['calibrationEvents', eventIndex, windowField], key: 'unknownWindowField' });
+      });
+      calibrationEvent.barFiles.forEach(function (_barFile, barFileIndex) {
+        unknownModelInputs.push({ path: ['calibrationEvents', eventIndex, 'barFiles', barFileIndex], key: 'unknownBarRefField' });
+      });
+      ['proxyReturns', 'maximumAdverseExcursion', 'maximumFavorableExcursion'].forEach(function (mapField) {
+        unknownModelInputs.push({ path: ['calibrationEvents', eventIndex, mapField], key: 'UNKNOWN' });
+      });
+    });
+    exactModelInput.evidenceImpacts.forEach(function (_impact, impactIndex) {
+      unknownModelInputs.push({ path: ['evidenceImpacts', impactIndex], key: 'unknownImpactField' });
+    });
+    unknownModelInputs.forEach(function (probe) {
+      const candidate = JSON.parse(JSON.stringify(exactModelInput));
+      let target = candidate;
+      probe.path.forEach(function (member) { target = target[member]; });
+      target[probe.key] = 0;
+      const refusal = RLAGENDA.validateResearchModelInput(candidate, geoDefinition, cutoff);
+      const replay = RLAGENDA.recomputeAgendaModelOutputs(geoDefinition, candidate, null, cutoff);
+      assert(!refusal.ok && refusal.code === 'RLAGENDA-CONTRACT-UNKNOWN-MEMBER'
+        && !replay.ok && !Object.hasOwn(replay, 'value'),
+      'TP-03-14: unknown member ' + probe.path.concat(probe.key).join('.') + ' refuses before model arithmetic');
+    });
+
+    [['hormuzPhysicalPassFraction', 1], ['babElMandebPhysicalPassFraction', 1], ['reroutedShare', 0],
+      ['inventoryPolicyResponseOffset', 0], ['demandOffset', 0]].forEach(function (probe) {
+      const missingLever = deleteModelPath(exactModelInput, ['levers', probe[0]]);
+      const refusal = RLAGENDA.validateResearchModelInput(missingLever, geoDefinition, cutoff);
+      const replay = RLAGENDA.recomputeAgendaModelOutputs(geoDefinition, missingLever, null, cutoff);
+      assert(!refusal.ok && !replay.ok && !Object.hasOwn(replay, 'value'),
+      'TP-03-14: missing ' + probe[0] + ' is not substituted with ' + probe[1]);
+    });
+    const invalidModelInputs = [
+      {
+        label: 'non-finite lever',
+        mutate: function (candidate) { candidate.levers.demandOffset = Number.POSITIVE_INFINITY; }
+      },
+      {
+        label: 'out-of-range lever',
+        mutate: function (candidate) { candidate.levers.reroutedShare = 1.01; }
+      },
+      {
+        label: 'unordered interval',
+        mutate: function (candidate) { candidate.inventoryGapByChannel.oil.base = candidate.inventoryGapByChannel.oil.high + 0.01; }
+      },
+      {
+        label: 'published pass mismatch',
+        mutate: function (candidate) { candidate.levers.hormuzPhysicalPassFraction = candidate.chokepointState.hormuz.physicalPassFraction.base + 0.01; }
+      },
+      {
+        label: 'bar after generation cutoff',
+        mutate: function (candidate) {
+          candidate.currentBars.BNO.latest.t = Date.parse(cutoff) + 1;
+          candidate.currentBars.BNO.asof = new Date(candidate.currentBars.BNO.latest.t).toISOString();
+        }
+      },
+      {
+        label: 'unknown calibration scenario reference',
+        mutate: function (candidate) { candidate.calibrationEvents[0].scenarioId = 'unknown-scenario'; }
+      },
+      {
+        label: 'unknown calibration channel reference',
+        mutate: function (candidate) { candidate.calibrationEvents[0].affectedChannelIds[0] = 'unknown-channel'; }
+      },
+      {
+        label: 'unknown calibration bar reference',
+        mutate: function (candidate) { candidate.calibrationEvents[0].barFiles[0].path = 'data/bars/UNKNOWN.json'; }
+      },
+      {
+        label: 'unknown evidence impact reference',
+        mutate: function (candidate) { candidate.evidenceImpacts[0].targetId = 'unknown-scenario'; }
+      }
+    ];
+    invalidModelInputs.forEach(function (probe) {
+      const candidate = JSON.parse(JSON.stringify(exactModelInput));
+      probe.mutate(candidate);
+      const refusal = RLAGENDA.validateResearchModelInput(candidate, geoDefinition, cutoff);
+      const replay = RLAGENDA.recomputeAgendaModelOutputs(geoDefinition, candidate, null, cutoff);
+      assert(!refusal.ok && !replay.ok && !Object.hasOwn(replay, 'value'),
+      'TP-03-14: ' + probe.label + ' refuses before model arithmetic');
+    });
+  }
+
+  group('Regression: published model inputs expose exactly five levers reject proxyAdjustment and report each changed lever id exactly');
+  const publishedLeverIds = Object.keys(exactModelInput.levers).sort();
+  assert(publishedLeverIds.join(',') === [
+    'babElMandebPhysicalPassFraction', 'demandOffset', 'hormuzPhysicalPassFraction',
+    'inventoryPolicyResponseOffset', 'reroutedShare'
+  ].join(','),
+  'TP-03-15: the published fixture exposes exactly the five visible lever ids');
+  if (typeof RLAGENDA.validateResearchModelInput === 'function') {
+    const hiddenLeverInput = JSON.parse(JSON.stringify(exactModelInput));
+    hiddenLeverInput.levers.proxyAdjustment = 0;
+    const hiddenLeverRefusal = RLAGENDA.validateResearchModelInput(hiddenLeverInput, geoDefinition, cutoff);
+    assert(!hiddenLeverRefusal.ok && hiddenLeverRefusal.code === 'RLAGENDA-CONTRACT-UNKNOWN-MEMBER'
+      && hiddenLeverRefusal.field === 'levers.proxyAdjustment',
+    'TP-03-15: proxyAdjustment is an unknown-member refusal');
+
+    const baselineReplay = RLAGENDA.recomputeAgendaModelOutputs(geoDefinition, exactModelInput, null, cutoff);
+    assert(baselineReplay.ok && baselineReplay.value.changedLeverIds.length === 0
+      && RLAGENDA.canonicalizeAgenda(baselineReplay.value.baselineLeverState) === RLAGENDA.canonicalizeAgenda(exactModelInput.levers),
+    'TP-03-15: baseline values come only from the validated published five-lever input');
+    Object.keys(exactModelInput.levers).forEach(function (leverId) {
+      const changed = JSON.parse(JSON.stringify(exactModelInput.levers));
+      changed[leverId] = changed[leverId] + (changed[leverId] >= 0.99 ? -0.01 : 0.01);
+      const replay = RLAGENDA.recomputeAgendaModelOutputs(geoDefinition, exactModelInput, changed, cutoff);
+      assert(replay.ok && replay.value.changedLeverIds.length === 1 && replay.value.changedLeverIds[0] === leverId,
+      'TP-03-15: changing only ' + leverId + ' reports that one changed lever id');
+    });
+    assert(extractFn(read('rlagenda.js'), 'computeEquityProxyRanges').indexOf('proxyAdjustment') === -1,
+    'TP-03-15: proxy ranges contain no hidden proxy adjustment input or formula term');
+  }
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 019 Scope 03 offline plan group threw): ' + e.message); }
 
 /* ---------- Feature 019 Scope 04: candidate outcomes before publication ---------- */
@@ -8976,6 +9313,13 @@ try {
   const topic4 = registry4.topics[0];
   const definition4 = JSON.parse(read(topic4.definitionRef));
   const evidence4 = JSON.parse(read('tests/fixtures/research-agenda/valid-evidence-record.json'));
+  const modelFixture4 = JSON.parse(read('tests/fixtures/research-agenda/reversal-ui.json'));
+  const calibration4 = JSON.parse(read(definition4.calibrationRef));
+  const barIds4 = [...new Set([
+    ...definition4.transmissionModels.map((model) => model.barId),
+    ...definition4.proxyDefinitions.map((proxy) => proxy.ticker)
+  ])];
+  const currentBars4 = Object.fromEntries(barIds4.map((barId) => [barId, JSON.parse(read(`data/bars/${barId}.json`))]));
   const generation4 = RLAGENDA4.deriveGenerationId({
     snapshotDigest: 'sha256:' + '4'.repeat(64),
     registryDigest: RLAGENDA4.agendaDigest(registry4),
@@ -8999,10 +9343,15 @@ try {
     findingId: 'current-evidence-finding',
     observedAt: evidence4.observedAt,
     claim: evidence4.claim,
-    source: evidence4.source,
+    publicSubjects: [{ kind: 'public-ticker', value: 'XLE' }],
+    horizon: 'swing',
+    source: { sourceIds: [evidence4.source.sourceId] },
     statedConfidence: evidence4.confidence,
     provenanceClass: evidence4.provenanceClass,
     evidenceRole: evidence4.evidenceRole,
+    evidenceRefs: [evidence4.evidenceId],
+    triggerRefs: [definition4.triggers[0].triggerId],
+    invalidationRefs: [definition4.invalidations[0].invalidationId],
     causalPath: evidence4.causalPath,
     refutedBy: evidence4.refutedBy,
     limitations: ['Bounded fixture finding.']
@@ -9018,7 +9367,11 @@ try {
     findings: [finding4],
     sourceLedger: [evidence4.source],
     newEvidenceIds: [evidence4.evidenceId],
-    modelInputs: { chokepointState: {}, inventoryGapByChannel: {}, levers: {} },
+    modelInputs: {
+      chokepointState: modelFixture4.chokepointState,
+      inventoryGapByChannel: modelFixture4.inventoryGapByChannel,
+      levers: modelFixture4.levers
+    },
     ...overrides
   });
   const compose4 = (input = {}) => generationModule.composeResearchAgendaCandidate({
@@ -9035,11 +9388,20 @@ try {
   });
 
   group('Feature 019 candidate contract accounts for new sourced unchanged stale and unavailable reviews before publication');
+  const deterministicOutput4 = generationModule.computeResearchAgendaOutputs({
+    definition: definition4,
+    calibration: calibration4,
+    situation: situation4(),
+    currentBars: currentBars4,
+    generationCutoff: '2026-08-13T12:00:00.000Z',
+    declaredQuestion: topic4.declaredQuestion,
+    predecessorOutput: null
+  });
   const updatedCandidate4 = compose4({
     situationsByTopicId: { [topic4.topicId]: situation4() },
-    deterministicOutputsByTopicId: { [topic4.topicId]: { scenarioProbability: { escalation: 0.2 }, chartSeries: [{ chartId: 'scenario-probabilities' }] } }
+    deterministicOutputsByTopicId: { [topic4.topicId]: deterministicOutput4.value }
   });
-  const priorDossier4 = { dossierId: `dossier-${'d'.repeat(64)}`, topicId: topic4.topicId, historicalOnly: false };
+  const priorDossier4 = updatedCandidate4.value.dossiers[0];
   const unchangedCandidate4 = compose4({
     situationsByTopicId: { [topic4.topicId]: situation4({ newEvidenceIds: [], findings: [], sectionInterpretations: sectionRows4('unchanged') }) },
     priorDossiersByTopicId: { [topic4.topicId]: priorDossier4 }
@@ -9050,7 +9412,6 @@ try {
   staleEvidence4.freshness = { ...staleEvidence4.freshness, state: 'stale', ageHours: 74 };
   const staleCandidate4 = compose4({
     situationsByTopicId: { [topic4.topicId]: situation4({ evidenceRecords: [staleEvidence4], newEvidenceIds: [staleEvidence4.evidenceId], sectionInterpretations: sectionRows4('stale') }) },
-    deterministicOutputsByTopicId: { [topic4.topicId]: { shouldNotPublish: true } },
     priorDossiersByTopicId: { [topic4.topicId]: priorDossier4 }
   });
   const unavailableCandidate4 = compose4({ failuresByTopicId: { [topic4.topicId]: 'author-timeout' } });
@@ -9060,13 +9421,15 @@ try {
     && updatedCandidate4.value.classifications[0].state === 'reviewed',
   'TP-04-03: new sourced evidence creates one complete updated review and one sustained dossier');
   assert(unchangedCandidate4.ok && unchangedCandidate4.value.reviews[0].outcome === 'unchanged'
-    && unchangedCandidate4.value.reviews[0].dossierId === priorDossier4.dossierId
+    && unchangedCandidate4.value.reviews[0].dossierRef.path.endsWith(`/${priorDossier4.dossierId}.json`)
+    && unchangedCandidate4.value.reviews[0].modelSnapshotRef.dossierRef.sha256 === unchangedCandidate4.value.reviews[0].dossierRef.sha256
     && unchangedCandidate4.value.reviews[0].evidenceIds.length === 1
     && unchangedCandidate4.value.dossiers.length === 0,
   'TP-04-03: a quiet complete pass writes an unchanged review reusing the prior dossier without inventing a finding');
   assert(staleCandidate4.ok && staleCandidate4.value.reviews[0].outcome === 'stale'
     && staleCandidate4.value.reviews[0].newestEvidenceAgeHours === 74
-    && staleCandidate4.value.reviews[0].modelOutputs === null
+    && !Object.hasOwn(staleCandidate4.value.reviews[0], 'modelOutputs')
+    && staleCandidate4.value.reviews[0].modelSnapshotRef.dossierRef.path.endsWith(`/${priorDossier4.dossierId}.json`)
     && staleCandidate4.value.dossiers.length === 0,
   'TP-04-03: stale evidence records its age and publishes no current model output or dossier');
   assert(unavailableCandidate4.ok && unavailableCandidate4.value.reviews[0].outcome === 'unavailable'
@@ -9082,10 +9445,12 @@ try {
     && staleRead4.ok && staleRead4.value.topics[0].outcome === 'stale'
     && staleRead4.value.topics[0].newestEvidenceAgeHours === 74,
   'TP-04-05: stale evidence has zero impact and the compact read labels stale with its age');
-  assert(staleCandidate4.value.reviews[0].dossierId === null
-    && staleRead4.value.topics[0].dossierId === null
+  assert(staleCandidate4.value.reviews[0].dossierRef.path.endsWith(`/${priorDossier4.dossierId}.json`)
+    && staleRead4.value.topics[0].dossierId === priorDossier4.dossierId
+    && staleRead4.value.topics[0].modelState === 'available'
+    && staleRead4.value.topics[0].chartState === 'available'
     && staleRead4.value.topics[0].state === 'reviewed',
-  'TP-04-05: stale current review never points at or masquerades as the prior dossier');
+  'TP-04-05: stale current review retains only a validated prior snapshot ref and never embeds current model state');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 019 Scope 04 candidate group threw): ' + e.message); }
 
 /* ---------- Feature 019 Scope 05: refinement and public-safety owner contracts ---------- */
@@ -9095,6 +9460,7 @@ try {
   const registry5 = JSON.parse(read('research-agenda.json'));
   const topic5 = registry5.topics.find((topic) => topic.topicId === 'geopolitical-supply-shock');
   const definition5 = JSON.parse(read(topic5.definitionRef));
+  const evidence5 = JSON.parse(read('tests/fixtures/research-agenda/valid-evidence-record.json'));
 
   group('SCN-019-018 out-of-boundary refinement is refused and question and boundary bytes remain equal');
   const refinement5 = {
@@ -9145,12 +9511,26 @@ try {
     dossierId: `dossier-${'5'.repeat(64)}`,
     topicId: topic5.topicId,
     historicalOnly: false,
+    validationState: 'validated',
     findings: [{
       findingId: 'public-finding-one',
+      observedAt: evidence5.observedAt,
       claim: 'Public evidence changed the observed transit state.',
-      source: { sourceIds: ['public-source-one'] }
+      publicSubjects: [{ kind: 'public-ticker', value: 'XLE' }],
+      horizon: 'swing',
+      source: { sourceIds: [evidence5.source.sourceId] },
+      statedConfidence: evidence5.confidence,
+      provenanceClass: evidence5.provenanceClass,
+      evidenceRole: evidence5.evidenceRole,
+      evidenceRefs: [evidence5.evidenceId],
+      triggerRefs: [definition5.triggers[0].triggerId],
+      invalidationRefs: [definition5.invalidations[0].invalidationId],
+      causalPath: evidence5.causalPath,
+      refutedBy: evidence5.refutedBy,
+      limitations: ['Bounded public fixture finding.']
     }],
-    evidenceRecords: [{ evidenceId: 'public-evidence-one' }]
+    evidenceRecords: [evidence5],
+    sourceLedger: [evidence5.source]
   };
   const seam5 = RLAGENDA5.buildFeature020ResearchSeam(topic5, definition5, publicDossier5);
   const nonPublicTopic5 = JSON.parse(JSON.stringify(topic5));
@@ -9164,6 +9544,68 @@ try {
     && !JSON.stringify(seam5.value).match(/destination|eligibility|actionFamily|attention|anomaly|alert|routingDecision|score/)
     && !nonPublicSeam5.ok && nonPublicSeam5.code === 'RLAGENDA-PUBLIC-SUBJECT',
   'TP-05-02: recursive private fields and non-public subjects are refused while the read-only seam exposes no routing state');
+
+  group('Regression: finding and Feature 020 seam refuse each missing or blank required field and never substitute dossier-wide references');
+  const expectedSeamFindingFields5 = [
+    'findingId', 'observedAt', 'claim', 'publicSubjects', 'horizon',
+    'statedConfidence', 'provenanceClass', 'evidenceRole', 'evidenceRefs',
+    'sourceRefs', 'triggerRefs', 'invalidationRefs', 'topicId', 'dossierId'
+  ];
+  assert(seam5.ok
+    && Object.keys(seam5.value.findings[0]).sort().join(',') === expectedSeamFindingFields5.slice().sort().join(',')
+    && seam5.value.findings[0].sourceRefs.join(',') === evidence5.source.sourceId,
+  'TP-05-15: the valid seam losslessly projects every exact required finding member and source identity');
+
+  function findingMutation5(path, mode, blankValue) {
+    const dossier = JSON.parse(JSON.stringify(publicDossier5));
+    let owner = dossier.findings[0];
+    for (let index = 0; index < path.length - 1; index += 1) owner = owner[path[index]];
+    const key = path[path.length - 1];
+    if (mode === 'missing') delete owner[key];
+    else owner[key] = blankValue;
+    return RLAGENDA5.buildFeature020ResearchSeam(topic5, definition5, dossier);
+  }
+
+  const findingRequiredCases5 = [
+    { path: ['observedAt'], field: 'observedAt', blank: '' },
+    { path: ['source', 'sourceIds'], field: 'source.sourceIds', blank: [] },
+    { path: ['statedConfidence', 'grade'], field: 'statedConfidence.grade', blank: '' },
+    { path: ['statedConfidence', 'basis'], field: 'statedConfidence.basis', blank: '' },
+    { path: ['provenanceClass'], field: 'provenanceClass', blank: '' },
+    { path: ['evidenceRole'], field: 'evidenceRole', blank: '' },
+    { path: ['publicSubjects'], field: 'publicSubjects', blank: [] },
+    { path: ['horizon'], field: 'horizon', blank: '' },
+    { path: ['evidenceRefs'], field: 'evidenceRefs', blank: [] },
+    { path: ['triggerRefs'], field: 'triggerRefs', blank: [] },
+    { path: ['invalidationRefs'], field: 'invalidationRefs', blank: [] }
+  ];
+  const requiredFindingRefusals5 = findingRequiredCases5.flatMap((probe) => ['missing', 'blank'].map((mode) => {
+    const result = findingMutation5(probe.path, mode, probe.blank);
+    return !result.ok && typeof result.field === 'string' && result.field.includes(probe.field);
+  }));
+  assert(requiredFindingRefusals5.length === findingRequiredCases5.length * 2 && requiredFindingRefusals5.every(Boolean),
+  'TP-05-15: every missing and blank observation source confidence provenance role subject horizon and ref is refused by named field');
+
+  const unresolvedFindingRefs5 = [
+    { field: 'evidenceRefs', value: ['missing-evidence'] },
+    { field: 'source', value: { sourceIds: ['missing-source'] } },
+    { field: 'triggerRefs', value: ['missing-trigger'] },
+    { field: 'invalidationRefs', value: ['missing-invalidation'] }
+  ].map((probe) => {
+    const dossier = JSON.parse(JSON.stringify(publicDossier5));
+    dossier.findings[0][probe.field] = probe.value;
+    const result = RLAGENDA5.buildFeature020ResearchSeam(topic5, definition5, dossier);
+    return !result.ok && typeof result.field === 'string' && result.field.includes(probe.field === 'source' ? 'source.sourceIds' : probe.field);
+  });
+  assert(unresolvedFindingRefs5.every(Boolean),
+  'TP-05-15: unresolved evidence source trigger and invalidation refs refuse instead of borrowing dossier or definition refs');
+
+  const identityRefusals5 = [
+    ['topicId', (() => { const topic = JSON.parse(JSON.stringify(topic5)); topic.topicId = ''; return RLAGENDA5.buildFeature020ResearchSeam(topic, definition5, publicDossier5); })()],
+    ['dossierId', (() => { const dossier = JSON.parse(JSON.stringify(publicDossier5)); dossier.dossierId = ''; return RLAGENDA5.buildFeature020ResearchSeam(topic5, definition5, dossier); })()]
+  ];
+  assert(identityRefusals5.every(([field, result]) => !result.ok && typeof result.field === 'string' && result.field.includes(field)),
+  'TP-05-15: blank topic and dossier identities refuse by named field');
 
   const payload5 = JSON.parse(read('market-brief.payload.json'));
   const toolRead5 = RLAGENDA5.buildAgendaToolRead(payload5.researchAgenda, registry5);

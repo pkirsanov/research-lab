@@ -43,24 +43,41 @@
     "shipping": { "low": 0.01, "base": 0.04, "high": 0.08 }
   },
   "levers": {
+    "hormuzPhysicalPassFraction": 0.4,
+    "babElMandebPhysicalPassFraction": 0.65,
     "reroutedShare": 0.35,
     "inventoryPolicyResponseOffset": 0,
-    "demandOffset": 0,
-    "proxyAdjustment": 0
+    "demandOffset": 0
   },
   "currentFindings": [
     {
       "findingId": "fixture-insured-throughput-reversal",
+      "observedAt": "2026-08-14T11:00:00.000Z",
       "claim": "Current public observations imply materially lower insured effective throughput than the predecessor review.",
+      "publicSubjects": [
+        { "kind": "public-ticker", "value": "XLE" },
+        { "kind": "channel", "value": "oil" }
+      ],
+      "horizon": "swing",
+      "source": {
+        "sourceIds": ["fixture-public-maritime-observation", "fixture-public-insurance-observation"]
+      },
+      "statedConfidence": {
+        "grade": "moderate",
+        "basis": "two explicit public fixture origins"
+      },
       "evidenceRole": "indirect",
       "provenanceClass": "model-estimate",
+      "evidenceRefs": ["fixture-current-evidence"],
+      "triggerRefs": ["insured-capacity-tightens"],
+      "invalidationRefs": ["insurance-normalizes"],
       "causalPath": ["insured-capacity", "effective-throughput", "scenario-probability"],
-      "weightedImpact": 0.45,
-      "refutedBy": "Insurance capacity and measured transit normalize together.",
-      "invalidation": "Measured physical pass and insured pass both return to at least 0.95.",
-      "sourceIds": ["fixture-public-maritime-observation", "fixture-public-insurance-observation"],
+      "refutedBy": ["Insurance capacity and measured transit normalize together."],
       "limitations": ["This committed fixture proves UI behavior; it is not a current market claim."]
     }
+  ],
+  "evidenceRecords": [
+    { "evidenceId": "fixture-current-evidence" }
   ],
   "sourceLedger": [
     {
@@ -83,9 +100,7 @@
     "probabilities": {
       "staged-reopening": 0.62,
       "managed-coercion": 0.28,
-      "escalation": 0.1,
-      "single-route-disruption": 0.06,
-      "dual-route-or-infrastructure-shock": 0.04
+      "escalation": 0.1
     },
     "evidenceIds": ["fixture-prior-reopening-evidence"],
     "summary": "The predecessor favored staged reopening before the current insured-throughput deterioration."

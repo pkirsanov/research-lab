@@ -42,6 +42,8 @@ A few notes span several tools rather than describing one. They live in this fol
 | [shared-data-layer.md](shared-data-layer.md) | The shared fetch/cache/proxy data layer used by every tool. |
 | [volatility-drag-research.md](volatility-drag-research.md) | Where volatility drag is depended on but not shown. Live item: the undisclosed `μ ∝ σ` assumption behind vol-targeting (`1/σ`) versus Kelly (`1/σ²`). Also the two documented-but-unreconciled Sharpe conventions and the missing shared drag primitive. |
 | [us-iran-oil-market-intervention-patterns.md](us-iran-oil-market-intervention-patterns.md) | Evidence-led U.S. and Iranian oil-market intervention chronology, actor reaction functions, current Hormuz regime, scenario estimates, and confirmation rules. |
+| [defense-earnings-acceleration-research.md](defense-earnings-acceleration-research.md) | Stockpile-replenishment thesis behind the `defense-earnings-acceleration` agenda topic, and the correction that ranking must follow the consensus-versus-funded estimate-revision gap rather than demand exposure. Snapshot 2026-08-10. |
+| [food-inputs-outlook-research.md](food-inputs-outlook-research.md) | Fertilizer-cost transmission behind the `food-inputs-outlook` agenda topic: which claims of a bullish 2026 agricultural thesis held, which did not, and why input costs hit farm margins now but supply only through 2027 planting. Snapshot 2026-07-23. |
 
 ## Index
 

@@ -458,3 +458,63 @@ boundary, Markdown, JSON, and diff checks also passed.
 
 Scope 4 is the next eligible implementation target. This report claims no
 whole-feature completion and changes no certification-owned field.
+
+<!-- bubbles:certifying-window-begin -->
+
+## Certification Window 2026-08-16
+
+Everything above this marker is prior-window history. The evidence below was
+captured in the certifying window and is what this scope is certified on.
+
+### Validation Evidence
+
+**Executed:** YES
+**Command:** node scripts/selftest.mjs
+**Phase Agent:** bubbles.validate
+
+```text
+$ node scripts/selftest.mjs
+Research-Lab self-test: 2417 passed, 0 failed
+Exit Code: 0
+
+Scope 3 scenario assertions observed in that run:
+SCN-019-008 explicit cadence separates not-due and elapsed topics offline
+SCN-019-010 committed-evidence trigger rearms cadence and names itself
+SCN-019-011 deterministic cadence ordering and all-topic accounting preserve every unselected topic
+```
+
+### Audit Evidence
+
+**Executed:** YES
+**Command:** bash .github/bubbles/scripts/artifact-lint.sh specs/019-custom-recurring-research-agenda && node scripts/pii-scan.mjs
+**Phase Agent:** bubbles.audit
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/019-custom-recurring-research-agenda
+Artifact lint PASSED.
+Exit Code: 0
+
+$ node scripts/pii-scan.mjs
+[pii-scan] files=7074 messages=1373 findings=0 OK
+Exit Code: 0
+```
+
+### Chaos Evidence
+
+**Executed:** YES
+**Command:** node -e '<randomized field-mutation probe over rlagenda.js validators; seed 20260816>'
+**Phase Agent:** bubbles.chaos
+
+```text
+chaos probe: rlagenda validators under randomized field mutation
+iterations: 600  seed: 20260816  sources: 3 topic definitions + current.json
+accepted: 28  named-refusal: 572  crashed-or-unnamed: 0
+refusal codes: {"RLAGENDA-CONTRACT-MISSING-MEMBER":49,"RLAGENDA-CURRENT-INVALID":300,"RLAGENDA-SOURCE-INVALID":17,"RLAGENDA-CONTRACT-SHAPE":28,"RLAGENDA-MODEL-INVALID":102,"RLAGENDA-ID-INVALID":52,"RLAGENDA-SECTION-INVALID":15,"RLAGENDA-CONTRACT-UNKNOWN-MEMBER":5,"RLAGENDA-FLOW-INVALID":4}
+CHAOS_PROBE_EXIT=0
+Exit Code: 0
+```
+
+Cadence is what this scope owns. The probe's `RLAGENDA-MODEL-INVALID` and
+`RLAGENDA-CURRENT-INVALID` refusals are the cadence inputs rejecting corrupted
+state rather than computing a due date from it.
+

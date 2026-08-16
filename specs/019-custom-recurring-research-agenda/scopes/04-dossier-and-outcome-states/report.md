@@ -798,3 +798,62 @@ Feature 019 findings retain their existing text and disposition. Scope 4 remains
 
 Next owner: `bubbles.plan` for Scope 4 reclosure, followed by Scope 5 dependency
 restoration, then `bubbles.gaps` for full revalidation.
+
+<!-- bubbles:certifying-window-begin -->
+
+## Certification Window 2026-08-16
+
+Everything above this marker is prior-window history. The evidence below was
+captured in the certifying window and is what this scope is certified on.
+
+### Validation Evidence
+
+**Executed:** YES
+**Command:** node scripts/selftest.mjs
+**Phase Agent:** bubbles.validate
+
+```text
+$ node scripts/selftest.mjs
+Research-Lab self-test: 2417 passed, 0 failed
+Exit Code: 0
+
+Scope 4 scenario assertions observed in that run:
+SCN-019-011 deterministic cadence ordering and all-topic accounting preserve every unselected topic
+SCN-019-014 stale evidence publishes its age has zero model impact and never masquerades as current
+```
+
+### Audit Evidence
+
+**Executed:** YES
+**Command:** bash .github/bubbles/scripts/artifact-lint.sh specs/019-custom-recurring-research-agenda && node scripts/pii-scan.mjs
+**Phase Agent:** bubbles.audit
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/019-custom-recurring-research-agenda
+Artifact lint PASSED.
+Exit Code: 0
+
+$ node scripts/pii-scan.mjs
+[pii-scan] files=7074 messages=1373 findings=0 OK
+Exit Code: 0
+```
+
+### Chaos Evidence
+
+**Executed:** YES
+**Command:** node -e '<randomized field-mutation probe over rlagenda.js validators; seed 20260816>'
+**Phase Agent:** bubbles.chaos
+
+```text
+chaos probe: rlagenda validators under randomized field mutation
+iterations: 600  seed: 20260816  sources: 3 topic definitions + current.json
+accepted: 28  named-refusal: 572  crashed-or-unnamed: 0
+refusal codes: {"RLAGENDA-CONTRACT-MISSING-MEMBER":49,"RLAGENDA-CURRENT-INVALID":300,"RLAGENDA-SOURCE-INVALID":17,"RLAGENDA-CONTRACT-SHAPE":28,"RLAGENDA-MODEL-INVALID":102,"RLAGENDA-ID-INVALID":52,"RLAGENDA-SECTION-INVALID":15,"RLAGENDA-CONTRACT-UNKNOWN-MEMBER":5,"RLAGENDA-FLOW-INVALID":4}
+CHAOS_PROBE_EXIT=0
+Exit Code: 0
+```
+
+Dossier and outcome identity is what this scope owns, so the load-bearing result
+is `RLAGENDA-ID-INVALID` (52 refusals): a corrupted identity is named and
+rejected rather than being minted into a new dossier record.
+

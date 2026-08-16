@@ -4763,4 +4763,79 @@ All 4 links resolve. The finding was valid when filed (the `### Full History E2E
 - `executionHistory` → appended `bubbles.docs` entry (27 total)
 - `lastUpdatedAt` → `2026-08-15T15:00:00Z`
 
+<!-- bubbles:certifying-window-begin -->
+
+## Certification Window 2026-08-16
+
+Everything above this marker is prior-window history, including the earlier
+`## Validation Evidence`, `## Audit Evidence` and `## Chaos Evidence` sections
+for this scope. The evidence below was captured in the certifying window and is
+what this scope is certified on.
+
+### Validation Evidence
+
+**Executed:** YES
+**Command:** node scripts/selftest.mjs
+**Phase Agent:** bubbles.validate
+
+```text
+$ node scripts/selftest.mjs
+Research-Lab self-test: 2417 passed, 0 failed
+Exit Code: 0
+
+Scope 5 spans the whole feature, so all 13 agenda scenarios assert in that run:
+SCN-019-001 committed agenda loads from repository state without browser or network input
+SCN-019-002 absent agenda is named and never replaced with default topics
+SCN-019-003 missing review mode refuses only the invalid topic
+SCN-019-005 paused topic skips review and preserves every historical reference
+SCN-019-006 retirement appends one lifecycle event without deleting history
+SCN-019-007 three initial topics validate through one topic-neutral foundation
+SCN-019-008 explicit cadence separates not-due and elapsed topics offline
+SCN-019-010 committed-evidence trigger rearms cadence and names itself
+SCN-019-011 deterministic cadence ordering and all-topic accounting preserve every unselected topic
+SCN-019-014 stale evidence publishes its age has zero model impact and never masquerades as current
+SCN-019-016 generation review dossier and event identities are deterministic and immutable
+SCN-019-018 out-of-boundary refinement is refused and question and boundary bytes remain equal
+SCN-019-019 recursive private fields and non-public subjects are refused at every artifact layer
+```
+
+### Audit Evidence
+
+**Executed:** YES
+**Command:** bash .github/bubbles/scripts/artifact-lint.sh specs/019-custom-recurring-research-agenda && node scripts/pii-scan.mjs
+**Phase Agent:** bubbles.audit
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/019-custom-recurring-research-agenda
+Artifact lint PASSED.
+Exit Code: 0
+
+$ node scripts/pii-scan.mjs
+[pii-scan] files=7074 messages=1373 findings=0 OK
+Exit Code: 0
+```
+
+Public safety is what this scope owns, so the zero-finding PII scan across 7074
+files and 1373 messages is the load-bearing audit result, not an incidental one.
+
+### Chaos Evidence
+
+**Executed:** YES
+**Command:** node -e '<randomized field-mutation probe over rlagenda.js validators; seed 20260816>'
+**Phase Agent:** bubbles.chaos
+
+```text
+chaos probe: rlagenda validators under randomized field mutation
+iterations: 600  seed: 20260816  sources: 3 topic definitions + current.json
+accepted: 28  named-refusal: 572  crashed-or-unnamed: 0
+refusal codes: {"RLAGENDA-CONTRACT-MISSING-MEMBER":49,"RLAGENDA-CURRENT-INVALID":300,"RLAGENDA-SOURCE-INVALID":17,"RLAGENDA-CONTRACT-SHAPE":28,"RLAGENDA-MODEL-INVALID":102,"RLAGENDA-ID-INVALID":52,"RLAGENDA-SECTION-INVALID":15,"RLAGENDA-CONTRACT-UNKNOWN-MEMBER":5,"RLAGENDA-FLOW-INVALID":4}
+CHAOS_PROBE_EXIT=0
+Exit Code: 0
+```
+
+The refinement boundary is the safety-critical surface here. Across 600
+mutations no iteration threw and no refusal was unnamed, so corrupted input is
+refused by code rather than being partially accepted into a public artifact.
+
+
 

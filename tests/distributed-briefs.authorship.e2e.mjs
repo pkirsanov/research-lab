@@ -62,7 +62,7 @@ test('Regression: SCN-002-004 all 22 source reads reach one truthful validated b
   // The all-source barrier: the outcome IDs EXACTLY equal orderedSourceToolIds and the final aggregator is
   // never self-consumed — no source is omitted or invented.
   assert.deepEqual(Object.keys(pool.outcomes).sort(), frozen.orderedSourceToolIds.slice().sort());
-  assert.equal(Object.keys(pool.outcomes).length, 22);
+  assert.equal(Object.keys(pool.outcomes).length, 26);
   assert.equal(pool.outcomes[frozen.aggregatorToolId], undefined);
   for (const toolId of frozen.orderedSourceToolIds) {
     const outcome = pool.outcomes[toolId];

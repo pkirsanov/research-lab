@@ -77,10 +77,10 @@ const adapters = { evidence, registryConfig: registryConfig() };
 test('Regression: SCN-002-001 current registry freezes 22 source reads and one non-recursive final aggregator', () => {
     const frozen = freezeToolReads(registry, adapters, { symbol: 'SPY' });
     // Every current source ID validates exactly once; the aggregator is excluded (never recursive).
-    assert.equal(frozen.participantCount, 23);
-    assert.equal(frozen.sourceCount, 22);
+    assert.equal(frozen.participantCount, 27);
+    assert.equal(frozen.sourceCount, 26);
     assert.equal(frozen.aggregatorToolId, 'market-brief');
-    assert.equal(Object.keys(frozen.reads).length, 22);
+    assert.equal(Object.keys(frozen.reads).length, 26);
     assert.equal(Object.prototype.hasOwnProperty.call(frozen.reads, 'market-brief'), false);
     const seen = new Set();
     for (const toolId of frozen.orderedSourceToolIds) {
@@ -91,7 +91,7 @@ test('Regression: SCN-002-001 current registry freezes 22 source reads and one n
         assert.equal(read.role, 'source');
         assert.notEqual(read.toolId, 'market-brief');
     }
-    assert.equal(seen.size, 22);
+    assert.equal(seen.size, 26);
 });
 
 test('Regression: SCN-002-002 unavailable non-live and off-theme evidence never becomes a market recommendation', () => {
@@ -119,8 +119,8 @@ test('Regression: SCN-002-002 unavailable non-live and off-theme evidence never 
 
 test('Regression: SCN-002-003 registry-only addition joins every read consumer without inventory edits', () => {
     const baseline = freezeToolReads(registry, adapters, { symbol: 'SPY' });
-    assert.equal(baseline.participantCount, 23);
-    assert.equal(baseline.sourceCount, 22);
+    assert.equal(baseline.participantCount, 27);
+    assert.equal(baseline.sourceCount, 26);
 
     // A registry-only addition (one valid new source) flows through the SAME production loops: the next
     // freeze derives 24/23 and produces a complete read for the added source with no scheduler-list,
@@ -128,10 +128,10 @@ test('Regression: SCN-002-003 registry-only addition joins every read consumer w
     const mutated = JSON.parse(JSON.stringify(registry));
     mutated.tools.push(addedSourceEntry());
     const frozen = freezeToolReads(mutated, adapters, { symbol: 'SPY' });
-    assert.equal(frozen.participantCount, 24);
-    assert.equal(frozen.sourceCount, 23);
+    assert.equal(frozen.participantCount, 28);
+    assert.equal(frozen.sourceCount, 27);
     assert.equal(frozen.orderedSourceToolIds[frozen.orderedSourceToolIds.length - 1], 'demo-added-source-lab');
-    assert.equal(Object.keys(frozen.reads).length, 23);
+    assert.equal(Object.keys(frozen.reads).length, 27);
     const addedRead = frozen.reads['demo-added-source-lab'];
     assert.equal(RLDATA.validateToolModelRead(addedRead).ok, true);
     // The added live-market source has no declared owner adapter yet, so it is explicitly not-integrated

@@ -69,8 +69,8 @@ const { evidence, frozen } = await buildRegistryFreeze();
 test('all observed 22 source adapters emit truthful production ToolModelRead outcomes', () => {
     // The frozen registry derives exactly the 22 source IDs (aggregator excluded) in registry order.
     const expectedSources = registry.tools.filter((entry) => entry.briefing.role === 'source').map((entry) => entry.id);
-    assert.equal(frozen.sourceCount, 22);
-    assert.equal(frozen.participantCount, 23);
+    assert.equal(frozen.sourceCount, 26);
+    assert.equal(frozen.participantCount, 27);
     assert.deepEqual(frozen.orderedSourceToolIds, expectedSources);
     assert.equal(frozen.aggregatorToolId, 'market-brief');
     // The final aggregator is never self-consumed: it has no source read.
@@ -78,7 +78,7 @@ test('all observed 22 source adapters emit truthful production ToolModelRead out
 
     // EVERY derived source has exactly one complete, validated ToolModelRead/v1 outcome — none omitted,
     // inferred, or invalid; identity/profile/role/deepLink match the frozen registry.
-    assert.equal(Object.keys(frozen.reads).length, 22);
+    assert.equal(Object.keys(frozen.reads).length, 26);
     for (const toolId of frozen.orderedSourceToolIds) {
         const read = frozen.reads[toolId];
         const validation = RLDATA.validateToolModelRead(read);

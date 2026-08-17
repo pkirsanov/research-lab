@@ -31,7 +31,9 @@
       "analyze",
       "bootstrap",
       "implement",
-      "test"
+      "test",
+      "regression",
+      "validate"
     ],
     "pendingTransitionRequests": [],
     "audit": {
@@ -94,6 +96,20 @@
   "transitionRequests": [],
   "reworkQueue": [],
   "executionHistory": [
+    {
+      "agent": "bubbles.implement",
+      "phasesExecuted": [
+        "implement",
+        "test",
+        "regression",
+        "validate"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-16T00:00:00Z",
+      "finishedAt": "2026-08-17T00:00:00Z",
+      "summary": "Delivered SCOPE-02..SCOPE-06: the causal owner UI (a408b5d8), the three consumer overlays with owner-verdict canaries (375d1cec), the Tier-A Brief read and validator gate (89f48a46), the outcome/correction ledger (a89b3d12), registration as the 28th tool with a real Simple model, adapter, journeys, notes and published brief graph (14d6966c), and the delivery/adversarial/Pages qualification suites (b308ff38). test: seven causal browser suites 33/33 with zero skips. regression: full browser suite 496 passed at exit 0, node suite 888/888, selftest 2455/0. validate: validate-causal-rotation 41 checks PASS and validate-brief-payload PASS. Only these four phases are claimed; simplify, gaps, harden, stabilize, security, audit, chaos and docs were NOT run as distinct phases and are deliberately left unclaimed."
+    },
     {
       "agent": "bubbles.analyst",
       "phasesExecuted": [
@@ -184,7 +200,7 @@
     ],
     "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
   },
-  "notes": "All six scopes are Done with executable evidence recorded in report.md. Execution and certification.completedScopes were reconciled on 2026-08-17 against real dated commits (a408b5d8, 375d1cec, 89f48a46, a89b3d12, 14d6966c); no phase claim was synthesized and certifiedCompletedPhases stays empty because promotion is owned by bubbles.validate, not by the implementing run.",
+  "notes": "All six scopes are Done with executable evidence recorded in report.md, and every checked DoD item carries an evidence pointer. Execution and certification.completedScopes were reconciled on 2026-08-17 against real dated commits (a408b5d8, 375d1cec, 89f48a46, a89b3d12, 14d6966c, b308ff38). Only phases actually executed are claimed: implement and test (the six scopes), regression (the full 496-test browser suite at exit 0, plus node 888/888 and selftest 2455/0) and validate (validate-causal-rotation 41 checks PASS and validate-brief-payload PASS). The spec deliberately stays in_progress rather than done because the full-delivery workflow additionally requires the simplify, gaps, harden, stabilize, security, audit and docs phases, and those have NOT been run as distinct phases in this session. Claiming them to clear Gate G022 would be fabrication; the remaining gap is workflow-phase execution, not build work.",
   "blockedReasonPriorToScope01Closure": "The owner-facing Causal Rotation Lab is unbuilt. SCOPE-02 (Causal Rotation Lab Simple/Power Owner UI) has never started, so `causal-rotation-lab.html` does not exist, `tools.json` carries zero causal entries, `rlnav.js` contains no causal reference, and the 49,953-byte SCOPE-01 foundation `rlcausal.js` is loaded by no HTML page — the spec's Success Signal that a user can see the catalyst timeline, affected exposure, transmission mechanism, regime dependence, and one explicit confirmation and invalidation condition has no surface to render on. Scope tally: 5 of 6 scopes are Not Started (SCOPE-02 owner UI, SCOPE-03 sector/global/real-assets consumer integration, SCOPE-04 Market Brief and Tier-A integration, SCOPE-05 outcome ledger/registry/documentation, SCOPE-06 comprehensive browser and adversarial validation) and SCOPE-01 is Blocked, so nothing downstream is eligible to start. Root-level `causal-rotation-ledger.jsonl` is 0 bytes while its two sibling SCOPE-01 contracts are populated (`causal-rotation.config.json` 7,348 bytes, `causal-rotation-observations.json` 34,975 bytes); because that ledger is append-only, written by the SCOPE-02 decision recorder and made queryable by SCOPE-05, its emptiness means no decision has ever been frozen — the capability is unbuilt rather than merely unrecorded. The blocker is not uniform: SCOPE-01's foundation is implemented with 10 of its 11 DoD items marked executed, and it is Blocked only on its final DoD item pending a clean `state-transition-guard.sh` run, recorded on 2026-07-12 as failing G060,G041,G022,G053,G028,G082,G093,G090 with missing repo-local workflow/session surfaces; that guard result predates later repo changes and must be re-run rather than assumed current.",
   "completedScopes": [
     "SCOPE-01",

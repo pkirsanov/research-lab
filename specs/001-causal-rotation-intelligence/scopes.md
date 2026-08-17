@@ -287,17 +287,17 @@ Shared helper changes require a separate explicit blast-radius amendment before 
 
 ### Definition of Done - SCOPE-02
 
-- [x] SCN-001-B01 - A sourced policy mechanism leads market confirmation: Discovery shows cause-emerging without action copy, with source age/window/confirmation/invalidation and an explanation of changed versus invariant gates.
-- [x] SCN-001-B02 - Fundamental evidence contradicts an oversold semiconductor rebound: Power shows contradiction before support, separates regime consequences, and does not label the move durable repair.
-- [x] SCN-001-B03 - A required chart input is unavailable and local decision storage fails: the UI replaces the chart with exact unavailable fields and keeps the decision as an unsaved exportable draft without a recorded announcement.
-- [x] Simple is the default; Power uses the exact same candidate evaluation and preserves all disagreements.
-- [x] Every scenario-specific Regression E2E test passes on desktop and mobile with a real served page and no evaluator mocks.
-- [x] Sensitivity changes only documented visibility/market gates and reports all invariant gates.
-- [x] Canvas pixel checks prove complete charts are nonblank and unavailable charts are not rendered as invented continuity.
-- [x] Keyboard, focus, labels, fallback text, text-equivalent stage/freshness, and bounded `aria-live` behavior pass.
-- [x] Local decisions are append-only, imports are atomic, failures remain unsaved, and private/credential fields are rejected.
-- [x] RLDATA/RLAPP canaries pass and no excluded shared or consumer file changes.
-- [x] SCOPE-02 is marked Done only after executable evidence is recorded; only then may SCOPE-03 start.
+- [x] SCN-001-B01 - A sourced policy mechanism leads market confirmation: Discovery shows cause-emerging without action copy, with source age/window/confirmation/invalidation and an explanation of changed versus invariant gates. → Evidence: [report.md](report.md) — browser `Regression: A sourced policy mechanism leads market confirmation` in `tests/causal-rotation-lab.spec.mjs`, green in the 496-passing suite.
+- [x] SCN-001-B02 - Fundamental evidence contradicts an oversold semiconductor rebound: Power shows contradiction before support, separates regime consequences, and does not label the move durable repair. → Evidence: [report.md](report.md) — browser `Regression: Fundamental evidence contradicts an oversold semiconductor rebound`, which asserts contradiction ordering and the absence of durable-repair copy.
+- [x] SCN-001-B03 - A required chart input is unavailable and local decision storage fails: the UI replaces the chart with exact unavailable fields and keeps the decision as an unsaved exportable draft without a recorded announcement. → Evidence: [report.md](report.md) — browser `Regression: A required chart input is unavailable and local decision storage fails`.
+- [x] Simple is the default; Power uses the exact same candidate evaluation and preserves all disagreements. → Evidence: [report.md](report.md) — selftest `causal Simple and Power projections use the same evaluated candidate identity`; the browser suite asserts Simple is the default view and Power names the same candidate.
+- [x] Every scenario-specific Regression E2E test passes on desktop and mobile with a real served page and no evaluator mocks. → Evidence: [report.md](report.md) — `tests/causal-rotation-lab.spec.mjs` runs each scenario at 1280×900 and 390×844 over live HTTP; no `page.route` interception exists in any causal suite.
+- [x] Sensitivity changes only documented visibility/market gates and reports all invariant gates. → Evidence: [report.md](report.md) — `explainSensitivity` coverage in the `rlcausal.js` selftest group plus `Regression: posture and sleeve controls rerender without causal or market network requests`.
+- [x] Canvas pixel checks prove complete charts are nonblank and unavailable charts are not rendered as invented continuity. → Evidence: [report.md](report.md) — the chart-projection rule requires ALL required evidence classes before drawing; `Regression: A required chart input is unavailable...` proves the unavailable branch renders no invented line.
+- [x] Keyboard, focus, labels, fallback text, text-equivalent stage/freshness, and bounded `aria-live` behavior pass. → Evidence: [report.md](report.md) — `Regression: causal controls clocks timeline and charts remain keyboard and screen-reader operable`, plus the SCOPE-06 accessibility test asserting an accessible name on every visible control and a text equivalent for every canvas.
+- [x] Local decisions are append-only, imports are atomic, failures remain unsaved, and private/credential fields are rejected. → Evidence: [report.md](report.md) — `Regression: a decisions import is all-or-nothing and never lands partially` and `Regression: a private or credential field refuses the whole note and records nothing`.
+- [x] RLDATA/RLAPP canaries pass and no excluded shared or consumer file changes. → Evidence: [report.md](report.md) — `Regression: the causal owner leaves the shared RLDATA market cache and RLAPP status untouched`, plus selftest `causal full delivery preserves RLDATA RLAPP registry Tier-A and owner verdict contracts`.
+- [x] SCOPE-02 is marked Done only after executable evidence is recorded; only then may SCOPE-03 start. → Evidence: [report.md](report.md) — recorded at commit `a408b5d8`; re-verified in the current 496-passing browser suite and 2455-passing selftest.
 
 ### Uncertainty Declaration - SCOPE-02
 
@@ -410,17 +410,17 @@ every owner edit is an additive call into the read-only bridge.
 
 ### Definition of Done - SCOPE-03
 
-- [x] SCN-001-C01 - Sector acceleration remains visible while cause is unverified: causal context is separate and Sector RRG state, ranking, entry timing, and rotation verdict remain unchanged.
-- [x] SCN-001-C02 - A country causal read disagrees with its market model: contradicted/regime-fragile context is separate and Global momentum, trend, FX, risk, and allocation order remain unchanged.
-- [x] SCN-001-C03 - Energy equities strengthen while the underlying proxy remains weak: divergence/limitations remain visible, inventory/curve causes remain unavailable, and the Real Assets model output remains unchanged.
-- [x] All three tools emit valid timing reads with explicit `asOf`, `freshUntil`, owner, limitations, and deep links.
-- [x] Owner metrics, rankings, steering controls, and verdicts are byte-equivalent under the same recorded inputs before and after integration.
-- [x] Every consumer Regression E2E test passes on desktop and mobile over live HTTP with no owner-model mocks.
-- [x] Missing/stale/unknown causal input cannot blank, alter, or relabel an owner computation.
-- [x] Consumer/deep-link/stale-reference sweep reports zero obsolete first-party references.
-- [x] Shared canaries and full existing selftest pass with no skips.
-- [x] The Change Boundary is respected; no Market Brief, registry, or unrelated model changes occur.
-- [x] SCOPE-03 is marked Done only after executable evidence is recorded; only then may SCOPE-04 start.
+- [x] SCN-001-C01 - Sector acceleration remains visible while cause is unverified: causal context is separate and Sector RRG state, ranking, entry timing, and rotation verdict remain unchanged. → Evidence: [report.md](report.md) — browser `Regression: Sector acceleration remains visible while cause is unverified` plus selftest `shared canary: Sector owner verdict is unchanged by causal projection`, which compares the owner's own published read with the causal bridge enabled and disabled.
+- [x] SCN-001-C02 - A country causal read disagrees with its market model: contradicted/regime-fragile context is separate and Global momentum, trend, FX, risk, and allocation order remain unchanged. → Evidence: [report.md](report.md) — browser `Regression: A country causal read disagrees with its market model` plus `shared canary: Global owner order is unchanged by causal projection`.
+- [x] SCN-001-C03 - Energy equities strengthen while the underlying proxy remains weak: divergence/limitations remain visible, inventory/curve causes remain unavailable, and the Real Assets model output remains unchanged. → Evidence: [report.md](report.md) — browser `Regression: Energy equities strengthen while the underlying proxy remains weak` plus `shared canary: Real Assets driver verdict is unchanged by causal projection`.
+- [x] All three tools emit valid timing reads with explicit `asOf`, `freshUntil`, owner, limitations, and deep links. → Evidence: [report.md](report.md) — `validate-causal-rotation.mjs` check `timing adapters emit current versioned reads with owner freshness and limitations`, which also proves an incomplete read is refused.
+- [x] Owner metrics, rankings, steering controls, and verdicts are byte-equivalent under the same recorded inputs before and after integration. → Evidence: [report.md](report.md) — the three owner canaries compare the owner's published tool read byte-for-byte with the bridge disabled; an adversarial leak conditional on the bridge was verified to make them fail.
+- [x] Every consumer Regression E2E test passes on desktop and mobile over live HTTP with no owner-model mocks. → Evidence: [report.md](report.md) — `tests/causal-rotation-consumers.spec.mjs` 5/5 over live HTTP; the only `page.route` use is the deliberate causal-disable arm, never an owner-model mock.
+- [x] Missing/stale/unknown causal input cannot blank, alter, or relabel an owner computation. → Evidence: [report.md](report.md) — `Regression: consumers reject unknown causal versions while owner models remain usable`.
+- [x] Consumer/deep-link/stale-reference sweep reports zero obsolete first-party references. → Evidence: [report.md](report.md) — repo-wide sweep for `causal-rotation-lab`, `causal-rotation.snapshot` and `causal-tool-read/v1` returns only expected surfaces.
+- [x] Shared canaries and full existing selftest pass with no skips. → Evidence: [report.md](report.md) — selftest 2455 passed / 0 failed, zero skip markers (asserted by the SCOPE-06 no-skipped-groups check).
+- [x] The Change Boundary is respected; no Market Brief, registry, or unrelated model changes occur. → Evidence: [report.md](report.md) — SCOPE-03 landed at commit `375d1cec`, touching only the three owner pages, `rlcausalconsumer.js` and the selftest canaries.
+- [x] SCOPE-03 is marked Done only after executable evidence is recorded; only then may SCOPE-04 start. → Evidence: [report.md](report.md) — recorded at commit `375d1cec`; re-verified in the current 496-passing browser suite.
 
 ### Uncertainty Declaration - SCOPE-03
 
@@ -524,17 +524,17 @@ Scenario: Headless causal validation fails while other Brief tools remain valid
 
 ### Definition of Done - SCOPE-04
 
-- [x] SCN-001-D01 - A valid early candidate does not change the next-session plan: it receives a specific coverage-only reason and consumes no Market Brief action or attention slot.
-- [x] SCN-001-D02 - Causal evidence and market reactions share one origin: linked reactions add no independent reason key and cannot qualify as independent confirmation.
-- [x] SCN-001-D03 - Headless causal validation fails while other Brief tools remain valid: causal output is unavailable without stage/relevance and unrelated Tier-A/Brief output remains usable.
-- [x] Tier A uses production foundation functions and committed source-recorded inputs; no duplicate causal evaluator exists.
-- [x] Repeated refreshes are deterministic and invalid causal input yields unavailable without a stage or plan relevance.
-- [x] Every causal Brief item has cause, stage, evidence as-of, regime, confirmation, invalidation, owner deep link, and independent reason keys.
-- [x] Coverage-only and invalid/stale candidates consume zero action/attention slots in named Regression E2E tests.
-- [x] Non-causal Tier-A reads and existing Brief decisions pass independent before/after canaries.
-- [x] `node scripts/selftest.mjs`, `node scripts/validate-causal-rotation.mjs`, and `node scripts/validate-brief-payload.mjs` pass with no skips.
-- [x] The Change Boundary is respected and no registry/public-link changes occur yet.
-- [x] SCOPE-04 is marked Done only after executable evidence is recorded; only then may SCOPE-05 start.
+- [x] SCN-001-D01 - A valid early candidate does not change the next-session plan: it receives a specific coverage-only reason and consumes no Market Brief action or attention slot. → Evidence: [report.md](report.md) — selftest `brief causal gate keeps plan-irrelevant cause-emerging reads coverage-only`, plus the SCOPE-06 validator assertion `Market Brief causal coverage and elevation satisfy low-noise independence policy` measuring `coverageRows=1 elevated=false planEligible=false`.
+- [x] SCN-001-D02 - Causal evidence and market reactions share one origin: linked reactions add no independent reason key and cannot qualify as independent confirmation. → Evidence: [report.md](report.md) — selftest `brief causal gate rejects duplicate reason keys from one catalyst origin` and browser `Regression: Causal evidence and market reactions share one origin`.
+- [x] SCN-001-D03 - Headless causal validation fails while other Brief tools remain valid: causal output is unavailable without stage/relevance and unrelated Tier-A/Brief output remains usable. → Evidence: [report.md](report.md) — selftest `brief causal adapter isolates invalid contracts as unavailable without dropping other reads`; the measured invalid run yields health=unavailable, stage=null, snapshot=null, detail=`CR-SCHEMA-INVALID $.contractVersion`.
+- [x] Tier A uses production foundation functions and committed source-recorded inputs; no duplicate causal evaluator exists. → Evidence: [report.md](report.md) — `scripts/brief-refresh.mjs` requires `../rlcausal.js` and reads `globalThis.RLCausal`; the SCOPE-06 delivery test asserts the Brief read equals the owner snapshot field-for-field rather than a recomputed copy.
+- [x] Repeated refreshes are deterministic and invalid causal input yields unavailable without a stage or plan relevance. → Evidence: [report.md](report.md) — selftest `Tier-A causal refresh is byte-deterministic over the same committed inputs`, plus `the isolation detector refuses a stage or snapshot on invalid causal input`.
+- [x] Every causal Brief item has cause, stage, evidence as-of, regime, confirmation, invalidation, owner deep link, and independent reason keys. → Evidence: [report.md](report.md) — the causal gate in `scripts/validate-brief-payload.mjs` requires each field and rejects duplicated reason keys; browser `Regression: live Tier-A snapshot exposes one valid or explicitly unavailable causal tool read` asserts the same shape.
+- [x] Coverage-only and invalid/stale candidates consume zero action/attention slots in named Regression E2E tests. → Evidence: [report.md](report.md) — `tests/causal-rotation-brief.spec.mjs` 4/4, and the low-noise validator assertion measures `elevated=false`.
+- [x] Non-causal Tier-A reads and existing Brief decisions pass independent before/after canaries. → Evidence: [report.md](report.md) — selftest `shared canary: Tier-A non-causal tool reads are unchanged by causal refresh` and `shared canary: Brief registry coverage remains one row per registered tool`.
+- [x] `node scripts/selftest.mjs`, `node scripts/validate-causal-rotation.mjs`, and `node scripts/validate-brief-payload.mjs` pass with no skips. → Evidence: [report.md](report.md) — 2455/0, 41 checks PASS, and PASS respectively, all exit 0.
+- [x] The Change Boundary is respected and no registry/public-link changes occur yet. → Evidence: [report.md](report.md) — SCOPE-04 landed at commit `89f48a46`; registration was deliberately deferred to SCOPE-05 and the page remained in `site-exclusions.json` until then.
+- [x] SCOPE-04 is marked Done only after executable evidence is recorded; only then may SCOPE-05 start. → Evidence: [report.md](report.md) — recorded at commit `89f48a46`; re-verified in the current 496-passing browser suite.
 
 ### Uncertainty Declaration - SCOPE-04
 

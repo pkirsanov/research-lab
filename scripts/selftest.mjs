@@ -11036,6 +11036,37 @@ try {
     && DEPERSONALIZED_NO_NOTES.indexOf('ghost-tool') < 0,
     'the registry resolver treats a non-existent page, a missing declared notes file, and an undeclared new tool as unresolved');
 
+  /* --- canary 1b: the two human entry points stay in step with the registry ---
+     A tool can be fully registered, navigable and tested and still be invisible to a reader,
+     because README.md and notes/README.md are hand-maintained tables. That drift is silent:
+     nothing else in the suite reads them. This canary makes a registered tool that no reader
+     can find from either index a failure. The de-personalisation commit deliberately removed
+     three place-based rows from the README, so that removal is recorded as a closed set —
+     an intentional privacy decision must not be re-broken by a later "fix the docs" pass. */
+  const readme5 = readFileSync(join(ROOT, 'README.md'), 'utf8');
+  const notesIndex5 = readFileSync(join(ROOT, 'notes', 'README.md'), 'utf8');
+  const DEPERSONALIZED_NO_README = ['waterfront-polo-lab', 'palm-springs-rental-market-lab', 'ocean-shores-rental-market-lab'];
+  const missingReadme5 = [];
+  const missingNotesIndex5 = [];
+  reg5.tools.forEach((tool) => {
+    /* market-brief is the cockpit, linked from the brand rather than listed as a tool row. */
+    if (tool.id === 'market-brief') return;
+    if (readme5.indexOf(tool.file) < 0 && DEPERSONALIZED_NO_README.indexOf(tool.id) < 0) missingReadme5.push(tool.id);
+    if (tool.notes && notesIndex5.indexOf(tool.notes.replace('notes/', '')) < 0) missingNotesIndex5.push(tool.id);
+  });
+  const stillOffReadme5 = DEPERSONALIZED_NO_README.filter((id) => readme5.indexOf(id) < 0);
+  assert(missingReadme5.length === 0 && missingNotesIndex5.length === 0
+    && stillOffReadme5.length === DEPERSONALIZED_NO_README.length,
+    'shared canary: every registered tool is reachable from the README and the notes index');
+
+  /* ADVERSARIAL: the same reader-reachability check must reject a tool that is absent from
+     either index, and must NOT accept a de-personalised page being quietly re-listed —
+     otherwise it would pass both for a tool no reader can find and for a privacy reversal. */
+  assert(readme5.indexOf('ghost-tool.html') < 0 && notesIndex5.indexOf('ghost-tool.md') < 0
+    && DEPERSONALIZED_NO_README.indexOf('ghost-tool') < 0
+    && DEPERSONALIZED_NO_README.every((id) => readme5.indexOf(id) < 0),
+    'the reader-reachability check treats an unlisted tool as missing and keeps the de-personalised pages off the README');
+
   /* --- canary 2: shared nav renders each registered tool exactly once --- */
   const navDuplicates5 = [];
   reg5.tools.forEach((tool) => {

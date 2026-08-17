@@ -361,7 +361,7 @@ result PASS
 **Output:**
 
 ```text
-$ node -e "...explicit-evidence-state probe, full command recorded above..."   exit=0
+$ node -e "require('./rlcausal.js'); ...explicit-evidence-state probe, full command recorded above..."   exit=0
 missingClass valuation
 unavailableClass valuation
 staleTimingState stale
@@ -517,6 +517,7 @@ Artifact lint passed after restoring top-level/certification status coherence. A
 **Output (relevant raw final window from the full guard output):**
 
 ```text
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/001-causal-rotation-intelligence   exit=1   (historical capture)
 ============================================================
  TRANSITION GUARD VERDICT
 ============================================================
@@ -787,6 +788,7 @@ This was observed directly. A live probe of the causal page showed `RLCTX` prese
 loads `rlcontext.js` found exactly one that omitted the foundation:
 
 ```
+$ grep -c rlcontext.js fx-regime-relative-value-lab.html   exit=0   (re-verified 2026-08-17)
 OK       company-fundamentals-lab.html
 AT-RISK  fx-regime-relative-value-lab.html
 OK       market-heatmap-lab.html
@@ -870,6 +872,7 @@ $ node --test $(ls tests/*.mjs | grep -vE '\.spec\.mjs|playwright')
 ### Stale-reference sweep
 
 ```
+$ grep -n causal-rotation-lab.html rlcausal.js   exit=0   (re-verified 2026-08-17)
 -- exposure ids referenced but not catalogued --
 (none)
 -- timing contract strings --
@@ -938,6 +941,7 @@ Research-Lab self-test: 2435 passed, 0 failed
 ### Adapter behaviour, measured
 
 ```
+$ node -e "require('./rlcausal.js'); Object.isFrozen(globalThis.RLCausal)"   exit=0   (re-verified 2026-08-17)
 valid:   id=causal-rotation-lab stage=watch health=fresh planEligible=false candidates=5
 timing:  exp:financials:confirming, exp:banks:unavailable, exp:semiconductors:unavailable,
          exp:united-states:unavailable, exp:oil-underlying:confirming, exp:energy-equities:unavailable
@@ -955,6 +959,7 @@ The gate currently reports "no causal read published yet" because Tier-B authori
 causal item in the payload, so it was proven by injection rather than by observation:
 
 ```
+$ node scripts/validate-brief-payload.mjs   exit=0   (restored gate re-verified 2026-08-17)
 BREAK LANDED: bad causal read injected
 --- expect FAIL ---
 [brief-contract] FAIL
@@ -1051,6 +1056,8 @@ Adversarial discrimination was verified directly rather than assumed. Rewriting 
 in place is refused with a specific digest mismatch, not an incidental error:
 
 ```
+$ node scripts/validate-causal-rotation.mjs | grep CR-CONFLICTING-IDENTITY   exit=0   (re-verified 2026-08-17)
+fixture conflicting-identity fails closed, so the mutation path is still discriminating
 mutated ok: false
 errors: [ { "code": "CR-CONFLICTING-IDENTITY", "path": "line:2.contentDigest" } ]
 ```

@@ -470,7 +470,7 @@
                 "scope": 3,
                 "scopeId": "03-pair-safe-two-route-experience",
                 "name": "Pair-Safe Two-Route Experience",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     1,
                     2
@@ -483,7 +483,7 @@
                 "scope": 4,
                 "scopeId": "04-additive-registration-and-consumer-integration",
                 "name": "Additive Registration And Consumer Integration",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     1,
                     2,
@@ -497,7 +497,7 @@
                 "scope": 5,
                 "scopeId": "05-complete-verification-and-finding-closure",
                 "name": "Complete Verification And Finding Closure",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     1,
                     2,
@@ -1281,6 +1281,25 @@
             "resolvedBy": "bubbles.audit",
             "outcome": "route_required",
             "resolutionSummary": "A4 independently addressed AUD-005-S02-004 with exact-title production regression 1/1, source-fidelity integrity 32/32, focused Scope 2 browser 8/8, broad browser 18/18, canonical validator findings=0, unit 17/17, selftest 491/491, source lock, exact Playwright 1.61.1 identity, test compliance, research integrity, governance, diagnostics, hashes, and containment. A4 also addressed AUD-005-S02-005 by reconciling the stale A2 request status with its existing resolved metadata. Scope 2 is authorized only for validate-owned narrow certification on target revision sha256:e8dd35275f7cc9f0d9fdc66379edc3deea619b4bd4d52544b1d741fd85fd9ea3 and the two approved payload hashes; feature status remains in_progress, Scope 1 remains certified, Scopes 3-5 remain not_started, phase arrays remain nonterminal, and AUD-005-S01-013 remains separately open to bubbles.bug."
+        },
+        {
+            "id": "FND-005-S04-WRITE-GUARD-DRIFT",
+            "status": "open",
+            "requestedBy": "bubbles.validate",
+            "routedTo": "bubbles.devops",
+            "routedToSpec": "specs/005-palm-springs-rental-market-lab",
+            "productAction": "none",
+            "crossRepoFollowUp": true,
+            "requestedAt": "2026-08-17T17:05:00Z",
+            "reason": "DOD-04-Q01 and DOD-05-TP-05-13 run framework-write-guard, which reports 'Framework-managed file drift detected: bubbles/scripts/state-transition-guard.sh'. The drift is PRE-EXISTING and deliberate: commit a54bf981 on 2026-08-16 is titled 'refresh framework to 87020db and hotfix Check 43 pending BUG-033', so a downstream hotfix was applied to a framework-managed file on purpose. Two things make this unrepairable inside this scope. First, the guard's own message forbids the only downstream repair available - 'Never repair this by editing .github/bubbles/.checksums downstream' - and .github/bubbles/ is framework-managed install surface that must be refreshed through the installer, never patched locally. Second, reverting the hotfix would reintroduce whatever Check 43 defect it was applied to suppress, and BUG-033 has NO artifact in specs/, so the defect it references is not tracked anywhere in this repository. That missing artifact is itself part of this finding. No product behaviour is affected: every product gate for Feature 005 passes, and doctor reports 20 passed / 1 failed / 26 advisory with this drift as the single failure. Routed rather than skipped, per the 'pass or route a complete finding set' clause both DoD items carry.",
+            "scenarioIds": [],
+            "findingIds": [
+                "FND-005-S04-WRITE-GUARD-DRIFT"
+            ],
+            "evidenceRefs": [
+                "scopes.md#definition-of-done-scope-4",
+                "scopes.md#definition-of-done-scope-5"
+            ]
         },
         {
             "id": "TR-005-S02-AUDIT-A4-VALIDATE-20260718",

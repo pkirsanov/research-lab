@@ -1,5 +1,5 @@
 import { test, expect } from './playwright-runtime.mjs';
-import { createReadStream, existsSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { dirname, extname, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -842,4 +842,71 @@ test('Redesign: Simple is a lean cockpit — model + sliders in Simple, deep-div
   await page.locator('#rlviews button[data-rlview-mode="power"]').click();
   await expect(page.locator('#researchAudit')).toBeVisible();
   await expect(page.locator('#modelReceipt')).toBeVisible();
+});
+
+test('Regression: SCN-005-018 both registered owner reads preserve truth omissions and owning links', async ({ page }) => {
+  /* Registration order is asserted across all three registries because a consumer that
+     reads them in different orders would present the two markets inconsistently. */
+  const registry = JSON.parse(readFileSync(resolve(ROOT, 'tools.json'), 'utf8'));
+  const registryIds = registry.tools.map((tool) => tool.id);
+  const palmRegistryIndex = registryIds.indexOf('palm-springs-rental-market-lab');
+  const oceanRegistryIndex = registryIds.indexOf('ocean-shores-rental-market-lab');
+  expect(palmRegistryIndex).toBeGreaterThan(-1);
+  expect(oceanRegistryIndex).toBeGreaterThan(-1);
+  expect(palmRegistryIndex).toBeLessThan(oceanRegistryIndex);
+
+  for (const registryFile of ['index.html', 'rlnav.js']) {
+    const text = readFileSync(resolve(ROOT, registryFile), 'utf8');
+    const palmAt = text.indexOf('palm-springs-rental-market-lab.html');
+    const oceanAt = text.indexOf('ocean-shores-rental-market-lab.html');
+    expect(palmAt, `${registryFile} lists the Palm route`).toBeGreaterThan(-1);
+    expect(oceanAt, `${registryFile} lists the Ocean route`).toBeGreaterThan(-1);
+    expect(palmAt, `${registryFile} keeps Palm before Ocean`).toBeLessThan(oceanAt);
+  }
+
+  /* Each route must publish its OWN read: same shape, own pair, own owning link. A read
+     that carried the sibling's pair or link would be the cross-market leak this forbids. */
+  const observed = [];
+  for (const route of [
+    { file: 'palm-springs-rental-market-lab.html', marketId: 'palm-springs-ca' },
+    { file: 'ocean-shores-rental-market-lab.html', marketId: 'ocean-shores-wa' }
+  ]) {
+    await loadScope3Route(page, route.file, `?fixture=current&clock=${CLOCK}`);
+    const diagnostics = await page.evaluate(() => window.__PBRM_DIAGNOSTICS__);
+    const ownerRead = diagnostics.ownerRead;
+    expect(ownerRead, `${route.file} publishes an owner read`).toBeTruthy();
+
+    expect(['current', 'stale', 'unavailable', 'incomplete', 'sparse']).toContain(ownerRead.availability);
+    expect(ownerRead.deepLink, `${route.file} owning link`).toContain(route.file);
+    expect(ownerRead.metrics).toBeTruthy();
+    expect(Array.isArray(ownerRead.metrics.omittedMetrics)).toBe(true);
+
+    const receipt = await page.locator('#ownerReadReceipt').textContent();
+    /* This receipt is newline-delimited, unlike the pipe-delimited audit lines receiptField parses. */
+    const receiptValue = (field) => {
+      const line = (receipt || '').split('\n').map((entry) => entry.trim()).find((entry) => entry.startsWith(`${field}=`));
+      return line ? line.slice(field.length + 1).trim() : null;
+    };
+    expect(receiptValue('pair')).toContain(route.marketId);
+    expect(receiptValue('state')).toBe(ownerRead.availability.toUpperCase());
+    /* The receipt's omitted list and the published read must agree, otherwise the surface
+       and the consumer would disagree about which metrics were withheld. */
+    const receiptOmitted = (receiptValue('omitted') || '').split(',').map((entry) => entry.trim()).filter(Boolean).sort();
+    expect(receiptOmitted).toEqual([...ownerRead.metrics.omittedMetrics].sort());
+
+    /* Owning link only: the read carries a pointer, never a copy of the research corpus
+       or the equations, so the Brief cannot become a second source of rental authority. */
+    const readKeys = Object.keys(ownerRead).sort();
+    for (const forbidden of ['sources', 'observations', 'payload', 'formula', 'equations', 'research']) {
+      expect(readKeys, `owner read must not carry ${forbidden}`).not.toContain(forbidden);
+    }
+
+    observed.push({ market: route.marketId, availability: ownerRead.availability, deepLink: ownerRead.deepLink, omitted: ownerRead.metrics.omittedMetrics.length });
+    console.log(`[SCN-005-018] ${route.marketId} state=${ownerRead.availability.toUpperCase()} omitted=${ownerRead.metrics.omittedMetrics.length} link=${ownerRead.deepLink}`);
+  }
+
+  expect(observed).toHaveLength(2);
+  expect(observed[0].deepLink).not.toBe(observed[1].deepLink);
+  console.log('[SCN-005-018] registryOrder=palm-before-ocean in tools.json, index.html, rlnav.js');
+  console.log('[SCN-005-018] distinctOwningLinks=true copiedResearchOrEquations=false');
 });

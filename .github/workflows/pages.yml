@@ -45,6 +45,9 @@ jobs:
           exit 1
         fi
 
+    - name: Build registered Pages artifact for browser verification
+      run: node scripts/build-pages-site.mjs
+
     # Every Playwright spec is part of the deploy gate. The previously flaky options-flow ordering
     # regression is explicitly synchronized on the shipped rlviews:change signal and passes repeated
     # parallel execution; no external-provider availability is accepted as a reason to publish a

@@ -58,6 +58,22 @@
       "refs": ["https://www.ishares.com/us/products/239710/"]
     },
     {
+      "pairId": "EFA/ACWI",
+      "numerator": "EFA",
+      "denominator": "ACWI",
+      "lookbackBars": 126,
+      "semanticClass": "global",
+      "ratioFamilyId": "intl-vs-global",
+      "directionConvention": "rising favours developed-ex-US leadership over the all-country benchmark",
+      "provenanceCaveat": "both legs are USD-denominated wrappers, so the ratio carries residual FX translation rather than pure local-market relative strength",
+      "refs": {
+        "adjustmentRef": { "numeratorAdjustment": "total-return", "denominatorAdjustment": "total-return" },
+        "currencyRef": { "numerator": "USD", "denominator": "USD" },
+        "sessionRef": { "numerator": "US", "denominator": "US" },
+        "calendarRef": { "numerator": "NYSE", "denominator": "NYSE" }
+      }
+    },
+    {
       "pairId": "EFA/SPY",
       "numerator": "EFA",
       "denominator": "SPY",

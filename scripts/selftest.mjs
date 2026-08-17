@@ -11678,14 +11678,8 @@ const FACET_SOURCE_PAGES_DECLARED = [
    than a closed vocabulary, so no lossless-or-declared-lossy mapping exists for them yet;
    inventing thresholds to manufacture one would fabricate a reading the tool does not make.
    The pending list is asserted below so a source cannot be quietly dropped from the nine. */
-const FACET_SOURCE_PAGES = [
-  'bond-regime-lab.html', 'volatility-sizing-lab.html',
-  'gamma-trading-lab.html', 'options-structure-lab.html',
-  'market-heatmap-lab.html', 'trend-dynamics-cycle-lab.html'
-];
-const FACET_SOURCE_PAGES_PENDING = [
-  'sector-research-lab.html', 'real-assets-lab.html', 'global-rotation-lab.html'
-];
+const FACET_SOURCE_PAGES = FACET_SOURCE_PAGES_DECLARED.slice();
+const FACET_SOURCE_PAGES_PENDING = [];
 
 function extractBalanced(source, startMarker, open, close) {
   const start = source.indexOf(startMarker);
@@ -11792,6 +11786,26 @@ try {
     'bond publishes credit, curve, and duration-posture as three separately identifiable facets and volatility publishes strictly volatility-magnitude');
 
   const ratioPages = ['real-assets-lab.html', 'global-rotation-lab.html'];
+  let ratioOk = true;
+  ratioPages.forEach((page) => {
+    const shim = shims.find((entry) => entry.page === page);
+    if (!shim || shim.sources === null) { ratioOk = false; return; }
+    if (!/rlratio\.js/.test(shim.source)) ratioOk = false;
+    if (!shim.sources.some((source) => source.kind === 'ratio-derived')) ratioOk = false;
+  });
+  const realAssets = shims.find((entry) => entry.page === 'real-assets-lab.html');
+  const proxyCaveat = realAssets && realAssets.sources !== null
+    && realAssets.sources.some((source) => /proxy/i.test(source.coverageNote || ''));
+  const globalRotation = shims.find((entry) => entry.page === 'global-rotation-lab.html');
+  /* A pair that fails the comparability predicate must reach a declared reason, never a
+     number: an incomparable ratio is not a flat one. */
+  const notComparable = globalRotation && globalRotation.sources !== null
+    && globalRotation.sources.some((source) => Object.keys(source.unavailableFor || {})
+      .some((key) => /NOT_COMPARABLE/.test(source.unavailableFor[key])));
+
+  assert(ratioOk && proxyCaveat && notComparable,
+    'ratio-derived sources consume RLRATIO, propagate the proxy caveat, and emit not-comparable where the predicate fails');
+
   /* Every declared source is either delivered or explicitly pending, so a source cannot
      leave the set of nine without failing here. */
   const accountedFor = FACET_SOURCE_PAGES.concat(FACET_SOURCE_PAGES_PENDING).slice().sort();
@@ -11799,7 +11813,6 @@ try {
     .every((page) => loadFacetShim(page).sources === null);
 
   assert(JSON.stringify(accountedFor) === JSON.stringify(FACET_SOURCE_PAGES_DECLARED.slice().sort())
-    && ratioPages.every((page) => FACET_SOURCE_PAGES_PENDING.includes(page))
     && pendingHaveNoShim,
     'every declared facet source is either a delivered shim or an explicitly pending one');
 

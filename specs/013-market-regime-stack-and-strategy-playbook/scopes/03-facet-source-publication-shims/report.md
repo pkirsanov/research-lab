@@ -2,10 +2,10 @@
 
 ## Summary
 
-SCOPE-3 delivers the publication-only facet contract and six of the nine Tier 1
-shims, covered by nine assertions in the `regime-primitives` and
+SCOPE-3 delivers the publication-only facet contract and ALL NINE Tier 1 shims,
+covered by ten assertions in the `regime-primitives` and
 `regime-primitives-stress` groups of the concrete test file `scripts/selftest.mjs`.
-The suite moved from 2477 to 2486 passing, 0 failed.
+The suite moved from 2477 to 2487 passing, 0 failed.
 
 The harness executes the SHIPPED shim rather than a reimplementation: it extracts
 each page's `publishRegimeFacets`, evaluates it, and validates every reading
@@ -14,10 +14,13 @@ through `RLREGIME.validateFacet`.
 Delivered shims: `bond-regime-lab.html` (credit, curve, duration-posture),
 `volatility-sizing-lab.html` (volatility-magnitude), `gamma-trading-lab.html` and
 `options-structure-lab.html` (positioning-context), `market-heatmap-lab.html`
-(breadth-participation), `trend-dynamics-cycle-lab.html` (trend-structure).
+(breadth-participation), `trend-dynamics-cycle-lab.html` (trend-structure),
+`real-assets-lab.html` and `global-rotation-lab.html` (ratio-derived via RLRATIO),
+`sector-research-lab.html` (trend-structure).
 
-Pending: `sector-research-lab.html`, `real-assets-lab.html`,
-`global-rotation-lab.html` — recorded under TP-03-04 below and machine-enforced.
+The pending set is empty; `every declared facet source is either a delivered shim
+or an explicitly pending one` now asserts the delivered set equals the declared
+nine.
 
 Every row below was executed with `node scripts/selftest.mjs` against the
 concrete test file `scripts/selftest.mjs` in this session.
@@ -78,25 +81,29 @@ score. Volatility declares exactly 1 source of kind `volatility-magnitude`.
 
 #### TP-03-04
 
-**Executed:** NO — the two ratio sources are not yet delivered.
+**Executed:** YES
 **Command:** `node scripts/selftest.mjs` (concrete test file `scripts/selftest.mjs`, group `regime-primitives`)
-
-`real-assets-lab.html` and `global-rotation-lab.html` classify by continuous 0-100
-relative-strength scores and leader rankings rather than a closed vocabulary, and
-neither page loads `rlratio.js` today. Delivering this row means wiring `RLRATIO`
-into both pages and deriving the facet from ratio readings over declared pairs.
-Inventing score thresholds to manufacture a `leading`/`in-line`/`lagging` band
-would fabricate a reading those tools do not make.
-
-The gap is machine-enforced rather than hidden — the delivered and pending sets
-are asserted against the full nine:
+**Exit Code:** 0
 
 ```
-  ✓ every declared facet source is either a delivered shim or an explicitly pending one
-Research-Lab self-test: 2486 passed, 0 failed
+  ✓ ratio-derived sources consume RLRATIO, propagate the proxy caveat, and emit not-comparable where the predicate fails
+Research-Lab self-test: 2487 passed, 0 failed
 ```
 
-**Result:** PENDING — named, enforced, not deferred silently.
+Both ratio pages now load `rlratio.js` and declare a `ratio-derived` facet.
+`real-assets-lab` reads the declared `gold/silver` (GLD/SLV) pair and carries the
+directional-proxy caveat on its `coverageNote`. `global-rotation-lab` reads a
+newly declared `EFA/ACWI` pair — both legs verified present in that page's own
+universe rather than assumed — and routes a failed comparability predicate to
+`NOT_COMPARABLE` rather than to a number, because an incomparable ratio is not a
+flat one.
+
+RLRATIO owns the ratio math and the comparability predicate; each page only bands
+the trailing change, and that band is declared and versioned on the source rather
+than inferred. Consumption sits at the call site, not inside
+`publishRegimeFacets`, so the mapper stays byte-identical across all nine pages.
+
+**Result:** PASSED
 
 #### TP-03-05
 
@@ -211,29 +218,31 @@ the `rldata.js → RLFX → rldata.js` cycle BP-1 forbids.
 
 ## Completion Statement
 
-SCOPE-3 is **In Progress**, not Done. 12 of 17 Definition of Done items are
-checked with per-item evidence; 5 are held open with named blockers.
+SCOPE-3 is **In Progress**, not Done. 14 of 17 Definition of Done items are
+checked with per-item evidence; 3 are held open with named blockers.
 
-Delivered: the publication-only facet contract and six of nine Tier 1 shims,
-covered by nine assertions in `scripts/selftest.mjs`. TP-03-01, 02, 03, 05, 06,
-07, 09 and 10 executed and passed, including the TP-03-06 adversarial RED-bite
+Delivered: the publication-only facet contract and ALL NINE Tier 1 shims, covered
+by ten assertions in `scripts/selftest.mjs`. TP-03-01 through TP-03-07, TP-03-09
+and TP-03-10 executed and passed, including the TP-03-06 adversarial RED-bite
 where the real Tier 2 import was introduced and verified to fail the named
 assertion.
 
+A correction to an earlier reading of my own: I first recorded `sector-research-lab`
+as having no closed classification, because its published metrics carry only
+sector ids and its `tempo`/`confirmation` are user controls. That was an
+incomplete read. The page's `absMomRegime()` returns a genuine closed band
+{`Risk-ON`, `Risk-OFF`, `Caution`} from the benchmark's own 200-day and 12-month
+cash comparison, which is exactly the trend-structure classification the facet
+needed. `Caution` publishes as unavailable because the classifier itself calls it
+MIXED absolute momentum — a failure to resolve, not a resolved flat trend.
+
 Held open:
 
-1. **TP-03-04** — `real-assets-lab.html` and `global-rotation-lab.html` need
-   `RLRATIO` wired in; they classify by continuous score, not closed vocabulary.
-   `sector-research-lab.html` is also pending: its `tempo` and `confirmation`
-   turned out to be USER CONTROLS (`state.simple`, persisted, defaulting to
-   `balanced`), not model output, so it has no closed classification to publish
-   and a publication-only shim cannot manufacture one.
-2. **TP-03-08 and the scenario-specific E2E item** — both require
+1. **TP-03-08 and the scenario-specific E2E item** — both require
    `./market-regime-lab.html`, SCOPE-4's deliverable.
-3. **The broader E2E item** — its selftest half is green at 2486/0; its Playwright
+2. **The broader E2E item** — its selftest half is green at 2487/0; its Playwright
    half carries the same SCOPE-4 dependency.
-4. **Consumer impact sweep** — six of nine sources swept.
-5. **Build Quality Gate** — `traceability-guard.sh` fails for the spec directory
+3. **Build Quality Gate** — `traceability-guard.sh` fails for the spec directory
    on unbuilt scopes 04 and 06.
 
 ## Finding: pre-existing unit-suite nondeterminism (not caused by this scope)

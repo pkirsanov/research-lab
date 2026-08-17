@@ -2310,12 +2310,56 @@
 
     function publishSectorRead(into, out, leader, count) {
       publishSectorTimingReads(into, out, leader);
+      /* spec 013 SCOPE-3 — publication-only facet shim. Reads this tool's own frozen
+         model output, maps it through the declared versioned vocabulary below, and
+         publishes RegimeFacetContract readings. Imports no Tier 2 module and reads no
+         composed regime, so the facet DAG stays one-way.
+         'Caution' publishes as unavailable rather than as sideways: the classifier calls it
+         MIXED absolute momentum, which is a failure to resolve, not a resolved flat trend. */
+      function publishRegimeFacets(values, asOf) {
+        var REGIME_FACET_SOURCES = [
+          {
+            "facetId": "sector.trend",
+            "kind": "trend-structure",
+            "horizon": "structural",
+            "valueVocabularyId": "absolute-momentum-band/v1",
+            "sourceVocabularyId": "sector-research-lab-absmom/v1",
+            "sourceAttribution": "sector-research-lab absMomRegime",
+            "coverageNote": "benchmark against its own 200-day and against cash over 12 months (Antonacci dual-momentum master switch)",
+            "map": { "Risk-ON": "risk-on", "Risk-OFF": "risk-off" },
+            "unavailableFor": { "Caution": "SOURCE_MIXED", "unavailable": "SOURCE_UNAVAILABLE" },
+            "lossy": false,
+            "lossyFields": []
+          }
+        ];
+        if (typeof asOf !== "string" || !Number.isFinite(Date.parse(asOf))) return [];
+        return REGIME_FACET_SOURCES.map(function (source) {
+          var raw = values && Object.prototype.hasOwnProperty.call(values, source.facetId) ? values[source.facetId] : null;
+          var mapped = Object.prototype.hasOwnProperty.call(source.map, raw) ? source.map[raw] : null;
+          return {
+            contractVersion: "regime-facet/v1",
+            facetId: source.facetId,
+            kind: source.kind,
+            value: mapped,
+            valueVocabularyId: source.valueVocabularyId,
+            horizon: source.horizon,
+            state: mapped === null ? "unavailable" : "available",
+            asOf: new Date(Date.parse(asOf)).toISOString(),
+            sourceAttribution: source.sourceAttribution,
+            coverageNote: source.coverageNote,
+            unavailableReason: mapped === null
+              ? (Object.prototype.hasOwnProperty.call(source.unavailableFor, raw) ? source.unavailableFor[raw] : "SOURCE_UNAVAILABLE")
+              : null
+          };
+        });
+      }
       if (typeof RLDATA === 'undefined' || !RLDATA.putToolRead) return;
       var read = into && out ? ('Rotate toward ' + into.id + ' as ' + out.id + ' weakens.') : into ? (into.id + ' is the clearest improving rotation.') : out ? (out.id + ' is weakening; no replacement is confirmed.') : leader ? (leader.id + ' leads but no new rotation is confirmed.') : 'No priced rotation rows.';
       var sectorAsOf = new Date().toISOString();
       RLDATA.putToolRead('sector-research-lab', {
         asOf: sectorAsOf, read: read,
         metrics: {
+          regimeFacets: publishRegimeFacets({ "sector.trend": (function () { var m = absMomRegime(); return m ? m.band : null; })() }, sectorAsOf),
           into: into && into.id || null, out: out && out.id || null, leader: leader && leader.id || null, scope: state.simple.scope, tempo: state.simple.tempo, confirmation: state.simple.confirmation, benchmark: state.benchmark, count: count,
           /* ---------- Feature 007 owner read: relative-context/v1 ---------- */
           ownerRead: {

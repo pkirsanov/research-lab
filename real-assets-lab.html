@@ -1017,6 +1017,7 @@
     <script src="rlcausalconsumer.js"></script>
     <!-- Feature 012 Scope 06: the single owner source for the commodity-breadth percentage the
          registered real-asset-driver Simple adapter shares (RLMACROROTATION.realBreadthPct). -->
+    <script src="rlratio.js"></script>
     <script src="rlexperience-adapters/macro-rotation.js"></script>
     <script>
         "use strict";
@@ -1435,6 +1436,79 @@
                 for (var i = 0; i < computed.length; i++) if (computed[i].entry.symbol === state.focus) return computed[i];
                 return computed[0] || null;
             }
+            /* spec 013 SCOPE-3 — ratio-derived facet input. RLRATIO owns the ratio math and
+               the comparability predicate; this only bands its trailing change into the
+               declared vocabulary. The band is stated here rather than inferred so it is
+               versioned and auditable, and a leg pair that fails comparability returns
+               not-comparable instead of a number. */
+            function realAssetsRatioVerdict(decisionTime) {
+                if (typeof RLRATIO === "undefined") return "not-comparable";
+                var toRatioRows = function (bars) {
+                    return (bars || [])
+                        .filter(function (bar) { return bar && finite(bar.t) && finite(bar.c); })
+                        .map(function (bar) { return { date: new Date(bar.t).toISOString().slice(0, 10), close: bar.c }; });
+                };
+                var numerator = toRatioRows(barsFor("GLD"));
+                var denominator = toRatioRows(barsFor("SLV"));
+                if (numerator.length < 2 || denominator.length < 2) return "not-comparable";
+                var usd = { numerator: "USD", denominator: "USD" };
+                var series = RLRATIO.ratioSeries(numerator, denominator, {
+                    pairId: "gold/silver",
+                    ratioFamilyId: "precious-metals",
+                    lookbackBars: 252,
+                    semanticClass: "safety",
+                    decisionTime: decisionTime,
+                    adjustmentRef: { numeratorAdjustment: "total-return", denominatorAdjustment: "total-return" },
+                    currencyRef: usd,
+                    sessionRef: usd,
+                    calendarRef: usd
+                });
+                if (series.availability !== "available") return "not-comparable";
+                var change = RLRATIO.trailingChange(series, { lookbackBars: 252, decisionTime: decisionTime });
+                if (!Number.isFinite(change.trailingPct)) return "not-comparable";
+                /* Declared band: 2 percentage points of trailing ratio change over the
+                   declared lookback separates a defensive tilt from noise. */
+                return change.trailingPct > 2 ? "leading" : (change.trailingPct < -2 ? "lagging" : "in-line");
+            }
+
+            function publishRegimeFacets(values, asOf) {
+                var REGIME_FACET_SOURCES = [
+                    {
+                        "facetId": "realassets.safety",
+                        "kind": "ratio-derived",
+                        "horizon": "structural",
+                        "valueVocabularyId": "precious-metals-safety/v1",
+                        "sourceVocabularyId": "real-assets-lab-ratio-band/v1",
+                        "sourceAttribution": "real-assets-lab RLRATIO gold/silver trailing change",
+                        "coverageNote": "gold against silver over 252 bars as a DIRECTIONAL PROXY for defensive demand, not a measured safety bid; both legs are USD wrappers so the ratio carries residual FX translation",
+                        "map": { "leading": "leading", "in-line": "in-line", "lagging": "lagging" },
+                        "unavailableFor": { "not-comparable": "NOT_COMPARABLE", "unavailable": "SOURCE_UNAVAILABLE" },
+                        "lossy": false,
+                        "lossyFields": []
+                    }
+                ];
+                if (typeof asOf !== "string" || !Number.isFinite(Date.parse(asOf))) return [];
+                return REGIME_FACET_SOURCES.map(function (source) {
+                    var raw = values && Object.prototype.hasOwnProperty.call(values, source.facetId) ? values[source.facetId] : null;
+                    var mapped = Object.prototype.hasOwnProperty.call(source.map, raw) ? source.map[raw] : null;
+                    return {
+                        contractVersion: "regime-facet/v1",
+                        facetId: source.facetId,
+                        kind: source.kind,
+                        value: mapped,
+                        valueVocabularyId: source.valueVocabularyId,
+                        horizon: source.horizon,
+                        state: mapped === null ? "unavailable" : "available",
+                        asOf: new Date(Date.parse(asOf)).toISOString(),
+                        sourceAttribution: source.sourceAttribution,
+                        coverageNote: source.coverageNote,
+                        unavailableReason: mapped === null
+                            ? (Object.prototype.hasOwnProperty.call(source.unavailableFor, raw) ? source.unavailableFor[raw] : "SOURCE_UNAVAILABLE")
+                            : null
+                    };
+                });
+            }
+
             function latestAsOf() {
                 var latest = null;
                 computed.forEach(function (row) { if (finite(row.lastTime) && (!finite(latest) || row.lastTime > latest)) latest = row.lastTime; });
@@ -1862,6 +1936,7 @@
                     read: read,
                     metrics: {
                         leader: leader ? leader.entry.symbol : null,
+                        regimeFacets: publishRegimeFacets({ "realassets.safety": realAssetsRatioVerdict(latestAsOf()) }, latestAsOf()),
                         leaderScore: leader && finite(leader.score) ? +leader.score.toFixed(1) : null,
                         focus: focus ? focus.entry.symbol : state.focus,
                         focusScore: focus && finite(focus.score) ? +focus.score.toFixed(1) : null,

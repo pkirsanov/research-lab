@@ -1278,3 +1278,134 @@ node scripts/validate-brief-payload.mjs
                  and next-session actions are valid
 BRIEF=0
 ```
+
+### Validation Evidence
+
+**Phase Agent:** bubbles.validate
+**Executed:** YES (2026-08-17, current session)
+**Command:** `node scripts/validate-causal-rotation.mjs` and `node scripts/validate-brief-payload.mjs`
+**Exit Code:** 0 and 0
+**Result:** PASSED
+
+Executed 2026-08-17. Both contract validators run against the committed production
+records, not fixtures.
+
+```
+$ node scripts/validate-causal-rotation.mjs
+[causal-contract] validating production foundation and committed records
+  PASS RLCausal API is frozen
+  PASS committed observation set is source-complete and digest-valid
+  PASS all observation availability times are conservative
+  PASS later evidence is excluded with CR-TIME-INELIGIBLE
+  PASS frozen decision bytes remain unchanged after later evidence
+  PASS frozen decision retains its original candidate digest
+  PASS later facts may classify a falsified outcome
+  PASS outcome classification still leaves frozen decision bytes unchanged
+  PASS same inputs produce byte-equivalent normalized snapshots
+  PASS committed corpus produces no plan-eligible candidate without owner timing
+  PASS compact projection contains no buy or sell instruction
+[causal-contract] running rejection-only fixtures
+  PASS fixture conflicting-identity fails closed for CR-CONFLICTING-IDENTITY
+  PASS fixture dependency-cycle fails closed for CR-CLUSTER-INVALID
+  PASS fixture incomplete-source fails closed for CR-SOURCE-INCOMPLETE
+  PASS fixture later-evidence fails closed for CR-TIME-INELIGIBLE
+  PASS fixture seasonality-only-action fails closed for CR-SEASONALITY-CONTEXT-ONLY
+  PASS fixture stale-timing fails closed for CR-TIMING-UNAVAILABLE
+  PASS fixture stale-valuation fails closed for CR-EVIDENCE-STALE
+  PASS fixture unknown-timing-version fails closed for CR-TIMING-UNAVAILABLE
+  PASS committed causal inputs ledger snapshot and owner reads satisfy current contracts
+[causal-contract] checks passed: 41
+[causal-contract] checks failed: 0
+[causal-contract] candidates: 5
+[causal-contract] source observations: 6
+[causal-contract] adversarial fixtures: 8
+[causal-contract] result: PASS
+exit=0
+
+$ node scripts/validate-brief-payload.mjs
+[brief-contract] SCN-019-020 payload toolRead and page read agree and expose no destination routing fields: PASS
+[brief-contract] Every declared topic and section is accounted and every mandatory review belongs to the current generation: PASS
+[brief-contract] causal brief items require eligible stage owner freshness independent reason and falsifiers: PASS
+[brief-contract] Market Brief causal coverage and elevation satisfy low-noise independence policy: PASS (coverageRows=1 elevated=false planEligible=false)
+[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+exit=0
+```
+
+The eight rejection-only fixtures are the load-bearing half: each must fail closed with
+its own named code, so a fixture that silently passed would fail the validator rather
+than quietly widen what the evaluator accepts.
+
+### Audit Evidence
+
+**Phase Agent:** bubbles.audit
+**Executed:** YES (2026-08-17, current session)
+**Command:** `bash .github/bubbles/scripts/implementation-reality-scan.sh specs/001-causal-rotation-intelligence` and `bash .github/bubbles/scripts/artifact-lint.sh specs/001-causal-rotation-intelligence`
+**Exit Code:** 0 and 0
+**Result:** PASSED
+
+Executed 2026-08-17. The reality scan resolves its files from the `### Implementation
+Files` section of scopes.md, so it checks what the feature shipped rather than what
+design.md intended.
+
+```
+$ bash .github/bubbles/scripts/implementation-reality-scan.sh specs/001-causal-rotation-intelligence
+ℹ️  INFO: Resolved 8 implementation file(s) to scan
+
+--- Scan 1: Gateway/Backend Stub Patterns ---
+--- Scan 1B: Handler / Endpoint Execution Depth ---
+--- Scan 1C: Endpoint Not-Implemented / Placeholder Responses ---
+--- Scan 2: Frontend Hardcoded Data Patterns ---
+--- Scan 3: Frontend API Call Absence ---
+--- Scan 4: Prohibited Simulation Helpers in Production ---
+--- Scan 5: Default/Fallback Value Patterns ---
+--- Scan 7: IDOR / Auth Bypass Detection (Gate G047) ---
+--- Scan 8: Silent Decode Failure Detection (Gate G048) ---
+
+============================================================
+  IMPLEMENTATION REALITY SCAN RESULT
+============================================================
+
+  Files scanned:  8
+  Violations:     0
+  Warnings:       0
+
+🟢 PASSED: No source code reality violations detected
+reality_scan_exit=0
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/001-causal-rotation-intelligence
+Artifact lint PASSED.
+ARTIFACT_LINT_EXIT=0
+```
+
+The audit also found and fixed two governance defects rather than reporting them clean:
+the reality scan had been falling back to design.md because scopes.md carried no
+`### Implementation Files` section, and a DoD item cited
+`report.md#scope-01-closure--2026-08-11t013012z`, an anchor that does not exist.
+
+### Chaos Evidence
+
+**Phase Agent:** bubbles.chaos
+**Executed:** YES (2026-08-17, current session)
+**Command:** `npx playwright test tests/causal-rotation-chaos.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=line --workers=1`
+**Exit Code:** 0
+**Result:** PASSED
+
+Executed 2026-08-17. A seeded random walk drives the real controls and asserts only
+invariants that must hold for any sequence: the page never throws, never blanks, never
+loses `data-causal-ready`, and never writes the shared credential store.
+
+```
+$ npx playwright test tests/causal-rotation-chaos.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=line --workers=1
+
+Running 1 test using 1 worker
+  1 passed (8.4s)
+chaos_exit=0
+```
+
+The first run of this suite FAILED, and the fault was the harness rather than the
+product. The walk clicked a candidate row that is hidden in the active view, so
+Playwright's 30s actionability wait consumed the whole test budget and the empty
+ready-flag value was teardown noise. An independent probe with no test timeout completed
+all 40 steps with the flag intact, which is what identified the cause. Every action is
+now visibility-guarded and time-bounded, because a real user cannot click an invisible
+row. The walk is non-vacuous: the test asserts it performed more than ten actions.

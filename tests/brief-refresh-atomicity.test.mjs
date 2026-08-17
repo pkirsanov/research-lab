@@ -1446,16 +1446,63 @@ process.exit(1);
         BUG002_COPILOT_ATTEMPT_FILE: fixture.copilotAttemptFile,
         BUG002_COPILOT_AUDIT_FILE: fixture.copilotAuditFile,
         BUG002_NARRATIVE_MODE: fixture.narrativeMode,
-        BUG002_VALIDATOR_COUNT_FILE: fixture.validatorCountFile
+        BUG002_VALIDATOR_COUNT_FILE: fixture.validatorCountFile,
+        BRIEF_PUSH_RETRY_DELAY_SECONDS: '0'
       }
     });
 
     assert.equal(result.status, 1, `rejected push was not propagated\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
-    assert.match(result.stdout, /push still failing — commit left local for the next run to push/);
+    assert.match(result.stdout, /push failed after 5 bounded attempts — transaction remains unacknowledged/);
     assert.match(result.stdout, /publisher finished with exit=1/);
     gitFixture(fixture, ['fetch', 'origin']);
     assert.equal(gitFixture(fixture, ['rev-parse', 'origin/main']), fixture.initialHead, 'rejected final commit never reached origin');
     assert.equal(existsSync(lockDir), false, 'scheduler lock is released after push failure');
+  });
+
+  test('scheduled launcher converges after two transient push rejections', (context) => {
+    const fixture = createBriefRefreshFixture({ narrativeMode: 'success' });
+    context.after(() => fixture.cleanup());
+    const hookCountPath = resolve(fixture.fixtureRoot, 'pre-receive-count.txt');
+    const hookPath = resolve(fixture.remoteRoot, 'hooks', 'pre-receive');
+    writeFileSync(hookPath, `#!/usr/bin/env node
+const fs = require('node:fs');
+const countPath = ${JSON.stringify(hookCountPath)};
+const count = (fs.existsSync(countPath) ? Number(fs.readFileSync(countPath, 'utf8')) : 0) + 1;
+fs.writeFileSync(countPath, String(count));
+process.exit(count < 3 ? 1 : 0);
+`);
+    chmodSync(hookPath, 0o755);
+    const lockDir = resolve(fixture.fixtureRoot, 'brief-scheduler-push-race.lock');
+    const statusFile = resolve(fixture.fixtureRoot, 'brief-scheduler-push-race.status');
+
+    const result = spawnSync('bash', [resolve(process.cwd(), 'scripts/brief-refresh-scheduled.sh')], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        BRIEF_SCHEDULE_SOURCE_ROOT: fixture.repoRoot,
+        BRIEF_SCHEDULE_LOCK_DIR: lockDir,
+        BRIEF_SCHEDULE_STATUS_FILE: statusFile,
+        BRIEF_COPILOT_BIN: fixture.copilotPath,
+        BRIEF_PUSH_RETRY_DELAY_SECONDS: '0',
+        BUG002_BOUNDARY_LOG: fixture.boundaryLog,
+        BUG002_CANDIDATE_DATE: fixture.candidateDate,
+        BUG002_COPILOT_ATTEMPT_FILE: fixture.copilotAttemptFile,
+        BUG002_COPILOT_AUDIT_FILE: fixture.copilotAuditFile,
+        BUG002_NARRATIVE_MODE: fixture.narrativeMode,
+        BUG002_VALIDATOR_COUNT_FILE: fixture.validatorCountFile
+      }
+    });
+
+    assert.equal(result.status, 0, `bounded push recovery failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+    assert.match(result.stdout, /push attempt 1\/5 rejected/);
+    assert.match(result.stdout, /push attempt 2\/5 rejected/);
+    assert.match(result.stdout, /pushed after bounded rebase attempt 3\/5/);
+    assert.equal(readFileSync(hookCountPath, 'utf8'), '3');
+    assert.equal(readSchedulerStatus(statusFile).state, 'success');
+    gitFixture(fixture, ['fetch', 'origin']);
+    assert.notEqual(gitFixture(fixture, ['rev-parse', 'origin/main']), fixture.initialHead);
+    assert.equal(existsSync(lockDir), false, 'successful push recovery releases the scheduler lock');
   });
 
   test('staged owned publication path refuses without changing its index entry', (context) => {

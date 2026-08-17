@@ -35,6 +35,8 @@
 #   BRIEF_FETCH_BARS_TIMEOUT maximum seconds for the canonical bar refresh (default: 1200)
 #   BRIEF_FETCH_OPTIONS_TIMEOUT maximum seconds for the option refresh (default: 900)
 #   BRIEF_TIER_A_TIMEOUT     maximum seconds for deterministic Tier A (default: 600)
+#   BRIEF_PUSH_ATTEMPTS      bounded final push attempts across concurrent main updates (default: 5)
+#   BRIEF_PUSH_RETRY_DELAY_SECONDS delay before refreshing remote state for another push (default: 2)
 #   BRIEF_REQUIRE_COMPLETE_RUN fail closed on incomplete data/tool/final publication (scheduler forces 1)
 #   BRIEF_PUBLICATION_ACK_FILE private scheduler-owned post-push acknowledgment path
 #
@@ -266,8 +268,17 @@ NARRATIVE_TIMEOUT="${BRIEF_NARRATIVE_TIMEOUT:-1800}"
 FETCH_BARS_TIMEOUT="${BRIEF_FETCH_BARS_TIMEOUT:-1200}"
 FETCH_OPTIONS_TIMEOUT="${BRIEF_FETCH_OPTIONS_TIMEOUT:-900}"
 TIER_A_TIMEOUT="${BRIEF_TIER_A_TIMEOUT:-600}"
+PUSH_ATTEMPTS="${BRIEF_PUSH_ATTEMPTS:-5}"
+PUSH_RETRY_DELAY_SECONDS="${BRIEF_PUSH_RETRY_DELAY_SECONDS:-2}"
 COPILOT_EXPECTED_PATH="${BRIEF_COPILOT_EXPECTED_PATH:-/opt/homebrew/bin/copilot}"
 COPILOT_EXPECTED_VERSION="${BRIEF_COPILOT_EXPECTED_VERSION:-1.0.75}"
+
+case "$PUSH_ATTEMPTS" in
+  ''|*[!0-9]*|0) echo "[brief-timer] BRIEF_PUSH_ATTEMPTS must be a positive integer"; exit 1 ;;
+esac
+case "$PUSH_RETRY_DELAY_SECONDS" in
+  ''|*[!0-9]*) echo "[brief-timer] BRIEF_PUSH_RETRY_DELAY_SECONDS must be a non-negative integer"; exit 1 ;;
+esac
 
 # Portable timeout (macOS has no `timeout` by default): timeout -> gtimeout -> watchdog.
 run_with_timeout() {
@@ -693,17 +704,31 @@ fi
 
 BR="$("$GIT_BIN" rev-parse --abbrev-ref HEAD)"
 
-# ALWAYS push any local brief commits that origin doesn't have yet — including a prior run that
-# committed but failed to push. push_head returns 0 on success, 1 if it must leave the commit local.
+# ALWAYS push any local brief commits that origin doesn't have yet. The scheduler runs in a disposable
+# clone, so an unpushed commit cannot be deferred to its next run: bounded concurrent-main races must
+# converge here or the transaction remains unacknowledged and the next run regenerates it.
 push_head() {
-  if "$GIT_BIN" push -q origin "HEAD:$BR"; then
-    echo "[brief-timer] pushed to origin/$BR — Pages will redeploy"; return 0
-  fi
-  echo "[brief-timer] push rejected — pull --rebase without touching unrelated dirt, then retry once"
-  if "$GIT_BIN" pull --rebase origin "$BR" && "$GIT_BIN" push -q origin "HEAD:$BR"; then
-    echo "[brief-timer] pushed after rebase — Pages will redeploy"; return 0
-  fi
-  echo "[brief-timer] push still failing — commit left local for the next run to push"; return 1
+  local push_attempt=1
+  while [ "$push_attempt" -le "$PUSH_ATTEMPTS" ]; do
+    if "$GIT_BIN" push -q origin "HEAD:$BR"; then
+      if [ "$push_attempt" -eq 1 ]; then
+        echo "[brief-timer] pushed to origin/$BR — Pages will redeploy"
+      else
+        echo "[brief-timer] pushed after bounded rebase attempt $push_attempt/$PUSH_ATTEMPTS — Pages will redeploy"
+      fi
+      return 0
+    fi
+    if [ "$push_attempt" -ge "$PUSH_ATTEMPTS" ]; then break; fi
+    echo "[brief-timer] push attempt $push_attempt/$PUSH_ATTEMPTS rejected — refreshing origin/$BR and rebasing before retry"
+    if [ "$PUSH_RETRY_DELAY_SECONDS" -gt 0 ]; then sleep "$PUSH_RETRY_DELAY_SECONDS"; fi
+    if ! "$GIT_BIN" pull --rebase origin "$BR"; then
+      echo "[brief-timer] pull --rebase failed during push recovery"
+      return 1
+    fi
+    push_attempt=$((push_attempt + 1))
+  done
+  echo "[brief-timer] push failed after $PUSH_ATTEMPTS bounded attempts — transaction remains unacknowledged"
+  return 1
 }
 
 write_publication_ack() {

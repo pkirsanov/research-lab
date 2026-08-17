@@ -923,7 +923,7 @@ process.exit(1);
   });
 
   test('publication withholds an ineligible causal elevation without discarding the brief', (context) => {
-    const fixture = createBriefRefreshFixture({ narrativeMode: 'causal-elevation' });
+    const fixture = createBriefRefreshFixture({ narrativeMode: 'causal-elevation', agendaAssets: true });
     context.after(() => fixture.cleanup());
     const result = runBriefRefreshFixture(fixture, {
       BRIEF_NARRATIVE_ATTEMPTS: '1',
@@ -1685,8 +1685,8 @@ process.exit(count < 3 ? 1 : 0);
     const publication = readPublicationState(fixture);
     assert.equal(result.status, 1);
     assert.match(result.stderr, /corrupted post-build page before default parity validation/);
-    assert.match(result.stderr, /market-brief\.page\.json researchAgenda must equal payload\.researchAgenda/);
-    assert.match(result.stdout, /post-build page parity validation failed/, `unexpected failure phase\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+    assert.match(result.stderr, /\[brief-page\] stale=market-brief\.page\.json/);
+    assert.match(result.stdout, /agenda transaction page projection parity failed/, `unexpected failure phase\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
     assert.doesNotMatch(result.stdout, /post-build payload \+ disk page parity validation passed/);
     assert.equal(readFileSync(fixture.validatorCountFile, 'utf8'), '4', 'the injected corruption must target the fourth, post-build validator call');
     assert.ok(publication.snapshotBytes.equals(fixture.baseline['market-brief.snapshot.json']));

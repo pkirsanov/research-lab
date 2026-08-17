@@ -1121,7 +1121,7 @@ try {
   // Page-only helpers (treemap layout, colour, dollar-volume, tool-read) stay inline on the
   // page and remain extractable; the breadth/return/sigma owner formulas are single-sourced
   // in rlexperience-adapters/market-structure.js (RLMARKETSTRUCTURE), which the page delegates to.
-  const names = ['trWorst', 'squarify', 'heatMix', 'heatColor', 'dollarVol', 'buildHeatToolRead'];
+  const names = ['trWorst', 'squarify', 'heatMix', 'heatColor', 'dollarVol', 'publishRegimeFacets', 'buildHeatToolRead'];
   const env = build(names.map((n) => extractFn(src, n)), names, extractFn(src, 'isFinite'));
   const { createRequire } = await import('node:module');
   const heatmapRequire = createRequire(import.meta.url);
@@ -8715,7 +8715,7 @@ try {
   const tdcSrc = read('trend-dynamics-cycle-lab.html');
   // The sentence helper is a dependency of the builder, so the sandbox must carry both.
   const tdcEnv = build(
-    [extractFn(tdcSrc, 'tdcComposeReadSentence'), extractFn(tdcSrc, 'tdcBuildDeepLink'), extractFn(tdcSrc, 'tdcBuildToolRead')],
+    [extractFn(tdcSrc, 'tdcComposeReadSentence'), extractFn(tdcSrc, 'tdcBuildDeepLink'), extractFn(tdcSrc, 'publishRegimeFacets'), extractFn(tdcSrc, 'tdcBuildToolRead')],
     ['tdcBuildToolRead']);
   const tdcResult = (over) => Object.assign({
     contractVersion: 'tdc-analysis-result/v1', resultId: 'res-001', requestDigest: 'dig-abc',
@@ -8866,7 +8866,7 @@ try {
   const pubSrc = read('trend-dynamics-cycle-lab.html');
   const pubEnv = build([
     extractFn(pubSrc, 'tdcComposeReadSentence'), extractFn(pubSrc, 'tdcBuildDeepLink'),
-    extractFn(pubSrc, 'tdcBuildToolRead'), extractFn(pubSrc, 'tdcPublishToolRead')
+    extractFn(pubSrc, 'publishRegimeFacets'), extractFn(pubSrc, 'tdcBuildToolRead'), extractFn(pubSrc, 'tdcPublishToolRead')
   ], ['tdcPublishToolRead']);
   const pubResult = (over) => Object.assign({
     contractVersion: 'tdc-analysis-result/v1', resultId: 'res-777', requestDigest: 'dig-777',
@@ -8965,7 +8965,7 @@ try {
   const vocSrc = read('trend-dynamics-cycle-lab.html');
   const vocEnv = build([
     extractFn(vocSrc, 'tdcComposeReadSentence'), extractFn(vocSrc, 'tdcBuildDeepLink'),
-    extractFn(vocSrc, 'tdcBuildToolRead')
+    extractFn(vocSrc, 'publishRegimeFacets'), extractFn(vocSrc, 'tdcBuildToolRead')
   ], ['tdcBuildToolRead']);
   const vocResult = (over) => Object.assign({
     contractVersion: 'tdc-analysis-result/v1', resultId: 'res-voc', requestDigest: 'dig-voc',
@@ -9064,7 +9064,7 @@ try {
     extractFn(e2eSrc, 'tdcStableSerialize'), extractFn(e2eSrc, 'tdcStableDigest'),
     extractFn(e2eSrc, 'tdcDeepFreeze'), extractFn(e2eSrc, 'tdcAssembleResult'),
     extractFn(e2eSrc, 'tdcComposeReadSentence'), extractFn(e2eSrc, 'tdcBuildDeepLink'),
-    extractFn(e2eSrc, 'tdcBuildToolRead'), extractFn(e2eSrc, 'tdcPublishToolRead')
+    extractFn(e2eSrc, 'publishRegimeFacets'), extractFn(e2eSrc, 'tdcBuildToolRead'), extractFn(e2eSrc, 'tdcPublishToolRead')
   ], ['tdcAssembleResult', 'tdcBuildToolRead', 'tdcPublishToolRead']);
 
   const assembled = e2eEnv.tdcAssembleResult({
@@ -11678,11 +11678,13 @@ const FACET_SOURCE_PAGES_DECLARED = [
    than a closed vocabulary, so no lossless-or-declared-lossy mapping exists for them yet;
    inventing thresholds to manufacture one would fabricate a reading the tool does not make.
    The pending list is asserted below so a source cannot be quietly dropped from the nine. */
-const FACET_SOURCE_PAGES = ['bond-regime-lab.html', 'volatility-sizing-lab.html'];
+const FACET_SOURCE_PAGES = [
+  'bond-regime-lab.html', 'volatility-sizing-lab.html',
+  'gamma-trading-lab.html', 'options-structure-lab.html',
+  'market-heatmap-lab.html', 'trend-dynamics-cycle-lab.html'
+];
 const FACET_SOURCE_PAGES_PENDING = [
-  'sector-research-lab.html', 'market-heatmap-lab.html', 'gamma-trading-lab.html',
-  'options-structure-lab.html', 'real-assets-lab.html', 'global-rotation-lab.html',
-  'trend-dynamics-cycle-lab.html'
+  'sector-research-lab.html', 'real-assets-lab.html', 'global-rotation-lab.html'
 ];
 
 function extractBalanced(source, startMarker, open, close) {

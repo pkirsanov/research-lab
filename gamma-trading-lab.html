@@ -1401,6 +1401,50 @@
                 drawGex(); drawOvi();
                 /* ---------- Feature 007 owner read: gamma-playbook/v1 ---------- */
                 try {
+                    /* spec 013 SCOPE-3 — publication-only facet shim. Reads this tool's own frozen
+                       model output, maps it through the declared versioned vocabulary below, and
+                       publishes RegimeFacetContract readings. Imports no Tier 2 module and reads no
+                       composed regime, so the facet DAG stays one-way.
+                       Dealer gamma is positioning STRUCTURE, not regime direction: it says how moves
+                       propagate, not which way, so the kind is directionless and the composer
+                       refuses it wherever a direction is expected. */
+                    function publishRegimeFacets(values, asOf) {
+                        var REGIME_FACET_SOURCES = [
+                            {
+                                "facetId": "gamma.positioning",
+                                "kind": "positioning-context",
+                                "horizon": "tactical",
+                                "valueVocabularyId": "dealer-gamma-positioning/v1",
+                                "sourceVocabularyId": "gamma-trading-lab-env/v1",
+                                "sourceAttribution": "gamma-trading-lab computeGamma env",
+                                "coverageNote": "dealer gamma environment with the sign convention flip already applied",
+                                "map": { "positive": "dealer-long-gamma", "negative": "dealer-short-gamma" },
+                                "unavailableFor": { "unavailable": "SOURCE_UNAVAILABLE" },
+                                "lossy": false,
+                                "lossyFields": []
+                            }
+                        ];
+                        if (typeof asOf !== "string" || !Number.isFinite(Date.parse(asOf))) return [];
+                        return REGIME_FACET_SOURCES.map(function (source) {
+                            var raw = values && Object.prototype.hasOwnProperty.call(values, source.facetId) ? values[source.facetId] : null;
+                            var mapped = Object.prototype.hasOwnProperty.call(source.map, raw) ? source.map[raw] : null;
+                            return {
+                                contractVersion: "regime-facet/v1",
+                                facetId: source.facetId,
+                                kind: source.kind,
+                                value: mapped,
+                                valueVocabularyId: source.valueVocabularyId,
+                                horizon: source.horizon,
+                                state: mapped === null ? "unavailable" : "available",
+                                asOf: new Date(Date.parse(asOf)).toISOString(),
+                                sourceAttribution: source.sourceAttribution,
+                                coverageNote: source.coverageNote,
+                                unavailableReason: mapped === null
+                                    ? (Object.prototype.hasOwnProperty.call(source.unavailableFor, raw) ? source.unavailableFor[raw] : "SOURCE_UNAVAILABLE")
+                                    : null
+                            };
+                        });
+                    }
                     if (window.RLDATA && typeof RLDATA.putToolRead === "function") {
                         // Unlike options-structure-lab, computeGamma always emits raw convention-A
                         // values and the dealer flip is applied at READ time. So the raw snapshot is
@@ -1413,6 +1457,7 @@
                             read: f7Verdict && f7Verdict.one ? f7Verdict.one : "Gamma playbook read",
                             metrics: {
                                 env: state.ev ? state.ev.env : null, netGEX: snap.netGEX,
+                                regimeFacets: publishRegimeFacets({ "gamma.positioning": state.ev ? state.ev.env : null }, f7Cutoff),
                                 ownerRead: {
                                     contractVersion: "rl-ta-owner-read/v1",
                                     capabilityVersion: "gamma-playbook/v1",

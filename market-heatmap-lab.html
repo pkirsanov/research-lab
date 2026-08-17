@@ -494,6 +494,51 @@
                every tool"): the tool's OWN bias + breadth + leader/laggard, so the Market Brief and
                this tool's Brief tab surface a real computed read instead of bare "coverage only".
                Every value comes from breadthRead(CELLS) — nothing is fabricated. */
+            /* spec 013 SCOPE-3 — publication-only facet shim. Reads this tool's own frozen
+               model output, maps it through the declared versioned vocabulary below, and
+               publishes RegimeFacetContract readings. Imports no Tier 2 module and reads no
+               composed regime, so the facet DAG stays one-way.
+               The mapping is lossless because the shared classifier already emits a closed
+               three-value breadth vocabulary against declared 0.6/0.4 fractions, and the facet
+               vocabulary carries a matching member for each. */
+            function publishRegimeFacets(values, asOf) {
+                var REGIME_FACET_SOURCES = [
+                    {
+                        "facetId": "heatmap.breadth",
+                        "kind": "breadth-participation",
+                        "horizon": "swing",
+                        "valueVocabularyId": "constituent-grid-breadth/v1",
+                        "sourceVocabularyId": "market-structure-breadth-bias/v1",
+                        "sourceAttribution": "rlexperience-adapters/market-structure.js breadthReadCells",
+                        "coverageNote": "share of constituent cells green over the selected window against declared 0.6/0.4 thresholds",
+                        "map": { "risk-on": "broad", "mixed": "mixed", "risk-off": "narrow" },
+                        "unavailableFor": { "n/a": "SOURCE_UNAVAILABLE" },
+                        "lossy": false,
+                        "lossyFields": []
+                    }
+                ];
+                if (typeof asOf !== "string" || !Number.isFinite(Date.parse(asOf))) return [];
+                return REGIME_FACET_SOURCES.map(function (source) {
+                    var raw = values && Object.prototype.hasOwnProperty.call(values, source.facetId) ? values[source.facetId] : null;
+                    var mapped = Object.prototype.hasOwnProperty.call(source.map, raw) ? source.map[raw] : null;
+                    return {
+                        contractVersion: "regime-facet/v1",
+                        facetId: source.facetId,
+                        kind: source.kind,
+                        value: mapped,
+                        valueVocabularyId: source.valueVocabularyId,
+                        horizon: source.horizon,
+                        state: mapped === null ? "unavailable" : "available",
+                        asOf: new Date(Date.parse(asOf)).toISOString(),
+                        sourceAttribution: source.sourceAttribution,
+                        coverageNote: source.coverageNote,
+                        unavailableReason: mapped === null
+                            ? (Object.prototype.hasOwnProperty.call(source.unavailableFor, raw) ? source.unavailableFor[raw] : "SOURCE_UNAVAILABLE")
+                            : null
+                    };
+                });
+            }
+
             function buildHeatToolRead(b, win, ranked) {
                 var biasWord = b.bias === "risk-on" ? "Risk-on" : b.bias === "risk-off" ? "Risk-off" : "Mixed";
                 var lead = b.leader, lag = b.laggard, txt = biasWord + " breadth: " + b.green + "/" + b.total + " sectors green over " + win;
@@ -508,6 +553,7 @@
                     read: txt,
                     metrics: {
                         bias: b.bias, green: b.green, total: b.total,
+                        regimeFacets: publishRegimeFacets({ "heatmap.breadth": b.bias }, heatAsOf),
                         breadthPct: b.total ? Math.round(b.frac * 100) : null, window: win,
                         leader: slim(lead), laggard: slim(lag),
                         ranked: (ranked || []).slice(0, 5).map(slim),

@@ -1850,6 +1850,50 @@
       renderChainTable();
       /* ---------- Feature 007 owner read: options-positioning/v1 ---------- */
       try {
+        /* spec 013 SCOPE-3 — publication-only facet shim. Reads this tool's own frozen
+           model output, maps it through the declared versioned vocabulary below, and
+           publishes RegimeFacetContract readings. Imports no Tier 2 module and reads no
+           composed regime, so the facet DAG stays one-way.
+           'mix' publishes as unavailable rather than as a value: a mixed gamma reading is a
+           genuine absence of positioning, and the page comment above already warns it must
+           never be read as flat gamma or neutral dealer positioning. */
+        function publishRegimeFacets(values, asOf) {
+            var REGIME_FACET_SOURCES = [
+                {
+                    "facetId": "options.positioning",
+                    "kind": "positioning-context",
+                    "horizon": "tactical",
+                    "valueVocabularyId": "dealer-gamma-positioning/v1",
+                    "sourceVocabularyId": "options-structure-lab-regime/v1",
+                    "sourceAttribution": "options-structure-lab optRead regime",
+                    "coverageNote": "net GEX sign against the gamma flip level from the current option-chain snapshot",
+                    "map": { "pin": "dealer-long-gamma", "trend": "dealer-short-gamma" },
+                    "unavailableFor": { "mix": "SOURCE_MIXED", "unavailable": "SOURCE_UNAVAILABLE" },
+                    "lossy": false,
+                    "lossyFields": []
+                }
+            ];
+            if (typeof asOf !== "string" || !Number.isFinite(Date.parse(asOf))) return [];
+            return REGIME_FACET_SOURCES.map(function (source) {
+                var raw = values && Object.prototype.hasOwnProperty.call(values, source.facetId) ? values[source.facetId] : null;
+                var mapped = Object.prototype.hasOwnProperty.call(source.map, raw) ? source.map[raw] : null;
+                return {
+                    contractVersion: "regime-facet/v1",
+                    facetId: source.facetId,
+                    kind: source.kind,
+                    value: mapped,
+                    valueVocabularyId: source.valueVocabularyId,
+                    horizon: source.horizon,
+                    state: mapped === null ? "unavailable" : "available",
+                    asOf: new Date(Date.parse(asOf)).toISOString(),
+                    sourceAttribution: source.sourceAttribution,
+                    coverageNote: source.coverageNote,
+                    unavailableReason: mapped === null
+                        ? (Object.prototype.hasOwnProperty.call(source.unavailableFor, raw) ? source.unavailableFor[raw] : "SOURCE_UNAVAILABLE")
+                        : null
+                };
+            });
+        }
         if (window.RLDATA && typeof RLDATA.putToolRead === "function") {
           // state.agg is null when no compatible snapshot exists. That absence is published as
           // unavailable; it must never be read as flat gamma or neutral dealer positioning.
@@ -1861,6 +1905,7 @@
             read: f7Have && f7Read ? f7Read.word : "Option positioning unavailable",
             metrics: {
               netGEX: f7Have ? state.agg.netGEX : null, regime: f7Have && f7Read ? f7Read.regime : null,
+              regimeFacets: publishRegimeFacets({ "options.positioning": f7Have && f7Read ? f7Read.regime : null }, f7Cutoff),
               ownerRead: {
                 contractVersion: "rl-ta-owner-read/v1",
                 capabilityVersion: "options-positioning/v1",

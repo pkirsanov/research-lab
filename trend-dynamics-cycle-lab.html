@@ -3157,6 +3157,51 @@
        `metrics.truthState` carries the ANALYTICAL state, so a degraded read over current source
        stays honest on both axes. Invalid numerics are omitted rather than zeroed — a published 0
        reads downstream as a real measurement. */
+    /* spec 013 SCOPE-3 — publication-only facet shim. Reads this tool's own frozen
+       model output, maps it through the declared versioned vocabulary below, and
+       publishes RegimeFacetContract readings. Imports no Tier 2 module and reads no
+       composed regime, so the facet DAG stays one-way.
+       'mixed' publishes as unavailable rather than as sideways: a mixed direction is a
+       failure to resolve, while sideways is a resolved flat trend, and collapsing the two
+       would let an unresolved read count as evidence in the confirmation denominator. */
+    function publishRegimeFacets(values, asOf) {
+      var REGIME_FACET_SOURCES = [
+        {
+          "facetId": "trend.structure",
+          "kind": "trend-structure",
+          "horizon": "structural",
+          "valueVocabularyId": "trend-direction/v1",
+          "sourceVocabularyId": "tdc-trend-direction/v1",
+          "sourceAttribution": "trend-dynamics-cycle-lab trend engine direction",
+          "coverageNote": "direction from the shared series after its source, as-of, transform and quality contracts passed",
+          "map": { "rising": "uptrend", "falling": "downtrend", "flat": "sideways" },
+          "unavailableFor": { "mixed": "SOURCE_MIXED", "unavailable": "SOURCE_UNAVAILABLE" },
+          "lossy": false,
+          "lossyFields": []
+        }
+      ];
+      if (typeof asOf !== "string" || !Number.isFinite(Date.parse(asOf))) return [];
+      return REGIME_FACET_SOURCES.map(function (source) {
+        var raw = values && Object.prototype.hasOwnProperty.call(values, source.facetId) ? values[source.facetId] : null;
+        var mapped = Object.prototype.hasOwnProperty.call(source.map, raw) ? source.map[raw] : null;
+        return {
+          contractVersion: "regime-facet/v1",
+          facetId: source.facetId,
+          kind: source.kind,
+          value: mapped,
+          valueVocabularyId: source.valueVocabularyId,
+          horizon: source.horizon,
+          state: mapped === null ? "unavailable" : "available",
+          asOf: new Date(Date.parse(asOf)).toISOString(),
+          sourceAttribution: source.sourceAttribution,
+          coverageNote: source.coverageNote,
+          unavailableReason: mapped === null
+            ? (Object.prototype.hasOwnProperty.call(source.unavailableFor, raw) ? source.unavailableFor[raw] : "SOURCE_UNAVAILABLE")
+            : null
+        };
+      });
+    }
+
     function tdcBuildToolRead(result) {
       if (!result || typeof result !== 'object' || result.complete !== true) return null;
       // Closed vocabulary: an unrecognised state fails to unavailable, the one value that
@@ -3179,6 +3224,7 @@
         var strength = result.strength && typeof result.strength === 'object' ? result.strength : {};
         var dynamics = result.dynamics && typeof result.dynamics === 'object' ? result.dynamics : {};
         if (trend.direction) metrics.direction = trend.direction;
+        metrics.regimeFacets = publishRegimeFacets({ "trend.structure": trend.direction || null }, result.sourceAsOf || null);
         if (trend.trendType) metrics.trendType = trend.trendType;
         if (Number.isFinite(strength.score)) metrics.strengthScore = strength.score;
         if (dynamics.state) metrics.dynamics = dynamics.state;

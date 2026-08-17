@@ -11838,6 +11838,26 @@ try {
   assert(noCycleOk && !mapperDivergence,
     'IP-002 no-cycle: no facet source imports a Tier 2 module and no facet declares the composed regime as an input');
 
+  /* Publication is pure given the model output and its as-of stamp: the shim reads no clock
+     of its own, so republishing an unchanged frozen read cannot move the facet identity. */
+  let deterministic = missing.length === 0;
+  let shimNumericGuardsOk = missing.length === 0;
+  shims.forEach((shim) => {
+    if (shim.sources === null) return;
+    const values = {};
+    shim.sources.forEach((source) => { values[source.facetId] = Object.keys(source.map)[0]; });
+    const first = shim.publish(values, SHIM_CLOCK);
+    const second = shim.publish(values, SHIM_CLOCK);
+    if (JSON.stringify(first) !== JSON.stringify(second)) deterministic = false;
+    /* A bare isFinite coerces, so isFinite(null) is true and an absent as-of would pass. */
+    if (/[^.\w]isFinite\(/.test(shim.mapper)) shimNumericGuardsOk = false;
+    if (/Date\.now\(\)|new Date\(\)/.test(shim.mapper)) shimNumericGuardsOk = false;
+    if (/TODO|FIXME|STUB/.test(shim.mapper)) shimNumericGuardsOk = false;
+  });
+
+  assert(deterministic && shimNumericGuardsOk,
+    'republishing a frozen model output yields identical readings and every shim numeric guard uses Number.isFinite');
+
   /* The fx slot is declared with no shim host, so it must compose through the absent path. */
   const withoutFx = RLREGIME.composeRegime([
     { contractVersion: 'regime-facet/v1', facetId: 'trend.structure', kind: 'trend-structure', value: 'uptrend', valueVocabularyId: 'x/v1', horizon: 'structural', state: 'available', asOf: '2026-08-16T00:00:00.000Z' },

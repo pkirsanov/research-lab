@@ -1586,7 +1586,7 @@ export function buildBondRegimeToolRead(deps = {}) {
       'estimateDurationConfound', 'classifyRelativeCreditPulse', 'classifyCreditConfirmation', 'aggregateCreditConfirmations',
       'classifyCreditRegime', 'classifyCurveState', 'classifyCurveImpulse', 'deriveBreakevenRows', 'classifyInflationState',
       'classifyDurationPosture', 'scenarioShockForSleeve', 'solveBreakEvenShock', 'classifyReliability', 'calculateScenarioResult',
-      'rankScenarioResults', 'selectResearchExpression', 'buildDecisionRead', 'buildBondToolRead', 'stableDecisionDigest',
+      'rankScenarioResults', 'selectResearchExpression', 'buildDecisionRead', 'publishRegimeFacets', 'buildBondToolRead', 'stableDecisionDigest',
       'instrumentIndex', 'computeCreditView', 'computeBondLabViewModel'
     ];
     // calculateScenarioResult single-sources its carry/rate/spread/convexity decomposition to

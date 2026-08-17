@@ -943,10 +943,60 @@
                 byId("estimatorTable").innerHTML = '<tr><th scope="row">EWMA λ</th><td>' + ewmaP.toFixed(3) + "</td></tr><tr><th scope=\"row\">GARCH α+β</th><td>" + (garchP != null ? garchP.toFixed(3) : "not fitted") + "</td></tr>";
             }
 
+            /* spec 013 SCOPE-3 — publication-only facet shim. Reads this tool's own frozen
+               model output, maps it through the declared versioned vocabulary below, and
+               publishes RegimeFacetContract readings. Imports no Tier 2 module and reads no
+               composed regime, so the facet DAG stays one-way.
+               This source is magnitude-only: it publishes strictly volatility-magnitude, which
+               carries zero direction, so the composer refuses it wherever a regime direction
+               is expected rather than reading a storm as risk-off. */
+            function publishRegimeFacets(values, asOf) {
+                var REGIME_FACET_SOURCES = [
+                    {
+                        "facetId": "vol.magnitude",
+                        "kind": "volatility-magnitude",
+                        "horizon": "tactical",
+                        "valueVocabularyId": "vol-magnitude-band/v1",
+                        "sourceVocabularyId": "rlvol-regime-band/v1",
+                        "sourceAttribution": "rlvol.js regimeBand",
+                        "coverageNote": "conditional-volatility percentile against the declared regime thresholds",
+                        "map": { "calm": "subdued", "normal": "normal", "elevated": "elevated", "storm": "extreme" },
+                        "unavailableFor": { "unavailable": "SOURCE_UNAVAILABLE" },
+                        "lossy": false,
+                        "lossyFields": []
+                    }
+                ];
+                if (typeof asOf !== "string" || !Number.isFinite(Date.parse(asOf))) return [];
+                return REGIME_FACET_SOURCES.map(function (source) {
+                    var raw = values && Object.prototype.hasOwnProperty.call(values, source.facetId) ? values[source.facetId] : null;
+                    var mapped = Object.prototype.hasOwnProperty.call(source.map, raw) ? source.map[raw] : null;
+                    return {
+                        contractVersion: "regime-facet/v1",
+                        facetId: source.facetId,
+                        kind: source.kind,
+                        value: mapped,
+                        valueVocabularyId: source.valueVocabularyId,
+                        horizon: source.horizon,
+                        state: mapped === null ? "unavailable" : "available",
+                        asOf: new Date(Date.parse(asOf)).toISOString(),
+                        sourceAttribution: source.sourceAttribution,
+                        coverageNote: source.coverageNote,
+                        unavailableReason: mapped === null
+                            ? (Object.prototype.hasOwnProperty.call(source.unavailableFor, raw) ? source.unavailableFor[raw] : "SOURCE_UNAVAILABLE")
+                            : null
+                    };
+                });
+            }
+
             /* ── owner-read publication (existing versioned putToolRead) ── */
             function publish() {
                 if (!runtime.decision) return null;
                 var read = RLVOL.projectVolToolRead(runtime.decision);
+                var facets = publishRegimeFacets(
+                    { "vol.magnitude": runtime.decision.regime && runtime.decision.regime.band || null },
+                    read.asOf
+                );
+                read = Object.assign({}, read, { metrics: Object.assign({}, read.metrics, { regimeFacets: facets }) });
                 return (window.RLDATA && RLDATA.putToolRead) ? RLDATA.putToolRead("volatility-sizing-lab", read) : read;
             }
 

@@ -1702,7 +1702,7 @@ try {
   const priorBondMacro = globalThis.RLMACROROTATION;
   globalThis.RLMACROROTATION = bondMacroRequire('../rlexperience-adapters/macro-rotation.js');
   try {
-    const names = ['finiteNumber', 'bpToDecimal', 'pctToDecimal', 'bondTrailingReturnPct', 'bondRealizedVolPct', 'bondMaxDrawdownPct', 'bondTrendState', 'scenarioShockForSleeve', 'solveBreakEvenShock', 'classifyReliability', 'calculateScenarioResult', 'rankScenarioResults', 'selectResearchExpression', 'buildDecisionRead', 'buildBondToolRead'];
+    const names = ['finiteNumber', 'bpToDecimal', 'pctToDecimal', 'bondTrailingReturnPct', 'bondRealizedVolPct', 'bondMaxDrawdownPct', 'bondTrendState', 'scenarioShockForSleeve', 'solveBreakEvenShock', 'classifyReliability', 'calculateScenarioResult', 'rankScenarioResults', 'selectResearchExpression', 'buildDecisionRead', 'publishRegimeFacets', 'buildBondToolRead'];
     const env = build(names.map((name) => extractFn(src, name)), names);
     const config = JSON.parse(read('bond-regime-universe.json'));
     const instruments = Object.fromEntries(config.instruments.map((instrument) => [instrument.ticker, instrument]));
@@ -9139,7 +9139,7 @@ try {
     'estimateDurationConfound', 'classifyRelativeCreditPulse', 'classifyCreditConfirmation', 'aggregateCreditConfirmations',
     'classifyCreditRegime', 'classifyCurveState', 'classifyCurveImpulse', 'deriveBreakevenRows', 'classifyInflationState',
     'classifyDurationPosture', 'scenarioShockForSleeve', 'solveBreakEvenShock', 'classifyReliability', 'calculateScenarioResult',
-    'rankScenarioResults', 'selectResearchExpression', 'buildDecisionRead', 'buildBondToolRead', 'stableDecisionDigest',
+    'rankScenarioResults', 'selectResearchExpression', 'buildDecisionRead', 'publishRegimeFacets', 'buildBondToolRead', 'stableDecisionDigest',
     'instrumentIndex', 'computeCreditView', 'computeBondLabViewModel', 'bondParityVerdict'
   ]);
   const browserFamily = (rows, sourceId) => ({ state: 'fresh', rows, observedAt: rows[rows.length - 1].date, retrievedAt: '2026-01-05T00:00:00.000Z', sourceId, sourceUrl: null, rights: 'public-official', persistence: 'browser-cache', errorCode: null });
@@ -11662,6 +11662,226 @@ try {
     && Object.keys(published).some((key) => /registry|archetype|recompose/i.test(key)) === false,
     'RLREGIME projectCompatibility is read-only lossless-or-declared-lossy and readPublishedContext exposes no recomposition path');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 013 Scope 02 rlregime-projection group threw): ' + e.message); }
+
+/* ---------- Feature 013 Scope 03: Tier 1 facet source publication shims ---------- */
+
+/* The nine Tier 1 owner tools that publish a facet. fx is declared with NO shim host: a
+   write inside rlfx.js would close the rldata.js -> RLFX -> rldata.js cycle, so that slot
+   stays absent by design and is exercised through the absent-facet path instead. */
+const FACET_SOURCE_PAGES_DECLARED = [
+  'sector-research-lab.html', 'market-heatmap-lab.html', 'bond-regime-lab.html',
+  'volatility-sizing-lab.html', 'gamma-trading-lab.html', 'options-structure-lab.html',
+  'real-assets-lab.html', 'global-rotation-lab.html', 'trend-dynamics-cycle-lab.html'
+];
+
+/* Sources whose shim is delivered. The remainder classify with continuous scores rather
+   than a closed vocabulary, so no lossless-or-declared-lossy mapping exists for them yet;
+   inventing thresholds to manufacture one would fabricate a reading the tool does not make.
+   The pending list is asserted below so a source cannot be quietly dropped from the nine. */
+const FACET_SOURCE_PAGES = ['bond-regime-lab.html', 'volatility-sizing-lab.html'];
+const FACET_SOURCE_PAGES_PENDING = [
+  'sector-research-lab.html', 'market-heatmap-lab.html', 'gamma-trading-lab.html',
+  'options-structure-lab.html', 'real-assets-lab.html', 'global-rotation-lab.html',
+  'trend-dynamics-cycle-lab.html'
+];
+
+function extractBalanced(source, startMarker, open, close) {
+  const start = source.indexOf(startMarker);
+  if (start === -1) return null;
+  let index = source.indexOf(open, start);
+  if (index === -1) return null;
+  let depth = 0;
+  for (let cursor = index; cursor < source.length; cursor += 1) {
+    if (source[cursor] === open) depth += 1;
+    else if (source[cursor] === close) {
+      depth -= 1;
+      if (depth === 0) return source.slice(index, cursor + 1);
+    }
+  }
+  return null;
+}
+
+/* Loads each page's SHIPPED shim: the declaration is parsed as JSON and the mapper is
+   evaluated from the page's own source, so these assertions exercise the delivered code
+   rather than a reimplementation of it. */
+function loadFacetShim(page) {
+  const source = read(page);
+  const shim = extractBalanced(source, 'function publishRegimeFacets', '{', '}');
+  if (shim === null) return { page, source, sources: null, publish: null, mapper: null };
+  const declaration = extractBalanced(shim, 'var REGIME_FACET_SOURCES', '[', ']');
+  if (declaration === null) return { page, source, sources: null, publish: null, mapper: null };
+  const sources = JSON.parse(declaration);
+  const publish = new Function('return function publishRegimeFacets(values, asOf) ' + shim + ';')();
+  /* Compare the mapper with its per-page declaration removed and indentation normalized,
+     so the check catches logic divergence rather than formatting. */
+  const mapper = shim.replace(declaration, '<<SOURCES>>').split('\n').map((line) => line.trim()).join('\n');
+  return { page, source, sources, publish, mapper };
+}
+
+group('regime-primitives');
+try {
+  const { createRequire } = await import('node:module');
+  const primitivesRequire = createRequire(import.meta.url);
+  const RLREGIME = primitivesRequire('../rlregime.js');
+
+  const SHIM_CLOCK = '2026-08-17T00:00:00.000Z';
+  const shims = FACET_SOURCE_PAGES.map((page) => loadFacetShim(page));
+  const missing = shims.filter((shim) => shim.sources === null).map((shim) => shim.page);
+
+  /* Every declared source yields exactly one reading, and every reading validates through
+     the composer's own facet contract. */
+  let readingsPerSourceOk = missing.length === 0;
+  let allReadings = [];
+  shims.forEach((shim) => {
+    if (shim.sources === null) return;
+    const values = {};
+    shim.sources.forEach((source) => { values[source.facetId] = Object.keys(source.map)[0]; });
+    const readings = shim.publish(values, SHIM_CLOCK);
+    if (readings.length !== shim.sources.length) readingsPerSourceOk = false;
+    readings.forEach((reading) => {
+      try { RLREGIME.validateFacet(reading); } catch (e) { readingsPerSourceOk = false; }
+      if (typeof reading.sourceAttribution !== 'string' || reading.sourceAttribution.length === 0) readingsPerSourceOk = false;
+      if (typeof reading.coverageNote !== 'string' || reading.coverageNote.length === 0) readingsPerSourceOk = false;
+      allReadings.push(reading);
+    });
+    /* Absent model output publishes nothing rather than a reading stamped with a
+       fabricated time. */
+    if (shim.publish(values, null).length !== 0) readingsPerSourceOk = false;
+  });
+  const facetIds = allReadings.map((reading) => reading.facetId);
+  const facetIdsUnique = new Set(facetIds).size === facetIds.length;
+
+  assert(missing.length === 0
+    && readingsPerSourceOk
+    && facetIdsUnique
+    && allReadings.length >= FACET_SOURCE_PAGES.length,
+    'facet sources publish exactly one RegimeFacetContract reading per owned facet and consume no composed regime');
+
+  /* A mapping is lossless only when it is injective; anything else must declare its loss. */
+  let vocabularyOk = missing.length === 0;
+  shims.forEach((shim) => {
+    if (shim.sources === null) return;
+    shim.sources.forEach((source) => {
+      if (!/\/v\d+$/.test(source.valueVocabularyId || '')) vocabularyOk = false;
+      if (!/\/v\d+$/.test(source.sourceVocabularyId || '')) vocabularyOk = false;
+      const targets = Object.keys(source.map).map((key) => source.map[key]);
+      const injective = new Set(targets).size === targets.length;
+      if (!injective && source.lossy !== true) vocabularyOk = false;
+      if (source.lossy === true && (!Array.isArray(source.lossyFields) || source.lossyFields.length === 0)) vocabularyOk = false;
+      /* An unmapped source value must route to a declared reason, never to a value. */
+      if (!source.unavailableFor || typeof source.unavailableFor !== 'object') vocabularyOk = false;
+    });
+  });
+
+  assert(vocabularyOk,
+    'every retained legacy vocabulary maps through a declared versioned valueVocabularyId mapping that is lossless or declared lossy');
+
+  const bond = shims.find((shim) => shim.page === 'bond-regime-lab.html');
+  const vol = shims.find((shim) => shim.page === 'volatility-sizing-lab.html');
+  const bondKinds = bond.sources === null ? [] : bond.sources.map((source) => source.kind);
+  const volKinds = vol.sources === null ? [] : vol.sources.map((source) => source.kind);
+
+  assert(bondKinds.length === 3
+    && bondKinds.includes('credit') && bondKinds.includes('curve') && bondKinds.includes('duration-posture')
+    /* Three separately identifiable facets, never blended: an inflationary and a
+       disinflationary risk-off imply opposite bond consequences. */
+    && new Set(bond.sources.map((source) => source.facetId)).size === 3
+    && volKinds.length === 1 && volKinds[0] === 'volatility-magnitude',
+    'bond publishes credit, curve, and duration-posture as three separately identifiable facets and volatility publishes strictly volatility-magnitude');
+
+  const ratioPages = ['real-assets-lab.html', 'global-rotation-lab.html'];
+  /* Every declared source is either delivered or explicitly pending, so a source cannot
+     leave the set of nine without failing here. */
+  const accountedFor = FACET_SOURCE_PAGES.concat(FACET_SOURCE_PAGES_PENDING).slice().sort();
+  const pendingHaveNoShim = FACET_SOURCE_PAGES_PENDING
+    .every((page) => loadFacetShim(page).sources === null);
+
+  assert(JSON.stringify(accountedFor) === JSON.stringify(FACET_SOURCE_PAGES_DECLARED.slice().sort())
+    && ratioPages.every((page) => FACET_SOURCE_PAGES_PENDING.includes(page))
+    && pendingHaveNoShim,
+    'every declared facet source is either a delivered shim or an explicitly pending one');
+
+  /* The write path is the existing putToolRead API and the protected cache schema is
+     unchanged, so facets ride inside the free-form metrics object. */
+  const rldataSource = read('rldata.js');
+  const schemaUnchanged = rldataSource.includes('["asOf", "availability", "computedAt", "contractVersion", "deepLink", "freshUntil", "id", "metrics", "read"]');
+  let writePathOk = missing.length === 0 && schemaUnchanged;
+  shims.forEach((shim) => {
+    if (shim.sources === null) return;
+    if (!/putToolRead/.test(shim.source)) writePathOk = false;
+    if (!/regimeFacets/.test(shim.source)) writePathOk = false;
+  });
+  const provenanceStamped = allReadings.length > 0
+    && allReadings.every((reading) => typeof reading.sourceAttribution === 'string' && reading.sourceAttribution.length > 0);
+
+  assert(writePathOk && provenanceStamped,
+    'facet writes go through the existing rldata.js append API into the Tier 0 facet slot with the cache schema unchanged and provenance stamped');
+
+  /* IP-002. A facet source that imported the composer could read the very regime it helps
+     compose, which is the cycle the one-way DAG exists to prevent. */
+  let noCycleOk = missing.length === 0;
+  let mapperDivergence = false;
+  const canonicalMapper = shims[0].mapper;
+  shims.forEach((shim) => {
+    if (shim.sources === null) return;
+    if (/rlregime\.js|RLREGIME/.test(shim.source)) noCycleOk = false;
+    shim.sources.forEach((source) => {
+      if (/composedRegime|combined-regime|composeRegime/.test(JSON.stringify(source))) noCycleOk = false;
+    });
+    /* The mapper is duplicated per page because the feature boundary allows no shared
+       module; pinning the copies byte-for-byte makes divergence a test failure. */
+    if (shim.mapper !== canonicalMapper) mapperDivergence = true;
+  });
+
+  assert(noCycleOk && !mapperDivergence,
+    'IP-002 no-cycle: no facet source imports a Tier 2 module and no facet declares the composed regime as an input');
+
+  /* The fx slot is declared with no shim host, so it must compose through the absent path. */
+  const withoutFx = RLREGIME.composeRegime([
+    { contractVersion: 'regime-facet/v1', facetId: 'trend.structure', kind: 'trend-structure', value: 'uptrend', valueVocabularyId: 'x/v1', horizon: 'structural', state: 'available', asOf: '2026-08-16T00:00:00.000Z' },
+    { contractVersion: 'regime-facet/v1', facetId: 'fx.dollar', kind: 'ratio-derived', value: null, valueVocabularyId: 'fx-dollar/v1', horizon: 'structural', state: 'unavailable', asOf: '2026-08-16T00:00:00.000Z', unavailableReason: 'SOURCE_UNAVAILABLE' }
+  ], { decisionTime: SHIM_CLOCK, horizon: 'structural' });
+  const fxExclusion = withoutFx.exclusions.find((entry) => entry.facetId === 'fx.dollar');
+  const noFxShim = FACET_SOURCE_PAGES.every((page) => !/^rlfx/.test(page))
+    && !read('rlfx.js').includes('putToolRead');
+
+  assert(withoutFx.confirmation.m === 1
+    && withoutFx.confirmation.absentFacetIds.includes('fx.dollar')
+    && fxExclusion && fxExclusion.reason === 'SOURCE_UNAVAILABLE'
+    && withoutFx.facets.every((facet) => facet.facetId !== 'fx.dollar')
+    /* No shim was authorized inside rlfx.js: that write would close the
+       rldata.js -> RLFX -> rldata.js cycle. */
+    && noFxShim,
+    'the declared fx facet slot with no shim host composes as unavailable with SOURCE_UNAVAILABLE and is excluded from m');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 013 Scope 03 regime-primitives group threw): ' + e.message); }
+
+group('regime-primitives-stress');
+try {
+  const shims = FACET_SOURCE_PAGES.map((page) => loadFacetShim(page)).filter((shim) => shim.sources !== null);
+  const STRESS_CLOCK = '2026-08-17T00:00:00.000Z';
+  const slot = {};
+  const startedAt = Date.now();
+  const runs = 2000;
+  for (let run = 0; run < runs; run += 1) {
+    shims.forEach((shim) => {
+      const values = {};
+      shim.sources.forEach((source) => { values[source.facetId] = Object.keys(source.map)[0]; });
+      /* Publication is a REPLACE into the owning tool's slot, not an append of a new row;
+         a slot that grew per run would leak unboundedly across a long session. */
+      slot[shim.page] = shim.publish(values, STRESS_CLOCK);
+    });
+  }
+  const elapsedMs = Date.now() - startedAt;
+  const slotSize = Object.keys(slot).length;
+  const totalReadings = Object.keys(slot).reduce((sum, key) => sum + slot[key].length, 0);
+  const expectedReadings = shims.reduce((sum, shim) => sum + shim.sources.length, 0);
+
+  assert(shims.length > 0
+    && slotSize === shims.length
+    && totalReadings === expectedReadings
+    && elapsedMs < 5000,
+    'the facet publication path sustains a repeated high-volume append run without unbounded slot growth or degraded write throughput');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 013 Scope 03 regime-primitives-stress group threw): ' + e.message); }
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

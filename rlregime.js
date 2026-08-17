@@ -37,11 +37,12 @@
 
     var FACET_KINDS = [
         "sentiment-stress", "trend-structure", "breadth-participation", "credit",
-        "curve", "duration-posture", "volatility-magnitude", "ratio-derived"
+        "curve", "duration-posture", "volatility-magnitude", "ratio-derived",
+        "positioning-context"
     ];
-    /* volatility-magnitude is magnitude-only with zero direction, so it may never stand in
-       for a directional regime value. That refusal is enforced in composeRegime. */
-    var DIRECTIONLESS_KINDS = ["volatility-magnitude"];
+    /* Magnitude- and structure-only kinds carry zero direction, so they may never stand in
+       for a directional regime value. Dealer gamma says how moves propagate, not which way. */
+    var DIRECTIONLESS_KINDS = ["volatility-magnitude", "positioning-context"];
 
     /*
      * Closed value vocabularies keyed by facet `kind`. A facet value outside its own kind's
@@ -56,7 +57,8 @@
         "curve": ["steepening", "flat", "flattening", "inverted"],
         "duration-posture": ["extending", "neutral", "shortening"],
         "volatility-magnitude": ["subdued", "normal", "elevated", "extreme"],
-        "ratio-derived": ["leading", "in-line", "lagging"]
+        "ratio-derived": ["leading", "in-line", "lagging"],
+        "positioning-context": ["dealer-long-gamma", "dealer-short-gamma"]
     };
 
     /*
@@ -73,7 +75,8 @@
         "curve": { steepening: "risk-on", flat: "neutral", flattening: "risk-off", inverted: "risk-off" },
         "duration-posture": { extending: "risk-off", neutral: "neutral", shortening: "risk-on" },
         "volatility-magnitude": { subdued: "none", normal: "none", elevated: "none", extreme: "none" },
-        "ratio-derived": { leading: "risk-on", "in-line": "neutral", lagging: "risk-off" }
+        "ratio-derived": { leading: "risk-on", "in-line": "neutral", lagging: "risk-off" },
+        "positioning-context": { "dealer-long-gamma": "none", "dealer-short-gamma": "none" }
     };
 
     /* A sleeve fit ranks; it never sizes. These tokens are refused at the contract boundary. */

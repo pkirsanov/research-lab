@@ -1982,6 +1982,77 @@
             };
         }
 
+        /* spec 013 SCOPE-3 — publication-only facet shim. Reads this tool's own frozen
+           model output, maps it through the declared versioned vocabulary below, and
+           publishes RegimeFacetContract readings. Imports no Tier 2 module and reads no
+           composed regime, so the facet DAG stays one-way.
+           Credit, curve, and duration-posture stay three separately identifiable facets:
+           an inflationary and a disinflationary risk-off imply opposite bond consequences,
+           so blending them into one score would destroy the distinction the reader needs. */
+        function publishRegimeFacets(values, asOf) {
+            var REGIME_FACET_SOURCES = [
+                {
+                    "facetId": "bond.credit",
+                    "kind": "credit",
+                    "horizon": "structural",
+                    "valueVocabularyId": "bond-credit-pulse/v1",
+                    "sourceVocabularyId": "bond-regime-lab-credit/v1",
+                    "sourceAttribution": "bond-regime-lab classifyCreditRegime",
+                    "coverageNote": "adjusted-close credit ratio confirmed by independent spread or financial-conditions evidence",
+                    "map": { "Constructive": "spreads-tightening", "Defensive": "spreads-widening" },
+                    "unavailableFor": { "Mixed": "SOURCE_MIXED", "Indeterminate": "SOURCE_INDETERMINATE", "Unavailable": "SOURCE_UNAVAILABLE" },
+                    "lossy": false,
+                    "lossyFields": []
+                },
+                {
+                    "facetId": "bond.curve",
+                    "kind": "curve",
+                    "horizon": "structural",
+                    "valueVocabularyId": "bond-curve-state/v1",
+                    "sourceVocabularyId": "bond-regime-lab-curve/v1",
+                    "sourceAttribution": "bond-regime-lab classifyCurveState",
+                    "coverageNote": "nominal curve slope from common-tenor observations",
+                    "map": { "Positive": "steepening", "Flat": "flat", "Inverted": "inverted" },
+                    "unavailableFor": { "Mixed": "SOURCE_MIXED", "Unavailable": "SOURCE_UNAVAILABLE", "Indeterminate": "SOURCE_INDETERMINATE" },
+                    "lossy": true,
+                    "lossyFields": ["slope level is published into a vocabulary whose other members name slope change"]
+                },
+                {
+                    "facetId": "bond.duration",
+                    "kind": "duration-posture",
+                    "horizon": "swing",
+                    "valueVocabularyId": "bond-duration-posture/v1",
+                    "sourceVocabularyId": "bond-regime-lab-duration/v1",
+                    "sourceAttribution": "bond-regime-lab classifyDurationPosture",
+                    "coverageNote": "nominal and breakeven impulse beyond the configured noise bands",
+                    "map": { "Extend": "extending", "Shorten": "shortening", "Balanced": "neutral" },
+                    "unavailableFor": { "Indeterminate": "SOURCE_INDETERMINATE", "Unavailable": "SOURCE_UNAVAILABLE" },
+                    "lossy": false,
+                    "lossyFields": []
+                }
+            ];
+            if (typeof asOf !== "string" || !Number.isFinite(Date.parse(asOf))) return [];
+            return REGIME_FACET_SOURCES.map(function (source) {
+                var raw = values && Object.prototype.hasOwnProperty.call(values, source.facetId) ? values[source.facetId] : null;
+                var mapped = Object.prototype.hasOwnProperty.call(source.map, raw) ? source.map[raw] : null;
+                return {
+                    contractVersion: "regime-facet/v1",
+                    facetId: source.facetId,
+                    kind: source.kind,
+                    value: mapped,
+                    valueVocabularyId: source.valueVocabularyId,
+                    horizon: source.horizon,
+                    state: mapped === null ? "unavailable" : "available",
+                    asOf: new Date(Date.parse(asOf)).toISOString(),
+                    sourceAttribution: source.sourceAttribution,
+                    coverageNote: source.coverageNote,
+                    unavailableReason: mapped === null
+                        ? (Object.prototype.hasOwnProperty.call(source.unavailableFor, raw) ? source.unavailableFor[raw] : "SOURCE_UNAVAILABLE")
+                        : null
+                };
+            });
+        }
+
         function buildBondToolRead(decisionRead) {
             decisionRead = decisionRead || {};
             var expression = decisionRead.creditRegime && decisionRead.creditRegime.state !== "Indeterminate" ? decisionRead.expression : null;
@@ -2000,7 +2071,12 @@
                     confirmationState: decisionRead.creditRegime && decisionRead.creditRegime.confirmationState || "unavailable",
                     ratioAsOf: decisionRead.creditRegime && decisionRead.creditRegime.asOf || null,
                     curveAsOf: decisionRead.durationPosture && decisionRead.durationPosture.asOf || null,
-                    indeterminateReason: expression ? null : decisionRead.indeterminateReason || "Minimum evidence contract not met"
+                    indeterminateReason: expression ? null : decisionRead.indeterminateReason || "Minimum evidence contract not met",
+                    regimeFacets: publishRegimeFacets({
+                        "bond.credit": decisionRead.creditRegime && decisionRead.creditRegime.state || null,
+                        "bond.curve": decisionRead.durationPosture && decisionRead.durationPosture.curveState && decisionRead.durationPosture.curveState.state || null,
+                        "bond.duration": decisionRead.durationPosture && decisionRead.durationPosture.state || null
+                    }, decisionRead.observedAsOf || null)
                 },
                 deepLink: "bond-regime-lab.html#simple"
             };

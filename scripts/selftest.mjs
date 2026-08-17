@@ -11409,6 +11409,24 @@ try {
     && rawArrayRefusal.code === 'RLREGIME_SCHEMA_INVALID'
     && rawArrayRefusal.path === '$.publishedRegime',
     'RLREGIME readPublishedContext refuses a raw facet array with RLREGIME_SCHEMA_INVALID at publishedRegime');
+
+  const regimeSource = read('rlregime.js');
+  const registry = JSON.parse(read('regime-archetypes.json'));
+  const registryValidates = RLREGIME.validateArchetypeRegistry(registry) === registry;
+  /* A wildcard or range cell would make the archetype mapping approximate, which is the
+     failure mode the fingerprint path exists to avoid. */
+  const fullyEnumerated = registry.entries.every((entry) =>
+    entry.tuple.every((cell) => typeof cell.value === 'string'
+      && cell.value !== '*' && cell.value.includes('..') === false));
+
+  assert(registryValidates
+    && fullyEnumerated
+    && registry.entries.length >= 2
+    /* A bare isFinite would accept null and let a missing facet arithmetic through. */
+    && /[^.\w]isFinite\(/.test(regimeSource) === false
+    && /Date\.now\(\)|new Date\(\)/.test(regimeSource) === false
+    && /TODO|FIXME|STUB/.test(regimeSource) === false,
+    'regime-archetypes.json is fully enumerated and rlregime.js carries no global isFinite, ambient clock, or stub');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 013 Scope 02 rlregime group threw): ' + e.message); }
 
 group('rlregime-compose');

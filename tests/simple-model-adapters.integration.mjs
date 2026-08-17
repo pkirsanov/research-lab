@@ -697,6 +697,30 @@ function loadMacroRotation() {
   return require(path);
 }
 
+function loadCausalEvaluator() {
+  const path = require.resolve('../rlcausal.js');
+  delete require.cache[path];
+  require(path);
+  return globalThis.RLCausal;
+}
+
+/* The causal owner freezes one real rlcausal evaluation per posture and overlay it offers, so the
+   adapter selects among owner results rather than recomputing. The fixture is built the same way. */
+function causalOwnerFixture() {
+  const causal = loadCausalEvaluator();
+  const config = readJson('causal-rotation.config.json');
+  const observationSet = readJson('causal-rotation-observations.json');
+  const asOf = '2026-07-12T22:00:00Z';
+  const evaluations = {};
+  for (const posture of Object.keys(config.sensitivityPolicies)) {
+    for (const riskOverlay of ['none', 'tightened']) {
+      const result = causal.evaluateAll({ config, observationSet, asOf, posture, riskOverlay });
+      evaluations[posture + '|' + riskOverlay] = { candidates: (result.candidates || []).map(clone) };
+    }
+  }
+  return { asOf, evaluatorVersion: config.evaluatorVersion, evaluations };
+}
+
 function loadFundamentalModels() {
   const path = require.resolve('../rlexperience-adapters/fundamental-models.js');
   delete require.cache[path];
@@ -938,6 +962,27 @@ function msftOwnerFixture() {
 
 function makeScope6Descriptors(mr, fm) {
   return {
+    'causal-rotation-lab': {
+      ownerState: () => causalOwnerFixture(),
+      base: (definition) => defaultValues(definition),
+      ownerFact: ({ summary, owner, base }) => {
+        const key = base.posture + '|' + base.riskOverlay;
+        const candidates = owner.evaluations[key].candidates;
+        assert.equal(summary.candidateCount, candidates.length, 'the candidate count is the owner evaluation, not a recount');
+        const top = candidates.length ? candidates[0] : null;
+        assert.equal(summary.stage, top ? top.stage : null, 'the stage passes through from the frozen owner evaluation');
+        assert.equal(summary.candidate, top ? top.candidateId : null, 'the reported candidate is the owner-ranked leader');
+        assert.equal(summary.planEligible, top ? top.planEligible === true : false, 'plan eligibility is the owner disposition');
+      },
+      // Measured on the committed observation set: all five candidates sit at `watch`, a stage every
+      // posture's visibleStages admits, and none clears the overlay's extra-cluster bar. Both levers are
+      // therefore PROVED flat regions here rather than unwired — a different evidence set would move them.
+      expectFlatParameters: true,
+      cases: () => [
+        ['posture', 'confirmation'],
+        ['riskOverlay', 'tightened']
+      ]
+    },
     'fx-regime-relative-value-lab': {
       ownerState: () => fxVehicleOwnerState(),
       base: (definition) => defaultValues(definition),
@@ -1186,7 +1231,7 @@ test('TP-06-02 macro rotation and fundamental adapters: registry-derived loop ru
   const fm = loadFundamentalModels();
 
   const definitions = scope6Definitions();
-  assert.equal(definitions.length, 9, 'all nine Scope-06 definitions are declared in the registry');
+  assert.equal(definitions.length, 10, 'all ten Scope-06 definitions are declared in the registry');
 
   const runtime = makeRuntime(api, definitions);
   const results = registerScope6(runtime, api, mr, fm, definitions);
@@ -1819,7 +1864,7 @@ test('TP-07-02 SCN-012-036 completeness: all 22 ordinary adapters plus the in-Br
   const registry = readJson('tools.json');
   const ordinaryToolIds = registry.tools.filter((tool) => tool.experience.kind === 'ordinary').map((tool) => tool.id);
   const centerToolIds = registry.tools.filter((tool) => tool.experience.kind === 'market-action-center').map((tool) => tool.id);
-  assert.equal(ordinaryToolIds.length, 26, 'the registry declares 26 ordinary tools');
+  assert.equal(ordinaryToolIds.length, 27, 'the registry declares 27 ordinary tools');
   assert.equal(centerToolIds.length, 1, 'the registry declares exactly one in-Brief Center model');
 
   // Every ordinary registry tool resolves EXACTLY one registered owner adapter (adapterStatus.registered = true).
@@ -1834,7 +1879,7 @@ test('TP-07-02 SCN-012-036 completeness: all 22 ordinary adapters plus the in-Br
   // Zero generic fallback: the runtime registered EXACTLY 22 ordinary + 1 Center = 23 owner adapters, owns no
   // tool-id branch, and owns no forbidden authority.
   const diagnostic = requireValue(runtime.diagnostic());
-  assert.equal(diagnostic.registeredAdapterCount, 27, 'exactly 26 ordinary + 1 Center owner adapters are registered (no extras, no generic fallback)');
+  assert.equal(diagnostic.registeredAdapterCount, 28, 'exactly 27 ordinary + 1 Center owner adapters are registered (no extras, no generic fallback)');
   assert.equal(diagnostic.toolIdBranchCount, 0, 'the shared runtime owns no tool-id branch');
   assert.equal(Object.values(diagnostic.authority).every((owned) => owned === false), true, 'the shared runtime owns no forbidden authority');
 });

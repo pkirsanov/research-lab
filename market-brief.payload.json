@@ -697,6 +697,12 @@
       "id": "research-agenda-lab",
       "reason": "Registered and brief-relevant, but it has no deterministic Tier-A adapter and does not feed the brief yet in a headless composition run: its standing-research dossiers are published client-side when the route renders. No current dossier is on file to promote and no market call is made this window; open the owning tool for its latest standing-research reviews before citing one.",
       "status": "stale"
+    },
+    {
+      "deepLink": "causal-rotation-lab.html",
+      "id": "causal-rotation-lab",
+      "reason": "watch: Selective credit transmission; not plan-eligible; confirmation remains required.",
+      "status": "fresh-headless"
     }
   ],
   "toolId": "market-brief",

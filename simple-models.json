@@ -5264,6 +5264,31 @@
       "limitations": ["An unavailable current review stays unavailable; dated history cannot supply current model output, and changed assumptions never alter evidence or the immutable review."],
       "deepLinkTargets": {"power":"research-agenda-lab.html#power/geopolitical-supply-shock","journey":"research-agenda-lab.html#journey"},
       "definitionFingerprint": null
+    },
+    {
+      "contractVersion": "simple-model-definition/v1",
+      "definitionId": "simple-model/causal-rotation-stage/v1",
+      "toolId": "causal-rotation-lab",
+      "modelId": "causal-rotation-stage",
+      "modelVersion": "v1",
+      "researchQuestion": "Under a chosen sensitivity posture and risk overlay, which rotation candidate carries the strongest causal evidence, what stage does that evidence reach, and is it eligible for plan comparison yet",
+      "resultSchemaId": "simple-model-output/generic-scenario/v1",
+      "adapterId": "simple-adapter/causal-rotation-stage/v1",
+      "adapterModule": "rlexperience-adapters/macro-rotation.js",
+      "inputRequirements": [{"requirementId":"owner-evidence","sourceClass":"owner-evidence","required":true,"stalePolicy":"reject"}],
+      "parameterDefinitions": [
+        {"parameterId":"posture","label":"Sensitivity posture","kind":"enum","unit":"posture","domain":{"options":[{"value":"discovery","label":"Discovery"},{"value":"balanced","label":"Balanced"},{"value":"confirmation","label":"Confirmation"}]},"defaultValue":"discovery","defaultSource":"registry","interpretation":"Selects how much independent non-market evidence a candidate must carry before it becomes visible and eligible.","affectsOutputPaths":["summary.stage","summary.candidate","summary.planEligible"],"disabledWhen":[],"identityBearing":true},
+        {"parameterId":"riskOverlay","label":"Risk overlay","kind":"enum","unit":"overlay","domain":{"options":[{"value":"none","label":"None"},{"value":"tightened","label":"Tightened"}]},"defaultValue":"none","defaultSource":"registry","interpretation":"Applies the declared risk overlay, which demands additional independent clusters and a confirming market state before a candidate is plan-eligible.","affectsOutputPaths":["summary.planEligible","summary.stage"],"disabledWhen":[],"identityBearing":true}
+      ],
+      "scenarioDefinitions": [{"scenarioId":"baseline","label":"Baseline","parameterOverrides":{}}],
+      "seedPolicy": {"required":false,"defaultSeed":null,"defaultSource":null,"randomnessClass":"none","commonRandomNumbersForSensitivity":false},
+      "sensitivityPolicy": {"method":"one-at-a-time","requireOutputEffect":true,"flatRegionPolicy":"explicit-proof"},
+      "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
+      "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
+      "performancePolicy": {"maxComputeMs":250,"deterministic":true},
+      "limitations": ["A stage describes the strength of the causal evidence, never a forecast or a position. Plan eligibility means confirmation conditions are met, not that a trade is advised, and a posture or overlay change never edits evidence."],
+      "deepLinkTargets": {"power":"causal-rotation-lab.html#power","journey":"causal-rotation-lab.html#journey"},
+      "definitionFingerprint": null
     }
   ]
 }

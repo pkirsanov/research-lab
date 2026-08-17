@@ -270,9 +270,9 @@ test('SCN-002-001: registry derives 23 participants 22 sources and one non-recur
   const independentAggregators = registry.tools.filter((entry) => entry.briefing.role === 'final-aggregator').map((entry) => entry.id);
   assert.equal(frozen.contractVersion, 'frozen-briefing-registry/v1');
   assert.equal(frozen.participantCount, registry.tools.length);
-  assert.equal(frozen.participantCount, 27);
+  assert.equal(frozen.participantCount, 28);
   assert.equal(frozen.sourceCount, independentSources.length);
-  assert.equal(frozen.sourceCount, 26);
+  assert.equal(frozen.sourceCount, 27);
   assert.deepEqual(frozen.orderedParticipantIds, registry.tools.map((entry) => entry.id));
   assert.deepEqual(frozen.orderedSourceToolIds, independentSources);
 
@@ -338,8 +338,8 @@ test('SCN-002-002: profile status applicability privacy and eligibility boundari
 test('SCN-002-003: added-source mutation derives 24 participants and 23 sources generically', () => {
   const registry = loadRegistry();
   const baseline = RLCONTRACTS.validateRegistry(registry, registryConfig());
-  assert.equal(baseline.value.participantCount, 27);
-  assert.equal(baseline.value.sourceCount, 26);
+  assert.equal(baseline.value.participantCount, 28);
+  assert.equal(baseline.value.sourceCount, 27);
 
   // A registry mutation adds ONE valid new source with a complete briefing block. The next frozen
   // registry derives 24/23 through the SAME loops — no literal-count rule and no parallel inventory
@@ -348,10 +348,10 @@ test('SCN-002-003: added-source mutation derives 24 participants and 23 sources 
   mutated.tools.push(addedSourceEntry());
   const result = RLCONTRACTS.validateRegistry(mutated, registryConfig());
   assert.equal(result.ok, true, result.ok ? '' : JSON.stringify(result.error));
-  assert.equal(result.value.participantCount, 28);
-  assert.equal(result.value.sourceCount, 27);
-  assert.equal(result.value.orderedParticipantIds.length, 28);
-  assert.equal(result.value.orderedSourceToolIds.length, 27);
+  assert.equal(result.value.participantCount, 29);
+  assert.equal(result.value.sourceCount, 28);
+  assert.equal(result.value.orderedParticipantIds.length, 29);
+  assert.equal(result.value.orderedSourceToolIds.length, 28);
   assert.equal(result.value.orderedSourceToolIds[result.value.orderedSourceToolIds.length - 1], 'demo-added-source-lab');
   assert.equal(result.value.aggregatorToolId, 'market-brief');
 

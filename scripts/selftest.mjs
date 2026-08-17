@@ -3898,7 +3898,7 @@ try {
   assert(JSON.stringify(sharedApi.toolRead('feature-006-canary')) === toolReadBefore && JSON.stringify(sharedApi.dataState()) === dataStateBefore, 'Trend Dynamics shared canary leaves RLDATA toolReads and RLAPP resource state unchanged');
   assert(sharedStorage.getItem('rlApiKeys') === credentialsBefore && tdcSource.indexOf('localStorage.rlApiKeys') < 0 && tdcSource.indexOf("localStorage.setItem('rlApiKeys'") < 0, 'Trend Dynamics shared canary leaves central credential ownership unchanged');
   const toolIds = JSON.parse(read('tools.json')).tools.map((tool) => tool.id);
-  assert(toolIds.indexOf('trend-dynamics-cycle-lab') === toolIds.indexOf('portfolio-survival-allocation-lab') - 1 && toolIds.indexOf('portfolio-survival-allocation-lab') === toolIds.indexOf('research-agenda-lab') - 1 && toolIds.indexOf('research-agenda-lab') === toolIds.length - 1, 'Portfolio Survival and Research Agenda append after Trend Dynamics without reordering the prior registry');
+  assert(toolIds.indexOf('trend-dynamics-cycle-lab') === toolIds.indexOf('portfolio-survival-allocation-lab') - 1 && toolIds.indexOf('portfolio-survival-allocation-lab') === toolIds.indexOf('research-agenda-lab') - 1 && toolIds.indexOf('research-agenda-lab') === toolIds.indexOf('causal-rotation-lab') - 1 && toolIds.indexOf('causal-rotation-lab') === toolIds.length - 1, 'Portfolio Survival, Research Agenda and Causal Rotation append after Trend Dynamics without reordering the prior registry');
 } catch (e) { failures++; console.log('  ✗ FAIL (Trend Dynamics foundation group threw): ' + e.message); }
 
 /* ---------- Feature 007: Technical Analysis Decision foundation ---------- */
@@ -10992,6 +10992,88 @@ try {
   assert(!CR5.parseLedger(cr5Prefix + JSON.stringify(cr5Orphan) + '\n', cr5Config).ok,
     'the causal ledger refuses a correction that references no earlier event');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 001 Scope 05 ledger group threw): ' + e.message); }
+
+/* ---------- Feature 001 Scope 05: registry, nav and coverage parity canaries ----------
+   These are registry-WIDE, not causal-specific: they are the guard that a newly registered
+   tool is reachable exactly once on every surface, and that no existing tool silently lost a
+   surface while a new one was added. */
+try {
+  group('Feature 001 Scope 05 — registration parity across catalog, nav and Brief coverage');
+  const reg5 = JSON.parse(read('tools.json'));
+  const nav5 = read('rlnav.js');
+  const index5 = read('index.html');
+  const snap5 = JSON.parse(read('market-brief.snapshot.json'));
+
+  /* --- canary 1: page + notes resolve for every registered tool ---
+     Three place-based tools carry NO notes key by a recorded decision: commit 3b13b6ef deleted
+     their docs to de-personalize public surfaces (personal budget figures and second-person
+     framing) while deliberately keeping the pages registered. That set is CLOSED here, so a new
+     tool still cannot ship undocumented, and re-adding one of those docs would re-open a privacy
+     decision rather than pass silently. */
+  const DEPERSONALIZED_NO_NOTES = ['waterfront-polo-lab', 'palm-springs-rental-market-lab', 'ocean-shores-rental-market-lab'];
+  const unresolved5 = [];
+  const undocumented5 = [];
+  reg5.tools.forEach((tool) => {
+    if (!tool.file || !existsSync(join(ROOT, tool.file))) unresolved5.push(tool.id + ':page');
+    if (tool.notes === undefined) {
+      if (DEPERSONALIZED_NO_NOTES.indexOf(tool.id) < 0) undocumented5.push(tool.id);
+      return;
+    }
+    if (!existsSync(join(ROOT, tool.notes))) unresolved5.push(tool.id + ':notes');
+  });
+  const stillRetired5 = DEPERSONALIZED_NO_NOTES.filter((id) => {
+    const tool = reg5.tools.find((entry) => entry.id === id);
+    return tool && tool.notes === undefined;
+  });
+  assert(unresolved5.length === 0 && undocumented5.length === 0 && stillRetired5.length === DEPERSONALIZED_NO_NOTES.length,
+    'shared canary: every registered tool resolves one production page and notes entry');
+
+  /* ADVERSARIAL: the same resolver must reject a tool whose declared notes file does not exist,
+     and must treat an undeclared notes key OUTSIDE the recorded retirement set as undocumented —
+     otherwise the canary would pass for a registry that points at nothing or silently drops docs. */
+  const ghost5 = { id: 'ghost-tool', file: 'ghost-tool.html', notes: 'notes/ghost-tool.md' };
+  assert(!existsSync(join(ROOT, ghost5.file)) && !existsSync(join(ROOT, ghost5.notes))
+    && DEPERSONALIZED_NO_NOTES.indexOf('ghost-tool') < 0,
+    'the registry resolver treats a non-existent page, a missing declared notes file, and an undeclared new tool as unresolved');
+
+  /* --- canary 2: shared nav renders each registered tool exactly once --- */
+  const navDuplicates5 = [];
+  reg5.tools.forEach((tool) => {
+    /* market-brief is the cockpit and is reached from the nav brand, not a tool row. */
+    if (tool.id === 'market-brief') return;
+    const occurrences = nav5.split('file: "' + tool.file + '"').length - 1;
+    if (occurrences !== 1) navDuplicates5.push(tool.id + '=' + occurrences);
+  });
+  assert(navDuplicates5.length === 0,
+    'shared canary: rlnav renders every registered tool exactly once');
+
+  /* ADVERSARIAL: a duplicated nav row must be counted as a violation, so the canary cannot pass
+     by counting "at least one". */
+  const navDoubled5 = nav5 + '\n    { file: "causal-rotation-lab.html" }';
+  assert((navDoubled5.split('file: "causal-rotation-lab.html"').length - 1) === 2,
+    'the nav occurrence counter detects a duplicated tool row');
+
+  /* --- canary 3: Brief coverage ids match the registry exactly, one row each --- */
+  const registryIds5 = reg5.tools.map((tool) => tool.id).slice().sort();
+  const coverageIds5 = (snap5.toolCoverage || []).map((row) => row.id).slice().sort();
+  const coverageCounts5 = {};
+  (snap5.toolCoverage || []).forEach((row) => { coverageCounts5[row.id] = (coverageCounts5[row.id] || 0) + 1; });
+  const duplicatedCoverage5 = Object.keys(coverageCounts5).filter((id) => coverageCounts5[id] !== 1);
+  assert(JSON.stringify(registryIds5) === JSON.stringify(coverageIds5) && duplicatedCoverage5.length === 0,
+    'shared canary: Market Brief coverage IDs match tools registry IDs');
+
+  /* ADVERSARIAL: set equality must fail when one id differs, so the comparison is not vacuous. */
+  const skewed5 = coverageIds5.slice(0, -1).concat(['not-a-registered-tool']).sort();
+  assert(JSON.stringify(registryIds5) !== JSON.stringify(skewed5),
+    'the coverage comparison rejects a coverage set that does not match the registry');
+
+  /* The catalog itself must also carry the tool exactly once. */
+  const catalogCounts5 = reg5.tools
+    .map((tool) => ({ id: tool.id, n: index5.split("file: '" + tool.file + "'").length - 1 }))
+    .filter((entry) => entry.n !== 1);
+  assert(catalogCounts5.length === 0,
+    'shared canary: the index catalog lists every registered tool exactly once');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 001 Scope 05 registration parity group threw): ' + e.message); }
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

@@ -103,7 +103,8 @@
     { label: "FX Regime", full: "FX Regime & Currency Vehicle Lab", icon: "💱", file: "fx-regime-relative-value-lab.html", group: "Rotation & Macro" },
     { label: "Trend Dynamics", full: "Trend, Dynamics & Cycle Lab", icon: "📉", file: "trend-dynamics-cycle-lab.html", group: "Market Structure" },
     { label: "Portfolio Survival", full: "Portfolio Survival & Allocation Lab", icon: "🧭", file: "portfolio-survival-allocation-lab.html", group: "Strategy & Validation" },
-    { label: "Research Agenda", full: "Research Agenda Lab", icon: "🧭", file: "research-agenda-lab.html", group: "Rotation & Macro" }
+    { label: "Research Agenda", full: "Research Agenda Lab", icon: "🧭", file: "research-agenda-lab.html", group: "Rotation & Macro" },
+    { label: "Causal Rotation", full: "Causal Rotation Lab", icon: "🔗", file: "causal-rotation-lab.html", group: "Rotation & Macro" }
   );
 
   var LSKEY = "rlnav.pinned";

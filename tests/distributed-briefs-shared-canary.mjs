@@ -30,7 +30,8 @@ const OBSERVED_REGISTRY_IDS = [
     'volatility-sizing-lab', 'palm-springs-rental-market-lab', 'ocean-shores-rental-market-lab', 'technical-analysis-decision-lab',
     // Delivered after Scope 05: the original 23 keep their identity and order above, which is the
     // property this canary exists to hold; growth is appended and acknowledged, never absorbed silently.
-    'fx-regime-relative-value-lab', 'trend-dynamics-cycle-lab', 'portfolio-survival-allocation-lab', 'research-agenda-lab'
+    'fx-regime-relative-value-lab', 'trend-dynamics-cycle-lab', 'portfolio-survival-allocation-lab', 'research-agenda-lab',
+    'causal-rotation-lab'
 ];
 const FIVE_BROWSER_PUBLISHERS = ['sector-research-lab', 'global-rotation-lab', 'real-assets-lab', 'bond-regime-lab', 'etf-momentum-lab'];
 const FOUR_HEADLESS_BUILDERS = ['buildSectorToolRead', 'buildEtfToolRead', 'buildGlobalToolRead', 'buildRealAssetsToolRead'];
@@ -48,10 +49,10 @@ function registryConfig() {
     };
 }
 
-test('Canary: observed registry retains 27 ordered links and one Market Brief aggregator', () => {
+test('Canary: observed registry retains 28 ordered links and one Market Brief aggregator', () => {
     // The additive briefing metadata never changes registry identity, order, files, labels, or links.
     const ids = registry.tools.map((entry) => entry.id);
-    assert.equal(ids.length, 27);
+    assert.equal(ids.length, 28);
     assert.deepEqual(ids, OBSERVED_REGISTRY_IDS);
     for (const entry of registry.tools) {
         assert.equal(typeof entry.file === 'string' && entry.file.length > 0, true);
@@ -64,8 +65,8 @@ test('Canary: observed registry retains 27 ordered links and one Market Brief ag
     assert.deepEqual(aggregators, ['market-brief']);
     const frozen = RLCONTRACTS.validateRegistry(registry, registryConfig());
     assert.equal(frozen.ok, true);
-    assert.equal(frozen.value.participantCount, 27);
-    assert.equal(frozen.value.orderedParticipantIds.length, 27);
+    assert.equal(frozen.value.participantCount, 28);
+    assert.equal(frozen.value.orderedParticipantIds.length, 28);
     assert.equal(frozen.value.aggregatorToolId, 'market-brief');
     assert.equal(frozen.value.orderedSourceToolIds.indexOf('market-brief'), -1);
 });

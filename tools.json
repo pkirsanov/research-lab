@@ -1929,6 +1929,68 @@
         "reason": "The page deliberately owns its native Simple and Power projections: recomputeFromLevers computes one RLAGENDA view into state.view, then renders the native current and Power model surfaces from that shared value without another read. Registering the generic provider would create a second Simple truth surface over the same review.",
         "decisionRef": "research-agenda-lab.html:580"
       }
+    },
+    {
+      "id": "causal-rotation-lab",
+      "group": "Rotation & Macro",
+      "title": "Causal Rotation Lab",
+      "nav": {
+        "label": "Causal Rotation",
+        "icon": "🔗"
+      },
+      "file": "causal-rotation-lab.html",
+      "notes": "notes/causal-rotation-lab.md",
+      "data": "causal-rotation-observations.json",
+      "status": "live",
+      "updated": "2026-08-17",
+      "blurb": "Separates a sourced causal mechanism from a coincident price move, and reports how strong the evidence is rather than what to do about it.",
+      "tags": [
+        "rotation",
+        "causal",
+        "evidence",
+        "falsification"
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "static-model",
+        "readAdapter": "causal-rotation-owning-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "static-model-asof-v1",
+        "recommendationPolicy": "model-conclusion-v1",
+        "budgetPolicy": "static-model-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": [
+          "simple",
+          "power",
+          "brief",
+          "journey"
+        ],
+        "simpleModelDefinitionId": "simple-model/causal-rotation-stage/v1",
+        "simpleAdapterId": "simple-adapter/causal-rotation-stage/v1",
+        "simpleAdapterModule": "rlexperience-adapters/macro-rotation.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/static-model/v1",
+        "journeyDefinitionIds": [
+          "journey/causal-rotation-lab/causal-stage-review/v1",
+          "journey/causal-rotation-lab/falsification-watch/v1"
+        ],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": [
+          "macro-rotation",
+          "catalyst"
+        ],
+        "publicAliases": []
+      },
+      "simpleWiring": {
+        "contractVersion": "simple-wiring/v1",
+        "state": "declared-unwired",
+        "reason": "The page deliberately owns its native Simple and Power projections: render() evaluates one rlcausal snapshot into runtime.snapshot and every renderer, chart, recorder and owner read draws from that single frozen value. Registering the generic provider would create a second Simple truth surface over the same evaluation.",
+        "decisionRef": "causal-rotation-lab.html:792"
+      }
     }
   ]
 }

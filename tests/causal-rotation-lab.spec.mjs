@@ -101,10 +101,15 @@ async function openLab(page, { candidate, posture, mode } = {}) {
   const parts = [];
   if (candidate) parts.push('candidate=' + encodeURIComponent(candidate));
   if (posture) parts.push('posture=' + encodeURIComponent(posture));
-  if (mode) parts.push('mode=' + mode);
   const hash = parts.length ? '#' + parts.join('&') : '';
   await page.goto(`${baseUrl}/causal-rotation-lab.html${hash}`);
   await expect(page.locator('body')).toHaveAttribute('data-causal-ready', '1');
+  /* Since registration the shared four-view shell owns view selection, exactly as it does on
+     every other registered tool, so Power is entered through that control rather than a hash. */
+  if (mode === 'power') {
+    await page.click('[data-rlview-mode="power"]');
+    await expect(page.locator('body')).toHaveClass(/power/);
+  }
 }
 
 test('Regression: owner page and committed causal resources load over live same-origin HTTP', async ({ page }) => {
@@ -189,7 +194,7 @@ test('Regression: Fundamental evidence contradicts an oversold semiconductor reb
 
   /* Same candidate identity in both modes — Power is a deeper view, not a second conclusion. */
   expect(detailText).toContain(REFLEX_CANDIDATE);
-  await page.click('#modeSeg button[data-mode="simple"]');
+  await page.click('[data-rlview-mode="simple"]');
   await expect(page.locator('#simpleRead')).toContainText(REFLEX_CANDIDATE);
   await expect(page.locator('#simpleStage')).toHaveText('contradicted');
 
@@ -336,8 +341,8 @@ test('Regression: posture and sleeve controls rerender without causal or market 
   await expect(page.locator('body')).toHaveAttribute('data-causal-ready', '1');
   await page.selectOption('#postureSel', 'discovery');
   await page.selectOption('#exposureSel', 'all');
-  await page.click('#modeSeg button[data-mode="simple"]');
-  await page.click('#modeSeg button[data-mode="power"]');
+  await page.click('[data-rlview-mode="simple"]');
+  await page.click('[data-rlview-mode="power"]');
   await expect(page.locator('body')).toHaveAttribute('data-causal-ready', '1');
 
   /* Recomputing is synchronous over already-loaded evidence. */

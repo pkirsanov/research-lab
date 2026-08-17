@@ -2055,6 +2055,221 @@
     };
   }
 
+  /* ═══════════ causal-rotation-stage Simple model (owner = causal-rotation-lab) ═══════════
+     The adapter never re-implements the causal evaluator. The owner freezes one rlcausal
+     evaluation per posture and overlay it offers, and the adapter selects among those frozen
+     results, so the Simple view and the owner page can never disagree about a stage. */
+
+  var CAUSAL_OUTPUT_PATHS = {
+    posture: ["summary.stage", "summary.candidate", "summary.planEligible"],
+    riskOverlay: ["summary.planEligible", "summary.stage"]
+  };
+
+  function causalEvaluationKey(values) {
+    return String(values.posture || "discovery") + "|" + String(values.riskOverlay || "none");
+  }
+
+  function causalEvidenceState(ownerState) {
+    if (!ownerState || !ownerState.evaluations || typeof ownerState.evaluations !== "object") return "unavailable";
+    return Object.keys(ownerState.evaluations).length ? "ready" : "unavailable";
+  }
+
+  function buildCausalEvidence(api, ownerState) {
+    var state = causalEvidenceState(ownerState);
+    var cutoff = String(ownerState.asOf || "unavailable");
+    var evidence = {
+      contractVersion: "simple-evidence-snapshot/v1",
+      toolId: "causal-rotation-lab",
+      state: state,
+      evidenceCutoff: cutoff,
+      evidenceRefs: [{
+        requirementId: "owner-evidence",
+        evidenceRef: "owner:causal-rotation-lab:evaluation:" + cutoff,
+        semanticFingerprint: ownerStateFingerprint(api, ownerState),
+        sourceClass: state === "ready" ? "model-estimate" : "unavailable",
+        observedAsOf: cutoff,
+        retrievedOrPublishedAt: cutoff,
+        freshness: state === "ready" ? "published-generation" : "unavailable",
+        dataTier: String(ownerState.evaluatorVersion || "committed causal observation set"),
+        valueState: state === "ready" ? "ready" : "unavailable"
+      }],
+      parameterValues: {},
+      assumptions: [
+        "Every stage comes from the committed causal observation set evaluated as of the frozen owner cutoff."
+      ],
+      limitations: [
+        "A stage describes how strong the causal evidence is, never a forecast, a position, or an expected return."
+      ],
+      invalidationConditions: [
+        "A later observation supersedes the frozen evidence, or a candidate's invalidation condition fires."
+      ],
+      evidenceIdentity: null
+    };
+    evidence.evidenceIdentity = evidenceIdentityOf(api, evidence);
+    return evidence;
+  }
+
+  function computeCausalStageSummary(ownerState, values) {
+    var evaluations = ownerState && ownerState.evaluations || {};
+    var evaluation = evaluations[causalEvaluationKey(values)];
+    var candidates = evaluation && Array.isArray(evaluation.candidates) ? evaluation.candidates : [];
+    var top = candidates.length ? candidates[0] : null;
+    if (!top) {
+      return {
+        contractVersion: "causal-rotation-simple-summary/v1",
+        stage: null, candidate: null, exposureId: null, causeStatus: "unavailable",
+        planEligible: false, candidateCount: 0,
+        reason: "No candidate is visible under this posture and overlay, so there is no stage to report."
+      };
+    }
+    return {
+      contractVersion: "causal-rotation-simple-summary/v1",
+      stage: top.stage,
+      candidate: top.candidateId,
+      exposureId: top.exposureId,
+      causeStatus: top.causeStatus,
+      planEligible: top.planEligible === true,
+      candidateCount: candidates.length,
+      reason: top.planEligible === true
+        ? "Confirmation conditions are met, so this candidate may be compared against a plan."
+        : "Confirmation is still required, so this candidate is not eligible for plan comparison."
+    };
+  }
+
+  function causalSummaryPath(summary, path) {
+    if (path === "summary.stage") return summary.stage;
+    if (path === "summary.candidate") return summary.candidate;
+    if (path === "summary.planEligible") return summary.planEligible;
+    return null;
+  }
+
+  function causalStageOutput(input, summary) {
+    var ready = summary.stage !== null;
+    var scenarioValues = { summary: summary };
+    return {
+      contractVersion: "simple-model-output/v1",
+      state: ready ? "ready" : "unavailable",
+      values: scenarioValues,
+      scenarios: input.scenarios.map(function (scenario) {
+        return { scenarioId: scenario.scenarioId, state: ready ? "ready" : "unavailable", values: scenarioValues };
+      }),
+      calibration: {
+        state: "owner-evidence-relative",
+        reason: summary.candidateCount + " candidate(s) are visible under this posture and overlay in the frozen owner evaluation."
+      },
+      provenance: { classes: ready ? ["model-estimate"] : ["unavailable"], evidenceIdentity: input.evidenceIdentity },
+      uncertainty: {
+        state: ready ? "bounded" : "wide",
+        rangeOrBand: ready ? (summary.stage + " / " + summary.exposureId) : "No visible candidate",
+        reason: "A stage is an ordered evidence-strength band, not a numeric forecast or an expected return."
+      },
+      assumptions: [
+        "The adapter selects among owner-frozen rlcausal evaluations rather than recomputing the model."
+      ],
+      limitations: [
+        "Plan eligibility means confirmation conditions are met, never that a position is advised."
+      ],
+      invalidationConditions: [
+        "A later observation supersedes the frozen evidence, or a candidate's invalidation condition fires."
+      ],
+      flatRegionProofs: []
+    };
+  }
+
+  function createCausalRotationStageAdapter(api, definition, ownerByIdentity) {
+    return {
+      contractVersion: "simple-model-adapter/v1",
+      adapterId: definition.adapterId,
+      supportedDefinitionIds: [definition.definitionId],
+      validateDefinition: function (candidate) {
+        return { ok: true, value: candidate };
+      },
+      captureEvidence: function (ownerContext) {
+        if (!ownerContext || typeof ownerContext !== "object") {
+          return { ok: false, error: { reason: "owner context required" } };
+        }
+        var ownerState = ownerContext.ownerState;
+        if (!ownerState || typeof ownerState !== "object" || !ownerState.evaluations) {
+          return { ok: false, error: { reason: "causal rotation owner state required" } };
+        }
+        var frozen = deepFreeze(JSON.parse(JSON.stringify(ownerState)));
+        var evidence = buildCausalEvidence(api, frozen);
+        ownerByIdentity.set(evidence.evidenceIdentity, frozen);
+        return { ok: true, value: evidence };
+      },
+      normalizeInputs: function (candidate, evidence, parameterValues, seed, scenarioIds) {
+        return api.normalizeSimpleInput(candidate, evidence, parameterValues, seed, scenarioIds);
+      },
+      compute: function (input) {
+        var ownerState = ownerByIdentity.get(input.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for this evidence identity" } };
+        }
+        return { ok: true, value: causalStageOutput(input, computeCausalStageSummary(ownerState, paramMap(input))) };
+      },
+      compareSensitivity: function (baselineInput, currentInput, sharedRandomness) {
+        var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
+        }
+        var baselineValues = paramMap(baselineInput);
+        var currentValues = paramMap(currentInput);
+        var baselineSummary = computeCausalStageSummary(ownerState, baselineValues);
+        var currentSummary = computeCausalStageSummary(ownerState, currentValues);
+        var effects = [];
+        Object.keys(currentValues).forEach(function (parameterId) {
+          if (parameterId === "seed") return;
+          if (baselineValues[parameterId] === currentValues[parameterId]) return;
+          var paths = CAUSAL_OUTPUT_PATHS[parameterId] || [];
+          var changed = paths.some(function (path) {
+            return fingerprintOf(api, causalSummaryPath(baselineSummary, path)) !== fingerprintOf(api, causalSummaryPath(currentSummary, path));
+          });
+          effects.push({
+            parameterId: parameterId,
+            oldValue: baselineValues[parameterId],
+            newValue: currentValues[parameterId],
+            direction: "changed",
+            magnitude: 1,
+            nonlinear: false,
+            resultPaths: paths,
+            outputChanged: changed,
+            flatRegionProof: changed ? null : {
+              parameterId: parameterId,
+              resultPaths: paths,
+              reason: "Every visible candidate holds the same stage under both settings, so the frozen owner evaluations agree on these paths."
+            }
+          });
+        });
+        return {
+          ok: true,
+          value: {
+            contractVersion: "simple-sensitivity/v1",
+            sharedRandomness: sharedRandomness,
+            seedChanged: baselineInput.seed !== currentInput.seed,
+            effects: effects
+          }
+        };
+      },
+      projectOwnerEvidence: function (output) {
+        var summary = output.values.summary;
+        return {
+          ok: true,
+          value: {
+            contractVersion: "owner-evidence-projection/v1",
+            state: output.state,
+            valueText: summary.stage ? (summary.stage + " causal evidence") : "No visible candidate",
+            numericValue: summary.candidateCount,
+            unit: "candidates",
+            summary: summary.stage
+              ? (summary.candidate + " reads as " + summary.stage + "; " + summary.reason)
+              : summary.reason,
+            sourceRefs: ["owner-evidence"]
+          }
+        };
+      }
+    };
+  }
+
   /* Factory: returns the macro-rotation Simple adapters implemented at genuine owner-parity, keyed
      by their exact declared adapter ID. Tools whose owner seam is not yet extracted are absent so
      the shared runtime renders the explicit unavailable state for them. */
@@ -2090,6 +2305,10 @@
       var fxDefinition = byToolId["fx-regime-relative-value-lab"];
       adapters[fxDefinition.adapterId] = createFxCurrencyVehicleAdapter(api, fxDefinition, ownerByIdentity);
     }
+    if (byToolId["causal-rotation-lab"]) {
+      var causalDefinition = byToolId["causal-rotation-lab"];
+      adapters[causalDefinition.adapterId] = createCausalRotationStageAdapter(api, causalDefinition, ownerByIdentity);
+    }
     return adapters;
   }
 
@@ -2107,7 +2326,7 @@
   return {
     contractVersion: "macro-rotation-adapters/v1",
     module: "rlexperience-adapters/macro-rotation.js",
-    supportedAdapterIds: ["simple-adapter/sector-rotation-transition/v1", "simple-adapter/country-rotation/v1", "simple-adapter/real-asset-driver/v1", "simple-adapter/fixed-income-sleeve/v1", "simple-adapter/etf-ranking/v1", "simple-adapter/fx-currency-vehicle/v1"],
+    supportedAdapterIds: ["simple-adapter/sector-rotation-transition/v1", "simple-adapter/country-rotation/v1", "simple-adapter/real-asset-driver/v1", "simple-adapter/fixed-income-sleeve/v1", "simple-adapter/etf-ranking/v1", "simple-adapter/fx-currency-vehicle/v1", "simple-adapter/causal-rotation-stage/v1"],
     rollZ100: rollZ100,
     rrgQuadrant: rrgQuadrant,
     stateLabel: stateLabel,

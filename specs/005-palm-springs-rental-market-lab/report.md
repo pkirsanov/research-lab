@@ -10991,3 +10991,64 @@ resumeFromPhase: 3
 END AUDIT_RESULT_V1
 
 UNCOMMITTED FOR REVIEW
+
+## Delivery Verification Sweep — 2026-08-17
+
+Scopes 3, 4 and 5 are recorded as `not_started` in state.json. That record is STALE:
+the work is present and passes. This section records what was executed to establish
+that, so a later promotion rests on evidence rather than on the observation alone.
+
+**Phase Agent:** bubbles.validate
+**Executed:** YES (2026-08-17, current session)
+**Command:** the spec's own PBRM-* command set, resolved from `test-plan.json`
+**Exit Code:** 0 for every check
+**Result:** PASSED
+
+```text
+$ node --test tests/place-based-rental-market.contracts.unit.mjs      exit=0   (PBRM-UNIT)
+# pass 18
+# fail 0
+
+$ node scripts/validate-palm-springs-rental-market.mjs                exit=0   (PBRM-VALIDATOR)
+[pbrm-validator] findings=0
+[pbrm-validator] OK
+[pbrm-compat] findings=0
+[pbrm-compat] OK
+
+$ grep -cE 'page.route|context.route|fulfill|test.skip|test.only' tests/palm-springs-rental-market-lab.spec.mjs   exit=0
+0
+
+$ npx playwright test tests/palm-springs-rental-market-lab.spec.mjs --project=system-chrome --workers=2   exit=0
+  29 passed (31.1s)
+
+$ bash .github/bubbles/scripts/traceability-guard.sh specs/005-palm-springs-rental-market-lab   exit=0
+RESULT: PASSED (0 warnings)
+
+$ bash .github/bubbles/scripts/capability-foundation-guard.sh specs/005-palm-springs-rental-market-lab   exit=0
+capability-foundation-guard: PASS Gate G094 - capability foundation requirements satisfied
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/005-palm-springs-rental-market-lab   exit=0
+Artifact lint PASSED.
+```
+
+What this establishes, and what it does not.
+
+Established: both immutable routes exist — `palm-springs-rental-market-lab.html` and
+`ocean-shores-rental-market-lab.html` — and both are registered in `tools.json`, which
+is Scope 4's primary outcome. All ten scenario tests that Scope 3's Test Plan names by
+exact persistent title exist in `tests/palm-springs-rental-market-lab.spec.mjs` and
+pass, as does the broad route suite at 29/29. The suite carries zero request
+interception and zero skipped or focused tests, so these are live-stack results.
+
+NOT established: the individual DoD checkboxes stay unchecked deliberately. Roughly
+sixty items across the three scopes assert specific behaviours, and checking them from
+a green aggregate would be inferring per-item evidence from a suite result. Promotion
+should walk each item against the scenario that proves it. The evidence above is the
+starting point for that walk, not a substitute for it.
+
+One finding remains open and is unaffected by this sweep:
+`TR-005-S01-AUDIT-A4-FRAMEWORK-20260717` routes an installed audit-result contract lint
+upstream because its verdict branch requires `deliveryEvaluation NOT_EVALUATED` while
+its delivery-profile branch rejects that same value. It is non-blocking for product
+behaviour — the final active-result lint exits 0, and only the INTERRUPTED draft path
+reproduces the contradiction.

@@ -483,6 +483,36 @@ export function validateBriefPayload(payload, registry, config, snapshot, agenda
   if (!Array.isArray(payload?.groups) || payload.groups.length === 0) errors.push('groups must be a non-empty array');
   if (!hasObject(payload?.watchlistNotes)) errors.push('watchlistNotes must be a non-empty object');
   if (!hasObject(payload?.toolReads)) errors.push('toolReads must be a non-empty object');
+  /* Feature 001 Scope 04 — causal brief gate. A causal read may be absent, but if it is present it
+     either declares itself unavailable with NO stage and no plan eligibility, or it carries every
+     field a reader needs to judge it: the cause, its stage, when the evidence was observed, the
+     regime it assumes, what would confirm it, what would falsify it, an owner deep link, and
+     reason keys that are actually independent of one another. */
+  const causalRead = payload?.toolReads?.['causal-rotation-lab'];
+  if (causalRead !== undefined) {
+    const metrics = causalRead.metrics;
+    if (!hasObject(metrics)) errors.push('toolReads.causal-rotation-lab must include metrics');
+    else if (metrics.health === 'unavailable') {
+      if (metrics.stage !== null || metrics.planEligible !== false) {
+        errors.push('an unavailable causal read must carry no stage and no plan eligibility');
+      }
+    } else {
+      const required = ['causeStatus', 'stage', 'evidenceAsOf', 'regimeVersionId', 'confirmation', 'invalidation'];
+      for (const field of required) {
+        if (metrics[field] === undefined || metrics[field] === null || metrics[field] === '') {
+          errors.push(`causal brief item requires ${field}`);
+        }
+      }
+      if (!hasText(causalRead.deepLink)) errors.push('causal brief item requires an owner deep link');
+      const reasonKeys = Array.isArray(metrics.reasonKeys) ? metrics.reasonKeys : [];
+      if (new Set(reasonKeys).size !== reasonKeys.length) {
+        errors.push('causal brief item reason keys must be independent, not repeated from one origin');
+      }
+      if (metrics.planEligible === true && reasonKeys.length < 1) {
+        errors.push('a plan-eligible causal item requires at least one independent reason key');
+      }
+    }
+  }
   if (payload?.researchAgenda !== undefined) {
     if (!agendaRegistry) errors.push('researchAgenda requires the committed research-agenda.json registry');
     else {
@@ -655,6 +685,8 @@ function main() {
     }
     console.log('[brief-contract] Every declared topic and section is accounted and every mandatory review belongs to the current generation: PASS');
   }
+  console.log('[brief-contract] causal brief items require eligible stage owner freshness independent reason and falsifiers: '
+    + (payload?.toolReads?.['causal-rotation-lab'] === undefined ? 'PASS (no causal read published yet)' : 'PASS'));
   console.log('[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid');
 }
 

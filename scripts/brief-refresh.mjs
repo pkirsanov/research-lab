@@ -1979,6 +1979,130 @@ export function buildTechnicalToolRead(deps = {}) {
   } catch (error) { return unavailableToolRead(id, deepLink, `Five-gate model unavailable this run: ${error.message}`); }
 }
 
+/* Feature 001 Scope 04 — Tier-A causal adapter.
+   Runs the PRODUCTION rlcausal evaluator over committed records; there is deliberately no
+   Brief-only causal model. Timing reads are derived from this same run's owner tool reads, so the
+   headless snapshot and the browser pages agree about market confirmation.
+   Anchored to the committed recordedAt rather than wall clock, so two refreshes over the same
+   inputs produce byte-identical output with no timestamp exclusion needed. */
+export function buildCausalToolRead(toolReads, deps) {
+  const load = (deps && deps.read) || read;
+  const requireModule = (deps && deps.require) || createRequire(import.meta.url);
+  const unavailable = (reason, detail) => ({
+    id: 'causal-rotation-lab',
+    asOf: null,
+    read: 'Causal rotation research unavailable: ' + reason,
+    metrics: {
+      contractVersion: 'causal-tool-read/v1', topCandidateId: null, exposureId: null,
+      stage: null, causeStatus: 'unavailable', planEligible: false, candidateCount: 0,
+      health: 'unavailable', healthDetail: detail || reason
+    },
+    deepLink: 'causal-rotation-lab.html',
+    source: 'tier-a-causal-unavailable'
+  });
+
+  let causal;
+  let consumer;
+  let config;
+  let observationSet;
+  try {
+    /* rlcausal.js is a browser-first UMD: requiring it installs globalThis.RLCausal rather than
+       returning exports. rlcausalconsumer.js does export, so it is taken from the return value. */
+    requireModule('../rlcausal.js');
+    causal = globalThis.RLCausal;
+    consumer = requireModule('../rlcausalconsumer.js');
+    config = JSON.parse(load('causal-rotation.config.json'));
+    observationSet = JSON.parse(load('causal-rotation-observations.json'));
+    if (!causal || typeof causal.evaluateAll !== 'function') throw new Error('rlcausal did not install its evaluator');
+  } catch (error) {
+    return { toolRead: unavailable('committed causal inputs did not load', String(error && error.message || error)), snapshot: null };
+  }
+
+  const configCheck = causal.validateConfig(config);
+  if (!configCheck.ok) {
+    return { toolRead: unavailable('causal config failed validation', configCheck.errors.map((item) => item.code + ' ' + item.path).join('; ')), snapshot: null };
+  }
+  const observationCheck = causal.validateObservationSet(observationSet, config);
+  if (!observationCheck.ok) {
+    return { toolRead: unavailable('committed causal records failed validation', observationCheck.errors.map((item) => item.code + ' ' + item.path).join('; ')), snapshot: null };
+  }
+
+  const timingReads = buildCausalTimingReads(toolReads, observationSet.recordedAt, consumer);
+  const asOf = observationSet.recordedAt;
+  const snapshot = causal.evaluateAll({
+    config, observationSet, timingReads, posture: 'discovery', riskOverlay: 'none', asOf, generatedAt: asOf
+  });
+  return { toolRead: { ...snapshot.toolRead, source: 'tier-a-causal' }, snapshot, timingReads };
+}
+
+/* Owner timing reads derived from THIS run's Tier-A owner reads. Where a Tier-A model does not
+   cover an exposure, the read says so instead of inventing a confirmation state. */
+export function buildCausalTimingReads(toolReads, asOf, consumer) {
+  const reads = [];
+  const sector = toolReads && toolReads['sector-research-lab'];
+  const sectorMetrics = (sector && sector.metrics) || {};
+  const tickerOf = (value) => (value && (value.ticker || value.id)) || null;
+  const sectorState = (ticker) => {
+    if (!ticker) return null;
+    if (tickerOf(sectorMetrics.leader) === ticker) return 'established';
+    if (tickerOf(sectorMetrics.into) === ticker) return 'confirming';
+    if (tickerOf(sectorMetrics.out) === ticker) return 'weakening';
+    return null;
+  };
+  const sectorExposures = [
+    { exposureId: 'exp:financials', ticker: 'XLF' },
+    { exposureId: 'exp:banks', ticker: null },
+    { exposureId: 'exp:semiconductors', ticker: null }
+  ];
+  for (const entry of sectorExposures) {
+    const state = sectorState(entry.ticker);
+    reads.push({
+      exposureId: entry.exposureId, ownerToolId: 'sector-research-lab',
+      marketState: state || 'unavailable',
+      limitations: state
+        ? ['Relative-strength rotation state only; it is not a causal claim.']
+        : ['The Tier-A rotation read covers GICS sector ETFs, so it publishes no confirmation state for this exposure.']
+    });
+  }
+  reads.push({
+    exposureId: 'exp:united-states', ownerToolId: 'global-rotation-lab', marketState: 'unavailable',
+    limitations: ['Countries are scored relative to a US benchmark, so the model publishes no United States confirmation state.']
+  });
+  const realAssets = toolReads && toolReads['real-assets-lab'];
+  const realMetrics = (realAssets && realAssets.metrics) || {};
+  const bandState = (score) => {
+    if (!Number.isFinite(score)) return null;
+    if (score >= 70) return 'established';
+    if (score >= 55) return 'confirming';
+    if (score >= 40) return 'emerging';
+    return 'weakening';
+  };
+  const oilState = bandState(realMetrics.leaderScore);
+  reads.push({
+    exposureId: 'exp:oil-underlying', ownerToolId: 'real-assets-lab', marketState: oilState || 'unavailable',
+    limitations: oilState
+      ? ['Oil-linked model score only; it is a price-trend state, not a supply or curve explanation.']
+      : ['No real-assets score is complete, so no oil-linked confirmation state exists.']
+  });
+  reads.push({
+    exposureId: 'exp:energy-equities', ownerToolId: 'real-assets-lab', marketState: 'unavailable',
+    limitations: ['The Tier-A real-assets read does not carry the energy-equity confirmation input, so no equity confirmation state exists.']
+  });
+
+  return reads.map((entry) => {
+    const built = consumer.buildTimingRead({
+      exposureId: entry.exposureId,
+      ownerToolId: entry.ownerToolId,
+      asOf,
+      freshUntil: '2099-01-01T00:00:00Z',
+      marketState: entry.marketState,
+      deepLink: entry.ownerToolId + '.html',
+      limitations: entry.limitations
+    });
+    return built.ok ? built.value : null;
+  }).filter(Boolean);
+}
+
 function buildToolCoverage(toolReads) {
   const registry = JSON.parse(read('tools.json'));
   return (registry.tools || []).map((tool) => {
@@ -2097,6 +2221,11 @@ async function main() {
   ];
   for (const toolRead of ownerModelReads) toolReads[toolRead.id] = toolRead;
 
+  /* Causal runs LAST so it can derive timing from this same run's owner reads. A causal failure
+     degrades that one read and never removes another tool's read from the snapshot. */
+  const causal = buildCausalToolRead(toolReads);
+  toolReads[causal.toolRead.id] = causal.toolRead;
+
   const toolCoverage = buildToolCoverage(toolReads), nextSession = nextSessionDate(window), dataFreshness = dataSnapshotFreshness();
 
   const snap = {
@@ -2112,6 +2241,12 @@ async function main() {
   // asOf = the window this refresh anchors to; generatedAt = the actual wall-clock this refresh ran (both are the run time for Tier-A).
   const snapshot = { asOf: snap.ts, generatedAt: snap.ts, window, marketClosed, nextSessionDate: nextSession, dataFreshness, regime: { band: reg.band, score: reg.risk, vix, fearGreed: fg ? fg.score : null }, bench: snap.bench, names, sectors, groups, toolReads, toolCoverage };
   if (!dryRun) writeFileSync(join(ROOT, 'market-brief.snapshot.json'), JSON.stringify(snapshot, null, 2) + '\n');
+  /* Deterministic public causal snapshot. Written only when the evaluation succeeded, so a failed
+     run leaves the previous snapshot in place rather than replacing it with a stub that a reader
+     could mistake for a current stage. */
+  if (!dryRun && causal.snapshot) {
+    writeFileSync(join(ROOT, 'causal-rotation.snapshot.json'), JSON.stringify(causal.snapshot, null, 2) + '\n');
+  }
 
   console.log(`[brief-refresh] window=${window} regime=${reg.band}(${reg.risk}) VIX=${vix ?? '—'}${vixSource ? ' [' + vixSource + ']' : ''} F&G=${fg ? fg.score + '/' + fg.band : '—'}`);
   console.log(`  structural: SPY ${benchStruct.maStack} · 200d ${benchStruct.ma200Dist ?? '—'}% · 52w-high ${benchStruct.pctFrom52wHigh ?? '—'}% · mom126 ${benchStruct.mom126 ?? '—'}% mom252 ${benchStruct.mom252 ?? '—'}%`);

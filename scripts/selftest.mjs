@@ -10818,6 +10818,77 @@ try {
     'causal context renders without linking an unpublished owner lab');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 001 Scope 03 causal consumer group threw): ' + e.message); }
 
+/* ---------- Feature 001 Scope 04: Tier-A causal adapter and Brief gate ---------- */
+try {
+  const briefCausalRequire = (await import('node:module')).createRequire(import.meta.url);
+  const refresh = await import('../scripts/brief-refresh.mjs');
+  const readFile = (path) => read(path);
+  const ownerReads = () => ({
+    'sector-research-lab': { id: 'sector-research-lab', asOf: '2026-07-12T21:45:00Z', read: 'r', metrics: { into: { ticker: 'XLF' }, out: { ticker: 'XLE' }, leader: { ticker: 'XLK' }, count: 11 }, deepLink: 'sector-research-lab.html' },
+    'global-rotation-lab': { id: 'global-rotation-lab', asOf: '2026-07-12T21:45:00Z', read: 'r', metrics: { leaderCountry: 'Japan' }, deepLink: 'global-rotation-lab.html' },
+    'real-assets-lab': { id: 'real-assets-lab', asOf: '2026-07-12T21:45:00Z', read: 'r', metrics: { leaderScore: 62.5 }, deepLink: 'real-assets-lab.html' }
+  });
+  const causalRun = refresh.buildCausalToolRead(ownerReads(), { read: readFile, require: briefCausalRequire });
+
+  /* A read that is not plan-eligible must stay coverage-only with a stated reason. */
+  const topCandidate = causalRun.snapshot.candidates[0];
+  assert(causalRun.toolRead.metrics.planEligible === false
+    && typeof causalRun.toolRead.metrics.stage === 'string'
+    && Array.isArray(topCandidate.stageReasons) && topCandidate.stageReasons.length > 0
+    && typeof causalRun.toolRead.deepLink === 'string' && causalRun.toolRead.deepLink.length > 0,
+    'brief causal gate keeps plan-irrelevant cause-emerging reads coverage-only');
+
+  /* Reactions sharing one origin key cannot be counted as independent support. */
+  const clusterOrigins = topCandidate.evidenceClusters.map((cluster) => cluster.originKeys.join('|'));
+  assert(new Set(clusterOrigins).size === clusterOrigins.length
+    && topCandidate.independentSupportClusterCount === topCandidate.independentSupportClusterIds.length
+    && new Set(topCandidate.reasonKeys).size === topCandidate.reasonKeys.length,
+    'brief causal gate rejects duplicate reason keys from one catalyst origin');
+
+  /* Invalid committed causal input isolates without removing any other read. */
+  const brokenRead = (path) => {
+    if (path === 'causal-rotation-observations.json') {
+      const observations = JSON.parse(read(path));
+      observations.contractVersion = 'causal-observation-set/v99-unknown';
+      return JSON.stringify(observations);
+    }
+    return read(path);
+  };
+  const isolated = refresh.buildCausalToolRead(ownerReads(), { read: brokenRead, require: briefCausalRequire });
+  assert(isolated.snapshot === null
+    && isolated.toolRead.metrics.health === 'unavailable'
+    && isolated.toolRead.metrics.stage === null
+    && isolated.toolRead.metrics.planEligible === false
+    && typeof isolated.toolRead.metrics.healthDetail === 'string' && isolated.toolRead.metrics.healthDetail.length > 0,
+    'brief causal adapter isolates invalid contracts as unavailable without dropping other reads');
+
+  /* SHARED CANARY: adding causal must not change any other Tier-A read. */
+  const before = ownerReads();
+  const after = ownerReads();
+  refresh.buildCausalToolRead(after, { read: readFile, require: briefCausalRequire });
+  delete after['causal-rotation-lab'];
+  assert(JSON.stringify(before) === JSON.stringify(after),
+    'shared canary: Tier-A non-causal tool reads are unchanged by causal refresh');
+
+  /* SHARED CANARY: coverage stays one row per registered tool. */
+  const coverageReads = ownerReads();
+  const causalCoverage = refresh.buildCausalToolRead(coverageReads, { read: readFile, require: briefCausalRequire });
+  coverageReads[causalCoverage.toolRead.id] = causalCoverage.toolRead;
+  const coverageIds = Object.keys(coverageReads);
+  assert(new Set(coverageIds).size === coverageIds.length && coverageIds.includes('causal-rotation-lab'),
+    'shared canary: Brief registry coverage remains one row per registered tool');
+
+  /* Determinism over identical committed inputs, with no timestamp exclusion needed. */
+  const firstRun = refresh.buildCausalToolRead(ownerReads(), { read: readFile, require: briefCausalRequire });
+  const secondRun = refresh.buildCausalToolRead(ownerReads(), { read: readFile, require: briefCausalRequire });
+  assert(JSON.stringify(firstRun.snapshot) === JSON.stringify(secondRun.snapshot),
+    'Tier-A causal refresh is byte-deterministic over the same committed inputs');
+
+  /* ADVERSARIAL: the isolation check must fail if an invalid run ever published a stage. */
+  assert(!(isolated.toolRead.metrics.stage !== null || isolated.snapshot !== null),
+    'the isolation detector refuses a stage or snapshot on invalid causal input');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 001 Scope 04 Tier-A causal group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

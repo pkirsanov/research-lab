@@ -4324,6 +4324,34 @@
         "sessions": 5,
         "barsToday": 79
       }
+    },
+    "causal-rotation-lab": {
+      "id": "causal-rotation-lab",
+      "asOf": "2026-07-12T21:45:00Z",
+      "read": "watch: Selective credit transmission; not plan-eligible; confirmation remains required.",
+      "metrics": {
+        "contractVersion": "causal-tool-read/v1",
+        "topCandidateId": "cand:financial-credit-selectivity:banks",
+        "exposureId": "exp:banks",
+        "stage": "watch",
+        "causeStatus": "bounded",
+        "evidenceAsOf": "2026-07-12T21:45:00Z",
+        "regimeVersionId": "reg:us-2026-07-recorded",
+        "independentConfirmationCount": 1,
+        "contradictionCount": 1,
+        "confirmation": "Bank or financial timing owner reports emerging relative leadership with non-deteriorating breadth.",
+        "invalidation": "A new primary credit source reports materially broader tightening or weaker demand without an offsetting earnings mechanism.",
+        "timingOwner": "sector-research-lab",
+        "planEligible": false,
+        "candidateCount": 5,
+        "health": "fresh",
+        "reasonKeys": [
+          "causal-origin:origin:fomc-2026-06-statement",
+          "causal-origin:origin:sloos-2026-04-survey"
+        ]
+      },
+      "deepLink": "causal-rotation-lab.html#candidate=cand%3Afinancial-credit-selectivity%3Abanks&asOf=2026-07-12T21%3A45%3A00Z",
+      "source": "tier-a-causal"
     }
   },
   "toolCoverage": [

@@ -442,7 +442,7 @@ landed in the file, and watching the comparison fail on the leaked value.
 ## Scope 4: Market Brief, Tier-A, and Validator Integration
 
 **Scope ID:** SCOPE-04  
-**Status:** Not Started  
+**Status:** Done  
 **Depends On:** SCOPE-03  
 **Tags:** `market-brief`, `tier-a`, `low-noise`, `validator`
 
@@ -524,22 +524,42 @@ Scenario: Headless causal validation fails while other Brief tools remain valid
 
 ### Definition of Done - SCOPE-04
 
-- [ ] SCN-001-D01 - A valid early candidate does not change the next-session plan: it receives a specific coverage-only reason and consumes no Market Brief action or attention slot.
-- [ ] SCN-001-D02 - Causal evidence and market reactions share one origin: linked reactions add no independent reason key and cannot qualify as independent confirmation.
-- [ ] SCN-001-D03 - Headless causal validation fails while other Brief tools remain valid: causal output is unavailable without stage/relevance and unrelated Tier-A/Brief output remains usable.
-- [ ] Tier A uses production foundation functions and committed source-recorded inputs; no duplicate causal evaluator exists.
-- [ ] Repeated refreshes are deterministic and invalid causal input yields unavailable without a stage or plan relevance.
-- [ ] Every causal Brief item has cause, stage, evidence as-of, regime, confirmation, invalidation, owner deep link, and independent reason keys.
-- [ ] Coverage-only and invalid/stale candidates consume zero action/attention slots in named Regression E2E tests.
-- [ ] Non-causal Tier-A reads and existing Brief decisions pass independent before/after canaries.
-- [ ] `node scripts/selftest.mjs`, `node scripts/validate-causal-rotation.mjs`, and `node scripts/validate-brief-payload.mjs` pass with no skips.
-- [ ] The Change Boundary is respected and no registry/public-link changes occur yet.
-- [ ] SCOPE-04 is marked Done only after executable evidence is recorded; only then may SCOPE-05 start.
+- [x] SCN-001-D01 - A valid early candidate does not change the next-session plan: it receives a specific coverage-only reason and consumes no Market Brief action or attention slot.
+- [x] SCN-001-D02 - Causal evidence and market reactions share one origin: linked reactions add no independent reason key and cannot qualify as independent confirmation.
+- [x] SCN-001-D03 - Headless causal validation fails while other Brief tools remain valid: causal output is unavailable without stage/relevance and unrelated Tier-A/Brief output remains usable.
+- [x] Tier A uses production foundation functions and committed source-recorded inputs; no duplicate causal evaluator exists.
+- [x] Repeated refreshes are deterministic and invalid causal input yields unavailable without a stage or plan relevance.
+- [x] Every causal Brief item has cause, stage, evidence as-of, regime, confirmation, invalidation, owner deep link, and independent reason keys.
+- [x] Coverage-only and invalid/stale candidates consume zero action/attention slots in named Regression E2E tests.
+- [x] Non-causal Tier-A reads and existing Brief decisions pass independent before/after canaries.
+- [x] `node scripts/selftest.mjs`, `node scripts/validate-causal-rotation.mjs`, and `node scripts/validate-brief-payload.mjs` pass with no skips.
+- [x] The Change Boundary is respected and no registry/public-link changes occur yet.
+- [x] SCOPE-04 is marked Done only after executable evidence is recorded; only then may SCOPE-05 start.
 
 ### Uncertainty Declaration - SCOPE-04
 
-**Claim Source:** not-run  
-All SCOPE-04 DoD items remain unchecked because the Tier-A adapter and Market Brief gate were not implemented or executed. Each item is resolved by the named selftest, causal/Brief validator, canary, and live-browser checks in the SCOPE-04 Test Plan plus raw evidence in [report.md](report.md).
+**Claim Source:** executed  
+All SCOPE-04 DoD items are checked against commands executed in session and recorded in
+[report.md](report.md): `tests/causal-rotation-brief.spec.mjs` 4/4, `scripts/selftest.mjs` 2435
+passed / 0 failed including the six named Tier-A groups and both shared canaries,
+`scripts/validate-causal-rotation.mjs` PASS, `scripts/validate-brief-payload.mjs` PASS, node suite
+888/888.
+
+Three honest notes.
+
+The Tier-A causal read is anchored to the committed `recordedAt` rather than wall clock, so two
+refreshes over identical inputs are byte-identical and no timestamp exclusion is needed.
+
+The causal read carries an owner deep link but has NO `toolCoverage` row, because coverage is
+registry-derived and this scope deliberately performs no registration. The browser test asserts the
+coverage row count against the registry rather than hardcoding one, so it starts passing with a row
+the moment SCOPE-05 registers the tool.
+
+The Brief payload validator gate is real but currently reports "no causal read published yet",
+because Tier-B authoring has not yet placed a causal item in the payload. It was therefore proven
+adversarially instead of by observation: injecting an available causal read with a missing
+falsifier, no deep link and a repeated origin reason key produced exactly those three errors, and
+the payload was restored.
 
 ## Scope 5: Outcome Ledger, Registry, and Operator Documentation
 

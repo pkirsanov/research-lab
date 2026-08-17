@@ -899,3 +899,91 @@ found this, because it only ever checked one filename.
   computed, and the causal candidate for that exposure correctly shows market confirmation absent.
 - **Boundary amendment** for `rlcausalconsumer.js`, `site-exclusions.json` and the selftest
   shared-module rule is recorded in scopes.md with rationale and rollback for each.
+
+## SCOPE-04 Closure — Tier-A causal adapter and Market Brief gate
+
+**Claim Source:** executed in session.
+
+### TP — live browser and Tier-A artifacts
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome --reporter=line tests/causal-rotation-brief.spec.mjs
+
+Running 4 tests using 1 worker
+
+  4 passed (11.6s)
+```
+
+### TP — selftest groups and canaries
+
+```
+$ node scripts/selftest.mjs
+  ✓ brief causal gate keeps plan-irrelevant cause-emerging reads coverage-only
+  ✓ brief causal gate rejects duplicate reason keys from one catalyst origin
+  ✓ brief causal adapter isolates invalid contracts as unavailable without dropping other reads
+  ✓ shared canary: Tier-A non-causal tool reads are unchanged by causal refresh
+  ✓ shared canary: Brief registry coverage remains one row per registered tool
+  ✓ Tier-A causal refresh is byte-deterministic over the same committed inputs
+Research-Lab self-test: 2435 passed, 0 failed
+```
+
+### Adapter behaviour, measured
+
+```
+valid:   id=causal-rotation-lab stage=watch health=fresh planEligible=false candidates=5
+timing:  exp:financials:confirming, exp:banks:unavailable, exp:semiconductors:unavailable,
+         exp:united-states:unavailable, exp:oil-underlying:confirming, exp:energy-equities:unavailable
+deterministic=true
+invalid: health=unavailable stage=null planEligible=false snapshot=null
+         detail=CR-SCHEMA-INVALID $.contractVersion
+```
+
+The timing reads do real work: with `exp:financials` reported `confirming` by this run's own sector
+read, the leading candidate advances from `cause-emerging` to `watch`. It remains NOT plan-eligible.
+
+### Adversarial verification of the Brief validator gate
+
+The gate currently reports "no causal read published yet" because Tier-B authoring has not placed a
+causal item in the payload, so it was proven by injection rather than by observation:
+
+```
+BREAK LANDED: bad causal read injected
+--- expect FAIL ---
+[brief-contract] FAIL
+  - causal brief item requires invalidation
+  - causal brief item requires an owner deep link
+  - causal brief item reason keys must be independent, not repeated from one origin
+=== RESTORED (causal refs: 0) ===
+```
+
+### Regression surface
+
+```
+$ node scripts/validate-causal-rotation.mjs      → checks failed: 0, result: PASS
+$ node scripts/validate-brief-payload.mjs        → exit 0
+$ node --test $(ls tests/*.mjs | grep -vE '\.spec\.mjs|playwright')
+# tests 888
+# pass 888
+# fail 0
+```
+
+### A derived artifact the gates caught
+
+Writing the causal read into `market-brief.snapshot.json` made the derived page projection stale,
+and `market-brief.snapshot.page.json is byte-current with its full source artifacts` failed. The
+projections were regenerated with `scripts/build-brief-page-artifacts.mjs`. Regenerating a derived
+artifact a gate requires to be byte-current is not a scope widening; leaving it stale would have
+shipped a page projection that disagreed with its own source.
+
+### Honest scope notes
+
+- **Not claimed:** SCOPE-05 and SCOPE-06 remain Not Started; the feature stays `in_progress`.
+- **No coverage row yet.** The causal read carries its owner deep link, but `toolCoverage` is
+  registry-derived and this scope performs no registration. The browser test asserts the row count
+  against the registry rather than hardcoding it, so it starts asserting a row automatically when
+  SCOPE-05 registers the tool.
+- **Tier-A exposure gaps are stated, not filled.** The Tier-A rotation read covers GICS sector ETFs,
+  so `exp:banks` and `exp:semiconductors` publish `unavailable` with that reason rather than a
+  borrowed state, and `exp:energy-equities` does the same because the Tier-A real-assets read does
+  not carry the equity confirmation input.

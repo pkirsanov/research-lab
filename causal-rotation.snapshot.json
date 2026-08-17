@@ -1,0 +1,1355 @@
+{
+  "contractVersion": "causal-snapshot/v1",
+  "generatedAt": "2026-07-12T21:45:00Z",
+  "asOf": "2026-07-12T21:45:00Z",
+  "configVersion": "causal-config:1",
+  "sourceDataAsOf": "2026-07-12T21:45:00Z",
+  "health": {
+    "state": "fresh",
+    "errors": [],
+    "staleResources": [],
+    "rejectedRecordCount": 0
+  },
+  "candidates": [
+    {
+      "contractVersion": "causal-candidate-read/v1",
+      "candidateId": "cand:financial-credit-selectivity:banks",
+      "hypothesisId": "hyp:financial-credit-selectivity",
+      "exposureId": "exp:banks",
+      "asOf": "2026-07-12T21:45:00Z",
+      "evidenceAsOf": "2026-07-12T21:45:00Z",
+      "oldestDecisionCriticalInput": "2026-07-12T21:45:00Z",
+      "nextReviewAt": "2026-07-17T18:00:00Z",
+      "stage": "watch",
+      "causeStatus": "bounded",
+      "entryEdge": "not-assessed",
+      "stageReasons": [
+        "independent-current-support:1",
+        "blocking-contradictions:0",
+        "timing:unavailable"
+      ],
+      "integrityCodes": [],
+      "primaryCatalyst": {
+        "id": "cat:fomc-2026-06-rate-hold",
+        "title": "June 2026 FOMC target-range decision",
+        "lifecycle": "effective"
+      },
+      "primaryMechanism": {
+        "name": "Selective credit transmission",
+        "statement": "A lower policy-rate range than a year earlier can ease some funding pressure, but current C&I tightening can prevent that from becoming broad financial-sector earnings support."
+      },
+      "clocks": {
+        "catalyst": {
+          "state": "supportive",
+          "asOf": "2026-07-12T21:45:00Z",
+          "freshUntil": "2026-08-01T18:00:00Z",
+          "independentClusterIds": [
+            "cluster:e25db0cf280cf2e3"
+          ],
+          "observationIds": [
+            "obs:fomc-target-range-2026-06"
+          ],
+          "missingRequirements": [],
+          "summary": "1 current supporting observation",
+          "owner": "causal-rotation-lab"
+        },
+        "fundamental": {
+          "state": "contradictory",
+          "asOf": "2026-07-12T21:45:00Z",
+          "freshUntil": "2026-08-15T23:59:59Z",
+          "independentClusterIds": [
+            "cluster:d595faece8b3c859"
+          ],
+          "observationIds": [
+            "obs:sloos-ci-standards-2026-q1"
+          ],
+          "missingRequirements": [],
+          "summary": "1 current contradiction",
+          "owner": "causal-rotation-lab"
+        },
+        "positioning": {
+          "state": "missing",
+          "asOf": null,
+          "freshUntil": null,
+          "independentClusterIds": [],
+          "observationIds": [],
+          "missingRequirements": [],
+          "summary": "missing",
+          "owner": "causal-rotation-lab"
+        },
+        "marketConfirmation": {
+          "state": "unavailable",
+          "code": "CR-TIMING-UNAVAILABLE",
+          "asOf": "2026-07-12T21:45:00Z",
+          "freshUntil": "2099-01-01T00:00:00Z",
+          "independentClusterIds": [],
+          "observationIds": [],
+          "missingRequirements": [],
+          "summary": "unavailable",
+          "owner": "sector-research-lab"
+        }
+      },
+      "currentRegime": {
+        "id": "reg:us-2026-07-recorded",
+        "version": 1,
+        "recordedAt": "2026-07-12T21:45:00Z",
+        "asOf": "2026-07-12T21:45:00Z",
+        "freshUntil": "2026-08-01T18:00:00Z",
+        "dimensions": {
+          "growth": {
+            "state": "solid-but-uncertain",
+            "asOf": "2026-06-17T18:00:00Z",
+            "freshUntil": "2026-08-01T18:00:00Z",
+            "observationIds": [
+              "obs:fomc-target-range-2026-06"
+            ],
+            "limitations": [
+              "FOMC qualitative assessment; no numeric growth nowcast is inferred."
+            ]
+          },
+          "inflation": {
+            "state": "elevated-with-energy-supply-pressure",
+            "asOf": "2026-06-17T18:00:00Z",
+            "freshUntil": "2026-08-01T18:00:00Z",
+            "observationIds": [
+              "obs:fomc-target-range-2026-06"
+            ],
+            "limitations": [
+              "The FOMC statement is qualitative and does not substitute for an inflation release."
+            ]
+          },
+          "liquidityRates": {
+            "state": "target-range-3.5-to-3.75",
+            "asOf": "2026-06-17T18:00:00Z",
+            "freshUntil": "2026-08-01T18:00:00Z",
+            "observationIds": [
+              "obs:fomc-target-range-2026-06"
+            ],
+            "limitations": [
+              "The target range does not by itself describe the yield curve or bank funding mix."
+            ]
+          },
+          "volatilityGamma": {
+            "state": "unavailable",
+            "asOf": null,
+            "freshUntil": null,
+            "observationIds": [],
+            "limitations": [
+              "No owner timing read is committed by the causal foundation."
+            ]
+          },
+          "correlationDispersion": {
+            "state": "unavailable",
+            "asOf": null,
+            "freshUntil": null,
+            "observationIds": [],
+            "limitations": [
+              "No current dispersion owner read is committed by the causal foundation."
+            ]
+          },
+          "credit": {
+            "state": "mixed-with-ci-tightening",
+            "asOf": "2026-05-04T23:59:59Z",
+            "freshUntil": "2026-08-15T23:59:59Z",
+            "observationIds": [
+              "obs:sloos-ci-standards-2026-q1"
+            ],
+            "limitations": [
+              "SLOOS is a quarterly survey, not live spreads, issuance, or bank-level credit performance."
+            ]
+          }
+        },
+        "contentDigest": "sha256:0a5f04163a1ef4b701a4f3a15b3499f0408e6420c8c75ed2f0b67b85c81de011"
+      },
+      "regimeConsequences": [
+        {
+          "regimeId": "reg:us-2026-07-recorded",
+          "current": true,
+          "direction": "mixed",
+          "timing": "weeks-to-quarter",
+          "magnitude": "bounded",
+          "assumptions": [
+            "Funding relief is not overwhelmed by credit-quality deterioration."
+          ],
+          "falsifier": "Further C&I tightening or weaker bank credit performance without compensating margin improvement."
+        },
+        {
+          "regimeId": "reg:alternative-growth-down-credit-wider",
+          "current": false,
+          "direction": "harm",
+          "timing": "weeks",
+          "magnitude": "material",
+          "assumptions": [
+            "Growth slows and borrower credit risk rises."
+          ],
+          "falsifier": "Credit standards ease and realized losses remain contained."
+        }
+      ],
+      "independentSupportClusterCount": 1,
+      "independentSupportClusterIds": [
+        "cluster:e25db0cf280cf2e3"
+      ],
+      "evidenceClusters": [
+        {
+          "id": "cluster:e25db0cf280cf2e3",
+          "originKeys": [
+            "origin:fomc-2026-06-statement"
+          ],
+          "observationIds": [
+            "obs:fomc-target-range-2026-06"
+          ]
+        },
+        {
+          "id": "cluster:d595faece8b3c859",
+          "originKeys": [
+            "origin:sloos-2026-04-survey"
+          ],
+          "observationIds": [
+            "obs:sloos-ci-standards-2026-q1"
+          ]
+        }
+      ],
+      "eligibleEvidenceIds": [
+        "obs:fomc-target-range-2026-06",
+        "obs:sloos-ci-standards-2026-q1"
+      ],
+      "excludedEvidence": [],
+      "contradictionCount": 1,
+      "blockingContradictionCount": 0,
+      "contradictionIds": [
+        "obs:sloos-ci-standards-2026-q1"
+      ],
+      "staleEvidenceIds": [],
+      "unavailableEvidence": [],
+      "missingRequiredEvidenceClasses": [],
+      "sourceQuality": "bounded",
+      "limitations": [
+        "This is a scenario, not a forecast of policy, bank earnings, or ETF returns.",
+        "Broad XLF exposure does not match bank-only evidence."
+      ],
+      "expectedWindow": {
+        "start": "2026-07-12T21:45:00Z",
+        "end": "2026-08-31T23:59:59Z",
+        "rationale": "The hypothesis is reviewed through the next policy and quarterly lending updates."
+      },
+      "confirmation": [
+        {
+          "id": "cond:financial-owner-confirms",
+          "owner": "sector-research-lab",
+          "description": "Bank or financial timing owner reports emerging relative leadership with non-deteriorating breadth."
+        }
+      ],
+      "invalidation": [
+        {
+          "id": "cond:credit-tightening-deepens",
+          "owner": "causal-rotation-lab",
+          "description": "A new primary credit source reports materially broader tightening or weaker demand without an offsetting earnings mechanism."
+        }
+      ],
+      "exposureMismatch": false,
+      "fragilityFlags": [
+        "regime-fragile"
+      ],
+      "sensitivityPosture": "discovery",
+      "riskOverlay": "none",
+      "postureEligible": true,
+      "planEligible": false,
+      "timingOwner": "sector-research-lab",
+      "ownerDeepLink": "causal-rotation-lab.html#candidate=cand%3Afinancial-credit-selectivity%3Abanks&asOf=2026-07-12T21%3A45%3A00Z",
+      "timingDeepLink": "sector-research-lab.html",
+      "reasonKeys": [
+        "causal-origin:origin:fomc-2026-06-statement",
+        "causal-origin:origin:sloos-2026-04-survey"
+      ],
+      "candidateDigest": "sha256:eb4ac2f4058795766b71d9347fc65398e9fb3cb18a81a5f8e10940e9a7483736"
+    },
+    {
+      "contractVersion": "causal-candidate-read/v1",
+      "candidateId": "cand:financial-credit-selectivity:financials",
+      "hypothesisId": "hyp:financial-credit-selectivity",
+      "exposureId": "exp:financials",
+      "asOf": "2026-07-12T21:45:00Z",
+      "evidenceAsOf": "2026-07-12T21:45:00Z",
+      "oldestDecisionCriticalInput": "2026-07-12T21:45:00Z",
+      "nextReviewAt": "2026-07-17T18:00:00Z",
+      "stage": "watch",
+      "causeStatus": "bounded",
+      "entryEdge": "not-assessed",
+      "stageReasons": [
+        "independent-current-support:1",
+        "blocking-contradictions:0",
+        "timing:unavailable"
+      ],
+      "integrityCodes": [],
+      "primaryCatalyst": {
+        "id": "cat:fomc-2026-06-rate-hold",
+        "title": "June 2026 FOMC target-range decision",
+        "lifecycle": "effective"
+      },
+      "primaryMechanism": {
+        "name": "Selective credit transmission",
+        "statement": "A lower policy-rate range than a year earlier can ease some funding pressure, but current C&I tightening can prevent that from becoming broad financial-sector earnings support."
+      },
+      "clocks": {
+        "catalyst": {
+          "state": "supportive",
+          "asOf": "2026-07-12T21:45:00Z",
+          "freshUntil": "2026-08-01T18:00:00Z",
+          "independentClusterIds": [
+            "cluster:e25db0cf280cf2e3"
+          ],
+          "observationIds": [
+            "obs:fomc-target-range-2026-06"
+          ],
+          "missingRequirements": [],
+          "summary": "1 current supporting observation",
+          "owner": "causal-rotation-lab"
+        },
+        "fundamental": {
+          "state": "contradictory",
+          "asOf": "2026-07-12T21:45:00Z",
+          "freshUntil": "2026-08-15T23:59:59Z",
+          "independentClusterIds": [
+            "cluster:d595faece8b3c859"
+          ],
+          "observationIds": [
+            "obs:sloos-ci-standards-2026-q1"
+          ],
+          "missingRequirements": [],
+          "summary": "1 current contradiction",
+          "owner": "causal-rotation-lab"
+        },
+        "positioning": {
+          "state": "missing",
+          "asOf": null,
+          "freshUntil": null,
+          "independentClusterIds": [],
+          "observationIds": [],
+          "missingRequirements": [],
+          "summary": "missing",
+          "owner": "causal-rotation-lab"
+        },
+        "marketConfirmation": {
+          "state": "unavailable",
+          "code": "CR-TIMING-UNAVAILABLE",
+          "asOf": "2026-07-12T21:45:00Z",
+          "freshUntil": "2099-01-01T00:00:00Z",
+          "independentClusterIds": [],
+          "observationIds": [],
+          "missingRequirements": [],
+          "summary": "unavailable",
+          "owner": "sector-research-lab"
+        }
+      },
+      "currentRegime": {
+        "id": "reg:us-2026-07-recorded",
+        "version": 1,
+        "recordedAt": "2026-07-12T21:45:00Z",
+        "asOf": "2026-07-12T21:45:00Z",
+        "freshUntil": "2026-08-01T18:00:00Z",
+        "dimensions": {
+          "growth": {
+            "state": "solid-but-uncertain",
+            "asOf": "2026-06-17T18:00:00Z",
+            "freshUntil": "2026-08-01T18:00:00Z",
+            "observationIds": [
+              "obs:fomc-target-range-2026-06"
+            ],
+            "limitations": [
+              "FOMC qualitative assessment; no numeric growth nowcast is inferred."
+            ]
+          },
+          "inflation": {
+            "state": "elevated-with-energy-supply-pressure",
+            "asOf": "2026-06-17T18:00:00Z",
+            "freshUntil": "2026-08-01T18:00:00Z",
+            "observationIds": [
+              "obs:fomc-target-range-2026-06"
+            ],
+            "limitations": [
+              "The FOMC statement is qualitative and does not substitute for an inflation release."
+            ]
+          },
+          "liquidityRates": {
+            "state": "target-range-3.5-to-3.75",
+            "asOf": "2026-06-17T18:00:00Z",
+            "freshUntil": "2026-08-01T18:00:00Z",
+            "observationIds": [
+              "obs:fomc-target-range-2026-06"
+            ],
+            "limitations": [
+              "The target range does not by itself describe the yield curve or bank funding mix."
+            ]
+          },
+          "volatilityGamma": {
+            "state": "unavailable",
+            "asOf": null,
+            "freshUntil": null,
+            "observationIds": [],
+            "limitations": [
+              "No owner timing read is committed by the causal foundation."
+            ]
+          },
+          "correlationDispersion": {
+            "state": "unavailable",
+            "asOf": null,
+            "freshUntil": null,
+            "observationIds": [],
+            "limitations": [
+              "No current dispersion owner read is committed by the causal foundation."
+            ]
+          },
+          "credit": {
+            "state": "mixed-with-ci-tightening",
+            "asOf": "2026-05-04T23:59:59Z",
+            "freshUntil": "2026-08-15T23:59:59Z",
+            "observationIds": [
+              "obs:sloos-ci-standards-2026-q1"
+            ],
+            "limitations": [
+              "SLOOS is a quarterly survey, not live spreads, issuance, or bank-level credit performance."
+            ]
+          }
+        },
+        "contentDigest": "sha256:0a5f04163a1ef4b701a4f3a15b3499f0408e6420c8c75ed2f0b67b85c81de011"
+      },
+      "regimeConsequences": [
+        {
+          "regimeId": "reg:us-2026-07-recorded",
+          "current": true,
+          "direction": "mixed",
+          "timing": "weeks-to-quarter",
+          "magnitude": "bounded",
+          "assumptions": [
+            "Funding relief is not overwhelmed by credit-quality deterioration."
+          ],
+          "falsifier": "Further C&I tightening or weaker bank credit performance without compensating margin improvement."
+        },
+        {
+          "regimeId": "reg:alternative-growth-down-credit-wider",
+          "current": false,
+          "direction": "harm",
+          "timing": "weeks",
+          "magnitude": "material",
+          "assumptions": [
+            "Growth slows and borrower credit risk rises."
+          ],
+          "falsifier": "Credit standards ease and realized losses remain contained."
+        }
+      ],
+      "independentSupportClusterCount": 1,
+      "independentSupportClusterIds": [
+        "cluster:e25db0cf280cf2e3"
+      ],
+      "evidenceClusters": [
+        {
+          "id": "cluster:e25db0cf280cf2e3",
+          "originKeys": [
+            "origin:fomc-2026-06-statement"
+          ],
+          "observationIds": [
+            "obs:fomc-target-range-2026-06"
+          ]
+        },
+        {
+          "id": "cluster:d595faece8b3c859",
+          "originKeys": [
+            "origin:sloos-2026-04-survey"
+          ],
+          "observationIds": [
+            "obs:sloos-ci-standards-2026-q1"
+          ]
+        }
+      ],
+      "eligibleEvidenceIds": [
+        "obs:fomc-target-range-2026-06",
+        "obs:sloos-ci-standards-2026-q1"
+      ],
+      "excludedEvidence": [],
+      "contradictionCount": 1,
+      "blockingContradictionCount": 0,
+      "contradictionIds": [
+        "obs:sloos-ci-standards-2026-q1"
+      ],
+      "staleEvidenceIds": [],
+      "unavailableEvidence": [],
+      "missingRequiredEvidenceClasses": [],
+      "sourceQuality": "bounded",
+      "limitations": [
+        "This is a scenario, not a forecast of policy, bank earnings, or ETF returns.",
+        "Broad XLF exposure does not match bank-only evidence."
+      ],
+      "expectedWindow": {
+        "start": "2026-07-12T21:45:00Z",
+        "end": "2026-08-31T23:59:59Z",
+        "rationale": "The hypothesis is reviewed through the next policy and quarterly lending updates."
+      },
+      "confirmation": [
+        {
+          "id": "cond:financial-owner-confirms",
+          "owner": "sector-research-lab",
+          "description": "Bank or financial timing owner reports emerging relative leadership with non-deteriorating breadth."
+        }
+      ],
+      "invalidation": [
+        {
+          "id": "cond:credit-tightening-deepens",
+          "owner": "causal-rotation-lab",
+          "description": "A new primary credit source reports materially broader tightening or weaker demand without an offsetting earnings mechanism."
+        }
+      ],
+      "exposureMismatch": true,
+      "fragilityFlags": [
+        "regime-fragile"
+      ],
+      "sensitivityPosture": "discovery",
+      "riskOverlay": "none",
+      "postureEligible": true,
+      "planEligible": false,
+      "timingOwner": "sector-research-lab",
+      "ownerDeepLink": "causal-rotation-lab.html#candidate=cand%3Afinancial-credit-selectivity%3Afinancials&asOf=2026-07-12T21%3A45%3A00Z",
+      "timingDeepLink": "sector-research-lab.html",
+      "reasonKeys": [
+        "causal-origin:origin:fomc-2026-06-statement",
+        "causal-origin:origin:sloos-2026-04-survey"
+      ],
+      "candidateDigest": "sha256:112436022aa737cd3d119811449cc701d3106d3c5b206022edf321dd64e0cf71"
+    },
+    {
+      "contractVersion": "causal-candidate-read/v1",
+      "candidateId": "cand:financial-credit-selectivity:united-states",
+      "hypothesisId": "hyp:financial-credit-selectivity",
+      "exposureId": "exp:united-states",
+      "asOf": "2026-07-12T21:45:00Z",
+      "evidenceAsOf": "2026-07-12T21:45:00Z",
+      "oldestDecisionCriticalInput": "2026-07-12T21:45:00Z",
+      "nextReviewAt": "2026-07-17T18:00:00Z",
+      "stage": "watch",
+      "causeStatus": "bounded",
+      "entryEdge": "not-assessed",
+      "stageReasons": [
+        "independent-current-support:1",
+        "blocking-contradictions:0",
+        "timing:unavailable"
+      ],
+      "integrityCodes": [],
+      "primaryCatalyst": {
+        "id": "cat:fomc-2026-06-rate-hold",
+        "title": "June 2026 FOMC target-range decision",
+        "lifecycle": "effective"
+      },
+      "primaryMechanism": {
+        "name": "Selective credit transmission",
+        "statement": "A lower policy-rate range than a year earlier can ease some funding pressure, but current C&I tightening can prevent that from becoming broad financial-sector earnings support."
+      },
+      "clocks": {
+        "catalyst": {
+          "state": "supportive",
+          "asOf": "2026-07-12T21:45:00Z",
+          "freshUntil": "2026-08-01T18:00:00Z",
+          "independentClusterIds": [
+            "cluster:e25db0cf280cf2e3"
+          ],
+          "observationIds": [
+            "obs:fomc-target-range-2026-06"
+          ],
+          "missingRequirements": [],
+          "summary": "1 current supporting observation",
+          "owner": "causal-rotation-lab"
+        },
+        "fundamental": {
+          "state": "contradictory",
+          "asOf": "2026-07-12T21:45:00Z",
+          "freshUntil": "2026-08-15T23:59:59Z",
+          "independentClusterIds": [
+            "cluster:d595faece8b3c859"
+          ],
+          "observationIds": [
+            "obs:sloos-ci-standards-2026-q1"
+          ],
+          "missingRequirements": [],
+          "summary": "1 current contradiction",
+          "owner": "causal-rotation-lab"
+        },
+        "positioning": {
+          "state": "missing",
+          "asOf": null,
+          "freshUntil": null,
+          "independentClusterIds": [],
+          "observationIds": [],
+          "missingRequirements": [],
+          "summary": "missing",
+          "owner": "causal-rotation-lab"
+        },
+        "marketConfirmation": {
+          "state": "unavailable",
+          "code": "CR-TIMING-UNAVAILABLE",
+          "asOf": "2026-07-12T21:45:00Z",
+          "freshUntil": "2099-01-01T00:00:00Z",
+          "independentClusterIds": [],
+          "observationIds": [],
+          "missingRequirements": [],
+          "summary": "unavailable",
+          "owner": "global-rotation-lab"
+        }
+      },
+      "currentRegime": {
+        "id": "reg:us-2026-07-recorded",
+        "version": 1,
+        "recordedAt": "2026-07-12T21:45:00Z",
+        "asOf": "2026-07-12T21:45:00Z",
+        "freshUntil": "2026-08-01T18:00:00Z",
+        "dimensions": {
+          "growth": {
+            "state": "solid-but-uncertain",
+            "asOf": "2026-06-17T18:00:00Z",
+            "freshUntil": "2026-08-01T18:00:00Z",
+            "observationIds": [
+              "obs:fomc-target-range-2026-06"
+            ],
+            "limitations": [
+              "FOMC qualitative assessment; no numeric growth nowcast is inferred."
+            ]
+          },
+          "inflation": {
+            "state": "elevated-with-energy-supply-pressure",
+            "asOf": "2026-06-17T18:00:00Z",
+            "freshUntil": "2026-08-01T18:00:00Z",
+            "observationIds": [
+              "obs:fomc-target-range-2026-06"
+            ],
+            "limitations": [
+              "The FOMC statement is qualitative and does not substitute for an inflation release."
+            ]
+          },
+          "liquidityRates": {
+            "state": "target-range-3.5-to-3.75",
+            "asOf": "2026-06-17T18:00:00Z",
+            "freshUntil": "2026-08-01T18:00:00Z",
+            "observationIds": [
+              "obs:fomc-target-range-2026-06"
+            ],
+            "limitations": [
+              "The target range does not by itself describe the yield curve or bank funding mix."
+            ]
+          },
+          "volatilityGamma": {
+            "state": "unavailable",
+            "asOf": null,
+            "freshUntil": null,
+            "observationIds": [],
+            "limitations": [
+              "No owner timing read is committed by the causal foundation."
+            ]
+          },
+          "correlationDispersion": {
+            "state": "unavailable",
+            "asOf": null,
+            "freshUntil": null,
+            "observationIds": [],
+            "limitations": [
+              "No current dispersion owner read is committed by the causal foundation."
+            ]
+          },
+          "credit": {
+            "state": "mixed-with-ci-tightening",
+            "asOf": "2026-05-04T23:59:59Z",
+            "freshUntil": "2026-08-15T23:59:59Z",
+            "observationIds": [
+              "obs:sloos-ci-standards-2026-q1"
+            ],
+            "limitations": [
+              "SLOOS is a quarterly survey, not live spreads, issuance, or bank-level credit performance."
+            ]
+          }
+        },
+        "contentDigest": "sha256:0a5f04163a1ef4b701a4f3a15b3499f0408e6420c8c75ed2f0b67b85c81de011"
+      },
+      "regimeConsequences": [
+        {
+          "regimeId": "reg:us-2026-07-recorded",
+          "current": true,
+          "direction": "mixed",
+          "timing": "weeks-to-quarter",
+          "magnitude": "bounded",
+          "assumptions": [
+            "Funding relief is not overwhelmed by credit-quality deterioration."
+          ],
+          "falsifier": "Further C&I tightening or weaker bank credit performance without compensating margin improvement."
+        },
+        {
+          "regimeId": "reg:alternative-growth-down-credit-wider",
+          "current": false,
+          "direction": "harm",
+          "timing": "weeks",
+          "magnitude": "material",
+          "assumptions": [
+            "Growth slows and borrower credit risk rises."
+          ],
+          "falsifier": "Credit standards ease and realized losses remain contained."
+        }
+      ],
+      "independentSupportClusterCount": 1,
+      "independentSupportClusterIds": [
+        "cluster:e25db0cf280cf2e3"
+      ],
+      "evidenceClusters": [
+        {
+          "id": "cluster:e25db0cf280cf2e3",
+          "originKeys": [
+            "origin:fomc-2026-06-statement"
+          ],
+          "observationIds": [
+            "obs:fomc-target-range-2026-06"
+          ]
+        },
+        {
+          "id": "cluster:d595faece8b3c859",
+          "originKeys": [
+            "origin:sloos-2026-04-survey"
+          ],
+          "observationIds": [
+            "obs:sloos-ci-standards-2026-q1"
+          ]
+        }
+      ],
+      "eligibleEvidenceIds": [
+        "obs:fomc-target-range-2026-06",
+        "obs:sloos-ci-standards-2026-q1"
+      ],
+      "excludedEvidence": [],
+      "contradictionCount": 1,
+      "blockingContradictionCount": 0,
+      "contradictionIds": [
+        "obs:sloos-ci-standards-2026-q1"
+      ],
+      "staleEvidenceIds": [],
+      "unavailableEvidence": [],
+      "missingRequiredEvidenceClasses": [],
+      "sourceQuality": "bounded",
+      "limitations": [
+        "This is a scenario, not a forecast of policy, bank earnings, or ETF returns.",
+        "Broad XLF exposure does not match bank-only evidence."
+      ],
+      "expectedWindow": {
+        "start": "2026-07-12T21:45:00Z",
+        "end": "2026-08-31T23:59:59Z",
+        "rationale": "The hypothesis is reviewed through the next policy and quarterly lending updates."
+      },
+      "confirmation": [
+        {
+          "id": "cond:financial-owner-confirms",
+          "owner": "sector-research-lab",
+          "description": "Bank or financial timing owner reports emerging relative leadership with non-deteriorating breadth."
+        }
+      ],
+      "invalidation": [
+        {
+          "id": "cond:credit-tightening-deepens",
+          "owner": "causal-rotation-lab",
+          "description": "A new primary credit source reports materially broader tightening or weaker demand without an offsetting earnings mechanism."
+        }
+      ],
+      "exposureMismatch": false,
+      "fragilityFlags": [
+        "regime-fragile"
+      ],
+      "sensitivityPosture": "discovery",
+      "riskOverlay": "none",
+      "postureEligible": true,
+      "planEligible": false,
+      "timingOwner": "global-rotation-lab",
+      "ownerDeepLink": "causal-rotation-lab.html#candidate=cand%3Afinancial-credit-selectivity%3Aunited-states&asOf=2026-07-12T21%3A45%3A00Z",
+      "timingDeepLink": "global-rotation-lab.html",
+      "reasonKeys": [
+        "causal-origin:origin:fomc-2026-06-statement",
+        "causal-origin:origin:sloos-2026-04-survey"
+      ],
+      "candidateDigest": "sha256:cdc672f6646c27e552c709f57a076fb1282e2cb92db2ac6364083384ba3e9781"
+    },
+    {
+      "contractVersion": "causal-candidate-read/v1",
+      "candidateId": "cand:ai-infrastructure-demand:semiconductors",
+      "hypothesisId": "hyp:ai-infrastructure-demand",
+      "exposureId": "exp:semiconductors",
+      "asOf": "2026-07-12T21:45:00Z",
+      "evidenceAsOf": "2026-07-12T21:45:00Z",
+      "oldestDecisionCriticalInput": "2026-07-12T21:45:00Z",
+      "nextReviewAt": "2026-07-20T23:59:59Z",
+      "stage": "cause-emerging",
+      "causeStatus": "bounded",
+      "entryEdge": "not-assessed",
+      "stageReasons": [
+        "independent-current-support:1",
+        "blocking-contradictions:0",
+        "timing:unavailable"
+      ],
+      "integrityCodes": [],
+      "primaryCatalyst": {
+        "id": "cat:nvidia-fy27-q1-earnings",
+        "title": "NVIDIA first-quarter fiscal 2027 results and outlook",
+        "lifecycle": "announced"
+      },
+      "primaryMechanism": {
+        "name": "AI infrastructure demand transmission",
+        "statement": "Current NVIDIA revenue and outlook can support a bounded AI-infrastructure demand hypothesis, while China exclusion and missing sector valuation prevent a broad confirmed sector call."
+      },
+      "clocks": {
+        "catalyst": {
+          "state": "missing",
+          "asOf": null,
+          "freshUntil": null,
+          "independentClusterIds": [],
+          "observationIds": [],
+          "missingRequirements": [],
+          "summary": "missing",
+          "owner": "causal-rotation-lab"
+        },
+        "fundamental": {
+          "state": "supportive",
+          "asOf": "2026-07-12T21:45:00Z",
+          "freshUntil": "2026-08-31T23:59:59Z",
+          "independentClusterIds": [
+            "cluster:6fe1e470c64cff5b"
+          ],
+          "observationIds": [
+            "obs:nvidia-q1-fy27-revenue",
+            "obs:nvidia-q2-fy27-outlook",
+            "obs:nvidia-china-outlook-limit"
+          ],
+          "missingRequirements": [
+            "valuation"
+          ],
+          "summary": "2 current supporting observations",
+          "owner": "causal-rotation-lab"
+        },
+        "positioning": {
+          "state": "missing",
+          "asOf": null,
+          "freshUntil": null,
+          "independentClusterIds": [],
+          "observationIds": [],
+          "missingRequirements": [],
+          "summary": "missing",
+          "owner": "causal-rotation-lab"
+        },
+        "marketConfirmation": {
+          "state": "unavailable",
+          "code": "CR-TIMING-UNAVAILABLE",
+          "asOf": "2026-07-12T21:45:00Z",
+          "freshUntil": "2099-01-01T00:00:00Z",
+          "independentClusterIds": [],
+          "observationIds": [],
+          "missingRequirements": [],
+          "summary": "unavailable",
+          "owner": "sector-research-lab"
+        }
+      },
+      "currentRegime": {
+        "id": "reg:us-2026-07-recorded",
+        "version": 1,
+        "recordedAt": "2026-07-12T21:45:00Z",
+        "asOf": "2026-07-12T21:45:00Z",
+        "freshUntil": "2026-08-01T18:00:00Z",
+        "dimensions": {
+          "growth": {
+            "state": "solid-but-uncertain",
+            "asOf": "2026-06-17T18:00:00Z",
+            "freshUntil": "2026-08-01T18:00:00Z",
+            "observationIds": [
+              "obs:fomc-target-range-2026-06"
+            ],
+            "limitations": [
+              "FOMC qualitative assessment; no numeric growth nowcast is inferred."
+            ]
+          },
+          "inflation": {
+            "state": "elevated-with-energy-supply-pressure",
+            "asOf": "2026-06-17T18:00:00Z",
+            "freshUntil": "2026-08-01T18:00:00Z",
+            "observationIds": [
+              "obs:fomc-target-range-2026-06"
+            ],
+            "limitations": [
+              "The FOMC statement is qualitative and does not substitute for an inflation release."
+            ]
+          },
+          "liquidityRates": {
+            "state": "target-range-3.5-to-3.75",
+            "asOf": "2026-06-17T18:00:00Z",
+            "freshUntil": "2026-08-01T18:00:00Z",
+            "observationIds": [
+              "obs:fomc-target-range-2026-06"
+            ],
+            "limitations": [
+              "The target range does not by itself describe the yield curve or bank funding mix."
+            ]
+          },
+          "volatilityGamma": {
+            "state": "unavailable",
+            "asOf": null,
+            "freshUntil": null,
+            "observationIds": [],
+            "limitations": [
+              "No owner timing read is committed by the causal foundation."
+            ]
+          },
+          "correlationDispersion": {
+            "state": "unavailable",
+            "asOf": null,
+            "freshUntil": null,
+            "observationIds": [],
+            "limitations": [
+              "No current dispersion owner read is committed by the causal foundation."
+            ]
+          },
+          "credit": {
+            "state": "mixed-with-ci-tightening",
+            "asOf": "2026-05-04T23:59:59Z",
+            "freshUntil": "2026-08-15T23:59:59Z",
+            "observationIds": [
+              "obs:sloos-ci-standards-2026-q1"
+            ],
+            "limitations": [
+              "SLOOS is a quarterly survey, not live spreads, issuance, or bank-level credit performance."
+            ]
+          }
+        },
+        "contentDigest": "sha256:0a5f04163a1ef4b701a4f3a15b3499f0408e6420c8c75ed2f0b67b85c81de011"
+      },
+      "regimeConsequences": [
+        {
+          "regimeId": "reg:us-2026-07-recorded",
+          "current": true,
+          "direction": "benefit",
+          "timing": "quarter",
+          "magnitude": "bounded",
+          "assumptions": [
+            "Issuer outlook holds and supply supports delivery."
+          ],
+          "falsifier": "Issuer guidance is reduced or demand/supply commentary deteriorates before market confirmation."
+        },
+        {
+          "regimeId": "reg:alternative-liquidity-down-multiples-compress",
+          "current": false,
+          "direction": "mixed",
+          "timing": "weeks",
+          "magnitude": "fragile",
+          "assumptions": [
+            "Earnings growth persists but discount rates or risk premia rise."
+          ],
+          "falsifier": "Valuation compresses without earnings support or revision breadth weakens."
+        }
+      ],
+      "independentSupportClusterCount": 1,
+      "independentSupportClusterIds": [
+        "cluster:6fe1e470c64cff5b"
+      ],
+      "evidenceClusters": [
+        {
+          "id": "cluster:6fe1e470c64cff5b",
+          "originKeys": [
+            "origin:nvidia-q1-fy27-release"
+          ],
+          "observationIds": [
+            "obs:nvidia-china-outlook-limit",
+            "obs:nvidia-q1-fy27-revenue",
+            "obs:nvidia-q2-fy27-outlook"
+          ]
+        }
+      ],
+      "eligibleEvidenceIds": [
+        "obs:nvidia-q1-fy27-revenue",
+        "obs:nvidia-q2-fy27-outlook",
+        "obs:nvidia-china-outlook-limit"
+      ],
+      "excludedEvidence": [],
+      "contradictionCount": 0,
+      "blockingContradictionCount": 0,
+      "contradictionIds": [],
+      "staleEvidenceIds": [],
+      "unavailableEvidence": [
+        {
+          "evidenceClass": "valuation",
+          "state": "unavailable",
+          "missingFields": [
+            "provider",
+            "estimateAt",
+            "metricDefinition",
+            "historicalBand"
+          ],
+          "reason": "No verified current sector-level forward valuation source is committed."
+        }
+      ],
+      "missingRequiredEvidenceClasses": [
+        "valuation"
+      ],
+      "sourceQuality": "bounded",
+      "limitations": [
+        "One issuer cannot establish broad semiconductor revision breadth.",
+        "No causal conclusion is inferred from semiconductor price behavior."
+      ],
+      "expectedWindow": {
+        "start": "2026-07-12T21:45:00Z",
+        "end": "2026-08-31T23:59:59Z",
+        "rationale": "The issuer outlook remains the governing window until the next results update."
+      },
+      "confirmation": [
+        {
+          "id": "cond:semiconductor-owner-confirms",
+          "owner": "sector-research-lab",
+          "description": "Semiconductor timing owner reports emerging or confirming relative strength with improving breadth."
+        }
+      ],
+      "invalidation": [
+        {
+          "id": "cond:ai-guidance-cut",
+          "owner": "causal-rotation-lab",
+          "description": "A primary issuer source reduces the governing demand or revenue outlook before timing confirmation."
+        }
+      ],
+      "exposureMismatch": true,
+      "fragilityFlags": [
+        "event-dependent"
+      ],
+      "sensitivityPosture": "discovery",
+      "riskOverlay": "none",
+      "postureEligible": true,
+      "planEligible": false,
+      "timingOwner": "sector-research-lab",
+      "ownerDeepLink": "causal-rotation-lab.html#candidate=cand%3Aai-infrastructure-demand%3Asemiconductors&asOf=2026-07-12T21%3A45%3A00Z",
+      "timingDeepLink": "sector-research-lab.html",
+      "reasonKeys": [
+        "causal-origin:origin:nvidia-q1-fy27-release"
+      ],
+      "candidateDigest": "sha256:44af1a0087262cb09c9c083e5c4cfff66a74328a8970108783ff23e05938d2e1"
+    },
+    {
+      "contractVersion": "causal-candidate-read/v1",
+      "candidateId": "cand:semiconductor-reflex-bounce:semiconductors",
+      "hypothesisId": "hyp:semiconductor-reflex-bounce",
+      "exposureId": "exp:semiconductors",
+      "asOf": "2026-07-12T21:45:00Z",
+      "evidenceAsOf": "2026-07-12T21:45:00Z",
+      "oldestDecisionCriticalInput": "2026-07-12T21:45:00Z",
+      "nextReviewAt": "2026-07-20T23:59:59Z",
+      "stage": "contradicted",
+      "causeStatus": "bounded",
+      "entryEdge": "not-assessed",
+      "stageReasons": [
+        "independent-current-support:1",
+        "blocking-contradictions:1",
+        "timing:unavailable"
+      ],
+      "integrityCodes": [],
+      "primaryCatalyst": {
+        "id": "cat:nvidia-fy27-q1-earnings",
+        "title": "NVIDIA first-quarter fiscal 2027 results and outlook",
+        "lifecycle": "announced"
+      },
+      "primaryMechanism": {
+        "name": "Breadth repair versus issuer fundamentals",
+        "statement": "A semiconductor breadth rebound is not durable repair when current issuer evidence remains mixed and sector-wide revisions and valuation are unavailable."
+      },
+      "clocks": {
+        "catalyst": {
+          "state": "missing",
+          "asOf": null,
+          "freshUntil": null,
+          "independentClusterIds": [],
+          "observationIds": [],
+          "missingRequirements": [],
+          "summary": "missing",
+          "owner": "causal-rotation-lab"
+        },
+        "fundamental": {
+          "state": "mixed",
+          "asOf": "2026-07-12T21:45:00Z",
+          "freshUntil": "2026-08-31T23:59:59Z",
+          "independentClusterIds": [
+            "cluster:494779d6d5620679",
+            "cluster:6fe1e470c64cff5b"
+          ],
+          "observationIds": [
+            "obs:nvidia-q1-fy27-revenue",
+            "obs:nvidia-q2-fy27-outlook",
+            "obs:nvidia-china-outlook-limit",
+            "obs:intel-q2-fy26-eps-guidance"
+          ],
+          "missingRequirements": [
+            "revision",
+            "valuation"
+          ],
+          "summary": "support and contradiction remain separate",
+          "owner": "causal-rotation-lab"
+        },
+        "positioning": {
+          "state": "missing",
+          "asOf": null,
+          "freshUntil": null,
+          "independentClusterIds": [],
+          "observationIds": [],
+          "missingRequirements": [],
+          "summary": "missing",
+          "owner": "causal-rotation-lab"
+        },
+        "marketConfirmation": {
+          "state": "unavailable",
+          "code": "CR-TIMING-UNAVAILABLE",
+          "asOf": "2026-07-12T21:45:00Z",
+          "freshUntil": "2099-01-01T00:00:00Z",
+          "independentClusterIds": [],
+          "observationIds": [],
+          "missingRequirements": [],
+          "summary": "unavailable",
+          "owner": "sector-research-lab"
+        }
+      },
+      "currentRegime": {
+        "id": "reg:us-2026-07-recorded",
+        "version": 1,
+        "recordedAt": "2026-07-12T21:45:00Z",
+        "asOf": "2026-07-12T21:45:00Z",
+        "freshUntil": "2026-08-01T18:00:00Z",
+        "dimensions": {
+          "growth": {
+            "state": "solid-but-uncertain",
+            "asOf": "2026-06-17T18:00:00Z",
+            "freshUntil": "2026-08-01T18:00:00Z",
+            "observationIds": [
+              "obs:fomc-target-range-2026-06"
+            ],
+            "limitations": [
+              "FOMC qualitative assessment; no numeric growth nowcast is inferred."
+            ]
+          },
+          "inflation": {
+            "state": "elevated-with-energy-supply-pressure",
+            "asOf": "2026-06-17T18:00:00Z",
+            "freshUntil": "2026-08-01T18:00:00Z",
+            "observationIds": [
+              "obs:fomc-target-range-2026-06"
+            ],
+            "limitations": [
+              "The FOMC statement is qualitative and does not substitute for an inflation release."
+            ]
+          },
+          "liquidityRates": {
+            "state": "target-range-3.5-to-3.75",
+            "asOf": "2026-06-17T18:00:00Z",
+            "freshUntil": "2026-08-01T18:00:00Z",
+            "observationIds": [
+              "obs:fomc-target-range-2026-06"
+            ],
+            "limitations": [
+              "The target range does not by itself describe the yield curve or bank funding mix."
+            ]
+          },
+          "volatilityGamma": {
+            "state": "unavailable",
+            "asOf": null,
+            "freshUntil": null,
+            "observationIds": [],
+            "limitations": [
+              "No owner timing read is committed by the causal foundation."
+            ]
+          },
+          "correlationDispersion": {
+            "state": "unavailable",
+            "asOf": null,
+            "freshUntil": null,
+            "observationIds": [],
+            "limitations": [
+              "No current dispersion owner read is committed by the causal foundation."
+            ]
+          },
+          "credit": {
+            "state": "mixed-with-ci-tightening",
+            "asOf": "2026-05-04T23:59:59Z",
+            "freshUntil": "2026-08-15T23:59:59Z",
+            "observationIds": [
+              "obs:sloos-ci-standards-2026-q1"
+            ],
+            "limitations": [
+              "SLOOS is a quarterly survey, not live spreads, issuance, or bank-level credit performance."
+            ]
+          }
+        },
+        "contentDigest": "sha256:0a5f04163a1ef4b701a4f3a15b3499f0408e6420c8c75ed2f0b67b85c81de011"
+      },
+      "regimeConsequences": [
+        {
+          "regimeId": "reg:us-2026-07-recorded",
+          "current": true,
+          "direction": "mixed",
+          "timing": "weeks",
+          "magnitude": "fragile",
+          "assumptions": [
+            "Market breadth repairs before sector-wide fundamental confirmation exists."
+          ],
+          "falsifier": "Revision breadth and issuer guidance improve across multiple independent sources."
+        },
+        {
+          "regimeId": "reg:alternative-liquidity-down-multiples-compress",
+          "current": false,
+          "direction": "harm",
+          "timing": "days-to-weeks",
+          "magnitude": "material",
+          "assumptions": [
+            "Risk premia rise while issuer guidance remains mixed."
+          ],
+          "falsifier": "Fundamentals improve and the timing owner confirms durable relative leadership."
+        }
+      ],
+      "independentSupportClusterCount": 1,
+      "independentSupportClusterIds": [
+        "cluster:6fe1e470c64cff5b"
+      ],
+      "evidenceClusters": [
+        {
+          "id": "cluster:494779d6d5620679",
+          "originKeys": [
+            "origin:intel-q1-fy26-release"
+          ],
+          "observationIds": [
+            "obs:intel-q2-fy26-eps-guidance"
+          ]
+        },
+        {
+          "id": "cluster:6fe1e470c64cff5b",
+          "originKeys": [
+            "origin:nvidia-q1-fy27-release"
+          ],
+          "observationIds": [
+            "obs:nvidia-china-outlook-limit",
+            "obs:nvidia-q1-fy27-revenue",
+            "obs:nvidia-q2-fy27-outlook"
+          ]
+        }
+      ],
+      "eligibleEvidenceIds": [
+        "obs:nvidia-q1-fy27-revenue",
+        "obs:nvidia-q2-fy27-outlook",
+        "obs:nvidia-china-outlook-limit",
+        "obs:intel-q2-fy26-eps-guidance"
+      ],
+      "excludedEvidence": [],
+      "contradictionCount": 1,
+      "blockingContradictionCount": 1,
+      "contradictionIds": [
+        "obs:intel-q2-fy26-eps-guidance"
+      ],
+      "staleEvidenceIds": [],
+      "unavailableEvidence": [
+        {
+          "evidenceClass": "revision",
+          "state": "unavailable",
+          "missingFields": [
+            "provider",
+            "estimateAt",
+            "sectorBreadthDefinition"
+          ],
+          "reason": "No verified current sector-wide consensus-revision breadth source is committed."
+        },
+        {
+          "evidenceClass": "valuation",
+          "state": "unavailable",
+          "missingFields": [
+            "provider",
+            "estimateAt",
+            "metricDefinition",
+            "historicalBand"
+          ],
+          "reason": "No verified current sector-level forward valuation source is committed."
+        }
+      ],
+      "missingRequiredEvidenceClasses": [
+        "revision",
+        "valuation"
+      ],
+      "sourceQuality": "bounded",
+      "limitations": [
+        "Intel and NVIDIA issuer evidence does not represent every semiconductor constituent.",
+        "A market breadth rebound must come from the timing owner and is not committed here."
+      ],
+      "expectedWindow": {
+        "start": "2026-07-12T21:45:00Z",
+        "end": "2026-08-31T23:59:59Z",
+        "rationale": "The thesis requires prospective fundamental and timing confirmation before the next results cycle."
+      },
+      "confirmation": [
+        {
+          "id": "cond:semiconductor-fundamentals-stabilize",
+          "owner": "causal-rotation-lab",
+          "description": "At least two independent primary sources show non-deteriorating guidance or revisions and the timing owner confirms breadth."
+        }
+      ],
+      "invalidation": [
+        {
+          "id": "cond:semiconductor-guidance-weakens",
+          "owner": "causal-rotation-lab",
+          "description": "Issuer guidance weakens further or timing breadth fails its owner-defined structure."
+        }
+      ],
+      "exposureMismatch": true,
+      "fragilityFlags": [
+        "event-dependent",
+        "regime-fragile"
+      ],
+      "sensitivityPosture": "discovery",
+      "riskOverlay": "none",
+      "postureEligible": true,
+      "planEligible": false,
+      "timingOwner": "sector-research-lab",
+      "ownerDeepLink": "causal-rotation-lab.html#candidate=cand%3Asemiconductor-reflex-bounce%3Asemiconductors&asOf=2026-07-12T21%3A45%3A00Z",
+      "timingDeepLink": "sector-research-lab.html",
+      "reasonKeys": [
+        "causal-origin:origin:intel-q1-fy26-release",
+        "causal-origin:origin:nvidia-q1-fy27-release"
+      ],
+      "candidateDigest": "sha256:df121438bce4304c3885aff169362a47fdec6430d8ea14802db51230c2f19e72"
+    }
+  ],
+  "readsByExposure": {
+    "exp:banks": [
+      "cand:financial-credit-selectivity:banks"
+    ],
+    "exp:financials": [
+      "cand:financial-credit-selectivity:financials"
+    ],
+    "exp:united-states": [
+      "cand:financial-credit-selectivity:united-states"
+    ],
+    "exp:semiconductors": [
+      "cand:ai-infrastructure-demand:semiconductors",
+      "cand:semiconductor-reflex-bounce:semiconductors"
+    ]
+  },
+  "toolRead": {
+    "id": "causal-rotation-lab",
+    "asOf": "2026-07-12T21:45:00Z",
+    "read": "watch: Selective credit transmission; not plan-eligible; confirmation remains required.",
+    "metrics": {
+      "contractVersion": "causal-tool-read/v1",
+      "topCandidateId": "cand:financial-credit-selectivity:banks",
+      "exposureId": "exp:banks",
+      "stage": "watch",
+      "causeStatus": "bounded",
+      "evidenceAsOf": "2026-07-12T21:45:00Z",
+      "regimeVersionId": "reg:us-2026-07-recorded",
+      "independentConfirmationCount": 1,
+      "contradictionCount": 1,
+      "confirmation": "Bank or financial timing owner reports emerging relative leadership with non-deteriorating breadth.",
+      "invalidation": "A new primary credit source reports materially broader tightening or weaker demand without an offsetting earnings mechanism.",
+      "timingOwner": "sector-research-lab",
+      "planEligible": false,
+      "candidateCount": 5,
+      "health": "fresh",
+      "reasonKeys": [
+        "causal-origin:origin:fomc-2026-06-statement",
+        "causal-origin:origin:sloos-2026-04-survey"
+      ]
+    },
+    "deepLink": "causal-rotation-lab.html#candidate=cand%3Afinancial-credit-selectivity%3Abanks&asOf=2026-07-12T21%3A45%3A00Z"
+  }
+}

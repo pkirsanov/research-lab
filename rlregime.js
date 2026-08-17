@@ -43,6 +43,45 @@
        for a directional regime value. That refusal is enforced in composeRegime. */
     var DIRECTIONLESS_KINDS = ["volatility-magnitude"];
 
+    /*
+     * Closed value vocabularies keyed by facet `kind`. A facet value outside its own kind's
+     * list is refused at validation rather than carried as an unrecognised string, because an
+     * unrecognised value would silently drop out of stance comparison and read as agreement.
+     */
+    var KIND_VOCABULARIES = {
+        "sentiment-stress": ["complacent", "neutral", "stressed", "panic"],
+        "trend-structure": ["uptrend", "risk-on", "sideways", "downtrend", "risk-off"],
+        "breadth-participation": ["broad", "broadening", "mixed", "narrow", "narrowing"],
+        "credit": ["spreads-tightening", "spreads-stable", "spreads-widening"],
+        "curve": ["steepening", "flat", "flattening", "inverted"],
+        "duration-posture": ["extending", "neutral", "shortening"],
+        "volatility-magnitude": ["subdued", "normal", "elevated", "extreme"],
+        "ratio-derived": ["leading", "in-line", "lagging"]
+    };
+
+    /*
+     * Declared stance per (kind, value). Contradiction is a declared relationship between two
+     * stances, not a string-similarity guess, which is what lets "uptrend" and "narrowing"
+     * register as the conflict they are despite sharing no substring. Every
+     * volatility-magnitude value carries stance "none": that IS its zero-direction property.
+     */
+    var STANCE = {
+        "sentiment-stress": { complacent: "risk-on", neutral: "neutral", stressed: "risk-off", panic: "risk-off" },
+        "trend-structure": { uptrend: "risk-on", "risk-on": "risk-on", sideways: "neutral", downtrend: "risk-off", "risk-off": "risk-off" },
+        "breadth-participation": { broad: "risk-on", broadening: "risk-on", mixed: "neutral", narrow: "risk-off", narrowing: "risk-off" },
+        "credit": { "spreads-tightening": "risk-on", "spreads-stable": "neutral", "spreads-widening": "risk-off" },
+        "curve": { steepening: "risk-on", flat: "neutral", flattening: "risk-off", inverted: "risk-off" },
+        "duration-posture": { extending: "risk-off", neutral: "neutral", shortening: "risk-on" },
+        "volatility-magnitude": { subdued: "none", normal: "none", elevated: "none", extreme: "none" },
+        "ratio-derived": { leading: "risk-on", "in-line": "neutral", lagging: "risk-off" }
+    };
+
+    /* A sleeve fit ranks; it never sizes. These tokens are refused at the contract boundary. */
+    var FORBIDDEN_SLEEVE_TOKENS = [
+        "weight", "allocation", "exposure", "target", "positionsize", "position_size",
+        "position size", "buy", "sell", "hold"
+    ];
+
     var FACET_STATES = ["available", "stale", "unavailable"];
     var PERSISTENCE_STATES = ["confirmed", "forming"];
     var TRANSITION_STATES = ["settled", "candidate"];
@@ -92,9 +131,13 @@
         if (!contains(FACET_STATES, facet.state)) throw schemaError("RLREGIME_SCHEMA_INVALID", "$.facet.state");
         requireString(facet.valueVocabularyId, "$.facet.valueVocabularyId");
         requireIsoInstant(facet.asOf, "$.facet.asOf");
-        /* An available facet MUST carry a value; an unavailable one MUST NOT invent one. */
+        /* An available facet MUST carry a value from its own kind's closed vocabulary; an
+           unavailable one MUST NOT invent one. */
         if (facet.state === "available") {
             requireString(facet.value, "$.facet.value");
+            if (!contains(KIND_VOCABULARIES[facet.kind], facet.value)) {
+                throw schemaError("RLREGIME_SCHEMA_INVALID", "$.facet.value");
+            }
         } else if (facet.value !== null && facet.value !== undefined) {
             throw schemaError("RLREGIME_SCHEMA_INVALID", "$.facet.value");
         }
@@ -195,19 +238,22 @@
         });
     }
 
-    /* Opposing directional pairs. Kept explicit so a contradiction is a declared relationship
-       rather than a string-similarity guess. */
-    var OPPOSED = [
-        ["uptrend", "downtrend"], ["risk-on", "risk-off"], ["broad", "narrow"],
-        ["broadening", "narrowing"], ["spreads-tightening", "spreads-widening"],
-        ["steepening", "flattening"], ["extending", "shortening"]
-    ];
+    function stanceOf(facet) {
+        if (facet.state !== "available" || facet.value === null) return "none";
+        return STANCE[facet.kind][facet.value];
+    }
 
-    function opposes(a, b) {
-        for (var i = 0; i < OPPOSED.length; i += 1) {
-            if ((OPPOSED[i][0] === a && OPPOSED[i][1] === b) || (OPPOSED[i][1] === a && OPPOSED[i][0] === b)) return true;
+    /* A directionless facet cannot stand where a regime direction is expected. */
+    function requireDirectionalFacet(facet, path) {
+        var validated = facet && facet.contractVersion === FACET_CONTRACT ? facet : validateFacet(facet);
+        if (contains(DIRECTIONLESS_KINDS, validated.kind)) {
+            throw schemaError("RLREGIME_SCHEMA_INVALID", (path || "$.facet") + ".kind");
         }
-        return false;
+        return validated;
+    }
+
+    function opposedStances(a, b) {
+        return (a === "risk-on" && b === "risk-off") || (a === "risk-off" && b === "risk-on");
     }
 
     function extractContradictions(facetSet) {
@@ -219,14 +265,14 @@
                 var a = facets[i];
                 var b = facets[j];
                 if (a.state !== "available" || b.state !== "available") continue;
-                if (!opposes(a.value, b.value)) continue;
+                if (!opposedStances(stanceOf(a), stanceOf(b))) continue;
                 records.push({
                     contradictionId: a.facetId + "|" + b.facetId,
-                    facetIdA: a.facetId, valueA: a.value,
-                    facetIdB: b.facetId, valueB: b.value,
-                    horizon: HORIZON_RANK[a.horizon] <= HORIZON_RANK[b.horizon] ? a.horizon : b.horizon,
+                    facetIdA: a.facetId, valueA: a.value, horizonA: a.horizon, stanceA: stanceOf(a),
+                    facetIdB: b.facetId, valueB: b.value, horizonB: b.horizon, stanceB: stanceOf(b),
                     /* Displayed alongside the headline; never collapsed into it. */
-                    note: a.facetId + " reads " + a.value + " while " + b.facetId + " reads " + b.value
+                    note: a.facetId + " reads " + a.value + " (" + a.horizon + ") while "
+                        + b.facetId + " reads " + b.value + " (" + b.horizon + ")"
                 });
             }
         }
@@ -311,7 +357,10 @@
         if (!combinedRegime || typeof combinedRegime !== "object") throw schemaError("RLREGIME_SCHEMA_INVALID", "$.combinedRegime");
         var valueByFacet = {};
         combinedRegime.facets.forEach(function (facet) {
-            if (facet.state === "available") valueByFacet[facet.facetId] = facet.value;
+            /* A directionless facet may not carry a tuple cell, so it can never name a regime. */
+            if (facet.state === "available" && !contains(DIRECTIONLESS_KINDS, facet.kind)) {
+                valueByFacet[facet.facetId] = facet.value;
+            }
         });
         var matched = null;
         registry.entries.forEach(function (entry) {
@@ -387,23 +436,123 @@
         });
     }
 
+    function rejectForbiddenSleeveOutput(sleeve, path) {
+        Object.keys(sleeve).forEach(function (key) {
+            var flatKey = key.toLowerCase();
+            FORBIDDEN_SLEEVE_TOKENS.forEach(function (token) {
+                if (flatKey.indexOf(token.replace(/[ _]/g, "")) !== -1 || flatKey === token) {
+                    throw schemaError("RLREGIME_SCHEMA_INVALID", path + "." + key);
+                }
+            });
+        });
+    }
+
     function sleeveFits(combinedRegime, sleeveRegistry) {
-        if (!combinedRegime || typeof combinedRegime !== "object") throw schemaError("RLREGIME_SCHEMA_INVALID", "$.combinedRegime");
+        if (!combinedRegime || combinedRegime.contractVersion !== COMBINED_CONTRACT) {
+            throw schemaError("RLREGIME_SCHEMA_INVALID", "$.combinedRegime");
+        }
         if (!sleeveRegistry || !Array.isArray(sleeveRegistry.sleeves)) throw schemaError("RLREGIME_SCHEMA_INVALID", "$.sleeveRegistry.sleeves");
-        return deepFreeze(sleeveRegistry.sleeves.map(function (sleeve, index) {
-            requireString(sleeve.sleeveId, "$.sleeveRegistry.sleeves[" + index + "].sleeveId");
-            requireString(sleeve.family, "$.sleeveRegistry.sleeves[" + index + "].family");
-            requireString(sleeve.subType, "$.sleeveRegistry.sleeves[" + index + "].subType");
-            if (!Number.isInteger(sleeve.ordinal)) throw schemaError("RLREGIME_SCHEMA_INVALID", "$.sleeveRegistry.sleeves[" + index + "].ordinal");
+        var eligibleFacetIds = combinedRegime.facets.map(function (facet) { return facet.facetId; });
+        var rows = sleeveRegistry.sleeves.map(function (sleeve, index) {
+            var path = "$.sleeveRegistry.sleeves[" + index + "]";
+            rejectForbiddenSleeveOutput(sleeve, path);
+            requireString(sleeve.sleeveId, path + ".sleeveId");
+            requireString(sleeve.family, path + ".family");
+            /* Sub-type is never collapsed with bond or commodity. */
+            requireString(sleeve.subType, path + ".subType");
+            requireString(sleeve.invalidation, path + ".invalidation");
+            if (!Array.isArray(sleeve.rationaleFacetIds) || sleeve.rationaleFacetIds.length === 0) {
+                throw schemaError("RLREGIME_SCHEMA_INVALID", path + ".rationaleFacetIds");
+            }
+            if (!Number.isInteger(sleeve.ordinal)) throw schemaError("RLREGIME_SCHEMA_INVALID", path + ".ordinal");
+            var supporting = sleeve.rationaleFacetIds.filter(function (id) { return contains(eligibleFacetIds, id); });
+            return { sleeve: sleeve, supporting: supporting };
+        });
+
+        /*
+         * No-advantage is an explicit state, not a tie broken into a 1..n list. If no sleeve has
+         * a supporting facet in this read, or every sleeve declares the same ordinal, then the
+         * regime distinguishes none of them and saying otherwise would invent a preference.
+         */
+        var distinctOrdinals = {};
+        rows.forEach(function (row) { distinctOrdinals[row.sleeve.ordinal] = true; });
+        var anySupported = rows.some(function (row) { return row.supporting.length > 0; });
+        var noAdvantage = !anySupported || Object.keys(distinctOrdinals).length <= 1;
+        var reason = !anySupported
+            ? "no rationale facet is eligible at this horizon"
+            : "every sleeve declares the same ordinal";
+
+        return deepFreeze(rows.map(function (row) {
             return {
                 contractVersion: "sleeve-fit/v1",
-                sleeveId: sleeve.sleeveId,
-                family: sleeve.family,
-                subType: sleeve.subType,
+                sleeveId: row.sleeve.sleeveId,
+                family: row.sleeve.family,
+                subType: row.sleeve.subType,
                 /* Ordinal ONLY — no weight, allocation, exposure, target, or position size. */
-                ordinal: sleeve.ordinal
+                ordinal: noAdvantage ? null : row.sleeve.ordinal,
+                noAdvantage: noAdvantage,
+                noAdvantageReason: noAdvantage ? reason : null,
+                rationaleFacetIds: row.supporting.slice(),
+                invalidation: row.sleeve.invalidation
             };
         }));
+    }
+
+    /*
+     * historySeries. Each point is composed only from observations at or before its own as-of
+     * stamp, so a label can never be informed by a bar that had not printed when it was stamped.
+     * A smoothing request is refused rather than served, because a smoothed label reads as a
+     * contemporaneous call while carrying information that did not exist at that timestamp.
+     */
+    function historySeries(observations, opts) {
+        if (!Array.isArray(observations) || observations.length === 0) {
+            throw schemaError("RLREGIME_SCHEMA_INVALID", "$.observations");
+        }
+        if (!opts || typeof opts !== "object") throw schemaError("RLREGIME_SCHEMA_INVALID", "$.opts");
+        var horizon = opts.horizon === undefined ? "structural" : opts.horizon;
+        if (!contains(HORIZONS, horizon)) throw schemaError("RLREGIME_SCHEMA_INVALID", "$.opts.horizon");
+        if (opts.smoothing !== undefined && opts.smoothing !== "none") {
+            return deepFreeze({
+                availability: "unavailable",
+                unavailableReason: "HINDSIGHT_SMOOTHING_REFUSED",
+                points: [],
+                note: "refused: a label smoothed with '" + opts.smoothing
+                    + "' across later observations is not as-of-safe",
+                whatWouldResolve: "request the series with smoothing 'none' so each point uses only observations at or before its own as-of stamp"
+            });
+        }
+        var points = observations.map(function (observation, index) {
+            requireIsoInstant(observation.asOf, "$.observations[" + index + "].asOf");
+            if (!Array.isArray(observation.facets)) {
+                throw schemaError("RLREGIME_SCHEMA_INVALID", "$.observations[" + index + "].facets");
+            }
+            var cutoff = Date.parse(observation.asOf);
+            /* Only facets at or before THIS point's own cutoff inform THIS point. */
+            var visible = observation.facets.filter(function (facet) { return Date.parse(facet.asOf) <= cutoff; });
+            if (visible.length === 0) {
+                return {
+                    asOf: observation.asOf,
+                    availability: "unavailable",
+                    unavailableReason: "NO_FACET_AT_CUTOFF",
+                    regime: null,
+                    whatWouldResolve: "a facet stamped at or before " + observation.asOf
+                };
+            }
+            return {
+                asOf: observation.asOf,
+                availability: "available",
+                unavailableReason: null,
+                regime: composeRegime(visible, { decisionTime: observation.asOf, horizon: horizon }),
+                whatWouldResolve: null
+            };
+        });
+        return deepFreeze({
+            availability: "available",
+            unavailableReason: null,
+            points: points,
+            note: null,
+            whatWouldResolve: null
+        });
     }
 
     function ownerRead(combinedRegime, opts) {
@@ -493,13 +642,19 @@
         TRANSITION_STATES: Object.freeze(TRANSITION_STATES.slice()),
         PROJECTION_VOCABULARIES: Object.freeze(PROJECTION_VOCABULARIES.slice()),
         UNRESOLVED_LABELS: Object.freeze(UNRESOLVED_LABELS.slice()),
+        KIND_VOCABULARIES: deepFreeze(JSON.parse(JSON.stringify(KIND_VOCABULARIES))),
+        DIRECTIONLESS_KINDS: Object.freeze(DIRECTIONLESS_KINDS.slice()),
+        FORBIDDEN_SLEEVE_TOKENS: Object.freeze(FORBIDDEN_SLEEVE_TOKENS.slice()),
         validateFacet: validateFacet,
         validateFacetSet: validateFacetSet,
         validateArchetypeRegistry: validateArchetypeRegistry,
+        requireDirectionalFacet: requireDirectionalFacet,
+        stanceOf: stanceOf,
         confirmationRatio: confirmationRatio,
         extractContradictions: extractContradictions,
         applyPersistence: applyPersistence,
         composeRegime: composeRegime,
+        historySeries: historySeries,
         matchArchetype: matchArchetype,
         sleeveFits: sleeveFits,
         ownerRead: ownerRead,

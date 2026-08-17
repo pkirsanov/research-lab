@@ -1,7 +1,7 @@
 {
   "contractVersion": "regime-archetype-registry/v1",
-  "registryVersion": 1,
-  "note": "Fully enumerated facet-value tuples. No wildcard, no range, no 'any other value'. A combination absent from this file renders its fingerprint and reads Unresolved; it is never given the nearest entry's name. Both projection cells are mandatory so a new archetype cannot silently fall out of a legacy vocabulary.",
+  "registryVersion": 2,
+  "note": "Fully enumerated facet-value tuples. No wildcard, no range, no 'any other value'. A combination absent from this file renders its fingerprint and reads Unresolved; it is never given the nearest entry's name. Both projection cells are mandatory so a new archetype cannot silently fall out of a legacy vocabulary. Sleeve cells rank only: no weight, allocation, exposure, target, or position size appears anywhere in this file.",
   "entries": [
     {
       "archetypeId": "risk-on-broad-participation",
@@ -11,6 +11,43 @@
         { "facetId": "trend.structure", "value": "uptrend" },
         { "facetId": "breadth.participation", "value": "broad" },
         { "facetId": "bond.credit", "value": "spreads-tightening" }
+      ],
+      "sleeves": [
+        { "sleeveId": "equity-broad-beta", "family": "equity", "subType": "broad-market-beta", "ordinal": 1, "rationaleFacetIds": ["trend.structure", "breadth.participation"], "invalidation": "breadth.participation turns narrow or narrowing" },
+        { "sleeveId": "dividend-quality", "family": "dividend", "subType": "quality-dividend-growth", "ordinal": 2, "rationaleFacetIds": ["bond.credit"], "invalidation": "bond.credit turns spreads-widening" },
+        { "sleeveId": "commodity-cyclical", "family": "commodity", "subType": "cyclical-industrial", "ordinal": 3, "rationaleFacetIds": ["trend.structure"], "invalidation": "trend.structure turns downtrend" },
+        { "sleeveId": "bond-credit-carry", "family": "bond", "subType": "credit-carry", "ordinal": 4, "rationaleFacetIds": ["bond.credit"], "invalidation": "bond.credit turns spreads-widening" },
+        { "sleeveId": "cash-barbell-short-end", "family": "cash-barbell", "subType": "short-end-liquidity", "ordinal": 5, "rationaleFacetIds": ["trend.structure"], "invalidation": "trend.structure turns downtrend" }
+      ],
+      "projections": {
+        "macro-regime-legacy/v1": {
+          "projectedValue": "Greed·risk-on",
+          "risk": 1,
+          "lossy": true,
+          "lossyFields": ["horizon", "confirmation", "contradictions", "facet attribution"]
+        },
+        "market-structure-band-legacy/v1": {
+          "projectedValue": "Risk-on trend",
+          "lossy": true,
+          "lossyFields": ["horizon", "confirmation", "contradictions", "facet attribution"]
+        }
+      }
+    },
+    {
+      "archetypeId": "risk-on-broadening-participation",
+      "displayName": "Risk-on, broadening participation",
+      "horizons": ["structural", "swing"],
+      "tuple": [
+        { "facetId": "trend.structure", "value": "risk-on" },
+        { "facetId": "breadth.participation", "value": "broadening" },
+        { "facetId": "bond.credit", "value": "spreads-tightening" }
+      ],
+      "sleeves": [
+        { "sleeveId": "equity-broad-beta", "family": "equity", "subType": "broad-market-beta", "ordinal": 1, "rationaleFacetIds": ["trend.structure", "breadth.participation"], "invalidation": "breadth.participation turns narrow or narrowing" },
+        { "sleeveId": "dividend-quality", "family": "dividend", "subType": "quality-dividend-growth", "ordinal": 2, "rationaleFacetIds": ["bond.credit"], "invalidation": "bond.credit turns spreads-widening" },
+        { "sleeveId": "commodity-cyclical", "family": "commodity", "subType": "cyclical-industrial", "ordinal": 3, "rationaleFacetIds": ["trend.structure"], "invalidation": "trend.structure turns risk-off" },
+        { "sleeveId": "bond-credit-carry", "family": "bond", "subType": "credit-carry", "ordinal": 4, "rationaleFacetIds": ["bond.credit"], "invalidation": "bond.credit turns spreads-widening" },
+        { "sleeveId": "cash-barbell-short-end", "family": "cash-barbell", "subType": "short-end-liquidity", "ordinal": 5, "rationaleFacetIds": ["trend.structure"], "invalidation": "trend.structure turns risk-off" }
       ],
       "projections": {
         "macro-regime-legacy/v1": {
@@ -35,6 +72,13 @@
         { "facetId": "breadth.participation", "value": "narrow" },
         { "facetId": "bond.credit", "value": "spreads-widening" }
       ],
+      "sleeves": [
+        { "sleeveId": "cash-barbell-short-end", "family": "cash-barbell", "subType": "short-end-liquidity", "ordinal": 1, "rationaleFacetIds": ["trend.structure", "bond.credit"], "invalidation": "bond.credit turns spreads-tightening" },
+        { "sleeveId": "bond-duration-defensive", "family": "bond", "subType": "sovereign-duration", "ordinal": 2, "rationaleFacetIds": ["bond.credit"], "invalidation": "bond.credit turns spreads-tightening" },
+        { "sleeveId": "dividend-quality", "family": "dividend", "subType": "quality-dividend-growth", "ordinal": 3, "rationaleFacetIds": ["breadth.participation"], "invalidation": "breadth.participation turns broad" },
+        { "sleeveId": "commodity-defensive", "family": "commodity", "subType": "precious-metals", "ordinal": 4, "rationaleFacetIds": ["trend.structure"], "invalidation": "trend.structure turns uptrend" },
+        { "sleeveId": "equity-broad-beta", "family": "equity", "subType": "broad-market-beta", "ordinal": 5, "rationaleFacetIds": ["trend.structure"], "invalidation": "trend.structure turns uptrend" }
+      ],
       "projections": {
         "macro-regime-legacy/v1": {
           "projectedValue": "Fear·risk-off",
@@ -58,6 +102,13 @@
         { "facetId": "breadth.participation", "value": "narrow" },
         { "facetId": "bond.credit", "value": "spreads-tightening" }
       ],
+      "sleeves": [
+        { "sleeveId": "dividend-quality", "family": "dividend", "subType": "quality-dividend-growth", "ordinal": 1, "rationaleFacetIds": ["bond.credit"], "invalidation": "bond.credit turns spreads-widening" },
+        { "sleeveId": "equity-broad-beta", "family": "equity", "subType": "broad-market-beta", "ordinal": 2, "rationaleFacetIds": ["trend.structure"], "invalidation": "trend.structure turns downtrend" },
+        { "sleeveId": "cash-barbell-short-end", "family": "cash-barbell", "subType": "short-end-liquidity", "ordinal": 3, "rationaleFacetIds": ["breadth.participation"], "invalidation": "breadth.participation turns broad" },
+        { "sleeveId": "bond-credit-carry", "family": "bond", "subType": "credit-carry", "ordinal": 4, "rationaleFacetIds": ["bond.credit"], "invalidation": "bond.credit turns spreads-widening" },
+        { "sleeveId": "commodity-cyclical", "family": "commodity", "subType": "cyclical-industrial", "ordinal": 5, "rationaleFacetIds": ["trend.structure"], "invalidation": "trend.structure turns downtrend" }
+      ],
       "projections": {
         "macro-regime-legacy/v1": {
           "projectedValue": "Neutral",
@@ -80,6 +131,13 @@
         { "facetId": "trend.structure", "value": "downtrend" },
         { "facetId": "breadth.participation", "value": "broad" },
         { "facetId": "bond.credit", "value": "spreads-tightening" }
+      ],
+      "sleeves": [
+        { "sleeveId": "bond-credit-carry", "family": "bond", "subType": "credit-carry", "ordinal": 1, "rationaleFacetIds": ["bond.credit"], "invalidation": "bond.credit turns spreads-widening" },
+        { "sleeveId": "dividend-quality", "family": "dividend", "subType": "quality-dividend-growth", "ordinal": 2, "rationaleFacetIds": ["bond.credit"], "invalidation": "bond.credit turns spreads-widening" },
+        { "sleeveId": "equity-broad-beta", "family": "equity", "subType": "broad-market-beta", "ordinal": 3, "rationaleFacetIds": ["breadth.participation"], "invalidation": "breadth.participation turns narrow" },
+        { "sleeveId": "cash-barbell-short-end", "family": "cash-barbell", "subType": "short-end-liquidity", "ordinal": 4, "rationaleFacetIds": ["trend.structure"], "invalidation": "trend.structure turns uptrend" },
+        { "sleeveId": "commodity-defensive", "family": "commodity", "subType": "precious-metals", "ordinal": 5, "rationaleFacetIds": ["trend.structure"], "invalidation": "trend.structure turns uptrend" }
       ],
       "projections": {
         "macro-regime-legacy/v1": {

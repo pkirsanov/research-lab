@@ -11361,6 +11361,290 @@ try {
     'RLRATIO ratioSeries and windowStats stay within budget and deterministic at the largest declared lookbackBars');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 013 Scope 01 rlratio-scale group threw): ' + e.message); }
 
+group('rlregime');
+try {
+  const { createRequire } = await import('node:module');
+  const regimeRequire = createRequire(import.meta.url);
+  const RLREGIME = regimeRequire('../rlregime.js');
+
+  const facet = (facetId, kind, value, horizon, extra) => Object.assign({
+    contractVersion: 'regime-facet/v1', facetId, kind, value,
+    valueVocabularyId: kind + '/v1', horizon, state: 'available',
+    asOf: '2026-08-16T00:00:00.000Z'
+  }, extra || {});
+  const grab = (fn) => { try { fn(); return null; } catch (e) { return e; } };
+
+  /* A value outside its own kind's closed list is refused rather than carried as a string
+     that would silently drop out of stance comparison and read as agreement. */
+  const offVocabulary = grab(() => RLREGIME.validateFacet(facet('t', 'trend-structure', 'melt-up', 'structural')));
+  const wrongKind = grab(() => RLREGIME.validateFacet(facet('t', 'not-a-kind', 'uptrend', 'structural')));
+  const goodFacet = RLREGIME.validateFacet(facet('t', 'trend-structure', 'uptrend', 'structural'));
+  /* Horizon class is immutable at declaration: the returned reading is frozen. */
+  const horizonImmutable = Object.isFrozen(goodFacet)
+    && grab(() => { 'use strict'; goodFacet.horizon = 'tactical'; }) !== null;
+  /* volatility-magnitude is magnitude-only with zero direction. */
+  const directionRefusal = grab(() => RLREGIME.requireDirectionalFacet(facet('v', 'volatility-magnitude', 'elevated', 'structural')));
+  const magnitudeStanceIsNone = RLREGIME.FACET_KINDS.includes('volatility-magnitude')
+    && RLREGIME.stanceOf(RLREGIME.validateFacet(facet('v', 'volatility-magnitude', 'extreme', 'tactical'))) === 'none';
+  /* A tactical facet cannot reach a structural read, so it can move no structural value. */
+  const structuralRead = RLREGIME.composeRegime(
+    [facet('t', 'trend-structure', 'uptrend', 'structural'), facet('v', 'volatility-magnitude', 'extreme', 'tactical')],
+    { decisionTime: '2026-08-17T00:00:00.000Z', horizon: 'structural' });
+
+  assert(offVocabulary && offVocabulary.code === 'RLREGIME_SCHEMA_INVALID' && offVocabulary.path === '$.facet.value'
+    && wrongKind && wrongKind.path === '$.facet.kind'
+    && horizonImmutable
+    && directionRefusal && directionRefusal.code === 'RLREGIME_SCHEMA_INVALID' && directionRefusal.path === '$.facet.kind'
+    && magnitudeStanceIsNone
+    && structuralRead.excludedFacetIds.includes('v')
+    && structuralRead.facets.every((f) => f.facetId !== 'v'),
+    'RLREGIME validates facets against their kind-keyed closed vocabulary and rejects volatility-magnitude where a direction is expected');
+
+  /* readPublishedContext is a reader. Handed raw facets it refuses rather than recomposing. */
+  const rawArrayRefusal = grab(() => RLREGIME.readPublishedContext(
+    [facet('t', 'trend-structure', 'uptrend', 'structural')],
+    { decisionTime: '2026-08-17T00:00:00.000Z' }));
+
+  assert(rawArrayRefusal
+    && rawArrayRefusal.code === 'RLREGIME_SCHEMA_INVALID'
+    && rawArrayRefusal.path === '$.publishedRegime',
+    'RLREGIME readPublishedContext refuses a raw facet array with RLREGIME_SCHEMA_INVALID at publishedRegime');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 013 Scope 02 rlregime group threw): ' + e.message); }
+
+group('rlregime-compose');
+try {
+  const { createRequire } = await import('node:module');
+  const composeRequire = createRequire(import.meta.url);
+  const RLREGIME = composeRequire('../rlregime.js');
+  const ARCHETYPES = JSON.parse(read('regime-archetypes.json'));
+
+  const CLOCK = '2026-08-17T00:00:00.000Z';
+  const facet = (facetId, kind, value, horizon, extra) => Object.assign({
+    contractVersion: 'regime-facet/v1', facetId, kind, value,
+    valueVocabularyId: kind + '/v1', horizon, state: 'available',
+    asOf: '2026-08-16T00:00:00.000Z'
+  }, extra || {});
+  const grab = (fn) => { try { fn(); return null; } catch (e) { return e; } };
+
+  /* BS-013-001 — the Gherkin's own tuple: risk-on / broadening / spreads-tightening. */
+  const matchedSet = [
+    facet('trend.structure', 'trend-structure', 'risk-on', 'structural'),
+    facet('bond.credit', 'credit', 'spreads-tightening', 'structural'),
+    facet('breadth.participation', 'breadth-participation', 'broadening', 'swing')
+  ];
+  const matchedRegime = RLREGIME.composeRegime(matchedSet, { decisionTime: CLOCK, horizon: 'swing' });
+  const matched = RLREGIME.matchArchetype(matchedRegime, ARCHETYPES);
+  assert(matched.archetypeId === 'risk-on-broadening-participation'
+    && matched.matchBasis === 'exact-enumerated-tuple'
+    /* Cites each contributing facet with its value. */
+    && matched.matchedTuple.length === 3
+    && matched.matchedTuple.every((cell) => matchedSet.some((f) => f.facetId === cell.facetId && f.value === cell.value))
+    && matchedRegime.confirmation.m === 3 && matchedRegime.confirmation.k === 3,
+    'RLREGIME composeRegime names the enumerated archetype on an exact facet tuple match');
+
+  /* BS-013-002 — no enumerated entry, so no name is borrowed from the nearest one. */
+  const unmatchedRegime = RLREGIME.composeRegime([
+    facet('trend.structure', 'trend-structure', 'sideways', 'swing'),
+    facet('bond.credit', 'credit', 'spreads-stable', 'swing')
+  ], { decisionTime: CLOCK, horizon: 'swing' });
+  const unmatched = RLREGIME.matchArchetype(unmatchedRegime, ARCHETYPES);
+  assert(unmatched.archetypeId === null
+    && RLREGIME.UNRESOLVED_LABELS.includes(unmatched.displayName)
+    && unmatched.matchBasis === 'no-enumerated-match'
+    && unmatched.matchedTuple === null
+    && typeof unmatched.fingerprintId === 'string' && unmatched.fingerprintId.length > 0
+    /* The unresolved facet pair is named, and each facet stays individually readable. */
+    && unmatched.unresolvedFacetPair.length === 2
+    && unmatched.fingerprintId.split('|').length === 2,
+    'RLREGIME composeRegime emits a fingerprint plus Mixed or Unresolved and never an invented label');
+
+  /* BS-013-004 — a tactical facet cannot participate in a structural read. */
+  const shortHorizon = RLREGIME.composeRegime([
+    facet('trend.structure', 'trend-structure', 'uptrend', 'structural'),
+    facet('bond.credit', 'credit', 'spreads-tightening', 'structural'),
+    facet('vol.magnitude', 'volatility-magnitude', 'elevated', 'tactical')
+  ], { decisionTime: CLOCK, horizon: 'structural' });
+  const shortfall = shortHorizon.exclusions.find((entry) => entry.facetId === 'vol.magnitude');
+  assert(shortfall && shortfall.reason === 'horizon shorter than requested read'
+    && shortHorizon.confirmation.m === 2
+    && shortHorizon.confirmation.participatingFacetIds.includes('vol.magnitude') === false
+    && shortHorizon.excludedFacetIds.includes('vol.magnitude'),
+    'RLREGIME excludes a facet shorter than the requested horizon from both numerator and denominator');
+
+  /* BS-013-006 — five declared facets, one stale: the denominator counts four. */
+  const staleCredit = Object.assign(facet('bond.credit', 'credit', null, 'structural'), { state: 'stale', value: null });
+  const staleSet = [
+    facet('trend.structure', 'trend-structure', 'uptrend', 'structural'),
+    facet('breadth.participation', 'breadth-participation', 'broad', 'structural'),
+    staleCredit,
+    facet('curve.shape', 'curve', 'steepening', 'structural'),
+    facet('duration.posture', 'duration-posture', 'shortening', 'structural')
+  ];
+  const staleRegime = RLREGIME.composeRegime(staleSet, { decisionTime: CLOCK, horizon: 'structural' });
+  const allStale = RLREGIME.composeRegime(staleSet.map(
+    (f) => Object.assign({}, f, { state: 'stale', value: null })), { decisionTime: CLOCK, horizon: 'structural' });
+  const staleSerialized = JSON.stringify(staleRegime);
+  assert(staleRegime.confirmation.m === 4
+    && staleRegime.confirmation.absentFacetIds.includes('bond.credit')
+    && typeof staleRegime.confirmation.whatWouldResolve === 'string'
+    /* m === 0 reports unavailable rather than the number 0. */
+    && allStale.confirmation.availability === 'unavailable'
+    && allStale.confirmation.k === null && allStale.confirmation.ratio === null
+    /* The credit facet is never mapped to Neutral, zero, or any in-vocabulary value. */
+    && staleRegime.facets.every((f) => f.facetId !== 'bond.credit')
+    && /bond\.credit=(neutral|Neutral|0)/.test(staleSerialized) === false,
+    'RLREGIME degrades a stale facet to unavailable and shrinks the denominator with absentFacetIds');
+
+  /* BS-013-007 — a structural risk-on trend against narrowing swing breadth. */
+  const conflicted = RLREGIME.composeRegime([
+    facet('trend.structure', 'trend-structure', 'risk-on', 'structural'),
+    facet('breadth.participation', 'breadth-participation', 'narrowing', 'swing')
+  ], { decisionTime: CLOCK, horizon: 'swing' });
+  const record = conflicted.contradictions[0];
+  assert(conflicted.contradictions.length === 1
+    && record.facetIdA === 'trend.structure' && record.valueA === 'risk-on' && record.horizonA === 'structural'
+    && record.facetIdB === 'breadth.participation' && record.valueB === 'narrowing' && record.horizonB === 'swing'
+    /* The headline carries no averaged, majority-resolved, or confidence-substituted value. */
+    && Object.keys(conflicted).some((key) => /average|majority|consensus|confidence|score/i.test(key)) === false,
+    'RLREGIME surfaces a cross-horizon facet contradiction as a first-class record and never averages it');
+
+  /* BS-013-008 — a sub-threshold move does not move the displayed label. */
+  const policy = { runThresholds: { structural: 5, swing: 3, tactical: 2 } };
+  const subThreshold = RLREGIME.applyPersistence(
+    facet('trend.structure', 'trend-structure', 'downtrend', 'structural'),
+    { priorValue: 'uptrend', runLength: 12 }, policy);
+  const gateMet = RLREGIME.applyPersistence(
+    facet('trend.structure', 'trend-structure', 'downtrend', 'structural'),
+    { priorValue: 'downtrend', runLength: 4 }, policy);
+  assert(subThreshold.persistenceState === 'forming'
+    && subThreshold.displayedValue === 'uptrend'
+    && gateMet.persistenceState === 'confirmed'
+    && gateMet.displayedValue === 'downtrend',
+    'RLREGIME holds the composed label and marks the facet forming until the persistence gate is met');
+
+  /* BS-013-008 restated from the transition's side rather than the facet's. */
+  const oneprint = RLREGIME.applyPersistence(
+    facet('trend.structure', 'trend-structure', 'downtrend', 'structural'),
+    { priorValue: 'uptrend', runLength: 12 }, policy);
+  assert(oneprint.transitionState === 'candidate'
+    && oneprint.transitionedFrom === 'uptrend'
+    && oneprint.displayedValue === 'uptrend'
+    /* The candidate is visible with its current run length, not hidden until it confirms. */
+    && oneprint.runLength === 1 && oneprint.thresholdBars === 5,
+    'RLREGIME records a one-print archetype change as a candidate transition and holds the displayed label');
+
+  /* TP-02-10 — sleeve fits rank; they never size. */
+  const registryEntry = ARCHETYPES.entries.find((entry) => entry.archetypeId === 'risk-on-broadening-participation');
+  const fits = RLREGIME.sleeveFits(matchedRegime, { sleeves: registryEntry.sleeves });
+  const sized = grab(() => RLREGIME.sleeveFits(matchedRegime, {
+    sleeves: [Object.assign({}, registryEntry.sleeves[0], { weight: 0.25 })]
+  }));
+  const flat = RLREGIME.sleeveFits(matchedRegime, {
+    sleeves: registryEntry.sleeves.map((sleeve) => Object.assign({}, sleeve, { ordinal: 1 }))
+  });
+  const repeat = RLREGIME.sleeveFits(matchedRegime, { sleeves: registryEntry.sleeves });
+  const repeatRegime = RLREGIME.composeRegime(matchedSet, { decisionTime: CLOCK, horizon: 'swing' });
+  assert(fits.length === 5
+    && fits.every((fit) => Number.isInteger(fit.ordinal) && fit.rationaleFacetIds.length > 0 && typeof fit.invalidation === 'string')
+    && fits.every((fit) => Object.keys(fit).some((key) => /weight|allocation|exposure|target|position/i.test(key)) === false)
+    /* Sub-type separation is preserved: dividend, bond, and commodity never collapse. */
+    && new Set(fits.map((fit) => fit.subType)).size === 5
+    && sized && sized.code === 'RLREGIME_SCHEMA_INVALID'
+    /* A flat input states no-advantage rather than inventing a 1..n order. */
+    && flat.every((fit) => fit.noAdvantage === true && fit.ordinal === null && typeof fit.noAdvantageReason === 'string')
+    /* Identical frozen input at an identical decisionTime is byte-identical. */
+    && JSON.stringify(fits) === JSON.stringify(repeat)
+    && JSON.stringify(repeatRegime) === JSON.stringify(matchedRegime)
+    && repeatRegime.fingerprintId === matchedRegime.fingerprintId,
+    'RLREGIME sleeveFits are ordinal-only with rationale and invalidation and reject the forbidden-output vocabulary');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 013 Scope 02 rlregime-compose group threw): ' + e.message); }
+
+group('rlregime-history');
+try {
+  const { createRequire } = await import('node:module');
+  const historyRequire = createRequire(import.meta.url);
+  const RLREGIME = historyRequire('../rlregime.js');
+
+  const facet = (facetId, kind, value, horizon, asOf) => ({
+    contractVersion: 'regime-facet/v1', facetId, kind, value,
+    valueVocabularyId: kind + '/v1', horizon, state: 'available', asOf
+  });
+
+  /* The later print exists in the input; only the point stamped after it may see it. */
+  const early = facet('trend.structure', 'trend-structure', 'uptrend', 'structural', '2026-08-10T00:00:00.000Z');
+  const late = facet('bond.credit', 'credit', 'spreads-widening', 'structural', '2026-08-20T00:00:00.000Z');
+  const series = RLREGIME.historySeries([
+    { asOf: '2026-08-15T00:00:00.000Z', facets: [early, late] },
+    { asOf: '2026-08-25T00:00:00.000Z', facets: [early, late] }
+  ], { horizon: 'structural' });
+  const firstPoint = series.points[0];
+  const secondPoint = series.points[1];
+
+  const smoothed = RLREGIME.historySeries([
+    { asOf: '2026-08-15T00:00:00.000Z', facets: [early] }
+  ], { horizon: 'structural', smoothing: 'centered-3' });
+
+  assert(series.availability === 'available'
+    /* The 15th cannot see the 20th print. */
+    && firstPoint.regime.facets.length === 1
+    && firstPoint.regime.facets[0].facetId === 'trend.structure'
+    && firstPoint.regime.asOfSafe === true
+    /* The 25th can. */
+    && secondPoint.regime.facets.length === 2
+    && smoothed.availability === 'unavailable'
+    && smoothed.unavailableReason === 'HINDSIGHT_SMOOTHING_REFUSED'
+    && smoothed.points.length === 0
+    && /not as-of-safe/.test(smoothed.note)
+    && typeof smoothed.whatWouldResolve === 'string',
+    'RLREGIME history is as-of-safe per point and refuses a hindsight-smoothed series');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 013 Scope 02 rlregime-history group threw): ' + e.message); }
+
+group('rlregime-projection');
+try {
+  const { createRequire } = await import('node:module');
+  const projectionRequire = createRequire(import.meta.url);
+  const RLREGIME = projectionRequire('../rlregime.js');
+  const ARCHETYPES = JSON.parse(read('regime-archetypes.json'));
+
+  const CLOCK = '2026-08-17T00:00:00.000Z';
+  const facet = (facetId, kind, value, horizon) => ({
+    contractVersion: 'regime-facet/v1', facetId, kind, value,
+    valueVocabularyId: kind + '/v1', horizon, state: 'available', asOf: '2026-08-16T00:00:00.000Z'
+  });
+  const grab = (fn) => { try { fn(); return null; } catch (e) { return e; } };
+
+  const composed = RLREGIME.composeRegime([
+    facet('trend.structure', 'trend-structure', 'risk-on', 'structural'),
+    facet('bond.credit', 'credit', 'spreads-tightening', 'structural'),
+    facet('breadth.participation', 'breadth-participation', 'broadening', 'swing')
+  ], { decisionTime: CLOCK, horizon: 'swing' });
+  const before = JSON.stringify(composed);
+  const macro = RLREGIME.projectCompatibility(composed, 'macro-regime-legacy/v1', ARCHETYPES);
+  const band = RLREGIME.projectCompatibility(composed, 'market-structure-band-legacy/v1', ARCHETYPES);
+  const published = RLREGIME.readPublishedContext(composed, { decisionTime: CLOCK });
+  const unknownVocabulary = grab(() => RLREGIME.projectCompatibility(composed, 'invented-legacy/v1', ARCHETYPES));
+
+  /* Every registry row must carry both cells, so no archetype falls out of a legacy vocabulary. */
+  const totalMapping = ARCHETYPES.entries.every((entry) =>
+    RLREGIME.PROJECTION_VOCABULARIES.every((vocabulary) =>
+      entry.projections[vocabulary] && typeof entry.projections[vocabulary].projectedValue === 'string'));
+
+  assert(macro.projectedValue === 'Greed·risk-on' && macro.risk === 1
+    && band.projectedValue === 'Risk-on trend'
+    /* Lossy by construction, and it says so rather than implying a faithful round trip. */
+    && macro.lossy === true && macro.lossyFields.includes('confirmation')
+    && band.lossy === true && band.lossyFields.includes('contradictions')
+    /* Read-only: projecting does not mutate the composed read. */
+    && JSON.stringify(composed) === before
+    && unknownVocabulary && unknownVocabulary.code === 'RLREGIME_SCHEMA_INVALID'
+    && totalMapping
+    /* The published reader exposes no recomposition path and holds no registry. */
+    && published.isRecomputation === false
+    && published.derivesLocally === false
+    && Object.keys(published).some((key) => /registry|archetype|recompose/i.test(key)) === false,
+    'RLREGIME projectCompatibility is read-only lossless-or-declared-lossy and readPublishedContext exposes no recomposition path');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 013 Scope 02 rlregime-projection group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

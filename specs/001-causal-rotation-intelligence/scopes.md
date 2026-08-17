@@ -564,7 +564,7 @@ the payload was restored.
 ## Scope 5: Outcome Ledger, Registry, and Operator Documentation
 
 **Scope ID:** SCOPE-05  
-**Status:** Not Started  
+**Status:** In Progress  
 **Depends On:** SCOPE-04  
 **Tags:** `outcome-ledger`, `registry`, `documentation`, `public-delivery`
 

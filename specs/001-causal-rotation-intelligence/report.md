@@ -987,3 +987,88 @@ shipped a page projection that disagreed with its own source.
   so `exp:banks` and `exp:semiconductors` publish `unavailable` with that reason rather than a
   borrowed state, and `exp:energy-equities` does the same because the Tier-A real-assets read does
   not carry the equity confirmation input.
+
+## SCOPE-05 - Outcome Ledger, Registry, and Operator Documentation (IN PROGRESS)
+
+SCOPE-05 is **not complete** and is **not** marked Done. Part 1 (the outcome and correction
+ledger) is delivered and pushed; part 2 (registration and operator documentation) is not
+started. Every DoD checkbox for SCOPE-05 remains unchecked because the named E2E tests in
+`tests/causal-rotation-registry.spec.mjs` do not exist yet.
+
+### Part 1 delivered - outcome and correction events
+
+Decisions could be frozen but nothing could record how they resolved, so the tool could only
+ever display intentions. Outcomes and corrections now append to their own browser-local store
+(`rlCausalOutcomesV1`), leaving `rlCausalDecisionsV1` and the frozen decision bytes untouched.
+
+- The outcome state is **derived** by re-evaluating the same candidate against current
+  evidence, never asserted by an operator. Confirmation and invalidation conditions carry no
+  satisfied flag, so the candidate's current stage is the only honest signal available:
+  `falsified` to falsified, `established` to confirmed, `expired` to window-expired, and
+  everything else to explicitly unresolved.
+- A candidate the model can no longer evaluate stays unresolved rather than silently resolving.
+- Corrections append against a target event id, so a wrong outcome is annotated and the
+  original event stays visible.
+- The history panel lists confirmations, falsifications, expiries and unresolved records
+  together with exposure, posture and policy version. An empty history reports
+  "insufficient history" explicitly rather than reading as a clean record.
+
+### Evidence - Part 1
+
+```
+node scripts/selftest.mjs
+Feature 001 Scope 05 - outcomes and corrections append without rewriting history
+  OK Feature 001 Scope 05 fixture produces at least one evaluated candidate
+  OK causal outcome append classifies falsification without mutating frozen decision bytes
+  OK the causal outcome integrity digest changes when the frozen decision bytes are edited
+  OK causal outcome with no fired condition and no expiry stays explicitly unresolved
+  OK causal correction appends and preserves the committed ledger prefix
+  OK the causal ledger refuses a prior event whose bytes were rewritten in place
+  OK the causal ledger refuses a correction that references no earlier event
+Research-Lab self-test: 2442 passed, 0 failed
+EXIT=0
+
+node --test (functional/canary suite)
+# tests 888   # pass 888   # fail 0
+EXIT=0
+
+npx playwright test --project=system-chrome (causal specs)
+  22 passed (1.1m)
+EXIT=0
+
+node scripts/validate-causal-rotation.mjs   -> [causal-contract] result: PASS (exit 0)
+node scripts/validate-brief-payload.mjs     -> [brief-contract] PASS (exit 0)
+```
+
+Adversarial discrimination was verified directly rather than assumed. Rewriting a prior event
+in place is refused with a specific digest mismatch, not an incidental error:
+
+```
+mutated ok: false
+errors: [ { "code": "CR-CONFLICTING-IDENTITY", "path": "line:2.contentDigest" } ]
+```
+
+### Part 2 not started - registration and operator documentation
+
+Registration is the remaining half of SCOPE-05 and is deliberately **not** partially applied,
+because a half-registered tool turns the whole suite red rather than failing in one place.
+
+Two findings shape the remaining work:
+
+- **Registration is not gated on an operator brief run.** `rlbrief.js` settles a registered
+  source that is missing from the publication pointer to state `empty`, and
+  `tests/distributed-briefs.ui-canary.mjs` requires `ready` for every registry source, so
+  registration and publication must land together. `scripts/brief-distributed-publish.mjs` is a
+  deterministic, offline, no-LLM, fail-closed publisher that materializes the `briefs/` graph
+  from committed inputs, so this can be done honestly without authoring narrative.
+- **A 28th tool needs a 28th Simple model.** `simple-models.json` carries exactly one
+  definition per registered tool, so registration also requires a new model definition and a
+  real adapter implementation in `rlexperience-adapters/`, plus two journey definitions and
+  their steps in `journeys.json`.
+
+Still to author: the `tools.json` / `index.html` / `rlnav.js` entries, the
+`simple-models.json` definition and its adapter, the two journey definitions and steps,
+`notes/causal-rotation-lab.md`, README and notes index parity, removal of the page from
+`site-exclusions.json`, the three named registry canaries, the four named tests in
+`tests/causal-rotation-registry.spec.mjs`, and the count-pin re-baseline that a 28th tool
+forces across the distributed-brief and journey test files.

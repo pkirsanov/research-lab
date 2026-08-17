@@ -922,6 +922,22 @@ process.exit(1);
     assert.equal(publication.payloadDate, fixture.candidateDate);
   });
 
+  test('publication withholds an ineligible causal elevation without discarding the brief', (context) => {
+    const fixture = createBriefRefreshFixture({ narrativeMode: 'causal-elevation' });
+    context.after(() => fixture.cleanup());
+    const result = runBriefRefreshFixture(fixture, {
+      BRIEF_NARRATIVE_ATTEMPTS: '1',
+      BRIEF_LANE_ATTEMPTS: '1'
+    });
+    const publication = readPublicationState(fixture);
+
+    assert.equal(result.status, 0, `wrapper failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+    assert.match(result.stderr, /causal low-noise withheld recommendations\[\d+\] because causal-rotation-lab is not plan-eligible/);
+    assert.equal(publication.payload.recommendations.some((row) => JSON.stringify(row).includes('causal-rotation-lab')), false);
+    assert.equal(publication.snapshotDate, fixture.candidateDate);
+    assert.equal(publication.payloadDate, fixture.candidateDate);
+  });
+
   test('complete lane output survives a post-write Copilot process hang', (context) => {
     const fixture = createBriefRefreshFixture({ narrativeMode: 'post-write-hang' });
     context.after(() => fixture.cleanup());

@@ -194,6 +194,32 @@ export function dropUnscoreableActions(payload, findings) {
   };
 }
 
+/** Causal coverage belongs in toolReads/toolCoverage; these rows consume scarce action slots. */
+export function findCausalElevations(payload) {
+  const findings = [];
+  for (const field of ['recommendations', 'attention']) {
+    const rows = Array.isArray(payload?.[field]) ? payload[field] : [];
+    rows.forEach((row, index) => {
+      if (JSON.stringify(row).includes('causal-rotation-lab')) findings.push({ field, index });
+    });
+  }
+  return findings;
+}
+
+/** Withhold only rows that elevate the ineligible causal read; preserve all other authored output. */
+export function dropCausalElevations(payload, findings) {
+  if (!findings || !findings.length) return payload;
+  const droppedByField = new Map();
+  for (const finding of findings) {
+    if (!droppedByField.has(finding.field)) droppedByField.set(finding.field, new Set());
+    droppedByField.get(finding.field).add(finding.index);
+  }
+  return Object.fromEntries(Object.entries(payload).map(([field, value]) => {
+    const dropped = droppedByField.get(field);
+    return [field, dropped && Array.isArray(value) ? value.filter((_, index) => !dropped.has(index)) : value];
+  }));
+}
+
 /* ── The §9 events contract on the publish path ──────────────────────────────────────────────────
    notes/market-brief.md pins the events block at `{ event, when, type, consensus, impliedMovePct,
    scenarios:[{ name, prob, expectedEffect }], psychologyNote }`. Twenty-one payload revisions carry
@@ -578,7 +604,7 @@ function loadJson(path) {
 }
 
 const D16_FLAGS = new Set(['--enforce-d16', '--drop-unscoreable']);
-const CLI_FLAGS = new Set([...D16_FLAGS, '--defer-page-parity', '--require-narrative-fields']);
+const CLI_FLAGS = new Set([...D16_FLAGS, '--drop-ineligible-causal', '--defer-page-parity', '--require-narrative-fields']);
 
 /*
  * `--require-narrative-fields` asserts every BRIEF_NARRATIVE_FIELDS_REQUIRED pattern resolves in the
@@ -636,6 +662,7 @@ function main() {
   const payloadPath = args.filter((arg) => !arg.startsWith('--'))[0] || 'market-brief.payload.json';
   const strict = flags.includes('--enforce-d16');
   const repair = flags.includes('--drop-unscoreable');
+  const repairCausal = flags.includes('--drop-ineligible-causal');
   const deferPageParity = flags.includes('--defer-page-parity');
   const requireNarrativeFields = flags.includes('--require-narrative-fields');
 
@@ -658,6 +685,17 @@ function main() {
     payload = dropUnscoreableActions(payload, unscoreable);
     writeFileSync(resolve(ROOT, payloadPath), JSON.stringify(payload, null, 2) + '\n');
     console.error(`[brief-contract] D16 withheld ${unscoreable.length} unscoreable call(s) from ${payloadPath} — the rest of the brief still publishes`);
+  }
+
+  const causalSnapshot = loadJson('market-brief.snapshot.json');
+  const causalPlanEligible = causalSnapshot?.toolReads?.['causal-rotation-lab']?.metrics?.planEligible === true;
+  const ineligibleCausalElevations = causalPlanEligible ? [] : findCausalElevations(payload);
+  if (ineligibleCausalElevations.length && repairCausal) {
+    payload = dropCausalElevations(payload, ineligibleCausalElevations);
+    writeFileSync(resolve(ROOT, payloadPath), JSON.stringify(payload, null, 2) + '\n');
+    for (const finding of ineligibleCausalElevations) {
+      console.error(`[brief-contract] causal low-noise withheld ${finding.field}[${finding.index}] because causal-rotation-lab is not plan-eligible`);
+    }
   }
 
   const errors = validateBriefPayload(
@@ -690,12 +728,8 @@ function main() {
   /* Feature 001 Scope 06 — the named low-noise assertion. A causal read may be COVERED without
      consuming an action or attention slot; elevating a non-plan-eligible cause would be exactly
      the noise this policy exists to refuse. */
-  const causalSnapshot = loadJson('market-brief.snapshot.json');
   const causalCoverage = (causalSnapshot?.toolCoverage || []).filter((row) => row.id === 'causal-rotation-lab');
-  const causalSnapshotRead = causalSnapshot?.toolReads?.['causal-rotation-lab'];
-  const causalElevated = (payload?.recommendations || []).some((row) => JSON.stringify(row).includes('causal-rotation-lab'))
-    || (payload?.attention || []).some((row) => JSON.stringify(row).includes('causal-rotation-lab'));
-  const causalPlanEligible = causalSnapshotRead?.metrics?.planEligible === true;
+  const causalElevated = findCausalElevations(payload).length > 0;
   const lowNoiseOk = causalCoverage.length <= 1 && (!causalElevated || causalPlanEligible);
   if (!lowNoiseOk) {
     console.log('[brief-contract] Market Brief causal coverage and elevation satisfy low-noise independence policy: FAIL');

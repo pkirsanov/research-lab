@@ -397,6 +397,10 @@ const fragment = lane === 'research-acquisition'
 if (lane === 'signals') {
   fragment.attention = (Array.isArray(payload.attention) ? payload.attention : [])
     .concat([${JSON.stringify(FIXTURE_ATTENTION_CANDIDATE)}]);
+  if (process.env.BUG002_NARRATIVE_MODE === 'causal-elevation') {
+    fragment.recommendations = (Array.isArray(fragment.recommendations) ? fragment.recommendations : [])
+      .concat([{ ...payload.recommendations[0], instrument: 'fixture causal elevation', deepLink: 'causal-rotation-lab.html' }]);
+  }
 }
 writeFileSync(outputPath, JSON.stringify(fragment, null, 2) + '\\n');
 console.log('[fixture-copilot] wrote lane=' + lane + ' attempt=' + attempt);

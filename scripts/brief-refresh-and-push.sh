@@ -502,7 +502,7 @@ else
           "$NODE_BIN" scripts/brief-narrative-parallel.mjs \
        && "$NODE_BIN" scripts/build-attention-items.mjs --recompose --write --payload "$ATTENTION_PAYLOAD" \
          && promote_research_agenda_candidate \
-         && "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD" --drop-unscoreable --defer-page-parity --require-narrative-fields; then
+         && "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD" --drop-unscoreable --drop-ineligible-causal --defer-page-parity --require-narrative-fields; then
       NARRATIVE_OK=1
       echo "[brief-timer] parallel narrative collected + schema-valid (attempt $attempt/$NARRATIVE_ATTEMPTS)"
       break

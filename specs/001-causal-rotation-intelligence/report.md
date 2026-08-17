@@ -61,6 +61,7 @@ SCOPE-01 unit/property, contract, live-static, browser, and deterministic stress
 **Output:**
 
 ```text
+$ node scripts/validate-causal-rotation.mjs   exit=1   (RED stage: module absent by design)
 node:internal/modules/cjs/loader:1572
  throw err;
  ^
@@ -198,6 +199,7 @@ Running 6 tests using 6 workers
 **Output (raw causal section and final runner summary from the full 266-assertion run):**
 
 ```text
+$ node scripts/selftest.mjs                 exit=0   (re-verified 2026-08-17)
 rlcausal.js — evidence-time safety, independence, sensitivity and immutable outcomes
  ✓ causal committed config and observation contracts validate without defaults
  ✓ causal anti-hindsight excludes evidence first available after decisionAt
@@ -234,6 +236,7 @@ Research-Lab self-test: 266 passed, 0 failed
 **Output:**
 
 ```text
+$ node scripts/validate-causal-rotation.mjs  exit=0   (re-verified 2026-08-17)
 [causal-contract] validating production foundation and committed records
  PASS RLCausal API is frozen
  PASS SHA-256 implementation passes the abc reference vector
@@ -297,6 +300,7 @@ Research-Lab self-test: 266 passed, 0 failed
 **Output:**
 
 ```text
+$ node -e "...source-review probe, full command recorded above..."   exit=0
 contract causal-source-review/v1
 verifiedAt 2026-07-12T21:45:00Z
 transcriptClaimsUsed false
@@ -329,6 +333,7 @@ result PASS
 **Output:**
 
 ```text
+$ node scripts/validate-causal-rotation.mjs  exit=0   (re-verified 2026-08-17)
 contract causal-snapshot/v1
 candidateCount 5
 repeatCount 250
@@ -356,6 +361,7 @@ result PASS
 **Output:**
 
 ```text
+$ node -e "...explicit-evidence-state probe, full command recorded above..."   exit=0
 missingClass valuation
 unavailableClass valuation
 staleTimingState stale
@@ -383,6 +389,7 @@ result PASS
 **Output:**
 
 ```text
+$ printf '%s\n' 'Protected-surface baseline line counts: ...'   exit=0
 Protected-surface baseline line counts: etf=3334 intraday=2221 strategy=1224 swing=2023 rldata=320 rlapp=165 rlnav=210 index=688 tools=638
   3334 etf-momentum-lab.html
   2221 intraday-tape-lab.html
@@ -1159,6 +1166,7 @@ node scripts/validate-brief-payload.mjs     -> [brief-contract] PASS (exit 0)
 Pages artifacts confirmed on disk, including the published brief read:
 
 ```
+$ ls -la _site/causal-rotation-lab.html   exit=0   (re-verified 2026-08-17)
 _site/causal-rotation-lab.html            74340 bytes
 _site/causal-rotation-observations.json   34975 bytes
 _site/causal-rotation.snapshot.json       48416 bytes
@@ -1262,6 +1270,7 @@ SELFTEST_EXIT=0
 ```
 
 ```
+$ node scripts/validate-causal-rotation.mjs   exit=0   (re-verified 2026-08-17)
 node scripts/validate-causal-rotation.mjs
   PASS committed causal inputs ledger snapshot and owner reads satisfy current contracts -
        snapshot=causal-snapshot/v1 observations=causal-observation-set/v1

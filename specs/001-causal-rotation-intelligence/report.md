@@ -797,3 +797,105 @@ $ npx --no-install playwright test ... tests/fx-regime-relative-value-lab.spec.m
 Running 39 tests using 1 worker
   39 passed (44.5s)
 ```
+
+## SCOPE-03 Closure — Sector, Global and Real Assets consumer integration
+
+**Claim Source:** executed in session.
+
+### TP — live browser, real served pages, no owner-model mocks
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome --reporter=line tests/causal-rotation-consumers.spec.mjs
+
+Running 5 tests using 1 worker
+
+  5 passed (49.0s)
+```
+
+Each scenario runs at 1280x900 and again at 390x844. The pages land in a shell-focused view that
+hides owner content by design, so every assertion switches into an owner view first; the owner mode
+is discovered by switching until the shell stops focusing rather than hardcoded per page.
+
+### TP — shared canaries and the timing contract
+
+```
+$ node scripts/selftest.mjs
+  ✓ shared canary: Sector owner verdict is unchanged by causal projection
+  ✓ shared canary: Global owner order is unchanged by causal projection
+  ✓ shared canary: Real Assets driver verdict is unchanged by causal projection
+Research-Lab self-test: 2428 passed, 0 failed
+
+$ node scripts/validate-causal-rotation.mjs
+  PASS timing adapters emit current versioned reads with owner freshness and limitations
+       - contract=rotation-timing/v1 rejectedIncomplete=true
+[causal-contract] checks passed: 40
+[causal-contract] checks failed: 0
+[causal-contract] result: PASS
+```
+
+### Adversarial verification of the owner-verdict canary
+
+The first attempt did NOT catch the leak, and that mattered: the injected write ran in both the
+enabled and disabled builds, so the comparison saw no difference. Re-running it as a leak that only
+happens when the bridge is loaded produced the failure:
+
+```
+BREAK LANDED
+2287:      if (leader) leader.id = leader.id + "-CAUSAL";
+--- expect FAIL ---
+    +       "into": "XLK-CAUSAL",
+    +       "leader": "XLK-CAUSAL",
+    +     "read": "Rotate toward XLK-CAUSAL as XLE weakens.",
+  1 failed
+=== RESTORED (CAUSAL refs: 0) ===
+```
+
+### Regression surface
+
+```
+$ node --test $(ls tests/*.mjs | grep -vE '\.spec\.mjs|playwright')
+# tests 888
+# pass 888
+# fail 0
+```
+
+### Stale-reference sweep
+
+```
+-- exposure ids referenced but not catalogued --
+(none)
+-- timing contract strings --
+(timing contract sweep done)
+-- deep links to the owner lab --
+./rlcausal.js:532  ownerDeepLink: "causal-rotation-lab.html#candidate=..."
+./rlcausal.js:634  deepLink: "causal-rotation-lab.html"
+```
+
+Lab deep links originate only from the causal contract itself. The consumer renders them as a link
+ONLY when the lab is a registered page, and as plain text otherwise, so an unregistered lab cannot
+ship a link the deployed site would 404 on. That behaviour upgrades automatically at SCOPE-05.
+
+### Two findings recorded rather than absorbed
+
+**The causal panel was re-decorating owner text.** The first panel used `class="panel"` with an
+`<h2>`, and `.panel h2` is a glossary selector, so inserting it tripped the shared MutationObserver
+into a document-wide re-scan that decorated owner text which had not been decorated before. The
+canary caught it as `XLK acceleration` becoming `XLK? acceleration`. The panel now uses a class the
+glossary does not manage, so the owner surface is untouched.
+
+**`rlsession.js` was shipping to Pages unreferenced.** Replacing the hardcoded "rlcausal.js is
+excluded" assertion with a derived ship-vs-exclude rule immediately surfaced a 165 KB module that no
+page and no shipped runtime references — only Node tooling and tests, which the exclusions document
+explicitly says are not production consumers. It is now excluded. The old assertion could never have
+found this, because it only ever checked one filename.
+
+### Honest scope notes
+
+- **Not claimed:** SCOPE-04 through SCOPE-06 remain Not Started and the feature stays `in_progress`.
+- **Global has no United States row.** The country model scores everything relative to a US
+  benchmark, so it publishes `marketState: "unavailable"` with that reason stated in the read.
+  Inferring a US verdict from the benchmark would have invented a conclusion the tool never
+  computed, and the causal candidate for that exposure correctly shows market confirmation absent.
+- **Boundary amendment** for `rlcausalconsumer.js`, `site-exclusions.json` and the selftest
+  shared-module rule is recorded in scopes.md with rationale and rollback for each.

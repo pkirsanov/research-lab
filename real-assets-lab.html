@@ -1000,6 +1000,11 @@
             records, inventory, positioning, futures curves, macro releases, taxes, spreads or execution costs. Spot
             crypto trades seven days; US-listed ETFs do not. Futures-linked funds may experience roll drag or benefit.
         </p>
+        <section class="rlcausal-panel" id="causalContextPanel">
+            <div class="rlcausal-heading">Causal context <span class="rlcausal-sub">separate research — it does
+                    not enter the real-assets model</span></div>
+            <div id="causalContext" data-causal-host></div>
+        </section>
     </main>
 
     <script src="rlg.js"></script>
@@ -1008,6 +1013,8 @@
     <script src="rlticker.js"></script>
     <script src="rlapp.js?v=20260712-4"></script>
     <script src="rlnav.js"></script>
+    <script src="rlcausal.js"></script>
+    <script src="rlcausalconsumer.js"></script>
     <!-- Feature 012 Scope 06: the single owner source for the commodity-breadth percentage the
          registered real-asset-driver Simple adapter shares (RLMACROROTATION.realBreadthPct). -->
     <script src="rlexperience-adapters/macro-rotation.js"></script>
@@ -1793,7 +1800,58 @@
                     });
                 }
             }
+            /* Read-only causal bridge. Maps the two energy exposures onto values this tool has
+               ALREADY computed: the energy row's own model score for the oil-linked underlying, and
+               that row's existing "Energy equities" confirmation for the equity leg. It writes
+               nothing back, so no score, band, or ordering can move because of it. */
+            function causalStateFromScore(score) {
+                if (!finite(score)) return "unavailable";
+                if (score >= 70) return "established";
+                if (score >= 55) return "confirming";
+                if (score >= 40) return "emerging";
+                return "weakening";
+            }
+            function publishCausalTimingReads() {
+                if (!window.RLCausalConsumer) return;
+                var asOf = new Date().toISOString();
+                var freshUntil = new Date(Date.now() + 36 * 3600 * 1000).toISOString();
+                var energy = computed.filter(function (row) {
+                    return row.entry && (row.entry.model === "energy" || row.entry.family === "energy");
+                })[0] || null;
+                var equityConfirm = energy ? (energy.confirmations || []).filter(function (item) {
+                    return item && item.label === "Energy equities";
+                })[0] : null;
+                var reads = [
+                    {
+                        exposureId: "exp:oil-underlying",
+                        marketState: energy ? causalStateFromScore(energy.score) : "unavailable",
+                        limitations: energy
+                            ? ["Oil-linked model score only; it is a price-trend state, not a supply or curve explanation."]
+                            : ["No energy row is modelled yet, so no oil-linked confirmation state exists."]
+                    },
+                    {
+                        exposureId: "exp:energy-equities",
+                        marketState: equityConfirm ? causalStateFromScore(equityConfirm.score) : "unavailable",
+                        limitations: equityConfirm
+                            ? ["Energy-equity confirmation only; inventory and curve evidence remain unavailable here."]
+                            : ["The energy-equity confirmation input is unavailable, so no equity confirmation state exists."]
+                    }
+                ].map(function (item) {
+                    var built = RLCausalConsumer.buildTimingRead({
+                        exposureId: item.exposureId,
+                        ownerToolId: "real-assets-lab",
+                        asOf: asOf,
+                        freshUntil: freshUntil,
+                        marketState: item.marketState,
+                        deepLink: "real-assets-lab.html",
+                        limitations: item.limitations
+                    });
+                    return built.ok ? built.value : null;
+                }).filter(Boolean);
+                RLCausalConsumer.publishTimingReads("real-assets-lab", reads);
+            }
             function publishRead() {
+                publishCausalTimingReads();
                 if (typeof RLDATA === "undefined" || typeof RLDATA.putToolRead !== "function") return;
                 var ready = computed.filter(function (row) { return finite(row.score); });
                 var leader = ready[0] || null;
@@ -1916,6 +1974,17 @@
             if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
             else boot();
         })();
+    </script>
+    <script>
+      window.addEventListener('load', function () {
+        if (!window.RLCausalConsumer) return;
+        RLCausalConsumer.mount({
+          host: 'causalContext',
+          exposureIds: ['exp:energy-equities', 'exp:oil-underlying'],
+          ownerToolId: 'real-assets-lab',
+          report: window.RLAPP && RLAPP.report
+        });
+      });
     </script>
     <section data-rlbrief-mount data-tool-id="real-assets-lab" data-simple-target="rlbrief-simple"
         data-power-target="rlbrief-power"></section>

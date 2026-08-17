@@ -7,16 +7,12 @@
       "reason": "The causal owner UI is built but deliberately unregistered until its consumer, brief and registry scopes land; shipping an unreachable page would advertise a surface the navigation cannot reach."
     },
     {
-      "path": "rlcausal.js",
-      "reason": "No registered production page consumes this shared module; tests are not production consumers."
+      "path": "rlsession.js",
+      "reason": "Only Node tooling under scripts/ and the test suites consume the market-session module; no registered page or shipped runtime references it, and tests are not production consumers."
     },
     {
       "path": "causal-rotation-ledger.jsonl",
-      "reason": "No registered production page consumes this causal research ledger."
-    },
-    {
-      "path": "causal-rotation-observations.json",
-      "reason": "No registered production page consumes these causal observations."
+      "reason": "Only the causal owner lab reads the decision ledger, and that page is not registered yet; no registered production page consumes it."
     }
   ]
 }

@@ -247,6 +247,36 @@ function main() {
   check('recorded fixture directory contains only provenance and explicit-unavailable timing', readdirSync(RECORDED_FIXTURE_DIR).sort().join(',') === 'source-review.json,timing-unavailable.json');
   check('snapshot diagnostics remain bounded and structured', snapshot.health.rejectedRecordCount === 0 && api.diagnostics().evaluations > 0);
 
+  /* Feature 001 Scope 03: the owner tools produce the timing side of the contract. Validate the
+     producer against the SAME contract version the evaluator consumes, and prove a read missing
+     freshness or limitations is refused rather than quietly accepted. */
+  runInThisContext(readFileSync(join(ROOT, 'rlcausalconsumer.js'), 'utf8'), { filename: join(ROOT, 'rlcausalconsumer.js') });
+  const consumer = globalThis.RLCausalConsumer;
+  const owners = { 'sector-research-lab': ['exp:financials', 'exp:banks', 'exp:semiconductors'], 'global-rotation-lab': ['exp:united-states'], 'real-assets-lab': ['exp:energy-equities', 'exp:oil-underlying'] };
+  const catalogued = {};
+  (config.exposureCatalog || []).forEach((entry) => {
+    (catalogued[entry.timingOwner] = catalogued[entry.timingOwner] || []).push(entry.id);
+  });
+  let timingOk = consumer.TIMING_CONTRACT === config.contracts.timingRead;
+  Object.keys(owners).forEach((ownerToolId) => {
+    timingOk = timingOk && (catalogued[ownerToolId] || []).slice().sort().join(',') === owners[ownerToolId].slice().sort().join(',');
+    owners[ownerToolId].forEach((exposureId) => {
+      const built = consumer.buildTimingRead({
+        exposureId, ownerToolId, asOf: '2026-07-12T21:45:00Z', freshUntil: '2026-08-31T23:59:59Z',
+        marketState: 'unavailable', deepLink: ownerToolId + '.html', limitations: ['declared limitation']
+      });
+      timingOk = timingOk && built.ok && built.value.contractVersion === config.contracts.timingRead
+        && built.value.limitations.length > 0 && built.value.deepLink.length > 0;
+    });
+  });
+  const missingFreshness = consumer.buildTimingRead({
+    exposureId: 'exp:banks', ownerToolId: 'sector-research-lab', asOf: '2026-07-12T21:45:00Z',
+    marketState: 'unavailable', deepLink: 'x', limitations: []
+  });
+  check('timing adapters emit current versioned reads with owner freshness and limitations',
+    timingOk && missingFreshness.ok === false && missingFreshness.errors.length > 0,
+    'contract=' + consumer.TIMING_CONTRACT + ' rejectedIncomplete=' + (missingFreshness.ok === false));
+
   console.log('[causal-contract] ------------------------------------------------');
   console.log('[causal-contract] checks passed: ' + passes);
   console.log('[causal-contract] checks failed: ' + failures);

@@ -2726,8 +2726,19 @@ try {
      atomic: a half-move that registered the tool but left the exclusion standing fails here. */
   assert(!sitePlan.excludedPaths.includes('trend-dynamics-cycle-lab.html') && sitePlan.registeredPages.includes('trend-dynamics-cycle-lab.html'),
     'the registered Trend Dynamics route ships and is no longer excluded');
-  assert(sitePlan.excludedPaths.includes('rlcausal.js'),
-    'an unconsumed shared module is removed from the public artifact');
+  /* A shared module ships exactly when something shipped references it, and is excluded exactly
+     when nothing does. Deriving both directions keeps this from going stale the way a hardcoded
+     verdict does: rlcausal.js was correctly excluded while nothing consumed it, and a registered
+     page consuming it now makes shipping it the correct answer without editing this assertion. */
+  const sharedModules = readdirSync(ROOT).filter((name) => /^rl[a-z]*\.js$/.test(name));
+  const consumerSources = registry.map((tool) => read(tool.file)).concat(sharedModules.map((name) => read(name)));
+  const misfiled = sharedModules.filter((name) => {
+    const referenced = consumerSources.some((source) => source.includes(name));
+    const excluded = sitePlan.excludedPaths.includes(name);
+    return referenced === excluded;
+  });
+  assert(misfiled.length === 0,
+    'every shared module ships when referenced and is excluded when unconsumed: ' + misfiled.join(', '));
   assert(!sitePlan.excludedPaths.includes('rlportfolio.js'),
     'a shared module consumed by a registered page is shipped');
   assert(read('portfolio-survival-allocation-lab.html').includes('src="rlportfolio.js"'),
@@ -10753,6 +10764,59 @@ try {
     && JSON.stringify(causalToolRead).length < 4096,
     'causal owner publishes a compact toolRead without copying full history into rlData');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 001 Scope 02 causal owner UI group threw): ' + e.message); }
+
+/* ---------- Feature 001 Scope 03: causal consumer overlays ---------- */
+try {
+  const consumerRequire = (await import('node:module')).createRequire(import.meta.url);
+  const RLCONSUMER = consumerRequire('../rlcausalconsumer.js');
+
+  /* A bridge may READ owner values and may write only to its own causal host. Any assignment into
+     an owner value is the leak these canaries exist to catch, so the detector looks for exactly
+     that shape inside each page's bridge rather than trusting the rendered output. */
+  const OWNER_WRITE = /\b(into|out|leader|row|top|energy|equityConfirm|computed|state|rows)\s*(\[[^\]]*\])?\.[A-Za-z_$][A-Za-z0-9_$]*\s*=[^=]/;
+  function bridgeSource(file, startMarker, endMarker) {
+    const source = read(file);
+    const start = source.indexOf(startMarker);
+    const end = source.indexOf(endMarker, start + 1);
+    assert(start !== -1 && end > start, `causal bridge block is present in ${file}`);
+    return source.slice(start, end);
+  }
+  function ownerUnchanged(file, startMarker, endMarker, label) {
+    const block = bridgeSource(file, startMarker, endMarker);
+    const writes = OWNER_WRITE.test(block);
+    const hostOnly = !/getElementById\((?!['"]causalContext)/.test(block);
+    assert(!writes && hostOnly, label);
+    return block;
+  }
+
+  ownerUnchanged('sector-research-lab.html', 'function publishSectorTimingReads', 'function publishSectorRead',
+    'shared canary: Sector owner verdict is unchanged by causal projection');
+  ownerUnchanged('global-rotation-lab.html', 'RLCausalConsumer.buildTimingRead', '</script>',
+    'shared canary: Global owner order is unchanged by causal projection');
+  ownerUnchanged('real-assets-lab.html', 'function publishCausalTimingReads', 'function publishRead',
+    'shared canary: Real Assets driver verdict is unchanged by causal projection');
+
+  /* ADVERSARIAL: the leak detector must fail on the exact write these canaries forbid. */
+  assert(OWNER_WRITE.test('if (leader) leader.id = leader.id + "-CAUSAL";'),
+    'the owner-write detector catches a causal bridge assigning into an owner value');
+
+  /* Every owning page carries the bridge, the host, and exactly one mount. */
+  for (const page of ['sector-research-lab.html', 'global-rotation-lab.html', 'real-assets-lab.html']) {
+    const source = read(page);
+    assert(source.includes('rlcausalconsumer.js') && source.includes('id="causalContext"')
+      && (source.match(/RLCausalConsumer\.mount\(/g) || []).length === 1,
+      `causal consumer overlay is wired exactly once on ${page}`);
+  }
+
+  /* The rendered context can never contain an owner metric: it is built only from the read. */
+  const sampleContext = RLCONSUMER.renderContextHtml([{
+    exposureId: 'exp:banks', available: true, candidateId: 'cand:x', stage: 'cause-emerging',
+    causeStatus: 'bounded', evidenceAsOf: '2026-07-12T21:45:00Z', contradictionCount: 0,
+    confirmation: [], invalidation: [], limitations: [], deepLink: ''
+  }], {});
+  assert(/data-causal-context/.test(sampleContext) && !/rlcausal-link"[^>]*href/.test(sampleContext),
+    'causal context renders without linking an unpublished owner lab');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 001 Scope 03 causal consumer group threw): ' + e.message); }
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

@@ -1694,6 +1694,11 @@
       and size your own risk.
     </div>
 
+    <section class="rlcausal-panel" id="causalContextPanel">
+      <div class="rlcausal-heading">Causal context <span class="rlcausal-sub">separate research — it does not enter the
+          rotation model</span></div>
+      <div id="causalContext" data-causal-host></div>
+    </section>
     <div class="foot-note">
       <span>Sector Rotation &amp; Momentum Research Lab · static, single-file · <a class="src"
           href="notes/sector-research-lab.md">methodology &amp; notes ↗</a> · <a class="src"
@@ -1703,6 +1708,10 @@
   </div>
 
   <script src="rldata.js?v=20260712-4"></script>
+  <!-- Loaded before the inline model so the read-only causal bridge exists the first time the
+       rotation view publishes, rather than racing a deferred script. -->
+  <script src="rlcausal.js"></script>
+  <script src="rlcausalconsumer.js"></script>
   <!-- Feature 012 Scope 06 — single owner source for the sector-rotation RRG / state / rotation
        formulas (RLMACROROTATION). This Power page and the registered Simple adapter consume the
        exact same pure owner functions; the inline copies below are removed (owner-parity). -->
@@ -2268,7 +2277,39 @@
       out.sort(function (a, b) { return a.accel - b.accel; });
       return { into: into, out: out };
     }
+    /* Read-only causal bridge. Maps the causal exposure catalog onto this tool's OWN already
+       computed into/out/leader rotation view. It derives nothing new and never feeds back into
+       the rotation model, so it cannot move a ranking, verdict, or steering control. */
+    var causalExposureMap = { 'exp:financials': 'XLF', 'exp:banks': 'BANKS', 'exp:semiconductors': 'SEMIS' };
+    var causalTimingReads = [];
+    function publishSectorTimingReads(into, out, leader) {
+      if (!window.RLCausalConsumer) return;
+      var asOf = new Date().toISOString();
+      var freshUntil = new Date(Date.now() + 36 * 3600 * 1000).toISOString();
+      causalTimingReads = Object.keys(causalExposureMap).map(function (exposureId) {
+        var ownerId = causalExposureMap[exposureId];
+        var marketState = 'unavailable';
+        if (leader && leader.id === ownerId) marketState = 'established';
+        else if (into && into.id === ownerId) marketState = 'confirming';
+        else if (out && out.id === ownerId) marketState = 'weakening';
+        var built = RLCausalConsumer.buildTimingRead({
+          exposureId: exposureId,
+          ownerToolId: 'sector-research-lab',
+          asOf: asOf,
+          freshUntil: freshUntil,
+          marketState: marketState,
+          deepLink: 'sector-research-lab.html',
+          limitations: marketState === 'unavailable'
+            ? ['This rotation view reports no current confirmation state for ' + ownerId + '.']
+            : ['Relative-strength rotation state only; it is not a causal claim.']
+        });
+        return built.ok ? built.value : null;
+      }).filter(Boolean);
+      RLCausalConsumer.publishTimingReads('sector-research-lab', causalTimingReads);
+    }
+
     function publishSectorRead(into, out, leader, count) {
+      publishSectorTimingReads(into, out, leader);
       if (typeof RLDATA === 'undefined' || !RLDATA.putToolRead) return;
       var read = into && out ? ('Rotate toward ' + into.id + ' as ' + out.id + ' weakens.') : into ? (into.id + ' is the clearest improving rotation.') : out ? (out.id + ' is weakening; no replacement is confirmed.') : leader ? (leader.id + ' leads but no new rotation is confirmed.') : 'No priced rotation rows.';
       var sectorAsOf = new Date().toISOString();
@@ -3763,6 +3804,17 @@
   <script src="rlticker.js" defer></script>
   <script src="rlapp.js?v=20260712-4" defer></script>
   <script src="rlnav.js" defer></script>
+  <script>
+    window.addEventListener('load', function () {
+      if (!window.RLCausalConsumer) return;
+      RLCausalConsumer.mount({
+        host: 'causalContext',
+        exposureIds: ['exp:financials', 'exp:banks', 'exp:semiconductors'],
+        ownerToolId: 'sector-research-lab',
+        report: window.RLAPP && RLAPP.report
+      });
+    });
+  </script>
   <section data-rlbrief-mount data-tool-id="sector-research-lab" data-simple-target="rlbrief-simple"
     data-power-target="rlbrief-power"></section>
 </body>

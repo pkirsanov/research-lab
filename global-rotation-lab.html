@@ -1147,6 +1147,11 @@
             US-hours price discovery. Methodology and limitations: <a
                 href="notes/global-rotation-lab.md">notes/global-rotation-lab.md</a>.
         </footer>
+        <section class="rlcausal-panel" id="causalContextPanel">
+            <div class="rlcausal-heading">Causal context <span class="rlcausal-sub">separate research — it does not
+                    enter the country model</span></div>
+            <div id="causalContext" data-causal-host></div>
+        </section>
     </main>
 
     <script src="rlg.js" defer></script>
@@ -1156,6 +1161,8 @@
     <script src="rlticker.js" defer></script>
     <script src="rlapp.js?v=20260712-4" defer></script>
     <script src="rlnav.js" defer></script>
+    <script src="rlcausal.js" defer></script>
+    <script src="rlcausalconsumer.js" defer></script>
     <!-- Single owner source for the pairwise-correlation formula shared by this Power page and the
          registered country-rotation Simple adapter (RLMACROROTATION.globalPairCorrelation). -->
     <script src="rlexperience-adapters/macro-rotation.js"></script>
@@ -1897,6 +1904,30 @@
 
             if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
         })();
+    </script>
+    <script defer>
+      window.addEventListener('load', function () {
+        if (!window.RLCausalConsumer) return;
+        /* This read is a constant statement of absence, so it is published at startup rather than
+           from the render path: on a cold load the country model may never reach publishRead, and
+           the causal evaluator must still be told the United States has no confirmation state. */
+        var built = RLCausalConsumer.buildTimingRead({
+          exposureId: 'exp:united-states',
+          ownerToolId: 'global-rotation-lab',
+          asOf: new Date().toISOString(),
+          freshUntil: new Date(Date.now() + 36 * 3600 * 1000).toISOString(),
+          marketState: 'unavailable',
+          deepLink: 'global-rotation-lab.html',
+          limitations: ['Countries are scored relative to a US benchmark, so the model publishes no United States confirmation state.']
+        });
+        RLCausalConsumer.publishTimingReads('global-rotation-lab', built.ok ? [built.value] : []);
+        RLCausalConsumer.mount({
+          host: 'causalContext',
+          exposureIds: ['exp:united-states'],
+          ownerToolId: 'global-rotation-lab',
+          report: window.RLAPP && RLAPP.report
+        });
+      });
     </script>
     <section data-rlbrief-mount data-tool-id="global-rotation-lab" data-simple-target="rlbrief-simple"
         data-power-target="rlbrief-power"></section>

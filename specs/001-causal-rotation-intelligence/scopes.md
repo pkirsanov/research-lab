@@ -182,7 +182,14 @@ Collateral refactors are not permitted by this scope's change boundary.
 | E2E UI/live browser | SCN-001-A03 | `tests/causal-rotation-lab.spec.mjs` | `Regression: Decision-critical valuation and timing inputs are stale or unavailable` |
 | Stress | Determinism | `scripts/selftest.mjs` | `causal evaluator is deterministic and input-immutable across repeated recorded corpus runs` |
 
+| Test Type | Category | File | Regression coverage for this scope |
+|---|---|---|---|
+| Regression E2E | e2e-ui | `tests/causal-rotation-lab.spec.mjs`, `tests/causal-rotation-adversarial.spec.mjs` | The foundation contracts are re-exercised through the owner page and the ten adversarial faults on every full-suite run. |
+
 ### Definition of Done - SCOPE-01
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior → Evidence: the eight causal suites cover each SCOPE-01 contract behaviour end to end, and `tests/causal-rotation-adversarial.spec.mjs` adds ten rejection faults plus a CONTROL arm. All live-stack: no `page.route`, `context.route` or `intercept` in any causal suite. See [report.md](report.md).
+- [x] Broader E2E regression suite passes → Evidence: `npx playwright test --config=playwright.config.mjs --project=system-chrome --workers=2` reported `497 passed (15.1m)`, `FULL_SUITE_EXIT=0`. See [report.md](report.md) — SCOPE-06.
 
 - [x] SCN-001-A01 - Evidence available after a decision is excluded from that decision: production evaluation returns `CR-TIME-INELIGIBLE`, preserves the frozen candidate/evidence/digest, and permits later facts only in a new evaluation or outcome. **Phase:** implement. **Claim Source:** executed. **Evidence:** [report.md#scenario-scn-001-a01](report.md#scenario-scn-001-a01).
 - [x] SCN-001-A02 - One announcement drives price options and ETF activity: production clustering reports one independent cluster and one causal reason key for all linked reactions. **Phase:** implement. **Claim Source:** executed. **Evidence:** [report.md#scenario-scn-001-a02](report.md#scenario-scn-001-a02).
@@ -194,7 +201,7 @@ Collateral refactors are not permitted by this scope's change boundary.
 - [x] Same inputs produce byte-equivalent normalized output and evaluator calls do not mutate inputs. **Phase:** implement. **Claim Source:** executed. **Evidence:** [report.md#scope-01-determinism-and-input-immutability](report.md#scope-01-determinism-and-input-immutability).
 - [x] Missing/stale/unavailable/unverified states remain distinct and cannot promote a candidate. **Phase:** implement. **Claim Source:** executed. **Evidence:** [report.md#scope-01-explicit-evidence-states](report.md#scope-01-explicit-evidence-states).
 - [x] The Change Boundary is respected and excluded shared/consumer surfaces are unchanged. **Phase:** implement. **Claim Source:** executed. **Evidence:** [report.md#scope-01-change-boundary](report.md#scope-01-change-boundary).
-- [x] SCOPE-01 is marked Done only after executable evidence is recorded; only then may SCOPE-02 start. **Phase:** implement. **Claim Source:** executed. **Evidence:** [report.md#scope-01-closure--2026-08-11t013012z](report.md#scope-01-closure--2026-08-11t013012z), [validator 39/39](report.md#e-s01-1--the-foundation-validator-passes-3939), [selftest](report.md#e-s01-2--the-foundation-is-covered-by-the-repository-selftest).
+- [x] SCOPE-01 is marked Done only after executable evidence is recorded; only then may SCOPE-02 start. **Phase:** implement. **Claim Source:** executed. **Evidence:** [report.md#scope-01-causal-contract-validator](report.md#scope-01-causal-contract-validator), [validator 39/39](report.md#e-s01-1--the-foundation-validator-passes-3939), [selftest](report.md#e-s01-2--the-foundation-is-covered-by-the-repository-selftest).
   > **Resolution of the prior uncertainty declaration**
   > **What was previously attempted:** the item was discharged by running the SPEC-LEVEL `state-transition-guard.sh`, which exited 1 with `G060,G041,G022,G053,G028,G082,G093,G090`.
   > **Why that reading was unsatisfiable:** that guard resolves `targetStatus: done` for the WHOLE feature. Its failures are dominated by `Check-4-completion` (unchecked DoD across all scopes), `Check-5-all-done` (five sibling scopes Not Started) and `Check-8-file-existence` (Test Plan files owned by SCOPE-02..06). A foundation scope cannot clear a whole-feature delivery gate while the siblings it is gating remain unstarted — the condition required the very thing it was blocking.
@@ -302,7 +309,14 @@ Shared helper changes require a separate explicit blast-radius amendment before 
 | E2E UI/accessibility | All | `tests/causal-rotation-lab.spec.mjs` | `Regression: causal controls clocks timeline and charts remain keyboard and screen-reader operable` |
 | E2E UI/no-refetch | SCN-001-B01 | `tests/causal-rotation-lab.spec.mjs` | `Regression: posture and sleeve controls rerender without causal or market network requests` |
 
+| Test Type | Category | File | Regression coverage for this scope |
+|---|---|---|---|
+| Regression E2E | e2e-ui | `tests/causal-rotation-lab.spec.mjs` | The Simple/Power owner UI, including the shared four-view shell path, is re-driven on every full-suite run. |
+
 ### Definition of Done - SCOPE-02
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior → Evidence: `tests/causal-rotation-lab.spec.mjs` drives the owner UI at 1280x900 and 390x844. This suite caught the real shell regression at registration time — activating the shared four-view shell hid the page-native `#modeSeg` — which was fixed by driving the shell control the way a user does. See [report.md](report.md).
+- [x] Broader E2E regression suite passes → Evidence: `497 passed (15.1m)`, `FULL_SUITE_EXIT=0`. See [report.md](report.md) — SCOPE-06.
 
 - [x] SCN-001-B01 - A sourced policy mechanism leads market confirmation: Discovery shows cause-emerging without action copy, with source age/window/confirmation/invalidation and an explanation of changed versus invariant gates. → Evidence: [report.md](report.md) — browser `Regression: A sourced policy mechanism leads market confirmation` in `tests/causal-rotation-lab.spec.mjs`, green in the 496-passing suite.
 - [x] SCN-001-B02 - Fundamental evidence contradicts an oversold semiconductor rebound: Power shows contradiction before support, separates regime consequences, and does not label the move durable repair. → Evidence: [report.md](report.md) — browser `Regression: Fundamental evidence contradicts an oversold semiconductor rebound`, which asserts contradiction ordering and the absence of durable-repair copy.
@@ -425,7 +439,14 @@ every owner edit is an additive call into the read-only bridge.
 | E2E UI/live browser | SCN-001-C03 | `tests/causal-rotation-consumers.spec.mjs` | `Regression: Energy equities strengthen while the underlying proxy remains weak` |
 | E2E UI/compatibility | Unknown version | `tests/causal-rotation-consumers.spec.mjs` | `Regression: consumers reject unknown causal versions while owner models remain usable` |
 
+| Test Type | Category | File | Regression coverage for this scope |
+|---|---|---|---|
+| Regression E2E | e2e-ui | `tests/causal-rotation-consumers.spec.mjs` | Sector, Global and Real Assets owner-verdict parity is re-checked on every full-suite run. |
+
 ### Definition of Done - SCOPE-03
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior → Evidence: `tests/causal-rotation-consumers.spec.mjs` asserts each consumer reads the owner verdict rather than recomputing it, so a second causal model appearing in a consumer fails the suite. See [report.md](report.md).
+- [x] Broader E2E regression suite passes → Evidence: `497 passed (15.1m)`, `FULL_SUITE_EXIT=0`. See [report.md](report.md) — SCOPE-06.
 
 - [x] SCN-001-C01 - Sector acceleration remains visible while cause is unverified: causal context is separate and Sector RRG state, ranking, entry timing, and rotation verdict remain unchanged. → Evidence: [report.md](report.md) — browser `Regression: Sector acceleration remains visible while cause is unverified` plus selftest `shared canary: Sector owner verdict is unchanged by causal projection`, which compares the owner's own published read with the causal bridge enabled and disabled.
 - [x] SCN-001-C02 - A country causal read disagrees with its market model: contradicted/regime-fragile context is separate and Global momentum, trend, FX, risk, and allocation order remain unchanged. → Evidence: [report.md](report.md) — browser `Regression: A country causal read disagrees with its market model` plus `shared canary: Global owner order is unchanged by causal projection`.
@@ -539,7 +560,14 @@ Scenario: Headless causal validation fails while other Brief tools remain valid
 | E2E UI/live browser | SCN-001-D02 | `tests/causal-rotation-brief.spec.mjs` | `Regression: Causal evidence and market reactions share one origin` |
 | E2E UI/live browser | SCN-001-D03 | `tests/causal-rotation-brief.spec.mjs` | `Regression: Headless causal validation fails while other Brief tools remain valid` |
 
+| Test Type | Category | File | Regression coverage for this scope |
+|---|---|---|---|
+| Regression E2E | e2e-ui | `tests/causal-rotation-brief.spec.mjs` | The Tier-A causal read and its low-noise independence policy are re-checked on every full-suite run. |
+
 ### Definition of Done - SCOPE-04
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior → Evidence: `tests/causal-rotation-brief.spec.mjs` covers the Tier-A read, and `node scripts/validate-brief-payload.mjs` gates it with a named assertion reporting `coverageRows=1 elevated=false planEligible=false`. See [report.md](report.md).
+- [x] Broader E2E regression suite passes → Evidence: `497 passed (15.1m)`, `FULL_SUITE_EXIT=0`. See [report.md](report.md) — SCOPE-06.
 
 - [x] SCN-001-D01 - A valid early candidate does not change the next-session plan: it receives a specific coverage-only reason and consumes no Market Brief action or attention slot. → Evidence: [report.md](report.md) — selftest `brief causal gate keeps plan-irrelevant cause-emerging reads coverage-only`, plus the SCOPE-06 validator assertion `Market Brief causal coverage and elevation satisfy low-noise independence policy` measuring `coverageRows=1 elevated=false planEligible=false`.
 - [x] SCN-001-D02 - Causal evidence and market reactions share one origin: linked reactions add no independent reason key and cannot qualify as independent confirmation. → Evidence: [report.md](report.md) — selftest `brief causal gate rejects duplicate reason keys from one catalyst origin` and browser `Regression: Causal evidence and market reactions share one origin`.
@@ -666,7 +694,16 @@ Scenario: A user opens the Research Lab catalog after full causal delivery
 | E2E UI/live browser | SCN-001-E02 | `tests/causal-rotation-registry.spec.mjs` | `Regression: A ledger event requires a reviewed correction` |
 | E2E UI/live browser | SCN-001-E03 | `tests/causal-rotation-registry.spec.mjs` | `Regression: A user opens the Research Lab catalog after full causal delivery` |
 
+| Test Type | Category | File | Regression coverage for this scope |
+|---|---|---|---|
+| Regression E2E | e2e-ui | `tests/causal-rotation-registry.spec.mjs` | Registration across catalog, navigation and Brief coverage is re-checked on every full-suite run. |
+
 ### Definition of Done - SCOPE-05
+
+- [x] Consumer Impact Sweep is complete and zero stale first-party references remain → Evidence: registration added the 28th record, so every enumerating consumer was re-run rather than reasoned about — selftest nav-duplication canary (one occurrence per tool), `tests/causal-rotation-registry.spec.mjs` (catalog count 1 within `#grid`), `node scripts/build-pages-site.mjs` (28 registeredPages, 1 excludedPath), `node scripts/validate-brief-payload.mjs` (PASS), and `tests/causal-rotation-consumers.spec.mjs` (owner-verdict parity held). No consumer required a code change; the sweep caught the shared-shell regression and it was fixed. See the feature-level Consumer Impact Sweep table and [report.md](report.md).
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior → Evidence: `tests/causal-rotation-registry.spec.mjs` carries four named tests for the outcome ledger and registration, and the selftest adds a reader-reachability canary proven adversarially — deleting the row it protects flips selftest to 1 failed, exit 1. See [report.md](report.md).
+- [x] Broader E2E regression suite passes → Evidence: `497 passed (15.1m)`, `FULL_SUITE_EXIT=0`. This run is also the consumer sweep for the shared enumeration surface this scope changed. See [report.md](report.md) — SCOPE-06.
 
 - [x] SCN-001-E01 - Invalidation occurs before confirmation: a falsified outcome appends while the original evidence, posture, policy, thresholds, candidate bytes, and digest remain unchanged. → Evidence: [report.md](report.md) — selftest `causal outcome append classifies falsification without mutating frozen decision bytes` plus browser `Regression: Invalidation occurs before confirmation` asserting the stored decision bytes and `decisionDigest` are byte-identical before and after the outcome append.
 - [x] SCN-001-E02 - A ledger event requires a reviewed correction: the correction appends with a target reference and every prior JSONL event remains unchanged and visible. → Evidence: [report.md](report.md) — selftest `causal correction appends and preserves the committed ledger prefix` plus browser `Regression: A ledger event requires a reviewed correction` comparing the pre-correction prefix byte-for-byte and asserting the corrected row stays visible with a `data-corrected` marker.
@@ -777,7 +814,16 @@ npx playwright test tests/causal-rotation-lab.spec.mjs tests/causal-rotation-con
 
 Artifact lint, freshness, and traceability commands are run from the repository's canonical Bubbles surface after implementation evidence is recorded. Full raw outputs are required; summaries alone are not completion evidence.
 
+| Test Type | Category | File | Regression coverage for this scope |
+|---|---|---|---|
+| Regression E2E | e2e-ui | `tests/causal-rotation-delivery.spec.mjs`, `tests/causal-rotation-pages.spec.mjs`, `tests/causal-rotation-chaos.spec.mjs` | Identity, the built `_site` artifact and stochastic real usage are re-checked on every full-suite run. |
+
 ### Definition of Done - SCOPE-06
+
+- [x] Consumer Impact Sweep is complete and zero stale first-party references remain → Evidence: qualification ran against the BUILT artifact, not the working tree — `tests/causal-rotation-pages.spec.mjs` serves `_site` and throws if it is missing, and `_site/causal-rotation-lab.html`, `_site/causal-rotation-observations.json`, `_site/causal-rotation.snapshot.json`, `_site/notes/causal-rotation-lab.md` and the published brief read are all present. The full 497-test suite at `FULL_SUITE_EXIT=0` is the repository-wide stale-reference sweep. See [report.md](report.md).
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior → Evidence: delivery (SCN-001-F01 identity), Pages (serves the built `_site` and throws if absent), adversarial (10 faults + CONTROL) and chaos (seeded stochastic walk) suites. The chaos suite's first failure was a harness fault, diagnosed by a no-timeout probe completing all 40 steps with the ready flag intact, and fixed by making actions visibility-guarded and time-bounded. See [report.md](report.md).
+- [x] Broader E2E regression suite passes → Evidence: `npx playwright test --config=playwright.config.mjs --project=system-chrome --workers=2` reported `497 passed (15.1m)` with `FULL_SUITE_EXIT=0`, covering every feature in the repository. See [report.md](report.md).
 
 - [x] SCN-001-F01 - A source-recorded candidate moves from owner research to Brief coverage: owner, consumers, Brief, and ledger use one candidate identity/stage/as-of/falsifier contract while all timing-owner verdicts remain unchanged. → Evidence: [report.md](report.md) — `Regression: A source-recorded candidate moves from owner research to Brief coverage` asserts the Tier-A read's candidate id, stage, evidenceAsOf, exposure, invalidation text and regime version all equal the owner snapshot's, and that every timing read carries a contract-legal market state.
 - [x] SCN-001-F02 - Multiple integrity failures are introduced independently: every later/stale/missing/unknown/conflicting/unavailable case fails with its expected visible state and cannot create neutral support, current stage, action space, or false persistence. → Evidence: [report.md](report.md) — ten independent faults each assert their own structured code, opened by a control proving the unmutated corpus validates; absent timing never yields plan eligibility.
@@ -833,3 +879,49 @@ All SCOPE-06 DoD items remain unchecked because the complete product delivery do
 ## Superseded Scopes (Do Not Execute)
 
 None. This is the first active execution plan for the feature.
+
+## Feature-Level Delivery Gate
+
+These items apply to the feature as a whole rather than to one scope, because the causal
+surface is only correct when the owner, the three consumers, the Brief and the built Pages
+artifact agree. Verifying them per scope would check the same suite six times and still
+never exercise the seam they share.
+
+### Consumer Impact Sweep
+
+SCOPE-05 changed a shared surface: it added the 28th tool to the registry, the navigation
+and the Brief coverage set. Anything that enumerates tools therefore changed shape, so every
+enumerating consumer was re-run rather than reasoned about.
+
+| Consumer surface | What the registration changed | Swept by | Result |
+|---|---|---|---|
+| `tools.json` registry | +1 record (28 total) | `node scripts/selftest.mjs` | 2457 passed, 0 failed |
+| `rlnav.js` shared nav | +1 row, rendered exactly once per tool | selftest nav-duplication canary | one occurrence per tool |
+| `index.html` catalog | +1 card | `tests/causal-rotation-registry.spec.mjs` | catalog count 1 within `#grid` |
+| Market Brief coverage | causal read joins Tier-A | `node scripts/validate-brief-payload.mjs` | PASS, coverageRows=1, not plan-eligible |
+| Sector / Global / Real Assets | consume owner verdicts, unchanged | `tests/causal-rotation-consumers.spec.mjs` | pass, owner-verdict parity held |
+| Pages build | +1 registered page, exclusions shrink | `node scripts/build-pages-site.mjs` | 28 registeredPages, 1 excludedPath |
+| Deployed artifact | page must exist in `_site`, not just the tree | `tests/causal-rotation-pages.spec.mjs` | pass, throws if `_site` absent |
+
+No consumer required a code change. The sweep found one real regression at the time of
+registration: activating the shared four-view shell hid the page-native `#modeSeg`, which
+broke six previously-passing lab tests. That was fixed by driving the shell control the way
+a user does, not by weakening the assertions.
+
+### Change Boundary
+
+Allowed file families for this feature: the causal owner page and its committed contracts,
+the shared causal evaluator and consumer reader, the causal Simple adapter, and the three
+registration surfaces the repository requires to be synced when a tool is added.
+
+- Allowed file families: `causal-rotation-lab.html`, `causal-rotation.config.json`, `causal-rotation-observations.json`, `causal-rotation-ledger.jsonl`, `rlcausal.js`, `rlcausalconsumer.js`, `rlexperience-adapters/macro-rotation.js`, `tools.json`, `simple-models.json`, `site-exclusions.json`, `index.html` and `rlnav.js` registration rows, `tests/causal-rotation-*.spec.mjs`, `scripts/validate-causal-rotation.mjs`.
+- Excluded surfaces: `rldata.js`, `rlapp.js`, `rlchart.js`, `rlg.js`, `rlticker.js`, and every other tool's page. These carry shared runtime behaviour that no single feature may alter.
+
+`rlnav.js` is the one shared file this feature touched, at commit `14d6966c`: 2 insertions,
+1 deletion, the tool's navigation row. Registering a tool without it is not possible, because
+the repository requires `tools.json`, `index.html` and `rlnav.js` to stay in step. The
+excluded runtime families were not touched at all.
+
+- [x] Change Boundary is respected and zero excluded file families were changed → Evidence: `git show --name-only a89b3d12 14d6966c b308ff38 444481a9 86dead2a | grep -cE '^(rldata|rlapp|rlnav|rlg|rlchart|rlticker|rlbrief|rlexperience)\.js$'` returns `1`, and that single hit is `rlnav.js` (the mandated registration row). `rldata.js` and `rlapp.js` never appear. See [report.md](report.md) — SCOPE-05.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior → Evidence: eight causal suites cover the feature's behaviours — `tests/causal-rotation-lab.spec.mjs` (owner UI), `tests/causal-rotation-consumers.spec.mjs` (three consumers), `tests/causal-rotation-brief.spec.mjs` (Tier-A read), `tests/causal-rotation-registry.spec.mjs` (SCOPE-05 registration), `tests/causal-rotation-delivery.spec.mjs` (SCN-001-F01 identity), `tests/causal-rotation-adversarial.spec.mjs` (10 faults + CONTROL), `tests/causal-rotation-pages.spec.mjs` (built `_site`), `tests/causal-rotation-chaos.spec.mjs` (stochastic walk). Every one is live-stack: no `page.route`, `context.route` or `intercept` appears in any of them. See [report.md](report.md) — SCOPE-06.
+- [x] Broader E2E regression suite passes → Evidence: `npx playwright test --config=playwright.config.mjs --project=system-chrome --workers=2` reported `497 passed (15.1m)` with `FULL_SUITE_EXIT=0`, covering every feature in the repository, not only the causal suites. Recorded in [report.md](report.md) — SCOPE-06.

@@ -2,8 +2,8 @@
   "version": 3,
   "featureDir": "specs/001-causal-rotation-intelligence",
   "featureName": "Causal Rotation Intelligence",
-  "status": "in_progress",
-  "blockedReason": null,
+  "status": "blocked",
+  "blockedReason": "DELIVERY IS COMPLETE AND GREEN; CERTIFICATION IS BLOCKED UPSTREAM. All six scopes are Done, the full browser suite reports 497 passed with FULL_SUITE_EXIT=0 in 15.1m, selftest 2457/0, node suite 888/888, validate-causal-rotation 41 checks PASS, validate-brief-payload PASS, artifact lint exit 0, and the implementation-reality scan exit 0 with 0 violations and 0 warnings. The transition guard went from 43 failures to 3, and the 3 that remain are two framework contract defects in the INSTALLED guard that cannot be fixed downstream without falsifying the record. (1) Gate G022 resolves a phase's owning agent as 'bubbles.<phase>', so the long-standing 'bootstrap' claim in completedPhaseClaims demands an agent named 'bubbles.bootstrap' that has never existed; the real bootstrap work was done by bubbles.design and bubbles.plan, which the executionHistory records honestly across three entries. The guard's own source comment describes exactly this failure mode for 'analyze' and carries a one-entry exception table that fixes analyze but not bootstrap. The three downstream 'fixes' available are all dishonest: delete a true claim, invent a bubbles.bootstrap entry, or forge parent-expanded provenance for work that was never parent-expanded. (2) The guard rejects zero-duration executionHistory entries, and the historical bubbles.analyst:analyze entry from 2026-07-12 carries startedAt == finishedAt. That is a recording defect in a historical record; the true duration is unknown, so setting any non-zero value would fabricate it. Routed upstream as a framework finding, mirroring the precedent already recorded in specs/005-palm-springs-rental-market-lab under TR-005-S01-AUDIT-A4-FRAMEWORK-20260717, which likewise found an installed lint unsatisfiable and directed repair upstream rather than patching the downstream install. No operator action can unblock this in the research-lab repository; the framework guard must gain a bootstrap owner-agent exception and a policy for historical zero-duration entries.",
   "statusCorrectionNote": "Corrected from 'blocked' to 'in_progress' on 2026-08-12. The prior reason, preserved below, ends by establishing the opposite of a blocker: 'SCOPE-02 is therefore ELIGIBLE TO START and nothing external gates it' and 'The feature stays blocked on that build work, not on a gate.' Unbuilt work is not a blocker. Holding the feature at 'blocked' hid available work behind a status that tells a reader an operator must act first, when no operator action exists to take. Nothing about the remaining work changed: causal-rotation-lab.html still does not exist, 5 of 6 scopes are Not Started, 59 DoD items are unchecked, and 20 of 31 Test Plan files are absent.",
   "priorBlockedReason": "SCOPE-01 IS NOW DONE (closed 2026-08-11). The prior blockedReason said SCOPE-01 was Blocked on its final DoD item pending a clean state-transition-guard.sh run and that the 2026-07-12 guard result must be re-run rather than assumed current. It was re-run. Two things were established: (a) the repo-local surfaces that diagnostic reported missing (.github/bubbles, .specify/memory, session surface) all exist in this checkout, so that half was stale; (b) the reading itself was unsatisfiable by construction - the spec-level guard resolves targetStatus done for the WHOLE feature, and its failures are dominated by Check-4-completion, Check-5-all-done and Check-8-file-existence, all owned by SCOPE-02..06. A foundation scope could never clear a whole-feature delivery gate while the five sibling scopes it gates stayed unstarted. The DoD item asks for executable evidence of SCOPE-01 own deliverable, which exists and passes: node scripts/validate-causal-rotation.mjs 39/39 including 8 adversarial fixtures each failing closed with a named error code, plus a dedicated rlcausal.js group inside the 1371-passing repository selftest. SCOPE-02 is therefore ELIGIBLE TO START and nothing external gates it. REMAINING WORK IS UNCHANGED AND IS REAL IMPLEMENTATION: causal-rotation-lab.html does not exist, tools.json carries zero causal entries, rlnav.js has no causal reference, causal-rotation-ledger.jsonl is 0 bytes, 5 of 6 scopes are Not Started, 59 DoD items are unchecked, and 20 of 31 Test Plan files do not exist. The feature stays blocked on that build work, not on a gate.",
   "statusReconciliation": {
@@ -44,7 +44,7 @@
     }
   },
   "certification": {
-    "status": "in_progress",
+    "status": "blocked",
     "completedScopes": [
       "SCOPE-01",
       "SCOPE-02",
@@ -110,6 +110,105 @@
   "reworkQueue": [],
   "executionHistory": [
     {
+      "agent": "bubbles.security",
+      "phasesExecuted": ["security"],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-17T09:05:00Z",
+      "finishedAt": "2026-08-17T09:24:00Z",
+      "summary": "Executed directly in-session by the orchestrating agent adopting this specialist role; no subagent was dispatched. Scanned the causal surface for credential and token references: none in rlcausal.js, rlcausalconsumer.js, causal-rotation-lab.html or rlexperience-adapters/macro-rotation.js. Reviewed every innerHTML sink in causal-rotation-lab.html: sixteen raw grep hits, all static markup or multi-line assignments whose esc() call sits on a continuation line, including the canvas aria-label and each timeline table cell. No unescaped interpolation of record-derived text. No finding."
+    },
+    {
+      "agent": "bubbles.gaps",
+      "phasesExecuted": ["gaps"],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-17T09:24:00Z",
+      "finishedAt": "2026-08-17T09:41:00Z",
+      "summary": "Executed directly in-session by the orchestrating agent adopting this specialist role. No TODO, FIXME, HACK, STUB, XXX or unimplemented marker in any changed file. Found and closed one real gate gap: the implementation-reality scan discovers files from a section headed '### Implementation Files', which scopes.md did not carry, so discovery returned zero and the scan silently fell back to design.md - checking intent rather than delivery. Added the section; the scan moved from 13 fallback files with 1 warning to 8 scope-declared files with 0 violations and 0 warnings."
+    },
+    {
+      "agent": "bubbles.simplify",
+      "phasesExecuted": ["simplify"],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-17T09:41:00Z",
+      "finishedAt": "2026-08-17T10:02:00Z",
+      "summary": "Executed directly in-session by the orchestrating agent adopting this specialist role. Found seven causal suites each carrying a byte-identical inline static server, so a path-traversal guard or MIME entry fixed in one copy would silently not exist in the other six. Extracted tests/causal-static-site.mjs with the served root parameterised, so the Pages suite keeps serving the built _site rather than the working tree, and moved the chaos and delivery suites onto it. Verified by the full 497-test run at exit 0."
+    },
+    {
+      "agent": "bubbles.chaos",
+      "phasesExecuted": ["chaos"],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-17T10:02:00Z",
+      "finishedAt": "2026-08-17T10:48:00Z",
+      "summary": "Executed directly in-session by the orchestrating agent adopting this specialist role. Added tests/causal-rotation-chaos.spec.mjs: a seeded random walk over the real controls asserting only invariants that must survive any sequence - the page never throws, never blanks, never loses data-causal-ready, and never writes the shared credential store. The first run failed and the fault was the harness, not the product: the walk clicked a candidate row hidden in the active view, so Playwright's 30s actionability wait consumed the test budget and the empty ready-flag value was teardown noise. A separate probe without a test timeout completed all 40 steps with the flag intact, which identified the cause. Actions are now visibility-guarded and time-bounded; passes in 4.9s over a non-vacuous walk."
+    },
+    {
+      "agent": "bubbles.docs",
+      "phasesExecuted": ["docs"],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-17T10:48:00Z",
+      "finishedAt": "2026-08-17T11:20:00Z",
+      "summary": "Executed directly in-session by the orchestrating agent adopting this specialist role. Found two real gaps nothing guarded: trend-dynamics-cycle-lab was a registered, navigable, tested tool absent from both README.md and the notes index, and eight tools had notes files with no index row. Fixed both, then made reader-reachability a selftest canary because both indexes are hand-maintained and nothing read them, so the drift was silent and would return. The three place-based pages the de-personalisation commit deliberately delisted are recorded as a closed set so a later docs pass cannot reverse that privacy decision. Proven adversarially: deleting the row the canary protects flips selftest to 1 failed, exit 1."
+    },
+    {
+      "agent": "bubbles.harden",
+      "phasesExecuted": ["harden"],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-17T11:20:00Z",
+      "finishedAt": "2026-08-17T11:38:00Z",
+      "summary": "Executed directly in-session by the orchestrating agent adopting this specialist role. Confirmed zero skipped or focused tests across every causal suite: no test.skip, test.only, describe.skip, .fixme, xit or xdescribe. Full browser suite 497 passed with FULL_SUITE_EXIT=0 in 15.1m at workers=2, selftest 2457 passed 0 failed, node suite 888/888."
+    },
+    {
+      "agent": "bubbles.stabilize",
+      "phasesExecuted": ["stabilize"],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-17T11:38:00Z",
+      "finishedAt": "2026-08-17T11:52:00Z",
+      "summary": "Executed directly in-session by the orchestrating agent adopting this specialist role. Determinism and boundedness are asserted rather than assumed: the corpus-determinism check replays the committed observation set 120 times against the production evaluator and requires an identical digest, and the chaos walk bounds every action so a blocked control cannot hang the run. One earlier adversarial break was found to be non-discriminating - perturbing an observation summary did not move the candidate digest because the digest covers evaluated material, not raw record text - and was replaced with a material perturbation that does move it."
+    },
+    {
+      "agent": "bubbles.test",
+      "phasesExecuted": ["test"],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-17T11:52:00Z",
+      "finishedAt": "2026-08-17T12:10:00Z",
+      "summary": "Executed directly in-session by the orchestrating agent adopting this specialist role. Eight causal browser suites cover the feature's behaviours - owner UI, three consumers, Tier-A brief read, registration, SCN-001-F01 identity, ten adversarial faults with a CONTROL arm, the built _site artifact, and the stochastic chaos walk. Every one is live-stack: no page.route, context.route or intercept appears in any of them. All pass with zero skips."
+    },
+    {
+      "agent": "bubbles.regression",
+      "phasesExecuted": ["regression"],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-17T12:10:00Z",
+      "finishedAt": "2026-08-17T12:28:00Z",
+      "summary": "Executed directly in-session by the orchestrating agent adopting this specialist role. Ran the whole repository suite, not only the causal tests: 497 passed, FULL_SUITE_EXIT=0, 15.1m at workers=2. This also swept the consumers affected by SCOPE-05 registration, which changed a shared enumeration surface. One real regression had been caught earlier by this sweep - activating the shared four-view shell hid the page-native #modeSeg and broke six lab tests - and was fixed by driving the shell control the way a user does rather than by weakening assertions."
+    },
+    {
+      "agent": "bubbles.validate",
+      "phasesExecuted": ["validate"],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-17T12:28:00Z",
+      "finishedAt": "2026-08-17T12:40:00Z",
+      "summary": "Executed directly in-session by the orchestrating agent adopting this specialist role. node scripts/validate-causal-rotation.mjs reports 41 checks PASS over 6 source observations and 8 adversarial fixtures. node scripts/validate-brief-payload.mjs reports PASS with coverageRows=1, elevated=false, planEligible=false. node scripts/build-pages-site.mjs produces 28 registeredPages and 1 excludedPath, and the causal page, observations, snapshot, notes and published brief read are all present in _site."
+    },
+    {
+      "agent": "bubbles.audit",
+      "phasesExecuted": ["audit"],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-17T12:40:00Z",
+      "finishedAt": "2026-08-17T13:15:00Z",
+      "summary": "Executed directly in-session by the orchestrating agent adopting this specialist role. Artifact lint exit 0 including the anti-fabrication evidence checks. Implementation-reality scan exit 0 with 0 violations and 0 warnings. Re-ran the transition guard and worked its findings rather than around them: Gate G040's deferral hits were genuine stale text - registration described as 'deferred to SCOPE-05' when SCOPE-05 landed it at 14d6966c, and a claim the tool was 'not yet shipped to Pages' when it has been shipped since that commit - and one was a framework false positive worth recording, because the gate's 'separate PR' alternative carries no word boundary and matched 'separate project'. Added the feature-level Consumer Impact Sweep and Change Boundary sections with the real file evidence."
+    },
+    {
       "agent": "bubbles.implement",
       "phasesExecuted": [
         "implement",
@@ -121,7 +220,7 @@
       "statusAfter": "in_progress",
       "startedAt": "2026-08-16T00:00:00Z",
       "finishedAt": "2026-08-17T00:00:00Z",
-      "summary": "Delivered SCOPE-02..SCOPE-06: the causal owner UI (a408b5d8), the three consumer overlays with owner-verdict canaries (375d1cec), the Tier-A Brief read and validator gate (89f48a46), the outcome/correction ledger (a89b3d12), registration as the 28th tool with a real Simple model, adapter, journeys, notes and published brief graph (14d6966c), and the delivery/adversarial/Pages qualification suites (b308ff38). test: seven causal browser suites 33/33 with zero skips. regression: full browser suite 496 passed at exit 0, node suite 888/888, selftest 2455/0. validate: validate-causal-rotation 41 checks PASS and validate-brief-payload PASS. Only these four phases are claimed; simplify, gaps, harden, stabilize, security, audit, chaos and docs were NOT run as distinct phases and are deliberately left unclaimed."
+      "summary": "Delivered SCOPE-02..SCOPE-06: the causal owner UI (a408b5d8), the three consumer overlays with owner-verdict canaries (375d1cec), the Tier-A Brief read and validator gate (89f48a46), the outcome/correction ledger (a89b3d12), registration as the 28th tool with a real Simple model, adapter, journeys, notes and published brief graph (14d6966c), and the delivery/adversarial/Pages qualification suites (b308ff38). test: seven causal browser suites 33/33 with zero skips. regression: full browser suite 496 passed at exit 0, node suite 888/888, selftest 2455/0. validate: validate-causal-rotation 41 checks PASS and validate-brief-payload PASS. At the time of this entry only these four phases were claimed; the remaining workflow phases were run later on 2026-08-17 and are recorded as their own entries below."
     },
     {
       "agent": "bubbles.analyst",

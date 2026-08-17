@@ -10,42 +10,17 @@
  * contracts, and the assertion is determinism and boundedness, never a favourable outcome.
  */
 import { test, expect } from './playwright-runtime.mjs';
-import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
-import { createServer } from 'node:http';
-import { dirname, extname, join, normalize, resolve, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { createStaticSite, REPO_ROOT as ROOT } from './causal-static-site.mjs';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const MIME = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.jsonl': 'application/x-ndjson; charset=utf-8',
-  '.md': 'text/markdown; charset=utf-8'
-};
-
-let server;
+const site = createStaticSite();
 let baseUrl;
 
-test.beforeAll(async () => {
-  server = createServer((request, response) => {
-    const requestPath = decodeURIComponent((request.url || '/').split('?')[0]);
-    const relative = normalize(requestPath === '/' ? 'index.html' : requestPath.replace(/^\/+/, ''));
-    const filePath = resolve(ROOT, relative);
-    if ((filePath !== ROOT && !filePath.startsWith(ROOT + sep)) || !existsSync(filePath) || !statSync(filePath).isFile()) {
-      response.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
-      response.end('not found');
-      return;
-    }
-    response.writeHead(200, { 'content-type': MIME[extname(filePath)] || 'application/octet-stream', 'cache-control': 'no-store' });
-    createReadStream(filePath).pipe(response);
-  });
-  await new Promise((ready) => server.listen(0, '127.0.0.1', ready));
-  baseUrl = `http://127.0.0.1:${server.address().port}`;
-});
+test.beforeAll(async () => { baseUrl = await site.start(); });
 
 test.afterAll(async () => {
-  if (server) await new Promise((done) => server.close(done));
+  await site.stop();
 });
 
 const rootJson = (relative) => JSON.parse(readFileSync(join(ROOT, relative), 'utf8'));

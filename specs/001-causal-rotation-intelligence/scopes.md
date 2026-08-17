@@ -124,6 +124,23 @@ Scenario: Decision-critical valuation and timing inputs are stale or unavailable
   And no posture weakens provenance freshness contradiction or invalidation gates
 ```
 
+### Implementation Files
+
+The implementation-reality scan (Gate G028) discovers the files it scans from this section.
+Without it the scan falls back to `design.md`, which means the gate checks what the feature
+INTENDED to touch rather than what it actually shipped. Keep this list in step with delivery.
+
+- `rlcausal.js`
+- `rlcausalconsumer.js`
+- `causal-rotation-lab.html`
+- `causal-rotation.config.json`
+- `causal-rotation-observations.json`
+- `causal-rotation-ledger.jsonl`
+- `rlexperience-adapters/macro-rotation.js`
+- `tools.json`
+- `simple-models.json`
+- `site-exclusions.json`
+
 ### Implementation Plan - SCOPE-01
 
 - Add `rlcausal.js` as a Node-safe IIFE with named top-level pure functions and one frozen `globalThis.RLCausal` API.
@@ -304,7 +321,7 @@ Shared helper changes require a separate explicit blast-radius amendment before 
 **Claim Source:** executed  
 All SCOPE-02 DoD items are checked against commands executed in session and recorded in [report.md](report.md): `tests/causal-rotation-lab.spec.mjs` 13/13 on a real served page with no evaluator mocks, `scripts/selftest.mjs` 2417 passed / 0 failed including the four named causal UI-unit groups, and the node suite at 888/888.
 
-Two honest notes. First, the repository has no mobile Playwright project, so the desktop/mobile requirement is met by driving both viewports (1280x900 and 390x844) inside the scenario tests rather than by a separate project. Second, the page is deliberately left unregistered and is recorded in `site-exclusions.json` as a deploy decision; registration and navigation belong to SCOPE-05, so the tool is built and tested but not yet shipped to Pages.
+Two honest notes. First, the repository has no mobile Playwright project, so the desktop/mobile requirement is met by driving both viewports (1280x900 and 390x844) inside the scenario tests rather than by a dedicated Playwright project. Second, at SCOPE-02 the page was recorded in `site-exclusions.json` as a deploy decision, because registration and navigation are owned by SCOPE-05. SCOPE-05 has since landed that registration at commit `14d6966c`: the tool is built, tested, registered and served from Pages, and `site-exclusions.json` now excludes only `rlsession.js`.
 
 ## Scope 3: Sector, Global, and Real Assets Consumer Integration
 
@@ -533,7 +550,7 @@ Scenario: Headless causal validation fails while other Brief tools remain valid
 - [x] Coverage-only and invalid/stale candidates consume zero action/attention slots in named Regression E2E tests. → Evidence: [report.md](report.md) — `tests/causal-rotation-brief.spec.mjs` 4/4, and the low-noise validator assertion measures `elevated=false`.
 - [x] Non-causal Tier-A reads and existing Brief decisions pass independent before/after canaries. → Evidence: [report.md](report.md) — selftest `shared canary: Tier-A non-causal tool reads are unchanged by causal refresh` and `shared canary: Brief registry coverage remains one row per registered tool`.
 - [x] `node scripts/selftest.mjs`, `node scripts/validate-causal-rotation.mjs`, and `node scripts/validate-brief-payload.mjs` pass with no skips. → Evidence: [report.md](report.md) — 2455/0, 41 checks PASS, and PASS respectively, all exit 0.
-- [x] The Change Boundary is respected and no registry/public-link changes occur yet. → Evidence: [report.md](report.md) — SCOPE-04 landed at commit `89f48a46`; registration was deliberately deferred to SCOPE-05 and the page remained in `site-exclusions.json` until then.
+- [x] The Change Boundary is respected and no registry/public-link changes occur yet. → Evidence: [report.md](report.md) — SCOPE-04 landed at commit `89f48a46`; registration is owned by SCOPE-05, and the page stayed in `site-exclusions.json` until SCOPE-05 landed it at commit `14d6966c`. No work was dropped: the registration DoD is checked and evidenced under SCOPE-05.
 - [x] SCOPE-04 is marked Done only after executable evidence is recorded; only then may SCOPE-05 start. → Evidence: [report.md](report.md) — recorded at commit `89f48a46`; re-verified in the current 496-passing browser suite.
 
 ### Uncertainty Declaration - SCOPE-04

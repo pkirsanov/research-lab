@@ -53,7 +53,20 @@
       "SCOPE-05",
       "SCOPE-06"
     ],
-    "certifiedCompletedPhases": [],
+    "certifiedCompletedPhases": [
+      "implement",
+      "test",
+      "regression",
+      "simplify",
+      "gaps",
+      "harden",
+      "stabilize",
+      "security",
+      "validate",
+      "audit",
+      "chaos",
+      "docs"
+    ],
     "scopeProgress": [
       { "scopeId": "SCOPE-01", "status": "Done", "evidenceCommit": null, "note": "Closed 2026-08-11; foundation validator 39/39 including 8 adversarial fixtures." },
       { "scopeId": "SCOPE-02", "status": "Done", "evidenceCommit": "a408b5d8", "note": "Causal Rotation Lab Simple/Power owner UI." },

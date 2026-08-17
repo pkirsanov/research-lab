@@ -1,0 +1,103 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-54835a5319cba9b0279671531e62888d56f1a4bd324a29b510d1b0ef35dc7496",
+  "generationId": "generation-6f8ca4719bb289eff81df3e4bca811e3439b46126955aafda79cf5b392d4e3ad",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-08-17T20:31:12.375Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "No authorable current evidence exists for U.S., Iran, or other actor reaction functions. The acquisition bundle for this generation retained zero public sources and the official-policy-and-statements claim (actor-state) is marked unsupported and not authorable, so no named-actor declared policy or verified statement can be carried without fabrication.",
+      "gaps": [
+        "No official-class source covering the required actor-state claim was acquired (retainedSourceCount 0).",
+        "No verified statement or declared policy for United States, Iran, or Gulf actors is available inside the 24h freshness window.",
+        "Cannot characterize any actor dimension (military-pressure, blockade-enforcement, inventory-response, escort-and-reinsurance, negotiation-posture) from observed evidence."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "Scenario structure cannot be interpreted from evidence because no current observations were acquired. This side process authors no scenario probabilities by contract; with an empty evidence set there is additionally no observed basis for a qualitative escalation read.",
+      "gaps": [
+        "No evidence records exist to inform escalation-state interpretation.",
+        "Probability authorship is out of scope for this pass and is deferred to the deterministic model."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "No measured maritime-flow evidence was acquired for Hormuz, Bab el-Mandeb, or the Red Sea. The measured-maritime-flow claim (physical-flow, insured-flow) is unsupported and not authorable, so no transit, loading, delay, or insured-capacity reading can be reported.",
+      "gaps": [
+        "No official or maritime-observation source for measured transit, loadings, delay, or insured capacity was retained.",
+        "physicalPassFraction and insuredPassFraction are unobserved for every declared route.",
+        "No basis to evaluate the transit-restriction or insured-capacity triggers/invalidations from current data."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "Channel transmission cannot be interpreted because the energy-and-input-balances claim (transmission-input) is unsupported and not authorable. No inventory, production, export, or policy-response evidence was acquired for oil, refined-products, LNG, fertilizer, aluminum, or shipping.",
+      "gaps": [
+        "No official or industry-data source covering inventory, production, export, or policy response was retained.",
+        "inventoryGapByChannel is unobserved for all declared channels.",
+        "Commodity and proxy range authorship is out of scope for this pass by contract."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "No committed public bars were acquired for the declared proxies (committed-public-bars / proxy-bar claim is unsupported and not authorable), and proxy sensitivity range authorship is out of scope for this pass. No calibrated proxy read can be carried.",
+      "gaps": [
+        "No committed-bar source for the declared public proxies was retained (candidateCount 0).",
+        "Proxy sensitivity ranges and calibration are computed downstream, not authored here."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "No trigger or invalidation can be evaluated as fired or normalized because the underlying flow, insurance, and inventory observations were not acquired. Every declared trigger and invalidation depends on measured fields that remain unobserved this generation.",
+      "gaps": [
+        "transit-restriction-observed / transit-normalizes: physicalPassFraction unobserved for hormuz, bab-el-mandeb, red-sea.",
+        "insured-capacity-tightens / insurance-normalizes: insuredPassFraction unobserved for shipping-insurers.",
+        "inventory-response-confirmed: no confirmed public inventory or coordinated policy response was acquired."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "The source ledger is empty. The acquisition bundle for this generation retained zero sources across all four source requirements, so there is no fresh public evidence inside the declared freshness windows to record.",
+      "gaps": [
+        "retainedSourceCount is 0 and independentOriginCount is 0.",
+        "All four material claims (official-policy-and-statements, measured-maritime-flow, energy-and-input-balances, committed-public-bars) are rejected/unsupported.",
+        "evidence-stales invalidation cannot be assessed against a ledger with no supporting observation."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "No change assessment is authored here by contract, and none is derivable regardless: there is no prior dossier for this topic and no current evidence to compare against it.",
+      "gaps": [
+        "priorDossier is null; no predecessor output exists to compare.",
+        "changeAssessment is authored by the deterministic model, not this pass.",
+        "No current evidence records exist to support any comparison."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

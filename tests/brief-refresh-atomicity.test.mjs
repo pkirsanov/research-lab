@@ -56,7 +56,7 @@ function narrativePolicyPattern() {
 }
 
 function lanePolicyPattern() {
-  return new RegExp(`lane policy: ${schedulerDefault('BRIEF_LANE_CONCURRENCY')} concurrent, ${schedulerDefault('BRIEF_LANE_ATTEMPTS')} attempt\\(s\\) each, ${schedulerDefault('BRIEF_LANE_EXIT_GRACE')}s post-write exit grace`);
+  return new RegExp(`lane policy: ${schedulerDefault('BRIEF_LANE_CONCURRENCY')} concurrent, ${schedulerDefault('BRIEF_LANE_ATTEMPTS')} attempt\\(s\\) each, ${schedulerDefault('BRIEF_LANE_TRANSIENT_BACKOFF_SECONDS')}s transient-service backoff, ${schedulerDefault('BRIEF_LANE_EXIT_GRACE')}s post-write exit grace`);
 }
 
 function repairPolicyPattern() {
@@ -888,10 +888,36 @@ process.exit(1);
     assert.equal(result.status, 0, `wrapper failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
     assert.match(result.stdout, /lane=groups attempt=1\/2 failed; retrying only this lane/);
     assert.match(result.stdout, /lane=groups started attempt=2\/2/);
+    assert.doesNotMatch(result.stdout, /transient Copilot service failure/);
     assert.doesNotMatch(result.stdout, /narrative attempt 1 failed\/invalid/);
     for (const lane of ['core', 'signals', 'coverage']) {
       assert.equal(result.stdout.match(new RegExp(`lane=${lane} started`, 'g'))?.length, 1, `${lane} was rerun`);
     }
+    assert.equal(publication.snapshotDate, fixture.candidateDate);
+    assert.equal(publication.payloadDate, fixture.candidateDate);
+  });
+
+  test('transient Copilot authentication service failure backs off before retrying the failed lane', (context) => {
+    const fixture = createBriefRefreshFixture({ narrativeMode: 'transient-auth' });
+    context.after(() => fixture.cleanup());
+    const result = runBriefRefreshFixture(fixture, {
+      BRIEF_NARRATIVE_ATTEMPTS: '1',
+      BRIEF_LANE_ATTEMPTS: '2',
+      BRIEF_LANE_CONCURRENCY: '2',
+      BRIEF_LANE_TRANSIENT_BACKOFF_SECONDS: '1'
+    });
+    const publication = readPublicationState(fixture);
+    const coreAttempts = readFileSync(fixture.copilotAttemptFile, 'utf8')
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
+
+    assert.equal(result.status, 0, `wrapper failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+    assert.match(result.stdout, /lane=core attempt=1\/2 hit a transient Copilot service failure; waiting 1s before retrying only this lane/);
+    assert.deepEqual(coreAttempts.map(({ laneAttempt }) => laneAttempt), [1, 2]);
+    assert.ok(coreAttempts[1].startedAt - coreAttempts[0].startedAt >= 900,
+      `core retry started without the configured backoff: ${JSON.stringify(coreAttempts)}`);
+    assert.doesNotMatch(result.stdout, /narrative attempt 1 failed\/invalid/);
     assert.equal(publication.snapshotDate, fixture.candidateDate);
     assert.equal(publication.payloadDate, fixture.candidateDate);
   });

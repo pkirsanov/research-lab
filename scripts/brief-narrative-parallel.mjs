@@ -47,6 +47,7 @@ const laneAttempts = Math.min(3, positiveInteger(process.env.BRIEF_LANE_ATTEMPTS
 const laneConcurrency = Math.min(4, positiveInteger(process.env.BRIEF_LANE_CONCURRENCY, 4));
 const exitGraceSeconds = positiveInteger(process.env.BRIEF_LANE_EXIT_GRACE, 60);
 const terminateGraceSeconds = positiveInteger(process.env.BRIEF_LANE_TERMINATE_GRACE, 5);
+const transientBackoffSeconds = positiveInteger(process.env.BRIEF_LANE_TRANSIENT_BACKOFF_SECONDS, 60);
 const windowId = process.env.BRIEF_WINDOW || 'pre-market';
 const todayEt = process.env.BRIEF_TODAY || new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit'
@@ -136,6 +137,19 @@ function positiveInteger(value, fallback) {
 function tail(path, maxLines = 20) {
     if (!existsSync(path)) return '';
     return readFileSync(path, 'utf8').trim().split('\n').slice(-maxLines).join('\n');
+}
+
+function laneFailureDetail(result) {
+    return tail(result.stderrPath) || tail(result.stdoutPath) || result.error || `exit ${result.code}`;
+}
+
+function isTransientCopilotServiceFailure(result) {
+    return /Failed to fetch GitHub CLI user login \((?:429|5\d{2})\):|GitHub returned: No server is currently available to service your request|\b(?:ECONNRESET|ETIMEDOUT|EAI_AGAIN)\b/i
+        .test(laneFailureDetail(result));
+}
+
+function delay(milliseconds) {
+    return new Promise((resolveDelay) => setTimeout(resolveDelay, milliseconds));
 }
 
 function sameBytes(path, baseline) {
@@ -500,7 +514,7 @@ function runLane(lane, laneAttempt) {
 
 function validateLaneResult(result) {
     if (!result.ok) {
-        const detail = tail(result.stderrPath) || tail(result.stdoutPath) || result.error || `exit ${result.code}`;
+        const detail = laneFailureDetail(result);
         throw new Error(`lane ${result.lane.id} failed after ${Math.round(result.elapsedMs / 1000)}s\n${detail}`);
     }
     if (!result.fragment) {
@@ -525,7 +539,13 @@ async function runLaneWithRetries(lane) {
         } catch (error) {
             lastError = error;
             if (attempt < attemptLimit) {
-                console.log(`[brief-parallel] lane=${lane.id} attempt=${attempt}/${attemptLimit} failed; retrying only this lane`);
+                if (isTransientCopilotServiceFailure(result)) {
+                    const backoffSeconds = transientBackoffSeconds * attempt;
+                    console.log(`[brief-parallel] lane=${lane.id} attempt=${attempt}/${attemptLimit} hit a transient Copilot service failure; waiting ${backoffSeconds}s before retrying only this lane`);
+                    await delay(backoffSeconds * 1000);
+                } else {
+                    console.log(`[brief-parallel] lane=${lane.id} attempt=${attempt}/${attemptLimit} failed; retrying only this lane`);
+                }
             }
         }
     }

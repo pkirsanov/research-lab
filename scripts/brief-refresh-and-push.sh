@@ -29,6 +29,7 @@
 #   BRIEF_NARRATIVE_TIMEOUT  per-attempt timeout in seconds for the Copilot call (default: 1800)
 #   BRIEF_LANE_ATTEMPTS      attempts for each failed lane (scheduler default: 2)
 #   BRIEF_LANE_CONCURRENCY   maximum simultaneous Copilot lanes (scheduler default: 2)
+#   BRIEF_LANE_TRANSIENT_BACKOFF_SECONDS base delay before retrying recognized transient Copilot service failures (default: 60)
 #   BRIEF_LANE_EXIT_GRACE    seconds to await process exit after a complete fragment (scheduler default: 60)
 #   BRIEF_LANE_TERMINATE_GRACE seconds between TERM and KILL for a lingering lane (scheduler default: 5)
 #   BRIEF_FETCH_BARS_TIMEOUT maximum seconds for the canonical bar refresh (default: 1200)

@@ -64,6 +64,7 @@ export BRIEF_NARRATIVE_ATTEMPTS="${BRIEF_NARRATIVE_ATTEMPTS:-2}"
 export BRIEF_NARRATIVE_TIMEOUT="${BRIEF_NARRATIVE_TIMEOUT:-2700}"
 export BRIEF_LANE_ATTEMPTS="${BRIEF_LANE_ATTEMPTS:-2}"
 export BRIEF_LANE_CONCURRENCY="${BRIEF_LANE_CONCURRENCY:-2}"
+export BRIEF_LANE_TRANSIENT_BACKOFF_SECONDS="${BRIEF_LANE_TRANSIENT_BACKOFF_SECONDS:-60}"
 export BRIEF_LANE_EXIT_GRACE="${BRIEF_LANE_EXIT_GRACE:-60}"
 export BRIEF_LANE_TERMINATE_GRACE="${BRIEF_LANE_TERMINATE_GRACE:-5}"
 export BRIEF_REPAIR_INVALID_BASELINE="${BRIEF_REPAIR_INVALID_BASELINE:-1}"
@@ -365,7 +366,7 @@ fi
 
 echo "[brief-scheduler] publisher checkout ready; developer worktree remains untouched"
 echo "[brief-scheduler] narrative policy: ${BRIEF_NARRATIVE_ATTEMPTS} attempt(s), ${BRIEF_NARRATIVE_TIMEOUT}s each"
-echo "[brief-scheduler] lane policy: ${BRIEF_LANE_CONCURRENCY} concurrent, ${BRIEF_LANE_ATTEMPTS} attempt(s) each, ${BRIEF_LANE_EXIT_GRACE}s post-write exit grace"
+echo "[brief-scheduler] lane policy: ${BRIEF_LANE_CONCURRENCY} concurrent, ${BRIEF_LANE_ATTEMPTS} attempt(s) each, ${BRIEF_LANE_TRANSIENT_BACKOFF_SECONDS}s transient-service backoff, ${BRIEF_LANE_EXIT_GRACE}s post-write exit grace"
 echo "[brief-scheduler] invalid-baseline repair: $BRIEF_REPAIR_INVALID_BASELINE (final validation remains mandatory)"
 BRIEF_REPO_ROOT="$PUBLISH_ROOT" \
 BRIEF_PUBLICATION_ACK_FILE="$ACK_FILE" \

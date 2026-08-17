@@ -343,7 +343,7 @@ console.log('[fixture-tier-a] candidate nextSessionDate=' + process.env.BUG002_C
   if (options.narrativeMode) {
     copilotPath = resolve(fixtureRoot, 'copilot-stub.mjs');
     writeFixtureScript(copilotPath, `#!/usr/bin/env node
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+  import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 const attempt = Number(process.env.BRIEF_NARRATIVE_ATTEMPT || 1);
 const lane = process.env.BRIEF_LANE_ID;
@@ -351,7 +351,7 @@ const researchTopicLane = typeof lane === 'string' && lane.startsWith('research-
 const laneAttempt = Number(process.env.BRIEF_LANE_ATTEMPT || 1);
 const keys = JSON.parse(process.env.BRIEF_LANE_KEYS || '[]');
 const outputPath = process.env.BRIEF_LANE_OUTPUT;
-if (lane === 'core') writeFileSync(process.env.BUG002_COPILOT_ATTEMPT_FILE, String(attempt));
+if (lane === 'core') appendFileSync(process.env.BUG002_COPILOT_ATTEMPT_FILE, JSON.stringify({ attempt, laneAttempt, startedAt: Date.now() }) + '\\n');
 const configPath = resolve('market-brief.config.json');
 const payloadPath = resolve('market-brief.payload.json');
 const config = JSON.parse(readFileSync(configPath, 'utf8'));
@@ -368,6 +368,11 @@ if (process.env.BUG002_NARRATIVE_MODE === 'retry-config' && attempt === 1 && lan
 }
 if (process.env.BUG002_NARRATIVE_MODE === 'lane-retry' && lane === 'groups' && laneAttempt === 1) {
   console.error('[fixture-copilot] groups lane failed on its first lane attempt');
+  process.exit(1);
+}
+if (process.env.BUG002_NARRATIVE_MODE === 'transient-auth' && lane === 'core' && laneAttempt === 1) {
+  console.error('Error: Authentication token found but could not be validated.');
+  console.error('Failed to fetch GitHub CLI user login (503): GitHub returned: No server is currently available to service your request.');
   process.exit(1);
 }
 const cleanConfigObserved = !Object.prototype.hasOwnProperty.call(config, 'failedAttemptLeak');

@@ -664,7 +664,7 @@ if (process.env.NODE_TEST_CONTEXT) {
     assert.ok(!publication.snapshotBytes.equals(fixture.baseline['market-brief.snapshot.json']));
     assert.ok(!publication.historyBytes.equals(fixture.baseline['brief-history.jsonl']));
     assert.ok(publication.payloadBytes.equals(fixture.baseline['market-brief.payload.json']));
-    assert.deepEqual(new Set(publication.lastCommitPaths), new Set(['brief-history.jsonl', 'brief-history.recent.jsonl', 'briefs/tier-a/2026-07.jsonl', 'data/raw-refresh.json', 'market-brief.scorecard.json', 'market-brief.snapshot.json', 'market-brief.snapshot.page.json']));
+    assert.deepEqual(new Set(publication.lastCommitPaths), new Set(['brief-history.jsonl', 'brief-history.recent.jsonl', 'briefs/tier-a/2026-07.jsonl', 'data/raw-refresh.json', 'market-brief.owner-reads.json', 'market-brief.scorecard.json', 'market-brief.snapshot.json', 'market-brief.snapshot.page.json']));
   });
 
   test('matching generated Tier B advances snapshot payload and history together', (context) => {
@@ -895,6 +895,7 @@ process.exit(1);
     }
     assert.equal(publication.snapshotDate, fixture.candidateDate);
     assert.equal(publication.payloadDate, fixture.candidateDate);
+    assert.equal(publication.status, '', 'a successful publication leaves no generated artifact outside its commit');
   });
 
   test('transient Copilot authentication service failure backs off before retrying the failed lane', (context) => {

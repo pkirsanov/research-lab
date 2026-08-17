@@ -24,7 +24,7 @@
 #   BRIEF_SKIP_NARRATIVE     set to 1 for a data-only run (skip the Copilot step)
 #   BRIEF_COPILOT_EXPECTED_PATH    pinned narrative-runtime path (default: /opt/homebrew/bin/copilot)
 #   BRIEF_COPILOT_EXPECTED_VERSION pinned narrative-runtime version as SELF-REPORTED by `copilot --version`
-#                                  (default: 1.0.75; npm package metadata is NOT the runtime version)
+#                                  (default: 1.0.80; npm package metadata is NOT the runtime version)
 #   BRIEF_NARRATIVE_ATTEMPTS max narrative gen+validate attempts per run (default: 1)
 #   BRIEF_NARRATIVE_TIMEOUT  per-attempt timeout in seconds for the Copilot call (default: 1800)
 #   BRIEF_LANE_ATTEMPTS      attempts for each failed lane (scheduler default: 2)
@@ -271,7 +271,7 @@ TIER_A_TIMEOUT="${BRIEF_TIER_A_TIMEOUT:-600}"
 PUSH_ATTEMPTS="${BRIEF_PUSH_ATTEMPTS:-5}"
 PUSH_RETRY_DELAY_SECONDS="${BRIEF_PUSH_RETRY_DELAY_SECONDS:-2}"
 COPILOT_EXPECTED_PATH="${BRIEF_COPILOT_EXPECTED_PATH:-/opt/homebrew/bin/copilot}"
-COPILOT_EXPECTED_VERSION="${BRIEF_COPILOT_EXPECTED_VERSION:-1.0.75}"
+COPILOT_EXPECTED_VERSION="${BRIEF_COPILOT_EXPECTED_VERSION:-1.0.80}"
 
 case "$PUSH_ATTEMPTS" in
   ''|*[!0-9]*|0) echo "[brief-timer] BRIEF_PUSH_ATTEMPTS must be a positive integer"; exit 1 ;;
@@ -335,7 +335,7 @@ elif [ "$COPILOT_BIN" != "$COPILOT_EXPECTED_PATH" ]; then
   COPILOT_BINDING="path-mismatch"
   COPILOT_BINDING_DETAIL="resolved $COPILOT_BIN, expected $COPILOT_EXPECTED_PATH"
 else
-  # "GitHub Copilot CLI 1.0.75." -> 1.0.75; a trailing sentence period is not part of the version.
+  # "GitHub Copilot CLI 1.0.80." -> 1.0.80; a trailing sentence period is not part of the version.
   copilot_version="$(copilot_version_probe "$COPILOT_BIN" \
     | awk 'NR==1{for(i=1;i<=NF;i++) if($i ~ /^[0-9]+\.[0-9]+\.[0-9]+\.?$/){sub(/\.$/,"",$i); print $i; exit}}')"
   if [ -z "$copilot_version" ]; then
@@ -559,11 +559,11 @@ if [ "$NARRATIVE_OK" != "1" ]; then
 fi
 
 if [ "$NARRATIVE_OK" = "1" ]; then
-  SELECTED_FILES=("${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data)
+  SELECTED_FILES=("${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" market-brief.owner-reads.json data)
   [ -d "$AGENDA_DIR" ] && SELECTED_FILES+=("$AGENDA_DIR")
   SELECTION="matching-pair"
 elif [ "$RETAINED_TIER_B_OK" = "1" ]; then
-  SELECTED_FILES=("${DATA_FILES[@]}" data)
+  SELECTED_FILES=("${DATA_FILES[@]}" market-brief.owner-reads.json data)
   SELECTION="same-target-data-only"
 else
   SELECTED_FILES=(data)

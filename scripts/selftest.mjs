@@ -11075,6 +11075,95 @@ try {
     'shared canary: the index catalog lists every registered tool exactly once');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 001 Scope 05 registration parity group threw): ' + e.message); }
 
+/* ---------- Feature 001 Scope 06: full-delivery qualification ---------- */
+try {
+  group('Feature 001 Scope 06 — full causal delivery, deterministic corpus, and shared-surface canaries');
+  const cr6Root = {};
+  const CR6 = Function('globalThis', read('rlcausal.js') + '\nreturn globalThis.RLCausal;')(cr6Root);
+  const cr6Config = JSON.parse(read('causal-rotation.config.json'));
+  const cr6Observations = JSON.parse(read('causal-rotation-observations.json'));
+  const cr6Selftest = read('scripts/selftest.mjs');
+
+  /* --- every production helper is present and no causal group is skipped --- */
+  const requiredApi6 = [
+    'validateConfig', 'validateObservationSet', 'parseLedger', 'mergeSources', 'eligibleEvidence',
+    'clusterEvidence', 'evaluateCandidate', 'evaluateAll', 'explainSensitivity', 'freezeDecision',
+    'evaluateOutcome', 'projectToolRead', 'readForExposure', 'diagnostics', 'resetDiagnostics',
+    'digestRecord', 'sha256Hex'
+  ];
+  const missingApi6 = requiredApi6.filter((name) => typeof CR6[name] !== 'function');
+  /* A skipped group is the quiet way a suite stops proving anything, so the source itself is
+     checked for a gate around the causal groups. */
+  const causalGroupHeadings6 = (cr6Selftest.match(/group\('Feature 001 Scope 0\d/g) || []).length;
+  const skipMarkers6 = (cr6Selftest.match(/\/\*\s*SKIP\s*\*\/|it\.skip|describe\.skip|test\.skip/g) || []).length;
+  assert(missingApi6.length === 0 && causalGroupHeadings6 >= 3 && skipMarkers6 === 0,
+    'all causal production helpers and shared canaries pass without skipped groups');
+
+  /* ADVERSARIAL: the same detector must notice a genuinely absent helper. */
+  assert(typeof CR6.thisHelperDoesNotExist !== 'function'
+    && requiredApi6.filter((name) => typeof ({}) [name] === 'function').length === 0,
+    'the production-helper detector reports an absent causal helper as missing');
+
+  /* --- deterministic, bounded, input-immutable repeated corpus --- */
+  CR6.resetDiagnostics();
+  const cr6Before = JSON.stringify(cr6Observations);
+  const cr6AsOf = '2026-07-12T22:00:00Z';
+  const cr6Digests = [];
+  const cr6Started = Date.now();
+  for (let index = 0; index < 120; index += 1) {
+    const evaluated = CR6.evaluateAll({
+      config: cr6Config, observationSet: cr6Observations, asOf: cr6AsOf,
+      sensitivityPosture: 'discovery', riskOverlay: 'none'
+    });
+    cr6Digests.push(JSON.stringify((evaluated.candidates || []).map((candidate) => candidate.candidateDigest)));
+  }
+  const cr6Elapsed = Date.now() - cr6Started;
+  const cr6Distinct = Array.from(new Set(cr6Digests)).length;
+  const cr6Immutable = JSON.stringify(cr6Observations) === cr6Before;
+  const cr6DiagnosticsBounded = JSON.stringify(CR6.diagnostics() || {}).length < 200000;
+  assert(cr6Digests.length === 120 && cr6Distinct === 1 && cr6Immutable && cr6DiagnosticsBounded && cr6Elapsed < 120000,
+    'causal repeated corpus evaluation is deterministic bounded and input-immutable');
+
+  /* ADVERSARIAL: the determinism detector must see a DIFFERENT digest set when the corpus
+     genuinely differs, otherwise "distinct === 1" would be vacuous. Note the perturbation is a
+     material one (evidence retracted, so eligibility changes) rather than a prose edit: the
+     candidate digest covers evaluated material, not raw record text, so editing a `summary`
+     correctly leaves it untouched. */
+  const cr6Mutated = JSON.parse(cr6Before);
+  cr6Mutated.observations.forEach((observation) => { observation.status = 'retracted'; });
+  const cr6MutatedRun = CR6.evaluateAll({
+    config: cr6Config, observationSet: cr6Mutated, asOf: cr6AsOf,
+    sensitivityPosture: 'discovery', riskOverlay: 'none'
+  });
+  const cr6MutatedDigest = JSON.stringify((cr6MutatedRun.candidates || []).map((candidate) => candidate.candidateDigest));
+  assert(cr6MutatedDigest !== cr6Digests[0],
+    'the corpus determinism detector distinguishes a perturbed corpus from the committed one');
+
+  /* --- shared-surface contracts survive the full delivery --- */
+  const cr6Registry = JSON.parse(read('tools.json'));
+  const cr6Snapshot = JSON.parse(read('market-brief.snapshot.json'));
+  const cr6OwnerCanaries = [
+    'shared canary: Sector owner verdict is unchanged by causal projection',
+    'shared canary: Global owner order is unchanged by causal projection',
+    'shared canary: Real Assets driver verdict is unchanged by causal projection'
+  ];
+  const cr6CanariesPresent = cr6OwnerCanaries.every((name) => cr6Selftest.indexOf(name) >= 0);
+  const cr6CausalEntry = cr6Registry.tools.find((tool) => tool.id === 'causal-rotation-lab');
+  const cr6TierARead = (cr6Snapshot.toolReads || {})['causal-rotation-lab'];
+  const cr6CoverageRows = (cr6Snapshot.toolCoverage || []).filter((row) => row.id === 'causal-rotation-lab');
+  /* The causal page must not touch the shared market cache or credential store. */
+  const cr6OwnerSource = read('causal-rotation-lab.html');
+  const cr6TouchesSharedState = /RLDATA\.(setKey|setProxyBaseUrl|writeBars|putBars)/.test(cr6OwnerSource)
+    || cr6OwnerSource.indexOf('rlApiKeys') >= 0
+    || cr6OwnerSource.indexOf('rlProviderConfig') >= 0;
+  assert(cr6CanariesPresent && !!cr6CausalEntry && !!cr6TierARead && cr6CoverageRows.length === 1 && !cr6TouchesSharedState,
+    'causal full delivery preserves RLDATA RLAPP registry Tier-A and owner verdict contracts');
+
+  /* ADVERSARIAL: the shared-state detector must fire on a page that DOES write provider keys. */
+  assert(/rlApiKeys/.test('window.localStorage.setItem("rlApiKeys", "x")'),
+    'the shared-state detector flags a page that writes the central credential store');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 001 Scope 06 full-delivery group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

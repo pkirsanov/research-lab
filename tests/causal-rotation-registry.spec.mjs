@@ -100,6 +100,11 @@ test('Regression: registered causal page notes data and snapshot resources retur
 test('Regression: Invalidation occurs before confirmation', async ({ page }) => {
   await openLab(page, { candidate: COMPLETE_CANDIDATE, mode: 'power' });
 
+  /* Precondition: with nothing recorded, the panel says "insufficient history" EXPLICITLY.
+     A blank panel would read as a clean track record, which is the opposite of the truth. */
+  await expect(page.locator('#noOutcomeHistory')).toBeVisible();
+  await expect(page.locator('#noOutcomeHistory')).toContainText('insufficient history');
+
   await page.click('#freezeBtn');
   await expect(page.locator('#savedNotice')).toBeVisible();
 

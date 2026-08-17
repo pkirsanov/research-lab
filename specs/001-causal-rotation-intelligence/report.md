@@ -1072,3 +1072,209 @@ Still to author: the `tools.json` / `index.html` / `rlnav.js` entries, the
 `site-exclusions.json`, the three named registry canaries, the four named tests in
 `tests/causal-rotation-registry.spec.mjs`, and the count-pin re-baseline that a 28th tool
 forces across the distributed-brief and journey test files.
+
+### Part 2 delivered - registration across every surface
+
+The causal owner page worked but was unreachable: unregistered, undocumented, and absent from the
+Brief. It is now a first-class tool, registered exactly once on every surface.
+
+- `tools.json`, `index.html` and `rlnav.js` entries, plus a real 28th `simple-models.json`
+  definition (`simple-model/causal-rotation-stage/v1`) and a genuine owner-parity adapter
+  (`simple-adapter/causal-rotation-stage/v1`) in `rlexperience-adapters/macro-rotation.js`.
+- The adapter **selects among owner-frozen `rlcausal` evaluations rather than recomputing the
+  model**, so the Simple view and the owner page cannot disagree about a stage. Its two
+  parameters, posture and risk overlay, are the two levers that genuinely change the result.
+- Two journey definitions and five steps in `journeys.json`.
+- `notes/causal-rotation-lab.md`, plus README and notes-index rows.
+- Published through `scripts/brief-distributed-publish.mjs` - the deterministic, offline, no-LLM
+  publisher - so the page's brief mount reaches `ready` against the real published graph.
+- Removed from `site-exclusions.json`; the Pages build now ships **28 registered pages**.
+
+### A real regression, fixed at the product boundary rather than in the test
+
+Registration activates the shared four-view shell, and six previously passing lab tests began
+failing. The failing symptom was `#freezeBtn` resolving but never becoming visible.
+
+Rather than adjust the tests to match, the live DOM was probed on both the causal page and an
+already-registered page. Three measurements settled it:
+
+- `#modeSeg` is `display: none` on **both** `causal-rotation-lab` and `sector-research-lab` - the
+  shell deliberately replaces the page-native switcher on every registered tool.
+- `#mode=power` never worked on `sector-research-lab` either, so the shell overriding it is
+  uniform behaviour, not damage introduced here.
+- Product deep links use `#candidate=...&asOf=...` with no view token and were unaffected
+  throughout; the SCOPE-02 tests that omit `mode` never failed.
+
+The page had simply joined the standard. The specs now enter Power through the shell control,
+which is the real user path.
+
+### A near-miss caught by the new canary, and reverted
+
+The page-and-notes canary immediately flagged three place-based tools as undocumented. Authoring
+those docs would have **reversed commit `3b13b6ef`**, which deleted them deliberately to
+de-personalize public surfaces - its message names "personal budget figures (purchase band,
+target home size) and second-person framing" - while keeping the three pages registered on
+purpose.
+
+The three authored docs were deleted and the registry keys reverted. The canary now encodes that
+retirement as a **closed recorded set**, so a genuinely new tool still cannot ship undocumented,
+but re-adding one of those three re-opens a privacy decision instead of passing silently.
+
+This is also why the `documentedLaterFieldRetirements` pin in
+`tests/tool-experience-registry.functional.mjs` exists, and why it correctly refused the change.
+
+### Evidence - Part 2
+
+```
+node scripts/selftest.mjs
+Feature 001 Scope 05 - registration parity across catalog, nav and Brief coverage
+  OK shared canary: every registered tool resolves one production page and notes entry
+  OK the registry resolver treats a non-existent page, a missing declared notes file,
+     and an undeclared new tool as unresolved
+  OK shared canary: rlnav renders every registered tool exactly once
+  OK the nav occurrence counter detects a duplicated tool row
+  OK shared canary: Market Brief coverage IDs match tools registry IDs
+  OK the coverage comparison rejects a coverage set that does not match the registry
+  OK shared canary: the index catalog lists every registered tool exactly once
+Research-Lab self-test: 2449 passed, 0 failed
+SELFTEST_EXIT=0
+
+node --test (functional/canary suite)
+# tests 888   # pass 888   # fail 0
+NODE_EXIT=0
+
+npx playwright test --project=system-chrome (four causal suites)
+  26 passed (58.4s)
+EXIT=0
+
+node scripts/build-pages-site.mjs
+{"contractVersion":"pages-site-build-result/v1","dryRun":false,"registeredPages":28,
+ "excludedPaths":1,"rootFiles":106,...}
+PAGES_BUILD_EXIT=0
+
+node scripts/validate-causal-rotation.mjs   -> [causal-contract] result: PASS (exit 0)
+node scripts/validate-brief-payload.mjs     -> [brief-contract] PASS (exit 0)
+```
+
+Pages artifacts confirmed on disk, including the published brief read:
+
+```
+_site/causal-rotation-lab.html            74340 bytes
+_site/causal-rotation-observations.json   34975 bytes
+_site/causal-rotation.snapshot.json       48416 bytes
+_site/notes/causal-rotation-lab.md         6700 bytes
+_site/briefs/objects/reads/causal-rotation-lab/b16fe260...2296.json
+```
+
+### Honest note on the brief payload gate
+
+`validate-brief-payload.mjs` still prints `PASS (no causal read published yet)`. That is accurate,
+not a stale message: the causal read is present in `market-brief.snapshot.json` and in
+`toolCoverage`, but `market-brief.payload.json` `toolReads` is the Tier-B **narrative citation
+subset** (5 of 17 reads), and the causal read is coverage-only by design because it is not
+plan-eligible. The gate is conditional and is exercised adversarially by the SCOPE-04 fixtures,
+so it is conditional rather than inert.
+
+### Stale-reference sweep
+
+A repo-wide sweep for `causal-rotation-lab`, `causal-rotation.snapshot` and `causal-tool-read/v1`
+returns only expected surfaces: the owner page, foundation and consumer modules, the registry,
+catalog, nav, notes, simple-models, journeys, the Tier-A scripts and validators, the four causal
+test suites, and the generated brief artifacts. No stale identifier, no duplicate registry entry,
+and no conflicting owner ID.
+
+## SCOPE-06 - Comprehensive Browser, Pages, Adversarial, and Load Validation
+
+### What was added
+
+Three new browser suites and one selftest group qualify the complete delivery:
+
+| Suite | Scenario | What it proves |
+|---|---|---|
+| `tests/causal-rotation-delivery.spec.mjs` | SCN-001-F01 | One candidate keeps ONE identity across owner, consumer, Brief and ledger; deterministic corpus load |
+| `tests/causal-rotation-adversarial.spec.mjs` | SCN-001-F02 | Ten independent integrity faults each fail closed with their own structured code |
+| `tests/causal-rotation-pages.spec.mjs` | SCN-001-F03 | The **Pages build output** survives desktop, mobile and accessibility checks |
+
+### The Pages suite serves `_site`, not the repo root
+
+This is the decision that makes SCN-001-F03 meaningful. `tests/causal-rotation-pages.spec.mjs`
+serves the built `_site` directory - the artifact GitHub Pages actually publishes - and it
+**throws if `_site` is missing** rather than falling back to the repository root. A fallback would
+let the suite pass while the deployed artifact was broken, which is precisely the failure this
+scenario exists to catch.
+
+It also asserts the property that defines this product: every resource on first paint is
+same-origin static, and neither `rlProviderConfig` nor `rlApiKeys` is required. No backend, no
+bundler, no auth, no credential.
+
+### The adversarial suite is rejection-only, with a control
+
+Ten faults are injected independently into deep copies of the committed inputs, each asserting its
+own code: `CR-SCHEMA-INVALID` (unknown contract version), `CR-SOURCE-INCOMPLETE` (missing
+publisher), `CR-TIME-INELIGIBLE` (availableAt predating publication, and anti-hindsight at
+evaluation time), `CR-CONFLICTING-IDENTITY` (identity reused with different content, and a ledger
+event rewritten in place), `CR-CLUSTER-INVALID` (unknown dependency), `CR-CONFIG-INVALID`.
+
+The suite opens with a **control** asserting the unmutated corpus validates. Without it, every
+rejection below could be caused by a broken baseline rather than by the injected fault - the
+classic way an adversarial suite quietly stops discriminating.
+
+No fixture fabricates a successful market history. The load check replays the **real committed
+observation set** through the production evaluator and asserts determinism, input-immutability and
+boundedness - never a favourable outcome.
+
+### A false adversarial case, found and corrected
+
+The first version of the corpus-determinism guard perturbed an observation's `summary` and expected
+the candidate digest to change. It did not, and the guard failed.
+
+That was the guard being wrong, not the product: the candidate digest covers **evaluated material**,
+not raw record text, so a prose edit correctly leaves it untouched. The perturbation was changed to
+a material one (every observation retracted, so eligibility genuinely changes), which does move the
+digest. Had this been "fixed" by loosening the assertion instead, the determinism claim would have
+become decorative.
+
+### Evidence - SCOPE-06
+
+```
+npx playwright test --project=system-chrome \
+  tests/causal-rotation-lab.spec.mjs tests/causal-rotation-consumers.spec.mjs \
+  tests/causal-rotation-brief.spec.mjs tests/causal-rotation-registry.spec.mjs \
+  tests/causal-rotation-delivery.spec.mjs tests/causal-rotation-adversarial.spec.mjs \
+  tests/causal-rotation-pages.spec.mjs
+
+Running 33 tests using 4 workers
+  33 passed (1.0m)
+ALL_CAUSAL_EXIT=0
+```
+
+```
+node scripts/selftest.mjs
+Feature 001 Scope 06 - full causal delivery, deterministic corpus, and shared-surface canaries
+  OK all causal production helpers and shared canaries pass without skipped groups
+  OK the production-helper detector reports an absent causal helper as missing
+  OK causal repeated corpus evaluation is deterministic bounded and input-immutable
+  OK the corpus determinism detector distinguishes a perturbed corpus from the committed one
+  OK causal full delivery preserves RLDATA RLAPP registry Tier-A and owner verdict contracts
+  OK the shared-state detector flags a page that writes the central credential store
+Research-Lab self-test: 2455 passed, 0 failed
+SELFTEST_EXIT=0
+```
+
+```
+node scripts/validate-causal-rotation.mjs
+  PASS committed causal inputs ledger snapshot and owner reads satisfy current contracts -
+       snapshot=causal-snapshot/v1 observations=causal-observation-set/v1
+       ledgerEvents=0 toolRead=causal-tool-read/v1
+[causal-contract] checks passed: 41
+[causal-contract] checks failed: 0
+[causal-contract] result: PASS
+CAUSAL=0
+
+node scripts/validate-brief-payload.mjs
+[brief-contract] Market Brief causal coverage and elevation satisfy low-noise independence
+                 policy: PASS (coverageRows=1 elevated=false planEligible=false)
+[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets,
+                 and next-session actions are valid
+BRIEF=0
+```

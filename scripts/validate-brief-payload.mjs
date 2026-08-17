@@ -687,6 +687,23 @@ function main() {
   }
   console.log('[brief-contract] causal brief items require eligible stage owner freshness independent reason and falsifiers: '
     + (payload?.toolReads?.['causal-rotation-lab'] === undefined ? 'PASS (no causal read published yet)' : 'PASS'));
+  /* Feature 001 Scope 06 — the named low-noise assertion. A causal read may be COVERED without
+     consuming an action or attention slot; elevating a non-plan-eligible cause would be exactly
+     the noise this policy exists to refuse. */
+  const causalSnapshot = loadJson('market-brief.snapshot.json');
+  const causalCoverage = (causalSnapshot?.toolCoverage || []).filter((row) => row.id === 'causal-rotation-lab');
+  const causalSnapshotRead = causalSnapshot?.toolReads?.['causal-rotation-lab'];
+  const causalElevated = (payload?.recommendations || []).some((row) => JSON.stringify(row).includes('causal-rotation-lab'))
+    || (payload?.attention || []).some((row) => JSON.stringify(row).includes('causal-rotation-lab'));
+  const causalPlanEligible = causalSnapshotRead?.metrics?.planEligible === true;
+  const lowNoiseOk = causalCoverage.length <= 1 && (!causalElevated || causalPlanEligible);
+  if (!lowNoiseOk) {
+    console.log('[brief-contract] Market Brief causal coverage and elevation satisfy low-noise independence policy: FAIL');
+    process.exitCode = 1;
+  } else {
+    console.log('[brief-contract] Market Brief causal coverage and elevation satisfy low-noise independence policy: PASS'
+      + ' (coverageRows=' + causalCoverage.length + ' elevated=' + causalElevated + ' planEligible=' + causalPlanEligible + ')');
+  }
   console.log('[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid');
 }
 

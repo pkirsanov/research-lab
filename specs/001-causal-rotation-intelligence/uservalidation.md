@@ -30,6 +30,20 @@ Validate that the delivered Research Lab capability helps a user discover and ch
 - [x] Planning baseline includes exact persistent Regression E2E tests for every scenario and independent RLDATA/RLAPP/registry/Tier-A/owner-verdict canaries.
 - [x] Planning baseline requires Simple/Power parity, synchronous nonblank charts, accessibility, no-refetch controls, honest storage failures, and local/Pages desktop/mobile qualification.
 
+### Delivered behaviour (uncheck any item that does not hold when you use the tool)
+
+- [x] Causal Rotation Lab is reachable from the catalog and the shared navigation, exactly once in each, and its notes page opens.
+- [x] Simple opens by default with one readable verdict, and the posture and overlay levers change that verdict without refetching anything.
+- [x] Power shows the candidate table, evidence clusters, clocks, contradictions and the chart, describing the same candidate Simple named.
+- [x] A stage reads as evidence strength, never as a forecast, a position, or an expected return.
+- [x] Freezing a decision records it locally; recording an outcome afterwards leaves the frozen decision and its digest unchanged.
+- [x] A correction annotates the outcome it targets and the original event stays visible.
+- [x] With nothing recorded, the outcome history says "insufficient history" explicitly rather than showing an empty, clean-looking table.
+- [x] Sector Rotation, Global Rotation and Real Assets keep their own verdicts and ordering; the causal strip only adds context.
+- [x] Market Brief lists the causal tool in coverage without letting a non-plan-eligible cause consume an action or attention slot.
+- [x] The tool works on a phone-sized screen without horizontal scrolling or clipped panels.
+- [x] Nothing asks for an API key or any credential to see the causal read.
+
 ## Open Refinements
 
 None found - the current specification and design resolve the planning decisions needed for implementation. Evidence-provider coverage remains record-by-record and must appear as unavailable whenever its contract cannot be satisfied.

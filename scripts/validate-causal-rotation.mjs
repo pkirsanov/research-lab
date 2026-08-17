@@ -277,6 +277,20 @@ function main() {
     timingOk && missingFreshness.ok === false && missingFreshness.errors.length > 0,
     'contract=' + consumer.TIMING_CONTRACT + ' rejectedIncomplete=' + (missingFreshness.ok === false));
 
+  /* Feature 001 Scope 06 — the single named full-contract assertion. It restates, as one
+     verdict, that every committed causal surface satisfies its CURRENT contract version. */
+  const ownerRead = api.projectToolRead(snapshot, config);
+  check('committed causal inputs ledger snapshot and owner reads satisfy current contracts',
+    failures === 0
+      && snapshot.contractVersion === config.contracts.snapshot
+      && observationSet.contractVersion === config.contracts.observationSet
+      && ledgerResult.ok === true
+      && !!ownerRead && ownerRead.metrics.contractVersion === config.contracts.toolRead,
+    'snapshot=' + snapshot.contractVersion
+      + ' observations=' + observationSet.contractVersion
+      + ' ledgerEvents=' + ledgerResult.events.length
+      + ' toolRead=' + (ownerRead ? ownerRead.metrics.contractVersion : 'absent'));
+
   console.log('[causal-contract] ------------------------------------------------');
   console.log('[causal-contract] checks passed: ' + passes);
   console.log('[causal-contract] checks failed: ' + failures);

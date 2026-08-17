@@ -10889,6 +10889,110 @@ try {
     'the isolation detector refuses a stage or snapshot on invalid causal input');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 001 Scope 04 Tier-A causal group threw): ' + e.message); }
 
+/* ---------- Feature 001 Scope 05: outcome + correction ledger ---------- */
+try {
+  group('Feature 001 Scope 05 — outcomes and corrections append without rewriting history');
+  const cr5Root = {};
+  const CR5 = Function('globalThis', read('rlcausal.js') + '\nreturn globalThis.RLCausal;')(cr5Root);
+  const cr5Config = JSON.parse(read('causal-rotation.config.json'));
+  const cr5Observations = JSON.parse(read('causal-rotation-observations.json'));
+  const cr5AsOf = '2026-07-12T22:00:00Z';
+  const cr5Evaluated = CR5.evaluateAll({
+    config: cr5Config, observationSet: cr5Observations, asOf: cr5AsOf,
+    sensitivityPosture: 'base', riskOverlay: 'none'
+  });
+  const cr5Candidate = (cr5Evaluated.candidates || [])[0];
+  assert(!!cr5Candidate, 'Feature 001 Scope 05 fixture produces at least one evaluated candidate');
+
+  const cr5Decision = CR5.freezeDecision(cr5Candidate, {
+    decisionId: 'dec:scope05', decisionAt: cr5AsOf,
+    configVersion: cr5Config.version, evaluatorVersion: cr5Config.evaluatorVersion
+  });
+  /* Byte image of the frozen decision BEFORE any outcome is evaluated. */
+  const cr5FrozenBytes = JSON.stringify(cr5Decision);
+  const cr5FrozenDigest = cr5Decision.decisionDigest;
+
+  const cr5Falsified = CR5.evaluateOutcome(cr5Decision, {
+    contractVersion: cr5Config.contracts.ledgerEvent,
+    observedAt: '2026-08-01T00:00:00Z',
+    evaluatorVersion: cr5Config.evaluatorVersion,
+    invalidationConditionIds: ['inv:demand-reverses'],
+    confirmationConditionIds: [],
+    sourceObservationIds: [],
+    windowExpired: false
+  });
+  assert(cr5Falsified && cr5Falsified.state === 'falsified'
+    && JSON.stringify(cr5Decision) === cr5FrozenBytes
+    && cr5Decision.decisionDigest === cr5FrozenDigest
+    && cr5Falsified.decisionDigest === cr5FrozenDigest
+    && cr5Falsified.frozenCandidateDigest === cr5Candidate.candidateDigest,
+    'causal outcome append classifies falsification without mutating frozen decision bytes');
+
+  /* ADVERSARIAL: a decision whose bytes were edited after freezing must NOT keep reproducing the
+     recorded integrity digest — otherwise the "unchanged bytes" claim above proves nothing. */
+  const cr5Tampered = JSON.parse(cr5FrozenBytes);
+  cr5Tampered.sensitivityPosture = cr5Tampered.sensitivityPosture === 'base' ? 'adverse' : 'base';
+  const cr5TamperedOutcome = CR5.evaluateOutcome(cr5Tampered, {
+    contractVersion: cr5Config.contracts.ledgerEvent,
+    observedAt: '2026-08-01T00:00:00Z',
+    evaluatorVersion: cr5Config.evaluatorVersion,
+    invalidationConditionIds: ['inv:demand-reverses'],
+    confirmationConditionIds: [], sourceObservationIds: [], windowExpired: false
+  });
+  assert(cr5TamperedOutcome.decisionIntegrityDigest !== cr5Falsified.decisionIntegrityDigest,
+    'the causal outcome integrity digest changes when the frozen decision bytes are edited');
+
+  /* An unresolved observation must stay unresolved rather than resolving by default. */
+  const cr5Unresolved = CR5.evaluateOutcome(cr5Decision, {
+    contractVersion: cr5Config.contracts.ledgerEvent,
+    observedAt: '2026-08-02T00:00:00Z',
+    evaluatorVersion: cr5Config.evaluatorVersion,
+    invalidationConditionIds: [], confirmationConditionIds: [],
+    sourceObservationIds: [], windowExpired: false
+  });
+  assert(cr5Unresolved.state === 'unresolved',
+    'causal outcome with no fired condition and no expiry stays explicitly unresolved');
+
+  /* ---- correction appends against a committed prefix ---- */
+  const cr5Wrap = (eventType, eventId, recordedAt, payload) => {
+    const event = { contractVersion: cr5Config.contracts.ledgerEvent, eventType, eventId, recordedAt, payload };
+    event.contentDigest = CR5.digestRecord(event);
+    return event;
+  };
+  const cr5DecisionEvent = cr5Wrap('decision', 'evt:dec:scope05', cr5AsOf, JSON.parse(cr5FrozenBytes));
+  const cr5OutcomeEvent = cr5Wrap('outcome', 'evt:outcome:scope05', '2026-08-01T00:00:00Z',
+    Object.assign(JSON.parse(JSON.stringify(cr5Falsified)), { decisionEventId: 'evt:dec:scope05' }));
+  const cr5Prefix = [JSON.stringify(cr5DecisionEvent), JSON.stringify(cr5OutcomeEvent)].join('\n') + '\n';
+  const cr5CorrectionEvent = cr5Wrap('correction', 'evt:correction:scope05', '2026-08-03T00:00:00Z',
+    { targetEventId: 'evt:outcome:scope05', reason: 'The invalidation was attributed to the wrong catalyst.' });
+  const cr5Appended = cr5Prefix + JSON.stringify(cr5CorrectionEvent) + '\n';
+
+  const cr5Parsed = CR5.parseLedger(cr5Appended, cr5Config);
+  assert(cr5Parsed.ok
+    && cr5Parsed.events.length === 3
+    && cr5Appended.slice(0, cr5Prefix.length) === cr5Prefix
+    && cr5Parsed.events[1].eventId === 'evt:outcome:scope05'
+    && cr5Parsed.events[2].payload.targetEventId === 'evt:outcome:scope05',
+    'causal correction appends and preserves the committed ledger prefix');
+
+  /* ADVERSARIAL: rewriting a prior event in place must be detectable — the stale contentDigest
+     no longer matches the edited bytes, so a silently mutated prefix cannot parse clean. */
+  const cr5MutatedOutcome = JSON.parse(JSON.stringify(cr5OutcomeEvent));
+  cr5MutatedOutcome.payload.state = 'confirmed';
+  const cr5MutatedLedger = [JSON.stringify(cr5DecisionEvent), JSON.stringify(cr5MutatedOutcome),
+    JSON.stringify(cr5CorrectionEvent)].join('\n') + '\n';
+  const cr5MutatedParsed = CR5.parseLedger(cr5MutatedLedger, cr5Config);
+  assert(!cr5MutatedParsed.ok,
+    'the causal ledger refuses a prior event whose bytes were rewritten in place');
+
+  /* ADVERSARIAL: a correction that references nothing must be refused, so a correction can never
+     be used to introduce an event with no target. */
+  const cr5Orphan = cr5Wrap('correction', 'evt:correction:orphan', '2026-08-04T00:00:00Z',
+    { targetEventId: 'evt:outcome:does-not-exist', reason: 'dangling' });
+  assert(!CR5.parseLedger(cr5Prefix + JSON.stringify(cr5Orphan) + '\n', cr5Config).ok,
+    'the causal ledger refuses a correction that references no earlier event');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 001 Scope 05 ledger group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

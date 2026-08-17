@@ -11195,6 +11195,172 @@ try {
     'the shared-state detector flags a page that writes the central credential store');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 001 Scope 06 full-delivery group threw): ' + e.message); }
 
+/* ============================================================================
+ * Feature 013 Scope 01 — rlratio
+ * ==========================================================================*/
+group('rlratio');
+try {
+  const { createRequire } = await import('node:module');
+  const ratioRequire = createRequire(import.meta.url);
+  const RLRATIO = ratioRequire('../rlratio.js');
+  const ratioRegistry = ratioRequire('../ratio-pairs.json');
+
+  const RATIO_CLOCK = '2026-01-01T00:00:00.000Z';
+  const usdRef = { numerator: 'USD', denominator: 'USD' };
+  const ratioBars = (count, close) => Array.from({ length: count }, (unused, index) => ({
+    date: new Date(Date.UTC(2025, 0, 1 + index)).toISOString().slice(0, 10),
+    close: close(index)
+  }));
+  const ratioOpts = (overrides) => Object.assign({
+    pairId: 'SOXX/SPY',
+    ratioFamilyId: 'semis-vs-market',
+    lookbackBars: 10,
+    semanticClass: 'risk-appetite',
+    decisionTime: RATIO_CLOCK,
+    adjustmentRef: { numeratorAdjustment: 'total-return', denominatorAdjustment: 'total-return' },
+    currencyRef: usdRef,
+    sessionRef: usdRef,
+    calendarRef: usdRef
+  }, overrides || {});
+
+  /* TP-01-01 / BS-013-013 */
+  const rSeries = RLRATIO.ratioSeries(ratioBars(40, (i) => 100 + i), ratioBars(40, () => 50), ratioOpts());
+  const rTrend = RLRATIO.trailingChange(rSeries, { lookbackBars: 10, decisionTime: RATIO_CLOCK });
+  const rStats = RLRATIO.windowStats(rSeries.points.map((p) => p.ratio), { windowRef: rSeries.windowRef, decisionTime: RATIO_CLOCK });
+  /* The window must come back ON the reading: "+1.8" means different things over 10 bars and 252. */
+  assert(rSeries.availability === 'available' && rSeries.observedCount === 10
+    && Number.isFinite(rTrend.trailingPct)
+    && Number.isFinite(rStats.zScore)
+    && rStats.windowRef.observations === 10
+    && rStats.windowRef.startDate === rSeries.windowRef.startDate
+    && rStats.windowRef.endDate === rSeries.windowRef.endDate,
+    'RLRATIO ratioSeries returns level, trend, and a z-score carrying its declared window');
+
+  /* TP-01-02 + TP-01-06 adversarial: SOXX/SPY and SMH/SPY are ONE family, not two confirmations. */
+  const familyReadings = [
+    { pairId: 'SOXX/SPY', ratioFamilyId: 'semis-vs-market', availability: 'available', trailingPct: 5 },
+    { pairId: 'SMH/SPY', ratioFamilyId: 'semis-vs-market', availability: 'available', trailingPct: 4 },
+    { pairId: 'IWM/SPY', ratioFamilyId: 'small-vs-large', availability: 'available', trailingPct: -2 }
+  ];
+  const grouped = RLRATIO.groupByFamily(familyReadings);
+  const semis = grouped.find((f) => f.ratioFamilyId === 'semis-vs-market');
+  const totalWeight = grouped.reduce((sum, f) => sum + f.confirmationWeight, 0);
+  assert(grouped.length === 2 && semis.memberPairIds.length === 2
+    && semis.confirmationWeight === 1 && totalWeight === 2
+    && semis.memberAgreement === 'agree'
+    /* ADVERSARIAL: per-pair weighting would make this 3, which is the double-count this forbids. */
+    && totalWeight !== familyReadings.length,
+    'RLRATIO groupByFamily collapses same-ratioFamilyId pairs to confirmationWeight 1');
+
+  /* TP-01-03 / BS-013-015 */
+  const mismatched = RLRATIO.ratioSeries(ratioBars(40, (i) => 100 + i), ratioBars(40, () => 50),
+    ratioOpts({ adjustmentRef: { numeratorAdjustment: 'total-return', denominatorAdjustment: 'price-return' } }));
+  const shortHistory = RLRATIO.ratioSeries(ratioBars(5, (i) => 100 + i), ratioBars(5, () => 50), ratioOpts());
+  const noOverlap = RLRATIO.ratioSeries(ratioBars(40, (i) => 100 + i), [{ date: '2019-01-01', close: 50 }], ratioOpts());
+  const mismatchedTrend = RLRATIO.trailingChange(mismatched, { lookbackBars: 10, decisionTime: RATIO_CLOCK });
+  assert(mismatched.availability === 'unavailable' && mismatched.unavailableReason === 'ADJUSTMENT_MISMATCH'
+    && shortHistory.unavailableReason === 'INSUFFICIENT_HISTORY'
+    && noOverlap.unavailableReason === 'NO_COMMON_DATES'
+    /* No number may leak from an unavailable pair — that is the whole point of the state. */
+    && mismatched.points.length === 0 && mismatchedTrend.trailingPct === null,
+    'RLRATIO reports unavailable with a reason on adjustment mismatch or short intersected history');
+
+  /* TP-01-04 / BS-013-016 */
+  const crossSession = RLRATIO.ratioSeries(ratioBars(40, (i) => 100 + i), ratioBars(40, () => 50),
+    ratioOpts({ sessionRef: { numerator: 'XNYS', denominator: 'XTKS' } }));
+  const crossCurrency = RLRATIO.ratioSeries(ratioBars(40, (i) => 100 + i), ratioBars(40, () => 50),
+    ratioOpts({ currencyRef: { numerator: 'USD', denominator: 'JPY' } }));
+  const alignedAgain = RLRATIO.ratioSeries(ratioBars(40, (i) => 100 + i), ratioBars(40, () => 50), ratioOpts());
+  assert(crossSession.comparability === 'not-comparable' && crossSession.unavailableReason === 'SESSION_MISMATCH'
+    && crossCurrency.comparability === 'not-comparable' && crossCurrency.unavailableReason === 'CURRENCY_MISMATCH'
+    && crossSession.points.length === 0
+    /* And when alignment IS satisfied the pair emits its read with the basis shown. */
+    && alignedAgain.comparability === 'comparable' && alignedAgain.availability === 'available',
+    'RLRATIO reports not-comparable naming the session or FX misalignment');
+
+  /* TP-01-05: typed errors at declared paths, deep-frozen export, caveat propagation. */
+  const captureRatio = (fn) => { try { fn(); return null; } catch (error) { return error; } };
+  const typedErrors = [
+    captureRatio(() => RLRATIO.ratioSeries('nope', [], ratioOpts())),
+    captureRatio(() => RLRATIO.ratioSeries([], [], ratioOpts({ decisionTime: 'not-an-instant' }))),
+    captureRatio(() => RLRATIO.windowStats([1, 2, 3], { decisionTime: RATIO_CLOCK })),
+    captureRatio(() => RLRATIO.groupByFamily([{ pairId: 'X' }])),
+    captureRatio(() => RLRATIO.validatePairRegistry({ contractVersion: 'ratio-pair-registry/v0', pairs: [] }))
+  ];
+  const caveated = RLRATIO.ratioSeries(ratioBars(40, (i) => 100 + i), ratioBars(40, () => 50),
+    ratioOpts({ provenanceCaveat: 'ETF proxy for spot metal' }));
+  const caveatedTrend = RLRATIO.trailingChange(caveated, { lookbackBars: 10, decisionTime: RATIO_CLOCK });
+  assert(typedErrors.every((error) => error && typeof error.code === 'string' && typeof error.path === 'string')
+    && typedErrors[0].code === 'RLRATIO_SCHEMA_INVALID' && typedErrors[0].path === '$.rowsA'
+    && typedErrors[1].code === 'RLRATIO_DECISION_TIME_INVALID'
+    && typedErrors[2].path === '$.windowRef'
+    && typedErrors[3].path === '$.readings[0].ratioFamilyId'
+    && typedErrors[4].code === 'RLRATIO_CONTRACT_VERSION'
+    && Object.isFrozen(RLRATIO) && Object.isFrozen(rSeries) && Object.isFrozen(rSeries.points)
+    /* A leg caveat must survive to the reading rather than being dropped at the boundary. */
+    && caveatedTrend.provenanceCaveat === 'ETF proxy for spot metal',
+    'RLRATIO throws typed RLRATIO_* errors, deep-freezes its export, and propagates leg caveats');
+
+  /* The committed registry is the contract the lab reads; a malformed one must not ship. */
+  const registrySummary = RLRATIO.validatePairRegistry(ratioRegistry);
+  const semisPairs = ratioRegistry.pairs.filter((pair) => pair.ratioFamilyId === 'semis-vs-market');
+  const ratioSource = read('rlratio.js');
+  assert(registrySummary.contractVersion === 'ratio-pair-registry/v1'
+    && registrySummary.pairCount === ratioRegistry.pairs.length
+    && semisPairs.length === 2
+    && ratioRegistry.pairs.every((pair) => Number.isInteger(pair.lookbackBars) && pair.lookbackBars >= 2)
+    && ratioRegistry.pairs.every((pair) => typeof pair.directionConvention === 'string' && pair.directionConvention.length > 0)
+    /* The global isFinite admits null, which is how a missing leg reaches .toFixed() and throws. */
+    && (ratioSource.match(/[^.\w]isFinite\(/g) || []).length === 0
+    && ratioSource.indexOf('Date.now()') < 0
+    && /TODO|FIXME|STUB/.test(ratioSource) === false,
+    'ratio-pairs.json validates as ratio-pair-registry/v1 and rlratio.js carries no global isFinite, ambient clock, or stub');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 013 Scope 01 rlratio group threw): ' + e.message); }
+
+group('rlratio-scale');
+try {
+  const { createRequire } = await import('node:module');
+  const scaleRequire = createRequire(import.meta.url);
+  const RLRATIO = scaleRequire('../rlratio.js');
+
+  const SCALE_CLOCK = '2030-01-01T00:00:00.000Z';
+  const usdRef = { numerator: 'USD', denominator: 'USD' };
+  /* The largest lookback the committed registry declares, exercised end to end. */
+  const largestLookback = 252;
+  const scaleBars = (count, close) => Array.from({ length: count }, (unused, index) => ({
+    date: new Date(Date.UTC(2020, 0, 1 + index)).toISOString().slice(0, 10),
+    close: close(index)
+  }));
+  const rowsA = scaleBars(3000, (i) => 100 + Math.sin(i / 7) * 5 + i * 0.01);
+  const rowsB = scaleBars(3000, (i) => 50 + Math.cos(i / 11) * 2);
+  const scaleOpts = {
+    pairId: 'IWM/SPY',
+    ratioFamilyId: 'small-vs-large',
+    lookbackBars: largestLookback,
+    semanticClass: 'breadth',
+    decisionTime: SCALE_CLOCK,
+    adjustmentRef: { numeratorAdjustment: 'total-return', denominatorAdjustment: 'total-return' },
+    currencyRef: usdRef,
+    sessionRef: usdRef,
+    calendarRef: usdRef
+  };
+
+  const startedAt = Date.now();
+  const first = RLRATIO.ratioSeries(rowsA, rowsB, scaleOpts);
+  const firstStats = RLRATIO.windowStats(first.points.map((p) => p.ratio), { windowRef: first.windowRef, decisionTime: SCALE_CLOCK });
+  const second = RLRATIO.ratioSeries(rowsA, rowsB, scaleOpts);
+  const secondStats = RLRATIO.windowStats(second.points.map((p) => p.ratio), { windowRef: second.windowRef, decisionTime: SCALE_CLOCK });
+  const elapsedMs = Date.now() - startedAt;
+
+  assert(first.observedCount === largestLookback
+    && first.availability === 'available'
+    /* Byte-identical output for identical frozen input, under a stated budget. */
+    && JSON.stringify(first) === JSON.stringify(second)
+    && JSON.stringify(firstStats) === JSON.stringify(secondStats)
+    && elapsedMs < 2000,
+    'RLRATIO ratioSeries and windowStats stay within budget and deterministic at the largest declared lookbackBars');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 013 Scope 01 rlratio-scale group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

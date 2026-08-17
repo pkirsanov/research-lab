@@ -1,0 +1,72 @@
+{
+  "contractVersion": "ratio-pair-registry/v1",
+  "note": "Lookbacks are declared in BARS, never calendar days, so the normalisation window a z-score names is exact. Pairs sharing a ratioFamilyId collapse to one evidence family before any confirmation arithmetic.",
+  "pairs": [
+    {
+      "pairId": "gold/silver",
+      "numerator": "GLD",
+      "denominator": "SLV",
+      "lookbackBars": 252,
+      "semanticClass": "safety",
+      "ratioFamilyId": "precious-metals",
+      "directionConvention": "Rising means gold outperforming silver, historically a defensive rotation within precious metals.",
+      "provenanceCaveat": "Both legs are ETF proxies for spot metal, not the metal itself; ETF expense and roll differ from spot.",
+      "refs": ["https://www.spdrgoldshares.com/", "https://www.ishares.com/us/products/239855/"]
+    },
+    {
+      "pairId": "SOXX/SPY",
+      "numerator": "SOXX",
+      "denominator": "SPY",
+      "lookbackBars": 126,
+      "semanticClass": "risk-appetite",
+      "ratioFamilyId": "semis-vs-market",
+      "directionConvention": "Rising means semiconductors outperforming the broad market, conventionally read as risk-on.",
+      "provenanceCaveat": "Index-tracking ETF proxy; constituent weights differ between semiconductor indices.",
+      "refs": ["https://www.ishares.com/us/products/239705/"]
+    },
+    {
+      "pairId": "SMH/SPY",
+      "numerator": "SMH",
+      "denominator": "SPY",
+      "lookbackBars": 126,
+      "semanticClass": "risk-appetite",
+      "ratioFamilyId": "semis-vs-market",
+      "directionConvention": "Rising means semiconductors outperforming the broad market, conventionally read as risk-on.",
+      "provenanceCaveat": "Overlaps SOXX/SPY heavily by construction; the shared ratioFamilyId is what stops the two counting as independent confirmation.",
+      "refs": ["https://www.vaneck.com/us/en/investments/semiconductor-etf-smh/"]
+    },
+    {
+      "pairId": "HYG/IEF",
+      "numerator": "HYG",
+      "denominator": "IEF",
+      "lookbackBars": 126,
+      "semanticClass": "credit",
+      "ratioFamilyId": "credit-spread-proxy",
+      "directionConvention": "Rising means high-yield credit outperforming intermediate Treasuries, conventionally read as spread compression.",
+      "provenanceCaveat": "An ETF-price proxy for credit spreads, not an option-adjusted spread; duration differs between legs.",
+      "refs": ["https://www.ishares.com/us/products/239565/"]
+    },
+    {
+      "pairId": "IWM/SPY",
+      "numerator": "IWM",
+      "denominator": "SPY",
+      "lookbackBars": 252,
+      "semanticClass": "breadth",
+      "ratioFamilyId": "small-vs-large",
+      "directionConvention": "Rising means small caps outperforming large caps, conventionally read as broadening participation.",
+      "provenanceCaveat": "Size-factor proxy; sector composition differs materially between the two indices.",
+      "refs": ["https://www.ishares.com/us/products/239710/"]
+    },
+    {
+      "pairId": "EFA/SPY",
+      "numerator": "EFA",
+      "denominator": "SPY",
+      "lookbackBars": 252,
+      "semanticClass": "global",
+      "ratioFamilyId": "intl-vs-us",
+      "directionConvention": "Rising means developed international equities outperforming US equities.",
+      "provenanceCaveat": "Legs settle on different market sessions and carry unhedged currency exposure; this pair must clear session and FX alignment before it emits a reading.",
+      "refs": ["https://www.ishares.com/us/products/239623/"]
+    }
+  ]
+}

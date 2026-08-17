@@ -1,0 +1,99 @@
+{
+  "contractVersion": "regime-archetype-registry/v1",
+  "registryVersion": 1,
+  "note": "Fully enumerated facet-value tuples. No wildcard, no range, no 'any other value'. A combination absent from this file renders its fingerprint and reads Unresolved; it is never given the nearest entry's name. Both projection cells are mandatory so a new archetype cannot silently fall out of a legacy vocabulary.",
+  "entries": [
+    {
+      "archetypeId": "risk-on-broad-participation",
+      "displayName": "Risk-on, broad participation",
+      "horizons": ["structural", "swing"],
+      "tuple": [
+        { "facetId": "trend.structure", "value": "uptrend" },
+        { "facetId": "breadth.participation", "value": "broad" },
+        { "facetId": "bond.credit", "value": "spreads-tightening" }
+      ],
+      "projections": {
+        "macro-regime-legacy/v1": {
+          "projectedValue": "Greed·risk-on",
+          "risk": 1,
+          "lossy": true,
+          "lossyFields": ["horizon", "confirmation", "contradictions", "facet attribution"]
+        },
+        "market-structure-band-legacy/v1": {
+          "projectedValue": "Risk-on trend",
+          "lossy": true,
+          "lossyFields": ["horizon", "confirmation", "contradictions", "facet attribution"]
+        }
+      }
+    },
+    {
+      "archetypeId": "risk-off-credit-stress",
+      "displayName": "Risk-off, credit stress",
+      "horizons": ["structural", "swing"],
+      "tuple": [
+        { "facetId": "trend.structure", "value": "downtrend" },
+        { "facetId": "breadth.participation", "value": "narrow" },
+        { "facetId": "bond.credit", "value": "spreads-widening" }
+      ],
+      "projections": {
+        "macro-regime-legacy/v1": {
+          "projectedValue": "Fear·risk-off",
+          "risk": -1,
+          "lossy": true,
+          "lossyFields": ["horizon", "confirmation", "contradictions", "facet attribution"]
+        },
+        "market-structure-band-legacy/v1": {
+          "projectedValue": "Risk-off trend",
+          "lossy": true,
+          "lossyFields": ["horizon", "confirmation", "contradictions", "facet attribution"]
+        }
+      }
+    },
+    {
+      "archetypeId": "narrowing-advance",
+      "displayName": "Narrowing advance",
+      "horizons": ["structural", "swing"],
+      "tuple": [
+        { "facetId": "trend.structure", "value": "uptrend" },
+        { "facetId": "breadth.participation", "value": "narrow" },
+        { "facetId": "bond.credit", "value": "spreads-tightening" }
+      ],
+      "projections": {
+        "macro-regime-legacy/v1": {
+          "projectedValue": "Neutral",
+          "risk": 0,
+          "lossy": true,
+          "lossyFields": ["horizon", "confirmation", "contradictions", "facet attribution", "breadth divergence"]
+        },
+        "market-structure-band-legacy/v1": {
+          "projectedValue": "Mixed",
+          "lossy": true,
+          "lossyFields": ["horizon", "confirmation", "contradictions", "facet attribution", "breadth divergence"]
+        }
+      }
+    },
+    {
+      "archetypeId": "credit-led-repair",
+      "displayName": "Credit-led repair",
+      "horizons": ["swing"],
+      "tuple": [
+        { "facetId": "trend.structure", "value": "downtrend" },
+        { "facetId": "breadth.participation", "value": "broad" },
+        { "facetId": "bond.credit", "value": "spreads-tightening" }
+      ],
+      "projections": {
+        "macro-regime-legacy/v1": {
+          "projectedValue": "Neutral",
+          "risk": 0,
+          "lossy": true,
+          "lossyFields": ["horizon", "confirmation", "contradictions", "facet attribution"]
+        },
+        "market-structure-band-legacy/v1": {
+          "projectedValue": "Mixed",
+          "lossy": true,
+          "lossyFields": ["horizon", "confirmation", "contradictions", "facet attribution"]
+        }
+      }
+    }
+  ]
+}

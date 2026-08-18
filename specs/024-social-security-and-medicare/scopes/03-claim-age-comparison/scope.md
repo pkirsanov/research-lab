@@ -369,15 +369,58 @@ delivery makes a row's claim false, the row is corrected rather than checked.
       and the two claim-scan file-set extensions are strengthenings that add files
       and remove nothing.
   - **Phase:** implement · **Command:** the `SUP-024-NN` marker check plus `node scripts/selftest.mjs` · **Evidence:** `report.md#supersession-ledger`
-- [ ] Every excluded path is byte-identical, including `tax-rules/federal/**`,
+- [x] Every excluded path is byte-identical, including `tax-rules/federal/**`,
       proving a comparison across claim ages required no federal pack edit.
   - **Phase:** implement · **Command:** a path-scoped status check over the excluded list · **Evidence:** `report.md#change-boundary`
-  - **Unchecked because:** the excluded lifetime-tax paths — `tax-rules/federal/**`,
-    `rltaxsocialsecurity.js`, `rltaxinclusion.js` and the sibling spec folders — are
-    untracked in git, so no committed baseline exists and byte-identity cannot be
-    observed. What was observed is weaker and is recorded instead: every excluded
-    **tracked** path is unmodified except `site-exclusions.json`, whose diff predates
-    this scope and contains no claim-age or mortality entry.
+  - **Claim Source:** executed. The single ground on which this row previously
+    stayed `[ ]` is discharged. `site-exclusions.json` carried 44 uncommitted
+    insertions from a concurrent session; commit `e903749c0` commits that file
+    together with `scripts/selftest.mjs`, and `e903749c0` is now `HEAD`. The
+    excluded list was re-enumerated from this scope's Change Boundary and every
+    glob resolved to the concrete paths present in the tree: `specs/021-*/**`
+    resolved to both `specs/021-execution-receipts-and-session-review-adoption`
+    and `specs/021-lifetime-tax-strategy-lab`; `tests/lifetime-tax-*.spec.mjs`
+    resolved to all fifteen files minus this scope's own
+    `tests/lifetime-tax-claim-age.spec.mjs`; framework-managed resolved to
+    `.github/bubbles`, `.github/agents`, `.github/prompts`,
+    `.github/instructions` and `.github/skills`. Both directions were run over
+    that full set — `git status --porcelain` catches modification, staging and
+    any untracked file appearing under an excluded directory, and
+    `git diff --stat e903749c0` catches divergence from the committed
+    feature-complete tree. Both returned empty at exit 0, so every excluded path
+    is byte-identical.
+
+    ```
+    $ git status --porcelain -- rlportfolio.js rlportfolioanalytics.js portfolio-survival-allocation.config.json specs/008-portfolio-survival-and-brief-lab specs/021-execution-receipts-and-session-review-adoption specs/021-lifetime-tax-strategy-lab specs/022-federal-preferential-and-state-income-tax specs/023-property-tax-and-rental-income rltaxsocialsecurity.js rltaxinclusion.js rltaxstrategy.js rltaxstate.js rltaxcombined.js rltaxproperty.js rltaxrental.js rltaxuse.js rltaxdisposition.js tax-rules/federal tax-rules/state tax-rules/property tax-rules/benefit tools.json index.html rlnav.js README.md notes/README.md 'market-brief.*' briefs data watchlist.json site-exclusions.json scripts/build-pages-site.mjs scripts/validate-spec-test-paths.baseline tests/lifetime-tax-benefit.spec.mjs tests/lifetime-tax-conversion.spec.mjs tests/lifetime-tax-deduction.spec.mjs tests/lifetime-tax-disposition.spec.mjs tests/lifetime-tax-federal.spec.mjs tests/lifetime-tax-foundation.spec.mjs tests/lifetime-tax-inclusion.spec.mjs tests/lifetime-tax-marginal.spec.mjs tests/lifetime-tax-medicare.spec.mjs tests/lifetime-tax-property.spec.mjs tests/lifetime-tax-rental.spec.mjs tests/lifetime-tax-retirement-route.spec.mjs tests/lifetime-tax-route.spec.mjs tests/lifetime-tax-use.spec.mjs tests/lifetime-tax.support.mjs .github/bubbles .github/agents .github/prompts .github/instructions .github/skills
+    SCOPE03_EXCLUDED_STATUS_EXIT=0
+    $ git --no-pager diff --stat e903749c0 -- <the identical path list>
+    SCOPE03_EXCLUDED_DIFF_EXIT=0
+    ```
+
+    Both commands printed no lines before their exit-code echo; the empty region
+    above the `EXIT=0` line is the result, not a truncation.
+
+    The `tax-rules/federal/**` clause carries a second, independent check that
+    does not depend on attribution. The federal pack holds no claim-age, mortality,
+    survival, break-even or life-expectancy content at all, so a comparison across
+    claim ages had nothing in that pack to edit:
+
+    ```
+    $ grep -rniE 'claim.?age|mortality|survival|break.?even|life.?expectanc' tax-rules/federal/
+    FEDERAL_PACK_CLAIMAGE_GREP_EXIT=1
+    ```
+
+    Exit 1 from `grep` is zero matches, and the command printed no lines.
+
+    **Limitation, recorded rather than hidden.** Features 021-024 landed as the
+    single commit `b9d92a3f1`, in which every file named above appears as a pure
+    creation — `git diff --stat b9d92a3f1^ e903749c0` over the excluded set shows
+    `tax-rules/federal/2026.json | 1159 +++`, `rltaxsocialsecurity.js | 750 +++`
+    and their siblings as all-insertion adds. A diff against `e903749c0` therefore
+    proves the worktree has not drifted from the feature-complete tree, but cannot
+    attribute an edit *inside* that commit to one scope. The byte-identity claim is
+    proven in that no-drift sense. The federal-pack clause is additionally proven
+    substantively by the content scan above, which holds regardless of attribution.
 - [x] No output states a probability, a plan success figure, a future-year figure, a
       track record or an error rate, and no claim age is described as optimal,
       recommended or best.

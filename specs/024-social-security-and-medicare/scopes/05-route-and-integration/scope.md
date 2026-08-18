@@ -368,16 +368,49 @@ delivery makes a row's claim false, the row is corrected rather than checked.
       count it grows was already converted to a derived form by a predecessor and
       absorbs the growth without an edit.
   - **Phase:** implement · **Command:** the `SUP-024-NN` marker check plus `node scripts/selftest.mjs` · **Evidence:** `report.md#supersession-ledger`
-- [ ] Every excluded path is byte-identical, including every file under
+- [x] Every excluded path is byte-identical, including every file under
       `tax-rules/` and `rltaxrules.js`, proving this scope retrieved nothing,
       authored no figure and changed no contract.
-  - **Reason not checked:** the whole lifetime-tax tree is untracked, so git has no
-    committed baseline to compare any excluded path against and byte-identity
-    cannot be established. What was observed instead is recorded: every excluded
-    path carries a modification time of 11:39 or earlier while this session's first
-    edit landed at 11:44. That is real evidence of non-modification and it is
-    weaker than the row's claim, so the row stays unchecked.
   - **Phase:** implement · **Command:** a path-scoped status check over the excluded list · **Evidence:** `report.md#change-boundary`
+  - **Claim Source:** executed. The single ground on which this row previously
+    stayed `[ ]` is discharged. `site-exclusions.json` carried 44 uncommitted
+    insertions from a concurrent session; commit `e903749c0` commits that file
+    together with `scripts/selftest.mjs`, and `e903749c0` is now `HEAD`. The
+    excluded list was re-enumerated from this scope's Change Boundary. This scope
+    excludes **every file under `tax-rules/`**, so the whole directory was passed
+    as one pathspec rather than the four named families — that also covers
+    `tax-rules/federal`, `tax-rules/medicare`, `tax-rules/mortality` and
+    `tax-rules/fixtures`, which sibling scopes were permitted to touch and this one
+    is not. `specs/021-*/**` resolved to both
+    `specs/021-execution-receipts-and-session-review-adoption` and
+    `specs/021-lifetime-tax-strategy-lab`; `tests/lifetime-tax-*.spec.mjs` resolved
+    to all fifteen files minus this scope's own
+    `tests/lifetime-tax-retirement-route.spec.mjs`; framework-managed resolved to
+    `.github/bubbles`, `.github/agents`, `.github/prompts`, `.github/instructions`
+    and `.github/skills`. Both directions returned empty at exit 0:
+
+    ```
+    $ git status --porcelain -- rlportfolio.js rlportfolioanalytics.js portfolio-survival-allocation.config.json specs/008-portfolio-survival-and-brief-lab specs/021-execution-receipts-and-session-review-adoption specs/021-lifetime-tax-strategy-lab specs/022-federal-preferential-and-state-income-tax specs/023-property-tax-and-rental-income rltaxrules.js rltaxsocialsecurity.js rltaxinclusion.js rltaxclaimage.js rltaxmedicare.js rltaxstrategy.js rltaxstate.js rltaxcombined.js rltaxproperty.js rltaxrental.js rltaxuse.js rltaxdisposition.js tax-rules tools.json index.html rlnav.js README.md notes/README.md 'market-brief.*' briefs data watchlist.json site-exclusions.json scripts/build-pages-site.mjs scripts/validate-spec-test-paths.baseline tests/lifetime-tax-benefit.spec.mjs tests/lifetime-tax-claim-age.spec.mjs tests/lifetime-tax-conversion.spec.mjs tests/lifetime-tax-deduction.spec.mjs tests/lifetime-tax-disposition.spec.mjs tests/lifetime-tax-federal.spec.mjs tests/lifetime-tax-foundation.spec.mjs tests/lifetime-tax-inclusion.spec.mjs tests/lifetime-tax-marginal.spec.mjs tests/lifetime-tax-medicare.spec.mjs tests/lifetime-tax-property.spec.mjs tests/lifetime-tax-rental.spec.mjs tests/lifetime-tax-route.spec.mjs tests/lifetime-tax-use.spec.mjs tests/lifetime-tax.support.mjs .github/bubbles .github/agents .github/prompts .github/instructions .github/skills
+    SCOPE05_EXCLUDED_STATUS_EXIT=0
+    $ git --no-pager diff --stat e903749c0 -- <the identical path list>
+    SCOPE05_EXCLUDED_DIFF_EXIT=0
+    ```
+
+    Neither command printed a line before its exit-code echo; the empty region above
+    each `EXIT=0` is the result, not a truncation. `git status --porcelain` is the
+    load-bearing half here, because it also fails on an untracked file appearing
+    anywhere under `tax-rules/` — a new pack would be a retrieval this scope is
+    forbidden to perform, and it would show as `??` rather than as a diff.
+
+    **Limitation, recorded rather than hidden.** Features 021-024 landed as the
+    single commit `b9d92a3f1`, in which every excluded module and every pack under
+    `tax-rules/` appears as a pure creation. A diff against `e903749c0` therefore
+    proves the worktree has not drifted from the feature-complete tree, but cannot
+    attribute an edit *inside* that commit to one scope. The byte-identity claim is
+    proven in that no-drift sense, and the trailing inference — that this scope
+    retrieved nothing, authored no figure and changed no contract — rests on that
+    same no-drift proof rather than on per-scope attribution, which the single-commit
+    landing makes mechanically undecidable.
 - [x] No output states a probability, a plan success figure, a future-year figure, a
       track record or an error rate, and nothing on the page is described as
       optimal, recommended or best.

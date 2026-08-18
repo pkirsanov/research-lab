@@ -358,17 +358,18 @@ delivery makes a row's claim false, the row is corrected rather than checked.
       through 023 fixtures produce their exact prior ordinary taxable income and
       their exact prior total.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-14`
-- [ ] FR-024-014 and NFR-024-006 are implemented: the inclusion leg is surfaced in
+- [x] FR-024-014 and NFR-024-006 are implemented: the inclusion leg is surfaced in
       all four places, proven by a two-directional set identity against the
       all-non-zero fixture, and removing it from each surface in turn is
       demonstrated to fail with both the leg and the surface named.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser leg-visibility row · **Evidence:** `report.md#tp-02-16`, `report.md#tp-02-17`, `report.md#tp-02-25`
-  - **Not satisfied.** Stage `CO-21`, the `social-security-inclusion` leg and the
-    `power-inclusion` Power section are delivered and the leg reaches the Power
-    surface, but the leg is not yet carried into the headline, the comparison or the
-    export, and no two-directional leg-visibility identity was run for it. Closing
-    this needs the leg added to `settledLegIds` and to the three remaining surfaces,
-    plus TP-02-16, TP-02-17 and TP-02-25.
+  - **Verified by execution rather than by reading.** The leg was removed from each of
+    the four delivered surfaces in turn and the row was observed to fail each time,
+    naming the leg and the surface; every probe was reverted and the page is
+    byte-identical. `node scripts/selftest.mjs` → `2843 passed, 0 failed`, exit `0`.
+    The exact TP-02-25 command → `1 passed`, exit `0`. The headline carries the leg's
+    own figure, asserted by TP-02-23 at `$18,625` and `$0`, so the leg reaches the
+    headline as a rendered amount rather than as an empty node.
 - [x] NFR-024-003 holds: **this scope adds no household declaration** — the
       composition reads members the workspace already inventories — the declared
       storage key count is asserted unchanged in the same assertion that asserts it,
@@ -379,18 +380,21 @@ delivery makes a row's claim false, the row is corrected rather than checked.
       partly-built record ever reaches it. **This scope adds no control**, so the
       declaration-signature no-op guard is inherited unchanged rather than extended.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-19`
-- [ ] SUP-024-02, SUP-024-03, SUP-024-04, SUP-024-05 and SUP-024-08 are delivered
+- [x] SUP-024-02, SUP-024-03, SUP-024-04, SUP-024-05 and SUP-024-08 are delivered
       with their markers, each replacement derived from the artifact it describes,
       each superseded clause recorded verbatim, and each intended-RED failure
       recorded before its green.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the marginal browser spec · **Evidence:** `report.md#supersession-ledger`, `report.md#tp-02-20`, `report.md#tp-02-21`
-  - **Partially satisfied.** All five replacements are delivered, derived and marked,
-    and the marginal browser spec passes. Intended-RED was **observed** for
-    SUP-024-02, SUP-024-03 and SUP-024-05 (three named selftest failures before the
-    replacements were written); SUP-024-08 is a new pinning assertion, which the
-    ledger entry itself anticipates. SUP-024-04's browser RED was **not separately
-    observed** — the superseded literal was replaced without first running the
-    marginal spec against it.
+  - **The intended-RED evidence is from reversible regression probes run in a later
+    session, in RED-then-GREEN order per entry, and the report records it as that
+    rather than as capture at first authorship.** SUP-024-04's browser RED, the gap
+    this row previously named, is now observed at
+    `tests/lifetime-tax-marginal.spec.mjs:184` with the exact TP-02-21 command, exit
+    `1`. SUP-024-02 and SUP-024-03 fail at TP-01-01 and TP-03-07 under the same pack
+    regression; SUP-024-05 fails at TP-02-12 naming both undeclared members;
+    SUP-024-08 fails at TP-02-15 against the pre-split record. Every probe was
+    reverted and `node scripts/selftest.mjs` returns to `2843 passed, 0 failed`,
+    exit `0`.
 - [x] Every excluded path is byte-identical, including `rltaxsocialsecurity.js` and
       `tax-rules/benefit/**`, proving that taxing a benefit did not require changing
       what the benefit is.
@@ -402,11 +406,15 @@ delivery makes a row's claim false, the row is corrected rather than checked.
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence recorded,
       including the browser rows.
   - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-29 commands · **Evidence:** `report.md#test-evidence`
-  - **Not satisfied.** TP-02-01 through TP-02-15 and TP-02-18 through TP-02-21 are
-    delivered green. TP-02-16, TP-02-17 and TP-02-22 through TP-02-26 are not
-    delivered: `lifetime-tax-inclusion.spec.mjs` was not authored and the
-    leg-visibility identity was not run. Intended RED is recorded for the four
-    supersession sites only, not per Test Plan row.
+  - **Not satisfied.** Every Test Plan row is now delivered and the whole suite is
+    green, but this row asks for recorded RED and GREEN **per row**, and the report
+    carries that pairing only for TP-02-16, TP-02-17, TP-02-20, TP-02-21 and
+    TP-02-25, plus the five supersession entries. TP-02-01 through TP-02-15,
+    TP-02-18, TP-02-19 and TP-02-22 through TP-02-29 hold no recorded evidence in
+    `report.md`. The earlier reason on this row — that
+    `lifetime-tax-inclusion.spec.mjs` was not authored and the leg-visibility
+    identity was not run — is no longer true and is corrected here rather than
+    carried forward.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds with

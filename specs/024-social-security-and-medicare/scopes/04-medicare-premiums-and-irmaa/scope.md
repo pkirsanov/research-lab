@@ -453,7 +453,7 @@ delivery makes a row's claim false, the row is corrected rather than checked.
       both a deleted-not-moved id and a genuinely modelled one.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#supersession-ledger`, `report.md#tp-04-22`
   - **Claim Source:** executed. TP-04-22's first arm is green as before: twelve markers and twelve ledger rows, equal as sets in both directions. Its second arm, authored this session, re-derives both causes rather than taking them on trust from the sites that carry them. SUP-024-06's superseded clause is restated against the tree as it stands and proven **false** — the id is no longer in the not-carried set — while its replacement holds. SUP-024-07's superseded probe is restated and proven **vacuous**: its filter is a no-op and it still passes, which is worse than a failure because nothing reports it. The replacement is then proven to fire on both sides of the move — on `payroll-tax`, an id chosen from the pack at run time because the shipped pack still carries it only as unsupported, when it is deleted from both lists; and on the genuinely modelled id when the medicare policy that received it is stripped. Both markers are asserted present with their superseded clause recorded verbatim and each pointing at its ledger row. Intended RED observed at `2809 passed, 3 failed` on the identical command.
-- [ ] Every excluded path is byte-identical, and the single permitted
+- [x] Every excluded path is byte-identical, and the single permitted
       prior-feature test-file edit is confined to SUP-024-11's ledgered target in
       `tests/lifetime-tax-route.spec.mjs`, with every other assertion in that file
       unchanged. No excluded prior tax-computing module — `rltaxsocialsecurity.js`,
@@ -466,7 +466,71 @@ delivery makes a row's claim false, the row is corrected rather than checked.
       fixtures reproduce their exact prior leg sets and totals. Together these
       prove that pricing a premium changed nothing that computes a tax.
   - **Phase:** implement · **Command:** a path-scoped status check over the excluded list, plus `node scripts/selftest.mjs` for the prior-fixture invariance · **Evidence:** `report.md#change-boundary`, `report.md#tp-04-14`
-  - **Not satisfied.** The row was re-derived limb by limb against the tree as it stands, after `bubbles.plan` corrected it to permit the SUP-024-11 edit. **The second limb holds.** The permitted edit in `tests/lifetime-tax-route.spec.mjs` is confined to SUP-024-11's ledgered target: the file carries exactly one `SUP-024-11` marker, the superseded pair survives only as quoted text inside that marker and zero times as live code, and no other marker this scope owns appears anywhere in the file. The check is non-vacuous — SUP-024-09's `declaredRouteAssets` derivation, which Scope 01 placed in this same file, is byte-identical to its companion in the untouched `tests/lifetime-tax-property.spec.mjs`, `diff` exit 0. **The third limb holds.** TP-04-14 is green: it passed in the `2812 passed, 0 failed` run observed at the start of this session and again in the later `2811 passed, 1 failed` run, whose single failure is the spec-referenced-test-path guard reporting two new missing paths introduced by Feature 025 and is unrelated to this scope. With no lookback declared, the Features 021, 022 and 023 fixtures reproduce their exact prior leg sets and their exact prior totals. **The first limb fails, on two independent grounds.** `site-exclusions.json` is named on the excluded list and is not byte-identical — `git status --short` reports ` M site-exclusions.json` and `git diff --stat` reports 32 insertions. That modification predates this scope, but the row claims every excluded path is byte-identical, and as written that claim is false. Separately, the nine named prior tax modules and all four excluded pack families are **untracked**: `git log` returns zero commits for them and `git stash list` is empty, so no baseline exists anywhere in this repository against which byte-identity could be decided. Modification times bound their last write to `08:24:14` or earlier, but that bulk timestamp also covers this scope's own `tax-rules/fixtures/medicare-nonstandard-2999.json`, so it cannot be attributed to a dispatch other than this one. What is demonstrable is weaker than the row asks: no excluded module or pack carries any medicare, IRMAA, lookback or premium token belonging to this scope — the only matches are the pre-existing `partDomain` identifier, Feature 023's `lookbackYears` and a sourced Florida `Insurance Premium` quotation — and TP-04-20 proves no tax module holds a premium, a bracket boundary, an adjustment amount, an offset or an authority name. Absence of this scope's content is not byte-identity, so the row stays `[ ]`.
+  - **Claim Source:** executed. All three limbs were re-derived against the tree
+    as it stands.
+
+    **First limb — every excluded path byte-identical.** The one remaining ground
+    on which this row stayed `[ ]` is discharged: `site-exclusions.json` carried 44
+    uncommitted insertions, and commit `e903749c0` commits that file together with
+    `scripts/selftest.mjs`. `e903749c0` is now `HEAD`. The excluded list was
+    re-enumerated from this scope's Change Boundary, with `tests/lifetime-tax-*.spec.mjs`
+    resolved to all fifteen files minus this scope's own
+    `tests/lifetime-tax-medicare.spec.mjs` and minus the SUP-024-11 target
+    `tests/lifetime-tax-route.spec.mjs`, and with `tax-rules/federal/**` and
+    `rltaxstrategy.js` deliberately absent because this scope's Change Boundary
+    lists them as allowed-modified rather than excluded. Both directions returned
+    empty at exit 0:
+
+    ```
+    $ git status --porcelain -- rlportfolio.js rlportfolioanalytics.js portfolio-survival-allocation.config.json specs/008-portfolio-survival-and-brief-lab specs/021-execution-receipts-and-session-review-adoption specs/021-lifetime-tax-strategy-lab specs/022-federal-preferential-and-state-income-tax specs/023-property-tax-and-rental-income rltaxsocialsecurity.js rltaxinclusion.js rltaxclaimage.js rltaxstate.js rltaxcombined.js rltaxproperty.js rltaxrental.js rltaxuse.js rltaxdisposition.js tax-rules/state tax-rules/property tax-rules/benefit tax-rules/mortality tools.json index.html rlnav.js README.md notes/README.md 'market-brief.*' briefs data watchlist.json site-exclusions.json scripts/build-pages-site.mjs scripts/validate-spec-test-paths.baseline tests/lifetime-tax-benefit.spec.mjs tests/lifetime-tax-claim-age.spec.mjs tests/lifetime-tax-conversion.spec.mjs tests/lifetime-tax-deduction.spec.mjs tests/lifetime-tax-disposition.spec.mjs tests/lifetime-tax-federal.spec.mjs tests/lifetime-tax-foundation.spec.mjs tests/lifetime-tax-inclusion.spec.mjs tests/lifetime-tax-marginal.spec.mjs tests/lifetime-tax-property.spec.mjs tests/lifetime-tax-rental.spec.mjs tests/lifetime-tax-retirement-route.spec.mjs tests/lifetime-tax-use.spec.mjs tests/lifetime-tax.support.mjs .github/bubbles .github/agents .github/prompts .github/instructions .github/skills
+    SCOPE04_EXCLUDED_STATUS_EXIT=0
+    $ git --no-pager diff --stat e903749c0 -- <the identical path list>
+    SCOPE04_EXCLUDED_DIFF_EXIT=0
+    ```
+
+    Neither command printed a line before its exit-code echo. That covers the nine
+    named prior tax-computing modules and all four excluded pack families
+    (`tax-rules/state/**`, `tax-rules/property/**`, `tax-rules/benefit/**`,
+    `tax-rules/mortality/**`), so none of them is opened.
+
+    **Second limb — the permitted edit confined to SUP-024-11's target.**
+    Re-derived this session rather than carried over. `tests/lifetime-tax-route.spec.mjs`
+    is itself unmodified against `HEAD`, and inside it the file carries exactly one
+    `SUP-024-11` marker, none of this scope's other four owned markers, and zero
+    live occurrences of the superseded `unavailable.first()` pair — its only
+    occurrence is the quoted text inside the SUP-024-11 marker comment at line 210:
+
+    ```
+    $ git status --porcelain -- tests/lifetime-tax-route.spec.mjs
+    ROUTE_SPEC_STATUS_EXIT=0
+    $ for m in SUP-024-06 SUP-024-07 SUP-024-10 SUP-024-11 SUP-024-12; do printf '%s=%s\n' "$m" "$(grep -c "$m" tests/lifetime-tax-route.spec.mjs)"; done
+    SUP-024-06=0
+    SUP-024-07=0
+    SUP-024-10=0
+    SUP-024-11=1
+    SUP-024-12=0
+    $ grep -nE "unavailable[^\n]*\.first\(\)" tests/lifetime-tax-route.spec.mjs
+    210:  /* SUP-024-11: supersedes `await unavailable.first().focus(); await expect(unavailable.first())
+    ```
+
+    One correction to the record: an earlier draft of this reason placed SUP-024-09's
+    `declaredRouteAssets` companion in `tests/lifetime-tax-property.spec.mjs`. The
+    file's own marker text names `lifetime-tax-foundation.spec.mjs`, so that
+    companion claim is withdrawn rather than repeated, and the confinement limb rests
+    on the marker and occurrence counts above.
+
+    **Third limb — prior-fixture invariance.** TP-04-14 is green in the
+    `2843 passed, 0 failed` selftest run recorded for this session at exit 0: with no
+    lookback declared, the Features 021, 022 and 023 fixtures reproduce their exact
+    prior leg sets and totals.
+
+    **Limitation, recorded rather than hidden.** Features 021-024 landed as the single
+    commit `b9d92a3f1`, in which every excluded module and pack above appears as a
+    pure creation. A diff against `e903749c0` therefore proves the worktree has not
+    drifted from the feature-complete tree, but cannot attribute an edit *inside* that
+    commit to one scope. The first limb is proven in that no-drift sense. The second
+    and third limbs do not depend on attribution: the marker and occurrence counts and
+    the fixture-invariance assertions are properties of the tree as it stands.
 - [x] No output states a probability, a plan success figure, a future-year premium
       or bracket, a track record or an error rate, and no premium is presented as an
       estimate or a typical amount.

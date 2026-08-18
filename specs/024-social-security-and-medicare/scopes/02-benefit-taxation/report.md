@@ -19,11 +19,14 @@ Not delivered at the time this summary was first written: `lifetime-tax-inclusio
 the leg-visibility set identity across the four surfaces (TP-02-16, TP-02-17, TP-02-25),
 and the browser rows TP-02-22 through TP-02-26. **All of those are delivered now** and
 were verified by execution in a later session, recorded under
-[TP-02-16](#tp-02-16), [TP-02-17](#tp-02-17) and [TP-02-25](#tp-02-25). Fifteen of the
-seventeen Definition of Done rows are checked; two remain unchecked with stated
-reasons, and three rows were **corrected** rather than checked because the delivery
-made their original claim false — recorded under [Corrected rows](#corrected-rows)
-below.
+[TP-02-16](#tp-02-16), [TP-02-17](#tp-02-17) and [TP-02-25](#tp-02-25).
+
+All **seventeen** Definition of Done rows are now checked. The last to close was the
+per-row red/green row: every one of TP-02-01 through TP-02-29 now carries an
+intended-RED capture from a reverted probe and a same-command GREEN, the final five
+— TP-02-16, TP-02-17, TP-02-20, TP-02-27 and TP-02-29 — recorded in the session that
+closed it. Three rows were **corrected** rather than checked because the delivery made
+their original claim false — recorded under [Corrected rows](#corrected-rows) below.
 
 ## Sourcing
 
@@ -854,6 +857,32 @@ surface fails the identity from the other side, and reads the delivered page's o
 wiring so the check is on the route rather than on an array the assertion built for
 itself.
 
+**Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.**
+Recorded in a later session against the concurrent-session baseline of
+`2842 passed, 1 failed`, exit `1`, described under [TP-02-09](#tp-02-09).
+
+- **Mutation.** In `lifetime-tax-strategy-lab.html` the export push is inverted from
+  `if (inclusionLeg && inclusionLeg.available === true) ids.push(inclusionLeg.legId);`
+  to `=== false`. The leg is still computed, still rendered in the headline and still
+  in both per-leg tables; the only thing that changes is that a **settled** inclusion
+  never reaches the exported leg set while an unavailable one would. That is the
+  dropped-surface defect this row's two-directional identity exists to catch, and it
+  is the shape that hides best — three of four surfaces still carry the leg.
+- **RED.** exit `1`, `2841 passed, 2 failed`, line count `3211`, sha256
+  `046cb507a2e0…`. Failing line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-16: against the all-non-zero fixture the settled record’s declared leg set equals the leg set of the headline, the comparison, the curve contributors and the export in both directions with the inclusion leg present in it, a leg invented by a surface fails the identity from the other side, and the page wires that same leg into the settled leg set, the headline, the two per-leg surface tables and the exported leg set
+```
+
+  The other failure is the foreign spec-path failure.
+- **Revert.** `git checkout -- lifetime-tax-strategy-lab.html`, run in the **same
+  command** as the probe; `git status --short` immediately after listed no tracked
+  file at all.
+- **GREEN.** The identical command → exit `1`, `2842 passed, 1 failed`, line count
+  `3211`, sha256 `76698548ac8c…` — the row passes and only the foreign failure
+  remains.
+
 ### TP-02-17
 
 Green. `node scripts/selftest.mjs` → `Research-Lab self-test: 2843 passed, 0 failed`,
@@ -864,6 +893,47 @@ surface it failed to reach.
 This is the detector-level demonstration. The route-level demonstration of the same
 claim — four real removals from the delivered page — is recorded under
 [TP-02-25](#tp-02-25).
+
+**Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.**
+Recorded in a later session against the concurrent-session baseline of
+`2842 passed, 1 failed`, exit `1`.
+
+- **Where the probe had to go, and the disclosure it carries.** This row's claim is
+  entirely about the detector's own reporting — the fixture surfaces it perturbs are
+  built inside `scripts/selftest.mjs`, so no edit to this scope's own delivered code
+  can break it. The detector is `legVisibilityIdentity` in `rltaxproperty.js`, which
+  is on this scope's **excluded, must-remain-byte-identical** list. The probe was
+  therefore applied there, run, and reverted inside the **same command**;
+  `git status --short` immediately after listed the file as unmodified, so the
+  excluded path is byte-identical and the exclusion claim under
+  [Change Boundary](#change-boundary) is unaffected. A reverted probe is disclosed
+  here rather than substituted with a probe against some other row's code, which
+  would have produced a red run that was not evidence about this row.
+- **Mutation.** The missing-leg branch of the finding `detail` stops naming the
+  surface: `" is computed in the record and does not reach " + surface` becomes
+  `" is computed in the record and does not reach a surface"`. The identity still
+  refuses, and `finding.surface` and `finding.missingFromSurface` are still
+  populated — what is lost is the single sentence that names **both** the leg and
+  the surface together, which is the readable half of the claim and precisely what
+  this row's `detailNamesBoth` clause exists to hold.
+- **RED.** exit `1`, `2839 passed, 4 failed`, line count `3211`, sha256
+  `5d6c9507231f…`. This row's failing line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-17: removing the inclusion leg from each of the four surfaces in turn is proven to fail, and each of the four failures names both the missing leg and the surface it failed to reach
+```
+
+  Two of the other three are `TP-01-13` and `TP-04-19`, the sibling scopes' rows over
+  the **same shared detector** — the benefit leg and the three premium legs. They are
+  those rows detecting the same edit from their own side, and their presence is the
+  blast-radius the shared-surface sweep predicted for this helper rather than a second
+  defect. The fourth is the foreign spec-path failure.
+- **Revert.** `git checkout -- rltaxproperty.js`, run in the **same command** as the
+  probe; `git status --short` immediately after listed no tracked file other than
+  this report.
+- **GREEN.** The identical command → exit `1`, `2842 passed, 1 failed`, line count
+  `3211`, sha256 `e580185d15ff…` — the row passes and only the foreign failure
+  remains.
 
 ### TP-02-18
 
@@ -921,6 +991,37 @@ exit code `0`. The four markers this scope carries in `scripts/selftest.mjs` and
 per-file marker distribution agree with them, and each replacement reads the artifact
 it describes rather than restating a re-baselined literal. The per-entry detail is in
 [the supersession ledger](#supersession-ledger).
+
+**Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.**
+Recorded in a later session against the concurrent-session baseline of
+`2842 passed, 1 failed`, exit `1`.
+
+- **Mutation.** In `tests/lifetime-tax-marginal.spec.mjs` the SUP-024-04 marker loses
+  its colon: `/* SUP-024-04: supersedes the browser-side literal` becomes
+  `/* SUP-024-04 supersedes the browser-side literal`. The entry is still named, the
+  superseded literal is still quoted beneath it and the replacement is unchanged — the
+  only thing lost is the machine-findable marker form the ledger and the per-file
+  distribution are checked against. That is the drift this row exists to catch: a
+  later edit to the spec file that rewords a marker and silently detaches a delivered
+  replacement from the ledger entry that authorises it.
+- **RED.** exit `1`, `2841 passed, 2 failed`, line count `3211`, sha256
+  `d28fa9a8e5a7…`. Failing line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-20: the four supersession markers this scope carries in the selftest and the marginal spec are present, the ownership table and the per-file marker distribution agree with them, and each replacement reads the artifact it describes rather than restating a re-baselined literal
+```
+
+  The other failure is the foreign spec-path failure. Notably `TP-05-18`, which counts
+  the distinct `SUP-024-NN` markers repository-wide, stayed green: the token
+  `SUP-024-04` is still present, so the count is unmoved. The colon is what carries the
+  marker form, and this row is the only one that holds it — which is exactly why the
+  probe is evidence about **this** row rather than about the count.
+- **Revert.** `git checkout -- tests/lifetime-tax-marginal.spec.mjs`, run in the
+  **same command** as the probe; `git status --short` immediately after listed no
+  tracked file other than this report.
+- **GREEN.** The identical command → exit `1`, `2842 passed, 1 failed`, line count
+  `3211`, sha256 `f48c2e7c046e…` — the row passes and only the foreign failure
+  remains.
 
 ### TP-02-21
 
@@ -1131,7 +1232,52 @@ Intended RED and same-command GREEN, both under the exact TP-02-26 command
 
 ### TP-02-27
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+Recorded in a later session against the concurrent-session baseline of
+`2842 passed, 1 failed`, exit `1`.
+
+**What this row claims that no other row claims.** Every other selftest row above
+proves one assertion detects one defect. This row's claim is different in kind: that
+the whole-repository gate holds and **the pre-existing pass count does not fall** —
+that a change this scope makes cannot quietly cost a prior feature an assertion. Its
+probe therefore has to be one whose damage lands **outside** this scope's own rows,
+because a probe that only fails Feature 024 rows would demonstrate nothing this row
+does not inherit.
+
+- **Mutation.** In `rltax.js` the taxable-income basis is drifted by one dollar:
+  `var totalTaxable = Math.max(0, gross - deduction.value);` becomes
+  `Math.max(0, gross - deduction.value + 1);`. Every settlement in the repository
+  reads through this line. One dollar is deliberately the smallest drift that is
+  still real money — it changes no shape, no contract, no vocabulary and no member
+  set, so nothing structural refuses it and it is invisible to a reading review.
+- **RED.** exit `1`, `2779 passed, 27 failed`, line count `3174`, sha256
+  `f2157b744999…`. The pass count fell by **63** — 27 assertions failed outright and
+  the remainder were lost to four group-level throws downstream of the drift. The
+  failures span **Features 021, 022 and 024**, which is the breadth this row exists
+  to hold. Four representative failing lines, verbatim:
+
+```text
+  ✗ FAIL: TP-02-01: ordinary tax is exact immediately below, exactly at, and immediately above all 2
+  ✗ FAIL: TP-05-02 and TP-05-06: the combined total equals the sum of the two jurisdiction totals, i
+  ✗ FAIL: TP-05-01: every Feature 022 preferential fixture produces its exact prior preferential and
+  ✗ FAIL (Feature 021 Scope 05 route group threw): Cannot read properties of undefined (reading 'toF
+```
+
+  Those four are truncated to their first 105 characters **for width only**; the full
+  27-line failure inventory and the four throw sites are in the captured run whose
+  sha256 is recorded above. Not one of the four names a Feature 024 Scope 02 row: the
+  first is Feature 021's ordinary-tax band assertion, the second and third are Feature
+  022's combined-settlement and preferential rows, and the fourth is a prior feature's
+  route group. That is the point of the probe.
+- **Revert.** `git checkout -- rltax.js`, run in the **same command** as the probe;
+  `git status --short` immediately after listed no tracked file other than this
+  report.
+- **GREEN.** The identical command → exit `1`, `2842 passed, 1 failed`, line count
+  `3211`, sha256 `fe2c6b0c92ee…` — the pass count is restored to the clean baseline
+  and only the foreign spec-path failure remains. The exit code is `1` and is **not**
+  claimed as `0`; the residual failure is the concurrent session's, named under
+  [TP-02-09](#tp-02-09), and this scope's own contribution to the gate is the
+  unmoved `2842`.
 
 ### TP-02-28
 
@@ -1207,4 +1353,50 @@ work would be a worse error than reporting it.
 
 ### TP-02-29
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/build-pages-site.mjs --dry-run`.
+
+- **Mutation.** A root page, `lifetime-tax-inclusion-panel-probe.html`, was created
+  with no entry in `tools.json` and no entry in `site-exclusions.json`. This is
+  precisely the state this scope would have been in had it delivered the inclusion
+  panel as a **new route** rather than as the `power-inclusion` section of the
+  existing lab — the deploy decision this row exists to force, and the one
+  `TP-05-REGISTRATION` reads from the other side when it asserts
+  `site-exclusions.json` still carries exactly the one decision the route already had
+  rather than a second entry from a new root page. No committed file was touched:
+  `site-exclusions.json` and `tools.json` are on this scope's protected list and the
+  probe deliberately does not edit either, because the defect is the **absence** of a
+  decision, not a wrong one.
+- **RED.** exit `1`. Verbatim but for one stated elision: the command reports the
+  script by **absolute** `file://` URL, so its four occurrences of the operator's home
+  path are written `file://<repo>/` here. The repository's own committed-surface PII
+  scan refuses a personal identifier in a committed file and **caught the unredacted
+  first draft of this very block**, which is that assertion doing its job on this
+  scope's artifact. The elision touches the path prefix only; it changes no message,
+  no line, no frame and no exit code:
+
+```text
+file://<repo>/scripts/build-pages-site.mjs:24
+  if (!condition) throw new Error(message);
+                        ^
+
+Error: unregistered root page lacks a deploy decision: lifetime-tax-inclusion-panel-probe.html
+    at assert (file://<repo>/scripts/build-pages-site.mjs:24:25)
+    at planPagesSite (file://<repo>/scripts/build-pages-site.mjs:49:3)
+    at buildPagesSite (file://<repo>/scripts/build-pages-site.mjs:83:16)
+```
+
+- **Revert.** The probe page was deleted in the **same command** as the run;
+  `git status --short` immediately after listed no tracked file other than this
+  report, and no untracked file of this scope's.
+- **GREEN.** The identical command → exit `0`. Verbatim:
+
+```text
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":118,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/9bb69175f356c240125ee2384f73de8633483fa9b283895c85e3e89fccc66af6","omittedOrphanIndexes":136}
+```
+
+  The plan succeeds, `excludedPaths` is `12` — the count the route already had, so
+  `site-exclusions.json` is unchanged — and `directories` is
+  `["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"]`,
+  in which **`tax-rules` does not appear**. The pack this scope authored therefore
+  remains outside the public directories, which is the third clause of this row's
+  claim, read from the command's own output rather than asserted about it.

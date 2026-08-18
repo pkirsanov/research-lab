@@ -403,18 +403,28 @@ delivery makes a row's claim false, the row is corrected rather than checked.
       track record or an error rate, and no included amount is presented as an
       estimate or a typical proportion.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence recorded,
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence recorded,
       including the browser rows.
   - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-29 commands · **Evidence:** `report.md#test-evidence`
-  - **Not satisfied.** Every Test Plan row is now delivered and the whole suite is
-    green, but this row asks for recorded RED and GREEN **per row**, and the report
-    carries that pairing only for TP-02-16, TP-02-17, TP-02-20, TP-02-21 and
-    TP-02-25, plus the five supersession entries. TP-02-01 through TP-02-15,
-    TP-02-18, TP-02-19 and TP-02-22 through TP-02-29 hold no recorded evidence in
-    `report.md`. The earlier reason on this row — that
-    `lifetime-tax-inclusion.spec.mjs` was not authored and the leg-visibility
-    identity was not run — is no longer true and is corrected here rather than
-    carried forward.
+  - **Satisfied.** Every one of TP-02-01 through TP-02-29 now carries an intended-RED
+    capture produced by a reverted probe against the artifact the row governs, and a
+    same-command GREEN taken after the revert. The five that closed last are recorded
+    in `report.md`: TP-02-16 (the export push inverted so a settled inclusion leg
+    never reaches the exported leg set), TP-02-17 (the shared leg-visibility
+    detector's finding stops naming the surface — probed in `rltaxproperty.js`, an
+    excluded path, and reverted byte-identical in the same command, disclosed on the
+    row), TP-02-20 (the SUP-024-04 marker loses its colon and detaches from the
+    ledger), TP-02-27 (a one-dollar drift in the taxable-income basis, which fell
+    **63** assertions across Features 021, 022 and 024 — the repo-wide breadth this
+    row alone claims) and TP-02-29 (an unregistered root page, the deploy decision
+    this scope would have owed had the inclusion panel shipped as its own route).
+    Each probe was reverted inside the same command as its run and `git status
+    --short` was read immediately after. The earlier reason on this row — that
+    TP-02-01 through TP-02-15, TP-02-18, TP-02-19 and TP-02-22 through TP-02-29 held
+    no recorded evidence — is no longer true and is corrected here rather than
+    carried forward. Two GREEN runs exit `1` rather than `0` because a concurrent
+    session's spec artifacts fail the repository-wide spec-path assertion; that
+    failure is foreign, is named in each capture, and is not claimed as green.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds with

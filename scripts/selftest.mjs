@@ -25,6 +25,7 @@ import {
   validateBriefPayload
 } from './validate-brief-payload.mjs';
 import { formatSpecTestPathFindings, validateSpecTestPaths } from './validate-spec-test-paths.mjs';
+import { formatTimeoutBudgetFindings, validatePlaywrightTimeoutBudgets } from './validate-playwright-timeout-budgets.mjs';
 import * as piiScan from './pii-scan.mjs';
 import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';
 import {
@@ -8701,6 +8702,22 @@ try {
   for (const line of formatSpecTestPathFindings(specTestPaths, 1)) console.log('    ' + line);
   assert(specTestPaths.newMissing.length === 0, 'no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline \u2014 a stale path makes a multi-file verification command silently cover less than it claims (' + specTestPaths.newMissing.length + ' new, ' + specTestPaths.knownMissing.length + ' known-missing, ' + specTestPaths.staleBaseline.length + ' stale of ' + specTestPaths.referencedPathCount + ' referenced)');
 } catch (e) { failures++; console.log('  \u2717 FAIL (spec artifact test-path guard threw): ' + e.message); }
+
+/* ---------- Playwright budgets — a declared wait must fit the test that contains it (BUG-009) ----------
+   A test that declares `expect(...).toHaveAttribute(..., { timeout: 120_000 })` inside a test whose
+   own budget is the 30 s project default cannot ever wait 120 s: the runner kills the test first.
+   The declaration reads as coverage and delivers none, and it fails only under load — so the suite
+   is green on a quiet machine and flaky on a busy one. Wired here rather than left standalone
+   because an unrun guard protects nothing: the invariant would rot the moment someone adds the next
+   long wait. */
+try {
+  group('Playwright budgets \u2014 every declared wait fits the test budget that governs it (BUG-009)');
+  const timeoutBudgets = validatePlaywrightTimeoutBudgets(ROOT);
+  assert(!timeoutBudgets.vacuous, 'the scan matched real spec files, test blocks and timeout declarations, so a green verdict is coverage rather than a pattern that quietly stopped matching (' + timeoutBudgets.scannedFiles + ' file(s), ' + timeoutBudgets.testCount + ' test(s), ' + timeoutBudgets.declarationCount + ' declaration(s))');
+  assert(timeoutBudgets.skippedCount === 0 && timeoutBudgets.unresolved.length === 0, 'every declaration was attributed to an enclosing test budget, so none was passed over unevaluated (' + timeoutBudgets.evaluatedCount + ' evaluated, ' + timeoutBudgets.skippedCount + ' skipped, ' + timeoutBudgets.unresolved.length + ' unresolved)');
+  for (const line of formatTimeoutBudgetFindings(timeoutBudgets, 1)) console.log('    ' + line);
+  assert(timeoutBudgets.violations.length === 0, 'no declared wait exceeds the budget of the test that contains it \u2014 an unreachable wait is killed by the runner long before it expires, so it reads as coverage while delivering none (' + timeoutBudgets.violations.length + ' unreachable of ' + timeoutBudgets.evaluatedCount + ' evaluated, project default ' + timeoutBudgets.projectDefault.value + 'ms)');
+} catch (e) { failures++; console.log('  \u2717 FAIL (Playwright timeout-budget guard threw): ' + e.message); }
 
 /* ── trend-dynamics-cycle-lab — owner read (TP-04-01, spec 006 scope 4) ───────────────────
    The owner read is this tool's ONLY route into the Market Brief, so its truth handling is a

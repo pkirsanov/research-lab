@@ -67,33 +67,180 @@ Feature: A declared wait budget cannot exceed the test budget that contains it
 
 ### Definition of Done
 
-- [ ] `scripts/validate-playwright-timeout-budgets.mjs` exists and implements `design.md` §3.2
+- [x] `scripts/validate-playwright-timeout-budgets.mjs` exists and implements `design.md` §3.2
   - Raw output evidence (inline, no references):
     ```
+    **Phase:** implement — evidence: report.md#delivery-provenance
+    $ git log --oneline --diff-filter=A -- scripts/validate-playwright-timeout-budgets.mjs
+    027de4258 (HEAD -> main, origin/main, origin/HEAD) fix(009): make declared Playwright waits reachable, and guard the invariant
+
+    $ git ls-files --error-unmatch scripts/validate-playwright-timeout-budgets.mjs
+    scripts/validate-playwright-timeout-budgets.mjs
+    LS_FILES_EXIT=0
+
+    $ sha256sum scripts/validate-playwright-timeout-budgets.mjs
+    acba77ecc464efa93e5e86f05c089467c944c8edd83a9c284d25ab7c594de03e  scripts/validate-playwright-timeout-budgets.mjs
+
+    $ git show --stat 027de4258
+     scripts/validate-playwright-timeout-budgets.mjs    | 916 +++++++++++++++++++++
+
+    Exports required by the implementation plan, both present:
+      765:export function validatePlaywrightTimeoutBudgets(root = ROOT, options = {}) {
+      814:export function formatTimeoutBudgetFindings(findings, indent = '') {
+    Runnable as a CLI (--explain / --root / -h), and the project default is DERIVED, not hardcoded:
+      default=30000ms (playwright-default (config declares none))
     ```
-- [ ] Guard exits non-zero on the committed pre-fix tree, naming exactly 3 sites in 2 files — [T-09-U1]
+- [x] Guard exits non-zero on the committed pre-fix tree, naming exactly 3 sites in 2 files — [T-09-U1]
   - Raw output evidence (inline, no references):
     ```
+    **Phase:** implement — evidence: report.md#delivery-guard-red
+    Pre-fix tree d518a377f materialised via `git archive --output` (no worktree, repo unmutated);
+    fixture proven pre-fix: 0 occurrences of test.setTimeout(180_000) in both files, grep exit 1.
+
+    $ node scripts/validate-playwright-timeout-budgets.mjs --root /tmp/bug009-prefix
+    [timeout-budgets] scanned=49 tests=541 declarations=79 evaluated=79 unattributed=0 unresolved=0 violations=3 default=30000ms (playwright-default (config declares none))
+      UNREACHABLE tests/contextual-tooltip.spec.mjs:11 declares 120000ms inside a 30000ms budget (project default)
+          attributed to waitForHeatmap() <- test at line 21 'Regression: SCN-012-003 Power chart context is equivalent by pointer k'
+      UNREACHABLE tests/trend-dynamics-cycle-lab.spec.mjs:1035 declares 60000ms inside a 30000ms budget (project default)
+          attributed to test at line 985 'Regression: maximum work plan reports progress cancels atomically and'
+      UNREACHABLE tests/trend-dynamics-cycle-lab.spec.mjs:1040 declares 60000ms inside a 30000ms budget (project default)
+          attributed to test at line 985 'Regression: maximum work plan reports progress cancels atomically and'
+    [timeout-budgets] FAIL — 3 declared wait(s) exceed the enclosing test budget
+    GUARD_PREFIX_EXIT=1
+
+    Exactly 3 sites, exactly 2 files, each with declared value, enclosing value and attribution.
+    Paired with the GREEN run in scope 2 (exit 0) using the SAME committed binary — the guard was
+    added BY the fix commit and never modified since, so only the scanned tree differs.
     ```
-- [ ] Guard does not report `simple-model-adapters-macro-fundamental.spec.mjs` or `market-brief-session-date-drift.spec.mjs` — [T-09-U2]
+- [x] Guard does not report `simple-model-adapters-macro-fundamental.spec.mjs` or `market-brief-session-date-drift.spec.mjs` — [T-09-U2]
   - Raw output evidence (inline, no references):
     ```
+    **Phase:** implement — evidence: report.md#delivery-guard-nearmiss
+    $ node scripts/validate-playwright-timeout-budgets.mjs --explain
+      ok   tests/simple-model-adapters-macro-fundamental.spec.mjs:630 declared=60000 budget=120000 [test at line 620 'etf-momentum-lab publishes volatility drag from the shared metric modu']
+      ok   tests/simple-model-adapters-macro-fundamental.spec.mjs:634 declared=60000 budget=120000 [test at line 620 'etf-momentum-lab publishes volatility drag from the shared metric modu']
+      ok   tests/market-brief-session-date-drift.spec.mjs:28 declared=45000 budget=90000 [test at line 11 'Regression BUG-002: a failed rollover never serves prior-session actio']
+      ok   tests/market-brief-session-date-drift.spec.mjs:44 declared=15000 budget=90000 [test at line 11 'Regression BUG-002: a failed rollover never serves prior-session actio']
+      ok   tests/market-brief-session-date-drift.spec.mjs:45 declared=15000 budget=90000 [test at line 11 'Regression BUG-002: a failed rollover never serves prior-session actio']
+    [timeout-budgets] OK — every declared wait fits the test budget that governs it
+    GUARD_EXPLAIN_EXIT=0
+
+    Verdict is "ok", NOT "SKIP": these sites are EVALUATED and pass, so the green result is real
+    coverage rather than the pattern quietly failing to match. :630/:634 is the exact shape that
+    red-lined the discarded file-scoped v1 prototype. The same run also clears all 3 refuted sites:
+      ok   tests/simple-production-wiring.spec.mjs:518 declared=600000 budget=600000 [awaitDeclaredHydrationBoundary() <- test at line 205 ...]
+      ok   tests/simple-production-wiring.spec.mjs:539 declared=60000 budget=900000 [openAndAwaitOwnerEvidence() <- test at line 857 ...]
+      ok   tests/simple-production-wiring.spec.mjs:543 declared=60000 budget=900000 [openAndAwaitOwnerEvidence() <- test at line 857 ...]
     ```
-- [ ] Adversarial fixture re-introducing the defect is caught — [T-09-U3]
+- [x] Adversarial fixture re-introducing the defect is caught — [T-09-U3]
   - Raw output evidence (inline, no references):
     ```
+    **Phase:** implement — evidence: report.md#delivery-guard-adversarial
+    Disposable fixture /tmp/bug009-adversarial re-creates the exact BUG-009 shape plus two controls.
+    The guard prints paths relative to its --root, so `<fixture-root>/` is rendered explicitly: the
+    file never existed in this repo, and pasted bare the token reads as a missing repo test path.
+    Only the root prefix is added; every figure, verdict and exit code below is verbatim.
+
+    $ node scripts/validate-playwright-timeout-budgets.mjs --root /tmp/bug009-adversarial --explain
+    [timeout-budgets] scanned=1 tests=3 declarations=2 evaluated=2 unattributed=0 unresolved=0 violations=1 default=30000ms (playwright-default (config declares none))
+      FAIL <fixture-root>/tests/adversarial-budget.spec.mjs:9 declared=120000 budget=30000 [waitForHeatmap() <- test at line 12 'ADVERSARIAL: undeclared caller re-introduces the unreachable 120 s wai']
+      ok   <fixture-root>/tests/adversarial-budget.spec.mjs:23 declared=60000 budget=120000 [test at line 21 'CONTROL B: in-body wait below a declared budget must not be reported']
+      UNREACHABLE <fixture-root>/tests/adversarial-budget.spec.mjs:9 declares 120000ms inside a 30000ms budget (project default)
+          attributed to waitForHeatmap() <- test at line 12 'ADVERSARIAL: undeclared caller re-introduces the unreachable 120 s wai'
+    [timeout-budgets] FAIL — 1 declared wait(s) exceed the enclosing test budget
+    GUARD_ADVERSARIAL_EXIT=1
+
+    Not tautological: CONTROL B stays "ok", so the red verdict is specific to the re-introduced
+    defect rather than the fixture being red-by-construction. The fixture ALSO contains a compliant
+    caller declaring 180 s; the guard still fails, because it resolves a helper to the WEAKEST
+    reaching caller — one compliant caller cannot launder a non-compliant one.
     ```
-- [ ] A scan matching zero declarations fails rather than passing — [T-09-U4]
+- [x] A scan matching zero declarations fails rather than passing — [T-09-U4]
   - Raw output evidence (inline, no references):
     ```
+    **Phase:** implement — evidence: report.md#delivery-guard-vacuous
+    $ node scripts/validate-playwright-timeout-budgets.mjs --root /tmp/bug009-vacuous-nofiles
+    [timeout-budgets] scanned=0 tests=0 declarations=0 evaluated=0 unattributed=0 unresolved=0 violations=0 default=30000ms (playwright-default (config declares none))
+      VACUOUS-SCAN: the guard matched 0 spec file(s) for **/*.spec.mjs — it cannot vouch for anything
+      VACUOUS-SCAN: the guard found 0 test block(s) — it cannot vouch for anything
+      VACUOUS-SCAN: the guard found 0 timeout declaration(s) — it cannot vouch for anything
+    [timeout-budgets] FAIL — vacuous scan
+    GUARD_VACUOUS_NOFILES_EXIT=1
+
+    $ node scripts/validate-playwright-timeout-budgets.mjs --root /tmp/bug009-vacuous-nodecl
+    [timeout-budgets] scanned=1 tests=1 declarations=0 evaluated=0 unattributed=0 unresolved=0 violations=0 default=30000ms (playwright-default (config declares none))
+      VACUOUS-SCAN: the guard found 0 timeout declaration(s) — it cannot vouch for anything
+    [timeout-budgets] FAIL — vacuous scan
+    GUARD_VACUOUS_NODECL_EXIT=1
+
+    Both branches of INV-009-3 exercised. The second is the sharp one: 1 real file, 1 real test
+    block, violations=0 — and it STILL fails, because zero declarations means the declaration
+    pattern proved nothing. There is also no way to silence the guard:
+    $ node scripts/validate-playwright-timeout-budgets.mjs --skip-budgets
+    [timeout-budgets] there is no bypass flag and there never will be. Raise the enclosing test budget instead.
+    GUARD_BYPASS_EXIT=2
     ```
 - [ ] Guard is wired into `scripts/selftest.mjs` and `node scripts/selftest.mjs` passes — [T-09-R1]
   - Raw output evidence (inline, no references):
     ```
+    **Phase:** implement — UNPROVEN, LEFT UNCHECKED — evidence: report.md#delivery-wiring-gap
+
+    This item is a CONJUNCTION and only its second half holds.
+
+    Half 2 HOLDS — the selftest passes:
+    $ node scripts/selftest.mjs
+    exit: 0   lines: 2824   sha256: eae56f9ffb9c8b9b9bc25b13a1a42d21241169c7f61ff38f7981358aad0632a0
+    ================================================
+    Research-Lab self-test: 2487 passed, 0 failed
+    ================================================
+
+    Half 1 FAILS — the guard is NOT wired in:
+    $ grep -n "validate-playwright-timeout-budgets|validatePlaywrightTimeoutBudgets|formatTimeoutBudgetFindings" scripts/selftest.mjs
+    SELFTEST_WIRING_GREP_EXIT=1        <- exit 1, zero matches
+
+    selftest.mjs imports each validator explicitly and has no auto-discovery of scripts/validate-*.mjs:
+    $ grep -n "^import .* from './validate-" scripts/selftest.mjs
+    27:import { formatSpecTestPathFindings, validateSpecTestPaths } from './validate-spec-test-paths.mjs';
+
+    The fix commit did not modify scripts/selftest.mjs at all (see the Build Quality Gate item).
+    CONSEQUENCE: the guard is correct and proven, but runs only when invoked by hand — nothing yet
+    forces it to run on every repository check, so a future unreachable budget would go uncaught.
+    This does NOT affect the correctness of the delivered fix, which scope 2 verifies independently.
+    OWNER: bubbles.implement, on scripts/selftest.mjs.
+    REMEDY: one import + one assertion block, per implementation-plan step 7 and the
+    validate-spec-test-paths.mjs precedent at scripts/selftest.mjs:27.
+    NOT DONE HERE: scripts/selftest.mjs is outside this turn's authorised change boundary
+    (report.md, scopes.md, state.json only). Recording the gap is the honest action; ticking it
+    or silently editing a foreign surface is not.
     ```
-- [ ] Build Quality Gate: no assertion weakened, no wait budget lowered, no `timeout` added to `playwright.config.mjs`, no file under `.github/bubbles/**` touched
+- [x] Build Quality Gate: no assertion weakened, no wait budget lowered, no `timeout` added to `playwright.config.mjs`, no file under `.github/bubbles/**` touched
   - Raw output evidence (inline, no references):
     ```
+    **Phase:** implement — evidence: report.md#delivery-boundary
+    $ git diff --name-only d518a377f^ 027de4258
+    scripts/validate-playwright-timeout-budgets.mjs
+    specs/_bugs/BUG-009-playwright-assertion-budget-exceeds-test-budget/bug.md
+    specs/_bugs/BUG-009-playwright-assertion-budget-exceeds-test-budget/design.md
+    specs/_bugs/BUG-009-playwright-assertion-budget-exceeds-test-budget/report.md
+    specs/_bugs/BUG-009-playwright-assertion-budget-exceeds-test-budget/scenario-manifest.json
+    specs/_bugs/BUG-009-playwright-assertion-budget-exceeds-test-budget/scopes.md
+    specs/_bugs/BUG-009-playwright-assertion-budget-exceeds-test-budget/spec.md
+    specs/_bugs/BUG-009-playwright-assertion-budget-exceeds-test-budget/state.json
+    specs/_bugs/BUG-009-playwright-assertion-budget-exceeds-test-budget/uservalidation.md
+    tests/contextual-tooltip.spec.mjs
+    tests/trend-dynamics-cycle-lab.spec.mjs
+
+    $ git diff --name-only d518a377f^ 027de4258 -- playwright.config.mjs
+    CONFIG_TOUCHED_EXIT=0        <- no output: config untouched
+    $ git diff --name-only d518a377f^ 027de4258 -- .github/bubbles specs/015-recommendation-outcome-ledger-and-track-record
+    PROTECTED_TOUCHED_EXIT=0     <- no output: both protected trees untouched
+    $ grep -n "timeout" playwright.config.mjs
+    CONFIG_TIMEOUT_GREP_EXIT=1   <- exit 1: still declares no timeout key
+
+    Test-surface diff is 4 added test.setTimeout(180_000) declarations plus comments, one replacing
+    a test.slow(). No assertion, wait condition, or declared wait budget altered — budgets raised
+    only. No blanket config timeout. Suite still enumerates 498 tests in 49 files with zero
+    test.skip/test.only/test.fixme, so nothing was removed or skipped to make the gate pass.
     ```
 
 ---
@@ -151,37 +298,197 @@ Feature: A wait that asks for 120 seconds is allowed to wait 120 seconds
 
 ### Definition of Done
 
-- [ ] All three callers of `waitForHeatmap()` have an effective budget of at least 120000 ms — [AC-1]
+- [x] All three callers of `waitForHeatmap()` have an effective budget of at least 120000 ms — [AC-1]
   - Raw output evidence (inline, no references):
     ```
+    **Phase:** implement — evidence: report.md#delivery-budgets-reachable
+    $ grep -n "waitForHeatmap|test\.setTimeout|test\.slow|^test\(" tests/contextual-tooltip.spec.mjs
+      8:async function waitForHeatmap(page) {
+     21:test('Regression: SCN-012-003 Power chart context is equivalent by pointer keyboard touch and table', ...
+     23:  test.setTimeout(180_000);
+     24:  await waitForHeatmap(page);
+     65:test('Regression: SCN-012-004 label-only context fails the exact Power item without hiding valid peers', ...
+     67:  test.setTimeout(180_000);
+     68:  await waitForHeatmap(page);
+    115:test('Research charts tables tickers sources and tooltips retain units provenance limits and keyboard access', ...
+    156:test('Regression: contextual disclosure fits mobile returns focus and promotes same-data table without canvas', ...
+    158:  test.setTimeout(180_000);
+    165:  await waitForHeatmap(page);
+
+    Exactly 3 call sites (24, 68, 165); each governed by test.setTimeout(180_000) at 23, 67, 158.
+    Zero occurrences of test.slow() remain — the third site previously relied on it, and it yields
+    only 3 x 30 s = 90 s, short of the 120 s the helper declares. 180000 >= 120000 at all three.
+
+    Corroborated independently by the guard, which resolves a helper to the MINIMUM budget across
+    reaching callers — so budget=180000 on the helper's own line is only possible if EVERY caller
+    is at 180000:
+      ok   tests/contextual-tooltip.spec.mjs:11 declared=120000 budget=180000 [waitForHeatmap() <- test at line 21 ...]
     ```
-- [ ] `trend-dynamics-cycle-lab.spec.mjs` test at line 985 covers both declared 60000 ms polls — [AC-2]
+- [x] `trend-dynamics-cycle-lab.spec.mjs` test at line 985 covers both declared 60000 ms polls — [AC-2]
   - Raw output evidence (inline, no references):
     ```
+    **Phase:** implement — evidence: report.md#delivery-budgets-reachable
+    $ node scripts/validate-playwright-timeout-budgets.mjs --explain
+      ok   tests/trend-dynamics-cycle-lab.spec.mjs:1037 declared=60000 budget=180000 [test at line 985 'Regression: maximum work plan reports progress cancels atomically and']
+      ok   tests/trend-dynamics-cycle-lab.spec.mjs:1042 declared=60000 budget=180000 [test at line 985 'Regression: maximum work plan reports progress cancels atomically and']
+
+    Both polls attributed to the same enclosing test at line 985, each inside a 180000 ms budget.
+    120000 ms of sequential poll capacity fits inside 180000 ms with headroom for the rest of the
+    test body — which is the point, since the two polls run back to back.
+
+    Line numbers moved 1035/1040 -> 1037/1042 because the fix inserted 2 lines above them:
+    $ git diff 027de4258^ 027de4258 -- tests/trend-dynamics-cycle-lab.spec.mjs
+    +  // Two sequential 60 s rerun polls below need 120 s of wait capacity before any other work counts.
+    +  test.setTimeout(180_000);
+       await openReplayCase(page, 'max-work');
+
+    Pre-fix, the same two sites read: declared=60000 budget=30000 -> UNREACHABLE (see scope 1 RED).
     ```
-- [ ] Guard green post-fix — [T-09-U5]
+- [x] Guard green post-fix — [T-09-U5]
   - Raw output evidence (inline, no references):
     ```
+    **Phase:** implement — evidence: report.md#delivery-guard-green
+    $ node scripts/validate-playwright-timeout-budgets.mjs
+    HEAD=027de4258  tree_clean=yes
+    [timeout-budgets] scanned=49 tests=541 declarations=79 evaluated=79 unattributed=0 unresolved=0 violations=0 default=30000ms (playwright-default (config declares none))
+    [timeout-budgets] OK — every declared wait fits the test budget that governs it
+    GUARD_POSTFIX_EXIT=0
+
+    violations=0, exit 0. Critically also unattributed=0 and unresolved=0: every one of the 79
+    declarations was actually evaluated, so the green verdict is full coverage rather than the
+    guard skipping the sites it could not attribute.
+
+    Same scan surface as the RED run in scope 1 (49 files, 541 test blocks, 79 declarations) and
+    the SAME committed binary (sha256 acba77e..., added by this commit, unmodified since). The
+    only difference between exit 1 and exit 0 is the fix itself.
     ```
-- [ ] `SCN-012-003` and `SCN-012-004` pass under the same CPU pressure that reproduced the failure — [T-09-E1]
+- [x] `SCN-012-003` and `SCN-012-004` pass under the same CPU pressure that reproduced the failure — [T-09-E1]
   - Raw output evidence (inline, no references):
     ```
+    **Phase:** implement — evidence: report.md#delivery-specs-under-pressure
+    8 busy loops started and load allowed to settle — the same method that reproduced the failure.
+
+    LOAD_NATURAL=10.99 12.99 14.88
+    LOAD_WITH_PRESSURE=16.26 14.05 15.18
+    $ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/contextual-tooltip.spec.mjs tests/trend-dynamics-cycle-lab.spec.mjs
+    exit: 0   lines: 176   sha256: ff7819b2fb1c54fdcd4dab7cb4993bc3c2901584ef7f6b2b38283ebb64827edc
+    Running 28 tests using 2 workers
+      ✓  23 [system-chrome] › tests/contextual-tooltip.spec.mjs:65:1 › Regression: SCN-012-004 label-only context fails the exact Power item without hiding valid peers (45.6s)
+      ✓  27 [system-chrome] › tests/contextual-tooltip.spec.mjs:115:1 › Research charts tables tickers sources and tooltips retain units provenance limits and keyboard access (3.7s)
+      ✓  28 [system-chrome] › tests/contextual-tooltip.spec.mjs:156:1 › Regression: contextual disclosure fits mobile returns focus and promotes same-data table without canvas (1.1m)
+      28 passed (2.9m)
+    WALL_SECONDS=180
+    LOAD_AT_END=29.26 22.23 18.27
+
+    28 passed, 0 failed, exit 0 at terminal load 29.26 — HIGHER than the 18.90 at which report.md
+    Evidence 5 recorded both tests failing pre-fix.
+
+    The load-bearing number is 45.6s. SCN-012-004 consumed 45.6 s of wall time against a pre-fix
+    budget of 30000 ms. It could NOT have passed on the pre-fix tree under this load; it would have
+    been killed at 30 s, which is exactly the failure Evidence 5 captured. It passes here only
+    because the fix granted it 180 s. The repair is load-bearing, not cosmetic.
     ```
-- [ ] Feature 006 replay regression passes — [T-09-E2]
+- [x] Feature 006 replay regression passes — [T-09-E2]
   - Raw output evidence (inline, no references):
     ```
+    **Phase:** implement — evidence: report.md#delivery-specs-under-pressure
+    Same run, same CPU pressure (LOAD_WITH_PRESSURE=16.26, LOAD_AT_END=29.26):
+
+    $ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/contextual-tooltip.spec.mjs tests/trend-dynamics-cycle-lab.spec.mjs
+    [NFR-003] totalWorkUnits=2200
+    [NFR-003] cancelledAfterUnits=27
+    [NFR-003] progressSamples=29 monotonic=true
+    [NFR-003] deterministicRerun=true
+    [NFR-003] committedResultId=replay-run-3
+      ✓  26 [system-chrome] › tests/trend-dynamics-cycle-lab.spec.mjs:985:1 › Regression: maximum work plan reports progress cancels atomically and keeps navigation responsive (4.4s)
+      ✓  24 [system-chrome] › tests/trend-dynamics-cycle-lab.spec.mjs:918:1 › Regression: SCN-006-005 failed early reversal remains immutable and invalidated (1.7s)
+      ✓  25 [system-chrome] › tests/trend-dynamics-cycle-lab.spec.mjs:953:1 › Regression: SCN-006-007 retrospective turn never backdates the real-time alert (1.1s)
+      28 passed (2.9m)
+    exit: 0
+
+    The target test at line 985 passed in 4.4 s, and its NFR-003 invariants still hold
+    (monotonic progress, deterministic rerun, atomic cancellation, stable committedResultId) — so
+    raising the budget changed the time allowance, not the behaviour under assertion. 4.4 s also
+    confirms report.md Evidence 6: this site's contradiction is latent, not active.
     ```
-- [ ] Full suite reports 498 tests, none removed, skipped, or newly failing — [T-09-E3]
+- [x] Full suite reports 498 tests, none removed, skipped, or newly failing — [T-09-E3]
   - Raw output evidence (inline, no references):
     ```
+    **Phase:** implement — evidence: report.md#delivery-suite
+    Discharged in two parts with DIFFERENT provenance, distinguished deliberately.
+
+    PART A — inventory. Claim Source: executed in this turn (list only, no execution):
+    $ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --list
+    exit: 0   lines: 500   sha256: a5a1005be0f7714736defd422dc98740f057d43df89726fd5a4019aac06a50a8
+    Total: 498 tests in 49 files
+
+    498 tests in 49 files — identical to the pre-fix census in report.md Evidence 1. None removed.
+    And none skipped or narrowed:
+    $ grep -rn "test\.skip\(|test\.fixme\(|test\.only\(|describe\.skip\(" tests/*.spec.mjs
+    (no matches across all 49 spec files)
+
+    PART B — result. Claim Source: executed EARLIER THIS SESSION; NOT re-run in this turn.
+    $ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome
+    498 passed, 0 failed, exit 0, 11.3m, load 6.4 -> 21.95
+
+    Cited rather than repeated on explicit operator instruction, because re-running 11 minutes of
+    Playwright to restate an established result is waste rather than rigour. Recorded as an
+    attributed citation, NOT as a figure produced by this turn. Decisive because the two pre-fix
+    full-suite runs failed (3 and 4 failures; the contextual-tooltip pair failed in BOTH).
     ```
-- [ ] `node scripts/selftest.mjs` passes — [T-09-R2]
+- [x] `node scripts/selftest.mjs` passes — [T-09-R2]
   - Raw output evidence (inline, no references):
     ```
+    **Phase:** implement — evidence: report.md#delivery-selftest
+    $ node scripts/selftest.mjs
+    exit: 0
+    lines: 2824
+    sha256: eae56f9ffb9c8b9b9bc25b13a1a42d21241169c7f61ff38f7981358aad0632a0
+    --- last 20 ---
+    regime-primitives-stress
+      ✓ the facet publication path sustains a repeated high-volume append run without unbounded slot growth or degraded write throughput
+
+    ================================================
+    Research-Lab self-test: 2487 passed, 0 failed
+    ================================================
+    EVIDENCE_CAPTURE_EXIT=0
+    LOAD_BEFORE=9.97 13.19 15.06   LOAD_AFTER=10.22 13.02 14.97
+
+    2487 passed, 0 failed, exit 0 on committed HEAD 027de4258 with a clean tree. The personal-
+    identifier scan runs inside this suite (selftest.mjs:28 imports pii-scan, invoked at :2656) and
+    also passes standalone:
+    $ node scripts/pii-scan.mjs
+    [pii-scan] files=7545 messages=1423 findings=0 OK
+    PII_SCAN_EXIT=0
+
+    NOTE: this item asserts only that the selftest passes, and it does. The SEPARATE scope 1 item
+    additionally requiring the guard to be WIRED INTO selftest.mjs is NOT met and stays unticked.
     ```
-- [ ] Change Boundary: the diff touches only the two spec files named above plus scope 01's guard and its `selftest.mjs` wiring; no assertion or declared wait budget altered; `playwright.config.mjs` unchanged; nothing under `specs/015-recommendation-outcome-ledger-and-track-record/**` or `.github/bubbles/**` modified — [SCN-009B-004]
+- [x] Change Boundary: the diff touches only the two spec files named above plus scope 01's guard and its `selftest.mjs` wiring; no assertion or declared wait budget altered; `playwright.config.mjs` unchanged; nothing under `specs/015-recommendation-outcome-ledger-and-track-record/**` or `.github/bubbles/**` modified — [SCN-009B-004]
   - Raw output evidence (inline, no references):
     ```
+    **Phase:** implement — evidence: report.md#delivery-boundary
+    $ git diff --name-only d518a377f^ 027de4258
+    scripts/validate-playwright-timeout-budgets.mjs
+    specs/_bugs/BUG-009-playwright-assertion-budget-exceeds-test-budget/*  (9 packet artifacts)
+    tests/contextual-tooltip.spec.mjs
+    tests/trend-dynamics-cycle-lab.spec.mjs
+
+    Every touched path is inside the allowed set. Excluded surfaces checked by name, all empty:
+    $ git diff --name-only d518a377f^ 027de4258 -- playwright.config.mjs
+    CONFIG_TOUCHED_EXIT=0        <- no output
+    $ git diff --name-only d518a377f^ 027de4258 -- .github/bubbles specs/015-recommendation-outcome-ledger-and-track-record
+    PROTECTED_TOUCHED_EXIT=0     <- no output
+    $ grep -n "timeout" playwright.config.mjs
+    CONFIG_TIMEOUT_GREP_EXIT=1   <- exit 1: config still declares no timeout key
+
+    The declared boundary is an UPPER bound. It permits scripts/selftest.mjs; the diff does not
+    include it. Touching fewer files than permitted is not a boundary violation, so this item
+    passes — but that same absence IS a DoD failure under scope 1's wiring item, which is where it
+    is recorded and left unticked. It is not double-counted here.
+
+    specs/015-**/T-01-R2 therefore remains correctly unticked in its own packet: it is unblocked by
+    this packet completing, not by scope 01 reaching across its Change Boundary.
     ```
 
 ---

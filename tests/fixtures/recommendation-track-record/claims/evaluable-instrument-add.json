@@ -1,0 +1,33 @@
+{
+  "note": "Positive: single instrument, add family, next-session horizon. Bound direction is +1.",
+  "binding": {
+    "proposalRunId": "dist-2026-07-28-open-0001",
+    "proposalEventId": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "proposedAt": "2026-07-28T13:30:00.000Z",
+    "entryDate": "2026-07-28",
+    "entryBasis": "close",
+    "resolutionDate": "2026-07-29"
+  },
+  "action": {
+    "action": "add",
+    "subject": "MSFT — firming right to its 50-day but still bear-stacked; add into the 7/29 print",
+    "horizon": "tactical",
+    "deepLink": "msft-july-print-model.html",
+    "claim": {
+      "contractVersion": "brief-action-claim-input/v1",
+      "subjectKind": "instrument",
+      "resolvesTo": ["MSFT"],
+      "weighting": "primary-only",
+      "thesisFamily": "earnings-print-reclaim",
+      "horizonKind": "next-session",
+      "predicate": {
+        "kind": "threshold",
+        "basis": "close",
+        "comparator": "gte",
+        "value": 1.5,
+        "reference": null
+      },
+      "flatBand": 0.25
+    }
+  }
+}

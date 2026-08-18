@@ -1,0 +1,7 @@
+{
+  "outcome": "violation",
+  "reason": "predicate-kind-not-allowed",
+  "field": "predicate.kind",
+  "legalMember": "threshold",
+  "vocabulary": "PREDICATE_KINDS"
+}

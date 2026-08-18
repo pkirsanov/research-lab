@@ -1,0 +1,7 @@
+{
+  "outcome": "violation",
+  "reason": "magnitude-sign-convention-not-allowed",
+  "field": "magnitude.signConvention",
+  "legalMember": "direction-adjusted",
+  "vocabulary": "SIGN_CONVENTIONS"
+}

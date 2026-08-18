@@ -1,0 +1,34 @@
+{
+  "note": "Positive (T-01-U1): the identical claim terms of `evaluable-basket-trim` re-proposed in a LATER run. Every one of the four unhashed provenance fields differs — `proposalRunId`, `proposalEventId`, `proposedAt`, and the `deepLink` that resolves `citedToolId` — while all nine hashed terms are byte-identical, including `horizon.authoredBand` ('swing'), `horizon.resolutionDate` and the `magnitude` entry basis and date. Re-proposal must therefore land on the SAME content address.",
+  "binding": {
+    "proposalRunId": "dist-2026-07-29-open-0002",
+    "proposalEventId": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "proposedAt": "2026-07-29T13:30:00.000Z",
+    "entryDate": "2026-07-28",
+    "entryBasis": "close",
+    "resolutionDate": "2026-07-31"
+  },
+  "action": {
+    "action": "trim",
+    "subject": "Stretched tech / semis beta (QQQ/VGT, SOXX) into any bounce ahead of the 7/28-29 FOMC + MSFT print",
+    "horizon": "swing",
+    "deepLink": "swing-structure-lab.html#core",
+    "claim": {
+      "contractVersion": "brief-action-claim-input/v1",
+      "subjectKind": "basket",
+      "resolvesTo": ["QQQ", "VGT", "SOXX"],
+      "weighting": "equal",
+      "thesisFamily": "growth-extension-derate",
+      "horizonKind": "multi-session",
+      "horizonSessions": 3,
+      "predicate": {
+        "kind": "directional",
+        "basis": "close",
+        "comparator": "gt",
+        "value": 0.0,
+        "reference": null
+      },
+      "flatBand": 0.25
+    }
+  }
+}

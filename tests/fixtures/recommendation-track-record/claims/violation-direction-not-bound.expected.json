@@ -1,0 +1,8 @@
+{
+  "outcome": "violation",
+  "reason": "direction-not-bound-to-action-family",
+  "field": "direction",
+  "authoredDirection": 1,
+  "boundDirection": -1,
+  "vocabulary": "ACTION_DIRECTION"
+}

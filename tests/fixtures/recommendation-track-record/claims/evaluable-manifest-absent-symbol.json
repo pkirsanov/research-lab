@@ -1,0 +1,34 @@
+{
+  "note": "Positive, and the pin for the committed-bars-set definition. EA has a committed data/bars/EA.json file but is ABSENT from the data/bars/index.json refresh manifest. Under the availability definition (directory listing minus the manifest file) this claim resolves; under a manifest-derived definition it would wrongly refuse `no-committed-series`. This fixture makes that choice fail loudly if it is ever changed.",
+  "binding": {
+    "proposalRunId": "dist-2026-07-28-open-0001",
+    "proposalEventId": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "proposedAt": "2026-07-28T13:30:00.000Z",
+    "entryDate": "2026-07-28",
+    "entryBasis": "close",
+    "resolutionDate": "2026-08-04"
+  },
+  "action": {
+    "action": "add",
+    "subject": "EA into the post-selloff reclaim attempt",
+    "horizon": "swing",
+    "deepLink": "company-fundamentals-lab.html",
+    "claim": {
+      "contractVersion": "brief-action-claim-input/v1",
+      "subjectKind": "instrument",
+      "resolvesTo": ["EA"],
+      "weighting": "primary-only",
+      "thesisFamily": "post-selloff-reclaim",
+      "horizonKind": "multi-session",
+      "horizonSessions": 5,
+      "predicate": {
+        "kind": "threshold",
+        "basis": "close",
+        "comparator": "gte",
+        "value": 2.0,
+        "reference": null
+      },
+      "flatBand": 0.25
+    }
+  }
+}

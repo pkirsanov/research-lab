@@ -162,7 +162,9 @@ decision made here in scope 05 lands inside scope 02's already-green cases witho
 
 **Canary before broad reruns.** `T-01-C1` is an independent canary over the substrate's own contracts — the export
 surface, import side-effect freedom, a round-trip load of one input of each shape, the stable loader ordering, and
-the unchanged captured baseline with every pre-existing group line byte-identical. It runs in seconds
+the captured baseline re-asserted under the **attributable-delta** rule: `0 failed` in both trees, no pre-existing
+group's pass count falling, and every differing assertion line attributable to this scope's own added files by a
+delta **derived per run** — an unattributed difference fails the row. It runs in seconds
 and **before** `T-01-R1` and `T-01-R2`, so a substrate defect is named as a substrate defect instead of surfacing as
 a scatter of unrelated failures at the end of a full browser suite.
 
@@ -230,8 +232,8 @@ the behaviour under test makes the row fail. No row contains an early-exit bailo
 | T-01-F1 | Functional | `functional` | BS-008 | `tests/recommendation-track-record.functional.mjs` | Content-addressed write round-trip: minting an identical claim twice produces one file whose bytes are identical across both passes, the filename equals the bare lowercase hex of `claimHash`, and the object body retains the `sha256:` prefix. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-01-f1` |
 | T-01-F2 | Functional | `functional` | BS-001 | `tests/recommendation-track-record.functional.mjs` | `citedToolId` is a citation — neither identity nor the producer. It resolves from a `deepLink` matching a real `tools.json` `file` to that tool's `id`, and the resolved value is asserted **not** to equal the `market-brief` producer constant, so conflating the citation with `originToolId` fails the row. An absent or unmatched `deepLink` sets `citedToolId: null` and the claim is **still minted and still counted** — the adversarial input, since the retired `unresolvable-owning-tool` behaviour would refuse that action and fail the row. Re-minting an otherwise identical claim carrying a **different** `citedToolId` yields the same `claimHash`, is a no-op that **reuses the first object**, leaves the on-disk bytes carrying the **first** citation, and does **not** fire `RTR-PREDICATE-AMEND` — which is how an unhashed provenance field coexists with step 7's byte-changing abort instead of contradicting it. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-01-f2` |
 | T-01-F3 | Functional | `functional` | BS-001, BS-008 | `tests/recommendation-track-record.functional.mjs` | `recommendationKey` is one-to-many with `claimHash`: two claims sharing `{subject, family}` but declaring different `horizon.kind` mint to the **same** `recommendationKey` and **different** `claimHash` values, and both objects coexist on disk. This is the property that makes a same-key/different-horizon pair individually resolvable without touching the publisher's key derivation. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-01-f3` |
-| T-01-C1 | Fixture Canary | `unit` | BS-001 | `tests/recommendation-track-record.canary.mjs` | **Canary: the shared substrate's own contracts, asserted before any broad rerun.** `tests/recommendation-track-record.support.mjs` exports exactly the loader, the exact-code assertion helper and the byte-comparison helper and nothing else; importing it registers **zero** tests, prints nothing and opens no file; one input of each fixture shape round-trips through the loader with its `*.expected.json` sibling resolved and its dates read from the input rather than a clock; the loader returns a stable order across two runs; and `node scripts/selftest.mjs` still reports the **baseline captured at scope start and recorded in `report.md`**, `0 failed`, with every pre-existing group line byte-identical. The baseline is compared against that captured value rather than a literal, because a pinned figure fails on unrelated repo growth instead of on a substrate defect. Runs in seconds and **before** `T-01-R1` / `T-01-R2`, so a substrate defect is named at the substrate. | `node --test tests/recommendation-track-record.canary.mjs` | No | `report.md#t-01-c1` |
-| T-01-C2 | Fixture Canary | `functional` | BS-001 | `tests/recommendation-track-record.canary.mjs` | **Canary: the restore path is rehearsed in a disposable worktree, never on the live tree.** A detached `git worktree` is created at the pre-scope commit; `node scripts/selftest.mjs` is run inside it and asserted to equal the **baseline captured at scope start**, `0 failed`, with its group lines byte-identical to the pre-existing lines of the post-scope run; `git status --porcelain` in the live tree is asserted to contain no entry outside this scope's allowed file families; and the worktree is torn down on exit, success or failure. This is the back-out for a bad substrate change once scopes 02 – 10 import it, rehearsed while the blast radius is still one scope wide. | `node --test tests/recommendation-track-record.canary.mjs` | No | `report.md#t-01-c2` |
+| T-01-C1 | Fixture Canary | `unit` | BS-001 | `tests/recommendation-track-record.canary.mjs` | **Canary: the shared substrate's own contracts, asserted before any broad rerun.** `tests/recommendation-track-record.support.mjs` exports exactly the loader, the exact-code assertion helper and the byte-comparison helper and nothing else; importing it registers **zero** tests, prints nothing and opens no file; one input of each fixture shape round-trips through the loader with its `*.expected.json` sibling resolved and its dates read from the input rather than a clock; the loader returns a stable order across two runs; and `node scripts/selftest.mjs` still reports the **baseline captured at scope start and recorded in `report.md`** under the **attributable-delta** rule — `0 failed`, no pre-existing group's pass count falling, and every differing assertion line attributable to this scope's own added files by a delta **derived per run**, an unattributed difference failing the row. A **skeleton gate** enforces the attribution: every decimal run in a differing line is replaced by a placeholder and the remaining skeletons must be byte-identical, so a changed word, a reordered clause, or a dropped writer name can never be attributed — only magnitudes may move, and only by a derived amount. The baseline is compared against that captured value rather than a literal, and **no count literal is written into the test**, because a pinned figure fails on unrelated repo growth instead of on a substrate defect. Runs in seconds and **before** `T-01-R1` / `T-01-R2`, so a substrate defect is named at the substrate. | `node --test tests/recommendation-track-record.canary.mjs` | No | `report.md#t-01-c1` |
+| T-01-C2 | Fixture Canary | `functional` | BS-001 | `tests/recommendation-track-record.canary.mjs` | **Canary: the restore path is rehearsed in a disposable worktree, never on the live tree.** A detached `git worktree` is created at the pre-scope commit; `node scripts/selftest.mjs` is run inside it and asserted to equal the **baseline captured at scope start**, `0 failed` in both trees, with no pre-existing group's pass count falling and every line differing from the post-scope run attributable to this scope's own added files by a delta **derived per run** under the same skeleton gate — an unattributed difference fails the row; `git status --porcelain` in the live tree is asserted to contain no entry outside this scope's allowed file families; and the worktree is torn down on exit, success or failure. This is the back-out for a bad substrate change once scopes 02 – 10 import it, rehearsed while the blast radius is still one scope wide. | `node --test tests/recommendation-track-record.canary.mjs` | No | `report.md#t-01-c2` |
 | T-01-R1 | Regression E2E | `e2e` | BS-001, BS-008 | `tests/recommendation-track-record.e2e.mjs` | **Persistent scenario regression for BS-001 and BS-008.** A full mint pass over the fixture claim set re-asserts, end to end against the real `briefs/objects/claims/` layout, that re-minting identical terms is a byte-identical no-op, that a byte-changing write at an existing path aborts with `RTR-PREDICATE-AMEND` leaving the on-disk bytes unchanged, and that each of the **seven** mint-refusal reasons still fires for its own trigger and only its own. The row additionally re-asserts that an unmatched `deepLink` still **mints** with `citedToolId: null`, so a later scope that reinstates the retired `unresolvable-owning-tool` refusal fails here. The row is permanent and re-runs in every later scope's pass, so a later scope that narrows the hashed-term list, softens the append-only store, or drops a refusal fails here rather than silently. | `node --test tests/recommendation-track-record.e2e.mjs` | No | `report.md#t-01-r1` |
 | T-01-R2 | Regression E2E | `e2e` | BS-001, BS-008 | `tests/*.e2e.mjs`, `tests/*.spec.mjs` (committed suites, unfiltered) | **Broader E2E regression suite.** The repo's committed Node E2E files and the whole committed Playwright spec suite both run green after the claim module, the store and the fixtures land, with no pre-existing test removed, skipped, or newly failing. This is the row that proves the new content-addressed tree under `briefs/objects/` did not disturb the committed brief pipeline that reads the same tree. | `node --test tests/*.e2e.mjs && npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` | Yes | `report.md#t-01-r2` |
 | T-01-S1 | Project check | project check | — | `scripts/selftest.mjs` (unmodified) | The repo self-test is green after the claim module, the fixtures, the support module and the two test files land, at `baseline + N passed, 0 failed`, where `baseline` is the total captured immediately before this scope's first change and recorded in `report.md`, with no pre-existing assertion count decreasing. | `node scripts/selftest.mjs` | No | `report.md#t-01-s1` |
@@ -274,8 +276,8 @@ the behaviour under test makes the row fail. No row contains an early-exit bailo
 - [ ] T-01-F1 passes: the content-addressed write is a byte-identical no-op on re-mint and the filename equals the bare hex → evidence recorded in `report.md#t-01-f1`.
 - [ ] T-01-F2 passes: `citedToolId` resolves to the cited tool and not the `market-brief` constant, an unmatched `deepLink` still mints with `citedToolId: null`, and mutating `citedToolId` leaves `claimHash` byte-identical while reusing the first object without firing `RTR-PREDICATE-AMEND` → evidence recorded in `report.md#t-01-f2`.
 - [ ] T-01-F3 passes: `recommendationKey` is proven one-to-many with `claimHash` and both objects coexist → evidence recorded in `report.md#t-01-f3`.
-- [ ] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns — [T-01-C1] the support module's export surface, its import side-effect freedom, a round-trip load of each fixture shape with its `*.expected.json` sibling resolved, the stable loader ordering, and the baseline **captured at scope start and recorded in `report.md`** re-asserted unchanged with `0 failed` and byte-identical group lines are all asserted **before** `T-01-R1` and `T-01-R2` run → evidence recorded in `report.md#t-01-c1`.
-- [ ] Rollback or restore path for shared infrastructure changes is documented and verified — [T-01-C2] the pre-scope state is reconstructed in a disposable detached worktree, the baseline there is asserted to equal the captured scope-start baseline with `0 failed` and byte-identical group lines, the live tree is asserted to carry no entry outside the allowed file families, and the worktree is torn down on exit whether the rehearsal succeeded or failed → evidence recorded in `report.md#t-01-c2`.
+- [ ] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns — [T-01-C1] the support module's export surface, its import side-effect freedom, a round-trip load of each fixture shape with its `*.expected.json` sibling resolved, the stable loader ordering, and the baseline **captured at scope start and recorded in `report.md`** re-asserted under the attributable-delta rule — `0 failed`, no pre-existing group's pass count falling, and every differing assertion line attributable to this scope's own added files by a per-run-derived delta under the skeleton gate, an unattributed difference failing the item — are all asserted **before** `T-01-R1` and `T-01-R2` run → evidence recorded in `report.md#t-01-c1`.
+- [ ] Rollback or restore path for shared infrastructure changes is documented and verified — [T-01-C2] the pre-scope state is reconstructed in a disposable detached worktree, the baseline there is asserted to equal the captured scope-start baseline with `0 failed` in both trees, no pre-existing group's pass count falling, and every line differing from the post-scope run attributable to this scope's own added files by a per-run-derived delta under the skeleton gate, the live tree is asserted to carry no entry outside the allowed file families, and the worktree is torn down on exit whether the rehearsal succeeded or failed → evidence recorded in `report.md#t-01-c2`.
 - [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope pass — [T-01-R1] the re-mint no-op, the `RTR-PREDICATE-AMEND` byte-preserving abort, all seven mint refusals, and the unmatched-`deepLink` mint with `citedToolId: null` re-assert end to end against the real claim store → evidence recorded in `report.md#t-01-r1`.
 - [ ] Broader E2E regression suite passes unchanged — [T-01-R2] the committed Node E2E files and the whole committed Playwright spec suite are green with no pre-existing test removed, skipped, or newly failing → evidence recorded in `report.md#t-01-r2`.
 - [ ] T-01-S1 passes: `node scripts/selftest.mjs` reports `baseline + N passed, 0 failed` against the scope-start baseline captured in `report.md`, with no pre-existing assertion count decreasing → evidence recorded in `report.md#t-01-s1`.
@@ -301,6 +303,73 @@ the behaviour under test makes the row fail. No row contains an early-exit bailo
 | `recommendation-track-record-lab.html` | Does not exist until scope 07. |
 | `scripts/validate-recommendation-track-record.mjs` | The consolidated validator is scope 09. This scope's refusals are proven by `node --test`. |
 | Any other `specs/**` directory | Specs 002, 012, 013, 014 and 016 are authored by concurrent sessions and are neither read for mutation nor written. |
+
+---
+
+## Baseline-Criterion Correction — Recorded 2026-08-18 (P-015-C2-01)
+
+**This is a correction from an unsatisfiable assertion to a satisfiable and strictly stronger one. It is not a
+relaxation.** A future reader who reaches for the superseded wording below because it "sounds stricter" is reaching
+for a criterion that cannot be met by any implementation of this scope, and that therefore asserts nothing.
+
+**What this supersedes, precisely.** The byte-identity clause at exactly five sites — the *Canary before broad
+reruns* paragraph, the `T-01-C1` and `T-01-C2` Test Plan rows, and the two matching test DoD items. Nothing else in
+those rows or items is disturbed: the canary still runs before `T-01-R1` / `T-01-R2`, the restore rehearsal still
+happens in a disposable detached worktree, the baseline is still **captured, never pinned**, and no count literal is
+written into any test. The row count and the DoD item count are unchanged.
+
+### Superseded wording (preserved as history)
+
+| Site | Superseded clause |
+|---|---|
+| *Canary before broad reruns* | *"the unchanged captured baseline with every pre-existing group line **byte-identical**"* |
+| `T-01-C1` row | *"…`0 failed`, with every pre-existing group line **byte-identical**."* |
+| `T-01-C2` row | *"…asserted to equal the **baseline captured at scope start**, `0 failed`, with its **group lines byte-identical** to the pre-existing lines of the post-scope run"* |
+| `T-01-C1` DoD item | *"…re-asserted unchanged with `0 failed` and **byte-identical group lines**"* |
+| `T-01-C2` DoD item | *"…the baseline there is asserted to equal the captured scope-start baseline with `0 failed` and **byte-identical group lines**"* |
+
+### Why the superseded criterion was unsatisfiable by construction
+
+Two deterministic assertion lines legitimately differ between the pre-scope worktree and the post-scope live tree,
+and **both differences are correct**. Neither is avoidable while this scope delivers what it is required to deliver,
+so byte-identity could only ever have been met by *not building the scope*.
+
+| Differing line | Movement | Why it is correct and unavoidable |
+|---|---|---|
+| `Feature 012 Scope 15 … (TP-15-07)` line 7 | `scanned 67 files` → `scanned 68 files` | The count is `scannedSources.length`, enumerated per run from the root `.js` / `.html` listing plus `rlexperience-adapters/*.js` ([`scripts/selftest.mjs#L7658`](../../../../scripts/selftest.mjs#L7658), verified this run). This scope's own new root-level production module enters that universe by existing. |
+| `spec artifacts — referenced tests/*.mjs paths exist` line 1 | `71 known-missing, 6 stale` → `67 known-missing, 10 stale` | Four of this scope's new `tests/recommendation-track-record.*.mjs` files are already listed in `scripts/validate-spec-test-paths.baseline` (verified: 8 `recommendation-track-record` entries at lines 124–131), so creating them moves them from the *known-missing* bucket to the *stale-baseline* bucket. The ∓4 is equal-and-opposite and conserved — the two buckets partition one frozen set — and the assertion's own pass predicate is `newMissing.length === 0` ([`scripts/selftest.mjs#L8702`](../../../../scripts/selftest.mjs#L8702)), which the movement does not touch. |
+
+Nothing regressed. `node scripts/selftest.mjs` reports **`2487 passed, 0 failed`**, exit 0, in the live tree
+(re-measured 2026-08-18 this run) and `0 failed` in the pre-scope worktree, with no pre-existing group's pass count
+falling. The finding was raised by `bubbles.implement` after the canary failed on real data, and the two magnitudes
+above are that agent's measured evidence; the derivation mechanism of each line was re-verified here against source.
+
+**The artifact was also internally inconsistent.** The *Shared Infrastructure Impact Sweep* table already stated the
+satisfiable property — *"The baseline may grow additively to `baseline + N`; it may not shrink, and no pre-existing
+group's count may fall"* — and `T-01-S1` already asserts exactly that. The byte-identity clause contradicted both.
+
+### The delivered criterion, and why it is stronger
+
+> `0 failed` in both trees, no pre-existing group's pass count falling, and every differing assertion line
+> attributable to this scope's own added files by a delta **derived per run** — an unattributed difference fails
+> the row.
+
+It is stronger for three reasons:
+
+1. **It collapses back to exact byte-identity** when a scope adds no production source and touches no baselined
+   path — the derived delta is then zero and every line must match byte for byte. Nothing is given up in the case
+   the old wording could actually have covered.
+2. **Where a difference is legitimate it still constrains it**, rather than being unmeetable and therefore inert.
+   The magnitude must equal a delta the test *derives* from this scope's own added files; a difference of the right
+   shape but the wrong size fails.
+3. **A skeleton gate makes the attribution unforgeable.** Every decimal run in a differing line is replaced by a
+   placeholder and the remaining skeletons must be byte-identical, so a changed word, a reordered clause, or a
+   dropped writer name can never be attributed. Only magnitudes may move, and only by a derived amount. No count
+   literal is written into the test, so the rows stay immune to unrelated repo growth — the same reason the
+   baseline itself is captured rather than pinned.
+
+Recorded by `bubbles.plan`. This correction changes planning wording only: no DoD item is ticked, the scope
+`**Status:**` is unchanged, and evidence recording remains `bubbles.implement`'s to perform.
 
 ---
 

@@ -1,0 +1,8 @@
+{
+  "outcome": "evaluable",
+  "reason": null,
+  "field": null,
+  "citedToolId": "company-fundamentals-lab",
+  "direction": 1,
+  "barsSetDefinition": "availability: data/bars/*.json minus the index.json manifest file"
+}

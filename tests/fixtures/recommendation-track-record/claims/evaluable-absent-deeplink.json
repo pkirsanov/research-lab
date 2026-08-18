@@ -1,0 +1,33 @@
+{
+  "note": "Positive: the action carries no deepLink at all. citedToolId is null and the claim still mints.",
+  "binding": {
+    "proposalRunId": "dist-2026-07-28-open-0001",
+    "proposalEventId": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+    "proposedAt": "2026-07-28T13:30:00.000Z",
+    "entryDate": "2026-07-28",
+    "entryBasis": "close",
+    "resolutionDate": "2026-07-30"
+  },
+  "action": {
+    "action": "rotate",
+    "subject": "Into the deepened, defensive-tilted Leading cluster vs now-Peaking energy and financials",
+    "horizon": "swing",
+    "claim": {
+      "contractVersion": "brief-action-claim-input/v1",
+      "subjectKind": "sector",
+      "resolvesTo": ["SPY", "QQQ"],
+      "weighting": "equal",
+      "thesisFamily": "defensive-rotation",
+      "horizonKind": "multi-session",
+      "horizonSessions": 5,
+      "predicate": {
+        "kind": "relative",
+        "basis": "close",
+        "comparator": "crosses-above",
+        "value": 0.5,
+        "reference": "bars/SPY/1d"
+      },
+      "flatBand": 0.25
+    }
+  }
+}

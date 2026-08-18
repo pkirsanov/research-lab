@@ -1,0 +1,33 @@
+{
+  "note": "Violation: `predicate.kind` is 'threshol' — the legal member 'threshold' minus its last character, defeating a prefix check. One rule violated; everything else is complete.",
+  "binding": {
+    "proposalRunId": "dist-2026-07-28-open-0001",
+    "proposalEventId": "sha256:2020202020202020202020202020202020202020202020202020202020202020",
+    "proposedAt": "2026-07-28T13:30:00.000Z",
+    "entryDate": "2026-07-28",
+    "entryBasis": "close",
+    "resolutionDate": "2026-07-31"
+  },
+  "action": {
+    "action": "add",
+    "subject": "MSFT into the reclaim of its 50-day",
+    "horizon": "tactical",
+    "deepLink": "msft-july-print-model.html",
+    "claim": {
+      "contractVersion": "brief-action-claim-input/v1",
+      "subjectKind": "instrument",
+      "resolvesTo": ["MSFT"],
+      "weighting": "primary-only",
+      "thesisFamily": "earnings-print-reclaim",
+      "horizonKind": "next-session",
+      "predicate": {
+        "kind": "threshol",
+        "basis": "close",
+        "comparator": "gte",
+        "value": 1.5,
+        "reference": null
+      },
+      "flatBand": 0.25
+    }
+  }
+}

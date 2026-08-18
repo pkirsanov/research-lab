@@ -90,11 +90,21 @@ Scenario: A claim with no committed series is not-evaluable (SCN-015-010)
    `migrate-brief-history.mjs`), so the resolver is an ordinary member of an established script surface rather than a
    new execution model.
 2. **Enforce HC-10 structurally.** The resolver's entire input set is committed repository state:
-   `briefs/objects/claims/`, `briefs/history/recommendations/*.jsonl`, `data/bars/*.json` (289 committed symbol
-   files, verified this planning run), and `data/calendars/xnys/calendar.json`. It performs no `fetch`, opens no
+   `briefs/objects/claims/`, `briefs/history/recommendations/*.jsonl`, the committed `data/bars` symbol set, and
+   `data/calendars/xnys/calendar.json`. It performs no `fetch`, opens no
    socket, reads no provider key, and never consults `RLDATA`'s browser fetch path. A violation is `RTR-NETWORK`,
    asserted by a source scan in the same idiom the repo already uses for
    `rlvalid-node-safe-no-dom-storage-network`.
+
+   **The committed `data/bars` symbol set is defined by a membership rule, never by a count** (F-015-D5-02). The
+   glob `data/bars/*.json` is **not** the symbol set: it also matches the `data/bars/index.json` refresh manifest,
+   whose `tickers[].sym` list is the authoritative symbol enumeration. The resolver therefore reads membership from
+   `data/bars/index.json` and treats a `<SYMBOL>.json` sibling as the series for a member, so `index` can never be
+   mistaken for a tradeable symbol. *Dated observation, deliberately not a constant:* on 2026-08-18 the glob matched
+   293 files, the glob minus the manifest matched 292, and the manifest listed 289 symbols — `EA`, `NDX` and `PHP=X`
+   have a committed file but no manifest entry, while every manifest entry has a file. Three defensible readings of
+   *"the committed bars set"* differ by four files, which is precisely why the rule names the set and the scope's
+   tests enumerate it at run time rather than asserting any of the three numbers.
 3. **Compute the due set from reduction state, not from timestamps.**
    `due(asOfDate) = { entry ∈ index.entries : entry.state === "active" ∧ entry has a claimRef ∧ claim(entry).horizon.resolutionDate ≤ asOfDate }`.
    `index` is a `recommendation-index/v1` produced by `reduceRecommendationEvents` (`rlcontracts.js#L1134`);
@@ -118,8 +128,11 @@ Scenario: A claim with no committed series is not-evaluable (SCN-015-010)
    `calendar-coverage-exhausted`. The calendar is a committed artifact with a finite window; treating it as infinite
    is the assumption that fails once, quietly, at a year boundary.
 6. **Implement the as-of fence as a slice, not a rule.** Committed daily bars carry rows shaped `{ t, o, h, l, c, v }`
-   where `t` is the regular-session open in epoch milliseconds (verified on `data/bars/SPY.json`: 502 rows,
-   `asof: "2026-07-27"`, last row `t: 1785159000000`). Because the regular open is `14:30Z` (EST) or `13:30Z` (EDT)
+   where `t` is the regular-session open in epoch milliseconds. *Dated observation on `data/bars/SPY.json`,
+   2026-08-18: 517 rows, `asof: "2026-08-17"`, last row `t: 1786973400000`.* The tree is delta-appended on every
+   refresh, so every figure in that observation is stale by design within days — it is recorded to size the fixture
+   set and is **not** carried into any test, fixture, DoD item, or source literal. Because the regular open is
+   `14:30Z` (EST) or `13:30Z` (EDT)
    — both inside the same UTC calendar day as the ET session — the session date is the UTC calendar date of `t`.
    That coincidence is load-bearing, so it is **asserted rather than assumed**: each derived session date is
    cross-checked against `calendar.rows[].regular.startUtc` and a mismatch refuses.
@@ -141,9 +154,14 @@ Scenario: A claim with no committed series is not-evaluable (SCN-015-010)
    `path-incomplete`, because a path predicate evaluated over a partial path is a *different* predicate and silently
    doing that would break HC-6. A required session missing from the slice is `unresolved`, reason `session-absent` —
    never an interpolation.
-9. **Apply the data-quality gates.** Each bars file carries `reconstructedSessions`, `thinObservedSessions` and
-   `zeroObservedSessions` (verified on `data/bars/SPY.json`: `reconstructedSessions: ["2026-07-24"]`, the other two
-   empty). If the `entryDate` or `resolutionDate` session appears in `zeroObservedSessions`, the claim closes
+9. **Apply the data-quality gates.** A bars file may carry `reconstructedSessions`, `thinObservedSessions` and
+   `zeroObservedSessions`, and the gate reads whichever are present. **Presence is not universal and must not be
+   assumed:** on 2026-08-18, 291 of the 293 files matching `data/bars/*.json` carried all three, and the two that
+   did not were `data/bars/index.json` (the refresh manifest, not a series) and `data/bars/NDX.json` (a genuine
+   series with none of the three). A gate that dereferenced the arrays unconditionally would throw on `NDX`, so an
+   absent array is read as empty rather than as a missing input. Those figures are a **dated observation, not a
+   constant**, and no test asserts them. If the `entryDate` or `resolutionDate` session appears in
+   `zeroObservedSessions`, the claim closes
    `not-evaluable`, reason `zero-observed-session`. A `reconstructedSessions` or `thinObservedSessions` hit does
    **not** block resolution but is recorded verbatim in the resolution object's `provenance`, so a reader can see
    that an outcome rests on a repaired bar.
@@ -220,7 +238,7 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 | T-04-U3 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | Closure event and outcome class are independent: a claim whose predicate is **satisfied** but whose direction-adjusted magnitude is **negative** records `closureEventType: "satisfied"` **and** `outcomeClass: "loss"`. An implementation deriving one axis from the other fails this row. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u3` |
 | T-04-U4 | Unit | `unit` | BS-002 | `tests/recommendation-track-record.unit.mjs` | `RTR-CLOSURE-VOCAB` fires with its exact code when a closure event outside `CLOSE_EVENT_TYPES` is constructed (`"partially-satisfied"`), and no local extension of the vocabulary is created; `rlcontracts.js` is asserted byte-unmodified. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u4` |
 | T-04-U5 | Unit | `unit` | BS-007 | `tests/recommendation-track-record.unit.mjs` | The fence is structural: the slice handed to the evaluator contains **no** row dated after `resolutionDate`, an attempt to consult one fires `RTR-LOOKAHEAD`, **and** the distinct case `bars.asof < resolutionDate` is a **silent skip** that leaves the claim `active` with zero events appended — proving skip and refusal are not conflated. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u5` |
-| T-04-U6 | Unit | `unit` | BS-010 | `tests/recommendation-track-record.unit.mjs` | Each of the six `not-evaluable` reasons fires for its own trigger and only its own, and each carries a human-readable sentence; a subject absent from the 289 committed `data/bars/*.json` files closes `no-committed-series` while a `relative` claim with a missing reference closes `no-committed-reference`. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u6` |
+| T-04-U6 | Unit | `unit` | BS-010 | `tests/recommendation-track-record.unit.mjs` | Each of the six `not-evaluable` reasons fires for its own trigger and only its own, and each carries a human-readable sentence; a subject naming a symbol absent from the committed `data/bars` set — **enumerated at test time from `data/bars/index.json` `tickers[].sym` and never asserted as a count literal** — closes `no-committed-series` while a `relative` claim with a missing reference closes `no-committed-reference`. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u6` |
 | T-04-U7 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | `outcomeValue = direction × ret(subject)`: a **correct bearish** claim (`trim`, `direction: -1`) on a series that fell produces a **positive** outcome, and a wrong one produces a negative outcome — the adapter without which every correct bearish call would score as a loss under `rlvalidation.js#L136`. `hold` (`direction: 0`) closes `neutral-direction-no-magnitude`. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u7` |
 | T-04-F1 | Functional | `functional` | BS-007 | `tests/recommendation-track-record.functional.mjs` | Horizon expiry is session arithmetic: a Friday `next-session` claim resolves the following Monday, not Saturday; a claim spanning a `holiday` resolves one session later than day arithmetic says; and each derived session date is cross-checked against `calendar.rows[].regular.startUtc` with a mismatch refusing. **Includes the `early-close` case (P-015-07)** — a `next-session` claim proposed the session before `2026-11-27` or `2026-12-24` must resolve **on** that early-close session, not skip it. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-04-f1` |
 | T-04-F2 | Functional | `functional` | BS-007 | `tests/recommendation-track-record.functional.mjs` | `RTR-CALENDAR-COVERAGE` fires with its exact code when a horizon expiry lands beyond `coverageEnd`, the claim closes `not-evaluable` reason `calendar-coverage-exhausted`, and **no** date is extrapolated past the committed window. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-04-f2` |
@@ -234,7 +252,7 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 | T-04-V1 | Functional | `functional` | BS-007 | `tests/recommendation-track-record.functional.mjs` | `RTR-NETWORK` fires when the resolver module's source references `fetch(`, `providerFetch(`, `rlProviderConfig`, or any socket/credential surface, and the clean module is asserted to reference none of them — the same idiom as the repo's existing `rlvalid-node-safe-no-dom-storage-network` assertion. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-04-v1` |
 | T-04-R1 | Regression E2E | `e2e` | SCN-015-002, SCN-015-003, SCN-015-007, SCN-015-009, SCN-015-010 | `tests/recommendation-track-record.e2e.mjs` | **Persistent scenario regression for all five owned scenarios.** A second, permanently-retained resolve pass re-asserts end to end that a satisfied claim resolves positive and an invalidated one negative, that the as-of fence still excludes every future row with `RTR-LOOKAHEAD` firing on an attempt while `bars.asof < resolutionDate` stays a silent skip, that a re-run yields zero closures and a byte-identical `indexFingerprint`, and that a claim with no committed series still closes `not-evaluable`. Unlike `T-04-E1`, which proves the first pass, this row is the standing guard that re-runs on every later scope's pass, so a later change to the reducer bridge, the calendar predicate, or the due-set gate fails here. | `node --test tests/recommendation-track-record.e2e.mjs` | No | `report.md#t-04-r1` |
 | T-04-R2 | Regression E2E | `e2e` | SCN-015-009 | `tests/*.e2e.mjs`, `tests/*.spec.mjs` (committed suites, unfiltered) | **Broader E2E regression suite.** The repo's committed Node E2E files and the whole committed Playwright spec suite both run green after the resolver lands, with no pre-existing test removed, skipped, or newly failing — the proof that routing closures through `reduceRecommendationEvents` with `current: []` left every existing lifecycle consumer of `rlcontracts.js` intact rather than only satisfying 015's own fixtures. | `node --test tests/*.e2e.mjs && npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` | Yes | `report.md#t-04-r2` |
-| T-04-S1 | Project check | project check | — | `scripts/selftest.mjs` (unmodified) | The repo self-test is green after the resolver, the fixtures and the test cases land, at `952 + N passed, 0 failed`, with no pre-existing assertion count decreasing. | `node scripts/selftest.mjs` | No | `report.md#t-04-s1` |
+| T-04-S1 | Project check | project check | — | `scripts/selftest.mjs` (unmodified) | The repo self-test is green after the resolver, the fixtures and the test cases land, at `baseline + N passed, 0 failed`, where `baseline` is the total captured immediately before this scope's first change and recorded in `report.md`, with no pre-existing assertion count decreasing. | `node scripts/selftest.mjs` | No | `report.md#t-04-s1` |
 
 **Test Plan rows: 20.**
 
@@ -288,7 +306,7 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 - [ ] T-04-V1 passes: `RTR-NETWORK` fires on a network/credential reference and the clean module references none → evidence recorded in `report.md#t-04-v1`.
 - [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope pass — [T-04-R1] the satisfied and invalidated outcomes, the look-ahead fence with its silent-skip counterpart, the byte-identical re-run fingerprint, and the not-evaluable closure all re-assert as a standing guard → evidence recorded in `report.md#t-04-r1`.
 - [ ] Broader E2E regression suite passes unchanged — [T-04-R2] the committed Node E2E files and the whole committed Playwright spec suite are green, proving every existing `rlcontracts.js` lifecycle consumer survives the closure routing → evidence recorded in `report.md#t-04-r2`.
-- [ ] T-04-S1 passes: `node scripts/selftest.mjs` reports `952 + N passed, 0 failed` with no pre-existing assertion count decreasing → evidence recorded in `report.md#t-04-s1`.
+- [ ] T-04-S1 passes: `node scripts/selftest.mjs` reports `baseline + N passed, 0 failed` against the scope-start baseline captured in `report.md`, with no pre-existing assertion count decreasing → evidence recorded in `report.md#t-04-s1`.
 
 **Test-related DoD items: 20. Test Plan rows: 20. Parity confirmed.**
 

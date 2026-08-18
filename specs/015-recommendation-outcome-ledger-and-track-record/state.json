@@ -3,8 +3,8 @@
     "featureDir": "specs/015-recommendation-outcome-ledger-and-track-record",
     "featureName": "Recommendation Outcome Ledger And Track Record",
     "createdAt": "2026-07-28T00:00:00Z",
-    "status": "specs_hardened",
-    "workflowMode": "product-to-planning",
+    "status": "in_progress",
+    "workflowMode": "product-to-delivery",
     "blockedReason": null,
     "blockedReasonAddendum": {
         "recordedBy": "orchestrator",
@@ -28,19 +28,49 @@
     "linkedPlanningPacket": null,
     "planningOnly": false,
     "planningOnlyJustification": null,
+    "modeTransition": {
+        "at": "2026-08-18T04:50:26Z",
+        "authority": "operator-directed",
+        "authorizedBy": "user-session (explicit operator authorization in the dispatching request). The authorizing runner is bubbles.goal, which .github/bubbles/agent-capabilities.yaml#workflowModeGrants grants modes [\"*\"] with excludedModes [autonomous-sprint, iterate]; product-to-delivery is not excluded, so the grant covers this mode. Verified by reading agent-capabilities.yaml lines 45-57 this run rather than assumed. The edit itself was applied by bubbles.validate under that authorization and is recorded here.",
+        "from": {
+            "workflowMode": "product-to-planning",
+            "statusCeiling": "specs_hardened",
+            "terminalAliases": [
+                "specs_hardened"
+            ],
+            "status": "specs_hardened",
+            "planningOnly": false
+        },
+        "to": {
+            "workflowMode": "product-to-delivery",
+            "statusCeiling": "done",
+            "terminalAliases": [],
+            "status": "in_progress",
+            "planningOnly": false
+        },
+        "statusBefore": "specs_hardened",
+        "statusAfter": "in_progress",
+        "whatChanged": "Exactly four things. (1) workflowMode product-to-planning -> product-to-delivery. (2) top-level status specs_hardened -> in_progress. (3) certification.status specs_hardened -> in_progress. (4) the execution block reconciled against product-to-delivery's phaseOrder: activeAgent bubbles.plan -> bubbles.implement, currentPhase bootstrap -> implement, and execution.nextRequiredTarget added as 01-frozen-claim-contract alongside the already-correct execution.nextRequiredOwner bubbles.implement. Two live declarations that named the old mode by name were corrected in their final sentence only so they do not assert a mode this packet no longer carries: statusDiscipline.specDoneRequires and deliveryTopologyJustification. Nothing else was touched.",
+        "reason": "This is a DEMOTION that makes the record less claim-bearing, not a promotion. 015 is self-delivered: its ten scopes implement specs/015-recommendation-outcome-ledger-and-track-record itself, so a product-to-planning classification let a fully-planned-but-entirely-unbuilt packet rest at a terminal-looking status. The classification also made delivery unreachable by construction. product-to-delivery and full-delivery both declare statusCeiling done and neither declares terminalAliases, so their only legal statuses are not_started, in_progress, blocked and done; specs_hardened is not among them. Holding workflowMode product-to-delivery while status remained specs_hardened therefore could not resolve a transition contract at all: transition-contract-resolver.sh reaches its default branch and, because specs_hardened is absent from the empty terminalAliases array, exits 69 with E009-TARGET-MISMATCH 'current terminal state contradicts the registry-derived target'. Mechanism verified by reading transition-contract-resolver.sh lines 290-297 this run rather than inferred from symptom. Since no implementation-capable mode in this registry accepts specs_hardened, the pair (delivery mode, specs_hardened) is unreachable, and moving status down to in_progress is the only truthful way to carry a delivery mode. in_progress is also simply the accurate description: 0 of 10 scopes are built.",
+        "conventionBasis": "Peer spec 013-market-regime-stack-and-strategy-playbook made the identical transition in this same repository and records it in its own top-level modeTransition key (statusBefore specs_hardened, statusAfter in_progress, from product-to-planning to a done-ceiling delivery mode). This record deliberately mirrors 013's key schema (at, authority, authorizedBy, from, to, reason, conventionBasis, gateEffect, honestDisclosure, boundedRun) so the two packets are structurally comparable. 013 sits today at exactly the end state this change produces: a done-ceiling delivery mode, status in_progress, every scope not_started, and delivery-completion gates honestly failing. No terminalAlias was invented for product-to-delivery and no mode definition was edited; nothing under .github/bubbles/** was modified.",
+        "gateEffect": "product-to-planning does not appear in product-to-delivery's requiredGates list, and G073 (source-code edit lockout, planning-only) is absent from that list, so implementation is now permitted where the planning mode forbade it. Moving off status specs_hardened also clears the G087 planning-packet-linkage trap, which fails any spec at specs_hardened whose planningOnly is not true and whose linkedImplementationSpec is null - both true here, because 015 is self-delivered and neither mechanical escape would have been truthful. The accepted and disclosed cost is that a done ceiling makes every delivery-completion check applicable to a packet with nothing built: state-transition-guard.sh moves from a clean PASS at the planning ceiling to a large DELIVERY_COMPLETION_FAILED failure set. That outcome is correct and was NOT suppressed, waived, reduced or worked around; it clears only by real implementation.",
+        "honestDisclosure": "NO IMPLEMENTATION HAS BEEN PERFORMED AND NO PROGRESS IS CLAIMED. All ten entries in certification.scopeProgress remain not_started, certification.completedScopes remains empty (0 of 10), certification.certifiedCompletedPhases remains empty, execution.completedPhaseClaims remains empty, and no DoD checkbox anywhere in scopes/ was ticked. No execution evidence was written for work that has not run. status was NOT promoted toward done; it was moved DOWN, and the packet now asserts strictly less than it did before: it stops claiming a certified planning terminal and starts claiming active, incomplete delivery. The certified planning signal is NOT destroyed - certification.certifiedAt is preserved verbatim at 2026-08-10T23:58:00Z, which is what records that the planning pass genuinely completed and passed its guard at the planning ceiling. This change deliberately trades a green-but-terminal-looking planning record for a red-but-honest delivery record, and the guard failures it produces are the honest steady state of an unbuilt delivery packet, not a regression to hide.",
+        "boundedRun": "Single file: specs/015-recommendation-outcome-ledger-and-track-record/state.json. No spec.md, design.md, scopes/_index.md, scopes/NN-*/scope.md, scopes/NN-*/report.md, report.md, uservalidation.md, scenario-manifest.json, product source, tools.json, registry or other spec folder was touched, and nothing under .github/bubbles/** was modified. Every history field was preserved byte-for-byte: ownerDecisionAddendum, blockedReasonAddendum, blockedReasonResolved, routedFindingsReconciliation, routedFindingsResolution, notes and all fifteen executionHistory entries are unedited (count verified by jq this run, not asserted). routedFindingsReconciliation in particular still argues why specs_hardened was truthful at the time it was written; it is retained as history and is superseded by this dated record ONLY on which lifecycle status the packet now carries, exactly as that field itself did to ownerDecisionAddendum. Its substance stands: nextRequiredOwner remains bubbles.implement, and routedFindingsResolution (2026-08-13) independently records that all four Blocking routed findings are resolved, so no scope is finding-gated. releaseTrain was deliberately NOT set because this repository has no config/release-trains.yaml and any train id would dangle. planningOnly stays false and linkedImplementationSpec stays null because 015 is self-delivered; setting either would satisfy a guard while defeating its purpose. requiresRevalidation was left at false rather than flipped, because no certified completion claim exists to revalidate. No git staging, commit, checkout, stash or restore was performed."
+    },
     "specDependsOn": [
         "specs/002-distributed-tool-briefs-and-history"
     ],
     "certifiedAt": null,
     "requiresRevalidation": false,
     "execution": {
-        "activeAgent": "bubbles.plan",
-        "currentPhase": "bootstrap",
+        "activeAgent": "bubbles.implement",
+        "currentPhase": "implement",
         "currentScope": null,
         "runStartedAt": "2026-07-28T21:05:00Z",
         "completedPhaseClaims": [],
         "pendingTransitionRequests": [],
         "nextRequiredOwner": "bubbles.implement",
+        "nextRequiredTarget": "01-frozen-claim-contract",
         "audit": {
             "schemaVersion": "audit-run/v1",
             "runId": null,
@@ -49,7 +79,7 @@
         }
     },
     "certification": {
-        "status": "specs_hardened",
+        "status": "in_progress",
         "completedScopes": [],
         "certifiedCompletedPhases": [],
         "lockdownState": {
@@ -460,7 +490,7 @@
     "activeBugs": [],
     "resolvedBugs": [],
     "failures": [],
-    "lastUpdatedAt": "2026-08-13T04:45:00Z",
+    "lastUpdatedAt": "2026-08-18T04:50:26Z",
     "scopeLayout": "per-scope-directory",
     "artifacts": {
         "spec": "spec.md",
@@ -500,7 +530,7 @@
             "G060",
             "G061"
         ],
-        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion. Workflow mode product-to-planning has ceiling specs_hardened, so this packet cannot reach done under the current mode without a mode change."
+        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion. Workflow mode product-to-delivery declares statusCeiling done and no terminalAliases, so done is the only terminal status and it is reachable solely through real implementation and validate certification. (Superseded 2026-08-18 by modeTransition; the prior sentence named product-to-planning and its specs_hardened ceiling, which this packet no longer carries.)"
     },
     "notes": "Analyst authoring complete; spec.md only. design.md, scopes/, report.md, and uservalidation.md are intentionally ABSENT - they are foreign-owned (bubbles.design, bubbles.plan) and artifact-lint will correctly report them missing until those owners run. scopeLayout is declared per-scope-directory as a recommendation because the feature spans four sequential capability layers (frozen claim contract, deterministic resolver, RLVALID scorer/tool, Center consumption) and is expected to exceed six scopes; bubbles.plan owns the final layout decision and may override it. certification.scopeProgress is intentionally EMPTY because no scopes have been planned - populating it here would be fabrication. The single most important design input is spec.md RL-001: every pre-contract ledger row is cryptographically anonymous and can never be scored (recounted 2026-07-28 at 165 rows across 83 keys, still growing at four windows a day until the claim contract lands), so the track record necessarily starts at zero on the day the claim contract lands, and spec.md HC-4 forbids back-filling, imputing, or silently dropping them - and further requires that the count be computed from the ledger at render time rather than shipped as a literal. The second is HC-7: rlvSummarizeOutcomes absorbs exactly-zero into its unresolved count, so the resolver needs a resolved-flat sentinel rather than a change to the Feature 007 primitive. Sequencing risk is named in RL-009 - Features 002, 012, and 013 are all blocked and 015 extends 002's row contract while consuming 012's surface.",
     "blockedReasonResolved": {
@@ -518,7 +548,7 @@
         "consequenceForImplementation": "nextRequiredOwner remains bubbles.implement, but implementation of scope 02 and scope 04 MUST NOT begin until the four findings are answered by their owners. specs_hardened authorises the plan, not the build of those two scopes. The remaining eight scopes carry no routed Blocking finding and are not gated by this."
     },
     "deliveryTopology": "in-place",
-    "deliveryTopologyJustification": "This packet plans AND implements the recommendation outcome ledger in the same directory: its ten scopes are the implementation plan for specs/015-recommendation-outcome-ledger-and-track-record itself, so there is no separate spec for linkedImplementationSpec to name. planningOnly is false because implementation is genuinely coming, not foregone; all ten scopes remain Not Started and are the work this hardened planning authorises. specs_hardened certifies that the planning is complete, which is the declared statusCeiling for workflow mode product-to-planning.",
+    "deliveryTopologyJustification": "This packet plans AND implements the recommendation outcome ledger in the same directory: its ten scopes are the implementation plan for specs/015-recommendation-outcome-ledger-and-track-record itself, so there is no separate spec for linkedImplementationSpec to name. planningOnly is false because implementation is genuinely coming, not foregone; all ten scopes remain Not Started and are the work this hardened planning authorises. Because the packet is self-delivered, it now carries workflow mode product-to-delivery at status in_progress rather than resting at a planning ceiling; the completed planning pass remains recorded by certification.certifiedAt 2026-08-10T23:58:00Z. (Superseded 2026-08-18 by modeTransition; the prior final sentence asserted specs_hardened as the declared statusCeiling for workflow mode product-to-planning.)",
     "routedFindingsResolution": {
         "recordedBy": "bubbles.design",
         "recordedAt": "2026-08-13T04:45:00Z",

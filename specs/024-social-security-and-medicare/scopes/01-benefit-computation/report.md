@@ -35,15 +35,22 @@ This scope is complete for fourteen of the fifteen Definition of Done rows. One
 row stays unchecked and states its reason in
 [scope.md](scope.md#definition-of-done) and again here:
 
-- **Per-row intended-RED evidence is absent for most Test Plan rows.** Same-command
-  GREEN is recorded for every row, and intended RED is recorded for two: SUP-024-09
-  and TP-01-18. TP-01-01 through TP-01-17 and TP-01-19 were authored by the earlier
-  interrupted dispatch, and this session observed only their GREEN. TP-01-20 through
-  TP-01-24 were authored in this session against a product that already satisfied
-  them, so they carry a first-run result rather than an intended RED. TP-01-25's
-  named `--grep "SCN-02"` command was not run either; the full
-  `tests/lifetime-tax-*.spec.mjs` suite was run instead, which is a superset of the
-  rows that selector matches, and its output is recorded below.
+- **Per-row intended-RED evidence is now recorded for nineteen of the
+  twenty-eight Test Plan rows, and is still absent for nine.** Same-command GREEN
+  is recorded for every row. A later session closed the gap for TP-01-01 through
+  TP-01-10, TP-01-12, TP-01-13, TP-01-15, TP-01-16, TP-01-17 and TP-01-19 by
+  reverting each assertion's subject in the product, observing the named
+  assertion fail under the row's own command, restoring the subject
+  byte-identically and re-running the identical command — recorded under
+  [Per-Row Intended RED And Same-Command GREEN](#per-row-intended-red-and-same-command-green).
+  TP-01-14 and TP-01-26 carry a RED observed under another row's probe rather
+  than a probe of their own. TP-01-18 and SUP-024-09 carried RED already.
+  **Still without any intended RED: TP-01-11, TP-01-20, TP-01-21, TP-01-22,
+  TP-01-23, TP-01-24, TP-01-25, TP-01-27 and TP-01-28.** TP-01-25's named
+  `--grep "SCN-02"` command still has not been run; the full
+  `tests/lifetime-tax-*.spec.mjs` suite was run instead, which is a superset of
+  the rows that selector matches, and its output is recorded below.
+
 
 ## Sourcing
 
@@ -307,6 +314,134 @@ surfaced rather than silently applied; a claim past the sourced stopping age pro
 the identical figure to a claim at it and the record says the bound applied; and a
 birth year beneath the delayed-credit table's declared domain refuses
 `RLTAX-THRESHOLD-UNAVAILABLE` naming the domain, with no adjustment row and no `$0`.
+
+## Per-Row Intended RED And Same-Command GREEN
+
+Recorded in a later evidence session against HEAD `639527bbc`. The method for
+every row below is the same and was carried out in full each time: revert the
+assertion's own subject **in the product** with a small mutation, run the row's
+own command and observe the **named** assertion fail, restore the subject
+byte-identically, and re-run the **identical** command. No test was edited,
+weakened, skipped or retimed; every mutation is in product code, a product pack
+or the route page.
+
+Each run was captured through `.github/bubbles/scripts/evidence-capture.sh`,
+which records the command, the exit code, the line count, a sha256 over all 3215
+lines of output, and the failure-shaped lines. The command for every row here is
+`node scripts/selftest.mjs`. The clean baseline is **2843 passed, 0 failed**,
+exit **0**.
+
+| Row | Mutation applied to the subject | RED exit | RED count | RED sha256 | GREEN exit | GREEN sha256 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TP-01-01 | `rltaxsocialsecurity.js` `citationFor` no longer refuses a sourced figure carrying no locator | 1 | 2842 / 1 | `252d033b1533…` | 0 | `f0a103e1dca5…` |
+| TP-01-02 | the both-origins refusal carries `acceptedDeclarations` instead of `ambiguousDeclarations`, collapsing the shape separation | 1 | 2842 / 1 | `ce0d9bdee114…` | 0 | `d4dede8228bd…` |
+| TP-01-03 | the both-origins branch is disabled, so the resolver falls through and prefers the statement amount — the scope's named intended-RED shape | 1 | 2841 / 2 | `3bb3b18014d6…` | 0 | `33f5a0853664…` |
+| TP-01-04 | each bend-point percentage is applied to the whole rather than to the portion its own breakpoint delimits | 1 | 2840 / 3 | `ca59f5b9277b…` | 0 | `721f9e6dc104…` |
+| TP-01-05 | same mutation as TP-01-04 — it is precisely the whole-not-portion defect TP-01-05 exists to catch | 1 | 2840 / 3 | `ca59f5b9277b…` | 0 | `721f9e6dc104…` |
+| TP-01-06 | the computed origin no longer refuses on an `AbsentFigure` wage-indexing series | 1 | 2842 / 1 | `e658bf890e2d…` | 0 | `72444c189e70…` |
+| TP-01-07 | the full-retirement-age row publishes `totalMonths` one month off the sourced row | 1 | 2838 / 5 | `45613eff5db6…` | 0 | `a46faea6faf2…` |
+| TP-01-08 | `lookupSourcedRow` no longer refuses outside its declared domain, so it clamps to the neighbouring row | 1 | 2841 / 2 | `b28ed501ba04…` | 0 | `aefe17d7a01e…` |
+| TP-01-09 | the delayed credit is no longer bounded by the sourced stopping age | 1 | 2841 / 2 | `32008a2fec04…` | 0 | `2c934c0e3b56…` |
+| TP-01-10 | same mutation as TP-01-09 — accrual past the sourced stopping age is the defect TP-01-10 exists to catch | 1 | 2841 / 2 | `32008a2fec04…` | 0 | `2c934c0e3b56…` |
+| TP-01-12 | the composed benefit leg publishes `includedInTotal: true` instead of the pack's declared value | 1 | 2842 / 1 | `87c984be1c95…` | 0 | `26846ff60680…` |
+| TP-01-13 | the leg-census finding detail no longer names the failing surface | 1 | 2840 / 3 | `3b8d1641c77e…` | 0 | `74aa08ff0df8…` |
+| TP-01-15 | a real bend point is planted as executable code in `rltaxsocialsecurity.js` | 1 | 2842 / 1 | `50769f81e217…` | 0 | `9b4729e2a0ff…` |
+| TP-01-16 | the earnings record is removed from `BENEFIT_RECORD_DECLARATIONS`, so a declaration ships uninventoried | 1 | 2842 / 1 | `3e448dce6a5a…` | 0 | `3e202525164b…` |
+| TP-01-17 | one `Number.isFinite` in the module is replaced by the bare global | 1 | 2842 / 1 | `af1a72f92935…` | 0 | `f7150215ac1c…` |
+| TP-01-19 | `inputBenefitClaimAgeMonths` is removed from the route's `DECLARATION_INPUTS` list | 1 | 2841 / 2 | `34f7ae3acb53…` | 0 | `1f72fd1ad416…` |
+
+### The named failure text, row by row
+
+Each RED run printed the failing row by its own persistent title. Two examples,
+verbatim from the capture:
+
+```
+  ✗ FAIL: TP-01-03: an implementation preferring the statement amount when both origins are declared is proven to produce a figure instead of a refusal and to name the precedence it took, the delivered resolver refuses and carries no figure, no precedence branch exists in the module’s code, and the …
+Research-Lab self-test: 2841 passed, 2 failed
+```
+
+```
+  ✗ FAIL: TP-01-09: an early claim applies the sourced per-month factors for the months counted and publishes each one in its own segment — reproducing the authority’s published monthly benefit for its own worked example — a claim at the full retirement age counts zero months, and a delayed claim ac…
+  ✗ FAIL: TP-01-10: an implementation accruing delayed credit past the sourced stopping age produces a larger figure than the bounded one and is proven to differ, and one folding the months into a single multiplier publishes no per-month factors and is proven to fail the published-factors assertion
+Research-Lab self-test: 2841 passed, 2 failed
+```
+
+### Rows whose RED came from another row's probe rather than their own
+
+These two are recorded as RED honestly but are weaker evidence than the rows
+above, because no mutation was aimed at them:
+
+- **TP-01-14** failed under the TP-01-08 probe. Its vocabulary-count arms held;
+  what failed was its raising-site arm, which asserts that the out-of-domain
+  birth year still raises `RLTAX-THRESHOLD-UNAVAILABLE`. The counts themselves
+  were never reverted, so TP-01-14's central claim has no probe of its own.
+- **TP-01-26** — *the whole-repository suite stays green and the pre-existing
+  pass count does not fall* — is the same command as every row above. All
+  sixteen RED runs are simultaneously a same-command RED for it (exit 1, pass
+  count fallen), and all sixteen GREEN runs are its same-command GREEN.
+
+### Collateral failures, and why they are reported rather than absorbed
+
+Three probes failed more than their target row, and in each case the extra
+failure is the shared surface behaving correctly rather than a second defect:
+
+- The TP-01-04/05 probe also failed **TP-01-06b**, the end-to-end check against
+  the authority's own worked example. That is the point of TP-01-06b: a wrong
+  portion arithmetic must move a published figure.
+- The TP-01-07 probe (one month off the sourced row) also failed **TP-01-06b**,
+  **TP-01-09**, **TP-01-10** and **TP-01-12**, because the full retirement age is
+  the input to the months counted and to the settled leg value. Those three rows
+  additionally hold their own dedicated probes above, so none of them rests on
+  this one.
+- The TP-01-13 probe also failed **TP-02-17** and **TP-04-19**, the equivalent
+  rows in Scopes 02 and 04. The leg-census helper is shared by design and this
+  is direct evidence that the later scopes genuinely consume it unchanged.
+- The TP-01-19 probe also failed **TP-05-12**, which asserts the same
+  registration property over the whole control list.
+
+**No product defect was found while producing this evidence.** Every mutation
+was reverted and every assertion returned to green; nothing observed here
+indicates a fault in the delivered scope.
+
+### Rows still without any intended RED
+
+Nine rows carry same-command GREEN only:
+
+| Row | Command | Why it is still open |
+| --- | --- | --- |
+| TP-01-11 | `node scripts/selftest.mjs` | The sourcing census was not probed. Closing it means breaking one shipped pack member's locator or `sourceRef`, or planting a smuggling `AbsentFigure`, and observing the row fail. |
+| TP-01-20 | the row's `--grep` browser command | No browser probe was run in this session. |
+| TP-01-21 | the row's `--grep` browser command | As above. |
+| TP-01-22 | the row's `--grep` browser command | As above. |
+| TP-01-23 | the row's `--grep` browser command | As above. |
+| TP-01-24 | the row's `--grep` browser command | As above. |
+| TP-01-25 | `--grep "SCN-02"` | The named command has still never been run at all, in RED or in GREEN. |
+| TP-01-27 | `node scripts/validate-spec-test-paths.mjs` | Not probed. Closing it means adding a spec reference to a non-existent test path and observing `new>0`. |
+| TP-01-28 | `node scripts/build-pages-site.mjs --dry-run` | Not probed. Closing it means removing a required exclusion entry and observing the build refuse. |
+
+### Byte-identity of every revert
+
+After the last probe, `git status --porcelain` over the whole repository, exit
+**0**:
+
+```
+?? company-intelligence-lab.html
+?? company-intelligence.config.json
+?? notes/company-intelligence-lab.md
+?? rlcompanyintel.js
+?? specs/025-company-multi-horizon-intelligence-lab/
+?? specs/026-actionable-brief-brevity-and-cross-asset/
+?? tests/company-intelligence-lab.spec.mjs
+?? tests/company-intelligence.unit.mjs
+```
+
+Every entry is untracked and belongs to other features; none was created,
+opened or modified by this evidence work. No tracked file is modified, which is
+the proof that all sixteen mutations — across `rltaxsocialsecurity.js`,
+`rltaxrules.js`, `rltax.js`, `rltaxworkspace.js`, `rltaxproperty.js` and
+`lifetime-tax-strategy-lab.html` — were reverted byte-identically. The tree
+closes at **2843 passed, 0 failed**, exit **0**, full-output
+`sha256:0fe1de31cc8625f532804346049632a0a7cb0f336501215bc55930a6da61afc9`.
 
 ## Test Evidence
 

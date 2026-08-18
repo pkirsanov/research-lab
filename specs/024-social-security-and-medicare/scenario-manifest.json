@@ -1,0 +1,582 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/024-social-security-and-medicare",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-08-17T00:00:00Z",
+  "stage": "spec-and-design-authored",
+  "stageNote": "spec.md and design.md both exist and are authoritative, so every scenario binds to a ratified BS-024-* business scenario and carries ratified FR-024-* requirement anchors rather than planning-owned anchors. testRows carry the planned Test Plan row identifiers from each scope.md because that plan exists. linkedTests and evidenceRefs are empty because no test file has been written and nothing has executed, and populating either now would be a fabricated linkage. behaviorTraits are derived per scenario from what the scenario actually does; no scenario declares the whole vocabulary, every declared trait owes at least one obligation, and no obligation names an undeclared trait.",
+  "scenarioCount": 15,
+  "businessScenarioMapping": "SCN-024-001 through SCN-024-015 each bind one-to-one to BS-024-001 through BS-024-015 in spec.md, with exactly one owning scope each.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-024-001",
+      "businessScenario": "BS-024-001",
+      "requirementAnchors": ["FR-024-001", "FR-024-002"],
+      "scopeId": "01-benefit-computation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "The two benefit-basis origins are separate object kinds and refuse separately",
+      "gherkin": {
+        "given": "a household declaring neither a statement Primary Insurance Amount nor an earnings record, and separately a household declaring both",
+        "when": "the benefit basis resolves for each",
+        "then": "the first refuses RLTAX-INPUT-INCOMPLETE naming both accepted declarations, the second refuses naming the ambiguity rather than choosing, a household declaring exactly one settles with its basisOrigin published, and neither refusal shows a zero or a typical benefit amount"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["api-contract", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "api-contract",
+          "requiredProof": "BenefitBasis/v1 refuses a sourceRef on a declared statement amount and refuses a computed origin whose bend points carry no citation or locator; basisOrigin is a closed two-member set and the settled record publishes which member applied.",
+          "satisfiedBy": ["TP-01-01", "TP-01-11"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Neither-declared and both-declared are distinguished by contract shape rather than message text, an implementation preferring the statement amount when both are declared is proven to fail with the precedence it took named, and the browser renders neither refusal as a numeral.",
+          "satisfiedBy": ["TP-01-02", "TP-01-03", "TP-01-20"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxrules.js", "rltaxsocialsecurity.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-01-01", "TP-01-02", "TP-01-03", "TP-01-11", "TP-01-14", "TP-01-16", "TP-01-20", "TP-01-24"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-024-002",
+      "businessScenario": "BS-024-002",
+      "requirementAnchors": ["FR-024-003", "FR-024-006"],
+      "scopeId": "01-benefit-computation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "The Primary Insurance Amount is computed through sourced bend points at their declared breakpoints",
+      "gherkin": {
+        "given": "a declared earnings record and a sourced bend-point set with its indexing series",
+        "when": "the computed origin runs",
+        "then": "the Average Indexed Monthly Earnings is computed from the declared record and the sourced series, each bend-point percentage is applied to the portion its own declared breakpoint delimits, every parameter is published with its citation and locator, and an unretrieved indexing series refuses the computed origin while the declared origin stays available"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Known-value coverage below, exactly at and above each breakpoint of a fixture pack carrying deliberately non-standard breakpoints, so a recalled figure cannot pass; applying a percentage to the whole rather than to its portion is proven to fail.",
+          "satisfiedBy": ["TP-01-04", "TP-01-05"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "With the indexing series absent the computed origin refuses RLTAX-THRESHOLD-UNAVAILABLE while the declared origin settles unchanged in the same run, and the rendered panel states which path is unavailable and what supplying it would take.",
+          "satisfiedBy": ["TP-01-06", "TP-01-21"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxsocialsecurity.js", "tax-rules/benefit/<year>.json"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-01-04", "TP-01-05", "TP-01-06", "TP-01-11", "TP-01-15", "TP-01-17", "TP-01-18", "TP-01-21"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-024-003",
+      "businessScenario": "BS-024-003",
+      "requirementAnchors": ["FR-024-004", "FR-024-005", "FR-024-007"],
+      "scopeId": "01-benefit-computation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "Full retirement age, the early reduction and the delayed credit come from sourced tables and stop where the source says",
+      "gherkin": {
+        "given": "a declared birth year and a declared claim age",
+        "when": "the claim-age adjustment runs",
+        "then": "the full retirement age is read from the sourced table row for that birth year, an early claim applies the sourced per-month reduction factors for the months counted, a delayed claim applies the sourced credit rate up to the sourced stopping age and no further, and a birth year outside the sourced table refuses rather than using an adjacent row"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The sourced row lookup is asserted at the first, an interior and the last row of a fixture table's declared domain and returns an AbsentFigure one row outside it; the months counted and each factor applied are published rather than folded, and accruing credit past the sourced stopping age is proven to fail.",
+          "satisfiedBy": ["TP-01-07", "TP-01-08", "TP-01-09", "TP-01-10"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The rendered panel shows the full retirement age row, the months counted, each factor applied and the adjusted annual benefit, and the benefit leg is present in the headline, the comparison, the curve and the export with removing it from any surface proven to fail naming both the leg and the surface.",
+          "satisfiedBy": ["TP-01-12", "TP-01-13", "TP-01-22", "TP-01-23"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxsocialsecurity.js", "rltax.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-01-07", "TP-01-08", "TP-01-09", "TP-01-10", "TP-01-12", "TP-01-13", "TP-01-19", "TP-01-22", "TP-01-23"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-024-004",
+      "businessScenario": "BS-024-004",
+      "requirementAnchors": ["FR-024-008", "FR-024-009"],
+      "scopeId": "02-benefit-taxation",
+      "scope": 2,
+      "status": "not_started",
+      "title": "Provisional income is composed from named parts and is not any other income measure",
+      "gherkin": {
+        "given": "declared other income, declared tax-exempt interest and a settled benefit",
+        "when": "provisional income is computed",
+        "then": "it is composed from the parts the source names, each part appears by name with its amount and its origin, the record names the measures it is not including the pack's modified adjusted gross measure, and a composition that silently reused either of those measures is proven to fail"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "api-contract"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The composed total equals the sum of the named parts and no other measure, and the Features 021 through 023 fixtures produce their exact prior ordinary taxable income with no benefit declared so the contributor is proven additive.",
+          "satisfiedBy": ["TP-02-01", "TP-02-14"]
+        },
+        {
+          "trait": "api-contract",
+          "requiredProof": "ProvisionalIncome/v1 publishes every part with its origin and a distinctFrom[] naming the measures it is not; a composition that reads the pack's modified adjusted gross measure is refused even when its total differs from it, proving the check inspects composition rather than comparing totals.",
+          "satisfiedBy": ["TP-02-02", "TP-02-22"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxrules.js", "rltaxinclusion.js", "rltax.js"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-02-01", "TP-02-02", "TP-02-14", "TP-02-18", "TP-02-22"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-024-005",
+      "businessScenario": "BS-024-005",
+      "requirementAnchors": ["FR-024-010", "FR-024-011", "FR-024-014"],
+      "scopeId": "02-benefit-taxation",
+      "scope": 2,
+      "status": "not_started",
+      "title": "The inclusion tier is selected at its exact sourced base amounts and the included amount is bounded by the sourced ceiling",
+      "gherkin": {
+        "given": "provisional incomes below the first sourced base amount, exactly at it, between the two, exactly at the second, and above it",
+        "when": "the inclusion runs for each",
+        "then": "each lands in the tier the source states, each comparison is asserted at the exact sourced figure rather than near it, the included amount never exceeds the sourced ceiling proportion of the benefit, and an implementation treating a comparison as strict where the source states inclusive is proven to fail"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Five known-value points against a fixture pack with deliberately non-standard base amounts; a strict comparison where the pack's operator states inclusive is proven to fail at each exact figure; the ceiling binds on one fixture and does not on another with ceilingBound stating which; a recalled ceiling proportion is proven to fail.",
+          "satisfiedBy": ["TP-02-03", "TP-02-04", "TP-02-05", "TP-02-06"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The rendered panel shows the tier, the comparison performed with its operator and the ceiling binding, and the inclusion leg is present in the headline, the comparison, the curve and the export with removing it from any surface proven to fail naming both the leg and the surface.",
+          "satisfiedBy": ["TP-02-16", "TP-02-17", "TP-02-23", "TP-02-25"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxinclusion.js", "tax-rules/federal/<year>.json", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-02-03", "TP-02-04", "TP-02-05", "TP-02-06", "TP-02-13", "TP-02-16", "TP-02-17", "TP-02-23", "TP-02-25"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-024-006",
+      "businessScenario": "BS-024-006",
+      "requirementAnchors": ["FR-024-012", "FR-024-013"],
+      "scopeId": "02-benefit-taxation",
+      "scope": 2,
+      "status": "not_started",
+      "title": "A base amount from another publication edition is carried only on the publication's own contrast",
+      "gherkin": {
+        "given": "base amounts retrieved from a publication edition other than the declared tax year",
+        "when": "the pack is authored",
+        "then": "a component kind is carried only with a written yearInvarianceBasis quoting the publication's own dating contrast, the basis and its locator are published beside the figures, a component kind lacking such a contrast ships as an AbsentFigure and the inclusion refuses, and a basis recorded without a quoted contrast is proven to fail validation"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["api-contract", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "api-contract",
+          "requiredProof": "A yearInvarianceBasis is valid only with a quoted contrast and its own locator; a bare assertion, a category name and a reference to another feature's finding are each refused; every basis already shipped by Features 022 and 023 is re-validated against the tightened rule with each result recorded.",
+          "satisfiedBy": ["TP-02-07", "TP-02-09", "TP-02-10"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "A retrieved base amount whose component kind has no established contrast ships absent and the inclusion refuses naming the missing basis rather than the missing figure; the moved not-modeled id is absent from the not-carried set and present as the modelled inclusion, and deleting it with nothing in its place fails both halves of the accounting.",
+          "satisfiedBy": ["TP-02-08", "TP-02-11", "TP-02-12", "TP-02-15", "TP-02-24"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxrules.js", "tax-rules/federal/<year>.json"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-02-07", "TP-02-08", "TP-02-09", "TP-02-10", "TP-02-11", "TP-02-12", "TP-02-15", "TP-02-19", "TP-02-20", "TP-02-21", "TP-02-24"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-024-007",
+      "businessScenario": "BS-024-007",
+      "requirementAnchors": ["FR-024-015", "FR-024-018", "FR-024-021"],
+      "scopeId": "03-claim-age-comparison",
+      "scope": 3,
+      "status": "not_started",
+      "title": "The claim-age comparison is deterministic and carries no probability",
+      "gherkin": {
+        "given": "a declared set of claim ages and a sourced mortality basis",
+        "when": "the comparison runs twice over identical declarations",
+        "then": "the two records are byte-identical, the mortality basis is the life-expectancy column alone, a pack offering a probability-bearing member is refused RLTAX-PACK-INVALID naming the member, and an exhaustive enumeration of every member name in the record finds no probability, rank, score, success, survival or recommendation member"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "api-contract"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Two runs over identical declarations produce byte-identical serialized records and a third run after an unrelated settlement produces the same bytes again.",
+          "satisfiedBy": ["TP-03-03"]
+        },
+        {
+          "trait": "api-contract",
+          "requiredProof": "MortalityBasis/v1 refuses a probability-bearing, survivorship-count or hazard member naming it and accepts a legitimate life-expectancy member; the record's exhaustive member enumeration at every depth finds no forbidden member and is proven non-vacuous; the conversion comparison record's own enumeration is byte-identical and still passes; the two claim scans now include this scope's files, proven by planting a forbidden token in a fixture copy of each.",
+          "satisfiedBy": ["TP-03-01", "TP-03-02", "TP-03-04", "TP-03-05", "TP-03-06"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxrules.js", "rltaxclaimage.js", "tax-rules/mortality/<year>.json"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-03-01", "TP-03-02", "TP-03-03", "TP-03-04", "TP-03-05", "TP-03-06", "TP-03-15", "TP-03-18", "TP-03-20"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-024-008",
+      "businessScenario": "BS-024-008",
+      "requirementAnchors": ["FR-024-016", "FR-024-017", "FR-024-020"],
+      "scopeId": "03-claim-age-comparison",
+      "scope": 3,
+      "status": "not_started",
+      "title": "The cumulative totals and the age at which they are equal are arithmetic over declared figures",
+      "gherkin": {
+        "given": "two declared claim ages and a sourced life-expectancy figure",
+        "when": "the comparison runs",
+        "then": "each cumulative total is the adjusted annual benefit summed over the whole years from that claim age to the life-expectancy age, the age at which the two totals are equal is published with both claim ages named, the record states in its own words that it is arithmetic over declared figures rather than a prediction, no discount rate and no appreciation assumption appears anywhere in the record, and an absent life-expectancy figure withholds both the totals and the equality age rather than substituting a default horizon"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Known-value coverage at three claim ages against a fixture pack with deliberately non-standard life-expectancy figures; a recalled figure, a discount rate and a growth rate are each proven to fail; no discount, growth, inflation or interpolation term exists anywhere in the module; the equality age names both claim ages and a pair whose totals never cross withholds the figure rather than reporting a bound.",
+          "satisfiedBy": ["TP-03-07", "TP-03-08", "TP-03-09", "TP-03-10"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "An absent life-expectancy figure withholds the cumulative totals and the equality age while the per-age adjusted benefits still resolve, no default horizon appears anywhere in the record, and substituting one is proven to fail.",
+          "satisfiedBy": ["TP-03-11", "TP-03-12", "TP-03-22"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxclaimage.js", "rltax.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-03-07", "TP-03-08", "TP-03-09", "TP-03-10", "TP-03-11", "TP-03-12", "TP-03-19", "TP-03-21", "TP-03-22"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-024-009",
+      "businessScenario": "BS-024-009",
+      "requirementAnchors": ["FR-024-018", "FR-024-019"],
+      "scopeId": "03-claim-age-comparison",
+      "scope": 3,
+      "status": "not_started",
+      "title": "The comparison ranks nothing and recommends nothing",
+      "gherkin": {
+        "given": "a comparison across three claim ages in which one produces a larger cumulative total than the others",
+        "when": "the record is produced and rendered",
+        "then": "no claim age is marked best, optimal, recommended or preferred, the ages are presented in declared order rather than sorted by any figure, the record states that it selects nothing, and a rendering that ordered or emphasised by outcome is proven to fail"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": ["user-visible-ui", "pure-calculation"],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "On the production route the rows appear in the declared order for a declaration whose order is not ascending by cumulative total, no row is emphasised, no cell carries a best, optimal, recommended or preferred marker, and the declared claim-age set is absent from every URL and request.",
+          "satisfiedBy": ["TP-03-23", "TP-03-24"]
+        },
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "perAge[] is built by iterating the declared claim ages and no sort exists anywhere in the module or the renderer; sorting by cumulative total is proven to fail and marking the largest total is proven to fail the forbidden-member enumeration.",
+          "satisfiedBy": ["TP-03-13", "TP-03-14"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxclaimage.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-03-13", "TP-03-14", "TP-03-16", "TP-03-17", "TP-03-23", "TP-03-24"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-024-010",
+      "businessScenario": "BS-024-010",
+      "requirementAnchors": ["FR-024-022", "FR-024-023", "FR-024-024"],
+      "scopeId": "04-medicare-premiums-and-irmaa",
+      "scope": 4,
+      "status": "not_started",
+      "title": "The adjustment is resolved from a declared lookback year and the current year cannot reach it",
+      "gherkin": {
+        "given": "a settlement carrying a non-zero current-year modified adjusted gross measure and a declared modified adjusted gross income for the year the pack's declared lookback offset names",
+        "when": "the adjustment resolves",
+        "then": "the bracket is selected from that declaration alone, the resolver accepts no current-year income figure through any parameter member or closure, a declared lookback year that is not the premium year minus the pack's offset refuses, and an undeclared lookback refuses RLTAX-INPUT-INCOMPLETE naming the year required"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["api-contract", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "api-contract",
+          "requiredProof": "LookbackMagi/v1 refuses a sourceRef and carries no settled-year, workspace or settlement handle; resolveAdjustmentBracket accepts exactly a LookbackMagi/v1 and a bracket pack with no third parameter, options bag, module-scope variable or closure through which a current-year figure could arrive; with the settlement's current-year measure falling in a different bracket the resolved bracket is the lookback's and an implementation reading the current-year measure is proven to fail with both bracket indexes named.",
+          "satisfiedBy": ["TP-04-01", "TP-04-02", "TP-04-03"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "An undeclared lookback refuses naming the exact year required and the offset that produced it; a declared year that is not the premium year minus the pack's offset refuses naming all three; a fixture pack declaring a different offset produces a different required year, proving the offset is a pack member.",
+          "satisfiedBy": ["TP-04-04", "TP-04-05", "TP-04-24"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxrules.js", "rltaxmedicare.js", "tax-rules/medicare/<year>.json"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-04-01", "TP-04-02", "TP-04-03", "TP-04-04", "TP-04-05", "TP-04-15", "TP-04-16", "TP-04-21", "TP-04-22", "TP-04-24", "TP-04-28"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-024-011",
+      "businessScenario": "BS-024-011",
+      "requirementAnchors": ["FR-024-025", "FR-024-027"],
+      "scopeId": "04-medicare-premiums-and-irmaa",
+      "scope": 4,
+      "status": "not_started",
+      "title": "The bracket boundaries are exact and the adjustment applies to both parts",
+      "gherkin": {
+        "given": "declared lookback incomes below the first sourced boundary, exactly at it and above it",
+        "when": "the adjustment resolves for each",
+        "then": "each lands in the bracket the source states, the comparison is asserted at the exact sourced boundary using the source's own operator, the bracket's Part B and Part D adjustment amounts are both applied and both cited, and an unretrieved boundary or amount refuses the adjustment rather than applying zero"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Known-value coverage below, exactly at and above each boundary of a fixture pack with deliberately non-standard boundaries, using the pack's own boundaryOperator; a strict comparison where the operator states inclusive is proven to fail at the exact figure; recalled boundaries are proven to fail; both part adjustments are applied and each cites its own source.",
+          "satisfiedBy": ["TP-04-06", "TP-04-07", "TP-04-08"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "An unretrieved premium, boundary or adjustment amount refuses naming it with no zero applied; a filing status the source does not enumerate ships absent rather than borrowing an adjacent status's amounts; a fixture attempting an includedInTotal false leg whose figure is absent is refused.",
+          "satisfiedBy": ["TP-04-09", "TP-04-10", "TP-04-17", "TP-04-25"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxmedicare.js", "tax-rules/medicare/<year>.json", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-04-06", "TP-04-07", "TP-04-08", "TP-04-09", "TP-04-10", "TP-04-17", "TP-04-20", "TP-04-23", "TP-04-25"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-024-012",
+      "businessScenario": "BS-024-012",
+      "requirementAnchors": ["FR-024-026", "FR-024-028"],
+      "scopeId": "04-medicare-premiums-and-irmaa",
+      "scope": 4,
+      "status": "not_started",
+      "title": "A premium is surfaced everywhere and summed into no tax total",
+      "gherkin": {
+        "given": "a settled household with non-zero premiums and a non-zero adjustment",
+        "when": "the settlement runs",
+        "then": "the three premium legs are declared with includedInTotal false, they appear in the headline the comparison the marginal curve and the export, they are summed into a separately published annual Medicare cost, totalFederalTax is proven to exclude every one of them, the reconciliation identity over included legs holds with legs present that it must exclude, and a mutation flipping any premium leg to included is proven to fail"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "On a fixture where all three premium legs are non-zero and mutually distinct, totalFederalTax excludes every one of them, the L4 filter removes exactly three legs, the total differs from the all-legs sum by exactly the annual Medicare cost, flipping each premium leg to included in turn is proven to fail naming the entering leg, and the Features 021 through 023 fixtures produce their exact prior totals with no lookback declared.",
+          "satisfiedBy": ["TP-04-11", "TP-04-12", "TP-04-13", "TP-04-14"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "On the production route the annual Medicare cost renders as its own labelled figure beside the headline stated not to be part of the federal tax total, all three legs are present in the headline the comparison the curve and the export, and removing each from each surface in turn is proven to fail naming both the leg and the surface.",
+          "satisfiedBy": ["TP-04-18", "TP-04-19", "TP-04-26", "TP-04-27"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxmedicare.js", "rltax.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-04-11", "TP-04-12", "TP-04-13", "TP-04-14", "TP-04-18", "TP-04-19", "TP-04-26", "TP-04-27"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-024-013",
+      "businessScenario": "BS-024-013",
+      "requirementAnchors": ["FR-024-029", "FR-024-030"],
+      "scopeId": "05-route-and-integration",
+      "scope": 5,
+      "status": "not_started",
+      "title": "Every leg this feature adds reaches all four surfaces",
+      "gherkin": {
+        "given": "the all-non-zero leg fixture extended with this feature's four legs",
+        "when": "the page renders",
+        "then": "the settled record's declared leg set equals the leg set of the headline the comparison table the marginal curve's contributor set and the export in both directions, removing any one leg from any one surface is proven to fail with the missing leg and the failing surface both named, the headline renders totalFederalTax rather than any single leg, and the annual Medicare cost renders as a separate figure that is visibly not part of the headline"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": ["user-visible-ui", "pure-calculation"],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "On the production route every declared leg is present in the headline block, the comparison table, the curve contributor list and the export, nothing is present in a surface the record does not declare, and the annual Medicare cost renders as a labelled figure beside the headline.",
+          "satisfiedBy": ["TP-05-02", "TP-05-19", "TP-05-20"]
+        },
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The fixture makes every declared leg non-zero and mutually distinct asserted pairwise; removing each leg from each surface in turn is proven to fail naming both; a leg present on all four surfaces and summed into totalFederalTax is reported as a mis-summed leg distinguishably from a missing-leg report; the Simple renderer reads totalFederalTax and reads no single leg on a fixture where the ordinary leg is the smaller of the two, with a renderer reading each of the four legs proven to fail one per leg.",
+          "satisfiedBy": ["TP-05-01", "TP-05-03", "TP-05-04", "TP-05-05", "TP-05-06", "TP-05-07"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltax.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-05-01", "TP-05-02", "TP-05-03", "TP-05-04", "TP-05-05", "TP-05-06", "TP-05-07", "TP-05-19", "TP-05-20"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-024-014",
+      "businessScenario": "BS-024-014",
+      "requirementAnchors": ["FR-024-034", "FR-024-035"],
+      "scopeId": "05-route-and-integration",
+      "scope": 5,
+      "status": "not_started",
+      "title": "The included benefit portion reaches taxable income and the export omits every declaration",
+      "gherkin": {
+        "given": "a settled inclusion",
+        "when": "the federal settlement runs and the export is produced",
+        "then": "the included amount appears as a named contributor to ordinary taxable income and changes the tax owed, the export omits the earnings record the birth year the claim age set the statement amount and the lookback income, the export states what it omitted, and no household value appears in any URL query string hash request referrer or console message"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": ["user-visible-ui", "api-contract"],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "On the production route the exported file contains none of the five declarations and carries a statement naming what it omitted, the included amount appears as a named contributor in the settlement section, and the request ledger stays empty with three new packs loaded.",
+          "satisfiedBy": ["TP-05-21", "TP-05-25"]
+        },
+        {
+          "trait": "api-contract",
+          "requiredProof": "Each of the five declarations is asserted omitted independently by name against an export produced with all five populated, removing each from the sanitizer in turn is proven to fail so a sanitizer covering four of five cannot pass, the included amount changes the tax owed relative to the same household with no benefit declared, and every Power section renders against each per-family absence fixture so one absent member cannot abort the render.",
+          "satisfiedBy": ["TP-05-10", "TP-05-13", "TP-05-14", "TP-05-15", "TP-05-16"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxworkspace.js", "rltax.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-05-10", "TP-05-13", "TP-05-14", "TP-05-15", "TP-05-16", "TP-05-21", "TP-05-25"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-024-015",
+      "businessScenario": "BS-024-015",
+      "requirementAnchors": ["FR-024-031", "FR-024-032", "FR-024-033"],
+      "scopeId": "05-route-and-integration",
+      "scope": 5,
+      "status": "not_started",
+      "title": "Simple stays decision-level and every unavailable item is reachable",
+      "gherkin": {
+        "given": "a settlement with some figures available and some absent",
+        "when": "the page is opened in Simple and then in Power",
+        "then": "Simple carries only decision-level fields and no band table rule trace or raw series, every detail Simple withholds carries a link to the Power section that owns it, every unavailable item renders its code its domain its reason and its remediation on a focusable element rather than as a blank a dash or a zero, and switching modes while a control has focus does not detach the control"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": ["user-visible-ui", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "On the production route Simple carries only decision-level fields with no band table rule trace per-age table or raw series, every withheld detail carries a labelled link to its owning Power section, and a control focused in Simple survives a switch to Power and back with a subsequent click registering.",
+          "satisfiedBy": ["TP-05-08", "TP-05-09", "TP-05-22", "TP-05-24"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Every unavailable item in every new family renders its code, its domain, its reason and its remediation on a focusable element reachable by keyboard, and no blank, bare dash or zero appears in place of any of them; the feature-end vocabulary and marker checks agree across all their surfaces.",
+          "satisfiedBy": ["TP-05-11", "TP-05-12", "TP-05-17", "TP-05-18", "TP-05-23"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["lifetime-tax-strategy-lab.html", "rltax.js"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-05-08", "TP-05-09", "TP-05-11", "TP-05-12", "TP-05-17", "TP-05-18", "TP-05-22", "TP-05-23", "TP-05-24"],
+      "evidenceRefs": []
+    }
+  ]
+}

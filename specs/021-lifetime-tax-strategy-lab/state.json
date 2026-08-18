@@ -1,0 +1,228 @@
+{
+    "version": 3,
+    "featureDir": "specs/021-lifetime-tax-strategy-lab",
+    "featureName": "Lifetime Tax Strategy Lab (Federal Slice 1)",
+    "createdAt": "2026-08-17T00:00:00Z",
+    "lastUpdatedAt": "2026-08-17T00:00:00Z",
+    "status": "in_progress",
+    "blockedReason": null,
+    "workflowMode": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "specDependsOn": [],
+    "flagsIntroduced": [],
+    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "workBoundary": {
+        "repositoryRoots": [
+            "research-lab"
+        ],
+        "specTargets": [
+            "specs/021-lifetime-tax-strategy-lab"
+        ],
+        "allowedPaths": [
+            "specs/021-lifetime-tax-strategy-lab/**"
+        ],
+        "crossRepoPolicy": "forbidden"
+    },
+    "execution": {
+        "goalContractRef": null,
+        "activeAgent": "bubbles.implement",
+        "currentPhase": "implement",
+        "currentPhaseStatus": "in_progress",
+        "currentScope": 2,
+        "substate": "implemented",
+        "runStartedAt": "2026-08-17T00:00:00Z",
+        "completedAt": null,
+        "completedPhaseClaims": [],
+        "pendingTransitionRequests": [],
+        "nextRequiredOwner": "bubbles.implement",
+        "nextRequiredTarget": "specs/021-lifetime-tax-strategy-lab/scopes/03-effective-marginal-rate-curve/scope.md",
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "scopeId": "01-tax-workspace-rule-pack-and-privacy-foundation",
+                "status": "in_progress",
+                "foundation": true,
+                "dependsOn": []
+            },
+            {
+                "scope": 2,
+                "scopeId": "02-deterministic-annual-federal-tax",
+                "status": "in_progress",
+                "foundation": false,
+                "dependsOn": [
+                    1
+                ]
+            },
+            {
+                "scope": 3,
+                "scopeId": "03-effective-marginal-rate-curve",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    2
+                ]
+            },
+            {
+                "scope": 4,
+                "scopeId": "04-bracket-fill-roth-conversion-comparison",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    2,
+                    3
+                ]
+            },
+            {
+                "scope": 5,
+                "scopeId": "05-simple-power-route-accessibility-and-local-export",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    2,
+                    3,
+                    4
+                ]
+            }
+        ],
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "not_started",
+        "certifiedAt": null,
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        },
+        "observations": [
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "planning-artifacts-are-provisional",
+                "summary": "scopes/_index.md, the five scope.md files, scenario-manifest.json, the five report.md templates, uservalidation.md and this file are the artifacts bubbles.plan owns and has authored. spec.md and design.md do NOT exist and are owned by bubbles.analyst and bubbles.design. Until spec.md is authored, every requirement citation in the scope files reads PRA-021-001 through PRA-021-038, which are planning-owned anchors and not specification claims. Each PRA is adopted under an FR-021-* / NFR-021-* number or explicitly rejected when spec.md lands, and the scope files are repointed in one edit at that time. No scope may start before both prerequisite artifacts exist."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "deliberate-slice-boundary",
+                "summary": "The primary input notes/lifetime-tax-strategy-lab.md is a ~1330-line proposal whose own handoff lists roughly thirteen unresolved owner decisions, and whose 'Split This Into Two Features' section states the proposal is larger than five scopes can carry. This feature plans ONLY the federal vertical slice that requires none of those decisions: one household tax workspace, one source-qualified federal rule pack for one declared tax year, deterministic annual federal tax, an effective marginal rate curve, and one Roth conversion comparison. Four income kinds are supported; everything else is Unavailable. The deferral register in scopes/_index.md records every deferred capability and why, and spec.md must carry that table verbatim."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "dependency-is-a-capability-not-a-status",
+                "summary": "Per P25 this feature blocks on no other spec's status. It deliberately does NOT extend Feature 008. specDependsOn is empty because this feature defines an independent workspace contract sharing no module, no storage namespace and no key with rlportfolio.js or rlportfolioanalytics.js. Feature 008 is status blocked and its contracts are closed and exact-key; extending them is a rejected approach, and a byte-identity canary over rlportfolio.js, rlportfolioanalytics.js, portfolio-survival-allocation.config.json and specs/008-portfolio-survival-and-brief-lab/** runs in every scope."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "honest-capability-limit",
+                "summary": "The effective marginal rate curve in Scope 03 is structurally incomplete in this slice and says so. Most thresholds that make an effective rate diverge from a statutory rate — taxable Social Security benefits, IRMAA bands, the premium tax credit, net investment income tax, every state boundary — are deferred, so unavailableContributors[] is a required populated member rather than an edge case. An empty list for the slice-1 pack is a defect and is tested as one."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "rejected-claim",
+                "summary": "The source note's competitive table lists 'publishes its own error rate' as this tool's differentiator. That claim is REJECTED for this slice and is a hard prohibition in every scope: no spec text, no scope text and no UI copy may claim a published error rate, a self-invalidation statistic, a track record or an accuracy figure, because the mechanism that would produce one does not exist. No plan success probability is emitted either, because with no path cohort there is no frequency to report."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "deploy-gate",
+                "summary": "lifetime-tax-strategy-lab.html is a new root HTML that is deliberately NOT registered. scripts/build-pages-site.mjs refuses an unregistered root HTML that is not listed in site-exclusions.json, and that refusal breaks the live Pages deploy. The site-exclusions.json entry therefore lands in Scope 01 in the same change as the page, and Scope 05 re-runs the pages-site build against the finished page rather than assuming Scope 01 settled it."
+            }
+        ]
+    },
+    "policySnapshot": {
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "repo-default"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
+    },
+    "transitionRequests": [],
+    "reworkQueue": [],
+    "executionHistory": [
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "in_progress",
+            "runStartedAt": "2026-08-17T00:00:00Z",
+            "runCompletedAt": "2026-08-17T00:00:00Z",
+            "summary": "Authored the planning artifacts for the federal slice from notes/lifetime-tax-strategy-lab.md and the operator's slice constraint: scopes/_index.md with the deferral register, hard prohibitions and 38 PRA anchors; five per-scope scope.md files with Gherkin, UI scenario matrix, implementation plan, shared-infrastructure impact sweep, change boundary, test plan and DoD; five report.md evidence templates; scenario-manifest.json with 15 scenarios carrying a per-scenario derived obligation matrix; uservalidation.md; and this state file. spec.md and design.md are owned by other specialists and were deliberately not authored; they are routed."
+        },
+        {
+            "agent": "bubbles.design",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "runStartedAt": "2026-08-17T00:00:00Z",
+            "runCompletedAt": "2026-08-17T00:00:00Z",
+            "summary": "Authored design.md, the last missing required artifact. Fixed the six-file module surface with per-module owns/must-not-own boundaries; the exact TaxRulePack/v1 JSON schema including SourceRecord/v1, RateTable/v1, DeductionAmount/v1 and AbsentFigure/v1; the closed twelve-member RLTAX-* refusal enum with one meaning each and the raising condition per code; the ten-stage calculation order CO-1..CO-10 stating that the deduction applies to total income and that preferential income is carved from the top so long-term gains and qualified dividends stack above ordinary taxable income; the two-stage rounding boundary; the curve sampling policy using a forward difference with crossing-pair insertion and the structural separation of effective marginal rate from average rate; the two-state bracket-fill comparison with full re-settlement and a closed eight-entry notModeled list; the Simple/Power component tree with a per-figure placement table; and the local-only privacy boundary with a closed three-key namespace. Closed BI-4 (the OBBB itemized-deduction benefit limitation and senior deduction are named unsupportedFeatures entries) and BI-5 (six site-exclusions.json entries). Designed the first federal pack as intentionally incomplete: only the four standard deductions and the single and married-filing-jointly ordinary bracket tables are within the coverage boundary; the married-filing-separately and head-of-household ordinary tables and all preferential (long-term capital gain and qualified dividend) tables ship as AbsentFigure records naming Rev. Proc. 2025-32 as the missing source. No tax figure is asserted anywhere in design.md. BI-1, BI-2 and BI-3 remain routed to the implementer."
+        }
+    ],
+    "activeBugs": [],
+    "resolvedBugs": [],
+    "failures": [],
+    "scopeLayout": "per-scope-directory",
+    "artifacts": {
+        "spec": "spec.md",
+        "design": "design.md",
+        "scopes": "scopes/_index.md",
+        "report": "scopes/NN-name/report.md",
+        "uservalidation": "uservalidation.md",
+        "scenarioManifest": "scenario-manifest.json"
+    },
+    "statusDiscipline": {
+        "validStatuses": [
+            "not_started",
+            "in_progress",
+            "blocked",
+            "specs_hardened",
+            "docs_updated",
+            "validated",
+            "done"
+        ],
+        "scopePickupRule": "spec.md and design.md must exist first. Then all dependsOn scopes must be Done; pick the lowest-numbered eligible scope. Scope 01 is the foundation and additionally gates on its three boundary canaries: Feature 008 byte-identity, storage-namespace isolation, and zero-network.",
+        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+    },
+    "notes": "Planning artifacts authored by bubbles.plan: scopes/_index.md, five scopes/NN-*/scope.md, five scopes/NN-*/report.md, scenario-manifest.json, uservalidation.md and this file. spec.md was authored by bubbles.analyst and design.md by bubbles.design; all required artifacts now exist. 38 requirements across 5 scopes, inside the P25 cap of roughly forty requirements and five scopes. 15 scenarios, one owning scope each. The primary input is notes/lifetime-tax-strategy-lab.md. Three blocking implementation inputs remain routed to the implementer: BI-1 retrieve Revenue Procedure 2025-32 directly, BI-2 the long-term capital gain and qualified dividend rate thresholds, BI-3 the married-filing-separately and head-of-household ordinary bracket tables. Until they land, design.md specifies those figures as AbsentFigure records and the affected results as RLTAX-THRESHOLD-UNAVAILABLE refusals rather than computed numbers."
+}

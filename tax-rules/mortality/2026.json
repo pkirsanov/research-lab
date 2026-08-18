@@ -1,0 +1,110 @@
+{
+  "contractVersion": "MortalityRulePack/v1",
+  "id": "us-social-security-area-period-life-table-2023",
+  "program": "period-life-table",
+  "jurisdiction": "federal",
+  "version": "1.0.0",
+  "declaredForYear": 2026,
+  "effectiveTaxYears": [2026],
+  "retrievedAt": "2026-08-18",
+  "ruleStatus": "enacted-current-law",
+
+  "sourceRecords": [
+    {
+      "sourceId": "ssa-period-life-table-2023",
+      "contractVersion": "SourceRecord/v1",
+      "title": "Actuarial Life Table",
+      "url": "https://www.ssa.gov/oact/STATS/table4c6.html",
+      "retrievedAt": "2026-08-18",
+      "editionYear": 2023,
+      "documentKind": "departmental-publication",
+      "editionEvidence": "The page dates itself twice in its own words. Its introductory paragraph reads \"Here we present the 2023 period life table for the Social Security area population, as used in the 2026 Trustees Report (TR).\" and the caption above the table reads \"Period Life Table, 2023, as used in the 2026 Trustees Report\". The table is therefore scoped by the publication itself to the 2023 mortality experience, which is NOT the declared year, and it says so."
+    }
+  ],
+
+  "mortalityPolicy": {
+    "contractVersion": "MortalityPolicy/v1",
+    "stageId": "CO-23",
+    "tableId": "ssa-period-life-table-2023",
+
+    "tableYear": {
+      "value": 2023,
+      "sourceRef": "ssa-period-life-table-2023",
+      "locator": "Caption above the table: Period Life Table, 2023, as used in the 2026 Trustees Report"
+    },
+
+    "columnMeaning": {
+      "quotation": "The period life expectancy at a given age for 2023 is the average remaining number of years expected prior to death for a person at that exact age, born on January 1, using the mortality rates for 2023 over the course of their remaining life.",
+      "sourceRef": "ssa-period-life-table-2023",
+      "locator": "Note printed beneath the table"
+    },
+
+    "tableYearBasis": {
+      "contractVersion": "MortalityTableYearBasis/v1",
+      "quotedTableDating": "Here we present the 2023 period life table for the Social Security area population, as used in the 2026 Trustees Report (TR).",
+      "tableDatingLocator": "Introductory paragraph immediately above the year selector",
+      "quotedYearScoping": "This life table is available for certain other years.",
+      "yearScopingLocator": "Sentence introducing the year selector, immediately beneath the introductory paragraph",
+      "carriedBecause": "The publication states in its own words that this table carries the 2023 mortality experience AND that it is the table used in the 2026 Trustees Report. It also states, in the same page, that a table exists for other years. This pack therefore makes no claim that the figure does not vary by year: it carries the table's own year, publishes the publication's own dating on both sides, and leaves the reader to see that the year the figure belongs to is not the year this workspace declares."
+    },
+
+    "ageDomain": {
+      "minimumAge": 62,
+      "maximumAge": 70,
+      "sourceRef": "ssa-period-life-table-2023",
+      "locator": "Exact age column, rows 62 through 70",
+      "closedBecause": "Only the rows this retrieval transcribed and verified digit by digit are carried. A declared age outside them has no row here and refuses rather than borrowing an adjacent row."
+    },
+
+    "columnLabels": {
+      "contractVersion": "AbsentFigure/v1",
+      "code": "RLTAX-THRESHOLD-UNAVAILABLE",
+      "domain": "mortality-basis:column-labels",
+      "reason": "The retrieval that produced this pack returned every data row of the table and returned the table's header cells empty. Which population subgroup each of the two published life-expectancy columns describes was therefore never read, and is not asserted here. The two columns are carried under the only identity this retrieval established for them, which is their position in each published row.",
+      "whatWouldMakeItAvailable": "Retrieve the table's header row and transcribe the heading above each life-expectancy column, then name each column by that heading rather than by its position.",
+      "missingSource": {
+        "title": "Actuarial Life Table",
+        "url": "https://www.ssa.gov/oact/STATS/table4c6.html",
+        "documentKind": "departmental-publication",
+        "locator": "Header row of the Period Life Table, above the two life-expectancy columns"
+      }
+    },
+
+    "columns": [
+      {
+        "columnId": "published-life-expectancy-column-1",
+        "label": "First published life-expectancy column",
+        "sourceRef": "ssa-period-life-table-2023",
+        "locator": "Fourth cell of each row of the Period Life Table, 2023 \u2014 the first of the two life-expectancy columns",
+        "lifeExpectancyByAge": [
+          { "age": 62, "value": 20.29 },
+          { "age": 63, "value": 19.56 },
+          { "age": 64, "value": 18.83 },
+          { "age": 65, "value": 18.12 },
+          { "age": 66, "value": 17.41 },
+          { "age": 67, "value": 16.71 },
+          { "age": 68, "value": 16.02 },
+          { "age": 69, "value": 15.34 },
+          { "age": 70, "value": 14.66 }
+        ]
+      },
+      {
+        "columnId": "published-life-expectancy-column-2",
+        "label": "Second published life-expectancy column",
+        "sourceRef": "ssa-period-life-table-2023",
+        "locator": "Seventh cell of each row of the Period Life Table, 2023 \u2014 the second of the two life-expectancy columns",
+        "lifeExpectancyByAge": [
+          { "age": 62, "value": 23.08 },
+          { "age": 63, "value": 22.27 },
+          { "age": 64, "value": 21.46 },
+          { "age": 65, "value": 20.66 },
+          { "age": 66, "value": 19.87 },
+          { "age": 67, "value": 19.08 },
+          { "age": 68, "value": 18.30 },
+          { "age": 69, "value": 17.53 },
+          { "age": 70, "value": 16.76 }
+        ]
+      }
+    ]
+  }
+}

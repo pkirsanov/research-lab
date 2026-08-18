@@ -1,0 +1,59 @@
+{
+  "contractVersion": "lifetime-tax-strategy-policy/v1",
+  "storage": {
+    "contractVersion": "lifetime-tax-storage-policy/v1",
+    "namespace": "rlLifetimeTaxV1",
+    "workspaceKey": "rlLifetimeTaxV1.workspace",
+    "pointerKey": "rlLifetimeTaxV1.pointer",
+    "probeKey": "rlLifetimeTaxV1.probe",
+    "probeValue": "lifetime-tax-storage-capability/v1",
+    "workspaceContractVersion": "TaxWorkspace/v2",
+    "forbiddenKeyPrefixes": ["rlPortfolio", "rlReturnContext", "rlPortfolioWorkspace"]
+  },
+  "rules": {
+    "contractVersion": "lifetime-tax-rules-policy/v1",
+    "packPath": "tax-rules/federal/2026.json",
+    "jurisdiction": "federal",
+    "program": "income-tax",
+    "declaredTaxYear": 2026,
+    "packContentSha256": "sha256:06681e372f4ea15c2f088c7f92de70ce712f05b6aff09c7d3bb819ec9c6753bf",
+    "statePackPaths": {
+      "state:FL": "tax-rules/state/FL/2026.json",
+      "state:CA": "tax-rules/state/CA/2026.json"
+    },
+    "propertyPackPaths": {
+      "state:FL": "tax-rules/property/FL/2026.json",
+      "state:CA": "tax-rules/property/CA/2026.json"
+    },
+    "benefitPackPaths": {
+      "2026": "tax-rules/benefit/2026.json"
+    },
+    "mortalityPackPaths": {
+      "2026": "tax-rules/mortality/2026.json"
+    },
+    "medicarePackPaths": {
+      "2026": "tax-rules/medicare/2026.json"
+    }
+  },
+  "sweep": {
+    "contractVersion": "lifetime-tax-sweep-policy/v1",
+    "kinds": ["ordinary", "long-term-gain"],
+    "start": 0,
+    "end": 500000,
+    "step": 5000,
+    "probe": 1,
+    "maxPoints": 400
+  },
+  "display": {
+    "contractVersion": "lifetime-tax-display-policy/v1",
+    "defaultView": "simple",
+    "displayRounding": {
+      "contractVersion": "lifetime-tax-display-rounding/v1",
+      "mode": "nearest-dollar",
+      "factor": 1
+    },
+    "privateExportWarning": "This file contains the household figures you entered. It is written only when you ask for it, it stays on this device unless you move it, and nothing is uploaded.",
+    "educationalFraming": "Educational model, not investment advice and not tax advice. Every rate, threshold and deduction amount shown is a rule-pack value transcribed from a retrieved primary source, and every figure the pack does not carry is named rather than filled in.",
+    "localNetworkPolicy": "This page issues zero network requests. Your filing status, income amounts and deduction choices stay in this browser's local storage under this tool's own namespace and are never placed in a URL, a request, a referrer or a console message."
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "contractVersion": "MortalityRulePack/v1",
+  "id": "fixture-nonstandard-period-life-table-2999",
+  "program": "period-life-table",
+  "jurisdiction": "federal",
+  "version": "1.0.0",
+  "declaredForYear": 2999,
+  "effectiveTaxYears": [2999],
+  "retrievedAt": "2999-01-01",
+  "ruleStatus": "user-hypothetical-law",
+
+  "_fixtureNote": "Deliberately NOT the shipped figures. Every life-expectancy value here is a round number no published table carries, so an implementation that reached for a recalled table instead of reading this pack produces a different answer and is caught. This file cites no authority and is never served by the route.",
+
+  "sourceRecords": [
+    {
+      "sourceId": "fixture-table-2999",
+      "contractVersion": "SourceRecord/v1",
+      "title": "A fixture table that no authority publishes",
+      "url": "https://example.invalid/fixture-period-life-table",
+      "retrievedAt": "2999-01-01",
+      "editionYear": 2999,
+      "documentKind": "fixture",
+      "editionEvidence": "This fixture dates itself to its own declared year so the edition branch is exercised on both sides."
+    }
+  ],
+
+  "mortalityPolicy": {
+    "contractVersion": "MortalityPolicy/v1",
+    "stageId": "CO-23",
+    "tableId": "fixture-nonstandard-2999",
+
+    "tableYear": {
+      "value": 2999,
+      "sourceRef": "fixture-table-2999",
+      "locator": "Fixture caption"
+    },
+
+    "columnMeaning": {
+      "quotation": "This fixture column states, for each exact age, a whole number of remaining years chosen so that no published table could produce it.",
+      "sourceRef": "fixture-table-2999",
+      "locator": "Fixture note"
+    },
+
+    "tableYearBasis": {
+      "contractVersion": "MortalityTableYearBasis/v1",
+      "quotedTableDating": "This fixture table carries the mortality experience of its own declared year and states so in its own caption.",
+      "tableDatingLocator": "Fixture caption",
+      "quotedYearScoping": "This fixture table is one of a family published for other years, each carrying its own figures.",
+      "yearScopingLocator": "Fixture note beneath the caption",
+      "carriedBecause": "The fixture states its own year on both sides so the basis validation is exercised against a well formed record."
+    },
+
+    "ageDomain": {
+      "minimumAge": 62,
+      "maximumAge": 70,
+      "sourceRef": "fixture-table-2999",
+      "locator": "Fixture rows 62 through 70",
+      "closedBecause": "Only the rows this fixture carries are in its domain; a declared age outside them refuses."
+    },
+
+    "columnLabels": {
+      "contractVersion": "AbsentFigure/v1",
+      "code": "RLTAX-THRESHOLD-UNAVAILABLE",
+      "domain": "mortality-basis:column-labels",
+      "reason": "This fixture deliberately carries no column heading, so the absence branch is never vacuous.",
+      "whatWouldMakeItAvailable": "Name each column by the heading printed above it.",
+      "missingSource": {
+        "title": "A fixture table that no authority publishes",
+        "url": "https://example.invalid/fixture-period-life-table",
+        "documentKind": "fixture",
+        "locator": "Fixture header row"
+      }
+    },
+
+    "columns": [
+      {
+        "columnId": "published-life-expectancy-column-1",
+        "label": "First fixture life-expectancy column",
+        "sourceRef": "fixture-table-2999",
+        "locator": "Fixture column one",
+        "lifeExpectancyByAge": [
+          { "age": 62, "value": 30 },
+          { "age": 63, "value": 29 },
+          { "age": 64, "value": 28 },
+          { "age": 65, "value": 27 },
+          { "age": 66, "value": 26 },
+          { "age": 67, "value": 25 },
+          { "age": 68, "value": 24 },
+          { "age": 69, "value": 23 },
+          { "age": 70, "value": 22 }
+        ]
+      },
+      {
+        "columnId": "published-life-expectancy-column-2",
+        "label": "Second fixture life-expectancy column",
+        "sourceRef": "fixture-table-2999",
+        "locator": "Fixture column two",
+        "lifeExpectancyByAge": [
+          { "age": 62, "value": 40 },
+          { "age": 63, "value": 39 },
+          { "age": 64, "value": 38 },
+          { "age": 65, "value": 37 },
+          { "age": 66, "value": 36 },
+          { "age": 67, "value": 35 },
+          { "age": 68, "value": 34 },
+          { "age": 69, "value": 33 },
+          { "age": 70, "value": 32 }
+        ]
+      }
+    ]
+  }
+}

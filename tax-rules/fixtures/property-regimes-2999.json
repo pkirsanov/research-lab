@@ -1,0 +1,259 @@
+{
+  "contractVersion": "PropertyReliefRegimeFixtureSet/v1",
+  "purpose": "Fixture relief regimes for Feature 023 Scope 01 branch coverage. Every regime here declares jurisdiction fixture and year 2999, so none can ever resolve for a real jurisdiction or a real tax year. No figure in this file is transcribed from any authority: each cites a fixture record whose retrievalOutcome is fixture, which is why the cap-basis and rate-ceiling branches proven against these regimes are proven WITHOUT any real regime name reaching the engine. A regime-name branch in the engine would have nothing to match here and would therefore fail.",
+  "regimes": {
+    "prior-assessed-value-cap": {
+      "contractVersion": "PropertyReliefRegime/v1",
+      "regimeId": "fixture-prior-assessed-value-cap",
+      "jurisdiction": "fixture",
+      "year": 2999,
+      "version": "1.0.0",
+      "ruleStatus": "user-hypothetical-law",
+      "sourceRecords": [
+        {
+          "contractVersion": "SourceRecord/v1",
+          "sourceId": "fixture-regime-record",
+          "title": "Fixture relief regime record — not an authority and not a transcription of one",
+          "url": "https://example.invalid/fixture-regime",
+          "publisher": "Fixture",
+          "documentKind": "constitutional-provision",
+          "publishedAt": "2999-01-01",
+          "retrievedAt": "2999-01-01T00:00:00.000Z",
+          "retrievalOutcome": "fixture",
+          "retrievalNote": "A fixture record carrying invented figures for branch coverage. It is never resolved for a real jurisdiction or a real year."
+        }
+      ],
+      "exemptions": [
+        {
+          "exemptionId": "fixture-exemption",
+          "amount": 25000,
+          "applicationPoint": "assessed-value",
+          "appliesToLevies": "all",
+          "sourceRef": "fixture-regime-record",
+          "locator": "fixture clause one"
+        }
+      ],
+      "assessmentCap": {
+        "capBasis": "prior-assessed-value",
+        "capRate": 0.03,
+        "capIndexRate": 0.03,
+        "applicationPoint": "assessed-value",
+        "sourceRef": "fixture-regime-record",
+        "locator": "fixture clause two"
+      },
+      "rateCeiling": null
+    },
+    "acquisition-value-cap": {
+      "contractVersion": "PropertyReliefRegime/v1",
+      "regimeId": "fixture-acquisition-value-cap",
+      "jurisdiction": "fixture",
+      "year": 2999,
+      "version": "1.0.0",
+      "ruleStatus": "user-hypothetical-law",
+      "sourceRecords": [
+        {
+          "contractVersion": "SourceRecord/v1",
+          "sourceId": "fixture-regime-record",
+          "title": "Fixture relief regime record — not an authority and not a transcription of one",
+          "url": "https://example.invalid/fixture-regime",
+          "publisher": "Fixture",
+          "documentKind": "constitutional-provision",
+          "publishedAt": "2999-01-01",
+          "retrievedAt": "2999-01-01T00:00:00.000Z",
+          "retrievalOutcome": "fixture",
+          "retrievalNote": "A fixture record carrying invented figures for branch coverage. It is never resolved for a real jurisdiction or a real year."
+        }
+      ],
+      "exemptions": [
+        {
+          "exemptionId": "fixture-exemption",
+          "amount": 25000,
+          "applicationPoint": "assessed-value",
+          "appliesToLevies": "all",
+          "sourceRef": "fixture-regime-record",
+          "locator": "fixture clause one"
+        }
+      ],
+      "assessmentCap": {
+        "capBasis": "acquisition-value",
+        "capRate": 0.03,
+        "capIndexRate": 0.03,
+        "applicationPoint": "assessed-value",
+        "sourceRef": "fixture-regime-record",
+        "locator": "fixture clause two"
+      },
+      "rateCeiling": null
+    },
+    "rate-ceiling": {
+      "contractVersion": "PropertyReliefRegime/v1",
+      "regimeId": "fixture-rate-ceiling",
+      "jurisdiction": "fixture",
+      "year": 2999,
+      "version": "1.0.0",
+      "ruleStatus": "user-hypothetical-law",
+      "sourceRecords": [
+        {
+          "contractVersion": "SourceRecord/v1",
+          "sourceId": "fixture-regime-record",
+          "title": "Fixture relief regime record — not an authority and not a transcription of one",
+          "url": "https://example.invalid/fixture-regime",
+          "publisher": "Fixture",
+          "documentKind": "constitutional-provision",
+          "publishedAt": "2999-01-01",
+          "retrievedAt": "2999-01-01T00:00:00.000Z",
+          "retrievalOutcome": "fixture",
+          "retrievalNote": "A fixture record carrying invented figures for branch coverage. It is never resolved for a real jurisdiction or a real year."
+        }
+      ],
+      "exemptions": [],
+      "assessmentCap": {
+        "capBasis": "acquisition-value",
+        "capRate": 0.03,
+        "capIndexRate": 0.03,
+        "applicationPoint": "assessed-value",
+        "sourceRef": "fixture-regime-record",
+        "locator": "fixture clause two"
+      },
+      "rateCeiling": {
+        "rate": 0.01,
+        "applicationPoint": "tax-rate",
+        "sourceRef": "fixture-regime-record",
+        "locator": "fixture clause three"
+      }
+    },
+    "unretrieved-cap": {
+      "contractVersion": "PropertyReliefRegime/v1",
+      "regimeId": "fixture-unretrieved-cap",
+      "jurisdiction": "fixture",
+      "year": 2999,
+      "version": "1.0.0",
+      "ruleStatus": "user-hypothetical-law",
+      "sourceRecords": [
+        {
+          "contractVersion": "SourceRecord/v1",
+          "sourceId": "fixture-regime-record",
+          "title": "Fixture relief regime record — not an authority and not a transcription of one",
+          "url": "https://example.invalid/fixture-regime",
+          "publisher": "Fixture",
+          "documentKind": "constitutional-provision",
+          "publishedAt": "2999-01-01",
+          "retrievedAt": "2999-01-01T00:00:00.000Z",
+          "retrievalOutcome": "fixture",
+          "retrievalNote": "A fixture record carrying invented figures for branch coverage. It is never resolved for a real jurisdiction or a real year."
+        }
+      ],
+      "exemptions": [],
+      "assessmentCap": {
+        "contractVersion": "AbsentFigure/v1",
+        "code": "RLTAX-THRESHOLD-UNAVAILABLE",
+        "domain": "property-regime:assessmentCap",
+        "reason": "A fixture regime whose assessment cap is deliberately unretrieved, so the unretrieved-rule refusal path is exercised without depending on any real regime.",
+        "whatWouldMakeItAvailable": "Retrieve the cap from its primary source and transcribe it with a locator.",
+        "missingSource": {
+          "title": "Fixture missing source",
+          "url": "https://example.invalid/fixture-missing",
+          "locator": "fixture clause two"
+        }
+      },
+      "rateCeiling": null
+    },
+    "incoherent-exemption-on-rate": {
+      "contractVersion": "PropertyReliefRegime/v1",
+      "regimeId": "fixture-incoherent-exemption-on-rate",
+      "jurisdiction": "fixture",
+      "year": 2999,
+      "version": "1.0.0",
+      "ruleStatus": "user-hypothetical-law",
+      "sourceRecords": [
+        {
+          "contractVersion": "SourceRecord/v1",
+          "sourceId": "fixture-regime-record",
+          "title": "Fixture relief regime record — not an authority and not a transcription of one",
+          "url": "https://example.invalid/fixture-regime",
+          "publisher": "Fixture",
+          "documentKind": "constitutional-provision",
+          "publishedAt": "2999-01-01",
+          "retrievedAt": "2999-01-01T00:00:00.000Z",
+          "retrievalOutcome": "fixture",
+          "retrievalNote": "A fixture record carrying invented figures for branch coverage. It is never resolved for a real jurisdiction or a real year."
+        }
+      ],
+      "exemptions": [
+        {
+          "exemptionId": "fixture-exemption-on-rate",
+          "amount": 25000,
+          "applicationPoint": "tax-rate",
+          "appliesToLevies": "all",
+          "sourceRef": "fixture-regime-record",
+          "locator": "fixture clause one"
+        }
+      ],
+      "assessmentCap": null,
+      "rateCeiling": null
+    },
+    "incoherent-cap-on-rate": {
+      "contractVersion": "PropertyReliefRegime/v1",
+      "regimeId": "fixture-incoherent-cap-on-rate",
+      "jurisdiction": "fixture",
+      "year": 2999,
+      "version": "1.0.0",
+      "ruleStatus": "user-hypothetical-law",
+      "sourceRecords": [
+        {
+          "contractVersion": "SourceRecord/v1",
+          "sourceId": "fixture-regime-record",
+          "title": "Fixture relief regime record — not an authority and not a transcription of one",
+          "url": "https://example.invalid/fixture-regime",
+          "publisher": "Fixture",
+          "documentKind": "constitutional-provision",
+          "publishedAt": "2999-01-01",
+          "retrievedAt": "2999-01-01T00:00:00.000Z",
+          "retrievalOutcome": "fixture",
+          "retrievalNote": "A fixture record carrying invented figures for branch coverage. It is never resolved for a real jurisdiction or a real year."
+        }
+      ],
+      "exemptions": [],
+      "assessmentCap": {
+        "capBasis": "prior-assessed-value",
+        "capRate": 0.03,
+        "capIndexRate": 0.03,
+        "applicationPoint": "tax-rate",
+        "sourceRef": "fixture-regime-record",
+        "locator": "fixture clause two"
+      },
+      "rateCeiling": null
+    },
+    "uncited-cap": {
+      "contractVersion": "PropertyReliefRegime/v1",
+      "regimeId": "fixture-uncited-cap",
+      "jurisdiction": "fixture",
+      "year": 2999,
+      "version": "1.0.0",
+      "ruleStatus": "user-hypothetical-law",
+      "sourceRecords": [
+        {
+          "contractVersion": "SourceRecord/v1",
+          "sourceId": "fixture-regime-record",
+          "title": "Fixture relief regime record — not an authority and not a transcription of one",
+          "url": "https://example.invalid/fixture-regime",
+          "publisher": "Fixture",
+          "documentKind": "constitutional-provision",
+          "publishedAt": "2999-01-01",
+          "retrievedAt": "2999-01-01T00:00:00.000Z",
+          "retrievalOutcome": "fixture",
+          "retrievalNote": "A fixture record carrying invented figures for branch coverage. It is never resolved for a real jurisdiction or a real year."
+        }
+      ],
+      "exemptions": [],
+      "assessmentCap": {
+        "capBasis": "prior-assessed-value",
+        "capRate": 0.03,
+        "capIndexRate": 0.03,
+        "applicationPoint": "assessed-value",
+        "sourceRef": "fixture-regime-record",
+        "locator": ""
+      },
+      "rateCeiling": null
+    }
+  }
+}

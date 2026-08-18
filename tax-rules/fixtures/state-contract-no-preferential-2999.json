@@ -1,0 +1,161 @@
+{
+  "contractVersion": "TaxRulePack/v2",
+  "id": "contract-fixture-no-preferential",
+  "program": "income-tax",
+  "jurisdiction": "state:ZZ",
+  "version": "1.0.0",
+  "effectiveTaxYears": [2026],
+  "publishedAt": "2999-01-01",
+  "retrievedAt": "2999-01-01T00:00:00.000Z",
+  "ruleStatus": "user-hypothetical-law",
+  "sourceRecords": [
+    {
+      "contractVersion": "SourceRecord/v1",
+      "sourceId": "contract-fixture-authority",
+      "title": "Contract fixture for the state rule-pack contract; not an authority and not a jurisdiction",
+      "url": "https://example.invalid/lifetime-tax-contract-fixture",
+      "publisher": "Lifetime Tax Strategy Lab contract fixture",
+      "documentKind": "publication",
+      "publishedAt": "2999-01-01",
+      "retrievedAt": "2999-01-01T00:00:00.000Z",
+      "retrievalOutcome": "retrieved",
+      "retrievalNote": "This is a CONTRACT FIXTURE, not a transcription of any authority. Every figure in this pack is invented for the purpose of exercising the contract's branches with known values. It declares the jurisdiction state:ZZ, which is not a jurisdiction, so this pack cannot resolve for any real household however its declared years are read, and its ruleStatus is user-hypothetical-law rather than enacted law. No figure here is, or may become, a figure in a shipped jurisdiction pack."
+    }
+  ],
+  "supportedFeatures": [
+    {
+      "id": "fixture-ordinary-schedule",
+      "label": "Fixture ordinary schedule pricing all supported income kinds",
+      "reason": "The fixture declares preferentialPolicy none and carries a three-band ordinary schedule, so a pooled preferential amount is priced in the ordinary schedule with no engine branch."
+    },
+    {
+      "id": "fixture-surcharge-and-credit",
+      "label": "Fixture surcharge leg and after-rate credit",
+      "reason": "The fixture carries a threshold-set leg that does not vary by filing status and a credit applied after rate application to the ordinary leg only, so the application point and the applied-legs list are both exercised with known values."
+    }
+  ],
+  "unsupportedFeatures": [
+    { "id": "fixture-everything-else", "label": "Every provision this fixture does not carry", "reason": "A fixture carries exactly the branches it exists to exercise and nothing else. No result derived from it describes any real jurisdiction.", "code": "RLTAX-FEATURE-UNSUPPORTED", "movesMarginalRate": true, "successorFeature": "A real jurisdiction pack transcribed from that jurisdiction's own retrieved authority." },
+    { "id": "fixture-not-a-jurisdiction", "label": "Any real jurisdiction", "reason": "The declared jurisdiction state:ZZ is not a jurisdiction, so this pack cannot resolve for a real household.", "code": "RLTAX-JURISDICTION-UNSUPPORTED", "movesMarginalRate": false, "successorFeature": "A real jurisdiction pack." }
+  ],
+  "indexingRules": [],
+  "calculationOrder": ["CO-1", "CO-2", "CO-3", "CO-5", "CO-6", "CO-14", "CO-8", "CO-13", "CO-9", "CO-10"],
+  "roundingPolicy": {
+    "contractVersion": "TaxRoundingPolicy/v1",
+    "calculationStages": [],
+    "displayStageIsSeparate": true,
+    "reconciliationTolerance": 0.005
+  },
+  "expiryPolicy": {
+    "contractVersion": "TaxPackExpiry/v1",
+    "expiresAt": "9999-12-31",
+    "reason": "A contract fixture does not expire because it transcribes no authority; it is replaced when the contract it exercises changes.",
+    "onExpiry": "refuse"
+  },
+  "filingStatuses": ["single", "married-filing-jointly", "married-filing-separately", "head-of-household"],
+  "incomeKinds": ["ordinary", "qualified-dividend", "long-term-capital-gain", "tax-exempt-interest"],
+  "standardDeductions": {
+    "single": { "contractVersion": "DeductionAmount/v1", "filingStatus": "single", "amount": 4000, "sourceRef": "contract-fixture-authority", "locator": "fixture deduction, single" },
+    "married-filing-jointly": { "contractVersion": "DeductionAmount/v1", "filingStatus": "married-filing-jointly", "amount": 8000, "sourceRef": "contract-fixture-authority", "locator": "fixture deduction, married filing jointly" },
+    "married-filing-separately": { "contractVersion": "DeductionAmount/v1", "filingStatus": "married-filing-separately", "amount": 4000, "sourceRef": "contract-fixture-authority", "locator": "fixture deduction, married filing separately" },
+    "head-of-household": { "contractVersion": "DeductionAmount/v1", "filingStatus": "head-of-household", "amount": 6000, "sourceRef": "contract-fixture-authority", "locator": "fixture deduction, head of household" }
+  },
+  "ordinaryRateTables": {
+    "single": {
+      "contractVersion": "RateTable/v1",
+      "tableId": "fixture-ordinary-single",
+      "kind": "ordinary",
+      "filingStatus": "single",
+      "bands": [
+        { "bandId": "b1", "lowerInclusive": 0, "upperExclusive": 10000, "rate": 0.02, "thresholdKind": "rate-step" },
+        { "bandId": "b2", "lowerInclusive": 10000, "upperExclusive": 50000, "rate": 0.05, "thresholdKind": "rate-step" },
+        { "bandId": "b3", "lowerInclusive": 50000, "upperExclusive": null, "rate": 0.08, "thresholdKind": "rate-step" }
+      ],
+      "sourceRef": "contract-fixture-authority",
+      "locator": "fixture ordinary schedule, single"
+    },
+    "married-filing-jointly": {
+      "contractVersion": "RateTable/v1",
+      "tableId": "fixture-ordinary-married-filing-jointly",
+      "kind": "ordinary",
+      "filingStatus": "married-filing-jointly",
+      "bands": [
+        { "bandId": "b1", "lowerInclusive": 0, "upperExclusive": 20000, "rate": 0.02, "thresholdKind": "rate-step" },
+        { "bandId": "b2", "lowerInclusive": 20000, "upperExclusive": 100000, "rate": 0.05, "thresholdKind": "rate-step" },
+        { "bandId": "b3", "lowerInclusive": 100000, "upperExclusive": null, "rate": 0.08, "thresholdKind": "rate-step" }
+      ],
+      "sourceRef": "contract-fixture-authority",
+      "locator": "fixture ordinary schedule, married filing jointly"
+    },
+    "married-filing-separately": {
+      "contractVersion": "RateTable/v1",
+      "tableId": "fixture-ordinary-married-filing-separately",
+      "kind": "ordinary",
+      "filingStatus": "married-filing-separately",
+      "bands": [
+        { "bandId": "b1", "lowerInclusive": 0, "upperExclusive": 10000, "rate": 0.02, "thresholdKind": "rate-step" },
+        { "bandId": "b2", "lowerInclusive": 10000, "upperExclusive": 50000, "rate": 0.05, "thresholdKind": "rate-step" },
+        { "bandId": "b3", "lowerInclusive": 50000, "upperExclusive": null, "rate": 0.08, "thresholdKind": "rate-step" }
+      ],
+      "sourceRef": "contract-fixture-authority",
+      "locator": "fixture ordinary schedule, married filing separately"
+    },
+    "head-of-household": {
+      "contractVersion": "RateTable/v1",
+      "tableId": "fixture-ordinary-head-of-household",
+      "kind": "ordinary",
+      "filingStatus": "head-of-household",
+      "bands": [
+        { "bandId": "b1", "lowerInclusive": 0, "upperExclusive": 15000, "rate": 0.02, "thresholdKind": "rate-step" },
+        { "bandId": "b2", "lowerInclusive": 15000, "upperExclusive": 75000, "rate": 0.05, "thresholdKind": "rate-step" },
+        { "bandId": "b3", "lowerInclusive": 75000, "upperExclusive": null, "rate": 0.08, "thresholdKind": "rate-step" }
+      ],
+      "sourceRef": "contract-fixture-authority",
+      "locator": "fixture ordinary schedule, head of household"
+    }
+  },
+  "preferentialRateTables": {
+    "single": { "contractVersion": "AbsentFigure/v1", "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "fixture-preferential:single", "reason": "The fixture declares preferentialPolicy none, so it carries no preferential schedule.", "whatWouldMakeItAvailable": "A fixture declaring own-schedule would carry one.", "missingSource": { "title": "Contract fixture", "url": "https://example.invalid/lifetime-tax-contract-fixture", "locator": "the fixture declares no preferential schedule" } },
+    "married-filing-jointly": { "contractVersion": "AbsentFigure/v1", "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "fixture-preferential:married-filing-jointly", "reason": "The fixture declares preferentialPolicy none, so it carries no preferential schedule.", "whatWouldMakeItAvailable": "A fixture declaring own-schedule would carry one.", "missingSource": { "title": "Contract fixture", "url": "https://example.invalid/lifetime-tax-contract-fixture", "locator": "the fixture declares no preferential schedule" } },
+    "married-filing-separately": { "contractVersion": "AbsentFigure/v1", "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "fixture-preferential:married-filing-separately", "reason": "The fixture declares preferentialPolicy none, so it carries no preferential schedule.", "whatWouldMakeItAvailable": "A fixture declaring own-schedule would carry one.", "missingSource": { "title": "Contract fixture", "url": "https://example.invalid/lifetime-tax-contract-fixture", "locator": "the fixture declares no preferential schedule" } },
+    "head-of-household": { "contractVersion": "AbsentFigure/v1", "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "fixture-preferential:head-of-household", "reason": "The fixture declares preferentialPolicy none, so it carries no preferential schedule.", "whatWouldMakeItAvailable": "A fixture declaring own-schedule would carry one.", "missingSource": { "title": "Contract fixture", "url": "https://example.invalid/lifetime-tax-contract-fixture", "locator": "the fixture declares no preferential schedule" } }
+  },
+  "imposesIndividualIncomeTax": true,
+  "noTaxAuthority": null,
+  "preferentialPolicy": "none",
+  "taxLegs": [
+    { "contractVersion": "TaxLeg/v1", "legId": "state-ordinary", "stageId": "CO-6", "figureRef": "ordinaryRateTables", "includedInTotal": true },
+    { "contractVersion": "TaxLeg/v1", "legId": "state-surcharge", "stageId": "CO-14", "figureRef": "thresholdSets.fixture-surcharge", "includedInTotal": true }
+  ],
+  "thresholdSets": {
+    "fixture-surcharge": {
+      "contractVersion": "ThresholdSet/v1",
+      "thresholdSetId": "fixture-surcharge",
+      "rate": 0.03,
+      "varyByFilingStatus": false,
+      "thresholds": { "all": 100000 },
+      "indexing": { "indexed": false, "declaredFor": [2026] },
+      "appliesTo": "declared-basis-excess",
+      "basisMember": "stateTaxableIncome",
+      "capMember": null,
+      "sourceRef": "contract-fixture-authority",
+      "locator": "fixture surcharge, one threshold for every filing status",
+      "componentSources": []
+    }
+  },
+  "reliefMechanisms": [
+    {
+      "contractVersion": "ReliefMechanism/v1",
+      "mechanismId": "fixture-exemption-credit",
+      "kind": "credit-against-tax",
+      "applicationPoint": "after-rate-application",
+      "varyByFilingStatus": false,
+      "amounts": { "all": 250 },
+      "appliesToLegs": ["state-ordinary"],
+      "sourceRef": "contract-fixture-authority",
+      "locator": "fixture credit applied after rate application to the ordinary leg only",
+      "componentSources": []
+    }
+  ],
+  "contentSha256": "sha256:cbbba94510dd2ab9f6f45b605ba08f9e3ed1a9bbf340f71fe5b9a361ba22bca7"
+}

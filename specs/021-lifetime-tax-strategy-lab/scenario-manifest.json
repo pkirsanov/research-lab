@@ -1,0 +1,587 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/021-lifetime-tax-strategy-lab",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-08-17T00:00:00Z",
+  "stage": "scope-level-planning",
+  "stageNote": "Authored by bubbles.plan from notes/lifetime-tax-strategy-lab.md and the operator's federal-slice constraint. spec.md and design.md do NOT exist yet and are owned by bubbles.analyst and bubbles.design respectively, so businessScenario is null on every scenario rather than pointing at a BS identifier that has not been written. requirementAnchors carry the planning-owned PRA-021-* anchors from scopes/_index.md, which bubbles.analyst adopts or rejects as FR-021-* / NFR-021-* when spec.md is authored. testRows carry the planned Test Plan row identifiers from each scope.md because that plan exists; linkedTests and evidenceRefs are empty because no test file has been written and nothing has executed, and populating either now would be a fabricated linkage.",
+  "scenarioCount": 15,
+  "businessScenarioMapping": "SCN-021-001 through SCN-021-015 are planning-owned scenario identifiers with exactly one owning scope each. When spec.md is authored, each is expected to bind to one BS-021-* business scenario; that binding is recorded here in one edit at that time and not before.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-021-001",
+      "businessScenario": null,
+      "requirementAnchors": ["PRA-021-002", "PRA-021-003", "PRA-021-004", "PRA-021-008", "PRA-021-010"],
+      "scopeId": "01-tax-workspace-rule-pack-and-privacy-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "A minimum viable input yields an honestly labeled first answer",
+      "gherkin": {
+        "given": "a household supplies only a filing status, one declared tax year, one supported income-kind amount, and a deduction mode",
+        "when": "the workspace is validated and the federal rule pack is resolved",
+        "then": "the resolved pack identity, version, effective tax years and primary source records are displayed, every federal feature the pack does not support is named, every unsupplied domain is marked Unavailable with a reason and a remediation, and no unsupplied domain blocks a supplied one"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["api-contract", "user-visible-ui", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "api-contract",
+          "requiredProof": "A complete pack validates and exposes all fifteen required members; the minimum-viable-input boundary accepts exactly filing status, declared year, one supported income amount and a deduction mode, and refuses anything less by naming the missing member.",
+          "satisfiedBy": ["TP-01-01", "TP-01-06"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The rendered route shows the pack identity strip, its source records and its unsupported-feature list, asserted against the live route rather than against the module return value.",
+          "satisfiedBy": ["TP-01-12"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Every unsupplied domain renders a TaxUnavailable record carrying a code, a reason and a remediation, and computation of the supplied domains still completes.",
+          "satisfiedBy": ["TP-01-05", "TP-01-06"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxrules.js", "rltaxworkspace.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-01-01", "TP-01-05", "TP-01-06", "TP-01-12"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-021-002",
+      "businessScenario": null,
+      "requirementAnchors": ["PRA-021-003", "PRA-021-005", "PRA-021-006", "PRA-021-007"],
+      "scopeId": "01-tax-workspace-rule-pack-and-privacy-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "An unsupported year, jurisdiction, or income kind refuses rather than substitutes",
+      "gherkin": {
+        "given": "a household selects a tax year outside the pack's effective years, a state jurisdiction, or an income kind outside the four supported kinds",
+        "when": "rule resolution runs",
+        "then": "each case produces an explicit Unavailable record with its own RLTAX code, the affected domain and the reason, no substituted average or extended threshold or zero appears in its place, and the remaining supported results stay visible"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["api-contract", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "api-contract",
+          "requiredProof": "Resolution refuses an out-of-range year, a non-federal jurisdiction, an unsupported income kind and an expired pack, each with its own distinct closed code, and a pack missing any single required member is refused once per member with the member named.",
+          "satisfiedBy": ["TP-01-02", "TP-01-03"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "An adversarial mutation that carries a threshold into an unsupported year, or substitutes a zero for an unavailable domain, is demonstrated to fail the refusal assertion, proving the guard can fail.",
+          "satisfiedBy": ["TP-01-04", "TP-01-13"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxrules.js"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-01-02", "TP-01-03", "TP-01-04", "TP-01-13"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-021-003",
+      "businessScenario": null,
+      "requirementAnchors": ["PRA-021-001", "PRA-021-009"],
+      "scopeId": "01-tax-workspace-rule-pack-and-privacy-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "No household value leaves the local namespace",
+      "gherkin": {
+        "given": "a household enters income, deduction and filing values into the workspace",
+        "when": "the page is exercised end to end and its request ledger, URL, referrer, console output and storage keys are inspected",
+        "then": "the page has issued zero network requests, no household value appears in any URL, referrer, console message or committed artifact, and every written storage key belongs to this feature's own namespace with none belonging to the portfolio workspace"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": ["mutable-state", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "Every written storage key is enumerated and asserted to carry this feature's prefix; none carries a portfolio prefix, and the Feature 008 modules and config are proven byte-identical.",
+          "satisfiedBy": ["TP-01-08"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "A live-route browser run with no request interception records an empty request ledger, and a sentinel household value is searched for in every URL, referrer and console message.",
+          "satisfiedBy": ["TP-01-14"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxworkspace.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-01-08", "TP-01-14"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-021-004",
+      "businessScenario": null,
+      "requirementAnchors": ["PRA-021-011", "PRA-021-012", "PRA-021-017", "PRA-021-018"],
+      "scopeId": "02-deterministic-annual-federal-tax",
+      "scope": 2,
+      "status": "not_started",
+      "title": "Federal tax is deterministic and exact at every bracket boundary",
+      "gherkin": {
+        "given": "a household with only ordinary income for the declared tax year",
+        "when": "the annual federal tax is computed immediately below a bracket edge, exactly at that edge, and immediately above it",
+        "then": "each result matches the known value derived from the resolved pack's own bracket table, repeating the identical input produces a byte-identical result, and every returned field carries a rule status from the closed enum"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Known-value assertions at three points per bracket edge for every supported filing status, each fixture naming the source edition and year it was derived from; plus a determinism assertion with global fetch stubbed to throw, and a no-shadow scan proving the module holds no tax-domain numeric constant.",
+          "satisfiedBy": ["TP-02-01", "TP-02-06", "TP-02-07", "TP-02-09"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltax.js"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-02-01", "TP-02-06", "TP-02-07", "TP-02-09", "TP-02-10", "TP-02-11"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-021-005",
+      "businessScenario": null,
+      "requirementAnchors": ["PRA-021-013", "PRA-021-015"],
+      "scopeId": "02-deterministic-annual-federal-tax",
+      "scope": 2,
+      "status": "not_started",
+      "title": "Long-term gains stack on ordinary income rather than being taxed in isolation",
+      "gherkin": {
+        "given": "a household with both ordinary income and long-term capital gains for the declared tax year",
+        "when": "the annual federal tax is computed",
+        "then": "the long-term gain is taxed in the capital-gain bands that sit above ordinary taxable income, raising ordinary income alone changes the tax owed on an unchanged gain, and qualified dividends receive the same stacking treatment"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "A known-value stacking assertion including a case where changing ordinary income alone changes the gain's tax, an identical assertion for qualified dividends, an adversarial mutation that taxes the gain in isolation demonstrated to fail, and tax-exempt interest proven retained and excluded rather than dropped.",
+          "satisfiedBy": ["TP-02-02", "TP-02-03", "TP-02-08"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltax.js"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-02-02", "TP-02-03", "TP-02-08", "TP-02-12"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-021-006",
+      "businessScenario": null,
+      "requirementAnchors": ["PRA-021-014", "PRA-021-016"],
+      "scopeId": "02-deterministic-annual-federal-tax",
+      "scope": 2,
+      "status": "not_started",
+      "title": "Deduction selection is explicit and the result reconciles",
+      "gherkin": {
+        "given": "a household supplies a deduction mode of standard, and separately an itemized amount",
+        "when": "the annual federal tax is computed under each mode",
+        "then": "the applied deduction and the mode that produced it are displayed rather than inferred, the reconciliation identity between income components, applied deduction, taxable income and tax is displayed and holds, and a household that supplied no deduction mode receives an Unavailable record naming the missing member rather than a silently applied default"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "user-visible-ui", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The reconciliation identity is asserted to hold for every fixture, and a deliberately unbalanced result is refused rather than returned as a tax figure.",
+          "satisfiedBy": ["TP-02-05"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The live route displays the applied deduction, the mode that produced it, and a balancing identity row.",
+          "satisfiedBy": ["TP-02-13"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "A workspace with no declared deduction mode returns an incomplete-input refusal and no default mode is applied anywhere in the module.",
+          "satisfiedBy": ["TP-02-04"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltax.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-02-04", "TP-02-05", "TP-02-13"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-021-007",
+      "businessScenario": null,
+      "requirementAnchors": ["PRA-021-019", "PRA-021-020", "PRA-021-023", "PRA-021-024"],
+      "scopeId": "03-effective-marginal-rate-curve",
+      "scope": 3,
+      "status": "not_started",
+      "title": "The next dollar is priced as a curve, not as a single rate",
+      "gherkin": {
+        "given": "a household with a reconciled annual federal result for the declared tax year",
+        "when": "the effective marginal rate curve is computed for ordinary income and for realized long-term gain",
+        "then": "two ordered multi-point curves are returned, each point states the marginal cost of the next dollar at that level, each segment names every contributing threshold with its rule-pack source, and no single scalar rate is offered as a substitute"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Each curve rate is asserted equal to a difference of two annual-tax calls to full internal precision, every rate change names an attributable threshold with its source, an unattributed rate change is demonstrated to be refused, and the module is proven still to hold no tax-domain numeric constant and no hard-coded sweep policy.",
+          "satisfiedBy": ["TP-03-01", "TP-03-02", "TP-03-03", "TP-03-04", "TP-03-09", "TP-03-10"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The live route renders the curve alongside a text-equivalent table emitted from the identical record; a table assembled from a second derivation is demonstrated to fail.",
+          "satisfiedBy": ["TP-03-11", "TP-03-12"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltax.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-03-01", "TP-03-02", "TP-03-03", "TP-03-04", "TP-03-09", "TP-03-10", "TP-03-11", "TP-03-12"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-021-008",
+      "businessScenario": null,
+      "requirementAnchors": ["PRA-021-021"],
+      "scopeId": "03-effective-marginal-rate-curve",
+      "scope": 3,
+      "status": "not_started",
+      "title": "A cliff renders as a step and is never smoothed",
+      "gherkin": {
+        "given": "the resolved pack declares a threshold whose crossing changes the marginal cost discontinuously",
+        "when": "the curve is computed across that threshold",
+        "then": "the point immediately below and the point at the threshold carry different marginal rates with no interpolated point between them, the segment is flagged as a cliff rather than a phase-in, and no averaging or gradient fill appears between the two sides"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Two adjacent points across a declared discontinuity are asserted to carry different rates with no point between them and a cliff flag on the segment, and an interpolating mutation is demonstrated to fail the step assertion.",
+          "satisfiedBy": ["TP-03-05", "TP-03-06"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The live route renders the cliff as two adjacent rows with different rates and no interpolated row, labeled a cliff.",
+          "satisfiedBy": ["TP-03-13"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltax.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-03-05", "TP-03-06", "TP-03-13"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-021-009",
+      "businessScenario": null,
+      "requirementAnchors": ["PRA-021-022"],
+      "scopeId": "03-effective-marginal-rate-curve",
+      "scope": 3,
+      "status": "not_started",
+      "title": "A threshold this slice does not carry is named unavailable, not omitted",
+      "gherkin": {
+        "given": "the federal pack lists taxable Social Security benefits, IRMAA bands, the premium tax credit and net investment income tax among its unsupported features",
+        "when": "the curve is computed",
+        "then": "each appears as an unavailable contributor with its own code and reason, the curve is labeled incomplete with the count, and no unavailable contributor is rendered as a zero contribution or an omission"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "degraded-state", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The unavailable-contributor list is derived from the resolved pack's unsupported-feature list rather than hand-written in the curve module.",
+          "satisfiedBy": ["TP-03-07"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The list is asserted non-empty for the slice-1 pack and to name every deferred threshold with a code and reason; an empty list is demonstrated to fail, and a contributor rendered as a zero contribution is demonstrated to fail.",
+          "satisfiedBy": ["TP-03-07", "TP-03-08"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The live route shows the incomplete label with its count and lists every unavailable contributor by name, code and reason.",
+          "satisfiedBy": ["TP-03-14"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltax.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-03-07", "TP-03-08", "TP-03-14"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-021-010",
+      "businessScenario": null,
+      "requirementAnchors": ["PRA-021-025", "PRA-021-026", "PRA-021-027"],
+      "scopeId": "04-bracket-fill-roth-conversion-comparison",
+      "scope": 4,
+      "status": "not_started",
+      "title": "Two policies are compared on identical inputs and the fill amount comes from the pack",
+      "gherkin": {
+        "given": "a household with a reconciled annual federal result and a selected ordinary-income bracket",
+        "when": "the conversion comparison runs",
+        "then": "exactly two policies are returned, both computed from the identical workspace and resolved pack, the conversion amount equals the distance from current ordinary taxable income to that bracket's declared edge, and changing the pack's edge changes the amount"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "api-contract"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The converted case is asserted equal to an independent full annual-tax call at the converted income including moved gain stacking, and a mutation that adds a marginal-rate product to the baseline is demonstrated to fail; the marginal rate at the edge is asserted equal to the Scope 03 curve value.",
+          "satisfiedBy": ["TP-04-04", "TP-04-05", "TP-04-07"]
+        },
+        {
+          "trait": "api-contract",
+          "requiredProof": "Exactly two policies are returned; the fill amount is asserted against the pack edge for every filing status and bracket; mutating the pack edge changes the amount, and the module is proven to declare no bracket edge of its own; a household already at or above the edge yields a labeled zero-amount conversion.",
+          "satisfiedBy": ["TP-04-01", "TP-04-02", "TP-04-03", "TP-04-06"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxstrategy.js", "rltax.js"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-04-01", "TP-04-02", "TP-04-03", "TP-04-04", "TP-04-05", "TP-04-06", "TP-04-07", "TP-04-12"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-021-011",
+      "businessScenario": null,
+      "requirementAnchors": ["PRA-021-028"],
+      "scopeId": "04-bracket-fill-roth-conversion-comparison",
+      "scope": 4,
+      "status": "not_started",
+      "title": "The comparison discloses in full what it did not model",
+      "gherkin": {
+        "given": "a completed conversion comparison for the declared tax year",
+        "when": "the result's disclosure is read",
+        "then": "a closed notModeled list names at minimum state tax, Medicare and IRMAA effects, the premium tax credit, the Roth five-year clocks, later-year distribution and required-distribution pressure, survivor effects and lost growth on taxes paid, each with a reason and a deferral code, and the result is not presented as a recommendation, a ranking or a preferred policy"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["api-contract", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "api-contract",
+          "requiredProof": "The notModeled list is asserted to be a structural record member with its full required membership, each entry carrying a reason and a deferral code; removing any required entry is demonstrated to fail.",
+          "satisfiedBy": ["TP-04-08", "TP-04-09"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The live route renders every notModeled entry with its reason and code, plus an explicit statement that the result is not a recommendation.",
+          "satisfiedBy": ["TP-04-13"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxstrategy.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-04-08", "TP-04-09", "TP-04-13"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-021-012",
+      "businessScenario": null,
+      "requirementAnchors": ["PRA-021-029", "PRA-021-030"],
+      "scopeId": "04-bracket-fill-roth-conversion-comparison",
+      "scope": 4,
+      "status": "not_started",
+      "title": "The comparison emits a single-year federal cost difference and nothing more",
+      "gherkin": {
+        "given": "a completed conversion comparison",
+        "when": "every emitted field is inspected",
+        "then": "no field carries a probability, a lifetime total, a break-even year, a survival figure, a rank or an accuracy claim, the result states plainly that it is a single-year federal tax difference, and a household that did not declare a tax funding source receives an Unavailable record for the outside-funds versus withheld distinction rather than a silently assumed source"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["api-contract", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "api-contract",
+          "requiredProof": "Enumerating the result record's members proves there is no probability, lifetime total, break-even year, survival figure, rank or accuracy field, and no such string is emitted.",
+          "satisfiedBy": ["TP-04-10", "TP-04-14"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Declared outside-funds and declared withheld produce distinguishable results, and an undeclared funding source produces an unavailable record naming what would make it available with no assumed default.",
+          "satisfiedBy": ["TP-04-11"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxstrategy.js"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-04-10", "TP-04-11", "TP-04-14"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-021-013",
+      "businessScenario": null,
+      "requirementAnchors": ["PRA-021-031", "PRA-021-032", "PRA-021-035", "PRA-021-036", "PRA-021-038"],
+      "scopeId": "05-simple-power-route-accessibility-and-local-export",
+      "scope": 5,
+      "status": "not_started",
+      "title": "Simple opens first with a decision-level answer and Power holds the detail",
+      "gherkin": {
+        "given": "a household has supplied the minimum viable input for the declared tax year",
+        "when": "the route is opened",
+        "then": "Simple renders first without user action showing the federal tax, the conversion comparison outcome, the strongest tradeoff and the unavailable domains, it shows no candidate grid or per-bracket table or rule trace or raw curve series, each hidden detail links to the owning Power section, and Power exposes the rule ledger, per-bracket detail, curve text table, reconciliation identity and every pack source record"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": ["user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Simple's rendered field set is enumerated and asserted restricted with a Power link on every excluded detail; both views are proven to read one result envelope with no second derivation; the educational not-tax-advice framing is present and no page string claims an error rate, track record, accuracy figure or plan success probability; the tool is proven absent from all six registration surfaces and the pages-site build accepts the finished unregistered page.",
+          "satisfiedBy": ["TP-05-01", "TP-05-02", "TP-05-06", "TP-05-09", "TP-05-10", "TP-05-11"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-05-01", "TP-05-02", "TP-05-06", "TP-05-09", "TP-05-10", "TP-05-11"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-021-014",
+      "businessScenario": null,
+      "requirementAnchors": ["PRA-021-033", "PRA-021-034"],
+      "scopeId": "05-simple-power-route-accessibility-and-local-export",
+      "scope": 5,
+      "status": "not_started",
+      "title": "Every value is explained and every unavailable state is reachable without a mouse",
+      "gherkin": {
+        "given": "the route is rendered with at least one unavailable domain",
+        "when": "the page is operated by keyboard alone and then at a mobile viewport",
+        "then": "every displayed value exposes a keyboard-reachable contextual tooltip, every chart has a text-equivalent table carrying the same points, every unavailable domain is focusable and states its reason and remediation, no unavailable domain renders as a blank or bare dash or zero, and no tax or account table becomes unreadable or horizontally trapped at the mobile viewport"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": ["user-visible-ui", "responsive-accessible", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Every displayed value is enumerated against tooltip presence, and every chart is enumerated against a text-equivalent table emitted from the same record.",
+          "satisfiedBy": ["TP-05-03", "TP-05-04"]
+        },
+        {
+          "trait": "responsive-accessible",
+          "requiredProof": "A keyboard-only traversal reaches every value tooltip and every unavailable state, and a mobile-viewport run asserts no tax or account table is unreadable or horizontally trapped and no stable control resizes because a label grew.",
+          "satisfiedBy": ["TP-05-12", "TP-05-13"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Every unavailable record renders its code, reason and remediation; a blank, a bare dash and a zero are each demonstrated to fail.",
+          "satisfiedBy": ["TP-05-05"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-05-03", "TP-05-04", "TP-05-05", "TP-05-12", "TP-05-13"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-021-015",
+      "businessScenario": null,
+      "requirementAnchors": ["PRA-021-009", "PRA-021-037"],
+      "scopeId": "05-simple-power-route-accessibility-and-local-export",
+      "scope": 5,
+      "status": "not_started",
+      "title": "A private export happens only on explicit action and carries no identifier",
+      "gherkin": {
+        "given": "a household has entered a sentinel value into the workspace",
+        "when": "the user invokes the export action and the produced file is inspected",
+        "then": "no file was produced before the explicit action, the user was warned the file carries sensitive financial information, the file contains no name or address or account number or tax identifier or credential, the file lists every omitted field, and the sentinel value appears in no network request, URL, referrer, console message or committed artifact across the whole session"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": ["user-visible-ui", "mutable-state"],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "A live-route run asserts no file exists before the explicit action, the sensitivity warning is shown, and the request ledger stays empty with the sentinel value absent from every URL, referrer and console message.",
+          "satisfiedBy": ["TP-05-14"]
+        },
+        {
+          "trait": "mutable-state",
+          "requiredProof": "The sanitizer is asserted to remove every identifier category and the omitted-field manifest to match its actual exclusions exactly; a manifest that under-reports is demonstrated to fail; the written storage key set is unchanged from Scope 01 and clear-all removes every declared private category.",
+          "satisfiedBy": ["TP-05-07", "TP-05-08"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxworkspace.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-05-07", "TP-05-08", "TP-05-14"],
+      "evidenceRefs": []
+    }
+  ]
+}

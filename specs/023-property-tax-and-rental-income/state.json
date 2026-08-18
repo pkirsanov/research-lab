@@ -1,0 +1,175 @@
+{
+    "version": 3,
+    "featureDir": "specs/023-property-tax-and-rental-income",
+    "featureName": "Property Tax And Rental Income (Slice 3)",
+    "createdAt": "2026-08-17T00:00:00Z",
+    "lastUpdatedAt": "2026-08-17T00:00:00Z",
+    "status": "in_progress",
+    "blockedReason": null,
+    "workflowMode": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "specDependsOn": [],
+    "flagsIntroduced": [],
+    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "workBoundary": {
+        "repositoryRoots": [
+            "research-lab"
+        ],
+        "specTargets": [
+            "specs/023-property-tax-and-rental-income"
+        ],
+        "allowedPaths": [
+            "specs/023-property-tax-and-rental-income/**"
+        ],
+        "crossRepoPolicy": "forbidden"
+    },
+    "execution": {
+        "goalContractRef": null,
+        "activeAgent": "bubbles.plan",
+        "currentPhase": "bootstrap",
+        "currentPhaseStatus": "completed",
+        "currentScope": 1,
+        "substate": "planned",
+        "runStartedAt": "2026-08-17T00:00:00Z",
+        "completedAt": null,
+        "completedPhaseClaims": [],
+        "pendingTransitionRequests": [],
+        "nextRequiredOwner": "bubbles.implement",
+        "nextRequiredTarget": "specs/023-property-tax-and-rental-income/scopes/01-property-assessment-mechanics/scope.md",
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "scopeId": "01-property-assessment-mechanics",
+                "status": "not_started",
+                "foundation": true,
+                "dependsOn": []
+            },
+            {
+                "scope": 2,
+                "scopeId": "02-primary-residence-federal-interaction",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1
+                ]
+            },
+            {
+                "scope": 3,
+                "scopeId": "03-long-term-rental",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    2
+                ]
+            },
+            {
+                "scope": 4,
+                "scopeId": "04-short-term-and-vacation-rental",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    2,
+                    3
+                ]
+            },
+            {
+                "scope": 5,
+                "scopeId": "05-disposition",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    2,
+                    3,
+                    4
+                ]
+            }
+        ],
+        "executionHistory": [
+            {
+                "agent": "bubbles.plan",
+                "phasesExecuted": [
+                    "bootstrap"
+                ],
+                "startedAt": "2026-08-17T00:00:00Z",
+                "completedAt": "2026-08-17T00:00:00Z",
+                "statusBefore": null,
+                "statusAfter": "in_progress",
+                "summary": "Authored spec.md, design.md, scopes/_index.md, five scope directories each with scope.md and report.md, scenario-manifest.json, uservalidation.md and this file. Five sequential scopes, fifteen scenarios SCN-023-001 through SCN-023-015, thirty-five functional and ten non-functional requirements, ten blocking implementation inputs and a nine-entry supersession ledger. No implementation was performed and no scope was started."
+            }
+        ],
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "not_started",
+        "certifiedAt": null,
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        },
+        "observations": [
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "successor-of-in-progress-feature",
+                "summary": "This feature is the direct successor to specs/022-federal-preferential-and-state-income-tax. It inherits Feature 021's and Feature 022's contracts, the closed RLTAX-* refusal vocabulary, the AbsentFigure/v1 discipline, the SourcedZero/v1 distinction and the privacy boundary. specDependsOn is empty per P25 because this feature blocks on no other spec's status; it depends on shipped code, not on a status. The planning assumption that Feature 022 lands first is recorded in spec.md and is handled at implementation time by re-resolving every ledger target against the tree, under ASC-8."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "declared-versus-sourced-is-the-central-split",
+                "summary": "Property tax looks unsourceable only because the assessment and the relief regime are usually treated as one object. A county millage rate and an individual parcel's assessed value are neither published centrally nor stable, so a shipped table of them is stale on arrival and undetectably wrong per user. The relief regimes are constitutional text with section numbers. PropertyAssessment/v1 therefore carries only declared members and refuses a sourceRef; PropertyReliefRegime/v1 carries only sourced members and refuses a missing one. The two refuse under different existing codes and render differently, so a user can always tell which half is missing."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "no-refusal-code-added",
+                "summary": "This feature extends no closed set. Five candidate refusal conditions were considered and each folds into an existing member, named individually in design.md: an undeclared assessment member is RLTAX-INPUT-INCOMPLETE, an unretrieved rule is RLTAX-THRESHOLD-UNAVAILABLE, a classification blocked by an unretrieved parameter is also RLTAX-THRESHOLD-UNAVAILABLE because the blocking object is the parameter, and both the reduced residence exclusion and the second-property case are RLTAX-SCOPE-DEFERRED. Every scope carries a DoD item asserting the member count is unchanged, so an accidental addition cannot pass unnoticed."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "leg-visibility-is-a-fixture-problem-not-an-assertion-problem",
+                "summary": "Feature 022's validation found a headline showing one leg where a combined total belonged, understating the figure by eighty-eight percent, latent because the hidden legs were zero in the fixture that covered it. A zero leg passes an addition check whether or not it was added. The leg-visibility machinery therefore pairs a two-directional set identity between the record's declared legs and each of four surfaces with a fixture in which every leg is non-zero and mutually distinct, so omitting any leg changes the headline by an amount unique to that leg. Scope 01 builds it before any later leg exists, and every scope that adds a leg carries a DoD item requiring an assertion that fails when a leg is computed and not surfaced."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "supersession-ledger-pre-populated-and-open",
+                "summary": "Nine pre-existing assertions are predicted to be superseded and each was read from the repository tree during this planning session rather than imagined. Four are owned by Scope 01, four by Scope 02 and one by Scope 05. Feature 022 required three planning round trips because its ledger closed prematurely; ASC-8 corrects that by permitting an implementer to admit a further entry in place, appending the row, the ownership table and the per-file marker distribution in the same change, without returning to planning. What remains forbidden is editing an assertion without an entry, admitting an entry whose cause is not ASC-1, or leaving an admission unrecorded until the end of the scope."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "change-boundary-cross-checked-against-the-ledger",
+                "summary": "Every scope's Change Boundary was cross-checked against the supersession ledger, the per-file marker distribution and the scope's own requirement coverage, because Feature 022 lost a round trip to a scope whose excluded list forbade an edit the scope required. Scope 01 opens tests/lifetime-tax-route.spec.mjs and tests/lifetime-tax-foundation.spec.mjs because its markers land there. Scope 02 opens tests/lifetime-tax-conversion.spec.mjs for the same reason and tax-rules/federal/<year>.json for FR-023-009, FR-023-011 and FR-023-013. Scopes 03, 04 and 05 each open tax-rules/federal/<year>.json additively for their own retrieved records, and Scope 05 additionally opens scripts/selftest.mjs for SUP-023-09. No scope's excluded list contains a path its requirement coverage requires it to edit."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "no-source-retrieved-in-this-planning-session",
+                "summary": "This planning session retrieved no primary source. Every rate, threshold, cap, limit, recovery period, convention, day figure and exclusion amount is recorded as a blocking implementation input BI-1 through BI-10, each naming a likely authority and the consequence if the retrieval fails. The likely authorities named in spec.md are discovery aids and are explicitly not transcription sources; spec.md states in its Sourcing Directive that this specification is not a transcription source. No figure appears anywhere in this feature's artifacts, which is why none can be copied into a pack."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "no-new-root-html",
+                "summary": "This feature extends the existing lifetime-tax-strategy-lab.html and creates no new root HTML file, so site-exclusions.json is unchanged and every scope asserts it. Had a new root page been created it would have required a site-exclusions.json entry in the same scope that created it, because scripts/build-pages-site.mjs refuses an unregistered root HTML and that refusal breaks the live Pages deploy. Every scope runs node scripts/build-pages-site.mjs --dry-run as a deploy gate to prove the condition holds. Registration in tools.json, index.html, rlnav.js, README.md, notes/README.md and market-brief coverage remains deferred to Feature 026."
+            }
+        ]
+    }
+}

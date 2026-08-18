@@ -1,0 +1,75 @@
+{
+  "contractVersion": "PropertyReliefRegime/v1",
+  "regimeId": "california-acquisition-value-limitation",
+  "jurisdiction": "state:CA",
+  "year": 2026,
+  "version": "1.0.0",
+  "ruleStatus": "enacted-current-law",
+  "retrievedAt": "2026-08-17T21:30:00.000Z",
+  "sourceRecords": [
+    {
+      "contractVersion": "SourceRecord/v1",
+      "sourceId": "ca-const-a13a-s1",
+      "title": "California Constitution, Article XIII A [Tax Limitation], Section 1",
+      "url": "https://leginfo.legislature.ca.gov/faces/codes_displayText.xhtml?lawCode=CONS&article=XIII+A",
+      "publisher": "California Legislative Information",
+      "documentKind": "constitutional-provision",
+      "publishedAt": "1978-06-06",
+      "retrievedAt": "2026-08-17T21:30:00.000Z",
+      "retrievalOutcome": "retrieved",
+      "retrievalNote": "Retrieved in the implementation session. Subdivision (a) reads: The maximum amount of any ad valorem tax on real property shall not exceed One percent (1%) of the full cash value of such property. The one percent (1%) tax to be collected by the counties and apportioned according to law to the districts within the counties. Subdivision (b) states that the limitation provided for in subdivision (a) shall not apply to ad valorem taxes or special assessments to pay the interest and redemption charges on the indebtedness it enumerates, so the one percent figure is transcribed as a ceiling on the general ad valorem rate and not as a ceiling on every charge a parcel may bear. publishedAt records the June 6, 1978 adoption of Article XIII A by Proposition 13, which the retrieved document states in its own article header; the section's own history line records a November 7, 2000 amendment by Proposition 39 affecting subdivisions (b) and (c), which does not reach the subdivision (a) figure transcribed here."
+    },
+    {
+      "contractVersion": "SourceRecord/v1",
+      "sourceId": "ca-const-a13a-s2",
+      "title": "California Constitution, Article XIII A [Tax Limitation], Section 2",
+      "url": "https://leginfo.legislature.ca.gov/faces/codes_displayText.xhtml?lawCode=CONS&article=XIII+A",
+      "publisher": "California Legislative Information",
+      "documentKind": "constitutional-provision",
+      "publishedAt": "1978-06-06",
+      "retrievedAt": "2026-08-17T21:30:00.000Z",
+      "retrievalOutcome": "retrieved",
+      "retrievalNote": "Retrieved in the implementation session. Subdivision (a) reads: The full cash value means the county assessor's valuation of real property as shown on the 1975-76 tax bill under full cash value or, thereafter, the appraised value of real property when purchased, newly constructed, or a change in ownership has occurred after the 1975 assessment. That is the acquisition-value basis this regime declares: the taxable base is fixed at the value on acquisition rather than re-set annually to market value. Subdivision (b) reads: The full cash value base may reflect from year to year the inflationary rate not to exceed 2 percent for any given year or reduction as shown in the consumer price index or comparable data for the area under taxing jurisdiction, or may be reduced to reflect substantial damage, destruction, or other factors causing a decline in value. The two percent figure is transcribed as the constitutional ceiling on the annual adjustment. The consumer price index or comparable data for the area, which subdivision (b) makes the adjustment reflect, is a separate annual figure that was not retrieved in this session."
+    }
+  ],
+  "exemptions": [
+    {
+      "contractVersion": "AbsentFigure/v1",
+      "exemptionId": "homeowners-exemption",
+      "code": "RLTAX-THRESHOLD-UNAVAILABLE",
+      "domain": "property-regime:exemption:homeowners-exemption",
+      "reason": "Article XIII A carries no exemption of its own. The homeowner's exemption California applies to an owner-occupied dwelling is established by Article XIII, Section 3, subdivision (k), which is a different article and was not retrieved in this session. No amount is carried and none is derived from the acquisition-value rules that were retrieved.",
+      "whatWouldMakeItAvailable": "Retrieve California Constitution Article XIII, Section 3, subdivision (k), together with the State Board of Equalization statement of the homeowners' exemption amount for the declared tax year, and transcribe the amount.",
+      "missingSource": {
+        "title": "California State Board of Equalization, property tax homeowners' exemption for the declared tax year",
+        "url": "https://www.boe.ca.gov/proptaxes/",
+        "locator": "the homeowners' exemption amount established under Article XIII, Section 3, subdivision (k)"
+      }
+    }
+  ],
+  "assessmentCap": {
+    "capBasis": "acquisition-value",
+    "capRate": 0.02,
+    "capIndexRate": {
+      "contractVersion": "AbsentFigure/v1",
+      "code": "RLTAX-THRESHOLD-UNAVAILABLE",
+      "domain": "property-regime:assessmentCap:capIndexRate",
+      "reason": "Article XIII A, Section 2, subdivision (b) permits the full cash value base to reflect the inflationary rate not to exceed 2 percent for any given year as shown in the consumer price index or comparable data for the area under taxing jurisdiction. The two percent figure is a ceiling on that adjustment, not the adjustment. The consumer price index or comparable data for the area for the declared year was not retrieved in this session, so the effective annual adjustment cannot be established, and applying the two percent ceiling as though it were the adjustment could overstate the permitted growth of the base.",
+      "whatWouldMakeItAvailable": "Retrieve the State Board of Equalization letter to assessors stating the inflation factor applied to the full cash value base for the declared tax year, and transcribe it.",
+      "missingSource": {
+        "title": "California State Board of Equalization, annual inflation factor applied to the Article XIII A full cash value base",
+        "url": "https://www.boe.ca.gov/proptaxes/",
+        "locator": "the inflation factor for the lien date of the declared tax year"
+      }
+    },
+    "applicationPoint": "assessed-value",
+    "sourceRef": "ca-const-a13a-s2",
+    "locator": "Article XIII A, Section 2, subdivisions (a) and (b)"
+  },
+  "rateCeiling": {
+    "rate": 0.01,
+    "applicationPoint": "tax-rate",
+    "sourceRef": "ca-const-a13a-s1",
+    "locator": "Article XIII A, Section 1, subdivision (a)"
+  }
+}

@@ -1,0 +1,1159 @@
+{
+  "contractVersion": "TaxRulePack/v2",
+  "id": "federal-income-tax-2026",
+  "program": "income-tax",
+  "jurisdiction": "federal",
+  "version": "2.0.0",
+  "effectiveTaxYears": [2026],
+  "publishedAt": "2025-11-03",
+  "retrievedAt": "2026-08-17T19:03:51.000Z",
+  "ruleStatus": "enacted-current-law",
+  "sourceRecords": [
+    {
+      "contractVersion": "SourceRecord/v2",
+      "sourceId": "rp-2025-32",
+      "title": "Rev. Proc. 2025-32, Internal Revenue Bulletin 2025-45",
+      "url": "https://www.irs.gov/irb/2025-45_IRB",
+      "publisher": "Internal Revenue Service",
+      "documentKind": "revenue-procedure",
+      "publishedAt": "2025-11-03",
+      "retrievedAt": "2026-08-17T19:03:51.000Z",
+      "retrievalOutcome": "retrieved",
+      "retrievalNote": "Retrieved in the implementation session as the authoritative Internal Revenue Bulletin rendering of Revenue Procedure 2025-32. The separate rp-25-32.pdf rendering of the same document failed content extraction in the same session; the bulletin rendering is the transcription source for every figure in this pack. retrievedAt records the session retrieval time.",
+      "declaredApplicableYearsByComponentKind": {
+        "rate": "year-invariant",
+        "breakpoint": [2026],
+        "amount": [2026],
+        "qualifier": []
+      },
+      "yearInvarianceBasis": {
+        "rate": "Section 4.03 states its two amounts through the names maximum zero rate amount and maximum 15-percent rate amount. Those two names state the zero-percent and fifteen-percent rates themselves, and neither name carries a year qualifier, while the section labels its dollar amounts explicitly for taxable years beginning in 2026."
+      }
+    },
+    {
+      "contractVersion": "SourceRecord/v2",
+      "sourceId": "irs-tc409",
+      "title": "Topic no. 409, Capital gains and losses",
+      "url": "https://www.irs.gov/taxtopics/tc409",
+      "publisher": "Internal Revenue Service",
+      "documentKind": "publication",
+      "publishedAt": "2026-02-25",
+      "retrievedAt": "2026-08-17T19:03:51.000Z",
+      "retrievalOutcome": "retrieved",
+      "retrievalNote": "Retrieved in the implementation session. Its Capital gains tax rates section states, without a year qualifier, that a capital gains rate of 20% applies to the extent that taxable income exceeds the thresholds set for the 15% capital gain rate. The same section's dollar thresholds are labelled for taxable years beginning in 2025 and are therefore unusable for a 2026 breakpoint. This record is the sourceRef of exactly one component kind in this pack, and its breakpoint and amount kinds declare 2025 so that a 2026 breakpoint citing it refuses.",
+      "declaredApplicableYearsByComponentKind": {
+        "rate": "year-invariant",
+        "breakpoint": [2025],
+        "amount": [2025],
+        "qualifier": []
+      },
+      "yearInvarianceBasis": {
+        "rate": "The sentence stating the 20-percent rate carries no year qualifier, in explicit contrast to the same section's dollar amounts, which the page introduces with the words For taxable years beginning in 2025."
+      }
+    },
+    {
+      "contractVersion": "SourceRecord/v2",
+      "sourceId": "irs-p505-2026",
+      "title": "Publication 505 (2026), Tax Withholding and Estimated Tax",
+      "url": "https://www.irs.gov/publications/p505",
+      "publisher": "Internal Revenue Service",
+      "documentKind": "publication",
+      "publishedAt": "2026-04-30",
+      "retrievedAt": "2026-08-17T19:03:51.000Z",
+      "retrievalOutcome": "retrieved",
+      "retrievalNote": "Retrieved in the implementation session. The publication's title block reads For use in 2026, which is what establishes the declared year for every figure transcribed from it. Chapter 2, Expected Taxes and Credits - Lines 4-11c, Step 5 item 4 states the additional Medicare tax rate and its filing-status thresholds, and Step 5 item 5 states the net investment income tax rate and its filing-status thresholds. The publication additionally states a qualifying surviving spouse threshold that differs between the two surtaxes; that filing status is outside this pack's four declared statuses and no figure for it is transcribed. Worksheet 2-7 of the same publication was read as a cross-check of the preferential breakpoints and the 20-percent rate and agreed with them; a cross-check is never a sourceRef.",
+      "declaredApplicableYearsByComponentKind": {
+        "rate": [2026],
+        "breakpoint": [2026],
+        "amount": [2026],
+        "qualifier": []
+      }
+    },
+    {
+      "contractVersion": "SourceRecord/v1",
+      "sourceId": "ir-2025-103",
+      "title": "IRS releases tax inflation adjustments for tax year 2026, including amendments from the One, Big, Beautiful Bill",
+      "url": "https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill",
+      "publisher": "Internal Revenue Service",
+      "documentKind": "newsroom-release",
+      "publishedAt": "2025-10-09",
+      "retrievedAt": "2026-08-17T19:03:51.000Z",
+      "retrievalOutcome": "retrieved",
+      "retrievalNote": "Retrieved in the implementation session and recorded for traceability only. A newsroom release summarises the detail authority and may never be the sourceRef of a figure in this pack. Its standard deduction amounts and its single and married-filing-jointly rate thresholds were read and agreed with the corresponding figures transcribed from rp-2025-32, which is how the transcription was cross-checked rather than how it was sourced."
+    },
+    {
+      "contractVersion": "SourceRecord/v2",
+      "sourceId": "irs-p527-2025",
+      "title": "Publication 527 (2025), Residential Rental Property (Including Rental of Vacation Homes)",
+      "url": "https://www.irs.gov/publications/p527",
+      "publisher": "Internal Revenue Service",
+      "documentKind": "publication",
+      "publishedAt": "2026-04-30",
+      "retrievedAt": "2026-08-17T21:40:00.000Z",
+      "retrievalOutcome": "retrieved",
+      "retrievalNote": "Retrieved in the implementation session. The title block reads For use in preparing 2025 Returns, and this pack declares 2026 effective, so every figure this edition states FOR A TAX YEAR is unusable here and the rate, breakpoint and amount kinds all declare 2025. What this record is the sourceRef of is the qualifier kind only: the residential-rental recovery period, the applicable convention and the depreciation method transcribed in costRecovery, and the chapter 5 dwelling-use test parameters transcribed in useClassification. All of those are structural parameters of a method or of a classification test rather than figures the publication states for a tax year, and the publication itself draws that line, which is what the yearInvarianceBasis records.",
+      "declaredApplicableYearsByComponentKind": {
+        "rate": [2025],
+        "breakpoint": [2025],
+        "amount": [2025],
+        "qualifier": "year-invariant"
+      },
+      "yearInvarianceBasis": {
+        "qualifier": "The publication states its year-scoped figures with an explicit year qualifier and states the cost-recovery parameters and the chapter 5 dwelling-use test without one, in the same document. What's New introduces its figures as For 2025, the standard mileage rate and For tax years beginning in 2025, the maximum section 179 expense deduction. Against that, Table 2-1 MACRS Recovery Periods for Property Used in Rental Activities gives Residential rental property (buildings or structures) a General Depreciation System recovery period with no year qualifier anywhere in the table, and Conventions states Mid-month convention. A mid-month convention is used for all residential rental property and nonresidential real property, again with no year qualifier. Chapter 5, Dwelling Unit Used as a Home states the classification test the same way: You use a dwelling unit as a home during the tax year if you use it for personal purposes more than the greater of 14 days, or 10% of the total days it is rented to others at a fair rental price. The phrase during the tax year scopes the counting window to whichever year is being prepared; it does not date the 14 and the 10%, neither of which carries a For 2025 of the kind What's New attaches to every amount it does date. Minimal rental use is stated the same way, as you rent it less than 15 days during the year. The contrast throughout is between figures the publication dates and structural parameters it does not."
+      }
+    },
+    {
+      "contractVersion": "SourceRecord/v2",
+      "sourceId": "irs-p925-2025",
+      "title": "Publication 925 (2025), Passive Activity and At-Risk Rules",
+      "url": "https://www.irs.gov/publications/p925",
+      "publisher": "Internal Revenue Service",
+      "documentKind": "publication",
+      "publishedAt": "2026-04-30",
+      "retrievedAt": "2026-08-17T21:40:00.000Z",
+      "retrievalOutcome": "retrieved",
+      "retrievalNote": "Retrieved in the implementation session. The title block reads For use in preparing 2025 Returns, and this pack declares 2026 effective. This record is therefore the sourceRef of the qualifier kind only: the rule that the at-risk limit is applied before the passive-activity limit, and the statement of what the at-risk limit limits a loss to. The special allowance amount, the amount for a married individual filing separately, both edges of the modified-adjusted-gross-income phase-out range and the rate at which the allowance is reduced are all figures this edition states for the 2025 return, and every one of them ships absent rather than being carried into a 2026 pack. The publication states no rule making any of them year-invariant.",
+      "declaredApplicableYearsByComponentKind": {
+        "rate": [2025],
+        "breakpoint": [2025],
+        "amount": [2025],
+        "qualifier": "year-invariant"
+      },
+      "yearInvarianceBasis": {
+        "qualifier": "The ordering is stated as a structural instruction rather than as a figure, it carries no year qualifier, and it is stated twice in this publication and once again in Publication 527. The Introduction states However, when you figure your allowable losses from any activity, you must apply the at-risk rules before the passive activity rules. The At-Risk Limits caution restates it as You must apply the at-risk rules before the passive activity rules discussed in the first part of this publication. Publication 527 chapter 3, Limits on Rental Losses, states the same order as You must consider these rules in the order shown below, listing at-risk rules first and passive activity limits second. Three unqualified statements of one structural rule, in two publications, is what this basis rests on; it says nothing about any dollar figure either publication states."
+      }
+    },
+    {
+      "contractVersion": "SourceRecord/v2",
+      "sourceId": "irs-p523-2025",
+      "title": "Publication 523 (2025), Selling Your Home",
+      "url": "https://www.irs.gov/publications/p523",
+      "publisher": "Internal Revenue Service",
+      "documentKind": "publication",
+      "publishedAt": "2026-04-30",
+      "retrievedAt": "2026-08-17T22:52:00.000Z",
+      "retrievalOutcome": "retrieved",
+      "retrievalNote": "Retrieved in the implementation session. The title block reads For use in preparing 2025 Returns and this pack declares 2026 effective, so the edition-year question was put to this document the same way it was put to Publication 527 and Publication 925: which kinds does this publication itself date, and which does it not. This record is the sourceRef of the amount kind and the qualifier kind only. Its rate and breakpoint kinds carry the empty array, which states that this publication establishes nothing of either kind for this pack and makes any component of those kinds citing it refuse. Worksheet 1 enumerates the maximum exclusion for married filing jointly, for single and married filing separately, and for a surviving spouse. It does not enumerate head of household, so no figure for that status is transcribed and the pack carries an AbsentFigure in its place rather than borrowing the single amount.",
+      "declaredApplicableYearsByComponentKind": {
+        "rate": [],
+        "breakpoint": [],
+        "amount": "year-invariant",
+        "qualifier": "year-invariant"
+      },
+      "yearInvarianceBasis": {
+        "amount": "This publication dates the items it means to date and does not date the exclusion. What's New carries three items and attaches a date to each: Credit for energy efficient home improvements requires an identification number, introduced as Beginning January 1, 2025, if you are claiming the energy efficient home improvement credit for specified property placed into service in 2025; Termination of certain energy credits after 2025; and Opportunity zones, tied to a named section of P.L. 119-21. Against that, the Introduction states the exclusion with no year qualifier at all, as you may exclude the first $250,000 of gain from the sale of your home from your income and avoid paying taxes on it. The exclusion is increased to $500,000 for a married couple filing jointly. Worksheet 1, section A, Determine if you are eligible for the maximum exclusion limit, states the same two amounts in its Maximum exclusion column against Married filing jointly, against Single, married filing separately, and against Surviving spouse, again with no year qualifier in the worksheet or its heading. How Much Is Taxable restates them a third time as up to $250,000 ($500,000 if married and filing jointly), also undated. Three unqualified statements of one pair of amounts, in a document that dates every item its What's New section means to date, is what this basis rests on. It says nothing about any other amount this publication states.",
+        "qualifier": "The two eligibility periods are stated with no year qualifier in a document that dates what it means to date, exactly as the amounts are. Eligibility Step 2 - Ownership states If you owned the home for at least 24 months (2 years) out of the last 5 years leading up to the date of sale (date of the closing), you meet the ownership requirement. Eligibility Step 3 - Residence states If you owned the home and used it as your residence for at least 24 months of the previous 5 years, you meet the residence requirement, and restates the same figure a second way as All that is required is a total of 24 months (730 days) of residence during the 5-year period. Neither the 24 months, the 730 days nor the 5-year lookback carries a For 2025 of the kind What's New attaches to each item it does date. The phrase leading up to the date of sale scopes the counting window to whichever sale is being reported; it does not date the period figure itself."
+      }
+    },
+    {
+      "contractVersion": "SourceRecord/v2",
+      "sourceId": "irs-p915-2025",
+      "title": "Publication 915 (2025), Social Security and Equivalent Railroad Retirement Benefits",
+      "url": "https://www.irs.gov/publications/p915",
+      "publisher": "Internal Revenue Service",
+      "documentKind": "publication",
+      "publishedAt": "2026-04-30",
+      "retrievedAt": "2026-08-18T08:37:56.079Z",
+      "editionYear": 2025,
+      "retrievalOutcome": "retrieved",
+      "retrievalNote": "Retrieved in the implementation session. The title block reads For use in preparing 2025 Returns and this pack declares 2026 effective, so the edition-year question was put to this document the same way it was put to Publications 527, 925 and 523: which kinds does this publication itself date, and which does it not. This publication is unusual and unusually strong on that question, because it does not merely decline to date its base amounts and percentages, it APPLIES them to other years: Worksheet 2 is titled for a lump-sum payment for a year after 1993 and Worksheet 3 for a year before 1994, and both instruct the reader to use the same base amounts, the same increment amounts and the same percentages for the earlier year, whatever that year is. Against that, the same publication dates the dollar figures it means to date, attaching in 2025 to the basic monthly Medicare premium and naming the 2023 return year for the modified adjusted gross income comparison beside it. Every figure transcribed from this record therefore carries a quoted contrast drawn from the publication's own text. The publication's four filled-in worked examples and its filled-in Worksheet A were reproduced end to end against this pack's transcription as a cross-check; a cross-check is never a sourceRef.",
+      "declaredApplicableYearsByComponentKind": {
+        "rate": "year-invariant",
+        "breakpoint": "year-invariant",
+        "amount": "year-invariant",
+        "qualifier": "year-invariant"
+      },
+      "yearInvarianceBasis": {
+        "rate": "The publication applies its percentages to years other than the year its own title block names. Worksheet 2 is headed Figure Your Additional Taxable Benefits (From a Lump-Sum Payment for a Year After 1993) and Worksheet 3 is headed for a Year Before 1994, and each instructs the reader to multiply by 50% (0.50) and by 85% (0.85) for the earlier year. A percentage scoped to a publication year could not be applied by that same publication to a year before 1994. The contrast is the publication's own: it attaches a year to the dollar figures it means to date, stating that the basic monthly premium in 2025 was $185.00 for most people and naming the 2023 federal income tax return for the comparison beside it, and it attaches no year of that kind to any of its percentages.",
+        "breakpoint": "The publication applies its base amounts to years other than the year its own title block names. Worksheet 3, line 9 instructs the reader to Enter $25,000 ($32,000 if married filing jointly for the earlier year; or -0- if married filing separately for the earlier year and you lived with your spouse at any time during the earlier year), in a worksheet the publication itself heads From a Lump-Sum Payment for a Year Before 1994. Worksheet 2, line 9 gives the same two amounts for any earlier year after 1993. A base amount scoped to a publication year could not be stated by that same publication for a year before 1994. The contrast is the publication's own: it dates the basic monthly premium in 2025 was $185.00 and the 2023 federal income tax return beside it, and it dates neither base amount.",
+        "amount": "The publication applies its increment amounts to years other than the year its own title block names. Worksheet 2, line 11 instructs the reader to Enter $12,000 if married filing jointly for the earlier year; or $9,000 if single, head of household, qualifying surviving spouse, or married filing separately and you lived apart from your spouse for all of the earlier year, in a worksheet headed for a Year After 1993. An amount scoped to a publication year could not be stated by that same publication for an arbitrary earlier year. The contrast is the publication's own: the basic monthly premium in 2025 was $185.00 is dated and the increment amounts are not.",
+        "qualifier": "The composition of the comparison, the inclusivity of the base-amount boundary and the treatment of a separate filer who lived with a spouse are stated as structural instructions with no year term. Are Any of Your Benefits Taxable? states compare the base amount (explained later) for your filing status with the total of: One-half of your benefits; plus All your other income, including tax-exempt interest. Worksheet A states, after its line E, If the amount on line E equals or is less than the base amount for your filing status, none of your benefits are taxable this year, and If the amount on line E is more than your base amount, some of your benefits may be taxable. Neither carries a For 2025 of the kind the publication attaches to the basic monthly premium in 2025 was $185.00."
+      }
+    }
+  ],
+  "supportedFeatures": [
+    {
+      "id": "ordinary-income-rate-schedule",
+      "label": "Ordinary-income rate schedule",
+      "reason": "The full section 1(j)(2) rate table for each of the four declared filing statuses is transcribed from the retrieved authority."
+    },
+    {
+      "id": "basic-standard-deduction",
+      "label": "Basic standard deduction",
+      "reason": "The section 63(c)(2) basic standard deduction for each of the four declared filing statuses is transcribed from the retrieved authority."
+    },
+    {
+      "id": "itemized-deduction-as-declared-amount",
+      "label": "Itemised deduction as a household-declared amount",
+      "reason": "An itemised total supplied by the household is applied as declared. The pack asserts no itemised-deduction limitation or floor."
+    },
+    {
+      "id": "tax-exempt-interest-retention",
+      "label": "Tax-exempt interest retained and excluded",
+      "reason": "Tax-exempt interest is recorded as a declared input and excluded from gross supported income rather than dropped from the model."
+    },
+    {
+      "id": "preferential-rate-schedule",
+      "label": "Preferential rate schedule for qualified dividends and long-term capital gains",
+      "reason": "The section 1(h) and 1(j)(5) three-band preferential schedule is carried for each of the four declared filing statuses. Its two breakpoints are transcribed from Rev. Proc. 2025-32 section 4.03 and its top-band rate from Topic no. 409, each cited on the component it establishes."
+    },
+    {
+      "id": "net-investment-income-tax",
+      "label": "Net investment income tax",
+      "reason": "The section 1411 surtax is computed as its declared rate applied to the lesser of net investment income and the excess of the modified adjusted gross measure over the filing-status threshold. Tax-exempt interest enters neither quantity."
+    },
+    {
+      "id": "additional-medicare-tax",
+      "label": "Additional Medicare tax",
+      "reason": "The section 3101(b)(2) surtax is computed as its declared rate applied to the excess of the household's declared Medicare wage and self-employment basis over the filing-status threshold, and reads no other income member."
+    }
+  ],
+  "unsupportedFeatures": [
+    { "id": "payroll-tax", "label": "Payroll tax", "reason": "Social Security and Medicare payroll tax is outside this pack's income-tax program.", "code": "RLTAX-FEATURE-UNSUPPORTED", "movesMarginalRate": true, "successorFeature": "A later payroll-tax pack carrying the wage base and both employee rates." },
+    { "id": "self-employment-tax", "label": "Self-employment tax", "reason": "Self-employment tax and its deductible portion are outside this pack's income-tax program.", "code": "RLTAX-FEATURE-UNSUPPORTED", "movesMarginalRate": true, "successorFeature": "A later payroll-tax pack carrying the self-employment base and its deductible portion." },
+    { "id": "qualified-business-income-deduction", "label": "Qualified business income deduction", "reason": "The section 199A deduction and its phase-in ranges are not carried by this pack.", "code": "RLTAX-FEATURE-UNSUPPORTED", "movesMarginalRate": true, "successorFeature": "A later federal deduction feature carrying the section 199A thresholds and phase-in ranges." },
+    { "id": "alternative-minimum-tax", "label": "Alternative minimum tax", "reason": "The section 55 exemption, phase-out and rate schedule are not carried by this pack.", "code": "RLTAX-FEATURE-UNSUPPORTED", "movesMarginalRate": true, "successorFeature": "A later parallel-tax feature carrying the section 55 exemption, phase-out and two-rate schedule." },
+    { "id": "tax-credits", "label": "Tax credits", "reason": "No credit of any kind is applied, including the child tax credit and the earned income credit.", "code": "RLTAX-FEATURE-UNSUPPORTED", "movesMarginalRate": true, "successorFeature": "A later credit feature carrying each credit's amount, phase-out and refundability." },
+    { "id": "premium-tax-credit", "label": "Premium tax credit", "reason": "The premium tax credit and its repayment limitation are not carried by this pack.", "code": "RLTAX-FEATURE-UNSUPPORTED", "movesMarginalRate": true, "successorFeature": "A later credit feature carrying the premium tax credit and its repayment limitation." },
+    { "id": "capital-loss-limitation-and-carryforward", "label": "Capital loss limitation and carryforward", "reason": "Capital losses, the annual deduction limitation and carryforwards are not modelled.", "code": "RLTAX-FEATURE-UNSUPPORTED", "movesMarginalRate": true, "successorFeature": "A later capital-account feature carrying loss netting, the annual deduction limitation and carryforwards." },
+    { "id": "itemized-deduction-benefit-limitation-top-band", "label": "Itemised-deduction benefit limitation in the top rate band", "reason": "A tax-year-2026 federal provision limiting the benefit of itemised deductions for taxpayers in the highest rate band is real and is not carried by this pack.", "code": "RLTAX-FEATURE-UNSUPPORTED", "movesMarginalRate": true, "successorFeature": "A later federal deduction feature carrying the top-band itemised-deduction benefit limitation." },
+    { "id": "senior-deduction", "label": "Senior deduction", "reason": "A tax-year-2026 federal deduction for seniors is real, interacts with deduction selection, and is not carried by this pack.", "code": "RLTAX-FEATURE-UNSUPPORTED", "movesMarginalRate": true, "successorFeature": "A later federal deduction feature carrying the senior deduction and its modified adjusted gross income limitation." },
+    { "id": "qualified-small-business-stock-section-1202-gain", "label": "Section 1202 qualified small business stock gain", "reason": "Topic no. 409 states that the taxable part of a gain from selling section 1202 qualified small business stock is taxed at a maximum 28-percent rate, which sits above this pack's top carried preferential rate. No band for it is carried, and no code path folds it into a carried band.", "code": "RLTAX-FEATURE-UNSUPPORTED", "movesMarginalRate": true, "successorFeature": "A later preferential-category feature carrying the section 1202 exclusion and the 28-percent maximum rate on the taxable part." },
+    { "id": "collectibles-gain", "label": "Collectibles gain", "reason": "Topic no. 409 states that net capital gains from selling collectibles are taxed at a maximum 28-percent rate, which sits above this pack's top carried preferential rate. No band for it is carried, and no code path folds it into a carried band.", "code": "RLTAX-FEATURE-UNSUPPORTED", "movesMarginalRate": true, "successorFeature": "A later preferential-category feature carrying the collectibles 28-percent maximum rate." },
+    { "id": "like-kind-exchanges-installment-sales-and-involuntary-conversions", "label": "Like-kind exchanges, installment sales and involuntary conversions", "reason": "A disposition that defers gain under section 1031, reports it under the installment method, or arises from a condemnation or casualty is settled by rules this pack does not carry. Publication 523 additionally makes a home acquired in a like-kind exchange within the past 5 years ineligible for the exclusion, so a partial model would misstate eligibility as well as timing. No code path settles any of the three.", "code": "RLTAX-SCOPE-DEFERRED", "movesMarginalRate": false, "successorFeature": "A later disposition feature carrying the section 1031 deferral, the installment method and the involuntary-conversion rules." },
+    { "id": "reduced-primary-residence-exclusion", "label": "Reduced primary-residence exclusion", "reason": "Publication 523 states a partial exclusion for a sale whose main reason was a work-related move, a health-related move or an unforeseeable event, computed from the shortest of three periods. This pack carries the maximum exclusion only, and a household failing either eligibility test is told so rather than being given a reduced amount this pack cannot compute.", "code": "RLTAX-SCOPE-DEFERRED", "movesMarginalRate": false, "successorFeature": "A later disposition feature carrying the partial-exclusion computation and its three candidate periods." },
+    { "id": "nonqualified-use-gain-allocation", "label": "Nonqualified-use gain allocation", "reason": "Publication 523 allocates part of the gain to periods after 2008 in which the property was not a main home, and that part is not excludable. The allocation needs a multi-year use history this single-year model does not hold, so it is not applied and no gain is allocated to nonqualified use.", "code": "RLTAX-SCOPE-DEFERRED", "movesMarginalRate": false, "successorFeature": "A later multi-year feature carrying the nonqualified-use day counts and the allocation they drive." },
+    { "id": "estate-gift-and-trust-tax", "label": "Estate, gift and trust tax", "reason": "Outside the single-year individual federal settlement this slice covers.", "code": "RLTAX-SCOPE-DEFERRED", "movesMarginalRate": false, "successorFeature": "A later transfer-tax feature carrying the basic exclusion amount and the estate and trust rate schedule." },
+    { "id": "required-minimum-distributions", "label": "Required minimum distributions", "reason": "Later-year distribution pressure is outside the single-year settlement this slice covers.", "code": "RLTAX-SCOPE-DEFERRED", "movesMarginalRate": false, "successorFeature": "A later multi-year feature carrying the distribution tables and the beginning date." },
+    { "id": "qualified-charitable-distributions", "label": "Qualified charitable distributions", "reason": "Outside the single-year settlement this slice covers.", "code": "RLTAX-SCOPE-DEFERRED", "movesMarginalRate": false, "successorFeature": "A later charitable-giving feature carrying the qualified charitable distribution limit and its eligibility age." },
+    { "id": "roth-five-year-clocks", "label": "Roth five-year clocks", "reason": "Multi-year clock tracking is outside the single-year settlement this slice covers.", "code": "RLTAX-SCOPE-DEFERRED", "movesMarginalRate": false, "successorFeature": "A later multi-year feature carrying both Roth five-year clocks and their separate start dates." }
+  ],
+  "indexingRules": [],
+  "calculationOrder": ["CO-1", "CO-2", "CO-3", "CO-4", "CO-5", "CO-6", "CO-7", "CO-11", "CO-12", "CO-8", "CO-9", "CO-10"],
+  "roundingPolicy": {
+    "contractVersion": "TaxRoundingPolicy/v1",
+    "calculationStages": [],
+    "displayStageIsSeparate": true,
+    "reconciliationTolerance": 0.005
+  },
+  "expiryPolicy": {
+    "contractVersion": "TaxPackExpiry/v1",
+    "expiresAt": "2027-12-31",
+    "reason": "Rev. Proc. 2025-32 section 5.02 applies its 2026 adjusted items to taxable years beginning in 2026, which are reported on returns filed during 2027. After that the pack must be re-verified against the then-current authority.",
+    "onExpiry": "refuse"
+  },
+  "filingStatuses": ["single", "married-filing-jointly", "married-filing-separately", "head-of-household"],
+  "incomeKinds": ["ordinary", "qualified-dividend", "long-term-capital-gain", "tax-exempt-interest"],
+  "standardDeductions": {
+    "single": {
+      "contractVersion": "DeductionAmount/v1",
+      "filingStatus": "single",
+      "amount": 16100,
+      "sourceRef": "rp-2025-32",
+      "locator": "section 4.14(1), Standard Deduction, Unmarried Individuals (other than Surviving Spouses and Heads of Households) (section 1(j)(2)(C))"
+    },
+    "married-filing-jointly": {
+      "contractVersion": "DeductionAmount/v1",
+      "filingStatus": "married-filing-jointly",
+      "amount": 32200,
+      "sourceRef": "rp-2025-32",
+      "locator": "section 4.14(1), Standard Deduction, Married Individuals Filing Joint Returns and Surviving Spouses (section 1(j)(2)(A))"
+    },
+    "married-filing-separately": {
+      "contractVersion": "DeductionAmount/v1",
+      "filingStatus": "married-filing-separately",
+      "amount": 16100,
+      "sourceRef": "rp-2025-32",
+      "locator": "section 4.14(1), Standard Deduction, Married Individuals Filing Separate Returns (section 1(j)(2)(D))"
+    },
+    "head-of-household": {
+      "contractVersion": "DeductionAmount/v1",
+      "filingStatus": "head-of-household",
+      "amount": 24150,
+      "sourceRef": "rp-2025-32",
+      "locator": "section 4.14(1), Standard Deduction, Heads of Households (section 1(j)(2)(B))"
+    }
+  },
+  "ordinaryRateTables": {
+    "single": {
+      "contractVersion": "RateTable/v1",
+      "tableId": "ordinary-2026-single",
+      "kind": "ordinary",
+      "filingStatus": "single",
+      "bands": [
+        { "bandId": "b1", "lowerInclusive": 0, "upperExclusive": 12400, "rate": 0.10, "thresholdKind": "rate-step" },
+        { "bandId": "b2", "lowerInclusive": 12400, "upperExclusive": 50400, "rate": 0.12, "thresholdKind": "rate-step" },
+        { "bandId": "b3", "lowerInclusive": 50400, "upperExclusive": 105700, "rate": 0.22, "thresholdKind": "rate-step" },
+        { "bandId": "b4", "lowerInclusive": 105700, "upperExclusive": 201775, "rate": 0.24, "thresholdKind": "rate-step" },
+        { "bandId": "b5", "lowerInclusive": 201775, "upperExclusive": 256225, "rate": 0.32, "thresholdKind": "rate-step" },
+        { "bandId": "b6", "lowerInclusive": 256225, "upperExclusive": 640600, "rate": 0.35, "thresholdKind": "rate-step" },
+        { "bandId": "b7", "lowerInclusive": 640600, "upperExclusive": null, "rate": 0.37, "thresholdKind": "rate-step" }
+      ],
+      "sourceRef": "rp-2025-32",
+      "locator": "section 4.01, TABLE 3 - Section 1(j)(2)(C) - Unmarried Individuals (other than Surviving Spouses and Heads of Households)"
+    },
+    "married-filing-jointly": {
+      "contractVersion": "RateTable/v1",
+      "tableId": "ordinary-2026-married-filing-jointly",
+      "kind": "ordinary",
+      "filingStatus": "married-filing-jointly",
+      "bands": [
+        { "bandId": "b1", "lowerInclusive": 0, "upperExclusive": 24800, "rate": 0.10, "thresholdKind": "rate-step" },
+        { "bandId": "b2", "lowerInclusive": 24800, "upperExclusive": 100800, "rate": 0.12, "thresholdKind": "rate-step" },
+        { "bandId": "b3", "lowerInclusive": 100800, "upperExclusive": 211400, "rate": 0.22, "thresholdKind": "rate-step" },
+        { "bandId": "b4", "lowerInclusive": 211400, "upperExclusive": 403550, "rate": 0.24, "thresholdKind": "rate-step" },
+        { "bandId": "b5", "lowerInclusive": 403550, "upperExclusive": 512450, "rate": 0.32, "thresholdKind": "rate-step" },
+        { "bandId": "b6", "lowerInclusive": 512450, "upperExclusive": 768700, "rate": 0.35, "thresholdKind": "rate-step" },
+        { "bandId": "b7", "lowerInclusive": 768700, "upperExclusive": null, "rate": 0.37, "thresholdKind": "rate-step" }
+      ],
+      "sourceRef": "rp-2025-32",
+      "locator": "section 4.01, TABLE 1 - Section 1(j)(2)(A) - Married Individuals Filing Joint Returns and Surviving Spouses"
+    },
+    "married-filing-separately": {
+      "contractVersion": "RateTable/v1",
+      "tableId": "ordinary-2026-married-filing-separately",
+      "kind": "ordinary",
+      "filingStatus": "married-filing-separately",
+      "bands": [
+        { "bandId": "b1", "lowerInclusive": 0, "upperExclusive": 12400, "rate": 0.10, "thresholdKind": "rate-step" },
+        { "bandId": "b2", "lowerInclusive": 12400, "upperExclusive": 50400, "rate": 0.12, "thresholdKind": "rate-step" },
+        { "bandId": "b3", "lowerInclusive": 50400, "upperExclusive": 105700, "rate": 0.22, "thresholdKind": "rate-step" },
+        { "bandId": "b4", "lowerInclusive": 105700, "upperExclusive": 201775, "rate": 0.24, "thresholdKind": "rate-step" },
+        { "bandId": "b5", "lowerInclusive": 201775, "upperExclusive": 256225, "rate": 0.32, "thresholdKind": "rate-step" },
+        { "bandId": "b6", "lowerInclusive": 256225, "upperExclusive": 384350, "rate": 0.35, "thresholdKind": "rate-step" },
+        { "bandId": "b7", "lowerInclusive": 384350, "upperExclusive": null, "rate": 0.37, "thresholdKind": "rate-step" }
+      ],
+      "sourceRef": "rp-2025-32",
+      "locator": "section 4.01, TABLE 4 - Section 1(j)(2)(D) - Married Individuals Filing Separate Returns"
+    },
+    "head-of-household": {
+      "contractVersion": "RateTable/v1",
+      "tableId": "ordinary-2026-head-of-household",
+      "kind": "ordinary",
+      "filingStatus": "head-of-household",
+      "bands": [
+        { "bandId": "b1", "lowerInclusive": 0, "upperExclusive": 17700, "rate": 0.10, "thresholdKind": "rate-step" },
+        { "bandId": "b2", "lowerInclusive": 17700, "upperExclusive": 67450, "rate": 0.12, "thresholdKind": "rate-step" },
+        { "bandId": "b3", "lowerInclusive": 67450, "upperExclusive": 105700, "rate": 0.22, "thresholdKind": "rate-step" },
+        { "bandId": "b4", "lowerInclusive": 105700, "upperExclusive": 201750, "rate": 0.24, "thresholdKind": "rate-step" },
+        { "bandId": "b5", "lowerInclusive": 201750, "upperExclusive": 256200, "rate": 0.32, "thresholdKind": "rate-step" },
+        { "bandId": "b6", "lowerInclusive": 256200, "upperExclusive": 640600, "rate": 0.35, "thresholdKind": "rate-step" },
+        { "bandId": "b7", "lowerInclusive": 640600, "upperExclusive": null, "rate": 0.37, "thresholdKind": "rate-step" }
+      ],
+      "sourceRef": "rp-2025-32",
+      "locator": "section 4.01, TABLE 2 - Section 1(j)(2)(B) - Heads of Households"
+    }
+  },
+  "preferentialRateTables": {
+    "single": {
+      "contractVersion": "RateTable/v2",
+      "tableId": "preferential-2026-single",
+      "kind": "preferential",
+      "filingStatus": "single",
+      "bands": [
+        { "bandId": "b1", "lowerInclusive": 0, "upperExclusive": 49450, "rate": 0, "thresholdKind": "rate-step" },
+        { "bandId": "b2", "lowerInclusive": 49450, "upperExclusive": 545500, "rate": 0.15, "thresholdKind": "rate-step" },
+        { "bandId": "b3", "lowerInclusive": 545500, "upperExclusive": null, "rate": 0.20, "thresholdKind": "rate-step" }
+      ],
+      "sourceRef": "rp-2025-32",
+      "locator": "section 4.03, Maximum Capital Gains Rate (section 1(h), section 1(j)(5)), the maximum zero rate amount and the maximum 15 percent rate amount for All Other Individuals",
+      "componentSources": [
+        {
+          "contractVersion": "ComponentSource/v1",
+          "component": "band:b3:rate",
+          "sourceRef": "irs-tc409",
+          "locator": "Capital gains tax rates, the sentence stating that a capital gains rate of 20% applies to the extent that taxable income exceeds the thresholds set for the 15% capital gain rate"
+        }
+      ]
+    },
+    "married-filing-jointly": {
+      "contractVersion": "RateTable/v2",
+      "tableId": "preferential-2026-married-filing-jointly",
+      "kind": "preferential",
+      "filingStatus": "married-filing-jointly",
+      "bands": [
+        { "bandId": "b1", "lowerInclusive": 0, "upperExclusive": 98900, "rate": 0, "thresholdKind": "rate-step" },
+        { "bandId": "b2", "lowerInclusive": 98900, "upperExclusive": 613700, "rate": 0.15, "thresholdKind": "rate-step" },
+        { "bandId": "b3", "lowerInclusive": 613700, "upperExclusive": null, "rate": 0.20, "thresholdKind": "rate-step" }
+      ],
+      "sourceRef": "rp-2025-32",
+      "locator": "section 4.03, Maximum Capital Gains Rate (section 1(h), section 1(j)(5)), the maximum zero rate amount and the maximum 15 percent rate amount for Married Individuals Filing Joint Returns and Surviving Spouse",
+      "componentSources": [
+        {
+          "contractVersion": "ComponentSource/v1",
+          "component": "band:b3:rate",
+          "sourceRef": "irs-tc409",
+          "locator": "Capital gains tax rates, the sentence stating that a capital gains rate of 20% applies to the extent that taxable income exceeds the thresholds set for the 15% capital gain rate"
+        }
+      ]
+    },
+    "married-filing-separately": {
+      "contractVersion": "RateTable/v2",
+      "tableId": "preferential-2026-married-filing-separately",
+      "kind": "preferential",
+      "filingStatus": "married-filing-separately",
+      "bands": [
+        { "bandId": "b1", "lowerInclusive": 0, "upperExclusive": 49450, "rate": 0, "thresholdKind": "rate-step" },
+        { "bandId": "b2", "lowerInclusive": 49450, "upperExclusive": 306850, "rate": 0.15, "thresholdKind": "rate-step" },
+        { "bandId": "b3", "lowerInclusive": 306850, "upperExclusive": null, "rate": 0.20, "thresholdKind": "rate-step" }
+      ],
+      "sourceRef": "rp-2025-32",
+      "locator": "section 4.03, Maximum Capital Gains Rate (section 1(h), section 1(j)(5)), the maximum zero rate amount and the maximum 15 percent rate amount for Married Individuals Filing Separate Returns",
+      "componentSources": [
+        {
+          "contractVersion": "ComponentSource/v1",
+          "component": "band:b3:rate",
+          "sourceRef": "irs-tc409",
+          "locator": "Capital gains tax rates, the sentence stating that a capital gains rate of 20% applies to the extent that taxable income exceeds the thresholds set for the 15% capital gain rate"
+        }
+      ]
+    },
+    "head-of-household": {
+      "contractVersion": "RateTable/v2",
+      "tableId": "preferential-2026-head-of-household",
+      "kind": "preferential",
+      "filingStatus": "head-of-household",
+      "bands": [
+        { "bandId": "b1", "lowerInclusive": 0, "upperExclusive": 66200, "rate": 0, "thresholdKind": "rate-step" },
+        { "bandId": "b2", "lowerInclusive": 66200, "upperExclusive": 579600, "rate": 0.15, "thresholdKind": "rate-step" },
+        { "bandId": "b3", "lowerInclusive": 579600, "upperExclusive": null, "rate": 0.20, "thresholdKind": "rate-step" }
+      ],
+      "sourceRef": "rp-2025-32",
+      "locator": "section 4.03, Maximum Capital Gains Rate (section 1(h), section 1(j)(5)), the maximum zero rate amount and the maximum 15 percent rate amount for Heads of Household",
+      "componentSources": [
+        {
+          "contractVersion": "ComponentSource/v1",
+          "component": "band:b3:rate",
+          "sourceRef": "irs-tc409",
+          "locator": "Capital gains tax rates, the sentence stating that a capital gains rate of 20% applies to the extent that taxable income exceeds the thresholds set for the 15% capital gain rate"
+        }
+      ]
+    }
+  },
+  "imposesIndividualIncomeTax": true,
+  "noTaxAuthority": null,
+  "preferentialPolicy": "own-schedule",
+  "taxLegs": [
+    { "contractVersion": "TaxLeg/v1", "legId": "ordinary", "stageId": "CO-6", "figureRef": "ordinaryRateTables", "includedInTotal": true },
+    { "contractVersion": "TaxLeg/v1", "legId": "preferential", "stageId": "CO-7", "figureRef": "preferentialRateTables", "includedInTotal": true },
+    { "contractVersion": "TaxLeg/v1", "legId": "net-investment-income-tax", "stageId": "CO-11", "figureRef": "thresholdSets.net-investment-income-tax", "includedInTotal": true },
+    { "contractVersion": "TaxLeg/v1", "legId": "additional-medicare-tax", "stageId": "CO-12", "figureRef": "thresholdSets.additional-medicare-tax", "includedInTotal": true }
+  ],
+  "thresholdSets": {
+    "net-investment-income-tax": {
+      "contractVersion": "ThresholdSet/v1",
+      "thresholdSetId": "net-investment-income-tax",
+      "rate": 0.038,
+      "varyByFilingStatus": true,
+      "thresholds": {
+        "single": 200000,
+        "married-filing-jointly": 250000,
+        "married-filing-separately": 125000,
+        "head-of-household": 200000
+      },
+      "indexing": { "indexed": false, "declaredFor": [2026] },
+      "appliesTo": "modified-adjusted-gross-income-excess-capped-by",
+      "basisMember": "investmentIncomeBasis.otherOrdinaryNetInvestmentIncome",
+      "capMember": "netInvestmentIncome",
+      "sourceRef": "irs-p505-2026",
+      "locator": "chapter 2, Expected Taxes and Credits - Lines 4-11c, Step 5, item 5, Net Investment Income Tax (NIIT): the stated rate and the filing-status threshold chart",
+      "componentSources": []
+    },
+    "additional-medicare-tax": {
+      "contractVersion": "ThresholdSet/v1",
+      "thresholdSetId": "additional-medicare-tax",
+      "rate": 0.009,
+      "varyByFilingStatus": true,
+      "thresholds": {
+        "single": 200000,
+        "married-filing-jointly": 250000,
+        "married-filing-separately": 125000,
+        "head-of-household": 200000
+      },
+      "indexing": { "indexed": false, "declaredFor": [2026] },
+      "appliesTo": "declared-basis-excess",
+      "basisMember": "wageBasis.medicareWagesAndSelfEmploymentIncome",
+      "capMember": null,
+      "sourceRef": "irs-p505-2026",
+      "locator": "chapter 2, Expected Taxes and Credits - Lines 4-11c, Step 5, item 4, Additional Medicare Tax: the stated rate and the filing-status threshold chart",
+      "componentSources": []
+    }
+  },
+  "reliefMechanisms": [],
+  "modifiedAdjustedGrossCompleteness": {
+    "contractVersion": "MeasureCompleteness/v1",
+    "measure": "modified-adjusted-gross-income",
+    "complete": false,
+    "derivedFrom": "the gross supported income computed by CO-1, which is ordinary income plus qualified dividends plus long-term capital gain and excludes tax-exempt interest",
+    "unmodeledAdjustments": [
+      "the foreign earned income exclusion and the foreign housing exclusion or deduction added back under section 1411(d)",
+      "the deductible portion of self-employment tax",
+      "the deduction for interest on qualified education loans",
+      "the deduction for qualified business income under section 199A",
+      "the taxable portion of railroad retirement benefits",
+      "every income kind outside this pack's four declared kinds, including rents, royalties, annuities, passive business income and retirement distributions"
+    ],
+    "modelledAdjustments": [
+      "the taxable portion of Social Security benefits, computed by the inclusion policy this pack carries and contributed to ordinary taxable income by name"
+    ],
+    "reason": "This pack's modified adjusted gross measure is the gross supported income of its four declared income kinds. It is not the statutory modified adjusted gross income, and it is declared incomplete rather than presented as complete.",
+    "sourceRef": "irs-p505-2026",
+    "locator": "chapter 2, Expected Taxes and Credits - Lines 4-11c, Step 5, item 5, which names MAGI as the measure the threshold applies to without restating its full composition"
+  },
+  "medicarePolicy": {
+    "contractVersion": "MedicarePolicyRef/v1",
+    "policyId": "medicare-premiums-and-income-related-adjustment",
+    "modelsUnsupportedFeatureId": "irmaa-bands",
+    "stageId": "CO-22",
+    "packFamily": "medicare",
+    "reason": "The income-related monthly adjustment is modelled. Its bracket boundaries, its two part adjustments and its lookback offset are carried by the medicare pack for the declared year rather than by this pack, because they are a different program published by a different authority. This member records that the id moved out of unsupportedFeatures[] into declared legs, and names the legs it moved into so the move is checkable from this pack alone.",
+    "taxLegs": [
+      { "contractVersion": "TaxLeg/v1", "legId": "medicare-part-b-premium", "stageId": "CO-22", "figureRef": "medicare:standardPremiums.part-b", "includedInTotal": false },
+      { "contractVersion": "TaxLeg/v1", "legId": "medicare-part-d-premium", "stageId": "CO-22", "figureRef": "medicare:standardPremiums.part-d", "includedInTotal": false },
+      { "contractVersion": "TaxLeg/v1", "legId": "medicare-income-related-adjustment", "stageId": "CO-22", "figureRef": "medicare:bracketSets", "includedInTotal": false }
+    ]
+  },
+  "benefitInclusionPolicy": {
+    "contractVersion": "BenefitInclusionPolicy/v1",
+    "policyId": "social-security-inclusion",
+    "measureId": "provisional-income",
+    "modelsUnsupportedFeatureId": "taxable-social-security-benefits",
+    "distinctFrom": ["adjusted-gross-income", "modified-adjusted-gross-income"],
+    "reason": "The taxable portion of Social Security benefits is computed from a measure this publication composes for the purpose and names nothing else. It is not adjusted gross income and it is not this pack's modified adjusted gross measure, and the contract refuses a composition that read either.",
+    "compositionRule": {
+      "sourceRef": "irs-p915-2025",
+      "locator": "Main Contents, Are Any of Your Benefits Taxable?, the opening comparison and Worksheet A lines B, C, D and E",
+      "parts": [
+        {
+          "partId": "benefit-proportion",
+          "label": "One-half of the benefit",
+          "origin": "proportion-of-the-settled-benefit",
+          "proportion": {
+            "value": 0.5,
+            "sourceRef": "irs-p915-2025",
+            "locator": "Main Contents, Are Any of Your Benefits Taxable?, item 1 of the two-item total; and Worksheet A, line B",
+            "yearInvarianceBasis": {
+              "contractVersion": "YearInvarianceBasis/v1",
+              "componentKind": "rate",
+              "quotedContrast": "compare the base amount (explained later) for your filing status with the total of: One-half of your benefits; plus All your other income, including tax-exempt interest",
+              "contrastLocator": "Main Contents, Are Any of Your Benefits Taxable?, the opening comparison",
+              "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+              "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+            }
+          }
+        },
+        {
+          "partId": "other-taxable-income",
+          "label": "All other income that is taxable",
+          "origin": "declared-by-the-household",
+          "declarationMember": "otherTaxableIncome"
+        },
+        {
+          "partId": "tax-exempt-interest",
+          "label": "Tax-exempt interest",
+          "origin": "declared-by-the-household",
+          "declarationMember": "taxExemptInterest"
+        }
+      ]
+    },
+    "boundaryOperator": {
+      "value": ">",
+      "sourceRef": "irs-p915-2025",
+      "locator": "Worksheet A, A Quick Way To Check if Your Benefits May Be Taxable, the note following line E",
+      "yearInvarianceBasis": {
+        "contractVersion": "YearInvarianceBasis/v1",
+        "componentKind": "qualifier",
+        "quotedContrast": "If the amount on line E equals or is less than the base amount for your filing status, none of your benefits are taxable this year. If the amount on line E is more than your base amount, some of your benefits may be taxable.",
+        "contrastLocator": "Worksheet A, A Quick Way To Check if Your Benefits May Be Taxable, the note following line E",
+        "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+        "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+      }
+    },
+    "firstTierProportion": {
+      "value": 0.5,
+      "sourceRef": "irs-p915-2025",
+      "locator": "Worksheet 1, Figuring Your Taxable Benefits, line 14",
+      "yearInvarianceBasis": {
+        "contractVersion": "YearInvarianceBasis/v1",
+        "componentKind": "rate",
+        "quotedContrast": "13. Enter the smaller of line 10 or line 11 14. Multiply line 13 by 50% (0.50)",
+        "contrastLocator": "Worksheet 2, Figure Your Additional Taxable Benefits (From a Lump-Sum Payment for a Year After 1993), lines 13 and 14",
+        "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+        "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+      }
+    },
+    "secondTierProportion": {
+      "value": 0.85,
+      "sourceRef": "irs-p915-2025",
+      "locator": "Worksheet 1, Figuring Your Taxable Benefits, line 16",
+      "yearInvarianceBasis": {
+        "contractVersion": "YearInvarianceBasis/v1",
+        "componentKind": "rate",
+        "quotedContrast": "Multiply line 12 by 85% (0.85). If line 12 is zero, enter -0-",
+        "contrastLocator": "Worksheet 2, Figure Your Additional Taxable Benefits (From a Lump-Sum Payment for a Year After 1993), line 16",
+        "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+        "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+      }
+    },
+    "ceilingProportion": {
+      "value": 0.85,
+      "sourceRef": "irs-p915-2025",
+      "locator": "Worksheet 1, Figuring Your Taxable Benefits, lines 18 and 19",
+      "yearInvarianceBasis": {
+        "contractVersion": "YearInvarianceBasis/v1",
+        "componentKind": "rate",
+        "quotedContrast": "18. Multiply line 1 by 85% (0.85) 19. Refigured taxable benefits. Enter the smaller of line 17 or line 18",
+        "contrastLocator": "Worksheet 2, Figure Your Additional Taxable Benefits (From a Lump-Sum Payment for a Year After 1993), lines 18 and 19",
+        "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+        "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+      }
+    },
+    "conditionalStatuses": {
+      "married-filing-separately": {
+        "declarationMember": "separateFilerSharedResidence",
+        "reason": "This publication states two different treatments for a separate filer and selects between them on a fact only the household knows. Neither is defaulted, and the inclusion refuses until the household says which applies.",
+        "sourceRef": "irs-p915-2025",
+        "locator": "Main Contents, Are Any of Your Benefits Taxable?, Base amount.; and Worksheet 1, the note following line 9",
+        "options": {
+          "lived-apart-all-year": "married-filing-separately-lived-apart",
+          "lived-with-spouse-at-any-time": "married-filing-separately-lived-with-spouse"
+        }
+      }
+    },
+    "tierParameters": {
+      "single": {
+        "tierRule": "two-tier-base-and-increment",
+        "baseAmount": {
+          "value": 25000,
+          "sourceRef": "irs-p915-2025",
+          "locator": "Main Contents, Are Any of Your Benefits Taxable?, Base amount., first bullet; and Worksheet 1, line 9",
+          "yearInvarianceBasis": {
+            "contractVersion": "YearInvarianceBasis/v1",
+            "componentKind": "breakpoint",
+            "quotedContrast": "Enter $25,000 ($32,000 if married filing jointly for the earlier year; or -0- if married filing separately for the earlier year and you lived with your spouse at any time during the earlier year)",
+            "contrastLocator": "Worksheet 3, Figure Your Additional Taxable Benefits (From a Lump-Sum Payment for a Year Before 1994), line 9",
+            "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+            "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+          }
+        },
+        "secondBaseAmount": {
+          "value": 34000,
+          "sourceRef": "irs-p915-2025",
+          "locator": "Main Contents, How Much Is Taxable?, Maximum taxable part., first bullet",
+          "yearInvarianceBasis": {
+            "contractVersion": "YearInvarianceBasis/v1",
+            "componentKind": "breakpoint",
+            "quotedContrast": "The total of one-half of your benefits and all your other income is more than $34,000 ($44,000 if you are married filing jointly).",
+            "contrastLocator": "Main Contents, How Much Is Taxable?, Maximum taxable part., first bullet",
+            "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+            "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+          }
+        },
+        "secondTierIncrement": {
+          "value": 9000,
+          "sourceRef": "irs-p915-2025",
+          "locator": "Worksheet 1, Figuring Your Taxable Benefits, line 11",
+          "yearInvarianceBasis": {
+            "contractVersion": "YearInvarianceBasis/v1",
+            "componentKind": "amount",
+            "quotedContrast": "Enter $12,000 if married filing jointly for the earlier year; or $9,000 if single, head of household, qualifying surviving spouse, or married filing separately and you lived apart from your spouse for all of the earlier year",
+            "contrastLocator": "Worksheet 2, Figure Your Additional Taxable Benefits (From a Lump-Sum Payment for a Year After 1993), line 11",
+            "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+            "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+          }
+        }
+      },
+      "head-of-household": {
+        "tierRule": "two-tier-base-and-increment",
+        "baseAmount": {
+          "value": 25000,
+          "sourceRef": "irs-p915-2025",
+          "locator": "Main Contents, Are Any of Your Benefits Taxable?, Base amount., first bullet; and Worksheet 1, line 9",
+          "yearInvarianceBasis": {
+            "contractVersion": "YearInvarianceBasis/v1",
+            "componentKind": "breakpoint",
+            "quotedContrast": "Enter $25,000 ($32,000 if married filing jointly for the earlier year; or -0- if married filing separately for the earlier year and you lived with your spouse at any time during the earlier year)",
+            "contrastLocator": "Worksheet 3, Figure Your Additional Taxable Benefits (From a Lump-Sum Payment for a Year Before 1994), line 9",
+            "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+            "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+          }
+        },
+        "secondBaseAmount": {
+          "value": 34000,
+          "sourceRef": "irs-p915-2025",
+          "locator": "Main Contents, How Much Is Taxable?, Maximum taxable part., first bullet",
+          "yearInvarianceBasis": {
+            "contractVersion": "YearInvarianceBasis/v1",
+            "componentKind": "breakpoint",
+            "quotedContrast": "The total of one-half of your benefits and all your other income is more than $34,000 ($44,000 if you are married filing jointly).",
+            "contrastLocator": "Main Contents, How Much Is Taxable?, Maximum taxable part., first bullet",
+            "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+            "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+          }
+        },
+        "secondTierIncrement": {
+          "value": 9000,
+          "sourceRef": "irs-p915-2025",
+          "locator": "Worksheet 1, Figuring Your Taxable Benefits, line 11",
+          "yearInvarianceBasis": {
+            "contractVersion": "YearInvarianceBasis/v1",
+            "componentKind": "amount",
+            "quotedContrast": "Enter $12,000 if married filing jointly for the earlier year; or $9,000 if single, head of household, qualifying surviving spouse, or married filing separately and you lived apart from your spouse for all of the earlier year",
+            "contrastLocator": "Worksheet 2, Figure Your Additional Taxable Benefits (From a Lump-Sum Payment for a Year After 1993), line 11",
+            "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+            "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+          }
+        }
+      },
+      "married-filing-jointly": {
+        "tierRule": "two-tier-base-and-increment",
+        "baseAmount": {
+          "value": 32000,
+          "sourceRef": "irs-p915-2025",
+          "locator": "Main Contents, Are Any of Your Benefits Taxable?, Base amount., third bullet; and Worksheet 1, line 9",
+          "yearInvarianceBasis": {
+            "contractVersion": "YearInvarianceBasis/v1",
+            "componentKind": "breakpoint",
+            "quotedContrast": "Enter $25,000 ($32,000 if married filing jointly for the earlier year; or -0- if married filing separately for the earlier year and you lived with your spouse at any time during the earlier year)",
+            "contrastLocator": "Worksheet 3, Figure Your Additional Taxable Benefits (From a Lump-Sum Payment for a Year Before 1994), line 9",
+            "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+            "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+          }
+        },
+        "secondBaseAmount": {
+          "value": 44000,
+          "sourceRef": "irs-p915-2025",
+          "locator": "Main Contents, How Much Is Taxable?, Maximum taxable part., first bullet, parenthetical",
+          "yearInvarianceBasis": {
+            "contractVersion": "YearInvarianceBasis/v1",
+            "componentKind": "breakpoint",
+            "quotedContrast": "The total of one-half of your benefits and all your other income is more than $34,000 ($44,000 if you are married filing jointly).",
+            "contrastLocator": "Main Contents, How Much Is Taxable?, Maximum taxable part., first bullet",
+            "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+            "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+          }
+        },
+        "secondTierIncrement": {
+          "value": 12000,
+          "sourceRef": "irs-p915-2025",
+          "locator": "Worksheet 1, Figuring Your Taxable Benefits, line 11",
+          "yearInvarianceBasis": {
+            "contractVersion": "YearInvarianceBasis/v1",
+            "componentKind": "amount",
+            "quotedContrast": "Enter $12,000 if married filing jointly for the earlier year; or $9,000 if single, head of household, qualifying surviving spouse, or married filing separately and you lived apart from your spouse for all of the earlier year",
+            "contrastLocator": "Worksheet 2, Figure Your Additional Taxable Benefits (From a Lump-Sum Payment for a Year After 1993), line 11",
+            "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+            "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+          }
+        }
+      },
+      "married-filing-separately-lived-apart": {
+        "tierRule": "two-tier-base-and-increment",
+        "baseAmount": {
+          "value": 25000,
+          "sourceRef": "irs-p915-2025",
+          "locator": "Main Contents, Are Any of Your Benefits Taxable?, Base amount., second bullet; and Worksheet 1, line 9",
+          "yearInvarianceBasis": {
+            "contractVersion": "YearInvarianceBasis/v1",
+            "componentKind": "breakpoint",
+            "quotedContrast": "Enter $25,000 ($32,000 if married filing jointly for the earlier year; or -0- if married filing separately for the earlier year and you lived with your spouse at any time during the earlier year)",
+            "contrastLocator": "Worksheet 3, Figure Your Additional Taxable Benefits (From a Lump-Sum Payment for a Year Before 1994), line 9",
+            "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+            "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+          }
+        },
+        "secondBaseAmount": {
+          "value": 34000,
+          "sourceRef": "irs-p915-2025",
+          "locator": "Main Contents, How Much Is Taxable?, Maximum taxable part., first bullet",
+          "yearInvarianceBasis": {
+            "contractVersion": "YearInvarianceBasis/v1",
+            "componentKind": "breakpoint",
+            "quotedContrast": "The total of one-half of your benefits and all your other income is more than $34,000 ($44,000 if you are married filing jointly).",
+            "contrastLocator": "Main Contents, How Much Is Taxable?, Maximum taxable part., first bullet",
+            "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+            "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+          }
+        },
+        "secondTierIncrement": {
+          "value": 9000,
+          "sourceRef": "irs-p915-2025",
+          "locator": "Worksheet 1, Figuring Your Taxable Benefits, line 11",
+          "yearInvarianceBasis": {
+            "contractVersion": "YearInvarianceBasis/v1",
+            "componentKind": "amount",
+            "quotedContrast": "Enter $12,000 if married filing jointly for the earlier year; or $9,000 if single, head of household, qualifying surviving spouse, or married filing separately and you lived apart from your spouse for all of the earlier year",
+            "contrastLocator": "Worksheet 2, Figure Your Additional Taxable Benefits (From a Lump-Sum Payment for a Year After 1993), line 11",
+            "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+            "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+          }
+        }
+      },
+      "married-filing-separately-lived-with-spouse": {
+        "tierRule": "ceiling-proportion-of-provisional-income",
+        "reason": "For this filing situation the publication instructs the reader to skip the base-amount arithmetic entirely and take the ceiling proportion of provisional income, which is a different rule rather than the same rule with a zero base amount. Collapsing the two would produce a plausible wrong figure.",
+        "sourceRef": "irs-p915-2025",
+        "locator": "Worksheet 1, Figuring Your Taxable Benefits, the note following line 9",
+        "baseAmount": {
+          "value": 0,
+          "sourceRef": "irs-p915-2025",
+          "locator": "Main Contents, Are Any of Your Benefits Taxable?, Base amount., fourth bullet",
+          "yearInvarianceBasis": {
+            "contractVersion": "YearInvarianceBasis/v1",
+            "componentKind": "breakpoint",
+            "quotedContrast": "Enter $25,000 ($32,000 if married filing jointly for the earlier year; or -0- if married filing separately for the earlier year and you lived with your spouse at any time during the earlier year)",
+            "contrastLocator": "Worksheet 3, Figure Your Additional Taxable Benefits (From a Lump-Sum Payment for a Year Before 1994), line 9",
+            "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+            "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+          }
+        },
+        "yearInvarianceBasis": {
+          "contractVersion": "YearInvarianceBasis/v1",
+          "componentKind": "qualifier",
+          "quotedContrast": "If you were married filing separately and you lived with your spouse at any time during the earlier year, skip lines 9 through 16, multiply line 8 by 85% (0.85), and enter the result on line 17. Then, go to line 18.",
+          "contrastLocator": "Worksheet 2, Figure Your Additional Taxable Benefits (From a Lump-Sum Payment for a Year After 1993), the note following line 9",
+          "quotedDatedCounterpart": "The basic monthly premium in 2025 was $185.00 for most people, but it could be higher if you were a new enrollee in 2025, you enrolled after you were first eligible, you had a break in coverage, or the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000 ($212,000 if married filing jointly).",
+          "datedCounterpartLocator": "Appendix, Form SSA-1099, Description of Amount in Box 3, Medicare premiums deducted from your benefits"
+        }
+      }
+    },
+    "taxLegs": [
+      {
+        "contractVersion": "TaxLeg/v1",
+        "legId": "social-security-inclusion",
+        "stageId": "CO-21",
+        "figureRef": "benefitInclusionPolicy.ceilingProportion",
+        "includedInTotal": false,
+        "contributesTo": "ordinary-taxable-income"
+      }
+    ]
+  },
+  "deductionChoicePolicy": {
+    "contractVersion": "DeductionChoicePolicy/v1",
+    "onTie": "standard",
+    "reason": "This member states no rule value and carries no citation because it establishes no figure. When the itemised total and the standard deduction are equal the deduction applied is identical either way, so the tie rule changes no tax; it exists only so the side actually applied can be named rather than left ambiguous."
+  },
+  "deductionCaps": {
+    "state-and-local-tax": {
+      "contractVersion": "DeductionCap/v1",
+      "capId": "state-and-local-tax",
+      "label": "State and local income, sales and property taxes",
+      "cappedComponentIds": ["state-income-tax", "property-tax"],
+      "apportionmentRule": "pro-rata-by-component-amount",
+      "amounts": {
+        "single": 40400,
+        "married-filing-jointly": 40400,
+        "married-filing-separately": 20200,
+        "head-of-household": 40400
+      },
+      "sourceRef": "irs-p505-2026",
+      "locator": "Reminders, State and local tax deduction increased, which states the 2026 limit and names married filing separately as the only status carrying a different amount",
+      "reductionThresholds": {
+        "single": 505000,
+        "married-filing-jointly": 505000,
+        "married-filing-separately": 252500,
+        "head-of-household": 505000
+      },
+      "reductionFloors": {
+        "single": 10000,
+        "married-filing-jointly": 10000,
+        "married-filing-separately": 5000,
+        "head-of-household": 10000
+      },
+      "reductionRate": {
+        "contractVersion": "AbsentFigure/v1",
+        "code": "RLTAX-THRESHOLD-UNAVAILABLE",
+        "domain": "deduction-cap:state-and-local-tax:reductionRate",
+        "reason": "Publication 505 (2026) states that the overall limit is reduced above the modified adjusted gross income threshold and states the floor the reduction may not fall below, but it does not state the rate at which the reduction is applied. The rate was not retrieved and is not derived from the threshold and the floor, so a household above the threshold receives a refusal rather than a reduced cap this pack invented.",
+        "whatWouldMakeItAvailable": "Retrieve the Instructions for Schedule A (Form 1040) for tax year 2026 and transcribe the stated reduction rate with its locator.",
+        "missingSource": {
+          "title": "Instructions for Schedule A (Form 1040), tax year 2026",
+          "url": "https://www.irs.gov/publications/p505",
+          "documentKind": "form-instructions",
+          "locator": "Publication 505 (2026), Reminders, State and local tax deduction increased, refers the reader to the Instructions for Schedule A (Form 1040) for the reduction mechanics; that instruction was not retrieved in this session."
+        }
+      }
+    }
+  },
+  "mortgageDebtLimits": {
+    "contractVersion": "MortgageDebtLimitSet/v1",
+    "tiers": [
+      {
+        "tierId": "acquisition-debt-current",
+        "label": "Home acquisition debt secured under the current limit",
+        "limits": {
+          "contractVersion": "AbsentFigure/v1",
+          "code": "RLTAX-THRESHOLD-UNAVAILABLE",
+          "domain": "mortgage-debt-limit:acquisition-debt-current",
+          "reason": "The only edition of Publication 936 retrievable in this session states its limits for the 2025 return, and this pack declares 2026 effective. The Sourcing Directive forbids carrying a figure from another tax year, so no acquisition-debt limit is transcribed and the mortgage interest component refuses rather than deducting the declared interest in full.",
+          "whatWouldMakeItAvailable": "Retrieve an edition of Publication 936 whose title block declares it for use in preparing 2026 returns, and transcribe the acquisition-debt limit and its married-filing-separately amount with their locator.",
+          "missingSource": {
+            "title": "Publication 936, Home Mortgage Interest Deduction, edition for tax year 2026",
+            "url": "https://www.irs.gov/publications/p936",
+            "documentKind": "publication",
+            "locator": "Part II, Home Acquisition Debt, Home acquisition debt limit. The edition served at this URL in this session reads For use in preparing 2025 Returns."
+          }
+        }
+      },
+      {
+        "tierId": "acquisition-debt-predecessor",
+        "label": "Home acquisition debt secured under the predecessor limit",
+        "limits": {
+          "contractVersion": "AbsentFigure/v1",
+          "code": "RLTAX-THRESHOLD-UNAVAILABLE",
+          "domain": "mortgage-debt-limit:acquisition-debt-predecessor",
+          "reason": "The predecessor limit is stated by the same publication and the same edition, and is unretrievable for this pack's declared year for the same reason. It ships absent so the higher predecessor tier can never be substituted for the current one.",
+          "whatWouldMakeItAvailable": "Retrieve an edition of Publication 936 whose title block declares it for use in preparing 2026 returns, and transcribe the predecessor acquisition-debt limit and its married-filing-separately amount with their locator.",
+          "missingSource": {
+            "title": "Publication 936, Home Mortgage Interest Deduction, edition for tax year 2026",
+            "url": "https://www.irs.gov/publications/p936",
+            "documentKind": "publication",
+            "locator": "Part II, Home Acquisition Debt, Home acquisition debt limit, the clause naming debt secured before the current limit's effective date."
+          }
+        }
+      }
+    ]
+  },
+  "costRecovery": {
+    "contractVersion": "CostRecovery/v1",
+    "assetClassId": "residential-rental-property",
+    "componentKindClassification": "qualifier",
+    "classificationReason": "A recovery period, a convention and a depreciation method are parameters of the cost-recovery method rather than a rate, a dollar breakpoint or a dollar amount. They are classified as the qualifier kind so that the year discipline applied to them is the qualifier row of their source record's declaredApplicableYearsByComponentKind map, and so that a reader who disagrees with the classification is disagreeing with a named decision rather than an implicit one.",
+    "recoveryPeriod": {
+      "years": 27.5,
+      "componentKind": "qualifier",
+      "sourceRef": "irs-p527-2025",
+      "locator": "chapter 2, Table 2-1. MACRS Recovery Periods for Property Used in Rental Activities, the row Residential rental property (buildings or structures) and structural components such as furnaces, waterpipes, venting, etc., General Depreciation System column"
+    },
+    "convention": {
+      "conventionId": "mid-month",
+      "componentKind": "qualifier",
+      "sourceRef": "irs-p527-2025",
+      "locator": "chapter 2, Conventions, Mid-month convention: A mid-month convention is used for all residential rental property and nonresidential real property. Under this convention, you treat all property placed in service, or disposed of, during any month as placed in service, or disposed of, at the midpoint of that month"
+    },
+    "method": {
+      "methodId": "straight-line",
+      "componentKind": "qualifier",
+      "sourceRef": "irs-p527-2025",
+      "locator": "chapter 2, Figuring Your Depreciation Deduction, Residential rental property: You must use the straight line method and a mid-month convention for residential rental property"
+    }
+  },
+  "lossLimitPolicy": {
+    "contractVersion": "LossLimitPolicy/v1",
+    "orderingRule": {
+      "componentKind": "qualifier",
+      "statement": "When you figure your allowable losses from any activity, you must apply the at-risk rules before the passive activity rules.",
+      "sourceRef": "irs-p925-2025",
+      "locator": "Introduction, and restated in the At-Risk Limits caution: You must apply the at-risk rules before the passive activity rules discussed in the first part of this publication"
+    },
+    "limits": [
+      {
+        "limitId": "at-risk",
+        "appliedOrder": 1,
+        "allowanceBasis": "declared-at-risk-amount",
+        "componentKind": "qualifier",
+        "statement": "Any loss from an activity subject to the at-risk rules is allowed only to the extent of the total amount you have at risk in the activity at the end of the tax year.",
+        "sourceRef": "irs-p925-2025",
+        "locator": "At-Risk Limits: The at-risk rules limit your losses from most activities to your amount at risk in the activity. You treat any loss that is disallowed because of the at-risk limits as a deduction from the same activity in the next tax year"
+      },
+      {
+        "limitId": "passive-activity",
+        "appliedOrder": 2,
+        "allowanceBasis": "passive-income-plus-special-allowance",
+        "componentKind": "qualifier",
+        "statement": "Deductions or losses from passive activities are limited to passive activity income, except to the extent the special allowance for active participation in a rental real estate activity permits more.",
+        "sourceRef": "irs-p925-2025",
+        "locator": "Passive Activity Loss, and Rental Activities, Special $25,000 allowance, which states the exception the allowance creates to the general rule disallowing the passive activity loss"
+      }
+    ],
+    "specialAllowance": {
+      "contractVersion": "SpecialAllowanceRule/v1",
+      "requiresActiveParticipation": {
+        "componentKind": "qualifier",
+        "value": true,
+        "sourceRef": "irs-p925-2025",
+        "locator": "Rental Activities, Special $25,000 allowance: If you or your spouse actively participated in a passive rental real estate activity, the amount of the passive activity loss that is disallowed is decreased"
+      },
+      "maximumAmounts": {
+        "contractVersion": "AbsentFigure/v1",
+        "code": "RLTAX-THRESHOLD-UNAVAILABLE",
+        "domain": "loss-limit:passive-activity:specialAllowance:maximumAmounts",
+        "reason": "The only edition of Publication 925 retrievable in this session states its maximum special allowance and its married-filing-separately amount for the 2025 return, and this pack declares 2026 effective. Both are dollar amounts the edition states for a tax year, and the publication states no rule making either year-invariant, so neither is transcribed and the passive-activity limit refuses rather than allowing a loss against an allowance this pack invented.",
+        "whatWouldMakeItAvailable": "Retrieve an edition of Publication 925 whose title block declares it for use in preparing 2026 returns, and transcribe the maximum special allowance and the married-filing-separately amount with their locator.",
+        "missingSource": {
+          "title": "Publication 925, Passive Activity and At-Risk Rules, edition for tax year 2026",
+          "url": "https://www.irs.gov/publications/p925",
+          "documentKind": "publication",
+          "locator": "Rental Activities, Special $25,000 allowance, Maximum special allowance. The edition served at this URL in this session reads For use in preparing 2025 Returns."
+        }
+      },
+      "phaseOutRange": {
+        "contractVersion": "AbsentFigure/v1",
+        "code": "RLTAX-THRESHOLD-UNAVAILABLE",
+        "domain": "loss-limit:passive-activity:specialAllowance:phaseOutRange",
+        "reason": "The modified-adjusted-gross-income figure at which the allowance begins to be reduced and the figure at which it is exhausted are stated by the same 2025-return edition and are unretrievable for this pack's declared year for the same reason. They ship absent so that a household inside the phase-out can never be given an allowance interpolated between two edges this pack could not establish.",
+        "whatWouldMakeItAvailable": "Retrieve an edition of Publication 925 whose title block declares it for use in preparing 2026 returns, and transcribe both edges of the phase-out range, with their married-filing-separately amounts, with their locator.",
+        "missingSource": {
+          "title": "Publication 925, Passive Activity and At-Risk Rules, edition for tax year 2026",
+          "url": "https://www.irs.gov/publications/p925",
+          "documentKind": "publication",
+          "locator": "Rental Activities, Phaseout rule, the sentences naming the amount above which the allowance is reduced and the amount at or above which no allowance remains."
+        }
+      },
+      "reductionRate": {
+        "contractVersion": "AbsentFigure/v1",
+        "code": "RLTAX-THRESHOLD-UNAVAILABLE",
+        "domain": "loss-limit:passive-activity:specialAllowance:reductionRate",
+        "reason": "The rate at which the allowance is reduced across the phase-out range is stated in the same sentence as that range, in the same 2025-return edition, and the publication draws no distinction between the rate and the dollar figures around it of the kind Publication 527 draws for its method parameters. It ships absent with the range rather than being carried alone, because a reduction rate without the range it is applied across establishes nothing.",
+        "whatWouldMakeItAvailable": "Retrieve an edition of Publication 925 whose title block declares it for use in preparing 2026 returns, and transcribe the reduction rate together with the phase-out range it is applied across, with their locator.",
+        "missingSource": {
+          "title": "Publication 925, Passive Activity and At-Risk Rules, edition for tax year 2026",
+          "url": "https://www.irs.gov/publications/p925",
+          "documentKind": "publication",
+          "locator": "Rental Activities, Phaseout rule, the clause stating the percentage by which the maximum special allowance is reduced."
+        }
+      }
+    }
+  },
+  "useClassification": {
+    "contractVersion": "UseClassificationRule/v1",
+    "componentKindClassification": "qualifier",
+    "classificationReason": "A day count that decides which arithmetic a dwelling gets, and a percentage of another day count, are parameters of a classification test rather than a rate applied to money, a dollar breakpoint or a dollar amount. They are classified as the qualifier kind so the year discipline applied to them is the qualifier row of their source record's declaredApplicableYearsByComponentKind map, and so a reader who disagrees with the classification is disagreeing with a named decision rather than an implicit one. The contrast the source record's yearInvarianceBasis draws is the whole of the argument: this publication dates every figure it means to date, and it does not date these.",
+    "personalUseDayFigure": {
+      "days": 14,
+      "comparisonOperator": "greater-than",
+      "componentKind": "qualifier",
+      "sourceRef": "irs-p527-2025",
+      "locator": "chapter 5, Dwelling Unit Used as a Home: You use a dwelling unit as a home during the tax year if you use it for personal purposes more than the greater of: (1) 14 days, or (2) 10% of the total days it is rented to others at a fair rental price"
+    },
+    "personalUsePercentageFigure": {
+      "rate": 0.1,
+      "comparedAgainst": "days-rented-to-others-at-a-fair-rental-price",
+      "comparisonOperator": "greater-than",
+      "componentKind": "qualifier",
+      "sourceRef": "irs-p527-2025",
+      "locator": "chapter 5, Dwelling Unit Used as a Home, clause (2) of the greater-of test: 10% of the total days it is rented to others at a fair rental price. The publication resolves which quantity the percentage is measured against in its own worked examples, which read You figured 10% of the total days rented to others at a fair rental price is 27 days against a 273-day rental, and 16 days against an apartment treated as having been rented for 160 days after 10 fair-rental days were recounted as personal use"
+    },
+    "minimalRentalUseThreshold": {
+      "days": 15,
+      "comparisonOperator": "less-than",
+      "componentKind": "qualifier",
+      "sourceRef": "irs-p527-2025",
+      "locator": "chapter 5, Dwelling Unit Used as a Home, Minimal rental use: If you use the dwelling unit as a home and you rent it less than 15 days during the year, that period isn't treated as rental activity. Restated under Reporting Income and Deductions as Used as a home but rented less than 15 days, and its complement is stated in the same section as Used as a home and rented 15 days or more"
+    },
+    "greaterOfSelection": {
+      "componentKind": "qualifier",
+      "statement": "The personal-use test is run against the GREATER of the day figure and the percentage of rental days, so a dwelling is used as a home only when the declared personal use exceeds both.",
+      "sourceRef": "irs-p527-2025",
+      "locator": "chapter 5, Dwelling Unit Used as a Home: more than the greater of: (1) 14 days, or (2) 10% of the total days it is rented to others at a fair rental price"
+    },
+    "exclusionRule": {
+      "componentKind": "qualifier",
+      "statement": "A dwelling used as a home and rented fewer than the threshold number of days is not reported as a rental at all: the rental income is excluded from income and the rental expenses are not deducted. The mortgage interest and the real estate taxes remain available to the itemised composition unallocated.",
+      "sourceRef": "irs-p527-2025",
+      "locator": "chapter 5, Reporting Income and Deductions, Used as a home but rented less than 15 days: its primary function isn't considered to be rental and it shouldn't be reported on Schedule E (Form 1040). You aren't required to report the rental income and rental expenses from this activity. Any expenses related to the home, such as mortgage interest, property taxes, and any qualified casualty loss, will be reported as normally allowed on Schedule A (Form 1040)"
+    },
+    "allocationRule": {
+      "basis": "rental-days-over-total-days-used",
+      "componentKind": "qualifier",
+      "statement": "An expense of a dwelling used for both rental and personal purposes is divided between the two based on the number of days used for each purpose. The rental share is the days actually rented at a fair rental price over the total days the unit was used.",
+      "sourceRef": "irs-p527-2025",
+      "locator": "chapter 5, Dividing Expenses: If you use a dwelling unit for both rental and personal purposes, divide your expenses between the rental use and the personal use based on the number of days used for each purpose. The chapter opening states the same fraction as a fraction, the denominator of which is the total number of days the dwelling unit is used and the numerator of which is the total number of days actually rented at a fair rental price, and the worked example resolves it as Your rental expenses are 85/99 (86%) of the cottage expenses against 85 rental days and 14 personal-use days"
+    },
+    "directAllocationRule": {
+      "componentKind": "qualifier",
+      "statement": "An expense that belongs only to the rental use is not divided; its whole amount is a rental expense and re-allocating it by the day ratio would deduct less than the authority allows.",
+      "sourceRef": "irs-p527-2025",
+      "locator": "chapter 5, Worksheet 5-1 Instructions, Line 2d: Enter the total of your rental expenses that are directly related only to the rental activity. Stated again in chapter 4, Renting Part of Property: You don't have to divide the expenses that belong only to the rental part of your property"
+    },
+    "deductionOrdering": {
+      "componentKind": "qualifier",
+      "statement": "When a dwelling used as a home is rented at or above the threshold and produces a net loss, the deduction for its rental expenses is limited, and the expenses are deducted in a stated order against the rental income. Whatever the order does not reach is carried forward to the next year and treated as a rental expense of the same property.",
+      "sourceRef": "irs-p527-2025",
+      "locator": "chapter 5, Dwelling Unit Used as a Home, Limit on deductions, and Worksheet 5-1, Parts II and III",
+      "tiers": [
+        {
+          "tierId": "fully-deductible",
+          "appliedOrder": 1,
+          "limitedToRemainingIncome": false,
+          "statement": "The rental portion of deductible home mortgage interest, of deductible real estate taxes, of deductible casualty and theft losses, and the direct rental expenses. These are deducted even when the rental expenses are more than the rental income.",
+          "locator": "chapter 5, Worksheet 5-1, Part II lines 2a through 2e, and its instruction for line 2e: You can deduct the amounts on lines 2a, 2b, 2c, and 2d as rental expenses even if your rental expenses are more than your rental income"
+        },
+        {
+          "tierId": "operating-expenses",
+          "appliedOrder": 2,
+          "limitedToRemainingIncome": true,
+          "statement": "The rental portion of the expenses of operating or maintaining the unit, together with the rental portion of excess mortgage interest and excess real estate taxes and any operating-expense carryover. Allowed only to the extent of the rental income remaining after the first tier.",
+          "locator": "chapter 5, Worksheet 5-1, Part II lines 4a through 4f: Allowable expenses. Enter the smaller of line 3 or line 4e"
+        },
+        {
+          "tierId": "casualty-and-depreciation",
+          "appliedOrder": 3,
+          "limitedToRemainingIncome": true,
+          "statement": "The rental portion of excess casualty and theft losses and of the depreciation of the dwelling unit, together with their carryover. Allowed only to the extent of the rental income remaining after the second tier.",
+          "locator": "chapter 5, Worksheet 5-1, Part II lines 6a through 6e: Allowable excess casualty and theft losses and depreciation. Enter the smaller of line 5 or line 6d"
+        }
+      ],
+      "carryoverRule": {
+        "statement": "The amount of each limited tier that the remaining income did not reach is carried over to the next year and treated as a rental expense for the same property.",
+        "locator": "chapter 5, Worksheet 5-1, Part III lines 7a and 7b, and Limit on deductions: The excess expenses that can't be used to offset income from other sources are carried forward to the next year and treated as rental expenses for the same property"
+      }
+    },
+    "notPassiveRule": {
+      "componentKind": "qualifier",
+      "statement": "Renting a dwelling unit that is considered a home is not a passive activity, so the at-risk and passive-activity ladder is not the limit that applies to it.",
+      "sourceRef": "irs-p527-2025",
+      "locator": "chapter 5, Dwelling Unit Used as a Home, Limit on deductions: Renting a dwelling unit that is considered a home isn't a passive activity. Restated in chapter 3, Exception for Personal Use of Dwelling Unit: If you used the rental property as a home during the year, any income, deductions, gain, or loss allocable to such use is not to be taken into account for purposes of the passive activity loss limitation"
+    }
+  },
+  "dispositionPolicy": {
+    "contractVersion": "DispositionPolicy/v1",
+    "classificationReason": "Three different component kinds live in this one block and each is checked against a different row of its source record's applicable-year map. The maximum rate for the recapture category is a RATE: it is a percentage applied to money. The two eligibility periods are QUALIFIERS: they are parameters of a test that decides whether a rule applies, not figures applied to money. The exclusion limits are AMOUNTS: they are dollar figures. Classifying them separately is what lets the rate cite one authority and the exclusion cite another, and what makes the head-of-household absence a refusal of one amount rather than of the whole policy.",
+    "recaptureCategory": {
+      "categoryId": "unrecaptured-section-1250-gain",
+      "label": "Unrecaptured section 1250 gain",
+      "maximumRate": 0.25,
+      "componentKind": "rate",
+      "sourceRef": "irs-tc409",
+      "locator": "Capital gains tax rates, the list introduced as There are a few other exceptions where capital gains may be taxed at rates greater than 20%, item 3: The portion of any unrecaptured section 1250 gain from selling section 1250 real property is taxed at a maximum 25% rate",
+      "figureYearInvarianceNote": "Re-retrieved during Scope 05's implementation and transcribed digit by digit from the locator above. The cited record already declares its rate kind year-invariant on the ground that the section states its rates without a year qualifier while stating every dollar threshold with one, and this figure sits in exactly that contrast: the three items of the greater-than-20% exceptions list state a maximum 28% rate for a section 1202 qualified small business stock gain, a maximum 28% rate for collectibles, and this maximum 25% rate, and none of the three carries a year qualifier, in the same section whose dollar thresholds are all introduced with the words For taxable years beginning in 2025. This note records the contrast for this figure; it does not extend the record's declaration, which the validator reads on its own."
+    },
+    "residenceExclusion": {
+      "ownershipTest": {
+        "minimumMonths": 24,
+        "lookbackYears": 5,
+        "comparisonOperator": "at-least",
+        "componentKind": "qualifier",
+        "sourceRef": "irs-p523-2025",
+        "locator": "Eligibility Step 2 - Ownership, Determine whether you meet the ownership requirement: If you owned the home for at least 24 months (2 years) out of the last 5 years leading up to the date of sale (date of the closing), you meet the ownership requirement"
+      },
+      "useTest": {
+        "minimumMonths": 24,
+        "lookbackYears": 5,
+        "comparisonOperator": "at-least",
+        "componentKind": "qualifier",
+        "sourceRef": "irs-p523-2025",
+        "locator": "Eligibility Step 3 - Residence, Determine whether you meet the residence requirement: If you owned the home and used it as your residence for at least 24 months of the previous 5 years, you meet the residence requirement. The 24 months of residence can fall anywhere within the 5-year period, and it doesn't have to be a single block of time. All that is required is a total of 24 months (730 days) of residence during the 5-year period"
+      },
+      "maximumAmounts": {
+        "componentKind": "amount",
+        "sourceRef": "irs-p523-2025",
+        "locator": "Worksheet 1. Find Your Exclusion Limit, section A, Determine if you are eligible for the maximum exclusion limit, the Maximum exclusion column: $500,000 against the Married filing jointly row, $250,000 against the Single, married filing separately row, and $500,000 against the Surviving spouse row. Restated in the Introduction as you may exclude the first $250,000 of gain ... increased to $500,000 for a married couple filing jointly",
+        "amounts": {
+          "single": 250000,
+          "married-filing-jointly": 500000,
+          "married-filing-separately": 250000,
+          "head-of-household": {
+            "contractVersion": "AbsentFigure/v1",
+            "code": "RLTAX-THRESHOLD-UNAVAILABLE",
+            "domain": "disposition:residenceExclusion:maximumAmounts:head-of-household",
+            "reason": "Publication 523's Worksheet 1 enumerates a maximum exclusion for married filing jointly, for single and married filing separately, and for a surviving spouse. It states none for head of household, and the retrieval established no other primary source that does. The single amount is not borrowed for this status, because a household that is entitled to a different amount would be shown a figure the authority never stated for it.",
+            "remediation": "Retrieve a primary source that states the exclusion limit for head of household and transcribe it with its locator; until then this status refuses and no gain is excluded for it.",
+            "missingSource": "A primary Internal Revenue Service source enumerating the section 121 maximum exclusion limit for the head-of-household filing status."
+          }
+        }
+      }
+    }
+  },
+  "contentSha256": "sha256:06681e372f4ea15c2f088c7f92de70ce712f05b6aff09c7d3bb819ec9c6753bf"
+}

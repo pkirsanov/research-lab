@@ -1,0 +1,139 @@
+{
+  "contractVersion": "MedicarePack/v1",
+  "id": "medicare-nonstandard-fixture-2999",
+  "jurisdiction": "fixture",
+  "program": "medicare-premiums",
+  "version": "1.0.0",
+  "declaredForYear": 2999,
+  "effectiveTaxYears": [2999],
+  "retrievedAt": "2026-08-18T10:26:45.000Z",
+  "ruleStatus": "enacted-current-law",
+  "fixtureNote": "Every figure here is the implementer's own and can never resolve for a real household or a real year. The boundaries, the premiums, the adjustments and the lookback offset are all deliberately unlike any published figure, so an implementation reading recalled boundaries or a recalled offset instead of the pack's own produces a different answer against it. Both boundary operators the shipped pack uses are exercised, and the three premium legs all carry non-zero, mutually distinct figures so a leg dropped from a surface or summed into a tax total changes a total by an amount unique to it.",
+  "medicarePolicy": {
+    "contractVersion": "MedicarePolicy/v1",
+    "policyId": "medicare-premiums-and-income-related-adjustment",
+    "modelsUnsupportedFeatureId": "irmaa-bands",
+    "stageId": "CO-22",
+    "premiumYear": 2999,
+    "lookbackOffsetYears": {
+      "value": 3,
+      "sourceRef": "fixture-medicare-2999",
+      "locator": "Fixture policy, lookback offset",
+      "quotedOffsetBasis": "This fixture declares a three-year lookback offset, which no published rule states, so an engine holding a two-year offset as a module constant produces a different required year against it."
+    },
+    "standardPremiums": {
+      "part-b": {
+        "value": 311.11,
+        "sourceRef": "fixture-medicare-2999",
+        "locator": "Fixture policy, standard premiums, part-b"
+      },
+      "part-d": {
+        "value": 47.77,
+        "sourceRef": "fixture-medicare-2999",
+        "locator": "Fixture policy, standard premiums, part-d"
+      }
+    },
+    "filingStatusMapping": {
+      "single": {
+        "bracketSetId": "fixture-return",
+        "quotedBasis": "This fixture maps every status it enumerates to one bracket set so the boundary arithmetic is the only thing under test.",
+        "locator": "Fixture policy, filing status mapping"
+      },
+      "married-filing-jointly": {
+        "bracketSetId": "fixture-return",
+        "quotedBasis": "This fixture maps every status it enumerates to one bracket set so the boundary arithmetic is the only thing under test.",
+        "locator": "Fixture policy, filing status mapping"
+      }
+    },
+    "bracketSets": {
+      "fixture-return": [
+        {
+          "bracketIndex": 0,
+          "lowerBound": null,
+          "boundaryOperator": "no-lower-bound",
+          "upperBound": 88123,
+          "partBAdjustment": {
+            "contractVersion": "SourcedZero/v1",
+            "value": 0,
+            "domain": "adjustment:part-b:fixture-return:0",
+            "reason": "This fixture states the standard premium alone for its lowest range and states no additional amount for it.",
+            "ruleStatus": "enacted-current-law",
+            "sourceRef": "fixture-medicare-2999",
+            "locator": "Fixture policy, bracket 0, part B adjustment"
+          },
+          "partDAdjustment": {
+            "contractVersion": "SourcedZero/v1",
+            "value": 0,
+            "domain": "adjustment:part-d:fixture-return:0",
+            "reason": "This fixture states the standard premium alone for its lowest range and states no additional amount for it.",
+            "ruleStatus": "enacted-current-law",
+            "sourceRef": "fixture-medicare-2999",
+            "locator": "Fixture policy, bracket 0, part D adjustment"
+          },
+          "quotedRange": "A modified adjusted gross income of 88,123 or less",
+          "locator": "Fixture policy, bracket 0"
+        },
+        {
+          "bracketIndex": 1,
+          "lowerBound": 88123,
+          "boundaryOperator": "greater-than",
+          "upperBound": 144567,
+          "partBAdjustment": { "value": 63.13, "sourceRef": "fixture-medicare-2999", "locator": "Fixture policy, bracket 1, part B adjustment" },
+          "partDAdjustment": { "value": 21.19, "sourceRef": "fixture-medicare-2999", "locator": "Fixture policy, bracket 1, part D adjustment" },
+          "quotedRange": "A modified adjusted gross income above 88,123 up to 144,567",
+          "locator": "Fixture policy, bracket 1"
+        },
+        {
+          "bracketIndex": 2,
+          "lowerBound": 144567,
+          "boundaryOperator": "greater-than-or-equal",
+          "upperBound": null,
+          "partBAdjustment": { "value": 129.41, "sourceRef": "fixture-medicare-2999", "locator": "Fixture policy, bracket 2, part B adjustment" },
+          "partDAdjustment": { "value": 38.29, "sourceRef": "fixture-medicare-2999", "locator": "Fixture policy, bracket 2, part D adjustment" },
+          "quotedRange": "A modified adjusted gross income equal to or above 144,567",
+          "locator": "Fixture policy, bracket 2"
+        }
+      ]
+    },
+    "taxLegs": [
+      {
+        "contractVersion": "PremiumLeg/v1",
+        "legId": "medicare-part-b-premium",
+        "stageId": "CO-22",
+        "partId": "part-b",
+        "figureRef": "standardPremiums.part-b",
+        "includedInTotal": false
+      },
+      {
+        "contractVersion": "PremiumLeg/v1",
+        "legId": "medicare-part-d-premium",
+        "stageId": "CO-22",
+        "partId": "part-d",
+        "figureRef": "standardPremiums.part-d",
+        "includedInTotal": false
+      },
+      {
+        "contractVersion": "PremiumLeg/v1",
+        "legId": "medicare-income-related-adjustment",
+        "stageId": "CO-22",
+        "partId": "both-parts",
+        "figureRef": "bracketSets",
+        "includedInTotal": false
+      }
+    ]
+  },
+  "sourceRecords": [
+    {
+      "sourceId": "fixture-medicare-2999",
+      "contractVersion": "SourceRecord/v1",
+      "title": "Deliberately non-standard medicare fixture",
+      "url": "https://example.invalid/fixture-medicare-2999",
+      "retrievedAt": "2026-08-18T10:26:45.000Z",
+      "retrievalOutcome": "retrieved",
+      "editionYear": 2999,
+      "documentKind": "fixture",
+      "editionEvidence": "This fixture declares its own year and every figure in it belongs to that year by construction. It is not a publication and can never resolve for a real household.",
+      "retrievalNote": "Authored by the implementer as a branch-coverage fixture. No figure here was transcribed from any publication."
+    }
+  ]
+}

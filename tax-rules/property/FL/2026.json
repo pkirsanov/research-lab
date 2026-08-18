@@ -1,0 +1,79 @@
+{
+  "contractVersion": "PropertyReliefRegime/v1",
+  "regimeId": "florida-homestead-and-assessment-limitation",
+  "jurisdiction": "state:FL",
+  "year": 2026,
+  "version": "1.0.0",
+  "ruleStatus": "enacted-current-law",
+  "retrievedAt": "2026-08-17T21:30:00.000Z",
+  "sourceRecords": [
+    {
+      "contractVersion": "SourceRecord/v1",
+      "sourceId": "fl-const-a7s6",
+      "title": "Constitution of the State of Florida, Article VII, Section 6, Homestead exemptions",
+      "url": "https://www.flsenate.gov/Laws/Constitution",
+      "publisher": "The Florida Senate",
+      "documentKind": "constitutional-provision",
+      "publishedAt": "1968-11-05",
+      "retrievedAt": "2026-08-17T21:30:00.000Z",
+      "retrievalOutcome": "retrieved",
+      "retrievalNote": "Retrieved in the implementation session from the Florida Senate's published constitution. Subparagraph (a)(1) reads: Every person who has the legal or equitable title to real estate and maintains thereon the permanent residence of the owner, or another legally or naturally dependent upon the owner, shall be exempt from taxation thereon, except assessments for special benefits, as follows: a. Up to the assessed valuation of twenty-five thousand dollars; and b. For all levies other than school district levies, on the assessed valuation greater than fifty thousand dollars and up to seventy-five thousand dollars, upon establishment of right thereto in the manner prescribed by law. Subparagraph (a)(2) separately provides that the twenty-five thousand dollar amount of assessed valuation exempt from taxation provided in subparagraph (a)(1)b. shall be adjusted annually on January 1 of each year for inflation using the percent change in the Consumer Price Index for All Urban Consumers, U.S. City Average, all items 1967=100, or successor reports for the preceding calendar year as initially reported by the United States Department of Labor, Bureau of Labor Statistics, if such percent change is positive. Only the subparagraph (a)(1)a. amount is transcribed as a valued figure here, because it carries no annual adjustment. The subparagraph (a)(1)b. amount for the declared tax year depends on a Bureau of Labor Statistics figure that was not retrieved in this session and is therefore shipped absent."
+    },
+    {
+      "contractVersion": "SourceRecord/v1",
+      "sourceId": "fl-const-a7s4",
+      "title": "Constitution of the State of Florida, Article VII, Section 4, Taxation; assessments",
+      "url": "https://www.flsenate.gov/Laws/Constitution",
+      "publisher": "The Florida Senate",
+      "documentKind": "constitutional-provision",
+      "publishedAt": "1968-11-05",
+      "retrievedAt": "2026-08-17T21:30:00.000Z",
+      "retrievalOutcome": "retrieved",
+      "retrievalNote": "Retrieved in the implementation session. Subsection (d) reads: All persons entitled to a homestead exemption under Section 6 of this Article shall have their homestead assessed at just value as of January 1 of the year following the effective date of this amendment. This assessment shall change only as provided in this subsection. Paragraph (d)(1) reads: Assessments subject to this subsection shall be changed annually on January 1st of each year; but those changes in assessments shall not exceed the lower of the following: a. Three percent (3%) of the assessment for the prior year. b. The percent change in the Consumer Price Index for all urban consumers, U.S. City Average, all items 1967=100, or successor reports for the preceding calendar year as initially reported by the United States Department of Labor, Bureau of Labor Statistics. Paragraph (d)(2) reads: No assessment shall exceed just value. The cap is therefore stated against the assessment for the PRIOR year, which is the cap basis this regime declares. The three percent ceiling in subparagraph a. is transcribed as a valued figure. The Consumer Price Index comparand in subparagraph b. is a separate annual figure that was not retrieved in this session; because the constitution makes the cap the LOWER of the two, the effective cap for the declared year cannot be established from the three percent ceiling alone and is shipped absent rather than approximated by it."
+    }
+  ],
+  "exemptions": [
+    {
+      "exemptionId": "homestead-first-tier",
+      "amount": 25000,
+      "applicationPoint": "assessed-value",
+      "appliesToLevies": "all",
+      "sourceRef": "fl-const-a7s6",
+      "locator": "Article VII, Section 6, subparagraph (a)(1)a."
+    },
+    {
+      "contractVersion": "AbsentFigure/v1",
+      "exemptionId": "homestead-second-tier",
+      "code": "RLTAX-THRESHOLD-UNAVAILABLE",
+      "domain": "property-regime:exemption:homestead-second-tier",
+      "reason": "Article VII, Section 6, subparagraph (a)(1)b. exempts, for all levies other than school district levies, the assessed valuation greater than fifty thousand dollars and up to seventy-five thousand dollars. Subparagraph (a)(2) requires that twenty-five thousand dollar amount to be adjusted annually for inflation using the percent change in the Consumer Price Index for the preceding calendar year. The adjusted amount for the declared tax year was not retrieved in this session, so no amount is carried and none is derived from the unadjusted constitutional figure.",
+      "whatWouldMakeItAvailable": "Retrieve the Bureau of Labor Statistics Consumer Price Index for All Urban Consumers, U.S. City Average, all items 1967=100 percent change for the preceding calendar year, together with the Florida Department of Revenue statement of the adjusted second-tier exemption for the declared tax year, and transcribe the adjusted amount.",
+      "missingSource": {
+        "title": "Florida Department of Revenue, Property Tax Oversight, adjusted homestead exemption amount for the declared tax year",
+        "url": "https://floridarevenue.com/property/",
+        "locator": "the adjusted subparagraph (a)(1)b. homestead exemption amount for the declared tax year"
+      }
+    }
+  ],
+  "assessmentCap": {
+    "capBasis": "prior-assessed-value",
+    "capRate": 0.03,
+    "capIndexRate": {
+      "contractVersion": "AbsentFigure/v1",
+      "code": "RLTAX-THRESHOLD-UNAVAILABLE",
+      "domain": "property-regime:assessmentCap:capIndexRate",
+      "reason": "Article VII, Section 4, paragraph (d)(1) makes the annual assessment-increase cap the LOWER of three percent of the prior year's assessment and the percent change in the Consumer Price Index for the preceding calendar year. The Consumer Price Index percent change for the preceding calendar year was not retrieved in this session, so the effective cap cannot be established. The three percent ceiling alone would be an upper bound on the cap rather than the cap, and applying it as the cap could overstate the permitted assessment growth.",
+      "whatWouldMakeItAvailable": "Retrieve the Bureau of Labor Statistics Consumer Price Index for all urban consumers, U.S. City Average, all items 1967=100, as initially reported for the preceding calendar year, and transcribe its percent change.",
+      "missingSource": {
+        "title": "United States Department of Labor, Bureau of Labor Statistics, Consumer Price Index for All Urban Consumers, U.S. City Average, all items 1967=100",
+        "url": "https://www.bls.gov/cpi/",
+        "locator": "the percent change as initially reported for the calendar year preceding the declared tax year"
+      }
+    },
+    "applicationPoint": "assessed-value",
+    "sourceRef": "fl-const-a7s4",
+    "locator": "Article VII, Section 4, subsection (d), paragraph (1), subparagraphs a. and b."
+  },
+  "rateCeiling": null,
+  "rateCeilingAbsenceStatement": "Article VII, Section 9(b) states separate millage limits per taxing unit — ten mills for all county purposes, ten mills for all municipal purposes and ten mills for all school purposes — rather than one ceiling on a combined local rate. Deriving a single combined ceiling by adding those limits would be a derivation, so this regime carries no rate ceiling and the engine states that no ceiling applies rather than passing silently."
+}

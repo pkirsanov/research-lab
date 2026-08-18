@@ -1,0 +1,602 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/022-federal-preferential-and-state-income-tax",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-08-17T00:00:00Z",
+  "stage": "spec-and-design-authored",
+  "stageNote": "spec.md and design.md both exist and are authoritative, so every scenario binds to a ratified BS-022-* business scenario and carries ratified FR-022-* requirement anchors rather than planning-owned anchors. testRows carry the planned Test Plan row identifiers from each scope.md because that plan exists. linkedTests and evidenceRefs are empty because no test file has been written and nothing has executed, and populating either now would be a fabricated linkage. behaviorTraits are derived per scenario from what the scenario actually does; no scenario declares the whole vocabulary, every declared trait owes at least one obligation, and no obligation names an undeclared trait.",
+  "scenarioCount": 15,
+  "businessScenarioMapping": "SCN-022-001 through SCN-022-015 each bind one-to-one to BS-022-001 through BS-022-015 in spec.md, with exactly one owning scope each.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-022-001",
+      "businessScenario": "BS-022-001",
+      "requirementAnchors": ["FR-022-001", "FR-022-002", "FR-022-003"],
+      "scopeId": "01-federal-preferential-rate-completion",
+      "scope": 1,
+      "status": "not_started",
+      "title": "A preferential rate table carries two authorities and both are displayed",
+      "gherkin": {
+        "given": "a resolved federal pack whose preferential rate table carries breakpoints from one authority and a top-band rate from another",
+        "when": "the household opens the rule detail for that table",
+        "then": "each band rate and each breakpoint displays the title, URL, retrieval date and locator of the authority that establishes that specific component, an overridden component is visually distinguished from an inherited one, and a component citing a not-retrieved source or a newsroom release is refused rather than displayed"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["api-contract", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "api-contract",
+          "requiredProof": "ComponentSource/v1 and RateTable/v2 validate an override list; a component path naming an absent band, a duplicate component, an empty locator, a not-retrieved source and a newsroom source are each refused RLTAX-PACK-INVALID naming the component; effectiveSourceFor returns the override when present and the default otherwise and flags which.",
+          "satisfiedBy": ["TP-01-01", "TP-01-03"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The rendered rule detail shows one source row per component with title, URL, retrieval date and locator, and renders an overridden component distinctly from an inherited one, asserted against the live route rather than the module return value.",
+          "satisfiedBy": ["TP-01-13"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxrules.js", "tax-rules/federal/<year>.json", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-01-01", "TP-01-02", "TP-01-03", "TP-01-07", "TP-01-13"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-022-002",
+      "businessScenario": "BS-022-002",
+      "requirementAnchors": ["FR-022-004", "FR-022-005", "FR-022-007"],
+      "scopeId": "01-federal-preferential-rate-completion",
+      "scope": 1,
+      "status": "not_started",
+      "title": "A household with preferential income receives a real total",
+      "gherkin": {
+        "given": "a household with ordinary income and a realized long-term capital gain for the declared tax year",
+        "when": "the annual federal tax is computed",
+        "then": "the preferential amount is priced in the bands sitting above ordinary taxable income and the total federal tax is a valued record rather than a refusal, the result is exact immediately below, exactly at and immediately above every carried breakpoint, and qualified dividends receive treatment identical to long-term capital gains"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "changed",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Known-value coverage below, at and above every carried breakpoint for every resolved filing status; a qualified dividend and a long-term gain of the same amount produce an identical total; repeated computation over identical input is byte-identical with fetch stubbed to throw.",
+          "satisfiedBy": ["TP-01-04", "TP-01-05", "TP-01-11"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "A filing status whose components were not all retrieved carries an AbsentFigure/v1 with a missingSource pointer and no smuggled numeric member, ships no partial table, and its total remains RLTAX-THRESHOLD-UNAVAILABLE while resolved statuses produce a valued total.",
+          "satisfiedBy": ["TP-01-06", "TP-01-10"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltax.js", "tax-rules/federal/<year>.json"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-01-04", "TP-01-05", "TP-01-06", "TP-01-10", "TP-01-11", "TP-01-14"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-022-003",
+      "businessScenario": "BS-022-003",
+      "requirementAnchors": ["FR-022-006"],
+      "scopeId": "01-federal-preferential-rate-completion",
+      "scope": 1,
+      "status": "not_started",
+      "title": "A preferential category the pack does not carry refuses rather than being folded in",
+      "gherkin": {
+        "given": "the pack lists every preferential category taxed above its top carried rate as an unsupported feature",
+        "when": "the household opens the preferential detail",
+        "then": "each unsupported category is named with its own reason, no code path folds any of them into the supported preferential bands, and the result is not labelled a complete federal tax"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["degraded-state", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Every uncarried preferential category is present in unsupportedFeatures[] with a reason, and an implementation that prices one of them in a carried band is demonstrated to fail the enumeration assertion.",
+          "satisfiedBy": ["TP-01-08", "TP-01-09"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The rendered preferential detail lists every unsupported category and no surface emits a complete-federal-tax label, asserted against the live route.",
+          "satisfiedBy": ["TP-01-15"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["tax-rules/federal/<year>.json", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-01-08", "TP-01-09", "TP-01-15"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-022-004",
+      "businessScenario": "BS-022-004",
+      "requirementAnchors": ["FR-022-009", "FR-022-010", "FR-022-012", "FR-022-013"],
+      "scopeId": "02-net-investment-income-and-additional-medicare-tax",
+      "scope": 2,
+      "status": "not_started",
+      "title": "The net investment income tax is computed from a declared basis and refuses without one",
+      "gherkin": {
+        "given": "a household whose modified adjusted gross income exceeds its filing-status threshold",
+        "when": "the household has declared the ordinary-income portion that is net investment income",
+        "then": "the tax is the pack rate applied to the lesser of net investment income and the excess of modified adjusted gross income over the threshold, tax-exempt interest is excluded from both quantities and still recorded, and an undeclared portion receives RLTAX-INPUT-INCOMPLETE naming the missing member rather than an assumed zero"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "api-contract", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Known-value coverage below, at and above the threshold for every filing status, with the lesser-of rule exercised on both sides of the cap, and the modified-adjusted-gross measure excluding tax-exempt interest.",
+          "satisfiedBy": ["TP-02-04", "TP-02-08"]
+        },
+        {
+          "trait": "api-contract",
+          "requiredProof": "ThresholdSet/v1 validates; a capMember present with the uncapped appliesTo, a capMember absent with the capped one, a varyByFilingStatus false set carrying per-status keys, and a declaredFor omitting the declared tax year are each refused by name.",
+          "satisfiedBy": ["TP-02-01", "TP-02-11"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "An undeclared basis produces RLTAX-INPUT-INCOMPLETE naming the member and CO-8 inherits the refusal; a declared zero computes a real zero; an implementation that treats an undeclared basis as zero is demonstrated to fail; and the completeness declaration is non-empty.",
+          "satisfiedBy": ["TP-02-09", "TP-02-12"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltax.js", "rltaxrules.js", "rltaxworkspace.js", "tax-rules/federal/<year>.json"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-02-01", "TP-02-04", "TP-02-08", "TP-02-09", "TP-02-11", "TP-02-12", "TP-02-15"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-022-005",
+      "businessScenario": "BS-022-005",
+      "requirementAnchors": ["FR-022-011", "FR-022-012"],
+      "scopeId": "02-net-investment-income-and-additional-medicare-tax",
+      "scope": 2,
+      "status": "not_started",
+      "title": "The additional Medicare tax is computed from a separate declared basis",
+      "gherkin": {
+        "given": "a household whose declared Medicare wages and self-employment income exceed its filing-status threshold",
+        "when": "the additional Medicare tax is computed",
+        "then": "the tax is the pack rate applied to the excess of the declared wage basis over the threshold and uses no other income member, the result is exact immediately below, exactly at and immediately above the threshold for every filing status, and an undeclared wage basis receives RLTAX-INPUT-INCOMPLETE naming the missing member"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "mutable-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Known-value coverage below, at and above the threshold for every filing status, and a proof that the stage reads exactly one workspace member so no other income member can enter the base.",
+          "satisfiedBy": ["TP-02-05", "TP-02-10"]
+        },
+        {
+          "trait": "mutable-state",
+          "requiredProof": "The wage basis is a persisted household value that appears in the privacy inventory, is removed by the clear action, and is redacted by the export sanitizer, each asserted independently.",
+          "satisfiedBy": ["TP-02-13"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltax.js", "rltaxworkspace.js", "tax-rules/federal/<year>.json"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-02-05", "TP-02-10", "TP-02-13", "TP-02-16"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-022-006",
+      "businessScenario": "BS-022-006",
+      "requirementAnchors": ["FR-022-008", "FR-022-014"],
+      "scopeId": "02-net-investment-income-and-additional-medicare-tax",
+      "scope": 2,
+      "status": "not_started",
+      "title": "A conversion moves one surtax and not the other",
+      "gherkin": {
+        "given": "a household holding both investment income and Medicare wages, with both bases declared",
+        "when": "an amount is added to ordinary income",
+        "then": "the net investment income tax can increase because modified adjusted gross income rose, the additional Medicare tax does not change because the wage basis did not, and the result carries this asymmetry as a structural member rather than as page copy"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Raising ordinary income alone increases the investment income surtax where the cap does not bind and leaves the Medicare surtax byte-identical; an implementation whose Medicare surtax reads gross income instead of the wage basis is demonstrated to fail; and the generalized leg-set sum equals the previous two-leg sum for every Feature 021 fixture.",
+          "satisfiedBy": ["TP-02-03", "TP-02-06", "TP-02-07"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The rendered route states which legs a change in ordinary income can move and which it cannot, read from the structural member rather than from static copy, asserted against the live route.",
+          "satisfiedBy": ["TP-02-17"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltax.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-02-03", "TP-02-06", "TP-02-07", "TP-02-17"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-022-007",
+      "businessScenario": "BS-022-007",
+      "requirementAnchors": ["FR-022-016"],
+      "scopeId": "03-state-rule-pack-contract-and-jurisdiction-resolution",
+      "scope": 3,
+      "status": "not_started",
+      "title": "A state pack resolves by declared residency and refuses without one",
+      "gherkin": {
+        "given": "a household that has not declared a residency jurisdiction",
+        "when": "state resolution runs",
+        "then": "the state settlement is RLTAX-INPUT-INCOMPLETE naming the missing member, no state figure of zero is shown in its place, and the federal settlement remains complete and visible"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["degraded-state", "mutable-state"],
+      "obligations": [
+        {
+          "trait": "degraded-state",
+          "requiredProof": "An undeclared residency produces RLTAX-INPUT-INCOMPLETE naming the member while the federal settlement still resolves in full beside it, and an implementation that treats an undeclared residency as no state tax is demonstrated to fail.",
+          "satisfiedBy": ["TP-03-07", "TP-03-11"]
+        },
+        {
+          "trait": "mutable-state",
+          "requiredProof": "The residency jurisdiction is a persisted household value and a location signal: it appears in the privacy inventory, is removed by the clear action, is redacted by the export sanitizer, and reaches no URL, request, referrer or console message with two pack files now loaded from disk.",
+          "satisfiedBy": ["TP-03-15", "TP-03-21"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxstate.js", "rltaxworkspace.js"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-03-03", "TP-03-07", "TP-03-11", "TP-03-15", "TP-03-17", "TP-03-21"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-022-008",
+      "businessScenario": "BS-022-008",
+      "requirementAnchors": ["FR-022-017", "FR-022-018"],
+      "scopeId": "03-state-rule-pack-contract-and-jurisdiction-resolution",
+      "scope": 3,
+      "status": "not_started",
+      "title": "A state with no pack refuses and an unsupported residency pattern refuses differently",
+      "gherkin": {
+        "given": "a household declaring a state for which no pack ships, and separately a part-year or multi-state residency pattern",
+        "when": "state resolution runs",
+        "then": "the first is RLTAX-JURISDICTION-UNSUPPORTED and the second is RLTAX-RESIDENCY-UNSUPPORTED, the two refusals read differently and each names what would make it available, and neither substitutes an average, a national default or a zero"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["degraded-state", "api-contract"],
+      "obligations": [
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The unshipped-state refusal and the three unsupported residency patterns carry four distinct reasons and remediations, and an implementation that routes an unsupported residency pattern through the jurisdiction code is demonstrated to fail the refusal-separation assertion.",
+          "satisfiedBy": ["TP-03-08", "TP-03-09"]
+        },
+        {
+          "trait": "api-contract",
+          "requiredProof": "The vocabulary gained exactly two members with all twelve Feature 021 members retaining their meaning and raising site; the widened jurisdiction grammar refuses a malformed code, a lowercase code, a three-letter code and a path-traversal attempt; and ReliefMechanism/v1 refuses an incoherent kind-and-application-point pair and an appliesToLegs naming an undeclared leg.",
+          "satisfiedBy": ["TP-03-01", "TP-03-02", "TP-03-06", "TP-03-13", "TP-03-16"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxrules.js", "rltaxstate.js"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-03-01", "TP-03-02", "TP-03-06", "TP-03-08", "TP-03-09", "TP-03-13", "TP-03-16", "TP-03-18"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-022-009",
+      "businessScenario": "BS-022-009",
+      "requirementAnchors": ["FR-022-015", "FR-022-019"],
+      "scopeId": "03-state-rule-pack-contract-and-jurisdiction-resolution",
+      "scope": 3,
+      "status": "not_started",
+      "title": "A state that imposes no individual income tax returns a sourced zero",
+      "gherkin": {
+        "given": "a household declaring residency in a state whose pack states it imposes no individual income tax",
+        "when": "the state settlement is computed",
+        "then": "the state total is a valued record of zero carrying a rule status and a citation to the authority that establishes the absence, it is structurally distinguishable from a refusal, a blank and a bare dash, and the combined view includes it as a real leg rather than skipping it"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["api-contract", "user-visible-ui", "pure-calculation"],
+      "obligations": [
+        {
+          "trait": "api-contract",
+          "requiredProof": "SourcedZero/v1 validates only with the literal zero and a complete citation; a non-zero value, an absent citation and a missing locator are refused; a pack declaring no tax must carry an authority, an empty leg set and no rate table; and a pack declaring no tax while carrying a rate table is refused.",
+          "satisfiedBy": ["TP-03-04", "TP-03-05"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The route enumerates all three terminal shapes of a state total, branches on contract version rather than on value, renders no numeral on the refusal surface, and renders the sourced zero's citation reachable in the same place a computed figure's citation is reachable.",
+          "satisfiedBy": ["TP-03-10", "TP-03-19"]
+        },
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The shipped no-tax pack validates, resolves for the declared year and produces a sourced-zero total carrying no rate table for any filing status, and computeAnnualStateTax accepts no federal figure through any parameter with reconciliation leg L7 holding.",
+          "satisfiedBy": ["TP-03-12", "TP-03-14"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxrules.js", "rltaxstate.js", "tax-rules/state/FL/<year>.json", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-03-04", "TP-03-05", "TP-03-10", "TP-03-12", "TP-03-14", "TP-03-19"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-022-010",
+      "businessScenario": "BS-022-010",
+      "requirementAnchors": ["FR-022-020", "FR-022-022"],
+      "scopeId": "04-california-pack",
+      "scope": 4,
+      "status": "not_started",
+      "title": "California taxes preferential income as ordinary income",
+      "gherkin": {
+        "given": "a California resident with ordinary income and a realized long-term capital gain",
+        "when": "the state settlement is computed",
+        "then": "the gain is taxed in the same schedule as ordinary income with no preferential band applied, the pack declares that it carries no preferential treatment rather than the engine assuming it, and the federal settlement for the identical household still applies its preferential bands"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "api-contract"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "A long-term gain and an equal amount of ordinary income produce an identical state figure while the federal figures for the same two households differ, and state tax is exact below, at and above every carried California bracket edge for every resolved filing status.",
+          "satisfiedBy": ["TP-04-02", "TP-04-03"]
+        },
+        {
+          "trait": "api-contract",
+          "requiredProof": "The pack validates through the unmodified Scope 03 contract with its ordered array matching the engine's derived array element for element, a pack declaring no preferential treatment while carrying a preferential table is refused, unsupportedFeatures[] is non-empty, and every module file is byte-identical to its Scope 03 state.",
+          "satisfiedBy": ["TP-04-01", "TP-04-10", "TP-04-13", "TP-04-14", "TP-04-15"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["tax-rules/state/CA/<year>.json"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-04-01", "TP-04-02", "TP-04-03", "TP-04-10", "TP-04-13", "TP-04-14", "TP-04-15", "TP-04-16"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-022-011",
+      "businessScenario": "BS-022-011",
+      "requirementAnchors": ["FR-022-021", "FR-022-023", "FR-022-024"],
+      "scopeId": "04-california-pack",
+      "scope": 4,
+      "status": "not_started",
+      "title": "California exemption relief is a credit applied after the rate",
+      "gherkin": {
+        "given": "a California resident eligible for exemption credits",
+        "when": "the state settlement is computed",
+        "then": "the credit is subtracted from the computed tax rather than from income, the order is visible in the displayed stage list, and an implementation that subtracts the credit from income is demonstrated to fail the assertion"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The California standard deduction resolves per filing status from its own authority and is never derived from the federal deduction; the credit is applied after rate application with the pre-credit and post-credit figures both published; and an implementation that subtracts the credit from income is demonstrated to fail.",
+          "satisfiedBy": ["TP-04-04", "TP-04-05", "TP-04-06"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The rendered stage ledger shows the credit appearing after rate application with both the pre-credit and post-credit figures visible, asserted against the live route.",
+          "satisfiedBy": ["TP-04-17"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["tax-rules/state/CA/<year>.json", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-04-04", "TP-04-05", "TP-04-06", "TP-04-17"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-022-012",
+      "businessScenario": "BS-022-012",
+      "requirementAnchors": ["FR-022-025", "FR-022-026", "FR-022-027"],
+      "scopeId": "04-california-pack",
+      "scope": 4,
+      "status": "not_started",
+      "title": "The California surcharge threshold does not vary by filing status",
+      "gherkin": {
+        "given": "California residents in each supported filing status with taxable income immediately below, exactly at, and immediately above the surcharge threshold",
+        "when": "the state settlement is computed",
+        "then": "every filing status crosses at the identical threshold, no exemption credit reduces the surcharge, and each of the three positions produces the known value derived from the pack's own figures"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The surcharge is exact below, at and above the threshold with all four filing statuses crossing at the identical value; a pack that doubles the threshold for a joint return is demonstrated to fail; and an implementation that applies the exemption credit to the surcharge leg is demonstrated to fail the appliesToLegs assertion.",
+          "satisfiedBy": ["TP-04-07", "TP-04-08", "TP-04-09"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Every unretrieved California figure is an AbsentFigure/v1 with a missingSource pointer and no numeric member whose leg refuses while sibling legs still resolve, and a pack whose calculation order cannot be established is refused in full with no partial California figure produced.",
+          "satisfiedBy": ["TP-04-11", "TP-04-12"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["tax-rules/state/CA/<year>.json"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-04-07", "TP-04-08", "TP-04-09", "TP-04-11", "TP-04-12", "TP-04-18"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-022-013",
+      "businessScenario": "BS-022-013",
+      "requirementAnchors": ["FR-022-028", "FR-022-029", "FR-022-030"],
+      "scopeId": "05-combined-settlement-and-marginal-curve",
+      "scope": 5,
+      "status": "not_started",
+      "title": "The combined total is order-independent and says so",
+      "gherkin": {
+        "given": "a household with a resolvable federal pack and a resolvable state pack",
+        "when": "the combined settlement is computed",
+        "then": "the combined total equals the sum of the two independent jurisdiction totals, settling the two in the opposite order produces a byte-identical result, and an implementation that feeds either total into the other's deduction is demonstrated to fail the order-independence assertion"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "api-contract", "mutable-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The combined total equals the sum of the two jurisdiction totals for every fixture pair and inherits either refusal; orderIndependence is produced by settling both orders and comparing serialized results rather than by a constant; and both adversarial mutations, state consuming the federal total and federal consuming the state total, are demonstrated to break the assertion.",
+          "satisfiedBy": ["TP-05-02", "TP-05-03", "TP-05-04", "TP-05-05"]
+        },
+        {
+          "trait": "api-contract",
+          "requiredProof": "A sourced-zero state total is included as a real addend through a contract-version branch rather than a value comparison; the coupling record carries an empty modeled list as a required member, names the unmodeled state-tax deduction and populates the itemized notice exactly when the deduction mode is itemized; and rltaxcombined.js holds no tax-domain constant and no second definition of either settlement.",
+          "satisfiedBy": ["TP-05-06", "TP-05-07", "TP-05-15"]
+        },
+        {
+          "trait": "mutable-state",
+          "requiredProof": "The request ledger stays empty across the full combined workflow with every pack loaded from disk, no household value reaches any URL, request, referrer or console message, and the tool remains absent from every registry and from the market brief.",
+          "satisfiedBy": ["TP-05-20", "TP-05-21"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxcombined.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-05-02", "TP-05-03", "TP-05-04", "TP-05-05", "TP-05-06", "TP-05-07", "TP-05-15", "TP-05-16", "TP-05-20", "TP-05-21"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-022-014",
+      "businessScenario": "BS-022-014",
+      "requirementAnchors": ["FR-022-031", "FR-022-032", "FR-022-033"],
+      "scopeId": "05-combined-settlement-and-marginal-curve",
+      "scope": 5,
+      "status": "not_started",
+      "title": "The combined curve names the jurisdiction that owns each step",
+      "gherkin": {
+        "given": "a household in a state that imposes an income tax",
+        "when": "the combined marginal rate curve is computed",
+        "then": "each point carries a federal component, a state component and a combined rate, each segment's contributing thresholds are tagged with the jurisdiction and pack that own them, and a step at a state bracket edge and a step at a federal bracket edge are each placed exactly at their own edge rather than at a grid position"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "user-visible-ui", "responsive-accessible"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Each point's combined rate equals the sum of its two component rates and that sum equals a single finite difference over the combined total; the sample set is the exact union of the grid and both jurisdictions' crossings with each crossing emitting its bracketing pair and no synthesized point between; and an implementation that drops the state's crossings is demonstrated to fail at a state bracket edge.",
+          "satisfiedBy": ["TP-05-08", "TP-05-09", "TP-05-10", "TP-05-13"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Every contributing threshold carries a non-empty jurisdiction and pack id, an unattributable rate change is refused rather than rendered, the no-tax state contributes a present flat attributed zero series, and the record carries no scalar average so no average can be read off the curve.",
+          "satisfiedBy": ["TP-05-11", "TP-05-12", "TP-05-14", "TP-05-17"]
+        },
+        {
+          "trait": "responsive-accessible",
+          "requiredProof": "The combined curve is reachable by keyboard, carries a text-equivalent table with an accessible label reading the identical record, and no unavailable state renders as an empty box, a bare dash or an unattributed zero.",
+          "satisfiedBy": ["TP-05-19"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxcombined.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-05-08", "TP-05-09", "TP-05-10", "TP-05-11", "TP-05-12", "TP-05-13", "TP-05-14", "TP-05-17", "TP-05-19"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-022-015",
+      "businessScenario": "BS-022-015",
+      "requirementAnchors": ["FR-022-034"],
+      "scopeId": "05-combined-settlement-and-marginal-curve",
+      "scope": 5,
+      "status": "not_started",
+      "title": "A pack-year mismatch refuses rather than settling",
+      "gherkin": {
+        "given": "a resolved federal pack and a resolved state pack whose declared effective tax years do not both contain the declared year",
+        "when": "the combined settlement is attempted",
+        "then": "the combined result is RLTAX-PACK-YEAR-MISMATCH naming both packs and both year sets, neither jurisdiction total is presented as a combined figure, and no threshold from either pack is carried into the other's year"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["degraded-state", "api-contract"],
+      "obligations": [
+        {
+          "trait": "degraded-state",
+          "requiredProof": "A mismatched pair produces the refusal naming both pack ids and both year arrays, no combined numeral is rendered anywhere, and no threshold from either pack is applied to the other's year.",
+          "satisfiedBy": ["TP-05-01", "TP-05-18"]
+        },
+        {
+          "trait": "api-contract",
+          "requiredProof": "assertPackYearAgreement accepts a pair that both cover the declared year, and the new refusal code is a distinct member of the closed vocabulary whose meaning does not overlap RLTAX-YEAR-UNSUPPORTED.",
+          "satisfiedBy": ["TP-05-01"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxcombined.js"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-05-01", "TP-05-18"],
+      "evidenceRefs": []
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "contractVersion": "BenefitRulePack/v1",
+  "id": "fixture-benefit-nonstandard-breakpoints-2999",
+  "program": "social-security-retirement-benefit",
+  "jurisdiction": "federal",
+  "version": "1.0.0",
+  "declaredForYear": 2999,
+  "effectiveTaxYears": [2999],
+  "retrievedAt": "2026-08-18",
+  "ruleStatus": "user-hypothetical-law",
+
+  "fixtureIntent": "Every breakpoint, percentage, month count and factor here is DELIBERATELY unlike any figure a real authority publishes. A recalled figure therefore cannot pass an assertion written against this pack, and an implementation applying a percentage to the whole rather than to the portion its own breakpoint delimits produces a visibly different number.",
+
+  "sourceRecords": [
+    {
+      "sourceId": "fixture-authority",
+      "contractVersion": "SourceRecord/v1",
+      "title": "Fixture authority for the benefit axis",
+      "url": "https://example.invalid/fixture-benefit",
+      "retrievedAt": "2026-08-18",
+      "editionYear": 2999,
+      "documentKind": "departmental-publication"
+    }
+  ],
+
+  "declaredLegs": [
+    { "legId": "social-security-benefit", "stageId": "CO-20", "includedInTotal": false, "label": "Fixture benefit" }
+  ],
+
+  "bendPointSet": {
+    "contractVersion": "BendPointSet/v1",
+    "eligibilityYear": 2999,
+    "sourceRef": "fixture-authority",
+    "locator": "Fixture formula",
+    "tiers": [
+      { "tierId": "first", "percentage": 0.8, "lowerInclusive": 0, "upperInclusive": 1000, "sourceRef": "fixture-authority", "locator": "Fixture tier one" },
+      { "tierId": "second", "percentage": 0.4, "lowerInclusive": 1000, "upperInclusive": 5000, "sourceRef": "fixture-authority", "locator": "Fixture tier two" },
+      { "tierId": "third", "percentage": 0.2, "lowerInclusive": 5000, "upperInclusive": null, "sourceRef": "fixture-authority", "locator": "Fixture tier three" }
+    ]
+  },
+
+  "indexingRule": {
+    "contractVersion": "WageIndexingRule/v1",
+    "indexingAgeYears": 60,
+    "highestYearsCount": 2,
+    "monthsDivisor": 24,
+    "sourceRef": "fixture-authority",
+    "locator": "Fixture indexing rule",
+    "quotientRounding": {
+      "contractVersion": "BenefitRounding/v1",
+      "mode": "truncate-down-to-multiple",
+      "multiple": 1,
+      "sourceRef": "fixture-authority",
+      "locator": "Fixture quotient rounding"
+    }
+  },
+
+  "wageIndexingSeries": {
+    "contractVersion": "SourcedRowTable/v1",
+    "tableId": "fixture-wage-index-series",
+    "keyName": "year",
+    "sourceRef": "fixture-authority",
+    "locator": "Fixture wage index table",
+    "declaredDomain": { "lowerInclusive": 2988, "upperInclusive": 2992, "lowerOpen": false, "upperOpen": false },
+    "rows": [
+      { "rowId": "fx-awi-2988", "keyFrom": 2988, "keyTo": 2988, "wageIndex": 100 },
+      { "rowId": "fx-awi-2989", "keyFrom": 2989, "keyTo": 2989, "wageIndex": 125 },
+      { "rowId": "fx-awi-2990", "keyFrom": 2990, "keyTo": 2990, "wageIndex": 200 },
+      { "rowId": "fx-awi-2991", "keyFrom": 2991, "keyTo": 2991, "wageIndex": 250 },
+      { "rowId": "fx-awi-2992", "keyFrom": 2992, "keyTo": 2992, "wageIndex": 400 }
+    ]
+  },
+
+  "fullRetirementAgeTable": {
+    "contractVersion": "SourcedRowTable/v1",
+    "tableId": "fixture-full-retirement-age",
+    "keyName": "birthYear",
+    "sourceRef": "fixture-authority",
+    "locator": "Fixture full retirement age table",
+    "declaredDomain": { "lowerInclusive": 2930, "upperInclusive": 2932, "lowerOpen": false, "upperOpen": false },
+    "rows": [
+      { "rowId": "fx-fra-2930", "keyFrom": 2930, "keyTo": 2930, "ageYears": 66, "ageMonths": 0, "locator": "Fixture first row" },
+      { "rowId": "fx-fra-2931", "keyFrom": 2931, "keyTo": 2931, "ageYears": 67, "ageMonths": 3, "locator": "Fixture interior row" },
+      { "rowId": "fx-fra-2932", "keyFrom": 2932, "keyTo": 2932, "ageYears": 68, "ageMonths": 6, "locator": "Fixture last row" }
+    ]
+  },
+
+  "earlyReductionRule": {
+    "contractVersion": "EarlyReductionRule/v1",
+    "sourceRef": "fixture-authority",
+    "locator": "Fixture reduction rule",
+    "firstSegmentMonths": 10,
+    "firstSegmentMonthlyFactor": { "numerator": 1, "denominator": 2, "ofPercent": 1 },
+    "additionalMonthlyFactor": { "numerator": 1, "denominator": 4, "ofPercent": 1 }
+  },
+
+  "delayedCreditRule": {
+    "contractVersion": "DelayedCreditRule/v1",
+    "sourceRef": "fixture-authority",
+    "locator": "Fixture credit rule",
+    "stoppingAgeYears": 71,
+    "stoppingStatement": "The fixture increase stops at the fixture stopping age.",
+    "monthlyRateTable": {
+      "contractVersion": "SourcedRowTable/v1",
+      "tableId": "fixture-delayed-credit",
+      "keyName": "birthYear",
+      "sourceRef": "fixture-authority",
+      "locator": "Fixture credit table",
+      "declaredDomain": { "lowerInclusive": 2930, "upperInclusive": null, "lowerOpen": false, "upperOpen": true },
+      "rows": [
+        { "rowId": "fx-drc-2930-or-later", "keyFrom": 2930, "keyTo": null, "monthlyFactor": { "numerator": 1, "denominator": 1, "ofPercent": 1 }, "locator": "Fixture credit row" }
+      ]
+    }
+  }
+}

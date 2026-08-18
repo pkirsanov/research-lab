@@ -1,0 +1,380 @@
+{
+  "contractVersion": "BenefitRulePack/v1",
+  "id": "us-social-security-retirement-benefit-2026",
+  "program": "social-security-retirement-benefit",
+  "jurisdiction": "federal",
+  "version": "1.0.0",
+  "declaredForYear": 2026,
+  "effectiveTaxYears": [2026],
+  "retrievedAt": "2026-08-18",
+  "ruleStatus": "enacted-current-law",
+
+  "sourceRecords": [
+    {
+      "sourceId": "ssa-pia-formula-2026",
+      "contractVersion": "SourceRecord/v1",
+      "title": "Primary Insurance Amount",
+      "url": "https://www.ssa.gov/oact/cola/piaformula.html",
+      "retrievedAt": "2026-08-18",
+      "editionYear": 2026,
+      "documentKind": "departmental-publication",
+      "editionEvidence": "The page states: \"These dollar amounts are the \\\"bend points\\\" of the 2026 PIA formula.\" The bend points are therefore scoped by the publication itself to 2026, which is the declared year, so no invariance basis is required or claimed for them."
+    },
+    {
+      "sourceId": "ssa-awi-series",
+      "contractVersion": "SourceRecord/v1",
+      "title": "Average Wage Index (AWI)",
+      "url": "https://www.ssa.gov/oact/cola/awidevelop.html",
+      "retrievedAt": "2026-08-18",
+      "editionYear": null,
+      "documentKind": "departmental-publication",
+      "editionEvidence": "The page carries no edition year. Its table is keyed by its own first column, \"Year\", so each transcribed row is the figure FOR the year it names rather than a figure scoped to the year the page was read. Every value-bearing figure taken from it therefore carries a quoted yearInvarianceBasis."
+    },
+    {
+      "sourceId": "ssa-benefit-calculation-2026-indexing",
+      "contractVersion": "SourceRecord/v1",
+      "title": "Benefit Calculation Examples for Workers Retiring in 2026",
+      "url": "https://www.ssa.gov/oact/ProgData/retirebenefit1.html",
+      "retrievedAt": "2026-08-18",
+      "editionYear": 2026,
+      "documentKind": "departmental-publication",
+      "editionEvidence": "The page's own title is \"Benefit Calculation Examples for Workers Retiring in 2026\", which dates it to the declared year."
+    },
+    {
+      "sourceId": "ssa-benefit-based-on-pia-and-age-2026",
+      "contractVersion": "SourceRecord/v1",
+      "title": "Benefit Calculation Examples for Workers Retiring in 2026 — Primary Insurance Amount",
+      "url": "https://www.ssa.gov/oact/ProgData/retirebenefit2.html",
+      "retrievedAt": "2026-08-18",
+      "editionYear": 2026,
+      "documentKind": "departmental-publication",
+      "editionEvidence": "The page's own title is \"Benefit Calculation Examples for Workers Retiring in 2026\", which dates it to the declared year."
+    },
+    {
+      "sourceId": "ssa-normal-retirement-age",
+      "contractVersion": "SourceRecord/v1",
+      "title": "Normal Retirement Age",
+      "url": "https://www.ssa.gov/oact/ProgData/nra.html",
+      "retrievedAt": "2026-08-18",
+      "editionYear": null,
+      "documentKind": "departmental-publication",
+      "editionEvidence": "The page carries no edition year. It names its own variation axis in its own text \u2014 \"The table below shows how NRA varies by year of birth for retirees.\" \u2014 and its terminal row is open-ended, so every figure taken from it carries a quoted yearInvarianceBasis."
+    },
+    {
+      "sourceId": "ssa-early-or-late-retirement",
+      "contractVersion": "SourceRecord/v1",
+      "title": "Early or Late Retirement?",
+      "url": "https://www.ssa.gov/OACT/quickcalc/early_late.html",
+      "retrievedAt": "2026-08-18",
+      "editionYear": null,
+      "documentKind": "departmental-publication",
+      "editionEvidence": "The page carries no edition year. It states the early-retirement reduction rule in its own prose with no year qualifier and works the maximum case arithmetically from that same rule, so every figure taken from it carries a quoted yearInvarianceBasis."
+    },
+    {
+      "sourceId": "ssa-age-reduction-by-birth-year",
+      "contractVersion": "SourceRecord/v1",
+      "title": "Starting Your Retirement Benefits Early",
+      "url": "https://www.ssa.gov/benefits/retirement/planner/agereduction.html",
+      "retrievedAt": "2026-08-18",
+      "editionYear": null,
+      "documentKind": "departmental-publication",
+      "editionEvidence": "The page carries no edition year. Its table \"Full Retirement and Age 62 Benefit By Year Of Birth\" is keyed by year of birth and its terminal row is open-ended, which is the in-document dating contrast this pack quotes rather than asserting one from the figure's category."
+    },
+    {
+      "sourceId": "ssa-act-215",
+      "contractVersion": "SourceRecord/v1",
+      "title": "Compilation Of The Social Security Laws — Sec. 215. [42 U.S.C. 415] Computation Of Primary Insurance Amount",
+      "url": "https://www.ssa.gov/OP_Home/ssact/title02/0215.htm",
+      "retrievedAt": "2026-08-18",
+      "editionYear": null,
+      "documentKind": "statute",
+      "editionEvidence": "A compilation of statute rather than a dated annual edition. It separates, in its own text, the parts that vary by year from the parts that do not: subsection (a)(1)(A) fixes the three percentages and the rounding with no year term, while subparagraph (B) supplies a formula by which the dollar amounts are re-established for each calendar year. Every figure taken from it therefore carries a quoted yearInvarianceBasis."
+    },
+    {
+      "sourceId": "ssa-delayed-retirement-credits",
+      "contractVersion": "SourceRecord/v1",
+      "title": "Benefits Planner: Retirement | Delayed Retirement Credits",
+      "url": "https://www.ssa.gov/benefits/retirement/planner/delayret.html",
+      "retrievedAt": "2026-08-18",
+      "editionYear": null,
+      "documentKind": "departmental-publication",
+      "editionEvidence": "The page carries no edition year. Its table is keyed by year of birth with an open-ended terminal row and it states the stopping age in its own prose, so every figure taken from it carries a quoted yearInvarianceBasis."
+    }
+  ],
+
+  "declaredLegs": [
+    {
+      "legId": "social-security-benefit",
+      "stageId": "CO-20",
+      "includedInTotal": false,
+      "label": "Social Security retirement benefit"
+    }
+  ],
+
+  "bendPointSet": {
+    "contractVersion": "BendPointSet/v1",
+    "eligibilityYear": 2026,
+    "sourceRef": "ssa-pia-formula-2026",
+    "locator": "Paragraph \"PIA formula bend points\"",
+    "quotedFormula": "The PIA is the sum of three separate percentages of portions of average indexed monthly earnings. The portions depend on the year in which a worker attains age 62, becomes disabled before age 62, or dies before attaining age 62. For 2026 these portions are the first $1,286, the amount between $1,286 and $7,749, and the amount over $7,749. These dollar amounts are the \"bend points\" of the 2026 PIA formula.",
+    "percentageSource": {
+      "sourceRef": "ssa-act-215",
+      "locator": "Sec. 215(a)(1)(A) clauses (i), (ii) and (iii)",
+      "quotedRule": "(i) 90 percent of the individual\u2019s average indexed monthly earnings (determined under subsection (b)) to the extent that such earnings do not exceed the amount established for purposes of this clause by subparagraph (B), (ii) 32 percent of the individual\u2019s average indexed monthly earnings to the extent that such earnings exceed the amount established for purposes of clause (i) but do not exceed the amount established for purposes of this clause by subparagraph (B), and (iii) 15 percent of the individual\u2019s average indexed monthly earnings to the extent that such earnings exceed the amount established for purposes of clause (ii)",
+      "statedFact": "The three percentages are transcribed from the statute, which states them clause by clause and attaches each to the portion its own clause delimits. The bend-point DOLLAR amounts are transcribed instead from the 2026-dated formula page, because the statute does not print them: subparagraph (B) supplies only the formula by which they are re-established for each calendar year. That division is the publication's own, and it is why the percentages are structure and the bend points are year-scoped.",
+      "alsoStatedBy": {
+        "sourceRef": "ssa-benefit-based-on-pia-and-age-2026",
+        "locator": "Table under \"Primary Insurance Amount\" \u2014 the case-A row, column \"Formula applied to AIME\"",
+        "quotedRule": "A | $5,825 | $1,286 | $7,749 | .9(1286) + .32(5825 - 1286) = $2,609.88"
+      }
+    },
+    "tiers": [
+      {
+        "tierId": "first",
+        "percentage": 0.9,
+        "lowerInclusive": 0,
+        "upperInclusive": 1286,
+        "sourceRef": "ssa-pia-formula-2026",
+        "locator": "Paragraph \"PIA formula bend points\" — \"the first $1,286\"",
+        "percentageSourceRef": "ssa-act-215",
+        "percentageLocator": "Sec. 215(a)(1)(A)(i)"
+      },
+      {
+        "tierId": "second",
+        "percentage": 0.32,
+        "lowerInclusive": 1286,
+        "upperInclusive": 7749,
+        "sourceRef": "ssa-pia-formula-2026",
+        "locator": "Paragraph \"PIA formula bend points\" — \"the amount between $1,286 and $7,749\"",
+        "percentageSourceRef": "ssa-act-215",
+        "percentageLocator": "Sec. 215(a)(1)(A)(ii)"
+      },
+      {
+        "tierId": "third",
+        "percentage": 0.15,
+        "lowerInclusive": 7749,
+        "upperInclusive": null,
+        "sourceRef": "ssa-pia-formula-2026",
+        "locator": "Paragraph \"PIA formula bend points\" — \"the amount over $7,749\"",
+        "percentageSourceRef": "ssa-act-215",
+        "percentageLocator": "Sec. 215(a)(1)(A)(iii)"
+      }
+    ],
+    "roundingRule": {
+      "contractVersion": "BenefitRounding/v1",
+      "mode": "truncate-down-to-multiple",
+      "multiple": 0.1,
+      "sourceRef": "ssa-act-215",
+      "locator": "Sec. 215(a)(1)(A) — the closing clause following clause (iii)",
+      "quotedRule": "rounded, if not a multiple of $0.10, to the next lower multiple of $0.10, and thereafter increased as provided in subsection (i).",
+      "yearInvarianceBasis": "The statute states this rounding in the closing clause of subsection (a)(1)(A) with no year term and with no re-establishment formula, in the same document whose subparagraph (a)(1)(B) supplies an explicit annual re-establishment formula for the bend-point dollar amounts and rounds THOSE to the nearest $1. That contrast is the publication's own: where a figure is meant to move with the year, this document says how it moves, and for the $0.10 truncation it says nothing of the kind.",
+      "alsoStatedBy": {
+        "sourceRef": "ssa-benefit-based-on-pia-and-age-2026",
+        "locator": "Section \"Primary Insurance Amount\" — the case-A sentence",
+        "quotedRule": "Therefore, the case-A PIA is the case A amount computed above truncated to the next lower dime, or $2,609.80."
+      }
+    }
+  },
+
+  "indexingRule": {
+    "contractVersion": "WageIndexingRule/v1",
+    "indexingAgeYears": 60,
+    "highestYearsCount": 35,
+    "monthsDivisor": 420,
+    "sourceRef": "ssa-benefit-calculation-2026-indexing",
+    "locator": "Indexing paragraphs preceding the \"Earnings before and after indexing\" table",
+    "quotedRule": "A factor will always equal one for the year in which the person attains age 60 and all later years. The indexing factor for a prior year Y is the result of dividing the average wage index for the year in which the person attains age 60 by the average wage index for year Y. ... We use the highest 35 years of indexed earnings in a benefit computation. ... (The average is the result of dividing the sum of the 35 highest amounts by the number of months in 35 years.)",
+    "quotientRounding": {
+      "contractVersion": "BenefitRounding/v1",
+      "mode": "truncate-down-to-multiple",
+      "multiple": 1,
+      "sourceRef": "ssa-act-215",
+      "locator": "Sec. 215(e)(2) — Certain Wages And Self-Employment Income Not To Be Counted",
+      "quotedRule": "if an individual’s average indexed monthly earnings or, in the case of an individual whose primary insurance amount is computed under section 215(a) as in effect prior to January 1979, average monthly wage, computed under subsection (b) or for the purposes of subsection (d) is not a multiple of $1, it shall be reduced to the next lower multiple of $1.",
+      "yearInvarianceBasis": "The statute states this rounding in subsection (e)(2) with no year term and with no re-establishment formula, in the same document whose subparagraph (a)(1)(B) supplies an explicit annual re-establishment formula for the bend-point dollar amounts. That contrast is the publication's own: where a figure is meant to move with the year, this document says how it moves, and for subsection (e)(2) it says nothing of the kind.",
+      "retrievalNote": "This rule is NOT stated by the benefit-calculation page, which states the division and states no rounding for its result, and it is NOT stated by Sec. 215(b)(1), which defines the quotient and likewise states no rounding for it. It is stated by Sec. 215(e)(2), whose subject is the same quotient reached by a different subsection. An earlier transcription of this pack recorded the rule as unretrievable after reading only (b)(1); the rule was found on a later retrieval of the same statute in the implementing session and is transcribed here rather than inferred from the worked example.",
+      "alsoStatedBy": {
+        "sourceRef": "ssa-benefit-calculation-2026-indexing",
+        "locator": "Rows \"Highest-35 total\" and \"AIME\" of the case-A column",
+        "quotedRule": "Highest-35 total | 2,446,845 ... AIME | 5,825",
+        "statedFact": "The publication's own worked example divides 2,446,845 by 420 to reach 5,825.821…, and publishes 5,825. That is consistent with the statute's truncation and is recorded as corroboration only; the rule itself is transcribed from Sec. 215(e)(2) and is not inferred from this example."
+      }
+    }
+  },
+
+  "wageIndexingSeries": {
+    "contractVersion": "SourcedRowTable/v1",
+    "tableId": "average-wage-index-series",
+    "keyName": "year",
+    "sourceRef": "ssa-awi-series",
+    "locator": "Table \"Year / AWI series / SSA raw data\" — the AWI column",
+    "yearInvarianceBasis": "The publication's own table is keyed by its first column, \"Year\", and each row states the AWI FOR that year: \"1985 | 16,822.51 ... 2024 | 69,846.57\". A row is therefore the figure for the year it names rather than a figure scoped to the year the page was published, which is the publication's own dating contrast for this component kind.",
+    "declaredDomain": {
+      "lowerInclusive": 1985,
+      "upperInclusive": 2024,
+      "lowerOpen": false,
+      "upperOpen": false,
+      "statedFact": "The retrieved page presents the AWI series from 1985 through 2024; earlier years are shown on the page only as \"[see data for prior years]\" and were not retrieved. An earning year outside this domain refuses rather than being indexed by an adjacent year's factor."
+    },
+    "rows": [
+      { "rowId": "awi-1985", "keyFrom": 1985, "keyTo": 1985, "wageIndex": 16822.51 },
+      { "rowId": "awi-1986", "keyFrom": 1986, "keyTo": 1986, "wageIndex": 17321.82 },
+      { "rowId": "awi-1987", "keyFrom": 1987, "keyTo": 1987, "wageIndex": 18426.51 },
+      { "rowId": "awi-1988", "keyFrom": 1988, "keyTo": 1988, "wageIndex": 19334.04 },
+      { "rowId": "awi-1989", "keyFrom": 1989, "keyTo": 1989, "wageIndex": 20099.55 },
+      { "rowId": "awi-1990", "keyFrom": 1990, "keyTo": 1990, "wageIndex": 21027.98 },
+      { "rowId": "awi-1991", "keyFrom": 1991, "keyTo": 1991, "wageIndex": 21811.6 },
+      { "rowId": "awi-1992", "keyFrom": 1992, "keyTo": 1992, "wageIndex": 22935.42 },
+      { "rowId": "awi-1993", "keyFrom": 1993, "keyTo": 1993, "wageIndex": 23132.67 },
+      { "rowId": "awi-1994", "keyFrom": 1994, "keyTo": 1994, "wageIndex": 23753.53 },
+      { "rowId": "awi-1995", "keyFrom": 1995, "keyTo": 1995, "wageIndex": 24705.66 },
+      { "rowId": "awi-1996", "keyFrom": 1996, "keyTo": 1996, "wageIndex": 25913.9 },
+      { "rowId": "awi-1997", "keyFrom": 1997, "keyTo": 1997, "wageIndex": 27426.0 },
+      { "rowId": "awi-1998", "keyFrom": 1998, "keyTo": 1998, "wageIndex": 28861.44 },
+      { "rowId": "awi-1999", "keyFrom": 1999, "keyTo": 1999, "wageIndex": 30469.84 },
+      { "rowId": "awi-2000", "keyFrom": 2000, "keyTo": 2000, "wageIndex": 32154.82 },
+      { "rowId": "awi-2001", "keyFrom": 2001, "keyTo": 2001, "wageIndex": 32921.92 },
+      { "rowId": "awi-2002", "keyFrom": 2002, "keyTo": 2002, "wageIndex": 33252.09 },
+      { "rowId": "awi-2003", "keyFrom": 2003, "keyTo": 2003, "wageIndex": 34064.95 },
+      { "rowId": "awi-2004", "keyFrom": 2004, "keyTo": 2004, "wageIndex": 35648.55 },
+      { "rowId": "awi-2005", "keyFrom": 2005, "keyTo": 2005, "wageIndex": 36952.94 },
+      { "rowId": "awi-2006", "keyFrom": 2006, "keyTo": 2006, "wageIndex": 38651.41 },
+      { "rowId": "awi-2007", "keyFrom": 2007, "keyTo": 2007, "wageIndex": 40405.48 },
+      { "rowId": "awi-2008", "keyFrom": 2008, "keyTo": 2008, "wageIndex": 41334.97 },
+      { "rowId": "awi-2009", "keyFrom": 2009, "keyTo": 2009, "wageIndex": 40711.61 },
+      { "rowId": "awi-2010", "keyFrom": 2010, "keyTo": 2010, "wageIndex": 41673.83 },
+      { "rowId": "awi-2011", "keyFrom": 2011, "keyTo": 2011, "wageIndex": 42979.61 },
+      { "rowId": "awi-2012", "keyFrom": 2012, "keyTo": 2012, "wageIndex": 44321.67 },
+      { "rowId": "awi-2013", "keyFrom": 2013, "keyTo": 2013, "wageIndex": 44888.16 },
+      { "rowId": "awi-2014", "keyFrom": 2014, "keyTo": 2014, "wageIndex": 46481.52 },
+      { "rowId": "awi-2015", "keyFrom": 2015, "keyTo": 2015, "wageIndex": 48098.63 },
+      { "rowId": "awi-2016", "keyFrom": 2016, "keyTo": 2016, "wageIndex": 48642.15 },
+      { "rowId": "awi-2017", "keyFrom": 2017, "keyTo": 2017, "wageIndex": 50321.89 },
+      { "rowId": "awi-2018", "keyFrom": 2018, "keyTo": 2018, "wageIndex": 52145.8 },
+      { "rowId": "awi-2019", "keyFrom": 2019, "keyTo": 2019, "wageIndex": 54099.99 },
+      { "rowId": "awi-2020", "keyFrom": 2020, "keyTo": 2020, "wageIndex": 55628.6 },
+      { "rowId": "awi-2021", "keyFrom": 2021, "keyTo": 2021, "wageIndex": 60575.07 },
+      { "rowId": "awi-2022", "keyFrom": 2022, "keyTo": 2022, "wageIndex": 63795.13 },
+      { "rowId": "awi-2023", "keyFrom": 2023, "keyTo": 2023, "wageIndex": 66621.8 },
+      { "rowId": "awi-2024", "keyFrom": 2024, "keyTo": 2024, "wageIndex": 69846.57 }
+    ]
+  },
+
+  "fullRetirementAgeTable": {
+    "contractVersion": "SourcedRowTable/v1",
+    "tableId": "normal-retirement-age-by-year-of-birth",
+    "keyName": "birthYear",
+    "sourceRef": "ssa-normal-retirement-age",
+    "locator": "Table \"Normal Retirement Age\" — columns \"Year of birth\" and \"Age\"",
+    "yearInvarianceBasis": "The publication names its own variation axis and names no other: \"The table below shows how NRA varies by year of birth for retirees.\" Its terminal row is open-ended \u2014 \"1960 and later | 67\" \u2014 so the publication itself asserts the value for every birth year from 1960 forward rather than bounding the table to the year it was published. That open-ended terminal row is the in-document contrast: a table scoped to a publication year could not state a value for birth years later than its own publication.",
+    "applicabilityNote": "The publication states: \"Persons born on January 1 of any year should refer to the normal retirement age for the previous year.\" This model receives a birth YEAR and not a birth date, so it cannot apply that rule; a household born on January 1 must declare the previous year to obtain the age the publication assigns it.",
+    "declaredDomain": {
+      "lowerInclusive": null,
+      "upperInclusive": null,
+      "lowerOpen": true,
+      "upperOpen": true,
+      "statedFact": "The publication's first row is \"1937 and prior\" and its last row is \"1960 and later\", so the table declares a value for every birth year and its declared domain is open at both ends."
+    },
+    "rows": [
+      { "rowId": "nra-1937-and-prior", "keyFrom": null, "keyTo": 1937, "ageYears": 65, "ageMonths": 0, "locator": "Row \"1937 and prior\"" },
+      { "rowId": "nra-1938", "keyFrom": 1938, "keyTo": 1938, "ageYears": 65, "ageMonths": 2, "locator": "Row \"1938\"" },
+      { "rowId": "nra-1939", "keyFrom": 1939, "keyTo": 1939, "ageYears": 65, "ageMonths": 4, "locator": "Row \"1939\"" },
+      { "rowId": "nra-1940", "keyFrom": 1940, "keyTo": 1940, "ageYears": 65, "ageMonths": 6, "locator": "Row \"1940\"" },
+      { "rowId": "nra-1941", "keyFrom": 1941, "keyTo": 1941, "ageYears": 65, "ageMonths": 8, "locator": "Row \"1941\"" },
+      { "rowId": "nra-1942", "keyFrom": 1942, "keyTo": 1942, "ageYears": 65, "ageMonths": 10, "locator": "Row \"1942\"" },
+      { "rowId": "nra-1943-1954", "keyFrom": 1943, "keyTo": 1954, "ageYears": 66, "ageMonths": 0, "locator": "Row \"1943-54\"" },
+      { "rowId": "nra-1955", "keyFrom": 1955, "keyTo": 1955, "ageYears": 66, "ageMonths": 2, "locator": "Row \"1955\"" },
+      { "rowId": "nra-1956", "keyFrom": 1956, "keyTo": 1956, "ageYears": 66, "ageMonths": 4, "locator": "Row \"1956\"" },
+      { "rowId": "nra-1957", "keyFrom": 1957, "keyTo": 1957, "ageYears": 66, "ageMonths": 6, "locator": "Row \"1957\"" },
+      { "rowId": "nra-1958", "keyFrom": 1958, "keyTo": 1958, "ageYears": 66, "ageMonths": 8, "locator": "Row \"1958\"" },
+      { "rowId": "nra-1959", "keyFrom": 1959, "keyTo": 1959, "ageYears": 66, "ageMonths": 10, "locator": "Row \"1959\"" },
+      { "rowId": "nra-1960-and-later", "keyFrom": 1960, "keyTo": null, "ageYears": 67, "ageMonths": 0, "locator": "Row \"1960 and later\"" }
+    ]
+  },
+
+  "earlyReductionRule": {
+    "contractVersion": "EarlyReductionRule/v1",
+    "sourceRef": "ssa-early-or-late-retirement",
+    "locator": "Row \"Early retirement reduces benefits\"",
+    "quotedRule": "In the case of early retirement, a benefit is reduced 5/9 of one percent for each month before normal retirement age, up to 36 months. If the number of months exceeds 36, then the benefit is further reduced 5/12 of one percent per month. For example, if the number of reduction months is 60 (the maximum number for retirement at 62 when normal retirement age is 67), then the benefit is reduced by 30 percent. This maximum reduction is calculated as 36 months times 5/9 of 1 percent plus 24 months times 5/12 of 1 percent.",
+    "yearInvarianceBasis": "The publication states the rule in its own prose with no year qualifier whatsoever, and works its maximum case arithmetically from that same rule rather than reading it off a year-scoped table. The companion publication \"Starting Your Retirement Benefits Early\" supplies the in-document dating contrast: its table is keyed by year of birth and its terminal row is open-ended — \"1960 and later | 67 | 60 | $700 | 30.00%\" — so the publication itself states a reduction for every birth year from 1960 forward, which a rule scoped to a publication year could not do.",
+    "invarianceContrastAlsoStatedBy": {
+      "sourceRef": "ssa-age-reduction-by-birth-year",
+      "locator": "Table \"Full Retirement and Age 62 Benefit By Year Of Birth\" — terminal row",
+      "quotedRule": "1960 and later | 67 | 60 | $700 | 30.00%"
+    },
+    "firstSegmentMonths": 36,
+    "firstSegmentMonthlyFactor": { "numerator": 5, "denominator": 9, "ofPercent": 1 },
+    "additionalMonthlyFactor": { "numerator": 5, "denominator": 12, "ofPercent": 1 }
+  },
+
+  "delayedCreditRule": {
+    "contractVersion": "DelayedCreditRule/v1",
+    "sourceRef": "ssa-delayed-retirement-credits",
+    "locator": "Opening paragraph and the table \"Increase for Delayed Retirement\"",
+    "stoppingAgeYears": 70,
+    "stoppingStatement": "The benefit increase stops when you reach age 70.",
+    "monthlyRateTable": {
+      "contractVersion": "SourcedRowTable/v1",
+      "tableId": "delayed-retirement-credit-by-year-of-birth",
+      "keyName": "birthYear",
+      "sourceRef": "ssa-delayed-retirement-credits",
+      "locator": "Table \"Increase for Delayed Retirement\" — columns \"Year of Birth\" and \"Monthly Rate of Increase\"",
+      "yearInvarianceBasis": "The publication's table is keyed by \"Year of Birth\" and its terminal row is open-ended — \"1943 or later | 8.0% | 2/3 of 1%\" — so the publication itself states a credit rate for every birth year from 1943 forward rather than for a publication year. Its stopping age is likewise stated as prose with no year qualifier: \"The benefit increase stops when you reach age 70.\" The open-ended terminal row is the in-document contrast for this component kind.",
+      "declaredDomain": {
+        "lowerInclusive": 1933,
+        "upperInclusive": null,
+        "lowerOpen": false,
+        "upperOpen": true,
+        "statedFact": "The publication's first row is \"1933-1934\" and its last row is \"1943 or later\", so the table is closed below at 1933 and open above."
+      },
+      "rows": [
+        { "rowId": "drc-1933-1934", "keyFrom": 1933, "keyTo": 1934, "twelveMonthRate": 0.055, "monthlyFactor": { "numerator": 11, "denominator": 24, "ofPercent": 1 }, "locator": "Row \"1933-1934\"" },
+        { "rowId": "drc-1935-1936", "keyFrom": 1935, "keyTo": 1936, "twelveMonthRate": 0.06, "monthlyFactor": { "numerator": 1, "denominator": 2, "ofPercent": 1 }, "locator": "Row \"1935-1936\"" },
+        { "rowId": "drc-1937-1938", "keyFrom": 1937, "keyTo": 1938, "twelveMonthRate": 0.065, "monthlyFactor": { "numerator": 13, "denominator": 24, "ofPercent": 1 }, "locator": "Row \"1937-1938\"" },
+        { "rowId": "drc-1939-1940", "keyFrom": 1939, "keyTo": 1940, "twelveMonthRate": 0.07, "monthlyFactor": { "numerator": 7, "denominator": 12, "ofPercent": 1 }, "locator": "Row \"1939-1940\"" },
+        { "rowId": "drc-1941-1942", "keyFrom": 1941, "keyTo": 1942, "twelveMonthRate": 0.075, "monthlyFactor": { "numerator": 5, "denominator": 8, "ofPercent": 1 }, "locator": "Row \"1941-1942\"" },
+        { "rowId": "drc-1943-or-later", "keyFrom": 1943, "keyTo": null, "twelveMonthRate": 0.08, "monthlyFactor": { "numerator": 2, "denominator": 3, "ofPercent": 1 }, "locator": "Row \"1943 or later\"" }
+      ]
+    }
+  },
+
+  "benefitRounding": {
+    "contractVersion": "BenefitRounding/v1",
+    "mode": "truncate-down-to-multiple",
+    "multiple": 1,
+    "sourceRef": "ssa-act-215",
+    "locator": "Sec. 215(g) — Rounding Of Benefits",
+    "quotedRule": "The amount of any monthly benefit computed under section 202 or 223 which (after any reduction under sections 203(a) and 224 and any deduction under section 203(b), and after any deduction under section 1840(a)(1)) is not a multiple of $1 shall be rounded to the next lower multiple of $1.",
+    "yearInvarianceBasis": "The statute states this rounding in subsection (g) with no year term and with no re-establishment formula, in the same document whose subparagraph (a)(1)(B) supplies an explicit annual re-establishment formula for the bend-point dollar amounts. That contrast is the publication's own: where a figure is meant to move with the year, this document says how it moves, and for subsection (g) it says nothing of the kind.",
+    "alsoStatedBy": {
+      "sourceRef": "ssa-benefit-based-on-pia-and-age-2026",
+      "locator": "Section \"Benefit Based on PIA and Age\" — the case-B sentence",
+      "quotedRule": "The benefit amount for case B, assuming that benefits begin exactly at normal retirement age of 66 years and 10 months, is not reduced except for rounding down to the next lower dollar. The $4,152.40 PIA is thus reduced to a monthly benefit of $4,152.00."
+    }
+  },
+
+  "knownValueChecks": [
+    {
+      "checkId": "ssa-case-a-2026",
+      "sourceRef": "ssa-benefit-based-on-pia-and-age-2026",
+      "locator": "Table row \"A\" under \"Primary Insurance Amount\", and the case-A sentence under \"Benefit Based on PIA and Age\"",
+      "quotedFigures": "A | $5,825 | $1,286 | $7,749 | .9(1286) + .32(5825 - 1286) = $2,609.88 ... the case-A PIA is the case A amount computed above truncated to the next lower dime, or $2,609.80. ... Because case A's normal retirement age is 67 years, the benefit amount for case A is reduced for 60 months of early retirement. The $2,609.80 PIA is thus reduced to a monthly benefit of $1,826.00.",
+      "averageIndexedMonthlyEarnings": 5825,
+      "primaryInsuranceAmountBeforeRounding": 2609.88,
+      "primaryInsuranceAmount": 2609.8,
+      "birthYear": 1964,
+      "claimAgeMonths": 744,
+      "reductionMonths": 60,
+      "adjustedMonthlyBenefit": 1826.0
+    },
+    {
+      "checkId": "ssa-case-a-2026-highest-35-total",
+      "sourceRef": "ssa-benefit-calculation-2026-indexing",
+      "locator": "Row \"Highest-35 total\" and row \"AIME\" of the case-A column",
+      "quotedFigures": "Highest-35 total | 2,446,845 ... AIME | 5,825",
+      "highest35Total": 2446845,
+      "publishedAverageIndexedMonthlyEarnings": 5825
+    }
+  ]
+}

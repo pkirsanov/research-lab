@@ -1,0 +1,329 @@
+{
+  "contractVersion": "MedicarePack/v1",
+  "id": "medicare-premiums-2026",
+  "jurisdiction": "federal",
+  "program": "medicare-premiums",
+  "version": "1.0.0",
+  "declaredForYear": 2026,
+  "effectiveTaxYears": [2026],
+  "retrievedAt": "2026-08-18T10:26:45.000Z",
+  "ruleStatus": "enacted-current-law",
+  "medicarePolicy": {
+    "contractVersion": "MedicarePolicy/v1",
+    "policyId": "medicare-premiums-and-income-related-adjustment",
+    "modelsUnsupportedFeatureId": "irmaa-bands",
+    "stageId": "CO-22",
+    "premiumYear": 2026,
+    "lookbackOffsetYears": {
+      "value": 2,
+      "sourceRef": "ssa-medicare-premiums-higher-income-2026",
+      "locator": "Your Tax Return, first paragraph",
+      "quotedOffsetBasis": "To determine your 2026 income-related monthly adjustment amounts, we use your most recent federal tax return the IRS provides to us. Generally, this information is from a tax return filed in 2025 for tax year 2024."
+    },
+    "standardPremiums": {
+      "part-b": {
+        "value": 202.90,
+        "sourceRef": "ssa-medicare-premiums-higher-income-2026",
+        "locator": "Monthly Medicare Premiums for 2026, first table, first row, Part B column"
+      },
+      "part-d": {
+        "contractVersion": "AbsentFigure/v1",
+        "code": "RLTAX-THRESHOLD-UNAVAILABLE",
+        "domain": "medicare-standard-premium:part-d",
+        "reason": "Neither retrieved publication states a standard Part D premium. The Social Security page prints the words \"Your plan premium\" in the Part D column of every row of its 2026 table rather than a figure, and the Medicare costs page states \"Varies by plan. You may have to pay more, depending on your income.\" for the Part D premium. The Part D base beneficiary premium the adjustment is legally tied to is published by the Centers for Medicare & Medicaid Services and was not retrieved in this session: the newsroom fact-sheet address for the 2026 Part B and Part D premiums returned HTTP 404 and the newsroom search returned no matching fact sheet.",
+        "whatWouldMakeItAvailable": "Retrieve the Centers for Medicare & Medicaid Services announcement stating the 2026 Part D base beneficiary premium, or a publication stating a standard Part D premium for the declared year, and transcribe it with its locator. No plan premium is substituted and no average is computed.",
+        "missingSource": {
+          "title": "2026 Medicare Part D base beneficiary premium announcement",
+          "url": "https://www.cms.gov/newsroom/fact-sheets",
+          "documentKind": "departmental-publication",
+          "locator": "The fact sheet stating the Part D base beneficiary premium for 2026. Not retrieved in this session."
+        }
+      }
+    },
+    "filingStatusMapping": {
+      "married-filing-jointly": {
+        "bracketSetId": "joint-return",
+        "quotedBasis": "If you file your taxes as \"married, filing jointly\" and your MAGI is greater than $218,000, you'll pay higher premiums for your Part B and Medicare prescription drug coverage.",
+        "locator": "How Social Security Determines You Have a Higher Premium, third paragraph"
+      },
+      "married-filing-separately": {
+        "bracketSetId": "separate-return",
+        "quotedBasis": "Individuals with a MAGI above $109,000 and less than $391,000",
+        "locator": "Monthly Medicare Premiums for 2026, second table, second row, income column"
+      },
+      "single": {
+        "bracketSetId": "individual-return",
+        "quotedBasis": "If you file your taxes using a different status, and your MAGI is greater than $109,000, you'll pay higher premiums.",
+        "locator": "How Social Security Determines You Have a Higher Premium, third paragraph"
+      },
+      "head-of-household": {
+        "bracketSetId": "individual-return",
+        "quotedBasis": "If you file your taxes using a different status, and your MAGI is greater than $109,000, you'll pay higher premiums.",
+        "locator": "How Social Security Determines You Have a Higher Premium, third paragraph"
+      },
+      "qualifying-surviving-spouse": {
+        "bracketSetId": "individual-return",
+        "quotedBasis": "If you file your taxes using a different status, and your MAGI is greater than $109,000, you'll pay higher premiums.",
+        "locator": "How Social Security Determines You Have a Higher Premium, third paragraph"
+      }
+    },
+    "bracketSets": {
+      "individual-return": [
+        {
+          "bracketIndex": 0,
+          "lowerBound": null,
+          "boundaryOperator": "no-lower-bound",
+          "upperBound": 109000,
+          "partBAdjustment": {
+            "contractVersion": "SourcedZero/v1",
+            "value": 0,
+            "domain": "adjustment:part-b:individual-return:0",
+            "reason": "This publication states the standard premium alone for this income range and states no additional amount for it, so nothing is added rather than nothing being known.",
+            "ruleStatus": "enacted-current-law",
+            "sourceRef": "ssa-medicare-premiums-higher-income-2026",
+            "locator": "Monthly Medicare Premiums for 2026, first table, first row, Part B column"
+          },
+          "partDAdjustment": {
+            "contractVersion": "SourcedZero/v1",
+            "value": 0,
+            "domain": "adjustment:part-d:individual-return:0",
+            "reason": "This publication states the household's own plan premium alone for this income range and states no additional amount for it, so nothing is added rather than nothing being known.",
+            "ruleStatus": "enacted-current-law",
+            "sourceRef": "ssa-medicare-premiums-higher-income-2026",
+            "locator": "Monthly Medicare Premiums for 2026, first table, first row, Part D column"
+          },
+          "quotedRange": "Individuals with a MAGI less than or equal to $109,000",
+          "locator": "Monthly Medicare Premiums for 2026, first table, first row"
+        },
+        {
+          "bracketIndex": 1,
+          "lowerBound": 109000,
+          "boundaryOperator": "greater-than",
+          "upperBound": 137000,
+          "partBAdjustment": { "value": 81.20, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, second row, Part B column" },
+          "partDAdjustment": { "value": 14.50, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, second row, Part D column" },
+          "quotedRange": "Individuals with a MAGI above $109,000 up to $137,000",
+          "locator": "Monthly Medicare Premiums for 2026, first table, second row"
+        },
+        {
+          "bracketIndex": 2,
+          "lowerBound": 137000,
+          "boundaryOperator": "greater-than",
+          "upperBound": 171000,
+          "partBAdjustment": { "value": 202.90, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, third row, Part B column" },
+          "partDAdjustment": { "value": 37.50, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, third row, Part D column" },
+          "quotedRange": "Individuals with a MAGI above $137,000 up to $171,000",
+          "locator": "Monthly Medicare Premiums for 2026, first table, third row"
+        },
+        {
+          "bracketIndex": 3,
+          "lowerBound": 171000,
+          "boundaryOperator": "greater-than",
+          "upperBound": 205000,
+          "partBAdjustment": { "value": 324.60, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, fourth row, Part B column" },
+          "partDAdjustment": { "value": 60.40, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, fourth row, Part D column" },
+          "quotedRange": "Individuals with a MAGI above $171,000 up to $205,000",
+          "locator": "Monthly Medicare Premiums for 2026, first table, fourth row"
+        },
+        {
+          "bracketIndex": 4,
+          "lowerBound": 205000,
+          "boundaryOperator": "greater-than",
+          "upperBound": 500000,
+          "partBAdjustment": { "value": 446.30, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, fifth row, Part B column" },
+          "partDAdjustment": { "value": 83.30, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, fifth row, Part D column" },
+          "quotedRange": "Individuals with a MAGI above $205,000 and less than $500,000",
+          "locator": "Monthly Medicare Premiums for 2026, first table, fifth row"
+        },
+        {
+          "bracketIndex": 5,
+          "lowerBound": 500000,
+          "boundaryOperator": "greater-than-or-equal",
+          "upperBound": null,
+          "partBAdjustment": { "value": 487.00, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, sixth row, Part B column" },
+          "partDAdjustment": { "value": 91.00, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, sixth row, Part D column" },
+          "quotedRange": "Individuals with a MAGI equal to or above $500,000",
+          "locator": "Monthly Medicare Premiums for 2026, first table, sixth row"
+        }
+      ],
+      "joint-return": [
+        {
+          "bracketIndex": 0,
+          "lowerBound": null,
+          "boundaryOperator": "no-lower-bound",
+          "upperBound": 218000,
+          "partBAdjustment": {
+            "contractVersion": "SourcedZero/v1",
+            "value": 0,
+            "domain": "adjustment:part-b:joint-return:0",
+            "reason": "This publication states the standard premium alone for this income range and states no additional amount for it, so nothing is added rather than nothing being known.",
+            "ruleStatus": "enacted-current-law",
+            "sourceRef": "ssa-medicare-premiums-higher-income-2026",
+            "locator": "Monthly Medicare Premiums for 2026, first table, first row, Part B column"
+          },
+          "partDAdjustment": {
+            "contractVersion": "SourcedZero/v1",
+            "value": 0,
+            "domain": "adjustment:part-d:joint-return:0",
+            "reason": "This publication states the household's own plan premium alone for this income range and states no additional amount for it, so nothing is added rather than nothing being known.",
+            "ruleStatus": "enacted-current-law",
+            "sourceRef": "ssa-medicare-premiums-higher-income-2026",
+            "locator": "Monthly Medicare Premiums for 2026, first table, first row, Part D column"
+          },
+          "quotedRange": "Married couples with a MAGI of $218,000 or less",
+          "locator": "Monthly Medicare Premiums for 2026, first table, first row"
+        },
+        {
+          "bracketIndex": 1,
+          "lowerBound": 218000,
+          "boundaryOperator": "greater-than",
+          "upperBound": 274000,
+          "partBAdjustment": { "value": 81.20, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, second row, Part B column" },
+          "partDAdjustment": { "value": 14.50, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, second row, Part D column" },
+          "quotedRange": "Married couples with a MAGI above $218,000 up to $274,000",
+          "locator": "Monthly Medicare Premiums for 2026, first table, second row"
+        },
+        {
+          "bracketIndex": 2,
+          "lowerBound": 274000,
+          "boundaryOperator": "greater-than",
+          "upperBound": 342000,
+          "partBAdjustment": { "value": 202.90, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, third row, Part B column" },
+          "partDAdjustment": { "value": 37.50, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, third row, Part D column" },
+          "quotedRange": "Married couples with a MAGI above $274,000 up to $342,000",
+          "locator": "Monthly Medicare Premiums for 2026, first table, third row"
+        },
+        {
+          "bracketIndex": 3,
+          "lowerBound": 342000,
+          "boundaryOperator": "greater-than",
+          "upperBound": 410000,
+          "partBAdjustment": { "value": 324.60, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, fourth row, Part B column" },
+          "partDAdjustment": { "value": 60.40, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, fourth row, Part D column" },
+          "quotedRange": "Married couples with a MAGI above $342,000 up to $410,000",
+          "locator": "Monthly Medicare Premiums for 2026, first table, fourth row"
+        },
+        {
+          "bracketIndex": 4,
+          "lowerBound": 410000,
+          "boundaryOperator": "greater-than",
+          "upperBound": 750000,
+          "partBAdjustment": { "value": 446.30, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, fifth row, Part B column" },
+          "partDAdjustment": { "value": 83.30, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, fifth row, Part D column" },
+          "quotedRange": "Married couples with a MAGI above $410,000 and less than $750,000",
+          "locator": "Monthly Medicare Premiums for 2026, first table, fifth row"
+        },
+        {
+          "bracketIndex": 5,
+          "lowerBound": 750000,
+          "boundaryOperator": "greater-than-or-equal",
+          "upperBound": null,
+          "partBAdjustment": { "value": 487.00, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, sixth row, Part B column" },
+          "partDAdjustment": { "value": 91.00, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, first table, sixth row, Part D column" },
+          "quotedRange": "Married couples with a MAGI equal to or above $750,000",
+          "locator": "Monthly Medicare Premiums for 2026, first table, sixth row"
+        }
+      ],
+      "separate-return": [
+        {
+          "bracketIndex": 0,
+          "lowerBound": null,
+          "boundaryOperator": "no-lower-bound",
+          "upperBound": 109000,
+          "partBAdjustment": {
+            "contractVersion": "SourcedZero/v1",
+            "value": 0,
+            "domain": "adjustment:part-b:separate-return:0",
+            "reason": "This publication states the standard premium alone for this income range and states no additional amount for it, so nothing is added rather than nothing being known.",
+            "ruleStatus": "enacted-current-law",
+            "sourceRef": "ssa-medicare-premiums-higher-income-2026",
+            "locator": "Monthly Medicare Premiums for 2026, second table, first row, Part B column"
+          },
+          "partDAdjustment": {
+            "contractVersion": "SourcedZero/v1",
+            "value": 0,
+            "domain": "adjustment:part-d:separate-return:0",
+            "reason": "This publication states the household's own plan premium alone for this income range and states no additional amount for it, so nothing is added rather than nothing being known.",
+            "ruleStatus": "enacted-current-law",
+            "sourceRef": "ssa-medicare-premiums-higher-income-2026",
+            "locator": "Monthly Medicare Premiums for 2026, second table, first row, Part D column"
+          },
+          "quotedRange": "Individuals with a MAGI less than or equal to $109,000",
+          "locator": "Monthly Medicare Premiums for 2026, second table, first row"
+        },
+        {
+          "bracketIndex": 1,
+          "lowerBound": 109000,
+          "boundaryOperator": "greater-than",
+          "upperBound": 391000,
+          "partBAdjustment": { "value": 446.30, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, second table, second row, Part B column" },
+          "partDAdjustment": { "value": 83.30, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, second table, second row, Part D column" },
+          "quotedRange": "Individuals with a MAGI above $109,000 and less than $391,000",
+          "locator": "Monthly Medicare Premiums for 2026, second table, second row"
+        },
+        {
+          "bracketIndex": 2,
+          "lowerBound": 391000,
+          "boundaryOperator": "greater-than-or-equal",
+          "upperBound": null,
+          "partBAdjustment": { "value": 487.90, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, second table, third row, Part B column" },
+          "partDAdjustment": { "value": 91.00, "sourceRef": "ssa-medicare-premiums-higher-income-2026", "locator": "Monthly Medicare Premiums for 2026, second table, third row, Part D column" },
+          "quotedRange": "Individuals with a MAGI equal to or above $391,000",
+          "locator": "Monthly Medicare Premiums for 2026, second table, third row"
+        }
+      ]
+    },
+    "taxLegs": [
+      {
+        "contractVersion": "PremiumLeg/v1",
+        "legId": "medicare-part-b-premium",
+        "stageId": "CO-22",
+        "partId": "part-b",
+        "figureRef": "standardPremiums.part-b",
+        "includedInTotal": false
+      },
+      {
+        "contractVersion": "PremiumLeg/v1",
+        "legId": "medicare-part-d-premium",
+        "stageId": "CO-22",
+        "partId": "part-d",
+        "figureRef": "standardPremiums.part-d",
+        "includedInTotal": false
+      },
+      {
+        "contractVersion": "PremiumLeg/v1",
+        "legId": "medicare-income-related-adjustment",
+        "stageId": "CO-22",
+        "partId": "both-parts",
+        "figureRef": "bracketSets",
+        "includedInTotal": false
+      }
+    ]
+  },
+  "sourceRecords": [
+    {
+      "sourceId": "ssa-medicare-premiums-higher-income-2026",
+      "contractVersion": "SourceRecord/v1",
+      "title": "Premiums: Rules for Higher-Income Beneficiaries",
+      "url": "https://www.ssa.gov/benefits/medicare/medicare-premiums.html",
+      "retrievedAt": "2026-08-18T10:26:45.000Z",
+      "retrievalOutcome": "retrieved",
+      "editionYear": 2026,
+      "documentKind": "departmental-publication",
+      "editionEvidence": "The page dates the figures transcribed from it in its own words, twice, and the declared year of this pack is that same year. The table heading reads \"Monthly Medicare Premiums for 2026\", the first cell of its first row reads \"2026 standard premium = $202.90\", and the lookback paragraph opens \"To determine your 2026 income-related monthly adjustment amounts\". No figure in this pack is therefore carried across an edition year, and no year-invariance basis is claimed for any of them.",
+      "retrievalNote": "Retrieved twice in the implementation session with different queries; both retrievals returned identical figures, including the difference between the two tables at the top bracket. The retrieval returned every table's data cells but returned the two tables' header cells EMPTY, so the mapping of column to Medicare part is taken from the data cells' own text — the column whose cells read \"2026 standard premium = $202.90\" and \"Standard premium + $81.20\" is the Part B column, and the column whose cells read \"Your plan premium\" and \"Your plan premium + $14.50\" is the Part D column. No column heading was read and none is claimed."
+    },
+    {
+      "sourceId": "medicare-gov-costs-2026",
+      "contractVersion": "SourceRecord/v1",
+      "title": "Costs",
+      "url": "https://www.medicare.gov/basics/costs/medicare-costs",
+      "retrievedAt": "2026-08-18T10:26:45.000Z",
+      "retrievalOutcome": "retrieved",
+      "editionYear": null,
+      "documentKind": "departmental-publication",
+      "editionEvidence": "This page states no year for its figures. Its Part B premium cell reads \"$202.90 each month (or higher depending on your income). The amount can change each year.\" — the second sentence scopes the figure to a year the page never names. It is therefore used ONLY as a corroborating read of the Part B standard premium digits and is the transcription source for nothing.",
+      "retrievalNote": "Retrieved in the implementation session to check the Part B standard premium digit by digit against a second publication. Its Part D premium cell reads \"Varies by plan. You may have to pay more, depending on your income.\", which is the second publication stating that no standard Part D premium exists to transcribe."
+    }
+  ]
+}

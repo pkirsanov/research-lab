@@ -1,0 +1,582 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/023-property-tax-and-rental-income",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-08-17T00:00:00Z",
+  "stage": "spec-and-design-authored",
+  "stageNote": "spec.md and design.md both exist and are authoritative, so every scenario binds to a ratified BS-023-* business scenario and carries ratified FR-023-* requirement anchors rather than planning-owned anchors. testRows carry the planned Test Plan row identifiers from each scope.md because that plan exists. linkedTests and evidenceRefs are empty because no test file has been written and nothing has executed, and populating either now would be a fabricated linkage. behaviorTraits are derived per scenario from what the scenario actually does; no scenario declares the whole vocabulary, every declared trait owes at least one obligation, and no obligation names an undeclared trait.",
+  "scenarioCount": 15,
+  "businessScenarioMapping": "SCN-023-001 through SCN-023-015 each bind one-to-one to BS-023-001 through BS-023-015 in spec.md, with exactly one owning scope each.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-023-001",
+      "businessScenario": "BS-023-001",
+      "requirementAnchors": ["FR-023-001", "FR-023-002", "FR-023-003"],
+      "scopeId": "01-property-assessment-mechanics",
+      "scope": 1,
+      "status": "not_started",
+      "title": "A declared assessment and a sourced regime refuse differently",
+      "gherkin": {
+        "given": "a property whose assessed value is undeclared, and separately a property whose jurisdiction's relief regime member was not retrieved",
+        "when": "the property-tax settlement runs for each",
+        "then": "the first is RLTAX-INPUT-INCOMPLETE naming the missing declaration and the second is RLTAX-THRESHOLD-UNAVAILABLE naming the unretrieved rule, the two read differently, and neither shows a zero, an average or a typical rate"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["api-contract", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "api-contract",
+          "requiredProof": "PropertyAssessment/v1 refuses any member carrying a sourceRef and PropertyReliefRegime/v1 refuses any value-bearing member missing a citation or a locator; every unretrieved member is an AbsentFigure with a missingSource pointer and no smuggled numeric member.",
+          "satisfiedBy": ["TP-01-01", "TP-01-10"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The two refusals are distinguished by contract shape rather than message text, an implementation returning zero for an undeclared assessed value is proven to fail, and the browser renders neither refusal as a numeral.",
+          "satisfiedBy": ["TP-01-02", "TP-01-03", "TP-01-18"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxrules.js", "rltaxproperty.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-01-01", "TP-01-02", "TP-01-03", "TP-01-10", "TP-01-16", "TP-01-18", "TP-01-22"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-023-002",
+      "businessScenario": "BS-023-002",
+      "requirementAnchors": ["FR-023-004", "FR-023-005", "FR-023-007"],
+      "scopeId": "01-property-assessment-mechanics",
+      "scope": 1,
+      "status": "not_started",
+      "title": "An exemption and an assessment-growth cap are applied at their declared points",
+      "gherkin": {
+        "given": "a declared assessment, a declared prior-year assessed value and a regime carrying an exemption and a growth cap",
+        "when": "the settlement runs",
+        "then": "the exemption is applied at its declared application point, the cap is applied against the regime's declared cap basis, and the before and after figures are both shown with the section that establishes each"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Known-value coverage below, exactly at and above the cap boundary; incoherent application points are refused; computePropertyTax accepts no income figure through any parameter.",
+          "satisfiedBy": ["TP-01-04", "TP-01-05", "TP-01-11"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The rendered panel shows the assessment before, the exemption applied, the cap applied and the taxable basis after, each citation reachable with its locator, and the property leg present in the headline, the comparison, the curve and the export.",
+          "satisfiedBy": ["TP-01-19", "TP-01-21"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxproperty.js", "tax-rules/property/<state>/<year>.json", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-01-04", "TP-01-05", "TP-01-11", "TP-01-12", "TP-01-13", "TP-01-19", "TP-01-21"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-023-003",
+      "businessScenario": "BS-023-003",
+      "requirementAnchors": ["FR-023-005", "FR-023-006"],
+      "scopeId": "01-property-assessment-mechanics",
+      "scope": 1,
+      "status": "not_started",
+      "title": "An acquisition-value regime is a different figure, not a different percentage",
+      "gherkin": {
+        "given": "a property whose declared acquisition value differs materially from its declared current assessed value",
+        "when": "the settlement runs under a regime declaring an acquisition-value cap basis",
+        "then": "the taxable basis follows the capped acquisition value, a regime declaring a prior-assessed-value cap basis produces a different figure from the same declarations, and a declared local rate below the regime's ceiling is used unchanged with that fact stated"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "api-contract"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Two fixture regimes differing only in capBasis produce different taxable bases from identical declarations; the rate ceiling bounds the declared rate below, exactly at and above it; using the ceiling as the rate is proven to fail.",
+          "satisfiedBy": ["TP-01-06", "TP-01-08", "TP-01-09"]
+        },
+        {
+          "trait": "api-contract",
+          "requiredProof": "capBasis is a closed enum the engine branches on; a regime-name branch is proven to fail against fixture regimes carrying no real regime name, and no module holds a regime name, state name or figure.",
+          "satisfiedBy": ["TP-01-07", "TP-01-15"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxrules.js", "rltaxproperty.js"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-01-06", "TP-01-07", "TP-01-08", "TP-01-09", "TP-01-15", "TP-01-20"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-023-004",
+      "businessScenario": "BS-023-004",
+      "requirementAnchors": ["FR-023-008", "FR-023-009", "FR-023-010", "FR-023-013"],
+      "scopeId": "02-primary-residence-federal-interaction",
+      "scope": 2,
+      "status": "not_started",
+      "title": "Property tax and state income tax compete inside one cap",
+      "gherkin": {
+        "given": "a household with a computed property tax and a computed state income tax whose sum exceeds the sourced cap",
+        "when": "the itemized deduction is composed",
+        "then": "each component appears by name with its origin, the summed component is capped at the sourced limit with the binding stated, and the amount of each component that produced no deduction is displayed rather than dropped"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "changed",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The itemized total, the binding and every disallowed amount are exact below, exactly at and above the sourced cap; the disallowed amounts sum to the excess; a zeroed disallowed amount is proven to fail; the accounting between unsupportedFeatures[] and the component ids is disjoint and exhaustive.",
+          "satisfiedBy": ["TP-02-03", "TP-02-04", "TP-02-11"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The rendered deduction panel shows each component by name with its origin, the cap, the binding and each disallowed amount, asserted against the live route rather than the module return value.",
+          "satisfiedBy": ["TP-02-18"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxrules.js", "rltax.js", "tax-rules/federal/<year>.json", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-02-02", "TP-02-03", "TP-02-04", "TP-02-05", "TP-02-11", "TP-02-12", "TP-02-18"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-023-005",
+      "businessScenario": "BS-023-005",
+      "requirementAnchors": ["FR-023-011"],
+      "scopeId": "02-primary-residence-federal-interaction",
+      "scope": 2,
+      "status": "not_started",
+      "title": "Mortgage interest is limited by a sourced debt limit",
+      "gherkin": {
+        "given": "declared mortgage interest and a declared acquisition-debt balance above the sourced limit",
+        "when": "the deduction is composed",
+        "then": "the deductible portion is computed from the sourced limit, the disallowed portion is named rather than dropped, and a declared balance for which no sourced limit was retrieved refuses rather than deducting the full amount"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The deductible and disallowed portions are exact below, exactly at and above the sourced debt limit, and the limit resolves to exactly one retrieved source with a locator.",
+          "satisfiedBy": ["TP-02-06", "TP-02-12"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "An unretrieved limit refuses the mortgage component, no full-amount deduction is taken in its place, and an implementation that deducts in full is proven to fail.",
+          "satisfiedBy": ["TP-02-07", "TP-02-08"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltax.js", "tax-rules/federal/<year>.json", "rltaxworkspace.js"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-02-06", "TP-02-07", "TP-02-08", "TP-02-12", "TP-02-16", "TP-02-19"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-023-006",
+      "businessScenario": "BS-023-006",
+      "requirementAnchors": ["FR-023-012", "FR-023-014"],
+      "scopeId": "02-primary-residence-federal-interaction",
+      "scope": 2,
+      "status": "not_started",
+      "title": "The itemized-versus-standard decision is shown, not assumed",
+      "gherkin": {
+        "given": "a composed itemized total and the sourced standard deduction for the filing status",
+        "when": "the federal settlement runs",
+        "then": "both totals are displayed side by side with the one actually used named, the decision is recomputed rather than read from a declared flag, and a household whose itemized total falls below the standard deduction is told its property tax changed nothing"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "changed",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The chosen side is correct below, exactly at and above the sourced standard deduction, the tie resolves as the pack declares, a declared preference member is refused, and every prior-feature fixture produces its exact prior federal total under the composed shape.",
+          "satisfiedBy": ["TP-02-01", "TP-02-09", "TP-02-10"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The rendered page names the chosen side in Simple and shows both totals in Power, and the composition and the decision reach the headline, the comparison, the curve and the export.",
+          "satisfiedBy": ["TP-02-13", "TP-02-14", "TP-02-20", "TP-02-21"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltax.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-02-01", "TP-02-09", "TP-02-10", "TP-02-13", "TP-02-14", "TP-02-20", "TP-02-21"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-023-007",
+      "businessScenario": "BS-023-007",
+      "requirementAnchors": ["FR-023-015", "FR-023-016", "FR-023-021"],
+      "scopeId": "03-long-term-rental",
+      "scope": 3,
+      "status": "not_started",
+      "title": "A long-term rental settles on Schedule E after depreciation",
+      "gherkin": {
+        "given": "declared rental income, declared operating expenses, a declared depreciable basis and placed-in-service month, and a pack carrying a sourced recovery period and convention",
+        "when": "the rental settlement runs",
+        "then": "depreciation is computed from the sourced period and convention rather than a recalled figure, the net result is a named leg of the federal settlement, and an unretrieved recovery period refuses the depreciation rather than omitting it"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Depreciation is recomputed from a fixture pack carrying a deliberately non-standard period and convention for a first partial year, a full year and a final partial year; a recalled period is proven to fail; the published adjusted basis equals the declared basis less the published accumulated recovery.",
+          "satisfiedBy": ["TP-03-03", "TP-03-04", "TP-03-15"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "An absent recovery period or convention refuses both the depreciation and the rental leg, no settlement is produced without cost recovery, and the contract refuses an uncited period or convention.",
+          "satisfiedBy": ["TP-03-01", "TP-03-05", "TP-03-21"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxrental.js", "tax-rules/federal/<year>.json"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-03-01", "TP-03-03", "TP-03-04", "TP-03-05", "TP-03-15", "TP-03-16", "TP-03-17", "TP-03-21", "TP-03-24"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-023-008",
+      "businessScenario": "BS-023-008",
+      "requirementAnchors": ["FR-023-017", "FR-023-018", "FR-023-019"],
+      "scopeId": "03-long-term-rental",
+      "scope": 3,
+      "status": "not_started",
+      "title": "A rental loss is limited and the disallowed amount is carried, not dropped",
+      "gherkin": {
+        "given": "a rental producing a loss, a declared at-risk amount and a declared modified adjusted gross income inside the special-allowance phase-out",
+        "when": "the limits are applied",
+        "then": "the at-risk limit is applied before the passive-activity limit with the applied order recorded, the special allowance is computed from the sourced amount and phase-out range, and each disallowed amount is published with the limit that disallowed it"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "api-contract"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The special allowance is exact below, exactly at and above each phase-out edge; reversing the limit order is proven to produce a different allowed amount; the before, allowed and disallowed amounts reconcile exactly for every fixture.",
+          "satisfiedBy": ["TP-03-07", "TP-03-08", "TP-03-10"]
+        },
+        {
+          "trait": "api-contract",
+          "requiredProof": "LossLimitation/v1 carries a strictly increasing appliedOrder derived from the sourced ordering rule, an absent allowance or phase-out refuses the leg, and a zeroed disallowed amount is proven to fail the reconciliation assertion.",
+          "satisfiedBy": ["TP-03-06", "TP-03-09", "TP-03-11"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxrental.js", "rltaxrules.js", "tax-rules/federal/<year>.json"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-03-06", "TP-03-07", "TP-03-08", "TP-03-09", "TP-03-10", "TP-03-11", "TP-03-22"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-023-009",
+      "businessScenario": "BS-023-009",
+      "requirementAnchors": ["FR-023-020"],
+      "scopeId": "03-long-term-rental",
+      "scope": 3,
+      "status": "not_started",
+      "title": "A declared opening suspended loss is used without becoming a projection",
+      "gherkin": {
+        "given": "a declared opening suspended-loss carryforward",
+        "when": "the rental settlement runs",
+        "then": "the opening figure is treated as a declaration carrying no citation, is allowed only to the extent the declared year's rules permit, and the closing figure is published for the declared year only with no future year computed, displayed or implied"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["api-contract", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "api-contract",
+          "requiredProof": "A carryforward member carrying a sourceRef is refused, exactly one closing figure is published for the declared year, and an implementation projecting into a following year is proven to fail the single-year assertion.",
+          "satisfiedBy": ["TP-03-12", "TP-03-13", "TP-03-14"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The rendered page labels the opening figure as the household's declaration, shows the closing figure for the declared year, and contains no page node or export field naming another year.",
+          "satisfiedBy": ["TP-03-13", "TP-03-23"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxrental.js", "rltaxworkspace.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-03-12", "TP-03-13", "TP-03-14", "TP-03-20", "TP-03-23"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-023-010",
+      "businessScenario": "BS-023-010",
+      "requirementAnchors": ["FR-023-022", "FR-023-023"],
+      "scopeId": "04-short-term-and-vacation-rental",
+      "scope": 4,
+      "status": "not_started",
+      "title": "The personal-use test is run against sourced parameters and published",
+      "gherkin": {
+        "given": "declared rental days, declared personal-use days, and a pack carrying the sourced day figure, percentage figure and rental-days threshold",
+        "when": "the classification runs",
+        "then": "the category is produced by comparing the declarations against the sourced parameters, the record publishes both parameters with their citations and each comparison performed, and a classification attempted with any parameter absent refuses rather than falling back to a recalled rule"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["api-contract", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "api-contract",
+          "requiredProof": "UseClassification/v1 refuses a missing category, a missing day count, an uncited parameter and an empty comparison list; each parameter resolves to exactly one retrieved source with a locator; an absent parameter refuses and a recalled-rule fallback is proven to fail; the classification stage is strictly before the settlement stage.",
+          "satisfiedBy": ["TP-04-01", "TP-04-03", "TP-04-04", "TP-04-05", "TP-04-10"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The rendered use panel shows the category, both day counts, both parameters with reachable citations, and each comparison as left, operator, right and result.",
+          "satisfiedBy": ["TP-04-22"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxuse.js", "rltaxrules.js", "tax-rules/federal/<year>.json", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-04-01", "TP-04-03", "TP-04-04", "TP-04-05", "TP-04-10", "TP-04-21", "TP-04-22"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-023-011",
+      "businessScenario": "BS-023-011",
+      "requirementAnchors": ["FR-023-024"],
+      "scopeId": "04-short-term-and-vacation-rental",
+      "scope": 4,
+      "status": "not_started",
+      "title": "The three classification boundaries land on the correct side",
+      "gherkin": {
+        "given": "a property at exactly the sourced personal-use day figure, one whose personal use is exactly the sourced percentage of its rental days, and one rented exactly at the fewer-than-15-days boundary",
+        "when": "each is classified",
+        "then": "each lands on the side the publication states asserted at the exact sourced figure rather than near it, and flipping any of the three comparisons' inclusivity in either direction is proven to fail"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Each boundary is asserted at the exact sourced figure and at one day either side with the expected side read from the retrieved parameter rather than a literal, and flipping each comparison from inclusive to strict and from strict to inclusive is each proven to fail.",
+          "satisfiedBy": ["TP-04-06", "TP-04-07", "TP-04-08", "TP-04-09"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Each of the three boundary fixtures renders the category the publication states, with the exact comparison visible on the page.",
+          "satisfiedBy": ["TP-04-23"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxuse.js", "tax-rules/federal/<year>.json"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-04-06", "TP-04-07", "TP-04-08", "TP-04-09", "TP-04-20", "TP-04-23"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-023-012",
+      "businessScenario": "BS-023-012",
+      "requirementAnchors": ["FR-023-025", "FR-023-026", "FR-023-027", "FR-023-028"],
+      "scopeId": "04-short-term-and-vacation-rental",
+      "scope": 4,
+      "status": "not_started",
+      "title": "A property rented under the exception excludes income and deducts nothing",
+      "gherkin": {
+        "given": "a property rented fewer than the sourced threshold of days and used as a residence",
+        "when": "the settlement runs",
+        "then": "the rental income is excluded and no rental expense is deducted, the exclusion is stated as the reason rather than presented as a zero result, and the mortgage interest and property tax remain available to the itemized composition unallocated"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Under the exception the income is excluded, no rental expense is deducted, the interest and property tax reach the composition unallocated, and an implementation returning a zero net result instead of an exclusion reason is proven to fail.",
+          "satisfiedBy": ["TP-04-11", "TP-04-12"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The rendered page states the exclusion as the reason, and the classification and the category's leg appear in the headline, the comparison, the curve and the export, with removal from each surface proven to fail.",
+          "satisfiedBy": ["TP-04-17", "TP-04-18", "TP-04-24"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxrental.js", "rltaxuse.js", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-04-11", "TP-04-12", "TP-04-17", "TP-04-18", "TP-04-24"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-023-013",
+      "businessScenario": "BS-023-013",
+      "requirementAnchors": ["FR-023-026", "FR-023-027"],
+      "scopeId": "04-short-term-and-vacation-rental",
+      "scope": 4,
+      "status": "not_started",
+      "title": "A mixed-use property allocates expenses between personal and rental use",
+      "gherkin": {
+        "given": "declared rental days, declared personal-use days and declared expenses",
+        "when": "the settlement runs",
+        "then": "each expense is allocated by the declared day counts with the allocation basis published beside each allocated figure, the rental portion of a directly-allocable expense is not re-allocated, and the personal portion is routed to the itemized composition rather than discarded"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "api-contract"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Each allocated expense equals the declared amount times the declared day ratio, the rental and personal portions sum to the declared amount exactly, and discarding the personal portion is proven to fail the allocation-sum assertion.",
+          "satisfiedBy": ["TP-04-13", "TP-04-16"]
+        },
+        {
+          "trait": "api-contract",
+          "requiredProof": "A directly-allocable expense is not re-allocated and attempting to allocate it is refused; the personal portion enters the composition as a named component with a computed origin and the disjoint exhaustive accounting still holds.",
+          "satisfiedBy": ["TP-04-14", "TP-04-15"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxuse.js", "rltax.js"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-04-13", "TP-04-14", "TP-04-15", "TP-04-16", "TP-04-25"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-023-014",
+      "businessScenario": "BS-023-014",
+      "requirementAnchors": ["FR-023-029", "FR-023-030", "FR-023-031", "FR-023-035"],
+      "scopeId": "05-disposition",
+      "scope": 5,
+      "status": "not_started",
+      "title": "A disposition splits gain into components priced under different rules",
+      "gherkin": {
+        "given": "declared proceeds, a declared adjusted basis and declared accumulated depreciation",
+        "when": "the disposition settles",
+        "then": "the gain is split into an unrecaptured Section 1250 component priced at its own sourced maximum rate and a remaining long-term component that stacks under the existing preferential model, the two are separate legs, and a result pricing the whole gain under one rule is proven to fail"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "changed",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The two components sum to the total gain and the recapture component is bounded by both the accumulated depreciation and the gain including an over-depreciated fixture; the recapture tax equals the sourced maximum rate applied to its amount and the remainder equals the existing preferential model's result; pricing the whole gain under one rule is proven to fail; every Feature 022 preferential fixture is unchanged; the adjusted basis equals the figure the rental scope published.",
+          "satisfiedBy": ["TP-05-01", "TP-05-03", "TP-05-04", "TP-05-05", "TP-05-14"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Both components render by name with the recapture rate's citation reachable, and both legs appear in the headline, the comparison, the curve and the export, with removal from each surface proven to fail and each omission moving the headline by an amount unique to that leg.",
+          "satisfiedBy": ["TP-05-15", "TP-05-16", "TP-05-22", "TP-05-24"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxdisposition.js", "rltax.js", "tax-rules/federal/<year>.json"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-05-01", "TP-05-02", "TP-05-03", "TP-05-04", "TP-05-05", "TP-05-06", "TP-05-07", "TP-05-14", "TP-05-15", "TP-05-16", "TP-05-22", "TP-05-24"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-023-015",
+      "businessScenario": "BS-023-015",
+      "requirementAnchors": ["FR-023-032", "FR-023-033", "FR-023-034"],
+      "scopeId": "05-disposition",
+      "scope": 5,
+      "status": "not_started",
+      "title": "The primary-residence exclusion applies after recapture and only when both tests pass",
+      "gherkin": {
+        "given": "a declared ownership history and a declared use history over the sourced lookback period",
+        "when": "the exclusion is applied",
+        "then": "the ownership test and the use test are evaluated separately against sourced period figures, the sourced exclusion amount for the filing status is applied to the remaining gain and never to the recapture component, and a history failing either test receives no exclusion with the failing test named"
+      },
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Each test passes and fails exactly at its sourced period figure and publishes the figure compared; the exclusion amount equals the sourced amount per filing status and is bounded by the remainder; applying it to the recapture component is proven to fail; evaluating the two tests as one combined condition is proven to fail.",
+          "satisfiedBy": ["TP-05-09", "TP-05-10", "TP-05-11", "TP-05-12"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "An absent exclusion amount or period figure refuses the exclusion and states the refusal, and every remaining above-rate preferential category still refuses with its original reason on a fixture that exercises each refusal at least once.",
+          "satisfiedBy": ["TP-05-08", "TP-05-13", "TP-05-23"]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "none-local-only",
+        "productionOwners": ["rltaxdisposition.js", "tax-rules/federal/<year>.json", "lifetime-tax-strategy-lab.html"]
+      },
+      "linkedTests": [],
+      "testRows": ["TP-05-08", "TP-05-09", "TP-05-10", "TP-05-11", "TP-05-12", "TP-05-13", "TP-05-18", "TP-05-23", "TP-05-25"],
+      "evidenceRefs": []
+    }
+  ]
+}

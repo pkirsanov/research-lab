@@ -1,0 +1,193 @@
+{
+    "version": 3,
+    "featureDir": "specs/022-federal-preferential-and-state-income-tax",
+    "featureName": "Federal Preferential Completion And State Income Tax (Slice 2)",
+    "createdAt": "2026-08-17T00:00:00Z",
+    "lastUpdatedAt": "2026-08-17T00:00:00Z",
+    "status": "in_progress",
+    "blockedReason": null,
+    "workflowMode": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "specDependsOn": [],
+    "flagsIntroduced": [],
+    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "workBoundary": {
+        "repositoryRoots": [
+            "research-lab"
+        ],
+        "specTargets": [
+            "specs/022-federal-preferential-and-state-income-tax"
+        ],
+        "allowedPaths": [
+            "specs/022-federal-preferential-and-state-income-tax/**"
+        ],
+        "crossRepoPolicy": "forbidden"
+    },
+    "execution": {
+        "goalContractRef": null,
+        "activeAgent": "bubbles.plan",
+        "currentPhase": "bootstrap",
+        "currentPhaseStatus": "completed",
+        "currentScope": 1,
+        "substate": "planned",
+        "runStartedAt": "2026-08-17T00:00:00Z",
+        "completedAt": null,
+        "completedPhaseClaims": [],
+        "pendingTransitionRequests": [],
+        "nextRequiredOwner": "bubbles.implement",
+        "nextRequiredTarget": "specs/022-federal-preferential-and-state-income-tax/scopes/01-federal-preferential-rate-completion/scope.md",
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "scopeId": "01-federal-preferential-rate-completion",
+                "status": "not_started",
+                "foundation": true,
+                "dependsOn": []
+            },
+            {
+                "scope": 2,
+                "scopeId": "02-net-investment-income-and-additional-medicare-tax",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1
+                ]
+            },
+            {
+                "scope": 3,
+                "scopeId": "03-state-rule-pack-contract-and-jurisdiction-resolution",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    2
+                ]
+            },
+            {
+                "scope": 4,
+                "scopeId": "04-california-pack",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    2,
+                    3
+                ]
+            },
+            {
+                "scope": 5,
+                "scopeId": "05-combined-settlement-and-marginal-curve",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    2,
+                    3,
+                    4
+                ]
+            }
+        ],
+        "executionHistory": [
+            {
+                "agent": "bubbles.plan",
+                "phasesExecuted": [
+                    "bootstrap"
+                ],
+                "startedAt": "2026-08-17T00:00:00Z",
+                "completedAt": "2026-08-17T00:00:00Z",
+                "statusBefore": null,
+                "statusAfter": "in_progress",
+                "summary": "Authored spec.md, design.md, scopes/_index.md, five scope directories each with scope.md and report.md, scenario-manifest.json, uservalidation.md and this file. Five sequential scopes, fifteen scenarios SCN-022-001 through SCN-022-015, thirty-four functional and ten non-functional requirements. No implementation was performed and no scope was started."
+            }
+        ],
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "not_started",
+        "certifiedAt": null,
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        },
+        "observations": [
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "successor-of-completed-feature",
+                "summary": "This feature is the direct successor to specs/021-lifetime-tax-strategy-lab. It inherits Feature 021's contracts, its closed RLTAX-* refusal vocabulary, its AbsentFigure/v1 discipline and its privacy boundary. Where it extends a closed set it does so additively: RateTable/v2 accepts every v1 table unchanged, TaxRulePack/v2 accepts every v1 pack unchanged, and the refusal enum gains exactly two members with no existing member's meaning changed. specDependsOn is empty per P25 because this feature blocks on no other spec's status; it depends on shipped code, not on a status."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "root-cause-of-the-preferential-gap",
+                "summary": "Feature 021 shipped all four preferential rate tables as AbsentFigure/v1 because Rev. Proc. 2025-32 section 4.03 states the maximum zero rate amount and the maximum 15-percent rate amount but never states the rate above that maximum. The rate is absent from that document because it is statutory rather than inflation-adjusted, so an annual Revenue Procedure has no reason to restate it. This is a provenance-model defect, not a retrieval failure: any model binding one table to one source reproduces the refusal on the next indexed-threshold-plus-statutory-rate figure it meets. Scope 01 resolves it with ComponentSource/v1, which lets one figure's components cite different authorities."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "sources-retrieved-in-the-planning-session",
+                "summary": "Six primary sources were retrieved successfully on 2026-08-17 and are recorded in spec.md with their URLs and outcomes: IRS Topic no. 409 (the capital-gain rate above the 15-percent maximum, plus the three categories taxed above 20 percent); IRS Topic no. 559 (the net investment income tax rate, its four filing-status thresholds, its lesser-of base, and the exclusion of tax-exempt municipal interest); IRS Topic no. 560 (the additional Medicare tax rate and thresholds, and that its base is wages and self-employment income rather than investment income); the Florida Constitution Article VII Section 5(a); the Florida Department of Revenue list of administered taxes, which contains a corporate income tax and no individual income tax; and California Revenue and Taxation Code Section 17043, which fixes the mental-health-services surcharge at 1 percent above one million dollars of taxable income and excludes the credit-allowance, bracket-recomputation and joint-return provisions from it."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "retrieval-failure-recorded-not-worked-around",
+                "summary": "Five distinct California Franchise Tax Board URLs were attempted on 2026-08-17 for the rate schedules, standard deduction and exemption credit amounts. Two returned a content-extraction failure and three returned HTTP 404. No California dollar figure is asserted anywhere in spec.md or design.md. Every one is recorded as blocking implementation input BI-6 and must be closed by a retrieval at implementation time or ship as an AbsentFigure/v1. The same discipline is applied to Florida: the constitutional section and the departmental tax list establish the ceiling and the administrative absence but neither states the rate is zero, so BI-5 remains open and Florida's sourced zero may not be asserted by derivation."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "two-states-selected-as-maximally-different",
+                "summary": "California and Florida were selected deliberately, and the pairing is the point. A single state pack does not demonstrate a state rule-pack contract; it demonstrates one state's arithmetic wearing a contract's clothes. They differ on every axis the contract exposes: whether an individual income tax exists at all, bracket count, preferential treatment of long-term gain, the existence of a standard deduction, whether relief is applied to income or to tax, whether a high-income surcharge exists, and whether the correct answer is a computed figure or a sourced zero. Florida ships in Scope 3 beside the generic contract rather than after California, so the contract is proven against a second regime before California is written and cannot silently become the definition."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "sourced-zero-is-a-contract-not-a-rendering",
+                "summary": "SourcedZero/v1 exists because a jurisdiction that imposes no tax has a real answer of zero with an authority behind it, and that object must be distinguishable from an absent figure, from a refusal, from a blank and from a missing key. The contract validates only the literal zero, requires a sourceRef and a locator, and is discriminated by contractVersion. Every consumer branches on the contract version and never on value === 0, because a value comparison would collapse the distinction the whole feature exists to preserve. The route enumerates all three terminal shapes of a state total and asserts the refusal surface renders no numeral."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "conversion-asymmetry-is-the-decision-relevant-finding",
+                "summary": "A Roth conversion raises modified adjusted gross income, so it can push a household across the net investment income tax threshold and increase that tax on investment income the household did not touch. It is not Medicare wages, so it cannot increase the additional Medicare tax at all. A tool that presented both as one combined surtax figure would hide the only asymmetry a converting household needs. The asymmetry is a required scenario, SCN-022-006, and a structural member of the result rather than page copy, with an adversarial mutation proving the guard can fail."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "cross-jurisdiction-coupling-is-refused-not-solved",
+                "summary": "The federal itemized deduction for state and local income tax paid is a genuine circular coupling: Feature 021 models the itemized deduction as a user-declared amount that may already contain state income tax. The combined settlement does not resolve it by iterating to a fixed point, because a fixed-point figure has no retrieved source behind it. Instead the two settlements are independent by construction with no parameter through which either could reach the other, the combined result carries an explicit notice naming the unmodeled coupling, and an adversarial mutation that feeds either total into the other is demonstrated to break the order-independence assertion."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "enum-extended-additively-by-exactly-two",
+                "summary": "RLTAX-RESIDENCY-UNSUPPORTED covers a residency pattern outside single-full-year residency while the jurisdiction itself may be fully supported; reusing RLTAX-JURISDICTION-UNSUPPORTED would tell a part-year California resident that California is unsupported, which is false, and would hide the real work item. RLTAX-PACK-YEAR-MISMATCH covers two individually valid packs that do not both cover the declared year; RLTAX-YEAR-UNSUPPORTED names one pack missing a year and has a different remediation. Four near-misses are folded into existing members on purpose and are named in design.md, so no fifteenth code is added."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "deferral-register-names-its-successors",
+                "summary": "Feature 021's deferral register said 'a later feature' for every deferred capability because no successor existed. This feature names them: Feature 023 for taxable Social Security benefits, Medicare premiums, IRMAA bands and the premium tax credit; Feature 024 for additional state packs, local income tax, property tax, part-year and multi-state residency, and the state-and-local deduction coupling; Feature 025 for the multi-year lifetime ledger, required minimum distributions, market simulation and any probability; Feature 026 for registration in tools.json, index.html, rlnav.js, README.md, notes/README.md and market-brief coverage, and for adding tax-rules/ to PUBLIC_DIRECTORIES in scripts/build-pages-site.mjs in the same change that registers the page."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "no-new-root-html",
+                "summary": "This feature extends the existing lifetime-tax-strategy-lab.html and creates no new root HTML file, so site-exclusions.json is unchanged and every scope asserts it. Had a new root page been created it would have required a site-exclusions.json entry in the same scope that created it, because scripts/build-pages-site.mjs refuses an unregistered root HTML and that refusal breaks the live Pages deploy. Every scope runs node scripts/build-pages-site.mjs --dry-run as a deploy gate to prove the condition holds."
+            }
+        ]
+    }
+}

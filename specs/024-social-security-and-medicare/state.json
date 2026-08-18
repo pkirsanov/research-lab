@@ -1,0 +1,230 @@
+{
+    "version": 3,
+    "featureDir": "specs/024-social-security-and-medicare",
+    "featureName": "Social Security And Medicare (Slice 4)",
+    "createdAt": "2026-08-17T00:00:00Z",
+    "lastUpdatedAt": "2026-08-17T00:00:00Z",
+    "status": "in_progress",
+    "blockedReason": null,
+    "workflowMode": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "specDependsOn": [],
+    "flagsIntroduced": [],
+    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "workBoundary": {
+        "repositoryRoots": [
+            "research-lab"
+        ],
+        "specTargets": [
+            "specs/024-social-security-and-medicare"
+        ],
+        "allowedPaths": [
+            "specs/024-social-security-and-medicare/**"
+        ],
+        "crossRepoPolicy": "forbidden"
+    },
+    "execution": {
+        "goalContractRef": null,
+        "activeAgent": "bubbles.implement",
+        "currentPhase": "implement",
+        "currentPhaseStatus": "completed",
+        "currentScope": 5,
+        "substate": "implemented",
+        "runStartedAt": "2026-08-17T00:00:00Z",
+        "completedAt": null,
+        "completedPhaseClaims": [],
+        "pendingTransitionRequests": [],
+        "nextRequiredOwner": "bubbles.implement",
+        "nextRequiredTarget": "specs/024-social-security-and-medicare/scopes/04-medicare-premiums-and-irmaa/scope.md",
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "scopeId": "01-benefit-computation",
+                "status": "not_started",
+                "foundation": true,
+                "dependsOn": []
+            },
+            {
+                "scope": 2,
+                "scopeId": "02-benefit-taxation",
+                "status": "not_started",
+                "foundation": false,
+                "dependsOn": [
+                    1
+                ]
+            },
+            {
+                "scope": 3,
+                "scopeId": "03-claim-age-comparison",
+                "status": "done_with_concerns",
+                "foundation": false,
+                "dependsOn": [
+                    1
+                ]
+            },
+            {
+                "scope": 4,
+                "scopeId": "04-medicare-premiums-and-irmaa",
+                "status": "in_progress",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    2
+                ]
+            },
+            {
+                "scope": 5,
+                "scopeId": "05-route-and-integration",
+                "status": "done_with_concerns",
+                "foundation": false,
+                "dependsOn": [
+                    1,
+                    2,
+                    3,
+                    4
+                ]
+            }
+        ],
+        "executionHistory": [
+            {
+                "agent": "bubbles.plan",
+                "phasesExecuted": [
+                    "bootstrap"
+                ],
+                "startedAt": "2026-08-17T00:00:00Z",
+                "completedAt": "2026-08-17T00:00:00Z",
+                "statusBefore": null,
+                "statusAfter": "in_progress",
+                "summary": "Authored spec.md, design.md, scopes/_index.md, five scope directories each with scope.md and report.md, scenario-manifest.json, uservalidation.md and this file. Five sequential scopes, fifteen scenarios SCN-024-001 through SCN-024-015, thirty-five functional and eleven non-functional requirements, eleven blocking implementation inputs and an eight-entry supersession ledger. No implementation was performed, no scope was started, and no primary source was retrieved."
+            },
+            {
+                "agent": "bubbles.implement",
+                "phasesExecuted": [
+                    "implement"
+                ],
+                "startedAt": "2026-08-18T00:00:00Z",
+                "completedAt": "2026-08-18T00:00:00Z",
+                "statusBefore": "in_progress",
+                "statusAfter": "in_progress",
+                "summary": "Scope 03 claim-age comparison completed to done_with_concerns. Diagnosed and fixed the two red assertions an interrupted dispatch left behind: TP-03-05 and TP-03-CLAIM both failed on a raw-source claim scan firing on the word probability inside the block comment that documents the RLTAX-PACK-INVALID branch, and TP-03-CLAIM additionally failed on a pinned not-a-forecast phrase the record did not carry. The module comment was not reworded, because rewording it would be the ASC-9-inadmissible dodge; the scans were moved to comment-stripped code with the pre-existing scanned files additionally asserted against the raw scan, a derived comment-confinement clause added, and the planted token moved into code. The record's resultKindStatement was rewritten to state the weaker equality claim positively. BI-9 was closed by an SSA Period Life Table retrieval performed in this session, with all eighteen life-expectancy figures verified digit by digit and zero shipped as AbsentFigure/v1; the one AbsentFigure is the unread column-header identity. node scripts/selftest.mjs 2786 passed 0 failed exit 0; the lifetime-tax browser suite 51 passed exit 0; build-pages-site --dry-run, artifact-lint and validate-spec-test-paths all exit 0. Sixteen of eighteen DoD rows checked; excluded-path byte-identity is unverifiable because the lifetime-tax tree is untracked, and no intended RED was observed for the scope's named RED assertion because the refusal predated this session. Both unchecked rows carry stated reasons. Observed but not fixed, and outside this dispatch's lane: scopeProgress still records scopes 01 and 02 as not_started while their scope.md files read Done with concerns."
+            },
+            {
+                "agent": "bubbles.implement",
+                "phasesExecuted": [
+                    "implement"
+                ],
+                "startedAt": "2026-08-18T00:00:00Z",
+                "completedAt": "2026-08-18T00:00:00Z",
+                "statusBefore": "in_progress",
+                "statusAfter": "in_progress",
+                "summary": "Scope 04 medicare premiums and IRMAA advanced to in_progress with 9 of 19 DoD rows satisfied. Resolved the routed finding at tests/lifetime-tax-route.spec.mjs:150 by superseding a positional .first() unavailable-focus spot-check with a view-aware sweep over every VISIBLE unavailable node in Power and then Simple, each focused and read back rather than inspected for a tabindex attribute, with a non-zero visible count asserted per view so an empty sweep cannot pass. The Simple-view Medicare refusal was NOT deleted, hidden or demoted; the spec was fixed instead. Converted TP-03-19's positional DECLARATION_INPUTS anchor to the order-independent membership form its sibling TP-01-19 uses. Both replacements carry executed adversarial evidence: an inert node with tabindex 0 fails the sweep by name, a removed watched id drops the suite to 2785 passed 1 failed, and an appended control passes at 2786 passed 0 failed while the superseded regex matches zero times. Discovered and closed an orphaned SUP-024-10 marker that had no ledger row, then appended SUP-024-11 and SUP-024-12 under ASC-8, moving all four count surfaces to twelve in the same change. Re-retrieved the SSA Premiums Rules for Higher-Income Beneficiaries page in session and verified every boundary and adjustment amount in all three bracket sets digit by digit; the standard Part D premium remains an AbsentFigure/v1 because no retrieved publication states one, so the annual Medicare cost is withheld rather than understated. Authored the missing lifetime-tax medicare selftest group of 19 assertions and the missing tests/lifetime-tax-medicare.spec.mjs of 4 browser rows. Selftest rose from 2786 passed 0 failed to 2805 passed 0 failed; the lifetime-tax browser suite rose from 50 passed 1 failed to 55 passed 0 failed. Ten DoD rows remain unchecked, each with its reason recorded in scope.md."
+            },
+            {
+                "agent": "bubbles.implement",
+                "phasesExecuted": [
+                    "implement"
+                ],
+                "startedAt": "2026-08-18T00:00:00Z",
+                "completedAt": "2026-08-18T00:00:00Z",
+                "statusBefore": "in_progress",
+                "statusAfter": "in_progress",
+                "summary": "Scope 05 route and integration completed to done_with_concerns with 16 of 18 DoD rows satisfied. Picked up mid-flight from an interrupted dispatch that had left three of its own new assertions RED at 2840 passed 3 failed. All three were fixed in the PRODUCT and no assertion was weakened, deleted, inverted or narrowed. TP-05-04: composeSurfaceCensus accepted includedTotalLegIds and never read it, so a cost leg present on all four surfaces AND summed into totalFederalTax produced no finding at all; a mis-summed pass was added to CO-24 outside the per-surface loop, reported once, naming no surface. TP-05-08: SIMPLE_FIELDS carried none of the three fields this feature owes, so the two-directional identity held vacuously; annualBenefit, taxableBenefitPortion and annualMedicareCost were added to the closed list with render sites through the Simple constructor, the annual Medicare cost converted in place from the general constructor so it gained a field identity without a second node. TP-05-09: power-rule-ledger was a declared Power section with no withheld-detail link, so the reverse direction was genuinely false of the page; the link was appended rather than inserted, because an inserted row silently retargeted a prior feature's positional links.nth(3) row, which was observed failing and then fixed. Authored the missing tests/lifetime-tax-retirement-route.spec.mjs carrying TP-05-19 through TP-05-25. Selftest rose from 2840 passed 3 failed to 2843 passed 0 failed; the lifetime-tax browser suite rose from 56 to 63 rows all passing; the SCN-02 cumulative grep ran 66 passed; validate-spec-test-paths new=0 exit 0; build-pages-site --dry-run exit 0; artifact-lint exit 0. Two DoD rows are unchecked with stated reasons: excluded-path byte-identity is unverifiable because the whole lifetime-tax tree is untracked, and intended RED was observed only for TP-05-04, TP-05-08, TP-05-09 and two clauses of TP-05-22 because every other row was already green when this session began. Two findings raised and not fixed here: the interim benefit-headline and inclusion-headline leg-render identities cannot be renamed into Simple fields because two excluded prior-feature specs pin them and TP-05-18 forbids this scope owning a supersession, so the three Simple fields render as their own decision-level sites and repeat two figures; and tests/lifetime-tax-route.spec.mjs's Simple-field membership loop is fixture-dependent and would fail on a retirement household, discovered by writing the same clause into TP-05-22 and watching it fail."
+            }
+        ],
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "not_started",
+        "certifiedAt": null,
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        },
+        "observations": [
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "successor-of-in-progress-feature",
+                "summary": "This feature is the direct successor to specs/023-property-tax-and-rental-income. It inherits Features 021, 022 and 023 contracts, the closed RLTAX-* refusal vocabulary, the AbsentFigure/v1 discipline, the SourcedZero/v1 distinction, the leg-visibility rule and the privacy boundary. specDependsOn is empty per P25 because this feature blocks on no other spec's status; it depends on shipped code, not on a status. The planning assumption that Feature 023 lands first is recorded in spec.md and is handled at implementation time by re-resolving every ledger target against the tree, under ASC-8."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "feature-023-deferral-register-routes-work-to-this-number",
+                "summary": "Feature 023's deferral register names 'Feature 024' as the owner of additional state property regimes and of local and municipal income tax. This feature is Social Security and Medicare and delivers neither, so that routing is stale. It is recorded as an open question in spec.md and in this feature's deferral register rather than silently re-numbered, because Feature 023's register is not this feature's artifact to edit and a quiet correction in a successor is indistinguishable from a routing that was never made. Routed to the owner: either a later feature takes the routing, or Feature 023's owner corrects its register."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "two-not-modeled-ids-are-removed-by-modelling-them",
+                "summary": "The shipped federal pack's unsupportedFeatures[] was read during this planning session and carries both 'taxable-social-security-benefits' and 'irmaa-bands', each flagged movesMarginalRate, which is why the marginal curve reports itself incomplete. This feature removes both by modelling them rather than by quieting them, and every assertion that pinned either as a named not-carried feature is in the ledger with a replacement that proves the id MOVED rather than vanished. Four separate assertion sites were located and read: the selftest requiredUnsupportedIds literal, the selftest surgical-removal triple and its clause, the selftest deleted-not-moved adversarial probe keyed on 'irmaa-bands', and a browser-side triple in tests/lifetime-tax-marginal.spec.mjs."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "year-invariance-is-a-finding-not-a-category",
+                "summary": "The base amounts that select the benefit inclusion tier are statutory and are not inflation-indexed, which makes them the strongest yearInvarianceBasis candidate this program has met and therefore the strongest temptation to assume. Feature 023 met three publications and treated each differently: one served only a prior-year edition and was refused outright, one had every dollar figure refused, and one had method parameters carried on a basis drawn from the publication's own dating contrast. The difference was never the category of the figure; it was what the publication said about itself. RD-2 therefore requires a written yearInvarianceBasis quoting the publication's own contrast per component kind, Scope 02 tightens the validation to require that quoted contrast before any figure is retrieved, and BI-8 is recorded as a blocking input separate from BI-7 so that a successful retrieval with a failed invariance is an expected outcome rather than a surprise."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "the-lookback-income-is-confusable-not-merely-irrelevant",
+                "summary": "The Medicare income-related adjustment applies a premium year's brackets to a modified adjusted gross income from two years earlier. The current year's measure has the same units, the same shape and almost the same name, and it is sitting in the settlement. Feature 023 made computePropertyTax structurally incapable of receiving an income figure because that figure was irrelevant; RD-3 applies the same pattern to a figure that is worse than irrelevant, because using it produces a plausible number a user cannot detect. resolveAdjustmentBracket therefore takes exactly a LookbackMagi/v1 and a bracket pack, LookbackMagi/v1 itself carries no settlement or workspace handle, and Scope 04's intended-RED assertion requires the two figures to fall in DIFFERENT brackets so the assertion cannot pass by coincidence."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "a-premium-is-a-cost-and-L4-becomes-non-vacuous",
+                "summary": "A Medicare premium must be surfaced everywhere and summed nowhere. The pack contract already carries includedInTotal and already refuses an includedInTotal:false leg whose figure is absent, so RD-4 uses that seam rather than inventing a legKind member. Reading rltax.js during this planning session showed that reconciliation identity L4 filters legs on includedInTotal and that every leg shipped so far is true, so its exclusion clause has never removed anything and has never been exercised. This feature gives it three legs to exclude. That is not a supersession and the identity is unchanged; it is a vacuity repair, and Scope 04 carries a DoD row requiring the filter's removed count, the total's divergence from the all-legs sum, and a mutation flipping a premium leg to included to be asserted rather than assumed."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "break-even-detectors-strengthened-not-superseded",
+                "summary": "The claim-age comparison produces a break-even-style output and the repository carries five separate forbidden-token detectors for break-even claims, located and read during this planning session in scripts/selftest.mjs and tests/lifetime-tax-conversion.spec.mjs. The obvious move is to rename the member until the detectors stop firing, and that is evasion. RD-5 resolves it by making the delivered claim genuinely weaker than the one the detectors forbid: an equality of two cumulative sums over declared figures, stated by the record itself to be arithmetic rather than a prediction, with the mortality source used for its life-expectancy column alone and a probability-bearing pack member refused. The detectors are then extended to cover the new module and the mortality pack. ASC-9 is added to the supersession contract to make the prohibition on renaming-to-pass explicit, because a rule that exists only in a design rationale is a rule the next feature will not find."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "derived-replacements-are-why-two-scopes-own-no-entry",
+                "summary": "Four literal-count supersessions have accumulated across the three predecessor features, every one of them a literal a later scope had to hand-edit, and every such edit is indistinguishable from one hiding a real regression. This feature's ledger is therefore weighted toward Scope 02, which converts the not-modeled accounting to a derived form so Scope 04's second id removal needs no further entry. The measurable result is that Scope 03 and Scope 05 own no ledger entry at all: Scope 05 adds three Simple fields, four Power sections, four legs and three packs, and every count it grows was already derived by SUP-022-15, SUP-022-16, SUP-022-17, SUP-023-04, SUP-023-05, SUP-023-06, SUP-023-10 and SUP-023-13. Each of those was verified against the tree during this planning session and recorded in the assertions-considered table so a cleared assertion is distinguishable from an unexamined one."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "assertions-verified-as-not-eligible",
+                "summary": "Five assertions that a careless plan would have superseded were read and cleared. RLTAXRULES.PACK_REQUIRED_MEMBERS.length === 22 is unaffected because the twenty-two are required of every pack and this feature's additions are conditional policy members, verified by reading the current list and confirming it contains none of Feature 023's six additions. declaredTaxKeys.length === 3 and the storage inventory count are unaffected because every declaration lives inside the existing workspace key, so a DoD item asserts the count is unchanged AND that each declaration is inventoried, since an unchanged count is otherwise indistinguishable from a declaration that was never inventoried. SUPPORTED_INCOME_KINDS.length === 4 is unaffected under RD-6 because the included benefit portion is ordinary income. The conversion comparison's medicare-and-irmaa entry stays because a conversion's premium effect lands two years later and this feature computes no future year, so only its now-false reason clause is corrected and a new assertion pins the correction."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "no-source-retrieved-in-this-planning-session",
+                "summary": "This planning session retrieved no primary source. Every bend point, percentage, factor, age, base amount, life-expectancy figure, premium and bracket boundary is recorded as a blocking implementation input BI-1 through BI-11, each naming a likely authority and the consequence if the retrieval fails. The likely authorities named in spec.md are discovery aids and are explicitly not transcription sources; spec.md states in its Sourcing Directive that this specification is not a transcription source. No figure appears anywhere in this feature's artifacts, which is why none can be copied into a pack."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "known-defect-classes-are-design-constraints",
+                "summary": "design.md carries a Route Rendering Hazards table converting five known defect classes in this page into design constraints rather than review notes: the headline must render totalFederalTax and not ordinaryTax, a Feature 022 defect that understated tax owed by up to eighty-eight percent and was latent because the hidden legs were zero; the declaration-signature no-op guard must be preserved because binding a control to both input and change with an unconditional render detaches the node mid-interaction; every renderer must read only members the settlement publishes because a throw aborts renderPower entirely; every query must be surface-scoped because Simple is display:none in Power and applyDisplayMode rebuilds only Power; and every pure analytic function must be a top-level function declaration because the selftest extractor lifts them by brace-matching and an arrow const is silently never tested. That last one is SUP-024-01's whole justification. The harness rules — UMD not ESM in the shared modules, Number.isFinite rather than the bare global, no requestAnimationFrame around canvas drawing — are carried as NFR-024-011 so they are asserted rather than remembered."
+            },
+            {
+                "recordedBy": "bubbles.plan",
+                "recordedAt": "2026-08-17T00:00:00Z",
+                "kind": "no-new-root-html-and-no-registration",
+                "summary": "This feature extends the existing lifetime-tax-strategy-lab.html and creates no new root HTML file, so site-exclusions.json is unchanged and every scope asserts it. Had a new root page been created it would have required a site-exclusions.json entry in the same scope that created it, because scripts/build-pages-site.mjs refuses an unregistered root HTML and that refusal breaks the live Pages deploy. Every scope runs node scripts/build-pages-site.mjs --dry-run as a deploy gate to prove the condition holds. Registration in tools.json, index.html, rlnav.js, README.md, notes/README.md and market-brief coverage remains deferred to Feature 026, and every scope asserts it absent."
+            }
+        ]
+    }
+}

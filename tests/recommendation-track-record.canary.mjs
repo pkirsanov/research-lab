@@ -32,8 +32,14 @@
  * comparison could not go green while the code was correct, which makes it a broken comparison
  * rather than a strict one. What replaces it is stricter, not looser: the non-numeric skeleton of
  * every line must still be byte-identical, and every count that moved must have moved by exactly
- * the amount this scope's own additions account for, derived per run and cross-checked against
- * `git status --porcelain`. A count that moves for any other reason is unattributed and fails.
+ * the amount this scope's own additions account for, derived per run and cross-checked against the
+ * set of files this scope added. A count that moves for any other reason is unattributed and fails.
+ *
+ * That added set, and the pre-scope commit the rehearsal checks out, are derived from COMMIT
+ * HISTORY rather than from `git status --porcelain`. Reading them off the porcelain was only ever
+ * correct while the work was uncommitted; once the scope was committed the porcelain emptied, the
+ * added set collapsed to nothing, and the vacuity guard refused a tree that was in fact fine.
+ * Working-tree cleanliness is a property of WHEN the row runs, not of what the scope did.
  *
  * Scopes 02 - 10 EXTEND this file; they do not rewrite it.
  */
@@ -335,22 +341,113 @@ function isAllowedPath(candidate) {
 }
 
 /* ---------------------------------------------------------------------------------------------
+ * The pre-scope boundary.
+ *
+ * The rehearsal needs the commit the repository sat at BEFORE this scope existed, and the set of
+ * files this scope is answerable for. Both are derived from commit history, so the row holds from
+ * a clean committed tree and mid-development alike.
+ *
+ * No SHA is written down. The boundary is the parent of the commit that first introduced the
+ * scope's origin file, and the derivation is checked against known answers at both ends: the
+ * origin file must be absent at the boundary and present at HEAD. A boundary that drifted to the
+ * wrong commit fails there rather than quietly rehearsing against the wrong tree.
+ * ------------------------------------------------------------------------------------------- */
+
+/** The file whose first appearance dates this scope. It is the scope's own module, added by it. */
+const SCOPE_ORIGIN_PATH = 'rlclaims.js';
+
+/** Whether `commit` carries `candidate` at that exact path. */
+function commitCarriesPath(commit, candidate) {
+    return git(['ls-tree', '--name-only', commit, candidate]).trim() !== '';
+}
+
+/**
+ * The commit immediately before this scope's files first appeared, derived rather than pinned.
+ *
+ * `git log --diff-filter=A --reverse` lists a path's additions oldest-first, so its first entry is
+ * the commit that introduced the scope, and that commit's parent is the last state of the
+ * repository without it.
+ */
+function preScopeCommit() {
+    const introductions = git(['log', '--diff-filter=A', '--format=%H', '--reverse', '--', SCOPE_ORIGIN_PATH])
+        .split('\n')
+        .filter((line) => line !== '');
+    assert.ok(
+        introductions.length > 0,
+        `no commit adds ${SCOPE_ORIGIN_PATH} — the boundary cannot be dated from a file this scope never added`,
+    );
+    const introducing = introductions[0];
+    assert.match(introducing, /^[0-9a-f]{40}$/, 'the introducing commit must resolve to a full object name');
+
+    // `rev-list --parents` prints "<commit> <parent>...". A merge would make "the state before"
+    // ambiguous, so exactly one parent is required rather than assumed.
+    const lineage = git(['rev-list', '--parents', '-n', '1', introducing]).trim().split(' ');
+    assert.equal(
+        lineage.length,
+        2,
+        `the introducing commit must have exactly one parent, got ${lineage.length - 1} — the boundary would be ambiguous`,
+    );
+    return lineage[1];
+}
+
+/**
+ * Every file this scope is answerable for, unioned across both tree states.
+ *
+ * Committed additions and still-untracked additions are unioned because the row must hold from a
+ * clean committed tree AND mid-development: in the first the untracked half is empty and history
+ * carries the set, in the second the reverse. A porcelain directory entry (git collapses untracked
+ * trees) is carried through untouched — it matches no scanned-source shape and no baseline path,
+ * so it attributes nothing.
+ */
+function scopeAddedPaths(preScope, untrackedTargets) {
+    const committed = git(['diff', '--diff-filter=A', '--name-only', preScope, 'HEAD'])
+        .split('\n')
+        .filter((line) => line !== '');
+    return [...new Set([...committed, ...untrackedTargets.filter(isAllowedPath)])].sort();
+}
+
+/**
+ * Every file that existed at the boundary and does not at HEAD.
+ *
+ * This scope is purely additive, so the set is expected to be empty and is asserted to be. It is
+ * still DERIVED rather than assumed absent, because a removal would shrink the committed-surface
+ * file tally and an attribution that only ever added would then over-count.
+ */
+function scopeRemovedPaths(preScope) {
+    return git(['diff', '--diff-filter=D', '--name-only', preScope, 'HEAD'])
+        .split('\n')
+        .filter((line) => line !== '')
+        .sort();
+}
+
+/* ---------------------------------------------------------------------------------------------
  * Attributable delta.
  *
  * `scripts/selftest.mjs` embeds counts DERIVED from the tree in its assertion messages, so a scope
- * that legitimately adds a file moves those counts. Two move here, and neither is a regression:
+ * that legitimately adds a file moves those counts. Five move here, and none is a regression:
  *
  *   - `#L7665` reports the size of its production-source scan universe, which grows by every
  *     root-level `.js`/`.html` this scope adds;
  *   - `#L8702` reports the frozen spec-test-path tally, where every added `tests/*.mjs` that the
- *     committed baseline lists as known-missing moves from `known-missing` into `stale`.
+ *     committed baseline lists as known-missing moves from `known-missing` into `stale`;
+ *   - `#L2659` reports how many committed files the PII scan read, which grows by every added file
+ *     that scan actually COUNTS — which is not the same as every added file;
+ *   - `#L2665` reports how many commit messages it read, which grows by every commit that landed
+ *     between the boundary and `HEAD`;
+ *   - `#L8700` reports how many `tests/*.mjs` references the spec artifacts name, which grows by
+ *     the references this scope's own artifacts contribute.
  *
- * A flat byte comparison therefore cannot go green while the code is correct. Attribution replaces
- * it with something stricter: the non-numeric skeleton must still match byte for byte, and every
- * count that moved must have moved by exactly the amount this scope's own additions account for.
- * Both magnitudes are DERIVED — from the two trees and from the committed baseline — and
- * cross-checked against `git status --porcelain`, so no `1`, `67` or `68` is written down anywhere
- * and a count that moves for any other reason stays unattributed and fails the row.
+ * The last three only became measurable once the work was COMMITTED. While it sat untracked the two
+ * trees agreed on them, because `git ls-files`, `git log` and — for the artifacts this scope had
+ * not yet written — the specs tree all still described the pre-scope repository. Committing is what
+ * exposed the scope's own footprint, so the rule set grew; the comparison did not loosen.
+ *
+ * A flat byte comparison cannot go green while the code is correct. Attribution replaces it with
+ * something stricter: the non-numeric skeleton must still match byte for byte, and every count that
+ * moved must have moved by exactly the amount this scope's own additions account for. Every
+ * magnitude is DERIVED per run — from the two trees, from commit history, and from the committed
+ * baseline — so no figure is written down anywhere, and a count that moves for any other reason
+ * stays unattributed and fails the row.
  * ------------------------------------------------------------------------------------------- */
 
 /* Mirrors the universe `selftest.mjs#L7659` enumerates. The mirror is self-checking rather than
@@ -393,14 +490,117 @@ function frozenSpecTestPathBaseline(root) {
     );
 }
 
-/**
- * What this scope's own additions account for, derived twice from independent sources.
+/* ---- The committed-surface file universe -----------------------------------------------------
  *
- * The scan-universe delta is read off the two trees; the porcelain is then required to name exactly
- * the same files. Two derivations that agree is what makes this an attribution rather than a
- * restatement of whatever the transcript happened to print.
+ * `pii-scan.mjs#L188` does not count every path. It enumerates `git ls-files`, then drops its own
+ * config, anything under a skipped directory, anything above a size ceiling, anything it cannot
+ * read, and anything carrying a NUL byte. A rule that assumed "one added file, one more scanned
+ * file" would over-attribute the day this scope adds an untracked scratch file or a PNG fixture, so
+ * the predicate is mirrored from the scanner rather than guessed. Like the scan-universe mirror it
+ * is self-checking: the magnitude it derives is bound to the delta the transcript actually printed,
+ * so a mirror that drifted leaves the line unattributed instead of green.
+ * ------------------------------------------------------------------------------------------- */
+
+const PII_CONFIG_PATH = 'scripts/pii-scan.config.json';
+const PII_SKIP_DIRS = Object.freeze([
+    '.git', 'node_modules', '_site', 'playwright-report', 'test-results', '.codegraph', '.brief-work',
+]);
+const PII_MAX_FILE_BYTES = 32 * 1024 * 1024;
+
+/** The index of the tree at `root`, which is the universe `pii-scan.mjs` enumerates. */
+function trackedPaths(root) {
+    return new Set(git(['ls-files', '-z'], root).split('\u0000').filter((entry) => entry !== ''));
+}
+
+/** Whether `candidate` would increment `filesScanned` for the tree at `root`. */
+function isPiiScanCounted(root, tracked, candidate) {
+    if (candidate === PII_CONFIG_PATH) return false;
+    if (!tracked.has(candidate)) return false;
+    if (candidate.split('/').some((segment) => PII_SKIP_DIRS.includes(segment))) return false;
+    let text;
+    try {
+        const absolute = path.join(root, candidate);
+        if (fs.statSync(absolute).size > PII_MAX_FILE_BYTES) return false;
+        text = fs.readFileSync(absolute, 'utf8');
+    } catch {
+        return false;
+    }
+    return !text.includes('\u0000');
+}
+
+/* ---- The spec-artifact reference surface -----------------------------------------------------
+ *
+ * `validate-spec-test-paths.mjs#L86` walks `specs/` on the FILESYSTEM rather than through the
+ * index, reads every text artifact, and counts each repo-root-relative `tests/....mjs` token. Both
+ * halves matter: walking the filesystem is why an artifact edited but not yet committed still moves
+ * the count, and the token's lookbehind is why `other/tests/x.mjs` does not. The matcher below is
+ * that regex verbatim — anything looser would count references the guard does not, and the derived
+ * magnitude would stop matching the transcript.
+ * ------------------------------------------------------------------------------------------- */
+
+const SPEC_ARTIFACT_DIR = 'specs';
+const SPEC_TEST_PATH_TOKEN = /(?<![A-Za-z0-9._/-])tests\/[A-Za-z0-9._/-]*\.mjs/g;
+
+function countSpecTestPathReferences(text) {
+    SPEC_TEST_PATH_TOKEN.lastIndex = 0;
+    let found = 0;
+    while (SPEC_TEST_PATH_TOKEN.exec(text) !== null) found += 1;
+    return found;
+}
+
+/** Every artifact the guard would scan under `<root>/specs`, mapped to its reference count. */
+function specArtifactReferenceCounts(root) {
+    const counts = new Map();
+    const base = path.join(root, SPEC_ARTIFACT_DIR);
+    if (!fs.existsSync(base)) return counts;
+
+    const walk = (directory) => {
+        for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+            const child = path.join(directory, entry.name);
+            if (entry.isDirectory()) {
+                walk(child);
+                continue;
+            }
+            if (!entry.isFile()) continue;
+            let text;
+            try {
+                text = fs.readFileSync(child, 'utf8');
+            } catch {
+                continue;
+            }
+            if (text.includes('\u0000')) continue; // binary artifact, not a text reference surface
+            counts.set(path.relative(root, child).split(path.sep).join('/'), countSpecTestPathReferences(text));
+        }
+    };
+    walk(base);
+    return counts;
+}
+
+/**
+ * Whether a `specs/` artifact belongs to this scope: its own scope directory, or one it added.
+ *
+ * Ownership is the right partition rather than "was added", because the artifacts this scope writes
+ * its evidence into ALREADY EXISTED — the planning pass created them. They are modified, not added,
+ * and a rule keyed on additions alone would derive nothing and leave the reference growth
+ * unexplained.
  */
-function deriveAttribution(liveRoot, preRoot, addedPaths) {
+function isScopeOwnedSpecArtifact(candidate, addedSet) {
+    return (
+        candidate.startsWith(SCOPE_ARTIFACT_PREFIX)
+        || (candidate.startsWith(`${SPEC_ARTIFACT_DIR}/`) && addedSet.has(candidate))
+    );
+}
+
+/**
+ * What this scope's own footprint accounts for, each magnitude derived from an independent source.
+ *
+ * The scan-universe delta is read off the two trees and then required to name exactly the files git
+ * reports as added; the file-universe delta is the added set filtered by the scanner's own counting
+ * rule; the commit-message delta is read off commit history; the reference delta is read off the
+ * artifacts this scope owns. Two derivations that agree is what makes each of these an attribution
+ * rather than a restatement of whatever the transcript happened to print.
+ */
+function deriveAttribution(liveRoot, preRoot, addedPaths, removedPaths, preScope) {
     const liveScanned = scannedProductionSources(liveRoot);
     const preScanned = scannedProductionSources(preRoot);
     const preSet = new Set(preScanned);
@@ -408,16 +608,62 @@ function deriveAttribution(liveRoot, preRoot, addedPaths) {
 
     const added = liveScanned.filter((entry) => !preSet.has(entry));
     const removed = preScanned.filter((entry) => !liveSet.has(entry));
-    const fromPorcelain = addedPaths.filter(isScannedProductionSource).sort();
+    const fromAddedSet = addedPaths.filter(isScannedProductionSource).sort();
 
     const baseline = frozenSpecTestPathBaseline(liveRoot);
     const resolvedBaselineEntries = addedPaths.filter((entry) => baseline.has(entry)).sort();
 
+    // The committed-surface file universe: this scope's own additions, filtered by the rule the
+    // scanner uses, less anything it removed — evaluated in whichever tree that file exists in.
+    const liveTracked = trackedPaths(liveRoot);
+    const preTracked = trackedPaths(preRoot);
+    const countedAdded = addedPaths.filter((entry) => isPiiScanCounted(liveRoot, liveTracked, entry)).sort();
+    const countedRemoved = removedPaths.filter((entry) => isPiiScanCounted(preRoot, preTracked, entry)).sort();
+
+    // The commit-message universe. `A..HEAD` is a difference of reachable sets only while `A` is an
+    // ancestor of `HEAD`, so the reverse count is carried alongside and asserted to be empty.
+    const commitsSinceBoundary = Number(git(['rev-list', '--count', `${preScope}..HEAD`]).trim());
+    const commitsBehindBoundary = Number(git(['rev-list', '--count', `HEAD..${preScope}`]).trim());
+
+    // The spec-artifact reference surface, split into what this scope owns and everything else.
+    const addedSet = new Set(addedPaths);
+    const liveArtifacts = specArtifactReferenceCounts(liveRoot);
+    const preArtifacts = specArtifactReferenceCounts(preRoot);
+    let ownedDelta = 0;
+    let totalDelta = 0;
+    const contributingArtifacts = [];
+    for (const artifact of new Set([...liveArtifacts.keys(), ...preArtifacts.keys()])) {
+        const delta = (liveArtifacts.get(artifact) ?? 0) - (preArtifacts.get(artifact) ?? 0);
+        totalDelta += delta;
+        if (!isScopeOwnedSpecArtifact(artifact, addedSet)) continue;
+        ownedDelta += delta;
+        if (delta !== 0) contributingArtifacts.push(artifact);
+    }
+
     return {
-        scanUniverse: { pre: preScanned.length, live: liveScanned.length, added, removed, fromPorcelain },
+        scanUniverse: { pre: preScanned.length, live: liveScanned.length, added, removed, fromAddedSet },
         baselineReclassification: {
             magnitude: resolvedBaselineEntries.length,
             entries: resolvedBaselineEntries,
+        },
+        scannedFileUniverse: {
+            magnitude: countedAdded.length - countedRemoved.length,
+            added: countedAdded,
+            removed: countedRemoved,
+        },
+        commitMessageUniverse: {
+            magnitude: commitsSinceBoundary,
+            behindBoundary: commitsBehindBoundary,
+        },
+        specTestReferences: {
+            magnitude: ownedDelta,
+            totalDelta,
+            contributingArtifacts: contributingArtifacts.sort(),
+            artifacts: { pre: preArtifacts.size, live: liveArtifacts.size },
+            baselineEntries: {
+                pre: [...frozenSpecTestPathBaseline(preRoot)].sort(),
+                live: [...baseline].sort(),
+            },
         },
     };
 }
@@ -437,11 +683,35 @@ function splitNumbers(line) {
 }
 
 /**
+ * The message fragments that anchor a rule to the one line it explains.
+ *
+ * The first two rules were written before this file carried any anchor and identify their line by
+ * arithmetic alone, which is why each binds the EXACT pre and live sizes rather than a delta. The
+ * three added later are anchored instead: a repository-wide file tally and a commit tally can
+ * plausibly move by the same amount as something else, and a rule that matched on magnitude alone
+ * would then attribute a difference it had not actually explained. An anchor is strictly narrower
+ * than no anchor, and it fails closed — reword the assertion in `selftest.mjs` and the line becomes
+ * unattributed rather than silently waved through.
+ */
+const PII_FILE_COUNT_MARKER = 'the scan covered the repository (files=';
+const PII_MESSAGE_COUNT_MARKER = 'the scan covered commit messages (messages=';
+const SPEC_TEST_REFERENCE_MARKER = 'reference(s) across';
+
+/** The closed set of reasons a difference may carry. Anything else is a bug in the classifier. */
+const ATTRIBUTION_REASONS = Object.freeze([
+    'production-source-scan-universe',
+    'frozen-baseline-reclassification',
+    'committed-surface-file-universe',
+    'committed-surface-commit-messages',
+    'scope-artifact-test-references',
+]);
+
+/**
  * Name the attribution for one differing line, or `null` when nothing accounts for it.
  *
- * Both shapes require the skeleton to be byte-identical, so this is strictly narrower than the
- * comparison it replaces everywhere the counts did not move — a scope adding no production source
- * derives an empty attribution and gets exact byte-identity back.
+ * Every shape requires the skeleton to be byte-identical, so this is strictly narrower than the
+ * comparison it replaces everywhere the counts did not move — a scope adding nothing derives empty
+ * magnitudes and gets exact byte-identity back.
  */
 function classifyDifference(preLine, liveLine, attribution) {
     const before = splitNumbers(preLine);
@@ -455,6 +725,48 @@ function classifyDifference(preLine, liveLine, attribution) {
         if (delta !== 0) moved.push({ index, pre: before.numbers[index], live: after.numbers[index], delta });
     }
     if (moved.length === 0) return null;
+
+    /* The anchored rules come first so a line that names its own counter is never claimed by a
+     * rule that identifies its line by arithmetic. Each requires exactly ONE number to have moved,
+     * which is how the other counters on the same line are asserted to be invariant. */
+
+    // The committed-surface file tally, which grows by this scope's own additions — filtered by the
+    // rule `pii-scan.mjs` uses to decide what it counts, not by "every path git reports as added".
+    const files = attribution.scannedFileUniverse;
+    if (
+        preLine.includes(PII_FILE_COUNT_MARKER)
+        && moved.length === 1
+        && files.magnitude !== 0
+        && moved[0].delta === files.magnitude
+    ) {
+        return 'committed-surface-file-universe';
+    }
+
+    // The commit-message tally, which grows by exactly the commits between the boundary and HEAD.
+    // Deriving it rather than pinning one is what keeps the rule true if the scope later lands
+    // across several commits.
+    const messages = attribution.commitMessageUniverse;
+    if (
+        preLine.includes(PII_MESSAGE_COUNT_MARKER)
+        && moved.length === 1
+        && messages.magnitude > 0
+        && moved[0].delta === messages.magnitude
+    ) {
+        return 'committed-surface-commit-messages';
+    }
+
+    // The spec-artifact reference tally, which grows by the `tests/*.mjs` references this scope's
+    // own artifacts contribute. The single-move requirement is the invariant half: this scope adds
+    // no spec artifact and no baseline entry, so those two counters on the same line must not move.
+    const references = attribution.specTestReferences;
+    if (
+        preLine.includes(SPEC_TEST_REFERENCE_MARKER)
+        && moved.length === 1
+        && references.magnitude !== 0
+        && moved[0].delta === references.magnitude
+    ) {
+        return 'scope-artifact-test-references';
+    }
 
     // Growth of the production-source scan universe, bound to the EXACT sizes of the two trees
     // rather than to a delta, so a different count that happens to move by the same amount fails.
@@ -793,9 +1105,12 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
     assert.equal(isAllowedPath('tests/recommendation-track-record.canary.mjs'), true, 'this file is in family');
     assert.equal(isAllowedPath('rlclaims.js'), true, 'the claim module is in family');
     assert.equal(isAllowedPath('tests/fixtures/recommendation-track-record/claims/x.json'), true, 'fixtures are in family');
+    assert.equal(isAllowedPath('briefs/objects/claims/2026-08-18-example.json'), true, 'a published claim object is in family');
+    assert.equal(isAllowedPath(`${SCOPE_ARTIFACT_PREFIX}report.md`), true, "the scope's own artifacts are in family");
     assert.equal(isAllowedPath('rlvalidation.js'), false, 'a 007-owned module is out of family');
     assert.equal(isAllowedPath('scripts/selftest.mjs'), false, 'the baseline script is out of family');
     assert.equal(isAllowedPath('rlclaims.js.bak'), false, 'an exact-match family must not widen into a prefix');
+    assert.equal(isAllowedPath('briefs/objects/recommendations/x.json'), false, "a sibling brief-object family is out of family");
     assert.equal(isAllowedPath('tests/other-feature.unit.mjs'), false, "a neighbouring feature's test file is out of family");
 
     // The scan-universe classifier gets the same treatment, because it decides which added files
@@ -818,24 +1133,51 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
             `porcelain quoted "${entry.raw}" — a path needing quoting is not one this scope creates`,
         );
         assert.equal(isAllowedPath(entry.target), true, `working-tree entry outside the allowed families: ${entry.raw}`);
-
-        // Purely additive: outside its own planning artifacts this scope may only ADD files, and
-        // that is what makes HEAD the pre-scope commit the rehearsal below checks out.
-        if (!entry.target.startsWith(SCOPE_ARTIFACT_PREFIX)) {
-            assert.equal(entry.status, '??', `${entry.target} is tracked and modified — this scope must only add files`);
-        }
     }
 
-    /* Only the untracked entries are this scope's additions, and only they may account for a count
-     * that moved. A directory entry (porcelain collapses untracked trees) is carried through
-     * untouched: it matches no scanned-source shape and no baseline path, so it attributes nothing. */
-    const addedPaths = workingTree.filter((entry) => entry.status === '??').map((entry) => entry.target);
-    assert.ok(addedPaths.length > 0, 'the rehearsal is vacuous unless this scope actually added something');
-
-    /* ---- 2. Rehearse the restore in a disposable detached worktree ------------------------ */
+    /* ---- 1b. The pre-scope boundary, derived from history rather than from a clean tree -- */
 
     const head = git(['rev-parse', 'HEAD']).trim();
+    const preScope = preScopeCommit();
     assert.match(head, /^[0-9a-f]{40}$/, 'HEAD must resolve to a full object name');
+    assert.match(preScope, /^[0-9a-f]{40}$/, 'the pre-scope commit must resolve to a full object name');
+    assert.notEqual(preScope, head, 'the boundary must sit before HEAD, or the rehearsal compares a tree with itself');
+
+    // Known answers at both ends of the boundary. A derivation that landed on the wrong commit
+    // would rehearse against the wrong tree and attribute this scope's additions to nothing.
+    assert.equal(commitCarriesPath(head, SCOPE_ORIGIN_PATH), true, `HEAD must carry ${SCOPE_ORIGIN_PATH}`);
+    assert.equal(
+        commitCarriesPath(preScope, SCOPE_ORIGIN_PATH),
+        false,
+        `the pre-scope commit must not carry ${SCOPE_ORIGIN_PATH} — the boundary is one commit too late`,
+    );
+
+    /* This scope's additions, and the only things that may account for a count that moved: the
+     * files committed since the boundary, unioned with any still-untracked ones. */
+    const untracked = workingTree.filter((entry) => entry.status === '??').map((entry) => entry.target);
+    const addedPaths = scopeAddedPaths(preScope, untracked);
+    const removedPaths = scopeRemovedPaths(preScope);
+    assert.ok(addedPaths.length > 0, 'the rehearsal is vacuous unless this scope actually added something');
+    for (const added of addedPaths) {
+        assert.equal(isAllowedPath(added), true, `this scope added a file outside the allowed families: ${added}`);
+    }
+
+    /* No collateral modification. A tracked file may be dirty only when this scope owns it — one of
+     * its own planning artifacts, or a file it added itself. Editing anything else is collateral,
+     * which is exactly what destroys the clean back-out this row exists to prove. The rule used to
+     * read "must be untracked", which held only while the scope was uncommitted: once delivered,
+     * every file it owns is tracked, and that phrasing refused the scope's own maintenance. */
+    const ownedByScope = new Set(addedPaths);
+    for (const entry of workingTree) {
+        if (entry.status === '??') continue;
+        assert.equal(
+            entry.target.startsWith(SCOPE_ARTIFACT_PREFIX) || ownedByScope.has(entry.target),
+            true,
+            `${entry.target} is tracked and modified but not owned by this scope — that is collateral`,
+        );
+    }
+
+    /* ---- 2. Rehearse the restore in a disposable detached worktree ------------------------ */
 
     const live = liveBaseline();
     assert.equal(live.status, 0, 'the live baseline must exit 0 before it can be a comparison basis');
@@ -871,11 +1213,11 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
     assert.equal(scratch.startsWith(REPO_ROOT), false, 'the rehearsal must happen outside the repository');
 
     try {
-        git(['worktree', 'add', '--detach', worktree, head]);
+        git(['worktree', 'add', '--detach', worktree, preScope]);
 
         assert.equal(fs.existsSync(path.join(worktree, 'scripts', 'selftest.mjs')), true,
             'the worktree must carry the committed baseline script');
-        // The restore target is *absent*: none of this scope's new files exist at HEAD.
+        // The restore target is *absent*: none of this scope's new files exist at the boundary.
         assert.equal(fs.existsSync(path.join(worktree, 'rlclaims.js')), false,
             'the pre-scope tree must not contain the claim module');
         assert.equal(fs.existsSync(path.join(worktree, 'tests', 'recommendation-track-record.support.mjs')), false,
@@ -897,7 +1239,7 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         // line that moved is accounted for by this scope's own additions. This is AC-018's "no
         // pre-existing count decreasing" stated exactly, plus the attribution that makes a
         // difference either explained or a failure — never merely tolerated.
-        const attribution = deriveAttribution(REPO_ROOT, worktree, addedPaths);
+        const attribution = deriveAttribution(REPO_ROOT, worktree, addedPaths, removedPaths, preScope);
 
         // The scan universe may only have GROWN, and by exactly the files the porcelain names.
         // Two independent derivations agreeing is what makes the magnitude an attribution.
@@ -908,7 +1250,7 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         );
         assert.deepEqual(
             attribution.scanUniverse.added,
-            attribution.scanUniverse.fromPorcelain,
+            attribution.scanUniverse.fromAddedSet,
             'the scan-universe growth must be exactly the production sources git reports as added',
         );
         assert.equal(
@@ -921,6 +1263,63 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         }
         for (const entry of attribution.baselineReclassification.entries) {
             assert.equal(isAllowedPath(entry), true, `resolved baseline entry outside the allowed families: ${entry}`);
+        }
+
+        // The committed-surface file universe may only have GROWN, and only within the families
+        // this scope owns. `removed` is derived rather than assumed empty, so a deletion would
+        // shrink the magnitude instead of quietly leaving it overstated.
+        assert.deepEqual(
+            attribution.scannedFileUniverse.removed,
+            [],
+            'no scanned file may leave the committed surface — this scope is purely additive',
+        );
+        assert.ok(
+            attribution.scannedFileUniverse.magnitude > 0,
+            'this scope must add at least one file the committed-surface scan counts, or the file rule is inert',
+        );
+        for (const entry of attribution.scannedFileUniverse.added) {
+            assert.equal(isAllowedPath(entry), true, `scanned added file outside the allowed families: ${entry}`);
+        }
+
+        // The commit-message universe. `<boundary>..HEAD` counts a difference of reachable sets
+        // only while the boundary is an ancestor of HEAD, so the reverse count must be empty —
+        // otherwise the magnitude is the size of one side of a fork, which explains nothing.
+        assert.equal(
+            attribution.commitMessageUniverse.behindBoundary,
+            0,
+            'the boundary must be an ancestor of HEAD, or the commit-message delta is not a difference of reachable sets',
+        );
+        assert.ok(
+            attribution.commitMessageUniverse.magnitude > 0,
+            'at least one commit must separate the boundary from HEAD, or the message rule is inert',
+        );
+
+        // The spec-artifact reference surface. The invariant halves are asserted directly rather
+        // than left to the classifier: this scope writes into artifacts that already existed and
+        // adds no frozen baseline entry, so the artifact tally and the baseline must be identical
+        // across the two trees. The whole growth must come from artifacts this scope owns — an
+        // unowned artifact contributing a reference is not this scope's footprint.
+        assert.equal(
+            attribution.specTestReferences.artifacts.live,
+            attribution.specTestReferences.artifacts.pre,
+            'this scope adds no spec artifact file, so the scanned-artifact tally must not move',
+        );
+        assert.deepEqual(
+            attribution.specTestReferences.baselineEntries.live,
+            attribution.specTestReferences.baselineEntries.pre,
+            'this scope adds no frozen baseline entry, so the baseline must be identical across the two trees',
+        );
+        assert.equal(
+            attribution.specTestReferences.totalDelta,
+            attribution.specTestReferences.magnitude,
+            "every tests/*.mjs reference the specs tree gained must come from an artifact this scope owns",
+        );
+        assert.ok(
+            attribution.specTestReferences.contributingArtifacts.length > 0,
+            'at least one owned artifact must contribute a reference, or the reference rule is inert',
+        );
+        for (const entry of attribution.specTestReferences.contributingArtifacts) {
+            assert.equal(isAllowedPath(entry), true, `contributing spec artifact outside the allowed families: ${entry}`);
         }
 
         // Adversarial half for the classifier itself, against known answers built FROM the derived
@@ -966,6 +1365,99 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
             'a reclassification that does not conserve its total is unattributable',
         );
 
+        /* Adversarial half for the three anchored rules. The probe base is one past the live scan
+         * size, so no probe can be claimed by the unanchored scan-universe rule and each therefore
+         * exercises the rule it names. Each rule is shown to accept exactly its derived magnitude,
+         * to refuse one more than that, and to refuse the same magnitude carried on a line it is
+         * not anchored to — a rule that said yes to any movement of its own counter would attribute
+         * a genuine regression and certify the property this row exists to test. */
+        const probeBase = attribution.scanUniverse.pre + 1;
+
+        const fileMagnitude = attribution.scannedFileUniverse.magnitude;
+        const filesShape = (value) => `${PII_FILE_COUNT_MARKER}${value})`;
+        assert.equal(
+            classifyDifference(filesShape(probeBase), filesShape(probeBase + fileMagnitude), attribution),
+            'committed-surface-file-universe',
+            "a file tally that moved by exactly this scope's added-and-scanned files is attributable",
+        );
+        assert.equal(
+            classifyDifference(filesShape(probeBase), filesShape(probeBase + fileMagnitude + 1), attribution),
+            null,
+            'a file tally that moved further than this scope added is unattributable',
+        );
+        assert.equal(
+            classifyDifference(
+                `an unrelated message carrying ${probeBase} files`,
+                `an unrelated message carrying ${probeBase + fileMagnitude} files`,
+                attribution,
+            ),
+            null,
+            'the file magnitude on a line the rule is not anchored to is unattributable',
+        );
+
+        const messageMagnitude = attribution.commitMessageUniverse.magnitude;
+        const messagesShape = (value) => `${PII_MESSAGE_COUNT_MARKER}${value})`;
+        assert.equal(
+            classifyDifference(messagesShape(probeBase), messagesShape(probeBase + messageMagnitude), attribution),
+            'committed-surface-commit-messages',
+            'a message tally that moved by exactly the commits since the boundary is attributable',
+        );
+        assert.equal(
+            classifyDifference(messagesShape(probeBase), messagesShape(probeBase + messageMagnitude + 1), attribution),
+            null,
+            'a message tally that moved further than the commits since the boundary is unattributable',
+        );
+        assert.equal(
+            classifyDifference(
+                `an unrelated message carrying ${probeBase} messages`,
+                `an unrelated message carrying ${probeBase + messageMagnitude} messages`,
+                attribution,
+            ),
+            null,
+            'the message magnitude on a line the rule is not anchored to is unattributable',
+        );
+
+        const referenceMagnitude = attribution.specTestReferences.magnitude;
+        const referencesShape = (references, artifacts, entries) =>
+            `the guard is not vacuously green (${references} ${SPEC_TEST_REFERENCE_MARKER} ${artifacts} artifact(s), baseline ${entries} entries)`;
+        const referencesBefore = referencesShape(probeBase, probeBase, probeBase);
+        assert.equal(
+            classifyDifference(
+                referencesBefore,
+                referencesShape(probeBase + referenceMagnitude, probeBase, probeBase),
+                attribution,
+            ),
+            'scope-artifact-test-references',
+            "a reference tally that moved by exactly this scope's own contribution is attributable",
+        );
+        assert.equal(
+            classifyDifference(
+                referencesBefore,
+                referencesShape(probeBase + referenceMagnitude + 1, probeBase, probeBase),
+                attribution,
+            ),
+            null,
+            'a reference tally that moved further than this scope contributes is unattributable',
+        );
+        assert.equal(
+            classifyDifference(
+                referencesBefore,
+                referencesShape(probeBase + referenceMagnitude, probeBase + 1, probeBase),
+                attribution,
+            ),
+            null,
+            'a moving artifact tally is unattributable however the references moved',
+        );
+        assert.equal(
+            classifyDifference(
+                referencesBefore,
+                referencesShape(probeBase + referenceMagnitude, probeBase, probeBase + 1),
+                attribution,
+            ),
+            null,
+            'a moving baseline tally is unattributable however the references moved',
+        );
+
         const liveByName = new Map(live.groups.map((group) => [group.name, group]));
         const unattributed = [];
         const attributed = [];
@@ -1005,11 +1497,11 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         );
 
         // Attribution is a narrowing of byte-identity, never a widening: nothing may be attributed
-        // beyond what the two derived magnitudes can produce.
+        // beyond what the derived magnitudes can produce.
         const attributedReasons = new Set(attributed.map((entry) => entry.reason));
         for (const reason of attributedReasons) {
             assert.ok(
-                ['production-source-scan-universe', 'frozen-baseline-reclassification'].includes(reason),
+                ATTRIBUTION_REASONS.includes(reason),
                 `unknown attribution reason "${reason}" — the closed set must stay closed`,
             );
         }

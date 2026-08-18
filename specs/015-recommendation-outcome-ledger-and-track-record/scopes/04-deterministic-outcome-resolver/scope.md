@@ -19,10 +19,13 @@ of the data the evaluator can see. Closure event and outcome class are recorded 
 (`entry.state === "active"`), and the test suite proves *where* the invariant lives, not merely that it holds. The
 resolver performs no `fetch`, opens no socket, and reads no provider credential.
 
-**Scope boundary — two routed blocks.** The **reducer key bridge** is blocked on routed finding **P-015-03**
-(`thesisFamily` has no live source), and the **horizon session predicate** is blocked on routed finding **P-015-07**
-(the design's `dateState === "regular"` rule skips `early-close` sessions). Everything else in this scope is
-fixture-proven and schedulable now.
+**Scope boundary — two routed findings, both now ruled on.** The **reducer key bridge** carried routed finding
+**P-015-03** (`thesisFamily` has no live source) and the **horizon session predicate** carried routed finding
+**P-015-07** (the design's `dateState === "regular"` rule skips `early-close` sessions). Design has since ruled on
+both, so neither gates implementation: `thesisFamily` is authored-or-not-evaluable and is a top-level hashed claim
+field, and the session predicate is `row.regular !== null`. This scope implements the recorded rulings and records
+in `report.md` which ruling it implemented; it still invents no `thesisFamily` value and still derives no session
+count of its own. Everything else in this scope was already fixture-proven and schedulable.
 
 ---
 
@@ -167,14 +170,21 @@ Scenario: A claim with no committed series is not-evaluable (SCN-015-010)
     reducer with **`current: []`** — it is a closing pass, never a proposing pass. The reducer re-emits the claim's
     **original frozen terms** on the closure (`#L1277`), which is HC-6 holding at the lifecycle layer too.
 13. **Derive the reducer key bridge, never author it.** `originRecommendationKey` is computed by calling
-    `deriveRecommendationKeys` (`rlcontracts.js#L1034`) on terms assembled from the claim's `lifecycleTerms`
-    provenance block (scope 01) plus its hashed `subject` / `actionFamily` / `horizon`, exactly as the foundation
-    intends (*"Authors never own identity"*, `rlcontracts.js#L1031`). The derived key is recorded in the resolution
-    object as `lifecycleBinding.originRecommendationKey` and is **not** added to `claimHash`'s term list, so scope
-    01's contract stays frozen and byte-stable. **`thesisFamily` is blocked on routed finding P-015-03** — the live
-    authored action carries no such field, and this scope invents no value for it, because the reducer keys entries
-    by exactly that hash (`rlcontracts.js#L1275`–`#L1281`) and a flattened key would conflate two different theses
-    onto one entry.
+    `deriveRecommendationKeys` (`rlcontracts.js#L1034`) on terms assembled from the claim's **hashed**
+    `thesisFamily` / `subject` / `actionFamily` / `horizon` (scope 01) plus the `originToolId` **pipeline
+    constant** `market-brief`, exactly as the foundation intends (*"Authors never own identity"*,
+    `rlcontracts.js#L1031`). Per the 2026-08-18 Claim-Identity Reconciliation there is no `lifecycleTerms` block to
+    read from: that block is **withdrawn**, `thesisFamily` is a top-level hashed claim field, and `originToolId` is
+    not a claim field at all. The constant is asserted against the registry — `tools.json` carries
+    `experience.kind === "market-action-center"` exactly once, on the tool whose `id` is `market-brief` — rather
+    than hard-coding a second copy of the string. Because every varying term of the derived key is inside
+    `claimHash`, the bridge is a **refinement**: one claim object can only ever derive one reducer key. The derived
+    key is recorded in the resolution object as `lifecycleBinding.originRecommendationKey` and is **not** added to
+    `claimHash`'s term list, so scope 01's contract stays frozen and byte-stable. **Routed finding P-015-03 is
+    RESOLVED and no longer gates this step** — `thesisFamily` is authored; when it is absent the claim mints
+    `not-evaluable` (`no-authored-thesis-family`) and **no** closure event is emitted, so the reducer is never
+    called with a fabricated key and this scope still invents no value for it. The ruling implemented is recorded in
+    `report.md`.
 14. **Enforce idempotence upstream of the reducer, by state.** The reducer does **not** self-enforce it:
     `lifecycleEventId` hashes `runId` (`rlcontracts.js#L1103`) so the same closure on two days yields two different
     `eventId`s; the `seenEvent` dedup is within-run only (`#L1298`–`#L1305`); and the closure block checks for an
@@ -251,7 +261,7 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 - [ ] Closures route through `reduceRecommendationEvents` via `run.closures` with `current: []`; the reducer is consumed unchanged and `rlcontracts.js` is byte-unmodified. `RTR-CLOSURE-VOCAB` refuses a locally-invented closure type.
 - [ ] The resolver does not depend on its own closure ordering, because the reducer sorts by `originRecommendationKey` before processing.
 - [ ] `lifecycleBinding.originRecommendationKey` is **derived** by calling `deriveRecommendationKeys`, never authored, and is not added to `claimHash`'s term list.
-- [ ] **Routed finding P-015-03 is recorded as blocking the bridge.** `thesisFamily` has no live source; this scope invents no value for it and records the routed decision in `report.md` before the bridge is implemented.
+- [ ] **Routed finding P-015-03 is recorded as ruled on, not as blocking.** `thesisFamily` is a top-level hashed claim field that is authored or the claim is not evaluable; this scope invents no value for it, emits no closure event when it is absent, and records the implemented ruling in `report.md` before the bridge is implemented.
 - [ ] Idempotence is enforced by the due-set gate, with `indexFingerprint` as the oracle and content-addressed resolution objects as the backstop; `RTR-RESOLUTION-CONFLICT` aborts a byte-changing write without overwriting.
 - [ ] The closed `not-evaluable` reason set is implemented, each reason carries a human-readable sentence, and every `not-evaluable` claim is excluded from rate denominators while remaining visibly counted.
 - [ ] `Number.isFinite` is used exclusively; the global `isFinite` appears nowhere in 015-authored code.

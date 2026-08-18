@@ -39,7 +39,7 @@ any ownership map recorded here.
 
 | Scope | Surface introduced |
 |---|---|
-| 01 | Contract `brief-recommendation-claim/v1`; the nine-term `claimHash` list and the content-only hashing rule; content-addressed store `briefs/objects/claims/<hex>.json`; the closed seven-reason mint-refusal set; the unhashed `citedToolId` provenance field; `RTR-PREDICATE-AMEND` |
+| 01 | Contract `brief-recommendation-claim/v1`; the nine-term `claimHash` list and the content-only hashing rule; content-addressed store `briefs/objects/claims/<hex>.json`; the closed seven-reason mint-refusal set; the unhashed `citedToolId` provenance field and the unhashed `notEvaluable` mint-verdict field; `RTR-PREDICATE-AMEND` |
 | 02 | Contract `brief-recommendation-history-row/v2` (strict superset of `v1`, one optional `claimRef`); the dual-version reader that accepts both; the publisher mint hook; `RTR-LEGACY-BACKFILL` |
 | 03 | The `outcomeClass` vocabulary (`win`, `loss`, `resolved-flat`, `unresolved`, `not-evaluable`, `unresolvable-legacy`); contract `brief-recommendation-resolution/v1`; `resolutionHash`; the zero-free directional-array convention; `RTR-FLAT-ZERO` |
 | 04 | `scripts/brief-resolve-outcomes.mjs`; the fenced as-of read slice; the four predicate evaluators; the closure-event selection table; the derived `lifecycleBinding.originRecommendationKey` bridge; the `state === "active"` due-set gate; `RTR-LOOKAHEAD`, `RTR-SESSION-PREDICATE`, `RTR-CALENDAR-COVERAGE`, `RTR-CLOSURE-VOCAB`, `RTR-NETWORK`, `RTR-RESOLUTION-CONFLICT` |
@@ -54,7 +54,7 @@ any ownership map recorded here.
 
 | After scope | Gate that must be green before the next scope starts |
 |---|---|
-| 01 | `node --test tests/recommendation-track-record.unit.mjs` and `node --test tests/recommendation-track-record.functional.mjs` prove content-only hashing, that any hashed-field change — `thesisFamily` included — yields a different `claimHash`, and that `RTR-PREDICATE-AMEND` fires on a byte-changing write at an existing path; `node scripts/selftest.mjs` still reports `baseline + N passed, 0 failed` against the scope-start baseline captured in `report.md`. |
+| 01 | `node --test tests/recommendation-track-record.unit.mjs` and `node --test tests/recommendation-track-record.functional.mjs` prove content-only hashing, that any hashed-field change — `thesisFamily` included — yields a different `claimHash`, and that `RTR-PREDICATE-AMEND` fires on a **hashed-term-changing** write at an existing path — never on a re-mint whose hashed terms match, which reuses the existing object; `node scripts/selftest.mjs` still reports `baseline + N passed, 0 failed` against the scope-start baseline captured in `report.md`. |
 | 02 | Every committed pre-contract row — count derived at test time, never asserted as a literal, per F-015-D5-02 — validates unchanged under the dual-version reader, `eventId` and `recommendationKey` are byte-identical before and after the extension, and `RTR-LEGACY-BACKFILL` fires on a resolution written against a row with no `claimRef`. |
 | 03 | The array handed to `rlvSummarizeOutcomes` contains only strictly non-zero finite elements, the primitive's own `unresolved` is structurally `0` and is consumed-and-discarded, and the class partition identity sums to the total proposed count. |
 | 04 | The **two-case** idempotence pair both pass: pass 2 over an unchanged ledger emits zero closures with a byte-identical `indexFingerprint`, **and** the reducer is shown to *accept* a double closure when the due-set gate is bypassed. |

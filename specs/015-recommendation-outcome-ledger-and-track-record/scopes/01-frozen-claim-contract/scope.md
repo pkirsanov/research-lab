@@ -12,10 +12,11 @@
 The contract `brief-recommendation-claim/v1` exists as a frozen, content-addressed object that records, at the
 moment of proposal, exactly what a recommendation claimed and exactly what would make it right or wrong: subject,
 direction, resolution predicate, horizon, and outcome-magnitude definition. `claimHash` covers every one of those
-terms — including `thesisFamily` — and **excludes** exactly four provenance fields, so re-proposing identical terms
+terms — including `thesisFamily` — and **excludes** exactly five provenance fields, so re-proposing identical terms
 in a later run reuses the identical object and amendment is structurally impossible rather than merely discouraged.
-Claims are written to `briefs/objects/claims/<hex>.json`, append-only; a write that would change the bytes at an
-existing path aborts with `RTR-PREDICATE-AMEND` and never overwrites. The minter refuses rather than guesses: a
+Claims are written to `briefs/objects/claims/<hex>.json`, append-only; a write whose **hashed terms** differ from
+those of the object already at that path aborts with `RTR-PREDICATE-AMEND` and never overwrites, while a re-mint
+whose hashed terms match reuses the existing object. The minter refuses rather than guesses: a
 positional-fallback subject, an out-of-vocabulary predicate kind, comparator, or horizon kind, and each of D1's four
 authored-input absences resolve to their own named reason. On completion, every later scope reads the claim shape,
 the hashing rule, the closed vocabularies, and the mint-refusal set from here rather than restating them.
@@ -58,12 +59,14 @@ Scenario: A predicate amended after the fact is refused (SCN-015-008)
 ## Implementation Plan
 
 1. **Author the `brief-recommendation-claim/v1` contract shape** exactly as `design.md` → `## D1` → *Contract*
-   specifies: the binding block (`recommendationKey`, `proposalRunId`, `proposalEventId`, `proposedAt`,
-   `citedToolId`), `subject` (`kind`, `prose`, `resolvesTo`, `seriesRefs`, `weighting`), `actionFamily`,
-   `direction`, `thesisFamily`, `predicate` (`kind`, `basis`, `comparator`, `value`, `reference`), `horizon`
-   (`kind`, `sessions`, `authoredBand`, `resolutionDate`, `eventRef`), `magnitude` (`unit`, `entryBasis`,
-   `entryDate`, `signConvention`, `flatBand`), and `claimHash`. Two field-level rules are load-bearing and are not
-   restatable later: `subject.prose` retains the key-bearing string **verbatim** — normalising, trimming, or
+   specifies: `contractVersion`, the binding block (`recommendationKey`, `proposalRunId`, `proposalEventId`,
+   `proposedAt`, `citedToolId`), `subject` (`kind`, `prose`, `resolvesTo`, `seriesRefs`, `weighting`),
+   `actionFamily`, `direction`, `thesisFamily`, `predicate` (`kind`, `basis`, `comparator`, `value`, `reference`),
+   `horizon` (`kind`, `sessions`, `authoredBand`, `resolutionDate`, `eventRef`), `magnitude` (`unit`, `entryBasis`,
+   `entryDate`, `signConvention`, `flatBand`), `notEvaluable` (`null` when the claim is scoreable, otherwise
+   `{ reason, field }` carrying one member of the closed seven-reason mint-refusal set plus the input that caused
+   it), and `claimHash` — **fifteen** declared fields in that order. Two field-level rules are load-bearing and are
+   not restatable later: `subject.prose` retains the key-bearing string **verbatim** — normalising, trimming, or
    symbol-extracting it makes `recommendationKey` unreproducible and silently orphans the claim from its ledger row
    — while `subject.resolvesTo` is the only machine field resolution reads (P-015-01); and `horizon.authoredBand`
    records the payload's own band verbatim and **never** derives `sessions` or `resolutionDate` (P-015-02).
@@ -94,22 +97,33 @@ Scenario: A predicate amended after the fact is refused (SCN-015-008)
 5. **Implement `claimHash` as a content-only stable hash** over exactly the **nine** terms
    `{ contractVersion, recommendationKey, subject, actionFamily, direction, thesisFamily, predicate, horizon,
    magnitude }`, following the existing `stableSha` idiom at `scripts/brief-distributed-publish.mjs#L64`
-   (`sha256:${sha256Hex(stableStringify(value))}`). The complete unhashed set is exactly **four** fields —
-   `proposalRunId`, `proposalEventId`, `proposedAt`, `citedToolId` — recorded on the object and **excluded from the
-   hash**, mirroring the existing convention in which `observationFingerprint` hashes terms while
-   `lifecycleEventId` (`rlcontracts.js#L1103`) carries `runId`. There is no fifth category and no unhashed block.
-   `predicate`, `horizon` and `magnitude` are hashed as **whole objects**, so `horizon.sessions` and
-   `horizon.authoredBand` are inside the hash even though the resolver never reads the latter.
+   (`sha256:${sha256Hex(stableStringify(value))}`). The complete unhashed set is exactly **five** fields —
+   `proposalRunId`, `proposalEventId`, `proposedAt`, `citedToolId`, `notEvaluable` — recorded on the object and
+   **excluded from the hash**, mirroring the existing convention in which `observationFingerprint` hashes terms
+   while `lifecycleEventId` (`rlcontracts.js#L1103`) carries `runId`. The partition is **exhaustive** over all
+   fifteen declared fields — 9 hashed + 5 unhashed + `claimHash`, which is the digest and cannot contain itself —
+   so no field of the contract sits outside it; and there is no unhashed *block*, every unhashed field being
+   top-level and individually named. `notEvaluable` is unhashed because it is derived at mint and its one
+   repository-dependent branch (`no-committed-series` membership) answers *how did this claim get here*; hashing it
+   would mint the same authored call twice — once before its series landed and once after — and count it twice in
+   the denominator. `predicate`, `horizon` and `magnitude` are hashed as **whole objects**, so `horizon.sessions`
+   and `horizon.authoredBand` are inside the hash even though the resolver never reads the latter.
 6. **Implement the content-addressed write** to `briefs/objects/claims/<claimHash-hex>.json`, following the layout
    already on disk — bare lowercase sha256 hex filename, `.json` extension, one object per file, as in
    `briefs/objects/evidence/bundles/<hex>.json` (verified this run). The `sha256:` prefix that `stableSha` returns is
    stripped for the filename and retained in the object body and in any reference to it. Claims are **append-only**:
    never rewritten, never deleted, never garbage-collected, because a deleted claim silently removes a call from the
    denominator.
-7. **Implement `RTR-PREDICATE-AMEND`.** Re-minting an identical claim is a byte-identical no-op write. A write that
-   would change the bytes at an existing path aborts with `RTR-PREDICATE-AMEND` and never overwrites. Because every
-   scoring-relevant field is inside `claimHash`, a genuine amendment yields a *different* path — so the refusal fires
-   only on the case that matters: a same-path, different-bytes write.
+7. **Implement `RTR-PREDICATE-AMEND` against the hashed terms, never the bytes.** Re-minting an identical claim is a
+   byte-identical no-op write, and a re-mint whose **hashed terms match** the object already at the path is equally
+   a no-op: the existing object is reused and its unhashed fields are left exactly as first written, so a
+   re-proposal carrying a different `citedToolId` — or a re-mint whose `notEvaluable` verdict differs — does **not**
+   refuse. A write aborts with `RTR-PREDICATE-AMEND` and never overwrites **only** when the hashed terms at an
+   existing path differ. Because every scoring-relevant field is inside `claimHash`, a genuine amendment normally
+   yields a *different* path, so the refusal fires on the one case that matters: an amended predicate re-submitted
+   against the original claim reference — different hashed terms at the same path. Making the predicate *bytes*
+   would refuse the two legitimate re-mints the unhashed set exists to absorb and cost the record a call it must
+   count exactly once.
 8. **Implement the closed mint-refusal reason set — seven reasons, each naming the field that caused it.** Each is
    recorded on the claim's not-evaluable path rather than silently dropping the call, so the coverage line can name
    *which* input was missing instead of showing one opaque bucket. `non-semantic-subject` when `subject` or `family`
@@ -222,7 +236,7 @@ the behaviour under test makes the row fail. No row contains an early-exit bailo
 
 | Test ID | Type | Category | Scenarios | File/Location | Description | Command | Live System | Evidence anchor |
 |---|---|---|---|---|---|---|---|---|
-| T-01-U1 | Unit | `unit` | BS-001 | `tests/recommendation-track-record.unit.mjs` | `claimHash` is content-only across **exactly** the four unhashed fields: two claims with identical hashed terms but differing `proposalRunId`, `proposalEventId`, `proposedAt` **and** `citedToolId` produce the **same** hash, proving provenance is excluded and re-proposal is idempotent by construction. The adversarial half is what makes the row detect the withdrawn `lifecycleTerms` placement rather than certify it: the same pair mutated only in `thesisFamily` must produce a **different** hash, so an implementation still carrying `thesisFamily` as unhashed provenance passes the first half and fails the second. This row asserts the hash **function** only — the store-level consequence of two objects sharing an address is `T-01-F1` and `T-01-F2`, so nothing here asserts a byte-changing write and nothing here contradicts step 7's `RTR-PREDICATE-AMEND` abort. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-01-u1` |
+| T-01-U1 | Unit | `unit` | BS-001 | `tests/recommendation-track-record.unit.mjs` | `claimHash` is content-only across **exactly** the five unhashed fields: two claims with identical hashed terms but differing `proposalRunId`, `proposalEventId`, `proposedAt`, `citedToolId` **and** `notEvaluable` produce the **same** hash, proving provenance is excluded and re-proposal is idempotent by construction. **The `notEvaluable` conjunct is not yet asserted and must be added** — the row as executed to date varies only the first four, so it does not yet prove the hash is invariant when the mint verdict differs. The extension is unambiguous: mutate `notEvaluable` alone — `null` against `{ reason: "no-committed-series", field: "subject.seriesRefs" }`, the one branch that can legitimately differ across two mints of the same claim — and assert the two hashes are equal. Until that assertion runs, the row under-proves its own DoD item. The adversarial half is what makes the row detect the withdrawn `lifecycleTerms` placement rather than certify it: the same pair mutated only in `thesisFamily` must produce a **different** hash, so an implementation still carrying `thesisFamily` as unhashed provenance passes the first half and fails the second. This row asserts the hash **function** only — the store-level consequence of two objects sharing an address is `T-01-F1` and `T-01-F2`, so nothing here asserts a store write and nothing here contradicts step 7's `RTR-PREDICATE-AMEND` abort. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-01-u1` |
 | T-01-U2 | Unit | `unit` | BS-008 | `tests/recommendation-track-record.unit.mjs` | Every hashed field is load-bearing: **eleven** mutations spanning the nine hashed terms (`subject`, `actionFamily`, `direction`, `thesisFamily`, each of `predicate.kind`/`comparator`/`value`, `horizon.resolutionDate`, `horizon.sessions`, `horizon.authoredBand`, `magnitude.flatBand`), each yielding a **different** `claimHash`. `thesisFamily` and `horizon.authoredBand` are the two a permissive implementation is likeliest to omit — the first because the withdrawn `lifecycleTerms` placement held it unhashed, the second because the resolver never reads it — so a hash covering only the terms resolution consumes fails the row. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-01-u2` |
 | T-01-U3 | Unit | `unit` | BS-008 | `tests/recommendation-track-record.unit.mjs` | `RTR-PREDICATE-AMEND` fires with its exact code on a write that would change bytes at an existing `briefs/objects/claims/<hex>.json` path, and the on-disk bytes are asserted **unchanged** afterwards. A refusal that still overwrote would fail the row. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-01-u3` |
 | T-01-U4 | Unit | `unit` | BS-001 | `tests/recommendation-track-record.unit.mjs` | The minter refuses `non-semantic-subject` for a subject matching the publisher's positional fallback and separately for `family === 'note'`, on an action that is otherwise complete and mint-eligible — the case a permissive minter most wants through. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-01-u4` |
@@ -230,11 +244,11 @@ the behaviour under test makes the row fail. No row contains an early-exit bailo
 | T-01-U6 | Unit | `unit` | BS-001 | `tests/recommendation-track-record.unit.mjs` | Each closed vocabulary refuses a value **one character off** a legal member (`subject.kind`, `predicate.kind`, `predicate.comparator`, `horizon.kind`, `magnitude.unit`), so a `startsWith` or prefix check fails the row; and `actionFamily` outside `MARKET_ACTIONS` refuses. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-01-u6` |
 | T-01-U7 | Unit | `unit` | BS-001 | `tests/recommendation-track-record.unit.mjs` | `direction` is never independently authored: a claim declaring `actionFamily: "trim"` with `direction: 1` refuses, while `direction: -1` is accepted, proving the value is bound to `ACTION_DIRECTION` rather than trusted; `direction: 0` (`hold`) refuses `neutral-direction-no-magnitude`. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-01-u7` |
 | T-01-F1 | Functional | `functional` | BS-008 | `tests/recommendation-track-record.functional.mjs` | Content-addressed write round-trip: minting an identical claim twice produces one file whose bytes are identical across both passes, the filename equals the bare lowercase hex of `claimHash`, and the object body retains the `sha256:` prefix. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-01-f1` |
-| T-01-F2 | Functional | `functional` | BS-001 | `tests/recommendation-track-record.functional.mjs` | `citedToolId` is a citation — neither identity nor the producer. It resolves from a `deepLink` matching a real `tools.json` `file` to that tool's `id`, and the resolved value is asserted **not** to equal the `market-brief` producer constant, so conflating the citation with `originToolId` fails the row. An absent or unmatched `deepLink` sets `citedToolId: null` and the claim is **still minted and still counted** — the adversarial input, since the retired `unresolvable-owning-tool` behaviour would refuse that action and fail the row. Re-minting an otherwise identical claim carrying a **different** `citedToolId` yields the same `claimHash`, is a no-op that **reuses the first object**, leaves the on-disk bytes carrying the **first** citation, and does **not** fire `RTR-PREDICATE-AMEND` — which is how an unhashed provenance field coexists with step 7's byte-changing abort instead of contradicting it. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-01-f2` |
+| T-01-F2 | Functional | `functional` | BS-001 | `tests/recommendation-track-record.functional.mjs` | `citedToolId` is a citation — neither identity nor the producer. It resolves from a `deepLink` matching a real `tools.json` `file` to that tool's `id`, and the resolved value is asserted **not** to equal the `market-brief` producer constant, so conflating the citation with `originToolId` fails the row. An absent or unmatched `deepLink` sets `citedToolId: null` and the claim is **still minted and still counted** — the adversarial input, since the retired `unresolvable-owning-tool` behaviour would refuse that action and fail the row. Re-minting an otherwise identical claim carrying a **different** `citedToolId` yields the same `claimHash`, is a no-op that **reuses the first object**, leaves the on-disk bytes carrying the **first** citation, and does **not** fire `RTR-PREDICATE-AMEND` — which is step 7's hashed-terms predicate working as specified: identical hashed terms at an existing path are a reuse, never an amendment. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-01-f2` |
 | T-01-F3 | Functional | `functional` | BS-001, BS-008 | `tests/recommendation-track-record.functional.mjs` | `recommendationKey` is one-to-many with `claimHash`: two claims sharing `{subject, family}` but declaring different `horizon.kind` mint to the **same** `recommendationKey` and **different** `claimHash` values, and both objects coexist on disk. This is the property that makes a same-key/different-horizon pair individually resolvable without touching the publisher's key derivation. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-01-f3` |
 | T-01-C1 | Fixture Canary | `unit` | BS-001 | `tests/recommendation-track-record.canary.mjs` | **Canary: the shared substrate's own contracts, asserted before any broad rerun.** `tests/recommendation-track-record.support.mjs` exports exactly the loader, the exact-code assertion helper and the byte-comparison helper and nothing else; importing it registers **zero** tests, prints nothing and opens no file; one input of each fixture shape round-trips through the loader with its `*.expected.json` sibling resolved and its dates read from the input rather than a clock; the loader returns a stable order across two runs; and `node scripts/selftest.mjs` still reports the **baseline captured at scope start and recorded in `report.md`** under the **attributable-delta** rule — `0 failed`, no pre-existing group's pass count falling, and every differing assertion line attributable to this scope's own added files by a delta **derived per run**, an unattributed difference failing the row. A **skeleton gate** enforces the attribution: every decimal run in a differing line is replaced by a placeholder and the remaining skeletons must be byte-identical, so a changed word, a reordered clause, or a dropped writer name can never be attributed — only magnitudes may move, and only by a derived amount. The baseline is compared against that captured value rather than a literal, and **no count literal is written into the test**, because a pinned figure fails on unrelated repo growth instead of on a substrate defect. Runs in seconds and **before** `T-01-R1` / `T-01-R2`, so a substrate defect is named at the substrate. | `node --test tests/recommendation-track-record.canary.mjs` | No | `report.md#t-01-c1` |
 | T-01-C2 | Fixture Canary | `functional` | BS-001 | `tests/recommendation-track-record.canary.mjs` | **Canary: the restore path is rehearsed in a disposable worktree, never on the live tree.** A detached `git worktree` is created at the pre-scope commit; `node scripts/selftest.mjs` is run inside it and asserted to equal the **baseline captured at scope start**, `0 failed` in both trees, with no pre-existing group's pass count falling and every line differing from the post-scope run attributable to this scope's own added files by a delta **derived per run** under the same skeleton gate — an unattributed difference fails the row; `git status --porcelain` in the live tree is asserted to contain no entry outside this scope's allowed file families; and the worktree is torn down on exit, success or failure. This is the back-out for a bad substrate change once scopes 02 – 10 import it, rehearsed while the blast radius is still one scope wide. | `node --test tests/recommendation-track-record.canary.mjs` | No | `report.md#t-01-c2` |
-| T-01-R1 | Regression E2E | `e2e` | BS-001, BS-008 | `tests/recommendation-track-record.e2e.mjs` | **Persistent scenario regression for BS-001 and BS-008.** A full mint pass over the fixture claim set re-asserts, end to end against the real `briefs/objects/claims/` layout, that re-minting identical terms is a byte-identical no-op, that a byte-changing write at an existing path aborts with `RTR-PREDICATE-AMEND` leaving the on-disk bytes unchanged, and that each of the **seven** mint-refusal reasons still fires for its own trigger and only its own. The row additionally re-asserts that an unmatched `deepLink` still **mints** with `citedToolId: null`, so a later scope that reinstates the retired `unresolvable-owning-tool` refusal fails here. The row is permanent and re-runs in every later scope's pass, so a later scope that narrows the hashed-term list, softens the append-only store, or drops a refusal fails here rather than silently. | `node --test tests/recommendation-track-record.e2e.mjs` | No | `report.md#t-01-r1` |
+| T-01-R1 | Regression E2E | `e2e` | BS-001, BS-008 | `tests/recommendation-track-record.e2e.mjs` | **Persistent scenario regression for BS-001 and BS-008.** A full mint pass over the fixture claim set re-asserts, end to end against the real `briefs/objects/claims/` layout, that re-minting identical terms is a byte-identical no-op, that a write whose **hashed terms** differ from those of the object at an existing path aborts with `RTR-PREDICATE-AMEND` leaving the on-disk bytes unchanged, and that each of the **seven** mint-refusal reasons still fires for its own trigger and only its own. The row additionally re-asserts that an unmatched `deepLink` still **mints** with `citedToolId: null`, so a later scope that reinstates the retired `unresolvable-owning-tool` refusal fails here. The row is permanent and re-runs in every later scope's pass, so a later scope that narrows the hashed-term list, softens the append-only store, or drops a refusal fails here rather than silently. | `node --test tests/recommendation-track-record.e2e.mjs` | No | `report.md#t-01-r1` |
 | T-01-R2 | Regression E2E | `e2e` | BS-001, BS-008 | `tests/*.e2e.mjs`, `tests/*.spec.mjs` (committed suites, unfiltered) | **Broader E2E regression suite.** The repo's committed Node E2E files and the whole committed Playwright spec suite both run green after the claim module, the store and the fixtures land, with no pre-existing test removed, skipped, or newly failing. This is the row that proves the new content-addressed tree under `briefs/objects/` did not disturb the committed brief pipeline that reads the same tree. | `node --test tests/*.e2e.mjs && npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` | Yes | `report.md#t-01-r2` |
 | T-01-S1 | Project check | project check | — | `scripts/selftest.mjs` (unmodified) | The repo self-test is green after the claim module, the fixtures, the support module and the two test files land, at `baseline + N passed, 0 failed`, where `baseline` is the total captured immediately before this scope's first change and recorded in `report.md`, with no pre-existing assertion count decreasing. | `node scripts/selftest.mjs` | No | `report.md#t-01-s1` |
 
@@ -247,14 +261,14 @@ the behaviour under test makes the row fail. No row contains an early-exit bailo
 #### Core items
 
 - [ ] The `brief-recommendation-claim/v1` contract is implemented with every field named in `design.md` → `## D1` → *Contract*, and no field beyond them. The withdrawn `lifecycleTerms` block is **absent**: the identifier appears nowhere in 015-authored source, fixtures, or tests.
-- [x] `citedToolId` is recorded on the object and **excluded from `claimHash`**, joining `proposalRunId` / `proposalEventId` / `proposedAt` as the complete four-field unhashed set; there is no fifth unhashed field and no unhashed block.
+- [x] `citedToolId` is recorded on the object and **excluded from `claimHash`**, joining `proposalRunId` / `proposalEventId` / `proposedAt` / `notEvaluable` as the complete **five-field** unhashed set; the partition over the fifteen declared fields is exhaustive — 9 hashed + 5 unhashed + `claimHash` — so no field sits outside it, and there is no unhashed block.
 - [x] `citedToolId` is resolved at mint from the authored action's `deepLink` through `tools.json` `file` → `id`; an absent or unmatched `deepLink` sets it to `null` and the claim is **still minted**. It is never authored, defaulted, or guessed, and it is never conflated with `originToolId`, which is the `market-brief` pipeline constant (D4) and is not a claim field.
 - [x] `thesisFamily` is a **top-level, hashed** claim field. It is authored or the claim mints `not-evaluable` with reason `no-authored-thesis-family`; no value is derived from `actionFamily`, `direction`, or `horizon`, defaulted, or inferred from prose. Routed finding P-015-03 is **RESOLVED** and its ruling is recorded in `report.md`.
 - [x] The six closed vocabularies (`subject.kind`, `predicate.kind`, `predicate.comparator`, `horizon.kind`, `magnitude.unit`, `magnitude.signConvention`) are frozen module constants, not literals at call sites, and an unrecognised value refuses rather than passing through.
 - [x] `actionFamily` is validated against `MARKET_ACTIONS` (`rlcontracts.js#L708`) and `direction` is bound to `ACTION_DIRECTION` (`rlcontracts.js#L714`); `rlcontracts.js` is read only and is not modified, forked, or shadowed.
-- [x] `claimHash` covers exactly the nine terms `{ contractVersion, recommendationKey, subject, actionFamily, direction, thesisFamily, predicate, horizon, magnitude }` and excludes exactly the four provenance fields, so every varying term of `origin-recommendation-key/v1` is inside the hash and one claim object can only ever derive one reducer key.
+- [x] `claimHash` covers exactly the nine terms `{ contractVersion, recommendationKey, subject, actionFamily, direction, thesisFamily, predicate, horizon, magnitude }` and excludes exactly the **five** provenance fields `{ proposalRunId, proposalEventId, proposedAt, citedToolId, notEvaluable }`, so every varying term of `origin-recommendation-key/v1` is inside the hash and one claim object can only ever derive one reducer key.
 - [x] Claims are written to `briefs/objects/claims/<claimHash-hex>.json` with a bare lowercase hex filename matching the on-disk layout of `briefs/objects/evidence/bundles/<hex>.json`, and the store is append-only — nothing is rewritten, deleted, or garbage-collected.
-- [x] `RTR-PREDICATE-AMEND` is implemented and aborts a byte-changing write at an existing path without overwriting.
+- [x] `RTR-PREDICATE-AMEND` is implemented against the **hashed terms**: it aborts a write whose hashed terms differ from those of the object at an existing path, without overwriting, and it does **not** fire when the hashed terms match — that case reuses the existing object and keeps its first-written unhashed fields.
 - [x] The closed seven-reason mint-refusal set (`non-semantic-subject`, `no-committed-series`, `neutral-direction-no-magnitude`, `no-authored-subject`, `no-authored-horizon`, `no-authored-thesis-family`, `no-authored-predicate`) is implemented, each refusal names the field that caused it, and the retired `unresolvable-owning-tool` code is absent from the source.
 - [x] `no-committed-series` is evaluated against `subject.seriesRefs` (plural) with the committed symbol set **enumerated from `data/bars/` at run time**; no count literal for that tree appears in any 015-authored source, fixture, test name, or DoD item.
 - [x] `Number.isFinite` is used exclusively; the global `isFinite` appears nowhere in 015-authored code.
@@ -269,7 +283,7 @@ the behaviour under test makes the row fail. No row contains an early-exit bailo
 
 #### Test items
 
-- [x] T-01-U1 passes: `claimHash` is proven content-only across the four unhashed fields **and** proven to change when `thesisFamily` alone changes → evidence recorded in `report.md#t-01-u1`. — proves SCN-015-001
+- [x] T-01-U1 passes: `claimHash` is proven content-only across the **five** unhashed fields **and** proven to change when `thesisFamily` alone changes → evidence recorded in `report.md#t-01-u1`. — proves SCN-015-001
 - [x] T-01-U2 passes: all eleven hashed-term mutations, including `thesisFamily` and `horizon.authoredBand`, yield distinct hashes → evidence recorded in `report.md#t-01-u2`.
 - [x] T-01-U3 passes: `RTR-PREDICATE-AMEND` fires with its exact code and the on-disk bytes are asserted unchanged → evidence recorded in `report.md#t-01-u3`. — proves SCN-015-008
 - [x] T-01-U4 passes: `non-semantic-subject` fires for both positional fallbacks on an otherwise mint-eligible action → evidence recorded in `report.md#t-01-u4`.
@@ -318,14 +332,14 @@ sweep came back **non-clean** and its item is deliberately still unticked; see t
 
 | Item | Evidence anchor |
 |---|---|
-| `citedToolId` recorded and excluded; four-field unhashed set | [`#t-01-u1`](report.md#t-01-u1), [`#t-01-u2`](report.md#t-01-u2), [`#t-01-f2`](report.md#t-01-f2) |
+| `citedToolId` recorded and excluded; **five-field** unhashed set | [`#t-01-u1`](report.md#t-01-u1), [`#t-01-u2`](report.md#t-01-u2), [`#t-01-f2`](report.md#t-01-f2) |
 | `citedToolId` resolved from `deepLink`; unmatched sets `null` and still mints | [`#t-01-f2`](report.md#t-01-f2), [`#t-01-r1`](report.md#t-01-r1) |
 | `thesisFamily` top-level and hashed; **P-015-03 RESOLVED**, ruling recorded in `report.md` | [`#p-015-03-ruling`](report.md#p-015-03-ruling) (the ruling), [`#t-01-u1`](report.md#t-01-u1) and [`#t-01-u2`](report.md#t-01-u2) (hashed), [`#t-01-r1`](report.md#t-01-r1) (`no-authored-thesis-family` refusal) |
 | The **six** closed vocabularies are frozen module constants, not literals at call sites, and refuse | [`#vocabulary-constants-are-frozen-and-call-sites-reference-them`](report.md#vocabulary-constants-are-frozen-and-call-sites-reference-them) (all six `Object.freeze`d at `rlclaims.js#L47`–`#L52`, every call site via `inSet(CONSTANT, …)`), [`#t-01-u6`](report.md#t-01-u6) (all six probed, with a completeness assertion) |
 | `actionFamily` bound to `MARKET_ACTIONS`; `direction` bound to `ACTION_DIRECTION` | [`#t-01-u6`](report.md#t-01-u6), [`#t-01-u7`](report.md#t-01-u7), `report.md` → *Change Boundary* |
-| `claimHash` covers the nine terms and excludes the four | [`#t-01-u1`](report.md#t-01-u1), [`#t-01-u2`](report.md#t-01-u2) |
+| `claimHash` covers the nine terms and excludes the **five** | [`#t-01-u1`](report.md#t-01-u1), [`#t-01-u2`](report.md#t-01-u2) |
 | Content-addressed append-only store at `briefs/objects/claims/<hex>.json` | [`#t-01-f1`](report.md#t-01-f1), [`#t-01-u3`](report.md#t-01-u3), [`#t-01-r1`](report.md#t-01-r1) |
-| `RTR-PREDICATE-AMEND` aborts a byte-changing write without overwriting | [`#t-01-u3`](report.md#t-01-u3), [`#t-01-r1`](report.md#t-01-r1) |
+| `RTR-PREDICATE-AMEND` aborts a **hashed-term-changing** write without overwriting | [`#t-01-u3`](report.md#t-01-u3), [`#t-01-r1`](report.md#t-01-r1) |
 | Seven-reason refusal set, each naming its field; `unresolvable-owning-tool` **absent from the source** | [`#t-01-r1`](report.md#t-01-r1) (the set, per-trigger isolation), [`#sweep-b--unresolvable-owning-tool`](report.md#sweep-b--unresolvable-owning-tool) (zero occurrences in `rlclaims.js`, exit `1`) |
 | `no-committed-series` evaluates `seriesRefs` plural against a run-time-enumerated set, with no count literal | [`#t-01-u5`](report.md#t-01-u5), `report.md` → *Committed-bars-set definition* |
 | `Number.isFinite` used exclusively; the global `isFinite` appears nowhere | [`#sweep-c--global-isfinite`](report.md#sweep-c--global-isfinite) (all seven occurrences are `Number.isFinite`; the bare-global regex returns exit `1`) |
@@ -461,6 +475,133 @@ It is stronger for three reasons:
 
 Recorded by `bubbles.plan`. This correction changes planning wording only: no DoD item is ticked, the scope
 `**Status:**` is unchanged, and evidence recording remains `bubbles.implement`'s to perform.
+
+---
+
+## Mint-Evaluability Correction — Recorded 2026-08-18 (design rows R14–R23)
+
+**What this discharges.** `design.md` → *Mint-Evaluability Reconciliation — Recorded 2026-08-18* → *Routed to
+`bubbles.plan`* rows **R14 – R23**. Every one is a **factual contradiction with the design contract**, not a
+preference: the artifact described a fourteen-field contract with a four-field unhashed set and a bytes-based abort
+predicate, and D1 now declares fifteen fields, a five-field unhashed set, and a hashed-terms predicate. These are
+corrections **toward a stricter, now-exhaustive contract**. No DoD item is weakened, no Test Plan row is deleted,
+and the row and item counts are unchanged.
+
+The three rulings this pass consumes, each verified against `design.md` this run:
+
+1. **`notEvaluable` is a declared field**, positioned between `magnitude` and `claimHash`, typed `null` or
+   `{ reason, field }`. It was persisted by the minter while being named in no category list at all.
+2. **It is provenance, not identity, and is excluded from `claimHash`.** The field partition is now three-way and
+   **exhaustive over all fifteen fields** — 9 hashed, 5 unhashed, plus `claimHash` itself as the digest. The old
+   *"9 hashed + 4 unhashed"* accounted for only 13 of 14 and left `claimHash` uncategorised.
+3. **The content-addressed abort predicate is *differing hashed terms*, not *changed bytes*.** The bytes reading
+   contradicted D1's own `citedToolId` ruling in the same section, and `notEvaluable` makes a second unhashed field
+   that can legitimately differ across two mints of one claim.
+
+### Superseded wording (preserved as history)
+
+| Row | Site | Superseded wording | Replaced by |
+|---|---|---|---|
+| **R14** | Scope Summary | *"**excludes** exactly four provenance fields"* · *"a write that would change the bytes at an existing path aborts with `RTR-PREDICATE-AMEND` and never overwrites"* | five provenance fields; the abort fires on differing **hashed terms**, and a matching-hashed-terms re-mint reuses the existing object |
+| **R15** | step 1 | *"…`magnitude` (`unit`, `entryBasis`, `entryDate`, `signConvention`, `flatBand`), and `claimHash`"* | `notEvaluable` (`null`, else `{ reason, field }`) inserted between `magnitude` and `claimHash`, and the list now states **fifteen** declared fields in order |
+| **R16** | step 5 | *"The complete unhashed set is exactly **four** fields … There is no fifth category and no unhashed block."* | five unhashed fields; the exhaustive 9 + 5 + `claimHash` partition stated explicitly. **The *"no unhashed block"* half stands** and is retained in substance; ***"no fifth category"* is withdrawn as false** — it was the sentence that made the fifth field unsayable |
+| **R17** | step 7 | *"A write that would change the bytes at an existing path aborts with `RTR-PREDICATE-AMEND` and never overwrites … the refusal fires only on the case that matters: a same-path, different-bytes write."* | the abort fires **only** on differing hashed terms at an existing path; the matching case reuses and keeps its first-written unhashed fields; the target case is named as an amended predicate re-submitted against the original claim reference |
+| **R18** | DoD — `citedToolId` item | *"the complete four-field unhashed set; there is no fifth unhashed field and no unhashed block"* | the complete **five-field** unhashed set, with the exhaustive partition named; *"no unhashed block"* retained |
+| **R19** | DoD — `claimHash` item | *"excludes exactly the four provenance fields"* | excludes exactly the **five**, now enumerated by name rather than by count alone |
+| **R20** | `T-01-U1` row · its DoD line · the traceability row in *DoD closure record* | *"exactly the four unhashed fields"* · *"content-only across the four unhashed fields"* · *"four-field unhashed set"* | five in all three sites, **plus** the coverage gap named in the row (below) |
+| **R21** | DoD — contract-completeness item | *(no wording change; see below)* | unblocked, not reworded |
+| **R22** | `_index.md` scope-01 owned-surface row | *"the unhashed `citedToolId` provenance field"* | *"the unhashed `citedToolId` provenance field and the unhashed `notEvaluable` mint-verdict field"* |
+| **R23** | `_index.md` scope-01 validation-checkpoint row | *"`RTR-PREDICATE-AMEND` fires on a byte-changing write at an existing path"* | fires on a **hashed-term-changing** write, never on a matching-hashed-terms re-mint |
+
+### R21 — verified field-by-field, not assumed
+
+The row required re-verification rather than inference, so both sides were enumerated and compared this run:
+
+- D1's contract block (`design.md` lines 312–388) declares **15** top-level fields.
+- `rlclaims.js#L464-L479` mints **15** top-level fields.
+- `diff` of the two ordered name lists returned **no output, exit 0** — identical names in identical order:
+  `contractVersion`, `recommendationKey`, `proposalRunId`, `proposalEventId`, `proposedAt`, `citedToolId`,
+  `subject`, `actionFamily`, `direction`, `thesisFamily`, `predicate`, `horizon`, `magnitude`, `notEvaluable`,
+  `claimHash`.
+
+**The 14-versus-15 contradiction that blocked the item is therefore gone**, and the item's field-completeness
+conjunct is now satisfiable. Its wording needed no change because it binds to D1 **by reference** — *"every field
+named in `design.md` → `## D1` → *Contract*, and no field beyond them"* — so it tracked the correction
+automatically. What still gates the tick is its **second, textual** conjunct (`lifecycleTerms` absent from source,
+fixtures and tests), which remains `bubbles.implement`'s sweep to record. The item stays unticked.
+
+### R20 — the coverage gap, and exactly what is left for `bubbles.implement`
+
+R20 is **not merely wording**. `T-01-U1` proves `claimHash` is content-only across the *four* fields it actually
+mutates; with `notEvaluable` now a fifth unhashed field, the row no longer reaches the invariant its own DoD item
+asserts. The row description now names the five-field invariant **and** states the gap, so the target is
+unambiguous:
+
+> mutate `notEvaluable` alone — `null` against `{ reason: "no-committed-series", field: "subject.seriesRefs" }`,
+> the one branch that can legitimately differ across two mints of the same claim — and assert the two hashes are
+> equal.
+
+`no-committed-series` is the correct probe rather than an arbitrary reason: `design.md` → *Why it is provenance
+rather than identity* shows eight of the nine mint-reason branches are pure functions of hashed terms and therefore
+**cannot** differ while the content address is equal, so any other reason would make the assertion vacuous.
+
+**The test change is implement-owned and is not made here.** No test file was opened by this pass.
+
+### Consequence for three already-ticked items — disclosed, not hidden
+
+`T-01-U1`, `T-01-U2` and `T-01-F2` were run against the four-field pair, and the transcripts in `report.md` record
+exactly that. The three DoD items corrected under **R18**, **R19** and **R20**'s DoD line now assert a **five**-field
+property their cited evidence does not reach, yet they carry a `[x]`. That is a real gap and it is stated here
+rather than papered over:
+
+| Item | Reach of its cited evidence | Owner |
+|---|---|---|
+| Core — `citedToolId` excluded; five-field unhashed set (R18) | proves exclusion of four; `notEvaluable` unproven | `bubbles.implement` |
+| Core — `claimHash` covers nine, excludes five (R19) | same | `bubbles.implement` |
+| Test — `T-01-U1` content-only across five (R20) | same | `bubbles.implement` |
+
+Ticking and unticking is evidence recording and belongs to `bubbles.implement`; this pass changes planning wording
+only and moved no checkbox. Once the `notEvaluable` assertion of R20 runs green, all three are reached by one
+transcript. Until then they are stale ticks, and a closure pass that re-reads them should treat them as such.
+
+### Sites corrected that design's table did not enumerate
+
+Recorded for auditability, so the difference between the routed set and the delivered set is visible rather than
+silent. Each is the *same* factual contradiction as its parent row, inside a statement that would otherwise have
+been left contradicting the corrected text beside it.
+
+| Site | Parent | Why it had to move with the row |
+|---|---|---|
+| Scope Summary, *"excludes exactly four provenance fields"* | R14 / R19 | Same paragraph R14 names; leaving it would have made the Primary Outcome contradict step 5 and the DoD one screen below. |
+| step 1, the omission of `contractVersion` from the field list | R15 | Exposed by R15, not by it. Inserting `notEvaluable` alone would have left the list naming **14** fields while D1 declares 15 — the same off-by-one this reconciliation exists to close, just relocated. `contractVersion` is a declared D1 field and a hashed term; the list now names all fifteen. Verified by `diff` against D1's contract block: identical names in identical order, **exit 0**. |
+| `T-01-F2` row tail, *"step 7's byte-changing abort"* | R17 | A cross-reference to a clause R17 rewrote. Under the corrected predicate the sentence gets **stronger** — the `citedToolId` reuse is no longer a coexistence to be explained, it is the predicate working as specified. |
+| `T-01-R1` row, *"a byte-changing write at an existing path aborts"* | R17 | The permanent regression row asserts the predicate; leaving it would have pinned the regression to the superseded behaviour. |
+| DoD item, *"`RTR-PREDICATE-AMEND` … aborts a byte-changing write"* | R17 | A DoD item certifying the superseded predicate is a DoD item certifying the wrong behaviour. |
+| *DoD closure record* labels for the `claimHash` and `RTR-PREDICATE-AMEND` items | R19 / R17 | The label column **names** the DoD item. R20 already routed the third label in that table; correcting one of three would have left the table internally inconsistent. |
+
+**In that closure-record table only the label column moved.** Every evidence anchor, every transcript quotation,
+every count and every `report.md` link is byte-untouched, because a label may name an item but must never be
+allowed to claim a proof the cited run did not produce — which is precisely why `report.md` is excluded from this
+pass at all.
+
+### Deliberately not changed
+
+| Surface | Why |
+|---|---|
+| `report.md` (feature and scope) | Explicitly excluded by design's own table: it carries captured terminal output whose test-name strings contain *"exactly the four unhashed fields"*. That is historical execution evidence and is re-captured by re-running, never edited. |
+| `rlclaims.js` — `UNHASHED_FIELDS` (four names), and the store comment reading *"The four unhashed provenance fields"* | Source, not planning. The constant omits `notEvaluable` exactly as design observed. **Routed to `bubbles.implement`** alongside the R20 test extension; both land in the same pass. |
+| `scopes/04-*/scope.md` — `RTR-RESOLUTION-CONFLICT` *"aborts a byte-changing write"* | A different code over a different contract (D3/D4 resolution objects, not the D1 claim store). Design routed no row against it, and inventing one here would be a design change planning does not own. |
+| Every `**Status:**` field and every DoD checkbox | Evidence recording is `bubbles.implement`'s. |
+
+### Parity
+
+**Test-related DoD items: 15. Test Plan rows: 15. Parity confirmed** — re-counted after these edits. No row was
+added or removed and no item was added or removed; R20's coverage gap is closed by **extending an existing row's
+assertion**, not by adding a sixteenth, so the parity line above is unchanged and remains correct.
+
+Recorded by `bubbles.plan`. This correction changes planning wording only: no DoD item was ticked or unticked, the
+scope `**Status:**` is unchanged, no test or source file was opened, and evidence recording remains
+`bubbles.implement`'s to perform.
 
 ---
 

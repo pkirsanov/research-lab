@@ -305,9 +305,14 @@ the behaviour under test makes the row fail. No row contains an early-exit bailo
 - [ ] Broader E2E regression suite passes unchanged — [T-01-R2] the committed Node E2E files and the whole committed Playwright spec suite are green with no pre-existing test removed, skipped, or newly failing → evidence recorded in `report.md#t-01-r2`.
 - [x] T-01-S1 passes: `node scripts/selftest.mjs` reports `baseline + N passed, 0 failed` against the scope-start baseline captured in `report.md`, with no pre-existing assertion count decreasing → evidence recorded in `report.md#t-01-s1`.
 
-> **Evidence:** thirteen of these fifteen rows are green in `report.md` at their own anchors, with suite exit codes
-> `0` for unit, functional, E2E and `node scripts/selftest.mjs`. The two unticked rows — `T-01-C2` and `T-01-R2` —
-> carry their reason and owner in *DoD closure record* below.
+> **Evidence:** fourteen of these fifteen rows are green in `report.md` at their own anchors, with suite exit codes
+> `0` for unit, functional, E2E and `node scripts/selftest.mjs`. The one unticked row — `T-01-R2` — carries its
+> reason and owner in *DoD closure record* below.
+>
+> **Tally correction.** This line read *"thirteen of these fifteen"* and named `T-01-C2` alongside `T-01-R2` as
+> unticked. `T-01-C2` was ticked by the closure refresh and this line was not updated with it. The corrected
+> figure is **fourteen**, and the correction is recorded rather than made silently — see
+> [report.md → T-01-R2 Playwright half, re-measured](report.md#t-01-r2-playwright-re-measured).
 
 **Test-related DoD items: 15. Test Plan rows: 15. Parity confirmed.**
 
@@ -333,6 +338,18 @@ suite, recorded at [`#closure-pass-command-c--canary-post-repair-green`](report.
 — `2 pass, 0 fail`, exit `0`, at `HEAD` `89a94af40` with a clean tree. `T-01-C2` is green, and the six core items
 that were unticked for want of a recorded textual, layout, or change-set observation were swept and recorded. One
 sweep came back **non-clean** and its item is deliberately still unticked; see the *Not ticked* table.
+
+**What changed in the Playwright re-measurement pass (2026-08-18, `HEAD` `adb97b983`).** Two full committed-suite
+runs and two isolation runs were carried into `report.md` at
+[`#t-01-r2-playwright-re-measured`](report.md#t-01-r2-playwright-re-measured), together with six git and grep
+observations taken by that pass. **No checkbox was flipped.** Both remaining items — `T-01-R2` and the Build
+Quality Gate — were re-assessed against materially better evidence and **both stayed unticked**, each for a reason
+now stated conjunct by conjunct in the *Not ticked* table. The pass touched no source file and no test file; the
+Playwright figures are transcribed evidence, not a product of changing anything. Two records were corrected rather
+than left false: the test-item tally above, which still named `T-01-C2` as unticked, and the two *Not ticked* rows
+this pass owns. **The six stale core rows below remain routed to the artifact's owner** and are outside this pass's
+mandate, exactly as the prior pass recorded at
+[report.md → Stale records](report.md#stale-records-found-during-re-measurement) item 2.
 
 #### Ticked — core items
 
@@ -375,8 +392,8 @@ before `T-01-R1` / `T-01-R2` in every recorded run, as the plan requires.
 | Core — this scope creates only new files and modifies **no** existing file | `report.md`'s Change Boundary evidence is `git status --porcelain` taken **after** the delivery was committed. An empty porcelain at a post-delivery `HEAD` proves the tree is clean; it does not establish the commit's change set. The row designed to establish it cross-tree, `T-01-C2`, is red. | `bubbles.implement` — record a parent-to-delivery diff, or close `T-01-C2` |
 | Core — no statistic is computed; `rlvalidation.js` is not imported here | `report.md` lists `rlvalidation.js` among excluded surfaces the classifier refuses, which is a different claim from *not imported*. No import sweep of `rlclaims.js` or the four test files is recorded, and no check that no statistic is computed. | `bubbles.implement` — record the import sweep in `report.md` |
 | Test — `T-01-C2`, the restore-path rehearsal | **The row is red.** `report.md` → [`#t-01-c2`](report.md#t-01-c2) records it as *STILL FAILING* after `49093.470352ms`, at the attribution assertion, with three unattributed cross-tree counter differences (tracked-file count, commit-message count, spec-artifact reference count) and `3 !== 0`. The canary suite exits `1`. `report.md` states directly: *"No DoD item depending on `T-01-C2` may be ticked while this stands."* | The scope's test owner, per `report.md` → *Still open* item 1 — extend the canary's attribution model |
-| Test — `T-01-R2`, the broader E2E regression suite | The Node half is green ([`#t-01-r2`](report.md#t-01-r2), exit `0`). The Playwright half is **not evidenced**: the row's own name is *"the committed suites are **intact**, and the committed Node E2E suite runs green"*, the quoted transcript is `node --test` only, and the only two occurrences of *Playwright* in `report.md` sit inside the `T-01-C2` failure transcript as a selftest group name. The DoD item requires *"the whole committed Playwright spec suite are green"*, which intactness does not establish. | `bubbles.implement` to execute and record the Playwright run, **or** `bubbles.plan` if the row's intent is intactness and the DoD wording overstates it |
-| Build Quality Gate | `report.md` states it is unsatisfied by construction: *"the Build Quality Gate — 'zero issues deferred, skipped, or worked around' — is unsatisfied ... while Still open carries three entries."* | `bubbles.implement`, after `T-01-C2` is green and *Still open* is cleared |
+| Test — `T-01-R2`, the broader E2E regression suite | **Re-measured across two full runs; materially improved and still short of the item.** The Node half is green (`2 pass, 0 fail`). The Playwright half went from `3 failed, 495 passed` to **`1 failed, 497 passed`** at `HEAD` `adb97b983`, and the exercise found, bisected and fixed a real regression this session had introduced (`market-brief-session-date-drift.spec.mjs:11` → `7314777ef` → fixed in `ec7787e5a`). Two of the item's three conjuncts now hold **on measurement**: the Node half is green, and *nothing removed or skipped* is established by a `tests/` diff with zero `D` entries, a constant 498 collected across three runs, and zero skip/fixme/`.only` markers across 49 spec files. The third does not: `causal-rotation-consumers.spec.mjs:151` is red, and the item says *"the whole committed Playwright spec suite are green"* — `497 / 498` is not that. The flake case is strong but **partial**: both suspect specs pass in isolation at *both* ends of the boundary (44 passed at base `5d4a8202a`, 44 at `ec7787e5a`), neither file was modified in the window, neither references this scope's module or claim tree, and `fx-regime:1348` flipped verdict between runs with its file byte-identical — but **the full suite was never run at the base commit under the same four-worker load**, so *"it would have failed at base too"* is `interpreted`, not `executed`. It is not a clean bisect. Ticking on an argument would relax the standard the prior pass applied at `495 / 498` (*"no reading of the item admits three red tests"*) in the direction that closes the scope; one red test is admitted by no reading either. Full working at [`#t-01-r2-playwright-re-measured`](report.md#t-01-r2-playwright-re-measured). | **Feature 012 owner**, for the `networkidle` timeout at `causal-rotation-consumers.spec.mjs:151` and the standing 30 s / 120 s budget mismatch at `contextual-tooltip.spec.mjs:11` — both Feature-012-owned surfaces this scope may not touch. **Or `bubbles.plan`**, if the row's intent is *intactness* and the DoD wording overstates it; that is a planning decision and is not taken here by ticking the box |
+| Build Quality Gate | **Four of five conjuncts hold; the gate fails on conjunct 2 alone.** Zero warnings holds (`7 pass, 0 fail`; `2487 passed, 0 failed`, both exit `0`); the adversarial-reversion conjunct holds by prior record (`not-run`); conjuncts 4 and 5 hold. **Conjunct 2 — *zero issues deferred, skipped, or worked around* — does not hold** while two *Still open* entries are live: the `T-01-U6` row under-describing its assertion (→ `bubbles.plan`) and the residual Playwright failure, which is **routed to another owner rather than repaired here** and is a deferral in the gate's own sense. **Conjunct 4 carries a nuance that is recorded rather than glossed:** `design.md` **was** modified inside this scope's calendar window — the `notEvaluable` D1 ruling and routing rows `R14`–`R23`, both dated 2026-08-18. The conjunct survives only on its *authorship* reading — those were design-owner commits carrying no scope anchor (`69f537ef` touches `design.md` alone), and both are **ancestors of the base commit**, so this session's window contains zero `design.md` commits. Read as *"design.md did not change while this scope was open"* the conjunct would be **false**, and the prior pass's flat `holds` would have been wrong had the ordering differed. Working at [`#conjunct-4-nuance`](report.md#conjunct-4-nuance). | `bubbles.implement`, once the two routed items close |
 
 #### Two accounting notes
 

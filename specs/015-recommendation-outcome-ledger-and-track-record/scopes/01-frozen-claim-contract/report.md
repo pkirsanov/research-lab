@@ -1442,6 +1442,147 @@ Feature-012-owned surface this scope may not touch.
 
 ---
 
+<a id="t-01-r2-playwright-re-measured"></a>
+
+### T-01-R2 Playwright half — re-measured across two full runs, **`1 failed of 498` at `HEAD` `adb97b983`**
+
+**Claim Source — tagged per class, because they differ and the difference matters.**
+
+| Class | Content | Tag |
+|---|---|---|
+| The two full Playwright runs, the two isolation runs, the bisect, and the Node half | Run in this session by the operator. **Recorded here verbatim; deliberately not reproduced** — the full suite costs ~14 minutes and re-running it in search of a different answer is result-shopping (anti-drift **D18**) | `executed` |
+| The six git and grep observations below | Run by this pass, commands quoted inline with their exit codes | `executed` |
+| The attribution of the one residual failure to load-dependent non-determinism | Argued from the executed observations; **not itself executed**, and explicitly not claimed as such | `interpreted` |
+
+The row was previously red at `3 failed, 495 passed`
+([the prior transcript](#t-01-r2-playwright-half)). It has been re-measured at two commits. **The result improved
+to `1 failed, 497 passed`, and one genuine regression was found, bisected and fixed along the way.** The row is
+nevertheless **still not ticked**. The reason is at the foot of this section, and it is not a formality.
+
+#### Run 1 — at `0e51d602f` — `494 passed, 4 failed`
+
+**Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line`.
+
+| # | Failing test | Symptom | Disposition |
+|---|---|---|---|
+| 1 | `tests/causal-rotation-consumers.spec.mjs:151` | `page.waitForLoadState('networkidle')` **timeout** at 30 s | Persists into run 2 — the sole residual |
+| 2 | `tests/causal-rotation-consumers.spec.mjs:187` | `page.waitForLoadState('networkidle')` **timeout** at 30 s | Green in run 2, unchanged code |
+| 3 | `tests/fx-regime-relative-value-lab.spec.mjs:1348` | `identity.registered` expected `"registered"`, got `null` | Green in run 2, unchanged code |
+| 4 | `tests/market-brief-session-date-drift.spec.mjs:11` | **A real regression, introduced in this session** | Bisected to `7314777ef`; **fixed** in `ec7787e5a`; verified passing |
+
+Failure 4 is the honest yield of the exercise and is worth stating plainly rather than burying: running the full
+suite found a defect this session had introduced, it was bisected to a named commit, fixed, and re-verified. That
+is the row doing its job. It is closed.
+
+#### Run 2 — at `HEAD` `adb97b983`, after the BUG-010 fixture fix — `497 passed, 1 failed (14.2m)`
+
+**Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line`.
+
+The single failure:
+
+```text
+tests/causal-rotation-consumers.spec.mjs:151:1 › Regression: Sector acceleration remains visible while cause is unverified
+```
+
+#### Isolation runs — the two suspect spec files, at both ends of the boundary
+
+**Command:** the two spec files
+(`tests/causal-rotation-consumers.spec.mjs`, `tests/fx-regime-relative-value-lab.spec.mjs`) run together.
+
+| Commit | Meaning | Result |
+|---|---|---|
+| `5d4a8202a` | Base — pre-session | **44 passed** |
+| `ec7787e5a` | HEAD at the time of the isolation run | **44 passed** |
+
+#### Node half — green
+
+`node --test tests/recommendation-track-record.e2e.mjs` → **2 pass, 0 fail**, recorded earlier this session and
+consistent with [Suite invocation D](#suite-invocation-d--e2e-regression).
+
+#### Six observations taken by this pass
+
+Each is quoted with its command so the argument below rests on measurement rather than assertion.
+
+**1. The suite is intact — no committed spec deleted.**
+**Command:** `git diff --name-status 5d4a8202a adb97b983 -- tests/`. **Exit code:** `0`.
+
+```text
+M       tests/brief-refresh-atomicity.support.mjs
+M       tests/company-fundamentals-contracts.unit.mjs
+M       tests/recommendation-track-record.canary.mjs
+```
+
+Three modifications, **zero `D` entries**, and no `.spec.mjs` file among them.
+
+**2. Neither residual-failure spec file was modified in this window.**
+**Command:** `git diff --name-status 5d4a8202a adb97b983 -- tests/causal-rotation-consumers.spec.mjs tests/fx-regime-relative-value-lab.spec.mjs`.
+**Exit code:** `0`, **empty output** — both files are byte-identical between base and `HEAD`.
+
+**3. Nothing is skipped anywhere in the committed spec suite.**
+**Command:** `grep -rn "test\.skip\|test\.fixme\|describe\.skip\|\.only(" tests/ --include=*.spec.mjs`.
+**Exit code:** `1` — zero matches. A green obtained by skipping is therefore excluded textually, not merely
+inferred from the arithmetic.
+
+**4. Neither residual-failure spec has any reference to this scope's deliverables.**
+**Command:** `grep -n "rlclaims\|briefs/objects/claims\|recommendation-track-record" tests/causal-rotation-consumers.spec.mjs tests/fx-regime-relative-value-lab.spec.mjs`.
+**Exit code:** `1` — zero matches in either file.
+
+**5. The collected total is constant at 498 across all three full runs.**
+`3 + 495`, `4 + 494` and `1 + 497` each sum to `498`, at three different commits. **Command:**
+`ls -1 tests/*.spec.mjs | wc -l` → **49** committed spec files.
+
+**6. `fx-regime:1348` changed verdict with nothing between the two runs touching it.**
+Observation 2 establishes the file is untouched across the whole window; it failed in run 1 and passed in run 2.
+
+#### What is proven, and what is not
+
+**Proven.**
+
+- The committed Playwright suite is **intact**: 498 collected in every run, zero deletions in `tests/`, zero skip,
+  fixme or `.only` markers across all 49 spec files. *"No pre-existing test removed, skipped"* holds on
+  measurement.
+- The Node half of the row is **green**.
+- `fx-regime-relative-value-lab.spec.mjs:1348` is **non-deterministic**: it failed and then passed across two full
+  runs with the file byte-identical between them. That is a direct observation of flake, not an inference.
+- Both suspect spec files pass **in isolation at both ends of the boundary** — 44 passed at base `5d4a8202a` and
+  44 passed at `ec7787e5a`. Whatever ails them under load is not a defect that isolation exposes at either end.
+- The one regression this session actually introduced was found by this row, bisected to `7314777ef`, fixed in
+  `ec7787e5a`, and re-verified.
+
+**Not proven — stated plainly rather than implied away.**
+
+- **The full suite was never run at the base commit.** Every isolation run was two spec files at two workers; every
+  full run was 498 tests at four workers. So there is **no observation of the residual failure's behaviour at base
+  under the load that produces it**. The claim *"it would have failed at base too"* is therefore **unsupported by
+  execution**. It is plausible — observations 2 and 4 show the file is untouched and has no reference to anything
+  this scope delivers, and a UMD claim module that no page under test loads has no mechanism by which to delay
+  `networkidle` on a Feature-012 consumer page — but plausible is `interpreted`, and this section will not launder
+  it into `executed`. **This is not a clean bisect and is not presented as one.**
+- **`causal-rotation-consumers.spec.mjs:151` is red at `HEAD`.** One test of 498 fails. No amount of explanation
+  converts that into the suite being green.
+
+#### Verdict — the row stays unticked
+
+The DoD item reads *"the committed Node E2E files and **the whole committed Playwright spec suite are green** with
+no pre-existing test removed, skipped, or newly failing"*. Its second conjunct is not met: `497 / 498` is not
+`498 / 498`.
+
+The prior pass refused this same item at `495 / 498` on the reasoning that *"no reading of the item admits three
+red tests"*. **One red test is admitted by no reading either.** Relaxing the standard from *no red tests* to *no
+red tests I can explain* — between two passes, on the same item, in the direction that closes the scope — is
+exactly the move that makes a Definition of Done stop meaning anything. The evidence has improved materially and
+that improvement is recorded above in full; it has not reached the item.
+
+**Route.** The residual failure is a `networkidle` timeout on a Feature-012-owned consumer spec that this scope may
+not touch, alongside the still-open 30 s / 120 s budget mismatch at `contextual-tooltip.spec.mjs:11` from the
+earlier run. Both belong to the **Feature 012 owner**. Separately, if the row's intent is *intactness* rather than
+*whole-suite green* — a defensible reading, given that a 498-test browser suite under parallel load has documented
+intermittency (**D18**) and the item as written can be failed by a machine that is merely busy — then the wording
+overstates the intent and the row belongs to **`bubbles.plan`** to say so. That is a planning decision and is not
+taken here by ticking the box.
+
+---
+
 ### Suite invocation E — project check
 
 <a id="t-01-s1"></a>
@@ -1740,20 +1881,35 @@ paths. The `lifecycleTerms` sweep was re-run at this `HEAD` rather than cited, r
 015-authored surface and exit `1` across the entire repository outside `specs/`. Full transcripts at
 [D1 field parity, re-measured](#d1-field-parity-remeasured). **This item is closed.**
 
-**6. `T-01-R2`'s Playwright half is red and the row stays unticked.** `executed`, prior session; **re-confirmed as
-the operative record this session and deliberately not re-run.** [The recorded
-transcript](#t-01-r2-playwright-half) is `3 failed, 495 passed` of 498, exit `1`. The suite is **intact** — 498
-collected, none removed or skipped — but the DoD item requires *the whole committed Playwright spec suite* green,
-and `495 / 498` is not that.
+**6. `T-01-R2`'s Playwright half is re-measured, much improved, and **still** short of the item.** `executed`
+for the runs, `interpreted` for the attribution. The prior record was `3 failed, 495 passed` of 498, exit `1`.
+Two full runs were taken in this session: `494 passed, 4 failed` at `0e51d602f`, then **`497 passed, 1 failed`**
+at `HEAD` `adb97b983`. Full transcript, per-failure disposition, isolation results and the six supporting
+observations are at [T-01-R2 Playwright half — re-measured](#t-01-r2-playwright-re-measured).
 
-**Why it was not re-run.** A red result is already on record at this `HEAD`, with a diagnostic that isolates the
-cause. Re-running until a green appeared would be result-shopping against a suite whose intermittency is itself
-the documented condition (anti-drift **D18**) — and the surviving failure is not purely load-dependent: the
-isolation run reproduced `contextual-tooltip.spec.mjs:21` failing at `35.1s` with only two workers, against a
-**test-level** budget of `30000ms` guarding an assertion that asks for `{ timeout: 120000 }`. Widening that budget
-would turn the row green without changing a behaviour, and is not done. **Route:** the Feature 012 owner, for the
-30 s / 120 s budget mismatch at `contextual-tooltip.spec.mjs:11`, a Feature-012-owned surface this scope may not
-touch.
+**What the re-measurement settled.** One of the four run-1 failures was a **real regression introduced this
+session** — `market-brief-session-date-drift.spec.mjs:11`, bisected to `7314777ef`, fixed in `ec7787e5a`, verified
+passing. Finding it is the row earning its place. `fx-regime-relative-value-lab.spec.mjs:1348` failed in run 1 and
+passed in run 2 with the file **byte-identical between the two commits**, which is a direct observation of
+non-determinism rather than an argument for one. Both suspect spec files pass **in isolation at both ends of the
+boundary**: 44 passed at base `5d4a8202a` and 44 passed at `ec7787e5a`.
+
+**What it did not settle.** The full suite was **never run at the base commit**. Every isolation run was two spec
+files at two workers; every full run was 498 tests at four workers. So there is no observation of the residual
+failure's behaviour *at base, under the load that produces it*, and *"it would have failed at base too"* remains
+unsupported by execution. It is not a clean bisect and is not recorded as one.
+
+**Why the row stays unticked.** The item requires *the whole committed Playwright spec suite* green. `497 / 498`
+is not that. The prior pass refused the same item at `495 / 498` because *"no reading of the item admits three red
+tests"*; one red test is admitted by no reading either, and relaxing the standard between passes in the direction
+that closes the scope would empty the item of meaning.
+
+**Why it was not re-run again.** A result is on record at this `HEAD`. Re-running a suite with documented
+parallel-load intermittency (anti-drift **D18**) until a green appears is result-shopping, and the fix that would
+guarantee green — widening a test-level timeout — changes no behaviour. **Route:** the **Feature 012 owner**, for
+the `networkidle` timeout at `causal-rotation-consumers.spec.mjs:151` and the standing 30 s / 120 s budget
+mismatch at `contextual-tooltip.spec.mjs:11`, both Feature-012-owned surfaces this scope may not touch; or
+**`bubbles.plan`**, if the row's intent is intactness and the DoD wording overstates it.
 
 ---
 
@@ -1767,10 +1923,49 @@ one holds. Three hold on evidence executed this session, one holds by prior reco
 | # | Conjunct | Verdict | Evidence |
 |---|---|---|---|
 | 1 | Zero warnings across `node --test` output and `node scripts/selftest.mjs` | **holds** — `executed` | [Suite invocation F](#suite-invocation-f--unit-after-the-comment-reword): `7 pass, 0 fail`, `skipped 0`, `todo 0`, exit `0`. [Suite invocation G](#suite-invocation-g--project-check-after-the-comment-reword): `2487 passed, 0 failed`, exit `0`, zero failure-shaped lines across the full 2824-line capture |
-| 2 | Zero issues deferred, skipped, or worked around | **DOES NOT HOLD** — `executed` | *Still open* carries three live entries: **3** (`T-01-U6` row under-describes → `bubbles.plan`), **5** (`notEvaluable` beyond the contract → `bubbles.design`), **6** (`T-01-R2` Playwright half red → Feature 012 owner) |
+| 2 | Zero issues deferred, skipped, or worked around | **DOES NOT HOLD** — `executed` | *Still open* carries two live entries: **3** (`T-01-U6` row under-describes → `bubbles.plan`) and **6** (`T-01-R2` Playwright half at `497 / 498` → Feature 012 owner, or `bubbles.plan` on the wording). Entry 6 is a genuine deferral in the gate's sense: the residual failure is routed to another owner, not repaired here |
 | 3 | Every negative test verified to fail when the behaviour it guards is reverted | **holds by prior record** — `not-run` | [Adversarial proof — completed (P23)](#adversarial-proof--completed-p23): six behaviour reversions across `T-01-F1`–`T-01-F3` and three derivation perturbations against `T-01-C2`, each detected, each applied in a disposable copy with a green control. Not re-executed here, and no mutation harness was created in this pass |
-| 4 | `spec.md` and `design.md` unmodified by this scope | **holds** — `executed` | change-set commands below |
+| 4 | `spec.md` and `design.md` unmodified **by this scope** | **holds — but only on an authorship reading, and the distinction is load-bearing** — `executed` | See the conjunct-4 nuance below, then the change-set commands |
 | 5 | No other spec's artifacts touched | **holds** — `executed` | change-set commands below |
+
+<a id="conjunct-4-nuance"></a>
+
+**Conjunct 4 — the nuance, recorded rather than glossed.** `design.md` **was modified during this scope's calendar
+window.** It gained the `notEvaluable` D1 ruling and routing rows `R14`–`R23` on 2026-08-18, the same day this
+scope was worked. Reading the conjunct as *"`design.md` did not change while this scope was open"* would make it
+**false**, and the flat `holds` recorded in the prior pass would have been wrong.
+
+It holds on the reading the conjunct actually uses — *unmodified **by this scope*** — and three executed
+observations establish that the modifications were the **design owner's**, not this scope's:
+
+**Command:** `git log --format='%h %ad %s' --date=short -- specs/015-recommendation-outcome-ledger-and-track-record/design.md`.
+**Exit code:** `0`. The file's entire history is four commits:
+
+```text
+69f537ef3 2026-08-18 design(015): declare notEvaluable and make the D1 field partition exhaustive
+578eb5028 2026-08-18 design(015): reconcile the claim identity contract with its own routed ruling
+ca512cb21 2026-08-13 design(015): resolve the four routed blocking findings (A05)
+a3260d7a7 2026-07-29 plan(015): add recommendation outcome ledger packet
+```
+
+Every one carries a `design(...)` or `plan(...)` subject and **no scope anchor**. **Command:**
+`git show --name-status 69f537ef`. **Exit code:** `0`. Its change set is a single path:
+
+```text
+M       specs/015-recommendation-outcome-ledger-and-track-record/design.md
+```
+
+`design.md` alone — no source file, no test, no scope artifact, so it cannot be read as a scope commit that also
+touched design. And **Command:** `git merge-base --is-ancestor 69f537ef 5d4a8202a` → **exit `0`**: both 2026-08-18
+design commits are **ancestors of the base commit** of this row's evidence window, so
+`git log 5d4a8202a..adb97b983 -- …/design.md` returns **empty output** — zero `design.md` commits in this
+session's window at all.
+
+**Why this is worth recording rather than asserting.** The prior pass measured conjuncts 4 and 5 against the
+boundary `39d04d9d9~1..HEAD` and reported a flat `holds`. Had the design commits landed *inside* that range, the
+same command would have returned `design.md` and the same flat reading would have been wrong. The conjunct holds
+here because authorship and ordering were checked, not because the range happened to be clean. It is an
+**authorship** claim, and it is only ever true relative to a stated boundary.
 
 **Conjuncts 4 and 5 — the change set, measured against the pre-scope boundary.** The boundary is the parent of the
 delivery commit. **Command:** `git diff --name-only 39d04d9d9~1 HEAD`. **Exit code:** `0`. It returns **54** paths:
@@ -1780,21 +1975,22 @@ delivery commit. **Command:** `git diff --name-only 39d04d9d9~1 HEAD`. **Exit co
 `specs/015-recommendation-outcome-ledger-and-track-record/scopes/01-frozen-claim-contract/` appears** — every
 returned path falls inside allowed families 1, 2, 3 and 5.
 
-The uncommitted half is exactly the three files this pass was authorised to write. **Command:**
-`git diff --name-only`. **Exit code:** `0`. **Command:** `git status --porcelain`:
+The uncommitted half is exactly the two files this pass was authorised to write. **Command:**
+`git status --porcelain`. **Exit code:** `0`. Captured at the end of this pass:
 
 ```text
  M specs/015-recommendation-outcome-ledger-and-track-record/scopes/01-frozen-claim-contract/report.md
  M specs/015-recommendation-outcome-ledger-and-track-record/scopes/01-frozen-claim-contract/scope.md
- M tests/recommendation-track-record.unit.mjs
 ```
 
-Three entries, no untracked file, no staged file, nothing outside the allowed families. `design.md` and `spec.md`
-are absent from both halves, so conjuncts 4 and 5 hold across the whole scope rather than merely across this pass.
+Two entries, no untracked file, no staged file, nothing outside the allowed families. **No source file and no test
+file was touched by this pass** — the Playwright figures recorded above were carried in as evidence, not produced
+by changing anything. `design.md` and `spec.md` are absent from both halves.
 
-**Verdict: the Build Quality Gate is not met, on conjunct 2 alone.** It cannot be ticked while three routed items
-are open — two owned by other agents (`bubbles.design`, `bubbles.plan`) and one by the Feature 012 owner. **The
-item stays unticked.**
+**Verdict: the Build Quality Gate is not met, on conjunct 2 alone.** Conjunct 4 now holds on a *checked* authorship
+reading rather than an assumed one ([the nuance](#conjunct-4-nuance)), which strengthens the gate without closing
+it. The gate cannot be ticked while two routed items remain open — one owned by `bubbles.plan` and one by the
+Feature 012 owner. **The item stays unticked.**
 
 ---
 
@@ -1802,43 +1998,58 @@ item stays unticked.**
 
 **Refreshed this session.** Scope 01's implementation was delivered at
 `39d04d9d90852b3e20ea1f6b73289bcdc466fe99` and repaired at `67c9ebc1459d6a3828ec3ea8b04c0977f5d9c484`. `HEAD` is
-`89a94af4050c0ad53fa406252e351aeaa4994f16`. This report records execution evidence for all fifteen Test Plan rows
+`adb97b983`. This report records execution evidence for all fifteen Test Plan rows
 from seven commands run once each, a later two-command
-[verification re-run](#verification-re-run--same-commit-after-two-corrections), the closure pass, and this pass's
+[verification re-run](#verification-re-run--same-commit-after-two-corrections), the closure pass, this pass's
 [Suite invocation F](#suite-invocation-f--unit-after-the-comment-reword) and
-[Suite invocation G](#suite-invocation-g--project-check-after-the-comment-reword).
+[Suite invocation G](#suite-invocation-g--project-check-after-the-comment-reword), and the two full Playwright
+runs recorded at [T-01-R2 Playwright half — re-measured](#t-01-r2-playwright-re-measured).
 
 **Fourteen rows are green.** `T-01-U1` – `T-01-U7` (exit `0`), `T-01-F1` – `T-01-F3` (exit `0`),
-`T-01-C1` (pass), `T-01-C2` (`2 pass, 0 fail`, exit `0`, post-repair at this `HEAD`), `T-01-R1` (exit `0`), and
+`T-01-C1` (pass), `T-01-C2` (`2 pass, 0 fail`, exit `0`, post-repair), `T-01-R1` (exit `0`), and
 `T-01-S1` at `2487 passed, 0 failed` (exit `0`).
 
-**One row is red: `T-01-R2`.** The row has two halves with different results, and this statement corrects a
-previous wording that folded them into a single `exit 0`. The **Node half is green** (exit `0`). The
-**Playwright half is red** — `3 failed, 495 passed` of 498, exit `1`, recorded in full at
-[the Playwright half](#t-01-r2-playwright-half) with the isolation diagnostic beneath it. The committed suite is
-**intact**; what is not established is the DoD item's *whole suite green*. It is not re-run in search of a
-different answer; see [Still open](#still-open) item 6 and anti-drift **D18**.
+**One row is still red: `T-01-R2`** — and it is much less red than it was. The **Node half is green**
+(`2 pass, 0 fail`). The **Playwright half improved from `3 failed, 495 passed` to `1 failed, 497 passed`** across
+two full runs, and the exercise found, bisected and fixed a **genuine regression this session had introduced**
+(`market-brief-session-date-drift.spec.mjs:11` → `7314777ef` → fixed in `ec7787e5a`). The suite is **intact** on
+measurement: 498 collected in every run, zero deletions in `tests/`, zero skip markers across 49 spec files.
+
+**What that improvement did not reach.** One test — `causal-rotation-consumers.spec.mjs:151` — is red at `HEAD`,
+and the item requires the *whole* suite green. The evidence that it is a load-dependent flake is strong but
+**partial**: both suspect specs pass in isolation at *both* ends of the boundary, and `fx-regime:1348` demonstrably
+flipped verdict with its file byte-identical between runs — but **the full suite was never run at the base commit
+under the same four-worker load**, so *"it would have failed at base too"* is `interpreted`, never `executed`. That
+gap is stated rather than papered over, and the row is not ticked on an argument. See
+[Still open](#still-open) item 6.
 
 **Therefore no scope completion is claimed. Scope 01 is not `Done`.** **Two** of the thirty-three Definition of
-Done items remain unticked — down from three, the contract field-parity item having closed this session — and each
-has a recorded reason and a named owner:
+Done items remain unticked, each with a recorded reason and a named owner:
 
 | Unticked item | Blocking conjunct | Owner |
 |---|---|---|
-| Test — `T-01-R2`, broader E2E regression | Playwright half red at `495 / 498`, exit `1` | Feature 012 owner, for the 30 s / 120 s budget mismatch |
-| Build Quality Gate | Conjunct 2 — *zero issues deferred* — fails while *Still open* entries remain live. The other four conjuncts hold ([assessment](#build-quality-gate-assessment)) | `bubbles.implement`, once the routed items close |
+| Test — `T-01-R2`, broader E2E regression | Playwright half at `497 / 498`, one `networkidle` timeout on a Feature-012 consumer spec. Improved from `495 / 498`; still not *whole suite green*, and the base-under-load counterfactual is unmeasured | Feature 012 owner, for the residual timeout and the standing 30 s / 120 s budget mismatch; **or** `bubbles.plan`, if the row's intent is intactness and the wording overstates it |
+| Build Quality Gate | Conjunct 2 — *zero issues deferred* — fails while two *Still open* entries remain live. The other four conjuncts hold, conjunct 4 now on a checked authorship reading ([assessment](#build-quality-gate-assessment), [nuance](#conjunct-4-nuance)) | `bubbles.implement`, once the routed items close |
 
-**Closed this session:** *Core — contract carries every D1 field and no field beyond; `lifecycleTerms` absent.*
-Its first conjunct was blocked on a design gap routed to `bubbles.design`; that reconciliation landed, both
-conjuncts were re-measured mechanically in both directions at `HEAD` `0e51d602f`, and both hold. Evidence at
-[D1 field parity, re-measured](#d1-field-parity-remeasured). No source file was changed to reach it.
+**Closed in the prior pass:** *Core — contract carries every D1 field and no field beyond; `lifecycleTerms`
+absent.* Evidence at [D1 field parity, re-measured](#d1-field-parity-remeasured).
+
+**Recorded in this pass, and worth naming because it cuts against closing the scope.** `design.md` **was** modified
+inside this scope's calendar window — the `notEvaluable` D1 ruling and routing rows `R14`–`R23`, both on
+2026-08-18. Build Quality Gate conjunct 4 survives only because those were **design-owner** commits carrying no
+scope anchor (`69f537ef` touches `design.md` alone) and both are **ancestors of the base commit**, leaving zero
+`design.md` commits in this session's window. The conjunct is an authorship claim relative to a stated boundary,
+not a claim that the file sat still; the prior pass's flat `holds` would have been wrong had the ordering differed.
+Full working at [the conjunct-4 nuance](#conjunct-4-nuance).
 
 `state.json` is not advanced and no certification is requested.
 
 What this report asserts is bounded and checkable: every command quoted was executed, every exit code is recorded
-as returned, and every figure is from real output. The records tagged `not-run` — the attributable selftest-line
-differences and the P23 adversarial proof — are restatements of established facts, not claims about anything this
-pass executed.
+as returned, and every figure is from real output. The Playwright figures were produced by the operator in this
+session and are transcribed, **not** regenerated — the suite was deliberately not re-run, because re-running an
+intermittent suite until it agrees with you is not evidence. The records tagged `not-run` — the attributable
+selftest-line differences and the P23 adversarial proof — are restatements of established facts, not claims about
+anything this pass executed. The one `interpreted` claim in this pass is labelled as such wherever it appears.
 
 ---
 

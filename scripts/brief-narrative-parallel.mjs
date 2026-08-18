@@ -14,6 +14,7 @@ import {
     writeFileSync
 } from 'node:fs';
 import { resolve } from 'node:path';
+import { reassertCompanyOwnerReadDisclosure } from './brief-refresh.mjs';
 import { RESEARCH_AGENDA_CONTRACTS, runResearchSidePool } from './research-agenda-generation.mjs';
 import { briefEventContractInstruction } from './validate-brief-payload.mjs';
 import { BRIEF_NARRATIVE_FIELDS_REQUIRED } from './reader-vocabulary.mjs';
@@ -718,6 +719,14 @@ try {
     }
 
     for (const result of results) Object.assign(payload, loadFragment(result));
+    /* BUG-010 §3.3 — the coverage lane owns toolCoverage and may rewrite the company reason in any
+       wording it likes, so the two safety-bearing facts are restored here rather than requested of
+       it. Re-assertion, not a prompt constraint: a constraint asks the model to comply, this makes
+       compliance structural. It throws when the entry is missing or duplicated, which lands in the
+       catch below and restores the baseline — a window that cannot carry the disclosure does not
+       publish. */
+    const companyDisclosure = reassertCompanyOwnerReadDisclosure(payload, (relative) => readJson(resolve(ROOT, relative)));
+    console.log(`[brief-parallel] company owner-read disclosure ${companyDisclosure.reasserted ? 'reasserted' : 'already present'} on ${companyDisclosure.id}`);
     payload.toolId = 'market-brief';
     payload.window = windowId;
     payload.asOf = snapshot.asOf || snapshot.generatedAt || new Date().toISOString();

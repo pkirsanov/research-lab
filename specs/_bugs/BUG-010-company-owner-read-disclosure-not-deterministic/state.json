@@ -1,0 +1,185 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-010-company-owner-read-disclosure-not-deterministic",
+  "featureName": "BUG-010 A Safety-Bearing Disclosure Sourced From Non-Deterministic Prose",
+  "createdAt": "2026-08-18T17:54:16Z",
+  "lastUpdatedAt": "2026-08-18T17:54:16Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "priorBlockedReason": null,
+  "blockedReasonResolved": null,
+  "crossFeatureEditAuthorization": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "priorPlanningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/010-company-fundamentals-and-brief-lab",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [
+    "specs/010-company-fundamentals-and-brief-lab"
+  ],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": "bubbles.bug",
+    "currentPhase": "analysis",
+    "currentPhaseStatus": "completed",
+    "phaseReconciliation": null,
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-18T17:54:16Z",
+    "completedAt": null,
+    "substate": null,
+    "currentScope": 1,
+    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredTarget": "specs/_bugs/BUG-010-company-owner-read-disclosure-not-deterministic/scopes.md",
+    "nextRequiredReason": "Scope 1 installs the publish gate in scripts/validate-brief-payload.mjs and must be observed refusing the committed market-brief.payload.json before any producer change lands. A gate written after the fix can only be observed green.",
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scopeId": "01-publish-gate-proven-red",
+        "scope": 1,
+        "status": "Not Started",
+        "dependsOn": []
+      },
+      {
+        "scopeId": "02-deterministic-producer",
+        "scope": 2,
+        "status": "Not Started",
+        "dependsOn": [
+          "01-publish-gate-proven-red"
+        ]
+      },
+      {
+        "scopeId": "03-repair-committed-window",
+        "scope": 3,
+        "status": "Not Started",
+        "dependsOn": [
+          "01-publish-gate-proven-red",
+          "02-deterministic-producer"
+        ]
+      }
+    ],
+    "audit": null
+  },
+  "terminalTransitionBlockers": [
+    "No fix is implemented. scripts/validate-brief-payload.mjs carries no disclosure check, buildCompanyFundamentalsOwnerRead() omits both facts from the text it emits, the Tier-B coverage lane has no preservation duty, and market-brief.payload.json still carries the failing reason.",
+    "All 21 Definition of Done items across the 3 scopes are unchecked.",
+    "None of the 9 scenario contracts SCN-010B-001 through SCN-010B-009 has been executed; every entry in scenario-manifest.json is not_started.",
+    "node scripts/selftest.mjs exits 1 at HEAD 5c005750e with the Feature 010 Scope 6 assertion failing."
+  ],
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "certificationFieldWriteNote": "Certification fields are validate-owned. bubbles.bug authored this packet only and claims no certification; the fields are initialised, not asserted.",
+    "scopeProgress": [
+      {
+        "scopeId": "01-publish-gate-proven-red",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 9
+      },
+      {
+        "scopeId": "02-deterministic-producer",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 6
+      },
+      {
+        "scopeId": "03-repair-committed-window",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 6
+      }
+    ],
+    "assurance": {
+      "level": "none",
+      "missingForFull": [
+        "implementation",
+        "scenario-execution",
+        "independent-validate",
+        "independent-audit",
+        "Detail: this run produced artifacts and diagnostic grounding only. Every citation in bug.md and design.md was verified against the tree at HEAD 5c005750e by executed command, and the reported failure was reproduced first-hand, but no scope test was written or run and no product source file was modified."
+      ]
+    }
+  },
+  "completedScopes": [],
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.bug",
+      "workflowMode": "bugfix-fastlane",
+      "phasesExecuted": [
+        "discovery",
+        "documentation",
+        "analysis"
+      ],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.bug",
+      "expansionReason": "The operator scoped this run to artifact creation only and explicitly forbade implementing the fix. bubbles.bug therefore authored the packet directly as the top-level runner and dispatched no implementation, test, validate, or audit subagent. Those phases are not claimed, executed, or recorded as complete.",
+      "expansionEvidenceRef": "report.md",
+      "statusBefore": "not_started",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-18T17:54:16Z",
+      "finishedAt": "2026-08-18T17:54:16Z",
+      "outcome": "completed_owned",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "BUG-010-COMPANY-OWNER-READ-DISCLOSURE-NOT-DETERMINISTIC"
+      ],
+      "evidenceRef": "report.md#reproduction",
+      "summary": "Authored the 8-artifact packet for BUG-010. Reproduced the reported failure first-hand at HEAD 5c005750e: node scripts/selftest.mjs exits 1 with 2489 passed and 1 failed, the single failure being the Feature 010 Scope 6 company owner-read assertion. Isolated the failure to 2 of that assertion's 6 conjuncts, with the other 4 passing. Verified against the tree that the deterministic producer already holds boundary.adapterId and boundary.recommendationEligibility and omits both from the read text it builds, that buildToolCoverage inherits that text verbatim, that the Tier-B coverage lane owns the key with no preservation duty, and that the publish validator's entire per-entry content test is hasText. Confirmed via git log -L that all 3 commits touching selftest.mjs line 6319 moved the assertion rather than the fact, and recorded a fourth loosening as a prohibited non-goal. Designed a 3-scope fix: gate first and proven red, then a deterministic producer with preservation, then the data repair.",
+      "durationProvenance": "One continuous session. The repository selftest run is the long pole; every other command is a file read, a targeted grep, or a small node evaluation completing in under a second."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "addressedFindings": [],
+  "unresolvedFindings": [
+    "BUG-010-COMPANY-OWNER-READ-DISCLOSURE-NOT-DETERMINISTIC"
+  ]
+}

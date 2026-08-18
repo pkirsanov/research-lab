@@ -1,0 +1,152 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_bugs/BUG-010-company-owner-read-disclosure-not-deterministic",
+  "generatedBy": "bubbles.bug",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-010B-001",
+      "title": "The gate refuses the committed payload as it stands today",
+      "scopeId": "01-publish-gate-proven-red",
+      "scope": 1,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "scripts/validate-brief-payload.mjs",
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-010B-002",
+      "title": "The gate refuses a reason that drops only the adapter id, and derives the expected id from configuration",
+      "scopeId": "01-publish-gate-proven-red",
+      "scope": 1,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "scripts/validate-brief-payload.mjs",
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-010B-003",
+      "title": "The gate refuses a reason that drops only the no-recommendation disclosure",
+      "scopeId": "01-publish-gate-proven-red",
+      "scope": 1,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "scripts/validate-brief-payload.mjs",
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-010B-004",
+      "title": "The gate cannot pass by finding nothing to check",
+      "scopeId": "01-publish-gate-proven-red",
+      "scope": 1,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "scripts/validate-brief-payload.mjs",
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-010B-005",
+      "title": "The gate does not red-line a known-good window",
+      "scopeId": "01-publish-gate-proven-red",
+      "scope": 1,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "scripts/validate-brief-payload.mjs",
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-010B-006",
+      "title": "The deterministic producer emits both facts with no model involved",
+      "scopeId": "02-deterministic-producer",
+      "scope": 2,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "scripts/brief-refresh.mjs",
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-010B-007",
+      "title": "The adapter id is projected from configuration, not pinned",
+      "scopeId": "02-deterministic-producer",
+      "scope": 2,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "scripts/brief-refresh.mjs",
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-010B-008",
+      "title": "The narrative merge cannot erase either fact",
+      "scopeId": "02-deterministic-producer",
+      "scope": 2,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "scripts/brief-narrative-parallel.mjs",
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-010B-009",
+      "title": "The repaired payload turns main green with the assertion intact",
+      "scopeId": "03-repair-committed-window",
+      "scope": 3,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "market-brief.payload.json",
+        "scripts/selftest.mjs",
+        "scripts/validate-brief-payload.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    }
+  ]
+}

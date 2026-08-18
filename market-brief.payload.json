@@ -616,7 +616,7 @@
     {
       "deepLink": "company-fundamentals-lab.html",
       "id": "company-fundamentals-lab",
-      "reason": "Consumed as a committed owner read (a static single-name model, asOf 2026-04-29T20:06:24Z): the hash-verified MSFT fundamentals (sec-cik-0000789019) read direction unavailable with a partial brief and constrained confidence; statement 2026-03-31, model 2026-03-31, market not present. Coverage is partial through 2026-03-31 and no market-moving fundamental delta carries into this pre-close view.",
+      "reason": "Consumed as a committed owner read (a static single-name model, asOf 2026-04-29T20:06:24Z): the hash-verified MSFT fundamentals (sec-cik-0000789019) read direction unavailable with a partial brief and constrained confidence; statement 2026-03-31, model 2026-03-31, market not present. Coverage is partial through 2026-03-31 and no market-moving fundamental delta carries into this pre-close view. Consumed from company-fundamentals-owner-v1 as educational research only; no recommendation is produced.",
       "status": "analyzed"
     },
     {

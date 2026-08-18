@@ -260,7 +260,7 @@ the behaviour under test makes the row fail. No row contains an early-exit bailo
 
 #### Core items
 
-- [ ] The `brief-recommendation-claim/v1` contract is implemented with every field named in `design.md` → `## D1` → *Contract*, and no field beyond them. The withdrawn `lifecycleTerms` block is **absent**: the identifier appears nowhere in 015-authored source, fixtures, or tests.
+- [x] The `brief-recommendation-claim/v1` contract is implemented with every field named in `design.md` → `## D1` → *Contract*, and no field beyond them. The withdrawn `lifecycleTerms` block is **absent**: the identifier appears nowhere in 015-authored source, fixtures, or tests.
 - [x] `citedToolId` is recorded on the object and **excluded from `claimHash`**, joining `proposalRunId` / `proposalEventId` / `proposedAt` / `notEvaluable` as the complete **five-field** unhashed set; the partition over the fifteen declared fields is exhaustive — 9 hashed + 5 unhashed + `claimHash` — so no field sits outside it, and there is no unhashed block.
 - [x] `citedToolId` is resolved at mint from the authored action's `deepLink` through `tools.json` `file` → `id`; an absent or unmatched `deepLink` sets it to `null` and the claim is **still minted**. It is never authored, defaulted, or guessed, and it is never conflated with `originToolId`, which is the `market-brief` pipeline constant (D4) and is not a claim field.
 - [x] `thesisFamily` is a **top-level, hashed** claim field. It is authored or the claim mints `not-evaluable` with reason `no-authored-thesis-family`; no value is derived from `actionFamily`, `direction`, or `horizon`, defaulted, or inferred from prose. Routed finding P-015-03 is **RESOLVED** and its ruling is recorded in `report.md`.
@@ -279,7 +279,13 @@ the behaviour under test makes the row fail. No row contains an early-exit bailo
 - [x] Change Boundary is respected and zero excluded file families were changed — `rlvalidation.js`, `rlcontracts.js`, the persisted `rldata.js` cache schema, the Center four-view composition, `scripts/selftest.mjs`, the three committed sibling validators, every counted registry, every committed `briefs/history/**` and `data/**` byte, and every neighbouring feature's test file are byte-identical at the end of the scope, verified by `git status --porcelain` diffed against the allowed-family list with the raw output recorded in `report.md`.
 
 > **Evidence:** each ticked core item above cites its executed evidence anchor in *DoD closure record* below, and each
-> unticked one carries its reason and its owner there. **10 of 17 core items are ticked.**
+> unticked one carries its reason and its owner there. **17 of 17 core items are ticked.**
+>
+> **Tally correction.** This line read *"10 of 17"* until 2026-08-18. That figure was stale by six: the closure
+> refresh ticked six further core items without updating it, so the true count immediately **before** this pass was
+> **16 of 17**, measured by `grep -n '^- \[[ x]\]' scope.md` (exit `0`, lines `263`–`279`). This pass ticked exactly
+> **one** item — the contract field-parity item — not seven. See
+> [report.md → Stale records found during re-measurement](report.md#stale-records-found-during-re-measurement).
 
 #### Test items
 
@@ -332,6 +338,7 @@ sweep came back **non-clean** and its item is deliberately still unticked; see t
 
 | Item | Evidence anchor |
 |---|---|
+| Contract carries every D1 field and **no field beyond**; `lifecycleTerms` absent from source, fixtures and tests | [`#d1-field-parity-remeasured`](report.md#d1-field-parity-remeasured) — both sides re-derived at `HEAD` `0e51d602f` and compared in **both** directions: 15 D1-declared fields against 15 minted and 15 persisted, `PARTITION_MINUS_IMPL=[]` and `IMPL_MINUS_PARTITION=[]`, four nested objects matching at 5 keys each, `notEvaluable` exactly `{ reason, field }` on all eight refusal paths; `lifecycleTerms` sweeps exit `1` across the 015-authored surface **and** across the whole repository outside `specs/`, with all 39 surviving hits classified as dated spec prose |
 | `citedToolId` recorded and excluded; **five-field** unhashed set | [`#t-01-u1`](report.md#t-01-u1), [`#t-01-u2`](report.md#t-01-u2), [`#t-01-f2`](report.md#t-01-f2) |
 | `citedToolId` resolved from `deepLink`; unmatched sets `null` and still mints | [`#t-01-f2`](report.md#t-01-f2), [`#t-01-r1`](report.md#t-01-r1) |
 | `thesisFamily` top-level and hashed; **P-015-03 RESOLVED**, ruling recorded in `report.md` | [`#p-015-03-ruling`](report.md#p-015-03-ruling) (the ruling), [`#t-01-u1`](report.md#t-01-u1) and [`#t-01-u2`](report.md#t-01-u2) (hashed), [`#t-01-r1`](report.md#t-01-r1) (`no-authored-thesis-family` refusal) |
@@ -361,7 +368,6 @@ before `T-01-R1` / `T-01-R2` in every recorded run, as the plan requires.
 
 | Item | Why the evidence does not reach it | Owner |
 |---|---|---|
-| Core — contract carries every D1 field and no field beyond; `lifecycleTerms` appears nowhere in 015-authored source, fixtures, or tests | `T-01-U1` proves `thesisFamily` is hashed, which retires the block's **function**. The item's claim is **textual** — the identifier is absent everywhere — and `report.md` records no source, fixture, or test sweep for it. | `bubbles.implement` — record the sweep in `report.md` |
 | Core — `thesisFamily` hashed **and** routed finding P-015-03 RESOLVED with its ruling recorded in `report.md` | The hashing half is proven by [`#t-01-u1`](report.md#t-01-u1) / [`#t-01-u2`](report.md#t-01-u2) and the refusal by [`#t-01-r1`](report.md#t-01-r1). The identifier `P-015-03` does **not** appear anywhere in `report.md`, and the item names `report.md` as the place its ruling must be recorded. The ruling text exists in this file's Implementation Plan step 2; it was never carried across. | `bubbles.implement` — record the P-015-03 ruling in `report.md` |
 | Core — the **six** closed vocabularies are frozen module constants, not literals at call sites | Two gaps. `T-01-U6` covers **five** vocabularies plus `actionFamily`; `magnitude.signConvention` is named in neither the `T-01-U6` Test Plan row nor `report.md`. Separately, *constants not literals at call sites* is a source-layout claim no executed row observes, and `report.md` records no inspection of it. | Coverage gap: `bubbles.plan` — the `T-01-U6` row under-covers this core item by one vocabulary. Layout claim: `bubbles.implement` |
 | Core — seven-reason refusal set, each naming its field, **and** `unresolvable-owning-tool` absent from the source | The seven-reason set and the per-trigger isolation are proven by [`#t-01-r1`](report.md#t-01-r1), and the retirement is proven **behaviourally** by [`#t-01-f2`](report.md#t-01-f2), where the input the retired code would refuse mints instead. *Absent from the source* is textual and unswept. | `bubbles.implement` — record the source sweep in `report.md` |
@@ -529,6 +535,36 @@ conjunct is now satisfiable. Its wording needed no change because it binds to D1
 named in `design.md` → `## D1` → *Contract*, and no field beyond them"* — so it tracked the correction
 automatically. What still gates the tick is its **second, textual** conjunct (`lifecycleTerms` absent from source,
 fixtures and tests), which remains `bubbles.implement`'s sweep to record. The item stays unticked.
+
+#### R21 closed — recorded 2026-08-18, `HEAD` `0e51d602f`
+
+R21's text above is preserved as written. Its final sentence is superseded: the item is now **ticked**, and one
+part of that sentence was mistaken when written.
+
+**Both conjuncts were re-measured rather than inherited.** R21 established field parity by `diff` over two ordered
+name lists; this pass re-derived both sides independently, and additionally compared them in **both** directions,
+because the item forbids a superset as firmly as a subset and a name-list `diff` alone does not separate the two
+failure modes. Side A: `grep -n '^  "' design.md` (exit `0`) → 15 top-level fields at lines `315`–`384`, plus
+`grep -n '^    "'` (exit `0`) → 5 nested keys each for `subject`, `predicate`, `horizon`, `magnitude`. Side B: a
+read-only `node -e` introspection of `rlclaims.js` (exit `0`) enumerating the **runtime and persisted** key sets
+rather than the source literal — `MINTED_TOPLEVEL(15)`, `PERSISTED_TOPLEVEL(15)`, `HASHED_TERMS(9)`,
+`UNHASHED_FIELDS(5)`, `HASH_INPUT_KEYS(9)`, all four nested objects at 5 keys. Both differences are empty:
+`PARTITION_MINUS_IMPL=[]` (nothing D1 names is missing) and `IMPL_MINUS_PARTITION=[]` (nothing exists beyond D1),
+with `PARTITION_DISTINCT=15` and `HASHED_UNHASHED_OVERLAP=[]`. `notEvaluable` carries exactly `{ reason, field }`
+on all eight refusal paths, with `REASONS_OUTSIDE_DECLARED_SET=[]`.
+
+**The correction to R21.** R21 stated the textual conjunct *"remains `bubbles.implement`'s sweep to record"*. It
+did not: [report.md → Sweep A](report.md#sweep-a--lifecycleterms) had already recorded it clean at exit `1`. R21
+appears to have read the stale *Not ticked* row rather than the report. The sweep was nonetheless **re-run at this
+`HEAD`** rather than cited, since a tick resting on a sweep taken at a different commit rests on an assumption:
+exit `1` across the 015-authored surface, and exit `1` across the entire repository outside `specs/`. All 39
+surviving occurrences are dated spec prose — withdrawal declarations, the reconciliation records, Test Plan rows
+naming what a test defends against, and this DoD item naming the identifier in order to forbid it — and are
+retained, because deleting them would destroy the record of why the block is absent.
+
+Full transcripts, the two-directional comparison table, and the per-file classification of all 39 hits:
+[report.md → D1 field parity, re-measured](report.md#d1-field-parity-remeasured). **No source, test, fixture,
+`design.md` or `spec.md` file was changed to reach this tick** — the pass was verification only.
 
 ### R20 — the coverage gap, and exactly what is left for `bubbles.implement`
 

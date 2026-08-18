@@ -452,6 +452,179 @@ touch and this agent does not own.
 status; the implementation currently has it outside `HASHED_TERMS`, so an unhashed declaration matches delivery),
 after which this conjunct can be re-measured against the amended block. **The DoD item stays unticked.**
 
+<a id="d1-field-parity-remeasured"></a>
+
+### D1 field parity, re-measured after the Mint-Evaluability Reconciliation — **both conjuncts hold**
+
+**Claim Source:** `executed`, this session. Repository `research-lab`, `HEAD` `0e51d602f`, working tree clean
+(`git status --porcelain` returned no output). Every command below was run once, unfiltered, from the repository
+root. The section above is **not** edited: it is the correct record of the pre-reconciliation state and its route
+to `bubbles.design`. This section is the re-measurement that route explicitly invited — *"after which this conjunct
+can be re-measured against the amended block"*.
+
+**What changed between the two measurements, and who changed it.** The route was acted on. `design.md` now carries
+a **2026-08-18 Mint-Evaluability Reconciliation** whose Ruling 1 declares `notEvaluable` a field of the contract
+positioned before `claimHash`, and whose Ruling 2 places it in the provenance class as **unhashed**. Its own
+standing block records the result as `9 hashed + 5 unhashed + 1 digest = 15`. The implementation moved with it:
+`UNHASHED_FIELDS` now holds **five** names, where the prior measurement recorded four. Both sides were re-derived
+below rather than taken from either record.
+
+**Side A — what `## D1` → *Contract* names, re-derived.** **Command:**
+`grep -n '^  "' specs/015-recommendation-outcome-ledger-and-track-record/design.md`. **Exit code:** `0`. The
+matches falling inside the `### Contract:` JSONC block are lines `315`–`384`:
+
+| # | Line | Field | Class per *Hashing Rules* |
+|---|---|---|---|
+| 1 | 315 | `contractVersion` | hashed |
+| 2 | 318 | `recommendationKey` | hashed |
+| 3 | 319 | `proposalRunId` | unhashed provenance |
+| 4 | 320 | `proposalEventId` | unhashed provenance |
+| 5 | 321 | `proposedAt` | unhashed provenance |
+| 6 | 322 | `citedToolId` | unhashed provenance |
+| 7 | 331 | `subject` | hashed |
+| 8 | 340 | `actionFamily` | hashed |
+| 9 | 341 | `direction` | hashed |
+| 10 | 342 | `thesisFamily` | hashed |
+| 11 | 348 | `predicate` | hashed |
+| 12 | 360 | `horizon` | hashed |
+| 13 | 369 | `magnitude` | hashed |
+| 14 | 378 | `notEvaluable` | unhashed provenance — **newly declared** |
+| 15 | 384 | `claimHash` | the digest itself |
+
+**15 fields.** The prior measurement found 14 with `claimHash` at line `378`; `notEvaluable` was inserted at `378`
+and `claimHash` moved to `384`, which is the insertion the reconciliation describes.
+
+D1 also names the nested keys of the four object-valued terms. **Command:**
+`grep -n '^    "' specs/015-recommendation-outcome-ledger-and-track-record/design.md`. **Exit code:** `0`. Inside
+the block: `subject` (`332`–`336`) = `kind`, `prose`, `resolvesTo`, `seriesRefs`, `weighting`; `predicate`
+(`349`–`353`) = `kind`, `basis`, `comparator`, `value`, `reference`; `horizon` (`361`–`365`) = `kind`, `sessions`,
+`authoredBand`, `resolutionDate`, `eventRef`; `magnitude` (`370`–`374`) = `unit`, `entryBasis`, `entryDate`,
+`signConvention`, `flatBand`. Five each.
+
+**Side B — what the implementation actually mints, enumerated at run time.** The prior measurement read the object
+literal as source text. This one enumerates the **runtime and persisted** key sets, which is the stronger
+observation: a source-text read cannot see a key added or dropped after construction, and the DoD item's *"no
+field beyond them"* is a property of the object that reaches disk. **Command:** `node -e '…'` requiring
+`./rlclaims.js`, minting one fully-populated claim and printing the key sets. This is **read-only introspection,
+not a project check** — it supplies no filesystem ports, so `writeClaimObject` is never reached and nothing is
+written. **Exit code:** `0`.
+
+```text
+mintOk=true  notEvaluable=null
+HASHED_TERMS(9) = contractVersion, recommendationKey, subject, actionFamily, direction, thesisFamily, predicate, horizon, magnitude
+UNHASHED_FIELDS(5) = proposalRunId, proposalEventId, proposedAt, citedToolId, notEvaluable
+MINTED_TOPLEVEL(15) = contractVersion, recommendationKey, proposalRunId, proposalEventId, proposedAt, citedToolId, subject, actionFamily, direction, thesisFamily, predicate, horizon, magnitude, notEvaluable, claimHash
+PERSISTED_TOPLEVEL(15) = actionFamily, citedToolId, claimHash, contractVersion, direction, horizon, magnitude, notEvaluable, predicate, proposalEventId, proposalRunId, proposedAt, recommendationKey, subject, thesisFamily
+PARTITION_SIZE=15  PARTITION_DISTINCT=15
+IMPL_MINUS_PARTITION=[]
+PARTITION_MINUS_IMPL=[]
+HASHED_UNHASHED_OVERLAP=[]
+NESTED subject(5) = kind, prose, resolvesTo, seriesRefs, weighting
+NESTED predicate(5) = kind, basis, comparator, value, reference
+NESTED horizon(5) = kind, sessions, authoredBand, resolutionDate, eventRef
+NESTED magnitude(5) = unit, entryBasis, entryDate, signConvention, flatBand
+HASH_INPUT_KEYS(9) = contractVersion, recommendationKey, subject, actionFamily, direction, thesisFamily, predicate, horizon, magnitude
+```
+
+`PERSISTED_TOPLEVEL` is the key set of `JSON.parse(serializeClaim(claim))` — the bytes that reach
+`briefs/objects/claims/<hex>.json`. It is sorted because `stableStringify` sorts keys, and it is the same 15-member
+set as `MINTED_TOPLEVEL`, so nothing is added or stripped on the way to disk.
+
+**The comparison, run in both directions.** A superset fails this item exactly as a subset does, so both
+differences were computed rather than one:
+
+| Direction | Question | Result |
+|---|---|---|
+| Side A → Side B | is any D1-named field **missing** from the implementation? | `PARTITION_MINUS_IMPL=[]` — none |
+| Side B → Side A | does the implementation carry any field **beyond** D1? | `IMPL_MINUS_PARTITION=[]` — none |
+
+The partition is exhaustive and non-overlapping in the implementation as well as on paper: `PARTITION_SIZE=15`
+with `PARTITION_DISTINCT=15` (no name counted twice) and `HASHED_UNHASHED_OVERLAP=[]` (no name in both classes).
+`HASH_INPUT_KEYS(9)` is the actual input to `stableSha`, confirming the digest covers the nine hashed terms and
+nothing else. **The first conjunct now holds in both directions.**
+
+`notEvaluable`'s own shape was checked too, since D1 declares it as `null` or `{ reason, field }` and an
+undeclared third key would be a field beyond the contract one level down. All eight refusal paths were driven.
+**Exit code:** `0`.
+
+```text
+note-family: ok=true notEvaluableKeys=[field,reason] reason=non-semantic-subject field=actionFamily
+positional-subject: ok=true notEvaluableKeys=[field,reason] reason=non-semantic-subject field=subject.prose
+no-authored-subject: ok=true notEvaluableKeys=[field,reason] reason=no-authored-subject field=subject.resolvesTo
+no-committed-series: ok=true notEvaluableKeys=[field,reason] reason=no-committed-series field=subject.seriesRefs
+no-thesis-family: ok=true notEvaluableKeys=[field,reason] reason=no-authored-thesis-family field=thesisFamily
+no-authored-horizon: ok=true notEvaluableKeys=[field,reason] reason=no-authored-horizon field=horizon.kind
+no-authored-predicate: ok=true notEvaluableKeys=[field,reason] reason=no-authored-predicate field=predicate
+neutral-direction: ok=true notEvaluableKeys=[field,reason] reason=neutral-direction-no-magnitude field=direction
+DISTINCT_REASONS_OBSERVED=neutral-direction-no-magnitude, no-authored-horizon, no-authored-predicate, no-authored-subject, no-authored-thesis-family, no-committed-series, non-semantic-subject
+MINT_REFUSALS_DECLARED(7)=neutral-direction-no-magnitude, no-authored-horizon, no-authored-predicate, no-authored-subject, no-authored-thesis-family, no-committed-series, non-semantic-subject
+REASONS_OUTSIDE_DECLARED_SET=[]
+```
+
+Exactly two keys on every path, all seven declared reasons reachable, and `REASONS_OUTSIDE_DECLARED_SET=[]`.
+
+**Second conjunct — `lifecycleTerms`, re-swept at this `HEAD`.** [Sweep A](#sweep-a--lifecycleterms) closed this in
+a prior pass; it is re-run here rather than cited, because a tick resting on a sweep taken at a different commit is
+a tick resting on an assumption. Three sweeps, each once, unfiltered.
+
+**Sweep 1 — the 015-authored surface.** **Command:** `grep -rn "lifecycleTerms"` over `rlclaims.js`, the five
+`tests/recommendation-track-record.*.mjs` files and `tests/fixtures/recommendation-track-record/`. **Exit code:**
+`1` — no match, which is the clean result for an absence claim. The swept set was enumerated first by `ls -1` and
+`find … -type f` (exit `0`): 1 source file, 5 test files, 46 fixture files.
+
+**Sweep 2 — everything outside `specs/`, repository-wide.** Narrower than the DoD wording requires, and
+deliberately so: it proves the identifier is absent from *all* source, fixtures and tests, not merely from the
+files this scope authored. **Command:**
+`grep -rn "lifecycleTerms" . --exclude-dir=.git --exclude-dir=specs`. **Exit code:** `1` — no match.
+
+**Sweep 3 — the whole repository, to classify what remains.** **Command:**
+`grep -rn "lifecycleTerms" . --exclude-dir=.git`. **Exit code:** `0`. Per-file counts, via
+`grep -rc "lifecycleTerms" specs/ --include='*.md' --include='*.json'` (exit `0`):
+
+| File | Hits | Class |
+|---|---|---|
+| `specs/015-…/design.md` | 17 | **historical record** — the *Hashing Rules* cross-reference and the dated 2026-08-18 Claim-Identity Reconciliation that withdrew the block |
+| `specs/015-…/scopes/01-frozen-claim-contract/report.md` | 13 | **historical record** — the Sweep A transcripts and closure prose in this artifact |
+| `specs/015-…/scopes/01-frozen-claim-contract/scope.md` | 6 | **historical record** — step 2's withdrawal declaration, two Test Plan rows naming what the tests defend against, the DoD item itself, and two closure rows |
+| `specs/015-…/scopes/04-deterministic-outcome-resolver/scope.md` | 1 | **historical record** — step 13, *"there is no `lifecycleTerms` block to read from: that block is withdrawn"* |
+| `specs/015-…/scopes/_index.md` | 2 | **historical record** — the `F-015-D4-01` row, explicitly labelled *"Superseded planning text, retained as history"* |
+
+**39 hits, all of them spec prose, none of them a live reference.** Each was read in context, not counted and
+assumed. Every one either declares the block withdrawn, records the dated decision that withdrew it, explains what
+a test exists to defeat, or is the DoD item naming the identifier in order to forbid it. **Zero are in source,
+fixtures or tests** — Sweeps 1 and 2 both return exit `1`. Deleting any of these would destroy the record of why
+the block is absent, which is the opposite of what the item asks for. **The second conjunct holds.**
+
+**Verdict — the item is ticked.** Both conjuncts are satisfied at `HEAD` `0e51d602f`: no D1-named field is
+missing, no field beyond D1 exists at any level, and the withdrawn identifier appears nowhere outside dated spec
+prose. Nothing was changed to reach this result — `rlclaims.js`, `design.md`, `spec.md` and every test file are
+untouched by this pass.
+
+<a id="stale-records-found-during-re-measurement"></a>
+
+### Stale records found during re-measurement — reported, not repaired
+
+**Claim Source:** `executed`, this session. Three internal inconsistencies were found while measuring the item.
+None is a defect in `rlclaims.js`, and none is repaired here beyond the row this pass owns.
+
+**1. The core-item tally in [scope.md](scope.md) was stale by six.** Its evidence line read *"10 of 17 core items
+are ticked"* while the file actually carried **16** ticked and 1 unticked. **Command:**
+`grep -n '^- \[[ x]\]' scope.md`. **Exit code:** `0`. Core items occupy lines `263`–`279`: line `263` was `- [ ]`
+and lines `264`–`279` were all `- [x]`. The tally predates the closure refresh that ticked six more items and was
+never updated. It is corrected to `17 of 17` alongside this pass's tick, and the correction is recorded here
+because a tally that moves from `10` to `17` in one pass would otherwise read as this pass having ticked seven
+items. It ticked **one**.
+
+**2. The *Not ticked* table in [scope.md](scope.md)'s closure record still lists seven items that are ticked.**
+Six core items — the six vocabularies, the seven-reason set, `Number.isFinite`, *only new files*, *no statistic*,
+and `thesisFamily`/P-015-03 — plus test row `T-01-C2` appear in **both** the *Ticked* and *Not ticked* tables. The
+closure refresh added them to *Ticked* without pruning *Not ticked*. Only this pass's own row is moved; the other
+six are outside this pass's mandate. **Route:** the artifact's owner, to prune the six stale rows.
+
+**3. This report's own Completion Statement attributed the open conjunct to `bubbles.design`.** That was correct
+when written and is now discharged — design delivered the Mint-Evaluability Reconciliation. The row is updated
+below rather than deleted, so the routing history stays legible.
+
 <a id="vocabulary-constants-are-frozen-and-call-sites-reference-them"></a>
 
 ### Vocabulary constants are frozen, and call sites reference them
@@ -1550,19 +1723,22 @@ state: **17 core, 15 test, 1 Build Quality Gate = 33**. The scope's only parity 
 [scope.md](scope.md) asserts a total of 32. **No correction to the parity line is warranted**, and the `32` figure
 survived only in this report's own prior wording, which this pass has now replaced. **This item is closed.**
 
-**5. The claim object carries one field beyond `## D1` → *Contract*, and the contract DoD item stays unticked.**
-`executed`, this session. [D1 field parity](#d1-field-parity--every-named-field-present-one-field-beyond)
-enumerates both sides mechanically: `## D1` → *Contract* names **14** top-level fields (9 hashed + 4 unhashed +
-`claimHash`), all 14 are present in the minted object, and the object carries a **fifteenth**, `notEvaluable`
-(`rlclaims.js#L478`), which appears nowhere in `## D1` (lines `303`–`680`). It is persisted, not an in-memory
-annotation: `serializeClaim` is `stableStringify(claim)` (`#L336`) over the whole object.
+**5. The field-parity gap is RESOLVED — the contract DoD item is now ticked.** `executed`, this session. The
+prior entry, preserved in substance here, recorded that
+[D1 field parity](#d1-field-parity--every-named-field-present-one-field-beyond) found `## D1` → *Contract* naming
+**14** top-level fields while the minted object carried a **fifteenth**, `notEvaluable` — a persisted field the
+contract block never declared — and routed it to `bubbles.design`.
 
-This is a **design gap**, not an implementation defect. `## D1`'s own prose requires the behaviour the field
-carries — *"the claim is minted `not-evaluable`, reason **`no-authored-subject`**"* (`design.md` line 416) — while
-its `### Contract:` block never declares the carrier. Deleting the field would delete mandated behaviour; adding it
-to the contract block is an edit to `design.md`, which this scope must not touch. **Route:** `bubbles.design` —
-declare the mint-refusal carrier in `## D1` → *Contract* with its hash status, after which this conjunct can be
-re-measured.
+**That route was acted on.** `design.md` now carries a dated **2026-08-18 Mint-Evaluability Reconciliation**:
+Ruling 1 declares `notEvaluable` a field of the contract positioned before `claimHash`, and Ruling 2 places it in
+the provenance class as unhashed. The implementation moved with it — `UNHASHED_FIELDS` holds **five** names where
+the prior measurement recorded four. Both sides were re-derived at `HEAD` `0e51d602f` rather than taken on trust
+from either record, and compared in **both** directions, because a superset fails this item exactly as a subset
+does: `PARTITION_MINUS_IMPL=[]` and `IMPL_MINUS_PARTITION=[]`, over 15 fields on each side, with the four nested
+objects matching at 5 keys each and `notEvaluable` carrying exactly `{ reason, field }` on all eight refusal
+paths. The `lifecycleTerms` sweep was re-run at this `HEAD` rather than cited, returning exit `1` across the
+015-authored surface and exit `1` across the entire repository outside `specs/`. Full transcripts at
+[D1 field parity, re-measured](#d1-field-parity-remeasured). **This item is closed.**
 
 **6. `T-01-R2`'s Playwright half is red and the row stays unticked.** `executed`, prior session; **re-confirmed as
 the operative record this session and deliberately not re-run.** [The recorded
@@ -1643,14 +1819,19 @@ previous wording that folded them into a single `exit 0`. The **Node half is gre
 **intact**; what is not established is the DoD item's *whole suite green*. It is not re-run in search of a
 different answer; see [Still open](#still-open) item 6 and anti-drift **D18**.
 
-**Therefore no scope completion is claimed. Scope 01 is not `Done`.** Three of the thirty-three Definition of Done
-items remain unticked and each has a recorded reason and a named owner:
+**Therefore no scope completion is claimed. Scope 01 is not `Done`.** **Two** of the thirty-three Definition of
+Done items remain unticked — down from three, the contract field-parity item having closed this session — and each
+has a recorded reason and a named owner:
 
 | Unticked item | Blocking conjunct | Owner |
 |---|---|---|
-| Core — contract carries every D1 field and no field beyond; `lifecycleTerms` absent | The **second** conjunct now holds ([Sweep A](#sweep-a--lifecycleterms), exit `1`). The **first** does not: `notEvaluable` is a fifteenth field `## D1` → *Contract* never declares ([D1 field parity](#d1-field-parity--every-named-field-present-one-field-beyond)) | `bubbles.design` |
 | Test — `T-01-R2`, broader E2E regression | Playwright half red at `495 / 498`, exit `1` | Feature 012 owner, for the 30 s / 120 s budget mismatch |
-| Build Quality Gate | Conjunct 2 — *zero issues deferred* — fails while three *Still open* entries are live. The other four conjuncts hold ([assessment](#build-quality-gate-assessment)) | `bubbles.implement`, once the three routed items close |
+| Build Quality Gate | Conjunct 2 — *zero issues deferred* — fails while *Still open* entries remain live. The other four conjuncts hold ([assessment](#build-quality-gate-assessment)) | `bubbles.implement`, once the routed items close |
+
+**Closed this session:** *Core — contract carries every D1 field and no field beyond; `lifecycleTerms` absent.*
+Its first conjunct was blocked on a design gap routed to `bubbles.design`; that reconciliation landed, both
+conjuncts were re-measured mechanically in both directions at `HEAD` `0e51d602f`, and both hold. Evidence at
+[D1 field parity, re-measured](#d1-field-parity-remeasured). No source file was changed to reach it.
 
 `state.json` is not advanced and no certification is requested.
 

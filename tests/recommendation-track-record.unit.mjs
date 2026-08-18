@@ -87,19 +87,27 @@ function replaceStringValue(node, from, to) {
     return node;
 }
 
-test('T-01-U1: claimHash is content-only across exactly the four unhashed fields', () => {
+test('T-01-U1: claimHash is content-only across exactly the five unhashed fields', () => {
     const first = mintEvaluable('evaluable-basket-trim');
     const reproposed = mintEvaluable('evaluable-basket-trim-reproposed');
 
     assert.deepEqual(
         [...claims.UNHASHED_FIELDS].sort(),
-        ['citedToolId', 'proposalEventId', 'proposalRunId', 'proposedAt'],
-        'the unhashed set is exactly four fields — there is no fifth category and no unhashed block',
+        ['citedToolId', 'notEvaluable', 'proposalEventId', 'proposalRunId', 'proposedAt'],
+        'the unhashed set is exactly five fields — the partition over the fifteen declared fields is '
+            + '9 hashed + 5 unhashed + claimHash, and there is no unhashed block',
     );
+
+    // The re-proposal pair cannot exercise `notEvaluable`: both sides are evaluable, so it is
+    // `null` on both by construction. Splitting it out keeps the pair's anti-vacuity guard honest
+    // — the guard demands a differing value, which an evaluable pair cannot supply — and moves the
+    // fifth field to the dedicated mutation probe below, which supplies one.
+    const proposalProvenance = claims.UNHASHED_FIELDS.filter((field) => field !== 'notEvaluable');
+    assert.equal(proposalProvenance.length, 4, 'four of the five unhashed fields vary across a re-proposal pair');
 
     // Without this the row would pass vacuously: a pair that shared its provenance would prove
     // nothing about exclusion. All four must be populated on both sides AND differ.
-    for (const field of claims.UNHASHED_FIELDS) {
+    for (const field of proposalProvenance) {
         assert.notEqual(first[field], null, `${field} must be populated on the first proposal`);
         assert.notEqual(reproposed[field], null, `${field} must be populated on the re-proposal`);
         assert.notEqual(reproposed[field], first[field], `unhashed field ${field} must differ across the pair`);
@@ -115,6 +123,31 @@ test('T-01-U1: claimHash is content-only across exactly the four unhashed fields
         claims.claimObjectPath(reproposed.claimHash),
         claims.claimObjectPath(first.claimHash),
         're-proposal must land on the identical content address',
+    );
+
+    // The fifth unhashed field, mutated ALONE. `no-committed-series` is the one probe that carries
+    // information: every other branch of the mint verdict reads only hashed terms — `actionFamily`,
+    // `subject`, `thesisFamily`, `horizon`, `predicate`, `direction` — so it cannot differ while the
+    // hashed terms are equal, and a probe using one would be vacuous. Only the committed-series
+    // check reads state outside the claim, so only it can flip between two mints of the same call.
+    // That is exactly the case hashing would split into two addresses and two denominator entries.
+    const amendedVerdict = structuredClone(first);
+    assert.equal(first.notEvaluable, null, 'the evaluable fixture must mint a null verdict for the probe to differ');
+    amendedVerdict.notEvaluable = { reason: 'no-committed-series', field: 'subject.seriesRefs' };
+    assert.notDeepEqual(
+        amendedVerdict.notEvaluable,
+        first.notEvaluable,
+        'the probe must actually change the verdict, or the equality below proves nothing',
+    );
+    assert.deepEqual(
+        claims.hashedTermsOf(amendedVerdict),
+        claims.hashedTermsOf(first),
+        'the probe must leave every hashed term untouched, so only notEvaluable differs',
+    );
+    assert.equal(
+        claims.claimHash(amendedVerdict),
+        first.claimHash,
+        'notEvaluable is unhashed: one authored call must hold one content address whether or not its series has landed',
     );
 
     // Adversarial half. An implementation still carrying `thesisFamily` as unhashed provenance —

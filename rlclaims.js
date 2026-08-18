@@ -4,7 +4,7 @@
  * Records, at the moment of proposal, exactly what a recommendation claimed and exactly what
  * would make it right or wrong: subject, direction, thesis, resolution predicate, horizon, and
  * outcome-magnitude definition. `claimHash` covers all nine of those terms and excludes exactly
- * four provenance fields, so re-proposing identical terms reuses the identical object and
+ * five provenance fields, so re-proposing identical terms reuses the identical object and
  * amendment is structurally impossible rather than merely discouraged.
  *
  * Two refusals carry the weight here. A write that would change the bytes at an existing
@@ -54,14 +54,22 @@
        primary-only basket are different measurements, not different renderings of one. */
     var SUBJECT_WEIGHTINGS = Object.freeze(["equal", "primary-only"]);
 
-    /* The nine hashed terms and the complete four-field unhashed set. There is no fifth
-       category and no unhashed block; the block withdrawn by the 2026-08-18 Claim-Identity
-       Reconciliation is not authored, declared, or referenced anywhere in this feature. */
+    /* The nine hashed terms and the complete five-field unhashed set. With `claimHash` — the
+       digest, which cannot contain itself — they partition all fifteen declared fields of the
+       contract exhaustively, so no field sits outside the partition. There is no unhashed block;
+       the block withdrawn by the 2026-08-18 Claim-Identity Reconciliation is not authored,
+       declared, or referenced anywhere in this feature.
+
+       `notEvaluable` is unhashed by the 2026-08-18 Mint-Evaluability Reconciliation. It answers
+       HOW THIS CLAIM GOT HERE, not what it asserts, and hashing it would give one authored call
+       two content addresses once its series lands — and so two entries in the denominator. */
     var HASHED_TERMS = Object.freeze([
         "contractVersion", "recommendationKey", "subject", "actionFamily",
         "direction", "thesisFamily", "predicate", "horizon", "magnitude"
     ]);
-    var UNHASHED_FIELDS = Object.freeze(["proposalRunId", "proposalEventId", "proposedAt", "citedToolId"]);
+    var UNHASHED_FIELDS = Object.freeze([
+        "proposalRunId", "proposalEventId", "proposedAt", "citedToolId", "notEvaluable"
+    ]);
 
     /* The closed mint reason set. Each names the field that caused it. A claim carrying one of
        these is still minted and still written — it is not evaluable, not absent. */
@@ -536,7 +544,7 @@
        existing path aborts and never overwrites.
 
        The comparison is over the nine hashed terms, not the whole serialized object, and that
-       distinction is the contract rather than an optimisation. The four unhashed provenance
+       distinction is the contract rather than an optimisation. The five unhashed provenance
        fields are deliberately outside the content address, so a byte-identical re-proposal
        carrying a different `citedToolId` is the SAME claim: it reuses the first object and keeps
        the first citation (D1). Comparing whole bytes would fire the amend refusal on that case

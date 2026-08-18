@@ -8,11 +8,28 @@
  * long suite. T-01-C1 names that defect at the substrate, in seconds, before `T-01-R1` and
  * `T-01-R2` ever start.
  *
- * T-01-C2 rehearses the back-out. This scope is purely additive, so its restore target is
- * *absent*: discarding the new files returns the repository to its pre-scope state. The rehearsal
- * happens in a disposable detached `git worktree` rather than on the live tree, which concurrent
- * sessions share, and the worktree is torn down in a `finally` so a failed rehearsal cannot leak
- * one.
+ * T-01-C2 rehearses the back-out, and rehearses it LITERALLY: it builds a disposable detached `git
+ * worktree` at `HEAD`, deletes every file this scope added, restores every file this scope
+ * modified to its pre-scope content, and diffs `scripts/selftest.mjs` between that backed-out tree
+ * and the live one. The worktree is torn down in a `finally`, so a failed rehearsal cannot leak
+ * one, and the live tree — which concurrent sessions share — is never touched.
+ *
+ * The comparison used to be ONE-SIDED: the pre-scope commit versus `HEAD`. That range carries this
+ * scope's commits AND every commit any other actor landed beside them, so the row had to explain
+ * concurrent work it was never asked to explain — a neighbouring bug packet's spec artifacts, four
+ * scheduled brief refreshes a day rewriting a couple of hundred files under `briefs/` and `data/`.
+ * Five successive rounds of new attribution rules did not stabilise it, because the defect was in
+ * the comparison's SHAPE rather than in its rules: the burden grew with wall-clock time instead of
+ * with anything this scope did, so the row decayed on a clock.
+ *
+ * Two-sided at `HEAD` removes that burden by construction rather than by explaining it away.
+ * Anything neither added nor modified by this scope is byte-identical on both sides and contributes
+ * exactly zero delta — including `scripts/selftest.mjs` itself, which the one-sided shape could run,
+ * and did run, in two different versions. What survives the diff is this scope's own footprint and
+ * nothing else. That is also the faithful reading of the DoD, which asks only that every differing
+ * line be attributable to this scope's own added files, and it is a truer rehearsal of the stated
+ * purpose — "the back-out for a bad substrate change once scopes 02 - 10 import it" is literally
+ * backing the scope out, which the one-sided shape never actually performed.
  *
  * Two conventions carry both rows. Every assertion is against an exact value, and every derived
  * property is paired with the adversarial half that proves the instrument is live — a counter that
@@ -26,20 +43,23 @@
  * that control proves unstable, rather than comparing bytes flatly and failing at random. Three
  * baseline runs is what that costs, which is still a fraction of the browser suite this precedes.
  *
- * Byte-identity across the two trees is the wrong comparison and was replaced by ATTRIBUTABLE
- * DELTA. `scripts/selftest.mjs` reports counts DERIVED from the tree inside its assertion messages,
- * so a scope that legitimately adds a file moves those counts without regressing anything — the
- * comparison could not go green while the code was correct, which makes it a broken comparison
- * rather than a strict one. What replaces it is stricter, not looser: the non-numeric skeleton of
- * every line must still be byte-identical, and every count that moved must have moved by exactly
- * the amount this scope's own additions account for, derived per run and cross-checked against the
- * set of files this scope added. A count that moves for any other reason is unattributed and fails.
+ * Byte-identity across the two trees is still the wrong comparison and is still replaced by
+ * ATTRIBUTABLE DELTA. `scripts/selftest.mjs` reports counts DERIVED from the tree inside its
+ * assertion messages, so a scope that legitimately adds a file moves those counts without
+ * regressing anything — the comparison could not go green while the code was correct, which makes
+ * it a broken comparison rather than a strict one. What replaces it is stricter, not looser: the
+ * non-numeric skeleton of every line must still be byte-identical, and every count that moved must
+ * have moved by exactly the amount this scope's own additions account for, derived per run and
+ * cross-checked against the set of files this scope added. A count that moves for any other reason
+ * is unattributed and fails.
  *
- * That added set, and the pre-scope commit the rehearsal checks out, are derived from COMMIT
- * HISTORY rather than from `git status --porcelain`. Reading them off the porcelain was only ever
- * correct while the work was uncommitted; once the scope was committed the porcelain emptied, the
- * added set collapsed to nothing, and the vacuity guard refused a tree that was in fact fine.
- * Working-tree cleanliness is a property of WHEN the row runs, not of what the scope did.
+ * That added set, the modified set, and the pre-scope content the back-out restores are all derived
+ * from COMMIT HISTORY rather than from `git status --porcelain`. Reading them off the porcelain was
+ * only ever correct while the work was uncommitted; once the scope was committed the porcelain
+ * emptied, the added set collapsed to nothing, and the vacuity guard refused a tree that was in
+ * fact fine. Working-tree cleanliness is a property of WHEN the row runs, not of what the scope
+ * did. Attribution is by COMMIT throughout and never by path prefix: a prefix test would credit
+ * this scope with whatever anyone else happens to write under its feature directory.
  *
  * Scopes 02 - 10 EXTEND this file; they do not rewrite it.
  */
@@ -174,7 +194,7 @@ function runSelftest(cwd) {
  * The live-tree baseline, computed once and shared by both rows.
  *
  * The run costs ~26 seconds and both rows need the identical transcript — C1 to assert it is
- * internally consistent, C2 to diff it against the pre-scope run. The memo is a cache of a
+ * internally consistent, C2 to diff it against the backed-out run. The memo is a cache of a
  * deterministic computation, not a skip: whichever row runs first pays for it, and either row is
  * still correct when run alone.
  */
@@ -194,7 +214,7 @@ function lineKey(groupName, index) {
  * live baseline a second time rather than declared here.
  *
  * `scripts/selftest.mjs` embeds Monte-Carlo sample statistics in some assertion messages, so those
- * lines differ between two runs of the identical tree. A flat byte comparison against the pre-scope
+ * lines differ between two runs of the identical tree. A flat byte comparison against the backed-out
  * run would therefore fail at random, and a canary that fails at random is one nobody reads.
  * Deriving the set from a control run keeps the comparison exact everywhere it can be exact — a
  * deterministic line that changed still fails — while writing nothing down about which lines drift.
@@ -343,18 +363,33 @@ function isAllowedPath(candidate) {
 /* ---------------------------------------------------------------------------------------------
  * The pre-scope boundary.
  *
- * The rehearsal needs the commit the repository sat at BEFORE this scope existed, and the set of
- * files this scope is answerable for. Both are derived from commit history, so the row holds from
- * a clean committed tree and mid-development alike.
+ * The rehearsal is two-sided at `HEAD`, so the boundary is no longer a tree to check out. It is
+ * two other things: the reference point that says which files this scope added and modified, and
+ * the source of the content the back-out restores a modified file to.
  *
  * No SHA is written down. The boundary is the parent of the commit that first introduced the
  * scope's origin file, and the derivation is checked against known answers at both ends: the
  * origin file must be absent at the boundary and present at HEAD. A boundary that drifted to the
- * wrong commit fails there rather than quietly rehearsing against the wrong tree.
+ * wrong commit fails there rather than quietly restoring the wrong content.
  * ------------------------------------------------------------------------------------------- */
 
 /** The file whose first appearance dates this scope. It is the scope's own module, added by it. */
 const SCOPE_ORIGIN_PATH = 'rlclaims.js';
+
+/**
+ * Paths that witness the back-out at both ends.
+ *
+ * Each must be PRESENT in the worktree at `HEAD` — otherwise the back-out has nothing to remove and
+ * a rehearsal that silently did nothing would leave the two sides identical and every derived
+ * magnitude zero — and ABSENT once it has run. The directory is listed alongside the two files
+ * because `git rm` of the last entry under a tree should take the now-empty tree with it, and a
+ * lingering directory is a back-out that only half happened.
+ */
+const BACK_OUT_WITNESS_PATHS = Object.freeze([
+    'rlclaims.js',
+    'tests/recommendation-track-record.support.mjs',
+    'tests/fixtures/recommendation-track-record',
+]);
 
 /** Whether `commit` carries `candidate` at that exact path. */
 function commitCarriesPath(commit, candidate) {
@@ -399,11 +434,16 @@ function preScopeCommit() {
  * files into that range. Deriving "what this scope added" from the range therefore over-collects,
  * and the over-collection grows with wall-clock time rather than with anything this scope did.
  *
- * The partition below asks which COMMITS are this scope's before asking which files they added.
- * A commit is this scope's when it touches one of the scope's identity anchors: its own scope
+ * Under the two-sided shape this partition is not merely a classifier, it is the BACK-OUT PLAN:
+ * the scope half names exactly the files the rehearsal deletes and restores, so a path landing in
+ * the wrong half changes what the worktree becomes rather than only how a line is labelled. Getting
+ * it wrong is therefore visible in the transcript, not just in a bucket name.
+ *
+ * The partition asks which COMMITS are this scope's before asking which files they touched. A
+ * commit is this scope's when it touches one of the scope's identity anchors: its own scope
  * directory, or the module whose first appearance dates the scope. Both are declared by the scope
  * and neither is the allowed-family classifier, which is what keeps this from going circular — the
- * anchors decide whose commit it is, and then EVERY file that commit added is judged against the
+ * anchors decide whose commit it is, and then EVERY file that commit touched is judged against the
  * families. Anchoring can only widen what is judged, never narrow it.
  * ------------------------------------------------------------------------------------------- */
 
@@ -433,27 +473,31 @@ function pathsTouchedBy(commits, diffFilter) {
 /**
  * The net difference across the boundary, split by which actor's commits produced it.
  *
- * `scope` is what this row judges against the allowed families; `foreign` is what a concurrent
- * actor put in the same range and is judged against nothing, because this scope is not answerable
- * for it. Both halves are still carried, because the transcript counts the WHOLE tree: a magnitude
- * that ignored the foreign half would no longer match the difference the two trees actually show.
+ * `scope` is this scope's own footprint: the files the back-out removes, and the files it restores.
+ * `foreign` is what a concurrent actor put in the same range. Under the two-sided shape the foreign
+ * half is judged against nothing AND contributes nothing, because a foreign file sits at `HEAD` in
+ * the live tree and at `HEAD` in the backed-out worktree — the back-out never touches it, so it is
+ * byte-identical on both sides. It is still computed, for one reason: it is the other half of an
+ * exhaustiveness identity. Every net difference must land in exactly one half, so a file cannot
+ * quietly fall out of both and be judged by nobody.
  *
- * Each half is intersected with the net set, so it keeps "absent at the boundary, present at
- * `HEAD`" semantics — a file this scope added and a concurrent actor later deleted is not present
- * to be counted. Untracked entries are unioned into the scope half unconditionally: mid-development
- * the working tree carries additions history does not yet know about, and pre-filtering those by
- * family is precisely the circularity this partition exists to avoid.
+ * Each half is intersected with the net set, so it keeps its "across the boundary" semantics — a
+ * file this scope added and a concurrent actor later deleted is not present at `HEAD` to be removed.
+ * Untracked entries are unioned into the scope half unconditionally: mid-development the working
+ * tree carries additions history does not yet know about, and pre-filtering those by family is
+ * precisely the circularity this partition exists to avoid. An untracked file is absent from a
+ * worktree at `HEAD` already, so the back-out has nothing to do for it and the two sides still
+ * differ by it correctly.
  *
  * Removals are partitioned the same way rather than assumed absent. This scope is purely additive
- * and its half is asserted empty, but a concurrent actor's deletion still shrinks the committed
- * surface, and a magnitude that only ever added would then overstate it.
+ * and its half is asserted empty, but the back-out RESTORES its half regardless, so a scope that
+ * later deletes a file is rehearsed correctly rather than silently half-backed-out.
  *
  * Modifications are partitioned too, and they are not a third convenience: without them the
- * partition CANNOT REPRESENT a file that already existed and was edited. Every rule downstream then
- * has to reason about such a file through the added set, which by construction never contains it,
- * so an edit to a pre-existing artifact is reported as belonging to nobody. That is a defect in the
- * partition rather than a finding about the tree, and it is why the spec-artifact reference rule
- * below could reach a bucket labelled collateral with a file some commit in the range plainly owns.
+ * partition CANNOT REPRESENT a file that already existed and was edited, and the back-out would
+ * leave every such edit in place. This scope writes its evidence into planning artifacts that the
+ * planning pass already created, so its single largest transcript contribution lives entirely in
+ * this half — dropping it would make the row rehearse a back-out that never happened.
  *
  * Provenance here is decided by COMMIT, never by path prefix. A prefix test — "anything under this
  * scope's feature directory is this scope's" — would credit the scope with edits made by whoever
@@ -490,11 +534,44 @@ function partitionBoundaryDelta(preScope, untrackedTargets) {
     };
 }
 
+/**
+ * Back this scope out of a worktree that is checked out at `HEAD`.
+ *
+ * This is the whole point of the two-sided shape: rather than checking out an old commit and then
+ * arguing about everything that landed since, the rehearsal starts from today's tree and REMOVES
+ * this scope from it. Whatever the back-out does not touch stays byte-identical to the live tree
+ * and cannot contribute a single differing line.
+ *
+ * The removals go through `git rm` rather than `fs.rmSync` because two of the counters this row
+ * explains read the INDEX (`git ls-files`) rather than the filesystem. Deleting the file alone
+ * would leave it indexed and make the scanner's unreadable-file branch, not the back-out, decide
+ * the tally — an accident that happens to give the right number is not a rehearsal.
+ *
+ * Restoration covers modifications and removals alike. A file this scope edited goes back to its
+ * pre-scope content; a file this scope deleted comes back. The scope asserts elsewhere that it
+ * deleted nothing, but the back-out does not depend on that assertion holding.
+ *
+ * Entries the scope added that are absent from `HEAD` — untracked work in progress — are reported
+ * rather than removed. They are already absent from a worktree at `HEAD`, so the two sides differ
+ * by them without the back-out doing anything.
+ */
+function backOutScope(worktree, preScope, delta) {
+    const atHead = trackedPaths(worktree);
+    const dropped = delta.added.scope.filter((entry) => atHead.has(entry)).sort();
+    const untrackedInLiveTree = delta.added.scope.filter((entry) => !atHead.has(entry)).sort();
+    const restored = [...new Set([...delta.modified.scope, ...delta.removed.scope])].sort();
+
+    if (dropped.length > 0) git(['rm', '--quiet', '--force', '--', ...dropped], worktree);
+    if (restored.length > 0) git(['checkout', preScope, '--', ...restored], worktree);
+
+    return { dropped, restored, untrackedInLiveTree };
+}
+
 /* ---------------------------------------------------------------------------------------------
  * Attributable delta.
  *
  * `scripts/selftest.mjs` embeds counts DERIVED from the tree in its assertion messages, so a scope
- * that legitimately adds a file moves those counts. Five move here, and none is a regression:
+ * that legitimately adds a file moves those counts. Four move here, and none is a regression:
  *
  *   - `#L7665` reports the size of its production-source scan universe, which grows by every
  *     root-level `.js`/`.html` this scope adds;
@@ -502,15 +579,22 @@ function partitionBoundaryDelta(preScope, untrackedTargets) {
  *     committed baseline lists as known-missing moves from `known-missing` into `stale`;
  *   - `#L2659` reports how many committed files the PII scan read, which grows by every added file
  *     that scan actually COUNTS — which is not the same as every added file;
- *   - `#L2665` reports how many commit messages it read, which grows by every commit that landed
- *     between the boundary and `HEAD`;
  *   - `#L8700` reports how many `tests/*.mjs` references the spec artifacts name, which grows by
  *     the references this scope's own artifacts contribute.
  *
- * The last three only became measurable once the work was COMMITTED. While it sat untracked the two
- * trees agreed on them, because `git ls-files`, `git log` and — for the artifacts this scope had
- * not yet written — the specs tree all still described the pre-scope repository. Committing is what
- * exposed the scope's own footprint, so the rule set grew; the comparison did not loosen.
+ * A fifth rule used to sit here. `#L2665` reports how many commit messages the PII scan read, and
+ * under the one-sided shape it grew by every commit that landed between the boundary and `HEAD` —
+ * this scope's and everyone else's. Two-sided at `HEAD`, both trees are checked out at the same
+ * commit, `git log` returns the identical history, and the counter cannot move at all. The rule is
+ * RETIRED rather than kept as a branch that can never fire: a rule guarded by `magnitude > 0` with
+ * a structurally zero magnitude is dead code wearing a liveness assertion. What replaces it is
+ * stronger, not absent — the row locates that line in both transcripts and requires it to be
+ * byte-identical, so any movement now FAILS where the old rule waved a movement of exactly the
+ * right size through, and a vanished counter fails there too.
+ *
+ * Every rule is scoped to this scope's own half of the delta. That is not a narrowing of what gets
+ * judged, it is the point: a concurrent actor's file is present, unmodified, in both trees, so
+ * feeding it to a magnitude would claim credit for a difference that does not exist.
  *
  * A flat byte comparison cannot go green while the code is correct. Attribution replaces it with
  * something stricter: the non-numeric skeleton must still match byte for byte, and every count that
@@ -671,23 +755,28 @@ function isScopeOwnedSpecArtifact(candidate, addedSet, modifiedSet) {
 /**
  * What the two trees differ by, and how much of it this scope's own footprint accounts for.
  *
- * The scan-universe delta is read off the two trees and then required to name exactly the files git
- * reports as added; the file-universe delta is the net added set filtered by the scanner's own
- * counting rule; the commit-message delta is read off commit history; the reference delta is read
- * off the artifacts contributing to it. Two derivations that agree is what makes each of these an
- * attribution rather than a restatement of whatever the transcript happened to print.
+ * `backedOutRoot` is the worktree at `HEAD` with this scope removed. The result keys still read
+ * `pre`, because that side IS this scope's pre-state — measured at today's `HEAD` rather than at a
+ * commit from before every concurrent actor's work.
  *
- * Magnitudes are computed over the WHOLE net delta, this scope's half and any concurrent actor's
- * alike, because that is what the transcript counted. Provenance is carried alongside rather than
- * folded in, so the caller can hold this scope to its families without pretending a concurrent
- * actor's commits never landed in the range.
+ * The scan-universe delta is read off the two trees and then required to name exactly the files git
+ * reports this scope as adding; the file-universe delta is that added set filtered by the scanner's
+ * own counting rule; the reference delta is read off the artifacts contributing to it. Two
+ * derivations that agree is what makes each of these an attribution rather than a restatement of
+ * whatever the transcript happened to print.
+ *
+ * Magnitudes are computed over this scope's HALF of the delta and not over the whole net delta. The
+ * one-sided shape needed the whole of it, because a concurrent actor's file really was absent from
+ * one side; here it is present and unmodified on both, so including it would claim a difference
+ * that does not exist. Provenance is still carried alongside rather than folded in, so the caller
+ * can prove the partition was exhaustive.
  */
-function deriveAttribution(liveRoot, preRoot, delta, preScope) {
-    const addedPaths = delta.added.all;
-    const removedPaths = delta.removed.all;
+function deriveAttribution(liveRoot, backedOutRoot, delta) {
+    const addedPaths = delta.added.scope;
+    const removedPaths = delta.removed.scope;
 
     const liveScanned = scannedProductionSources(liveRoot);
-    const preScanned = scannedProductionSources(preRoot);
+    const preScanned = scannedProductionSources(backedOutRoot);
     const preSet = new Set(preScanned);
     const liveSet = new Set(liveScanned);
 
@@ -698,23 +787,19 @@ function deriveAttribution(liveRoot, preRoot, delta, preScope) {
     const baseline = frozenSpecTestPathBaseline(liveRoot);
     const resolvedBaselineEntries = addedPaths.filter((entry) => baseline.has(entry)).sort();
 
-    // The committed-surface file universe: the net additions, filtered by the rule the scanner uses,
-    // less anything removed — evaluated in whichever tree that file exists in.
+    // The committed-surface file universe: this scope's additions, filtered by the rule the scanner
+    // uses, less anything it removed — evaluated in whichever tree that file exists in.
     const liveTracked = trackedPaths(liveRoot);
-    const preTracked = trackedPaths(preRoot);
+    const preTracked = trackedPaths(backedOutRoot);
     const countedAdded = addedPaths.filter((entry) => isPiiScanCounted(liveRoot, liveTracked, entry)).sort();
-    const countedRemoved = removedPaths.filter((entry) => isPiiScanCounted(preRoot, preTracked, entry)).sort();
-
-    // The commit-message universe. `A..HEAD` is a difference of reachable sets only while `A` is an
-    // ancestor of `HEAD`, so the reverse count is carried alongside and asserted to be empty.
-    const commitsSinceBoundary = Number(git(['rev-list', '--count', `${preScope}..HEAD`]).trim());
-    const commitsBehindBoundary = Number(git(['rev-list', '--count', `HEAD..${preScope}`]).trim());
+    const countedRemoved = removedPaths.filter((entry) => isPiiScanCounted(backedOutRoot, preTracked, entry)).sort();
 
     /* The spec-artifact reference surface, split three ways. Ownership is keyed on the SCOPE half of
-     * the added and modified sets, so a neighbouring spec's artifacts landing in the same range are
-     * never mistaken for this scope's evidence. The third bucket is the sharp one: an artifact that
-     * moved while NO commit in the range touched it is a pre-existing file edited by nobody
-     * answerable — collateral, and it must not be explained away.
+     * the added and modified sets, so a neighbouring spec's artifacts are never mistaken for this
+     * scope's evidence. The third bucket is the sharp one, and the two-sided shape sharpens it
+     * further: a foreign artifact is byte-identical on both sides, so it can only reach `moved !== 0`
+     * if the BACK-OUT touched something it had no business touching. What used to be a bucket for
+     * concurrent commits is now a fidelity check on the rehearsal itself.
      *
      * Both halves carry additions and modifications, because an edit to a pre-existing artifact is
      * exactly as attributable as a fresh file and exactly as real in the count the transcript
@@ -726,7 +811,7 @@ function deriveAttribution(liveRoot, preRoot, delta, preScope) {
     const scopeModifiedSet = new Set(delta.modified.scope);
     const foreignModifiedSet = new Set(delta.modified.foreign);
     const liveArtifacts = specArtifactReferenceCounts(liveRoot);
-    const preArtifacts = specArtifactReferenceCounts(preRoot);
+    const preArtifacts = specArtifactReferenceCounts(backedOutRoot);
     let ownedDelta = 0;
     let foreignDelta = 0;
     let totalDelta = 0;
@@ -758,10 +843,6 @@ function deriveAttribution(liveRoot, preRoot, delta, preScope) {
             added: countedAdded,
             removed: countedRemoved,
         },
-        commitMessageUniverse: {
-            magnitude: commitsSinceBoundary,
-            behindBoundary: commitsBehindBoundary,
-        },
         specTestReferences: {
             // What the transcript's counter moved by is the WHOLE explained delta, so the rule that
             // matches that line is fed both halves. The halves stay separate above it, so this
@@ -777,7 +858,7 @@ function deriveAttribution(liveRoot, preRoot, delta, preScope) {
             artifactsAdded: [...liveArtifacts.keys()].filter((entry) => !preArtifacts.has(entry)).sort(),
             artifactsRemoved: [...preArtifacts.keys()].filter((entry) => !liveArtifacts.has(entry)).sort(),
             baselineEntries: {
-                pre: [...frozenSpecTestPathBaseline(preRoot)].sort(),
+                pre: [...frozenSpecTestPathBaseline(backedOutRoot)].sort(),
                 live: [...baseline].sort(),
             },
         },
@@ -803,11 +884,16 @@ function splitNumbers(line) {
  *
  * The first two rules were written before this file carried any anchor and identify their line by
  * arithmetic alone, which is why each binds the EXACT pre and live sizes rather than a delta. The
- * three added later are anchored instead: a repository-wide file tally and a commit tally can
- * plausibly move by the same amount as something else, and a rule that matched on magnitude alone
- * would then attribute a difference it had not actually explained. An anchor is strictly narrower
- * than no anchor, and it fails closed — reword the assertion in `selftest.mjs` and the line becomes
- * unattributed rather than silently waved through.
+ * ones added later are anchored instead: a repository-wide file tally can plausibly move by the
+ * same amount as something else, and a rule that matched on magnitude alone would then attribute a
+ * difference it had not actually explained. An anchor is strictly narrower than no anchor, and it
+ * fails closed — reword the assertion in `selftest.mjs` and the line becomes unattributed rather
+ * than silently waved through.
+ *
+ * `PII_MESSAGE_COUNT_MARKER` no longer anchors a rule. Its rule was retired when the comparison
+ * went two-sided, because both trees now sit at the same commit and that counter cannot move. The
+ * marker is kept because the row still uses it to LOCATE that line and require it to be identical,
+ * which is the invariant the retired rule was standing in for.
  */
 const PII_FILE_COUNT_MARKER = 'the scan covered the repository (files=';
 const PII_MESSAGE_COUNT_MARKER = 'the scan covered commit messages (messages=';
@@ -818,7 +904,6 @@ const ATTRIBUTION_REASONS = Object.freeze([
     'production-source-scan-universe',
     'frozen-baseline-reclassification',
     'committed-surface-file-universe',
-    'committed-surface-commit-messages',
     'scope-artifact-test-references',
 ]);
 
@@ -858,18 +943,9 @@ function classifyDifference(preLine, liveLine, attribution) {
         return 'committed-surface-file-universe';
     }
 
-    // The commit-message tally, which grows by exactly the commits between the boundary and HEAD.
-    // Deriving it rather than pinning one is what keeps the rule true if the scope later lands
-    // across several commits.
-    const messages = attribution.commitMessageUniverse;
-    if (
-        preLine.includes(PII_MESSAGE_COUNT_MARKER)
-        && moved.length === 1
-        && messages.magnitude > 0
-        && moved[0].delta === messages.magnitude
-    ) {
-        return 'committed-surface-commit-messages';
-    }
+    // The commit-message tally has no rule. Both trees sit at the same commit, so `git log` returns
+    // the identical history and that line must be byte-identical; the row asserts that directly and
+    // any movement reaches this classifier unattributed, which is the intended failure.
 
     // The spec-artifact reference tally, which grows by the `tests/*.mjs` references this scope's
     // own artifacts contribute. The single-move requirement is the invariant half: this scope adds
@@ -1270,8 +1346,8 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
     assert.match(preScope, /^[0-9a-f]{40}$/, 'the pre-scope commit must resolve to a full object name');
     assert.notEqual(preScope, head, 'the boundary must sit before HEAD, or the rehearsal compares a tree with itself');
 
-    // Known answers at both ends of the boundary. A derivation that landed on the wrong commit
-    // would rehearse against the wrong tree and attribute this scope's additions to nothing.
+    // Known answers at both ends of the boundary. A derivation that landed on the wrong commit would
+    // restore the wrong content into the back-out and attribute this scope's additions to nothing.
     assert.equal(commitCarriesPath(head, SCOPE_ORIGIN_PATH), true, `HEAD must carry ${SCOPE_ORIGIN_PATH}`);
     assert.equal(
         commitCarriesPath(preScope, SCOPE_ORIGIN_PATH),
@@ -1279,14 +1355,32 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         `the pre-scope commit must not carry ${SCOPE_ORIGIN_PATH} — the boundary is one commit too late`,
     );
 
+    /* `preScope..HEAD` is a difference of reachable sets only while the boundary is an ancestor of
+     * HEAD. `scopeCommits` reads exactly that range, so a boundary sitting on a fork would partition
+     * the delta using a commit list that means nothing. This assertion used to live inside the
+     * commit-message rule; the rule is gone and the precondition is not, so it is asserted here. */
+    assert.equal(
+        Number(git(['rev-list', '--count', `HEAD..${preScope}`]).trim()),
+        0,
+        'the boundary must be an ancestor of HEAD, or the range the partition reads is not a difference of reachable sets',
+    );
+
     /* The net difference across the boundary, split by whose commits produced it. The scope half is
-     * what this scope is answerable for; the foreign half is a concurrent actor's and is judged
-     * against nothing, but is still carried so the magnitudes below match the whole-tree counts the
-     * transcript prints. */
+     * the BACK-OUT PLAN — the files the rehearsal deletes and the files it restores. The foreign
+     * half is a concurrent actor's; the back-out never touches it, so it is byte-identical on both
+     * sides and contributes nothing. It is carried to prove the partition is exhaustive. */
     const untracked = workingTree.filter((entry) => entry.status === '??').map((entry) => entry.target);
     const delta = partitionBoundaryDelta(preScope, untracked);
     const addedPaths = delta.added.scope;
     const scopeOwned = new Set(addedPaths);
+
+    // This scope is purely additive. The back-out restores its removals anyway, so this is a claim
+    // about the Change Boundary rather than a precondition the rehearsal depends on.
+    assert.deepEqual(
+        delta.removed.scope,
+        [],
+        'no file may leave the committed surface through this scope — it is purely additive',
+    );
 
     // The commit attribution must name commits, and the commit that introduced this scope is
     // definitionally one of them. Deriving that known answer rather than pinning a SHA is what keeps
@@ -1301,8 +1395,9 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         'the commit that introduced this scope must be attributed to it',
     );
 
-    // The partition must be exhaustive over the committed additions, or a file has quietly fallen
-    // out of both halves and is being judged by nobody.
+    // The partition must be exhaustive over the committed differences, or a file has quietly fallen
+    // out of both halves and is being judged by nobody. Under the two-sided shape it also decides
+    // what the back-out touches, so a file in neither half is a file the rehearsal forgets.
     assert.deepEqual(
         [...new Set([...delta.added.scope, ...delta.added.foreign])].sort(),
         delta.added.all,
@@ -1312,6 +1407,16 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         delta.added.scope.filter((entry) => delta.added.foreign.includes(entry)),
         [],
         'no addition may be claimed by both this scope and a concurrent actor',
+    );
+    assert.deepEqual(
+        [...new Set([...delta.modified.scope, ...delta.modified.foreign])].sort(),
+        delta.modified.all,
+        'every net modification must land in exactly one of the two provenance halves',
+    );
+    assert.deepEqual(
+        delta.modified.scope.filter((entry) => delta.modified.foreign.includes(entry)),
+        [],
+        'no modification may be claimed by both this scope and a concurrent actor',
     );
 
     assert.ok(addedPaths.length > 0, 'the rehearsal is vacuous unless this scope actually added something');
@@ -1333,7 +1438,7 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         );
     }
 
-    /* ---- 2. Rehearse the restore in a disposable detached worktree ------------------------ */
+    /* ---- 2. Rehearse the back-out in a disposable worktree at HEAD ------------------------ */
 
     const live = liveBaseline();
     assert.equal(live.status, 0, 'the live baseline must exit 0 before it can be a comparison basis');
@@ -1365,40 +1470,100 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
     // `withDisposableStore` because the ordering is load-bearing: git must deregister the worktree
     // BEFORE the directory is deleted, and the helper's cleanup would delete it first.
     const scratch = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'rtr-restore-'));
-    const worktree = path.join(scratch, 'pre-scope');
+    const worktree = path.join(scratch, 'backed-out');
     assert.equal(scratch.startsWith(REPO_ROOT), false, 'the rehearsal must happen outside the repository');
 
     try {
-        git(['worktree', 'add', '--detach', worktree, preScope]);
+        git(['worktree', 'add', '--detach', worktree, head]);
 
-        assert.equal(fs.existsSync(path.join(worktree, 'scripts', 'selftest.mjs')), true,
-            'the worktree must carry the committed baseline script');
-        // The restore target is *absent*: none of this scope's new files exist at the boundary.
-        assert.equal(fs.existsSync(path.join(worktree, 'rlclaims.js')), false,
-            'the pre-scope tree must not contain the claim module');
-        assert.equal(fs.existsSync(path.join(worktree, 'tests', 'recommendation-track-record.support.mjs')), false,
-            'the pre-scope tree must not contain the support module');
-        assert.equal(fs.existsSync(path.join(worktree, 'tests', 'fixtures', 'recommendation-track-record')), false,
-            'the pre-scope tree must not contain the fixture root');
-
-        const pre = runSelftest(worktree);
-        assert.equal(pre.status, 0, `the pre-scope baseline must exit 0, got ${pre.status}`);
-        assert.notEqual(pre.totals, null, 'the pre-scope transcript must carry its totals line');
-        assert.equal(pre.totals.failed, 0, 'the pre-scope baseline must report 0 failed');
+        /* Both sides must run the IDENTICAL program, or a transcript difference could come from the
+         * script instead of from the tree. The one-sided shape could not claim that: a concurrent
+         * commit to `selftest.mjs` between the boundary and HEAD put two different versions on the
+         * two sides, and every count it printed was then incomparable in a way no attribution rule
+         * could see. Here the worktree IS HEAD and the Change Boundary forbids this scope from
+         * touching the script, so byte-identity is assertable rather than hoped for. */
+        assert.equal(git(['rev-parse', 'HEAD'], worktree).trim(), head, 'the worktree must sit at HEAD, not at the boundary');
         assert.equal(
-            countLinesWithPrefix(pre.groups, PASS_PREFIX),
-            pre.totals.passed,
-            'the pre-scope totals must reconcile with the lines they summarise',
+            fs.readFileSync(path.join(worktree, 'scripts', 'selftest.mjs'), 'utf8'),
+            fs.readFileSync(path.join(REPO_ROOT, 'scripts', 'selftest.mjs'), 'utf8'),
+            'both trees must run a byte-identical baseline script, or a difference could come from the script',
+        );
+
+        // Before the back-out the worktree is HEAD, so it must CARRY this scope. Asserting that
+        // first is what stops a back-out that silently did nothing from reporting green: an empty
+        // back-out leaves the two sides identical and every derived magnitude zero.
+        for (const witness of BACK_OUT_WITNESS_PATHS) {
+            assert.equal(fs.existsSync(path.join(worktree, witness)), true,
+                `the worktree at HEAD must carry ${witness}, or the back-out has nothing to remove`);
+        }
+
+        const backOut = backOutScope(worktree, preScope, delta);
+
+        // Both halves of the back-out must have done something. The removal half is what makes the
+        // added-file magnitudes non-zero; the restore half is what makes the reference magnitude
+        // non-zero, since this scope's evidence lives in artifacts it modified rather than added.
+        assert.ok(backOut.dropped.length > 0, 'the back-out must remove at least one file, or its removal half is inert');
+        assert.ok(backOut.restored.length > 0, 'the back-out must restore at least one file, or its restore half is inert');
+
+        // The restore must land on pre-scope CONTENT, not merely on some earlier revision. Reading
+        // the blob back out of git and comparing bytes is the second derivation that makes this a
+        // rehearsal rather than an assumption about what `git checkout` did.
+        for (const restored of backOut.restored) {
+            assert.equal(
+                fs.readFileSync(path.join(worktree, restored), 'utf8'),
+                git(['show', `${preScope}:${restored}`]),
+                `${restored} must be restored to its pre-scope content`,
+            );
+        }
+
+        // And the removal must have taken every witness with it, empty directories included.
+        for (const witness of BACK_OUT_WITNESS_PATHS) {
+            assert.equal(fs.existsSync(path.join(worktree, witness)), false,
+                `the backed-out tree must no longer contain ${witness}`);
+        }
+        assert.equal(fs.existsSync(path.join(worktree, 'scripts', 'selftest.mjs')), true,
+            'the back-out must not have taken the baseline script with it');
+
+        const backedOut = runSelftest(worktree);
+        assert.equal(backedOut.status, 0, `the backed-out baseline must exit 0, got ${backedOut.status}`);
+        assert.notEqual(backedOut.totals, null, 'the backed-out transcript must carry its totals line');
+        assert.equal(backedOut.totals.failed, 0, 'the backed-out baseline must report 0 failed');
+        assert.equal(
+            countLinesWithPrefix(backedOut.groups, PASS_PREFIX),
+            backedOut.totals.passed,
+            'the backed-out totals must reconcile with the lines they summarise',
         );
 
         // Every pre-existing group survives, its passing-assertion count never falls, and every
         // line that moved is accounted for by this scope's own additions. This is AC-018's "no
         // pre-existing count decreasing" stated exactly, plus the attribution that makes a
         // difference either explained or a failure — never merely tolerated.
-        const attribution = deriveAttribution(REPO_ROOT, worktree, delta, preScope);
+        const attribution = deriveAttribution(REPO_ROOT, worktree, delta);
 
-        // The scan universe may only have GROWN, and by exactly the files the porcelain names.
-        // Two independent derivations agreeing is what makes the magnitude an attribution.
+        /* The commit-message tally the retired rule used to excuse. Both trees are checked out at
+         * the same commit, so `git log` walks the identical history and this counter cannot move —
+         * which is why the rule is gone. Retiring an excuse is only honest if the thing it excused
+         * is still watched, so the line is LOCATED in both transcripts and required to be
+         * byte-identical. That is strictly stronger than the rule it replaces: the old rule waved
+         * through any movement of exactly the right size, and this refuses movement outright.
+         * Requiring the line to exist is the other half — a counter deleted from `selftest.mjs`
+         * would otherwise take its invariant with it and look like success. */
+        const messageLines = (run) => run.groups
+            .flatMap((group) => group.lines)
+            .filter((line) => line.includes(PII_MESSAGE_COUNT_MARKER));
+        assert.equal(
+            messageLines(live).length,
+            1,
+            `exactly one transcript line must carry "${PII_MESSAGE_COUNT_MARKER}" — the invariant needs a line to hold on`,
+        );
+        assert.deepEqual(
+            messageLines(backedOut),
+            messageLines(live),
+            'both trees sit at the same commit, so the commit-message tally must be byte-identical',
+        );
+
+        // The scan universe may only have GROWN, and by exactly the production sources this scope
+        // added. Two independent derivations agreeing is what makes the magnitude an attribution.
         assert.deepEqual(
             attribution.scanUniverse.removed,
             [],
@@ -1407,73 +1572,60 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         assert.deepEqual(
             attribution.scanUniverse.added,
             attribution.scanUniverse.fromAddedSet,
-            'the scan-universe growth must be exactly the production sources git reports as added',
+            'the scan-universe growth must be exactly the production sources git reports this scope as adding',
         );
         assert.equal(
             attribution.scanUniverse.live - attribution.scanUniverse.pre,
             attribution.scanUniverse.added.length,
             'the derived scan sizes must differ by exactly the number of added production sources',
         );
-        /* The family checks below run over this scope's half of each universe. The foreign half is
-         * a concurrent actor's work sharing the same commit range, and holding it to this scope's
-         * Change Boundary would fail the row for something no back-out of this scope would touch.
-         * Narrowing by PROVENANCE is not narrowing by family: every path the scope half contains is
-         * still judged, and the scope half is exactly what the back-out would remove. */
+        assert.ok(
+            attribution.scanUniverse.added.length > 0,
+            'this scope must add at least one production source, or the scan-universe rule is inert',
+        );
+        /* Every universe below is derived from this scope's HALF of the delta, so the family checks
+         * need no provenance guard: there is nothing foreign left in them to skip. The guards that
+         * used to sit here — `if (!scopeOwned.has(entry)) continue;` — existed because the one-sided
+         * shape mixed a concurrent actor's files into the same lists. Removing them is a
+         * tightening, not a relaxation: every entry is now judged rather than most of them. */
         for (const entry of attribution.scanUniverse.added) {
-            if (!scopeOwned.has(entry)) continue;
             assert.equal(isAllowedPath(entry), true, `added production source outside the allowed families: ${entry}`);
         }
         for (const entry of attribution.baselineReclassification.entries) {
-            if (!scopeOwned.has(entry)) continue;
             assert.equal(isAllowedPath(entry), true, `resolved baseline entry outside the allowed families: ${entry}`);
         }
 
-        // The committed-surface file universe may only have GROWN where this scope is concerned,
-        // and only within the families it owns. The removal half is partitioned rather than assumed
-        // empty, so a concurrent actor's deletion still shrinks the magnitude instead of quietly
-        // leaving it overstated, while this scope is still held to being purely additive.
-        assert.deepEqual(
-            delta.removed.scope,
-            [],
-            'no file may leave the committed surface through this scope — it is purely additive',
-        );
+        /* The committed-surface file universe may only have GROWN, and only within this scope's
+         * families. The removal half is still carried rather than assumed empty, so a scope that
+         * later deletes a file shrinks the magnitude instead of leaving it overstated.
+         *
+         * The old companion assertion "at least one added-and-scanned file is scope-owned" is
+         * RETIRED. It proved the one-sided list was not composed entirely of a concurrent actor's
+         * files; the list is now the scope half by construction, so it can only restate its own
+         * input. `magnitude > 0` is the liveness claim that still has content. */
         assert.ok(
             attribution.scannedFileUniverse.magnitude > 0,
             'this scope must add at least one file the committed-surface scan counts, or the file rule is inert',
         );
         for (const entry of attribution.scannedFileUniverse.added) {
-            if (!scopeOwned.has(entry)) continue;
             assert.equal(isAllowedPath(entry), true, `scanned added file outside the allowed families: ${entry}`);
         }
-        assert.ok(
-            attribution.scannedFileUniverse.added.some((entry) => scopeOwned.has(entry)),
-            'this scope must contribute to the committed-surface count itself, or its half of the file rule is inert',
-        );
-
-        // The commit-message universe. `<boundary>..HEAD` counts a difference of reachable sets
-        // only while the boundary is an ancestor of HEAD, so the reverse count must be empty —
-        // otherwise the magnitude is the size of one side of a fork, which explains nothing.
-        assert.equal(
-            attribution.commitMessageUniverse.behindBoundary,
-            0,
-            'the boundary must be an ancestor of HEAD, or the commit-message delta is not a difference of reachable sets',
-        );
-        assert.ok(
-            attribution.commitMessageUniverse.magnitude > 0,
-            'at least one commit must separate the boundary from HEAD, or the message rule is inert',
-        );
 
         /* The spec-artifact reference surface. The invariant halves are asserted directly rather
          * than left to the classifier: this scope writes into artifacts that already existed and
          * adds no frozen baseline entry, so it must contribute no artifact of its own and leave the
-         * baseline identical across the two trees. The artifact tally may still move, because a
-         * neighbouring spec's own artifacts can land in the same commit range — so what is asserted
-         * is not that it held still, but that every artifact it gained belongs to someone else and
-         * none belongs to this scope. */
+         * baseline identical across the two trees.
+         *
+         * The artifact tally used to be allowed to move, because a neighbouring spec landing its own
+         * artifacts in the same commit range showed up as growth this scope had to tolerate. Two
+         * concurrent bug packets doing exactly that — sixteen artifacts, tally 554 to 570 — is one
+         * of the two failures that made the one-sided shape untenable. Under a back-out those
+         * artifacts are present on both sides, so the only way the tally can move now is if the
+         * back-out itself added or removed one. */
         assert.deepEqual(
             attribution.specTestReferences.artifactsRemoved,
             [],
-            'no spec artifact may leave the tree across the boundary',
+            'the back-out removes no spec artifact, so none may be missing from the live tree',
         );
         assert.deepEqual(
             attribution.specTestReferences.artifactsAdded.filter((entry) => scopeOwned.has(entry)),
@@ -1491,19 +1643,36 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
             'this scope adds no frozen baseline entry, so the baseline must be identical across the two trees',
         );
 
-        /* The sharp half. Every reference the specs tree gained must come either from an artifact
-         * this scope owns or from one a concurrent actor added or edited in the same range. An
-         * artifact that moved while NO commit in the range touched it is a file edited by nobody
-         * answerable — collateral, and the one thing this rule must never explain away. */
+        /* The sharp half, and it stays sharp under the new shape — what it detects has changed
+         * rather than gone away. A foreign artifact is byte-identical on both sides of a back-out,
+         * so it cannot move at all unless the BACK-OUT touched a file outside the scope's half.
+         * This bucket therefore stopped being a place for concurrent commits to land and became a
+         * fidelity check on the rehearsal itself, which is the sharper of the two jobs. The
+         * adversarial construction for this row perturbs exactly this bucket. */
         assert.deepEqual(
             attribution.specTestReferences.unexplainedContributingArtifacts,
             [],
             'a spec artifact moved its reference count without any commit in the range accounting for it',
         );
+
+        /* Exhaustiveness. The identity is kept whole even though `foreign` is now structurally zero,
+         * because the two are different claims: the identity says nothing fell out of both halves,
+         * and the zero says the back-out left every foreign artifact alone. Folding the second into
+         * the first would leave a non-zero foreign delta silently satisfying the identity. */
         assert.equal(
             attribution.specTestReferences.owned + attribution.specTestReferences.foreign,
             attribution.specTestReferences.totalDelta,
             'the owned and concurrent halves must account for the whole reference delta',
+        );
+        assert.equal(
+            attribution.specTestReferences.foreign,
+            0,
+            "a concurrent actor's artifacts are untouched by the back-out and identical on both sides, so their contribution must be zero",
+        );
+        assert.deepEqual(
+            attribution.specTestReferences.foreignContributingArtifacts,
+            [],
+            'no artifact outside this scope may contribute a reference difference to a back-out of this scope',
         );
         assert.ok(
             attribution.specTestReferences.contributingArtifacts.length > 0,
@@ -1561,12 +1730,19 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
             'a reclassification that does not conserve its total is unattributable',
         );
 
-        /* Adversarial half for the three anchored rules. The probe base is one past the live scan
-         * size, so no probe can be claimed by the unanchored scan-universe rule and each therefore
+        /* Adversarial half for the two anchored rules. The probe base is one past the BACKED-OUT
+         * scan size, so no probe can be claimed by the unanchored scan-universe rule — that rule
+         * requires the pre value to land on the backed-out size exactly — and each probe therefore
          * exercises the rule it names. Each rule is shown to accept exactly its derived magnitude,
          * to refuse one more than that, and to refuse the same magnitude carried on a line it is
          * not anchored to — a rule that said yes to any movement of its own counter would attribute
-         * a genuine regression and certify the property this row exists to test. */
+         * a genuine regression and certify the property this row exists to test.
+         *
+         * There were three. The commit-message rule's probes went with the rule: with both trees at
+         * the same commit its magnitude is structurally zero, so the accept probe would present a
+         * line where nothing moved and the classifier would return `null` before reaching any rule.
+         * A probe that can only ever assert `null` proves nothing about the rule it names. The
+         * invariant that replaced the rule is asserted directly above, on the real transcripts. */
         const probeBase = attribution.scanUniverse.pre + 1;
 
         const fileMagnitude = attribution.scannedFileUniverse.magnitude;
@@ -1591,26 +1767,13 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
             'the file magnitude on a line the rule is not anchored to is unattributable',
         );
 
-        const messageMagnitude = attribution.commitMessageUniverse.magnitude;
+        // The retired rule must stay retired: its marker line is now held byte-identical, so no
+        // movement of that counter may be attributable however plausible its size.
         const messagesShape = (value) => `${PII_MESSAGE_COUNT_MARKER}${value})`;
         assert.equal(
-            classifyDifference(messagesShape(probeBase), messagesShape(probeBase + messageMagnitude), attribution),
-            'committed-surface-commit-messages',
-            'a message tally that moved by exactly the commits since the boundary is attributable',
-        );
-        assert.equal(
-            classifyDifference(messagesShape(probeBase), messagesShape(probeBase + messageMagnitude + 1), attribution),
+            classifyDifference(messagesShape(probeBase), messagesShape(probeBase + fileMagnitude), attribution),
             null,
-            'a message tally that moved further than the commits since the boundary is unattributable',
-        );
-        assert.equal(
-            classifyDifference(
-                `an unrelated message carrying ${probeBase} messages`,
-                `an unrelated message carrying ${probeBase + messageMagnitude} messages`,
-                attribution,
-            ),
-            null,
-            'the message magnitude on a line the rule is not anchored to is unattributable',
+            'the commit-message tally has no rule, so any movement of it is unattributable',
         );
 
         const referenceMagnitude = attribution.specTestReferences.magnitude;
@@ -1657,7 +1820,7 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         const liveByName = new Map(live.groups.map((group) => [group.name, group]));
         const unattributed = [];
         const attributed = [];
-        for (const group of pre.groups) {
+        for (const group of backedOut.groups) {
             const counterpart = liveByName.get(group.name);
             assert.notEqual(counterpart, undefined, `pre-existing group "${group.name}" is missing from the live run`);
             assert.ok(
@@ -1685,8 +1848,8 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         assert.equal(
             unattributed.length,
             0,
-            `every cross-tree difference must be attributable to this scope's own additions; `
-            + `${unattributed.length} was not, and an unexplained difference is a regression:\n`
+            `every difference between the backed-out tree and the live one must be attributable to this `
+            + `scope's own additions; ${unattributed.length} was not, and an unexplained difference is a regression:\n`
             + unattributed
                 .map((entry) => `  group "${entry.group}" line ${entry.index}\n    pre : ${entry.pre}\n    live: ${entry.live}`)
                 .join('\n'),
@@ -1704,10 +1867,10 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
 
         // Relative order of the pre-existing groups is preserved, so a new group cannot be inserted
         // by renumbering or relabelling one that was already there.
-        const preNames = new Set(pre.groups.map((group) => group.name));
+        const preNames = new Set(backedOut.groups.map((group) => group.name));
         assert.deepEqual(
             live.groups.map((group) => group.name).filter((name) => preNames.has(name)),
-            pre.groups.map((group) => group.name),
+            backedOut.groups.map((group) => group.name),
             'the pre-existing groups must appear in the live run in their original order',
         );
 
@@ -1717,14 +1880,14 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         const addedInNewGroups = live.groups
             .filter((group) => !preNames.has(group.name))
             .reduce((running, group) => running + group.lines.length, 0);
-        const growthInPreExistingGroups = pre.groups.reduce(
+        const growthInPreExistingGroups = backedOut.groups.reduce(
             (running, group) => running + (liveByName.get(group.name).lines.length - group.lines.length),
             0,
         );
         assert.equal(
             live.totals.passed,
-            pre.totals.passed + addedInNewGroups + growthInPreExistingGroups,
-            'the live total must be the pre-scope total plus exactly the assertions the live run added',
+            backedOut.totals.passed + addedInNewGroups + growthInPreExistingGroups,
+            'the live total must be the backed-out total plus exactly the assertions this scope added',
         );
     } finally {
         // Teardown runs whether the rehearsal succeeded or failed, so a failure cannot leak a

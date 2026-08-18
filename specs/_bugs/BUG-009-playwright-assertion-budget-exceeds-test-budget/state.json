@@ -1,0 +1,290 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-009-playwright-assertion-budget-exceeds-test-budget",
+  "featureName": "BUG-009 A Declared Assertion Budget Larger Than The Test Budget That Contains It",
+  "createdAt": "2026-08-18T11:21:34Z",
+  "lastUpdatedAt": "2026-08-18T11:40:17Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "priorBlockedReason": "Documented backlog. Root cause is verified and the fix is designed, but nothing is implemented. Proceeding requires (a) authorization to run a delivery-capable workflow mode, since spec-scope-hardening has a statusCeiling of specs_hardened and forbids implementation, and (b) authorization to modify two neighbouring features' test surfaces, tests/contextual-tooltip.spec.mjs (Feature 012) and tests/trend-dynamics-cycle-lab.spec.mjs (Feature 006). Those files are explicitly excluded from the Change Boundary of specs/015-recommendation-outcome-ledger-and-track-record scope 01, whose T-01-R2 row is blocked by this bug and must not be closed by editing them from inside that scope. Unblock by dispatching scope 01 then scope 02 under a delivery mode.",
+  "blockedReasonResolved": {
+    "resolvedAt": "2026-08-18T11:40:17Z",
+    "resolvedBy": "bubbles.validate",
+    "priorStatus": "blocked",
+    "priorWorkflowMode": "spec-scope-hardening",
+    "verbatimBlockerPreservedIn": "priorBlockedReason",
+    "resolutionClass": "authorization-granted",
+    "resolution": "The blocker was an authorization gap, not a technical one. Both authorizations it named were granted by the operator, so neither precondition still holds. No source file, test file, or planning artifact changed to clear it, and no delivery work was performed: all 15 DoD items remain unchecked and both scopes remain Not Started.",
+    "authorizations": [
+      {
+        "id": "a",
+        "request": "Authorization to run a delivery-capable workflow mode, since spec-scope-hardening has a statusCeiling of specs_hardened and forbids implementation.",
+        "granted": true,
+        "grantedBy": "operator",
+        "grantBasis": "Explicit operator instruction in this session: 'unblock all blocks, implement/fix/plan whatever needed to unblock' and 'authorized, approved'.",
+        "effect": "workflowMode moved from spec-scope-hardening to bugfix-fastlane, whose resolved phaseOrder contains implement and whose resolved statusCeiling is done."
+      },
+      {
+        "id": "b",
+        "request": "Authorization to modify two neighbouring features' test surfaces, tests/contextual-tooltip.spec.mjs (Feature 012) and tests/trend-dynamics-cycle-lab.spec.mjs (Feature 006).",
+        "granted": true,
+        "grantedBy": "operator",
+        "grantBasis": "Explicit operator instruction in this session: 'unblock all blocks, implement/fix/plan whatever needed to unblock' and 'authorized, approved'.",
+        "effect": "Recorded in crossFeatureEditAuthorization. The grant is scoped to this bug packet only and widens no other scope's Change Boundary."
+      }
+    ]
+  },
+  "crossFeatureEditAuthorization": {
+    "grantedAt": "2026-08-18T11:40:17Z",
+    "grantedBy": "operator",
+    "recordedBy": "bubbles.validate",
+    "authorizedForPacket": "specs/_bugs/BUG-009-playwright-assertion-budget-exceeds-test-budget",
+    "scope": "this-bug-packet-only",
+    "files": [
+      "tests/contextual-tooltip.spec.mjs",
+      "tests/trend-dynamics-cycle-lab.spec.mjs"
+    ],
+    "owningFeatures": [
+      "specs/012-market-action-center-and-guided-tools",
+      "specs/006-trend-dynamics-cycle-lab"
+    ],
+    "doesNotWiden": "specs/015-recommendation-outcome-ledger-and-track-record/scopes/01-frozen-claim-contract",
+    "constraint": "The Change Boundary of specs/015-recommendation-outcome-ledger-and-track-record scope 01 is UNCHANGED and still forbids touching these two files from inside that scope. This grant permits the edits only when they are made from within this bug packet under its own scopes 01 and 02. Spec 015 row T-01-R2 must still not be closed by editing these files from inside scope 01; it is unblocked by this bug packet completing, not by scope 01 reaching across the boundary."
+  },
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "priorPlanningOnlyJustification": "The operator asked for the bug artifact, root cause, fix design, and regression-guard design. No fix was requested and none was implemented. spec-scope-hardening carries a statusCeiling of specs_hardened, so the mode ceiling gate forbids invoking implementation from this packet.",
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "specDependsOn": [
+    "specs/012-market-action-center-and-guided-tools",
+    "specs/006-trend-dynamics-cycle-lab"
+  ],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": "bootstrap",
+    "currentPhaseStatus": "completed",
+    "phaseReconciliation": {
+      "reconciledAt": "2026-08-18T11:40:17Z",
+      "reconciledBy": "bubbles.validate",
+      "priorActiveAgent": "bubbles.bug",
+      "priorCurrentPhase": "analysis",
+      "newModePhaseOrder": [
+        "select",
+        "bootstrap",
+        "implement",
+        "test",
+        "regression",
+        "simplify",
+        "gaps",
+        "harden",
+        "stabilize",
+        "devops",
+        "security",
+        "validate",
+        "audit",
+        "finalize"
+      ],
+      "reason": "bugfix-fastlane declares no 'analysis' phase, and bubbles.bug owns only 'bug-discovery' per agent-capabilities.yaml, which is likewise absent from that phaseOrder, so the prior pair was not expressible under the new mode. The artifact-authoring work that did complete (bug.md, spec.md, design.md, scopes.md, report.md and uservalidation.md all exist on disk) maps to 'bootstrap', the phase owned by bubbles.design and bubbles.plan that immediately precedes 'implement' in this mode. activeAgent is null because no agent is executing the packet at rest; ownership passes via nextRequiredOwner.",
+      "notAnImplementationClaim": "currentPhase was deliberately NOT set to 'implement'. state-transition-guard.sh Check 11 counts execution.currentPhase == 'implement' toward implementation_phase_claim_count, and nothing has been implemented. completedPhaseClaims and certification.certifiedCompletedPhases both remain empty, so Gate G027 sees no implementation phase claimed against zero completed scopes.",
+      "pointerPreserved": "nextRequiredOwner (bubbles.implement) and nextRequiredTarget (scopes.md#scope-1) are carried through unchanged; bootstrap-completed is immediately followed by implement in this mode's phaseOrder, so the pointer and the phase marker agree."
+    },
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-18T11:00:00Z",
+    "completedAt": null,
+    "currentScope": null,
+    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredTarget": "specs/_bugs/BUG-009-playwright-assertion-budget-exceeds-test-budget/scopes.md#scope-1",
+    "nextRequiredReason": "Scope 1 installs scripts/validate-playwright-timeout-budgets.mjs and must be proven RED against the committed tree before scope 2 raises any budget. A guard authored after the fix can only be observed green, which demonstrates nothing.",
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scopeId": "01-budget-coherence-guard",
+        "scope": 1,
+        "status": "Not Started",
+        "dependsOn": []
+      },
+      {
+        "scopeId": "02-make-declared-budgets-reachable",
+        "scope": 2,
+        "status": "Not Started",
+        "dependsOn": [
+          "01-budget-coherence-guard"
+        ]
+      }
+    ],
+    "audit": null
+  },
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scopeId": "01-budget-coherence-guard",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 7
+      },
+      {
+        "scopeId": "02-make-declared-budgets-reachable",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 8
+      }
+    ],
+    "assurance": {
+      "level": "fast",
+      "missingForFull": [
+        "independent-audit",
+        "Detail on independent-audit: runSubagent was not available in this session, so no specialist was dispatched. Discovery, reproduction, root-cause analysis, and artifact authoring were performed directly by bubbles.bug as the authorized top-level runner. design.md would normally be owned by bubbles.design and scopes.md by bubbles.plan under G042; both were authored here because delegation was impossible, and both should be reviewed by their owning specialists before scope 01 begins. No second party re-derived the measurements in report.md."
+      ]
+    }
+  },
+  "completedScopes": [],
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "modeTransitions": [
+    {
+      "transitionedAt": "2026-08-18T11:40:17Z",
+      "recordedBy": "bubbles.validate",
+      "artifactOwnership": "agent-ownership.yaml declares state.json owner: [bubbles.validate]. This write stays inside that ownership boundary; no foreign artifact was touched.",
+      "authorizedBy": "bubbles.goal",
+      "authorityBasis": "agent-capabilities.yaml workflowModeGrants.agents.bubbles.goal declares modes: [\"*\"] with excludedModes: [autonomous-sprint, iterate]. bugfix-fastlane is not excluded, so the active top-level runner holds the grant to execute it.",
+      "operatorAuthorization": "The operator granted both authorizations named in priorBlockedReason explicitly and by name: (a) run a delivery-capable workflow mode, and (b) modify tests/contextual-tooltip.spec.mjs (Feature 012) and tests/trend-dynamics-cycle-lab.spec.mjs (Feature 006). Operator wording: 'unblock all blocks, implement/fix/plan whatever needed to unblock' and 'authorized, approved'.",
+      "changed": {
+        "workflowMode": {
+          "from": "spec-scope-hardening",
+          "to": "bugfix-fastlane"
+        },
+        "status": {
+          "from": "blocked",
+          "to": "in_progress"
+        },
+        "certification.status": {
+          "from": "blocked",
+          "to": "in_progress"
+        },
+        "policySnapshot.workflowMode": {
+          "from": "spec-scope-hardening",
+          "to": "bugfix-fastlane"
+        },
+        "policySnapshot.regression.source": {
+          "from": "repo-default",
+          "to": "workflow-forced",
+          "why": "bugfix-fastlane declares requireProtectedRegressionContracts: true, so the value is now mode-forced rather than inherited from the repo default. The value itself is unchanged."
+        },
+        "planningOnly": {
+          "from": true,
+          "to": false
+        },
+        "execution.activeAgent": {
+          "from": "bubbles.bug",
+          "to": null
+        },
+        "execution.currentPhase": {
+          "from": "analysis",
+          "to": "bootstrap"
+        },
+        "blockedReason": {
+          "from": "populated",
+          "to": null,
+          "why": "Preserved verbatim in priorBlockedReason; resolution recorded in blockedReasonResolved. Not deleted."
+        }
+      },
+      "modeSelectionRationale": "bugfix-fastlane was chosen over full-delivery and improve-existing because this packet is a bug packet (specs/_bugs/, activeBugs non-empty) and the mode's declared constraints match the packet's design exactly: requireBugReproductionBeforeFix and requireBugVerificationAfterFix match a packet whose reproduction is already recorded in report.md; forceTddMode: scenario-first and requireProtectedRegressionContracts match scope 01, which must install a regression guard and prove it RED before scope 02 raises any budget; and restartLoopAtPhase: implement matches the preserved nextRequiredOwner of bubbles.implement. It resolves to statusCeiling done via the base-delivery template and its phaseOrder contains implement, satisfying the delivery-capable requirement. incident-fastlane was rejected because it has no implement phase and is scoped to production incidents.",
+      "statusSelectionRationale": "transition-contract-resolver.sh accepts only not_started, in_progress, blocked, the resolved statusCeiling, and any declared terminalAliases; anything else fails E009-TARGET-MISMATCH. bugfix-fastlane resolves to statusCeiling done and declares no terminalAliases, so the legal set is {not_started, in_progress, blocked, done}. in_progress is the member that denotes active, uncompleted work, so it was selected over done (which would be a false completion claim) and blocked (which is what is being cleared).",
+      "crossFeatureEditScope": "See crossFeatureEditAuthorization. The permission covers tests/contextual-tooltip.spec.mjs and tests/trend-dynamics-cycle-lab.spec.mjs FOR THIS BUG PACKET ONLY. It does not widen the Change Boundary of specs/015-recommendation-outcome-ledger-and-track-record/scopes/01-frozen-claim-contract, which still forbids touching those files from inside scope 01.",
+      "noDeliveryClaimed": "This transition records authorization only. No DoD item was ticked, no scope was marked Done, no execution evidence was written, and no source, test, or planning artifact was modified. Both scopes remain Not Started and all 15 DoD items remain unchecked."
+    }
+  ],
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.bug",
+      "workflowMode": "spec-scope-hardening",
+      "phasesExecuted": [],
+      "statusBefore": "not_started",
+      "statusAfter": "blocked",
+      "startedAt": "2026-08-18T11:00:00Z",
+      "finishedAt": "2026-08-18T11:21:34Z",
+      "outcome": "route_required",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "BUG-009-DECLARED-WAIT-BUDGET-EXCEEDS-ENCLOSING-TEST-BUDGET"
+      ],
+      "evidenceRef": "report.md#violation-inventory",
+      "summary": "No workflow phase is claimed. runSubagent was unavailable, so no specialist was dispatched and no phase-completion claim is recorded. bubbles.bug performed bug discovery, reproduction, and root-cause analysis in its own right. Verified that playwright.config.mjs declares no timeout and that the runner itself reports a 30000 ms per-test budget over 498 tests. Found 3 declarations exceeding their enclosing budget across 2 files, and refuted 3 of the 6 reported sites: simple-production-wiring.spec.mjs is reachable only from 600 s and 900 s tests, and simple-models.spec.mjs declares no budget at all. Reproduced the defect deterministically under CPU pressure, with the runner printing 'Test timeout of 30000ms exceeded' beside 'Expect toHaveAttribute with timeout 120000ms'. Established that the fix shape is existing convention at 33 setTimeout sites across 10 of 49 spec files, and designed a per-test call-graph-attributing regression guard after a file-scoped prototype was shown to red-line correct code. design.md and scopes.md were authored here rather than routed to bubbles.design and bubbles.plan because delegation was impossible; both should be reviewed by their owning specialists before scope 1 begins.",
+      "durationProvenance": "One continuous session. Binding and static verification completed in seconds. The long poles are the three Playwright runs: 1.2m for the full contextual-tooltip file under natural load, plus two shorter pressure runs preceded by a 20 s load-settling wait each."
+    },
+    {
+      "agent": "bubbles.validate",
+      "workflowMode": "bugfix-fastlane",
+      "phasesExecuted": [],
+      "statusBefore": "blocked",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-18T11:39:04Z",
+      "finishedAt": "2026-08-18T11:40:17Z",
+      "outcome": "route_required",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "BUG-009-DECLARED-WAIT-BUDGET-EXCEEDS-ENCLOSING-TEST-BUDGET"
+      ],
+      "evidenceRef": "state.json#modeTransitions[0]",
+      "summary": "Ownership-scoped state.json write only. No workflow phase is claimed and phasesExecuted is empty. Recorded the operator-authorized mode transition from spec-scope-hardening to bugfix-fastlane and moved status out of blocked to in_progress, after verifying three things directly: agent-ownership.yaml declares bubbles.validate the owner of state.json; agent-capabilities.yaml grants bubbles.goal modes ['*'] excluding only autonomous-sprint and iterate, so bugfix-fastlane is within the active runner's grant; and bugfix-fastlane resolves through the base-delivery template to statusCeiling done with implement present in its phaseOrder, making in_progress a legal current status for transition-contract-resolver.sh. The prior blockedReason is preserved verbatim in priorBlockedReason with a blockedReasonResolved record, and the cross-feature edit grant for tests/contextual-tooltip.spec.mjs and tests/trend-dynamics-cycle-lab.spec.mjs is recorded as packet-scoped in crossFeatureEditAuthorization. No DoD item was ticked, no scope was marked Done, no evidence was written for unrun work, and no artifact outside state.json was modified. The packet routes to bubbles.implement at scopes.md#scope-1.",
+      "durationProvenance": "Single continuous session segment. Wall time is dominated by the two pre-transition baseline gate runs (artifact-lint and state-transition-guard, captured before the edit so the transition's effect on each exit code could be attributed honestly); the state.json write itself is a file edit."
+    }
+  ],
+  "activeBugs": [
+    "BUG-009-playwright-assertion-budget-exceeds-test-budget"
+  ],
+  "resolvedBugs": [],
+  "addressedFindings": [],
+  "unresolvedFindings": [
+    "BUG-009-DECLARED-WAIT-BUDGET-EXCEEDS-ENCLOSING-TEST-BUDGET"
+  ]
+}

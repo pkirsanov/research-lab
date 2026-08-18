@@ -1,0 +1,99 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_bugs/BUG-009-playwright-assertion-budget-exceeds-test-budget",
+  "generatedBy": "bubbles.bug",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-009B-001",
+      "title": "The Feature 012 heatmap regressions survive a loaded host",
+      "scopeId": "02-make-declared-budgets-reachable",
+      "scope": 2,
+      "status": "not_started",
+      "requiredTestType": "e2e-ui",
+      "linkedTests": [
+        "tests/contextual-tooltip.spec.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-009B-002",
+      "title": "The Feature 006 replay regression can honour both declared polls",
+      "scopeId": "02-make-declared-budgets-reachable",
+      "scope": 2,
+      "status": "not_started",
+      "requiredTestType": "e2e-ui",
+      "linkedTests": [
+        "tests/trend-dynamics-cycle-lab.spec.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-009B-003",
+      "title": "The guard names every unreachable declaration on the committed tree",
+      "scopeId": "01-budget-coherence-guard",
+      "scope": 1,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "scripts/validate-playwright-timeout-budgets.mjs",
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-009B-004",
+      "title": "The fix changes only budgets, never assertions",
+      "scopeId": "02-make-declared-budgets-reachable",
+      "scope": 2,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "tests/contextual-tooltip.spec.mjs",
+        "tests/trend-dynamics-cycle-lab.spec.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "design.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-009B-005",
+      "title": "The guard cannot pass by matching nothing",
+      "scopeId": "01-budget-coherence-guard",
+      "scope": 1,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "scripts/validate-playwright-timeout-budgets.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "design.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-009B-006",
+      "title": "The guard does not red-line a correctly declared budget",
+      "scopeId": "01-budget-coherence-guard",
+      "scope": 1,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "scripts/validate-playwright-timeout-budgets.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    }
+  ]
+}

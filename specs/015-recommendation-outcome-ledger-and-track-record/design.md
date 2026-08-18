@@ -374,8 +374,14 @@ would make it wrong. Nothing about resolution is decided after the outcome is ob
     "flatBand":   0.0                 // |outcome| ≤ flatBand ⇒ resolved-flat; see D3
   },
 
+  // ── Evaluability (derived at mint, never authored) ─────────────────────────
+  "notEvaluable": null,              // null ⇒ scoreable. Otherwise { reason, field }: one member of
+                                     // the closed seven-reason mint-refusal set plus the field that
+                                     // caused it. Provenance-class, NOT hashed — see "`notEvaluable`
+                                     // Is The Mint Verdict" below and Hashing Rules.
+
   // ── Integrity ──────────────────────────────────────────────────────────────
-  "claimHash": "sha256:…"
+  "claimHash": "sha256:…"            // digest of the nine hashed terms; not itself a term
 }
 ```
 
@@ -555,6 +561,96 @@ an existing object — the same consent shape as D2's ledger-row extension, and 
 `no-authored-thesis-family`, and `no-authored-predicate` are distinct members of the closed `not-evaluable`
 reason set (D4), so the coverage line can show *which* field is missing rather than a single opaque bucket.
 
+### `notEvaluable` Is The Mint Verdict — Recorded On The Object, Unhashed, Frozen At Proposal
+
+**P20 requires every claim to be either scoreable or *explicitly* not-evaluable.** "Explicitly" is the
+load-bearing word. The verdict has to be readable off the stored claim rather than recomputed by whoever
+reads it later, because a reader who re-derives it is re-deciding evaluability against *today's* repository —
+the one thing HC-6 forbids. The verdict is therefore a field of the contract, not a computation over it.
+
+```jsonc
+"notEvaluable": null                                                                // scoreable
+"notEvaluable": { "reason": "no-authored-subject", "field": "subject.resolvesTo" }  // not-evaluable
+```
+
+`reason` is one member of the closed seven-reason mint-refusal set — `non-semantic-subject`,
+`no-authored-subject`, `no-committed-series`, `no-authored-thesis-family`, `no-authored-horizon`,
+`no-authored-predicate`, `neutral-direction-no-magnitude`. `field` names the input that caused it, which is
+what lets the coverage line say *which* field is missing instead of showing one opaque bucket. A claim
+carrying a reason is still minted and still written: not-evaluable is a recorded verdict, never a dropped call.
+
+#### Why it is provenance rather than identity
+
+D1's category test is *what does this claim assert* versus *how did this claim get here*. `notEvaluable` is
+**derived at mint**, never authored, and it is very nearly a pure function of the hashed terms:
+
+| Reason | Derived from | Inside `claimHash`? |
+|---|---|---|
+| `non-semantic-subject` | `actionFamily`, `subject.prose` | yes |
+| `no-authored-subject` | `subject.resolvesTo` | yes |
+| `no-committed-series` (empty) | `subject.seriesRefs` | yes |
+| `no-committed-series` (**membership**) | `subject.seriesRefs` **and the committed `data/bars/` set at mint time** | **no** |
+| `no-authored-thesis-family` | `thesisFamily` | yes |
+| `no-authored-horizon` | `horizon.kind` / `sessions` / `resolutionDate` / `eventRef` | yes |
+| `no-authored-predicate` | `predicate` | yes |
+| `neutral-direction-no-magnitude` | `direction` | yes |
+
+Exactly one branch reads state that is not a term of the claim: the membership test asking whether each
+`seriesRefs` symbol has a committed series. That input is a fact about the repository at the moment of minting,
+and it is time-varying — a symbol absent today may be committed next month. It answers *how did this claim get
+here*, not *what does this claim assert*. `notEvaluable` therefore joins the provenance class and is
+**excluded from `claimHash`**.
+
+#### The hashing consequence, chosen deliberately
+
+Both arms carry a cost. They are not symmetric.
+
+- **If `notEvaluable` were hashed**, the same authored call minted before and after its series lands would
+  produce **two `claimHash` values, two objects, and two entries in the denominator** — one call counted
+  twice. That is exactly the corruption D1 already refuses for `citedToolId`: *"a byte-identical call
+  re-proposed with a different supporting citation would mint a second claim, adding a duplicate to the very
+  denominator the track record measures."* A rate computed over an inflated denominator is not a measurement.
+- **Because it is unhashed**, two claims identical in every hashed term but differing in verdict share one
+  content address, and the *"reuse the identical claim object"* rule keeps whichever was written first.
+
+**The second is chosen. The first is worse, for three reasons.** Duplicate counting corrupts every rate this
+feature exists to report, and it does so silently. The reuse case, by contrast, is:
+
+1. **Narrow.** It is reachable through exactly one branch — the membership test above. Every other reason is a
+   function of hashed terms, so it cannot differ while the content address is equal.
+2. **HC-6 holding rather than failing.** Re-deciding `no-committed-series` after the series lands would be
+   deciding whether a claim counts *after its outcome is observable*, which is the precise failure the frozen
+   claim exists to prevent.
+3. **Conservative in direction.** A claim frozen at `no-committed-series` is withheld from every rate
+   denominator and stays **visibly counted** in the coverage line (P20, BP-015-006), so the residual error
+   withholds a rate rather than inventing one (P21).
+
+**Consequence, stated plainly.** A claim whose series was uncommitted at proposal stays not-evaluable for
+good. It never becomes scoreable retroactively. That is the correct outcome, not a wart: scoring it later
+would mean the record decided to count a call once it could already see how that call turned out.
+
+#### The evaluation order is part of the contract
+
+`notEvaluable` carries exactly one reason, so its value is reproducible only if the order is fixed. The
+reasons are evaluated in **contract-field order**, with the positional-fallback guard first:
+
+```
+non-semantic-subject → no-authored-subject → no-committed-series → no-authored-thesis-family
+                     → no-authored-horizon → no-authored-predicate → neutral-direction-no-magnitude
+```
+
+`non-semantic-subject` leads because a positionally-derived subject is meaningless whether or not the rest was
+authored. The remainder follows the order the fields appear in *Contract* above, so the rule needs no second
+list to maintain and cannot drift from the contract block.
+
+#### It is not the resolution-side `not-evaluable` class
+
+Two distinct things share a word, and P19 requires one definition per concept. `notEvaluable` on the claim is
+the **mint-time** verdict, frozen at proposal. D4's `not-evaluable` closure class and D5/D6's
+`notEvaluableCount` are **resolution-side** — a closure outcome and its cohort count, which additionally admit
+`no-committed-reference`, `zero-observed-session`, and `calendar-coverage-exhausted`. Those three cannot exist
+at mint. The claim-level set is a strict subset of the closure-level set, never the same set.
+
 ### Field Semantics That Are Load-Bearing
 
 - **`direction` + `signConvention: "direction-adjusted"`** is what lets a `trim`/`hedge` claim
@@ -634,11 +730,20 @@ claimHash = stableSha({
 })
 ```
 
-**The complete unhashed set is exactly four fields:** `proposalRunId`, `proposalEventId`, `proposedAt`,
-`citedToolId`. Every other field of `brief-recommendation-claim/v1` is hashed. There is no fifth
-category and no unhashed block; see the 2026-08-18 reconciliation for the block that was withdrawn.
+**The partition is exhaustive over all fifteen fields of `brief-recommendation-claim/v1`:**
 
-- **Content-only.** The four unhashed fields are recorded on the object but **excluded from the hash**.
+| Category | Count | Fields |
+|---|---|---|
+| **Hashed terms** — *what does this claim assert* | 9 | `contractVersion`, `recommendationKey`, `subject`, `actionFamily`, `direction`, `thesisFamily`, `predicate`, `horizon`, `magnitude` |
+| **Unhashed provenance** — *how did this claim get here* | 5 | `proposalRunId`, `proposalEventId`, `proposedAt`, `citedToolId`, `notEvaluable` |
+| **The digest itself** — cannot contain itself | 1 | `claimHash` |
+
+No field of the contract sits outside this partition, and there is no unhashed *block*: every unhashed field
+is top-level and individually named. See the 2026-08-18 Claim-Identity Reconciliation for the `lifecycleTerms`
+block that was withdrawn, and the 2026-08-18 Mint-Evaluability Reconciliation for `notEvaluable`'s admission
+to the provenance class.
+
+- **Content-only.** The five unhashed fields are recorded on the object but **excluded from the hash**.
   This mirrors the existing convention where `observationFingerprint`
   ([rlcontracts.js#L1056](../../rlcontracts.js#L1056)) hashes terms while `lifecycleEventId`
   ([rlcontracts.js#L1109](../../rlcontracts.js#L1109)) is the thing that carries `runId`. Identical terms
@@ -656,9 +761,13 @@ category and no unhashed block; see the 2026-08-18 reconciliation for the block 
 - **Every hashed field is frozen (HC-6).** Any change to subject, direction, thesis, predicate, horizon,
   or magnitude yields a *different* `claimHash` — i.e. a different claim — rather than mutating an existing
   one. Amendment is structurally impossible, not merely discouraged.
-- **Content-addressed write.** Because the filename is the hash, re-minting an identical claim is a
-  byte-identical no-op write. A write that would change the bytes at an existing path is a contract
-  violation and must abort, not overwrite.
+- **Content-addressed write — the abort predicate is the hashed terms, not the bytes.** Re-minting a claim
+  whose hashed terms match an existing object is a no-op: the existing object is reused and its unhashed
+  fields are left exactly as first written. A write is a contract violation and must abort only when the
+  hashed terms at an existing path differ, which is the amendment `RTR-PREDICATE-AMEND` exists to catch.
+  Making the predicate *bytes* would refuse the two legitimate cases the unhashed set is designed to absorb —
+  a re-proposal carrying a different `citedToolId`, and a re-mint whose `notEvaluable` verdict differs. Both
+  are the same claim, and refusing either would cost the record a call it must count exactly once.
 
 ### Storage Location
 
@@ -1222,7 +1331,8 @@ class will be large for hedge and options structures; the live payload confirms 
 the claim input block ships. The design's answer is to make that visible, not to shrink it.
 
 **Until the authored claim input block ships, the honest reason code for every live action is
-`no-authored-thesis-family`** (evaluated first, since it blocks the reducer route entirely). The coverage line
+`no-authored-subject`.** With no `action.claim` block on the action, `subject.resolvesTo` is empty, and D1's
+declared evaluation order reaches that test before the thesis, horizon and predicate tests. The coverage line
 will therefore read 5-of-5 not-evaluable on the current payload. That is the correct rendering of a loop whose
 authoring half has not yet landed — not a defect to be tuned away.
 
@@ -2545,3 +2655,163 @@ refreshed by their owner. Each is a **factual contradiction with the design cont
 | R13 | `scopes/08-power-view-and-charts/scope.md` | deep-link items | deep links derived from `lifecycleTerms.originToolId` | derive from `citedToolId`; handle `citedToolId === null` as "no deep link", not as an error |
 
 No scope file was modified by this reconciliation.
+
+---
+
+## Mint-Evaluability Reconciliation — Recorded 2026-08-18
+
+**What this supersedes, precisely.** Three statements, named exactly:
+
+1. The sentence in `## D1` → *Hashing Rules* reading *"The complete unhashed set is exactly four fields:
+   `proposalRunId`, `proposalEventId`, `proposedAt`, `citedToolId`. Every other field of
+   `brief-recommendation-claim/v1` is hashed. There is no fifth category and no unhashed block."* The
+   **withdrawal of `lifecycleTerms`** that clause defends is untouched and re-affirmed; only the arithmetic
+   and the claim of exhaustiveness are corrected.
+2. The clause in `## D1` → *Hashing Rules* reading *"A write that would change the bytes at an existing path
+   is a contract violation and must abort, not overwrite."*
+3. The parenthetical in `## D4` → *`not-evaluable` Is Honest, Not Silent* reading
+   *"`no-authored-thesis-family` (evaluated first, since it blocks the reducer route entirely)."*
+
+Everything else in D1, D4, the 2026-08-13 *Routed Design Decisions* record, and the 2026-08-18
+*Claim-Identity Reconciliation* stands exactly as written. Both prior records are preserved verbatim as
+history.
+
+### Why a reconciliation was needed
+
+`## D1` → *Contract* declared **14** top-level fields at HEAD `98224f5c0`. `rlclaims.js` mints **15**
+(`rlclaims.js#L464-L479`, **verified this run**). The extra field is `notEvaluable` (`#L478`, assigned at
+`#L482` from `evaluateMintReason(claim, committed)`), and it **is persisted**: `serializeClaim` is
+`stableStringify(claim)` over the whole object (`#L336`), `writeClaimObject` serialises exactly that (`#L555`)
+and writes those bytes (`#L574`), so `notEvaluable` lands in every `briefs/objects/claims/<hex>.json`. The
+unit suite asserts the persisted shape directly (`tests/recommendation-track-record.unit.mjs#L344-L345`,
+**verified this run**).
+
+The identifier occurred in this document only at the D5 cohort line and the D6 count field — both outside
+D1's range — so the frozen claim contract never named the field at all.
+
+**The field was also uncategorised in the implementation, not merely in the design.** `HASHED_TERMS`
+(`rlclaims.js#L60-L63`) holds nine names and `UNHASHED_FIELDS` (`#L64`) holds four; `notEvaluable` is in
+**neither**. `claimHash` is `stableSha(hashedTermsOf(claim))` over `HASHED_TERMS` only (`#L322-L328`), so the
+field was de facto unhashed while being declared nowhere. A field that is persisted, load-bearing for P20,
+and absent from both category lists is exactly the condition `scopes/01-frozen-claim-contract/scope.md`'s
+contract-completeness item cannot certify.
+
+**The design's own partition was never exhaustive either.** *"nine hashed + four unhashed"* accounts for 13
+of 14 declared fields. `claimHash` — the digest, which cannot contain itself — was silently outside both
+lists. Adding `notEvaluable` without fixing that would have left the same hole one field wider.
+
+### Ruling 1 — `notEvaluable` is a declared field of the contract, positioned before `claimHash`.
+
+This is an **omission from the contract block**, not a rogue field, and the design text already assumed it.
+D1 discusses claims being *"minted `not-evaluable`"* with a named reason in four separate subsections and
+states that *"every absence has its own reason code."* P20 requires every claim to be scoreable or
+**explicitly** not-evaluable. A verdict that is required to be explicit, is computed at mint, and is written
+to disk is a field of the contract by definition. Leaving it undeclared meant the one artifact a reader
+consults to learn what a claim contains did not mention the field that says whether the claim can be scored
+at all.
+
+Its full treatment is now recorded in `## D1` → *`notEvaluable` Is The Mint Verdict*: position (between
+`magnitude` and `claimHash`, under its own `── Evaluability ──` banner), type (`null`, or
+`{ reason, field }` where `reason` is one member of the closed seven-reason mint-refusal set), hash
+participation (none), evaluation order (contract-field order, `non-semantic-subject` first), and the
+distinction from the resolution-side `not-evaluable` closure class.
+
+### Ruling 2 — `notEvaluable` is provenance, not identity. It is NOT hashed.
+
+D1's category test is *what does this claim assert* (hashed) versus *how did this claim get here*
+(unhashed). `notEvaluable` was in neither list because it is neither authored nor arbitrary — it is
+**derived at mint**, and it is very nearly a pure function of the hashed terms. Reading
+`evaluateMintReason` (`rlclaims.js#L489-L531`, **verified this run**), eight of its nine branches read only
+`actionFamily`, `subject`, `thesisFamily`, `horizon`, `predicate` or `direction`, every one of which is
+already inside `claimHash`. **Exactly one branch** reads state outside the claim: the membership test at
+`#L504-L509`, which asks whether each `seriesRefs` symbol appears in `input.committedSeries` (`#L371`) — the
+committed `data/bars/` set at the moment of minting.
+
+That single input is a fact about the repository at mint time, and it is time-varying. It answers *how did
+this claim get here*, so the field lands in the provenance class.
+
+**The hashing consequence, and why the alternative is worse.** If `notEvaluable` were hashed, the same
+authored call minted before and after its series landed would produce two `claimHash` values, two objects,
+and **two entries in the denominator** — one call counted twice. That is the identical corruption D1 already
+refuses for `citedToolId`, where hashing a citation would *"add a duplicate to the very denominator the track
+record measures."* A rate over an inflated denominator is not a measurement, and the inflation is silent.
+
+Leaving it unhashed accepts the opposite exposure: two claims identical in every hashed term but differing in
+verdict share one content address, and the reuse rule keeps whichever was written first. That exposure is
+accepted because it is **narrow, correct, and conservative**:
+
+- **Narrow** — reachable through exactly one branch, since every other reason is a function of hashed terms
+  and therefore cannot differ while the address is equal.
+- **Correct** — freezing the first verdict is HC-6 *holding*. Re-deciding `no-committed-series` after the
+  series lands would decide whether a claim counts *after its outcome is observable*, which is the precise
+  failure the frozen claim exists to prevent. The stale verdict is not a bug being tolerated; the alternative
+  is the bug.
+- **Conservative** — a claim frozen at `no-committed-series` is withheld from every rate denominator and
+  stays visibly counted in the coverage line (P20, BP-015-006). The residual error withholds a rate rather
+  than inventing one (P21).
+
+**The reducer-key containment invariant is undisturbed.** `notEvaluable` is not a term of
+`origin-recommendation-key/v1`, and containment runs one way: every *varying reducer-key term* must be inside
+`claimHash`. Adding an unhashed field does not weaken that, and hashing this one would have split a single
+reducer entry across two content addresses.
+
+### Ruling 3 — the re-mint abort predicate is the hashed terms, not the bytes.
+
+*Hashing Rules* said a write must abort when it *"would change the bytes at an existing path."* Taken
+literally that contradicts D1's own `citedToolId` ruling in the same section, which requires a re-proposal
+carrying a different citation to **reuse** the first object — a different `citedToolId` changes the bytes at
+an unchanged path. The implementation already resolves it the way D1 intends: `writeClaimObject` compares
+`hashedTermsOf` and reuses on a match, reserving `RTR-PREDICATE-AMEND` for a differing-hashed-terms write
+(`rlclaims.js#L558-L570`, **verified this run**), and `T-01-F2` asserts exactly that behaviour.
+
+`notEvaluable` makes the correction necessary rather than merely tidy: it is the second unhashed field that
+can legitimately differ across two mints of the same claim, so a bytes-based predicate would refuse a claim
+the record must count exactly once. The predicate is now stated as the hashed terms.
+
+### D1's standing after this reconciliation
+
+```
+hashed terms (9)      : contractVersion, recommendationKey, subject, actionFamily,
+                        direction, thesisFamily, predicate, horizon, magnitude
+unhashed fields (5)   : proposalRunId, proposalEventId, proposedAt, citedToolId, notEvaluable
+the digest itself (1) : claimHash                (cannot contain itself)
+                        ─────
+declared fields       : 15                       (matches rlclaims.js#L464-L479)
+
+not a claim field     : originToolId (resolver constant, D4)
+withdrawn             : lifecycleTerms
+```
+
+The partition is now exhaustive: every declared field of `brief-recommendation-claim/v1` sits in exactly one
+of the three categories, and no field is left uncategorised.
+
+### Feature 002 remains untouched
+
+`notEvaluable` is minted entirely inside Feature 015 from fields Feature 015 already reads. No payload field,
+contract, schema, or output belonging to Feature 002 is mutated, and no new Feature 002 ask is created. The
+2026-08-13 co-consent disposition is unchanged.
+
+### Routed to `bubbles.plan` — stale plan-owned statements
+
+Design does not edit plan-owned files. The following statements now contradict D1 and must be refreshed by
+their owner. Each is a **factual contradiction with the design contract**, not a preference. Numbering
+continues from the 2026-08-18 Claim-Identity Reconciliation.
+
+| # | File | Location | Stale statement | Required after this reconciliation |
+|---|---|---|---|---|
+| R14 | `scopes/01-frozen-claim-contract/scope.md` | Scope Summary | *"a write that would change the bytes at an existing path"* | the abort predicate is **differing hashed terms**, not differing bytes — Ruling 3 |
+| R15 | `scopes/01-frozen-claim-contract/scope.md` | step 1 | the contract field list runs *"… `magnitude` (`unit`, `entryBasis`, `entryDate`, `signConvention`, `flatBand`), and `claimHash`"* — `notEvaluable` is absent | insert `notEvaluable` between `magnitude` and `claimHash`, typed `null` or `{ reason, field }` — Ruling 1 |
+| R16 | `scopes/01-frozen-claim-contract/scope.md` | step 5 | *"The complete unhashed set is exactly **four** fields … There is no fifth category and no unhashed block."* | **five** unhashed fields; the exhaustive partition is 9 hashed + 5 unhashed + `claimHash`. The *"no unhashed block"* half stands unchanged |
+| R17 | `scopes/01-frozen-claim-contract/scope.md` | step 7 | *"A write that would change the bytes at an existing path aborts with `RTR-PREDICATE-AMEND`"* | aborts only when the **hashed terms** at an existing path differ — Ruling 3 |
+| R18 | `scopes/01-frozen-claim-contract/scope.md` | DoD — `citedToolId` item | *"the complete four-field unhashed set; there is no fifth unhashed field"* | five-field unhashed set including `notEvaluable` |
+| R19 | `scopes/01-frozen-claim-contract/scope.md` | DoD — `claimHash` item | *"excludes exactly the four provenance fields"* | excludes exactly the **five** |
+| R20 | `scopes/01-frozen-claim-contract/scope.md` | `T-01-U1` row, its DoD line, and the traceability row | all three say *"exactly the four unhashed fields"* / *"four-field unhashed set"* | restate as five. **Coverage gap, not just wording:** as written `T-01-U1` proves content-only hashing across four fields, so it does not yet prove `claimHash` is invariant under a differing `notEvaluable`. That assertion needs adding |
+| R21 | `scopes/01-frozen-claim-contract/scope.md` | DoD — contract-completeness item | blocked at HEAD `98224f5c0`, because D1 declared 14 fields and the implementation mints 15 | **unblocked by Ruling 1** once R15 lands: D1 now declares 15 and `rlclaims.js#L464-L479` mints the same 15. Re-verify field-by-field, do not assume |
+| R22 | `scopes/_index.md` | scope-01 owned-surface row | enumerates the owned surfaces without the mint verdict | add the unhashed `notEvaluable` mint-verdict field alongside the unhashed `citedToolId` provenance field |
+| R23 | `scopes/_index.md` | scope-01 verification row | *"`RTR-PREDICATE-AMEND` fires on a **byte-changing** write at an existing path"* | fires on a **hashed-term-changing** write — Ruling 3 |
+
+**`report.md` is deliberately excluded from this table.** It carries captured terminal output whose test-name
+strings contain *"exactly the four unhashed fields"*. That is historical execution evidence and must **not**
+be rewritten; it is re-captured when the tests are next run, not edited.
+
+No scope file, test file, or source file was modified by this reconciliation.

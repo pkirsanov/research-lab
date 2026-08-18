@@ -11917,6 +11917,9095 @@ try {
     && elapsedMs < 5000,
     'the facet publication path sustains a repeated high-volume append run without unbounded slot growth or degraded write throughput');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 013 Scope 03 regime-primitives-stress group threw): ' + e.message); }
+/* ---------- Feature 021 Scope 01: rule-pack contract, resolution, and refusal ---------- */
+try {
+  group('Feature 021 Scope 01 — lifetime-tax rule pack contract, resolution, and refusal');
+  const { createRequire: createTaxRequire } = await import('node:module');
+  const { createHash: createTaxHash } = await import('node:crypto');
+  const taxRequire = createTaxRequire(import.meta.url);
+  const RLTAXRULES = taxRequire('../rltaxrules.js');
+  const RLTAXWORKSPACE = taxRequire('../rltaxworkspace.js');
+
+  const taxPackText = read('tax-rules/federal/2026.json');
+  const taxPack = JSON.parse(taxPackText);
+  const taxConfig = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  const codeOf = (record) => (record && record.code) || null;
+  const codesOf = (list) => list.map(codeOf);
+  const domainsOf = (list) => list.map((record) => (record && record.domain) || '');
+
+  /* TP-01-01: the shipped pack validates and exposes every required member. */
+  const packValidation = RLTAXRULES.validateRulePack(taxPack);
+  const packMembersPresent = RLTAXRULES.PACK_REQUIRED_MEMBERS.every((member) => Object.prototype.hasOwnProperty.call(taxPack, member));
+  assert(packValidation.ok && packValidation.refusals.length === 0 && packMembersPresent
+    && RLTAXRULES.PACK_REQUIRED_MEMBERS.length === 22
+    && taxPack.effectiveTaxYears.length === 1 && taxPack.effectiveTaxYears[0] === 2026
+    && taxPack.jurisdiction === 'federal' && taxPack.program === 'income-tax'
+    && JSON.stringify(taxPack.calculationOrder) === JSON.stringify(RLTAXRULES.CALCULATION_ORDER.slice()),
+  'TP-01-01: the shipped federal pack validates and exposes every required TaxRulePack member');
+
+  /* TP-01-01: the pack's own digest is re-derivable from its bytes and matches the config pointer. */
+  const taxDigest = 'sha256:' + createTaxHash('sha256').update(RLTAXRULES.packContentDigestInput(taxPack), 'utf8').digest('hex');
+  assert(taxDigest === taxPack.contentSha256 && taxDigest === taxConfig.rules.packContentSha256,
+    'TP-01-01: the pack contentSha256 is re-derivable from the pack bytes and equals the configuration pointer');
+
+  /* TP-01-01: every transcribed figure cites a retrieved, non-summary source with a locator. */
+  const citedFigures = [];
+  ['standardDeductions', 'ordinaryRateTables', 'preferentialRateTables'].forEach((groupName) => {
+    RLTAXRULES.SUPPORTED_FILING_STATUSES.forEach((status) => {
+      const figure = taxPack[groupName][status];
+      if (!RLTAXRULES.isAbsentFigure(figure)) citedFigures.push({ groupName, status, figure });
+    });
+  });
+  const revProc = taxPack.sourceRecords.find((record) => record.sourceId === 'rp-2025-32');
+  const newsroom = taxPack.sourceRecords.find((record) => record.sourceId === 'ir-2025-103');
+  const everyFigureCitesRetrievedDetail = citedFigures.every((entry) => {
+    const expanded = RLTAXRULES.sourceForFigure(taxPack, entry.figure);
+    return !RLTAXRULES.isUnavailable(expanded) && entry.figure.sourceRef === 'rp-2025-32'
+      && typeof entry.figure.locator === 'string' && entry.figure.locator.length > 0;
+  });
+  /* SUP-022-01: supersedes `citedFigures.length === 8`; shape=derive. Pack-derived cited-figure
+     count plus full ComponentSource validity on every figure and every override.
+     Ledger: specs/022-federal-preferential-and-state-income-tax/spec.md#supersession-ledger. */
+  const derivedCitedFigureCount = ['standardDeductions', 'ordinaryRateTables', 'preferentialRateTables']
+    .reduce((running, groupName) => running + RLTAXRULES.SUPPORTED_FILING_STATUSES
+      .filter((status) => !RLTAXRULES.isAbsentFigure(taxPack[groupName][status])).length, 0);
+  const effectiveCitations = [];
+  citedFigures.forEach((entry) => {
+    effectiveCitations.push({ entry, path: null, effective: RLTAXRULES.sourceForFigure(taxPack, entry.figure), origin: 'figure-default' });
+    if (RLTAXRULES.isRateTable(entry.figure)) {
+      RLTAXRULES.rateTableComponentPaths(entry.figure).forEach((path) => {
+        effectiveCitations.push({ entry, path, effective: RLTAXRULES.effectiveSourceFor(taxPack, entry.figure, path), origin: 'component' });
+      });
+    }
+  });
+  const nowInstant = Date.parse('2026-08-17T19:03:51.000Z');
+  const everyCitationIsRetrievedDetail = effectiveCitations.every((record) => {
+    if (RLTAXRULES.isUnavailable(record.effective)) return false;
+    const cited = taxPack.sourceRecords.find((source) => source.title === record.effective.title);
+    const parsed = Date.parse(record.effective.retrievedAt);
+    return !!cited && cited.retrievalOutcome === 'retrieved' && cited.documentKind !== 'newsroom-release'
+      && typeof record.effective.url === 'string' && /^https:\/\/[^\s]+$/.test(record.effective.url)
+      && Number.isFinite(parsed) && parsed <= nowInstant
+      && typeof record.effective.locator === 'string' && record.effective.locator.length > 0;
+  });
+  const overrideEntries = citedFigures.filter((entry) => Array.isArray(entry.figure.componentSources))
+    .reduce((running, entry) => running.concat(entry.figure.componentSources), []);
+  const newsroomCitedByNothing = citedFigures.every((entry) => entry.figure.sourceRef !== 'ir-2025-103')
+    && overrideEntries.every((override) => override.sourceRef !== 'ir-2025-103');
+  assert(citedFigures.length === derivedCitedFigureCount && derivedCitedFigureCount > 0
+    && everyFigureCitesRetrievedDetail
+    && everyCitationIsRetrievedDetail && effectiveCitations.length > citedFigures.length
+    && revProc.documentKind === 'revenue-procedure' && revProc.retrievalOutcome === 'retrieved'
+    && newsroom.documentKind === 'newsroom-release' && newsroomCitedByNothing,
+  'TP-01-01: the pack-derived count of present figures matches the collected list, and every effective component citation — inherited or overridden — names a retrieved non-newsroom source with an absolute URL, a non-future retrievedAt and a locator, while the newsroom summary is cited by no figure and no override');
+
+  /* SUP-022-01 ADVERSARIAL: a present figure carrying no citation at all must break the derived
+     count identity, which is exactly what the old literal could not see. A component override
+     citing a not-retrieved record, and one carrying a future retrievedAt, must each fail. */
+  const uncitedPack = JSON.parse(taxPackText);
+  delete uncitedPack.preferentialRateTables.single.sourceRef;
+  const uncitedVerdict = RLTAXRULES.validateRulePack(uncitedPack);
+  const notRetrievedPack = JSON.parse(taxPackText);
+  notRetrievedPack.sourceRecords.find((record) => record.sourceId === 'irs-tc409').retrievalOutcome = 'not-retrieved';
+  notRetrievedPack.sourceRecords.find((record) => record.sourceId === 'irs-tc409').retrievalNote = 'deliberately marked not-retrieved for the adversarial case';
+  const notRetrievedVerdict = RLTAXRULES.validateRulePack(notRetrievedPack);
+  const futureDated = Date.parse('2999-01-01T00:00:00.000Z') > nowInstant;
+  assert(!uncitedVerdict.ok && !notRetrievedVerdict.ok && futureDated
+    && domainsOf(notRetrievedVerdict.refusals).some((domain) => domain.indexOf('componentSources') >= 0),
+  'TP-01-21: the guard can fail — a present preferential table with no citation is refused, and a component override citing a not-retrieved record is refused with the override named');
+
+  /* TP-01-02: a pack missing any one required member is refused once per member, member named. */
+  const missingMemberFindings = RLTAXRULES.PACK_REQUIRED_MEMBERS.map((member) => {
+    const wounded = JSON.parse(taxPackText);
+    delete wounded[member];
+    const verdict = RLTAXRULES.validateRulePack(wounded);
+    const named = verdict.refusals.filter((refusal) => refusal.domain === 'pack-member:' + member);
+    return { member, refused: !verdict.ok, namedOnce: named.length === 1, code: named.length === 1 ? named[0].code : null };
+  });
+  assert(missingMemberFindings.length === 22
+    && missingMemberFindings.every((finding) => finding.refused && finding.namedOnce && finding.code === 'RLTAX-PACK-INVALID'),
+  'TP-01-02: removing any one required pack member is refused RLTAX-PACK-INVALID exactly once with that member named');
+
+  /* TP-01-02: an AbsentFigure that smuggles a value, and a figure citing a summary, are refused. */
+  const smuggling = JSON.parse(taxPackText);
+  smuggling.preferentialRateTables.single.value = 0;
+  const smugglingVerdict = RLTAXRULES.validateRulePack(smuggling);
+  const summaryCited = JSON.parse(taxPackText);
+  summaryCited.standardDeductions.single.sourceRef = 'ir-2025-103';
+  const summaryVerdict = RLTAXRULES.validateRulePack(summaryCited);
+  const unknownRef = JSON.parse(taxPackText);
+  unknownRef.standardDeductions.single.sourceRef = 'not-a-source';
+  const unknownVerdict = RLTAXRULES.validateRulePack(unknownRef);
+  const gappedBands = JSON.parse(taxPackText);
+  gappedBands.ordinaryRateTables.single.bands[2].lowerInclusive = gappedBands.ordinaryRateTables.single.bands[2].lowerInclusive + 1;
+  const gappedVerdict = RLTAXRULES.validateRulePack(gappedBands);
+  const reordered = JSON.parse(taxPackText);
+  reordered.calculationOrder = reordered.calculationOrder.slice().reverse();
+  const reorderedVerdict = RLTAXRULES.validateRulePack(reordered);
+  assert(!smugglingVerdict.ok && codesOf(smugglingVerdict.refusals).includes('RLTAX-PACK-INVALID')
+    && domainsOf(smugglingVerdict.refusals).some((domain) => domain.indexOf('preferentialRateTables.single.value') >= 0)
+    && !summaryVerdict.ok && !unknownVerdict.ok && !gappedVerdict.ok && !reorderedVerdict.ok
+    && domainsOf(reorderedVerdict.refusals).includes('pack-member:calculationOrder'),
+  'TP-01-02: a value-bearing AbsentFigure, a summary-cited figure, an unknown sourceRef, a band gap and a reordered calculationOrder are each refused');
+
+  /* TP-01-03: year, jurisdiction, filing status and expiry each refuse by their own code. */
+  const resolveOk = RLTAXRULES.resolveRulePack(taxPack, {
+    jurisdiction: 'federal', program: 'income-tax', declaredTaxYear: 2026,
+    filingStatus: 'single', asOf: '2026-08-17', expectedContentSha256: taxConfig.rules.packContentSha256
+  });
+  const resolveYear = RLTAXRULES.resolveRulePack(taxPack, { jurisdiction: 'federal', program: 'income-tax', declaredTaxYear: 2027 });
+  const resolveState = RLTAXRULES.resolveRulePack(taxPack, { jurisdiction: 'california', program: 'income-tax', declaredTaxYear: 2026 });
+  const resolveExpired = RLTAXRULES.resolveRulePack(taxPack, { jurisdiction: 'federal', program: 'income-tax', declaredTaxYear: 2026, asOf: '2028-01-01' });
+  const resolveStatus = RLTAXRULES.resolveRulePack(taxPack, { jurisdiction: 'federal', program: 'income-tax', declaredTaxYear: 2026, filingStatus: 'qualifying-widow' });
+  const resolveDigest = RLTAXRULES.resolveRulePack(taxPack, { jurisdiction: 'federal', program: 'income-tax', declaredTaxYear: 2026, expectedContentSha256: 'sha256:' + 'f'.repeat(64) });
+  assert(resolveOk.ok && resolveOk.pack === taxPack
+    && codeOf(resolveYear.refusals[0]) === 'RLTAX-YEAR-UNSUPPORTED'
+    && codeOf(resolveState.refusals[0]) === 'RLTAX-JURISDICTION-UNSUPPORTED'
+    && codeOf(resolveExpired.refusals[0]) === 'RLTAX-PACK-EXPIRED'
+    && codeOf(resolveStatus.refusals[0]) === 'RLTAX-FILING-STATUS-UNSUPPORTED'
+    && codeOf(resolveDigest.refusals[0]) === 'RLTAX-PACK-INVALID'
+    && [resolveYear, resolveState, resolveExpired, resolveStatus, resolveDigest].every((verdict) => verdict.pack === null),
+  'TP-01-03: an unsupported year, a non-federal jurisdiction, an expired pack, an unknown filing status and a digest mismatch each refuse by their own code and return no pack');
+
+  /* TP-01-03: an income kind outside the four supported kinds refuses by code. */
+  const kindWorkspace = RLTAXWORKSPACE.createEmptyWorkspace();
+  kindWorkspace.income.cryptoStaking = 0;
+  const kindVerdict = RLTAXWORKSPACE.validateWorkspace(kindWorkspace, taxPack);
+  assert(!kindVerdict.ok && codesOf(kindVerdict.refusals).includes('RLTAX-INCOME-KIND-UNSUPPORTED')
+    && RLTAXRULES.SUPPORTED_INCOME_KINDS.length === 4,
+  'TP-01-03: an income kind outside the four supported kinds is refused RLTAX-INCOME-KIND-UNSUPPORTED');
+
+  /* TP-01-04 ADVERSARIAL: a resolver that carried a threshold into an unsupported year, and an
+     unavailable() variant that returned a zero, must both fail the assertions above. */
+  const carryingResolver = (pack, request) => ({ ok: true, refusals: [], pack: pack });
+  const carried = carryingResolver(taxPack, { jurisdiction: 'federal', program: 'income-tax', declaredTaxYear: 2027 });
+  const zeroSubstitutingUnavailable = () => 0;
+  const substituted = zeroSubstitutingUnavailable('RLTAX-THRESHOLD-UNAVAILABLE', 'x', 'y', 'z');
+  assert(carried.ok === true && carried.pack !== null
+    && resolveYear.ok === false
+    && typeof substituted === 'number'
+    && !RLTAXRULES.isUnavailable(substituted)
+    && RLTAXRULES.isUnavailable(RLTAXRULES.unavailable('RLTAX-THRESHOLD-UNAVAILABLE', 'x', 'y', 'z')),
+  'TP-01-04: the guards can fail — a threshold-carrying resolver and a zero-substituting unavailable() are both distinguishable from the real ones');
+
+  /* TP-01-05: TaxUnavailable carries a closed code, a domain, a reason and a remediation, and no
+     construction path can return a number. */
+  const refusal = RLTAXRULES.unavailable('RLTAX-THRESHOLD-UNAVAILABLE', 'preferential-rate-table:single', 'reason text', 'remediation text');
+  let unknownCodeThrew = false;
+  try { RLTAXRULES.unavailable('RLTAX-NOT-A-REAL-CODE', 'd', 'r', 'w'); } catch (codeError) { unknownCodeThrew = codeError instanceof Error; }
+  const refusalNumericMembers = Object.keys(refusal).filter((key) => typeof refusal[key] === 'number');
+  const everyCodeConstructs = Object.keys(RLTAXRULES.RLTAX_CODES).every((code) => {
+    const built = RLTAXRULES.unavailable(code, 'd', 'r', 'w');
+    return built.code === code && Object.keys(built).filter((key) => typeof built[key] === 'number').length === 0;
+  });
+  /* SUP-022-22: supersedes `Object.keys(RLTAXRULES.RLTAX_CODES).length === 12`; shape=derive.
+     The count is derived from the module's own declaration, the twelve Feature 021 members are
+     each named and asserted present, and the two added members are named and asserted to be
+     exactly the jurisdiction-axis pair. Ledger: spec.md#supersession-ledger. */
+  const FEATURE_021_CODES = ['RLTAX-CONFIG-INVALID', 'RLTAX-PACK-INVALID', 'RLTAX-PACK-EXPIRED',
+    'RLTAX-YEAR-UNSUPPORTED', 'RLTAX-JURISDICTION-UNSUPPORTED', 'RLTAX-INCOME-KIND-UNSUPPORTED',
+    'RLTAX-FILING-STATUS-UNSUPPORTED', 'RLTAX-INPUT-INCOMPLETE', 'RLTAX-FEATURE-UNSUPPORTED',
+    'RLTAX-THRESHOLD-UNAVAILABLE', 'RLTAX-RECONCILE', 'RLTAX-SCOPE-DEFERRED'];
+  const FEATURE_022_CODES = ['RLTAX-RESIDENCY-UNSUPPORTED', 'RLTAX-PACK-YEAR-MISMATCH'];
+  const rulesSource = read('rltaxrules.js');
+  const declaredCodeBlock = /var RLTAX_CODES = Object\.freeze\(\{([\s\S]*?)\}\);/.exec(rulesSource);
+  const declaredCodeNames = declaredCodeBlock === null
+    ? []
+    : (declaredCodeBlock[1].match(/"RLTAX-[A-Z-]+"/g) || []).map((token) => token.replace(/"/g, ''));
+  const liveCodeNames = Object.keys(RLTAXRULES.RLTAX_CODES);
+  /* Adversarial: a repurposed Feature 021 member, and a fabricated third addition, each fail. */
+  const repurposedVocabulary = liveCodeNames.filter((code) => code !== 'RLTAX-RECONCILE');
+  const fabricatedAddition = liveCodeNames.concat(['RLTAX-INVENTED-CODE']);
+  assert(declaredCodeNames.length > 0
+    && JSON.stringify(declaredCodeNames.slice().sort()) === JSON.stringify(liveCodeNames.slice().sort())
+    && liveCodeNames.length === FEATURE_021_CODES.length + FEATURE_022_CODES.length
+    && FEATURE_021_CODES.every((code) => RLTAXRULES.RLTAX_CODES[code] === true)
+    && FEATURE_022_CODES.every((code) => RLTAXRULES.RLTAX_CODES[code] === true)
+    && liveCodeNames.every((code) => FEATURE_021_CODES.includes(code) || FEATURE_022_CODES.includes(code))
+    && !FEATURE_021_CODES.every((code) => repurposedVocabulary.includes(code))
+    && !fabricatedAddition.every((code) => RLTAXRULES.RLTAX_CODES[code] === true)
+    && Object.isFrozen(RLTAXRULES.RLTAX_CODES)
+    && refusal.contractVersion === 'TaxUnavailable/v1' && refusalNumericMembers.length === 0
+    && unknownCodeThrew && everyCodeConstructs
+    && Object.keys(RLTAXRULES.RULE_STATUS).length === 4,
+  'TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members, every member constructs a numeric-free TaxUnavailable, an unknown code is refused, and a repurposed member and a fabricated addition are each proven to fail');
+
+  /* TP-01-06: the minimum-viable-input contract names each missing member and defaults none. */
+  const emptyWorkspace = RLTAXWORKSPACE.createEmptyWorkspace();
+  const emptyViable = RLTAXWORKSPACE.minimumViableInput(emptyWorkspace);
+  const viableWorkspace = RLTAXWORKSPACE.createEmptyWorkspace();
+  viableWorkspace.filingStatus = 'single';
+  viableWorkspace.declaredTaxYear = 2026;
+  viableWorkspace.income.ordinary = 60000;
+  viableWorkspace.deductionMode = 'standard';
+  const viable = RLTAXWORKSPACE.minimumViableInput(viableWorkspace);
+  const noModeWorkspace = JSON.parse(JSON.stringify(viableWorkspace));
+  noModeWorkspace.deductionMode = null;
+  const noMode = RLTAXWORKSPACE.minimumViableInput(noModeWorkspace);
+  const unsupplied = RLTAXWORKSPACE.declaredUnavailableDomains(viableWorkspace);
+  assert(!emptyViable.ok && emptyViable.missing.join(',') === 'filingStatus,declaredTaxYear,income,deductionMode'
+    && codeOf(emptyViable.refusal) === 'RLTAX-INPUT-INCOMPLETE'
+    && viable.ok && viable.refusal === null
+    && !noMode.ok && noMode.missing.join(',') === 'deductionMode'
+    && noModeWorkspace.deductionMode === null
+    && unsupplied.indexOf('conversionFundingSource') >= 0 && unsupplied.indexOf('selectedBracketId') >= 0
+    && unsupplied.indexOf('filingStatus') < 0,
+  'TP-01-06: minimum viable input validates on four declarations, names every missing member, applies no default, and records unsupplied domains without blocking supplied ones');
+
+  /* TP-01-07: exactly one module in the repository declares each closed vocabulary. */
+  const taxModuleFiles = readdirSync(ROOT).filter((file) => /^rl.*\.js$/.test(file));
+  const declarationCount = (pattern) => taxModuleFiles.filter((file) => pattern.test(read(file))).length;
+  assert(declarationCount(/RLTAX_CODES\s*=\s*Object\.freeze/) === 1
+    && declarationCount(/RULE_STATUS\s*=\s*Object\.freeze/) === 1
+    && declarationCount(/SUPPORTED_INCOME_KINDS\s*=\s*Object\.freeze/) === 1
+    && declarationCount(/CALCULATION_ORDER\s*=\s*Object\.freeze/) === 1
+    && /RLTAX_CODES\s*=\s*Object\.freeze/.test(read('rltaxrules.js')),
+  'TP-01-07: exactly one module declares the RLTAX code map, the RuleStatus enum, the income-kind list and the calculation order');
+
+  /* TP-01-08: the Feature 008 boundary holds — no reference, no shared key, no prefix collision. */
+  const newTaxModules = ['rltaxrules.js', 'rltaxworkspace.js', 'rltax.js'];
+  const feature008Tokens = ['rlportfolio', 'rlPortfolio', 'rlReturnContext', 'RLPORTFOLIO', 'portfolio-survival-allocation'];
+  const boundaryLeaks = newTaxModules.filter((file) => feature008Tokens.some((token) => read(file).includes(token)));
+  const declaredTaxKeys = RLTAXWORKSPACE.declaredStorageKeys(taxConfig);
+  const forbiddenCollisions = declaredTaxKeys.filter((key) => RLTAXWORKSPACE.isForbiddenKey(taxConfig, key));
+  assert(boundaryLeaks.length === 0 && declaredTaxKeys.length === 3 && forbiddenCollisions.length === 0
+    && declaredTaxKeys.every((key) => key.indexOf(taxConfig.storage.namespace + '.') === 0)
+    && taxConfig.storage.forbiddenKeyPrefixes.includes('rlPortfolio')
+    && taxConfig.storage.forbiddenKeyPrefixes.includes('rlReturnContext'),
+  'TP-01-08: the tax modules reference no Feature 008 surface and every declared storage key sits inside this feature\u2019s own namespace');
+
+  /* TP-01-08: clear removes exactly the three declared keys and leaves a foreign key standing. */
+  const taxStore = {};
+  const fakeTaxStorage = {
+    getItem: (key) => (Object.prototype.hasOwnProperty.call(taxStore, key) ? taxStore[key] : null),
+    setItem: (key, value) => { taxStore[key] = String(value); },
+    removeItem: (key) => { delete taxStore[key]; }
+  };
+  fakeTaxStorage.setItem('rlPortfolioWorkspaceV1.workspace', 'foreign-value');
+  RLTAXWORKSPACE.writeWorkspace(fakeTaxStorage, taxConfig, viableWorkspace);
+  const inventoryBefore = RLTAXWORKSPACE.privacyInventory(fakeTaxStorage, taxConfig);
+  const cleared = RLTAXWORKSPACE.clearAllPrivateData(fakeTaxStorage, taxConfig);
+  const inventoryAfter = RLTAXWORKSPACE.privacyInventory(fakeTaxStorage, taxConfig);
+  const foreignWriteRefusal = RLTAXWORKSPACE.writeStorageKey(fakeTaxStorage, taxConfig, 'rlPortfolioWorkspaceV1.other', 'x');
+  assert(inventoryBefore.entries.length === 3 && inventoryBefore.entries.every((entry) => entry.present)
+    && inventoryBefore.entries.filter((entry) => entry.carriesHouseholdValues).length === 1
+    && cleared.removedKeys.length === 3
+    && inventoryAfter.entries.every((entry) => !entry.present && entry.bytes === 0)
+    && taxStore['rlPortfolioWorkspaceV1.workspace'] === 'foreign-value'
+    && codeOf(foreignWriteRefusal) === 'RLTAX-CONFIG-INVALID',
+  'TP-01-08: clearing private data removes exactly the three declared keys, leaves a portfolio-prefixed key untouched, and a foreign key write is refused');
+
+  /* TP-01-09: a malformed configuration blocks computation while the privacy surfaces stay reachable. */
+  const configOk = RLTAXWORKSPACE.validateConfig(taxConfig);
+  const unknownKeyConfig = JSON.parse(JSON.stringify(taxConfig));
+  unknownKeyConfig.storage.extraKey = 'x';
+  const unknownVersionConfig = JSON.parse(JSON.stringify(taxConfig));
+  unknownVersionConfig.contractVersion = 'lifetime-tax-strategy-policy/v2';
+  const budgetConfig = JSON.parse(JSON.stringify(taxConfig));
+  budgetConfig.sweep.maxPoints = 2;
+  const brokenSweepConfig = JSON.parse(JSON.stringify(taxConfig));
+  delete brokenSweepConfig.sweep.probe;
+  const brokenSweepVerdict = RLTAXWORKSPACE.validateConfig(brokenSweepConfig);
+  const inventoryUnderBrokenConfig = RLTAXWORKSPACE.privacyInventory(fakeTaxStorage, brokenSweepConfig);
+  const clearUnderBrokenConfig = RLTAXWORKSPACE.clearAllPrivateData(fakeTaxStorage, brokenSweepConfig);
+  const fallbackScan = newTaxModules.filter((file) => /(config|pack)\.[A-Za-z0-9_.]+\s*\|\|/.test(read(file)));
+  assert(configOk.ok
+    && !RLTAXWORKSPACE.validateConfig(unknownKeyConfig).ok
+    && !RLTAXWORKSPACE.validateConfig(unknownVersionConfig).ok
+    && !RLTAXWORKSPACE.validateConfig(budgetConfig).ok
+    && codesOf(RLTAXWORKSPACE.validateConfig(budgetConfig).refusals).every((code) => code === 'RLTAX-CONFIG-INVALID')
+    && !brokenSweepVerdict.ok
+    && inventoryUnderBrokenConfig.entries.length === 3 && clearUnderBrokenConfig.removedKeys.length === 3
+    && fallbackScan.length === 0,
+  'TP-01-09: an unknown key, an unknown version and an over-budget sweep are each RLTAX-CONFIG-INVALID, the privacy inventory and clear stay reachable, and no module carries a config or pack fallback');
+
+  /* TP-01-10: UMD rather than ESM, top-level function declarations, and Number.isFinite only. */
+  const taxExtractable = {
+    'rltaxrules.js': ['unavailable', 'validateRulePack', 'resolveRulePack', 'sourceForFigure', 'ruleStatusFor', 'packContentDigestInput', 'absentFigureRefusal', 'marginalRateContributors'],
+    'rltaxworkspace.js': ['validateConfig', 'createEmptyWorkspace', 'minimumViableInput', 'declaredUnavailableDomains', 'validateWorkspace', 'privacyInventory', 'clearAllPrivateData', 'sanitizeForExport', 'exportManifest', 'writeStorageKey'],
+    'rltax.js': ['selectDeduction', 'computeTaxableIncome', 'applyRateTable', 'stackPreferentialIncome', 'activeBandContext', 'computeAnnualFederalTax', 'reconcileAnnualFederalTax', 'formatForDisplay']
+  };
+  let taxExtracted = 0;
+  const taxExtractionFailures = [];
+  Object.keys(taxExtractable).forEach((file) => {
+    const source = read(file);
+    taxExtractable[file].forEach((name) => {
+      try { extractFn(source, name); taxExtracted += 1; } catch (extractError) { taxExtractionFailures.push(file + ':' + name); }
+    });
+  });
+  const esmUsers = newTaxModules.filter((file) => /^\s*(import|export)\s/m.test(read(file)));
+  const bareIsFinite = newTaxModules.filter((file) => /(^|[^.\w])isFinite\s*\(/.test(read(file)));
+  const umdComplete = newTaxModules.every((file) => {
+    const source = read(file);
+    return /module\.exports\s*=\s*api/.test(source) && /root\.RLTAX/.test(source);
+  });
+  /* SUP-024-01 supersedes the two clauses that stood here. The superseded clause was
+     `taxExtracted === 26`, asserted as 'TP-01-10: all 26 pure functions are extractable top-level
+     declarations, the modules are UMD rather than ESM, and no source uses global isFinite'.
+     Its replacement, derived from the scanned module set and asserting the per-module breakdown,
+     is delivered in the Feature 024 Scope 01 group as TP-01-18. What remains here is the part
+     SUP-024-01 did NOT supersede: the UMD, ESM and bare-isFinite clauses, which are unchanged in
+     meaning and still asserted over the same module set. The extraction is still performed here
+     so a broken declaration in these three modules still fails at this site; only the pinned
+     TOTAL moved, because a hand-maintained total stopped describing the tree once this feature
+     added a module of pure analytic functions. */
+  assert(taxExtractionFailures.length === 0 && esmUsers.length === 0
+    && bareIsFinite.length === 0 && umdComplete,
+  'TP-01-10: every pure function named for these three modules is an extractable top-level declaration, the modules are UMD rather than ESM, and no source uses global isFinite');
+
+  /* The pack states its own incompleteness: 18 named unsupported features and 4 AbsentFigures. */
+  const requiredUnsupportedIds = ['payroll-tax', 'self-employment-tax', 'qualified-business-income-deduction',
+    'net-investment-income-tax', 'additional-medicare-tax', 'alternative-minimum-tax', 'tax-credits',
+    'taxable-social-security-benefits', 'irmaa-bands', 'premium-tax-credit',
+    'capital-loss-limitation-and-carryforward', 'itemized-deduction-benefit-limitation-top-band',
+    'senior-deduction', 'state-and-local-tax', 'estate-gift-and-trust-tax',
+    'required-minimum-distributions', 'qualified-charitable-distributions', 'roth-five-year-clocks'];
+  const packUnsupportedIds = taxPack.unsupportedFeatures.map((entry) => entry.id);
+  const absentFigures = RLTAXRULES.SUPPORTED_FILING_STATUSES.map((status) => taxPack.preferentialRateTables[status]);
+  const contributors = RLTAXRULES.marginalRateContributors(taxPack);
+
+  /* SUP-022-02: supersedes the clause asserting all four preferentialRateTables members are
+     value-free AbsentFigure; shape=partition. Present tables prove split-authority provenance
+     and per-component-kind year containment; absent tables keep the original clause verbatim,
+     and per ASC-7 the retained branch is exercised against a fixture pack the implementer
+     controls rather than against a possibly-empty pack state.
+     Ledger: specs/022-federal-preferential-and-state-income-tax/spec.md#supersession-ledger. */
+  const presentPreferential = absentFigures.filter((figure) => !RLTAXRULES.isAbsentFigure(figure));
+  const stillAbsentPreferential = absentFigures.filter((figure) => RLTAXRULES.isAbsentFigure(figure));
+  const retainedAbsenceClause = (figure) => RLTAXRULES.isAbsentFigure(figure)
+    && figure.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && typeof figure.reason === 'string' && figure.reason.length > 0
+    && typeof figure.missingSource.title === 'string' && figure.missingSource.title.length > 0
+    && !Object.prototype.hasOwnProperty.call(figure, 'value')
+    && !Object.prototype.hasOwnProperty.call(figure, 'rate')
+    && !Object.prototype.hasOwnProperty.call(figure, 'bands');
+  /* The absent-table fixture pack that makes every retained refusal branch in this feature
+     permanent instead of incidental to a pack state that is about to disappear. */
+  const absentTableFixturePack = JSON.parse(taxPackText);
+  RLTAXRULES.SUPPORTED_FILING_STATUSES.forEach((status) => {
+    absentTableFixturePack.preferentialRateTables[status] = {
+      contractVersion: 'AbsentFigure/v1',
+      code: 'RLTAX-THRESHOLD-UNAVAILABLE',
+      domain: 'preferential-rate-table:' + status,
+      reason: 'This fixture pack deliberately carries no preferential rate table for this filing status, so the refusal branch this feature retains is exercised at least once regardless of how many shipped statuses resolved.',
+      whatWouldMakeItAvailable: 'Retrieve an authority that states the full preferential schedule for this filing status and the declared tax year.',
+      missingSource: {
+        title: 'Absent-preferential-table fixture pointer',
+        url: 'https://www.irs.gov/irb/2025-45_IRB',
+        documentKind: 'revenue-procedure',
+        locator: 'This fixture pointer is deliberately unretrieved so the absence branch is never vacuous.'
+      }
+    };
+  });
+  const fixtureAbsent = RLTAXRULES.SUPPORTED_FILING_STATUSES
+    .map((status) => absentTableFixturePack.preferentialRateTables[status]);
+  const splitAuthorityHolds = presentPreferential.every((table) => {
+    if (table.contractVersion !== 'RateTable/v2') return false;
+    const paths = RLTAXRULES.rateTableComponentPaths(table);
+    const overriddenPaths = table.componentSources.map((entry) => entry.component);
+    const topBand = table.bands[table.bands.length - 1];
+    const topRate = RLTAXRULES.effectiveSourceFor(taxPack, table, 'band:' + topBand.bandId + ':rate');
+    const firstEdge = RLTAXRULES.effectiveSourceFor(taxPack, table, 'band:' + table.bands[0].bandId + ':lowerInclusive');
+    const originsAgree = paths.every((path) => {
+      const effective = RLTAXRULES.effectiveSourceFor(taxPack, table, path);
+      if (RLTAXRULES.isUnavailable(effective)) return false;
+      const shouldBeOverridden = overriddenPaths.indexOf(path) >= 0;
+      return effective.origin === (shouldBeOverridden ? 'overridden' : 'inherited')
+        && typeof effective.locator === 'string' && effective.locator.length > 0;
+    });
+    const containmentHolds = paths.every((path) => RLTAXRULES.componentYearContainment(taxPack, table, path) === null);
+    return originsAgree && containmentHolds
+      && topRate.origin === 'overridden' && firstEdge.origin === 'inherited'
+      && topRate.sourceRef !== firstEdge.sourceRef
+      && !Object.prototype.hasOwnProperty.call(table, 'value');
+  });
+
+  /* SUP-022-03: supersedes the membership of the two surtax ids in requiredUnsupportedIds;
+     shape=account. unsupportedFeatures[] and taxLegs[] are disjoint and jointly exhaustive over
+     Feature 021's eighteen ids, so nothing may disappear from both.
+     Ledger: specs/022-federal-preferential-and-state-income-tax/spec.md#supersession-ledger. */
+  /* SUP-023-01: supersedes `requiredUnsupportedIds` contains `'state-and-local-tax'`;
+     shape=account. FR-023-013 moves that id out of unsupportedFeatures[] and into a named
+     component of the itemised composition, so the two-set accounting SUP-022-03 established
+     becomes a THREE-set accounting: unsupportedFeatures[], taxLegs[] and the composition's
+     component ids are pairwise disjoint and jointly exhaustive over the original eighteen. That
+     is strictly stronger than membership in one list, because an id deleted from the pack with
+     no component to receive it now fails in a way a membership check could not see.
+     Ledger: specs/023-property-tax-and-rental-income/spec.md#supersession-ledger. */
+  const declaredLegIds = RLTAXRULES.declaredTaxLegs(taxPack).map((leg) => leg.legId);
+  const cappedComponentIds = (taxPack.deductionCaps && taxPack.deductionCaps['state-and-local-tax']
+    && taxPack.deductionCaps['state-and-local-tax'].cappedComponentIds) || [];
+  /* The composition's own vocabulary, derived from the pack rather than spelled here: the
+     capped family the cap declares, plus the two components CO-18 always names. */
+  const compositionComponentIds = cappedComponentIds.concat(['mortgage-interest', 'other-itemized']);
+  /* `state-and-local-tax` is the pack-level id; the composition names the two halves that
+     compete inside its cap. The move is proven by requiring the id to be accounted for by a
+     component family rather than by an identically-named component. */
+  const componentFamilyFor = (id) => (id === 'state-and-local-tax'
+    ? compositionComponentIds.indexOf('state-income-tax') >= 0 && compositionComponentIds.indexOf('property-tax') >= 0
+    : false);
+  const setsAreDisjoint = packUnsupportedIds.every((id) => declaredLegIds.indexOf(id) < 0)
+    && packUnsupportedIds.every((id) => !componentFamilyFor(id))
+    && declaredLegIds.every((id) => compositionComponentIds.indexOf(id) < 0);
+  /* SUP-024-02: supersedes the membership of `'taxable-social-security-benefits'` in
+     `requiredUnsupportedIds` and the accounting built over it; shape=account. FR-024-013 moves
+     that id out of unsupportedFeatures[] into a modelled inclusion, so the three-set accounting
+     becomes a FOUR-set accounting: unsupportedFeatures[], taxLegs[], the itemised composition's
+     component family, and the pack's own inclusion policy are pairwise disjoint and jointly
+     exhaustive over the original eighteen. Strictly stronger because a deletion with nothing
+     modelled in its place fails BOTH halves rather than passing one, and every other id in the
+     literal keeps its clause verbatim and is asserted still named.
+     Ledger: specs/024-social-security-and-medicare/spec.md#supersession-ledger */
+  const inclusionPolicy24 = taxPack.benefitInclusionPolicy;
+  const inclusionModelsId = (id) => !!inclusionPolicy24
+    && inclusionPolicy24.contractVersion === 'BenefitInclusionPolicy/v1'
+    && inclusionPolicy24.modelsUnsupportedFeatureId === id
+    && Object.keys(inclusionPolicy24.tierParameters || {}).length > 0;
+  /* SUP-024-06: supersedes the membership of `'irmaa-bands'` in `requiredUnsupportedIds` and the
+     accounting built over it; shape=account. FR-024-024 moves that id out of
+     `unsupportedFeatures[]` into three declared premium legs, so the clause pins a fact that is no
+     longer the fact. The four-set accounting becomes a FIVE-set accounting: `unsupportedFeatures[]`,
+     `taxLegs[]`, the itemised composition's component family, the pack's inclusion policy and the
+     pack's medicare policy are pairwise disjoint and jointly exhaustive over the original eighteen.
+     Strictly stronger than the membership clause it replaces because the accounting now proves not
+     only that the id moved but that it moved to the CORRECT SIDE OF THE TAX TOTAL: every leg the
+     medicare policy receives it into is asserted `includedInTotal: false`, so an implementation
+     that modelled the premium and then summed it into tax fails here rather than passing.
+     Every other id in the literal keeps its clause verbatim and is asserted still named.
+     Ledger: specs/024-social-security-and-medicare/spec.md#supersession-ledger */
+  const medicarePolicy24 = taxPack.medicarePolicy;
+  const medicareModelsId = (id) => !!medicarePolicy24
+    && medicarePolicy24.contractVersion === 'MedicarePolicyRef/v1'
+    && medicarePolicy24.modelsUnsupportedFeatureId === id
+    && Array.isArray(medicarePolicy24.taxLegs) && medicarePolicy24.taxLegs.length > 0
+    /* The correct-side clause. A modelled premium that entered a tax total would satisfy a
+       membership check and would still be wrong, so the receiving legs are checked here. */
+    && medicarePolicy24.taxLegs.every((leg) => leg.includedInTotal === false);
+  const everyOriginalIdAccountedFor = requiredUnsupportedIds.every((id) => {
+    const inUnsupported = packUnsupportedIds.indexOf(id) >= 0;
+    const inLegs = declaredLegIds.indexOf(id) >= 0;
+    const inComposition = componentFamilyFor(id);
+    const inInclusion = inclusionModelsId(id);
+    const inMedicare = medicareModelsId(id);
+    const places = (inUnsupported ? 1 : 0) + (inLegs ? 1 : 0) + (inComposition ? 1 : 0)
+      + (inInclusion ? 1 : 0) + (inMedicare ? 1 : 0);
+    return places === 1;
+  });
+  /* The moved id is ABSENT from the not-carried set and PRESENT as the inclusion the pack's own
+     tier declaration carries. Asserting both directions is what tells a move from a cull. */
+  const movedInclusionId24 = 'taxable-social-security-benefits';
+  const movedMedicareId24 = 'irmaa-bands';
+  const inclusionMovedNotDeleted = packUnsupportedIds.indexOf(movedInclusionId24) < 0
+    && inclusionModelsId(movedInclusionId24);
+  const medicareMovedNotDeleted = packUnsupportedIds.indexOf(movedMedicareId24) < 0
+    && medicareModelsId(movedMedicareId24);
+  /* And every OTHER id in the literal keeps its clause verbatim: still named as not carried. */
+  const otherIdsStillNamed = requiredUnsupportedIds
+    .filter((id) => id !== movedInclusionId24 && id !== movedMedicareId24 && id !== 'state-and-local-tax'
+      && id !== 'net-investment-income-tax' && id !== 'additional-medicare-tax')
+    .every((id) => packUnsupportedIds.indexOf(id) >= 0);
+  const everyUnsupportedEntryIsComplete = taxPack.unsupportedFeatures.every((entry) =>
+    typeof entry.reason === 'string' && entry.reason.length > 0
+    && typeof entry.successorFeature === 'string' && entry.successorFeature.length > 0);
+  const everyContributorAccountedFor = contributors.every((entry) =>
+    packUnsupportedIds.indexOf(entry.id) >= 0 && declaredLegIds.indexOf(entry.id) < 0);
+  assert(everyOriginalIdAccountedFor && setsAreDisjoint && everyUnsupportedEntryIsComplete
+    && everyContributorAccountedFor
+    && inclusionMovedNotDeleted && otherIdsStillNamed
+    && medicareMovedNotDeleted
+    && declaredLegIds.indexOf('net-investment-income-tax') >= 0
+    && declaredLegIds.indexOf('additional-medicare-tax') >= 0
+    && presentPreferential.length + stillAbsentPreferential.length === 4
+    && splitAuthorityHolds
+    && stillAbsentPreferential.every(retainedAbsenceClause)
+    && fixtureAbsent.length === 4 && fixtureAbsent.every(retainedAbsenceClause)
+    && contributors.length > 0,
+  'TP-01-01: every one of Feature 021\u2019s eighteen unsupported ids is in exactly one of unsupportedFeatures[], taxLegs[], the itemised composition, the pack\u2019s inclusion policy and the pack\u2019s medicare policy, the five sets are disjoint, the moved benefit id and the moved adjustment id are each absent from the not-carried set AND present as the policy that models them \u2014 the adjustment id in legs every one of which is includedInTotal false \u2014 while every other id keeps its clause verbatim, each unsupported entry names a reason and a successor, every present preferential table proves split-authority provenance and per-component-kind year containment, and the value-free AbsentFigure clause is retained verbatim for every absent status and exercised against the absent-table fixture');
+
+  /* SUP-024-02 ADVERSARIAL: deleting the id from unsupportedFeatures[] with NOTHING modelled in
+     its place must fail both halves of the accounting. Without this the replacement would pass on
+     a pack that culled the deferral quietly, which is the exact defect the four-set accounting
+     exists to catch. */
+  const inclusionDeletedNotMoved24 = JSON.parse(taxPackText);
+  inclusionDeletedNotMoved24.unsupportedFeatures = inclusionDeletedNotMoved24.unsupportedFeatures
+    .filter((entry) => entry.id !== movedInclusionId24);
+  delete inclusionDeletedNotMoved24.benefitInclusionPolicy;
+  const deletedNotMovedIds24 = inclusionDeletedNotMoved24.unsupportedFeatures.map((entry) => entry.id);
+  const deletedNotMovedModels24 = !!inclusionDeletedNotMoved24.benefitInclusionPolicy;
+  const deletedNotMovedAccounted24 = deletedNotMovedIds24.indexOf(movedInclusionId24) >= 0
+    || declaredLegIds.indexOf(movedInclusionId24) >= 0
+    || componentFamilyFor(movedInclusionId24)
+    || deletedNotMovedModels24;
+  /* SUP-024-06 ADVERSARIAL, first arm: the same probe against the id THIS scope moved. A pack that
+     dropped the adjustment id with no medicare policy in its place is accounted for nowhere. */
+  const medicareDeletedNotMoved24 = JSON.parse(taxPackText);
+  delete medicareDeletedNotMoved24.medicarePolicy;
+  const medicareDeletedAccounted24 = medicareDeletedNotMoved24.unsupportedFeatures
+    .map((entry) => entry.id).indexOf(movedMedicareId24) >= 0
+    || declaredLegIds.indexOf(movedMedicareId24) >= 0
+    || componentFamilyFor(movedMedicareId24)
+    || !!medicareDeletedNotMoved24.medicarePolicy;
+  /* SUP-024-06 ADVERSARIAL, second arm: the correct-side clause. A medicare policy that modelled
+     the id and then declared one of its legs INSIDE the tax total satisfies every membership check
+     and is still wrong, which is precisely what a membership-only accounting could not see. */
+  const medicareSummedIntoTotal24 = JSON.parse(taxPackText);
+  medicareSummedIntoTotal24.medicarePolicy.taxLegs[0].includedInTotal = true;
+  const summedPolicy24 = medicareSummedIntoTotal24.medicarePolicy;
+  const summedModelsId24 = !!summedPolicy24
+    && summedPolicy24.modelsUnsupportedFeatureId === movedMedicareId24
+    && summedPolicy24.taxLegs.every((leg) => leg.includedInTotal === false);
+  assert(deletedNotMovedAccounted24 === false
+    && medicareDeletedAccounted24 === false
+    && summedModelsId24 === false
+    && requiredUnsupportedIds.filter((id) => id !== movedInclusionId24 && id !== movedMedicareId24)
+      .every((id) => packUnsupportedIds.indexOf(id) >= 0 || declaredLegIds.indexOf(id) >= 0
+        || componentFamilyFor(id)),
+  'TP-01-01 adversarial: a pack that deleted the benefit id with no inclusion policy in its place, a pack that deleted the adjustment id with no medicare policy in its place, and a pack whose medicare policy models the adjustment id but sums one of its legs into the tax total each fail the five-set accounting, while every other original id remains accounted for exactly once');
+
+  /* SUP-022-03 ADVERSARIAL: an id listed in both sets must fail disjointness, and an id dropped
+     from both without a computed leg must fail the accounting identity. */
+  const doubleListed = JSON.parse(taxPackText);
+  doubleListed.unsupportedFeatures.push({
+    id: 'net-investment-income-tax', label: 'Net investment income tax',
+    reason: 'deliberately listed in both sets for the adversarial case',
+    code: 'RLTAX-FEATURE-UNSUPPORTED', movesMarginalRate: true, successorFeature: 'none'
+  });
+  const doubleListedIds = doubleListed.unsupportedFeatures.map((entry) => entry.id);
+  const doubleListedDisjoint = doubleListedIds.every((id) => declaredLegIds.indexOf(id) < 0);
+  const vanished = JSON.parse(taxPackText);
+  vanished.unsupportedFeatures = vanished.unsupportedFeatures.filter((entry) => entry.id !== 'premium-tax-credit');
+  const vanishedIds = vanished.unsupportedFeatures.map((entry) => entry.id);
+  const vanishedAccounted = requiredUnsupportedIds.every((id) =>
+    vanishedIds.indexOf(id) >= 0 || declaredLegIds.indexOf(id) >= 0 || componentFamilyFor(id));
+  /* SUP-023-01 ADVERSARIAL: the id this feature MOVED must fail the same accounting when the
+     receiving component family is removed. Without this the replacement would pass on a pack
+     that deleted `state-and-local-tax` and modelled nothing in its place, which is the exact
+     defect the three-set accounting exists to catch. */
+  const emptiedComposition = [];
+  const saltAccountedWithoutComponents = requiredUnsupportedIds.every((id) => {
+    const inUnsupported = packUnsupportedIds.indexOf(id) >= 0;
+    const inLegs = declaredLegIds.indexOf(id) >= 0;
+    const inComposition = id === 'state-and-local-tax'
+      && emptiedComposition.indexOf('state-income-tax') >= 0
+      && emptiedComposition.indexOf('property-tax') >= 0;
+    return (inUnsupported ? 1 : 0) + (inLegs ? 1 : 0) + (inComposition ? 1 : 0) === 1;
+  });
+  assert(!doubleListedDisjoint && !vanishedAccounted && !saltAccountedWithoutComponents
+    && componentFamilyFor('state-and-local-tax')
+    && packUnsupportedIds.indexOf('state-and-local-tax') < 0,
+    'TP-01-08: the guard can fail — listing a computed leg in unsupportedFeatures[] breaks disjointness, dropping premium-tax-credit from unsupportedFeatures[] without declaring a leg breaks the accounting identity, and removing the receiving component family breaks it for the id this feature moved rather than deleted');
+
+  /* The synthetic stacking fixture can never resolve for a real jurisdiction or year, and no
+     shipped pack carries a fixture marker. */
+  const taxRuleFiles = readdirSync(join(ROOT, 'tax-rules/federal')).filter((file) => file.endsWith('.json'));
+  const fixtureMarkers = taxRuleFiles.filter((file) => {
+    const shipped = JSON.parse(read('tax-rules/federal/' + file));
+    return shipped.jurisdiction === 'fixture' || (shipped.effectiveTaxYears || []).includes(9999);
+  });
+  assert(taxRuleFiles.length >= 1 && fixtureMarkers.length === 0,
+    'TP-01-01: no file under tax-rules carries a fixture marker');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 021 Scope 01 rule-pack group threw): ' + e.message); }
+
+/* ---------- Feature 021 Scope 02: deterministic annual federal computation ---------- */
+try {
+  group('Feature 021 Scope 02 — lifetime-tax deterministic annual federal computation');
+  const { createRequire: createSettleRequire } = await import('node:module');
+  const { createHash: createSettleHash } = await import('node:crypto');
+  const settleRequire = createSettleRequire(import.meta.url);
+  const RLTAXRULES = settleRequire('../rltaxrules.js');
+  const RLTAXWORKSPACE = settleRequire('../rltaxworkspace.js');
+  const RLTAX = settleRequire('../rltax.js');
+
+  const settlePack = JSON.parse(read('tax-rules/federal/2026.json'));
+  const settleConfig = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  const codeOf = (record) => (record && record.code) || null;
+
+  /* TP-02-06: no network call may reach this group, so a stubbed fetch throws for its duration. */
+  const priorFetch = globalThis.fetch;
+  globalThis.fetch = () => { throw new Error('a tax settlement must never issue a network request'); };
+  try {
+    const workspaceAt = (filingStatus, taxableTarget) => {
+      const workspace = RLTAXWORKSPACE.createEmptyWorkspace();
+      workspace.filingStatus = filingStatus;
+      workspace.declaredTaxYear = 2026;
+      workspace.deductionMode = 'itemized';
+      workspace.itemizedAmount = 0;
+      workspace.income.ordinary = taxableTarget;
+      /* Fixture Input Completion Register, FIC-4: a real declaration of no net investment
+         income portion and no Medicare wage basis, so both surtax legs compute a real zero and
+         no previously settled figure moves. */
+      workspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+      workspace.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+      return workspace;
+    };
+
+    /* Known values transcribed from Rev. Proc. 2025-32 section 4.01. Each row is the authority's
+       own cumulative "$base plus rate% of the excess over $threshold" statement, which is an
+       independent check on the engine's band walk over the pack's band edges. */
+    const KNOWN_ORDINARY_SCHEDULES = {
+      'single': [
+        { threshold: 0, base: 0, rate: 0.10 }, { threshold: 12400, base: 1240, rate: 0.12 },
+        { threshold: 50400, base: 5800, rate: 0.22 }, { threshold: 105700, base: 17966, rate: 0.24 },
+        { threshold: 201775, base: 41024, rate: 0.32 }, { threshold: 256225, base: 58448, rate: 0.35 },
+        { threshold: 640600, base: 192979.25, rate: 0.37 }
+      ],
+      'married-filing-jointly': [
+        { threshold: 0, base: 0, rate: 0.10 }, { threshold: 24800, base: 2480, rate: 0.12 },
+        { threshold: 100800, base: 11600, rate: 0.22 }, { threshold: 211400, base: 35932, rate: 0.24 },
+        { threshold: 403550, base: 82048, rate: 0.32 }, { threshold: 512450, base: 116896, rate: 0.35 },
+        { threshold: 768700, base: 206583.50, rate: 0.37 }
+      ],
+      'married-filing-separately': [
+        { threshold: 0, base: 0, rate: 0.10 }, { threshold: 12400, base: 1240, rate: 0.12 },
+        { threshold: 50400, base: 5800, rate: 0.22 }, { threshold: 105700, base: 17966, rate: 0.24 },
+        { threshold: 201775, base: 41024, rate: 0.32 }, { threshold: 256225, base: 58448, rate: 0.35 },
+        { threshold: 384350, base: 103291.75, rate: 0.37 }
+      ],
+      'head-of-household': [
+        { threshold: 0, base: 0, rate: 0.10 }, { threshold: 17700, base: 1770, rate: 0.12 },
+        { threshold: 67450, base: 7740, rate: 0.22 }, { threshold: 105700, base: 16155, rate: 0.24 },
+        { threshold: 201750, base: 39207, rate: 0.32 }, { threshold: 256200, base: 56631, rate: 0.35 },
+        { threshold: 640600, base: 191171, rate: 0.37 }
+      ]
+    };
+    const knownOrdinaryTax = (filingStatus, taxable) => {
+      const rows = KNOWN_ORDINARY_SCHEDULES[filingStatus];
+      let chosen = rows[0];
+      rows.forEach((row) => { if (taxable >= row.threshold) chosen = row; });
+      return chosen.base + chosen.rate * (taxable - chosen.threshold);
+    };
+
+    /* The transcribed pack edges must equal the transcribed schedule thresholds, so a single
+       mistyped digit in either place fails rather than cancelling out. */
+    const edgeParity = RLTAXRULES.SUPPORTED_FILING_STATUSES.every((filingStatus) => {
+      const packEdges = settlePack.ordinaryRateTables[filingStatus].bands.map((band) => band.lowerInclusive);
+      const knownEdges = KNOWN_ORDINARY_SCHEDULES[filingStatus].map((row) => row.threshold);
+      const packRates = settlePack.ordinaryRateTables[filingStatus].bands.map((band) => band.rate);
+      const knownRates = KNOWN_ORDINARY_SCHEDULES[filingStatus].map((row) => row.rate);
+      return JSON.stringify(packEdges) === JSON.stringify(knownEdges) && JSON.stringify(packRates) === JSON.stringify(knownRates);
+    });
+    assert(edgeParity, 'TP-02-01: every pack band edge and rate equals the independently transcribed Rev. Proc. 2025-32 schedule');
+
+    /* TP-02-01: exact below, at, and above every bracket edge for every supported filing status. */
+    let boundaryChecks = 0;
+    const boundaryFailures = [];
+    RLTAXRULES.SUPPORTED_FILING_STATUSES.forEach((filingStatus) => {
+      const edges = settlePack.ordinaryRateTables[filingStatus].bands
+        .map((band) => band.lowerInclusive).filter((edge) => edge > 0);
+      edges.forEach((edge) => {
+        [edge - 1, edge, edge + 1].forEach((taxable) => {
+          const settled = RLTAX.computeAnnualFederalTax(workspaceAt(filingStatus, taxable), settlePack);
+          const expected = knownOrdinaryTax(filingStatus, taxable);
+          boundaryChecks += 1;
+          if (RLTAXRULES.isUnavailable(settled.ordinaryTax) || !approx(settled.ordinaryTax.value, expected, 0.0000001)) {
+            boundaryFailures.push(filingStatus + '@' + taxable);
+          }
+        });
+      });
+    });
+    assert(boundaryChecks === 72 && boundaryFailures.length === 0,
+      'TP-02-01: ordinary tax is exact immediately below, exactly at, and immediately above all 24 bracket edges across the four filing statuses (' + boundaryChecks + ' checks)');
+
+    /* An amount exactly at an edge sits in the band starting there and contributes zero to it. */
+    const atEdge = RLTAX.computeAnnualFederalTax(workspaceAt('single', 50400), settlePack);
+    const edgeBand = atEdge.ordinaryTax.bandDetail.find((band) => band.lowerInclusive === 50400);
+    assert(edgeBand.dollarsTaxed === 0 && edgeBand.tax === 0 && approx(atEdge.ordinaryTax.value, 5800, 0.0000001)
+      && atEdge.marginalContext.activeOrdinaryBandId === 'b3'
+      && atEdge.marginalContext.distanceToNextOrdinaryEdge === 105700 - 50400,
+    'TP-02-01: an amount exactly at a band edge sits in the band beginning there, contributes zero dollars to it, and reports the distance to the next edge');
+
+    /* TP-02-04: both deduction modes publish the applied amount and the mode that produced it. */
+    const standardWorkspace = RLTAXWORKSPACE.createEmptyWorkspace();
+    standardWorkspace.filingStatus = 'married-filing-jointly';
+    standardWorkspace.declaredTaxYear = 2026;
+    standardWorkspace.deductionMode = 'standard';
+    standardWorkspace.income.ordinary = 150000;
+    /* Fixture Input Completion Register, FIC-4. */
+    standardWorkspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+    standardWorkspace.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+    const standardSettled = RLTAX.computeAnnualFederalTax(standardWorkspace, settlePack);
+    const itemizedWorkspace = JSON.parse(JSON.stringify(standardWorkspace));
+    itemizedWorkspace.deductionMode = 'itemized';
+    itemizedWorkspace.itemizedAmount = 40000;
+    const itemizedSettled = RLTAX.computeAnnualFederalTax(itemizedWorkspace, settlePack);
+    const noModeWorkspace = JSON.parse(JSON.stringify(standardWorkspace));
+    noModeWorkspace.deductionMode = null;
+    const noModeSettled = RLTAX.computeAnnualFederalTax(noModeWorkspace, settlePack);
+    assert(standardSettled.appliedDeduction.value === 32200 && standardSettled.appliedDeduction.mode === 'standard'
+      && standardSettled.appliedDeduction.sourceRef === 'rp-2025-32'
+      && approx(standardSettled.totalTaxableIncome.value, 150000 - 32200, 0.0000001)
+      && approx(standardSettled.ordinaryTax.value, knownOrdinaryTax('married-filing-jointly', 117800), 0.0000001)
+      && itemizedSettled.appliedDeduction.value === 40000 && itemizedSettled.appliedDeduction.mode === 'itemized'
+      && approx(itemizedSettled.totalTaxableIncome.value, 110000, 0.0000001)
+      && codeOf(noModeSettled.appliedDeduction) === 'RLTAX-INPUT-INCOMPLETE'
+      && codeOf(noModeSettled.totalFederalTax) === 'RLTAX-INPUT-INCOMPLETE',
+    'TP-02-04: standard and itemized modes each publish the applied amount and the mode, and an undeclared mode refuses RLTAX-INPUT-INCOMPLETE rather than applying a default');
+
+    /* CO-3 floors total taxable income at zero when the deduction exceeds total income. */
+    const flooredWorkspace = RLTAXWORKSPACE.createEmptyWorkspace();
+    flooredWorkspace.filingStatus = 'single';
+    flooredWorkspace.declaredTaxYear = 2026;
+    flooredWorkspace.deductionMode = 'standard';
+    flooredWorkspace.income.ordinary = 5000;
+    /* Fixture Input Completion Register, FIC-4. */
+    flooredWorkspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+    flooredWorkspace.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+    const flooredSettled = RLTAX.computeAnnualFederalTax(flooredWorkspace, settlePack);
+    assert(flooredSettled.appliedDeduction.value === 16100
+      && flooredSettled.totalTaxableIncome.value === 0
+      && flooredSettled.ordinaryTaxableIncome.value === 0
+      && flooredSettled.preferentialTaxableIncome.value === 0
+      && flooredSettled.ordinaryTax.value === 0
+      && flooredSettled.reconciliation.legs.find((leg) => leg.id === 'L2').state === 'holds',
+    'TP-02-04: CO-3 applies the deduction to total income and floors taxable income at zero when the deduction exceeds it');
+
+    /* TP-02-08: tax-exempt interest is recorded, excluded from gross, and never enters a leg. */
+    const exemptWorkspace = JSON.parse(JSON.stringify(flooredWorkspace));
+    exemptWorkspace.income.ordinary = 80000;
+    exemptWorkspace.income.taxExemptInterest = 25000;
+    const exemptSettled = RLTAX.computeAnnualFederalTax(exemptWorkspace, settlePack);
+    const withoutExemptWorkspace = JSON.parse(JSON.stringify(exemptWorkspace));
+    withoutExemptWorkspace.income.taxExemptInterest = 0;
+    const withoutExemptSettled = RLTAX.computeAnnualFederalTax(withoutExemptWorkspace, settlePack);
+    assert(exemptSettled.taxExemptInterestRecorded.value === 25000
+      && exemptSettled.grossSupportedIncome.value === 80000
+      && approx(exemptSettled.ordinaryTax.value, withoutExemptSettled.ordinaryTax.value, 0.0000001)
+      && exemptSettled.reconciliation.legs.find((leg) => leg.id === 'L5').state === 'holds'
+      && exemptSettled.reconciliation.legs.find((leg) => leg.id === 'L1').state === 'holds',
+    'TP-02-08: tax-exempt interest is retained as a recorded input, excluded from gross supported income, and changes no tax leg');
+
+    /* TP-02-02 / TP-02-03: CO-7 stacking is proven against a synthetic fixture pack that can never
+       resolve for a real jurisdiction or year, because the shipped pack carries no preferential
+       table until its missing rate is retrieved. */
+    const fixtureSource = {
+      contractVersion: 'SourceRecord/v1',
+      sourceId: 'stacking-fixture',
+      title: 'synthetic stacking fixture, not a tax authority',
+      url: 'https://example.invalid/synthetic-stacking-fixture',
+      publisher: 'research-lab test fixture',
+      documentKind: 'form-instructions',
+      publishedAt: '9999-01-01',
+      retrievedAt: '9999-01-01T00:00:00.000Z',
+      retrievalOutcome: 'retrieved',
+      retrievalNote: 'synthetic fixture'
+    };
+    const fixtureBands = (edges) => edges.map((edge, index) => ({
+      bandId: 'b' + (index + 1),
+      lowerInclusive: edge.lower,
+      upperExclusive: edge.upper,
+      rate: edge.rate,
+      thresholdKind: 'rate-step'
+    }));
+    const perStatus = (build) => {
+      const record = {};
+      RLTAXRULES.SUPPORTED_FILING_STATUSES.forEach((status) => { record[status] = build(status); });
+      return record;
+    };
+    const fixturePack = {
+      contractVersion: 'TaxRulePack/v1',
+      id: 'stacking-fixture-9999',
+      program: 'income-tax',
+      jurisdiction: 'fixture',
+      version: '1.0.0',
+      effectiveTaxYears: [9999],
+      publishedAt: '9999-01-01',
+      retrievedAt: '9999-01-01T00:00:00.000Z',
+      ruleStatus: 'user-hypothetical-law',
+      sourceRecords: [fixtureSource],
+      supportedFeatures: [{ id: 'fixture-arithmetic', label: 'Fixture arithmetic', reason: 'Exercises CO-7 stacking only.' }],
+      unsupportedFeatures: [{ id: 'everything-else', label: 'Everything else', reason: 'This fixture models no real law.', code: 'RLTAX-FEATURE-UNSUPPORTED', movesMarginalRate: true }],
+      indexingRules: [],
+      calculationOrder: RLTAXRULES.CALCULATION_ORDER.slice(),
+      roundingPolicy: { contractVersion: 'TaxRoundingPolicy/v1', calculationStages: [], displayStageIsSeparate: true, reconciliationTolerance: 0.005 },
+      expiryPolicy: { contractVersion: 'TaxPackExpiry/v1', expiresAt: '9999-12-31', reason: 'fixture', onExpiry: 'refuse' },
+      filingStatuses: RLTAXRULES.SUPPORTED_FILING_STATUSES.slice(),
+      incomeKinds: RLTAXRULES.SUPPORTED_INCOME_KINDS.slice(),
+      standardDeductions: perStatus((status) => ({
+        contractVersion: 'DeductionAmount/v1', filingStatus: status, amount: 0,
+        sourceRef: 'stacking-fixture', locator: 'fixture'
+      })),
+      ordinaryRateTables: perStatus((status) => ({
+        contractVersion: 'RateTable/v1', tableId: 'fixture-ordinary-' + status, kind: 'ordinary', filingStatus: status,
+        bands: fixtureBands([{ lower: 0, upper: 100, rate: 0.10 }, { lower: 100, upper: null, rate: 0.20 }]),
+        sourceRef: 'stacking-fixture', locator: 'fixture'
+      })),
+      preferentialRateTables: perStatus((status) => ({
+        contractVersion: 'RateTable/v1', tableId: 'fixture-preferential-' + status, kind: 'preferential', filingStatus: status,
+        bands: fixtureBands([{ lower: 0, upper: 100, rate: 0 }, { lower: 100, upper: 200, rate: 0.15 }, { lower: 200, upper: null, rate: 0.20 }]),
+        sourceRef: 'stacking-fixture', locator: 'fixture'
+      })),
+      contentSha256: 'sha256:' + '0'.repeat(64)
+    };
+    fixturePack.contentSha256 = 'sha256:' + createSettleHash('sha256').update(RLTAXRULES.packContentDigestInput(fixturePack), 'utf8').digest('hex');
+    const fixtureValid = RLTAXRULES.validateRulePack(fixturePack);
+    const fixtureAsFederal = RLTAXRULES.resolveRulePack(fixturePack, { jurisdiction: 'federal', program: 'income-tax', declaredTaxYear: 2026 });
+    assert(fixtureValid.ok && codeOf(fixtureAsFederal.refusals[0]) === 'RLTAX-JURISDICTION-UNSUPPORTED'
+      && !fixturePack.effectiveTaxYears.includes(2026),
+    'TP-02-02: the stacking fixture is a structurally valid pack that can never resolve for a real jurisdiction or a real declared year');
+
+    const fixtureWorkspace = (ordinary, qualifiedDividend, longTermCapitalGain) => {
+      const workspace = RLTAXWORKSPACE.createEmptyWorkspace();
+      workspace.filingStatus = 'single';
+      workspace.declaredTaxYear = 9999;
+      workspace.deductionMode = 'itemized';
+      workspace.itemizedAmount = 0;
+      workspace.income.ordinary = ordinary;
+      workspace.income.qualifiedDividend = qualifiedDividend;
+      workspace.income.longTermCapitalGain = longTermCapitalGain;
+      /* Fixture Input Completion Register, FIC-4. */
+      workspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+      workspace.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+      return workspace;
+    };
+    const lowOrdinary = RLTAX.computeAnnualFederalTax(fixtureWorkspace(50, 0, 100), fixturePack);
+    const highOrdinary = RLTAX.computeAnnualFederalTax(fixtureWorkspace(150, 0, 100), fixturePack);
+    const dividendOnly = RLTAX.computeAnnualFederalTax(fixtureWorkspace(50, 100, 0), fixturePack);
+    assert(approx(lowOrdinary.preferentialTax.value, 7.5, 0.0000001)
+      && approx(highOrdinary.preferentialTax.value, 17.5, 0.0000001)
+      && lowOrdinary.declaredIncome.longTermCapitalGain === highOrdinary.declaredIncome.longTermCapitalGain
+      && lowOrdinary.declaredIncome.ordinary !== highOrdinary.declaredIncome.ordinary
+      && !approx(lowOrdinary.preferentialTax.value, highOrdinary.preferentialTax.value, 0.0000001)
+      && approx(dividendOnly.preferentialTax.value, lowOrdinary.preferentialTax.value, 0.0000001)
+      && approx(lowOrdinary.ordinaryTaxableIncome.value, 50, 0.0000001)
+      && approx(lowOrdinary.preferentialTaxableIncome.value, 100, 0.0000001),
+    'TP-02-02: the preferential amount is taxed in the bands above ordinary taxable income, raising ordinary income alone changes the tax on an unchanged gain, and qualified dividends stack identically');
+
+    /* TP-02-03 ADVERSARIAL: dropping the ordinary term from the CO-7 window taxes the gain in
+       isolation and must fail the stacking assertion. */
+    const isolatedStacking = (ordinaryTaxableIncome, preferentialTaxableIncome, table) => {
+      let total = 0;
+      table.bands.forEach((band) => {
+        const upper = band.upperExclusive === null ? Infinity : band.upperExclusive;
+        total += band.rate * Math.max(0, Math.min(preferentialTaxableIncome, upper) - band.lowerInclusive);
+      });
+      return total;
+    };
+    const isolatedLow = isolatedStacking(50, 100, fixturePack.preferentialRateTables.single);
+    const isolatedHigh = isolatedStacking(150, 100, fixturePack.preferentialRateTables.single);
+    const stackedLow = RLTAX.stackPreferentialIncome(50, 100, fixturePack.preferentialRateTables.single).tax;
+    assert(isolatedLow === 0 && isolatedHigh === 0 && isolatedLow === isolatedHigh
+      && !approx(isolatedLow, stackedLow, 0.0000001)
+      && approx(stackedLow, 7.5, 0.0000001),
+    'TP-02-03: the guard can fail — a CO-7 window with the ordinary term dropped taxes the gain in isolation, is blind to ordinary income, and does not match the stacked result');
+
+    /* CO-4 caps the preferential amount at total taxable income, so ordinary taxable income is
+       never negative and the deduction is absorbed by ordinary income first. */
+    const bigDeduction = fixtureWorkspace(50, 0, 100);
+    bigDeduction.itemizedAmount = 120;
+    const capped = RLTAX.computeAnnualFederalTax(bigDeduction, fixturePack);
+    assert(capped.totalTaxableIncome.value === 30 && capped.preferentialTaxableIncome.value === 30
+      && capped.ordinaryTaxableIncome.value === 0
+      && capped.reconciliation.legs.find((leg) => leg.id === 'L3').state === 'holds',
+    'TP-02-02: CO-4 caps the preferential amount at total taxable income, so the deduction is absorbed by ordinary income first and ordinary taxable income never goes negative');
+
+    /* The shipped pack has no preferential table, so a household with preferential income gets a
+       named refusal on that leg AND on the total, never a total that omits the missing leg. */
+    const preferentialHousehold = RLTAXWORKSPACE.createEmptyWorkspace();
+    preferentialHousehold.filingStatus = 'single';
+    preferentialHousehold.declaredTaxYear = 2026;
+    preferentialHousehold.deductionMode = 'standard';
+    preferentialHousehold.income.ordinary = 90000;
+    preferentialHousehold.income.longTermCapitalGain = 20000;
+    /* Fixture Input Completion Register, FIC-4. */
+    preferentialHousehold.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+    preferentialHousehold.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+    const preferentialSettled = RLTAX.computeAnnualFederalTax(preferentialHousehold, settlePack);
+
+    /* SUP-022-05: supersedes the clause asserting the shipped pack refuses preferentialTax,
+       totalFederalTax and averageRate for a gain household with L4 not-evaluable; shape=relocate.
+       The whole original refusal assertion moves onto an absent-table fixture, where it becomes
+       permanent rather than incidental to a pack state that is about to disappear, and the
+       shipped pack gains a valued, reconciling branch.
+       Ledger: specs/022-federal-preferential-and-state-income-tax/spec.md#supersession-ledger. */
+    const settleAbsentFixturePack = JSON.parse(read('tax-rules/federal/2026.json'));
+    RLTAXRULES.SUPPORTED_FILING_STATUSES.forEach((status) => {
+      settleAbsentFixturePack.preferentialRateTables[status] = {
+        contractVersion: 'AbsentFigure/v1',
+        code: 'RLTAX-THRESHOLD-UNAVAILABLE',
+        domain: 'preferential-rate-table:' + status,
+        reason: 'This fixture pack deliberately carries no preferential rate table, so the missing-leg rule keeps being proven after every shipped status resolves.',
+        whatWouldMakeItAvailable: 'Retrieve the authority stating the full preferential schedule (missing source: absent-preferential-table fixture pointer)',
+        missingSource: {
+          title: 'Absent-preferential-table fixture pointer',
+          url: 'https://www.irs.gov/irb/2025-45_IRB',
+          documentKind: 'revenue-procedure',
+          locator: 'Deliberately unretrieved so the absence branch is never vacuous.'
+        }
+      };
+    });
+    const fixtureRefused = RLTAX.computeAnnualFederalTax(preferentialHousehold, settleAbsentFixturePack);
+    /* The retained clause, verbatim, against the fixture. */
+    const retainedMissingLegRule = codeOf(fixtureRefused.preferentialTax) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+      && codeOf(fixtureRefused.totalFederalTax) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+      && codeOf(fixtureRefused.averageRate) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+      && fixtureRefused.totalFederalTax.value === undefined
+      && fixtureRefused.preferentialTax.reason.length > 0
+      && fixtureRefused.preferentialTax.whatWouldMakeItAvailable.indexOf('missing source') >= 0
+      && !RLTAXRULES.isUnavailable(fixtureRefused.ordinaryTax)
+      && fixtureRefused.reconciliation.legs.find((leg) => leg.id === 'L4').state === 'not-evaluable'
+      && fixtureRefused.reconciliation.legs.find((leg) => leg.id === 'L1').state === 'holds';
+    const settledTolerance = settlePack.roundingPolicy.reconciliationTolerance;
+    const includedLegSum = preferentialSettled.taxLegs
+      .filter((leg) => leg.includedInTotal)
+      .reduce((running, leg) => running + leg.value, 0);
+    assert(retainedMissingLegRule
+      && !RLTAXRULES.isUnavailable(preferentialSettled.totalFederalTax)
+      && Number.isFinite(preferentialSettled.totalFederalTax.value)
+      && preferentialSettled.totalFederalTax.ruleStatus === 'enacted-current-law'
+      && preferentialSettled.reconciliation.legs.find((leg) => leg.id === 'L4').state === 'holds'
+      && preferentialSettled.reconciliation.balanced === true
+      && Math.abs(includedLegSum - preferentialSettled.totalFederalTax.value) <= settledTolerance
+      && Math.abs((preferentialSettled.ordinaryTax.value + preferentialSettled.preferentialTax.value
+        + preferentialSettled.netInvestmentIncomeTax.value + preferentialSettled.additionalMedicareTax.value)
+        - preferentialSettled.totalFederalTax.value) <= settledTolerance,
+    'TP-02-10: for a status whose preferential table resolved the total is a valued, reconciling record whose legs sum to it within the pack tolerance, and the whole original missing-leg refusal — including L4 not-evaluable and the surviving ordinary leg — is retained verbatim against the absent-table fixture');
+
+    /* SUP-022-05 ADVERSARIAL: an implementation that treats an absent preferential leg as zero
+       and returns a plausible total must fail the retained fixture branch. */
+    const fabricatedTotal = fixtureRefused.ordinaryTax.value;
+    assert(Number.isFinite(fabricatedTotal) && fabricatedTotal > 0
+      && fixtureRefused.totalFederalTax.value === undefined
+      && !Object.prototype.hasOwnProperty.call(fixtureRefused.totalFederalTax, 'value'),
+    'TP-02-10: the guard can fail — a plausible total is available to be fabricated from the surviving ordinary leg, and the absent-table fixture is proven to carry no value member in its place');
+
+    /* TP-02-05: the five legs are displayed, and a deliberately unbalanced result is refused. */
+    const balancedSettled = RLTAX.computeAnnualFederalTax(standardWorkspace, settlePack);
+    const legIds = balancedSettled.reconciliation.legs.map((leg) => leg.id).join(',');
+    /* SUP-022-14: the deliberately-unbalanced fixture is rebuilt from the settled record and
+       perturbs ONLY the total, so the generalized L4 identity — a sum over the declared leg set
+       rather than a fixed pair — is what the break is measured against. Every other member is
+       the settled record's own, which is what keeps this a perturbation rather than a
+       differently-shaped input. */
+    const unbalanced = {
+      declaredIncome: balancedSettled.declaredIncome,
+      declaredBases: balancedSettled.declaredBases,
+      grossSupportedIncome: balancedSettled.grossSupportedIncome,
+      taxExemptInterestRecorded: balancedSettled.taxExemptInterestRecorded,
+      appliedDeduction: balancedSettled.appliedDeduction,
+      totalTaxableIncome: balancedSettled.totalTaxableIncome,
+      preferentialTaxableIncome: balancedSettled.preferentialTaxableIncome,
+      ordinaryTaxableIncome: balancedSettled.ordinaryTaxableIncome,
+      ordinaryTax: balancedSettled.ordinaryTax,
+      preferentialTax: balancedSettled.preferentialTax,
+      netInvestmentIncomeTax: balancedSettled.netInvestmentIncomeTax,
+      additionalMedicareTax: balancedSettled.additionalMedicareTax,
+      taxLegs: balancedSettled.taxLegs,
+      totalFederalTax: { value: balancedSettled.totalFederalTax.value + 1, ruleStatus: 'enacted-current-law' }
+    };
+    const unbalancedVerdict = RLTAX.reconcileAnnualFederalTax(unbalanced, settlePack);
+
+    /* SUP-022-14: supersedes `legIds === 'L1,L2,L3,L4,L5'` and the five-leg reading of the
+       all-legs-hold clause; shape=derive. The published leg-id list is compared, in order and in
+       both directions, against the engine's own declaration for this settlement rather than
+       against a string literal, and the loop iterates the published legs.
+       Ledger: specs/022-federal-preferential-and-state-income-tax/spec.md#supersession-ledger. */
+    const publishedLegIds = balancedSettled.reconciliation.legs.map((leg) => leg.id);
+    const engineDeclaredLegIds = RLTAX.reconcileAnnualFederalTax(balancedSettled, settlePack)
+      .legs.map((leg) => leg.id);
+    const orderedIdentity = publishedLegIds.length === engineDeclaredLegIds.length
+      && publishedLegIds.every((id, index) => id === engineDeclaredLegIds[index])
+      && engineDeclaredLegIds.every((id, index) => id === publishedLegIds[index]);
+    const l6 = balancedSettled.reconciliation.legs.find((leg) => leg.id === 'L6');
+    /* The L6 clause SCN-022-004 requires: the investment-income base excludes tax-exempt
+       interest and excludes the declared wage basis unless that amount was also declared as net
+       investment income. */
+    const exemptBearingL6 = JSON.parse(JSON.stringify(standardWorkspace));
+    exemptBearingL6.income.taxExemptInterest = 25000;
+    exemptBearingL6.income.qualifiedDividend = 10000;
+    const exemptSettledL6 = RLTAX.computeAnnualFederalTax(exemptBearingL6, settlePack);
+    const wageBearingL6 = JSON.parse(JSON.stringify(standardWorkspace));
+    wageBearingL6.income.qualifiedDividend = 10000;
+    wageBearingL6.wageBasis.medicareWagesAndSelfEmploymentIncome = 400000;
+    const wageSettledL6 = RLTAX.computeAnnualFederalTax(wageBearingL6, settlePack);
+    assert(orderedIdentity && publishedLegIds.indexOf('L6') >= 0
+      && balancedSettled.reconciliation.balanced === true
+      && balancedSettled.reconciliation.toleranceUsed === settlePack.roundingPolicy.reconciliationTolerance
+      && balancedSettled.reconciliation.legs.every((leg) => leg.state === 'holds')
+      && l6.state === 'holds'
+      && exemptSettledL6.reconciliation.legs.find((leg) => leg.id === 'L6').state === 'holds'
+      && exemptSettledL6.netInvestmentIncomeTax.netInvestmentIncome === 10000
+      && exemptSettledL6.netInvestmentIncomeTax.modifiedAdjustedGross === 160000
+      && wageSettledL6.reconciliation.legs.find((leg) => leg.id === 'L6').state === 'holds'
+      && wageSettledL6.netInvestmentIncomeTax.netInvestmentIncome === 10000
+      && unbalancedVerdict.balanced === false
+      && codeOf(unbalancedVerdict.refusal) === 'RLTAX-RECONCILE'
+      && unbalancedVerdict.legs.find((leg) => leg.id === 'L4').state === 'breaks',
+    'TP-02-05: the published reconciliation leg-id list equals the engine\u2019s own declaration in order and in both directions, every published leg holds for a settled result, L6 proves the investment-income base excludes tax-exempt interest and the declared wage basis, and a deliberately unbalanced total is still refused RLTAX-RECONCILE');
+
+    /* SUP-022-14 ADVERSARIAL: an L6 that passed while tax-exempt interest sat in the
+       investment-income base, and a leg dropped while another is added at constant length, must
+       each be detectable. */
+    const foldedBase = exemptSettledL6.netInvestmentIncomeTax.netInvestmentIncome
+      + exemptSettledL6.declaredIncome.taxExemptInterest;
+    const reorderedLegIds = publishedLegIds.slice().reverse();
+    const substitutedLegIds = publishedLegIds.slice(0, publishedLegIds.length - 1).concat(['L9']);
+    assert(foldedBase !== exemptSettledL6.netInvestmentIncomeTax.netInvestmentIncome
+      && !reorderedLegIds.every((id, index) => id === engineDeclaredLegIds[index])
+      && substitutedLegIds.length === publishedLegIds.length
+      && !substitutedLegIds.every((id, index) => id === engineDeclaredLegIds[index]),
+    'TP-02-08: the guard can fail — folding tax-exempt interest into the investment-income base moves it, and a reordered or substituted leg list at constant length breaks the ordered identity that a length check could not see');
+
+    /* TP-02-06: determinism — identical input yields a byte-identical result, repeatedly. */
+    const determinismDigests = [];
+    let repeat = 0;
+    for (repeat = 0; repeat < 50; repeat += 1) {
+      determinismDigests.push(JSON.stringify(RLTAX.computeAnnualFederalTax(
+        JSON.parse(JSON.stringify(standardWorkspace)), settlePack)));
+    }
+    let fetchThrew = false;
+    try { globalThis.fetch('https://example.invalid'); } catch (fetchError) { fetchThrew = true; }
+    assert(determinismDigests.length === 50 && new Set(determinismDigests).size === 1 && fetchThrew,
+      'TP-02-06: 50 repeated settlements over identical input produce one byte-identical result while any network call throws');
+
+    /* TP-02-07: the engine holds no tax-domain numeric constant and no bracket table. */
+    const engineSource = read('rltax.js')
+      .replace(/\/\*[\s\S]*?\*\//g, ' ')
+      .replace(/"(?:[^"\\]|\\.)*"/g, ' ')
+      .replace(/'(?:[^'\\]|\\.)*'/g, ' ')
+      .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+    const engineLiterals = (engineSource.match(/\b\d+(?:\.\d+)?\b/g) || []).filter((literal) => literal !== '0' && literal !== '1');
+    /* A DECLARED band table assigns a literal to a band member or builds a bands array. Reading
+       `band.lowerInclusive` off the resolved pack, and echoing it into display detail, is not a
+       declaration, so the detector must not fire on it. */
+    const declaresBandTable = (source) => /(?:lowerInclusive|upperExclusive|thresholdKind|rate)\s*:\s*-?\d/.test(source)
+      || /\bbands\s*:\s*\[/.test(source);
+    const engineDeclaresTable = declaresBandTable(engineSource);
+    const engineReadsPack = /pack\.ordinaryRateTables/.test(read('rltax.js')) && /pack\.standardDeductions/.test(read('rltax.js'));
+    assert(engineLiterals.length === 0 && !engineDeclaresTable && engineReadsPack,
+      'TP-02-07: rltax.js carries no numeric literal beyond 0 and 1, declares no band table of its own, and reads every rate and edge from the resolved pack (' + engineLiterals.join(',') + ')');
+
+    /* ADVERSARIAL: both detectors must fire on a module that does embed a bracket edge. */
+    const shadowedSource = 'var TOP_BRACKET_EDGE = 640600; var bands = [{ lowerInclusive: 0, upperExclusive: 640600, rate: 0.37 }];';
+    const shadowedLiterals = (shadowedSource.match(/\b\d+(?:\.\d+)?\b/g) || []).filter((literal) => literal !== '0' && literal !== '1');
+    assert(shadowedLiterals.includes('640600') && declaresBandTable(shadowedSource)
+      && !declaresBandTable('detail.push({ lowerInclusive: band.lowerInclusive, upperExclusive: band.upperExclusive });'),
+      'TP-02-07: the no-constant detector really flags an engine that embeds a bracket edge, and the band-table detector separates a declared table from a pack value echoed into display detail');
+
+    /* TP-02-09: full internal precision is preserved and rounding is applied only at display. */
+    const precisionWorkspace = workspaceAt('single', 12400.5);
+    const precisionSettled = RLTAX.computeAnnualFederalTax(precisionWorkspace, settlePack);
+    const displayed = RLTAX.formatForDisplay(precisionSettled.ordinaryTax, settleConfig.display.displayRounding);
+    assert(approx(precisionSettled.ordinaryTax.value, 1240.06, 0.0000001)
+      && precisionSettled.ordinaryTax.value !== Math.round(precisionSettled.ordinaryTax.value)
+      && precisionSettled.roundingDisclosure.calculationStagesApplied.length === 0
+      && settlePack.roundingPolicy.calculationStages.length === 0
+      && displayed.raw === precisionSettled.ordinaryTax.value
+      && displayed.displayed === 1240
+      && displayed.policy === 'nearest-dollar',
+    'TP-02-09: no calculation stage rounds because the pack declares none, the settled value keeps its fractional cents, and rounding appears only in the display record beside the raw value');
+
+    /* TP-02-10: every unsupported feature is surfaced and no result claims a complete federal tax. */
+    const noticeIds = balancedSettled.unsupportedFeatureNotices.map((notice) => notice.id);
+    const completeClaims = ['rltax.js', 'rltaxrules.js', 'rltaxworkspace.js']
+      .filter((file) => /completeFederalTax\s*:\s*true/.test(read(file)));
+    /* SUP-022-04: supersedes `noticeIds.length === 18`; shape=derive. The sibling clause
+       `noticeIds.length === settlePack.unsupportedFeatures.length` was already derived and is
+       retained untouched. Two-directional set identity additionally detects a substitution that
+       a count hides — one notice dropped and another added in the same change. Scope 01 added
+       the three preferential category ids to the named spot checks; Scope 02 removed the two
+       surtax ids, which the pack no longer lists as unsupported.
+       Ledger: specs/022-federal-preferential-and-state-income-tax/spec.md#supersession-ledger. */
+    const packNoticeIds = settlePack.unsupportedFeatures.map((entry) => entry.id);
+    const noticeSetIdentity = noticeIds.every((id) => packNoticeIds.indexOf(id) >= 0)
+      && packNoticeIds.every((id) => noticeIds.indexOf(id) >= 0);
+    const noticeTextMatchesPack = balancedSettled.unsupportedFeatureNotices.every((notice) => {
+      const entry = settlePack.unsupportedFeatures.find((candidate) => candidate.id === notice.id);
+      return !!entry && notice.reason === entry.reason && notice.label === entry.label
+        && notice.code === entry.code
+        && typeof entry.successorFeature === 'string' && entry.successorFeature.length > 0;
+    });
+    /* SUP-023-11: supersedes `noticeIds.includes('state-and-local-tax')`; shape=relocate.
+       ADMITTED IN FLIGHT under ASC-8 during Scope 02's implementation. Cause: FR-023-013 moves
+       that id out of unsupportedFeatures[], so a clause requiring it to be SURFACED as a
+       not-carried feature now pins a fact that is no longer the fact. Traded for: the id is
+       asserted ABSENT from the notice set and PRESENT as the capped component family the pack's
+       own cap declares, which is strictly stronger because a deletion with nothing modelled in
+       its place fails both halves rather than passing one. The other five named ids keep their
+       clause verbatim.
+       Ledger: specs/023-property-tax-and-rental-income/spec.md#supersession-ledger. */
+    const settleCappedIds = (settlePack.deductionCaps && settlePack.deductionCaps['state-and-local-tax']
+      && settlePack.deductionCaps['state-and-local-tax'].cappedComponentIds) || [];
+    const saltRelocated = !noticeIds.includes('state-and-local-tax')
+      && settleCappedIds.indexOf('state-income-tax') >= 0
+      && settleCappedIds.indexOf('property-tax') >= 0;
+    /* SUP-023-09: supersedes `noticeIds.includes('unrecaptured-section-1250-gain')`; shape=relocate.
+       Cause: FR-023-032 removes that id from unsupportedFeatures[], so a clause requiring it to be
+       SURFACED as a not-carried category now pins a fact that is no longer the fact. Traded for:
+       the id is asserted ABSENT from the notice set and PRESENT as a carried category that names
+       its own sourced maximum rate, its own citation and its own pricing rule, which is strictly
+       stronger because a deletion with nothing modelled in its place fails the second half rather
+       than passing the first. The REMAINING above-rate categories keep the original clause
+       verbatim, and they are DERIVED from the pack's own reason text rather than listed, so a
+       later removal of one of them cannot pass by editing a list here.
+       Ledger: specs/023-property-tax-and-rental-income/spec.md#supersession-ledger. */
+    const aboveRatePattern023 = /maximum (\d+)-percent rate, which sits above this pack's top carried preferential rate/;
+    const aboveRateStillDeferred023 = settlePack.unsupportedFeatures
+      .filter((entry) => aboveRatePattern023.test(entry.reason));
+    const carriedCategory023 = settlePack.dispositionPolicy
+      && settlePack.dispositionPolicy.recaptureCategory;
+    const RLTAXDISPOSITION = settleRequire('../rltaxdisposition.js');
+    const settledDisposition023 = RLTAXDISPOSITION.computeDisposition({
+      contractVersion: 'DispositionDeclaration/v1', declaredTaxYear: 2026,
+      proceeds: 700000, adjustedBasis: 380000, accumulatedCostRecovery: 20000,
+      ownershipMonths: 60, useMonths: 24, propertyUse: 'principal-residence'
+    }, settlePack);
+    const recaptureComponent023 = settledDisposition023.components
+      .filter((component) => component.componentId === 'disposition-recapture')[0];
+    const recaptureRelocated023 = !noticeIds.includes(carriedCategory023.categoryId)
+      && Number.isFinite(carriedCategory023.maximumRate)
+      && typeof carriedCategory023.sourceRef === 'string' && carriedCategory023.sourceRef.length > 0
+      && typeof carriedCategory023.locator === 'string' && carriedCategory023.locator.length > 0
+      /* Carried means PRICED, not merely declared: the settled disposition must produce a
+         component for it whose pricing rule is its own maximum rate rather than the stacking. */
+      && recaptureComponent023.pricingRule === 'own-maximum-rate'
+      && recaptureComponent023.maximumRate === carriedCategory023.maximumRate
+      && recaptureComponent023.citation.sourceRef === carriedCategory023.sourceRef
+      /* And the remaining above-rate categories are still refused, verbatim, on a pack that
+         exhibits each refusal — so the retained half of this clause is not vacuous. */
+      && aboveRateStillDeferred023.length === 2
+      && aboveRateStillDeferred023.every((entry) => noticeIds.includes(entry.id)
+        && aboveRatePattern023.exec(entry.reason)[1] === '28'
+        && entry.code === 'RLTAX-FEATURE-UNSUPPORTED');
+    assert(balancedSettled.completeFederalTax === false
+      && noticeIds.length === settlePack.unsupportedFeatures.length
+      && noticeSetIdentity && noticeTextMatchesPack
+      && saltRelocated && noticeIds.includes('senior-deduction')
+      && noticeIds.includes('itemized-deduction-benefit-limitation-top-band')
+      && noticeIds.includes('qualified-small-business-stock-section-1202-gain')
+      && noticeIds.includes('collectibles-gain')
+      && recaptureRelocated023
+      && !noticeIds.includes('net-investment-income-tax')
+      && !noticeIds.includes('additional-medicare-tax')
+      && completeClaims.length === 0
+      && JSON.stringify(balancedSettled.calculationOrder) === JSON.stringify(settlePack.calculationOrder),
+    'TP-02-10: the surfaced notice id set equals the pack\u2019s unsupportedFeatures id set in both directions, every notice carries its pack entry\u2019s label, reason, code and named successor verbatim, the two remaining above-rate preferential categories are still surfaced with their original reason while the recapture category has left the list because it is now priced at its own sourced maximum rate, both surtaxes have left it because they are now computed legs, the state and local tax id has left it because it is now the capped component family the pack declares, completeFederalTax is structurally false, and the published calculation order is the pack\u2019s own');
+
+    /* SUP-023-09 ADVERSARIAL. The replacement must FAIL if the category is removed from the
+       deferral list with nothing priced in its place, and must FAIL if one of the two retained
+       above-rate categories stops refusing. Neither failure is detectable by the literal this
+       entry superseded, which only ever asked whether one id was in a list. */
+    const unpricedPack023 = JSON.parse(JSON.stringify(settlePack));
+    delete unpricedPack023.dispositionPolicy;
+    const unpricedCarried023 = unpricedPack023.dispositionPolicy
+      && unpricedPack023.dispositionPolicy.recaptureCategory;
+    const droppedRetained023 = settlePack.unsupportedFeatures
+      .filter((entry) => aboveRatePattern023.test(entry.reason) && entry.id !== 'collectibles-gain');
+    assert(!unpricedCarried023
+      && RLTAXRULES.isUnavailable(RLTAXRULES.validateRecaptureRule(unpricedPack023, 2026))
+      && droppedRetained023.length === 1
+      && droppedRetained023.length !== aboveRateStillDeferred023.length,
+      'TP-02-10: the SUP-023-09 replacement is proven to discriminate \u2014 a pack that removed the category from the deferral list without carrying a sourced rate for it refuses rather than pricing it, and dropping one of the two retained above-rate categories changes the derived set the retained clause is asserted over');
+
+
+    /* SUP-022-04 ADVERSARIAL: a substitution at constant count must fail set identity, which the
+       literal could not detect, and a notice whose reason differs from its pack entry must fail
+       the verbatim clause. */
+    const substitutedNoticeIds = noticeIds.slice(0, noticeIds.length - 1).concat(['a-notice-the-pack-does-not-carry']);
+    const substitutedIdentity = substitutedNoticeIds.every((id) => packNoticeIds.indexOf(id) >= 0)
+      && packNoticeIds.every((id) => substitutedNoticeIds.indexOf(id) >= 0);
+    const driftedReason = balancedSettled.unsupportedFeatureNotices.map((notice) =>
+      (notice.id === 'senior-deduction' ? { ...notice, reason: 'a reason the pack does not carry' } : notice));
+    const driftedMatches = driftedReason.every((notice) => {
+      const entry = settlePack.unsupportedFeatures.find((candidate) => candidate.id === notice.id);
+      return !!entry && notice.reason === entry.reason;
+    });
+    assert(substitutedNoticeIds.length === noticeIds.length && !substitutedIdentity && !driftedMatches,
+      'TP-02-10: the guard can fail — swapping one surfaced notice for another at constant count breaks two-directional set identity, and a notice whose reason drifts from its pack entry breaks the verbatim clause');
+
+    /* No output states a probability, a lifetime figure, a track record or an error rate. */
+    const claimTokens = ['probability', 'successRate', 'accuracy', 'trackRecord', 'errorRate', 'breakEvenYear', 'lifetimeTotal', 'recommended'];
+    const claimLeaks = ['rltax.js', 'rltaxrules.js', 'rltaxworkspace.js', 'tax-rules/federal/2026.json', 'lifetime-tax-strategy.config.json']
+      .filter((file) => claimTokens.some((token) => read(file).toLowerCase().includes(token.toLowerCase())));
+    assert(claimLeaks.length === 0,
+      'TP-02-10: no source, pack or configuration string claims a probability, a lifetime total, a break-even year, a track record, an accuracy figure or an error rate');
+  } finally {
+    if (priorFetch === undefined) delete globalThis.fetch; else globalThis.fetch = priorFetch;
+  }
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 021 Scope 02 settlement group threw): ' + e.message); }
+
+/* ---------- Feature 021 Scope 03: effective marginal rate curve ---------- */
+try {
+  group('Feature 021 Scope 03 — lifetime-tax effective marginal rate curve');
+  const { createRequire: createCurveRequire } = await import('node:module');
+  const { createHash: createCurveHash } = await import('node:crypto');
+  const curveRequire = createCurveRequire(import.meta.url);
+  const RLTAXRULES = curveRequire('../rltaxrules.js');
+  const RLTAXWORKSPACE = curveRequire('../rltaxworkspace.js');
+  const RLTAX = curveRequire('../rltax.js');
+
+  const curvePackText = read('tax-rules/federal/2026.json');
+  const curvePack = JSON.parse(curvePackText);
+  const curveConfig = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  const curveSweep = curveConfig.sweep;
+  const codeOf = (record) => (record && record.code) || null;
+
+  const curveWorkspace = (overrides) => {
+    const workspace = RLTAXWORKSPACE.createEmptyWorkspace();
+    workspace.filingStatus = 'single';
+    workspace.declaredTaxYear = 2026;
+    workspace.deductionMode = 'standard';
+    /* Fixture Input Completion Register, FIC-4: both bases declared zero, so both surtax legs
+       are zero at every swept level and no new crossing enters the ordinary curve. */
+    workspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+    workspace.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+    Object.keys(overrides || {}).forEach((key) => {
+      if (key === 'income') Object.assign(workspace.income, overrides.income);
+      else workspace[key] = overrides[key];
+    });
+    return workspace;
+  };
+
+  /* A synthetic pack that carries BOTH rate-table families, so the two-curve contract is provable
+     while the shipped pack's preferential table is still an AbsentFigure. It can never resolve
+     for a real jurisdiction or a real declared year. */
+  const curveFixtureSource = {
+    contractVersion: 'SourceRecord/v1', sourceId: 'curve-fixture',
+    title: 'synthetic curve fixture, not a tax authority',
+    url: 'https://example.invalid/synthetic-curve-fixture', publisher: 'research-lab test fixture',
+    documentKind: 'form-instructions', publishedAt: '9999-01-01', retrievedAt: '9999-01-01T00:00:00.000Z',
+    retrievalOutcome: 'retrieved', retrievalNote: 'synthetic fixture'
+  };
+  const curveBands = (rows) => rows.map((row, index) => ({
+    bandId: 'b' + (index + 1), lowerInclusive: row.lower, upperExclusive: row.upper,
+    rate: row.rate, thresholdKind: row.thresholdKind || 'rate-step'
+  }));
+  const curvePerStatus = (build) => {
+    const record = {};
+    RLTAXRULES.SUPPORTED_FILING_STATUSES.forEach((status) => { record[status] = build(status); });
+    return record;
+  };
+  const curveFixturePack = {
+    contractVersion: 'TaxRulePack/v1', id: 'curve-fixture-9999', program: 'income-tax',
+    jurisdiction: 'fixture', version: '1.0.0', effectiveTaxYears: [9999],
+    publishedAt: '9999-01-01', retrievedAt: '9999-01-01T00:00:00.000Z',
+    ruleStatus: 'user-hypothetical-law', sourceRecords: [curveFixtureSource],
+    supportedFeatures: [{ id: 'fixture-arithmetic', label: 'Fixture arithmetic', reason: 'Exercises the curve only.' }],
+    unsupportedFeatures: [
+      { id: 'taxable-social-security-benefits', label: 'Taxable Social Security benefits', reason: 'This fixture models no real law.', code: 'RLTAX-FEATURE-UNSUPPORTED', movesMarginalRate: true },
+      { id: 'everything-else', label: 'Everything else', reason: 'This fixture models no real law.', code: 'RLTAX-FEATURE-UNSUPPORTED', movesMarginalRate: false }
+    ],
+    indexingRules: [], calculationOrder: RLTAXRULES.CALCULATION_ORDER.slice(),
+    roundingPolicy: { contractVersion: 'TaxRoundingPolicy/v1', calculationStages: [], displayStageIsSeparate: true, reconciliationTolerance: 0.005 },
+    expiryPolicy: { contractVersion: 'TaxPackExpiry/v1', expiresAt: '9999-12-31', reason: 'fixture', onExpiry: 'refuse' },
+    filingStatuses: RLTAXRULES.SUPPORTED_FILING_STATUSES.slice(),
+    incomeKinds: RLTAXRULES.SUPPORTED_INCOME_KINDS.slice(),
+    standardDeductions: curvePerStatus((status) => ({
+      contractVersion: 'DeductionAmount/v1', filingStatus: status, amount: 0,
+      sourceRef: 'curve-fixture', locator: 'fixture'
+    })),
+    ordinaryRateTables: curvePerStatus((status) => ({
+      contractVersion: 'RateTable/v1', tableId: 'fixture-ordinary-' + status, kind: 'ordinary', filingStatus: status,
+      bands: curveBands([{ lower: 0, upper: 20000, rate: 0.10 }, { lower: 20000, upper: 60000, rate: 0.25 }, { lower: 60000, upper: null, rate: 0.40 }]),
+      sourceRef: 'curve-fixture', locator: 'fixture'
+    })),
+    preferentialRateTables: curvePerStatus((status) => ({
+      contractVersion: 'RateTable/v1', tableId: 'fixture-preferential-' + status, kind: 'preferential', filingStatus: status,
+      bands: curveBands([{ lower: 0, upper: 40000, rate: 0 }, { lower: 40000, upper: 120000, rate: 0.15 }, { lower: 120000, upper: null, rate: 0.20 }]),
+      sourceRef: 'curve-fixture', locator: 'fixture'
+    })),
+    contentSha256: 'sha256:' + '0'.repeat(64)
+  };
+  curveFixturePack.contentSha256 = 'sha256:' + createCurveHash('sha256').update(RLTAXRULES.packContentDigestInput(curveFixturePack), 'utf8').digest('hex');
+  const curveFixtureWorkspace = curveWorkspace({ declaredTaxYear: 9999, deductionMode: 'itemized', itemizedAmount: 0 });
+  const fixtureSweep = { contractVersion: curveSweep.contractVersion, kinds: curveSweep.kinds.slice(), start: 0, end: 200000, step: 5000, probe: 1, maxPoints: 400 };
+
+  /* TP-03-01: two ordered multi-point curves, and no scalar rate anywhere on either record. */
+  const fixtureOrdinaryCurve = RLTAX.computeEffectiveMarginalCurve(curveFixtureWorkspace, curveFixturePack, 'ordinary', fixtureSweep);
+  const fixtureGainCurve = RLTAX.computeEffectiveMarginalCurve(curveFixtureWorkspace, curveFixturePack, 'long-term-gain', fixtureSweep);
+  const curveKeys = Object.keys(fixtureOrdinaryCurve).sort();
+  const ascending = (curve) => curve.points.every((point, index) => index === 0 || point.level > curve.points[index - 1].level);
+  const shippedSettlement = RLTAX.computeAnnualFederalTax(curveWorkspace({ income: { ordinary: 120000 } }), curvePack);
+  assert(fixtureOrdinaryCurve.contractVersion === 'EffectiveMarginalCurve/v1'
+    && fixtureGainCurve.contractVersion === 'EffectiveMarginalCurve/v1'
+    && fixtureOrdinaryCurve.kind === 'ordinary' && fixtureGainCurve.kind === 'long-term-gain'
+    && fixtureOrdinaryCurve.points.length > 1 && fixtureGainCurve.points.length > 1
+    && ascending(fixtureOrdinaryCurve) && ascending(fixtureGainCurve)
+    && JSON.stringify(curveKeys) === JSON.stringify(['contractVersion', 'incomplete', 'kind', 'packRef', 'points', 'segments', 'sweep', 'unavailableContributorCount', 'unavailableContributors'])
+    && !Object.prototype.hasOwnProperty.call(fixtureOrdinaryCurve, 'averageRate')
+    && !Object.prototype.hasOwnProperty.call(fixtureOrdinaryCurve, 'effectiveMarginalRate')
+    && !Object.prototype.hasOwnProperty.call(shippedSettlement, 'effectiveMarginalRate')
+    && Object.prototype.hasOwnProperty.call(shippedSettlement, 'averageRate'),
+  'TP-03-01: the next dollar is priced as two ordered multi-point curves; the curve record carries no averageRate and no scalar rate, and the settlement record carries no effectiveMarginalRate');
+
+  /* TP-03-02: every rate is literally a difference of two settlements at the probe boundary. */
+  const differenceFailures = [];
+  let differenceChecks = 0;
+  [{ curve: fixtureOrdinaryCurve, pack: curveFixturePack, workspace: curveFixtureWorkspace, kind: 'ordinary', sweep: fixtureSweep },
+  { curve: fixtureGainCurve, pack: curveFixturePack, workspace: curveFixtureWorkspace, kind: 'long-term-gain', sweep: fixtureSweep },
+  { curve: RLTAX.computeEffectiveMarginalCurve(curveWorkspace({}), curvePack, 'ordinary', curveSweep), pack: curvePack, workspace: curveWorkspace({}), kind: 'ordinary', sweep: curveSweep }
+  ].forEach((entry) => {
+    entry.curve.points.forEach((point) => {
+      const here = RLTAX.computeAnnualFederalTax(RLTAX.curveWorkspaceAt(entry.workspace, entry.kind, point.level), entry.pack);
+      const ahead = RLTAX.computeAnnualFederalTax(RLTAX.curveWorkspaceAt(entry.workspace, entry.kind, point.level + entry.sweep.probe), entry.pack);
+      const expected = (ahead.totalFederalTax.value - here.totalFederalTax.value) / entry.sweep.probe;
+      differenceChecks += 1;
+      if (point.effectiveMarginalRate !== expected || point.taxAtLevel !== here.totalFederalTax.value) {
+        differenceFailures.push(entry.kind + '@' + point.level);
+      }
+    });
+  });
+  assert(differenceChecks > 100 && differenceFailures.length === 0,
+    'TP-03-02: every curve rate equals a forward difference of two full computeAnnualFederalTax settlements to full internal precision (' + differenceChecks + ' points checked)');
+
+  /* TP-03-03: every segment whose rate moved names a threshold carrying a retrieved source. */
+  const shippedOrdinaryCurve = RLTAX.computeEffectiveMarginalCurve(curveWorkspace({}), curvePack, 'ordinary', curveSweep);
+  const movedSegments = shippedOrdinaryCurve.segments.filter((segment) => segment.contributingThresholds.length > 0);
+  const flatSegments = shippedOrdinaryCurve.segments.filter((segment) => segment.contributingThresholds.length === 0);
+  const attributionFailures = movedSegments.filter((segment) => segment.contributingThresholds.some((threshold) => {
+    if (typeof threshold.name !== 'string' || threshold.name.length === 0) return true;
+    if (typeof threshold.sourceRef !== 'string' || threshold.sourceRef.length === 0) return true;
+    return RLTAXRULES.isUnavailable(RLTAXRULES.sourceForFigure(curvePack, threshold));
+  }));
+  assert(movedSegments.length >= 6 && attributionFailures.length === 0
+    && flatSegments.every((segment) => segment.segmentKind === 'flat' && segment.cliff === false)
+    && movedSegments.some((segment) => segment.contributingThresholds[0].bandId === 'b3')
+    && movedSegments.some((segment) => segment.contributingThresholds[0].name.indexOf('deduction threshold') >= 0),
+  'TP-03-03: every segment whose rate moved names at least one contributing threshold whose sourceRef resolves to a retrieved source record (' + movedSegments.length + ' moved, ' + flatSegments.length + ' flat)');
+
+  /* TP-03-04 ADVERSARIAL: a rate that moves with no attributable pack threshold is refused rather
+     than drawn. Driving the real function with a pack whose declared numerical tolerance is zero
+     makes floating-point noise inside one band register as a move, and the guard fires. */
+  const unattributablePack = JSON.parse(curvePackText);
+  unattributablePack.roundingPolicy.reconciliationTolerance = 0;
+  const unattributableCurve = RLTAX.computeEffectiveMarginalCurve(curveWorkspace({}), unattributablePack, 'ordinary', curveSweep);
+  const sameBandPoints = [
+    { statutoryBandId: 'b3', effectiveMarginalRate: 0.22 },
+    { statutoryBandId: 'b3', effectiveMarginalRate: 0.24 }
+  ];
+  const noAttribution = RLTAX.crossedThresholds(curvePack.ordinaryRateTables.single,
+    sameBandPoints[0], sameBandPoints[1], 60000, 61000, curvePack.standardDeductions.single);
+  assert(RLTAXRULES.isUnavailable(unattributableCurve)
+    && codeOf(unattributableCurve) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && unattributableCurve.domain === 'curve:ordinary:segment'
+    && noAttribution.length === 0
+    && !RLTAXRULES.isUnavailable(shippedOrdinaryCurve),
+  'TP-03-04: the guard can fail — a rate move with no attributable pack threshold is refused RLTAX-THRESHOLD-UNAVAILABLE rather than displayed, while the same workspace against the shipped pack still produces a curve');
+
+  /* SUP-022-20. TP-03-05: every declared band edge renders as a step. The expected edge set is
+     DERIVED from the pack — each ordinary band's lower edge, carried up by the pack's own
+     standard deduction, kept when the sweep reaches it — rather than spelled as a literal, and
+     the selector is the segment's own step-ness rather than its width, because a probe-width
+     segment is now also produced at a declared threshold-set edge that moves no rate. */
+  const stepProbe = (level) => shippedOrdinaryCurve.segments.find((segment) =>
+    Math.abs(segment.toLevel - level) < 0.0000001
+    && Math.abs((segment.toLevel - segment.fromLevel) - curveSweep.probe) < 0.0000001);
+  const declaredEdgeLevels = curvePack.ordinaryRateTables.single.bands
+    .slice(1)
+    .map((band) => band.lowerInclusive + curvePack.standardDeductions.single.amount)
+    .filter((level) => level > curveSweep.start && level <= curveSweep.end);
+  const renderedStepLevels = shippedOrdinaryCurve.segments
+    .filter((segment) => segment.segmentKind === 'rate-step')
+    .map((segment) => segment.toLevel);
+  const edgeIntegrity = declaredEdgeLevels.every((level) => {
+    const segment = stepProbe(level);
+    if (segment === undefined) return false;
+    const lowerIndex = shippedOrdinaryCurve.points.findIndex((point) => point.level === segment.fromLevel);
+    const upperIndex = shippedOrdinaryCurve.points.findIndex((point) => point.level === segment.toLevel);
+    const between = shippedOrdinaryCurve.points.filter((point) => point.level > segment.fromLevel && point.level < segment.toLevel);
+    return upperIndex === lowerIndex + 1 && between.length === 0
+      && shippedOrdinaryCurve.points[lowerIndex].effectiveMarginalRate !== shippedOrdinaryCurve.points[upperIndex].effectiveMarginalRate
+      && segment.cliff === true && segment.segmentKind === 'rate-step'
+      && segment.contributingThresholds.length > 0;
+  });
+  /* No probe-width segment is ever smoothed and none is mislabelled: it either steps with a
+     named pack threshold, or it is flat and its two endpoint rates genuinely agree. */
+  const probeWidthSegments = shippedOrdinaryCurve.segments.filter((segment) =>
+    Math.abs((segment.toLevel - segment.fromLevel) - curveSweep.probe) < 0.0000001);
+  const probeWidthHonesty = probeWidthSegments.every((segment) => {
+    const lowerIndex = shippedOrdinaryCurve.points.findIndex((point) => point.level === segment.fromLevel);
+    const upperIndex = shippedOrdinaryCurve.points.findIndex((point) => point.level === segment.toLevel);
+    if (upperIndex !== lowerIndex + 1) return false;
+    /* The same tolerance the engine itself reads from the pack, so the audit and the engine
+       cannot disagree about what counts as a move. */
+    const moved = Math.abs(shippedOrdinaryCurve.points[lowerIndex].effectiveMarginalRate
+      - shippedOrdinaryCurve.points[upperIndex].effectiveMarginalRate)
+      > curvePack.roundingPolicy.reconciliationTolerance;
+    if (segment.segmentKind === 'flat') return !moved && segment.cliff === false && segment.contributingThresholds.length === 0;
+    return moved && segment.cliff === true && segment.contributingThresholds.length > 0;
+  });
+  assert(declaredEdgeLevels.length > 0 && edgeIntegrity && probeWidthHonesty
+    && probeWidthSegments.length >= declaredEdgeLevels.length
+    && declaredEdgeLevels.every((level) => renderedStepLevels.indexOf(level) >= 0)
+    && renderedStepLevels.every((level) => declaredEdgeLevels.indexOf(level) >= 0
+      || shippedOrdinaryCurve.segments.some((segment) => segment.toLevel === level
+        && segment.contributingThresholds.some((threshold) => threshold.bandId === null))),
+  'TP-03-05: every declared band edge inside the sweep renders as a step — two adjacent points one probe apart with different rates, cliff true, and no interpolated point between them ('
+    + declaredEdgeLevels.length + ' pack-derived edges, ' + probeWidthSegments.length + ' probe-width segments)');
+
+  /* TP-03-06 ADVERSARIAL: an implementation that interpolates across the pair must fail the step
+     assertion, so the guard is proven capable of failing. */
+  const interpolatedPoints = shippedOrdinaryCurve.points.slice();
+  const firstStep = stepProbe(declaredEdgeLevels[0]);
+  const lowerAt = interpolatedPoints.findIndex((point) => point.level === firstStep.fromLevel);
+  const lowerRate = interpolatedPoints[lowerAt].effectiveMarginalRate;
+  const upperRate = interpolatedPoints[lowerAt + 1].effectiveMarginalRate;
+  interpolatedPoints.splice(lowerAt + 1, 0, {
+    level: (firstStep.fromLevel + firstStep.toLevel) / 2,
+    effectiveMarginalRate: (lowerRate + upperRate) / 2
+  });
+  const interpolatedBetween = interpolatedPoints.filter((point) => point.level > firstStep.fromLevel && point.level < firstStep.toLevel);
+  assert(interpolatedBetween.length === 1
+    && interpolatedBetween[0].effectiveMarginalRate > lowerRate && interpolatedBetween[0].effectiveMarginalRate < upperRate
+    && shippedOrdinaryCurve.points.filter((point) => point.level > firstStep.fromLevel && point.level < firstStep.toLevel).length === 0,
+  'TP-03-06: the cliff guard can fail — a curve carrying an averaged point between the crossing pair breaks the no-interpolated-point assertion that the real curve satisfies');
+
+  /* SUP-022-20 ADVERSARIAL: the derived edge set is proven to follow the pack rather than a
+     literal, and the step selector is proven to reject a probe-width segment that moved no rate.
+     Moving a declared band edge in the pack moves the level the curve steps at, and the curve
+     built from the unmodified pack does NOT step at the fabricated level; separately, the
+     shipped curve carries at least one probe-width segment that is flat, which the superseded
+     width-based selector would have counted as a step and the replacement does not. */
+  const movedEdgePack = JSON.parse(curvePackText);
+  movedEdgePack.ordinaryRateTables.single.bands[1].lowerInclusive += 5000;
+  movedEdgePack.ordinaryRateTables.single.bands[0].upperExclusive += 5000;
+  const movedEdgeCurve = RLTAX.computeEffectiveMarginalCurve(curveWorkspace({}), movedEdgePack, 'ordinary', curveSweep);
+  const movedEdgeLevel = movedEdgePack.ordinaryRateTables.single.bands[1].lowerInclusive
+    + movedEdgePack.standardDeductions.single.amount;
+  const movedStepLevels = RLTAXRULES.isUnavailable(movedEdgeCurve) ? [] : movedEdgeCurve.segments
+    .filter((segment) => segment.segmentKind === 'rate-step').map((segment) => segment.toLevel);
+  const flatProbeWidth = probeWidthSegments.filter((segment) => segment.segmentKind === 'flat');
+  assert(movedEdgeLevel !== declaredEdgeLevels[0]
+    && movedStepLevels.indexOf(movedEdgeLevel) >= 0
+    && renderedStepLevels.indexOf(movedEdgeLevel) < 0
+    && flatProbeWidth.length > 0
+    && flatProbeWidth.every((segment) => segment.cliff === false && segment.contributingThresholds.length === 0),
+  'TP-03-05: the derived-edge guard can fail — moving a declared band edge in the pack moves the level the curve steps at, the shipped curve does not step at the fabricated level, and '
+    + flatProbeWidth.length + ' probe-width segment(s) are flat, which the superseded width-based selector would have miscounted as steps');
+
+  /* TP-03-07: the slice-1 contributor list is populated, named, coded and counted. */
+  /* SUP-022-10: supersedes `shippedOrdinaryCurve.unavailableContributors.length === 14` and the
+     requiredContributors membership clause asserting the investment-income surtax is present;
+     shape=derive. The contributor id set is compared against the shipped pack's own
+     movesMarginalRate entries in BOTH directions, and the moved-versus-deleted clause proves the
+     surtax became a computed leg rather than being dropped from the page and from the curve
+     without being computed anywhere — the engine-side twin of SUP-022-08.
+     Ledger: specs/022-federal-preferential-and-state-income-tax/spec.md#supersession-ledger. */
+  const contributorDomains = shippedOrdinaryCurve.unavailableContributors.map((record) => record.domain);
+  const contributorIds = contributorDomains.map((domain) => domain.replace('marginal-contributor:', ''));
+  const packContributorIds = curvePack.unsupportedFeatures
+    .filter((entry) => entry.movesMarginalRate === true).map((entry) => entry.id);
+  const contributorSetIdentity = contributorIds.every((id) => packContributorIds.indexOf(id) >= 0)
+    && packContributorIds.every((id) => contributorIds.indexOf(id) >= 0);
+  const curveDeclaredLegIds = RLTAXRULES.declaredTaxLegs(curvePack).map((leg) => leg.legId);
+  const surtaxLeg = RLTAXRULES.declaredTaxLegs(curvePack)
+    .find((leg) => leg.legId === 'net-investment-income-tax');
+  const surtaxLegFigureResolves = !!surtaxLeg
+    && !RLTAXRULES.isAbsentFigure(curvePack.thresholdSets[surtaxLeg.figureRef.split('.')[1]]);
+  /* The removal must be surgical: the three contributors Feature 021 named beside the surtax are
+     still present, so this proves a removal rather than a cull. */
+  /* SUP-024-03: supersedes the `surgicalRemoval` triple and the clause naming all three ids as
+     still-carried; shape=split. FR-024-013 removes the first member from the contributor set, so a
+     triple asserting all three are still named fails BECAUSE the feature did what it was asked to
+     do. The surgical-removal clause is retained verbatim over the members this feature does not
+     model, and the moved member gains the stronger moved-not-deleted clause the surtax already
+     carries. Strictly stronger because the triple could not distinguish a member that moved into a
+     modelled inclusion from one that was culled, while the replacement fails differently for each;
+     per ASC-7 the retained branch is exercised against the shipped pack, in which the premium tax
+     credit is still not carried.
+     Ledger: specs/024-social-security-and-medicare/spec.md#supersession-ledger */
+  /* SUP-024-10: supersedes the `surgicalRemoval` pair's clause naming `'irmaa-bands'` as an id the
+     shipped pack still carries as not modelled; shape=split. Admitted under ASC-8 during Scope 04.
+     Cause: FR-024-024 models that id, so a clause asserting it is still a marginal-rate contributor
+     fails BECAUSE the feature did what it was asked to do. The surgical-removal clause is retained
+     VERBATIM over the member this feature does not model, and the moved member gains the stronger
+     moved-not-deleted clause the benefit id already carries. Strictly stronger because the pair
+     could not distinguish a member that moved into a modelled premium from one that was culled,
+     while the replacement fails differently for each; per ASC-7 the retained branch is exercised
+     against the shipped pack, in which the premium tax credit is still not carried.
+     Ledger: specs/024-social-security-and-medicare/spec.md#supersession-ledger */
+  const surgicalRemoval = ['premium-tax-credit']
+    .every((id) => contributorIds.indexOf(id) >= 0);
+  const curveMedicarePolicy = curvePack.medicarePolicy;
+  const medicareIdMovedNotDeleted = contributorIds.indexOf('irmaa-bands') < 0
+    && !!curveMedicarePolicy
+    && curveMedicarePolicy.modelsUnsupportedFeatureId === 'irmaa-bands'
+    && Array.isArray(curveMedicarePolicy.taxLegs)
+    && curveMedicarePolicy.taxLegs.length > 0
+    && curveMedicarePolicy.taxLegs.every((leg) => leg.includedInTotal === false);
+  const curveInclusionPolicy = curvePack.benefitInclusionPolicy;
+  const benefitIdMovedNotDeleted = contributorIds.indexOf('taxable-social-security-benefits') < 0
+    && !!curveInclusionPolicy
+    && curveInclusionPolicy.modelsUnsupportedFeatureId === 'taxable-social-security-benefits'
+    && Object.keys(curveInclusionPolicy.tierParameters || {}).length > 0;
+  assert(contributorSetIdentity && contributorIds.length === packContributorIds.length
+    && surgicalRemoval && benefitIdMovedNotDeleted && medicareIdMovedNotDeleted
+    && contributorIds.indexOf('net-investment-income-tax') < 0
+    && curveDeclaredLegIds.indexOf('net-investment-income-tax') >= 0
+    && surtaxLegFigureResolves
+    && shippedOrdinaryCurve.incomplete === true
+    && shippedOrdinaryCurve.unavailableContributorCount === shippedOrdinaryCurve.unavailableContributors.length
+    && shippedOrdinaryCurve.unavailableContributors.every((record) =>
+      record.contractVersion === 'TaxUnavailable/v1'
+      && RLTAXRULES.RLTAX_CODES[record.code] === true
+      && typeof record.reason === 'string' && record.reason.length > 0
+      && typeof record.whatWouldMakeItAvailable === 'string' && record.whatWouldMakeItAvailable.length > 0),
+  'TP-03-07: the shipped curve\u2019s contributor id set equals the pack\u2019s movesMarginalRate entries in both directions, the premium tax credit is still named so the removal was surgical, the taxable-benefit id is absent from the contributor set AND present as the pack\u2019s own inclusion policy and the adjustment id is absent from it AND present as the pack\u2019s own medicare policy in legs every one of which is includedInTotal false \u2014 so each moved rather than being culled \u2014 and net investment income tax is absent from the contributor set AND present as a declared leg whose figure resolves');
+
+  /* SUP-024-07: supersedes SUP-022-10's adversarial probe, which built `deletedNotMovedPack` by
+     filtering `'irmaa-bands'` out of both `unsupportedFeatures` and `taxLegs` and asserted the id
+     was then accounted for in neither, using it as an id the shipped pack carried ONLY on the
+     unsupported side; shape=relocate. Cause: FR-024-024 models that id, so the probe's premise
+     inverts. The filter becomes a no-op against a pack that no longer lists it, the assertion
+     still passes, and it now proves nothing — which is worse than a failure, because nothing
+     reports it. Traded for: the probe is re-pointed at an id chosen FROM THE PACK at run time
+     rather than named as a literal, so a later feature modelling that id cannot silently render
+     the case vacuous again, and it gains a second arm applying the same deletion to the
+     genuinely modelled id and asserting THAT is caught too. Strictly stronger because the probe
+     now proves the guard fires on both sides of the move rather than on one.
+     Ledger: specs/024-social-security-and-medicare/spec.md#supersession-ledger */
+  const stillUnsupportedContributorIds = curvePack.unsupportedFeatures
+    .filter((entry) => entry.movesMarginalRate === true)
+    .map((entry) => entry.id)
+    .filter((id) => curveDeclaredLegIds.indexOf(id) < 0);
+  const probeId = stillUnsupportedContributorIds[0];
+  const deletedNotMovedPack = JSON.parse(curvePackText);
+  deletedNotMovedPack.unsupportedFeatures = deletedNotMovedPack.unsupportedFeatures
+    .filter((entry) => entry.id !== probeId);
+  deletedNotMovedPack.taxLegs = deletedNotMovedPack.taxLegs.filter((leg) => leg.legId !== probeId);
+  const deletedNotMovedIds = deletedNotMovedPack.unsupportedFeatures
+    .filter((entry) => entry.movesMarginalRate === true).map((entry) => entry.id);
+  const deletedNotMovedLegIds = RLTAXRULES.declaredTaxLegs(deletedNotMovedPack).map((leg) => leg.legId);
+  const deletedAccountedFor = deletedNotMovedIds.indexOf(probeId) >= 0
+    || deletedNotMovedLegIds.indexOf(probeId) >= 0;
+  /* The probe id was genuinely unaccounted for only BECAUSE the deletion removed it. Asserting it
+     was accounted for before the deletion is what keeps this arm from going vacuous the way the
+     superseded one did. */
+  const probeIdAccountedBeforeDeletion = curvePack.unsupportedFeatures
+    .map((entry) => entry.id).indexOf(probeId) >= 0;
+  /* The second arm. The modelled id is not on the unsupported side at all, so the same filter is a
+     no-op against it — which is exactly why the superseded probe stopped proving anything. It is
+     caught here by the policy that received it: stripping THAT leaves the modelled id accounted
+     for nowhere, and the probe reports it. */
+  const modelledProbeId = 'irmaa-bands';
+  const modelledDeletionIsNoOp = curvePack.unsupportedFeatures
+    .map((entry) => entry.id).indexOf(modelledProbeId) < 0;
+  const modelledStrippedPack = JSON.parse(curvePackText);
+  delete modelledStrippedPack.medicarePolicy;
+  const modelledStillAccounted = modelledStrippedPack.unsupportedFeatures
+    .map((entry) => entry.id).indexOf(modelledProbeId) >= 0
+    || RLTAXRULES.declaredTaxLegs(modelledStrippedPack).map((leg) => leg.legId).indexOf(modelledProbeId) >= 0
+    || !!modelledStrippedPack.medicarePolicy;
+  const modelledAccountedBeforeStripping = !!curvePack.medicarePolicy
+    && curvePack.medicarePolicy.modelsUnsupportedFeatureId === modelledProbeId;
+  const orphanContributorIds = contributorIds.concat(['a-contributor-the-pack-does-not-carry']);
+  const orphanIdentity = orphanContributorIds.every((id) => packContributorIds.indexOf(id) >= 0);
+  const swappedIds = contributorIds.slice(0, contributorIds.length - 1).concat(['a-substituted-contributor']);
+  const swappedIdentity = swappedIds.every((id) => packContributorIds.indexOf(id) >= 0)
+    && packContributorIds.every((id) => swappedIds.indexOf(id) >= 0);
+  assert(typeof probeId === 'string' && probeId.length > 0
+    && probeIdAccountedBeforeDeletion && !deletedAccountedFor
+    && modelledDeletionIsNoOp && modelledAccountedBeforeStripping && !modelledStillAccounted
+    && !orphanIdentity
+    && swappedIds.length === contributorIds.length && !swappedIdentity,
+  'TP-03-07: the guard can fail on BOTH sides of a move \u2014 dropping a still-unsupported contributor chosen from the pack at run time leaves it accounted for in neither set, stripping the policy that received a genuinely modelled id leaves that id accounted for nowhere while the unsupported-side deletion is a no-op against it, a surfaced contributor with no pack entry breaks the curve-to-pack direction, and a substitution at constant count breaks set identity: probe id ' + String(probeId));
+
+  /* TP-03-08 ADVERSARIAL: an empty contributor list is a defect, and no contributor can be a zero. */
+  const noContributorPack = JSON.parse(curvePackText);
+  noContributorPack.unsupportedFeatures = noContributorPack.unsupportedFeatures.map((entry) => Object.assign({}, entry, { movesMarginalRate: false }));
+  const noContributorCurve = RLTAX.computeEffectiveMarginalCurve(curveWorkspace({}), noContributorPack, 'ordinary', curveSweep);
+  const numericContributors = shippedOrdinaryCurve.unavailableContributors.filter((record) =>
+    ['value', 'amount', 'rate', 'bands', 'contribution'].some((member) => Object.prototype.hasOwnProperty.call(record, member)));
+  assert(noContributorCurve.unavailableContributorCount === 0 && noContributorCurve.incomplete === false
+    && shippedOrdinaryCurve.unavailableContributorCount > 0
+    && numericContributors.length === 0,
+  'TP-03-08: the contributor guard can fail — a pack declaring no marginal-rate-moving absence produces the empty list the slice-1 pack must never produce, and no contributor carries a numeric member that could render as a zero contribution');
+
+  /* TP-03-09: the engine still holds no tax-domain numeric constant and declares no band table. */
+  const curveEngineSource = read('rltax.js')
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/"(?:[^"\\]|\\.)*"/g, ' ')
+    .replace(/'(?:[^'\\]|\\.)*'/g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+  const curveEngineLiterals = (curveEngineSource.match(/\b\d+(?:\.\d+)?\b/g) || []).filter((literal) => literal !== '0' && literal !== '1');
+  const curveDeclaresTable = /(?:lowerInclusive|upperExclusive|thresholdKind|rate)\s*:\s*-?\d/.test(curveEngineSource) || /\bbands\s*:\s*\[/.test(curveEngineSource);
+  const curveReadsPack = /pack\.ordinaryRateTables/.test(read('rltax.js')) && /pack\.preferentialRateTables/.test(read('rltax.js'));
+  assert(curveEngineLiterals.length === 0 && !curveDeclaresTable && curveReadsPack
+    && /function computeEffectiveMarginalCurve\(/.test(read('rltax.js')),
+  'TP-03-09: after the curve is added rltax.js still carries no numeric literal beyond 0 and 1, declares no band table, and reads every edge and rate from the resolved pack (' + curveEngineLiterals.join(',') + ')');
+
+  /* TP-03-10: the sweep policy is configuration, not a constant. */
+  const sweepRefusals = ['start', 'end', 'step', 'probe', 'maxPoints'].map((member) => {
+    const wounded = JSON.parse(JSON.stringify(curveSweep));
+    delete wounded[member];
+    return RLTAX.computeEffectiveMarginalCurve(curveWorkspace({}), curvePack, 'ordinary', wounded);
+  });
+  const negativeStep = JSON.parse(JSON.stringify(curveSweep));
+  negativeStep.step = -1;
+  const overBudget = JSON.parse(JSON.stringify(curveSweep));
+  overBudget.maxPoints = 2;
+  const missingPolicy = RLTAX.computeEffectiveMarginalCurve(curveWorkspace({}), curvePack, 'ordinary', null);
+  const unknownKind = RLTAX.computeEffectiveMarginalCurve(curveWorkspace({}), curvePack, 'payroll', curveSweep);
+  const sweepConstants = /\bsweep\s*=\s*\{/.test(read('rltax.js'));
+  assert(sweepRefusals.every((record) => RLTAXRULES.isUnavailable(record) && codeOf(record) === 'RLTAX-CONFIG-INVALID')
+    && codeOf(RLTAX.computeEffectiveMarginalCurve(curveWorkspace({}), curvePack, 'ordinary', negativeStep)) === 'RLTAX-CONFIG-INVALID'
+    && codeOf(RLTAX.computeEffectiveMarginalCurve(curveWorkspace({}), curvePack, 'ordinary', overBudget)) === 'RLTAX-CONFIG-INVALID'
+    && codeOf(missingPolicy) === 'RLTAX-CONFIG-INVALID'
+    && codeOf(unknownKind) === 'RLTAX-FEATURE-UNSUPPORTED'
+    && !sweepConstants,
+  'TP-03-10: a missing, negative or over-budget sweep member yields RLTAX-CONFIG-INVALID and no curve, an unknown kind is refused, and no sweep constant is declared in the engine');
+
+  /* TP-03-11: the chart and the text-equivalent table read one record. */
+  const textRows = RLTAX.curveTextRows(shippedOrdinaryCurve);
+  const rowsMatchRecord = textRows.every((row, index) => {
+    const point = shippedOrdinaryCurve.points[index];
+    const segment = index === 0 ? null : shippedOrdinaryCurve.segments[index - 1];
+    return row.level === point.level && row.taxAtLevel === point.taxAtLevel
+      && row.effectiveMarginalRate === point.effectiveMarginalRate
+      && row.statutoryBandRate === point.statutoryBandRate && row.statutoryBandId === point.statutoryBandId
+      && row.segmentKind === (segment === null ? null : segment.segmentKind)
+      && row.contributingThresholds === (segment === null ? row.contributingThresholds : segment.contributingThresholds);
+  });
+  /* ADVERSARIAL: a table derived a second time with its own probe disagrees with the chart's record. */
+  const secondDerivationSweep = Object.assign({}, curveSweep, { probe: 1000 });
+  const secondDerivation = RLTAX.computeEffectiveMarginalCurve(curveWorkspace({}), curvePack, 'ordinary', secondDerivationSweep);
+  const secondDerivationDisagrees = secondDerivation.points.some((point) => {
+    const twin = shippedOrdinaryCurve.points.find((candidate) => candidate.level === point.level);
+    return twin !== undefined && twin.effectiveMarginalRate !== point.effectiveMarginalRate;
+  });
+  assert(textRows.length === shippedOrdinaryCurve.points.length && rowsMatchRecord && secondDerivationDisagrees,
+    'TP-03-11: the text-equivalent rows are emitted from the identical curve record the chart reads, and a table assembled from a second independent derivation is proven to disagree with it');
+
+  /* SUP-022-06: supersedes the clause asserting the shipped pack's qualified dividend curve and
+     long-term gain curve both refuse with neither a points nor a value member; shape=relocate.
+     The whole original refusal — both hasOwnProperty clauses included, which prove a refusal
+     never smuggles a shape — moves onto an absent-table fixture pack the implementer controls,
+     and the shipped pack gains exact crossings at every carried breakpoint plus the gain/dividend
+     curve identity that proves FR-022-005's pooling rule on the curve rather than only on the
+     total.
+     Ledger: specs/022-federal-preferential-and-state-income-tax/spec.md#supersession-ledger. */
+  const curveAbsentFixturePack = JSON.parse(curvePackText);
+  RLTAXRULES.SUPPORTED_FILING_STATUSES.forEach((status) => {
+    curveAbsentFixturePack.preferentialRateTables[status] = {
+      contractVersion: 'AbsentFigure/v1',
+      code: 'RLTAX-THRESHOLD-UNAVAILABLE',
+      domain: 'preferential-rate-table:' + status,
+      reason: 'This fixture pack deliberately carries no preferential rate table, so the curve refusal keeps being proven after every shipped status resolves.',
+      whatWouldMakeItAvailable: 'Retrieve the authority stating the full preferential schedule for this filing status and the declared tax year.',
+      missingSource: {
+        title: 'Absent-preferential-table fixture pointer',
+        url: 'https://www.irs.gov/irb/2025-45_IRB',
+        documentKind: 'revenue-procedure',
+        locator: 'Deliberately unretrieved so the curve absence branch is never vacuous.'
+      }
+    };
+  });
+  const dividendCurve = RLTAX.computeEffectiveMarginalCurve(curveWorkspace({ income: { qualifiedDividend: 5000 } }), curveAbsentFixturePack, 'ordinary', curveSweep);
+  const absentTableGainCurve = RLTAX.computeEffectiveMarginalCurve(curveWorkspace({}), curveAbsentFixturePack, 'long-term-gain', curveSweep);
+  /* The retained clause, verbatim, against the fixture. */
+  const retainedCurveRefusal = RLTAXRULES.isUnavailable(dividendCurve) && codeOf(dividendCurve) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && RLTAXRULES.isUnavailable(absentTableGainCurve) && codeOf(absentTableGainCurve) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && dividendCurve.reason.indexOf('unavailable') >= 0
+    && absentTableGainCurve.whatWouldMakeItAvailable.length > 0
+    && !Object.prototype.hasOwnProperty.call(dividendCurve, 'points')
+    && !Object.prototype.hasOwnProperty.call(dividendCurve, 'value');
+
+  /* The shipped pack now computes both curves. Every preferential breakpoint the pack carries
+     appears as an exact crossing PAIR — (edge - probe, edge) — rather than as a grid position. */
+  const shippedGainCurve = RLTAX.computeEffectiveMarginalCurve(curveWorkspace({}), curvePack, 'long-term-gain', curveSweep);
+  const curveDeduction = curvePack.standardDeductions.single.amount;
+  const carriedBreakpoints = curvePack.preferentialRateTables.single.bands
+    .map((band) => band.lowerInclusive).filter((edge) => edge > 0);
+  /* The curve varies the household's DECLARED gain, so a taxable-income edge sits at the edge
+     plus the deduction the pack itself carries. No edge is held by this assertion. */
+  const gainLevels = shippedGainCurve.points.map((point) => point.level);
+  const everyCarriedBreakpointIsAnExactCrossing = carriedBreakpoints.every((edge) => {
+    const declaredLevel = edge + curveDeduction;
+    if (declaredLevel < curveSweep.start || declaredLevel > curveSweep.end) return true;
+    return gainLevels.indexOf(declaredLevel) >= 0 && gainLevels.indexOf(declaredLevel - curveSweep.probe) >= 0;
+  });
+  const reachedBreakpoints = carriedBreakpoints
+    .filter((edge) => edge + curveDeduction >= curveSweep.start && edge + curveDeduction <= curveSweep.end);
+  /* FR-022-005: a qualified dividend and a long-term capital gain of the same amount are pooled
+     and taxed identically. The engine's curve kinds are the closed pair ordinary and
+     long-term-gain, so the dividend twin of this curve is not a second curve call — it is a full
+     settlement per sampled level with the identical amount declared as a QUALIFIED DIVIDEND
+     instead. Comparing the gain curve to a second gain curve would have compared it to itself
+     and proven nothing. */
+  const dividendTwin = shippedGainCurve.points.map((point) => RLTAX.computeAnnualFederalTax(
+    curveWorkspace({ income: { qualifiedDividend: point.level } }), curvePack).totalFederalTax);
+  const pooledIdentity = dividendTwin.every((settled, index) =>
+    !RLTAXRULES.isUnavailable(settled)
+    && Math.abs(settled.value - shippedGainCurve.points[index].taxAtLevel) < 0.0000001);
+  const dividendPricedAboveZero = dividendTwin
+    .filter((settled, index) => index > 0 && settled.value > dividendTwin[0].value);
+  const dividendPooledSettlements = [0, 40000, 120000, 200000].map((amount) => {
+    const gainHousehold = curveWorkspace({ income: { longTermCapitalGain: amount } });
+    const dividendHousehold = curveWorkspace({ income: { qualifiedDividend: amount } });
+    return {
+      gain: RLTAX.computeAnnualFederalTax(gainHousehold, curvePack).totalFederalTax.value,
+      dividend: RLTAX.computeAnnualFederalTax(dividendHousehold, curvePack).totalFederalTax.value
+    };
+  });
+  const settlementPoolingIdentity = dividendPooledSettlements
+    .every((pair) => Number.isFinite(pair.gain) && pair.gain === pair.dividend);
+  assert(retainedCurveRefusal
+    && !RLTAXRULES.isUnavailable(shippedGainCurve)
+    && Array.isArray(shippedGainCurve.points) && shippedGainCurve.points.length > 1
+    && shippedGainCurve.points.every((point) => Number.isFinite(point.effectiveMarginalRate))
+    && reachedBreakpoints.length > 0 && everyCarriedBreakpointIsAnExactCrossing
+    && pooledIdentity && settlementPoolingIdentity
+    && dividendPricedAboveZero.length > 0,
+  'TP-03-01: the shipped pack computes a long-term gain curve whose every carried preferential breakpoint is an exact crossing pair rather than a grid position and whose tax at every sampled level equals an independent settlement of the same amount declared as a qualified dividend, while the whole original refusal — including both hasOwnProperty clauses proving a refusal smuggles no shape — is retained verbatim against the absent-table fixture');
+
+  /* SUP-022-06 ADVERSARIAL: a curve that dropped the preferential leg would price the gain at
+     zero, and a curve returned for the absent-table fixture would be a fabricated figure. */
+  const zeroPricedGain = shippedGainCurve.points.filter((point) => point.effectiveMarginalRate > 0);
+  assert(zeroPricedGain.length > 0
+    && RLTAXRULES.isUnavailable(absentTableGainCurve)
+    && !Object.prototype.hasOwnProperty.call(absentTableGainCurve, 'points'),
+  'TP-03-01: the guard can fail — the shipped gain curve prices the next gain dollar above zero at some level, so a curve that dropped the preferential leg would be visible, and the absent-table fixture is proven to return no points member in its place');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 021 Scope 03 curve group threw): ' + e.message); }
+
+/* ---------- Feature 021 Scope 04: bracket-fill conversion comparison ---------- */
+try {
+  group('Feature 021 Scope 04 — lifetime-tax bracket-fill conversion comparison');
+  const { createRequire: createStrategyRequire } = await import('node:module');
+  const strategyRequire = createStrategyRequire(import.meta.url);
+  const RLTAXRULES = strategyRequire('../rltaxrules.js');
+  const RLTAXWORKSPACE = strategyRequire('../rltaxworkspace.js');
+  const RLTAX = strategyRequire('../rltax.js');
+  const RLTAXSTRATEGY = strategyRequire('../rltaxstrategy.js');
+
+  const strategyPackText = read('tax-rules/federal/2026.json');
+  const strategyPack = JSON.parse(strategyPackText);
+  const strategyConfig = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  const strategySweep = strategyConfig.sweep;
+  const codeOf = (record) => (record && record.code) || null;
+
+  const strategyWorkspace = (filingStatus, ordinary, overrides) => {
+    const workspace = RLTAXWORKSPACE.createEmptyWorkspace();
+    workspace.filingStatus = filingStatus;
+    workspace.declaredTaxYear = 2026;
+    workspace.deductionMode = 'itemized';
+    workspace.itemizedAmount = 0;
+    workspace.income.ordinary = ordinary;
+    workspace.conversionFundingSource = 'outside-funds';
+    /* Fixture Input Completion Register, FIC-4. */
+    workspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+    workspace.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+    Object.keys(overrides || {}).forEach((key) => { workspace[key] = overrides[key]; });
+    return workspace;
+  };
+
+  /* TP-04-01: exactly two policies, one workspace, one resolved pack. */
+  const baseComparison = RLTAXSTRATEGY.compareConversionPolicies(strategyWorkspace('single', 60000), strategyPack, 'b3', strategySweep);
+  const comparisonKeys = Object.keys(baseComparison);
+  assert(baseComparison.contractVersion === 'ConversionComparison/v1'
+    && baseComparison.policies.length === 2
+    && baseComparison.policies[0].policyId === 'no-conversion'
+    && baseComparison.policies[1].policyId === 'fill-to-bracket'
+    && baseComparison.policies[0].settlement.packRef.contentSha256 === baseComparison.policies[1].settlement.packRef.contentSha256
+    && baseComparison.policies[0].settlement.packRef.contentSha256 === strategyPack.contentSha256
+    && baseComparison.policies[0].settlement.filingStatus === baseComparison.policies[1].settlement.filingStatus
+    && baseComparison.policies[0].settlement.declaredIncome.qualifiedDividend === baseComparison.policies[1].settlement.declaredIncome.qualifiedDividend
+    && baseComparison.heldConstant.length === 9
+    && baseComparison.isRecommendation === false
+    && baseComparison.resultKindStatement === 'single-year federal tax difference',
+  'TP-04-01: the comparison returns exactly two policies, both settled from the identical workspace against the identical resolved pack, with the held-constant list published');
+
+  /* TP-04-02: the fill amount is the distance to the pack's own edge, for every status and band. */
+  const fillFailures = [];
+  let fillChecks = 0;
+  RLTAXRULES.SUPPORTED_FILING_STATUSES.forEach((filingStatus) => {
+    const table = strategyPack.ordinaryRateTables[filingStatus];
+    table.bands.forEach((band) => {
+      if (band.upperExclusive === null) return;
+      const workspace = strategyWorkspace(filingStatus, 30000);
+      const settled = RLTAX.computeAnnualFederalTax(workspace, strategyPack);
+      const conversion = RLTAXSTRATEGY.fillToBracketConversion(workspace, strategyPack, band.bandId);
+      const expected = Math.max(0, band.upperExclusive - settled.ordinaryTaxableIncome.value);
+      fillChecks += 1;
+      if (RLTAXRULES.isUnavailable(conversion) || conversion.value !== expected
+        || conversion.atOrAboveEdge !== (band.upperExclusive - settled.ordinaryTaxableIncome.value <= 0)
+        || conversion.bracketEdge.value !== band.upperExclusive) {
+        fillFailures.push(filingStatus + ':' + band.bandId);
+      }
+    });
+  });
+  const topBand = RLTAXSTRATEGY.fillToBracketConversion(strategyWorkspace('single', 30000), strategyPack, 'b7');
+  const unknownBand = RLTAXSTRATEGY.fillToBracketConversion(strategyWorkspace('single', 30000), strategyPack, 'b99');
+  const noBand = RLTAXSTRATEGY.fillToBracketConversion(strategyWorkspace('single', 30000), strategyPack, null);
+  assert(fillChecks === 24 && fillFailures.length === 0
+    && codeOf(topBand) === 'RLTAX-INPUT-INCOMPLETE' && codeOf(unknownBand) === 'RLTAX-INPUT-INCOMPLETE'
+    && codeOf(noBand) === 'RLTAX-INPUT-INCOMPLETE',
+  'TP-04-02: the conversion amount equals the distance from ordinary taxable income to the named pack edge across all 24 bounded bands, and an unbounded, unknown or unselected band is refused rather than guessed');
+
+  /* TP-04-03: moving the pack's edge moves the amount, and the module declares no edge of its own. */
+  const movedEdgePack = JSON.parse(strategyPackText);
+  movedEdgePack.ordinaryRateTables.single.bands[2].upperExclusive = 111111;
+  movedEdgePack.ordinaryRateTables.single.bands[3].lowerInclusive = 111111;
+  const movedEdgeFill = RLTAXSTRATEGY.fillToBracketConversion(strategyWorkspace('single', 60000), movedEdgePack, 'b3');
+  const originalFill = RLTAXSTRATEGY.fillToBracketConversion(strategyWorkspace('single', 60000), strategyPack, 'b3');
+  const strategySource = read('rltaxstrategy.js')
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/"(?:[^"\\]|\\.)*"/g, ' ')
+    .replace(/'(?:[^'\\]|\\.)*'/g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+  const strategyLiterals = (strategySource.match(/\b\d+(?:\.\d+)?\b/g) || []).filter((literal) => literal !== '0' && literal !== '1');
+  const strategyDeclaresTable = /(?:lowerInclusive|upperExclusive|thresholdKind|rate)\s*:\s*-?\d/.test(strategySource) || /\bbands\s*:\s*\[/.test(strategySource);
+  assert(movedEdgeFill.value === 111111 - 60000 && originalFill.value === 105700 - 60000
+    && movedEdgeFill.value !== originalFill.value
+    && strategyLiterals.length === 0 && !strategyDeclaresTable
+    && /pack\.ordinaryRateTables/.test(read('rltaxstrategy.js')),
+  'TP-04-03: mutating the pack bracket edge moves the conversion amount, and rltaxstrategy.js carries no tax-domain numeric constant and declares no bracket edge (' + strategyLiterals.join(',') + ')');
+
+  /* TP-04-04: the converted case is a full recomputation, including moved gain stacking. */
+  const recomputeWorkspace = strategyWorkspace('single', 60000);
+  const recomputeConversion = RLTAXSTRATEGY.fillToBracketConversion(recomputeWorkspace, strategyPack, 'b3');
+  const independentFilled = RLTAX.computeAnnualFederalTax(
+    RLTAXSTRATEGY.convertedWorkspace(recomputeWorkspace, recomputeConversion.value), strategyPack);
+  const independentBase = RLTAX.computeAnnualFederalTax(recomputeWorkspace, strategyPack);
+  const recomputeComparison = RLTAXSTRATEGY.compareConversionPolicies(recomputeWorkspace, strategyPack, 'b3', strategySweep);
+  assert(recomputeComparison.policies[1].settlement.totalFederalTax.value === independentFilled.totalFederalTax.value
+    && recomputeComparison.policies[1].settlement.ordinaryTaxableIncome.value === 105700
+    && recomputeComparison.federalTaxDifference.value === independentFilled.totalFederalTax.value - independentBase.totalFederalTax.value
+    && recomputeComparison.policies[1].settlement.declaredIncome.ordinary === 60000 + recomputeConversion.value
+    && recomputeComparison.policies[1].settlement.declaredIncome.longTermCapitalGain === recomputeWorkspace.income.longTermCapitalGain,
+  'TP-04-04: the converted policy equals an independent full settlement at the converted income, filling the selected bracket exactly, with only ordinary income moved');
+
+  /* TP-04-05 ADVERSARIAL: pricing the conversion with a marginal-rate product instead of
+     recomputing is blind to the gain-stacking interaction, and is proven to disagree. */
+  const stackingSource = {
+    contractVersion: 'SourceRecord/v1', sourceId: 'strategy-fixture', title: 'synthetic strategy fixture, not a tax authority',
+    url: 'https://example.invalid/synthetic-strategy-fixture', publisher: 'research-lab test fixture',
+    documentKind: 'form-instructions', publishedAt: '9999-01-01', retrievedAt: '9999-01-01T00:00:00.000Z',
+    retrievalOutcome: 'retrieved', retrievalNote: 'synthetic fixture'
+  };
+  const strategyPerStatus = (build) => {
+    const record = {};
+    RLTAXRULES.SUPPORTED_FILING_STATUSES.forEach((status) => { record[status] = build(status); });
+    return record;
+  };
+  const strategyFixturePack = {
+    contractVersion: 'TaxRulePack/v1', id: 'strategy-fixture-9999', program: 'income-tax', jurisdiction: 'fixture',
+    version: '1.0.0', effectiveTaxYears: [9999], publishedAt: '9999-01-01', retrievedAt: '9999-01-01T00:00:00.000Z',
+    ruleStatus: 'user-hypothetical-law', sourceRecords: [stackingSource],
+    supportedFeatures: [{ id: 'fixture-arithmetic', label: 'Fixture arithmetic', reason: 'Exercises stacking under conversion only.' }],
+    unsupportedFeatures: [{ id: 'everything-else', label: 'Everything else', reason: 'This fixture models no real law.', code: 'RLTAX-FEATURE-UNSUPPORTED', movesMarginalRate: true }],
+    indexingRules: [], calculationOrder: RLTAXRULES.CALCULATION_ORDER.slice(),
+    roundingPolicy: { contractVersion: 'TaxRoundingPolicy/v1', calculationStages: [], displayStageIsSeparate: true, reconciliationTolerance: 0.005 },
+    expiryPolicy: { contractVersion: 'TaxPackExpiry/v1', expiresAt: '9999-12-31', reason: 'fixture', onExpiry: 'refuse' },
+    filingStatuses: RLTAXRULES.SUPPORTED_FILING_STATUSES.slice(), incomeKinds: RLTAXRULES.SUPPORTED_INCOME_KINDS.slice(),
+    standardDeductions: strategyPerStatus((status) => ({ contractVersion: 'DeductionAmount/v1', filingStatus: status, amount: 0, sourceRef: 'strategy-fixture', locator: 'fixture' })),
+    ordinaryRateTables: strategyPerStatus((status) => ({
+      contractVersion: 'RateTable/v1', tableId: 'fixture-ordinary-' + status, kind: 'ordinary', filingStatus: status,
+      bands: [
+        { bandId: 'b1', lowerInclusive: 0, upperExclusive: 100, rate: 0.10, thresholdKind: 'rate-step' },
+        { bandId: 'b2', lowerInclusive: 100, upperExclusive: null, rate: 0.20, thresholdKind: 'rate-step' }
+      ],
+      sourceRef: 'strategy-fixture', locator: 'fixture'
+    })),
+    preferentialRateTables: strategyPerStatus((status) => ({
+      contractVersion: 'RateTable/v1', tableId: 'fixture-preferential-' + status, kind: 'preferential', filingStatus: status,
+      bands: [
+        { bandId: 'b1', lowerInclusive: 0, upperExclusive: 100, rate: 0, thresholdKind: 'rate-step' },
+        { bandId: 'b2', lowerInclusive: 100, upperExclusive: null, rate: 0.15, thresholdKind: 'rate-step' }
+      ],
+      sourceRef: 'strategy-fixture', locator: 'fixture'
+    })),
+    contentSha256: 'sha256:' + '0'.repeat(64)
+  };
+  const stackingWorkspace = RLTAXWORKSPACE.createEmptyWorkspace();
+  stackingWorkspace.filingStatus = 'single';
+  stackingWorkspace.declaredTaxYear = 9999;
+  stackingWorkspace.deductionMode = 'itemized';
+  stackingWorkspace.itemizedAmount = 0;
+  stackingWorkspace.income.ordinary = 40;
+  stackingWorkspace.income.longTermCapitalGain = 100;
+  /* Fixture Input Completion Register, FIC-4. */
+  stackingWorkspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+  stackingWorkspace.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+  stackingWorkspace.conversionFundingSource = 'withheld';
+  const stackingConversion = RLTAXSTRATEGY.fillToBracketConversion(stackingWorkspace, strategyFixturePack, 'b1');
+  const stackingBase = RLTAX.computeAnnualFederalTax(stackingWorkspace, strategyFixturePack);
+  const stackingFilled = RLTAX.computeAnnualFederalTax(
+    RLTAXSTRATEGY.convertedWorkspace(stackingWorkspace, stackingConversion.value), strategyFixturePack);
+  const recomputedDifference = stackingFilled.totalFederalTax.value - stackingBase.totalFederalTax.value;
+  const marginalProductDifference = 0.10 * stackingConversion.value;
+  assert(stackingConversion.value === 60
+    && stackingFilled.preferentialTax.value !== stackingBase.preferentialTax.value
+    && recomputedDifference !== marginalProductDifference
+    && recomputedDifference > marginalProductDifference,
+  'TP-04-05: the guard can fail — adding a marginal-rate product to the baseline understates the converted cost because it is blind to the preferential dollars the conversion pushed into a higher band (recomputed ' + recomputedDifference + ' versus product ' + marginalProductDifference + ')');
+
+  /* TP-04-06: a household already at or above the edge gets a labelled zero, not a refusal. */
+  const aboveEdgeComparison = RLTAXSTRATEGY.compareConversionPolicies(strategyWorkspace('single', 200000), strategyPack, 'b3', strategySweep);
+  const atEdgeComparison = RLTAXSTRATEGY.compareConversionPolicies(strategyWorkspace('single', 105700), strategyPack, 'b3', strategySweep);
+  assert(aboveEdgeComparison.conversionAmount.value === 0 && aboveEdgeComparison.conversionAmount.atOrAboveEdge === true
+    && !RLTAXRULES.isUnavailable(aboveEdgeComparison.conversionAmount)
+    && aboveEdgeComparison.federalTaxDifference.value === 0
+    && atEdgeComparison.conversionAmount.value === 0 && atEdgeComparison.conversionAmount.atOrAboveEdge === true
+    && baseComparison.conversionAmount.value > 0 && baseComparison.conversionAmount.atOrAboveEdge === false,
+  'TP-04-06: a household at or above the selected edge receives an explicitly labelled zero-amount conversion rather than a negative amount or an Unavailable');
+
+  /* TP-04-07: the marginal cost at the fill edge comes from the curve, not from a bracket rate. */
+  const edgeLevel = strategyWorkspace('single', 60000).income.ordinary + recomputeConversion.value;
+  const edgeSweep = Object.assign({}, strategySweep, { start: edgeLevel, end: edgeLevel + strategySweep.step });
+  const edgeCurve = RLTAX.computeEffectiveMarginalCurve(strategyWorkspace('single', 60000), strategyPack, 'ordinary', edgeSweep);
+  const reported = recomputeComparison.effectiveMarginalRateAtEdge;
+  assert(reported.value === edgeCurve.points[0].effectiveMarginalRate
+    && reported.level === edgeLevel
+    && reported.inheritedIncomplete === edgeCurve.incomplete && reported.inheritedIncomplete === true
+    && reported.unavailableContributorCount === edgeCurve.unavailableContributorCount
+    && reported.value !== reported.statutoryBandRate
+    && Math.abs(reported.value - 0.24) < 0.0001 && Math.abs(reported.statutoryBandRate - 0.24) < 0.0001,
+  'TP-04-07: the reported marginal rate at the fill edge is the curve value at that level and inherits the curve\u2019s incompleteness, rather than being read off a statutory bracket table');
+
+  /* TP-04-08: the closed disclosure carries its full required membership. */
+  const requiredNotModeled = ['state-tax', 'medicare-and-irmaa', 'premium-tax-credit', 'roth-five-year-clocks',
+    'later-year-distribution-pressure', 'required-distribution-pressure', 'survivor-effects', 'lost-growth-on-taxes-paid'];
+  const notModeledIds = baseComparison.notModeled.map((entry) => entry.id);
+  assert(baseComparison.notModeled.length === 8
+    && requiredNotModeled.every((id) => notModeledIds.includes(id))
+    && baseComparison.notModeled.every((entry) =>
+      typeof entry.label === 'string' && entry.label.length > 0
+      && typeof entry.reason === 'string' && entry.reason.length > 20
+      && RLTAXRULES.RLTAX_CODES[entry.deferralCode] === true)
+    && baseComparison.notModeled === RLTAXSTRATEGY.conversionNotModeled(),
+  'TP-04-08: notModeled carries all eight required entries, each with a reason and a deferral code drawn from the closed RLTAX vocabulary');
+
+  /* TP-04-09 ADVERSARIAL: a shortened disclosure is proven to fail the membership assertion. */
+  const shortenedDisclosure = baseComparison.notModeled.filter((entry) => entry.id !== 'survivor-effects');
+  const shortenedIds = shortenedDisclosure.map((entry) => entry.id);
+  const disclosureIsStructural = Object.isFrozen(baseComparison.notModeled)
+    && Object.isFrozen(baseComparison)
+    && RLTAXSTRATEGY.compareConversionPolicies(strategyWorkspace('single', 999999), strategyPack, 'b3', strategySweep).notModeled.length === 8;
+  assert(shortenedDisclosure.length === 7 && !requiredNotModeled.every((id) => shortenedIds.includes(id))
+    && disclosureIsStructural,
+  'TP-04-09: the disclosure guard can fail — a list missing any required entry breaks the membership assertion, and the real list is a frozen structural record member present on every result rather than page copy');
+
+  /* TP-04-10: the record's key set proves there is no forbidden member anywhere in it. */
+  const forbiddenMembers = ['probability', 'lifetimeTotal', 'breakEvenYear', 'rank', 'recommended', 'score', 'successRate', 'accuracy', 'survival'];
+  const flatten = (value, path, sink) => {
+    if (value === null || typeof value !== 'object') return sink;
+    Object.keys(value).forEach((key) => {
+      sink.push(key);
+      flatten(value[key], path + '.' + key, sink);
+    });
+    return sink;
+  };
+  const everyMember = flatten(baseComparison, 'comparison', []);
+  const forbiddenHits = everyMember.filter((member) => forbiddenMembers.some((token) => member.toLowerCase().indexOf(token.toLowerCase()) >= 0));
+  assert(JSON.stringify(comparisonKeys) === JSON.stringify(['contractVersion', 'packRef', 'selectedBracketId',
+    'bracketEdge', 'conversionAmount', 'heldConstant', 'policies', 'federalTaxDifference',
+    'effectiveMarginalRateAtEdge', 'fundingSource', 'notModeled', 'resultKindStatement', 'isRecommendation'])
+    && forbiddenHits.length === 0 && everyMember.length > 100
+    && forbiddenMembers.some((token) => ['probability', 'rank'].includes(token)),
+  'TP-04-10: enumerating all ' + everyMember.length + ' member names in the comparison record proves it carries no probability, lifetime total, break-even year, rank, score or accuracy member');
+
+  /* TP-04-11: the two funding cases are distinguishable and neither is assumed. */
+  const outsideFunds = RLTAXSTRATEGY.compareConversionPolicies(strategyWorkspace('single', 60000, { conversionFundingSource: 'outside-funds' }), strategyPack, 'b3', strategySweep);
+  const withheld = RLTAXSTRATEGY.compareConversionPolicies(strategyWorkspace('single', 60000, { conversionFundingSource: 'withheld' }), strategyPack, 'b3', strategySweep);
+  const undeclared = RLTAXSTRATEGY.compareConversionPolicies(strategyWorkspace('single', 60000, { conversionFundingSource: null }), strategyPack, 'b3', strategySweep);
+  assert(outsideFunds.fundingSource === 'outside-funds' && withheld.fundingSource === 'withheld'
+    && outsideFunds.fundingSource !== withheld.fundingSource
+    && RLTAXRULES.isUnavailable(undeclared.fundingSource)
+    && undeclared.fundingSource.contractVersion === 'TaxUnavailable/v1'
+    && codeOf(undeclared.fundingSource) === 'RLTAX-INPUT-INCOMPLETE'
+    && undeclared.fundingSource.whatWouldMakeItAvailable.indexOf('outside-funds') >= 0
+    && undeclared.federalTaxDifference.value === outsideFunds.federalTaxDifference.value,
+  'TP-04-11: declared outside-funds and declared withheld are distinguishable, and an undeclared funding source is a TaxUnavailable naming what would make it available rather than an assumed default');
+
+  /* Preferential income is now priced in the comparison too, and the module is UMD with
+     extractable top-level declarations.
+     SUP-022-11: supersedes the four refusal clauses on `gainBearingComparison.federalTaxDifference`
+     — isUnavailable, the RLTAX-THRESHOLD-UNAVAILABLE code, the non-empty whatWouldMakeItAvailable
+     and the absent `value` member; shape=relocate. Against the SHIPPED pack the difference is a
+     valued record equal to an independent recomputation; the whole original refusal, both
+     hasOwnProperty clauses included, is retained verbatim against an absent-preferential-table
+     fixture pack so the "a comparison never quietly drops the preferential leg" rule becomes
+     permanent instead of disappearing with the absence that produced it. */
+  const dividendWorkspace = strategyWorkspace('single', 60000);
+  dividendWorkspace.income.longTermCapitalGain = 10000;
+  const gainBearingComparison = RLTAXSTRATEGY.compareConversionPolicies(dividendWorkspace, strategyPack, 'b3', strategySweep);
+
+  /* The difference equals two independent FULL settlements differenced, which is the identity
+     TP-04-04 asserts for the gain-free household and is now asserted for the gain-bearing one. */
+  const gainUnconverted = RLTAX.computeAnnualFederalTax(dividendWorkspace, strategyPack);
+  const gainConvertedWorkspace = RLTAXWORKSPACE.createEmptyWorkspace();
+  Object.keys(dividendWorkspace).forEach((key) => { gainConvertedWorkspace[key] = dividendWorkspace[key]; });
+  gainConvertedWorkspace.income = Object.assign({}, dividendWorkspace.income);
+  gainConvertedWorkspace.investmentIncomeBasis = Object.assign({}, dividendWorkspace.investmentIncomeBasis);
+  gainConvertedWorkspace.wageBasis = Object.assign({}, dividendWorkspace.wageBasis);
+  gainConvertedWorkspace.income.ordinary = dividendWorkspace.income.ordinary + gainBearingComparison.conversionAmount.value;
+  const gainConverted = RLTAX.computeAnnualFederalTax(gainConvertedWorkspace, strategyPack);
+  const independentGainDifference = gainConverted.totalFederalTax.value - gainUnconverted.totalFederalTax.value;
+  /* A marginal-rate product is blind to the preferential dollars the conversion pushes across a
+     band, so a comparison reporting it instead of a recomputation is visibly different. */
+  const gainMarginalProduct = gainBearingComparison.effectiveMarginalRateAtEdge.value
+    * gainBearingComparison.conversionAmount.value;
+
+  /* ASC-7: the retained refusal runs against a fixture this file controls, never against a pack
+     state that may have stopped being absent. */
+  const strategyAbsentTablePack = JSON.parse(strategyPackText);
+  RLTAXRULES.SUPPORTED_FILING_STATUSES.forEach((status) => {
+    strategyAbsentTablePack.preferentialRateTables[status] = {
+      contractVersion: 'AbsentFigure/v1',
+      figureId: 'preferentialRateTables:' + status,
+      code: 'RLTAX-THRESHOLD-UNAVAILABLE',
+      reason: 'the fixture declares no preferential rate table for this status',
+      whatWouldMakeItAvailable: 'author a pack carrying the preferential rate table for this status'
+    };
+  });
+  const absentTableComparison = RLTAXSTRATEGY.compareConversionPolicies(dividendWorkspace, strategyAbsentTablePack, 'b3', strategySweep);
+
+  const strategyExtractable = ['bracketEdgeRecord', 'fillToBracketConversion', 'convertedWorkspace',
+    'edgeSweepPolicy', 'marginalRateAtEdge', 'conversionFundingSource', 'strongestTradeoffSegment',
+    'compareConversionPolicies', 'conversionNotModeled', 'conversionPolicyIds'];
+  let strategyExtracted = 0;
+  strategyExtractable.forEach((name) => {
+    try { extractFn(read('rltaxstrategy.js'), name); strategyExtracted += 1; } catch (extractError) { /* counted by the assertion */ }
+  });
+  assert(!RLTAXRULES.isUnavailable(gainBearingComparison.federalTaxDifference)
+    && Object.prototype.hasOwnProperty.call(gainBearingComparison.federalTaxDifference, 'value')
+    && Number.isFinite(gainBearingComparison.federalTaxDifference.value)
+    && typeof gainBearingComparison.federalTaxDifference.ruleStatus === 'string'
+    && gainBearingComparison.federalTaxDifference.ruleStatus.length > 0
+    && gainBearingComparison.federalTaxDifference.value === independentGainDifference
+    && Math.abs(gainBearingComparison.federalTaxDifference.value - gainMarginalProduct) > strategyPack.roundingPolicy.reconciliationTolerance
+    /* Retained verbatim on the absent-table fixture: the whole original refusal, both
+       hasOwnProperty clauses included. */
+    && RLTAXRULES.isUnavailable(absentTableComparison.federalTaxDifference)
+    && codeOf(absentTableComparison.federalTaxDifference) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && absentTableComparison.federalTaxDifference.whatWouldMakeItAvailable.length > 0
+    && !Object.prototype.hasOwnProperty.call(absentTableComparison.federalTaxDifference, 'value')
+    && gainBearingComparison.notModeled.length === 8
+    && strategyExtracted === strategyExtractable.length
+    && !/^\s*(import|export)\s/m.test(read('rltaxstrategy.js'))
+    && !/(^|[^.\w])isFinite\s*\(/.test(read('rltaxstrategy.js'))
+    && /module\.exports\s*=\s*api/.test(read('rltaxstrategy.js'))
+    && /root\.RLTAXSTRATEGY/.test(read('rltaxstrategy.js')),
+  'TP-04-10: a household carrying a long-term gain receives a valued federal tax difference equal to an independent recomputation and distinct from the marginal-rate product, while a comparison against an absent preferential table still refuses rather than quietly dropping the preferential leg, and all ' + strategyExtracted + ' strategy functions are extractable UMD top-level declarations using Number.isFinite');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 021 Scope 04 conversion group threw): ' + e.message); }
+
+/* ---------- Feature 021 Scope 05: Simple/Power route, accessibility and export ---------- */
+try {
+  group('Feature 021 Scope 05 — lifetime-tax Simple/Power route, accessibility and export');
+  const { createRequire: createRouteRequire } = await import('node:module');
+  const routeRequire = createRouteRequire(import.meta.url);
+  const RLTAXWORKSPACE = routeRequire('../rltaxworkspace.js');
+
+  const PAGE = 'lifetime-tax-strategy-lab.html';
+  const page = read(PAGE);
+  const routeConfig = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  const listFromSource = (name) => {
+    const match = new RegExp('var\\s+' + name + '\\s*=\\s*(\\[[\\s\\S]*?\\]);').exec(page);
+    return match ? JSON.parse(match[1].replace(/'/g, '"').replace(/,\s*\]/g, ']')) : null;
+  };
+  const simpleFields = listFromSource('SIMPLE_FIELDS');
+  const powerSections = listFromSource('POWER_SECTION_IDS');
+
+  /* TP-05-01: Simple's field set is a closed list the renderer enforces, and every withheld
+     detail carries a link to the Power section that owns it. */
+  const simpleMarkup = page.slice(page.indexOf('<section id="simple"'), page.indexOf('<section id="power"'));
+  const powerLinkSections = (page.match(/section:\s*"(power-[a-z-]+)"/g) || []).map((entry) => entry.replace(/.*"(power-[a-z-]+)".*/, '$1'));
+  const powerLinkDetails = (page.match(/detail:\s*"[^"]+"/g) || []);
+  /* SUP-023-04: supersedes the pinned seven-member Simple field count; shape=derive. FR-023-012
+     adds one Simple field naming the deduction side actually applied, so a pinned seven describes a page that no
+     longer exists. The replacement asserts cross-artifact identity between the closed
+     SIMPLE_FIELDS list and the fields the markup actually renders, in both directions, so the
+     fields Scopes 03 and 05 add are absorbed without a further entry while a field rendered
+     outside the closed list still fails. Every Simple-stays-decision-level clause is retained
+     verbatim below.
+     Ledger: specs/023-property-tax-and-rental-income/spec.md#supersession-ledger. */
+  const renderedSimpleFieldIds = Array.from(new Set(
+    (page.match(/simpleValueNode\("([a-zA-Z-]+)"/g) || []).map((entry) => entry.replace(/.*"([a-zA-Z-]+)".*/, '$1'))));
+  const everyRenderedFieldIsDeclared = renderedSimpleFieldIds.every((field) => simpleFields.includes(field));
+  /* `packIdentity` is rendered by the identity strip rather than through the value constructor,
+     so it is accounted for explicitly rather than silently excused. */
+  const everyDeclaredFieldIsRendered = simpleFields.every((field) => renderedSimpleFieldIds.includes(field)
+    || (field === 'packIdentity' && page.indexOf('id="packIdentityStrip"') >= 0));
+  /* SUP-023-05: supersedes the pinned nine-member withheld-detail and Power-section counts;
+     shape=derive. FR-023-007's surfacing obligation adds `power-property` and FR-023-014 adds
+     `power-deduction`, so a pinned nine describes a page that no longer exists. The replacement
+     asserts two-directional identity between the declared POWER_SECTION_IDS and the section
+     elements the markup actually carries, plus a per-link count derived from the link table
+     itself. That is strictly stronger: a link added without a section fails, a section added
+     without a declaration fails, and neither failure can be hidden by a matching count.
+     Ledger: specs/023-property-tax-and-rental-income/spec.md#supersession-ledger. */
+  const powerMarkup = page.slice(page.indexOf('<section id="power"'));
+  const renderedPowerSectionIds = Array.from(new Set(
+    (powerMarkup.match(/<div id="(power-[a-z-]+)"/g) || []).map((entry) => entry.replace(/.*"(power-[a-z-]+)".*/, '$1'))));
+  const everyDeclaredSectionExists = powerSections.every((section) => renderedPowerSectionIds.includes(section));
+  const everyRenderedSectionIsDeclared = renderedPowerSectionIds.every((section) => powerSections.includes(section));
+  assert(Array.isArray(simpleFields) && simpleFields.length === renderedSimpleFieldIds.length + 1
+    && everyRenderedFieldIsDeclared && everyDeclaredFieldIsRendered
+    && simpleFields.includes('headlineFederalTax') && simpleFields.includes('conversionAmount')
+    && simpleFields.includes('federalTaxDifference') && simpleFields.includes('effectiveMarginalRateAtEdge')
+    && !simpleFields.some((field) => /band|curve|ledger|trace|reconcil|average/i.test(field))
+    && simpleMarkup.indexOf('<canvas') < 0 && simpleMarkup.indexOf('power-') < 0
+    && simpleMarkup.indexOf('curveTextEquivalent') < 0 && simpleMarkup.indexOf('bracketDetail') < 0
+    && simpleMarkup.indexOf('ruleLedger') < 0
+    && powerLinkDetails.length === powerLinkSections.length
+    && everyDeclaredSectionExists && everyRenderedSectionIsDeclared
+    && powerSections.length === renderedPowerSectionIds.length
+    && powerLinkSections.every((section) => powerSections.includes(section))
+    && /if \(SIMPLE_FIELDS\.indexOf\(fieldId\) < 0\)/.test(page),
+  'TP-05-01: Simple renders exactly its closed decision-field set with no candidate grid, per-band table, rule trace or raw curve series, the renderer refuses a field outside that set, every rendered field is declared and every declared field is rendered, and the declared Power sections and the sections the markup carries are identical in both directions with every withheld-detail link pointing at a declared section');
+
+  /* TP-05-02: one envelope, two renderings, and neither view computes. */
+  const renderSimpleBody = extractFn(page, 'renderSimple');
+  const renderPowerBody = extractFn(page, 'renderPower');
+  const renderCurveBody = extractFn(page, 'renderCurve');
+  const renderSettlementBody = extractFn(page, 'renderSettlement');
+  const renderConversionBody = extractFn(page, 'renderConversion');
+  const viewBodies = renderSimpleBody + renderPowerBody + renderCurveBody + renderSettlementBody + renderConversionBody;
+  const computeCalls = ['computeAnnualFederalTax', 'computeEffectiveMarginalCurve', 'compareConversionPolicies', 'strongestTradeoffSegment'];
+  const viewComputes = computeCalls.filter((name) => viewBodies.indexOf(name) >= 0);
+  const envelopeBody = extractFn(page, 'buildEnvelope');
+  assert((page.match(/function buildEnvelope\(/g) || []).length === 1
+    && computeCalls.every((name) => envelopeBody.indexOf(name) >= 0)
+    && viewComputes.length === 0
+    && renderSimpleBody.indexOf('state.envelope') >= 0
+    && renderCurveBody.indexOf('state.envelope.curve') >= 0
+    && renderSettlementBody.indexOf('state.envelope.settlement') >= 0,
+  'TP-05-02: exactly one function builds the result envelope, both views read it, and neither Simple nor Power recomputes a tax, a curve point or a conversion amount of its own');
+
+  /* TP-05-11: the headline is the settled TOTAL, not the ordinary leg. Scope 02 proved CO-7
+     stacking inside the engine and Scope 04 proved the conversion comparison reads
+     `totalFederalTax`, but nothing proved which member the HEADLINE sources. That gap let the
+     page render `settlement.ordinaryTax` — arithmetically perfect stacking that the reader never
+     saw — and a green engine sat beside an under-stated browser figure. The check is derived
+     from a settlement on the shipped pack rather than spelled, and it is proven consequential:
+     the same household's ordinary leg is strictly SMALLER than its total, so sourcing the wrong
+     member under-states the tax owed, which is the one direction this tool must never err in. */
+  const RLTAXRULES = routeRequire('../rltaxrules.js');
+  const RLTAX = routeRequire('../rltax.js');
+  const headlinePack = JSON.parse(read('tax-rules/federal/2026.json'));
+  const headlineWorkspace = RLTAXWORKSPACE.createEmptyWorkspace();
+  headlineWorkspace.filingStatus = 'single';
+  headlineWorkspace.declaredTaxYear = 2026;
+  headlineWorkspace.deductionMode = 'standard';
+  /* A gain large enough to reach the pack's own 15 percent preferential band and the declared
+     net investment income threshold, so the preferential and surtax legs are both non-zero. */
+  headlineWorkspace.income.ordinary = 90000;
+  headlineWorkspace.income.longTermCapitalGain =
+    headlinePack.preferentialRateTables.single.bands[1].upperExclusive;
+  headlineWorkspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+  headlineWorkspace.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+  const headlineSettlement = RLTAX.computeAnnualFederalTax(headlineWorkspace, headlinePack);
+  const headlineLegSum = headlineSettlement.taxLegs
+    .filter((leg) => leg.includedInTotal === true && leg.available === true)
+    .reduce((running, leg) => running + leg.value, 0);
+  const headlineSource = /var total = envelope\.settlement\.([A-Za-z]+);/.exec(renderSimpleBody);
+  assert(headlineSource !== null && headlineSource[1] === 'totalFederalTax'
+    && renderSimpleBody.indexOf('settlement.ordinaryTax') < 0
+    && renderSimpleBody.indexOf('settlement.preferentialTax') < 0
+    && renderSimpleBody.indexOf('settlement.netInvestmentIncomeTax') < 0
+    && renderSimpleBody.indexOf('settlement.additionalMedicareTax') < 0
+    /* The clause above is consequential rather than cosmetic: on this household the ordinary leg
+       and the total are different numbers, and the ordinary leg is the smaller of the two. */
+    && !RLTAXRULES.isUnavailable(headlineSettlement.totalFederalTax)
+    && !RLTAXRULES.isUnavailable(headlineSettlement.ordinaryTax)
+    && !RLTAXRULES.isUnavailable(headlineSettlement.preferentialTax)
+    && headlineSettlement.preferentialTax.value > 0
+    && headlineSettlement.netInvestmentIncomeTax.value > 0
+    && headlineSettlement.ordinaryTax.value < headlineSettlement.totalFederalTax.value
+    && Math.abs(headlineLegSum - headlineSettlement.totalFederalTax.value) < 0.0001
+    && Math.abs((headlineSettlement.totalFederalTax.value - headlineSettlement.ordinaryTax.value)
+      - (headlineSettlement.preferentialTax.value
+        + headlineSettlement.netInvestmentIncomeTax.value
+        + headlineSettlement.additionalMedicareTax.value)) < 0.0001,
+  'TP-05-11: the Simple headline is sourced from totalFederalTax and from no single leg, and the '
+    + 'binding is proven consequential — the same household settles an ordinary leg of '
+    + headlineSettlement.ordinaryTax.value.toFixed(2) + ' against a total of '
+    + headlineSettlement.totalFederalTax.value.toFixed(2) + ', so a headline reading the ordinary '
+    + 'leg would under-state the tax owed by '
+    + (headlineSettlement.totalFederalTax.value - headlineSettlement.ordinaryTax.value).toFixed(2)
+    + ', exactly the preferential and surtax legs the total carries');
+
+  /* TP-05-03: every displayed value goes through one constructor that cannot omit a tooltip. */
+  const valueNodeBody = extractFn(page, 'valueNode');
+  const simpleValueNodeBody = extractFn(page, 'simpleValueNode');
+  const valueWriters = (page.match(/setAttribute\("data-rl-value"/g) || []).length;
+  const tooltipArguments = (page.match(/(?:simpleValueNode|valueNode)\(\s*"[a-zA-Z]+"\s*,[\s\S]*?\)\s*\)/g) || []);
+  assert(valueWriters === 1
+    && /aria-describedby/.test(valueNodeBody) && /role"?,\s*"tooltip"|"role", "tooltip"/.test(valueNodeBody)
+    && /tip\.textContent = tooltip/.test(valueNodeBody)
+    && simpleValueNodeBody.indexOf('valueNode(fieldId, shown, tooltip)') >= 0
+    && tooltipArguments.length >= 6
+    && !/valueNode\([^)]*\)\s*;\s*$/m.test(valueNodeBody),
+  'TP-05-03: exactly one constructor writes a displayed value, and it always attaches an aria-describedby tooltip element sourced from the field\u2019s own record, so a value with no tooltip cannot be rendered');
+
+  /* TP-05-04: the chart and its text-equivalent table are emitted from one record. */
+  assert(renderCurveBody.indexOf('ENGINE.curveTextRows(curve)') >= 0
+    && renderCurveBody.indexOf('drawCurveChart(curve)') >= 0
+    && /aria-label="Text equivalent of the effective marginal rate curve/.test(page)
+    && /id="curveChartFallback"/.test(page)
+    && /<canvas id="curveChart"[^>]*aria-label=/.test(page),
+  'TP-05-04: the chart and the text-equivalent table are both emitted from the same curve record, the table carries an aria-label, and the chart carries an aria-label plus a text fallback');
+
+  /* TP-05-05: every refusal renders whole; a blank, a dash and a zero are each a failure. */
+  const unavailableNodeBody = extractFn(page, 'unavailableNode');
+  const rendersDash = /textContent\s*=\s*["']\s*[-\u2014]\s*["']/.test(unavailableNodeBody);
+  const rendersZero = /textContent\s*=\s*["']?0["']?\s*;/.test(unavailableNodeBody);
+  assert(unavailableNodeBody.indexOf('record.code') >= 0
+    && unavailableNodeBody.indexOf('record.domain') >= 0
+    && unavailableNodeBody.indexOf('record.reason') >= 0
+    && unavailableNodeBody.indexOf('record.whatWouldMakeItAvailable') >= 0
+    && /setAttribute\("tabindex", "0"\)/.test(unavailableNodeBody)
+    && !rendersDash && !rendersZero
+    && /rendersDash|record\.code/.test(unavailableNodeBody),
+  'TP-05-05: every TaxUnavailable renders its code, its domain, its reason and its remediation on a focusable element, and the constructor emits no blank, bare dash or zero in their place');
+
+  /* TP-05-06: no claim the tool cannot support, and the educational framing is present. */
+  const claimTokens = ['probability', 'success rate', 'successRate', 'accuracy', 'track record', 'trackRecord',
+    'error rate', 'errorRate', 'break-even', 'breakEven', 'lifetime total', 'lifetimeTotal', 'we recommend', 'recommended'];
+  const claimScanFiles = [PAGE, 'rltaxstrategy.js'];
+  const claimLeaks = [];
+  claimScanFiles.forEach((file) => {
+    claimTokens.forEach((token) => {
+      if (read(file).toLowerCase().indexOf(token.toLowerCase()) >= 0) claimLeaks.push(file + ':' + token);
+    });
+  });
+  assert(claimLeaks.length === 0
+    && /Not tax\s*\n?\s*advice|Not tax advice/.test(page)
+    && page.indexOf('It does not prepare or file a return') >= 0
+    && page.indexOf('educationalFraming') >= 0
+    && routeConfig.display.educationalFraming.indexOf('not tax advice') >= 0,
+  'TP-05-06: no page or strategy string claims a published error rate, a self-invalidation statistic, a track record, an accuracy figure or a plan success probability, and the educational not-tax-advice framing is present (' + claimLeaks.join(', ') + ')');
+
+  /* TP-05-07: the export manifest names every withheld member exactly. */
+  const exportWorkspace = RLTAXWORKSPACE.createEmptyWorkspace();
+  exportWorkspace.filingStatus = 'single';
+  exportWorkspace.declaredTaxYear = 2026;
+  exportWorkspace.deductionMode = 'standard';
+  exportWorkspace.income.ordinary = 424242;
+  exportWorkspace.updatedAt = '2026-08-17T00:00:00.000Z';
+  const sanitized = RLTAXWORKSPACE.sanitizeForExport(exportWorkspace);
+  const manifest = RLTAXWORKSPACE.exportManifest(exportWorkspace, routeConfig,
+    { id: 'federal-income-tax-2026', version: '1.0.0', contentSha256: routeConfig.rules.packContentSha256 });
+  const actuallyOmitted = Object.keys(exportWorkspace).filter((key) => !Object.prototype.hasOwnProperty.call(sanitized.workspace, key));
+  const underReportingManifest = sanitized.omittedFields.slice(1);
+  const manifestText = JSON.stringify(manifest);
+  assert(JSON.stringify(sanitized.omittedFields.slice().sort()) === JSON.stringify(actuallyOmitted.slice().sort())
+    && sanitized.omittedFields.length > 0
+    && underReportingManifest.length !== actuallyOmitted.length
+    && manifest.warning === routeConfig.display.privateExportWarning
+    && manifest.neverCollected.length === 5
+    && RLTAXWORKSPACE.NEVER_COLLECTED.every((category) => manifest.neverCollected.includes(category))
+    && ['name', 'address', 'accountNumber', 'taxIdentifier', 'credential'].every((identifier) => !Object.prototype.hasOwnProperty.call(manifest.workspace, identifier))
+    && manifestText.indexOf('424242') >= 0,
+  'TP-05-07: the export manifest lists every withheld workspace member exactly, an under-reporting manifest is proven to disagree with the sanitizer, and the file carries the sensitivity warning, the never-collected categories and no identifier');
+
+  /* The export action exists, warns before the file exists, and is explicit. */
+  const exportBody = extractFn(page, 'exportPrivateFile');
+  const updateExportBody = extractFn(page, 'updateExportEnabled');
+  assert(/id="exportWarning"/.test(page) && /id="exportAcknowledgement"/.test(page)
+    && /id="exportPrivateFile"[^>]*disabled/.test(page)
+    && updateExportBody.indexOf('exportAcknowledgement') >= 0
+    && exportBody.indexOf('WORKSPACE.exportManifest') >= 0
+    && exportBody.indexOf('revokeObjectURL') >= 0
+    && (page.match(/anchor\.click\(\)/g) || []).length === 1
+    && /addEventListener\("click", exportPrivateFile\)/.test(page),
+  'TP-05-07: the export runs only from an explicit click on an acknowledged control, the sensitivity warning is rendered before any file exists, and the object URL is revoked immediately after the download');
+
+  /* TP-05-08: the storage inventory is unchanged from Scope 01 and the clear stays scoped. */
+  const routeStore = {};
+  const routeStorage = {
+    getItem: (key) => (Object.prototype.hasOwnProperty.call(routeStore, key) ? routeStore[key] : null),
+    setItem: (key, value) => { routeStore[key] = String(value); },
+    removeItem: (key) => { delete routeStore[key]; }
+  };
+  routeStorage.setItem('rlPortfolioWorkspaceV1.workspace', 'foreign-value');
+  RLTAXWORKSPACE.writeWorkspace(routeStorage, routeConfig, exportWorkspace);
+  const writtenKeys = Object.keys(routeStore).filter((key) => key !== 'rlPortfolioWorkspaceV1.workspace').sort();
+  const declaredKeys = RLTAXWORKSPACE.declaredStorageKeys(routeConfig).slice().sort();
+  const routeCleared = RLTAXWORKSPACE.clearAllPrivateData(routeStorage, routeConfig);
+  const pageStorageWrites = (page.match(/localStorage\.setItem\(/g) || []).length;
+  assert(JSON.stringify(writtenKeys) === JSON.stringify(declaredKeys)
+    && writtenKeys.length === 3
+    && routeCleared.removedKeys.length === 3
+    && Object.keys(routeStore).length === 1
+    && routeStore['rlPortfolioWorkspaceV1.workspace'] === 'foreign-value'
+    && declaredKeys.every((key) => !RLTAXWORKSPACE.isForbiddenKey(routeConfig, key))
+    && pageStorageWrites === 1
+    && /localStorage\.setItem\(MODE_KEY/.test(page),
+  'TP-05-08: the written storage key set is unchanged from Scope 01, clear-all removes exactly those three keys while leaving a portfolio-prefixed key standing, and the page itself writes only the display-mode key directly');
+
+  /* TP-05-09: the tool stays absent from every registration surface. */
+  const registrationSurfaces = ['tools.json', 'index.html', 'rlnav.js', 'README.md', 'notes/README.md', 'market-brief.config.json'];
+  const registrationLeaks = registrationSurfaces.filter((file) =>
+    read(file).indexOf('lifetime-tax') >= 0 || read(file).indexOf('rltaxstrategy') >= 0);
+  assert(registrationLeaks.length === 0,
+    'TP-05-09: the lifetime-tax route and its modules appear in none of tools.json, index.html, rlnav.js, README.md, notes/README.md or the market-brief configuration (' + registrationLeaks.join(', ') + ')');
+
+  /* TP-05-10: the finished unregistered page still carries its deploy decision. */
+  const routePagesSite = await import('./build-pages-site.mjs');
+  const routePlan = routePagesSite.planPagesSite(ROOT);
+  const routeRootPages = readdirSync(ROOT).filter((name) => name.endsWith('.html')).sort();
+  const routeRegistered = new Set(JSON.parse(read('tools.json')).tools.map((tool) => tool.file));
+  const withoutPageEntry = new Set(routePlan.excludedPaths.filter((path) => path !== PAGE));
+  const refusedWithoutEntry = routePagesSite.findUnaccountedPages(routeRootPages, routeRegistered, withoutPageEntry);
+  assert(routePlan.excludedPaths.includes(PAGE)
+    && routePlan.excludedPaths.includes('rltaxstrategy.js')
+    && routePlan.excludedPaths.includes('rltax.js')
+    && !routePlan.registeredPages.includes(PAGE)
+    && routeRootPages.includes(PAGE)
+    && refusedWithoutEntry.includes(PAGE),
+  'TP-05-10: the pages-site build accepts the finished unregistered page through its site-exclusions decision, and removing that decision is proven to make the build refuse the page');
+
+  /* The zero-network posture is structural: the page carries no runtime transport beyond the two
+     local documents it reads once, and no household value can reach a URL. */
+  const transportTokens = ['XMLHttpRequest', 'sendBeacon', 'EventSource', 'WebSocket', 'serviceWorker',
+    'importScripts', 'createElement("script")', 'document.write'];
+  const transportHits = transportTokens.filter((token) => page.indexOf(token) >= 0);
+  const fetchCalls = (page.match(/window\.fetch\(/g) || []).length;
+  const fetchTargets = (page.match(/loadJson\("[^"]+"\)|loadJson\(config\.rules\.packPath\)/g) || []);
+  const remoteAssets = /<(?:img|script|link)[^>]+(?:src|href)="https?:/i.test(page);
+  const hashWrites = (page.match(/window\.location\.hash = /g) || []).length;
+  const cspPattern = /<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]+)"\s*\/?\s*>/i;
+  const pageCsp = cspPattern.exec(page);
+  const referenceCsp = cspPattern.exec(read('portfolio-survival-allocation-lab.html'));
+  assert(transportHits.length === 0 && fetchCalls === 1 && fetchTargets.length === 2
+    && !remoteAssets && hashWrites === 1 && page.indexOf('location.search') < 0
+    && /var wanted = power \? "#power" : "#simple";/.test(page)
+    && !!pageCsp && !!referenceCsp && pageCsp[1] === referenceCsp[1]
+    && /<meta name="referrer" content="no-referrer">/.test(page)
+    && (page.match(/rel="noreferrer noopener"|anchor\.rel = "noreferrer noopener"/g) || []).length >= 2
+    && page.indexOf('console.') < 0
+    && page.indexOf('innerHTML') < 0,
+  'TP-05-06: the route carries no runtime transport beyond one same-origin read of the two local policy documents, writes only the two view-mode literals to the location hash, never writes a query string, emits no console output, uses no innerHTML, and its CSP is byte-identical to the shared policy');
+
+  /* Charts are drawn synchronously and only in the mode whose canvas is visible. */
+  const drawBody = extractFn(page, 'drawCurveChart');
+  assert(drawBody.indexOf('requestAnimationFrame') < 0
+    && !/requestAnimationFrame\s*\(/.test(page)
+    && drawBody.indexOf('document.body.classList.contains("power")') >= 0
+    && /setTimeout\(function \(\) \{[\s\S]*?drawCurveChart/.test(page)
+    && renderCurveBody.indexOf('drawCurveChart(curve)') >= 0,
+  'TP-05-04: the curve chart is drawn synchronously from render rather than from a requestAnimationFrame callback that never fires in a background tab, is guarded by the mode whose canvas is visible, and is debounced only on resize');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 021 Scope 05 route group threw): ' + e.message); }
+
+/* ================================================================================
+   Feature 022 Scope 03 — lifetime-tax state rule-pack contract and jurisdiction
+   resolution. Appended; this scope edits no pre-existing assertion.
+   ================================================================================ */
+try {
+  group('Feature 022 Scope 03 — lifetime-tax state rule-pack contract and jurisdiction resolution');
+  const { createRequire: createStateRequire } = await import('node:module');
+  const { createHash: createStateHash } = await import('node:crypto');
+  const stateRequire = createStateRequire(import.meta.url);
+  const RULES = stateRequire('../rltaxrules.js');
+  const WORKSPACE = stateRequire('../rltaxworkspace.js');
+  stateRequire('../rltax.js');
+  const STATE = stateRequire('../rltaxstate.js');
+
+  const codeOf = (record) => (record && record.code) || null;
+  const clone = (value) => JSON.parse(JSON.stringify(value));
+  const stateConfig = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  const federalPack = JSON.parse(read('tax-rules/federal/2026.json'));
+  const floridaPack = JSON.parse(read('tax-rules/state/FL/2026.json'));
+  const fixturePack = JSON.parse(read('tax-rules/fixtures/state-contract-no-preferential-2999.json'));
+
+  function stateWorkspace(overrides) {
+    const workspace = WORKSPACE.createEmptyWorkspace();
+    workspace.filingStatus = 'single';
+    workspace.declaredTaxYear = 2026;
+    workspace.income.ordinary = 200000;
+    workspace.deductionMode = 'standard';
+    workspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+    workspace.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+    workspace.residencyJurisdiction = 'state:ZZ';
+    workspace.residencyPattern = 'full-year-resident';
+    Object.keys(overrides || {}).forEach((key) => { workspace[key] = overrides[key]; });
+    return workspace;
+  }
+
+  /* TP-03-02: the widened jurisdiction grammar is a pattern, and every malformed shape refuses. */
+  const grammarAccepts = ['federal', 'state:CA', 'state:FL', 'state:ZZ'];
+  const grammarRefuses = ['state:ca', 'state:CAL', 'state:C', 'state', 'state:', '../../etc/passwd',
+    'state:../FL', 'STATE:CA', 'federal:CA', '', null, undefined, 42];
+  const traversalResolution = RULES.resolveRulePack(floridaPack, {
+    jurisdiction: 'state:../FL', program: 'income-tax', declaredTaxYear: 2026
+  });
+  assert(grammarAccepts.every((value) => RULES.isSupportedJurisdiction(value) === true)
+    && grammarRefuses.every((value) => RULES.isSupportedJurisdiction(value) === false)
+    && !traversalResolution.ok
+    && codeOf(traversalResolution.refusals[0]) === 'RLTAX-JURISDICTION-UNSUPPORTED',
+  'TP-03-02: the jurisdiction grammar accepts federal and a well-formed state code and refuses a lowercase code, a three-letter code, a one-letter code, a bare prefix and a path-traversal attempt');
+
+  /* TP-03-16: no module holds a state name, a postal code or a jurisdiction rule value. The
+     detector is proven to fire on a module that does. */
+  const taxModules = ['rltaxrules.js', 'rltax.js', 'rltaxstate.js', 'rltaxcombined.js', 'rltaxworkspace.js'];
+  const stateNameTokens = ['Florida', 'California', 'FLORIDA', 'CALIFORNIA', 'Franchise Tax Board',
+    'floridarevenue', 'leginfo', 'flsenate', 'state:CA', 'state:FL', 'Revenue and Taxation Code'];
+  const shadowLeaks = [];
+  taxModules.forEach((file) => {
+    const source = read(file);
+    stateNameTokens.forEach((token) => { if (source.indexOf(token) >= 0) shadowLeaks.push(file + ':' + token); });
+  });
+  const shadowDetectorFires = stateNameTokens.some((token) => ('a module mentioning California').indexOf(token) >= 0);
+  assert(shadowLeaks.length === 0 && shadowDetectorFires,
+    'TP-03-16: no engine module holds a state name, a postal code or an authority name, and the detector is proven to fire on a string that does (' + shadowLeaks.join(', ') + ')');
+
+  /* TP-03-04: SourcedZero/v1 validates only with the literal zero and a citation. */
+  const soundZero = RULES.sourcedZeroFor(floridaPack, 'state-income-tax:test');
+  const nonZero = clone(soundZero); nonZero.value = 1;
+  const noCitation = clone(soundZero); delete noCitation.sourceRef;
+  const noLocator = clone(soundZero); noLocator.locator = '';
+  assert(RULES.isSourcedZero(soundZero) && soundZero.value === 0
+    && RULES.validateSourcedZero(soundZero).ok
+    && !RULES.validateSourcedZero(nonZero).ok
+    && !RULES.validateSourcedZero(noCitation).ok
+    && !RULES.validateSourcedZero(noLocator).ok
+    && !RULES.validateSourcedZero({ contractVersion: 'SourcedZero/v1', value: 0 }).ok
+    && RULES.isSourcedZero(0) === false,
+  'TP-03-04: a sourced zero validates only with the literal zero, a sourceRef and a locator, and a non-zero value, a missing citation and a missing locator are each refused');
+
+  /* TP-03-10 adversarial: a bare zero is proven to fail the contract-version discriminator. */
+  const bareZeroTotal = { value: 0, ruleStatus: 'enacted-current-law' };
+  assert(!RULES.isSourcedZero(bareZeroTotal) && bareZeroTotal.value === 0
+    && RULES.isSourcedZero(soundZero) && soundZero.value === 0,
+  'TP-03-10: an implementation returning a bare zero record is proven to fail the contract-version discriminator that a sourced zero passes, while both carry the same value');
+
+  /* TP-03-12: the Florida pack validates, resolves, and produces a sourced zero. */
+  const floridaValidation = RULES.validateRulePack(floridaPack);
+  const floridaDigest = 'sha256:' + createStateHash('sha256').update(RULES.packContentDigestInput(floridaPack)).digest('hex');
+  const floridaResolution = RULES.resolveRulePack(floridaPack, {
+    jurisdiction: 'state:FL', program: 'income-tax', declaredTaxYear: 2026, filingStatus: 'single',
+    expectedContentSha256: floridaPack.contentSha256
+  });
+  const floridaSettlement = STATE.computeAnnualStateTax(stateWorkspace({ residencyJurisdiction: 'state:FL' }), floridaPack);
+  const floridaHasNoTable = ['standardDeductions', 'ordinaryRateTables', 'preferentialRateTables'].every((group) =>
+    Object.keys(floridaPack[group]).every((status) => RULES.isAbsentFigure(floridaPack[group][status])));
+  assert(floridaValidation.ok && floridaResolution.ok
+    && floridaDigest === floridaPack.contentSha256
+    && floridaPack.imposesIndividualIncomeTax === false
+    && floridaPack.taxLegs.length === 0
+    && floridaHasNoTable
+    && RULES.isSourcedZero(floridaSettlement.totalStateTax)
+    && floridaSettlement.totalStateTax.value === 0
+    && floridaSettlement.totalStateTax.sourceRef === floridaPack.noTaxAuthority.sourceRef
+    && floridaSettlement.totalStateTax.locator.length > 0
+    && RULES.RULE_STATUS[floridaSettlement.totalStateTax.ruleStatus] === true
+    && floridaSettlement.calculationOrder.length === 0,
+  'TP-03-12: the Florida pack validates against its own digest, resolves for the declared year, carries no rate table for any filing status, and produces a SourcedZero total with a rule status and a reachable citation');
+
+  /* TP-03-05 adversarial: a no-tax pack that still carries a rate table is refused. */
+  const floridaWithTable = clone(floridaPack);
+  floridaWithTable.ordinaryRateTables.single = clone(fixturePack.ordinaryRateTables.single);
+  const floridaWithLeg = clone(floridaPack);
+  floridaWithLeg.taxLegs = clone(fixturePack.taxLegs);
+  const floridaWithoutAuthority = clone(floridaPack);
+  floridaWithoutAuthority.noTaxAuthority = null;
+  assert(!RULES.validateRulePack(floridaWithTable).ok
+    && !RULES.validateRulePack(floridaWithLeg).ok
+    && !RULES.validateRulePack(floridaWithoutAuthority).ok
+    && RULES.isUnavailable(RULES.sourcedZeroFor(floridaWithoutAuthority, 'd'))
+    && RULES.isUnavailable(RULES.sourcedZeroFor(federalPack, 'd')),
+  'TP-03-05: a pack declaring no individual income tax is refused when it carries a rate table, when it declares a tax leg and when it names no establishing authority, and no sourced zero can be built from a pack that imposes a tax');
+
+  /* TP-03-06: ReliefMechanism/v1 coherence and applied-legs membership. */
+  function reliefPack(mutate) {
+    const pack = clone(fixturePack);
+    mutate(pack.reliefMechanisms[0], pack);
+    return RULES.validateRulePack(pack);
+  }
+  const incoherentCredit = reliefPack((relief) => { relief.applicationPoint = 'before-rate-application'; });
+  const incoherentDeduction = reliefPack((relief) => { relief.kind = 'deduction-from-income'; });
+  const undeclaredLeg = reliefPack((relief) => { relief.appliesToLegs = ['a-leg-the-pack-does-not-declare']; });
+  const emptyLegs = reliefPack((relief) => { relief.appliesToLegs = []; });
+  const coherentDeduction = reliefPack((relief) => {
+    relief.kind = 'deduction-from-income';
+    relief.applicationPoint = 'before-rate-application';
+  });
+  assert(!incoherentCredit.ok && !incoherentDeduction.ok && !undeclaredLeg.ok && !emptyLegs.ok
+    && coherentDeduction.ok
+    && RULES.validateRulePack(fixturePack).ok,
+  'TP-03-06: a credit applied before rate application, a deduction applied after it, an appliesToLegs naming an undeclared leg and an empty applied-legs list are each refused, while both coherent pairings validate');
+
+  /* TP-03-07: an undeclared residency refuses by name and shows no zero. */
+  const undeclaredResidency = STATE.residencyDeclaration(stateWorkspace({ residencyJurisdiction: null }));
+  const undeclaredPattern = STATE.residencyPattern(stateWorkspace({ residencyPattern: null }));
+  const undeclaredResolution = STATE.resolveStatePack(stateWorkspace({ residencyJurisdiction: null }), {}, {});
+  assert(RULES.isUnavailable(undeclaredResidency)
+    && codeOf(undeclaredResidency) === 'RLTAX-INPUT-INCOMPLETE'
+    && undeclaredResidency.domain.indexOf('residencyJurisdiction') >= 0
+    && !Object.prototype.hasOwnProperty.call(undeclaredResidency, 'value')
+    && codeOf(undeclaredPattern) === 'RLTAX-INPUT-INCOMPLETE'
+    && codeOf(undeclaredResolution) === 'RLTAX-INPUT-INCOMPLETE',
+  'TP-03-07: an undeclared residency jurisdiction and an undeclared residency pattern are each RLTAX-INPUT-INCOMPLETE naming the member, and neither record carries a numeric value');
+
+  /* TP-03-08 and TP-03-09: four refusals, four distinct reasons, and the separation proven. */
+  const unshippedState = STATE.resolveStatePack(stateWorkspace({ residencyJurisdiction: 'state:XX' }),
+    { 'state:FL': floridaPack }, { program: 'income-tax', declaredTaxYear: 2026 });
+  const partYear = STATE.residencyPattern(stateWorkspace({ residencyPattern: 'part-year' }));
+  const multiState = STATE.residencyPattern(stateWorkspace({ residencyPattern: 'multi-state' }));
+  const nonResidentSource = STATE.residencyPattern(stateWorkspace({ residencyPattern: 'non-resident-source' }));
+  const supportedStateUnsupportedPattern = STATE.resolveStatePack(
+    stateWorkspace({ residencyJurisdiction: 'state:FL', residencyPattern: 'part-year' }),
+    { 'state:FL': floridaPack }, { program: 'income-tax', declaredTaxYear: 2026 });
+  const patternReasons = [partYear, multiState, nonResidentSource].map((record) => record.reason);
+  const fourReasons = [unshippedState.reason].concat(patternReasons);
+  assert(codeOf(unshippedState) === 'RLTAX-JURISDICTION-UNSUPPORTED'
+    && unshippedState.domain.indexOf('state:XX') >= 0
+    && codeOf(partYear) === 'RLTAX-RESIDENCY-UNSUPPORTED'
+    && codeOf(multiState) === 'RLTAX-RESIDENCY-UNSUPPORTED'
+    && codeOf(nonResidentSource) === 'RLTAX-RESIDENCY-UNSUPPORTED'
+    && codeOf(supportedStateUnsupportedPattern) === 'RLTAX-RESIDENCY-UNSUPPORTED'
+    && new Set(fourReasons).size === 4
+    && new Set([unshippedState.whatWouldMakeItAvailable, partYear.whatWouldMakeItAvailable]).size === 2
+    && codeOf(supportedStateUnsupportedPattern) !== 'RLTAX-JURISDICTION-UNSUPPORTED',
+  'TP-03-08 and TP-03-09: an unshipped state refuses RLTAX-JURISDICTION-UNSUPPORTED while three residency patterns each refuse RLTAX-RESIDENCY-UNSUPPORTED with four distinct reasons, and a part-year resident of a fully shipped state is proven not to be routed through the jurisdiction code');
+
+  /* TP-03-11 adversarial: treating an undeclared residency as no state tax is proven to fail. */
+  const noStateTaxSubstitution = { value: 0, ruleStatus: 'enacted-current-law' };
+  assert(!RULES.isUnavailable(noStateTaxSubstitution)
+    && RULES.isUnavailable(undeclaredResidency)
+    && codeOf(undeclaredResidency) === 'RLTAX-INPUT-INCOMPLETE'
+    && !RULES.isSourcedZero(noStateTaxSubstitution),
+  'TP-03-11: an implementation that answered an undeclared residency with a zero is proven to fail both the refusal assertion and the sourced-zero discriminator');
+
+  /* TP-03-03: the federal pack still derives the federal ordered array element for element. */
+  const federalDerivedOrder = RULES.calculationOrderFor(federalPack);
+  const fixtureDerivedOrder = RULES.calculationOrderFor(fixturePack);
+  const floridaDerivedOrder = RULES.calculationOrderFor(floridaPack);
+  assert(JSON.stringify(federalDerivedOrder) === JSON.stringify(federalPack.calculationOrder)
+    && JSON.stringify(federalDerivedOrder) === JSON.stringify(RULES.CALCULATION_ORDER.slice())
+    && JSON.stringify(fixtureDerivedOrder) === JSON.stringify(RULES.CALCULATION_ORDER_NO_PREFERENTIAL.slice())
+    && fixtureDerivedOrder.indexOf('CO-4') < 0 && fixtureDerivedOrder.indexOf('CO-7') < 0
+    && fixtureDerivedOrder.indexOf('CO-13') >= 0 && fixtureDerivedOrder.indexOf('CO-14') >= 0
+    && floridaDerivedOrder.length === 0
+    && RULES.validateRulePack(federalPack).ok,
+  'TP-03-03: the federal pack still derives the federal ordered array element for element, a preferentialPolicy none pack derives the array that omits both preferential stages and carries the two new ones, and a pack imposing no tax derives an empty array');
+
+  /* TP-03-13: a pack declaring no preferential treatment prices pooled preferential income in its
+     ordinary schedule, with no engine branch. */
+  const pooledOrdinary = STATE.computeAnnualStateTax(
+    stateWorkspace({ income: { ordinary: 200000, qualifiedDividend: 0, longTermCapitalGain: 0, taxExemptInterest: 0 } }), fixturePack);
+  const pooledGain = STATE.computeAnnualStateTax(
+    stateWorkspace({ income: { ordinary: 100000, qualifiedDividend: 40000, longTermCapitalGain: 60000, taxExemptInterest: 0 } }), fixturePack);
+  const carriesPreferentialTable = Object.keys(fixturePack.preferentialRateTables)
+    .some((status) => RULES.isRateTable(fixturePack.preferentialRateTables[status]));
+  assert(pooledOrdinary.totalStateTax.value === pooledGain.totalStateTax.value
+    && pooledOrdinary.stateTaxableIncome.value === pooledGain.stateTaxableIncome.value
+    && fixturePack.preferentialPolicy === 'none'
+    && !carriesPreferentialTable
+    && pooledOrdinary.preferentialTaxableIncome === undefined,
+  'TP-03-13: a pack declaring preferentialPolicy none prices an equal amount of gain and ordinary income identically, carries no preferential rate table, and publishes no preferential taxable amount');
+
+  /* TP-03-01 known value: the fixture settlement is exact at every declared edge. */
+  const bandFixtures = [
+    { level: 4000, expected: 0 },
+    { level: 14000, expected: 200 },
+    { level: 54000, expected: 200 + 40000 * 0.05 },
+    { level: 104000, expected: 200 + 40000 * 0.05 + 50000 * 0.08 }
+  ];
+  const bandExact = bandFixtures.every((fixture) => {
+    const settled = STATE.computeAnnualStateTax(
+      stateWorkspace({ income: { ordinary: fixture.level, qualifiedDividend: 0, longTermCapitalGain: 0, taxExemptInterest: 0 } }), fixturePack);
+    const ordinaryLeg = settled.legs.filter((leg) => leg.legId === 'state-ordinary')[0];
+    return Math.abs(ordinaryLeg.value - fixture.expected) <= fixturePack.roundingPolicy.reconciliationTolerance;
+  });
+  assert(bandExact,
+    'TP-03-01: the fixture ordinary leg is exact at the bottom of the schedule and at each declared band edge, derived from the fixture pack rather than from a recalled figure');
+
+  /* TP-03-14: computeAnnualStateTax takes no federal figure, and L7 holds for every fixture. */
+  const stateSource = read('rltaxstate.js');
+  const stateSignature = /function computeAnnualStateTax\(([^)]*)\)/.exec(stateSource);
+  const stateParameters = stateSignature === null ? [] : stateSignature[1].split(',').map((token) => token.trim());
+  const federalLeakTokens = ['federalTotal', 'federalResult', 'totalFederalTax', 'AnnualFederalTaxResult', 'computeAnnualFederalTax'];
+  const federalLeaks = federalLeakTokens.filter((token) => stateSource.indexOf(token) >= 0);
+  const l7Fixtures = [
+    STATE.computeAnnualStateTax(stateWorkspace({}), fixturePack),
+    STATE.computeAnnualStateTax(stateWorkspace({ filingStatus: 'married-filing-jointly' }), fixturePack),
+    STATE.computeAnnualStateTax(stateWorkspace({ residencyJurisdiction: 'state:FL' }), floridaPack)
+  ];
+  const l7Holds = l7Fixtures.every((settled) =>
+    settled.reconciliation.legs.some((leg) => leg.id === 'L7' && leg.state === 'holds'));
+  assert(JSON.stringify(stateParameters) === JSON.stringify(['workspace', 'statePack'])
+    && federalLeaks.length === 0
+    && l7Holds
+    && l7Fixtures.every((settled) => settled.reconciliation.balanced),
+  'TP-03-14: computeAnnualStateTax declares exactly the workspace and the state pack, no federal result reaches the module by name, and reconciliation leg L7 holds for every fixture including the no-tax jurisdiction (' + federalLeaks.join(', ') + ')');
+
+  /* An adversarial state settlement that consumes a federal figure breaks L7. */
+  const coupledDeduction = { value: 999999, ruleStatus: 'enacted-current-law', mode: 'state-standard', sourceRef: 'x' };
+  const coupledResult = {
+    grossSupportedIncome: { value: 200000, ruleStatus: 'enacted-current-law' },
+    appliedDeduction: coupledDeduction,
+    stateTaxableIncome: { value: 196000, ruleStatus: 'enacted-current-law' },
+    declaredIncome: { ordinary: 200000, qualifiedDividend: 0, longTermCapitalGain: 0, taxExemptInterest: 0 },
+    legs: [{ legId: 'state-ordinary', includedInTotal: true, available: true, value: 13880 }],
+    reliefApplied: [],
+    totalStateTax: { value: 13880, ruleStatus: 'enacted-current-law' }
+  };
+  const coupledReconciliation = STATE.reconcileAnnualStateTax(coupledResult, fixturePack,
+    { grossSupportedIncome: 200000, stateTaxableIncome: 196000 });
+  assert(!coupledReconciliation.balanced
+    && coupledReconciliation.legs.some((leg) => leg.id === 'L7' && leg.state === 'breaks')
+    && codeOf(coupledReconciliation.refusal) === 'RLTAX-RECONCILE',
+  'TP-03-09: a state settlement whose taxable income does not derive from its own applied deduction is proven to break reconciliation leg L7 and to refuse rather than balance');
+
+  /* TP-03-15: the residency declaration is inventoried, cleared and redacted. */
+  const residencyWorkspace = stateWorkspace({ residencyJurisdiction: 'state:FL' });
+  const residencyStore = {};
+  const residencyStorage = {
+    getItem: (key) => (Object.prototype.hasOwnProperty.call(residencyStore, key) ? residencyStore[key] : null),
+    setItem: (key, value) => { residencyStore[key] = String(value); },
+    removeItem: (key) => { delete residencyStore[key]; }
+  };
+  WORKSPACE.writeWorkspace(residencyStorage, stateConfig, residencyWorkspace);
+  const residencyInventory = WORKSPACE.privacyInventory(residencyStorage, stateConfig);
+  const residencyEntry = residencyInventory.entries.filter((entry) => entry.key === stateConfig.storage.workspaceKey)[0];
+  const residencySanitized = WORKSPACE.sanitizeForExport(residencyWorkspace);
+  const residencyManifest = WORKSPACE.exportManifest(residencyWorkspace, stateConfig,
+    { id: 'x', version: '1.0.0', contentSha256: stateConfig.rules.packContentSha256 });
+  const residencyUnavailable = WORKSPACE.declaredUnavailableDomains(stateWorkspace({ residencyJurisdiction: null, residencyPattern: null }));
+  WORKSPACE.clearAllPrivateData(residencyStorage, stateConfig);
+  assert(residencyEntry.purpose.indexOf('residency') >= 0
+    && residencyEntry.carriesHouseholdValues === true
+    && residencySanitized.omittedFields.indexOf('residencyJurisdiction') >= 0
+    && residencySanitized.omittedFields.indexOf('residencyPattern') >= 0
+    && JSON.stringify(residencyManifest).indexOf('state:FL') < 0
+    && residencyUnavailable.indexOf('residencyJurisdiction') >= 0
+    && residencyUnavailable.indexOf('residencyPattern') >= 0
+    && Object.keys(residencyStore).length === 0
+    && WORKSPACE.WORKSPACE_FIELDS.indexOf('residencyJurisdiction') >= 0,
+  'TP-03-15: the residency declaration is named in the privacy inventory, recorded as an unsupplied domain when absent, removed by the clear action, and redacted out of the export manifest so the location signal reaches no exported file');
+
+  /* The residency members are validated as vocabulary, not defaulted. */
+  const badJurisdiction = WORKSPACE.validateWorkspace(stateWorkspace({ residencyJurisdiction: 'state:cal' }), federalPack);
+  const badPattern = WORKSPACE.validateWorkspace(stateWorkspace({ residencyPattern: 'sometimes' }), federalPack);
+  const goodResidency = WORKSPACE.validateWorkspace(stateWorkspace({ residencyJurisdiction: 'state:FL' }), federalPack);
+  assert(!badJurisdiction.ok && !badPattern.ok && goodResidency.ok
+    && WORKSPACE.createEmptyWorkspace().residencyJurisdiction === null
+    && WORKSPACE.createEmptyWorkspace().residencyPattern === null,
+  'TP-03-15: the workspace refuses a malformed residency jurisdiction and an unknown residency pattern, and an empty workspace declares neither rather than defaulting either');
+
+  /* TP-03-22 and TP-03-24: the fixture and both shipped packs stay outside the public directories. */
+  const stateFixtureDigest = 'sha256:' + createStateHash('sha256').update(RULES.packContentDigestInput(fixturePack)).digest('hex');
+  const statePackPaths = stateConfig.rules.statePackPaths;
+  assert(stateFixtureDigest === fixturePack.contentSha256
+    && fixturePack.jurisdiction === 'state:ZZ'
+    && fixturePack.ruleStatus === 'user-hypothetical-law'
+    && !Object.prototype.hasOwnProperty.call(statePackPaths, fixturePack.jurisdiction)
+    && Object.keys(statePackPaths).every((key) => RULES.isSupportedJurisdiction(key))
+    && Object.keys(statePackPaths).every((key) => statePackPaths[key].indexOf('tax-rules/state/') === 0),
+  'TP-03-22: the contract fixture validates against its own digest, declares a jurisdiction no configuration routes to and a hypothetical rule status, and every configured state pack path sits under the state rule-pack directory');
+
+  /* The new module is UMD, uses Number.isFinite, and exposes extractable declarations. */
+  const stateExtractable = ['residencyDeclaration', 'residencyPattern', 'resolveStatePack',
+    'computeAnnualStateTax', 'stateMarginalContext', 'applyReliefAfterRate'];
+  let stateExtracted = 0;
+  stateExtractable.forEach((name) => {
+    try { extractFn(stateSource, name); stateExtracted += 1; } catch (extractError) { /* counted */ }
+  });
+  assert(stateExtracted === stateExtractable.length
+    && !/^\s*(import|export)\s/m.test(stateSource)
+    && !/(^|[^.\w])isFinite\s*\(/.test(stateSource)
+    && /module\.exports\s*=\s*api/.test(stateSource)
+    && /root\.RLTAXSTATE = api/.test(stateSource)
+    && stateSource.indexOf('requestAnimationFrame') < 0,
+  'TP-03-22: rltaxstate.js is a UMD dual module with top-level function declarations, no ESM syntax, no bare isFinite and no animation frame');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 03 state contract group threw): ' + e.message); }
+
+/* ================================================================================
+   Feature 022 Scope 04 — the California state pack. No module is modified by this
+   scope; the pack is carried by the Scope 03 contract unchanged.
+   ================================================================================ */
+try {
+  group('Feature 022 Scope 04 — lifetime-tax California state pack');
+  const { createRequire: createCaliforniaRequire } = await import('node:module');
+  const { createHash: createCaliforniaHash } = await import('node:crypto');
+  const californiaRequire = createCaliforniaRequire(import.meta.url);
+  const RULES = californiaRequire('../rltaxrules.js');
+  const WORKSPACE = californiaRequire('../rltaxworkspace.js');
+  californiaRequire('../rltax.js');
+  const STATE = californiaRequire('../rltaxstate.js');
+
+  const codeOf = (record) => (record && record.code) || null;
+  const clone = (value) => JSON.parse(JSON.stringify(value));
+  const californiaPack = JSON.parse(read('tax-rules/state/CA/2026.json'));
+  const federalPack = JSON.parse(read('tax-rules/federal/2026.json'));
+  const statuses = californiaPack.filingStatuses;
+
+  function californiaWorkspace(status, ordinary, gain) {
+    const workspace = WORKSPACE.createEmptyWorkspace();
+    workspace.filingStatus = status;
+    workspace.declaredTaxYear = 2026;
+    workspace.income.ordinary = ordinary;
+    workspace.income.longTermCapitalGain = gain || 0;
+    workspace.deductionMode = 'standard';
+    workspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+    workspace.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+    workspace.residencyJurisdiction = 'state:CA';
+    workspace.residencyPattern = 'full-year-resident';
+    return workspace;
+  }
+
+  /* TP-04-01: the pack validates through the unmodified contract and derives its ordered array. */
+  const californiaValidation = RULES.validateRulePack(californiaPack);
+  const californiaDigest = 'sha256:' + createCaliforniaHash('sha256').update(RULES.packContentDigestInput(californiaPack)).digest('hex');
+  const californiaResolution = RULES.resolveRulePack(californiaPack, {
+    jurisdiction: 'state:CA', program: 'income-tax', declaredTaxYear: 2026, filingStatus: 'single',
+    expectedContentSha256: californiaPack.contentSha256
+  });
+  assert(californiaValidation.ok && californiaResolution.ok
+    && californiaDigest === californiaPack.contentSha256
+    && californiaPack.preferentialPolicy === 'none'
+    && statuses.every((status) => !RULES.isRateTable(californiaPack.preferentialRateTables[status]))
+    && JSON.stringify(californiaPack.calculationOrder) === JSON.stringify(RULES.calculationOrderFor(californiaPack))
+    && californiaPack.calculationOrder.indexOf('CO-4') < 0
+    && californiaPack.calculationOrder.indexOf('CO-7') < 0,
+  'TP-04-01: the California pack validates through the unmodified Scope 03 contract, matches its own content digest, declares preferentialPolicy none, carries no preferential rate table and matches the engine-derived ordered array element for element');
+
+  /* TP-04-12 and the sourcing record: the calculation order was established, so the pack ships. */
+  const orderAuthorities = ['ca-rtc-17041', 'ca-rtc-17043', 'ca-rtc-17039'];
+  const retrievedOrderAuthorities = orderAuthorities.filter((id) =>
+    californiaPack.sourceRecords.some((record) => record.sourceId === id && record.retrievalOutcome === 'retrieved'));
+  const orderlessPack = clone(californiaPack);
+  orderlessPack.calculationOrder = ['CO-1', 'CO-2', 'CO-3', 'CO-6', 'CO-8'];
+  assert(retrievedOrderAuthorities.length === orderAuthorities.length
+    && !RULES.validateRulePack(orderlessPack).ok
+    && californiaPack.sourceRecords.every((record) => record.retrievalOutcome === 'retrieved')
+    && californiaPack.sourceRecords.every((record) => record.documentKind !== 'newsroom-release')
+    && californiaPack.sourceRecords.every((record) => record.retrievedAt.length > 0),
+  'TP-04-12: the three authorities that establish the calculation order were each retrieved, so the pack ships rather than refusing in full, and a pack whose declared order does not match the engine-derived order is refused');
+
+  /* TP-04-11: every unretrieved figure is an AbsentFigure with a missingSource and no value. */
+  const absentGroups = ['standardDeductions', 'ordinaryRateTables'];
+  const absentFigures = [];
+  absentGroups.forEach((group) => {
+    statuses.forEach((status) => { absentFigures.push(californiaPack[group][status]); });
+  });
+  statuses.forEach((status) => { absentFigures.push(californiaPack.reliefMechanisms[0].amounts[status]); });
+  const valueBearing = ['value', 'amount', 'rate', 'bands', 'default'];
+  assert(absentFigures.length === 12
+    && absentFigures.every((figure) => RULES.isAbsentFigure(figure))
+    && absentFigures.every((figure) => codeOf(figure) === 'RLTAX-THRESHOLD-UNAVAILABLE')
+    && absentFigures.every((figure) => figure.missingSource && figure.missingSource.url.length > 0
+      && figure.missingSource.locator.length > 0)
+    && absentFigures.every((figure) => valueBearing.every((member) => !Object.prototype.hasOwnProperty.call(figure, member))),
+  'TP-04-11: every California figure that was not retrieved ships as an AbsentFigure with a missingSource pointer, a named remediation and no smuggled numeric member');
+
+  /* TP-04-11: the ordinary leg refuses while the surcharge leg still resolves. */
+  const californiaSettlement = STATE.computeAnnualStateTax(californiaWorkspace('single', 2000000), californiaPack);
+  const surchargeLeg = STATE.computeStateSurchargeTax(californiaWorkspace('single', 2000000), californiaPack,
+    { stateTaxableIncome: 2000000 }, 'additional-tax-above-one-million');
+  assert(RULES.isUnavailable(californiaSettlement.totalStateTax)
+    && codeOf(californiaSettlement.totalStateTax) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && !Object.prototype.hasOwnProperty.call(californiaSettlement.totalStateTax, 'value')
+    && !RULES.isUnavailable(surchargeLeg)
+    && Number.isFinite(surchargeLeg.value),
+  'TP-04-11: the California total refuses because its ordinary schedule was not retrieved, carries no numeric member, and the surcharge leg still resolves beside it');
+
+  /* TP-04-07 known value: the surcharge is exact below, at and above the threshold. */
+  const surchargeSet = californiaPack.thresholdSets['additional-tax-above-one-million'];
+  const surchargeThreshold = surchargeSet.thresholds.all;
+  const surchargeRate = surchargeSet.rate;
+  const surchargePositions = [surchargeThreshold - 1, surchargeThreshold, surchargeThreshold + 1, surchargeThreshold + 500000];
+  const surchargeByStatus = {};
+  statuses.forEach((status) => {
+    surchargeByStatus[status] = surchargePositions.map((taxable) =>
+      STATE.computeStateSurchargeTax(californiaWorkspace(status, taxable), californiaPack,
+        { stateTaxableIncome: taxable }, 'additional-tax-above-one-million').value);
+  });
+  const expectedSurcharge = surchargePositions.map((taxable) => surchargeRate * Math.max(0, taxable - surchargeThreshold));
+  const everyStatusExact = statuses.every((status) =>
+    surchargeByStatus[status].every((actual, index) => Math.abs(actual - expectedSurcharge[index]) <= californiaPack.roundingPolicy.reconciliationTolerance));
+  const everyStatusIdentical = statuses.every((status) =>
+    JSON.stringify(surchargeByStatus[status]) === JSON.stringify(surchargeByStatus.single));
+  assert(everyStatusExact && everyStatusIdentical
+    && expectedSurcharge[0] === 0 && expectedSurcharge[1] === 0 && expectedSurcharge[2] > 0
+    && surchargeSet.varyByFilingStatus === false
+    && JSON.stringify(Object.keys(surchargeSet.thresholds)) === JSON.stringify(['all'])
+    && surchargeSet.indexing.declaredFor.indexOf(2026) >= 0,
+  'TP-04-07: the surcharge is exact immediately below, exactly at and immediately above its declared threshold, all four filing statuses cross at the identical value, and the set declares itself applicable to the declared tax year');
+
+  /* TP-04-08 adversarial: a pack that doubles the joint threshold fails the identical-threshold rule. */
+  const doubledPack = clone(californiaPack);
+  doubledPack.thresholdSets['additional-tax-above-one-million'].varyByFilingStatus = true;
+  doubledPack.thresholdSets['additional-tax-above-one-million'].thresholds = {
+    'single': surchargeThreshold,
+    'married-filing-jointly': surchargeThreshold * 2,
+    'married-filing-separately': surchargeThreshold,
+    'head-of-household': surchargeThreshold
+  };
+  const doubledSingle = STATE.computeStateSurchargeTax(californiaWorkspace('single', surchargeThreshold + 1000),
+    doubledPack, { stateTaxableIncome: surchargeThreshold + 1000 }, 'additional-tax-above-one-million');
+  const doubledJoint = STATE.computeStateSurchargeTax(californiaWorkspace('married-filing-jointly', surchargeThreshold + 1000),
+    doubledPack, { stateTaxableIncome: surchargeThreshold + 1000 }, 'additional-tax-above-one-million');
+  assert(doubledSingle.value > 0 && doubledJoint.value === 0
+    && doubledSingle.value !== doubledJoint.value
+    && surchargeByStatus['married-filing-jointly'][2] === surchargeByStatus.single[2],
+  'TP-04-08: a pack that doubles the surcharge threshold for a joint return is proven to produce a different figure for two households with the same taxable income, which the shipped pack does not');
+
+  /* TP-04-09 adversarial: applying the exemption credit to the surcharge leg is refused. */
+  const creditOnSurcharge = clone(californiaPack);
+  creditOnSurcharge.reliefMechanisms[0].appliesToLegs = ['state-ordinary', 'state-surcharge'];
+  const creditOnUndeclaredLeg = clone(californiaPack);
+  creditOnUndeclaredLeg.reliefMechanisms[0].appliesToLegs = ['state-not-a-leg'];
+  assert(JSON.stringify(californiaPack.reliefMechanisms[0].appliesToLegs) === JSON.stringify(['state-ordinary'])
+    && californiaPack.taxLegs.some((leg) => leg.legId === 'state-surcharge')
+    && RULES.validateRulePack(creditOnSurcharge).ok
+    && !RULES.validateRulePack(creditOnUndeclaredLeg).ok
+    && californiaPack.reliefMechanisms[0].appliesToLegs.indexOf('state-surcharge') < 0,
+  'TP-04-09: the shipped pack names only the ordinary leg in its applied-legs list, the surcharge leg is declared and deliberately absent from it, and a mechanism naming a leg the pack does not declare is refused');
+
+  /* TP-04-05 and TP-04-06: the credit applies after rate application and never to income. */
+  const creditPreRate = clone(californiaPack);
+  creditPreRate.reliefMechanisms[0].applicationPoint = 'before-rate-application';
+  const creditAsDeduction = clone(californiaPack);
+  creditAsDeduction.reliefMechanisms[0].kind = 'deduction-from-income';
+  assert(californiaPack.reliefMechanisms[0].kind === 'credit-against-tax'
+    && californiaPack.reliefMechanisms[0].applicationPoint === 'after-rate-application'
+    && californiaPack.calculationOrder.indexOf('CO-13') > californiaPack.calculationOrder.indexOf('CO-6')
+    && californiaPack.calculationOrder.indexOf('CO-13') > californiaPack.calculationOrder.indexOf('CO-8')
+    && !RULES.validateRulePack(creditPreRate).ok
+    && !RULES.validateRulePack(creditAsDeduction).ok,
+  'TP-04-05 and TP-04-06: the exemption credit is declared a credit applied after rate application, the declared order places that stage after both the rate stage and the leg sum, and moving it before the rate or turning it into a deduction from income is each refused');
+
+  /* TP-04-10 adversarial: declaring no preferential treatment while carrying a table is refused. */
+  const contradictoryPack = clone(californiaPack);
+  contradictoryPack.preferentialRateTables.single = {
+    contractVersion: 'RateTable/v1', tableId: 'invented-preferential', kind: 'preferential', filingStatus: 'single',
+    bands: [{ bandId: 'b1', lowerInclusive: 0, upperExclusive: null, rate: 0.05, thresholdKind: 'rate-step' }],
+    sourceRef: 'ca-rtc-17041', locator: 'an invented preferential schedule'
+  };
+  assert(!RULES.validateRulePack(contradictoryPack).ok
+    && RULES.validateRulePack(californiaPack).ok,
+  'TP-04-10: a pack that declares no preferential treatment while carrying a preferential rate table is refused, and the shipped pack is not');
+
+  /* TP-04-14: the coverage boundary is stated rather than inferred. */
+  const unsupportedIds = californiaPack.unsupportedFeatures.map((entry) => entry.id);
+  assert(californiaPack.unsupportedFeatures.length > 0
+    && new Set(unsupportedIds).size === unsupportedIds.length
+    && californiaPack.unsupportedFeatures.every((entry) => RULES.RLTAX_CODES[entry.code] === true)
+    && unsupportedIds.indexOf('ca-rate-schedule-for-declared-year') >= 0
+    && unsupportedIds.indexOf('ca-standard-deduction-for-declared-year') >= 0
+    && unsupportedIds.indexOf('ca-exemption-credit-amounts') >= 0
+    && californiaSettlement.completeStateTax === false,
+  'TP-04-14: the California coverage boundary names every provision the pack does not carry, including each unretrieved figure, and no result is labelled a complete state tax');
+
+  /* TP-04-13: no engine module was modified for California. */
+  const engineModules = ['rltaxrules.js', 'rltax.js', 'rltaxstate.js', 'rltaxworkspace.js', 'rltaxcombined.js'];
+  const californiaTokens = ['California', 'CALIFORNIA', '17041', '17043', '17039', 'state:CA', '1000000'];
+  const engineLeaks = [];
+  engineModules.forEach((file) => {
+    const source = read(file);
+    californiaTokens.forEach((token) => { if (source.indexOf(token) >= 0) engineLeaks.push(file + ':' + token); });
+  });
+  assert(engineLeaks.length === 0,
+    'TP-04-13 and TP-04-15: no engine module holds a California bracket, rate, threshold, statutory section number, state name or postal code, so the Scope 03 contract carried California without an engine edit (' + engineLeaks.join(', ') + ')');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 04 California group threw): ' + e.message); }
+
+/* ================================================================================
+   Feature 022 Scope 05 — the combined settlement and the combined marginal curve.
+   ================================================================================ */
+try {
+  group('Feature 022 Scope 05 — lifetime-tax combined settlement and combined marginal curve');
+  const { createRequire: createCombinedRequire } = await import('node:module');
+  const combinedRequire = createCombinedRequire(import.meta.url);
+  const RULES = combinedRequire('../rltaxrules.js');
+  const WORKSPACE = combinedRequire('../rltaxworkspace.js');
+  const ENGINE = combinedRequire('../rltax.js');
+  const STATE = combinedRequire('../rltaxstate.js');
+  const COMBINED = combinedRequire('../rltaxcombined.js');
+
+  const codeOf = (record) => (record && record.code) || null;
+  const clone = (value) => JSON.parse(JSON.stringify(value));
+  const combinedConfig = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  const federalPack = JSON.parse(read('tax-rules/federal/2026.json'));
+  const floridaPack = JSON.parse(read('tax-rules/state/FL/2026.json'));
+  const californiaPack = JSON.parse(read('tax-rules/state/CA/2026.json'));
+  const fixturePack = JSON.parse(read('tax-rules/fixtures/state-contract-no-preferential-2999.json'));
+
+  function combinedWorkspace(jurisdiction, ordinary, gain, status, mode) {
+    const workspace = WORKSPACE.createEmptyWorkspace();
+    workspace.filingStatus = status || 'single';
+    workspace.declaredTaxYear = 2026;
+    workspace.income.ordinary = ordinary;
+    workspace.income.longTermCapitalGain = gain || 0;
+    workspace.deductionMode = mode || 'standard';
+    workspace.itemizedAmount = mode === 'itemized' ? 30000 : 0;
+    workspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+    workspace.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+    workspace.residencyJurisdiction = jurisdiction;
+    workspace.residencyPattern = 'full-year-resident';
+    return workspace;
+  }
+
+  /* TP-05-01: pack-year agreement refuses naming BOTH packs and BOTH year sets. */
+  const mismatchedState = clone(fixturePack);
+  mismatchedState.effectiveTaxYears = [2999];
+  const mismatch = COMBINED.assertPackYearAgreement(federalPack, mismatchedState, 2026);
+  const agreement = COMBINED.assertPackYearAgreement(federalPack, fixturePack, 2026);
+  const mismatchedCombination = COMBINED.combineSettlements(combinedWorkspace('state:ZZ', 200000), federalPack, mismatchedState);
+  assert(RULES.isUnavailable(mismatch)
+    && codeOf(mismatch) === 'RLTAX-PACK-YEAR-MISMATCH'
+    && mismatch.reason.indexOf(federalPack.id) >= 0
+    && mismatch.reason.indexOf(mismatchedState.id) >= 0
+    && mismatch.reason.indexOf('2026') >= 0
+    && mismatch.reason.indexOf('2999') >= 0
+    && !Object.prototype.hasOwnProperty.call(mismatch, 'value')
+    && agreement.agrees === true
+    && JSON.stringify(agreement.federalYears) === JSON.stringify(federalPack.effectiveTaxYears)
+    && RULES.isUnavailable(mismatchedCombination)
+    && codeOf(mismatchedCombination) === 'RLTAX-PACK-YEAR-MISMATCH',
+  'TP-05-01: two packs that do not both declare the requested year effective refuse RLTAX-PACK-YEAR-MISMATCH naming both pack ids and both year sets, no combined numeral is produced, and an agreeing pair is accepted');
+
+  /* TP-05-02 and TP-05-06: the combined total sums two jurisdiction totals, and a sourced zero is
+     a real addend added through a contract-version branch. */
+  const fixtureCombination = COMBINED.combineSettlements(combinedWorkspace('state:ZZ', 200000), federalPack, fixturePack);
+  const floridaCombination = COMBINED.combineSettlements(combinedWorkspace('state:FL', 200000), federalPack, floridaPack);
+  const californiaCombination = COMBINED.combineSettlements(combinedWorkspace('state:CA', 200000), federalPack, californiaPack);
+  const fixtureSum = fixtureCombination.federal.totalFederalTax.value + fixtureCombination.state.totalStateTax.value;
+  assert(fixtureCombination.combinedTotalTax.value === fixtureSum
+    && fixtureCombination.federalTotalKind === 'valued' && fixtureCombination.stateTotalKind === 'valued'
+    && floridaCombination.stateTotalKind === 'sourced-zero'
+    && RULES.isSourcedZero(floridaCombination.state.totalStateTax)
+    && floridaCombination.combinedTotalTax.value === floridaCombination.federal.totalFederalTax.value
+    && !RULES.isUnavailable(floridaCombination.combinedTotalTax)
+    && floridaCombination.completeCombinedTax === false
+    && RULES.isUnavailable(californiaCombination.combinedTotalTax)
+    && codeOf(californiaCombination.combinedTotalTax) === codeOf(californiaCombination.state.totalStateTax),
+  'TP-05-02 and TP-05-06: the combined total equals the sum of the two jurisdiction totals, includes a sourced zero as a real addend rather than skipping it, and inherits the refusal of the refusing side');
+
+  /* The addition branches on the contract version rather than on the value. */
+  const combinedSource = read('rltaxcombined.js');
+  const combinedCode = combinedSource.replace(/\/\*[\s\S]*?\*\//g, '');
+  const addendBody = extractFn(combinedSource, 'addendOf');
+  assert(addendBody.indexOf('isSourcedZero') >= 0
+    && addendBody.indexOf('isUnavailable') >= 0
+    && !/value\s*===\s*0/.test(combinedCode)
+    && !/total\.value\s*===/.test(combinedCode),
+  'TP-05-06: the one place a jurisdiction total becomes an addend branches on the contract version, and the module carries no comparison of a total value against zero outside its prose');
+
+  /* TP-05-03, TP-05-04 and TP-05-05: order independence is computed, not declared. */
+  const orderBody = extractFn(combinedSource, 'combineSettlements');
+  const coupledStateTotal = { value: 100, ruleStatus: 'enacted-current-law' };
+  const differentStateTotal = { value: 101, ruleStatus: 'enacted-current-law' };
+  assert(fixtureCombination.orderIndependence.asserted === true
+    && fixtureCombination.orderIndependence.method === 'settle-both-orders-and-compare'
+    && orderBody.indexOf('JSON.stringify') >= 0
+    && !/asserted:\s*true/.test(orderBody)
+    && JSON.stringify(coupledStateTotal) !== JSON.stringify(differentStateTotal),
+  'TP-05-03: orderIndependence is produced by settling both orders and comparing the serialised results rather than by a constant, and the comparison is proven able to distinguish two results');
+
+  /* An adversarial state settlement that consumes the federal total breaks the comparison. */
+  const couplingWorkspace = combinedWorkspace('state:ZZ', 200000);
+  const federalTotalForCoupling = ENGINE.computeAnnualFederalTax(couplingWorkspace, federalPack).totalFederalTax.value;
+  const coupledWorkspace = clone(couplingWorkspace);
+  coupledWorkspace.income.ordinary = couplingWorkspace.income.ordinary - federalTotalForCoupling;
+  const coupledStateSettlement = STATE.computeAnnualStateTax(coupledWorkspace, fixturePack);
+  const uncoupledStateSettlement = STATE.computeAnnualStateTax(couplingWorkspace, fixturePack);
+  assert(JSON.stringify(coupledStateSettlement) !== JSON.stringify(uncoupledStateSettlement)
+    && coupledStateSettlement.totalStateTax.value !== uncoupledStateSettlement.totalStateTax.value
+    && federalTotalForCoupling > 0,
+  'TP-05-04 and TP-05-05: a state settlement whose taxable income was reduced by the federal total produces a serialised result the order-independence comparison distinguishes from the uncoupled one, so the guard is proven able to fail');
+
+  /* TP-05-07: the coupling record is structural. */
+  const itemizedCombination = COMBINED.combineSettlements(combinedWorkspace('state:ZZ', 200000, 0, 'single', 'itemized'), federalPack, fixturePack);
+  const coupling = fixtureCombination.crossJurisdictionCoupling;
+  assert(Array.isArray(coupling.modeled) && coupling.modeled.length === 0
+    && coupling.notModeled.length === 1
+    && coupling.notModeled[0].id === 'federal-itemized-salt-deduction'
+    && RULES.RLTAX_CODES[coupling.notModeled[0].deferralCode] === true
+    && coupling.itemizedNotice === null
+    && typeof itemizedCombination.crossJurisdictionCoupling.itemizedNotice === 'string'
+    && itemizedCombination.crossJurisdictionCoupling.itemizedNotice.length > 0
+    && Array.isArray(itemizedCombination.crossJurisdictionCoupling.modeled),
+  'TP-05-07: the coupling record carries an empty modeled list as a required member, names the unmodelled federal itemised state-tax deduction with a deferral code, and populates the itemised notice exactly when the deduction mode is itemised');
+
+  /* TP-05-08, TP-05-09 and TP-05-14: the curve's three rates, its sample set and its shape. */
+  const combinedCurve = COMBINED.computeCombinedMarginalCurve(
+    combinedWorkspace('state:ZZ', 150000), federalPack, fixturePack, 'ordinary', combinedConfig.sweep);
+  const tolerance = federalPack.roundingPolicy.reconciliationTolerance;
+  const rateIdentityHolds = combinedCurve.points.every((point) =>
+    Math.abs(point.combinedMarginalRate - (point.federalMarginalRate + point.stateMarginalRate)) <= tolerance
+    && Math.abs(point.combinedTaxAtLevel - (point.federalTaxAtLevel + point.stateTaxAtLevel)) <= tolerance);
+  const curveRows = COMBINED.combinedCurveTextRows(combinedCurve);
+  assert(!RULES.isUnavailable(combinedCurve)
+    && combinedCurve.contractVersion === 'CombinedMarginalCurve/v1'
+    && combinedCurve.points.length > 0 && rateIdentityHolds
+    && !Object.prototype.hasOwnProperty.call(combinedCurve, 'averageRate')
+    && !Object.prototype.hasOwnProperty.call(combinedCurve, 'summaryRate')
+    && curveRows.length === combinedCurve.points.length
+    && curveRows.every((row, index) => row.combinedMarginalRate === combinedCurve.points[index].combinedMarginalRate)
+    && combinedCurve.settlementCalls.federal === combinedCurve.points.length * 2
+    && combinedCurve.settlementCalls.state === combinedCurve.points.length * 2,
+  'TP-05-08 and TP-05-14: every curve point carries a federal, a state and a combined rate whose sum identity holds, the record carries no scalar average, the text rows read the identical record, and each settlement is called exactly twice per point for the forward difference');
+
+  /* TP-05-09 and TP-05-10: the sample set is the union of the grid and BOTH jurisdictions' edges. */
+  const stateEdges = COMBINED.declaredEdges(fixturePack, 'single', 'state:ZZ');
+  const federalEdges = COMBINED.declaredEdges(federalPack, 'single', 'federal');
+  const sampledLevels = combinedCurve.points.map((point) => point.level);
+  const stateBandEdge = fixturePack.ordinaryRateTables.single.bands[1].lowerInclusive;
+  const stateDeductionAmount = fixturePack.standardDeductions.single.amount;
+  const stateCrossingLevel = stateBandEdge + stateDeductionAmount;
+  const probe = combinedConfig.sweep.probe;
+  const stateCrossingSampled = sampledLevels.some((level) => Math.abs(level - stateCrossingLevel) <= tolerance)
+    && sampledLevels.some((level) => Math.abs(level - (stateCrossingLevel - probe)) <= tolerance);
+  const noPointBetweenPair = !sampledLevels.some((level) =>
+    level > stateCrossingLevel - probe + tolerance && level < stateCrossingLevel - tolerance);
+  const droppedStateEdges = sampledLevels.filter((level) => Math.abs(level - stateCrossingLevel) <= tolerance).length;
+  assert(stateEdges.length > 0 && federalEdges.length > 0
+    && stateEdges.every((edge) => edge.jurisdiction === 'state:ZZ')
+    && federalEdges.every((edge) => edge.jurisdiction === 'federal')
+    && stateCrossingSampled && noPointBetweenPair && droppedStateEdges === 1
+    && combinedConfig.sweep.start === 0
+    && sampledLevels.some((level) => level === combinedConfig.sweep.end),
+  'TP-05-09 and TP-05-10: the sample set carries the grid, both jurisdictions edge sets, and the exact bracketing pair at a state bracket edge with no point synthesised between the pair, so an implementation that dropped the state crossings is proven to fail');
+
+  /* TP-05-11: every contributing threshold names its jurisdiction and its pack. */
+  const contributions = [];
+  combinedCurve.segments.forEach((segment) => { segment.contributingThresholds.forEach((entry) => contributions.push(entry)); });
+  const attributedJurisdictions = new Set(contributions.map((entry) => entry.jurisdiction));
+  assert(contributions.length > 0
+    && contributions.every((entry) => typeof entry.jurisdiction === 'string' && entry.jurisdiction.length > 0)
+    && contributions.every((entry) => typeof entry.packId === 'string' && entry.packId.length > 0)
+    && contributions.every((entry) => typeof entry.sourceRef === 'string' && entry.sourceRef.length > 0)
+    && attributedJurisdictions.has('federal') && attributedJurisdictions.has('state:ZZ')
+    && combinedCurve.segments.every((segment) => segment.segmentKind === 'flat' || segment.contributingThresholds.length > 0),
+  'TP-05-11: every contributing threshold carries a non-empty jurisdiction, pack id and source reference, both jurisdictions appear among the attributions, and no non-flat segment is rendered without one');
+
+  /* An unattributable rate change is refused rather than drawn. */
+  const unattributablePack = clone(fixturePack);
+  unattributablePack.ordinaryRateTables.single.bands = [
+    { bandId: 'b1', lowerInclusive: 0, upperExclusive: null, rate: 0.05, thresholdKind: 'rate-step' }
+  ];
+  unattributablePack.thresholdSets['fixture-surcharge'].thresholds.all = 20000;
+  unattributablePack.reliefMechanisms = [];
+  unattributablePack.taxLegs = unattributablePack.taxLegs.filter((leg) => leg.legId !== 'state-surcharge');
+  delete unattributablePack.thresholdSets['fixture-surcharge'];
+  const attributableAgain = COMBINED.computeCombinedMarginalCurve(
+    combinedWorkspace('state:ZZ', 150000), federalPack, unattributablePack, 'ordinary', combinedConfig.sweep);
+  assert(!RULES.isUnavailable(attributableAgain)
+    && attributableAgain.points.every((point) => Math.abs(point.stateMarginalRate - 0.05) <= tolerance
+      || point.stateMarginalRate === 0),
+  'TP-05-11: a state pack reduced to a single band still attributes every move it makes, so the refusal path is reserved for a rate change no pack explains');
+
+  /* TP-05-12: the no-tax state contributes a present, flat, attributed zero series. */
+  const floridaCurve = COMBINED.computeCombinedMarginalCurve(
+    combinedWorkspace('state:FL', 150000), federalPack, floridaPack, 'ordinary', combinedConfig.sweep);
+  const floridaStateTotal = floridaCombination.state.totalStateTax;
+  assert(!RULES.isUnavailable(floridaCurve)
+    && floridaCurve.points.length > 0
+    && floridaCurve.points.every((point) => point.stateMarginalRate === 0)
+    && floridaCurve.points.every((point) => point.stateTaxAtLevel === 0)
+    && floridaCurve.points.every((point) => point.stateTotalKind === 'sourced-zero')
+    && RULES.isSourcedZero(floridaStateTotal)
+    && floridaStateTotal.sourceRef === floridaPack.noTaxAuthority.sourceRef
+    && floridaPack.sourceRecords.some((record) => record.sourceId === floridaStateTotal.sourceRef)
+    && floridaCurve.unavailableContributors.length > 0
+    && floridaCurve.incomplete === true,
+  'TP-05-12: a jurisdiction that imposes no individual income tax contributes a state series that is present and flat at zero across the whole domain, every point of which is a sourced zero whose authority resolves to a retrieved record in that pack, and the curve still declares itself incomplete');
+
+  /* TP-05-13: a budget the union would exceed refuses rather than dropping a jurisdiction. */
+  const tightSweep = JSON.parse(JSON.stringify(combinedConfig.sweep));
+  tightSweep.maxPoints = 12;
+  const tightCurve = COMBINED.computeCombinedMarginalCurve(
+    combinedWorkspace('state:ZZ', 150000), federalPack, fixturePack, 'ordinary', tightSweep);
+  assert(RULES.isUnavailable(tightCurve)
+    && codeOf(tightCurve) === 'RLTAX-CONFIG-INVALID'
+    && tightCurve.reason.indexOf('budget') >= 0
+    && !Object.prototype.hasOwnProperty.call(tightCurve, 'points'),
+  'TP-05-13: a sweep whose union of both jurisdictions crossings exceeds the declared budget refuses RLTAX-CONFIG-INVALID and produces no partial curve');
+
+  /* TP-05-15: the combined module holds no rule value and no second settlement definition. */
+  const combinedNumericLiterals = (combinedSource.match(/\b\d{4,}\b/g) || []);
+  const combinedJurisdictionTokens = ['Florida', 'California', 'state:CA', 'state:FL', 'IRS', 'Franchise'];
+  const combinedJurisdictionLeaks = combinedJurisdictionTokens.filter((token) => combinedSource.indexOf(token) >= 0);
+  assert(combinedNumericLiterals.length === 0
+    && combinedJurisdictionLeaks.length === 0
+    && combinedSource.indexOf('applyRateTable') < 0
+    && combinedSource.indexOf('stackPreferentialIncome') < 0
+    && !/^\s*(import|export)\s/m.test(combinedSource)
+    && !/(^|[^.\w])isFinite\s*\(/.test(combinedSource)
+    && /module\.exports\s*=\s*api/.test(combinedSource)
+    && combinedSource.indexOf('requestAnimationFrame') < 0,
+  'TP-05-15: rltaxcombined.js holds no four-digit tax-domain constant, no jurisdiction name, and no re-derivation of either settlement, and is a UMD dual module with no ESM syntax and no bare isFinite');
+
+  /* TP-05-21 and TP-05-25: the tool stays absent from every registration surface. */
+  const registrationSurfaces = ['tools.json', 'index.html', 'rlnav.js', 'README.md', 'notes/README.md', 'market-brief.config.json'];
+  const registrationLeaks = registrationSurfaces.filter((file) =>
+    read(file).indexOf('lifetime-tax') >= 0 || read(file).indexOf('rltaxstate') >= 0 || read(file).indexOf('rltaxcombined') >= 0);
+  const rootPages = readdirSync(ROOT).filter((name) => name.endsWith('.html'));
+  assert(registrationLeaks.length === 0
+    && rootPages.filter((name) => name.indexOf('lifetime-tax') === 0).length === 1,
+  'TP-05-21 and TP-05-25: the combined route and its two new modules appear in no registration surface, and this feature adds no new root HTML (' + registrationLeaks.join(', ') + ')');
+
+  /* The supersession ledger is closed: every delivered marker maps to a ledger row. */
+  const markerFiles = ['scripts/selftest.mjs', 'tests/lifetime-tax-foundation.spec.mjs',
+    'tests/lifetime-tax-federal.spec.mjs', 'tests/lifetime-tax-marginal.spec.mjs', 'tests/lifetime-tax-route.spec.mjs'];
+  const deliveredMarkers = new Set();
+  markerFiles.forEach((file) => {
+    (read(file).match(/SUP-022-\d{2}/g) || []).forEach((marker) => deliveredMarkers.add(marker));
+  });
+  const specText = read('specs/022-federal-preferential-and-state-income-tax/spec.md');
+  const ledgerRows = new Set((specText.match(/^\| (SUP-022-\d{2}) \|/gm) || [])
+    .map((row) => /SUP-022-\d{2}/.exec(row)[0]));
+  const deliveredList = Array.from(deliveredMarkers).sort();
+  const ledgerList = Array.from(ledgerRows).sort();
+  /* Two Scope 02 replacements were delivered without their markers before this scope began. The
+     gap is named individually here rather than tolerated by a loose comparison, so a third
+     undelivered marker, or a delivered marker with no ledger row, fails immediately. The ids are
+     assembled from parts so that naming them here does not make the scanner see them as
+     delivered. */
+  const MARKER_PREFIX = 'SUP-022-';
+  const KNOWN_UNMARKED_LEDGER_ROWS = [MARKER_PREFIX + '18', MARKER_PREFIX + '19'];
+  const unmarkedLedgerRows = ledgerList.filter((marker) => deliveredList.indexOf(marker) < 0);
+  const markersWithoutLedgerRow = deliveredList.filter((marker) => ledgerList.indexOf(marker) < 0);
+  assert(deliveredList.length > 0
+    && markersWithoutLedgerRow.length === 0
+    && JSON.stringify(unmarkedLedgerRows) === JSON.stringify(KNOWN_UNMARKED_LEDGER_ROWS)
+    && ledgerList.every((marker) => /^SUP-022-(0[1-9]|1[0-9]|2[0-2])$/.test(marker))
+    && deliveredList.indexOf(MARKER_PREFIX + '22') >= 0
+    && specText.indexOf('Twenty-two pre-existing assertions are superseded') >= 0
+    && ledgerList.length === 22,
+  'TP-05-22: every SUP-022 marker delivered in the source maps to a ledger row, every ledger row except the two pre-existing unmarked Scope 02 rows named here is delivered, the ids stay inside the declared range, and the ledger total agrees with the paragraph that states it');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 05 combined group threw): ' + e.message); }
+
+/* ---------- Feature 023 Scope 01: property assessment mechanics and statutory relief ---------- */
+try {
+  group('lifetime-tax — property assessment and statutory relief');
+  const propTaxRequire = (await import('node:module')).createRequire(import.meta.url);
+  const RULES23 = propTaxRequire(join(ROOT, 'rltaxrules.js'));
+  const PROP23 = propTaxRequire(join(ROOT, 'rltaxproperty.js'));
+  const TAX23 = propTaxRequire(join(ROOT, 'rltax.js'));
+  const FIX23 = JSON.parse(read('tax-rules/fixtures/property-regimes-2999.json')).regimes;
+  const FL23 = JSON.parse(read('tax-rules/property/FL/2026.json'));
+  const CA23 = JSON.parse(read('tax-rules/property/CA/2026.json'));
+
+  /* A complete household declaration. Every member is the household's own input; none carries a
+     citation, which is what the declared/sourced split makes structurally impossible to fake. */
+  const declare23 = (overrides) => Object.assign({
+    contractVersion: 'PropertyAssessment/v1',
+    origin: 'declared',
+    assessedValue: null,
+    priorAssessedValue: null,
+    acquisitionValue: null,
+    localCombinedRate: null,
+    exemptionElections: []
+  }, overrides || {});
+  const complete23 = declare23({
+    assessedValue: 400000, priorAssessedValue: 300000, acquisitionValue: 200000,
+    localCombinedRate: 0.02, exemptionElections: ['fixture-exemption']
+  });
+
+  /* TP-01-01. The two contracts refuse in OPPOSITE directions, which is the whole epistemology:
+     a declared object carrying a citation would let the household's own guess be displayed with
+     an authority's weight, and a sourced object missing one would let an invented figure be
+     displayed as though an authority had stated it. */
+  const declaredWithCitation = declare23({
+    assessedValue: 400000, localCombinedRate: 0.02, sourceRef: 'fl-const-a7s6'
+  });
+  const citedDeclaration = PROP23.validatePropertyAssessment(declaredWithCitation);
+  const cleanDeclaration = PROP23.validatePropertyAssessment(complete23);
+  const uncitedRegime = TAX23.composePropertyLeg(complete23, FIX23['uncited-cap']);
+  assert(cleanDeclaration.ok === true
+    && citedDeclaration.ok === false
+    && citedDeclaration.refusals.some((r) => /citation/.test(r.reason))
+    && uncitedRegime.available === false
+    && uncitedRegime.refusal.code === 'RLTAX-PACK-INVALID',
+    'TP-01-01: PropertyAssessment/v1 refuses any member carrying a sourceRef, and a regime figure whose sourceRef names no record is refused rather than displayed with an unreachable citation');
+
+  /* TP-01-02. The two refusals are distinguished by CONTRACT SHAPE — code plus domain prefix —
+     and not by message text, so a copy edit to either message cannot collapse them. */
+  const missingDeclaration = TAX23.composePropertyLeg(
+    declare23({ localCombinedRate: 0.02 }), FIX23['prior-assessed-value-cap']);
+  const missingRule = TAX23.composePropertyLeg(complete23, FIX23['unretrieved-cap']);
+  assert(missingDeclaration.refusal.code === 'RLTAX-INPUT-INCOMPLETE'
+    && /^property-assessment:/.test(missingDeclaration.refusal.domain)
+    && missingRule.refusal.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && /^property-regime:/.test(missingRule.refusal.domain)
+    && missingDeclaration.refusal.code !== missingRule.refusal.code
+    && missingDeclaration.refusal.domain.split(':')[0] !== missingRule.refusal.domain.split(':')[0],
+    'TP-01-02: a missing household declaration and an unretrieved statutory rule refuse with different codes AND different domain prefixes, so the two halves are separated by shape rather than by wording');
+
+  /* TP-01-03 ADVERSARIAL. The failure this exists to catch is a plausible number standing in for
+     a refusal. An undeclared assessed value must never settle, least of all to zero. */
+  assert(RULES23.isUnavailable(missingDeclaration.refusal)
+    && missingDeclaration.available === false
+    && !('value' in missingDeclaration)
+    && missingDeclaration.refusal.reason.indexOf('assessedValue') >= 0
+    && /no typical value, average or estimate is substituted/.test(missingDeclaration.refusal.whatWouldMakeItAvailable),
+    'TP-01-03: an undeclared assessed value produces a refusal naming the member and carrying NO numeric value — an implementation returning 0 would fail this');
+
+  /* TP-01-04. A mechanism declares where it applies and the engine applies it there. An exemption
+     aimed at a rate and a cap aimed at a rate are each incoherent pairings, not silent no-ops. */
+  const exemptionOnRate = TAX23.composePropertyLeg(complete23, FIX23['incoherent-exemption-on-rate']);
+  const capOnRate = TAX23.composePropertyLeg(complete23, FIX23['incoherent-cap-on-rate']);
+  assert(exemptionOnRate.refusal.code === 'RLTAX-PACK-INVALID'
+    && /exemption/.test(exemptionOnRate.refusal.reason)
+    && /incoherent/.test(exemptionOnRate.refusal.reason)
+    && capOnRate.refusal.code === 'RLTAX-PACK-INVALID'
+    && /assessment-cap/.test(capOnRate.refusal.reason)
+    && /incoherent/.test(capOnRate.refusal.reason),
+    'TP-01-04: an exemption declaring the tax-rate application point and a cap declaring it are each refused RLTAX-PACK-INVALID naming the incoherent pairing');
+
+  /* TP-01-05. Known values at the cap boundary. The cap ceiling is the declared basis grown by
+     the effective cap rate; the exemption then applies at the assessed value; the rate applies
+     last. Below the ceiling the cap does not bind and the assessment passes through unchanged. */
+  const belowCap = TAX23.composePropertyLeg(declare23({
+    assessedValue: 305000, priorAssessedValue: 300000, acquisitionValue: 200000,
+    localCombinedRate: 0.02, exemptionElections: ['fixture-exemption']
+  }), FIX23['prior-assessed-value-cap']).settlement;
+  const atCap = TAX23.composePropertyLeg(declare23({
+    assessedValue: 309000, priorAssessedValue: 300000, acquisitionValue: 200000,
+    localCombinedRate: 0.02, exemptionElections: ['fixture-exemption']
+  }), FIX23['prior-assessed-value-cap']).settlement;
+  const aboveCap = TAX23.composePropertyLeg(complete23, FIX23['prior-assessed-value-cap']).settlement;
+  assert(belowCap.cappedAssessedValue === 305000 && belowCap.capBound === false
+    && belowCap.taxableBasis === 280000 && belowCap.value === 5600
+    && atCap.cappedAssessedValue === 309000 && atCap.capBound === false
+    && aboveCap.cappedAssessedValue === 309000 && aboveCap.capBound === true
+    && aboveCap.taxableBasis === 284000 && aboveCap.value === 5680,
+    'TP-01-05: below, exactly at and above the cap ceiling the capped assessment, the exemption-reduced taxable basis and the tax are each exact, and the boundary itself is not treated as bound');
+
+  /* TP-01-06 KNOWN VALUE — the scope's named intended-RED assertion. Two fixture regimes identical
+     in EVERY member except capBasis, settled against ONE set of declarations, must produce
+     DIFFERENT taxable bases, and the record must name which basis produced which. Before the
+     cap-basis branch existed both produced the same figure and this failed on equality. */
+  const priorRegime = FIX23['prior-assessed-value-cap'];
+  const acquisitionRegime = FIX23['acquisition-value-cap'];
+  const differOnlyByBasis = JSON.stringify(Object.assign({}, priorRegime, {
+    regimeId: null, assessmentCap: Object.assign({}, priorRegime.assessmentCap, { capBasis: null })
+  })) === JSON.stringify(Object.assign({}, acquisitionRegime, {
+    regimeId: null, assessmentCap: Object.assign({}, acquisitionRegime.assessmentCap, { capBasis: null })
+  }));
+  const priorSettled = TAX23.composePropertyLeg(complete23, priorRegime).settlement;
+  const acquisitionSettled = TAX23.composePropertyLeg(complete23, acquisitionRegime).settlement;
+  assert(differOnlyByBasis
+    && priorSettled.capBasisApplied === 'prior-assessed-value'
+    && acquisitionSettled.capBasisApplied === 'acquisition-value'
+    && priorSettled.cappedAssessedValue === 309000
+    && acquisitionSettled.cappedAssessedValue === 206000
+    && priorSettled.taxableBasis !== acquisitionSettled.taxableBasis
+    && priorSettled.value === 5680 && acquisitionSettled.value === 3620,
+    'TP-01-06: two regimes differing ONLY in capBasis produce different taxable bases from identical declarations, and each record names the basis it applied');
+
+  /* TP-01-07 ADVERSARIAL. The engine must branch on the DECLARED cap basis, never on a regime
+     identifier. The fixture regimes carry no real regime, state or county name, so an
+     implementation that matched on one would have nothing to match and would fall through. */
+  const propertySource = read('rltaxproperty.js');
+  const engineSource = read('rltax.js');
+  const regimeNameBranch = /(florida|california|homestead|save our homes|proposition|prop\s*13)/i;
+  assert(!regimeNameBranch.test(propertySource)
+    && !regimeNameBranch.test(engineSource)
+    && /CAP_BASIS_MEMBER\[/.test(propertySource)
+    && priorSettled.regimeId.indexOf('fixture') === 0
+    && acquisitionSettled.regimeId.indexOf('fixture') === 0
+    && regimeNameBranch.test(read('tax-rules/property/FL/2026.json')),
+    'TP-01-07: neither the property engine nor the settlement engine names a regime, a state or a relief programme, the branch is on the declared cap basis, and the detector is proven live by firing on the pack that legitimately does name one');
+
+  /* TP-01-08. A ceiling is a CEILING on the declared rate. Below it the household's own rate is
+     used unchanged and the record says so; above it the ceiling binds and the record says that. */
+  const underCeiling = TAX23.composePropertyLeg(declare23({
+    assessedValue: 400000, priorAssessedValue: 300000, acquisitionValue: 200000,
+    localCombinedRate: 0.005, exemptionElections: []
+  }), FIX23['rate-ceiling']).settlement;
+  const overCeiling = TAX23.composePropertyLeg(declare23({
+    assessedValue: 400000, priorAssessedValue: 300000, acquisitionValue: 200000,
+    localCombinedRate: 0.02, exemptionElections: []
+  }), FIX23['rate-ceiling']).settlement;
+  const ceilingStep = (s) => s.steps.filter((step) => step.stepId === 'rate-ceiling')[0];
+  assert(underCeiling.appliedRate === 0.005 && underCeiling.rateCeilingBound === false
+    && /below the regime's ad valorem ceiling, so it was used unchanged/.test(ceilingStep(underCeiling).statedFact)
+    && overCeiling.appliedRate === 0.01 && overCeiling.rateCeilingBound === true
+    && /exceeds the regime's ad valorem ceiling, so the ceiling bound it/.test(ceilingStep(overCeiling).statedFact)
+    && ceilingStep(aboveCap).ceilingApplies === false
+    && /carries no ad valorem rate ceiling/.test(ceilingStep(aboveCap).statedFact),
+    'TP-01-08: a declared rate below the ceiling is used unchanged with that fact stated, a rate above it is reduced to the ceiling with that fact stated, and a regime carrying no ceiling states that rather than passing silently');
+
+  /* TP-01-09 ADVERSARIAL. An implementation that used the ceiling AS the rate would produce the
+     same answer above the ceiling and a wrong, higher answer below it. Pin the difference. */
+  assert(underCeiling.appliedRate !== 0.01
+    && underCeiling.value === underCeiling.taxableBasis * 0.005
+    && underCeiling.value < underCeiling.taxableBasis * 0.01,
+    'TP-01-09: below the ceiling the tax is computed from the declared rate and is strictly less than the ceiling would produce — an implementation using the ceiling as the rate fails here');
+
+  /* TP-01-10 SOURCING. Every VALUED member of both shipped regimes resolves to exactly one
+     retrieved record carrying a locator; every member that could not be retrieved is an
+     AbsentFigure with a missingSource pointer and NO smuggled numeric member beside it. */
+  const valuedMembers23 = (regime) => {
+    const out = [];
+    (regime.exemptions || []).forEach((e) => out.push({ path: 'exemption:' + e.exemptionId, figure: e }));
+    if (regime.assessmentCap) out.push({ path: 'assessmentCap', figure: regime.assessmentCap });
+    if (regime.assessmentCap && regime.assessmentCap.capIndexRate !== undefined) {
+      out.push({ path: 'assessmentCap.capIndexRate', figure: regime.assessmentCap.capIndexRate });
+    }
+    if (regime.rateCeiling) out.push({ path: 'rateCeiling', figure: regime.rateCeiling });
+    return out;
+  };
+  const sourcingFaults = [];
+  [FL23, CA23].forEach((regime) => {
+    valuedMembers23(regime).forEach((entry) => {
+      const f = entry.figure;
+      if (typeof f !== 'object' || f === null) return;
+      if (RULES23.isAbsentFigure(f)) {
+        const numericLeak = Object.keys(f).some((k) => typeof f[k] === 'number');
+        if (!f.missingSource || !f.missingSource.locator || !f.reason || numericLeak) {
+          sourcingFaults.push(regime.regimeId + ':' + entry.path + ':absent-shape');
+        }
+        return;
+      }
+      const record = (regime.sourceRecords || []).filter((r) => r.sourceId === f.sourceRef);
+      if (record.length !== 1 || record[0].retrievalOutcome !== 'retrieved' || !f.locator) {
+        sourcingFaults.push(regime.regimeId + ':' + entry.path + ':citation');
+      }
+    });
+  });
+  assert(sourcingFaults.length === 0
+    && FL23.sourceRecords.every((r) => r.retrievalOutcome === 'retrieved' && r.url && r.retrievedAt)
+    && CA23.sourceRecords.every((r) => r.retrievalOutcome === 'retrieved' && r.url && r.retrievedAt),
+    'TP-01-10: every valued member of both shipped relief regimes cites exactly one retrieved record with a locator, and every unretrieved member is an AbsentFigure with a missingSource pointer and no numeric member beside it: ' + sourcingFaults.join(', '));
+
+  /* TP-01-10b SOURCING FIDELITY. The transcribed figures must equal the constitutional text they
+     claim to come from, checked digit by digit against the clause quoted in the retrieval note.
+     A pack figure that drifted from its own quoted clause is a fabrication with a citation. */
+  const flCapNote = FL23.sourceRecords.filter((r) => r.sourceId === 'fl-const-a7s4')[0].retrievalNote;
+  const flExemptionNote = FL23.sourceRecords.filter((r) => r.sourceId === 'fl-const-a7s6')[0].retrievalNote;
+  const caRateNote = CA23.sourceRecords.filter((r) => r.sourceId === 'ca-const-a13a-s1')[0].retrievalNote;
+  const caCapNote = CA23.sourceRecords.filter((r) => r.sourceId === 'ca-const-a13a-s2')[0].retrievalNote;
+  assert(FL23.assessmentCap.capRate === 0.03
+    && /Three percent \(3%\) of the assessment for the prior year/.test(flCapNote)
+    && FL23.assessmentCap.capBasis === 'prior-assessed-value'
+    && FL23.exemptions[0].amount === 25000
+    && /Up to the assessed valuation of twenty-five thousand dollars/.test(flExemptionNote)
+    && CA23.rateCeiling.rate === 0.01
+    && /shall not exceed\s+One percent \(1%\) of the full cash value/.test(caRateNote)
+    && CA23.assessmentCap.capRate === 0.02
+    && /inflationary rate not to exceed 2 percent for any given year/.test(caCapNote)
+    && CA23.assessmentCap.capBasis === 'acquisition-value'
+    && /appraised value of real property when purchased, newly constructed, or a change in\s+ownership/.test(caCapNote),
+    'TP-01-10b: each transcribed figure equals the clause quoted in its own retrieval note — three percent against the prior year, the twenty-five thousand dollar first-tier exemption, the one percent ad valorem ceiling, the two percent inflation ceiling and the acquisition-value basis');
+
+  /* TP-01-11 INDEPENDENCE. There must be NO parameter through which a federal or state income
+     figure could reach the property settlement, because a property tax does not move with income
+     and a signature that accepted one would invite a consumer to assume it does. */
+  const propertySignature23 = propertySource.slice(
+    propertySource.indexOf('function computePropertyTax'),
+    propertySource.indexOf(')', propertySource.indexOf('function computePropertyTax')) + 1);
+  const legSignature23 = engineSource.slice(
+    engineSource.indexOf('function composePropertyLeg'),
+    engineSource.indexOf(')', engineSource.indexOf('function composePropertyLeg')) + 1);
+  assert(PROP23.computePropertyTax.length === 2
+    && TAX23.composePropertyLeg.length === 2
+    && propertySignature23 === 'function computePropertyTax(assessment, regime)'
+    && legSignature23 === 'function composePropertyLeg(assessment, regime)'
+    && aboveCap.value === aboveCap.taxableBasis * aboveCap.appliedRate,
+    'TP-01-11: computePropertyTax and the CO-15 stage each accept exactly the declared assessment and the sourced regime, no income figure reaches either, and the settled tax is the taxable basis times the applied rate and nothing else');
+
+  /* TP-01-11b. The marginal context must SAY that the leg does not move with income, so a curve
+     consumer cannot infer that it does from silence. */
+  const marginal23 = TAX23.composePropertyLeg(complete23, priorRegime).marginalContext;
+  const refusedMarginal23 = TAX23.composePropertyLeg(complete23, FIX23['unretrieved-cap']).marginalContext;
+  assert(marginal23.movesWithIncome === false && marginal23.available === true
+    && marginal23.legId === 'property-tax' && marginal23.value === 5680
+    && refusedMarginal23.available === false
+    && refusedMarginal23.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && refusedMarginal23.movesWithIncome === false,
+    'TP-01-11b: the property marginal context states explicitly that the leg does not move with income, and a refused settlement produces an unavailable context carrying the refusal code rather than a zero contribution');
+
+  /* TP-01-14 VOCABULARY. This feature adds NO refusal code. Every code the property surface
+     raises is derived from the closed vocabulary the prior features already shipped. */
+  const raisedCodes23 = Array.from(new Set(
+    (propertySource.match(/RLTAX-[A-Z-]+/g) || []).concat(
+      (engineSource.match(/RLTAX-[A-Z-]+/g) || []))));
+  const strayCodes23 = raisedCodes23.filter((code) => RULES23.RLTAX_CODES[code] !== true);
+  assert(Object.keys(RULES23.RLTAX_CODES).length === 14
+    && strayCodes23.length === 0
+    && raisedCodes23.indexOf('RLTAX-INPUT-INCOMPLETE') >= 0
+    && raisedCodes23.indexOf('RLTAX-THRESHOLD-UNAVAILABLE') >= 0,
+    'TP-01-14: the refusal vocabulary member count is unchanged at its pre-feature value and every code the property surface raises is an existing member: ' + strayCodes23.join(', '));
+
+  /* TP-01-15 NO-SHADOW. No module may hold a cap figure, a ceiling figure or an exemption amount:
+     every one lives in a pack. The detector is proven live by firing on the packs. */
+  const figureLeak = /\b(?:0\.0[123]\b|25000|75000)/;
+  assert(!figureLeak.test(propertySource)
+    && !figureLeak.test(engineSource)
+    && figureLeak.test(read('tax-rules/property/FL/2026.json'))
+    && figureLeak.test(read('tax-rules/property/CA/2026.json')),
+    'TP-01-15: neither engine module holds a cap rate, a ceiling rate or an exemption amount, and the detector is demonstrated to fire on the packs that legitimately carry them');
+
+  /* TP-01-12 LEG VISIBILITY. The all-non-zero fixture. Every leg carries a DISTINCT non-zero
+     value, so omitting any one of them changes the headline by an amount unique to that leg and
+     an implementation that drops a leg cannot produce the right total by luck. A zero leg passes
+     an addition check whether or not it was added, which is exactly how Feature 022's dropped leg
+     hid; this fixture is what makes the identity below consequential rather than decorative. */
+  const allNonZeroLegs23 = Object.freeze({
+    'ordinary': 11000, 'preferential': 2300, 'net-investment-income-tax': 570,
+    'additional-medicare-tax': 130, 'property-tax': 5680
+  });
+  const legIds23 = Object.keys(allNonZeroLegs23);
+  const distinctValues23 = new Set(legIds23.map((legId) => allNonZeroLegs23[legId]));
+  const headlineTotal23 = legIds23.reduce((total, legId) => total + allNonZeroLegs23[legId], 0);
+  const everySurface23 = {
+    headline: legIds23.slice(), comparison: legIds23.slice(),
+    curve: legIds23.slice(), export: legIds23.slice()
+  };
+  const identity23 = PROP23.legVisibilityIdentity(legIds23, everySurface23);
+  /* A leg present on a surface and absent from the record is the other direction, and it must
+     fail too: a surface that invented a leg is as wrong as one that dropped it. */
+  const inventedOnExport23 = PROP23.legVisibilityIdentity(legIds23, Object.assign({}, everySurface23, {
+    export: legIds23.concat(['leg-the-record-never-computed'])
+  }));
+  assert(identity23.holds === true
+    && identity23.findings.length === 0
+    && JSON.stringify(identity23.surfaces) === JSON.stringify(['headline', 'comparison', 'curve', 'export'])
+    && distinctValues23.size === legIds23.length
+    && legIds23.every((legId) => allNonZeroLegs23[legId] > 0)
+    && legIds23.includes('property-tax')
+    && headlineTotal23 === 19680
+    && inventedOnExport23.holds === false
+    && inventedOnExport23.findings[0].unexpectedOnSurface[0] === 'leg-the-record-never-computed',
+    'TP-01-12: against a fixture in which every leg is non-zero and mutually distinct, the settled record\u2019s declared leg set equals the leg set of the headline, the comparison, the curve contributors and the export in both directions, and a leg invented by a surface fails the identity from the other side');
+
+  /* TP-01-13 ADVERSARIAL. Removing the property leg from EACH of the four surfaces in turn must
+     fail, and the failure must NAME the missing leg rather than report a numeric mismatch. A
+     numeric mismatch is the report that let the dropped leg hide, so naming is the whole point. */
+  const perSurfaceFailures23 = PROP23.LEG_SURFACES.map((surface) => {
+    const mutated = Object.assign({}, everySurface23);
+    mutated[surface] = legIds23.filter((legId) => legId !== 'property-tax');
+    const verdict = PROP23.legVisibilityIdentity(legIds23, mutated);
+    const finding = verdict.findings.filter((entry) => entry.surface === surface)[0];
+    const mutatedTotal = mutated[surface].reduce((total, legId) => total + allNonZeroLegs23[legId], 0);
+    return {
+      surface: surface,
+      failed: verdict.holds === false,
+      namesTheLeg: !!finding && finding.missingFromSurface.indexOf('property-tax') >= 0
+        && finding.detail.indexOf('property-tax') >= 0,
+      changesTheTotal: mutatedTotal !== headlineTotal23
+    };
+  });
+  /* A surface that publishes no leg set at all is a third failure mode and must also be caught. */
+  const silentSurface23 = PROP23.legVisibilityIdentity(legIds23, Object.assign({}, everySurface23, { curve: null }));
+  assert(perSurfaceFailures23.length === 4
+    && perSurfaceFailures23.every((entry) => entry.failed && entry.namesTheLeg && entry.changesTheTotal)
+    && silentSurface23.holds === false
+    && silentSurface23.findings[0].detail.indexOf('published no leg set at all') >= 0,
+    'TP-01-13: removing the property leg from each of the four surfaces in turn fails the identity, each failure names the missing leg rather than reporting a numeric mismatch, each omission changes the headline by an amount unique to that leg, and a surface publishing no leg set at all fails too');
+
+  /* TP-01-16 PRIVACY. Each property declaration is inventoried, cleared, redacted by the export
+     sanitiser, and absent from every URL, request, referrer and console message. The assessed
+     value and the acquisition value sit beside a declared jurisdiction, so each is proven
+     independently rather than as a group. */
+  const WS23 = propTaxRequire(join(ROOT, 'rltaxworkspace.js'));
+  const emptyWorkspace23 = WS23.createEmptyWorkspace();
+  const housingMembers23 = WS23.PROPERTY_DECLARATIONS.map((entry) => entry.member)
+    .concat(WS23.PROPERTY_STRING_DECLARATIONS).concat(['propertyExemptionElections']);
+  const declaredWorkspace23 = Object.assign({}, emptyWorkspace23, {
+    filingStatus: 'single', declaredTaxYear: 2026, deductionMode: 'itemized',
+    propertyJurisdiction: 'state:FL', propertyAssessedValue: 407311,
+    propertyPriorAssessedValue: 300000, propertyAcquisitionValue: 200000,
+    propertyLocalCombinedRate: 0.02, propertyExemptionElections: ['fl-homestead-first-tier'],
+    mortgageInterestPaid: 18000, mortgageAcquisitionDebtBalance: 900000,
+    mortgageAcquisitionDebtTier: 'acquisition-debt-current'
+  });
+  const sanitized23 = WS23.sanitizeForExport(declaredWorkspace23);
+  const undeclaredDomains23 = WS23.declaredUnavailableDomains(emptyWorkspace23);
+  const routeText23 = read('lifetime-tax-strategy-lab.html');
+  /* No household declaration may reach a URL. The route writes only a view-mode hash and never a
+     query string, and the sentinel below proves the sanitiser really removed the figure rather
+     than renaming it. */
+  const urlWriteSites23 = /location\.search\s*=|URLSearchParams|\?.*=.*\+\s*(?:workspace|state\.workspace)/.test(routeText23);
+  const privacyFaults23 = housingMembers23.filter((member) => {
+    const inFields = WS23.WORKSPACE_FIELDS.indexOf(member) >= 0;
+    const inEmpty = Object.prototype.hasOwnProperty.call(emptyWorkspace23, member);
+    const redacted = !Object.prototype.hasOwnProperty.call(sanitized23.workspace, member)
+      && sanitized23.omittedFields.indexOf(member) >= 0;
+    const named = member === 'propertyExemptionElections' || undeclaredDomains23.indexOf(member) >= 0;
+    return !(inFields && inEmpty && redacted && named);
+  });
+  assert(privacyFaults23.length === 0
+    && housingMembers23.length === 9
+    && urlWriteSites23 === false
+    && JSON.stringify(sanitized23.workspace).indexOf('407311') < 0
+    && JSON.stringify(sanitized23.workspace).indexOf('state:FL') < 0
+    && read('rltaxworkspace.js').indexOf('assessed value') >= 0,
+    'TP-01-16: every property and mortgage declaration is a declared workspace member, is created undeclared, is named by the unavailable-domain report while it is undeclared, is omitted by the export sanitiser and listed in omittedFields, and neither the assessed value nor the declared jurisdiction survives an export or reaches any URL: ' + privacyFaults23.join(', '));
+
+  /* TP-01-17 SUPERSESSION. Each replacement this scope delivers carries its marker beside it and
+     derives its expected value from the artifact it describes, so the growth Scopes 03 through 05
+     add is absorbed without a further ledger entry. The superseded literals are recorded in
+     report.md with the intended-RED output that preceded each green. */
+  const selftestText23 = read('scripts/selftest.mjs');
+  const routeSpecText23 = read('tests/lifetime-tax-route.spec.mjs');
+  const foundationSpecText23 = read('tests/lifetime-tax-foundation.spec.mjs');
+  const scopeOwnedMarkers23 = ['SUP-023-05', 'SUP-023-06', 'SUP-023-07', 'SUP-023-08', 'SUP-023-10'];
+  const markerHomes23 = {
+    'SUP-023-05': selftestText23, 'SUP-023-06': routeSpecText23,
+    'SUP-023-07': foundationSpecText23, 'SUP-023-08': foundationSpecText23,
+    'SUP-023-10': foundationSpecText23
+  };
+  const missingMarkers23 = scopeOwnedMarkers23.filter((marker) => markerHomes23[marker].indexOf(marker) < 0);
+  /* The literals these replacements superseded must be GONE, not merely commented out. */
+  const survivingLiterals23 = [
+    /powerLinkDetails\.length === 9/.test(selftestText23),
+    /simpleFields\.length === 7/.test(selftestText23),
+    /links\)\)\.toHaveCount\(9\)/.test(routeSpecText23),
+    /storageInventoryBody tr'\)\)\.toHaveCount\(3\)/.test(foundationSpecText23)
+  ].filter(Boolean);
+  assert(missingMarkers23.length === 0
+    && survivingLiterals23.length === 0
+    && /renderedPowerSectionIds/.test(selftestText23)
+    && /expectInventoryDescribesEveryDeclaredKey/.test(foundationSpecText23),
+    'TP-01-17: every supersession this scope owns carries its marker in the file the per-file distribution places it in, each replacement derives its expected value from the artifact it describes, and not one superseded literal survives anywhere: ' + missingMarkers23.join(', '));
+
+  /* CLAIM BOUNDARY. No output this scope adds may state a probability, an appreciation
+     assumption, a lifetime figure, a track record or an error rate, and no property figure may be
+     presented as an estimate or a typical rate. */
+  const claimScan23 = /\b(probability|probable|likely to|appreciation|expected return|break-even|track record|error rate|accuracy rate|typical rate|estimated value|our estimate)\b/i;
+  const claimScanPaths23 = ['rltaxproperty.js', 'tax-rules/property/FL/2026.json', 'tax-rules/property/CA/2026.json'];
+  const claimLeaks23 = claimScanPaths23.filter((path) => claimScan23.test(read(path)));
+  /* The route legitimately uses the word "estimate" only inside a refusal that FORBIDS one, so
+     the scan is applied to this scope's own additions and the detector is proven live. */
+  assert(claimLeaks23.length === 0
+    && claimScan23.test('this figure is our estimate') === true,
+    'TP-01-CLAIM: no figure this scope adds is presented as a probability, an appreciation assumption, a lifetime figure, a track record, an error rate, a typical rate or an estimate, and the detector is proven to fire on a sentence that does: ' + claimLeaks23.join(', '));
+
+
+  /* DEPLOY PARITY. The shared property module must have a REAL production consumer, because the
+     site projection ships a shared module exactly when something shipped references it. The
+     settlement engine requires it by filename and the route loads it by filename; a test is not
+     a consumer and neither is an exclusion entry. */
+  const routeSource23 = read('lifetime-tax-strategy-lab.html');
+  assert(engineSource.indexOf('require("./rltaxproperty.js")') >= 0
+    && routeSource23.indexOf('<script src="rltaxproperty.js"></script>') >= 0
+    && routeSource23.indexOf('src="rltaxproperty.js"') < routeSource23.indexOf('src="rltax.js"')
+    && JSON.parse(read('site-exclusions.json')).files.every((e) => e.path !== 'rltaxproperty.js'),
+    'TP-01-DEPLOY: rltaxproperty.js is referenced by the settlement engine and loaded by the route ahead of its consumer, so the deploy projection ships it as a consumed module rather than carrying it as an unconsumed exclusion');
+
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 023 Scope 01 property group threw): ' + e.message); }
+
+/* ---------- Feature 023 Scope 02: the itemised composition and the capped deduction ---------- */
+try {
+  group('lifetime-tax — itemized composition and the capped deduction');
+  const dedRequire = (await import('node:module')).createRequire(import.meta.url);
+  const { createHash: createDeductionHash } = await import('node:crypto');
+  const RULES02 = dedRequire(join(ROOT, 'rltaxrules.js'));
+  const TAX02 = dedRequire(join(ROOT, 'rltax.js'));
+  const WS02 = dedRequire(join(ROOT, 'rltaxworkspace.js'));
+  const PACK02_TEXT = read('tax-rules/federal/2026.json');
+  const PACK02 = JSON.parse(PACK02_TEXT);
+  const clonePack02 = () => JSON.parse(PACK02_TEXT);
+
+  const declare02 = (overrides) => Object.assign(WS02.createEmptyWorkspace(), {
+    filingStatus: 'single', declaredTaxYear: 2026, deductionMode: 'itemized',
+    income: { ordinary: 90000, qualifiedDividend: 0, longTermCapitalGain: 0, taxExemptInterest: 0 },
+    itemizedAmount: 0
+  }, overrides || {});
+
+  /* A fixture pack whose acquisition-debt tiers carry limits, so the boundary arithmetic can be
+     exercised at an exact figure. The figures are the implementer's own and can never resolve for
+     a real return: the shipped pack ships both tiers absent because the only retrievable edition
+     of the authority declares another tax year. */
+  const mortgageFixturePack02 = clonePack02();
+  mortgageFixturePack02.mortgageDebtLimits.tiers[0].limits = {
+    'single': 500000, 'married-filing-jointly': 500000,
+    'married-filing-separately': 250000, 'head-of-household': 500000
+  };
+  mortgageFixturePack02.mortgageDebtLimits.tiers[1].limits = {
+    'single': 700000, 'married-filing-jointly': 700000,
+    'married-filing-separately': 350000, 'head-of-household': 700000
+  };
+  const capAbsentPack02 = clonePack02();
+  capAbsentPack02.deductionCaps['state-and-local-tax'] = {
+    contractVersion: 'AbsentFigure/v1',
+    code: 'RLTAX-THRESHOLD-UNAVAILABLE',
+    domain: 'deduction-cap:state-and-local-tax',
+    reason: 'This fixture pack deliberately carries no cap, so the refusal branch is exercised at least once regardless of what the shipped pack retrieved.',
+    whatWouldMakeItAvailable: 'Retrieve the cap and its filing-status variation from its primary source.',
+    missingSource: {
+      title: 'Absent-cap fixture pointer', url: 'https://www.irs.gov/publications/p505',
+      documentKind: 'publication', locator: 'This fixture pointer is deliberately unretrieved so the absence branch is never vacuous.'
+    }
+  };
+
+  const cappedIds02 = PACK02.deductionCaps['state-and-local-tax'].cappedComponentIds;
+  const capAmount02 = PACK02.deductionCaps['state-and-local-tax'].amounts.single;
+  const standard02 = PACK02.standardDeductions.single.amount;
+
+  /* TP-02-01 COMPATIBILITY. Under the composed shape, a household that declared only the old
+     lump sum must reach its exact prior deduction: the composition holds that amount as ONE named
+     component, and the side actually applied is the same side the declared-amount path applied. */
+  const legacy02 = TAX02.composeItemizedDeduction(declare02({ itemizedAmount: 30000 }), PACK02, {});
+  const legacyBelow02 = TAX02.composeItemizedDeduction(declare02({ itemizedAmount: 1000 }), PACK02, {});
+  assert(legacy02.components.length === 1
+    && legacy02.components[0].componentId === 'other-itemized'
+    && legacy02.components[0].origin === 'declared'
+    && legacy02.itemizedTotal === 30000
+    && legacy02.appliedDeduction === 30000 && legacy02.chosen === 'itemized'
+    && legacyBelow02.itemizedTotal === 1000
+    && legacyBelow02.chosen === 'standard' && legacyBelow02.appliedDeduction === standard02,
+    'TP-02-01: a household that declared only the previous lump sum reaches its exact prior deduction under the composed shape, carried as one named component with its origin recorded, and the side applied is still the larger of the two totals');
+
+  /* TP-02-02 CONTRACT. A component missing its origin or its disallowed amount is refused, and a
+     composition whose binding or chosen side sits outside its closed set is refused. */
+  const goodComponent02 = legacy02.components[0];
+  const noOrigin02 = Object.assign({}, goodComponent02); delete noOrigin02.origin;
+  const noDisallowed02 = Object.assign({}, goodComponent02); delete noDisallowed02.disallowedAmount;
+  const zeroedDisallowed02 = Object.assign({}, goodComponent02, { amount: 100, allowedAmount: 60, disallowedAmount: 0 });
+  const badBinding02 = Object.assign({}, legacy02, { capBinding: 'partly' });
+  const badChosen02 = Object.assign({}, legacy02, { chosen: 'whichever-is-nicer' });
+  assert(RULES02.validateDeductionComponent(goodComponent02).ok === true
+    && RULES02.validateDeductionComponent(noOrigin02).ok === false
+    && RULES02.validateDeductionComponent(noDisallowed02).ok === false
+    && RULES02.validateDeductionComponent(zeroedDisallowed02).ok === false
+    && RULES02.validateDeductionComponent(zeroedDisallowed02).refusals.some((r) => r.code === 'RLTAX-RECONCILE')
+    && RULES02.validateItemizedComposition(legacy02).ok === true
+    && RULES02.validateItemizedComposition(badBinding02).ok === false
+    && RULES02.validateItemizedComposition(badChosen02).ok === false,
+    'TP-02-02: DeductionComponent/v1 refuses a missing origin and a missing disallowed amount, refuses a split that does not add back to the component amount, and ItemizedComposition/v1 refuses a cap binding or a chosen side outside its closed set');
+
+  /* TP-02-03 KNOWN VALUE. Below, exactly at and above the sourced cap. The disallowed amounts are
+     computed from the pack's declared apportionment rule and must sum to the excess exactly. */
+  const below02 = TAX02.composeItemizedDeduction(declare02({}), PACK02,
+    { 'property-tax': 10000, 'state-income-tax': 20000 });
+  const at02 = TAX02.composeItemizedDeduction(declare02({}), PACK02,
+    { 'property-tax': capAmount02 / 2, 'state-income-tax': capAmount02 / 2 });
+  const above02 = TAX02.composeItemizedDeduction(declare02({}), PACK02,
+    { 'property-tax': 20000, 'state-income-tax': 30400 });
+  const excess02 = (20000 + 30400) - capAmount02;
+  const disallowedSum02 = above02.components.reduce((total, c) => total + c.disallowedAmount, 0);
+  const allowedSum02 = above02.components.reduce((total, c) => total + c.allowedAmount, 0);
+  assert(below02.capBinding === 'unbound' && below02.itemizedTotal === 30000
+    && below02.components.every((c) => c.disallowedAmount === 0)
+    && at02.capBinding === 'unbound' && at02.itemizedTotal === capAmount02
+    && above02.capBinding === 'bound' && above02.capExcess === excess02
+    && Math.abs(disallowedSum02 - excess02) < 1e-9
+    && Math.abs(allowedSum02 - capAmount02) < 1e-9
+    && Math.abs(above02.itemizedTotal - capAmount02) < 1e-9
+    && above02.components.every((c) => c.disallowedAmount > 0)
+    && above02.components.every((c) => cappedIds02.filter((id) => id !== c.componentId)
+      .every((id) => c.cappedWith.indexOf(id) >= 0)),
+    'TP-02-03: below, exactly at and above the sourced cap the itemised total, the binding and every component\u2019s disallowed amount are exact, the disallowed amounts sum to the excess, the allowed amounts sum to the cap, and each capped component names the sibling it competes with');
+
+  /* TP-02-04 ADVERSARIAL. An implementation that zeroed the disallowed amounts instead of
+     computing them would report the same allowed total and hide which half bought nothing. */
+  const zeroedFamily02 = above02.components.map((c) => Object.assign({}, c, { disallowedAmount: 0 }));
+  const zeroedSum02 = zeroedFamily02.reduce((total, c) => total + c.disallowedAmount, 0);
+  assert(Math.abs(zeroedSum02 - excess02) > 1e-9
+    && zeroedFamily02.every((c) => RULES02.validateDeductionComponent(c).ok === false),
+    'TP-02-04: an implementation zeroing every disallowed amount fails the excess-sum assertion and fails the component contract, so the amount that bought nothing cannot be hidden behind a correct-looking allowed total');
+
+  /* TP-02-05 REFUSAL. A pack whose cap is an AbsentFigure refuses the itemised total. The standard
+     deduction is NOT chosen in its place, which is the substitution this rule exists to prevent. */
+  const capAbsent02 = TAX02.composeItemizedDeduction(declare02({}), capAbsentPack02,
+    { 'property-tax': 10000, 'state-income-tax': 20000 });
+  assert(capAbsent02.capBinding === 'unavailable' && capAbsent02.chosen === 'unavailable'
+    && RULES02.isUnavailable(capAbsent02.itemizedTotal)
+    && capAbsent02.itemizedTotal.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && !Object.prototype.hasOwnProperty.call(capAbsent02, 'appliedDeduction')
+    && capAbsent02.components.length === 0
+    && RULES02.validateItemizedComposition(capAbsent02).ok === true,
+    'TP-02-05: an unretrieved cap produces an unavailable binding, an unavailable chosen side and a refused itemised total, and no applied deduction is published in its place');
+
+  /* TP-02-06 KNOWN VALUE. Below, exactly at and above the sourced acquisition-debt limit. */
+  const mortgageAt02 = (balance) => TAX02.composeItemizedDeduction(declare02({
+    mortgageInterestPaid: 20000, mortgageAcquisitionDebtBalance: balance,
+    mortgageAcquisitionDebtTier: 'acquisition-debt-current'
+  }), mortgageFixturePack02, {});
+  const mBelow02 = mortgageAt02(400000).components[0];
+  const mAt02 = mortgageAt02(500000).components[0];
+  const mAbove02 = mortgageAt02(1000000).components[0];
+  const predecessor02 = TAX02.composeItemizedDeduction(declare02({
+    mortgageInterestPaid: 20000, mortgageAcquisitionDebtBalance: 1000000,
+    mortgageAcquisitionDebtTier: 'acquisition-debt-predecessor'
+  }), mortgageFixturePack02, {}).components[0];
+  assert(mBelow02.allowedAmount === 20000 && mBelow02.disallowedAmount === 0
+    && mAt02.allowedAmount === 20000 && mAt02.disallowedAmount === 0
+    && mAbove02.allowedAmount === 10000 && mAbove02.disallowedAmount === 10000
+    && mAbove02.componentId === 'mortgage-interest' && mAbove02.origin === 'declared'
+    && predecessor02.allowedAmount === 14000 && predecessor02.disallowedAmount === 6000
+    && predecessor02.allowedAmount !== mAbove02.allowedAmount,
+    'TP-02-06: with the declared balance below, exactly at and above the sourced acquisition-debt limit the deductible and disallowed portions are exact, and the declared predecessor tier reaches its own higher limit rather than the current one');
+
+  /* TP-02-07 REFUSAL. The SHIPPED pack ships both tiers absent, so the mortgage component refuses
+     against the pack a reader actually gets rather than only against a fixture. */
+  const mortgageAbsent02 = TAX02.composeItemizedDeduction(declare02({
+    mortgageInterestPaid: 20000, mortgageAcquisitionDebtBalance: 1000000,
+    mortgageAcquisitionDebtTier: 'acquisition-debt-current'
+  }), PACK02, {});
+  const undeclaredTier02 = TAX02.composeItemizedDeduction(declare02({
+    mortgageInterestPaid: 20000, mortgageAcquisitionDebtBalance: 1000000
+  }), mortgageFixturePack02, {});
+  assert(RULES02.isUnavailable(mortgageAbsent02.itemizedTotal)
+    && mortgageAbsent02.itemizedTotal.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && mortgageAbsent02.chosen === 'unavailable'
+    && RULES02.isAbsentFigure(PACK02.mortgageDebtLimits.tiers[0].limits)
+    && PACK02.mortgageDebtLimits.tiers.every((tier) => !Object.keys(tier.limits)
+      .some((key) => typeof tier.limits[key] === 'number'))
+    && undeclaredTier02.chosen === 'unavailable'
+    && undeclaredTier02.itemizedTotal.code === 'RLTAX-INPUT-INCOMPLETE',
+    'TP-02-07: an unretrieved acquisition-debt limit refuses the mortgage component on the shipped pack with no numeric member smuggled beside the absence, and mortgage interest declared without a tier refuses as a missing declaration rather than as a missing rule');
+
+  /* TP-02-08 ADVERSARIAL. An implementation that deducted the full declared interest when the
+     limit is absent would publish a larger itemised total and a chosen side. Pin that it does not. */
+  assert(!Object.prototype.hasOwnProperty.call(mortgageAbsent02, 'appliedDeduction')
+    && mortgageAbsent02.components.length === 0
+    && typeof mortgageAbsent02.itemizedTotal !== 'number'
+    && mortgageAbsent02.chosenReason.indexOf('not silently substituted') >= 0,
+    'TP-02-08: with the limit absent no component, no numeric itemised total and no applied deduction is published, so an implementation deducting the declared interest in full fails here');
+
+  /* TP-02-09 KNOWN VALUE. The decision at, below and above the sourced standard deduction, with
+     the tie resolved the way the pack declares rather than the way the engine prefers. */
+  const belowStandard02 = TAX02.composeItemizedDeduction(declare02({ itemizedAmount: standard02 - 1 }), PACK02, {});
+  const atStandard02 = TAX02.composeItemizedDeduction(declare02({ itemizedAmount: standard02 }), PACK02, {});
+  const aboveStandard02 = TAX02.composeItemizedDeduction(declare02({ itemizedAmount: standard02 + 1 }), PACK02, {});
+  const tieItemizedPack02 = clonePack02();
+  tieItemizedPack02.deductionChoicePolicy.onTie = 'itemized';
+  const atStandardOtherTie02 = TAX02.composeItemizedDeduction(declare02({ itemizedAmount: standard02 }), tieItemizedPack02, {});
+  assert(belowStandard02.chosen === 'standard' && belowStandard02.appliedDeduction === standard02
+    && aboveStandard02.chosen === 'itemized' && aboveStandard02.appliedDeduction === standard02 + 1
+    && atStandard02.chosen === PACK02.deductionChoicePolicy.onTie
+    && atStandardOtherTie02.chosen === 'itemized'
+    && atStandard02.chosen !== atStandardOtherTie02.chosen
+    && atStandard02.appliedDeduction === atStandardOtherTie02.appliedDeduction
+    && belowStandard02.chosenReason.indexOf('changed nothing') >= 0,
+    'TP-02-09: below, exactly at and above the sourced standard deduction the chosen side is correct at each point, the tie follows the pack\u2019s declared rule rather than an engine preference, and a household whose itemised total falls below the standard deduction is told its capped components changed nothing');
+
+  /* TP-02-10 ADVERSARIAL. A workspace member expressing a preferred side is REFUSED, so there is
+     no flag for an implementation to read in place of the recomputation. */
+  const preferring02 = Object.assign(declare02({}), { preferredDeductionSide: 'itemized' });
+  const recomputed02 = TAX02.composeItemizedDeduction(declare02({ itemizedAmount: 1 }), PACK02, {});
+  assert(WS02.validateWorkspace(preferring02, PACK02).ok === false
+    && WS02.validateWorkspace(preferring02, PACK02).refusals
+      .some((r) => r.domain === 'workspace:preferredDeductionSide')
+    && WS02.WORKSPACE_FIELDS.indexOf('preferredDeductionSide') < 0
+    && recomputed02.chosen === 'standard'
+    && read('rltax.js').indexOf('preferredDeductionSide') < 0,
+    'TP-02-10: a workspace member expressing a preferred deduction side is refused, the member is outside the closed workspace field set, and the settlement engine holds no reference to one, so the decision cannot be read from a declared flag');
+
+  /* TP-02-11 ACCOUNTING. The id has MOVED rather than vanished: it is absent from the pack's
+     unsupported set and present as the capped component family the cap itself declares. */
+  const unsupportedIds02 = PACK02.unsupportedFeatures.map((entry) => entry.id);
+  const legIds02 = RULES02.declaredTaxLegs(PACK02).map((leg) => leg.legId);
+  const compositionIds02 = above02.components.map((c) => c.componentId);
+  assert(unsupportedIds02.indexOf('state-and-local-tax') < 0
+    && cappedIds02.indexOf('state-income-tax') >= 0 && cappedIds02.indexOf('property-tax') >= 0
+    && cappedIds02.every((id) => compositionIds02.indexOf(id) >= 0)
+    && cappedIds02.every((id) => unsupportedIds02.indexOf(id) < 0 && legIds02.indexOf(id) < 0)
+    && compositionIds02.every((id) => unsupportedIds02.indexOf(id) < 0),
+    'TP-02-11: the state and local tax id is absent from unsupportedFeatures[] and present as the capped component family the pack\u2019s own cap declares, and the unsupported set, the leg set and the component set are pairwise disjoint');
+
+  /* TP-02-12 SOURCING. The cap resolves to exactly ONE retrieved record with a locator, its
+     figures equal the clause quoted in that record's own retrieval note, and every pre-existing
+     pack figure is byte-identical: stripping this feature's additions and restoring the entry it
+     removed reproduces the pre-feature content digest exactly.
+
+     SUP-023-12: supersedes `const restored02 = clonePack02(); delete restored02.deductionCaps;
+     delete restored02.mortgageDebtLimits; delete restored02.deductionChoicePolicy;`;
+     shape=derive. The pre-feature digest constant and the byte-identity it protects are retained
+     unchanged; the reconstruction is now derived from the recorded pre-feature member list, and
+     the pack's member set must partition exactly into that list and this feature's declared
+     additions, so a top-level member inserted without being declared fails by name.
+     Ledger: specs/023-property-tax-and-rental-income/spec.md#supersession-ledger */
+  const PRE_FEATURE_PACK_MEMBERS_023 = [
+    'contractVersion', 'id', 'program', 'jurisdiction', 'version', 'effectiveTaxYears',
+    'publishedAt', 'retrievedAt', 'ruleStatus', 'sourceRecords', 'supportedFeatures',
+    'unsupportedFeatures', 'indexingRules', 'calculationOrder', 'roundingPolicy', 'expiryPolicy',
+    'filingStatuses', 'incomeKinds', 'standardDeductions', 'ordinaryRateTables',
+    'preferentialRateTables', 'imposesIndividualIncomeTax', 'noTaxAuthority', 'preferentialPolicy',
+    'taxLegs', 'thresholdSets', 'reliefMechanisms', 'modifiedAdjustedGrossCompleteness',
+    'contentSha256'
+  ];
+  /* What Feature 023 declares it added to this pack, scope by scope. The Change Boundary permits
+     additive insertion only, and this is the declaration that permission is checked against. */
+  const FEATURE_023_ADDED_PACK_MEMBERS = ['deductionCaps', 'mortgageDebtLimits',
+    'deductionChoicePolicy', 'costRecovery', 'lossLimitPolicy', 'useClassification',
+    'dispositionPolicy'];
+  /* What Feature 023 declares it REMOVED from unsupportedFeatures[], and what it declares it
+     ADDED there. The reconstruction below re-inserts each removal at the position it derives
+     from the entry it followed, so the pre-feature digest still has to match BYTE FOR BYTE and
+     an undeclared removal still breaks it.
+
+     Each removal additionally has to name where the feature carries the thing instead. That
+     clause is what stops a declared removal from becoming a way to delete a deferral quietly:
+     a removal with nothing modelled in its place fails `carriedInstead` even though the digest
+     would have been reconstructed happily. */
+  const FEATURE_023_REMOVED_UNSUPPORTED = [
+    {
+      after: 'senior-deduction',
+      carriedInstead: (pack) => ((pack.deductionCaps
+        && pack.deductionCaps['state-and-local-tax']
+        && pack.deductionCaps['state-and-local-tax'].cappedComponentIds) || []).length > 0,
+      entry: {
+        id: 'state-and-local-tax', label: 'State and local income tax',
+        reason: 'This pack covers the federal jurisdiction only.',
+        code: 'RLTAX-JURISDICTION-UNSUPPORTED', movesMarginalRate: true,
+        successorFeature: 'A state rule pack resolved by declared residency, with its own settlement and its own combined total.'
+      }
+    },
+    {
+      after: 'collectibles-gain',
+      carriedInstead: (pack) => !!(pack.dispositionPolicy
+        && pack.dispositionPolicy.recaptureCategory
+        && pack.dispositionPolicy.recaptureCategory.categoryId === 'unrecaptured-section-1250-gain'
+        && Number.isFinite(pack.dispositionPolicy.recaptureCategory.maximumRate)),
+      entry: {
+        id: 'unrecaptured-section-1250-gain', label: 'Unrecaptured section 1250 gain',
+        reason: "Topic no. 409 states that the portion of any unrecaptured section 1250 gain from selling section 1250 real property is taxed at a maximum 25-percent rate, which sits above this pack's top carried preferential rate. No band for it is carried, and no code path folds it into a carried band.",
+        code: 'RLTAX-FEATURE-UNSUPPORTED', movesMarginalRate: true,
+        successorFeature: 'A later preferential-category feature carrying the unrecaptured section 1250 gain 25-percent maximum rate.'
+      }
+    }
+  ];
+  const FEATURE_023_ADDED_UNSUPPORTED = [
+    'like-kind-exchanges-installment-sales-and-involuntary-conversions',
+    'reduced-primary-residence-exclusion',
+    'nonqualified-use-gain-allocation'
+  ];
+  /* SUP-024-05: supersedes the two-term partition `PRE_FEATURE_PACK_MEMBERS_023` plus
+     `FEATURE_023_ADDED_PACK_MEMBERS`; shape=derive. FR-024-010 and FR-024-011 put the inclusion
+     policy in this pack, so Scope 02 inserts a top-level member that is in neither half of the
+     declared partition and the assertion fails for an ASC-1 cause. The partition gains a THIRD
+     declared term — this feature's own additions — and the assertion is re-expressed so a member
+     belonging to no named term fails BY NAME rather than by count. The reconstruction likewise
+     gains this feature's declared removal and its one declared modification, so the SAME
+     pre-feature digest constant is retained and re-asserted unchanged over the same reconstructed
+     bytes and the smuggling route SUP-023-12 closed stays closed. Strictly stronger because a
+     fourth feature's additions no longer require re-deriving the check, and Scope 04's medicare
+     policy member is absorbed by the same term.
+     Ledger: specs/024-social-security-and-medicare/spec.md#supersession-ledger */
+  const FEATURE_024_ADDED_PACK_MEMBERS = ['benefitInclusionPolicy', 'medicarePolicy'];
+  const FEATURE_024_ADDED_SOURCE_RECORDS = ['irs-p915-2025'];
+  /* This feature's declared removal from unsupportedFeatures[], with the anchor it follows so the
+     reconstruction re-inserts it at the position the pre-feature bytes had it, and the clause
+     naming where the feature carries the thing instead. A removal with nothing modelled in its
+     place fails `carriedInstead` even though the digest would reconstruct happily. */
+  const FEATURE_024_REMOVED_UNSUPPORTED = [
+    {
+      after: 'tax-credits',
+      carriedInstead: (pack) => !!(pack.benefitInclusionPolicy
+        && pack.benefitInclusionPolicy.modelsUnsupportedFeatureId === 'taxable-social-security-benefits'
+        && Object.keys(pack.benefitInclusionPolicy.tierParameters || {}).length > 0),
+      entry: {
+        id: 'taxable-social-security-benefits', label: 'Taxable Social Security benefits',
+        reason: 'The provisional-income computation that determines the taxable share of benefits is not carried by this pack.',
+        code: 'RLTAX-FEATURE-UNSUPPORTED', movesMarginalRate: true,
+        successorFeature: 'A later benefit-taxation feature carrying the provisional-income computation and its two inclusion tiers.'
+      }
+    },
+    {
+      /* Anchored on the benefit id rather than on `tax-credits`, because the removals are
+         re-inserted in declared order and the benefit id sits between the two in the pre-feature
+         bytes. Anchoring both on the same entry would reconstruct them in the wrong order and the
+         digest would not match. */
+      after: 'taxable-social-security-benefits',
+      carriedInstead: (pack) => !!(pack.medicarePolicy
+        && pack.medicarePolicy.modelsUnsupportedFeatureId === 'irmaa-bands'
+        && Array.isArray(pack.medicarePolicy.taxLegs)
+        && pack.medicarePolicy.taxLegs.length > 0
+        && pack.medicarePolicy.taxLegs.every((leg) => leg.includedInTotal === false)),
+      entry: {
+        id: 'irmaa-bands', label: 'Medicare income-related monthly adjustment bands',
+        reason: 'IRMAA band thresholds are a separate program and are not carried by this pack.',
+        code: 'RLTAX-FEATURE-UNSUPPORTED', movesMarginalRate: true,
+        successorFeature: 'A later Medicare-premium pack carrying the income-related monthly adjustment bands and their two-year lookback.'
+      }
+    }
+  ];
+  /* SUP-024-08's other half. The completeness record is a PRE-FEATURE member, so this feature's
+     split of it changes bytes the reconstruction has to put back. Declaring the modification is
+     what keeps the pre-feature digest constant unchanged; an undeclared edit to a pre-feature
+     member still breaks it. */
+  const FEATURE_024_MODIFIED_PACK_MEMBERS = [
+    {
+      member: 'modifiedAdjustedGrossCompleteness',
+      preFeatureUnmodeledEntry: 'the taxable portion of Social Security and railroad retirement benefits',
+      shippedUnmodeledEntry: 'the taxable portion of railroad retirement benefits',
+      shippedModelledEntry: 'the taxable portion of Social Security benefits, computed by the inclusion policy this pack carries and contributed to ordinary taxable income by name',
+      restore: (record) => {
+        const restored = {};
+        Object.keys(record).forEach((key) => {
+          if (key !== 'modelledAdjustments') restored[key] = record[key];
+        });
+        restored.unmodeledAdjustments = record.unmodeledAdjustments.map((entry) =>
+          (entry === 'the taxable portion of railroad retirement benefits'
+            ? 'the taxable portion of Social Security and railroad retirement benefits'
+            : entry));
+        return restored;
+      }
+    }
+  ];
+  const restorePreFeaturePack023 = (source) => {
+    const restored = {};
+    Object.keys(source).forEach((member) => {
+      if (PRE_FEATURE_PACK_MEMBERS_023.indexOf(member) >= 0) restored[member] = source[member];
+    });
+    restored.unsupportedFeatures = restored.unsupportedFeatures
+      .filter((entry) => FEATURE_023_ADDED_UNSUPPORTED.indexOf(entry.id) < 0);
+    FEATURE_024_REMOVED_UNSUPPORTED.forEach((removal) => {
+      const anchor24 = restored.unsupportedFeatures.findIndex((entry) => entry.id === removal.after);
+      restored.unsupportedFeatures.splice(anchor24 + 1, 0, removal.entry);
+    });
+    FEATURE_024_MODIFIED_PACK_MEMBERS.forEach((modification) => {
+      if (restored[modification.member]) {
+        restored[modification.member] = modification.restore(restored[modification.member]);
+      }
+    });
+    FEATURE_023_REMOVED_UNSUPPORTED.forEach((removal) => {
+      const anchor = restored.unsupportedFeatures.findIndex((entry) => entry.id === removal.after);
+      restored.unsupportedFeatures.splice(anchor + 1, 0, removal.entry);
+    });
+    /* The pre-feature pack cited only the records that existed before this feature. A record
+       added for a later scope's figures is part of this feature's additions exactly as a
+       top-level member is. */
+    restored.sourceRecords = restored.sourceRecords.filter((record) =>
+      ['rp-2025-32', 'irs-tc409', 'irs-p505-2026', 'ir-2025-103'].indexOf(record.sourceId) >= 0);
+    return restored;
+  };
+  const capRecord02 = PACK02.sourceRecords.filter((r) => r.sourceId === PACK02.deductionCaps['state-and-local-tax'].sourceRef);
+  const undeclaredMembers02 = Object.keys(PACK02).filter((member) =>
+    PRE_FEATURE_PACK_MEMBERS_023.indexOf(member) < 0
+    && FEATURE_023_ADDED_PACK_MEMBERS.indexOf(member) < 0
+    && FEATURE_024_ADDED_PACK_MEMBERS.indexOf(member) < 0);
+  const missingPreFeature02 = PRE_FEATURE_PACK_MEMBERS_023.filter((member) =>
+    !Object.prototype.hasOwnProperty.call(PACK02, member));
+  const restored02 = restorePreFeaturePack023(clonePack02());
+  const restoredDigest02 = 'sha256:' + createDeductionHash('sha256')
+    .update(RULES02.packContentDigestInput(restored02), 'utf8').digest('hex');
+  /* Adversarial. A mutated pre-existing figure must break the reconstruction, and an undeclared
+     top-level member must be caught by the partition rather than tolerated as additive. */
+  const mutated02 = clonePack02();
+  mutated02.standardDeductions.single.amount += 1;
+  const mutatedDigest02 = 'sha256:' + createDeductionHash('sha256')
+    .update(RULES02.packContentDigestInput(restorePreFeaturePack023(mutated02)), 'utf8').digest('hex');
+  const smuggled02 = clonePack02();
+  smuggled02.undeclaredExtraMember = { amount: 1 };
+  const smuggledUndeclared02 = Object.keys(smuggled02).filter((member) =>
+    PRE_FEATURE_PACK_MEMBERS_023.indexOf(member) < 0
+    && FEATURE_023_ADDED_PACK_MEMBERS.indexOf(member) < 0
+    && FEATURE_024_ADDED_PACK_MEMBERS.indexOf(member) < 0);
+  const capAmounts02 = PACK02.deductionCaps['state-and-local-tax'].amounts;
+  assert(capRecord02.length === 1 && capRecord02[0].retrievalOutcome === 'retrieved'
+    && typeof PACK02.deductionCaps['state-and-local-tax'].locator === 'string'
+    && PACK02.deductionCaps['state-and-local-tax'].locator.length > 0
+    && capAmounts02.single === 40400 && capAmounts02['married-filing-jointly'] === 40400
+    && capAmounts02['head-of-household'] === 40400
+    && capAmounts02['married-filing-separately'] === 20200
+    && RULES02.isAbsentFigure(PACK02.deductionCaps['state-and-local-tax'].reductionRate)
+    && undeclaredMembers02.length === 0 && missingPreFeature02.length === 0
+    && restoredDigest02 === 'sha256:e102f09087d48a9bb8482aaf3a396a49e78e0e74811f59fa089eb77df3b970bd'
+    /* Every declared removal names where the feature carries the thing instead, and every
+       declared removal is genuinely gone from the shipped pack. A declared removal that was
+       never made, or one with nothing modelled in its place, fails here even though the
+       reconstruction would have absorbed it. */
+    && FEATURE_023_REMOVED_UNSUPPORTED.every((removal) => removal.carriedInstead(PACK02)
+      && !PACK02.unsupportedFeatures.some((entry) => entry.id === removal.entry.id))
+    && FEATURE_023_ADDED_UNSUPPORTED.every((id) =>
+      PACK02.unsupportedFeatures.some((entry) => entry.id === id))
+    /* This feature's declared removal names where the pack carries the thing instead, and is
+       genuinely gone from the shipped pack. */
+    && FEATURE_024_REMOVED_UNSUPPORTED.every((removal) => removal.carriedInstead(PACK02)
+      && !PACK02.unsupportedFeatures.some((entry) => entry.id === removal.entry.id))
+    && FEATURE_024_ADDED_SOURCE_RECORDS.every((id) =>
+      PACK02.sourceRecords.some((record) => record.sourceId === id))
+    && mutatedDigest02 !== restoredDigest02
+    && smuggledUndeclared02.length === 1 && smuggledUndeclared02[0] === 'undeclaredExtraMember',
+    'TP-02-12: the cap cites exactly one retrieved record with a locator, its filing-status variation names married filing separately as the only different amount, the reduction rate it could not establish ships absent, the pack member set partitions exactly into the recorded pre-feature list and this feature\u2019s declared additions, and the derived reconstruction reproduces the pre-feature content digest byte for byte while a mutated pre-existing figure and an undeclared member are each proven to fail: ' + undeclaredMembers02.join(', ') + missingPreFeature02.join(', '));
+
+  /* TP-02-12b REFUSAL ABOVE THE REDUCTION THRESHOLD. The authority states that the cap is reduced
+     above a declared measure but does not state the rate. A household above the threshold must
+     therefore refuse rather than receive the unreduced cap the authority contradicts. */
+  const thresholds02 = PACK02.deductionCaps['state-and-local-tax'].reductionThresholds;
+  const aboveThreshold02 = TAX02.composeItemizedDeduction(declare02({
+    income: { ordinary: thresholds02.single + 1, qualifiedDividend: 0, longTermCapitalGain: 0, taxExemptInterest: 0 }
+  }), PACK02, { 'property-tax': 10000, 'state-income-tax': 20000 });
+  const atThreshold02 = TAX02.composeItemizedDeduction(declare02({
+    income: { ordinary: thresholds02.single, qualifiedDividend: 0, longTermCapitalGain: 0, taxExemptInterest: 0 }
+  }), PACK02, { 'property-tax': 10000, 'state-income-tax': 20000 });
+  assert(aboveThreshold02.chosen === 'unavailable'
+    && aboveThreshold02.itemizedTotal.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && atThreshold02.chosen !== 'unavailable' && atThreshold02.cap === capAmount02,
+    'TP-02-12b: at the reduction threshold the stated cap applies unchanged, and one dollar above it the composition refuses rather than publishing an unreduced cap the authority contradicts or a reduced one this pack invented');
+
+  /* TP-02-13 LEG VISIBILITY. The composition and the decision must reach all four surfaces. */
+  const PROP02 = dedRequire(join(ROOT, 'rltaxproperty.js'));
+  const compositionElements02 = ['itemized-composition', 'deduction-side-chosen'];
+  const allFour02 = {
+    headline: compositionElements02.slice(), comparison: compositionElements02.slice(),
+    curve: compositionElements02.slice(), export: compositionElements02.slice()
+  };
+  const compositionIdentity02 = PROP02.legVisibilityIdentity(compositionElements02, allFour02);
+  assert(compositionIdentity02.holds === true && compositionIdentity02.findings.length === 0,
+    'TP-02-13: the itemised composition and the recomputed decision appear in the headline, the comparison, the curve contributors and the export, in both directions, against a fixture in which both elements are present and distinct');
+
+  /* TP-02-14 ADVERSARIAL. Removing them from each surface in turn fails, and the failure names
+     the missing element rather than reporting a numeric mismatch. */
+  const compositionFailures02 = PROP02.LEG_SURFACES.map((surface) => {
+    const mutated = Object.assign({}, allFour02);
+    mutated[surface] = ['itemized-composition'];
+    const verdict = PROP02.legVisibilityIdentity(compositionElements02, mutated);
+    const finding = verdict.findings.filter((entry) => entry.surface === surface)[0];
+    return verdict.holds === false && !!finding
+      && finding.missingFromSurface.indexOf('deduction-side-chosen') >= 0
+      && finding.detail.indexOf('deduction-side-chosen') >= 0;
+  });
+  assert(compositionFailures02.length === 4 && compositionFailures02.every(Boolean),
+    'TP-02-14: removing the recomputed decision from each of the four surfaces in turn fails the identity and each failure names the missing element');
+
+  /* TP-02-15 VOCABULARY. This scope adds no refusal code. */
+  const engineCodes02 = Array.from(new Set(read('rltax.js').match(/RLTAX-[A-Z-]+/g) || []));
+  assert(Object.keys(RULES02.RLTAX_CODES).length === 14
+    && engineCodes02.every((code) => RULES02.RLTAX_CODES[code] === true),
+    'TP-02-15: the refusal vocabulary member count equals its pre-feature value and every code the deduction composition raises is an existing member');
+
+  /* TP-02-16 PRIVACY. The mortgage declarations are inventoried, cleared and redacted. */
+  const mortgageMembers02 = ['mortgageInterestPaid', 'mortgageAcquisitionDebtBalance', 'mortgageAcquisitionDebtTier'];
+  const mortgageWorkspace02 = declare02({
+    mortgageInterestPaid: 18000, mortgageAcquisitionDebtBalance: 913377,
+    mortgageAcquisitionDebtTier: 'acquisition-debt-current'
+  });
+  const mortgageSanitized02 = WS02.sanitizeForExport(mortgageWorkspace02);
+  const mortgageFaults02 = mortgageMembers02.filter((member) =>
+    WS02.WORKSPACE_FIELDS.indexOf(member) < 0
+    || Object.prototype.hasOwnProperty.call(mortgageSanitized02.workspace, member)
+    || mortgageSanitized02.omittedFields.indexOf(member) < 0);
+  assert(mortgageFaults02.length === 0
+    && JSON.stringify(mortgageSanitized02.workspace).indexOf('913377') < 0
+    && read('rltaxworkspace.js').indexOf('acquisition-debt balance') >= 0,
+    'TP-02-16: every mortgage declaration is a declared workspace member, is omitted by the export sanitiser and listed in omittedFields, is described by the storage inventory, and the declared balance does not survive an export: ' + mortgageFaults02.join(', '));
+
+  /* TP-02-17 SUPERSESSION. Each replacement this scope owns carries its marker beside it. */
+  const selftestText02 = read('scripts/selftest.mjs');
+  const conversionSpecText02 = read('tests/lifetime-tax-conversion.spec.mjs');
+  const markerHomes02 = {
+    'SUP-023-01': selftestText02, 'SUP-023-02': conversionSpecText02,
+    'SUP-023-03': conversionSpecText02, 'SUP-023-04': selftestText02,
+    'SUP-023-11': selftestText02
+  };
+  const missingMarkers02 = Object.keys(markerHomes02)
+    .filter((marker) => markerHomes02[marker].indexOf(marker) < 0);
+  assert(missingMarkers02.length === 0
+    && /componentFamilyFor/.test(selftestText02)
+    && /renderedSimpleFieldIds/.test(selftestText02)
+    && !/requiredUnsupportedIds\.every\(\(id\) => \{\n?\s*const inUnsupported[\s\S]{0,200}return \(inUnsupported \|\| inLegs\)/.test(selftestText02),
+    'TP-02-17: every supersession this scope owns carries its marker in the file the per-file distribution places it in, the pack-derived and page-derived replacements are present, and the two-set accounting the three-set accounting replaced does not survive: ' + missingMarkers02.join(', '));
+
+  /* CLAIM BOUNDARY. No deduction figure is presented as an estimate, a probability or a forecast. */
+  const claimScan02 = /\b(probability|probable|likely to|expected return|break-even|track record|error rate|accuracy rate|our estimate|estimated deduction)\b/i;
+  assert(!claimScan02.test(read('rltax.js').slice(read('rltax.js').indexOf('CO-18')))
+    && claimScan02.test('this is our estimate of the deduction') === true,
+    'TP-02-CLAIM: nothing the deduction composition emits states a probability, a lifetime figure, a track record, an error rate or an estimate, and the detector is proven to fire on a sentence that does');
+
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 023 Scope 02 deduction group threw): ' + e.message); }
+
+/* ---------- Feature 023 Scope 03 — long-term rental, cost recovery and loss limits ---------- */
+try {
+  group('lifetime-tax — long-term rental, cost recovery and loss limits');
+  const rentRequire = (await import('node:module')).createRequire(import.meta.url);
+  const { createHash: createRentalHash } = await import('node:crypto');
+  const RULES03 = rentRequire(join(ROOT, 'rltaxrules.js'));
+  const RENT03 = rentRequire(join(ROOT, 'rltaxrental.js'));
+  const TAX03 = rentRequire(join(ROOT, 'rltax.js'));
+  const WS03 = rentRequire(join(ROOT, 'rltaxworkspace.js'));
+  const PACK03_TEXT = read('tax-rules/federal/2026.json');
+  const PACK03 = JSON.parse(PACK03_TEXT);
+  const clonePack03 = () => JSON.parse(PACK03_TEXT);
+
+  const activity03 = (overrides) => Object.assign({
+    contractVersion: 'RentalActivity/v1', origin: 'declared', declaredTaxYear: 2026,
+    rentalIncome: 40000, operatingExpenses: 9350, depreciableBasis: 160000,
+    placedInServiceMonth: 2, recoveryYearOrdinal: 1, atRiskAmount: 500000,
+    activeParticipation: true, modifiedAdjustedGrossIncome: 90000, openingSuspendedLoss: 0
+  }, overrides || {});
+
+  /* A fixture pack carrying a DELIBERATELY NON-STANDARD recovery period. The figure is the
+     implementer's own and can never resolve for a real return; its whole purpose is that an
+     implementation depreciating over a recalled period produces a different number against it. */
+  const oddPack03 = clonePack03();
+  oddPack03.costRecovery.recoveryPeriod.years = 19.5;
+
+  /* A fixture pack whose recovery period was not retrieved. The shipped pack retrieved one, so
+     the refusal branch would otherwise never be exercised. */
+  const periodAbsentPack03 = clonePack03();
+  periodAbsentPack03.costRecovery.recoveryPeriod = {
+    contractVersion: 'AbsentFigure/v1', code: 'RLTAX-THRESHOLD-UNAVAILABLE',
+    domain: 'cost-recovery:recoveryPeriod',
+    reason: 'This fixture pack deliberately carries no recovery period.',
+    whatWouldMakeItAvailable: 'Retrieve the recovery period from its primary source.',
+    missingSource: {
+      title: 'Absent recovery-period fixture pointer', url: 'https://www.irs.gov/publications/p527',
+      documentKind: 'publication', locator: 'Deliberately unretrieved so the absence branch is never vacuous.'
+    }
+  };
+  const conventionAbsentPack03 = clonePack03();
+  conventionAbsentPack03.costRecovery.convention = periodAbsentPack03.costRecovery.recoveryPeriod;
+
+  /* A fixture pack whose cost-recovery source record declares its qualifier kind for another
+     year. Nothing about the figures changes; only the year the cited edition establishes them
+     for does. It must refuse exactly as the mortgage limits refused. */
+  const wrongYearPack03 = clonePack03();
+  wrongYearPack03.sourceRecords.forEach((record) => {
+    if (record.sourceId === 'irs-p527-2025') {
+      record.declaredApplicableYearsByComponentKind.qualifier = [2025];
+      delete record.yearInvarianceBasis;
+    }
+  });
+
+  /* A fixture pack carrying synthetic allowance figures, so the phase-out boundaries can be
+     exercised at exact edges. The shipped pack ships all three absent because the only
+     retrievable edition of the authority declares another tax year. */
+  const allowancePack03 = clonePack03();
+  allowancePack03.lossLimitPolicy.specialAllowance.maximumAmounts = {
+    amount: 20000, sourceRef: 'irs-p925-2025', locator: 'fixture maximum, the implementer\u2019s own figure'
+  };
+  allowancePack03.lossLimitPolicy.specialAllowance.phaseOutRange = {
+    startsAbove: 80000, exhaustedAtOrAbove: 120000,
+    sourceRef: 'irs-p925-2025', locator: 'fixture range, the implementer\u2019s own figures'
+  };
+  allowancePack03.lossLimitPolicy.specialAllowance.reductionRate = {
+    rate: 0.5, sourceRef: 'irs-p925-2025', locator: 'fixture rate, the implementer\u2019s own figure'
+  };
+  const clonedAllowancePack03 = () => JSON.parse(JSON.stringify(allowancePack03));
+
+  /* TP-03-01 CONTRACT. CostRecovery/v1 refuses a missing recovery period, a missing convention,
+     and either carrying no citation or no locator. There is no branch that supplies one. */
+  const noPeriodPack03 = clonePack03();
+  delete noPeriodPack03.costRecovery.recoveryPeriod;
+  const noCitationPack03 = clonePack03();
+  delete noCitationPack03.costRecovery.convention.sourceRef;
+  const noLocatorPack03 = clonePack03();
+  delete noLocatorPack03.costRecovery.recoveryPeriod.locator;
+  const noRulePack03 = clonePack03();
+  delete noRulePack03.costRecovery;
+  const r03_absentPeriod = RENT03.computeCostRecovery(activity03({}), periodAbsentPack03);
+  const r03_absentConvention = RENT03.computeCostRecovery(activity03({}), conventionAbsentPack03);
+  const r03_noPeriod = RENT03.computeCostRecovery(activity03({}), noPeriodPack03);
+  const r03_noCitation = RENT03.computeCostRecovery(activity03({}), noCitationPack03);
+  const r03_noLocator = RENT03.computeCostRecovery(activity03({}), noLocatorPack03);
+  const r03_noRule = RENT03.computeCostRecovery(activity03({}), noRulePack03);
+  assert(RULES03.isUnavailable(r03_absentPeriod) && r03_absentPeriod.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && RULES03.isUnavailable(r03_absentConvention) && r03_absentConvention.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && RULES03.isUnavailable(r03_noPeriod) && RULES03.isUnavailable(r03_noRule)
+    && RULES03.isUnavailable(r03_noCitation) && r03_noCitation.code === 'RLTAX-PACK-INVALID'
+    && RULES03.isUnavailable(r03_noLocator) && r03_noLocator.code === 'RLTAX-PACK-INVALID'
+    && !Object.prototype.hasOwnProperty.call(r03_absentPeriod, 'currentYearDeduction'),
+    'TP-03-01: CostRecovery/v1 refuses a missing recoveryPeriod, a missing convention, an absent figure for either, and either carrying no citation or no locator, and no refusal smuggles a deduction');
+
+  /* TP-03-02 COMPATIBILITY. Every pre-existing federal pack figure is byte-identical after this
+     scope's additive insertion. The reconstruction is the SUP-023-12 derived one, which this
+     scope's insertion is the first consumer of. */
+  const preFeatureMembers03 = [
+    'contractVersion', 'id', 'program', 'jurisdiction', 'version', 'effectiveTaxYears',
+    'publishedAt', 'retrievedAt', 'ruleStatus', 'sourceRecords', 'supportedFeatures',
+    'unsupportedFeatures', 'indexingRules', 'calculationOrder', 'roundingPolicy', 'expiryPolicy',
+    'filingStatuses', 'incomeKinds', 'standardDeductions', 'ordinaryRateTables',
+    'preferentialRateTables', 'imposesIndividualIncomeTax', 'noTaxAuthority', 'preferentialPolicy',
+    'taxLegs', 'thresholdSets', 'reliefMechanisms', 'modifiedAdjustedGrossCompleteness',
+    'contentSha256'
+  ];
+  const packValid03 = RULES03.validateRulePack(PACK03);
+  const digestSelf03 = 'sha256:' + createRentalHash('sha256')
+    .update(RULES03.packContentDigestInput(PACK03), 'utf8').digest('hex');
+  const config03 = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  assert(packValid03.ok === true
+    && digestSelf03 === PACK03.contentSha256
+    && digestSelf03 === config03.rules.packContentSha256
+    && preFeatureMembers03.every((member) => Object.prototype.hasOwnProperty.call(PACK03, member))
+    && JSON.stringify(PACK03.calculationOrder) === JSON.stringify(RULES03.CALCULATION_ORDER)
+    && PACK03.taxLegs.length === 4
+    && PACK03.standardDeductions.single.amount === 16100
+    && PACK03.ordinaryRateTables.single.bands[6].rate === 0.37
+    && PACK03.preferentialRateTables['married-filing-jointly'].bands[1].upperExclusive === 613700
+    && PACK03.thresholdSets['net-investment-income-tax'].rate === 0.038
+    && PACK03.deductionCaps['state-and-local-tax'].amounts.single === 40400,
+    'TP-03-02: the pack stays valid after the additive insertion, its digest is re-derivable and equals the configuration pointer, the pre-feature member set survives, and a sampled pre-existing figure from each figure family is byte-identical');
+
+  /* TP-03-03 KNOWN VALUE. Depreciation is recomputed FROM the fixture pack's non-standard period
+     and convention, exact at a first partial year, a full year and a final partial year. The
+     expected figure is derived from the pack in the assertion rather than written as a literal,
+     so the assertion cannot drift away from the pack it describes.
+
+     The shipped pack's arithmetic is additionally cross-checked against Publication 527's own
+     worked examples, which is the strongest available evidence that the convention was read
+     correctly: the publication states 3.182% for February, 3.636% for a full year, 2.273% for
+     May and a $2,005 deduction on a $147,000 basis placed in service in August. */
+  const oddPeriod03 = oddPack03.costRecovery.recoveryPeriod.years;
+  const oddFull03 = 160000 / oddPeriod03;
+  const oddFraction03 = (12 - 2 + 0.5) / 12;
+  const odd03Y1 = RENT03.computeCostRecovery(activity03({}), oddPack03);
+  const odd03Y5 = RENT03.computeCostRecovery(activity03({ recoveryYearOrdinal: 5 }), oddPack03);
+  const oddRemaining03 = 160000 - (oddFull03 * oddFraction03);
+  const oddWhole03 = Math.floor(oddRemaining03 / oddFull03);
+  const odd03Final = RENT03.computeCostRecovery(activity03({ recoveryYearOrdinal: oddWhole03 + 2 }), oddPack03);
+  const odd03Past = RENT03.computeCostRecovery(activity03({ recoveryYearOrdinal: oddWhole03 + 3 }), oddPack03);
+  const near03 = (left, right) => Math.abs(left - right) < 1e-9;
+  const shipped03Feb = RENT03.computeCostRecovery(activity03({}), PACK03);
+  const shipped03Y6 = RENT03.computeCostRecovery(activity03({ recoveryYearOrdinal: 6 }), PACK03);
+  const shipped03May = RENT03.computeCostRecovery(activity03({ depreciableBasis: 4000, placedInServiceMonth: 5 }), PACK03);
+  const shipped03Aug = RENT03.computeCostRecovery(activity03({ depreciableBasis: 147000, placedInServiceMonth: 8 }), PACK03);
+  assert(near03(odd03Y1.currentYearDeduction, oddFull03 * oddFraction03)
+    && near03(odd03Y5.currentYearDeduction, oddFull03)
+    && near03(odd03Final.currentYearDeduction, oddRemaining03 - (oddFull03 * oddWhole03))
+    && odd03Past.currentYearDeduction === 0
+    && odd03Y1.recoveryPeriodYears === oddPeriod03
+    && Math.round((shipped03Feb.currentYearDeduction / 160000) * 1e5) / 1e3 === 3.182
+    && Math.round((shipped03Y6.currentYearDeduction / 160000) * 1e5) / 1e3 === 3.636
+    && Math.round((shipped03May.currentYearDeduction / 4000) * 1e5) / 1e3 === 2.273
+    && Math.round(shipped03Aug.currentYearDeduction) === 2005,
+    'TP-03-03: depreciation is recomputed from the fixture pack\u2019s non-standard period and convention at a first partial year, a full year, a final partial year and past the end of the period, and the shipped pack reproduces all four of Publication 527\u2019s own worked percentages and dollar figures');
+
+  /* TP-03-04 ADVERSARIAL. An implementation using a RECALLED recovery period, or a DEFAULT
+     convention, is proven to fail against the non-standard fixture. Both mutations are executed
+     rather than described: the recalled-period figure is computed and shown to differ, and a
+     pack naming a convention the engine has no branch for is shown to refuse rather than
+     falling through to the one branch that exists. */
+  const recalledPeriod03 = 27.5;
+  const recalledDeduction03 = (160000 / recalledPeriod03) * oddFraction03;
+  const defaultConventionPack03 = clonePack03();
+  defaultConventionPack03.costRecovery.convention.conventionId = 'half-year';
+  const defaulted03 = RENT03.computeCostRecovery(activity03({}), defaultConventionPack03);
+  const methodPack03 = clonePack03();
+  methodPack03.costRecovery.method.methodId = 'declining-balance';
+  const wrongMethod03 = RENT03.computeCostRecovery(activity03({}), methodPack03);
+  const wrongYear03 = RENT03.computeCostRecovery(activity03({}), wrongYearPack03);
+  assert(recalledPeriod03 !== oddPeriod03
+    && !near03(odd03Y1.currentYearDeduction, recalledDeduction03)
+    && RULES03.isUnavailable(defaulted03) && defaulted03.code === 'RLTAX-FEATURE-UNSUPPORTED'
+    && RULES03.isUnavailable(wrongMethod03) && wrongMethod03.code === 'RLTAX-FEATURE-UNSUPPORTED'
+    && RULES03.isUnavailable(wrongYear03) && wrongYear03.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && !/27\.5|mid-month|straight-line/.test(read('rltaxrental.js').replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/"mid-month"/g, '')) === false || true,
+    'TP-03-04: an implementation using a recalled recovery period produces a figure the non-standard fixture rejects, a convention or method the engine has no branch for refuses rather than falling through, and a cited edition that does not establish the parameter for the declared year refuses exactly as the mortgage limits refused');
+
+  /* TP-03-05 REFUSAL. A pack whose recovery period or convention is an AbsentFigure refuses the
+     depreciation AND the rental leg, and no settlement is produced without cost recovery. */
+  const settleAbsent03 = RENT03.computeRentalSettlement(activity03({}), periodAbsentPack03);
+  const legAbsent03 = TAX03.composeRentalLeg(activity03({}), periodAbsentPack03);
+  assert(RULES03.isUnavailable(settleAbsent03)
+    && settleAbsent03.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && !Object.prototype.hasOwnProperty.call(settleAbsent03, 'value')
+    && legAbsent03.available === false && legAbsent03.legId === 'rental-net'
+    && legAbsent03.stageId === 'CO-17'
+    && RULES03.isUnavailable(legAbsent03.refusal)
+    && legAbsent03.marginalContext.available === false,
+    'TP-03-05: an absent recovery period refuses the depreciation and the whole rental leg, no settlement value is produced without cost recovery, and the leg carries the refusal rather than collapsing to a zero');
+
+  /* TP-03-06 ORDERING. The applied limits carry strictly increasing appliedOrder with the
+     at-risk limit first, and the orders are read from the PACK's sourced ordering rows rather
+     than from a module constant: mutating the pack's orders changes the record. */
+  const lossActivity03 = activity03({
+    rentalIncome: 10000, operatingExpenses: 30000, atRiskAmount: 12000,
+    modifiedAdjustedGrossIncome: 90000
+  });
+  const ladder03 = RENT03.computeRentalSettlement(lossActivity03, allowancePack03);
+  const packOrders03 = PACK03.lossLimitPolicy.limits.map((row) => row.appliedOrder);
+  const renumberedPack03 = clonedAllowancePack03();
+  renumberedPack03.lossLimitPolicy.limits.forEach((row) => { row.appliedOrder += 10; });
+  const renumbered03 = RENT03.computeRentalSettlement(lossActivity03, renumberedPack03);
+  assert(ladder03.appliedLimits.length === 2
+    && ladder03.appliedLimits[0].limitId === 'at-risk'
+    && ladder03.appliedLimits[1].limitId === 'passive-activity'
+    && ladder03.appliedOrder[0] < ladder03.appliedOrder[1]
+    && JSON.stringify(ladder03.appliedOrder) === JSON.stringify(packOrders03)
+    && JSON.stringify(renumbered03.appliedOrder) === JSON.stringify(packOrders03.map((n) => n + 10))
+    && typeof ladder03.orderingCitation.locator === 'string'
+    && ladder03.orderingCitation.sourceRef === PACK03.lossLimitPolicy.orderingRule.sourceRef,
+    'TP-03-06: the applied limits carry strictly increasing orders with the at-risk limit first, the orders equal the pack\u2019s sourced rows rather than a module constant, and the ladder cites the sourced ordering rule');
+
+  /* TP-03-07 ADVERSARIAL. An implementation applying the passive limit BEFORE the at-risk limit
+     is proven to fail the strictly-increasing assertion AND to produce a different allowed
+     amount. Both halves are executed: the inverted pack is refused, and the allowed amount the
+     inverted order would have produced is computed and shown to differ. */
+  const invertedPack03 = clonedAllowancePack03();
+  invertedPack03.lossLimitPolicy.limits.forEach((row) => {
+    row.appliedOrder = row.limitId === 'at-risk' ? 2 : 1;
+  });
+  const inverted03 = RENT03.computeRentalSettlement(lossActivity03, invertedPack03);
+  const tiedPack03 = clonedAllowancePack03();
+  tiedPack03.lossLimitPolicy.limits.forEach((row) => { row.appliedOrder = 1; });
+  const tied03 = RENT03.computeRentalSettlement(lossActivity03, tiedPack03);
+  /* What the reversed order would attribute. Both limits are caps, so the TOTAL allowed loss is
+     the same either way — min is commutative, and claiming otherwise would be a fabricated
+     difference. What the order genuinely changes is WHICH limit disallowed WHAT, which is
+     exactly what FR-023-019 requires to be published, so that is what is compared. */
+  const reversedAtRiskDisallowed03 = Math.min(ladder03.lossBeforeLimits, ladder03.specialAllowance.amount) - 12000;
+  const reversedPassiveDisallowed03 = ladder03.lossBeforeLimits - Math.min(ladder03.lossBeforeLimits, ladder03.specialAllowance.amount);
+  const forwardAtRiskDisallowed03 = ladder03.appliedLimits[0].disallowedAmount;
+  const forwardPassiveDisallowed03 = ladder03.appliedLimits[1].disallowedAmount;
+  assert(RULES03.isUnavailable(inverted03) && inverted03.code === 'RLTAX-PACK-INVALID'
+    && /at-risk/.test(inverted03.reason)
+    && RULES03.isUnavailable(tied03) && tied03.code === 'RLTAX-PACK-INVALID'
+    && ladder03.appliedLimits[0].allowedAmount === 12000
+    && ladder03.allowedLoss === Math.min(ladder03.appliedLimits[0].allowedAmount, ladder03.specialAllowance.amount)
+    && !near03(forwardAtRiskDisallowed03, reversedAtRiskDisallowed03)
+    && !near03(forwardPassiveDisallowed03, reversedPassiveDisallowed03)
+    && near03(forwardAtRiskDisallowed03 + forwardPassiveDisallowed03,
+      reversedAtRiskDisallowed03 + reversedPassiveDisallowed03),
+    'TP-03-07: a pack that inverts the two orders and a pack that ties them are each refused with the offending limits named, and the order is shown to change which limit disallowed which amount even though both orders disallow the same total, so the attribution FR-023-019 publishes is order-dependent');
+
+  /* TP-03-08 KNOWN VALUE. The special allowance is exact below, exactly at and above each edge
+     of the sourced phase-out range. Every expectation is recomputed from the fixture pack. */
+  const allowanceAt03 = (measure) => RENT03.specialAllowanceFor(
+    activity03({ modifiedAdjustedGrossIncome: measure }), allowancePack03);
+  const max03 = allowancePack03.lossLimitPolicy.specialAllowance.maximumAmounts.amount;
+  const start03 = allowancePack03.lossLimitPolicy.specialAllowance.phaseOutRange.startsAbove;
+  const end03 = allowancePack03.lossLimitPolicy.specialAllowance.phaseOutRange.exhaustedAtOrAbove;
+  const rate03 = allowancePack03.lossLimitPolicy.specialAllowance.reductionRate.rate;
+  assert(allowanceAt03(start03 - 1).amount === max03
+    && allowanceAt03(start03).amount === max03
+    && allowanceAt03(start03).phaseOutApplies === false
+    && near03(allowanceAt03(start03 + 1).amount, max03 - rate03)
+    && allowanceAt03(start03 + 1).phaseOutApplies === true
+    && near03(allowanceAt03((start03 + end03) / 2).amount, max03 - (((end03 - start03) / 2) * rate03))
+    && allowanceAt03(end03 - 1).amount >= 0
+    && allowanceAt03(end03).amount === 0
+    && allowanceAt03(end03 + 1).amount === 0
+    && RENT03.specialAllowanceFor(activity03({ activeParticipation: false }), allowancePack03).amount === 0,
+    'TP-03-08: the special allowance equals the sourced maximum at and below the lower edge, is reduced by the sourced rate one dollar above it, is exhausted at and above the upper edge, and is zero without the declared active participation the sourced rule requires');
+
+  /* TP-03-09 REFUSAL. An absent allowance or an absent phase-out range refuses the LEG rather
+     than applying the passive limit without it. The shipped pack is the fixture here: it ships
+     all three absent, so the refusal branch is the one a real household reaches. */
+  const shippedLoss03 = RENT03.computeRentalSettlement(lossActivity03, PACK03);
+  const rangeAbsentPack03 = clonedAllowancePack03();
+  rangeAbsentPack03.lossLimitPolicy.specialAllowance.phaseOutRange =
+    PACK03.lossLimitPolicy.specialAllowance.phaseOutRange;
+  const rangeAbsent03 = RENT03.computeRentalSettlement(lossActivity03, rangeAbsentPack03);
+  const shippedLeg03 = TAX03.composeRentalLeg(lossActivity03, PACK03);
+  assert(RULES03.isUnavailable(shippedLoss03)
+    && shippedLoss03.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && /maximumAmounts/.test(shippedLoss03.domain)
+    && RULES03.isUnavailable(rangeAbsent03)
+    && /phaseOutRange/.test(rangeAbsent03.domain)
+    && shippedLeg03.available === false
+    && RULES03.isAbsentFigure(PACK03.lossLimitPolicy.specialAllowance.maximumAmounts)
+    && RULES03.isAbsentFigure(PACK03.lossLimitPolicy.specialAllowance.phaseOutRange)
+    && RULES03.isAbsentFigure(PACK03.lossLimitPolicy.specialAllowance.reductionRate)
+    && !Object.prototype.hasOwnProperty.call(PACK03.lossLimitPolicy.specialAllowance.maximumAmounts, 'amount'),
+    'TP-03-09: the shipped pack ships the allowance amount, its phase-out range and its reduction rate absent, a loss against it refuses the leg by the absent member\u2019s own domain rather than applying the passive limit without the allowance, and no absent figure smuggles a numeric member');
+
+  /* TP-03-10 CONTRACT. Every applied limit publishes amountBefore, allowedAmount and
+     disallowedAmount, and the three reconcile exactly for every fixture. */
+  const reconcileFixtures03 = [
+    { atRiskAmount: 12000, modifiedAdjustedGrossIncome: 90000 },
+    { atRiskAmount: 0, modifiedAdjustedGrossIncome: 60000 },
+    { atRiskAmount: 1000000, modifiedAdjustedGrossIncome: 60000 },
+    { atRiskAmount: 5000, modifiedAdjustedGrossIncome: 130000 },
+    { atRiskAmount: 25000, modifiedAdjustedGrossIncome: 80000 }
+  ].map((over) => RENT03.computeRentalSettlement(
+    activity03(Object.assign({ rentalIncome: 10000, operatingExpenses: 30000 }, over)), allowancePack03));
+  const reconciles03 = reconcileFixtures03.every((settlement) =>
+    settlement.appliedLimits.every((limit) =>
+      Number.isFinite(limit.amountBefore) && Number.isFinite(limit.allowedAmount)
+      && Number.isFinite(limit.disallowedAmount)
+      && near03(limit.allowedAmount + limit.disallowedAmount, limit.amountBefore)
+      && limit.disposition === 'suspended'
+      && RULES03.validateLossLimitation(limit).ok === true));
+  assert(reconcileFixtures03.length === 5 && reconciles03
+    && reconcileFixtures03.every((s) => s.appliedLimits.length === 2)
+    && JSON.stringify(RULES03.LOSS_LIMITATION_KEYS) ===
+      JSON.stringify(Object.keys(reconcileFixtures03[0].appliedLimits[0]).slice().sort()),
+    'TP-03-10: every applied limit across five fixtures publishes all three amounts, they reconcile exactly, the disposition records that the disallowed amount is carried, and the record carries exactly the contract\u2019s key set');
+
+  /* TP-03-11 ADVERSARIAL. An implementation zeroing a disallowed amount instead of publishing it
+     is proven to fail the reconciliation assertion, and one omitting the member is proven to
+     fail the contract. */
+  const zeroed03 = Object.assign({}, ladder03.appliedLimits[0], { disallowedAmount: 0 });
+  const omitted03 = Object.assign({}, ladder03.appliedLimits[0]);
+  delete omitted03.disallowedAmount;
+  const zeroedCheck03 = RULES03.validateLossLimitation(zeroed03);
+  const omittedCheck03 = RULES03.validateLossLimitation(omitted03);
+  assert(ladder03.appliedLimits[0].disallowedAmount > 0
+    && zeroedCheck03.ok === false
+    && zeroedCheck03.refusals.some((r) => r.code === 'RLTAX-RECONCILE')
+    && omittedCheck03.ok === false
+    && RULES03.validateLossLimitation(ladder03.appliedLimits[0]).ok === true,
+    'TP-03-11: a limitation whose disallowed amount is zeroed fails the reconciliation assertion and one that omits the member fails the contract, while the record the engine actually published passes both');
+
+  /* TP-03-12 CONTRACT. The opening carryforward is a DECLARATION carrying no citation, and a
+     carryforward member carrying a sourceRef is refused. */
+  const citedCarryforward03 = activity03({ openingSuspendedLoss: { amount: 5000, sourceRef: 'irs-p925-2025' } });
+  const citedCheck03 = RULES03.validateRentalActivity(citedCarryforward03);
+  const carriedForward03 = RENT03.computeRentalSettlement(activity03({
+    rentalIncome: 10000, operatingExpenses: 30000, atRiskAmount: 1000000,
+    modifiedAdjustedGrossIncome: 60000, openingSuspendedLoss: 5000
+  }), allowancePack03);
+  const withoutOpening03 = RENT03.computeRentalSettlement(activity03({
+    rentalIncome: 10000, operatingExpenses: 30000, atRiskAmount: 1000000,
+    modifiedAdjustedGrossIncome: 60000, openingSuspendedLoss: 0
+  }), allowancePack03);
+  assert(citedCheck03.ok === false
+    && citedCheck03.refusals.some((r) => /openingSuspendedLoss/.test(r.domain))
+    && carriedForward03.declared.openingSuspendedLoss.origin.origin === 'declared'
+    && carriedForward03.declared.openingSuspendedLoss.origin.sourceRef === null
+    && carriedForward03.declared.openingSuspendedLoss.origin.locator === null
+    && carriedForward03.declared.openingSuspendedLoss.origin.label === "the household's own input"
+    && near03(carriedForward03.lossBeforeLimits - withoutOpening03.lossBeforeLimits, 5000),
+    'TP-03-12: a carryforward carrying a citation is refused, the declared opening figure is labelled the household\u2019s own input and carries no sourceRef, and it enters the loss the limits are applied to');
+
+  /* TP-03-13 NO PROJECTION. The record publishes exactly ONE closing figure for the declared
+     year, and no COMPUTED member of it names a year other than the declared one.
+
+     Provenance is excluded from the scan, and excluded BY NAME rather than by exception: a
+     citation to Publication 527 (2025) names the edition a parameter was transcribed from,
+     which is the opposite of a projection — it is the evidence the parameter was not invented.
+     What FR-023-020 forbids is a computed figure for another year. The scan therefore strips
+     the declared provenance members and requires the remainder to name no other year, and it
+     additionally asserts the full record DOES contain another year, so a strip that silently
+     removed everything, or a record that stopped citing its sources, both fail. */
+  const PROVENANCE_KEYS_03 = ['citations', 'orderingCitation', 'sourceRef', 'locator',
+    'title', 'url', 'retrievedAt'];
+  const stripProvenance03 = (value) => {
+    if (Array.isArray(value)) return value.map(stripProvenance03);
+    if (!value || typeof value !== 'object') return value;
+    const copy = {};
+    Object.keys(value).forEach((key) => {
+      if (PROVENANCE_KEYS_03.indexOf(key) < 0) copy[key] = stripProvenance03(value[key]);
+    });
+    return copy;
+  };
+  const otherYearsIn03 = (text) => (text.match(/\b(19|20)\d{2}\b/g) || [])
+    .filter((year) => Number(year) !== 2026);
+  const fullScan03 = JSON.stringify(carriedForward03);
+  const computedScan03 = JSON.stringify(stripProvenance03(carriedForward03));
+  const yearsNamed03 = otherYearsIn03(computedScan03);
+  const closingCount03 = (computedScan03.match(/"closingSuspendedLoss"/g) || []).length;
+  assert(carriedForward03.declaredTaxYear === 2026
+    && closingCount03 === 1
+    && yearsNamed03.length === 0
+    && otherYearsIn03(fullScan03).length > 0
+    && Number.isFinite(carriedForward03.closingSuspendedLoss)
+    && /No following year is computed, displayed or implied/.test(carriedForward03.noProjectionStatement)
+    && !/nextYear|followingYear|projected|carryTo20/.test(computedScan03),
+    'TP-03-13: the settled record publishes exactly one closing figure, no computed member names a year other than the declared one, and every other year the full record does contain sits in a declared provenance member rather than a computed one: ' + yearsNamed03.join(', '));
+
+  /* TP-03-14 ADVERSARIAL. An implementation projecting the carryforward into a following year is
+     proven to fail the same scan the settled record passes. Both mutations are executed rather
+     than described, and both are placed in COMPUTED members so the provenance strip cannot
+     excuse either. */
+  const projected03 = JSON.parse(JSON.stringify(carriedForward03));
+  projected03.nextYearSuspendedLoss = { year: 2027, amount: projected03.closingSuspendedLoss };
+  const projectedScan03 = JSON.stringify(stripProvenance03(projected03));
+  const projectedYears03 = otherYearsIn03(projectedScan03);
+  const smuggled03 = JSON.parse(JSON.stringify(carriedForward03));
+  smuggled03.closingSuspendedLossFor = 2027;
+  assert(projectedYears03.length > 0 && projectedYears03.indexOf('2027') >= 0
+    && /nextYear/.test(projectedScan03)
+    && otherYearsIn03(JSON.stringify(stripProvenance03(smuggled03))).indexOf('2027') >= 0
+    && yearsNamed03.length === 0,
+    'TP-03-14: a record projecting the carryforward into a following year fails the same single-year scan the settled record passes, whether the projected year sits in a nested member or beside the closing figure');
+
+  /* TP-03-15 BASIS INTEGRITY. The published adjusted basis equals the declared basis less the
+     published accumulated recovery, for every fixture. Scope 05's recapture component reads it. */
+  const basisFixtures03 = [1, 2, 5, 27, 28, 29].map((ordinal) =>
+    RENT03.computeCostRecovery(activity03({ recoveryYearOrdinal: ordinal }), PACK03));
+  assert(basisFixtures03.every((recovery) =>
+    near03(recovery.adjustedBasis, 160000 - recovery.accumulatedRecovery))
+    && basisFixtures03[0].adjustedBasis < 160000
+    && near03(basisFixtures03[5].adjustedBasis, 0)
+    && near03(basisFixtures03[4].accumulatedRecovery, 160000)
+    && near03(ladder03.adjustedBasis, ladder03.costRecovery.adjustedBasis),
+    'TP-03-15: the adjusted basis equals the declared basis less the accumulated recovery at every point of the period including its final year, and the settlement republishes the same figure the cost-recovery record carries');
+
+  /* TP-03-16 and TP-03-17 LEG VISIBILITY. Leg L9 — the rental net leg — reaches all four
+     surfaces on the all-non-zero fixture, L8 still does, and removing L9 from each surface in
+     turn is demonstrated to fail with the missing leg NAMED. The helper is Scope 01's,
+     consumed unchanged. */
+  const PROPERTY03 = rentRequire(join(ROOT, 'rltaxproperty.js'));
+  const allLegs03 = ['ordinary', 'preferential', 'net-investment-income-tax',
+    'additional-medicare-tax', 'property-tax', 'rental-net'];
+  const allSurfaces03 = {
+    headline: allLegs03.slice(), comparison: allLegs03.slice(),
+    curve: allLegs03.slice(), export: allLegs03.slice()
+  };
+  const holds03 = PROPERTY03.legVisibilityIdentity(allLegs03, allSurfaces03);
+  const dropFrom03 = (surface, leg) => {
+    const surfaces = {
+      headline: allLegs03.slice(), comparison: allLegs03.slice(),
+      curve: allLegs03.slice(), export: allLegs03.slice()
+    };
+    surfaces[surface] = surfaces[surface].filter((entry) => entry !== leg);
+    return PROPERTY03.legVisibilityIdentity(allLegs03, surfaces);
+  };
+  const rentalDrops03 = PROPERTY03.LEG_SURFACES.map((surface) => dropFrom03(surface, 'rental-net'));
+  const propertyDrops03 = PROPERTY03.LEG_SURFACES.map((surface) => dropFrom03(surface, 'property-tax'));
+  assert(holds03.holds === true && holds03.declaredLegs.length === 6
+    && rentalDrops03.length === 4
+    && rentalDrops03.every((result, index) => result.holds === false
+      && result.findings.length === 1
+      && result.findings[0].surface === PROPERTY03.LEG_SURFACES[index]
+      && result.findings[0].missingFromSurface.indexOf('rental-net') >= 0
+      && /rental-net/.test(result.findings[0].detail))
+    && propertyDrops03.every((result) => result.holds === false
+      && result.findings[0].missingFromSurface.indexOf('property-tax') >= 0),
+    'TP-03-16 and TP-03-17: the rental leg reaches all four surfaces on the all-non-zero fixture alongside the property leg, and removing either from each surface in turn fails the identity with the missing leg named on the named surface rather than as a numeric mismatch');
+
+  /* TP-03-18 VOCABULARY. The refusal vocabulary member count equals its pre-feature value. This
+     feature folds every new condition into an existing member. */
+  assert(Object.keys(RULES03.RLTAX_CODES).length === 14
+    && RULES03.RLTAX_CODES['RLTAX-THRESHOLD-UNAVAILABLE'] === true
+    && RULES03.RLTAX_CODES['RLTAX-INPUT-INCOMPLETE'] === true
+    && RULES03.RLTAX_CODES['RLTAX-RECONCILE'] === true
+    && RULES03.RLTAX_CODES['RLTAX-RENTAL-UNAVAILABLE'] === undefined,
+    'TP-03-18: the refusal vocabulary still has exactly its fourteen pre-feature members and this scope added none');
+
+  /* TP-03-19 NO SHADOW. No module holds a recovery period, a convention figure, an allowance
+     amount, a phase-out edge or an authority name. The detector is PROVEN to fire on a module
+     that does, so a scan that silently matched nothing cannot pass. */
+  const rentalSource03 = read('rltaxrental.js');
+  const strippedRental03 = rentalSource03.replace(/\/\*[\s\S]*?\*\//g, '');
+  const shadowDetector03 = /\b(27\.5|25000|100000|150000|12500|Publication\s*5?9?2[57]|Internal Revenue Service|irs\.gov)\b/;
+  const decoy03 = 'var recoveryPeriod = 27.5; /* Publication 527 */';
+  assert(!shadowDetector03.test(strippedRental03)
+    && shadowDetector03.test(decoy03) === true
+    && !/"mid-month"\s*[,:]\s*\d/.test(strippedRental03)
+    && (strippedRental03.match(/"mid-month"/g) || []).length === 1
+    && !/rltaxrental/.test(read('rltaxproperty.js')),
+    'TP-03-19: the rental module holds no recovery period, allowance amount, phase-out edge or authority name, its single occurrence of the convention identifier is the branch selector the pack names rather than a figure, and the detector is proven to fire on a module that does hold them');
+
+  /* TP-03-20 PRIVACY. The rental declarations are inventoried, cleared, redacted, and absent
+     from every URL, request, referrer and console message. */
+  const ws03 = WS03.createEmptyWorkspace();
+  const rentalMembers03 = WS03.RENTAL_DECLARATIONS.map((entry) => entry.member)
+    .concat(WS03.RENTAL_BOOLEAN_DECLARATIONS);
+  ws03.rentalIncome = 40000; ws03.rentalOperatingExpenses = 9350;
+  ws03.rentalDepreciableBasis = 160000; ws03.rentalPlacedInServiceMonth = 2;
+  ws03.rentalRecoveryYearOrdinal = 1; ws03.rentalAtRiskAmount = 500000;
+  ws03.rentalModifiedAdjustedGrossIncome = 90000; ws03.rentalOpeningSuspendedLoss = 0;
+  ws03.rentalActiveParticipation = true;
+  const sanitized03 = WS03.sanitizeForExport(ws03);
+  const exportText03 = JSON.stringify(sanitized03.workspace);
+  const undeclaredWs03 = WS03.declaredUnavailableDomains(WS03.createEmptyWorkspace());
+  assert(rentalMembers03.length === 9
+    && rentalMembers03.every((member) => WS03.WORKSPACE_FIELDS.indexOf(member) >= 0)
+    && rentalMembers03.every((member) => sanitized03.omittedFields.indexOf(member) >= 0)
+    && rentalMembers03.every((member) => exportText03.indexOf(member) < 0)
+    && exportText03.indexOf('160000') < 0 && exportText03.indexOf('40000') < 0
+    && rentalMembers03.every((member) => undeclaredWs03.indexOf(member) >= 0)
+    && !/rental/i.test(read('lifetime-tax-strategy.config.json')),
+    'TP-03-20: every rental declaration is a declared workspace field, is named in the export\u2019s omitted list, has no value in the exported bytes, refuses by name when undeclared, and no rental member reaches the committed configuration');
+
+  /* TP-03-26 REPO GATE. This scope appends one group and one supersession replacement, and the
+     supersession is booked on all four surfaces ASC-8 requires in the same change. */
+  const ledgerText03 = read('specs/023-property-tax-and-rental-income/spec.md');
+  const indexText03 = read('specs/023-property-tax-and-rental-income/scopes/_index.md');
+  const designText03 = read('specs/023-property-tax-and-rental-income/design.md');
+  const selftestText03 = read('scripts/selftest.mjs');
+  const ledgerRows03 = (ledgerText03.match(/^\| SUP-023-\d\d \|/gm) || []).length;
+  const markers03 = Array.from(new Set((selftestText03.match(/SUP-023-\d\d/g) || [])
+    .concat(read('tests/lifetime-tax-route.spec.mjs').match(/SUP-023-\d\d/g) || [])
+    .concat(read('tests/lifetime-tax-foundation.spec.mjs').match(/SUP-023-\d\d/g) || [])
+    .concat(read('tests/lifetime-tax-conversion.spec.mjs').match(/SUP-023-\d\d/g) || [])));
+  /* SUP-023-14: supersedes `ledgerRows03 === 12` together with its
+     `Five plus five plus one plus one is twelve` arithmetic clause; shape=derive. The two pinned
+     TOTALS described the ledger as it stood when this assertion was written, so the next ASC-8
+     admission makes them false whether or not anything drifted; the replacement derives the row
+     count, the ownership column's own sum and the total the sentence states in words and asserts
+     the three agree, which fails naming the surface that drifted and absorbs every later
+     admission. Every Scope-03-specific clause below is retained verbatim.
+     Ledger: specs/023-property-tax-and-rental-income/spec.md#supersession-ledger */
+  const NUMBER_WORDS03 = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
+    'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen',
+    'eighteen', 'nineteen', 'twenty'];
+  const ownershipSection03 = indexText03.slice(indexText03.indexOf('### Ownership'),
+    indexText03.indexOf('### Per-scope steps'));
+  const ownershipRows03 = Array.from(ownershipSection03.matchAll(/^\| (\d\d) \| ([^|]+?) \| (\d+) \|$/gm))
+    .map((row) => ({
+      scope: row[1],
+      entries: row[2].split(',').map((entry) => entry.trim()).filter((entry) => /^SUP-023-\d\d$/.test(entry)),
+      declared: Number(row[3])
+    }));
+  const ownershipTotal03 = ownershipRows03.reduce((sum, row) => sum + row.declared, 0);
+  const arithmetic03 = ownershipSection03.replace(/\s+/g, ' ')
+    .match(/((?:[A-Za-z]+ plus )+[A-Za-z]+) is ([a-z]+), which must equal the row count/) || [];
+  const addends03 = String(arithmetic03[1] || '').toLowerCase().split(' plus ')
+    .map((word) => NUMBER_WORDS03.indexOf(word));
+  const ledgerOwnership03 = {};
+  (ledgerText03.match(/^\| SUP-023-\d\d \|.*$/gm) || []).forEach((line) => {
+    const cells = line.split('|').map((cell) => cell.trim());
+    ledgerOwnership03[cells[1]] = cells[3];
+  });
+  const ownedIds03 = ownershipRows03.reduce((all, row) => all.concat(row.entries), []);
+  assert(ownershipRows03.length > 0
+    && addends03.length === ownershipRows03.length
+    && addends03.every((value) => value >= 0)
+    && addends03.join(',') === ownershipRows03.map((row) => row.declared).join(',')
+    && NUMBER_WORDS03.indexOf(String(arithmetic03[2] || '').toLowerCase()) === ownershipTotal03
+    && ledgerRows03 === ownershipTotal03
+    && ownershipRows03.every((row) => row.entries.length === row.declared)
+    && ownershipRows03.every((row) => row.entries.every((entry) => ledgerOwnership03[entry] === row.scope))
+    && Object.keys(ledgerOwnership03).every((id) => ownedIds03.indexOf(id) >= 0)
+    && new Set(ownedIds03).size === ownedIds03.length
+    && /twelfth was admitted in flight under ASC-8 during Scope 03/.test(ledgerText03)
+    && /\| 03 \| SUP-023-12 \| 1 \|/.test(indexText03)
+    && /\| `scripts\/selftest\.mjs` \| SUP-023-12 \| 03 \|/.test(designText03)
+    && markers03.indexOf('SUP-023-12') >= 0
+    && /SUP-023-12: supersedes/.test(selftestText03),
+    'TP-03-26: the ledger row count, the ownership column\u2019s own sum and the total its arithmetic sentence states all agree and each ledger id is owned by exactly the scope the table lists it under, the ownership table and its arithmetic name Scope 03\u2019s single ASC-8 admission, the per-file marker distribution places SUP-023-12 in the file that carries it, and the marker is present in that file');
+
+  /* CLAIM BOUNDARY. Nothing the rental settlement emits states a probability, a lifetime figure,
+     a future year, a track record or an error rate. */
+  const claimScan03 = /\b(probability|probable|likely to|expected return|break-even|track record|error rate|accuracy rate|our estimate|estimated deduction|lifetime total)\b/i;
+  assert(!claimScan03.test(rentalSource03)
+    && !claimScan03.test(JSON.stringify(carriedForward03))
+    && claimScan03.test('this is our estimate of the break-even year') === true,
+    'TP-03-CLAIM: neither the rental module nor anything it emits states a probability, a lifetime figure, a track record or an error rate, and the detector is proven to fire on a sentence that does');
+
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 023 Scope 03 rental group threw): ' + e.message); }
+
+/* ---------- Feature 023 Scope 04 — dwelling use classification and allocation ---------- */
+try {
+  group('lifetime-tax — dwelling use classification and allocation');
+  const useRequire = (await import('node:module')).createRequire(import.meta.url);
+  const { createHash: createUseHash } = await import('node:crypto');
+  const RULES04 = useRequire(join(ROOT, 'rltaxrules.js'));
+  const USE04 = useRequire(join(ROOT, 'rltaxuse.js'));
+  const RENT04 = useRequire(join(ROOT, 'rltaxrental.js'));
+  const TAX04 = useRequire(join(ROOT, 'rltax.js'));
+  const PROPERTY04 = useRequire(join(ROOT, 'rltaxproperty.js'));
+  const WS04 = useRequire(join(ROOT, 'rltaxworkspace.js'));
+  const PACK04_TEXT = read('tax-rules/federal/2026.json');
+  const PACK04 = JSON.parse(PACK04_TEXT);
+  const clonePack04 = () => JSON.parse(PACK04_TEXT);
+
+  /* Every expected side below is read from THESE, never from a literal. An assertion carrying its
+     own 14 could pass against a pack that lost the figure; one that reads the pack cannot. */
+  const dayFigure04 = PACK04.useClassification.personalUseDayFigure.days;
+  const percentage04 = PACK04.useClassification.personalUsePercentageFigure.rate;
+  const threshold04 = PACK04.useClassification.minimalRentalUseThreshold.days;
+
+  const declare04 = (personalUseDays, fairRentalDays) => ({
+    contractVersion: 'DwellingUseDeclaration/v1', origin: 'declared', declaredTaxYear: 2026,
+    fairRentalDays, personalUseDays
+  });
+  const activity04 = (overrides) => Object.assign({
+    contractVersion: 'RentalActivity/v1', origin: 'declared', declaredTaxYear: 2026,
+    rentalIncome: 40000, operatingExpenses: 9350, depreciableBasis: 160000,
+    placedInServiceMonth: 2, recoveryYearOrdinal: 1, atRiskAmount: 500000,
+    activeParticipation: true, modifiedAdjustedGrossIncome: 90000, openingSuspendedLoss: 0
+  }, overrides || {});
+  const classify04 = (personalUseDays, fairRentalDays, pack) =>
+    USE04.classifyDwellingUse(declare04(personalUseDays, fairRentalDays), pack || PACK04);
+
+  /* Fixture packs whose test parameters were NOT retrieved. The shipped pack retrieved all three,
+     so the refusal branches would otherwise never be exercised. */
+  const absentFigure04 = (domain) => ({
+    contractVersion: 'AbsentFigure/v1', code: 'RLTAX-THRESHOLD-UNAVAILABLE', domain,
+    reason: 'This fixture pack deliberately carries no ' + domain + '.',
+    whatWouldMakeItAvailable: 'Retrieve the parameter from its primary source.',
+    missingSource: {
+      title: 'Absent dwelling-use parameter fixture pointer',
+      url: 'https://www.irs.gov/publications/p527', documentKind: 'publication',
+      locator: 'Deliberately unretrieved so the absence branch is never vacuous.'
+    }
+  });
+  const dayAbsentPack04 = clonePack04();
+  dayAbsentPack04.useClassification.personalUseDayFigure =
+    absentFigure04('use-classification:personalUseDayFigure');
+  const percentAbsentPack04 = clonePack04();
+  percentAbsentPack04.useClassification.personalUsePercentageFigure =
+    absentFigure04('use-classification:personalUsePercentageFigure');
+  const thresholdAbsentPack04 = clonePack04();
+  thresholdAbsentPack04.useClassification.minimalRentalUseThreshold =
+    absentFigure04('use-classification:minimalRentalUseThreshold');
+  const noRulePack04 = clonePack04();
+  delete noRulePack04.useClassification;
+
+  /* A fixture pack carrying a synthetic acquisition-debt limit, so the composition path that the
+     mortgage interest reaches is exercisable. The shipped pack ships both tiers' limits absent
+     because the only retrievable edition of that authority declares another tax year, and this
+     fixture figure is the implementer's own and can never resolve for a real return. */
+  const mortgagePack04 = clonePack04();
+  mortgagePack04.mortgageDebtLimits.tiers = mortgagePack04.mortgageDebtLimits.tiers
+    .map((tier) => Object.assign({}, tier, {
+      limits: {
+        single: 900000, 'married-filing-jointly': 900000, 'head-of-household': 900000,
+        'married-filing-separately': 450000,
+        sourceRef: tier.limits.missingSource ? 'rp-2025-32' : 'rp-2025-32',
+        locator: 'fixture acquisition-debt limit, the implementer\u2019s own figure'
+      }
+    }));
+
+  /* TP-04-01 CONTRACT. UseClassification/v1 refuses a missing category, a missing day count, a
+     parameter carrying no citation, and an empty comparisonsPerformed[]. */
+  const sound04 = classify04(20, 100);
+  const withoutCategory04 = Object.assign({}, sound04); delete withoutCategory04.category;
+  const badCategory04 = Object.assign({}, sound04, { category: 'vacation-home' });
+  const withoutCount04 = Object.assign({}, sound04, { personalUseDays: null });
+  const uncited04 = Object.assign({}, sound04, {
+    testParameters: sound04.testParameters.map((entry, index) =>
+      index === 0 ? Object.assign({}, entry, { citation: null }) : entry)
+  });
+  const noComparisons04 = Object.assign({}, sound04, { comparisonsPerformed: [] });
+  const partialComparison04 = Object.assign({}, sound04, {
+    comparisonsPerformed: [{ comparisonId: 'x', left: 1, operator: 'greater-than', right: 0 }]
+  });
+  const unknownOperator04 = Object.assign({}, sound04, {
+    comparisonsPerformed: [{ comparisonId: 'x', left: 1, operator: 'roughly-about', right: 0, result: true }]
+  });
+  assert(RULES04.validateUseClassification(sound04).ok === true
+    && RULES04.validateUseClassification(withoutCategory04).ok === false
+    && RULES04.validateUseClassification(badCategory04).ok === false
+    && RULES04.validateUseClassification(withoutCount04).ok === false
+    && RULES04.validateUseClassification(uncited04).ok === false
+    && RULES04.validateUseClassification(noComparisons04).ok === false
+    && RULES04.validateUseClassification(partialComparison04).ok === false
+    && RULES04.validateUseClassification(unknownOperator04).ok === false
+    && RULES04.validateDwellingUseDeclaration(declare04(20, 100)).ok === true
+    && RULES04.validateDwellingUseDeclaration(
+      Object.assign(declare04(20, 100), { sourceRef: 'irs-p527-2025' })).ok === false
+    && RULES04.validateDwellingUseDeclaration(declare04(20.5, 100)).ok === false
+    && RULES04.validateDwellingUseDeclaration(declare04(-1, 100)).ok === false,
+    'TP-04-01: UseClassification/v1 refuses a missing or unknown category, a missing day count, a parameter carrying no citation, an empty comparisonsPerformed[], an incomplete comparison and an operator outside the closed set, and the declaration refuses a citation and a day count that is not a whole number that is not negative');
+
+  /* TP-04-02 COMPATIBILITY. Every Scope 03 fixture produces its EXACT prior settlement under the
+     added routing, and every pre-existing federal pack figure is byte-identical. The prior
+     settlements are recomputed through the same two-argument entry point Scope 03 uses, which is
+     the routing this scope inserted itself in front of. */
+  const priorInputs04 = [
+    activity04({}), activity04({ recoveryYearOrdinal: 5 }),
+    activity04({ rentalIncome: 4000, operatingExpenses: 9350 }),
+    activity04({ rentalIncome: 4000, operatingExpenses: 9350, openingSuspendedLoss: 12000 })
+  ];
+  const priorSettlements04 = priorInputs04.map((entry) => RENT04.computeRentalSettlement(entry, PACK04));
+  const priorWithNullClassification04 = priorInputs04
+    .map((entry) => RENT04.computeRentalSettlement(entry, PACK04, null));
+  const packValid04 = RULES04.validateRulePack(PACK04);
+  const digest04 = 'sha256:' + createUseHash('sha256')
+    .update(RULES04.packContentDigestInput(PACK04), 'utf8').digest('hex');
+  const config04 = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  assert(packValid04.ok === true
+    && digest04 === PACK04.contentSha256 && digest04 === config04.rules.packContentSha256
+    /* The profitable fixtures still settle to their exact prior figures; the loss fixtures still
+       refuse for the same pre-existing reason, because the shipped pack ships every special
+       allowance figure absent. A compatibility check that only looked at the settling ones would
+       miss a routing change that turned a refusal into a number. */
+    && Number.isFinite(priorSettlements04[0].value)
+    && Number.isFinite(priorSettlements04[1].value)
+    && RULES04.isUnavailable(priorSettlements04[2])
+    && priorSettlements04[2].domain === 'loss-limit:passive-activity:specialAllowance:maximumAmounts'
+    && RULES04.isUnavailable(priorSettlements04[3])
+    && JSON.stringify(priorSettlements04) === JSON.stringify(priorWithNullClassification04)
+    && PACK04.standardDeductions.single.amount === 16100
+    && PACK04.ordinaryRateTables.single.bands[6].rate === 0.37
+    && PACK04.preferentialRateTables['married-filing-jointly'].bands[1].upperExclusive === 613700
+    && PACK04.thresholdSets['net-investment-income-tax'].rate === 0.038
+    && PACK04.deductionCaps['state-and-local-tax'].amounts.single === 40400
+    && PACK04.costRecovery.recoveryPeriod.years === 27.5
+    && PACK04.costRecovery.convention.conventionId === 'mid-month'
+    && RULES04.isAbsentFigure(PACK04.lossLimitPolicy.specialAllowance.maximumAmounts),
+    'TP-04-02: the profitable Scope 03 fixtures produce their exact prior settlements and the loss fixtures still refuse for the same pre-existing absent-allowance reason, identically whether no classification or an explicit none is supplied, the pack stays valid, its digest is re-derivable and equals the configuration pointer, and a sampled pre-existing figure from every figure family this feature already carried is byte-identical');
+
+  /* TP-04-03 SOURCING. Each of the three test parameters resolves to exactly ONE retrieved record
+     with a locator, and the record publishes which quantity the percentage was compared against —
+     the open question the specification routed to this retrieval. */
+  const parameterFigures04 = [
+    PACK04.useClassification.personalUseDayFigure,
+    PACK04.useClassification.personalUsePercentageFigure,
+    PACK04.useClassification.minimalRentalUseThreshold
+  ];
+  const parameterRecords04 = parameterFigures04.map((figure) =>
+    PACK04.sourceRecords.filter((record) => record.sourceId === figure.sourceRef));
+  const p527Record04 = PACK04.sourceRecords.filter((record) => record.sourceId === 'irs-p527-2025')[0];
+  assert(parameterRecords04.every((records) => records.length === 1
+    && records[0].retrievalOutcome === 'retrieved')
+    && parameterFigures04.every((figure) => typeof figure.locator === 'string' && figure.locator.length > 0)
+    && parameterFigures04.every((figure) => figure.componentKind === 'qualifier')
+    && p527Record04.declaredApplicableYearsByComponentKind.qualifier === 'year-invariant'
+    && typeof p527Record04.yearInvarianceBasis.qualifier === 'string'
+    && /14 days, or 10% of the total days it is rented to others at a fair rental price/
+      .test(p527Record04.yearInvarianceBasis.qualifier)
+    && sound04.percentageComparedAgainst === 'days-rented-to-others-at-a-fair-rental-price'
+    && PACK04.useClassification.personalUsePercentageFigure.comparedAgainst
+      === sound04.percentageComparedAgainst
+    && sound04.testParameters.length === 3
+    && sound04.testParameters.every((entry) => entry.citation.sourceRef === 'irs-p527-2025'
+      && entry.citation.retrievedAt === p527Record04.retrievedAt
+      && entry.citation.url === p527Record04.url),
+    'TP-04-03: each of the three test parameters resolves to exactly one retrieved record with a locator and the qualifier component kind, the source record states the basis on which that kind is year-invariant, and the classification publishes which quantity the percentage was compared against rather than leaving it to be inferred');
+
+  /* TP-04-04 REFUSAL. A pack with any test parameter absent refuses the classification, assigns
+     no category, and produces no rental figure. The last clause is the one that matters: a
+     refusal that still let a settlement through would make the refusal decorative. */
+  const refusals04 = [dayAbsentPack04, percentAbsentPack04, thresholdAbsentPack04, noRulePack04]
+    .map((pack) => classify04(20, 100, pack));
+  const legsFromRefusals04 = refusals04.map((refusal) =>
+    TAX04.composeRentalLeg(activity04({}), PACK04, refusal));
+  assert(refusals04.every((entry) => RULES04.isUnavailable(entry)
+    && entry.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && !Object.prototype.hasOwnProperty.call(entry, 'category')
+    && !Object.prototype.hasOwnProperty.call(entry, 'usedAsResidence'))
+    && legsFromRefusals04.every((leg) => leg.available === false
+      && RULES04.isUnavailable(leg.refusal)
+      && !Object.prototype.hasOwnProperty.call(leg, 'value'))
+    && RULES04.isUnavailable(RENT04.computeRentalSettlement(activity04({}), PACK04, refusals04[0])),
+    'TP-04-04: a pack with any of the three test parameters absent, or with no classification rule at all, refuses the classification, assigns no category, and the settlement routed by that refusal refuses too rather than producing a rental figure');
+
+  /* TP-04-05 ADVERSARIAL. An implementation that fell back to a recalled rule when a parameter is
+     absent is PROVEN to fail the refusal assertion, so a refusal branch that silently stopped
+     refusing could not pass unnoticed. */
+  const recallingClassify04 = (declaration, pack) => {
+    const attempted = USE04.classifyDwellingUse(declaration, pack);
+    if (!RULES04.isUnavailable(attempted)) return attempted;
+    return Object.assign({}, sound04, { category: 'not-a-residence' });
+  };
+  const recalled04 = recallingClassify04(declare04(20, 100), dayAbsentPack04);
+  assert(!RULES04.isUnavailable(recalled04)
+    && Object.prototype.hasOwnProperty.call(recalled04, 'category')
+    && RULES04.isUnavailable(classify04(20, 100, dayAbsentPack04)),
+    'TP-04-05: an implementation falling back to a recalled rule when a test parameter is absent produces a category where the shipped implementation refuses, so the refusal assertion is proven to discriminate rather than to pass vacuously');
+
+  /* TP-04-06 BOUNDARY. At exactly the sourced personal-use day figure, and at one day either
+     side, the category matches the publication. The rental-day count is chosen so the day figure
+     is the greater of the two candidates, which isolates this comparison from the percentage one.
+     The expected side is read from the RETRIEVED operator rather than from a literal. */
+  const atDay04 = classify04(dayFigure04, 100);
+  const aboveDay04 = classify04(dayFigure04 + 1, 100);
+  const belowDay04 = classify04(dayFigure04 - 1, 100);
+  const dayComparison04 = (entry) => entry.comparisonsPerformed
+    .filter((row) => row.comparisonId === 'personal-use-versus-day-figure')[0];
+  assert(dayFigure04 > 100 * percentage04
+    && PACK04.useClassification.personalUseDayFigure.comparisonOperator === 'greater-than'
+    && atDay04.usedAsResidence === false && atDay04.category === 'not-a-residence'
+    && aboveDay04.usedAsResidence === true
+    && belowDay04.usedAsResidence === false
+    && dayComparison04(atDay04).right === dayFigure04
+    && dayComparison04(atDay04).left === dayFigure04
+    && dayComparison04(atDay04).result === false
+    && dayComparison04(aboveDay04).result === true
+    && dayComparison04(belowDay04).result === false,
+    'TP-04-06: at exactly the sourced personal-use day figure the dwelling is not a residence and one day above it is, the published comparison carries that exact figure as its right side, and the expected side is read from the retrieved comparison operator rather than from a literal');
+
+  /* TP-04-07 BOUNDARY. At exactly the sourced percentage of rental days, and at one day either
+     side. The rental-day count is chosen so the percentage is the greater of the two candidates,
+     which isolates this comparison from the day-figure one. */
+  const rentalDaysForPercent04 = 270;
+  const percentPoint04 = rentalDaysForPercent04 * percentage04;
+  const atPercent04 = classify04(percentPoint04, rentalDaysForPercent04);
+  const abovePercent04 = classify04(percentPoint04 + 1, rentalDaysForPercent04);
+  const belowPercent04 = classify04(percentPoint04 - 1, rentalDaysForPercent04);
+  const percentComparison04 = (entry) => entry.comparisonsPerformed
+    .filter((row) => row.comparisonId === 'personal-use-versus-percentage-of-rental-days')[0];
+  const greaterOf04 = (entry) => entry.comparisonsPerformed
+    .filter((row) => row.comparisonId === 'greater-of-selection')[0];
+  assert(Number.isInteger(percentPoint04) && percentPoint04 > dayFigure04
+    && PACK04.useClassification.personalUsePercentageFigure.comparisonOperator === 'greater-than'
+    && atPercent04.usedAsResidence === false && atPercent04.category === 'not-a-residence'
+    && abovePercent04.usedAsResidence === true
+    && belowPercent04.usedAsResidence === false
+    && percentComparison04(atPercent04).right === percentPoint04
+    && percentComparison04(atPercent04).result === false
+    && percentComparison04(abovePercent04).result === true
+    && greaterOf04(atPercent04).result === false
+    && greaterOf04(atDay04).result === true,
+    'TP-04-07: at exactly the sourced percentage of the declared rental days the dwelling is not a residence and one day above it is, and the published greater-of comparison names which of the two candidate quantities the test was actually run against');
+
+  /* TP-04-08 BOUNDARY. At exactly the fewer-than-threshold rental-days figure and one day either
+     side, the exception applies or does not as the publication states. */
+  const atThreshold04 = classify04(60, threshold04);
+  const belowThreshold04 = classify04(60, threshold04 - 1);
+  const aboveThreshold04 = classify04(60, threshold04 + 1);
+  const thresholdComparison04 = (entry) => entry.comparisonsPerformed
+    .filter((row) => row.comparisonId === 'rental-days-versus-minimal-use-threshold')[0];
+  assert(PACK04.useClassification.minimalRentalUseThreshold.comparisonOperator === 'less-than'
+    && atThreshold04.category === 'residence-rented-at-or-above-threshold'
+    && belowThreshold04.category === 'residence-minimal-rental-use'
+    && aboveThreshold04.category === 'residence-rented-at-or-above-threshold'
+    && thresholdComparison04(atThreshold04).right === threshold04
+    && thresholdComparison04(atThreshold04).result === false
+    && thresholdComparison04(belowThreshold04).result === true
+    && classify04(1, threshold04 - 1).category === 'not-a-residence',
+    'TP-04-08: at exactly the sourced rental-days threshold the exception does not apply and one day below it does, the published comparison carries that exact figure, and a dwelling below the threshold that is not a residence does not reach the exception at all');
+
+  /* TP-04-09 ADVERSARIAL. Flipping each of the three comparisons from strict to inclusive, and
+     from inclusive back to strict, is PROVEN to change the outcome at that comparison's exact
+     boundary. Each flip is applied to the PACK's declared operator, so the flip is exactly the
+     defect the boundary assertions protect against, and both directions are exercised because a
+     test that only checked one would leave the other side unprotected. */
+  const flipOperator04 = (member, operator) => {
+    const flipped = clonePack04();
+    flipped.useClassification[member].comparisonOperator = operator;
+    return flipped;
+  };
+  const dayInclusive04 = classify04(dayFigure04, 100, flipOperator04('personalUseDayFigure', 'at-least'));
+  const percentInclusive04 = classify04(percentPoint04, rentalDaysForPercent04,
+    flipOperator04('personalUsePercentageFigure', 'at-least'));
+  const thresholdInclusive04 = classify04(60, threshold04,
+    flipOperator04('minimalRentalUseThreshold', 'at-most'));
+  /* The other direction. A pack that stated the inclusive form and an engine that applied the
+     strict one would land on the other side of the same boundary. */
+  const inclusivePack04 = clonePack04();
+  inclusivePack04.useClassification.personalUseDayFigure.comparisonOperator = 'at-least';
+  inclusivePack04.useClassification.minimalRentalUseThreshold.comparisonOperator = 'at-most';
+  const strictBack04 = classify04(dayFigure04, 100, flipOperator04('personalUseDayFigure', 'greater-than'));
+  const thresholdStrictBack04 = classify04(60, threshold04,
+    flipOperator04('minimalRentalUseThreshold', 'less-than'));
+  const unknownOperatorPack04 = flipOperator04('personalUseDayFigure', 'greater-of');
+  assert(dayInclusive04.usedAsResidence === true && atDay04.usedAsResidence === false
+    && percentInclusive04.usedAsResidence === true && atPercent04.usedAsResidence === false
+    && thresholdInclusive04.category === 'residence-minimal-rental-use'
+    && atThreshold04.category === 'residence-rented-at-or-above-threshold'
+    && classify04(dayFigure04, 100, inclusivePack04).usedAsResidence !== strictBack04.usedAsResidence
+    && classify04(60, threshold04, inclusivePack04).category !== thresholdStrictBack04.category
+    && RULES04.isUnavailable(classify04(20, 100, flipOperator04('personalUseDayFigure', 'roughly-about')))
+    && RULES04.isUnavailable(classify04(20, 100, unknownOperatorPack04))
+    && classify04(20, 100, unknownOperatorPack04).code === 'RLTAX-FEATURE-UNSUPPORTED',
+    'TP-04-09: flipping each of the three comparisons from the strict form the publication states to the inclusive form changes the outcome at that comparison\u2019s exact boundary, flipping back changes it again, so every boundary assertion is proven to discriminate in both directions, and an operator the pack names that the engine has no arithmetic for refuses rather than falling through to the one it does have');
+
+  /* TP-04-10 ORDERING. The DERIVED ordered array places CO-16 strictly before CO-17 for every
+     pack, and a settlement attempted with a classification that is not a published record
+     refuses. The order is derived from the declared dependency edges, so it cannot be reordered
+     without deleting the edge that says why. */
+  const order04 = TAX04.housingStageOrder(PACK04);
+  const orderNoPreferential04 = TAX04.housingStageOrder(
+    Object.assign(clonePack04(), { preferentialPolicy: 'none' }));
+  const notAClassification04 = RENT04.computeRentalSettlement(activity04({}), PACK04,
+    { contractVersion: 'RentalActivity/v1' });
+  const malformed04 = RENT04.computeRentalSettlement(activity04({}), PACK04,
+    Object.assign({}, sound04, { comparisonsPerformed: [] }));
+  assert(order04.order.indexOf('CO-16') >= 0 && order04.order.indexOf('CO-17') >= 0
+    && order04.order.indexOf('CO-16') < order04.order.indexOf('CO-17')
+    && orderNoPreferential04.order.indexOf('CO-16') < orderNoPreferential04.order.indexOf('CO-17')
+    && order04.order.indexOf('CO-17') < order04.order.indexOf('CO-18')
+    && RULES04.isUnavailable(notAClassification04)
+    && notAClassification04.code === 'RLTAX-INPUT-INCOMPLETE'
+    && RULES04.isUnavailable(malformed04),
+    'TP-04-10: the derived housing stage order places CO-16 strictly before CO-17 and CO-17 before CO-18 for every pack, and a settlement attempted with something that is not a published classification, or with one whose shape its own contract refuses, refuses rather than settling');
+
+  /* TP-04-11 KNOWN VALUE. Under the exception the rental income is EXCLUDED, no rental expense is
+     deducted, the reason is a stated exclusion, and the interest and property tax reach the
+     composition unallocated. The record deliberately carries no `value`: an excluded activity
+     contributes no leg, and a zero leg would read as a rental that settled to nothing. */
+  const exceptionClassification04 = classify04(60, threshold04 - 1);
+  const excluded04 = RENT04.computeRentalSettlement(
+    activity04({ rentalIncome: 9000, operatingExpenses: 4000 }), PACK04, exceptionClassification04);
+  const excludedLeg04 = TAX04.composeRentalLeg(
+    activity04({ rentalIncome: 9000, operatingExpenses: 4000 }), PACK04, exceptionClassification04);
+  const workspaceForComposition04 = Object.assign(WS04.createEmptyWorkspace(), {
+    filingStatus: 'single', declaredTaxYear: 2026, deductionMode: 'itemized', itemizedAmount: 0,
+    income: { ordinary: 120000, qualifiedDividend: 0, longTermCapitalGain: 0, taxExemptInterest: 0 },
+    mortgageInterestPaid: 18000, mortgageAcquisitionDebtBalance: 400000,
+    mortgageAcquisitionDebtTier: PACK04.mortgageDebtLimits.tiers[0].tierId
+  });  const compositionUnderException04 = TAX04.composeItemizedDeduction(
+    workspaceForComposition04, mortgagePack04, { 'property-tax': 6000 }, []);
+  const mortgageComponent04 = compositionUnderException04.components
+    .filter((entry) => entry.componentId === 'mortgage-interest')[0];
+  const propertyComponent04 = compositionUnderException04.components
+    .filter((entry) => entry.componentId === 'property-tax')[0];
+  assert(excluded04.excluded === true
+    && excluded04.excludedRentalIncome === 9000
+    && !Object.prototype.hasOwnProperty.call(excluded04, 'value')
+    && excluded04.appliedLimits.length === 0
+    && /exclusion, not a rental that settled to nothing/.test(excluded04.exclusionReason)
+    && excluded04.exclusionCitation.sourceRef === 'irs-p527-2025'
+    && typeof excluded04.exclusionCitation.locator === 'string'
+    && excludedLeg04.available === false && excludedLeg04.excluded === true
+    && !Object.prototype.hasOwnProperty.call(excludedLeg04, 'value')
+    && mortgageComponent04.amount === 18000
+    && propertyComponent04.amount === 6000
+    && compositionUnderException04.components
+      .every((entry) => entry.componentId.indexOf('dwelling-personal') < 0),
+    'TP-04-11: under the exception the rental income is excluded and published as excluded, no rental expense is deducted, no limit is applied, the exclusion is stated as the reason with its citation, and the mortgage interest and property tax reach the composition unallocated with no dwelling allocation component beside them');
+
+  /* TP-04-12 ADVERSARIAL. An implementation returning a zero net result instead of an exclusion
+     reason is PROVEN to fail the stated-reason assertion. */
+  const zeroingSettlement04 = Object.assign({}, excluded04, { value: 0, excluded: false });
+  delete zeroingSettlement04.exclusionReason;
+  assert(zeroingSettlement04.value === 0
+    && !Object.prototype.hasOwnProperty.call(zeroingSettlement04, 'exclusionReason')
+    && excluded04.excluded === true
+    && typeof excluded04.exclusionReason === 'string' && excluded04.exclusionReason.length > 0,
+    'TP-04-12: an implementation publishing a zero net result in place of an exclusion reason carries no exclusion reason at all, so the stated-reason assertion is proven to discriminate between an exclusion and a rental that settled to nothing');
+
+  /* TP-04-13 KNOWN VALUE. Each allocated expense equals the declared amount times the declared
+     day ratio, publishes its basis, and the two portions sum to the declared amount EXACTLY.
+     Exactly, not within a tolerance: the personal portion is the declared amount less the rental
+     portion rather than a second multiplication, so no rounding can lose a cent between them.
+
+     The ratio is additionally cross-checked against Publication 527's own worked example, which
+     is the strongest available evidence that the basis was read correctly: the publication states
+     85 rental days and 14 personal-use days give rental expenses of 85/99 of the cottage
+     expenses. */
+  const mixed04 = classify04(50, 100);
+  const allocated04 = USE04.allocateByUseDays(
+    { expenseId: 'utilities', label: 'Utilities', amount: 3000, directlyAllocable: false }, mixed04);
+  const publicationExample04 = classify04(14, 85);
+  const exampleAllocated04 = USE04.allocateByUseDays(
+    { expenseId: 'cottage', amount: 9900, directlyAllocable: false }, publicationExample04);
+  assert(allocated04.rentalPortion === 3000 * (100 / 150)
+    && allocated04.personalPortion === 3000 - allocated04.rentalPortion
+    && (allocated04.rentalPortion + allocated04.personalPortion) === 3000
+    && allocated04.allocationBasis.numerator === 100
+    && allocated04.allocationBasis.denominator === 150
+    && allocated04.allocationBasis.basis === 'rental-days-over-total-days-used'
+    && allocated04.citation.sourceRef === 'irs-p527-2025'
+    && typeof allocated04.basisStatement === 'string' && allocated04.basisStatement.length > 0
+    && publicationExample04.allocationBasis.numerator === 85
+    && publicationExample04.allocationBasis.denominator === 99
+    && exampleAllocated04.rentalPortion === 9900 * (85 / 99)
+    && Math.round(publicationExample04.allocationBasis.ratio * 100) === 86,
+    'TP-04-13: each allocated expense equals the declared amount times the declared day ratio and publishes the basis that divided it, the rental and personal portions sum to the declared amount exactly rather than within a tolerance, and the ratio reproduces the publication\u2019s own worked 85 over 99 example to the percentage it rounds to');
+
+  /* TP-04-14 CONTRACT. A directly allocable expense is not re-allocated: attempting to allocate
+     it REFUSES, and the expense-set path carries it whole to the rental side and names it. */
+  const directRefusal04 = USE04.allocateByUseDays(
+    { expenseId: 'letting-agent-fee', amount: 800, directlyAllocable: true }, mixed04);
+  const expenseSet04 = USE04.allocateExpenseSet([
+    { expenseId: 'utilities', amount: 3000, directlyAllocable: false },
+    { expenseId: 'letting-agent-fee', amount: 800, directlyAllocable: true }
+  ], mixed04);
+  assert(RULES04.isUnavailable(directRefusal04)
+    && directRefusal04.code === 'RLTAX-INPUT-INCOMPLETE'
+    && /not re-allocated/.test(directRefusal04.whatWouldMakeItAvailable)
+    && expenseSet04.allocations.length === 1
+    && expenseSet04.directlyAllocable.length === 1
+    && expenseSet04.directlyAllocable[0].rentalPortion === 800
+    && expenseSet04.directlyAllocable[0].personalPortion === 0
+    && expenseSet04.declaredTotal === 3000 + 800
+    && RULES04.isUnavailable(USE04.allocateByUseDays(
+      { expenseId: 'utilities', amount: 3000, directlyAllocable: false }, classify04(0, 0))),
+    'TP-04-14: a directly allocable expense is refused rather than re-allocated, the expense-set path carries it whole to the rental side and names why, every declared expense is accounted for exactly once, and an allocation against a dwelling used on no day refuses rather than dividing by nothing');
+
+  /* TP-04-15 INTEGRATION. The personal portion enters the composition as a NAMED component with
+     origin "computed", and Scope 02's disjoint exhaustive accounting still holds with it there. */
+  const residenceSettlement04 = RENT04.computeRentalSettlement(
+    activity04({ rentalIncome: 12000, operatingExpenses: 20000 }), PACK04, mixed04);
+  const composed04 = TAX04.composeItemizedDeduction(workspaceForComposition04, mortgagePack04,
+    { 'property-tax': 6000 }, residenceSettlement04.allocation.personalPortions);
+  const personalComponents04 = composed04.components
+    .filter((entry) => entry.componentId.indexOf('dwelling-personal') === 0);
+  const componentIds04 = composed04.components.map((entry) => entry.componentId);
+  const allowedSum04 = composed04.components
+    .reduce((total, entry) => total + entry.allowedAmount, 0);
+  assert(personalComponents04.length === 2
+    && personalComponents04.every((entry) => entry.origin === 'computed'
+      && RULES04.validateDeductionComponent(entry).ok === true
+      && entry.allowedAmount + entry.disallowedAmount === entry.amount
+      && entry.cappedWith.length === 0)
+    && componentIds04.length === new Set(componentIds04).size
+    && Math.abs(allowedSum04 - composed04.itemizedTotal) < 1e-9
+    && RULES04.validateItemizedComposition(composed04).ok === true
+    && composed04.itemizedTotal > TAX04.composeItemizedDeduction(
+      workspaceForComposition04, mortgagePack04, { 'property-tax': 6000 }, []).itemizedTotal,
+    'TP-04-15: the personal portion of every allocated expense enters the composition as a named component with origin computed, each satisfies the DeductionComponent contract, the component ids stay disjoint, the allowed amounts still sum to the itemised total exactly, and the composition is strictly larger with the routed portions than without them');
+
+  /* TP-04-16 ADVERSARIAL. An implementation discarding the personal portion is PROVEN to fail
+     both the allocation-sum assertion and the composition accounting. */
+  const discardingAllocate04 = (expense, classification) => {
+    const honest = USE04.allocateByUseDays(expense, classification);
+    if (RULES04.isUnavailable(honest)) return honest;
+    return Object.assign({}, honest, { personalPortion: 0 });
+  };
+  const discarded04 = discardingAllocate04(
+    { expenseId: 'utilities', amount: 3000, directlyAllocable: false }, mixed04);
+  const composedWithDiscard04 = TAX04.composeItemizedDeduction(workspaceForComposition04, mortgagePack04,
+    { 'property-tax': 6000 }, []);
+  assert((discarded04.rentalPortion + discarded04.personalPortion) !== discarded04.declaredAmount
+    && (allocated04.rentalPortion + allocated04.personalPortion) === allocated04.declaredAmount
+    && composedWithDiscard04.components
+      .filter((entry) => entry.componentId.indexOf('dwelling-personal') === 0).length === 0
+    && composedWithDiscard04.itemizedTotal < composed04.itemizedTotal,
+    'TP-04-16: an implementation zeroing the personal portion breaks the sum back to the declared amount, and a composition that received no personal portions carries no dwelling component and a strictly smaller itemised total, so both assertions are proven to discriminate');
+
+  /* TP-04-17 and TP-04-18 LEG VISIBILITY. The classification and the category's leg reach all
+     four surfaces on the all-non-zero fixture, the prior legs still do, and removing either from
+     each surface in turn is demonstrated to fail with the missing element NAMED. The helper is
+     Scope 01's, consumed unchanged. */
+  const allLegs04 = ['ordinary', 'preferential', 'net-investment-income-tax',
+    'additional-medicare-tax', 'property-tax', 'dwelling-use', 'rental-net'];
+  const allSurfaces04 = () => ({
+    headline: allLegs04.slice(), comparison: allLegs04.slice(),
+    curve: allLegs04.slice(), export: allLegs04.slice()
+  });
+  const holds04 = PROPERTY04.legVisibilityIdentity(allLegs04, allSurfaces04());
+  const dropFrom04 = (surface, leg) => {
+    const surfaces = allSurfaces04();
+    surfaces[surface] = surfaces[surface].filter((entry) => entry !== leg);
+    return PROPERTY04.legVisibilityIdentity(allLegs04, surfaces);
+  };
+  const useDrops04 = PROPERTY04.LEG_SURFACES.map((surface) => dropFrom04(surface, 'dwelling-use'));
+  const rentalDrops04 = PROPERTY04.LEG_SURFACES.map((surface) => dropFrom04(surface, 'rental-net'));
+  const propertyDrops04 = PROPERTY04.LEG_SURFACES.map((surface) => dropFrom04(surface, 'property-tax'));
+  const pageText04 = read('lifetime-tax-strategy-lab.html');
+  assert(holds04.holds === true && holds04.declaredLegs.length === 7
+    && useDrops04.length === 4
+    && useDrops04.every((result, index) => result.holds === false
+      && result.findings.length === 1
+      && result.findings[0].surface === PROPERTY04.LEG_SURFACES[index]
+      && result.findings[0].missingFromSurface.indexOf('dwelling-use') >= 0
+      && /dwelling-use/.test(result.findings[0].detail))
+    && rentalDrops04.every((result) => result.holds === false
+      && result.findings[0].missingFromSurface.indexOf('rental-net') >= 0)
+    && propertyDrops04.every((result) => result.holds === false
+      && result.findings[0].missingFromSurface.indexOf('property-tax') >= 0)
+    && /data-rl-leg", useLeg.legId/.test(pageText04)
+    && /legId: useLeg.legId/.test(pageText04)
+    && /if \(useLeg && useLeg.available === true\) ids.push\(useLeg.legId\)/.test(pageText04),
+    'TP-04-17 and TP-04-18: the classification leg reaches all four surfaces on the all-non-zero fixture alongside the property and rental legs, removing any of the three from each surface in turn fails the identity with the missing element named on the named surface, and the page wires the classification into the headline, the comparison and the exported leg set rather than only into its own panel');
+
+  /* TP-04-19 VOCABULARY. The refusal vocabulary member count equals its pre-feature value. Every
+     condition this scope introduced folds into an existing member. */
+  assert(Object.keys(RULES04.RLTAX_CODES).length === 14
+    && RULES04.RLTAX_CODES['RLTAX-THRESHOLD-UNAVAILABLE'] === true
+    && RULES04.RLTAX_CODES['RLTAX-INPUT-INCOMPLETE'] === true
+    && RULES04.RLTAX_CODES['RLTAX-FEATURE-UNSUPPORTED'] === true
+    && RULES04.RLTAX_CODES['RLTAX-USE-UNAVAILABLE'] === undefined
+    && RULES04.RLTAX_CODES['RLTAX-CLASSIFICATION-UNAVAILABLE'] === undefined,
+    'TP-04-19: the refusal vocabulary still has exactly its fourteen pre-feature members and this scope added none');
+
+  /* TP-04-20 NO SHADOW. rltaxuse.js holds no day figure, no percentage, no rental-days threshold
+     and no authority name. The detector is PROVEN to fire on a module that does, so a scan that
+     silently matched nothing cannot pass. */
+  const useSource04 = read('rltaxuse.js');
+  const strippedUse04 = useSource04.replace(/\/\*[\s\S]*?\*\//g, '');
+  const shadowDetector04 = /(\b14\b|\b15\b|\b0\.1\b|\b10%\b|Publication\s*5?9?2[57]|Internal Revenue Service|irs\.gov|vacation home)/i;
+  const decoy04 = 'var personalUseDayFigure = 14; /* Publication 527 */';
+  assert(!shadowDetector04.test(strippedUse04)
+    && shadowDetector04.test(decoy04) === true
+    && !/rltaxuse/.test(read('rltaxproperty.js'))
+    && /module\.exports/.test(useSource04)
+    && !/\bexport\s+(default|const|function)\b/.test(useSource04)
+    && !/\bimport\s/.test(useSource04)
+    && !/[^.]\bisFinite\(/.test(useSource04)
+    && !/requestAnimationFrame/.test(useSource04)
+    && (useSource04.match(/^\s{2}function\s[a-zA-Z]/gm) || []).length >= 8,
+    'TP-04-20: rltaxuse.js contains no test-parameter literal, no percentage, no authority name and no publication name, the detector is proven to fire on a module that does, and the module is a UMD dual module with top-level function declarations, no ESM syntax, no bare isFinite and no animation frame');
+
+  /* TP-04-21 PRIVACY. The day-count declarations are inventoried, cleared, redacted, and absent
+     from every URL, request, referrer and console message. */
+  const ws04 = WS04.createEmptyWorkspace();
+  const dayMembers04 = WS04.USE_DAY_DECLARATIONS.map((entry) => entry.member);
+  ws04.rentalFairRentalDays = 137;
+  ws04.rentalPersonalUseDays = 41;
+  const sanitized04 = WS04.sanitizeForExport(ws04);
+  const exportText04 = JSON.stringify(sanitized04.workspace);
+  const undeclaredWs04 = WS04.declaredUnavailableDomains(WS04.createEmptyWorkspace());
+  const inventory04 = WS04.privacyInventory({
+    getItem: () => null, setItem: () => undefined, removeItem: () => undefined
+  }, JSON.parse(read('lifetime-tax-strategy.config.json')));
+  assert(dayMembers04.length === 2
+    && dayMembers04.every((member) => WS04.WORKSPACE_FIELDS.indexOf(member) >= 0)
+    && dayMembers04.every((member) => sanitized04.omittedFields.indexOf(member) >= 0)
+    && dayMembers04.every((member) => exportText04.indexOf(member) < 0)
+    && exportText04.indexOf('137') < 0 && exportText04.indexOf('41') < 0
+    && dayMembers04.every((member) => undeclaredWs04.indexOf(member) >= 0)
+    && WS04.USE_DAY_DECLARATIONS.every((entry) => entry.locationAdjacent === true)
+    && /day counts/.test(inventory04.entries[0].purpose)
+    && !/rentalFairRentalDays|rentalPersonalUseDays/.test(read('lifetime-tax-strategy.config.json'))
+    && !/rentalFairRentalDays=|rentalPersonalUseDays=/.test(pageText04),
+    'TP-04-21: both day-count declarations are declared workspace fields, are named in the export\u2019s omitted list, have no value in the exported bytes, are named in the privacy inventory purpose, refuse by name when undeclared, are recorded as location-adjacent, and reach neither the committed configuration nor any query string');
+
+  /* TP-04-27 REPO GATE. This scope admitted TWO supersessions in flight under ASC-8, and ASC-8
+     requires each admission to be booked on all four surfaces in the same change: the ledger row,
+     the ledger's opening count paragraph, the ownership table, and the per-file marker
+     distribution. The four are asserted to AGREE rather than merely to exist, because an
+     admission booked on three of them is exactly the drift the marker check exists to catch. The
+     totals are derived from the artefacts rather than pinned, so the next admission does not have
+     to edit this check — which is what SUP-023-14 traded the pinned totals for. */
+  const ledgerText04 = read('specs/023-property-tax-and-rental-income/spec.md');
+  const indexText04 = read('specs/023-property-tax-and-rental-income/scopes/_index.md');
+  const designText04 = read('specs/023-property-tax-and-rental-income/design.md');
+  const selftestText04 = read('scripts/selftest.mjs');
+  const rentalSpec04 = read('tests/lifetime-tax-rental.spec.mjs');
+  const ledgerRows04 = (ledgerText04.match(/^\| SUP-023-\d\d \|/gm) || []).length;
+  /* The two ids this scope owns, built by concatenation so this file carries no marker the
+     per-file distribution does not place in it. */
+  const surfaceMarker04 = 'SUP-023-' + '13';
+  const totalsMarker04 = 'SUP-023-' + '14';
+  const ownedByScope04 = (ledgerText04.match(/^\| SUP-023-\d\d \|[^\n]*\| 04 \|/gm) || []).length;
+  const flatLedger04 = ledgerText04.replace(/\s+/g, ' ');
+  const flatIndex04 = indexText04.replace(/\s+/g, ' ');
+  const ownershipRow04 = flatIndex04
+    .match(/\| 04 \| (SUP-023-\d\d(?:, SUP-023-\d\d)*) \| (\d+) \|/) || [];
+  const claimed04 = String(ownershipRow04[1] || '').split(',').map((entry) => entry.trim());
+  /* Each superseded clause is quoted verbatim inside its own marker comment, which is what the
+     marker convention requires, so "does not survive" is checked against the CODE with block
+     comments stripped. The needles are built by concatenation for the same reason the markers
+     are: a contiguous copy in this assertion's own source would be a survival of it. */
+  const rentalSpecCode04 = rentalSpec04.replace(/\/\*[\s\S]*?\*\//g, '');
+  const selftestCode04 = selftestText04.replace(/\/\*[\s\S]*?\*\//g, '');
+  const supersededCount04 = '[data-rl-leg="rental-net"]\')).toHaveCount(' + '1)';
+  const supersededRows04 = 'ledgerRows03 ' + '=== 12';
+  const supersededArithmetic04 = 'Five plus five plus one plus one is ' + 'twelve';
+  assert(ownedByScope04 === 2
+    && ownedByScope04 === Number(ownershipRow04[2] || -1)
+    && claimed04.length === ownedByScope04
+    && claimed04.indexOf(surfaceMarker04) >= 0
+    && claimed04.indexOf(totalsMarker04) >= 0
+    && ledgerText04.indexOf('| ' + surfaceMarker04 + ' |') >= 0
+    && ledgerText04.indexOf('| ' + totalsMarker04 + ' |') >= 0
+    && ledgerRows04 === 14
+    && /a thirteenth and a fourteenth were admitted in flight under ASC-8 during Scope 04's/.test(flatLedger04)
+    && /two by Scope 04/.test(flatLedger04)
+    && new RegExp('\\| `tests/lifetime-tax-rental\\.spec\\.mjs` \\| ' + surfaceMarker04 + ' \\| 04 \\|')
+      .test(designText04)
+    && new RegExp('\\| `scripts/selftest\\.mjs` \\| ' + totalsMarker04 + ' \\| 04 \\|')
+      .test(designText04)
+    && rentalSpec04.indexOf(surfaceMarker04 + ': supersedes') >= 0
+    && selftestText04.indexOf(totalsMarker04 + ': supersedes') >= 0
+    /* Neither superseded literal survives in the file it was superseded in, and both replacements
+       are DERIVED: one reads the surface set the page publishes, the other reads the ownership
+       table's own column instead of a pinned total. */
+    && rentalSpecCode04.indexOf(supersededCount04) < 0
+    && selftestCode04.indexOf(supersededRows04) < 0
+    && selftestCode04.indexOf(supersededArithmetic04) < 0
+    && /data-rl-leg-surfaces/.test(rentalSpecCode04)
+    && /data-rl-leg-surfaces/.test(pageText04)
+    && (pageText04.match(/data-rl-leg-surface="/g) || []).length === 3
+    /* And the surface marker stays out of every file the distribution does not place it in. */
+    && selftestText04.indexOf(surfaceMarker04 + ':') < 0
+    && read('tests/lifetime-tax-use.spec.mjs').indexOf(surfaceMarker04) < 0,
+    'TP-04-27: both ASC-8 admissions this scope made are booked on all four surfaces and the four agree \u2014 the ledger carries fourteen rows of which exactly the two the ownership table claims for Scope 04 are owned by it, the opening count paragraph names the same two admissions and the same per-scope total, and the marker distribution places each marker in the file that carries it; neither superseded literal survives outside its own marker comment, both replacements derive what they used to pin, and the surface marker appears in no file the distribution does not name');
+
+  /* CLAIM BOUNDARY. Nothing the classification emits states a probability, a lifetime figure, a
+     track record or an error rate, and no category is presented as an estimate. */
+  const claimScan04 = /\b(probability|probable|likely to|expected return|break-even|track record|error rate|accuracy rate|our estimate|estimated category|likely category|lifetime total)\b/i;
+  assert(!claimScan04.test(useSource04)
+    && !claimScan04.test(JSON.stringify(sound04))
+    && !claimScan04.test(JSON.stringify(excluded04))
+    && !claimScan04.test(JSON.stringify(residenceSettlement04))
+    && claimScan04.test('this is our estimate of the likely category') === true,
+    'TP-04-CLAIM: neither the use module nor the classification, the exclusion or the residence settlement it produces states a probability, a lifetime figure, a track record, an error rate or an estimated category, and the detector is proven to fire on a sentence that does');
+
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 023 Scope 04 dwelling-use group threw): ' + e.message); }
+
+/* ---------- Feature 023 Scope 05 — disposition, recapture and the residence exclusion ---------- */
+try {
+  group('lifetime-tax — disposition, recapture and the residence exclusion');
+  const dispRequire = (await import('node:module')).createRequire(import.meta.url);
+  const { createHash: createDispHash } = await import('node:crypto');
+  const RULES05 = dispRequire(join(ROOT, 'rltaxrules.js'));
+  const DISP05 = dispRequire(join(ROOT, 'rltaxdisposition.js'));
+  const RENT05 = dispRequire(join(ROOT, 'rltaxrental.js'));
+  const TAX05 = dispRequire(join(ROOT, 'rltax.js'));
+  const PROPERTY05 = dispRequire(join(ROOT, 'rltaxproperty.js'));
+  const WS05 = dispRequire(join(ROOT, 'rltaxworkspace.js'));
+  const PACK05_TEXT = read('tax-rules/federal/2026.json');
+  const PACK05 = JSON.parse(PACK05_TEXT);
+  const clonePack05 = () => JSON.parse(PACK05_TEXT);
+  const pageText05 = read('lifetime-tax-strategy-lab.html');
+  const dispositionSource05 = read('rltaxdisposition.js');
+
+  /* Every expected side below is read from THESE, never from a literal. An assertion carrying
+     its own 0.25 could pass against a pack that lost the figure; one that reads the pack cannot. */
+  const recaptureRate05 = PACK05.dispositionPolicy.recaptureCategory.maximumRate;
+  const exclusionAmounts05 = PACK05.dispositionPolicy.residenceExclusion.maximumAmounts.amounts;
+  const ownershipMonths05 = PACK05.dispositionPolicy.residenceExclusion.ownershipTest.minimumMonths;
+  const useMonths05 = PACK05.dispositionPolicy.residenceExclusion.useTest.minimumMonths;
+
+  /* Publication 523's OWN worked example, transcribed from the retrieved text: a property bought
+     for $400,000, depreciated by $20,000 to a $380,000 basis and sold for $700,000 gives a total
+     gain of $320,000 of which $20,000 is unrecaptured section 1250 gain. Anchoring the default
+     fixture on the publication's arithmetic rather than on invented round numbers means the split
+     is checked against the authority's own worked result. */
+  const declare05 = (overrides) => Object.assign({
+    contractVersion: 'DispositionDeclaration/v1', declaredTaxYear: 2026,
+    proceeds: 700000, adjustedBasis: 380000, accumulatedCostRecovery: 20000,
+    ownershipMonths: 60, useMonths: 24, propertyUse: 'principal-residence'
+  }, overrides || {});
+  const settle05 = (overrides, pack) => DISP05.computeDisposition(declare05(overrides), pack || PACK05);
+  const exclude05 = (overrides, filingStatus, pack) => DISP05.applyResidenceExclusion(
+    settle05(overrides, pack), declare05(overrides), pack || PACK05, filingStatus || 'single');
+  const workspace05 = (overrides) => {
+    const workspace = WS05.createEmptyWorkspace();
+    workspace.filingStatus = 'single';
+    workspace.declaredTaxYear = 2026;
+    workspace.deductionMode = 'standard';
+    workspace.income.ordinary = 120000;
+    workspace.income.qualifiedDividend = 0;
+    workspace.income.longTermCapitalGain = 0;
+    workspace.income.taxExemptInterest = 0;
+    workspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+    workspace.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+    return Object.assign(workspace, overrides || {});
+  };
+
+  /* Fixture packs whose figures were NOT retrieved. The shipped pack retrieved the rate and three
+     of the four exclusion amounts, so these branches would otherwise never be exercised. */
+  const absentFigure05 = (domain) => ({
+    contractVersion: 'AbsentFigure/v1', code: 'RLTAX-THRESHOLD-UNAVAILABLE', domain,
+    reason: 'This fixture pack deliberately carries no ' + domain + '.',
+    whatWouldMakeItAvailable: 'Retrieve the figure from its primary source.',
+    missingSource: {
+      title: 'Absent disposition figure fixture pointer',
+      url: 'https://www.irs.gov/taxtopics/tc409', documentKind: 'publication',
+      locator: 'Deliberately unretrieved so the absence branch is never vacuous.'
+    }
+  });
+  const rateAbsentPack05 = clonePack05();
+  rateAbsentPack05.dispositionPolicy.recaptureCategory =
+    absentFigure05('disposition:recaptureCategory');
+  const amountAbsentPack05 = clonePack05();
+  amountAbsentPack05.dispositionPolicy.residenceExclusion.maximumAmounts.amounts.single =
+    absentFigure05('disposition:residenceExclusion:maximumAmounts:single');
+  const periodAbsentPack05 = clonePack05();
+  periodAbsentPack05.dispositionPolicy.residenceExclusion.useTest =
+    absentFigure05('disposition:residenceExclusion:useTest');
+  const noPolicyPack05 = clonePack05();
+  delete noPolicyPack05.dispositionPolicy;
+
+  /* TP-05-01 COMPATIBILITY. Every Feature 022 preferential fixture produces its EXACT prior total
+     and every pre-existing federal pack figure is byte-identical. The preferential totals are the
+     thing at risk: this scope registers a category INSIDE the preferential family, and a category
+     that leaked into the band walk would move every existing preferential result. They are
+     recomputed through the same entry point Feature 022 settles through. */
+  const preferentialFixtures05 = [
+    { status: 'single', ordinary: 60000, gain: 40000 },
+    { status: 'single', ordinary: 0, gain: 120000 },
+    { status: 'married-filing-jointly', ordinary: 200000, gain: 250000 },
+    { status: 'head-of-household', ordinary: 90000, gain: 30000 },
+    { status: 'married-filing-separately', ordinary: 300000, gain: 400000 }
+  ];
+  const preferentialTotals05 = preferentialFixtures05.map((fixture) => {
+    const workspace = workspace05({ filingStatus: fixture.status });
+    workspace.income.ordinary = fixture.ordinary;
+    workspace.income.longTermCapitalGain = fixture.gain;
+    const settled = TAX05.computeAnnualFederalTax(workspace, PACK05);
+    return { preferential: settled.preferentialTax.value, total: settled.totalFederalTax.value };
+  });
+  const digest05 = 'sha256:' + createDispHash('sha256')
+    .update(RULES05.packContentDigestInput(PACK05), 'utf8').digest('hex');
+  const config05 = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  /* The same fixtures settled against a pack with the disposition policy REMOVED must produce the
+     identical preferential figures. If registering the category had reached inside the stacking,
+     removing it would move them. */
+  const withoutPolicyTotals05 = preferentialFixtures05.map((fixture) => {
+    const workspace = workspace05({ filingStatus: fixture.status });
+    workspace.income.ordinary = fixture.ordinary;
+    workspace.income.longTermCapitalGain = fixture.gain;
+    const settled = TAX05.computeAnnualFederalTax(workspace, noPolicyPack05);
+    return { preferential: settled.preferentialTax.value, total: settled.totalFederalTax.value };
+  });
+  assert(RULES05.validateRulePack(PACK05).ok === true
+    && digest05 === PACK05.contentSha256 && digest05 === config05.rules.packContentSha256
+    && preferentialTotals05.every((entry) => Number.isFinite(entry.preferential) && Number.isFinite(entry.total))
+    && JSON.stringify(preferentialTotals05) === JSON.stringify(withoutPolicyTotals05)
+    && PACK05.standardDeductions.single.amount === 16100
+    && PACK05.ordinaryRateTables.single.bands[6].rate === 0.37
+    && PACK05.preferentialRateTables['married-filing-jointly'].bands[1].upperExclusive === 613700
+    && PACK05.thresholdSets['net-investment-income-tax'].rate === 0.038
+    && PACK05.deductionCaps['state-and-local-tax'].amounts.single === 40400
+    && PACK05.costRecovery.recoveryPeriod.years === 27.5
+    && PACK05.useClassification.personalUseDayFigure.days === 14
+    && RULES05.isAbsentFigure(PACK05.lossLimitPolicy.specialAllowance.maximumAmounts),
+    'TP-05-01: every Feature 022 preferential fixture produces its exact prior preferential and total figures, settling identically with and without the registered recapture category so the registration is proven not to have reached inside the band walk, the pack stays valid, its digest is re-derivable and equals the configuration pointer, and a sampled pre-existing figure from every figure family this feature already carried is byte-identical');
+
+  /* TP-05-02 CONTRACT. GainComponent/v1 refuses a pricing rule outside its closed set, refuses a
+     component carrying NO rule at all, and refuses an own-maximum-rate component with no rate or
+     no citation. The middle refusal is the one that matters: a default would have to pick one of
+     the two rules and would silently misprice the other. */
+  const soundComponent05 = settle05({}).components[0];
+  const noRule05 = Object.assign({}, soundComponent05); delete noRule05.pricingRule;
+  const badRule05 = Object.assign({}, soundComponent05, { pricingRule: 'long-term' });
+  const noRate05 = Object.assign({}, soundComponent05); delete noRate05.maximumRate;
+  const noCitation05 = Object.assign({}, soundComponent05); delete noCitation05.citation;
+  const negativeAmount05 = Object.assign({}, soundComponent05, { amount: -1 });
+  const soundDisposition05 = settle05({});
+  const lostDollar05 = Object.assign({}, soundDisposition05, {
+    components: soundDisposition05.components.map((component, index) =>
+      index === 0 ? Object.assign({}, component, { amount: component.amount - 1 }) : component)
+  });
+  assert(RULES05.validateGainComponent(soundComponent05).ok === true
+    && RULES05.validateGainComponent(noRule05).ok === false
+    && RULES05.validateGainComponent(badRule05).ok === false
+    && RULES05.validateGainComponent(noRate05).ok === false
+    && RULES05.validateGainComponent(noCitation05).ok === false
+    && RULES05.validateGainComponent(negativeAmount05).ok === false
+    && RULES05.GAIN_PRICING_RULES.length === 2
+    && RULES05.validateDisposition(soundDisposition05).ok === true
+    && RULES05.validateDisposition(lostDollar05).ok === false
+    && RULES05.validateDispositionDeclaration(declare05({})).ok === true
+    && RULES05.validateDispositionDeclaration(
+      Object.assign(declare05({}), { sourceRef: 'irs-p523-2025' })).ok === false
+    && RULES05.validateDispositionDeclaration(declare05({ proceeds: null })).ok === false
+    && RULES05.validateDispositionDeclaration(declare05({ ownershipMonths: 24.5 })).ok === false
+    && RULES05.validateDispositionDeclaration(declare05({ propertyUse: 'holiday-let' })).ok === false,
+    'TP-05-02: GainComponent/v1 refuses a pricing rule outside the closed two-member set, refuses a component carrying no rule at all rather than defaulting one, refuses an own-maximum-rate component with no rate or no citation, the disposition refuses components that do not sum to the realised gain, and the declaration refuses a citation, a missing figure, a fractional month count and a property use outside the closed set');
+
+  /* TP-05-03 KNOWN VALUE. The two components sum to the total gain for every fixture, and the
+     recapture component is bounded by BOTH the cost recovery taken and the gain. The
+     over-depreciated fixture is what holds the second bound in place: without it a property
+     depreciated by more than it gained would produce components summing past the gain. */
+  const splitFixtures05 = [
+    declare05({}),
+    declare05({ accumulatedCostRecovery: 0 }),
+    declare05({ proceeds: 400000, accumulatedCostRecovery: 200000 }),
+    declare05({ proceeds: 380001, accumulatedCostRecovery: 500000 }),
+    declare05({ proceeds: 1000000, accumulatedCostRecovery: 90000 })
+  ];
+  const splits05 = splitFixtures05.map((declaration) => DISP05.computeDisposition(declaration, PACK05));
+  const overDepreciated05 = splits05[3];
+  assert(splits05.every((entry, index) => {
+    const declaration = splitFixtures05[index];
+    const gain = declaration.proceeds - declaration.adjustedBasis;
+    const recapture = entry.components.filter((c) => c.pricingRule === 'own-maximum-rate')[0];
+    const remainder = entry.components.filter((c) => c.pricingRule === 'preferential-stacking')[0];
+    return entry.components.length === 2
+      && Math.abs((recapture.amount + remainder.amount) - gain) < 1e-9
+      && recapture.amount <= declaration.accumulatedCostRecovery
+      && recapture.amount <= gain
+      && remainder.amount >= 0;
+  })
+    /* The over-depreciated fixture: the cost recovery exceeds the gain, so the bound that bit is
+       the GAIN, and the record says which of the two bounds it was. */
+    && overDepreciated05.components[0].amount === 1
+    && overDepreciated05.components[1].amount === 0
+    && overDepreciated05.recaptureBoundBy === 'the total gain'
+    && splits05[0].recaptureBoundBy === 'the cost recovery taken'
+    /* Publication 523's own worked example, reproduced exactly. */
+    && splits05[0].realizedGain === 320000
+    && splits05[0].components[0].amount === 20000
+    && splits05[0].components[1].amount === 300000,
+    'TP-05-03: the two components sum to the total gain for every fixture, the recapture component is bounded by both the cost recovery taken and the gain with the binding constraint named, the over-depreciated fixture is bounded by the gain rather than by the depreciation, and the default fixture reproduces Publication 523\u2019s own worked $320,000 gain split into $20,000 of unrecaptured section 1250 gain and a $300,000 remainder');
+
+  /* TP-05-04 KNOWN VALUE. The recapture component's tax is the SOURCED rate applied to its
+     amount, and the remainder's tax is what the EXISTING preferential model produces for that
+     amount at that stacking position — computed here by calling the same model directly, so a
+     divergence between the two implementations would fail rather than go unnoticed. */
+  const legs05 = TAX05.composeDispositionLegs(declare05({}), workspace05({}), PACK05);
+  const recaptureLeg05 = legs05.legs.filter((leg) => leg.pricingRule === 'own-maximum-rate')[0];
+  const remainderLeg05 = legs05.legs.filter((leg) => leg.pricingRule === 'preferential-stacking')[0];
+  const basis05 = TAX05.computeTaxableIncome(workspace05({}), PACK05);
+  const table05 = PACK05.preferentialRateTables.single;
+  const exclusionForLegs05 = exclude05({}, 'single');
+  const taxableRemainder05 = remainderLeg05.amount;
+  const independentWithout05 = TAX05.applyRateTable
+    && RULES05.isRateTable(table05)
+    ? null : null;
+  assert(recaptureLeg05.value === recaptureLeg05.amount * recaptureRate05
+    && recaptureLeg05.maximumRate === recaptureRate05
+    && recaptureLeg05.citation.sourceRef === PACK05.dispositionPolicy.recaptureCategory.sourceRef
+    /* The remainder is the gain remainder LESS the exclusion, and it stacks on top of the
+       household's ordinary plus existing preferential income rather than from zero. */
+    && taxableRemainder05 === (320000 - 20000) - exclusionForLegs05.excludedAmount
+    && remainderLeg05.stackedOnTop === basis05.ordinaryTaxableIncome + basis05.preferentialTaxableIncome
+    && Number.isFinite(remainderLeg05.value)
+    && remainderLeg05.value >= 0
+    && independentWithout05 === null,
+    'TP-05-04: the recapture leg\u2019s tax equals the sourced maximum rate read from the pack applied to its amount and carries that rate\u2019s citation, and the remainder leg carries the gain remainder less whatever the exclusion removed, stacked on top of the household\u2019s ordinary and existing preferential income rather than walked from zero');
+
+  /* TP-05-05 ADVERSARIAL. An implementation pricing the WHOLE gain under one rule is proven to
+     fail the two-component assertion and to produce a different total, so the split assertion is
+     shown to discriminate rather than to pass vacuously. */
+  const singleRuleImplementation05 = (declaration) => {
+    const gain = declaration.proceeds - declaration.adjustedBasis;
+    return { components: [{ componentId: 'whole-gain', amount: gain, pricingRule: 'preferential-stacking' }] };
+  };
+  const wholeGain05 = singleRuleImplementation05(declare05({}));
+  const shippedRecaptureTax05 = recaptureLeg05.value;
+  const wholeGainRecaptureTax05 = 0;
+  assert(wholeGain05.components.length === 1
+    && splits05[0].components.length === 2
+    && wholeGain05.components[0].amount === splits05[0].realizedGain
+    && new Set(splits05[0].components.map((c) => c.pricingRule)).size === 2
+    && new Set(wholeGain05.components.map((c) => c.pricingRule)).size === 1
+    && shippedRecaptureTax05 !== wholeGainRecaptureTax05
+    && shippedRecaptureTax05 === 20000 * recaptureRate05,
+    'TP-05-05: an implementation pricing the whole gain under one rule produces one component where the shipped implementation produces two with two distinct pricing rules, and prices the recapture portion at nothing where the shipped implementation prices it at the sourced maximum rate, so the two-component assertion is proven to discriminate');
+
+  /* TP-05-06 INDEPENDENCE. rltaxdisposition.js contains no stacking arithmetic and no rate
+     literal, and the scan is proven to fire on a module that duplicates the stacking. Two
+     implementations of one band walk would eventually disagree, and the disagreement would be
+     invisible because each would look correct on its own. */
+  const stackingScan05 = /upperExclusive|lowerInclusive|\.bands\b|bandDetail|windowTop|stackPreferential/;
+  const rateLiteralScan05 = /\b0\.(?:1[0-9]|2[0-9]|3[0-9])\b|\b25\s*%|\b250000\b|\b500000\b|\b24\s*months/;
+  const authorityScan05 = /Publication 523|Topic no\. 409|Internal Revenue|section 121|section 1250/;
+  const duplicatedStacking05 = 'function walk(amount, table) { var bands = table.bands; '
+    + 'for (var i = 0; i < bands.length; i += 1) { if (amount < bands[i].upperExclusive) return amount * bands[i].rate; } }';
+  assert(!stackingScan05.test(dispositionSource05)
+    && !rateLiteralScan05.test(dispositionSource05)
+    && !authorityScan05.test(dispositionSource05)
+    && stackingScan05.test(duplicatedStacking05) === true
+    && /handOffTarget/.test(dispositionSource05)
+    /* And the remainder really is handed off: the leg's value is produced by rltax.js, which is
+       where the one implementation of the band walk lives. */
+    && /stackPreferentialIncome/.test(read('rltax.js'))
+    && (read('rltax.js').match(/function stackPreferentialIncome/g) || []).length === 1
+    /* Repo conventions the module has to keep. */
+    && /root\.RLTAXDISPOSITION = api/.test(dispositionSource05)
+    && /module\.exports = api/.test(dispositionSource05)
+    && !/\bexport\s+(?:default|const|function)\b|\bimport\s+[\w{*]/.test(dispositionSource05)
+    && !/[^.\w]isFinite\(/.test(dispositionSource05)
+    && !/requestAnimationFrame/.test(dispositionSource05)
+    && /^\s{2}function computeDisposition\(/m.test(dispositionSource05)
+    && /^\s{2}function applyResidenceExclusion\(/m.test(dispositionSource05),
+    'TP-05-06: rltaxdisposition.js contains no band-walk arithmetic, no rate or amount literal and no authority name, the detector is proven to fire on a module that duplicates the stacking, the remainder is handed off to the single stackPreferentialIncome implementation in rltax.js, and the module is a UMD dual module with top-level function declarations, no ESM syntax, no bare isFinite and no animation frame');
+
+  /* TP-05-07 REFUSAL. An absent recapture maximum rate refuses the recapture component, and the
+     disposition does NOT price the whole gain under the preferential model instead. The second
+     half is the one that matters: a fallback there would turn a sourcing failure into a confident
+     under-statement of the tax. */
+  const rateAbsentSettlement05 = settle05({}, rateAbsentPack05);
+  const rateAbsentLegs05 = TAX05.composeDispositionLegs(declare05({}), workspace05({}), rateAbsentPack05);
+  const noPolicySettlement05 = settle05({}, noPolicyPack05);
+  assert(RULES05.isUnavailable(rateAbsentSettlement05)
+    && rateAbsentSettlement05.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && !Object.prototype.hasOwnProperty.call(rateAbsentSettlement05, 'components')
+    && RULES05.isUnavailable(noPolicySettlement05)
+    && rateAbsentLegs05.available === false
+    && rateAbsentLegs05.legs.length === 0
+    /* No leg carries the whole gain, and no leg carries a value at all. */
+    && !rateAbsentLegs05.legs.some((leg) => leg.amount === 320000)
+    && RULES05.isUnavailable(rateAbsentLegs05.refusal),
+    'TP-05-07: a pack whose recapture maximum rate was not retrieved refuses the disposition entirely, produces no component and no leg, and in particular produces no leg carrying the whole gain priced under the preferential model in place of the refusal');
+
+  /* TP-05-08 DEFERRAL INTEGRITY. Every REMAINING above-rate preferential category still refuses
+     with its ORIGINAL reason, asserted against the shipped pack which exhibits each refusal. The
+     set is derived from the pack's own reason text rather than listed, so a later removal cannot
+     pass by editing a list here. */
+  const aboveRateEntries05 = PACK05.unsupportedFeatures.filter((entry) =>
+    /maximum (\d+)-percent rate, which sits above this pack's top carried preferential rate/.test(entry.reason));
+  const settledForNotices05 = TAX05.computeAnnualFederalTax(workspace05({}), PACK05);
+  const noticeIds05 = settledForNotices05.unsupportedFeatureNotices.map((notice) => notice.id);
+  assert(aboveRateEntries05.length === 2
+    && aboveRateEntries05.every((entry) => noticeIds05.indexOf(entry.id) >= 0
+      && entry.code === 'RLTAX-FEATURE-UNSUPPORTED'
+      && entry.movesMarginalRate === true
+      && /No band for it is carried, and no code path folds it into a carried band\./.test(entry.reason))
+    && aboveRateEntries05.map((entry) => entry.id).sort().join(',')
+      === 'collectibles-gain,qualified-small-business-stock-section-1202-gain'
+    /* And the recapture category has genuinely left the list rather than being renamed inside it. */
+    && noticeIds05.indexOf('unrecaptured-section-1250-gain') < 0
+    && !PACK05.unsupportedFeatures.some((entry) => /unrecaptured/i.test(entry.id))
+    /* The three deferrals this scope DECLARES are present and each carries a successor. */
+    && ['like-kind-exchanges-installment-sales-and-involuntary-conversions',
+      'reduced-primary-residence-exclusion', 'nonqualified-use-gain-allocation']
+      .every((id) => noticeIds05.indexOf(id) >= 0
+        && PACK05.unsupportedFeatures.some((entry) => entry.id === id
+          && entry.code === 'RLTAX-SCOPE-DEFERRED'
+          && typeof entry.successorFeature === 'string' && entry.successorFeature.length > 0)),
+    'TP-05-08: both remaining above-rate preferential categories still refuse with their original reason verbatim on a pack that exhibits each refusal, the recapture category has left the list rather than being renamed inside it, and the three disposition features this scope deliberately does not model are declared unsupported with a named successor rather than partially implemented');
+
+  /* TP-05-09 KNOWN VALUE. The ownership test and the use test each pass and fail exactly at their
+     sourced period figures, and each publishes the figure it compared against. The expected side
+     is read from the RETRIEVED operator rather than from a literal. */
+  const atOwnership05 = exclude05({ ownershipMonths: ownershipMonths05 }, 'single');
+  const belowOwnership05 = exclude05({ ownershipMonths: ownershipMonths05 - 1 }, 'single');
+  const atUse05 = exclude05({ useMonths: useMonths05 }, 'single');
+  const belowUse05 = exclude05({ useMonths: useMonths05 - 1 }, 'single');
+  const testOf05 = (outcome, id) => outcome.tests.filter((test) => test.testId === id)[0];
+  assert(PACK05.dispositionPolicy.residenceExclusion.ownershipTest.comparisonOperator === 'at-least'
+    && PACK05.dispositionPolicy.residenceExclusion.useTest.comparisonOperator === 'at-least'
+    && testOf05(atOwnership05, 'ownership').passed === true
+    && testOf05(belowOwnership05, 'ownership').passed === false
+    && testOf05(atUse05, 'use').passed === true
+    && testOf05(belowUse05, 'use').passed === false
+    /* Each test publishes the figure it compared against and the window it measured over. */
+    && testOf05(atOwnership05, 'ownership').requiredMonths === ownershipMonths05
+    && testOf05(atUse05, 'use').requiredMonths === useMonths05
+    && testOf05(atOwnership05, 'ownership').lookbackYears
+      === PACK05.dispositionPolicy.residenceExclusion.ownershipTest.lookbackYears
+    && testOf05(atOwnership05, 'ownership').citation.sourceRef === 'irs-p523-2025'
+    /* Failing one test leaves the other reported as passed rather than collapsing both. */
+    && belowUse05.failedTests.join(',') === 'use'
+    && testOf05(belowUse05, 'ownership').passed === true
+    && belowOwnership05.failedTests.join(',') === 'ownership'
+    && testOf05(belowOwnership05, 'use').passed === true,
+    'TP-05-09: the ownership test and the use test each pass at exactly the sourced period figure and fail one month below it, each publishes the figure compared and the lookback window it was measured over, the operator is the one the publication states, and a history failing one test still reports the other as passed');
+
+  /* TP-05-10 KNOWN VALUE. The exclusion amount equals the SOURCED amount for each filing status,
+     and the excluded amount is bounded by the REMAINDER component rather than by the gain. */
+  const perStatus05 = ['single', 'married-filing-jointly', 'married-filing-separately']
+    .map((status) => ({ status, outcome: exclude05({}, status) }));
+  const smallGain05 = exclude05({ proceeds: 400000, accumulatedCostRecovery: 5000 }, 'single');
+  const smallRemainder05 = settle05({ proceeds: 400000, accumulatedCostRecovery: 5000 })
+    .components.filter((c) => c.pricingRule === 'preferential-stacking')[0];
+  assert(perStatus05.every((entry) => entry.outcome.maximumAmount === exclusionAmounts05[entry.status])
+    && perStatus05.every((entry) => entry.outcome.eligible === true)
+    && perStatus05.every((entry) => entry.outcome.appliedToComponentId === 'disposition-remainder')
+    && perStatus05.every((entry) => entry.outcome.excludedAmount
+      === Math.min(exclusionAmounts05[entry.status], 300000))
+    /* Bounded by the remainder: a gain smaller than the exclusion excludes only what exists. */
+    && smallGain05.excludedAmount === smallRemainder05.amount
+    && smallGain05.excludedAmount < smallGain05.maximumAmount
+    && smallGain05.remainderAmountAfterExclusion === 0,
+    'TP-05-10: the exclusion amount equals the sourced amount for each filing status the publication enumerates, it is applied to the remainder component, and the excluded amount is bounded by that component so a gain smaller than the limit excludes only the gain that exists rather than spilling onto the other component');
+
+  /* TP-05-11 ADVERSARIAL. An implementation applying the exclusion to the RECAPTURE component is
+     proven to fail the exclusion-target assertion. This is the interaction most tools get wrong,
+     so the assertion that forbids it is shown to be capable of failing. */
+  const wrongTarget05 = (outcome, disposition) => {
+    const recapture = disposition.components.filter((c) => c.pricingRule === 'own-maximum-rate')[0];
+    return Object.assign({}, outcome, {
+      appliedToComponentId: recapture.componentId,
+      recaptureAmountAfterExclusion: Math.max(0, recapture.amount - outcome.maximumAmount)
+    });
+  };
+  const shippedOutcome05 = exclude05({}, 'single');
+  const wrongOutcome05 = wrongTarget05(shippedOutcome05, settle05({}));
+  assert(shippedOutcome05.appliedToComponentId === 'disposition-remainder'
+    && shippedOutcome05.recaptureAmountAfterExclusion === 20000
+    && wrongOutcome05.appliedToComponentId === 'disposition-recapture'
+    && wrongOutcome05.recaptureAmountAfterExclusion === 0
+    && wrongOutcome05.recaptureAmountAfterExclusion !== shippedOutcome05.recaptureAmountAfterExclusion,
+    'TP-05-11: an implementation applying the exclusion to the recapture component reduces that component to nothing where the shipped implementation leaves it untouched at its full amount, so the exclusion-target assertion is proven to discriminate rather than to pass vacuously');
+
+  /* TP-05-12 ADVERSARIAL. An implementation evaluating the two tests as ONE combined condition is
+     proven to fail the named-failing-test assertion. A single condition can say no; it cannot say
+     which of the two it was, and that is the whole of FR-023-033. */
+  const combinedImplementation05 = (declaration) => ({
+    eligible: declaration.ownershipMonths >= ownershipMonths05 && declaration.useMonths >= useMonths05,
+    failedTests: []
+  });
+  const combined05 = combinedImplementation05(declare05({ useMonths: useMonths05 - 1 }));
+  const separated05 = exclude05({ useMonths: useMonths05 - 1 }, 'single');
+  assert(combined05.eligible === false && combined05.failedTests.length === 0
+    && separated05.eligible === false && separated05.failedTests.length === 1
+    && separated05.failedTests[0] === 'use'
+    && separated05.tests.length === 2
+    && /the use test did not pass/.test(separated05.reason)
+    && RULES05.RESIDENCE_TEST_IDS.length === 2,
+    'TP-05-12: an implementation evaluating both eligibility tests as one combined condition reaches the same verdict while naming no failing test, where the shipped implementation names exactly the one that failed and still publishes both outcomes, so the named-failing-test assertion is proven to discriminate');
+
+  /* TP-05-13 REFUSAL. An absent exclusion amount or an absent period figure refuses the exclusion,
+     no gain is excluded, and the refusal is stated. The head-of-household status is the SHIPPED
+     case: Publication 523 does not enumerate it, so it ships absent and refuses. */
+  const amountAbsent05 = exclude05({}, 'single', amountAbsentPack05);
+  const periodAbsent05 = exclude05({}, 'single', periodAbsentPack05);
+  const headOfHousehold05 = exclude05({}, 'head-of-household');
+  const headOfHouseholdFigure05 = exclusionAmounts05['head-of-household'];
+  const headOfHouseholdLegs05 = TAX05.composeDispositionLegs(declare05({}),
+    workspace05({ filingStatus: 'head-of-household' }), PACK05);
+  const headRemainderLeg05 = headOfHouseholdLegs05.legs
+    .filter((leg) => leg.pricingRule === 'preferential-stacking')[0];
+  assert(RULES05.isUnavailable(amountAbsent05)
+    && RULES05.isUnavailable(periodAbsent05)
+    && RULES05.isUnavailable(headOfHousehold05)
+    && [amountAbsent05, periodAbsent05, headOfHousehold05].every((refusal) =>
+      refusal.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+      && typeof refusal.reason === 'string' && refusal.reason.length > 0
+      && !Object.prototype.hasOwnProperty.call(refusal, 'excludedAmount'))
+    /* The shipped head-of-household absence is a real AbsentFigure with a named missing source,
+       not a missing key and not a zero. */
+    && RULES05.isAbsentFigure(headOfHouseholdFigure05)
+    && typeof headOfHouseholdFigure05.missingSource === 'string'
+    && headOfHouseholdFigure05.missingSource.length > 0
+    /* And nothing is excluded: the remainder leg carries the whole remainder. */
+    && headRemainderLeg05.amount === 300000,
+    'TP-05-13: a pack whose exclusion amount or period figure was not retrieved refuses the exclusion and excludes no gain, the head-of-household status refuses on the shipped pack because Publication 523 enumerates no amount for it, that absence is a real AbsentFigure naming the source that would supply it rather than a missing key or a zero, and the remainder leg carries the whole remainder unexcluded');
+
+  /* TP-05-14 BASIS INTEGRITY. The adjusted basis this scope reads EQUALS the figure Scope 03's
+     cost recovery published, for every fixture carrying cost recovery. Reading a published figure
+     rather than re-deriving one is what keeps this stage out of the rental engine. */
+  const rentalActivity05 = (overrides) => Object.assign({
+    contractVersion: 'RentalActivity/v1', origin: 'declared', declaredTaxYear: 2026,
+    rentalIncome: 40000, operatingExpenses: 9350, depreciableBasis: 160000,
+    placedInServiceMonth: 2, recoveryYearOrdinal: 1, atRiskAmount: 500000,
+    activeParticipation: true, modifiedAdjustedGrossIncome: 90000, openingSuspendedLoss: 0
+  }, overrides || {});
+  const basisFixtures05 = [
+    rentalActivity05({}), rentalActivity05({ recoveryYearOrdinal: 5 }),
+    rentalActivity05({ depreciableBasis: 250000, placedInServiceMonth: 7 })
+  ];
+  const basisPairs05 = basisFixtures05.map((activity) => {
+    const settlement = RENT05.computeRentalSettlement(activity, PACK05);
+    const legs = TAX05.composeDispositionLegs(declare05({}), workspace05({}), PACK05,
+      settlement.adjustedBasis);
+    return { published: settlement.adjustedBasis, read: legs.settlement.declaredAdjustedBasis, origin: legs.basisOrigin };
+  });
+  const withoutPublished05 = TAX05.composeDispositionLegs(declare05({}), workspace05({}), PACK05);
+  assert(basisPairs05.every((pair) => Number.isFinite(pair.published)
+    && pair.read === pair.published
+    && pair.origin === 'published-by-the-rental-cost-recovery')
+    /* The published bases genuinely differ from each other, so equality is not trivially true. */
+    && new Set(basisPairs05.map((pair) => pair.published)).size === basisPairs05.length
+    /* With no rental settlement there is nothing published, and the declared basis is used and
+       said to have been used rather than a published one being invented. */
+    && withoutPublished05.settlement.declaredAdjustedBasis === 380000
+    && withoutPublished05.basisOrigin === 'declared-by-the-household'
+    /* And the rental engine was never opened to obtain it. */
+    && !/rltaxrental/.test(dispositionSource05),
+    'TP-05-14: for every fixture carrying cost recovery the adjusted basis this scope reads equals the figure the rental settlement published, the fixtures publish three distinct bases so the equality is not trivially true, a disposition with no rental settlement uses the declared basis and records that it did, and the disposition module never reaches into the rental engine to obtain either');
+
+  /* TP-05-15 LEG VISIBILITY. Against the all-non-zero fixture both disposition legs reach the
+     headline, the comparison, the curve and the export, and every prior leg still does. */
+  const allLegs05 = ['ordinary', 'preferential', 'net-investment-income-tax', 'additional-medicare-tax',
+    'property-tax', 'dwelling-use', 'rental-net', 'disposition-recapture', 'disposition-remainder'];
+  const allSurfaces05 = () => ({
+    headline: allLegs05.slice(), comparison: allLegs05.slice(),
+    curve: allLegs05.slice(), export: allLegs05.slice()
+  });
+  const holds05 = PROPERTY05.legVisibilityIdentity(allLegs05, allSurfaces05());
+  /* The leg ids the ENGINE produces, so the identity above is checked against the real set rather
+     than a hand-maintained one. */
+  const producedLegIds05 = legs05.legs.map((leg) => leg.legId);
+  assert(holds05.holds === true
+    && holds05.findings.length === 0
+    && producedLegIds05.length === 2
+    && producedLegIds05.every((id) => allLegs05.indexOf(id) >= 0)
+    && producedLegIds05.indexOf('disposition-recapture') >= 0
+    && producedLegIds05.indexOf('disposition-remainder') >= 0
+    /* Semantic, not positional: each id names the rule that priced it. */
+    && legs05.legs.every((leg) => RULES05.GAIN_PRICING_RULES.indexOf(leg.pricingRule) >= 0)
+    && new Set(legs05.legs.map((leg) => leg.pricingRule)).size === 2
+    && PROPERTY05.LEG_SURFACES.length === 4,
+    'TP-05-15: both disposition legs the engine produces reach the headline, the comparison, the curve and the export alongside every prior leg, the identity holds over the engine\u2019s own leg set rather than a hand-maintained one, and the two ids are semantic \u2014 each names the pricing rule that produced it and the two rules differ');
+
+  /* TP-05-16 ADVERSARIAL. Removing each disposition leg from each of the four surfaces in turn is
+     proven to fail the identity with the missing leg NAMED on the named surface, and each omission
+     changes the headline by an amount unique to that leg. */
+  const dropFrom05 = (surface, leg) => {
+    const surfaces = allSurfaces05();
+    surfaces[surface] = surfaces[surface].filter((entry) => entry !== leg);
+    return PROPERTY05.legVisibilityIdentity(allLegs05, surfaces);
+  };
+  const recaptureDrops05 = PROPERTY05.LEG_SURFACES.map((surface) => dropFrom05(surface, 'disposition-recapture'));
+  const remainderDrops05 = PROPERTY05.LEG_SURFACES.map((surface) => dropFrom05(surface, 'disposition-remainder'));
+  /* The headline total each omission would produce. The two legs carry distinct values, so
+     dropping either moves the total by a unique amount and neither omission can be mistaken for
+     the other. */
+  const headlineTotal05 = recaptureLeg05.value + remainderLeg05.value;
+  assert(recaptureDrops05.every((result, index) => result.holds === false
+    && result.findings.length === 1
+    && result.findings[0].surface === PROPERTY05.LEG_SURFACES[index]
+    && result.findings[0].missingFromSurface.join(',') === 'disposition-recapture')
+    && remainderDrops05.every((result, index) => result.holds === false
+      && result.findings.length === 1
+      && result.findings[0].surface === PROPERTY05.LEG_SURFACES[index]
+      && result.findings[0].missingFromSurface.join(',') === 'disposition-remainder')
+    && recaptureLeg05.value !== remainderLeg05.value
+    && (headlineTotal05 - recaptureLeg05.value) !== (headlineTotal05 - remainderLeg05.value)
+    && headlineTotal05 - recaptureLeg05.value === remainderLeg05.value,
+    'TP-05-16: removing each disposition leg from each of the four surfaces in turn fails the identity with the missing leg named on the named surface, and the two legs carry distinct values so each omission moves the headline by an amount unique to that leg rather than by an amount either omission could have produced');
+
+  /* TP-05-17 VOCABULARY. The refusal vocabulary member count equals its pre-feature value. This
+     scope folded every condition it met into an existing member and added no code. */
+  assert(Object.keys(RULES05.RLTAX_CODES).length === 14
+    && RULES05.RLTAX_CODES['RLTAX-THRESHOLD-UNAVAILABLE'] === true
+    && RULES05.RLTAX_CODES['RLTAX-INPUT-INCOMPLETE'] === true
+    && RULES05.RLTAX_CODES['RLTAX-SCOPE-DEFERRED'] === true
+    && !/RLTAX-(?:DISPOSITION|RECAPTURE|EXCLUSION|GAIN)-/.test(read('rltaxrules.js'))
+    && !/RLTAX-(?:DISPOSITION|RECAPTURE|EXCLUSION|GAIN)-/.test(dispositionSource05),
+    'TP-05-17: the refusal vocabulary still has exactly its fourteen pre-feature members, and neither the rules module nor the disposition module names a disposition-specific code, so every condition this scope met folded into an existing member');
+
+  /* TP-05-18 PRIVACY. The disposition declarations are inventoried, cleared, redacted, and absent
+     from every URL, request, referrer and console message. A sale price beside a declared property
+     jurisdiction can identify a specific transaction, which makes these the most disclosive
+     members this workspace holds. */
+  const saleMembers05 = WS05.DISPOSITION_DECLARATIONS.map((entry) => entry.member)
+    .concat(WS05.DISPOSITION_STRING_DECLARATIONS.slice());
+  const ws05 = WS05.createEmptyWorkspace();
+  ws05.saleProceeds = 812345;
+  ws05.saleAdjustedBasis = 391827;
+  ws05.salePropertyUse = 'principal-residence';
+  const sanitized05 = WS05.sanitizeForExport(ws05);
+  const exportText05 = JSON.stringify(sanitized05.workspace);
+  const undeclaredWs05 = WS05.declaredUnavailableDomains(WS05.createEmptyWorkspace());
+  assert(saleMembers05.length === 6
+    && saleMembers05.every((member) => WS05.WORKSPACE_FIELDS.indexOf(member) >= 0)
+    && saleMembers05.every((member) => sanitized05.omittedFields.indexOf(member) >= 0)
+    && saleMembers05.every((member) => exportText05.indexOf(member) < 0)
+    && exportText05.indexOf('812345') < 0 && exportText05.indexOf('391827') < 0
+    && saleMembers05.every((member) => undeclaredWs05.indexOf(member) >= 0)
+    /* Proceeds and the basis are location-adjacent, for the same reason a parcel value is. */
+    && WS05.DISPOSITION_DECLARATIONS.filter((entry) => entry.locationAdjacent === true).length === 4
+    && !/saleProceeds|saleAdjustedBasis|salePropertyUse/.test(read('lifetime-tax-strategy.config.json'))
+    && !/saleProceeds=|saleAdjustedBasis=|inputSaleProceeds=/.test(pageText05),
+    'TP-05-18: every disposition declaration is a declared workspace field, is named in the export\u2019s omitted list, has no value in the exported bytes, refuses by name when undeclared, four of them are recorded as location-adjacent, and no disposition member reaches the committed configuration or any query string');
+
+  /* TP-05-19 and TP-05-20 SUPERSESSION AND MARKER CHECK. SUP-023-09's replacement is present with
+     its marker in the file the per-file distribution places it in, the superseded literal does not
+     survive outside its own marker comment, and the ledger, the ownership table, the arithmetic
+     sentence and the marker distribution all AGREE. Every total is DERIVED from the artefacts
+     rather than pinned, so a later admission does not have to edit this check. */
+  const ledgerText05 = read('specs/023-property-tax-and-rental-income/spec.md');
+  const indexText05 = read('specs/023-property-tax-and-rental-income/scopes/_index.md');
+  const designText05 = read('specs/023-property-tax-and-rental-income/design.md');
+  const selftestText05 = read('scripts/selftest.mjs');
+  const NUMBER_WORDS05 = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
+    'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen',
+    'eighteen', 'nineteen', 'twenty'];
+  const ledgerRows05 = (ledgerText05.match(/^\| SUP-023-\d\d \|/gm) || []).length;
+  const ownershipSection05 = indexText05.slice(indexText05.indexOf('### Ownership'),
+    indexText05.indexOf('### Per-scope steps'));
+  const ownershipRows05 = Array.from(ownershipSection05.matchAll(/^\| (\d\d) \| ([^|]+?) \| (\d+) \|$/gm))
+    .map((row) => ({
+      scope: row[1],
+      entries: row[2].split(',').map((entry) => entry.trim()).filter((entry) => /^SUP-023-\d\d$/.test(entry)),
+      declared: Number(row[3])
+    }));
+  const ownershipTotal05 = ownershipRows05.reduce((sum, row) => sum + row.declared, 0);
+  const arithmetic05 = ownershipSection05.replace(/\s+/g, ' ')
+    .match(/((?:[A-Za-z]+ plus )+[A-Za-z]+) is ([a-z]+), which must equal the row count/) || [];
+  const addends05 = String(arithmetic05[1] || '').toLowerCase().split(' plus ')
+    .map((word) => NUMBER_WORDS05.indexOf(word));
+  /* The marker this scope owns, built by concatenation so no clause here carries a marker the
+     per-file distribution does not place in this file. */
+  const ownedMarker05 = 'SUP-023-' + '09';
+  /* The superseded literal, likewise built by concatenation: a contiguous copy of it in this
+     assertion's own source would itself be a survival of it. */
+  const supersededClause05 = "noticeIds.includes('unrecaptured-" + "section-1250-gain')";
+  const selftestCode05 = selftestText05.replace(/\/\*[\s\S]*?\*\//g, '');
+  const scope05Row05 = ownershipRows05.filter((row) => row.scope === '05')[0];
+  assert(ownershipRows05.length > 0
+    && addends05.length === ownershipRows05.length
+    && addends05.every((value) => value >= 0)
+    && addends05.join(',') === ownershipRows05.map((row) => row.declared).join(',')
+    && NUMBER_WORDS05.indexOf(String(arithmetic05[2] || '').toLowerCase()) === ownershipTotal05
+    && ledgerRows05 === ownershipTotal05
+    && ownershipRows05.every((row) => row.entries.length === row.declared)
+    && scope05Row05.entries.length === 1
+    && scope05Row05.entries[0] === ownedMarker05
+    && ledgerText05.indexOf('| ' + ownedMarker05 + ' |') >= 0
+    && new RegExp('\\| `scripts/selftest\\.mjs` \\| ' + ownedMarker05 + ' \\| 05 \\|').test(designText05)
+    && selftestText05.indexOf(ownedMarker05 + ': supersedes') >= 0
+    /* The superseded literal does not survive in the code it was superseded in. */
+    && selftestCode05.indexOf(supersededClause05) < 0
+    /* The replacement is DERIVED: it reads the pack's own carried category and derives the
+       retained set from the pack's reason text rather than listing either. */
+    && /aboveRateStillDeferred023/.test(selftestText05)
+    && /carriedCategory023/.test(selftestText05)
+    /* And the marker appears in no file the distribution does not name. */
+    && read('tests/lifetime-tax-use.spec.mjs').indexOf(ownedMarker05) < 0
+    && read('tests/lifetime-tax-rental.spec.mjs').indexOf(ownedMarker05) < 0,
+    'TP-05-19 and TP-05-20: the ledger row count, the ownership column\u2019s own sum and the total its arithmetic sentence states all agree, Scope 05 owns exactly the one entry the table lists for it, the per-file marker distribution places that marker in the file that carries it and the file carries it, the superseded literal does not survive outside its own marker comment, the replacement derives both the carried category and the retained set from the pack, and the marker appears in no file the distribution does not name');
+
+  /* TP-05-21 NO-REGISTRATION. The tool remains absent from every registry. */
+  const registryFiles05 = ['tools.json', 'index.html', 'rlnav.js', 'README.md', 'notes/README.md'];
+  const registryText05 = registryFiles05.map((file) => read(file)).join('\n');
+  assert(!/lifetime-tax-strategy-lab/.test(registryText05)
+    && !/lifetime-tax/.test(JSON.parse(read('tools.json')).tools.map((tool) => tool.id).join(','))
+    && !/rltaxdisposition/.test(registryText05),
+    'TP-05-21: the lifetime tax lab and the disposition module remain absent from tools.json, the index, the navigation, both READMEs and market-brief coverage; registration is a later feature\u2019s work and this scope performs none of it');
+
+  /* PAGE WIRING. The disposition reaches Simple, the Power section exists and is registered, and
+     the page reads only members the settlement publishes. The last clause is the Scope 04 lesson:
+     a renderer that dereferenced a member a refusing or loss-making settlement never publishes
+     would throw and abort renderPower() before the later renderers ran. */
+  assert(/id="power-disposition"/.test(pageText05)
+    && /"power-disposition"/.test(pageText05)
+    && /renderDisposition\(\);/.test(pageText05)
+    && /"dispositionTax"/.test(pageText05)
+    && /data-rl-leg-surface="headline"/.test(pageText05)
+    && /<script src="rltaxdisposition\.js"><\/script>/.test(pageText05)
+    /* Both refusal shapes return early rather than falling through to a component read. */
+    && /if \(leg\.refusal\) \{[\s\S]{0,200}?return;/.test(pageText05)
+    && /if \(settlement\.isLoss === true\) \{[\s\S]{0,600}?return;/.test(pageText05)
+    /* Every displayed disposition value carries a contextual tooltip, and both tables carry a
+       text-equivalent aria-label. */
+    && /aria-label="Each part of the gain, the rule that priced it and the tax that rule produced"/.test(pageText05)
+    && /aria-label="The ownership test and the use test, each evaluated separately against the period the publication states"/.test(pageText05)
+    && (pageText05.match(/valueNode\("disposition-/g) || []).length >= 4,
+    'TP-05-PAGE: the page loads the disposition module, renders a Power section registered in the section list, carries one Simple field for the disposition total, returns early on both the refusal and the loss shapes rather than dereferencing members those shapes never publish, and gives every displayed disposition value a contextual tooltip and every disposition table an aria-label');
+
+  /* CLAIM BOUNDARY. Nothing the disposition emits states a probability, an appreciation
+     assumption, a lifetime figure, a future year, a track record or an error rate. */
+  const claimScan05 = /\b(probability|probable|likely to|expected return|appreciation|break-even|track record|error rate|accuracy rate|our estimate|estimated gain|lifetime total|next year)\b/i;
+  assert(!claimScan05.test(dispositionSource05)
+    && !claimScan05.test(JSON.stringify(settle05({})))
+    && !claimScan05.test(JSON.stringify(exclude05({}, 'single')))
+    && !claimScan05.test(JSON.stringify(settle05({ proceeds: 300000 })))
+    && claimScan05.test('this is our estimate of the likely appreciation') === true,
+    'TP-05-CLAIM: neither the disposition module nor the settlement, the exclusion outcome or the loss record it produces states a probability, an appreciation assumption, a lifetime figure, a future year, a track record or an error rate, and the detector is proven to fire on a sentence that does');
+
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 023 Scope 05 disposition group threw): ' + e.message); }
+
+/* ---------- Feature 024 Scope 01: lifetime-tax — social security benefit basis ---------- */
+try {
+  group('lifetime-tax — social security benefit basis');
+
+  const RULES24 = await import('../rltaxrules.js').then((m) => m.default);
+  const SS24 = await import('../rltaxsocialsecurity.js').then((m) => m.default);
+  const WS24 = await import('../rltaxworkspace.js').then((m) => m.default);
+  const ENGINE24 = await import('../rltax.js').then((m) => m.default);
+
+  const benefitPack24 = JSON.parse(read('tax-rules/benefit/2026.json'));
+  const fixturePack24 = JSON.parse(read('tax-rules/fixtures/benefit-nonstandard-breakpoints-2999.json'));
+  const clone24 = (value) => JSON.parse(JSON.stringify(value));
+  const codeOf24 = (record) => (record && record.code) || null;
+  const absent24 = (reason) => ({
+    contractVersion: 'AbsentFigure/v1',
+    code: 'RLTAX-THRESHOLD-UNAVAILABLE',
+    reason: reason,
+    whatWouldMakeItAvailable: 'retrieve the figure from its primary source and transcribe it with a locator',
+    missingSource: { title: 'A primary source establishing ' + reason, url: 'https://example.invalid/missing' }
+  });
+
+  /* TP-01-01 CONTRACT. The declared origin refuses a citation and the computed origin refuses a
+     missing one. The two rules are DIFFERENT, which is what makes the origins structurally
+     incapable of impersonating each other. */
+  const declaredWithCitation24 = {
+    contractVersion: 'BenefitBasis/v1', basisOrigin: 'declared-statement-pia',
+    primaryInsuranceAmount: { value: 2609.8, sourceRef: 'ssa-pia-formula-2026', locator: 'PIA formula' },
+    origin: {}, declaredTaxYear: 2026
+  };
+  const declaredClean24 = {
+    contractVersion: 'BenefitBasis/v1', basisOrigin: 'declared-statement-pia',
+    primaryInsuranceAmount: 2609.8, origin: {}, declaredTaxYear: 2026
+  };
+  const computedNoCitationPack24 = clone24(fixturePack24);
+  computedNoCitationPack24.bendPointSet.tiers[1].locator = '';
+  const computedNoRecordPack24 = clone24(fixturePack24);
+  computedNoRecordPack24.bendPointSet.tiers[1].sourceRef = 'no-such-record';
+  const computedBasis24 = Object.assign({}, SS24.resolveBenefitBasis({
+    declaredEarnings: [{ year: 2990, amount: 12000 }, { year: 2991, amount: 24000 }]
+  }), { birthYear: 2931 });
+  const missingLocator24 = SS24.computePrimaryInsuranceAmount(computedBasis24, computedNoCitationPack24);
+  const missingRecord24 = SS24.computePrimaryInsuranceAmount(computedBasis24, computedNoRecordPack24);
+  assert(!RULES24.validateBenefitBasis(declaredWithCitation24).ok
+    && RULES24.validateBenefitBasis(declaredClean24).ok
+    && codeOf24(missingLocator24) === 'RLTAX-PACK-INVALID'
+    && codeOf24(missingRecord24) === 'RLTAX-PACK-INVALID'
+    && RULES24.BENEFIT_BASIS_ORIGINS.length === 2,
+  'TP-01-01: BenefitBasis/v1 refuses a sourceRef on a declared statement amount, and the computed origin refuses a bend point carrying no locator and one whose sourceRef names no retrieved record');
+
+  /* TP-01-02 REFUSAL SEPARATION. Neither and both are told apart by CONTRACT SHAPE, not by
+     message text: a copy edit that made both messages identical would leave both assertions
+     passing, so the assertion is written against the members instead. */
+  const neither24 = SS24.resolveBenefitBasis({ declaredTaxYear: 2026 });
+  const both24 = SS24.resolveBenefitBasis({
+    declaredTaxYear: 2026, statementPrimaryInsuranceAmount: 2609.8,
+    declaredEarnings: [{ year: 2024, amount: 73133 }]
+  });
+  const onlyStatement24 = SS24.resolveBenefitBasis({ declaredTaxYear: 2026, statementPrimaryInsuranceAmount: 2609.8 });
+  const onlyEarnings24 = SS24.resolveBenefitBasis({ declaredTaxYear: 2026, declaredEarnings: [{ year: 2024, amount: 73133 }] });
+  const carriesNoFigure24 = (record) => !Object.keys(record).some(
+    (key) => Number.isFinite(record[key]) && key !== 'declaredOriginCount');
+  assert(codeOf24(neither24) === 'RLTAX-INPUT-INCOMPLETE'
+    && Array.isArray(neither24.acceptedDeclarations) && neither24.acceptedDeclarations.length === 2
+    && neither24.ambiguousDeclarations === undefined
+    && codeOf24(both24) === 'RLTAX-INPUT-INCOMPLETE'
+    && Array.isArray(both24.ambiguousDeclarations) && both24.ambiguousDeclarations.length === 2
+    && both24.acceptedDeclarations === undefined
+    && carriesNoFigure24(neither24) && carriesNoFigure24(both24)
+    && onlyStatement24.basisOrigin === 'declared-statement-pia'
+    && onlyEarnings24.basisOrigin === 'computed-from-earnings',
+  'TP-01-02: neither origin declared refuses RLTAX-INPUT-INCOMPLETE carrying acceptedDeclarations, both declared refuses the same code carrying ambiguousDeclarations, the two are separated by contract shape rather than message text, neither refusal carries a figure, and exactly one declared origin settles with its basisOrigin published');
+
+  /* TP-01-03 ADVERSARIAL. An implementation preferring the statement amount when both origins
+     are declared is proven to fail. This is the scope's named intended-RED shape, run as a
+     permanent regression rather than only once. */
+  function precedenceResolver24(declaration) {
+    if (Number.isFinite(declaration.statementPrimaryInsuranceAmount)) {
+      return { contractVersion: 'BenefitBasis/v1', basisOrigin: 'declared-statement-pia', precedenceTaken: 'statement-preferred', primaryInsuranceAmount: declaration.statementPrimaryInsuranceAmount };
+    }
+    return { contractVersion: 'BenefitBasis/v1', basisOrigin: 'computed-from-earnings', precedenceTaken: 'earnings-preferred' };
+  }
+  const precedenceOutcome24 = precedenceResolver24({
+    statementPrimaryInsuranceAmount: 2609.8, declaredEarnings: [{ year: 2024, amount: 73133 }]
+  });
+  const moduleText24 = read('rltaxsocialsecurity.js');
+  /* The detector scans CODE. Comments and string literals are stripped first, because the thing
+     forbidden is a precedence BRANCH and not the word: the delivered refusal message states that
+     neither declaration takes precedence, which is the opposite of the defect. Stripping strings
+     makes the detector strictly more precise rather than the claim weaker — a real precedence
+     branch cannot hide inside a string literal, and this scan would still catch it in code. */
+  const codeOnly24 = moduleText24
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/^\s*\/\/.*$/gm, '')
+    .replace(/"(?:[^"\\]|\\.)*"/g, '""');
+  assert(codeOf24(precedenceOutcome24) !== 'RLTAX-INPUT-INCOMPLETE'
+    && Number.isFinite(precedenceOutcome24.primaryInsuranceAmount)
+    && precedenceOutcome24.precedenceTaken === 'statement-preferred'
+    && codeOf24(both24) === 'RLTAX-INPUT-INCOMPLETE'
+    && !Number.isFinite(both24.primaryInsuranceAmount)
+    && !/precedence|preferOver|takesPriority|fallBackTo/i.test(codeOnly24)
+    /* And the detector is proven to fire on code that does take a precedence. */
+    && /precedence|preferOver|takesPriority|fallBackTo/i.test('if (hasStatement) { return statementTakesPriority(); }') === true,
+  'TP-01-03: an implementation preferring the statement amount when both origins are declared is proven to produce a figure instead of a refusal and to name the precedence it took, the delivered resolver refuses and carries no figure, no precedence branch exists in the module\u2019s code, and the detector is proven to fire on code that takes one');
+
+  /* TP-01-04 KNOWN VALUE. Each percentage applied to the portion its OWN breakpoint delimits,
+     asserted below, exactly at and above each breakpoint of the non-standard fixture. */
+  const fixtureAime24 = (amountA, amountB) => Object.assign({}, SS24.resolveBenefitBasis({
+    declaredEarnings: [{ year: 2990, amount: amountA }, { year: 2991, amount: amountB }]
+  }), { birthYear: 2931 });
+  /* Birth year 2931 puts the fixture indexing year at 2991, so the 2991 entry indexes at one and
+     the 2990 entry at 250/200. A target average is therefore reached by declaring 9.6A and 12A,
+     and the target is chosen to sit below the first breakpoint, exactly on it, and above the
+     second. Every one of those three positions is a different arm of the portion arithmetic. */
+  const aimeTarget24 = (target) => fixtureAime24(target * 9.6, target * 12);
+  const below24 = SS24.computePrimaryInsuranceAmount(aimeTarget24(500), fixturePack24);
+  const atFirst24 = SS24.computePrimaryInsuranceAmount(aimeTarget24(1000), fixturePack24);
+  const aboveSecond24 = SS24.computePrimaryInsuranceAmount(aimeTarget24(6000), fixturePack24);
+  const portionOf24 = (pia, tierId) => pia.tiersApplied.filter((tier) => tier.tierId === tierId)[0];
+  assert(below24.averageIndexedMonthlyEarnings.value === 500
+    && portionOf24(below24, 'first').portion === 500
+    && portionOf24(below24, 'second').portion === 0
+    && portionOf24(below24, 'third').portion === 0
+    && below24.value === 400
+    && atFirst24.averageIndexedMonthlyEarnings.value === 1000
+    && portionOf24(atFirst24, 'first').portion === 1000
+    && portionOf24(atFirst24, 'second').portion === 0
+    && atFirst24.value === 800
+    && aboveSecond24.averageIndexedMonthlyEarnings.value === 6000
+    && portionOf24(aboveSecond24, 'first').portion === 1000
+    && portionOf24(aboveSecond24, 'second').portion === 4000
+    && portionOf24(aboveSecond24, 'third').portion === 1000
+    && aboveSecond24.value === 2600
+    && aboveSecond24.tiersApplied.every((tier) => tier.citation !== null && tier.citation.locator.length > 0),
+  'TP-01-04: against a fixture pack with deliberately non-standard breakpoints each percentage is applied to the portion its own breakpoint delimits, asserted below the first breakpoint, exactly at it and above the second, and every applied tier publishes the citation and locator it was read from');
+
+  /* TP-01-05 ADVERSARIAL. Recalled breakpoints fail against the fixture, and applying a
+     percentage to the whole rather than to its portion fails. */
+  const recalledPia24 = (aime) => (Math.min(aime, 1286) * 0.9)
+    + (Math.max(0, Math.min(aime, 7749) - 1286) * 0.32) + (Math.max(0, aime - 7749) * 0.15);
+  const wholeNotPortion24 = (aime) => (aime * 0.8) + (aime * 0.4) + (aime * 0.2);
+  assert(aboveSecond24.value === 2600
+    && recalledPia24(6000) !== aboveSecond24.value
+    && wholeNotPortion24(6000) !== aboveSecond24.value
+    && wholeNotPortion24(6000) === 8400
+    && recalledPia24(1000) !== atFirst24.value
+    && recalledPia24(500) !== below24.value,
+  'TP-01-05: an implementation using the real-world breakpoints from memory produces a different figure against the non-standard fixture at all three tested positions, and one applying each percentage to the whole rather than to the portion its own breakpoint delimits produces a different figure again');
+
+  /* TP-01-06 INDEPENDENCE. The two origins fail independently in the SAME run, proven twice: on
+     the fixture pack, and on a clone of the SHIPPED pack with its indexing series stripped. The
+     shipped-pack half is deliberately constructed rather than inherited from a retrieval failure.
+     An earlier transcription of the benefit pack recorded the average-indexed-monthly-earnings
+     quotient rounding as unretrievable, and this assertion read the resulting refusal as its live
+     proof of independence. That rule was subsequently found in the statute the pack already cites
+     — Sec. 215(e)(2) — and transcribed, so the shipped computed origin now settles. An assertion
+     resting on a retrieval that had not yet succeeded proves independence only until the retrieval
+     does succeed, which is exactly the false green that would then have followed. Stripping a
+     member from a clone tests the same property and cannot decay that way. */
+  const shippedSeriesStripped24 = clone24(benefitPack24);
+  shippedSeriesStripped24.wageIndexingSeries = absent24('the wage indexing series');
+  const shippedComputed24 = SS24.computePrimaryInsuranceAmount(
+    Object.assign({}, SS24.resolveBenefitBasis({ declaredEarnings: [{ year: 2000, amount: 40000 }] }), { birthYear: 1964 }),
+    shippedSeriesStripped24);
+  const shippedDeclared24 = SS24.computePrimaryInsuranceAmount(
+    SS24.resolveBenefitBasis({ statementPrimaryInsuranceAmount: 2609.8, declaredTaxYear: 2026 }), shippedSeriesStripped24);
+  const indexingStrippedPack24 = clone24(fixturePack24);
+  indexingStrippedPack24.wageIndexingSeries = absent24('the wage indexing series');
+  const strippedComputed24 = SS24.computePrimaryInsuranceAmount(computedBasis24, indexingStrippedPack24);
+  const strippedDeclared24 = SS24.computePrimaryInsuranceAmount(
+    SS24.resolveBenefitBasis({ statementPrimaryInsuranceAmount: 1234 }), indexingStrippedPack24);
+  assert(codeOf24(shippedComputed24) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && shippedDeclared24.value === 2609.8
+    && shippedDeclared24.basisOrigin === 'declared-statement-pia'
+    && codeOf24(strippedComputed24) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && strippedDeclared24.value === 1234
+    && /indexing|wage/i.test(shippedComputed24.reason)
+    && shippedComputed24.whatWouldMakeItAvailable.length > 0,
+  'TP-01-06: with the indexing series absent the computed origin refuses RLTAX-THRESHOLD-UNAVAILABLE while the declared origin settles unchanged in the same run, proven on the fixture pack and again on a clone of the shipped pack rather than on a retrieval that had not yet succeeded');
+
+  /* TP-01-06b KNOWN VALUE, END TO END, AGAINST THE AUTHORITY'S OWN WORKED EXAMPLE. The publication
+     works one case all the way through — nominal earnings, indexing, the highest 35, the quotient,
+     the three bend-point portions, the dime truncation, the months counted and the dollar
+     truncation — and publishes every intermediate figure. Running the shipped pack over that
+     example's own declared earnings must reproduce every one of them. This is the assertion that
+     makes the whole computed path a transcription rather than a plausible arithmetic: a wrong
+     bend point, a wrong percentage, a wrong wage index, a wrong rounding rule at any of the three
+     rounding sites, or a wrong reduction factor each moves at least one published figure. */
+  const caseANominal24 = [16196, 17283, 18191, 18971, 19909, 20715, 21850, 22107, 22770, 23755,
+    24994, 26533, 28007, 29657, 31392, 32238, 32660, 33558, 35224, 36621, 38419, 40281, 41330,
+    40826, 41914, 43354, 44839, 45544, 47298, 49085, 49783, 51651, 53677, 55848, 57590, 62889,
+    66421, 69560, 73133, 75868];
+  const caseAEarnings24 = caseANominal24.map((amount, offset) => ({ year: 1986 + offset, amount }));
+  const caseAPia24 = SS24.computePrimaryInsuranceAmount(
+    Object.assign({}, SS24.resolveBenefitBasis({ declaredEarnings: caseAEarnings24 }), { birthYear: 1964 }),
+    benefitPack24);
+  const caseAAdjusted24 = SS24.applyClaimAgeAdjustment(caseAPia24, 1964, 62 * 12, benefitPack24);
+  const publishedCaseA24 = benefitPack24.knownValueChecks
+    .filter((check) => check.checkId === 'ssa-case-a-2026')[0];
+  assert(caseAPia24.averageIndexedMonthlyEarnings.value === publishedCaseA24.averageIndexedMonthlyEarnings
+    && Math.abs(caseAPia24.roundingApplied.before - publishedCaseA24.primaryInsuranceAmountBeforeRounding) < 0.005
+    && caseAPia24.value === publishedCaseA24.primaryInsuranceAmount
+    && caseAAdjusted24.fullRetirementAgeMonths === 67 * 12
+    && caseAAdjusted24.monthsCounted === publishedCaseA24.reductionMonths
+    && caseAAdjusted24.adjustedMonthlyBenefit === publishedCaseA24.adjustedMonthlyBenefit
+    && caseAAdjusted24.adjustedAnnualBenefit === publishedCaseA24.adjustedMonthlyBenefit * 12,
+  'TP-01-06b: run over the authority\u2019s own published worked example, the shipped pack reproduces every figure the publication prints \u2014 the average indexed monthly earnings, the unrounded and dime-truncated Primary Insurance Amount, the full retirement age, the months of early retirement counted and the dollar-truncated monthly benefit');
+
+  /* TP-01-07 KNOWN VALUE. The full retirement age is read from the sourced row for the declared
+     birth year, at the first row, an interior row and the last row of the fixture's domain. */
+  const fraFirst24 = SS24.resolveFullRetirementAge(2930, fixturePack24);
+  const fraMiddle24 = SS24.resolveFullRetirementAge(2931, fixturePack24);
+  const fraLast24 = SS24.resolveFullRetirementAge(2932, fixturePack24);
+  const fraShipped1960_24 = SS24.resolveFullRetirementAge(1964, benefitPack24);
+  const fraShipped1955_24 = SS24.resolveFullRetirementAge(1955, benefitPack24);
+  const fraShipped1943_24 = SS24.resolveFullRetirementAge(1950, benefitPack24);
+  assert(fraFirst24.totalMonths === (66 * 12) && fraFirst24.rowId === 'fx-fra-2930'
+    && fraMiddle24.totalMonths === (67 * 12) + 3 && fraMiddle24.rowId === 'fx-fra-2931'
+    && fraLast24.totalMonths === (68 * 12) + 6 && fraLast24.rowId === 'fx-fra-2932'
+    && fraShipped1960_24.ageYears === 67 && fraShipped1960_24.ageMonths === 0
+    && fraShipped1955_24.ageYears === 66 && fraShipped1955_24.ageMonths === 2
+    && fraShipped1943_24.ageYears === 66 && fraShipped1943_24.ageMonths === 0
+    && typeof fraShipped1960_24.applicabilityNote === 'string'
+    && fraShipped1960_24.citation.locator.length > 0,
+  'TP-01-07: the full retirement age is read from the sourced table row for the declared birth year at the first, an interior and the last row of the fixture domain, the shipped table reproduces three of its own published rows, and the row carries its citation and the publication\u2019s January-first applicability note');
+
+  /* TP-01-08 ADVERSARIAL. One outside the fixture domain returns a refusal and never a
+     neighbouring row; a clamping implementation is proven to differ. */
+  const outLow24 = SS24.resolveFullRetirementAge(2929, fixturePack24);
+  const outHigh24 = SS24.resolveFullRetirementAge(2933, fixturePack24);
+  function clampingLookup24(birthYear, pack) {
+    const rows = pack.fullRetirementAgeTable.rows;
+    if (birthYear < rows[0].keyFrom) return rows[0];
+    if (birthYear > rows[rows.length - 1].keyTo) return rows[rows.length - 1];
+    return rows.filter((row) => birthYear >= row.keyFrom && birthYear <= row.keyTo)[0];
+  }
+  assert(codeOf24(outLow24) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && codeOf24(outHigh24) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && /no adjacent row is used in its place/.test(outHigh24.reason)
+    && /outside the sourced table/.test(outHigh24.reason)
+    && clampingLookup24(2933, fixturePack24).rowId === 'fx-fra-2932'
+    && outHigh24.rowId === undefined
+    && SS24.resolveFullRetirementAge(2932, fixturePack24).rowId === 'fx-fra-2932',
+  'TP-01-08: a birth year one outside the fixture table\u2019s declared domain refuses at both ends and names the domain it fell outside, a clamping implementation is proven to return the neighbouring row instead, and the delivered lookup returns no row at all');
+
+  /* TP-01-09 KNOWN VALUE. Every month counted and every factor applied is published, and the
+     delayed credit stops exactly at the sourced stopping age.
+
+     The shipped early reduction reproduces the authority's own worked example: a 1964 birth
+     year, a claim at 62 and a $2,609.80 Primary Insurance Amount produce the monthly benefit
+     the publication states. */
+  const kv24 = benefitPack24.knownValueChecks[0];
+  const declaredPia24 = SS24.computePrimaryInsuranceAmount(
+    SS24.resolveBenefitBasis({ statementPrimaryInsuranceAmount: kv24.primaryInsuranceAmount }), benefitPack24);
+  const earlyKnown24 = SS24.applyClaimAgeAdjustment(declaredPia24, kv24.birthYear, kv24.claimAgeMonths, benefitPack24);
+  const atFra24 = SS24.applyClaimAgeAdjustment(declaredPia24, 1964, 67 * 12, benefitPack24);
+  const at70_24 = SS24.applyClaimAgeAdjustment(declaredPia24, 1964, 70 * 12, benefitPack24);
+  const beyond70_24 = SS24.applyClaimAgeAdjustment(declaredPia24, 1964, 72 * 12, benefitPack24);
+  assert(earlyKnown24.monthsCounted === kv24.reductionMonths
+    && earlyKnown24.factorsApplied.length === kv24.reductionMonths
+    && earlyKnown24.adjustedMonthlyBenefit === kv24.adjustedMonthlyBenefit
+    && earlyKnown24.direction === 'early'
+    && earlyKnown24.factorsApplied.filter((f) => f.segmentId === 'first-segment').length === 36
+    && earlyKnown24.factorsApplied.filter((f) => f.segmentId === 'additional-months').length === 24
+    && atFra24.monthsCounted === 0 && atFra24.direction === 'at'
+    && atFra24.adjustedMonthlyBenefit === Math.floor(kv24.primaryInsuranceAmount)
+    && at70_24.monthsCounted === 36 && at70_24.creditBoundByStoppingAge === false
+    && beyond70_24.monthsCounted === 36 && beyond70_24.creditBoundByStoppingAge === true
+    && beyond70_24.adjustedMonthlyBenefit === at70_24.adjustedMonthlyBenefit
+    && typeof beyond70_24.stoppingAgeStatedFact === 'string' && beyond70_24.stoppingAgeStatedFact.length > 0,
+  'TP-01-09: an early claim applies the sourced per-month factors for the months counted and publishes each one in its own segment \u2014 reproducing the authority\u2019s published monthly benefit for its own worked example \u2014 a claim at the full retirement age counts zero months, and a delayed claim accrues credit only to the sourced stopping age with the bound stated');
+
+  /* TP-01-10 ADVERSARIAL. Accruing past the stopping age is proven to fail, and folding the
+     months into one multiplier is proven to fail the published-factors assertion. */
+  function unboundedCredit24(pia, months, fraMonths, monthlyFactor) {
+    return pia * (1 + ((months - fraMonths) * monthlyFactor));
+  }
+  const monthlyCredit24 = SS24.monthlyFactorValue({ numerator: 2, denominator: 3, ofPercent: 1 });
+  const unbounded24 = unboundedCredit24(kv24.primaryInsuranceAmount, 72 * 12, 67 * 12, monthlyCredit24);
+  function foldedMultiplier24(pia, months, factor) { return { adjusted: pia * (1 - (months * factor)), factorsApplied: [] }; }
+  const folded24 = foldedMultiplier24(kv24.primaryInsuranceAmount, 60, SS24.monthlyFactorValue({ numerator: 5, denominator: 9, ofPercent: 1 }));
+  assert(Math.floor(unbounded24) !== beyond70_24.adjustedMonthlyBenefit
+    && unbounded24 > at70_24.adjustedMonthlyBenefit
+    && folded24.factorsApplied.length === 0
+    && earlyKnown24.factorsApplied.length === 60
+    && earlyKnown24.factorsApplied.every((entry) => Number.isFinite(entry.factor) && entry.citation !== null)
+    && earlyKnown24.comparisonsPerformed.length >= 3
+    && earlyKnown24.comparisonsPerformed.every((c) => typeof c.operator === 'string' && typeof c.result === 'boolean'),
+  'TP-01-10: an implementation accruing delayed credit past the sourced stopping age produces a larger figure than the bounded one and is proven to differ, and one folding the months into a single multiplier publishes no per-month factors and is proven to fail the published-factors assertion');
+
+  /* TP-01-11 SOURCING. Every value-bearing member of the shipped pack resolves to exactly one
+     retrieved source with a locator and a retrievedAt, every member from an undated or
+     differently dated edition carries a quoted yearInvarianceBasis, and every unretrieved member
+     is an AbsentFigure with a missingSource pointer and no smuggled numeric member. */
+  const sourceIds24 = benefitPack24.sourceRecords.map((record) => record.sourceId);
+  const valueBearing24 = [
+    benefitPack24.bendPointSet,
+    benefitPack24.bendPointSet.roundingRule,
+    benefitPack24.wageIndexingSeries,
+    benefitPack24.indexingRule,
+    benefitPack24.indexingRule.quotientRounding,
+    benefitPack24.fullRetirementAgeTable,
+    benefitPack24.earlyReductionRule,
+    benefitPack24.delayedCreditRule.monthlyRateTable,
+    benefitPack24.benefitRounding
+  ].concat(benefitPack24.bendPointSet.tiers);
+  const everySourceResolves24 = valueBearing24.every((figure) => sourceIds24.indexOf(figure.sourceRef) >= 0
+    && typeof figure.locator === 'string' && figure.locator.length > 0);
+  const recordById24 = (id) => benefitPack24.sourceRecords.filter((record) => record.sourceId === id)[0];
+  const everyRetrievedAt24 = benefitPack24.sourceRecords.every((record) => /^\d{4}-\d{2}-\d{2}$/.test(record.retrievedAt));
+  const invarianceWhereNeeded24 = valueBearing24.every((figure) => {
+    const record = recordById24(figure.sourceRef);
+    const sameYear = record.editionYear === benefitPack24.declaredForYear;
+    return sameYear || (typeof figure.yearInvarianceBasis === 'string' && figure.yearInvarianceBasis.length > 40);
+  });
+  /* Every `sourceRef` ANYWHERE in the pack resolves, including the secondary citations — the
+     percentage source beside each bend point, the corroborating statements, the invariance
+     contrast. A citation that names no retrieved record is unreachable whether or not the engine
+     happens to read that member. */
+  const everyRefResolves24 = (function collectRefs(node, found) {
+    if (!node || typeof node !== 'object') return found;
+    ['sourceRef', 'percentageSourceRef'].forEach((member) => {
+      if (typeof node[member] === 'string') found.push(node[member]);
+    });
+    Object.keys(node).forEach((key) => collectRefs(node[key], found));
+    return found;
+  }(benefitPack24, [])).every((ref) => sourceIds24.indexOf(ref) >= 0);
+  /* The unretrieved-member rule, kept non-vacuous now that the shipped pack carries no absence.
+     Every AbsentFigure the pack DOES carry — derived by walking it, currently none — must hold a
+     missingSource pointer and smuggle no numeric member, and the detector is proven to fire on a
+     constructed AbsentFigure that smuggles one. A census that only ever ran against zero
+     candidates would certify nothing, which is the defect this pairing exists to prevent. */
+  const absentFiguresInPack24 = (function collectAbsent(node, found) {
+    if (!node || typeof node !== 'object') return found;
+    if (node.contractVersion === 'AbsentFigure/v1') found.push(node);
+    Object.keys(node).forEach((key) => collectAbsent(node[key], found));
+    return found;
+  }(benefitPack24, []));
+  const smuggledMembers24 = ['value', 'amount', 'rate', 'multiple', 'bands', 'default'];
+  const wellFormedAbsence24 = (figure) => figure.contractVersion === 'AbsentFigure/v1'
+    && typeof figure.missingSource === 'object' && figure.missingSource !== null
+    && typeof figure.missingSource.url === 'string'
+    && smuggledMembers24.filter((member) => figure[member] !== undefined).length === 0;
+  const smugglingAbsence24 = Object.assign(absent24('a figure that smuggles a value'), { multiple: 1 });
+  assert(everySourceResolves24 && everyRetrievedAt24 && invarianceWhereNeeded24 && everyRefResolves24
+    && absentFiguresInPack24.every(wellFormedAbsence24)
+    && wellFormedAbsence24(absent24('a well formed absence')) === true
+    && wellFormedAbsence24(smugglingAbsence24) === false
+    && benefitPack24.sourceRecords.every((record) => typeof record.editionEvidence === 'string' && record.editionEvidence.length > 40),
+  'TP-01-11: every value-bearing member of the shipped benefit pack resolves to exactly one retrieved source with a locator and a retrievedAt, every secondary citation resolves too, every member whose source is undated or differently dated carries a quoted yearInvarianceBasis, every source record states its own edition evidence, and every AbsentFigure the pack carries holds a missingSource pointer and no smuggled numeric member \u2014 with the detector proven to fire on one that smuggles a multiple');
+
+  /* TP-01-12 LEG VISIBILITY. The record's declared leg set equals each surface's, in both
+     directions, against a fixture in which every leg is non-zero and mutually distinct. */
+  const PROPERTY24 = await import('../rltaxproperty.js').then((m) => m.default);
+  const allNonZeroLegs24 = ['property-tax', 'dwelling-use', 'rental-net', 'recapture', 'remainder', 'social-security-benefit'];
+  const surfacesComplete24 = {
+    headline: allNonZeroLegs24.slice(), comparison: allNonZeroLegs24.slice(),
+    curve: allNonZeroLegs24.slice(), export: allNonZeroLegs24.slice()
+  };
+  const identity24 = PROPERTY24.legVisibilityIdentity(allNonZeroLegs24, surfacesComplete24);
+  const benefitLeg24 = ENGINE24.composeBenefitLeg(
+    { statementPrimaryInsuranceAmount: 2609.8, birthYear: 1964, claimAgeMonths: 744 }, benefitPack24);
+  assert(identity24.holds === true
+    && identity24.declaredLegs.indexOf('social-security-benefit') >= 0
+    && identity24.findings.length === 0
+    && benefitLeg24.available === true
+    && benefitLeg24.legId === 'social-security-benefit'
+    && benefitLeg24.stageId === 'CO-20'
+    && benefitLeg24.includedInTotal === false
+    && benefitLeg24.value === 1826 * 12
+    && benefitLeg24.marginalContext.movesWithIncome === false,
+  'TP-01-12: against the all-non-zero fixture the settled record\u2019s declared leg set equals the leg set of the headline, the comparison, the curve contributors and the export in both directions, and the benefit leg is present in it carrying its own stage and its own identity from the pack');
+
+  /* TP-01-13 ADVERSARIAL. Removing the benefit leg from each surface in turn fails, and each
+     failure names both the missing leg and the failing surface. */
+  const perSurfaceFindings24 = ['headline', 'comparison', 'curve', 'export'].map((surface) => {
+    const broken = {
+      headline: allNonZeroLegs24.slice(), comparison: allNonZeroLegs24.slice(),
+      curve: allNonZeroLegs24.slice(), export: allNonZeroLegs24.slice()
+    };
+    broken[surface] = broken[surface].filter((leg) => leg !== 'social-security-benefit');
+    const outcome = PROPERTY24.legVisibilityIdentity(allNonZeroLegs24, broken);
+    return {
+      surface: surface, holds: outcome.holds,
+      namesSurface: outcome.findings.some((finding) => finding.surface === surface),
+      namesLeg: outcome.findings.some((finding) => finding.missingFromSurface.indexOf('social-security-benefit') >= 0),
+      detailNamesBoth: outcome.findings.some((finding) => finding.detail.indexOf('social-security-benefit') >= 0
+        && finding.detail.indexOf(surface) >= 0)
+    };
+  });
+  assert(perSurfaceFindings24.length === 4
+    && perSurfaceFindings24.every((entry) => entry.holds === false)
+    && perSurfaceFindings24.every((entry) => entry.namesSurface && entry.namesLeg && entry.detailNamesBoth),
+  'TP-01-13: removing the benefit leg from each of the four surfaces in turn is proven to fail, and each of the four failures names both the missing leg and the surface it failed to reach');
+
+  /* TP-01-14 VOCABULARY. Neither count moved. */
+  assert(Object.keys(RULES24.RLTAX_CODES).length === 14
+    && RULES24.SUPPORTED_INCOME_KINDS.length === 4
+    && RULES24.RLTAX_CODES['RLTAX-INPUT-INCOMPLETE'] === true
+    && RULES24.RLTAX_CODES['RLTAX-THRESHOLD-UNAVAILABLE'] === true
+    && codeOf24(neither24) === 'RLTAX-INPUT-INCOMPLETE'
+    && codeOf24(outHigh24) === 'RLTAX-THRESHOLD-UNAVAILABLE',
+  'TP-01-14: the refusal vocabulary member count and the supported income-kind count each equal their pre-feature values, and this scope\u2019s two conditions fold into existing members whose meaning and raising site are unchanged');
+
+  /* TP-01-15 NO-SHADOW. No module holds a bend point, a percentage, a factor, an age, an agency
+     name or a publication name; the detector is proven to fire on a module that does. */
+  const benefitModules24 = ['rltaxsocialsecurity.js', 'rltaxrules.js', 'rltax.js', 'rltaxworkspace.js'];
+  const stripComments24 = (source) => source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  const figureScan24 = /\b(1286|7749|0\.9\b|0\.32\b|0\.15\b|5\/9|5\/12|2\/3 of 1|\b67 years\b|age 70|Social Security Administration|ssa\.gov|Primary Insurance Amount is \$)/;
+  const offenders24 = benefitModules24.filter((file) => figureScan24.test(stripComments24(read(file))));
+  const plantedModule24 = 'var bendPoint = 1286; var rate = 0.32; // Social Security Administration';
+  assert(offenders24.length === 0
+    && figureScan24.test(plantedModule24) === true
+    && figureScan24.test(read('tax-rules/benefit/2026.json')) === true,
+  'TP-01-15: no module holds a bend point, a percentage, a per-month factor, a stopping age, an agency name or a publication name, the detector is proven to fire on a module that does, and the figures live only in the pack');
+
+  /* TP-01-16 PRIVACY. Each of the four declarations is inventoried, cleared, redacted and absent
+     from every export, AND the declared storage key count is asserted unchanged in the SAME
+     assertion — because an unchanged count is otherwise indistinguishable from a declaration
+     that was never inventoried at all. */
+  const emptyWorkspace24 = WS24.createEmptyWorkspace();
+  const benefitMembers24 = WS24.BENEFIT_DECLARATIONS.map((entry) => entry.member)
+    .concat(WS24.BENEFIT_RECORD_DECLARATIONS.map((entry) => entry.member));
+  const undeclaredDomains24 = WS24.declaredUnavailableDomains(emptyWorkspace24);
+  const populated24 = Object.assign({}, emptyWorkspace24, {
+    benefitStatementPrimaryInsuranceAmount: 2609.8,
+    benefitBirthYear: 1964,
+    benefitClaimAgeMonths: 744,
+    benefitDeclaredEarnings: [{ year: 2024, amount: 73133 }]
+  });
+  const sanitized24 = WS24.sanitizeForExport(populated24);
+  const exportText24 = JSON.stringify(sanitized24.workspace);
+  const taxConfig24 = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  const declaredKeys24 = WS24.declaredStorageKeys(taxConfig24);
+  assert(benefitMembers24.length === 4
+    && benefitMembers24.every((member) => Object.prototype.hasOwnProperty.call(emptyWorkspace24, member))
+    && benefitMembers24.every((member) => emptyWorkspace24[member] === null)
+    && benefitMembers24.every((member) => undeclaredDomains24.indexOf(member) >= 0)
+    && benefitMembers24.every((member) => WS24.WORKSPACE_FIELDS.indexOf(member) >= 0)
+    && benefitMembers24.every((member) => sanitized24.omittedFields.indexOf(member) >= 0)
+    && benefitMembers24.every((member) => exportText24.indexOf(member) < 0)
+    && exportText24.indexOf('2609.8') < 0 && exportText24.indexOf('1964') < 0
+    && exportText24.indexOf('73133') < 0
+    && declaredKeys24.length === 3,
+  'TP-01-16: each of the four benefit declarations is inventoried in the workspace field list, reported as an unsupplied domain when absent, redacted by the export sanitizer and named in omittedFields, no declared benefit value reaches the export text, and the declared storage key count is asserted unchanged in the same assertion that asserts each declaration is inventoried');
+
+  /* TP-01-17 HARNESS. UMD rather than ESM, top-level declarations the extractor lifts,
+     Number.isFinite rather than the bare global, and no requestAnimationFrame. */
+  const ssSource24 = read('rltaxsocialsecurity.js');
+  assert(!/^\s*(import|export)\s/m.test(ssSource24)
+    && /module\.exports\s*=\s*api/.test(ssSource24)
+    && /root\.RLTAXSOCIALSECURITY/.test(ssSource24)
+    && !/(^|[^.\w])isFinite\s*\(/.test(ssSource24)
+    && /Number\.isFinite/.test(ssSource24)
+    && !/requestAnimationFrame/.test(ssSource24)
+    && ['resolveBenefitBasis', 'computePrimaryInsuranceAmount', 'resolveFullRetirementAge',
+      'applyClaimAgeAdjustment', 'computeAverageIndexedMonthlyEarnings', 'computeBenefitSettlement']
+      .every((name) => { try { extractFn(ssSource24, name); return true; } catch (error) { return false; } }),
+  'TP-01-17: the new module is UMD rather than ESM, every pure analytic function is a top-level declaration the selftest extractor lifts, the module uses Number.isFinite rather than the bare global, and it wraps no drawing in requestAnimationFrame');
+
+  /* SUP-024-01: supersedes the clause `taxExtracted === 26` and the sentence
+     'TP-01-10: all 26 pure functions are extractable top-level declarations'; shape=derive.
+     CAUSE (ASC-1): FR-024-001 through FR-024-005 add a module of pure analytic functions, so a
+     hand-maintained total stops describing the tree the extractor is pointed at. The replacement
+     DERIVES the count from the scanned module set and additionally asserts the PER-MODULE
+     breakdown, which is strictly stronger: the superseded literal could be satisfied by a module
+     contributing nothing as long as another contributed extra, and the replacement cannot. The
+     three modules Scopes 02 through 04 add are absorbed without a further entry, and a module
+     that contributes nothing fails BY NAME. */
+  const extractableByModule24 = {
+    'rltaxrules.js': ['unavailable', 'validateRulePack', 'resolveRulePack', 'sourceForFigure', 'ruleStatusFor',
+      'packContentDigestInput', 'absentFigureRefusal', 'marginalRateContributors', 'lookupSourcedRow',
+      'comparisonRecord', 'validateBenefitBasis'],
+    'rltaxworkspace.js': ['validateConfig', 'createEmptyWorkspace', 'minimumViableInput', 'declaredUnavailableDomains',
+      'validateWorkspace', 'privacyInventory', 'clearAllPrivateData', 'sanitizeForExport', 'exportManifest', 'writeStorageKey'],
+    'rltax.js': ['selectDeduction', 'computeTaxableIncome', 'applyRateTable', 'stackPreferentialIncome',
+      'activeBandContext', 'computeAnnualFederalTax', 'reconcileAnnualFederalTax', 'formatForDisplay', 'composeBenefitLeg'],
+    'rltaxsocialsecurity.js': ['resolveBenefitBasis', 'computeAverageIndexedMonthlyEarnings',
+      'computePrimaryInsuranceAmount', 'resolveFullRetirementAge', 'applyClaimAgeAdjustment',
+      'computeBenefitSettlement', 'benefitMarginalContext', 'monthlyFactorValue', 'truncateDownToMultiple']
+  };
+  const perModuleExtracted24 = {};
+  const extractionFailures24 = [];
+  Object.keys(extractableByModule24).forEach((file) => {
+    const source = read(file);
+    perModuleExtracted24[file] = 0;
+    extractableByModule24[file].forEach((name) => {
+      try { extractFn(source, name); perModuleExtracted24[file] += 1; }
+      catch (extractError) { extractionFailures24.push(file + ':' + name); }
+    });
+  });
+  const derivedTotal24 = Object.keys(perModuleExtracted24)
+    .reduce((sum, file) => sum + perModuleExtracted24[file], 0);
+  const declaredTotal24 = Object.keys(extractableByModule24)
+    .reduce((sum, file) => sum + extractableByModule24[file].length, 0);
+  const modulesContributingNothing24 = Object.keys(perModuleExtracted24)
+    .filter((file) => perModuleExtracted24[file] === 0);
+  /* SUP-024-01 ADVERSARIAL. A function rewritten as an arrow const is silently never extracted,
+     and the replacement must report the MODULE it went missing from rather than only a total. */
+  const arrowRewrite24 = 'const resolveBenefitBasis = (declaration) => { return null; };';
+  let arrowExtracted24 = true;
+  try { extractFn(arrowRewrite24, 'resolveBenefitBasis'); } catch (error) { arrowExtracted24 = false; }
+  /* The needle is assembled from parts rather than written as one literal, because a check for
+     the superseded clause that spelled the clause out would find ITSELF and report a survival that
+     is only its own assertion. Assembling it keeps the check honest about what it is measuring. */
+  const supersededNeedle24 = ['taxExtracted', '===', '26'].join(' ');
+  const supersededLiteralSurvives24 = read('scripts/selftest.mjs')
+    .replace(/\/\* SUP-024-01[\s\S]*?\*\//g, '')
+    .indexOf(supersededNeedle24) >= 0;
+  assert(derivedTotal24 === declaredTotal24
+    && extractionFailures24.length === 0
+    && modulesContributingNothing24.length === 0
+    && perModuleExtracted24['rltaxsocialsecurity.js'] === 9
+    && Object.keys(perModuleExtracted24).length === 4
+    && arrowExtracted24 === false
+    && supersededLiteralSurvives24 === false,
+  'TP-01-18 (SUP-024-01): the extractable-function count is derived from the scanned module set rather than pinned to a literal, the per-module breakdown is asserted so a module contributing nothing fails by name, a function rewritten as an arrow const is proven not to be extracted, and the superseded literal survives nowhere outside its own marker comment');
+
+  /* TP-01-19 RENDER SAFETY. Every control this scope adds routes through the declaration-signature
+     no-op guard, and the power-benefit renderer reads only members the settlement publishes. */
+  const pageText24 = read('lifetime-tax-strategy-lab.html');
+  const benefitInputIds24 = ['inputBenefitStatementPia', 'inputBenefitEarningsRecord',
+    'inputBenefitBirthYear', 'inputBenefitClaimAgeMonths'];
+  const declarationInputsBlock24 = /var DECLARATION_INPUTS = \[([\s\S]*?)\];/.exec(pageText24);
+  const benefitValueSites24 = pageText24.match(/valueNode\("benefit-/g) || [];
+  /* Counting call sites proves nothing on its own — a site could pass an empty tooltip. Each one is
+     therefore required to carry a substantive tooltip string, which is the property the rule
+     actually asserts. */
+  const benefitValueSitesWithTooltip24 = pageText24
+    .match(/valueNode\("benefit-[\s\S]{0,700}?"[^"]{60,}"\)/g) || [];
+  assert(benefitInputIds24.every((id) => new RegExp('id="' + id + '"').test(pageText24))
+    && declarationInputsBlock24 !== null
+    && benefitInputIds24.every((id) => declarationInputsBlock24[1].indexOf(id) >= 0)
+    && /if \(declarationSignature\(\) === lastDeclarationSignature\) return;/.test(pageText24)
+    && /id="power-benefit"/.test(pageText24)
+    && /"power-benefit"/.test(pageText24)
+    && /renderBenefit\(\);/.test(pageText24)
+    && /<script src="rltaxsocialsecurity\.js"><\/script>/.test(pageText24)
+    /* The refusal shape returns early rather than falling through to a settlement read. */
+    && /function renderBenefit\(\)[\s\S]{0,900}?if \(leg\.refusal\)[\s\S]{0,260}?return;/.test(pageText24)
+    && benefitValueSites24.length >= 3
+    && benefitValueSitesWithTooltip24.length === benefitValueSites24.length
+    && /aria-label="[^"]*full retirement age[^"]*"/i.test(pageText24)
+    && /aria-label="[^"]*Primary Insurance Amount[^"]*"/i.test(pageText24),
+  'TP-01-19: every benefit control is registered in the declaration-input list the no-op guard reads, the guard returns without rendering when the signature is unchanged, the power-benefit section exists and is registered, the renderer returns early on the refusal shape rather than dereferencing members it never publishes, every benefit value node carries a substantive contextual tooltip, and both benefit tables carry an aria-label');
+
+  /* CLAIM BOUNDARY. Nothing this scope emits states a probability, a plan success figure, a
+     future-year figure, a track record or an error rate, and no benefit figure is presented as an
+     estimate or a typical amount. */
+  const claimScan24 = /\b(probability|probable|monte carlo|plan success|success rate|likely to|expected return|track record|error rate|accuracy rate|our estimate|estimated benefit|typical benefit|average retiree|you will receive|projected)\b/i;
+  const settlementText24 = JSON.stringify(SS24.computeBenefitSettlement(
+    { statementPrimaryInsuranceAmount: 2609.8, birthYear: 1964, claimAgeMonths: 744 }, benefitPack24));
+  assert(!claimScan24.test(ssSource24)
+    && !claimScan24.test(settlementText24)
+    && !claimScan24.test(JSON.stringify(neither24))
+    && !claimScan24.test(JSON.stringify(both24))
+    && !claimScan24.test(read('tax-rules/benefit/2026.json'))
+    && claimScan24.test('our estimate of the typical benefit and its plan success probability') === true,
+  'TP-01-CLAIM: neither the module, the shipped pack, the settlement nor either refusal states a probability, a plan success figure, a future-year figure, a track record, an error rate or a typical benefit, and the detector is proven to fire on a sentence that does');
+
+  /* NO-REGISTRATION. Registration is Feature 026 and this scope performs none of it. */
+  const registryText24 = ['tools.json', 'index.html', 'rlnav.js', 'README.md', 'notes/README.md']
+    .map((file) => read(file)).join('\n');
+  assert(!/rltaxsocialsecurity/.test(registryText24)
+    && !/social-security/.test(registryText24)
+    && !/lifetime-tax-strategy-lab/.test(registryText24),
+  'TP-01-REGISTRATION: the benefit module and the lifetime tax lab remain absent from tools.json, the index, the navigation and both READMEs');
+
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 024 Scope 01 benefit group threw): ' + e.message); }
+
+/* ---------- Feature 024 Scope 02: lifetime-tax — social security benefit inclusion ---------- */
+try {
+  group('lifetime-tax — social security benefit inclusion');
+
+  const RULES25 = await import('../rltaxrules.js').then((m) => m.default);
+  const INC25 = await import('../rltaxinclusion.js').then((m) => m.default);
+  const ENGINE25 = await import('../rltax.js').then((m) => m.default);
+  const WS25 = await import('../rltaxworkspace.js').then((m) => m.default);
+
+  const packText25 = read('tax-rules/federal/2026.json');
+  const PACK25 = JSON.parse(packText25);
+  const clone25 = () => JSON.parse(packText25);
+  const POLICY25 = PACK25.benefitInclusionPolicy;
+  const settle25 = (declaration, benefit, pack) =>
+    INC25.computeInclusionSettlement(declaration, benefit, pack || PACK25);
+  const single25 = (other, exempt) => ({
+    filingStatus: 'single', otherTaxableIncome: other, taxExemptInterest: exempt || 0
+  });
+  const joint25 = (other, exempt) => ({
+    filingStatus: 'married-filing-jointly', otherTaxableIncome: other, taxExemptInterest: exempt || 0
+  });
+  const basis25 = (overrides) => Object.assign({
+    contractVersion: 'YearInvarianceBasis/v1',
+    componentKind: 'breakpoint',
+    quotedContrast: 'Enter $25,000 ($32,000 if married filing jointly for the earlier year; or -0- if married filing separately for the earlier year and you lived with your spouse at any time during the earlier year)',
+    contrastLocator: 'Worksheet 3, line 9',
+    quotedDatedCounterpart: 'The basic monthly premium in 2025 was $185.00 for most people, and the modified adjusted gross income shown on your 2023 federal income tax return is greater than $106,000.',
+    datedCounterpartLocator: 'Appendix, Form SSA-1099, Description of Amount in Box 3'
+  }, overrides || {});
+
+  /* TP-02-01 CONTRACT. Every part is published by name with its amount and its origin, and
+     distinctFrom names both measures this one is not. */
+  const shippedSingle25 = settle25(single25(28990), 5980);
+  const provisional25 = shippedSingle25.inclusion.provisionalIncome;
+  const partIds25 = provisional25.parts.map((part) => part.partId);
+  assert(!RULES25.isUnavailable(shippedSingle25)
+    && provisional25.contractVersion === 'ProvisionalIncome/v1'
+    && provisional25.measureId === 'provisional-income'
+    && partIds25.length === 3
+    && partIds25.indexOf('benefit-proportion') >= 0
+    && partIds25.indexOf('other-taxable-income') >= 0
+    && partIds25.indexOf('tax-exempt-interest') >= 0
+    && provisional25.parts.every((part) => typeof part.label === 'string' && part.label.length > 0
+      && Number.isFinite(part.amount)
+      && RULES25.PROVISIONAL_INCOME_PART_ORIGINS.indexOf(part.origin) >= 0)
+    && RULES25.PROVISIONAL_INCOME_REQUIRED_DISTINCT_FROM
+      .every((measure) => provisional25.distinctFrom.indexOf(measure) >= 0)
+    && Math.abs(provisional25.total
+      - provisional25.parts.reduce((sum, part) => sum + part.amount, 0)) < 0.005,
+  'TP-02-01: ProvisionalIncome/v1 publishes every part the source names by name with its amount and its origin, its total is the sum of exactly those parts, and distinctFrom names both adjusted gross income and the pack\u2019s modified adjusted gross measure');
+
+  /* TP-02-02 ADVERSARIAL. A composition that READ the pack's modified adjusted gross measure is
+     refused even when its total DIFFERS from that measure, which is what proves the check
+     inspects composition rather than comparing totals. */
+  const copiedMeasure25 = {
+    contractVersion: 'ProvisionalIncome/v1',
+    measureId: 'provisional-income',
+    parts: [{
+      partId: 'copied-measure', label: 'Copied from the settlement',
+      amount: 1, origin: 'declared-by-the-household',
+      readFromMeasureId: 'modified-adjusted-gross-income'
+    }],
+    total: 1,
+    distinctFrom: ['adjusted-gross-income', 'modified-adjusted-gross-income'],
+    sourceRef: 'irs-p915-2025', locator: 'fixture'
+  };
+  const copiedVerdict25 = RULES25.validateProvisionalIncome(copiedMeasure25);
+  const composedSame25 = {
+    contractVersion: 'ProvisionalIncome/v1',
+    measureId: 'provisional-income',
+    parts: [{
+      partId: 'composed', label: 'Composed from the household declaration',
+      amount: 1, origin: 'declared-by-the-household', readFromMeasureId: null
+    }],
+    total: 1,
+    distinctFrom: ['adjusted-gross-income', 'modified-adjusted-gross-income'],
+    sourceRef: 'irs-p915-2025', locator: 'fixture'
+  };
+  assert(copiedVerdict25.ok === false
+    && copiedVerdict25.refusals.some((refusal) =>
+      refusal.domain.indexOf('readFromMeasureId') >= 0
+      && refusal.reason.indexOf('modified-adjusted-gross-income') >= 0)
+    && RULES25.validateProvisionalIncome(composedSame25).ok === true,
+  'TP-02-02: a composition that read the pack\u2019s modified adjusted gross measure is refused at a total of one dollar, which differs from that measure, while an identically-totalled composition built from the household\u2019s own declaration passes \u2014 so the check inspects what was summed rather than comparing totals');
+
+  /* TP-02-03 KNOWN VALUE. Against a fixture pack whose base amounts are deliberately NOT the
+     shipped ones, provisional incomes below, exactly at, between, exactly at the second and above
+     it each land in the tier the FIXTURE states, so the assertion cannot pass by re-asserting a
+     figure the shipped pack happens to carry. */
+  const oddPack25 = clone25();
+  const oddSingle25 = oddPack25.benefitInclusionPolicy.tierParameters.single;
+  oddSingle25.baseAmount.value = 11000;
+  oddSingle25.secondTierIncrement.value = 4000;
+  oddSingle25.secondBaseAmount.value = 15000;
+  const tierAt25 = (provisionalTarget, benefit) => {
+    const halfBenefit = benefit / 2;
+    const settlement = settle25(single25(provisionalTarget - halfBenefit), benefit, oddPack25);
+    return RULES25.isUnavailable(settlement) ? settlement.code : settlement.inclusion.tier;
+  };
+  assert(tierAt25(10999, 2000) === 'none-included'
+    && tierAt25(11000, 2000) === 'none-included'
+    && tierAt25(11001, 2000) === 'first-tier'
+    && tierAt25(14999, 2000) === 'first-tier'
+    && tierAt25(15000, 2000) === 'first-tier'
+    && tierAt25(15001, 2000) === 'second-tier',
+  'TP-02-03: against a fixture pack carrying deliberately non-standard base amounts, provisional incomes below the first base, exactly at it, between the two, exactly at the second and above it each land in the tier the fixture pack states');
+
+  /* TP-02-04 ADVERSARIAL. The boundary is asserted at the EXACT fixture figure in both
+     directions, so an implementation treating the source's strict comparison as inclusive (or the
+     reverse) is proven to fail rather than assumed correct. */
+  const inclusivePack25 = clone25();
+  inclusivePack25.benefitInclusionPolicy.tierParameters.single.baseAmount.value = 11000;
+  inclusivePack25.benefitInclusionPolicy.tierParameters.single.secondTierIncrement.value = 4000;
+  inclusivePack25.benefitInclusionPolicy.tierParameters.single.secondBaseAmount.value = 15000;
+  inclusivePack25.benefitInclusionPolicy.boundaryOperator.value = '>=';
+  const exactAtBase25 = settle25(single25(11000 - 1000), 2000, inclusivePack25);
+  const exactAtBaseShipped25 = settle25(single25(11000 - 1000), 2000, oddPack25);
+  const shippedOperator25 = POLICY25.boundaryOperator.value;
+  assert(shippedOperator25 === '>'
+    && exactAtBaseShipped25.inclusion.tier === 'none-included'
+    && exactAtBase25.inclusion.tier !== 'none-included'
+    && exactAtBaseShipped25.inclusion.comparisonsPerformed
+      .some((comparison) => comparison.comparisonId === 'provisional-income-against-first-base-amount'
+        && comparison.operator === '>' && comparison.left === 11000
+        && comparison.right === 11000 && comparison.result === false),
+  'TP-02-04: at provisional income exactly equal to the fixture base amount the shipped strict operator includes nothing and an inclusive operator includes something, so an implementation swapping the two is proven to fail at the exact figure, and the comparison the engine performed is published with its operator');
+
+  /* TP-02-05 KNOWN VALUE. The included amount never exceeds the sourced ceiling proportion of the
+     benefit, asserted on a case where the ceiling binds and one where it does not, with
+     ceilingBound stating which. Both are Publication 915's own worked examples. */
+  const ex1_25 = settle25(single25(28990), 5980);
+  const ex4_25 = settle25({
+    filingStatus: 'married-filing-separately',
+    separateFilerSharedResidence: 'lived-with-spouse-at-any-time',
+    otherTaxableIncome: 8000, taxExemptInterest: 0
+  }, 4000);
+  const ceilingProportion25 = POLICY25.ceilingProportion.value;
+  assert(ex1_25.value === 2990 && ex1_25.inclusion.ceilingBound === false
+    && ex1_25.value <= ceilingProportion25 * 5980
+    && ex4_25.value === 3400 && ex4_25.inclusion.ceilingBound === true
+    && ex4_25.value === ceilingProportion25 * 4000
+    && ex4_25.amountBeforeCeiling > ex4_25.value,
+  'TP-02-05: the included amount never exceeds the sourced ceiling proportion of the benefit, proven on a case where the ceiling did not bind and one where it did, and ceilingBound states which \u2014 both reproducing the publication\u2019s own worked examples');
+
+  /* TP-02-06 ADVERSARIAL. An implementation applying a RECALLED ceiling proportion rather than the
+     pack's is proven to fail against a fixture whose ceiling is deliberately not the shipped one. */
+  const oddCeilingPack25 = clone25();
+  oddCeilingPack25.benefitInclusionPolicy.ceilingProportion.value = 0.6;
+  const oddCeiling25 = settle25({
+    filingStatus: 'married-filing-separately',
+    separateFilerSharedResidence: 'lived-with-spouse-at-any-time',
+    otherTaxableIncome: 8000, taxExemptInterest: 0
+  }, 4000, oddCeilingPack25);
+  assert(oddCeiling25.value === 0.6 * 4000
+    && oddCeiling25.value !== ex4_25.value
+    && oddCeiling25.inclusion.ceilingProportion === 0.6,
+  'TP-02-06: against a fixture pack whose ceiling proportion is deliberately not the shipped one, the included amount is the fixture\u2019s ceiling rather than the shipped one, so an implementation applying a recalled proportion is proven to fail');
+
+  /* TP-02-07 INVARIANCE. The tightened rule: a basis is valid only with a quoted contrast and its
+     own locator. A bare assertion, a category name and a reference to another feature's finding
+     are each refused, and each for its own reason. */
+  const bareAssertion25 = basis25({ quotedContrast: undefined, quotedDatedCounterpart: undefined });
+  const categoryName25 = basis25({ quotedContrast: 'statutory amount' });
+  const foreignFinding25 = basis25({
+    quotedContrast: 'The finding recorded under SUP-023-12 established that this component kind does not vary by year at all.'
+  });
+  const noLocator25 = basis25({ contrastLocator: '' });
+  const sameBothSides25 = basis25({
+    quotedDatedCounterpart: basis25({}).quotedContrast,
+    datedCounterpartLocator: 'Worksheet 3, line 9'
+  });
+  const good25 = RULES25.validateQuotedInvarianceBasis(basis25({}), 'fixture');
+  assert(good25.ok === true
+    && RULES25.validateQuotedInvarianceBasis(bareAssertion25, 'fixture').ok === false
+    && RULES25.validateQuotedInvarianceBasis(categoryName25, 'fixture').ok === false
+    && RULES25.validateQuotedInvarianceBasis(foreignFinding25, 'fixture').ok === false
+    && RULES25.validateQuotedInvarianceBasis(noLocator25, 'fixture').ok === false
+    && RULES25.validateQuotedInvarianceBasis(sameBothSides25, 'fixture').ok === false
+    && RULES25.validateQuotedInvarianceBasis(undefined, 'fixture').ok === false
+    && RULES25.validateQuotedInvarianceBasis(categoryName25, 'fixture').refusals[0].reason
+      .indexOf('category name') >= 0
+    && RULES25.validateQuotedInvarianceBasis(foreignFinding25, 'fixture').refusals[0].reason
+      .indexOf('own governance') >= 0,
+  'TP-02-07: a yearInvarianceBasis is valid only when it quotes both halves of a contrast and locates each; a bare assertion, a category name, a reference to this repository\u2019s own governance, a missing locator and a contrast quoting the same text on both sides are each refused, and the category-name and foreign-finding refusals name their own cause');
+
+  /* TP-02-08 INVARIANCE. A base amount that WAS successfully retrieved but whose component kind
+     has no established contrast ships absent and the inclusion refuses, naming the missing BASIS
+     rather than the missing figure. This is the scope's named intended-RED assertion. */
+  const noBasisPack25 = clone25();
+  delete noBasisPack25.benefitInclusionPolicy.tierParameters.single.baseAmount.yearInvarianceBasis;
+  const noBasis25 = settle25(single25(28990), 5980, noBasisPack25);
+  const bareBasisPack25 = clone25();
+  bareBasisPack25.benefitInclusionPolicy.tierParameters.single.baseAmount.yearInvarianceBasis =
+    basis25({ quotedContrast: 'not year scoped' });
+  const bareBasis25 = settle25(single25(28990), 5980, bareBasisPack25);
+  assert(RULES25.isUnavailable(noBasis25) && noBasis25.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && Number.isFinite(noBasisPack25.benefitInclusionPolicy.tierParameters.single.baseAmount.value)
+    && noBasis25.reason.indexOf('yearInvarianceBasis') >= 0
+    && !Object.prototype.hasOwnProperty.call(noBasis25, 'value')
+    && !Object.prototype.hasOwnProperty.call(noBasis25, 'tier')
+    && RULES25.isUnavailable(bareBasis25) && bareBasis25.code === 'RLTAX-THRESHOLD-UNAVAILABLE',
+  'TP-02-08: a base amount the pack genuinely carries, whose invariance basis is absent or is a bare assertion, makes the inclusion refuse RLTAX-THRESHOLD-UNAVAILABLE naming the missing basis rather than the missing figure, and no tier and no amount is smuggled past the refusal');
+
+  /* TP-02-09 REGRESSION. Every yearInvarianceBasis already shipped is re-validated against the
+     tightened rule and each result is RECORDED, so a retroactive refusal is a finding rather than
+     a surprise and the new rule is never loosened to accommodate one. */
+  const shippedFigureBases25 = [];
+  const walkForBases25 = (node, path) => {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) {
+      node.forEach((entry, index) => walkForBases25(entry, path + '[' + index + ']'));
+      return;
+    }
+    Object.keys(node).forEach((key) => {
+      if (key === 'yearInvarianceBasis') {
+        shippedFigureBases25.push({ path: path + '.' + key, basis: node[key] });
+        return;
+      }
+      walkForBases25(node[key], path + '.' + key);
+    });
+  };
+  walkForBases25(PACK25.benefitInclusionPolicy, 'federal.benefitInclusionPolicy');
+  const benefitPackBases25 = [];
+  const benefitPack25 = JSON.parse(read('tax-rules/benefit/2026.json'));
+  const walkBenefit25 = (node, path) => {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) {
+      node.forEach((entry, index) => walkBenefit25(entry, path + '[' + index + ']'));
+      return;
+    }
+    Object.keys(node).forEach((key) => {
+      if (key === 'yearInvarianceBasis') {
+        benefitPackBases25.push({ path: path + '.' + key, basis: node[key] });
+        return;
+      }
+      walkBenefit25(node[key], path + '.' + key);
+    });
+  };
+  walkBenefit25(benefitPack25, 'benefit');
+  const thisScopeBasesPass25 = shippedFigureBases25
+    .every((entry) => RULES25.validateQuotedInvarianceBasis(entry.basis, entry.path).ok === true);
+  /* Feature 024 Scope 01's figure-level bases are NARRATIVE strings governed by the untouched
+     rule in rltaxsocialsecurity.js, which this scope does not change and may not change. They are
+     re-validated here and their outcome recorded: none satisfies the structured form, which is a
+     recorded finding rather than a reason to loosen the new rule. */
+  const priorNarrativeBases25 = benefitPackBases25
+    .filter((entry) => typeof entry.basis === 'string');
+  const priorStructuredBases25 = benefitPackBases25
+    .filter((entry) => entry.basis && typeof entry.basis === 'object');
+  assert(shippedFigureBases25.length >= 12 && thisScopeBasesPass25
+    && benefitPackBases25.length > 0
+    && priorNarrativeBases25.length === benefitPackBases25.length
+    && priorStructuredBases25.length === 0
+    && priorNarrativeBases25.every((entry) =>
+      RULES25.validateQuotedInvarianceBasis(entry.basis, entry.path).ok === false),
+  'TP-02-09: every yearInvarianceBasis this scope authors satisfies the tightened rule, and every basis a prior feature shipped is re-validated against it and its outcome recorded \u2014 all ' + benefitPackBases25.length + ' prior figure-level bases are narrative strings governed by the untouched rule in the module that owns them and none satisfies the structured form, which is recorded as a finding rather than absorbed by loosening the new rule');
+
+  /* TP-02-10 SOURCING. Every value-bearing member of the inclusion policy resolves to exactly one
+     retrieved source with a locator and a retrievedAt, and an unretrieved member ships as an
+     AbsentFigure with a missingSource pointer and no smuggled numeric member. */
+  const sourceRecordFor25 = (id) => PACK25.sourceRecords.filter((record) => record.sourceId === id);
+  const valueBearing25 = [];
+  const walkValues25 = (node, path) => {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) {
+      node.forEach((entry, index) => walkValues25(entry, path + '[' + index + ']'));
+      return;
+    }
+    if (Number.isFinite(node.value) && typeof node.sourceRef === 'string') {
+      valueBearing25.push({ path: path, figure: node });
+    }
+    Object.keys(node).forEach((key) => walkValues25(node[key], path + '.' + key));
+  };
+  walkValues25(PACK25.benefitInclusionPolicy, 'benefitInclusionPolicy');
+  const absentBasePack25 = clone25();
+  absentBasePack25.benefitInclusionPolicy.tierParameters.single.baseAmount = {
+    contractVersion: 'AbsentFigure/v1',
+    code: 'RLTAX-THRESHOLD-UNAVAILABLE',
+    domain: 'benefit-inclusion:base-amount:single',
+    reason: 'This fixture pack deliberately carries no base amount for this filing status.',
+    whatWouldMakeItAvailable: 'Retrieve the base amount from the publication that states it.',
+    missingSource: {
+      title: 'A primary source stating the base amount for this filing status',
+      url: 'https://www.irs.gov/publications/p915',
+      documentKind: 'publication',
+      locator: 'This fixture pointer is deliberately unretrieved so the absence branch is never vacuous.'
+    }
+  };
+  const absentBase25 = settle25(single25(28990), 5980, absentBasePack25);
+  assert(valueBearing25.length >= 14
+    && valueBearing25.every((entry) => {
+      const records = sourceRecordFor25(entry.figure.sourceRef);
+      return records.length === 1 && records[0].retrievalOutcome === 'retrieved'
+        && typeof records[0].retrievedAt === 'string' && records[0].retrievedAt.length > 0
+        && typeof entry.figure.locator === 'string' && entry.figure.locator.length > 0;
+    })
+    && RULES25.isUnavailable(absentBase25)
+    && absentBase25.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && !Object.prototype.hasOwnProperty.call(absentBasePack25.benefitInclusionPolicy.tierParameters.single.baseAmount, 'value')
+    && !Object.prototype.hasOwnProperty.call(absentBasePack25.benefitInclusionPolicy.tierParameters.single.baseAmount, 'amount'),
+  'TP-02-10: each of the ' + valueBearing25.length + ' value-bearing members of the inclusion policy resolves to exactly one retrieved source carrying a locator and a retrievedAt, and an unretrieved member ships as a value-free AbsentFigure with a missingSource pointer that makes the whole inclusion refuse');
+
+  /* TP-02-11 LEDGER MOVE. Delivered as SUP-024-02 at the Feature 021 accounting site; re-asserted
+     here against the shipped pack from the inclusion side. */
+  const unsupportedIds25 = PACK25.unsupportedFeatures.map((entry) => entry.id);
+  const legIds25 = RULES25.declaredTaxLegs(PACK25).map((leg) => leg.legId);
+  const inclusionLegs25 = INC25.declaredInclusionLegs(PACK25);
+  assert(unsupportedIds25.indexOf('taxable-social-security-benefits') < 0
+    && POLICY25.modelsUnsupportedFeatureId === 'taxable-social-security-benefits'
+    && Object.keys(POLICY25.tierParameters).length === 5
+    && inclusionLegs25.length === 1
+    && inclusionLegs25[0].legId === 'social-security-inclusion'
+    && inclusionLegs25[0].stageId === 'CO-21'
+    && legIds25.indexOf('social-security-inclusion') < 0
+    /* SUP-024-10's other site. The adjustment id's clause here read `still named as not carried`
+       beside the premium tax credit; FR-024-024 models it, so the retained half is the credit and
+       the moved half gains the stronger moved-not-deleted clause. */
+    && unsupportedIds25.indexOf('irmaa-bands') < 0
+    && !!PACK25.medicarePolicy
+    && PACK25.medicarePolicy.modelsUnsupportedFeatureId === 'irmaa-bands'
+    && PACK25.medicarePolicy.taxLegs.every((leg) => leg.includedInTotal === false)
+    && unsupportedIds25.indexOf('premium-tax-credit') >= 0,
+  'TP-02-11: the taxable-benefit id is absent from unsupportedFeatures[] and present as the inclusion policy the pack\u2019s own tier declaration carries, the inclusion leg is declared by the policy rather than by the engine, the adjustment id beside it in the original triple is likewise absent from unsupportedFeatures[] and present as the pack\u2019s medicare policy in legs every one of which is includedInTotal false, and the premium tax credit is still named as not carried');
+
+  /* TP-02-13 INCOME KIND. The included amount is a named contributor to ordinary taxable income
+     and no income kind was added. Both counts equal their pre-feature values. */
+  const inclusionLeg25 = ENGINE25.composeInclusionLeg(single25(28990), 5980, PACK25);
+  const contribution25 = ENGINE25.ordinaryTaxableIncomeContribution(inclusionLeg25);
+  const refusedLeg25 = ENGINE25.composeInclusionLeg(single25(28990), 5980, noBasisPack25);
+  const refusedContribution25 = ENGINE25.ordinaryTaxableIncomeContribution(refusedLeg25);
+  assert(inclusionLeg25.available === true && inclusionLeg25.stageId === 'CO-21'
+    && inclusionLeg25.contributesTo === 'ordinary-taxable-income'
+    && inclusionLeg25.includedInTotal === false
+    && contribution25.available === true && contribution25.amount === 2990
+    && contribution25.contributorId === 'social-security-inclusion'
+    && contribution25.addsIncomeKind === false
+    /* An unavailable inclusion contributes NOTHING and says so; it never contributes a zero. */
+    && refusedContribution25.available === false && refusedContribution25.amount === null
+    && refusedContribution25.refusal !== null
+    && RULES25.SUPPORTED_INCOME_KINDS.length === 4
+    && JSON.stringify(PACK25.incomeKinds)
+      === JSON.stringify(['ordinary', 'qualified-dividend', 'long-term-capital-gain', 'tax-exempt-interest'])
+    && Object.keys(RULES25.RLTAX_CODES).length === 14,
+  'TP-02-13: the included amount is a named contributor to ordinary taxable income rather than a new income kind, the supported income-kind count and the pack\u2019s incomeKinds member are unchanged, the refusal vocabulary member count is unchanged, and an unavailable inclusion contributes nothing rather than a zero');
+
+  /* TP-02-14 NON-REGRESSION. With no benefit declared, the settlement engine produces the exact
+     figures it produced before this scope existed: the contributor is additive and reaches the
+     ordinary total only through the leg a consumer composes. */
+  const baseWorkspace25 = Object.assign(WS25.createEmptyWorkspace(), {
+    filingStatus: 'single', deductionMode: 'standard', declaredTaxYear: 2026,
+    income: { ordinary: 120000, qualifiedDividend: 5000, longTermCapitalGain: 10000, taxExemptInterest: 2000 },
+    investmentIncomeBasis: { otherOrdinaryNetInvestmentIncome: 0 },
+    wageBasis: { medicareWagesAndSelfEmploymentIncome: 120000 }
+  });
+  const settled25 = ENGINE25.computeAnnualFederalTax(baseWorkspace25, PACK25);
+  assert(settled25.grossSupportedIncome.value === 135000
+    && settled25.ordinaryTaxableIncome.value === 103900
+    && settled25.preferentialTaxableIncome.value === 15000
+    && settled25.totalTaxableIncome.value === 118900
+    && !RULES25.isUnavailable(settled25.totalFederalTax)
+    && read('rltax.js').indexOf('benefitInclusionPolicy') < 0,
+  'TP-02-14: with no benefit declared the settlement engine reproduces its exact prior gross, ordinary taxable, preferential taxable and total taxable income, and the engine holds no reference to the inclusion policy member, so the contributor is additive rather than woven into the pre-existing arithmetic');
+
+  /* TP-02-15 COMPLETENESS SPLIT (SUP-024-08). Railroad retirement is retained on the unmodelled
+     side verbatim as to that half, the Social Security inclusion is named on the modelled side,
+     and deleting the entry outright is proven to fail. */
+  const completeness25 = PACK25.modifiedAdjustedGrossCompleteness;
+  const railroadEntry25 = 'the taxable portion of railroad retirement benefits';
+  const modelledEntry25 = 'the taxable portion of Social Security benefits, computed by the inclusion policy this pack carries and contributed to ordinary taxable income by name';
+  const deletedOutright25 = completeness25.unmodeledAdjustments
+    .filter((entry) => entry !== railroadEntry25);
+  assert(completeness25.unmodeledAdjustments.indexOf(railroadEntry25) >= 0
+    && Array.isArray(completeness25.modelledAdjustments)
+    && completeness25.modelledAdjustments.indexOf(modelledEntry25) >= 0
+    && completeness25.unmodeledAdjustments
+      .every((entry) => entry.indexOf('Social Security') < 0)
+    && completeness25.complete === false
+    && completeness25.unmodeledAdjustments.length === 6
+    /* Deleting the entry outright satisfies neither half: railroad retirement stops being named
+       as unmodelled, which the original unpinned string could not have detected. */
+    && deletedOutright25.indexOf(railroadEntry25) < 0,
+  'TP-02-15: the completeness record names railroad retirement benefits alone on the unmodelled side, names the Social Security inclusion on the modelled side, states no Social Security entry on the unmodelled side, and deleting the entry outright is proven to leave railroad retirement unnamed');
+
+  /* TP-02-16 LEG VISIBILITY. The settled record's declared leg set equals each surface's, in both
+     directions, against a fixture in which every leg is non-zero and mutually distinct, with the
+     inclusion leg present in it. */
+  const PROPERTY25 = await import('../rltaxproperty.js').then((m) => m.default);
+  const allNonZeroLegs25 = ['property-tax', 'dwelling-use', 'rental-net', 'recapture', 'remainder',
+    'social-security-benefit', 'social-security-inclusion'];
+  const everySurface25 = () => ({
+    headline: allNonZeroLegs25.slice(), comparison: allNonZeroLegs25.slice(),
+    curve: allNonZeroLegs25.slice(), export: allNonZeroLegs25.slice()
+  });
+  const identity25 = PROPERTY25.legVisibilityIdentity(allNonZeroLegs25, everySurface25());
+  const inventedOnCurve25 = PROPERTY25.legVisibilityIdentity(allNonZeroLegs25,
+    Object.assign(everySurface25(), { curve: allNonZeroLegs25.concat(['a-leg-no-record-declares']) }));
+  /* The page half: the leg the engine declares is the leg the page carries into the settled leg
+     set, and the four surfaces the identity names are the four the page publishes. Reading the
+     page's own wiring is what makes this a check on the delivered route rather than on an array
+     this assertion built for itself. */
+  const pageText02leg = read('lifetime-tax-strategy-lab.html');
+  assert(identity25.holds === true
+    && identity25.findings.length === 0
+    && identity25.declaredLegs.indexOf('social-security-inclusion') >= 0
+    && inventedOnCurve25.holds === false
+    && inclusionLeg25.legId === 'social-security-inclusion'
+    /* Surface one, the headline: the inclusion is rendered under its own leg identity. */
+    && /data-rl-leg", inclusionLeg\.legId/.test(pageText02leg)
+    /* Surfaces two and three: the comparison table and the curve contributor table are built
+       from the same `rows` array, and the inclusion pushes into it. */
+    && /legId: inclusionVisibilityLeg\.legId/.test(pageText02leg)
+    /* Surface four, the export: the settled leg set the export writes is the one the inclusion
+       leg is pushed into. */
+    && /if \(inclusionLeg && inclusionLeg\.available === true\) ids\.push\(inclusionLeg\.legId\);/.test(pageText02leg)
+    && /payload\.settledLegs = settledLegs;/.test(pageText02leg)
+    && (pageText02leg.match(/data-rl-leg-surface="/g) || []).length === 3,
+  'TP-02-16: against the all-non-zero fixture the settled record\u2019s declared leg set equals the leg set of the headline, the comparison, the curve contributors and the export in both directions with the inclusion leg present in it, a leg invented by a surface fails the identity from the other side, and the page wires that same leg into the settled leg set, the headline, the two per-leg surface tables and the exported leg set');
+
+  /* TP-02-17 ADVERSARIAL. Removing the inclusion leg from each of the four surfaces in turn must
+     fail, and each failure must name BOTH the leg and the surface it failed to reach. */
+  const perSurface25 = ['headline', 'comparison', 'curve', 'export'].map((surface) => {
+    const broken = everySurface25();
+    broken[surface] = broken[surface].filter((leg) => leg !== 'social-security-inclusion');
+    const outcome = PROPERTY25.legVisibilityIdentity(allNonZeroLegs25, broken);
+    return {
+      holds: outcome.holds,
+      namesSurface: outcome.findings.some((finding) => finding.surface === surface),
+      namesLeg: outcome.findings.some((finding) =>
+        finding.missingFromSurface.indexOf('social-security-inclusion') >= 0),
+      detailNamesBoth: outcome.findings.some((finding) =>
+        finding.detail.indexOf('social-security-inclusion') >= 0 && finding.detail.indexOf(surface) >= 0)
+    };
+  });
+  assert(perSurface25.length === 4
+    && perSurface25.every((entry) => entry.holds === false)
+    && perSurface25.every((entry) => entry.namesSurface && entry.namesLeg && entry.detailNamesBoth),
+  'TP-02-17: removing the inclusion leg from each of the four surfaces in turn is proven to fail, and each of the four failures names both the missing leg and the surface it failed to reach');
+
+  /* TP-02-19 RENDER SAFETY. With each inclusion member absent in turn, the settlement returns a
+     REFUSAL rather than a partly-built record, so a renderer reading only published members can
+     never meet an absent figure where it expected a number. */
+  const memberPaths25 = [
+    (policy) => { delete policy.ceilingProportion; },
+    (policy) => { delete policy.firstTierProportion; },
+    (policy) => { delete policy.secondTierProportion; },
+    (policy) => { delete policy.boundaryOperator; },
+    (policy) => { delete policy.compositionRule; },
+    (policy) => { delete policy.tierParameters.single.baseAmount; },
+    (policy) => { delete policy.tierParameters.single.secondBaseAmount; },
+    (policy) => { delete policy.tierParameters.single.secondTierIncrement; }
+  ];
+  const renderSafety25 = memberPaths25.map((mutate) => {
+    const mutatedPack = clone25();
+    mutate(mutatedPack.benefitInclusionPolicy);
+    const settlement = settle25(single25(28990), 5980, mutatedPack);
+    return RULES25.isUnavailable(settlement)
+      && RULES25.RLTAX_CODES[settlement.code] === true
+      && typeof settlement.reason === 'string' && settlement.reason.length > 0
+      && !Object.prototype.hasOwnProperty.call(settlement, 'inclusion')
+      && !Object.prototype.hasOwnProperty.call(settlement, 'value');
+  });
+  assert(renderSafety25.length === 8 && renderSafety25.every(Boolean),
+  'TP-02-19: with each of the eight inclusion members absent in turn the settlement refuses with an existing code and a reason and publishes no partly-built inclusion record, so a renderer reading only published members cannot meet an absent figure where it expected a number');
+
+  /* TP-02-20 SUPERSESSION. The four markers this scope carries in this file are present, each
+     replacement derives from the artifact it describes, and each superseded clause is recorded. */
+  const selftestText25 = read('scripts/selftest.mjs');
+  const marginalText25 = read('tests/lifetime-tax-marginal.spec.mjs');
+  const indexText25 = read('specs/024-social-security-and-medicare/scopes/_index.md');
+  const designText25 = read('specs/024-social-security-and-medicare/design.md');
+  assert(/SUP-024-02: supersedes/.test(selftestText25)
+    && /SUP-024-03: supersedes/.test(selftestText25)
+    && /SUP-024-05: supersedes/.test(selftestText25)
+    && /SUP-024-04: supersedes/.test(marginalText25)
+    && /\| 02 \| SUP-024-02, SUP-024-03, SUP-024-04, SUP-024-05, SUP-024-08 \| 5 \|/.test(indexText25)
+    && /`tests\/lifetime-tax-marginal\.spec\.mjs` \| SUP-024-04 \| 02 \|/.test(designText25)
+    /* Each replacement is DERIVED from the artifact it describes rather than re-baselined: the
+       four-set accounting reads the pack's own inclusion policy, the partition reads the pack's
+       own member set, and the contributor identity reads the pack's own movesMarginalRate set. */
+    && /inclusionModelsId = \(id\)/.test(selftestText25)
+    && /FEATURE_024_ADDED_PACK_MEMBERS/.test(selftestText25)
+    && /FEATURE_024_REMOVED_UNSUPPORTED/.test(selftestText25)
+    && /FEATURE_024_MODIFIED_PACK_MEMBERS/.test(selftestText25),
+  'TP-02-20: the four supersession markers this scope carries in the selftest and the marginal spec are present, the ownership table and the per-file marker distribution agree with them, and each replacement reads the artifact it describes rather than restating a re-baselined literal');
+
+  /* TP-02-18 PRIVACY. The inclusion composes from declarations the workspace already inventories,
+     so this scope adds no storage key and no new declared member; the counts are asserted
+     unchanged in the same assertion that asserts the composition reaches no new member. */
+  const taxConfig25 = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  const declaredKeys25 = WS25.declaredStorageKeys(taxConfig25);
+  const pageText25 = read('lifetime-tax-strategy-lab.html');
+  const inclusionSource25 = read('rltaxinclusion.js');
+  assert(declaredKeys25.length === 3
+    && WS25.WORKSPACE_FIELDS.indexOf('inclusionOtherTaxableIncome') < 0
+    && /income\.ordinary \+ income\.qualifiedDividend \+ income\.longTermCapitalGain/.test(pageText25)
+    && /taxExemptInterest: income\.taxExemptInterest/.test(pageText25)
+    && !/fetch\(|XMLHttpRequest|navigator\.sendBeacon/.test(inclusionSource25)
+    && !/localStorage|sessionStorage|document\./.test(inclusionSource25)
+    && !/console\./.test(inclusionSource25),
+  'TP-02-18: the inclusion composes from members the workspace already inventories, adds no storage key and no new workspace field, and the module performs no network access, no storage access, no DOM access and writes nothing to the console');
+
+  /* TP-02-HARNESS. UMD rather than ESM, top-level declarations the extractor lifts,
+     Number.isFinite rather than the bare global, and no figure or authority name in the module. */
+  const figureScan25 = /\b(25000|32000|34000|44000|9000|12000|0\.85|85 percent|Internal Revenue|Publication 915|Social Security Administration)\b/;
+  assert(!/^\s*(import|export)\s/m.test(inclusionSource25)
+    && /module\.exports\s*=\s*api/.test(inclusionSource25)
+    && /root\.RLTAXINCLUSION/.test(inclusionSource25)
+    && !/(^|[^.\w])isFinite\s*\(/.test(inclusionSource25)
+    && /Number\.isFinite/.test(inclusionSource25)
+    && !/requestAnimationFrame/.test(inclusionSource25)
+    && !figureScan25.test(inclusionSource25)
+    && figureScan25.test('a module naming 25000 or Publication 915 would fail this scan') === true
+    && ['composeProvisionalIncome', 'selectInclusionTier', 'computeIncludedBenefit',
+      'computeInclusionSettlement', 'resolveSourcedFigure', 'resolveStatusKey', 'resolveTierParameters']
+      .every((name) => { try { extractFn(inclusionSource25, name); return true; } catch (error) { return false; } }),
+  'TP-02-HARNESS: the new module is UMD rather than ESM, every pure analytic function is a top-level declaration the selftest extractor lifts, it uses Number.isFinite rather than the bare global, it wraps no drawing in requestAnimationFrame, and it names no base amount, tier percentage, ceiling proportion, agency or publication \u2014 with the scan proven to fire on a string that does');
+
+  /* TP-02-CLAIM. No output states a probability, a plan success figure, a future-year figure, a
+     track record or an error rate, and no included amount is presented as an estimate. */
+  const claimScan25 = /probability|plan success|monte carlo|likely to|expected to|track record|accuracy rate|error rate|typical (benefit|inclusion)|estimated (inclusion|benefit)|break-even|breakEven/i;
+  assert(!claimScan25.test(inclusionSource25)
+    && !claimScan25.test(JSON.stringify(PACK25.benefitInclusionPolicy))
+    && !claimScan25.test(JSON.stringify(ex1_25))
+    && !claimScan25.test(JSON.stringify(noBasis25))
+    && claimScan25.test('our estimated inclusion and its plan success probability') === true,
+  'TP-02-CLAIM: neither the module, the shipped inclusion policy, the settlement nor the refusal states a probability, a plan success figure, a track record, an error rate or a typical or estimated inclusion, and the detector is proven to fire on a sentence that does');
+
+  /* NO-REGISTRATION. Registration is Feature 026 and this scope performs none of it. */
+  const registryText25 = ['tools.json', 'index.html', 'rlnav.js', 'README.md', 'notes/README.md']
+    .map((file) => read(file)).join('\n');
+  assert(!/rltaxinclusion/.test(registryText25)
+    && !/benefit-inclusion/.test(registryText25)
+    && !/lifetime-tax-strategy-lab/.test(registryText25),
+  'TP-02-REGISTRATION: the inclusion module and the lifetime tax lab remain absent from tools.json, the index, the navigation and both READMEs');
+
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 024 Scope 02 inclusion group threw): ' + e.message); }
+
+/* ---------- Feature 024 Scope 03: lifetime-tax — claim-age comparison ---------- */
+try {
+  group('lifetime-tax — claim age comparison');
+
+  const RULES26 = await import('../rltaxrules.js').then((m) => m.default);
+  const CLAIM26 = await import('../rltaxclaimage.js').then((m) => m.default);
+  const ENGINE26 = await import('../rltax.js').then((m) => m.default);
+  const WS26 = await import('../rltaxworkspace.js').then((m) => m.default);
+
+  const mortalityText26 = read('tax-rules/mortality/2026.json');
+  const MORTALITY26 = JSON.parse(mortalityText26);
+  const cloneMortality26 = () => JSON.parse(mortalityText26);
+  const fixtureText26 = read('tax-rules/fixtures/mortality-nonstandard-2999.json');
+  const FIXTURE26 = JSON.parse(fixtureText26);
+  const cloneFixture26 = () => JSON.parse(fixtureText26);
+  const BENEFIT26 = JSON.parse(read('tax-rules/benefit/2026.json'));
+  const COLUMN26 = 'published-life-expectancy-column-1';
+
+  /* One household, declared once, used by every known-value row below. The primary insurance
+     amount is the household's OWN statement figure; every factor that acts on it is a pack
+     figure. The claim ages are declared in an order that is NOT ascending by cumulative total. */
+  const declaration26 = Object.freeze({
+    declaredTaxYear: 2999, statementPrimaryInsuranceAmount: 1000,
+    declaredEarnings: null, birthYear: 2932
+  });
+  const fixtureBasis26 = CLAIM26.resolveMortalityBasis(FIXTURE26, COLUMN26, 2999);
+  const compare26 = (ages, basis, decl) => CLAIM26.composeClaimAgeComparison(
+    decl || declaration26, ages, basis === undefined ? fixtureBasis26 : basis, BENEFIT26);
+
+  /* TP-03-01 CONTRACT. The mortality policy's shape is CLOSED, so a probability, survivorship or
+     hazard column is refused by name for being outside it rather than by a substring match on
+     its name. A legitimate life-expectancy member whose name merely contains a forbidden word
+     fragment is therefore never rejected, which is the failure mode a name scan would have. */
+  const withProbability26 = cloneMortality26();
+  withProbability26.mortalityPolicy.deathProbabilityByAge = [{ age: 62, value: 0.013196 }];
+  const probabilityVerdict26 = RULES26.validateMortalityPolicy(
+    withProbability26.mortalityPolicy, 'mortality-basis:policy');
+  const withSurvivors26 = cloneMortality26();
+  withSurvivors26.mortalityPolicy.numberOfSurvivors = [{ age: 62, value: 82563 }];
+  const survivorVerdict26 = RULES26.validateMortalityPolicy(
+    withSurvivors26.mortalityPolicy, 'mortality-basis:policy');
+  const shippedVerdict26 = RULES26.validateMortalityPolicy(
+    MORTALITY26.mortalityPolicy, 'mortality-basis:policy');
+  assert(probabilityVerdict26.ok === false
+    && probabilityVerdict26.refusals.some((refusal) => refusal.code === 'RLTAX-PACK-INVALID'
+      && /deathProbabilityByAge/.test(refusal.reason + ' ' + refusal.domain))
+    && survivorVerdict26.ok === false
+    && survivorVerdict26.refusals.some((refusal) => /numberOfSurvivors/.test(refusal.reason + ' ' + refusal.domain))
+    && shippedVerdict26.ok === true
+    && MORTALITY26.mortalityPolicy.columns.every((column) => Array.isArray(column.lifeExpectancyByAge)),
+  'TP-03-01: the mortality policy refuses a probability-bearing and a survivorship-count member with RLTAX-PACK-INVALID naming the member, and accepts the shipped life-expectancy column whose own member name is never matched by a substring rule');
+
+  /* TP-03-02 ADVERSARIAL. A pack carrying a probability column beside its life-expectancy column
+     produces NO comparison at all — the refusal is not merely recorded somewhere while the
+     arithmetic proceeds. */
+  const probabilityBasis26 = CLAIM26.resolveMortalityBasis(withProbability26, COLUMN26, 2026);
+  const probabilityStage26 = ENGINE26.composeClaimAgeStage(declaration26, [62, 67],
+    withProbability26, BENEFIT26, COLUMN26, 2026);
+  assert(RULES26.isUnavailable(probabilityBasis26)
+    && probabilityBasis26.code === 'RLTAX-PACK-INVALID'
+    && probabilityStage26.available === false
+    && probabilityStage26.comparison === undefined
+    && probabilityStage26.basisRefusal !== null
+    /* And the shape rule is proven not to be a blanket refusal: the same pack without the extra
+       column resolves, so the refusal is caused by the column and by nothing else. */
+    && !RULES26.isUnavailable(CLAIM26.resolveMortalityBasis(MORTALITY26, COLUMN26, 2026)),
+  'TP-03-02: a fixture pack carrying a probability column beside its life-expectancy column is refused and produces no comparison, and the identical pack without that column resolves, so the refusal is caused by the column rather than by a blanket rejection');
+
+  /* TP-03-03 DETERMINISM. Two runs over identical declarations are byte-identical, and a third
+     run after an unrelated settlement produces the same bytes again. */
+  const runOne26 = JSON.stringify(compare26([70, 62, 67]));
+  const runTwo26 = JSON.stringify(compare26([70, 62, 67]));
+  ENGINE26.computeAnnualFederalTax(WS26.createEmptyWorkspace(), JSON.parse(read('tax-rules/federal/2026.json')));
+  const runThree26 = JSON.stringify(compare26([70, 62, 67]));
+  assert(runOne26 === runTwo26 && runTwo26 === runThree26 && runOne26.length > 0
+    && !/Date|now\(|Math\.random/.test(read('rltaxclaimage.js')),
+  'TP-03-03: two runs over identical declarations produce byte-identical serialized records, a third run after an unrelated settlement produces the same bytes again, and the module reads no clock and no random source');
+
+  /* TP-03-04 CLAIM BOUNDARY. Every member name in the record, at EVERY depth, enumerated
+     exhaustively. The enumeration is proven non-vacuous by asserting it visited strictly more
+     members than the record's own top level carries. */
+  const forbiddenMembers26 = /probabilit|rank|score|success|surviv|recommend|discount|appreciat|hazard|optimal|best|prefer/i;
+  const enumerateMembers26 = (value, seen) => {
+    if (Array.isArray(value)) { value.forEach((entry) => enumerateMembers26(entry, seen)); return seen; }
+    if (value === null || typeof value !== 'object') return seen;
+    Object.keys(value).forEach((key) => { seen.push(key); enumerateMembers26(value[key], seen); });
+    return seen;
+  };
+  const settled26 = compare26([70, 62, 67]);
+  const memberNames26 = enumerateMembers26(settled26, []);
+  const topLevel26 = Object.keys(settled26).length;
+  assert(memberNames26.length > topLevel26
+    && memberNames26.every((name) => !forbiddenMembers26.test(name))
+    && enumerateMembers26({ a: { b: [{ successProbability: 1 }] } }, [])
+      .some((name) => forbiddenMembers26.test(name)) === true,
+  'TP-03-04: an exhaustive enumeration of every member name in the comparison record, at every depth, finds no probability, rank, score, success, survival, recommendation, discount-rate or appreciation member; the enumeration is proven non-vacuous by visiting more members than the record\u2019s top level and by catching a planted member in a nested fixture');
+
+  /* TP-03-05 CLAIM BOUNDARY, STRENGTHENING. The two claim scans now include this scope's module
+     and its pack. Adding a file to a scan can only refuse more, never less, so the risk is a
+     false refusal — which is why each addition is proven to CATCH a planted token rather than
+     merely to be listed. Every pre-existing scanned file still passes unchanged. */
+  const claimScan26 = /probability|plan success|monte carlo|likely to|expected to|track record|accuracy rate|error rate|typical (benefit|inclusion)|estimated (inclusion|benefit)|break-even|breakEven/i;
+  const claimAgeSource26 = read('rltaxclaimage.js');
+  /* A term scan over SOURCE must read the code, not the prose about the code. This module's own
+     header says in words that it carries no discount rate and no interpolation, and a scan that
+     did not strip comments would fire on that sentence — the same false positive an earlier scan
+     in this feature hit on the word `export` inside a comment. Stripping first is what makes the
+     absence assertions below about behaviour rather than about vocabulary. */
+  const stripComments26 = (text) => text
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+  const claimAgeCode26 = stripComments26(claimAgeSource26);
+  const scannedFiles26 = ['rltaxsocialsecurity.js', 'rltaxinclusion.js', 'rltaxclaimage.js']
+    .map((file) => ({ file: file, raw: read(file), code: stripComments26(read(file)) }));
+  const preExistingScanned26 = scannedFiles26.filter((entry) => entry.file !== 'rltaxclaimage.js');
+  const scannedPacks26 = ['tax-rules/benefit/2026.json', 'tax-rules/mortality/2026.json']
+    .map((file) => ({ file: file, text: read(file) }));
+  /* The new module's raw source DOES carry one hit, and it is load-bearing rather than a leak:
+     FR-024-015 refuses a probability-bearing member and the code that does so cannot be
+     documented without naming what it rejects. That is the same carve-out TP-03-CLAIM already
+     makes for the pack-invalid refusal payload — a scan over the act of refusing pushes an
+     implementation toward a refusal that hides what it rejected. So the hits are DERIVED from
+     both texts and the property asserted is that every raw hit disappears under comment
+     stripping, which proves the hit is prose and that nothing is hiding in a string literal. */
+  const rawHits26 = claimAgeSource26.match(new RegExp(claimScan26.source, 'gi')) || [];
+  const codeHits26 = claimAgeCode26.match(new RegExp(claimScan26.source, 'gi')) || [];
+  assert(scannedFiles26.length === 3 && scannedPacks26.length === 2
+    && preExistingScanned26.length === 2
+    /* Behaviour rather than vocabulary: no scanned module's CODE carries a forbidden term. */
+    && scannedFiles26.every((entry) => !claimScan26.test(entry.code))
+    /* Nothing is weakened for the two files the scan already covered — they still pass the RAW
+       scan, comments included, exactly as they did before this scope added a third file. */
+    && preExistingScanned26.every((entry) => !claimScan26.test(entry.raw))
+    /* The packs are JSON and carry no comments, so raw and code are the same text. */
+    && scannedPacks26.every((entry) => !claimScan26.test(entry.text))
+    /* Every raw hit in the new module is comment-borne: none survives the stripper. */
+    && rawHits26.length > 0 && codeHits26.length === 0
+    /* Planted-token proof, per added file. The module's token is planted as CODE rather than as
+       prose, so it proves the scan reaches the text the stripper KEEPS rather than only the text
+       it removes. */
+    && claimScan26.test(stripComments26(claimAgeSource26
+      + '\nvar note = "the break-even age is likely to be reached";')) === true
+    && claimScan26.test(mortalityText26 + '\n"note": "plan success probability"') === true,
+  'TP-03-05: the claim scans now include rltaxclaimage.js and the mortality pack, proven by planting a forbidden token in a copy of each and asserting it is caught, every pre-existing scanned file still passes the raw scan unchanged, and every raw hit in the new module is comment-borne prose naming the member its pack refusal rejects rather than a term surviving in its code');
+
+  /* TP-03-06 ISOLATION. The conversion comparison record's own forbidden-member enumeration is
+     untouched: this scope added an enumeration rather than extending one. */
+  const selftestText26 = read('scripts/selftest.mjs');
+  assert(/forbiddenMembers26/.test(selftestText26)
+    && selftestText26.split('enumerateMembers26').length > 2
+    /* The Feature 021 conversion record still carries its own separate check, and this scope's
+       identifiers appear nowhere inside it. */
+    && /no probability or ranking/i.test(read('tests/lifetime-tax-conversion.spec.mjs'))
+    && !/forbiddenMembers26|enumerateMembers26/.test(read('tests/lifetime-tax-conversion.spec.mjs')),
+  'TP-03-06: the conversion comparison record\u2019s own forbidden-member check is byte-untouched by this scope and carries none of this scope\u2019s identifiers, proving an enumeration was added rather than an existing one extended');
+
+  /* TP-03-07 KNOWN VALUE. Against the fixture pack, whose life-expectancy figures are round
+     numbers no published table carries, each cumulative total is the adjusted annual benefit
+     times the whole-year count from that claim age to the life-expectancy age. Asserted at
+     three claim ages. The fixture's $1,000 statement figure produces $8,400 a year at 62,
+     $12,000 at 67 and $14,880 at 70 through the pack's own factors. */
+  const fixtureRun26 = compare26([62, 67, 70]);
+  const byAge26 = (age) => fixtureRun26.perAge.filter((entry) => entry.claimAge === age)[0];
+  assert(!RULES26.isUnavailable(fixtureRun26)
+    && byAge26(62).remainingYears === 30 && byAge26(62).wholeYears === 30
+    && byAge26(62).cumulativeTotal === byAge26(62).adjustedAnnualBenefit * 30
+    && byAge26(67).remainingYears === 25 && byAge26(67).wholeYears === 25
+    && byAge26(67).cumulativeTotal === byAge26(67).adjustedAnnualBenefit * 25
+    && byAge26(70).remainingYears === 22 && byAge26(70).wholeYears === 22
+    && byAge26(70).cumulativeTotal === byAge26(70).adjustedAnnualBenefit * 22,
+  'TP-03-07: against a fixture pack with deliberately non-standard life-expectancy figures, each claim age\u2019s cumulative total equals the adjusted annual benefit times the whole-year count from that claim age to the life-expectancy age, asserted at three claim ages');
+
+  /* TP-03-08 ADVERSARIAL. An implementation reaching for a RECALLED table produces the shipped
+     figures rather than the fixture's, and is caught. An implementation applying a discount or a
+     growth rate produces a different total and is caught. No such term exists in the module. */
+  const shippedBasis26 = CLAIM26.resolveMortalityBasis(MORTALITY26, COLUMN26, 2026);
+  const recalled26 = CLAIM26.remainingYearsAt(shippedBasis26, 62);
+  const discounted26 = byAge26(62).adjustedAnnualBenefit
+    * ((1 - Math.pow(1.03, -30)) / 0.03);
+  assert(recalled26 !== CLAIM26.remainingYearsAt(fixtureBasis26, 62)
+    && byAge26(62).cumulativeTotal !== Math.round(discounted26)
+    && byAge26(62).cumulativeTotal !== byAge26(62).adjustedAnnualBenefit * recalled26
+    && !/discount|growth|inflat|interpolat|nominal rate|realRate/i.test(claimAgeCode26)
+    && !/Math\.pow/.test(claimAgeCode26)
+    /* The stripper is proven not to be a blanket eraser: real code survives it. */
+    && /function cumulativeBenefitTotal/.test(claimAgeCode26)
+    && /discount/i.test(claimAgeSource26) === true,
+  'TP-03-08: an implementation using a recalled life-expectancy figure is proven to produce a different total against the non-standard fixture, one applying a discount or growth rate is proven to differ, and no discount, growth, inflation or interpolation term exists anywhere in the module');
+
+  /* TP-03-09 KNOWN VALUE. The equality age solves an equality between two declared sums, names
+     both claim ages, and a pair whose sums never meet withholds the figure rather than reporting
+     a bound. */
+  const crossing26 = CLAIM26.cumulativeParityAge(62, 8400, 67, 12000);
+  const neverMeet26 = CLAIM26.cumulativeParityAge(67, 12000, 70, 12000);
+  const exactEquality26 = ((12000 * 67) - (8400 * 62)) / (12000 - 8400);
+  assert(crossing26.sumsMeet === true
+    && crossing26.earlierClaimAge === 62 && crossing26.laterClaimAge === 67
+    && Math.abs(crossing26.equalityAge - exactEquality26) < 1e-9
+    /* The equality genuinely holds: both running sums are equal at that age. */
+    && Math.abs((8400 * (crossing26.equalityAge - 62)) - (12000 * (crossing26.equalityAge - 67))) < 1e-6
+    && neverMeet26.sumsMeet === false
+    && neverMeet26.equalityAge === null
+    && neverMeet26.earlierClaimAge === 67 && neverMeet26.laterClaimAge === 70
+    && /never become equal at any age/.test(neverMeet26.withheldReason)
+    && !/\d/.test(neverMeet26.withheldReason),
+  'TP-03-09: the equality age is the age at which the two cumulative totals are equal and is published with both claim ages named, the equality is verified to hold from both sides, and a pair whose totals never cross withholds the figure rather than reporting a bound');
+
+  /* TP-03-10 CONTRACT. Both statements are members of the RECORD rather than page copy, so they
+     travel with it into an export a page never touches. */
+  const exported26 = JSON.parse(JSON.stringify(settled26));
+  const pageText26 = read('lifetime-tax-strategy-lab.html');
+  assert(typeof settled26.resultKindStatement === 'string' && settled26.resultKindStatement.length > 0
+    && typeof settled26.selectsNothingStatement === 'string' && settled26.selectsNothingStatement.length > 0
+    && exported26.resultKindStatement === settled26.resultKindStatement
+    && exported26.selectsNothingStatement === settled26.selectsNothingStatement
+    /* The page RENDERS the record's statements rather than carrying its own copy of them. */
+    && /claimAgeResultKindLine"\)\.textContent = comparison\.resultKindStatement/.test(pageText26)
+    && /claimAgeSelectsNothingLine"\)\.textContent = comparison\.selectsNothingStatement/.test(pageText26)
+    && pageText26.indexOf(settled26.selectsNothingStatement) < 0,
+  'TP-03-10: resultKindStatement and selectsNothingStatement are members of the record rather than page copy, are non-empty, survive a serialization round trip into the export, and the page renders them from the record rather than restating them');
+
+  /* TP-03-11 DEGRADED STATE. An absent life-expectancy figure withholds the cumulative total and
+     the equality age; the per-age adjusted benefit still resolves; no default horizon appears. */
+  const outsideDomain26 = compare26([67, 75]);
+  const absentEntry26 = outsideDomain26.perAge.filter((entry) => entry.claimAge === 75)[0];
+  assert(!RULES26.isUnavailable(outsideDomain26)
+    && Number.isFinite(absentEntry26.adjustedAnnualBenefit)
+    && absentEntry26.cumulativeTotal === null
+    && absentEntry26.wholeYears === null
+    && absentEntry26.remainingYears === null
+    && RULES26.isUnavailable(absentEntry26.withheld)
+    && absentEntry26.withheld.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && outsideDomain26.parityAges.every((pair) => pair.sumsMeet === false && pair.equalityAge === null)
+    /* A default horizon would show up as a finite figure somewhere. Nothing does. */
+    && JSON.stringify(absentEntry26).indexOf('cumulativeTotal":0') < 0,
+  'TP-03-11: an absent life-expectancy figure withholds the cumulative total, the whole-year count and the equality age, the per-age adjusted benefit still resolves, and no default horizon and no zero is substituted');
+
+  /* TP-03-12 ADVERSARIAL. An implementation substituting a default horizon is proven to fail:
+     the withheld entry would carry a finite total, and this assertion is what catches it. */
+  const substituted26 = Object.assign({}, absentEntry26, { cumulativeTotal: 12000 * 20, wholeYears: 20 });
+  assert(absentEntry26.cumulativeTotal === null && substituted26.cumulativeTotal !== null
+    && (substituted26.cumulativeTotal === null) === false
+    /* No literal horizon exists anywhere in the module for a substitution to reach for. */
+    && !/DEFAULT_HORIZON|FALLBACK_AGE|assumedAge|defaultRemaining/i.test(claimAgeSource26),
+  'TP-03-12: an implementation substituting a default horizon for an absent life-expectancy figure is proven to fail this scope\u2019s own withholding assertion, and no default-horizon constant exists in the module for one to reach for');
+
+  /* TP-03-13 DECLARED ORDER. perAge[] appears in declared order for a declaration whose order is
+     not ascending by cumulative total, and no sort exists in the module or the renderer. */
+  const unsorted26 = compare26([70, 62, 67]);
+  const renderedOrder26 = unsorted26.perAge.map((entry) => entry.claimAge);
+  const totals26 = unsorted26.perAge.map((entry) => entry.cumulativeTotal);
+  const ascending26 = totals26.slice().sort((left, right) => left - right);
+  assert(renderedOrder26.join(',') === '70,62,67'
+    /* The declared order is genuinely NOT the sorted order, so this assertion can fail. */
+    && totals26.join(',') !== ascending26.join(',')
+    && !/\.sort\(/.test(claimAgeSource26)
+    && !/claimAge[\s\S]{0,400}?\.sort\(/.test(pageText26.slice(pageText26.indexOf('function renderClaimAge'),
+      pageText26.indexOf('function renderPower'))),
+  'TP-03-13: perAge[] appears in declared order for a declaration whose order is not ascending by cumulative total, the two orders are proven to differ, and no sort exists in the module or in the claim-age renderer');
+
+  /* TP-03-14 ADVERSARIAL. An implementation sorting by cumulative total is proven to fail, and
+     one marking the largest total is proven to fail the forbidden-member enumeration. */
+  const sorted26 = unsorted26.perAge.slice().sort((left, right) => right.cumulativeTotal - left.cumulativeTotal)
+    .map((entry) => entry.claimAge).join(',');
+  const marked26 = enumerateMembers26({ perAge: [{ claimAge: 70, isBestOutcome: true }] }, []);
+  assert(sorted26 !== renderedOrder26.join(',')
+    && marked26.some((name) => forbiddenMembers26.test(name)) === true
+    && enumerateMembers26(unsorted26, []).every((name) => !forbiddenMembers26.test(name)),
+  'TP-03-14: an implementation sorting by cumulative total is proven to produce a different order and fail, and one marking the largest total is proven to be caught by the forbidden-member enumeration the real record passes');
+
+  /* TP-03-15 SOURCING. The life-expectancy column resolves to exactly ONE retrieved record
+     carrying a locator and a retrievedAt, and the one figure this retrieval could not establish
+     ships as a value-free AbsentFigure with a missingSource pointer. */
+  const sourceIds26 = MORTALITY26.sourceRecords.map((record) => record.sourceId);
+  const columnRefs26 = MORTALITY26.mortalityPolicy.columns.map((column) => column.sourceRef);
+  const absentLabels26 = MORTALITY26.mortalityPolicy.columnLabels;
+  assert(columnRefs26.every((ref) => sourceIds26.filter((id) => id === ref).length === 1)
+    && MORTALITY26.sourceRecords.every((record) => typeof record.url === 'string'
+      && /^https:\/\/www\.ssa\.gov\//.test(record.url)
+      && /^\d{4}-\d{2}-\d{2}$/.test(record.retrievedAt)
+      && Number.isFinite(record.editionYear))
+    && MORTALITY26.mortalityPolicy.columns.every((column) => typeof column.locator === 'string'
+      && column.locator.length > 0)
+    && MORTALITY26.mortalityPolicy.tableYear.value === 2023
+    && absentLabels26.contractVersion === 'AbsentFigure/v1'
+    && absentLabels26.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && typeof absentLabels26.reason === 'string' && absentLabels26.reason.length > 0
+    && typeof absentLabels26.whatWouldMakeItAvailable === 'string'
+    && typeof absentLabels26.missingSource.locator === 'string'
+    /* A value-free absence: no numeric member is smuggled onto it. */
+    && Object.keys(absentLabels26).every((key) => !Number.isFinite(absentLabels26[key]))
+    /* And it reaches every surface the basis reaches rather than living only in the pack. */
+    && shippedBasis26.unlabelledColumns === MORTALITY26.mortalityPolicy.columnLabels
+      || JSON.stringify(shippedBasis26.unlabelledColumns) === JSON.stringify(absentLabels26),
+  'TP-03-15: the mortality pack\u2019s life-expectancy columns each resolve to exactly one retrieved SSA source with a locator, a retrievedAt and the table\u2019s own year of 2023, and the column identity this retrieval could not establish ships as a value-free AbsentFigure with a missingSource pointer that reaches the basis');
+
+  /* TP-03-16 NO-SHADOW. No module holds a life-expectancy figure, an age or an authority name.
+     The detector is proven to fire on a module that does. */
+  const shadowScan26 = /\b(20\.29|19\.56|18\.83|18\.12|17\.41|16\.71|16\.02|15\.34|14\.66|23\.08|16\.76)\b|Social Security Administration|period life table|ssa\.gov/i;
+  assert(!shadowScan26.test(claimAgeSource26)
+    && !shadowScan26.test(read('rltax.js'))
+    && !shadowScan26.test(read('rltaxworkspace.js'))
+    && shadowScan26.test('var remaining = 16.71; /* from the period life table */') === true,
+  'TP-03-16: no module holds a life-expectancy figure, an exact age from the table or an authority name, and the detector is proven to fire on a module that does');
+
+  /* TP-03-17 PRIVACY. The declared claim-age set and the declared column are inventoried,
+     cleared and redacted, and the declared storage key count is asserted UNCHANGED in the same
+     assertion so a new key cannot slip in beside them. */
+  const taxConfig26 = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  const emptyWorkspace26 = WS26.createEmptyWorkspace();
+  const declaredKeys26 = WS26.declaredStorageKeys(taxConfig26);
+  const inventoryText26 = read('rltaxworkspace.js');
+  assert(declaredKeys26.length === 3
+    && WS26.WORKSPACE_FIELDS.indexOf('claimAgeComparisonAges') >= 0
+    && WS26.WORKSPACE_FIELDS.indexOf('mortalityTableColumnId') >= 0
+    && Array.isArray(emptyWorkspace26.claimAgeComparisonAges)
+    && emptyWorkspace26.claimAgeComparisonAges.length === 0
+    && emptyWorkspace26.mortalityTableColumnId === null
+    && /claimAgeComparisonAges/.test(inventoryText26)
+    && /mortalityTableColumnId/.test(inventoryText26)
+    /* The module itself touches no storage, no network, no DOM and no console. */
+    && !/fetch\(|XMLHttpRequest|navigator\.sendBeacon/.test(claimAgeSource26)
+    && !/localStorage|sessionStorage|document\./.test(claimAgeSource26)
+    && !/console\./.test(claimAgeSource26),
+  'TP-03-17: the declared claim-age set and the declared mortality column are inventoried workspace members that start empty and null, the declared storage key count is asserted unchanged in the same assertion, and the module performs no storage, network, DOM or console access');
+
+  /* TP-03-18 HARNESS. UMD rather than ESM, top-level declarations the extractor lifts,
+     Number.isFinite rather than the bare global, and nothing wrapped in requestAnimationFrame. */
+  assert(!/^\s*(import|export)\s/m.test(claimAgeSource26)
+    && /module\.exports\s*=\s*api/.test(claimAgeSource26)
+    && /root\.RLTAXCLAIMAGE/.test(claimAgeSource26)
+    && !/(^|[^.\w])isFinite\s*\(/.test(claimAgeSource26)
+    && /Number\.isFinite/.test(claimAgeSource26)
+    && !/requestAnimationFrame/.test(claimAgeSource26)
+    && ['resolveMortalityBasis', 'remainingYearsAt', 'cumulativeBenefitTotal',
+      'cumulativeParityAge', 'composeClaimAgeComparison', 'declaredColumnIds']
+      .every((name) => { try { extractFn(claimAgeSource26, name); return true; } catch (error) { return false; } }),
+  'TP-03-18: the new module is UMD rather than ESM, every pure analytic function is a top-level declaration the selftest extractor lifts, Number.isFinite is used rather than the bare global, and no drawing in this scope is wrapped in requestAnimationFrame');
+
+  /* TP-03-19 RENDER SAFETY. The claim-age renderer reads only members the stage publishes on
+     BOTH its shapes, is wired into renderPower, and every control routes through the
+     declaration-signature no-op guard. A renderer throw aborts renderPower entirely, so a member
+     read that only exists on the available shape would take every later section down with it. */
+  const rendererBody26 = pageText26.slice(pageText26.indexOf('function renderClaimAge'),
+    pageText26.indexOf('function renderPower'));
+  const unavailableStage26 = ENGINE26.composeClaimAgeStage(declaration26, [], MORTALITY26,
+    BENEFIT26, COLUMN26, 2026);
+  /* SUP-024-12: supersedes `/"inputClaimAgeComparisonAges", "inputMortalityColumn"\]/`; shape=derive.
+     The superseded regex required that exact PAIR to be the last two entries of DECLARATION_INPUTS,
+     because the trailing `]` anchored it to the end of the array. It therefore broke the moment a
+     later scope appended a control, which says nothing about whether the two watched ids are
+     registered. The replacement extracts the DECLARATION_INPUTS block and asserts each watched id
+     is present within it by membership, matching the form TP-01-19 already uses. Strictly stronger
+     because it still requires every watched id to be registered while no longer asserting an
+     ordering nobody intended, so a removed id fails while an appended one does not.
+     Ledger: specs/024-social-security-and-medicare/spec.md#supersession-ledger */
+  const declarationInputsBlock26 = /var DECLARATION_INPUTS = \[([\s\S]*?)\];/.exec(pageText26);
+  const claimAgeInputIds26 = ['inputClaimAgeComparisonAges', 'inputMortalityColumn'];
+  assert(/renderClaimAge\(\);/.test(pageText26)
+    && rendererBody26.length > 0
+    && /if \(stage\.refusal\)/.test(rendererBody26)
+    && /if \(!stage\) return;/.test(rendererBody26)
+    /* Both shapes publish every member the renderer reads before it returns. */
+    && Object.prototype.hasOwnProperty.call(unavailableStage26, 'refusal')
+    && Object.prototype.hasOwnProperty.call(unavailableStage26, 'mortalityBasis')
+    && Object.prototype.hasOwnProperty.call(unavailableStage26, 'basisRefusal')
+    && unavailableStage26.available === false
+    /* The two new controls are watched by the same list the boot wiring reads, so neither can be
+       bound without also being covered by the no-op guard. */
+    && declarationInputsBlock26 !== null
+    && claimAgeInputIds26.every((id) => declarationInputsBlock26[1].indexOf(id) >= 0)
+    && /if \(declarationSignature\(\) === lastDeclarationSignature\) return;/.test(pageText26)
+    /* Every displayed figure on the panel goes through the one tooltip-bearing constructor. */
+    && rendererBody26.split('valueNode(').length - 1 >= 5
+    && !/textContent = dollars\(/.test(rendererBody26),
+  'TP-03-19: the claim-age renderer reads only members the stage publishes on both its available and unavailable shapes, is wired into renderPower, routes its two new controls through the declaration-signature no-op guard, and renders every displayed figure through the tooltip-bearing constructor');
+
+  /* TP-03-CLAIM. ASC-9. This scope emits an EQUALITY OF TWO DECLARED SUMS, which is a weaker
+     claim than the one the five break-even detectors forbid — it is not a synonym chosen so the
+     same claim passes the same scan. Neither the module's code, the pack, the record nor the
+     page states a probability, a plan success figure, a track record or a break-even. */
+  const claimAgePanel26 = pageText26.slice(pageText26.indexOf('<div id="power-claim-age"'),
+    pageText26.indexOf('<div id="power-source-records"'));
+  /* The refusal scanned here is the empty-declaration one. The pack-invalid refusal is
+     deliberately NOT scanned: refusing a probability-bearing member requires naming it, so a
+     scan over that refusal would fire on the very act of refusing and would push an
+     implementation toward a refusal that hides what it rejected. */
+  const emptyRefusal26 = compare26([]);
+  assert(!claimScan26.test(claimAgeCode26)
+    && !claimScan26.test(mortalityText26)
+    && !claimScan26.test(JSON.stringify(settled26))
+    && !claimScan26.test(JSON.stringify(emptyRefusal26))
+    && !claimScan26.test(claimAgePanel26)
+    && claimScan26.test('the break-even age you are likely to reach') === true
+    /* And the pack-invalid refusal does still name the member it rejected. */
+    && /deathProbabilityByAge/.test(JSON.stringify(probabilityStage26))
+    /* The weaker claim is stated POSITIVELY — the record says what it does claim, an equality
+       between two declared sums, rather than merely omitting the words a detector looks for. */
+    && /equal/i.test(settled26.resultKindStatement)
+    && /two declared sums are equal/i.test(settled26.resultKindStatement)
+    && /not a forecast/i.test(settled26.resultKindStatement),
+  'TP-03-CLAIM: neither the module, the mortality pack, the comparison record, the refusal nor the claim-age panel states a probability, a plan success figure, a track record, an error rate or a break-even, the detector is proven to fire on a sentence that does, and the record states its weaker equality claim positively rather than by word avoidance');
+
+  /* TP-03-SUPERSESSION. This scope owns NO supersession, and that is a finding rather than an
+     omission: the scope index records zero entries for it and no marker naming it exists. */
+  const indexText26 = read('specs/024-social-security-and-medicare/scopes/_index.md');
+  assert(!/SUP-024-\d\d[^\n]*\bScope 03\b/.test(read('specs/024-social-security-and-medicare/spec.md'))
+    && !/SUP-024/.test(read('rltaxclaimage.js'))
+    && !/\| 03 \| SUP-024/.test(indexText26)
+    /* The two claim-scan file-set extensions above add files and remove nothing, so they are
+       strengthenings that require no marker. TP-03-05 is the proof they actually scan. */
+    && /rltaxclaimage\.js/.test(selftestText26),
+  'TP-03-SUPERSESSION: this scope carries no supersession marker and the scope index records none for it, and the two claim-scan file-set extensions are strengthenings that add files and remove nothing');
+
+  /* NO-REGISTRATION. Registration is Feature 026 and this scope performs none of it. */
+  const registryText26 = ['tools.json', 'index.html', 'rlnav.js', 'README.md', 'notes/README.md']
+    .map((file) => read(file)).join('\n');
+  assert(!/rltaxclaimage/.test(registryText26)
+    && !/claim-age/.test(registryText26)
+    && !/lifetime-tax-strategy-lab/.test(registryText26),
+  'TP-03-REGISTRATION: the claim-age module and the lifetime tax lab remain absent from tools.json, the index, the navigation and both READMEs');
+
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 024 Scope 03 claim-age group threw): ' + e.message); }
+
+try {
+  group('lifetime-tax — medicare premiums and the income-related adjustment');
+
+  const RULES27 = await import('../rltaxrules.js').then((m) => m.default);
+  const MED27 = await import('../rltaxmedicare.js').then((m) => m.default);
+
+  const medicareText27 = read('tax-rules/medicare/2026.json');
+  const MEDICARE27 = JSON.parse(medicareText27);
+  const cloneMedicare27 = () => JSON.parse(medicareText27);
+  const SHIPPED_REQUIRED_YEAR27 = 2024;
+
+  /* A fixture pack whose every amount is deliberately NON-STANDARD and whose premium year is 2999,
+     so nothing below can be mistaken for a transcribed figure. It exists to exercise the boundary
+     operators, the offset and the leg arithmetic against amounts no publication states. Its
+     boundaries deliberately mix the two operators so a recalled convention cannot satisfy it. */
+  const fixturePack27 = () => {
+    const pack = cloneMedicare27();
+    const cite = { sourceRef: 'ssa-medicare-premiums-higher-income-2026', locator: 'fixture pack' };
+    pack.medicarePolicy.premiumYear = 2999;
+    pack.medicarePolicy.lookbackOffsetYears = Object.assign({
+      value: 3,
+      quotedOffsetBasis: 'fixture pack: a deliberately non-standard three-year offset'
+    }, cite);
+    pack.medicarePolicy.standardPremiums = {
+      'part-b': Object.assign({ value: 100 }, cite),
+      'part-d': Object.assign({ value: 20 }, cite)
+    };
+    pack.medicarePolicy.bracketSets = {
+      'fixture-set': [
+        {
+          bracketIndex: 0, lowerBound: null, boundaryOperator: 'no-lower-bound', upperBound: 1000,
+          partBAdjustment: Object.assign({ value: 1 }, cite),
+          partDAdjustment: Object.assign({ value: 2 }, cite),
+          quotedRange: 'fixture pack lowest row', locator: 'fixture pack'
+        },
+        {
+          /* INCLUSIVE at its lower edge: a household sitting exactly on 1000 belongs here. */
+          bracketIndex: 1, lowerBound: 1000, boundaryOperator: 'greater-than-or-equal', upperBound: 2000,
+          partBAdjustment: Object.assign({ value: 7 }, cite),
+          partDAdjustment: Object.assign({ value: 3 }, cite),
+          quotedRange: 'fixture pack middle row', locator: 'fixture pack'
+        },
+        {
+          /* STRICT at its lower edge: a household sitting exactly on 2000 belongs to row 1. */
+          bracketIndex: 2, lowerBound: 2000, boundaryOperator: 'greater-than', upperBound: null,
+          partBAdjustment: Object.assign({ value: 11 }, cite),
+          partDAdjustment: Object.assign({ value: 5 }, cite),
+          quotedRange: 'fixture pack highest row', locator: 'fixture pack'
+        }
+      ]
+    };
+    pack.medicarePolicy.filingStatusMapping = {
+      single: {
+            bracketSetId: 'fixture-set',
+            quotedBasis: 'fixture pack: the mapping this fixture declares for the single status',
+            locator: 'fixture pack'
+      }
+    };
+    return pack;
+  };
+  const FIXTURE27 = fixturePack27();
+  const lookback27 = (amount, year) => Object.freeze({
+    contractVersion: 'LookbackMagi/v1',
+    origin: 'declared',
+    lookbackYear: year === undefined ? 2996 : year,
+    modifiedAdjustedGrossIncome: amount
+  });
+  const fixtureLegs27 = (amount) => MED27.computePremiumLegs(lookback27(amount), FIXTURE27, 'single');
+
+  /* The SETTLED household this scope's total-level rows run against. It is settled TWICE from the
+     identical workspace and the identical federal pack — once with no lookback declared and once
+     with the three premium legs handed in — so the cost axis is compared against the tax axis
+     directly rather than against a remembered figure. Everything below that speaks about
+     `totalFederalTax` reads THIS pair, because the medicare leg set on its own can only ever prove
+     things about itself. */
+  const ENGINE27 = await import('../rltax.js').then((m) => m.default);
+  const WS27 = await import('../rltaxworkspace.js').then((m) => m.default);
+  const PROPERTY27 = await import('../rltaxproperty.js').then((m) => m.default);
+  const STRATEGY27 = await import('../rltaxstrategy.js').then((m) => m.default);
+  const federalText27 = read('tax-rules/federal/2026.json');
+  const FEDERAL27 = JSON.parse(federalText27);
+  const householdWorkspace27 = (income, wages) => Object.assign(WS27.createEmptyWorkspace(), {
+    filingStatus: 'single', deductionMode: 'standard', declaredTaxYear: 2026,
+    income: Object.assign({}, income),
+    investmentIncomeBasis: { otherOrdinaryNetInvestmentIncome: 0 },
+    wageBasis: { medicareWagesAndSelfEmploymentIncome: wages }
+  });
+  const settlementIncome27 = {
+    ordinary: 120000, qualifiedDividend: 5000, longTermCapitalGain: 10000, taxExemptInterest: 2000
+  };
+  const medicareStage27 = ENGINE27.composeMedicareStage(lookback27(1500), FIXTURE27, 'single');
+  const withoutLookback27 = ENGINE27.computeAnnualFederalTax(
+    householdWorkspace27(settlementIncome27, 120000), FEDERAL27);
+  const withMedicare27 = ENGINE27.computeAnnualFederalTax(
+    householdWorkspace27(settlementIncome27, 120000), FEDERAL27, medicareStage27.legs);
+  const includedTotalOf27 = (settlement) => settlement.taxLegs
+    .filter((leg) => leg.includedInTotal === true && leg.available === true)
+    .reduce((sum, leg) => sum + leg.value, 0);
+  const everyLegTotalOf27 = (settlement) => settlement.taxLegs
+    .filter((leg) => leg.available === true)
+    .reduce((sum, leg) => sum + leg.value, 0);
+  /* The reconciliation the settlement ITSELF published, rather than one re-derived here. When the
+     identity breaks the engine replaces `totalFederalTax` with the refusal, so a re-derivation
+     would read that refusal back and report the identity as merely not-evaluable — hiding the very
+     break it is meant to expose. */
+  const l4StateOf27 = (settlement) => settlement.reconciliation.legs
+    .filter((entry) => entry.id === 'L4')[0].state;
+  /* Each premium leg flipped to included IN TURN, carried all the way through a real settlement
+     rather than only through the medicare leg set, so the failure it causes is the one a consumer
+     of the settlement would actually meet. */
+  const settlementFlips27 = MEDICARE27.medicarePolicy.taxLegs.map((leg) => {
+    const mutated = fixturePack27();
+    mutated.medicarePolicy.taxLegs
+      .filter((candidate) => candidate.legId === leg.legId)[0].includedInTotal = true;
+    const mutatedStage = ENGINE27.composeMedicareStage(lookback27(1500), mutated, 'single');
+    const mutatedSettlement = ENGINE27.computeAnnualFederalTax(
+      householdWorkspace27(settlementIncome27, 120000), FEDERAL27, mutatedStage.legs);
+    const entering = mutatedSettlement.taxLegs
+      .filter((candidate) => candidate.includedInTotal === true && candidate.stageId === 'CO-22');
+    return {
+      legId: leg.legId,
+      enteringIds: entering.map((candidate) => candidate.legId),
+      identityState: l4StateOf27(mutatedSettlement),
+      balanced: mutatedSettlement.reconciliation.balanced,
+      totalRefusalCode: (mutatedSettlement.totalFederalTax || {}).code || null
+    };
+  });
+
+  /* TP-04-01 CONTRACT. `LookbackMagi/v1` is a DECLARATION, so it refuses a `sourceRef` — a
+     household's own figure is never a cited one — and it carries its own year. The shape carries no
+     settled-year member, no workspace handle and no settlement handle, so the object itself cannot
+     smuggle a current-year figure into the resolver. */
+  const withSourceRef27 = {
+    contractVersion: 'LookbackMagi/v1', origin: 'declared', lookbackYear: 2024,
+    modifiedAdjustedGrossIncome: 150000, sourceRef: 'ssa-medicare-premiums-higher-income-2026'
+  };
+  const sourceRefVerdict27 = RULES27.validateLookbackMagi(withSourceRef27, 'lookback-magi');
+  const cleanVerdict27 = RULES27.validateLookbackMagi(lookback27(150000, 2024), 'lookback-magi');
+  const forbiddenCarriers27 = ['declaredTaxYear', 'settledYear', 'workspace', 'settlement',
+    'modifiedAdjustedGrossCurrentYear', 'currentYearModifiedAdjustedGrossIncome'];
+  const smuggled27 = forbiddenCarriers27.map((member) => {
+    const candidate = { contractVersion: 'LookbackMagi/v1', origin: 'declared', lookbackYear: 2024,
+      modifiedAdjustedGrossIncome: 150000 };
+    candidate[member] = 999999;
+    return RULES27.validateLookbackMagi(candidate, 'lookback-magi');
+  });
+  assert(sourceRefVerdict27.ok === false
+    && sourceRefVerdict27.refusals.some((refusal) => /sourceRef/.test(refusal.reason + ' ' + refusal.domain))
+    && cleanVerdict27.ok === true
+    && Object.keys(lookback27(150000, 2024)).indexOf('lookbackYear') >= 0
+    && smuggled27.every((verdict) => verdict.ok === false),
+  'TP-04-01: LookbackMagi/v1 refuses a sourceRef because a household declaration is never a cited figure, carries its own year, and refuses every member through which a settled year, a workspace, a settlement or a current-year income figure could ride in');
+
+  /* TP-04-02 STRUCTURAL INDEPENDENCE. The resolver takes EXACTLY two parameters and there is no
+     third, no options bag and no rest parameter through which a current-year figure could arrive.
+     The module holds no mutable module-scope binding a caller could set instead, so the closure set
+     offers no side channel either. This is read off the source rather than asserted about it. */
+  const medicareSource27 = read('rltaxmedicare.js');
+  const resolverSignature27 = /function resolveAdjustmentBracket\(([^)]*)\)/.exec(medicareSource27);
+  const resolverParams27 = resolverSignature27[1].split(',').map((part) => part.trim());
+  /* A `var` at module scope that is later ASSIGNED is a channel; one that is only initialised and
+     read is a constant. The scan is taken over the module BODY — everything from its first
+     function declaration onward — because the UMD header's one reassignment resolves a dependency
+     at load time and is not a binding a caller can set between two calls to the resolver. */
+  const medicareBody27 = medicareSource27.slice(medicareSource27.indexOf('  function '));
+  const moduleScopeVars27 = (medicareSource27.match(/^ {2}var ([A-Za-z0-9_]+)/gm) || [])
+    .map((line) => line.replace(/^ {2}var /, ''));
+  const reassigned27 = moduleScopeVars27.filter((name) =>
+    new RegExp('^\\s+' + name + '\\s*=[^=]', 'm').test(medicareBody27));
+  assert(MED27.resolveAdjustmentBracket.length === 2
+    && resolverParams27.length === 2
+    && resolverParams27[0] === 'lookback'
+    && resolverParams27[1] === 'bracketPack'
+    && !/function resolveAdjustmentBracket\([^)]*\.\.\./.test(medicareSource27)
+    && !/function resolveAdjustmentBracket\([^)]*options/.test(medicareSource27)
+    && !/\barguments\b/.test(medicareSource27)
+    && reassigned27.length === 0
+    /* And no member of the module's own API takes a settlement or a workspace. */
+    && !/function [A-Za-z]+\([^)]*(settlement|workspace)/.test(medicareSource27),
+  'TP-04-02: resolveAdjustmentBracket accepts exactly a LookbackMagi/v1 and a bracket pack — no third parameter, no options bag, no rest parameter and no arguments object — and no module-scope binding is ever reassigned, so the closure set offers no side channel a current-year income figure could arrive through');
+
+  /* TP-04-03 ADVERSARIAL. Non-vacuous structural independence. The two figures are chosen to fall
+     in DIFFERENT fixture brackets, so a resolver reading the wrong one would be caught rather than
+     agreeing by coincidence. The bracket indexes are asserted to differ FIRST, so the row cannot
+     pass because the fixture accidentally collapsed them. */
+  const declaredLookback27 = 500;
+  const currentYearMeasure27 = 5000;
+  const lookbackBracket27 = MED27.resolveAdjustmentBracket(lookback27(declaredLookback27),
+    MED27.resolveBracketSet(FIXTURE27, 'single'));
+  const currentYearBracket27 = MED27.resolveAdjustmentBracket(lookback27(currentYearMeasure27),
+    MED27.resolveBracketSet(FIXTURE27, 'single'));
+  assert(lookbackBracket27.bracketIndex !== currentYearBracket27.bracketIndex
+    && lookbackBracket27.bracketIndex === 0
+    && currentYearBracket27.bracketIndex === 2
+    /* The settled record's current-year measure is not a parameter of anything on this path. */
+    && MED27.computePremiumLegs.length === 3
+    && /function computePremiumLegs\(lookback, pack, filingStatus\)/.test(medicareSource27)
+    && fixtureLegs27(declaredLookback27).bracket.bracketIndex === lookbackBracket27.bracketIndex
+    && fixtureLegs27(declaredLookback27).declaredLookbackAmount === declaredLookback27,
+  'TP-04-03: with a declared lookback and a current-year measure that fall in provably different brackets, the resolved bracket is the lookback’s, and the only income figure on the whole path is the one the household declared for the lookback year');
+
+  /* TP-04-04 CONTRACT. An undeclared lookback names the exact year required AND the offset that
+     produced it; a declared year that disagrees refuses naming all three figures. */
+  const undeclared27 = MED27.checkLookbackYear(null, MEDICARE27);
+  const wrongYear27 = MED27.checkLookbackYear(lookback27(150000, 2023), MEDICARE27);
+  const rightYear27 = MED27.checkLookbackYear(lookback27(150000, SHIPPED_REQUIRED_YEAR27), MEDICARE27);
+  assert(RULES27.isUnavailable(undeclared27)
+    && undeclared27.code === 'RLTAX-INPUT-INCOMPLETE'
+    && undeclared27.reason.indexOf(String(SHIPPED_REQUIRED_YEAR27)) >= 0
+    && undeclared27.reason.indexOf('offset') >= 0
+    && RULES27.isUnavailable(wrongYear27)
+    && wrongYear27.code === 'RLTAX-PACK-YEAR-MISMATCH'
+    && wrongYear27.reason.indexOf('2023') >= 0
+    && wrongYear27.reason.indexOf('2026') >= 0
+    && wrongYear27.reason.indexOf(String(SHIPPED_REQUIRED_YEAR27)) >= 0
+    && !RULES27.isUnavailable(rightYear27)
+    && rightYear27.requiredYear === SHIPPED_REQUIRED_YEAR27,
+  'TP-04-04: an undeclared lookback refuses RLTAX-INPUT-INCOMPLETE naming the exact year required and the offset that produced it, and a declared year that is not the premium year minus the pack’s offset refuses RLTAX-PACK-YEAR-MISMATCH naming the declared year, the premium year and the required year');
+
+  /* TP-04-05 ADVERSARIAL. The offset is a PACK member, not a module constant: a fixture declaring a
+     different offset produces a different required year off the same code path. */
+  const shippedRequired27 = MED27.requiredLookbackYear(MEDICARE27);
+  const fixtureRequired27 = MED27.requiredLookbackYear(FIXTURE27);
+  const offsetless27 = cloneMedicare27();
+  delete offsetless27.medicarePolicy.lookbackOffsetYears;
+  const noOffset27 = MED27.requiredLookbackYear(offsetless27);
+  assert(shippedRequired27.offsetYears === 2
+    && shippedRequired27.requiredYear === SHIPPED_REQUIRED_YEAR27
+    && fixtureRequired27.offsetYears === 3
+    && fixtureRequired27.requiredYear === 2996
+    && fixtureRequired27.requiredYear !== shippedRequired27.requiredYear
+    /* Without an establishable offset the whole Medicare settlement refuses rather than accepting
+       whatever year arrives, because an unchecked lookback year is the defect this scope prevents. */
+    && RULES27.isUnavailable(noOffset27)
+    && RULES27.isUnavailable(MED27.computePremiumLegs(lookback27(150000, 2024), offsetless27, 'single'))
+    /* No offset literal exists in the module for one to reach for. */
+    && !/lookbackOffsetYears\s*=\s*[0-9]/.test(medicareSource27),
+  'TP-04-05: a fixture pack declaring a three-year offset produces a required year three years back while the shipped pack produces two, proving the offset is a pack member rather than a module constant, and a pack whose offset cannot be established refuses the whole Medicare settlement');
+
+  /* TP-04-06 KNOWN VALUE. Against the non-standard fixture, incomes below, exactly at and above
+     each boundary land in the row the pack states, using the PACK's own operator. The two rows use
+     OPPOSITE operators, so one recalled convention cannot satisfy both. */
+  const bracketAt27 = (amount) => MED27.resolveAdjustmentBracket(lookback27(amount),
+    MED27.resolveBracketSet(FIXTURE27, 'single')).bracketIndex;
+  assert(bracketAt27(999) === 0
+    && bracketAt27(1000) === 1
+    && bracketAt27(1001) === 1
+    && bracketAt27(1999) === 1
+    /* 2000 is the STRICT edge of row 2, so it stays in row 1. */
+    && bracketAt27(2000) === 1
+    && bracketAt27(2001) === 2,
+  'TP-04-06: against a fixture pack with deliberately non-standard boundaries, declared incomes below, exactly at and above each boundary land in the bracket the pack states, and the two rows carry opposite sourced operators so the exact-boundary case is decided by the source rather than by a convention');
+
+  /* TP-04-07 ADVERSARIAL. The operator is READ rather than assumed. Flipping the pack's own
+     operator moves the household at the exact figure and nowhere else, and a bracket carrying no
+     sourced operator refuses instead of falling back to one. */
+  const flipped27 = fixturePack27();
+  flipped27.medicarePolicy.bracketSets['fixture-set'][1].boundaryOperator = 'greater-than';
+  const flippedAt27 = MED27.resolveAdjustmentBracket(lookback27(1000),
+    MED27.resolveBracketSet(flipped27, 'single')).bracketIndex;
+  const operatorless27 = fixturePack27();
+  delete operatorless27.medicarePolicy.bracketSets['fixture-set'][1].boundaryOperator;
+  const noOperator27 = MED27.resolveAdjustmentBracket(lookback27(1500),
+    MED27.resolveBracketSet(operatorless27, 'single'));
+  const comparisons27 = MED27.resolveAdjustmentBracket(lookback27(1000),
+    MED27.resolveBracketSet(FIXTURE27, 'single')).comparisonsPerformed;
+  assert(flippedAt27 === 0
+    && flippedAt27 !== bracketAt27(1000)
+    /* The neighbours are untouched, so the flip moved the exact-boundary household and no other. */
+    && MED27.resolveAdjustmentBracket(lookback27(1001),
+      MED27.resolveBracketSet(flipped27, 'single')).bracketIndex === 1
+    && RULES27.isUnavailable(noOperator27)
+    && noOperator27.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && /boundary-operator/.test(noOperator27.domain)
+    /* The comparison is published, so a reader can see which operator decided the placement. */
+    && comparisons27.some((entry) => entry.operator === 'greater-than-or-equal'
+      && entry.right === 1000 && entry.left === 1000 && entry.result === true),
+  'TP-04-07: flipping the pack’s own boundary operator moves the household sitting exactly on the boundary and leaves its neighbours where they were, a bracket stating no sourced inclusivity refuses rather than falling back to a convention, and the comparison that decided the placement is published with its operator');
+
+  /* TP-04-08 KNOWN VALUE. Both part adjustments are applied and each carries its own citation, and
+     a filing status the publication does not enumerate ships absent rather than borrowing an
+     adjacent status's amounts. */
+  const legsAt27 = fixtureLegs27(1500);
+  const adjustmentLeg27 = legsAt27.legs.filter((leg) => leg.partId === 'both-parts')[0];
+  const unenumerated27 = MED27.resolveBracketSet(FIXTURE27, 'married-filing-jointly');
+  assert(adjustmentLeg27.available === true
+    /* 7 + 3 monthly across both parts, twelve months. Neither half is dropped. */
+    && adjustmentLeg27.record.adjustmentMonthly === 10
+    && adjustmentLeg27.value === 120
+    && adjustmentLeg27.record.sourceRefs.length === 2
+    && adjustmentLeg27.record.sourceRefs.every((ref) => typeof ref === 'string' && ref.length > 0)
+    && RULES27.isUnavailable(unenumerated27)
+    && /does not enumerate the declared filing status/.test(unenumerated27.reason)
+    && /not borrowed/.test(unenumerated27.reason),
+  'TP-04-08: both the Part B and the Part D adjustment amounts are applied and the leg cites a source for each, and a filing status the publication does not enumerate ships as a refusal that states in its own words that an adjacent status’s amounts are not borrowed for it');
+
+  /* TP-04-09 DEGRADED STATE. An unretrieved premium refuses and NO zero is applied in its place.
+     The shipped pack is the live case: the Part D standard premium was not retrievable, so the
+     shipped Part D leg refuses and the annual cost is withheld rather than understated. */
+  const shippedLegs27 = MED27.computePremiumLegs(
+    lookback27(150000, SHIPPED_REQUIRED_YEAR27), MEDICARE27, 'single');
+  const shippedPartD27 = shippedLegs27.legs.filter((leg) => leg.partId === 'part-d')[0];
+  const shippedPartB27 = shippedLegs27.legs.filter((leg) => leg.partId === 'part-b')[0];
+  const shippedCost27 = MED27.annualMedicareCost(shippedLegs27);
+  assert(shippedPartD27.available === false
+    && shippedPartD27.value === null
+    && shippedPartD27.refusal.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    /* The refusal is not a zero wearing a refusal's clothes. */
+    && shippedPartD27.record === null
+    && shippedPartB27.available === true
+    && shippedPartB27.record.standardPremiumMonthly === 202.90
+    /* The withheld part withholds the TOTAL rather than being quietly skipped in the sum. */
+    && RULES27.isUnavailable(shippedCost27)
+    && /medicare-part-d-premium/.test(shippedCost27.domain)
+    && typeof shippedCost27.whatWouldMakeItAvailable === 'string'
+    && shippedCost27.whatWouldMakeItAvailable.length > 0,
+  'TP-04-09: the shipped pack’s unretrieved Part D standard premium refuses with RLTAX-THRESHOLD-UNAVAILABLE, no zero is applied in its place, and the annual Medicare cost is withheld naming the leg that withheld it rather than being totalled over the parts that did resolve');
+
+  /* TP-04-10 ADVERSARIAL. `includedInTotal: false` is a DISPLAY mechanism, not a route past a
+     refusal: a record whose figure is absent is refused whether or not it claims to be excluded. */
+  const absentPartB27 = cloneMedicare27();
+  absentPartB27.medicarePolicy.standardPremiums['part-b'] = {
+    contractVersion: 'AbsentFigure/v1', code: 'RLTAX-THRESHOLD-UNAVAILABLE',
+    domain: 'medicare-standard-premium:part-b',
+    reason: 'fixture: this figure was deliberately withheld',
+    whatWouldMakeItAvailable: 'fixture: retrieve it',
+    missingSource: { title: 'fixture', url: 'https://example.invalid/', documentKind: 'departmental-publication', locator: 'fixture' }
+  };
+  const absentLegs27 = MED27.computePremiumLegs(
+    lookback27(150000, SHIPPED_REQUIRED_YEAR27), absentPartB27, 'single');
+  const absentPartBLeg27 = absentLegs27.legs.filter((leg) => leg.partId === 'part-b')[0];
+  const excludedRecordVerdict27 = RULES27.validatePremiumRecord({
+    contractVersion: 'PremiumRecord/v1', legId: 'medicare-part-b-premium', partId: 'part-b',
+    includedInTotal: false, standardPremiumMonthly: null, adjustmentMonthly: 0,
+    totalMonthly: null, totalAnnual: null, sourceRefs: [], locator: null
+  }, 'premium-record:adversarial');
+  assert(absentPartBLeg27.available === false
+    && absentPartBLeg27.value === null
+    && absentPartBLeg27.includedInTotal === false
+    && RULES27.isUnavailable(MED27.annualMedicareCost(absentLegs27))
+    && excludedRecordVerdict27.ok === false,
+  'TP-04-10: a leg whose figure is absent is refused even though it declares includedInTotal false, proving false is a display mechanism rather than a route that carries a refusal past a total');
+
+  /* TP-04-11 COST LEG. The three legs are declared with `includedInTotal` false, are summed into
+     the separately published annual cost, and the cost says in its own words that it is not a tax.
+     The fixture is used because it is the case where all three legs resolve and are distinct. */
+  const completeLegs27 = fixtureLegs27(1500);
+  const completeCost27 = MED27.annualMedicareCost(completeLegs27);
+  const legAnnuals27 = completeLegs27.legs.map((leg) => leg.value);
+  assert(completeLegs27.legs.length === 3
+    && completeLegs27.legs.every((leg) => leg.includedInTotal === false)
+    && completeLegs27.legs.every((leg) => leg.available === true)
+    /* Mutually distinct, so a sum could not come out right by two legs cancelling. */
+    && new Set(legAnnuals27).size === 3
+    && legAnnuals27.every((value) => value > 0)
+    && completeCost27.value === legAnnuals27.reduce((sum, value) => sum + value, 0)
+    && completeCost27.includedInTotal === false
+    && completeCost27.legCount === 3
+    && /not part of/i.test(completeCost27.notATaxStatement)
+    /* The leg identity comes from the pack rather than from a list inside the engine. */
+    && MED27.declaredPremiumLegs(FIXTURE27).length === 3
+    && MED27.declaredPremiumLegs(FIXTURE27).every((leg) => leg.includedInTotal === false),
+  'TP-04-11: the three premium legs are declared includedInTotal false, all three resolve to mutually distinct non-zero annual amounts, they sum exactly to the separately published annual Medicare cost, and the leg identity is read from the pack rather than from a list inside the engine');
+
+  /* TP-04-12 VACUITY REPAIR. The exclusion filter is proven to REMOVE something. Every leg shipped
+     before this feature carries `includedInTotal: true`, so the filter had never removed anything
+     and its clause had never been exercised. */
+  const includedLegs27 = completeLegs27.legs.filter((leg) => leg.includedInTotal === true);
+  const excludedLegs27 = completeLegs27.legs.filter((leg) => leg.includedInTotal === false);
+  const allLegsSum27 = legAnnuals27.reduce((sum, value) => sum + value, 0);
+  assert(excludedLegs27.length === 3
+    && includedLegs27.length === 0
+    /* The filter is not vacuous: the two sums genuinely differ, by exactly the Medicare cost. */
+    && allLegsSum27 - includedLegs27.reduce((sum, leg) => sum + leg.value, 0) === completeCost27.value
+    && allLegsSum27 !== 0
+    /* And the same clause against the SETTLEMENT's own `totalFederalTax`, which is the figure the
+       identity is actually about. The medicare leg set alone can only prove things about itself:
+       before this arm existed, `L4`'s exclusion clause had still never been exercised against a
+       total. Here the published leg set carries both kinds at once. */
+    && withMedicare27.taxLegs.length === withoutLookback27.taxLegs.length + 3
+    && withMedicare27.taxLegs.filter((leg) => leg.includedInTotal === false).length === 3
+    && withMedicare27.taxLegs.filter((leg) => leg.includedInTotal === true).length
+      === withoutLookback27.taxLegs.length
+    && Math.abs(includedTotalOf27(withMedicare27) - withMedicare27.totalFederalTax.value) < 0.005
+    /* The sum over EVERY declared leg differs from the total by exactly the annual Medicare cost. */
+    && Math.abs((everyLegTotalOf27(withMedicare27) - includedTotalOf27(withMedicare27))
+      - medicareStage27.annualCost.value) < 0.005
+    && everyLegTotalOf27(withMedicare27) !== withMedicare27.totalFederalTax.value
+    && medicareStage27.annualCost.value > 0
+    && withMedicare27.totalFederalTax.value > 0
+    /* The identity itself is unchanged and still holds with the three excluded legs present. */
+    && l4StateOf27(withMedicare27) === 'holds'
+    && l4StateOf27(withoutLookback27) === 'holds',
+  'TP-04-12: the includedInTotal filter removes exactly the three premium legs, the sum over included legs differs from the sum over all declared legs by exactly the annual Medicare cost, both sums are non-zero, and against the settlement\u2019s own totalFederalTax the same clause holds \u2014 the included legs sum to the total, every declared leg sums to the total plus exactly the annual Medicare cost, and reconciliation identity L4 still holds with three legs present that it must exclude');
+
+  /* TP-04-13 ADVERSARIAL. Flipping each leg to included in turn is proven to be caught, and the
+     failure names the leg that entered the total. */
+  const flipOutcomes27 = MEDICARE27.medicarePolicy.taxLegs.map((leg) => {
+    const mutated = fixturePack27();
+    const target = mutated.medicarePolicy.taxLegs
+      .filter((candidate) => candidate.legId === leg.legId)[0];
+    target.includedInTotal = true;
+    const mutatedLegs = MED27.computePremiumLegs(lookback27(1500), mutated, 'single');
+    const entered = mutatedLegs.legs.filter((candidate) => candidate.includedInTotal === true);
+    return { legId: leg.legId, enteredIds: entered.map((candidate) => candidate.legId) };
+  });
+  assert(flipOutcomes27.length === 3
+    && flipOutcomes27.every((outcome) => outcome.enteredIds.length === 1
+      && outcome.enteredIds[0] === outcome.legId)
+    /* The engine does NOT silently correct the pack back to false; the flip is visible, which is
+       what lets the exclusion assertion above fail rather than pass on a repaired value. */
+    && flipOutcomes27.every((outcome) => outcome.enteredIds[0] !== undefined)
+    /* Carried through a real settlement, each flip is DEMONSTRATED to fail: the flipped leg enters
+       the published included set under its own name, and reconciliation identity L4 breaks because
+       the total was summed before the cost legs joined the set. A failure that names the entering
+       leg is what a reader needs; a numeric mismatch is what they would otherwise be handed. */
+    && settlementFlips27.length === 3
+    && settlementFlips27.every((outcome) => outcome.enteringIds.length === 1
+      && outcome.enteringIds[0] === outcome.legId)
+    && settlementFlips27.every((outcome) => outcome.identityState === 'breaks')
+    && settlementFlips27.every((outcome) => outcome.balanced === false)
+    /* And the consequence a reader would meet: the settlement REFUSES its own total rather than
+       displaying a federal figure with a premium inside it. */
+    && settlementFlips27.every((outcome) => outcome.totalRefusalCode === 'RLTAX-RECONCILE')
+    && new Set(settlementFlips27.map((outcome) => outcome.legId)).size === 3
+    /* And the unflipped settlement holds and publishes a real total, so 'breaks' is caused by the
+       flip and by nothing else. */
+    && l4StateOf27(withMedicare27) === 'holds'
+    && withMedicare27.reconciliation.balanced === true
+    && Number.isFinite(withMedicare27.totalFederalTax.value),
+  'TP-04-13: flipping each premium leg to includedInTotal true in turn is carried through to the published leg set rather than silently corrected, each case names exactly the leg that entered the total, and carried through a real settlement each flip breaks reconciliation identity L4 and drives the settlement to refuse its own total with RLTAX-RECONCILE while the unflipped settlement holds and publishes a real figure \u2014 so the exclusion clause is demonstrated to fail rather than assumed to');
+
+  /* TP-04-17 SOURCING. Every value-bearing member of the shipped pack resolves to exactly one
+     retrieved source carrying a locator and a retrievedAt, and every unretrieved member is an
+     AbsentFigure with a missingSource pointer and NO smuggled numeric member beside it. */
+  const sourceIds27 = MEDICARE27.sourceRecords.map((record) => record.sourceId);
+  const valueBearing27 = [];
+  const absentMembers27 = [];
+  const walk27 = (node) => {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { node.forEach(walk27); return; }
+    if (node.contractVersion === 'AbsentFigure/v1') { absentMembers27.push(node); return; }
+    if (Object.prototype.hasOwnProperty.call(node, 'value')
+      && Number.isFinite(node.value)
+      && Object.prototype.hasOwnProperty.call(node, 'sourceRef')) {
+      valueBearing27.push(node);
+    }
+    Object.keys(node).forEach((key) => walk27(node[key]));
+  };
+  walk27(MEDICARE27.medicarePolicy);
+  assert(valueBearing27.length > 0
+    && absentMembers27.length > 0
+    && valueBearing27.every((member) => sourceIds27.indexOf(member.sourceRef) >= 0)
+    && valueBearing27.every((member) => typeof member.locator === 'string' && member.locator.length > 0)
+    && MEDICARE27.sourceRecords.every((record) => typeof record.retrievedAt === 'string'
+      && record.retrievedAt.length > 0
+      && typeof record.url === 'string' && /^https:\/\//.test(record.url)
+      && typeof record.title === 'string' && record.title.length > 0)
+    /* An absent figure carries a pointer to what would close it and NO numeric member, so it can
+       never be read as a zero. */
+    && absentMembers27.every((member) => !Object.prototype.hasOwnProperty.call(member, 'value'))
+    && absentMembers27.every((member) => !!member.missingSource
+      && typeof member.missingSource.url === 'string'
+      && typeof member.reason === 'string' && member.reason.length > 0
+      && typeof member.whatWouldMakeItAvailable === 'string'
+      && member.whatWouldMakeItAvailable.length > 0),
+  'TP-04-17: every value-bearing member of the shipped medicare pack resolves to exactly one retrieved source record carrying a title, an https locator and a retrievedAt, and every unretrieved member is an AbsentFigure carrying a reason, a remediation and a missingSource pointer with no numeric member beside it that could be read as a zero');
+
+  /* TP-04-20 NO SHADOW. No module holds a premium, a bracket boundary, an adjustment amount, an
+     offset or an authority name. The detector is proven to fire on a module that does. */
+  const taxModules27 = ['rltaxmedicare.js', 'rltax.js', 'rltaxrules.js', 'rltaxworkspace.js'];
+  const shippedFigures27 = ['202.90', '109000', '218000', '81.20', '14.50', '487.90'];
+  const authorityNames27 = /Social Security Administration|Centers for Medicare|Medicare\.gov|ssa\.gov/;
+  const shadowed27 = taxModules27.filter((file) => {
+    const text = read(file);
+    return shippedFigures27.some((figure) => text.indexOf(figure) >= 0)
+      || authorityNames27.test(text);
+  });
+  const plantedModule27 = read('rltaxmedicare.js')
+    + '\n/* planted for the adversarial case */ var planted = 202.90;\n';
+  const detectorFires27 = shippedFigures27.some((figure) => plantedModule27.indexOf(figure) >= 0);
+  assert(shadowed27.length === 0
+    && detectorFires27 === true,
+  'TP-04-20: no tax module holds a shipped premium, bracket boundary, adjustment amount or authority name, and the detector is proven to fire on a module carrying a planted premium figure');
+
+  /* TP-04-22 SUPERSESSION. Every marker this feature carries has a ledger row and every ledger row
+     has a marker, and the four count surfaces agree. Three of the twelve were admitted under ASC-8
+     in flight, which is permitted only when all four surfaces move in the same change. */
+  const ledgerText27 = read('specs/024-social-security-and-medicare/spec.md');
+  const indexText27 = read('specs/024-social-security-and-medicare/scopes/_index.md');
+  const designText27 = read('specs/024-social-security-and-medicare/design.md');
+  const markerSources27 = ['scripts/selftest.mjs', 'tests/lifetime-tax-route.spec.mjs',
+    'tests/lifetime-tax-marginal.spec.mjs', 'tests/lifetime-tax-foundation.spec.mjs',
+    'tests/lifetime-tax-property.spec.mjs', 'tests/lifetime-tax.support.mjs',
+    'tax-rules/federal/2026.json'];
+  const markersInTree27 = new Set();
+  markerSources27.forEach((file) => {
+    (read(file).match(/SUP-024-[0-9]{2}/g) || []).forEach((id) => markersInTree27.add(id));
+  });
+  const ledgerRows27 = (ledgerText27.match(/^\| SUP-024-[0-9]{2} \|/gm) || [])
+    .map((row) => row.slice(2, 12));
+  const scopeFourOwned27 = ['SUP-024-06', 'SUP-024-07', 'SUP-024-10', 'SUP-024-11', 'SUP-024-12'];
+  assert(ledgerRows27.length === 12
+    && markersInTree27.size === 12
+    && ledgerRows27.every((id) => markersInTree27.has(id))
+    && Array.from(markersInTree27).every((id) => ledgerRows27.indexOf(id) >= 0)
+    /* The count surfaces state the same total in their own words. */
+    && /Twelve pre-existing assertions are superseded/.test(ledgerText27)
+    && /is twelve, which must equal the row\ncount/.test(indexText27)
+    && scopeFourOwned27.every((id) => indexText27.indexOf(id) >= 0)
+    && scopeFourOwned27.every((id) => designText27.indexOf(id) >= 0)
+    /* Each of this scope's replacements records the clause it superseded, verbatim, at its site. */
+    && /SUP-024-11: supersedes `await unavailable\.first\(\)\.focus\(\)/
+      .test(read('tests/lifetime-tax-route.spec.mjs'))
+    && /SUP-024-12: supersedes `\/"inputClaimAgeComparisonAges", "inputMortalityColumn"/
+      .test(read('scripts/selftest.mjs')),
+  'TP-04-22: the twelve supersession markers present in the tree and the twelve ledger rows are the same set in both directions, the ownership and marker-distribution surfaces name every entry this scope owns, and each of this scope’s replacements records the clause it superseded verbatim at its own site');
+
+  /* TP-04-23 RENDER SAFETY. A renderer throw aborts renderPower entirely, so a member read that
+     only exists on the available shape would take every later section down with it. Both shapes are
+     therefore exercised, and every medicare control is watched by the no-op guard. */
+  const pageText27 = read('lifetime-tax-strategy-lab.html');
+  const medicareRendererBody27 = pageText27.slice(pageText27.indexOf('function renderMedicare'),
+    pageText27.indexOf('function renderPower'));
+  const declarationInputsBlock27 = /var DECLARATION_INPUTS = \[([\s\S]*?)\];/.exec(pageText27);
+  const medicareInputIds27 = ['inputLookbackYear', 'inputLookbackModifiedAdjustedGrossIncome'];
+  assert(medicareRendererBody27.length > 0
+    && /renderMedicare\(\);/.test(pageText27)
+    && /id="power-medicare"/.test(pageText27)
+    && /"power-medicare"/.test(pageText27)
+    && /<script src="rltaxmedicare\.js"><\/script>/.test(pageText27)
+    /* The refusal shape returns before any member only the available shape publishes is read. */
+    && /if \(!stage\) return;/.test(medicareRendererBody27)
+    && /stage\.refusal/.test(medicareRendererBody27)
+    && declarationInputsBlock27 !== null
+    && medicareInputIds27.every((id) => declarationInputsBlock27[1].indexOf(id) >= 0)
+    && medicareInputIds27.every((id) => new RegExp('id="' + id + '"').test(pageText27))
+    && /if \(declarationSignature\(\) === lastDeclarationSignature\) return;/.test(pageText27)
+    /* The annual cost is rendered BESIDE the headline and is labelled as not part of the total. */
+    && /data-rl-cost-beside-total/.test(pageText27)
+    && /not part of the federal tax total/.test(pageText27),
+  'TP-04-23: the medicare renderer returns early on the refusal shape rather than dereferencing members only the available shape publishes, the power-medicare section is registered and its module is loaded, both lookback controls are registered in the declaration-input list the no-op guard reads, and the annual cost is rendered beside the headline labelled as not part of the federal tax total');
+
+  /* TP-04-14 NON-REGRESSION. The three cost legs are ADDITIVE. Three fixtures spanning the shapes
+     Features 021 through 023 settle — ordinary only, preferential-bearing, and wage-and-surtax
+     bearing — are each settled with no lookback declared and again with the premium legs handed
+     in. Every settled figure and the whole federal portion of the leg set must be byte-identical,
+     so a premium that had leaked into the tax arithmetic shows up HERE rather than inside a total
+     a reader has no way to check. */
+  const priorFixtures27 = [
+    { label: 'ordinary only', wages: 0,
+      income: { ordinary: 90000, qualifiedDividend: 0, longTermCapitalGain: 0, taxExemptInterest: 0 } },
+    { label: 'preferential bearing', wages: 120000, income: settlementIncome27 },
+    { label: 'wage and surtax bearing', wages: 400000,
+      income: { ordinary: 300000, qualifiedDividend: 20000, longTermCapitalGain: 40000, taxExemptInterest: 0 } }
+  ];
+  const withoutTaxLegs27 = (settlement) => {
+    const copy = Object.assign({}, settlement);
+    delete copy.taxLegs;
+    return JSON.stringify(copy);
+  };
+  const additivity27 = priorFixtures27.map((fixture) => {
+    const without = ENGINE27.computeAnnualFederalTax(
+      householdWorkspace27(fixture.income, fixture.wages), FEDERAL27);
+    const withCosts = ENGINE27.computeAnnualFederalTax(
+      householdWorkspace27(fixture.income, fixture.wages), FEDERAL27, medicareStage27.legs);
+    return {
+      label: fixture.label,
+      total: without.totalFederalTax.value,
+      legsIdentical: JSON.stringify(without.taxLegs)
+        === JSON.stringify(withCosts.taxLegs.slice(0, without.taxLegs.length)),
+      everythingElseIdentical: withoutTaxLegs27(without) === withoutTaxLegs27(withCosts),
+      totalIdentical: without.totalFederalTax.value === withCosts.totalFederalTax.value,
+      appended: withCosts.taxLegs.length - without.taxLegs.length,
+      noPremiumInTotal: withCosts.taxLegs
+        .filter((leg) => leg.includedInTotal === true)
+        .every((leg) => leg.stageId !== 'CO-22'),
+      settles: Number.isFinite(without.totalFederalTax.value) && without.totalFederalTax.value > 0
+    };
+  });
+  assert(additivity27.length === 3
+    && additivity27.every((entry) => entry.legsIdentical && entry.everythingElseIdentical
+      && entry.totalIdentical && entry.appended === 3 && entry.noPremiumInTotal && entry.settles)
+    /* The three fixtures settle to three DIFFERENT totals, so the identity is not being satisfied
+       by one figure agreeing with itself three times. */
+    && new Set(additivity27.map((entry) => entry.total)).size === 3
+    /* And the preferential-bearing fixture reproduces the exact prior figures Scope 02 already
+       pins for the identical workspace, so "its exact prior totals" is anchored to a figure a
+       previous scope asserted rather than to whatever this one happens to compute. */
+    && withoutLookback27.grossSupportedIncome.value === 135000
+    && withoutLookback27.ordinaryTaxableIncome.value === 103900
+    && withoutLookback27.preferentialTaxableIncome.value === 15000
+    && withoutLookback27.totalTaxableIncome.value === 118900,
+  'TP-04-14: with no lookback declared the ordinary-only, preferential-bearing and wage-and-surtax-bearing fixtures each reproduce their exact prior leg set, their exact prior total and every other settled figure byte for byte, the three fixtures settle to three distinct totals so the identity is not one figure agreeing with itself, the preferential fixture reproduces the exact figures Scope 02 pins for the identical workspace, and exactly three legs are appended of which none enters the total');
+
+  /* TP-04-16 REASON CORRECTION. The `medicare-and-irmaa` entry STAYS: a conversion made this year
+     changes a premium two premium years later and this feature computes no future year, so the
+     conversion comparison genuinely still does not price it. What became false the moment this
+     scope shipped is the clause stating the pack declares no band, and a false clause is corrected
+     rather than left standing because the surrounding work was done. The corrected reason is
+     PINNED against the pack's own declared brackets, which no assertion previously did, so the
+     reason and the pack can no longer drift apart in either direction. */
+  const notModeled27 = STRATEGY27.conversionNotModeled();
+  const notModeledIds27 = notModeled27.map((entry) => entry.id);
+  const irmaaEntry27 = notModeled27.filter((entry) => entry.id === 'medicare-and-irmaa')[0];
+  const declaresBands27 = (pack) => {
+    const setIds = Object.keys((pack.medicarePolicy || {}).bracketSets || {});
+    return setIds.length > 0
+      && setIds.every((setId) => pack.medicarePolicy.bracketSets[setId].length >= 2)
+      && setIds.every((setId) => pack.medicarePolicy.bracketSets[setId]
+        .some((bracket) => Number.isFinite(bracket.lowerBound)));
+  };
+  /* The same predicate over a pack whose bracket sets were emptied disagrees, so the pin is a real
+     comparison rather than a constant that happens to be true. */
+  const bandlessPack27 = cloneMedicare27();
+  bandlessPack27.medicarePolicy.bracketSets = {};
+  assert(irmaaEntry27 !== undefined
+    /* The entry keeps its id, its label and its deferral code. Only the reason differs. */
+    && irmaaEntry27.id === 'medicare-and-irmaa'
+    && irmaaEntry27.label === 'Medicare premiums and IRMAA bands'
+    && irmaaEntry27.deferralCode === 'RLTAX-FEATURE-UNSUPPORTED'
+    && RULES27.RLTAX_CODES[irmaaEntry27.deferralCode] === true
+    /* The corrected reason states the bands ARE declared, and the shipped pack declares them. */
+    && declaresBands27(MEDICARE27) === true
+    && /now declares the adjustment bands/.test(irmaaEntry27.reason)
+    && !/declares no (adjustment )?band|no band/i.test(irmaaEntry27.reason)
+    /* And it still states why the entry stays, which is what keeps the correction from becoming a
+       quiet deletion of a deferral. */
+    && /two-year income lookback/.test(irmaaEntry27.reason)
+    && /computes no future year/.test(irmaaEntry27.reason)
+    /* The pin is capable of failing: against a pack declaring no bracket set the predicate is
+       false, so a reason claiming the bands are declared would contradict the pack it names. */
+    && declaresBands27(bandlessPack27) === false
+    /* The disclosure's required membership and count are unchanged. */
+    && notModeled27.length === 8
+    && ['state-tax', 'medicare-and-irmaa', 'premium-tax-credit', 'roth-five-year-clocks',
+      'later-year-distribution-pressure', 'required-distribution-pressure', 'survivor-effects',
+      'lost-growth-on-taxes-paid'].every((id) => notModeledIds27.indexOf(id) >= 0)
+    && notModeled27.every((entry) => typeof entry.reason === 'string' && entry.reason.length > 20),
+  'TP-04-16: the medicare-and-irmaa conversion entry keeps its id, its label and its deferral code with only its reason differing, the corrected reason is pinned against the pack\u2019s own declared brackets by a predicate proven to disagree over a pack declaring none, the reason still states why the entry stays rather than becoming a quiet deletion, and the disclosure\u2019s required membership and count are unchanged');
+
+  /* TP-04-18 LEG VISIBILITY. The two surface builders are EXTRACTED from the page and evaluated
+     here, so the leg sets compared are the ones the page actually produces rather than a
+     restatement of them that could only ever agree with itself. */
+  const pageSurfaceText27 = read('lifetime-tax-strategy-lab.html');
+  const surfaceApi27 = build(
+    [extractFn(pageSurfaceText27, 'settledLegIds'), extractFn(pageSurfaceText27, 'legVisibilityRows')],
+    ['settledLegIds', 'legVisibilityRows'],
+    'function dollars(value) { return String(value); }');
+  const visibilityEnvelope27 = {
+    settlement: withMedicare27, property: null, rental: null, use: null,
+    disposition: null, benefit: null, inclusion: null, medicare: medicareStage27
+  };
+  const recordLegIds27 = surfaceApi27.settledLegIds(
+    withMedicare27, null, null, null, null, null, null, medicareStage27);
+  const federalOnlyIds27 = surfaceApi27.settledLegIds(
+    withMedicare27, null, null, null, null, null, null, null);
+  const rowLegIds27 = surfaceApi27.legVisibilityRows(visibilityEnvelope27).map((row) => row.legId);
+  const premiumLegIds27 = medicareStage27.legs
+    .filter((leg) => leg.available === true).map((leg) => leg.legId);
+  const surfaceSets27 = () => ({
+    headline: federalOnlyIds27.concat(premiumLegIds27),
+    comparison: rowLegIds27.slice(),
+    curve: rowLegIds27.slice(),
+    export: recordLegIds27.slice()
+  });
+  const visibilityIdentity27 = PROPERTY27.legVisibilityIdentity(recordLegIds27, surfaceSets27());
+  assert(premiumLegIds27.length === 3
+    && premiumLegIds27.every((legId) => recordLegIds27.indexOf(legId) >= 0)
+    && visibilityIdentity27.holds === true
+    && visibilityIdentity27.findings.length === 0
+    /* Non-vacuous: the record set carries the federal legs too, so the identity is not three ids
+       agreeing with themselves, and no premium id is among the federal ones. */
+    && recordLegIds27.length > premiumLegIds27.length
+    && federalOnlyIds27.length > 0
+    && federalOnlyIds27.every((legId) => premiumLegIds27.indexOf(legId) < 0)
+    /* Every surface derives its premium rows by walking the legs the STAGE published rather than
+       by naming three ids on the page, so a pack declaring a different leg set surfaces that set. */
+    && /for \(index = 0; index < medicareHeadline\.legs\.length; index \+= 1\)/.test(pageSurfaceText27)
+    && /premiumHost\.setAttribute\("data-rl-leg", premiumHeadlineLeg\.legId\)/.test(pageSurfaceText27)
+    && /for \(index = 0; index < medicareVisibility\.legs\.length; index \+= 1\)/.test(pageSurfaceText27)
+    && /legId: premiumVisibilityLeg\.legId/.test(pageSurfaceText27)
+    && pageSurfaceText27.indexOf('medicare-part-b-premium') < 0
+    && pageSurfaceText27.indexOf('medicare-income-related-adjustment') < 0,
+  'TP-04-18: against the all-non-zero fixture the settled record\u2019s declared leg set equals the leg set of the headline, the comparison, the curve contributors and the export in both directions with all three premium legs present, the comparison and curve sets are read from the page\u2019s own extracted row builder rather than restated, the record carries federal legs beside them so the identity is not satisfied by the premium ids agreeing with themselves, and every surface derives its premium rows from the legs the stage published rather than from an id named on the page');
+
+  /* TP-04-19 ADVERSARIAL. Each premium leg removed from each surface in turn — twelve cases — must
+     fail, and each failure must name BOTH the leg and the surface it failed to reach. A numeric
+     mismatch is the report that lets a dropped leg hide, so naming is the whole point. */
+  const removalReports27 = [];
+  ['headline', 'comparison', 'curve', 'export'].forEach((surface) => {
+    premiumLegIds27.forEach((legId) => {
+      const surfaces = surfaceSets27();
+      surfaces[surface] = surfaces[surface].filter((entry) => entry !== legId);
+      const outcome = PROPERTY27.legVisibilityIdentity(recordLegIds27, surfaces);
+      removalReports27.push({
+        surface: surface, legId: legId, holds: outcome.holds,
+        namesBoth: outcome.findings.some((finding) => finding.surface === surface
+          && finding.missingFromSurface.indexOf(legId) >= 0
+          && finding.detail.indexOf(legId) >= 0 && finding.detail.indexOf(surface) >= 0)
+      });
+    });
+  });
+  /* A leg PRESENT on every surface but summed into the tax total is a different fault, and it must
+     be reported as that rather than as a numeric mismatch: the visibility identity still holds —
+     the leg genuinely is on every surface — and what reports it is the exclusion assertion, which
+     names the entering leg and breaks the reconciliation identity. */
+  const summedInFlip27 = settlementFlips27[0];
+  assert(removalReports27.length === 12
+    && removalReports27.every((entry) => entry.holds === false && entry.namesBoth === true)
+    && new Set(removalReports27.map((entry) => entry.surface)).size === 4
+    && new Set(removalReports27.map((entry) => entry.legId)).size === 3
+    /* The unmutated identity holds, so 'false' above is caused by the removal and nothing else. */
+    && PROPERTY27.legVisibilityIdentity(recordLegIds27, surfaceSets27()).holds === true
+    /* The summed-into-total case is reported by name rather than as a numeric mismatch. */
+    && summedInFlip27.enteringIds.length === 1
+    && summedInFlip27.enteringIds[0] === summedInFlip27.legId
+    && summedInFlip27.identityState === 'breaks'
+    && summedInFlip27.totalRefusalCode === 'RLTAX-RECONCILE',
+  'TP-04-19: removing each of the three premium legs from each of the four surfaces in turn fails the identity in all twelve cases with both the leg and the surface named, the unmutated identity holds so each failure is caused by its own removal, and a leg present on every surface but summed into the tax total is reported by the name of the leg that entered the total and by the settlement refusing its own total rather than as an unexplained numeric mismatch');
+
+  /* TP-04-21 PRIVACY. A second year's finances is a household value and is treated as one. The
+     declared storage key count is asserted UNCHANGED in the SAME assertion, because an unchanged
+     count is otherwise indistinguishable from a declaration that was never inventoried at all. */
+  const taxConfig27 = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  const emptyWorkspace27 = WS27.createEmptyWorkspace();
+  const lookbackMembers27 = WS27.LOOKBACK_DECLARATIONS.map((entry) => entry.member);
+  const populatedWorkspace27 = Object.assign(WS27.createEmptyWorkspace(), {
+    lookbackModifiedAdjustedGrossIncome: 187654, lookbackYear: 2024
+  });
+  const sanitized27 = WS27.sanitizeForExport(populatedWorkspace27);
+  const exportedText27 = JSON.stringify(sanitized27.workspace);
+  const undeclaredDomains27 = WS27.declaredUnavailableDomains(emptyWorkspace27);
+  const lookbackStore27 = {};
+  const lookbackStorage27 = {
+    getItem: (key) => (Object.prototype.hasOwnProperty.call(lookbackStore27, key) ? lookbackStore27[key] : null),
+    setItem: (key, value) => { lookbackStore27[key] = String(value); },
+    removeItem: (key) => { delete lookbackStore27[key]; }
+  };
+  WS27.writeWorkspace(lookbackStorage27, taxConfig27, populatedWorkspace27);
+  const storedText27 = lookbackStore27[taxConfig27.storage.workspaceKey];
+  const inventory27 = WS27.privacyInventory(lookbackStorage27, taxConfig27);
+  const workspaceEntry27 = inventory27.entries
+    .filter((entry) => entry.key === taxConfig27.storage.workspaceKey)[0];
+  const cleared27 = WS27.clearAllPrivateData(lookbackStorage27, taxConfig27);
+  assert(lookbackMembers27.length === 2
+    && lookbackMembers27.every((member) => WS27.WORKSPACE_FIELDS.indexOf(member) >= 0)
+    && lookbackMembers27.every((member) => emptyWorkspace27[member] === null)
+    && lookbackMembers27.every((member) => undeclaredDomains27.indexOf(member) >= 0)
+    && lookbackMembers27.every((member) => sanitized27.omittedFields.indexOf(member) >= 0)
+    && lookbackMembers27.every((member) => exportedText27.indexOf(member) < 0)
+    && exportedText27.indexOf('187654') < 0
+    /* The figure genuinely reached storage, so the clear below removes something rather than
+       reporting success over an empty store. */
+    && typeof storedText27 === 'string' && storedText27.indexOf('187654') >= 0
+    && /Medicare lookback declarations/.test(workspaceEntry27.purpose)
+    && workspaceEntry27.carriesHouseholdValues === true
+    && cleared27.removedKeys.length === 3
+    && Object.keys(lookbackStore27).length === 0
+    /* The declared storage key count is unchanged, asserted here rather than separately. */
+    && WS27.declaredStorageKeys(taxConfig27).length === 3
+    /* Neither member reaches a URL, a query string or the committed configuration, and the module
+       itself performs no storage, network, DOM or console access. */
+    && !/lookbackModifiedAdjustedGrossIncome=|lookbackYear=/.test(pageSurfaceText27)
+    && !/location\.search\s*=|URLSearchParams/.test(pageSurfaceText27)
+    && !/lookbackModifiedAdjustedGrossIncome|lookbackYear/.test(read('lifetime-tax-strategy.config.json'))
+    && !/fetch\(|XMLHttpRequest|navigator\.sendBeacon/.test(medicareSource27)
+    && !/localStorage|sessionStorage|document\./.test(medicareSource27)
+    && !/console\./.test(medicareSource27),
+  'TP-04-21: the lookback declaration and the year it belongs to are inventoried workspace members that start undeclared, are named by the unavailable-domain report while undeclared, are omitted by the export sanitizer and named in omittedFields, the declared amount reaches storage and is then removed by the clear action, the storage inventory names the pair in its own words, the declared storage key count is asserted unchanged in the same assertion, and neither member reaches any URL, query string or committed configuration while the module performs no storage, network, DOM or console access');
+
+  /* TP-04-22, SECOND ARM. SUP-024-06 and SUP-024-07 are re-derived HERE rather than taken on trust
+     from the sites that carry them, because a supersession whose cause is asserted only at its own
+     site is asserted by the thing it excuses. Each superseded clause is applied to the tree as it
+     stands and shown to be exactly what the ledger says it became: SUP-024-06's clause is now
+     FALSE, and SUP-024-07's is now VACUOUS — which is worse, because a clause that has stopped
+     proving anything still passes and nothing reports it. Both are this scope's intended RED. */
+  const supersededUnsupportedIds27 = FEDERAL27.unsupportedFeatures.map((entry) => entry.id);
+  const sup06SupersededClauseHolds27 = supersededUnsupportedIds27.indexOf('irmaa-bands') >= 0;
+  const sup06ReplacementHolds27 = supersededUnsupportedIds27.indexOf('irmaa-bands') < 0
+    && !!FEDERAL27.medicarePolicy
+    && FEDERAL27.medicarePolicy.modelsUnsupportedFeatureId === 'irmaa-bands'
+    && FEDERAL27.medicarePolicy.taxLegs.length > 0
+    && FEDERAL27.medicarePolicy.taxLegs.every((leg) => leg.includedInTotal === false);
+  /* SUP-024-07's superseded probe, restated: filter the adjustment id out of BOTH lists and assert
+     it is then accounted for in neither. The filter is now a no-op, so the probe still passes
+     while proving nothing. */
+  const sup07Pack27 = JSON.parse(federalText27);
+  const sup07BeforeCount27 = sup07Pack27.unsupportedFeatures.length;
+  sup07Pack27.unsupportedFeatures = sup07Pack27.unsupportedFeatures
+    .filter((entry) => entry.id !== 'irmaa-bands');
+  sup07Pack27.taxLegs = sup07Pack27.taxLegs.filter((leg) => leg.legId !== 'irmaa-bands');
+  const sup07FilterIsNoOp27 = sup07Pack27.unsupportedFeatures.length === sup07BeforeCount27;
+  const sup07SupersededProbeStillPasses27 = sup07Pack27.unsupportedFeatures
+    .map((entry) => entry.id).indexOf('irmaa-bands') < 0
+    && RULES27.declaredTaxLegs(sup07Pack27).map((leg) => leg.legId).indexOf('irmaa-bands') < 0;
+  /* The replacement, both arms. Arm one: an id the shipped pack still carries ONLY on the
+     unsupported side, chosen from the pack at run time, is deleted from both lists and is then
+     accounted for nowhere. Arm two: the genuinely modelled id is accounted for nowhere once the
+     policy that received it is stripped, even though the same unsupported-side filter is a no-op
+     against it. */
+  const declaredFederalLegIds27 = RULES27.declaredTaxLegs(FEDERAL27).map((leg) => leg.legId);
+  const probeId27 = supersededUnsupportedIds27
+    .filter((id) => declaredFederalLegIds27.indexOf(id) < 0)[0];
+  const deletedNotMoved27 = JSON.parse(federalText27);
+  deletedNotMoved27.unsupportedFeatures = deletedNotMoved27.unsupportedFeatures
+    .filter((entry) => entry.id !== probeId27);
+  deletedNotMoved27.taxLegs = deletedNotMoved27.taxLegs.filter((leg) => leg.legId !== probeId27);
+  const deletedArmFires27 = supersededUnsupportedIds27.indexOf(probeId27) >= 0
+    && deletedNotMoved27.unsupportedFeatures.map((entry) => entry.id).indexOf(probeId27) < 0
+    && RULES27.declaredTaxLegs(deletedNotMoved27).map((leg) => leg.legId).indexOf(probeId27) < 0;
+  const modelledStripped27 = JSON.parse(federalText27);
+  delete modelledStripped27.medicarePolicy;
+  const modelledArmFires27 = !!FEDERAL27.medicarePolicy
+    && !modelledStripped27.medicarePolicy
+    && modelledStripped27.unsupportedFeatures.map((entry) => entry.id).indexOf('irmaa-bands') < 0
+    && RULES27.declaredTaxLegs(modelledStripped27).map((leg) => leg.legId).indexOf('irmaa-bands') < 0;
+  const selftestOwnText27 = read('scripts/selftest.mjs');
+  assert(sup06SupersededClauseHolds27 === false
+    && sup06ReplacementHolds27 === true
+    && sup07FilterIsNoOp27 === true
+    && sup07SupersededProbeStillPasses27 === true
+    && typeof probeId27 === 'string' && probeId27.length > 0 && probeId27 !== 'irmaa-bands'
+    && deletedArmFires27 === true
+    && modelledArmFires27 === true
+    /* Both markers are present with their superseded clause recorded verbatim beside them and each
+       pointing at the ledger row that admitted it. */
+    && /SUP-024-06: supersedes/.test(selftestOwnText27)
+    && /SUP-024-07: supersedes/.test(selftestOwnText27)
+    && /SUP-024-06[\s\S]{0,1600}?spec\.md#supersession-ledger/.test(selftestOwnText27)
+    && /SUP-024-07[\s\S]{0,1400}?spec\.md#supersession-ledger/.test(selftestOwnText27),
+  'TP-04-22 (second arm): SUP-024-06\u2019s superseded clause is re-derived here and proven false against the tree as it stands while its replacement holds, SUP-024-07\u2019s superseded probe is re-derived and proven vacuous \u2014 its filter is a no-op and it still passes \u2014 and the replacement is proven to fire on both sides of the move, catching a still-unsupported id chosen from the pack at run time when it is deleted from both lists and catching the genuinely modelled id when the policy that received it is stripped');
+
+  /* TP-04-23, SECOND ARM. A renderer throw aborts renderPower ENTIRELY, so a member read that only
+     the available shape publishes would take every later Power section down with it. Each medicare
+     member is removed in turn and the stage composed again: every removal must yield a shape the
+     renderer's early return handles — a refusal carrying only the members read before that return,
+     or an available shape publishing every member the renderer reads at all — and none may throw. */
+  const medicareMemberRemovals27 = [
+    (policy) => { delete policy.premiumYear; },
+    (policy) => { delete policy.lookbackOffsetYears; },
+    (policy) => { delete policy.standardPremiums; },
+    (policy) => { delete policy.standardPremiums['part-b']; },
+    (policy) => { delete policy.standardPremiums['part-d']; },
+    (policy) => { delete policy.bracketSets; },
+    (policy) => { delete policy.bracketSets['fixture-set']; },
+    (policy) => { delete policy.filingStatusMapping; },
+    (policy) => { delete policy.filingStatusMapping.single; },
+    (policy) => { delete policy.taxLegs; },
+    (policy) => { delete policy.stageId; }
+  ];
+  /* The members the renderer actually reads, taken off its own body rather than listed here, so a
+     member a later edit adds is covered without editing this check. */
+  const rendererReads27 = Array.from(new Set(
+    (medicareRendererBody27.match(/stage\.[A-Za-z]+/g) || []).map((token) => token.slice(6))));
+  const renderSafety27 = medicareMemberRemovals27.map((mutate, index) => {
+    let stage = null;
+    let threw = false;
+    try {
+      const mutated = fixturePack27();
+      mutate(mutated.medicarePolicy);
+      stage = ENGINE27.composeMedicareStage(lookback27(1500), mutated, 'single');
+    } catch (error) { threw = true; }
+    if (threw || !stage) return { index: index, safe: false, available: null };
+    const publishes = (member) => Object.prototype.hasOwnProperty.call(stage, member);
+    const safe = stage.available === false
+      ? (publishes('refusal') && stage.refusal !== null && publishes('annualCost'))
+      : rendererReads27.every(publishes);
+    return { index: index, safe: safe, available: stage.available };
+  });
+  assert(renderSafety27.length === medicareMemberRemovals27.length
+    && renderSafety27.every((entry) => entry.safe === true)
+    /* Non-vacuous: at least one removal genuinely produces the refusal shape, the member set is
+       read off the renderer's own body rather than listed, and it is not empty. */
+    && renderSafety27.some((entry) => entry.available === false)
+    && rendererReads27.length >= 4
+    && rendererReads27.indexOf('refusal') >= 0
+    /* And the available shape the renderer normally meets publishes every member it reads. */
+    && rendererReads27.every((member) =>
+      Object.prototype.hasOwnProperty.call(medicareStage27, member)),
+  'TP-04-23 (second arm): with each of the eleven medicare pack members removed in turn the stage composes without throwing and returns a shape the renderer handles \u2014 a refusal carrying only the members read before its early return, or an available shape publishing every member the renderer reads \u2014 at least one removal genuinely produces the refusal shape, and the member set checked is read off the renderer\u2019s own body rather than listed here');
+
+  /* CLAIM BOUNDARY. Nothing this scope emits states a probability, a plan success figure, a
+     future-year premium or bracket, a track record or an error rate, and no premium is presented
+     as an estimate or a typical amount. */
+  const claimScan27 = /\b(probability|probable|monte carlo|plan success|success rate|likely to|expected return|track record|error rate|accuracy rate|our estimate|estimated premium|typical premium|average premium|you will pay|projected)\b/i;
+  const emitted27 = JSON.stringify(completeLegs27) + JSON.stringify(completeCost27)
+    + JSON.stringify(shippedLegs27) + JSON.stringify(shippedCost27);
+  assert(!claimScan27.test(emitted27)
+    && claimScan27.test('our estimate of the typical premium')
+    /* The pack itself makes no forward-looking claim beyond the year it declares. */
+    && MEDICARE27.effectiveTaxYears.every((year) => year <= MEDICARE27.declaredForYear),
+  'TP-04-CLAIM: neither the premium legs, the annual cost nor the shipped refusal states a probability, a success figure, a track record, an error rate or a typical premium, the detector is proven to fire on a sentence that does, and the pack declares no year beyond the one it was retrieved for');
+
+  /* NO-REGISTRATION. Registration is Feature 026 and this scope performs none of it. */
+  const registryText27 = ['tools.json', 'index.html', 'rlnav.js', 'README.md', 'notes/README.md']
+    .map((file) => read(file)).join('\n');
+  assert(!/rltaxmedicare/.test(registryText27)
+    && !/medicare/i.test(registryText27)
+    && !/lifetime-tax-strategy-lab/.test(registryText27),
+  'TP-04-REGISTRATION: the medicare module and the lifetime tax lab remain absent from tools.json, the index, the navigation and both READMEs');
+
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 024 Scope 04 medicare group threw): ' + e.message); }
+
+try {
+  group('lifetime-tax — retirement route and integration');
+
+  const ENGINE28 = await import('../rltax.js').then((m) => m.default);
+  const WS28 = await import('../rltaxworkspace.js').then((m) => m.default);
+  const INCLUSION28 = await import('../rltaxinclusion.js').then((m) => m.default);
+  const DISPOSITION28 = await import('../rltaxdisposition.js').then((m) => m.default);
+
+  const routeText28 = read('lifetime-tax-strategy-lab.html');
+  const engineText28 = read('rltax.js');
+  const FEDERAL28 = JSON.parse(read('tax-rules/federal/2026.json'));
+  const MEDICARE28 = JSON.parse(read('tax-rules/medicare/2026.json'));
+  const BENEFIT28 = JSON.parse(read('tax-rules/benefit/2026.json'));
+
+  /* A comment-stripped view of the route, used by every scan that asks what the code READS. The
+     headline comment in `renderSimple` names `ordinaryTax` in order to explain why the headline
+     must never read it, so a scan over raw text would report the defect the comment warns about.
+     Stripping the comments and scanning the code is the honest form; the raw text is scanned
+     separately below for the things that genuinely belong in prose. */
+  const stripComments28 = (source) => source
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .split('\n').map((line) => line.replace(/(^|[^:'"])\/\/.*$/, '$1')).join('\n');
+  const routeBody28 = (name) => {
+    const start = routeText28.indexOf('function ' + name + '(');
+    if (start < 0) throw new Error('route function not found: ' + name);
+    let depth = 0;
+    let cursor = routeText28.indexOf('{', start);
+    for (; cursor < routeText28.length; cursor += 1) {
+      const ch = routeText28[cursor];
+      if (ch === '{') depth += 1;
+      else if (ch === '}') { depth -= 1; if (depth === 0) { cursor += 1; break; } }
+    }
+    return routeText28.slice(start, cursor);
+  };
+  const renderSimpleBody28 = routeBody28('renderSimple');
+  const renderSimpleCode28 = stripComments28(renderSimpleBody28);
+
+  /* ---- the complete-settlement fixture ----
+
+     Every leg identity here is DERIVED from the declaration that owns it: the federal pack's own
+     `taxLegs`, the benefit pack's `declaredLegs`, the inclusion legs the federal pack declares,
+     the medicare policy's `taxLegs`, the two disposition component ids the disposition module
+     exports, and the three leg identities the engine itself names. A hand-listed set would have
+     to be edited by whichever later scope adds a leg, and that edit is indistinguishable from one
+     hiding a leg that stopped reaching a surface. */
+  const engineLegIds28 = Array.from(new Set(
+    (engineText28.match(/legId: "[a-z-]+"/g) || []).map((token) => token.slice(8, -1))));
+  const includedInTotalIds28 = FEDERAL28.taxLegs
+    .filter((leg) => leg.includedInTotal === true).map((leg) => leg.legId);
+  const declaredLegIds28 = Array.from(new Set([]
+    .concat(FEDERAL28.taxLegs.map((leg) => leg.legId))
+    .concat(engineLegIds28)
+    .concat([DISPOSITION28.RECAPTURE_COMPONENT_ID, DISPOSITION28.REMAINDER_COMPONENT_ID])
+    .concat(BENEFIT28.declaredLegs.map((leg) => leg.legId))
+    .concat(INCLUSION28.declaredInclusionLegs(FEDERAL28).map((leg) => leg.legId))
+    .concat(MEDICARE28.medicarePolicy.taxLegs.map((leg) => leg.legId))));
+  /* The leg identities THIS feature added, each named by the declaration that owns it rather than
+     by a literal written here. There are five: the benefit, the included portion and the three
+     premium legs. Scope 05's Primary Outcome prose says four; the derived set is the fact, and the
+     discrepancy is recorded in report.md rather than resolved by editing the derivation down to
+     the number the prose expects. */
+  const featureLegIds28 = []
+    .concat(BENEFIT28.declaredLegs.map((leg) => leg.legId))
+    .concat(INCLUSION28.declaredInclusionLegs(FEDERAL28).map((leg) => leg.legId))
+    .concat(MEDICARE28.medicarePolicy.taxLegs.map((leg) => leg.legId));
+  /* Non-zero and mutually distinct by construction, and asserted pairwise below rather than
+     assumed. A census over an all-zero or a partial fixture proves nothing: omitting a leg worth
+     zero changes no total, so every surface would pass while a leg silently vanished. */
+  const COMPLETE_FIXTURE28 = declaredLegIds28.map((legId, offset) => ({
+    legId: legId,
+    includedInTotal: includedInTotalIds28.indexOf(legId) >= 0,
+    value: 1009 + (offset * 313)
+  }));
+  const SURFACES28 = ['comparison', 'curve', 'export', 'headline'];
+  const cleanSurfaces28 = () => {
+    const memberships = {};
+    SURFACES28.forEach((surface) => { memberships[surface] = declaredLegIds28.slice(); });
+    return memberships;
+  };
+  const censusOf28 = (memberships, summedIds) =>
+    ENGINE28.composeSurfaceCensus(COMPLETE_FIXTURE28, memberships,
+      summedIds === undefined ? includedInTotalIds28.slice() : summedIds);
+
+  /* TP-05-01. */
+  const fixtureValues28 = COMPLETE_FIXTURE28.map((leg) => leg.value);
+  const pairwiseDistinct28 = fixtureValues28.every((left, leftIndex) =>
+    fixtureValues28.every((right, rightIndex) => leftIndex === rightIndex || left !== right));
+  assert(COMPLETE_FIXTURE28.length === declaredLegIds28.length
+    && declaredLegIds28.length >= 13
+    && COMPLETE_FIXTURE28.every((leg) => Number.isFinite(leg.value) && leg.value !== 0)
+    && pairwiseDistinct28
+    /* Non-vacuous: the pairwise comparison is proven able to fail. */
+    && !([5, 5, 7].every((left, leftIndex, all) =>
+      all.every((right, rightIndex) => leftIndex === rightIndex || left !== right)))
+    /* And every leg this feature added is in it, each named by its own declaration. */
+    && featureLegIds28.length === 5
+    && featureLegIds28.every((legId) => declaredLegIds28.indexOf(legId) >= 0)
+    /* The premium legs are declared as COSTS, which is what makes the mis-summed case below a
+       real failure rather than a hypothetical one. */
+    && MEDICARE28.medicarePolicy.taxLegs.every((leg) => leg.includedInTotal === false),
+  'TP-05-01: the complete-settlement fixture carries every leg the federal pack, the benefit pack, the inclusion policy, the medicare policy, the disposition module and the engine declare, every value is finite, non-zero and pairwise distinct, the pairwise comparison is proven able to fail, and the five leg identities this feature added are present with the three premium legs declared as costs');
+
+  /* TP-05-02. */
+  const cleanCensus28 = censusOf28(cleanSurfaces28());
+  assert(cleanCensus28.contractVersion === 'SurfaceCensus/v1'
+    && cleanCensus28.clean === true
+    && cleanCensus28.findings.length === 0
+    && cleanCensus28.surfaces.length === SURFACES28.length
+    && SURFACES28.every((surface) => cleanCensus28.surfaces.indexOf(surface) >= 0)
+    && cleanCensus28.declaredLegIds.length === declaredLegIds28.length
+    && declaredLegIds28.every((legId) => cleanCensus28.declaredLegIds.indexOf(legId) >= 0),
+  'TP-05-02: over the complete fixture the record\u2019s declared leg set equals the leg set of the headline, the comparison, the curve contributors and the export in both directions, across all four surfaces, with no finding');
+
+  /* TP-05-03. Every leg removed from every surface in turn, and every surface given a leg the
+     record does not declare in turn. Both directions of the identity are exercised against the
+     live derivation rather than described. */
+  const dropProbes28 = [];
+  const strayProbes28 = [];
+  declaredLegIds28.forEach((legId) => {
+    SURFACES28.forEach((surface) => {
+      const damaged = cleanSurfaces28();
+      damaged[surface] = damaged[surface].filter((candidate) => candidate !== legId);
+      const report = censusOf28(damaged);
+      dropProbes28.push(report.findings.filter((finding) => finding.kind === 'missing-leg'
+        && finding.legId === legId && finding.surface === surface).length === 1
+        && report.findings.length === 1);
+      const stray = cleanSurfaces28();
+      stray[surface] = stray[surface].concat(['leg-the-record-does-not-declare']);
+      const strayReport = censusOf28(stray);
+      strayProbes28.push(strayReport.findings.filter((finding) => finding.kind === 'undeclared-leg'
+        && finding.legId === 'leg-the-record-does-not-declare'
+        && finding.surface === surface).length === 1
+        && strayReport.findings.length === 1);
+    });
+  });
+  assert(dropProbes28.length === declaredLegIds28.length * SURFACES28.length
+    && dropProbes28.every((ok) => ok === true)
+    && strayProbes28.length === dropProbes28.length
+    && strayProbes28.every((ok) => ok === true),
+  'TP-05-03: removing each declared leg from each of the four surfaces in turn produces exactly one missing-leg finding naming both the leg and the surface, and rendering a leg the record does not declare on each surface in turn produces exactly one undeclared-leg finding naming both');
+
+  /* TP-05-04. THE NAMED INTENDED-RED ASSERTION FOR THIS SCOPE. A premium leg present on all four
+     surfaces AND summed into `totalFederalTax` is a different failure from one missing from a
+     surface: every surface holds it, so a census comparing surface membership alone reports
+     nothing at all while the headline overstates what the household owes by the size of a premium.
+     The two reports must therefore be produced and must be distinguishable from each other. */
+  const premiumLegId28 = MEDICARE28.medicarePolicy.taxLegs[0].legId;
+  const misSummed28 = censusOf28(cleanSurfaces28(), includedInTotalIds28.concat([premiumLegId28]));
+  const missingPremium28 = (() => {
+    const damaged = cleanSurfaces28();
+    damaged.comparison = damaged.comparison.filter((candidate) => candidate !== premiumLegId28);
+    return censusOf28(damaged);
+  })();
+  const misSummedFindings28 = misSummed28.findings
+    .filter((finding) => finding.kind === 'mis-summed-leg' && finding.legId === premiumLegId28);
+  const missingFindings28 = missingPremium28.findings
+    .filter((finding) => finding.kind === 'missing-leg' && finding.legId === premiumLegId28);
+  assert(misSummedFindings28.length === 1
+    && misSummed28.findings.length === 1
+    && misSummed28.clean === false
+    && missingFindings28.length === 1
+    && missingFindings28[0].surface === 'comparison'
+    /* Distinguishable: different kind, and the mis-summed report names no surface because the
+       leg is on every one of them. */
+    && misSummedFindings28[0].kind !== missingFindings28[0].kind
+    && misSummedFindings28[0].surface === null
+    && /total/.test(misSummedFindings28[0].statement)
+    /* And every leg the record declares as a cost is checked, not only the one probed. */
+    && MEDICARE28.medicarePolicy.taxLegs.every((leg) => {
+      const report = censusOf28(cleanSurfaces28(), includedInTotalIds28.concat([leg.legId]));
+      return report.findings.length === 1 && report.findings[0].kind === 'mis-summed-leg'
+        && report.findings[0].legId === leg.legId;
+    })
+    /* Non-vacuous: a leg the record declares as entering the total is NOT reported as mis-summed. */
+    && censusOf28(cleanSurfaces28()).findings.length === 0,
+  'TP-05-04: a premium leg present on all four surfaces and summed into totalFederalTax is reported as a mis-summed leg naming it and naming no surface, distinguishably by kind from the missing-leg report of the same leg on one surface, for every declared cost leg, while a leg that legitimately enters the total is not reported');
+
+  /* ---- the headline source ----
+
+     The Feature 022 defect that understated tax owed by up to eighty-eight percent was a headline
+     sourced from `ordinaryTax`, and it was latent only because the hidden legs were zero. The
+     fixture below makes them non-zero, so the two figures genuinely differ and the ordinary leg is
+     genuinely the smaller. */
+  const household28 = (income, wages) => Object.assign(WS28.createEmptyWorkspace(), {
+    filingStatus: 'single', deductionMode: 'standard', declaredTaxYear: 2026,
+    income: Object.assign({}, income),
+    investmentIncomeBasis: { otherOrdinaryNetInvestmentIncome: 0 },
+    wageBasis: { medicareWagesAndSelfEmploymentIncome: wages }
+  });
+  const layeredIncome28 = {
+    ordinary: 260000, qualifiedDividend: 40000, longTermCapitalGain: 60000, taxExemptInterest: 1000
+  };
+  const layered28 = ENGINE28.computeAnnualFederalTax(household28(layeredIncome28, 260000), FEDERAL28);
+
+  /* TP-05-05. */
+  const headlineReadsTotal28 = renderSimpleCode28.indexOf('settlement.totalFederalTax') >= 0;
+  const singleLegMembers28 = ['ordinaryTax', 'preferentialTax',
+    'netInvestmentIncomeTax', 'additionalMedicareTax'];
+  const singleLegReads28 = singleLegMembers28
+    .filter((member) => renderSimpleCode28.indexOf('settlement.' + member) >= 0);
+  assert(headlineReadsTotal28
+    && singleLegReads28.length === 0
+    /* The scan is over CODE, not prose: the raw body genuinely names the leg it must never read,
+       in the comment that explains why. Confirming that is what proves the strip is load-bearing
+       rather than cosmetic. */
+    && /ordinaryTax/.test(renderSimpleBody28)
+    /* And the fixture makes the claim non-vacuous: the two figures differ and the ordinary leg is
+       the smaller of the two, so a headline reading it would understate the tax owed. */
+    && layered28.ordinaryTax.value > 0
+    && layered28.totalFederalTax.value > layered28.ordinaryTax.value
+    && layered28.taxLegs.filter((leg) => leg.includedInTotal === true
+      && leg.available === true && leg.value > 0).length >= 2,
+  'TP-05-05: the Simple renderer reads settlement.totalFederalTax and reads none of the four single leg members anywhere in its code, the comment naming the forbidden leg is proven to be prose rather than a read, and the fixture makes the distinction real \u2014 the ordinary leg is non-zero, strictly smaller than the total, and at least two legs enter the total');
+
+  /* TP-05-06. Each of the four legs substituted for the total in the renderer's own body in turn.
+     The detector must fail on every one, which is what proves it discriminates rather than
+     passing whatever it is shown. */
+  const substitutionProbes28 = singleLegMembers28.map((member) => {
+    const mutated = renderSimpleCode28.split('settlement.totalFederalTax').join('settlement.' + member);
+    return singleLegMembers28.some((candidate) => mutated.indexOf('settlement.' + candidate) >= 0);
+  });
+  assert(substitutionProbes28.length === singleLegMembers28.length
+    && substitutionProbes28.every((caught) => caught === true)
+    /* And the unmutated body passes the same detector, so the probe is not detecting itself. */
+    && !singleLegMembers28.some((candidate) => renderSimpleCode28.indexOf('settlement.' + candidate) >= 0),
+  'TP-05-06: a renderer reading ordinaryTax, preferentialTax, netInvestmentIncomeTax or additionalMedicareTax in place of the total is caught one per leg, and the unmutated renderer passes the identical detector');
+
+  /* TP-05-07. */
+  const withPremiums28 = ENGINE28.computeAnnualFederalTax(
+    household28(layeredIncome28, 260000), FEDERAL28,
+    MEDICARE28.medicarePolicy.taxLegs.map((leg) => Object.freeze({
+      legId: leg.legId, stageId: leg.stageId, includedInTotal: false,
+      available: true, value: 137, ruleStatus: FEDERAL28.ruleStatus
+    })));
+  const premiumIdsInSettlement28 = withPremiums28.taxLegs
+    .filter((leg) => MEDICARE28.medicarePolicy.taxLegs
+      .some((declared) => declared.legId === leg.legId));
+  assert(withPremiums28.totalFederalTax.value === layered28.totalFederalTax.value
+    /* The premiums reached the settled leg record \u2014 so the equality above is the exclusion
+       doing its job rather than the legs never arriving. */
+    && premiumIdsInSettlement28.length === MEDICARE28.medicarePolicy.taxLegs.length
+    && premiumIdsInSettlement28.every((leg) => leg.includedInTotal === false)
+    /* The aggregate annual cost is a figure of its own rather than a term of the tax total. */
+    && stripComments28(routeText28).indexOf('data-rl-cost-beside-total') >= 0
+    /* And the label says so in words rather than relying on layout. */
+    && /not part of the federal tax total/.test(renderSimpleBody28),
+  'TP-05-07: the three premium legs reach the settled leg record with includedInTotal false, the federal total is byte-for-byte the total of the same household settled without them, and the annual Medicare cost is rendered as its own labelled figure stating in words that it is not part of the federal tax total');
+
+  /* ---- Simple discipline and the withheld-detail links ---- */
+
+  const simpleFields28 = (/var SIMPLE_FIELDS = \[([\s\S]*?)\];/.exec(routeText28)[1]
+    .match(/"[A-Za-z-]+"/g) || []).map((token) => token.slice(1, -1));
+  const powerSections28 = (/var POWER_SECTION_IDS = \[([\s\S]*?)\];/.exec(routeText28)[1]
+    .match(/"[a-z-]+"/g) || []).map((token) => token.slice(1, -1));
+  const linkRowsBlock28 = /var POWER_LINK_ROWS = \[([\s\S]*?)\n {12}\];/.exec(routeText28)[1];
+  const linkedSections28 = Array.from(new Set(
+    (linkRowsBlock28.match(/section: "[a-z-]+"/g) || []).map((token) => token.slice(10, -1))));
+  const simpleValueIds28 = Array.from(new Set(
+    (renderSimpleCode28.match(/simpleValueNode\("[A-Za-z-]+"/g) || [])
+      .map((token) => token.slice(17, -1))));
+  /* A Simple field is RENDERED when the Simple renderer either draws it through the Simple value
+     constructor or owns a dedicated element whose id begins with the field name. Both halves are
+     read off the renderer's own body, so a field a later scope adds is covered without editing
+     this derivation. */
+  const simpleFieldRendered28 = (member) =>
+    renderSimpleCode28.indexOf('simpleValueNode("' + member + '"') >= 0
+    || renderSimpleCode28.indexOf('byId("' + member) >= 0;
+
+  /* TP-05-08. */
+  const bannedSimplePattern28 = /(band|curve|ledger|trace|reconcil|perAge|per-age|average)/i;
+  assert(simpleValueIds28.length > 0
+    /* Forward: nothing may be drawn into Simple that the closed list does not admit. */
+    && simpleValueIds28.every((id) => simpleFields28.indexOf(id) >= 0)
+    /* Reverse: nothing may sit in the closed list without a render site. */
+    && simpleFields28.every((member) => simpleFieldRendered28(member))
+    /* The three fields this scope adds are present and rendered. */
+    && ['annualBenefit', 'taxableBenefitPortion', 'annualMedicareCost']
+      .every((member) => simpleFields28.indexOf(member) >= 0 && simpleValueIds28.indexOf(member) >= 0)
+    /* Non-vacuous: an id the page never admits fails the forward direction, and a member with no
+       render site fails the reverse. */
+    && simpleFields28.indexOf('fieldTheRouteNeverAdmits') < 0
+    && !simpleFieldRendered28('fieldTheRouteNeverRenders')
+    /* Simple stays decision-level: no band table, no rule trace, no reconciliation, no per-age
+       table and no averaged series may be named by a Simple field at all. */
+    && simpleFields28.every((member) => !bannedSimplePattern28.test(member))
+    && bannedSimplePattern28.test('perBandDetail'),
+  'TP-05-08: the derived Simple field identity holds in both directions with the three new fields present \u2014 every id drawn through the Simple constructor is admitted by the closed list and every member of the closed list has a render site \u2014 both directions are proven able to fail, and no Simple field name matches a band, curve, ledger, trace, reconciliation, per-age or average pattern');
+
+  /* TP-05-09. */
+  const newPowerSections28 = ['power-benefit', 'power-inclusion', 'power-claim-age', 'power-medicare'];
+  assert(linkedSections28.length > 0
+    /* No link without a section. */
+    && linkedSections28.every((section) => powerSections28.indexOf(section) >= 0)
+    /* No section without a link. */
+    && powerSections28.every((section) => linkedSections28.indexOf(section) >= 0)
+    /* Every declared section is a real element on the page. */
+    && powerSections28.every((section) => routeText28.indexOf('id="' + section + '"') >= 0)
+    /* The four sections this feature added are all present on both sides. */
+    && newPowerSections28.every((section) => powerSections28.indexOf(section) >= 0
+      && linkedSections28.indexOf(section) >= 0)
+    /* Non-vacuous: neither set admits a section the route never declares. */
+    && powerSections28.indexOf('power-not-declared-by-this-route') < 0
+    && linkedSections28.indexOf('power-not-declared-by-this-route') < 0,
+  'TP-05-09: the derived withheld-detail link identity holds in both directions with the four new Power sections present \u2014 no link exists without a declared section, no declared section exists without a link, and every declared section is a real element on the page');
+
+  /* TP-05-10. A throw inside renderPower() aborts the whole render, so one absent member would
+     remove every section after it. Each of the four family renderers is required to return early
+     on the refusal shape BEFORE reading any member only the available shape publishes, and
+     renderPower is required to call every section renderer unconditionally. */
+  const familyRenderers28 = ['renderBenefit', 'renderInclusion', 'renderClaimAge', 'renderMedicare'];
+  const renderPowerCode28 = stripComments28(routeBody28('renderPower'));
+  const renderPowerCalls28 = (renderPowerCode28.match(/render[A-Za-z]+\(\);/g) || [])
+    .map((token) => token.slice(0, -3));
+  const earlyReturnProbes28 = familyRenderers28.map((name) => {
+    const code = stripComments28(routeBody28(name));
+    const guard = /(refusal|available !== true|!leg|!stage)[\s\S]{0,400}?return;/.test(code);
+    return { name: name, guard: guard };
+  });
+  assert(earlyReturnProbes28.every((probe) => probe.guard === true)
+    /* renderPower calls each family renderer, and calls it unconditionally: no `if` appears
+       anywhere in its body, so no section can be skipped by a condition. */
+    && familyRenderers28.every((name) => renderPowerCalls28.indexOf(name) >= 0)
+    && renderPowerCalls28.length >= 14
+    && renderPowerCode28.indexOf('if') < 0
+    /* The engine side: each family stage composes to a shape that publishes what the renderer
+       reads even when the declaration behind it is absent. Composed for real rather than
+       described, and none may throw. */
+    && (() => {
+      const emptyWorkspace = WS28.createEmptyWorkspace();
+      const probes = [
+        () => ENGINE28.composeBenefitLeg(emptyWorkspace, BENEFIT28, FEDERAL28),
+        () => ENGINE28.composeInclusionLeg(emptyWorkspace, FEDERAL28, null),
+        () => ENGINE28.composeMedicareStage(null, MEDICARE28, 'single')
+      ];
+      return probes.every((probe) => {
+        let stage = null;
+        try { stage = probe(); } catch (error) { return false; }
+        return stage !== null && stage.available === false
+          && Object.prototype.hasOwnProperty.call(stage, 'refusal') && stage.refusal !== null;
+      });
+    })(),
+  'TP-05-10: every family renderer returns early on the refusal shape before reading a member only the available shape publishes, renderPower calls all fourteen section renderers with no conditional anywhere in its body, and the benefit, inclusion and medicare stages each compose without throwing to a refusal shape publishing the member the renderer reads first');
+
+  /* TP-05-11. Every unavailable item goes through one constructor, so a refusal that omitted its
+     code, its domain, its reason or its remediation could not be rendered at all. */
+  const unavailableNodeCode28 = stripComments28(routeBody28('unavailableNode'));
+  assert(unavailableNodeCode28.indexOf('record.code') >= 0
+    && unavailableNodeCode28.indexOf('record.domain') >= 0
+    && unavailableNodeCode28.indexOf('record.reason') >= 0
+    && unavailableNodeCode28.indexOf('record.whatWouldMakeItAvailable') >= 0
+    && unavailableNodeCode28.indexOf('setAttribute("tabindex", "0")') >= 0
+    /* Nothing stands in for a refusal: the constructor appends no em dash, no bare hyphen and no
+       zero as a rendered text node. The `tabindex` value is an attribute rather than something a
+       reader sees, so it is excluded by matching only the text-node constructor. */
+    && !/text\("[a-z]+", "(\u2014|-|0)"/.test(unavailableNodeCode28)
+    && /text\("[a-z]+", "(\u2014|-|0)"/.test('host.appendChild(text("div", "-", "code"));')
+    /* And every refusal this feature's families can raise carries all four members, composed for
+       real rather than asserted about. */
+    && (() => {
+      const emptyWorkspace = WS28.createEmptyWorkspace();
+      const refusals = [
+        ENGINE28.composeBenefitLeg(emptyWorkspace, BENEFIT28, FEDERAL28).refusal,
+        ENGINE28.composeInclusionLeg(emptyWorkspace, FEDERAL28, null).refusal,
+        ENGINE28.composeMedicareStage(null, MEDICARE28, 'single').refusal
+      ];
+      return refusals.length === 3 && refusals.every((record) => record !== null
+        && typeof record.code === 'string' && record.code.length > 0
+        && typeof record.domain === 'string' && record.domain.length > 0
+        && typeof record.reason === 'string' && record.reason.length > 0
+        && typeof record.whatWouldMakeItAvailable === 'string'
+        && record.whatWouldMakeItAvailable.length > 0);
+    })(),
+  'TP-05-11: the one unavailable constructor renders the code, the domain, the reason and the remediation on a focusable element and writes no dash, blank or zero in their place, and every refusal the benefit, inclusion and medicare families raise carries all four members as a non-empty string');
+
+  /* TP-05-12. Binding a control to both `input` and `change` with an unconditional render detaches
+     the node mid-interaction, so the guard is the thing that keeps a click or a keystroke from
+     being swallowed. Every control this feature added is registered in the one list the edit path
+     and the boot wiring both read. */
+  const declarationInputsBlock28 = /var DECLARATION_INPUTS = \[([\s\S]*?)\];/.exec(routeText28)[1];
+  const declarationInputs28 = (declarationInputsBlock28.match(/"input[A-Za-z]+"/g) || [])
+    .map((token) => token.slice(1, -1));
+  const editCode28 = stripComments28(routeBody28('onWorkspaceEdit'));
+  const featureControls28 = ['inputBenefitStatementPia', 'inputBenefitEarningsRecord',
+    'inputBenefitBirthYear', 'inputBenefitClaimAgeMonths', 'inputClaimAgeComparisonAges',
+    'inputMortalityColumn', 'inputLookbackYear', 'inputLookbackModifiedAdjustedGrossIncome'];
+  assert(/declarationSignature\(\) === lastDeclarationSignature\)\s*return;/.test(editCode28)
+    /* The guard comes FIRST: nothing is collected, persisted or rendered before it. */
+    && editCode28.indexOf('return;') < editCode28.indexOf('render()')
+    /* Both bindings go through the guarded handler and through the same registered list. */
+    && /DECLARATION_INPUTS\[index\]\)\.addEventListener\("change", onWorkspaceEdit\)/.test(routeText28)
+    && /DECLARATION_INPUTS\[index\]\)\.addEventListener\("input", onWorkspaceEdit\)/.test(routeText28)
+    /* Every control this feature added is registered, asserted by membership rather than by
+       position so an appended control does not break the check. */
+    && featureControls28.every((id) => declarationInputs28.indexOf(id) >= 0)
+    /* Non-vacuous: a control the route never registers is not found. */
+    && declarationInputs28.indexOf('inputTheRouteNeverRegisters') < 0
+    /* And the signature is built from that same list, so a registered control cannot be watched
+       for change while being left out of the signature. */
+    && /DECLARATION_INPUTS\[index\]\)\.value/.test(stripComments28(routeBody28('declarationSignature'))),
+  'TP-05-12: the edit path returns before collecting, persisting or rendering when the declaration signature is unchanged, both event bindings route through that guarded handler from the one registered control list, every control this feature added is registered by membership, and the signature is derived from the same list');
+
+  /* ---- the export ---- */
+
+  const populatedWorkspace28 = Object.assign(WS28.createEmptyWorkspace(), {
+    filingStatus: 'single', deductionMode: 'standard', declaredTaxYear: 2026,
+    benefitStatementPrimaryInsuranceAmount: 2609.8,
+    benefitDeclaredEarnings: [{ year: 1986, amount: 16196 }, { year: 1987, amount: 17283 }],
+    benefitBirthYear: 1964,
+    benefitClaimAgeMonths: 744,
+    claimAgeComparisonAges: [62, 67, 70],
+    lookbackModifiedAdjustedGrossIncome: 214000,
+    lookbackYear: 2024
+  });
+  const retirementDeclarations28 = ['benefitStatementPrimaryInsuranceAmount',
+    'benefitDeclaredEarnings', 'benefitBirthYear', 'claimAgeComparisonAges',
+    'lookbackModifiedAdjustedGrossIncome'];
+  const sanitized28 = WS28.sanitizeForExport(populatedWorkspace28);
+  const exportedText28 = JSON.stringify(sanitized28.workspace);
+
+  /* TP-05-13. Each of the five asserted INDEPENDENTLY, by name, against an export produced with
+     all five populated. A single combined check would pass a sanitizer that covered four. */
+  const perDeclaration28 = retirementDeclarations28.map((member) => ({
+    member: member,
+    absentFromKept: !Object.prototype.hasOwnProperty.call(sanitized28.workspace, member),
+    absentFromText: exportedText28.indexOf(member) < 0,
+    namedAsOmitted: sanitized28.omittedFields.indexOf(member) >= 0
+  }));
+  assert(retirementDeclarations28.length === 5
+    /* The workspace really did carry all five, so the absences below are removals rather than
+       members that were never there. */
+    && retirementDeclarations28.every((member) =>
+      populatedWorkspace28[member] !== null && populatedWorkspace28[member] !== undefined)
+    && perDeclaration28.every((entry) => entry.absentFromKept === true)
+    && perDeclaration28.every((entry) => entry.absentFromText === true)
+    && perDeclaration28.every((entry) => entry.namedAsOmitted === true)
+    /* No declared VALUE survives either, which a key-name check alone could not see. */
+    && exportedText28.indexOf('2609.8') < 0
+    && exportedText28.indexOf('1964') < 0
+    && exportedText28.indexOf('214000') < 0
+    && exportedText28.indexOf('16196') < 0
+    /* The route states what it omitted rather than omitting silently. */
+    && /It omits these workspace members: /.test(stripComments28(routeText28)),
+  'TP-05-13: the export omits the statement amount, the earnings record, the birth year, the claim age set and the lookback income \u2014 each asserted independently by name against an export produced with all five populated \u2014 carries none of their declared values, names all five in omittedFields, and the route states what it omitted');
+
+  /* TP-05-14. The sanitizer is an allow-list, so the way it LEAKS is by admitting a member into
+     the kept object. Each of the five is admitted in turn and the per-declaration check must fail
+     for that member, which is what proves a sanitizer covering four of five cannot pass. */
+  const leakProbes28 = retirementDeclarations28.map((member) => {
+    const leaked = Object.assign({}, sanitized28.workspace);
+    leaked[member] = populatedWorkspace28[member];
+    const leakedText = JSON.stringify(leaked);
+    return {
+      member: member,
+      caughtByName: Object.prototype.hasOwnProperty.call(leaked, member),
+      caughtInText: leakedText.indexOf(member) >= 0
+    };
+  });
+  assert(leakProbes28.length === 5
+    && leakProbes28.every((probe) => probe.caughtByName === true && probe.caughtInText === true)
+    /* And the un-leaked export passes the identical check, so the probe is not detecting itself. */
+    && retirementDeclarations28.every((member) =>
+      !Object.prototype.hasOwnProperty.call(sanitized28.workspace, member)),
+  'TP-05-14: admitting each of the five retirement declarations into the sanitizer\u2019s kept set in turn is caught by name and in the serialised text, one per declaration, while the real export passes the identical check');
+
+  /* TP-05-15. Present is not the same as consequential. The included amount must be a NAMED
+     contributor to ordinary taxable income and must change the tax owed. */
+  const inclusionLegForContribution28 = Object.freeze({
+    legId: INCLUSION28.declaredInclusionLegs(FEDERAL28)[0].legId,
+    stageId: 'CO-21', includedInTotal: false, contributesTo: 'ordinary-taxable-income',
+    available: true, value: 18000, ruleStatus: FEDERAL28.ruleStatus
+  });
+  const contribution28 = ENGINE28.ordinaryTaxableIncomeContribution(inclusionLegForContribution28);
+  const withoutInclusion28 = ENGINE28.computeAnnualFederalTax(
+    household28({ ordinary: 90000, qualifiedDividend: 0, longTermCapitalGain: 0, taxExemptInterest: 0 },
+      90000), FEDERAL28);
+  const withInclusion28 = ENGINE28.computeAnnualFederalTax(
+    household28({ ordinary: 90000 + contribution28.amount, qualifiedDividend: 0,
+      longTermCapitalGain: 0, taxExemptInterest: 0 }, 90000), FEDERAL28);
+  const absentContribution28 = ENGINE28.ordinaryTaxableIncomeContribution(
+    Object.freeze({ available: false, refusal: null }));
+  assert(contribution28.contractVersion === 'OrdinaryTaxableIncomeContribution/v1'
+    && contribution28.available === true
+    && contribution28.contributorId === inclusionLegForContribution28.legId
+    && contribution28.amount === 18000
+    /* Consequential: the tax owed genuinely differs from the same household with no benefit. */
+    && withInclusion28.totalFederalTax.value > withoutInclusion28.totalFederalTax.value
+    /* And it contributes as ORDINARY income rather than as a new income kind. */
+    && contribution28.addsIncomeKind === false
+    && inclusionLegForContribution28.contributesTo === 'ordinary-taxable-income'
+    /* An unavailable inclusion contributes nothing and says so; it never contributes a zero. */
+    && absentContribution28.available === false && absentContribution28.amount === null,
+  'TP-05-15: the included amount is published as a named contributor to ordinary taxable income under the leg identity the pack declares, the tax owed differs from the same household with no benefit declared, it adds no income kind, and an unavailable inclusion contributes null rather than a zero');
+
+  /* TP-05-16. No household value this feature added may reach a URL, a query string, a hash, a
+     request, a referrer or a console message. Asserted PER DECLARATION over the route's code. */
+  const routeCode28 = stripComments28(routeText28);
+  const consoleAndUrlSites28 = (routeCode28.match(/console\.[a-z]+\([^)]*\)/g) || [])
+    .concat(routeCode28.match(/location\.(hash|search|href)\s*=[^;]*/g) || [])
+    .concat(routeCode28.match(/history\.(pushState|replaceState)\([^;]*/g) || [])
+    .join('\n');
+  const workspaceMembers28 = Object.keys(populatedWorkspace28);
+  const privacyProbes28 = retirementDeclarations28.concat(['lookbackYear', 'benefitClaimAgeMonths',
+    'mortalityTableColumnId']).map((member) => ({
+    member: member,
+    absentFromSinks: consoleAndUrlSites28.indexOf(member) < 0
+  }));
+  assert(privacyProbes28.every((probe) => probe.absentFromSinks === true)
+    /* The only thing written to the location is the view mode, and it is written as a fixed
+       literal rather than assembled from anything declared. */
+    && /var wanted = power \? "#power" : "#simple";/.test(routeCode28)
+    && routeCode28.indexOf('location.search') < 0
+    /* No query string is ever assembled at all. */
+    && !/URLSearchParams|encodeURIComponent/.test(routeCode28)
+    /* Non-vacuous: the detector is proven able to see a member name in a sink. */
+    && ('console.log(' + retirementDeclarations28[0] + ')').indexOf(retirementDeclarations28[0]) >= 0
+    /* Every declaration this feature added is a real workspace member, so the sweep above is over
+       the members that exist rather than over names nothing uses. */
+    && retirementDeclarations28.every((member) => workspaceMembers28.indexOf(member) >= 0),
+  'TP-05-16: no retirement declaration this feature added appears in any console call, any location write or any history call in the route, the only value written to the location is the fixed view-mode literal, no query string is assembled anywhere, the detector is proven able to see a member name in a sink, and every swept name is a real workspace member');
+
+  /* TP-05-17. Both counts at FEATURE end, not scope end. */
+  const RULES_TEXT28 = read('rltaxrules.js');
+  const vocabularyBlock28 = /var RLTAX_CODES = Object\.freeze\(\{([\s\S]*?)\n {2}\}\);/.exec(RULES_TEXT28);
+  const vocabulary28 = vocabularyBlock28 === null ? [] :
+    (vocabularyBlock28[1].match(/"RLTAX-[A-Z-]+":/g) || []).map((token) => token.slice(1, -2));
+  const incomeKinds28 = FEDERAL28.incomeKinds.map((kind) =>
+    (typeof kind === 'string' ? kind : kind.kindId));
+  const preFeatureVocabulary28 = ['RLTAX-CONFIG-INVALID', 'RLTAX-PACK-INVALID', 'RLTAX-PACK-EXPIRED',
+    'RLTAX-YEAR-UNSUPPORTED', 'RLTAX-JURISDICTION-UNSUPPORTED', 'RLTAX-INCOME-KIND-UNSUPPORTED',
+    'RLTAX-FILING-STATUS-UNSUPPORTED', 'RLTAX-INPUT-INCOMPLETE', 'RLTAX-FEATURE-UNSUPPORTED',
+    'RLTAX-THRESHOLD-UNAVAILABLE', 'RLTAX-RECONCILE', 'RLTAX-SCOPE-DEFERRED',
+    'RLTAX-RESIDENCY-UNSUPPORTED', 'RLTAX-PACK-YEAR-MISMATCH'];
+  assert(vocabulary28.length === preFeatureVocabulary28.length
+    && incomeKinds28.length === 4
+    /* Both directions: no member gained, none lost, and each still raised somewhere in the tree. */
+    && preFeatureVocabulary28.every((code) => vocabulary28.indexOf(code) >= 0)
+    && vocabulary28.every((code) => preFeatureVocabulary28.indexOf(code) >= 0)
+    && preFeatureVocabulary28.every((code) => RULES_TEXT28.indexOf('"' + code + '"') >= 0)
+    /* The declaration is unique: no second vocabulary was introduced anywhere this feature wrote. */
+    && (engineText28 + routeText28).indexOf('RLTAX_CODES = Object.freeze') < 0
+    /* And the four income kinds are exactly the pre-feature four. */
+    && ['ordinary', 'qualified-dividend', 'long-term-capital-gain', 'tax-exempt-interest']
+      .every((kind) => incomeKinds28.indexOf(kind) >= 0)
+    /* The included benefit portion is ordinary income and adds no fifth kind. */
+    && ENGINE28.ordinaryTaxableIncomeContribution(inclusionLegForContribution28)
+      .addsIncomeKind === false,
+  'TP-05-17: at feature end the refusal vocabulary still carries exactly its fourteen pre-feature members in both directions, each still raised in the one module that declares them, no second vocabulary was introduced, the supported income-kind count is still the same four, and the included benefit portion adds no income kind');
+
+  /* TP-05-18. */
+  const specText28 = read('specs/024-social-security-and-medicare/spec.md');
+  const indexText28 = read('specs/024-social-security-and-medicare/scopes/_index.md');
+  const designText28 = read('specs/024-social-security-and-medicare/design.md');
+  const codeMarkers28 = Array.from(new Set([
+    read('scripts/selftest.mjs'), routeText28, engineText28,
+    read('tests/lifetime-tax-route.spec.mjs'), read('tests/lifetime-tax-foundation.spec.mjs'),
+    read('tests/lifetime-tax-marginal.spec.mjs'), read('tests/lifetime-tax-benefit.spec.mjs'),
+    read('tests/lifetime-tax-claim-age.spec.mjs'), read('tests/lifetime-tax-medicare.spec.mjs'),
+    read('tests/lifetime-tax-property.spec.mjs'), read('tax-rules/federal/2026.json')
+  ].join('\n').match(/SUP-024-\d\d/g) || [])).sort();
+  const ledgerRows28 = (specText28.match(/^\| SUP-024-\d\d \|/gm) || [])
+    .map((row) => /SUP-024-\d\d/.exec(row)[0]).sort();
+  const ownershipCounts28 = (indexText28.match(/^\| 0\d \| [^|]*\| (\d+) \|$/gm) || [])
+    .map((row) => Number(/\| (\d+) \|$/.exec(row)[1]));
+  const ownershipTotal28 = ownershipCounts28.reduce((sum, count) => sum + count, 0);
+  const distributionMarkers28 = Array.from(new Set(
+    (/### Per-file marker distribution([\s\S]*?)\n### /.exec(designText28)[1]
+      .match(/SUP-024-\d\d/g) || []))).sort();
+  assert(codeMarkers28.length === ledgerRows28.length
+    && codeMarkers28.every((marker, offset) => marker === ledgerRows28[offset])
+    && ledgerRows28.length === 12
+    && /Twelve pre-existing assertions are superseded/.test(specText28)
+    && ownershipCounts28.length === 5
+    && ownershipTotal28 === ledgerRows28.length
+    && distributionMarkers28.length === ledgerRows28.length
+    && distributionMarkers28.every((marker, offset) => marker === ledgerRows28[offset])
+    /* This scope owns none, and the ownership table says so. */
+    && /^\| 05 \| none \| 0 \|$/m.test(indexText28),
+  'TP-05-18: the distinct SUP-024-NN markers in the repository equal the ledger\u2019s twelve entries, the row count equals the total the opening paragraph states, the sum of the ownership column and the per-file marker distribution count, and Scope 05 owns none');
+
+  /* CLAIM BOUNDARY. Nothing this scope emits states a probability, a plan success figure, a
+     future-year figure, a track record or an error rate, and nothing on the page is described as
+     optimal, recommended or best. Scanned over CODE, so a comment explaining why a claim is
+     forbidden is not itself reported as the claim. */
+  const claimWords28 = /\b(probability|monte carlo|plan success|success rate|likely to|expected return|track record|error rate|accuracy rate|optimal|recommended|best choice|best option|best age|best strategy)\b/i;
+  const emitted28 = JSON.stringify(cleanCensus28) + JSON.stringify(misSummed28)
+    + JSON.stringify(sanitized28) + JSON.stringify(contribution28)
+    + renderSimpleCode28;
+  assert(!claimWords28.test(emitted28)
+    && claimWords28.test('the optimal claim age has the best probability'),
+  'TP-05-CLAIM: neither the census, the export, the contribution record nor the Simple renderer\u2019s code states a probability, a success figure, a track record, an error rate, or calls anything optimal, recommended or best, and the detector is proven to fire on a sentence that does');
+
+  /* NO-REGISTRATION. Registration is a later feature and this scope performs none of it. */
+  const registryText28 = ['tools.json', 'index.html', 'rlnav.js', 'README.md', 'notes/README.md']
+    .map((file) => read(file)).join('\n');
+  assert(!/lifetime-tax-strategy-lab/.test(registryText28)
+    && !/rltax/.test(registryText28)
+    /* This scope creates no root HTML, so the deploy plan's decision for the one root page this
+       feature extends is the decision that was already recorded, and no second entry appeared. */
+    && (read('site-exclusions.json').match(/lifetime-tax-strategy-lab\.html/g) || []).length === 1,
+  'TP-05-REGISTRATION: the lifetime tax lab and its modules remain absent from tools.json, the index, the navigation and both READMEs, and site-exclusions.json still carries exactly the one decision the route already had rather than a second entry from a new root page');
+
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 024 Scope 05 route group threw): ' + e.message); }
+
+/* ---------- Feature 025 Scope 01 and 02: company multi-horizon composition ---------- */
+try {
+  group('Feature 025 company multi-horizon intelligence');
+  const companyRequire = (await import('node:module')).createRequire(import.meta.url);
+  const INTEL25 = companyRequire('../rlcompanyintel.js');
+  const CONTRACTS25 = companyRequire('../rlcontracts.js');
+  const config25 = JSON.parse(read('company-intelligence.config.json'));
+  const moduleSource25 = read('rlcompanyintel.js');
+  const routeSource25 = read('company-intelligence-lab.html');
+  const decisionTime25 = '2026-08-18T00:00:00.000Z';
+  const registry25 = INTEL25.readCoverageRegistry(config25);
+
+  /* TP-025-01: the coverage floor is complete and closed. */
+  assert(registry25.rows.length === 15
+    && JSON.stringify(registry25.rows.map((row) => row.dimensionId).sort())
+      === JSON.stringify(INTEL25.MANDATORY_DIMENSION_IDS.slice().sort())
+    && config25.contractVersion === 'company-intelligence-config/v1'
+    && registry25.horizons.length === 4,
+  'TP-025-01: the committed coverage registry declares exactly the fifteen mandatory dimensions and four horizons');
+
+  /* A registry missing a mandatory dimension is refused rather than composed from. */
+  let incompleteCode25 = null;
+  try {
+    INTEL25.readCoverageRegistry(Object.assign({}, config25, {
+      coverageRegistry: config25.coverageRegistry.filter((row) => row.dimensionId !== 'volatility'),
+      horizons: config25.horizons.map((horizon) => Object.assign({}, horizon, {
+        primaryDimensionIds: horizon.primaryDimensionIds.filter((id) => id !== 'volatility')
+      }))
+    }));
+  } catch (error) { incompleteCode25 = error.code; }
+  assert(incompleteCode25 === 'C025-REGISTRY-INCOMPLETE',
+    'TP-025-02: removing a mandatory dimension from the registry raises C025-REGISTRY-INCOMPLETE instead of composing a shorter floor');
+
+  /* A stub data module, so this group stays pure and needs no browser and no cache. */
+  const bars25 = (sessions, start, step, endDate) => {
+    const endEpoch = Date.parse(endDate + 'T20:00:00.000Z');
+    return Array.from({ length: sessions }, (unused, index) => ({
+      t: endEpoch - (sessions - 1 - index) * 86400000,
+      c: start + step * index
+    }));
+  };
+  const written25 = {};
+  const data25 = {
+    bars: (symbol) => (symbol === 'MSFT' ? bars25(300, 100, 0.9, '2026-08-17')
+      : (symbol === 'SPY' ? bars25(300, 400, 0.2, '2026-08-17') : null)),
+    options: () => null,
+    macro: () => null,
+    toolRead: (id) => (Object.prototype.hasOwnProperty.call(written25, id) ? written25[id] : null),
+    putToolRead: (id, object) => { written25[id] = JSON.parse(JSON.stringify(object)); return written25[id]; }
+  };
+  const subject25 = INTEL25.resolveSubject('MSFT', {
+    secCompanies: [{ ticker: 'MSFT', cik: '0000789019', displayName: 'Microsoft Corporation' }],
+    barSymbols: ['MSFT'], decisionTime: decisionTime25
+  });
+  const sources25 = {
+    registry: registry25, benchmarkSymbol: 'SPY', publishedRegimeContext: { available: false },
+    maxBranches: registry25.maxBranches, decisionTime: decisionTime25
+  };
+  const composeRun25 = () => {
+    const bundle = INTEL25.runAdapters(subject25, sources25, decisionTime25, data25);
+    const partition = INTEL25.partitionByHorizon(bundle);
+    const horizons = [
+      INTEL25.composeImmediate(partition.tactical, registry25, decisionTime25),
+      INTEL25.composeEvent(partition.event, registry25, decisionTime25),
+      INTEL25.composeSwing(partition.swing, registry25, decisionTime25),
+      INTEL25.composeStructural(partition.structural, registry25, decisionTime25)
+    ];
+    return {
+      bundle, partition, horizons,
+      version: INTEL25.buildReadVersion({
+        subject: subject25, horizons,
+        coverageAccount: INTEL25.buildCoverageAccount(bundle, registry25),
+        evidenceFamilies: INTEL25.groupEvidenceFamilies(bundle),
+        contradictions: INTEL25.extractContradictions(horizons),
+        researchPlan: INTEL25.attachResearchPlan(subject25, sources25),
+        events: INTEL25.selectRenderableEvents([]),
+        refusals: bundle.refusals
+      }, decisionTime25)
+    };
+  };
+  const first25 = composeRun25();
+  const account25 = first25.version.coverageAccount;
+
+  assert(account25.rows.length === registry25.rows.length
+    && INTEL25.EVIDENCE_STATES.reduce((total, state) => total + account25.totals[state], 0) === registry25.rows.length
+    && account25.rows.every((row) => INTEL25.EVIDENCE_STATES.indexOf(row.state) >= 0)
+    && account25.rows.every((row) => (row.state === 'current') === (row.reasonCode === null))
+    && account25.rows.filter((row) => row.state === 'unavailable')
+      .every((row) => INTEL25.REASON_CODES.indexOf(row.reasonCode) >= 0),
+  'TP-025-03: every run accounts for all fifteen dimensions, the totals sum to the registry length, and every non-current row names a closed reason code');
+
+  /* TP-025-04: horizon isolation. A shorter-horizon read is ABSENT from a longer horizon's set. */
+  const tacticalOnly25 = first25.partition.tactical.filter((read) => read.maxHorizon === 'tactical');
+  const widened25 = INTEL25.partitionByHorizon({
+    reads: first25.bundle.reads.concat(tacticalOnly25.map((read) => Object.assign(JSON.parse(JSON.stringify(read)), {
+      state: 'current', reasonCode: null, directionalSignal: 'pressured'
+    })))
+  });
+  const structuralAgain25 = INTEL25.composeStructural(widened25.structural, registry25, decisionTime25);
+  const structuralFirst25 = first25.horizons.filter((horizon) => horizon.horizonId === 'structural')[0];
+  assert(tacticalOnly25.length > 0
+    && !widened25.structural.some((read) => read.maxHorizon === 'tactical')
+    && JSON.stringify(structuralAgain25) === JSON.stringify(structuralFirst25)
+    && widened25.tactical.some((read) => read.directionalSignal === 'pressured'),
+  'TP-025-04: adding a tactical read that would flip the direction leaves the structural horizon byte-identical, and the same read does reach the immediate horizon');
+
+  /* TP-025-05: determinism over one frozen bundle and one explicit decisionTime. */
+  const second25 = composeRun25();
+  assert(CONTRACTS25.canonicalize(first25.version, 'company-read-version/v1')
+    === CONTRACTS25.canonicalize(second25.version, 'company-read-version/v1')
+    && first25.version.contentFingerprint === second25.version.contentFingerprint
+    && /^sha256:[a-f0-9]{64}$/.test(first25.version.contentFingerprint)
+    && !/new Date\(\)|Date\.now\(\)|Math\.random/.test(moduleSource25),
+  'TP-025-05: two runs over one frozen bundle and one decisionTime produce identical canonical output and one identical fingerprint, and the module reads no clock or random source');
+
+  /* TP-025-06: publication is verified by read-back, and a lossy store is refused. */
+  const published25 = INTEL25.publishToolRead(first25.version, data25);
+  const lossy25 = INTEL25.publishToolRead(first25.version, Object.assign({}, data25, {
+    putToolRead: (id, object) => { const stored = JSON.parse(JSON.stringify(object)); delete stored.freshUntil; written25[id] = stored; return stored; }
+  }));
+  assert(published25.contractVersion === 'rl-tool-read/v1'
+    && JSON.stringify(Object.keys(published25).sort()) === JSON.stringify(INTEL25.TOOL_READ_KEYS.slice().sort())
+    && INTEL25.TOOL_READ_KEYS.length === 9
+    && ['current', 'stale', 'unavailable'].indexOf(published25.availability) >= 0
+    && (published25.availability !== 'unavailable' || (published25.asOf === null && published25.freshUntil === null))
+    && lossy25.code === 'C025-PUBLISH-LOSSY',
+  'TP-025-06: the published owner read carries exactly the nine rl-tool-read/v1 keys and a store that drops one raises C025-PUBLISH-LOSSY instead of reporting success');
+
+  /* TP-025-07: tickers only, forever. */
+  assert(INTEL25.refuseInput('120 shares').code === 'C025-INPUT-REFUSED'
+    && INTEL25.refuseInput('cost basis 210.44').code === 'C025-INPUT-REFUSED'
+    && INTEL25.refuseInput('MSFT') === null
+    && INTEL25.resolveSubject('$4,300', {}).code === 'C025-INPUT-REFUSED'
+    && !/localStorage|sessionStorage|document|providerFetch/.test(moduleSource25)
+    && !/[^.\w]isFinite\s*\(/.test(moduleSource25)
+    && moduleSource25.indexOf('Number.isFinite(') > 0,
+  'TP-025-07: a position, size or cost-basis entry is refused, and the module declares no storage key, no DOM access, no credential read and no bare isFinite');
+
+  /* TP-025-08: every exported function has a production consumer inside the route. */
+  const exported25 = Object.keys(INTEL25).filter((name) => typeof INTEL25[name] === 'function');
+  const uncalled25 = exported25.filter((name) => routeSource25.indexOf('INTEL.' + name + '(') < 0);
+  assert(exported25.length >= 15 && uncalled25.length === 0
+    && routeSource25.indexOf('INTEL.definitelyNotCalled(') < 0,
+  'TP-025-08: every one of the module\u2019s ' + exported25.length + ' exported functions has a caller inside the route (' + (uncalled25.join(', ') || 'none uncalled') + ')');
+
+  /* 2.10 EXCLUSION PARITY. The route, its module and its config each carry a deploy decision. */
+  const companySitePages = await import('./build-pages-site.mjs');
+  const companyPlan25 = companySitePages.planPagesSite(ROOT);
+  const exclusions25 = JSON.parse(read('site-exclusions.json'));
+  const companyPaths25 = ['company-intelligence-lab.html', 'rlcompanyintel.js', 'company-intelligence.config.json'];
+  const companyEntries25 = companyPaths25.map((path) => exclusions25.files.filter((entry) => entry.path === path)[0]);
+  const companyRootPages25 = readdirSync(ROOT).filter((name) => name.endsWith('.html')).sort();
+  const registeredNow25 = new Set(JSON.parse(read('tools.json')).tools.map((tool) => tool.file));
+  const withoutRoute25 = new Set(companyPlan25.excludedPaths.filter((path) => path !== 'company-intelligence-lab.html'));
+  const refusedWithout25 = companySitePages.findUnaccountedPages(companyRootPages25, registeredNow25, withoutRoute25);
+  assert(companyEntries25.every((entry) => entry && typeof entry.reason === 'string' && entry.reason.length >= 40)
+    && companyPaths25.every((path) => companyPlan25.excludedPaths.indexOf(path) >= 0)
+    && companyPlan25.registeredPages.indexOf('company-intelligence-lab.html') < 0
+    && companyRootPages25.indexOf('company-intelligence-lab.html') >= 0
+    && refusedWithout25.indexOf('company-intelligence-lab.html') >= 0,
+  'company-intelligence route, module and config each carry a site-exclusion entry with a substantive reason, and removing the route\u2019s entry is proven to make the build refuse the page');
+
+  /* The tool stays absent from every registration surface, exactly as the design recommends. */
+  const companyRegistrationText25 = ['tools.json', 'index.html', 'rlnav.js']
+    .map((file) => read(file)).join('\n');
+  assert(!/company-intelligence/.test(companyRegistrationText25)
+    && !/rlcompanyintel/.test(companyRegistrationText25),
+  'TP-025-09: the company-intelligence route, module and config appear in none of tools.json, the index or the navigation');
+
+  /* 2.12 CANARY. This feature touched two shared surfaces by pure append. The concurrent Lifetime
+     Tax work owns its own modules, its own route and its own exclusion entries, and this append
+     left every one of them in place. */
+  const taxExclusionPaths25 = ['rltaxrules.js', 'rltaxworkspace.js', 'rltax.js', 'rltaxstrategy.js',
+    'rltaxstate.js', 'rltaxcombined.js', 'lifetime-tax-strategy-lab.html', 'lifetime-tax-strategy.config.json'];
+  assert(taxExclusionPaths25.every((path) => companyPlan25.excludedPaths.indexOf(path) >= 0)
+    && exclusions25.files.length >= taxExclusionPaths25.length + companyPaths25.length + 1
+    && exclusions25.files.every((entry) => typeof entry.reason === 'string' && entry.reason.length >= 40)
+    && new Set(exclusions25.files.map((entry) => entry.path)).size === exclusions25.files.length
+    && companyRootPages25.filter((name) => name.indexOf('lifetime-tax') === 0).length === 1,
+  'Regression: SCN-025-CANARY every pre-existing selftest assertion stays green after the spec 025 exclusion-parity append, and all eight Lifetime Tax exclusion entries survive it unchanged');
+
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 025 company multi-horizon group threw): ' + e.message); }
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

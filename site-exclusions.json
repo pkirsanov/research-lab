@@ -5,6 +5,50 @@
     {
       "path": "rlsession.js",
       "reason": "Only Node tooling under scripts/ and the test suites consume the market-session module; no registered page or shipped runtime references it, and tests are not production consumers."
+    },
+    {
+      "path": "rltaxrules.js",
+      "reason": "Lifetime Tax Strategy Lab rule-pack contract and refusal vocabulary. Its only production consumer is the in-progress unregistered lifetime-tax route, so the packaged site would ship a module nothing reachable loads."
+    },
+    {
+      "path": "rltaxworkspace.js",
+      "reason": "Lifetime Tax Strategy Lab household workspace, storage boundary and privacy inventory. Its only production consumer is the in-progress unregistered lifetime-tax route, so the packaged site would ship a module nothing reachable loads."
+    },
+    {
+      "path": "rltax.js",
+      "reason": "Lifetime Tax Strategy Lab annual federal settlement engine. Its only production consumer is the in-progress unregistered lifetime-tax route, so the packaged site would ship a module nothing reachable loads."
+    },
+    {
+      "path": "rltaxstrategy.js",
+      "reason": "Lifetime Tax Strategy Lab two-policy bracket-fill conversion comparison. Its only production consumer is the in-progress unregistered lifetime-tax route, so the packaged site would ship a module nothing reachable loads."
+    },
+    {
+      "path": "rltaxstate.js",
+      "reason": "Lifetime Tax Strategy Lab state settlement and jurisdiction axis. Its only production consumer is the in-progress unregistered lifetime-tax route, so the packaged site would ship a module nothing reachable loads."
+    },
+    {
+      "path": "rltaxcombined.js",
+      "reason": "Lifetime Tax Strategy Lab combined federal-plus-state settlement and combined marginal curve. Its only production consumer is the in-progress unregistered lifetime-tax route, so the packaged site would ship a module nothing reachable loads."
+    },
+    {
+      "path": "lifetime-tax-strategy-lab.html",
+      "reason": "Lifetime Tax Strategy Lab route. The tool is deliberately unregistered while the federal slice is in progress, so the public site must not ship a page that no index, navigation entry or brief can reach."
+    },
+    {
+      "path": "lifetime-tax-strategy.config.json",
+      "reason": "Mandatory configuration for the in-progress unregistered Lifetime Tax Strategy Lab route. Shipping it would place a policy document in the public site whose only consumer is not itself shipped."
+    },
+    {
+      "path": "company-intelligence-lab.html",
+      "reason": "Company Multi-Horizon Intelligence Lab route. The tool is deliberately unregistered while increment A ships the composed floor, so the public site must not carry a page that no index, navigation entry or brief can reach."
+    },
+    {
+      "path": "rlcompanyintel.js",
+      "reason": "Company Multi-Horizon Intelligence Lab composition module holding the coverage account, the horizon partition and the verified publication path. Its only production consumer is the in-progress unregistered company-intelligence route, so the packaged site would ship a module nothing reachable loads."
+    },
+    {
+      "path": "company-intelligence.config.json",
+      "reason": "Mandatory coverage registry and composition policy for the in-progress unregistered Company Multi-Horizon Intelligence Lab route. Shipping it would place a policy document in the public site whose only consumer is not itself shipped."
     }
   ]
 }

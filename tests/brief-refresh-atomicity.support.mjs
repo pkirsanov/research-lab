@@ -244,6 +244,15 @@ if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
   copyFileSync(resolve(ROOT, 'market-brief.config.json'), resolve(repoRoot, 'market-brief.config.json'));
   copyFileSync(resolve(ROOT, 'market-brief.scorecard.json'), resolve(repoRoot, 'market-brief.scorecard.json'));
   copyFileSync(resolve(ROOT, 'tools.json'), resolve(repoRoot, 'tools.json'));
+  // BUG-010 made company-fundamentals.config.json a publication-path dependency: the disclosure
+  // gate in validate-brief-payload.mjs derives the expected adapter id from feature002 rather than
+  // pinning a literal, and refuses when it cannot read it — deliberately, since a gate that cannot
+  // form its expectation has verified nothing. tools.json alone is half the subject: the registry
+  // names WHICH coverage entry to examine, this config supplies WHAT the entry must say. Copying
+  // only the registry left the fixture reproducing a publication path the real one no longer has,
+  // so the gate refused the baseline and the wrapper reported an invalid baseline — the same
+  // fixture-gap-presenting-as-a-publication-refusal shape as the rlattention.js omission above.
+  copyFileSync(resolve(ROOT, 'company-fundamentals.config.json'), resolve(repoRoot, 'company-fundamentals.config.json'));
   copyFileSync(resolve(ROOT, 'watchlist.json'), resolve(repoRoot, 'watchlist.json'));
   // Serve the exact set of scripts market-brief.html declares via <script src> so the
   // fixture-served page hydrates identically to the committed site. rlexperience-adapters/

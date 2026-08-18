@@ -223,3 +223,144 @@ artifact.
 | Two of the three commits that touched `scripts/selftest.mjs` line 6319 loosened the assertion instead of making the fact deterministic | this packet | Recorded as a hard non-goal in `design.md` §2 and enforced by `T-10-R3`, which diffs that line. |
 | The Tier-B `coverage` lane carries per-tool preservation duties for four other tools but none for the company entry | this packet, Scope 02 | Addressed by `design.md` §3.3. |
 | `tests/recommendation-track-record.canary.mjs` is modified in the worktree and belongs to another line of work | not this packet | Left untouched. `scripts/selftest.mjs` carries no reference to it, and both inputs of the failing assertion are clean. |
+| The BUG-010 fix made `company-fundamentals.config.json` a publication-path dependency, and `tests/brief-refresh-atomicity.support.mjs` did not carry it into its synthetic repo | this packet | Fixed below. Fixture-only; no production file changed. |
+
+### Regression: The Gate Became A Publication-Path Dependency The Fixture Did Not Carry
+
+`tests/market-brief-session-date-drift.spec.mjs` (Regression BUG-002) began failing at
+`expect(result.status).toBe(0)` — received `1`.
+
+**Provenance of the regression finding.** The commit was isolated by an operator bisect in a
+disposable worktree — the spec passes at `5d4a8202a` (immediately before this packet's fix) and
+fails at `0e51d602f`, so `7314777ef` caused it. That bisect is operator-supplied diagnostic input,
+not this session's execution evidence; everything below it is executed here.
+
+#### The stated hypothesis was wrong, and the stderr says so
+
+The suspected cause was `reassertCompanyOwnerReadDisclosure()` throwing on a fixture payload with
+zero company `toolCoverage` entries. Capturing the fixture's actual stderr disconfirms it on two
+independent counts.
+
+**Executed:** YES
+**Command:** drive `createBriefRefreshFixture({ browserAssets: true })` + `runBriefRefreshFixture()`
+directly and print `status` / `stderr`, at `0e51d602f` before any edit
+**Phase Agent:** bubbles.implement
+**Claim Source:** executed
+
+```
+=== STATUS ===
+1
+=== STDERR ===
+[brief-contract] FAIL: the company owner-read coverage entry does not disclose what Feature 010 guarantees
+  - company-fundamentals.config.json could not be read, so the adapter id "company-fundamentals-lab" must name cannot be resolved — a gate that cannot form its expectation refuses rather than assumes one
+
+=== STDOUT TAIL MARKER: full stdout below ===
+[brief-timer] refusing: published snapshot/payload baseline is invalid
+```
+
+1. The refusal comes from the **publish gate** in `scripts/validate-brief-payload.mjs`, not from the
+   post-merge re-assertion in `scripts/brief-refresh.mjs`.
+2. The re-assertion never executed. This fixture is built without `narrativeMode`, so `copilotPath`
+   is null and `runBriefRefreshFixture` sets `BRIEF_SKIP_NARRATIVE=1`; the run log confirms it —
+   `[brief-timer] BRIEF_SKIP_NARRATIVE=1 — data-only run, narrative not regenerated`. A function on
+   a lane that does not run cannot be the cause.
+
+The window is also not an uncovered one. The fixture copies the committed
+`market-brief.payload.json`, which carries **exactly one** `company-fundamentals-lab` coverage entry
+whose `reason` already contains both required facts. The gate's subject was present; only its
+**expectation** was unreachable, because the fixture's synthetic repo had no
+`company-fundamentals.config.json` to read the declared `feature002.adapterId` out of.
+
+#### Why nothing in the gate was narrowed
+
+Narrowing the refusal to "only complain when the payload covers the tool" would have been a fix for
+a bug that does not exist here — the payload *does* cover the tool. It would also have been a
+straight loss: this brief covers every registered tool by contract, so a zero-entry company coverage
+set is a genuine breach and the existing `entries.length !== 1` refusal is correctly scoped.
+
+The defect is in the fixture. Before `7314777ef` nothing in the publication path read
+`company-fundamentals.config.json`, so the fixture never needed it; the gate made it a dependency
+and the fixture was not updated. That is the same shape the fixture already documents twice in its
+own comments — `rlattention.js` ("a fixture gap presenting as a publication refusal") and the XNYS
+calendar. `tools.json` alone is half the subject: the registry names *which* coverage entry to
+examine, the config supplies *what* that entry must say.
+
+#### The fix
+
+One line plus its rationale, in `tests/brief-refresh-atomicity.support.mjs`, beside the existing
+`tools.json` copy and before the fixture's baseline commit:
+
+```
+copyFileSync(resolve(ROOT, 'company-fundamentals.config.json'), resolve(repoRoot, 'company-fundamentals.config.json'));
+```
+
+No production file changed. `git diff --quiet` reports `scripts/validate-brief-payload.mjs`,
+`scripts/brief-refresh.mjs`, `scripts/brief-narrative-parallel.mjs`, and `scripts/selftest.mjs` all
+byte-identical to HEAD, and `scripts/selftest.mjs` line 6319 diffs clean against
+`git show HEAD:scripts/selftest.mjs`. The re-assertion was not deleted, no error is swallowed, there
+is no `try {} catch {}`, and no environment variable special-cases the fixture.
+
+#### Adversarial proof — the guarantee still bites, in the path that was changed
+
+The reason to distrust a fixture-side fix is that it could make the lane green by putting the gate
+somewhere it can no longer refuse. It cannot. Construction: build the fixture **with** the fix, keep
+the `company-fundamentals-lab` entry present so the window still covers the tool, overwrite only its
+`reason` with prose that drops both facts, commit that as the fixture baseline, then run the
+refresh.
+
+**Executed:** YES
+**Command:** fixture built with the fix, company entry retained, `reason` replaced with
+`"Consumed as a committed owner read for MSFT; coverage is partial through 2026-03-31."`, committed,
+then `runBriefRefreshFixture()`
+**Phase Agent:** bubbles.implement
+**Claim Source:** executed
+
+```
+=== fixture DOES cover the company tool: entries=1
+=== mutated reason (entry kept, BOTH facts stripped): Consumed as a committed owner read for MSFT; coverage is partial through 2026-03-31.
+=== STATUS === 1
+=== STDERR ===
+[brief-contract] FAIL: the company owner-read coverage entry does not disclose what Feature 010 guarantees
+  - toolCoverage "company-fundamentals-lab" reason must name the producing adapter "company-fundamentals-owner-v1" as declared by company-fundamentals.config.json feature002.adapterId — without it a reader cannot tell which adapter produced this read
+  - toolCoverage "company-fundamentals-lab" reason must state that no recommendation is produced (declared eligibility "educational-research-only") matching no recommendation[^.]*\b(?:fabricat\w*|produced|generated|issued)\b — the disclosure is the guarantee, and silence about it publishes a research tool that never says it gives no advice
+
+=== STDOUT ===
+[brief-timer] refusing: published snapshot/payload baseline is invalid
+```
+
+The fix in fact *restored* the gate's ability to discriminate inside the fixture. Before it, every
+fixture run refused with the same unreachable-expectation line whether or not the disclosure was
+present — an unfalsifiable refusal. After it, the fixture refuses only on the substantive breaches,
+and names them.
+
+Direct function-level adversarials confirm the same at the unit boundary, with the expected adapter
+id read from `feature002.adapterId` (`company-fundamentals-owner-v1`) rather than pinned:
+
+```
+A1 CONTROL committed payload, covered AND disclosed        -> breaches=0
+A2 covered, ADAPTER ID removed (disclosure kept)           -> breaches=1  (must name the producing adapter)
+A3 covered, NO-RECOMMENDATION removed (adapter id kept)    -> breaches=1  (must state that no recommendation is produced)
+A4 covered, BOTH removed — the BUG-010 window              -> breaches=2
+A5 covered, INVERTED SENSE ("a recommendation is produced") -> breaches=1  (inverted sense does not satisfy it)
+
+R1 reassert, company entry ABSENT      -> THREW: toolCoverage must carry exactly one "company-fundamentals-lab" entry …, found 0
+R2 reassert, company entry DUPLICATED  -> THREW: … found 2
+R3 reassert, entry present, disclosure stripped -> reasserted=true, canonical sentence installed
+R4 reassert, committed payload         -> reasserted=false (already present, left alone)
+```
+
+#### Verification
+
+| # | Command | Result | Exit |
+|---|---|---|---|
+| 1 | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/market-brief-session-date-drift.spec.mjs --reporter=line` | `1 passed (8.8s)` | 0 |
+| 2 | `node scripts/validate-brief-payload.mjs` | company owner-read disclosure `PASS`; all sections valid | 0 |
+| 3 | `node scripts/selftest.mjs` | `2490 passed, 0 failed` | 0 |
+| 4 | `node --test tests/company-fundamentals-contracts.unit.mjs` | `pass 56`, `fail 0`; `T-10-U7`/`U8`/`U9` all green | 0 |
+| 5 | `git diff --stat` | `tests/brief-refresh-atomicity.support.mjs \| 9 +` only; `scripts/selftest.mjs` absent | 0 |
+| 6 | fixture adversarial, above | refuses with both substantive breaches | 1 (expected) |
+
+`git diff --stat` also lists the two `specs/015-recommendation-outcome-ledger-and-track-record/scopes/01-frozen-claim-contract/`
+files. They were already modified in the working tree before this session's first write — the
+session-opening `git status --porcelain` reported both as ` M` — and are another line of work. They
+were not touched here.

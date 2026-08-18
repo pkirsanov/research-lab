@@ -19,6 +19,8 @@ async function disclosureFingerprint(page) {
 }
 
 test('Regression: SCN-012-003 Power chart context is equivalent by pointer keyboard touch and table', async ({ page }) => {
+  // waitForHeatmap() declares a 120 s hydration wait; the default 30 s budget would abort first.
+  test.setTimeout(180_000);
   await waitForHeatmap(page);
   const canvas = page.locator('#tm');
   const disclosure = page.locator('#rlcontext-disclosure');
@@ -61,6 +63,8 @@ test('Regression: SCN-012-003 Power chart context is equivalent by pointer keybo
 });
 
 test('Regression: SCN-012-004 label-only context fails the exact Power item without hiding valid peers', async ({ page }) => {
+  // waitForHeatmap() declares a 120 s hydration wait; the default 30 s budget would abort first.
+  test.setTimeout(180_000);
   await waitForHeatmap(page);
   const result = await page.evaluate(() => {
     const trigger = document.createElement('button');
@@ -150,7 +154,8 @@ test('Research charts tables tickers sources and tooltips retain units provenanc
 });
 
 test('Regression: contextual disclosure fits mobile returns focus and promotes same-data table without canvas', async ({ page }) => {
-  test.slow();
+  // test.slow() yields only 3 x 30 s = 90 s, short of the 120 s waitForHeatmap() declares.
+  test.setTimeout(180_000);
   await page.setViewportSize({ width: 390, height: 844 });
   const fallbackPage = await page.context().newPage();
   await fallbackPage.setViewportSize({ width: 390, height: 844 });

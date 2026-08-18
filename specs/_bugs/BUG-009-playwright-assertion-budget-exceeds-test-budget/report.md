@@ -55,7 +55,7 @@ resolved configuration:
 
 ```
 $ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --list --reporter=json
-configFile: /home/philipk/research-lab/playwright.config.mjs
+configFile: <repo-root>/playwright.config.mjs
 config.globalTimeout: 0
 projects[].use/timeout:
   project= system-chrome timeout= 30000
@@ -63,6 +63,11 @@ projects[].use/timeout:
 total tests listed: 498
 LIST_EXIT=0
 ```
+
+> Path note: throughout this report the absolute repository root is recorded as `<repo-root>`. Only
+> that machine-specific prefix is redacted, to satisfy this repository's personal-identifier rule.
+> Every repository-relative path, line, and column is exactly as the runner emitted it, and those are
+> what the evidence proves.
 
 `timeout= 30000` is what the runtime will enforce. 498 tests, matching the suite size referenced by
 `specs/015` row `T-01-R2`.
@@ -78,7 +83,7 @@ repository. Its first version was wrong, and the correction is itself a design f
 **v1, file-scoped attribution** — largest declaration in a file versus weakest test in that file:
 
 ```
-$ node /tmp/rl-budget-audit/audit.mjs /home/philipk/research-lab 30000
+$ node /tmp/rl-budget-audit/audit.mjs <repo-root> 30000
 project default test budget = 30000 ms
 spec files scanned          = 49
 
@@ -99,7 +104,7 @@ code, so it was discarded.
 **v2, per-test attribution with helper call-graph resolution:**
 
 ```
-$ node /tmp/rl-budget-audit/audit2.mjs /home/philipk/research-lab 30000
+$ node /tmp/rl-budget-audit/audit2.mjs <repo-root> 30000
 default test budget = 30000 ms   spec files = 49
 
 VIOLATION tests/contextual-tooltip.spec.mjs
@@ -222,8 +227,8 @@ Running 2 tests using 1 worker
 --- last 20 ---
     > 11 |   await expect(page.locator('body')).toHaveAttribute('data-heatmap-hydration', 'ready', { timeout: 120000 });
          |                                      ^
-        at waitForHeatmap (/home/philipk/research-lab/tests/contextual-tooltip.spec.mjs:11:38)
-        at /home/philipk/research-lab/tests/contextual-tooltip.spec.mjs:64:3
+        at waitForHeatmap (<repo-root>/tests/contextual-tooltip.spec.mjs:11:38)
+        at <repo-root>/tests/contextual-tooltip.spec.mjs:64:3
   2 failed
 CAPTURE_EXIT=1
 PRESSURE_KILLED_EXIT=0

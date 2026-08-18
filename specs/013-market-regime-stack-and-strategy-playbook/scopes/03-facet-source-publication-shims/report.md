@@ -245,6 +245,44 @@ Held open:
 3. **Build Quality Gate** — `traceability-guard.sh` fails for the spec directory
    on unbuilt scopes 04 and 06.
 
+## Browser-suite verification of the nine modified pages
+
+This scope edits nine live tool pages, so the Playwright `system-chrome` suite is
+the verification that matters most. Run to completion twice:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome --reporter=line --workers=2
+  498 passed (16.0m)
+PW_EXIT=0
+```
+
+The first run reported `497 passed, 1 failed` on
+`tests/causal-rotation-consumers.spec.mjs:187 Regression: A country causal read
+disagrees with its market model` — a spec covering `global-rotation-lab.html`,
+which this scope modifies, so it was treated as a suspected regression rather
+than dismissed. It did not reproduce:
+
+| Probe | Result |
+|---|---|
+| that single test, isolated | 1 passed (30.8s) |
+| its whole spec file | 5 passed (1.1m) |
+| full suite, second run | **498 passed, exit 0** |
+
+Same load-sensitive signature as the unit-suite finding below. The performance
+hypothesis was also considered and rejected on inspection: the added work is one
+126-bar and one 252-bar ratio series over already-cached bars, computed once per
+publish.
+
+Direct evidence the page edits did not break their Simple adapters, from the
+`TP-15-04` sweep inside the passing run — every modified page reports `ready`:
+
+```
+TP-15-04 swept 18 wired tools: market-heatmap-lab=ready(x1) options-structure-lab=ready(x1)
+gamma-trading-lab=ready(x1) sector-research-lab=ready(x1) global-rotation-lab=ready(x1)
+real-assets-lab=ready(x2) bond-regime-lab=ready(x1) volatility-sizing-lab=ready(x1) ...
+```
+
 ## Finding: pre-existing unit-suite nondeterminism (not caused by this scope)
 
 `node --test` over `tests/*.mjs` reports one or two failures per run, and a

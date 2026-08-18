@@ -67,12 +67,6 @@
 
 tests/_tp1504-settle-probe.spec.mjs
 tests/auction-gamma-playbook.spec.mjs
-tests/causal-rotation-adversarial.spec.mjs
-tests/causal-rotation-brief.spec.mjs
-tests/causal-rotation-consumers.spec.mjs
-tests/causal-rotation-delivery.spec.mjs
-tests/causal-rotation-pages.spec.mjs
-tests/causal-rotation-registry.spec.mjs
 tests/distributed-briefs-authorship-adversarial.test.mjs
 tests/distributed-briefs-authorship.e2e.mjs
 tests/distributed-briefs-authorship.integration.test.mjs

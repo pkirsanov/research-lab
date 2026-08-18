@@ -410,70 +410,438 @@ the invariance basis and the ledger move.
 
 ## Test Evidence
 
-No command has been run. Every anchor below is an empty evidence slot, and each is
-filled with the raw unfiltered output of the exact command named for that row in
-[scope.md](scope.md#test-plan), together with its exit code and, where the
-scenario-first contract applies, the intended-RED output that preceded it.
+Every anchor below is filled with the raw unfiltered output of the exact command
+named for that row in [scope.md](scope.md#test-plan), captured through
+`.github/bubbles/scripts/evidence-capture.sh` so the sha256 covers every line the
+run produced, together with its exit code and the intended-RED output that
+preceded it.
+
+The clean baseline is **2843 passed, 0 failed**, exit **0**. The selftest prints a
+small amount of run-varying text, so two green runs hash differently while both
+report the same counts; the count line and the exit code are the load-bearing
+facts and the sha256 is recorded so each capture can be re-derived in place.
+
+**The pack-digest collateral.** `tax-rules/federal/2026.json` carries a
+`contentSha256` that four assertions outside this scope re-derive from the pack
+bytes — `TP-01-01`, `TP-03-02`, `TP-04-02` and `TP-05-01`. Any probe that mutates
+the pack therefore fails those four as well. That is those rows working, not a
+second defect, and it is reported rather than absorbed. Probes are written against
+product code wherever the row's claim can be broken there.
 
 ### TP-02-01
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+
+- **Mutation.** In `tax-rules/federal/2026.json` the third composition part is
+  renamed from `"tax-exempt-interest"` to `"tax-free-interest"`. The record stays
+  contract-valid — the id is still unique and non-empty — so the failure is the
+  row's own naming claim rather than a refusal cascade.
+- **RED.** exit `1`, `2838 passed, 5 failed`, sha256 `ee228a8bb47c…`. Failing
+  line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-01: ProvisionalIncome/v1 publishes every part the source names by name with its amount and its origin, its total is the sum of exactly those parts, and distinctFrom names both adjusted gross income and the pack’s modified adjusted gross measure
+```
+
+  The other four failures are the pack-digest collateral described above.
+- **Revert.** Byte-identical; `git status --porcelain` listed no tracked file.
+- **GREEN.** The identical command → exit `0`, `2843 passed, 0 failed`, sha256
+  `6ad63698216c…`.
+
+**Two probes rejected before this one, and why.** Emptying the part `label`, and
+dropping a member from `distinctFrom`, each made the contract validator refuse the
+whole record, so `computeInclusionSettlement` published no `inclusion` member and
+the scope-02 group threw before `TP-02-01` was reached. A group-level throw is a
+red run but it is not evidence about this row, so both were reverted and replaced
+by the probe above.
 
 ### TP-02-02
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+
+- **Mutation.** In `rltaxrules.js` the construction check inside
+  `validateProvisionalIncome` is inverted from
+  `part.readFromMeasureId !== null` to `=== null`, so the check never inspects a
+  part that names the measure it was read from. This is precisely the
+  compare-the-totals implementation the row exists to refuse: the copied-measure
+  fixture totals one dollar and passes.
+- **RED.** exit `1`, `2842 passed, 1 failed`, sha256 `6877bee9e731…`. Failing
+  line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-02: a composition that read the pack’s modified adjusted gross measure is refused at a total of one dollar, which differs from that measure, while an identically-totalled composition built from the household’s own declaration passes — so the check inspects what was summed rather than
+```
+
+- **Revert.** Byte-identical; `git status --porcelain` listed no tracked file
+  other than this report.
+- **GREEN.** The identical command → exit `0`, `2843 passed, 0 failed`, sha256
+  `c10ea2311887…`.
+
 
 ### TP-02-03
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+
+- **Mutation.** In `rltaxinclusion.js` the tier selection in
+  `selectInclusionTier` is loosened from `overSecond > 0` to `overSecond >= 0`.
+  Because `overSecond` is `Math.max(0, …)`, every provisional income above the
+  first base then lands in the second tier, so the between-the-two-bases case and
+  the exactly-at-the-second-base case are misclassified.
+- **RED.** exit `1`, `2842 passed, 1 failed`, sha256 `fbfc4a113886…`. Failing
+  line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-03: against a fixture pack carrying deliberately non-standard base amounts, provisional incomes below the first base, exactly at it, between the two, exactly at the second and above it each land in the tier the fixture pack states
+```
+
+- **Revert.** Byte-identical; `git status --porcelain` listed no tracked file
+  other than this report.
+- **GREEN.** The identical command → exit `0`, `2843 passed, 0 failed`, sha256
+  `25b074daa435…`.
+
 
 ### TP-02-04
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+
+- **Mutation.** In `rltaxinclusion.js` `applyOperator` returns `left >= right`
+  for the `">"` operator, so the pack's strict boundary is executed as an
+  inclusive one — the exact swap the row exists to catch.
+- **RED.** exit `1`, `2841 passed, 2 failed`, sha256 `4a7994fa8064…`. Failing
+  line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-04: at provisional income exactly equal to the fixture base amount the shipped strict operator includes nothing and an inclusive operator includes something, so an implementation swapping the two is proven to fail at the exact figure, and the comparison the engine performed is publis
+```
+
+  The second failure is `TP-02-03`, which asserts the tier landing at exactly the
+  base amount — the same boundary, so it is the tier row detecting the same
+  swap from its own side rather than a separate defect.
+- **Revert.** Byte-identical; `git status --porcelain` listed no tracked file
+  other than this report.
+- **GREEN.** The identical command → exit `0`, `2843 passed, 0 failed`, sha256
+  `e6a4b48b1ad5…`.
+
 
 ### TP-02-05
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+
+- **Mutation.** In `rltaxinclusion.js` `computeIncludedBenefit` publishes
+  `included = beforeCeiling` instead of `Math.min(beforeCeiling, ceilingAmount)`,
+  so the sourced ceiling is computed and published but never applied.
+- **RED.** exit `1`, `2841 passed, 2 failed`, sha256 `3289753c634a…`. Failing
+  line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-05: the included amount never exceeds the sourced ceiling proportion of the benefit, proven on a case where the ceiling did not bind and one where it did, and ceilingBound states which — both reproducing the publication’s own worked examples
+```
+
+  The second failure is `TP-02-06`, the adversarial row for the same ceiling. It
+  holds its own dedicated probe below.
+- **Revert.** Byte-identical; `git status --porcelain` listed no tracked file
+  other than this report.
+- **GREEN.** The identical command → exit `0`, `2843 passed, 0 failed`, sha256
+  `2a018399b991…`.
+
 
 ### TP-02-06
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+
+- **Mutation.** In `rltaxinclusion.js` the ceiling is computed from a recalled
+  literal — `ceilingAmount = 0.85 * benefitAmount` — instead of from the pack's
+  sourced `ceiling.value`. This is the recalled-proportion implementation the row
+  exists to catch, expressed as the smallest edit that produces it.
+- **RED.** exit `1`, `2841 passed, 2 failed`, sha256 `8bdede20031c…`. Failing
+  line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-06: against a fixture pack whose ceiling proportion is deliberately not the shipped one, the included amount is the fixture’s ceiling rather than the shipped one, so an implementation applying a recalled proportion is proven to fail
+```
+
+  The second failure is `TP-02-HARNESS`, which forbids a base amount, tier
+  percentage or ceiling proportion appearing as a literal anywhere in the module.
+  It caught the same edit from the other side, which is the no-recalled-figures
+  guard working rather than a second defect.
+- **Revert.** Byte-identical; `git status --porcelain` listed no tracked file
+  other than this report.
+- **GREEN.** The identical command → exit `0`, `2843 passed, 0 failed`, sha256
+  `7c703a81a1e6…`.
+
 
 ### TP-02-07
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+
+- **Mutation.** In `rltaxrules.js` the category-name arm of
+  `validateQuotedInvarianceBasis` is neutered: the guard
+  `quotation.length < MIN_QUOTED_CONTRAST_LENGTH || quotation.indexOf(" ") < 0`
+  becomes `quotation.length < 0`, so a one-word category name is admitted as a
+  quoted contrast.
+- **RED.** exit `1`, `2841 passed, 2 failed`, sha256 `c52dbf149b4a…`. Failing
+  line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-07: a yearInvarianceBasis is valid only when it quotes both halves of a contrast and locates each; a bare assertion, a category name, a reference to this repository’s own governance, a missing locator and a contrast quoting the same text on both sides are each refused, and the catego
+```
+
+  The second failure is `TP-02-08`, which asserts that a bare-assertion basis
+  makes the inclusion refuse. It holds its own dedicated probe below.
+- **Revert.** Byte-identical; `git status --porcelain` listed no tracked file
+  other than this report.
+- **GREEN.** The identical command → exit `0`, `2843 passed, 0 failed`, sha256
+  `5a634aec65b0…`.
+
 
 ### TP-02-08
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+
+- **Mutation.** In `rltaxinclusion.js` `resolveSourcedFigure` no longer consults
+  the invariance basis for a figure carried across editions: the
+  `if (!sameYear)` gate is made unreachable, so a base amount whose component
+  kind has no established contrast is published as a value instead of refusing.
+- **RED.** exit `1`, `2841 passed, 2 failed`, sha256 `c937ae26b726…`. Failing
+  line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-08: a base amount the pack genuinely carries, whose invariance basis is absent or is a bare assertion, makes the inclusion refuse RLTAX-THRESHOLD-UNAVAILABLE naming the missing basis rather than the missing figure, and no tier and no amount is smuggled past the refusal
+```
+
+  The second failure is `TP-02-13`, whose unavailable-contributes-nothing arm
+  builds its refused leg from the same no-basis pack. It holds its own dedicated
+  probe below.
+- **Revert.** Byte-identical; `git status --porcelain` listed no tracked file
+  other than this report.
+- **GREEN.** The identical command → exit `0`, `2843 passed, 0 failed`, sha256
+  `5cd527c9b7c1…`.
+
 
 ### TP-02-09
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+
+**The concurrent-session baseline.** Every capture from here on was taken while a
+separate session held uncommitted work in `specs/025-*` and `specs/026-*`. Its spec
+artifacts name browser spec paths under `tests/` that do not exist, so the
+spec-referenced-path assertion fails in every run below. That failure is foreign to
+this scope, is present in the clean tree as well, and is named in each capture so it
+is never mistaken for a probe result. The exact paths are deliberately **not**
+written out here: the guard scans artifact text, so quoting a missing path would
+make this report a reference site for it and turn a foreign failure into one this
+scope caused. The clean baseline is therefore
+**`2842 passed, 1 failed`, exit `1`** rather than the `2843 passed, 0 failed`,
+exit `0` recorded above from the committed tree. A probe's RED is the count moving
+**below** 2842, and the row's own assertion appearing by name.
+
+- **Mutation.** In `rltaxrules.js` the first branch of
+  `validateQuotedInvarianceBasis` is loosened so a bare narrative string is
+  admitted as a valid basis:
+  `if (isNonEmptyString(basis)) return { ok: true, refusals: [] };` is inserted
+  ahead of the `!isPlainObject(basis)` refusal. This is exactly the loosening the
+  row exists to forbid — the shape a prior feature's seven narrative bases would
+  take if the tightened rule were relaxed to stop refusing them.
+- **RED.** exit `1`, `2841 passed, 2 failed`, sha256 `aff1078ed2a8…`. Failing
+  line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-09: every yearInvarianceBasis this scope authors satisfies the tightened rule, and every basis a prior feature shipped is re-validated against it and its outcome recorded — all 7 prior figure-level bases are narrative strings governed by the untouched rule in the module that owns the
+```
+
+  The other failure is the foreign spec-path failure described above.
+- **Revert.** `git checkout -- rltaxrules.js`; `git status --short` then listed no
+  tracked file other than this report.
+- **GREEN.** The identical command → exit `1`, `2842 passed, 1 failed`, sha256
+  `4931df64c84e…` — the row passes and only the foreign failure remains.
 
 ### TP-02-10
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+
+- **Mutation.** In `tax-rules/federal/2026.json` the `irs-p915-2025` source record's
+  `retrievedAt` is emptied. Every value-bearing member of the inclusion policy cites
+  that record, so each now resolves to a source that claims `retrievalOutcome:
+  "retrieved"` while carrying no moment at which the retrieval happened — a sourcing
+  claim with nothing behind it, which is the defect this row exists to catch. The
+  member is deliberately one the settlement never gates on, so the group runs to the
+  row rather than throwing short of it.
+- **RED.** exit `1`, `2832 passed, 11 failed`, sha256 `ba59568d854b…`. This row's
+  failing line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-10: each of the 17 value-bearing members of the inclusion policy resolves to exactly one retrieved source carrying a locator and a retrievedAt, and an unretrieved member ships as a value-free AbsentFigure with a missingSource pointer that makes the whole inclusion refuse
+```
+
+  Seven of the others are the pack-digest and pack-validity collateral described at
+  the head of this section; the remaining three are foreign (the spec-path row and
+  the concurrent session's two company-intelligence rows).
+- **Revert.** `git checkout -- tax-rules/federal/2026.json`, run in the same command
+  as the probe; `git status --short` immediately after listed no tracked file other
+  than this report.
+- **GREEN.** The identical command → exit `1`, `2840 passed, 3 failed`, sha256
+  `9a36ed0f5144…` — the row passes and only foreign failures remain.
+
+**One probe rejected before this one, and why.** Emptying the `locator` on the
+policy's `ceilingProportion` made `resolveSourcedFigure` refuse, so
+`computeInclusionSettlement` published no settlement and the whole Feature 024
+Scope 02 group threw with `Cannot read properties of undefined (reading
+'provisionalIncome')` before `TP-02-10` was reached. A group-level throw is a red
+run but it is not evidence about this row, so it was reverted and replaced by the
+probe above — the same standard applied to the two probes rejected under
+[TP-02-01](#tp-02-01).
+
+**The foreign baseline moved during this session.** From this capture on the
+concurrent session's own `TP-025-07` and `TP-025-08` also fail on a clean tree, so
+the clean baseline is `2840 passed, 3 failed` rather than `2842 passed, 1 failed`.
+All three failures are foreign to this scope: none names a Feature 024 row, and
+`git status --short` shows this scope holds no tracked change but this report.
 
 ### TP-02-11
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+
+- **Mutation.** In `tax-rules/federal/2026.json` the inclusion policy's
+  `modelsUnsupportedFeatureId` is changed from `"taxable-social-security-benefits"`
+  to `"social-security-inclusion"` — the policy's own id. The policy still exists
+  and the id is still gone from `unsupportedFeatures[]`, so the pack still *looks*
+  like a move; what it no longer carries is the claim naming **which** not-carried
+  id it took over. That is the cull-disguised-as-a-move this row exists to refuse.
+- **RED.** exit `1`, `2834 passed, 9 failed`, sha256 `a4d1b76a7dc0…`. This row's
+  failing line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-11: the taxable-benefit id is absent from unsupportedFeatures[] and present as the inclusion policy the pack’s own tier declaration carries, the inclusion leg is declared by the policy rather than by the engine, the adjustment id beside it in the original triple is likewise absent fr
+```
+
+  Seven of the other eight are the **pack-digest collateral** described at the head
+  of this section — `TP-01-01`'s digest row, `TP-03-02`, `TP-04-02` and `TP-05-01`
+  re-derive `contentSha256` from the pack bytes — together with `TP-01-01`'s
+  accounting, `TP-03-07`'s contributor identity and Feature 023's `TP-02-12` member
+  partition, each of which reads the same member from its own side. The ninth is the
+  foreign spec-path failure.
+- **Revert.** `git checkout -- tax-rules/federal/2026.json`, run in the **same
+  command** as the probe so the pack could not survive a dropped dispatch;
+  `git status --short` immediately after listed no tracked file other than this
+  report.
+- **GREEN.** The identical command → exit `1`, `2842 passed, 1 failed`, sha256
+  `40d1d7c2930c…`.
+
+**A note on the run-varying line count.** From this capture on, the total line
+count is `3221` rather than `3218` and the path assertion reports `2 new … of 241
+referenced` rather than `1 new … of 240`. That is the concurrent session adding a
+further spec reference between runs. It is foreign drift, it moves the failing
+count of a foreign row only, and the load-bearing figure — `2842 passed` on a clean
+tree — is unchanged.
 
 ### TP-02-12
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+
+**Where this row lives.** TP-02-12 is delivered as the `SUP-024-02 ADVERSARIAL`
+block at the Feature 021 accounting site, so its assertion message is labelled
+`TP-01-01 adversarial` rather than `TP-02-12`. That is the supersession procedure
+working: the replacement is written at the site of the clause it supersedes. The
+mapping is recorded here so the failing line below is readable as this row's.
+
+- **Mutation.** In `rltaxrules.js` `declaredTaxLegs` appends a leg whose `legId` is
+  `taxable-social-security-benefits`, so the moved id becomes findable in a **second**
+  place. This is exactly the masking defect the four-set accounting exists to catch:
+  with the id reachable through `taxLegs[]`, a pack that deleted it from
+  `unsupportedFeatures[]` with nothing modelled in its place would still be
+  "accounted for", and the adversarial simulation would stop discriminating.
+- **RED.** exit `1`, `2839 passed, 4 failed`, sha256 `eb5b6cccaf3e…`. This row's
+  failing line, verbatim:
+
+```text
+  ✗ FAIL: TP-01-01 adversarial: a pack that deleted the benefit id with no inclusion policy in its place, a pack that deleted the adjustment id with no medicare policy in its place, and a pack whose medicare policy models the adjustment id but sums one of its legs into the tax total each fail the fi
+```
+
+  `TP-01-01` fails alongside it because the same duplicate breaks set disjointness,
+  and `TP-04-12` fails because the invented leg is not one of the three premium legs
+  its filter counts. Both are those rows detecting the same edit from their own side.
+  The fourth is the foreign spec-path failure.
+- **Revert.** `git checkout -- rltaxrules.js`; `git status --short` then listed no
+  tracked file other than this report.
+- **GREEN.** The identical command → exit `1`, `2842 passed, 1 failed`, sha256
+  `30622fea6629…`.
 
 ### TP-02-13
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+
+- **Mutation.** In `rltax.js` the refusal branch of
+  `ordinaryTaxableIncomeContribution` publishes `amount: 0` instead of
+  `amount: null`. This is the defect the row's last clause names: an inclusion that
+  could not be settled contributes a zero, telling a household that none of its
+  benefit is taxable when in fact nothing was computed.
+- **RED.** exit `1`, `2840 passed, 3 failed`, sha256 `594e465c0b64…`. Failing
+  line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-13: the included amount is a named contributor to ordinary taxable income rather than a new income kind, the supported income-kind count and the pack’s incomeKinds member are unchanged, the refusal vocabulary member count is unchanged, and an unavailable inclusion contributes nothing
+```
+
+  The second failure is `TP-05-15`, Scope 05's own contributor row, which asserts
+  the same null-rather-than-zero clause from the settled-record side; it is that
+  row detecting the same edit rather than a separate defect. The third is the
+  foreign spec-path failure.
+- **Revert.** `git checkout -- rltax.js`; `git status --short` then listed no
+  tracked file other than this report.
+- **GREEN.** The identical command → exit `1`, `2842 passed, 1 failed`, sha256
+  `62b35c99ed4e…`.
 
 ### TP-02-14
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+
+- **Mutation.** In `rltax.js` the inclusion is **woven into the pre-existing
+  arithmetic** rather than left additive: `computeTaxableIncomeBasis` reads
+  `pack.benefitInclusionPolicy`, settles the inclusion from the workspace and adds
+  the included amount into `gross` before the deduction is applied.
+- **Why this probe is the right one.** For the row's own fixture — a household with
+  no benefit declared — the woven amount is zero, so **every figure the row pins
+  stays numerically identical**. The weave is invisible to an arithmetic check and
+  is caught only by the row's structural clause, that the engine holds no reference
+  to the inclusion policy member. That is precisely the class of defect the clause
+  exists for, and the probe demonstrates the clause is what carries it.
+- **RED.** exit `1`, `2841 passed, 2 failed`, sha256 `e9a9682b06fe…`. Failing
+  line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-14: with no benefit declared the settlement engine reproduces its exact prior gross, ordinary taxable, preferential taxable and total taxable income, and the engine holds no reference to the inclusion policy member, so the contributor is additive rather than woven into the pre-existi
+```
+
+  The other failure is the foreign spec-path failure.
+- **Revert.** `git checkout -- rltax.js`; `git status --short` then listed no
+  tracked file other than this report.
+- **GREEN.** The identical command → exit `1`, `2842 passed, 1 failed`, sha256
+  `d8a414b7da60…`.
 
 ### TP-02-15
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+
+- **Mutation.** In `tax-rules/federal/2026.json` the completeness record's
+  unmodelled entry is returned to its **pre-split joint form**: `"the taxable
+  portion of railroad retirement benefits"` becomes `"the taxable portion of Social
+  Security and railroad retirement benefits"`. The pack now names Social Security
+  on both sides at once — modelled by the inclusion policy and simultaneously
+  disclosed as not modelled. That is the exact state the split exists to end, and
+  the state an unsplit entry would silently persist in after FR-024-013 moved the id.
+- **RED.** exit `1`, `2836 passed, 7 failed`, sha256 `1b9c8329728f…`. This row's
+  failing line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-15: the completeness record names railroad retirement benefits alone on the unmodelled side, names the Social Security inclusion on the modelled side, states no Social Security entry on the unmodelled side, and deleting the entry outright is proven to leave railroad retirement unname
+```
+
+  Four of the others are the pack-digest collateral; two are foreign.
+- **Revert.** `git checkout -- tax-rules/federal/2026.json`, run in the same command
+  as the probe; `git status --short` immediately after listed no tracked file other
+  than this report.
+- **GREEN.** The identical command → exit `1`, `2841 passed, 2 failed`, sha256
+  `0782cf0df467…` — the row passes and only foreign failures remain.
 
 ### TP-02-16
 
@@ -499,11 +867,51 @@ claim — four real removals from the delivered page — is recorded under
 
 ### TP-02-18
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+
+- **Mutation.** In `rltaxinclusion.js` `computeInclusionSettlement` opens with
+  `console.warn("inclusion settling for benefit amount", benefitAmount);`, so the
+  module writes a household figure to the console — the leak the row's
+  no-console clause exists to refuse.
+- **RED.** exit `1`, `2841 passed, 2 failed`, sha256 `b620a5054934…`. Failing
+  line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-18: the inclusion composes from members the workspace already inventories, adds no storage key and no new workspace field, and the module performs no network access, no storage access, no DOM access and writes nothing to the console
+```
+
+  The run's line count rose from `3218` to `3243`, which is the leak itself
+  appearing in the transcript: twenty-five settlements each emitted the warning.
+  That corroborates the probe executed rather than merely being read by a scan.
+  The other failure is the foreign spec-path failure.
+- **Revert.** `git checkout -- rltaxinclusion.js`; `git status --short` then listed
+  no tracked file other than this report.
+- **GREEN.** The identical command → exit `1`, `2842 passed, 1 failed`, sha256
+  `18e9f601b288…`, line count back to `3218`.
 
 ### TP-02-19
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/selftest.mjs`.
+
+- **Mutation.** In `rltaxinclusion.js` `computeIncludedBenefit` substitutes a
+  fallback for the sourced ceiling instead of refusing:
+  `if (rules.isUnavailable(ceiling)) return ceiling;` becomes
+  `if (rules.isUnavailable(ceiling)) ceiling = { value: 1 };`. With the pack's
+  `ceilingProportion` absent the settlement now completes and publishes a full
+  inclusion record built around a figure that was never retrieved — the
+  partly-built record the row exists to keep away from the renderer.
+- **RED.** exit `1`, `2841 passed, 2 failed`, sha256 `d29e5c5b454b…`. Failing
+  line, verbatim:
+
+```text
+  ✗ FAIL: TP-02-19: with each of the eight inclusion members absent in turn the settlement refuses with an existing code and a reason and publishes no partly-built inclusion record, so a renderer reading only published members cannot meet an absent figure where it expected a number
+```
+
+  The other failure is the foreign spec-path failure.
+- **Revert.** `git checkout -- rltaxinclusion.js`; `git status --short` then listed
+  no tracked file other than this report.
+- **GREEN.** The identical command → exit `1`, `2842 passed, 1 failed`, sha256
+  `00eac43130ca…`.
 
 ### TP-02-20
 
@@ -535,15 +943,122 @@ The intended-RED for the same command, observed under the pack regression descri
 
 ### TP-02-22
 
-Not executed.
+Intended RED and same-command GREEN, both under the exact TP-02-22 command.
+
+- **Mutation.** In `lifetime-tax-strategy-lab.html` the measure line stops
+  publishing `provisional.distinctFrom`: the clause `". This measure is not " +
+  provisional.distinctFrom.join(" and it is not ")` is removed. The panel still
+  shows the composed total and still says it is composed from the parts below, so
+  the page looks complete — what it no longer tells a reader is that provisional
+  income is **not** adjusted gross income and **not** this pack's modified adjusted
+  gross measure. That is the conflation FR-024-009 exists to prevent, rendered.
+- **RED.** exit `1`, `1 failed`. Verbatim:
+
+```text
+Running 1 test using 1 worker
+
+  ✘  1 …ry part by name with its origin and names the measures it is not (933ms)
+
+  1) [system-chrome] › tests/lifetime-tax-inclusion.spec.mjs:41:1 › Regression: SCN-024-004 provisional income shows every part by name with its origin and names the measures it is not
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected substring: "adjusted-gross-income"
+    Received string:    "Provisional income: $74,956; it is composed from the parts below and nothing else."
+
+      75 |   const measureLine = await page.locator('#inclusionMeasureLine').innerText();
+      76 |   expect(measureLine).toContain('$74,956');
+    > 77 |   expect(measureLine).toContain('adjusted-gross-income');
+         |                       ^
+      78 |   expect(measureLine).toContain('modified-adjusted-gross-income');
+```
+
+  The composed total is still `$74,956`, so the row failed on the missing
+  distinction rather than on an arithmetic change — the assertion is load-bearing
+  for the claim it makes.
+- **Revert.** `git checkout -- lifetime-tax-strategy-lab.html`; `git status --short`
+  then listed no tracked file other than this report.
+- **GREEN.** The identical command → `1 passed (1.9s)`, exit `0`.
 
 ### TP-02-23
 
-Not executed.
+Intended RED and same-command GREEN, both under the exact TP-02-23 command.
+
+- **Mutation.** In `lifetime-tax-strategy-lab.html` the ceiling line stops reading
+  `inclusion.ceilingBound` and renders one unconditional sentence naming the tier
+  arithmetic and the ceiling figure. Both numbers are still shown and both are
+  still correct; what the page no longer states is **which one governed the
+  result**. This is the defect the row's binding clause exists to catch: a reader
+  left to infer the binding from a figure that stopped moving.
+- **RED.** exit `1`, `1 failed`. Verbatim:
+
+```text
+Running 1 test using 1 worker
+
+  ✘  1 … amount with its operator shown and the ceiling binding is stated (5.7s)
+
+  1) [system-chrome] › tests/lifetime-tax-inclusion.spec.mjs:90:1 › Regression: SCN-024-005 the tier is selected at the exact base amount with its operator shown and the ceiling binding is stated
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('#inclusionCeilingLine')
+    Expected substring: "did not bind"
+    Received string:    "The tier arithmetic came to $1 and the sourced ceiling is $18,625."
+    Timeout: 5000ms
+
+      125 |   expect(aboveCells[1]).toBe('$25,001');
+      126 |   expect(aboveCells[4]).toBe('yes');
+    > 127 |   await expect(page.locator('#inclusionCeilingLine')).toContainText('did not bind');
+```
+
+  The exact-boundary half of the row had already passed before this point — the
+  comparison rendered `$25,000 > $25,000 → no` and one dollar above rendered
+  `$25,001 → yes` — so the row reached its ceiling clause with the operator half
+  intact and failed on the clause the probe targeted.
+- **Revert.** `git checkout -- lifetime-tax-strategy-lab.html`; `git status --short`
+  then listed no tracked file other than this report.
+- **GREEN.** The identical command → `1 passed (2.0s)`, exit `0`.
 
 ### TP-02-24
 
-Not executed.
+Intended RED and same-command GREEN, both under the exact TP-02-24 command.
+
+- **Mutation.** In `lifetime-tax-strategy-lab.html` the base-amount table stops
+  rendering the publication's own words: the quoted contrast and its locator are
+  replaced by the flat sentence `"the figure does not vary by year"`. The column is
+  still populated, the base amount and its edition year are unchanged, and the page
+  still tells a reader the figure carries across editions — it just asserts it
+  instead of quoting it. **That is assumed invariance, which is the single defect
+  this scope exists to prevent**, and it is what an implementer reaches for when the
+  publication's own contrast is inconvenient to carry through to the page.
+- **RED.** exit `1`, `1 failed`. Verbatim:
+
+```text
+Running 1 test using 1 worker
+
+  ✘  1 …rast and one without a contrast refuses naming the missing basis (881ms)
+
+  1) [system-chrome] › tests/lifetime-tax-inclusion.spec.mjs:146:1 › Regression: SCN-024-006 a base amount from another edition shows its quoted contrast and one without a contrast refuses naming the missing basis
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected substring: "“"
+    Received string:    "the figure does not vary by year"
+
+      165 |     expect(cells[2].length).toBeGreaterThan('irs-p915-2025'.length + 5);
+      166 |     expect(cells[3]).toBe('2025');
+    > 167 |     expect(cells[4]).toContain('\u201c');
+          |                      ^
+      168 |     expect(cells[4]).not.toBe('the edition read is the declared year');
+      169 |     expect(cells[4].length).toBeGreaterThan(60);
+```
+
+  The row failed on the **quotation mark**, not on emptiness: the bare assertion the
+  probe substituted is exactly the shape the `not.toBe(...)` guard alone would have
+  let through, so the three clauses together are what carry the claim.
+- **Revert.** `git checkout -- lifetime-tax-strategy-lab.html`; `git status --short`
+  then listed no tracked file other than this report.
+- **GREEN.** The identical command → `1 passed (2.4s)`, exit `0`.
 
 ### TP-02-25
 
@@ -590,7 +1105,29 @@ the headline carrying its own figure rather than reaching it as an empty node.
 
 ### TP-02-26
 
-Not executed.
+Intended RED and same-command GREEN, both under the exact TP-02-26 command
+(`--grep "SCN-02"`, the cumulative browser suite over the real route).
+
+- **Mutation.** The **same** page probe recorded under [TP-02-24](#tp-02-24) — the
+  quoted contrast replaced by a bare assertion — held while this command ran. That
+  is deliberate: this row's claim is that the cumulative suite still detects a
+  regression introduced anywhere in the delivered route, so its intended RED is a
+  real route defect observed through the broad command rather than a defect
+  manufactured for it.
+- **RED.** exit `1`, sha256 `05e8cb388128…`, `1 failed`, `67 passed (21.4s)` of
+  `68`. Verbatim tail:
+
+```text
+  1 failed
+    [system-chrome] › tests/lifetime-tax-inclusion.spec.mjs:146:1 › Regression: SCN-024-006 a base amount from another edition shows its quoted contrast and one without a contrast refuses naming the missing basis
+  67 passed (21.4s)
+```
+
+- **Revert.** `git checkout -- lifetime-tax-strategy-lab.html`; `git status --short`
+  then listed no tracked file other than this report.
+- **GREEN.** The identical command → exit `0`, sha256 `b86c830d28f2…`,
+  **`68 passed (45.7s)`**, zero failed. The suite spans Features 021 through 024 and
+  the concurrent session's Feature 025 browser rows, all over the real route.
 
 ### TP-02-27
 
@@ -598,7 +1135,75 @@ Not executed.
 
 ### TP-02-28
 
-Not executed.
+Intended RED and same-command GREEN, both under `node scripts/validate-spec-test-paths.mjs`.
+
+**What this row can and cannot claim right now.** The guard's verdict is repository-wide
+and the concurrent session's `specs/026-*` artifacts name two browser spec paths that do
+not exist, so the command **exits `1` on a clean tree**. This row's own claim is narrower
+and is the one this scope can honour: that **this scope introduces no new missing path**.
+Both readings are recorded below rather than letting the foreign exit code stand in for
+either.
+
+- **A real finding this row caught, in this session.** An earlier draft of the
+  concurrent-session note above quoted the foreign missing path literally. The guard
+  scans artifact text, so quoting it made this report a **third reference site** for it —
+  the run showed the foreign path at `report.md:627` alongside the two `specs/026-*`
+  sites. The prose was rewritten to describe the path instead of naming it, and the
+  reference site disappeared. That is this row doing its job on this scope's own
+  artifact, unprompted.
+- **A stated elision, and why the evidence below carries one.** Recording this row's
+  output verbatim is self-defeating: the first attempt pasted the three paths in full
+  and the very next run reported **five new reference sites inside this file**,
+  `new=3`, `references=14158`. The guard cannot distinguish a path a spec *claims* from
+  a path a report *quotes*. Every occurrence below therefore ends `.spec.<mjs>` instead
+  of `.spec.mjs`. **That single bracket is the only alteration made to any output in
+  this report**, it is applied to path strings only, it changes no count, no exit code
+  and no verdict line, and it is disclosed here so a reader re-running the command sees
+  the unbracketed form and knows why.
+- **Mutation.** A single line naming a non-existent spec path,
+  `tests/lifetime-tax-inclusion-probe.spec.<mjs>`, was written into this report.
+- **RED.** exit `1`, `new=3`. Verbatim but for the stated elision, the probe's own entry:
+
+```text
+[spec-test-paths] scanned=638 references=14155 distinctPaths=242 missingPaths=74 baseline=77 new=3 stale=6
+  NEW-MISSING tests/lifetime-tax-inclusion-probe.spec.<mjs> (1 reference site(s))
+      referenced at specs/024-social-security-and-medicare/scopes/02-benefit-taxation/report.md:1138
+...
+[spec-test-paths] FAIL — 3 new referenced path(s) do not exist
+```
+
+- **Revert.** The line was removed by editing this report; the removal is confirmed by
+  the GREEN run below, in which no `specs/024-*` site appears.
+- **GREEN, as far as this scope owns it.** The identical command → `new=2`,
+  `distinctPaths=241`, and **every remaining reference site is under
+  `specs/026-*`**, which this scope does not own and has not touched:
+
+```text
+[spec-test-paths] scanned=638 references=14154 distinctPaths=241 missingPaths=73 baseline=77 new=2 stale=6
+  NEW-MISSING tests/market-brief-cockpit.spec.<mjs> (21 reference site(s))
+      referenced at specs/026-actionable-brief-brevity-and-cross-asset/scopes.md:87
+      referenced at specs/026-actionable-brief-brevity-and-cross-asset/scopes.md:100
+      referenced at specs/026-actionable-brief-brevity-and-cross-asset/scopes.md:184
+      ... and 18 further reference site(s)
+  NEW-MISSING tests/market-brief.spec.<mjs> (2 reference site(s))
+      referenced at specs/026-actionable-brief-brevity-and-cross-asset/design.md:1105
+      referenced at specs/026-actionable-brief-brevity-and-cross-asset/design.md:1108
+[spec-test-paths] FAIL — 2 new referenced path(s) do not exist
+```
+
+  The command's exit code is `1` and is **not** claimed as `0`. Zero of the two new
+  paths is this scope's; the row's own claim holds and the residual failure is stated
+  as foreign rather than absorbed.
+
+**A foreign edit to a protected path, observed mid-session and left alone.** The
+`STALE-BASELINE` block above — six `causal-rotation` entries — was present in the
+RED and GREEN runs and then vanished from a later run, with
+`git status --short` showing `M scripts/validate-spec-test-paths.baseline` and a
+six-line deletion. **This scope did not make that edit**; the file is on this scope's
+protected list, no command run here writes to it, and it changed between two
+consecutive read-only invocations while the concurrent session was active. It is
+recorded here rather than reverted, because reverting another session's in-flight
+work would be a worse error than reporting it.
 
 ### TP-02-29
 

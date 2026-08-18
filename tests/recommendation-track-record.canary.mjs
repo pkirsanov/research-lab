@@ -390,34 +390,104 @@ function preScopeCommit() {
     return lineage[1];
 }
 
-/**
- * Every file this scope is answerable for, unioned across both tree states.
+/* ---------------------------------------------------------------------------------------------
+ * Provenance: whose addition is it?
  *
- * Committed additions and still-untracked additions are unioned because the row must hold from a
- * clean committed tree AND mid-development: in the first the untracked half is empty and history
- * carries the set, in the second the reverse. A porcelain directory entry (git collapses untracked
- * trees) is carried through untouched — it matches no scanned-source shape and no baseline path,
- * so it attributes nothing.
- */
-function scopeAddedPaths(preScope, untrackedTargets) {
-    const committed = git(['diff', '--diff-filter=A', '--name-only', preScope, 'HEAD'])
+ * `<boundary>..HEAD` is a range, not an authorship claim. This repository commits from more than
+ * one actor — a scheduled brief refresh writes four times a day, and neighbouring specs land their
+ * own work — so any commit of theirs that happens to fall between the boundary and `HEAD` puts its
+ * files into that range. Deriving "what this scope added" from the range therefore over-collects,
+ * and the over-collection grows with wall-clock time rather than with anything this scope did.
+ *
+ * The partition below asks which COMMITS are this scope's before asking which files they added.
+ * A commit is this scope's when it touches one of the scope's identity anchors: its own scope
+ * directory, or the module whose first appearance dates the scope. Both are declared by the scope
+ * and neither is the allowed-family classifier, which is what keeps this from going circular — the
+ * anchors decide whose commit it is, and then EVERY file that commit added is judged against the
+ * families. Anchoring can only widen what is judged, never narrow it.
+ * ------------------------------------------------------------------------------------------- */
+
+/** The paths that identify a commit as this scope's own work, rather than a concurrent actor's. */
+function isScopeAnchorPath(candidate) {
+    return candidate === SCOPE_ORIGIN_PATH || candidate.startsWith(SCOPE_ARTIFACT_PREFIX);
+}
+
+/** The commits between the boundary and `HEAD` that touch one of this scope's identity anchors. */
+function scopeCommits(preScope) {
+    return git(['log', '--format=%H', `${preScope}..HEAD`, '--', SCOPE_ARTIFACT_PREFIX, SCOPE_ORIGIN_PATH])
         .split('\n')
         .filter((line) => line !== '');
-    return [...new Set([...committed, ...untrackedTargets.filter(isAllowedPath)])].sort();
+}
+
+/** Every path this scope's `commits` touched with the given diff filter, surviving to `HEAD` or not. */
+function pathsTouchedBy(commits, diffFilter) {
+    const touched = new Set();
+    for (const commit of commits) {
+        for (const line of git(['show', `--diff-filter=${diffFilter}`, '--name-only', '--format=', commit]).split('\n')) {
+            if (line !== '') touched.add(line);
+        }
+    }
+    return touched;
 }
 
 /**
- * Every file that existed at the boundary and does not at HEAD.
+ * The net difference across the boundary, split by which actor's commits produced it.
  *
- * This scope is purely additive, so the set is expected to be empty and is asserted to be. It is
- * still DERIVED rather than assumed absent, because a removal would shrink the committed-surface
- * file tally and an attribution that only ever added would then over-count.
+ * `scope` is what this row judges against the allowed families; `foreign` is what a concurrent
+ * actor put in the same range and is judged against nothing, because this scope is not answerable
+ * for it. Both halves are still carried, because the transcript counts the WHOLE tree: a magnitude
+ * that ignored the foreign half would no longer match the difference the two trees actually show.
+ *
+ * Each half is intersected with the net set, so it keeps "absent at the boundary, present at
+ * `HEAD`" semantics — a file this scope added and a concurrent actor later deleted is not present
+ * to be counted. Untracked entries are unioned into the scope half unconditionally: mid-development
+ * the working tree carries additions history does not yet know about, and pre-filtering those by
+ * family is precisely the circularity this partition exists to avoid.
+ *
+ * Removals are partitioned the same way rather than assumed absent. This scope is purely additive
+ * and its half is asserted empty, but a concurrent actor's deletion still shrinks the committed
+ * surface, and a magnitude that only ever added would then overstate it.
+ *
+ * Modifications are partitioned too, and they are not a third convenience: without them the
+ * partition CANNOT REPRESENT a file that already existed and was edited. Every rule downstream then
+ * has to reason about such a file through the added set, which by construction never contains it,
+ * so an edit to a pre-existing artifact is reported as belonging to nobody. That is a defect in the
+ * partition rather than a finding about the tree, and it is why the spec-artifact reference rule
+ * below could reach a bucket labelled collateral with a file some commit in the range plainly owns.
+ *
+ * Provenance here is decided by COMMIT, never by path prefix. A prefix test — "anything under this
+ * scope's feature directory is this scope's" — would credit the scope with edits made by whoever
+ * else works in that tree, which is guessing dressed as a derivation; `pathsTouchedBy` instead
+ * proves that one of the commits already attributed to this scope actually touched the path. When
+ * both a scope commit and a concurrent one edited the same file the scope half wins, because the
+ * conservative direction is to hold this scope answerable and let the family checks judge it.
  */
-function scopeRemovedPaths(preScope) {
-    return git(['diff', '--diff-filter=D', '--name-only', preScope, 'HEAD'])
+function partitionBoundaryDelta(preScope, untrackedTargets) {
+    const commits = scopeCommits(preScope);
+    const netOf = (diffFilter) => git(['diff', `--diff-filter=${diffFilter}`, '--name-only', preScope, 'HEAD'])
         .split('\n')
-        .filter((line) => line !== '')
-        .sort();
+        .filter((line) => line !== '');
+
+    const netAdded = netOf('A');
+    const netRemoved = netOf('D');
+    const netModified = netOf('M');
+    const addedByScope = pathsTouchedBy(commits, 'A');
+    const removedByScope = pathsTouchedBy(commits, 'D');
+    const modifiedByScope = pathsTouchedBy(commits, 'M');
+
+    const addedScope = [...new Set([...netAdded.filter((entry) => addedByScope.has(entry)), ...untrackedTargets])].sort();
+    const addedForeign = netAdded.filter((entry) => !addedByScope.has(entry)).sort();
+    const removedScope = netRemoved.filter((entry) => removedByScope.has(entry)).sort();
+    const removedForeign = netRemoved.filter((entry) => !removedByScope.has(entry)).sort();
+    const modifiedScope = netModified.filter((entry) => modifiedByScope.has(entry)).sort();
+    const modifiedForeign = netModified.filter((entry) => !modifiedByScope.has(entry)).sort();
+
+    return {
+        commits,
+        added: { scope: addedScope, foreign: addedForeign, all: [...new Set([...addedScope, ...addedForeign])].sort() },
+        removed: { scope: removedScope, foreign: removedForeign, all: [...netRemoved].sort() },
+        modified: { scope: modifiedScope, foreign: modifiedForeign, all: [...netModified].sort() },
+    };
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -577,30 +647,45 @@ function specArtifactReferenceCounts(root) {
 }
 
 /**
- * Whether a `specs/` artifact belongs to this scope: its own scope directory, or one it added.
+ * Whether a `specs/` artifact belongs to this scope: its own scope directory, or one it touched.
  *
  * Ownership is the right partition rather than "was added", because the artifacts this scope writes
  * its evidence into ALREADY EXISTED — the planning pass created them. They are modified, not added,
  * and a rule keyed on additions alone would derive nothing and leave the reference growth
  * unexplained.
+ *
+ * The modified set is carried for the same reason the added set is, and is likewise keyed on this
+ * scope's own commits. Being under the feature's directory earns nothing here: a sibling scope's
+ * edit to a shared artifact is not this scope's, and only `pathsTouchedBy` can tell the two apart.
+ * Note this widens what is JUDGED rather than what is excused — an out-of-family artifact that one
+ * of this scope's commits edited lands in the owned bucket and is then refused by the family check,
+ * which is the correct answer for a scope reaching outside its own Change Boundary.
  */
-function isScopeOwnedSpecArtifact(candidate, addedSet) {
+function isScopeOwnedSpecArtifact(candidate, addedSet, modifiedSet) {
     return (
         candidate.startsWith(SCOPE_ARTIFACT_PREFIX)
-        || (candidate.startsWith(`${SPEC_ARTIFACT_DIR}/`) && addedSet.has(candidate))
+        || (candidate.startsWith(`${SPEC_ARTIFACT_DIR}/`) && (addedSet.has(candidate) || modifiedSet.has(candidate)))
     );
 }
 
 /**
- * What this scope's own footprint accounts for, each magnitude derived from an independent source.
+ * What the two trees differ by, and how much of it this scope's own footprint accounts for.
  *
  * The scan-universe delta is read off the two trees and then required to name exactly the files git
- * reports as added; the file-universe delta is the added set filtered by the scanner's own counting
- * rule; the commit-message delta is read off commit history; the reference delta is read off the
- * artifacts this scope owns. Two derivations that agree is what makes each of these an attribution
- * rather than a restatement of whatever the transcript happened to print.
+ * reports as added; the file-universe delta is the net added set filtered by the scanner's own
+ * counting rule; the commit-message delta is read off commit history; the reference delta is read
+ * off the artifacts contributing to it. Two derivations that agree is what makes each of these an
+ * attribution rather than a restatement of whatever the transcript happened to print.
+ *
+ * Magnitudes are computed over the WHOLE net delta, this scope's half and any concurrent actor's
+ * alike, because that is what the transcript counted. Provenance is carried alongside rather than
+ * folded in, so the caller can hold this scope to its families without pretending a concurrent
+ * actor's commits never landed in the range.
  */
-function deriveAttribution(liveRoot, preRoot, addedPaths, removedPaths, preScope) {
+function deriveAttribution(liveRoot, preRoot, delta, preScope) {
+    const addedPaths = delta.added.all;
+    const removedPaths = delta.removed.all;
+
     const liveScanned = scannedProductionSources(liveRoot);
     const preScanned = scannedProductionSources(preRoot);
     const preSet = new Set(preScanned);
@@ -613,8 +698,8 @@ function deriveAttribution(liveRoot, preRoot, addedPaths, removedPaths, preScope
     const baseline = frozenSpecTestPathBaseline(liveRoot);
     const resolvedBaselineEntries = addedPaths.filter((entry) => baseline.has(entry)).sort();
 
-    // The committed-surface file universe: this scope's own additions, filtered by the rule the
-    // scanner uses, less anything it removed — evaluated in whichever tree that file exists in.
+    // The committed-surface file universe: the net additions, filtered by the rule the scanner uses,
+    // less anything removed — evaluated in whichever tree that file exists in.
     const liveTracked = trackedPaths(liveRoot);
     const preTracked = trackedPaths(preRoot);
     const countedAdded = addedPaths.filter((entry) => isPiiScanCounted(liveRoot, liveTracked, entry)).sort();
@@ -625,19 +710,41 @@ function deriveAttribution(liveRoot, preRoot, addedPaths, removedPaths, preScope
     const commitsSinceBoundary = Number(git(['rev-list', '--count', `${preScope}..HEAD`]).trim());
     const commitsBehindBoundary = Number(git(['rev-list', '--count', `HEAD..${preScope}`]).trim());
 
-    // The spec-artifact reference surface, split into what this scope owns and everything else.
-    const addedSet = new Set(addedPaths);
+    /* The spec-artifact reference surface, split three ways. Ownership is keyed on the SCOPE half of
+     * the added and modified sets, so a neighbouring spec's artifacts landing in the same range are
+     * never mistaken for this scope's evidence. The third bucket is the sharp one: an artifact that
+     * moved while NO commit in the range touched it is a pre-existing file edited by nobody
+     * answerable — collateral, and it must not be explained away.
+     *
+     * Both halves carry additions and modifications, because an edit to a pre-existing artifact is
+     * exactly as attributable as a fresh file and exactly as real in the count the transcript
+     * prints. Recognising only additions left every such edit in the collateral bucket, which both
+     * mislabelled it and broke the owned-plus-foreign identity below, since that bucket contributes
+     * to `totalDelta` while belonging to neither half. */
+    const scopeAddedSet = new Set(delta.added.scope);
+    const foreignAddedSet = new Set(delta.added.foreign);
+    const scopeModifiedSet = new Set(delta.modified.scope);
+    const foreignModifiedSet = new Set(delta.modified.foreign);
     const liveArtifacts = specArtifactReferenceCounts(liveRoot);
     const preArtifacts = specArtifactReferenceCounts(preRoot);
     let ownedDelta = 0;
+    let foreignDelta = 0;
     let totalDelta = 0;
     const contributingArtifacts = [];
+    const foreignContributingArtifacts = [];
+    const unexplainedContributingArtifacts = [];
     for (const artifact of new Set([...liveArtifacts.keys(), ...preArtifacts.keys()])) {
-        const delta = (liveArtifacts.get(artifact) ?? 0) - (preArtifacts.get(artifact) ?? 0);
-        totalDelta += delta;
-        if (!isScopeOwnedSpecArtifact(artifact, addedSet)) continue;
-        ownedDelta += delta;
-        if (delta !== 0) contributingArtifacts.push(artifact);
+        const moved = (liveArtifacts.get(artifact) ?? 0) - (preArtifacts.get(artifact) ?? 0);
+        totalDelta += moved;
+        if (isScopeOwnedSpecArtifact(artifact, scopeAddedSet, scopeModifiedSet)) {
+            ownedDelta += moved;
+            if (moved !== 0) contributingArtifacts.push(artifact);
+        } else if (foreignAddedSet.has(artifact) || foreignModifiedSet.has(artifact)) {
+            foreignDelta += moved;
+            if (moved !== 0) foreignContributingArtifacts.push(artifact);
+        } else if (moved !== 0) {
+            unexplainedContributingArtifacts.push(artifact);
+        }
     }
 
     return {
@@ -656,10 +763,19 @@ function deriveAttribution(liveRoot, preRoot, addedPaths, removedPaths, preScope
             behindBoundary: commitsBehindBoundary,
         },
         specTestReferences: {
-            magnitude: ownedDelta,
+            // What the transcript's counter moved by is the WHOLE explained delta, so the rule that
+            // matches that line is fed both halves. The halves stay separate above it, so this
+            // scope is still held to its own contribution and to adding no artifact of its own.
+            magnitude: ownedDelta + foreignDelta,
+            owned: ownedDelta,
+            foreign: foreignDelta,
             totalDelta,
             contributingArtifacts: contributingArtifacts.sort(),
+            foreignContributingArtifacts: foreignContributingArtifacts.sort(),
+            unexplainedContributingArtifacts: unexplainedContributingArtifacts.sort(),
             artifacts: { pre: preArtifacts.size, live: liveArtifacts.size },
+            artifactsAdded: [...liveArtifacts.keys()].filter((entry) => !preArtifacts.has(entry)).sort(),
+            artifactsRemoved: [...preArtifacts.keys()].filter((entry) => !liveArtifacts.has(entry)).sort(),
             baselineEntries: {
                 pre: [...frozenSpecTestPathBaseline(preRoot)].sort(),
                 live: [...baseline].sort(),
@@ -1124,6 +1240,17 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
     assert.equal(isScannedProductionSource('rlexperience-adapters/nested/deep.js'), false, 'the adapter family is one level deep');
     assert.equal(isScannedProductionSource('notes/market-brief.md'), false, 'a note is not a production source');
 
+    // The provenance classifier decides whose commit an addition came from, so it is checked against
+    // known answers too. It is deliberately keyed on the scope's identity anchors rather than on the
+    // allowed families: one that answered true for every path would hand a concurrent actor's files
+    // to this scope's family check, and one that answered false for everything would hand this
+    // scope's own files to nobody and go vacuously green.
+    assert.equal(isScopeAnchorPath(SCOPE_ORIGIN_PATH), true, "the scope's own module anchors its commits");
+    assert.equal(isScopeAnchorPath(`${SCOPE_ARTIFACT_PREFIX}report.md`), true, "the scope's own artifacts anchor its commits");
+    assert.equal(isScopeAnchorPath('scripts/selftest.mjs'), false, 'the baseline script anchors nothing');
+    assert.equal(isScopeAnchorPath('tests/recommendation-track-record.canary.mjs'), false, 'an in-family file is not by itself an anchor');
+    assert.equal(isScopeAnchorPath(`${SCOPE_ORIGIN_PATH}.bak`), false, 'the anchor is an exact path, never a prefix');
+
     const porcelain = git(['status', '--porcelain']).split('\n').filter((line) => line !== '');
     const workingTree = porcelain.map((entry) => ({ raw: entry, status: entry.slice(0, 2), target: entry.slice(3) }));
     for (const entry of workingTree) {
@@ -1152,11 +1279,41 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         `the pre-scope commit must not carry ${SCOPE_ORIGIN_PATH} — the boundary is one commit too late`,
     );
 
-    /* This scope's additions, and the only things that may account for a count that moved: the
-     * files committed since the boundary, unioned with any still-untracked ones. */
+    /* The net difference across the boundary, split by whose commits produced it. The scope half is
+     * what this scope is answerable for; the foreign half is a concurrent actor's and is judged
+     * against nothing, but is still carried so the magnitudes below match the whole-tree counts the
+     * transcript prints. */
     const untracked = workingTree.filter((entry) => entry.status === '??').map((entry) => entry.target);
-    const addedPaths = scopeAddedPaths(preScope, untracked);
-    const removedPaths = scopeRemovedPaths(preScope);
+    const delta = partitionBoundaryDelta(preScope, untracked);
+    const addedPaths = delta.added.scope;
+    const scopeOwned = new Set(addedPaths);
+
+    // The commit attribution must name commits, and the commit that introduced this scope is
+    // definitionally one of them. Deriving that known answer rather than pinning a SHA is what keeps
+    // it true as the scope lands further commits.
+    assert.ok(delta.commits.length > 0, "no commit is attributed to this scope — its own additions would be nobody's");
+    for (const commit of delta.commits) {
+        assert.match(commit, /^[0-9a-f]{40}$/, 'an attributed commit must resolve to a full object name');
+    }
+    assert.equal(
+        delta.commits.includes(git(['log', '--diff-filter=A', '--format=%H', '--reverse', '--', SCOPE_ORIGIN_PATH]).split('\n')[0]),
+        true,
+        'the commit that introduced this scope must be attributed to it',
+    );
+
+    // The partition must be exhaustive over the committed additions, or a file has quietly fallen
+    // out of both halves and is being judged by nobody.
+    assert.deepEqual(
+        [...new Set([...delta.added.scope, ...delta.added.foreign])].sort(),
+        delta.added.all,
+        'every net addition must land in exactly one of the two provenance halves',
+    );
+    assert.deepEqual(
+        delta.added.scope.filter((entry) => delta.added.foreign.includes(entry)),
+        [],
+        'no addition may be claimed by both this scope and a concurrent actor',
+    );
+
     assert.ok(addedPaths.length > 0, 'the rehearsal is vacuous unless this scope actually added something');
     for (const added of addedPaths) {
         assert.equal(isAllowedPath(added), true, `this scope added a file outside the allowed families: ${added}`);
@@ -1167,11 +1324,10 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
      * which is exactly what destroys the clean back-out this row exists to prove. The rule used to
      * read "must be untracked", which held only while the scope was uncommitted: once delivered,
      * every file it owns is tracked, and that phrasing refused the scope's own maintenance. */
-    const ownedByScope = new Set(addedPaths);
     for (const entry of workingTree) {
         if (entry.status === '??') continue;
         assert.equal(
-            entry.target.startsWith(SCOPE_ARTIFACT_PREFIX) || ownedByScope.has(entry.target),
+            entry.target.startsWith(SCOPE_ARTIFACT_PREFIX) || scopeOwned.has(entry.target),
             true,
             `${entry.target} is tracked and modified but not owned by this scope — that is collateral`,
         );
@@ -1239,7 +1395,7 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         // line that moved is accounted for by this scope's own additions. This is AC-018's "no
         // pre-existing count decreasing" stated exactly, plus the attribution that makes a
         // difference either explained or a failure — never merely tolerated.
-        const attribution = deriveAttribution(REPO_ROOT, worktree, addedPaths, removedPaths, preScope);
+        const attribution = deriveAttribution(REPO_ROOT, worktree, delta, preScope);
 
         // The scan universe may only have GROWN, and by exactly the files the porcelain names.
         // Two independent derivations agreeing is what makes the magnitude an attribution.
@@ -1258,28 +1414,41 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
             attribution.scanUniverse.added.length,
             'the derived scan sizes must differ by exactly the number of added production sources',
         );
+        /* The family checks below run over this scope's half of each universe. The foreign half is
+         * a concurrent actor's work sharing the same commit range, and holding it to this scope's
+         * Change Boundary would fail the row for something no back-out of this scope would touch.
+         * Narrowing by PROVENANCE is not narrowing by family: every path the scope half contains is
+         * still judged, and the scope half is exactly what the back-out would remove. */
         for (const entry of attribution.scanUniverse.added) {
+            if (!scopeOwned.has(entry)) continue;
             assert.equal(isAllowedPath(entry), true, `added production source outside the allowed families: ${entry}`);
         }
         for (const entry of attribution.baselineReclassification.entries) {
+            if (!scopeOwned.has(entry)) continue;
             assert.equal(isAllowedPath(entry), true, `resolved baseline entry outside the allowed families: ${entry}`);
         }
 
-        // The committed-surface file universe may only have GROWN, and only within the families
-        // this scope owns. `removed` is derived rather than assumed empty, so a deletion would
-        // shrink the magnitude instead of quietly leaving it overstated.
+        // The committed-surface file universe may only have GROWN where this scope is concerned,
+        // and only within the families it owns. The removal half is partitioned rather than assumed
+        // empty, so a concurrent actor's deletion still shrinks the magnitude instead of quietly
+        // leaving it overstated, while this scope is still held to being purely additive.
         assert.deepEqual(
-            attribution.scannedFileUniverse.removed,
+            delta.removed.scope,
             [],
-            'no scanned file may leave the committed surface — this scope is purely additive',
+            'no file may leave the committed surface through this scope — it is purely additive',
         );
         assert.ok(
             attribution.scannedFileUniverse.magnitude > 0,
             'this scope must add at least one file the committed-surface scan counts, or the file rule is inert',
         );
         for (const entry of attribution.scannedFileUniverse.added) {
+            if (!scopeOwned.has(entry)) continue;
             assert.equal(isAllowedPath(entry), true, `scanned added file outside the allowed families: ${entry}`);
         }
+        assert.ok(
+            attribution.scannedFileUniverse.added.some((entry) => scopeOwned.has(entry)),
+            'this scope must contribute to the committed-surface count itself, or its half of the file rule is inert',
+        );
 
         // The commit-message universe. `<boundary>..HEAD` counts a difference of reachable sets
         // only while the boundary is an ancestor of HEAD, so the reverse count must be empty —
@@ -1294,29 +1463,56 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
             'at least one commit must separate the boundary from HEAD, or the message rule is inert',
         );
 
-        // The spec-artifact reference surface. The invariant halves are asserted directly rather
-        // than left to the classifier: this scope writes into artifacts that already existed and
-        // adds no frozen baseline entry, so the artifact tally and the baseline must be identical
-        // across the two trees. The whole growth must come from artifacts this scope owns — an
-        // unowned artifact contributing a reference is not this scope's footprint.
+        /* The spec-artifact reference surface. The invariant halves are asserted directly rather
+         * than left to the classifier: this scope writes into artifacts that already existed and
+         * adds no frozen baseline entry, so it must contribute no artifact of its own and leave the
+         * baseline identical across the two trees. The artifact tally may still move, because a
+         * neighbouring spec's own artifacts can land in the same commit range — so what is asserted
+         * is not that it held still, but that every artifact it gained belongs to someone else and
+         * none belongs to this scope. */
+        assert.deepEqual(
+            attribution.specTestReferences.artifactsRemoved,
+            [],
+            'no spec artifact may leave the tree across the boundary',
+        );
+        assert.deepEqual(
+            attribution.specTestReferences.artifactsAdded.filter((entry) => scopeOwned.has(entry)),
+            [],
+            'this scope adds no spec artifact file of its own',
+        );
         assert.equal(
-            attribution.specTestReferences.artifacts.live,
-            attribution.specTestReferences.artifacts.pre,
-            'this scope adds no spec artifact file, so the scanned-artifact tally must not move',
+            attribution.specTestReferences.artifacts.live - attribution.specTestReferences.artifacts.pre,
+            attribution.specTestReferences.artifactsAdded.length,
+            'the scanned-artifact tally must move by exactly the artifacts the two trees differ by',
         );
         assert.deepEqual(
             attribution.specTestReferences.baselineEntries.live,
             attribution.specTestReferences.baselineEntries.pre,
             'this scope adds no frozen baseline entry, so the baseline must be identical across the two trees',
         );
+
+        /* The sharp half. Every reference the specs tree gained must come either from an artifact
+         * this scope owns or from one a concurrent actor added or edited in the same range. An
+         * artifact that moved while NO commit in the range touched it is a file edited by nobody
+         * answerable — collateral, and the one thing this rule must never explain away. */
+        assert.deepEqual(
+            attribution.specTestReferences.unexplainedContributingArtifacts,
+            [],
+            'a spec artifact moved its reference count without any commit in the range accounting for it',
+        );
         assert.equal(
+            attribution.specTestReferences.owned + attribution.specTestReferences.foreign,
             attribution.specTestReferences.totalDelta,
-            attribution.specTestReferences.magnitude,
-            "every tests/*.mjs reference the specs tree gained must come from an artifact this scope owns",
+            'the owned and concurrent halves must account for the whole reference delta',
         );
         assert.ok(
             attribution.specTestReferences.contributingArtifacts.length > 0,
             'at least one owned artifact must contribute a reference, or the reference rule is inert',
+        );
+        assert.notEqual(
+            attribution.specTestReferences.owned,
+            0,
+            "this scope's own reference contribution must be non-zero, or its half of the rule is inert",
         );
         for (const entry of attribution.specTestReferences.contributingArtifacts) {
             assert.equal(isAllowedPath(entry), true, `contributing spec artifact outside the allowed families: ${entry}`);

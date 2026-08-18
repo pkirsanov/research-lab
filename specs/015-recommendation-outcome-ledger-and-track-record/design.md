@@ -319,6 +319,11 @@ would make it wrong. Nothing about resolution is decided after the outcome is ob
   "proposalRunId":     "dist-2026-07-28-open-…",  // provenance only; NOT hashed (see Hashing Rules)
   "proposalEventId":   "sha256:…",   // the `proposed` event from brief-distributed-publish.mjs#L406
   "proposedAt":        "2026-07-28T13:30:00.000Z", // provenance only; NOT hashed
+  "citedToolId":       "sector-research-lab",     // provenance only; NOT hashed. The tool whose detail
+                                                  // the action cites, resolved at mint from the authored
+                                                  // `deepLink` through `tools.json` `file` → `id`.
+                                                  // Unresolvable ⇒ null, never a mint refusal. NOT the
+                                                  // producer — see "`citedToolId` Is Not `originToolId`".
 
   // ── P1 Claim Subject ───────────────────────────────────────────────────────
   // `prose` is the key-bearing string and is UNUSABLE as a series lookup (see
@@ -334,7 +339,10 @@ would make it wrong. Nothing about resolution is decided after the outcome is ob
   // ── Direction ──────────────────────────────────────────────────────────────
   "actionFamily": "trim",            // one of MARKET_ACTIONS (rlcontracts.js#L708)
   "direction":    -1,                // +1 | -1 | 0, taken from ACTION_DIRECTION (rlcontracts.js#L714)
-  "thesisFamily": "growth-extension-derate",  // authored; absent ⇒ not-evaluable (see D4 key bridge)
+  "thesisFamily": "growth-extension-derate",  // authored, top-level, HASHED — a per-claim term of both
+                                             // derived reducer keys. Absent ⇒ not-evaluable
+                                             // (`no-authored-thesis-family`). See D4 key bridge and the
+                                             // 2026-08-18 reconciliation.
 
   // ── P3 Resolution Predicate (immutable after write) ────────────────────────
   "predicate": {
@@ -447,9 +455,14 @@ changing it yields a different claim rather than mutating an existing one.
 `{ action, subject, rationale, horizon, structuralAnchor, trigger, invalidation, confidence, deepLink }`
 (**verified union across all 5 actions**). Nothing in that set yields a thesis grouping.
 
-`deriveRecommendationKeys` hashes `{ originToolId, thesisFamily, subjects, actionFamily, horizon }`
-([rlcontracts.js#L1034-L1041](../../rlcontracts.js#L1034)), so `thesisFamily` is a **key term** of the reducer's
-entry identity, not a decoration.
+`deriveRecommendationKeys` ([rlcontracts.js#L1040](../../rlcontracts.js#L1040)) derives
+`origin-recommendation-key/v1` over `{ originToolId, thesisFamily, subjects, actionFamily, horizon }`
+([#L1041-L1047](../../rlcontracts.js#L1041)) **and** `aggregation-key/v1` over
+`{ thesisFamily, subjects, actionFamily, horizon }` ([#L1049-L1055](../../rlcontracts.js#L1049)), so
+`thesisFamily` is a **key term of both derived identities**, not a decoration. The aggregation key is the
+axis the track record groups on. The foundation also hard-rejects a record that omits it:
+`normalizeRecommendation` fails `recommendation-thesis-required` on a non-string `thesisFamily`
+([#L1074](../../rlcontracts.js#L1074)) (**verified this run**).
 
 **Why the tempting shortcut is a corruption, not an approximation.** Setting `thesisFamily = actionFamily`
 collapses the term set: two claims that share an action family, a subject set and a horizon would then derive
@@ -460,16 +473,51 @@ two independent calls into one grouped entry and destroying the very grouping th
 The corruption is silent: the reducer would report a coherent index, and the resulting hit rate would be
 computed over a denominator that had quietly lost calls.
 
-**Design decision.** `thesisFamily` is an **authored, required** field of the claim input block. It is not
-derived, not defaulted, and not inferred from prose. When it is absent the claim **cannot be routed through
-`reduceRecommendationEvents` at all** — HC-2 forbids 015 from closing outside that path — so the claim is minted
-`not-evaluable`, reason **`no-authored-thesis-family`**, and no closure event is emitted.
+**Design decision.** `thesisFamily` is an **authored, required** field of the claim input block, minted onto
+the claim as a **top-level, hashed** field. It is not derived, not defaulted, and not inferred from prose.
+When it is absent the claim **cannot be routed through `reduceRecommendationEvents` at all** — HC-2 forbids
+015 from closing outside that path — so the claim is minted `not-evaluable`, reason
+**`no-authored-thesis-family`**, and no closure event is emitted. Its hash participation is not a separate
+choice: it follows from the reducer-key containment invariant recorded under *Hashing Rules*, because
+`thesisFamily` is the one term of `origin-recommendation-key/v1` that varies per claim and is not already
+carried by `subject` / `actionFamily` / `horizon`.
 
 **The honest consequence, stated plainly.** No action in the live payload carries this field today. Until the
 authoring surface supplies the claim input block, **every** claim mints `not-evaluable` and the track record
 correctly reports zero resolved outcomes. That is HC-4 holding exactly as written — the record starts at zero —
 rather than a defect. It also means FR-018/FR-019 ship a tool whose first honest verdict is the
 insufficient-sample branch (D5, HC-8), which D7 already renders as a first-class state.
+
+### `citedToolId` Is Not `originToolId` — The Citation And The Producer Are Different Things
+
+**Verified this run.** `tools.json` carries `experience.kind === "market-action-center"` exactly **once**
+(`tools.json#L50`), on the tool whose `id` is `market-brief` (`#L7`) and whose `file` is
+`market-brief.html` (`#L15`). Every claim this feature mints originates from that one producer, so
+`originToolId` is a **pipeline constant**, not a per-claim field — the ruling already recorded in D4.
+
+The authored action separately carries `deepLink` (**verified this run**: 68 `deepLink` values across the
+live payload, naming `sector-research-lab.html`, `gamma-trading-lab.html`, `etf-momentum-lab.html`,
+`swing-structure-lab.html`, `msft-july-print-model.html` and others). That field answers a different
+question. The producer's own registry blurb states the intent verbatim — each item deep-links *"the tool
+that owns the detail"*. A `deepLink` is a **citation to supporting analysis**, not an attribution of
+authorship.
+
+**Design decision.** The claim records `citedToolId`, resolved at mint from the authored `deepLink`
+through the `tools.json` `file` → `id` map. It is **provenance, excluded from `claimHash`**, and it is
+**not** `originToolId`.
+
+- **Why excluded.** A citation does not change what the claim asserts, so it fails D1's content test.
+  Hashing it would be actively harmful: a byte-identical call re-proposed with a different supporting
+  citation would mint a *second* claim, adding a duplicate to the very denominator the track record
+  measures. Corrupting the denominator to keep a hyperlink fresh is the wrong trade.
+- **Why no mint refusal.** An absent or unmatched `deepLink` sets `citedToolId: null` and the row renders
+  without a deep link. It does **not** refuse the mint. Dropping a resolvable call from the record because
+  a display affordance is missing would shrink the denominator over a navigation detail — a measurement
+  error in the direction that flatters, since the excluded call might have been a miss.
+- **Consequence, stated plainly.** Because `citedToolId` is unhashed, a byte-identical re-proposal reuses
+  the first-minted object and keeps the *first* citation. That is a bounded and honest outcome: a
+  byte-identical re-proposal is the same call, and pointing at the analysis that originally sourced it is
+  defensible provenance rather than a false claim.
 
 ### The Authored Claim Input Block
 
@@ -579,21 +627,34 @@ claimHash = stableSha({
   subject,          // { kind, prose, resolvesTo, seriesRefs, weighting }
   actionFamily,
   direction,
-  thesisFamily,     // authored; part of the reducer's key term set (D4 bridge)
+  thesisFamily,     // authored; a per-claim term of BOTH derived reducer keys (D4 bridge)
   predicate,        // whole object
   horizon,          // whole object, incl. sessions and authoredBand
   magnitude         // whole object
 })
 ```
 
-- **Content-only.** `proposalRunId`, `proposalEventId`, and `proposedAt` are recorded on the object but
-  **excluded from the hash**. This mirrors the existing convention where `observationFingerprint`
-  ([rlcontracts.js#L1034](../../rlcontracts.js#L1034)) hashes terms while `lifecycleEventId`
-  ([rlcontracts.js#L1103](../../rlcontracts.js#L1103)) is the thing that carries `runId`. Identical terms
+**The complete unhashed set is exactly four fields:** `proposalRunId`, `proposalEventId`, `proposedAt`,
+`citedToolId`. Every other field of `brief-recommendation-claim/v1` is hashed. There is no fifth
+category and no unhashed block; see the 2026-08-18 reconciliation for the block that was withdrawn.
+
+- **Content-only.** The four unhashed fields are recorded on the object but **excluded from the hash**.
+  This mirrors the existing convention where `observationFingerprint`
+  ([rlcontracts.js#L1056](../../rlcontracts.js#L1056)) hashes terms while `lifecycleEventId`
+  ([rlcontracts.js#L1109](../../rlcontracts.js#L1109)) is the thing that carries `runId`. Identical terms
   re-proposed in a later run therefore reuse the identical claim object, which is what makes re-running
   idempotent (BP-015-005).
-- **Every hashed field is frozen (HC-6).** Any change to subject, direction, predicate, horizon, or
-  magnitude yields a *different* `claimHash` — i.e. a different claim — rather than mutating an existing
+- **The reducer-key containment invariant.** Every term of `origin-recommendation-key/v1` that varies per
+  claim is inside `claimHash`. The foundation derives that key over
+  `{ originToolId, thesisFamily, subjects, actionFamily, horizon }`
+  ([rlcontracts.js#L1041-L1047](../../rlcontracts.js#L1041)); `subjects`, `actionFamily` and `horizon` are
+  hashed here as `subject` / `actionFamily` / `horizon`, `thesisFamily` is hashed here, and `originToolId`
+  is a pipeline constant that does not vary per claim (D4). The invariant is what makes `claimHash` a
+  *refinement* of `originRecommendationKey`: one claim object can only ever derive one reducer key. Move
+  any varying term out of the hash and the containment breaks — two claims that belong to different
+  reducer entries collide on one content address, and the store has no way to hold both.
+- **Every hashed field is frozen (HC-6).** Any change to subject, direction, thesis, predicate, horizon,
+  or magnitude yields a *different* `claimHash` — i.e. a different claim — rather than mutating an existing
   one. Amendment is structurally impossible, not merely discouraged.
 - **Content-addressed write.** Because the filename is the hash, re-minting an identical claim is a
   byte-identical no-op write. A write that would change the bytes at an existing path is a contract
@@ -2330,3 +2391,157 @@ All four findings are resolved and no longer gate implementation. Scope 02 may b
 surface, and scope 04 may implement the reducer bridge and the session predicate, each on the ruling
 recorded above. Both scopes retain their obligation to record the decision they implemented in their
 own `report.md`. Feature 002 artifacts remain untouched.
+
+---
+
+## Claim-Identity Reconciliation — Recorded 2026-08-18
+
+**What this supersedes, precisely.** Exactly one sentence: the clause in `### P-015-03` above reading
+*"The field stays declared on `lifecycleTerms` with its refusal path."* Nothing else in P-015-03 is
+disturbed — its substantive ruling (`thesisFamily` is authored-or-not-evaluable, no value is invented, no
+default, no derivation from direction or horizon, reason code `no-authored-thesis-family`) stands exactly
+as written and is **reinforced** below. P-015-01, P-015-02 and P-015-07 are untouched and are re-confirmed
+against D1 at the end of this section. The 2026-08-13 record above is preserved verbatim as history.
+
+### Why a reconciliation was needed
+
+`ca512cb2` (2026-08-13) appended the decision section above in a **single hunk**, `@@ -2232,0 +2233,100 @@`
+(**verified this run**). It never revised `## D1`. That left the frozen claim contract asserting one thing
+and the newer decision record importing another:
+
+| Surface | What it said about `thesisFamily` |
+|---|---|
+| `## D1` → *Contract* | top-level field of `brief-recommendation-claim/v1` |
+| `## D1` → *Hashing Rules* | a term of `claimHash` |
+| `## D4` → reducer bridge | *"an **authored, hashed** field of the claim (D1)"* |
+| `## D11` → F-015-D4-01 (reduced) | *"`thesisFamily` is an authored, **hashed** claim field (D1)"* |
+| `### P-015-03` (appended 2026-08-13) | *"declared on `lifecycleTerms`"* |
+
+Three design surfaces state *hashed* in those words and a fourth places the field top-level among the
+hashed terms; one clause says otherwise. That clause did not originate as a design
+ruling. It imported a **plan-side placement** recorded in `scopes/_index.md` → *Resolution of `design.md`
+→ `## D11` open questions* → **F-015-D4-01**, which invented an *unhashed* `lifecycleTerms` block holding
+`{ originToolId, thesisFamily }` and justified it as *"the `claimHash` term list is therefore unchanged and
+D1 needs no revisit."*
+
+**That justification is false on its own terms.** D1's `claimHash` term list already contained
+`thesisFamily`, so moving the field into an unhashed block changes the term list — the exact revisit the
+placement claimed to avoid. And at `dc2c7453`, immediately before this reconciliation, the word
+`lifecycleTerms` occurred **exactly once** in this entire design document — the superseded clause itself
+(**verified this run**) — and was defined **nowhere** in it, while plan-owned scope files consumed it as
+though it were a settled contract. A block that is referenced but never defined violates P19 (one
+definition per concept) and cannot be implemented from design.
+
+### Ruling 1 — `thesisFamily` is top-level and hashed. The `lifecycleTerms` block is WITHDRAWN.
+
+`thesisFamily` remains where `## D1` → *Contract* already places it: top level, under `── Direction ──`,
+beside `actionFamily` and `direction`, and inside `claimHash`. This is not chosen because that text is
+older or newer. It is chosen because the alternative fails structurally, in three independent ways.
+
+**1. It breaks the reducer-key containment invariant.** The foundation derives `origin-recommendation-key/v1`
+over `{ originToolId, thesisFamily, subjects, actionFamily, horizon }`
+([rlcontracts.js#L1041-L1047](../../rlcontracts.js#L1041), **verified this run**). `originToolId` is a
+pipeline constant (D4) and does not vary; `subjects` / `actionFamily` / `horizon` are already hashed.
+`thesisFamily` is therefore the **only** varying reducer-key term the exclusion would move outside
+`claimHash` — and moving it means a single claim object can correspond to two different reducer entries.
+The store cannot represent that. `claimHash` must be a refinement of `originRecommendationKey`, and the
+exclusion is precisely the edit that breaks the refinement.
+
+**2. Both concrete outcomes of the resulting collision are defects, and one is silent.** Two claims
+identical in every hashed term but differing in thesis resolve to the same content address
+`briefs/objects/claims/<claimHash-hex>.json`. Then either:
+
+- the second write changes the bytes at an existing path, which D1 → *Storage Location* rules **must abort,
+  not overwrite**, and which `scopes/01-frozen-claim-contract/scope.md` step 7 maps to
+  `RTR-PREDICATE-AMEND` — so a legitimate second thesis is refused under a predicate-amendment code and the
+  call is lost from the record; **or**
+- the *"reuse the identical claim object"* rule in *Hashing Rules* applies, the second claim silently
+  inherits the first claim's thesis, the bridge derives one `originRecommendationKey` for both, and two
+  independent calls merge into one reducer entry.
+
+The second branch is the dangerous one. It produces no error, no refusal code, and no coverage-line entry,
+because a thesis *was* authored — it simply was not the one recorded.
+
+**3. P-015-03's own rationale forbids it.** P-015-03 rejects a default because it *"would flatten genuinely
+distinct theses onto one reducer key,"* producing *"an average across theses that were never the same
+claim — a number that looks like a measurement and is not one."* Excluding `thesisFamily` from `claimHash`
+produces that identical flattening one layer lower, at claim identity, where the `not-evaluable` refusal
+path cannot see it. Reading P-015-03 as requiring the exclusion would make the ruling defeat its own
+stated purpose.
+
+**The category test also lands on `hashed`.** D1 excludes `proposalRunId`, `proposalEventId` and
+`proposedAt` — every one answering *how did this claim get here*. `thesisFamily` answers *what does this
+claim assert*. D1's own `authoredBand` precedent settles the criterion explicitly: `authoredBand` is
+*"hashed but non-authoritative … hashed because HC-6 requires a frozen semantic label to be immutable"*
+even though *"the resolver never reads it."* So "the resolver does not read it" is **not** grounds for
+exclusion. `thesisFamily` is a frozen semantic label that the bridge *does* read, and the foundation
+hard-rejects a record without it (`recommendation-thesis-required`,
+[rlcontracts.js#L1074](../../rlcontracts.js#L1074), **verified this run**).
+
+**`lifecycleTerms` is withdrawn rather than redefined.** Its two proposed members do not share a category:
+`thesisFamily` is hashed claim identity (above) and `originToolId` is not a claim field at all (Ruling 2).
+No coherent block contains exactly those two under one hash rule, and retaining the name while inverting
+its hash semantics would leave scope-01 tests reading as though they still asserted what they were written
+to assert. The concept is removed from this feature.
+
+### Ruling 2 — `originToolId` lives in the resolver as a pipeline constant, not on the claim.
+
+This restates D4 without amending it: `originToolId` is the constant `market-brief` — **verified this run**,
+`tools.json` carries `experience.kind === "market-action-center"` exactly once (`#L50`), on the tool with
+`id: "market-brief"` (`#L7`). It is a fixed literal in the resolver asserted against the registry, and the
+derived key is recorded on the **015-owned resolution object** as
+`lifecycleBinding.originRecommendationKey` — never in `claimHash`.
+
+The per-action `deepLink` is a **citation**, not an attribution of authorship, and it is carried by the new
+unhashed `citedToolId` field defined in D1 → *`citedToolId` Is Not `originToolId`*. Any consumer that needs
+"which tool owns the detail behind this row" reads `citedToolId`; any consumer that needs "which tool
+produced this record" uses the `originToolId` constant.
+
+### D1's standing after this reconciliation
+
+```
+claimHash terms (9)   : contractVersion, recommendationKey, subject, actionFamily,
+                        direction, thesisFamily, predicate, horizon, magnitude
+unhashed fields (4)   : proposalRunId, proposalEventId, proposedAt, citedToolId
+not a claim field     : originToolId (resolver constant, D4)
+withdrawn             : lifecycleTerms
+```
+
+### Re-confirmation against the other three 2026-08-13 rulings
+
+| Ruling | D1 as it now stands | Verdict |
+|---|---|---|
+| **P-015-01** — authored subject is prose; `resolvesTo` is the only machine field | `subject` is `{ kind, prose, resolvesTo, seriesRefs, weighting }`; `prose` retained verbatim so `recommendationKey` stays reproducible; resolution reads only `resolvesTo`; absent/empty ⇒ `no-authored-subject` | **Consistent — unchanged by this reconciliation.** The whole `subject` object is hashed, so `prose` is frozen alongside its machine field. |
+| **P-015-02** — claim carries its own horizon; `authoredBand` recorded, non-authoritative, hashed | `horizon` is `{ kind, sessions, authoredBand, resolutionDate, eventRef }`; *Hashing Rules* hashes the whole object *"incl. sessions and authoredBand"*; `authoredBand` never derives `sessions` or `resolutionDate`; absent ⇒ `no-authored-horizon` | **Consistent — unchanged.** |
+| **P-015-07** — session predicate is `regular !== null` | D1 declares no session predicate; it freezes `horizon.resolutionDate` as the HC-5 fence and `horizon.sessions` as the count. The predicate that steps sessions is D4-owned and reads `regular !== null` | **Consistent — no overlap, therefore no contradiction.** |
+
+### Feature 002 remains untouched
+
+The 2026-08-13 co-consent disposition holds unchanged: every ruling here is implementable entirely inside
+Feature 015. `thesisFamily` stays in the already-proposed additive `action.claim` block and this
+reconciliation adds nothing to that ask. `citedToolId` derives from `deepLink`, an authored field the
+payload **already carries** (**verified this run**: 68 `deepLink` values present). No Feature 002 contract,
+schema, or output is mutated, and no new Feature 002 ask is created.
+
+### Routed to `bubbles.plan` — stale plan-owned statements
+
+Design does not edit plan-owned files. The following statements in `scopes/` now contradict D1 and must be
+refreshed by their owner. Each is a **factual contradiction with the design contract**, not a preference.
+
+| # | File | Location | Stale statement | Required after this reconciliation |
+|---|---|---|---|---|
+| R1 | `scopes/01-frozen-claim-contract/scope.md` | step 1 | `subject` (`kind`, `id`, `seriesRef`) | `subject` (`kind`, `prose`, `resolvesTo`, `seriesRefs`, `weighting`) — P-015-01 |
+| R2 | `scopes/01-frozen-claim-contract/scope.md` | step 1 | `horizon` (`kind`, `resolutionDate`, `eventRef`) | add `sessions` and `authoredBand` — P-015-02 |
+| R3 | `scopes/01-frozen-claim-contract/scope.md` | step 1 | top-level field list omits `thesisFamily` and `citedToolId` | both are contract fields; `thesisFamily` hashed, `citedToolId` unhashed |
+| R4 | `scopes/01-frozen-claim-contract/scope.md` | step 2 | *"Add the `lifecycleTerms` provenance block — `{ originToolId, thesisFamily }` … excluded from `claimHash`"* | **Withdrawn.** `thesisFamily` is top-level and hashed; `originToolId` is not a claim field; `citedToolId` replaces the deep-link source |
+| R5 | `scopes/01-frozen-claim-contract/scope.md` | step 5 | `claimHash` over `{ contractVersion, recommendationKey, subject, actionFamily, direction, predicate, horizon, magnitude }` | insert `thesisFamily`; unhashed set is the four fields named above |
+| R6 | `scopes/01-frozen-claim-contract/scope.md` | step 8 | four mint-refusal codes only (`non-semantic-subject`, `no-committed-series`, `unresolvable-owning-tool`, `neutral-direction-no-magnitude`) | add `no-authored-subject`, `no-authored-horizon`, `no-authored-thesis-family`, `no-authored-predicate` (D1: *"Every absence has its own reason code"*); retire or re-scope `unresolvable-owning-tool`, which no longer refuses a mint |
+| R7 | `scopes/01-frozen-claim-contract/scope.md` | step 8 | `no-committed-series` bound to `subject.seriesRef` (singular) and to *"289 committed `data/bars/*.json`"* | field is `seriesRefs` (plural). The count is **293 today** (**verified this run**) — and per F-015-D5-02 no count literal may ship; derive it |
+| R8 | `scopes/01-frozen-claim-contract/scope.md` | DoD lines re `lifecycleTerms` | *"`lifecycleTerms` is recorded on the object and excluded from `claimHash`"*; *"`thesisFamily` is declared on `lifecycleTerms`"*; *"its value source remains open pending routed finding P-015-03"* | P-015-03 is **RESOLVED**; restate against the hashed top-level field |
+| R9 | `scopes/01-frozen-claim-contract/scope.md` | `T-01-U1`, `T-01-F2` | both assert that mutating `lifecycleTerms` leaves `claimHash` byte-identical | As written these **certify the collision** this reconciliation removes, and `T-01-U1` also contradicts step 7's `RTR-PREDICATE-AMEND` abort. Rewrite against `citedToolId` and the three provenance fields |
+| R10 | `scopes/_index.md` | scope-01 row (owned surface) | *"the unhashed `lifecycleTerms` provenance block"* | replace with the unhashed `citedToolId` provenance field |
+| R11 | `scopes/_index.md` | F-015-D4-01 disposition | *"`claimHash` term list is therefore unchanged and D1 needs no revisit"*; `originToolId` *"derived at mint from the authored action's `deepLink`"* | Both superseded. D1 **was** revisited here; `originToolId` is the `market-brief` constant (D4) and `deepLink` resolves `citedToolId` |
+| R12 | `scopes/04-deterministic-outcome-resolver/scope.md` | reducer-bridge step | terms *"assembled from the claim's `lifecycleTerms`"* | assemble from the hashed `thesisFamily` / `subject` / `actionFamily` / `horizon` plus the `originToolId` constant |
+| R13 | `scopes/08-power-view-and-charts/scope.md` | deep-link items | deep links derived from `lifecycleTerms.originToolId` | derive from `citedToolId`; handle `citedToolId === null` as "no deep link", not as an error |
+
+No scope file was modified by this reconciliation.

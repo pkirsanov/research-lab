@@ -382,22 +382,19 @@ delivery makes a row's claim false, the row is corrected rather than checked.
       a track record or an error rate, and no benefit figure is presented as an
       estimate or a typical amount.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-  - **Not satisfied.** Same-command GREEN is recorded for every row. Intended RED
-    is now recorded for nineteen of the twenty-eight rows: TP-01-01 through
-    TP-01-10, TP-01-12, TP-01-13, TP-01-15, TP-01-16, TP-01-17 and TP-01-19 each
-    carry a dedicated probe in which the assertion's own subject was reverted in
-    the product, the named assertion was observed to fail under the row's own
-    command, the subject was restored byte-identically and the identical command
-    was re-run; TP-01-14 and TP-01-26 carry a RED observed under another row's
-    probe rather than one of their own; TP-01-18 and SUP-024-09 carried RED
-    already. **Nine rows still have no intended RED: TP-01-11, TP-01-20,
-    TP-01-21, TP-01-22, TP-01-23, TP-01-24, TP-01-25, TP-01-27 and TP-01-28.**
-    TP-01-25's named `--grep "SCN-02"` command has still never been run; the full
-    `tests/lifetime-tax-*.spec.mjs` suite was run instead, which is a superset.
-    Closing this row requires probing those nine.
-  - **Phase:** implement · **Command:** the exact TP-01-01 through TP-01-28 commands · **Evidence:** `report.md#per-row-intended-red-and-same-command-green`, `report.md#test-evidence`
+  - **Satisfied.** All twenty-eight rows now carry intended RED and same-command
+    GREEN. Twenty-six hold a dedicated probe in which the assertion's own subject
+    was reverted in the product, the named assertion was observed to fail under
+    the row's own command, the subject was restored byte-identically and the
+    identical command was re-run. TP-01-25's named `--grep "SCN-02"` command has
+    been run as written in both directions. TP-01-14's borrowed RED was replaced
+    with a dedicated one. Two rows rest on evidence that is honestly weaker and
+    is labelled as such: **TP-01-26**, whose claim is about the suite as a whole
+    and whose RED can only ever come from another row's probe, and **TP-01-18**,
+    which carried its RED from the implementation session.
+  - **Phase:** implement · **Command:** the exact TP-01-01 through TP-01-28 commands · **Evidence:** `report.md#per-row-intended-red-and-same-command-green`, `report.md#second-evidence-session--the-nine-rows-that-had-no-intended-red`, `report.md#test-evidence`
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds with

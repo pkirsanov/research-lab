@@ -405,19 +405,22 @@ indicates a fault in the delivered scope.
 
 ### Rows still without any intended RED
 
-Nine rows carry same-command GREEN only:
+**All nine rows listed here were closed in the
+[second evidence session](#second-evidence-session--the-nine-rows-that-had-no-intended-red)
+below.** The table is kept as the record of what was open at the end of the first
+session and what each closure required.
 
-| Row | Command | Why it is still open |
-| --- | --- | --- |
-| TP-01-11 | `node scripts/selftest.mjs` | The sourcing census was not probed. Closing it means breaking one shipped pack member's locator or `sourceRef`, or planting a smuggling `AbsentFigure`, and observing the row fail. |
-| TP-01-20 | the row's `--grep` browser command | No browser probe was run in this session. |
-| TP-01-21 | the row's `--grep` browser command | As above. |
-| TP-01-22 | the row's `--grep` browser command | As above. |
-| TP-01-23 | the row's `--grep` browser command | As above. |
-| TP-01-24 | the row's `--grep` browser command | As above. |
-| TP-01-25 | `--grep "SCN-02"` | The named command has still never been run at all, in RED or in GREEN. |
-| TP-01-27 | `node scripts/validate-spec-test-paths.mjs` | Not probed. Closing it means adding a spec reference to a non-existent test path and observing `new>0`. |
-| TP-01-28 | `node scripts/build-pages-site.mjs --dry-run` | Not probed. Closing it means removing a required exclusion entry and observing the build refuse. |
+| Row | Command | Why it was open | Closed by |
+| --- | --- | --- | --- |
+| TP-01-11 | `node scripts/selftest.mjs` | The sourcing census was not probed. | `editionEvidence` truncated below the census threshold |
+| TP-01-20 | the row's `--grep` browser command | No browser probe was run in that session. | the both-origins branch disabled |
+| TP-01-21 | the row's `--grep` browser command | As above. | each percentage priced against the whole |
+| TP-01-22 | the row's `--grep` browser command | As above. | delayed credit accrued past the sourced stopping age |
+| TP-01-23 | the row's `--grep` browser command | As above. | the benefit leg dropped from the export surface |
+| TP-01-24 | the row's `--grep` browser command | As above. | the statement amount pushed into the page URL |
+| TP-01-25 | `--grep "SCN-02"` | The named command had never been run at all. | run in both directions; RED via the whole-not-portion defect |
+| TP-01-27 | `node scripts/validate-spec-test-paths.mjs` | Not probed. | a spec reference planted to a non-existent test path |
+| TP-01-28 | `node scripts/build-pages-site.mjs --dry-run` | Not probed. | the route's deploy decision removed from `site-exclusions.json` |
 
 ### Byte-identity of every revert
 
@@ -543,3 +546,624 @@ rows and predate this scope.
 
 `site-exclusions.json` unchanged, `excludedPaths: 9` as before, and `tax-rules/`
 remains outside the public directories.
+
+## Second Evidence Session — The Nine Rows That Had No Intended RED
+
+Recorded against HEAD `373f4572d`, in a later session whose only purpose was to
+close the nine rows the
+[previous session left open](#rows-still-without-any-intended-red). The method is
+unchanged and was carried out in full for each row, one row at a time: mutate the
+assertion's own subject in the product, run **the row's own command** and capture
+the failure text and exit code, revert byte-identically, re-run the **identical**
+command, and confirm `git status --porcelain` reports nothing outside
+`specs/024-*`. No test was edited, weakened, skipped or retimed.
+
+### The baseline this session ran against, which moved under it
+
+This session's tree was shared with a concurrent session working on Feature 025
+and on `specs/_bugs/BUG-009-*`, all of it untracked. The whole-repository baseline
+therefore moved **three times** while this evidence was being produced, and every
+movement was caused by that other session rather than by this scope. Recording the
+movement rather than a single tidy number is the honest form:
+
+| When | `node scripts/selftest.mjs` | The failures, and whose they are |
+| --- | --- | --- |
+| At session start | 2841 passed, 2 failed, exit 1 | `TP-025-07` and `TP-025-08` — Feature 025, not this scope |
+| After the TP-01-11 revert | **2843 passed, 0 failed, exit 0** | none; the other session had fixed its two rows |
+| At session end | 2842 passed, 1 failed, exit 1 | the repo's spec-test-path check, explained below |
+
+**2843 passed, 0 failed is this scope's true clean baseline**, and it is identical
+to the count the previous evidence session closed at. No assertion belonging to
+this scope failed at any point except when this session deliberately made it fail.
+
+The single remaining failure is the repository's own spec-test-path check, and it
+is **not** this scope's. Its cause is documented under
+[TP-01-27](#tp-01-27--node-scriptsvalidate-spec-test-pathsmjs) below.
+
+### TP-01-11 — `node scripts/selftest.mjs`
+
+**Mutation.** One shipped source record in `tax-rules/benefit/2026.json` — the
+benefit-calculation-examples page — had its `editionEvidence` truncated from a
+quoted, self-dating justification to the bare assertion *"The page's own title
+dates it."*, which falls below the census threshold the row enforces.
+
+This is the sharpest available probe for this row because the truncated string is
+still **true**. The row does not ask whether a source is dated; it asks whether
+the pack **shows its work** on how it judged the edition year. A claim that cannot
+be checked against the page is exactly what the census exists to reject, and the
+mutation converts a checkable quotation into an unbacked assertion while changing
+nothing else about the record.
+
+**RED**, exit **1**, 3217 lines,
+`sha256:66c1ed3e0f8905cd02ce9471e1076dbf0f32c156916258756e53899685661da6`:
+
+```
+  ✗ FAIL: TP-01-11: every value-bearing member of the shipped benefit pack resolves to
+    exactly one retrieved source with a locator and a retrievedAt, every secondary
+    citation resolves too, every member whose source is undated or differently dated
+    carries a quoted yearInvarianceBasis, every source re…
+Research-Lab self-test: 2841 passed, 2 failed
+```
+
+The row failed by its own persistent title. The sourcing arms — one retrieved
+source per member, locator, `retrievedAt`, `yearInvarianceBasis`, the
+`AbsentFigure` census and its smuggling detector — were untouched, so the failure
+isolates the edition-evidence clause.
+
+**Revert**, byte-identical: `git status --porcelain -- tax-rules/` printed
+nothing.
+
+**GREEN**, the identical command, exit **1**, 3217 lines,
+`sha256:dd2836ea47b4e7233d951b26703d5477479b3a5bc27e3f7c49d497a87ae50c12`:
+
+```
+Research-Lab self-test: 2842 passed, 1 failed
+```
+
+**TP-01-11 passes in the GREEN run.** The pass count rises by exactly one and
+`TP-01-11` disappears from the failure list, which is the whole delta between the
+two runs and is therefore attributable to this mutation alone.
+
+The one failure that remains in both runs is the repository's spec-test-path
+check, which is **not** TP-01-11 and not this scope's. During this session the
+concurrent session copied the transient probe token described under TP-01-27 into
+its own untracked `specs/_bugs/BUG-009-*/report.md`, where the repository guard
+now finds it:
+
+```
+  ✗ FAIL: no tests/*.mjs path named by a spec artifact is missing outside the frozen
+    baseline … (1 new, 71 known-missing, 6 stale of 240 referenced)
+```
+
+```
+  NEW-MISSING …/lifetime-tax-redprobe-nonexistent.spec.mjs (1 reference site(s))
+      referenced at specs/_bugs/BUG-009-decision-attention-gate-result-producer-absent/report.md:359
+```
+
+**This is reported, not fixed.** The file is owned by another session and is
+outside this scope's change boundary, so removing the stray token there is that
+session's to do. It is recorded here so the non-zero failure count in the runs
+above is not mistaken for a defect in this scope.
+
+### TP-01-25 — the named cumulative command, run for the first time
+
+The row's own command is
+`npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02" --reporter=list`.
+Both previous sessions substituted a file-glob superset for it. **It has now been
+run as written.** At the clean tree, 76 lines,
+`sha256:b53a72dcfcb0c3324bbe19bb4cfdf7ef773cf93887619251e4f312db099ce00c`:
+
+```
+Running 67 tests using 6 workers
+  ✓   4 [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:65:1 › Regression: SCN-024-001 neither origin and both origins each refuse and neither shows a benefit amount (2.0s)
+  ✓   9 [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:106:1 › Regression: SCN-024-002 the computed origin publishes its bend points and refuses alone when the indexing series is absent (1.4s)
+  …
+  ✓  67 [system-chrome] › tests/lifetime-tax-use.spec.mjs:265:1 › Regression: SCN-023-013 mixed use allocates by declared days and the personal portion reaches the composition (811ms)
+Error: worker-3 process did not exit within 300000ms after stop, force-killed it
+Error: worker-5 process did not exit within 300000ms after stop, force-killed it
+Error: worker-5 process did not exit within 300000ms after stop, force-killed it
+
+  67 passed (5.3m)
+  3 errors were not a part of any test, see above for details
+```
+
+**Every one of the 67 selected tests passed. That first run nevertheless exited
+1**, and the reason is stated in its own output: three worker processes did not
+exit within the 300-second stop timeout and were force-killed. The runner records
+the errors as *"not a part of any test"*, and the 5.3-minute wall time is almost
+entirely those three 300-second waits.
+
+**A first reading of that run was wrong, and the correction is recorded here
+rather than quietly replaced.** On the strength of that single run this report
+initially stated that the row's command *"can never exit 0 here"*. The two later
+runs below falsify it: the same command, unchanged, exited **0** in 18.7s. The
+force-kill is therefore **intermittent** — a first-run/cold-start teardown flake
+in this environment, of a piece with the already-recorded absence of the bundled
+Chromium binary that forces the `system-chrome` project — and not a standing
+property of the command. One observation was treated as a rule; it was not one.
+
+The practical caution survives the correction in weaker form: this command's exit
+code is occasionally non-zero for reasons unrelated to any assertion, so a caller
+reading only the exit code can see a red where all 67 tests passed. The pass line
+disambiguates it. No timeout was raised, no worker count was changed and no test
+was skipped to make the exit code tidier — all four would have been forbidden,
+and each would have concealed the flake rather than reporting it.
+
+The grep also selects the concurrent session's `SCN-025-*` browser rows, because
+`SCN-02` is a prefix match. Those are not this scope's; they are passing and are
+noted only so the count of 67 is not mistaken for this feature's own row count.
+
+#### TP-01-25 intended RED and same-command GREEN
+
+**Mutation.** The same one-token whole-not-portion defect used for TP-01-21, so
+the cumulative suite is probed with a defect known to be real and known to be
+invisible to the published `portion` member.
+
+**RED**, exit **1**, 99 lines,
+`sha256:b9f5ba580a0b59aaeb217a7f60c384a5351f795e75b34c77f70deae4862fd910`:
+
+```
+Running 67 tests using 6 workers
+  ✓   3 [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 …
+  ✓   1 [system-chrome] › tests/lifetime-tax-disposition.spec.mjs:103:1 › Regression: SCN-023-014 …
+  …
+  1 failed
+    [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:106:1 › Regression: SCN-024-002 the computed origin publishes its bend points and refuses alone when the indexing series is absent
+  66 passed (17.5s)
+```
+
+**GREEN**, the identical command, exit **0**, 72 lines,
+`sha256:448858e2fb433dfcfa5463ecfde04ec029f6c00c2018597f8a635bd2c437e40b`:
+
+```
+Running 67 tests using 6 workers
+  ✓   2 [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack (1.6s)
+  ✓  67 [system-chrome] › tests/lifetime-tax-use.spec.mjs:265:1 › Regression: SCN-023-013 mixed use allocates by declared days and the personal portion reaches the composition (720ms)
+
+  67 passed (18.7s)
+```
+
+**Revert**, byte-identical: `git status --porcelain -- rltaxsocialsecurity.js`
+printed nothing.
+
+The delta is exactly one row: 66 passed / 1 failed becomes 67 passed / 0 failed.
+That is what this row needed and had never had — the named cumulative command,
+run in both directions, shown to be sensitive to a real defect and green without
+it.
+
+Two honest limits on this particular RED. First, the failure landed on one of
+this scope's own rows rather than on a Feature 021–023 row, so it demonstrates
+that the cumulative command **runs and is sensitive**, not that a defect in this
+scope would surface through a prior feature's assertion. Second, the prior
+features' 021, 022 and 023 rows are present and passing in both runs — visible in
+the captures above — which is the cumulative coverage claim this row makes, but
+they were not themselves driven red.
+
+### TP-01-14 — the borrowed RED replaced with a dedicated one
+
+TP-01-14 previously held only
+[a RED observed under the TP-01-08 probe](#rows-whose-red-came-from-another-rows-probe-rather-than-their-own),
+which exercised its raising-site arm and left its central claim — *the refusal
+vocabulary member count equals its pre-feature value* — with no probe of its own.
+That gap is now closed.
+
+**Mutation.** A fifteenth member, `RLTAX-REDPROBE-EXTRA-CODE`, was added to the
+`RLTAX_CODES` enum in `rltaxrules.js`, taking the vocabulary from fourteen
+members to fifteen and touching nothing else.
+
+**RED**, exit **1**, 3218 lines,
+`sha256:abd956d3b9dfd76ae2bb12f6ac62c193114938e6bff8f9925cb9ac98d9a60a5c`:
+
+```
+  ✗ FAIL: TP-01-14: the refusal vocabulary member count and the supported income-kind count each
+    equal their pre-feature values, and this scope’s two conditions fold into existing members
+    whose meaning and raising site are unchanged
+Research-Lab self-test: 2833 passed, 10 failed
+```
+
+This is now a **dedicated** RED: the assertion failed on the arm it exists to
+protect, under a mutation aimed at that arm.
+
+The probe also produced the widest collateral in either session — **ten** rows
+failed — and every one of them is the same invariant asserted by a different
+scope: `TP-01-05` (Feature 023's enum-count row), `TP-01-14` in the property
+scope, `TP-02-13`, `TP-02-15`, `TP-03-18`, `TP-04-19`, `TP-05-17` twice, and this
+scope's own `TP-01-14`. Several name the count in their own text — *"still has
+exactly its fourteen pre-feature members"*.
+
+That breadth is the finding, and it is reported rather than trimmed: the closed
+refusal vocabulary is guarded independently by every scope that consumes it, so
+a single added code cannot slip in behind one scope's inattention. A mutation
+that trips ten independent assertions across four features is evidence the
+invariant is genuinely shared rather than restated.
+
+**Revert**, byte-identical: `git status --porcelain -- rltaxrules.js` printed
+nothing.
+
+**GREEN**, the identical command, exit **1**, 3218 lines,
+`sha256:bc3e88297057e4c655c10b396ff4b098bdbaaac973069482c65c0bdb559183dd`:
+
+```
+Research-Lab self-test: 2842 passed, 1 failed
+```
+
+All ten rows return to passing; the pass count rises by exactly nine and the sole
+remaining failure is the other session's spec-test-path token described above.
+
+### TP-01-26 — same-command RED, restated for this session
+
+TP-01-26's claim is *the whole-repository suite stays green and the pre-existing
+pass count does not fall*, and its command is `node scripts/selftest.mjs` — the
+same command as TP-01-11 and TP-01-14 above. Both of this session's selftest
+probes are therefore simultaneously a same-command RED for it: the TP-01-11 probe
+dropped the count to 2841, and the TP-01-14 probe dropped it to 2833, each with a
+non-zero exit. Both GREEN runs restored it.
+
+This remains **borrowed** rather than dedicated evidence, for the same reason
+recorded in the first session: no mutation was aimed at TP-01-26 itself, and by
+its nature none can be — it is an assertion about the suite as a whole, so any
+probe of any other row is the only form its RED can take.
+
+### Closing state of this session
+
+Ten probes were run, each mutated → row's own command → revert → identical
+command re-run, and each written into this report before the next began. No test
+was edited, weakened, skipped, retimed or deleted, and no `.skip`, `.only` or
+`.fixme` was introduced. **No product defect was found.** Every mutation was
+reverted and every assertion returned to green.
+
+`node scripts/selftest.mjs`, exit **0**, 3215 lines,
+`sha256:c6da7b44b3de8a8cb87c44313c6208c96df1bae53d2aa109f99e3a9ebed685f8`:
+
+```
+================================================
+Research-Lab self-test: 2843 passed, 0 failed
+================================================
+```
+
+`git status --porcelain`, exit **0**:
+
+```
+ M specs/024-social-security-and-medicare/scopes/01-benefit-computation/report.md
+?? company-intelligence-lab.html
+?? company-intelligence.config.json
+?? data/company-intelligence/
+?? notes/company-intelligence-lab.md
+?? rlcompanyintel.js
+?? specs/025-company-multi-horizon-intelligence-lab/
+?? specs/026-actionable-brief-brevity-and-cross-asset/
+?? specs/_bugs/BUG-009-decision-attention-gate-result-producer-absent/
+?? tests/company-intelligence-lab.spec.mjs
+?? tests/company-intelligence.unit.mjs
+```
+
+The single tracked modification is this report. Every other entry is untracked
+and belongs to the concurrent Feature 025 / 026 / BUG-009 session; none was
+created, opened or modified here. That no tracked product file is modified is the
+proof that all ten mutations — across `rltaxsocialsecurity.js`, `rltaxrules.js`,
+`tax-rules/benefit/2026.json`, `lifetime-tax-strategy-lab.html`,
+`site-exclusions.json` and this scope's `scope.md` — were reverted
+byte-identically.
+
+The suite closes at **2843 passed, 0 failed**, which is the same count the
+implementation session closed at. The spec-test-path failure that ran through the
+middle of this session cleared when the other session removed its stray token;
+it never belonged to this scope and was never fixed here.
+
+### TP-01-20 — the browser row for SCN-024-001
+
+**Mutation.** The both-origins branch in `resolveBenefitBasis`
+(`rltaxsocialsecurity.js`) was disabled, so a household declaring both a statement
+Primary Insurance Amount and an earnings record falls through to the
+single-origin path and the statement amount silently wins. This is the precedence
+behaviour the scope's
+[named intended-RED assertion](scope.md) exists to prevent, now reproduced
+through the browser rather than through the module.
+
+**RED**, exit **1**, 35 lines,
+`sha256:442de2886bc395ffbc4b62eab2510703a744f3b9a1c59f1432109356f62a1cb1`:
+
+```
+  ✘  1 [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:65:1 › Regression: SCN-024-001 neither origin and both origins each refuse and neither shows a benefit amount (5.7s)
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+    Locator: locator('#benefitRefusal [data-rl-unavailable]')
+    Expected: "RLTAX-INPUT-INCOMPLETE"
+    Timeout: 5000ms
+    Error: element(s) not found
+
+      86 |   const both = page.locator('#benefitRefusal [data-rl-unavailable]');
+    > 87 |   await expect(both).toHaveAttribute('data-rl-unavailable', 'RLTAX-INPUT-INCOMPLETE');
+  1 failed
+```
+
+The failure is the right one for this row. The refusal element is *absent* rather
+than carrying a different code, which is precisely what a precedence fall-through
+produces: the route renders a benefit figure instead of a refusal. The neither
+case, asserted earlier in the same test, still passed — so the branch that was
+disabled is the branch that failed, and the two refusals are shown to be
+independently reachable rather than one guard covering both.
+
+**Revert**, byte-identical: `git status --porcelain -- rltaxsocialsecurity.js`
+printed nothing.
+
+**GREEN**, the identical command, exit **0**, 6 lines,
+`sha256:4e0938b9b1eab06c855f52da786f86973c44a0970a591b4bfc469169cfb0b826`:
+
+```
+Running 1 test using 1 worker
+  ✓  1 [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:65:1 › Regression: SCN-024-001 neither origin and both origins each refuse and neither shows a benefit amount (641ms)
+  1 passed (1.7s)
+```
+
+### TP-01-21 — the browser row for SCN-024-002
+
+**Mutation.** In `computePrimaryInsuranceAmount`, each tier's contribution was
+priced against the whole Average Indexed Monthly Earnings instead of against the
+portion its own declared breakpoint delimits — one token, `portion` to
+`aime.value`, leaving the published `portion` member itself untouched.
+
+**RED**, exit **1**, 32 lines,
+`sha256:25ef6b27e7c42a9e57819abbe210732fd3eb964171271869d34ef7eefcac7d36`:
+
+```
+  ✘  1 [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:106:1 › Regression: SCN-024-002 … (688ms)
+
+    Error: expect(received).toContain(expected) // indexOf
+    Expected substring: "2,610"
+    Received string:    "Primary Insurance Amount (monthly)  $7,980  computed-from-earnings …
+    Average indexed monthly earnings    $5,825 …
+    Portion priced at 90 percent        $1,286 → $5,243 …
+    Portion priced at 32 percent        $4,539 → $1,864 …
+    Portion priced at 15 percent        $0     → $874   …"
+
+    > 126 |   expect(basisText).toContain('2,610');
+  1 failed
+```
+
+This is the strongest of the browser REDs, because the received string shows the
+defect in full rather than merely reporting a mismatch. The monthly Primary
+Insurance Amount moved from the authority's published **$2,610** to **$7,980**,
+and each tier's rendered arrow makes the mechanism legible: the portions on the
+left are still correct — `$1,286`, `$4,539`, `$0` — while the amounts on the
+right are each the whole priced at that tier's percentage. The published
+`portion` member was deliberately left correct so the mutation could not be
+caught by a portion-value assertion; the row caught it on the settled figure
+instead, which is what it claims to do.
+
+The last tier is the clearest single line: a portion of **$0** contributing
+**$874**. No arithmetic over a zero-width portion can produce a positive
+contribution, so this row would fail on that line alone.
+
+**Revert**, byte-identical: `git status --porcelain -- rltaxsocialsecurity.js`
+printed nothing.
+
+**GREEN**, the identical command, exit **0**, 6 lines,
+`sha256:98a021c1e472c7a0be23a49ddc88aaa0944b044ce844e3d95838ae5c20d2948a`:
+
+```
+Running 1 test using 1 worker
+  ✓  1 [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:106:1 › Regression: SCN-024-002 the computed origin publishes its bend points and refuses alone when the indexing series is absent (738ms)
+  1 passed (1.8s)
+```
+
+### TP-01-22 — the browser row for SCN-024-003
+
+**Mutation.** In `applyClaimAgeAdjustment`, the delayed credit's upper bound was
+removed: `Math.min(claimAgeMonths, stoppingMonths)` became `claimAgeMonths`, so
+credit accrues past the sourced stopping age for as long as a household delays.
+
+**RED**, exit **1**, 28 lines,
+`sha256:e0930722afc5fce4f37ee54dff832d1d90de09be4bdcdf19e33f0be7128227c9`:
+
+```
+  ✘  1 [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:172:1 › Regression: SCN-024-003 … (717ms)
+
+    Error: expect(received).toBe(expected) // Object.is equality
+    Expected: "$38,832"
+    Received: "$41,328"
+
+      196 |   await declareBenefit(page, { statementPia: 2609.8, birthYear: 1964, claimAgeMonths: 70 * 12 });
+      197 |   const atStoppingAge = await page.locator('#headlineBlock [data-rl-value="benefit-headline"]').textContent();
+    > 198 |   expect(boundedHeadline).toBe(atStoppingAge);
+  1 failed
+```
+
+The assertion that failed is the one that matters, and its shape is worth
+stating: it does not compare the settled benefit against a remembered number. It
+declares a claim age **beyond** the sourced stopping age and a claim age **at**
+it, and requires the two headlines to be **the same string**. That is the bound
+expressed as a property, so it holds whatever the sourced stopping age turns out
+to be and cannot be satisfied by a recalled figure.
+
+With the bound removed the two diverge by exactly the extra credit —
+**$41,328** against **$38,832**, a $2,496 annual overstatement — and the row
+fails on the equality rather than on a literal. The out-of-domain arm later in
+the same test was never reached, so this RED isolates the stopping-age clause
+alone.
+
+**Revert**, byte-identical: `git status --porcelain -- rltaxsocialsecurity.js`
+printed nothing.
+
+**GREEN**, the identical command, exit **0**, 6 lines,
+`sha256:9c42a84338813cb2b99504b634359fb0ef5e7b557af801d06291b487d8fc681d`:
+
+```
+Running 1 test using 1 worker
+  ✓  1 [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:172:1 › Regression: SCN-024-003 the full retirement age row, the months counted and each factor applied are shown and an out-of-domain birth year refuses (800ms)
+  1 passed (1.8s)
+```
+
+### TP-01-23 — the leg-visibility browser row
+
+**Mutation.** The benefit leg was dropped from the **export** surface only, in
+`lifetime-tax-strategy-lab.html`: the `data-rl-export-legs` attribute was
+filtered to exclude `social-security-benefit`. The headline, the comparison and
+the curve were left intact, so exactly one of the four surfaces loses the leg.
+
+**RED**, exit **1**, 32 lines,
+`sha256:7107dc8a96740a65218435245f514d9e20d69146e4f888b75b04e863462b3038`:
+
+```
+  ✘  1 [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:212:1 › Regression: SCN-024-003 the benefit leg reaches the headline, the comparison, the curve and the export (707ms)
+
+    Error: the leg social-security-benefit is in the settled record and does not reach export attribute
+
+    expect(received).toContain(expected) // indexOf
+    Expected value: "social-security-benefit"
+    Received array: ["additional-medicare-tax", "net-investment-income-tax", "ordinary", "preferential", "social-security-inclusion"]
+  1 failed
+```
+
+**The failure names both the missing leg and the failing surface**, in one
+sentence, before any expectation output: *"the leg social-security-benefit is in
+the settled record and does not reach export attribute"*. That is the exact
+property the scope's
+[shared-infrastructure sweep](scope.md) requires of the leg-census helper, and
+this is the browser-level demonstration of it. A helper that merely reported
+"leg sets differ" would have passed this mutation's diagnostic bar and left an
+operator to work out which of four surfaces had dropped which of six legs.
+
+The received array is also worth reading: it lists the five surviving legs, so
+the failure shows the whole census rather than only the missing member. Because
+only the export surface was mutated, the three untouched surfaces still matched
+in both directions — the row failed on precisely the surface that was broken.
+
+**Revert**, byte-identical: `git status --porcelain -- lifetime-tax-strategy-lab.html`
+printed nothing.
+
+**GREEN**, the identical command, exit **0**, 6 lines,
+`sha256:154c0f89e9846659c4a4b7d756bfb3c583030c477725b133e7aa12d6f0350789`:
+
+```
+Running 1 test using 1 worker
+  ✓  1 [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:212:1 › Regression: SCN-024-003 the benefit leg reaches the headline, the comparison, the curve and the export (711ms)
+  1 passed (1.7s)
+```
+
+### TP-01-24 — the privacy browser row
+
+**Mutation.** A `window.history.replaceState` was added to the route's workspace
+read, immediately after the statement Primary Insurance Amount is taken from its
+input, writing that declaration into the page's query string as `?pia=<amount>`.
+This is the most consequential defect this scope can carry: it puts a
+household's own benefit figure into a URL, where it survives in browser history,
+in a bookmark and in any referrer.
+
+**RED**, exit **1**, 28 lines,
+`sha256:03c9194d8d279ee7c941c7438c78f8729fe9c2d410ff006440e4e0a4071f01c6`:
+
+```
+  ✘  1 [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:276:1 › Regression: SCN-024-001 the request ledger stays empty and no benefit declaration reaches a URL (963ms)
+
+    Error: expect(received).toBe(expected) // Object.is equality
+    Expected: ""
+    Received: "?pia=null"
+
+    > 327 |   expect(location.search).toBe('');
+  1 failed
+```
+
+The row caught it on the **first** of its four URL arms, `location.search`, and
+that detail is what makes this RED strong rather than merely red. The received
+value is `?pia=null` — the mutation fired on a page state where no statement
+amount had been declared yet, so the leaked query string carried no household
+figure at all.
+
+The row still failed. It asserts that the query string is **empty**, not that it
+is free of a particular value, so it refuses the leak channel rather than the
+leaked datum. A weaker assertion — searching the URL for the declared amount —
+would have passed this run and would have gone on passing until the first
+household typed a real figure into the box. The two sentinel arms on lines 328
+and 329 do exactly that value-level check, and they were never reached; the
+structural arm caught it first, which is the correct ordering.
+
+**Revert**, byte-identical: `git status --porcelain -- lifetime-tax-strategy-lab.html`
+printed nothing.
+
+**GREEN**, the identical command, exit **0**, 6 lines,
+`sha256:de9a3398bdb10f3d359490f9b952aaf526d77fd562e9fcae8f949114b6324d8a`:
+
+```
+Running 1 test using 1 worker
+  ✓  1 [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:276:1 › Regression: SCN-024-001 the request ledger stays empty and no benefit declaration reaches a URL (668ms)
+  1 passed (1.6s)
+```
+
+### TP-01-27 — `node scripts/validate-spec-test-paths.mjs`
+
+**Mutation.** A reference to a test path that does not exist —
+`…/lifetime-tax-redprobe-nonexistent.spec.mjs` — was planted in this scope's
+`scope.md`, in the `Implementation Files → New` list.
+
+**The directory segment is deliberately elided throughout this block.** The guard
+scans every committed spec artifact for a repo-root-relative token, and this
+report is one of them, so spelling the path out here would leave the guard
+permanently red on the very reference the probe was built to remove. Writing the
+literal was in fact tried first, and the guard immediately reported it as a new
+missing path referenced at two sites in this file — which is a second, unplanned
+confirmation that the row's assertion is live and reads this artifact.
+
+**RED**, exit **1**:
+
+```
+[spec-test-paths] scanned=634 references=14064 distinctPaths=240 missingPaths=72 baseline=77 new=1 stale=6
+  NEW-MISSING …/lifetime-tax-redprobe-nonexistent.spec.mjs (1 reference site(s))
+      referenced at specs/024-social-security-and-medicare/scopes/01-benefit-computation/scope.md:114
+[spec-test-paths] FAIL — 1 new referenced path(s) do not exist
+```
+
+The row's claim is *zero new missing spec-referenced test paths*, and the guard
+named the planted path, its reference site and its line. `new` moved from `0` to
+`1`; `stale=6` and `baseline=77` were unmoved, so the failure is the planted
+reference and not a baseline shift.
+
+**Revert**, byte-identical: `git status --porcelain -- specs/024-*` printed
+nothing.
+
+**GREEN**, the identical command, exit **0**:
+
+```
+[spec-test-paths] scanned=634 references=14063 distinctPaths=239 missingPaths=71 baseline=77 new=0 stale=6
+[spec-test-paths] OK — no new missing test path(s) (6 stale baseline entries to remove)
+```
+
+`references` returned from 14064 to 14063 and `distinctPaths` from 240 to 239,
+which is the planted reference leaving and nothing else changing.
+
+### TP-01-28 — `node scripts/build-pages-site.mjs --dry-run`
+
+**Mutation.** The route's own deploy decision — the
+`lifetime-tax-strategy-lab.html` entry and its reason — was removed from
+`site-exclusions.json`, leaving the route unregistered and undecided.
+
+**RED**, exit **1**:
+
+```
+Error: unregistered root page lacks a deploy decision: lifetime-tax-strategy-lab.html
+    at assert (file:///…/scripts/build-pages-site.mjs:24:25)
+    at planPagesSite (file:///…/scripts/build-pages-site.mjs:49:3)
+    at buildPagesSite (file:///…/scripts/build-pages-site.mjs:83:16)
+```
+
+The row's claim is *the Pages plan succeeds and `site-exclusions.json` is
+unchanged*. The plan refused before emitting any result object, and it named the
+exact route whose decision was removed. This is the substantive half of the row:
+the gate does not merely read the file, it requires every unregistered root page
+to carry a decision, so a route silently shipping to the public site is
+impossible.
+
+**Revert**, byte-identical: `git status --porcelain -- site-exclusions.json`
+printed nothing.
+
+**GREEN**, the identical command, exit **0**:
+
+```
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":118,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/9bb69175f356c240125ee2384f73de8633483fa9b283895c85e3e89fccc66af6","omittedOrphanIndexes":136}
+```
+
+`excludedPaths` reads **12** here, where the previous session recorded **9**. The
+three added entries are the concurrent Feature 025 route, module and config
+described above; none is this scope's and none was added by this evidence work.
+`tax-rules/` is absent from `directories` in both runs, so it remains outside the
+public directories.

@@ -1,6 +1,6 @@
 {
   "contractVersion": "official-curve-artifact/v1",
-  "generatedAt": "2026-08-18T18:33:42.872Z",
+  "generatedAt": "2026-08-18T20:30:34.156Z",
   "freshnessPolicy": {
     "policyId": "observed-cadence/v1",
     "cadenceWindowRows": 10,
@@ -3299,7 +3299,7 @@
             }
           },
           "sourcePublishedAt": null,
-          "retrievedAt": "2026-08-18T18:33:42.872Z",
+          "retrievedAt": "2026-08-18T20:30:34.156Z",
           "contentSha256": "sha256:cf2fa3da7f160384b63d2ead698532b1d76cd9f789ce4911e2304db85b14e6d5",
           "retentionMode": "normalized-facts-and-hash",
           "freshnessState": "current",
@@ -3327,7 +3327,7 @@
             }
           },
           "sourcePublishedAt": null,
-          "retrievedAt": "2026-08-18T18:33:42.872Z",
+          "retrievedAt": "2026-08-18T20:30:34.156Z",
           "contentSha256": "sha256:6bc17dc548b956f82a7a0a4a0811396c928c677b803eda422ee2bc593fce06e4",
           "retentionMode": "normalized-facts-and-hash",
           "freshnessState": "current",
@@ -3345,7 +3345,7 @@
         2025,
         2026
       ],
-      "observedAt": "2026-08-17",
+      "observedAt": "2026-08-18",
       "declaredPolicy": {
         "id": "us-treasury-real",
         "mode": "public-official-live",
@@ -6197,6 +6197,13 @@
           "y10": 2.44,
           "y20": 2.84,
           "y30": 3.06
+        },
+        {
+          "date": "2026-08-18",
+          "y5": 2.1,
+          "y10": 2.41,
+          "y20": 2.81,
+          "y30": 3.03
         }
       ],
       "provenance": [
@@ -6222,7 +6229,7 @@
             }
           },
           "sourcePublishedAt": null,
-          "retrievedAt": "2026-08-18T18:33:42.872Z",
+          "retrievedAt": "2026-08-18T20:30:34.156Z",
           "contentSha256": "sha256:d3d3131c41e1f93f4661d227ce7079049d51888b395aaff863b6ad8e08838b64",
           "retentionMode": "normalized-facts-and-hash",
           "freshnessState": "current",
@@ -6250,8 +6257,8 @@
             }
           },
           "sourcePublishedAt": null,
-          "retrievedAt": "2026-08-18T18:33:42.872Z",
-          "contentSha256": "sha256:5764ff5b3e98217e884c982032e9515cc66b9462f02b6aa5197e0f87f0a4a3bd",
+          "retrievedAt": "2026-08-18T20:30:34.156Z",
+          "contentSha256": "sha256:7b0c2c00e8a2dca2e52d149916b4087f2d8bebee91bb9b539ccc68f2712e8254",
           "retentionMode": "normalized-facts-and-hash",
           "freshnessState": "current",
           "diagnostics": []

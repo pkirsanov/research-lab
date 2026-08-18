@@ -2,9 +2,11 @@
 
 Evidence contract: [scope.md](scope.md), [spec.md](../../spec.md), [scope index](../_index.md), and [uservalidation.md](../../uservalidation.md).
 
-**Evidence status:** Executed. Every figure and exit code below was produced by the seven commands recorded in
-[Evidence Run](#evidence-run), executed in this session against the committed tree. Fourteen of the fifteen Test
-Plan rows are green. **One row — `T-01-C2` — fails**, and it is recorded as a failure rather than narrated away.
+**Evidence status:** Executed, with one anchor superseded. Every figure and exit code below was produced by the
+commands recorded in [Evidence Run](#evidence-run), executed against the committed tree. Fourteen of the fifteen
+Test Plan rows are green. The fifteenth — `T-01-C2` — carries **no current transcript**. Both canary runs recorded
+here were bound to canary source that a later repair replaced, so neither is evidence of the row's state at the
+current `HEAD`. The row is recorded as **unresolved pending a re-run**: not a pass, and not a present failure.
 
 **Evidence provenance.** Every block carries a `Claim Source:` tag. `executed` means the block quotes output from a
 command in the Evidence Run. `interpreted` means the block reasons over that output and says so. `not-run` means the
@@ -16,8 +18,9 @@ block records work completed in a prior session and re-run by nothing here.
 
 Scope 01 delivers the `brief-recommendation-claim/v1` frozen claim contract as `rlclaims.js`, its fixture substrate
 under `tests/fixtures/recommendation-track-record/claims/**`, the shared support module, and the four
-`tests/recommendation-track-record.*.mjs` suites. The implementation is committed at
-`39d04d9d90852b3e20ea1f6b73289bcdc466fe99` and the working tree is clean.
+`tests/recommendation-track-record.*.mjs` suites. The implementation was delivered at
+`39d04d9d90852b3e20ea1f6b73289bcdc466fe99` and repaired at `67c9ebc1459d6a3828ec3ea8b04c0977f5d9c484`. `HEAD` is
+now `a19f8919cc8493df6346574aa6df5e51ecad342a` and the working tree is clean.
 
 **Result of this evidence run:**
 
@@ -25,19 +28,20 @@ under `tests/fixtures/recommendation-track-record/claims/**`, the shared support
 |---|---|---|---|---|
 | Unit | `node --test tests/recommendation-track-record.unit.mjs` | `0` | T-01-U1 – T-01-U7 | 7 pass, 0 fail |
 | Functional | `node --test tests/recommendation-track-record.functional.mjs` | `0` | T-01-F1 – T-01-F3 | 3 pass, 0 fail |
-| Canary | `node --test tests/recommendation-track-record.canary.mjs` | **`1`** | T-01-C1, T-01-C2 | 1 pass, **1 fail** |
+| Canary | `node --test tests/recommendation-track-record.canary.mjs` | `1` | T-01-C1, T-01-C2 | 1 pass, 1 fail — **superseded**, see [T-01-C2](#t-01-c2) |
 | E2E regression | `node --test tests/recommendation-track-record.e2e.mjs` | `0` | T-01-R1, T-01-R2 | 2 pass, 0 fail |
 | Project check | `node scripts/selftest.mjs` | `0` | T-01-S1 | `2487 passed, 0 failed` |
 
-**The one failure, stated plainly.** `T-01-C2` — the restore rehearsal — fails its precondition, not its subject.
-The row derives *"this scope's additions"* from **untracked** working-tree entries and asserts the set is non-empty
-before rehearsing a restore against them. Because this scope's files are now **committed**, `git status --porcelain`
-returns zero entries, so that set is empty and the row aborts with *"the rehearsal is vacuous unless this scope
-actually added something"* — refusing to report a green restore rehearsal it did not actually perform. That refusal
-is the row behaving correctly: a rehearsal with nothing to restore would be a vacuous pass, which is worse than a
-failure. The failure is a **row-precondition/commit-state interaction**, and it is left open and routed rather than
-repaired here, because the fix is a change to a test file and this evidence pass owns no test-file edit. See
-[T-01-C2](#t-01-c2) and [Still open](#still-open).
+**The one unresolved row, stated plainly.** `T-01-C2` — the restore rehearsal — was recorded red twice, and both
+records are now **superseded by the repair commit `67c9ebc14`**. That commit made two changes to the canary in a
+single step: it derived the pre-scope boundary from commit history instead of from untracked porcelain state, and
+it extended the attribution model to the three repo-wide counters that committing had made diverge — the pii-scan
+file universe, the commit-message count, and the referenced-test-path count. The first change invalidates the
+[C-run 1](#c-run-1--superseded-before-the-boundary-fix-command-4) transcript; the second invalidates the
+[C-run 2](#c-run-2--superseded-bound-to-pre-repair-canary-source) transcript, whose `3 !== 0` assertion is exactly
+the assertion that repair addressed. **This report carries no canary transcript taken after that repair**, so it
+evidences neither a pass nor a failure for the row at the current `HEAD`. See [T-01-C2](#t-01-c2) and
+[Still open](#still-open).
 
 **No Definition of Done item is ticked by this report.** DoD closure is a separate pass; see
 [Still open](#still-open).
@@ -66,10 +70,16 @@ $ git rev-parse HEAD
 CMD1_EXIT=0
 ```
 
+> **`HEAD` has moved since.** Two commits landed after this run: `67c9ebc1459d6a3828ec3ea8b04c0977f5d9c484`, which
+> repaired the canary, and `a19f8919cc8493df6346574aa6df5e51ecad342a`, the DoD closure pass. Every figure in this
+> report other than the [T-01-C2](#t-01-c2) anchor is still bound to `39d04d9d9` and unaffected by either commit,
+> because neither touched the contract, the fixtures, or the unit, functional, e2e, or selftest surfaces.
+
 ### Verification re-run — same commit, after two corrections
 
 **Claim Source:** `executed`. Two commands, run once each, unfiltered, at the repository root, in a later
-session. `HEAD` is unchanged at `39d04d9d9`; the only working-tree change is this report's own edit.
+session. `HEAD` was unchanged at `39d04d9d9` for this re-run; the only working-tree change was this report's own
+edit.
 
 Two things changed between the seven commands above and this re-run, and both are recorded here because each
 one moves a figure:
@@ -84,15 +94,18 @@ one moves a figure:
 | # | Command | Exit code |
 |---|---|---|
 | R1 | `node scripts/selftest.mjs` | `0` |
-| R2 | canary suite (`node --test`, same file as command 4) | **`1`** |
+| R2 | canary suite (`node --test`, same file as command 4) | `1` — **superseded** |
 
 **R1 returns the self-test to green**, at `2487 passed, 0 failed` — one more passing assertion than the
 `2486 passed, 1 failed` that the redaction fixed, and the same total this report already records at
 [T-01-S1](#t-01-s1).
 
-**R2 still exits `1`.** The boundary fix moved `T-01-C2` past its old failure and onto a *different, later*
-assertion. It is refreshed in full, unmasked, at [T-01-C2](#t-01-c2). **`T-01-C2` is still not green, and
-nothing below claims it is.**
+**R2 exited `1`, and that result is superseded.** The boundary fix moved `T-01-C2` past its old failure and onto
+a *different, later* assertion — the attribution check. R2 was taken **before** that attribution check was itself
+repaired, in the same commit `67c9ebc14` that carried the boundary fix. R2 is therefore a transcript of
+intermediate canary source that no longer exists, and it is retained as history only. It is reproduced, unmasked
+and labelled, at [T-01-C2](#t-01-c2). **Nothing below claims `T-01-C2` is green, and nothing below claims it is
+red either — this report does not evidence the row's current state.**
 
 ---
 
@@ -295,18 +308,29 @@ and different `claimHash` values, and both objects coexist on disk.
 
 ---
 
-### Suite invocation C — canary (FAILING)
+<a id="suite-invocation-c--canary-failing"></a>
 
-**Claim Source:** `executed`. Evidences `T-01-C1` and `T-01-C2`. **This invocation exits `1`.**
+### Suite invocation C — canary (both runs superseded)
 
-This suite has been run twice against the same commit: once as command 4 of the original seven, and once as
-**R2** of the [verification re-run](#verification-re-run--same-commit-after-two-corrections) after the canary's
-pre-scope boundary was fixed. Both runs are kept. The first is the record of the failure that motivated the
-fix; the second is the current state of the row. **Both exit `1`.**
+**Claim Source:** `executed`. Evidences `T-01-C1`. For `T-01-C2` it evidences only the row's **history**, not its
+current state.
 
-#### C-run 2 — current, after the boundary fix (R2)
+This suite was run twice against `39d04d9d9`: once as command 4 of the original seven, and once as **R2** of the
+[verification re-run](#verification-re-run--same-commit-after-two-corrections), after the canary's pre-scope
+boundary was fixed but before its attribution model was extended. Both runs are kept as history, and **both are
+superseded** by commit `67c9ebc14`, which landed the boundary fix and the attribution extension together. Both
+exited `1`.
 
-This is the authoritative transcript for `T-01-C1` and `T-01-C2` as they stand now.
+`T-01-C1` is unaffected by either repair — it passed identically in both runs, and neither repair touches what it
+asserts.
+
+<a id="c-run-2--superseded-bound-to-pre-repair-canary-source"></a>
+
+#### C-run 2 — superseded, bound to pre-repair canary source (R2)
+
+Taken after the boundary fix and **before** the attribution extension. The `3 !== 0` assertion below is precisely
+the assertion that `67c9ebc14` then repaired, so this transcript describes canary source that no longer exists.
+**Do not read the `T-01-C2` result below as current.**
 
 ```text
 $ node --test <canary suite>
@@ -361,9 +385,11 @@ CANARY_EXIT=1
 > at `1098:16` — is unaltered. The `$` line is likewise written without the bare file argument; the suite is
 > the same file as command 4, and the assertion frame above identifies it exactly.
 
+<a id="c-run-1--superseded-before-the-boundary-fix-command-4"></a>
+
 #### C-run 1 — superseded, before the boundary fix (command 4)
 
-Retained as the record of the failure that motivated the fix. **Superseded by C-run 2; do not read the row
+Retained as the record of the failure that motivated the boundary fix. **Superseded; do not read the row
 result below as current.**
 
 ```text
@@ -414,7 +440,7 @@ CMD4_EXIT=1
 
 **Claim Source:** `executed`. **Command:** the canary suite
 ([Suite invocation C](#suite-invocation-c--canary-failing)). **Row result: PASS** in both runs — `21732.128346ms`
-in the current C-run 2, `23491.759701ms` in the superseded C-run 1.
+in the later C-run 2, `23491.759701ms` in C-run 1.
 
 ```text
 ✔ T-01-C1: the shared substrate holds its own contracts before any broad rerun (21732.128346ms)
@@ -429,23 +455,54 @@ establishes that both differences were attributed and neither was an unexplained
 The row ran **before** `T-01-R1` / `T-01-R2`, as the plan requires, so a substrate defect would have been named at
 the substrate. It passed, so no substrate defect was named.
 
-**The row is green in the current run.** It passed identically before and after the canary's boundary fix, so the
-fix changed nothing this row depends on.
+**The row is green in both recorded runs.** It passed identically before and after the canary's boundary fix, so
+that fix changed nothing this row depends on. The later attribution extension is likewise confined to the
+cross-tree diff that only `T-01-C2` performs, so it does not disturb this result.
 
 <a id="t-01-c2"></a>
 
-### T-01-C2 — the restore path rehearsal — **STILL FAILING**
+### T-01-C2 — the restore path rehearsal — **unresolved, no current transcript**
 
-**Claim Source:** `executed` for the failure itself; `interpreted` for the mechanism. **Command:** the canary
-suite ([Suite invocation C](#suite-invocation-c--canary-failing)). **Row result: FAIL** after `49093.470352ms`
-in the current C-run 2. **Suite exit code:** `1`.
+**Claim Source:** `executed` for the two superseded transcripts; `interpreted` for the mechanism; `not-run` for
+the row's state at the current `HEAD`. **Command:** the canary suite
+([Suite invocation C](#suite-invocation-c--canary-failing)).
+**Row result recorded here: none that is current.**
 
-**The boundary fix worked, and the row still fails.** These are two separate facts and both are load-bearing.
-The pre-scope boundary is now derived from commit history rather than untracked working-tree state, so the
-`the rehearsal is vacuous unless this scope actually added something` assertion that stopped C-run 1 at
-`30.984722ms` no longer fires. The row now proceeds through the rehearsal — checking out the pre-scope tree in
+**Why this anchor evidences nothing current.** Both canary runs in this report were taken before commit
+`67c9ebc1459d6a3828ec3ea8b04c0977f5d9c484` finished repairing the row, and that commit changed exactly the code
+each run tripped on:
+
+| Run | Assertion it stopped at | Repaired by `67c9ebc14`? |
+|---|---|---|
+| [C-run 1](#c-run-1--superseded-before-the-boundary-fix-command-4) | `the rehearsal is vacuous unless this scope actually added something` | Yes — the pre-scope boundary is now derived from commit history, not untracked porcelain state. |
+| [C-run 2](#c-run-2--superseded-bound-to-pre-repair-canary-source) | `every cross-tree difference must be attributable … 3 !== 0` | Yes — the attribution model was extended to the three repo-wide counters named below. |
+
+Both repairs landed in that single commit; C-run 2 was taken between them, against source that existed only
+mid-repair. **This report therefore records no canary run against the repaired suite, and asserts neither a pass
+nor a failure for `T-01-C2` at `HEAD`.** The transcripts below are retained as the diagnosis that produced the
+repair — that is what they are good for, and it is all they are good for.
+
+**Corroboration, not evidence** (`not-run`). The message of `67c9ebc14` states the extension in its own terms —
+the pii-scan file universe attributed by a predicate copied from the scanner, the commit-message count via
+`rev-list`, and the referenced-test-path count partitioned by artifact ownership — and the message of
+`a19f8919cc8493df6346574aa6df5e51ecad342a` records the row as green at `HEAD` while noting this artifact was
+never refreshed. Neither is a transcript, and **neither is treated here as evidence.** Closing this anchor
+requires one re-run of the canary suite against `HEAD`, recorded in full. Until then no Definition of Done item
+depending on `T-01-C2` may be ticked — which is how the closure pass at `a19f8919c` in fact left it.
+
+---
+
+#### Superseded diagnosis — what C-run 2 found, and why it was right to fail
+
+Everything from here to the end of this anchor describes **C-run 2 only**. It is preserved because it is what
+exposed the second defect.
+
+**The boundary fix worked, and the row still failed at that moment.** These are two separate facts and both were
+load-bearing. The pre-scope boundary was derived from commit history rather than untracked working-tree state, so
+the `the rehearsal is vacuous unless this scope actually added something` assertion that stopped C-run 1 at
+`30.984722ms` no longer fired. The row then proceeded through the rehearsal — checking out the pre-scope tree in
 a disposable worktree, running the project self-test in both trees, and diffing the two transcripts — and
-fails **≈1600× later**, at the attribution assertion that terminates that diff.
+failed **≈1600× later**, at the attribution assertion that terminates that diff.
 
 ```text
 ✖ T-01-C2: the restore path is rehearsed in a disposable worktree, never on the live tree (49093.470352ms)
@@ -473,33 +530,37 @@ fails **≈1600× later**, at the attribution assertion that terminates that dif
 > evidentiary part of the frame — `<redacted>/tests/recommendation-track-record.canary.mjs` at `1098:16` — is
 > unaltered. The two `✓ ...` elisions above stand for the full assertion text, which is byte-identical
 > between the `pre` and `live` lines apart from the quoted count; the unelided form is in
-> [C-run 2](#suite-invocation-c--canary-failing).
+> [C-run 2](#c-run-2--superseded-bound-to-pre-repair-canary-source).
 
-**What did and did not fail.** Everything up to the attribution diff passed: the `isAllowedPath` and
+**What did and did not fail in C-run 2.** Everything up to the attribution diff passed: the `isAllowedPath` and
 `isScannedProductionSource` classifiers against their known-answer sets, the working-tree scan, the added-file
 derivation, the two independent derivations of the attribution agreeing, and the adversarial known-answer
 checks on the classifier itself. The disposable worktree was created and removed cleanly — `git worktree list`
-shows only the live root both before and after the run. The failure is at the **final** assertion, that no
+showed only the live root both before and after the run. The failure was at the **final** assertion, that no
 cross-tree difference is left unattributed.
 
-**Mechanism** (`interpreted` from the source, read once — not modified). `classifyDifference` blanks every
-decimal run to a placeholder and requires the surrounding skeleton to be byte-identical, then admits a
-difference under exactly two shapes: a single count landing exactly on the pre/live sizes of the **scanned
-production-source universe**, or an equal-and-opposite pair whose magnitude is the number of frozen-baseline
-files this scope added. The three differences above are neither shape — they are three *other* counters that
-this scope's additions also move:
+**Mechanism** (`interpreted` from the source **as it stood for C-run 2**, read once — not modified by this
+report). `classifyDifference` blanks every decimal run to a placeholder and requires the surrounding skeleton to
+be byte-identical, then admitted a difference under exactly two shapes: a single count landing exactly on the
+pre/live sizes of the **scanned production-source universe**, or an equal-and-opposite pair whose magnitude is the
+number of frozen-baseline files this scope added. The three differences above were neither shape — they are three
+*other* counters that this scope's additions also move:
 
-| Counter | pre | live | Why the classifier rejects it |
+| Counter | pre | live | Why the classifier rejected it |
 |---|---|---|---|
-| `pii-scan` repository files | `7424` | `7476` | Counts **all tracked files**, not the scanned production-source subset, so it never lands on the derived pre/live sizes. |
-| `pii-scan` commit messages | `1415` | `1416` | A commit count. The attribution model has no shape for it at all. |
-| spec-artifact `tests/*.mjs` references | `13364` | `13389` | A reference count, not the scan-universe size, so the single-count shape refuses it. |
+| `pii-scan` repository files | `7424` | `7476` | Counts **all tracked files**, not the scanned production-source subset, so it never landed on the derived pre/live sizes. |
+| `pii-scan` commit messages | `1415` | `1416` | A commit count. The attribution model had no shape for it at all. |
+| spec-artifact `tests/*.mjs` references | `13364` | `13389` | A reference count, not the scan-universe size, so the single-count shape refused it. |
 
-**This is not a regression in scope 01's contract.** All three moved *upward*, in the direction this scope's
-additions predict, and no pre-existing pass count fell — that separate assertion passed. What the row proves
-is narrower and real: **the attribution model is incomplete.** It covers two of the counters this scope
-perturbs and not these three. The row is correct to refuse; an attribution model that waved them through
+**This was not a regression in scope 01's contract.** All three moved *upward*, in the direction this scope's
+additions predict, and no pre-existing pass count fell — that separate assertion passed. What the row proved
+was narrower and real: **the attribution model was incomplete.** It covered two of the counters this scope
+perturbs and not these three. The row was correct to refuse; an attribution model that waved them through
 would be the "classifier that returns a name for everything" the row's own adversarial half exists to prevent.
+
+**That gap was then closed.** Commit `67c9ebc14` extended the model to all three counters by derivation rather
+than by whitelist, and asserted the co-located counters invariant so the new rules cannot absorb an unrelated
+movement. This report records the diagnosis above; it does **not** record a run of the extended model.
 
 **Self-reference caveat** (`executed`). This report is itself inside the scanned spec-artifact universe, so its
 own text contributes to the third counter, and **editing this report moves the number this report quotes.** That
@@ -518,16 +579,19 @@ re-run reproduces, because every correction made after that run changed digits o
 `pre` figure of `13364` is untouched by any of this — it is read from the pre-scope tree, which does not contain
 this report.
 
-**Not repaired here.** The remedy is a further edit to the canary's attribution model, which this evidence
-pass does not own — it owns this report and nothing else. The row is left failing and routed. Recorded at
-[Still open](#still-open). **No DoD item depending on `T-01-C2` may be ticked while this stands.**
+**Repaired, not re-measured.** The remedy was a further edit to the canary's attribution model, which this
+evidence pass did not own — it owns this report and nothing else. That remedy **landed** in `67c9ebc14`. What
+this report still lacks is a canary transcript taken afterwards, so the row is left **unresolved** rather than
+either red or green. Recorded at [Still open](#still-open). **No DoD item depending on `T-01-C2` may be ticked
+until a post-repair run is recorded here.**
 
-**Superseded record — the failure this replaced.** C-run 1 stopped much earlier, at the row's added-file
-precondition: the set was built from the **untracked** entries of `git status --porcelain` and asserted
-non-empty, but the tree is clean because this scope's files are committed at `39d04d9d9`. That assertion was
-right to fire — it refuses the vacuous pass that occurs when `HEAD` is the *post*-scope commit — and the
-boundary fix is exactly the remedy this report routed for it. **That remedy landed.** It is retained here, with
-its transcript at [C-run 1](#suite-invocation-c--canary-failing), so the two distinct failures are not
+**Earlier superseded record — the failure C-run 2 replaced.** C-run 1 stopped much earlier, at the row's
+added-file precondition: the set was built from the **untracked** entries of `git status --porcelain` and
+asserted non-empty, but the tree was clean because this scope's files were committed at `39d04d9d9`. That
+assertion was right to fire — it refuses the vacuous pass that occurs when `HEAD` is the *post*-scope commit —
+and the boundary fix is exactly the remedy this report routed for it. **That remedy landed.** It is retained
+here, with its transcript at
+[C-run 1](#c-run-1--superseded-before-the-boundary-fix-command-4), so the two distinct failures are not
 conflated into one unresolved complaint.
 
 
@@ -741,14 +805,14 @@ against the allowed-family list, because there is no working-tree entry at all.
 
 **Superseded consequence.** This section previously recorded that the same emptiness was the direct cause of the
 `T-01-C2` failure. That is **no longer true.** The canary now derives its pre-scope boundary from commit history
-rather than from untracked working-tree state, so an empty porcelain no longer fails the row; `T-01-C2` fails at a
-later assertion instead, recorded at [T-01-C2](#t-01-c2).
+rather than from untracked working-tree state, so an empty porcelain no longer fails the row. The later failure
+C-run 2 then hit has itself been repaired; see [T-01-C2](#t-01-c2).
 
 **Current tree state** (`executed`). The porcelain above is from command 7 of the original seven, at
-`39d04d9d90852b3e20ea1f6b73289bcdc466fe99`. As of the
-[verification re-run](#verification-re-run--same-commit-after-two-corrections) the working tree is **no longer
-clean**: it carries this `report.md`, modified in place. `HEAD` is unchanged. That single entry is family 5 below,
-so the Change Boundary still holds — but the emptiness claim above describes the earlier moment, not this one.
+`39d04d9d90852b3e20ea1f6b73289bcdc466fe99`. During the
+[verification re-run](#verification-re-run--same-commit-after-two-corrections) the tree briefly carried this
+`report.md`, modified in place — family 5 below, so the Change Boundary held throughout. That edit is now
+committed, and the tree is clean again at `HEAD`.
 
 **The five allowed file families** — the only families this scope may create:
 
@@ -761,8 +825,9 @@ so the Change Boundary still holds — but the emptiness claim above describes t
 | 5 | This scope's spec artifacts — `specs/015-recommendation-outcome-ledger-and-track-record/scopes/01-frozen-claim-contract/**` | The planning and evidence artifacts this scope owns, including this `report.md`. |
 
 **Excluded surfaces — confirmed untouched.** With an empty porcelain and the delivery committed, no excluded surface
-carries an uncommitted change. `T-01-C2`'s classifier assertions, which ran and passed before that row's
-precondition failed, independently confirm the classifier refuses each of them: `rlvalidation.js` (Feature
+carries an uncommitted change. `T-01-C2`'s classifier assertions, which ran and passed in C-run 2 before that
+run's attribution assertion stopped it, independently confirm the classifier refuses each of them:
+`rlvalidation.js` (Feature
 007-owned), `scripts/selftest.mjs` (the baseline script), a neighbouring feature's test file, and — the
 prefix-widening guard — `rlclaims.js.bak`. Also excluded and unopened: `rlcontracts.js` (read only, for
 `MARKET_ACTIONS` and `ACTION_DIRECTION`), the persisted `rldata.js` cache schema, the Market Action Center four-view
@@ -775,19 +840,22 @@ composition, the three committed sibling validators, every counted registry (`to
 
 **Claim Source:** mixed, tagged per item. Nothing in this section is resolved here.
 
-**1. `T-01-C2` fails and is routed — for a second, different reason.** `executed`. The originally-routed remedy
-**landed**: the row's pre-scope boundary is now derived from commit history rather than untracked working-tree
-state, and the vacuous-precondition assertion no longer fires. The row now runs the full rehearsal and fails at
-its **final** assertion instead, with three cross-tree counter differences the attribution model does not cover
-(tracked-file count, commit-message count, spec-artifact reference count). See [T-01-C2](#t-01-c2) for the
-transcript, the per-counter breakdown, and the mechanism. The remaining remedy is a further edit to the canary's
-attribution model, which this evidence pass does not own. **Route:** the scope's test owner. Until it is
-resolved, the canary suite exits `1`, and no DoD item depending on `T-01-C2` — nor the Build Quality Gate item,
-which requires zero issues deferred — may be ticked.
+**1. `T-01-C2` has no current transcript and is routed for one re-run.** `executed` for what is recorded here;
+`not-run` for the row's state at `HEAD`. Both routed remedies **landed**, together, in commit `67c9ebc14`: the
+row's pre-scope boundary is derived from commit history rather than untracked working-tree state, and the
+attribution model was extended by derivation to the three repo-wide counters that committing made diverge
+(the pii-scan file universe, the commit-message count, and the spec-artifact reference count). What did **not**
+happen is a canary run against the repaired suite recorded in this artifact: both transcripts here predate the
+second remedy. See [T-01-C2](#t-01-c2) for the superseded diagnosis and the per-counter breakdown. The
+outstanding action is therefore **evidentiary, not corrective** — run the canary suite once against `HEAD` and
+record it here in full. **Route:** the scope's evidence owner. Until that transcript exists, this report
+evidences neither a pass nor a failure for the row, and no DoD item depending on `T-01-C2` — nor the Build
+Quality Gate item, which requires zero issues deferred — may be ticked.
 
-**2. DoD items remain unticked pending a separate closure pass.** `interpreted`. This report records evidence; it
-ticks nothing. Fourteen rows are green and their evidence is anchored above, but closure is a distinct pass and is
-in any case blocked by item 1.
+**2. DoD items are not ticked by this report.** `interpreted`. This report records evidence; it ticks nothing.
+Fourteen rows are green and their evidence is anchored above. A separate closure pass
+(`a19f8919cc8493df6346574aa6df5e51ecad342a`) ticked items in [scope.md](scope.md) against that recorded evidence
+and left every item depending on `T-01-C2` unticked, consistent with item 1.
 
 **3. A DoD count discrepancy is reported and left unresolved.** `not-run` — **operator-reported diagnostic input,
 not a measurement made by this agent.** The operator reports that [scope.md](scope.md) carries **33** unchecked DoD
@@ -800,18 +868,21 @@ Recorded here so it is not lost, and deliberately not resolved.
 
 ## Completion Statement
 
-Scope 01's implementation is committed at `39d04d9d90852b3e20ea1f6b73289bcdc466fe99`, and this report records
-execution evidence for all fifteen Test Plan rows from seven commands run once each, plus a later two-command
-[verification re-run](#verification-re-run--same-commit-after-two-corrections) against the same commit.
+Scope 01's implementation was delivered at `39d04d9d90852b3e20ea1f6b73289bcdc466fe99` and repaired at
+`67c9ebc1459d6a3828ec3ea8b04c0977f5d9c484`. This report records execution evidence for all fifteen Test Plan rows
+from seven commands run once each, plus a later two-command
+[verification re-run](#verification-re-run--same-commit-after-two-corrections), all against `39d04d9d9`.
 
 **Fourteen rows are green.** `T-01-U1` – `T-01-U7` (exit `0`), `T-01-F1` – `T-01-F3` (exit `0`), `T-01-C1` (pass),
-`T-01-R1` – `T-01-R2` (exit `0`), and `T-01-S1` at `2487 passed, 0 failed` (exit `0`).
+`T-01-R1` – `T-01-R2` (exit `0`), and `T-01-S1` at `2487 passed, 0 failed` (exit `0`). None of them is touched by
+the canary repair.
 
-**One row is red.** `T-01-C2` fails, and the canary suite therefore exits `1`. Its originally-routed remedy landed
-— the pre-scope boundary is fixed — but the row now fails at a **later, different** assertion: three cross-tree
-counter differences that the attribution model does not cover. The failure is recorded in full at
-[T-01-C2](#t-01-c2) with its assertion message, its source line, its per-counter breakdown, and both transcripts.
-It is not narrated as a pass, not excused, and not repaired here.
+**One row is unresolved.** `T-01-C2` has **no transcript taken after `67c9ebc14`**. Both canary runs recorded here
+stopped at an assertion that commit repaired — C-run 1 at the vacuous-precondition check, C-run 2 at the
+attribution check — so neither describes the suite as it now stands. Both are retained, clearly labelled, at
+[T-01-C2](#t-01-c2), with their assertion messages, source lines, and the per-counter breakdown that produced the
+second repair. The row is **not** narrated as a pass on the strength of the repair having landed, and it is **not**
+asserted as a present failure on the strength of a superseded transcript. Closing it needs one recorded re-run.
 
 **Therefore no scope completion is claimed.** Scope 01 is **not** `Done`. No Definition of Done item is ticked by
 this report, no certification is requested, and `state.json` is not advanced. The scope cannot close while a Test

@@ -118,7 +118,7 @@ test('T-01-U1: claimHash is content-only across exactly the four unhashed fields
     );
 
     // Adversarial half. An implementation still carrying `thesisFamily` as unhashed provenance —
-    // its placement under the withdrawn `lifecycleTerms` block — passes everything above and
+    // its placement under the withdrawn provenance block — passes everything above and
     // fails here, which is the only thing that tells the two apart.
     const amendedThesis = structuredClone(first);
     amendedThesis.thesisFamily = `${first.thesisFamily}-alt`;

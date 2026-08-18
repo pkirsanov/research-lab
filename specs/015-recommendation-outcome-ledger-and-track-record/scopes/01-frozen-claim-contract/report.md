@@ -2,11 +2,19 @@
 
 Evidence contract: [scope.md](scope.md), [spec.md](../../spec.md), [scope index](../_index.md), and [uservalidation.md](../../uservalidation.md).
 
-**Evidence status:** Executed, with one anchor superseded. Every figure and exit code below was produced by the
-commands recorded in [Evidence Run](#evidence-run), executed against the committed tree. Fourteen of the fifteen
-Test Plan rows are green. The fifteenth — `T-01-C2` — carries **no current transcript**. Both canary runs recorded
-here were bound to canary source that a later repair replaced, so neither is evidence of the row's state at the
-current `HEAD`. The row is recorded as **unresolved pending a re-run**: not a pass, and not a present failure.
+**Evidence status:** Executed. Every figure and exit code below was produced by the commands recorded in
+[Evidence Run](#evidence-run) and [Closure-pass evidence run](#closure-pass-evidence-run), executed against the
+committed tree. **`T-01-C2` now carries a current transcript.** The post-repair canary run recorded at
+[Closure-pass command C](#closure-pass-command-c--canary-post-repair-green) is green — `2 pass, 0 fail`, exit `0`,
+bound to `HEAD` `89a94af4050c0ad53fa406252e351aeaa4994f16` with a clean tree — and it supersedes the two pre-repair
+transcripts, which are retained unaltered under
+[Suite invocation C](#suite-invocation-c--canary-failing) as the diagnosis that produced the repair.
+
+The closure pass also discharges the textual-absence and change-set observations that earlier passes correctly
+refused to assert without evidence: see [Absence sweeps](#absence-sweeps), [Vocabulary constants are frozen and
+call sites reference them](#vocabulary-constants-are-frozen-and-call-sites-reference-them),
+[P-015-03 ruling](#p-015-03-ruling), and [Purely-additive change set](#purely-additive-change-set). One sweep
+returned a **non-clean** result and is recorded as such at [Sweep A](#sweep-a--lifecycleterms).
 
 **Evidence provenance.** Every block carries a `Claim Source:` tag. `executed` means the block quotes output from a
 command in the Evidence Run. `interpreted` means the block reasons over that output and says so. `not-run` means the
@@ -20,7 +28,7 @@ Scope 01 delivers the `brief-recommendation-claim/v1` frozen claim contract as `
 under `tests/fixtures/recommendation-track-record/claims/**`, the shared support module, and the four
 `tests/recommendation-track-record.*.mjs` suites. The implementation was delivered at
 `39d04d9d90852b3e20ea1f6b73289bcdc466fe99` and repaired at `67c9ebc1459d6a3828ec3ea8b04c0977f5d9c484`. `HEAD` is
-now `a19f8919cc8493df6346574aa6df5e51ecad342a` and the working tree is clean.
+now `89a94af4050c0ad53fa406252e351aeaa4994f16` and the working tree is clean.
 
 **Result of this evidence run:**
 
@@ -32,16 +40,16 @@ now `a19f8919cc8493df6346574aa6df5e51ecad342a` and the working tree is clean.
 | E2E regression | `node --test tests/recommendation-track-record.e2e.mjs` | `0` | T-01-R1, T-01-R2 | 2 pass, 0 fail |
 | Project check | `node scripts/selftest.mjs` | `0` | T-01-S1 | `2487 passed, 0 failed` |
 
-**The one unresolved row, stated plainly.** `T-01-C2` — the restore rehearsal — was recorded red twice, and both
-records are now **superseded by the repair commit `67c9ebc14`**. That commit made two changes to the canary in a
+**The canary row is now resolved, green.** `T-01-C2` — the restore rehearsal — was recorded red twice, and both
+records are **superseded by the repair commit `67c9ebc14`**. That commit made two changes to the canary in a
 single step: it derived the pre-scope boundary from commit history instead of from untracked porcelain state, and
 it extended the attribution model to the three repo-wide counters that committing had made diverge — the pii-scan
 file universe, the commit-message count, and the referenced-test-path count. The first change invalidates the
 [C-run 1](#c-run-1--superseded-before-the-boundary-fix-command-4) transcript; the second invalidates the
 [C-run 2](#c-run-2--superseded-bound-to-pre-repair-canary-source) transcript, whose `3 !== 0` assertion is exactly
-the assertion that repair addressed. **This report carries no canary transcript taken after that repair**, so it
-evidences neither a pass nor a failure for the row at the current `HEAD`. See [T-01-C2](#t-01-c2) and
-[Still open](#still-open).
+the assertion that repair addressed. **The missing post-repair transcript was taken in the closure pass** and is
+recorded in full at [Closure-pass command C](#closure-pass-command-c--canary-post-repair-green): `2 pass, 0 fail`,
+exit `0`. See [T-01-C2](#t-01-c2).
 
 **No Definition of Done item is ticked by this report.** DoD closure is a separate pass; see
 [Still open](#still-open).
@@ -104,10 +112,471 @@ one moves a figure:
 a *different, later* assertion — the attribution check. R2 was taken **before** that attribution check was itself
 repaired, in the same commit `67c9ebc14` that carried the boundary fix. R2 is therefore a transcript of
 intermediate canary source that no longer exists, and it is retained as history only. It is reproduced, unmasked
-and labelled, at [T-01-C2](#t-01-c2). **Nothing below claims `T-01-C2` is green, and nothing below claims it is
-red either — this report does not evidence the row's current state.**
+and labelled, at [T-01-C2](#t-01-c2). The transcript that does evidence the row's current state was taken later,
+in the [Closure-pass evidence run](#closure-pass-evidence-run) below.
 
 ---
+
+<a id="closure-pass-evidence-run"></a>
+
+## Closure-pass evidence run — recorded 2026-08-18
+
+**Claim Source:** `executed`. Every command in this section was run once, unfiltered, at the repository root, in
+this session, against `HEAD` `89a94af4050c0ad53fa406252e351aeaa4994f16` with a clean working tree. This section
+exists to supply the one transcript the earlier passes were right to refuse to fabricate — a canary run taken
+**after** the repair commit `67c9ebc14` — and the textual and change-set observations that several DoD items name
+`report.md` as the place to record.
+
+**Tree state at the moment of the canary run**, quoted from the same invocation:
+
+```text
+HEAD=89a94af4050c0ad53fa406252e351aeaa4994f16
+PORCELAIN_LINES=0
+```
+
+<a id="closure-pass-command-c--canary-post-repair-green"></a>
+
+### Closure-pass command C — canary, post-repair, **green**
+
+**Command:** `node --test tests/recommendation-track-record.canary.mjs`. **Exit code:** `0`.
+
+```text
+=== CANARY RUN ===
+✔ T-01-C1: the shared substrate holds its own contracts before any broad rerun (35805.241267ms)
+✔ T-01-C2: the restore path is rehearsed in a disposable worktree, never on the live tree (49162.302544ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 85072.983715
+CANARY_EXIT=0
+```
+
+**`2 pass, 0 fail`, exit `0`.** Both canary rows are green against the repaired suite. `T-01-C2` ran the full
+rehearsal — it created the disposable detached worktree at the pre-scope boundary, ran the project self-test in
+both trees, diffed the two transcripts, attributed every cross-tree difference, and tore the worktree down — and
+reached the end. The `49162.302544ms` duration is the signature of that full traversal: C-run 1 stopped at
+`30.984722ms`, three orders of magnitude earlier, on the vacuous-precondition assertion the boundary fix removed.
+
+**Scope of what this transcript binds.** It is bound to the tree as it stood **before** this report was refreshed:
+`HEAD` `89a94af40`, porcelain empty. That binding is stated rather than glossed because `T-01-C2` measures a
+counter this very file contributes to — see [Self-reference caveat](#self-reference-caveat-and-post-edit-re-run)
+for the post-edit re-run that closes the gap.
+
+---
+
+<a id="absence-sweeps"></a>
+
+### Absence sweeps
+
+**Claim Source:** `executed`. Four sweeps, each run once, unfiltered. `grep` exits `1` when it finds nothing, so
+for an *absence* claim **exit `1` with empty output is the clean result** and exit `0` means the identifier was
+found. Both outcomes occur below and each is reported as returned. The swept set is this scope's entire authored
+surface: `rlclaims.js`, the five `tests/recommendation-track-record.*.mjs` files, and the fixture root.
+
+<a id="sweep-a--lifecycleterms"></a>
+
+#### Sweep A — `lifecycleTerms` — **clean, zero occurrences**
+
+**Claim Source:** `executed`, this session. **Command:**
+`grep -rn 'lifecycleTerms' rlclaims.js tests/recommendation-track-record.unit.mjs tests/recommendation-track-record.functional.mjs tests/recommendation-track-record.e2e.mjs tests/recommendation-track-record.canary.mjs tests/recommendation-track-record.support.mjs tests/fixtures/recommendation-track-record/`.
+**Exit code:** `1` — no match, which is the clean result for an absence claim.
+
+```text
+=== POST-EDIT SWEEP: lifecycleTerms across 015-authored source, fixtures, tests ===
+POST_EDIT_SWEEP_EXIT=1
+
+=== files actually swept ===
+tests/recommendation-track-record.canary.mjs
+tests/recommendation-track-record.e2e.mjs
+tests/recommendation-track-record.functional.mjs
+tests/recommendation-track-record.support.mjs
+tests/recommendation-track-record.unit.mjs
+46
+```
+
+The swept surface is this scope's entire authored set, enumerated by the same command rather than asserted:
+`rlclaims.js`, all five `tests/recommendation-track-record.*.mjs` files, and the 46-file fixture root.
+
+**What changed since the prior pass, and why this direction rather than the other.** The prior pass recorded this
+sweep as **not clean** — one occurrence, at `tests/recommendation-track-record.unit.mjs:121`, inside an explanatory
+**comment** above the adversarial half of `T-01-U1`. That state was re-measured at the start of this pass before
+anything was edited:
+
+```text
+=== PRE-EDIT SWEEP: lifecycleTerms across 015-authored source, fixtures, tests ===
+tests/recommendation-track-record.unit.mjs:121:    // its placement under the withdrawn `lifecycleTerms` block — passes everything above and
+PRE_EDIT_SWEEP_EXIT=0
+```
+
+The prior pass routed the gap to `bubbles.plan`, proposing the DoD clause be narrowed to *no `lifecycleTerms`
+block is declared or referenced in any code path*. **That route is withdrawn, and the clause is kept as written.**
+Textual absence is the stronger of the two properties: it is checkable by a single `grep` forever and it forecloses
+reintroduction by copy-paste, which a *no block is declared* clause does not. Narrowing the item would have traded
+an enforceable invariant for an unenforceable one in order to preserve the wording of a comment.
+
+**What the edit was.** One noun phrase, in a comment, on line 121 — no assertion, no fixture, no behaviour:
+
+| | Line 121 |
+|---|---|
+| before | ``// its placement under the withdrawn `lifecycleTerms` block — passes everything above and`` |
+| after | `// its placement under the withdrawn provenance block — passes everything above and` |
+
+The history the comment carries is preserved: the note still records that the adversarial half exists to defeat an
+implementation holding `thesisFamily` as unhashed provenance. Only the retired identifier is gone. The suite was
+re-run afterwards to prove nothing else moved —
+[Suite invocation F](#suite-invocation-f--unit-after-the-comment-reword), `7 pass, 0 fail`, exit `0`.
+
+**What this sweep does and does not close.** It closes the DoD item's **second** conjunct in full. It says nothing
+about the item's **first** conjunct — *every field named in `design.md` → `## D1` → Contract, and no field beyond
+them* — which is measured separately at
+[D1 field parity](#d1-field-parity--every-named-field-present-one-field-beyond) and which does **not** hold. The
+item therefore remains unticked on the first conjunct alone.
+
+<a id="sweep-b--unresolvable-owning-tool"></a>
+
+#### Sweep B — `unresolvable-owning-tool` — clean in the source
+
+The DoD item scopes this absence to **the source**: *"the retired `unresolvable-owning-tool` code is absent from
+the source."* Both the wide sweep and the source-scoped sweep are recorded, because the wide one returns matches
+and reporting only the narrow one would look like a chosen scope rather than the item's own.
+
+**Command:** `grep -rn 'unresolvable-owning-tool' <the 015-authored surface>`. **Exit code:** `0`.
+
+```text
+=== SWEEP B: unresolvable-owning-tool across the same set ===
+tests/recommendation-track-record.functional.mjs:199:        claims.MINT_REFUSALS.includes('unresolvable-owning-tool'),
+tests/recommendation-track-record.functional.mjs:201:        'unresolvable-owning-tool is retired — an unmatched deepLink yields null, not a refusal',
+tests/recommendation-track-record.functional.mjs:219:    // retired `unresolvable-owning-tool` behaviour would drop these calls and shrink the
+tests/recommendation-track-record.e2e.mjs:7: * retired `unresolvable-owning-tool` behaviour fails HERE rather than silently.
+tests/recommendation-track-record.e2e.mjs:377:        // The retired `unresolvable-owning-tool` refusal would drop exactly these calls. Its
+tests/recommendation-track-record.e2e.mjs:381:            claims.MINT_REFUSALS.includes('unresolvable-owning-tool'),
+tests/recommendation-track-record.e2e.mjs:383:            'unresolvable-owning-tool is retired — an unmatched deepLink yields null, never a refusal',
+SWEEP_B_EXIT=0
+```
+
+One further match, in a fixture note, is quoted separately because its length would otherwise wrap:
+`tests/fixtures/recommendation-track-record/claims/evaluable-unmatched-deeplink.json:2` carries a `"note"` field
+recording that the fixture is the positive adversarial input for `T-01-F2` and that the retired refusal would fail
+there.
+
+**Every one of these eight matches asserts the code's absence rather than using it.** Two are live assertions that
+`MINT_REFUSALS` does **not** contain it; the rest are prose naming what the assertion defeats.
+
+**Command:** `grep -n 'unresolvable-owning-tool' rlclaims.js`. **Exit code:** `1` — **no match**.
+
+```text
+=== SWEEP B2: unresolvable-owning-tool in the delivered source module only ===
+SWEEP_B2_EXIT=1
+```
+
+The delivered module contains the identifier **zero** times. The item's conjunct is satisfied, and it is satisfied
+in the strong form: the source does not carry the code, and two executed suites assert that the refusal set does
+not carry it either.
+
+<a id="sweep-c--global-isfinite"></a>
+
+#### Sweep C — the global `isFinite` — clean
+
+Two sweeps: one showing **every** `isFinite` occurrence, so the positive form is visible and the negative sweep
+cannot be read as *the token is simply absent*; one for the bare global form.
+
+**Command:** `grep -rn 'isFinite' <the 015-authored code>`. **Exit code:** `0`.
+
+```text
+=== SWEEP C1: every isFinite occurrence in 015-authored code ===
+rlclaims.js:404:            if (!Number.isFinite(predicateInput.value)) return violation("predicate-value-not-finite", "predicate.value");
+rlclaims.js:439:            sessions: claimInput && Number.isFinite(claimInput.horizonSessions) ? claimInput.horizonSessions : null,
+rlclaims.js:458:            flatBand: claimInput && Number.isFinite(claimInput.flatBand) ? claimInput.flatBand : null
+rlclaims.js:516:        if (claim.horizon.kind === "multi-session" && !Number.isFinite(claim.horizon.sessions)) {
+tests/recommendation-track-record.unit.mjs:175:    assert.ok(Number.isFinite(base.horizon.sessions), 'the sessions mutation needs a finite base');
+tests/recommendation-track-record.unit.mjs:176:    assert.ok(Number.isFinite(base.magnitude.flatBand), 'the flatBand mutation needs a finite base');
+tests/recommendation-track-record.e2e.mjs:290:                assert.ok(Number.isFinite(original.predicate.value), `${hex}: the predicate amendment needs a finite base`);
+SWEEP_C1_EXIT=0
+```
+
+**Command:** `grep -rnE '(^|[^.A-Za-z0-9_$])isFinite' <the 015-authored code>`. **Exit code:** `1` — **no match**.
+
+```text
+=== SWEEP C2: bare global isFinite (not preceded by Number.) ===
+SWEEP_C2_EXIT=1
+```
+
+The regex admits any `isFinite` at line start or preceded by a character that cannot be part of a member access,
+so `Number.isFinite` is excluded and every other spelling — including `window.isFinite`, `globalThis . isFinite`
+written with spaces, and a bare call — would match. It found nothing. **All seven occurrences are
+`Number.isFinite`; the global appears nowhere.** The item is satisfied.
+
+<a id="sweep-d--rlvalidation"></a>
+
+#### Sweep D — `rlvalidation.js` is not imported, and no statistic is computed
+
+The item has two conjuncts and each is swept separately.
+
+**Command:** `grep -rn 'rlvalidation\|RLVALIDATION\|RLVAL' <the 015-authored code>`. **Exit code:** `0`.
+
+```text
+=== SWEEP D: rlvalidation reference/import in 015-authored code ===
+tests/recommendation-track-record.canary.mjs:1110:    assert.equal(isAllowedPath('rlvalidation.js'), false, 'a 007-owned module is out of family');
+```
+
+The single match is a **string literal inside a negative assertion** — the canary asserting that the path
+classifier *refuses* the 007-owned module as out of family. It is the opposite of an import. Nothing in this scope
+imports, requires, loads, or references `rlvalidation.js` as a module.
+
+**Command:** `grep -nE '^\s*(import |const .*=\s*require\()|require\(' rlclaims.js`. **Exit code:** `1` — **no match**.
+
+```text
+=== import/require sweep in the delivered source ===
+IMPORT_EXIT=1
+```
+
+`rlclaims.js` has **no import and no require at all**. It is a self-contained UMD module, so the *not imported*
+conjunct holds for the delivered source by construction rather than by inspection of a candidate list.
+
+**Command:** `grep -nEi 'mean|median|stddev|std_dev|variance|correlat|percentile|quantile|average|brier|hitRate|winRate|\bsum\b|reduce\(' rlclaims.js`. **Exit code:** `0`.
+
+```text
+=== statistic-computation sweep in the delivered source ===
+86:       means nothing. */
+488:       a positionally-derived subject is meaningless whether or not the rest was authored. */
+```
+
+Both matches are **English prose inside comments** — `means` at line 86 and `meaningless` at line 488, caught as
+substrings of the `mean` alternative. No statistical construct is present: no aggregation, no `reduce(`, no rate,
+no dispersion measure. **No statistic of any kind is computed in this scope.** The item is satisfied.
+
+<a id="d1-field-parity--every-named-field-present-one-field-beyond"></a>
+
+### D1 field parity — every named field present, **one field beyond**
+
+**Claim Source:** `executed`, this session. This measures the **first** conjunct of the contract DoD item —
+*"implemented with every field named in `design.md` → `## D1` → Contract, and no field beyond them"* — against the
+contract as amended by the [2026-08-18 Claim-Identity Reconciliation](../../design.md). The reconciliation's own
+summary block is the authority used here:
+
+```text
+claimHash terms (9)   : contractVersion, recommendationKey, subject, actionFamily,
+                        direction, thesisFamily, predicate, horizon, magnitude
+unhashed fields (4)   : proposalRunId, proposalEventId, proposedAt, citedToolId
+not a claim field     : originToolId (resolver constant, D4)
+withdrawn             : lifecycleTerms
+```
+
+Both sides were enumerated mechanically rather than read off by eye, because the claim is a set comparison and an
+eyeballed set comparison is exactly the kind that misses one member.
+
+**Side A — the fields `design.md` → `## D1` → *Contract* names.** `## D1` spans lines `303`–`680`
+(`grep -n '^## D[0-9]' design.md`: `303:## D1`, `681:## D2`). Its `### Contract:` block is the JSONC at
+`311`–`380`, whose top-level keys are the 2-space-indented ones. **Command:** `grep -n '^  "' design.md`.
+**Exit code:** `0`. The matches falling inside `311`–`380`, verbatim from that output:
+
+| # | Line | Field | Hash status per *Hashing Rules* |
+|---|---|---|---|
+| 1 | 315 | `contractVersion` | hashed |
+| 2 | 318 | `recommendationKey` | hashed |
+| 3 | 319 | `proposalRunId` | unhashed provenance |
+| 4 | 320 | `proposalEventId` | unhashed provenance |
+| 5 | 321 | `proposedAt` | unhashed provenance |
+| 6 | 322 | `citedToolId` | unhashed provenance |
+| 7 | 331 | `subject` | hashed |
+| 8 | 340 | `actionFamily` | hashed |
+| 9 | 341 | `direction` | hashed |
+| 10 | 342 | `thesisFamily` | hashed — top-level, per Ruling 1 |
+| 11 | 348 | `predicate` | hashed |
+| 12 | 360 | `horizon` | hashed |
+| 13 | 369 | `magnitude` | hashed |
+| 14 | 378 | `claimHash` | the integrity field itself |
+
+That is **9 hashed + 4 unhashed + `claimHash` = 14**, matching the reconciliation block exactly. `originToolId`
+does not appear, as Ruling 2 requires; `lifecycleTerms` does not appear, as Ruling 1 requires.
+
+**Side B — the fields the implementation mints.** **Command:** `grep -n '^            [a-zA-Z]*:' rlclaims.js`.
+**Exit code:** `0`. The claim object literal is at `465`–`479`:
+
+```text
+465:            contractVersion: CONTRACT_VERSION,
+466:            recommendationKey: deriveRecommendationKey(prose, actionFamily),
+467:            proposalRunId: nonEmptyString(input.proposalRunId) ? input.proposalRunId : null,
+468:            proposalEventId: nonEmptyString(input.proposalEventId) ? input.proposalEventId : null,
+469:            proposedAt: nonEmptyString(input.proposedAt) ? input.proposedAt : null,
+470:            citedToolId: resolveCitedToolId(action.deepLink, input.toolsRegistry),
+471:            subject: subject,
+472:            actionFamily: actionFamily,
+473:            direction: direction,
+474:            thesisFamily: thesisFamily,
+475:            predicate: predicate,
+476:            horizon: horizon,
+477:            magnitude: magnitude,
+478:            notEvaluable: null,
+479:            claimHash: null
+```
+
+**Result — the two conjuncts split.**
+
+- **Every named field is present.** All 14 of Side A appear in Side B, at the same names, with
+  `thesisFamily` top-level (line 474) and `citedToolId` present and outside the hash. The hashed/unhashed
+  partition is asserted independently by the frozen constants at `rlclaims.js#L60`–`#L64` — `HASHED_TERMS` holding
+  exactly the nine and `UNHASHED_FIELDS` exactly the four — and is proven behaviourally by
+  [T-01-U1](#t-01-u1) and [T-01-U2](#t-01-u2). This half **holds**.
+- **There is one field beyond them: `notEvaluable`** (line 478). It is not in Side A, and it is not anywhere in
+  `## D1`. **Command:** `grep -n 'notEvaluable' design.md`. **Exit code:** `0`, two matches, both **outside** the
+  `303`–`680` range of `## D1`:
+
+  ```text
+  1390:resolvedDirectional + flat + unresolved + notEvaluable + withdrawn + open + unresolvableLegacy
+  1545:  "flatCount": 0, "unresolvedCount": 0, "notEvaluableCount": 0,
+  ```
+
+  Line `1390` is a D5 cohort-partition formula and line `1545` is a `notEvaluableCount` on a D6 summary object.
+  Neither declares a field of `brief-recommendation-claim/v1`. This half **does not hold**.
+
+**The extra field is persisted, not an in-memory annotation.** `serializeClaim` is
+`function serializeClaim(claim) { return stableStringify(claim); }` (`rlclaims.js#L336`) and the store calls it on
+the whole object (`#L555`). Nothing is stripped, so `notEvaluable` reaches
+`briefs/objects/claims/<hex>.json` as a fifteenth top-level key of the contract instance.
+
+**This is a design gap, not an implementation defect, and it is not repaired here.** `## D1` requires the behaviour
+the field carries — it states in its own prose that a claim with an absent authored field *"is minted
+`not-evaluable`, reason **`no-authored-subject`**"* (line 416) and that *"`no-authored-subject`,
+`no-authored-horizon`, `no-authored-thesis-family`, and `no-authored-predicate` are distinct members of the closed
+`not-evaluable` reason set"* (line 555). A claim object must therefore carry its refusal somewhere, and the
+`### Contract:` block never declares where. Deleting the field to satisfy the DoD's literal wording would delete a
+behaviour `## D1` mandates; adding it to the contract block is an edit to `design.md`, which this scope must not
+touch and this agent does not own.
+
+**Route:** `bubbles.design` — declare the mint-refusal carrier in `## D1` → *Contract* (name, shape, and hash
+status; the implementation currently has it outside `HASHED_TERMS`, so an unhashed declaration matches delivery),
+after which this conjunct can be re-measured against the amended block. **The DoD item stays unticked.**
+
+<a id="vocabulary-constants-are-frozen-and-call-sites-reference-them"></a>
+
+### Vocabulary constants are frozen, and call sites reference them
+
+**Claim Source:** `executed`. The DoD item carries two conjuncts: the six vocabularies are *frozen module
+constants, not literals at call sites*, and *an unrecognised value refuses rather than passing through*. The second
+is proven by [`#t-01-u6`](#t-01-u6). The first is a source-layout claim no executed row observes, so it is swept
+here.
+
+**Command:** `grep -nE 'SUBJECT_KINDS|PREDICATE_KINDS|PREDICATE_COMPARATORS|HORIZON_KINDS|MAGNITUDE_UNITS|SIGN_CONVENTIONS|Object\.freeze' rlclaims.js`. **Exit code:** `0`.
+
+```text
+47:    var SUBJECT_KINDS = Object.freeze(["instrument", "basket", "sector", "aggregate"]);
+48:    var PREDICATE_KINDS = Object.freeze(["threshold", "relative", "directional", "spread"]);
+49:    var PREDICATE_COMPARATORS = Object.freeze(["gte", "lte", "gt", "lt", "crosses-above", "crosses-below"]);
+50:    var HORIZON_KINDS = Object.freeze(["intraday", "next-session", "multi-session", "event-bound"]);
+51:    var MAGNITUDE_UNITS = Object.freeze(["percent-return"]);
+52:    var SIGN_CONVENTIONS = Object.freeze(["direction-adjusted"]);
+394:        if (!inSet(SUBJECT_KINDS, subjectKind)) return violation("subject-kind-not-allowed", "subject.kind");
+400:            if (!inSet(PREDICATE_KINDS, predicateInput.kind)) return violation("predicate-kind-not-allowed", "predicate.kind");
+401:            if (!inSet(PREDICATE_COMPARATORS, predicateInput.comparator)) {
+408:        if (horizonKind !== undefined && horizonKind !== null && !inSet(HORIZON_KINDS, horizonKind)) {
+412:        var unit = input.magnitudeUnit === undefined ? MAGNITUDE_UNITS[0] : input.magnitudeUnit;
+413:        if (!inSet(MAGNITUDE_UNITS, unit)) return violation("magnitude-unit-not-allowed", "magnitude.unit");
+414:        var signConvention = input.signConvention === undefined ? SIGN_CONVENTIONS[0] : input.signConvention;
+415:        if (!inSet(SIGN_CONVENTIONS, signConvention)) return violation("magnitude-sign-convention-not-allowed", "magnitude.signConvention");
+584:        SUBJECT_KINDS: SUBJECT_KINDS,
+586:        PREDICATE_KINDS: PREDICATE_KINDS,
+587:        PREDICATE_COMPARATORS: PREDICATE_COMPARATORS,
+588:        HORIZON_KINDS: HORIZON_KINDS,
+589:        MAGNITUDE_UNITS: MAGNITUDE_UNITS,
+590:        SIGN_CONVENTIONS: SIGN_CONVENTIONS,
+```
+
+All six are declared **once**, at lines 47 – 52, each wrapped in `Object.freeze`, and each exported at lines
+584 – 590. Every validation site reads the constant through `inSet(CONSTANT, value)` — lines 394, 400, 401, 408,
+413, 415 — and no site compares against a member spelled out as a literal. The two defaults at lines 412 and 414
+are `MAGNITUDE_UNITS[0]` and `SIGN_CONVENTIONS[0]`: derived from the frozen constant, not re-typed. **Frozen module
+constants, referenced at every call site. The conjunct holds.**
+
+**A correction to the prior closure record, and a plan-owned note it should not have produced.** The previous pass
+recorded that `T-01-U6` *"covers five vocabularies"* and that `magnitude.signConvention` is *"named in neither the
+`T-01-U6` Test Plan row nor `report.md`"*. The first half is wrong and was reached without reading the test. The
+delivered `T-01-U6` probes **seven** vocabularies — the six closed ones plus `MARKET_ACTIONS` — through seven
+fixtures including `violation-magnitude-sign-convention-one-char-off`, and it closes with a completeness assertion:
+
+```text
+    assert.deepEqual(
+        [...coveredVocabularies].sort(),
+        Object.keys(vocabularies).sort(),
+        'every closed vocabulary must be probed by a fixture',
+    );
+```
+
+That assertion makes under-coverage impossible to pass silently: adding a vocabulary to the module without a
+fixture fails the row. `magnitude.signConvention` **is** covered, and the executed green row at
+[`#t-01-u6`](#t-01-u6) proves it. What is genuinely true is narrower and is a **description** defect, not a
+coverage one: the `T-01-U6` Test Plan row in [scope.md](scope.md) enumerates five vocabularies in its prose while
+the test it names probes six plus `MARKET_ACTIONS`. **Route:** `bubbles.plan`, to align the row's prose with the
+delivered assertion. It does not block the core item, whose own text names all six and whose evidence covers all
+six.
+
+<a id="p-015-03-ruling"></a>
+
+### P-015-03 ruling — **RESOLVED**
+
+**Claim Source:** `interpreted` from [scope.md](scope.md) → *Implementation Plan* step 2, plus the executed rows
+cited below. The DoD item requires the ruling to be recorded **in `report.md`**; it existed only in the plan and
+was never carried across. It is carried across here, in the terms the plan states it.
+
+**Routed finding P-015-03 is RESOLVED.** The ruling: `thesisFamily` is a **top-level, hashed** claim field. It is
+**authored or the claim is not evaluable** — absence mints the not-evaluable reason `no-authored-thesis-family`.
+No value is derived from `actionFamily`, `direction`, or `horizon`; none is defaulted; none is inferred from prose.
+
+**Why it is hashed rather than carried as provenance.** `thesisFamily` is the one `origin-recommendation-key/v1`
+term that varies per claim and is not already carried by `subject`, `actionFamily`, or `horizon`. Excluding it
+would break the reducer-key containment invariant and let two claims asserting **different theses** collide on one
+content address — a silent merge of two distinct calls into one track record.
+
+**Its executed evidence.** The hashing half is proven at [`#t-01-u1`](#t-01-u1), whose adversarial half mutates
+`thesisFamily` alone and requires a **different** hash, and at [`#t-01-u2`](#t-01-u2), which carries it among the
+eleven load-bearing mutations. The refusal half is proven at [`#t-01-r1`](#t-01-r1), where
+`no-authored-thesis-family` fires for its own trigger and only its own. The withdrawn `lifecycleTerms` placement —
+which held `thesisFamily` as *unhashed* provenance — is what `T-01-U1`'s adversarial half exists to detect: an
+implementation still carrying that placement passes the content-only half and fails the mutation half.
+
+<a id="purely-additive-change-set"></a>
+
+### Purely-additive change set
+
+**Claim Source:** `executed`. The prior closure record correctly refused to close this item on a post-delivery
+`git status --porcelain`: an empty porcelain at a *post*-delivery `HEAD` proves the tree is clean, which is a
+different claim from *the delivery added and modified what it says it did*. The change set is therefore
+established from the commit itself.
+
+**Command:** `git diff --name-status 39d04d9d90852b3e20ea1f6b73289bcdc466fe99~1 39d04d9d90852b3e20ea1f6b73289bcdc466fe99`. **Exit code:** `0`.
+
+The full unfiltered output was captured; it is **53 lines**, one per path. Every line begins with `A` except one.
+The additions are `rlclaims.js`, the five `tests/recommendation-track-record.*.mjs` files, and 46 fixture files
+under `tests/fixtures/recommendation-track-record/claims/`. The single non-addition is:
+
+```text
+M       specs/015-recommendation-outcome-ledger-and-track-record/scopes/01-frozen-claim-contract/scope.md
+```
+
+The status-letter tally over that same output:
+
+```text
+=== status-letter tally ===
+     52 A
+      1 M
+```
+
+**52 additions, 1 modification, zero deletions, zero renames, zero copies.** The one modification is this scope's
+own planning artifact — allowed file family 5. No `D`, no `R`, no `C` letter appears. No file outside the five
+allowed families is touched, and in particular no Feature 002, 007, 012 or 013 surface appears anywhere in the
+change set: `rlvalidation.js`, `rlcontracts.js`, `rldata.js`, `scripts/selftest.mjs`, the three committed sibling
+validators and every counted registry are all absent from it.
+
+**This is the observation the item asks for.** *"This scope creates only new files and modifies no existing file"*
+is established against the delivery commit's own diff, not inferred from a later clean tree.
+
+---
+
+
 
 ## Test Evidence
 
@@ -438,13 +907,31 @@ CMD4_EXIT=1
 
 ### T-01-C1 — the shared substrate holds its own contracts before any broad rerun
 
-**Claim Source:** `executed`. **Command:** the canary suite
-([Suite invocation C](#suite-invocation-c--canary-failing)). **Row result: PASS** in both runs — `21732.128346ms`
-in the later C-run 2, `23491.759701ms` in C-run 1.
+**Claim Source:** `executed`. **Command:** `node --test tests/recommendation-track-record.canary.mjs`
+([Closure-pass command C](#closure-pass-command-c--canary-post-repair-green)). **Exit code:** `0`.
+**Row result: PASS.**
+
+**Operative, current evidence** — the post-repair run at `HEAD` `89a94af4050c0ad53fa406252e351aeaa4994f16`,
+quoted in full:
 
 ```text
-✔ T-01-C1: the shared substrate holds its own contracts before any broad rerun (21732.128346ms)
+=== CANARY RUN ===
+✔ T-01-C1: the shared substrate holds its own contracts before any broad rerun (35805.241267ms)
+✔ T-01-C2: the restore path is rehearsed in a disposable worktree, never on the live tree (49162.302544ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 85072.983715
+CANARY_EXIT=0
 ```
+
+The row has now passed in **three** recorded runs — `35805.241267ms` in the current post-repair run,
+`21732.128346ms` in the superseded C-run 2, and `23491.759701ms` in the superseded C-run 1. Neither canary repair
+touches what it asserts, which is why its result is stable across all three.
 
 The support module's export surface, its import side-effect freedom, a round-trip load of one input of each fixture
 shape, the stable loader ordering, and the baseline re-asserted under the **attributable-delta** rule all hold. The
@@ -461,14 +948,44 @@ cross-tree diff that only `T-01-C2` performs, so it does not disturb this result
 
 <a id="t-01-c2"></a>
 
-### T-01-C2 — the restore path rehearsal — **unresolved, no current transcript**
+### T-01-C2 — the restore path rehearsal — **PASS**
 
-**Claim Source:** `executed` for the two superseded transcripts; `interpreted` for the mechanism; `not-run` for
-the row's state at the current `HEAD`. **Command:** the canary suite
-([Suite invocation C](#suite-invocation-c--canary-failing)).
-**Row result recorded here: none that is current.**
+**Claim Source:** `executed`. **Command:** `node --test tests/recommendation-track-record.canary.mjs`
+([Closure-pass command C](#closure-pass-command-c--canary-post-repair-green)). **Exit code:** `0`.
+**Row result: PASS.**
 
-**Why this anchor evidences nothing current.** Both canary runs in this report were taken before commit
+**Operative, current evidence** — the post-repair run at `HEAD` `89a94af4050c0ad53fa406252e351aeaa4994f16`,
+working tree clean (`PORCELAIN_LINES=0`), quoted in full:
+
+```text
+=== CANARY RUN ===
+✔ T-01-C1: the shared substrate holds its own contracts before any broad rerun (35805.241267ms)
+✔ T-01-C2: the restore path is rehearsed in a disposable worktree, never on the live tree (49162.302544ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 85072.983715
+CANARY_EXIT=0
+```
+
+**What passing means here, in the row's own terms.** The rehearsal created a disposable detached worktree at the
+pre-scope boundary, ran the project self-test in both trees, asserted `0 failed` in each, asserted that no
+pre-existing group's pass count fell, attributed **every** cross-tree difference to this scope's own added files by
+a per-run-derived delta under the skeleton gate, asserted the live tree carries no entry outside the allowed file
+families, and tore the worktree down. The `49162.302544ms` duration is the signature of that full traversal:
+C-run 1 stopped at `30.984722ms`, three orders of magnitude earlier, on a precondition the boundary fix removed;
+C-run 2 reached the attribution assertion and stopped there at `49093.470352ms`. The current run passes **through**
+that assertion at a comparable duration, which is what distinguishes a repaired attribution model from a skipped
+one.
+
+The two transcripts below are retained as the diagnosis that produced the repair. **They are superseded.** Read
+them for why the repair was needed, not for the row's state.
+
+**Why they are superseded.** Both were taken before commit
 `67c9ebc1459d6a3828ec3ea8b04c0977f5d9c484` finished repairing the row, and that commit changed exactly the code
 each run tripped on:
 
@@ -478,17 +995,16 @@ each run tripped on:
 | [C-run 2](#c-run-2--superseded-bound-to-pre-repair-canary-source) | `every cross-tree difference must be attributable … 3 !== 0` | Yes — the attribution model was extended to the three repo-wide counters named below. |
 
 Both repairs landed in that single commit; C-run 2 was taken between them, against source that existed only
-mid-repair. **This report therefore records no canary run against the repaired suite, and asserts neither a pass
-nor a failure for `T-01-C2` at `HEAD`.** The transcripts below are retained as the diagnosis that produced the
-repair — that is what they are good for, and it is all they are good for.
+mid-repair. Neither describes the suite as it now stands, and neither is read here as the row's state.
 
-**Corroboration, not evidence** (`not-run`). The message of `67c9ebc14` states the extension in its own terms —
-the pii-scan file universe attributed by a predicate copied from the scanner, the commit-message count via
-`rev-list`, and the referenced-test-path count partitioned by artifact ownership — and the message of
-`a19f8919cc8493df6346574aa6df5e51ecad342a` records the row as green at `HEAD` while noting this artifact was
-never refreshed. Neither is a transcript, and **neither is treated here as evidence.** Closing this anchor
-requires one re-run of the canary suite against `HEAD`, recorded in full. Until then no Definition of Done item
-depending on `T-01-C2` may be ticked — which is how the closure pass at `a19f8919c` in fact left it.
+**The corroboration that was previously not enough, and no longer has to be.** The message of `67c9ebc14` states
+the extension in its own terms — the pii-scan file universe attributed by a predicate copied from the scanner, the
+commit-message count via `rev-list`, and the referenced-test-path count partitioned by artifact ownership — and the
+message of `a19f8919cc8493df6346574aa6df5e51ecad342a` records the row as green at `HEAD` while noting this artifact
+was never refreshed. **Neither is a transcript**, so neither closed the anchor, and the earlier passes were right
+to refuse to tick on them. What closes it is the recorded re-run above: a full canary invocation against the
+repaired suite at `HEAD`, quoted with its exit code. Every commit message here now agrees with an executed run
+rather than standing in for one.
 
 ---
 
@@ -562,6 +1078,8 @@ would be the "classifier that returns a name for everything" the row's own adver
 than by whitelist, and asserted the co-located counters invariant so the new rules cannot absorb an unrelated
 movement. This report records the diagnosis above; it does **not** record a run of the extended model.
 
+<a id="self-reference-caveat-and-post-edit-re-run"></a>
+
 **Self-reference caveat** (`executed`). This report is itself inside the scanned spec-artifact universe, so its
 own text contributes to the third counter, and **editing this report moves the number this report quotes.** That
 is not a defect in the row; it is what it means for a guard to scan the artifact that reports on it. The effect
@@ -579,11 +1097,12 @@ re-run reproduces, because every correction made after that run changed digits o
 `pre` figure of `13364` is untouched by any of this — it is read from the pre-scope tree, which does not contain
 this report.
 
-**Repaired, not re-measured.** The remedy was a further edit to the canary's attribution model, which this
-evidence pass did not own — it owns this report and nothing else. That remedy **landed** in `67c9ebc14`. What
-this report still lacks is a canary transcript taken afterwards, so the row is left **unresolved** rather than
-either red or green. Recorded at [Still open](#still-open). **No DoD item depending on `T-01-C2` may be ticked
-until a post-repair run is recorded here.**
+**Repaired, and now re-measured.** The remedy was a further edit to the canary's attribution model, which the
+evidence pass that diagnosed it did not own — it owned this report and nothing else. That remedy **landed** in
+`67c9ebc14`. What this report lacked until the closure pass was a canary transcript taken afterwards; that
+transcript now exists, is green, and is recorded at
+[Closure-pass command C](#closure-pass-command-c--canary-post-repair-green). The row is **resolved green**, on an
+executed run rather than on the repair having landed.
 
 **Earlier superseded record — the failure C-run 2 replaced.** C-run 1 stopped much earlier, at the row's
 added-file precondition: the set was built from the **untracked** entries of `git status --porcelain` and
@@ -636,18 +1155,117 @@ here.
 
 <a id="t-01-r2"></a>
 
-### T-01-R2 — the committed suites are intact and run green
+### T-01-R2 — the committed suites are intact; Node half green, **Playwright half red**
 
-**Claim Source:** `executed`. **Command:** `node --test tests/recommendation-track-record.e2e.mjs`
+**Claim Source:** `executed`. The row has two halves and they have **different results**. Both are recorded.
+
+#### Node half — green
+
+**Command:** `node --test tests/recommendation-track-record.e2e.mjs`
 ([Suite invocation D](#suite-invocation-d--e2e-regression)). **Exit code:** `0`.
 
 ```text
 ✔ T-01-R2: the committed suites are intact, and the committed Node E2E suite runs green (32742.012821ms)
 ```
 
-The committed Node E2E files run green with no pre-existing test removed, skipped, or newly failing. This is the row
-that proves the new content-addressed tree under `briefs/objects/` did not disturb the committed brief pipeline that
-reads the same tree.
+The committed Node E2E files run green with no pre-existing test removed, skipped, or newly failing. This is the
+part that proves the new content-addressed tree under `briefs/objects/` did not disturb the committed brief
+pipeline that reads the same tree.
+
+<a id="t-01-r2-playwright-half"></a>
+
+#### Playwright half — **red: 3 failed, 495 passed**
+
+**Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome`.
+**Exit code:** `1`. Captured through the bounded evidence helper; the recorded `sha256` covers all 1208 output
+lines and is re-derivable with the helper's `--verify` mode.
+
+```text
+# T-01-R2 Playwright half — committed spec suite (system-chrome)
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome
+exit: 1
+lines: 1208
+sha256: f7c95da17171bc976b9717d1acbee423017e014e21e76faac377cedaafcc2570
+--- first 20 ---
+
+Running 498 tests using 4 workers
+...
+--- last 20 ---
+  Slow test file: [system-chrome] › tests/simple-production-wiring.spec.mjs (7.4m)
+  3 failed
+    [system-chrome] › tests/contextual-tooltip.spec.mjs:21:1 › Regression: SCN-012-003 Power chart context is equivalent by pointer keyboard touch and table
+    [system-chrome] › tests/contextual-tooltip.spec.mjs:63:1 › Regression: SCN-012-004 label-only context fails the exact Power item without hiding valid peers
+    [system-chrome] › tests/simple-models.spec.mjs:8:1 › Regression: SCN-012-034 missing owner adapter stays unavailable without defaults fetch or fabricated result
+  495 passed (14.3m)
+```
+
+**The DoD item requires *"the whole committed Playwright spec suite are green"*. It is not. The row stays
+unticked.** `495 / 498` is not `498 / 498`, and no reading of the item admits three red tests.
+
+Machine load across the run, quoted from the same invocation: `LOAD_BEFORE=11.05 12.01 12.22`,
+`LOAD_AFTER=14.60 21.72 20.35`. The run peaked above 30 while several sibling repositories built concurrently.
+
+#### Diagnostic — is this scope 01, or is it D18?
+
+The three failures name **Feature 012** surfaces. Scope 01 opens none of them: its change set is
+[52 additions and one modification of its own `scope.md`](#purely-additive-change-set), and neither
+`market-heatmap-lab.html`, `contextual-tooltip`, nor `simple-models` appears in it. To separate *scope 01 broke
+Feature 012* from *documented load intermittency*, the failing files were re-run in isolation.
+
+**Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/contextual-tooltip.spec.mjs tests/simple-models.spec.mjs`. **Exit code:** `1`.
+
+```text
+# T-01-R2 diagnostic — the three failing spec files re-run in isolation
+exit: 1
+lines: 46
+sha256: 0bd40ddd59074eb55a414593d1c01ce6829009c1576c6a43feea94124e15db88
+
+Running 7 tests using 2 workers
+
+  ✓  2 › tests/simple-models.spec.mjs:8:1 › Regression: SCN-012-034 missing owner adapter stays unavailable without defaults fetch or fabricated result (2.1s)
+  ✘  1 › tests/contextual-tooltip.spec.mjs:21:1 › Regression: SCN-012-003 Power chart context is equivalent by pointer keyboard touch and table (35.1s)
+  ✓  5 › tests/contextual-tooltip.spec.mjs:63:1 › Regression: SCN-012-004 label-only context fails the exact Power item without hiding valid peers (30.0s)
+
+    Test timeout of 30000ms exceeded.
+    Error: expect(locator).toHaveAttribute(expected) failed
+    Locator:  locator('body')
+    Expected: "ready"
+           - unexpected value "loading"
+
+      11 |   await expect(page.locator('body')).toHaveAttribute('data-heatmap-hydration', 'ready', { timeout: 120000 });
+         |                                      ^
+        at waitForHeatmap (<redacted>/tests/contextual-tooltip.spec.mjs:11:38)
+
+  1 failed
+  6 passed (1.8m)
+```
+
+**Two of the three passed in isolation** — `SCN-012-034` in `2.1s` after failing in the full run, and `SCN-012-004`
+in `30.0s`. That is load-dependence, demonstrated rather than asserted.
+
+**The third is a timeout, and the numbers say so unambiguously.** The assertion at line 11 asks for
+`{ timeout: 120000 }` — 120 seconds — but the run died at *"Test timeout of 30000ms exceeded"*. The **test-level**
+budget of 30 s expires before the assertion's own 120 s wait can finish, so under sustained load
+`market-heatmap-lab.html` simply has not reached `data-heatmap-hydration="ready"` when the harness gives up. The
+observed value is `"loading"`, not a wrong value — the page was still working.
+
+**This is anti-drift D18 — documented Playwright intermittency under parallel load — and it is recorded as a
+limitation, not repaired here.** Widening the 30 s test budget would turn this red green without changing a single
+behaviour, which is the definition of forcing a pass; it is not done. Nothing in scope 01 is implicated: the
+delivered module is a UMD file no page under test loads, and the failing assertions are hydration-timing and
+network-quiescence checks on Feature-012 pages.
+
+**Honest scope of what is proven.** The committed Playwright suite is **intact** — 498 tests collected, none
+removed or skipped — and `495` of them pass. What is **not** proven is the DoD item's *whole suite green*.
+**Route:** `bubbles.plan` if the row's intent is intactness and the DoD wording overstates it; otherwise the
+Feature 012 owner, for the 30 s / 120 s budget mismatch at `contextual-tooltip.spec.mjs:11`, which is a
+Feature-012-owned surface this scope may not touch.
+
+> **Redaction note.** The absolute home prefix in the `waitForHeatmap` frame was replaced with `<redacted>` to
+> satisfy this repository's personal-identifier rule (`scripts/pii-scan.mjs`, rule `home-path`). The evidentiary
+> part — the file and position at `11:38` — is unaltered. The two transcripts are elided at the `...` and
+> `--- omitted ---` markers exactly as the capture helper emitted them; each recorded `sha256` covers the full
+> unelided output.
 
 ---
 
@@ -673,6 +1291,66 @@ CMD6_EXIT=0
 
 **`2487 passed, 0 failed`, exit `0`.** The elided region is the run's own group listing; the totals line and the exit
 code are quoted verbatim from the run.
+
+<a id="suite-invocation-f--unit-after-the-comment-reword"></a>
+
+### Suite invocation F — unit, after the comment reword
+
+**Claim Source:** `executed`, this session. This exists to prove that the one-line comment change recorded at
+[Sweep A](#sweep-a--lifecycleterms) moved nothing but the comment. **Command:**
+`node --test tests/recommendation-track-record.unit.mjs`. **Exit code:** `0`.
+
+```text
+✔ T-01-U1: claimHash is content-only across exactly the four unhashed fields (17.939892ms)
+✔ T-01-U2: every hashed term is load-bearing (10.097151ms)
+✔ T-01-U3: RTR-PREDICATE-AMEND refuses a byte-changing write and never overwrites (13.58387ms)
+✔ T-01-U4: non-semantic-subject refuses both publisher positional fallbacks (15.82688ms)
+✔ T-01-U5: no-committed-series refuses an empty seriesRefs and a partially-absent basket (12.813765ms)
+✔ T-01-U6: every closed vocabulary refuses a one-character-off value (26.939137ms)
+✔ T-01-U7: direction is bound to ACTION_DIRECTION and hold has no signed outcome (9.938151ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 199.161213
+UNIT_EXIT=0
+```
+
+**`7 pass, 0 fail`, exit `0`**, with `skipped 0` and `todo 0` — the same seven rows, same names, none removed and
+none silenced. The adversarial half of `T-01-U1` still runs and still passes, which is the assertion the reworded
+comment describes.
+
+<a id="suite-invocation-g--project-check-after-the-comment-reword"></a>
+
+### Suite invocation G — project check, after the comment reword
+
+**Claim Source:** `executed`, this session. **Command:** `node scripts/selftest.mjs`, captured through the bounded
+evidence helper. **Exit code:** `0`. The recorded `sha256` covers all 2824 output lines and is re-derivable with
+the helper's `--verify` mode.
+
+```text
+# Item-1/3 pass — node scripts/selftest.mjs
+$ node scripts/selftest.mjs
+exit: 0
+lines: 2824
+sha256: fbe241f220f2d3f70475598bee2b3505b9145b87d4c848fd66bb245215fce206
+--- omitted 2784 line(s); sha256 above covers the full output ---
+--- last 20 ---
+regime-primitives-stress
+  ✓ the facet publication path sustains a repeated high-volume append run without unbounded slot growth or degraded write throughput
+
+================================================
+Research-Lab self-test: 2487 passed, 0 failed
+================================================
+```
+
+**`2487 passed, 0 failed`, exit `0`** — byte-identical totals to
+[T-01-S1](#t-01-s1), so the comment reword moved no assertion count in either direction. The helper reports zero
+failure-shaped lines across the full 2824-line capture. Machine load across the run, quoted from the same
+invocation: `LOAD_BEFORE=7.67 12.86 17.06`, `LOAD_AFTER=8.02 12.55 16.84`.
 
 ---
 
@@ -838,62 +1516,148 @@ composition, the three committed sibling validators, every counted registry (`to
 
 ## Still open
 
-**Claim Source:** mixed, tagged per item. Nothing in this section is resolved here.
+**Claim Source:** mixed, tagged per item.
 
-**1. `T-01-C2` has no current transcript and is routed for one re-run.** `executed` for what is recorded here;
-`not-run` for the row's state at `HEAD`. Both routed remedies **landed**, together, in commit `67c9ebc14`: the
-row's pre-scope boundary is derived from commit history rather than untracked working-tree state, and the
-attribution model was extended by derivation to the three repo-wide counters that committing made diverge
-(the pii-scan file universe, the commit-message count, and the spec-artifact reference count). What did **not**
-happen is a canary run against the repaired suite recorded in this artifact: both transcripts here predate the
-second remedy. See [T-01-C2](#t-01-c2) for the superseded diagnosis and the per-counter breakdown. The
-outstanding action is therefore **evidentiary, not corrective** — run the canary suite once against `HEAD` and
-record it here in full. **Route:** the scope's evidence owner. Until that transcript exists, this report
-evidences neither a pass nor a failure for the row, and no DoD item depending on `T-01-C2` — nor the Build
-Quality Gate item, which requires zero issues deferred — may be ticked.
+**1. `T-01-C2` is RESOLVED — green, on a recorded post-repair run.** `executed`. Both routed remedies landed
+together in commit `67c9ebc14`: the row's pre-scope boundary is derived from commit history rather than untracked
+working-tree state, and the attribution model was extended by derivation to the three repo-wide counters that
+committing made diverge (the pii-scan file universe, the commit-message count, and the spec-artifact reference
+count). What was missing was **evidentiary, not corrective** — a canary run against the repaired suite recorded in
+this artifact. That run was taken in the closure pass and is recorded in full at
+[Closure-pass command C](#closure-pass-command-c--canary-post-repair-green): `2 pass, 0 fail`, exit `0`, at `HEAD`
+`89a94af40` with a clean tree. **This item is closed.**
 
-**2. DoD items are not ticked by this report.** `interpreted`. This report records evidence; it ticks nothing.
-Fourteen rows are green and their evidence is anchored above. A separate closure pass
-(`a19f8919cc8493df6346574aa6df5e51ecad342a`) ticked items in [scope.md](scope.md) against that recorded evidence
-and left every item depending on `T-01-C2` unticked, consistent with item 1.
+**2. Absence sweep A is RESOLVED — clean, zero occurrences.** `executed`, this session.
+[Sweep A](#sweep-a--lifecycleterms) previously found the identifier `lifecycleTerms` once, in an explanatory
+comment in the unit suite. The prior route — ask `bubbles.plan` to narrow the DoD clause — **is withdrawn**. The
+clause was kept and the comment was reworded to *"the withdrawn provenance block"* instead, because textual
+absence is mechanically checkable forever while *no block is declared* is not. The sweep now returns exit `1`
+across `rlclaims.js`, all five `tests/recommendation-track-record.*.mjs` files and the 46-file fixture root, and
+the suite is unchanged at `7 pass, 0 fail`
+([Suite invocation F](#suite-invocation-f--unit-after-the-comment-reword)). **This item is closed.**
 
-**3. A DoD count discrepancy is reported and left unresolved.** `not-run` — **operator-reported diagnostic input,
-not a measurement made by this agent.** The operator reports that [scope.md](scope.md) carries **33** unchecked DoD
-checkboxes against a parity line asserting **32**. This report neither confirms nor disputes that count: it did not
-count them, and resolving the discrepancy would require editing `scope.md`, which is **plan-owned** and outside this
-agent's artifact ownership. **Route:** `bubbles.plan`, as an open question against the scope's DoD accounting.
-Recorded here so it is not lost, and deliberately not resolved.
+**3. The `T-01-U6` Test Plan row under-describes the assertion it names.** `executed`. The row's prose enumerates
+five vocabularies; the delivered test probes **six plus `MARKET_ACTIONS`**, with a completeness assertion that
+makes under-coverage impossible to pass silently. This is a description defect in plan-owned prose, not a coverage
+gap — the dependent core item is fully evidenced and is ticked. Detail and the quoted assertion are at
+[Vocabulary constants](#vocabulary-constants-are-frozen-and-call-sites-reference-them). **Route:** `bubbles.plan`.
+
+**4. The DoD count discrepancy is RESOLVED: the total is 33.** `executed`. The earlier entry recorded, as
+operator-reported diagnostic input the report neither confirmed nor disputed, that [scope.md](scope.md) carries 33
+DoD checkboxes against a parity line asserting 32. The closure pass inventoried them directly, by section and tick
+state: **17 core, 15 test, 1 Build Quality Gate = 33**. The scope's only parity line — *"Test-related DoD items:
+15. Test Plan rows: 15. Parity confirmed."* — scopes itself to **test** items and is **correct**. No line in
+[scope.md](scope.md) asserts a total of 32. **No correction to the parity line is warranted**, and the `32` figure
+survived only in this report's own prior wording, which this pass has now replaced. **This item is closed.**
+
+**5. The claim object carries one field beyond `## D1` → *Contract*, and the contract DoD item stays unticked.**
+`executed`, this session. [D1 field parity](#d1-field-parity--every-named-field-present-one-field-beyond)
+enumerates both sides mechanically: `## D1` → *Contract* names **14** top-level fields (9 hashed + 4 unhashed +
+`claimHash`), all 14 are present in the minted object, and the object carries a **fifteenth**, `notEvaluable`
+(`rlclaims.js#L478`), which appears nowhere in `## D1` (lines `303`–`680`). It is persisted, not an in-memory
+annotation: `serializeClaim` is `stableStringify(claim)` (`#L336`) over the whole object.
+
+This is a **design gap**, not an implementation defect. `## D1`'s own prose requires the behaviour the field
+carries — *"the claim is minted `not-evaluable`, reason **`no-authored-subject`**"* (`design.md` line 416) — while
+its `### Contract:` block never declares the carrier. Deleting the field would delete mandated behaviour; adding it
+to the contract block is an edit to `design.md`, which this scope must not touch. **Route:** `bubbles.design` —
+declare the mint-refusal carrier in `## D1` → *Contract* with its hash status, after which this conjunct can be
+re-measured.
+
+**6. `T-01-R2`'s Playwright half is red and the row stays unticked.** `executed`, prior session; **re-confirmed as
+the operative record this session and deliberately not re-run.** [The recorded
+transcript](#t-01-r2-playwright-half) is `3 failed, 495 passed` of 498, exit `1`. The suite is **intact** — 498
+collected, none removed or skipped — but the DoD item requires *the whole committed Playwright spec suite* green,
+and `495 / 498` is not that.
+
+**Why it was not re-run.** A red result is already on record at this `HEAD`, with a diagnostic that isolates the
+cause. Re-running until a green appeared would be result-shopping against a suite whose intermittency is itself
+the documented condition (anti-drift **D18**) — and the surviving failure is not purely load-dependent: the
+isolation run reproduced `contextual-tooltip.spec.mjs:21` failing at `35.1s` with only two workers, against a
+**test-level** budget of `30000ms` guarding an assertion that asks for `{ timeout: 120000 }`. Widening that budget
+would turn the row green without changing a behaviour, and is not done. **Route:** the Feature 012 owner, for the
+30 s / 120 s budget mismatch at `contextual-tooltip.spec.mjs:11`, a Feature-012-owned surface this scope may not
+touch.
+
+---
+
+<a id="build-quality-gate-assessment"></a>
+
+## Build Quality Gate — assessed conjunct by conjunct, **not met**
+
+**Claim Source:** mixed, tagged per row. The gate is a conjunction of five clauses and may be ticked only if every
+one holds. Three hold on evidence executed this session, one holds by prior record, one does not hold.
+
+| # | Conjunct | Verdict | Evidence |
+|---|---|---|---|
+| 1 | Zero warnings across `node --test` output and `node scripts/selftest.mjs` | **holds** — `executed` | [Suite invocation F](#suite-invocation-f--unit-after-the-comment-reword): `7 pass, 0 fail`, `skipped 0`, `todo 0`, exit `0`. [Suite invocation G](#suite-invocation-g--project-check-after-the-comment-reword): `2487 passed, 0 failed`, exit `0`, zero failure-shaped lines across the full 2824-line capture |
+| 2 | Zero issues deferred, skipped, or worked around | **DOES NOT HOLD** — `executed` | *Still open* carries three live entries: **3** (`T-01-U6` row under-describes → `bubbles.plan`), **5** (`notEvaluable` beyond the contract → `bubbles.design`), **6** (`T-01-R2` Playwright half red → Feature 012 owner) |
+| 3 | Every negative test verified to fail when the behaviour it guards is reverted | **holds by prior record** — `not-run` | [Adversarial proof — completed (P23)](#adversarial-proof--completed-p23): six behaviour reversions across `T-01-F1`–`T-01-F3` and three derivation perturbations against `T-01-C2`, each detected, each applied in a disposable copy with a green control. Not re-executed here, and no mutation harness was created in this pass |
+| 4 | `spec.md` and `design.md` unmodified by this scope | **holds** — `executed` | change-set commands below |
+| 5 | No other spec's artifacts touched | **holds** — `executed` | change-set commands below |
+
+**Conjuncts 4 and 5 — the change set, measured against the pre-scope boundary.** The boundary is the parent of the
+delivery commit. **Command:** `git diff --name-only 39d04d9d9~1 HEAD`. **Exit code:** `0`. It returns **54** paths:
+`rlclaims.js`; the five `tests/recommendation-track-record.*.mjs` files; 46 files under
+`tests/fixtures/recommendation-track-record/claims/`; and this scope's own `report.md` and `scope.md`. **Neither
+`spec.md` nor `design.md` appears, and no path outside
+`specs/015-recommendation-outcome-ledger-and-track-record/scopes/01-frozen-claim-contract/` appears** — every
+returned path falls inside allowed families 1, 2, 3 and 5.
+
+The uncommitted half is exactly the three files this pass was authorised to write. **Command:**
+`git diff --name-only`. **Exit code:** `0`. **Command:** `git status --porcelain`:
+
+```text
+ M specs/015-recommendation-outcome-ledger-and-track-record/scopes/01-frozen-claim-contract/report.md
+ M specs/015-recommendation-outcome-ledger-and-track-record/scopes/01-frozen-claim-contract/scope.md
+ M tests/recommendation-track-record.unit.mjs
+```
+
+Three entries, no untracked file, no staged file, nothing outside the allowed families. `design.md` and `spec.md`
+are absent from both halves, so conjuncts 4 and 5 hold across the whole scope rather than merely across this pass.
+
+**Verdict: the Build Quality Gate is not met, on conjunct 2 alone.** It cannot be ticked while three routed items
+are open — two owned by other agents (`bubbles.design`, `bubbles.plan`) and one by the Feature 012 owner. **The
+item stays unticked.**
 
 ---
 
 ## Completion Statement
 
-Scope 01's implementation was delivered at `39d04d9d90852b3e20ea1f6b73289bcdc466fe99` and repaired at
-`67c9ebc1459d6a3828ec3ea8b04c0977f5d9c484`. This report records execution evidence for all fifteen Test Plan rows
-from seven commands run once each, plus a later two-command
-[verification re-run](#verification-re-run--same-commit-after-two-corrections), all against `39d04d9d9`.
+**Refreshed this session.** Scope 01's implementation was delivered at
+`39d04d9d90852b3e20ea1f6b73289bcdc466fe99` and repaired at `67c9ebc1459d6a3828ec3ea8b04c0977f5d9c484`. `HEAD` is
+`89a94af4050c0ad53fa406252e351aeaa4994f16`. This report records execution evidence for all fifteen Test Plan rows
+from seven commands run once each, a later two-command
+[verification re-run](#verification-re-run--same-commit-after-two-corrections), the closure pass, and this pass's
+[Suite invocation F](#suite-invocation-f--unit-after-the-comment-reword) and
+[Suite invocation G](#suite-invocation-g--project-check-after-the-comment-reword).
 
-**Fourteen rows are green.** `T-01-U1` – `T-01-U7` (exit `0`), `T-01-F1` – `T-01-F3` (exit `0`), `T-01-C1` (pass),
-`T-01-R1` – `T-01-R2` (exit `0`), and `T-01-S1` at `2487 passed, 0 failed` (exit `0`). None of them is touched by
-the canary repair.
+**Fourteen rows are green.** `T-01-U1` – `T-01-U7` (exit `0`), `T-01-F1` – `T-01-F3` (exit `0`),
+`T-01-C1` (pass), `T-01-C2` (`2 pass, 0 fail`, exit `0`, post-repair at this `HEAD`), `T-01-R1` (exit `0`), and
+`T-01-S1` at `2487 passed, 0 failed` (exit `0`).
 
-**One row is unresolved.** `T-01-C2` has **no transcript taken after `67c9ebc14`**. Both canary runs recorded here
-stopped at an assertion that commit repaired — C-run 1 at the vacuous-precondition check, C-run 2 at the
-attribution check — so neither describes the suite as it now stands. Both are retained, clearly labelled, at
-[T-01-C2](#t-01-c2), with their assertion messages, source lines, and the per-counter breakdown that produced the
-second repair. The row is **not** narrated as a pass on the strength of the repair having landed, and it is **not**
-asserted as a present failure on the strength of a superseded transcript. Closing it needs one recorded re-run.
+**One row is red: `T-01-R2`.** The row has two halves with different results, and this statement corrects a
+previous wording that folded them into a single `exit 0`. The **Node half is green** (exit `0`). The
+**Playwright half is red** — `3 failed, 495 passed` of 498, exit `1`, recorded in full at
+[the Playwright half](#t-01-r2-playwright-half) with the isolation diagnostic beneath it. The committed suite is
+**intact**; what is not established is the DoD item's *whole suite green*. It is not re-run in search of a
+different answer; see [Still open](#still-open) item 6 and anti-drift **D18**.
 
-**Therefore no scope completion is claimed.** Scope 01 is **not** `Done`. No Definition of Done item is ticked by
-this report, no certification is requested, and `state.json` is not advanced. The scope cannot close while a Test
-Plan row fails, and the Build Quality Gate — *"zero issues deferred, skipped, or worked around"* — is unsatisfied by
-construction while [Still open](#still-open) carries three entries.
+**Therefore no scope completion is claimed. Scope 01 is not `Done`.** Three of the thirty-three Definition of Done
+items remain unticked and each has a recorded reason and a named owner:
 
-What this report does assert is bounded and checkable: the seven commands above, and the two of the verification
-re-run, were executed; their exit codes are recorded as returned; and every figure quoted is from their real
-output. The three narrative records — the
-attributable selftest-line differences, the P23 adversarial proof, and the reported DoD count discrepancy — are
-tagged `not-run` and are restatements of established facts, not claims about anything this run executed.
+| Unticked item | Blocking conjunct | Owner |
+|---|---|---|
+| Core — contract carries every D1 field and no field beyond; `lifecycleTerms` absent | The **second** conjunct now holds ([Sweep A](#sweep-a--lifecycleterms), exit `1`). The **first** does not: `notEvaluable` is a fifteenth field `## D1` → *Contract* never declares ([D1 field parity](#d1-field-parity--every-named-field-present-one-field-beyond)) | `bubbles.design` |
+| Test — `T-01-R2`, broader E2E regression | Playwright half red at `495 / 498`, exit `1` | Feature 012 owner, for the 30 s / 120 s budget mismatch |
+| Build Quality Gate | Conjunct 2 — *zero issues deferred* — fails while three *Still open* entries are live. The other four conjuncts hold ([assessment](#build-quality-gate-assessment)) | `bubbles.implement`, once the three routed items close |
+
+`state.json` is not advanced and no certification is requested.
+
+What this report asserts is bounded and checkable: every command quoted was executed, every exit code is recorded
+as returned, and every figure is from real output. The records tagged `not-run` — the attributable selftest-line
+differences and the P23 adversarial proof — are restatements of established facts, not claims about anything this
+pass executed.
 
 ---
 

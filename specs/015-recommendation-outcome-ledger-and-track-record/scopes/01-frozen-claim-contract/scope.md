@@ -249,19 +249,19 @@ the behaviour under test makes the row fail. No row contains an early-exit bailo
 - [ ] The `brief-recommendation-claim/v1` contract is implemented with every field named in `design.md` → `## D1` → *Contract*, and no field beyond them. The withdrawn `lifecycleTerms` block is **absent**: the identifier appears nowhere in 015-authored source, fixtures, or tests.
 - [x] `citedToolId` is recorded on the object and **excluded from `claimHash`**, joining `proposalRunId` / `proposalEventId` / `proposedAt` as the complete four-field unhashed set; there is no fifth unhashed field and no unhashed block.
 - [x] `citedToolId` is resolved at mint from the authored action's `deepLink` through `tools.json` `file` → `id`; an absent or unmatched `deepLink` sets it to `null` and the claim is **still minted**. It is never authored, defaulted, or guessed, and it is never conflated with `originToolId`, which is the `market-brief` pipeline constant (D4) and is not a claim field.
-- [ ] `thesisFamily` is a **top-level, hashed** claim field. It is authored or the claim mints `not-evaluable` with reason `no-authored-thesis-family`; no value is derived from `actionFamily`, `direction`, or `horizon`, defaulted, or inferred from prose. Routed finding P-015-03 is **RESOLVED** and its ruling is recorded in `report.md`.
-- [ ] The six closed vocabularies (`subject.kind`, `predicate.kind`, `predicate.comparator`, `horizon.kind`, `magnitude.unit`, `magnitude.signConvention`) are frozen module constants, not literals at call sites, and an unrecognised value refuses rather than passing through.
+- [x] `thesisFamily` is a **top-level, hashed** claim field. It is authored or the claim mints `not-evaluable` with reason `no-authored-thesis-family`; no value is derived from `actionFamily`, `direction`, or `horizon`, defaulted, or inferred from prose. Routed finding P-015-03 is **RESOLVED** and its ruling is recorded in `report.md`.
+- [x] The six closed vocabularies (`subject.kind`, `predicate.kind`, `predicate.comparator`, `horizon.kind`, `magnitude.unit`, `magnitude.signConvention`) are frozen module constants, not literals at call sites, and an unrecognised value refuses rather than passing through.
 - [x] `actionFamily` is validated against `MARKET_ACTIONS` (`rlcontracts.js#L708`) and `direction` is bound to `ACTION_DIRECTION` (`rlcontracts.js#L714`); `rlcontracts.js` is read only and is not modified, forked, or shadowed.
 - [x] `claimHash` covers exactly the nine terms `{ contractVersion, recommendationKey, subject, actionFamily, direction, thesisFamily, predicate, horizon, magnitude }` and excludes exactly the four provenance fields, so every varying term of `origin-recommendation-key/v1` is inside the hash and one claim object can only ever derive one reducer key.
 - [x] Claims are written to `briefs/objects/claims/<claimHash-hex>.json` with a bare lowercase hex filename matching the on-disk layout of `briefs/objects/evidence/bundles/<hex>.json`, and the store is append-only — nothing is rewritten, deleted, or garbage-collected.
 - [x] `RTR-PREDICATE-AMEND` is implemented and aborts a byte-changing write at an existing path without overwriting.
-- [ ] The closed seven-reason mint-refusal set (`non-semantic-subject`, `no-committed-series`, `neutral-direction-no-magnitude`, `no-authored-subject`, `no-authored-horizon`, `no-authored-thesis-family`, `no-authored-predicate`) is implemented, each refusal names the field that caused it, and the retired `unresolvable-owning-tool` code is absent from the source.
+- [x] The closed seven-reason mint-refusal set (`non-semantic-subject`, `no-committed-series`, `neutral-direction-no-magnitude`, `no-authored-subject`, `no-authored-horizon`, `no-authored-thesis-family`, `no-authored-predicate`) is implemented, each refusal names the field that caused it, and the retired `unresolvable-owning-tool` code is absent from the source.
 - [x] `no-committed-series` is evaluated against `subject.seriesRefs` (plural) with the committed symbol set **enumerated from `data/bars/` at run time**; no count literal for that tree appears in any 015-authored source, fixture, test name, or DoD item.
-- [ ] `Number.isFinite` is used exclusively; the global `isFinite` appears nowhere in 015-authored code.
+- [x] `Number.isFinite` is used exclusively; the global `isFinite` appears nowhere in 015-authored code.
 - [x] `tests/fixtures/recommendation-track-record/claims/**` exists with one rule violated per negative fixture, a sibling `*.expected.json` naming the expected refusal reason and field, and explicit dates on every fixture with no clock read.
 - [x] `tests/recommendation-track-record.support.mjs` exists and provides the fixture loader, the exact-code assertion helper, and the byte-comparison helper; it contains no assertions of its own.
-- [ ] This scope creates only new files and modifies **no** existing file, so no Feature 002, 007, 012 or 013 surface is opened.
-- [ ] No statistic of any kind is computed in this scope; `rlvalidation.js` is not imported here.
+- [x] This scope creates only new files and modifies **no** existing file, so no Feature 002, 007, 012 or 013 surface is opened.
+- [x] No statistic of any kind is computed in this scope; `rlvalidation.js` is not imported here.
 - [x] Change Boundary is respected and zero excluded file families were changed — `rlvalidation.js`, `rlcontracts.js`, the persisted `rldata.js` cache schema, the Center four-view composition, `scripts/selftest.mjs`, the three committed sibling validators, every counted registry, every committed `briefs/history/**` and `data/**` byte, and every neighbouring feature's test file are byte-identical at the end of the scope, verified by `git status --porcelain` diffed against the allowed-family list with the raw output recorded in `report.md`.
 
 > **Evidence:** each ticked core item above cites its executed evidence anchor in *DoD closure record* below, and each
@@ -280,7 +280,7 @@ the behaviour under test makes the row fail. No row contains an early-exit bailo
 - [x] T-01-F2 passes: `citedToolId` resolves to the cited tool and not the `market-brief` constant, an unmatched `deepLink` still mints with `citedToolId: null`, and mutating `citedToolId` leaves `claimHash` byte-identical while reusing the first object without firing `RTR-PREDICATE-AMEND` → evidence recorded in `report.md#t-01-f2`.
 - [x] T-01-F3 passes: `recommendationKey` is proven one-to-many with `claimHash` and both objects coexist → evidence recorded in `report.md#t-01-f3`.
 - [x] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns — [T-01-C1] the support module's export surface, its import side-effect freedom, a round-trip load of each fixture shape with its `*.expected.json` sibling resolved, the stable loader ordering, and the baseline **captured at scope start and recorded in `report.md`** re-asserted under the attributable-delta rule — `0 failed`, no pre-existing group's pass count falling, and every differing assertion line attributable to this scope's own added files by a per-run-derived delta under the skeleton gate, an unattributed difference failing the item — are all asserted **before** `T-01-R1` and `T-01-R2` run → evidence recorded in `report.md#t-01-c1`.
-- [ ] Rollback or restore path for shared infrastructure changes is documented and verified — [T-01-C2] the pre-scope state is reconstructed in a disposable detached worktree, the baseline there is asserted to equal the captured scope-start baseline with `0 failed` in both trees, no pre-existing group's pass count falling, and every line differing from the post-scope run attributable to this scope's own added files by a per-run-derived delta under the skeleton gate, the live tree is asserted to carry no entry outside the allowed file families, and the worktree is torn down on exit whether the rehearsal succeeded or failed → evidence recorded in `report.md#t-01-c2`.
+- [x] Rollback or restore path for shared infrastructure changes is documented and verified — [T-01-C2] the pre-scope state is reconstructed in a disposable detached worktree, the baseline there is asserted to equal the captured scope-start baseline with `0 failed` in both trees, no pre-existing group's pass count falling, and every line differing from the post-scope run attributable to this scope's own added files by a per-run-derived delta under the skeleton gate, the live tree is asserted to carry no entry outside the allowed file families, and the worktree is torn down on exit whether the rehearsal succeeded or failed → evidence recorded in `report.md#t-01-c2`.
 - [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope pass — [T-01-R1] the re-mint no-op, the `RTR-PREDICATE-AMEND` byte-preserving abort, all seven mint refusals, and the unmatched-`deepLink` mint with `citedToolId: null` re-assert end to end against the real claim store → evidence recorded in `report.md#t-01-r1`.
 - [ ] Broader E2E regression suite passes unchanged — [T-01-R2] the committed Node E2E files and the whole committed Playwright spec suite are green with no pre-existing test removed, skipped, or newly failing → evidence recorded in `report.md#t-01-r2`.
 - [x] T-01-S1 passes: `node scripts/selftest.mjs` reports `baseline + N passed, 0 failed` against the scope-start baseline captured in `report.md`, with no pre-existing assertion count decreasing → evidence recorded in `report.md#t-01-s1`.
@@ -297,7 +297,7 @@ the behaviour under test makes the row fail. No row contains an early-exit bailo
 
 ---
 
-### DoD closure record — recorded 2026-08-18
+### DoD closure record — recorded 2026-08-18, refreshed after the post-repair canary run
 
 This section is an **execution-progress annotation**, not planning content. It records which DoD items were closed
 against [report.md](report.md) and which were not. No DoD item's text, Gherkin scenario, or Test Plan row was added,
@@ -306,9 +306,13 @@ inline so that every planned line stays byte-identical.
 
 **Closure standard applied.** An item is ticked when `report.md` carries executed evidence — a green Test Plan row,
 or a recorded direct observation — that reaches **every** conjunct of the item. An item is left unticked when one of
-its conjuncts requires an observation `report.md` never made, or when it depends on the one red row.
+its conjuncts requires an observation `report.md` never made.
 
-**Totals: 23 of 33 ticked** — 10 of 17 core, 13 of 15 test, 0 of 1 Build Quality Gate.
+**What changed in this refresh.** The single missing transcript was supplied: a canary run against the **repaired**
+suite, recorded at [`#closure-pass-command-c--canary-post-repair-green`](report.md#closure-pass-command-c--canary-post-repair-green)
+— `2 pass, 0 fail`, exit `0`, at `HEAD` `89a94af40` with a clean tree. `T-01-C2` is green, and the six core items
+that were unticked for want of a recorded textual, layout, or change-set observation were swept and recorded. One
+sweep came back **non-clean** and its item is deliberately still unticked; see the *Not ticked* table.
 
 #### Ticked — core items
 
@@ -316,21 +320,28 @@ its conjuncts requires an observation `report.md` never made, or when it depends
 |---|---|
 | `citedToolId` recorded and excluded; four-field unhashed set | [`#t-01-u1`](report.md#t-01-u1), [`#t-01-u2`](report.md#t-01-u2), [`#t-01-f2`](report.md#t-01-f2) |
 | `citedToolId` resolved from `deepLink`; unmatched sets `null` and still mints | [`#t-01-f2`](report.md#t-01-f2), [`#t-01-r1`](report.md#t-01-r1) |
+| `thesisFamily` top-level and hashed; **P-015-03 RESOLVED**, ruling recorded in `report.md` | [`#p-015-03-ruling`](report.md#p-015-03-ruling) (the ruling), [`#t-01-u1`](report.md#t-01-u1) and [`#t-01-u2`](report.md#t-01-u2) (hashed), [`#t-01-r1`](report.md#t-01-r1) (`no-authored-thesis-family` refusal) |
+| The **six** closed vocabularies are frozen module constants, not literals at call sites, and refuse | [`#vocabulary-constants-are-frozen-and-call-sites-reference-them`](report.md#vocabulary-constants-are-frozen-and-call-sites-reference-them) (all six `Object.freeze`d at `rlclaims.js#L47`–`#L52`, every call site via `inSet(CONSTANT, …)`), [`#t-01-u6`](report.md#t-01-u6) (all six probed, with a completeness assertion) |
 | `actionFamily` bound to `MARKET_ACTIONS`; `direction` bound to `ACTION_DIRECTION` | [`#t-01-u6`](report.md#t-01-u6), [`#t-01-u7`](report.md#t-01-u7), `report.md` → *Change Boundary* |
 | `claimHash` covers the nine terms and excludes the four | [`#t-01-u1`](report.md#t-01-u1), [`#t-01-u2`](report.md#t-01-u2) |
 | Content-addressed append-only store at `briefs/objects/claims/<hex>.json` | [`#t-01-f1`](report.md#t-01-f1), [`#t-01-u3`](report.md#t-01-u3), [`#t-01-r1`](report.md#t-01-r1) |
 | `RTR-PREDICATE-AMEND` aborts a byte-changing write without overwriting | [`#t-01-u3`](report.md#t-01-u3), [`#t-01-r1`](report.md#t-01-r1) |
+| Seven-reason refusal set, each naming its field; `unresolvable-owning-tool` **absent from the source** | [`#t-01-r1`](report.md#t-01-r1) (the set, per-trigger isolation), [`#sweep-b--unresolvable-owning-tool`](report.md#sweep-b--unresolvable-owning-tool) (zero occurrences in `rlclaims.js`, exit `1`) |
 | `no-committed-series` evaluates `seriesRefs` plural against a run-time-enumerated set, with no count literal | [`#t-01-u5`](report.md#t-01-u5), `report.md` → *Committed-bars-set definition* |
+| `Number.isFinite` used exclusively; the global `isFinite` appears nowhere | [`#sweep-c--global-isfinite`](report.md#sweep-c--global-isfinite) (all seven occurrences are `Number.isFinite`; the bare-global regex returns exit `1`) |
 | Fixture root with `*.expected.json` siblings, explicit dates, one rule per negative | [`#t-01-c1`](report.md#t-01-c1), [`#t-01-r1`](report.md#t-01-r1) |
 | `support.mjs` exports exactly the three helpers and registers zero tests on import | [`#t-01-c1`](report.md#t-01-c1) |
-| Change Boundary respected; zero excluded families changed | `report.md` → *Change Boundary* (`git status --porcelain`, empty, exit `0`, diffed against the five-family list) |
+| This scope creates only new files and modifies **no** existing file | [`#purely-additive-change-set`](report.md#purely-additive-change-set) — `git diff --name-status` across the delivery commit: **52 `A`, 1 `M`**, zero `D`/`R`/`C`, the one `M` being this scope's own `scope.md` (allowed family 5) |
+| No statistic is computed; `rlvalidation.js` is not imported here | [`#sweep-d--rlvalidation`](report.md#sweep-d--rlvalidation) — the sole `rlvalidation` token is a string literal in a *negative* classifier assertion; `rlclaims.js` has **no import or require at all** (exit `1`); the statistic sweep returns only English prose in comments |
+| Change Boundary respected; zero excluded families changed | `report.md` → *Change Boundary* (`git status --porcelain`, empty, exit `0`), reinforced by [`#purely-additive-change-set`](report.md#purely-additive-change-set) |
 
 #### Ticked — test items
 
-`T-01-U1` – `T-01-U7`, `T-01-F1` – `T-01-F3`, `T-01-C1`, `T-01-R1`, `T-01-S1` — thirteen rows, each green in
-`report.md` at its own anchor. Suite totals: unit `7 pass / 0 fail` (exit `0`), functional `3 pass / 0 fail`
-(exit `0`), E2E `2 pass / 0 fail` (exit `0`), `node scripts/selftest.mjs` at `2487 passed, 0 failed` (exit `0`).
-`T-01-C1` passed in both canary runs and ran before `T-01-R1` / `T-01-R2`, as the plan requires.
+`T-01-U1` – `T-01-U7`, `T-01-F1` – `T-01-F3`, `T-01-C1`, `T-01-C2`, `T-01-R1`, `T-01-S1`. Suite totals: unit
+`7 pass / 0 fail` (exit `0`), functional `3 pass / 0 fail` (exit `0`), **canary `2 pass / 0 fail` (exit `0`)**,
+E2E `2 pass / 0 fail` (exit `0`), `node scripts/selftest.mjs` at `2487 passed, 0 failed` (exit `0`). `T-01-C1` ran
+before `T-01-R1` / `T-01-R2` in every recorded run, as the plan requires.
+
 
 #### Not ticked — reason and owner
 

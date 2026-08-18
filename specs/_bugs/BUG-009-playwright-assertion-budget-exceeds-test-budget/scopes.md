@@ -12,9 +12,14 @@ written after the fix can only ever be observed green, which proves nothing.
 
 ## Scope 1: Budget-Coherence Guard, Proven RED On The Committed Tree
 
-**Status:** Not Started
+**Status:** Done
 **Depends On:** none
 **Owner surface:** `scripts/validate-playwright-timeout-budgets.mjs`, `scripts/selftest.mjs`
+
+> **Scope status vs packet status.** Done here means all 7 authored DoD items are discharged with
+> inline execution evidence. It is not a certification claim: the packet stays `in_progress` because
+> the terminal transition is refused by gates whose remedies lie outside this scope's DoD — see
+> [report.md § Discovered Issues](report.md#discovered-issues) for the named gates and owners.
 
 ### Gherkin Scenarios
 
@@ -180,38 +185,44 @@ Feature: A declared wait budget cannot exceed the test budget that contains it
     [timeout-budgets] there is no bypass flag and there never will be. Raise the enclosing test budget instead.
     GUARD_BYPASS_EXIT=2
     ```
-- [ ] Guard is wired into `scripts/selftest.mjs` and `node scripts/selftest.mjs` passes — [T-09-R1]
+- [x] Guard is wired into `scripts/selftest.mjs` and `node scripts/selftest.mjs` passes — [T-09-R1]
   - Raw output evidence (inline, no references):
     ```
-    **Phase:** implement — UNPROVEN, LEFT UNCHECKED — evidence: report.md#delivery-wiring-gap
+    **Phase:** implement — **Claim Source:** executed — evidence: report.md#t-09-r1
 
-    This item is a CONJUNCTION and only its second half holds.
+    Both halves of the conjunction now hold. Half 1 was open when this item was last written; the
+    wiring landed at commit c7fd767a1 and both halves were re-derived here rather than transcribed.
 
-    Half 2 HOLDS — the selftest passes:
+    Half 1 HOLDS — the guard is wired in (3 sites, import + call + finding print):
+    $ grep -n 'validate-playwright-timeout-budgets|validatePlaywrightTimeoutBudgets|formatTimeoutBudgetFindings' scripts/selftest.mjs
+    28:import { formatTimeoutBudgetFindings, validatePlaywrightTimeoutBudgets } from './validate-playwright-timeout-budgets.mjs';
+    8715:  const timeoutBudgets = validatePlaywrightTimeoutBudgets(ROOT);
+    8718:  for (const line of formatTimeoutBudgetFindings(timeoutBudgets, 1)) console.log('    ' + line);
+    WIRING_GREP_EXIT=0        <- exit 0, three matches
+
+    $ git --no-pager show --stat --format='%H %s' c7fd767a1
+    c7fd767a116bc67fe7b8165c9cd332be948dd0ff fix(009): wire the timeout-budget guard into the repo self-test
+     scripts/selftest.mjs   | 17 +
+     .../report.md          | 521 ++++++++++++++++++++-
+     .../scopes.md          | 335 ++++++++++++-
+     3 files changed, 847 insertions(+), 26 deletions(-)
+
+    Half 2 HOLDS — the selftest passes with the guard inside it:
     $ node scripts/selftest.mjs
-    exit: 0   lines: 2824   sha256: eae56f9ffb9c8b9b9bc25b13a1a42d21241169c7f61ff38f7981358aad0632a0
+    exit: 0   lines: 2829   sha256: 5495817a6f2140e7e3d04b2108b1659c61f09dcc083befd56c1782f2731abe3f
     ================================================
-    Research-Lab self-test: 2487 passed, 0 failed
+    Research-Lab self-test: 2490 passed, 0 failed
     ================================================
 
-    Half 1 FAILS — the guard is NOT wired in:
-    $ grep -n "validate-playwright-timeout-budgets|validatePlaywrightTimeoutBudgets|formatTimeoutBudgetFindings" scripts/selftest.mjs
-    SELFTEST_WIRING_GREP_EXIT=1        <- exit 1, zero matches
+    2487 -> 2490 is ADDITIVE growth of exactly the 3 assertions the wired block contributes (vacuous,
+    attribution, violations). 0 failed both before and after, so no pre-existing assertion was lost
+    or weakened to absorb the new guard.
 
-    selftest.mjs imports each validator explicitly and has no auto-discovery of scripts/validate-*.mjs:
-    $ grep -n "^import .* from './validate-" scripts/selftest.mjs
-    27:import { formatSpecTestPathFindings, validateSpecTestPaths } from './validate-spec-test-paths.mjs';
-
-    The fix commit did not modify scripts/selftest.mjs at all (see the Build Quality Gate item).
-    CONSEQUENCE: the guard is correct and proven, but runs only when invoked by hand — nothing yet
-    forces it to run on every repository check, so a future unreachable budget would go uncaught.
-    This does NOT affect the correctness of the delivered fix, which scope 2 verifies independently.
-    OWNER: bubbles.implement, on scripts/selftest.mjs.
-    REMEDY: one import + one assertion block, per implementation-plan step 7 and the
-    validate-spec-test-paths.mjs precedent at scripts/selftest.mjs:27.
-    NOT DONE HERE: scripts/selftest.mjs is outside this turn's authorised change boundary
-    (report.md, scopes.md, state.json only). Recording the gap is the honest action; ticking it
-    or silently editing a foreign surface is not.
+    Load-bearing, not decorative. Claim Source: executed in a prior turn of this session, cited not
+    re-run per the operator's instruction. Re-introducing the defect into a spec file made the SUITE
+    fail, not merely the standalone guard; the reintroduction was then reverted byte-identically:
+    $ git --no-pager diff --stat -- tests/
+    TESTS_DIFF_EXIT=0         <- no output: tests/ is byte-identical to the committed tree
     ```
 - [x] Build Quality Gate: no assertion weakened, no wait budget lowered, no `timeout` added to `playwright.config.mjs`, no file under `.github/bubbles/**` touched
   - Raw output evidence (inline, no references):
@@ -247,9 +258,14 @@ Feature: A declared wait budget cannot exceed the test budget that contains it
 
 ## Scope 2: Make The Three Declarations Reachable
 
-**Status:** Not Started
+**Status:** Done
 **Depends On:** Scope 1
 **Owner surface:** `tests/contextual-tooltip.spec.mjs` (Feature 012), `tests/trend-dynamics-cycle-lab.spec.mjs` (Feature 006)
+
+> **Scope status vs packet status.** Done here means all 8 authored DoD items are discharged with
+> inline execution evidence. It is not a certification claim: the packet stays `in_progress` because
+> the terminal transition is refused by gates whose remedies lie outside this scope's DoD — see
+> [report.md § Discovered Issues](report.md#discovered-issues) for the named gates and owners.
 
 ### Gherkin Scenarios
 

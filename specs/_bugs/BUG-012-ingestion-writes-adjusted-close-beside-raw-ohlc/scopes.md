@@ -1,19 +1,33 @@
 # Scopes: BUG-012 — Coherent Bars, A Pinned Fixture, And A Failure That Can Speak
 
-**Nothing in this file is implemented.** The packet was filed under an instruction to document and
-not fix. Every Definition of Done item below is unticked because none has been done, and the remedy
-for Scope 01 depends on a contract decision recorded as open in `design.md` §2.
+**All three scopes are implemented and committed.** The packet was originally filed under an
+instruction to document and not fix; that instruction has since been discharged. The contract
+decision `design.md` §2 recorded as open was resolved to **Option B** (all four OHLC fields raw,
+the adjusted close carried in its own `ac` field) — see Scope 01's first Definition of Done item
+for the reason it was preferred. The `design.md` §3 decoupling choice was resolved to **pinned
+fixture inputs** — see Scope 02.
+
+The three fixes are commits `8694d8696` (Scope 01), `e2499ab8a` (Scope 03) and `13ef48db9`
+(Scope 02), on top of the filing commit `658a991f8`.
 
 Scope order is causal, not arbitrary. Scope 01 removes the defect. Scope 02 stops an unrelated
 scheduled job from reintroducing a red. Scope 03 makes the next data break legible instead of
 invisible. Scope 03 is independent of the other two and would have paid for itself already: it is
 what turns a debugging session into a glance.
 
+**Evidence provenance.** Every corpus scan, Playwright run, headless boot and model replay quoted
+as inline evidence below was executed **earlier in this session** and is recorded here as a reported
+observation, not re-derived. Four checks were re-executed by the agent ticking these items —
+`node scripts/selftest.mjs`, `node scripts/validate-bars-coherence.mjs`,
+`node scripts/validate-agenda-fixture-pin.mjs`, and `artifact-lint.sh` on this packet — together with
+read-only `git` and file inspection. Those are tagged `executed` below; everything else is tagged
+`reported`. The Playwright suite was **not** run in the ticking session.
+
 ## Scope 1: 01-restore-ohlc-coherence-in-bars-ingestion
 
-**Status:** [ ] Not Started
+**Status:** [x] Done
 **Depends On:** none
-**Owner:** unassigned — routing deferred with the contract decision in `design.md` §2
+**Owner:** delivered in commit `8694d8696`
 
 ### Change Boundary
 
@@ -86,20 +100,28 @@ currently violate it; run against a synthetic clean sample it is tautological.
 
 ### Definition of Done — 3-Part Validation
 
-- [ ] The chosen price-basis contract is recorded in this packet with the reason it was preferred over the alternative in `design.md` §2
-- [ ] `scripts/fetch-bars.mjs` cannot emit a row violating `l <= min(o, c)`, `h >= max(o, c)`, `l <= h`, proven by an adversarial payload whose adjusted close falls below the raw low
-- [ ] A scan of all 293 files under `data/bars/` reports zero incoherent rows, down from the reported 71,714
-- [ ] The COP row at `2026-08-13T13:30Z` is coherent, and the reversal fixture's canonical replay returns `ok=true`
-- [ ] A committed coherence guard fails on an incoherent row and runs inside `node scripts/selftest.mjs`
-- [ ] `rlagenda.js` is unchanged: the line 1718 condition, the `RLAGENDA-MODEL-INVALID` code, and the `currentBars.<sym>` field naming are byte-identical
-- [ ] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count
-- [ ] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and no issue found during this scope was deferred
+- [x] The chosen price-basis contract is recorded in this packet with the reason it was preferred over the alternative in `design.md` §2
+  - **Evidence** (`executed`, read-only): **Option B** was chosen — all four of `o`, `h`, `l`, `c` stay raw and the adjusted close is carried beside them in its own `ac` field. `scripts/fetch-bars.mjs:21` states the contract in the module header ("is carried beside them in its own field, `ac`. It used to be `c` that carried the adjusted value"); `:210` writes `row.ac = adjClose` whenever the vendor supplies it; `:261` emits `{ o, h, l, c, ac: close * adjustmentFactor, v }`. **Reason preferred over Option A:** Feature 015 is an append-only claim ledger resolved against historical price levels. Under Option A every dividend rewrites history, so a minted claim can never be checked against the prices it was minted on. Option B leaves published rows stable and gives adjustment its own field.
+- [x] `scripts/fetch-bars.mjs` cannot emit a row violating `l <= min(o, c)`, `h >= max(o, c)`, `l <= h`, proven by an adversarial payload whose adjusted close falls below the raw low
+  - **Evidence** (`executed`, read-only + selftest run): `scripts/selftest.mjs:8762` asserts "the emitted row satisfies l <= min(o, c) and h >= max(o, c), **on the exact vendor payload whose adjusted close falls BELOW the raw low**" — the COP condition itself, not a negligible-adjustment payload. That assertion is inside the 2534 that passed.
+- [x] A scan of all 293 files under `data/bars/` reports zero incoherent rows, down from the reported 71,714
+  - **Evidence** (`executed`): `node scripts/validate-bars-coherence.mjs` → `scanned 292 file(s), 150013 row(s)` / `OK: every scanned row satisfies l <= min(o, c), h >= max(o, c) and l <= h`, exit **0**. **292, not 293:** 293 `.json` files sit on disk and the scanner excludes exactly one, `index.json`, a manifest and not a symbol series (`validate-bars-coherence.mjs:50` `NON_SYMBOL_FILES`, applied at `:126`). All 292 symbol files are covered — complete corpus coverage. The scan is non-vacuous by construction; `selftest.mjs:8839` records that it "is adversarial only against the REAL corpus". Pre-fix figures were 71,714 violating rows across 245 files.
+- [x] The COP row at `2026-08-13T13:30Z` is coherent, and the reversal fixture's canonical replay returns `ok=true`
+  - **Evidence** — coherence (`executed`, direct read of `data/bars/COP.json`): the row at epoch `1786627800000` is `{o:125.72000122070312, h:126.38999938964844, l:124.12000274658203, c:124.5199966430664, v:7248000, ac:123.6949691772461}`; `l <= min(o,c) && h >= max(o,c) && l <= h` evaluates **true**. `c` now matches the pre-cron raw close `124.5200`, and the adjusted `123.6949691` sits in `ac` where it belongs. Canonical replay `ok=true` is `reported` from prior execution this session.
+- [x] A committed coherence guard fails on an incoherent row and runs inside `node scripts/selftest.mjs`
+  - **Evidence** (`executed`): `scripts/validate-bars-coherence.mjs` is committed and imported at `scripts/selftest.mjs:29` (`assertCoherentBar, formatBarsCoherenceFindings, isCoherentBar, partitionCoherentBars, validateBarsCorpus`), so the corpus scan runs inside the selftest rather than beside it.
+- [x] `rlagenda.js` is unchanged: the line 1718 condition, the `RLAGENDA-MODEL-INVALID` code, and the `currentBars.<sym>` field naming are byte-identical
+  - **Evidence** (`executed`): `git diff --name-only 5c978c5cb..HEAD -- rlagenda.js playwright.config.mjs` returns **empty** — neither file appears in the change set at all, which is stronger than a line-level comparison. The red went away because the data became correct, not because the validator became lenient.
+- [x] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count
+  - **Evidence** (`executed`): `Research-Lab self-test: 2534 passed, 0 failed`, exit **0**. Pre-fix baseline recorded in `report.md` was 2490 passed; 2534 ≥ 2490, so the count rose by 44 rather than fell.
+- [x] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and no issue found during this scope was deferred
+  - **Evidence** (`executed`): `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc` → `Artifact lint PASSED.`, exit **0**. No absolute host path appears in this packet; paths are repository-relative or written `<repo-root>`. One issue found *during* this scope was fixed rather than deferred: the ingestion guard aborted a whole symbol's write on a single incoherent vendor row, leaving the old mixed-basis file in place — which is why the first two repair passes left 38 files unrepaired. The guard now partitions rows (`partitionCoherentBars`) instead of aborting.
 
 ## Scope 2: 02-decouple-committed-fixture-from-mutable-bars
 
-**Status:** [ ] Not Started
+**Status:** [x] Done
 **Depends On:** 01
-**Owner:** unassigned
+**Owner:** delivered in commit `13ef48db9`
 
 ### Change Boundary
 
@@ -151,19 +173,26 @@ was green for months before `643d74bfd` arrived.
 
 ### Definition of Done — 3-Part Validation
 
-- [ ] The chosen decoupling shape is recorded in this packet with the reason it was preferred over the alternative in `design.md` §3
-- [ ] The fixture's resolved inputs cannot change without a reviewed commit to the test surface
-- [ ] A deliberate mutation of a bars row produces a failure naming fixture, symbol and row, and produces no hang, proven by executing that mutation
-- [ ] `tests/fixtures/research-agenda/reversal-ui.json` `attemptedAt` is unchanged — the cutoff was not moved to skip the corrupted row
-- [ ] Every assertion in the six affected tests is byte-identical
-- [ ] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count
-- [ ] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and no issue found during this scope was deferred
+- [x] The chosen decoupling shape is recorded in this packet with the reason it was preferred over the alternative in `design.md` §3
+  - **Evidence** (`executed`, read-only): the **pinned-inputs** shape was chosen. `tests/fixtures/research-agenda/reversal-ui.bars.json` is a new committed file in the change set, and `scripts/validate-agenda-fixture-pin.mjs` checks it against the live corpus. **Reason preferred over the shared-read-plus-drift-expectation alternative:** a pinned input makes the committed test's result a function of committed bytes only, so a scheduled refresh cannot change the outcome at all; the drift check is then additive — it reports divergence between pin and corpus without the test's verdict depending on the corpus. Both properties are obtained instead of trading one for the other.
+- [x] The fixture's resolved inputs cannot change without a reviewed commit to the test surface
+  - **Evidence** (`executed`): the fixture's bar inputs are the committed file `tests/fixtures/research-agenda/reversal-ui.bars.json`, loaded through `tests/research-agenda-fixture.support.mjs`; both appear in `git diff --name-only 5c978c5cb..HEAD`. Changing what the fixture resolves now requires editing a tracked file under `tests/`, which is a reviewed commit by definition. The cron writes `data/bars/**`, which the fixture no longer resolves against.
+- [x] A deliberate mutation of a bars row produces a failure naming fixture, symbol and row, and produces no hang, proven by executing that mutation
+  - **Evidence** (`executed`): `scripts/selftest.mjs:8949-8986` executes the mutations rather than asserting against today's corpus. `:8949` establishes the clean baseline (`findAgendaFixturePinDrift(pinFile, cleanCorpus).length === 0`); `:8958` rewrites COP's close (`rewriteCopClose`) and `:8961` formats the resulting finding into a named message; `:8984-8986` drops a pinned row entirely and asserts exactly one `corpus-row-missing` finding whose message contains `no longer present`, "so the pin cannot be silently outlived by the history it snapshots". All are pure-Node comparisons that return a value — there is no wait to hang on. `:8976` proves the check is not merely change-sensitive: a legitimate re-adjustment (`readjustCop`) yields zero findings. Live run: `node scripts/validate-agenda-fixture-pin.mjs` → `checked 12 pinned symbol(s) against data/bars at cutoff 2026-08-14T12:00:00.000Z, comparing o/h/l/c/v (ac excluded: a dividend rewrites it legitimately)` / `OK: every pinned row still matches the published row behind it`, exit **0**.
+- [x] `tests/fixtures/research-agenda/reversal-ui.json` `attemptedAt` is unchanged — the cutoff was not moved to skip the corrupted row
+  - **Evidence** (`executed`): `reversal-ui.json:9` reads `"attemptedAt": "2026-08-14T12:00:00.000Z"`, identical to the value recorded at filing. The file does not appear in `git diff --name-only 5c978c5cb..HEAD` at all, so no field in it moved.
+- [x] Every assertion in the six affected tests is byte-identical
+  - **Evidence** (`executed`): `git diff -U0 e2499ab8a..13ef48db9 -- tests/tool-experience.spec.mjs tests/contextual-tooltip.spec.mjs` matched by `^[+-].*expect\(` returns a count of **0** — this scope's commit changed **zero** `expect()` lines in either file. The edits are loader wiring only. `grep -cE '\.(skip|fixme)\('` returns 0 for both files, so no assertion was neutralised by being skipped either.
+- [x] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count
+  - **Evidence** (`executed`): `Research-Lab self-test: 2534 passed, 0 failed`, exit **0**; 2534 ≥ the 2490 pre-fix baseline.
+- [x] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and no issue found during this scope was deferred
+  - **Evidence** (`executed`): artifact lint on this packet → `Artifact lint PASSED.`, exit **0**; no absolute host path in the packet. One issue found *during* this scope was fixed rather than deferred: `ac` was documented and printed as excluded from comparison but was still present in `PINNED_FIELDS`, so a legitimate dividend would have been reported as drift. Two selftest assertions caught it and it is fixed — `validate-agenda-fixture-pin.mjs:46` now reads `PINNED_FIELDS = Object.freeze(['o', 'h', 'l', 'c', 'v'])`, matching the banner the tool prints.
 
 ## Scope 3: 03-surface-boot-failure-instead-of-hanging
 
-**Status:** [ ] Not Started
+**Status:** [x] Done
 **Depends On:** none
-**Owner:** unassigned
+**Owner:** delivered in commit `e2499ab8a`
 
 ### Change Boundary
 
@@ -225,21 +254,33 @@ is the only form in which it would fail if the `.catch` regressed to leaving `st
 
 ### Definition of Done — 3-Part Validation
 
-- [ ] A failed reversal boot causes `getViewState()` to return a non-null value marking the failure, proven by a deliberately injected failing input
-- [ ] The refusal reason the page computes is retrievable through `__researchAgendaDebug` and not only as DOM text
-- [ ] The failing boot reports within the test's own budget, with no CLI timeout override and no global `timeout` in `playwright.config.mjs`
-- [ ] Every value `getViewState()` returns on a successful boot is unchanged, and the three non-fixture agenda tests pass unmodified
-- [ ] The new regression fails if the `.catch` is reverted to leaving `state.view` unset, proven by executing that reversion
-- [ ] `rlagenda.js` and `scripts/fetch-bars.mjs` are unchanged by this scope
-- [ ] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count
-- [ ] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and no issue found during this scope was deferred
+- [x] A failed reversal boot causes `getViewState()` to return a non-null value marking the failure, proven by a deliberately injected failing input
+  - **Evidence** (`reported`, prior execution this session): the original defect was **induced**, not simulated — COP's adjusted close was put back into `c` beside the raw low through a **served override**, leaving `data/bars/**` untouched, producing `l=124.12000274658203 c=123.6949691772461` with `l > min(o, c)` evaluating **true**. That is the exact pre-fix corpus condition, so the regression is driven by an input that genuinely fails rather than by the corrected corpus. Under it, readiness resolved in **373 ms** where before the fix it never resolved at all, not even under the 240 s budget.
+- [x] The refusal reason the page computes is retrievable through `__researchAgendaDebug` and not only as DOM text
+  - **Evidence** (`reported`, prior execution this session): the reason was retrieved **after DOM erasure** — the strings the `.catch` writes into the page were removed first, and the refusal reason was still readable from the debug surface. That distinguishes a real observer channel from a test that is merely re-reading the same DOM text under another name.
+- [x] The failing boot reports within the test's own budget, with no CLI timeout override and no global `timeout` in `playwright.config.mjs`
+  - **Evidence** (`reported` for the timing, `executed` for the config): resolution took **373 ms**, comfortably inside the inherited per-test budget, with no CLI override supplied. `grep -nE '^\s*(timeout|retries)\s*:' playwright.config.mjs` returns **no match**, and `git diff --name-only 5c978c5cb..HEAD -- playwright.config.mjs` is **empty** — the config was not touched by any of the three fixes, so neither a global `timeout` nor `retries` was introduced.
+- [x] Every value `getViewState()` returns on a successful boot is unchanged, and the three non-fixture agenda tests pass unmodified
+  - **Evidence** (`reported`, prior execution this session): the success view was compared **byte-identically pre- and post-fix on both boot paths**, `keys=17` on each — INV-012B-9 holds. The suite run for this scope reported **21 passed**, covering the three non-fixture agenda tests without modification to them.
+- [x] The new regression fails if the `.catch` is reverted to leaving `state.view` unset, proven by executing that reversion
+  - **Evidence** (`reported`, prior execution this session): the page was **reconstructed with the fix's four hunks removed** and re-run. In that state `getViewState()` is `null` and the wait **rejects** — so the regression would fail if the `.catch` regressed, which is what makes it load-bearing rather than tautological. The reconstruction asserts each revert anchor appears **exactly once**, so it cannot silently revert the wrong hunk or a partial one.
+- [x] `rlagenda.js` and `scripts/fetch-bars.mjs` are unchanged by this scope
+  - **Evidence** (`executed`): `git diff --name-only 8694d8696..e2499ab8a` — this scope's commit — lists exactly two files, `research-agenda-lab.html` and `tests/tool-experience.spec.mjs`. Neither `rlagenda.js` nor `scripts/fetch-bars.mjs` appears, and `data/bars/**` is untouched by it.
+- [x] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count
+  - **Evidence** (`executed`): `Research-Lab self-test: 2534 passed, 0 failed`, exit **0**; 2534 ≥ the 2490 pre-fix baseline.
+- [x] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and no issue found during this scope was deferred
+  - **Evidence** (`executed`): artifact lint on this packet → `Artifact lint PASSED.`, exit **0**; no absolute host path in the packet. No issue found during this scope was deferred.
 
 ## Cross-Scope Definition of Done
 
 - [ ] All six tests pass — `tests/tool-experience.spec.mjs` lines 442, 485, 566, 605, 639 and `tests/contextual-tooltip.spec.mjs` line 115 — in the full committed suite
-- [ ] The fix introduces no `retries`, no `.skip`/`.fixme`, no deleted or weakened assertion, and no global `timeout` in `playwright.config.mjs`
-- [ ] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count
-- [ ] `bash .github/bubbles/scripts/artifact-lint.sh` on this packet exits 0
+  - **Uncertainty Declaration.** Left unticked deliberately. The Playwright suite was **not** run in the ticking session, and the run reported from prior execution this session covers a subset — **21 passed** for the Scope 03 surface — not the full committed suite, which was 490 passed / 8 failed pre-fix. The six named tests are strongly expected to pass, because the corpus condition that made them hang is gone (`validate-bars-coherence.mjs` exit 0 over 292 files) and the fixture no longer resolves against mutable data. But *strongly expected* is not evidence, and this item asserts a whole-suite result. Ticking it would state something no executed command in this session produced. Closing it requires one full-suite run; that run is also the only way to confirm whether the two unrelated pre-existing failures among the original eight are still present.
+- [x] The fix introduces no `retries`, no `.skip`/`.fixme`, no deleted or weakened assertion, and no global `timeout` in `playwright.config.mjs`
+  - **Evidence** (`executed`): `git diff --name-only 5c978c5cb..HEAD -- playwright.config.mjs` is **empty** — the config was never touched, so no global `timeout` and no `retries` were added. `grep -nE '^\s*(timeout|retries)\s*:' playwright.config.mjs` returns no match, confirming none pre-existed either. `grep -cE '\.(skip|fixme)\('` returns **0** for both `tests/tool-experience.spec.mjs` and `tests/contextual-tooltip.spec.mjs`. The Scope 02 commit changed **0** `expect()` lines in those two files; the Scope 03 commit adds a regression to `tool-experience.spec.mjs` — it adds assertions rather than removing any. The red was removed by correcting data, not by relaxing a budget.
+- [x] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count
+  - **Evidence** (`executed`): `Research-Lab self-test: 2534 passed, 0 failed`, exit **0**. The pre-fix baseline recorded in `report.md` is 2490 passed / 0 failed, so the count rose by 44 — the three fixes added coverage (corpus coherence, adversarial writer payload, fixture-pin drift) and removed none.
+- [x] `bash .github/bubbles/scripts/artifact-lint.sh` on this packet exits 0
+  - **Evidence** (`executed`): `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc` → `Artifact lint PASSED.`, exit **0**.
 
 ```gherkin
 Feature: BUG-012 The red is removed by correcting data, never by waiting longer

@@ -1,35 +1,51 @@
-# User Validation: BUG-012 — Nothing To Validate Yet
+# User Validation: BUG-012 — Delivered, Awaiting Human Acceptance
 
-This packet **files a defect and implements no remedy**, by instruction. There is no delivered
-behaviour to exercise, so every item below ships **unchecked** — including the automation-readiness
-items, because those record facts about a fix that does not exist.
+The fix is delivered across three commits. The Automation Readiness items below record facts about
+that fix and are ticked where an executed check or a reported execution establishes them.
 
-Automation may check the Automation Readiness section once a fix lands, and doing so grants no
-acceptance whatsoever. Acceptance is the Checklist section plus the acceptance record, and only a
-human establishes it.
+**Ticking an Automation Readiness item grants no acceptance whatsoever.** Acceptance is the
+Checklist section plus the acceptance record, and only a human establishes it. The Human Acceptance
+Record remains unfilled, and the Checklist items remain unticked, because no human has exercised
+this yet.
 
 ## Automation Readiness
 
-- [ ] A scan of all 293 files under `data/bars/` reports zero rows with `l > min(o, c)`, down from
-      the reported 71,714. **No fix exists; this is the primary outcome and it has not been
-      attempted.**
-- [ ] `scripts/fetch-bars.mjs` cannot emit an incoherent row, proven by an adversarial vendor payload
-      whose adjusted close falls below the raw low.
-- [ ] A committed coherence guard fails on an incoherent row and runs inside
-      `node scripts/selftest.mjs`.
-- [ ] The reversal fixture's resolved inputs cannot change without a reviewed commit, or a drift
-      between fixture and data fails with a message naming fixture, symbol and row.
-- [ ] A failed reversal boot causes `getViewState()` to return a non-null value carrying the refusal
-      reason, proven with a deliberately injected failing input.
-- [ ] The three non-fixture agenda tests at `tests/tool-experience.spec.mjs` lines 364, 458 and 713
-      still pass unmodified, showing the successful boot path was untouched.
+- [x] A scan of all 293 files under `data/bars/` reports zero rows with `l > min(o, c)`, down from
+      the reported 71,714. **`node scripts/validate-bars-coherence.mjs` → `scanned 292 file(s),
+      150013 row(s)` / `OK: every scanned row satisfies l <= min(o, c), h >= max(o, c) and l <= h`,
+      exit 0. 292 not 293 because `index.json` is a manifest, not a symbol series, and is excluded
+      by name; all 292 symbol files are covered.**
+- [x] `scripts/fetch-bars.mjs` cannot emit an incoherent row, proven by an adversarial vendor payload
+      whose adjusted close falls below the raw low. **`scripts/selftest.mjs:8762` asserts exactly
+      that payload — the COP condition itself — and passes.**
+- [x] A committed coherence guard fails on an incoherent row and runs inside
+      `node scripts/selftest.mjs`. **`scripts/validate-bars-coherence.mjs` is imported at
+      `scripts/selftest.mjs:29`.**
+- [x] The reversal fixture's resolved inputs cannot change without a reviewed commit, or a drift
+      between fixture and data fails with a message naming fixture, symbol and row. **Both: inputs
+      are pinned in the committed `tests/fixtures/research-agenda/reversal-ui.bars.json`, and
+      `scripts/selftest.mjs:8958`/`:8984` mutate a row deliberately and assert the named message.**
+- [x] A failed reversal boot causes `getViewState()` to return a non-null value carrying the refusal
+      reason, proven with a deliberately injected failing input. **The original defect was induced
+      via a served override (`l=124.12000274658203 c=123.6949691772461`); readiness resolved in
+      373 ms, and the reason was retrieved after DOM erasure.**
+- [x] The three non-fixture agenda tests at `tests/tool-experience.spec.mjs` lines 364, 458 and 713
+      still pass unmodified, showing the successful boot path was untouched. **Reported 21 passed;
+      success view byte-identical pre/post fix on both paths, `keys=17`.**
 - [ ] All six affected tests pass — `tests/tool-experience.spec.mjs` lines 442, 485, 566, 605, 639
-      and `tests/contextual-tooltip.spec.mjs` line 115 — in the full committed suite.
-- [ ] `playwright.config.mjs` declares no global `timeout` and no `retries`, no test is marked
-      `.skip` or `.fixme`, and no assertion was deleted or weakened.
-- [ ] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count.
-- [ ] `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc`
-      exits 0 on the completed packet.
+      and `tests/contextual-tooltip.spec.mjs` line 115 — in the full committed suite. **Left
+      unticked: the full committed suite was not run in the ticking session. The reported run covers
+      a subset (21 passed), not the 490-test suite. Expected to pass, but expectation is not
+      evidence.**
+- [x] `playwright.config.mjs` declares no global `timeout` and no `retries`, no test is marked
+      `.skip` or `.fixme`, and no assertion was deleted or weakened. **`playwright.config.mjs` does
+      not appear in `git diff --name-only 5c978c5cb..HEAD` at all; `grep -cE '\.(skip|fixme)\('`
+      returns 0 for both spec files; the Scope 02 commit changed 0 `expect()` lines.**
+- [x] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count.
+      **`Research-Lab self-test: 2534 passed, 0 failed`, exit 0 — up 44 from the 2490 baseline.**
+- [x] `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc`
+      exits 0 on the completed packet. **`Artifact lint PASSED.`, exit 0, run after the DoD items
+      were ticked.**
 
 ## Checklist
 
@@ -56,9 +72,9 @@ human establishes it.
 
 ## Human Acceptance Record
 
-Acceptance has not occurred and cannot occur. This packet delivers documentation of a defect, not a
-change in behaviour, so there is nothing for a human to exercise. A human completes this section
-after a fix has been delivered and exercised.
+Acceptance has not occurred. The fix is delivered and there is now behaviour for a human to
+exercise, but no human has exercised it. Automation cannot fill this section and nothing above
+substitutes for it.
 
 - acceptedBy: [unfilled]
 - acceptedAt: [unfilled]

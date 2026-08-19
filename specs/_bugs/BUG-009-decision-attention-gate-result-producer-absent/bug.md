@@ -4,7 +4,7 @@
 product decision that no agent may make. This packet documents and routes; it fixes nothing.
 **Severity:** High (the brief's owned decision surface has published nothing for 8 days, while every mechanical gate stays green)
 **Reported:** 2026-08-18
-**Verified by:** `bubbles.bug`, 2026-08-18, against `/Users/<user>/Projects/research-lab`
+**Verified by:** `bubbles.bug`, 2026-08-18, against `<repo-root>`
 **Repository binding:** `PREFLIGHT_COMMITTED decision=rb:vscode-76b63b1d817fb69cbecb59e2acefacd6:2 revision=2 repository=research-lab`
 **HEAD at verification:** `373f4572dd23adb1440a87db210876d9ede3e400`
 

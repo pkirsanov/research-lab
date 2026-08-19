@@ -400,13 +400,12 @@ because two corrected attributions are worth more than one confident wrong one.
 $ git worktree remove --force "$TMPDIR/rl-bug009-repro"
 REMOVE_EXIT=0
 $ git worktree list
-/Users/<user>/Projects/research-lab  373f4572d [main]
+<repo-root>  373f4572d [main]
 ```
 
-The worktree path above is reproduced verbatim except for the account segment, which
-is replaced with the `<user>` placeholder `scripts/pii-scan.mjs` documents as the
-stand-in. The `home-path` rule refuses a real account name on the committed surface,
-and a redacted segment carries the same meaning for a reader without publishing it.
+The worktree path above uses the canonical `<repo-root>` placeholder. The `home-path`
+rule refuses a real account name or absolute home path on the committed surface, and
+the placeholder carries the same meaning for a reader without publishing either.
 
 ### E13 — Final verification: the canonical gate is green with this packet present
 

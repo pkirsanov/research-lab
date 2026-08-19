@@ -341,7 +341,7 @@
         mode: "simple", agenda: null, current: null, history: [], selectedTopicId: null,
         topic: null, definition: null, review: null, dossier: null, view: null,
         currentDossier: null, predecessorDossier: null, comparison: null, fixture: null,
-        leverState: null, fetchCount: 0, renderCount: 0, assetCache: Object.create(null)
+        leverState: null, bootFailure: null, fetchCount: 0, renderCount: 0, assetCache: Object.create(null)
       };
 
       function byId(id) { return document.getElementById(id); }
@@ -1057,13 +1057,28 @@
           }
           return selectTopic(selected, route.topicId !== selected);
         }).catch(function (error) {
+          var message = String(error && error.message ? error.message : error);
+          var reason = "Required same-origin research artifacts could not be loaded. " + message;
           byId("currentPosture").textContent = "○ Unavailable";
-          byId("currentReason").textContent = "Required same-origin research artifacts could not be loaded. " + error.message;
+          byId("currentReason").textContent = reason;
+          /* A boot that cannot produce a view must still reach a TERMINAL state. Leaving
+             state.view unset left getViewState() null forever, so every reader waiting on
+             readiness waited without bound for a reason this handler had already computed —
+             a hang standing in for a diagnosis. The failure is MARKED, never disguised:
+             bootStatus names it, modelAvailable is explicitly false, and none of a healthy
+             view's fields are present, so no consumer can mistake this for a result. */
+          state.bootFailure = { status: "failed", reason: reason, message: message };
+          state.view = { bootStatus: "failed", modelAvailable: false, bootFailure: state.bootFailure };
         });
       }
 
       window.__researchAgendaDebug = {
         getViewState: function () { return state.view ? JSON.parse(JSON.stringify(state.view)) : null; },
+        /* Null while the boot is pending OR succeeded; non-null only on failure. Read with
+           getViewState() it is an unambiguous tri-state: both null is pending, a view with no
+           bootStatus is success, bootStatus "failed" plus this is failure — and the refusal
+           reason is retrievable here rather than only as DOM text. */
+        getBootFailure: function () { return state.bootFailure ? JSON.parse(JSON.stringify(state.bootFailure)) : null; },
         getFetchCount: function () { return state.fetchCount; },
         getRenderCount: function () { return state.renderCount; },
         getHistoryFingerprint: function () { return JSON.stringify(state.history); },

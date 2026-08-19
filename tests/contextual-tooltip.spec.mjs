@@ -1,9 +1,12 @@
 import { expect, test } from './playwright-runtime.mjs';
 import { startStaticServer } from './provider-credentials.support.mjs';
+import { startPinnedAgendaSite } from './research-agenda-fixture.support.mjs';
 
 let site;
-test.beforeAll(async () => { site = await startStaticServer(); });
-test.afterAll(async () => { if (site) await site.close(); });
+// BUG-012 scope 02: the agenda fixture boots against committed bar inputs (see the support module).
+let agendaSite;
+test.beforeAll(async () => { site = await startStaticServer(); agendaSite = await startPinnedAgendaSite(); });
+test.afterAll(async () => { if (site) await site.close(); if (agendaSite) await agendaSite.close(); });
 
 async function waitForHeatmap(page) {
   await page.goto(`${site.baseUrl}/market-heatmap-lab.html`);
@@ -113,7 +116,7 @@ test('Regression: SCN-012-004 label-only context fails the exact Power item with
 });
 
 test('Research charts tables tickers sources and tooltips retain units provenance limits and keyboard access', async ({ page }) => {
-  await page.goto(`${site.baseUrl}/research-agenda-lab.html?fixture=reversal#power/geopolitical-supply-shock`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${agendaSite.baseUrl}/research-agenda-lab.html?fixture=reversal#power/geopolitical-supply-shock`, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
   await page.waitForFunction(() => globalThis.__researchAgendaDebug && globalThis.__researchAgendaDebug.getViewState());
 

@@ -1,0 +1,8 @@
+{
+  "contractVersion": "company-version-pointer/v1",
+  "subjectId": "company:msft",
+  "versionId": "company:msft:2026-08-11",
+  "priorVersionId": null,
+  "contentFingerprint": "sha256:3cc5675c639f6c21808ccedebb59bdf08b4d129853da3e0de8222c99579a182b",
+  "note": "Names the version that is current for this company. A later run advances this pointer to its own dated version and records the pointed-to version as its predecessor. The pointer is the only file a run replaces; every version file under versions/ is written once and never reopened."
+}

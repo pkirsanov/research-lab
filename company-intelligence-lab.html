@@ -1,0 +1,1359 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:* https://*.ts.net:* https://api.nasdaq.com https://api.stlouisfed.org https://api.twelvedata.com https://cdn.cboe.com https://data.sec.gov https://finnhub.io https://home.treasury.gov https://production.dataviz.cnn.io https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://stockanalysis.com https://www.alphavantage.co; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; manifest-src 'self'">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="referrer" content="no-referrer">
+    <title>Company Multi-Horizon Intelligence Lab - Research Lab</title>
+    <!-- Inline so the browser issues no icon request. -->
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e141c'/%3E%3Cpath d='M6 22 L12 14 L18 18 L26 9' fill='none' stroke='%232dd4bf' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <style>
+        :root {
+            --bg: #0b0f14;
+            --band: #121922;
+            --band-2: #0e141c;
+            --line: #1f2a36;
+            --ink: #e6edf3;
+            --muted: #8aa0b3;
+            --dim: #5d7186;
+            --teal: #2dd4bf;
+            --amber: #f5b942;
+            --red: #f0556b;
+            --green: #39d98a;
+            --blue: #5aa9f0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            max-width: 100%;
+            background: var(--bg);
+            color: var(--ink);
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        main {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 18px 14px 64px;
+        }
+
+        h1 {
+            font-size: 1.35rem;
+            margin: 0 0 4px;
+        }
+
+        h2 {
+            font-size: 1.05rem;
+            margin: 0 0 8px;
+        }
+
+        h3 {
+            font-size: 0.95rem;
+            margin: 0 0 6px;
+        }
+
+        p {
+            margin: 0 0 8px;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .dim {
+            color: var(--dim);
+        }
+
+        .band {
+            background: var(--band);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin: 0 0 14px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+            gap: 12px;
+        }
+
+        .card {
+            background: var(--band-2);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .segment {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 10px 0;
+        }
+
+        button {
+            background: var(--band-2);
+            color: var(--ink);
+            border: 1px solid var(--line);
+            border-radius: 7px;
+            padding: 6px 11px;
+            cursor: pointer;
+            font: inherit;
+        }
+
+        button[aria-pressed="true"],
+        button[aria-selected="true"] {
+            border-color: var(--teal);
+            color: var(--teal);
+        }
+
+        input[type="text"] {
+            background: var(--band-2);
+            color: var(--ink);
+            border: 1px solid var(--line);
+            border-radius: 7px;
+            padding: 6px 9px;
+            font: inherit;
+            max-width: 190px;
+        }
+
+        .chip {
+            display: inline-block;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 1px 8px;
+            margin: 0 5px 3px 0;
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+
+        .chip[data-provenance="observed"] {
+            color: var(--green);
+        }
+
+        .chip[data-provenance="derived"] {
+            color: var(--blue);
+        }
+
+        .chip[data-provenance="proxy"] {
+            color: var(--amber);
+        }
+
+        .chip[data-provenance="modelled"] {
+            color: var(--amber);
+        }
+
+        .state {
+            font-weight: 600;
+        }
+
+        .state[data-state="current"] {
+            color: var(--green);
+        }
+
+        .state[data-state="partial"] {
+            color: var(--amber);
+        }
+
+        .state[data-state="stale"] {
+            color: var(--amber);
+        }
+
+        .state[data-state="conflicted"] {
+            color: var(--red);
+        }
+
+        .state[data-state="unavailable"] {
+            color: var(--dim);
+        }
+
+        .direction[data-direction="constructive"] {
+            color: var(--green);
+        }
+
+        .direction[data-direction="pressured"] {
+            color: var(--red);
+        }
+
+        .direction[data-direction="flat"] {
+            color: var(--amber);
+        }
+
+        .direction[data-direction="none"] {
+            color: var(--dim);
+        }
+
+        .refusal {
+            border-left: 3px solid var(--red);
+            padding-left: 9px;
+            color: var(--red);
+            margin: 6px 0;
+        }
+
+        .tablewrap {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 0.86rem;
+        }
+
+        caption {
+            text-align: left;
+            color: var(--muted);
+            padding-bottom: 5px;
+        }
+
+        th,
+        td {
+            border-bottom: 1px solid var(--line);
+            padding: 5px 7px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--band-2);
+        }
+
+        details {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 7px 10px;
+            margin: 0 0 8px;
+        }
+
+        summary {
+            cursor: pointer;
+        }
+
+        a {
+            color: var(--teal);
+        }
+
+        body[data-mode="simple"] [data-surface="power"] {
+            display: none;
+        }
+
+        body[data-mode="power"] [data-surface="simple"] {
+            display: none;
+        }
+
+        /* Below 600 CSS pixels the canvas hides and its equivalent table renders alone. */
+        @media (max-width: 599px) {
+            .chartbox canvas {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body data-run-status="empty" data-coverage-unavailable="0" data-corpus-status="pending" data-mode="simple">
+    <main>
+        <header class="band">
+            <h1 id="page-title">Company Multi-Horizon Intelligence Lab</h1>
+            <p class="muted" id="page-subtitle">Four horizon questions about one public company, composed from
+                owner reads that already exist. Every mandatory dimension answers on every run, and a dimension with
+                no source says so by name.</p>
+            <p class="dim" id="educational-notice">Educational research only. This is not investment advice, and no
+                part of this page is an instruction to buy, sell, size or hold anything.</p>
+        </header>
+
+        <section class="band" aria-labelledby="subject-heading">
+            <h2 id="subject-heading">Company</h2>
+            <div class="segment">
+                <label for="subject-input">Public company identifier</label>
+                <input type="text" id="subject-input" autocomplete="off" spellcheck="false"
+                    aria-describedby="subject-help" value="MSFT">
+                <button type="button" id="subject-apply">Open company</button>
+            </div>
+            <p class="dim" id="subject-help">Tickers only. A position, size, cost basis or profit entry is refused and
+                nothing is stored.</p>
+            <p id="subject-refusal" class="refusal" hidden></p>
+            <p id="subject-identity"></p>
+            <div class="segment" role="group" aria-label="View mode">
+                <button type="button" id="mode-simple" data-mode-button="simple" aria-pressed="true">Simple</button>
+                <button type="button" id="mode-power" data-mode-button="power" aria-pressed="false">Power</button>
+            </div>
+            <p class="dim" id="mode-note">The mode segment switches display only. It triggers no request and no
+                recomposition.</p>
+        </section>
+
+        <section class="band" data-surface="simple" aria-labelledby="cockpit-heading">
+            <h2 id="cockpit-heading">Simple cockpit</h2>
+            <p id="cockpit-coverage-line" class="muted"></p>
+            <div class="grid" id="cockpit-horizons" data-horizon-cards></div>
+            <p id="cockpit-contradictions" class="muted"></p>
+            <p id="cockpit-publication" class="muted"></p>
+        </section>
+
+        <div data-surface="power">
+            <section class="band" data-workspace="performance" aria-labelledby="workspace-performance-heading">
+                <h2 id="workspace-performance-heading">Performance</h2>
+                <div id="workspace-performance-values"></div>
+                <div class="chartbox">
+                    <canvas id="chart-performance" width="720" height="220" role="img"
+                        aria-label="Price and benchmark ratio by session"></canvas>
+                </div>
+                <div class="tablewrap">
+                    <table id="table-performance">
+                        <caption id="caption-performance">Price and benchmark ratio by session</caption>
+                        <thead>
+                            <tr id="table-performance-head"></tr>
+                        </thead>
+                        <tbody id="table-performance-rows"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="band" data-workspace="fundamentals" aria-labelledby="workspace-fundamentals-heading">
+                <h2 id="workspace-fundamentals-heading">Fundamentals</h2>
+                <div id="workspace-fundamentals-body"></div>
+            </section>
+
+            <section class="band" data-workspace="events" aria-labelledby="workspace-events-heading">
+                <h2 id="workspace-events-heading">Events</h2>
+                <p id="workspace-events-summary" class="muted"></p>
+                <div id="workspace-events-body"></div>
+                <h3 id="workspace-events-upcoming-heading">Upcoming catalysts</h3>
+                <div id="workspace-events-upcoming"></div>
+            </section>
+
+            <section class="band" data-workspace="geopolitics" aria-labelledby="workspace-geopolitics-heading">
+                <h2 id="workspace-geopolitics-heading">Geopolitics and exposures</h2>
+                <div id="workspace-geopolitics-body"></div>
+            </section>
+
+            <section class="band" data-workspace="regime" aria-labelledby="workspace-regime-heading">
+                <h2 id="workspace-regime-heading">Regime and cross-asset</h2>
+                <div id="workspace-regime-values"></div>
+                <div class="chartbox">
+                    <canvas id="chart-volatility" width="720" height="220" role="img"
+                        aria-label="Volatility percentile by session"></canvas>
+                </div>
+                <div class="tablewrap">
+                    <table id="table-volatility">
+                        <caption id="caption-volatility">Volatility percentile by session</caption>
+                        <thead>
+                            <tr id="table-volatility-head"></tr>
+                        </thead>
+                        <tbody id="table-volatility-rows"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="band" data-workspace="cycles" aria-labelledby="workspace-cycles-heading">
+                <h2 id="workspace-cycles-heading">Cycles</h2>
+                <div id="workspace-cycles-values"></div>
+                <div class="chartbox">
+                    <canvas id="chart-cycles" width="720" height="220" role="img"
+                        aria-label="Price and long mean by session"></canvas>
+                </div>
+                <div class="tablewrap">
+                    <table id="table-cycles">
+                        <caption id="caption-cycles">Price and long mean by session</caption>
+                        <thead>
+                            <tr id="table-cycles-head"></tr>
+                        </thead>
+                        <tbody id="table-cycles-rows"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="band" data-workspace="valuation" aria-labelledby="workspace-valuation-heading">
+                <h2 id="workspace-valuation-heading">Valuation and risks</h2>
+                <div id="workspace-valuation-body"></div>
+            </section>
+
+            <section class="band" data-workspace="sources" aria-labelledby="workspace-sources-heading">
+                <h2 id="workspace-sources-heading">Sources and contradictions</h2>
+                <p id="workspace-sources-run"></p>
+                <p id="workspace-coverage-totals" class="muted"></p>
+                <div class="tablewrap">
+                    <table id="workspace-coverage-table">
+                        <caption id="workspace-coverage-caption">Every mandatory dimension, its state, its reason and
+                            its owner</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Dimension</th>
+                                <th scope="col">State</th>
+                                <th scope="col">Reason</th>
+                                <th scope="col">As of</th>
+                                <th scope="col">Owner</th>
+                            </tr>
+                        </thead>
+                        <tbody id="workspace-coverage-rows"></tbody>
+                    </table>
+                </div>
+                <h3 id="workspace-sources-families-heading">Evidence families</h3>
+                <div id="workspace-sources-families"></div>
+                <h3 id="workspace-contradictions-heading">Contradictions</h3>
+                <div id="workspace-contradictions-body"></div>
+                <h3 id="workspace-sources-refusals-heading">Refusals raised during this run</h3>
+                <div id="workspace-sources-refusals"></div>
+            </section>
+
+            <section class="band" data-workspace="research-plan" aria-labelledby="workspace-plan-heading">
+                <h2 id="workspace-plan-heading">Research plan</h2>
+                <p id="workspace-plan-summary" class="muted"></p>
+                <div id="workspace-plan-body"></div>
+            </section>
+
+            <section class="band" data-workspace="outcome-record" aria-labelledby="workspace-outcome-heading">
+                <h2 id="workspace-outcome-heading">Outcome record</h2>
+                <div id="workspace-outcome-body"></div>
+            </section>
+        </div>
+
+        <footer class="band">
+            <p class="dim" id="page-footer">Educational research only. Not investment advice.</p>
+        </footer>
+    </main>
+
+    <script src="rldata.js"></script>
+    <script src="rlapp.js"></script>
+    <script src="rlcontracts.js"></script>
+    <script src="rlmetrics.js"></script>
+    <script src="rlratio.js"></script>
+    <script src="rlvol.js"></script>
+    <script src="rlregime.js"></script>
+    <script src="rlcompany.js"></script>
+    <script src="rlagenda.js"></script>
+    <script src="rlchart.js"></script>
+    <script src="rlticker.js"></script>
+    <script src="rlcompanyintel.js"></script>
+    <script src="rlnav.js"></script>
+    <script>
+        (function () {
+            "use strict";
+
+            var INTEL = window.RLCOMPANYINTEL;
+            var COMPANY = window.RLCOMPANY;
+            var REGIME = window.RLREGIME;
+
+            /* The company opened when the query string names none. This is a navigation choice,
+               never a stand-in for missing evidence: a dimension with no source still reads
+               unavailable with its own named reason. */
+            var OPENING_TICKER = "MSFT";
+            var BENCHMARK_SYMBOL = "SPY";
+            var CONFIG_PATH = "company-intelligence.config.json";
+
+            /* SEC identities this repository holds a committed fundamentals publication for. */
+            var SEC_COMPANIES = [
+                { ticker: "MSFT", cik: "0000789019", displayName: "Microsoft Corporation" },
+                { ticker: "KO", cik: "0000021344", displayName: "Coca-Cola Company" },
+                { ticker: "AMZN", cik: "0001018724", displayName: "Amazon.com Inc" }
+            ];
+
+            /* Every element identity this script reads. The boot check refuses loudly when one is
+               absent, so a renamed region can never fail silently at the first render. */
+            var ELEMENT_IDS = [
+                "page-title", "page-subtitle", "educational-notice", "page-footer",
+                "subject-heading", "subject-input", "subject-apply", "subject-help",
+                "subject-refusal", "subject-identity",
+                "mode-simple", "mode-power", "mode-note",
+                "cockpit-heading", "cockpit-coverage-line", "cockpit-horizons",
+                "cockpit-contradictions", "cockpit-publication",
+                "workspace-performance-heading", "workspace-performance-values",
+                "chart-performance", "table-performance", "caption-performance",
+                "table-performance-head", "table-performance-rows",
+                "workspace-fundamentals-heading", "workspace-fundamentals-body",
+                "workspace-events-heading", "workspace-events-summary", "workspace-events-body",
+                "workspace-events-upcoming-heading", "workspace-events-upcoming",
+                "workspace-geopolitics-heading", "workspace-geopolitics-body",
+                "workspace-regime-heading", "workspace-regime-values",
+                "chart-volatility", "table-volatility", "caption-volatility",
+                "table-volatility-head", "table-volatility-rows",
+                "workspace-cycles-heading", "workspace-cycles-values",
+                "chart-cycles", "table-cycles", "caption-cycles",
+                "table-cycles-head", "table-cycles-rows",
+                "workspace-valuation-heading", "workspace-valuation-body",
+                "workspace-sources-heading", "workspace-sources-run",
+                "workspace-coverage-totals", "workspace-coverage-table", "workspace-coverage-caption",
+                "workspace-coverage-rows", "workspace-sources-families-heading", "workspace-sources-families",
+                "workspace-contradictions-heading", "workspace-contradictions-body",
+                "workspace-sources-refusals-heading", "workspace-sources-refusals",
+                "workspace-plan-heading", "workspace-plan-summary", "workspace-plan-body",
+                "workspace-outcome-heading", "workspace-outcome-body"
+            ];
+
+            var config = null;
+            var registry = null;
+            var currentTicker = OPENING_TICKER;
+            var corpusStatus = "pending";
+            var publishedRegimeContext = null;
+            /* The committed event file for the opened company, or null when none covers it. */
+            var committedEvents = null;
+            /* The committed authored research plan and version tree for the opened company. Both
+               stay null when the company carries none, which the workspaces state as an absence. */
+            var authoredPlan = null;
+            var versionTree = null;
+
+            /* ---------- the only two DOM access helpers ---------- */
+
+            function byId(id) {
+                var node = document.getElementById(id);
+                if (!node) throw new Error("RLCOMPANYINTEL_ROUTE_MISSING_ELEMENT:" + id);
+                return node;
+            }
+
+            function setText(id, value) {
+                byId(id).textContent = String(value === null || value === undefined ? "" : value);
+            }
+
+            function clear(node) {
+                while (node.firstChild) node.removeChild(node.firstChild);
+            }
+
+            function el(tag, text, attributes) {
+                var node = document.createElement(tag);
+                if (text !== null && text !== undefined) node.textContent = String(text);
+                if (attributes) {
+                    Object.keys(attributes).forEach(function (key) {
+                        if (attributes[key] === null || attributes[key] === undefined) return;
+                        node.setAttribute(key, String(attributes[key]));
+                    });
+                }
+                return node;
+            }
+
+            function setBodyState(runStatus, unavailableCount) {
+                document.body.setAttribute("data-run-status", runStatus);
+                document.body.setAttribute("data-coverage-unavailable", String(unavailableCount));
+                document.body.setAttribute("data-corpus-status", corpusStatus);
+            }
+
+            /* ---------- value rendering ---------- */
+
+            /* Every displayed number carries its provenance class, its source and its as-of date.
+               A value with no number renders the word rather than an empty cell. */
+            function valueNode(value) {
+                var wrap = el("div", null, { "data-value-id": value.valueId, "data-provenance-class": value.provenanceClass });
+                wrap.appendChild(el("span", value.label + ": ", { class: "muted" }));
+                wrap.appendChild(el("span", value.value === null ? "Unavailable" : (value.value + (value.unit ? " " + value.unit : "")), {
+                    "data-value-number": value.value === null ? "unavailable" : value.value
+                }));
+                wrap.appendChild(el("span", " "));
+                wrap.appendChild(el("span", value.provenanceClass, { class: "chip", "data-provenance": value.provenanceClass }));
+                wrap.appendChild(el("span", value.sourceName, { class: "chip", "data-source-name": value.sourceName }));
+                wrap.appendChild(el("span", "as of " + String(value.asOf), { class: "chip", "data-as-of": String(value.asOf) }));
+                return wrap;
+            }
+
+            function dimensionCard(read, owner) {
+                var card = el("div", null, { class: "card", "data-dimension": read.dimensionId, "data-dimension-state": read.state });
+                card.appendChild(el("h3", read.dimensionId));
+                var stateLine = el("p");
+                stateLine.appendChild(el("span", read.state, { class: "state", "data-state": read.state }));
+                if (read.reasonCode !== null) stateLine.appendChild(el("span", ", reason " + read.reasonCode, { "data-reason-code": read.reasonCode }));
+                card.appendChild(stateLine);
+                if (read.state === "unavailable") {
+                    card.appendChild(el("p", read.limitations.length > 0
+                        ? read.limitations[0]
+                        : "This dimension has no source and reports no value.", { class: "muted", "data-absence-statement": "true" }));
+                } else {
+                    read.values.forEach(function (value) { card.appendChild(valueNode(value)); });
+                    read.limitations.forEach(function (limitation) {
+                        card.appendChild(el("p", limitation, { class: "muted", "data-limitation": "true" }));
+                    });
+                }
+                if (owner.hasOwner) {
+                    card.appendChild(el("a", "Open " + owner.ownerToolId, { href: owner.ownerDeepLink, "data-owner-link": owner.ownerToolId }));
+                } else {
+                    card.appendChild(el("p", owner.statement, { class: "dim", "data-no-owner": "true" }));
+                }
+                return card;
+            }
+
+            /* ---------- accessible chart tables ---------- */
+
+            function renderAccessibleTable(headId, rowsId, captionId, model) {
+                var head = byId(headId);
+                var rows = byId(rowsId);
+                clear(head);
+                clear(rows);
+                setText(captionId, model.caption);
+                model.columns.forEach(function (column) {
+                    head.appendChild(el("th", column, { scope: "col" }));
+                });
+                model.rows.forEach(function (row) {
+                    var tr = el("tr", null, { "data-row-state": row.state });
+                    tr.appendChild(el("th", row.label, { scope: "row" }));
+                    tr.appendChild(el("td", row.valueText));
+                    tr.appendChild(el("td", row.state));
+                    rows.appendChild(tr);
+                });
+            }
+
+            /* ---------- synchronous canvas drawing ---------- */
+
+            /* Drawn inside render on the same tick. A hidden tab never fires an animation frame,
+               so scheduling a draw would ship a blank canvas to exactly the reader who switched
+               away and came back. */
+            function drawSeries(canvasId, points, label, unavailableReason) {
+                var canvas = byId(canvasId);
+                var context = canvas.getContext("2d");
+                if (!context) return;
+                var width = canvas.width;
+                var height = canvas.height;
+                context.clearRect(0, 0, width, height);
+                context.fillStyle = "#0e141c";
+                context.fillRect(0, 0, width, height);
+                context.strokeStyle = "#1f2a36";
+                context.lineWidth = 1;
+                context.beginPath();
+                context.moveTo(38, 12);
+                context.lineTo(38, height - 24);
+                context.lineTo(width - 12, height - 24);
+                context.stroke();
+                context.fillStyle = "#8aa0b3";
+                context.font = "12px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+                context.fillText(label, 44, 24);
+                var numeric = points.filter(function (point) { return Number.isFinite(point.value); });
+                canvas.setAttribute("data-series-points", String(numeric.length));
+                if (numeric.length < 2) {
+                    context.fillStyle = "#f5b942";
+                    context.fillText(unavailableReason, 44, Math.round(height / 2));
+                    return;
+                }
+                var lowest = numeric[0].value;
+                var highest = numeric[0].value;
+                numeric.forEach(function (point) {
+                    if (point.value < lowest) lowest = point.value;
+                    if (point.value > highest) highest = point.value;
+                });
+                var span = highest - lowest;
+                if (span === 0) span = 1;
+                var left = 38;
+                var right = width - 12;
+                var top = 12;
+                var bottom = height - 24;
+                context.strokeStyle = "#2dd4bf";
+                context.lineWidth = 1.8;
+                context.beginPath();
+                numeric.forEach(function (point, index) {
+                    var x = left + ((right - left) * index) / (numeric.length - 1);
+                    var y = bottom - ((point.value - lowest) / span) * (bottom - top);
+                    if (index === 0) context.moveTo(x, y); else context.lineTo(x, y);
+                });
+                context.stroke();
+                context.fillStyle = "#8aa0b3";
+                context.fillText(String(numeric[0].label), left, height - 8);
+                context.fillText(String(numeric[numeric.length - 1].label), right - 74, height - 8);
+            }
+
+            function seriesFromBars(rows, take, pick) {
+                var slice = rows.slice(Math.max(0, rows.length - take));
+                return slice.map(function (row) {
+                    return {
+                        label: new Date(row.t).toISOString().slice(0, 10),
+                        value: pick(row)
+                    };
+                });
+            }
+
+            function accessibleModel(caption, categoryLabel, valueLabel, unit, points, unavailableNote) {
+                var series = points.length > 0
+                    ? points.map(function (point) {
+                        return {
+                            label: point.label,
+                            value: Number.isFinite(point.value) ? point.value.toFixed(3) : null,
+                            note: Number.isFinite(point.value) ? null : unavailableNote,
+                            state: Number.isFinite(point.value) ? "available" : "unavailable"
+                        };
+                    })
+                    : [{ label: "No session", value: null, note: unavailableNote, state: "unavailable" }];
+                return COMPANY.buildAccessibleChartTable({
+                    caption: caption,
+                    categoryLabel: categoryLabel,
+                    valueLabel: valueLabel,
+                    unit: unit,
+                    series: series
+                });
+            }
+
+            function longMean(rows, window) {
+                return rows.map(function (row, index) {
+                    if (index + 1 < window) return { t: row.t, c: null };
+                    var total = 0;
+                    for (var back = 0; back < window; back += 1) total += rows[index - back].c;
+                    return { t: row.t, c: total / window };
+                });
+            }
+
+            /* ---------- composition ---------- */
+
+            function collectSources(subject, when) {
+                var regimeContext = null;
+                if (publishedRegimeContext && REGIME && typeof REGIME.readPublishedContext === "function" &&
+                    publishedRegimeContext.contractVersion === REGIME.COMBINED_CONTRACT) {
+                    var context = REGIME.readPublishedContext(publishedRegimeContext, { decisionTime: when });
+                    regimeContext = {
+                        available: true,
+                        archetypeName: context.archetypeName || null,
+                        asOf: String(context.asOf).slice(0, 10)
+                    };
+                } else {
+                    regimeContext = { available: false };
+                }
+                return {
+                    registry: registry,
+                    secCompanies: SEC_COMPANIES,
+                    barSymbols: [subject ? subject.ticker : currentTicker],
+                    benchmarkSymbol: BENCHMARK_SYMBOL,
+                    publishedRegimeContext: regimeContext,
+                    committedEvents: committedEvents,
+                    authoredPlan: authoredPlan,
+                    versionTree: versionTree,
+                    maxBranches: registry ? registry.maxBranches : null,
+                    decisionTime: when
+                };
+            }
+
+            /* The decision time is read once per render and handed to every composition function,
+               so the module itself never reads a clock. */
+            function decisionTime() {
+                return new Date().toISOString();
+            }
+
+            function compose() {
+                var when = decisionTime();
+                var identifierSources = { secCompanies: SEC_COMPANIES, barSymbols: [currentTicker], decisionTime: when };
+                var subject = INTEL.resolveSubject(currentTicker, identifierSources);
+                if (subject.contractVersion === "company-intel-error/v1") return { refusal: subject };
+                var sources = collectSources(subject, when);
+                var bundle = INTEL.runAdapters(subject, sources, when, window.RLDATA);
+                var account = INTEL.buildCoverageAccount(bundle, registry);
+                var families = INTEL.groupEvidenceFamilies(bundle);
+                var partition = INTEL.partitionByHorizon(bundle);
+                var horizons = [
+                    INTEL.composeImmediate(partition.tactical, registry, when),
+                    INTEL.composeEvent(partition.event, registry, when),
+                    INTEL.composeSwing(partition.swing, registry, when),
+                    INTEL.composeStructural(partition.structural, registry, when)
+                ];
+                var contradictions = INTEL.extractContradictions(horizons);
+                /* Two plan sources sit at the same extension point. A committed authored plan is
+                   the run's own record and wins; otherwise the older committed-plan reader
+                   answers, and with neither the plan is honestly empty. */
+                var plan = authoredPlan
+                    ? INTEL.agentAuthoredPlanSource(subject, sources)
+                    : INTEL.attachResearchPlan(subject, sources);
+                var events = INTEL.selectRenderableEvents(INTEL.publicScheduleSource(subject, sources, when));
+                var catalysts = INTEL.selectUpcomingCatalysts(events, when);
+                var history = INTEL.readVersionHistory(subject, sources);
+                var version = INTEL.buildReadVersion({
+                    subject: subject,
+                    horizons: horizons,
+                    coverageAccount: account,
+                    evidenceFamilies: families,
+                    contradictions: contradictions,
+                    researchPlan: plan,
+                    events: events,
+                    priorVersionId: history.currentVersionId,
+                    refusals: bundle.refusals
+                }, when);
+                var published = INTEL.publishToolRead(version, window.RLDATA);
+                /* The writer states the files this run would append. The module owns no
+                   filesystem, so the plan is rendered as evidence rather than executed here:
+                   committing a new dated version is an out-of-band step the operator performs. */
+                var writePlan = INTEL.planVersionWrite(version, history);
+                return {
+                    version: version, bundle: bundle, catalysts: catalysts, published: published,
+                    history: history, writePlan: writePlan, refusal: null
+                };
+            }
+
+            /* ---------- rendering ---------- */
+
+            function renderRefusal(refusal) {
+                var node = byId("subject-refusal");
+                node.hidden = false;
+                /* The detail carries whatever the operator typed. It reaches the DOM through
+                   textContent only, so markup renders as visible characters and never as nodes. */
+                node.textContent = refusal.code + ": " + refusal.message +
+                    (refusal.detail ? " [" + refusal.detail + "]" : "");
+                node.setAttribute("data-refusal-code", refusal.code);
+                setBodyState("refused", 0);
+            }
+
+            function renderHorizonCards(version) {
+                var host = byId("cockpit-horizons");
+                clear(host);
+                version.horizons.forEach(function (horizon) {
+                    var card = el("div", null, {
+                        class: "card", "data-horizon": horizon.horizonId,
+                        "data-direction": horizon.direction, "data-evidence-quality": horizon.evidenceQuality
+                    });
+                    card.appendChild(el("h3", horizon.question));
+                    var line = el("p");
+                    line.appendChild(el("span", horizon.direction, { class: "direction", "data-direction": horizon.direction }));
+                    line.appendChild(el("span", ", evidence " + horizon.evidenceQuality));
+                    card.appendChild(line);
+                    card.appendChild(el("p", horizon.summary, { "data-horizon-summary": horizon.horizonId }));
+                    var dive = el("details", null, { "data-horizon-dive": horizon.horizonId });
+                    dive.appendChild(el("summary", "Deep dive"));
+                    dive.appendChild(el("p", horizon.gapEffect, { "data-gap-effect": "true" }));
+                    dive.appendChild(el("p", "Invalidation: " + horizon.invalidation, { "data-invalidation": "true" }));
+                    dive.appendChild(el("p", "Contributing: " + (horizon.contributingDimensionIds.join(", ") || "none")));
+                    if (horizon.claims.length === 0) {
+                        dive.appendChild(el("p", "No claim rests on this horizon, because no eligible read carried a direction.",
+                            { class: "muted", "data-no-claims": "true" }));
+                    } else {
+                        horizon.claims.forEach(function (claim) {
+                            var item = el("p", claim.text, { "data-claim-id": claim.claimId });
+                            item.appendChild(el("span", " (" + claim.supportingValueIds.join(", ") + ")", { class: "dim" }));
+                            dive.appendChild(item);
+                        });
+                    }
+                    dive.appendChild(el("p", "Input fingerprint " + horizon.inputFingerprint, { class: "dim" }));
+                    card.appendChild(dive);
+                    host.appendChild(card);
+                });
+            }
+
+            function renderCoverage(version) {
+                var totals = version.coverageAccount.totals;
+                setText("workspace-coverage-totals",
+                    "current " + totals.current + " · partial " + totals.partial + " · stale " + totals.stale +
+                    " · conflicted " + totals.conflicted + " · unavailable " + totals.unavailable +
+                    " · " + version.coverageAccount.rows.length + " dimensions accounted for");
+                var body = byId("workspace-coverage-rows");
+                clear(body);
+                version.coverageAccount.rows.forEach(function (row) {
+                    var owner = INTEL.describeDimensionOwner(registry, row.dimensionId);
+                    var tr = el("tr", null, {
+                        "data-coverage-row": row.dimensionId, "data-state": row.state,
+                        "data-has-owner": owner.hasOwner ? "true" : "false"
+                    });
+                    tr.appendChild(el("th", row.label, { scope: "row" }));
+                    var stateCell = el("td");
+                    stateCell.appendChild(el("span", row.state, { class: "state", "data-state": row.state }));
+                    tr.appendChild(stateCell);
+                    tr.appendChild(el("td", row.reasonCode === null ? "no reason needed" : row.reasonCode, {
+                        "data-coverage-reason": row.reasonCode === null ? "none" : row.reasonCode
+                    }));
+                    tr.appendChild(el("td", row.asOf === null ? "no dated source" : row.asOf));
+                    var ownerCell = el("td");
+                    if (owner.hasOwner) {
+                        ownerCell.appendChild(el("a", owner.ownerToolId, { href: owner.ownerDeepLink, "data-owner-link": owner.ownerToolId }));
+                    } else {
+                        ownerCell.appendChild(el("span", owner.statement, { "data-no-owner": "true" }));
+                    }
+                    tr.appendChild(ownerCell);
+                    body.appendChild(tr);
+                });
+            }
+
+            function readOf(bundle, dimensionId) {
+                var found = bundle.reads.filter(function (read) { return read.dimensionId === dimensionId; });
+                return found.length > 0 ? found[0] : null;
+            }
+
+            function renderDimensionValues(hostId, bundle, dimensionIds) {
+                var host = byId(hostId);
+                clear(host);
+                var grid = el("div", null, { class: "grid" });
+                dimensionIds.forEach(function (dimensionId) {
+                    var read = readOf(bundle, dimensionId);
+                    if (!read) return;
+                    grid.appendChild(dimensionCard(read, INTEL.describeDimensionOwner(registry, dimensionId)));
+                });
+                host.appendChild(grid);
+            }
+
+            function renderCharts(bundle) {
+                var bars = window.RLDATA && typeof window.RLDATA.bars === "function" ? window.RLDATA.bars(currentTicker, "1d") : null;
+                var benchmark = window.RLDATA && typeof window.RLDATA.bars === "function" ? window.RLDATA.bars(BENCHMARK_SYMBOL, "1d") : null;
+                var performanceReason = "No committed price history is cached for " + currentTicker + ".";
+                var performancePoints = [];
+                if (Array.isArray(bars) && Array.isArray(benchmark) && bars.length > 1 && benchmark.length > 1) {
+                    var byDate = {};
+                    benchmark.forEach(function (row) { byDate[new Date(row.t).toISOString().slice(0, 10)] = row.c; });
+                    performancePoints = seriesFromBars(bars, 60, function (row) {
+                        var key = new Date(row.t).toISOString().slice(0, 10);
+                        var against = byDate[key];
+                        return Number.isFinite(against) && against !== 0 ? row.c / against : null;
+                    });
+                    performanceReason = "This session has no matching benchmark close.";
+                } else if (Array.isArray(bars) && bars.length > 1) {
+                    performanceReason = "No committed price history is cached for the " + BENCHMARK_SYMBOL + " benchmark leg.";
+                }
+                drawSeries("chart-performance", performancePoints, currentTicker + " against " + BENCHMARK_SYMBOL, performanceReason);
+                renderAccessibleTable("table-performance-head", "table-performance-rows", "caption-performance",
+                    accessibleModel("Price and benchmark ratio by session", "Session", "Ratio", "ratio",
+                        performancePoints, performanceReason));
+
+                var volatilityRead = readOf(bundle, "volatility");
+                var volatilityReason = volatilityRead && volatilityRead.state === "unavailable" && volatilityRead.limitations.length > 0
+                    ? volatilityRead.limitations[0]
+                    : "The volatility owner publishes one percentile, not a session series.";
+                drawSeries("chart-volatility", [], "Volatility percentile", volatilityReason);
+                renderAccessibleTable("table-volatility-head", "table-volatility-rows", "caption-volatility",
+                    accessibleModel("Volatility percentile by session", "Session", "Percentile", "percent",
+                        [], volatilityReason));
+
+                var cycleReason = "No committed price history is cached for " + currentTicker + ".";
+                var cyclePoints = [];
+                if (Array.isArray(bars) && bars.length > 1) {
+                    var means = longMean(bars, 200);
+                    cyclePoints = seriesFromBars(means, 60, function (row) { return Number.isFinite(row.c) ? row.c : null; });
+                    cycleReason = "This session sits inside the 200-session warm-up, so the long mean has no value yet.";
+                }
+                drawSeries("chart-cycles", cyclePoints, currentTicker + " 200-session mean", cycleReason);
+                renderAccessibleTable("table-cycles-head", "table-cycles-rows", "caption-cycles",
+                    accessibleModel("Price and long mean by session", "Session", "Long mean", "price",
+                        cyclePoints, cycleReason));
+            }
+
+            function renderEvents(version, catalysts) {
+                setText("workspace-events-summary", version.events.events.length === 0
+                    ? "No company event reached this run. No committed event file covers this company, so nothing is presented as a calendar fact."
+                    : version.events.events.length + " event records reached this run, "
+                        + catalysts.upcoming.length + " still ahead and " + catalysts.occurred.length + " already passed.");
+                var host = byId("workspace-events-body");
+                clear(host);
+                var placementOf = {};
+                catalysts.upcoming.forEach(function (event) { placementOf[event.eventId] = "upcoming"; });
+                catalysts.occurred.forEach(function (event) { placementOf[event.eventId] = "occurred"; });
+                version.events.events.forEach(function (event) {
+                    var row = el("div", null, {
+                        class: "card", "data-event-id": event.eventId, "data-date-class": event.dateClass,
+                        "data-event-placement": placementOf[event.eventId], "data-source-class": event.sourceClass
+                    });
+                    row.appendChild(el("p", event.date + " · " + event.eventType + " · " + event.dateClass));
+                    /* A passed event states what was observed. An event still ahead states that
+                       nothing has been observed yet, rather than leaving the line blank. */
+                    row.appendChild(el("p", event.dateClass === "occurred"
+                        ? (event.observedOutcome === null
+                            ? "This date has passed and no outcome has been recorded for it yet."
+                            : event.observedOutcome)
+                        : "This date has not passed, so nothing has been observed for it yet.",
+                    { "data-observed-outcome": event.dateClass === "occurred" ? "recorded" : "pending" }));
+                    /* An inferred date always shows the basis of the inference beside it. */
+                    if (event.estimateBasis !== null) {
+                        row.appendChild(el("p", "Estimate basis: " + event.estimateBasis, { "data-estimate-basis": "true" }));
+                    }
+                    row.appendChild(el("span", event.sourceClass, { class: "chip", "data-source-class-chip": event.sourceClass }));
+                    row.appendChild(el("span", String(event.sourceName), { class: "chip", "data-source-name": String(event.sourceName) }));
+                    row.appendChild(el("span", "as of " + String(event.asOf), { class: "chip", "data-as-of": String(event.asOf) }));
+                    host.appendChild(row);
+                });
+                version.events.refusals.forEach(function (refusal) {
+                    host.appendChild(el("p", refusal.code + ": " + refusal.message, { class: "refusal" }));
+                });
+                if (version.events.events.length === 0 && version.events.refusals.length === 0) {
+                    host.appendChild(el("p", "Zero event records and zero event refusals.", { class: "dim" }));
+                }
+
+                /* The upcoming catalyst list is its own region. A passed event is absent from it
+                   by construction, so a finished event can never keep reading as a forecast. */
+                var upcomingHost = byId("workspace-events-upcoming");
+                clear(upcomingHost);
+                if (catalysts.upcoming.length === 0) {
+                    upcomingHost.appendChild(el("p", catalysts.emptyReason, { class: "muted", "data-upcoming-count": "0" }));
+                } else {
+                    catalysts.upcoming.forEach(function (event) {
+                        upcomingHost.appendChild(el("p", event.date + " · " + event.eventType + " · " + event.dateClass,
+                            { "data-event-id": event.eventId, "data-date-class": event.dateClass }));
+                    });
+                }
+            }
+
+            function renderContradictions(version) {
+                var host = byId("workspace-contradictions-body");
+                clear(host);
+                if (version.contradictions.length === 0) {
+                    host.appendChild(el("p", "No two horizons oppose each other in this run.", { class: "muted", "data-contradiction-count": "0" }));
+                    return;
+                }
+                version.contradictions.forEach(function (record) {
+                    host.appendChild(el("p", record.statement, { "data-contradiction-id": record.contradictionId }));
+                });
+            }
+
+            function renderPlan(version) {
+                var plan = version.researchPlan;
+                var summary = byId("workspace-plan-summary");
+                summary.setAttribute("data-plan-state", plan.branches.length === 0 ? "empty" : "branches");
+                summary.setAttribute("data-plan-source", plan.planSource);
+                summary.setAttribute("data-empty-reason", plan.emptyReason === null ? "" : plan.emptyReason);
+                setText("workspace-plan-summary", plan.branches.length === 0
+                    ? "No discretionary branch ran. " + emptyPlanCopy(plan)
+                    : plan.branches.length + " branches ran, " + plan.budgetRemaining + " of " + plan.maxBranches +
+                        " remaining. Authored by " + plan.authoredBy + " on " + plan.authoredAt + ".");
+                var host = byId("workspace-plan-body");
+                clear(host);
+                plan.branches.forEach(function (branch) {
+                    var block = el("details", null, { "data-branch-id": branch.branchId, "data-disposition": branch.disposition });
+                    block.appendChild(el("summary", branch.disposition + " — " + branch.question));
+                    block.appendChild(el("p", branch.result));
+                    block.appendChild(el("p", "Consulted: " + branch.consulted.map(function (entry) { return entry.kind + " " + entry.ref; }).join("; ")));
+                    block.appendChild(el("p", "Stopped by " + branch.stoppedBy + ": " + branch.stopCondition));
+                    if (branch.refusalReason !== null) block.appendChild(el("p", "Refused because " + branch.refusalReason, { class: "refusal" }));
+                    host.appendChild(block);
+                });
+                if (plan.branches.length === 0) {
+                    host.appendChild(el("p", emptyPlanCopy(plan), { class: "muted", "data-empty-reason": plan.emptyReason }));
+                }
+                plan.refusals.forEach(function (refusal) {
+                    host.appendChild(el("p", refusal.code + ": " + refusal.message, { class: "refusal" }));
+                });
+            }
+
+            /* An empty plan is a real outcome, so every empty reason reads as a sentence rather
+               than leaving a blank region the reader has to interpret. */
+            function emptyPlanCopy(plan) {
+                if (plan.emptyReason === "floor-was-sufficient") {
+                    return "The mandatory coverage floor answered the decision, so the agent opened no " +
+                        "discretionary question beyond it and the whole budget of " + plan.maxBranches + " stayed unspent.";
+                }
+                if (plan.emptyReason === "every-branch-refused") {
+                    return "Every branch this run opened was refused before it could publish, and each refusal is named below.";
+                }
+                if (plan.emptyReason === "authorship-not-recorded") {
+                    return "The authored plan named no author or no authoring date, so it is not published as an anonymous record.";
+                }
+                if (plan.emptyReason === "plan-names-another-company") {
+                    return "The committed plan names a different company, so it was not read into this company's record.";
+                }
+                return "Reason: " + plan.emptyReason;
+            }
+
+            function renderSources(version) {
+                setText("workspace-sources-run",
+                    "Run fingerprint " + version.contentFingerprint + " composed at " + version.composedAt +
+                    " for " + version.subjectId + " on identity basis " + version.subject.identityBasis + ".");
+                var families = byId("workspace-sources-families");
+                clear(families);
+                version.evidenceFamilies.families.forEach(function (family) {
+                    families.appendChild(el("p",
+                        family.familyId + ": " + family.answeredCount + " of " + family.memberCount + " answered (" +
+                        family.dimensionIds.join(", ") + ")", { "data-family": family.familyId }));
+                });
+                var refusals = byId("workspace-sources-refusals");
+                clear(refusals);
+                if (version.refusals.length === 0) {
+                    refusals.appendChild(el("p", "Zero refusals were raised during this run.", { "data-refusal-count": "0" }));
+                    return;
+                }
+                version.refusals.forEach(function (refusal) {
+                    refusals.appendChild(el("p", refusal.code + ": " + refusal.message, { class: "refusal", "data-refusal-code": refusal.code }));
+                });
+            }
+
+            function renderOutcomeRecord(result) {
+                var version = result.version;
+                var history = result.history;
+                var writePlan = result.writePlan;
+                var host = byId("workspace-outcome-body");
+                clear(host);
+                host.setAttribute("data-version-id", version.versionId);
+                host.setAttribute("data-prior-version-id", version.priorVersionId === null ? "" : version.priorVersionId);
+                host.setAttribute("data-committed-version-count", String(history.versions.length));
+
+                var refused = writePlan.contractVersion === "company-intel-error/v1";
+                var created = refused ? null : writePlan.operations.filter(function (operation) {
+                    return operation.operation === "create";
+                })[0];
+                host.setAttribute("data-write-created-path", created ? created.path : "");
+                host.setAttribute("data-write-untouched-paths", refused ? "" : writePlan.untouchedPaths.join(" "));
+
+                host.appendChild(el("p", version.priorVersionId === null
+                    ? "This run composed " + version.versionId + " and found no committed predecessor for " +
+                        version.subject.ticker + ", so it is the first version in this company's record."
+                    : "This run composed " + version.versionId + " and references " + version.priorVersionId +
+                        " as its predecessor. The predecessor stays readable exactly as it was committed: this run " +
+                        "appends a new dated file and opens no prior version file for writing."));
+
+                if (refused) {
+                    host.appendChild(el("p", writePlan.code + ": " + writePlan.message, { class: "refusal" }));
+                } else {
+                    host.appendChild(el("p", "Appending " + created.path + ". " +
+                        (writePlan.untouchedPaths.length === 0
+                            ? "No prior version file exists yet, so none is touched."
+                            : writePlan.untouchedPaths.length + " prior version files stay untouched: " +
+                                writePlan.untouchedPaths.join(", ") + ".")));
+                }
+
+                /* Every committed version renders as its own row carrying the fingerprint it
+                   shipped with, so a reader can compare the file on disk against what is shown. */
+                history.versions.forEach(function (entry) {
+                    var row = el("p", entry.versionId + " composed at " + entry.composedAt +
+                        (entry.priorVersionId === null ? ", first version" : ", after " + entry.priorVersionId) +
+                        ", fingerprint " + entry.contentFingerprint + ".", {
+                        "data-version-row": entry.versionId,
+                        "data-content-fingerprint": entry.contentFingerprint,
+                        "data-version-path": entry.path
+                    });
+                    host.appendChild(row);
+                });
+                if (history.versions.length === 0) {
+                    host.appendChild(el("p", "No committed version exists for " + version.subject.ticker + " yet, so there " +
+                        "is no scored history to place beside this reading.", { class: "muted", "data-empty-reason": history.emptyReason }));
+                }
+                history.refusals.forEach(function (refusal) {
+                    host.appendChild(el("p", refusal.code + ": " + refusal.message, { class: "refusal" }));
+                });
+            }
+
+            function render(result) {
+                if (result.refusal) {
+                    renderRefusal(result.refusal);
+                    return;
+                }
+                byId("subject-refusal").hidden = true;
+                var version = result.version;
+                var bundle = result.bundle;
+                setText("subject-identity", version.subject.displayName + " (" + version.subject.ticker + ") resolved on " +
+                    version.subject.identityBasis + (version.subject.cik ? ", SEC identity " + version.subject.cik : ", no SEC identity") + ".");
+                setText("cockpit-coverage-line",
+                    version.coverageAccount.totals.unavailable + " of " + version.coverageAccount.rows.length +
+                    " mandatory dimensions have no usable source in this run. Each one names its reason below.");
+                renderHorizonCards(version);
+                setText("cockpit-contradictions", version.contradictions.length === 0
+                    ? "No two horizons oppose each other in this run."
+                    : version.contradictions.length + " horizon pairs disagree. Both readings stand.");
+                setText("cockpit-publication", result.published.contractVersion === "company-intel-error/v1"
+                    ? result.published.code + ": " + result.published.message
+                    : "Published on the shared channel as " + result.published.id + ", availability " + result.published.availability + ".");
+                renderCoverage(version);
+                renderDimensionValues("workspace-performance-values", bundle, ["performance", "technicals", "options-flow"]);
+                renderDimensionValues("workspace-fundamentals-body", bundle, ["fundamentals"]);
+                renderDimensionValues("workspace-geopolitics-body", bundle, ["geopolitics", "sentiment"]);
+                renderDimensionValues("workspace-regime-values", bundle, ["volatility", "market-regime", "options-structure", "dealer-gamma"]);
+                renderDimensionValues("workspace-cycles-values", bundle, ["cycles"]);
+                renderDimensionValues("workspace-valuation-body", bundle, ["valuation", "company-risk"]);
+                renderCharts(bundle);
+                renderEvents(version, result.catalysts);
+                renderContradictions(version);
+                renderPlan(version);
+                renderSources(version);
+                renderOutcomeRecord(result);
+                setBodyState("composed", version.coverageAccount.totals.unavailable);
+            }
+
+            function run() {
+                setBodyState("composing", 0);
+                render(compose());
+            }
+
+            /* ---------- events ---------- */
+
+            function applySubject() {
+                var raw = byId("subject-input").value.trim();
+                var refusal = INTEL.refuseInput(raw);
+                if (refusal) {
+                    renderRefusal(refusal);
+                    return;
+                }
+                currentTicker = raw.toUpperCase();
+                var result = compose();
+                render(result);
+                /* An unresolved identifier never triggers a corpus request, because asking the
+                   server for a symbol the tool already refused would only produce a 404. */
+                if (!result.refusal) loadCorpus();
+            }
+
+            function setMode(mode) {
+                document.body.setAttribute("data-mode", mode);
+                byId("mode-simple").setAttribute("aria-pressed", mode === "simple" ? "true" : "false");
+                byId("mode-power").setAttribute("aria-pressed", mode === "power" ? "true" : "false");
+            }
+
+            /* ---------- committed corpus ---------- */
+
+            /* Same-origin committed bars only. This appends the delta the shared cache is missing
+               and never refetches a symbol a sibling already cached. */
+            function loadOne(symbol) {
+                if (window.RLDATA && typeof window.RLDATA.bars === "function") {
+                    var cached = window.RLDATA.bars(symbol, "1d");
+                    if (Array.isArray(cached) && cached.length > 0) return Promise.resolve("cached");
+                }
+                return fetch("data/bars/" + encodeURIComponent(symbol) + ".json", { cache: "no-store" })
+                    .then(function (response) {
+                        if (!response.ok) throw new Error("http " + response.status);
+                        return response.json();
+                    })
+                    .then(function (document_) {
+                        if (!document_ || !Array.isArray(document_.rows) || document_.rows.length === 0) throw new Error("empty");
+                        window.RLDATA.putBars(symbol, "1d", document_.rows, "committed-bars");
+                        return "loaded";
+                    })
+                    .catch(function () { return "unavailable"; });
+            }
+
+            function loadCorpus() {
+                corpusStatus = "pending";
+                return Promise.all([loadOne(currentTicker), loadOne(BENCHMARK_SYMBOL)])
+                    .then(function (outcomes) {
+                        corpusStatus = outcomes.indexOf("loaded") >= 0 || outcomes.indexOf("cached") >= 0 ? "loaded" : "unavailable";
+                        return loadEvents();
+                    })
+                    .then(function () {
+                        return loadResearchRecord();
+                    })
+                    .then(function () {
+                        run();
+                    });
+            }
+
+            /* The committed event file for the current subject. The registry names the path and
+               the route issues the request, so the module keeps no read authority of its own. A
+               subject the registry does not cover is a normal absence: nothing is requested and
+               the event dimension states that absence itself rather than showing an empty date. */
+            function loadEvents() {
+                var subject = INTEL.resolveSubject(currentTicker, {
+                    secCompanies: SEC_COMPANIES, barSymbols: [currentTicker], decisionTime: decisionTime()
+                });
+                var path = subject.contractVersion === "company-subject/v1"
+                    ? INTEL.eventsPathFor(registry, subject.subjectId)
+                    : null;
+                if (!path) {
+                    committedEvents = null;
+                    return Promise.resolve("uncovered");
+                }
+                return fetch(path, { cache: "no-store" })
+                    .then(function (response) {
+                        if (!response.ok) throw new Error("http " + response.status);
+                        return response.json();
+                    })
+                    .then(function (file) {
+                        committedEvents = file;
+                        return "loaded";
+                    })
+                    .catch(function () {
+                        committedEvents = null;
+                        return "unavailable";
+                    });
+            }
+
+            /* A same-origin committed file this company may or may not carry. A company with no
+               such file is a normal absence: the caller records null and the workspace states
+               the absence itself rather than rendering an empty region. */
+            function loadOptionalJson(path, assign) {
+                if (!path) {
+                    assign(null);
+                    return Promise.resolve("uncovered");
+                }
+                return fetch(path, { cache: "no-store" })
+                    .then(function (response) {
+                        if (!response.ok) throw new Error("http " + response.status);
+                        return response.json();
+                    })
+                    .then(function (file) {
+                        assign(file);
+                        return "loaded";
+                    })
+                    .catch(function () {
+                        assign(null);
+                        return "unavailable";
+                    });
+            }
+
+            /* The authored research plan and the append-only version tree for the current
+               subject. The module names every path and the route issues every request, so the
+               module keeps no read authority and no filesystem authority of its own. */
+            function loadResearchRecord() {
+                var subject = INTEL.resolveSubject(currentTicker, {
+                    secCompanies: SEC_COMPANIES, barSymbols: [currentTicker], decisionTime: decisionTime()
+                });
+                var covered = subject.contractVersion === "company-subject/v1" && registry &&
+                    registry.researchRecordSubjects.indexOf(subject.subjectId) >= 0;
+                if (!covered) {
+                    authoredPlan = null;
+                    versionTree = null;
+                    return Promise.resolve("uncovered");
+                }
+                var paths = INTEL.versionPathsFor(subject.subjectId, null);
+                return loadOptionalJson(paths.authoredPlan, function (file) { authoredPlan = file; })
+                    .then(function () {
+                        return loadOptionalJson(paths.currentPointer, function (file) {
+                            versionTree = { pointer: file, versions: [] };
+                        });
+                    })
+                    .then(function () {
+                        var pointer = versionTree && versionTree.pointer ? versionTree.pointer : null;
+                        if (!pointer || typeof pointer.versionId !== "string") {
+                            versionTree = { pointer: null, versions: [] };
+                            return "uncovered";
+                        }
+                        /* The pointer names the chain head. Each record names its own predecessor,
+                           so the walk follows the committed chain and requests nothing else. */
+                        return walkVersionChain(subject.subjectId, pointer.versionId, []);
+                    });
+            }
+
+            function walkVersionChain(subjectId, versionId, collected) {
+                if (!versionId || collected.length >= 20) {
+                    versionTree.versions = collected;
+                    return "loaded";
+                }
+                var path = INTEL.versionPathsFor(subjectId, versionId).version;
+                var record = null;
+                return loadOptionalJson(path, function (file) { record = file; })
+                    .then(function () {
+                        if (!record) {
+                            versionTree.versions = collected;
+                            return "loaded";
+                        }
+                        return walkVersionChain(subjectId, record.priorVersionId, collected.concat([record]));
+                    });
+            }
+
+            function boot() {
+                ELEMENT_IDS.forEach(function (id) { byId(id); });
+                var query = new URLSearchParams(window.location.search).get("symbol");
+                if (query) currentTicker = query.trim().toUpperCase();
+                byId("subject-input").value = currentTicker;
+                byId("subject-apply").addEventListener("click", applySubject);
+                byId("mode-simple").addEventListener("click", function () { setMode("simple"); });
+                byId("mode-power").addEventListener("click", function () { setMode("power"); });
+                setMode("simple");
+                fetch(CONFIG_PATH, { cache: "no-store" })
+                    .then(function (response) {
+                        if (!response.ok) throw new Error("http " + response.status);
+                        return response.json();
+                    })
+                    .then(function (document_) {
+                        config = document_;
+                        registry = INTEL.readCoverageRegistry(config);
+                        run();
+                        return loadCorpus();
+                    })
+                    .catch(function (error) {
+                        var code = error && error.code ? error.code : "C025-CONFIG-SCHEMA";
+                        renderRefusal({
+                            code: code,
+                            message: "The coverage registry could not be read, so no horizon was composed. " + error.message
+                        });
+                    });
+            }
+
+            boot();
+        })();
+    </script>
+</body>
+
+</html>

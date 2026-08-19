@@ -1,0 +1,1004 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/025-company-multi-horizon-intelligence-lab",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-08-18T00:00:00Z",
+  "stage": "scope-level-planning",
+  "stageNote": "Authored alongside scopes.md. Each scenarioId maps one-to-one onto the matching BS-025-NNN identifier in spec.md. scopeId and scope name the owning scope in scopes.md. testRows name the Test Plan row identifiers in scopes.md. linkedTests and evidenceRefs stay empty because no test file exists and no command has run, so populating them would be fabricated linkage. behaviorTraits are derived per scenario from what that scenario actually does, and each obligation names the trait that implies it plus the planned test that discharges it.",
+  "scenarioCount": 24,
+  "businessScenarioMapping": "SCN-025-001 through SCN-025-024 map one-to-one onto BS-025-001 through BS-025-024 in spec.md. No identifier is reused and no identifier is skipped.",
+  "scopeMapping": {
+    "01-composition-foundation": [
+      "SCN-025-001",
+      "SCN-025-002",
+      "SCN-025-003",
+      "SCN-025-004",
+      "SCN-025-006",
+      "SCN-025-007",
+      "SCN-025-008",
+      "SCN-025-009",
+      "SCN-025-011",
+      "SCN-025-012",
+      "SCN-025-013",
+      "SCN-025-014",
+      "SCN-025-015",
+      "SCN-025-017",
+      "SCN-025-018",
+      "SCN-025-019",
+      "SCN-025-020",
+      "SCN-025-023"
+    ],
+    "02-route-and-reachability": [
+      "SCN-025-005",
+      "SCN-025-010",
+      "SCN-025-021",
+      "SCN-025-024"
+    ],
+    "03-company-event-capability": [
+      "SCN-025-016"
+    ],
+    "04-authored-research-and-versions": [
+      "SCN-025-022"
+    ]
+  },
+  "scenarios": [
+    {
+      "scenarioId": "SCN-025-001",
+      "businessScenario": "BS-025-001",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "Every mandatory dimension reports a state",
+      "gherkin": {
+        "given": "the operator opens a company that has committed bars and options",
+        "when": "the run completes",
+        "then": "every mandatory coverage dimension carries an explicit state, no mandatory dimension is omitted from the coverage account, and each state is one of current, partial, stale, conflicted or unavailable"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation",
+        "runtime-config"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion that the coverage account holds one row per registry dimension and that the totals sum to the registry length.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: coverage account holds one row per registry dimension and totals sum to the registry length"
+          ]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The committed coverage registry in company-intelligence.config.json drives the rendered coverage grid on the production route.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs :: four horizon regions render with four summaries and four deep-dive controls"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.1",
+        "2.1"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-002",
+      "businessScenario": "BS-025-002",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "A dimension with no source reads unavailable with a reason",
+      "gherkin": {
+        "given": "the non-financial company event dimension has no committed source",
+        "when": "the run composes the coverage account",
+        "then": "that dimension reads unavailable, the account names the missing source, and no estimated or inferred value is shown in its place"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over the composed dimension read for the non-financial event dimension.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: non-financial event dimension reads unavailable with no-source-exists and carries no value"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion that the reason code is no-source-exists and that the values array is empty, with no plausible default substituted.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: non-financial event dimension reads unavailable with no-source-exists and carries no value"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.2"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-003",
+      "businessScenario": "BS-025-003",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "An unresolvable identifier is refused by name",
+      "gherkin": {
+        "given": "the operator enters an identifier that resolves to no public company",
+        "when": "the tool attempts identity resolution",
+        "then": "the tool refuses with a named reason and no horizon is composed from an unresolved subject"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over resolveSubject output for an unresolvable identifier.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: an unresolvable identifier raises C025-IDENTITY-UNRESOLVED and composes no horizon"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named refusal assertion on C025-IDENTITY-UNRESOLVED with zero composed horizons and no defaulted subject.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: an unresolvable identifier raises C025-IDENTITY-UNRESOLVED and composes no horizon"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.3"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-004",
+      "businessScenario": "BS-025-004",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "A company outside the corpus still renders four honest horizons",
+      "gherkin": {
+        "given": "the company has no committed bars, options or fundamentals",
+        "when": "the run completes",
+        "then": "all four horizons render, each horizon states that its evidence base is unavailable, and no horizon states a directional conclusion"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion that four horizon reads compose from an empty evidence bundle.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: a company outside every corpus yields four horizons with absent quality and none direction"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion that every direction is none and every evidenceQuality is absent, with an empty claims array.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: a company outside every corpus yields four horizons with absent quality and none direction"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.4"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-005",
+      "businessScenario": "BS-025-005",
+      "scopeId": "02-route-and-reachability",
+      "scope": 2,
+      "status": "not_started",
+      "title": "Four horizons are always present",
+      "gherkin": {
+        "given": "a company read version has been composed",
+        "when": "the operator opens the tool",
+        "then": "an immediate horizon and an event horizon are both present, a medium-term horizon and a long-term horizon are both present, and each horizon carries its own summary and its own deep dive"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "responsive-accessible"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Accessibility-tree assertion on the production route that four horizon regions render with four summaries and four deep-dive controls.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs :: four horizon regions render with four summaries and four deep-dive controls",
+            "tests/company-intelligence-lab.spec.mjs :: Regression: SCN-025-005 four horizon cards stay peers and never merge into one direction"
+          ]
+        },
+        {
+          "trait": "responsive-accessible",
+          "requiredProof": "Viewport assertion on the production route that the four summaries stack at 375 CSS pixels without sideways document scrolling.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs :: at 375 CSS pixels the four summaries stack and the document never scrolls sideways"
+          ]
+        }
+      ],
+      "testRows": [
+        "2.1",
+        "2.4",
+        "2.8"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-006",
+      "businessScenario": "BS-025-006",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "A summary never exceeds its deep dive",
+      "gherkin": {
+        "given": "a horizon summary asserts a directional conclusion",
+        "when": "the operator opens that horizon's deep dive",
+        "then": "every element of the conclusion traces to a recorded dimension read and no element of the conclusion lacks a supporting read"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion that every claim's supportingValueIds resolve inside that horizon's own input set, and that a foreign citation raises C025-HORIZON-ISOLATION.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: every claim cites a value present in its own horizon input set",
+            "tests/company-intelligence.unit.mjs :: adversarial: adding a tactical read leaves the structural horizon byte-identical"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.5",
+        "1.19"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-007",
+      "businessScenario": "BS-025-007",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "A horizon reports the dimensions it could not see",
+      "gherkin": {
+        "given": "four contributing dimensions are unavailable for the medium-term horizon",
+        "when": "that horizon is composed",
+        "then": "the deep dive lists the four unavailable dimensions, the summary states that the evidence base is incomplete, and the confidence label describes evidence quality rather than a probability of profit"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion that unavailableDimensionIds holds the four absent dimensions and that gapEffect is non-empty.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: four unavailable contributors downgrade evidence quality and populate gapEffect"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion that evidenceQuality downgrades to a word from the closed four-word list and that no numeric probability accompanies the direction.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: four unavailable contributors downgrade evidence quality and populate gapEffect"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.6"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-008",
+      "businessScenario": "BS-025-008",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "Horizons may disagree and the disagreement survives",
+      "gherkin": {
+        "given": "the immediate horizon reads negative and the long-term horizon reads positive",
+        "when": "the run composes the company read version",
+        "then": "both horizons keep their own direction, the contradiction is recorded as its own item, and no blended single direction replaces the two horizons"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion that extractContradictions emits one company-contradiction/v1 record and that both horizon directions are unchanged.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: two opposing horizons keep their directions and produce one contradiction record"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.7"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-009",
+      "businessScenario": "BS-025-009",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "An owned metric is consumed, never recomputed",
+      "gherkin": {
+        "given": "the volatility regime dimension is owned by a shared module",
+        "when": "the run composes the immediate horizon",
+        "then": "the run consumes that module's published read and this feature contains no second implementation of that metric"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over the module source that no volatility or ratio metric is defined a second time, plus an assertion that the volatility adapter reads rlvol-tool-read/v1.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: module source contains no second definition of a volatility or ratio metric"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.8"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-010",
+      "businessScenario": "BS-025-010",
+      "scopeId": "02-route-and-reachability",
+      "scope": 2,
+      "status": "not_started",
+      "title": "A dimension read deep-links to its owning tool",
+      "gherkin": {
+        "given": "a dimension is owned by a registered tool",
+        "when": "the operator opens that dimension in a deep dive",
+        "then": "a deep link to the owning tool is present and the link resolves to a registered route"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Visible assertion on the production route that an owned dimension renders a link whose target matches a registered route in tools.json.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs :: an owned dimension renders a deep link whose target is a registered route"
+          ]
+        }
+      ],
+      "testRows": [
+        "2.2"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-011",
+      "businessScenario": "BS-025-011",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "A dimension with no owner is named as a gap",
+      "gherkin": {
+        "given": "the company risk dimension has no registered owning tool",
+        "when": "the operator opens that dimension",
+        "then": "the tool states that no owner exists, the tool offers no deep link, and the dimension state remains unavailable or partial"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion that ownerToolId and ownerDeepLink are both null for the company risk dimension.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: a dimension with no owner renders no deep link and states that no owner exists"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion that the reason code is no-owner and that the state stays unavailable or partial.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: a dimension with no owner renders no deep link and states that no owner exists"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.9"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-012",
+      "businessScenario": "BS-025-012",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "A newly needed metric becomes one owning module",
+      "gherkin": {
+        "given": "this feature needs a metric that no existing module defines",
+        "when": "that metric is introduced",
+        "then": "it is defined in exactly one module, that module has a production consumer, and no copy of the metric exists inside the company route"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion that every exported function of rlcompanyintel.js has a caller inside company-intelligence-lab.html, and that the route defines no composition function of its own.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: every exported function of the module has a caller inside the route source"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.10"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-013",
+      "businessScenario": "BS-025-013",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "A scheduled event and an estimated date are distinguishable",
+      "gherkin": {
+        "given": "one event date comes from a published schedule and another event date comes from a historical pattern",
+        "when": "the event horizon renders both",
+        "then": "the scheduled date is labelled scheduled, the estimated date is labelled estimated, and the estimated date states the basis of the estimate"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over the dateClass vocabulary that an estimated date without a non-empty estimateBasis is refused and a scheduled date keeps its class.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: an estimated date without a basis is refused and a scheduled date keeps its class",
+            "tests/company-intelligence.unit.mjs :: a sourced schedule yields dateClass scheduled and a pattern yields dateClass estimated with a basis"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.11",
+        "3.3"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-014",
+      "businessScenario": "BS-025-014",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "An absent event source blocks the event horizon honestly",
+      "gherkin": {
+        "given": "no financial event source is available for the company",
+        "when": "the event horizon is composed",
+        "then": "the horizon reads unavailable, it names the missing source, and it states no expected effect"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion that composeEvent returns none direction and absent quality when its input set is empty.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: the event horizon reads none with absent quality and names the missing source"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion that gapEffect names the missing source and that the horizon states no expected effect.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: the event horizon reads none with absent quality and names the missing source",
+            "tests/company-intelligence.unit.mjs :: a company with no sourced event keeps the event horizon at none direction and absent quality"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.12",
+        "3.5"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-015",
+      "businessScenario": "BS-025-015",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "A non-financial event is carried with its own source class",
+      "gherkin": {
+        "given": "a non-financial company event has been sourced publicly",
+        "when": "the event horizon renders it",
+        "then": "the event carries its type, its date class, its source and its as-of date, and an unsourced non-financial event is not displayed at all"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion that a sourced non-financial event carries eventType, dateClass, sourceName and asOf.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: a non-financial event without a source url or an as-of date never renders"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named suppression assertion that a non-financial event missing sourceUrl or asOf never reaches the rendered set and leaves no partial row.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: a non-financial event missing sourceUrl or asOf never reaches the rendered set"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.13",
+        "3.4"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-016",
+      "businessScenario": "BS-025-016",
+      "scopeId": "03-company-event-capability",
+      "scope": 3,
+      "status": "not_started",
+      "title": "A past event becomes an outcome rather than a forecast",
+      "gherkin": {
+        "given": "an event date has passed and its outcome is known",
+        "when": "the next run composes the event horizon",
+        "then": "that event is recorded as occurred with its observed outcome and it is no longer presented as an upcoming catalyst"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation",
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion that an event dated before decisionTime reclassifies to occurred, carries observedOutcome, and leaves the upcoming catalyst list.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: an event dated before decisionTime reclassifies to occurred and carries its observed outcome",
+            "tests/company-intelligence.unit.mjs :: an occurred event is absent from the upcoming catalyst list"
+          ]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Visible assertion on the production events workspace that a passed event renders as occurred and never as an upcoming catalyst.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs :: Regression: SCN-025-016 a passed event renders as occurred and never as an upcoming catalyst"
+          ]
+        }
+      ],
+      "testRows": [
+        "3.1",
+        "3.2",
+        "3.6"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-017",
+      "businessScenario": "BS-025-017",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "A discretionary branch is recorded in full",
+      "gherkin": {
+        "given": "the agent opened a discretionary research branch beyond the coverage floor",
+        "when": "the run publishes its adaptive research plan",
+        "then": "the branch records its question, it records its relevance to a named horizon decision, and it records its result, its disposition and its stop condition"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion that a complete branch carries all six mandatory fields in company-research-branch/v1.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: a branch missing any of the six mandatory fields raises C025-PLAN-SCHEMA",
+            "tests/company-intelligence.unit.mjs :: an authored branch records all six mandatory fields and a missing field raises C025-PLAN-SCHEMA"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named refusal assertion that an incomplete branch raises C025-PLAN-SCHEMA and renders a refusal in place of the row.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: a branch missing any of the six mandatory fields raises C025-PLAN-SCHEMA"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.14",
+        "4.3",
+        "4.7"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-018",
+      "businessScenario": "BS-025-018",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "A branch that changed nothing is still recorded",
+      "gherkin": {
+        "given": "a discretionary branch found nothing that changed a horizon",
+        "when": "the run publishes its adaptive research plan",
+        "then": "the branch still appears and its disposition states that it did not change the conclusion"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion that a branch with disposition no-change survives publication with an empty changedTargets array.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: a no-change branch stays in the published plan",
+            "tests/company-intelligence.unit.mjs :: an authored no-change branch survives publication with its explicit disposition"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.15",
+        "4.4"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-019",
+      "businessScenario": "BS-025-019",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "Freedom never bypasses a contract",
+      "gherkin": {
+        "given": "a discretionary branch would require an unsourced claim",
+        "when": "the agent evaluates the branch",
+        "then": "the branch is closed without publishing the claim, the plan records the refusal and its reason, and no horizon cites the unpublished claim"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion that a refused branch carries a non-empty refusalReason and an empty changedTargets array.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: a refused branch records its reason and no horizon cites its claim"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named refusal assertion that no horizon claim cites a value originating in the refused branch.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: a refused branch records its reason and no horizon cites its claim",
+            "tests/company-intelligence.unit.mjs :: an authored refused branch records its reason and changes no horizon field"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.16",
+        "4.5"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-020",
+      "businessScenario": "BS-025-020",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "A branch may use any registered tool",
+      "gherkin": {
+        "given": "a material question is better answered by a tool outside the coverage floor mapping",
+        "when": "the agent opens a branch against that registered tool",
+        "then": "the branch is permitted and the plan records which tool was consulted and why"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion that a branch naming any registered tool id is permitted and records that id plus its relevance in the consulted array.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: a branch against any registered tool is permitted and records the tool it consulted"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.17"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-021",
+      "businessScenario": "BS-025-021",
+      "scopeId": "02-route-and-reachability",
+      "scope": 2,
+      "status": "not_started",
+      "title": "Every displayed figure carries provenance",
+      "gherkin": {
+        "given": "any numeric value is displayed in a horizon or a dimension read",
+        "when": "the operator inspects that value",
+        "then": "its source, its as-of date and its provenance class are all present"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Visible and accessibility-tree assertion on the production route that every rendered numeric value carries a provenance chip, a source name and an as-of date, and that an absent value renders a named absence rather than a dash or a zero.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs :: every rendered numeric value carries a provenance chip, a source name and an as-of date",
+            "tests/company-intelligence-lab.spec.mjs :: Regression: SCN-025-021 an unavailable dimension renders a named absence and never a dash or a zero",
+            "tests/company-intelligence-lab.spec.mjs :: Regression: SCN-025-021 a scripted narrative string renders as visible escaped text"
+          ]
+        }
+      ],
+      "testRows": [
+        "2.3",
+        "2.5",
+        "2.6"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-022",
+      "businessScenario": "BS-025-022",
+      "scopeId": "04-authored-research-and-versions",
+      "scope": 4,
+      "status": "not_started",
+      "title": "History is appended, never rewritten",
+      "gherkin": {
+        "given": "a prior company read version exists",
+        "when": "a new run corrects an earlier conclusion",
+        "then": "a new dated version is created referencing the predecessor and the prior version remains readable and unmodified"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation",
+        "mutable-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion that priorVersionId on the new version equals the versionId of the prior version, and that it is null on a first version.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: a new version references its predecessor and every prior file keeps its original contentFingerprint"
+          ]
+        },
+        {
+          "trait": "mutable-state",
+          "requiredProof": "Write, read and persistence round trip proving the new version file exists on disk, that current.json advances, and that the writer opens no prior version file for writing.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: the version writer opens no prior version file for writing",
+            "tests/company-intelligence-lab.spec.mjs :: Regression: SCN-025-022 the outcome record shows the predecessor unmodified beside the new version"
+          ]
+        }
+      ],
+      "testRows": [
+        "4.1",
+        "4.2",
+        "4.6"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-023",
+      "businessScenario": "BS-025-023",
+      "scopeId": "01-composition-foundation",
+      "scope": 1,
+      "status": "not_started",
+      "title": "The tool refuses portfolio input",
+      "gherkin": {
+        "given": "the operator attempts to enter a position size or a cost basis",
+        "when": "the tool processes the input",
+        "then": "the input is refused and no position, size, cost basis or profit value is stored anywhere"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion that refuseInput rejects a currency amount, a share count, a cost basis and a profit figure.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: a position, size, cost or profit input raises C025-INPUT-REFUSED and stores nothing"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named refusal assertion on C025-INPUT-REFUSED plus a source assertion that the module references no localStorage key and no sessionStorage key.",
+          "satisfiedBy": [
+            "tests/company-intelligence.unit.mjs :: a position, size, cost or profit input raises C025-INPUT-REFUSED and stores nothing"
+          ]
+        }
+      ],
+      "testRows": [
+        "1.18"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-025-024",
+      "businessScenario": "BS-025-024",
+      "scopeId": "02-route-and-reachability",
+      "scope": 2,
+      "status": "not_started",
+      "title": "The route ships registered or explicitly excluded",
+      "gherkin": {
+        "given": "the company route exists at the site root",
+        "when": "the site build runs",
+        "then": "the route is either registered in the tool registry and navigation or it is listed in the site exclusions with a substantive reason, and the build refuses any other combination"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "static-metadata"
+      ],
+      "obligations": [
+        {
+          "trait": "static-metadata",
+          "requiredProof": "Artifact assertion that site-exclusions.json lists the route, the module and the config, each with a reason of at least forty characters, plus a build-gate run that exits zero.",
+          "satisfiedBy": [
+            "scripts/selftest.mjs :: company-intelligence route, module and config each carry a site-exclusion entry with a substantive reason",
+            "scripts/build-pages-site.mjs :: build exits zero with the three excluded root paths absent from _site/"
+          ]
+        }
+      ],
+      "testRows": [
+        "2.10",
+        "2.11"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": []
+    }
+  ]
+}

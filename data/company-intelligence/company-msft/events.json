@@ -1,0 +1,74 @@
+{
+  "contractVersion": "company-event-file/v1",
+  "subjectId": "company:msft",
+  "ticker": "MSFT",
+  "cik": "0000789019",
+  "sourceId": "sec-edgar-submissions",
+  "sourceName": "SEC EDGAR company submissions",
+  "sourceUrl": "https://data.sec.gov/submissions/CIK0000789019.json",
+  "sourceClass": "committed-file",
+  "asOf": "2026-08-18",
+  "note": "Every financial row below is one 8-K carrying Item 2.02, Results of Operations and Financial Condition, taken from the SEC EDGAR company submissions feed for CIK 0000789019 and committed with its own filing-index URL. A dateClass of 'scheduled' means the date came from a published filing; 'estimated' means the date was inferred from the filing pattern and states its basis. Nothing here is reclassified in this file: the run compares each date against its own decisionTime and moves a passed date to 'occurred'. This file carries ticker identity and dates only. It records no holding, no size, no book value and no gain figure.",
+  "events": [
+    {
+      "eventId": "msft-results-2025-10-28",
+      "eventType": "quarterly-results",
+      "eventClass": "financial",
+      "date": "2025-10-28",
+      "dateClass": "scheduled",
+      "effectHorizonId": "event",
+      "observedOutcome": "Results of operations were reported in an 8-K carrying Item 2.02, filed 2025-10-29 under accession 0001193125-25-256310.",
+      "sourceName": "SEC EDGAR 8-K Item 2.02",
+      "sourceUrl": "https://www.sec.gov/Archives/edgar/data/789019/000119312525256310/0001193125-25-256310-index.htm",
+      "asOf": "2026-08-18"
+    },
+    {
+      "eventId": "msft-results-2026-01-28",
+      "eventType": "quarterly-results",
+      "eventClass": "financial",
+      "date": "2026-01-28",
+      "dateClass": "scheduled",
+      "effectHorizonId": "event",
+      "observedOutcome": "Results of operations were reported in an 8-K carrying Item 2.02, filed 2026-01-28 under accession 0001193125-26-027198.",
+      "sourceName": "SEC EDGAR 8-K Item 2.02",
+      "sourceUrl": "https://www.sec.gov/Archives/edgar/data/789019/000119312526027198/0001193125-26-027198-index.htm",
+      "asOf": "2026-08-18"
+    },
+    {
+      "eventId": "msft-results-2026-04-29",
+      "eventType": "quarterly-results",
+      "eventClass": "financial",
+      "date": "2026-04-29",
+      "dateClass": "scheduled",
+      "effectHorizonId": "event",
+      "observedOutcome": "Results of operations were reported in an 8-K carrying Item 2.02, filed 2026-04-29 under accession 0001193125-26-191457.",
+      "sourceName": "SEC EDGAR 8-K Item 2.02",
+      "sourceUrl": "https://www.sec.gov/Archives/edgar/data/789019/000119312526191457/0001193125-26-191457-index.htm",
+      "asOf": "2026-08-18"
+    },
+    {
+      "eventId": "msft-results-2026-07-29",
+      "eventType": "quarterly-results",
+      "eventClass": "financial",
+      "date": "2026-07-29",
+      "dateClass": "scheduled",
+      "effectHorizonId": "event",
+      "observedOutcome": "Results of operations were reported in an 8-K carrying Item 2.02, filed 2026-07-29 under accession 0001193125-26-323632.",
+      "sourceName": "SEC EDGAR 8-K Item 2.02",
+      "sourceUrl": "https://www.sec.gov/Archives/edgar/data/789019/000119312526323632/0001193125-26-323632-index.htm",
+      "asOf": "2026-08-18"
+    },
+    {
+      "eventId": "msft-results-2026-10-28",
+      "eventType": "quarterly-results",
+      "eventClass": "financial",
+      "date": "2026-10-28",
+      "dateClass": "estimated",
+      "estimateBasis": "The last eight 8-K filings carrying Item 2.02 reported in January, April, July and October, each on the 28th, 29th or 30th of the month; the previous October report landed on the 28th. No issuer announcement of this date has been read, so it is an inference and not a calendar fact.",
+      "effectHorizonId": "event",
+      "sourceName": "SEC EDGAR company submissions filing pattern",
+      "sourceUrl": "https://data.sec.gov/submissions/CIK0000789019.json",
+      "asOf": "2026-08-18"
+    }
+  ]
+}

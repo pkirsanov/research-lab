@@ -1,0 +1,206 @@
+{
+  "contractVersion": "company-intelligence-config/v1",
+  "note": "Coverage registry and composition policy for the Company Multi-Horizon Intelligence Lab. Fifteen dimensions are mandatory on every run; a dimension with no source answers with an explicit unavailable state and a named reason rather than a blank. decisionTimeSource is 'caller' because every composition function takes an explicit decisionTime and the module reads no clock.",
+  "decisionTimeSource": "caller",
+  "maxBranches": 5,
+  "branchBudgetRationale": "maxBranches is 5: five discretionary branches per run. The number is chosen against the fifteen-dimension mandatory floor rather than against an agent's appetite: the floor already answers the coverage question, so a branch exists only to settle a question the floor raised, and a single company read raises far fewer than fifteen such questions. A budget of 5 leaves room for one branch per horizon plus one contradiction follow-up, which is the largest set observed while composing the four horizons. A larger budget would let a run wander past the decision it was opened for; a smaller one would refuse a legitimate contradiction follow-up. Raising this integer to make a failing budget test pass is forbidden.",
+  "refusedBranchCounting": {
+    "countsAgainstBudget": true,
+    "rationale": "A refused branch is charged against the budget exactly as a published one is. Evaluating a branch far enough to discover that it would bypass provenance, an owner contract, identity resolution, privacy, source rights, an action gate or an unavailable state is real work, and the guardrail check is the expensive part of that work. Not charging it would make refusal a free retry, so a run could probe an unlimited number of blocked questions and still report a budget it never spent. Charging it keeps the recorded budgetRemaining an honest statement about how much of the run was used."
+  },
+  "eventSource": {
+    "sourceId": "sec-edgar-submissions",
+    "sourceName": "SEC EDGAR company submissions",
+    "sourceUrl": "https://data.sec.gov/submissions/",
+    "accessTerms": "United States government work in the public domain. The endpoint needs no credential, no account, no registration and no server of our own; the SEC asks every caller to declare a User-Agent and to stay under ten requests a second. Rows are read out of band, verified once, and committed under data/company-intelligence/ so the route reads them same-origin and issues no external request.",
+    "freshnessWindowDays": 120,
+    "coveredSubjects": [
+      {
+        "subjectId": "company:msft",
+        "eventsPath": "data/company-intelligence/company-msft/events.json"
+      }
+    ]
+  },
+  "researchRecord": {
+    "note": "Subjects that carry a committed authored research plan and an append-only version tree under data/company-intelligence/<subjectId>/. A subject absent from this list carries neither, so the route requests nothing for it and the research plan and outcome record workspaces state that absence themselves.",
+    "coveredSubjects": [
+      "company:msft"
+    ]
+  },
+  "freshnessWindowDays": {
+    "committed-file": 400,
+    "cache": 7,
+    "owner-read": 7,
+    "fixture": 0,
+    "none": 0
+  },
+  "coverageRegistry": [
+    {
+      "dimensionId": "performance",
+      "label": "Own and relative price performance",
+      "ownerToolId": "market-brief",
+      "ownerDeepLink": "market-brief.html",
+      "freshnessWindowDays": 7,
+      "maxHorizon": "swing"
+    },
+    {
+      "dimensionId": "fundamentals",
+      "label": "Reported fundamentals",
+      "ownerToolId": "company-fundamentals-lab",
+      "ownerDeepLink": "company-fundamentals-lab.html",
+      "freshnessWindowDays": 400,
+      "maxHorizon": "structural"
+    },
+    {
+      "dimensionId": "valuation",
+      "label": "Valuation against own history",
+      "ownerToolId": "company-fundamentals-lab",
+      "ownerDeepLink": "company-fundamentals-lab.html",
+      "freshnessWindowDays": 400,
+      "maxHorizon": "structural"
+    },
+    {
+      "dimensionId": "technicals",
+      "label": "Technical structure",
+      "ownerToolId": "technical-analysis-decision-lab",
+      "ownerDeepLink": "technical-analysis-decision-lab.html",
+      "freshnessWindowDays": 7,
+      "maxHorizon": "tactical"
+    },
+    {
+      "dimensionId": "cycles",
+      "label": "Trend and cycle position",
+      "ownerToolId": "trend-dynamics-cycle-lab",
+      "ownerDeepLink": "trend-dynamics-cycle-lab.html",
+      "freshnessWindowDays": 7,
+      "maxHorizon": "swing"
+    },
+    {
+      "dimensionId": "options-structure",
+      "label": "Options term and skew structure",
+      "ownerToolId": "options-structure-lab",
+      "ownerDeepLink": "options-structure-lab.html",
+      "freshnessWindowDays": 3,
+      "maxHorizon": "event"
+    },
+    {
+      "dimensionId": "dealer-gamma",
+      "label": "Dealer gamma positioning",
+      "ownerToolId": "gamma-trading-lab",
+      "ownerDeepLink": "gamma-trading-lab.html",
+      "freshnessWindowDays": 3,
+      "maxHorizon": "tactical"
+    },
+    {
+      "dimensionId": "options-flow",
+      "label": "Unusual options flow",
+      "ownerToolId": "options-flow-feed-lab",
+      "ownerDeepLink": "options-flow-feed-lab.html",
+      "freshnessWindowDays": 3,
+      "maxHorizon": "tactical"
+    },
+    {
+      "dimensionId": "volatility",
+      "label": "Volatility regime",
+      "ownerToolId": "volatility-sizing-lab",
+      "ownerDeepLink": "volatility-sizing-lab.html",
+      "freshnessWindowDays": 7,
+      "maxHorizon": "swing"
+    },
+    {
+      "dimensionId": "financial-events",
+      "label": "Scheduled financial events",
+      "ownerToolId": null,
+      "ownerDeepLink": null,
+      "freshnessWindowDays": 30,
+      "maxHorizon": "event"
+    },
+    {
+      "dimensionId": "non-financial-events",
+      "label": "Non-financial company events",
+      "ownerToolId": null,
+      "ownerDeepLink": null,
+      "freshnessWindowDays": 30,
+      "maxHorizon": "event"
+    },
+    {
+      "dimensionId": "geopolitics",
+      "label": "Geopolitical and policy backdrop",
+      "ownerToolId": "research-agenda-lab",
+      "ownerDeepLink": "research-agenda-lab.html",
+      "freshnessWindowDays": 30,
+      "maxHorizon": "swing"
+    },
+    {
+      "dimensionId": "market-regime",
+      "label": "Market regime backdrop",
+      "ownerToolId": null,
+      "ownerDeepLink": null,
+      "freshnessWindowDays": 7,
+      "maxHorizon": "swing"
+    },
+    {
+      "dimensionId": "sentiment",
+      "label": "Sentiment backdrop",
+      "ownerToolId": "market-brief",
+      "ownerDeepLink": "market-brief.html",
+      "freshnessWindowDays": 3,
+      "maxHorizon": "tactical"
+    },
+    {
+      "dimensionId": "company-risk",
+      "label": "Company risk register",
+      "ownerToolId": null,
+      "ownerDeepLink": null,
+      "freshnessWindowDays": 90,
+      "maxHorizon": "structural"
+    }
+  ],
+  "horizons": [
+    {
+      "horizonId": "immediate",
+      "rank": "tactical",
+      "question": "What matters for this company right now?",
+      "primaryDimensionIds": [
+        "performance",
+        "volatility",
+        "technicals",
+        "dealer-gamma",
+        "options-flow",
+        "sentiment"
+      ]
+    },
+    {
+      "horizonId": "event",
+      "rank": "event",
+      "question": "What happens at the next company event?",
+      "primaryDimensionIds": [
+        "financial-events",
+        "non-financial-events",
+        "options-structure"
+      ]
+    },
+    {
+      "horizonId": "swing",
+      "rank": "swing",
+      "question": "How should this company be positioned over the coming months?",
+      "primaryDimensionIds": [
+        "fundamentals",
+        "performance",
+        "geopolitics",
+        "cycles",
+        "market-regime"
+      ]
+    },
+    {
+      "horizonId": "structural",
+      "rank": "structural",
+      "question": "What is the long-term case for this company?",
+      "primaryDimensionIds": [
+        "fundamentals",
+        "valuation",
+        "company-risk"
+      ]
+    }
+  ]
+}

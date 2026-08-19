@@ -1,0 +1,17 @@
+{
+  "contractVersion": "company-read-version/v1",
+  "versionId": "company:msft:2026-08-11",
+  "subjectId": "company:msft",
+  "composedAt": "2026-08-11T00:00:00.000Z",
+  "priorVersionId": null,
+  "note": "The committed predecessor of the current company read. It carries the identity of the run that produced it and the four horizon summaries that run published, which is what the outcome record needs in order to place a later reading beside it. It is append-only: a later run authors a new dated file and never opens this one for writing. contentFingerprint is the sha256 over every key of this file except contentFingerprint itself, under the company-read-version/v1 canonical form, so any edit to these bytes is detectable by recomputation.",
+  "horizonSummaries": [
+    { "horizonId": "immediate", "direction": "flat", "evidenceQuality": "thin" },
+    { "horizonId": "event", "direction": "none", "evidenceQuality": "absent" },
+    { "horizonId": "structural", "direction": "constructive", "evidenceQuality": "narrow" },
+    { "horizonId": "swing", "direction": "constructive", "evidenceQuality": "narrow" }
+  ],
+  "coverageTotals": { "current": 3, "partial": 3, "stale": 0, "conflicted": 0, "unavailable": 9 },
+  "contradictionCount": 0,
+  "contentFingerprint": "sha256:3cc5675c639f6c21808ccedebb59bdf08b4d129853da3e0de8222c99579a182b"
+}

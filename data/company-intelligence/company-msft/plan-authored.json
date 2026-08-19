@@ -1,0 +1,55 @@
+{
+  "contractVersion": "company-authored-plan/v1",
+  "subjectId": "company:msft",
+  "authoredBy": "research-agent",
+  "authoredAt": "2026-08-18",
+  "note": "Discretionary branches the Research Agent opened beyond the mandatory fifteen-dimension floor for this company read. Each branch names the question it opened, the horizon decision it serves, what it consulted, what it found, what it did to the conclusion, and the condition that stopped it. A branch that changed nothing is still recorded, because an unrecorded no-change branch is indistinguishable from a branch that never ran.",
+  "branches": [
+    {
+      "branchId": "branch-1",
+      "question": "Does the constructive reported-fundamentals reading survive once the run looks at the reported periods one at a time rather than at the trailing aggregate?",
+      "relevance": { "horizonId": "structural", "claimId": "structural-fundamentals" },
+      "consulted": [
+        { "kind": "registered-tool", "ref": "company-fundamentals-lab", "deepLink": "company-fundamentals-lab.html" },
+        { "kind": "committed-data", "ref": "data/bars/MSFT.json", "deepLink": null }
+      ],
+      "result": "The committed publication carries one reported period rather than a series, so the per-period question cannot be answered from the public evidence this repository holds. The aggregate reading stands unchanged and is not strengthened.",
+      "disposition": "no-change",
+      "changedTargets": [],
+      "refusalReason": null,
+      "stopCondition": "Stop once the committed publication is exhausted, because no second public period exists to read.",
+      "stoppedBy": "no-source"
+    },
+    {
+      "branchId": "branch-2",
+      "question": "Do the four dimensions that read unavailable with reason no-shared-read share one cause, or are they four independent absences?",
+      "relevance": { "horizonId": "immediate", "claimId": "immediate-coverage" },
+      "consulted": [
+        { "kind": "committed-data", "ref": "company-intelligence.config.json", "deepLink": null },
+        { "kind": "registered-tool", "ref": "technical-analysis-decision-lab", "deepLink": "technical-analysis-decision-lab.html" }
+      ],
+      "result": "All four sit behind the same cause: their owning math is page-local and no headless owner module publishes it. That is one shared gap rather than four separate data outages, so the immediate horizon states one gap effect instead of four.",
+      "disposition": "changed",
+      "changedTargets": [
+        { "horizonId": "immediate", "field": "gapEffect", "from": "four-independent-absences", "to": "one-shared-absence" }
+      ],
+      "refusalReason": null,
+      "stopCondition": "Stop once every unavailable dimension has been traced to a named owner or to a named absence of one.",
+      "stoppedBy": "question-answered"
+    },
+    {
+      "branchId": "branch-3",
+      "question": "Can the run raise the company-risk dimension above unavailable by reading a commercial risk register?",
+      "relevance": { "horizonId": "structural", "claimId": "structural-risk" },
+      "consulted": [
+        { "kind": "committed-data", "ref": "company-intelligence.config.json", "deepLink": null }
+      ],
+      "result": "No public keyless register answers this dimension. The only candidates sit behind a paid feed, so the branch bought no evidence and the dimension keeps its named absence.",
+      "disposition": "refused",
+      "changedTargets": [],
+      "refusalReason": "Every candidate source requires a paid subscription and a credential, and this tool holds no credential and issues no external request. Reading one would bypass the source-rights guardrail, so the branch was stopped before it consulted anything.",
+      "stopCondition": "Stop at the first candidate that demands a credential.",
+      "stoppedBy": "guardrail"
+    }
+  ]
+}

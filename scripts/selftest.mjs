@@ -23827,11 +23827,19 @@ try {
   const basePayload1 = JSON.parse(read('market-brief.payload.json'));
   const fullConfig1 = JSON.parse(read('market-brief.config.json'));
   const laneCandidate1 = {
-    subject: 'FBTC', headline: 'FBTC sits far below its 200-day', rationale: 'structural',
+    headline: 'FBTC sits far below its 200-day', rationale: 'structural',
     verb: 'monitor', horizon: 'swing', severity: 'moderate', imminence: 'latent',
     escalationTrigger: 'a close back above the 200-day', invalidation: 'a close below the 52-week low',
     expiry: '2026-08-26T20:00:00.000Z'
   };
+  /* This candidate carries NO subject ON PURPOSE. `subject` is a GATE_KEY in
+     build-attention-items.mjs, not an AUTHORED_KEY, and the lane's own instruction tells
+     it to author "only the judgement", so a real lane candidate never names one. An
+     earlier version of this row supplied subject:'FBTC' and passed while the production
+     path would still have refused every candidate — the test proved the producer, not
+     the fix. Removing it is what makes this row evidence. */
+  assert(laneCandidate1.subject === undefined,
+    'Regression: SCN-BUG009-R1-NOSUBJECT the end-to-end candidate carries no subject, matching what the lane actually emits — a test that supplies one cannot detect a producer that never binds in production');
   const withCandidate1 = Object.assign({}, basePayload1, { attention: [laneCandidate1] });
   const built1e2e = composer1.recomposePayloadAttention(withCandidate1, fullConfig1);
   assert(built1e2e.items.length === 1 && built1e2e.exclusions.length === 0
@@ -23854,6 +23862,22 @@ try {
      documents. A candidate refused for want of an observation on one path and accepted
      on the other is an inconsistency a reader would experience as randomness, so this
      pins the attachment to BOTH call sites. */
+  /* The resolver binds judgement to an instrument, so its failure modes matter more
+     than its success. It must refuse rather than guess. */
+  const trackedTwo1 = { FBTC: trackedFixture(), SOXX: trackedFixture() };
+  assert(GATE.resolveSubject({ headline: 'FBTC sits far below its 200-day' }, trackedTwo1) === 'FBTC',
+    'a headline naming exactly one tracked symbol resolves to that symbol');
+  assert(GATE.resolveSubject({ headline: 'FBTC and SOXX both broke their 200-day' }, trackedTwo1) === null,
+    'Regression: SCN-BUG009-R1-AMBIGUOUS a headline naming TWO tracked symbols resolves to null rather than picking one — guessing which instrument a judgement is about is the fabrication this packet exists to refuse');
+  assert(GATE.resolveSubject({ headline: 'the dollar broke out against the yen' }, trackedTwo1) === null,
+    'a headline naming no tracked symbol resolves to null, so an unobservable judgement is never dressed up as observed');
+  assert(GATE.resolveSubject({ headline: 'FBTCX rallied' }, trackedTwo1) === null
+    && GATE.resolveSubject({ headline: 'buy FBTC.' }, trackedTwo1) === 'FBTC'
+    && GATE.resolveSubject({ headline: 'BRK.B is cheap' }, Object.assign({ 'BRK.B': trackedFixture() }, trackedTwo1)) === 'BRK.B',
+    'symbol matching is whole-word: a longer ticker containing a tracked one does not match, a sentence-ending period is still a boundary, and a dotted ticker such as BRK.B matches because the symbol is escaped as one literal');
+  assert(GATE.resolveSubject({ subject: 'SOXX', headline: 'FBTC sits far below its 200-day' }, trackedTwo1) === 'SOXX',
+    'an explicit subject still wins over the headline scan, so nothing that already names its subject changes behaviour');
+
   const builderSrc1 = read('scripts/build-attention-items.mjs');
   assert((builderSrc1.match(/RLATTNGATE\.attachObserved\(/g) || []).length === 2,
     'Regression: SCN-BUG009-R1-BOTHPATHS the observed half is attached on BOTH build-attention-items entry points — the --recompose path the publisher runs and the --candidates path the CLI documents — so neither can silently refuse what the other accepts');

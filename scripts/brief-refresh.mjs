@@ -1209,12 +1209,19 @@ export function buildTrackedStates(deps) {
 
 /* The claim ledger, folded through the SHIPPED reducer. `foldLedger` is imported rather than
    re-walked, so "which calls are open" keeps one definition and the callOpen flag cannot disagree
-   with the scorecard. `openedThisRun` and `resolvedThisRun` stay NULL — absent, never `[]` — because
-   per-run claim resolution is Scope 5's obligation and an empty array here would assert that
-   nothing resolved this run, which this scope has no evidence for. */
+   with the scorecard. `resolvedThisRun` is likewise READ from `buildScorecard`, not recomputed:
+   Scope 5 owed this field and a second tally here could disagree with the published scorecard.
+   Its `runId` names WHICH evaluation the tally describes, matching the scorecard's own convention,
+   because Tier A writes this row BEFORE the evaluator runs — so the newest completed evaluation is
+   the honest answer to "what resolved since I last told you", and the runId makes that explicit
+   rather than implying the tally covers the run now being written. `openedThisRun` stays NULL —
+   absent, never `[]` — because Tier B composes the recommendations after this row is written, so
+   Tier A has no evidence for what this run opened and an empty array would assert that it opened
+   nothing. */
 export async function buildRunClaims(root) {
   const { readHistoryPartitions } = await import('./backfill-recommendations.mjs');
   const { foldLedger } = await import('./evaluate-recommendations.mjs');
+  const { buildScorecard } = await import('./build-scorecard.mjs');
   const ledger = foldLedger(readHistoryPartitions(root));
   const openInstruments = new Set();
   let openCount = 0;
@@ -1227,7 +1234,15 @@ export async function buildRunClaims(root) {
       if (typeof symbol === 'string' && symbol.length) openInstruments.add(symbol);
     }
   }
-  return { claims: { openCount, openedThisRun: null, resolvedThisRun: null }, openInstruments };
+  let resolvedThisRun = null;
+  try {
+    const scorecard = buildScorecard(root);
+    if (scorecard && typeof scorecard.resolvedThisRun === 'object' && scorecard.resolvedThisRun !== null
+      && typeof scorecard.resolvedThisRun.runId === 'string' && scorecard.resolvedThisRun.runId.length) {
+      resolvedThisRun = scorecard.resolvedThisRun;
+    }
+  } catch { resolvedThisRun = null; }
+  return { claims: { openCount, openedThisRun: null, resolvedThisRun }, openInstruments };
 }
 
 function macroRegime(fg, vix) {

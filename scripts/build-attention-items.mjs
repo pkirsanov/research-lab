@@ -40,6 +40,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
+  BRIEF_PAYLOAD_BUDGET_CONTRACT,
   WATCHLIST_SCOPE,
   XNYS_CALENDAR_SOURCE,
   windowVocabularyFrom
@@ -50,6 +51,11 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 /* rlattention.js is a UMD dual module, not ESM — the same load the validator
    and the browser use, so all three hold the identical frozen composer. */
 const RLATTN = createRequire(import.meta.url)(resolve(ROOT, 'rlattention.js'));
+
+/* This step is the LAST writer of the payload on the publication path, and it
+   mutates default-visible content, so it owes a fresh measurement. rlcockpit.js
+   owns the one measurement the composer and the validator already share. */
+const RLCOCKPIT = createRequire(import.meta.url)(resolve(ROOT, 'rlcockpit.js'));
 
 /** The judgement fields the lane owns. Anything outside this list is not authored. */
 export const AUTHORED_JUDGEMENT_KEYS = Object.freeze([
@@ -303,8 +309,16 @@ export function recomposePayloadAttention(payload, config) {
     ? Object.assign({}, sources[index], built)
     : built);
 
+  /* Additive or nothing, applied to the RECORD and not only to the key set. A recompose with no
+     candidates learned nothing about exclusions, so replacing the prior record with an empty list
+     would erase a previous run's accounting and leave an empty tier that no longer says why it is
+     empty. The freshly computed list is authoritative only when there were candidates to account
+     for; otherwise the existing record stands. */
+  const priorExclusions = Array.isArray(payload?.attentionExclusions) ? payload.attentionExclusions : [];
+  const recordedExclusions = candidates.length > 0 ? exclusions : priorExclusions;
+
   return {
-    payload: Object.assign({}, payload, { attention: merged, attentionExclusions: exclusions }),
+    payload: Object.assign({}, payload, { attention: merged, attentionExclusions: recordedExclusions }),
     items: merged,
     exclusions
   };
@@ -347,6 +361,26 @@ function main(argv) {
     if (lost.length) {
       console.error(`[build-attention-items] refusing to write: recompose lost pre-existing key(s) ${lost.join(', ')}`);
       return 2;
+    }
+    /* Re-measure before the write. The composer measured a payload that still held
+       the candidate cards; every card the gate above refused has since left the
+       default-visible set, so the inherited figure describes a payload that was
+       never published. Publishing a budget that contradicts its own content is the
+       exact defect this feature exists to remove, so the last writer re-measures
+       rather than inheriting. Recomposing without --write leaves the file alone,
+       but the returned object is corrected either way so a caller reading it in
+       memory sees the same numbers the file would carry. */
+    const budgetPolicy = config['output-budget/v1'];
+    if (result.payload.contractVersion === BRIEF_PAYLOAD_BUDGET_CONTRACT
+      && budgetPolicy && typeof budgetPolicy === 'object' && !Array.isArray(budgetPolicy)) {
+      /* Drop the inherited block BEFORE measuring, the same order the composer uses. Leaving it
+         in place would count the previous measurement's own violation paths and cap names into
+         disclosedTotal, so the figure would describe the metadata as well as the narrative and
+         no later verification could reproduce it. */
+      delete result.payload.budget;
+      result.payload.budget = RLCOCKPIT.measureDefaultVisible(result.payload, budgetPolicy);
+      console.log(`[build-attention-items] re-measured output budget: total=${result.payload.budget.total}`
+        + ` disclosed=${result.payload.budget.disclosedTotal} violations=${result.payload.budget.violations.length}`);
     }
     if (argv.includes('--write')) {
       writeFileSync(payloadPath, `${JSON.stringify(result.payload, null, 2)}\n`);

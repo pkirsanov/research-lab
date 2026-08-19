@@ -21349,6 +21349,11 @@ try {
   const validate26 = (candidate) => validateBriefPayload(candidate, registry26, briefConfig26, snapshot26, agenda26, page26);
   const stamp26 = (mutate) => {
     const candidate = JSON.parse(JSON.stringify(committedPayload26));
+    /* Drop only the inherited measurement. Everything else stays, so the fixture remains an
+       otherwise-valid v2 payload and the budget is the only thing a case can push over. Dropping
+       the legs or the roll-up instead would trip the cross-asset and delta gates, and each case
+       would then be asserting about errors it never meant to raise. */
+    delete candidate.budget;
     candidate.contractVersion = 'market-brief-payload/v2';
     if (mutate) mutate(candidate);
     return candidate;
@@ -21385,14 +21390,23 @@ try {
     && /Neither may be raised inside a change that would otherwise fail against it/.test(budgetPolicy26.note),
   'the output-budget note records that it caps output, that artifact-budget/v1 caps fetch, and that neither may be raised inside a failing change');
 
-  /* TP-026-1.1 — SCN-026-001. */
+  /* TP-026-1.1 — SCN-026-001. The filler is DERIVED by probing the fully-constructed fixture with
+     an empty filler, then taking the remainder to the cap. A literal length only ever landed on
+     the cap while the committed payload carried no default-visible content of its own; the live
+     payload now carries legs, a roll-up and a track record, so a literal would quietly stop
+     testing the boundary the moment any of them changed. */
+  const capProbe26 = RLCOCKPIT.measureDefaultVisible(stamp26((candidate) => {
+    candidate.headline = 'h'.repeat(140);
+    candidate.changed = [{ symbol: 'AAA', state: 'bull-stack', line: '' }];
+  }), budgetPolicy26).total;
+  const capFiller26 = budgetPolicy26.totalDefaultVisibleChars - capProbe26;
   const atCap26 = stamp26((candidate) => {
     candidate.headline = 'h'.repeat(140);
-    candidate.changed = [{ symbol: 'AAA', state: 'bull-stack', line: 'c'.repeat(2860) }];
+    candidate.changed = [{ symbol: 'AAA', state: 'bull-stack', line: 'c'.repeat(capFiller26) }];
   });
   const overCap26 = stamp26((candidate) => {
     candidate.headline = 'h'.repeat(140);
-    candidate.changed = [{ symbol: 'AAA', state: 'bull-stack', line: 'c'.repeat(2861) }];
+    candidate.changed = [{ symbol: 'AAA', state: 'bull-stack', line: 'c'.repeat(capFiller26 + 1) }];
   });
   const atCapMeasure26 = RLCOCKPIT.measureDefaultVisible(atCap26, budgetPolicy26);
   const overCapMeasure26 = RLCOCKPIT.measureDefaultVisible(overCap26, budgetPolicy26);
@@ -21418,7 +21432,9 @@ try {
     candidate.attention = [{ headline: 'a'.repeat(100), what: 'b'.repeat(201), escalationTrigger: '', invalidation: '' }];
   });
   const overCardMeasure26 = RLCOCKPIT.measureDefaultVisible(overCard26, budgetPolicy26);
-  assert(overCardMeasure26.total === 301 && overCardMeasure26.total < 3000
+  const overCardRow26 = overCardMeasure26.byField.filter((row) => row.path.indexOf('attention[]') === 0)
+    .reduce((sum, row) => sum + row.chars, 0);
+  assert(overCardRow26 === 301 && overCardMeasure26.total < 3000
     && budgetLines26(validate26(overCard26)).indexOf('outputBudget: attention[0] is 301 characters, over the declared per-card cap of 300') >= 0,
   'TP-026-1.3 a card over the 300 per-card cap is refused while the total stays under 3000');
 
@@ -21434,8 +21450,10 @@ try {
       return 0;
     })(disclosedFixture26)
     : 0;
-  assert(disclosedMeasure26.total === 120
-    && disclosedMeasure26.disclosedTotal === everyString26 - 120
+  const disclosedHeadline26 = disclosedMeasure26.byField.filter((row) => row.path === 'headline')
+    .reduce((sum, row) => sum + row.chars, 0);
+  assert(disclosedHeadline26 === 120
+    && disclosedMeasure26.disclosedTotal === everyString26 - disclosedMeasure26.total
     && disclosedMeasure26.disclosedTotal > 100000
     && disclosedMeasure26.caps.headline === 140 && disclosedMeasure26.caps.decisionCard === 300 && disclosedMeasure26.caps.total === 3000
     && Object.keys(disclosedMeasure26.caps).indexOf('disclosed') < 0
@@ -21562,6 +21580,11 @@ try {
      must skip the budget entirely, or the committed 127,000-character payload is refused the
      moment this lands and six unrelated suites report a payload problem instead of their own. */
   const unstamped26 = JSON.parse(JSON.stringify(committedPayload26));
+  /* Construct the unstamped case explicitly. Reading it off the committed file worked only while
+     the feature was unreleased; the live pipeline now publishes v2, so a fixture that assumed
+     otherwise was asserting the state of a file that changes four times a day. */
+  delete unstamped26.contractVersion;
+  delete unstamped26.budget;
   unstamped26.headline = 'x'.repeat(500);
   const v1Errors26 = validate26(unstamped26);
   const v2Errors26 = validate26(stamp26((candidate) => { candidate.headline = 'x'.repeat(500); }));
@@ -21701,7 +21724,7 @@ try {
     && fetchBudget26.maxSymbolsPerRun === 48
     && fetchBudget26.maxNormalizedObservationBytes === 262144
     && fetchBudget26.rawBodyRetention === 'hash-only'
-    && committed26.contractVersion === undefined
+    && (committed26.contractVersion === undefined || committed26.contractVersion === 'market-brief-payload/v2')
     && validateBriefPayload(committed26, JSON.parse(read('tools.json')), briefConfig26b, JSON.parse(read('market-brief.snapshot.json')),
       JSON.parse(read('research-agenda.json')), JSON.parse(read('market-brief.page.json'))).length === 0
     && sitePlan26.rootFiles.indexOf('rlcockpit.js') >= 0
@@ -22003,6 +22026,8 @@ try {
 
   /* The version gate, again, for this block: an unstamped payload is untouched by it. */
   const unstampedLegs26 = JSON.parse(JSON.stringify(committedPayload26c));
+  delete unstampedLegs26.contractVersion;
+  delete unstampedLegs26.budget;
   assert(unstampedLegs26.contractVersion === undefined
     && validateLegs26(unstampedLegs26).length === 0
     && validateBriefPayload(unstampedLegs26, registry26c, config26b, snapshot26c, agenda26c, page26c).length === 0,
@@ -22080,7 +22105,7 @@ try {
     && fetchBudget26c.maxSymbolsPerRun === 48
     && budgetPolicy26c.totalDefaultVisibleChars === 3000
     && budgetPolicy26c.defaultVisibleFields.filter((path) => path.indexOf('crossAsset.') === 0).length === 5
-    && committedPayload26c.contractVersion === undefined
+    && (committedPayload26c.contractVersion === undefined || committedPayload26c.contractVersion === 'market-brief-payload/v2')
     && validateBriefPayload(committedPayload26c, registry26c, config26b, snapshot26c, agenda26c, page26c).length === 0
     && sitePlan26c.rootFiles.indexOf('rlcockpit.js') >= 0,
   'Regression: SCN-026-CANARY-02 the Scope 1 budget group and every pre-existing assertion stay green after the cross-asset append');
@@ -22745,20 +22770,24 @@ try {
      and `0` would read as measured and the answer was zero. */
   const v2Source3 = { ...historicSource3, crossAsset: { rates: { changePct: -1.8, asOf: '2026-08-17' } }, tracked: { MSFT: unchangedCur3 }, claims: { openCount: 4, openedThisRun: null, resolvedThisRun: null }, dark: [{ leg: 'dollar', reason: 'no approved source' }] };
   const projectedV2_3 = compactRow3(v2Source3);
-  assert(projectedHistoric3.crossAsset === null && projectedHistoric3.tracked === null
+  assert(projectedHistoric3.crossAsset === null && projectedHistoric3.trackedStates === null
     && projectedHistoric3.claims === null && projectedHistoric3.dark === null
-    && !['crossAsset', 'tracked', 'claims', 'dark'].some((key) => JSON.stringify(projectedHistoric3[key]) === '{}' || projectedHistoric3[key] === 0)
-    && RLCOCKPIT.changeKind((projectedHistoric3.tracked || {}).MSFT ?? null, unchangedCur3, vocab3) === 'baseline'
-    && JSON.stringify(projectedV2_3.crossAsset) === JSON.stringify(v2Source3.crossAsset)
-    && JSON.stringify(projectedV2_3.tracked) === JSON.stringify(v2Source3.tracked),
-  'a historic source row lacking the new fields projects them as null rather than {} or 0, the detector answers baseline for that absence, and a v2 source row carries them through unchanged');
+    && !['crossAsset', 'trackedStates', 'claims', 'dark'].some((key) => JSON.stringify(projectedHistoric3[key]) === '{}' || projectedHistoric3[key] === 0)
+    && RLCOCKPIT.changeKind((projectedHistoric3.trackedStates || {}).MSFT ?? null, unchangedCur3, vocab3) === 'baseline'
+    && JSON.stringify(projectedV2_3.crossAsset) === JSON.stringify({ rates: { changePct: -1.8, state: null } })
+    && JSON.stringify(projectedV2_3.trackedStates) === JSON.stringify({ MSFT: unchangedCur3.maStack ?? unchangedCur3.rrgState ?? null }),
+  'a historic source row lacking the new fields projects them as null rather than {} or 0, the detector answers baseline for that absence, and a v2 source row carries the projection');
 
-  /* TP-026-3.6 — SCN-026-029. The row carries the run\'s readings, its claims and its dark states. */
+  /* TP-026-3.6 — SCN-026-029. The row carries the run's readings, its claims and its dark states.
+     The recent window carries them as PROJECTIONS: a verbatim `tracked` block is ~3.5 KB per row,
+     so copying it into a 30-row window put ~106 KB into a first load budgeted at 200 KB and blew
+     that budget within a week of four-a-day runs. The full state stays in the append-only ledger,
+     which is never first-loaded and is where the change predicates read it. */
   assert(/crossAsset: memoryLegs, tracked, claims: memoryClaims, dark: memoryDark/.test(refreshSrc3)
-    && /crossAsset: row\.crossAsset \?\? null/.test(shardSrc3)
-    && /tracked: row\.tracked \?\? null/.test(shardSrc3)
+    && /crossAsset: compactCrossAsset\(row\.crossAsset\)/.test(shardSrc3)
+    && /trackedStates: compactTrackedStates\(row\.tracked\)/.test(shardSrc3)
     && /claims: row\.claims \?\? null/.test(shardSrc3)
-    && /dark: row\.dark \?\? null/.test(shardSrc3)
+    && /dark: compactDark\(row\.dark\)/.test(shardSrc3)
     && JSON.stringify(Object.keys(v2Source3.claims).sort()) === '["openCount","openedThisRun","resolvedThisRun"]',
   'TP-026-3.6 the v2 memory row carries the run\'s cross-asset readings, its claims and its dark states, and brief-refresh.mjs is the file that appends them');
 
@@ -22916,6 +22945,8 @@ try {
   /* The version gate, again, for this block: an unstamped payload is untouched by it. And still
      no sixth CLI flag — a change cannot be waved through. */
   const deltaFlags3 = [...new Set(validatorSrc3.match(/'--[a-z0-9-]+'/g) || [])].sort();
+  delete payloadBase3.contractVersion;
+  delete payloadBase3.budget;
   assert(payloadBase3.contractVersion === undefined
     && deltaErrors3(payloadBase3).length === 0
     && validateBriefPayload(payloadBase3, registry3, config3, snapshotBase3, agenda3, page3).length === 0
@@ -23143,7 +23174,7 @@ try {
   assert(config4['output-budget/v1'].totalDefaultVisibleChars === 3000
     && config4['cross-asset/v1'].legs.filter((leg) => leg.required === true).length === 3
     && config4['change-vocabulary/v1'].kinds.length === 5
-    && payload4.contractVersion === undefined
+    && (payload4.contractVersion === undefined || payload4.contractVersion === 'market-brief-payload/v2')
     && validateBriefPayload(payload4, registry4, config4, snapshot4, agenda4, page4).length === 0
     && sitePlan4.rootFiles.indexOf('rlcockpit.js') >= 0
     && Object.isFrozen(RLCOCKPIT)
@@ -23256,16 +23287,31 @@ try {
   'TP-026-5.2 adversarial: a path with no caller and a caller with no --as-of are both rejected by the two checks above');
 
   /* TP-026-5.1 — FR-026-031. A claim recorded without the observation that would resolve it can never
-     be scored, so the pair is the unit. The v2 memory row carries `claims`; the committed row's value
-     is still null because the composer has not republished since Scope 3 landed, so the CONTRACT is
-     asserted here and the live value is checked tolerantly rather than pinned to a volatile artifact. */
+     be scored, so the pair is the unit. The v2 row records this as a TALLY, not a list: `openCount`
+     plus `resolvedThisRun`, whose `resolved` must equal `satisfied + invalidated` — an outcome is
+     only resolved BY an observation, so a resolved count exceeding those two would be a claim closed
+     with nothing that closed it. `openedThisRun` stays null by contract because Tier A writes the row
+     before Tier B composes, and older v2 rows carry `claims: null` from before Scope 5 populated it. */
   const recentRows5 = read('brief-history.recent.jsonl').trim().split('\n').filter(Boolean).map((line) => JSON.parse(line));
   const v2Rows5 = recentRows5.filter((row) => row.contractVersion === 'brief-history-recent-row/v2');
   const claimShapeOk5 = v2Rows5.every((row) => 'claims' in row
-    && (row.claims === null || (Array.isArray(row.claims)
-      && row.claims.every((claim) => typeof claim.instrument === 'string' && typeof claim.resolvesOn === 'string' && claim.resolvesOn.length > 0))));
+    && (row.claims === null || (typeof row.claims === 'object' && !Array.isArray(row.claims)
+      && Number.isFinite(row.claims.openCount)
+      && 'openedThisRun' in row.claims && 'resolvedThisRun' in row.claims
+      && (row.claims.resolvedThisRun === null || (typeof row.claims.resolvedThisRun.runId === 'string'
+        && row.claims.resolvedThisRun.runId.length > 0
+        && row.claims.resolvedThisRun.resolved === row.claims.resolvedThisRun.satisfied + row.claims.resolvedThisRun.invalidated)))));
   assert(v2Rows5.length > 0 && claimShapeOk5,
   'TP-026-5.1 every published claim is recorded with the observation that would resolve it, or the row declares no claims — never a claim with no resolving observation');
+
+  /* Scope 5 owed `resolvedThisRun`, and a field that is always null satisfies the shape check while
+     delivering nothing. This asserts the obligation is actually met by the SHIPPED producer, and that
+     it reuses buildScorecard rather than carrying a second tally that could disagree with it. */
+  const refreshSource5 = read('scripts/brief-refresh.mjs');
+  assert(/import\('\.\/build-scorecard\.mjs'\)/.test(refreshSource5)
+    && /resolvedThisRun = scorecard\.resolvedThisRun/.test(refreshSource5)
+    && !/satisfied \+ .*invalidated/.test(refreshSource5.slice(refreshSource5.indexOf('export async function buildRunClaims'))),
+  'TP-026-5.1 the memory row reads resolvedThisRun from buildScorecard and declares no second tally of its own');
 
   /* TP-026-5.8. Publishing a hit rate without the share it could not evaluate is selective reporting:
      46 percent not-evaluable next to a 55 percent hit rate is a different claim from 55 percent alone. */
@@ -23341,6 +23387,65 @@ try {
 
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 closed-loop group threw): ' + e.message); }
 /* ---------- Feature 026 Scope 5: market brief — closed loop on the path (END) ---------- */
+
+/* ---------- Feature 026 Scope 5: market brief — published budget freshness (BEGIN) ---------- */
+try {
+  group('market brief — the published budget describes the published payload');
+  const freshRequire = (await import('node:module')).createRequire(import.meta.url);
+  const COCKPIT6 = freshRequire('../rlcockpit.js');
+  const payload6 = JSON.parse(read('market-brief.payload.json'));
+  const policy6 = JSON.parse(read('market-brief.config.json'))['output-budget/v1'];
+
+  /* The defect this catches actually shipped. The composer measured a payload that still
+     held three attention candidates, the attention gate then refused all three for a missing
+     gateResult, and the published file carried budget.total 1714 for a payload whose real
+     total was 682 — a figure describing a payload that never existed. A brief whose own
+     budget contradicts its own content cannot be used to judge whether the caps are right,
+     which is the entire reason the measurement is published. */
+  if (payload6.contractVersion === 'market-brief-payload/v2') {
+    /* Measure the payload WITHOUT its own budget block, which is the procedure both writers use:
+       counting the block's own violation paths and cap names would make the figure depend on the
+       figure, and no later verification could reproduce it. */
+    const subject6 = JSON.parse(JSON.stringify(payload6));
+    delete subject6.budget;
+    const fresh6 = COCKPIT6.measureDefaultVisible(subject6, policy6);
+    assert(payload6.budget && payload6.budget.total === fresh6.total
+      && payload6.budget.disclosedTotal === fresh6.disclosedTotal
+      && (payload6.budget.violations || []).length === COCKPIT6.budgetViolations(fresh6, policy6).length,
+    'the committed payload\u2019s persisted budget equals a fresh measurement of that same payload');
+  } else {
+    assert(payload6.budget === undefined,
+    'a payload that is not stamped v2 carries no budget block to go stale');
+  }
+
+  /* Producer existence, the BUG-009 lesson made mechanical: build-attention-items.mjs is the
+     LAST writer of the payload on the publication path and it mutates default-visible content,
+     so it owes a fresh measurement. Asserting the call exists is what stops the stale figure
+     coming back the next time someone adds a step after the composer. */
+  const lastWriter6 = read('scripts/build-attention-items.mjs');
+  assert(/createRequire\(import\.meta\.url\)\(resolve\(ROOT, 'rlcockpit\.js'\)\)/.test(lastWriter6)
+    && /RLCOCKPIT\.measureDefaultVisible\(/.test(lastWriter6)
+    && !/function\s+measureDefaultVisible/.test(lastWriter6),
+  'the last payload writer re-measures through the one rlcockpit measurement and declares none of its own');
+
+  /* The re-measure must not sit behind --write, or a recompose-only run would hand a caller an
+     object whose budget disagrees with the file it would have produced. */
+  const writeAt6 = lastWriter6.indexOf("if (argv.includes('--write'))");
+  const measureAt6 = lastWriter6.indexOf('RLCOCKPIT.measureDefaultVisible(');
+  assert(measureAt6 > 0 && writeAt6 > 0 && measureAt6 < writeAt6,
+  'the re-measurement runs before the --write branch, so recompose-only and write agree');
+
+  /* Adversarial: a guard that cannot fail is not a guard. Mutating a default-visible string
+     without re-measuring must be detectable by the same comparison used above. */
+  const tampered6 = JSON.parse(JSON.stringify(payload6));
+  tampered6.contractVersion = 'market-brief-payload/v2';
+  tampered6.rollUp = Object.assign({}, tampered6.rollUp, { line: 'x'.repeat(400) });
+  const staleClaim6 = payload6.budget ? payload6.budget.total : 0;
+  assert(COCKPIT6.measureDefaultVisible(tampered6, policy6).total !== staleClaim6,
+  'adversarial: a default-visible field changed after measurement is caught by the freshness comparison');
+
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 budget freshness group threw): ' + e.message); }
+/* ---------- Feature 026 Scope 5: market brief — published budget freshness (END) ---------- */
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

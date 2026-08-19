@@ -116,13 +116,8 @@ tests/portfolio-private.spec.mjs
 tests/portfolio-stress-journey.functional.mjs
 tests/private-portfolio-adapter.unit.mjs
 tests/recommendation-track-record-lab.spec.mjs
-tests/recommendation-track-record.canary.mjs
-tests/recommendation-track-record.e2e.mjs
-tests/recommendation-track-record.functional.mjs
 tests/recommendation-track-record.integration.mjs
 tests/recommendation-track-record.stress.mjs
-tests/recommendation-track-record.support.mjs
-tests/recommendation-track-record.unit.mjs
 tests/rldata-admission-fail-closed.integration.mjs
 tests/shared-cycle-exchange.e2e.mjs
 tests/shared-cycle-exchange.functional.mjs

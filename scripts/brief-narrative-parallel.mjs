@@ -299,7 +299,11 @@ function writeResearchCache(execution) {
    No prior row — a first run, an empty file, a corrupt line — is absent prior state, and the
    detector answers `baseline` for it. */
 function previousMemoryRow(snapshot) {
-    const abs = resolve(ROOT, 'brief-history.recent.jsonl');
+    /* The append-only ledger, NOT brief-history.recent.jsonl. The recent file is the page's
+       first-load projection and carries state LABELS only; the level and flag values the change
+       predicates compare live here. Reading the projection would have silently degraded every
+       levelCrossed and flagRaised answer to a label comparison. */
+    const abs = resolve(ROOT, 'brief-history.jsonl');
     if (!existsSync(abs)) return null;
     const symbols = Object.keys(snapshot.tracked && typeof snapshot.tracked === 'object' ? snapshot.tracked : {}).sort();
     if (!symbols.length) return null;

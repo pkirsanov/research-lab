@@ -91,104 +91,6 @@
     "trendEvidence": "SPY mom126 +12.78 / mom252 +21.01, +9.34% over the 200-day (~704.1), pctFrom52wHigh -1.02, +2.63% ABOVE its 50-day (~750.2) carrying a deterministic 20>50>200 bull-stack (swing-structure-lab Bull-stacked, with a Double top pattern qualified); SPY 769.91 with intraday-tape-lab reading today's session a Range day under Algo-controlled control (VWAP 769.77, 14 bars, gap +0.39%) pressing the 769.45 flip. Morning dealer read negative gamma, re-calibrated (spot 768.84 between the 765/770 walls just below the 769.45 flip, GEX -1.32B, atmIV 14.97%, priced move plus-or-minus 4.26). SPMO 148.56 slipped -1.44% below its reclaimed 50-day intraday while holding +13.86% over its 200-day. Breadth read 51.05% on 8/14, 26.1% on 8/17 and 55.23% on 8/18, the last three distinct completed bars all below 60%, three-bar persistence above 60% not established.",
     "whatWouldChangeIt": "A decisive SPY daily CLOSE reclaiming the 769.45 flip back into positive dealer gamma with SPMO reclaiming its 50-day (~150.7), QQQ holding above its 50-day (~712.9) and breadth holding above 60% (bullish, the pin is restored and the breakout re-broadens durably); a close below the 765 put wall with MSFT filling its gap toward ~430.6 or the Double top resolving lower (bearish, dealers deepen the amplification below the put wall); conditional vol turning back up with VIX closing above 22.0 or term-structure backwardation; a confirmed hawkish 7/29 Fed outcome once the official statement is re-pulled or a hot/cold official July NFP figure that re-prices the path; or breadth failing to hold above 60%, XLE slipping under rsMom 100 and losing its Leading relative-strength. Whether SPY reclaims the 769.45 flip and breadth holds above 60%, or SPY loses the 765 put wall, is the near-term regime-decider; the flip reclaim/loss close, whether SPMO recovers its 50-day, the direction of conditional vol and the sign and depth of dealer gamma are the remaining tells."
   },
-  "budget": {
-    "byField": [
-      {
-        "chars": 0,
-        "path": "headline"
-      },
-      {
-        "chars": 296,
-        "path": "attention[].headline"
-      },
-      {
-        "chars": 0,
-        "path": "attention[].what"
-      },
-      {
-        "chars": 371,
-        "path": "attention[].escalationTrigger"
-      },
-      {
-        "chars": 365,
-        "path": "attention[].invalidation"
-      },
-      {
-        "chars": 17,
-        "path": "crossAsset.legs[].label"
-      },
-      {
-        "chars": 77,
-        "path": "crossAsset.legs[].withheld"
-      },
-      {
-        "chars": 295,
-        "path": "crossAsset.dark[].reason"
-      },
-      {
-        "chars": 90,
-        "path": "crossAsset.dark[].withheld"
-      },
-      {
-        "chars": 107,
-        "path": "crossAsset.dark[].substitutionRefusal"
-      },
-      {
-        "chars": 83,
-        "path": "changed[].line"
-      },
-      {
-        "chars": 13,
-        "path": "rollUp.line"
-      },
-      {
-        "chars": 0,
-        "path": "trackRecord.line"
-      }
-    ],
-    "caps": {
-      "decisionCard": 300,
-      "headline": 140,
-      "total": 3000
-    },
-    "cards": [
-      {
-        "chars": 375,
-        "path": "attention[0]"
-      },
-      {
-        "chars": 341,
-        "path": "attention[1]"
-      },
-      {
-        "chars": 316,
-        "path": "attention[2]"
-      }
-    ],
-    "contractVersion": "budget-measurement/v1",
-    "disclosedTotal": 130245,
-    "total": 1714,
-    "violations": [
-      {
-        "cap": 300,
-        "capName": "per-card cap",
-        "measured": 375,
-        "path": "attention[0]"
-      },
-      {
-        "cap": 300,
-        "capName": "per-card cap",
-        "measured": 341,
-        "path": "attention[1]"
-      },
-      {
-        "cap": 300,
-        "capName": "per-card cap",
-        "measured": 316,
-        "path": "attention[2]"
-      }
-    ]
-  },
   "changed": [
     {
       "cur": {
@@ -2099,5 +2001,71 @@
       "status": "$183.27 (2026-08-19 morning (pre-market) window; the 2026-08-18 regular session is the latest completed daily bar; next session 2026-08-19; the latest tape read shows 14 bars (intraday-tape-lab, 2026-08-19T14:31:04Z); snapshot asOf 2026-08-19T14:31:04Z) — +0.25% fractionally above its 50-day (~182.8) and +16.14% over the 200-day (~157.8), MA stack tangled; -7.43% off its high (mom5 -2.96, mom21 +1.38, mom63 +5.92). sector-research-lab owning-tool read (asOf 2026-08-19T14:31:03Z, benchmark SPY, 11 sectors) does NOT flag Technology in its rotation this run — it rotates INTO Energy (XLE Leading, quad L, rsMom 102.59, accel +4.31) and OUT of Financials (XLF Weakening down, quad W), with Health Care (XLV) the RS leader — so XLK carries neither a rotation-in tailwind nor a rotation-out headwind this window and stands on its own structure. HOLD while it holds the 50-day (~182.8); invalidated on a daily close below the 50-day (~182.8). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-18 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     }
   },
-  "window": "morning"
+  "window": "morning",
+  "budget": {
+    "contractVersion": "budget-measurement/v1",
+    "total": 682,
+    "byField": [
+      {
+        "path": "headline",
+        "chars": 0
+      },
+      {
+        "path": "attention[].headline",
+        "chars": 0
+      },
+      {
+        "path": "attention[].what",
+        "chars": 0
+      },
+      {
+        "path": "attention[].escalationTrigger",
+        "chars": 0
+      },
+      {
+        "path": "attention[].invalidation",
+        "chars": 0
+      },
+      {
+        "path": "crossAsset.legs[].label",
+        "chars": 17
+      },
+      {
+        "path": "crossAsset.legs[].withheld",
+        "chars": 77
+      },
+      {
+        "path": "crossAsset.dark[].reason",
+        "chars": 295
+      },
+      {
+        "path": "crossAsset.dark[].withheld",
+        "chars": 90
+      },
+      {
+        "path": "crossAsset.dark[].substitutionRefusal",
+        "chars": 107
+      },
+      {
+        "path": "changed[].line",
+        "chars": 83
+      },
+      {
+        "path": "rollUp.line",
+        "chars": 13
+      },
+      {
+        "path": "trackRecord.line",
+        "chars": 0
+      }
+    ],
+    "disclosedTotal": 130888,
+    "caps": {
+      "headline": 140,
+      "decisionCard": 300,
+      "total": 3000
+    },
+    "cards": [],
+    "violations": []
+  }
 }

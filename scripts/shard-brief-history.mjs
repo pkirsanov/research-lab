@@ -55,7 +55,45 @@ function etMonth(iso) {
  * and `0` would read as "measured, and the answer was zero". `null` reads as absent prior state,
  * and the change detector answers `baseline` for it, which is notes/market-brief.md §5's existing
  * rule rather than a new one.
+ *
+ * The v2 keys are PROJECTIONS, not copies. A verbatim `tracked` block is ~3.5 KB per row, so a
+ * full 30-row window would have carried ~106 KB of per-instrument levels and flags into a first
+ * load that is budgeted at 200 KB total — the window would have blown the budget on its own
+ * within a week of four-a-day runs. What the PAGE needs is the state label it renders; what the
+ * CHANGE DETECTOR needs is the full level and flag set, and that lives in the append-only ledger
+ * this file shards from, which is never first-loaded. `trackedStates` is deliberately NOT named
+ * `tracked`, so a future caller cannot mistake a label map for the state the predicates require.
  */
+function compactTrackedStates(tracked) {
+  if (!tracked || typeof tracked !== 'object' || Array.isArray(tracked)) return null;
+  const out = {};
+  for (const symbol of Object.keys(tracked).sort()) {
+    const state = tracked[symbol];
+    if (!state || typeof state !== 'object') { out[symbol] = null; continue; }
+    out[symbol] = state.maStack ?? state.rrgState ?? null;
+  }
+  return out;
+}
+
+/** Per leg the window keeps only what a history strip plots: the move and whether it resolved. */
+function compactCrossAsset(crossAsset) {
+  if (!crossAsset || typeof crossAsset !== 'object' || Array.isArray(crossAsset)) return null;
+  const out = {};
+  for (const leg of Object.keys(crossAsset).sort()) {
+    const reading = crossAsset[leg];
+    if (!reading || typeof reading !== 'object') { out[leg] = null; continue; }
+    out[leg] = { changePct: reading.changePct ?? null, state: reading.state ?? null };
+  }
+  return out;
+}
+
+/** The leg ids only. A dark reason is a paragraph and belongs to the payload, not to 30 rows. */
+function compactDark(dark) {
+  if (!Array.isArray(dark)) return null;
+  return dark.map((entry) => (entry && typeof entry === 'object' ? entry.leg ?? null : null))
+    .filter((leg) => typeof leg === 'string');
+}
+
 export function compactRow(row) {
   const bench = row.bench || {};
   return {
@@ -76,10 +114,10 @@ export function compactRow(row) {
       mom126: bench.mom126 ?? null,
       mom252: bench.mom252 ?? null
     },
-    crossAsset: row.crossAsset ?? null,
-    tracked: row.tracked ?? null,
+    crossAsset: compactCrossAsset(row.crossAsset),
+    trackedStates: compactTrackedStates(row.tracked),
     claims: row.claims ?? null,
-    dark: row.dark ?? null
+    dark: compactDark(row.dark)
   };
 }
 

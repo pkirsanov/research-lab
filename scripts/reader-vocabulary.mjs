@@ -165,6 +165,12 @@ export const BRIEF_NARRATIVE_FIELDS_OPTIONAL = [
   { pattern: 'experimental.[].note', producer: 'scripts/brief-narrative-parallel.mjs' },
   { pattern: 'experimental.[].pattern', producer: 'scripts/brief-narrative-parallel.mjs' },
   { pattern: 'experimental.[].method', producer: 'scripts/brief-narrative-parallel.mjs' },
+  /* A cross-asset leg is dark only when its driver cannot be measured or its source is not
+     approved, so the reason is intermittent by design — an approved FX source would empty
+     this array. It is reader prose and is leak-checked like its siblings: rlcockpit.js READS
+     the sentence from the owning model rather than composing one, so a leak here is the
+     owning model's to fix, not a gloss this list should tolerate. */
+  { pattern: 'crossAsset.dark.[].reason', producer: 'rlcockpit.js' },
   /* A generation may validly refuse every attention candidate. Legacy feed prose is rendered
      by rlbrief.js when present; certified item prose is emitted by rlattention.js. Both remain
      guarded for vocabulary leaks, but neither is required to appear in every payload. */

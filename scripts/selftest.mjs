@@ -8548,8 +8548,9 @@ try {
   assert(budgets && Number.isFinite(budgets.briefHistoryRecentMaxBytes) && Number.isFinite(budgets.briefFirstLoadMaxBytes) && Number.isFinite(budgets.briefHistoryRecentMaxRows),
     'the first-load budget is DECLARED in tool-experience.config.json artifactBudgets, not left implicit');
 
-  // The page must fetch the bounded window, never the unbounded append log.
-  assert(briefPage.includes('brief-history.recent.jsonl'), 'the cockpit fetches the bounded recent window');
+  // Neither history file belongs on first load. Tier A reads the bounded projection server-side;
+  // the browser rendered none of it, so fetching it spent bytes without creating a reader surface.
+  assert(!briefPage.includes('brief-history.recent.jsonl'), 'the cockpit does not fetch unused recent memory');
   assert(!/jl\("brief-history\.jsonl"\)/.test(briefPage), 'the cockpit no longer fetches the unbounded append log on page load');
   ['market-brief.config.page.json', 'market-brief.page.json', 'market-brief.snapshot.page.json', 'market-brief.tools.page.json'].forEach((file) => {
     assert(briefPage.includes(file), 'the cockpit fetches compact first-load artifact ' + file);
@@ -8574,7 +8575,7 @@ try {
 
   // The whole first-load payload, measured — this is the number the defect was about.
   const firstLoad = ['market-brief.config.page.json', 'market-brief.page.json', 'watchlist.json',
-    'brief-history.recent.jsonl', 'market-brief.snapshot.page.json', 'market-brief.tools.page.json', 'market-brief.scorecard.json']
+    'market-brief.snapshot.page.json', 'market-brief.tools.page.json', 'market-brief.scorecard.json']
     .reduce((total, file) => total + Buffer.byteLength(read(file), 'utf8'), 0);
   assert(firstLoad <= budgets.briefFirstLoadMaxBytes,
     'the cockpit\u2019s whole first-load payload is inside budget (' + Math.round(firstLoad / 1024) + ' KB <= ' + Math.round(budgets.briefFirstLoadMaxBytes / 1024) + ' KB)');
@@ -8585,10 +8586,8 @@ try {
   assert(unboundedBytes > budgets.briefFirstLoadMaxBytes,
     'the unbounded log genuinely exceeds the budget (' + Math.round(unboundedBytes / 1024) + ' KB), so fetching it would FAIL this test rather than slip through');
 
-  /* The recent window's OWN byte bound has to bind. It was 204800 — identical to
-     briefFirstLoadMaxBytes — so this file had to consume the whole seven-file allowance before its
-     own bound could fire: inert by construction, and silent through the ~5 KB-per-row regression it
-     exists to catch (BUG-013). It is now one fifth of the first-load budget. */
+    /* The recent window's OWN byte bound has to bind independently. It remains server-side memory
+      with a public artifact contract even though the browser no longer fetches it on first load. */
   assert(budgets.briefHistoryRecentMaxBytes < budgets.briefFirstLoadMaxBytes,
     'the recent window\u2019s per-file byte bound is strictly smaller than the whole-payload budget ('
     + budgets.briefHistoryRecentMaxBytes + ' < ' + budgets.briefFirstLoadMaxBytes + '), so it is capable of firing at all');
@@ -8612,7 +8611,7 @@ try {
      refused BY NAME: the per-file check is reached before the aggregate one, so the failure
      attributes the breach to this artifact rather than to "the payload". */
   const regressionBytes = 30 * 4939;
-  const regressionRefusal = refusal(budgets, regressionBytes, (firstLoad - recentBytes) + regressionBytes) || '';
+  const regressionRefusal = refusal(budgets, regressionBytes, firstLoad) || '';
   assert(regressionRefusal.includes('brief-history-recent') && !regressionRefusal.includes('brief-first-load'),
     'a ' + regressionBytes + '-byte recent artifact is refused by its own bound, named, before the aggregate check is evaluated (' + JSON.stringify(regressionRefusal) + ')');
 

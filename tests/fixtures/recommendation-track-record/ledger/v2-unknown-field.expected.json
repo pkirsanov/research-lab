@@ -1,0 +1,8 @@
+{
+  "code": "RTR-ROW-CONTRACT",
+  "reason": "unknown-field",
+  "field": "resolutionRef",
+  "repairByDeletingField": "resolutionRef",
+  "repairMatchesCommittedRow": false,
+  "why": "v2 gained claimRef and nothing else. resolutionRef is a plausible neighbouring name — the resolution object is real, it is just reached via claimRef + eventId rather than via a second row field — so this negative fails if the reader degrades to accept-anything. claimRef is left in place deliberately: after the one offending key is deleted the row still validates WITH claimRef, which proves the refusal was about resolutionRef and not about the field this scope added."
+}

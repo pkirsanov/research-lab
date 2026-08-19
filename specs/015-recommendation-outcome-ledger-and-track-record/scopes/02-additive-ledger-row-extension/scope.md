@@ -196,8 +196,8 @@ already on disk.
 
 #### Test items
 
-- [ ] T-02-U1 passes: a real committed `v2` row of each live shape validates with and without `claimRef`, and `v1` validates without it → evidence recorded in `report.md#t-02-u1`. — proves SCN-015-013
-- [ ] T-02-U2 passes: a `v1` row carrying `claimRef` is rejected, and `v2` rejects a name outside its live union ∪ `{claimRef}` → evidence recorded in `report.md#t-02-u2`.
+- [x] T-02-U1 passes: a real committed `v2` row of each live shape validates with and without `claimRef`, and `v1` validates without it → evidence recorded in `report.md#t-02-u1`. — proves SCN-015-013
+- [x] T-02-U2 passes: a `v1` row carrying `claimRef` is rejected, and `v2` rejects a name outside its live union ∪ `{claimRef}` → evidence recorded in `report.md#t-02-u2`.
 - [ ] T-02-U3 passes: `eventId` and `recommendationKey` are byte-identical with and without the mint hook → evidence recorded in `report.md#t-02-u3`.
 - [ ] T-02-U4 passes: `RTR-LEGACY-BACKFILL` fires on a claimless row including the plausible-imputation case → evidence recorded in `report.md#t-02-u4`. — proves SCN-015-015
 - [ ] T-02-F1 passes: `claimRef` canonicalises immediately after `canonicalMonth` on every live shape and the seven-field projection is unchanged → evidence recorded in `report.md#t-02-f1`.

@@ -2,16 +2,20 @@
 
 Evidence contract: [scope.md](scope.md), [spec.md](../../spec.md), [scope index](../_index.md), and [uservalidation.md](../../uservalidation.md).
 
-**Evidence status:** Baseline captured; implementation halted before its first code change on a blocking
-premise failure recorded below. That premise failure is **resolved** by the 2026-08-19 ruling further below,
-and the plan has been corrected to match measured reality. No Definition of Done item is claimed.
+**Evidence status:** Baseline captured; the blocking premise failure recorded below is **resolved** by the
+2026-08-19 ruling further below, and the plan has been corrected to match measured reality. The first
+increment of the fixture-proven surface — the `claimRef` field on the live `…/v2`, the dual-version reader,
+and its negatives — is delivered and revert-verified. **Two** Definition of Done items are claimed:
+`T-02-U1` and `T-02-U2`. Every other item, Core and Test, remains unclaimed.
 
 ## Summary
 
-The scope-start baseline required by T-02-S1 is captured. No contract, reader, fixture, or test case was
-written, because the identifier this scope was built on is already taken by a live, different contract. The
-blocker analysis is preserved verbatim below as history; the ruling that resolves it, its measured evidence,
-and the consent record follow it.
+The scope-start baseline required by T-02-S1 is captured. Implementation was initially halted because the
+identifier this scope was built on is already taken by a live, different contract. The blocker analysis is
+preserved verbatim below as history; the ruling that resolves it, its measured evidence, and the consent
+record follow it. On that corrected basis the first increment of the fixture-proven surface is delivered:
+`claimRef` as one optional field on the live `…/v2`, the dual-version reader, the ledger fixtures, and the
+two unit rows `T-02-U1` and `T-02-U2` — each revert-verified against the shipped module.
 
 ## Scope-start selftest baseline (required by T-02-S1)
 
@@ -43,6 +47,32 @@ $ node --test tests/recommendation-track-record.unit.mjs
 # pass 7
 # fail 0
 ```
+
+<a id="t-02-s1"></a>
+
+### T-02-S1 — clean re-measurement, 2026-08-19
+
+The `1 failed` above is **not** a repository defect. It is produced by another session's *uncommitted*
+working-tree edits to `specs/007-*` and `specs/008-*` `state.json` / `uservalidation.md`, which the
+dependency-gate projection reads. Those four files — and only those four — were stashed
+(`git stash push -- specs/007-…/state.json specs/007-…/uservalidation.md specs/008-…/state.json
+specs/008-…/uservalidation.md`), the self-test re-run, and the stash popped, restoring all four. No
+`specs/007-*` or `specs/008-*` byte was modified.
+
+```text
+$ git status --porcelain -- 'specs/007-*' 'specs/008-*'      # after stash — empty
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3074 passed, 0 failed
+exit=0
+$ git stash pop                                              # all four files restored
+```
+
+**T-02-S1 baseline is therefore `3074 passed, 0 failed`, not `3066 passed, 1 failed`.** The `+8` over the
+recorded scope-start figure is other sessions' committed work, not 015's — this scope's own delta is not
+isolated here, so `baseline + N` is **not** yet claimed. T-02-S1 remains **unticked**: it requires the
+post-implementation total against this baseline, which the remaining increments have not produced.
+The dependency-gate concern recorded above is withdrawn as a T-02-S1 blocker: with a clean tree the
+self-test is green.
 
 ## BLOCKER (RESOLVED 2026-08-19) — `brief-recommendation-history-row/v2` is already taken by a different live contract
 
@@ -229,18 +259,167 @@ no `uservalidation.md`, no source file, no test file, and no committed ledger by
 | Contract-identifier decision | **Resolved.** Option 2. |
 | Fixture-proven surface (contract shape, dual-version reader, compatibility proofs, `RTR-LEGACY-BACKFILL`) | **Schedulable.** |
 | Live-publisher binding | **Still blocked** on routed findings P-015-01 and P-015-02. Unchanged by this ruling. A fixture-backed pass reported as live-publisher evidence remains fabricated evidence. |
-| `T-02-S1` arithmetic | **Still dependent** on the pre-existing unrelated selftest failure recorded above being resolved by its owner. |
+| `T-02-S1` arithmetic | **Unblocked as to the baseline.** The `1 failed` was another session's uncommitted `specs/007-*` / `specs/008-*` edits, not a repository defect; on a clean tree the self-test is `3074 passed, 0 failed`. The row itself still awaits the post-implementation total. |
 
 ## Test Evidence
 
-No Test Plan row has been executed. `T-02-U1`, `T-02-U2`, `T-02-F1` and `T-02-I1` are **not** claimed: their
-descriptions were corrected in this session but no implementation exists to assert against, so any result
-recorded now would be fabricated.
+Two Test Plan rows are executed and claimed: **T-02-U1** and **T-02-U2**. `T-02-U3`, `T-02-U4`, `T-02-F1`–`F3`,
+`T-02-I1`–`I2`, `T-02-R1`–`R2` and `T-02-S1` are **not** claimed — no implementation exists to assert against,
+so any result recorded for them now would be fabricated.
+
+Suite run, 2026-08-19. The same command backs both rows; it is reproduced once and referenced by both anchors.
+
+```text
+$ node --test tests/recommendation-track-record.unit.mjs
+✔ T-01-U1: claimHash is content-only across exactly the five unhashed fields (18.703292ms)
+✔ T-01-U2: every hashed term is load-bearing (16.083094ms)
+✔ T-01-U3: RTR-PREDICATE-AMEND refuses a byte-changing write and never overwrites (12.412178ms)
+✔ T-01-U4: non-semantic-subject refuses both publisher positional fallbacks (16.278708ms)
+✔ T-01-U5: no-committed-series refuses an empty seriesRefs and a partially-absent basket (12.965337ms)
+✔ T-01-U6: every closed vocabulary refuses a one-character-off value (28.774997ms)
+✔ T-01-U7: direction is bound to ACTION_DIRECTION and hold has no signed outcome (7.943588ms)
+✔ T-02-U1: claimRef is optional on the live v2 at every committed shape, and v1 needs it never (67.117343ms)
+✔ T-02-U2: v1 stays closed against claimRef, and v2 stays closed against everything else (26.947302ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 301.7434
+exit=0
+```
+
+`# tests 9 / # pass 9 / # fail 0`, up from the scope-01 figure of `7 / 7 / 0` recorded in the baseline
+section above: **+2**, exactly `T-02-U1` and `T-02-U2`.
+
+### Revert verification — the load-bearing evidence
+
+A negative that cannot fail guards nothing, so each shipped rule was **removed from `rlclaims.js`**, the suite
+re-run, and the observed failure recorded. This is a real source revert, not the in-test
+`validateWithUnknownFieldRuleReverted` shim — the shim proves the *fixture* discriminates; only removing the
+rule proves the *shipped module* is what makes it pass.
+
+| # | Rule removed from `rlclaims.js` | Guards | Observed failure | Suite |
+|---|---|---|---|---|
+| A | `rowFieldsFor` returns `ROW_V1_FIELDS.concat([CLAIM_REF_FIELD])` for `v1` — i.e. `claimRef` allowed on `v1` | T-02-U2, `v1` negative | `v1-carrying-claim-ref: expected a row refusal, got an accepted row` / `true !== false` at `assertRowRefusal` | `pass 8 / fail 1`, exit 1 |
+| B | `validateLedgerRow` skips `hasOnlyFields` when `contractVersion === ROW_CONTRACT_V2` — i.e. the `v2` unknown-field closure dropped | T-02-U2, `v2` negative | `v2-unknown-field: expected a row refusal, got an accepted row` / `true !== false` | `fail 1`, exit 1 |
+| C | `rowRequiredFieldsFor` returns `ROW_V2_REQUIRED_FIELDS.concat([CLAIM_REF_FIELD])` — i.e. `claimRef` made **required** on `v2` | T-02-U1, optionality | `v2 shape 17: must validate as committed` / `false !== true` | `fail 1`, exit 1 |
+
+Each revert failed the *intended* row and no other: A and B fail only `T-02-U2`, C fails only `T-02-U1`.
+Failure A names the offence at `assertRowRefusal`, not at a downstream repair assertion, so the negative
+refuses at the rule under test rather than incidentally.
+
+Raw failure block for revert A, verbatim (absolute paths written as `<repo-root>`):
+
+```text
+not ok 9 - T-02-U2: v1 stays closed against claimRef, and v2 stays closed against everything else
+  ---
+  location: '<repo-root>/tests/recommendation-track-record.unit.mjs:631:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    v1-carrying-claim-ref: expected a row refusal, got an accepted row
+    true !== false
+  code: 'ERR_ASSERTION'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    assertRowRefusal (file://<repo-root>/tests/recommendation-track-record.unit.mjs:537:12)
+    TestContext.<anonymous> (file://<repo-root>/tests/recommendation-track-record.unit.mjs:638:9)
+  ...
+# tests 9
+# pass 8
+# fail 1
+```
+
+**Restoration proved, not asserted.** `rlclaims.js` was hashed before the experiment and after it:
+
+```text
+before  13de14a4684ddd3d92b11284006475e6f034a24db9bfdeddf6687d22c90e184d  rlclaims.js
+after   13de14a4684ddd3d92b11284006475e6f034a24db9bfdeddf6687d22c90e184d  rlclaims.js
+
+$ git --no-pager diff --stat -- rlclaims.js
+ rlclaims.js | 185 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 185 insertions(+)      # identical to the pre-experiment diffstat
+```
+
+Byte-identical, and the suite is back to `9 / 9 / 0` (the run reproduced above **is** the post-restoration
+run). The experiment left no residue.
+
+<a id="t-02-u1"></a>
+
+### T-02-U1 — `claimRef` is optional on the live `v2` at every committed shape
+
+`✔ T-02-U1 … (67.117343ms)` in the run above; command `node --test tests/recommendation-track-record.unit.mjs`,
+exit `0`.
+
+What the row actually asserts, and why each assertion is not vacuous:
+
+- The three live shapes are **read from the committed ledger** (`assert.deepEqual([...byShape.keys()].sort(…),
+  [17, 25, 27])`), not asserted as a literal, so a reader that silently skipped a shape cannot pass by the
+  test agreeing with it.
+- `deriveRowFieldUnion` **re-derives** both halves of the `v2` field set from those rows and asserts they equal
+  the declared `ROW_V2_REQUIRED_FIELDS` / `ROW_V2_MEASURED_OPTIONAL_FIELDS` and that the union is 32 keys — so
+  the constants are re-checked against what is on disk rather than trusted as a hand-maintained list.
+- For each of shapes 17, 25 and 27: the row validates **as committed** (no `claimRef`), validates **again**
+  with `claimRef` added, exactly one key was added, and the committed row was not mutated.
+- `assert.equal(derived.union.includes(CLAIM_REF_FIELD), false)` and the per-shape
+  `hasOwnProperty(committed, CLAIM_REF_FIELD) === false` are the **anti-vacuity** pair: they establish that no
+  committed row already carries the field, so the with/without pair is a real contrast.
+- A committed `v1` row validates without `claimRef`, and `ROW_V1_FIELDS` does not contain it.
+- Every fixture line in `v1-only`, `v2-shape-17`, `v2-shape-25`, `v2-shape-27` is asserted **byte-present in
+  the committed ledger**, so the shapes under test are what is on disk rather than what a test author typed.
+
+**Revert-verified** by experiment C above: making `claimRef` required on `v2` fails this row at
+`v2 shape 17: must validate as committed` — the optionality claim is therefore falsifiable.
+
+<a id="t-02-u2"></a>
+
+### T-02-U2 — `v1` stays closed against `claimRef`, `v2` stays closed against everything else
+
+`✔ T-02-U2 … (26.947302ms)` in the run above; same command, exit `0`.
+
+Both negatives assert the **exact** refusal triple from their committed `.expected.json`
+(`code` / `reason` / `field`), not merely that validation failed:
+
+| Negative | Expected refusal | Point |
+|---|---|---|
+| `v1-carrying-claim-ref` | `RTR-ROW-CONTRACT` / `unknown-field` / `claimRef` | `v1`'s seven-field list stays closed |
+| `v2-unknown-field` | `RTR-ROW-CONTRACT` / `unknown-field` / `resolutionRef` | `v2` did not become an accept-anything escape hatch |
+
+Three properties make these discriminate rather than merely refuse:
+
+- **The `v1` refusal is about the version stamp, not a malformed value.** The negative's `claimRef` satisfies
+  `CLAIM_REF_PATTERN`, and the row asserts the *identical* pointer value is **accepted** on `v2`.
+- **One rule violated per negative.** Deleting the single declared offending key makes each row valid, and
+  whether the repair lands back on a real committed row is itself a declared property
+  (`true` for the `v1` case, `false` for the `v2` case). The repaired `v2` row still carries `claimRef`,
+  proving the refusal was about `resolutionRef` and not about the field this scope added.
+- **`resolutionRef` is a plausible neighbour, not a nonsense key** — the resolution object is real, it is just
+  reached via `claimRef` + `eventId`. Three further strangers (`outcomeValue`, `claimref`, `claimRefs` — the
+  last two being case and plural near-misses of the added field) are each refused **by name**.
+
+**Revert-verified** by experiments A and B above. Each negative was shown to be *accepted* once its rule was
+removed from `rlclaims.js`, with the observed failure recorded in the table.
+
 
 ## Completion Statement
 
-Scope 02 remains `Not Started`. No Definition of Done item is satisfied, no scope completion is claimed, and
-no certification is requested. The contract-identifier blocker recorded above is **resolved** by the
-2026-08-19 ruling and the plan has been corrected to match measured repository reality; the live-publisher
-binding remains blocked on P-015-01 / P-015-02. The selftest baseline required by T-02-S1 is captured and
-recorded.
+Scope 02 is **not** complete and no scope completion or certification is claimed. **Two** Definition of Done
+items are claimed — the Test items for `T-02-U1` and `T-02-U2` — each backed by the run and the revert
+verification recorded above. Every other item, Core and Test, is deliberately left open.
+
+Two near-misses are recorded rather than absorbed, because each fails one conjunct only:
+
+- **Core item "`A v1 row carrying claimRef` is rejected as an unknown field, and `v2` **still** rejects a
+  field name outside its live union ∪ `{claimRef}`"** — both refusals are proven by `T-02-U2`, but *"still"*
+  is a before/after claim and no pre-extension measurement was executed. Left open.
+- **T-02-S1** — a clean `3074 passed, 0 failed` baseline is now recorded, but the row requires
+  `baseline + N` *after* this scope's implementation lands, and this increment delivers only part of it.
+  Left open.
+
+The contract-identifier blocker recorded above remains **resolved**. The live-publisher binding remains
+blocked on P-015-01 / P-015-02; nothing in this increment touches it, and no fixture-backed result here is
+reported as live-publisher evidence.

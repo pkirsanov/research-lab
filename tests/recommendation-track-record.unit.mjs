@@ -20,7 +20,7 @@
  */
 
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 
@@ -488,4 +488,204 @@ test('T-01-U7: direction is bound to ACTION_DIRECTION and hold has no signed out
     signed.input.action.action = family;
     assert.notEqual(vocabulary.direction[family], 0);
     assertEvaluable(claims.mintClaim(mintInputFrom(signed)), 'T-01-U7 hold repaired to a signed family');
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════════════════════
+ * Scope 02 — additive ledger row extension. Rows T-02-U1 and T-02-U2.
+ *
+ * These rows are deliberately anchored on the REAL committed ledger rather than on synthetic
+ * rows: the whole point of the extension is compatibility with what is already on disk, and a
+ * synthetic row would only ever prove the reader agrees with the test author.
+ *
+ * The support module's export surface is pinned exactly by T-01-C1, so the ledger helpers below
+ * are local to this file. Adding them to the substrate would fail the canary.
+ * ═══════════════════════════════════════════════════════════════════════════════════════════ */
+
+const LEDGER_DIR = path.join(REPO_ROOT, 'briefs', 'history', 'recommendations');
+const LEDGER_FIXTURE_DIR = path.join(REPO_ROOT, 'tests', 'fixtures', 'recommendation-track-record', 'ledger');
+
+/** Every non-empty line of every committed partition, in file-name then file order. */
+function committedLedgerLines() {
+    return readdirSync(LEDGER_DIR)
+        .filter((f) => f.endsWith('.jsonl'))
+        .sort()
+        .flatMap((f) => readFileSync(path.join(LEDGER_DIR, f), 'utf8').split('\n').filter((l) => l.trim().length > 0));
+}
+
+function jsonlFixtureLines(name) {
+    return readFileSync(path.join(LEDGER_FIXTURE_DIR, `${name}.jsonl`), 'utf8')
+        .split('\n')
+        .filter((l) => l.trim().length > 0);
+}
+
+/** A negative fixture and its declared expectation. A missing sibling throws — an unexpected
+ *  input is not a test, so it must not load as "no expectation at all". */
+function loadLedgerNegative(name) {
+    const expectedPath = path.join(LEDGER_FIXTURE_DIR, `${name}.expected.json`);
+    if (!existsSync(expectedPath)) {
+        throw new Error(`ledger fixture "${name}" has no .expected.json sibling`);
+    }
+    return {
+        name,
+        input: JSON.parse(readFileSync(path.join(LEDGER_FIXTURE_DIR, `${name}.json`), 'utf8')),
+        expected: JSON.parse(readFileSync(expectedPath, 'utf8')),
+    };
+}
+
+/** A row refusal: the closed code, the exact reason, and the field that caused it. */
+function assertRowRefusal(result, expected, label) {
+    assert.equal(result.ok, false, `${label}: expected a row refusal, got an accepted row`);
+    assert.equal(result.error.code, expected.code, `${label}: code`);
+    assertRefusal(result.error, expected.reason, expected.field, label);
+}
+
+/**
+ * The reader with the closed-field-list rule REVERTED — i.e. an accept-anything reader that
+ * still checks the version stamp. Every negative below is asserted to be ACCEPTED by this,
+ * which is what proves the negative can actually fail. A negative that refuses under both the
+ * shipped and the reverted implementation is guarding nothing.
+ */
+function validateWithUnknownFieldRuleReverted(row) {
+    if (!row || typeof row !== 'object' || Array.isArray(row)) return { ok: false };
+    const known = [claims.ROW_CONTRACT_V1, claims.ROW_CONTRACT_V2];
+    if (!known.includes(row.contractVersion)) return { ok: false };
+    const required = row.contractVersion === claims.ROW_CONTRACT_V1
+        ? claims.ROW_V1_FIELDS
+        : claims.ROW_V2_REQUIRED_FIELDS;
+    for (const field of required) {
+        if (!Object.prototype.hasOwnProperty.call(row, field)) return { ok: false };
+    }
+    return { ok: true, row };
+}
+
+/** A deterministic, module-produced pointer. Never a hand-typed digest. */
+function claimRefFor(row) {
+    return claims.stableSha({ contractVersion: claims.CONTRACT_VERSION, eventId: row.eventId });
+}
+
+test('T-02-U1: claimRef is optional on the live v2 at every committed shape, and v1 needs it never', () => {
+    const rows = committedLedgerLines().map((line) => JSON.parse(line));
+    assert.equal(rows.length > 0, true, 'the committed ledger must be non-empty for this row to mean anything');
+
+    const v2Rows = rows.filter((r) => r.contractVersion === claims.ROW_CONTRACT_V2);
+    const v1Rows = rows.filter((r) => r.contractVersion === claims.ROW_CONTRACT_V1);
+    assert.equal(v1Rows.length > 0, true, 'the committed ledger must carry v1 rows');
+
+    // The three live shapes are READ from the ledger, not asserted as a literal — a reader that
+    // silently skipped a shape must not be able to pass by the test agreeing with it.
+    const byShape = new Map();
+    for (const row of v2Rows) {
+        const n = Object.keys(row).length;
+        if (!byShape.has(n)) byShape.set(n, row);
+    }
+    assert.deepEqual([...byShape.keys()].sort((a, b) => a - b), [17, 25, 27], 'the live v2 key counts');
+
+    // The declared constants are a MEASUREMENT of this ledger. Re-derive both halves from it, so a
+    // hand-maintained list cannot drift away from the rows it claims to describe.
+    const derived = claims.deriveRowFieldUnion(v2Rows);
+    assert.equal(derived.rowCount, v2Rows.length);
+    assert.deepEqual([...derived.required], [...claims.ROW_V2_REQUIRED_FIELDS], 'v2 required set');
+    assert.deepEqual([...derived.optional], [...claims.ROW_V2_MEASURED_OPTIONAL_FIELDS], 'v2 optional set');
+    assert.deepEqual([...derived.union].length, 32, 'the measured v2 union');
+    assert.equal(derived.union.includes(claims.CLAIM_REF_FIELD), false, 'no committed row carries claimRef yet');
+    assert.equal(claims.ROW_V2_FIELDS.length, derived.union.length + 1, 'the accepted set is the union plus one');
+
+    for (const [shape, committed] of [...byShape.entries()].sort((a, b) => a[0] - b[0])) {
+        const label = `v2 shape ${shape}`;
+
+        // WITHOUT claimRef — the row exactly as committed.
+        assert.equal(claims.validateLedgerRow(committed).ok, true, `${label}: must validate as committed`);
+
+        // WITH claimRef — the same row plus the one added optional member.
+        const withRef = { ...committed, [claims.CLAIM_REF_FIELD]: claimRefFor(committed) };
+        assert.equal(claims.validateLedgerRow(withRef).ok, true, `${label}: must validate with claimRef`);
+        assert.equal(Object.keys(withRef).length, shape + 1, `${label}: exactly one key was added`);
+        assert.equal(Object.keys(committed).length, shape, `${label}: the committed row was not mutated`);
+
+        // Anti-vacuity: a reader that made claimRef REQUIRED on v2 fails all three committed
+        // shapes. Without this the pair above would pass under a reader that ignored the field.
+        assert.equal(
+            Object.prototype.hasOwnProperty.call(committed, claims.CLAIM_REF_FIELD),
+            false,
+            `${label}: a required-claimRef reader must fail this committed row`,
+        );
+    }
+
+    // v1 validates without claimRef, and claimRef is not in its list at all.
+    assert.equal(claims.validateLedgerRow(v1Rows[0]).ok, true, 'a committed v1 row must validate without claimRef');
+    assert.equal(claims.ROW_V1_FIELDS.includes(claims.CLAIM_REF_FIELD), false, "v1's list stays closed");
+
+    // The fixtures are REAL: every fixture line is byte-present in the committed ledger, so the
+    // shapes under test are what is on disk rather than what a test author typed.
+    const committedLines = new Set(committedLedgerLines());
+    for (const name of ['v1-only', 'v2-shape-17', 'v2-shape-25', 'v2-shape-27']) {
+        const lines = jsonlFixtureLines(name);
+        assert.equal(lines.length > 0, true, `${name}: fixture must be non-empty`);
+        for (const line of lines) {
+            assert.equal(committedLines.has(line), true, `${name}: every fixture line must be a real committed row`);
+            assert.equal(claims.validateLedgerRow(JSON.parse(line)).ok, true, `${name}: fixture row must validate`);
+        }
+    }
+});
+
+test('T-02-U2: v1 stays closed against claimRef, and v2 stays closed against everything else', () => {
+    const negatives = ['v1-carrying-claim-ref', 'v2-unknown-field'].map(loadLedgerNegative);
+    const committedLines = new Set(committedLedgerLines());
+
+    for (const { name, input, expected } of negatives) {
+        assert.equal(claims.ROW_CONTRACT_VIOLATION_CODE, expected.code, `${name}: the fixture must declare the live code`);
+
+        assertRowRefusal(claims.validateLedgerRow(input), expected, name);
+
+        // REVERT-VERIFICATION. The same input is ACCEPTED once the closed-field-list rule is
+        // reverted, so this negative demonstrably fails when the behaviour it guards is removed.
+        assert.equal(
+            validateWithUnknownFieldRuleReverted(input).ok,
+            true,
+            `${name}: an accept-anything reader must ACCEPT this row — otherwise the negative guards nothing`,
+        );
+
+        // ONE rule violated: deleting the single declared offending key makes the row valid.
+        const repaired = { ...input };
+        delete repaired[expected.repairByDeletingField];
+        assert.equal(claims.validateLedgerRow(repaired).ok, true, `${name}: repaired row must validate`);
+        assert.equal(
+            committedLines.has(JSON.stringify(repaired)),
+            expected.repairMatchesCommittedRow,
+            `${name}: whether the repair lands back on a real committed row is a declared property`,
+        );
+    }
+
+    // The v1 negative refuses on the VERSION STAMP, not on a malformed value: its claimRef is a
+    // well-formed pointer, and the identical value is accepted on v2.
+    const v1Negative = loadLedgerNegative('v1-carrying-claim-ref');
+    const pointer = v1Negative.input[claims.CLAIM_REF_FIELD];
+    assert.equal(claims.CLAIM_REF_PATTERN.test(pointer), true, 'the v1 negative must carry a well-formed pointer');
+
+    const v2Row = JSON.parse(jsonlFixtureLines('v2-shape-17')[0]);
+    assert.equal(
+        claims.validateLedgerRow({ ...v2Row, [claims.CLAIM_REF_FIELD]: pointer }).ok,
+        true,
+        'the same pointer value is accepted on v2 — so the v1 refusal is about the version, not the value',
+    );
+
+    // The v2 negative's surviving claimRef is what proves the refusal was about resolutionRef.
+    const v2Negative = loadLedgerNegative('v2-unknown-field');
+    const v2Repaired = { ...v2Negative.input };
+    delete v2Repaired[v2Negative.expected.repairByDeletingField];
+    assert.equal(
+        Object.prototype.hasOwnProperty.call(v2Repaired, claims.CLAIM_REF_FIELD),
+        true,
+        'the repaired v2 row must still carry claimRef',
+    );
+
+    // v2 is not an escape hatch: every name outside the union ∪ {claimRef} is refused by name.
+    for (const stranger of ['resolutionRef', 'outcomeValue', 'claimref', 'claimRefs']) {
+        assert.equal(claims.ROW_V2_FIELDS.includes(stranger), false, `${stranger} must be outside the accepted set`);
+        assertRowRefusal(
+            claims.validateLedgerRow({ ...v2Row, [stranger]: 'x' }),
+            { code: claims.ROW_CONTRACT_VIOLATION_CODE, reason: 'unknown-field', field: stranger },
+            `v2 stranger ${stranger}`,
+        );
+    }
 });

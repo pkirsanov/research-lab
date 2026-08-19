@@ -2066,6 +2066,152 @@ Neither is implementation work, so neither is performed here.
 
 No file was mutated during this verification; every step was read-only.
 
+#### Verification pass 4 — 2026-08-19 — DoD item 15 HOLDS
+
+**Claim Source:** executed. **Outcome: the item is ticked.**
+
+`bubbles.plan` replaced the wording that produced finding **F-01-I** — which asked
+for a diff against a pre-scope assertion text that does not exist, and which stated
+the owned-entry count three different ways. The item now states the count as twelve
+throughout and proves containment four ways, none of which needs a pre-scope
+baseline. All four are executed below.
+
+**Way 1 — marker↔ledger closure passes in both directions (`TP-05-22`).**
+
+```
+$ node scripts/selftest.mjs
+  ✓ TP-05-22: every SUP-022 marker delivered in the source maps to a ledger row, every
+    ledger row except the two pre-existing unmarked Scope 02 rows named here is delivered,
+    the ids stay inside the declared range, and the ledger total agrees with the paragraph
+    that states it
+```
+
+**Way 2 — each of the twelve markers sits in the file the per-file marker
+distribution assigns it, and in no other file.** A census over the five opened
+files plus the two that must carry none:
+
+```
+$ for f in scripts/selftest.mjs tests/lifetime-tax-federal.spec.mjs \
+           tests/lifetime-tax-foundation.spec.mjs tests/lifetime-tax-marginal.spec.mjs \
+           tests/lifetime-tax-route.spec.mjs tests/lifetime-tax-conversion.spec.mjs \
+           tests/lifetime-tax.support.mjs; do
+    printf '%s: ' "$f"; grep -oE 'SUP-022-[0-9]{2}' "$f" | sort -u | tr '\n' ' '; echo; done
+
+scripts/selftest.mjs:                   SUP-022-01 SUP-022-02 SUP-022-03 SUP-022-04 SUP-022-05 SUP-022-06 SUP-022-08 SUP-022-10 SUP-022-11 SUP-022-14 SUP-022-20 SUP-022-22
+tests/lifetime-tax-federal.spec.mjs:    SUP-022-07 SUP-022-15 SUP-022-21
+tests/lifetime-tax-foundation.spec.mjs: SUP-022-09 SUP-022-12
+tests/lifetime-tax-marginal.spec.mjs:   SUP-022-08 SUP-022-13
+tests/lifetime-tax-route.spec.mjs:      SUP-022-16 SUP-022-17
+tests/lifetime-tax-conversion.spec.mjs:
+tests/lifetime-tax.support.mjs:
+```
+
+Read against the distribution, in both directions. The twelve this scope owns are
+placed exactly as assigned — `-01`, `-02`, `-04`, `-05`, `-06` and `-11` in
+`scripts/selftest.mjs`; `-07` and `-21` in the federal spec; `-09` and `-12` in the
+foundation spec; `-13` in the marginal spec; `-17` in the route spec — and **none
+of the twelve appears in any file the table does not name for it**. The conversion
+spec and the support module carry zero `SUP-022` markers, as required. The other
+ids visible above (`-03`, `-08`, `-10`, `-14`, `-15`, `-16`, `-20`, `-22`) belong to
+Scopes 02 through 05 and are not this scope's to place; their presence is what
+`TP-05-22` closes, not what this way asserts. An edit that wandered into an
+unassigned file would show as one of the twelve appearing in a second row, and
+none does.
+
+**Way 3 — no excluded path is modified in the working tree, and none changed in any
+commit attributable to Feature 022.** Both halves executed directly rather than
+inherited:
+
+```
+$ git status --porcelain -- <every excluded path>
+                                  # empty
+worktree_excluded_dirty_exit=0
+```
+
+```
+$ for p in <every excluded path>; do
+    printf '%-52s %s\n' "$p" "$(git log --oneline b9d92a3f1..HEAD --format='%h %s' -- "$p" | tr '\n' '|')"; done
+
+site-exclusions.json                          e903749c0 Register lifetime-tax and company-intelligence modules as site exclusions; add their selftest groups
+scripts/validate-spec-test-paths.baseline     874b24271 fix(026): refuse a dark card carrying a figure and a v2 run with no measurement
+                                            | 3872df354 feat(026): close the last-writer budget gap and complete the claims loop
+                                            | 2229da3c0 Feature 024: scope 02 RED evidence progress; drop 6 stale spec-test-path baseline entries
+briefs                                        9af68427b / 9ad83b3aa / 643d74bfd / 5d4a8202a / 2f907b8f7 / e947819de  market-brief: auto-refresh + narrative
+data                                          the same six auto-refresh commits, plus b160d587f feat(025) and 8694d8696 fix(BUG-012)
+specs/021-lifetime-tax-strategy-lab           e45161372 docs(021): record RED/GREEN evidence for scopes 01-05
+                                            | 3048166a5 docs(021): complete scope 02 and 03 DoD evidence
+specs/008-portfolio-survival-and-brief-lab    <EMPTY DIFF>
+rlportfolio.js                                <EMPTY DIFF>
+rlportfolioanalytics.js                       <EMPTY DIFF>
+portfolio-survival-allocation.config.json     <EMPTY DIFF>
+tools.json                                    <EMPTY DIFF>
+index.html                                    <EMPTY DIFF>
+rlnav.js                                      <EMPTY DIFF>
+README.md                                     <EMPTY DIFF>
+notes/README.md                               <EMPTY DIFF>
+watchlist.json                                <EMPTY DIFF>
+scripts/build-pages-site.mjs                  <EMPTY DIFF>
+rltax.js                                      <EMPTY DIFF>
+rltaxworkspace.js                             <EMPTY DIFF>
+rltaxstrategy.js                              <EMPTY DIFF>
+tests/lifetime-tax-conversion.spec.mjs        <EMPTY DIFF>
+tests/lifetime-tax.support.mjs                <EMPTY DIFF>
+```
+
+Every commit in that table is foreign to Feature 022 by its own subject line: two
+Feature 021 documentation commits, one Feature 024 baseline commit, two Feature 026
+commits, one Feature 025 commit, one BUG-012 commit, one site-exclusion
+registration commit, and six unattended market-brief auto-refresh commits. **No
+Feature 022 commit appears anywhere in it**, and every path this scope could have
+touched by mistake — including `rltax.js`, which this scope deliberately did not
+open — returns an empty diff.
+
+**This way was proven directly, not by inheriting DoD item 11 limb 1.** The item's
+text points at that limb for the same ground, but limb 1's enumeration is stale:
+it asserts that Feature 021's spec directory returns an empty
+`git diff --name-only b9d92a3f1 HEAD`, and the table above shows it returns six
+files under `e45161372` and `3048166a5`, and it omits `874b24271` and `8694d8696`
+from its named list. That is a defect in DoD item 11's enumeration, recorded there
+as **F-01-N** and left for `bubbles.plan`. It does not weaken this way, because the
+substantive claim this way makes — no excluded path is dirty, and none moved in a
+Feature 022 commit — is established above from commits and subjects rather than
+from limb 1's list.
+
+**Way 4 — the repository pass count does not fall between this scope's recorded
+intended-RED run and its same-command GREEN run.** The intended-RED runs of
+`node scripts/selftest.mjs` recorded in this scope are the two TP-01-11 probe runs
+above — **3018 passed, 11 failed** and **3021 passed, 8 failed**. The same-command
+GREEN run is **3051 passed, 0 failed, exit 0**. The count rose in both comparisons,
+so no assertion was deleted or downgraded to reach green.
+
+**Second clause — Feature 008 and the six named invariant families.** Feature 008's
+three files and its spec directory each return an empty
+`git diff --name-only b9d92a3f1 HEAD`, per the table above. The six named assertion
+families are present by title and passing in the same run:
+
+```
+$ node scripts/selftest.mjs
+  ✓ TP-01-01: the pack-derived count of present figures matches the collected list, and
+    every effective component citation — inherited or overridden — names a retrieved
+    non-newsroom source with an absolute URL, a non-future retrievedAt and a locator,
+    while the newsroom summary is cited by no figure and no override        [sourcing]
+  ✓ TP-02-10: … whose legs sum to it within the pack tolerance …            [tolerance]
+  ✓ TP-02-06: 50 repeated settlements over identical input produce one byte-identical
+    result while any network call throws                                    [determinism]
+  ✓ TP-01-11: a household carrying preferential income settles byte-identically over 50
+    repeated calls with identical input …                                   [determinism]
+  ✓ TP-03-15: the residency declaration is named in the privacy inventory, recorded as an
+    unsupplied domain when absent, removed by the clear action, and redacted out of the
+    export manifest …                                                       [privacy]
+  ✓ the bridge path performs local compute only — no network, provider, storage, or
+    cookie authority in its executable source (8 tokens checked, hits: none) [zero-network]
+  ✓ the registered Portfolio page is the production consumer for rlportfolio.js
+                                                            [Feature 008 canary]
+```
+
+None of these was touched by this scope, and each is passing rather than merely
+present.
+
 ### TP-01-21
 
 Each retained branch proven non-vacuous against the absent-table fixture, and the
@@ -2459,6 +2605,61 @@ the retained-branch evidence under TP-01-21 already supplies for six of them.
 No file was mutated during this verification; every step was read-only.
 
 ## Change Boundary
+
+### Verification pass 4 — 2026-08-19 — DoD item 11 does NOT hold: limb 1's enumeration is factually stale (finding F-01-N)
+
+**Claim Source:** executed. **Outcome: the item stays `[ ]`. Limbs 2 and 3 hold and
+are recorded here; limb 1 is false as written and needs `bubbles.plan`.**
+
+**Limb 2 — confinement — HOLDS.** The `SUP-022-NN` census over the five opened files
+equals the per-file marker distribution exactly and in both directions, and the
+conversion spec and the support module carry zero markers. The full census output is
+recorded under
+[DoD item 15, Way 2](#verification-pass-4--2026-08-19--dod-item-15-holds) rather than
+duplicated here.
+
+**Limb 3 — behavioural invariance — HOLDS on its selftest half, and is untested on its
+browser half.** The Feature 021 Scope 01 through Scope 05 selftest groups pass inside
+the `3051 passed, 0 failed` run recorded for DoD item 16. The limb's other half —
+the fifteen browser scenarios SCN-021-001 through SCN-021-015 under the TP-01-16
+command — was **not executed in this pass**, so limb 3 is not claimed as satisfied.
+
+**Limb 1 — attribution — is FALSE AS WRITTEN.** Its first sentence holds: no excluded
+path is modified in the working tree (`git status --porcelain` over the excluded list
+is empty). Its second sentence does not. It asserts that every excluded path which
+moved since `b9d92a3f1` is individually named, and that "every other excluded path —
+… Feature 021's spec directory … — returns an empty `git diff --name-only b9d92a3f1 HEAD`".
+Executed against the tree, two specific claims in that sentence are false:
+
+| Limb 1 claim | Executed result |
+| --- | --- |
+| Feature 021's spec directory returns an empty `git diff --name-only b9d92a3f1 HEAD` | **False.** Six files return, in `e45161372` *docs(021): record RED/GREEN evidence for scopes 01-05* and `3048166a5` *docs(021): complete scope 02 and 03 DoD evidence* — neither named in limb 1 |
+| `scripts/validate-spec-test-paths.baseline` moved in `2229da3c0` and `3872df354` | **Incomplete.** It also moved in `874b24271` *fix(026): refuse a dark card carrying a figure and a v2 run with no measurement*, which limb 1 does not name |
+| `briefs/**` and `data/**` moved in the auto-refresh commits and in `b160d587f` | **Incomplete.** `data/**` also moved in `8694d8696` *fix(BUG-012) scope 1: put every OHLC field on one basis and guard it*, which limb 1 does not name |
+
+The full commit-attribution table is recorded under
+[DoD item 15, Way 3](#verification-pass-4--2026-08-19--dod-item-15-holds).
+
+**Why this is a requirement-text defect rather than a scope defect.** Every commit in
+that table is foreign to Feature 022 by its own subject line, so the *property* limb 1
+exists to protect — this scope changed nothing it was forbidden to change — is intact
+and is proven under DoD item 15 Way 3 from commits and subjects rather than from
+limb 1's list. What is wrong is limb 1's enumeration: it was written against an
+earlier tree and three commits have landed since. A limb that names a closed set of
+commits goes stale every time an unrelated session commits, which is the same class of
+defect as the pre-scope-baseline clauses already superseded as F-01-H and F-01-I.
+
+**Finding F-01-N — for `bubbles.plan`, not for this agent.** Limb 1 should either
+(a) drop the closed commit enumeration and assert the decidable property instead —
+"every excluded path that moved since `b9d92a3f1` moved in a commit whose subject
+attributes it to a feature other than 022", which is executable as a table and does not
+rot — or (b) be refreshed to name `e45161372`, `3048166a5`, `874b24271` and `8694d8696`
+and drop the false empty-diff claim for `specs/021-*`, accepting that it will go stale
+again. This agent will not edit `scope.md`'s requirement text to make its own evidence
+fit, and will not tick an item whose stated claim is false against the tree.
+
+**Also outstanding on this item independently of F-01-N:** limb 3's browser half was
+not run in this pass.
 
 Filled at execution. Holds the path-scoped `git status` proving every excluded
 path is byte-identical, including `rltax.js`, `rltaxworkspace.js`,

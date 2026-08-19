@@ -447,7 +447,7 @@ RED.
       SUP-022-12 and SUP-022-13 at least once, independently of how many shipped
       statuses resolved.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus `npx playwright test tests/lifetime-tax-*.spec.mjs --project=system-chrome --reporter=line --workers=2` · **Evidence:** `report.md#tp-01-21`, `report.md#verification-pass-2--2026-08-18--dod-item-14-holds`
-- [ ] Assertion change is contained to the **twelve** entries this scope owns, and
+- [x] Assertion change is contained to the **twelve** entries this scope owns, and
       no sourcing rule, tolerance, determinism, privacy, zero-network or Feature
       008 canary was touched. Twelve is the count everywhere in this scope, derived
       from the `Owning scope` column of the
@@ -469,7 +469,7 @@ RED.
       empty `git diff --name-only b9d92a3f1 HEAD`, and the sourcing, tolerance,
       determinism, privacy, zero-network and Feature 008 production-consumer canary
       assertions are each present by title and passing.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs`, a `SUP-022-NN` census over the five opened files, and `git diff --name-only b9d92a3f1 HEAD` over the excluded list · **Evidence:** `report.md#tp-01-20`, `report.md#change-boundary`
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs`, a `SUP-022-NN` census over the five opened files, and `git diff --name-only b9d92a3f1 HEAD` over the excluded list · **Evidence:** `report.md#tp-01-20`, `report.md#change-boundary`, `report.md#verification-pass-4--2026-08-19--dod-item-15-holds`
   - **Why this shape.** The superseded wording asked for a diff against a pre-scope
     assertion text, and no such text exists: `b9d92a3f1` already carries the
     `SUP-022` markers in the four Feature 021 test files and `e903749c0` already

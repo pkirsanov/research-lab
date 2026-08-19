@@ -27,8 +27,10 @@ not mark any test `.skip` or `.fixme`, deletes no assertion, and does not relax 
 (BUG-009, INV-009-1) exits 0 after the change, and continues to observe this file. Raising an
 enclosing budget may never create an unreachable wait declaration elsewhere.
 
-**INV-011-5 — the suite is unreduced.** The change removes, skips, or renames no test. The committed
-suite still enumerates 498 tests.
+**INV-011-5 — the suite is unreduced.** The change removes, skips, or renames no test. This is
+asserted over the fix commit and the delivered file, never as a pinned suite total: a total moves
+with unrelated concurrent work, so it can go red on someone else's commit and stay green across an
+equal-sized deletion and addition.
 
 ## Acceptance criteria
 
@@ -42,7 +44,7 @@ suite still enumerates 498 tests.
 | AC-6 | `node scripts/validate-playwright-timeout-budgets.mjs` exits 0. |
 | AC-7 | `playwright.config.mjs` is unchanged — no suite-wide `timeout`, no `retries`. |
 | AC-8 | The committed diff for this fix is additive only: no line of existing test logic is modified or deleted. |
-| AC-9 | The suite still enumerates 498 tests. |
+| AC-9 | No test is removed, renamed, or skipped by this fix — asserted over the fix commit and the delivered file, not as a pinned suite total. |
 
 ## Out of scope
 

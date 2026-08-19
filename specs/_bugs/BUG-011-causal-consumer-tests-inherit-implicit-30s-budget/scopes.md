@@ -49,10 +49,18 @@ Feature: BUG-011 Feature 001 consumer regressions run on a declared budget
     And it reports having scanned a non-zero number of declarations
 
   Scenario: SCN-011B-005 The suite still tests everything it tested before
-    Given the committed suite enumerated 498 tests before the change
-    When the suite is enumerated after the change
-    Then it still enumerates 498 tests with none removed or skipped
+    Given the suite total moves with unrelated concurrent work, so it cannot witness this fix
+    When the fix commit and the delivered file are inspected after the change
+    Then the fix commit deletes no line of tests/causal-rotation-consumers.spec.mjs
+    And it adds, removes or renames no test declaration in that file
+    And no test in that file is marked skip, fixme or only
+    And no test declaration anywhere under tests/ was removed between the fix and HEAD
 ```
+
+**Scenario correction — `SCN-011B-005` de-pinned.** Its Then-clause asserted `498 tests` — the same
+pinned-total defect the last DoD item below was re-baselined off after it went stale twice in one day.
+It now asserts the invariant the pin stood proxy for, clause by clause against the four commands that
+item already runs; the dated enumerations stay there as observations, not as the asserted condition.
 
 ### Implementation Plan
 
@@ -153,46 +161,48 @@ reintroduced is the **full-suite** run at four workers, because that is the cond
   - **Where this was run, stated precisely.** The live working tree carries another session's uncommitted edits under `specs/007-*` and `specs/008-*`; with those present the same command reports `3063 passed, 1 failed` and exits 1, on an unrelated dependency-gate projection check those edits cause. The run above was therefore performed in a clean detached worktree at `6ff62f62c` (`git worktree add --detach <tmp>/rl-head-clean 6ff62f62c`; `git status --porcelain` empty) so the observation describes committed state rather than a third party's in-flight work. Both figures are recorded; the red one is not omitted for being inconvenient.
   - **What this tick does and does not claim.** The 15 failures that blocked this item never named this file, this packet, or a timeout budget, and their disappearance is not this packet's doing. The check that actually governs these budgets, `validate-playwright-timeout-budgets.mjs`, remains green standalone at zero violations (previous item). This records that the named gate is now observably green — not that this packet made it so.
 
-- [x] The suite still enumerates 597 tests
-  - **Phase:** implement · **Claim Source:** executed, this session · **Re-baselined**
-  - **RE-BASELINED — old value `498`, new value `597`.** The item text said `498`, which was false at `HEAD` and is corrected here rather than reinterpreted to fit. The packet itself left this open "for whoever re-baselines it against the current inventory", and that is what this entry is.
-  - **Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --list` — **Exit Code:** 0
-  - ```
-    Total: 597 tests in 67 files
-    LIST_EXIT=0
-    ```
-    The figure is taken from Playwright's own reporter total rather than from a `grep -c` over the listing: the reporter is authoritative about its own enumeration, and counting lines would additionally have meant filtering command output, which this repository's terminal discipline forbids. The `67 files` half corroborates independently — `ls tests/*.spec.mjs | wc -l` is also `67`. A `--list` performs no browser or server work, so this did not disturb the full suite running concurrently.
-  - **Why the number changed, and why that is not a regression.** The delta is entirely unrelated work landing after the fix, and it reconciles exactly:
-
-    ```
-    $ git --no-pager diff --name-only 5c978c5cb..HEAD -- 'tests/*.spec.mjs' | wc -l
-    21                          <-- spec files changed since the fix
-
-    $ git --no-pager diff 5c978c5cb..HEAD -- 'tests/*.spec.mjs' ':!tests/causal-rotation-consumers.spec.mjs' | grep -cE '^\+\s*test\('
-    99                          <-- test( declarations ADDED by other work
-
-    $ git --no-pager diff 5c978c5cb..HEAD -- 'tests/*.spec.mjs' | grep -cE '^-\s*test\('
-    0                           <-- test( declarations REMOVED, repo-wide, since the fix
-    ```
-
-    `498 + 99 = 597`. The old baseline plus the additions from unrelated specs is precisely the new enumeration, with zero removals anywhere. The count rose because the suite grew, not because this item's underlying property lapsed.
-  - **The underlying property still holds: this fix removed, renamed and skipped nothing.** That is the thing the item was written to protect, and it is what licenses the tick — the number alone would not.
+- [x] The BUG-011 fix removed, renamed and skipped no test — asserted over the fix commit and the delivered file, not as a pinned suite total
+  - **Phase:** implement · **Claim Source:** executed, this run · **Reformulated — second re-baseline in one day**
+  - **REFORMULATED, and the churn is the reason.** This item has been re-baselined **twice within one day**. It was written pinned at `498`; that went stale; it was re-baselined to `597` earlier today at `6ff62f62c`; and by `c5b1fb085` — inside the same hour — it was stale again at `604`. A second correction in a single day is not a coincidence to absorb quietly, and the churn is left visible here rather than smoothed over, because it is the evidence. **The pinned absolute count is the defect.** The item is restated to the invariant it was always a proxy for, which this packet had already named in its own words: *this fix removed, renamed and skipped no test.*
+  - **Why a pinned total cannot do this job — it fails in both directions.** It is **over-sensitive**: it goes red whenever unrelated concurrent work adds a spec, which is a fact about other people's commits and has nothing to do with BUG-011. It is also **under-sensitive**, which is the worse half: had this fix deleted three tests in a window where unrelated work added three, the total would still have matched and the item would have ticked green over a real regression. A check that can be both falsely red and falsely green is not a check. The four assertions below are neither — each names one specific way this fix could have cheated, and each is evaluated against the fix commit itself.
+  - **The invariant, and the four ways it can be falsified.** Every command was run at `c5b1fb085`; the outputs are this run's.
 
     ```
     $ git --no-pager show --numstat --format='' 5c978c5cb -- tests/causal-rotation-consumers.spec.mjs
-    11      0       tests/causal-rotation-consumers.spec.mjs        <-- 11 +, 0 -
-
-    $ git --no-pager show 5c978c5cb -- tests/causal-rotation-consumers.spec.mjs | grep -cE '^[+-]\s*test\('
-    0                           <-- the fix added and removed no test( declaration
-
-    $ grep -nE '\.(skip|fixme|only)\b' tests/causal-rotation-consumers.spec.mjs
-    exit: 1                     <-- no .skip, .fixme or .only anywhere in the file
-
-    $ git --no-pager diff 5c978c5cb..HEAD -- tests/causal-rotation-consumers.spec.mjs | wc -l
-    0                           <-- the delivered file is untouched since the fix
+    11      0       tests/causal-rotation-consumers.spec.mjs
     ```
+    **Red if** the fix commit deleted or rewrote any line of the spec. `0` deletions means no assertion could have been removed or weakened, because neither is reachable without a deletion.
 
-    Eleven insertions, zero deletions, no declaration touched, no skip marker, and no drift since. The fix raised five enclosing budgets and did nothing else.
+    ```
+    $ git --no-pager show 5c978c5cb -- tests/causal-rotation-consumers.spec.mjs | grep -cE '^[+-]\s*test\('
+    0
+    ```
+    **Red if** the fix added, removed **or renamed** a `test(` declaration. A rename is caught because it surfaces as a `-test(` / `+test(` pair, so counting both signs is what stops a rename passing as a no-op.
+
+    ```
+    $ grep -nE '\.(skip|fixme|only)\b' tests/causal-rotation-consumers.spec.mjs
+    exit: 1
+    ```
+    **Red if** any test in the file is skipped, marked `fixme`, or — via `.only` — silently excludes its four siblings. No match at `c5b1fb085`.
+
+    ```
+    $ git --no-pager diff 5c978c5cb..HEAD -- 'tests/*.spec.mjs' | grep -cE '^-\s*test\('
+    0
+    ```
+    **Red if** *any* `test(` declaration anywhere under `tests/` was removed between the fix and now. Repo-wide rather than file-scoped, so it also catches a later deletion made elsewhere to keep this packet's file looking clean.
+
+    Supporting: `git --no-pager diff 5c978c5cb..HEAD -- tests/causal-rotation-consumers.spec.mjs | wc -l` is **0**, so the delivered file has not drifted since the fix, and `grep -cE '^test\(' tests/causal-rotation-consumers.spec.mjs` is **5** — the same five declarations the first DoD item located at lines 124/158/195/222/250.
+  - **Counts, recorded as dated observations only.** None of these is the assertion; the history is kept because it is what condemns the pinned form:
+
+    | enumeration | commit | status |
+    |---|---|---|
+    | 498 tests | original baseline, pre-fix | stale |
+    | 597 tests in 67 files | `6ff62f62c` | stale within the hour |
+    | 604 tests in 68 files | `c5b1fb085` (this run) | will also go stale |
+
+    The last row is measured, not assumed: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --list` reports `Total: 604 tests in 68 files`, and `ls tests/*.spec.mjs | wc -l` independently reports `68`. It is listed with its commit precisely because the next unrelated push will invalidate it — and under this formulation that no longer matters. A `--list` performs no browser or server work, so it did not disturb anything running concurrently.
+  - **The growth reconciles exactly, with zero removals.** `git --no-pager diff 5c978c5cb..HEAD -- 'tests/*.spec.mjs' | grep -cE '^\+\s*test\('` is **106** added declarations against **0** removed, and `498 + 106 = 604`. The suite total moved because the suite grew; nothing was lost. At `6ff62f62c` the same arithmetic was `498 + 99 = 597`, and the seven-declaration delta between the two measurements is other sessions' work — this packet's file contributed to neither figure, its drift being zero.
+  - **The tick stands on the invariant, not on the number.** It could not have stood on the number: the number was already false at the moment this entry was written.
 
 - [x] Build Quality Gate: artifact lint passes, `report.md` carries no absolute host path, and no issue found during this scope was deferred
   - **Phase:** implement · **Claim Source:** executed, this run

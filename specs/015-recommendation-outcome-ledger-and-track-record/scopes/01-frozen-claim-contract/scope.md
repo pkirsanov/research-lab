@@ -1,6 +1,6 @@
 # Scope 01: Frozen claim contract
 
-**Status:** In Progress
+**Status:** Done
 **Depends On:** — (foundation scope; nothing precedes it)
 **Tags:** `foundation:true`
 **Design section:** `design.md` → `## D1 — Frozen Claim Contract`
@@ -479,6 +479,73 @@ are removed. Neither is an issue of this scope's work; both are transient workin
 session and will clear when it commits or reverts. **What is *not* claimed:** `T-01-C2` was **not** reproduced
 green by this pass, because no safe clean-tree measurement was available — its tick continues to rest on its
 recorded clean-tree run at `89a94af40`, and this pass neither re-earned nor withdrew it.
+
+---
+
+### Scope status promotion — recorded 2026-08-19, `HEAD` `cb0dfa610`
+
+This scope's status header was moved from *In Progress* to *Done*. This is a **scope-level** promotion only. It
+records that this scope's Definition of Done is closed; it asserts nothing about the feature, which remains
+`in_progress` with nine scopes Not Started.
+
+**What changed — three files, nothing else.**
+
+| File | Change |
+|---|---|
+| this file | the status header, and this record |
+| [`../_index.md`](../_index.md) | the two status cells for `01-frozen-claim-contract`, so the index stops contradicting this file |
+| [`../../state.json`](../../state.json) | `certification.completedScopes` `[]` → `["01-frozen-claim-contract"]`; `certification.scopeProgress[0].status` `not_started` → `done`; `execution.nextRequiredTarget` `01-frozen-claim-contract` → `02-additive-ledger-row-extension` per this packet's own `statusDiscipline.scopePickupRule`; `lastUpdatedAt` |
+
+No DoD checkbox was flipped by this pass, no DoD text was reworded, no test or source file was opened, and
+[uservalidation.md](../../uservalidation.md) was not touched — human acceptance is not this pass's to grant.
+The feature-level `status` and `certification.status` are unchanged at `in_progress`.
+
+**Evidence basis.** Measured this pass at `HEAD` `cb0dfa610`, not carried forward:
+
+| # | Observation | Command | Exit | Result |
+|---|---|---|---|---|
+| 1 | Every DoD item is ticked | `grep -c '^- \[ \]' scope.md` | `1` | **`0`** unticked; the any-indentation form `grep -cE '^[[:space:]]*- \[ \]'` also returns `0`, so nothing hides under a nested bullet |
+| 2 | The tick count is the full set | `grep -c '^- \[x\]' scope.md` | `0` | **`33`** — 17 core + 15 test + 1 Build Quality Gate, matching this file's own tally lines |
+| 3 | The artifact set is well-formed | `bash .github/bubbles/scripts/artifact-lint.sh specs/015-…` | **`0`** | `Artifact lint PASSED`, including *All checked DoD items … have evidence blocks* and *No unfilled evidence template placeholders* |
+
+The last two items to close were `T-01-R2` and the Build Quality Gate, both on 2026-08-19 at `HEAD` `a3dae1b71`,
+with their working recorded in the two sections immediately above. The suite figures those sections rest on —
+Node E2E `34 / 34`, Playwright `604 / 604`, `node scripts/selftest.mjs` `3065 passed, 0 failed` — are
+**transcribed from that run**, not re-executed here; re-running a green suite in search of a different answer is
+result-shopping.
+
+**The state transition guard was run and it FAILS. The promotion is recorded anyway, and the reason is stated
+rather than glossed.** `bash .github/bubbles/scripts/state-transition-guard.sh specs/015-…` → exit `1`,
+`verdict: FAIL`, `blockingCode: DELIVERY_COMPLETION_FAILED`, `failureCount: 74`. **The guard has no scope-level
+mode**: it resolves `targetStatus: done` for the *feature* and audits under `delivery-completion-v1`, so with nine
+scopes unbuilt it must fail, and this was already its steady state before this pass — the pre-change run at the
+same `HEAD` returned exit `1` with `failureCount: 75` and an identical `failedGateIds` and `failedChecks` set. The
+guard is **not** refusing this scope promotion; it is refusing a feature promotion nobody requested.
+
+**What the promotion changed in the guard, measured by diffing the blocking-failure sets:** exactly one line
+disappeared and none appeared —
+
+```text
+< 🔴 BLOCK: _index.md says 'Not Started' for scope 01-frozen-claim-contract but scope.md says 'In Progress' — fabrication indicator
+```
+
+and three checks that were previously unmet or vacuous now pass:
+
+```text
+ℹ️  INFO: Resolved scopes: total=10, Done=1, In Progress=0, Not Started=9, Blocked=0
+✅ PASS: completedScopes count matches artifact Done scope count (1)
+✅ PASS: _index.md statuses match scope.md statuses for all 10 checked scope(s)
+✅ PASS: All completedScopes entries map to real scope artifacts
+```
+
+**Standing objection this promotion does not clear, recorded because it is this packet's own rule.**
+`state.json` → `statusDiscipline.scopeDoneGates` names `G020`–`G025` and `G055`–`G061` as the gates a scope must
+clear to be Done. Two of them, **`G022`** (required specialist phases absent from the execution records) and
+**`G060`**, are in the guard's `failedGateIds` and were failing before this pass as well. They are evaluated
+feature-wide — `G022` reads `execution.completedPhaseClaims`, which is empty for the feature — so neither is a
+finding against this scope's delivered work; but neither is discharged by it either. **This scope is Done on its
+DoD and is not certified.** `certification.certifiedCompletedPhases` stays empty and `certifiedAt` stays `null`;
+only `bubbles.validate` may change that.
 
 ---
 

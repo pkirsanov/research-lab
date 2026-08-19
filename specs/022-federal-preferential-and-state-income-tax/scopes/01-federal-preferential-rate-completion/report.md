@@ -2527,6 +2527,141 @@ GREEN half either, so no mutation can give it a meaningful RED. That is a Test
 Plan defect for `bubbles.plan` and `bubbles.implement`, not something this pass
 can close by probing.
 
+#### Verification pass 4 — 2026-08-19 — TP-01-20 intended RED and same-command GREEN
+
+**Claim Source:** executed. **Outcome: the TP-01-20 row now has both halves.**
+
+TP-01-20 is the marker check. The assertion that carries it is `TP-05-22`, which
+closes marker↔ledger in both directions.
+
+**Intended RED — the mutation.** One delivered marker id was moved off the ledger,
+in `tests/lifetime-tax-route.spec.mjs`:
+
+```
+-  /* SUP-022-17: supersedes `toHaveCount(2)` on `#sourceRecordList li`; shape=derive. The count
++  /* RED PROBE TP-01-20 — marker id mutated off the ledger. SUP-022-97: supersedes `toHaveCount(2)` on `#sourceRecordList li`; shape=derive. The count
+```
+
+That single edit breaks closure in both directions at once: `SUP-022-97` is a
+delivered marker with no ledger row **and** it falls outside the declared
+`01`–`22` id range, while `SUP-022-17` becomes a ledger row with no delivered
+marker.
+
+**Intended RED — the run:**
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL: TP-05-22: every SUP-022 marker delivered in the source maps to a ledger row,
+    every ledger row except the two pre-existing unmarked Scope 02 rows named here is
+    delivered, the ids stay inside the declared range, and the ledger total agrees with
+    the paragraph that states it
+Research-Lab self-test: 3050 passed, 1 failed
+```
+
+The failure is attributable: exactly one assertion moved, and it is the marker
+check. Nothing else in the suite noticed, which is the correct result — a marker id
+is not a behavioural quantity, so only the marker check should see it.
+
+**Revert, performed immediately after the capture and before any further step:**
+
+```
+$ git checkout -- tests/lifetime-tax-route.spec.mjs
+$ git status --short -- tests/
+ M tests/company-intelligence-lab.spec.mjs      # foreign, concurrent session
+ M tests/company-intelligence.unit.mjs          # foreign, concurrent session
+?? tests/chaos-company-intelligence.spec.mjs    # foreign, concurrent session
+$ grep -c "RED PROBE" tests/lifetime-tax-route.spec.mjs
+0
+probe_residue_exit=1              # grep found no match
+```
+
+No file this scope owns is left dirty by the probe.
+
+**Same-command GREEN, after the revert:**
+
+```
+$ node scripts/selftest.mjs
+  ✓ TP-05-22: every SUP-022 marker delivered in the source maps to a ledger row, every
+    ledger row except the two pre-existing unmarked Scope 02 rows named here is delivered,
+    the ids stay inside the declared range, and the ledger total agrees with the paragraph
+    that states it
+```
+
+**What this row does and does not establish.** It establishes that the marker check
+is load-bearing: a marker that drifts off the ledger, in either direction or out of
+range, fails inside the command that reports it. It does **not** establish that an
+unmarked edit is detected — the row's own text says so, and DoD item 15 carries that
+ground instead, closed above.
+
+#### Verification pass 4 — 2026-08-19 — TP-01-17 intended RED and same-command GREEN
+
+**Claim Source:** executed. **Outcome: the TP-01-17 row now has both halves.**
+
+TP-01-17 is the repo gate: the whole-repository suite stays green and the
+pre-existing pass count does not fall. Its intended RED is the same command
+reporting failures, which this pass produced three times from three different
+deliberate mutations rather than from a contrived one:
+
+| Probe | Mutation | Result of `node scripts/selftest.mjs` |
+| --- | --- | --- |
+| TP-01-11, weak form | ambient clock in `stackPreferentialIncome` | **3021 passed, 8 failed** — `sha256: fb7ff61e8b2159b024108169fec2d61594f76d27ff1703c2fdb5a336e7f6be7c` |
+| TP-01-11, strengthened | the same ambient clock | **3018 passed, 11 failed** — `sha256: f2124d707d885a40b5aa42477f393180a7d81b2df0d1cb0a6f165547e7f1e9df` |
+| TP-01-20 | `SUP-022-17` moved off the ledger | **3050 passed, 1 failed** |
+
+Each probe was reverted immediately after its capture, with `git status --short`
+and a `grep -c "RED PROBE"` residue check recorded beside it.
+
+**Same-command GREEN:**
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3051 passed, 0 failed
+
+$ node scripts/selftest.mjs > /dev/null 2>&1; echo "selftest_exit=$?"
+selftest_exit=0
+```
+
+**The pass count did not fall.** 3047 before this pass appended the three TP-01-11
+assertions, 3050 immediately after on an unchanged foreign tree, 3051 once the
+concurrent session's in-flight edits settled. The gate is green and the floor holds.
+
+#### Verification pass 4 — 2026-08-19 — DoD item 10 still does not hold; nine outstanding RED rows are now four (finding F-01-O)
+
+**Claim Source:** executed. **Outcome: the item stays `[ ]`, with the remaining gap
+reduced and named exactly.**
+
+| Row | RED half | GREEN half | Status after this pass |
+| --- | --- | --- | --- |
+| TP-01-01 … TP-01-10, TP-01-12 | recorded in earlier passes | recorded | closed |
+| **TP-01-11** | **captured this pass** — ambient clock in `stackPreferentialIncome`, `3018 passed, 11 failed` | **captured this pass** — `3051 passed, 0 failed` | **closed this pass** |
+| TP-01-13 | **not captured** | recorded — 66 passed, 0 failed, exit 0 | outstanding |
+| TP-01-14 | **not captured** | recorded — 66 passed, 0 failed, exit 0 | outstanding |
+| TP-01-15 | **not captured** | recorded — 66 passed, 0 failed, exit 0 | outstanding |
+| TP-01-16 | **not captured** | recorded — 66 passed, 0 failed, exit 0 | outstanding |
+| **TP-01-17** | **captured this pass** — three probes, three failing runs | **captured this pass** | **closed this pass** |
+| TP-01-18 | captured in verification pass 3 | captured in verification pass 3 | closed |
+| TP-01-19 | captured in verification pass 3 | captured in verification pass 3 | closed |
+| **TP-01-20** | **captured this pass** — `SUP-022-17` moved off the ledger | **captured this pass** | **closed this pass** |
+
+Verification pass 3 left nine rows without a RED half. Five of those nine are closed
+by this pass. The four that remain are all browser rows, each needing a mutation to
+the product page, a Playwright run under `--project=system-chrome`, an immediate
+revert and a same-command re-run. This pass stopped before starting them rather than
+leaving a mutation in the page un-reverted, which is the failure mode that produced
+the abandoned `RED PROBE TP-03-25` residue recorded in Feature 024 Scope 03.
+
+**Finding F-01-O — supersedes F-01-K.** DoD item 10 is outstanding on four browser
+RED captures and nothing else. It is a work-remaining finding, not a
+requirement-text finding: the rows are executable exactly as written.
+
+**One stale line for `bubbles.plan`, not for this agent.** The TP-01-11 row in
+`scope.md`'s Test Plan still reads "**OUTSTANDING — the assertion is not authored.**
+Neither Feature 022 Scope 01 selftest group carries a determinism assertion matching
+this description". That is now false — a third Scope 01 group,
+`Feature 022 Scope 01 — preferential settlement determinism`, carries it, and the row
+is green with a captured RED. Correcting the row is a planning-text edit and is left
+to its owner rather than made here.
+
 ## Supersession Ledger
 
 Filled at execution. One block per owned entry — SUP-022-01, -02, -04, -05, -06,

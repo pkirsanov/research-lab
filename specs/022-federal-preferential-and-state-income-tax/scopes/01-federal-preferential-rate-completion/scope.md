@@ -347,13 +347,17 @@ RED.
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
   - **Phase:** implement · **Command:** the exact TP-01-01 through TP-01-16 commands · **Evidence:** `report.md#test-evidence`
-  - **Not closed.** Finding **F-01-K** (supersedes F-01-E, whose blocking absence
-    is now cleared): `tests/lifetime-tax-preferential.spec.mjs` exists and
-    TP-01-13/14/15/16 are GREEN (66 passed, 0 failed, exit 0). RED remains
-    uncaptured for TP-01-11, -13, -14, -15, -16, -17, -18, -19 and -20. TP-01-11 is
-    the heavier case: its assertion is not authored at all, so it has no RED half
-    and no GREEN half. See the TP-01-11 row above and
-    `report.md#verification-pass-2--2026-08-18--dod-item-10-still-does-not-hold-but-f-01-e-is-closed`.
+  - **Not closed.** Finding **F-01-O** (supersedes F-01-K, whose TP-01-11 half is
+    now cleared): the TP-01-11 assertion is authored and carries a captured
+    intended RED and same-command GREEN, and TP-01-17, TP-01-18, TP-01-19 and
+    TP-01-20 each now carry both halves. RED remains uncaptured for the four
+    browser rows **TP-01-13, TP-01-14, TP-01-15 and TP-01-16**, whose GREEN halves
+    are already recorded (66 passed, 0 failed, exit 0). Nine outstanding RED rows
+    at verification pass 3 are now four. See
+    `report.md#verification-pass-4--2026-08-19--tp-01-11-assertion-authored-intended-red-and-same-command-green-captured`,
+    `report.md#verification-pass-4--2026-08-19--tp-01-20-intended-red-and-same-command-green`
+    and
+    `report.md#verification-pass-4--2026-08-19--tp-01-17-intended-red-and-same-command-green`.
 - [ ] Every excluded path is unchanged **by this scope**, and the four Feature 021
       test files this scope opened stay confined to the clauses the ledger assigns
       them. Three limbs, each decidable against the tree as it stands.

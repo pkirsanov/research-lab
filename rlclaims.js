@@ -114,6 +114,11 @@
        can tell a malformed ROW from a malformed CLAIM. */
     var ROW_CONTRACT_VIOLATION_CODE = "RTR-ROW-CONTRACT";
 
+    /* The refusal for a resolution written against a row that carries no `claimRef`. Absence of
+       the pointer is the permanent legacy marker, so this code is what makes those rows
+       unscoreable BY CONSTRUCTION rather than merely unscored. */
+    var LEGACY_BACKFILL_CODE = "RTR-LEGACY-BACKFILL";
+
     /* The pointer this feature adds: one field, an opaque string, never a nested object. */
     var CLAIM_REF_FIELD = "claimRef";
     var CLAIM_REF_PATTERN = /^sha256:[a-f0-9]{64}$/;
@@ -531,6 +536,39 @@
         };
     }
 
+    /* ── RTR-LEGACY-BACKFILL ────────────────────────────────────────────────────────────────
+       The gate every resolution write passes through. Scope 03 owns the resolution OBJECT; this
+       owns the single question of whether the target row may be resolved at all.
+
+       Rule order is the whole contract. The legacy check runs BEFORE the resolution is inspected
+       in any way, so no property of the resolution can rescue a claimless row: a complete,
+       well-formed, entirely plausible predicate is refused exactly as loudly as a malformed one.
+       Inspecting the resolution first and refusing only when it looked wrong is precisely the
+       imputation BP-015-002 forbids — it would score 1,380 rows against terms nobody authored.
+
+       Malformed-row still wins over legacy, because a row that is not a valid ledger row is a
+       different defect and reporting it as legacy would hide it. */
+    function authorizeResolutionWrite(row, resolution) {
+        var rowCheck = validateLedgerRow(row);
+        if (!rowCheck.ok) return rowCheck;
+
+        if (!Object.prototype.hasOwnProperty.call(row, CLAIM_REF_FIELD)) {
+            return {
+                ok: false,
+                error: {
+                    code: LEGACY_BACKFILL_CODE,
+                    reason: "claimless-row-unscoreable",
+                    field: CLAIM_REF_FIELD,
+                    eventId: row.eventId
+                }
+            };
+        }
+
+        if (!isPlainObject(resolution)) return rowViolation("resolution-not-an-object", "resolution");
+
+        return { ok: true, claimRef: row[CLAIM_REF_FIELD], eventId: row.eventId };
+    }
+
     /* ── mintClaim ──────────────────────────────────────────────────────────────────────────
        Two outcomes, deliberately distinct:
          • a CONTRACT VIOLATION ({ ok: false }) — an out-of-vocabulary value or a direction that
@@ -780,6 +818,7 @@
         ROW_CONTRACT_V1: ROW_CONTRACT_V1,
         ROW_CONTRACT_V2: ROW_CONTRACT_V2,
         ROW_CONTRACT_VIOLATION_CODE: ROW_CONTRACT_VIOLATION_CODE,
+        LEGACY_BACKFILL_CODE: LEGACY_BACKFILL_CODE,
         CLAIM_REF_FIELD: CLAIM_REF_FIELD,
         CLAIM_REF_PATTERN: CLAIM_REF_PATTERN,
         ROW_V1_FIELDS: ROW_V1_FIELDS,
@@ -788,6 +827,7 @@
         ROW_V2_FIELDS: ROW_V2_FIELDS,
         validateLedgerRow: validateLedgerRow,
         deriveRowFieldUnion: deriveRowFieldUnion,
+        authorizeResolutionWrite: authorizeResolutionWrite,
         stableStringify: stableStringify,
         sha256Hex: sha256Hex,
         stableSha: stableSha,

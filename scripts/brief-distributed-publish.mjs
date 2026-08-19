@@ -43,6 +43,7 @@ import {
 } from './brief-publication.mjs';
 import { validateCurrentGraph, validateHistoryGraph } from './validate-distributed-briefs.mjs';
 import { loadInstrumentUniverse, recommendationRowsFromPayload } from './recommendation-body.mjs';
+import { attachClaimRefs } from './recommendation-claim-mint.mjs';
 import '../rldata.js';
 
 const require = createRequire(import.meta.url);
@@ -405,14 +406,18 @@ export function buildDistributedRun(context) {
   // Each event carries its own DURABLE BODY (instrument, direction, levels, trigger, invalidation,
   // confidence). Without it the terms live only in market-brief.payload.json, which this same run
   // overwrites — which is how 215 published calls became permanently unscoreable.
-  const recommendationEvents = recommendationRowsFromPayload(payload, {
-    root,
-    occurredAt: asOf,
-    universe: loadInstrumentUniverse(root),
-    eventIdFor: (recommendationKey, index) => stableSha({
-      contractVersion: 'brief-distributed-eventid/v1', runFingerprint, recommendationKey, index
-    })
-  }).map((event) => ({ ...event, bodySource: 'next-session-action' }));
+  const recommendationEvents = attachClaimRefs(
+    recommendationRowsFromPayload(payload, {
+      root,
+      occurredAt: asOf,
+      universe: loadInstrumentUniverse(root),
+      eventIdFor: (recommendationKey, index) => stableSha({
+        contractVersion: 'brief-distributed-eventid/v1', runFingerprint, recommendationKey, index
+      })
+    }).map((event) => ({ ...event, bodySource: 'next-session-action' })),
+    payload,
+    { root, proposalRunId: runId, proposedAt: asOf }
+  );
 
   const finalBody = {
     contractVersion: 'final-brief/v1', runId, window, asOf,

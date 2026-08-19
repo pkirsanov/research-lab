@@ -184,7 +184,7 @@ export function buildPublishSet(run) {
     // ledger stays scoreable after market-brief.payload.json is overwritten by the next run. Events with
     // no body (older callers, fixtures) keep emitting the v1 shape unchanged.
     if (!event.bodyContractVersion) return base;
-    return {
+    const v2 = {
       ...base,
       contractVersion: ROW_CONTRACT_V2,
       bodyContractVersion: event.bodyContractVersion,
@@ -206,6 +206,12 @@ export function buildPublishSet(run) {
       evaluability: event.evaluability ?? null,
       evaluabilityReason: event.evaluabilityReason ?? null
     };
+    // Feature 015: one optional pointer at the claim minted in the SAME pass. Written only when the
+    // mint produced an evaluable claim, and then ABSENT rather than null — absence is the permanent
+    // unscoreable marker RTR-LEGACY-BACKFILL keys on, and a null would read as resolved-to-nothing
+    // instead of never-claimed.
+    if (typeof event.claimRef === 'string' && event.claimRef) v2.claimRef = event.claimRef;
+    return v2;
   });
   addedRows[`briefs/history/recommendations/${month}.jsonl`] = recRows;
 

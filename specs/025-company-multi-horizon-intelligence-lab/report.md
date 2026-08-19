@@ -416,7 +416,7 @@ sha256: e96f75680a7cdd3f2be66b147d88524a8761e12481dfb9fe6dce69aacf57b4d1
 test at tests/company-intelligence.unit.mjs:1421:1
 ✖ the committed MSFT event file is dated, sourced from the declared keyless source and free of any position value (0.276375ms)
   AssertionError [ERR_ASSERTION]: no position language
-      at TestContext.<anonymous> (file:///Users/pkirsanov/Projects/research-lab/tests/company-intelligence.unit.mjs:1440:12)
+      at TestContext.<anonymous> (file:///Users/<user>/Projects/research-lab/tests/company-intelligence.unit.mjs:1440:12)
       at Test.runInAsyncScope (node:async_hooks:226:14)
       at Test.run (node:internal/test_runner/test:1382:25)
       at Test.processPendingSubtests (node:internal/test_runner/test:960:18)

@@ -296,7 +296,7 @@ RED.
 | TP-01-08 | Adversarial | unit | SCN-022-003 | `scripts/selftest.mjs` | Regression: an implementation that prices an unsupported preferential category in a carried band is demonstrated to fail the unsupported-feature enumeration assertion | `node scripts/selftest.mjs` | No | `report.md#tp-01-08` |
 | TP-01-09 | Coverage boundary | unit | SCN-022-003 | `scripts/selftest.mjs` | Every preferential category the pack does not carry is present in `unsupportedFeatures[]` with a reason, and no code path emits a label asserting a complete federal tax | `node scripts/selftest.mjs` | No | `report.md#tp-01-09` |
 | TP-01-10 | Absence discipline | unit | SCN-022-002 | `scripts/selftest.mjs` | A filing status whose preferential components were not all retrieved carries an `AbsentFigure/v1` with a `missingSource` pointer, carries no `value`, `amount`, `rate`, `bands` or `default` member, and no partial table ships for it | `node scripts/selftest.mjs` | No | `report.md#tp-01-10` |
-| TP-01-11 | Determinism | unit | SCN-022-002 | `scripts/selftest.mjs` | Repeated computation over identical input produces a byte-identical result, with global `fetch` stubbed to throw for the whole group. **OUTSTANDING — the assertion is not authored.** Neither Feature 022 Scope 01 selftest group carries a determinism assertion matching this description, so the row has neither a RED half nor a GREEN half. It must be written before the row can pass, and it cannot be satisfied by the `TP-01-11` assertions belonging to other features' scope-01 plans | `node scripts/selftest.mjs` | No | `report.md#tp-01-11` |
+| TP-01-11 | Determinism | unit | SCN-022-002 | `scripts/selftest.mjs` | Repeated computation over identical input produces a byte-identical result, with global `fetch` stubbed to throw for the whole group. **AUTHORED.** The append-only group `Feature 022 Scope 01 — preferential settlement determinism` settles a household carrying preferential income 50 times over byte-identical input, for every filing status whose preferential table the pack carries and for both preferential income kinds, comparing a key-order-normalised sha256 digest and the raw serialisation, and asserting the preferential leg is priced rather than refused; an adversarial probe proves the comparison can see a single mutated member. It is this scope's own group and is not satisfied by the `TP-01-11` assertions belonging to other features' scope-01 plans. The row's own intended RED and same-command GREEN are both captured; the RED debt still open on this scope is the browser capture for TP-01-13 through TP-01-16 under DoD item 10, not this assertion | `node scripts/selftest.mjs` | No | `report.md#tp-01-11` |
 | TP-01-12 | No-shadow | unit | SCN-022-002 | `scripts/selftest.mjs` | Regression: `rltaxrules.js` and `rltax.js` contain no tax-domain numeric constant, no bracket table, no jurisdiction name and no authority name; both detectors are proven to fire on a module that does | `node scripts/selftest.mjs` | No | `report.md#tp-01-12` |
 | TP-01-13 | Regression E2E | e2e-ui | SCN-022-001 | `lifetime-tax-preferential.spec.mjs` | `Regression: SCN-022-001 a preferential table displays a distinct source per component` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-001 a preferential table displays a distinct source per component" --reporter=list` | Yes | `report.md#scenario-scn-022-001` |
 | TP-01-14 | Regression E2E | e2e-ui | SCN-022-002 | `lifetime-tax-preferential.spec.mjs` | `Regression: SCN-022-002 a household with preferential income receives a valued federal total` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-002 a household with preferential income receives a valued federal total" --reporter=list` | Yes | `report.md#scenario-scn-022-002` |
@@ -362,18 +362,40 @@ RED.
       test files this scope opened stay confined to the clauses the ledger assigns
       them. Three limbs, each decidable against the tree as it stands.
 
-      **Limb 1 — attribution.** No excluded path is modified in the working tree.
-      Every excluded path that moved since the delivery commit `b9d92a3f1` moved in
-      a commit foreign to Feature 022, and each is named: `site-exclusions.json` in
-      `e903749c0`; `scripts/validate-spec-test-paths.baseline` in `2229da3c0` and
-      `3872df354`; `briefs/**` and `data/**` in the market-brief auto-refresh
-      commits and in `b160d587f`. Every other excluded path — Feature 008's three
-      files and its spec directory, Feature 021's spec directory, `tools.json`,
-      `index.html`, `rlnav.js`, `README.md`, `notes/README.md`, `watchlist.json`,
-      `scripts/build-pages-site.mjs`, `rltax.js`, `rltaxworkspace.js`,
-      `rltaxstrategy.js`, `tests/lifetime-tax-conversion.spec.mjs` and
-      `tests/lifetime-tax.support.mjs` — returns an empty
-      `git diff --name-only b9d92a3f1 HEAD`.
+      **Limb 1 — attribution.** No change to any excluded path — in the working
+      tree or in history since the delivery commit `b9d92a3f1` — is attributable to
+      Feature 022. The limb states that property rather than naming the foreign
+      commits that happen to satisfy it today. A closed commit list goes stale the
+      moment any unrelated session commits, and this repository has concurrent
+      sessions committing continuously, so an enumeration re-breaks the limb
+      without anything about this scope having changed. Two conditions decide it,
+      each re-decidable against the tree as it stands.
+
+      *(a) Working tree.* `git diff` and `git diff --cached` restricted to the
+      excluded list carry no `SUP-022` marker and no tax-domain content — no
+      bracket, rate, breakpoint, filing status, declared tax year or tax authority.
+      Feature 022's entire subject is tax rules and their provenance, so an
+      uncommitted hunk carrying none of it is not this scope's.
+
+      *(b) History.* `git log b9d92a3f1..HEAD` restricted to the excluded list
+      yields the commits that moved an excluded path; the same command restricted
+      to `specs/022-federal-preferential-and-state-income-tax/**` yields this
+      feature's commits. The two sets must be disjoint, and every commit in the
+      first set must carry a subject attributing it to work other than Feature 022.
+      A commit attributable to Feature 022, or attributable to nothing at all,
+      fails the limb. A merge commit is exempt from the subject clause only when
+      `git show --name-only <merge>` restricted to the excluded list is empty,
+      proving it introduced no excluded-path change of its own.
+
+      *Why this stays falsifiable.* A real Feature 022 edit to an excluded path
+      cannot pass. Left uncommitted it carries tax-domain content or a `SUP-022`
+      marker and fails (a). Committed alongside this scope's own artefacts — the
+      shape every Feature 022 commit in this range has — it puts one commit in both
+      sets and fails (b)'s disjointness. Committed alone under a Feature 022
+      subject it fails (b)'s subject clause, and committed alone under no
+      attribution at all it fails (b)'s attribution clause. What the limb no longer
+      asserts is that a named list of foreign commits is exhaustive, which was
+      never the property it was protecting.
 
       **Limb 2 — confinement.** The `SUP-022-NN` census over the five opened files
       equals the distribution
@@ -394,7 +416,7 @@ RED.
       SCN-021-015 pass in full under titles the `--grep` contract still matches. A
       Feature 021 expectation silently changed outside a marker moves one of those
       results and fails this limb.
-  - **Phase:** implement · **Command:** `git status --porcelain` and `git diff --name-only b9d92a3f1 HEAD` over the excluded list, a `SUP-022-NN` census over the five opened files, `node scripts/selftest.mjs`, and `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-" --reporter=list` · **Evidence:** `report.md#change-boundary`, `report.md#tp-01-16`
+  - **Phase:** implement · **Command:** `git diff` and `git diff --cached` over the excluded list, `git log b9d92a3f1..HEAD` over the excluded list and over `specs/022-federal-preferential-and-state-income-tax/**`, a `SUP-022-NN` census over the five opened files, `node scripts/selftest.mjs`, and `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-" --reporter=list` · **Evidence:** `report.md#change-boundary`, `report.md#tp-01-16`
   - **Why this shape.** The superseded wording asked for a per-expectation diff
     against a pre-scope original and for unqualified byte-identity. Neither is
     decidable here. `b9d92a3f1` is the only commit that has ever touched the four
@@ -408,6 +430,17 @@ RED.
     behavioural-invariance precedent set in
     [Feature 024 Scope 04](../../../024-social-security-and-medicare/scopes/04-medicare-premiums-and-irmaa/scope.md#change-boundary-and-protected-paths).
     It supersedes the wording that produced finding **F-01-H**.
+  - **Why limb 1 no longer enumerates.** Its superseded wording named a closed set
+    of foreign commits and asserted that every other excluded path returned an
+    empty diff. That was structurally unstable rather than merely wrong: each new
+    unrelated commit falsified it again. It had already gone stale twice —
+    Feature 021's spec directory moved six files in two unnamed commits,
+    `scripts/validate-spec-test-paths.baseline` moved in a third, and `data/**`
+    moved in a fourth — while the property it protected was intact throughout,
+    every one of those commits being foreign to Feature 022 by its subject. The
+    two conditions above assert that property directly, so a foreign commit no
+    longer breaks the limb while a Feature 022 edit to an excluded path still
+    does. This supersedes the wording that produced finding **F-01-N**.
 - [ ] All twelve owned supersessions are delivered — SUP-022-01, -02, -04, -05,
       -06, -07, -09, -11, -12, -13, -17 and -21 — each carrying its `SUP-022-NN`
       marker, each marker naming its shape and recording the clause it superseded,
@@ -463,8 +496,8 @@ RED.
       twelve markers sits in the file
       [`design.md`](../../design.md#per-file-marker-distribution) assigns it and in
       no other file, so an edit that wandered into an unassigned file is visible.
-      No excluded path is modified in the working tree and none changed in any
-      commit attributable to Feature 022, per DoD item 11 limb 1. The repository
+      No change to an excluded path is attributable to Feature 022, in the working
+      tree or in history, per DoD item 11 limb 1. The repository
       pass count does not fall between this scope's recorded intended-RED run and
       its same-command GREEN run, so no assertion was deleted or downgraded to
       reach green.

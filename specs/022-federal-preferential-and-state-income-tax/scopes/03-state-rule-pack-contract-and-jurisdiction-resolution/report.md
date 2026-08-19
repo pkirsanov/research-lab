@@ -1035,15 +1035,64 @@ Command: `node scripts/build-pages-site.mjs --dry-run`
 
 ## Change Boundary
 
-Filled at execution. Holds the path-scoped `git status` proving every excluded
-path is byte-identical, including `tax-rules/federal/**`, `rltaxstrategy.js`,
-`site-exclusions.json` and Feature 021's spec directory.
+**Claim Source:** interpreted. **This section does not close its Definition-of-Done
+row, which is left open.**
+
+The row asks for byte-identity across the excluded list. The federal half holds
+and the Feature 021 half does not, so the row cannot be ticked as written.
+
+A path-scoped name-only diff was taken from the commit that created the lab
+through `HEAD` over every excluded path. These are unchanged and the check is
+therefore satisfied for them: `tax-rules/federal/**`, `rltaxstrategy.js`,
+`rlportfolio.js`, `rlportfolioanalytics.js`,
+`portfolio-survival-allocation.config.json`, `specs/008-*`, `tools.json`,
+`index.html`, `rlnav.js`, `README.md`, `notes/README.md`, `watchlist.json` and
+`scripts/build-pages-site.mjs`. **The federal pack is byte-identical**, which is
+the half of the row that carries the argument: opening the jurisdiction axis
+required no federal pack edit, so the axis is a seam.
+
+These excluded paths did change in the same range, and none of the changes belong
+to this scope:
+
+| Changed excluded path | Owning commit | Whose work |
+| --- | --- | --- |
+| `specs/021-*/scopes/01…05/{scope,report}.md` | `5920d9ede` | Feature 021's own scopes closing their own coverage |
+| `tests/lifetime-tax-preferential.spec.mjs` | `5920d9ede`, `76252f69f` | Feature 021 and Feature 022 Scope 01, which own that file |
+| `tests/lifetime-tax-surtax.spec.mjs` | `e71772915`, `76252f69f` | Feature 022 Scope 02, which owns that file |
+| `site-exclusions.json`, `scripts/validate-spec-test-paths.baseline` | outside this scope's commits | other sessions |
+
+None of this scope's own commits — `2eb880a36`, `e2a1993ca`, `7b1b4ea17` — touches
+any excluded path. The honest reading is that the row's blanket wording is wrong
+rather than that the boundary was breached: `specs/021-*` and the inherited
+lifetime-tax spec files are edited by the scopes that own them, and freezing them
+for the lifetime of this scope was never achievable. Closing the row needs the
+excluded list narrowed to what this scope must not touch, which is a planning
+change owned by `bubbles.plan`, not an execution claim this report may make.
 
 ## Claim Boundary
 
-Filled at execution. Holds the text scan proving no probability, lifetime figure,
-recommendation, track record, accuracy claim or error rate appears in this scope's
-allowed paths, and that no state figure is presented as an estimate or an average.
+**Claim Source:** not-run. **This section does not close its Definition-of-Done
+row, which is left open.**
+
+The row covers this scope's **output**, and the output surface is not built yet.
+`lifetime-tax-strategy-lab.html` carries no residency input, no state panel and no
+`StateStageLedger`; a scan of the page for `residency` returns zero matches and
+the page does not load `rltaxstate.js` at all. There is therefore no rendered
+state figure to check for an estimate or an average, and no scan of the page could
+distinguish this scope's claims from the six other features' text already there.
+
+What can be said today is narrower than the row and is recorded as a fact rather
+than as satisfaction: the surfaces this scope does ship — `rltaxstate.js`, the
+Florida pack and the contract fixture — carry no probability, likelihood, success
+rate, accuracy figure, error rate, track record, break-even or lifetime total, and
+the single occurrence of the word *average* in the state module sits inside the
+refusal text that promises the opposite, `no average, national default or zero is
+substituted`. That is the right behaviour, not a leak. The row stays open until
+the panel exists and the same check can be made against what a reader actually
+sees.
+
+This also blocks the browser rows TP-03-17 through TP-03-21 and, through them, the
+row requiring every Test Plan row to carry recorded RED and GREEN evidence.
 
 ## Completion Statement
 

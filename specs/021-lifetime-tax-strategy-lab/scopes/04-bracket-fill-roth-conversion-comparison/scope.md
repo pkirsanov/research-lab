@@ -218,32 +218,41 @@ Test Plan row.
       disclosure, the funding-source distinction, and no probability, lifetime
       outcome, break-even year, ranking or recommendation.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-01` through `report.md#tp-04-11`
-- [ ] The converted case is proven to be a full recomputation rather than a
+- [x] The converted case is proven to be a full recomputation rather than a
       marginal-rate adjustment, including moved long-term-gain stacking. The
       adversarial case proves the guard can fail.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-04`, `report.md#tp-04-05`
-- [ ] The marginal cost at the fill edge comes from the Scope 03 curve. No
+  - **Claim Source:** executed · **Result:** TP-04-04 holds four identities at once against an independently recomputed settlement, including the edge landing exactly on 105700 and the long-term gain unmoved. TP-04-05 is a permanent adversarial: on a fixture pack whose preferential band steps inside the conversion, the recomputed difference is proven to disagree with, and exceed, the `0.10 × amount` marginal-rate product an adjustment would report. Probe 4 settled the converted policy at the declared income and the run went to `3040 passed, 2 failed`, failing on both the gain-free and the gain-bearing household. Reverted immediately; `git status --short rltaxstrategy.js` empty.
+- [x] The marginal cost at the fill edge comes from the Scope 03 curve. No
       statutory bracket rate is cited as the marginal cost, and an incomplete
       curve propagates its incompleteness.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-07`
-- [ ] `notModeled[]` is a structural record member with the full required
+  - **Claim Source:** executed · **Result:** TP-04-07 asserts identity with a separately computed `computeEffectiveMarginalCurve` point, asserts `value !== statutoryBandRate` even though both are near 0.24 at this edge, and asserts `inheritedIncomplete === edgeCurve.incomplete === true` with the contributor count carried through. Probe 2 substituted the statutory band rate for the curve value and the run went to `3041 passed, 1 failed` with TP-04-07 the only failure. Reverted immediately; `git status --short rltaxstrategy.js` empty.
+- [x] `notModeled[]` is a structural record member with the full required
       membership, and removing any required entry is proven to fail.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-08`, `report.md#tp-04-09`
-- [ ] `rltaxstrategy.js` holds no tax-domain numeric constant and declares no
+  - **Claim Source:** executed · **Result:** TP-04-08 asserts all eight required ids with a reason and a closed-vocabulary deferral code, and asserts the rendered list is reference-identical to `conversionNotModeled()`. TP-04-09 is a permanent adversarial that refutes a shortened list and proves the real one is frozen and present on every result. Probe 3 renamed the `survivor-effects` id while leaving the length at 8, and the run went to `3039 passed, 3 failed` — proving the guard is identity-based rather than count-based. Reverted immediately; `git status --short rltaxstrategy.js` empty.
+- [x] `rltaxstrategy.js` holds no tax-domain numeric constant and declares no
       bracket edge. Every tax figure came from Scope 02.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-03`
+  - **Claim Source:** executed · **Result:** TP-04-03 strips comments and string literals from the module and reports an empty offender list, while requiring `pack.ordinaryRateTables` to be read. Probe 1 planted an unused `var probeSlice1BracketEdge = 105700;` and the run went to `3039 passed, 3 failed`, with the failure text naming the planted `105700` in both the Scope 04 row and the cross-module Scope 02 sweep. Reverted immediately; `git status --short rltaxstrategy.js` empty.
 - [ ] Every Test Plan row has intended RED evidence and same-command GREEN
       evidence, recorded before the cumulative browser row.
   - **Phase:** implement · **Command:** the exact TP-04-01 through TP-04-14 commands · **Evidence:** `report.md#test-evidence`
-- [ ] No source, artifact or UI string in this scope claims a published error
+- [x] No source, artifact or UI string in this scope claims a published error
       rate, a self-invalidation statistic, a track record, an accuracy figure or
       a plan success probability.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Feature 008 files, the six registries and every brief or data artifact are
+  - **Claim Source:** executed · **Result:** the scan reports zero hits in `rltaxstrategy.js` and zero in `lifetime-tax-strategy-lab.html`. The only two hits anywhere in the scope's allowed paths are the `FORBIDDEN_CLAIMS` array in the browser spec, which is the guard that refuses those tokens on the rendered surface. TP-04-10 is the binding proof: it enumerates every member name in the comparison record and asserts none matches probability, lifetime total, break-even year, rank, score, accuracy or survival.
+
+- [x] Feature 008 files, the six registries and every brief or data artifact are
       byte-identical.
   - **Phase:** implement · **Command:** a path-scoped `git status` over the excluded list · **Evidence:** `report.md#change-boundary`
-- [ ] `node scripts/selftest.mjs` is green with no fall in pass count and no
+  - **Claim Source:** executed · **Result:** the path-scoped `git status --short` over the full excluded list returns zero rows (`excluded_dirty_count=0`, `brief_dirty_count=0`). Git reports a row for any tracked path differing from `HEAD`, so zero rows is the byte-identity proof for Feature 008, the six registries, every brief and data artifact, and `.github/bubbles`.
+
+- [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, relaxed or removed, and
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths
       with the baseline file unmodified.
   - **Phase:** implement · **Command:** both commands · **Evidence:** `report.md#tp-04-16`, `report.md#tp-04-17`
+  - **Claim Source:** executed · **Result:** `Research-Lab self-test: 3042 passed, 0 failed` at exit 0, the same count this dispatch opened on, with `scripts/selftest.mjs` not dirty against `HEAD` so no assertion was edited or relaxed. The path guard reports `new=0 stale=0 baseline=66` at exit 0 with `baseline_dirty_lines=0`, so the zero was not obtained by re-baselining.

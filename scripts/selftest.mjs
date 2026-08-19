@@ -23338,10 +23338,10 @@ try {
     .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
   assert(suiteCode4.indexOf('market-brief.payload.json') < 0
     && suiteCode4.indexOf('brief-history.jsonl') < 0
-    && (suiteSrc4.match(/^test\(/gm) || []).length === 14
+    && (suiteSrc4.match(/^test\(/gm) || []).length === 18
     && (suiteSrc4.match(/FIXTURE-SOURCED/g) || []).length === 2
     && suiteCode4.indexOf('page.route') < 0 && suiteCode4.indexOf('context.route') < 0,
-  'tests/market-brief-cockpit.spec.mjs declares fourteen tests, labels both fixture-sourced decision-surface rows as such, intercepts no request, and binds itself to neither the payload nor the history ledger');
+  'tests/market-brief-cockpit.spec.mjs declares eighteen tests, labels both fixture-sourced decision-surface rows as such, intercepts no request, and binds itself to neither the payload nor the history ledger');
 
   /* The stripper must not become the hole in the guard: a real page.route in CODE still fails,
      and the same text inside a comment does not. */
@@ -23575,6 +23575,31 @@ try {
   const brokenMarkers5 = scopeMarkers5.filter((marker) => selfSource5.indexOf(marker + ' (BEGIN)') < 0 || selfSource5.indexOf(marker + ' (END)') < 0);
   assert(brokenMarkers5.length === 0,
   'Regression: SCN-026-CANARY-05B the Scope 1 through Scope 4 groups stay marker-bounded and green after the closed-loop append (broken: ' + (brokenMarkers5.join(',') || 'none') + ')');
+
+  /* TP-026-5.18 — NFR-026-009. The closed loop publishes a HIT RATE, and a hit rate is one step
+     from a P&L: the tempting next field is "how much did it make". This scans every artifact this
+     scope writes for the four things that must never appear. It is deliberately NOT pii-scan,
+     which measures a different thing over a different corpus — a personal identifier is not a
+     position size, and passing one says nothing about the other. Values are scanned, not just
+     keys, because `{"note": "cost basis 412.90"}` carries the figure just as surely as a field
+     named costBasis would. */
+  const privacyArtifacts5 = ['market-brief.scorecard.json', 'market-brief.attention-scorecard.json',
+    'market-brief.attention-outcomes.jsonl', 'brief-history.recent.jsonl'];
+  const forbiddenPrivacy5 = /(position\s*siz|costbasis|cost[\s_-]basis|book[\s_-]?cost|unrealised|unrealized|realised\s*p|realized\s*p|\bp\s*&\s*l\b|\bpnl\b|profit|credential|password|passphrase|api[\s_-]?key|secret|bearer\s|authorization:)/i;
+  const privacyHits5 = [];
+  for (const artifact of privacyArtifacts5) {
+    let raw;
+    try { raw = read(artifact); } catch { continue; }
+    for (const line of raw.split('\n')) {
+      if (forbiddenPrivacy5.test(line)) privacyHits5.push(artifact + ': ' + line.trim().slice(0, 90));
+    }
+  }
+  /* The scan must be able to fail, or a clean sweep proves only that the regex never matches. */
+  const privacyCanary5 = ['{"note":"cost basis 412.90"}', '{"apiKey":"x"}', '{"realised pnl":10}']
+    .every((sample) => forbiddenPrivacy5.test(sample));
+  assert(privacyHits5.length === 0 && privacyCanary5 && privacyArtifacts5.length === 4,
+  'TP-026-5.18 no artifact this scope writes carries a position size, a cost basis, a profit figure or a credential, and the detector still fires on all three planted samples'
+    + (privacyHits5.length ? ' — found: ' + privacyHits5.slice(0, 3).join(' | ') : ''));
 
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 closed-loop group threw): ' + e.message); }
 /* ---------- Feature 026 Scope 5: market brief — closed loop on the path (END) ---------- */

@@ -1562,7 +1562,7 @@
     if (!el) return;
     var cards = crossAsset && Array.isArray(crossAsset.dark) ? crossAsset.dark : [];
     var required = crossAsset && Number.isFinite(crossAsset.requiredLegs) ? crossAsset.requiredLegs : null;
-    if (!cards.length) { el.hidden = true; el.innerHTML = ""; return; }
+    if (!cards.length) { el.hidden = true; el.textContent = ""; return; }
     var api = cockpitApi();
     if (!api) { el.hidden = false; el.innerHTML = tokenUnavailable("required-leg states"); return; }
     var token = api.legTokenLabel({ shape: "dark" });
@@ -1596,7 +1596,7 @@
     if (typeof document === "undefined") return;
     if (!el) return;
     var legs = crossAsset && Array.isArray(crossAsset.legs) ? crossAsset.legs : [];
-    if (!legs.length) { el.hidden = true; el.innerHTML = ""; return; }
+    if (!legs.length) { el.hidden = true; el.textContent = ""; return; }
     var api = cockpitApi();
     if (!api) { el.hidden = false; el.innerHTML = tokenUnavailable("cross-asset legs"); return; }
     var declared = crossAsset && Number.isFinite(crossAsset.sessions) ? crossAsset.sessions : null;
@@ -1646,7 +1646,7 @@
     if (typeof document === "undefined") return;
     if (!el) return;
     var lines = Array.isArray(changed) ? changed : [];
-    if (!lines.length && !rollUp) { el.hidden = true; el.innerHTML = ""; return; }
+    if (!lines.length && !rollUp) { el.hidden = true; el.textContent = ""; return; }
     var api = cockpitApi();
     if (!api) { el.hidden = false; el.innerHTML = tokenUnavailable("change vocabulary"); return; }
     var body = lines.map(function (entry) {

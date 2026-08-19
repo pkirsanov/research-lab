@@ -403,6 +403,11 @@ test('every rendered default-view value carries an in-place explanation of what 
     expect(values.length, 'the default view must render at least one explained value').toBeGreaterThan(8);
     const unexplained = values.filter((value) => !value.title.includes('Reading now'));
     expect(unexplained, 'every default-view value states what it is AND what the reading implies').toEqual([]);
+    // TP-026-4.8 requires the observed PAIRING COUNT on the record, not merely a green run: a
+    // test count says how many assertions ran, which is a different instrument from how many
+    // rendered values were found to carry an explanation. Emitting it makes the coverage
+    // legible, and re-running the row reproduces the number.
+    console.log(`[TP-026-4.8] value-to-explanation pairing: ${values.length} of ${values.length} default-visible values carry an in-place explanation; unexplained=${unexplained.length}`);
   } finally {
     await server.close();
   }
@@ -608,6 +613,95 @@ test('adversarial: focus order follows DOM order and no style rule reorders a vi
     });
     expect(reordered.last, 'a reordering rule must be detectable by painted position')
       .toBeLessThan(reordered.dark);
+  } finally {
+    await server.close();
+  }
+});
+
+/*
+ * The four assertions below close the per-scope E2E gap. Each scope's contract was proven at the
+ * module and validator level, where a fixture can be shaped freely; these prove the same
+ * contracts survive the trip through the real renderer into a real browser, which is the only
+ * place the reader actually meets them.
+ */
+
+test('TP-026-1.16 the default-visible text a reader actually meets fits the declared total cap', async ({ page }) => {
+  test.setTimeout(90_000);
+  const server = await startStaticServer({ overrides: { 'market-brief.page.json': cockpitPayload() } });
+  try {
+    await openCockpit(page, server);
+    // The budget is enforced on the PAYLOAD by the validator. This is the other half: that the
+    // enforced number describes what is rendered. Text inside a closed <details> is disclosed,
+    // not default-visible, so it is excluded here exactly as the measurement excludes it.
+    const visibleChars = await page.evaluate(() => Array.from(document.querySelectorAll('[data-mac-block][data-mac-default="visible"]'))
+      .filter((node) => !node.parentElement || node.parentElement.closest('details') === null)
+      .reduce((total, node) => total + (node.innerText || '').replace(/\s+/g, ' ').trim().length, 0));
+    expect(visibleChars, 'the default view must carry text').toBeGreaterThan(0);
+    expect(visibleChars, `default-visible rendered text ${visibleChars} must fit the declared 3000 cap`).toBeLessThanOrEqual(3000);
+  } finally {
+    await server.close();
+  }
+});
+
+test('TP-026-2.21 every required cross-asset slot resolves on screen to exactly one of a reading or a dark state', async ({ page }) => {
+  test.setTimeout(90_000);
+  const server = await startStaticServer({ overrides: { 'market-brief.page.json': cockpitPayload() } });
+  try {
+    await openCockpit(page, server);
+    const legs = await page.evaluate(() => {
+      const text = (sel) => Array.from(document.querySelectorAll(sel)).map((n) => (n.innerText || '').toLowerCase()).join(' ');
+      const readings = text('[data-mac-block="cross-asset"]');
+      const dark = text('[data-mac-block="dark-legs"]');
+      return ['rates', 'energy', 'credit'].map((leg) => ({
+        leg,
+        asReading: readings.includes(leg) ? 1 : 0,
+        asDark: dark.includes(leg) ? 1 : 0
+      }));
+    });
+    // The arithmetic the contract demands: one slot, one resolution, never both and never neither.
+    for (const entry of legs) {
+      expect(entry.asReading + entry.asDark, `${entry.leg} resolves exactly once on screen`).toBe(1);
+    }
+    // And the dark leg must carry no figure, which is the substitution this feature refuses.
+    const darkText = await page.locator('[data-mac-block="dark-legs"]').innerText();
+    expect(darkText, 'a dark leg publishes no percentage').not.toMatch(/-?\d+(\.\d+)?\s*%/);
+  } finally {
+    await server.close();
+  }
+});
+
+test('TP-026-3.20 the changed list and its roll-up balance on screen, and no unchanged instrument earns narrative', async ({ page }) => {
+  test.setTimeout(90_000);
+  const server = await startStaticServer({ overrides: { 'market-brief.page.json': cockpitPayload() } });
+  try {
+    await openCockpit(page, server);
+    const changedText = await page.locator('[data-mac-block="changed"]').innerText();
+    // The fixture publishes exactly one changed instrument and counts eleven others.
+    expect(changedText).toContain('NVDA');
+    expect(changedText, 'the roll-up states the unchanged count').toMatch(/10 unchanged/);
+    // Delta-only: an instrument counted into the roll-up must NOT also carry its own narrative
+    // line. MSFT is in the roll-up members, so its symbol may appear at most in that one line.
+    const msftLines = changedText.split('\n').filter((line) => line.includes('MSFT'));
+    expect(msftLines.length, 'an unchanged instrument is a count, never a paragraph').toBeLessThanOrEqual(1);
+  } finally {
+    await server.close();
+  }
+});
+
+test('TP-026-5.17 the track record is part of the default view and is not reachable only by expanding', async ({ page }) => {
+  test.setTimeout(90_000);
+  const server = await startStaticServer({ overrides: { 'market-brief.page.json': cockpitPayload() } });
+  try {
+    await openCockpit(page, server);
+    const placement = await page.evaluate(() => {
+      const node = document.querySelector('[data-mac-block="track-record"]');
+      if (!node) return null;
+      return { declared: node.getAttribute('data-mac-default'), insideCollapsed: node.parentElement ? node.parentElement.closest('details') !== null : false };
+    });
+    expect(placement, 'the track record block ships').not.toBeNull();
+    expect(placement.declared, 'the track record is declared visible').toBe('visible');
+    // A scorecard hidden behind a drawer is a scorecard that hides its misses.
+    expect(placement.insideCollapsed, 'the track record sits outside every collapsed control').toBe(false);
   } finally {
     await server.close();
   }

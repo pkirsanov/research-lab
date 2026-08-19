@@ -412,6 +412,15 @@ fi
 run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/evaluate-recommendations.mjs \
   || echo "[brief-timer] recommendation scoring returned non-zero (soft) — continuing"
 
+# 1b-iii) Rebuild the attention tier's own record on the same path. It was a manual CLI, so its
+# published rate went stale at 2026-08-07 while the recommendation rate stayed current. The rate it
+# publishes stays WITHHELD until the closed sample reaches its declared minimum; rebuilding it here
+# keeps that withholding honest and current rather than frozen. --as-of is REQUIRED by contract so
+# one ledger always reduces to one record.
+run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/build-attention-scorecard.mjs \
+  --as-of "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  || echo "[brief-timer] attention scoring returned non-zero (soft) — continuing"
+
 SHARDED_HISTORY=0
 
 # 1c) Freeze and validate one truthful brief outcome for every registry source BEFORE final authorship.

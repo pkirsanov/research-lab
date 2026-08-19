@@ -117,6 +117,14 @@ jobs:
       if: steps.window.outputs.run == 'true' && inputs['dry-run'] != true
       run: node scripts/build-scorecard.mjs
 
+    # The attention tier's own record. It was a manual CLI, so its published rate went stale while
+    # the recommendation rate stayed current. A rate nobody rebuilds is not a record.
+    # --as-of is REQUIRED: the reduction takes its time from the caller so one ledger always
+    # reduces to one record.
+    - name: Rebuild the attention scorecard
+      if: steps.window.outputs.run == 'true' && inputs['dry-run'] != true
+      run: node scripts/build-attention-scorecard.mjs --as-of "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
     # Keep the page's first load bounded as history grows.
     - name: Shard brief history
       if: steps.window.outputs.run == 'true' && inputs['dry-run'] != true

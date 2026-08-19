@@ -173,14 +173,32 @@ export function buildScorecard(root, options = {}) {
   const recentMisses = outcomes
     .filter((row) => row.eventType === 'invalidated')
     .sort((left, right) => String(right.occurredAt).localeCompare(String(left.occurredAt)))
-    .slice(0, policy.recentMissCount)
-    .map((row) => ({
+    .slice(0, policy.recentMissCount)    .map((row) => ({
       recommendationKey: row.recommendationKey,
       instrument: row.instrument, direction: row.direction, horizon: row.horizon,
       confidence: row.confidence, deepLink: row.deepLink,
       proposedAt: row.proposedAt, closedAt: row.occurredAt,
       reasonCode: row.reasonCode, invalidatedBy: row.outcome || null
     }));
+
+  /* The evaluator stamps every row it appends with a single runId, so the newest runId present is
+     the run that just closed calls. Deriving the per-run count here keeps it a filter over evidence
+     that already exists rather than a second producer that could disagree with the ledger. */
+  const newestOutcome = outcomes.reduce((newest, row) => {
+    const at = Date.parse(row.occurredAt);
+    if (!Number.isFinite(at)) return newest;
+    return newest === null || at > newest.at ? { at, runId: row.runId || null } : newest;
+  }, null);
+  const thisRunRows = newestOutcome && newestOutcome.runId
+    ? outcomes.filter((row) => row.runId === newestOutcome.runId)
+    : [];
+  const thisRunTally = emptyTally();
+  for (const row of thisRunRows) tallyInto(thisRunTally, row.eventType);
+  const resolvedThisRun = {
+    runId: newestOutcome ? newestOutcome.runId : null,
+    ...thisRunTally,
+    resolved: thisRunTally.satisfied + thisRunTally.invalidated
+  };
 
   return {
     contractVersion: SCORECARD_CONTRACT,
@@ -192,6 +210,7 @@ export function buildScorecard(root, options = {}) {
       note: 'A rate is withheld below the minimum resolved sample. not-evaluable is never counted as a win. Confidence is evidence quality, not a win probability — only realised frequency below is a frequency.'
     },
     openCalls,
+    resolvedThisRun,
     windows,
     recentMisses
   };

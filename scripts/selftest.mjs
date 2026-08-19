@@ -23097,6 +23097,92 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 reader tokens group threw): ' + e.message); }
 /* ---------- Feature 026 Scope 4: rlcockpit.js — reader tokens (END) ---------- */
 
+/* ---------- Feature 026 Scope 5: market brief — closed loop on the path (BEGIN) ---------- */
+try {
+  group('market brief — closed loop on the path');
+  const workflow5 = read('.github/workflows/tier-a.yml');
+  const shellPath5 = read('scripts/brief-refresh-and-push.sh');
+  const scorecard5 = JSON.parse(read('market-brief.scorecard.json'));
+  const attentionCard5 = JSON.parse(read('market-brief.attention-scorecard.json'));
+
+  /* THE BUG-009 LESSON, MADE MECHANICAL. BUG-009 is not "a producer is broken"; it is "a producer
+     was never on the path, and nothing noticed for eight days." Existence of the script proves
+     nothing — only a production caller does, and only in EVERY path that publishes. Asserting both
+     files is the whole point: wiring one and forgetting the other is the same defect wearing a
+     different hat. */
+  const producers5 = ['evaluate-recommendations', 'build-scorecard', 'build-attention-scorecard'];
+  const callerFor5 = (name) => ({
+    workflow: workflow5.indexOf('scripts/' + name + '.mjs') >= 0,
+    shell: shellPath5.indexOf('scripts/' + name + '.mjs') >= 0
+  });
+  const unwired5 = producers5.filter((name) => { const at = callerFor5(name); return !at.workflow || !at.shell; });
+  assert(unwired5.length === 0,
+  'TP-026-5.2 every closed-loop producer has a production caller in BOTH .github/workflows/tier-a.yml and scripts/brief-refresh-and-push.sh (unwired: ' + (unwired5.join(',') || 'none') + ')');
+
+  /* A required argument that the caller omits is invisible: the invocation fails, the `|| echo`
+     soft-fail swallows it, and the producer stays effectively unwired while LOOKING wired. That is
+     BUG-009's exact shape, so the caller is asserted to satisfy the callee's contract, not merely
+     to name it. */
+  const attnLine5 = (source) => source.replace(/\\\n\s*/g, ' ').split('\n')
+    .filter((line) => line.indexOf('build-attention-scorecard.mjs') >= 0);
+  const attnCallers5 = attnLine5(workflow5).concat(attnLine5(shellPath5));
+  assert(attnCallers5.length >= 2 && attnCallers5.every((line) => line.indexOf('--as-of') >= 0),
+  'TP-026-5.2 every build-attention-scorecard.mjs caller supplies the --as-of instant its CLI requires, so the call cannot fail into a soft-fail branch and leave the producer unwired');
+
+  /* FR-026-035 resolvedThisRun. A per-run count that disagreed with its own parts would be worse
+     than no count, so the identity is asserted rather than the presence. */
+  const thisRun5 = scorecard5.resolvedThisRun;
+  assert(thisRun5 && typeof thisRun5.runId === 'string' && thisRun5.runId.length > 0
+    && Number.isFinite(thisRun5.closed) && Number.isFinite(thisRun5.resolved)
+    && thisRun5.resolved === thisRun5.satisfied + thisRun5.invalidated
+    && thisRun5.closed >= thisRun5.resolved,
+  'TP-026-5.7 resolvedThisRun names its runId and its resolved count equals satisfied plus invalidated, never exceeding the closed count');
+
+  /* SCN-026-028 / FR-026-035. Two rates, two samples, two outcomes, ONE policy shape. The
+     recommendation rate publishes because its sample clears the minimum; the attention rate
+     WITHHOLDS because its sample is zero. The withheld one must never render as a zero — a zero
+     reads as "we were never right", which is a different and false claim. */
+  const all5 = scorecard5.windows.all;
+  assert(all5.resolved >= scorecard5.policy.minResolvedSample
+    && all5.insufficientSample === false
+    && typeof all5.hitRate === 'number' && all5.hitRate >= 0 && all5.hitRate <= 1,
+  'TP-026-5.6 the recommendation hit rate publishes because its resolved sample clears the declared minimum');
+
+  assert(attentionCard5.overall.closedSample === 0
+    && attentionCard5.overall.minClosedSample === 20
+    && attentionCard5.overall.insufficientSample === true
+    && attentionCard5.overall.rate === null
+    && typeof attentionCard5.overall.statement === 'string' && attentionCard5.overall.statement.length > 0,
+  'TP-026-5.5 the attention interruption rate is WITHHELD as null with its sample stated, never published as a flattering zero');
+
+  /* SCN-026-027. not-evaluable is carried inside the totals and never scored as a win. Dropping it
+     would silently inflate the hit rate, which is the one unrecoverable failure for this product. */
+  assert(all5.closed === all5.satisfied + all5.invalidated + all5.expired + all5.notEvaluable + all5.unresolved
+    && all5.notEvaluable > 0
+    && all5.hitRate === Math.round(all5.satisfied / all5.resolved * 1e4) / 1e4,
+  'TP-026-5.3 not-evaluable stays inside the published totals and is excluded from the hit rate, which is satisfied over resolved alone');
+
+  /* SCN-026-028. Misses at equal prominence. A scorecard that publishes a rate but hides the
+     losing calls is marketing, so the miss list must be present and populated. */
+  assert(Array.isArray(scorecard5.recentMisses)
+    && scorecard5.recentMisses.length > 0
+    && scorecard5.recentMisses.length <= scorecard5.policy.recentMissCount
+    && scorecard5.recentMisses.every((row) => typeof row.instrument === 'string' && typeof row.reasonCode === 'string'),
+  'TP-026-5.4 contradicted calls publish with their instrument and reason at the policy-declared count, so a miss is as visible as a hit');
+
+  /* ADVERSARIAL. Each check above reads file text, so on its own it could pass against anything
+     that merely mentions the right names. These fixtures prove both checks reject the shape they
+     exist to catch: a path missing a caller, and a caller missing the required argument. */
+  const noCaller5 = 'run: node scripts/brief-refresh.mjs\nrun: node scripts/shard-brief-history.mjs';
+  const bareCaller5 = 'run: node scripts/build-attention-scorecard.mjs';
+  assert(noCaller5.indexOf('scripts/build-attention-scorecard.mjs') < 0
+    && bareCaller5.indexOf('scripts/build-attention-scorecard.mjs') >= 0
+    && bareCaller5.indexOf('--as-of') < 0,
+  'TP-026-5.2 adversarial: a path with no caller and a caller with no --as-of are both rejected by the two checks above');
+
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 closed-loop group threw): ' + e.message); }
+/* ---------- Feature 026 Scope 5: market brief — closed loop on the path (END) ---------- */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

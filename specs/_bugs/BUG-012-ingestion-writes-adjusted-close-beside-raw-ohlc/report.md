@@ -1,60 +1,83 @@
-# Report: BUG-012 — Filed, Diagnosed, Deliberately Not Fixed
+# Report: BUG-012 — Filed, Diagnosed, Fixed Across Three Scopes
 
 ## Summary
 
-This packet **documents a defect and implements no remedy**, by instruction. The root cause is
-established to the line and the failure is reproduced; the fix is withheld because the primary
-remedy is a decision about the ingestion contract with more than one defensible answer, recorded
-open in `design.md` §2.
+This packet was **originally filed with no remedy, by instruction**, because the primary fix was a
+contract decision with more than one defensible answer. That decision has since been made and all
+three scopes are implemented and committed. The sections below preserve the original diagnosis — it
+is what makes the fix legible — and add the delivery record after it.
 
-Six committed tests fail at HEAD `5c978c5cb` with an **unbounded hang**. Bars ingestion writes a
-dividend-adjusted close into `c` while `o`, `h` and `l` stay raw, producing rows whose low exceeds
-their own close. `rlagenda.js` correctly refuses such a row; the `?fixture=reversal` boot path throws
-on that refusal; its `.catch` writes an "Unavailable" message without setting `state.view`; and the
-six tests wait on `getViewState()`, which therefore stays `null` forever.
+Six committed tests failed at `5c978c5cb` with an **unbounded hang**. Bars ingestion wrote a
+dividend-adjusted close into `c` while `o`, `h` and `l` stayed raw, producing rows whose low exceeded
+their own close. `rlagenda.js` correctly refused such a row; the `?fixture=reversal` boot path threw
+on that refusal; its `.catch` wrote an "Unavailable" message without setting `state.view`; and the
+six tests waited on `getViewState()`, which therefore stayed `null` forever.
 
-- **Changed:** nothing outside this packet. Only the eight artifacts under
-  `specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc/` were authored.
-- **Unchanged, deliberately:** `data/**`, `tests/**`, `scripts/**`, `research-agenda-lab.html`,
-  `rlagenda.js`, `playwright.config.mjs`, and the `BUG-011` packet.
-- **Scenarios validated:** none. All eleven entries in `scenario-manifest.json` are `not_started`,
-  and every Definition of Done item across the three scopes in `scopes.md` is unticked.
+**The contract decision — Option B.** All four of `o`, `h`, `l`, `c` stay **raw**, and the adjusted
+close is carried beside them in its own `ac` field. Option A (adjust all four together) was rejected
+because Feature 015 is an **append-only claim ledger resolved against historical price levels**:
+under Option A every dividend rewrites history, so a minted claim could never be checked against the
+prices it was minted on. Option B leaves published rows stable and gives adjustment its own field.
+
+- **Changed:** `scripts/fetch-bars.mjs`, `research-agenda-lab.html`, `scripts/selftest.mjs`, three
+  new/updated validators under `scripts/`, `tests/tool-experience.spec.mjs`,
+  `tests/contextual-tooltip.spec.mjs`, `tests/research-agenda-fixture.support.mjs`, a new committed
+  `tests/fixtures/research-agenda/reversal-ui.bars.json`, the repaired corpus under `data/bars/`,
+  and this packet.
+- **Unchanged, and verified so:** `rlagenda.js` and `playwright.config.mjs` — neither appears in
+  `git diff --name-only 5c978c5cb..HEAD`. The validator still refuses an impossible bar; the red went
+  away because the data became correct.
+- **Scopes:** all three are **Done**. 26 of the 27 Definition of Done items in `scopes.md` are
+  ticked with inline evidence; the one that is not is recorded with an Uncertainty Declaration in
+  the Outstanding Verification section below.
 
 ## Provenance of every figure in this report
 
-Two kinds of evidence appear below and they are labelled separately.
+Three kinds of evidence appear below and they are labelled separately.
 
-**Reported measurements.** Every Playwright run, headless boot, corpus scan and model replay quoted
-here was **executed earlier in this session** and is recorded as a reported observation. This agent
-did not re-derive any of them and executed no test command, no Playwright run, and no corpus scan.
+**Reported measurements.** Every Playwright run, headless boot, corpus repair and model replay
+quoted here was **executed earlier in this session** and is recorded as a reported observation. The
+agent that ticked the Definition of Done did not re-derive them and **did not run the Playwright
+suite**.
 
-**Agent-executed reads.** This agent performed read-only inspection of the repository to confirm that
-each cited line number, field name, file path and call site is real. Those are tagged
-`Executed by this agent: YES` and are static reads, not measurements.
+**Agent-executed checks.** Four commands were re-executed at ticking time and their output is quoted
+verbatim: `node scripts/selftest.mjs`, `node scripts/validate-bars-coherence.mjs`,
+`node scripts/validate-agenda-fixture-pin.mjs`, and `artifact-lint.sh` on this packet.
 
-The distinction matters because the two support different claims. The reported measurements establish
-that the defect exists and what causes it. The agent reads establish only that this document cites
-the code accurately.
+**Agent-executed reads.** Read-only `git` and file inspection confirming that each cited line number,
+field name, file path and call site is real, and that the claimed file boundaries hold.
+
+The distinction matters because the three support different claims. The reported measurements
+establish that the defect existed and that the remedy behaves as designed under an induced failure.
+The executed checks establish that the corpus, the pin and the repository invariants are green right
+now. The reads establish that this document cites the code accurately.
 
 ## Completion Statement
 
-**Delivered:** a complete bug packet — `bug.md`, `spec.md`, `design.md`, `scopes.md`, `report.md`,
-`scenario-manifest.json`, `uservalidation.md`, `state.json` — describing three distinct defects, the
-invariants a fix must establish, three scopes with adversarial test plans, and the open contract
-decision that the fix depends on.
+**Delivered:** three fixes, in three commits on top of the filing commit `658a991f8`.
 
-**Not delivered, deliberately:** any remedy. No writer was corrected, no corpus row was repaired, no
-fixture was decoupled, and no error path was made observable. The instruction that produced this
-packet was to file the defect and not fix it, on the reasoning that choosing the ingestion contract
-inside a filing task would settle a design decision by accident.
+| Commit | Scope | What it delivers |
+|---|---|---|
+| `8694d8696` | 01 | Option B in `scripts/fetch-bars.mjs`, the corpus repair, and a coherence guard wired into `scripts/selftest.mjs` |
+| `e2499ab8a` | 03 | A boot `.catch` that records a failed state the readiness observer can see, carrying the refusal reason, plus its regression |
+| `13ef48db9` | 02 | Pinned fixture bar inputs in `tests/fixtures/research-agenda/reversal-ui.bars.json` and a drift validator |
 
-`state.json` is therefore `in_progress`, with `certification.status` equal to it. No terminal status
-is claimed and none is available: every DoD item is unticked, no scope is Done, and nothing has been
-implemented to verify.
+All three scopes are **Done**. The corpus scan reports **zero** violations across 292 symbol files
+and 150,013 rows, down from 71,714 violating rows across 245 files. The repository selftest reports
+**2534 passed, 0 failed**, up from the 2490 pre-fix baseline — the fixes added coverage and removed
+none.
+
+**Not delivered:** a full committed Playwright suite run in the ticking session. It was not
+executed, so the cross-scope item asserting whole-suite green is left unticked rather than assumed.
+See Outstanding Verification.
+
+**Human acceptance has not occurred.** `uservalidation.md` now has delivered behaviour to exercise,
+but its Human Acceptance Record is unfilled and only a human can fill it.
 
 ## Test Evidence
 
-No test command was executed by this agent.
+The subsections up to "Agent-executed reads" are the **original diagnosis**, retained unchanged.
+The delivery evidence follows them under "After the fix".
 
 ### The six failing tests — in the suite and in isolation
 
@@ -220,35 +243,235 @@ consumer tests actually need
 The tree was clean at authoring time. This packet adds one untracked directory and modifies no
 tracked file. Nothing is committed.
 
+---
+
+## After the fix
+
+### The corpus is coherent, and the scan that says so is not vacuous
+
+**Claim Source:** executed
+**Command:** `node scripts/validate-bars-coherence.mjs`
+**Exit code:** 0
+
+```
+scanned 292 file(s), 150013 row(s)
+OK: every scanned row satisfies l <= min(o, c), h >= max(o, c) and l <= h
+```
+
+| | pre-fix | now |
+|---|---|---|
+| Violating rows | **71,714** | **0** |
+| Files with ≥1 violation | **245** | **0** |
+| Symbol files scanned | 293 on disk | **292** scanned |
+| Rows scanned | 150,161 | **150,013** |
+
+**Two denominators moved, and both are explained rather than waved past.**
+
+*292 versus 293.* 293 `.json` files sit in `data/bars/`; the scanner excludes exactly one,
+`index.json`, which is a manifest and not a symbol series
+(`scripts/validate-bars-coherence.mjs:50` `NON_SYMBOL_FILES`, applied at `:126`). Every symbol file
+is scanned — coverage is complete, and the DoD's "293" was counting the directory rather than the
+corpus.
+
+*150,013 versus 150,161.* The scanned row count is **148 lower** than the pre-fix figure. Reading
+the corpus directly, 292 symbol files carry 150,013 rows in `rows` and **663** rows recorded across
+per-file `quarantinedSessions`/`quarantinedRows` fields — the repair moves a vendor row that cannot
+be made coherent out of the live series and records it rather than silently dropping or guessing it.
+The two figures do not net to each other because quarantine predates this fix, so the 663 is not
+wholly attributable to it. What is established is the part that matters: **zero** rows now in the
+live series violate coherence, and every removal is recorded in the file it came from.
+
+The scan is adversarial by construction, not by luck: `scripts/selftest.mjs:8839` records that it
+"is adversarial only against the REAL corpus — run over a synthetic clean" sample it would prove
+nothing. It is run against the real corpus, where 71,714 rows failed it before the repair.
+
+### The COP row that broke everything
+
+**Claim Source:** executed
+**Command:** direct read of `data/bars/COP.json`, row at epoch `1786627800000`
+
+```
+{"t":1786627800000,"o":125.72000122070312,"h":126.38999938964844,
+ "l":124.12000274658203,"c":124.5199966430664,"v":7248000,"ac":123.6949691772461}
+l <= min(o,c) && h >= max(o,c) && l <= h  =>  true
+```
+
+| COP row `2026-08-13T13:30Z` | `l` | `c` | `ac` | verdict |
+|---|---|---|---|---|
+| pre-cron `0e51d602f` | 124.1200 | 124.5200 | — | accepted |
+| broken `5c978c5cb` | 124.1200 | **123.6950** | — | `RLAGENDA-MODEL-INVALID` → hang |
+| now | 124.1200 | **124.5200** | **123.6950** | coherent |
+
+The raw close is back where it belongs and matches the pre-cron value exactly. The adjusted close
+was not discarded — it moved into `ac`, which is the whole content of Option B.
+
+### A repair pass that used to abandon a whole symbol
+
+**Claim Source:** reported (prior execution this session)
+
+The first two repair passes left **38 files unrepaired**, and the reason was a flaw in the guard
+itself: a single incoherent vendor row aborted the entire symbol's write, so the old mixed-basis
+file survived untouched. The guard now partitions rows — `partitionCoherentBars` — keeping the
+coherent ones and quarantining the rest, so one bad row can no longer veto a symbol's repair. This
+is recorded because it explains why the corpus needed three passes, not two.
+
+### The fixture no longer resolves against data a cron can rewrite
+
+**Claim Source:** executed
+**Command:** `node scripts/validate-agenda-fixture-pin.mjs`
+**Exit code:** 0
+
+```
+checked 12 pinned symbol(s) against data/bars at cutoff 2026-08-14T12:00:00.000Z,
+comparing o/h/l/c/v (ac excluded: a dividend rewrites it legitimately)
+OK: every pinned row still matches the published row behind it
+```
+
+`attemptedAt` in `tests/fixtures/research-agenda/reversal-ui.json` is still
+`2026-08-14T12:00:00.000Z`, and that file does not appear in `git diff --name-only 5c978c5cb..HEAD`
+at all — the cutoff was **not** moved to step around the corrupted row, which `design.md` §5
+prohibits.
+
+`ac` is excluded from the comparison on purpose: a dividend rewrites it legitimately, so comparing it
+would report normal corporate actions as drift. That exclusion was **printed and documented before it
+was true** — `ac` was still in `PINNED_FIELDS`. Two selftest assertions caught the discrepancy and it
+is fixed; `scripts/validate-agenda-fixture-pin.mjs:46` now reads
+`PINNED_FIELDS = Object.freeze(['o', 'h', 'l', 'c', 'v'])`. A guard whose banner disagrees with its
+behaviour is worse than no guard, because it is believed.
+
+### The drift check is proven by mutation, not by today's green corpus
+
+**Claim Source:** executed (assertions run inside the 2534)
+
+`scripts/selftest.mjs:8949-8986` mutates deliberately rather than asserting against the corrected
+corpus:
+
+| Line | Mutation | Asserted outcome |
+|---|---|---|
+| `:8949` | none — clean corpus | zero findings, establishing the baseline |
+| `:8958` | COP close rewritten | a finding, formatted into a message naming fixture, symbol and row |
+| `:8976` | COP legitimately re-adjusted | **zero** findings — the check is not merely change-sensitive |
+| `:8984` | a pinned row removed | exactly one `corpus-row-missing`, message contains `no longer present` |
+
+Every one is a pure-Node comparison returning a value, so there is nothing to hang on. The `:8976`
+case is the one that makes this non-tautological in the other direction: a check that fired on every
+change would be useless, and this one does not.
+
+### The boot failure now speaks, proven by inducing the original defect
+
+**Claim Source:** reported (prior execution this session)
+
+The regression is driven by an input that **actually fails**. COP's adjusted close was put back into
+`c` beside the raw low through a **served override**, leaving `data/bars/**` untouched:
+
+```
+l=124.12000274658203  c=123.6949691772461   l > min(o, c) = true
+readiness resolved in 373 ms
+```
+
+Before the fix that condition never resolved at all — not at the inherited budget, and not at the
+240,000 ms override. **373 ms against never** is the whole change.
+
+Two further properties were established, and each closes a way this test could have been fake:
+
+- **The reason survives DOM erasure.** The refusal reason was retrieved from `__researchAgendaDebug`
+  *after* the strings the `.catch` writes into the page were removed. Without that step the test
+  could have been re-reading the same DOM text under another name.
+- **The fix is load-bearing.** The page was reconstructed with the fix's **four hunks removed** and
+  re-run: `getViewState()` is `null` and the wait **rejects**. The reconstruction asserts each revert
+  anchor appears **exactly once**, so it cannot silently revert a partial or wrong hunk. A regression
+  that passes against both the fixed and the broken page tests nothing; this one does not.
+
+### The successful path is untouched
+
+**Claim Source:** reported (prior execution this session)
+
+The success view was compared **byte-identically pre- and post-fix on both boot paths**, `keys=17`
+on each. INV-012B-9 holds — nothing `getViewState()` returns on a successful boot changed. The
+Scope 03 run reported **21 passed**, covering the three non-fixture agenda tests unmodified.
+
+### Nothing was made easier to pass
+
+**Claim Source:** executed
+
+| Check | Command | Result |
+|---|---|---|
+| No global `timeout`/`retries` | `grep -nE '^\s*(timeout\|retries)\s*:' playwright.config.mjs` | no match |
+| Config never touched | `git diff --name-only 5c978c5cb..HEAD -- playwright.config.mjs` | empty |
+| Validator never touched | `git diff --name-only 5c978c5cb..HEAD -- rlagenda.js` | empty |
+| No skipped tests | `grep -cE '\.(skip\|fixme)\('` on both spec files | `0` and `0` |
+| No weakened assertions | `git diff -U0 e2499ab8a..13ef48db9` on both spec files, matching `^[+-].*expect\(` | **0** changed lines |
+| Scope 03 file boundary | `git diff --name-only 8694d8696..e2499ab8a` | only `research-agenda-lab.html`, `tests/tool-experience.spec.mjs` |
+
+The 240 s experiment recorded above stays in this report for a reason: it is the executed proof that
+the cheap answer was tried and failed, so the fix could not have been a budget.
+
+### Repository selftest
+
+**Claim Source:** executed
+**Command:** `node scripts/selftest.mjs`
+**Exit code:** 0
+
+```
+Research-Lab self-test: 2534 passed, 0 failed
+```
+
+Against the 2490 pre-fix baseline the count **rose by 44**. The three fixes added coverage — corpus
+coherence, the adversarial writer payload at `selftest.mjs:8762` ("on the exact vendor payload whose
+adjusted close falls BELOW the raw low"), and the four fixture-pin drift cases — and removed none.
+
+### Artifact lint
+
+**Claim Source:** executed
+**Command:** `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc`
+**Exit code:** 0
+
+```
+Artifact lint PASSED.
+```
+
+Run after the Definition of Done items were ticked, so the anti-fabrication evidence checks
+("All checked DoD items in scopes.md have evidence blocks") were exercised against ticked items
+rather than an empty set.
+
 ## Outstanding Verification
 
-Everything. This packet verifies a defect; it verifies no remedy, because no remedy exists yet.
+One item, stated plainly rather than assumed away.
 
-Specifically unestablished, and unticked in `scopes.md`:
+**The full committed Playwright suite was not run in the ticking session.** The cross-scope
+Definition of Done item asserting that all six named tests pass in the full suite is therefore left
+**unticked**, with an Uncertainty Declaration in `scopes.md`. The run reported from prior execution
+covers a subset — **21 passed** on the Scope 03 surface — not the 490-test committed suite.
 
-- Which ingestion contract to adopt — `design.md` §2 Option A or Option B — and therefore whether the
-  corpus becomes wholly adjusted or wholly raw with the adjusted close in its own field.
-- Which decoupling shape the fixture should take — `design.md` §3 pinned inputs, or shared read with
-  an explicit drift expectation.
-- Whether any of the three scopes' adversarial tests, once written, actually fail before their fix.
-  Each adversarial note in `scopes.md` names a specific way its scope could be tested tautologically;
-  none of those tests has been written, so none has been shown to be non-tautological.
-- The provenance question raised in `design.md` §2.4 — what policy should govern a published
-  historical row changing value — which is recorded as out of scope in `spec.md` and remains open.
+The six tests are strongly expected to pass: the corpus condition that made them hang is gone,
+verified by an exit-0 scan over all 292 symbol files, and the fixture no longer resolves against
+mutable data. But *strongly expected* is not evidence, and ticking a whole-suite claim that no
+executed command produced is precisely the fabrication this packet has avoided throughout. One full
+suite run closes it. That run is also the only way to establish whether the **two unrelated failures**
+among the original eight are still present — they were never attributed to this defect and nothing
+here addressed them.
+
+Still open, and recorded as out of scope rather than done:
+
+- The provenance question in `design.md` §2.4 — what policy should govern a published historical row
+  changing value in place. Option B makes it far less likely by keeping `o`/`h`/`l`/`c` raw, but
+  `mergeRows` still overwrites by timestamp with no trace, and that is a separate decision.
 
 ### Validation Evidence
 
-No validation was performed and none is claimed. No independent party re-derived any measurement in
-this report, `certification.completedScopes` and `certification.certifiedCompletedPhases` are both
-empty in `state.json`, and there is no implementation to validate.
+No independent validator re-derived these measurements. `certification.completedScopes` records the
+three delivered scopes; `certifiedCompletedPhases` remains empty because phase certification is
+`bubbles.validate`'s to write, not this agent's.
 
-The only thing this agent verified first-hand is that the citations in this packet match the code, by
-read-only inspection recorded above. That establishes documentary accuracy, and nothing about whether
-the defect is resolved.
+What *is* independently grounded is that three of the strongest claims here are re-derivable by
+anyone at any time from committed code: the corpus scan, the fixture pin and the selftest all run
+from the repository with no fixture setup, and all three are wired into `node scripts/selftest.mjs`
+so they cannot silently regress.
 
 ### Audit Evidence
 
 No audit was performed. `design.md` and `scopes.md` were authored directly rather than dispatched to
-`bubbles.design` and `bubbles.plan`, because the task was scoped to filing and no dispatch surface was
-exercised. Neither artifact has been reviewed by its owning specialist, and the open decision in
-`design.md` §2 is precisely the kind of choice that warrants that review before a fix begins.
+`bubbles.design` and `bubbles.plan`. The open contract decision in `design.md` §2 has since been
+resolved to Option B with its reason recorded in `scopes.md` and above, but that resolution was made
+in execution rather than reviewed by a design owner — which is worth stating, because it is the one
+choice in this packet with a defensible alternative.

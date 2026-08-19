@@ -3,7 +3,7 @@
   "featureDir": "specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc",
   "featureName": "BUG-012 Ingestion Writes An Adjusted Close Beside A Raw Low, And The Page Hangs Instead Of Saying So",
   "createdAt": "2026-08-19T00:00:00Z",
-  "lastUpdatedAt": "2026-08-19T00:00:00Z",
+  "lastUpdatedAt": "2026-08-19T12:00:00Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -31,32 +31,44 @@
   },
   "execution": {
     "activeAgent": null,
-    "currentPhase": "analysis",
-    "currentPhaseStatus": "in_progress",
+    "currentPhase": "implement",
+    "currentPhaseStatus": "complete",
     "phaseReconciliation": null,
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
     "runStartedAt": "2026-08-19T00:00:00Z",
     "completedAt": null,
-    "substate": null,
+    "substate": "implemented",
     "currentScope": null,
-    "nextRequiredOwner": "bubbles.design",
-    "nextRequiredTarget": "specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc/design.md",
-    "nextRequiredReason": "The remedy for the primary defect is an open contract decision, recorded in design.md section 2 as Option A (adjust o, h, l and c together) versus Option B (keep all four raw and give the adjusted close its own field). The two differ in what every downstream consumer of data/bars sees and in whether an already-published historical row changes meaning, so the choice belongs to a design owner and cannot be inherited from a bug report. Scope 02 carries a second, smaller open choice in design.md section 3. Until both are decided, no scope can begin, all Definition of Done items stay unticked, and no scenario contract is discharged.",
-    "phaseClaimNote": "currentPhase is 'analysis' with currentPhaseStatus 'in_progress' because the root cause is established to the line while the fix design is deliberately unresolved. No implementation phase is claimed and none has occurred: not one file outside this packet was modified. completedPhaseClaims is empty, certification.certifiedCompletedPhases is empty, and certification.completedScopes is empty.",
-    "completedPhaseClaims": [],
+    "nextRequiredOwner": "bubbles.validate",
+    "nextRequiredTarget": "specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc/report.md",
+    "nextRequiredReason": "All three scopes are implemented, committed and Done, and 26 of the 27 Definition of Done items in scopes.md are ticked with inline evidence. Two things stand between this packet and a terminal status, and neither is an implementation gap. First, the full committed Playwright suite was not run in the ticking session, so the cross-scope item asserting that all six named tests pass in the full suite is unticked with an Uncertainty Declaration rather than assumed; that run is also the only way to establish whether the two unrelated failures among the original eight are still present. Second, Gate G136 human acceptance is unestablished: uservalidation.md now has delivered behaviour to exercise, but its Human Acceptance Record is unfilled and only a human can fill it. Validation ownership is required to run the suite, certify the phases, and route the acceptance request.",
+    "phaseClaimNote": "currentPhase is 'implement' with currentPhaseStatus 'complete' and substate 'implemented'. The three delivery commits are 8694d8696 (scope 01), e2499ab8a (scope 03) and 13ef48db9 (scope 02). completedPhaseClaims records the implement phase as an execution claim only. certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write, not this agent's, and no independent party has re-derived these measurements.",
+    "completedPhaseClaims": [
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-08-19T12:00:00Z",
+        "evidenceRef": "report.md#after-the-fix",
+        "scopes": [
+          "01-restore-ohlc-coherence-in-bars-ingestion",
+          "02-decouple-committed-fixture-from-mutable-bars",
+          "03-surface-boot-failure-instead-of-hanging"
+        ]
+      }
+    ],
     "pendingTransitionRequests": [],
     "scopeInventory": [
       {
         "scopeId": "01-restore-ohlc-coherence-in-bars-ingestion",
         "scope": 1,
-        "status": "Not Started",
+        "status": "Done",
         "dependsOn": []
       },
       {
         "scopeId": "02-decouple-committed-fixture-from-mutable-bars",
         "scope": 2,
-        "status": "Not Started",
+        "status": "Done",
         "dependsOn": [
           "01-restore-ohlc-coherence-in-bars-ingestion"
         ]
@@ -64,72 +76,82 @@
       {
         "scopeId": "03-surface-boot-failure-instead-of-hanging",
         "scope": 3,
-        "status": "Not Started",
+        "status": "Done",
         "dependsOn": []
       }
     ],
     "audit": null
   },
   "terminalTransitionBlockers": [
-    "Nothing is fixed. This packet was authored under an explicit instruction to file the defect and implement no remedy, because choosing the ingestion contract inside a filing task would settle a design decision by accident. No file under data/, tests/, scripts/, research-agenda-lab.html, or the BUG-011 packet was modified.",
-    "The primary remedy is undecided. design.md section 2 records Option A and Option B with their consequences and picks neither. Scope 01 cannot begin until one is chosen.",
-    "The fixture decoupling shape is undecided. design.md section 3 records two shapes and picks neither. Scope 02 cannot begin until one is chosen.",
-    "All Definition of Done items across the three scopes and the cross-scope block in scopes.md are unchecked, and all three scopes are Not Started.",
-    "None of the 11 scenario contracts SCN-012B-001 through SCN-012B-011 has been executed; every entry in scenario-manifest.json is not_started.",
-    "The six failing tests still fail at HEAD 5c978c5cb. tests/tool-experience.spec.mjs lines 442, 485, 566, 605 and 639 and tests/contextual-tooltip.spec.mjs line 115 hang on an unreachable wait, and the corpus defect that causes it is untouched.",
-    "Gate G136 human acceptance is not established and cannot be: uservalidation.md carries unchecked acceptance items and an unfilled Human Acceptance Record, and there is no delivered behaviour for a human to exercise.",
-    "No measurement in report.md was executed by an agent in the authoring session. Every Playwright run, headless boot, corpus scan and model replay is a reported observation from prior execution in this session. The agent's own execution was limited to read-only inspection confirming that the packet's line and field citations are accurate."
+    "The full committed Playwright suite was not run in the ticking session, so the cross-scope Definition of Done item asserting that all six named tests pass in the full suite is unticked. The reported run covers a subset, 21 passed on the Scope 03 surface, not the 490-test committed suite. The six tests are strongly expected to pass because the corpus condition that made them hang is gone and the fixture no longer resolves against mutable data, but expectation is not evidence and a terminal status would assert the whole-suite result. One full suite run closes this.",
+    "The two unrelated failures among the original eight full-suite failures were never attributed to this defect and nothing here addressed them. Whether they are still present is unknown without that same full-suite run.",
+    "Gate G136 human acceptance is not established. uservalidation.md now describes delivered behaviour a human can exercise, but its Human Acceptance Record is unfilled and its Checklist items are unticked. Automation cannot supply acceptance.",
+    "No independent party re-derived any measurement. certification.certifiedCompletedPhases is empty because phase certification belongs to bubbles.validate."
   ],
   "knownLimitation": {
-    "statement": "This packet is documentation only. It establishes that the defect exists, what causes it, and what any fix must satisfy. It does not establish that any proposed remedy works, because no remedy was implemented.",
+    "statement": "The remedy is delivered and verified by executed checks against committed code, but the whole-suite claim and human acceptance are both outstanding. What is established: the corpus is coherent, the writer cannot emit an incoherent row, the fixture is pinned and drift-checked, and a failed boot resolves the readiness observer with its reason. What is not established: that the full committed Playwright suite is green.",
     "recordedIn": [
-      "bug.md 'Why nothing is implemented here'",
-      "design.md section 0 and section 6",
-      "report.md 'Completion Statement' and 'Outstanding Verification'",
-      "scopes.md preamble"
+      "scopes.md cross-scope Definition of Done, Uncertainty Declaration",
+      "report.md 'Outstanding Verification'",
+      "uservalidation.md Automation Readiness, the one unticked item"
     ],
-    "whyNotClosedHere": "The instruction that produced this packet was to file and not fix. The primary remedy is a decision about the ingestion contract with more than one defensible answer, and the two options differ in what every consumer of data/bars sees. Making that call inside a filing task would bury a design decision in a bug report instead of surfacing it for a deliberate choice.",
-    "consequenceForStatus": "status is in_progress and no terminal status is available. A terminal status would assert that the defect is resolved; the six tests still fail and 71714 rows across 245 files remain incoherent as reported."
+    "whyNotClosedHere": "The ticking session was explicitly scoped to exclude the Playwright suite, and human acceptance cannot be produced by an agent under any circumstances. Ticking a whole-suite item that no executed command produced would be exactly the fabrication this packet avoided while it was still unfixed.",
+    "consequenceForStatus": "status is in_progress with certification.status equal to it. All three scopes are Done and 26 of 27 Definition of Done items are ticked with evidence, but a terminal status would assert a full-suite result and a human acceptance that no evidence in this packet supports."
   },
   "certification": {
     "status": "in_progress",
     "lockdownState": "unlocked",
     "completedAt": null,
     "certifiedAt": null,
-    "completedScopes": [],
+    "completedScopes": [
+      "01-restore-ohlc-coherence-in-bars-ingestion",
+      "02-decouple-committed-fixture-from-mutable-bars",
+      "03-surface-boot-failure-instead-of-hanging"
+    ],
     "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "Certification fields are validate-owned. This packet's state.json was authored to complete the required artifact set under explicit operator instruction; the certification block is INITIALISED, not asserted. status mirrors the top-level status at in_progress, and completedScopes and certifiedCompletedPhases are deliberately empty because those are certification claims and remain bubbles.validate's to write.",
+    "certificationFieldWriteNote": "certification.status was set equal to the top-level status under explicit operator instruction. It reads in_progress, not done, because the cross-scope Definition of Done item asserting a full committed Playwright suite result is unticked and Gate G136 human acceptance is unfilled. completedScopes records the three scopes whose own Definition of Done items are fully ticked with inline evidence. certifiedCompletedPhases stays EMPTY: phase certification is bubbles.validate's to write, and no independent party re-derived any measurement in report.md.",
     "scopeProgress": [
       {
         "scopeId": "01-restore-ohlc-coherence-in-bars-ingestion",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 8
+        "status": "Done",
+        "dodChecked": 8,
+        "dodUnchecked": 0
       },
       {
         "scopeId": "02-decouple-committed-fixture-from-mutable-bars",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 7
+        "status": "Done",
+        "dodChecked": 7,
+        "dodUnchecked": 0
       },
       {
         "scopeId": "03-surface-boot-failure-instead-of-hanging",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 8
+        "status": "Done",
+        "dodChecked": 8,
+        "dodUnchecked": 0
+      },
+      {
+        "scopeId": "cross-scope",
+        "status": "In Progress",
+        "dodChecked": 3,
+        "dodUnchecked": 1
       }
     ],
     "assurance": {
-      "level": "none",
+      "level": "partial",
       "missingForFull": [
-        "scenario-execution",
+        "full-suite-execution",
         "independent-validate",
         "independent-audit",
-        "Detail: nothing was implemented, so there is no change to validate or audit. The defect itself is well grounded — six tests fail in the full suite and in isolation, a 240000 ms budget was applied and the same tests still failed, and a single repaired field makes the canonical model replay return ok=true — but every one of those measurements is a reported observation from prior execution this session, not agent-derived. design.md and scopes.md were authored without dispatch to bubbles.design and bubbles.plan, so neither has been reviewed by its owning specialist, and the open contract decision in design.md section 2 is exactly the kind of choice that warrants that review before any fix begins."
+        "human-acceptance",
+        "Detail: the delivered fix is grounded by four checks re-executed at ticking time against committed code, all exit 0 - the repository selftest at 2534 passed and 0 failed, a corpus scan reporting zero violations across 292 symbol files and 150013 rows, a fixture-pin validator reporting every pinned row still matching, and artifact lint on this packet. Read-only git inspection additionally establishes that rlagenda.js and playwright.config.mjs are absent from the change set entirely, that the Scope 02 commit changed zero expect() lines, and that the Scope 03 commit touched only research-agenda-lab.html and tests/tool-experience.spec.mjs. What remains missing is the full Playwright suite run, which no executed command in the ticking session produced; independent re-derivation of the reported measurements, in particular the 373 ms readiness resolution, the DOM-erasure reason retrieval and the four-hunk revert reconstruction; and human acceptance, which no agent can supply. The Option B contract decision was resolved in execution rather than reviewed by a design owner, and it is the one choice in this packet with a defensible alternative."
       ]
     }
   },
-  "completedScopes": [],
+  "completedScopes": [
+    "01-restore-ohlc-coherence-in-bars-ingestion",
+    "02-decouple-committed-fixture-from-mutable-bars",
+    "03-surface-boot-failure-instead-of-hanging"
+  ],
   "policySnapshot": {
     "workflowMode": "bugfix-fastlane",
     "grill": {
@@ -183,16 +205,41 @@
       "evidenceRef": "report.md#outstanding-verification",
       "summary": "Authored the eight artifacts of this packet after committing the repository binding preflight for research-lab. Captured three distinct defects as three separate scopes: ingestion writing an adjusted close beside a raw low so that 71714 of 150161 rows across 245 of 293 bars files carry l > min(o, c); a committed fixture pinned to a fixed cutoff that resolves against mutable data the cron rewrites; and a boot error path whose catch never assigns state.view, so a data break presents as an unbounded hang instead of the refusal the page has already computed. Recorded in design.md that retroactively rewriting an already-published row is a provenance concern independent of the arithmetic, and that mergeRows overwrites by timestamp with no trace. Recorded in report.md that a global Playwright timeout was considered and disproven by execution at 240000 ms, and that applying one would have masked this defect rather than fixed it. Modified nothing outside this packet: data/, tests/, scripts/, research-agenda-lab.html and the BUG-011 packet are untouched, and nothing was committed. Every measurement in report.md is attributed to prior execution in this session; the agent's own execution was read-only inspection confirming each cited line number, field name and call site, including that the five failing tool-experience tests are exactly the five calling openResearchAgenda with the reversal fixture while the three calling it without the fixture pass.",
       "durationProvenance": "One continuous session segment consisting of a repository-binding preflight, read-only repository inspection, eight file writes, and verification runs of artifact-lint and the repository selftest. No test file, source file, data file or script was modified."
+    },
+    {
+      "agent": "bubbles.implement",
+      "workflowMode": "bugfix-fastlane",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.implement",
+      "expansionReason": "The operator scoped this run to reconciling the packet's Definition of Done with an implementation that was already delivered, verified and committed in three prior commits, and restricted writes to scopes.md, report.md, state.json and uservalidation.md. No subagent was dispatched. The Playwright suite was explicitly excluded from the run.",
+      "expansionEvidenceRef": "report.md#after-the-fix",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-19T12:00:00Z",
+      "finishedAt": "2026-08-19T12:00:00Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-012-INGESTION-WRITES-ADJUSTED-CLOSE-BESIDE-RAW-OHLC",
+        "BUG-012-COMMITTED-FIXTURE-PINNED-TO-MUTABLE-BARS",
+        "BUG-012-BOOT-ERROR-PATH-NEVER-SETS-STATE-VIEW"
+      ],
+      "unresolvedFindings": [],
+      "evidenceRef": "report.md#outstanding-verification",
+      "summary": "Reconciled the packet against the delivered fix. Recorded the Option B contract decision and the reason it was preferred over Option A: Feature 015 is an append-only claim ledger resolved against historical price levels, so under Option A every dividend rewrites history and a minted claim could never be checked against the prices it was minted on. Recorded the pinned-inputs decoupling decision. Set all three scopes to Done and ticked 26 of the 27 Definition of Done items with inline evidence, each tagged executed or reported. Re-executed four checks: node scripts/selftest.mjs reporting 2534 passed and 0 failed against a 2490 pre-fix baseline; node scripts/validate-bars-coherence.mjs reporting zero violations across 292 files and 150013 rows, down from 71714 violating rows across 245 files; node scripts/validate-agenda-fixture-pin.mjs reporting every pinned row still matching at the unchanged 2026-08-14T12:00:00.000Z cutoff; and artifact-lint on this packet. All four exit 0. Verified by direct read that the COP row at 2026-08-13T13:30Z is now o=125.72000122070312 h=126.38999938964844 l=124.12000274658203 c=124.5199966430664 ac=123.6949691772461 and satisfies coherence, with the raw close restored to its pre-cron value and the adjusted close moved into ac. Verified by git that rlagenda.js and playwright.config.mjs appear nowhere in the change set, that the scope 02 commit changed zero expect() lines in the two spec files, that neither spec file contains a skip or fixme, and that the scope 03 commit touched only research-agenda-lab.html and tests/tool-experience.spec.mjs. Explained two denominator shifts rather than passing over them: 292 scanned files against 293 on disk because index.json is a manifest excluded by name, and 150013 scanned rows against a pre-fix 150161 because rows that cannot be made coherent are quarantined out of the live series and recorded per file. Left one cross-scope item unticked with an Uncertainty Declaration because the full committed Playwright suite was not run. Modified only scopes.md, report.md, state.json and uservalidation.md. Nothing was committed.",
+      "durationProvenance": "One session segment consisting of a repository-binding preflight, read-only git and file inspection, four re-executed verification commands, and four artifact writes. No source file, test file, script or data file was modified, and the Playwright suite was not run."
     }
   ],
-  "activeBugs": [
+  "activeBugs": [],
+  "resolvedBugs": [
     "BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc"
   ],
-  "resolvedBugs": [],
-  "addressedFindings": [],
-  "unresolvedFindings": [
+  "addressedFindings": [
     "BUG-012-INGESTION-WRITES-ADJUSTED-CLOSE-BESIDE-RAW-OHLC",
     "BUG-012-COMMITTED-FIXTURE-PINNED-TO-MUTABLE-BARS",
     "BUG-012-BOOT-ERROR-PATH-NEVER-SETS-STATE-VIEW"
-  ]
+  ],
+  "unresolvedFindings": []
 }

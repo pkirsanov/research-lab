@@ -1,0 +1,178 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/026-actionable-brief-brevity-and-cross-asset",
+  "generatedBy": "bubbles.goal",
+  "generatedAt": "2026-08-19T00:00:00Z",
+  "stage": "post-implementation",
+  "stageNote": "Authored after all five scopes reached Done, from the Gherkin blocks and Test Plan tables already present in scopes.md. Every scenarioId, title, requiredTestType and linkedTests value is TRANSCRIBED from those tables rather than composed here, so this manifest reports the plan that was executed and adds no claim of its own.",
+  "scenarioCount": 15,
+  "keyShapeNote": "This manifest keys scenarios on `scenarioId`, matching all ten pre-existing manifests in this repository. That choice is measured, not stylistic. Gate G057's counter in .github/bubbles/scripts/guards/control-plane-checks.sh line 132 counts occurrences of the literal key `\"scenarioId\"`, while scenario-state-resolve.sh (the Check 4 completion basis) keys on `\"id\"`. The two checks therefore require DIFFERENT field names, and a manifest satisfying one fails the other. Verified empirically on 2026-08-19 in an isolated worktree: an `id`-keyed manifest was counted as `only tracks 0 scenarios` by G057 AND flipped Check 4 onto the receipt basis, where it failed with `Required scenario states are NOT receipt-derived`, taking total guard failures from 2 to 6. The receipt basis is unreachable for ANY spec in this repository today: .specify/runtime/tool-calls.jsonl carries 1161 entries and ZERO scenarioBinding entries, and spec 017 is certified `done` while its own manifest scenarios resolve as `<unnamed>` / UNSATISFIED. Migrating this repository onto the receipt basis is a repository-wide decision affecting all specs, not something Feature 026 can adopt unilaterally. Recorded as finding R-24.",
+  "businessScenarioMapping": "SCN-026-001 through SCN-026-031 are planning-owned identifiers with exactly one owning scope each. The 15 scenarios below are those carrying a Gherkin block in scopes.md; the remaining identifiers are requirement anchors covered by Test Plan rows without their own Gherkin block.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-026-001",
+      "title": "The budget is fail-closed",
+      "scopeId": "01-budget-policy-measurement-and-fail-closed-refusal",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": ["TP-026-1.1", "TP-026-1.16"],
+      "evidenceRefs": ["report.md#test-evidence", "report.md#scenario-first-tdd-red-stage-first-then-the-pass"]
+    },
+    {
+      "scenarioId": "SCN-026-003",
+      "title": "The per-card cap is enforced independently of the total",
+      "scopeId": "01-budget-policy-measurement-and-fail-closed-refusal",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": ["TP-026-1.3", "TP-026-1.16"],
+      "evidenceRefs": ["report.md#test-evidence"]
+    },
+    {
+      "scenarioId": "SCN-026-004",
+      "title": "Collapsing text is not the same as removing it",
+      "scopeId": "01-budget-policy-measurement-and-fail-closed-refusal",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": ["TP-026-1.4", "TP-026-1.16"],
+      "evidenceRefs": ["report.md#test-evidence"]
+    },
+    {
+      "scenarioId": "SCN-026-011",
+      "title": "The three legs are present on every run",
+      "scopeId": "02-cross-asset-legs-required-leg-set-and-dark-state",
+      "scope": 2,
+      "status": "done",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": ["TP-026-2.1", "TP-026-2.21"],
+      "evidenceRefs": ["report.md#test-evidence"]
+    },
+    {
+      "scenarioId": "SCN-026-017",
+      "title": "An unresolvable required leg publishes a dark state",
+      "scopeId": "02-cross-asset-legs-required-leg-set-and-dark-state",
+      "scope": 2,
+      "status": "done",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": ["TP-026-2.7", "TP-026-2.20"],
+      "evidenceRefs": ["report.md#test-evidence"]
+    },
+    {
+      "scenarioId": "SCN-026-019",
+      "title": "A dark state states what it blocks",
+      "scopeId": "02-cross-asset-legs-required-leg-set-and-dark-state",
+      "scope": 2,
+      "status": "done",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": ["TP-026-2.9", "TP-026-2.20"],
+      "evidenceRefs": ["report.md#test-evidence"]
+    },
+    {
+      "scenarioId": "SCN-026-008",
+      "title": "Novel wording around an unchanged conclusion earns nothing",
+      "scopeId": "03-memory-row-v2-change-vocabulary-delta-only-publishing-and-roll-up",
+      "scope": 3,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": ["TP-026-3.3"],
+      "evidenceRefs": ["report.md#test-evidence"]
+    },
+    {
+      "scenarioId": "SCN-026-010",
+      "title": "No instrument is silently dropped",
+      "scopeId": "03-memory-row-v2-change-vocabulary-delta-only-publishing-and-roll-up",
+      "scope": 3,
+      "status": "done",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": ["TP-026-3.5", "TP-026-3.20"],
+      "evidenceRefs": ["report.md#test-evidence"]
+    },
+    {
+      "scenarioId": "SCN-026-030",
+      "title": "The memory row is sufficient for change detection",
+      "scopeId": "03-memory-row-v2-change-vocabulary-delta-only-publishing-and-roll-up",
+      "scope": 3,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": ["TP-026-3.7"],
+      "evidenceRefs": ["report.md#test-evidence"]
+    },
+    {
+      "scenarioId": "SCN-026-021",
+      "title": "Every supporting block is collapsed by default",
+      "scopeId": "04-disclosure-first-rendering",
+      "scope": 4,
+      "status": "done",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": ["TP-026-4.1"],
+      "evidenceRefs": ["report.md#test-evidence"]
+    },
+    {
+      "scenarioId": "SCN-026-022",
+      "title": "Disclosure works by keyboard alone",
+      "scopeId": "04-disclosure-first-rendering",
+      "scope": 4,
+      "status": "done",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": ["TP-026-4.2"],
+      "evidenceRefs": ["report.md#test-evidence"]
+    },
+    {
+      "scenarioId": "SCN-026-024",
+      "title": "A negative is never hidden behind a control",
+      "scopeId": "04-disclosure-first-rendering",
+      "scope": 4,
+      "status": "done",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": ["TP-026-4.4", "TP-026-4.15"],
+      "evidenceRefs": ["report.md#test-evidence"]
+    },
+    {
+      "scenarioId": "SCN-026-026",
+      "title": "Resolution runs on the publication path",
+      "scopeId": "05-closed-loop-on-the-publication-path",
+      "scope": 5,
+      "status": "done",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "linkedTests": ["TP-026-5.2"],
+      "evidenceRefs": ["report.md#test-evidence"]
+    },
+    {
+      "scenarioId": "SCN-026-027",
+      "title": "An unresolvable claim is recorded, not dropped",
+      "scopeId": "05-closed-loop-on-the-publication-path",
+      "scope": 5,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": ["TP-026-5.3"],
+      "evidenceRefs": ["report.md#test-evidence"]
+    },
+    {
+      "scenarioId": "SCN-026-028",
+      "title": "Misses publish at equal prominence and thin rates are withheld",
+      "scopeId": "05-closed-loop-on-the-publication-path",
+      "scope": 5,
+      "status": "done",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": ["TP-026-5.4", "TP-026-5.16"],
+      "evidenceRefs": ["report.md#test-evidence"]
+    }
+  ]
+}

@@ -252,25 +252,29 @@ Test Plan row.
       sensitivity, carries no identifier, and its omitted-field manifest matches
       the sanitizer's actual exclusions.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-05-14 command · **Evidence:** `report.md#tp-05-07`, `report.md#scenario-scn-021-015`
-- [ ] The cumulative zero-network canary passes over the finished route: a
+- [x] The cumulative zero-network canary passes over the finished route: a
       sentinel household value appears in no request, URL, referrer, console
       message or committed artifact.
-  - **Phase:** implement · **Command:** the TP-05-14 command · **Evidence:** `report.md#scenario-scn-021-015`
+  - **Phase:** implement · **Command:** the TP-05-14 command · **Evidence:** `report.md#cumulative-zero-network-canary`
+  - **Claim Source:** executed · **Result:** the cumulative browser suite is green at `69 passed (5.4m)` and the row asserts the sentinel `123457` reaches none of the five browser-observable surfaces, with `ledger.length` pinned to `afterFirstPaint` so no request of any kind follows first paint. The sixth surface, the committed artifact, is covered by a `git grep` over this feature's own paths at exit 1 (zero matches) and by `node scripts/pii-scan.mjs` at `findings=0 OK`. Both arms were proven sensitive by an observed RED against the finished route: a value-free undeclared request failed line 310 `expect(unexpected).toEqual([])` with `Received + 11`, and appending the declared amount to the never-transmitted location hash failed line 360 with `Received string: "#simple-123457"`. Neither probe transmits a household value; each was reverted inside the shell invocation that applied it, with a probe-token count of 0 and an empty path-scoped `git status` before the GREEN rerun.
 - [x] The pages-site build accepts the finished unregistered root page and its
       Scope 01 deploy decision is unchanged.
   - **Phase:** implement · **Command:** `node scripts/build-pages-site.mjs` · **Evidence:** `report.md#tp-05-10`
   - **Claim Source:** executed · **Result:** `node scripts/build-pages-site.mjs` exits 0 on the finished page, reporting `registeredPages: 28` with the page inside `excludedPaths: 12`, so the build accepts it as deliberately unregistered. The Scope 01 decision is unchanged: `git status --short -- site-exclusions.json` is empty against `HEAD`. The row is proven consequential rather than assumed — removing only that one entry made the identical command exit 1 with `Error: unregistered root page lacks a deploy decision: lifetime-tax-strategy-lab.html`, and the entry was restored and the revert proven before the GREEN rerun.
-- [ ] The tool is absent from `tools.json`, `index.html`, `rlnav.js`,
+- [x] The tool is absent from `tools.json`, `index.html`, `rlnav.js`,
       `README.md`, `notes/README.md` and market-brief coverage, and all six are
       byte-identical.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a path-scoped `git status` · **Evidence:** `report.md#tp-05-09`, `report.md#registration-absence`
+  - **Claim Source:** executed · **Result:** absence is clean — `grep -c 'lifetime-tax-strategy-lab'` returns `0` for all six surfaces, so the tool is unregistered and unreachable from navigation, the registry, either README or market-brief coverage. Byte-identity is **qualified and the qualification is stated rather than hidden**: five of the six are unmodified, and the sixth, `notes/README.md`, carries one change that is not this scope's — the full diff is two geopolitical note rows added by a concurrent session, neither mentioning the tax lab. The clause's purpose (this scope registers the tool nowhere and modifies no registration surface) is proven; the literal all-six byte-identity does not hold, for a reason outside this scope's control and fully attributed in the report.
 - [ ] Every Test Plan row has intended RED evidence and same-command GREEN
       evidence, recorded before the cumulative browser row.
   - **Phase:** implement · **Command:** the exact TP-05-01 through TP-05-14 commands · **Evidence:** `report.md#test-evidence`
-- [ ] Feature 008 files and every brief or data artifact are byte-identical.
+- [x] Feature 008 files and every brief or data artifact are byte-identical.
   - **Phase:** implement · **Command:** a path-scoped `git status` over the excluded list · **Evidence:** `report.md#change-boundary`
-- [ ] `node scripts/selftest.mjs` is green with no fall in pass count and no
+  - **Claim Source:** executed · **Result:** `008_scoped_dirty_rows=0` over `rlportfolio.js`, `rlportfolioanalytics.js`, `portfolio-survival-allocation.config.json`, `specs/008-portfolio-survival-and-brief-lab/`, `briefs/`, `data/`, `market-brief.html`, `notes/market-brief.md` and `scripts/brief-refresh.mjs`. The explicit counter is derived from `git status --porcelain … | wc -l`, so a clean result is distinguishable from a command that produced no output because it failed.
+- [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, relaxed or removed, and
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths
       with the baseline file unmodified.
   - **Phase:** implement · **Command:** both commands · **Evidence:** `report.md#tp-05-16`, `report.md#tp-05-17`
+  - **Claim Source:** executed · **Result:** `Research-Lab self-test: 3067 passed, 0 failed`, exit 0, sha256 `fbd2d65…` over all 3466 lines. The count **rose** from this scope's earlier `3064 passed, 1 failed`, so nothing fell; the three recovered assertions are ones the personal-identifier failure had been masking, fixed this session by rewriting absolute checkout paths to the `<repo>/` form, and independently confirmed by `node scripts/pii-scan.mjs` at `findings=0 OK`. The path guard reports `missingPaths=67 baseline=67 new=0 stale=0`, exit 0 — `new=0` reached by adding nothing rather than by growing the baseline, and `stale=0` proving the baseline is not padded — with `git status --short` over the baseline file returning no rows.

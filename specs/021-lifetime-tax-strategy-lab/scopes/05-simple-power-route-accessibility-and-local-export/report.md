@@ -309,15 +309,15 @@ name rather than silently shipping an unreachable page:
 
 ```
 === PROBE-A RED: lifetime-tax-strategy-lab.html deploy decision removed ===
-file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:24
+file://<repo>/scripts/build-pages-site.mjs:24
   if (!condition) throw new Error(message);
                         ^
 
 Error: unregistered root page lacks a deploy decision: lifetime-tax-strategy-lab.html
-    at assert (file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:24:25)
-    at planPagesSite (file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:49:3)
-    at buildPagesSite (file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:83:16)
-    at file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:110:16
+    at assert (file://<repo>/scripts/build-pages-site.mjs:24:25)
+    at planPagesSite (file://<repo>/scripts/build-pages-site.mjs:49:3)
+    at buildPagesSite (file://<repo>/scripts/build-pages-site.mjs:83:16)
+    at file://<repo>/scripts/build-pages-site.mjs:110:16
     at ModuleJob.run (node:internal/modules/esm/module_job:447:25)
     at async node:internal/modules/esm/loader:646:26
     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
@@ -325,6 +325,10 @@ Error: unregistered root page lacks a deploy decision: lifetime-tax-strategy-lab
 Node.js v26.4.0
 BUILD_PAGES_EXIT=1
 ```
+
+The absolute checkout path in the `file://` frames is written `file://<repo>/`
+here so the committed surface carries no personal identifier; no other character
+of the captured output is changed.
 
 The mutation was reverted immediately and the revert was proven before the same
 command was rerun:
@@ -422,11 +426,55 @@ Command: `npx --no-install playwright test --config=playwright.config.mjs --proj
 The whole-repository suite, with the pre-existing pass count recorded before and
 after the appended group.
 Command: `node scripts/selftest.mjs`
+**Claim Source:** executed (2026-08-19)
+
+```text
+# PROBE-CSP GREEN selftest
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3466
+sha256: fbd2d65ea58af3e4961ec05823ccf52aaeac907dbad0549a9e74f31ce51c3d16
+Research-Lab self-test: 3067 passed, 0 failed
+```
+
+`3067 passed, 0 failed`, exit 0. This is the first zero-failure reading this
+scope has recorded: every earlier run in this report closed at
+`3064 passed, 1 failed`, and the one failure was the repository's
+`committed surface carries no personal identifier` assertion, tripped by absolute
+checkout paths pasted into two Feature 021 report files. Those were rewritten to
+the `<repo>/` form at the start of this session, which is why the count both rose
+and cleared. `node scripts/pii-scan.mjs` independently confirms it at
+`files=8102 messages=1515 findings=0 OK`.
+
+No pre-existing assertion was edited, relaxed or removed: the pass count moved
+**up**, from 3064 to 3067, and the three recovered assertions are the ones the
+identifier failure had been masking rather than new ones. The `sha256` covers all
+3466 lines the run produced and is re-derivable with `evidence-capture.sh
+--verify`, so this summary cannot be a paste.
 
 ### TP-05-17
 
 Zero new missing spec-referenced test paths, with the baseline file unmodified.
 Command: `node scripts/validate-spec-test-paths.mjs`
+**Claim Source:** executed (2026-08-19)
+
+```text
+$ node scripts/validate-spec-test-paths.mjs
+[spec-test-paths] scanned=678 references=14888 distinctPaths=244 missingPaths=67 baseline=67 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+paths_exit=0
+
+$ git status --short -- scripts/validate-spec-test-paths.baseline.json
+(no rows)
+```
+
+`new=0` is the clause that matters, and `missingPaths=67 baseline=67` is what
+makes it meaningful: the 67 known-missing paths are exactly the baseline, so
+`new=0` was reached by adding nothing rather than by the baseline having been
+grown to absorb a new miss. `stale=0` confirms the reverse direction — the
+baseline lists no path that has since started resolving, so it is not padded. The
+path-scoped `git status` returns no rows, proving the baseline file itself is
+byte-identical to `HEAD` and was not edited to produce this result.
 
 ## Cumulative Zero-Network Canary
 
@@ -474,6 +522,36 @@ The scan covered `lifetime-tax-strategy-lab.html`,
 `tax-rules/`, `site-exclusions.json` and every artifact under
 `specs/021-lifetime-tax-strategy-lab/`. `git grep` exits 1 on zero matches, so
 the sentinel appears in no committed artifact this feature owns.
+
+### Intended RED for the canary (2026-08-19)
+
+**Claim Source:** executed. Everything above is a GREEN reading, which on its own
+proves only that the canary did not object — not that it *can* object. Two
+mutations of the finished route, `lifetime-tax-strategy-lab.html`, were run to
+show each arm is sensitive. Full captures, including the reverts, are in
+`specs/021-lifetime-tax-strategy-lab/scopes/01-tax-workspace-rule-pack-and-privacy-foundation/report.md#scenario-scn-021-003`;
+the mutated file is the same finished route this row covers, so the evidence
+carries here.
+
+| Arm | Mutation applied to the finished route | Observed RED |
+| --- | --- | --- |
+| The route issues no undeclared request | `window.fetch("/rltaxprobe-undeclared.js")` added to `render()` — value-free, no query string | line 310 `expect(unexpected).toEqual([])`, `Received + 11` |
+| No household value reaches the URL | declared ordinary amount appended to the never-transmitted `location` hash | line 360 `expect(location.hash).toMatch(/^#(simple\|power)$/)`, `Received string: "#simple-123457"` |
+
+`123457` is `SENTINEL_ORDINARY`, so the second probe really did put the household
+value in the URL and the canary really did catch it.
+
+**Neither probe transmits a household value, and that is deliberate.** An earlier
+dispatch probed this same canary with
+`window.fetch("/rl-probe-telemetry.json?ordinary=" + …)` — it built the exact
+exfiltration channel the canary exists to forbid, inside the shipped page. A
+probe for a privacy guarantee must not construct the leak: if the revert slips,
+the failure mode of the probes above is a 404 for a file that does not exist,
+whereas the failure mode of that one was disclosing the user's income. Each
+mutation here was applied and reverted inside a single shell invocation, with the
+revert proven by both a probe-token count of `0` and an empty path-scoped
+`git status`, before the identical command was re-run GREEN.
+
 
 
 
@@ -638,14 +716,66 @@ executing machine, not a product defect and not a defect in the specs.
 
 ## Change Boundary
 
-Filled at execution. Holds the path-scoped `git status` proving every excluded
-path is byte-identical.
+Path-scoped `git status` over the excluded list, run 2026-08-19.
+Command: `git status --short -- rlportfolio.js rlportfolioanalytics.js portfolio-survival-allocation.config.json specs/008-portfolio-survival-and-brief-lab/ briefs/ data/ market-brief.html notes/market-brief.md scripts/brief-refresh.mjs`
+**Claim Source:** executed
+
+```text
+=== Feature 008 + brief/data byte-identity (path-scoped) ===
+008_scoped_dirty_rows=0
+```
+
+Zero rows. The scoping matters: `git status --short` prints one row per changed
+path and nothing at all when the set is clean, so an empty result and a
+"command produced no output because it silently failed" look alike. The explicit
+`008_scoped_dirty_rows=0` counter removes that ambiguity — it is computed from
+`git status --porcelain … | wc -l`, so it is `0` only when the command ran and
+found nothing, and the surrounding invocation exited 0.
+
+Every Feature 008 runtime file, its spec folder, and every brief or data artifact
+is byte-identical to `HEAD`. This scope wrote a self-contained route and touched
+none of them.
 
 ## Registration Absence
 
-Filled at execution. Holds the path-scoped `git status` over `tools.json`,
-`index.html`, `rlnav.js`, `README.md`, `notes/README.md` and market-brief
-coverage, proving all six are unmodified at feature completion.
+Path-scoped `git status` plus a reference scan over the six registration
+surfaces, run 2026-08-19.
+Command: `git status --short -- tools.json index.html rlnav.js README.md notes/README.md` and `grep -c 'lifetime-tax-strategy-lab' …`
+**Claim Source:** executed
+
+```text
+=== registration-surface byte-identity ===
+ M notes/README.md
+registration_scoped_dirty_rows=1
+
+=== tool absent from registration surfaces ===
+tools.json:0
+index.html:0
+rlnav.js:0
+README.md:0
+notes/README.md:0
+```
+
+**The absence claim is clean and the byte-identity claim is qualified — stated
+separately rather than blurred.** The reference scan is the load-bearing half:
+the string `lifetime-tax-strategy-lab` appears **zero** times in all six
+surfaces, so the tool is genuinely unregistered and unreachable from navigation,
+the registry, either README or market-brief coverage.
+
+Five of the six are byte-identical. The sixth, `notes/README.md`, carries one
+change, and it is **not this scope's**. The full diff is two rows:
+
+```text
+$ git --no-pager diff -U0 notes/README.md
++| [us-israel-iran-conflict-market-scenarios-2026-08-19.md](…) | Da…
++| [us-israel-iran-cross-asset-equity-screen-2026-08-19.md](…) | Di…
+```
+
+Two geopolitical note entries written by a concurrent session, neither of which
+mentions the tax lab. So the DoD clause's *purpose* — this scope registers the
+tool nowhere and modifies no registration surface — holds and is proven; the
+literal "all six are byte-identical" does not, for a reason outside this scope's
+control and fully attributed here rather than papered over.
 
 ## Claim Boundary
 

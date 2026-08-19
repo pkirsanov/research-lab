@@ -16,12 +16,93 @@ Filled at execution.
 Scenario SCN-021-010 — exactly two policies are returned, both computed from the
 identical workspace and the identical resolved pack.
 Command: `node scripts/selftest.mjs`
+**Claim Source:** executed
+
+The assertion pins the policy count at two, pins both policy ids, requires both
+settlements to carry the identical `packRef.contentSha256` and the identical
+resolved pack sha, requires the two settlements to agree on filing status and on
+the untouched preferential income, and requires the nine-member `heldConstant`
+list plus `isRecommendation === false` and the single-year result-kind statement.
+
+Intended RED, probe A — a third policy `probe-partial-fill` was appended to the
+`policies` tuple. That is the natural drift shape for this row: someone adds a
+"half fill" option and the two-policy contract silently becomes a three-policy
+menu:
+
+```text
+# PROBE-A RED: a third policy appended to the policies tuple in rltaxstrategy.js
+$ node scripts/selftest.mjs
+  ✗ FAIL: committed surface carries no personal identifier
+  ✗ FAIL: TP-04-01: the comparison returns exactly two policies, both settled from the identical workspace against the identical resolved pack, with the held-constant list published
+Research-Lab self-test: 3063 passed, 2 failed
+```
+
+TP-04-01 is the only new failure. The `committed surface carries no personal
+identifier` row is a **pre-existing failure owned by a concurrent session** (it
+is produced by that session's untracked `notes/us-israel-iran-*` files, outside
+this scope's change boundary); it is present identically in the baseline, in
+every RED and in every GREEN in this dispatch, so attribution here is by failure
+name rather than by count.
+
+Reverted immediately, then the identical command re-run for GREEN:
+
+```text
+$ git status --short rltaxstrategy.js
+probeA_revert_dirty_lines=0
+
+$ node scripts/selftest.mjs
+  ✗ FAIL: committed surface carries no personal identifier
+Research-Lab self-test: 3064 passed, 1 failed
+```
+
+TP-04-01 is absent from the GREEN failure list, and the pass count returns to the
+baseline 3064.
 
 ### TP-04-02
 
 Scenario SCN-021-010 — the conversion amount equals the distance to the named
 bracket edge, for every supported filing status and every bracket.
 Command: `node scripts/selftest.mjs`
+**Claim Source:** executed
+
+**A recorded miss, and the strengthening it forced.** The first-draft assertion
+built its 24 fixtures with `itemizedAmount: 0`. Under that fixture ordinary
+TAXABLE income and declared ordinary income are the same number, so the row could
+not distinguish the two. Probe B substituted
+`edge.value - workspace.income.ordinary` for
+`edge.value - baseline.ordinaryTaxableIncome.value` — measuring the fill from
+declared income rather than from taxable income, which is the exact defect this
+row exists to catch — and the suite stayed at the baseline
+`3064 passed, 1 failed` with **no TP-04-02 failure**. That false GREEN is
+recorded here rather than accepted.
+
+The fixture was strengthened to a non-zero `itemizedAmount: 4000`, which
+separates taxable income from declared income, plus a `taxableIsSeparated === 24`
+clause so the fixture cannot silently degrade back to equality on some future
+edit. No clause was removed or relaxed. The strengthened row is green on clean
+source at `3064 passed, 1 failed`.
+
+Probe B was then re-applied against the strengthened row:
+
+```text
+# PROBE-B RED: fill measured from declared ordinary income instead of ordinary TAXABLE income
+$ node scripts/selftest.mjs
+  ✗ FAIL: committed surface carries no personal identifier
+  ✗ FAIL: TP-04-02: the conversion amount equals the distance from ordinary TAXABLE income (separated from declared income by a non-zero deduction on all 24 bounded bands) to the named pack edge, and an unbound…
+Research-Lab self-test: 3063 passed, 2 failed
+```
+
+TP-04-02 is the only new failure. Reverted immediately, then the identical
+command re-run for GREEN:
+
+```text
+$ git status --short rltaxstrategy.js
+probeB_revert_dirty_lines=0
+
+$ node scripts/selftest.mjs
+  ✗ FAIL: committed surface carries no personal identifier
+Research-Lab self-test: 3064 passed, 1 failed
+```
 
 ### TP-04-03
 
@@ -141,6 +222,43 @@ record rather than asserted in the abstract.
 Scenario SCN-021-010 — a household already at or above the selected edge yields an
 explicitly labeled zero-amount conversion.
 Command: `node scripts/selftest.mjs`
+**Claim Source:** executed
+
+The assertion drives three households against the same edge `b3`: one well above
+it at 200000, one landing exactly on it at 105700, and the base household below
+it. It requires the two full households to report `value === 0` with
+`atOrAboveEdge === true` and explicitly `!isUnavailable(...)`, requires the
+above-edge federal difference to be a valued zero rather than a refusal, and
+requires the below-edge household to report a positive amount with
+`atOrAboveEdge === false` — so a constant zero cannot satisfy the row either.
+
+Intended RED, probe C — the at-or-above-edge clamp was removed
+(`value: distance` in place of `value: atOrAboveEdge ? 0 : distance`), which is
+the defect where a full bracket reports a *negative* conversion:
+
+```text
+# PROBE-C RED: at-or-above-edge clamp removed from fillToBracketConversion
+$ node scripts/selftest.mjs
+  ✗ FAIL: committed surface carries no personal identifier
+  ✗ FAIL: TP-04-02: the conversion amount equals the distance from ordinary TAXABLE income (separated from declared income by a non-zero deduction on all 24 bounded bands) to the named pack edge, and an unbound…
+  ✗ FAIL: TP-04-06: a household at or above the selected edge receives an explicitly labelled zero-amount conversion rather than a negative amount or an Unavailable
+Research-Lab self-test: 3062 passed, 3 failed
+```
+
+TP-04-06 is the intended catch. TP-04-02 co-fails because its `expected` is
+itself `Math.max(0, …)`, so it also refuses a negative amount — a second,
+independent detector for the same defect rather than an unrelated break.
+
+Reverted immediately, then the identical command re-run for GREEN:
+
+```text
+$ git status --short rltaxstrategy.js
+probeC_revert_dirty_lines=0
+
+$ node scripts/selftest.mjs
+  ✗ FAIL: committed surface carries no personal identifier
+Research-Lab self-test: 3064 passed, 1 failed
+```
 
 ### TP-04-07
 
@@ -256,6 +374,49 @@ Scenario SCN-021-012 — enumerating the result record proves there is no
 probability, lifetime total, break-even year, survival figure, rank or accuracy
 field.
 Command: `node scripts/selftest.mjs`
+**Claim Source:** executed
+
+The assertion flattens the whole comparison record recursively, collects all 1092
+member names at every depth, and requires none of them to contain `probability`,
+`lifetimeTotal`, `breakEvenYear`, `rank`, `recommended`, `score`, `successRate`,
+`accuracy` or `survival` as a case-insensitive substring. It also pins the
+top-level key set to an exact ordered 13-member list, so a forbidden member
+cannot be introduced at the top level even under a token the substring list has
+not anticipated.
+
+Intended RED, probe D — a `breakEvenYear: null` member was added to the returned
+record. It carries no value and changes no arithmetic, so only a member-name
+enumeration can see it, which is precisely the claim this row makes:
+
+```text
+# PROBE-D RED: breakEvenYear member added to the comparison record in rltaxstrategy.js
+$ node scripts/selftest.mjs
+  ✗ FAIL: committed surface carries no personal identifier
+  ✗ FAIL: TP-04-10: enumerating all 1092 member names in the comparison record proves it carries no probability, lifetime total, break-even year, rank, score or accuracy member
+  ✗ FAIL: TP-05-06: no page or strategy string claims a published error rate, a self-invalidation statistic, a track record, an accuracy figure or a plan success probability, and the educational not-tax-advice …
+Research-Lab self-test: 3064 passed, 3 failed
+```
+
+Two independent detectors catch it: the Scope 04 member enumeration and the
+Scope 05 cross-surface claim scan. A one-word member added to a frozen record is
+not survivable in either place.
+
+Reverted immediately, then the identical command re-run for GREEN:
+
+```text
+$ git status --short rltaxstrategy.js
+probeD_revert_dirty_lines=0
+
+$ node scripts/selftest.mjs
+  ✗ FAIL: committed surface carries no personal identifier
+Research-Lab self-test: 3066 passed, 1 failed
+```
+
+The GREEN pass count is 3066 rather than the 3064 of the earlier GREENs because a
+**concurrent session added two passing assertions of its own during this
+dispatch**; `rltaxstrategy.js` is clean against `HEAD` across the whole probe, so
+none of that movement is this scope's. It is a further reason attribution in this
+report is by failure name rather than by count.
 
 ### TP-04-11
 
@@ -263,26 +424,194 @@ Scenario SCN-021-012 — declared outside-funds and declared withheld are
 distinguishable, and an undeclared funding source yields an unavailable record
 with no assumed default.
 Command: `node scripts/selftest.mjs`
+**Claim Source:** executed
+
+The assertion settles the same household three ways. It requires the two declared
+cases to report their own declaration and to differ from each other, requires the
+undeclared case to be an `isUnavailable` record carrying
+`TaxUnavailable/v1` and the `RLTAX-INPUT-INCOMPLETE` code, requires its
+`whatWouldMakeItAvailable` to actually name `outside-funds` rather than being an
+empty gesture, and requires the federal difference to be reported anyway — the
+refusal is scoped to the funding field and does not suppress the arithmetic that
+does not depend on it.
+
+Intended RED, probe E — the refusal was replaced with a silent
+`return "outside-funds";`. That is the assumed default the row exists to forbid,
+and it is invisible in every rendered figure because the two cases produce the
+same single-year federal difference:
+
+```text
+# PROBE-E RED: undeclared funding source silently defaulted to outside-funds
+$ node scripts/selftest.mjs
+  ✗ FAIL: committed surface carries no personal identifier
+  ✗ FAIL: TP-04-11: declared outside-funds and declared withheld are distinguishable, and an undeclared funding source is a TaxUnavailable naming what would make it available rather than an assumed default
+Research-Lab self-test: 3065 passed, 2 failed
+```
+
+TP-04-11 is the only new failure. Reverted immediately, then the identical
+command re-run for GREEN:
+
+```text
+$ git status --short rltaxstrategy.js
+probeE_revert_dirty_lines=0
+
+$ node scripts/selftest.mjs
+  ✗ FAIL: committed surface carries no personal identifier
+Research-Lab self-test: 3066 passed, 1 failed
+```
 
 ### Scenario SCN-021-010
 
 `Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack" --reporter=list`
+**Claim Source:** executed
+
+Environment gates first — these do not replace the row:
+`node scripts/validate-node-source-lock.mjs` reported
+`OK adversarial=16 unexpectedAcceptances=0` at exit 0, and
+`npx --no-install playwright --version` reported `Version 1.61.1`.
+
+Intended RED, probe F — the page's policy loop was started at `index = 1`, which
+renders the converted policy but drops the no-conversion baseline. The comparison
+record is untouched; only the rendered table loses a row, which is exactly the
+"a rendering change quietly turns a comparison into a single figure" defect this
+browser row guards:
+
+```text
+# PROBE-F RED: policy render loop started at index 1 in lifetime-tax-strategy-lab.html
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack" --reporter=list
+  ✘  1 [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack (6.0s)
+    Error: expect(locator).toHaveCount(expected) failed
+    Expected: 2
+    Received: 1
+        14 × locator resolved to 1 element
+  1 failed
+```
+
+The failure is the intended contract assertion — the two-policy count — with the
+observed value named, not a syntax error, a missing browser or an absent test
+discovery.
+
+Reverted immediately, then the identical command re-run for GREEN:
+
+```text
+$ git status --short lifetime-tax-strategy-lab.html
+probeF_revert_dirty_lines=0
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack" --reporter=list
+Running 1 test using 1 worker
+  ✓  1 [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack (1.0s)
+  1 passed (3.0s)
+```
 
 ### Scenario SCN-021-011
 
 `Regression: SCN-021-011 the conversion comparison discloses everything it did not model`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-011 the conversion comparison discloses everything it did not model" --reporter=list`
+**Claim Source:** executed
+
+Intended RED, probe G — the page's disclosure render loop was shortened by one
+(`index < notModeled.length - 1`), so the last declared entry is silently not
+rendered. The declaration in `RLTAXSTRATEGY` is untouched, which is what makes
+this the right probe: the row's promise is that the RENDERED list matches the
+DECLARED list, and a truncating render is the only way that promise breaks
+without the module changing:
+
+```text
+# PROBE-G RED: disclosure render loop shortened by one in lifetime-tax-strategy-lab.html
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-011 the conversion comparison discloses everything it did not model" --reporter=list
+  ✘  1 [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:73:1 › Regression: SCN-021-011 the conversion comparison discloses everything it did not model (6.1s)
+    Error: expect(locator).toHaveCount(expected) failed
+    Expected: 8
+    Received: 7
+  1 failed
+```
+
+The expectation is derived from `conversionNotModeled()` rather than hand-counted,
+so the `8` in the failure text is the declaration's own length — the row caught a
+divergence between declaration and rendering, not a stale literal.
+
+Reverted immediately, then the identical command re-run for GREEN:
+
+```text
+$ git status --short lifetime-tax-strategy-lab.html
+probeG_revert_dirty_lines=0
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-011 the conversion comparison discloses everything it did not model" --reporter=list
+Running 1 test using 1 worker
+  ✓  1 [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:73:1 › Regression: SCN-021-011 the conversion comparison discloses everything it did not model (1.5s)
+  1 passed (3.6s)
+```
 
 ### Scenario SCN-021-012
 
 `Regression: SCN-021-012 the comparison emits a single year federal difference and no probability or ranking`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-012 the comparison emits a single year federal difference and no probability or ranking" --reporter=list`
+**Claim Source:** executed
+
+Intended RED, probe H — the page's funding-source line was changed to print a
+flat `outside-funds` whenever the record is unavailable. The record itself still
+refuses correctly, so this is the rendering-layer half of the same defect probe E
+proved at the module layer: a reader is told a funding source they never
+declared, and nothing in the module can detect it:
+
+```text
+# PROBE-H RED: undeclared funding source rendered as an assumed outside-funds in lifetime-tax-strategy-lab.html
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-012 the comparison emits a single year federal difference and no probability or ranking" --reporter=list
+  ✘  1 [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:154:1 › Regression: SCN-021-012 the comparison emits a single year federal difference and no probability or ranking (6.1s)
+    Error: expect(locator).toContainText(expected) failed
+    Expected substring: "RLTAX-INPUT-INCOMPLETE"
+    Received string:    "Conversion tax funding source: outside-funds."
+  1 failed
+```
+
+The received string is the invented default itself, so the row caught the exact
+substitution rather than failing for an unrelated reason.
+
+Reverted immediately, then the identical command re-run for GREEN:
+
+```text
+$ git status --short lifetime-tax-strategy-lab.html
+probeH_revert_dirty_lines=0
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-012 the comparison emits a single year federal difference and no probability or ranking" --reporter=list
+Running 1 test using 1 worker
+  ✓  1 [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:154:1 › Regression: SCN-021-012 the comparison emits a single year federal difference and no probability or ranking (929ms)
+  1 passed (2.6s)
+```
 
 ### TP-04-15
 
 The cumulative Scope 01 through Scope 04 browser suites over the real route.
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-0" --reporter=list`
+**Claim Source:** executed
+
+Executed with the **cumulative feature selector** `--grep "SCN-02[1-4]"` rather
+than the narrower `SCN-021-0` written into the Test Plan. The broader selector is
+a superset: it runs every SCN-021 scenario the row names and additionally runs
+the SCN-022, SCN-023 and SCN-024 scenarios that later scopes layered onto the
+same route and the same modules. The bare `SCN-02` form was deliberately avoided
+because it would also sweep a concurrent session's SCN-025 and SCN-026 suites and
+make any failure unattributable.
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list
+  ✓  66 [system-chrome] › tests/lifetime-tax-retirement-route.spec.mjs:340:1 › Regression: SCN-024-015 a focused control survives a mode switch without being detached and a subsequent click registers (807ms)
+  ✓  67 [system-chrome] › tests/lifetime-tax-use.spec.mjs:231:1 › Regression: SCN-023-012 the under-threshold exception excludes the income and deducts no rental expense (960ms)
+  ✓  68 [system-chrome] › tests/lifetime-tax-retirement-route.spec.mjs:370:1 › Regression: SCN-024-014 the request ledger stays empty with three new packs loaded and no retirement declaration reaches a URL (795ms)
+  ✓  69 [system-chrome] › tests/lifetime-tax-use.spec.mjs:265:1 › Regression: SCN-023-013 mixed use allocates by declared days and the personal portion reaches the composition (845ms)
+Error: worker-5 process did not exit within 300000ms after stop, force-killed it
+
+  69 passed (5.4m)
+  1 error was not a part of any test, see above for details
+```
+
+`69 passed` with **zero failed**. The reported error is a Playwright worker
+teardown timeout after the run stopped — it is explicitly reported as "not a part
+of any test", it names no assertion and no scenario, and every one of the 69
+tests carries a `✓`. It is recorded verbatim here rather than filtered out,
+because suppressing it would be the same class of omission this report exists to
+prevent.
 
 ### TP-04-16
 

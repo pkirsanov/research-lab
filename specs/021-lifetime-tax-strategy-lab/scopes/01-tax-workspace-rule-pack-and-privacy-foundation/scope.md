@@ -260,21 +260,21 @@ Test Plan row.
       entry makes the build refuse.
   - **Phase:** implement · **Command:** `node scripts/build-pages-site.mjs` · **Evidence:** `report.md#tp-01-11`
   - **Claim Source:** executed · **Result:** the page now carries its own `site-exclusions.json` entry alongside the four module entries, and the full non-dry-run `node scripts/build-pages-site.mjs` accepts it at exit 0 with `registeredPages: 28` and the page counted inside `excludedPaths: 12`, so it is accepted as deliberately unregistered rather than registered. The adversarial half was exercised in this session: removing only the `lifetime-tax-strategy-lab.html` entry made the same command exit 1 with `Error: unregistered root page lacks a deploy decision: lifetime-tax-strategy-lab.html`, naming the page rather than failing generically. The mutation was reverted immediately and `git status --short -- site-exclusions.json` was empty before the GREEN rerun.
-- [ ] The new page's Content-Security-Policy meta is byte-identical to the
+- [x] The new page's Content-Security-Policy meta is byte-identical to the
       repository's existing single policy.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-10`
-  - **Not met.** No page was authored in this dispatch, so no CSP meta exists to compare.
+  - **Claim Source:** executed · **Result:** the page exists and two independent detectors assert the identity — the repository-wide `all pages use one identical CSP instead of drifting per page` set, and the Scope 05 `pageCsp[1] === referenceCsp[1]` byte comparison against `portfolio-survival-allocation-lab.html`. Re-probed 2026-08-19 against a zero-failure baseline with a same-length token swap (`manifest-src 'self'` → `'none'`) that changes no directive count: RED `3061 passed, 6 failed`, exit 1, sha256 `214fa56…`; reverted in the same shell invocation with `git status --short` empty; GREEN `3067 passed, 0 failed`, exit 0, sha256 `fbd2d65…`.
 - [x] The Feature 008 byte-identity canary passes: `rlportfolio.js`,
       `rlportfolioanalytics.js`, `portfolio-survival-allocation.config.json` and
       `specs/008-portfolio-survival-and-brief-lab/**` are unmodified, and no
       storage key collides with a portfolio prefix.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a path-scoped `git status` · **Evidence:** `report.md#tp-01-08`
   - **Claim Source:** executed · **Result:** the path-scoped `git status` over the excluded list returns no rows, and the suite asserts the tax modules reference no Feature 008 surface and that clearing private data leaves a portfolio-prefixed key untouched.
-- [ ] The zero-network canary passes: the route issues no request, and a
+- [x] The zero-network canary passes: the route issues no request, and a
       sentinel household value appears in no URL, referrer, console message or
       committed artifact.
   - **Phase:** implement · **Command:** the TP-01-14 command · **Evidence:** `report.md#scenario-scn-021-003`
-  - **Not met.** The route-level proof requires the page and the Playwright spec, neither of which exists in this dispatch. The contract-level half — the closed storage key set and the refusal of a foreign key write — is green under TP-01-08.
+  - **Claim Source:** executed · **Result:** the route and `tests/lifetime-tax-foundation.spec.mjs` both exist, and the canary passes at the route level. Both arms were proven sensitive by an observed RED, using probes that never transmit a household value. Probe A added a value-free undeclared same-origin request to `render()`: RED at line 310 `expect(unexpected).toEqual([])` with `Received + 11`. Probe B appended the declared amount to the never-transmitted location hash: RED at line 360 with `Received string: "#simple-123457"`, which is `SENTINEL_ORDINARY`. Probe B's first attempt used a non-existent state path and produced `"#simple-undefined"`; that miss is recorded in the report rather than discarded, and the probe was rerun against the real path. Each mutation was reverted in the shell invocation that applied it, with `probe_token_remaining=0` and an empty path-scoped `git status`, before the identical command was re-run GREEN. The console arm is covered by the same test's `expect(consoleMessages).toEqual([])` and the committed-artifact arm by `node scripts/pii-scan.mjs` at `findings=0 OK`.
 - [x] The tool is absent from `tools.json`, `index.html`, `rlnav.js`,
       `README.md`, `notes/README.md` and market-brief coverage.
   - **Phase:** implement · **Command:** a path-scoped `git status` over the six files · **Evidence:** `report.md#registration-absence`

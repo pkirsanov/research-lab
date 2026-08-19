@@ -344,7 +344,7 @@ Feature: The disclosure is produced deterministically, not authored per window
 
 ## Scope 3: Repair The Committed Window, With The Assertion Intact
 
-**Status:** In Progress — 4 of 6 discharged; the two selftest-bound items are blocked on BUG-013
+**Status:** In Progress — 6 of 6 discharged; awaiting the state-transition guard to promote
 **Depends On:** Scope 1, Scope 2
 
 **Owner surface:** `market-brief.payload.json`
@@ -425,32 +425,87 @@ only patched bytes would have been overwritten by the next cron run. It was not.
   changed; this one is re-emitted because `reassertCompanyOwnerReadDisclosure()` runs in the
   publication path, so the fact is produced rather than preserved.
 
-- [ ] Feature 010 Scope 6 assertion passes with both previously failing conjuncts intact — [T-10-R1]
+- [x] Feature 010 Scope 6 assertion passes with both previously failing conjuncts intact — [T-10-R1]
 
-  **BLOCKED — not ticked.** T-10-R1's named command is `node scripts/selftest.mjs`, and that suite
-  currently reports 15 failures traced to Feature 026's cockpit first-load byte budget, filed as
-  **BUG-013** (`specs/_bugs/BUG-013-brief-recent-row-v2-breaches-cockpit-first-load-budget`,
-  `in_progress`). The command therefore cannot be run to a green exit, so the assertion cannot be
-  observed passing and this item stays open. Ticking it on the strength of the surrounding evidence
-  would be a claim about a command that was not run.
+  **Claim Source:** executed, this session. The prior blocker is cleared: the BUG-013 Feature 026
+  byte-budget failures are gone at `HEAD` `6ff62f62c`, so T-10-R1's named command now runs to a
+  green exit and the assertion is observed passing rather than reasoned about.
 
-  **Claim Source:** interpreted — recorded so a future run starts from a known position, not as a
-  substitute for execution. Both conjuncts that previously failed are satisfied by the committed
-  reason read at `HEAD`:
+  **Command:** `node scripts/selftest.mjs` — **Exit Code:** 0
 
   ```
-  scripts/selftest.mjs:6319 — the two conjuncts at issue
-    scope6Coverage[0].reason.includes('company-fundamentals-owner-v1')
-    /no recommendation[^.]*\b(?:fabricat\w*|produced|generated|issued)\b/i.test(scope6Coverage[0].reason)
-
-  committed reason tail: "... Consumed from company-fundamentals-owner-v1 as educational research
-  only; no recommendation is produced."
+  ================================================
+  Research-Lab self-test: 3064 passed, 0 failed
+  ================================================
+  SELFTEST_EXIT=0
   ```
 
-  The literal `company-fundamentals-owner-v1` is present, and `no recommendation is produced` matches
-  the regex (`no recommendation` → `[^.]*` = ` is ` → `produced`). The assertion's other conjuncts —
-  registry-wide `toolCoverage` id parity, `deepLink` equality, and status-set membership — are not
-  evaluable by reading and remain unobserved.
+  **Where this was run, stated precisely.** The live working tree carries another session's
+  uncommitted edits under `specs/007-*` and `specs/008-*`. Under those edits the same command
+  reports `3063 passed, 1 failed` and exits 1, on an unrelated dependency-gate projection check
+  those edits cause. To observe committed state rather than a foreign session's in-flight work,
+  the command above was run in a clean detached worktree checked out at `6ff62f62c`:
+
+  ```
+  git worktree add --detach <tmp>/rl-head-clean 6ff62f62c
+  WORKTREE_HEAD=6ff62f62c
+  WORKTREE_PORCELAIN=[]        <-- empty: no uncommitted edits of any kind
+  ```
+
+  Both observations are recorded because both are true; neither is a substitute for the other.
+  The assertion under test reads only `market-brief.payload.json`, `tools.json`, `index.html`,
+  `rlnav.js` and `company-fundamentals-lab.html` — none of which the foreign edits touch — so its
+  result is identical in both trees. The differing tally is not this assertion.
+
+  **That "0 failed" covers this specific assertion, not merely the suite.** The harness makes the
+  inference exact rather than statistical:
+
+  ```
+  scripts/selftest.mjs:73
+    function assert(cond, msg) {
+      if (cond) { passes++; console.log('  ✓ ' + msg); }
+      else { failures++; console.log('  ✗ FAIL: ' + msg); }
+    }
+  ```
+
+  and the Scope 6 group is wrapped in `try { ... } catch (e) { failures++; ... }`. A false
+  assertion increments `failures`; a throw anywhere in the group before it also increments
+  `failures`. `failures === 0` therefore entails that this assert was reached and evaluated true —
+  it cannot be satisfied by the assertion being skipped.
+
+  **Both previously failing conjuncts are intact, not removed to obtain the pass.** Read at
+  `6ff62f62c`; note the assert has drifted from line 6319 to **line 6322** as unrelated work grew
+  the file, so the item's original line reference is stale while the conjuncts themselves are not:
+
+  ```
+  scripts/selftest.mjs:6321
+    const scope6NoRecommendationDisclosure = /no recommendation[^.]*\b(?:fabricat\w*|produced|generated|issued)\b/i;
+
+  scripts/selftest.mjs:6322 — the two conjuncts at issue, still ANDed into the same assert
+    && scope6Coverage[0].reason.includes('company-fundamentals-owner-v1')
+    && scope6NoRecommendationDisclosure.test(scope6Coverage[0].reason)
+  ```
+
+  The load-bearing point of this packet is that the payload moved to satisfy the assertion and not
+  the reverse. That is still demonstrable at `HEAD`, and the packet-range check reproduces exactly:
+
+  ```
+  $ git --no-pager diff --stat 7314777ef^ ee424df41 -- scripts/selftest.mjs
+  exit: 0   (empty output — byte-identical across the whole packet range)
+  ```
+
+  Extending the same check from the packet base all the way to `HEAD` is stronger still:
+
+  ```
+  $ git --no-pager diff --stat 7314777ef^ 6ff62f62c -- scripts/selftest.mjs
+   scripts/selftest.mjs | 12100 +++++++++++++++++++++++++++++++++++++++++++++++++
+   1 file changed, 12100 insertions(+)
+  ```
+
+  Zero deletions across a two-tree diff means every line of the old file still appears, in order, in
+  the new one — a modified assertion would have surfaced as one deletion plus one insertion. So no
+  assertion anywhere in the suite has been removed or rewritten since the packet base; the file only
+  grew, from 11 942 to 24 042 lines.
 
 - [x] Publish gate exits zero against the repaired committed payload — [T-10-R2]
 
@@ -500,13 +555,48 @@ only patched bytes would have been overwritten by the next cron run. It was not.
   build. The fix moved the payload to satisfy the assertion, never the assertion to accept the
   payload.
 
-- [ ] Repository selftest passes with no assertion removed, weakened, or skipped — [T-10-R4]
+- [x] Repository selftest passes with no assertion removed, weakened, or skipped — [T-10-R4]
 
-  **BLOCKED — not ticked.** Same blocker as T-10-R1: `node scripts/selftest.mjs` is red on 15
-  Feature 026 byte-budget failures filed as BUG-013, so a green repo-wide run is unavailable and
-  cannot be claimed. The "no assertion removed, weakened, or skipped" half of this item *is*
-  evidenced — `scripts/selftest.mjs` is byte-identical across the packet range, per T-10-R3 above —
-  but the "passes" half is unobserved, and half an item does not tick.
+  **Claim Source:** executed, this session. Both halves are now observed, which is what this item
+  always required — previously only the second half was evidenced and half an item does not tick.
+
+  **Half one — "passes".** Same execution as T-10-R1 above, at `6ff62f62c` in a clean detached
+  worktree (`WORKTREE_PORCELAIN=[]`):
+
+  ```
+  $ node scripts/selftest.mjs
+  ================================================
+  Research-Lab self-test: 3064 passed, 0 failed
+  ================================================
+  SELFTEST_EXIT=0
+  ```
+
+  The BUG-013 Feature 026 byte-budget failures that blocked this item are no longer present. As
+  recorded under T-10-R1, the live working tree carries another session's uncommitted `specs/007-*`
+  and `specs/008-*` edits, under which the same command reports `3063 passed, 1 failed`, exit 1, on
+  an unrelated dependency-gate projection check. That is a property of that session's in-flight
+  work, not of committed state, and both figures are stated here rather than the convenient one.
+
+  **Half two — "no assertion removed, weakened, or skipped".** Unchanged from T-10-R3 and re-run
+  here rather than cited from memory:
+
+  ```
+  $ git --no-pager diff --stat 7314777ef^ ee424df41 -- scripts/selftest.mjs
+  exit: 0   (empty output — byte-identical across the whole packet range)
+
+  $ git --no-pager diff --stat 7314777ef^ 6ff62f62c -- scripts/selftest.mjs
+   1 file changed, 12100 insertions(+)      <-- zero deletions, packet base → HEAD
+  ```
+
+  The packet changed nothing in the file, and from the packet base to `HEAD` the diff is insertion
+  only. Zero deletions is the precise form of the claim: no pre-existing assertion line was deleted,
+  and none was weakened either, since rewriting a line would appear as a deletion paired with an
+  insertion. The suite grew by 12 100 lines and gave up nothing.
+
+  Taken with T-10-R1, the direction of repair is confirmed rather than assumed. This assertion had
+  already been relaxed twice before the packet; the third time, the payload moved to meet the
+  assertion. A green suite whose assertion file is provably deletion-free is the only combination
+  that distinguishes a real fix from a fourth relaxation.
 
 - [x] Build Quality Gate: no other `toolCoverage` entry is modified; no absolute filesystem path is written into any committed file; the repair route taken is recorded in `report.md`
 
@@ -530,5 +620,16 @@ only patched bytes would have been overwritten by the next cron run. It was not.
      records that the **regenerate-through-the-fixed-pipeline** route was taken, not the targeted
      byte patch, and why the distinction is load-bearing.
 
-**Scope 3 tally: 4 of 6.** The two open items share one external blocker (BUG-013) and neither is a
-gap in this packet's own delivery. Scope 3 stays `In Progress` and the spec stays `in_progress`.
+**Scope 3 tally: 6 of 6** — re-baselined this session from the previous **4 of 6**.
+
+The two items that were open, T-10-R1 and T-10-R4, shared a single external blocker: `node
+scripts/selftest.mjs` was red on 15 Feature 026 byte-budget failures filed as BUG-013. That blocker
+is gone at `6ff62f62c`, the command now exits 0 at `3064 passed, 0 failed`, and both items were
+discharged on that execution rather than on the surrounding reasoning that stood in for it before.
+
+**The status line is deliberately still `In Progress`.** Every DoD item is discharged, but promoting
+the scope is a status transition, and a status transition is not a checkbox — it belongs to the
+state-transition guard and to `state.json`, which this session was instructed not to touch. Writing
+`Done` here while `state.json` still reads `in_progress` would manufacture exactly the artifact/state
+disagreement the guard exists to catch. The tally is corrected because it was a factual claim that
+had become false; the status is left because changing it is someone else's authority.

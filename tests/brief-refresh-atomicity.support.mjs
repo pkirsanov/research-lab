@@ -548,13 +548,14 @@ if (process.env.BUG002_NARRATIVE_MODE === 'post-write-hang' && lane === 'core') 
   execFileSync(process.execPath, ['scripts/build-attention-scorecard.mjs', '--as-of', `${baselineDate}T14:00:00Z`], { cwd: repoRoot, stdio: 'ignore' });
   execFileSync(process.execPath, ['scripts/build-brief-page-artifacts.mjs'], { cwd: repoRoot, stdio: 'ignore' });
 
-  runGit(repoRoot, ['init']);
-  runGit(repoRoot, ['checkout', '-b', 'main']);
+  // The initial branch is named explicitly so git emits no init.defaultBranch advice;
+  // that advice reaches the test transcript through inherited stderr.
+  runGit(repoRoot, ['init', '--initial-branch=main']);
   runGit(repoRoot, ['config', 'user.name', 'BUG-002 Fixture']);
   runGit(repoRoot, ['config', 'user.email', 'bug-002@invalid.example']);
   runGit(repoRoot, ['add', '--', '.']);
   runGit(repoRoot, ['commit', '-m', 'baseline coherent market brief']);
-  runGit(fixtureRoot, ['init', '--bare', remoteRoot]);
+  runGit(fixtureRoot, ['init', '--bare', '--initial-branch=main', remoteRoot]);
   runGit(repoRoot, ['remote', 'add', 'origin', remoteRoot]);
   runGit(repoRoot, ['push', '-u', 'origin', 'main']);
 

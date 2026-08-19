@@ -67,6 +67,66 @@ that `#dispositionComponentsBody` has zero rows, and that neither disposition le
 appears anywhere — so the whole gain is not repriced under the preferential model in
 the refusal's place.
 
+### BI-9 and BI-10 disjunction — mechanically derived in this session
+
+The DoD row asks that each figure `BI-9` and `BI-10` govern was **either** closed by
+a retrieval recorded with its own `retrievedAt` and locator, **or** ships as an
+`AbsentFigure/v1` whose component refuses. That disjunction is a completeness
+property of the shipped pack, so this session derived it over every leaf of
+`dispositionPolicy` rather than re-reading the prose above. Every leaf is
+classified into exactly one branch and no leaf falls outside both.
+
+Command, executed against `tax-rules/federal/2026.json` in this session:
+
+```
+$ node -e '<walk dispositionPolicy; classify each leaf as SOURCED or ABSENT;
+            SOURCED requires sourceRecords[sourceRef] to resolve and to carry
+            retrievedAt + retrievalOutcome="retrieved", and the member itself to
+            carry a non-empty locator; ABSENT requires code + domain +
+            missingSource + reason + remediation>'
+
+{"path":"dispositionPolicy.recaptureCategory","kind":"SOURCED","sourceRef":"irs-tc409","recordFound":true,"retrievedAt":"2026-08-17T19:03:51.000Z","retrievalOutcome":"retrieved","hasLocator":true}
+{"path":"dispositionPolicy.residenceExclusion.ownershipTest","kind":"SOURCED","sourceRef":"irs-p523-2025","recordFound":true,"retrievedAt":"2026-08-17T22:52:00.000Z","retrievalOutcome":"retrieved","hasLocator":true}
+{"path":"dispositionPolicy.residenceExclusion.useTest","kind":"SOURCED","sourceRef":"irs-p523-2025","recordFound":true,"retrievedAt":"2026-08-17T22:52:00.000Z","retrievalOutcome":"retrieved","hasLocator":true}
+{"path":"dispositionPolicy.residenceExclusion.maximumAmounts","kind":"SOURCED","sourceRef":"irs-p523-2025","recordFound":true,"retrievedAt":"2026-08-17T22:52:00.000Z","retrievalOutcome":"retrieved","hasLocator":true}
+{"path":"dispositionPolicy.residenceExclusion.maximumAmounts.amounts.head-of-household","kind":"ABSENT","code":"RLTAX-THRESHOLD-UNAVAILABLE","domain":"disposition:residenceExclusion:maximumAmounts:head-of-household","hasMissingSource":true,"hasReason":true,"hasRemediation":true}
+classified: 5 sourced: 4 absent: 1
+INCOMPLETE: 0 []
+DERIVATION_EXIT=0
+```
+
+**Non-vacuity — the derivation is proven able to fail.** The three probes below ran
+against in-memory deep clones of the parsed pack, so `tax-rules/federal/2026.json`
+was never written; `git status --short tax-rules/federal/2026.json` was empty before
+and after.
+
+```
+A. shipped pack           -> INCOMPLETE = 0
+B. locator removed        -> INCOMPLETE = 1 [{"path":"dispositionPolicy.recaptureCategory","kind":"SOURCED","ok":false}]
+C. absent-figure gutted   -> INCOMPLETE = 1 [{"path":"dispositionPolicy.residenceExclusion.maximumAmounts.amounts.head-of-household","kind":"ABSENT","ok":false}]
+D. absence replaced by a borrowed 250000 -> ABSENT count = 0
+shipped-pack ABSENT count = 1
+```
+
+Probe B proves a sourced figure without its own locator is caught. Probe C proves a
+hollow absence is caught. Probe D is the borrowing case the row exists to forbid:
+substituting the single amount for the head-of-household absence drops the
+`AbsentFigure/v1` count from 1 to 0, so the shipped pack's retained absence is a
+positive fact rather than the default.
+
+**Retrieval window.** Both `retrievedAt` values (`2026-08-17T19:03:51Z` and
+`2026-08-17T22:52:00Z`) precede the authoring of the commit that introduced this
+feature, `b9d92a3f1` at `2026-08-18T12:17:13-07:00`, which is consistent with the
+retrievals having been performed while the implementation was in progress. This
+session performed no new primary-source retrieval and re-verified no figure against
+a live authority; it verified that every figure is recorded on one of the two
+branches the row allows, and that neither branch can be satisfied vacuously.
+
+**Both refusal branches green.** `node scripts/selftest.mjs` — `3011 passed, 0
+failed`, exit `0`, covering `TP-05-07` and `TP-05-13`; the browser branches
+`TP-05-22` and `TP-05-23` are recorded under
+`#browser-rows--intended-red-observed-in-this-session`.
+
 ## Test Evidence
 
 ### Shared unit run

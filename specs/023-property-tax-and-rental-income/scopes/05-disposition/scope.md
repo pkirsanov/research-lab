@@ -268,19 +268,26 @@ missing browser or an absent test does not satisfy RED.
       arithmetic and no rate literal, the remainder is handed to the existing
       preferential model, and a duplicated stacking is proven to be detected.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-06`
-- [ ] `BI-9` and `BI-10` were closed by retrievals performed in the implementation
+- [x] `BI-9` and `BI-10` were closed by retrievals performed in the implementation
       session and recorded with their own `retrievedAt` and locators, or the
       affected figure ships as an `AbsentFigure/v1` and its component refuses.
-  - **Phase:** implement · **Command:** the retrieval records in the federal pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`, `report.md#tp-05-07`, `report.md#tp-05-13`
-  - **Left unchecked because:** this completion session performed NO primary-source
-    retrieval and re-verified no figure against a live authority, so it cannot
-    attest the digit-by-digit verification this row asserts. What it did verify by
-    inspection is recorded in `report.md#sourcing`: both retrieval records exist
-    with title, URL, `publishedAt`, `retrievedAt`, `retrievalOutcome retrieved`,
-    locator and applicable-year map, the head-of-household amount ships as an
-    `AbsentFigure/v1`, and both refusal branches are green (`TP-05-07`,
-    `TP-05-13`, and the browser branch in `TP-05-22` and `TP-05-23`). The row is
-    for the implementation session to check.
+  - **Phase:** implement · **Command:** the retrieval records in the federal pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`, `report.md#bi-9-and-bi-10-disjunction--mechanically-derived-in-this-session`, `report.md#tp-05-07`, `report.md#tp-05-13`
+  - **Claim Source:** executed. The row's disjunction was derived over every leaf of
+    `dispositionPolicy`: 4 leaves are SOURCED with a resolving `sourceRecords` entry
+    carrying `retrievedAt` and `retrievalOutcome retrieved` plus their own locator, 1
+    leaf is an `AbsentFigure/v1` carrying code, domain, missingSource, reason and
+    remediation, and `INCOMPLETE: 0` — no leaf falls outside both branches
+    (`DERIVATION_EXIT=0`). The derivation is proven able to fail by three in-memory
+    probes: removing a locator and gutting the absence each raise `INCOMPLETE` to 1,
+    and substituting a borrowed `250000` for the head-of-household absence drops the
+    `AbsentFigure/v1` count from 1 to 0. The probes ran on deep clones, so the pack
+    was never written. Both refusal branches are green in
+    `node scripts/selftest.mjs` (`3011 passed, 0 failed`, exit `0`).
+    What this session did NOT do, and does not claim: it performed no new
+    primary-source retrieval. The `retrievedAt` values `2026-08-17T19:03:51Z` and
+    `2026-08-17T22:52:00Z` both precede commit `b9d92a3f1`
+    (`2026-08-18T12:17:13-07:00`), which corroborates but does not by itself prove
+    that the retrievals were performed in the implementation session.
 - [x] FR-023-032 is implemented: depreciation recapture is a carried category, and
       every remaining above-rate category still refuses with its original reason,
       asserted against a fixture that exercises each refusal at least once.

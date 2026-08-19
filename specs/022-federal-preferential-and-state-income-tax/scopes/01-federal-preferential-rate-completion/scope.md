@@ -210,7 +210,7 @@ leave a red suite at the end of Scope 01. Scope 01 touches only the SUP-022-13
 expectation in that file; Scope 02 later touches only the three SUP-022-08
 expectations; neither may touch the other's.
 
-**Excluded — must remain byte-identical:** `rlportfolio.js` ·
+**Excluded — this scope must not change any of these:** `rlportfolio.js` ·
 `rlportfolioanalytics.js` · `portfolio-survival-allocation.config.json` ·
 `specs/008-portfolio-survival-and-brief-lab/**` · `specs/021-*/**` · `tools.json` ·
 `index.html` · `rlnav.js` · `README.md` · `notes/README.md` · `market-brief.*` ·
@@ -224,6 +224,35 @@ Every file in the excluded list carries **no** `SUP-022-*` marker owned by this
 scope, per the [per-file marker distribution](../../design.md#per-file-marker-distribution).
 That is the test for membership, and it is what keeps the boundary and the ledger
 from contradicting each other again.
+
+### Excluded-Path Groups
+
+The excluded list is not one kind of path, and one test cannot decide all of it.
+DoD item 11 limb 1(b) decides each group on its own terms.
+
+**Group E1 — frozen product surfaces.** `rltax.js` · `rltaxworkspace.js` ·
+`rltaxstrategy.js` · `tests/lifetime-tax-conversion.spec.mjs` ·
+`tests/lifetime-tax.support.mjs` · `rlportfolio.js` · `rlportfolioanalytics.js` ·
+`portfolio-survival-allocation.config.json` · every framework-managed file. The
+lifetime-tax engine and workspace modules, the two Feature 021 test files this
+scope did not open, and Feature 008's module, analytics and pack. No automation
+writes any of them and no other active feature arc has business in them, so a
+commit touching one is this scope's to explain whatever its subject claims.
+
+**Group E2 — shared registry and generated surfaces.** `tools.json` ·
+`index.html` · `rlnav.js` · `site-exclusions.json` · `scripts/build-pages-site.mjs` ·
+`scripts/validate-spec-test-paths.baseline` · `watchlist.json` · `market-brief.*` ·
+`briefs/**` · `data/**`. These churn under foreign work by design: a new tool
+registers itself in the registry trio, the brief refresh rewrites the brief and
+data files on a schedule, and any feature may prune the spec-test-path baseline.
+Freezing them would break this scope's plan every time an unrelated session
+commits, which is the defect finding **F-01-N** already recorded once.
+
+**Group E3 — foreign evidence and documentation.**
+`specs/008-portfolio-survival-and-brief-lab/**` · `specs/021-*/**` · `README.md` ·
+`notes/README.md`. Evidence records and prose, not product. A verification session
+legitimately records two features' evidence in one commit, so co-membership in a
+commit carries no boundary signal here.
 
 `rltax.js` is excluded deliberately. This scope supplies a table the engine was
 already written to consume; if the engine needs a change to consume it, the
@@ -377,25 +406,62 @@ RED.
       Feature 022's entire subject is tax rules and their provenance, so an
       uncommitted hunk carrying none of it is not this scope's.
 
-      *(b) History.* `git log b9d92a3f1..HEAD` restricted to the excluded list
-      yields the commits that moved an excluded path; the same command restricted
-      to `specs/022-federal-preferential-and-state-income-tax/**` yields this
-      feature's commits. The two sets must be disjoint, and every commit in the
-      first set must carry a subject attributing it to work other than Feature 022.
-      A commit attributable to Feature 022, or attributable to nothing at all,
-      fails the limb. A merge commit is exempt from the subject clause only when
+      *(b) History.* Decided per [excluded-path group](#excluded-path-groups),
+      because one test cannot decide three kinds of path. No clause turns on a
+      commit subject: subjects are self-declared prose, and a breach is free to
+      describe itself however it likes.
+
+      **E1 — frozen product surfaces. Absolute.** `git log b9d92a3f1..HEAD`
+      restricted to group E1 must return **no commits at all**. This is the clause
+      that catches a module, a pack or a forbidden test file crossing the boundary,
+      and it needs no attribution judgement to do it: those paths have no
+      legitimate writer during this scope's arc, so movement is the finding.
+
+      **E2 — shared registry and generated surfaces. Attribution by path.** The
+      commit set touching group E2 must be disjoint from the commit set touching
+      this scope's **exclusive owned product surfaces** — `rltaxrules.js`,
+      `tax-rules/federal/**`, `lifetime-tax-strategy-lab.html`, this scope's
+      fixtures and this scope's Playwright spec — and no commit may add a line
+      matching `SUP-022-` to any E2 path. `scripts/selftest.mjs` and the four
+      opened Feature 021 test files are deliberately **not** attribution signals
+      here: every feature arc writes them, so their presence in a commit proves
+      nothing about who owns it.
+
+      **E3 — foreign evidence and documentation. No requirement capture.**
+      Commit-set disjointness is **not** asserted for E3 and carries no boundary
+      signal there. The property that matters is that Feature 022 never rewrote
+      another feature's requirements to suit itself. For every commit touching both
+      `specs/022-federal-preferential-and-state-income-tax/**` and a group E3 path,
+      the diff restricted to E3 must add no line matching `SUP-022-`, must delete or
+      reword no requirement line — no `**FR-`, no `**NFR-`, and no DoD requirement
+      text — must flip no checkbox from `[x]` to `[ ]`, and must accompany every
+      `[ ]`→`[x]` flip with an added `Claim Source:` line in the same file. Ticking
+      another feature's DoD without evidence, or relaxing its requirement text,
+      fails.
+
+      *Merges.* A merge commit is exempt from all three clauses only when
       `git show --name-only <merge>` restricted to the excluded list is empty,
       proving it introduced no excluded-path change of its own.
 
-      *Why this stays falsifiable.* A real Feature 022 edit to an excluded path
-      cannot pass. Left uncommitted it carries tax-domain content or a `SUP-022`
-      marker and fails (a). Committed alongside this scope's own artefacts — the
-      shape every Feature 022 commit in this range has — it puts one commit in both
-      sets and fails (b)'s disjointness. Committed alone under a Feature 022
-      subject it fails (b)'s subject clause, and committed alone under no
-      attribution at all it fails (b)'s attribution clause. What the limb no longer
-      asserts is that a named list of foreign commits is exhaustive, which was
-      never the property it was protecting.
+      *Why this stays falsifiable — the case the superseded wording could not
+      decide.* A session doing Feature 022 work edits `rltax.js` so the engine
+      consumes the new `RateTable/v2`, and commits it **alone** under
+      `fix(engine): accept the v2 rate table shape` — no Feature 022 spec file, no
+      `SUP-022` marker. Under whole-list disjointness that commit joins only one of
+      the two sets, so disjointness passes, and all that stands between it and a
+      tick is a reading of its subject prose, which names no feature and can be
+      argued either way. Under E1 it fails on the first command, because `rltax.js`
+      moved at all. That is this scope's most consequential forbidden edit — the
+      Change Boundary excludes `rltax.js` precisely because an engine change means
+      the contract is wrong — and the restated limb is the first version of it that
+      catches the edit without asking anyone's opinion of a commit message.
+
+      The other shapes still fail too. Left uncommitted, an edit carries tax-domain
+      content or a `SUP-022` marker and fails (a). Committed alongside this scope's
+      own product files, an E2 edit fails E2's owned-surface disjointness. A
+      Feature 021 requirement quietly relaxed to make this scope's job easier fails
+      E3. What the limb no longer asserts is that two commit sets are disjoint
+      across paths where co-membership was never evidence of anything.
 
       **Limb 2 — confinement.** The `SUP-022-NN` census over the five opened files
       equals the distribution
@@ -416,21 +482,47 @@ RED.
       SCN-021-015 pass in full under titles the `--grep` contract still matches. A
       Feature 021 expectation silently changed outside a marker moves one of those
       results and fails this limb.
-  - **Phase:** implement · **Command:** `git diff` and `git diff --cached` over the excluded list, `git log b9d92a3f1..HEAD` over the excluded list and over `specs/022-federal-preferential-and-state-income-tax/**`, a `SUP-022-NN` census over the five opened files, `node scripts/selftest.mjs`, and `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-" --reporter=list` · **Evidence:** `report.md#change-boundary`, `report.md#tp-01-16`
-  - **Not closed.** Finding **F-01-Q**: limbs 1(a), 2 and 3 all HOLD at verification
-    pass 5 — the only dirty excluded path carries no `SUP-022` marker and no
-    tax-domain content, the marker census matches the assigned distribution exactly
-    in both directions, and all sixteen Feature 021 browser scenarios pass. Limb
-    1(b) **fails on a commit that exists**: `1a2f1c00b` (`docs(021,022): record DoD
-    evidence`) is a non-merge commit appearing in **both** required-disjoint sets,
-    because it moved four Feature 021 `report.md`/`scope.md` evidence files together
-    with Feature 022's `design.md`. No product surface and no tax behaviour crossed
-    the boundary, but the limb's disjointness test is structural and cannot see that.
-    The limb was deliberately **not** rewritten to dissolve the failure — it has
-    already been superseded at F-01-H and F-01-N, and a third supersession made to
-    absorb a failure found while testing it would leave it unfalsifiable. The
-    requirement-text decision belongs to `bubbles.plan`. See
-    `report.md#verification-pass-5--2026-08-19--dod-item-11-limbs-1a-2-and-3-hold-limb-1b-fails-on-a-real-overlap-finding-f-01-q`.
+  - **Phase:** implement · **Command:** `git diff` and `git diff --cached` over the excluded list, `git log b9d92a3f1..HEAD` over group E1, over group E2 against this scope's owned product surfaces, and over group E3 against `specs/022-federal-preferential-and-state-income-tax/**`, a `SUP-022-NN` census over the five opened files, `node scripts/selftest.mjs`, and `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-" --reporter=list` · **Evidence:** `report.md#change-boundary`, `report.md#tp-01-16`
+  - **Open — limb 1(b) restated, not yet re-verified.** Finding **F-01-Q** stands
+    as recorded: against the wording it tested, limb 1(b) genuinely failed, and
+    `bubbles.test` was right to leave it open rather than dissolve it. The
+    requirement-text decision it routed here is taken: **limb 1(b) was testing the
+    wrong property**, and the restatement above tests the right one. The item stays
+    `[ ]` until `bubbles.test` re-runs all four limbs against the restated text and
+    records the result. Limbs 1(a), 2 and 3 were verified to hold at verification
+    pass 5 and are not disturbed by this change.
+  - **Why limb 1(b) no longer uses whole-list disjointness.** The superseded
+    wording used commit-set disjointness as a proxy for *no product surface of one
+    feature was changed by the other*. The proxy assumed commit membership is a
+    reliable attribution signal, and it is not — the excluded list mixes product
+    modules with **another feature's evidence directory**, and one verification
+    session recording two features' DoD evidence puts a commit in both sets while
+    nothing product crossed anything. `1a2f1c00b` is exactly that commit: four
+    Feature 021 `report.md`/`scope.md` files closing Feature 021's own DoD with
+    Feature 021's own executed evidence, plus this feature's `design.md`.
+    It carries zero `SUP-022` markers in the excluded paths.
+
+    The proxy was not merely over-broad, which alone would not justify touching it
+    a third time. It was also **weak in the direction the item exists to protect**.
+    Its only defence against a Feature 022 edit to an excluded module committed on
+    its own was a clause asking whether the commit subject "attributes it to work
+    other than Feature 022" — a judgement about self-declared prose, made about the
+    one artefact a breach fully controls. A limb that false-positives on harmless
+    documentation and can be talked past on a real module edit is failing in both
+    directions, and restating it is a correction rather than a convenience.
+
+    The restatement is strictly harder to satisfy accidentally. Group E1 admits
+    **no** commit at all across the lifetime-tax engine and workspace modules, the
+    two forbidden test files, and Feature 008's module, analytics and pack — where
+    the superseded wording admitted any commit whose subject read plausibly. Group
+    E2 replaces that prose judgement with path arithmetic against this scope's own
+    product surfaces plus a marker test. Group E3 stops asserting a disjointness
+    that was never evidence, and asserts instead the property that documentation
+    boundary actually protects — no requirement of another feature deleted,
+    reworded, un-ticked, or ticked without an accompanying `Claim Source:` line.
+    Each clause is a command over the tree as it stands, and none needs a
+    pre-scope baseline the repository does not contain. This supersedes the wording
+    that produced finding **F-01-Q**.
   - **Why this shape.** The superseded wording asked for a per-expectation diff
     against a pre-scope original and for unqualified byte-identity. Neither is
     decidable here. `b9d92a3f1` is the only commit that has ever touched the four

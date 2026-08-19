@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** Not started
+**Status:** In progress — 4 of 12 Definition of Done rows satisfied
 **Scope-Kind:** runtime-behavior
 **Tags:** `capability:jurisdiction-axis`, `sourced-zero:true`, `sourcing-gated:true`, `known-value-tested`
 **Depends On:** 01, 02
@@ -251,31 +251,59 @@ error, a missing browser or an absent test does not satisfy RED.
 
 ### Definition of Done
 
-- [ ] FR-022-015 is implemented: jurisdiction is a pack field expressed as a
+- [x] FR-022-015 is implemented: jurisdiction is a pack field expressed as a
       pattern, and no module holds a state name or postal code.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-02`, `report.md#tp-03-16`
+  - **Evidence:** intended RED then same-command GREEN for both anchors. Widening
+    the grammar to accept a lowercase postal code fell TP-03-02 alone
+    (`3090 passed, 2 failed`); planting a state name in the state module fell
+    TP-03-16 and its Scope 04 sibling (`3089 passed, 3 failed`). Both reverted
+    under a trap inside the applying invocation, both returned to
+    `3091 passed, 1 failed`.
 - [ ] The refusal vocabulary gained exactly two members, every Feature 021 member
       retains its exact meaning and raising site, and exactly one declaration
       exists in the repository.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-01`
-- [ ] FR-022-016 through FR-022-018 are implemented: undeclared residency,
+- [x] FR-022-016 through FR-022-018 are implemented: undeclared residency,
       unshipped state and unsupported residency pattern each refuse under their
       own code with their own remediation, and the separation is proven by an
       adversarial mutation.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-07`, `report.md#tp-03-08`, `report.md#tp-03-09`, `report.md#tp-03-11`
+  - **Evidence:** two intended-RED mutations, each reverted under a trap inside the
+    applying invocation. Rerouting the residency-pattern raise through
+    `RLTAX-JURISDICTION-UNSUPPORTED` — the scope's named intended-RED — fell
+    TP-03-08 and TP-03-09 (`3090 passed, 2 failed`). Swapping the
+    undeclared-residency raise to the jurisdiction code fell TP-03-07 and TP-03-11
+    together (`3089 passed, 3 failed`), proving each pins its specific code. Both
+    same-command GREEN runs returned `3091 passed, 1 failed`.
 - [ ] `BI-5` was closed by a retrieval performed in the implementation session and
       recorded with its own `retrievedAt`, or the Florida pack ships
       `imposesIndividualIncomeTax` as an `AbsentFigure/v1` and the sourced-zero
       path is proven by the fixture pack instead.
   - **Phase:** implement · **Command:** the retrieval record in the pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`
-- [ ] FR-022-019 is implemented: a sourced zero validates only with the literal
+- [x] FR-022-019 is implemented: a sourced zero validates only with the literal
       zero and a citation, the route branches on the contract version rather than
       on the value, and a bare zero is proven to fail.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-04`, `report.md#tp-03-05`, `report.md#tp-03-10`, `report.md#tp-03-12`
-- [ ] FR-022-020 and FR-022-021 are implemented: a pack declaring no preferential
+  - **Evidence:** three intended-RED mutations, each reverted under a trap inside
+    the applying invocation. Dropping the locator clause fell TP-03-04; rewriting
+    the discriminator to branch on `value === 0` fell TP-03-10 with TP-03-11;
+    disabling the no-tax leg-set and rate-table rules fell TP-03-05. Two earlier
+    mis-aimed mutations are recorded as misses under TP-03-05, one of which
+    exposed a rule no assertion exercises. This item covers the contract; whether
+    the Florida figure fed to it is soundly sourced is `BI-5`, which is left open.
+- [x] FR-022-020 and FR-022-021 are implemented: a pack declaring no preferential
       treatment prices pooled preferential income in its ordinary schedule with no
       engine branch, and each relief mechanism is applied at its declared point.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-06`, `report.md#tp-03-13`
+  - **Evidence:** two intended-RED mutations, each reverted under a trap inside the
+    applying invocation. Disabling the relief kind/application-point coherence rule
+    fell TP-03-06 with its Scope 04 sibling (`3090 passed, 3 failed`). Narrowing
+    the pooled base to drop long-term gain fell TP-03-13 alone
+    (`3091 passed, 2 failed`). A first mutation aimed at TP-03-13 missed and is
+    recorded: the row reads the fixture directly, so the validator is not its
+    lever, and that mutation fell the Scope 04 row instead. Both same-command
+    GREEN runs returned `3092 passed, 1 failed`.
 - [ ] `computeAnnualStateTax` accepts no federal figure through any parameter and
       reconciliation leg `L7` holds for every fixture.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-14`

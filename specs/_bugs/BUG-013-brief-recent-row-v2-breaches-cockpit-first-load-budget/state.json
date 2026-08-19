@@ -1,0 +1,229 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-013-brief-recent-row-v2-breaches-cockpit-first-load-budget",
+  "featureName": "BUG-013 The v2 Recent Row Breaches The Cockpit First-Load Byte Budget, And Will Breach It Far Worse",
+  "createdAt": "2026-08-19T00:00:00Z",
+  "lastUpdatedAt": "2026-08-19T00:00:00Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "priorBlockedReason": null,
+  "blockedReasonResolved": null,
+  "crossFeatureEditAuthorization": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "priorPlanningOnlyJustification": null,
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": "specs/026-actionable-brief-brevity-and-cross-asset",
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "9af68427b",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": "bug",
+    "currentPhaseStatus": "complete",
+    "phaseReconciliation": null,
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-19T00:00:00Z",
+    "completedAt": null,
+    "substate": "filed",
+    "currentScope": null,
+    "nextRequiredOwner": "feature-026-owner",
+    "nextRequiredTarget": "specs/_bugs/BUG-013-brief-recent-row-v2-breaches-cockpit-first-load-budget/scopes.md#scope-1-adjudicate-the-recent-row-payload-contract",
+    "nextRequiredReason": "Scope 1 is a product decision and is not agent-dischargeable. compactRow()'s doc comment holds two deliberate, documented, incompatible intentions: it excludes per-instrument content from the compact projection because that content is what made the predecessor artifact unaffordable, and Feature 026 Scope 3 added per-instrument content so that 'what changed since I last told you' is answerable without a refetch. `tracked` is per-instrument data and is 72% of a v2 row. design.md enumerates four candidate remedies with measured costs and selects none, because selecting one inside a filing task would prejudge a tradeoff between a product property and a page-weight budget. Scopes 2 and 3 both depend on Scope 1, since the byte target and the artifact's shape follow from which intention yields. Building Scope 2 first would select the remedy by implementing one.",
+    "phaseClaimNote": "currentPhase is 'bug' with currentPhaseStatus 'complete' and substate 'filed'. The bug phase produced the full artifact set and nothing else. No source file was modified, nothing was committed, and no Definition of Done item in scopes.md is ticked. completedPhaseClaims records the bug phase as an execution claim only. certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write, and no independent party has re-derived these measurements.",
+    "completedPhaseClaims": [
+      {
+        "phase": "bug",
+        "agent": "bubbles.bug",
+        "claimedAt": "2026-08-19T00:00:00Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scopeId": "01-adjudicate-the-recent-row-payload-contract",
+        "scope": 1,
+        "status": "Not Started",
+        "dependsOn": []
+      },
+      {
+        "scopeId": "02-bring-the-first-load-payload-inside-budget-at-steady-state",
+        "scope": 2,
+        "status": "Not Started",
+        "dependsOn": [
+          "01-adjudicate-the-recent-row-payload-contract"
+        ]
+      },
+      {
+        "scopeId": "03-give-the-recent-artifact-a-byte-bound-that-binds",
+        "scope": 3,
+        "status": "Not Started",
+        "dependsOn": [
+          "01-adjudicate-the-recent-row-payload-contract"
+        ]
+      }
+    ],
+    "audit": null
+  },
+  "defect": {
+    "severity": "High",
+    "surface": "scripts/validate-tool-experience.mjs briefFirstLoad inventory",
+    "measuredAtCommit": "9af68427b",
+    "greenReferenceCommit": "0f61d1a14",
+    "enablingCommit": "3855ee75d",
+    "firstLoadBytesMeasured": 209387,
+    "firstLoadBytesGreenReference": 197756,
+    "firstLoadMaxBytes": 204800,
+    "overageBytes": 4587,
+    "dominantContributor": "brief-history.recent.jsonl",
+    "contributorDeltaBytes": 10848,
+    "contributorShareOfGrowth": "93%",
+    "recentRowsAtBothCommits": 30,
+    "bytesPerRowV1": 397,
+    "bytesPerRowV2": 4939,
+    "perRowGrowthFactor": "12.4x",
+    "rowsCarryingV2AtFiling": 2,
+    "projectedContributorBytesAtFullTurnover": 148410,
+    "projectedFirstLoadBytesAtFullTurnover": 336791,
+    "projectedOverageBytes": 131991,
+    "projectedOverageFactor": "1.64x",
+    "measurementNote": "Every figure in this block was re-derived at filing time from committed blobs at 0f61d1a14 and 9af68427b and from the working tree at 9af68427b. The projection uses the largest observed v2 row at 4,947 bytes. The operator's prior-execution measurement in the same session reported a v2 row at 5,426 bytes and a projection near 163 KB; the artifact is cron-regenerated so the two v2 rows differ between measurements. The 9% difference changes no conclusion and is recorded in report.md rather than reconciled silently."
+  },
+  "terminalTransitionBlockers": [
+    "Scope 1 is undecided and is not agent-dischargeable. The remedy is a tradeoff between two documented, deliberate, incompatible intentions recorded in the same doc comment above compactRow(). Feature 026's owner selects; this packet enumerates four candidates and selects none.",
+    "No Definition of Done item in scopes.md is ticked, and none should be. Nothing has been designed, built, or tested.",
+    "The defect is live at HEAD and worsening without further code change. 28 of 30 recent rows have not yet been repriced to the v2 contract, so the overage rises on every scheduled refresh until the window fully turns over.",
+    "Gate G136 human acceptance is not established. uservalidation.md carries no delivered behaviour to exercise, its Checklist items are unticked, and its Human Acceptance Record is unfilled. Automation cannot supply acceptance.",
+    "No independent party re-derived any measurement. certification.certifiedCompletedPhases is empty because phase certification belongs to bubbles.validate."
+  ],
+  "knownLimitation": {
+    "statement": "The defect is established by executed measurement; the remedy is deliberately absent. What is established: the payload is 4,587 bytes over budget at HEAD, projects to 131,991 bytes over at full turnover, the dominant contributor is `tracked` at 72% of a v2 row, the enabling commit is 3855ee75d, and both the 30-row cap and the per-file byte cap are incapable of containing it. What is not established: which remedy to apply, whether candidate 2 can reach the budget by encoding alone, and what per-instrument byte cost is acceptable. Candidate 1 is shown insufficient on its own, landing near 229,841 bytes.",
+    "recordedIn": [
+      "bug.md 'Candidate Remedies — Enumerated, Not Chosen'",
+      "design.md 'Candidate Remedies' and 'Open Questions For The Owner'",
+      "report.md 'Completion Statement'",
+      "scopes.md Scope 1, marked not agent-dischargeable"
+    ],
+    "whyNotClosedHere": "The filing task explicitly forbade implementation and named the remedy as a product tradeoff for Feature 026's owner. Choosing inside a filing task would prejudge it. Both intentions in conflict are documented and reasoned, and neither has been shown wrong, so there is no correct answer an agent could derive from the evidence alone.",
+    "consequenceForStatus": "status is in_progress with certification.status equal to it. All three scopes are Not Started and zero Definition of Done items are ticked, which is the accurate representation of a filed, unstarted packet."
+  },
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "certificationFieldWriteNote": "certification.status was set equal to the top-level status. It reads in_progress because the packet is filed and unstarted: three scopes Not Started, zero Definition of Done items ticked, no remedy chosen. completedScopes is empty. certifiedCompletedPhases stays EMPTY: phase certification is bubbles.validate's to write, and no independent party re-derived any measurement in report.md.",
+    "scopeProgress": [
+      {
+        "scopeId": "01-adjudicate-the-recent-row-payload-contract",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 5
+      },
+      {
+        "scopeId": "02-bring-the-first-load-payload-inside-budget-at-steady-state",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 8
+      },
+      {
+        "scopeId": "03-give-the-recent-artifact-a-byte-bound-that-binds",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 5
+      },
+      {
+        "scopeId": "cross-scope",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 5
+      }
+    ]
+  },
+  "completedScopes": [],
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-08-19T00:00:00Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "filed",
+      "note": "Filed the first-load byte budget breach against executed measurement at 9af68427b. Re-derived every byte and row figure from committed blobs rather than restating the reported values, corrected the prior framing that no code changed in the measurement window by identifying 3855ee75d as the enabling commit, and recorded a 9% discrepancy between the operator's v2 row measurement and this one rather than reconciling it silently. Enumerated four candidate remedies and selected none. No source file was modified and nothing was committed."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "addressedFindings": [],
+  "unresolvedFindings": [
+    {
+      "id": "BUG-013-F1",
+      "summary": "The cockpit first-load payload is 209,387 bytes against a 204,800 budget at 9af68427b, failing 15 selftest assertions.",
+      "owner": "feature-026-owner",
+      "routedTo": "scopes.md Scope 2"
+    },
+    {
+      "id": "BUG-013-F2",
+      "summary": "The overage projects to 131,991 bytes at full recent-window turnover, roughly 29x what is visible today, with no further code change required. This refutes raising briefFirstLoadMaxBytes.",
+      "owner": "feature-026-owner",
+      "routedTo": "scopes.md Scope 2"
+    },
+    {
+      "id": "BUG-013-F3",
+      "summary": "compactRow()'s doc comment holds two documented, deliberate, incompatible intentions: it excludes per-instrument content, and Feature 026 Scope 3 added per-instrument content for the no-refetch property. Neither has been shown wrong.",
+      "owner": "feature-026-owner",
+      "routedTo": "scopes.md Scope 1"
+    },
+    {
+      "id": "BUG-013-F4",
+      "summary": "The retention policy bounds rows (30, which held exactly) but not bytes. briefHistoryRecentMaxBytes is 204,800, identical to briefFirstLoadMaxBytes, so one file of seven may consume the whole payload allowance and the per-file guard can never fire before the aggregate guard.",
+      "owner": "feature-026-owner",
+      "routedTo": "scopes.md Scope 3"
+    }
+  ]
+}

@@ -80,6 +80,7 @@
       "label": "Options term and skew structure",
       "ownerToolId": "options-structure-lab",
       "ownerDeepLink": "options-structure-lab.html",
+      "ownerSubjectParam": "ticker",
       "freshnessWindowDays": 3,
       "maxHorizon": "event"
     },
@@ -88,6 +89,7 @@
       "label": "Dealer gamma positioning",
       "ownerToolId": "gamma-trading-lab",
       "ownerDeepLink": "gamma-trading-lab.html",
+      "ownerSubjectParam": "ticker",
       "freshnessWindowDays": 3,
       "maxHorizon": "tactical"
     },

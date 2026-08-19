@@ -10,7 +10,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { test, expect } from './playwright-runtime.mjs';
 import { startStaticServer } from './provider-credentials.support.mjs';
 
@@ -129,9 +129,26 @@ test('an owned dimension renders a deep link whose target is a registered route'
     expect(linkCount).toBeGreaterThan(0);
 
     const targets = await links.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('href')));
+    /* A deep link that opened the owning tool on some OTHER subject would answer the reader's
+       question about a different company, so the target is checked in two halves: the path is
+       a registered route, and the query — when the owner declares it reads one — names the
+       company the reader is actually looking at. */
+    const openedCompany = new URL(page.url()).searchParams.get('symbol') || 'MSFT';
+    let carried = 0;
     for (const target of targets) {
-        expect(REGISTERED_PAGES.has(target), `${target} is a registered route`).toBe(true);
+        const [path, query] = target.split('?');
+        expect(REGISTERED_PAGES.has(path), `${path} is a registered route`).toBe(true);
+        /* Non-negotiable: the href never grows an origin. A scheme, an absolute URL or a
+           protocol-relative prefix would execute or navigate off-site under this page's
+           script-src 'unsafe-inline' CSP. */
+        expect(target).toMatch(/^[A-Za-z0-9._-]+\.html(\?[A-Za-z][A-Za-z0-9_]*=[A-Za-z0-9%._-]+)?$/);
+        expect(new URL(target, page.url()).origin).toBe(new URL(page.url()).origin);
+        if (query !== undefined) {
+            carried += 1;
+            expect(new URLSearchParams(query).get('ticker')).toBe(openedCompany);
+        }
     }
+    expect(carried, 'at least one owner route opens on the company being read').toBeGreaterThan(0);
 
     /* Every row without an owner renders a sentence instead of a link, and the two sets partition
        the registry exactly. */
@@ -1045,3 +1062,255 @@ test('Chaos: a background corpus paint does not close a deep dive the reader ope
         .evaluateAll((nodes) => nodes.filter((node) => node.open).length);
     expect(openCount, 'the carry-over opened dives the reader never touched').toBe(1);
 });
+
+/* ── VAL-READY-07 · no server at all ─────────────────────────────────────────────────────── */
+test('the route reaches its first paint from a file:// origin with no server and no off-origin request', async ({ page }) => {
+    /* Every other browser assertion in this file serves the route over HTTP. This repository is
+       build-free and its pages are meant to work from a bare checkout opened straight off disk,
+       so a reader with no server and no toolchain is a supported reader — and until this test
+       existed nothing proved the route survives that origin. The precedent is
+       tests/market-brief-cockpit.spec.mjs, `expanding a block from a file:// origin requires no
+       network call, no credential and no build step`; this follows its shape. */
+    test.setTimeout(90_000);
+
+    /* Build-free, checked at the source: one `type="module"` tag would make the page depend on
+       ES-module resolution, which is exactly what a bare file:// checkout cannot supply. */
+    expect(ROUTE_SOURCE, 'the route must load classic scripts, not ES modules')
+        .not.toMatch(/<script[^>]*type=["']module["']/);
+
+    const requests = [];
+    const runtimeErrors = [];
+    page.on('request', (request) => requests.push(request.url()));
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+
+    await page.goto(pathToFileURL(join(ROOT, ROUTE)).href);
+
+    /* First paint is the composed cockpit: the run status the route sets when it has actually
+       composed its horizons. A refusal banner is not a first paint — it is the page telling the
+       reader it could not do its job. */
+    await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
+    await expect(page.locator('#cockpit-horizons [data-horizon]')).toHaveCount(4);
+    await expect(page.locator('#cockpit-horizons [data-horizon-summary]')).toHaveCount(4);
+    const summary = await page.locator('#cockpit-horizons [data-horizon-summary]').first().textContent();
+    expect(summary.trim().length, 'the first paint must carry readable copy, not an empty region')
+        .toBeGreaterThan(20);
+    expect(runtimeErrors, `runtime errors: ${runtimeErrors.join(' | ')}`).toEqual([]);
+
+    /* The invariant is ORIGIN, not request count: a committed same-origin file the route reads
+       off disk is the design. A cross-origin or credentialed request is the real defect, because
+       it is what would break the reader who has no network and no key. */
+    const offOrigin = requests.filter((url) => !url.startsWith('file://'));
+    expect(offOrigin, `the route must issue no off-origin request from a file:// origin: ${offOrigin.join(' | ')}`)
+        .toEqual([]);
+    const credentialed = requests.filter((url) => /[?&](key|token|apikey|api_key|access_token)=/i.test(url));
+    expect(credentialed, `the route must send no credential: ${credentialed.join(' | ')}`).toEqual([]);
+});
+
+/* ── VAL-READY-07b · nothing waits on a network call before the first paint, server present ── */
+test('the first paint composes with every data request still outstanding, then reconciles to the served registry', async ({ page }) => {
+    /* The file:// test above proves the route survives an origin that cannot issue a request at
+       all. This proves the harder half of the same Checklist item: with a server PRESENT, the
+       first composed view must still not be waiting on anything. Every runtime fetch the route
+       issues is held open — the registry, the bars, the events, the research record — and the
+       page must reach a composed cockpit anyway, from the registry copy that ships inside the
+       document. That is the repository's cache-first first paint (P12).
+
+       The document and its classic <script> tags are how the page loads at all, so they are
+       continued immediately; `fetch`/`xhr` is what a first paint must not wait on. */
+    test.setTimeout(90_000);
+
+    const held = [];
+    let release;
+    const gate = new Promise((resolve) => { release = resolve; });
+
+    await page.route('**/*', async (route, request) => {
+        const kind = request.resourceType();
+        if (kind !== 'fetch' && kind !== 'xhr') {
+            await route.continue();
+            return;
+        }
+        held.push(request.url());
+        await gate;
+        await route.continue();
+    });
+
+    const runtimeErrors = [];
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+
+    try {
+        await page.goto(`${site.baseUrl}/${ROUTE}?symbol=MSFT`);
+
+        /* First paint, while every data request is still open. A refusal banner is not a first
+           paint, and an empty shell is not a first paint: four horizons carrying readable copy. */
+        await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 20_000 });
+        await expect(page.locator('#cockpit-horizons [data-horizon]')).toHaveCount(4);
+        await expect(page.locator('#cockpit-horizons [data-horizon-summary]')).toHaveCount(4);
+        const summary = await page.locator('#cockpit-horizons [data-horizon-summary]').first().textContent();
+        expect(summary.trim().length, 'the first paint must carry readable copy, not an empty region')
+            .toBeGreaterThan(20);
+
+        /* The paint came from the embedded copy, and the served registry has not answered — so
+           the composed view above genuinely predates every response. */
+        await expect(page.locator('body')).toHaveAttribute('data-registry-source', 'embedded');
+        expect(
+            held.some((url) => url.endsWith('company-intelligence.config.json')),
+            `the route must still be asking the server for its registry: ${held.join(' | ')}`
+        ).toBe(true);
+
+        /* Now let the server answer. The served registry is authoritative: the source flips, and
+           the page settles composed with its corpus resolved. */
+        release();
+        await expect(page.locator('body')).toHaveAttribute('data-registry-source', 'served', { timeout: 30_000 });
+        await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed');
+        await expect(page.locator('body')).toHaveAttribute('data-corpus-status', /^(loaded|unavailable)$/, { timeout: 30_000 });
+        expect(runtimeErrors, `runtime errors: ${runtimeErrors.join(' | ')}`).toEqual([]);
+    } finally {
+        release();
+        await page.unroute('**/*');
+    }
+});
+
+/* ── VAL-READY-08 · keyboard reachability ────────────────────────────────────────────────── */
+test('every interactive control on the route is reachable and operable from the keyboard alone', async ({ page }) => {
+    /* No mouse is used anywhere below. Tab is the only way focus moves, and Enter is the only
+       way a control is operated, so a reader who never touches a pointing device is the reader
+       this test represents. */
+    test.setTimeout(90_000);
+    await openComposedRoute(page);
+
+    /* Walk the tab ring from the document start and record where focus actually landed. The
+       document-order index makes "sensible order" checkable rather than a matter of opinion:
+       focus must move forward through the page, never jump backwards into a control the reader
+       has already passed. */
+    const walk = [];
+    for (let step = 0; step < 80; step++) {
+        await page.keyboard.press('Tab');
+        const landed = await page.evaluate(() => {
+            const node = document.activeElement;
+            if (!node || node === document.body || node === document.documentElement) return null;
+            const all = Array.prototype.slice.call(document.querySelectorAll('*'));
+            const style = window.getComputedStyle(node);
+            return {
+                id: node.id || null,
+                tag: node.tagName.toLowerCase(),
+                dive: node.parentElement ? node.parentElement.getAttribute('data-horizon-dive') : null,
+                docIndex: all.indexOf(node),
+                outlineStyle: style.outlineStyle,
+                outlineWidth: style.outlineWidth
+            };
+        });
+        if (landed === null) break;
+        /* Focus left the page and wrapped back to the top of the tab ring: the walk is done. */
+        if (walk.length > 0 && landed.docIndex <= walk[walk.length - 1].docIndex) break;
+        walk.push(landed);
+    }
+
+    expect(walk.length, 'Tab moved focus nowhere at all').toBeGreaterThan(0);
+
+    /* 1 · Order. The recorded walk is strictly forward through the document. */
+    const indexes = walk.map((entry) => entry.docIndex);
+    const sortedIndexes = indexes.slice().sort((a, b) => a - b);
+    expect(indexes, `tab order jumped backwards: ${walk.map((e) => e.id || e.tag).join(' → ')}`)
+        .toEqual(sortedIndexes);
+
+    /* 2 · Reachability. Every control the route owns is somewhere on that ring. */
+    const reached = new Set(walk.map((entry) => entry.id).filter(Boolean));
+    for (const controlId of ['subject-input', 'subject-apply', 'mode-simple', 'mode-power']) {
+        expect(reached.has(controlId), `#${controlId} is not reachable by Tab`).toBe(true);
+    }
+    const divesReached = walk.filter((entry) => entry.tag === 'summary' && entry.dive !== null)
+        .map((entry) => entry.dive);
+    expect(divesReached.slice().sort(), 'every deep-dive control must be reachable by Tab')
+        .toEqual(['event', 'immediate', 'structural', 'swing']);
+
+    /* 3 · Visible focus. A control the reader can reach but cannot see is not usable: the focus
+       ring is the only thing telling a keyboard reader where they are. */
+    for (const entry of walk) {
+        const label = entry.id ? `#${entry.id}` : `${entry.tag}${entry.dive ? `[${entry.dive}]` : ''}`;
+        expect(entry.outlineStyle, `${label} shows no focus ring while focused`).not.toBe('none');
+        expect(entry.outlineWidth, `${label} shows a zero-width focus ring`).not.toBe('0px');
+    }
+
+    /* 4 · Operability — deep dives open from the keyboard, not from a click. */
+    for (const horizonId of ['immediate', 'swing', 'structural', 'event']) {
+        const control = page.locator(`#cockpit-horizons [data-horizon-dive="${horizonId}"] > summary`);
+        await control.focus();
+        expect(await control.evaluate((node) => node === document.activeElement),
+            `the ${horizonId} deep dive must take focus`).toBe(true);
+        expect(await control.evaluate((node) => node.parentElement.open),
+            `the ${horizonId} deep dive starts closed`).toBe(false);
+        await page.keyboard.press('Enter');
+        expect(await control.evaluate((node) => node.parentElement.open),
+            `the ${horizonId} deep dive must open from the keyboard`).toBe(true);
+        await expect(page.locator(`#cockpit-horizons [data-horizon-dive="${horizonId}"] [data-invalidation]`))
+            .toBeVisible();
+        await page.keyboard.press('Enter');
+        expect(await control.evaluate((node) => node.parentElement.open),
+            `the ${horizonId} deep dive must close again from the keyboard`).toBe(false);
+    }
+
+    /* 5 · Operability — the mode segment switches from the keyboard. */
+    const modePower = page.locator('#mode-power');
+    await modePower.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('body')).toHaveAttribute('data-mode', 'power');
+    await expect(modePower).toHaveAttribute('aria-pressed', 'true');
+    const modeSimple = page.locator('#mode-simple');
+    await modeSimple.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('body')).toHaveAttribute('data-mode', 'simple');
+
+    /* 6 · Operability — a company is opened by typing and pressing a button, no pointer. */
+    await page.locator('#subject-input').focus();
+    await page.keyboard.press('ControlOrMeta+a');
+    await page.keyboard.type('AAPL');
+    await page.keyboard.press('Tab');
+    expect(await page.evaluate(() => document.activeElement.id),
+        'Tab from the identifier field must land on the apply control').toBe('subject-apply');
+    await page.keyboard.press('Enter');
+    await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
+    await expect(page.locator('#subject-input')).toHaveValue('AAPL');
+
+    /* 7 · Reachability in Power mode. Steps 1-6 walk the Simple view, which is the default and
+       holds the four horizon controls. Power reveals the workspaces, and that is where the
+       controls a keyboard reader is most likely to be stranded on live: the owner deep links
+       that carry the reader out to the tool owning a dimension, and the research-plan
+       disclosures. Neither is on the Simple ring, so without this pass "every control" would
+       mean "every control in the smaller of the two views".
+
+       Identity here is the element's own index within its own selector set, resolved inside the
+       same evaluate that reads focus. An index into `querySelectorAll('*')` drifts under this
+       route's second paint, and a data attribute stamped before the walk is destroyed when the
+       shared ticker module rehydrates a token — both were tried and both produce false misses. */
+    await page.locator('#mode-power').focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('body')).toHaveAttribute('data-mode', 'power');
+    await expect(page.locator('#workspace-coverage-rows a[data-owner-link]').first()).toBeVisible();
+
+    const powerTargets = 'a[data-owner-link], #workspace-plan-body [data-branch-id] > summary';
+    const powerCount = await page.locator(powerTargets).count();
+    expect(powerCount, 'Power mode must expose owner links and plan disclosures to reach').toBeGreaterThan(0);
+
+    await page.evaluate(() => { if (document.activeElement) document.activeElement.blur(); });
+    const reachedPower = new Set();
+    for (let step = 0; step < 400 && reachedPower.size < powerCount; step++) {
+        await page.keyboard.press('Tab');
+        const index = await page.evaluate((selector) => {
+            const node = document.activeElement;
+            if (!node) return null;
+            const found = Array.prototype.slice.call(document.querySelectorAll(selector)).indexOf(node);
+            return found === -1 ? null : found;
+        }, powerTargets);
+        if (index !== null) reachedPower.add(index);
+    }
+
+    const unreachable = await page.locator(powerTargets).evaluateAll(
+        (nodes, reached) => nodes
+            .map((node, index) => ({ index, label: (node.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40) }))
+            .filter((entry) => !reached.includes(entry.index))
+            .map((entry) => entry.label),
+        [...reachedPower]);
+    expect(unreachable, `Power-mode controls no Tab press ever focused: ${unreachable.join(' | ')}`).toEqual([]);
+});
+
+

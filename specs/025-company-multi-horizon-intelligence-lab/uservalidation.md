@@ -119,28 +119,86 @@ whether an absence reads as a named gap rather than as a fault.
 ## Automation Readiness
 
 This section records how much of the walk above a machine can prove, and what
-only a person can judge. It ships with every row unresolved.
+only a person can judge. Automation resolved it on 2026-08-19. Checking a row
+here grants no acceptance. The Checklist above is still entirely unwalked.
 
-| Checklist section | Automatable today | Covering test row in scopes.md | Ready |
+The third column names the tests that actually carry the proof, because a
+Test Plan row number alone was not enough. Several sections are fully proven by
+tests that no Test Plan row happens to list, and one section is named by a row
+that covers least. Naming the test rather than the pointer lets a reader verify
+a checkmark by running one command.
+
+| Checklist section | Automatable today | Tests that prove every item of the section | Ready |
 | --- | --- | --- | --- |
-| One company, four answers | Yes | 2.1, 2.4 | [ ] |
-| The short answer never outruns the long one | Yes | 1.5, 1.6 | [ ] |
-| Disagreement survives | Yes | 1.7 | [ ] |
-| Absence is named, never blank | Yes | 1.1, 1.2, 2.5 | [ ] |
-| Every number tells me where it came from | Yes | 2.3 | [ ] |
-| Following the math to its owner | Yes | 1.9, 2.2 | [ ] |
-| Confidence is about evidence, not about winning | Yes | 1.6 | [ ] |
-| The research the agent chose to do | Yes | 1.14, 1.15, 1.16, 1.17, 4.7 | [ ] |
-| Events read honestly | Yes | 1.11, 1.13, 3.1, 3.6 | [ ] |
-| Nothing about my money, ever | Yes | 1.18 | [ ] |
-| It works with nothing | Partly | 2.8, 1.4 | [ ] |
-| Reading it at all | Partly | 2.6, 2.7, 2.8, 2.9 | [ ] |
-| History is added to, never rewritten | Yes | 4.1, 4.2, 4.6 | [ ] |
+| One company, four answers | Yes | TP 2.1, 2.4 | [x] |
+| The short answer never outruns the long one | Yes | TP 1.5, 1.6 | [x] |
+| Disagreement survives | Yes | TP 1.7 | [x] |
+| Absence is named, never blank | Yes | TP 1.1, 1.2, 2.5, plus unit `an unavailable dimension never renders as a zero or a neutral number`, `a read aged past its window stays in the denominator as stale rather than becoming neutral`, `the coverage account refuses a read set missing any one registry dimension rather than dropping the row`, `adversarial: a read naming another company is refused and never reaches a horizon`, `the financial event dimension moves to current from a sourced document while the non-financial one keeps no-source-exists` | [x] |
+| Every number tells me where it came from | Yes | TP 2.3, plus browser `FR-025-014 every dated coverage row states its age, so a stale read cannot read as current` and unit `a read aged past its window stays in the denominator as stale rather than becoming neutral` | [x] |
+| Following the math to its owner | Yes | TP 1.8, 1.9, 2.2 cover three items of four. The fourth is now satisfied wherever the owning tool can open on a company, and honestly stated where it cannot. See the gap table. | [ ] |
+| Confidence is about evidence, not about winning | Yes | TP 2.1, plus unit `no horizon read emits a numeric confidence beside its direction` | [x] |
+| The research the agent chose to do | Yes | TP 1.14, 1.15, 1.16, 1.17, 4.7, plus browser `an empty research plan renders its reason as readable copy rather than an empty block` and unit `an empty research plan is a real outcome rather than an absent one` | [x] |
+| Events read honestly | Yes | TP 1.11, 1.13, 3.1, 3.6 | [x] |
+| Nothing about my money, ever | Yes | TP 1.18, plus browser `a position, size or cost basis entry is refused in the browser and nothing is stored` | [x] |
+| It works with nothing | Yes | TP 1.4, 2.13, plus browser `the first paint composes with every data request still outstanding, then reconciles to the served registry` | [x] |
+| Reading it at all | Partly | TP 2.6, 2.7, 2.8, 2.14, plus browser `NFR-025-005 every rendered ticker is a linked, described token from the shared ticker module` | [x] |
+| History is added to, never rewritten | Yes | TP 4.1, 4.2, 4.6 | [x] |
 
-**What a machine cannot judge here.** Three judgements stay human. Whether a
+**What a checked row means, exactly.** A row is `[x]` when the tests named in its
+own third column exist, pass, and between them assert every item of the matching
+Checklist section. Every unit test named above was run alone under
+`node --test --test-name-pattern`, and every browser test named above was run
+under a filtered `--grep`, so no row rests on a suite-level green that could have
+come from a neighbour. Transcripts and hashes are in [report.md](report.md).
+
+**A checked row still grants no acceptance.** It says a machine can already see
+the described outcome. It does not say a person has. The twelve checked rows
+exist to shorten the walk, not to replace it: they tell the walker which
+behaviours are held by a test that will keep failing if they regress, so the
+walk can spend its attention on the judgements below instead.
+
+**One row stays unchecked, and it is not a citation problem.** It named a real
+item the product does not satisfy. The defect behind it was repaired on 2026-08-19
+and the row moved, but its item is not satisfied outright, so it stays `[ ]` and the
+residue is stated exactly below so the walker can decide it on its merits.
+
+| Row | The item that is not satisfied | What the machine actually observes | Bearing on the walk |
+| --- | --- | --- | --- |
+| Following the math to its owner | "When another tool owns a dimension, the row links to that tool **for the same company**." The other three items are proven: TP 2.2 asserts every owner link resolves to a route registered in `tools.json` and that an unowned row renders a sentence and no link, TP 1.9 asserts the no-owner statement at module level, and TP 1.8 asserts this tool defines no second copy of a metric another tool owns. | The link now carries the company **wherever the owning tool can open on one**. A registry row may declare `ownerSubjectParam`, and `describeDimensionOwner` composes `<route>.html?<param>=<percent-encoded company>` from it; TP 2.2 asserts the query names the company being read. Two of the eleven owned rows carry it today — `options-structure` and `dealer-gamma`, whose owning routes take a free-text ticker and now read it from the query. The other nine do not, and this was checked rather than assumed: `company-fundamentals-lab.html` is wired to one committed publication (`sec-cik-0000789019`) and has no company control at all, `market-brief.html` and `research-agenda-lab.html` are market-wide rather than company-scoped, and `technical-analysis-decision-lab.html`, `trend-dynamics-cycle-lab.html`, `options-flow-feed-lab.html` and `volatility-sizing-lab.html` select from a fixture or a bounded universe rather than from a company. Those nine link to the bare route and the row states it: "…reads no company parameter and opens on its own subject." | The reader is no longer silently sent to another company. Two owners open on yours; the other nine say in the row that they will not. Judge whether the honest statement is enough, or whether those tools should be made company-scoped — that is a planning decision, not a defect in this tool. |
+
+**The row that moved to `[x]` on 2026-08-19, and what changed to earn it.** "It
+works with nothing" previously failed one of its four items — "Nothing waits on a
+network call before the first paint" — whenever a server WAS present, because the
+first paint awaited the served registry. It now paints from the registry copy the
+document already carries and reconciles to the served one afterwards, which is the
+repository's own cache-first first paint (P12) and the pattern the rest of the repo
+follows. The served registry stays authoritative: when it says anything else the
+view is recomposed from it, and when it cannot be read the page still refuses by
+name, now saying explicitly that what is shown came from the embedded copy. The
+proof holds every runtime `fetch` the route issues open — registry, bars, events,
+research record — and requires four horizons carrying readable copy to be on screen
+anyway, then releases them and requires the registry source to flip to `served`.
+That assertion was proven able to fail: with the early paint removed the page stayed
+at `data-run-status="empty"` and the test went red.
+
+**What a machine cannot judge here.** Four judgements stay human. Whether a
 summary reads as useful rather than merely correct. Whether a named absence
 reads as an honest gap rather than as a broken page. Whether the four horizons
-together answer the operator's actual question.
+together answer the operator's actual question. Whether the narrow-width layout
+and the keyboard focus order are pleasant to use, as opposed to merely present:
+the machine proves the four summaries stack at 375 CSS pixels without sideways
+scrolling and that every control on both views takes focus, in document order,
+with a visible focus ring, but legibility and flow are yours to call.
+
+**Two items are true only with a caveat, and the caveat is not a defect.**
+"The financial events dimension says plainly that no producer is wired for it"
+now holds for every company **except** MSFT: Increment B wired a real producer,
+and the unit test above proves the dimension reads `current` for a covered
+subject and `no-source-wired` for every other. Read that item against any other
+company. Separately, Test Plan row 2.9 passes but reports `refs=0`, so its
+id-resolution half is vacuous on this page and it proves only that the single
+inline script parses. Element identity is instead held by TP 2.14, which
+resolves every control by id against the live DOM.
 
 ---
 

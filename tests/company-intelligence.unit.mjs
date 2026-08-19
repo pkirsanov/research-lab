@@ -1597,6 +1597,123 @@ test('an owner deep link that is not a same-origin route file is refused, and th
     });
 });
 
+test('a subject-carrying owner link opens the owning tool on the same company and can carry nothing else', () => {
+    const registry = INTEL.readCoverageRegistry(CONFIG);
+
+    /* The reason this link exists: UC-025-003 asks the reader to follow the maths to its owner
+       FOR THE COMPANY IN FRONT OF THEM, so the href must name that company. */
+    const carrying = registry.rows.filter((row) => row.ownerSubjectParam !== null);
+    assert.ok(carrying.length > 0, 'the registry declares at least one subject-carrying owner');
+    carrying.forEach((row) => {
+        const described = INTEL.describeDimensionOwner(registry, row.dimensionId, 'MSFT');
+        assert.equal(described.carriesSubject, true, row.dimensionId);
+        assert.equal(described.ownerDeepLink, row.ownerDeepLink + '?' + row.ownerSubjectParam + '=MSFT');
+        assert.equal(new URL(described.ownerDeepLink, 'https://example.test/lab/').searchParams
+            .get(row.ownerSubjectParam), 'MSFT');
+    });
+
+    /* And an owner route that reads no company parameter is NOT given a fabricated one. It
+       links to the bare route and the statement says the target opens on its own subject. */
+    const bare = registry.rows.filter((row) => row.ownerToolId !== null && row.ownerSubjectParam === null);
+    assert.ok(bare.length > 0, 'the registry still carries plain owner routes');
+    bare.forEach((row) => {
+        const described = INTEL.describeDimensionOwner(registry, row.dimensionId, 'MSFT');
+        assert.equal(described.carriesSubject, false, row.dimensionId);
+        assert.equal(described.ownerDeepLink, row.ownerDeepLink, row.dimensionId);
+        assert.match(described.statement, /reads no company parameter/);
+    });
+
+    /* A dimension with no owner is still given no link at all. */
+    const unowned = INTEL.describeDimensionOwner(registry, 'company-risk', 'MSFT');
+    assert.equal(unowned.hasOwner, false);
+    assert.equal(unowned.ownerDeepLink, null);
+
+    /* SECURITY — the company identifier is attacker-reachable: it arrives from the ?symbol=
+       query and from the subject box. Under this page's script-src 'unsafe-inline' CSP an href
+       that grew a scheme would EXECUTE, so every hostile value must stay inert data. */
+    const hostileSubjects = [
+        'javascript:alert(1)',
+        'JaVaScRiPt:alert(1)',
+        'data:text/html,<script>alert(1)</script>',
+        'vbscript:msgbox(1)',
+        'https://evil.example/steal',
+        '//evil.example/steal',
+        '../../etc/passwd',
+        '..\\..\\windows\\system32',
+        'MSFT&admin=1',
+        'MSFT#javascript:alert(1)',
+        'MSFT" onmouseover="alert(1)',
+        'MSFT?x=1'
+    ];
+    const carrier = carrying[0];
+    hostileSubjects.forEach((subject) => {
+        const href = INTEL.describeDimensionOwner(registry, carrier.dimensionId, subject).ownerDeepLink;
+        const prefix = carrier.ownerDeepLink + '?' + carrier.ownerSubjectParam + '=';
+        assert.ok(href.startsWith(prefix), subject + ' stays behind the validated route file');
+        /* No scheme, no authority, no second parameter, no fragment, no traversal, no quote —
+           the whole href is the validated route plus one percent-encoded value. */
+        assert.match(href, /^[A-Za-z0-9._-]+\.html\?[A-Za-z][A-Za-z0-9_]*=[A-Za-z0-9%._~!*'()-]+$/,
+            subject + ' produced ' + href);
+        const resolved = new URL(href, 'https://example.test/lab/');
+        assert.equal(resolved.origin, 'https://example.test', subject + ' left the origin');
+        assert.equal(resolved.pathname, '/lab/' + carrier.ownerDeepLink, subject + ' left the path');
+        assert.equal(resolved.hash, '', subject + ' introduced a fragment');
+        assert.equal([...resolved.searchParams.keys()].length, 1, subject + ' introduced a parameter');
+        /* Encoded, not discarded: the target still reads back exactly what was passed. */
+        assert.equal(resolved.searchParams.get(carrier.ownerSubjectParam), subject);
+    });
+
+    /* A hostile PARAMETER NAME is refused at the registry, so it never reaches an href. */
+    ['tick er', 'ticker=x', 'ticker&x', '__proto__', 'a#b', '1ticker', ''].forEach((param) => {
+        const poisoned = Object.assign({}, CONFIG, {
+            coverageRegistry: CONFIG.coverageRegistry.map((row) => (
+                row.ownerDeepLink === null ? row : Object.assign({}, row, { ownerSubjectParam: param })
+            ))
+        });
+        if (param === '') {
+            /* An empty string is "declares nothing", which is a legal registry, not an attack. */
+            assert.equal(INTEL.readCoverageRegistry(poisoned).rows
+                .filter((row) => row.ownerSubjectParam !== null).length, 0);
+            return;
+        }
+        assert.throws(
+            () => INTEL.readCoverageRegistry(poisoned),
+            (error) => error.code === 'C025-CONFIG-SCHEMA',
+            param + ' is refused as a subject parameter'
+        );
+    });
+
+    /* A subject parameter with no owner route is a half-declared owner and is refused. */
+    assert.throws(
+        () => INTEL.readCoverageRegistry(Object.assign({}, CONFIG, {
+            coverageRegistry: CONFIG.coverageRegistry.map((row) => (
+                row.ownerDeepLink === null ? Object.assign({}, row, { ownerSubjectParam: 'ticker' }) : row
+            ))
+        })),
+        (error) => error.code === 'C025-CONFIG-SCHEMA'
+    );
+});
+
+test('the registry embedded in the route is identical to the committed registry file', () => {
+    /* The route ships the registry twice so a reader with no server can still compose (a
+       null-origin document cannot fetch at all). Two copies are only safe while they cannot
+       disagree, so this is the guard that keeps them one artifact. */
+    const block = /<script type="application\/json" data-embedded-config="([^"]+)">([\s\S]*?)<\/script>/
+        .exec(ROUTE_SOURCE);
+    assert.ok(block, 'the route carries an embedded coverage registry block');
+    assert.equal(block[1], 'company-intelligence.config.json', 'the block names the file it mirrors');
+    const embedded = JSON.parse(block[2]);
+    assert.deepEqual(embedded, CONFIG, 'the embedded registry equals the committed registry file');
+
+    /* The embedded copy really is a working registry, not merely equal-looking text. */
+    assert.equal(INTEL.readCoverageRegistry(embedded).rows.length, 15);
+
+    /* ADVERSARIAL COUNTER-CASE: the check can fail. A single drifted field is caught. */
+    const drifted = JSON.parse(JSON.stringify(embedded));
+    drifted.coverageRegistry[0].freshnessWindowDays += 1;
+    assert.notDeepEqual(drifted, CONFIG, 'a one-field drift is detectable');
+});
+
 test('readCoverageRegistry raises C025-REGISTRY-INCOMPLETE when a mandatory dimension is absent', () => {
     INTEL.MANDATORY_DIMENSION_IDS.forEach((dimensionId) => {
         const trimmed = Object.assign({}, CONFIG, {

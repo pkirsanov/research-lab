@@ -233,6 +233,126 @@ It is listed because an owner is entitled to make it knowingly. It must not be m
 
 ---
 
+## Resolution Of The Design Conflict — Upstream, By Feature 026
+
+**This packet did not resolve the conflict.** Feature 026 did, in commit `3872df354` ("close the
+last-writer budget gap and complete the claims loop"), which is in `HEAD`'s history and not in
+`9af68427b`'s. The attribution is recorded here so a later reader does not credit BUG-013 with work
+it did not do.
+
+`compactRow()` no longer emits `tracked`. It emits `trackedStates`, a per-symbol **label map**:
+
+```
+-    tracked: row.tracked ?? null,
++    trackedStates: compactTrackedStates(row.tracked),
+```
+
+That is candidate remedy 1, applied as a projection rather than a deletion. Position A prevails on
+the verbatim per-instrument block: the levels and flags the change detector needs stay in the
+append-only ledger, which is never first-loaded. Position B keeps the property it was built for at
+label granularity, which is what the page actually renders. The doc comment now states the reason
+and names what is given up — `trackedStates` is deliberately not called `tracked` "so a future
+caller cannot mistake a label map for the state the predicates require."
+
+`briefFirstLoadMaxBytes` was **not** raised. Candidate remedy 4 stayed refuted.
+
+Re-measured at `831144596`:
+
+| Quantity | At filing `9af68427b` | At `831144596` |
+|---|---|---|
+| First-load total | 209,387 | **201,282** — 3,518 under budget |
+| `brief-history.recent.jsonl` | 21,006 | **12,901** |
+| Rows | 30 | 30 |
+| Largest row | ~4,947 | **804** (803 + newline) |
+| Rows carrying `tracked` | 2 | **0** |
+| `briefFirstLoadMaxBytes` | 204,800 | **204,800**, unchanged |
+
+FR-013-001, FR-013-002, FR-013-004 and FR-013-006 are satisfied at `HEAD` by that upstream work.
+FR-013-003 was not. That is what this scope closes.
+
+**Reconciling the projected steady state.** The routing note for this scope quoted a largest row of
+~883 bytes and a 30-row projection near 26,490. Measured against the committed lines the largest row
+is 803 bytes plus its newline, and the projection is `804 x 30 = 24,120`. The difference is
+re-serialisation: Python's `json.dumps` defaults to `, ` and `: ` separators, adding roughly two
+bytes at each of the row's 45 separator positions — `803 + 45 x 2 = 893`, which brackets the
+reported 883. The committed line is the byte the budget actually pays for. Both figures are recorded
+rather than reconciled silently, and the bound below clears the larger of the two.
+
+---
+
+## The Per-File Byte Bound — The Chosen Value And Why
+
+**`briefHistoryRecentMaxBytes` = 40,960 bytes (40 KiB) — exactly one fifth of
+`briefFirstLoadMaxBytes`.**
+
+### Derived as a share, not fitted to today's number
+
+The scope asks for a value derived from the share of the first-load budget this artifact is intended
+to occupy. It is one of seven first-load files and it is a *history strip*: a supporting surface, not
+the payload's subject. One fifth of 204,800 is a generous ceiling for that role — the artifact
+occupies 6.3% of the budget today, so 20% grants it room to triple and still be the fourth-largest
+of the seven.
+
+Fitting the bound to today's 12,901 would have produced a ratchet: a number that turns every
+ordinary week's variation into a red build and teaches the next author to raise it. A declared share
+is a claim about what this artifact is *for*, which survives the file's day-to-day size changing.
+
+### Headroom
+
+| Against | Bytes | Bound is |
+|---|---|---|
+| Today's file | 12,901 | **3.17x** |
+| 30 rows at the largest committed row (804 B) | 24,120 | **1.70x** |
+| 30 rows at the re-serialised figure (883 B) | 26,490 | **1.55x** |
+| The BUG-013 regression at full turnover (~4,939 B/row) | 148,170 | **0.28x** — refused |
+| `briefFirstLoadMaxBytes` | 204,800 | **0.20x** — five times smaller |
+
+A 1.7x margin over the pessimistic all-rows-at-maximum projection is real room for ordinary growth:
+a busier week, a longer `claims` list, more `trackedStates` symbols. A 12.4x repricing of a row —
+the class of change that caused this defect — clears it by 3.6x and is refused.
+
+### What it would have caught
+
+At filing the artifact was 21,006 bytes with only 2 of 30 rows repriced; each further repriced row
+added ~4,542 bytes. The bound is crossed at 7 of 30 rows — under two days at four scheduled runs a
+day. The aggregate fired on day zero instead, but only because the other six files happened to sit
+at 188,381 of 204,800; it said "the payload is over" without naming which of seven files moved. The
+per-file bound names the artifact, and it fires on the artifact's own terms whatever the other six
+weigh.
+
+### It fires before the aggregate — by evaluation order, unconditionally
+
+`validateArtifactBudgets` walks its checks in order and `invariant` throws on the first breach.
+`brief-history-recent` precedes `brief-first-load` in that list, so when both are breached the
+refusal names this artifact and the aggregate check is never reached. Executed against a
+135,871-byte in-memory reconstruction of the pre-fix row shape:
+
+- under the new bound: `REFUSED: brief-history-recent exceeds configured artifact byte budget`
+- under the old equal-budgets configuration: `REFUSED: brief-first-load exceeds configured artifact
+  byte budget` — the per-file guard stayed silent at 136 KB, which is the inertness being removed
+
+And the band that could not previously exist: a 51,200-byte artifact inside a 200,000-byte payload
+the aggregate accepts is now refused by the per-file bound, and was accepted under the old value.
+
+**Stated honestly:** at today's other-six weight of 188,381 bytes the aggregate has only 3,518 bytes
+of headroom, so for a *gradual* rise the aggregate still trips first. Closing that gap would require
+a bound at or below 16,419 bytes — 1.27x today's file and *below* the 24,120 projection, so it would
+false-fire on ordinary growth. The per-file bound is therefore a localising and future-proofing
+guard: it attributes the breach, it fires irrespective of the other six, and it becomes the
+first-firing guard as soon as those six fall below 163,840 bytes.
+
+### The row cap is retained
+
+`briefHistoryRecentMaxRows` stays at 30. It bounds a different thing: how much history the cockpit's
+trend strip *shows*, which is a product decision. The byte cap bounds what the payload *costs*.
+Removing the row cap would let a future cheap-row encoding silently widen the window, and removing
+the byte cap is what allowed this defect. Both are kept because neither implies the other — the
+regression held the row cap exactly while multiplying the price of a row by 12.4.
+
+Open question 4 is answered here. Questions 3 and 5 remain open and belong to Scope 1's owner.
+
+---
+
 ## The Check Itself Is Correct
 
 `validate-tool-experience.mjs` detected genuine unbudgeted growth in a payload every visitor
@@ -250,7 +370,8 @@ No remedy in this packet weakens it. FR-013-005 forbids that explicitly.
    reachable by encoding alone?
 3. Should `crossAsset` (613 bytes/row, ~18,390 at 30 rows) be evaluated on the same criterion, or is
    it small enough to keep unconditionally?
-4. What byte bound should the recent artifact carry so it binds before the aggregate does? A value
-   equal to the aggregate budget cannot.
+4. ~~What byte bound should the recent artifact carry so it binds before the aggregate does? A value
+   equal to the aggregate budget cannot.~~ **Answered by Scope 3:** 40,960 bytes, one fifth of
+   `briefFirstLoadMaxBytes`. See "The Per-File Byte Bound" above.
 5. Does the answer generalise? If a future scope adds a fifth key on Position B's reasoning, does
    the same conflict recur, and is a standing rule needed rather than a one-time adjudication?

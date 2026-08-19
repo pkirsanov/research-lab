@@ -8585,6 +8585,47 @@ try {
   assert(unboundedBytes > budgets.briefFirstLoadMaxBytes,
     'the unbounded log genuinely exceeds the budget (' + Math.round(unboundedBytes / 1024) + ' KB), so fetching it would FAIL this test rather than slip through');
 
+  /* The recent window's OWN byte bound has to bind. It was 204800 — identical to
+     briefFirstLoadMaxBytes — so this file had to consume the whole seven-file allowance before its
+     own bound could fire: inert by construction, and silent through the ~5 KB-per-row regression it
+     exists to catch (BUG-013). It is now one fifth of the first-load budget. */
+  assert(budgets.briefHistoryRecentMaxBytes < budgets.briefFirstLoadMaxBytes,
+    'the recent window\u2019s per-file byte bound is strictly smaller than the whole-payload budget ('
+    + budgets.briefHistoryRecentMaxBytes + ' < ' + budgets.briefFirstLoadMaxBytes + '), so it is capable of firing at all');
+
+  const budgetChecker = (await import('./validate-tool-experience.mjs')).validateArtifactBudgets;
+  const refusal = (againstBudgets, recentArtifactBytes, wholePayloadBytes) => {
+    try {
+      budgetChecker({ config: { artifactBudgets: againstBudgets } }, {
+        config: 8192, models: 8192, journeys: 8192,
+        briefHistoryRecent: recentArtifactBytes, briefHistoryRecentRows: 30, briefFirstLoad: wholePayloadBytes
+      });
+      return null;
+    } catch (e) { return e.message; }
+  };
+
+  // CONTROL: today's real inventory passes, so the refusals below are not an unconditional thrower.
+  assert(refusal(budgets, recentBytes, firstLoad) === null,
+    'the production budget checker accepts today\u2019s real inventory (' + recentBytes + ' B recent inside ' + firstLoad + ' B payload)');
+
+  /* ADVERSARIAL: the BUG-013 regression at full turnover — 30 rows near 4,939 B. Refused, and
+     refused BY NAME: the per-file check is reached before the aggregate one, so the failure
+     attributes the breach to this artifact rather than to "the payload". */
+  const regressionBytes = 30 * 4939;
+  const regressionRefusal = refusal(budgets, regressionBytes, (firstLoad - recentBytes) + regressionBytes) || '';
+  assert(regressionRefusal.includes('brief-history-recent') && !regressionRefusal.includes('brief-first-load'),
+    'a ' + regressionBytes + '-byte recent artifact is refused by its own bound, named, before the aggregate check is evaluated (' + JSON.stringify(regressionRefusal) + ')');
+
+  /* ADVERSARIAL: it binds FIRST. An artifact over the per-file bound, inside a whole-payload total
+     the aggregate budget accepts, is still refused. That case could not exist while the two budgets
+     were equal, which is precisely why the old value detected nothing. */
+  const overPerFile = budgets.briefHistoryRecentMaxBytes + 10240;
+  const insideAggregate = budgets.briefFirstLoadMaxBytes - 4800;
+  assert((refusal(budgets, overPerFile, insideAggregate) || '').includes('brief-history-recent'),
+    'a ' + overPerFile + '-byte recent artifact inside a ' + insideAggregate + '-byte payload the aggregate accepts is still refused by the per-file bound');
+  assert(refusal({ ...budgets, briefHistoryRecentMaxBytes: budgets.briefFirstLoadMaxBytes }, overPerFile, insideAggregate) === null,
+    'the identical artifact was ACCEPTED under the old equal-budgets configuration, so tightening the per-file bound is what created the detection');
+
   // Nothing is lost: every run in the append log is present in a monthly shard.
   const source = shard.readSourceRows(ROOT);
   const sharded = readdirSync(join(ROOT, 'briefs/tier-a')).filter((file) => file.endsWith('.jsonl'))

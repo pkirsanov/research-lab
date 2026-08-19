@@ -4,7 +4,6 @@
   "featureName": "BUG-013 The v2 Recent Row Breaches The Cockpit First-Load Byte Budget, And Will Breach It Far Worse",
   "createdAt": "2026-08-19T00:00:00Z",
   "lastUpdatedAt": "2026-08-19T00:00:00Z",
-  "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
   "blockedReason": null,
@@ -31,19 +30,19 @@
   },
   "execution": {
     "activeAgent": null,
-    "currentPhase": "bug",
+    "currentPhase": "implement",
     "currentPhaseStatus": "complete",
     "phaseReconciliation": null,
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
     "runStartedAt": "2026-08-19T00:00:00Z",
     "completedAt": null,
-    "substate": "filed",
-    "currentScope": null,
+    "substate": "implemented",
+    "currentScope": "03-give-the-recent-artifact-a-byte-bound-that-binds",
     "nextRequiredOwner": "feature-026-owner",
-    "nextRequiredTarget": "specs/_bugs/BUG-013-brief-recent-row-v2-breaches-cockpit-first-load-budget/scopes.md#scope-1-adjudicate-the-recent-row-payload-contract",
-    "nextRequiredReason": "Scope 1 is a product decision and is not agent-dischargeable. compactRow()'s doc comment holds two deliberate, documented, incompatible intentions: it excludes per-instrument content from the compact projection because that content is what made the predecessor artifact unaffordable, and Feature 026 Scope 3 added per-instrument content so that 'what changed since I last told you' is answerable without a refetch. `tracked` is per-instrument data and is 72% of a v2 row. design.md enumerates four candidate remedies with measured costs and selects none, because selecting one inside a filing task would prejudge a tradeoff between a product property and a page-weight budget. Scopes 2 and 3 both depend on Scope 1, since the byte target and the artifact's shape follow from which intention yields. Building Scope 2 first would select the remedy by implementing one.",
-    "phaseClaimNote": "currentPhase is 'bug' with currentPhaseStatus 'complete' and substate 'filed'. The bug phase produced the full artifact set and nothing else. No source file was modified, nothing was committed, and no Definition of Done item in scopes.md is ticked. completedPhaseClaims records the bug phase as an execution claim only. certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write, and no independent party has re-derived these measurements.",
+    "nextRequiredTarget": "specs/_bugs/BUG-013-brief-recent-row-v2-breaches-cockpit-first-load-budget/design.md#open-questions-for-the-owner",
+    "nextRequiredReason": "Scope 3 is delivered and Scopes 1 and 2 were satisfied upstream by Feature 026 commit 3872df354, which replaced the verbatim `tracked` block with the `trackedStates` label map and did not raise briefFirstLoadMaxBytes. Three things keep the packet open, none of them agent-dischargeable. Design questions 3 (should crossAsset, ~613 B/row, be evaluated on the same criterion) and 5 (is a standing rule needed rather than a one-time adjudication) have no recorded answer, which leaves Scope 1's fourth Definition of Done item genuinely incomplete. Gate G136 human acceptance is unestablished: uservalidation.md's Human Acceptance Record is unfilled and automation cannot supply it. And the aggregate first-load budget retains only 3,518 bytes of headroom with the other six files holding 188,381 of 204,800, which is a live Scope 2 exposure that bounding this one artifact does not close.",
+    "phaseClaimNote": "currentPhase is 'implement' with substate 'implemented'. This run changed three files in the working tree (tool-experience.config.json, scripts/selftest.mjs, scripts/validate-tool-experience.mjs), committed nothing, and did not touch brief-history.recent.jsonl, scripts/shard-brief-history.mjs, rlcockpit.js or any *.page.json. Scope 3's five Definition of Done items are ticked with inline executed evidence. Scopes 1 and 2 keep their boxes UNTICKED on purpose: their outcomes hold at HEAD, but Feature 026 produced them and this packet must not claim that work. completedPhaseClaims records the implement phase as an execution claim only. certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
     "completedPhaseClaims": [
       {
         "phase": "bug",
@@ -51,6 +50,15 @@
         "claimedAt": "2026-08-19T00:00:00Z",
         "evidenceRef": "report.md#test-evidence",
         "scopes": []
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-08-19T00:00:00Z",
+        "evidenceRef": "report.md#scope-3-execution-evidence--at-831144596",
+        "scopes": [
+          "03-give-the-recent-artifact-a-byte-bound-that-binds"
+        ]
       }
     ],
     "pendingTransitionRequests": [],
@@ -58,24 +66,27 @@
       {
         "scopeId": "01-adjudicate-the-recent-row-payload-contract",
         "scope": 1,
-        "status": "Not Started",
-        "dependsOn": []
+        "status": "Resolved Upstream",
+        "dependsOn": [],
+        "resolvedBy": "Feature 026 commit 3872df354 - not delivered by this packet; design questions 3 and 5 remain open"
       },
       {
         "scopeId": "02-bring-the-first-load-payload-inside-budget-at-steady-state",
         "scope": 2,
-        "status": "Not Started",
+        "status": "Resolved Upstream",
         "dependsOn": [
           "01-adjudicate-the-recent-row-payload-contract"
-        ]
+        ],
+        "resolvedBy": "Feature 026 commit 3872df354 - not delivered by this packet; first-load measures 201282 of 204800 at 831144596"
       },
       {
         "scopeId": "03-give-the-recent-artifact-a-byte-bound-that-binds",
         "scope": 3,
-        "status": "Not Started",
+        "status": "Done",
         "dependsOn": [
           "01-adjudicate-the-recent-row-payload-contract"
-        ]
+        ],
+        "resolvedBy": "this run - briefHistoryRecentMaxBytes 204800 -> 40960, one fifth of briefFirstLoadMaxBytes"
       }
     ],
     "audit": null

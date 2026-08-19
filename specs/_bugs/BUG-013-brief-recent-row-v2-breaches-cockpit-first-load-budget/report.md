@@ -1,12 +1,18 @@
 # Report: BUG-013 — Cockpit First-Load Budget Breach
 
 **Workflow mode:** `bugfix-fastlane`
-**Status:** Filed. No scope started.
+**Status:** Scope 3 delivered at `831144596`. Scopes 1 and 2 resolved upstream by Feature 026.
 **Filed at commit:** `9af68427b`
 
 ---
 
 ## Summary
+
+> **Read this first.** Everything from here to "Scope 3 Execution Evidence" is the **filing-time**
+> record, measured at `9af68427b`. It is left intact as the account of the defect as found. It has
+> been overtaken: Feature 026 commit `3872df354` resolved the payload contract and brought the
+> payload inside budget, and this packet's Scope 3 then gave the recent artifact a byte bound that
+> binds. Current figures are in "Scope 3 Execution Evidence — At `831144596`".
 
 This packet files a defect and implements nothing.
 
@@ -291,28 +297,152 @@ hold. This packet states the conflict and selects neither.
 
 ---
 
+## Scope 3 Execution Evidence — At `831144596`
+
+Everything below was executed in the session that produced it. Nothing is restated from the filing
+measurements, which were taken at `9af68427b` against a different tree.
+
+### What changed upstream before this scope ran
+
+Feature 026 commit `3872df354` resolved the design conflict and the budget breach. It is in `HEAD`'s
+history and not in `9af68427b`'s, so the filing measurements predate it.
+
+```
+$ git --no-pager show 3872df354 -- scripts/shard-brief-history.mjs | grep -nE '^[+-].*(trackedStates|tracked:)'
+107:-    tracked: row.tracked ?? null,
+109:+    trackedStates: compactTrackedStates(row.tracked),
+
+$ git --no-pager show 3872df354 --stat -- scripts/shard-brief-history.mjs tool-experience.config.json
+ scripts/shard-brief-history.mjs | 44 ++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 41 insertions(+), 3 deletions(-)
+```
+
+`tool-experience.config.json` is absent from that stat: **the budget was not raised.** Re-measured:
+
+```
+    7970  market-brief.config.page.json
+   93049  market-brief.page.json
+    2124  watchlist.json
+   12901  brief-history.recent.jsonl
+   69881  market-brief.snapshot.page.json
+    3157  market-brief.tools.page.json
+   12200  market-brief.scorecard.json
+first-load total = 201282  budget=204800  headroom=3518
+recent.jsonl bytes=12901 rows=30 maxRowBytes=804 minRowBytes=399 avg=430
+30-row projection at largest row = 24120
+rows carrying tracked = 0 of 30
+contractVersions = ["brief-history-recent-row/v2"]
+```
+
+Against the filing figures: 209,387 → 201,282 first-load; 21,006 → 12,901 for the artifact; ~4,947 →
+804 for the largest row; 2 → 0 rows carrying `tracked`. Scopes 1 and 2 are satisfied at `HEAD`, **by
+Feature 026 and not by this packet.**
+
+**One reconciliation, recorded rather than smoothed over.** The routing note quoted a largest row of
+~883 bytes and a 30-row projection near 26,490; measured against the committed lines it is 803 bytes
+plus a newline, projecting to 24,120. Python's `json.dumps` defaults to `, ` and `: ` separators,
+adding roughly two bytes at each of the row's 45 separator positions — `803 + 90 = 893`, which
+brackets 883. The committed line is what the budget pays for. The chosen bound clears both.
+
+### The live defect, and the change
+
+`briefHistoryRecentMaxBytes` was `204800`, identical to `briefFirstLoadMaxBytes`. It is now `40960`
+— one fifth of the first-load budget. Derivation, headroom table and the retained row cap are in
+`design.md` → "The Per-File Byte Bound — The Chosen Value And Why".
+
+Three files changed, all in the working tree, nothing committed:
+
+```
+$ git status --porcelain
+ M scripts/selftest.mjs
+ M scripts/validate-tool-experience.mjs
+ M tool-experience.config.json
+```
+
+`brief-history.recent.jsonl`, `scripts/shard-brief-history.mjs`, `rlcockpit.js` and every
+`*.page.json` are untouched.
+
+### Adversarial proof that the bound fires
+
+`validateArtifactBudgets` was exported from `scripts/validate-tool-experience.mjs` so the **real**
+refusal path could be run over synthetic inventories rather than re-implemented in a test. The
+regression-sized artifact was reconstructed **in memory** by restoring the verbatim per-instrument
+`tracked` block onto today's 30 live rows; no file was written and no fixture was created.
+
+```
+synthesized regression artifact: rows=30 bytes=135871 (~4529 B/row) -- held in memory, never written
+A. regression artifact vs new bound 40960 ......... REFUSED: brief-history-recent exceeds configured artifact byte budget
+   aggregate at that size would be 324252 > 204800, yet the refusal names brief-history-recent: the per-file check is evaluated first.
+B. 51200 B recent inside a 200000 B payload the aggregate ACCEPTS . REFUSED: brief-history-recent exceeds configured artifact byte budget
+C. same case under the OLD equal-budgets config (204800) ......... ACCEPTED
+D. regression artifact under the OLD config ...................... REFUSED: brief-first-load exceeds configured artifact byte budget
+E. control - todays real inventory .............................. ACCEPTED
+headroom: bound/current = 3.17x ; bound/30-rows-at-largest-observed(804 B) = 1.70x ; bound/regression = 0.301x
+```
+
+- **A** — the regression is refused, and refused *by name*: `brief-history-recent` precedes
+  `brief-first-load` in the checker's list and `invariant` throws on the first breach, so the
+  aggregate check is never reached.
+- **D** — the same 135,871-byte artifact under the *old* value is refused by `brief-first-load`. The
+  per-file guard did not fire at 136 KB. That is the inertness this scope removes, demonstrated
+  rather than argued.
+- **B vs C** — 51,200 bytes inside a 200,000-byte payload the aggregate accepts: refused now,
+  **accepted before**. That band could not exist while the two budgets were equal.
+- **E** — the checker accepts today's real inventory, so the refusals above are conditional.
+
+### Suite and lint
+
+```
+$ node scripts/selftest.mjs ; echo "SELFTEST_EXIT=$?"
+  ✓ the recent window is inside its declared byte budget (12901 <= 40960)
+  ✓ the recent window is inside its declared row budget (30 <= 30)
+  ✓ the cockpit’s whole first-load payload is inside budget (197 KB <= 200 KB)
+  ✓ the unbounded log genuinely exceeds the budget (7147 KB), so fetching it would FAIL this test rather than slip through
+  ✓ the recent window’s per-file byte bound is strictly smaller than the whole-payload budget (40960 < 204800), so it is capable of firing at all
+  ✓ the production budget checker accepts today’s real inventory (12901 B recent inside 201282 B payload)
+  ✓ a 148170-byte recent artifact is refused by its own bound, named, before the aggregate check is evaluated ("brief-history-recent exceeds configured artifact byte budget")
+  ✓ a 51200-byte recent artifact inside a 200000-byte payload the aggregate accepts is still refused by the per-file bound
+  ✓ the identical artifact was ACCEPTED under the old equal-budgets configuration, so tightening the per-file bound is what created the detection
+Research-Lab self-test: 3047 passed, 0 failed
+SELFTEST_EXIT=0
+
+$ node scripts/validate-tool-experience.mjs ; echo "VALIDATOR_EXIT=$?"
+[tool-experience] artifact=brief-history-recent bytes=12901 budget=40960 result=PASS
+[tool-experience] artifact=brief-history-recent-rows bytes=30 budget=30 result=PASS
+[tool-experience] artifact=brief-first-load bytes=201282 budget=204800 result=PASS
+[tool-experience] OK adversarial=13 unexpectedAcceptances=0
+VALIDATOR_EXIT=0
+```
+
+3,042 assertions before the change, 3,047 after: five added, none removed, none weakened. The
+Playwright suite was not run, and no claim here depends on it.
+
+---
+
 ## Completion Statement
 
-This packet is **filed and unstarted**. Its status is `in_progress` with `certification.status`
-equal to it. No Definition of Done item in `scopes.md` is ticked, and none should be: no remedy has
-been chosen, designed, built, or tested.
+**Scope 3 is delivered. Scopes 1 and 2 were resolved upstream by Feature 026 and are not claimed by
+this packet. The packet stays `in_progress`.**
 
-**What is established.** The defect is real and reproducible by direct measurement. The magnitude is
-4,587 bytes today and ~131,991 bytes at steady state. The contributing change is identified as
-`3855ee75d`. The dominant cost is `tracked` at 72% of a v2 row. The existing row cap and per-file
-byte cap are both shown to be incapable of containing it, the per-file cap structurally so.
+**What this run established.** `briefHistoryRecentMaxBytes` is 40,960 — one fifth of
+`briefFirstLoadMaxBytes`, 3.17x today's file and 1.70x the pessimistic 30-row projection — and it
+fires: the regression-sized artifact is refused by name, the 51,200-byte band that the old equal
+value accepted is now refused, and the old value is shown by execution to have stayed silent at
+136 KB. FR-013-003 is satisfied. AC-4 is satisfied. The `brief-first-load` assertion is intact and
+the suite gained five assertions.
 
-**What is not established.** The remedy. `design.md` enumerates four candidates and selects none,
-because the choice is between two documented product intentions and belongs to Feature 026's owner.
-Two further things are explicitly unresolved: whether candidate 2 can reach the budget by encoding
-alone is unmeasured, and candidate 1 is shown to be insufficient by itself, landing near 229,841.
+**What this run did not do.** It did not adjudicate the payload contract and did not bring the
+payload inside budget; Feature 026's commit `3872df354` did both, before this scope was picked up.
+Scopes 1 and 2 keep their Definition of Done boxes unticked for that reason, and because Scope 1's
+fourth item is genuinely open: design questions 3 (should `crossAsset` be evaluated on the same
+criterion) and 5 (is a standing rule needed) have no recorded answer. Question 4 is now answered.
 
-**What was deliberately not done.** No source file was modified. `scripts/shard-brief-history.mjs`,
-`tool-experience.config.json`, `rlcockpit.js`, every `*.page.json`, and every `brief-history*`
-artifact are untouched. The selftest suite and the Playwright suite were not run. Nothing was
-committed.
+**Why the packet is not `done`.** Three things remain. Scope 1's open questions belong to Feature
+026's owner. Gate G136 human acceptance is unestablished — `uservalidation.md`'s Human Acceptance
+Record is unfilled and automation cannot supply it. And the aggregate budget still has only 3,518
+bytes of headroom, with the other six first-load files holding 188,381 of it; that exposure is real,
+is Scope 2's, and is not closed by bounding this one artifact.
 
-**Ownership.** Scope 1 is not agent-dischargeable. Scopes 2 and 3 both depend on it, because the
-byte target and the artifact's shape follow from which intention yields. Building Scope 2 before
-Scope 1 is decided would select the remedy by implementing one, which is the prejudgement this
-packet exists to avoid.
+**What was deliberately not touched.** `brief-history.recent.jsonl`,
+`scripts/shard-brief-history.mjs`, `rlcockpit.js`, every `*.page.json`, and every other packet.
+Nothing was committed.

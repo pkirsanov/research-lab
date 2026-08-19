@@ -239,15 +239,15 @@ RED — the `lifetime-tax-strategy-lab.html` entry was removed from
 
 ```
 === PROBE-A RED: lifetime-tax-strategy-lab.html deploy decision removed ===
-file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:24
+file://<repo-root>/scripts/build-pages-site.mjs:24
   if (!condition) throw new Error(message);
                         ^
 
 Error: unregistered root page lacks a deploy decision: lifetime-tax-strategy-lab.html
-    at assert (file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:24:25)
-    at planPagesSite (file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:49:3)
-    at buildPagesSite (file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:83:16)
-    at file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:110:16
+    at assert (file://<repo-root>/scripts/build-pages-site.mjs:24:25)
+    at planPagesSite (file://<repo-root>/scripts/build-pages-site.mjs:49:3)
+    at buildPagesSite (file://<repo-root>/scripts/build-pages-site.mjs:83:16)
+    at file://<repo-root>/scripts/build-pages-site.mjs:110:16
     at ModuleJob.run (node:internal/modules/esm/module_job:447:25)
     at async node:internal/modules/esm/loader:646:26
     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)

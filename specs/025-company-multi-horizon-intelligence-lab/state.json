@@ -28,13 +28,13 @@
   },
   "execution": {
     "goalContractRef": null,
-    "activeAgent": "bubbles.regression",
-    "currentPhase": "regression",
+    "activeAgent": "bubbles.security",
+    "currentPhase": "security",
     "currentPhaseStatus": "completed",
     "currentScope": 1,
     "substate": "independently_verified",
-    "runStartedAt": "2026-08-19T05:42:27Z",
-    "completedAt": "2026-08-19T05:56:10Z",
+    "runStartedAt": "2026-08-19T06:56:25Z",
+    "completedAt": "2026-08-19T07:07:40Z",
     "completedPhaseClaims": [
       {
         "phase": "implement",
@@ -87,16 +87,192 @@
         ],
         "claimedAt": "2026-08-19T05:56:10Z",
         "evidenceRef": "specs/025-company-multi-horizon-intelligence-lab/report.md#regression-phase-evidence--cross-feature-guardian-pass-by-bubblesregression"
+      },
+      {
+        "phase": "security",
+        "agent": "bubbles.security",
+        "scopes": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "claimedAt": "2026-08-19T07:07:40Z",
+        "evidenceRef": "specs/025-company-multi-horizon-intelligence-lab/report.md#security-phase-evidence--threat-model-and-sink-review-by-bubblessecurity"
+      },
+      {
+        "phase": "gaps",
+        "agent": "bubbles.gaps",
+        "scopes": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "claimedAt": "2026-08-19T15:22:40Z",
+        "evidenceRef": "specs/025-company-multi-horizon-intelligence-lab/report.md#gaps-phase-evidence"
+      },
+      {
+        "phase": "simplify",
+        "agent": "bubbles.simplify",
+        "scopes": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "claimedAt": "2026-08-19T15:44:19Z",
+        "evidenceRef": "specs/025-company-multi-horizon-intelligence-lab/report.md#simplify-phase"
+      },
+      {
+        "phase": "harden",
+        "agent": "bubbles.harden",
+        "scopes": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "claimedAt": "2026-08-19T16:06:00Z",
+        "startedAt": "2026-08-19T15:48:01Z",
+        "durationSeconds": 1079,
+        "durationBasis": "Measured. Start is the repository-binding preflight instant this phase committed, recorded as control revision 42 in the session control file; end is the instant this claim was written, read from date -u.",
+        "evidenceRef": "specs/025-company-multi-horizon-intelligence-lab/report.md#harden-phase"
+      },
+      {
+        "phase": "stabilize",
+        "agent": "bubbles.stabilize",
+        "scopes": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "claimedAt": "2026-08-19T16:25:23Z",
+        "startedAt": "2026-08-19T16:09:48Z",
+        "durationSeconds": 935,
+        "durationBasis": "Measured. Start is the repository-binding preflight instant this phase committed, recorded as control revision 43 in the session control file; end is the instant this claim was written, read from date -u.",
+        "evidenceRef": "specs/025-company-multi-horizon-intelligence-lab/report.md#stabilize-phase"
+      },
+      {
+        "phase": "chaos",
+        "agent": "bubbles.chaos",
+        "scopes": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "claimedAt": "2026-08-19T18:21:40Z",
+        "startedAt": "2026-08-19T17:58:17Z",
+        "durationSeconds": 1403,
+        "durationBasis": "Measured. Start is the repository-binding preflight instant this phase committed, recorded as control revision 48 in the session control file with timestamp 2026-08-19T17:58:17Z; end is the instant this claim was written, read from date -u.",
+        "evidenceRef": "specs/025-company-multi-horizon-intelligence-lab/report.md#chaos-phase"
+      },
+      {
+        "phase": "docs",
+        "agent": "bubbles.docs",
+        "scopes": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "claimedAt": "2026-08-19T18:32:39Z",
+        "startedAt": "2026-08-19T18:22:19Z",
+        "durationSeconds": 620,
+        "durationBasis": "Measured. Start is the repository-binding preflight instant this phase committed, recorded as control revision 49 in the session control file with timestamp 2026-08-19T18:22:19Z; end is the instant this claim was written, read from date -u.",
+        "evidenceRef": "specs/025-company-multi-horizon-intelligence-lab/report.md#docs-phase"
+      },
+      {
+        "phase": "audit",
+        "agent": "bubbles.audit",
+        "scopes": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "claimedAt": "2026-08-19T19:39:20Z",
+        "startedAt": "2026-08-19T19:15:23Z",
+        "durationSeconds": 1437,
+        "durationBasis": "Measured. Start is the repository-binding preflight instant this phase committed, recorded as control revision 53 in the session control file with timestamp 2026-08-19T19:15:23Z; end is the instant this claim was written, read from date -u.",
+        "evidenceRef": "specs/025-company-multi-horizon-intelligence-lab/report.md#audit-phase"
+      },
+      {
+        "phase": "validate",
+        "agent": "bubbles.validate",
+        "scopes": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "claimedAt": "2026-08-19T20:30:58Z",
+        "startedAt": "2026-08-19T20:18:50Z",
+        "durationSeconds": 728,
+        "durationBasis": "Measured. Start is the repository-binding preflight instant this phase committed, recorded as control revision 56 in the session control file with timestamp 2026-08-19T20:18:50Z; end is the instant this claim was written, read from date -u.",
+        "evidenceRef": "specs/025-company-multi-horizon-intelligence-lab/report.md#validate-phase"
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "scopes": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "claimedAt": "2026-08-19T20:56:42Z",
+        "startedAt": "2026-08-19T20:41:12Z",
+        "durationSeconds": 930,
+        "durationBasis": "Measured. Start is the repository-binding preflight instant this pass committed, recorded as control revision 57 in the session control file with timestamp 2026-08-19T20:41:12Z; end is the instant this claim was written, read from date -u.",
+        "evidenceRef": "specs/025-company-multi-horizon-intelligence-lab/report.md#aud-025-f1-closure--the-four-surviving-mutations-now-have-assertions-that-kill-them"
       }
     ],
     "pendingTransitionRequests": [],
-    "nextRequiredOwner": "bubbles.plan",
-    "nextRequiredTarget": "specs/025-company-multi-horizon-intelligence-lab/scopes.md line 318. bubbles.plan rewrote eight DoD rows to a Feature-025-scoped four-part gate, and this pass re-ran that gate unfiltered and earned all eight. Measured: node scripts/selftest.mjs exits 1 at Research-Lab self-test 2875 passed 1 failed, capture sha256 c752c957a5b00a38f31ae1448ab7751a37dd5122566fcb2859269585e844203d; check (a) the Feature 025 company multi-horizon intelligence header carried exactly 11 assertions all green and zero red; check (b) the reference-hygiene command over this feature's directory printed no line; check (c) the attribution loop named 0 sites under specs/025-company-multi-horizon-intelligence-lab and attributed the one new absent path, a market-brief cockpit browser spec under tests/, to specs/026-actionable-brief-brevity-and-cross-asset at 31 sites and specs/022-federal-preferential-and-state-income-tax at 2 sites; check (d) node --test tests/company-intelligence.unit.mjs exits 0 at pass 67 fail 0 skipped 0, sha256 3644df942e386e31af9ea20227ce8d153b8c95c71d669c4586c7626eb7114959, and the system-chrome browser suite exits 0 at 16 passed, sha256 5392c392c0e299fa27a07106913280ed140819fc640a305a2123b544ae37d73e. Recounted directly from scopes.md after the edits: 108 DoD rows ticked and 1 unticked, split as scope 1 at 37 ticked and 1 unticked, scope 2 at 30 and 0, scope 3 at 19 and 0, scope 4 at 22 and 0. Scopes 2, 3 and 4 therefore reach zero unticked rows and enter certification.completedScopes. The single open row on scope 1 was rewritten by bubbles.plan onto the Feature-025-scoped four-part gate, and bubbles.test executed that gate against the new wording on 2026-08-19 and earned it. Measured: check (a) the Feature 025 header carried exactly 11 assertions, 11 green and 0 red, and the whole run printed exactly one red line, emitted outside that header; check (b) the reference-hygiene command over this feature's directory printed no line and all 23 test paths this feature names resolve on disk; check (c) across all 67 absent referenced paths the attribution scan reported 0 sites under this feature's directory, and the one new absent path, a market-brief cockpit browser spec under tests described rather than named so this artifact does not become a reference site for it, carries 38 sites split 34 under specs/026-actionable-brief-brevity-and-cross-asset and 4 under specs/022-federal-preferential-and-state-income-tax; check (d) node --test tests/company-intelligence.unit.mjs exits 0 at tests 67 pass 67 fail 0 skipped 0, capture sha256 97f87d4e8cf094ff423c0750b498d225b279aa421c316c59482d6330c7a0dcee, and the system-chrome browser suite exits 0 at 16 passed with zero failing and zero skipped, capture sha256 b0236716b019d8d45f3c732d618db64ad415afe9a84a82f08c05f4255898ef16, both named browser titles printing as passed. Scope 1 therefore reaches 38 of 38 ticked rows and enters certification.completedScopes, and all four scopes are now recorded there. What still blocks a terminal transition is owned elsewhere: ten pipeline phases after test remain unrecorded and belong to their own specialists; four ticked DoD rows in scopes 3 and 4 carry a bare Evidence marker with no report reference, and scope 2 lacks the consumer-impact-sweep section, the matching DoD item and the change-boundary DoD item, all of which are planning-owned text bubbles.test may not author; and G136 remains a human-owned acceptance checklist in uservalidation.md and is deliberately untouched.",
+    "nextRequiredOwner": "bubbles.validate",
+    "nextRequiredTarget": "specs/025-company-multi-horizon-intelligence-lab/uservalidation.md. Every routable finding is now closed: AUD-025-F1 by four assertions that each fail under their own mutation and pass on restored source at an unchanged sha256 4881db1647da6400b36efa0f71c1bd790738c8a3b1f8e82ef675517849acae8e, AUD-025-F3 by verifying both Uncertainty Declarations stale against the rewritten DoD lines and annotating them with their resolutions, and VAL-025-F3 by replacing a prose Claim Source value with the taxonomy value executed. AUD-025-F2 was closed by bubbles.validate and AUD-025-F4 is an observation with no action. Recounted directly from scopes.md over Definition of Done blocks after these edits: 111 DoD rows ticked and 0 unticked, split as scope 1 at 38 and 0, scope 2 at 32 and 0, scope 3 at 19 and 0, scope 4 at 22 and 0. Measured after the change: node --test tests/company-intelligence.unit.mjs exit 0 at tests 74 pass 74 fail 0 skipped 0 todo 0, and npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list exit 0 at 29 passed. The sole remaining blocker is G136 human acceptance, which is human-owned and barred to every bubbles.* agent: a human must exercise the route, record a '## Human Acceptance Record' in uservalidation.md and check the acceptance items themselves. bubbles.validate is named here because it is the agent that re-runs certification once that record exists; it is not the next actor. Two repository-selftest failures remain foreign and attributed to spec 021 — 10 home-path PII findings in its reports and TP-05-06 at scripts/selftest.mjs reading rltax.js and rltaxstrategy.js — and were neither repaired nor adopted.",
     "audit": {
       "schemaVersion": "audit-run/v1",
-      "runId": null,
-      "currentAttemptId": null,
-      "attempts": []
+      "runId": "rb:vscode-76796f8295100da71eb37ed18f20cd77:53",
+      "currentAttemptId": "AUD-025-001",
+      "attempts": [
+        {
+          "attemptId": "AUD-025-001",
+          "resultState": "ACTIVE",
+          "openedAt": "2026-08-19T19:15:23Z",
+          "openedAtBasis": "Measured. The repository-binding preflight instant this audit committed, recorded as control revision 53 in the session control file.",
+          "closedAt": "2026-08-19T19:39:20Z",
+          "auditProfile": "delivery-completion-v1",
+          "targetStatus": "done",
+          "statusCeiling": "done",
+          "workflowMode": "full-delivery",
+          "contractRef": "bubbles/workflows/modes.yaml#full-delivery",
+          "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
+          "targetRevision": "sha256:6714f473c898d773ad2c9db3045e093f3686c569b3dcee3d1acb8482f609670c",
+          "auditVerdict": "SHIP_WITH_NOTES",
+          "outcome": "route_required",
+          "supersedesAttemptId": null,
+          "addressedFindings": [],
+          "unresolvedFindings": [
+            "AUD-025-F1",
+            "AUD-025-F2",
+            "AUD-025-F3"
+          ],
+          "observations": [
+            "AUD-025-F4"
+          ],
+          "failedGateIds": [
+            "G022",
+            "G136"
+          ],
+          "evidenceRefs": [
+            "specs/025-company-multi-horizon-intelligence-lab/report.md#audit-phase"
+          ],
+          "note": "Attempt opened before any check ran so an interrupted run would leave a record rather than silence, then closed on the same record. Mutation testing ran on an out-of-repo mirror; rlcompanyintel.js was never written and its sha256 4881db1647da6400b36efa0f71c1bd790738c8a3b1f8e82ef675517849acae8e was re-measured four times unchanged. Verdict SHIP_WITH_NOTES because every suite is green, evidence integrity is verified against independent re-execution and no blocking issue was found, while three findings are routed to their owners and gates G022 and G136 remain open for bubbles.validate and for a human. AUD-025-F1 is the substantive one: four correctly implemented behaviours have no assertion that fails when they are removed."
+          }
+      ]
     }
   },
   "certification": {
@@ -142,8 +318,8 @@
           "BS-025-020",
           "BS-025-023"
         ],
-        "dodTicked": 37,
-        "dodUnticked": 1
+        "dodTicked": 38,
+        "dodUnticked": 0
       },
       {
         "scope": 2,
@@ -165,7 +341,7 @@
           "BS-025-021",
           "BS-025-024"
         ],
-        "dodTicked": 30,
+        "dodTicked": 32,
         "dodUnticked": 0
       },
       {
@@ -266,6 +442,7 @@
       "startedAt": "2026-08-18T16:20:30Z",
       "finishedAt": "2026-08-18T16:20:30Z",
       "durationUnmeasured": true,
+      "durationUnmeasuredReason": "The writer of this record stored a single completion instant rather than a start and a finish, so both timestamps carry the same value and no span was ever measured. The true elapsed time of this analyst run is unknown and no clock reading survives from which it could be recovered. It is declared unmeasured rather than replaced with an estimated duration, because an invented span would be a fabricated timestamp.",
       "outcome": "route_required",
       "summary": "Reconciled the operator's adaptive-research decision into the analyst-owned specification. The full-analysis dimensions remain a mandatory coverage floor. The Research Agent may now select any registered Research Lab tool and perform additional public, source-qualified analysis when a material question warrants it. Added the Adaptive Research Plan primitive, one use case, two business scenarios, one ranked proposal, traceability and stopping policies, and corresponding acceptance coverage. The specification now contains 8 actors, 9 use cases, 22 business scenarios, 40 functional requirements, 12 non-functional requirements, 4 competitive gaps, and 6 ranked proposals. References, prose, Markdown fences, counts, and trailing whitespace are clean. Status and certification remain not_started, and design.md remains the next owner artifact."
     },
@@ -377,6 +554,128 @@
       "finishedAt": "2026-08-19T05:56:10Z",
       "outcome": "route_required",
       "summary": "Cross-feature regression pass. Measured only; wrote no product code, no test code and no shared module, and staged, committed and pushed nothing. Baselines were re-measured rather than read from prose, by running node scripts/selftest.mjs against three trees. Pre-append parent e903749c0^ = b9d92a3f1: 2456 passed, 3 failed, exit 1, capture sha256 0dd3ce4fd3ad3d27869a9fe147e355cfcbdf6b9133cc50ba5f42ca4ae8871510. Real git clone of HEAD = 5920d9ede, tracked content only: 2944 passed, 8 failed, exit 1, capture sha256 ac69f659285c325f09a87a8be3329485e05fb03609387cf0ad6f84f6ac1e5831. Current working tree: 2993 passed, 1 failed, exit 1, capture sha256 71b79f5c515bad963e5909a262d97adab2a7b500ad42f11e3857219b21cbbd8b. No assertion count decreased anywhere; the repository total moved 2456 to 2944 to 2993 passing. Own suites re-measured and unchanged: node --test tests/company-intelligence.unit.mjs exit 0 at tests 67 pass 67 fail 0 skipped 0, capture sha256 e7007fd2bff714e541facaaffdf37db26f1a53b7e8d3f9f25349dcf491e29fb0, and the system-chrome Playwright run exit 0 at 16 passed with zero failing and zero skipped, capture sha256 053583df7e26b2187be9773958a9798d41f6d12a8728a0443b49da10a2db1bed. Shared modules are clean on two independent checks: git diff --stat HEAD over rlratio.js, rlregime.js, rlcompany.js, rlagenda.js, rlcontracts.js, rlvol.js, rlmetrics.js and rldata.js prints nothing, and the last commit touching each is a foreign pre-025 feature, none of them e903749c0, so all eight are byte-identical to their pre-feature state. Run-time mutation was scanned too, because a module can be altered without any file changing: rlcompanyintel.js writes only globalThis.RLCOMPANYINTEL, a namespace appearing in exactly three files all owned by this feature, performs no assignment to any RL* shared surface and no prototype patching, and consumes only rlcontracts.js read-only into a local cache. No registered tool changed behaviour: tools.json holds 28 entries at zero delta against HEAD, index.html and rlnav.js are unchanged, and no existing page or navigation file references company-intelligence, which is the intended posture asserted by TP-025-09. Verdict REGRESSION_DETECTED on two findings. R-025-REG-01, P1, owner bubbles.implement: commit e903749c0 changed only scripts/selftest.mjs and site-exclusions.json, and both name artifacts that remain untracked and are not gitignored, so in any clean checkout the stale-exclusion validator throws and takes down six groups plus the Feature 025 group itself. Four of those seven are foreign groups, Feature 021 Scope 05 route and three Feature 026 groups, green in the working tree and red in a clean clone solely because of a file this feature declared but never committed; registry coverage and Step 9 durability were already red at baseline for a lifetime-tax reason that e903749c0 cleared and replaced with this one, so they were not newly broken but were not cleared either. The spec-test-path guard also degrades from 1 new to 3 new in a clean checkout, the two extras being this feature's own untracked test files. Routed, not repaired: placing the six untracked artifacts under version control, or withdrawing the two committed shared-surface entries, are implementation acts on this feature's artifacts and belong to bubbles.implement. R-025-REG-02, medium, owner bubbles.test: the SCN-025-CANARY assertion at scripts/selftest.mjs:21251 is labelled as asserting that every pre-existing selftest assertion stays green, but it evaluates only exclusion-registry parity and cannot fail when an assertion regresses; the property holds this pass, established by the full run rather than by that assertion. Disclosure: three foreign spec 026 product files, market-brief.html, rlbrief.js and rlcockpit.js, changed mid-pass between two git status calls, so the working-tree figure is a point-in-time snapshot; the A/B carrying R-025-REG-01 is unaffected because both its sides are fixed commits. The known-foreign market-brief cockpit spec path was neither adopted nor created. Top-level status, certification.status, certification.certifiedCompletedPhases and certifiedAt were left untouched, no DoD box was ticked, and uservalidation.md was not edited."
+    },
+    {
+      "agent": "bubbles.security",
+      "phasesExecuted": [
+        "security"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-19T06:56:25Z",
+      "finishedAt": "2026-08-19T07:07:40Z",
+      "outcome": "route_required",
+      "summary": "Security phase over this feature's five files against the repository's real threat model and Product Principle P13. Found and fixed one real defect in this feature's own module, and routed one foreign defect it may not fix. F-025-SEC-01, LOW, OWASP A03: readCoverageRegistry in rlcompanyintel.js validated ownerDeepLink on isNonEmptyString alone while every sibling field in the same validator is constrained to a closed set, and company-intelligence-lab.html binds that value straight into an anchor href at lines 582 and 860. The page CSP carries script-src 'unsafe-inline', under which a javascript: href executes rather than being blocked, so CSP was not a mitigation for this sink. Proven executed, not asserted: the pre-fix module read from git show HEAD:rlcompanyintel.js and evaluated in memory beside the post-fix module ACCEPTED javascript:alert(1), data:text/html,<script>alert(1)</script> and //evil.example/market-brief.html and returned each as a live ownerDeepLink, while the post-fix module refuses all three with C025-CONFIG-SCHEMA. Severity is recorded as LOW rather than HIGH on honest grounds: the registry is committed repository content and not user input, all 15 committed rows are benign, and the browser suite at line 123 already asserts every rendered href is a member of tools.json so CI would catch an unsafe value; the defect is nonetheless real because readCoverageRegistry is exported on a frozen public API and any second consumer inherited no protection. Fix constrains the value at the same boundary using SAFE_OWNER_ROUTE = /^[A-Za-z0-9._-]+\\.html$/ and raises the existing C025-CONFIG-SCHEMA code rather than a new one; it is the same shape market-brief.html line 1571 already applies to its own item.deepLink, so it converges on the repository's existing convention. It accepts all 15 committed rows with 0 rejected. No guard, test or CSP was weakened: one test was added, an owner deep link that is not a same-origin route file is refused and the committed registry passes, asserting seven hostile forms are refused and carrying an adversarial counter-case proving the guard is not refusing everything. F-025-SEC-02, LOW, routed not fixed: market-brief.html, owned by specs/026-actionable-brief-brevity-and-cross-asset, carries the same class of gap at line 1354 link.href = owner.ownerDeepLink and at line 1920 '<a href=\"' + esc(c.ownerDeepLink) + '\">', while line 1571 in the same file validates correctly. Line 1920 only looks defended: esc() at line 1226 replaces solely & < > \" ' so it cannot neutralise a scheme, and HTML-escaping is not a defence for a URL-bearing attribute. Exploitability there is labelled interpreted because no proof-of-concept was run against a foreign route. Areas 2 through 5 are clean with named checks. CSP: this route's meta is byte-identical to the single policy shared by 27 shipped pages, connect-src is an explicit allowlist asserted by the selftest to contain neither https: nor *, and object-src, base-uri, form-action, frame-src, worker-src and media-src are all 'none'. P13: POSITION_INPUT_PATTERNS is five real regexes, refuseInput is live at module line 198 and route line 1166 where it returns before storage, composition and any fetch, and the browser suite proves it at line 236; grepping data/company-intelligence/ returns only the word disposition matching position and prose asserting absence. Secrets: no key, token or credential value exists; every external URL is a public keyless SEC endpoint cited in fixtures rather than fetched at runtime, and all four runtime fetch calls are same-origin. Path traversal is defended twice, by the identifier regex at line 200 and more strongly by eventsPathFor performing an allowlist lookup so no user-influenced string is concatenated into a path. PII: the sweep returns exactly one hit, report.md line 440, already redacted to file:///Users/<user>/... with no username, machine name or home path leaking. Commands, all unfiltered under evidence-capture: node scripts/selftest.mjs exit 0 at 3019 passed 0 failed before the fix, sha256 8a2b37eaa8a0d6d51187ace0698fb3107060f9718a535da90e70edeac89335b6, and exit 0 at 3019 passed 0 failed after, sha256 2c9676352a73f204313f24d695302cb7739f58fb71ab22af5d0919b8a9db85e0; node --test tests/company-intelligence.unit.mjs exit 0 at pass 67 fail 0 before, sha256 0dfb681f99e29f3a49e52a3175dbf97e1c6a48ba4dbf3ab5441aca8fc53c5874, and exit 0 at pass 68 fail 0 after, sha256 23a9427862a47809e06bcff54df5dc3530f7f3ea30c4605c0db33cc9644efc94; the system-chrome browser suite exit 0 at 16 passed before, sha256 44cbcac9fc59c92f8998665bc1e7e5218b95e21bc81ca33694ed428d5b74e4ea, and exit 0 at 16 passed after, sha256 8ca7bae88b2819612a2e09d2ac9857ca859908534a422e66556e793c7b9dffb2. Wrote no status, no certification.status, no certifiedAt, no completedScopes, no certifiedCompletedPhases and no lockdownState, and changed no foreign file; market-brief.html, rlbrief.js and rlmarketaction.js were read only. Verdict FINDINGS: two findings, both LOW, one fixed in-feature and one routed, with no critical or high severity vulnerability found."
+    },
+    {
+      "agent": "bubbles.gaps",
+      "phasesExecuted": [
+        "gaps"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-19T15:22:40Z",
+      "finishedAt": "2026-08-19T15:22:40Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "The gaps specialist terminated before recording a start and a finish. Unlike the harden, stabilize, chaos and docs claims, its execution.completedPhaseClaims entry stores a single completion instant with no startedAt and no durationSeconds, so both timestamps on this row carry that one instant. The true elapsed span is unknown and no surviving clock reading could recover it. It is declared unmeasured rather than replaced with an estimate, because an invented span would be a fabricated timestamp.",
+      "outcome": "route_required",
+      "summary": "RECONCILED POST-HOC by bubbles.implement under control revision 52; this row was NOT written by bubbles.gaps. The gaps specialist wrote its work and its completedPhaseClaims entry but terminated before appending this executionHistory row, so Check 6B of the state transition guard reported no specialist provenance for phase gaps even though the work was already present in the repository. This row records a phase that demonstrably ran; it does not re-claim it and it adds no new evidence. Evidence verified by reading report.md before this row was written: section '## Gaps Phase Evidence', report.md lines 2229 through 2436. That section opens 'Run by bubbles.gaps on 2026-08-19. Scopes 1 through 4' and carries Claim Source: executed. It contains a twelve-row trace of every NFR from NFR-025-001 to NFR-025-012 to an implementation site and a test, and three named findings: GAP-025-G1, the NFR-025-004 keyboard rail is absent, ROUTED not fixed, proven by a real browser probe recorded at Exit Code 1 with tabIndex of -1 rather than read from source; GAP-025-G2, NFR-025-005 linked ticker tokens had zero test coverage, FIXED in that phase; GAP-025-G3, the Coverage Report is stale, RECORDED not edited. The section also carries a post-change baseline re-run and a change-boundary paragraph. The matching execution.completedPhaseClaims entry, claimedAt 2026-08-19T15:22:40Z with evidenceRef report.md#gaps-phase-evidence, was already present and was not modified. Outcome route_required reflects GAP-025-G1 and GAP-025-G3 being routed to their owning agents rather than closed. This reconciliation wrote only this executionHistory row: no product code, no test, no scopes.md tick, no certification field, no status field and no foreign spec was touched."
+    },
+    {
+      "agent": "bubbles.simplify",
+      "phasesExecuted": [
+        "simplify"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-19T15:37:45Z",
+      "finishedAt": "2026-08-19T15:44:19Z",
+      "outcome": "route_required",
+      "summary": "Simplify pass over this feature's recently changed code only: rlcompanyintel.js, company-intelligence-lab.html, company-intelligence.config.json, tests/company-intelligence.unit.mjs, tests/company-intelligence-lab.spec.mjs and data/company-intelligence/. Four simplifications applied, all behaviour-preserving; six candidates rejected with stated reasons; one gap routed rather than deleted. S-01: four adapters (performance, fundamentals, volatility, financial-events) each carried an independent copy of the same aged-out read (state stale, reason read-aged-past-window, directionalSignal null, owner and horizon fields re-read off row), so a fifth adapter could age out while still publishing a direction its stale number no longer supports; added staleRead(row, subject, spec) beside the existing unavailableRead whose shape it mirrors, and routed all four sites through it. S-02: fundamentalsAdapter and valuationAdapter pre-filtered their directional signal with contains([constructive, pressured, flat], x) ? x : null before handing it to makeRead, which applies that exact filter itself, so the pre-filter could never change the result; both removed. S-03: volatilityAdapter and geopoliticsAdapter carried a verbatim copy of the nested ternary normalising an owner read's asOf from instant or bare date to a day; added ownerReadDay(value) and called it from both. S-04: loadEvents in the route re-implemented loadOptionalJson line for line (same absent-path short circuit, same no-store fetch, same response.ok throw, same assign-on-success, same assign-null-on-failure, same three outcome words); loadEvents now resolves its path and delegates, leaving one same-origin JSON read path in the route instead of two. Also removed a redundant computation inside composeHorizon, which sorted signalled twice with the same comparator to read a dimension name off one call and a direction off the other; the sort now runs once into leadingSignal so the sentence provably describes one dimension. Line counts stated plainly rather than spun: rlcompanyintel.js moved 2032 to 2057 and the route 1392 to 1376, a net of nine ADDED lines. This phase did not shrink the module; it replaced four divergence-capable copies of one rule with a single commented definition and paid twenty-five lines for it. Rejected with reasons: adopting rlratio.js ratioSeries/trailingChange for relativeAdapter (different metric, ratio trailing change versus a spread of two independent trailing changes, plus a different bar shape and a required pair registry, so it would change the published number); routing the route's fetch sites through RLCOMPANY.loadSameOriginJson (bound to the Feature 010 publication contract, demanding an exact key set with a companyId, an application/json content type and C010-* rejections, where this route needs absence to resolve normally and must keep working under file://); recomputing the volatility percentile with rlvol.js volPercentile (the adapter deliberately consumes the owner's published percentile, and recomputing would create the second definition the unit suite forbids); removing the five script includes the route never references, rlmetrics.js, rlratio.js, rlvol.js, rlagenda.js and rlchart.js, verified unreferenced by global, alias and transitive check (design.md names them as the route's owner modules and foundations, and design.md is not this agent's artifact to edit, so it is routed rather than applied); generalising noSharedReadAdapter with a reason-code parameter (adds an argument at four call sites to delete two five-line functions, net neutral); collapsing composeImmediate/Event/Swing/Structural (the declared public surface in scopes.md, and selftest TP-025-08 requires every export to have a route caller). Gap routed, not fixed: design.md states the freshness window per source class lives in the config, the config carries that map (committed-file 400, cache 7, owner-read 7, fixture 0, none 0), and no code path reads it because readCoverageRegistry uses each registry row's own window and readEventSource the event source's own; deleting the map would erase the evidence of the gap, so the config was left byte-identical and the decision is routed to bubbles.design. Regression bar, all three suites re-run after the last edit, unfiltered through evidence-capture.sh: node --test tests/company-intelligence.unit.mjs exit 0 at tests 68 pass 68 fail 0, sha256 87739c0a37f7eb6246af5dd21b73fbd3db07542615d6345a9cc113c67fe47e6b, matching the pre-change baseline measured in this same session; the system-chrome Playwright run exit 0 at 19 passed, sha256 bd1749b33b0176f832f9e906636b0cb3fe5d95971ea7b080d5e217fd89f0783f; node scripts/selftest.mjs exit 0 at 3042 passed 0 failed, sha256 0e315784b17fd4c11555aa8908bb631abc9f2cb18495c2841fafc95409e7d3ae. Two count corrections against the figures this phase was handed: the unit suite stands at 68 tests, not 59, and the browser suite at 19, not 18; both were already at those counts before this phase edited anything, because the security phase added one to each, and this phase added none. Disclosure: the foreign validate-spec-test-paths failure referencing tests/market-brief-cockpit.spec.mjs, owned by spec 026, did NOT appear in this run, which reports 0 failed; the working tree carries uncommitted changes to scripts/selftest.mjs and scripts/validate-spec-test-paths.baseline made by the concurrent session that owns those paths. This phase did not fix it, did not adopt it and touched neither file. Duration is measured from a real clock reading taken at the start of the applied work through a second reading after the last verification, 394 seconds; the reading is conservative because the binding preflight and the opening survey preceded the first marker. Change boundary: two files modified, rlcompanyintel.js and company-intelligence-lab.html; the config left byte-identical and both test files left unmodified; no rltax* file, no lifetime-tax-* file, no tax-rules/ path, no specs/021 through specs/024, no specs/026 and no market-brief* file read-modify-written; scripts/selftest.mjs not modified. No test, guard, assertion or budget was weakened. Wrote no status, no certification.status, no certifiedAt, no completedScopes and no lockdownState. Verdict: four behaviour-preserving simplifications applied and one design gap routed to bubbles.design."
+    },
+    {
+      "agent": "bubbles.harden",
+      "phasesExecuted": [
+        "harden"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-19T15:48:01Z",
+      "finishedAt": "2026-08-19T16:06:00Z",
+      "outcome": "route_required",
+      "summary": "RECONCILED POST-HOC by bubbles.implement under control revision 52; this row was NOT written by bubbles.harden. The harden specialist wrote its work and its completedPhaseClaims entry but terminated before appending this executionHistory row, so Check 6B of the state transition guard reported no specialist provenance for phase harden even though the work was already present in the repository. This row records a phase that demonstrably ran; it does not re-claim it and it adds no new evidence. Evidence verified by reading report.md before this row was written: section '## Harden Phase', report.md lines 2553 through 2815, owner bubbles.harden, Claim Source: executed. It carries a pre-change baseline table with three commands and three capture sha256 values (unit tests 68 pass 68 fail 0 at exit 0; the system-chrome Playwright run at 19 passed exit 0; node scripts/selftest.mjs at 3042 passed 0 failed exit 0), a forty-row walk of every functional requirement from FR-025-001 to FR-025-040 naming the code path and the assertion that holds each, an adversarial probe table over the five declared invariants, and a negative-control table in which every assertion the phase added was shown to FAIL with exactly one behaviour patched out in memory. Named work includes FR-025-017, the cache-first short circuit, recorded there as implemented but with NO assertion and closed in that phase by a browser row proving a second run refetches zero committed bar files; the FR-025-004, FR-025-026 and FR-025-039 assertions strengthened from forms that could not have failed; and one assertion the phase wrote, ran, observed to fail and had to correct, recorded verbatim rather than quietly dropped. All 111 ticked DoD rows were re-read and none was found false about the code. The matching execution.completedPhaseClaims entry, claimedAt 2026-08-19T16:06:00Z with startedAt 2026-08-19T15:48:01Z, durationSeconds 1079 and durationBasis naming control revision 42, was already present and was not modified; startedAt and finishedAt on this row are copied from that measured record, so no duration was invented here. Outcome route_required reflects two unresolved findings routed rather than fixed, because scopes.md is bubbles.plan-owned. This reconciliation wrote only this executionHistory row: no product code, no test, no scopes.md tick, no certification field, no status field and no foreign spec was touched."
+    },
+    {
+      "agent": "bubbles.stabilize",
+      "phasesExecuted": [
+        "stabilize"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-19T16:09:48Z",
+      "finishedAt": "2026-08-19T16:25:23Z",
+      "outcome": "route_required",
+      "summary": "RECONCILED POST-HOC by bubbles.implement under control revision 52; this row was NOT written by bubbles.stabilize. The stabilize specialist wrote its work and its completedPhaseClaims entry but terminated before appending this executionHistory row, so Check 6B of the state transition guard reported no specialist provenance for phase stabilize even though the work was already present in the repository. This row records a phase that demonstrably ran; it does not re-claim it and it adds no new evidence. Evidence verified by reading report.md before this row was written: section '## Stabilize Phase', report.md lines 2816 through 3022, owner bubbles.stabilize, Claim Source: executed. It carries a pre-change baseline table with two commands and two capture sha256 values (unit tests 70 pass 70 fail 0 at exit 0; the system-chrome Playwright run at 20 passed exit 0), a fifteen-row degradation table P1 through P15 in which each failure mode was injected against the real page over a real static server with nothing about the route stubbed, and a ten-row resource-behaviour table. Across all fifteen probes the page recorded zero unhandled promise rejections and zero uncaught page errors. Two defects are named. Defect 1, committed record files were refetched on every composition, FIXED in that phase, with the effect measured on both sides: one repeat apply on an unchanged subject issued 4 requests before and 0 after, and version-file requests for a self-referencing chain moved from 20 to 1, with the 20-hop loop bound explicitly not relaxed. Defect 2, a listener leak from bindContextControl in rlticker.js measured as JSEventListeners growing 39, 51, 63, 75, 87 across 0 to 40 recompositions with GC forced, UNRESOLVED and routed rather than patched because rlticker.js is outside this feature's declared surface and 21 of the 26 routes that load it are affected. One further observation was probed and explicitly recorded as NOT a defect. The matching execution.completedPhaseClaims entry, claimedAt 2026-08-19T16:25:23Z with startedAt 2026-08-19T16:09:48Z, durationSeconds 935 and durationBasis naming control revision 43, was already present and was not modified; startedAt and finishedAt on this row are copied from that measured record, so no duration was invented here. Outcome route_required reflects Defect 2 being routed to the owner of the shared module. This reconciliation wrote only this executionHistory row: no product code, no test, no scopes.md tick, no certification field, no status field and no foreign spec was touched."
+    },
+    {
+      "agent": "bubbles.chaos",
+      "phasesExecuted": [
+        "chaos"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-19T17:58:17Z",
+      "finishedAt": "2026-08-19T18:21:40Z",
+      "outcome": "route_required",
+      "summary": "RECONCILED POST-HOC by bubbles.implement under control revision 52; this row was NOT written by bubbles.chaos. The chaos specialist wrote its work and its completedPhaseClaims entry but terminated before appending this executionHistory row, so Check 6B of the state transition guard reported no specialist provenance for phase chaos even though the work was already present in the repository. This row records a phase that demonstrably ran; it does not re-claim it and it adds no new evidence. Evidence verified by reading report.md before this row was written: section '## Chaos Phase', report.md lines 3032 through 3218, owner bubbles.chaos. It records a method that reused the committed browser surface and varied only ORDERING, drawing actions from a seeded Mulberry32 generator across seeds 20260819, 11, 4242 and 987654; eight journeys J1 through J7 plus a seed sweep, covering 40-step interleaved churn, 12 repeat applies, out-of-order subject switching with and without a 900 ms delay, navigation round trips, 24 steps of refusal fuzz including markup, traversal and position text, overlapping runs sampled continuously by a MutationObserver, and a refusal entered against a composed page; a measured-observation table; three green baselines; and an artifact-lint exit code of 0. The verdict is ZERO product defects found, reported as observed, with no bug artifact created because none was warranted, and no defect manufactured to show productivity. Four failures from round 1 were traced to the harness rather than the route and each cause and resolution is recorded rather than dropped, and the temporary harness spec was removed at the end of the round. The matching execution.completedPhaseClaims entry, claimedAt 2026-08-19T18:21:40Z with startedAt 2026-08-19T17:58:17Z, durationSeconds 1403 and durationBasis naming control revision 48, was already present and was not modified; startedAt and finishedAt on this row are copied from that measured record, so no duration was invented here. Outcome route_required reflects the section's Handoff paragraph, which routes one durable-coverage recommendation, promotion of the J6 overlapping-composition probe, to bubbles.test as the owner of the committed spec, rather than taking it. This reconciliation wrote only this executionHistory row: no product code, no test, no scopes.md tick, no certification field, no status field and no foreign spec was touched."
+    },
+    {
+      "agent": "bubbles.docs",
+      "phasesExecuted": [
+        "docs"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-19T18:22:19Z",
+      "finishedAt": "2026-08-19T18:32:39Z",
+      "outcome": "route_required",
+      "summary": "RECONCILED POST-HOC by bubbles.implement under control revision 52; this row was NOT written by bubbles.docs. The docs specialist wrote its work and its completedPhaseClaims entry but terminated before appending this executionHistory row, so Check 6B of the state transition guard reported no specialist provenance for phase docs even though the work was already present in the repository. This row records a phase that demonstrably ran; it does not re-claim it and it adds no new evidence. Evidence verified by reading report.md before this row was written: section '## Docs Phase', report.md lines 3219 through 3387, agent bubbles.docs, Claim Source: executed. It records the binding preflight it committed at control revision 49 with timestamp 2026-08-19T18:22:19Z; the mechanical check performed before anything was written, establishing that a notes file for an unregistered route is compatible with TP-025-09 and with both reader-index parity assertions; a five-row drift table in which each row names what the doc said, what the shipped code actually says and the action taken, covering the ten data-workspace values, the increment-A evidence boundary, the financial-events split, a fifteen-row dimension state table replacing a wrong prose grouping, and the previously undocumented body data-corpus-status attribute; four sections added, each traced to values read from the shipped source and config; an explicit statement that registration was deliberately not performed and that no status, no certification field and no DoD tick was changed; and two commands with exit code 0 including artifact lint. This row is the direct repair of the omission that section itself discloses: its Change boundary paragraph states the phase wrote three files and one appended execution.completedPhaseClaims entry, with no executionHistory row among them. The matching execution.completedPhaseClaims entry, claimedAt 2026-08-19T18:32:39Z with startedAt 2026-08-19T18:22:19Z, durationSeconds 620 and durationBasis naming control revision 49, was already present and was not modified; startedAt and finishedAt on this row are copied from that measured record, so no duration was invented here. Outcome route_required reflects the registration decision routed to bubbles.plan and bubbles.design rather than taken. This reconciliation wrote only this executionHistory row: no product code, no test, no scopes.md tick, no certification field, no status field and no foreign spec was touched."
+    },
+    {
+      "agent": "bubbles.audit",
+      "phasesExecuted": [
+        "audit"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-19T19:15:23Z",
+      "finishedAt": "2026-08-19T19:39:20Z",
+      "outcome": "route_required",
+      "summary": "Written by bubbles.audit itself, early in the run rather than as a last action, because the five preceding specialists each terminated before appending their row and had to be reconciled post-hoc. Audit profile delivery-completion-v1, resolved by transition-contract-resolver.sh rather than chosen, at contractDigest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93 and targetRevision sha256:6714f473c898d773ad2c9db3045e093f3686c569b3dcee3d1acb8482f609670c; binding preflight committed at control revision 53 with timestamp 2026-08-19T19:15:23Z, which is this row's measured start. Evidence is report.md section '## Audit Phase'. Independent execution rather than trust in recorded evidence: unit suite pass 70 fail 0 skipped 0 exit 0; browser suite 29 passed exit 0 on runner 1.61.1; repository selftest 3065 passed 0 failed exit 0 with the Feature 025 group carrying exactly 11 assertions all green; artifact lint exit 0 including all three anti-fabrication checks; implementation-reality-scan 0 violations 1 style warning covering G047 and G048; regression-quality-guard 0 violations; transition guard exit 1 with failedGateIds G022 and G136, G022 naming exactly validate and audit. Mutation testing was performed on an out-of-repo rsync mirror so no repository source file was ever written; rlcompanyintel.js measured sha256 4881db1647da6400b36efa0f71c1bd790738c8a3b1f8e82ef675517849acae8e at 114317 bytes before the first mutation, after the eight-mutation run, after the browser-stage run and after the read-only probe, all four readings identical. Eight mutations were run against all three suites. The four new probes this pass wrote against the href guard, the position-input refusal, the fixture filter and the publication round-trip were all CAUGHT. The four recheck mutations SURVIVED every surface, which is finding AUD-025-F1 at medium severity: FR-025-013's ticker and cik legs, FR-025-006's reason-code refusal, FR-025-018's missing-read refusal and FR-025-031's date leg are each correctly implemented but held by no assertion that fails when they are removed, proven live for FR-025-013 by a read-only probe showing all three mismatch legs firing and a control reading through. It is routed to bubbles.plan then bubbles.test because audit owns neither scopes.md nor the test files, and it is the same class as the FR-025-007 finding bubbles.harden already left open. Two further findings are routed: AUD-025-F2 confirms the harden-recorded state.json DoD counter drift is still open, independently recounted inside Definition of Done sections only, Scope 1 at 38 ticked 0 unticked against a recorded 37 and 1 and Scope 2 at 32 and 0 against a recorded 30 and 0, owner bubbles.validate because certification is validate-owned; AUD-025-F3 records that the Uncertainty Declarations section still states two DoD items as unsatisfied that were subsequently earned, owner bubbles.plan, which matters because the human acceptance gate G136 is still open and that is the section a reader would consult. AUD-025-F4 is an informational observation only, that the route's inherited CSP connect-src is broader than a route issuing zero external requests needs. Also corrected: the previous audit attempt's CAUGHT verdicts for M11 and M17 were false positives caused by concurrent foreign Lifetime Tax failures, and its own logs name TP-02-04, TP-02-09 through TP-02-12, TP-03-01, TP-04-10 and TP-01-16, none of which read rlcompanyintel.js. Two supplied baselines did not reproduce, both in the safe direction and both disclosed: the browser suite ran 29 rather than 28, and the selftest ran 3065 rather than 3051. This phase wrote only this report.md section and three state.json members: execution.audit attempt AUD-025-001, one appended execution.completedPhaseClaims entry and this row. It ticked no DoD item, changed no scope status, wrote no certification field, no lockdownState and no top-level status, and touched no foreign spec and no lifetime-tax path. Outcome route_required because three findings are routed and gates G022 and G136 remain open for bubbles.validate and for a human respectively."
+    },
+    {
+      "agent": "bubbles.validate",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-19T20:18:50Z",
+      "finishedAt": "2026-08-19T20:30:58Z",
+      "outcome": "blocked",
+      "summary": "Written by bubbles.validate itself as the twelfth and final phase of the full-delivery run, and written before termination rather than reconciled post-hoc. Repository binding was resolved from the host first: repository-binding-host-context.sh returned expectedControlRevision 55 after refusing the workspace root AirbnbScraperDS as not a Git worktree and printing the exact re-run form; repository-binding.sh preflight --request-class STRUCTURED then printed PREFLIGHT_COMMITTED decision rb:vscode-76796f8295100da71eb37ed18f20cd77:56 revision 56 with actionable true. The transition-history entry for revision 56 carries timestamp 2026-08-19T20:18:50Z, which is this row's measured start; finishedAt is the instant this claim was written, read from date -u, giving a measured durationSeconds of 728 with no value invented. Evidence is report.md section '## Validate Phase'. Every command was executed in this session through evidence-capture.sh, whose sha256 covers every produced line and is re-derivable with --verify: feature unit suite node --test tests/company-intelligence.unit.mjs exit 0 at 70 pass 0 fail 0 skipped 0 todo, capture sha256 295e6670184d2f60008da357cb1090e0b76588ef7eba229d76b7627cf5069241; feature browser suite playwright system-chrome exit 0 at 29 passed, capture sha256 6cd0c6342b138bec1fab00e34c942ddfcf4ca75a150083b68e0865975fb65a34; repository selftest node scripts/selftest.mjs exit 1 at 3064 passed 1 failed, capture sha256 98231281034a8afda36bc0e39fc36a37f2b579da51e9baca520b8ac61ba5d81b; artifact lint exit 0, capture sha256 6fa07b59f80a34023a08a8bdf519737216e354b5c39c62ba12d9a556cba683b3; transition guard exit 1 pre-write with failedGateIds G022 and G136, failedChecks empty, 26 gates passing and failureCount 3, capture sha256 3aae0b0bc7e83a9a7a8240716c5e973496d4803d64a823f237ce754ad8af8eaa. Both feature-owned suites are green. The single selftest red line, 'committed surface carries no personal identifier', was attributed by independent execution rather than accepted from the caller: node scripts/pii-scan.mjs reported findings 10, all ten home-path hits inside specs/021-lifetime-tax-strategy-lab/, with a counted 0 findings matching 025-company-multi-horizon, rlcompanyintel or company-intelligence and a counted 10 matching 021-lifetime-tax-strategy-lab. That spec belongs to a concurrent session, so the condition is disclosed as foreign finding VAL-025-F2 and was neither repaired nor silenced; no entry was added to scripts/pii-scan.config.json allow, because weakening the scanner to erase a foreign red line would defeat the check repository-wide. One certification-owned defect was found and closed: audit finding AUD-025-F2, routed to bubbles.validate because certification.scopeProgress is certification-owned, was confirmed by recounting DoD checkboxes directly from scopes.md bounded to each scope's Definition of Done range, yielding scope 1 at 38 ticked 0 unticked and scope 2 at 32 and 0 against recorded values of 37 and 1 and of 30 and 0; both counters were corrected and the corrected total of 111 agrees with the guard's own independent count of 111 checked 0 unchecked. That corrected a counter describing the DoD, not a DoD item; no scopes.md checkbox was changed. Gate G136 was deliberately NOT satisfied and this is the reason the outcome is blocked rather than completed_diagnostic. bubbles/registry/acceptance-authority.yaml gives the acceptance Checklist writer human and shippedState unchecked, states that automation MUST NOT check one because checking it would fabricate the exact fact the gate exists to require, and sets forbiddenAcceptedBy pattern ^bubbles\\. on the ground that an agent cannot accept on a human's behalf. This phase therefore ticked no acceptance-checklist item, authored no '## Human Acceptance Record', and did not write uservalidation.md at all. certification.status stays in_progress and certification.certifiedAt stays null; the top-level status stays in_progress to preserve the Check 3H G056 status-mirror invariant. No honest intermediate value exists: done is barred by G136 and done_with_concerns is barred outright for new certification writes by completion-governance.md. Open items restated or newly recorded: VAL-025-F1 human acceptance unrecorded, blocking, owner a human acceptor and never a bubbles agent; VAL-025-F2 the foreign spec-021 PII condition, owner the spec 021 session; VAL-025-F3 report.md line 3201 carries a prose Claim Source value instead of executed, interpreted or not-run, advisory at exit 0 under claim-source-lint, owner bubbles.chaos, disclosed rather than edited because rewriting another phase's provenance tag is outside this phase's ownership; AUD-025-F1 four surviving recheck mutations, medium, owner bubbles.plan then bubbles.test; AUD-025-F3 stale Uncertainty Declarations, low, owner bubbles.plan. This phase wrote two files: the report.md '## Validate Phase' section and three members of state.json, being the two drifted certification.scopeProgress DoD counters, one appended execution.completedPhaseClaims entry for phase validate and this row. It ticked no DoD item, changed no scope status, wrote no certifiedAt, no certifiedCompletedPhases, no lockdownState and no terminal status, edited no spec.md, design.md, scopes.md or uservalidation.md, and read or wrote no foreign spec including every path under specs/021-lifetime-tax-strategy-lab/."
+    },
+    {
+      "agent": "bubbles.test",
+      "phasesExecuted": [
+        "test"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-19T20:41:12Z",
+      "finishedAt": "2026-08-19T20:56:42Z",
+      "outcome": "completed_owned",
+      "summary": "Closure pass for AUD-025-F1, the four recheck mutations the audit phase recorded as surviving. Repository binding was resolved from the host first: repository-binding-host-context.sh returned expectedControlRevision 56 after refusing the workspace root AirbnbScraperDS as not a Git worktree and printing the exact re-run form; repository-binding.sh preflight --request-class STRUCTURED then printed PREFLIGHT_COMMITTED decision rb:vscode-76796f8295100da71eb37ed18f20cd77:57 revision 57 with actionable true, and the transition-history entry for revision 57 carries timestamp 2026-08-19T20:41:12Z, which is this row's measured start. Four assertions were added to tests/company-intelligence.unit.mjs, one per surviving mutation: the ticker and cik legs of envelopeSubjectMismatch (M14-recheck, FR-025-013), buildCoverageAccount's refusal when a registry dimension produced no read, asserted for all fifteen dimensions in turn (M17-recheck, FR-025-018), the date leg of selectUpcomingCatalysts (M11-recheck, FR-025-031), and makeRead's closed-reason-code refusal (M01-recheck, FR-025-006). Each was proven both ways by applying the audit's own mutation verbatim from /private/tmp/rl-audit-025/mutations.json to the working-tree source, running the suite, and reverting in a finally block: every mutated run reported exit 1 with pass 73 fail 1, naming only the matching new test, which also proves no pre-existing assertion was weakened or removed to make room. rlcompanyintel.js entered and left at sha256 4881db1647da6400b36efa0f71c1bd790738c8a3b1f8e82ef675517849acae8e at 114317 bytes, verified identical after every single revert, and the four mutated hashes are recorded in report.md so no mutated state can be mistaken for the shipped file. M01-recheck required a stated reachability limitation rather than a black-box assertion: makeRead is not exported, all sixteen of its call sites pass a literal from REASON_CODES and mergeDimensionReads only forwards an adapter-produced code, so over the public API it is an equivalent mutant; the test therefore re-evaluates the shipped source with one key added to the returned object and nothing else altered, which is disclosed in report.md rather than presented as public-surface coverage. AUD-025-F3 was closed after verifying both Uncertainty Declarations stale against the rewritten DoD lines at scopes.md 562 and 589, with an independent recount over Definition of Done blocks returning 38/0, 32/0, 19/0 and 22/0 for a total of 111 ticked and 0 unticked; the declarations were annotated with their resolutions rather than deleted, and the one genuinely open method disclosure about the committed bars aging past the freshness window was left open and labelled. VAL-025-F3 was closed by replacing the prose Claim Source value with the taxonomy value executed. Measured after the change: node --test tests/company-intelligence.unit.mjs exit 0 at tests 74 pass 74 fail 0 skipped 0 todo 0, and the system-chrome browser suite exit 0 at 29 passed. This pass ticked no acceptance-checklist item, authored no Human Acceptance Record, wrote no certification field, no certifiedAt and no terminal status, edited no DoD text, modified no production source, and read or wrote no file under any lifetime-tax path, specs/021 through specs/024 or specs/026. G136 remains open and human-owned."
     }
   ],
   "activeBugs": [],

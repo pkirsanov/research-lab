@@ -81,6 +81,9 @@
     var CONFIG_VERSION = "company-intelligence-config/v1";
     var FIXTURE_PATH_MARKER = "tests/fixtures/";
 
+    /* A bare same-origin route file, the only shape an owner deep link may take. */
+    var SAFE_OWNER_ROUTE = /^[A-Za-z0-9._-]+\.html$/;
+
     /* An operator entry naming a position, a size, a cost basis or a profit figure is refused
        outright. The tool holds tickers and nothing else, forever. */
     var POSITION_INPUT_PATTERNS = [
@@ -287,6 +290,14 @@
             var ownerDeepLink = isNonEmptyString(row.ownerDeepLink) ? row.ownerDeepLink : null;
             if ((ownerToolId === null) !== (ownerDeepLink === null)) {
                 raise("C025-CONFIG-SCHEMA", "Coverage registry row " + index + " declares an owner without a route, or a route without an owner.",
+                    "dimension: " + row.dimensionId);
+            }
+            /* The owner route is the one registry value that reaches an href. The page CSP keeps
+               script-src 'unsafe-inline' for the single-file design, so a javascript: or data: URL
+               here would execute rather than be blocked. Only a bare same-origin route file is a
+               route, which also excludes protocol-relative, absolute and traversing forms. */
+            if (ownerDeepLink !== null && !SAFE_OWNER_ROUTE.test(ownerDeepLink)) {
+                raise("C025-CONFIG-SCHEMA", "Coverage registry row " + index + " declares an owner route that is not a same-origin route file.",
                     "dimension: " + row.dimensionId);
             }
             return {
@@ -526,6 +537,36 @@
         });
     }
 
+    /* A read whose source answered but answered too long ago. Every adapter that can age out
+       states the same three things — the state, the reason and the absence of a direction — and
+       stating them in one place is what stops a fourth adapter from aging out while still
+       publishing a direction the stale number no longer supports. */
+    function staleRead(row, subject, spec) {
+        return makeRead({
+            dimensionId: row.dimensionId,
+            subjectId: subject.subjectId,
+            state: "stale",
+            reasonCode: "read-aged-past-window",
+            maxHorizon: row.maxHorizon,
+            values: spec.values,
+            directionalSignal: null,
+            ownerToolId: row.ownerToolId,
+            ownerDeepLink: row.ownerDeepLink,
+            sourceClass: spec.sourceClass,
+            sourceName: spec.sourceName,
+            asOf: spec.asOf,
+            ageDays: spec.ageDays,
+            limitations: spec.limitations
+        });
+    }
+
+    /* An owner publishes its as-of either as a full instant or as a bare date. Both name the same
+       day, and every consumer of an owner read needs that day rather than the instant. */
+    function ownerReadDay(value) {
+        if (isIsoInstant(value)) return value.slice(0, 10);
+        return isIsoDate(value) ? value : null;
+    }
+
     function looksLikeFixture(envelope) {
         if (!isPlainObject(envelope)) return false;
         if (envelope.sourceClass === "fixture") return true;
@@ -582,11 +623,9 @@
         var values = [makeValue("performance-trailing-63", "Trailing 63-session price change",
             decimalString(change, 3), "percent", "derived", "committed daily bars", asOf)];
         if (Number.isFinite(ageDays) && ageDays > row.freshnessWindowDays) {
-            return makeRead({
-                dimensionId: "performance", subjectId: subject.subjectId, state: "stale",
-                reasonCode: "read-aged-past-window", maxHorizon: row.maxHorizon, values: values,
-                directionalSignal: null, ownerToolId: row.ownerToolId, ownerDeepLink: row.ownerDeepLink,
-                sourceClass: "cache", sourceName: "committed daily bars", asOf: asOf, ageDays: ageDays,
+            return staleRead(row, subject, {
+                values: values, sourceClass: "cache", sourceName: "committed daily bars",
+                asOf: asOf, ageDays: ageDays,
                 limitations: ["Price history is " + ageDays + " days old, past the " + row.freshnessWindowDays + " day window."]
             });
         }
@@ -700,18 +739,16 @@
                 "Every reported fact in the publication failed its own contract check.");
         }
         if (Number.isFinite(ageDays) && ageDays > row.freshnessWindowDays) {
-            return makeRead({
-                dimensionId: "fundamentals", subjectId: subject.subjectId, state: "stale",
-                reasonCode: "read-aged-past-window", maxHorizon: row.maxHorizon, values: values,
-                directionalSignal: null, ownerToolId: row.ownerToolId, ownerDeepLink: row.ownerDeepLink,
-                sourceClass: "owner-read", sourceName: values[0].sourceName, asOf: envelope.asOf, ageDays: ageDays,
+            return staleRead(row, subject, {
+                values: values, sourceClass: "owner-read", sourceName: values[0].sourceName,
+                asOf: envelope.asOf, ageDays: ageDays,
                 limitations: ["The publication is " + ageDays + " days old, past the " + row.freshnessWindowDays + " day window."]
             });
         }
         return makeRead({
             dimensionId: "fundamentals", subjectId: subject.subjectId, state: "current",
             reasonCode: null, maxHorizon: row.maxHorizon, values: values,
-            directionalSignal: contains(["constructive", "pressured", "flat"], envelope.directionalSignal) ? envelope.directionalSignal : null,
+            directionalSignal: envelope.directionalSignal,
             ownerToolId: row.ownerToolId, ownerDeepLink: row.ownerDeepLink, sourceClass: "owner-read",
             sourceName: values[0].sourceName, asOf: envelope.asOf, ageDays: ageDays, limitations: []
         });
@@ -742,7 +779,7 @@
         return makeRead({
             dimensionId: "valuation", subjectId: subject.subjectId, state: "partial",
             reasonCode: "peer-set-missing", maxHorizon: row.maxHorizon, values: values,
-            directionalSignal: contains(["constructive", "pressured", "flat"], sources.valuationSignal) ? sources.valuationSignal : null,
+            directionalSignal: sources.valuationSignal,
             ownerToolId: row.ownerToolId, ownerDeepLink: row.ownerDeepLink, sourceClass: "owner-read",
             sourceName: values[0].sourceName, asOf: values[0].asOf,
             ageDays: dayDifference(values[0].asOf, decisionTime),
@@ -783,7 +820,7 @@
                 "The published volatility read names a different company than " + subject.ticker + ".");
         }
         var percentile = Number.isFinite(metrics.volPercentile) ? metrics.volPercentile : null;
-        var asOf = isIsoInstant(read.asOf) ? read.asOf.slice(0, 10) : (isIsoDate(read.asOf) ? read.asOf : null);
+        var asOf = ownerReadDay(read.asOf);
         if (percentile === null || asOf === null) {
             return unavailableRead(row, subject, "source-not-published", "owner-read",
                 "The published volatility read carries no dated percentile for " + subject.ticker + ".");
@@ -792,11 +829,9 @@
         var values = [makeValue("volatility-percentile-12m", "Volatility percentile",
             decimalString(percentile, 3), "percent", "derived", "volatility owner read", asOf)];
         if (Number.isFinite(ageDays) && ageDays > row.freshnessWindowDays) {
-            return makeRead({
-                dimensionId: "volatility", subjectId: subject.subjectId, state: "stale",
-                reasonCode: "read-aged-past-window", maxHorizon: row.maxHorizon, values: values,
-                directionalSignal: null, ownerToolId: row.ownerToolId, ownerDeepLink: row.ownerDeepLink,
-                sourceClass: "owner-read", sourceName: "volatility owner read", asOf: asOf, ageDays: ageDays,
+            return staleRead(row, subject, {
+                values: values, sourceClass: "owner-read", sourceName: "volatility owner read",
+                asOf: asOf, ageDays: ageDays,
                 limitations: ["The volatility read is " + ageDays + " days old, past the " + row.freshnessWindowDays + " day window."]
             });
         }
@@ -847,11 +882,9 @@
             limitations.push("At least one date ahead is inferred from the filing pattern rather than announced, and it states its own basis.");
         }
         if (Number.isFinite(ageDays) && ageDays > source.freshnessWindowDays) {
-            return makeRead({
-                dimensionId: "financial-events", subjectId: subject.subjectId, state: "stale",
-                reasonCode: "read-aged-past-window", maxHorizon: row.maxHorizon, values: values,
-                directionalSignal: null, ownerToolId: row.ownerToolId, ownerDeepLink: row.ownerDeepLink,
-                sourceClass: "committed-file", sourceName: source.sourceName, asOf: asOf, ageDays: ageDays,
+            return staleRead(row, subject, {
+                values: values, sourceClass: "committed-file", sourceName: source.sourceName,
+                asOf: asOf, ageDays: ageDays,
                 limitations: limitations.concat(["The committed event file is " + ageDays +
                     " days old, past the " + source.freshnessWindowDays + " day window."])
             });
@@ -884,7 +917,7 @@
             return unavailableRead(row, subject, "fixture-only-evidence", "fixture",
                 "The agenda read on the channel is fixture data, which never reaches a horizon.");
         }
-        var asOf = isIsoInstant(read.asOf) ? read.asOf.slice(0, 10) : (isIsoDate(read.asOf) ? read.asOf : null);
+        var asOf = ownerReadDay(read.asOf);
         if (asOf === null) {
             return unavailableRead(row, subject, "source-not-published", "owner-read",
                 "The published agenda read carries no as-of date.");
@@ -1298,10 +1331,13 @@
                 (signalled.length === 1 ? " dimension" : " dimensions") + ", evidence " + quality + ".";
         }
 
+        /* The named dimension and the direction it would have to reverse are read off ONE
+           element, so the sentence cannot name one dimension and another dimension's reading. */
+        var leadingSignal = sortBy(signalled, function (read) { return read.dimensionId; })[0];
         var invalidation = direction === "none"
             ? "This reads none until one of " + primary.slice().sort().join(", ") + " publishes an eligible read."
-            : "This reading changes when " + sortBy(signalled, function (read) { return read.dimensionId; })[0].dimensionId +
-                " reverses its " + sortBy(signalled, function (read) { return read.dimensionId; })[0].directionalSignal + " reading.";
+            : "This reading changes when " + leadingSignal.dimensionId +
+                " reverses its " + leadingSignal.directionalSignal + " reading.";
 
         var composed = {
             contractVersion: "company-horizon-read/v1",

@@ -670,6 +670,33 @@ test('the module holds no DOM, storage, credential, clock or timer authority', (
     assert.ok(!/[^.\w]isFinite\s*\(/.test(MODULE_SOURCE), 'module uses no bare isFinite');
     assert.ok(MODULE_SOURCE.includes('Number.isFinite('), 'module does use Number.isFinite');
     assert.ok(!/\bfetch\s*\(/.test(MODULE_SOURCE), 'module performs no fetch');
+
+    /* The list above bans the shapes a browser build reaches for. It did not ban the ambient
+       authorities a Node build reaches for, nor a clock read that drops its parentheses, so
+       `var clock = Date.now;` or `process.env.X` would have passed every assertion above. */
+    const ambient = [
+        [/\bwindow\s*\.\s*[A-Za-z_$]/, 'window property access'],
+        [/\bwindow\s*\[/, 'window index access'],
+        [/\bnavigator\b/, 'navigator'],
+        [/\bprocess\s*\./, 'process'],
+        [/\bcrypto\b/, 'crypto'],
+        [/\bperformance\s*\.\s*now\b/, 'performance.now'],
+        [/\bDate\s*\.\s*now\b/, 'any Date.now reference'],
+        [/\beval\s*\(/, 'eval'],
+        [/\bnew\s+Function\s*\(/, 'new Function'],
+        [/\bstructuredClone\s*\(/, 'structuredClone']
+    ];
+    ambient.forEach(([pattern, name]) => {
+        assert.ok(!pattern.test(MODULE_SOURCE), 'module reaches for no ' + name);
+    });
+    /* Adversarial: each detector really fires on the shape it bans, so none is a dead pattern. */
+    assert.ok(/\bDate\s*\.\s*now\b/.test('var clock = Date.now;'));
+    assert.ok(/\bwindow\s*\.\s*[A-Za-z_$]/.test('window.location.href'));
+    assert.ok(/\bprocess\s*\./.test('process.env.SECRET'));
+    /* And the window detector does not fire on the freshness-window sentence the module really
+       emits, so the ban is narrow rather than merely absent from the source. */
+    assert.ok(MODULE_SOURCE.includes(' day window.'), 'the module does emit a freshness-window sentence');
+    assert.ok(!/\bwindow\s*\.\s*[A-Za-z_$]/.test('past the 7 day window.'));
 });
 
 test('the module exports a frozen api and loads under Node through module.exports', () => {
@@ -747,6 +774,27 @@ test('all eleven C025 refusal codes are raised by a real call path', () => {
     INTEL.ERROR_CODES.forEach((code) => {
         assert.ok(observed.has(code), 'refusal ' + code + ' was raised by a real call');
     });
+});
+
+/* The two assertions above walk the DECLARED set outward: each declared code appears in the
+   source, and each declared code is raised. Neither walks inward, so a twelfth code introduced at
+   a call site would leave both green while the set silently stopped being closed. */
+test('the refusal-code set is closed: no call site raises a code the module does not declare', () => {
+    const literals = [...MODULE_SOURCE.matchAll(/(?:makeError|raise)\(\s*"([^"]+)"/g)].map((match) => match[1]);
+    const distinct = [...new Set(literals)].sort();
+
+    assert.ok(distinct.length > 0, 'call sites naming a refusal code were found');
+    assert.deepEqual(distinct.filter((code) => !INTEL.ERROR_CODES.includes(code)), [],
+        'every raised code is declared in ERROR_CODES');
+    /* Closed in both directions, so a declared code cannot become dead weight either. */
+    assert.deepEqual(INTEL.ERROR_CODES.filter((code) => !distinct.includes(code)), [],
+        'every declared code has a call site');
+    assert.deepEqual(distinct, INTEL.ERROR_CODES.slice().sort());
+
+    /* Adversarial: the scanner really finds an unregistered literal when one is introduced. */
+    const injected = [...'raise("C025-NOT-DECLARED", "x");'.matchAll(/(?:makeError|raise)\(\s*"([^"]+)"/g)]
+        .map((match) => match[1]);
+    assert.deepEqual(injected.filter((code) => !INTEL.ERROR_CODES.includes(code)), ['C025-NOT-DECLARED']);
 });
 
 /* ---------- 1.9 ---------- */
@@ -1245,6 +1293,18 @@ test('the published read round trips through the real RLDATA nine-key contract',
     assert.equal(published.metrics.subjectId, version.subjectId);
     assert.equal(published.metrics.horizonSummaries.length, 4);
     assert.equal(typeof published.deepLink, 'string');
+
+    /* FR-025-039 asks the published read to carry the four horizon summaries AND the coverage
+       account. The summaries are asserted above; the account half reaches the payload as
+       `coverageTotals`, and no assertion had ever read it back. */
+    assert.deepEqual(Object.keys(published.metrics.coverageTotals).sort(), INTEL.EVIDENCE_STATES.slice().sort());
+    assert.deepEqual(published.metrics.coverageTotals, version.coverageAccount.totals,
+        'the published totals are the composed coverage account, not a second tally');
+    const publishedFloor = INTEL.EVIDENCE_STATES
+        .reduce((total, state) => total + published.metrics.coverageTotals[state], 0);
+    assert.equal(publishedFloor, INTEL.MANDATORY_DIMENSION_IDS.length,
+        'the published account still accounts for all fifteen mandatory dimensions');
+    assert.equal(published.metrics.contradictionCount, version.contradictions.length);
     /* No horizon summary states a probability or any number beside its direction. */
     published.metrics.horizonSummaries.forEach((summary) => {
         assert.ok(INTEL.DIRECTIONS.includes(summary.direction));
@@ -1292,6 +1352,46 @@ test('no horizon read emits a numeric confidence beside its direction', () => {
     });
     assert.equal(INTEL.EVIDENCE_QUALITIES.length, 4);
     assert.ok(!/probability|confidence\s*[:=]\s*\d/i.test(MODULE_SOURCE));
+});
+
+/* FR-025-026 asks each horizon to carry the conditions that would invalidate its own read. Until
+   now that was held only negatively — the assertion above proves the invalidation states no
+   probability, and the browser row counts four `[data-invalidation]` nodes, which an empty string
+   would still satisfy. Neither could fail on an invalidation that said nothing. */
+test('every horizon states a real invalidation condition naming one of its own dimensions', () => {
+    const answered = composeAll(richBundle().bundle);
+    const silent = composeAll(INTEL.runAdapters(
+        INTEL.resolveSubject('ZYX', { secCompanies: [], barSymbols: ['ZYX'], decisionTime: DECISION_TIME }),
+        sourcesOf(), DECISION_TIME, stubData()
+    ));
+
+    assert.equal(answered.length, 4);
+    assert.equal(silent.length, 4);
+
+    [...answered, ...silent].forEach((horizon) => {
+        const declared = REGISTRY.horizons.find((entry) => entry.horizonId === horizon.horizonId);
+        assert.equal(typeof horizon.invalidation, 'string', horizon.horizonId);
+        assert.ok(horizon.invalidation.trim().length >= 40, horizon.horizonId + ' states a sentence, not a stub');
+        assert.match(horizon.invalidation, /\.$/, horizon.horizonId + ' invalidation is a finished sentence');
+
+        /* The named condition is drawn from this horizon's OWN dimensions, so the sentence cannot
+           promise a reversal in a dimension this horizon never composed from. */
+        const named = INTEL.MANDATORY_DIMENSION_IDS.filter((id) => horizon.invalidation.includes(id));
+        assert.ok(named.length > 0, horizon.horizonId + ' names at least one dimension');
+        named.forEach((id) => {
+            assert.ok(declared.primaryDimensionIds.includes(id),
+                horizon.horizonId + ' invalidation names ' + id + ', one of its own primary dimensions');
+        });
+    });
+
+    /* The two branches really are different sentences, so neither is a constant: an answered
+       horizon names the reading that would have to reverse, a silent one names what must publish. */
+    const answeredImmediate = answered.find((horizon) => horizon.direction !== 'none');
+    const silentImmediate = silent.find((horizon) => horizon.horizonId === answeredImmediate.horizonId);
+    assert.equal(silentImmediate.direction, 'none');
+    assert.notEqual(silentImmediate.invalidation, answeredImmediate.invalidation);
+    assert.match(answeredImmediate.invalidation, /reverses its (constructive|pressured|flat) reading\.$/);
+    assert.match(silentImmediate.invalidation, /publishes an eligible read\.$/);
 });
 
 /* ---------- 1.21 adversarial ---------- */
@@ -1401,9 +1501,101 @@ test('two runs over one frozen bundle and one decisionTime produce identical can
         refusals: moved.refusals
     }, DECISION_TIME);
     assert.notEqual(movedVersion.contentFingerprint, first.contentFingerprint);
+
+    /* The counter-case above varies the BARS. It leaves the clock fixed, so a module that ignored
+       its injected decisionTime entirely would satisfy every assertion above — which is exactly
+       the failure the no-clock purity contract exists to prevent. NFR-025-010 conditions
+       determinism on "an identical decision time", and that condition only carries meaning if a
+       different decision time can move the output. Same inputs, later clock: */
+    const LATER = '2026-11-18T00:00:00.000Z';
+    const frozenBars = {
+        MSFT: bars({ sessions: 300, start: 100, step: 0.9 }),
+        SPY: bars({ sessions: 300, start: 400, step: 0.2 })
+    };
+    const composeAt = (decisionTime) => {
+        const subject = INTEL.resolveSubject('MSFT', { secCompanies: SEC_COMPANIES, barSymbols: ['MSFT'], decisionTime });
+        const sources = sourcesOf({ decisionTime });
+        const bundle = INTEL.runAdapters(subject, sources, decisionTime, stubData({ barsBySymbol: frozenBars }));
+        const partition = INTEL.partitionByHorizon(bundle);
+        const horizons = [
+            INTEL.composeImmediate(partition.tactical, REGISTRY, decisionTime),
+            INTEL.composeEvent(partition.event, REGISTRY, decisionTime),
+            INTEL.composeSwing(partition.swing, REGISTRY, decisionTime),
+            INTEL.composeStructural(partition.structural, REGISTRY, decisionTime)
+        ];
+        return {
+            bundle,
+            version: INTEL.buildReadVersion({
+                subject,
+                horizons,
+                coverageAccount: INTEL.buildCoverageAccount(bundle, REGISTRY),
+                evidenceFamilies: INTEL.groupEvidenceFamilies(bundle),
+                contradictions: INTEL.extractContradictions(horizons),
+                researchPlan: INTEL.attachResearchPlan(subject, sources),
+                events: INTEL.selectRenderableEvents([]),
+                refusals: bundle.refusals
+            }, decisionTime)
+        };
+    };
+    const atDecision = composeAt(DECISION_TIME);
+    const atLater = composeAt(LATER);
+
+    /* Re-running the same clock over the same bars is still byte-identical, so the clock is a
+       real input rather than a source of drift. */
+    assert.equal(composeAt(DECISION_TIME).version.contentFingerprint, atDecision.version.contentFingerprint);
+    assert.notEqual(atLater.version.contentFingerprint, atDecision.version.contentFingerprint,
+        'the injected decisionTime reaches the composed output');
+
+    /* That fingerprint clause on its own is weak and is not what carries this requirement: the
+       version body stores `composedAt`, so the hash would move on the timestamp alone even if the
+       clock reached no composition rule. The load-bearing clause is below — the same committed
+       bars read current at the decision time and stop reading current months on, which a module
+       ignoring its injected clock cannot produce. Verified against a clock-inert build in which
+       `dayDifference` returns 0: both runs then report age 0 and stay current, and these three
+       assertions fail while the fingerprint clause above still passes. */
+    const readAt = (run) => run.bundle.reads.find((read) => read.dimensionId === 'performance');
+    assert.equal(readAt(atDecision).state, 'current');
+    assert.notEqual(readAt(atLater).state, 'current');
+    assert.ok(readAt(atLater).ageDays > readAt(atDecision).ageDays,
+        'the later run reports the larger age over identical bars');
 });
 
 /* ---------- registry, config and grouping ---------- */
+
+test('an owner deep link that is not a same-origin route file is refused, and the committed registry passes', () => {
+    /* The page CSP keeps script-src 'unsafe-inline', so a javascript: or data: href executes
+       rather than being blocked. The registry is the only config value reaching an href. */
+    const hostile = [
+        'javascript:alert(1)',
+        'data:text/html,<script>alert(1)</script>',
+        'vbscript:msgbox(1)',
+        '//evil.example/market-brief.html',
+        'https://evil.example/market-brief.html',
+        '../../etc/passwd',
+        'market-brief.html?x=1"onmouseover="alert(1)'
+    ];
+    hostile.forEach((href) => {
+        const poisoned = Object.assign({}, CONFIG, {
+            coverageRegistry: CONFIG.coverageRegistry.map((row) => (
+                row.ownerDeepLink === null ? row : Object.assign({}, row, { ownerDeepLink: href })
+            ))
+        });
+        assert.throws(
+            () => INTEL.readCoverageRegistry(poisoned),
+            (error) => error.code === 'C025-CONFIG-SCHEMA',
+            href + ' is refused as an owner route'
+        );
+    });
+
+    /* ADVERSARIAL COUNTER-CASE: the guard is not refusing everything. The committed registry
+       still reads, and every owner route it carries is a registered page. */
+    const registry = INTEL.readCoverageRegistry(CONFIG);
+    const linked = registry.rows.filter((row) => row.ownerDeepLink !== null);
+    assert.ok(linked.length > 0, 'the committed registry carries owner routes');
+    linked.forEach((row) => {
+        assert.match(row.ownerDeepLink, /^[A-Za-z0-9._-]+\.html$/);
+    });
+});
 
 test('readCoverageRegistry raises C025-REGISTRY-INCOMPLETE when a mandatory dimension is absent', () => {
     INTEL.MANDATORY_DIMENSION_IDS.forEach((dimensionId) => {
@@ -1442,6 +1634,22 @@ test('the shipped configuration declares exactly fifteen registry rows and four 
     const claimed = new Set();
     CONFIG.horizons.forEach((horizon) => horizon.primaryDimensionIds.forEach((id) => claimed.add(id)));
     assert.deepEqual([...claimed].sort(), INTEL.MANDATORY_DIMENSION_IDS.slice().sort());
+
+    /* Every other floor assertion in this suite compares the registry against
+       MANDATORY_DIMENSION_IDS, so the floor was only ever verified against itself: dropping
+       `geopolitics` from BOTH the constant and the config would keep all of them green.
+       FR-025-004 names the fifteen dimensions in prose; this transcribes them independently. */
+    const FLOOR_NAMED_BY_FR_025_004 = [
+        'performance', 'fundamentals', 'valuation', 'technicals', 'cycles',
+        'options-structure', 'dealer-gamma', 'options-flow', 'volatility',
+        'financial-events', 'non-financial-events', 'geopolitics', 'market-regime',
+        'sentiment', 'company-risk'
+    ];
+    assert.equal(FLOOR_NAMED_BY_FR_025_004.length, 15);
+    assert.deepEqual(INTEL.MANDATORY_DIMENSION_IDS.slice().sort(), FLOOR_NAMED_BY_FR_025_004.slice().sort(),
+        'the module constant carries exactly the fifteen dimensions FR-025-004 names');
+    assert.deepEqual(CONFIG.coverageRegistry.map((row) => row.dimensionId).sort(), FLOOR_NAMED_BY_FR_025_004.slice().sort(),
+        'the committed registry carries exactly the fifteen dimensions FR-025-004 names');
 });
 
 test('evidence families group every read exactly once and report what answered', () => {
@@ -2241,4 +2449,242 @@ test('the committed MSFT research plan and version tree are authored, dated and 
     assert.ok(!/cost basis|\bpositions?\b|\bpnl\b|p&l|\bprofit\b|shares held|\bportfolio\b/i.test(text), 'no position language');
     assert.ok(/\bpositions?\b/i.test('a 120 share position'), 'the position detector really fires');
     assert.ok(!/[$€£]\s*\d/.test(text), 'no currency amount');
+});
+
+/* ---------- AUD-025-F1: the four legs a mutation removed without breaking a single test ----------
+ *
+ * The audit phase deleted four implemented legs one at a time, on disk, and every one of the 70
+ * unit tests, 29 browser tests and 3065 selftest assertions still passed. Each test below asserts
+ * the leg's own outcome, so removing the leg turns the assertion red. Each also carries the
+ * control that would still hold if the leg were dead code, which is what makes the pairing
+ * evidence rather than coincidence.
+ */
+
+/* AUD-025-F1 / M14-recheck / FR-025-013.
+   `envelopeSubjectMismatch` refuses a foreign owner envelope on three independent legs —
+   `subjectId`, `ticker` and `cik`. Only the `subjectId` leg had a case, so an owner tool that
+   keys its published read by ticker or by cik could have had its numbers adopted as this
+   company's. */
+test('adversarial: an owner envelope naming another company ONLY by ticker, or ONLY by cik, is refused', () => {
+    const subject = subjectOf();
+    assert.equal(subject.ticker, 'MSFT');
+    assert.equal(subject.cik, '0000789019', 'the cik leg has something to compare against');
+
+    function volatilityReadFrom(metrics) {
+        const bundle = INTEL.runAdapters(subject, sourcesOf(), DECISION_TIME, stubData({
+            toolReads: {
+                'volatility-sizing-lab': {
+                    id: 'volatility-sizing-lab', asOf: '2026-08-16T00:00:00.000Z', metrics
+                }
+            }
+        }));
+        return { bundle, read: bundle.reads.find((read) => read.dimensionId === 'volatility') };
+    }
+
+    /* Ticker leg alone: no subjectId and no cik, so nothing but `ticker` can refuse this. */
+    const byTicker = volatilityReadFrom({ ticker: 'AAPL', volPercentile: 91.5 });
+    assert.equal(byTicker.read.state, 'unavailable', 'a foreign-ticker read never reaches a horizon');
+    assert.equal(byTicker.read.reasonCode, 'read-company-mismatch');
+    assert.deepEqual(byTicker.read.values, [], 'the other company\u2019s percentile is not carried');
+    assert.equal(
+        byTicker.bundle.refusals.filter((refusal) => refusal.code === 'C025-READ-COMPANY-MISMATCH').length, 1,
+        'the ticker mismatch is accounted for as a refusal, not silently dropped'
+    );
+    assert.ok(!JSON.stringify(composeAll(byTicker.bundle)).includes('91.500'),
+        'no horizon carries the foreign-ticker number');
+
+    /* Cik leg alone: no subjectId and no ticker. */
+    const byCik = volatilityReadFrom({ cik: '0000320193', volPercentile: 87.25 });
+    assert.equal(byCik.read.state, 'unavailable');
+    assert.equal(byCik.read.reasonCode, 'read-company-mismatch');
+    assert.ok(!JSON.stringify(composeAll(byCik.bundle)).includes('87.250'),
+        'no horizon carries the foreign-cik number');
+
+    /* Controls. The own ticker reads through with a value, so neither leg is a blanket refusal,
+       and the lower-case form proves the comparison really normalises case rather than always
+       matching. The own cik does the same. */
+    const ownTicker = volatilityReadFrom({ ticker: 'msft', volPercentile: 38.4 });
+    assert.equal(ownTicker.read.state, 'current', 'the subject\u2019s own ticker is accepted');
+    assert.equal(ownTicker.read.reasonCode, null);
+    assert.equal(ownTicker.read.values.length, 1);
+    assert.deepEqual(ownTicker.bundle.refusals.filter((r) => r.code === 'C025-READ-COMPANY-MISMATCH'), []);
+
+    const ownCik = volatilityReadFrom({ cik: '0000789019', volPercentile: 38.4 });
+    assert.equal(ownCik.read.state, 'current', 'the subject\u2019s own cik is accepted');
+
+    /* The same two legs guard the fundamentals envelope, which is a different adapter reading a
+       different source, so the refusal is a property of the shared check rather than of one path. */
+    const foreignFundamentals = INTEL.runAdapters(subject, sourcesOf({
+        fundamentalsRead: {
+            ticker: 'AAPL', asOf: '2026-06-30', sourceName: 'SEC company facts publication',
+            directionalSignal: 'constructive',
+            facts: [{ factId: 'fcf-latest', label: 'Free cash flow, latest period', value: '77777.000', unit: 'usd-millions' }]
+        }
+    }), DECISION_TIME, stubData({}));
+    const fundamentals = foreignFundamentals.reads.find((read) => read.dimensionId === 'fundamentals');
+    assert.equal(fundamentals.reasonCode, 'read-company-mismatch', 'the fundamentals ticker leg fires too');
+    assert.deepEqual(fundamentals.values, []);
+    assert.ok(!JSON.stringify(composeAll(foreignFundamentals)).includes('77777.000'));
+});
+
+/* AUD-025-F1 / M17-recheck / FR-025-018.
+   `buildCoverageAccount` refuses a read set that omits a registry dimension. Dropping the row
+   instead would shorten the account silently, and the coverage floor exists precisely so a
+   reader is told that a dimension went unanswered rather than never seeing it at all. */
+test('the coverage account refuses a read set missing any one registry dimension rather than dropping the row', () => {
+    const { bundle } = richBundle();
+
+    /* Control: the complete set builds, so the refusal below is about absence, not about the
+       account being broken for every input. */
+    const complete = INTEL.buildCoverageAccount(bundle, REGISTRY);
+    assert.equal(complete.rows.length, REGISTRY.rows.length);
+    assert.ok(complete.rows.every((row) => row !== null && typeof row.state === 'string'));
+
+    /* Every dimension in turn, so no single row carries the whole assertion. */
+    assert.equal(REGISTRY.rows.length, 15);
+    REGISTRY.rows.forEach((registryRow) => {
+        const short = bundle.reads.filter((read) => read.dimensionId !== registryRow.dimensionId);
+        assert.equal(short.length, REGISTRY.rows.length - 1, 'exactly one read was withheld');
+
+        let raised = null;
+        try {
+            INTEL.buildCoverageAccount(short, REGISTRY);
+        } catch (error) {
+            raised = error;
+        }
+        assert.ok(raised, 'withholding ' + registryRow.dimensionId + ' refuses instead of returning an account');
+        assert.equal(raised.code, 'C025-REGISTRY-INCOMPLETE', registryRow.dimensionId);
+        assert.equal(raised.record.detail, registryRow.dimensionId,
+            'the refusal names the dimension that produced no read');
+    });
+});
+
+/* AUD-025-F1 / M11-recheck / FR-025-031.
+   `selectUpcomingCatalysts` splits on the date as well as on `dateClass`. The date leg is the
+   second line of defence behind `publicScheduleSource`, and it is the only one left for a caller
+   that assembles a selection itself — `selectRenderableEvents` copies `dateClass` through
+   untouched, so a past date still classed `scheduled` reaches the partition. */
+test('a past-dated event still classed scheduled is partitioned as occurred, not presented as a forecast', () => {
+    function scheduled(eventId, date) {
+        return {
+            contractVersion: 'company-event/v1', subjectId: 'company:msft', eventId,
+            eventType: 'quarterly-results', eventClass: 'financial', date, dateClass: 'scheduled',
+            sourceClass: 'committed-file', sourceName: 'issuer investor-relations page'
+        };
+    }
+
+    const selection = INTEL.selectRenderableEvents([
+        scheduled('msft-past-scheduled', '2026-07-29'),
+        scheduled('msft-future-scheduled', '2026-10-28')
+    ]);
+    assert.deepEqual(selection.refusals, [], 'both events are renderable');
+    /* The premise the date leg exists for: the selection really did keep a passed date classed
+       `scheduled`, so `dateClass` alone cannot separate these two. */
+    assert.equal(selection.events.find((event) => event.eventId === 'msft-past-scheduled').dateClass, 'scheduled');
+    assert.equal(selection.events.find((event) => event.eventId === 'msft-future-scheduled').dateClass, 'scheduled');
+
+    const catalysts = INTEL.selectUpcomingCatalysts(selection, DECISION_TIME);
+    assert.equal(DECISION_TIME.slice(0, 10), '2026-08-18', 'one date sits behind the run and one ahead of it');
+    assert.deepEqual(catalysts.occurred.map((event) => event.eventId), ['msft-past-scheduled'],
+        'a date behind the run is an outcome, never a catalyst');
+    assert.deepEqual(catalysts.upcoming.map((event) => event.eventId), ['msft-future-scheduled'],
+        'a date ahead of the run stays a catalyst');
+    assert.equal(catalysts.emptyReason, null, 'a populated catalyst list states no empty reason');
+
+    /* When every sourced event has passed the region says so, which it can only do if the date
+       leg moved them. */
+    const allPassed = INTEL.selectUpcomingCatalysts(
+        INTEL.selectRenderableEvents([scheduled('msft-past-scheduled', '2026-07-29')]), DECISION_TIME);
+    assert.deepEqual(allPassed.upcoming, []);
+    assert.equal(allPassed.occurred.length, 1);
+    assert.ok(allPassed.emptyReason.includes('already passed'), allPassed.emptyReason);
+
+    /* Non-vacuous the other way: read at a decision time BEFORE that date, the same event is a
+       catalyst, so the partition is driven by the date and not by the event identity. */
+    const earlier = INTEL.selectUpcomingCatalysts(
+        INTEL.selectRenderableEvents([scheduled('msft-past-scheduled', '2026-07-29')]), '2026-07-01T00:00:00.000Z');
+    assert.deepEqual(earlier.upcoming.map((event) => event.eventId), ['msft-past-scheduled']);
+    assert.deepEqual(earlier.occurred, []);
+});
+
+/* AUD-025-F1 / M01-recheck / FR-025-006.
+   `makeRead` refuses a non-current read whose reason code is outside the closed vocabulary.
+   Reaching that guard needs a caller who supplies the reason code, and no such caller exists:
+   `makeRead` is deliberately NOT exported, every one of its sixteen call sites passes a literal
+   from REASON_CODES, and `mergeDimensionReads` only ever forwards a code an adapter already
+   produced. So the shipped public API cannot exercise it, and no black-box assertion over the
+   public surface can distinguish the guard from its removal.
+
+   This test therefore re-evaluates the SHIPPED source, adding one key to the returned object and
+   changing nothing else, so the production function body itself is under test. The guard is
+   real, not decoration: the module's own comment says an unavailable state ALWAYS carries a
+   named reason, and the coverage account, the horizon composers and the route's gap copy all
+   read `reasonCode` on the assumption that it is one of the sixteen. */
+test('makeRead refuses a non-current read whose reason code is outside the closed vocabulary', () => {
+    const EXPORT_MARKER = '\n    return {\n        CONTRACT_VERSION: "company-intelligence/v1",';
+    assert.equal(MODULE_SOURCE.split(EXPORT_MARKER).length - 1, 1, 'the export block is found exactly once');
+    const probeSource = MODULE_SOURCE.replace(
+        EXPORT_MARKER,
+        '\n    return {\n        makeRead: makeRead,\n        CONTRACT_VERSION: "company-intelligence/v1",'
+    );
+    assert.notEqual(probeSource, MODULE_SOURCE, 'the probe really injected the extra export');
+    assert.equal(probeSource.length - MODULE_SOURCE.length, '\n        makeRead: makeRead,'.length,
+        'the probe added exactly one line and rewrote nothing else');
+
+    /* `globalThis` is shadowed by a throwaway object so evaluating the probe cannot replace the
+       real RLCOMPANYINTEL global for any other test in this file. */
+    const sandbox = { exports: {} };
+    new Function('module', 'globalThis', probeSource)(sandbox, {});
+    const PROBE = sandbox.exports;
+
+    /* The probe is the shipped module, not a paraphrase of it. */
+    assert.equal(PROBE.CONTRACT_VERSION, INTEL.CONTRACT_VERSION);
+    assert.deepEqual(PROBE.REASON_CODES, INTEL.REASON_CODES);
+    assert.equal(PROBE.readCoverageRegistry(CONFIG).rows.length, REGISTRY.rows.length);
+    assert.equal(typeof PROBE.makeRead, 'function');
+
+    function spec(overrides) {
+        return Object.assign({
+            dimensionId: 'volatility', subjectId: 'company:msft', state: 'unavailable',
+            reasonCode: 'no-owner', maxHorizon: 'structural', values: [], directionalSignal: null,
+            ownerToolId: null, ownerDeepLink: null, sourceClass: 'none', sourceName: null,
+            asOf: null, ageDays: null, limitations: []
+        }, overrides);
+    }
+    function refusalFrom(overrides) {
+        try {
+            PROBE.makeRead(spec(overrides));
+        } catch (error) {
+            return error;
+        }
+        return null;
+    }
+
+    /* Controls: a named reason on a non-current read, and a null reason on a current read, both
+       build. So the guard is not refusing everything. */
+    const named = PROBE.makeRead(spec({ reasonCode: 'no-owner' }));
+    assert.equal(named.state, 'unavailable');
+    assert.equal(named.reasonCode, 'no-owner');
+    const current = PROBE.makeRead(spec({ state: 'current', reasonCode: null, values: [] }));
+    assert.equal(current.reasonCode, null);
+
+    /* An invented reason code on a non-current read is refused. */
+    const invented = refusalFrom({ state: 'unavailable', reasonCode: 'source-was-a-bit-quiet' });
+    assert.ok(invented, 'an unnamed reason really refuses');
+    assert.equal(invented.code, 'C025-READ-CONTRACT');
+    assert.equal(invented.record.detail, 'dimension: volatility', 'the refusal names the dimension');
+
+    /* A non-current read with NO reason at all is refused by the same guard, which is the case
+       that would otherwise reach a reader as an unexplained gap. */
+    const unexplained = refusalFrom({ state: 'stale', reasonCode: null });
+    assert.ok(unexplained, 'a non-current read with no reason really refuses');
+    assert.equal(unexplained.code, 'C025-READ-CONTRACT');
+
+    /* Every one of the sixteen published codes is accepted, so the closed vocabulary the module
+       exports and the vocabulary this guard enforces are the same list. */
+    INTEL.REASON_CODES.forEach((reasonCode) => {
+        const accepted = PROBE.makeRead(spec({ state: 'partial', reasonCode }));
+        assert.equal(accepted.reasonCode, reasonCode, reasonCode + ' is accepted');
+    });
+    assert.equal(INTEL.REASON_CODES.length, 16);
 });

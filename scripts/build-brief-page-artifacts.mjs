@@ -37,6 +37,7 @@ export function buildBriefPageArtifactsFromInputs({ payload, config, snapshot, t
       regime: payload.regime,
       backdrop: payload.backdrop,
       attention: payload.attention,
+      attentionExclusions: payload.attentionExclusions,
       recommendations: payload.recommendations,
       events: payload.events,
       watchlistNotes: payload.watchlistNotes,

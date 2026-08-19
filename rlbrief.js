@@ -1168,10 +1168,38 @@
       (r.note ? '<span class="sub" style="margin-left:6px">' + esc(r.note) + '</span>' : '');
   }
 
-  function renderAttention(el, cards, cfg, max) {
+  // An empty attention feed has two causes that must not read alike: nothing
+  // qualified, or candidates existed and were refused. Reasons are read from the
+  // exclusion records, never composed here.
+  function emptyAttentionStatement(exclusions) {
+    var list = Array.isArray(exclusions) ? exclusions.filter(function (e) { return e && typeof e.reason === "string" && e.reason; }) : [];
+    if (!list.length) {
+      return '<div class="sub" data-mac-attention-empty="quiet" title="No candidate was refused this run, so an empty feed means nothing cleared the bar.">'
+        + 'No attention items in the current payload. Nothing was refused, so nothing qualified.</div>';
+    }
+    var byReason = [];
+    list.forEach(function (e) {
+      var hit = null;
+      byReason.forEach(function (r) { if (r.reason === e.reason) hit = r; });
+      if (hit) { hit.count += 1; return; }
+      byReason.push({ reason: e.reason, code: e.code || "", count: 1 });
+    });
+    return '<div class="acard" data-mac-attention-empty="refused" style="border-left:3px solid var(--line)">'
+      + '<b>' + valueCell(list.length + (list.length === 1 ? " candidate" : " candidates") + " refused",
+        "How many attention candidates were built this run and then rejected before publication. Reading now: the feed is empty because these were refused, NOT because the market was quiet.")
+      + ' \u2014 the feed is empty by refusal, not by calm</b>'
+      + byReason.map(function (r) {
+        return '<div class="ay" data-mac-attention-exclusion="' + esc(r.code) + '">'
+          + esc(r.count) + ' \u00d7 ' + esc(r.reason)
+          + (r.code ? ' <span class="sub">(' + esc(r.code) + ')</span>' : '') + '</div>';
+      }).join("")
+      + '<div class="ay">Nothing was substituted for the refused candidates. An empty feed here does not mean nothing happened \u2014 it means this run could not substantiate what it found.</div></div>';
+  }
+
+  function renderAttention(el, cards, cfg, max, exclusions) {
     if (!el) return;
     var ranked = rankAttention(cards || [], max || 7);
-    if (!ranked.length) { el.innerHTML = '<div class="sub">No attention items in the current payload.</div>'; return; }
+    if (!ranked.length) { el.innerHTML = emptyAttentionStatement(exclusions); return; }
     var cap = (cfg && cfg.thresholds && cfg.thresholds.tacticalConfidenceCap) || 55;
     el.innerHTML = ranked.map(function (c) {
       var href = c.deepLink || deepLink(cfg, c.domain);
@@ -1687,6 +1715,7 @@
   root.RLBRIEF.renderFreshness = renderFreshness;
   root.RLBRIEF.renderBackdrop = renderBackdrop;
   root.RLBRIEF.renderAttention = renderAttention;
+  root.RLBRIEF.emptyAttentionStatement = emptyAttentionStatement;
   root.RLBRIEF.renderRecs = renderRecs;
   root.RLBRIEF.renderNextSession = renderNextSession;
   root.RLBRIEF.renderResearchAgenda = renderResearchAgenda;

@@ -1220,12 +1220,11 @@
                 thresholds: { attentionMaxCards: 7, macroCacheMaxAgeMin: 30, notableMemberMinMovePct: 3, notableMemberMaxCount: 4 },
                 macroEvents: []
             };
-            var CFG = null, PAYLOAD = null, WL = null, HIST = null, SNAP = null, TOOLS = null, SCORECARD = null, ATTENTION_RECORD = null, EXPERIMENTAL = null, experimentalLoading = false, activeWindow = null;
+            var CFG = null, PAYLOAD = null, WL = null, SNAP = null, TOOLS = null, SCORECARD = null, ATTENTION_RECORD = null, EXPERIMENTAL = null, experimentalLoading = false, activeWindow = null;
 
             function el(id) { return document.getElementById(id); }
             function esc(value) { return (value == null ? "" : String(value)).replace(/[&<>"']/g, function (character) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]; }); }
             function j(url) { return fetch(url, { cache: "no-store" }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).catch(function () { return null; }); }
-            function jl(url) { return fetch(url, { cache: "no-store" }).then(function (r) { if (!r.ok) throw 0; return r.text(); }).then(function (t) { return t.trim().split(/\n+/).filter(Boolean).map(function (x) { try { return JSON.parse(x); } catch (e) { return null; } }).filter(Boolean); }).catch(function () { return []; }); }
 
             /* ── ET-hour → default window ── */
             function etHourMin() {
@@ -1768,7 +1767,7 @@
                     }
                 } else {
                     var attention = RLBRIEF.actionableAttention(catalystsOnly, CFG.thresholds && CFG.thresholds.minimumAttentionConfidence);
-                    RLBRIEF.renderAttention(el("attention"), attention, CFG, CFG.thresholds && CFG.thresholds.attentionMaxCards);
+                    RLBRIEF.renderAttention(el("attention"), attention, CFG, CFG.thresholds && CFG.thresholds.attentionMaxCards, PAYLOAD && PAYLOAD.attentionExclusions);
                 }
                 RLBRIEF.renderEvents(el("events"), mergeEvents());
                 RLBRIEF.renderGroups(el("groups"), (PAYLOAD && PAYLOAD.groups) || (SNAP && SNAP.groups), CFG);
@@ -1812,11 +1811,10 @@
 
             function boot() {
                 if (typeof RLBRIEF === "undefined") { var b = el("regimeStrip"); if (b) b.innerHTML = '<span class="pill bad">brief components failed to load — hard-refresh the page</span>'; return; }
-                // brief-history.recent.jsonl is the BOUNDED window (last 30 runs, compact projection).
-                // The full per-run history lives in briefs/tier-a/<YYYY-MM>.jsonl and is loaded on demand;
-                // fetching all of it here cost 2.3 MB on every page load and grew without limit.
-                Promise.all([j("market-brief.config.page.json"), j("market-brief.page.json"), j("watchlist.json"), jl("brief-history.recent.jsonl"), j("market-brief.snapshot.page.json"), j("market-brief.tools.page.json"), j("market-brief.scorecard.json"), j("market-brief.attention-scorecard.json")]).then(function (r) {
-                    CFG = r[0] || INLINE_CFG; PAYLOAD = r[1]; WL = r[2] || { items: [] }; HIST = r[3] || []; SNAP = r[4]; TOOLS = r[5] || { tools: [] }; SCORECARD = r[6]; ATTENTION_RECORD = r[7];
+                // Tier A uses the bounded 30-run projection for change detection. The browser does not:
+                // fetching unused history here spent first-load bytes without rendering any of them.
+                Promise.all([j("market-brief.config.page.json"), j("market-brief.page.json"), j("watchlist.json"), j("market-brief.snapshot.page.json"), j("market-brief.tools.page.json"), j("market-brief.scorecard.json"), j("market-brief.attention-scorecard.json")]).then(function (r) {
+                    CFG = r[0] || INLINE_CFG; PAYLOAD = r[1]; WL = r[2] || { items: [] }; SNAP = r[3]; TOOLS = r[4] || { tools: [] }; SCORECARD = r[5]; ATTENTION_RECORD = r[6];
                     renderWindows(); wire(); renderAll(); setTimeout(refreshLive, 0);
                 });
             }

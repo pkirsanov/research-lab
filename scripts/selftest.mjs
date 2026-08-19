@@ -8548,8 +8548,9 @@ try {
   assert(budgets && Number.isFinite(budgets.briefHistoryRecentMaxBytes) && Number.isFinite(budgets.briefFirstLoadMaxBytes) && Number.isFinite(budgets.briefHistoryRecentMaxRows),
     'the first-load budget is DECLARED in tool-experience.config.json artifactBudgets, not left implicit');
 
-  // The page must fetch the bounded window, never the unbounded append log.
-  assert(briefPage.includes('brief-history.recent.jsonl'), 'the cockpit fetches the bounded recent window');
+  // Neither history file belongs on first load. Tier A reads the bounded projection server-side;
+  // the browser rendered none of it, so fetching it spent bytes without creating a reader surface.
+  assert(!briefPage.includes('brief-history.recent.jsonl'), 'the cockpit does not fetch unused recent memory');
   assert(!/jl\("brief-history\.jsonl"\)/.test(briefPage), 'the cockpit no longer fetches the unbounded append log on page load');
   ['market-brief.config.page.json', 'market-brief.page.json', 'market-brief.snapshot.page.json', 'market-brief.tools.page.json'].forEach((file) => {
     assert(briefPage.includes(file), 'the cockpit fetches compact first-load artifact ' + file);
@@ -8574,7 +8575,7 @@ try {
 
   // The whole first-load payload, measured — this is the number the defect was about.
   const firstLoad = ['market-brief.config.page.json', 'market-brief.page.json', 'watchlist.json',
-    'brief-history.recent.jsonl', 'market-brief.snapshot.page.json', 'market-brief.tools.page.json', 'market-brief.scorecard.json']
+    'market-brief.snapshot.page.json', 'market-brief.tools.page.json', 'market-brief.scorecard.json']
     .reduce((total, file) => total + Buffer.byteLength(read(file), 'utf8'), 0);
   assert(firstLoad <= budgets.briefFirstLoadMaxBytes,
     'the cockpit\u2019s whole first-load payload is inside budget (' + Math.round(firstLoad / 1024) + ' KB <= ' + Math.round(budgets.briefFirstLoadMaxBytes / 1024) + ' KB)');
@@ -8585,10 +8586,8 @@ try {
   assert(unboundedBytes > budgets.briefFirstLoadMaxBytes,
     'the unbounded log genuinely exceeds the budget (' + Math.round(unboundedBytes / 1024) + ' KB), so fetching it would FAIL this test rather than slip through');
 
-  /* The recent window's OWN byte bound has to bind. It was 204800 — identical to
-     briefFirstLoadMaxBytes — so this file had to consume the whole seven-file allowance before its
-     own bound could fire: inert by construction, and silent through the ~5 KB-per-row regression it
-     exists to catch (BUG-013). It is now one fifth of the first-load budget. */
+    /* The recent window's OWN byte bound has to bind independently. It remains server-side memory
+      with a public artifact contract even though the browser no longer fetches it on first load. */
   assert(budgets.briefHistoryRecentMaxBytes < budgets.briefFirstLoadMaxBytes,
     'the recent window\u2019s per-file byte bound is strictly smaller than the whole-payload budget ('
     + budgets.briefHistoryRecentMaxBytes + ' < ' + budgets.briefFirstLoadMaxBytes + '), so it is capable of firing at all');
@@ -8612,7 +8611,7 @@ try {
      refused BY NAME: the per-file check is reached before the aggregate one, so the failure
      attributes the breach to this artifact rather than to "the payload". */
   const regressionBytes = 30 * 4939;
-  const regressionRefusal = refusal(budgets, regressionBytes, (firstLoad - recentBytes) + regressionBytes) || '';
+  const regressionRefusal = refusal(budgets, regressionBytes, firstLoad) || '';
   assert(regressionRefusal.includes('brief-history-recent') && !regressionRefusal.includes('brief-first-load'),
     'a ' + regressionBytes + '-byte recent artifact is refused by its own bound, named, before the aggregate check is evaluated (' + JSON.stringify(regressionRefusal) + ')');
 
@@ -23345,10 +23344,10 @@ try {
     .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
   assert(suiteCode4.indexOf('market-brief.payload.json') < 0
     && suiteCode4.indexOf('brief-history.jsonl') < 0
-    && (suiteSrc4.match(/^test\(/gm) || []).length === 18
+    && (suiteSrc4.match(/^test\(/gm) || []).length === 20
     && (suiteSrc4.match(/FIXTURE-SOURCED/g) || []).length === 2
     && suiteCode4.indexOf('page.route') < 0 && suiteCode4.indexOf('context.route') < 0,
-  'tests/market-brief-cockpit.spec.mjs declares eighteen tests, labels both fixture-sourced decision-surface rows as such, intercepts no request, and binds itself to neither the payload nor the history ledger');
+  'tests/market-brief-cockpit.spec.mjs declares twenty tests — eighteen for Feature 026 plus the two BUG-009 R4 rows and their negative control — labels both fixture-sourced decision-surface rows as suchh, intercepts no request, and binds itself to neither the payload nor the history ledger');
 
   /* The stripper must not become the hole in the guard: a real page.route in CODE still fails,
      and the same text inside a comment does not. */
@@ -23685,6 +23684,44 @@ try {
 
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 budget freshness group threw): ' + e.message); }
 /* ---------- Feature 026 Scope 5: market brief — published budget freshness (END) ---------- */
+
+/* ---------- BUG-009 R4: honest empty attention feed (BEGIN) ---------- */
+/* R4 from the BUG-009 design: an empty attention feed must not read as a quiet
+   market when the truth is that candidates were built and then refused. This is the
+   one BUG-009 remedy implementable without inventing detection policy — it states a
+   fact the payload already carries and invents no judgement. Reasons are READ from
+   the exclusion records, never composed by the renderer. */
+try {
+  group('BUG-009 R4 — an empty attention feed states refusal, not calm');
+  const briefSrc9 = read('rlbrief.js');
+  const htmlSrc9 = read('market-brief.html');
+
+  assert(/function emptyAttentionStatement\(/.test(briefSrc9),
+    'rlbrief.js defines emptyAttentionStatement — an empty attention feed is explained in exactly one place');
+  assert(/data-mac-attention-empty="quiet"/.test(briefSrc9) && /data-mac-attention-empty="refused"/.test(briefSrc9),
+    'the two causes of an empty feed carry DIFFERENT machine-readable markers, so a reader and a test can tell calm apart from refusal');
+  assert(/Nothing was substituted/.test(briefSrc9) && /does not mean nothing happened/.test(briefSrc9),
+    'the refusal block states that nothing was substituted and that an empty feed is not evidence of calm — the exact misreading this remedy exists to prevent');
+
+  /* The strongest check in this group. The renderer must READ the reason from the
+     exclusion record. If it hard-coded today's live reason it would render correctly
+     today and lie the moment a different refusal appeared, so the live string must
+     NOT be present in the renderer at all. */
+  assert(briefSrc9.indexOf('an attention item is built from an observed gate result') < 0,
+    'Regression: SCN-BUG009-R4 rlbrief.js does NOT contain the live exclusion reason as a literal — the text is read from the record, so a different refusal renders its own reason instead of a familiar one');
+  assert(/\.reason/.test(briefSrc9.slice(briefSrc9.indexOf('function emptyAttentionStatement'), briefSrc9.indexOf('function emptyAttentionStatement') + 1800)),
+    'emptyAttentionStatement reads .reason off the exclusion records it is given');
+
+  assert(/renderAttention\([\s\S]{0,220}?attentionExclusions/.test(htmlSrc9),
+    'market-brief.html passes the payload attentionExclusions into renderAttention, so the renderer is actually reachable with real refusals');
+
+  const livePayload9 = JSON.parse(read('market-brief.payload.json'));
+  const liveExcl9 = Array.isArray(livePayload9.attentionExclusions) ? livePayload9.attentionExclusions : [];
+  const liveAttn9 = Array.isArray(livePayload9.attention) ? livePayload9.attention : [];
+  assert(liveAttn9.length > 0 || liveExcl9.every((e) => e && typeof e.reason === 'string' && e.reason),
+    'every exclusion in the LIVE payload carries a non-empty reason, so the published brief can always say why its feed is empty rather than falling back to silence');
+} catch (e) { failures++; console.log('  ✗ FAIL (BUG-009 R4 group threw): ' + e.message); }
+/* ---------- BUG-009 R4: honest empty attention feed (END) ---------- */
 
 /* ---------- Feature 022 Scope 02: threshold surtaxes and declared tax legs (START) ---------- */
 /* The two federal threshold surtaxes and the pack-declared leg set. Every figure below is

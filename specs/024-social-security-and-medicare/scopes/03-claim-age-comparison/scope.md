@@ -294,7 +294,7 @@ error, a missing browser or an absent test does not satisfy RED.
 | TP-03-22 | Regression E2E | e2e-ui | SCN-024-008 | `lifetime-tax-claim-age.spec.mjs` | `Regression: SCN-024-008 an absent life-expectancy figure withholds the totals and the equality age while the per-age benefits still render` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-008 an absent life-expectancy figure withholds the totals and the equality age while the per-age benefits still render" --reporter=list` | Yes | `report.md#tp-03-22` |
 | TP-03-23 | Regression E2E | e2e-ui | SCN-024-009 | `lifetime-tax-claim-age.spec.mjs` | `Regression: SCN-024-009 the claim ages render in declared order with nothing marked best, optimal, recommended or preferred` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-009 the claim ages render in declared order with nothing marked best, optimal, recommended or preferred" --reporter=list` | Yes | `report.md#scenario-scn-024-009` |
 | TP-03-24 | Privacy E2E | e2e-ui | SCN-024-009 | `lifetime-tax-claim-age.spec.mjs` | `Regression: SCN-024-009 the request ledger stays empty and no declared claim age reaches a URL` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-009 the request ledger stays empty and no declared claim age reaches a URL" --reporter=list` | Yes | `report.md#tp-03-24` |
-| TP-03-25 | Broader Regression E2E | e2e-ui | SCN-021-*, SCN-022-*, SCN-023-*, SCN-024-001 … -009 | The prior features' specs plus this scope's | The cumulative browser suite over the real route | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02" --reporter=list` | Yes | `report.md#tp-03-25` |
+| TP-03-25 | Broader Regression E2E | e2e-ui | SCN-021-*, SCN-022-*, SCN-023-*, SCN-024-001 … -009 | The prior features' specs plus this scope's | Every scenario owned by features 021 … 024 passes over the real route — the whole cumulative browser suite for this feature family, zero failed and zero skipped, not a convenient subset. `SCN-02[1-4]` is the alternation `SCN-021`, `SCN-022`, `SCN-023`, `SCN-024` written without a `\|`, which a table cell cannot carry verbatim; it is pinned to the four owning spec numbers, so a scenario owned by any other feature can neither satisfy nor break this row | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list` | Yes | `report.md#tp-03-25` |
 | TP-03-26 | Repo gate | unit | SCN-024-007 … -009 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-03-26` |
 | TP-03-27 | Path guard | unit | SCN-024-007 … -009 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-03-27` |
 | TP-03-28 | Deploy gate | unit | SCN-024-007 … -009 | `scripts/build-pages-site.mjs` | The Pages plan succeeds, `site-exclusions.json` is unchanged, and `tax-rules/` remains outside the public directories | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-03-28` |
@@ -439,16 +439,25 @@ delivery makes a row's claim false, the row is corrected rather than checked.
     `report.md#intended-red-evidence-for-the-four-gate-rows-tp-03-25--tp-03-28`,
     with TP-03-28 carrying two probes because the row makes two separable claims.
 
-    **Not done — TP-03-25**, the broader browser regression. Its command selects
-    74 tests; two attempts reached `[74/74]` and returned no summary line and no
-    exit code, so no trustworthy baseline exists for a RED to be a delta against.
-    Separately, `--grep "SCN-02"` also selects `SCN-025-*` and `SCN-026-*`, whose
-    files a concurrent session was editing throughout, so a failure under a
-    mutation would not be attributable. **No mutation was applied for this row** —
-    a prior dispatch left an abandoned `RED PROBE TP-03-25` mutation in
-    `lifetime-tax-strategy-lab.html` that degraded the product until a human
-    reverted it, and repeating that was the worse outcome. The full reasoning and
-    what the next session needs is at `report.md#tp-03-25--not-probed-no-intended-red-evidence-exists-for-this-row`.
+    **Not done — TP-03-25**, the broader browser regression. At the time of that
+    attempt its command selected 74 tests; two attempts reached `[74/74]` and
+    returned no summary line and no exit code, so no trustworthy baseline existed
+    for a RED to be a delta against. Separately, the then-current `--grep "SCN-02"`
+    also selected `SCN-025-*` and `SCN-026-*`, whose files a concurrent session was
+    editing throughout, so a failure under a mutation would not be attributable.
+    **No mutation was applied for this row** — a prior dispatch left an abandoned
+    `RED PROBE TP-03-25` mutation in `lifetime-tax-strategy-lab.html` that degraded
+    the product until a human reverted it, and repeating that was the worse
+    outcome. The full reasoning and what the next session needs is at
+    `report.md#tp-03-25--not-probed-no-intended-red-evidence-exists-for-this-row`.
+
+    **Attribution blocker removed (planning correction, no evidence claimed).**
+    TP-03-25's selector is now `--grep "SCN-02[1-4]"`, pinned to the four owning
+    spec numbers, and selects 66 tests — the whole 021 … 024 family and nothing
+    else. The 8 excluded tests are exactly the concurrent session's 5 `SCN-025-*`
+    and 3 `SCN-026-*`. A mutation applied inside 021 … 024 is therefore now
+    attributable. This item stays `[ ]` regardless: the row still has GREEN with no
+    RED, and only `bubbles.test` may record that RED and tick this box.
 
     **Superseded:** the earlier note on this item claimed the only honest RED was
     the narrow TP-03-05 / TP-03-CLAIM pair. That is now out of date — 27 rows

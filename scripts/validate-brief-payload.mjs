@@ -723,6 +723,12 @@ export function validateBriefPayload(payload, registry, config, snapshot, agenda
          reported together or not at all. */
       errors.push(`outputBudget: measured over ${measurement.byField.length} declared fields; disclosed narrative was ${measurement.disclosedTotal} characters and is not capped`);
     }
+    /* The measurement must be PRESENT, not merely recomputable. Without this a producer could
+       strip `budget` and still validate, which would leave the published run carrying no record
+       of what it was judged against — the exact accountability the measurement exists to give. */
+    if (!hasObject(payload.budget)) {
+      errors.push('outputBudget: the payload carries no budget block; a v2 run publishes the measurement it was judged against or it is refused');
+    }
   }
 
   /* Feature 026 Scope 2 — the cross-asset legs, fail-closed and gated on the same v2 stamp
@@ -760,6 +766,14 @@ export function validateBriefPayload(payload, registry, config, snapshot, agenda
         for (const field of ['reason', 'withheld', 'substitutionRefusal']) {
           if (!hasText(card[field])) {
             errors.push(`crossAsset: the ${id} dark state carries no ${field}; a dark card renders all three sentences or it is refused`);
+          }
+        }
+        /* A dark card carries NO number. A figure beside a blindness is the substituted value
+           this whole leg set exists to refuse: a reader seeing `changePct` on a dark leg would
+           reasonably read it as a measurement that was taken, when the point is that none was. */
+        for (const [field, value] of Object.entries(card)) {
+          if (typeof value === 'number') {
+            errors.push(`crossAsset: the ${id} dark state carries a number in ${field}; a dark state names what is withheld and publishes no figure at all`);
           }
         }
         if (!policyById.has(card.leg)) {

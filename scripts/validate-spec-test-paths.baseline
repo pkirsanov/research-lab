@@ -67,6 +67,13 @@
 
 tests/_tp1504-settle-probe.spec.mjs
 tests/auction-gamma-playbook.spec.mjs
+# Captured terminal evidence, not a coverage claim. Feature 026's report records a
+# full-suite Playwright run that was interrupted (exit 130, 897 did not run); all 12
+# observed failures were in this file, which belongs to the concurrent company-
+# intelligence work and was uncommitted scratch that has since been removed. The
+# transcript is quoted verbatim because smoothing it would falsify the evidence, and
+# the path is frozen here rather than rewritten. Historical and grandfathered.
+tests/chaos-company-intel-probe.spec.mjs
 tests/distributed-briefs-authorship-adversarial.test.mjs
 tests/distributed-briefs-authorship.e2e.mjs
 tests/distributed-briefs-authorship.integration.test.mjs

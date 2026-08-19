@@ -49,32 +49,33 @@
   "certification": {
     "status": "in_progress",
     "certifiedAt": null,
-    "completedScopes": [
-      1
-    ],
+    "completedScopes": [],
+    "completedScopesNote": "Empty because no scope has every Definition of Done item checked. The scope IDs are derived from the scopes.md headings and recorded on each scopeProgress entry as scopeId; a scope joins this array only when its scopes.md **Status:** marker reads Done and its DoD carries zero unchecked items. Scope 1 was previously listed here as the ordinal 1, which named no artifact and additionally over-claimed: three Tier-3 items in that scope are unchecked.",
     "certifiedCompletedPhases": [],
     "scopeProgress": [
       {
         "scope": 1,
+        "scopeId": "01-budget-policy-measurement-and-fail-closed-refusal",
         "name": "Budget policy, measurement and fail-closed refusal",
         "increment": "A",
         "implementationState": "implemented",
-        "dodChecked": 26,
-        "dodTotal": 26,
+        "dodChecked": 29,
+        "dodTotal": 32,
         "commits": [
           "0f61d1a14",
           "a7ca8ad55"
         ],
         "openFindings": [],
-        "note": "Complete. The three items previously blocked on the Scope 4 browser suite closed on 2026-08-19 once that suite existed and the selftest reached 3019 passed 0 failed. Row 1.12 carries no marker of its own and its behaviour executes under the 1.6 marker; recorded as R-11."
+        "note": "Not complete. The three Tier-3 items added by the certification-artifact pass are unchecked and each names its reason: the scenario-specific E2E item is unmet because the fail-closed refusal has no browser surface, the broader-suite item is unmet because the repository-wide run neither completed nor was green, and the change-boundary item is unmet because commit 3872df354 changed the excluded market-brief.payload.json. Row 1.12 carries no marker of its own and its behaviour executes under the 1.6 marker; recorded as R-11."
       },
       {
         "scope": 2,
+        "scopeId": "02-cross-asset-legs-required-leg-set-and-dark-state",
         "name": "Cross-asset legs, required-leg set and dark state",
         "increment": "A",
         "implementationState": "implemented",
-        "dodChecked": 25,
-        "dodTotal": 27,
+        "dodChecked": 28,
+        "dodTotal": 32,
         "commits": [
           "0f61d1a14",
           "a7ca8ad55"
@@ -87,11 +88,12 @@
       },
       {
         "scope": 3,
+        "scopeId": "03-memory-row-v2-change-vocabulary-delta-only-publishing-and-roll-up",
         "name": "Memory row v2, change vocabulary, delta-only publishing and roll-up",
         "increment": "B",
         "implementationState": "implemented",
-        "dodChecked": 20,
-        "dodTotal": 23,
+        "dodChecked": 23,
+        "dodTotal": 27,
         "commits": [
           "3855ee75d"
         ],
@@ -103,11 +105,12 @@
       },
       {
         "scope": 4,
+        "scopeId": "04-disclosure-first-rendering",
         "name": "Disclosure-first rendering",
         "increment": "C",
         "implementationState": "implemented",
-        "dodChecked": 22,
-        "dodTotal": 25,
+        "dodChecked": 27,
+        "dodTotal": 30,
         "commits": [
           "6b00105c7"
         ],
@@ -119,11 +122,12 @@
       },
       {
         "scope": 5,
+        "scopeId": "05-closed-loop-on-the-publication-path",
         "name": "Closed loop on the publication path",
         "increment": "D",
         "implementationState": "implemented_incomplete",
-        "dodChecked": 8,
-        "dodTotal": 19,
+        "dodChecked": 21,
+        "dodTotal": 25,
         "commits": [
           "ec7d24b31"
         ],
@@ -180,6 +184,7 @@
       "startedAt": "2026-08-18T00:00:00Z",
       "finishedAt": "2026-08-18T00:00:00Z",
       "durationUnmeasured": true,
+      "durationUnmeasuredReason": "No clock reading survives for either boundary of this phase. Both timestamps are the same placeholder midnight instant the writer stored, not a measured start and finish, and the analyze phase produced no commit of its own from which a real span could be derived: spec.md first reaches git inside commit 0f61d1a14 at 2026-08-19T02:57:20Z, which is an implement-phase commit and marks neither end of this phase. The span is therefore recorded as unmeasured rather than replaced with a number nothing in the repository supports.",
       "outcome": "route_required",
       "summary": "Authored the analyst-owned specification for enforced brief brevity and cross-asset coverage. Structure follows specs/025-company-multi-horizon-intelligence-lab/spec.md. The document carries 5 actors, 8 use cases, 31 business scenarios in 7 clusters, 40 functional requirements at the P25 cap, 10 non-functional requirements, 6 ranked improvement proposals, a full P1 to P25 principle alignment with a separate current-measured-versus-planned table, an exposure contract, and an evidence-source table. Every evidence claim supplied by the upstream review was independently re-derived from the working tree. Four figures did not reproduce exactly and are corrected explicitly in Honest Findings F-026-9 rather than absorbed: watchlistNotes measures 14905 characters not 15229 and backdrop measures 11956 not roughly 7770, though the 127740 total reproduces exactly; closedSample and minClosedSample are nested under the overall block of the attention scorecard rather than at top level; the attention array is empty on every committed run from 2026-08-11 onward with 2026-08-10 mixed at three of four runs; and the recommendation slate is identical across 13 consecutive committed runs from 2026-08-14, which is stronger evidence than the two-day claim it replaces. No product file was modified. No file outside this feature folder was modified. Status is in_progress and certification remains not_started."
     },
@@ -193,6 +198,7 @@
       "startedAt": "2026-08-18T00:00:00Z",
       "finishedAt": "2026-08-18T00:00:00Z",
       "durationUnmeasured": true,
+      "durationUnmeasuredReason": "No clock reading survives for either boundary of this phase. The UX layer was authored inline in spec.md rather than as a sidecar file, so it left no artifact of its own and no commit of its own; the whole section arrives inside the same implement-phase commit 0f61d1a14. Both stored timestamps are one placeholder instant, and no start or finish can be recovered from git or from any other timestamp in this file. Recorded as unmeasured rather than estimated.",
       "outcome": "route_required",
       "summary": "Authored the UX layer inline in spec.md as UI Wireframes and User Flows, placed between UI Scenario Matrix and Exposure Contract, matching the section order in specs/017-decision-attention-and-developing-situations/spec.md and specs/025-company-multi-horizon-intelligence-lab/spec.md. No sidecar UX file was created. The section carries a reuse table naming the committed pattern and the file read to confirm each one, three closed status vocabularies rendered as glyph plus word per notes/market-brief.md section 12c, a screen inventory of 14 blocks, an 8-primitive table, ASCII wireframes at 375, 768 and 1180 CSS px plus a Power wireframe, a disclosure interaction contract choosing native details and summary against the four build-free constraints, verbatim copy for the quiet, unreachable and dark-leg states, delta-only presentation rules with four validator assertions and one adversarial case, a budget derivation yielding headline 140, per-card 300 and total default-visible 3000 characters, an accessibility section covering canvas, keyboard path, screen-reader order, 200 percent zoom and print, and four mermaid user flows. The two-axis tension between the house Simple and Power paradigm and FR-026-026's exactly-one-control rule is resolved by making the drawer the only gate and Power a bulk open that reveals nothing Simple hides. Two conflicts are routed to the design owner rather than resolved here: FR-026-013 as literally worded requires a rates, dollar and energy reading on every run, which contradicts the Relationships clause stating a required leg resolves to a reading or raises a dark state but never both, and Open Question 7 leaves the recommendation ledger's minimum closed sample unestablished so the wireframe uses 20 by analogy with the attention scorecard as a proposal needing owner ratification. No product file was modified. No file outside this feature folder was modified. Status stays in_progress and certification remains not_started."
     },
@@ -206,6 +212,7 @@
       "startedAt": "2026-08-18T00:00:00Z",
       "finishedAt": "2026-08-18T00:00:00Z",
       "durationUnmeasured": true,
+      "durationUnmeasuredReason": "Only the finishing side of this phase is recoverable, so no honest duration can be written. What git does record is the commit times of the two Scope 1 commits this entry names: 0f61d1a14 at 2026-08-19T02:57:20Z and a7ca8ad55 at 2026-08-19T05:07:21Z. Neither is a phase start; the work began before the first commit and no clock reading of that moment survives. Using the 2h10m01s interval between the two commits as the phase duration would be an invented number wearing a real one's clothes, so the span stays declared unmeasured with the two observed commit instants recorded here instead.",
       "outcome": "route_required",
       "summary": "Implemented Scope 1 only. Created rlcockpit.js, a 294-line UMD dual module that exports a frozen api over module.exports with three top-level function declarations reachable by the selftest extractFn: measureDefaultVisible, budgetViolations and selectDefaultVisible. It carries no character-cutting helper, no ellipsis literal, no slice-to-length, no bare isFinite and none of document, localStorage, sessionStorage, innerHTML, fetch-paren, setTimeout or requestAnimationFrame. Added the output-budget/v1 block to market-brief.config.json with the literals 140, 300 and 3000 and exactly thirteen default-visible paths, purely additive at 23 insertions with the existing artifact-budget/v1 block byte-unchanged. Added a version-gated budget refusal to validateBriefPayload in scripts/validate-brief-payload.mjs at 38 insertions, pushing outputBudget-prefixed strings into the existing errors array and adding no sixth CLI flag. Appended two marker-bounded groups to scripts/selftest.mjs at 309 insertions and zero deletions. Added section 9a to notes/market-brief.md at 49 insertions and zero deletions with the fenced-block count unchanged at 4. Observed results: node scripts/selftest.mjs printed 2842 passed 1 failed exit 1 before the change and 2868 passed 1 failed exit 1 after it, so 26 assertions were added and zero failures; the single failure is identical before and after and is the spec-test-path guard on tests/market-brief-cockpit.spec.mjs, which Scope 4 creates. node scripts/validate-brief-payload.mjs market-brief.payload.json printed the same five PASS lines and exit 0 before and after. node scripts/build-pages-site.mjs exited 0 with rootFiles 118 to 119 and accounted for rlcockpit.js with no site-exclusions entry. artifact-lint exited 0. Twenty of twenty-six Scope 1 Definition of Done items are checked with inline evidence and six are deliberately unchecked. One new finding is routed rather than absorbed. R-5: the plan, design D3 and the Change Boundary all name scripts/brief-refresh.mjs as the composer that stamps market-brief-payload/v2 and calls selectDefaultVisible, but that script writes only market-brief.snapshot.json, causal-rotation.snapshot.json and a brief-history.jsonl row; market-brief.payload.json is written by scripts/brief-narrative-parallel.mjs, which the Allowed file families table does not admit. Rather than author a dead exported stamping function and call it a production consumer, which is the exact BUG-009 shape this feature exists to prevent, the gap is routed to the plan owner. That blocks the payload stamp, selectDefaultVisible's production consumer, budget-measurement/v1 persistence and Test Plan row 1.12, and blocks none of the measurement, the policy, the refusal gate or the module contract. Test Plan row 1.6 ran in its validator half only and its assertion title names only what it proves. No excluded family was touched: market-brief.payload.json, rlattention.js, tools.json, index.html and rlnav.js are all byte-unchanged. No certification field was written. Scopes 2 through 5 were not started."
     }

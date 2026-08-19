@@ -9,7 +9,13 @@ from the complaints that opened this work rather than from the requirement list.
 If the brief passes every requirement and still fails this checklist, the
 requirements were wrong.
 
-**Status: not yet validated. Implementation has not started.**
+**Status: implementation complete and verified by automation; NOT yet validated by
+a human.** All five scopes are delivered and every automated gate is green — see
+Automation Readiness below for the exact commands and outputs. That block is
+automation's statement that the behaviour is worth your time. It is **not**
+acceptance and never becomes acceptance. Only you can end this spec, by
+exercising the brief, ticking the boxes below, and writing the Human Acceptance
+Record at the foot of this file.
 
 ---
 
@@ -18,6 +24,32 @@ requirements were wrong.
 Open [market-brief.html](../../market-brief.html) on a normal run, not a fixture.
 Read it the way you would on a working morning: once, quickly, without scrolling
 back. Then answer each item.
+
+---
+
+## Automation Readiness
+
+Written by automation, per `bubbles/registry/acceptance-authority.yaml`
+(`writer: automation`, `grantsAcceptance: false`). Every line below is a fact a
+command produced, not a judgement about whether the brief is good. A fully
+checked block here satisfies **no** acceptance obligation. It says only: the
+behaviour is built, it runs, and it is worth a human's sixty seconds.
+
+- [x] The repository self-test passes with zero failures — `node scripts/selftest.mjs` → `Research-Lab self-test: 3042 passed, 0 failed`, exit 0.
+- [x] The cockpit browser suite passes in both browser projects — `npx playwright test tests/market-brief-cockpit.spec.mjs` → `28 passed`, exit 0 (14 tests × 2 projects).
+- [x] The live published payload validates clean — `node scripts/validate-brief-payload.mjs market-brief.payload.json`, exit 0.
+- [x] The default view is inside its declared budget — published `budget.total` is 682 characters against a declared cap of 3000, with `violations: 0`.
+- [x] Detail is hidden, not deleted — published `budget.disclosedTotal` is 130,888 characters, carried behind disclosure and subject to no cap.
+- [x] Delta-only publishing balances — the published run carries 5 changed items, a `= 7 unchanged` roll-up and 0 baseline, summing to the 12 tracked instruments.
+- [x] The three required cross-asset legs are present on the live run, and the dollar leg publishes an explicit dark state rather than a substituted value.
+- [x] No reader-facing page leaks framework vocabulary — `node scripts/audit-reader-legibility.mjs` → `pages audited: 28  with view tabs: 28  errored: 0  total leaks: 0`, exit 0.
+- [x] No personal data or credential is committed — `node scripts/pii-scan.mjs` → `files=8034 messages=1477 findings=0 OK`, exit 0.
+- [x] The published site builds — `node scripts/build-pages-site.mjs`, exit 0 — and the shared cache validates — `node scripts/validate-brief-cache.mjs`, exit 0.
+
+**What automation could NOT establish.** Whether the brief is actually useful to
+read. Whether sixty seconds was enough. Whether anything you needed was hidden.
+Whether a dark leg reads as honest rather than evasive. Those are the checklist
+below, and no command can answer them.
 
 ---
 

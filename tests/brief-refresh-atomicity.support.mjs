@@ -122,7 +122,8 @@ const PUBLICATION_PATHS = [
   'market-brief.snapshot.json',
   'brief-history.jsonl',
   'market-brief.payload.json',
-  'market-brief.config.json'
+  'market-brief.config.json',
+  'causal-rotation.snapshot.json'
 ];
 
 const MIME = {
@@ -337,6 +338,7 @@ if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
   writeFileSync(fixturePayloadPath, JSON.stringify(conformedPayload, null, 2) + '\n');
   copyFileSync(resolve(ROOT, 'market-brief.config.json'), resolve(repoRoot, 'market-brief.config.json'));
   copyFileSync(resolve(ROOT, 'market-brief.scorecard.json'), resolve(repoRoot, 'market-brief.scorecard.json'));
+  copyFileSync(resolve(ROOT, 'causal-rotation.snapshot.json'), resolve(repoRoot, 'causal-rotation.snapshot.json'));
   copyFileSync(resolve(ROOT, 'tools.json'), resolve(repoRoot, 'tools.json'));
   // BUG-010 made company-fundamentals.config.json a publication-path dependency: the disclosure
   // gate in validate-brief-payload.mjs derives the expected adapter id from feature002 rather than
@@ -417,7 +419,7 @@ if (process.env.BRIEF_REQUIRE_COMPLETE_RUN === '1') {
   } catch { completedSession = null; }
   const sessionDate = process.env.BAR_EXPECTED_SESSION_DATE || completedSession || date;
   writeFileSync(new URL('../data/bars/FIXTURE.json', import.meta.url), JSON.stringify({ sym: 'FIXTURE', asof: sessionDate, rows: [{ t: 1, c: 1 }] }) + '\\n');
-  writeFileSync(new URL('../data/bars/index.json', import.meta.url), JSON.stringify({ updated: new Date().toISOString(), refreshDate: date, refreshWindow: process.env.BRIEF_WINDOW, expectedSessionDate: sessionDate, expected: 1, count: 1, freshCount: incomplete ? 0 : 1, carriedCount: incomplete ? 1 : 0, reconstructedCount: 0, sessionReuseCount: 0, zeroObservedCount: 0, thinObservedCount: 0, missing: [], tickers: [{ sym: 'FIXTURE', asof: sessionDate, sessionDate, sessionState: 'observed', zeroObserved: false, thinObserved: false, carried: incomplete, reconstructed: false, sessionCached: false }] }) + '\\n');
+  writeFileSync(new URL('../data/bars/index.json', import.meta.url), JSON.stringify({ updated: new Date().toISOString(), refreshDate: date, refreshWindow: process.env.BRIEF_WINDOW, expectedSessionDate: sessionDate, expected: 1, count: 1, freshCount: incomplete ? 0 : 1, carriedCount: incomplete ? 1 : 0, reconstructedCount: 0, sessionReuseCount: 0, zeroObservedCount: 0, thinObservedCount: 0, quarantinedCount: 0, missing: [], tickers: [{ sym: 'FIXTURE', asof: sessionDate, sessionDate, sessionState: 'observed', zeroObserved: false, thinObserved: false, quarantined: false, carried: incomplete, reconstructed: false, sessionCached: false }] }) + '\\n');
 }
 console.log('[fixture-fetch-bars] no external fetch required');
 `);
@@ -443,6 +445,7 @@ if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
   if (process.env.BUG002_BOUNDARY_LOG) appendFileSync(process.env.BUG002_BOUNDARY_LOG, 'tier-a\\n');
   const snapshotUrl = new URL('../market-brief.snapshot.json', import.meta.url);
   const historyUrl = new URL('../brief-history.jsonl', import.meta.url);
+  const causalSnapshotUrl = new URL('../causal-rotation.snapshot.json', import.meta.url);
   const snapshot = JSON.parse(readFileSync(snapshotUrl, 'utf8'));
   snapshot.asOf = process.env.BUG002_CANDIDATE_DATE + 'T14:00:00.000Z';
   snapshot.generatedAt = process.env.BUG002_CANDIDATE_DATE + 'T14:00:00.000Z';
@@ -456,6 +459,9 @@ if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
     nextSessionDate: process.env.BUG002_CANDIDATE_DATE,
     source: 'bug-002-candidate'
   }) + '\\n');
+  const causalSnapshot = JSON.parse(readFileSync(causalSnapshotUrl, 'utf8'));
+  causalSnapshot.generatedAt = process.env.BUG002_CANDIDATE_DATE + 'T14:00:00.000Z';
+  writeFileSync(causalSnapshotUrl, JSON.stringify(causalSnapshot, null, 2) + '\\n');
   console.log('[fixture-tier-a] candidate nextSessionDate=' + process.env.BUG002_CANDIDATE_DATE);
 }
 `);

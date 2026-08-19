@@ -175,6 +175,15 @@ export function createBriefRefreshFixture(options = {}) {
   // judge anything, which the refresh script correctly reported as an invalid
   // baseline — a fixture gap presenting as a publication refusal.
   copyFileSync(resolve(ROOT, 'rlattention.js'), resolve(repoRoot, 'rlattention.js'));
+  // Feature 026 made rlcockpit.js a publication-path dependency on the same both-sides shape as
+  // rlattention.js above: scripts/validate-brief-payload.mjs and scripts/brief-narrative-parallel.mjs
+  // each createRequire() it at MODULE scope, deliberately, so the gate, the narrative lane and the
+  // renderer share ONE budget/leg/change-vocabulary resolver rather than three copies that happen to
+  // agree today. market-brief.html then loads it as a browser asset as well. The fixture copied both
+  // of those scripts but not the module they load, so it reproduced a publication path the real one
+  // no longer has: the require died before either script could judge or author anything and the
+  // wrapper exited non-zero — the same fixture-gap-presenting-as-a-publication-failure shape.
+  copyFileSync(resolve(ROOT, 'rlcockpit.js'), resolve(repoRoot, 'rlcockpit.js'));
   // The XNYS session calendar is the other dependency validate-brief-payload.mjs
   // resolves at MODULE scope (it builds XNYS_CALENDAR_SOURCE before any payload
   // is read), so it is required for every fixture variant, not just the ones
@@ -263,7 +272,7 @@ if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
   // is progressive enhancement loaded by rlapp.js with its own error handling and is not
   // required for the brief's core render or the live-refresh path.
   mkdirSync(resolve(repoRoot, 'rlexperience-adapters'), { recursive: true });
-  for (const webPath of ['market-brief.html', 'rlg.js', 'rldata.js', 'rlexperience-adapters/market-action.js', 'rlbrief.js', 'rlmarketaction.js', 'rlticker.js', 'rlapp.js', 'rlnav.js']) {
+  for (const webPath of ['market-brief.html', 'rlg.js', 'rldata.js', 'rlexperience-adapters/market-action.js', 'rlcockpit.js', 'rlbrief.js', 'rlmarketaction.js', 'rlticker.js', 'rlapp.js', 'rlnav.js']) {
     copyFileSync(resolve(ROOT, webPath), resolve(repoRoot, webPath));
   }
   if (options.browserAssets) {

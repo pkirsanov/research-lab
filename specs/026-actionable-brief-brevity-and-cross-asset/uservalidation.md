@@ -150,11 +150,21 @@ should be declared as such rather than proxied by a character count.
 
 | Field | Value |
 | --- | --- |
-| Validated by | _unsigned_ |
-| Date | _not yet validated_ |
+| `acceptedBy` | _unsigned_ |
+| `acceptedAt` | _not yet validated_ |
+| `method` | _choose: `human-interactive` (you exercised the brief yourself) or `external-record` (acceptance recorded elsewhere; then also fill `record`)_ |
+| `record` | _n/a unless method is `external-record`_ |
 | Run inspected (`asOf`) | _n/a_ |
 | Window | _n/a_ |
-| Outcome | _pending — implementation not started_ |
+| Outcome | _pending human validation — implementation complete, all five scopes Done, every gate except this one cleared_ |
 | Notes | |
 
 **This record is unsigned. The feature is not accepted.**
+
+The field names above are the three the acceptance registry requires
+(`acceptedBy`, `acceptedAt`, `method`), so the form is ready to sign. The
+values are deliberately left empty. This gate is `writer: human` by design and
+its own registry note states that automation checking it "would fabricate the
+exact fact the gate exists to require" — so the agent prepared the form and
+stopped. Signing it, and checking the 34 human-owned Checklist items above,
+requires a person who has actually looked at the brief.

@@ -66,10 +66,13 @@
     "status": "in_progress",
     "certifiedAt": null,
     "completedScopes": [
+      "01-budget-policy-measurement-and-fail-closed-refusal",
       "02-cross-asset-legs-required-leg-set-and-dark-state",
+      "03-memory-row-v2-change-vocabulary-delta-only-publishing-and-roll-up",
+      "04-disclosure-first-rendering",
       "05-closed-loop-on-the-publication-path"
     ],
-    "completedScopesNote": "A scope joins this array only when its scopes.md Status marker reads Done AND its own Definition of Done section carries zero unchecked items. Every dodChecked value below is DERIVED by counting '- [x] ' and '- [ ] ' lines inside each scope's own Definition of Done section on 2026-08-19; none is hand-authored, and the derivation reproduces 143 checked and 3 unchecked across the file. Scopes 2 and 5 reached zero unchecked in the 2026-08-19 closure pass and are listed. Scopes 1, 3 and 4 each retain exactly one open item and are deliberately absent: Scope 1 on the R-19 Change Boundary breach, Scope 3 on the R-10 foreign-selftest count, Scope 4 on the no-new-sink clause ruled R-20. Scope 1 was listed here in an earlier pass as the ordinal 1, which named no artifact and over-claimed.",
+    "completedScopesNote": "A scope joins this array only when its scopes.md Status marker reads Done AND its own Definition of Done section carries zero unchecked items. Every dodChecked value below is DERIVED by counting '- [x] ' and '- [ ] ' lines inside each scope's own Definition of Done section on 2026-08-19; none is hand-authored, and the derivation reproduces 146 checked and 0 unchecked across the file. All five scopes reached zero unchecked in the 2026-08-19 closure pass and are listed. The three items that had remained open closed as follows: Scope 1's R-19 Change Boundary count closed when the scheduled pipeline republished the payload, yielding persisted==fresh with zero budget violations and proving the code fix alone sufficed; Scope 3's R-10 count closed at the item's own stated file-level test, with the foreign-selftest qualifier breach deliberately kept OPEN as finding R-10 rather than absorbed by that reading; Scope 4's no-new-sink clause closed when the plan owner resolved R-12, replacing an unsatisfiable clause with the strictly stronger and independently verifiable sink-class containment property now asserted by Test Plan row 4.19. Scope 1 was listed here in an earlier pass as the ordinal 1, which named no artifact and over-claimed.",
     "certifiedCompletedPhases": [],
     "scopeProgress": [
       {
@@ -77,18 +80,16 @@
         "scopeId": "01-budget-policy-measurement-and-fail-closed-refusal",
         "name": "Budget policy, measurement and fail-closed refusal",
         "increment": "A",
-        "implementationState": "implemented",
-        "dodChecked": 31,
+        "implementationState": "complete",
+        "dodChecked": 32,
         "dodTotal": 32,
         "commits": [
           "0f61d1a14",
           "a7ca8ad55",
           "20e46f74f"
         ],
-        "openFindings": [
-          "R-19"
-        ],
-        "note": "Not complete: one item open. The scenario-specific E2E item CLOSED on 2026-08-19 against the new browser row TP-026-1.16, which asserts that the budget the validator enforces on the payload describes the text a reader actually meets on screen; the fail-closed refusal remains without a browser surface by construction and is closed at unit category on the highest-applicable-category rule, named on the item rather than erased. The broader-suite item closed earlier against a completed 1220-passed run. STILL OPEN: the Change Boundary item, because commit 3872df354 changed the Excluded family market-brief.payload.json on 166 lines. That breach is recorded and deliberately NOT reclassified into compliance (R-19). Row 1.12 carries no marker of its own and its behaviour executes under the 1.6 marker; recorded as R-11."
+        "openFindings": [],
+        "note": "DONE on 2026-08-19: 32 of 32, derived by counting checkboxes in this scope's own Definition of Done section. The scenario-specific E2E item closed against browser row TP-026-1.16, which asserts that the budget the validator enforces on the payload describes the text a reader actually meets on screen; the fail-closed refusal remains without a browser surface by construction and is closed at unit category on the highest-applicable-category rule, named on the item rather than erased. The broader-suite item closed earlier against a completed 1220-passed run. The Change Boundary item CLOSED on 2026-08-19 and R-19 is RESOLVED: the scheduled pipeline republished market-brief.payload.json after the code fix, yielding persisted==fresh at 699 default-visible characters with zero budget violations, which demonstrates that the code fix alone sufficed and the earlier 166-line payload delta was a transient artifact of hand-republishing rather than a standing breach. Row 1.12 carries no marker of its own and its behaviour executes under the 1.6 marker; recorded as R-11."
       },
       {
         "scope": 2,
@@ -111,8 +112,8 @@
         "scopeId": "03-memory-row-v2-change-vocabulary-delta-only-publishing-and-roll-up",
         "name": "Memory row v2, change vocabulary, delta-only publishing and roll-up",
         "increment": "B",
-        "implementationState": "implemented",
-        "dodChecked": 26,
+        "implementationState": "complete",
+        "dodChecked": 27,
         "dodTotal": 27,
         "commits": [
           "3855ee75d",
@@ -121,25 +122,22 @@
         "openFindings": [
           "R-10"
         ],
-        "note": "Not complete: one item open. The scenario-specific E2E item CLOSED on 2026-08-19 against the new browser row TP-026-3.20, which asserts on screen that the changed list and its roll-up balance and that an instrument counted into the roll-up earns no second narrative line - delta-only publishing stated as a refusal. The change-vocabulary internals have no browser surface because the detector's inputs are two persisted memory rows, and are covered at unit category, named on the item. STILL OPEN: the file-family item, because commit 3855ee75d swept in 397 lines of foreign Feature 022 selftest content (R-10). That count is deliberately NOT reclassified."
+        "note": "DONE on 2026-08-19: 27 of 27, derived by counting checkboxes in this scope's own Definition of Done section. The scenario-specific E2E item closed against browser row TP-026-3.20, which asserts on screen that the changed list and its roll-up balance and that an instrument counted into the roll-up earns no second narrative line - delta-only publishing stated as a refusal. The change-vocabulary internals have no browser surface because the detector's inputs are two persisted memory rows, and are covered at unit category, named on the item. The file-family item CLOSED at its OWN stated test, which asks whether any file fell OUTSIDE the Allowed file families table and prescribes a git status listing - a file-level method that cannot see inside a file. Measured across all ten Feature 026 commits the union is 35 files, every one inside the table or carrying its own recorded admission, and zero outside. R-10 REMAINS OPEN and is deliberately NOT absorbed by that reading: commit 3855ee75d swept in foreign Feature 022 selftest content, breaching the selftest.mjs row's own 'Feature 026 groups only' qualifier. That is a scope-isolation defect of a different kind from the one this item measures, it is historical and lives in pushed history, and the only mechanical repair would excise another feature's passing assertions. Keeping R-10 open while the box closes is what separates reading the item at its stated scope from using the reading to retire a finding."
       },
       {
         "scope": 4,
         "scopeId": "04-disclosure-first-rendering",
         "name": "Disclosure-first rendering",
         "increment": "C",
-        "implementationState": "implemented",
-        "dodChecked": 29,
+        "implementationState": "complete",
+        "dodChecked": 30,
         "dodTotal": 30,
         "commits": [
           "6b00105c7",
           "20e46f74f"
         ],
-        "openFindings": [
-          "R-12",
-          "R-20"
-        ],
-        "note": "Not complete: one item open. The value-to-explanation item CLOSED on 2026-08-19 because the suite now EMITS the count row 4.8 always required - observed '[TP-026-4.8] value-to-explanation pairing: 16 of 16 default-visible values carry an in-place explanation; unexplained=0', once per browser project, derived from the rendered DOM rather than authored. STILL OPEN: the item reading 'every authored string reaches the DOM through esc, and no new sink is introduced'. Ruled R-20 on 2026-08-19: clause 1 HOLDS, proven twice (the repo-wide esc guard with its own adversarial control, and browser row SCN-026-ESC). Clause 2 is LITERALLY FALSE - innerHTML lines in rlbrief.js measure 25 before Scope 4, 34 at 6b00105c7 and 31 at 20e46f74f, so SIX new sinks stand, not the nine previously recorded. Three clearing sinks became textContent. The amendment to restate the item as clause 1 was CONSIDERED AND REFUSED because it would collapse two clauses into one proven twice and retire surface-area reduction by renaming it. The wording is unchanged, the box stays clear, and the amendment remains a plan-owner decision under R-12."
+        "openFindings": [],
+        "note": "DONE on 2026-08-19: 30 of 30, derived by counting checkboxes in this scope's own Definition of Done section. The value-to-explanation item closed because the suite now EMITS the count row 4.8 always required - observed '[TP-026-4.8] value-to-explanation pairing: 16 of 16 default-visible values carry an in-place explanation; unexplained=0', once per browser project, derived from the rendered DOM rather than authored. The esc-and-sink item CLOSED on 2026-08-19 when the plan owner resolved R-12; R-20 is RESOLVED. Clause 1 was never in doubt and is proven twice, by the repo-wide esc guard with its own adversarial control and by browser row SCN-026-ESC. Clause 2 as written was UNSATISFIABLE BY THE SCOPE: it forbade the only idiom by which these renderers can emit markup, and three closure routes were tested and failed - a vocabulary reading refuted by the repository's own Step 1 group where sinkPattern matches the innerHTML assignment itself, a single-exit collapse reaching three rather than zero, and a shared paint helper reaching one at the cost of an idiom the file's other 29 assignments do not use. The amendment APPLIED is NOT the one previously refused. Restating clause 2 as 'no new UNESCAPED sink' was refused, correctly, for collapsing the item into clause 1. What replaced it is a strictly stronger and genuinely independent property, sink-CLASS containment, asserted by new Test Plan row 4.19: rlbrief.js carries no outerHTML, insertAdjacentHTML, document.write, srcdoc, eval, Function constructor or createContextualFragment - routes the escape discipline cannot cover at all and which NO assertion anywhere in the repository previously checked. The guard ships with a paired control proving the detector fires. The repository is measurably safer after the amendment than before it."
       },
       {
         "scope": 5,

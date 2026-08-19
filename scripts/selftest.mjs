@@ -14059,15 +14059,22 @@ try {
   /* TP-04-02: the fill amount is the distance to the pack's own edge, for every status and band. */
   const fillFailures = [];
   let fillChecks = 0;
+  /* The deduction is deliberately NON-ZERO so ordinary TAXABLE income is separated from declared
+     ordinary income. With a zero deduction the two coincide and this row cannot tell an
+     implementation that measures from taxable income apart from one that measures from declared
+     income — a mutation substituting `workspace.income.ordinary` survived the zero-deduction
+     fixture. `taxableIsSeparated` keeps the fixture from silently degrading back to equality. */
+  let taxableIsSeparated = 0;
   RLTAXRULES.SUPPORTED_FILING_STATUSES.forEach((filingStatus) => {
     const table = strategyPack.ordinaryRateTables[filingStatus];
     table.bands.forEach((band) => {
       if (band.upperExclusive === null) return;
-      const workspace = strategyWorkspace(filingStatus, 30000);
+      const workspace = strategyWorkspace(filingStatus, 30000, { itemizedAmount: 4000 });
       const settled = RLTAX.computeAnnualFederalTax(workspace, strategyPack);
       const conversion = RLTAXSTRATEGY.fillToBracketConversion(workspace, strategyPack, band.bandId);
       const expected = Math.max(0, band.upperExclusive - settled.ordinaryTaxableIncome.value);
       fillChecks += 1;
+      if (settled.ordinaryTaxableIncome.value !== workspace.income.ordinary) taxableIsSeparated += 1;
       if (RLTAXRULES.isUnavailable(conversion) || conversion.value !== expected
         || conversion.atOrAboveEdge !== (band.upperExclusive - settled.ordinaryTaxableIncome.value <= 0)
         || conversion.bracketEdge.value !== band.upperExclusive) {
@@ -14078,10 +14085,10 @@ try {
   const topBand = RLTAXSTRATEGY.fillToBracketConversion(strategyWorkspace('single', 30000), strategyPack, 'b7');
   const unknownBand = RLTAXSTRATEGY.fillToBracketConversion(strategyWorkspace('single', 30000), strategyPack, 'b99');
   const noBand = RLTAXSTRATEGY.fillToBracketConversion(strategyWorkspace('single', 30000), strategyPack, null);
-  assert(fillChecks === 24 && fillFailures.length === 0
+  assert(fillChecks === 24 && fillFailures.length === 0 && taxableIsSeparated === 24
     && codeOf(topBand) === 'RLTAX-INPUT-INCOMPLETE' && codeOf(unknownBand) === 'RLTAX-INPUT-INCOMPLETE'
     && codeOf(noBand) === 'RLTAX-INPUT-INCOMPLETE',
-  'TP-04-02: the conversion amount equals the distance from ordinary taxable income to the named pack edge across all 24 bounded bands, and an unbounded, unknown or unselected band is refused rather than guessed');
+  'TP-04-02: the conversion amount equals the distance from ordinary TAXABLE income (separated from declared income by a non-zero deduction on all 24 bounded bands) to the named pack edge, and an unbounded, unknown or unselected band is refused rather than guessed');
 
   /* TP-04-03: moving the pack's edge moves the amount, and the module declares no edge of its own. */
   const movedEdgePack = JSON.parse(strategyPackText);
@@ -23391,6 +23398,22 @@ try {
     || (Array.isArray(liveRoll4.members) && typeof liveRoll4.line === 'string');
   assert(crossShapeOk4 && changedShapeOk4 && rollShapeOk4,
   'the live payload\'s cross-asset, changed and roll-up blocks are either absent because the composer has not republished, or in the pinned contract shape every reader token can label — never a third shape the fixtures do not model');
+
+  /* TP-026-4.9 — sink-CLASS containment. The Step 1 security group already proves no
+     model-authored field reaches innerHTML unescaped. This proves the separate property that
+     the renderer never reaches the DOM by a route the escape discipline cannot cover at all:
+     innerHTML concatenation is auditable by that guard, whereas outerHTML, insertAdjacentHTML,
+     document.write, srcdoc and dynamic code construction are not. Scoped to rlbrief.js, the
+     module this feature's renderers live in. rlviews.js carries one pre-existing
+     insertAdjacentHTML from Feature 012 (commit d94a5b906) which this row does not cover. */
+  const briefSrc49 = read('rlbrief.js');
+  const sinkClasses49 = [/outerHTML/, /insertAdjacentHTML/, /document\s*\.\s*write/, /\bsrcdoc\b/,
+    /\beval\s*\(/, /new\s+Function\s*\(/, /createContextualFragment/];
+  const detect49 = (src) => sinkClasses49.filter((re) => re.test(src));
+  assert(detect49(briefSrc49).length === 0,
+    'Regression: SCN-026-SINKCLASS rlbrief.js introduces no sink class outside the escaped innerHTML idiom — no outerHTML, insertAdjacentHTML, document.write, srcdoc, eval, Function constructor or createContextualFragment');
+  assert(detect49('el.insertAdjacentHTML("beforeend", untrusted);').length === 1,
+    'the sink-class detector catches a planted insertAdjacentHTML, so the clean result above is a real absence rather than a broken matcher');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 reader tokens group threw): ' + e.message); }
 /* ---------- Feature 026 Scope 4: rlcockpit.js — reader tokens (END) ---------- */
 

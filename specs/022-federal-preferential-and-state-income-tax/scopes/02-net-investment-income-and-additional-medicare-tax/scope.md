@@ -194,7 +194,7 @@ Scenario: SCN-022-006 A conversion moves one surtax and not the other
 | Shared surface | Change | Downstream consumers | Blast radius | Independent canary | Rollback |
 | --- | --- | --- | --- | --- | --- |
 | `CO-8` summation | Two hardcoded legs become a pack-declared set | Scopes 03, 04, 05 and every Feature 021 fixture | High — a leg-set summation that mis-orders or silently skips a refusing leg changes every total at once | Assert the generalized sum equals the previous two-leg sum for every Feature 021 fixture against the unmodified pack, BEFORE any new leg is declared | Revert to the two-leg sum; the pack's `taxLegs[]` is ignored |
-| `rltaxworkspace.js` | Two new members plus privacy surface | Scopes 03, 04, 05 | High — a new household value that escapes the privacy inventory silently breaks Feature 021's central guarantee | Assert both members appear in the inventory, are removed by the clear action, and are redacted by the export sanitizer, each as its own assertion | Remove the members; the workspace validator rejects them as unknown keys |
+| `rltaxworkspace.js` | Two new members plus privacy surface | Scopes 03, 04, 05 | High — a new household value that escapes the privacy inventory silently breaks Feature 021's central guarantee | Assert both members appear in the inventory, are removed by the clear action, and are accounted for by the export sanitizer under the identical rule as every income amount — kept in the exported workspace, with every withheld member named in `omittedFields[]` — each as its own assertion | Remove the members; the workspace validator rejects them as unknown keys |
 | `tax-rules/federal/<year>.json` | Threshold sets, leg set, ordered array | Every later scope | High — an ordered array that does not match the engine's derived array refuses the whole pack | Validate the pack and assert the array matches element for element before any settlement row runs | Revert the pack file |
 | `scripts/selftest.mjs` | One group appended | The whole-repo gate | Medium | Pre-existing pass count must not fall | Remove the appended group |
 
@@ -363,7 +363,7 @@ an absent test does not satisfy RED.
 | TP-02-10 | Refusal propagation | unit | SCN-022-005 | `scripts/selftest.mjs` | A refusing leg makes `CO-8` a refusal naming the leg, and no leg is treated as zero because it is unavailable | `node scripts/selftest.mjs` | No | `report.md#tp-02-10` |
 | TP-02-11 | Absence discipline | unit | SCN-022-004 | `scripts/selftest.mjs` | A threshold set whose `declaredFor` omits the declared tax year is refused rather than applied, and ships as an `AbsentFigure/v1` carrying no numeric member | `node scripts/selftest.mjs` | No | `report.md#tp-02-11` |
 | TP-02-12 | Completeness | unit | SCN-022-004 | `scripts/selftest.mjs` | The modified-adjusted-gross measure declares its own completeness and lists every unmodeled adjustment; an empty list is proven to fail | `node scripts/selftest.mjs` | No | `report.md#tp-02-12` |
-| TP-02-13 | Privacy | unit | SCN-022-005 | `scripts/selftest.mjs` | Both new basis members appear in the privacy inventory, are removed by the clear action, and are redacted by the export sanitizer, each asserted independently | `node scripts/selftest.mjs` | No | `report.md#tp-02-13` |
+| TP-02-13 | Privacy | unit | SCN-022-005 | `scripts/selftest.mjs` | Both new basis members appear in the privacy inventory, are removed by the clear action, and are accounted for by the export sanitizer under the identical rule as every income amount — kept in the exported workspace, with every withheld member named in `omittedFields[]` so neither can be dropped unnamed — each asserted independently | `node scripts/selftest.mjs` | No | `report.md#tp-02-13` |
 | TP-02-14 | No-shadow | unit | SCN-022-004 | `scripts/selftest.mjs` | Regression: no module holds a surtax rate, threshold or authority name; the detector is proven to fire on a module that does | `node scripts/selftest.mjs` | No | `report.md#tp-02-14` |
 | TP-02-15 | Regression E2E | e2e-ui | SCN-022-004 | `lifetime-tax-surtax.spec.mjs` | `Regression: SCN-022-004 the investment income surtax computes from a declared basis and refuses without one` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-004 the investment income surtax computes from a declared basis and refuses without one" --reporter=list` | Yes | `report.md#scenario-scn-022-004` |
 | TP-02-16 | Regression E2E | e2e-ui | SCN-022-005 | `lifetime-tax-surtax.spec.mjs` | `Regression: SCN-022-005 the additional Medicare surtax uses only its declared wage basis` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-005 the additional Medicare surtax uses only its declared wage basis" --reporter=list` | Yes | `report.md#scenario-scn-022-005` |
@@ -438,14 +438,19 @@ an absent test does not satisfy RED.
       populated and non-empty, and the conversion asymmetry is a structural member
       proven by an adversarial mutation.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-06`, `report.md#tp-02-07`, `report.md#tp-02-12`
-- [ ] Both new household values are inventoried, cleared and redacted, each proven
-      independently, and neither appears in any URL, request, referrer or console
-      message.
-  - **Open:** the shipped sanitizer KEEPS both, so "redacted" is wrong as written —
-    a finding for `bubbles.plan`, routed and unresolved. The browser clause is now
-    partly covered: `SCN-024-014` and `SCN-023-001` assert an empty request ledger
-    over the real route with both bases declared, but no assertion yet covers the
-    referrer and console-message clauses for these two members specifically.
+- [ ] Both new household values are inventoried, are removed by the clear action,
+      and are accounted for by the export sanitizer under the identical rule as
+      every income amount: both are kept in the exported workspace the user asked
+      for, and the manifest names in `omittedFields[]` every member it withholds,
+      so neither can be dropped without being named. Each is proven independently,
+      and neither appears in any URL, request, referrer or console message.
+  - **Open:** the wording defect is corrected — the shipped sanitizer KEEPS both,
+    matching how it treats the four income amounts, so "redacted" was false as
+    written and is replaced by the kept-and-disclosed disposition the design
+    intends. The browser clause is now partly covered: `SCN-024-014` and
+    `SCN-023-001` assert an empty request ledger over the real route with both
+    bases declared, but no assertion yet covers the referrer and console-message
+    clauses for these two members specifically.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-13`
 - [x] No module holds a surtax rate, threshold, jurisdiction name or authority
       name, and the detector is proven to fire on a module that does.

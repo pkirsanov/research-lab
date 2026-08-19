@@ -276,11 +276,32 @@ test('Regression: SCN-022-002 a household with preferential income receives a va
     const ordinaryTaxable = Math.floor(known.maximumZeroRateAmount / 2);
     [known.maximumZeroRateAmount, known.maximumFifteenPercentRateAmount].forEach((breakpoint) => {
       [breakpoint - 1, breakpoint, breakpoint + 1].forEach((windowTop) => {
-        boundaryCases.push({ status, ordinaryTaxable, preferential: windowTop - ordinaryTaxable, windowTop });
+        boundaryCases.push({ status, ordinaryTaxable, preferential: windowTop - ordinaryTaxable, windowTop, stacked: false });
       });
     });
+    /* The stacking floor made load-bearing. Every case above places ordinary taxable income
+       BELOW the zero-rate top, and there `Math.max(ordinaryTaxableIncome, band.lowerInclusive)`
+       always returns the band edge — so the floor never binds and an engine that stacked
+       preferential income from zero rather than on top of ordinary income satisfied all six.
+       These three place ordinary income INSIDE the fifteen percent band, where dropping the
+       floor moves the answer. Recorded as finding F-01-P. */
+    const stackedOrdinary = known.maximumZeroRateAmount + 10000;
+    [known.maximumFifteenPercentRateAmount - 1, known.maximumFifteenPercentRateAmount,
+      known.maximumFifteenPercentRateAmount + 1].forEach((windowTop) => {
+      boundaryCases.push({ status, ordinaryTaxable: stackedOrdinary,
+        preferential: windowTop - stackedOrdinary, windowTop, stacked: true });
+    });
   });
-  expect(boundaryCases.length).toBe(statuses.length * 6);
+  expect(boundaryCases.length).toBe(statuses.length * 9);
+  /* Non-vacuity: the stacked family really does sit above the zero-rate top and really does
+     carry preferential dollars, so the floor is exercised rather than merely declared. */
+  const stackedCases = boundaryCases.filter((testCase) => testCase.stacked);
+  expect(stackedCases.length).toBe(statuses.length * 3);
+  stackedCases.forEach((testCase) => {
+    expect(testCase.ordinaryTaxable)
+      .toBeGreaterThan(KNOWN_PREFERENTIAL_SCHEDULE[testCase.status].maximumZeroRateAmount);
+    expect(testCase.preferential).toBeGreaterThan(0);
+  });
 
   const settledBoundaries = await page.evaluate(({ pack, cases }) => {
     const engine = window.RLTAX;

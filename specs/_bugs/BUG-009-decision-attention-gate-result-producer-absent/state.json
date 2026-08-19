@@ -1,0 +1,190 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-009-decision-attention-gate-result-producer-absent",
+  "featureName": "BUG-009 The Decision-Attention Tier Has No Observed Gate-Result Producer",
+  "createdAt": "2026-08-18T14:40:00Z",
+  "lastUpdatedAt": "2026-08-18T14:40:00Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "blocked",
+  "blockedReason": "The remedy requires an owner product decision that no agent may make. The decision-attention/v1 contract composes each item from three inputs - an observed gateResult, the lane's authored judgement, and a deterministic ctx - and only authored and ctx have a producer anywhere in the repository. Building the missing gateResult producer requires declaring which observed crossings, on which tool reads, at which thresholds, map to which disposition, severity, imminence, marketConfirmation.state and transmissionPath. market-brief.config.json declares numeric thresholds (rotationFlipWarnZ, regimeChangeVixJump, gammaFlipProximityPct, notableMemberMinMovePct) and a red-alert-policy/v1 scoring model, but NO mapping from any observed crossing to a gate disposition. An implementer choosing that mapping would publish invented judgement as observation - structurally valid, provenance-tagged, and encoding a threshold no owner selected. That is the fabrication mode this packet must not commit, and it is worse than the empty feed because it is harder to see. The decision is additionally already owner-routed: specs/026-actionable-brief-brevity-and-cross-asset records this defect as finding F-026-1, declares it Non-Goal 6, and leaves Open Question 1 - 'Should the attention path be rewired inside this feature or outside it?' - unanswered, so choosing here would preempt an open owner decision. Candidate remedies R1-R5 are enumerated in design.md section 4 and NONE has been selected. R1 (build an observed gate producer) and R2 (wire the certified rlmarketaction.js candidate pipeline) are both blocked on the same undeclared policy, and R2 additionally relocates the hole one layer up because its anomaly-seed producer is also absent. R3 (let the lane author the observed half) is a documented regression - build-attention-items.mjs's own header records that arrangement producing three consecutive zero-item cron publishes. R4 (report the unreachable state honestly without restoring the feed) is the only candidate implementable today without inventing policy, but its published surface is claimed by spec 026 as IP-026-004 (dark state, FR-026-021 through FR-026-024) and is explicitly out of scope for this bug. R5 (the reachability assertion) is red until R1 or R2 lands, and scripts/selftest.mjs gates the Pages deploy, so landing it alone would halt the release channel. This packet documents and routes the finding; it fixes nothing.",
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": "bubbles.bug",
+    "currentPhase": "documentation",
+    "currentPhaseStatus": "blocked",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-18T13:55:00Z",
+    "completedAt": null,
+    "currentScope": null,
+    "nextRequiredOwner": "repository-owner",
+    "nextRequiredTarget": "01-owner-decision-on-remedy-direction",
+    "completedPhaseClaims": [
+      {
+        "phase": "discovery",
+        "agent": "bubbles.bug",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-18T14:40:00Z",
+        "evidenceRef": "report.md#test-evidence",
+        "note": "Every reported claim was independently re-derived against the live repository rather than restated. CONFIRMED: grep -c attention scripts/brief-refresh.mjs returns 0; market-brief.payload.json carries attention length 0 with three RLATTN-PROVENANCE:gateResult exclusions; rlattention.js:486 is the refusal site. REFUTED: the claim that scripts/build-attention-items.mjs has no scheduled caller - it is called at scripts/brief-refresh-and-push.sh:514, and the 2-7 exclusions written into every generation are positive proof the builder EXECUTES, because only the builder writes attentionExclusions. The defect is therefore a missing PRODUCER, not missing WIRING, which changes the remedy: rewiring an already-running builder would change nothing. ROOT CAUSE GROUNDED BY REPRODUCTION, not inference: in an isolated detached worktree at HEAD 373f4572d, a candidate carrying exactly the nine AUTHORED_JUDGEMENT_KEYS the signals lane is instructed to author was passed through buildAttentionItems and returned built=0, refused=1, RLATTN-PROVENANCE on gateResult. The signals-lane instruction at brief-narrative-parallel.mjs:83 forbids authoring any serialized envelope field; the composer at build-attention-items.mjs:211 reads candidate.observed; rlattention.js:486 refuses when it is not a plain object. The two contracts are mutually unsatisfiable and nothing sits between them. CONTROL PROVED the composer is not broken: a gate result assembled from real committed payload.toolReads['sector-research-lab'] values (real asOf 2026-08-17T20:31:11.253Z, real rsMom1m 4.44, real sourceId, composer-resolved deepLink) was ACCEPTED at built=1, refused=0, after three successive semantic refusals (RLATTN-OVERLAP:subject, RLATTN-VERB:verb, RLATTN-CONFIRMATION:marketConfirmationNote) each of which is the contract working correctly. That probe was in-memory and non-mutating; nothing was written to any payload. ORIGIN LOCATED UPSTREAM of BUG-007: specs/017-decision-attention-and-developing-situations (status done) contains zero occurrences of gateResult, gate result, observed gate or detector, so the shipped tier specification never named a producer for its own observed input. Producer absence confirmed repository-wide: the only attention-shaped observed construction in scripts/ is the test fixture at selftest.mjs:8522, and grep for validateAnomalySeed, clusterAnomalySeeds and assembleCandidate across scripts/ returns nothing, so the certified rlmarketaction.js candidate pipeline has no caller either. SILENT ESCAPE PROVED: at the same HEAD node scripts/selftest.mjs returns 2843 passed, 0 failed, exit 0 (3215 lines, sha256 7c40659ab65559f6fe3a684d6dbddf5580507d75d32c7beaa07f8b87623ff7cd) and node scripts/validate-brief-payload.mjs returns PASS, exit 0, because an empty array is contract-valid. Working tree proven unmutated: git status --porcelain shows no tracked modification at HEAD 373f4572d; the eight untracked entries belong to a concurrent session (specs 025 and 026, the company-intelligence lab). The temporary worktree was removed with git worktree remove --force and git worktree list afterwards showed only the primary checkout."
+      },
+      {
+        "phase": "documentation",
+        "agent": "bubbles.bug",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-18T14:40:00Z",
+        "evidenceRef": "bug.md",
+        "note": "Seven artifacts authored: bug.md, spec.md, design.md, scopes.md, report.md, uservalidation.md, state.json, following the BUG-006 / BUG-005 document-only owner-routed precedent. FOUR corrections to the reported framing are recorded truthfully rather than repeated. (C1) The zero-attention count in scripts/brief-refresh.mjs stands as reported. (C2) The 'no scheduled caller' claim is REFUTED; the accurate narrower statement is that .github/workflows/tier-a.yml never calls the builder and never commits market-brief.payload.json at all. (C3) The consequence 'an automated run can only ever emit attention: []' is confirmed in OUTCOME but refuted in MECHANISM - the builder is running and refusing, not unreached. (C4) Both reported date boundaries are real and are different events: the last non-empty PUBLICATION run is 9d593acc 2026-08-09 after-hours at length 5, while the last non-empty payload of any kind is aeb1bcbc3 2026-08-10 14:13, the BUG-007 fix commit itself, at length 3. The BUG-007 regression-escape hypothesis is CONFIRMED: gateResult appears zero times across all eight BUG-007 artifacts including its 97 KB state.json, its bug.md contains zero mentions of brief-refresh, build-attention-items, wiring or pipeline exactly as predicted, and the payload history shows aeb1bcbc3 carrying SEMANTIC RLATTN-OVERLAP refusals (observed half present) while every later generation carries STRUCTURAL RLATTN-PROVENANCE refusals (observed half absent). One REFINEMENT to the hypothesis is recorded rather than forced: BUG-007 did not break a working feed, because the pre-BUG-007 items were the legacy narrative-catalyst shape the lane authored directly and rendered only because enforcement was not yet armed. The capability was ALWAYS absent; BUG-007 armed enforcement and thereby made the absence visible in the payload and invisible in the test suite. A FIFTH finding is recorded that the incoming report did not raise: both regression-test shapes it proposed are green today and were green throughout the outage, so neither would have caught this defect - the composer-acceptance test passes with a fixture regardless of whether a producer exists, and the builder-has-a-caller test has been true for the entire eight days. The only shape that would catch it is a producer-existence assertion, which is red until a remedy lands. No DoD box is checked in scopes.md across all four scopes and no certification field asserts anything."
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      "01-owner-decision-on-remedy-direction",
+      "02-produce-observed-gate-results-from-committed-state",
+      "03-the-reachability-regression-assertion",
+      "04-quiet-versus-unreachable-and-the-scheduled-publication-path"
+    ],
+    "audit": []
+  },
+  "certification": {
+    "status": "blocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [],
+    "assurance": null,
+    "lockdownState": null,
+    "note": "NO CERTIFICATION IS ASSERTED. Every field here is null or empty by intent. This packet reproduces and root-causes one verified defect and is blocked on an owner product decision that no agent may make. Nothing has been certified, no scope is complete, no source file was modified, no test was added, and no DoD box is checked in scopes.md."
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": false,
+    "tdd": false,
+    "autoCommit": false,
+    "lockdown": false,
+    "regression": false,
+    "validation": false
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.bug",
+      "phasesExecuted": [
+        "discovery",
+        "documentation"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "blocked",
+      "startedAt": "2026-08-18T13:55:00Z",
+      "finishedAt": "2026-08-18T14:40:00Z",
+      "outcome": "blocked",
+      "summary": "DOCUMENT-AND-ROUTE RUN. The Market Brief's decision-attention feed has published zero items since 2026-08-10 across roughly 32 publication windows. ROOT CAUSE, one sentence: the decision-attention/v1 contract composes each item from three inputs - an observed gateResult, the lane's authored judgement, and a deterministic ctx - but only authored and ctx have a producer anywhere in the repository, so RLATTN.buildAttentionItem refuses every candidate with RLATTN-PROVENANCE on gateResult on every run. The contract was shipped with two of its three producers built; the third was never specified in specs/017 and never written. REPRODUCED at HEAD 373f4572d in an isolated detached worktree: a candidate carrying exactly the nine lane-authored judgement keys returns built=0, refused=1, RLATTN-PROVENANCE:gateResult. The lane instruction at brief-narrative-parallel.mjs:83 forbids authoring envelope fields and the composer requires an observed gate result, so the two contracts are mutually unsatisfiable. THE DEFECT IS A MISSING PRODUCER, NOT MISSING WIRING - this corrects the reported framing and decides the remedy. scripts/build-attention-items.mjs IS called, at scripts/brief-refresh-and-push.sh:514, and the 2-7 exclusions written into every generation prove it executes, because only the builder writes attentionExclusions. Rewiring it into tier-a.yml would change nothing. SILENT ESCAPE: node scripts/selftest.mjs returns 2843 passed, 0 failed and node scripts/validate-brief-payload.mjs returns PASS while the tier is unreachable, because an empty array is contract-valid and no assertion tests reachability. BUG-007 REGRESSION-ESCAPE HYPOTHESIS CONFIRMED: gateResult appears zero times across all eight BUG-007 artifacts, and the payload history shows the BUG-007 green commit aeb1bcbc3 carrying semantic RLATTN-OVERLAP refusals while every later run carries structural RLATTN-PROVENANCE refusals. Refinement: the capability was always absent - BUG-007 armed enforcement on an in-place one-time payload repair, converting a loud failure (7 red assertions) into a silent one (a well-formed empty array). BLOCKED, NOT FIXED, and deliberately so: building the producer requires an owner-declared mapping from observed crossings to disposition, severity, imminence, marketConfirmation.state and transmissionPath that exists in no committed artifact, and inventing it would publish invented judgement as observation. spec 026 already records this as F-026-1, Non-Goal 6, and unanswered Open Question 1. Four findings routed: DISC-009-001 the absent producer, DISC-009-002 the missing reachability assertion, DISC-009-003 spec 026's F-026-1 repeating the refuted no-scheduled-caller framing, DISC-009-004 tier-a.yml omitting market-brief.payload.json from its git add list so the scheduled job could not publish a feed even if one were produced."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "addressedFindings": [],
+  "unresolvedFindings": [
+    {
+      "id": "DISC-009-001",
+      "severity": "high",
+      "summary": "PRIMARY DEFECT - no component on the publication path produces the observed gateResult that decision-attention/v1 requires. The signals lane at brief-narrative-parallel.mjs:83 is contractually forbidden from authoring envelope fields, build-attention-items.mjs:211 reads candidate.observed, and rlattention.js:486 refuses when it is absent. The only attention-shaped observed construction in scripts/ is the test fixture at selftest.mjs:8522. Blocked on an owner-declared detection policy: market-brief.config.json declares numeric thresholds and a red-alert-policy/v1 scoring model but no mapping from any observed crossing to a disposition, severity or imminence.",
+      "owner": "repository-owner",
+      "status": "open"
+    },
+    {
+      "id": "DISC-009-002",
+      "severity": "high",
+      "summary": "THE ESCAPE ROUTE - no assertion tests that the attention tier is REACHABLE, only that whatever it contains is CONFORMANT, and an empty array is conformant. This is why the condition survived eight days with node scripts/selftest.mjs at 2843 passed, 0 failed. Both regression-test shapes proposed in the incoming report are green today and were green throughout the outage: the composer-acceptance test passes with a fixture regardless of whether a producer exists, and the builder-has-a-caller test has been true the whole time. Only a producer-existence assertion would catch it, and it is red until DISC-009-001 is remedied, so it must land WITH the remedy and never before - scripts/selftest.mjs gates the Pages deploy.",
+      "owner": "repository-owner",
+      "status": "open"
+    },
+    {
+      "id": "DISC-009-003",
+      "severity": "medium",
+      "summary": "ROUTED TO ANOTHER ARTIFACT - specs/026-actionable-brief-brevity-and-cross-asset finding F-026-1 states that scripts/build-attention-items.mjs has no scheduled caller and is unwired. That framing is refuted by evidence in this packet: the builder is called at scripts/brief-refresh-and-push.sh:514 and demonstrably executes every publication window. A remedy built on F-026-1 as written would wire an already-running builder into a second path and leave the feed exactly as empty. Spec 026 lines 257, 281-282 and 1289 carry the wording and should be corrected to name the missing producer instead.",
+      "owner": "specs/026-actionable-brief-brevity-and-cross-asset",
+      "status": "open"
+    },
+    {
+      "id": "DISC-009-004",
+      "severity": "medium",
+      "summary": "SECONDARY DEFECT - .github/workflows/tier-a.yml does not include market-brief.payload.json in its git add list and never references scripts/brief-refresh-and-push.sh, so the scheduled CI job cannot publish an attention feed even if a producer existed. The payload is committed exclusively by the operator-hosted wrapper, visible in the commit authorship. Must be resolved by any remedy that places attention production on the scheduled path (spec.md AC-7).",
+      "owner": "repository-owner",
+      "status": "open"
+    },
+    {
+      "id": "DISC-009-005",
+      "severity": "medium",
+      "summary": "HONESTY DEFECT - the brief renders 'Nothing requires attention in this window.' while structurally unable to produce an item, reporting a structural incapacity as a quiet market. Under this repository's own product principles, missing data rendered as a neutral or plausible value is a blocking pattern. The first-class published form of the honest alternative is claimed by spec 026 as IP-026-004 (dark state, FR-026-021 through FR-026-024) and is explicitly out of scope for this bug, so this must be executed with spec 026 rather than independently or the two will collide on the same surface.",
+      "owner": "specs/026-actionable-brief-brevity-and-cross-asset",
+      "status": "open"
+    },
+    {
+      "id": "DISC-009-006",
+      "severity": "low",
+      "summary": "OPEN QUESTION, NOT A CLAIM - specs/017-decision-attention-and-developing-situations is status done and certification done, yet contains zero occurrences of gateResult, gate result, observed gate or detector. Whether the producer was descoped deliberately, deferred, or simply overlooked has NOT been established and is not inferable from the spec text. Determines whether the remedy belongs to a spec-017 amendment, spec 026, or a new spec, which is part of the Scope 1 owner decision.",
+      "owner": "repository-owner",
+      "status": "open"
+    }
+  ],
+  "failures": [],
+  "routing": {
+    "currentOwner": "bubbles.bug",
+    "nextRequiredOwner": "repository-owner",
+    "implementationDispatchAllowed": false,
+    "dispatchReason": "Implementation is BLOCKED pending an owner decision that trades product policy no agent may author. Closing DISC-009-001 requires declaring which observed crossings map to which disposition, severity, imminence, marketConfirmation.state and transmissionPath. No committed artifact declares that mapping, so an implementer would be inventing product policy and emitting it as observation - a fabrication that validates, carries provenance, and is therefore harder to detect than an obviously wrong value. The task constraint is explicit that an honest blocked outcome outranks a fabricated gate result. The decision is additionally owner-routed already: spec 026 Open Question 1 asks exactly where this work belongs and is unanswered, so choosing here would preempt it. Two of the five findings (DISC-009-003, DISC-009-005) are owned by spec 026, not by this packet. This packet is document-and-route by necessity, not by instruction.",
+    "forbiddenPaths": [
+      "market-brief.payload.json",
+      "market-brief.config.json",
+      "rlattention.js",
+      "rlmarketaction.js",
+      "scripts/build-attention-items.mjs",
+      "scripts/brief-narrative-parallel.mjs",
+      "scripts/brief-refresh.mjs",
+      "scripts/brief-refresh-and-push.sh",
+      "scripts/selftest.mjs",
+      ".github/workflows/tier-a.yml",
+      "specs/017-*",
+      "specs/026-*",
+      ".github/bubbles/**",
+      ".github/agents/bubbles*",
+      ".github/prompts/bubbles.*",
+      ".github/instructions/bubbles-*",
+      ".github/skills/bubbles-*"
+    ]
+  },
+  "statusDiscipline": {
+    "validStatuses": [
+      "not_started",
+      "in_progress",
+      "blocked",
+      "specs_hardened",
+      "docs_updated",
+      "validated",
+      "done"
+    ],
+    "specDoneRequires": "An owner decision selecting a remedy from design.md section 4, a committed and owner-approved detection policy declaring the observed-crossing to disposition/severity/imminence mapping, an assignment of ownership between this packet, spec 017, spec 026 or a new spec, and then separate implementation work. This documentation-and-routing packet CANNOT reach done on its own and does not attempt to."
+  },
+  "notes": "Document-and-route bug packet. Status is blocked, which is truthful and non-terminal. Artifact shape follows BUG-006 and BUG-005, the repository's precedent for a document-only, blocked, owner-routed packet. No DoD box is checked in scopes.md across all four scopes. No certification field asserts anything: certifiedAt is null, certification.completedScopes and certification.scopeProgress are empty, and certification.status mirrors the non-terminal top-level status. The uservalidation.md checklist uses checked-by-default [x] entries following the BUG-004 / BUG-005 / BUG-006 convention, where a checked box means the acceptance QUESTION IS RECORDED and explicitly does NOT claim the repository satisfies it; those are not DoD boxes. NOTHING WAS IMPLEMENTED AND NOTHING WAS FABRICATED: no source file was modified, no test was added, market-brief.payload.json was not edited, and the feasibility probe recorded in report.md section E5 was in-memory and non-mutating. The single most important constraint on this task was that a gate result must be observed and never synthesized, with a documented blocked outcome preferred over a fabricated one; that constraint is what produced this status. This packet's own status is never specs_hardened and its linkedImplementationSpec is null, so it does not itself trip G087 (see BUG-005). Coordination risk with spec 026 is recorded in two findings rather than resolved unilaterally: DISC-009-003 (spec 026's F-026-1 carries a refuted framing) and DISC-009-005 (the honest unreachable statement overlaps spec 026's claimed IP-026-004 dark state)."
+}

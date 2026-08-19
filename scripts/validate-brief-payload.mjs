@@ -17,6 +17,18 @@ const ROOT = resolve(dirname(SCRIPT_PATH), '..');
 const RLATTN = createRequire(import.meta.url)(resolve(ROOT, 'rlattention.js'));
 const RLAGENDA = createRequire(import.meta.url)(resolve(ROOT, 'rlagenda.js'));
 
+/* rlcockpit.js owns the ONE output-budget measurement. Requiring it here rather than
+   restating the arithmetic is what makes allocation and refusal the same number: the
+   composer allocates against this function and this file refuses against it, so a run
+   can never be sized by one measurement and judged by another. */
+const RLCOCKPIT = createRequire(import.meta.url)(resolve(ROOT, 'rlcockpit.js'));
+
+/* The payload stamp that turns the budget on. It is a hard per-payload cutover, not an
+   advisory mode and not a flag: a payload that does not declare it is a v1 payload with
+   no budget fields to measure, and refusing it for lacking them would take six unrelated
+   suites down with it (see the dataAsOf.labels note above for the measured cost). */
+export const BRIEF_PAYLOAD_BUDGET_CONTRACT = 'market-brief-payload/v2';
+
 /**
  * The attention field predicate, re-exported so a caller can prove by identity that the
  * publication path runs the capability module's own function. This file restates NO
@@ -594,6 +606,115 @@ export function validateBriefPayload(payload, registry, config, snapshot, agenda
      still fails, because the gloss is the form that actually shipped. */
   for (const leak of findBriefNarrativeVocabularyLeaks(payload)) {
     errors.push(`reader-vocabulary: ${leak.path} carries ${leak.label} "${leak.sample}" in reader prose — carry the state in plain words only, never the code (not even as a parenthetical gloss)`);
+  }
+
+  /* Feature 026 Scope 1 — the output budget, fail-closed.
+
+     Gated on the payload's OWN stamp and on nothing else. A v2 payload is measured and
+     refused; there is no code path in which a v2 payload exceeds a cap and still
+     validates. An absent or non-v2 `contractVersion` skips the block entirely, which is
+     what keeps the currently committed unstamped payload — and every suite that calls
+     this function as a library against it — behaving exactly as it did before.
+
+     No flag reaches here. The budget answers to none of the five CLI flags and adds a
+     sixth to none of them: raising a cap is an owner decision recorded in the config and
+     the runbook, never a switch a failing run can reach for. */
+  const budgetPolicy = config?.['output-budget/v1'];
+  if (payload?.contractVersion === BRIEF_PAYLOAD_BUDGET_CONTRACT && hasObject(budgetPolicy)) {
+    const measurement = RLCOCKPIT.measureDefaultVisible(payload, budgetPolicy);
+    const violations = RLCOCKPIT.budgetViolations(measurement, budgetPolicy);
+    for (const violation of violations) {
+      errors.push(`outputBudget: ${violation.path} is ${violation.measured} characters, over the declared ${violation.capName} of ${violation.cap}`);
+    }
+    if (violations.length) {
+      /* The disclosed figure rides beside every refusal so a reader can never mistake
+         collapsing text for removing it: the capped number and the uncapped number are
+         reported together or not at all. */
+      errors.push(`outputBudget: measured over ${measurement.byField.length} declared fields; disclosed narrative was ${measurement.disclosedTotal} characters and is not capped`);
+    }
+  }
+
+  /* Feature 026 Scope 2 — the cross-asset legs, fail-closed and gated on the same v2 stamp
+     the budget answers to. A v2 payload that drops a required slot, publishes a leg that
+     resolves to neither a reading nor a dark state, publishes one that resolves to both, or
+     publishes an incomplete dark card is REFUSED here. An absent or non-v2 `contractVersion`
+     skips the block entirely, exactly as the budget does.
+
+     The reachability rule is enforced against the committed declaration, not against the
+     snapshot directory: a leg may only publish a figure for a driver its own policy names,
+     and no leg may publish a broad-dollar proxy in any form, because fx-regime-universe.json
+     approves none. Like the budget, this adds no CLI flag: a leg cannot be waved through. */
+  const crossAssetPolicy = config?.['cross-asset/v1'];
+  if (payload?.contractVersion === BRIEF_PAYLOAD_BUDGET_CONTRACT && hasObject(crossAssetPolicy)) {
+    const declaredLegs = Array.isArray(crossAssetPolicy.legs) ? crossAssetPolicy.legs.filter(hasObject) : [];
+    const requiredIds = declaredLegs.filter((leg) => leg.required === true).map((leg) => leg.id);
+    const block = payload.crossAsset;
+    if (!hasObject(block)) {
+      errors.push(`crossAsset: the payload carries no crossAsset block, so the required ${requiredIds.join(', ')} slots are all unaccounted for`);
+    } else {
+      const readings = Array.isArray(block.legs) ? block.legs.filter(hasObject) : [];
+      const darkCards = Array.isArray(block.dark) ? block.dark.filter(hasObject) : [];
+      const policyById = new Map(declaredLegs.map((leg) => [leg.id, leg]));
+
+      for (const id of requiredIds) {
+        const asReading = readings.filter((entry) => entry.leg === id).length;
+        const asDark = darkCards.filter((entry) => entry.leg === id).length;
+        if (asReading + asDark !== 1) {
+          errors.push(`crossAsset: the required ${id} slot resolves to ${asReading} reading(s) and ${asDark} dark state(s); exactly one of the two is required on every published run`);
+        }
+      }
+
+      for (const card of darkCards) {
+        const id = hasText(card.leg) ? card.leg : '<unnamed>';
+        for (const field of ['reason', 'withheld', 'substitutionRefusal']) {
+          if (!hasText(card[field])) {
+            errors.push(`crossAsset: the ${id} dark state carries no ${field}; a dark card renders all three sentences or it is refused`);
+          }
+        }
+        if (!policyById.has(card.leg)) {
+          errors.push(`crossAsset: the ${id} dark state names a leg cross-asset/v1 does not declare`);
+        }
+      }
+
+      for (const reading of readings) {
+        const id = hasText(reading.leg) ? reading.leg : '<unnamed>';
+        const policy = policyById.get(reading.leg) || null;
+        if (!policy) {
+          errors.push(`crossAsset: the ${id} reading names a leg cross-asset/v1 does not declare`);
+          continue;
+        }
+        if (reading.provenance !== policy.provenance) {
+          errors.push(`crossAsset: the ${id} reading publishes provenance ${JSON.stringify(reading.provenance)} where cross-asset/v1 declares ${JSON.stringify(policy.provenance)}; provenance is declared, never inferred at run time`);
+        }
+        if (policy.shape === 'measured') {
+          if (reading.driver !== policy.driver) {
+            errors.push(`crossAsset: the ${id} reading publishes driver ${JSON.stringify(reading.driver)} where cross-asset/v1 declares ${JSON.stringify(policy.driver)}`);
+          }
+          if (!Number.isFinite(reading.changePct)) {
+            errors.push(`crossAsset: the ${id} reading carries no finite changePct; an unmeasurable leg publishes a dark state, never a substituted value`);
+          }
+          if (!Number.isFinite(reading.sessions) || reading.sessions < 2) {
+            errors.push(`crossAsset: the ${id} reading spans ${JSON.stringify(reading.sessions)} sessions; a change needs at least two committed closes`);
+          }
+          if (!hasText(reading.asOf)) {
+            errors.push(`crossAsset: the ${id} reading carries no asOf, so its change cannot be dated to the close it used`);
+          }
+        }
+        if (policy.shape === 'carried' && (reading.changePct !== undefined || reading.long63Pct !== undefined)) {
+          errors.push(`crossAsset: the carried ${id} leg publishes a measured figure; it forwards the owning model's classification and measures nothing here`);
+        }
+      }
+
+      /* No broad-dollar proxy, in any form. fx-regime-universe.json records DX-Y.NYB and UUP
+         under one unreviewed policy whose persistence is forbidden, so a figure for either is
+         inadmissible whichever leg tried to publish it. */
+      const emitted = JSON.stringify(block);
+      for (const symbol of ['DX-Y.NYB', 'UUP']) {
+        if (emitted.includes(symbol)) {
+          errors.push(`crossAsset: the block publishes ${symbol}, which fx-regime-universe.json admits under no approved broad-dollar source`);
+        }
+      }
+    }
   }
 
   return errors;

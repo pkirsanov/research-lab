@@ -12320,6 +12320,34 @@ try {
       && !Object.prototype.hasOwnProperty.call(table, 'value');
   });
 
+  /* SUP-022-02 ADVERSARIAL: the REFUSING direction of per-component-kind year containment, which
+     the passing direction above cannot show. Both outcomes are taken on ONE source record — the
+     rate authority irs-tc409 — which is what makes a flat whole-record year list provably
+     insufficient: that record must stay authoritative for the top-band RATE it states with no
+     year qualifier and non-authoritative for a 2026 BREAKPOINT whose dollar amounts it labels
+     2025. TP-01-07 of Feature 022 Scope 01 exists for exactly this pair. */
+  const yearMixedPack = JSON.parse(taxPackText);
+  const yearMixedTable = yearMixedPack.preferentialRateTables.single;
+  const rateOverridePath = 'band:' + yearMixedTable.bands[yearMixedTable.bands.length - 1].bandId + ':rate';
+  const breakpointOverridePath = 'band:' + yearMixedTable.bands[1].bandId + ':lowerInclusive';
+  yearMixedTable.componentSources.push({
+    contractVersion: 'ComponentSource/v1',
+    component: breakpointOverridePath,
+    sourceRef: 'irs-tc409',
+    locator: 'Capital gains tax rates, the dollar thresholds the page labels for taxable years beginning in 2025'
+  });
+  const rateKindPasses = RLTAXRULES.componentYearContainment(yearMixedPack, yearMixedTable, rateOverridePath) === null;
+  const breakpointKindRefusal = RLTAXRULES.componentYearContainment(yearMixedPack, yearMixedTable, breakpointOverridePath);
+  const yearMixedVerdict = RLTAXRULES.validateRulePack(yearMixedPack);
+  assert(rateKindPasses
+    && breakpointKindRefusal !== null
+    && breakpointKindRefusal.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && breakpointKindRefusal.reason.indexOf('irs-tc409') >= 0
+    && breakpointKindRefusal.reason.indexOf('breakpoint') >= 0
+    && !yearMixedVerdict.ok
+    && domainsOf(yearMixedVerdict.refusals).some((domain) => domain.indexOf(breakpointOverridePath) >= 0),
+  'TP-01-07: per-component-kind year containment separates two outcomes on one source record — the top-band rate override to irs-tc409 passes because that record declares its rate kind year-invariant, while a 2026 breakpoint override to the SAME record refuses with the component named, which no flat whole-record year list could express');
+
   /* SUP-022-03: supersedes the membership of the two surtax ids in requiredUnsupportedIds;
      shape=account. unsupportedFeatures[] and taxLegs[] are disjoint and jointly exhaustive over
      Feature 021's eighteen ids, so nothing may disappear from both.
@@ -19184,9 +19212,17 @@ try {
     && typeof absentLabels26.missingSource.locator === 'string'
     /* A value-free absence: no numeric member is smuggled onto it. */
     && Object.keys(absentLabels26).every((key) => !Number.isFinite(absentLabels26[key]))
-    /* And it reaches every surface the basis reaches rather than living only in the pack. */
-    && shippedBasis26.unlabelledColumns === MORTALITY26.mortalityPolicy.columnLabels
-      || JSON.stringify(shippedBasis26.unlabelledColumns) === JSON.stringify(absentLabels26),
+    /* And it reaches every surface the basis reaches rather than living only in the pack.
+       These two are ONE clause and must be parenthesised. Without the parentheses `&&` binds
+       tighter than `||`, so the whole assertion collapses to `(everything above) || (this deep
+       equality)` — and the deep equality is unconditionally true because the basis carries
+       `policy.columnLabels` itself. Every clause above it then became unfalsifiable. Adding the
+       parentheses is a STRENGTHENING: it restores the conjunction the row's own wording claims
+       and removes nothing. Found by an intended-RED probe that malformed `retrievedAt` and
+       watched this row stay green; recorded in
+       specs/024-social-security-and-medicare/scopes/03-claim-age-comparison/report.md#red-tp-03-15 */
+    && (shippedBasis26.unlabelledColumns === MORTALITY26.mortalityPolicy.columnLabels
+      || JSON.stringify(shippedBasis26.unlabelledColumns) === JSON.stringify(absentLabels26)),
   'TP-03-15: the mortality pack\u2019s life-expectancy columns each resolve to exactly one retrieved SSA source with a locator, a retrievedAt and the table\u2019s own year of 2023, and the column identity this retrieval could not establish ships as a value-free AbsentFigure with a missingSource pointer that reaches the basis');
 
   /* TP-03-16 NO-SHADOW. No module holds a life-expectancy figure, an age or an authority name.
@@ -21006,6 +21042,742 @@ try {
   'Regression: SCN-025-CANARY every pre-existing selftest assertion stays green after the spec 025 exclusion-parity append, and all eight Lifetime Tax exclusion entries survive it unchanged');
 
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 025 company multi-horizon group threw): ' + e.message); }
+
+/* ---------- Feature 026 Scope 1: rlcockpit.js — output budget (BEGIN) ---------- */
+try {
+  group('rlcockpit.js — output budget');
+  const budgetRequire = (await import('node:module')).createRequire(import.meta.url);
+  const RLCOCKPIT = budgetRequire('../rlcockpit.js');
+  const cockpitSource26 = read('rlcockpit.js');
+  const briefConfig26 = JSON.parse(read('market-brief.config.json'));
+  const budgetPolicy26 = briefConfig26['output-budget/v1'];
+  const validatorSource26 = read('scripts/validate-brief-payload.mjs');
+  const composerSource26 = read('scripts/brief-narrative-parallel.mjs');
+
+  /* Every fixture below descends from the COMMITTED payload, which validates clean today.
+     That is what makes the adversarial cases meaningful: the only thing separating a passing
+     fixture from a refused one is the budget, never some other defect the fixture carried in. */
+  const committedPayload26 = JSON.parse(read('market-brief.payload.json'));
+  const registry26 = JSON.parse(read('tools.json'));
+  const snapshot26 = JSON.parse(read('market-brief.snapshot.json'));
+  const agenda26 = committedPayload26.researchAgenda !== undefined ? JSON.parse(read('research-agenda.json')) : null;
+  const page26 = committedPayload26.researchAgenda !== undefined ? JSON.parse(read('market-brief.page.json')) : null;
+  const validate26 = (candidate) => validateBriefPayload(candidate, registry26, briefConfig26, snapshot26, agenda26, page26);
+  const stamp26 = (mutate) => {
+    const candidate = JSON.parse(JSON.stringify(committedPayload26));
+    candidate.contractVersion = 'market-brief-payload/v2';
+    if (mutate) mutate(candidate);
+    return candidate;
+  };
+  const budgetLines26 = (errors) => errors.filter((line) => line.indexOf('outputBudget: ') === 0);
+  /* Lines owned by NEITHER v2 gate. The stamp activates the budget and, from Scope 2, the
+     cross-asset contract; these fixtures are budget fixtures and carry no legs, so the leg
+     gate correctly refuses them. Excluding both prefixes keeps every assertion below about
+     the budget alone. That the leg gate really does refuse a legless v2 payload is asserted
+     in the `rlcockpit.js — cross-asset legs` group, not assumed here. */
+  const otherLines26 = (errors) => errors.filter((line) => line.indexOf('outputBudget: ') !== 0 && line.indexOf('crossAsset: ') !== 0);
+
+  /* The committed policy carries its literals, not a computed value a change could drift. */
+  assert(budgetPolicy26 && budgetPolicy26.contractVersion === 'output-budget/v1'
+    && budgetPolicy26.headlineChars === 140
+    && budgetPolicy26.decisionCardChars === 300
+    && budgetPolicy26.totalDefaultVisibleChars === 3000
+    && Array.isArray(budgetPolicy26.defaultVisibleFields)
+    && budgetPolicy26.defaultVisibleFields.length === 13
+    && new Set(budgetPolicy26.defaultVisibleFields).size === 13,
+  'market-brief.config.json declares output-budget/v1 with the literals 140, 300 and 3000 and exactly thirteen distinct default-visible paths');
+
+  /* artifact-budget/v1 caps FETCH and this block caps OUTPUT; the note keeps the two from
+     being read as one another, and records that neither may be raised to rescue a run. */
+  assert(typeof budgetPolicy26.note === 'string'
+    && /artifact-budget\/v1 caps FETCH/.test(budgetPolicy26.note)
+    && /Neither may be raised inside a change that would otherwise fail against it/.test(budgetPolicy26.note),
+  'the output-budget note records that it caps output, that artifact-budget/v1 caps fetch, and that neither may be raised inside a failing change');
+
+  /* TP-026-1.1 — SCN-026-001. */
+  const atCap26 = stamp26((candidate) => {
+    candidate.headline = 'h'.repeat(140);
+    candidate.changed = [{ symbol: 'AAA', state: 'bull-stack', line: 'c'.repeat(2860) }];
+  });
+  const overCap26 = stamp26((candidate) => {
+    candidate.headline = 'h'.repeat(140);
+    candidate.changed = [{ symbol: 'AAA', state: 'bull-stack', line: 'c'.repeat(2861) }];
+  });
+  const atCapMeasure26 = RLCOCKPIT.measureDefaultVisible(atCap26, budgetPolicy26);
+  const overCapMeasure26 = RLCOCKPIT.measureDefaultVisible(overCap26, budgetPolicy26);
+  const overCapErrors26 = validate26(overCap26);
+  const payloadBytesBefore26 = read('market-brief.payload.json');
+  assert(atCapMeasure26.total === 3000 && atCapMeasure26.violations.length === 0
+    && overCapMeasure26.total === 3001 && overCapMeasure26.violations.length === 1
+    && budgetLines26(overCapErrors26).length === 2
+    && budgetLines26(validate26(atCap26)).length === 0 && otherLines26(validate26(atCap26)).length === 0
+    && read('market-brief.payload.json') === payloadBytesBefore26,
+  'TP-026-1.1 a fixture payload one character over the total cap is refused and no partial artifact is written');
+
+  /* TP-026-1.2 — SCN-026-002. */
+  const overHeadline26 = stamp26((candidate) => { candidate.headline = 'x'.repeat(141); });
+  const headlineErrors26 = budgetLines26(validate26(overHeadline26));
+  assert(headlineErrors26.some((line) => line.indexOf('headline') >= 0 && line.indexOf('141') >= 0 && line.indexOf('140') >= 0)
+    && headlineErrors26[0] === 'outputBudget: headline is 141 characters, over the declared cap of 140',
+  'TP-026-1.2 a headline of 141 characters is refused naming the field, the measured value and the 140 cap');
+
+  /* TP-026-1.3 — SCN-026-003. The per-card cap answers to the card alone: this fixture is
+     301 default-visible characters in total, a tenth of the total cap, and is still refused. */
+  const overCard26 = stamp26((candidate) => {
+    candidate.attention = [{ headline: 'a'.repeat(100), what: 'b'.repeat(201), escalationTrigger: '', invalidation: '' }];
+  });
+  const overCardMeasure26 = RLCOCKPIT.measureDefaultVisible(overCard26, budgetPolicy26);
+  assert(overCardMeasure26.total === 301 && overCardMeasure26.total < 3000
+    && budgetLines26(validate26(overCard26)).indexOf('outputBudget: attention[0] is 301 characters, over the declared per-card cap of 300') >= 0,
+  'TP-026-1.3 a card over the 300 per-card cap is refused while the total stays under 3000');
+
+  /* TP-026-1.4 — SCN-026-004. Collapsing is not deleting: the disclosed figure is measured,
+     reported beside the capped one, and subject to no cap of its own. */
+  const disclosedFixture26 = stamp26((candidate) => { candidate.headline = 'h'.repeat(120); });
+  const disclosedMeasure26 = RLCOCKPIT.measureDefaultVisible(disclosedFixture26, budgetPolicy26);
+  const everyString26 = JSON.stringify(disclosedFixture26).length > 0
+    ? (function sumStrings(node) {
+      if (typeof node === 'string') return node.length;
+      if (Array.isArray(node)) return node.reduce((acc, item) => acc + sumStrings(item), 0);
+      if (node && typeof node === 'object') return Object.keys(node).reduce((acc, key) => acc + sumStrings(node[key]), 0);
+      return 0;
+    })(disclosedFixture26)
+    : 0;
+  assert(disclosedMeasure26.total === 120
+    && disclosedMeasure26.disclosedTotal === everyString26 - 120
+    && disclosedMeasure26.disclosedTotal > 100000
+    && disclosedMeasure26.caps.headline === 140 && disclosedMeasure26.caps.decisionCard === 300 && disclosedMeasure26.caps.total === 3000
+    && Object.keys(disclosedMeasure26.caps).indexOf('disclosed') < 0
+    && disclosedMeasure26.violations.length === 0,
+  'TP-026-1.4 disclosedTotal excludes every default-visible path and is reported beside total with no cap applied');
+
+  /* TP-026-1.5 — SCN-026-005. The caps a failing run was judged against are copied into the
+     measurement, so the record of the refusal carries the number that produced it. */
+  assert(overCapMeasure26.caps.headline === 140
+    && overCapMeasure26.caps.decisionCard === 300
+    && overCapMeasure26.caps.total === 3000
+    && overCapMeasure26.violations[0].cap === 3000,
+  'TP-026-1.5 the three cap values equal their literals 140, 300 and 3000 after a failing run');
+
+  /* TP-026-1.6 — FR-026-002. One measurement, two consumers. Both halves are asserted now:
+     the composer half was deferred while the change boundary excluded the payload writer, and
+     R-5 reassigned that obligation from scripts/brief-refresh.mjs (Tier A, which never writes
+     the payload) to scripts/brief-narrative-parallel.mjs, which does. */
+  const measurementDeclarations26 = (cockpitSource26.match(/function\s+measureDefaultVisible\s*\(/g) || []).length;
+  assert(measurementDeclarations26 === 1
+    && /createRequire\(import\.meta\.url\)\(resolve\(ROOT, 'rlcockpit\.js'\)\)/.test(validatorSource26)
+    && /RLCOCKPIT\.measureDefaultVisible\(/.test(validatorSource26)
+    && /RLCOCKPIT\.budgetViolations\(/.test(validatorSource26)
+    && !/function\s+measureDefaultVisible/.test(validatorSource26),
+  'TP-026-1.6 the validator calls the one measureDefaultVisible in rlcockpit.js and declares no second measurement of its own');
+
+  assert(/createRequire\(import\.meta\.url\)\(resolve\(ROOT, 'rlcockpit\.js'\)\)/.test(composerSource26)
+    && /RLCOCKPIT\.measureDefaultVisible\(/.test(composerSource26)
+    && /RLCOCKPIT\.selectDefaultVisible\(/.test(composerSource26)
+    && !/function\s+(measureDefaultVisible|selectDefaultVisible|budgetViolations)/.test(composerSource26),
+  'TP-026-1.6 the composer calls the same rlcockpit.js measurement and allocation and declares neither of its own');
+
+  /* FR-026-002. The payload writer is scripts/brief-narrative-parallel.mjs — PAYLOAD_PATH and
+     the candidate-then-rename both live there — so a stamp assigned anywhere else would never
+     reach the published file. Naming the writer explicitly keeps a later edit from moving the
+     block back to Tier A, which is the exact defect R-5 caught. */
+  assert(/const PAYLOAD_PATH = resolve\(ROOT, 'market-brief\.payload\.json'\)/.test(composerSource26)
+    && /payload\.contractVersion = BRIEF_PAYLOAD_BUDGET_CONTRACT/.test(composerSource26)
+    && /import \{[^}]*BRIEF_PAYLOAD_BUDGET_CONTRACT[^}]*\} from '\.\/validate-brief-payload\.mjs'/.test(composerSource26)
+    && !/'market-brief-payload\/v2'/.test(composerSource26),
+  'TP-026-1.6 the writer stamps v2 from the validator\'s exported constant, so the two cannot drift to different literals');
+
+  /* FR-026-002. Allocation, then measurement, then the stamp. Measuring before allocating would
+     record what composition proposed rather than what shipped, and stamping before measuring
+     would let the metadata count itself. */
+  const selectAt26 = composerSource26.indexOf('RLCOCKPIT.selectDefaultVisible(');
+  const measureAt26 = composerSource26.indexOf('RLCOCKPIT.measureDefaultVisible(');
+  const stampAt26 = composerSource26.indexOf('payload.contractVersion = BRIEF_PAYLOAD_BUDGET_CONTRACT');
+  assert(selectAt26 > 0 && measureAt26 > selectAt26 && stampAt26 > measureAt26,
+  'TP-026-1.6 the writer allocates, then measures, then stamps, in that order');
+
+  /* FR-026-002. budget-measurement/v1 is written on EVERY run, not only refused ones, so a
+     maintainer can see the caps are wrong before an incident rather than after. The only guard
+     around the block is the policy-presence check; no violation count gates the write. */
+  const budgetBlock26 = composerSource26.slice(composerSource26.indexOf("const outputBudgetPolicy = config['output-budget/v1']"), stampAt26);
+  assert(budgetBlock26.length > 0
+    && !/violations\.length\s*(>|===|!==)/.test(budgetBlock26)
+    && !/if\s*\([^)]*violation/i.test(budgetBlock26),
+  'TP-026-1.6 the measurement write is gated only on policy presence, so a passing run still records its budget');
+
+  /* The ordering and no-violation-guard checks above read source text, so on their own they
+     could pass against a file that merely mentions the right names. These two cases prove each
+     guard rejects the shape it exists to catch. */
+  const misorderedSource26 = "payload.contractVersion = BRIEF_PAYLOAD_BUDGET_CONTRACT;\nRLCOCKPIT.measureDefaultVisible(p, b);\nRLCOCKPIT.selectDefaultVisible(p, b);";
+  const misSelect26 = misorderedSource26.indexOf('RLCOCKPIT.selectDefaultVisible(');
+  const misMeasure26 = misorderedSource26.indexOf('RLCOCKPIT.measureDefaultVisible(');
+  const misStamp26 = misorderedSource26.indexOf('payload.contractVersion = BRIEF_PAYLOAD_BUDGET_CONTRACT');
+  assert(!(misSelect26 > 0 && misMeasure26 > misSelect26 && misStamp26 > misMeasure26)
+    && /if \(measurement\.violations\.length === 0\)/.test('if (measurement.violations.length === 0) payload.budget = measurement;')
+    && /violations\.length\s*(>|===|!==)/.test('if (measurement.violations.length === 0) payload.budget = measurement;'),
+  'TP-026-1.6 adversarial: a stamp-before-measure ordering and a violations-gated write are both rejected by the checks above');
+
+  /* FR-026-002 / DoD. The emitted payload, not just the measurement, carries the three reader
+     figures on a PASSING run. This replays the writer's own block \u2014 allocate, measure, assign \u2014
+     against a clean fixture, so it proves the emitted shape rather than the helper's return. */
+  const passingEmission26 = stamp26();
+  const passingSelection26 = RLCOCKPIT.selectDefaultVisible(passingEmission26, budgetPolicy26);
+  Object.assign(passingEmission26, passingSelection26.published);
+  passingEmission26.budget = RLCOCKPIT.measureDefaultVisible(passingEmission26, budgetPolicy26);
+  assert(passingEmission26.budget.violations.length === 0
+    && Number.isFinite(passingEmission26.budget.total)
+    && Number.isFinite(passingEmission26.budget.disclosedTotal)
+    && Array.isArray(passingEmission26.budget.byField) && passingEmission26.budget.byField.length > 0
+    && passingEmission26.budget.contractVersion === 'budget-measurement/v1',
+  'TP-026-1.6 a passing run emits budget.total, budget.byField and budget.disclosedTotal under budget-measurement/v1, not only a refused one');
+
+  /* TP-026-1.7 — FR-026-005. Every refusal line is self-contained: the path, the number it
+     measured and the number it exceeded, so no reader has to go looking for the cap. */
+  const everyKindErrors26 = budgetLines26(validate26(stamp26((candidate) => {
+    candidate.headline = 'x'.repeat(141);
+    candidate.changed = [{ symbol: 'AAA', state: 'bull-stack', line: 'c'.repeat(3000) }];
+  })));
+  const everyKindViolations26 = RLCOCKPIT.budgetViolations(
+    RLCOCKPIT.measureDefaultVisible(stamp26((candidate) => {
+      candidate.headline = 'x'.repeat(141);
+      candidate.changed = [{ symbol: 'AAA', state: 'bull-stack', line: 'c'.repeat(3000) }];
+    }), budgetPolicy26), budgetPolicy26);
+  assert(everyKindViolations26.length === 2
+    && everyKindViolations26.every((violation) => everyKindErrors26.some((line) => line.indexOf(violation.path) >= 0
+      && line.indexOf(String(violation.measured)) >= 0
+      && line.indexOf(String(violation.cap)) >= 0))
+    && everyKindErrors26.some((line) => /disclosed narrative was \d+ characters and is not capped/.test(line)),
+  'TP-026-1.7 every outputBudget error names the exceeding path, the measured value and the cap it exceeded');
+
+  /* TP-026-1.9 adversarial. Strip the outputBudget lines from the over-cap fixture's error set
+     and nothing is left — so the refusal is carried by this guard alone, and removing it would
+     let the over-cap run publish. */
+  assert(budgetLines26(overCapErrors26).length === 2
+    && otherLines26(overCapErrors26).length === 0
+    && otherLines26(validate26(overHeadline26)).length === 0,
+  'TP-026-1.9 adversarial: removing the violations check makes the over-cap fixture validate, so the guard is load-bearing');
+
+  /* TP-026-1.10 adversarial. Raising the cap does rescue the run — and that is exactly why the
+     literal assertion above exists. A change that edits totalDefaultVisibleChars to 3001 passes
+     the budget and fails the committed-literal check instead, so the escape route is closed. */
+  const raisedPolicy26 = { ...budgetPolicy26, totalDefaultVisibleChars: 3001 };
+  const rescuedMeasure26 = RLCOCKPIT.measureDefaultVisible(overCap26, raisedPolicy26);
+  assert(rescuedMeasure26.violations.length === 0
+    && raisedPolicy26.totalDefaultVisibleChars !== 3000
+    && briefConfig26['output-budget/v1'].totalDefaultVisibleChars === 3000,
+  'TP-026-1.10 adversarial: editing totalDefaultVisibleChars to rescue a failing fixture fails the literal-cap assertion instead');
+
+  /* The version gate. This is the single most load-bearing line in the scope: an absent stamp
+     must skip the budget entirely, or the committed 127,000-character payload is refused the
+     moment this lands and six unrelated suites report a payload problem instead of their own. */
+  const unstamped26 = JSON.parse(JSON.stringify(committedPayload26));
+  unstamped26.headline = 'x'.repeat(500);
+  const v1Errors26 = validate26(unstamped26);
+  const v2Errors26 = validate26(stamp26((candidate) => { candidate.headline = 'x'.repeat(500); }));
+  assert(unstamped26.contractVersion === undefined
+    && budgetLines26(v1Errors26).length === 0
+    && budgetLines26(v2Errors26).length === 2
+    && otherLines26(v1Errors26).join('|') === otherLines26(v2Errors26).join('|')
+    && validate26(committedPayload26).length === 0,
+  'the budget fires only on a literal market-brief-payload/v2 stamp; an unstamped payload skips it and the two error sets differ by exactly the budget strings');
+
+  /* No sixth flag. The budget answers to none of the five and adds none. */
+  const flagMatches26 = validatorSource26.match(/'--[a-z0-9-]+'/g) || [];
+  const declaredFlags26 = [...new Set(flagMatches26)].sort();
+  assert(declaredFlags26.join(',') === "'--defer-page-parity','--drop-ineligible-causal','--drop-unscoreable','--enforce-d16','--require-narrative-fields'"
+    && !/--(allow-over-budget|budget-advisory|skip-budget)/.test(validatorSource26),
+  'scripts/validate-brief-payload.mjs still declares exactly the five pre-existing CLI flags and the budget adds no sixth');
+
+  /* byField is the reviewer re-derivation table: add the column and you get the total. */
+  assert(overCapMeasure26.byField.length === 13
+    && overCapMeasure26.byField.reduce((sum, row) => sum + row.chars, 0) === overCapMeasure26.total
+    && overCapMeasure26.byField.map((row) => row.path).join(',') === budgetPolicy26.defaultVisibleFields.join(','),
+  'byField carries one row per declared field, in policy order, and sums exactly to total');
+
+  /* Module shape: frozen api, Node require path, no ES module syntax, no browser-only reach. */
+  assert(Object.isFrozen(RLCOCKPIT)
+    && typeof RLCOCKPIT.measureDefaultVisible === 'function'
+    && typeof RLCOCKPIT.budgetViolations === 'function'
+    && typeof RLCOCKPIT.selectDefaultVisible === 'function'
+    && !/^\s*(import|export)\s/m.test(cockpitSource26)
+    && /module\.exports = api/.test(cockpitSource26),
+  'rlcockpit.js exports a frozen object over module.exports, loads under Node with no build step, and carries no top-level import or export');
+
+  ['measureDefaultVisible', 'budgetViolations', 'selectDefaultVisible'].forEach((name) => {
+    const body = extractFn(cockpitSource26, name);
+    assert(body.length > 0 && body.indexOf('function ' + name + '(') === 0,
+      'extractFn reaches rlcockpit.js top-level declaration ' + name + ' and returns a non-empty body');
+  });
+
+  const bannedTokens26 = ['document', 'localStorage', 'sessionStorage', 'innerHTML', 'fetch(', 'setTimeout', 'requestAnimationFrame'];
+  assert(bannedTokens26.every((token) => cockpitSource26.indexOf(token) < 0),
+    'rlcockpit.js contains none of document, localStorage, sessionStorage, innerHTML, fetch(, setTimeout or requestAnimationFrame');
+
+  assert(cockpitSource26.replace(/Number\.isFinite/g, '').indexOf('isFinite') < 0
+    && /Number\.isFinite\(/.test(cockpitSource26),
+  'rlcockpit.js uses Number.isFinite for every numeric guard and contains no bare isFinite');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 output budget group threw): ' + e.message); }
+/* ---------- Feature 026 Scope 1: rlcockpit.js — output budget (END) ---------- */
+
+/* ---------- Feature 026 Scope 1: rlcockpit.js — allocation and demotion (BEGIN) ---------- */
+try {
+  group('rlcockpit.js — allocation and demotion');
+  const allocationRequire = (await import('node:module')).createRequire(import.meta.url);
+  const RLCOCKPIT = allocationRequire('../rlcockpit.js');
+  const cockpitSource26b = read('rlcockpit.js');
+  const briefConfig26b = JSON.parse(read('market-brief.config.json'));
+  const policy26b = briefConfig26b['output-budget/v1'];
+
+  /* A composed run well over the total cap, carrying one item of every material class. The
+     negative classes — the dark states and the track record — are the point of the fixture. */
+  const composed26 = {
+    contractVersion: 'market-brief-payload/v2',
+    headline: 'h'.repeat(140),
+    attention: [
+      { headline: 'top', what: 'w'.repeat(200), escalationTrigger: '', invalidation: 'i'.repeat(50) },
+      { headline: 'mid', what: 'w'.repeat(200), escalationTrigger: '', invalidation: 'i'.repeat(50) },
+      { headline: 'low', what: 'w'.repeat(200), escalationTrigger: '', invalidation: 'i'.repeat(50) }
+    ],
+    changed: [
+      { symbol: 'AAA', state: 'bull-stack', line: 'a'.repeat(700) },
+      { symbol: 'BBB', state: 'bear-stack', line: 'b'.repeat(700) },
+      { symbol: 'CCC', state: 'mixed', line: 'c'.repeat(700) }
+    ],
+    rollUp: { line: '= 4 unchanged', count: 4, baselineCount: 0, members: [] },
+    trackRecord: { line: 't'.repeat(90) },
+    crossAsset: {
+      legs: [{ label: 'rates', withheld: '' }],
+      dark: [{ reason: 'r'.repeat(60), withheld: 'w'.repeat(60), substitutionRefusal: 's'.repeat(60) }]
+    }
+  };
+  const before26 = RLCOCKPIT.measureDefaultVisible(composed26, policy26b);
+  const allocated26 = RLCOCKPIT.selectDefaultVisible(composed26, policy26b);
+  const after26 = RLCOCKPIT.measureDefaultVisible(allocated26.published, policy26b);
+
+  /* TP-026-1.8 — the ladder demotes WHOLE items, lowest-priority rung first, and every
+     demoted item is still counted and still named. Nothing is shortened. */
+  assert(before26.total > 3000
+    && after26.total <= 3000
+    && allocated26.demoted.length > 0
+    && allocated26.demoted.every((entry) => entry.rung === 'changed' && typeof entry.item.line === 'string' && entry.item.line.length === 700)
+    && allocated26.demoted[0].item.symbol === 'CCC'
+    && allocated26.published.rollUp.count === 4 + allocated26.demoted.length
+    && allocated26.published.rollUp.members.map((member) => member.symbol).join(',') === allocated26.demoted.map((entry) => entry.item.symbol).join(',')
+    && allocated26.published.changed.length + allocated26.demoted.length === 3,
+  'TP-026-1.8 selectDefaultVisible demotes whole items in the declared order and names every demoted item');
+
+  /* Nothing negative is ever demoted, and the ladder never empties the attention feed. */
+  assert(JSON.stringify(allocated26.published.crossAsset.dark) === JSON.stringify(composed26.crossAsset.dark)
+    && JSON.stringify(allocated26.published.trackRecord) === JSON.stringify(composed26.trackRecord)
+    && allocated26.published.attention.length >= 1
+    && allocated26.heldBack.every((entry) => entry.rung === 'attention'),
+  'the demotion ladder moves only changed lines and low-ranked cards; dark states and the track-record line never move');
+
+  /* The composed input is not mutated: allocation returns a new published object, so a caller
+     that inspects the original run after allocating sees what it actually composed. */
+  assert(composed26.changed.length === 3
+    && composed26.rollUp.count === 4
+    && composed26.attention.length === 3,
+  'selectDefaultVisible leaves the composed run untouched and returns a separate published object');
+
+  /* A run already inside the cap is returned whole, with nothing demoted and nothing held back. */
+  const small26 = { contractVersion: 'market-brief-payload/v2', headline: 'short', changed: [{ symbol: 'AAA', state: 'x', line: 'a' }], rollUp: { line: '= 1 unchanged', count: 1, members: [] } };
+  const smallResult26 = RLCOCKPIT.selectDefaultVisible(small26, policy26b);
+  assert(smallResult26.demoted.length === 0
+    && smallResult26.heldBack.length === 0
+    && smallResult26.published.changed.length === 1
+    && smallResult26.published.rollUp.count === 1,
+  'a run already inside the total cap is published whole with an empty demoted and held-back set');
+
+  /* TP-026-1.11 adversarial. The capability offers no way to cut a sentence, so a caller
+     cannot introduce an ellipsis. A cut sentence is not brevity. */
+  assert(cockpitSource26b.indexOf('.slice(0,') < 0
+    && cockpitSource26b.indexOf('.substr(0,') < 0
+    && cockpitSource26b.indexOf('\u2026') < 0
+    && cockpitSource26b.indexOf('...\'') < 0
+    && !/trunc/i.test(cockpitSource26b)
+    && !/\bellipsis\b/i.test(cockpitSource26b),
+  'TP-026-1.11 adversarial: rlcockpit.js source contains no slice-to-length, no ellipsis literal and no truncation helper');
+
+  /* TP-026-1.14 CANARY. This scope touched two shared surfaces by pure append and one by an
+     additive config block. The pre-existing fetch budget, the committed payload's clean
+     verdict through the library path, and the site build's account of the root files all
+     survive it unchanged. */
+  const fetchBudget26 = briefConfig26b['artifact-budget/v1'];
+  const committed26 = JSON.parse(read('market-brief.payload.json'));
+  const sitePlan26 = (await import('./build-pages-site.mjs')).planPagesSite(ROOT);
+  assert(fetchBudget26.maxBarsPerSymbolTradingDate === 200
+    && fetchBudget26.maxSymbolsPerRun === 48
+    && fetchBudget26.maxNormalizedObservationBytes === 262144
+    && fetchBudget26.rawBodyRetention === 'hash-only'
+    && committed26.contractVersion === undefined
+    && validateBriefPayload(committed26, JSON.parse(read('tools.json')), briefConfig26b, JSON.parse(read('market-brief.snapshot.json')),
+      JSON.parse(read('research-agenda.json')), JSON.parse(read('market-brief.page.json'))).length === 0
+    && sitePlan26.rootFiles.indexOf('rlcockpit.js') >= 0
+    && sitePlan26.excludedPaths.indexOf('rlcockpit.js') < 0,
+  'Regression: SCN-026-CANARY-01 every pre-existing selftest assertion stays green after the Feature 026 budget append, the fetch budget is unchanged, the committed unstamped payload still validates clean, and the site build accounts for rlcockpit.js without an exclusion');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 allocation and demotion group threw): ' + e.message); }
+/* ---------- Feature 026 Scope 1: rlcockpit.js — allocation and demotion (END) ---------- */
+
+/* ---------- Feature 026 Scope 2: rlcockpit.js — cross-asset legs (BEGIN) ---------- */
+try {
+  group('rlcockpit.js — cross-asset legs');
+  const legRequire = (await import('node:module')).createRequire(import.meta.url);
+  const RLCOCKPIT = legRequire('../rlcockpit.js');
+  const cockpitSrc = read('rlcockpit.js');
+  const refreshSrc = read('scripts/brief-refresh.mjs');
+  const composerSrc = read('scripts/brief-narrative-parallel.mjs');
+  const config26b = JSON.parse(read('market-brief.config.json'));
+  const legs26 = config26b['cross-asset/v1'];
+  const realUniverse26 = JSON.parse(read('real-assets-universe.json'));
+  const fxUniverse26 = JSON.parse(read('fx-regime-universe.json'));
+  const universeSymbols26 = new Set((realUniverse26.entries || []).map((entry) => entry.symbol));
+  const legById26 = new Map((legs26.legs || []).map((leg) => [leg.id, leg]));
+  const measuredLegs26 = (legs26.legs || []).filter((leg) => leg.shape === 'measured');
+
+  /* The owning tool's OWN trailing-return function, loaded the same way brief-refresh.mjs loads
+     it. Nothing below re-derives a return: one metric definition, a second horizon. */
+  const realAssetsSrc26 = read('real-assets-lab.html');
+  const owner26 = build([extractFn(realAssetsSrc26, 'realTrailingPct')], ['realTrailingPct']);
+  const DAY26 = 86400000;
+  const rows26 = (count, step) => {
+    const out = [];
+    for (let i = 0; i < count; i++) out.push({ t: Date.UTC(2026, 0, 5) + i * DAY26, c: 100 + i * step });
+    return out;
+  };
+  const bars26 = { TLT: rows26(80, 0.5), USO: rows26(80, -0.25) };
+  const { buildCrossAssetReadings: buildCrossAsset26 } = await import('./brief-refresh.mjs');
+
+  /* The two owner reads this scope CARRIES rather than re-derives, in the shape the committed
+     payload actually publishes them in. */
+  const committedPayload26c = JSON.parse(read('market-brief.payload.json'));
+  const fxRead26 = committedPayload26c.toolReads['fx-regime-relative-value-lab'];
+  const bondRead26 = committedPayload26c.toolReads['bond-regime-lab'];
+  const scoringDrivers26 = { uup63: -1.5, tlt63: 3.75, tip63: 0.5, qqq63: 8, xle63: 2, xli63: 1, gld63: 6, btc63: 12, dbc63: 1.5, goldSilverRatio63: -2, breadth: 55 };
+
+  const measureRun26 = async (overrides) => buildCrossAsset26({
+    policy: legs26, universe: realUniverse26, model: owner26, bars: bars26,
+    fxRead: fxRead26, fxUniverse: fxUniverse26, bondRead: bondRead26,
+    realAssetsRead: { metrics: { drivers: scoringDrivers26 } },
+    macroEvents: config26b.macroEvents,
+    ...overrides
+  });
+  const resolveRun26 = (measurement) => {
+    const dark = [], readings = [];
+    for (const leg of (legs26.legs || [])) {
+      const resolved = RLCOCKPIT.resolveLeg(leg, measurement.legs[leg.id] ?? null, legs26.sessions);
+      if (resolved === null) continue;
+      if (resolved.shape === 'dark') dark.push(resolved); else readings.push(resolved);
+    }
+    return { contractVersion: 'cross-asset/v1', sessions: legs26.sessions, dark, legs: readings, standing: measurement.standing };
+  };
+  const measurement26 = await measureRun26({});
+  const block26 = resolveRun26(measurement26);
+  const byLeg26 = (id) => [...block26.legs, ...block26.dark].filter((entry) => entry.leg === id);
+
+  /* TP-026-2.11 — FR-026-020. The required set lives in ONE committed location. */
+  assert(legs26 && legs26.contractVersion === 'cross-asset/v1'
+    && legs26.sessions === 5
+    && (legs26.legs || []).map((leg) => leg.id).join(',') === 'rates,dollar,energy,credit'
+    && (legs26.legs || []).filter((leg) => leg.required === true).map((leg) => leg.id).join(',') === 'rates,dollar,energy'
+    && legById26.get('credit').required === false,
+  'TP-026-2.11 cross-asset/v1 declares the three required legs rates, dollar and energy plus the non-required credit leg in one committed location, and marks exactly the first three required');
+
+  /* TP-026-2.5 — SCN-026-015. Reachability is decided by the universe, not by data/bars. */
+  assert(measuredLegs26.map((leg) => leg.driver).join(',') === 'TLT,USO'
+    && measuredLegs26.every((leg) => universeSymbols26.has(leg.driver))
+    && measuredLegs26.every((leg) => measurement26.legs[leg.id].declaredByUniverse === true)
+    && !/apiKey|api_key|providerTags|sourceUrl|https?:\/\//.test(JSON.stringify(legs26)),
+  'TP-026-2.5 every measured leg\'s driver is declared by real-assets-universe.json and so is reachable through the bars map, and the config introduces no new provider');
+
+  /* TP-026-2.1 — SCN-026-011. Exactly one of the two, for every required slot. */
+  assert(['rates', 'dollar', 'energy'].every((id) => byLeg26(id).length === 1)
+    && byLeg26('dollar')[0].shape === 'dark'
+    && byLeg26('rates')[0].shape === 'measured'
+    && byLeg26('energy')[0].shape === 'measured'
+    && block26.legs.filter((entry) => block26.dark.some((card) => card.leg === entry.leg)).length === 0,
+  'TP-026-2.1 every required leg resolves to exactly one of a reading or a dark state, and never to neither or both');
+
+  /* TP-026-2.2 — SCN-026-012, scoped to the MEASURED shape: a carried leg has no change. */
+  const measuredReadings26 = block26.legs.filter((entry) => entry.shape === 'measured');
+  assert(measuredReadings26.length === 2
+    && measuredReadings26.every((entry) => Number.isFinite(entry.changePct) && Number.isFinite(entry.long63Pct))
+    && measuredReadings26.every((entry) => entry.sessions === 5),
+  'TP-026-2.2 every reading carries a 5-session changePct alongside its 63-session long63Pct');
+
+  /* TP-026-2.3 — SCN-026-013. The instrument-level claim, never the concept it tracks. */
+  assert(measuredReadings26.every((entry) => entry.driver === legById26.get(entry.leg).driver
+      && entry.claim === legById26.get(entry.leg).claim
+      && Number.isFinite(entry.sessions))
+    && byLeg26('rates')[0].claim === 'the TLT price'
+    && byLeg26('energy')[0].claim === 'the USO price'
+    && !/yield curve|crude/i.test(JSON.stringify(block26)),
+  'TP-026-2.3 every reading names its driver, its measured change and the number of sessions actually spanned');
+
+  /* Each measured asOf is the ISO date of the LAST CLOSE USED, never the run time; the carried
+     leg takes its date from the bond read rather than computing one. */
+  const lastIso26 = (rows) => new Date(rows[rows.length - 1].t).toISOString();
+  assert(byLeg26('rates')[0].asOf === lastIso26(bars26.TLT)
+    && byLeg26('energy')[0].asOf === lastIso26(bars26.USO)
+    && byLeg26('credit')[0].asOf === bondRead26.metrics.readablePairs.find((pair) => pair.pairId === 'jnk-lqd').asOf
+    && new Date(byLeg26('rates')[0].asOf).getTime() < Date.now(),
+  'each measured leg\'s asOf is the ISO date of the last close actually used and the carried leg\'s asOf is the bond read\'s own readablePairs date');
+
+  /* A short leg publishes the REAL span with a partial state, never the requested five. */
+  const partialRun26 = await measureRun26({ bars: { TLT: rows26(3, 0.5), USO: bars26.USO } });
+  const partialLeg26 = RLCOCKPIT.resolveLeg(legById26.get('rates'), partialRun26.legs.rates, legs26.sessions);
+  assert(partialLeg26.shape === 'measured'
+    && partialLeg26.state === 'partial'
+    && partialLeg26.sessions === 2
+    && partialLeg26.sessions !== legs26.sessions
+    && Number.isFinite(partialLeg26.changePct),
+  'a leg with three available closes publishes state partial carrying the two sessions it actually spanned, not the requested five');
+
+  /* TP-026-2.12 — FR-026-018. The rates leg republishes the value the SCORING path consumes;
+     the energy leg has no uso63 in that bundle and so makes a fresh call to the same function. */
+  assert(measurement26.legs.rates.long63Pct === scoringDrivers26.tlt63
+    && measurement26.legs.rates.long63Source === 'real-assets-lab.metrics.drivers.tlt63'
+    && measurement26.legs.energy.long63Source === 'realTrailingPct(bars,63)'
+    && measurement26.legs.energy.long63Pct === Math.round(owner26.realTrailingPct(bars26.USO, 63) * 100) / 100
+    && !/uso63/.test(extractFn(refreshSrc, 'buildRealAssetsToolRead'))
+    && /tlt63:/.test(extractFn(refreshSrc, 'buildRealAssetsToolRead')),
+  'TP-026-2.12 the rates leg\'s long63Pct is the drivers.tlt63 value the scoring path consumes, and the energy leg declares its long63Pct as a fresh 63-session call because no uso63 exists in that bundle');
+
+  /* TP-026-2.18 — the dollar leg is dark BY GOVERNANCE and its reason is derived, not written. */
+  const broadDollar26 = (fxUniverse26.evidenceSources || []).filter((source) => source.family === 'broad-dollar');
+  const darkDollar26 = byLeg26('dollar')[0];
+  assert((fxUniverse26.evidenceSources || []).filter((source) => source.activation === 'approved').length === 0
+    && broadDollar26.some((source) => source.sourceId === 'fed-h10-unavailable' && source.activation === 'denied')
+    && broadDollar26.some((source) => source.sourceId === 'broad-proxy-unreviewed' && source.activation === 'unreviewed' && source.persistence === 'forbidden')
+    && darkDollar26.shape === 'dark'
+    && darkDollar26.reason === fxRead26.read
+    && measurement26.legs.dollar.approvedBroadDollarSources === 0,
+  'TP-026-2.18 fx-regime-universe.json declares zero evidenceSources with activation approved, so the dollar slot resolves dark and its reason is the fx read\'s own published sentence');
+
+  /* No broad-dollar proxy figure, in any form, anywhere. */
+  assert(!JSON.stringify(block26).includes('DX-Y.NYB')
+    && !JSON.stringify(block26).includes('UUP')
+    && !JSON.stringify(legs26).includes('DX-Y.NYB')
+    && !JSON.stringify(legs26).includes('UUP')
+    && legById26.get('dollar').driver === null,
+  'no cross-asset leg publishes a DX-Y.NYB or UUP figure in any form and cross-asset/v1 names neither symbol');
+
+  /* TP-026-2.19 — the credit leg CARRIES the bond model's classification and computes nothing. */
+  const credit26 = byLeg26('credit')[0];
+  const jnkPair26 = bondRead26.metrics.readablePairs.find((pair) => pair.pairId === 'jnk-lqd');
+  const crossAssetFnSrc26 = extractFn(refreshSrc, 'buildCrossAssetReadings');
+  assert(credit26.shape === 'carried'
+    && credit26.pairId === jnkPair26.pairId && credit26.direction === jnkPair26.direction && credit26.purity === jnkPair26.purity
+    && credit26.provenance === 'Owner-classified'
+    && credit26.confirmation.state === 'absent'
+    && credit26.confirmation.detail === bondRead26.metrics.evidenceGaps.find((gap) => gap === 'an independent credit-spread reading')
+    && credit26.withheld.length > 0
+    && credit26.changePct === undefined && credit26.long63Pct === undefined
+    && !/realRatioTrailingPct/.test(crossAssetFnSrc26)
+    && !/JNK/.test(crossAssetFnSrc26) && !/LQD/.test(crossAssetFnSrc26),
+  'TP-026-2.19 the credit leg reads pairId, direction, purity and asOf from the bond-regime read and brief-refresh.mjs declares no second JNK/LQD ratio computation');
+
+  /* One metric definition. The trailing return is the owning tool's, loaded not copied. */
+  assert(/loadToolFunctions\('real-assets-lab\.html', \['realTrailingPct'\]\)/.test(crossAssetFnSrc26)
+    && /model\.realTrailingPct\(/.test(crossAssetFnSrc26)
+    && !/function\s+realTrailingPct/.test(refreshSrc)
+    && !/\.c\s*\/\s*\w+\.c\s*-\s*1/.test(crossAssetFnSrc26),
+  'buildCrossAssetReadings calls the owning tool\'s realTrailingPct through loadToolFunctions and brief-refresh.mjs declares no second trailing-return implementation');
+
+  /* TP-026-2.7 — SCN-026-017. One row is a level, not a move. */
+  const oneRowRun26 = await measureRun26({ bars: { TLT: rows26(1, 0.5), USO: bars26.USO } });
+  const oneRowLeg26 = RLCOCKPIT.resolveLeg(legById26.get('rates'), oneRowRun26.legs.rates, legs26.sessions);
+  assert(oneRowRun26.legs.rates.changePct === null
+    && oneRowLeg26.shape === 'dark'
+    && oneRowLeg26.changePct === undefined
+    && oneRowLeg26.reason.includes('TLT')
+    && oneRowLeg26.substitutionRefusal.includes('no zero'),
+  'TP-026-2.7 a leg whose driver bars are cut to one row raises a dark state and emits no changePct');
+
+  /* TP-026-2.9 — SCN-026-019. All three sentences, or the card is refused downstream. */
+  assert(block26.dark.length > 0
+    && block26.dark.every((card) => typeof card.reason === 'string' && card.reason.length > 0
+      && typeof card.withheld === 'string' && card.withheld.length > 0
+      && typeof card.substitutionRefusal === 'string' && card.substitutionRefusal.length > 0
+      && card.substitutionRefusal.includes(card.leg)),
+  'TP-026-2.9 every dark card names the withheld conclusion and the substitution refusal');
+
+  /* TP-026-2.8 — SCN-026-018. Dark first, in the block's own key order. */
+  const blockKeys26 = Object.keys(block26);
+  assert(blockKeys26.indexOf('dark') < blockKeys26.indexOf('legs')
+    && blockKeys26.indexOf('dark') < blockKeys26.indexOf('standing')
+    && /dark,\s*\n\s*legs,/.test(composerSrc),
+  'TP-026-2.8 dark states are ordered ahead of every supporting block in the emitted payload structure');
+
+  /* TP-026-2.10 — SCN-026-020. The dark text is its own item and appears nowhere else. */
+  const darkText26 = block26.dark.flatMap((card) => [card.withheld, card.substitutionRefusal]);
+  const supporting26 = JSON.stringify({ legs: block26.legs, standing: block26.standing, sessions: block26.sessions });
+  assert(darkText26.length > 0
+    && darkText26.every((text) => !supporting26.includes(text))
+    && block26.dark.every((card) => card.contractVersion === 'dark-state/v1'),
+  'TP-026-2.10 a dark state is a distinct payload item and its text appears in no supporting narrative field');
+
+  /* TP-026-2.6 — SCN-026-016 / FR-026-019. One standing instruction, exactly one consequence. */
+  const standing26 = block26.standing;
+  const bound26 = standing26.find((entry) => entry.boundTo === 'energy');
+  assert(standing26.length === 1
+    && bound26 && bound26.date === '2026-07-14'
+    && bound26.unresolvedAspects.join(',') === 'transit,insurance'
+    && byLeg26('energy').length === 1,
+  'TP-026-2.6 the standing macroEvents instruction produces a bound energy outcome plus named unresolved transit and insurance aspects on every run');
+
+  /* Provenance is DECLARED. rlcockpit.js names no provenance value at all, so it cannot infer one. */
+  assert(!/Observed|Owner-classified|Proxy|Derived/.test(cockpitSrc)
+    && /provenance: legPolicy\.provenance/.test(cockpitSrc)
+    && byLeg26('rates')[0].provenance === legById26.get('rates').provenance
+    && byLeg26('credit')[0].provenance === legById26.get('credit').provenance,
+  'resolveLeg derives provenance only from its legPolicy argument and rlcockpit.js contains no provenance-inference branch');
+
+  /* P18 — both functions have a production consumer in the file that WRITES the payload. */
+  assert(/RLCOCKPIT\.resolveLeg\(/.test(composerSrc)
+    && /RLCOCKPIT\.darkState\(/.test(composerSrc)
+    && /snapshot\.crossAsset/.test(composerSrc)
+    && /crossAsset\s*\}/.test(refreshSrc),
+  'resolveLeg and darkState each have a production consumer in scripts/brief-narrative-parallel.mjs, the file that writes the payload');
+
+  /* Nothing private and nothing monetary reaches a published leg. Field NAMES are scanned, not
+     prose: the FX read's own sentence legitimately names the withheld `positioning` family, and a
+     substring scan over values would refuse a sentence the owning model published. */
+  const legKeyNames26 = [];
+  const walkKeys26 = (node) => {
+    if (Array.isArray(node)) { node.forEach(walkKeys26); return; }
+    if (node && typeof node === 'object') {
+      for (const key of Object.keys(node)) { legKeyNames26.push(key); walkKeys26(node[key]); }
+    }
+  };
+  walkKeys26(block26);
+  assert(legKeyNames26.length > 0
+    && !legKeyNames26.some((key) => /position|costBasis|cost_basis|pnl|profit|apiKey|api_key|password|secret|credential|shares|quantity/i.test(key))
+    && !/\$\s?\d/.test(JSON.stringify(block26)),
+  'the emitted cross-asset block carries no position size, cost basis, profit figure, credential or currency-amount value');
+
+  /* The scope's own payload additions, measured against the declared caps. */
+  const budgetPolicy26c = config26b['output-budget/v1'];
+  const composedWithLegs26 = { contractVersion: 'market-brief-payload/v2', headline: 'h'.repeat(120), attention: [], crossAsset: block26 };
+  const legBudget26 = RLCOCKPIT.measureDefaultVisible(composedWithLegs26, budgetPolicy26c);
+  assert(legBudget26.total <= budgetPolicy26c.totalDefaultVisibleChars
+    && legBudget26.violations.length === 0
+    && Number.isFinite(legBudget26.disclosedTotal),
+  'the cross-asset additions measure inside the declared total cap: total ' + legBudget26.total + ' of ' + budgetPolicy26c.totalDefaultVisibleChars + ', disclosed ' + legBudget26.disclosedTotal);
+
+  /* TP-026-2.4 — SCN-026-014 / FR-026-017. The validator refuses a v2 payload that drops a slot. */
+  const registry26c = JSON.parse(read('tools.json'));
+  const snapshot26c = JSON.parse(read('market-brief.snapshot.json'));
+  const agenda26c = committedPayload26c.researchAgenda !== undefined ? JSON.parse(read('research-agenda.json')) : null;
+  const page26c = committedPayload26c.researchAgenda !== undefined ? JSON.parse(read('market-brief.page.json')) : null;
+  const validateLegs26 = (candidate) => validateBriefPayload(candidate, registry26c, config26b, snapshot26c, agenda26c, page26c)
+    .filter((line) => line.indexOf('crossAsset: ') === 0);
+  const stampLegs26 = (mutate) => {
+    const candidate = JSON.parse(JSON.stringify(committedPayload26c));
+    candidate.contractVersion = 'market-brief-payload/v2';
+    candidate.crossAsset = JSON.parse(JSON.stringify(block26));
+    if (mutate) mutate(candidate);
+    return candidate;
+  };
+  const completeErrors26 = validateLegs26(stampLegs26(null));
+  const missingSlot26 = validateLegs26(stampLegs26((candidate) => {
+    candidate.crossAsset.legs = candidate.crossAsset.legs.filter((entry) => entry.leg !== 'energy');
+  }));
+  const noBlock26 = validateLegs26(stampLegs26((candidate) => { delete candidate.crossAsset; }));
+  const bothStates26 = validateLegs26(stampLegs26((candidate) => {
+    candidate.crossAsset.dark.push(RLCOCKPIT.darkState(legById26.get('energy'), 'a duplicate state', 'nothing'));
+  }));
+  assert(completeErrors26.length === 0
+    && missingSlot26.length === 1 && /required energy slot resolves to 0 reading\(s\) and 0 dark state\(s\)/.test(missingSlot26[0])
+    && noBlock26.length === 1 && /carries no crossAsset block/.test(noBlock26[0])
+    && bothStates26.length === 1 && /required energy slot resolves to 1 reading\(s\) and 1 dark state\(s\)/.test(bothStates26[0]),
+  'TP-026-2.4 a v2 payload omitting the required cross-asset slot is refused by validateBriefPayload');
+
+  /* The version gate, again, for this block: an unstamped payload is untouched by it. */
+  const unstampedLegs26 = JSON.parse(JSON.stringify(committedPayload26c));
+  assert(unstampedLegs26.contractVersion === undefined
+    && validateLegs26(unstampedLegs26).length === 0
+    && validateBriefPayload(unstampedLegs26, registry26c, config26b, snapshot26c, agenda26c, page26c).length === 0,
+  'the cross-asset checks fire only on a literal market-brief-payload/v2 stamp, so the committed unstamped payload is unaffected');
+
+  /* No sixth flag, still. The legs answer to none of the five and add none. */
+  const legFlags26 = [...new Set(read('scripts/validate-brief-payload.mjs').match(/'--[a-z0-9-]+'/g) || [])].sort();
+  assert(legFlags26.join(',') === "'--defer-page-parity','--drop-ineligible-causal','--drop-unscoreable','--enforce-d16','--require-narrative-fields'",
+  'scripts/validate-brief-payload.mjs still declares exactly the five pre-existing CLI flags and the cross-asset checks add no sixth');
+
+  /* TP-026-2.13 adversarial. ONE substitution — the guard expression becomes a coercion — and
+     the same one-row fixture publishes a change of 0 instead of refusing to publish one. */
+  const measuredFnSrc26 = extractFn(cockpitSrc, 'resolveMeasuredLeg');
+  const coercedFnSrc26 = measuredFnSrc26.replace(
+    'Number.isFinite(measurement.changePct) ? measurement.changePct : null',
+    'Number(measurement.changePct)');
+  const mutantEnv26 = build([
+    extractFn(cockpitSrc, 'isPlainObject'), extractFn(cockpitSrc, 'nonEmptyString'), extractFn(cockpitSrc, 'stringOrEmpty'),
+    extractFn(cockpitSrc, 'wholeNumberOrNull'), extractFn(cockpitSrc, 'sessionPhrase'), extractFn(cockpitSrc, 'darkState'),
+    coercedFnSrc26
+  ], ['resolveMeasuredLeg'], 'var DARK_CONTRACT="dark-state/v1";var LEG_CONTRACT="cross-asset-reading/v1";var MIN_LEG_SESSIONS=2;');
+  const twoRowRun26 = await measureRun26({ bars: { TLT: [{ t: Date.UTC(2026, 0, 5), c: null }, { t: Date.UTC(2026, 0, 6), c: 101 }, { t: Date.UTC(2026, 0, 7), c: 102 }], USO: bars26.USO } });
+  const guarded26 = RLCOCKPIT.resolveLeg(legById26.get('rates'), twoRowRun26.legs.rates, legs26.sessions);
+  const unguarded26 = mutantEnv26.resolveMeasuredLeg(legById26.get('rates'), twoRowRun26.legs.rates, legs26.sessions);
+  assert(coercedFnSrc26 !== measuredFnSrc26
+    && twoRowRun26.legs.rates.sessions === 2
+    && twoRowRun26.legs.rates.changePct === null
+    && guarded26.shape === 'dark'
+    && unguarded26.shape === 'measured' && unguarded26.changePct === 0,
+  'TP-026-2.13 adversarial: removing the Number.isFinite guard makes the cut fixture emit changePct 0 instead of a dark state');
+
+  /* TP-026-2.14 adversarial. Strip the completeness lines and the incomplete card validates,
+     so the three-sentence rule is load-bearing rather than decorative. */
+  const brokenCard26 = stampLegs26((candidate) => {
+    candidate.crossAsset.dark = candidate.crossAsset.dark.map((card) => ({ ...card, withheld: '', substitutionRefusal: '' }));
+  });
+  const brokenErrors26 = validateLegs26(brokenCard26);
+  const survivingErrors26 = brokenErrors26.filter((line) => !/carries no (withheld|substitutionRefusal)/.test(line));
+  assert(brokenErrors26.length === 2
+    && brokenErrors26.every((line) => /dark state carries no (withheld|substitutionRefusal)/.test(line))
+    && survivingErrors26.length === 0,
+  'TP-026-2.14 adversarial: a dark card missing reason, withheld or substitutionRefusal validates once the completeness check is removed');
+
+  /* TP-026-2.15 adversarial. An unreachable driver is a PLANNING defect, and the reachability
+     assertion names it as one instead of letting the run publish a market-shaped dark state. */
+  const bogusPolicy26 = JSON.parse(JSON.stringify(legs26));
+  bogusPolicy26.legs.push({ id: 'bogus', label: 'Bogus', required: true, shape: 'measured', driver: 'DX-Y.NYB', claim: 'x', provenance: 'Observed', deepLink: 'x' });
+  const bogusRun26 = await measureRun26({ policy: bogusPolicy26 });
+  const bogusLeg26 = RLCOCKPIT.resolveLeg(bogusPolicy26.legs[bogusPolicy26.legs.length - 1], bogusRun26.legs.bogus, 5);
+  assert(bogusRun26.legs.bogus.declaredByUniverse === false
+    && bogusRun26.legs.bogus.closes === 0
+    && bogusLeg26.shape === 'dark'
+    && measuredLegs26.every((leg) => measurement26.legs[leg.id].declaredByUniverse === true)
+    && !universeSymbols26.has('DX-Y.NYB'),
+  'TP-026-2.15 adversarial: declaring a measured leg whose driver is absent from real-assets-universe.json fails the reachability assertion instead of publishing a silent dark state');
+
+  /* Module shape holds after the append: still frozen, still UMD, still no bare isFinite. */
+  ['resolveLeg', 'darkState'].forEach((name) => {
+    const body = extractFn(cockpitSrc, name);
+    assert(body.length > 0 && body.indexOf('function ' + name + '(') === 0,
+      'extractFn reaches rlcockpit.js top-level declaration ' + name + ' and returns a non-empty body');
+  });
+  assert(typeof RLCOCKPIT.resolveLeg === 'function' && typeof RLCOCKPIT.darkState === 'function'
+    && Object.isFrozen(RLCOCKPIT)
+    && cockpitSrc.replace(/Number\.isFinite/g, '').indexOf('isFinite') < 0
+    && !/^\s*(import|export)\s/m.test(cockpitSrc)
+    && ['document', 'localStorage', 'sessionStorage', 'innerHTML', 'fetch(', 'setTimeout', 'requestAnimationFrame'].every((token) => cockpitSrc.indexOf(token) < 0),
+  'rlcockpit.js still exports a frozen UMD api with no top-level import or export, no browser-only global and no bare isFinite after the cross-asset append');
+
+  /* TP-026-2.17 CANARY. The Scope 1 budget group, the fetch budget, the committed payload's
+     clean verdict and the site build's account of the module all survive this append. */
+  const fetchBudget26c = config26b['artifact-budget/v1'];
+  const sitePlan26c = (await import('./build-pages-site.mjs')).planPagesSite(ROOT);
+  assert(fetchBudget26c.maxBarsPerSymbolTradingDate === 200
+    && fetchBudget26c.maxSymbolsPerRun === 48
+    && budgetPolicy26c.totalDefaultVisibleChars === 3000
+    && budgetPolicy26c.defaultVisibleFields.filter((path) => path.indexOf('crossAsset.') === 0).length === 5
+    && committedPayload26c.contractVersion === undefined
+    && validateBriefPayload(committedPayload26c, registry26c, config26b, snapshot26c, agenda26c, page26c).length === 0
+    && sitePlan26c.rootFiles.indexOf('rlcockpit.js') >= 0,
+  'Regression: SCN-026-CANARY-02 the Scope 1 budget group and every pre-existing assertion stay green after the cross-asset append');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 cross-asset legs group threw): ' + e.message); }
+/* ---------- Feature 026 Scope 2: rlcockpit.js — cross-asset legs (END) ---------- */
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

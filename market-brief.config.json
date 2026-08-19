@@ -192,6 +192,11 @@
             "date": "2026-07-14",
             "type": "CPI",
             "importance": "high",
+            "boundTo": "energy",
+            "unresolvedAspects": [
+                "transit",
+                "insurance"
+            ],
             "note": "June CPI RELEASED 8:30am ET 7/14 (BLS) — resolved COOL/in-line (web-verified 7/14): the marquee near-term binary is now PAST and it printed benign, NOT hot. It collided with the HEAVY Q2 big-bank open — JPMorgan, Wells Fargo, Citigroup, Bank of America, Goldman Sachs ALL reported pre-open the SAME morning and BEAT (bank tape opened green, XLF into clean Leading; Morgan Stanley follows 7/15). The cool print + bank beats bought a relief reclaim (QQQ back above its 50-day). The cool CPI did NOT kill the 7/29 hawkish-hold hike tail (still live, see FOMC row). WTI around $71-$72 was verified only for that historical 7/14 window and MUST NOT be carried forward. By 2026-08-10, Hormuz is an active physical supply shock. Re-verify crude, transit, and insurance each run. This event flips from forward-catalyst to confirmed-outcome for the morning window."
         },
         {
@@ -538,6 +543,84 @@
         "maxSymbolsPerRun": 48,
         "maxNormalizedObservationBytes": 262144,
         "rawBodyRetention": "hash-only"
+    },
+    "output-budget/v1": {
+        "contractVersion": "output-budget/v1",
+        "policyId": "output-budget/v1",
+        "headlineChars": 140,
+        "decisionCardChars": 300,
+        "totalDefaultVisibleChars": 3000,
+        "defaultVisibleFields": [
+            "headline",
+            "attention[].headline",
+            "attention[].what",
+            "attention[].escalationTrigger",
+            "attention[].invalidation",
+            "crossAsset.legs[].label",
+            "crossAsset.legs[].withheld",
+            "crossAsset.dark[].reason",
+            "crossAsset.dark[].withheld",
+            "crossAsset.dark[].substitutionRefusal",
+            "changed[].line",
+            "rollUp.line",
+            "trackRecord.line"
+        ],
+        "note": "Caps OUTPUT. artifact-budget/v1 caps FETCH. Neither may be raised inside a change that would otherwise fail against it. The measurement sums String.length over the paths above and counts no key, no number, no boolean, no null and no field outside the list; everything else in the payload is reported once as disclosedTotal and is never capped. Raising a cap to rescue a failing run is a separate owner decision recorded in notes/market-brief.md, never part of the change that would have failed."
+    },
+    "cross-asset/v1": {
+        "contractVersion": "cross-asset/v1",
+        "policyId": "cross-asset/v1",
+        "sessions": 5,
+        "longSessions": 63,
+        "legs": [
+            {
+                "id": "rates",
+                "label": "Rates",
+                "required": true,
+                "shape": "measured",
+                "driver": "TLT",
+                "claim": "the TLT price",
+                "provenance": "Observed",
+                "owningTool": "real-assets-lab.html",
+                "deepLink": "real-assets-lab.html"
+            },
+            {
+                "id": "dollar",
+                "label": "Dollar",
+                "required": true,
+                "shape": "dark",
+                "driver": null,
+                "provenance": null,
+                "darkBasis": "governance",
+                "reasonSource": "fx-regime-relative-value-lab",
+                "withheld": "No broad-dollar direction is stated this run, so nothing in the brief leans on the dollar.",
+                "deepLink": "fx-regime-relative-value-lab.html#power"
+            },
+            {
+                "id": "energy",
+                "label": "Energy",
+                "required": true,
+                "shape": "measured",
+                "driver": "USO",
+                "claim": "the USO price",
+                "provenance": "Observed",
+                "owningTool": "real-assets-lab.html",
+                "deepLink": "real-assets-lab.html"
+            },
+            {
+                "id": "credit",
+                "label": "Credit",
+                "required": false,
+                "shape": "carried",
+                "driver": null,
+                "provenance": "Owner-classified",
+                "carriedFrom": "bond-regime-lab",
+                "carriedPairId": "jnk-lqd",
+                "withheld": "Whether credit is confirming or contradicting the equity trend is not stated.",
+                "deepLink": "bond-regime-lab.html#simple"
+            }
+        ],
+        "note": "Three REQUIRED slots — rates, dollar, energy — each present on every published run and each resolving to exactly one of a reading or a dark state. Credit is a fourth, non-required leg: it is published when the bond model offers a classification to carry and omitted when it does not, and its absence never fails the required set. A measured leg makes an INSTRUMENT-level claim only: it reports its own driver's price change over `sessions` and never renames that instrument as the concept it tracks, so the rates leg is the TLT price and never 'the yield curve', and the energy leg is the USO price and never 'crude'. Both drivers are declared by real-assets-universe.json, which is what puts them in reach of the bars map buildRealAssetsToolRead builds; a committed data/bars file is not the admission test. The dollar leg is DARK BY GOVERNANCE and declares no driver on purpose: fx-regime-universe.json admits no broad-dollar evidence source (fed-h10-unavailable is denied, broad-proxy-unreviewed is unreviewed with persistence forbidden), so no broad-dollar index or proxy figure may be published in any form and the dark reason is the sentence buildFxToolRead already emits rather than one composed here. Raising a leg out of dark by widening a universe or approving a proxy is a separate owner decision, never part of a change that would otherwise publish an inadmissible reading."
     },
     "web-evidence-acquisition/v1": {
         "contractVersion": "web-evidence-acquisition/v1",

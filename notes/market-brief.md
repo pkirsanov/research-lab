@@ -610,6 +610,119 @@ and `members`; the agent adds the per-run `notable[]` selection (structure-first
 one-line `note`. Prefer the Tier-A `snapshot.groups` numbers verbatim — never hand-fabricate a member move.
 The cockpit renders `payload.groups` if present, else falls back to the Tier-A `snapshot.groups`.
 
+### 9a. Output budget — `output-budget/v1`
+
+The brief has two budgets and they govern opposite ends of a run. `artifact-budget/v1` caps what a run may
+**fetch** (200 bars per symbol per trading date, 48 symbols per run, 262,144 normalized observation bytes).
+It has never capped prose. `output-budget/v1`, declared beside it in
+[`market-brief.config.json`](../market-brief.config.json), caps what a run may **publish** as default-visible
+reader narrative.
+
+| Cap | Value | What it governs |
+| --- | --- | --- |
+| `headlineChars` | 140 | The `headline` string, per item |
+| `decisionCardChars` | 300 | One decision card, summed across its own measured fields |
+| `totalDefaultVisibleChars` | 3000 | Every default-visible path added together |
+
+**The thirteen measured paths**, in policy order: `headline`, `attention[].headline`, `attention[].what`,
+`attention[].escalationTrigger`, `attention[].invalidation`, `crossAsset.legs[].label`,
+`crossAsset.legs[].withheld`, `crossAsset.dark[].reason`, `crossAsset.dark[].withheld`,
+`crossAsset.dark[].substitutionRefusal`, `changed[].line`, `rollUp.line`, `trackRecord.line`.
+
+The measurement sums `String.length` over those paths and counts no key, no number, no boolean, no null and
+no field outside the list. There is no weighting, no normalisation and no rounding, so a reviewer can
+re-derive the total by adding the `byField` column the measurement prints. Everything else in the payload —
+`backdrop`, `watchlistNotes`, `toolReads`, `toolCoverage`, `events`, `groups`, `nextSession.thesis`,
+`psychology`, `researchAgenda`, `experimental`, `regime.note` — is reported once as `disclosedTotal` and is
+subject to no cap. The two figures are printed side by side so collapsing narrative can never be mistaken
+for removing it.
+
+**Measurement, allocation and refusal are three different things.** All three read one implementation,
+`measureDefaultVisible` in [`rlcockpit.js`](../rlcockpit.js), so a run can never be sized by one measurement
+and judged by another. Allocation (`selectDefaultVisible`) demotes **whole items** in the declared order —
+changed-instrument lines fold into the roll-up count first, then the lowest-ranked decision cards move to the
+held-back list. Dark states and the track-record line are excluded from that ladder by material class:
+nothing negative is ever demoted. Refusal happens in
+[`scripts/validate-brief-payload.mjs`](../scripts/validate-brief-payload.mjs), after allocation. **There is
+no character-cutting helper anywhere in `rlcockpit.js`**, so a caller cannot introduce an ellipsis. A cut
+sentence is not brevity.
+
+**The budget fires only on a payload that declares `contractVersion: "market-brief-payload/v2"`.** An absent
+or non-v2 stamp skips it entirely. That is deliberate and load-bearing: `validateBriefPayload` is a library
+as well as a CLI, and a check that fired on absence would refuse the currently committed unstamped payload
+and take unrelated suites down with it. The budget answers to none of the five CLI flags and adds no sixth.
+
+**Changing a cap is a separate owner decision.** A cap may not be raised inside a change that would otherwise
+fail against it, in either direction between the two budget blocks. A refusal signals authoring bloat, not a
+busy market: the irreducible core of a maximally dark run — headline 140, four dark cards at 180, roll-up 90,
+track record 140 and one decision card at 300 — is 1,390 characters, comfortably inside the 3,000 total. If a
+cap genuinely needs to move, move it in its own change, record the reason here, and re-run the run that
+prompted it against the new number.
+
+### 9b. Cross-asset legs — `cross-asset/v1`
+
+**Three slots are REQUIRED on every published run, and one leg is not.**
+
+| Slot | Required | Shape | Driver | Provenance |
+| --- | --- | --- | --- | --- |
+| `rates` | yes | measured | `TLT` | `Observed` |
+| `dollar` | yes | dark | none — dark by governance | none |
+| `energy` | yes | measured | `USO` | `Observed` |
+| `credit` | **no** | carried | none — the bond model's own classification | `Owner-classified` |
+
+Each required slot resolves to exactly one of a reading or a dark state — never to neither and never to
+both. Credit is published when the bond model offers a classification for its declared pair and omitted
+when it does not; its absence never fails the required set and its presence never satisfies one of the
+three.
+
+**Three published shapes, so a reader cannot mistake one for another.**
+
+| Shape | Carries | Never carries |
+| --- | --- | --- |
+| measured | `driver`, `claim`, `changePct` over `sessions`, `long63Pct`, `sessions`, `asOf`, declared `provenance` | a classification word in place of a number |
+| carried | `pairId`, `direction`, `purity`, `asOf`, `confirmation`, `withheld`, declared `provenance` | `changePct` or `long63Pct` — it measures nothing here |
+| dark | `reason`, `withheld`, `substitutionRefusal` | any number at all |
+
+**The horizon is five sessions, beside the existing 63.** Five spans a full trading week, so a Monday-anchored
+and a Friday-anchored run measure comparable windows, and it holds the consecutive snapshots the §5
+persistence gate needs. `sessions` reports the trailing span the published change was actually computed
+over, never the requested five: below five the leg publishes `state: "partial"` with the real number, and
+below two it publishes no number at all, because one close is a level and not a move.
+
+**A measured leg makes an INSTRUMENT-level claim only.** The rates leg is the TLT price and never "the yield
+curve"; the energy leg is the USO price and never "crude". This follows the rule the repository already
+settled on for currencies at `buildFxToolRead`: a price proxy is never substituted for the thing it tracks.
+
+**The dollar leg is dark BY GOVERNANCE, not by a data outage.** `fx-regime-universe.json` declares no
+broad-dollar evidence source that is `approved`: the three official Fed slots sit under `fed-h10-unavailable`
+with `activation: "denied"`, and both listed proxies share `broad-proxy-unreviewed` with
+`activation: "unreviewed"`, `rights: "unknown"` and `persistence: "forbidden"`. No proxy figure may therefore
+be published in any form, and the published reason is the sentence `buildFxToolRead` already emits rather
+than one composed for the leg. The `market-brief.config.json` provider grant does not rescue it: that grant
+is keyed by SOURCE and licenses retrieving and normalising a chart, not the semantic claim that a listed
+instrument is the broad dollar. If the owner later approves a broad-dollar source, the same slot resolves to
+a reading with no plan change.
+
+**The credit leg carries an absent confirmation, and that is the honest reading.** The high-yield versus
+investment-grade price ratio IS measured — by the bond model, which aligns it and classifies it. What is
+missing is the independent credit-spread reading (OAS), which `bond-regime-universe.json` declares
+`mode: "user-observation-or-unavailable"` with `persistence: "memory-only"`, so it can never be committed and
+the gap is permanent rather than pending. The leg therefore publishes the carried direction plus
+`confirmation: { state: "absent", detail: … }`, where the detail is the bond model's own `evidenceGaps`
+entry, and a `withheld` sentence naming the conclusion the brief is not drawing.
+
+**Reachability, not existence, admits a driver.** A measured leg's driver must be declared by
+`real-assets-universe.json`, because that is what puts it in the `bars` map `buildRealAssetsToolRead` builds.
+A committed `data/bars/<sym>.json` file is not the admission test, and widening that owner universe to rescue
+a leg is a separate owner decision — it would also introduce a conditional live call, because the row loader
+is snapshot-FIRST and not snapshot-only.
+
+**Measurement and emission are split on purpose.** `scripts/brief-refresh.mjs` measures into
+`market-brief.snapshot.json` and writes no payload; `scripts/brief-narrative-parallel.mjs` resolves those
+measurements through `rlcockpit.js` and writes the payload. An absence travels as an absence: a non-finite
+return raises a dark state and is never coerced to zero, never carried forward from an earlier run and never
+filled in from a neighbouring instrument.
+
 ---
 
 ## 10. Anti-fabrication / honesty

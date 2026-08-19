@@ -1301,8 +1301,119 @@ export async function buildRealAssetsToolRead() {
     }
     rows.sort((a, b) => b.score - a.score); const leader = rows[0];
     const specific = {};['GLD', 'SLV', 'BTC-USD', 'IBIT', 'DBC', 'USO'].forEach((ticker) => { const row = rows.find((item) => item.ticker === ticker); if (row) specific[ticker] = row; });
-    return { id: 'real-assets-lab', asOf: leader?.asOf || new Date().toISOString(), read: leader ? `${leader.ticker} leads real assets at ${leader.score}/100; GLD ${specific.GLD?.score ?? '—'}, BTC ${specific['BTC-USD']?.score ?? '—'}, SLV ${specific.SLV?.score ?? '—'}.` : 'Real-assets model unavailable.', metrics: { leader: leader || null, ranked: rows.slice(0, 6), specific, scored: rows.length, horizon: 'swing' }, deepLink: 'real-assets-lab.html', source: 'owning-tool-functions' };
+    return { id: 'real-assets-lab', asOf: leader?.asOf || new Date().toISOString(), read: leader ? `${leader.ticker} leads real assets at ${leader.score}/100; GLD ${specific.GLD?.score ?? '—'}, BTC ${specific['BTC-USD']?.score ?? '—'}, SLV ${specific.SLV?.score ?? '—'}.` : 'Real-assets model unavailable.', metrics: { leader: leader || null, ranked: rows.slice(0, 6), specific, scored: rows.length, horizon: 'swing', drivers }, deepLink: 'real-assets-lab.html', source: 'owning-tool-functions' };
   } catch (error) { return { id: 'real-assets-lab', asOf: new Date().toISOString(), read: 'Real-assets model unavailable this run.', metrics: { error: error.message }, deepLink: 'real-assets-lab.html', source: 'owning-tool-functions' }; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────────────────────
+   Feature 026 Scope 2 — Tier-A cross-asset measurement.
+
+   This is the MEASUREMENT half only. It produces numbers and carries forward what the FX and bond
+   models already published; it composes no reader sentence and it writes no payload. The payload is
+   written by scripts/brief-narrative-parallel.mjs, which calls rlcockpit.js `resolveLeg` over what
+   lands here. That split is finding R-5 and it is why `changePct` can be null on the way out: an
+   absence travels as an absence, and the resolver turns it into a dark state rather than a zero.
+
+   Reachability, not existence, is the admission test for a measured driver. `bars` is built by the
+   same real-assets-universe.json iteration buildRealAssetsToolRead uses, so a symbol the universe
+   does not declare is out of reach here no matter what sits in data/bars — and this feature may not
+   widen that universe, which is an owner artifact.
+   ───────────────────────────────────────────────────────────────────────────────────────────────── */
+export async function buildCrossAssetReadings(rawDeps) {
+  const deps = rawDeps || {};
+  const policy = deps.policy !== undefined
+    ? deps.policy
+    : (JSON.parse(read('market-brief.config.json'))['cross-asset/v1'] || null);
+  if (!policy || !Array.isArray(policy.legs) || !Number.isFinite(policy.sessions)) return null;
+
+  const universe = deps.universe !== undefined ? deps.universe : JSON.parse(read('real-assets-universe.json'));
+  const declared = new Set((universe.entries || []).map((entry) => entry.symbol));
+  const model = deps.model !== undefined ? deps.model : loadToolFunctions('real-assets-lab.html', ['realTrailingPct']);
+  const bars = {};
+  if (deps.bars !== undefined) Object.assign(bars, deps.bars);
+  else for (const entry of (universe.entries || [])) bars[entry.symbol] = await yahooRowsMemo(entry.symbol);
+
+  const horizon = Math.floor(policy.sessions);
+  const longHorizon = Number.isFinite(policy.longSessions) ? Math.floor(policy.longSessions) : null;
+  /* The 63-session value the SCORING path already consumes, published rather than discarded. The
+     bundle carries a TLT figure and carries none for USO, so the rates leg reuses a computed value
+     and the energy leg makes a fresh call to the SAME owner function: one definition, two callers. */
+  const scoringDrivers = deps.realAssetsRead?.metrics?.drivers || null;
+  const finite = (value) => (Number.isFinite(value) ? round(value, 2) : null);
+
+  const measureLeg = (leg) => {
+    const rows = Object.prototype.hasOwnProperty.call(bars, leg.driver) ? bars[leg.driver] : null;
+    const closes = Array.isArray(rows) ? rows.length : 0;
+    /* `sessions` is the trailing span the published change was actually computed over, never the
+       requested 5. Below the requested span the leg publishes partial with the real number. */
+    const span = Math.min(horizon, closes - 1);
+    const usable = span >= 1 ? span : null;
+    const long = leg.id === 'rates' && scoringDrivers
+      ? scoringDrivers.tlt63
+      : (longHorizon !== null && closes > longHorizon ? model.realTrailingPct(rows, longHorizon) : null);
+    return {
+      driver: leg.driver,
+      declaredByUniverse: declared.has(leg.driver),
+      closes,
+      sessions: usable,
+      changePct: usable === null ? null : finite(model.realTrailingPct(rows, usable)),
+      long63Pct: finite(long),
+      long63Source: leg.id === 'rates' && scoringDrivers ? 'real-assets-lab.metrics.drivers.tlt63' : 'realTrailingPct(bars,63)',
+      asOf: latestIso(rows)
+    };
+  };
+
+  /* The dollar leg's dark reason is the FX read's OWN published sentence, and the basis beside it is
+     read out of the committed universe records. Nothing here composes a claim about the dollar. */
+  const fxRead = deps.fxRead || null;
+  const fxUniverse = deps.fxUniverse !== undefined ? deps.fxUniverse : JSON.parse(read('fx-regime-universe.json'));
+  const broadDollarSources = (fxUniverse.evidenceSources || []).filter((source) => source.family === 'broad-dollar');
+  const darkMeasurement = () => ({
+    reason: typeof fxRead?.read === 'string' ? fxRead.read : '',
+    approvedBroadDollarSources: broadDollarSources.filter((source) => source.activation === 'approved').length,
+    basis: broadDollarSources.map((source) => ({
+      sourceId: source.sourceId, activation: source.activation, persistence: source.persistence
+    }))
+  });
+
+  /* The credit leg carries the bond model's own classification for its declared pair, plus that
+     model's own evidenceGaps entry as the confirmation detail. No ratio is recomputed here. */
+  const bondRead = deps.bondRead || null;
+  const CREDIT_SPREAD_GAP = 'an independent credit-spread reading';
+  const carriedMeasurement = (leg) => {
+    const metrics = bondRead?.metrics || null;
+    const pair = (metrics?.readablePairs || []).find((entry) => entry && entry.pairId === leg.carriedPairId) || null;
+    if (!pair) return null;
+    const gaps = Array.isArray(metrics.evidenceGaps) ? metrics.evidenceGaps : [];
+    const gap = gaps.find((entry) => entry === CREDIT_SPREAD_GAP) || null;
+    return {
+      pairId: pair.pairId, direction: pair.direction, purity: pair.purity, asOf: pair.asOf,
+      confirmation: gap === null ? { state: 'present', detail: null } : { state: 'absent', detail: gap }
+    };
+  };
+
+  const legs = {};
+  for (const leg of policy.legs) {
+    if (!leg || typeof leg.id !== 'string') continue;
+    if (leg.shape === 'measured') legs[leg.id] = measureLeg(leg);
+    else if (leg.shape === 'dark') legs[leg.id] = darkMeasurement();
+    else if (leg.shape === 'carried') legs[leg.id] = carriedMeasurement(leg);
+  }
+
+  /* FR-026-019 — the standing instruction gains exactly one mechanical consequence. Its crude half
+     resolves through the leg it is bound to; the halves no committed source covers are published by
+     name every run instead of being quietly dropped. */
+  const macroEvents = deps.macroEvents !== undefined
+    ? deps.macroEvents
+    : (JSON.parse(read('market-brief.config.json')).macroEvents || []);
+  const standing = macroEvents
+    .filter((event) => event && typeof event.boundTo === 'string' && event.boundTo.length)
+    .map((event) => ({
+      date: event.date, type: event.type, boundTo: event.boundTo,
+      unresolvedAspects: Array.isArray(event.unresolvedAspects) ? event.unresolvedAspects.slice() : []
+    }));
+
+  return { contractVersion: 'cross-asset-measurement/v1', sessions: horizon, longSessions: longHorizon, legs, standing };
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -2226,6 +2337,15 @@ async function main() {
   const causal = buildCausalToolRead(toolReads);
   toolReads[causal.toolRead.id] = causal.toolRead;
 
+  /* Feature 026 Scope 2 — cross-asset measurement, taken AFTER the owner reads so the dollar leg's
+     dark reason and the credit leg's carried classification come from what those models actually
+     published this run rather than from a second derivation here. */
+  const crossAsset = await buildCrossAssetReadings({
+    realAssetsRead: toolReads['real-assets-lab'],
+    fxRead: toolReads['fx-regime-relative-value-lab'],
+    bondRead: toolReads['bond-regime-lab']
+  });
+
   const toolCoverage = buildToolCoverage(toolReads), nextSession = nextSessionDate(window), dataFreshness = dataSnapshotFreshness();
 
   const snap = {
@@ -2239,7 +2359,7 @@ async function main() {
 
   // deterministic slice the browser cockpit reads (market-brief.html overlays it as the "Computed (Tier-A)" line)
   // asOf = the window this refresh anchors to; generatedAt = the actual wall-clock this refresh ran (both are the run time for Tier-A).
-  const snapshot = { asOf: snap.ts, generatedAt: snap.ts, window, marketClosed, nextSessionDate: nextSession, dataFreshness, regime: { band: reg.band, score: reg.risk, vix, fearGreed: fg ? fg.score : null }, bench: snap.bench, names, sectors, groups, toolReads, toolCoverage };
+  const snapshot = { asOf: snap.ts, generatedAt: snap.ts, window, marketClosed, nextSessionDate: nextSession, dataFreshness, regime: { band: reg.band, score: reg.risk, vix, fearGreed: fg ? fg.score : null }, bench: snap.bench, names, sectors, groups, toolReads, toolCoverage, crossAsset };
   if (!dryRun) writeFileSync(join(ROOT, 'market-brief.snapshot.json'), JSON.stringify(snapshot, null, 2) + '\n');
   /* Deterministic public causal snapshot. Written only when the evaluation succeeded, so a failed
      run leaves the previous snapshot in place rather than replacing it with a stub that a reader

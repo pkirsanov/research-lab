@@ -13,13 +13,19 @@ import {
     statSync,
     writeFileSync
 } from 'node:fs';
+import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { RESEARCH_AGENDA_CONTRACTS, runResearchSidePool } from './research-agenda-generation.mjs';
-import { briefEventContractInstruction } from './validate-brief-payload.mjs';
+import { BRIEF_PAYLOAD_BUDGET_CONTRACT, briefEventContractInstruction } from './validate-brief-payload.mjs';
 import { BRIEF_NARRATIVE_FIELDS_REQUIRED } from './reader-vocabulary.mjs';
 import { NARRATIVE_WEB_ALLOWLIST } from './web-evidence-policy.mjs';
 
 const ROOT = process.cwd();
+
+/* rlcockpit.js is a UMD dual module, not ESM: createRequire takes the module.exports
+   branch. Requiring it here is what makes the composer and the validator share the ONE
+   output-budget measurement rather than each carrying its own character count. */
+const RLCOCKPIT = createRequire(import.meta.url)(resolve(ROOT, 'rlcockpit.js'));
 const PAYLOAD_PATH = resolve(ROOT, 'market-brief.payload.json');
 const CONFIG_PATH = resolve(ROOT, 'market-brief.config.json');
 const SNAPSHOT_PATH = resolve(ROOT, 'market-brief.snapshot.json');
@@ -722,6 +728,76 @@ try {
     payload.window = windowId;
     payload.asOf = snapshot.asOf || snapshot.generatedAt || new Date().toISOString();
     payload.generatedAt = new Date().toISOString();
+
+    /* Cross-asset legs (Feature 026 Scope 2). Emitted BEFORE the budget block below, because
+       the leg labels and every dark sentence are default-visible fields the budget measures.
+
+       Tier A measured; this resolves. rlcockpit.js owns the one resolver, so the rule that a
+       non-finite measurement raises a dark state instead of a zero has exactly one
+       implementation. Dark cards are emitted ahead of the readings in the block's own key
+       order, so a reader reaches what the brief cannot say before what it can.
+
+       A snapshot predating the Tier-A measurement carries no block at all. That is not an
+       excuse to omit the required slots: each one is published as a dark state naming that
+       absence, which is the only path in this file that calls darkState directly. */
+    const crossAssetPolicy = config['cross-asset/v1'];
+    if (crossAssetPolicy && typeof crossAssetPolicy === 'object' && Array.isArray(crossAssetPolicy.legs)) {
+        const measured = snapshot.crossAsset && typeof snapshot.crossAsset === 'object'
+            ? snapshot.crossAsset.legs : null;
+        const dark = [];
+        const legs = [];
+        for (const legPolicy of crossAssetPolicy.legs) {
+            if (!legPolicy || typeof legPolicy.id !== 'string') continue;
+            if (!measured || typeof measured !== 'object') {
+                if (legPolicy.required === true) {
+                    dark.push(RLCOCKPIT.darkState(legPolicy,
+                        `this run's snapshot carries no cross-asset measurement, so the ${legPolicy.id} leg was never measured`,
+                        legPolicy.withheld));
+                }
+                continue;
+            }
+            const resolved = RLCOCKPIT.resolveLeg(legPolicy, measured[legPolicy.id] ?? null, crossAssetPolicy.sessions);
+            if (resolved === null) continue;
+            if (resolved.shape === 'dark') dark.push(resolved);
+            else legs.push(resolved);
+        }
+        payload.crossAsset = {
+            contractVersion: 'cross-asset/v1',
+            sessions: crossAssetPolicy.sessions,
+            dark,
+            legs,
+            standing: snapshot.crossAsset?.standing ?? []
+        };
+        console.log(`[brief-parallel] cross-asset legs resolved=${legs.length} dark=${dark.length}`
+            + ` required=${crossAssetPolicy.legs.filter((leg) => leg && leg.required === true).length}`);
+    }
+
+    /* Output budget — allocation, then measurement, then the stamp, in that order and in
+       this ONE place. Both exits below derive from `payload`: the research branch spreads
+       it into `finalized.transaction.payload` and the direct branch serializes it through
+       the candidate-then-rename, so a stamp assigned here reaches the private candidate
+       and the published file alike. Assigning at either write instead would need two
+       copies of this block and they could drift.
+
+       Allocation runs BEFORE measurement so the persisted figure describes what was
+       actually published rather than what composition proposed. The measurement is taken
+       before `budget` and `contractVersion` are attached, so the block never measures its
+       own metadata — `disclosedTotal` stays a reader-prose figure and not a self-count.
+
+       The measurement is written on every run, passing runs included, so a maintainer can
+       judge whether the caps are right without waiting for an incident. rlcockpit.js owns
+       the one measurement; nothing here re-derives a character count, and nothing here
+       cuts a string — allocation demotes whole items or the validator refuses the run. */
+    const outputBudgetPolicy = config['output-budget/v1'];
+    if (outputBudgetPolicy && typeof outputBudgetPolicy === 'object' && !Array.isArray(outputBudgetPolicy)) {
+        const selection = RLCOCKPIT.selectDefaultVisible(payload, outputBudgetPolicy);
+        Object.assign(payload, selection.published);
+        payload.budget = RLCOCKPIT.measureDefaultVisible(payload, outputBudgetPolicy);
+        payload.contractVersion = BRIEF_PAYLOAD_BUDGET_CONTRACT;
+        console.log(`[brief-parallel] output budget total=${payload.budget.total} disclosed=${payload.budget.disclosedTotal}`
+            + ` demoted=${selection.demoted.length} heldBack=${selection.heldBack.length} violations=${payload.budget.violations.length}`);
+    }
+
     if (payload.nextSession?.sessionDate !== snapshot.nextSessionDate) {
         throw new Error(`collected nextSession ${payload.nextSession?.sessionDate || '<missing>'} does not match snapshot ${snapshot.nextSessionDate}`);
     }

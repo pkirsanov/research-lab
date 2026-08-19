@@ -65,8 +65,11 @@
   "certification": {
     "status": "in_progress",
     "certifiedAt": null,
-    "completedScopes": [],
-    "completedScopesNote": "Empty because no scope has every Definition of Done item checked. The scope IDs are derived from the scopes.md headings and recorded on each scopeProgress entry as scopeId; a scope joins this array only when its scopes.md **Status:** marker reads Done and its DoD carries zero unchecked items. Scope 1 was previously listed here as the ordinal 1, which named no artifact and additionally over-claimed: three Tier-3 items in that scope are unchecked.",
+    "completedScopes": [
+      "02-cross-asset-legs-required-leg-set-and-dark-state",
+      "05-closed-loop-on-the-publication-path"
+    ],
+    "completedScopesNote": "A scope joins this array only when its scopes.md Status marker reads Done AND its own Definition of Done section carries zero unchecked items. Every dodChecked value below is DERIVED by counting '- [x] ' and '- [ ] ' lines inside each scope's own Definition of Done section on 2026-08-19; none is hand-authored, and the derivation reproduces 143 checked and 3 unchecked across the file. Scopes 2 and 5 reached zero unchecked in the 2026-08-19 closure pass and are listed. Scopes 1, 3 and 4 each retain exactly one open item and are deliberately absent: Scope 1 on the R-19 Change Boundary breach, Scope 3 on the R-10 foreign-selftest count, Scope 4 on the no-new-sink clause ruled R-20. Scope 1 was listed here in an earlier pass as the ordinal 1, which named no artifact and over-claimed.",
     "certifiedCompletedPhases": [],
     "scopeProgress": [
       {
@@ -75,32 +78,33 @@
         "name": "Budget policy, measurement and fail-closed refusal",
         "increment": "A",
         "implementationState": "implemented",
-        "dodChecked": 29,
+        "dodChecked": 31,
         "dodTotal": 32,
         "commits": [
           "0f61d1a14",
-          "a7ca8ad55"
+          "a7ca8ad55",
+          "20e46f74f"
         ],
-        "openFindings": [],
-        "note": "Not complete. The three Tier-3 items added by the certification-artifact pass are unchecked and each names its reason: the scenario-specific E2E item is unmet because the fail-closed refusal has no browser surface, the broader-suite item is unmet because the repository-wide run neither completed nor was green, and the change-boundary item is unmet because commit 3872df354 changed the excluded market-brief.payload.json. Row 1.12 carries no marker of its own and its behaviour executes under the 1.6 marker; recorded as R-11."
+        "openFindings": [
+          "R-19"
+        ],
+        "note": "Not complete: one item open. The scenario-specific E2E item CLOSED on 2026-08-19 against the new browser row TP-026-1.16, which asserts that the budget the validator enforces on the payload describes the text a reader actually meets on screen; the fail-closed refusal remains without a browser surface by construction and is closed at unit category on the highest-applicable-category rule, named on the item rather than erased. The broader-suite item closed earlier against a completed 1220-passed run. STILL OPEN: the Change Boundary item, because commit 3872df354 changed the Excluded family market-brief.payload.json on 166 lines. That breach is recorded and deliberately NOT reclassified into compliance (R-19). Row 1.12 carries no marker of its own and its behaviour executes under the 1.6 marker; recorded as R-11."
       },
       {
         "scope": 2,
         "scopeId": "02-cross-asset-legs-required-leg-set-and-dark-state",
         "name": "Cross-asset legs, required-leg set and dark state",
         "increment": "A",
-        "implementationState": "implemented",
-        "dodChecked": 28,
+        "implementationState": "complete",
+        "dodChecked": 32,
         "dodTotal": 32,
         "commits": [
           "0f61d1a14",
-          "a7ca8ad55"
+          "a7ca8ad55",
+          "20e46f74f"
         ],
-        "openFindings": [
-          "R-7",
-          "R-9"
-        ],
-        "note": "Neither open item is a test failure. R-7 is the derived-artifact boundary gap on market-brief.config.page.json and needs a plan-owner amendment. R-9 is a three-line cross-spec selftest repair that strengthened a vacuous spec 024 assertion; the deletion count is 3 against a required 0 and reverting would restore the vacuous guard."
+        "openFindings": [],
+        "note": "DONE on 2026-08-19: 32 of 32, derived by counting checkboxes in this scope's own Definition of Done section. The last open item, scenario-specific E2E, closed against the new browser row TP-026-2.21, which asserts the resolution arithmetic on screen - each required slot resolves to exactly one of a reading or a dark state, never both and never neither, and the dark block publishes no percentage. The residue that has no browser surface (five-session changePct, spanned sessions count, partial state, carried credit confirmation.state, reachability refusal) is covered at unit category and named on the item. R-7 closed earlier against the corrected derived-artifact row; R-9 closed against the corrected selftest deletion rule."
       },
       {
         "scope": 3,
@@ -108,16 +112,16 @@
         "name": "Memory row v2, change vocabulary, delta-only publishing and roll-up",
         "increment": "B",
         "implementationState": "implemented",
-        "dodChecked": 23,
+        "dodChecked": 26,
         "dodTotal": 27,
         "commits": [
-          "3855ee75d"
+          "3855ee75d",
+          "20e46f74f"
         ],
         "openFindings": [
-          "R-10",
-          "R-13"
+          "R-10"
         ],
-        "note": "All nineteen Test Plan rows execute and pass. Open: the commit carried brief-history.recent.jsonl as an unadmitted derived artifact plus 397 lines of foreign Feature 022 selftest content (R-10); it modified 2 pre-existing selftest lines against a required 0, both inside this feature's own Scope 1 group; and notes/market-brief.md section 5 was never updated with the change vocabulary (R-13)."
+        "note": "Not complete: one item open. The scenario-specific E2E item CLOSED on 2026-08-19 against the new browser row TP-026-3.20, which asserts on screen that the changed list and its roll-up balance and that an instrument counted into the roll-up earns no second narrative line - delta-only publishing stated as a refusal. The change-vocabulary internals have no browser surface because the detector's inputs are two persisted memory rows, and are covered at unit category, named on the item. STILL OPEN: the file-family item, because commit 3855ee75d swept in 397 lines of foreign Feature 022 selftest content (R-10). That count is deliberately NOT reclassified."
       },
       {
         "scope": 4,
@@ -125,35 +129,34 @@
         "name": "Disclosure-first rendering",
         "increment": "C",
         "implementationState": "implemented",
-        "dodChecked": 27,
+        "dodChecked": 29,
         "dodTotal": 30,
         "commits": [
-          "6b00105c7"
+          "6b00105c7",
+          "20e46f74f"
         ],
         "openFindings": [
           "R-12",
-          "R-13"
+          "R-20"
         ],
-        "note": "The strongest scope on boundary discipline: the only one that touched no file outside its Allowed families, and one of two that met the zero-deletion append rule. All eighteen Test Plan rows ran, fourteen of them in the browser suite at 14 passed exit 0. Open: no value-to-explanation pairing count was recorded; the no-new-sink clause is contradicted by 9 added innerHTML lines that are the file's own escaped idiom (R-12); and the runbook disclosure subsection is absent (R-13)."
+        "note": "Not complete: one item open. The value-to-explanation item CLOSED on 2026-08-19 because the suite now EMITS the count row 4.8 always required - observed '[TP-026-4.8] value-to-explanation pairing: 16 of 16 default-visible values carry an in-place explanation; unexplained=0', once per browser project, derived from the rendered DOM rather than authored. STILL OPEN: the item reading 'every authored string reaches the DOM through esc, and no new sink is introduced'. Ruled R-20 on 2026-08-19: clause 1 HOLDS, proven twice (the repo-wide esc guard with its own adversarial control, and browser row SCN-026-ESC). Clause 2 is LITERALLY FALSE - innerHTML lines in rlbrief.js measure 25 before Scope 4, 34 at 6b00105c7 and 31 at 20e46f74f, so SIX new sinks stand, not the nine previously recorded. Three clearing sinks became textContent. The amendment to restate the item as clause 1 was CONSIDERED AND REFUSED because it would collapse two clauses into one proven twice and retire surface-area reduction by renaming it. The wording is unchanged, the box stays clear, and the amendment remains a plan-owner decision under R-12."
       },
       {
         "scope": 5,
         "scopeId": "05-closed-loop-on-the-publication-path",
         "name": "Closed loop on the publication path",
         "increment": "D",
-        "implementationState": "implemented_incomplete",
-        "dodChecked": 21,
+        "implementationState": "complete",
+        "dodChecked": 25,
         "dodTotal": 25,
         "commits": [
-          "ec7d24b31"
+          "ec7d24b31",
+          "20e46f74f"
         ],
         "openFindings": [
-          "R-7",
-          "R-13",
-          "R-14",
-          "R-15"
+          "R-22"
         ],
-        "note": "MATERIALLY INCOMPLETE and the first thing a validator should examine. Seven of fifteen Test Plan rows were never authored, including both publication-path canaries, and FR-026-031 has no implementation at all. The green gates partly reflect assertions that were never written rather than behaviour that was proven. What did land is real and evidenced: resolvedThisRun, notEvaluableShare, the two-rate rendering with the withheld rate as a sentence rather than a zero, and the attention builder wired into both publication paths with its required --as-of argument under a producer-existence assertion that is the BUG-009 lesson made mechanical."
+        "note": "DONE on 2026-08-19: 25 of 25, derived by counting checkboxes in this scope's own Definition of Done section. This scope moved furthest, from the 8-of-19 an earlier pass recorded. The final three closed: the file-family item, because the Change Boundary now admits tests/market-brief-cockpit.spec.mjs for scopes 1 through 5, earned by this scope having its own row in that suite; the privacy item, on the new TP-026-5.18, which scans four emitted artifacts over VALUES not just keys and carries three planted canaries proving the detector still fires, and which deliberately does not lean on pii-scan; and the scenario-specific E2E item, on the new browser row TP-026-5.17, with the scheduled publication path named as residue and covered at unit category by the two path canaries. TWO SUB-CLAUSES of the privacy item's wording are unmet and recorded on the item rather than absorbed: the rendered track-record string is covered only via the two artifacts it is composed from, and the currency-amount-shape clause is ruled UNSATISFIABLE over market-brief.scorecard.json, which carries 86 decimal price levels by design - routed as R-22. A price level is public market data and is the measurement itself; a position size, cost basis or P&L figure is private and is what the item exists to keep out."
       }
     ],
     "lockdownState": {

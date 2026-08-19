@@ -1990,6 +1990,332 @@ against.
 
 ---
 
+## E13 — Node self-test transcripts, 2026-08-19
+
+**Why this section exists.** Twenty-one checked Definition of Done items cited
+`report.md` sections `E13-1`, `E13-2` and `E13-3`, and those sections were never
+written. Finding **R-21** recorded the dangling citations. This is the repair,
+and it is a repair by TRANSCRIPTION, not by authorship: every figure below is
+the observed output of a command actually executed in this session. Where a
+cited figure came from an earlier point in the session, the later figure is
+recorded beside it rather than overwriting it, because a citation that silently
+acquires a newer number is no more checkable than one that points nowhere.
+
+### E13-1 — `node scripts/selftest.mjs`
+
+The suite was run repeatedly as the work landed. Every run below was observed;
+the count rises because assertions were added, and the failure count is the
+figure that matters.
+
+```text
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3047 passed, 0 failed
+SELFTEST_EXIT=0
+
+$ node scripts/selftest.mjs        # after the Scope 2 hardening refusals + adversarial case
+Research-Lab self-test: 3051 passed, 0 failed
+SELFTEST_EXIT=0
+
+$ node scripts/selftest.mjs        # after the R-19 boundary ruling
+Research-Lab self-test: 3064 passed, 0 failed
+SELFTEST_EXIT=0
+
+$ node scripts/selftest.mjs        # after TP-026-5.18 and the 18-test suite count
+Research-Lab self-test: 3065 passed, 0 failed
+SELFTEST_EXIT=0
+```
+
+The rows cited against this section — `TP-026-2.7`, `TP-026-2.9`, `TP-026-3.7`,
+`TP-026-3.15` and their siblings — each printed as passed inside those runs. The
+suite prints one line per assertion, so a row that did not run does not appear,
+and a row that failed prints `✗ FAIL` and raises the second number.
+
+### E13-2 — the superseded browser account
+
+The original browser evidence cited here was the interrupted repository-wide run
+preserved at `E12-3`: `333 passed`, `12 failed`, `897 did not run`, exit `130`.
+It is superseded by `E14-1` and is retained, not deleted, because the twelve
+failures it recorded were real and their attribution is part of the record.
+
+### E13-3 — payload re-measurement after the last-writer fix
+
+```text
+$ node -e "…measureDefaultVisible(payload, policy)…"
+persisted.total=682  fresh.total=682  MATCH=true
+```
+
+Before the fix the same probe read `persisted.total=1714` with three recorded
+violations against `fresh.total=682` with none — the published budget describing
+a payload that never existed.
+
+---
+
+## E14 — Browser-suite transcripts, 2026-08-19
+
+### E14-1 — the repository-wide Playwright run
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --reporter=line
+  1220 passed (7.1m)
+FULL_E2E_EXIT=0
+```
+
+This is the whole committed inventory across both browser projects, with zero
+failures. It supersedes the interrupted run at `E12-3`. Reaching it required
+fixing one pre-existing failure inline — `SCN-012-029` in
+`tests/tool-experience.spec.mjs`, which asserted the Portfolio click issues no
+request at all rather than no DATA request. That fix is commit `88febbb5b`, and
+its own verification was:
+
+```text
+$ npx --no-install playwright test tests/tool-experience.spec.mjs --reporter=line
+  34 passed
+TOOL_EXPERIENCE_EXIT=0
+```
+
+The attribution behind that fix is recorded because the first reading was wrong:
+running the single test under `--grep` passed at the pre-feature baseline and
+failed on the branch, which looked like a regression this feature had caused.
+Running the WHOLE file showed the same test failing deterministically at that
+same baseline, twice. The grep had changed the execution sequence and hidden a
+pre-existing failure.
+
+### E14-2 — this scope's own suite
+
+```text
+$ npx --no-install playwright test tests/market-brief-cockpit.spec.mjs --reporter=line
+  28 passed (14.6s)
+COCKPIT_EXIT=0
+
+$ npx --no-install playwright test tests/market-brief-cockpit.spec.mjs --reporter=line
+  36 passed (19.7s)          # after the four per-scope rows were added, 18 tests x 2 projects
+COCKPIT_EXIT=0
+[TP-026-4.8] value-to-explanation pairing: 16 of 16 default-visible values carry an in-place explanation; unexplained=0
+```
+
+---
+
+## E15 — Definition of Done closure pass, 2026-08-19 (independent re-verification)
+
+This pass verified the four new browser rows, the new privacy assertion, the
+emitted pairing count and the `innerHTML` reduction that commit `20e46f74f`
+introduced. Every figure below was produced by a command executed in this
+session against a working tree that `git status --short` reported clean on
+`specs/026-actionable-brief-brevity-and-cross-asset`, `rlbrief.js`,
+`scripts/selftest.mjs` and `tests/market-brief-cockpit.spec.mjs`. Nothing here
+is carried forward from a prior pass.
+
+### E15-1 — The three gate commands
+
+```
+$ node scripts/selftest.mjs
+  ✓ TP-026-5.18 no artifact this scope writes carries a position size, a cost ba
+Research-Lab self-test: 3065 passed, 0 failed
+SELFTEST_EXIT=0
+```
+
+Zero `✗` lines in the whole run. The count moved 3042 → 3065 across the two
+closure passes, and the new `TP-026-5.18` assertion is inside that delta.
+
+**A later re-run in the same session went red for a FOREIGN reason, and is
+recorded here rather than left as a stale green claim.** The run above was
+observed at the start of this pass. A confirmatory re-run at the end of it
+reported `Research-Lab self-test: 3064 passed, 1 failed`, `SELFTEST_EXIT=1`. The
+single failure is not this feature's:
+
+```
+$ node scripts/pii-scan.mjs
+[pii-scan] specs/025-company-multi-horizon-intelligence-lab/report.md:3396:62 rule=home-path length=16
+[pii-scan] files=8102 messages=1508 findings=1 FAIL
+PII_EXIT=1
+  ✗ FAIL: committed surface carries no personal identifier
+```
+
+The finding is a home path in **`specs/025`**, a spec this pass was explicitly
+forbidden to touch and did not touch. A concurrent session is actively editing
+that file — its modification time moved during this pass, `git status --short`
+reports it modified, and its most recent commit is titled *"fix(025): redact the
+home path from a captured stack trace in report.md"*. This feature's three
+artifacts carry **zero** occurrences of `/Users/`:
+
+```
+$ grep -c '/Users/' specs/026-actionable-brief-brevity-and-cross-asset/report.md specs/026-actionable-brief-brevity-and-cross-asset/scopes.md specs/026-actionable-brief-brevity-and-cross-asset/state.json
+specs/026-actionable-brief-brevity-and-cross-asset/report.md:0
+specs/026-actionable-brief-brevity-and-cross-asset/scopes.md:0
+specs/026-actionable-brief-brevity-and-cross-asset/state.json:0
+```
+
+`TP-026-5.18` printed `✓` in BOTH runs — the red one included, at line 3444 of
+its transcript — so the one item in this pass that depends on the selftest is
+unaffected. The assertion count is 3065 in both runs; exactly one assertion
+flipped, and it belongs to another spec.
+
+```
+$ npx --no-install playwright test tests/market-brief-cockpit.spec.mjs --config=playwright.config.mjs --reporter=list
+
+Running 36 tests using 2 workers
+  ✓  21 …isible text a reader actually meets fits the declared total cap (120ms)
+  ✓  23 … resolves on screen to exactly one of a reading or a dark state (137ms)
+  ✓  24 … balance on screen, and no unchanged instrument earns narrative (122ms)
+  ✓  25 …part of the default view and is not reachable only by expanding (142ms)
+  36 passed (17.0s)
+COCKPIT_EXIT=0
+```
+
+36 = 18 tests across 2 browser projects. The suite held 14 tests when the
+previous pass refused; `grep -c "test('" tests/market-brief-cockpit.spec.mjs`
+now returns 18 and every one of the four new titles is present verbatim.
+
+```
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/026-actionable-brief-brevity-and-cross-asset
+Artifact lint PASSED.
+ARTIFACT_LINT_EXIT=0
+```
+
+### E15-2 — The emitted value-to-explanation pairing count
+
+The Scope 4 item required a **recorded pairing count**, which a test count
+cannot substitute for. The suite now emits it, observed twice in the run above —
+once per browser project:
+
+```
+$ npx --no-install playwright test tests/market-brief-cockpit.spec.mjs --config=playwright.config.mjs --reporter=list
+  ✓  12 …ce explanation of what it is and what the current value implies (124ms)
+[TP-026-4.8] value-to-explanation pairing: 16 of 16 default-visible values carry an in-place explanation; unexplained=0
+  ✓  26 …ce explanation of what it is and what the current value implies (692ms)
+[TP-026-4.8] value-to-explanation pairing: 16 of 16 default-visible values carry an in-place explanation; unexplained=0
+```
+
+**16 of 16, unexplained 0.** The count is derived, not authored: the test
+collects every `[data-mac-value]` and `[data-attn-field]` node that is not
+inside a `details` element and reports the found population against the subset
+carrying a `Reading now` title, so re-running the row reproduces the number.
+
+### E15-3 — TP-026-5.18, and precisely what it does and does not scan
+
+```
+$ grep -n 'TP-026-5.18' scripts/selftest.mjs
+23579:  /* TP-026-5.18 — NFR-026-009. The closed loop publishes a HIT RATE, and a hit rate is one step
+23601:  'TP-026-5.18 no artifact this scope writes carries a position size, a cost basis, a profit figure or a credential, and the detector still fires on all three planted samples'
+```
+
+Read directly from `scripts/selftest.mjs` lines 23579–23603, the assertion:
+
+- scans **four** artifacts — `market-brief.scorecard.json`,
+  `market-brief.attention-scorecard.json`,
+  `market-brief.attention-outcomes.jsonl` and `brief-history.recent.jsonl`;
+- scans **raw lines**, so a figure carried in a VALUE (`{"note":"cost basis
+  412.90"}`) is caught as surely as a field named `costBasis`;
+- carries **three planted canary samples** and requires all three to match, so a
+  clean sweep cannot come from a regex that stopped matching;
+- is **not** `pii-scan`, which measures a different property over a different
+  corpus — a personal identifier is not a position size.
+
+**Two literal sub-clauses of the DoD item are NOT met by it, and are recorded
+here rather than absorbed.** The item names "the scorecard, the outcome rows and
+the rendered track-record string", and asks for "the absence of every such field
+name **and of any currency-amount-shaped value**".
+
+| Named verification | Status | Measurement |
+| --- | --- | --- |
+| the scorecard | met | `market-brief.scorecard.json` and `market-brief.attention-scorecard.json` are both in the scanned set |
+| the outcome rows | met | `market-brief.attention-outcomes.jsonl` is in the scanned set |
+| every such field name | met | the pattern covers position size, cost basis, book cost, realised/unrealised P&L, `pnl`, profit, credential, password, passphrase, api key, secret, bearer and `authorization:` |
+| the rendered track-record string | **substituted, not met literally** | the rendered string is composed from the two scorecard artifacts, both of which ARE scanned; no assertion reads the rendered string itself |
+| any currency-amount-shaped value | **NOT met** | the pattern carries no numeric or currency shape. A direct read of the regex at line 23590 confirms it: the canary `cost basis 412.90` matches on the words, never on the amount |
+
+### E15-4 — The `innerHTML` reduction, measured across commits
+
+```
+$ git show '6b00105c7^:rlbrief.js' | grep -c innerHTML
+25
+$ git show '6b00105c7:rlbrief.js' | grep -c innerHTML
+34
+$ git show '20e46f74f:rlbrief.js' | grep -c innerHTML
+31
+$ grep -c innerHTML rlbrief.js
+31
+$ git status --short rlbrief.js
+exit: 0
+```
+
+The record previously read "commit `6b00105c7` added 9 `innerHTML` lines
+(25 → 34)". That figure was correct when written and is now superseded by a real
+code reduction: three sinks that only CLEARED a node became `textContent`, which
+parses no HTML. **Scope 4's standing addition is therefore SIX sinks, not nine**
+— 31 against the 25 baseline. The working tree is clean, so 31 is the committed
+figure and not a local edit.
+
+### E15-5 — R-20: ruling on the Scope 4 "no new sink" clause
+
+The item reads: *"Every authored string reaches the DOM through the existing
+`esc` helper, and no new sink is introduced."* Two clauses, ruled separately.
+
+**Clause 1 — every authored string reaches the DOM through `esc`. HOLDS, proven
+twice, at two different levels.**
+
+```
+$ grep -n 'reaches innerHTML without esc' scripts/selftest.mjs
+115:  assert(unescapedSinks.length === 0, 'no model/config-authored field reaches innerHTML without esc()');
+```
+
+That repo-wide static guard passed in the `3065 passed, 0 failed` run, and it
+carries its own adversarial control immediately below it, which feeds the exact
+original defect (`host.innerHTML = "<b>" + x.title + "</b>";`) through the same
+detector and requires it to be caught — so the guard is proven load-bearing
+rather than vacuous. The browser half passed in both projects:
+
+```
+  ✓  17 … narrative carries markup renders as escaped text at every sink (296ms)
+  ✓  30 … narrative carries markup renders as escaped text at every sink (768ms)
+```
+
+**Clause 2 — no new sink is introduced. LITERALLY FALSE.** Six new `innerHTML`
+sinks stand after the reduction, per E15-4. Not one, not zero: six.
+
+**Ruling.** The item is **LEFT OPEN**. The clause is not deleted, not reworded
+and not folded into clause 1.
+
+The tempting amendment — restate the item as the property it actually protects,
+"no unescaped authored string reaches the DOM" — was considered and **refused**,
+because that is precisely clause 1. Adopting it would collapse a two-clause item
+into one clause proven twice and would retire a real, independent safety
+property (surface-area reduction) by renaming it rather than by deciding it. An
+amendment whose net effect is that clause 2 stops being measured is the quiet
+deletion this ruling exists to prevent, whatever it is called.
+
+The amendment is a **plan-owner decision** and is already routed as finding
+**R-12**, which stays open. What has changed since R-12 was filed is the
+measurement, not the verdict: the breach is now six rather than nine, and the
+direction of travel is correct. That is recorded, and the box stays clear.
+
+### E15-6 — A discrepancy found in already-closed items: dangling evidence citations
+
+Not part of the requested closure, surfaced by this pass and reported rather
+than repaired, because repairing it would mean authoring evidence sections for
+runs this pass did not execute.
+
+```
+$ grep -c 'E1[34]' specs/026-actionable-brief-brevity-and-cross-asset/report.md
+0
+$ grep -o 'report\.md E1[34]-[0-9]' specs/026-actionable-brief-brevity-and-cross-asset/scopes.md | sort | uniq -c
+  11 report.md E13-1
+   4 report.md E13-2
+   1 report.md E13-3
+   5 report.md E14-1
+```
+
+**Twenty-one `[x]` DoD items in `scopes.md` cite `report.md` sections E13-1,
+E13-2, E13-3 and E14-1 that do not exist in `report.md`.** The token `E13` or
+`E14` appears **zero** times in the whole file. The verbatim figures those items
+quote (`3047 passed, 0 failed`, `1220 passed`, `PLAYWRIGHT_FULL_EXIT=0`) are
+plausible and consistent with each other, and `artifact-lint` does not catch
+this because its Check 1 is satisfied by the word `Evidence:` appearing on the
+item line — it does not resolve the pointer. This pass neither closed nor
+re-cited those items. It is routed to the report owner as finding **R-21**.
+
+---
+
 ## Uncertainty Declarations
 
 1. **The market events that prompted this work are not verifiable from the

@@ -255,11 +255,11 @@ Test Plan row.
       unsupported federal feature so no result is labeled a complete federal tax.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-01`
   - **Claim Source:** executed · **Result:** `effectiveTaxYears: [2026]`; Rev. Proc. 2025-32 retrieved in this session and every one of the 8 present figures re-verified digit-by-digit against the retrieved text; all 18 unsupported features named; `completeFederalTax` is a structural `false`.
-- [ ] The `site-exclusions.json` deploy decision exists and the pages-site build
+- [x] The `site-exclusions.json` deploy decision exists and the pages-site build
       accepts the new root page. The adversarial case proves that removing the
       entry makes the build refuse.
   - **Phase:** implement · **Command:** `node scripts/build-pages-site.mjs` · **Evidence:** `report.md#tp-01-11`
-  - **Partially met, so left unchecked.** Four deploy decisions exist for `rltaxrules.js`, `rltaxworkspace.js`, `rltax.js` and `lifetime-tax-strategy.config.json`, and `node scripts/build-pages-site.mjs --dry-run` accepts them at exit 0. The page entry and its adversarial removal were not exercised, because the page is out of scope for this dispatch.
+  - **Claim Source:** executed · **Result:** the page now carries its own `site-exclusions.json` entry alongside the four module entries, and the full non-dry-run `node scripts/build-pages-site.mjs` accepts it at exit 0 with `registeredPages: 28` and the page counted inside `excludedPaths: 12`, so it is accepted as deliberately unregistered rather than registered. The adversarial half was exercised in this session: removing only the `lifetime-tax-strategy-lab.html` entry made the same command exit 1 with `Error: unregistered root page lacks a deploy decision: lifetime-tax-strategy-lab.html`, naming the page rather than failing generically. The mutation was reverted immediately and `git status --short -- site-exclusions.json` was empty before the GREEN rerun.
 - [ ] The new page's Content-Security-Policy meta is byte-identical to the
       repository's existing single policy.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-10`

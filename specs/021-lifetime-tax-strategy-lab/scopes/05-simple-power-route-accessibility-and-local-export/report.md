@@ -18,11 +18,122 @@ per-bracket table, rule trace or raw curve series, and every excluded detail has
 a Power link.
 Command: `node scripts/selftest.mjs`
 
+**Claim Source:** executed. RED and GREEN below are raw terminal output from the
+identical command, bounded by `evidence-capture.sh`.
+
+RED — probe C renamed the Simple headline's field id from `headlineFederalTax`
+to `bracketBandTrace` at its render site and left `SIMPLE_FIELDS` untouched. That
+models the real defect the row guards: a detail surface leaking into the Simple
+view without being admitted to the closed list.
+
+```
+# PROBE-C RED Simple renders an undeclared field id bracketBandTrace outside SIMPLE_FIELDS
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3478
+sha256: 95c9ef35295a8f68487d39f5b121348eb28971f4a93e3f58df2facb08b80dba5
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: committed surface carries no personal identifier
+  ✗ FAIL: TP-05-01: Simple renders exactly its closed decision-field set with no candidate grid, per-band table, rule trace or raw curve series, the renderer refuses a field outside that set, every rendered field is declared and every declared field is rendered, and the declared Power sections and t
+  ✗ FAIL: TP-05-08: the derived Simple field identity holds in both directions with the three new fields present — every id drawn through the Simple constructor is admitted by the closed list and every member of the closed list has a render site — both directions are proven able to fail, and no Simp
+================================================
+Research-Lab self-test: 3062 passed, 3 failed
+================================================
+```
+
+The RED is the intended assertion failing. One mutation broke the identity in
+both directions at once — `bracketBandTrace` is rendered but not declared, and
+`headlineFederalTax` is declared but no longer rendered — and both the Scope 05
+row and the later cross-family TP-05-08 identity row caught it. That is the
+property the row claims: the restriction is enforced by two-directional
+identity, so it cannot be satisfied by a matching count.
+
+The mutation was reverted immediately and the revert proven before the same
+command was rerun:
+
+```
+=== revert check ===
+(empty = clean)
+```
+
+```
+# PROBE-C GREEN same command after immediate revert
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3478
+sha256: 928ce996e8727536328873824301982ddab66eff6cc4192840c90eccfbc87a7a
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: committed surface carries no personal identifier
+--- omitted 3438 line(s); sha256 above covers the full output ---
+================================================
+Research-Lab self-test: 3064 passed, 1 failed
+================================================
+```
+
+Both moved assertions returned and the count returned to the session-entry
+baseline of `3064 passed, 1 failed`.
+
 ### TP-05-02
 
 Scenario SCN-021-013 — Simple and Power read one result envelope and neither
 recomputes a tax, a curve point or a conversion amount.
 Command: `node scripts/selftest.mjs`
+
+**Claim Source:** executed. RED and GREEN below are raw terminal output from the
+identical command, bounded by `evidence-capture.sh`.
+
+RED — probe D replaced the Simple headline's envelope read with a second live
+call to the engine, so the view derived its own tax instead of rendering the one
+the envelope already carried. That is the precise defect the row exists to
+refuse: two derivations of the same figure that can silently disagree.
+
+```
+# PROBE-D RED renderSimple recomputes the tax instead of reading the envelope
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3478
+sha256: 493a124589c175dba7fd2f92382325c5c547ae8086ea89b0eba46d04c7817998
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: committed surface carries no personal identifier
+  ✗ FAIL: TP-05-02: exactly one function builds the result envelope, both views read it, and neither Simple nor Power recomputes a tax, a curve point or a conversion amount of its own
+  ✗ FAIL: TP-05-11: the Simple headline is sourced from totalFederalTax and from no single leg, and the binding is proven consequential — the same household settles an ordinary leg of 10970.00 against a total of 113039.00, so a headline reading the ordinary leg would under-state the tax owed by 1020
+  ✗ FAIL: TP-05-05: the Simple renderer reads settlement.totalFederalTax and reads none of the four single leg members anywhere in its code, the comment naming the forbidden leg is proven to be prose rather than a read, and the fixture makes the distinction real — the ordinary leg is non-zero, stric
+  ✗ FAIL: TP-05-06: a renderer reading ordinaryTax, preferentialTax, netInvestmentIncomeTax or additionalMedicareTax in place of the total is caught one per leg, and the unmutated renderer passes the identical detector
+================================================
+Research-Lab self-test: 3060 passed, 5 failed
+================================================
+```
+
+The RED is the intended assertion failing, and four independent guards caught
+the single mutation: the Scope 05 single-envelope row plus three later rows that
+pin the headline's source member. So "one envelope, two renderings" is enforced
+by the scope that owns the renderer and re-checked by every scope that adds a
+figure to it.
+
+The mutation was reverted immediately and the revert proven before the same
+command was rerun:
+
+```
+=== revert check ===
+(empty = clean)
+```
+
+```
+# PROBE-D GREEN same command after immediate revert
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3478
+sha256: 26fa01f15567b638d89951b82733ee18e6b5fc3fb6cbd2bb48288e0bb2d99b85
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: committed surface carries no personal identifier
+--- omitted 3438 line(s); sha256 above covers the full output ---
+================================================
+Research-Lab self-test: 3064 passed, 1 failed
+================================================
+```
+
+All four moved assertions returned and the count returned to the session-entry
+baseline of `3064 passed, 1 failed`.
 
 ### TP-05-03
 
@@ -42,6 +153,68 @@ Scenario SCN-021-014 — every unavailable record renders its code, reason and
 remediation; a blank, a bare dash and a zero are each proven to fail.
 Command: `node scripts/selftest.mjs`
 
+**Claim Source:** executed. RED and GREEN below are raw terminal output from the
+identical command, bounded by `evidence-capture.sh` (the sha256 covers every
+line produced, and `--verify` re-derives it).
+
+RED — probe B replaced the remediation line inside `unavailableNode` with a bare
+em dash, leaving the code, domain and reason lines standing. That is the exact
+degradation the row exists to refuse: a refusal that still looks populated but
+no longer tells the reader what would make the domain available.
+
+```
+# PROBE-B RED unavailableNode renders a bare dash instead of the remediation
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3478
+sha256: b9fdbe7dc70d51374af50b67c5ffa054e22d6acc2222381c54fe1cb56b8c1954
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: committed surface carries no personal identifier
+  ✗ FAIL: TP-05-05: every TaxUnavailable renders its code, its domain, its reason and its remediation on a focusable element, and the constructor emits no blank, bare dash or zero in their place
+  ✗ FAIL: TP-05-11: the one unavailable constructor renders the code, the domain, the reason and the remediation on a focusable element and writes no dash, blank or zero in their place, and every refusal the benefit, inclusion and medicare families raise carries all four members as a non-empty strin
+================================================
+Research-Lab self-test: 3062 passed, 1 failed
+================================================
+```
+
+The RED is the intended contract assertion failing, not a syntax error or a
+different break: TP-05-05 names the missing remediation and the forbidden dash
+directly. It is also stronger than the row asks for. Two independent guards
+fired on one mutation — the Scope 05 row and the later cross-family TP-05-11
+row, which re-checks the same single constructor for the benefit, inclusion and
+Medicare refusal families. So the constructor is protected in both directions:
+one renderer defect is caught by the scope that owns the renderer and by the
+scopes that depend on it. The third failure line, `committed surface carries no
+personal identifier`, is the pre-existing baseline failure described under
+TP-05-16; it is not attributable to this probe and it is present identically in
+the GREEN below.
+
+The mutation was reverted immediately and the revert proven before the same
+command was rerun:
+
+```
+=== revert check ===
+(empty = clean)
+```
+
+```
+# PROBE-B GREEN same command after immediate revert
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3478
+sha256: 57cb1c15540c1be92dd05988565335b9b11563ca8fb625cf6bb3ac0821521ae3
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: committed surface carries no personal identifier
+--- omitted 3438 line(s); sha256 above covers the full output ---
+================================================
+Research-Lab self-test: 3064 passed, 1 failed
+================================================
+```
+
+Both TP-05-05 and TP-05-11 return to passing and the count returns to the
+session-entry baseline of `3064 passed, 1 failed`. The two assertions the probe
+moved are exactly the two that came back.
+
 ### TP-05-06
 
 Scenario SCN-021-013 — the educational not-tax-advice framing is present and no
@@ -54,6 +227,59 @@ Command: `node scripts/selftest.mjs`
 Scenario SCN-021-015 — the sanitizer removes every identifier category and the
 omitted-field manifest matches its actual exclusions exactly.
 Command: `node scripts/selftest.mjs`
+
+**Claim Source:** executed. RED and GREEN below are raw terminal output from the
+identical command, bounded by `evidence-capture.sh`.
+
+RED — probe E made `sanitizeForExport` publish `omittedFields` one member short
+of what it actually withheld. That is the exact defect the row names: a field
+dropped from the export without the manifest admitting it, so the reader is told
+the file is more complete than it is.
+
+```
+# PROBE-E RED sanitizeForExport under-reports omittedFields by one member
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3478
+sha256: a61d3c40b80b304c792e08c46f5d42d21ac9ff76a0c349b070b9af2705646118
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: committed surface carries no personal identifier
+  ✗ FAIL: TP-05-07: the export manifest lists every withheld workspace member exactly, an under-reporting manifest is proven to disagree with the sanitizer, and the file carries the sensitivity warning, the never-collected categories and no identifier
+  ✗ FAIL: TP-03-15: the residency declaration is named in the privacy inventory, recorded as an unsupplied domain when absent, removed by the clear action, and redacted out of the export manifest so the location signal reaches no exported file
+================================================
+Research-Lab self-test: 3062 passed, 3 failed
+================================================
+```
+
+The RED is the intended assertion failing. A second, privacy-owned guard fired
+on the same mutation — the residency-declaration row, which depends on the
+manifest naming what it redacts — so under-reporting is caught both as a
+manifest-accuracy defect and as a location-signal disclosure defect.
+
+The mutation was reverted immediately and the revert proven before the same
+command was rerun:
+
+```
+=== revert check ===
+(empty = clean)
+```
+
+```
+# PROBE-E GREEN same command after immediate revert
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3478
+sha256: 00e8d578172557dcb11f38b07c1041fbceed7261964b69d706a01330d4be2f2e
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: committed surface carries no personal identifier
+--- omitted 3438 line(s); sha256 above covers the full output ---
+================================================
+Research-Lab self-test: 3064 passed, 1 failed
+================================================
+```
+
+Both moved assertions returned and the count returned to the session-entry
+baseline of `3064 passed, 1 failed`.
 
 ### TP-05-08
 
@@ -73,6 +299,48 @@ Command: `node scripts/selftest.mjs`
 Scenario SCN-021-013 — the finished root page still carries its deploy decision
 and the pages-site build accepts it.
 Command: `node scripts/build-pages-site.mjs`
+
+**Claim Source:** executed. RED and GREEN below are raw terminal output from the
+identical command, captured in this session.
+
+RED — probe A removed the `lifetime-tax-strategy-lab.html` entry from
+`site-exclusions.json` and left every other entry standing. The build refused by
+name rather than silently shipping an unreachable page:
+
+```
+=== PROBE-A RED: lifetime-tax-strategy-lab.html deploy decision removed ===
+file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:24
+  if (!condition) throw new Error(message);
+                        ^
+
+Error: unregistered root page lacks a deploy decision: lifetime-tax-strategy-lab.html
+    at assert (file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:24:25)
+    at planPagesSite (file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:49:3)
+    at buildPagesSite (file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:83:16)
+    at file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:110:16
+    at ModuleJob.run (node:internal/modules/esm/module_job:447:25)
+    at async node:internal/modules/esm/loader:646:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v26.4.0
+BUILD_PAGES_EXIT=1
+```
+
+The mutation was reverted immediately and the revert was proven before the same
+command was rerun:
+
+```
+=== revert check ===
+(empty = clean)
+=== PROBE-A GREEN: same command, decision restored ===
+{"contractVersion":"pages-site-build-result/v1","dryRun":false,"registeredPages":28,"excludedPaths":12,"rootFiles":120,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/004902309400a815a8ac1da2877422310e381d5c20748f711cbd0233e959a67a","omittedOrphanIndexes":144}
+BUILD_PAGES_EXIT=0
+```
+
+The GREEN also proves the second half of the row: `registeredPages: 28` with the
+page counted among `excludedPaths: 12` means the finished page is accepted as an
+unregistered page rather than registered, so the Scope 01 deploy decision is
+still doing exactly the job it was added for.
 
 ### Scenario SCN-021-013
 
@@ -94,6 +362,56 @@ Command: `npx --no-install playwright test --config=playwright.config.mjs --proj
 `Regression: SCN-021-015 a private export happens only on explicit action and the request ledger stays empty`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-015 a private export happens only on explicit action and the request ledger stays empty" --reporter=list`
 
+**Claim Source:** executed. Raw terminal output, bounded by
+`evidence-capture.sh`:
+
+```
+# TP-05-14 SCN-021-015 explicit-action private export and empty request ledger
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression: SCN-021-015 a private export happens only on explicit action and the request ledger stays empty --reporter=list
+exit: 0
+lines: 6
+sha256: e4ae04112ee5986d4b67b59b7ab25bb2dfa7906af4f759c0e57ea5d081913fe3
+--- output ---
+
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-route.spec.mjs:290:1 › Regression: SCN-021-015 a private export happens only on explicit action and the request ledger stays empty (830ms)
+
+  1 passed (2.3s)
+```
+
+**Uncertainty Declaration — this row is reported as a GREEN with no RED.** No
+mutation probe was applied to it in this session. The assertion body already
+existed and already passed, so claiming an observed RED would be a fabrication.
+What the row does carry is a built-in negative control the test performs on
+itself, which is stronger than a passing status line: it asserts
+`downloads.length === 0` at two separate points before the click — after first
+paint and after the household is declared — and only then asserts
+`downloads.length === 1` after the explicit click on an acknowledged control. So
+the "no file without explicit action" clause is proven by a counted transition,
+not by observing that a file eventually appeared.
+
+The row covers all four clauses of the export obligation against the real
+browser rather than against the module:
+
+- **No file without explicit action** — `#exportPrivateFile` is asserted
+  `toBeDisabled()` until `#exportAcknowledgement` is checked, and the download
+  count is asserted zero on both sides of the household entry pass.
+- **Warns about sensitivity** — `#exportWarning` is asserted to contain
+  `It is written only when you ask for it` before any file can exist, and the
+  written file's own `warning` member is asserted longer than 40 characters.
+- **Carries no identifier** — the downloaded file is read from disk, flattened,
+  and asserted not to contain `"name"`, `"address"`, `"accountnumber"`,
+  `"taxidentifier"`, `"credential"`, `"ssn"` or `"email"`. The scan excludes only
+  the `neverCollected` disclosure array, and it excludes it soundly: the
+  assertion immediately above pins that array to its exact five declared members,
+  so no value can hide inside it. The scan is proven to still reach real content
+  by asserting the flattened surface does contain `"ordinary"`,
+  `"omittedfields"` and the sentinel household amount.
+- **Manifest matches the sanitizer** — the written `omittedFields` is asserted to
+  contain `generation`, `updatedAt` and `declaredUnavailableDomains`, and the
+  exact-match half is carried by TP-05-07 above with its own RED.
+
 ### TP-05-15
 
 The complete cumulative Feature 021 browser suite over the real route.
@@ -110,7 +428,54 @@ Command: `node scripts/selftest.mjs`
 Zero new missing spec-referenced test paths, with the baseline file unmodified.
 Command: `node scripts/validate-spec-test-paths.mjs`
 
-## Regression Remediation — Route Spec Failures (2026-08-17)
+## Cumulative Zero-Network Canary
+
+**Claim Source:** executed. The canary is the same TP-05-14 run recorded under
+Scenario SCN-021-015 above (`exit: 0`, sha256
+`e4ae04112ee5986d4b67b59b7ab25bb2dfa7906af4f759c0e57ea5d081913fe3`), read for
+its network clauses rather than its export clauses. The sentinel household value
+is `SENTINEL_ORDINARY = '123457'`, declared once in `tests/lifetime-tax.support.mjs`.
+
+The row exercises the finished route end to end — first paint, a full household
+entry pass, the settlement, the view switch to Power, the export click, and the
+clear action — and then asserts the sentinel reached none of the five surfaces
+the obligation names:
+
+| Surface the sentinel must not reach | Assertion in the row |
+| --- | --- |
+| Any request URL | `ledger.some((entry) => entry.url.includes(SENTINEL_ORDINARY))` is `false` |
+| Any request body | `ledger.some((entry) => entry.postData.includes(SENTINEL_ORDINARY))` is `false` |
+| The page URL | `location.href.includes(SENTINEL_ORDINARY)` is `false`, and `location.search` is `''` |
+| The referrer | `location.referrer` is `''` |
+| Any console message | `consoleMessages` is `[]` |
+
+The request ledger itself is held to a stronger promise than "the sentinel is
+absent": `ledger.length` after the Power switch is asserted equal to
+`afterFirstPaint`, so **not one request of any kind** was issued after the page
+loaded — not by the entry pass, not by the settlement, not by the view switch and
+not by the export. The requests that did occur during first paint are then
+filtered against `declaredRouteAssets()`, derived from the route's own script
+tags and its declared configuration and pack paths, and the residue is asserted
+`[]`. That derivation carries its own adversarial in the same row: it is proven
+to contain `/rltaxproperty.js` and `/tax-rules/benefit/2026.json` and proven not
+to contain `/definitely-not-declared-by-this-route.js`, so it cannot be a
+vacuously permissive allowlist.
+
+The sixth surface the obligation names is the committed artifact, which a browser
+run cannot inspect. It was checked directly against the committed tree:
+
+```
+=== committed-artifact scan for SENTINEL_ORDINARY=123457 across this feature's own surfaces ===
+GITGREP_EXIT=1  (exit 1 = zero matches)
+```
+
+The scan covered `lifetime-tax-strategy-lab.html`,
+`lifetime-tax-strategy.config.json`, every `rltax*.js` module, everything under
+`tax-rules/`, `site-exclusions.json` and every artifact under
+`specs/021-lifetime-tax-strategy-lab/`. `git grep` exits 1 on zero matches, so
+the sentinel appears in no committed artifact this feature owns.
+
+
 
 **Claim Source:** executed. Every block below is raw terminal output captured in
 this session with its real exit code. Nothing here is inferred.

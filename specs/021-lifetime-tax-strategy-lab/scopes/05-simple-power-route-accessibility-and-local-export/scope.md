@@ -240,12 +240,14 @@ Test Plan row.
       framing, no error-rate or track-record claim, explicit-action private
       export, and continued absence from every registration surface.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-01` through `report.md#tp-05-09`
-- [ ] Simple's rendered field set is proven restricted, and both views are proven
+- [x] Simple's rendered field set is proven restricted, and both views are proven
       to read one result envelope with no second derivation.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-01`, `report.md#tp-05-02`
-- [ ] Every unavailable domain renders its code, reason and remediation. A
+  - **Claim Source:** executed · **Result:** TP-05-01 holds the restriction as a two-directional identity between the closed `SIMPLE_FIELDS` list and the ids the markup actually draws, so neither a leaked detail field nor a declared field with no render site can pass, and it separately refuses a canvas, a per-band table, a rule ledger and a raw curve series inside the Simple markup. TP-05-02 asserts exactly one `buildEnvelope` exists, that it is the only site calling the four engines, and that none of the five view functions calls any of them. Both were proven able to fail. Probe C renamed the headline field id to an undeclared `bracketBandTrace` and the run went to `3062 passed, 3 failed`, breaking the identity in both directions at once. Probe D replaced the headline's envelope read with a live `computeAnnualFederalTax` call and the run went to `3060 passed, 5 failed`, with four independent guards naming the second derivation. Each mutation was reverted immediately, `git status --short -- lifetime-tax-strategy-lab.html` was empty before each rerun, and both GREENs returned to the session-entry baseline of `3064 passed, 1 failed`.
+- [x] Every unavailable domain renders its code, reason and remediation. A
       blank, a bare dash and a zero are each proven to fail.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-05`
+  - **Claim Source:** executed · **Result:** TP-05-05 reads the one `unavailableNode` constructor and asserts it emits `record.code`, `record.domain`, `record.reason` and `record.whatWouldMakeItAvailable` on a `tabindex="0"` element, while two dedicated detectors refuse a `textContent` of a bare dash or a bare zero. The guard is proven able to fail rather than assumed: probe B replaced the remediation line with a bare em dash and left the other three lines standing, and the run went to `3062 passed, 3 failed` with TP-05-05 naming the defect and the cross-family TP-05-11 row firing on the same single constructor. Reverting restored `3064 passed, 1 failed`, the session-entry baseline, and `git status --short -- lifetime-tax-strategy-lab.html` was empty before the GREEN rerun. Because every refusal in the route flows through this one constructor, the per-domain obligation is carried structurally rather than domain by domain.
 - [ ] The export produces no file without explicit user action, warns about
       sensitivity, carries no identifier, and its omitted-field manifest matches
       the sanitizer's actual exclusions.
@@ -254,9 +256,10 @@ Test Plan row.
       sentinel household value appears in no request, URL, referrer, console
       message or committed artifact.
   - **Phase:** implement · **Command:** the TP-05-14 command · **Evidence:** `report.md#scenario-scn-021-015`
-- [ ] The pages-site build accepts the finished unregistered root page and its
+- [x] The pages-site build accepts the finished unregistered root page and its
       Scope 01 deploy decision is unchanged.
   - **Phase:** implement · **Command:** `node scripts/build-pages-site.mjs` · **Evidence:** `report.md#tp-05-10`
+  - **Claim Source:** executed · **Result:** `node scripts/build-pages-site.mjs` exits 0 on the finished page, reporting `registeredPages: 28` with the page inside `excludedPaths: 12`, so the build accepts it as deliberately unregistered. The Scope 01 decision is unchanged: `git status --short -- site-exclusions.json` is empty against `HEAD`. The row is proven consequential rather than assumed — removing only that one entry made the identical command exit 1 with `Error: unregistered root page lacks a deploy decision: lifetime-tax-strategy-lab.html`, and the entry was restored and the revert proven before the GREEN rerun.
 - [ ] The tool is absent from `tools.json`, `index.html`, `rlnav.js`,
       `README.md`, `notes/README.md` and market-brief coverage, and all six are
       byte-identical.

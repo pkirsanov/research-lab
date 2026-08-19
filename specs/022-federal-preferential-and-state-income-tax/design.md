@@ -1099,8 +1099,12 @@ Inherited from Feature 021 verbatim, extended by exactly four values:
 - All four live in the existing declared storage namespace. No new key prefix.
 - All four appear in `privacyInventory()` and are removed by
   `clearAllPrivateData()`.
-- All four are redacted by `sanitizeForExport()` under the identical rule as
-  every income amount, and the export manifest names what it left out.
+- `sanitizeForExport()` applies to all four the identical rule it applies to
+  every income amount. `investmentIncomeBasis.otherOrdinaryNetInvestmentIncome`
+  and `wageBasis.medicareWagesAndSelfEmploymentIncome` are kept in the export the
+  user explicitly asked for, exactly as the four income amounts are.
+  `residencyJurisdiction` and `residencyPattern` are withheld. The export
+  manifest names every member it withholds in `omittedFields[]`.
 - None may reach a URL, query string, hash, request, referrer or console message.
   The residency state is a location signal and is treated as at least as sensitive
   as an income amount, not less.

@@ -221,11 +221,56 @@ PAGES_DRYRUN_EXIT=0
 `excludedPaths` rose from 1 to 5. The four new entries are `rltaxrules.js`,
 `rltaxworkspace.js`, `rltax.js` and `lifetime-tax-strategy.config.json`.
 
-**Uncertainty Declaration.** The row as written also requires the deploy decision
-for `lifetime-tax-strategy-lab.html` and the adversarial proof that removing that
-entry makes the build refuse. The page is out of scope for this dispatch, so
-neither was exercised. The row is partially met and the corresponding DoD item is
-left unchecked.
+**Uncertainty Declaration (2026-08-18, superseded 2026-08-19).** The row as
+written also requires the deploy decision for `lifetime-tax-strategy-lab.html`
+and the adversarial proof that removing that entry makes the build refuse. At
+the time of the run above the page was out of scope for that dispatch, so
+neither was exercised.
+
+#### TP-01-11 completion (2026-08-19) — the page entry and its adversarial
+
+**Claim Source:** executed. The page now exists and carries its own deploy
+decision, so the half declared uncertain above was exercised with the full
+non-dry-run command. RED and GREEN below are raw terminal output from the
+identical command.
+
+RED — the `lifetime-tax-strategy-lab.html` entry was removed from
+`site-exclusions.json` with every other entry left standing:
+
+```
+=== PROBE-A RED: lifetime-tax-strategy-lab.html deploy decision removed ===
+file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:24
+  if (!condition) throw new Error(message);
+                        ^
+
+Error: unregistered root page lacks a deploy decision: lifetime-tax-strategy-lab.html
+    at assert (file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:24:25)
+    at planPagesSite (file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:49:3)
+    at buildPagesSite (file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:83:16)
+    at file:///Users/pkirsanov/Projects/research-lab/scripts/build-pages-site.mjs:110:16
+    at ModuleJob.run (node:internal/modules/esm/module_job:447:25)
+    at async node:internal/modules/esm/loader:646:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v26.4.0
+BUILD_PAGES_EXIT=1
+```
+
+The refusal names the page, so it is the intended contract assertion failing
+rather than a syntax error or an unrelated break. The mutation was reverted
+immediately and the revert proven before the same command was rerun:
+
+```
+=== revert check ===
+(empty = clean)
+=== PROBE-A GREEN: same command, decision restored ===
+{"contractVersion":"pages-site-build-result/v1","dryRun":false,"registeredPages":28,"excludedPaths":12,"rootFiles":120,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/004902309400a815a8ac1da2877422310e381d5c20748f711cbd0233e959a67a","omittedOrphanIndexes":144}
+BUILD_PAGES_EXIT=0
+```
+
+`registeredPages` stays at 28 while the page is carried inside `excludedPaths`,
+so the build accepts the page as deliberately unregistered rather than
+registering it. Both halves of TP-01-11 are now met.
 
 ### Scenario SCN-021-001
 

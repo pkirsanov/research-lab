@@ -706,3 +706,69 @@ test('TP-026-5.17 the track record is part of the default view and is not reacha
     await server.close();
   }
 });
+
+/*
+ * BUG-009 R4. The attention feed has been empty on every published run because every
+ * candidate is refused for want of an observed gate result. The old text — "No attention
+ * items in the current payload" — reads as a calm market, which is the single most
+ * dangerous sentence this brief can print: it invites the reader to conclude nothing
+ * happened when the truth is that the detector produced nothing to substantiate.
+ */
+test('SCN-BUG009-R4 an empty attention feed tells the reader it was refused, not that the market was calm', async ({ page }) => {
+  test.setTimeout(90_000);
+  const refused = [
+    { code: 'RLATTN-PROVENANCE', field: 'gateResult', index: 0, reason: 'an attention item is built from an observed gate result', subject: null },
+    { code: 'RLATTN-PROVENANCE', field: 'gateResult', index: 1, reason: 'an attention item is built from an observed gate result', subject: null },
+    { code: 'RLATTN-PROVENANCE', field: 'gateResult', index: 2, reason: 'an attention item is built from an observed gate result', subject: null }
+  ];
+  const server = await startStaticServer({
+    overrides: { 'market-brief.page.json': cockpitPayload({ attention: [], attentionExclusions: refused }) }
+  });
+  try {
+    await openCockpit(page, server);
+    const host = page.locator('[data-mac-attention-empty="refused"]');
+    await expect(host, 'the refusal block is published when candidates were refused').toHaveCount(1);
+
+    // The attention feed lives inside the collapsed "catalysts" drawer by Scope 4's
+    // disclosure-first design, so the refusal statement is disclosed content rather than
+    // default-visible text — it costs no default-visible budget and is one control away,
+    // exactly where a reader goes to ask what the feed found.
+    await page.locator('[data-mac-summary="catalysts"]').click();
+    await expect(host, 'opening the catalysts control reveals the refusal').toBeVisible();
+    const text = (await host.textContent()) || '';
+
+    expect(text, 'the reader is told how many candidates were withheld').toContain('3 candidates refused');
+    expect(text, 'the reason is reproduced from the exclusion record').toContain('an attention item is built from an observed gate result');
+    expect(text, 'nothing was quietly substituted for the refused candidates').toContain('Nothing was substituted');
+    expect(text, 'the block refuses the calm reading explicitly').toContain('does not mean nothing happened');
+
+    // Three identical reasons state their cause ONCE with a count, not three times.
+    await expect(page.locator('[data-mac-attention-exclusion]'),
+      'identical reasons collapse to a single counted line').toHaveCount(1);
+
+    // The misleading sentence must be gone from the rendered page in this state.
+    const body = await page.locator('body').innerText();
+    expect(body, 'the old calm-sounding sentence is not what a refused feed prints')
+      .not.toContain('No attention items in the current payload. Nothing was refused');
+  } finally {
+    await server.close();
+  }
+});
+
+test('SCN-BUG009-R4 a genuinely quiet run still reads as quiet and is not dressed up as a refusal', async ({ page }) => {
+  test.setTimeout(90_000);
+  const server = await startStaticServer({
+    overrides: { 'market-brief.page.json': cockpitPayload({ attention: [], attentionExclusions: [] }) }
+  });
+  try {
+    await openCockpit(page, server);
+    // The negative control for the row above: with nothing refused, the refusal block MUST NOT
+    // appear. Without this, a renderer that always cried refusal would pass the test above.
+    await expect(page.locator('[data-mac-attention-empty="refused"]'),
+      'no refusal is claimed when nothing was refused').toHaveCount(0);
+    await expect(page.locator('[data-mac-attention-empty="quiet"]'),
+      'the genuinely quiet state is still expressible').toHaveCount(1);
+  } finally {
+    await server.close();
+  }
+});

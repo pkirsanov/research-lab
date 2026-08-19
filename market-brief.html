@@ -1767,7 +1767,7 @@
                     }
                 } else {
                     var attention = RLBRIEF.actionableAttention(catalystsOnly, CFG.thresholds && CFG.thresholds.minimumAttentionConfidence);
-                    RLBRIEF.renderAttention(el("attention"), attention, CFG, CFG.thresholds && CFG.thresholds.attentionMaxCards);
+                    RLBRIEF.renderAttention(el("attention"), attention, CFG, CFG.thresholds && CFG.thresholds.attentionMaxCards, PAYLOAD && PAYLOAD.attentionExclusions);
                 }
                 RLBRIEF.renderEvents(el("events"), mergeEvents());
                 RLBRIEF.renderGroups(el("groups"), (PAYLOAD && PAYLOAD.groups) || (SNAP && SNAP.groups), CFG);

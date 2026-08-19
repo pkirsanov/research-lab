@@ -23344,10 +23344,10 @@ try {
     .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
   assert(suiteCode4.indexOf('market-brief.payload.json') < 0
     && suiteCode4.indexOf('brief-history.jsonl') < 0
-    && (suiteSrc4.match(/^test\(/gm) || []).length === 18
+    && (suiteSrc4.match(/^test\(/gm) || []).length === 20
     && (suiteSrc4.match(/FIXTURE-SOURCED/g) || []).length === 2
     && suiteCode4.indexOf('page.route') < 0 && suiteCode4.indexOf('context.route') < 0,
-  'tests/market-brief-cockpit.spec.mjs declares eighteen tests, labels both fixture-sourced decision-surface rows as such, intercepts no request, and binds itself to neither the payload nor the history ledger');
+  'tests/market-brief-cockpit.spec.mjs declares twenty tests — eighteen for Feature 026 plus the two BUG-009 R4 rows and their negative control — labels both fixture-sourced decision-surface rows as suchh, intercepts no request, and binds itself to neither the payload nor the history ledger');
 
   /* The stripper must not become the hole in the guard: a real page.route in CODE still fails,
      and the same text inside a comment does not. */
@@ -23684,6 +23684,44 @@ try {
 
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 budget freshness group threw): ' + e.message); }
 /* ---------- Feature 026 Scope 5: market brief — published budget freshness (END) ---------- */
+
+/* ---------- BUG-009 R4: honest empty attention feed (BEGIN) ---------- */
+/* R4 from the BUG-009 design: an empty attention feed must not read as a quiet
+   market when the truth is that candidates were built and then refused. This is the
+   one BUG-009 remedy implementable without inventing detection policy — it states a
+   fact the payload already carries and invents no judgement. Reasons are READ from
+   the exclusion records, never composed by the renderer. */
+try {
+  group('BUG-009 R4 — an empty attention feed states refusal, not calm');
+  const briefSrc9 = read('rlbrief.js');
+  const htmlSrc9 = read('market-brief.html');
+
+  assert(/function emptyAttentionStatement\(/.test(briefSrc9),
+    'rlbrief.js defines emptyAttentionStatement — an empty attention feed is explained in exactly one place');
+  assert(/data-mac-attention-empty="quiet"/.test(briefSrc9) && /data-mac-attention-empty="refused"/.test(briefSrc9),
+    'the two causes of an empty feed carry DIFFERENT machine-readable markers, so a reader and a test can tell calm apart from refusal');
+  assert(/Nothing was substituted/.test(briefSrc9) && /does not mean nothing happened/.test(briefSrc9),
+    'the refusal block states that nothing was substituted and that an empty feed is not evidence of calm — the exact misreading this remedy exists to prevent');
+
+  /* The strongest check in this group. The renderer must READ the reason from the
+     exclusion record. If it hard-coded today's live reason it would render correctly
+     today and lie the moment a different refusal appeared, so the live string must
+     NOT be present in the renderer at all. */
+  assert(briefSrc9.indexOf('an attention item is built from an observed gate result') < 0,
+    'Regression: SCN-BUG009-R4 rlbrief.js does NOT contain the live exclusion reason as a literal — the text is read from the record, so a different refusal renders its own reason instead of a familiar one');
+  assert(/\.reason/.test(briefSrc9.slice(briefSrc9.indexOf('function emptyAttentionStatement'), briefSrc9.indexOf('function emptyAttentionStatement') + 1800)),
+    'emptyAttentionStatement reads .reason off the exclusion records it is given');
+
+  assert(/renderAttention\([\s\S]{0,220}?attentionExclusions/.test(htmlSrc9),
+    'market-brief.html passes the payload attentionExclusions into renderAttention, so the renderer is actually reachable with real refusals');
+
+  const livePayload9 = JSON.parse(read('market-brief.payload.json'));
+  const liveExcl9 = Array.isArray(livePayload9.attentionExclusions) ? livePayload9.attentionExclusions : [];
+  const liveAttn9 = Array.isArray(livePayload9.attention) ? livePayload9.attention : [];
+  assert(liveAttn9.length > 0 || liveExcl9.every((e) => e && typeof e.reason === 'string' && e.reason),
+    'every exclusion in the LIVE payload carries a non-empty reason, so the published brief can always say why its feed is empty rather than falling back to silence');
+} catch (e) { failures++; console.log('  ✗ FAIL (BUG-009 R4 group threw): ' + e.message); }
+/* ---------- BUG-009 R4: honest empty attention feed (END) ---------- */
 
 /* ---------- Feature 022 Scope 02: threshold surtaxes and declared tax legs (START) ---------- */
 /* The two federal threshold surtaxes and the pack-declared leg set. Every figure below is

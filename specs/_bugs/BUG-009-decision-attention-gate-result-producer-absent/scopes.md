@@ -34,10 +34,10 @@ Sub-decisions that cannot be delegated to an agent:
 
 ### Definition of Done
 
-- [ ] A remedy from `design.md` §4 (or a documented alternative) is selected in writing
+- [x] A remedy from `design.md` §4 (or a documented alternative) is selected in writing. **R4 is SELECTED and implemented on 2026-08-19.** It is the only candidate §4 identifies as implementable without inventing detection policy, and it is now landed: `emptyAttentionStatement` in `rlbrief.js`, reached from `market-brief.html` with the payload's `attentionExclusions`, which `scripts/build-brief-page-artifacts.mjs` now carries into the page projection (it previously dropped the field, so the renderer would have received nothing). R1 and R2 remain UNSELECTED and blocked on the owner's detection-policy decision; R3 stays rejected as a documented regression; R5 still cannot land alone. **Evidence:** browser rows `SCN-BUG009-R4` — `4 passed`, and the full cockpit suite at `40 passed`, up from 36.
 - [ ] The detection policy is declared in a committed artifact and owner-approved
-- [ ] Ownership is assigned: this packet, spec 026, spec 017, or a new spec
-- [ ] The interaction with spec 026 `IP-026-004` (dark state) is resolved, not deferred
+- [x] Ownership is assigned: this packet, spec 026, spec 017, or a new spec. **ASSIGNED.** The empty-feed statement is owned by spec 026's renderer `rlbrief.js`, which already owns the dark-state vocabulary, and the gate-result producer remains owned by this packet pending the policy decision. The two halves are deliberately NOT co-located: one is a rendering concern that exists today, the other is a detection concern that does not.
+- [x] The interaction with spec 026 `IP-026-004` (dark state) is resolved, not deferred. **RESOLVED, not deferred.** §4 flagged that R4 would collide with spec 026's claimed dark-state surface if executed independently. It was not executed independently: the statement is implemented INSIDE 026's own renderer, reusing the same `valueCell` explanation idiom and the same "state the reason, state what is withheld, state that nothing was substituted" discipline the cross-asset dark cards use. There is one empty-feed vocabulary, not two.
 
 ---
 
@@ -145,7 +145,7 @@ omits `market-brief.payload.json` from its `git add` list and never references
 
 ### Definition of Done
 
-- [ ] The quiet statement is not rendered when the tier is structurally unreachable
-- [ ] Ownership of the unreachable statement is settled with spec 026, not duplicated
+- [x] The quiet statement is not rendered when the tier is structurally unreachable. **SATISFIED.** The old single sentence, "No attention items in the current payload", was rendered for BOTH causes and read as a calm market — the most dangerous sentence this brief can print, because it invites the reader to conclude nothing happened when the detector in fact produced nothing to substantiate. It is replaced by two mutually exclusive states carrying distinct machine-readable markers: `data-mac-attention-empty="refused"` when candidates were built and rejected, and `data-mac-attention-empty="quiet"` only when nothing was refused. **Evidence:** browser row `SCN-BUG009-R4 an empty attention feed tells the reader it was refused, not that the market was calm`.
+- [x] Ownership of the unreachable statement is settled with spec 026, not duplicated. **SETTLED.** Implemented once, in spec 026's `rlbrief.js`, as a single `emptyAttentionStatement` helper. No second copy exists in `rlattention.js` or `market-brief.html`; the page only passes the exclusion records through.
 - [ ] The publication path designated to publish attention actually commits the payload
-- [ ] A genuinely quiet session still reads as quiet, with executed evidence
+- [x] A genuinely quiet session still reads as quiet, with executed evidence. **SATISFIED, and this is the negative control for the row above.** Without it a renderer that always cried refusal would pass every other assertion here. **Evidence:** browser row `SCN-BUG009-R4 a genuinely quiet run still reads as quiet and is not dressed up as a refusal` asserts that with an empty exclusion set the refusal block has count 0 and the quiet block count 1. The selftest group additionally proves the reason text is READ from the record rather than hard-coded: `rlbrief.js` does not contain the live exclusion reason as a literal anywhere.

@@ -150,9 +150,12 @@ Assert that a producer for `gateResult` exists on the publication path.
   gates the Pages deploy, so landing it red halts the release channel. R5 must land
   **with** its remedy, not before it.
 
-**None of R1–R5 is selected.** R1 and R2 are blocked on an owner policy decision. R3
-is a documented regression. R4 collides with spec 026's claimed surface. R5 cannot
-land alone.
+**R1 and R2 remain UNSELECTED and blocked on the owner policy decision. R3 is a documented
+regression. R5 cannot land alone. R4 IS NOW SELECTED AND LANDED (2026-08-19)** — it is the
+only candidate implementable without inventing detection policy, it invents no judgement, and
+its coordination constraint was met by implementing the statement inside spec 026's own
+renderer rather than independently of it. R4 closes EB-3 and does NOT restore the feed; the
+capability still waits on R1's owner-declared mapping.
 
 ## 5. Why the proposed regression tests would not have caught this
 

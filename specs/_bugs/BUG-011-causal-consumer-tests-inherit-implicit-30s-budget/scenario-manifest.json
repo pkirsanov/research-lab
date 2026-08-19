@@ -1,0 +1,85 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget",
+  "generatedBy": "bubbles.bug",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-011B-001",
+      "title": "Every test in the file declares the budget its work needs",
+      "scopeId": "01-declare-owner-reload-budget",
+      "scope": 1,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "tests/causal-rotation-consumers.spec.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-011B-002",
+      "title": "The suite is green under its own parallelism",
+      "scopeId": "01-declare-owner-reload-budget",
+      "scope": 1,
+      "status": "not_started",
+      "requiredTestType": "e2e-ui",
+      "linkedTests": [
+        "tests/causal-rotation-consumers.spec.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-011B-003",
+      "title": "The red is removed by giving time, never by checking less",
+      "scopeId": "01-declare-owner-reload-budget",
+      "scope": 1,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "tests/causal-rotation-consumers.spec.mjs",
+        "playwright.config.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "design.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-011B-004",
+      "title": "Raising an enclosing budget keeps every wait declaration reachable",
+      "scopeId": "01-declare-owner-reload-budget",
+      "scope": 1,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "scripts/validate-playwright-timeout-budgets.mjs",
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-011B-005",
+      "title": "The suite still tests everything it tested before",
+      "scopeId": "01-declare-owner-reload-budget",
+      "scope": 1,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "tests/causal-rotation-consumers.spec.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    }
+  ]
+}

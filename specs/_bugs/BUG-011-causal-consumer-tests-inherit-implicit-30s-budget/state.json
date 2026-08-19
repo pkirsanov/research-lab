@@ -1,0 +1,167 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget",
+  "featureName": "BUG-011 Feature 001 Consumer Regressions Run On A Budget Nobody Chose",
+  "createdAt": "2026-08-18T23:27:00Z",
+  "lastUpdatedAt": "2026-08-18T23:45:00Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "priorBlockedReason": null,
+  "blockedReasonResolved": null,
+  "crossFeatureEditAuthorization": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "priorPlanningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/001-causal-rotation-intelligence",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [
+    "specs/001-causal-rotation-intelligence"
+  ],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json"
+  },
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": "implement",
+    "currentPhaseStatus": "in_progress",
+    "phaseReconciliation": null,
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-18T23:27:00Z",
+    "completedAt": null,
+    "substate": null,
+    "currentScope": "01-declare-owner-reload-budget",
+    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredTarget": "specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget/scopes.md",
+    "nextRequiredReason": "The code change described in design.md section 2 is applied in the working tree — all five tests in tests/causal-rotation-consumers.spec.mjs declare test.setTimeout(180_000) — but the verification that decides whether it worked has not reported. scopes.md names the full committed suite at four-worker parallelism as the adversarial test, because that is the only condition under which the 30000 ms budget was ever observed to expire; the isolated run was green before the change and would stay green if the fix did nothing. That full-suite run is in flight. Until it reports, the scope stays Not Started, all nine DoD items stay unchecked, and no scenario contract is discharged.",
+    "phaseClaimNote": "currentPhase is 'implement' with currentPhaseStatus 'in_progress' because a code change genuinely exists in the working tree; recording an earlier phase would misdescribe the tree. No phase COMPLETION is claimed anywhere: completedPhaseClaims is empty, certification.certifiedCompletedPhases is empty, and certification.completedScopes is empty, so no implementation phase is asserted against zero completed scopes.",
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scopeId": "01-declare-owner-reload-budget",
+        "scope": 1,
+        "status": "Not Started",
+        "dependsOn": []
+      }
+    ],
+    "audit": null
+  },
+  "terminalTransitionBlockers": [
+    "The post-fix full-suite result is not established. The run is in flight and no tally is recorded in this packet. That run is the packet's only adversarial verification; scopes.md states that a DoD ticked on the isolated run alone would be tautological, because the file was green in isolation before the change.",
+    "All 9 Definition of Done items in scopes.md scope 01 are unchecked, and the scope is Not Started.",
+    "None of the 5 scenario contracts SCN-011B-001 through SCN-011B-005 has been executed; every entry in scenario-manifest.json is not_started.",
+    "The fix is uncommitted. git status --porcelain reports M tests/causal-rotation-consumers.spec.mjs at HEAD adb97b983.",
+    "Gate G136 human acceptance is not established: uservalidation.md carries 5 unchecked acceptance items and an unfilled Human Acceptance Record. Only a human can discharge it.",
+    "No measurement in report.md was executed by an agent in the authoring session. Every Playwright and selftest figure is an operator-executed observation, recorded as reported rather than re-derived."
+  ],
+  "knownLimitation": {
+    "statement": "The fix raises an enclosing test budget; it does not make the wait deterministic. page.waitForLoadState('networkidle') inside openOwner remains timing-dependent, and only its allowance grew. A sufficiently loaded machine can still exhaust 180000 ms.",
+    "recordedIn": [
+      "tests/causal-rotation-consumers.spec.mjs comment above openOwner",
+      "design.md section 3",
+      "spec.md Out of scope"
+    ],
+    "whyNotClosedHere": "The condition-based replacement needs a page-level readiness marker that sector-research-lab.html, global-rotation-lab.html and real-assets-lab.html do not expose. Every available substitute either resolves before the owner model has rendered or can hang indefinitely. Adding the marker is a Feature 001 product change with its own scope, recorded in spec.md as out of scope rather than as done.",
+    "consequenceForStatus": "This limitation alone would not prevent a terminal status if the fix were verified. The status is in_progress because the verification has not reported, not because the limitation exists."
+  },
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "certificationFieldWriteNote": "Certification fields are validate-owned. This packet's state.json was authored to complete the required artifact set under explicit operator instruction; the certification block is INITIALISED, not asserted. status mirrors the top-level status at in_progress, and completedScopes and certifiedCompletedPhases are deliberately empty because those are certification claims and remain bubbles.validate's to write.",
+    "scopeProgress": [
+      {
+        "scopeId": "01-declare-owner-reload-budget",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 9
+      }
+    ],
+    "assurance": {
+      "level": "none",
+      "missingForFull": [
+        "scenario-execution",
+        "independent-validate",
+        "independent-audit",
+        "Detail: the code change exists in the working tree and the operator's post-fix node scripts/selftest.mjs run reports 2490 passed / 0 failed, which exercises the BUG-009 budget-coherence guard and establishes that no wait declaration became unreachable. That is coherence, not proof the tests survive four-worker contention. The decisive full-suite run has not reported. No agent re-derived any measurement, and design.md and scopes.md were authored without dispatch to bubbles.design and bubbles.plan, so neither has been reviewed by its owning specialist."
+      ]
+    }
+  },
+  "completedScopes": [],
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.implement",
+      "workflowMode": "bugfix-fastlane",
+      "phasesExecuted": [],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.implement",
+      "expansionReason": "The operator scoped this run to completing the packet's missing required artifacts and explicitly forbade running any test command, because a full Playwright suite was executing against this tree and a competing run would corrupt the timing measurement it was producing. No subagent was dispatched and no workflow phase is claimed complete.",
+      "expansionEvidenceRef": "report.md#test-evidence",
+      "statusBefore": "not_started",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-18T23:40:00Z",
+      "finishedAt": "2026-08-18T23:45:00Z",
+      "outcome": "route_required",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "BUG-011-CAUSAL-CONSUMER-TESTS-INHERIT-IMPLICIT-30S-BUDGET"
+      ],
+      "evidenceRef": "report.md#outstanding-verification",
+      "summary": "Authored the three missing required artifacts — report.md, uservalidation.md and state.json — completing the eight-artifact shape bug.md declares, after reading bug.md, spec.md, design.md, scopes.md and scenario-manifest.json for consistency. Executed no test command of any kind. Verified by static read that all five tests in tests/causal-rotation-consumers.spec.mjs carry test.setTimeout(180_000) as their first statement and that the six-line comment above openOwner shifted the cited line numbers by six, and verified by git that HEAD is adb97b983 with the fix uncommitted. Every Playwright and selftest figure in report.md was executed by the operator and is recorded as a reported observation with explicit provenance, not restated as agent execution evidence. The post-fix full-suite tally is deliberately absent: that run is in flight, no placeholder stands in for it, and its DoD item is left unchecked. Status is in_progress because the fix is applied but unverified; any terminal status would be a fabricated claim.",
+      "durationProvenance": "One continuous session segment consisting of artifact reads, three file writes, two read-only git commands and one artifact-lint run. No test was executed, by instruction."
+    }
+  ],
+  "activeBugs": [
+    "BUG-011-causal-consumer-tests-inherit-implicit-30s-budget"
+  ],
+  "resolvedBugs": [],
+  "addressedFindings": [],
+  "unresolvedFindings": [
+    "BUG-011-CAUSAL-CONSUMER-TESTS-INHERIT-IMPLICIT-30S-BUDGET"
+  ]
+}

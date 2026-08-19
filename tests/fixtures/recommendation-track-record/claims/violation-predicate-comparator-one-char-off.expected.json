@@ -1,0 +1,7 @@
+{
+  "outcome": "violation",
+  "reason": "predicate-comparator-not-allowed",
+  "field": "predicate.comparator",
+  "legalMember": "crosses-above",
+  "vocabulary": "PREDICATE_COMPARATORS"
+}

@@ -6,7 +6,8 @@ import test from 'node:test';
 import { gunzipSync } from 'node:zlib';
 
 import '../rlcompany.js';
-import { buildCompanyFundamentalsOwnerRead } from '../scripts/brief-refresh.mjs';
+import { buildCompanyFundamentalsOwnerRead, companyOwnerReadDisclosure, reassertCompanyOwnerReadDisclosure } from '../scripts/brief-refresh.mjs';
+import { NO_RECOMMENDATION_DISCLOSURE, findCompanyOwnerReadDisclosureBreaches } from '../scripts/validate-brief-payload.mjs';
 
 const company = globalThis.RLCOMPANY;
 
@@ -1994,6 +1995,112 @@ async function loadRealPublication(companyId) {
     const observationsById = Object.fromEntries(accepted.observations.map((observation) => [observation.observationId, observation]));
     return { manifest, accepted, observationsById };
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   BUG-010 Scope 02 — the company owner-read disclosure is produced, not authored.
+
+   Both safety-bearing facts — which adapter produced the read, and that no recommendation is
+   produced — reached the published coverage entry only when the Tier-B narrative happened to
+   re-type them. These rows prove they are now projected from configuration and survive a
+   narrative rewrite. NO_RECOMMENDATION_DISCLOSURE is imported rather than restated: it is the
+   single predicate the publish gate uses and the one Feature 010 Scope 6 asserts against, and a
+   fourth private copy is exactly how a disclosure check drifts away from the disclosure.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+const COMMITTED_ADAPTER_ID = 'company-fundamentals-owner-v1';
+const FIXTURE_ADAPTER_ID = 'company-fundamentals-owner-fixture-v9';
+const COMPANY_COVERAGE_ID = 'company-fundamentals-lab';
+
+// The reason the committed window actually published — narrative prose carrying neither fact.
+const NARRATED_REASON_MISSING_BOTH = 'Consumed as a committed owner read (a static single-name model, asOf 2026-04-29T20:06:24Z):'
+    + ' the hash-verified MSFT fundamentals (sec-cik-0000789019) read direction unavailable with a partial brief and'
+    + ' constrained confidence; statement 2026-03-31, model 2026-03-31, market not present.';
+
+function fixtureReader(adapterId, eligibility = 'educational-research-only') {
+    return (relative) => {
+        if (relative === 'tools.json') return { tools: [{ id: COMPANY_COVERAGE_ID, data: 'company-fundamentals.config.json' }] };
+        if (relative === 'company-fundamentals.config.json') return { feature002: { adapterId, recommendationEligibility: eligibility } };
+        throw new Error(`unexpected fixture read: ${relative}`);
+    };
+}
+
+test('T-10-U7 SCN-010B-006 the deterministic producer emits the configured adapter id and an accepted no-recommendation disclosure with no narrative lane in the path', () => {
+    const graph = loadScope6OwnerGraph();
+    const first = projectScope6Graph(graph);
+    const second = projectScope6Graph(graph);
+
+    // "No model in the path" is OBSERVED, not assumed: the injected reader records every path the
+    // producer touched, and it touched only the four committed owner-graph layers. Neither the
+    // narrative fragment directory nor market-brief.payload.json is among them, so no authored
+    // prose could have reached this text.
+    assert.deepEqual(first.reads, [graph.configPath, graph.pointerPath, graph.pointer.manifestPath, graph.manifest.ownerReadRef.path]);
+    assert.equal(first.reads.some((path) => /payload|narrative|\.brief-work/.test(path)), false);
+    assert.equal(first.projection.read, second.projection.read, 'the read is deterministic across independent invocations');
+
+    assert.equal(graph.config.feature002.adapterId, COMMITTED_ADAPTER_ID);
+    assert.ok(first.projection.read.includes(graph.config.feature002.adapterId));
+    assert.ok(first.projection.read.includes(COMMITTED_ADAPTER_ID));
+    assert.match(first.projection.read, NO_RECOMMENDATION_DISCLOSURE);
+    assert.ok(first.projection.read.includes('no recommendation is produced.'));
+    assert.ok(first.projection.read.includes('educational research only'));
+});
+
+test('T-10-U8 SCN-010B-007 the emitted adapter id follows a fixture configuration and carries no committed literal', () => {
+    // The producer refuses any boundary whose adapterId is not the committed one — a pre-existing
+    // validation this packet must not change — so projection is proven at the two surfaces that
+    // BUILD the text: the disclosure sentence, and the published re-assertion that installs it.
+    const fixtureBoundary = { adapterId: FIXTURE_ADAPTER_ID, recommendationEligibility: 'educational-research-only' };
+    const sentence = companyOwnerReadDisclosure(fixtureBoundary);
+    assert.ok(sentence.includes(FIXTURE_ADAPTER_ID));
+    assert.equal(sentence.includes(COMMITTED_ADAPTER_ID), false, 'a pinned literal would survive a changed configuration');
+    assert.match(sentence, NO_RECOMMENDATION_DISCLOSURE);
+
+    const payload = { toolCoverage: [{ id: COMPANY_COVERAGE_ID, reason: NARRATED_REASON_MISSING_BOTH }] };
+    const outcome = reassertCompanyOwnerReadDisclosure(payload, fixtureReader(FIXTURE_ADAPTER_ID));
+    assert.equal(outcome.reasserted, true);
+    assert.ok(payload.toolCoverage[0].reason.includes(FIXTURE_ADAPTER_ID));
+    assert.equal(payload.toolCoverage[0].reason.includes(COMMITTED_ADAPTER_ID), false);
+
+    // The eligibility is projected too, so a changed declaration changes the published sentence
+    // rather than leaving a stale claim standing.
+    const relabelled = companyOwnerReadDisclosure({ adapterId: FIXTURE_ADAPTER_ID, recommendationEligibility: 'internal-review-only' });
+    assert.ok(relabelled.includes('internal review only'));
+    assert.equal(relabelled.includes('educational research only'), false);
+});
+
+test('T-10-U9 SCN-010B-008 a narrative rewrite that omits both facts still publishes an entry carrying them', () => {
+    const registry = { tools: [{ id: COMPANY_COVERAGE_ID, data: 'company-fundamentals.config.json' }] };
+    const companyConfig = { feature002: { adapterId: COMMITTED_ADAPTER_ID, recommendationEligibility: 'educational-research-only' } };
+    const payload = { toolCoverage: [{ id: COMPANY_COVERAGE_ID, deepLink: 'company-fundamentals-lab.html', status: 'analyzed', reason: NARRATED_REASON_MISSING_BOTH }] };
+
+    // Adversarial precondition: the fixture is the reason the committed window actually published,
+    // and the real publish gate refuses it. Without this the row could pass with the re-assertion
+    // deleted, which is the tautology this packet exists to reject.
+    const before = findCompanyOwnerReadDisclosureBreaches(payload, registry, companyConfig);
+    assert.equal(before.length, 2);
+    assert.ok(before.some((breach) => breach.includes(COMMITTED_ADAPTER_ID)));
+    assert.ok(before.some((breach) => breach.includes('must state that no recommendation is produced')));
+
+    const outcome = reassertCompanyOwnerReadDisclosure(payload, fixtureReader(COMMITTED_ADAPTER_ID));
+    assert.equal(outcome.reasserted, true);
+
+    const published = payload.toolCoverage[0].reason;
+    assert.ok(published.includes(COMMITTED_ADAPTER_ID));
+    assert.match(published, NO_RECOMMENDATION_DISCLOSURE);
+    assert.ok(published.startsWith(NARRATED_REASON_MISSING_BOTH), 'the narrative analysis is preserved, not discarded');
+    assert.deepEqual(findCompanyOwnerReadDisclosureBreaches(payload, registry, companyConfig), []);
+
+    // Every other field of the entry is untouched, and re-running is a no-op rather than a second append.
+    assert.equal(payload.toolCoverage[0].status, 'analyzed');
+    assert.equal(payload.toolCoverage[0].deepLink, 'company-fundamentals-lab.html');
+    const idempotent = reassertCompanyOwnerReadDisclosure(payload, fixtureReader(COMMITTED_ADAPTER_ID));
+    assert.equal(idempotent.reasserted, false);
+    assert.equal(payload.toolCoverage[0].reason, published);
+
+    // An absent entry is a failure, never a silent skip: a window that cannot carry the disclosure
+    // must abort the merge rather than publish without it.
+    assert.throws(() => reassertCompanyOwnerReadDisclosure({ toolCoverage: [] }, fixtureReader(COMMITTED_ADAPTER_ID)), /exactly one "company-fundamentals-lab" entry/);
+});
 
 test('TP-7-01 SCN-010-002 CMG resilience overlay keeps real reported leverage beside lease and treasury context with exact refs and no pass/fail value', async () => {
     const config = await loadCompanyConfig();

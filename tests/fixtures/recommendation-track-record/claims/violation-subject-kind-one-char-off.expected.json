@@ -1,0 +1,7 @@
+{
+  "outcome": "violation",
+  "reason": "subject-kind-not-allowed",
+  "field": "subject.kind",
+  "legalMember": "instrument",
+  "vocabulary": "SUBJECT_KINDS"
+}

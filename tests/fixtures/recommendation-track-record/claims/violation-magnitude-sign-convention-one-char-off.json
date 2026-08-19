@@ -1,0 +1,35 @@
+{
+  "note": "Violation: `signConvention` is 'direction-adjuste' — the legal member 'direction-adjusted' minus its last character, defeating a prefix check. One rule violated; everything else is complete.",
+  "binding": {
+    "proposalRunId": "dist-2026-07-28-open-0001",
+    "proposalEventId": "sha256:6060606060606060606060606060606060606060606060606060606060606060",
+    "proposedAt": "2026-07-28T13:30:00.000Z",
+    "entryDate": "2026-07-28",
+    "entryBasis": "close",
+    "resolutionDate": "2026-07-31",
+    "signConvention": "direction-adjuste"
+  },
+  "action": {
+    "action": "add",
+    "subject": "SPY into the reclaim of the 50-day after the FOMC print",
+    "horizon": "swing",
+    "deepLink": "swing-structure-lab.html",
+    "claim": {
+      "contractVersion": "brief-action-claim-input/v1",
+      "subjectKind": "instrument",
+      "resolvesTo": ["SPY"],
+      "weighting": "primary-only",
+      "thesisFamily": "structural-core-defense",
+      "horizonKind": "multi-session",
+      "horizonSessions": 3,
+      "predicate": {
+        "kind": "directional",
+        "basis": "close",
+        "comparator": "gt",
+        "value": 0.0,
+        "reference": null
+      },
+      "flatBand": 0.25
+    }
+  }
+}

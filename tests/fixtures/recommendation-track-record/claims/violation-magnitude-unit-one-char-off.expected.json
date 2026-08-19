@@ -1,0 +1,7 @@
+{
+  "outcome": "violation",
+  "reason": "magnitude-unit-not-allowed",
+  "field": "magnitude.unit",
+  "legalMember": "percent-return",
+  "vocabulary": "MAGNITUDE_UNITS"
+}

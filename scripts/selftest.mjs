@@ -25,6 +25,9 @@ import {
   validateBriefPayload
 } from './validate-brief-payload.mjs';
 import { formatSpecTestPathFindings, validateSpecTestPaths } from './validate-spec-test-paths.mjs';
+import { formatTimeoutBudgetFindings, validatePlaywrightTimeoutBudgets } from './validate-playwright-timeout-budgets.mjs';
+import { assertCoherentBar, formatBarsCoherenceFindings, isCoherentBar, partitionCoherentBars, validateBarsCorpus } from './validate-bars-coherence.mjs';
+import { quarantineRecord } from './quarantine-incoherent-bars.mjs';
 import * as piiScan from './pii-scan.mjs';
 import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';
 import {
@@ -8701,6 +8704,212 @@ try {
   for (const line of formatSpecTestPathFindings(specTestPaths, 1)) console.log('    ' + line);
   assert(specTestPaths.newMissing.length === 0, 'no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline \u2014 a stale path makes a multi-file verification command silently cover less than it claims (' + specTestPaths.newMissing.length + ' new, ' + specTestPaths.knownMissing.length + ' known-missing, ' + specTestPaths.staleBaseline.length + ' stale of ' + specTestPaths.referencedPathCount + ' referenced)');
 } catch (e) { failures++; console.log('  \u2717 FAIL (spec artifact test-path guard threw): ' + e.message); }
+
+/* ---------- Playwright budgets — a declared wait must fit the test that contains it (BUG-009) ----------
+   A test that declares `expect(...).toHaveAttribute(..., { timeout: 120_000 })` inside a test whose
+   own budget is the 30 s project default cannot ever wait 120 s: the runner kills the test first.
+   The declaration reads as coverage and delivers none, and it fails only under load — so the suite
+   is green on a quiet machine and flaky on a busy one. Wired here rather than left standalone
+   because an unrun guard protects nothing: the invariant would rot the moment someone adds the next
+   long wait. */
+try {
+  group('Playwright budgets \u2014 every declared wait fits the test budget that governs it (BUG-009)');
+  const timeoutBudgets = validatePlaywrightTimeoutBudgets(ROOT);
+  assert(!timeoutBudgets.vacuous, 'the scan matched real spec files, test blocks and timeout declarations, so a green verdict is coverage rather than a pattern that quietly stopped matching (' + timeoutBudgets.scannedFiles + ' file(s), ' + timeoutBudgets.testCount + ' test(s), ' + timeoutBudgets.declarationCount + ' declaration(s))');
+  assert(timeoutBudgets.skippedCount === 0 && timeoutBudgets.unresolved.length === 0, 'every declaration was attributed to an enclosing test budget, so none was passed over unevaluated (' + timeoutBudgets.evaluatedCount + ' evaluated, ' + timeoutBudgets.skippedCount + ' skipped, ' + timeoutBudgets.unresolved.length + ' unresolved)');
+  for (const line of formatTimeoutBudgetFindings(timeoutBudgets, 1)) console.log('    ' + line);
+  assert(timeoutBudgets.violations.length === 0, 'no declared wait exceeds the budget of the test that contains it \u2014 an unreachable wait is killed by the runner long before it expires, so it reads as coverage while delivering none (' + timeoutBudgets.violations.length + ' unreachable of ' + timeoutBudgets.evaluatedCount + ' evaluated, project default ' + timeoutBudgets.projectDefault.value + 'ms)');
+} catch (e) { failures++; console.log('  \u2717 FAIL (Playwright timeout-budget guard threw): ' + e.message); }
+
+/* ---------- bars ingestion — one row, one price basis (BUG-012, INV-012B-1..3) ----------
+   A daily bar's low is the lowest price the session touched, so `l <= min(o, c)` holds by
+   definition. It stops holding the moment two of the four fields are quoted on different bases,
+   which is what `trimBars` did: `c` came from the adjusted-close series while `o`, `h` and `l` came
+   from the raw quote series, so after a dividend the close sat BELOW the raw low.
+
+   The payload below is the real COP session of 2026-08-13, the row the reversal fixture pins. It is
+   the decisive case precisely because its adjustment is large enough to push the adjusted close
+   under the raw low; a payload with negligible adjustment would satisfy the invariant before and
+   after the change and prove nothing. The legacy assertion is kept alongside so the fixture's teeth
+   are demonstrated rather than asserted: the same payload under the old contract IS refused. */
+try {
+  group('bars ingestion \u2014 o, h, l and c share one price basis, adjusted close rides beside them (BUG-012)');
+  const barsSrc = read('scripts/fetch-bars.mjs');
+  const barsEnv = build(
+    [extractFn(barsSrc, 'sessionDateFromMs'), extractFn(barsSrc, 'trimBars'), extractFn(barsSrc, 'reconstructSession')],
+    ['trimBars', 'reconstructSession']);
+
+  const COP_SESSION_MS = Date.parse('2026-08-13T13:30:00Z');
+  const copPayload = (over) => ({
+    chart: { result: [{
+      timestamp: [COP_SESSION_MS / 1000],
+      indicators: {
+        quote: [Object.assign({ open: [125.72000122070312], high: [126.38999938964844], low: [124.12000274658203], close: [124.52], volume: [7248000] }, (over && over.quote) || {})],
+        adjclose: [{ adjclose: over && 'adj' in over ? over.adj : [123.6949691772461] }]
+      },
+      events: {}, meta: {}
+    }] }
+  });
+
+  const trimmed = barsEnv.trimBars(copPayload(), null);
+  const copRow = trimmed && trimmed.rows[0];
+  assert(!!copRow && copRow.c === 124.52,
+    'the close is taken from the RAW quote series like its three siblings, so the four price fields describe one session on one basis (c=' + (copRow && copRow.c) + ')');
+  assert(!!copRow && copRow.ac === 123.6949691772461,
+    'the adjusted close is not discarded \u2014 it is carried in its own field, so a total-return consumer keeps the number it needs instead of silently reading a raw price (ac=' + (copRow && copRow.ac) + ')');
+  assert(isCoherentBar(copRow),
+    'the emitted row satisfies l <= min(o, c) and h >= max(o, c), on the exact vendor payload whose adjusted close falls BELOW the raw low');
+  assert(!isCoherentBar(Object.assign({}, copRow, { c: copRow.ac })),
+    'the same payload under the OLD contract \u2014 adjusted close placed in c \u2014 is refused, so this fixture can actually fail and its pass is evidence rather than decoration');
+  assert(trimmed.adjustmentFactor === 123.6949691772461 / 124.52,
+    'adjustmentFactor is still derived from the adjusted and raw closes, so the intraday reconstruction path it feeds is unaffected by the basis change');
+
+  const noRawSeries = barsEnv.trimBars(copPayload({ quote: { open: null, high: null, low: null, close: null } }), null);
+  const fallbackRow = noRawSeries && noRawSeries.rows[0];
+  assert(!!fallbackRow && fallbackRow.c === 123.6949691772461 && fallbackRow.o === fallbackRow.c && fallbackRow.l === fallbackRow.c,
+    'when the vendor supplies NO raw quote series the adjusted close is the only close there is, and o, h, l and c all take it \u2014 one basis, so the fallback stays coherent');
+  assert(isCoherentBar(fallbackRow), 'the no-raw-series fallback row is coherent');
+
+  const nullClose = barsEnv.trimBars(copPayload({ quote: { close: [null] } }), null);
+  assert(nullClose === null,
+    'a session whose RAW close is null is skipped rather than back-filled from the adjusted series \u2014 that substitution beside a raw low is the defect itself');
+
+  /* The intraday reconstruction path is the second writer of a bar and carried the same defect: it
+     scaled `close` by the adjustment factor while o, h and l stayed raw intraday prices. */
+  const RECON_START = Date.parse('2026-08-13T13:30:00Z'), RECON_END = Date.parse('2026-08-13T20:00:00Z');
+  const intradayBars = [];
+  for (let i = 0; i * 5 * 60 * 1000 < RECON_END - RECON_START; i++) intradayBars.push(RECON_START + i * 5 * 60 * 1000);
+  const intradayPayload = { chart: { result: [{
+    timestamp: intradayBars.map((ms) => ms / 1000),
+    indicators: { quote: [{
+      open: intradayBars.map(() => 125.0), high: intradayBars.map(() => 126.0),
+      low: intradayBars.map(() => 124.0), close: intradayBars.map(() => 124.52),
+      volume: intradayBars.map(() => 1000)
+    }] },
+    meta: { tradingPeriods: [[{ start: RECON_START / 1000, end: RECON_END / 1000 }]] }
+  }] } };
+  const repaired = barsEnv.reconstructSession(intradayPayload, { regular: { startUtc: '2026-08-13T13:30:00Z', endUtc: '2026-08-13T20:00:00Z' } }, 123.6949691772461 / 124.52);
+  assert(repaired && repaired.row && repaired.row.c === 124.52,
+    'a reconstructed session keeps its close on the raw intraday basis its own o, h and l are quoted on (state=' + (repaired && repaired.state) + ')');
+  assert(repaired && repaired.row && isCoherentBar(repaired.row),
+    'the reconstructed row is coherent under an adjustment factor that previously pushed its close below its low');
+  assert(repaired && repaired.row && approx(repaired.row.ac, 124.52 * (123.6949691772461 / 124.52), 1e-9),
+    'the reconstructed row still carries the adjusted close in ac, so applying the factor remains a purpose of adjustmentFactor rather than a discarded step');
+
+  /* The write-time half of the guard. A guard that only ever returns a verdict is one an author can
+     ignore; this one throws, and the assertion below is the proof that it does. */
+  let refused = null;
+  try { assertCoherentBar({ t: COP_SESSION_MS, o: 125.72, h: 126.39, l: 124.12, c: 123.69, v: 1 }, 'COP'); }
+  catch (guardError) { refused = guardError.message; }
+  assert(typeof refused === 'string' && refused.indexOf('COP') >= 0 && refused.indexOf('exceeds min(o, c)') > 0,
+    'assertCoherentBar REFUSES a row whose low exceeds its close, naming the symbol and the relation that failed: ' + refused);
+  assert(assertCoherentBar(copRow, 'COP') === copRow,
+    'assertCoherentBar passes a coherent row straight through, so the guard discriminates rather than rejecting everything');
+
+  /* Granularity. The guard was correct about WHAT to refuse and wrong about how much to refuse with
+     it: aborting the symbol meant one bad vendor bar held the other 517 hostage, and the retry
+     failed identically every run, so 4,167 rows across 38 files could not be repaired at all. The
+     fixture below is the actual Yahoo payload that caused it — XLRE's 2026-08-18 raw bar, whose OPEN
+     sits above its own HIGH — placed last in a batch, which is the position that used to forfeit
+     everything before it. */
+  const XLRE_REFUSED = { t: Date.parse('2026-08-18T13:30:00Z'), o: 45.18000030517578, h: 45.150001525878906, l: 44.61000061035156, c: 44.630001068115234, v: 3e6 };
+  const goodBars = [
+    { t: Date.parse('2026-08-14T13:30:00Z'), o: 45.0, h: 45.4, l: 44.8, c: 45.2, v: 1e6 },
+    { t: Date.parse('2026-08-15T13:30:00Z'), o: 45.2, h: 45.5, l: 44.9, c: 45.1, v: 1e6 }
+  ];
+  const partition = partitionCoherentBars([...goodBars, XLRE_REFUSED]);
+  assert(!isCoherentBar(XLRE_REFUSED),
+    'the fixture is genuinely incoherent under the invariant \u2014 without this the partition assertions below would pass on a batch with nothing to refuse');
+  assert(partition.quarantined.length === 1 && partition.quarantined[0].t === XLRE_REFUSED.t,
+    'the incoherent row is quarantined individually (' + partition.quarantined.length + ' quarantined)');
+  assert(partition.coherent.length === 2 && partition.coherent.every(isCoherentBar) && !partition.coherent.some((row) => row.t === XLRE_REFUSED.t),
+    'the two coherent rows BEFORE it survive and the refused row is not among them \u2014 the per-symbol abort forfeited exactly these, and no incoherent row is written either way');
+  const quarantineRecord = partition.quarantined[0];
+  assert(quarantineRecord.session === '2026-08-18' && typeof quarantineRecord.detail === 'string' && quarantineRecord.detail.indexOf('is below max(o, c)') > 0,
+    'the quarantine records the session and the relation that failed, so a consumer meeting the gap learns the bar was REFUSED rather than merely absent: ' + quarantineRecord.detail);
+  assert(quarantineRecord.o === XLRE_REFUSED.o && quarantineRecord.h === XLRE_REFUSED.h && quarantineRecord.l === XLRE_REFUSED.l && quarantineRecord.c === XLRE_REFUSED.c,
+    'the quarantine keeps the four prices the vendor actually published, so the refusal is auditable against the source rather than asserted');
+  assert(partitionCoherentBars(goodBars).quarantined.length === 0 && partitionCoherentBars(goodBars).coherent.length === 2,
+    'a wholly coherent batch is passed through untouched, so the partition discriminates rather than quarantining indiscriminately');
+} catch (e) { failures++; console.log('  \u2717 FAIL (bars price-basis guard threw): ' + e.message); }
+
+/* ---------- the bars corpus itself — every published row, not only the next one (BUG-012 INV-012B-3) ----------
+   Fixing the writer leaves already-published rows untouched, and 71,714 of them were written on the
+   mixed basis. This scan is adversarial only against the REAL corpus: run over a synthetic clean
+   sample it would pass before and after the repair, so the vacuity assertion below is what keeps a
+   green verdict meaningful. */
+try {
+  group('bars corpus \u2014 no published row claims a low above its own close (BUG-012)');
+  const corpus = validateBarsCorpus(ROOT);
+  assert(!corpus.vacuous, 'the scan read real bar files and real rows, so a clean verdict is coverage rather than a path that quietly stopped matching (' + corpus.scannedFiles + ' file(s), ' + corpus.scannedRows + ' row(s))');
+  assert(corpus.unreadable.length === 0, 'every file under data/bars parsed and exposed a rows array, so none was passed over unexamined (' + corpus.unreadable.length + ' unreadable)');
+  for (const line of formatBarsCoherenceFindings(corpus, 5)) console.log('    ' + line);
+  assert(corpus.violationCount === 0, 'no published row violates l <= min(o, c), h >= max(o, c) or l <= h \u2014 such a row describes a session that never happened and the read-time validator refuses it, turning a data defect into an unexplained empty view (' + corpus.violationCount + ' incoherent of ' + corpus.scannedRows + ' row(s) across ' + corpus.violatingFiles.length + ' file(s))');
+} catch (e) { failures++; console.log('  \u2717 FAIL (bars corpus coherence guard threw): ' + e.message); }
+
+/* ---------- quarantine reaches the rows a fetch cannot (BUG-012 INV-012B-3) ----------
+   The write-time partition closes the invariant for rows the fetcher touches, and only for those.
+   EA is in no universe file and NDX is declared `"on": false`, so neither comes back from a fetch;
+   their 188 rows were the population the guard could report forever and never clear. Quarantining
+   what is already on disk is what makes the rule uniform rather than conditional on reachability.
+
+   The record below is adversarial in the two ways that matter, because both are live in the real
+   corpus and both are how a plausible implementation gets it wrong. Its FIRST row is incoherent, so
+   a floor taken from the surviving rows would discard the entry it just created — EA's first row and
+   first violation are the same session. Its LAST row is incoherent too, so an `asof` left alone
+   would name a session the file no longer contains — which is NDX exactly, its five refused rows
+   being its five most recent. */
+try {
+  group('bars quarantine \u2014 an unfetchable incoherent row is removed and its refusal recorded (BUG-012)');
+  const session = (date) => Date.parse(date + 'T13:30:00Z');
+  const onDisk = {
+    sym: 'FIXTURE', interval: '1d', range: '2y', asof: '2026-01-06',
+    expectedSessionDate: '2026-01-06', sessionState: 'zero-observed', src: 'yahoo',
+    reconstructedSessions: ['2026-01-02'], thinObservedSessions: [], zeroObservedSessions: ['2026-01-06'],
+    rows: [
+      { t: session('2026-01-02'), o: 10.0, h: 10.4, l: 9.9, c: 9.5, v: 1e6 },
+      { t: session('2026-01-05'), o: 10.1, h: 10.5, l: 9.8, c: 10.2, v: 1e6 },
+      { t: session('2026-01-06'), o: 0, h: 0, l: 0, c: 11.0, v: 0 }
+    ]
+  };
+  const before = JSON.stringify(onDisk);
+  const outcome = quarantineRecord(onDisk);
+
+  assert(!isCoherentBar(onDisk.rows[0]) && !isCoherentBar(onDisk.rows[2]) && isCoherentBar(onDisk.rows[1]),
+    'the fixture carries exactly one coherent row between two incoherent ones \u2014 without that the assertions below could pass on a record with nothing to refuse');
+  assert(outcome.changed && outcome.removed === 2 && outcome.record.rows.length === 1,
+    'both incoherent rows are removed and the coherent one survives, so the quarantine is per-row rather than per-file (' + outcome.removed + ' removed, ' + outcome.record.rows.length + ' retained)');
+  assert(outcome.record.rows[0].t === session('2026-01-05') && outcome.record.rows.every(isCoherentBar),
+    'the retained row is the coherent one and nothing incoherent remains, so a corpus scan over the result is clean');
+  assert(JSON.stringify(onDisk) === before,
+    'the input record is not mutated \u2014 the caller decides whether to write, which is what lets the dry run be a genuine dry run');
+
+  assert(outcome.record.quarantinedSessions.join(',') === '2026-01-02,2026-01-06',
+    'BOTH refused sessions are recorded, including the leading one: a floor taken from the surviving rows would drop 2026-01-02, quarantining a session and forgetting it in the same breath (' + outcome.record.quarantinedSessions.join(',') + ')');
+  const leadingEntry = outcome.record.quarantinedRows[0];
+  assert(leadingEntry.session === '2026-01-02' && leadingEntry.detail.indexOf('exceeds min(o, c)') > 0
+    && leadingEntry.o === 10.0 && leadingEntry.h === 10.4 && leadingEntry.l === 9.9 && leadingEntry.c === 9.5,
+    'the record keeps the relation that failed and the four prices as published, so a reader meeting the gap learns the bar was REFUSED rather than merely absent, and can audit the refusal: ' + leadingEntry.detail);
+  assert(Object.keys(outcome.record).indexOf('quarantinedSessions') === Object.keys(outcome.record).indexOf('rows') - 2,
+    'the two provenance fields sit immediately before `rows`, where scripts/fetch-bars.mjs puts them, so a file repaired offline and one rewritten by a later fetch have the same shape rather than two dialects of the same fact');
+
+  assert(outcome.record.asof === '2026-01-05' && outcome.asofBefore === '2026-01-06',
+    'asof is recomputed from the last RETAINED row \u2014 left alone it would name 2026-01-06, a session the file no longer contains (' + outcome.asofBefore + ' \u2192 ' + outcome.record.asof + ')');
+  assert(outcome.record.zeroObservedSessions.length === 0 && outcome.record.reconstructedSessions.length === 0,
+    'a quarantined session is struck from the sibling lists that describe rows, so the record cannot claim the same session was both observed-with-zero-trades and refused');
+  assert(outcome.record.sessionState === 'quarantined',
+    'the expected session being the refused one is named rather than left reading `zero-observed`, which would assert an observation that was thrown away (' + outcome.record.sessionState + ')');
+
+  assert(quarantineRecord(outcome.record).changed === false,
+    'a second pass changes nothing, so the repair is idempotent and cannot churn the corpus on every run');
+  const cleanRecord = { sym: 'CLEAN', asof: '2026-01-05', rows: [onDisk.rows[1]] };
+  const cleanOutcome = quarantineRecord(cleanRecord);
+  assert(cleanOutcome.changed === false && cleanOutcome.record === cleanRecord,
+    'a wholly coherent record is returned untouched and unrewritten, so the pass discriminates rather than rewriting all 292 files');
+  const allBad = quarantineRecord({ sym: 'ALLBAD', asof: '2026-01-06', rows: [onDisk.rows[0], onDisk.rows[2]] });
+  assert(allBad.changed === false && typeof allBad.refused === 'string' && allBad.refused.indexOf('no history') > 0,
+    'a record whose every row is incoherent is REFUSED rather than emptied \u2014 an empty history is a deletion wearing a quarantine\u2019s clothes, and whether the symbol belongs in the corpus is not this pass\u2019s call: ' + allBad.refused);
+} catch (e) { failures++; console.log('  \u2717 FAIL (bars quarantine guard threw): ' + e.message); }
 
 /* ── trend-dynamics-cycle-lab — owner read (TP-04-01, spec 006 scope 4) ───────────────────
    The owner read is this tool's ONLY route into the Market Brief, so its truth handling is a

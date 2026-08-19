@@ -101,6 +101,12 @@ async function enterOwnerView(page) {
   return false;
 }
 
+/* Every test below drives this helper one to three times, and each call is a FULL load of a heavy
+   analytics page plus a network settle. Measured on one worker with no contention, the sector test
+   spends 23.7 s of the 30 s Playwright applies when a config declares no timeout — 79% of a budget
+   nobody chose. Under the suite's own four-worker parallelism that margin is gone, so each test
+   declares the budget its work actually needs. The settle below is still timing-dependent; only its
+   allowance grew. See specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget. */
 async function openOwner(page, file, { disableCausal = false } = {}) {
   /* Routes persist for the page's lifetime, so the "after" navigation must start from a clean
      slate or it silently keeps the disabled modules and proves nothing. */
@@ -116,6 +122,7 @@ async function openOwner(page, file, { disableCausal = false } = {}) {
 }
 
 test('Regression: served owner timing reads and causal snapshot share compatible exposure contracts', async ({ page }) => {
+  test.setTimeout(180_000);
   await openOwner(page, 'sector-research-lab.html');
 
   const contract = await page.evaluate(async () => {
@@ -149,6 +156,7 @@ test('Regression: served owner timing reads and causal snapshot share compatible
 });
 
 test('Regression: Sector acceleration remains visible while cause is unverified', async ({ page }) => {
+  test.setTimeout(180_000);
   const selectors = ['#simpleView', '#modeSeg'];
 
   await openOwner(page, 'sector-research-lab.html', { disableCausal: true });
@@ -185,6 +193,7 @@ test('Regression: Sector acceleration remains visible while cause is unverified'
 });
 
 test('Regression: A country causal read disagrees with its market model', async ({ page }) => {
+  test.setTimeout(180_000);
   const selectors = ['#leaderboard', '#narrative'];
 
   await openOwner(page, 'global-rotation-lab.html', { disableCausal: true });
@@ -211,6 +220,7 @@ test('Regression: A country causal read disagrees with its market model', async 
 });
 
 test('Regression: Energy equities strengthen while the underlying proxy remains weak', async ({ page }) => {
+  test.setTimeout(180_000);
   const selectors = ['#simpleView'];
 
   await openOwner(page, 'real-assets-lab.html', { disableCausal: true });
@@ -238,6 +248,7 @@ test('Regression: Energy equities strengthen while the underlying proxy remains 
 });
 
 test('Regression: consumers reject unknown causal versions while owner models remain usable', async ({ page }) => {
+  test.setTimeout(180_000);
   const selectors = ['#simpleView', '#modeSeg'];
   await openOwner(page, 'sector-research-lab.html', { disableCausal: true });
   const before = await ownerSurface(page, selectors);

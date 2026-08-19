@@ -84,14 +84,17 @@ function validateIndex(kind) {
       if (!Number.isInteger(index.sessionReuseCount) || index.sessionReuseCount < 0) errors.push('data/bars/index.json sessionReuseCount must be a non-negative integer');
       if (!Number.isInteger(index.zeroObservedCount) || index.zeroObservedCount < 0) errors.push('data/bars/index.json zeroObservedCount must be a non-negative integer');
       if (!Number.isInteger(index.thinObservedCount) || index.thinObservedCount < 0) errors.push('data/bars/index.json thinObservedCount must be a non-negative integer');
+      if (!Number.isInteger(index.quarantinedCount) || index.quarantinedCount < 0) errors.push('data/bars/index.json quarantinedCount must be a non-negative integer');
       const reconstructedCount = index.tickers.filter((row) => row && row.reconstructed).length;
       const sessionReuseCount = index.tickers.filter((row) => row && row.sessionCached).length;
       const zeroObservedCount = index.tickers.filter((row) => row && row.zeroObserved).length;
       const thinObservedCount = index.tickers.filter((row) => row && row.thinObserved).length;
+      const quarantinedCount = index.tickers.filter((row) => row && row.quarantined).length;
       if (index.reconstructedCount !== reconstructedCount) errors.push(`data/bars/index.json reconstructedCount ${index.reconstructedCount} does not match ticker receipts ${reconstructedCount}`);
       if (index.sessionReuseCount !== sessionReuseCount) errors.push(`data/bars/index.json sessionReuseCount ${index.sessionReuseCount} does not match ticker receipts ${sessionReuseCount}`);
       if (index.zeroObservedCount !== zeroObservedCount) errors.push(`data/bars/index.json zeroObservedCount ${index.zeroObservedCount} does not match ticker receipts ${zeroObservedCount}`);
       if (index.thinObservedCount !== thinObservedCount) errors.push(`data/bars/index.json thinObservedCount ${index.thinObservedCount} does not match ticker receipts ${thinObservedCount}`);
+      if (index.quarantinedCount !== quarantinedCount) errors.push(`data/bars/index.json quarantinedCount ${index.quarantinedCount} does not match ticker receipts ${quarantinedCount}`);
       for (const row of index.tickers) {
         if (!row || !isSessionBoundSymbol(row.sym)) continue;
         if (row.sessionState === 'zero-observed') {
@@ -104,6 +107,18 @@ function validateIndex(kind) {
           const snapshot = readJson(join(directory, `${row.sym}.json`));
           const sessionBar = snapshot && Array.isArray(snapshot.rows) ? snapshot.rows.find((bar) => new Date(bar.t).toISOString().slice(0, 10) === expectedSessionDate) : null;
           if (!snapshot || snapshot.sessionState !== 'thin-observed' || !Array.isArray(snapshot.thinObservedSessions) || !snapshot.thinObservedSessions.includes(expectedSessionDate) || !sessionBar || sessionBar.sourceState !== 'thin-observed' || !Number.isInteger(sessionBar.sourceBars) || !Number.isInteger(sessionBar.sourceExpectedBars) || sessionBar.sourceBars <= 0 || sessionBar.sourceBars >= sessionBar.sourceExpectedBars || !Number.isFinite(sessionBar.sourceCoverage) || sessionBar.sourceCoverage <= 0 || sessionBar.sourceCoverage >= 1) errors.push(`data/bars/${row.sym}.json thin-observed session ${expectedSessionDate} lacks measured sparse-trade coverage`);
+        } else if (row.sessionState === 'quarantined') {
+          /* The vendor published a bar for this session and it failed the OHLC invariant, so it was
+             refused rather than written (BUG-012). The session is legitimately absent and asof
+             legitimately precedes it — same shape as zero-observed. What is checked here is that the
+             absence is EXPLAINED: a bare gap and a refused bar look identical in `rows`, so the
+             record must carry the relation that failed and the prices that failed it, or the
+             quarantine has degraded into the silent drop it exists to prevent. */
+          if (row.quarantined !== true || row.sessionDate !== expectedSessionDate || typeof row.asof !== 'string' || row.asof >= expectedSessionDate) errors.push(`data/bars/index.json ${row.sym} quarantined receipt must preserve a prior asof and identify completed XNYS session ${expectedSessionDate}`);
+          const snapshot = readJson(join(directory, `${row.sym}.json`));
+          const actualDates = new Set(snapshot && Array.isArray(snapshot.rows) ? snapshot.rows.map((bar) => new Date(bar.t).toISOString().slice(0, 10)) : []);
+          const refused = snapshot && Array.isArray(snapshot.quarantinedRows) ? snapshot.quarantinedRows.find((entry) => entry && entry.session === expectedSessionDate) : null;
+          if (!snapshot || snapshot.sessionState !== 'quarantined' || !Array.isArray(snapshot.quarantinedSessions) || !snapshot.quarantinedSessions.includes(expectedSessionDate) || actualDates.has(expectedSessionDate) || !refused || typeof refused.detail !== 'string' || !refused.detail.trim() || ![refused.o, refused.h, refused.l, refused.c].every(Number.isFinite)) errors.push(`data/bars/${row.sym}.json quarantined session ${expectedSessionDate} is not recorded with the refused vendor prices and the relation that failed`);
         } else if (row.sessionState !== 'observed' || row.asof !== expectedSessionDate || row.sessionDate !== expectedSessionDate) {
           errors.push(`data/bars/index.json ${row.sym} observed receipt must equal completed XNYS session ${expectedSessionDate}`);
         }

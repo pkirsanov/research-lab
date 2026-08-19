@@ -62,6 +62,21 @@ function companyManifestSha256(manifest, hashObject) {
   return hashObject(unsigned);
 }
 
+/* BUG-010 §3.2 — the producing adapter id and the no-recommendation statement are safety-bearing
+   facts about this read, not narrative colour, so they are PROJECTED from the already-validated
+   feature002 boundary rather than authored per window. Derived, never pinned: a literal adapter id
+   here could name an adapter the configuration no longer declares, which is the same defect one
+   layer down. The wording satisfies the disclosure predicate the publish gate and the Feature 010
+   Scope 6 assertion share — "no recommendation" adjacent to the produced verb, no sentence break
+   between them. */
+export function companyOwnerReadDisclosure(boundary) {
+  if (!boundary || typeof boundary.adapterId !== 'string' || !boundary.adapterId
+    || typeof boundary.recommendationEligibility !== 'string' || !boundary.recommendationEligibility) {
+    throw new Error('company owner disclosure requires a declared adapterId and recommendationEligibility');
+  }
+  return `Consumed from ${boundary.adapterId} as ${boundary.recommendationEligibility.replace(/-/g, ' ')}; no recommendation is produced.`;
+}
+
 /* Feature 002 adapter company-fundamentals-owner-v1. It reads the frozen committed projection once and maps it
    without access to company formulas, browser state, or proposal decision functions. */
 export function buildCompanyFundamentalsOwnerRead(readJson, hashObject) {
@@ -80,7 +95,7 @@ export function buildCompanyFundamentalsOwnerRead(readJson, hashObject) {
   if (!/^data\/company-fundamentals\/objects\/[a-f0-9]{64}\.json$/.test(ownerRef.path || '') || ownerRef.sha256 !== `sha256:${ownerRef.path.slice(-69, -5)}`) throw new Error('company owner read reference is invalid');
   const owner = readJson(ownerRef.path);
   if (!owner || owner.contractVersion !== 'fundamentals-tool-read/v1' || owner.companyId !== companyId || owner.publicationId !== manifest.publicationId || owner.generation !== manifest.generation || hashObject(owner) !== ownerRef.sha256 || !owner.briefRef || owner.briefRef.objectId !== manifest.briefRef.objectId || !owner.modelPackRef || owner.modelPackRef.objectId !== manifest.modelPackRef.objectId) throw new Error('company owner read is invalid or hash-incoherent');
-  const read = `${owner.companyId} fundamentals are ${owner.status}; direction ${owner.direction}; statement ${owner.statementCutoff || 'unavailable'}, model ${owner.modelCutoff || 'unavailable'}, brief ${owner.briefCutoff || 'unavailable'}, market ${owner.marketCutoff || 'unavailable'}.`;
+  const read = `${owner.companyId} fundamentals are ${owner.status}; direction ${owner.direction}; statement ${owner.statementCutoff || 'unavailable'}, model ${owner.modelCutoff || 'unavailable'}, brief ${owner.briefCutoff || 'unavailable'}, market ${owner.marketCutoff || 'unavailable'}. ${companyOwnerReadDisclosure(boundary)}`;
   return {
     contractVersion: 'tool-model-read/v1',
     id: 'company-fundamentals-lab',
@@ -124,6 +139,32 @@ export function buildCompanyFundamentalsOwnerRead(readJson, hashObject) {
     fingerprint: ownerRef.sha256,
     source: boundary.adapterId
   };
+}
+
+/* BUG-010 §3.3 — preservation across the Tier-B narrative merge, in the RE-ASSERTION shape.
+   The narrative lane owns toolCoverage, so projecting the disclosure into the Tier-A read is not
+   enough on its own: a rewrite lands on top of it. This restores the deterministic sentence onto
+   the company entry after the merge, so the published fact depends on this step running rather
+   than on a model remembering to re-type it. It evaluates no disclosure predicate of its own — it
+   installs the one canonical sentence — so it cannot disagree with the publish gate about what
+   counts as a disclosure. The coverage id is read from the registry entry that OWNS the config
+   file, matching how the gate locates its subject. Absence or duplication throws: a window that
+   cannot carry the disclosure must fail rather than publish without it. */
+export function reassertCompanyOwnerReadDisclosure(payload, readJson) {
+  if (typeof readJson !== 'function') throw new Error('company owner disclosure re-assertion requires an injected JSON read function');
+  const registry = readJson('tools.json');
+  const ownerTool = ((registry && registry.tools) || []).find((tool) => tool && tool.data === 'company-fundamentals.config.json');
+  if (!ownerTool || typeof ownerTool.id !== 'string' || !ownerTool.id) throw new Error('tools.json registers no tool owning company-fundamentals.config.json');
+  const config = readJson('company-fundamentals.config.json');
+  const disclosure = companyOwnerReadDisclosure(config && config.feature002);
+  const coverage = Array.isArray(payload && payload.toolCoverage) ? payload.toolCoverage : [];
+  const entries = coverage.filter((entry) => entry && entry.id === ownerTool.id);
+  if (entries.length !== 1) throw new Error(`toolCoverage must carry exactly one "${ownerTool.id}" entry to disclose the owner read, found ${entries.length}`);
+  const entry = entries[0];
+  const narrated = typeof entry.reason === 'string' ? entry.reason.trim() : '';
+  if (narrated.includes(disclosure)) return { id: ownerTool.id, disclosure, reasserted: false, reason: entry.reason };
+  entry.reason = narrated ? `${narrated} ${disclosure}` : disclosure;
+  return { id: ownerTool.id, disclosure, reasserted: true, reason: entry.reason };
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

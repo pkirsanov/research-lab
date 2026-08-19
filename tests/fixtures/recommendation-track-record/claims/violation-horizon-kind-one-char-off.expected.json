@@ -1,0 +1,7 @@
+{
+  "outcome": "violation",
+  "reason": "horizon-kind-not-allowed",
+  "field": "horizon.kind",
+  "legalMember": "multi-session",
+  "vocabulary": "HORIZON_KINDS"
+}

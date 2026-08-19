@@ -1,0 +1,7 @@
+{
+  "outcome": "violation",
+  "reason": "action-family-not-allowed",
+  "field": "actionFamily",
+  "legalMember": "trim",
+  "vocabulary": "MARKET_ACTIONS"
+}

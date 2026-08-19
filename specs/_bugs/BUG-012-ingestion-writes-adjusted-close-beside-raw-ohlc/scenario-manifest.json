@@ -1,0 +1,181 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc",
+  "generatedBy": "bubbles.bug",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-012B-001",
+      "title": "A written row cannot claim a low above its own close",
+      "scopeId": "01-restore-ohlc-coherence-in-bars-ingestion",
+      "scope": 1,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "scripts/fetch-bars.mjs",
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "design.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-012B-002",
+      "title": "One row carries one price basis",
+      "scopeId": "01-restore-ohlc-coherence-in-bars-ingestion",
+      "scope": 1,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "scripts/fetch-bars.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "design.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-012B-003",
+      "title": "The existing corpus is repaired, not only future writes",
+      "scopeId": "01-restore-ohlc-coherence-in-bars-ingestion",
+      "scope": 1,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-012B-004",
+      "title": "The validator is not weakened to accept bad bars",
+      "scopeId": "01-restore-ohlc-coherence-in-bars-ingestion",
+      "scope": 1,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "rlagenda.js"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "design.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-012B-005",
+      "title": "A scheduled data refresh cannot turn a committed test red",
+      "scopeId": "02-decouple-committed-fixture-from-mutable-bars",
+      "scope": 2,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "tests/fixtures/research-agenda/reversal-ui.json",
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "design.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-012B-006",
+      "title": "Drift is reported, never discovered by timeout",
+      "scopeId": "02-decouple-committed-fixture-from-mutable-bars",
+      "scope": 2,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "tests/fixtures/research-agenda/reversal-ui.json"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-012B-007",
+      "title": "A failed reversal boot resolves the readiness observer",
+      "scopeId": "03-surface-boot-failure-instead-of-hanging",
+      "scope": 3,
+      "status": "not_started",
+      "requiredTestType": "e2e-ui",
+      "linkedTests": [
+        "research-agenda-lab.html",
+        "tests/tool-experience.spec.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "design.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-012B-008",
+      "title": "The reason the page already computed reaches the observer",
+      "scopeId": "03-surface-boot-failure-instead-of-hanging",
+      "scope": 3,
+      "status": "not_started",
+      "requiredTestType": "e2e-ui",
+      "linkedTests": [
+        "research-agenda-lab.html",
+        "tests/tool-experience.spec.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-012B-009",
+      "title": "The successful path is untouched",
+      "scopeId": "03-surface-boot-failure-instead-of-hanging",
+      "scope": 3,
+      "status": "not_started",
+      "requiredTestType": "e2e-ui",
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "design.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-012B-010",
+      "title": "No shortcut turns the red green",
+      "scopeId": "cross-scope",
+      "scope": 0,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "playwright.config.mjs",
+        "tests/tool-experience.spec.mjs",
+        "tests/contextual-tooltip.spec.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "design.md",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-012B-011",
+      "title": "The suite still tests everything it tested before",
+      "scopeId": "cross-scope",
+      "scope": 0,
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "linkedTests": [
+        "scripts/selftest.mjs"
+      ],
+      "evidenceRefs": [
+        "scopes.md",
+        "report.md"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "note": "Violation: `action.action` is 'tri' — 'trim' minus its last character, so it is outside MARKET_ACTIONS while remaining a prefix of a legal member. One rule violated; everything else is complete.",
+  "binding": {
+    "proposalRunId": "dist-2026-07-28-open-0001",
+    "proposalEventId": "sha256:7070707070707070707070707070707070707070707070707070707070707070",
+    "proposedAt": "2026-07-28T13:30:00.000Z",
+    "entryDate": "2026-07-28",
+    "entryBasis": "close",
+    "resolutionDate": "2026-07-31"
+  },
+  "action": {
+    "action": "tri",
+    "subject": "Stretched semis beta into any bounce ahead of the FOMC",
+    "horizon": "swing",
+    "deepLink": "sector-research-lab.html",
+    "claim": {
+      "contractVersion": "brief-action-claim-input/v1",
+      "subjectKind": "instrument",
+      "resolvesTo": ["SOXX"],
+      "weighting": "primary-only",
+      "thesisFamily": "growth-extension-derate",
+      "horizonKind": "multi-session",
+      "horizonSessions": 3,
+      "predicate": {
+        "kind": "directional",
+        "basis": "close",
+        "comparator": "gt",
+        "value": 0.0,
+        "reference": null
+      },
+      "flatBand": 0.25
+    }
+  }
+}

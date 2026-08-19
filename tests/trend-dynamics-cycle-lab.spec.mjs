@@ -983,6 +983,8 @@ test('Regression: SCN-006-007 retrospective turn never backdates the real-time a
 });
 
 test('Regression: maximum work plan reports progress cancels atomically and keeps navigation responsive', async ({ page }) => {
+  // Two sequential 60 s rerun polls below need 120 s of wait capacity before any other work counts.
+  test.setTimeout(180_000);
   await openReplayCase(page, 'max-work');
 
   const priorResultId = await page.evaluate(() => window.__TDC_REPLAY__.committedResultId);

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -356,6 +356,97 @@ export function findEventContractBreaches(payload) {
 export function formatEventContractBreach(breach) {
   return `${breach.path} is missing required key "${breach.missingKey}"`
     + ` — keys present: ${breach.presentKeys.length ? breach.presentKeys.join(', ') : '(none)'}`;
+}
+
+/* The config file the company owner-read adapter is declared in. A PATH, not a fact: every
+   expected value below is read out of it rather than restated here. */
+export const COMPANY_OWNER_CONFIG_PATH = 'company-fundamentals.config.json';
+
+/* The same disclosure predicate Feature 010 Scope 6 asserts in scripts/selftest.mjs, deliberately
+   identical in shape: two predicates would be two answers about what counts as a disclosure, and a
+   gate that disagreed with the assertion would just move the argument. "no recommendation" must sit
+   adjacent to the produced/fabricated verb so an inverted sense cannot satisfy it. Scope 6 keeps its
+   own inline copy because that assertion is read-only for this packet; single-sourcing it should
+   point that copy HERE, never the reverse. */
+export const NO_RECOMMENDATION_DISCLOSURE = /no recommendation[^.]*\b(?:fabricat\w*|produced|generated|issued)\b/i;
+
+/*
+ * BUG-010 — the company owner-read disclosure gate.
+ *
+ * Feature 010 guarantees the company tool produces research, not advice, and the only place a
+ * reader learns that is this coverage entry's `reason`. Both facts it must carry — which adapter
+ * produced the read, and that no recommendation is produced — were authored by the Tier-B narrative
+ * lane, so they held by habit rather than by construction. One window phrased them away and
+ * published cleanly, because the coverage loop tests `reason` for non-emptiness and nothing else.
+ *
+ * Derived, never pinned. The expected adapter id is read from the config; the coverage id is read
+ * from the registry entry that OWNS that config file. Renaming the adapter therefore changes the
+ * expected string without changing which entry is examined. A literal here would let the published
+ * sentence claim an adapter the configuration no longer declares — the same defect one layer down.
+ *
+ * Absence is a breach, never a skip. A check that cannot reach its subject is indistinguishable
+ * from a check that is satisfied, and that indistinguishability is this bug.
+ */
+export function findCompanyOwnerReadDisclosureBreaches(payload, registry, companyConfig) {
+  const breaches = [];
+
+  const owner = (registry?.tools || []).find((tool) => tool?.data === COMPANY_OWNER_CONFIG_PATH);
+  if (!hasText(owner?.id)) {
+    breaches.push(`tools.json registers no tool whose data is ${COMPANY_OWNER_CONFIG_PATH}`
+      + ' — the owner-read disclosure check has no subject, which must fail rather than pass quietly');
+    return breaches;
+  }
+
+  /* Refuse, never throw. The expectation is unresolvable without the config, and a gate that
+     cannot form its expectation has not verified anything — but it owes the operator a sentence,
+     not a stack trace. */
+  if (!companyConfig) {
+    breaches.push(`${COMPANY_OWNER_CONFIG_PATH} could not be read, so the adapter id "${owner.id}" must name cannot be resolved`
+      + ' — a gate that cannot form its expectation refuses rather than assumes one');
+    return breaches;
+  }
+
+  const boundary = companyConfig?.feature002;
+  if (!hasText(boundary?.adapterId)) {
+    breaches.push(`${COMPANY_OWNER_CONFIG_PATH} must declare feature002.adapterId`
+      + ' — the expected adapter id is read from configuration, so an undeclared one is refused rather than assumed');
+  }
+  /* The eligibility is required to be DECLARED but is not branched on. Branching would hand the
+     configuration an off-switch for a safety disclosure: edit one string and the gate politely
+     stops asking. Retiring the disclosure must be a deliberate change to this gate, not a side
+     effect of a config edit. */
+  if (!hasText(boundary?.recommendationEligibility)) {
+    breaches.push(`${COMPANY_OWNER_CONFIG_PATH} must declare feature002.recommendationEligibility`
+      + ' — an undeclared eligibility must not silently retire the no-recommendation disclosure');
+  }
+
+  const coverage = Array.isArray(payload?.toolCoverage) ? payload.toolCoverage : [];
+  const entries = coverage.filter((entry) => entry?.id === owner.id);
+  if (entries.length !== 1) {
+    breaches.push(`toolCoverage must carry exactly one "${owner.id}" entry to disclose the owner read, found ${entries.length}`
+      + ' — an absent entry is a breach, not a skipped check');
+    return breaches;
+  }
+
+  const reason = entries[0]?.reason;
+  if (!hasText(reason)) {
+    breaches.push(`toolCoverage "${owner.id}" reason is empty, so it discloses neither the producing adapter nor the recommendation stance`);
+    return breaches;
+  }
+
+  if (hasText(boundary?.adapterId) && !reason.includes(boundary.adapterId)) {
+    breaches.push(`toolCoverage "${owner.id}" reason must name the producing adapter "${boundary.adapterId}"`
+      + ` as declared by ${COMPANY_OWNER_CONFIG_PATH} feature002.adapterId`
+      + ' — without it a reader cannot tell which adapter produced this read');
+  }
+  if (!NO_RECOMMENDATION_DISCLOSURE.test(reason)) {
+    breaches.push(`toolCoverage "${owner.id}" reason must state that no recommendation is produced`
+      + ` (declared eligibility "${hasText(boundary?.recommendationEligibility) ? boundary.recommendationEligibility : '(undeclared)'}")`
+      + ` matching ${NO_RECOMMENDATION_DISCLOSURE.source}`
+      + ' — the disclosure is the guarantee, and silence about it publishes a research tool that never says it gives no advice');
+  }
+
+  return breaches;
 }
 
 export function validateBriefPayload(payload, registry, config, snapshot, agendaRegistry = null, pageArtifact = null) {
@@ -724,6 +815,14 @@ function loadJson(path) {
   return JSON.parse(readFileSync(resolve(ROOT, path), 'utf8'));
 }
 
+/* An absent file yields undefined so the caller can refuse in its own words rather than die on an
+   ENOENT stack trace. Malformed JSON still throws: a corrupt config is a different problem and must
+   stay loud. */
+function loadJsonIfPresent(path) {
+  const full = resolve(ROOT, path);
+  return existsSync(full) ? JSON.parse(readFileSync(full, 'utf8')) : undefined;
+}
+
 const D16_FLAGS = new Set(['--enforce-d16', '--drop-unscoreable']);
 const CLI_FLAGS = new Set([...D16_FLAGS, '--drop-ineligible-causal', '--defer-page-parity', '--require-narrative-fields']);
 
@@ -788,6 +887,31 @@ function main() {
   const requireNarrativeFields = flags.includes('--require-narrative-fields');
 
   let payload = loadJson(payloadPath);
+
+  /* BUG-010 — evaluated FIRST, unconditionally, and on every invocation.
+     Not behind a flag, because a safety disclosure that publishes only when someone remembers to
+     arm the check is the same guarantee-by-habit this gate exists to replace. Ahead of every other
+     check, because an unrelated schema error must never be the reason the disclosure went
+     unexamined. On success it says so out loud: a silent check and a satisfied check have to be
+     distinguishable, or "it passed" means nothing.
+
+     This lives on the CLI branch rather than inside validateBriefPayload() for the reason the
+     dataAsOf.labels note above records: that function is also a LIBRARY the selftest and the
+     contract suites call as a pure function on the COMMITTED artifact, so a breach there would be
+     re-reported through unrelated suites instead of refused where it matters. INV-010B-4 puts this
+     verdict at publish — "refused before publish, not discovered afterwards by selftest" — and the
+     publish path is this CLI, invoked by brief-refresh-and-push.sh. */
+  const companyBreaches = findCompanyOwnerReadDisclosureBreaches(
+    payload,
+    loadJson('tools.json'),
+    loadJsonIfPresent(COMPANY_OWNER_CONFIG_PATH)
+  );
+  if (companyBreaches.length) {
+    console.error('[brief-contract] FAIL: the company owner-read coverage entry does not disclose what Feature 010 guarantees');
+    companyBreaches.forEach((breach) => console.error('  - ' + breach));
+    process.exit(1);
+  }
+  console.log('[brief-contract] company owner-read names its producing adapter and states that no recommendation is produced: PASS');
 
   if (requireNarrativeFields) {
     const missing = findMissingRequiredNarrativeFields(payload);

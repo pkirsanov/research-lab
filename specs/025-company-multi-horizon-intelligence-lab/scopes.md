@@ -550,10 +550,27 @@ changes no link target.
 | 2.10 | SCN-025-024 | Selftest | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `company-intelligence route, module and config each carry a site-exclusion entry with a substantive reason` |
 | 2.11 | SCN-025-024 | Build gate | `node scripts/build-pages-site.mjs` | Terminal exit 0 with the three excluded root paths absent from `_site/` |
 | 2.12 | Canary — concurrent Lifetime Tax work | Regression E2E | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `Regression: SCN-025-CANARY every pre-existing selftest assertion stays green after the spec 025 exclusion-parity append` |
+| 2.13 | VAL-READY-07 — P10 `file://` operation | E2E | `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | `tests/company-intelligence-lab.spec.mjs` — `the route reaches its first paint from a file:// origin with no server and no off-origin request` |
+| 2.14 | VAL-READY-08 — keyboard reachability | E2E | `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | `tests/company-intelligence-lab.spec.mjs` — `every interactive control on the route is reachable and operable from the keyboard alone` |
 
 Row 2.12 is the shared-surface canary that matters most. Scope 2 appends to both
 shared surfaces. The implementing agent runs `node scripts/selftest.mjs` before
 the append and after the append, and records both results.
+
+Rows 2.13 and 2.14 close the two coverage gaps the automation-readiness review
+found: until they existed every browser assertion on this route served the page
+over HTTP, and no assertion anywhere touched the keyboard.
+
+**Row 2.13 is RED and stays RED until the route is fixed.** It is not a flaky row
+and it must not be relaxed to make the suite green. The route cannot reach a
+first paint from a `file://` origin because `company-intelligence-lab.html:1394`
+resolves its coverage registry with `fetch("company-intelligence.config.json")`,
+which Chrome blocks from a null origin. Product principle P10 makes `file://`
+operation a product feature, so this is a product defect, routed to
+`bubbles.implement`. The full finding, the exact refusal, and the proof that the
+blocked fetch is the only blocker are in [report.md](report.md). Until that fix
+lands, the Tier 1 "exits 0 with zero failing tests" evidence recorded above
+describes rows 2.1 through 2.12 only.
 
 ### Definition of Done
 

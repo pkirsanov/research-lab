@@ -81,8 +81,18 @@
     var CONFIG_VERSION = "company-intelligence-config/v1";
     var FIXTURE_PATH_MARKER = "tests/fixtures/";
 
-    /* A bare same-origin route file, the only shape an owner deep link may take. */
+    /* A bare same-origin route file, the only shape an owner deep link may take. The pattern
+       is deliberately NOT widened to admit a query string: a subject-carrying link is composed
+       by ownerRouteFor from this validated file plus a percent-encoded value, so the one
+       registry string that reaches an href never carries anything but [A-Za-z0-9._-] and .html.
+       That keeps a scheme, an absolute URL, a protocol-relative //host and a traversing path
+       unrepresentable at the source rather than merely filtered later. */
     var SAFE_OWNER_ROUTE = /^[A-Za-z0-9._-]+\.html$/;
+
+    /* The query parameter name an owner route declares when it can actually open on a named
+       company. A registry row that declares no such parameter links to the bare route, because
+       a parameter the target ignores would be a link that silently does nothing. */
+    var SAFE_SUBJECT_PARAM = /^[A-Za-z][A-Za-z0-9_]{0,31}$/;
 
     /* An operator entry naming a position, a size, a cost basis or a profit figure is refused
        outright. The tool holds tickers and nothing else, forever. */
@@ -300,11 +310,24 @@
                 raise("C025-CONFIG-SCHEMA", "Coverage registry row " + index + " declares an owner route that is not a same-origin route file.",
                     "dimension: " + row.dimensionId);
             }
+            /* An owner route may declare the query parameter it reads a company from. The name
+               is validated as an identifier, so the composed link cannot grow a second value,
+               a fragment or an encoded delimiter out of the registry. */
+            var ownerSubjectParam = isNonEmptyString(row.ownerSubjectParam) ? row.ownerSubjectParam : null;
+            if (ownerSubjectParam !== null && ownerDeepLink === null) {
+                raise("C025-CONFIG-SCHEMA", "Coverage registry row " + index + " declares a subject parameter without an owner route.",
+                    "dimension: " + row.dimensionId);
+            }
+            if (ownerSubjectParam !== null && !SAFE_SUBJECT_PARAM.test(ownerSubjectParam)) {
+                raise("C025-CONFIG-SCHEMA", "Coverage registry row " + index + " declares a subject parameter that is not a plain identifier.",
+                    "dimension: " + row.dimensionId);
+            }
             return {
                 dimensionId: row.dimensionId,
                 label: row.label,
                 ownerToolId: ownerToolId,
                 ownerDeepLink: ownerDeepLink,
+                ownerSubjectParam: ownerSubjectParam,
                 freshnessWindowDays: row.freshnessWindowDays,
                 maxHorizon: row.maxHorizon
             };
@@ -436,7 +459,30 @@
 
     /* A dimension with a registered owner gets a link. A dimension with no owner says so in
        words, because an empty cell would read as an omission rather than as a stated absence. */
-    function describeDimensionOwner(registry, dimensionId) {
+    /* Composes the href a dimension card and the coverage table put on screen. The route half
+       is re-tested against SAFE_OWNER_ROUTE here rather than trusted from the caller, so a
+       hand-assembled registry that never passed readCoverageRegistry cannot reach an href
+       either. The subject half is percent-encoded, and it is only ever appended AFTER a
+       validated `<file>.html?<identifier>=`, so no value on either side can introduce a
+       scheme, an authority or a path segment. */
+    function ownerRouteFor(row, subject) {
+        if (!row || !isNonEmptyString(row.ownerDeepLink) || !SAFE_OWNER_ROUTE.test(row.ownerDeepLink)) {
+            return null;
+        }
+        var param = isNonEmptyString(row.ownerSubjectParam) && SAFE_SUBJECT_PARAM.test(row.ownerSubjectParam)
+            ? row.ownerSubjectParam
+            : null;
+        var value = typeof subject === "string" ? subject.trim() : "";
+        if (param === null || value === "") {
+            return { href: row.ownerDeepLink, carriesSubject: false };
+        }
+        return {
+            href: row.ownerDeepLink + "?" + param + "=" + encodeURIComponent(value),
+            carriesSubject: true
+        };
+    }
+
+    function describeDimensionOwner(registry, dimensionId, subject) {
         var row = registryRow(registry, dimensionId);
         if (!row) {
             return deepFreeze({
@@ -445,26 +491,37 @@
                 hasOwner: false,
                 ownerToolId: null,
                 ownerDeepLink: null,
+                carriesSubject: false,
                 statement: "This dimension is not declared in the coverage registry."
             });
         }
-        if (row.ownerToolId === null) {
+        var route = row.ownerToolId === null ? null : ownerRouteFor(row, subject);
+        if (route === null) {
             return deepFreeze({
                 contractVersion: "company-dimension-owner/v1",
                 dimensionId: dimensionId,
                 hasOwner: false,
                 ownerToolId: null,
                 ownerDeepLink: null,
-                statement: "No registered tool owns " + row.label + ", so there is no route to open."
+                carriesSubject: false,
+                statement: row.ownerToolId === null
+                    ? "No registered tool owns " + row.label + ", so there is no route to open."
+                    : "The route declared for " + row.label + " is not a same-origin route file, so it is not opened."
             });
         }
+        /* A link that does not carry the company says so. The reader is told to expect the
+           owning tool on its own subject rather than discovering it silently. */
+        var statement = route.carriesSubject
+            ? row.label + " is owned by " + row.ownerToolId + ", which opens on this company."
+            : row.label + " is owned by " + row.ownerToolId + ", which reads no company parameter and opens on its own subject.";
         return deepFreeze({
             contractVersion: "company-dimension-owner/v1",
             dimensionId: dimensionId,
             hasOwner: true,
             ownerToolId: row.ownerToolId,
-            ownerDeepLink: row.ownerDeepLink,
-            statement: row.label + " is owned by " + row.ownerToolId + "."
+            ownerDeepLink: route.href,
+            carriesSubject: route.carriesSubject,
+            statement: statement
         });
     }
 

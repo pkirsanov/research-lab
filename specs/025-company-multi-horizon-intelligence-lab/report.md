@@ -3909,6 +3909,10 @@ runs, so a mutation of that line on disk turns the assertion red, which the run 
 The harness lives outside the repository at `/private/tmp/rl-aud025-f1/prove.mjs`, reads the
 audit's own `mutations.json`, holds the pristine bytes in memory, writes a recovery copy before
 touching anything, restores in a `finally` block and refuses to continue on any hash mismatch.
+The harness printed the absolute path of the file under mutation; that operator home path is
+redacted to `<repo-root>` below because the committed-surface PII scan forbids a home path in a
+committed file. Nothing else in the block is altered — every sha256, the byte count, every
+`identical=true`, every `VERDICT` and the exit code are the harness's own output verbatim.
 
 ```
 $ node /private/tmp/rl-aud025-f1/prove.mjs
@@ -4027,5 +4031,771 @@ G136 routing.
 
 **Claim Source:** executed.
 
+## Automation Readiness Resolution — the thirteen readiness rows, resolved row by row
+
+`uservalidation.md` carried an `## Automation Readiness` table whose thirteen `Ready` cells were
+all `[ ]`. That section is automation-owned: `.github/bubbles/registry/acceptance-authority.yaml`
+gives it `writer: automation`, `grantsAcceptance: false`, and the note that "a fully checked
+readiness block satisfies no acceptance obligation whatsoever." The same registry gives
+`## Checklist` and `## Human Acceptance Record` `writer: human`, and sets `forbiddenAcceptedBy` to
+`^bubbles\.`. This pass resolved the readiness table and touched neither of the other two.
+
+### The bar a row had to clear
+
+A `Ready` cell was marked `[x]` only when the Test Plan rows named in that row's own third column
+(a) exist as real tests, (b) passed when run **individually** in this session, and (c) between them
+assert every item of the matching Checklist section. Condition (b) is why no row rests on a
+suite-level green: each of the seventeen named unit tests was run alone under
+`node --test --test-name-pattern "<exact title>"`, so a green cannot have come from a neighbour.
+Condition (c) is what left eight rows unmarked. Where the named rows reached only part of a
+section, the pointer was left exactly as `scopes.md` wrote it and the gap was recorded, rather than
+widening the pointer until the row could be checked — widening it would have made the readiness
+table grade itself.
+
+### Every named test, run alone
+
+All seventeen unit tests named by rows 1.1, 1.2, 1.4, 1.5, 1.6, 1.7, 1.9, 1.11, 1.13, 1.14, 1.15,
+1.16, 1.17, 1.18, 3.1, 4.1 and 4.2 were run one at a time. Each printed its own title with `✔`,
+then `ℹ tests 1`, `ℹ pass 1`, `ℹ fail 0`, `ℹ skipped 0`, and exited 0. Rows 1.15 and 1.16 were
+anchored with `^` so their patterns could not also select the Scope 4 titles that begin
+`an authored no-change branch …` and `an authored refused branch …`.
+
+The eleven browser tests named by rows 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 3.6, 4.6 and 4.7
+were run together under one `--grep` alternation naming only those titles, which printed
+`Running 11 tests using 1 worker`, eleven `✓` rows and `11 passed (6.5s)` at exit 0. Row 2.9 was
+run as the literal `PAGE=company-intelligence-lab.html node -e …` command scopes.md gives for it
+and printed `OK page=company-intelligence-lab.html inline=1 refs=0` at exit 0.
+
+Both suites were then run whole, to confirm the isolated runs sat inside a green suite rather than
+beside one.
+
+```
+# feature-025 full unit suite
+$ node --test tests/company-intelligence.unit.mjs
+exit: 0
+lines: 82
+sha256: bfc75d8a4a9dcfcadcf84bc48da0adaa3253fd4abe23cc6f13958537bbf380f2
+ℹ tests 74
+ℹ pass 74
+ℹ fail 0
+ℹ skipped 0
+ℹ todo 0
+```
+
+```
+# feature-025 full browser suite system-chrome
+$ npx --no-install playwright test tests/company-intelligence-lab.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
+exit: 0
+lines: 34
+sha256: c651695453c7fbb22395c071fcc0f2283f000ee06f3a7dde1354c3075ed9dfc7
+  29 passed (2.3m)
+```
+
+Both blocks are `evidence-capture.sh` records; each carries a `--verify` line that re-derives the
+hash over the full output.
+
+### Outcome — five rows ready, eight rows short of their own pointer
+
+| Readiness row | Ready | Why |
+| --- | --- | --- |
+| One company, four answers | `[x]` | 2.1 asserts four `[data-horizon]` cards whose ids sort to `event, immediate, structural, swing`, four summaries each over 20 characters, and four deep-dive controls; 2.4 asserts no `[data-overall-direction]`, no `[data-blended-direction]` and no "overall"/"blended" prose. |
+| The short answer never outruns the long one | `[x]` | 1.5 proves every claim cites only value ids present in its own horizon's input set, with a sibling test proving the composer raises `C025-HORIZON-ISOLATION` when it does not; 1.6 proves the gap disclosure names each absent contributor and that filling the gaps strictly raises evidence quality. |
+| Disagreement survives | `[x]` | 1.7 alone covers all three items: two opposed horizons keep `pressured` and `constructive`, one `immediate-vs-structural` record carries both directions and the words "Both readings stand", and no contradiction record carries a `blendedDirection` key. |
+| Absence is named, never blank | `[ ]` | See finding VAL-READY-01. |
+| Every number tells me where it came from | `[ ]` | See finding VAL-READY-02. |
+| Following the math to its owner | `[ ]` | See finding VAL-READY-03. |
+| Confidence is about evidence, not about winning | `[ ]` | See finding VAL-READY-04. |
+| The research the agent chose to do | `[ ]` | See finding VAL-READY-05. |
+| Events read honestly | `[x]` | 1.11 proves a sourced schedule keeps `scheduled` and an estimated date without a basis is refused with `C025-READ-CONTRACT`; 1.13 proves a non-financial event missing `sourceUrl` or `asOf` never renders while a financial one needs neither; 3.1 proves a past-dated event reclassifies to `occurred` carrying its observed outcome; 3.6 proves it renders as occurred and never as an upcoming catalyst. |
+| Nothing about my money, ever | `[ ]` | See finding VAL-READY-06. |
+| It works with nothing | `[ ]` | See finding VAL-READY-07. |
+| Reading it at all | `[ ]` | See finding VAL-READY-08. |
+| History is added to, never rewritten | `[x]` | 4.1 proves a new version references its predecessor and every prior file keeps its original `contentFingerprint`; 4.2 proves the writer opens no prior version file for writing; 4.6 proves the rendered outcome record shows the predecessor unmodified beside the new version. |
+
+### Findings
+
+Seven of the eight are pointer defects, not behaviour defects: the missing proof exists and passes,
+under a test the readiness row does not name. Only VAL-READY-07 and VAL-READY-08 name behaviour
+that no test in either suite reaches.
+
+**VAL-READY-01 — the financial-events absence item is unpointed and now conditional.** The row
+names 1.1, 1.2 and 2.5. 1.2 proves the *non-financial* dimension reads `unavailable` with
+`no-source-exists`; 2.5 asserts a named absence for whatever happens to be unavailable in that run.
+Neither reaches "the financial events dimension says plainly that no producer is wired for it", and
+that item is no longer unconditional: `company-intelligence.config.json` commits
+`data/company-intelligence/company-msft/events.json` for `company:msft` alone, and the passing unit
+test `the financial event dimension moves to current from a sourced document while the
+non-financial one keeps no-source-exists` proves the dimension reads `current` for a covered
+subject and `no-source-wired` for every other. Increment B wired a producer for one company. Owner:
+`bubbles.plan`, as a wording decision on the Checklist item, not a code fix.
+
+**VAL-READY-02 — staleness is proven, under a name the row does not carry.** Row 2.3 asserts a
+provenance class from `observed, derived, proxy, modelled`, a source name and an ISO as-of date on
+every rendered value, and stops there. "A stale reading says it is stale and shows its age" is
+proven by the passing browser test `FR-025-014 every dated coverage row states its age, so a stale
+read cannot read as current`, which no Test Plan row names.
+
+**VAL-READY-03 — the non-recomputation item is covered by a real Test Plan row this row omits.**
+1.9 and 2.2 cover the owner deep link, its resolution against `tools.json`, and the "No registered
+tool owns" sentence for unowned rows. "Nothing in this tool recomputes a number another tool
+already owns" is covered by **Test Plan row 1.8**, `module source contains no second definition of
+a volatility or ratio metric`. The pointer should read `1.8, 1.9, 2.2`.
+
+**VAL-READY-04 — the confidence row points at the one test that covers least.** 1.6 proves the
+evidence-quality downgrade and nothing about the vocabulary or about percentages. The four-word
+vocabulary is asserted by Test Plan row 2.1, which checks every horizon's quality against
+`['broad','narrow','thin','absent']`; the absence of a percentage beside a direction is asserted by
+the unit test `no horizon read emits a numeric confidence beside its direction`, cited in Scope 1's
+Definition of Done but never as a Test Plan row. Two of this section's three items are therefore
+machine-proven and unpointed.
+
+**VAL-READY-05 — the empty-plan item is proven twice and pointed at zero times.** The named rows
+cover branch schema (1.14), the surviving no-change branch (1.15), the refused branch and its
+reason (1.16), the consulted tool (1.17) and the rendered disclosure rows (4.7). None exercises an
+empty plan. "When the floor answered everything, the plan says so rather than showing an empty
+panel" is proven by the passing browser test `an empty research plan renders its reason as readable
+copy rather than an empty block`, which drives `?symbol=KO` to `data-plan-state="empty"` with
+`data-empty-reason="floor-was-sufficient"`, and again by the unit test `an empty research plan is a
+real outcome rather than an absent one`.
+
+**VAL-READY-06 — the no-password item lives in the browser, and the row points at the module.**
+1.18 is a module-level test of `INTEL.refuseInput`; it proves the six position shapes raise
+`C025-INPUT-REFUSED`, that the refusal never echoes the entry back, and that the same refusal fires
+through subject resolution. It never opens the page, so it cannot reach "the page has no password
+field and no place to paste a key". That is proven by the passing browser test `a position, size or
+cost basis entry is refused in the browser and nothing is stored`, which asserts
+`input[type="password"]` has count 0 in the live DOM and that the route source contains no
+`type="password"`.
+
+**VAL-READY-07 — "no server running" is untested, and is a coverage gap rather than a human
+judgement.** 1.4 proves the fourth item outright: a company outside every corpus yields four
+horizons at `none` direction and `absent` quality, with empty claims and a summary containing "No
+eligible evidence". 2.8 runs through the shared `openComposedRoute` harness, which fails the test
+on any request whose origin differs from the local static server, so the composed run demonstrably
+makes no external call. What no test reaches is that the page opens with **no server at all** —
+every browser row is served by an ephemeral local static server via `startStaticServer()`, never
+over `file://` — and that a first paint precedes any fetch. Both are automatable. The walker must
+open the page from disk with nothing running.
+
+**VAL-READY-08 — keyboard reachability is verified nowhere.** A search of both suites for `focus`,
+`Tab`, `tabindex`, `keyboard` and `press(` returns no match at all, so "I can reach every control
+with the keyboard" has no machine proof anywhere in this feature. Separately, row 2.9 passes but
+reports `refs=0`: the page uses no `getElementById`, so that command's id-resolution half is
+vacuous here and it proves only that the single inline script parses. The section's other items are
+proven — narrow-width stacking with no sideways scroll (2.8), chart-plus-table parity with no empty
+cell (2.7), agent text rendered as characters with zero injected nodes (2.6) — and the ticker item
+by the unnamed `NFR-025-005 every rendered ticker is a linked, described token from the shared
+ticker module`.
+
+### What this pass deliberately did not do
+
+It checked none of the 53 `## Checklist` items; that section is `writer: human` and still reads 53
+unchecked, 0 checked. It wrote no field of `## Human Acceptance Record`; all seven values still read
+`Not recorded`. It named no acceptor, which `forbiddenAcceptedBy: ^bubbles\.` forbids it from being.
+It did not widen any `Covering test row in scopes.md` cell, even where a correct wider pointer
+exists, because the readiness table must not grade itself. It edited no `scopes.md`, `spec.md` or
+`design.md` — the pointer repairs above are `bubbles.plan`'s. It did not set top-level `status` or
+`certification.status` to `done` and wrote no `certifiedAt`. It read and wrote nothing under any
+lifetime-tax path, `specs/021`–`024` or `specs/026`, and it neither repaired nor adopted the two
+foreign repository-selftest failures.
+
+### Guards before and after, and why G136 must still fail
+
+`artifact-lint.sh` exited 0 both before and after, with an identical check list including
+`✅ uservalidation separates automation readiness from human acceptance` and
+`✅ All checklist bullet items use checkbox syntax`. The readiness findings were written as table
+rows and prose rather than as `- ` bullets, because `acceptance-authority-lib.sh` scans that
+section for lines beginning `- ` and raises `PD12-READINESS-NOT-CHECKBOX` on any that is not a
+checkbox.
+
+`state-transition-guard.sh` exited 1 both before and after, with a byte-identical verdict block
+apart from `targetRevision`, which necessarily moved because the artifacts changed:
+
+```
+# before                                        # after
+passedGateIds: [G057,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,
+                G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,
+                G130,G131]                      (identical)
+failedGateIds: [G136]                           failedGateIds: [G136]
+failedChecks: []                                failedChecks: []
+failureCount: 1                                 failureCount: 1
+verdict: FAIL                                   verdict: FAIL
+exit: 1                                         exit: 1
+sha256: e902b85a974c4a196d150f4cfb6870082e036aea4a5cf8562c36f4141a421333
+sha256: ef9fbf9d3d79f17692d99902dc5b5f8b5ebb5798e0661f91b83d4032ac669be0
+```
+
+G136 still failing is the correct outcome, not a regression this pass failed to clear. G136 is the
+terminal human-acceptance gate, and human acceptance genuinely has not happened: 53 Checklist items
+are unchecked and the acceptance record is empty. A readiness table can only shorten the walk. It
+cannot take it.
+
+**Claim Source:** executed.
+
+---
+
+## VAL-READY-07 and VAL-READY-08 — the two coverage gaps, closed, and the product defect one of them exposed
+
+Two of the readiness rows above were not pointer problems. They were holes: behaviour this route is
+required to have, with nothing anywhere asserting it. This pass wrote the two missing tests. One
+passes. The other found a real product defect and is reported red rather than relaxed.
+
+### The gaps, verified before they were filled
+
+Both were confirmed by counting, not by reading impressions off the suite:
+
+```
+$ git show HEAD:tests/company-intelligence-lab.spec.mjs | grep -c "file://"
+0
+$ git show HEAD:tests/company-intelligence-lab.spec.mjs | grep -c "startStaticServer("
+5
+$ git show HEAD:tests/company-intelligence-lab.spec.mjs \
+    | grep -cE "\.press\(|keyboard\.|activeElement|tabindex|\bTab\b|\.focus\("
+0
+$ git show HEAD:tests/company-intelligence.unit.mjs \
+    | grep -cE "\.press\(|keyboard\.|activeElement|tabindex|\bTab\b|\.focus\("
+0
+```
+
+The counts were taken against `HEAD` so they describe the suites as they stood before this pass
+touched them. Five served-over-HTTP openings, zero `file://` openings, zero keyboard tokens in
+either suite.
+
+Every browser assertion on this route served the page over HTTP, and no assertion in either suite
+touched the keyboard. The precedent for the first gap already existed elsewhere in the repository —
+`tests/market-brief-cockpit.spec.mjs:262`, `expanding a block from a file:// origin requires no
+network call, no credential and no build step` — and was followed rather than reinvented. That file
+was read and never edited.
+
+### VAL-READY-07 — the route cannot reach a first paint from a `file://` origin
+
+New test, `tests/company-intelligence-lab.spec.mjs` — `the route reaches its first paint from a
+file:// origin with no server and no off-origin request`. It opens the route straight off disk,
+requires the composed cockpit rather than a refusal banner, requires readable copy in the first
+horizon summary, and requires every request to stay on the `file://` origin with no credential.
+
+**It fails, and the failure is real.** Verbatim:
+
+```
+$ npx --no-install playwright test tests/company-intelligence-lab.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome \
+    --grep "file:// origin with no server" --reporter=list
+  ✘  1 …t from a file:// origin with no server and no off-origin request (30.4s)
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+    Locator:  locator('body')
+    Expected: "composed"
+    Received: "refused"
+  1 failed
+exit=1
+```
+
+The route's own refusal, read out of the live page:
+
+```
+run-status  : refused
+refusal code: C025-CONFIG-SCHEMA
+refusal text: C025-CONFIG-SCHEMA: The coverage registry could not be read, so no horizon
+              was composed. Failed to fetch
+horizon count: 0
+console     : error: Access to fetch at
+              'file:///…/company-intelligence.config.json' from origin 'null' has been
+              blocked by CORS policy: Cross origin requests are only supported for
+              protocol schemes: chrome, chrome-extension, chrome-untrusted, data, http,
+              https, isolated-app.
+```
+
+All fourteen JavaScript assets the page pulls — the thirteen declared `<script src>` tags plus the
+`rlviews.js` the navigation injects at runtime — loaded from disk without complaint. Exactly one
+request failed: the coverage registry. `company-intelligence-lab.html:1394` boots with
+`fetch(CONFIG_PATH, { cache: "no-store" })` against `company-intelligence.config.json`, and Chrome
+refuses a `fetch` issued from a null origin. The `.catch` then calls `renderRefusal`, which sets
+`data-run-status="refused"` and paints zero horizons.
+
+This is a product defect, not a test overreach. Product principle P10 states it directly:
+
+> `file://` operation is a **product feature**, not an accident: a research tool you cannot open
+> without a web server is a tool you cannot open on a plane.
+
+**The blocked fetch is the only blocker, proven without touching a source byte.** The identical test
+was re-run under a throwaway config (written outside the repository and deleted afterwards) whose
+only difference is Chrome's `--allow-file-access-from-files`:
+
+```
+$ npx --no-install playwright test tests/company-intelligence-lab.spec.mjs \
+    --config="$TMPDIR/rl-file-access-probe.config.mjs" --project=system-chrome \
+    --grep "file:// origin with no server" --reporter=list
+  ✓  1 …t from a file:// origin with no server and no off-origin request (659ms)
+  1 passed (1.7s)
+exit=0
+```
+
+That is the negative control in its strongest form. Every assertion in the test is satisfiable, no
+assertion is vacuous, and removing the one blocked fetch turns the whole test green. The committed
+test keeps the default browser, because the default browser is what a reader has.
+
+**Routed to `bubbles.implement`, not repaired here.** `company-intelligence-lab.html` is production
+and this agent does not own it. The repair direction the evidence points at is to stop resolving the
+coverage registry over `fetch` and deliver it the way every other asset on the page already arrives —
+as a classic `<script src>` that attaches the registry to a global — which is the same UMD discipline
+P10 already requires of the shared modules. The test is left red on purpose. It is not flaky, and
+relaxing it to `refused` would convert a real reader-facing defect into a permanent green lie.
+
+### VAL-READY-08 — keyboard reachability, now proven
+
+New test, `tests/company-intelligence-lab.spec.mjs` — `every interactive control on the route is
+reachable and operable from the keyboard alone`. No pointer is used anywhere in it. It walks the tab
+ring from the document start, records where focus actually landed, and then asserts four separate
+things: that focus moves strictly forward through the document and never jumps backwards; that
+`#subject-input`, `#subject-apply`, `#mode-simple`, `#mode-power` and all four deep-dive controls
+appear on that ring; that every landed control shows a non-`none`, non-zero-width focus ring; and
+that the deep dives, the mode segment and the apply control all operate from `Enter` alone.
+
+It passes:
+
+```
+$ npx --no-install playwright test tests/company-intelligence-lab.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome \
+    --grep "reachable and operable from the keyboard alone" --reporter=list
+  ✓  1 …l on the route is reachable and operable from the keyboard alone (808ms)
+  1 passed (2.0s)
+exit=0
+```
+
+No accessibility defect was found. The route's controls are native `<input>`, `<button>` and
+`<details>`/`<summary>` elements, the page sets no `tabindex` and suppresses no outline, so the tab
+ring and the focus ring are both intact.
+
+### Kill proof — the keyboard test dies when the behaviour it claims dies
+
+A passing accessibility test is worth nothing until it is shown to be sensitive to the thing it
+names. Two independent assertion families were killed separately, each mutation applied on disk, run,
+and reverted with the hash verified.
+
+`company-intelligence-lab.html` before either mutation:
+
+```
+c99d4245a4a5cad6f277ee542b921fc621e7fab1125a3da44dc1b3cbac0d76d9  company-intelligence-lab.html
+4881db1647da6400b36efa0f71c1bd790738c8a3b1f8e82ef675517849acae8e  rlcompanyintel.js
+```
+
+**Mutation 1 — reachability.** `tabindex="-1"` added to `#mode-power`, removing it from the tab ring
+while leaving it perfectly clickable:
+
+```
+    Error: #mode-power is not reachable by Tab
+    Expected: true
+    Received: false
+  1 failed
+exit=1
+```
+
+Reverted; `company-intelligence-lab.html` back to `c99d4245a4a5cad6f277ee542b921fc621e7fab1125a3da44dc1b3cbac0d76d9`.
+
+**Mutation 2 — visible focus.** `*:focus { outline: none; }` added at the top of the page's style
+block, which is the exact change that strands a keyboard reader with no idea where they are:
+
+```
+    Error: #subject-input shows no focus ring while focused
+    Expected: not "none"
+  1 failed
+exit=1
+```
+
+Reverted; hash verified again and the test re-run green:
+
+```
+$ shasum -a 256 company-intelligence-lab.html rlcompanyintel.js
+c99d4245a4a5cad6f277ee542b921fc621e7fab1125a3da44dc1b3cbac0d76d9  company-intelligence-lab.html
+4881db1647da6400b36efa0f71c1bd790738c8a3b1f8e82ef675517849acae8e  rlcompanyintel.js
+  ✓  1 …l on the route is reachable and operable from the keyboard alone (808ms)
+  1 passed (2.0s)
+exit=0
+```
+
+Both production files end this pass byte-identical to how they started. `rlcompanyintel.js` never
+changed at all and still carries `4881db16…acae8e`. No production change was made by this pass.
+
+### One test-authoring error, disclosed rather than absorbed
+
+The keyboard test's first run failed on `#subject-input` holding `AAPLMSFT` instead of `AAPL`. That
+was a defect in the test, not in the route: it cleared the field with `Control+a`, which is not the
+select-all chord on macOS, so the typed ticker was prepended to the existing value. It was corrected
+to Playwright's platform-neutral `ControlOrMeta+a`. Recorded because the run happened, and a run that
+happened belongs in the record whatever it showed.
+
+### Suites after the change
+
+```
+$ node --test tests/company-intelligence.unit.mjs
+ℹ tests 74
+ℹ pass 74
+ℹ fail 0
+ℹ skipped 0
+ℹ todo 0
+unit_exit=0
+
+$ npx --no-install playwright test tests/company-intelligence-lab.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
+  ✘  30 … the route reaches its first paint from a file:// origin with no server
+        and no off-origin request (30.2s)
+  ✓  31 … every interactive control on the route is reachable and operable from
+        the keyboard alone (629ms)
+  1 failed
+  30 passed (56.5s)
+browser_exit=1
+```
+
+The unit suite is unchanged at 74 passing. The browser suite went from 29 tests to 31. All 29
+pre-existing tests still pass; no assertion anywhere was weakened, deleted or skipped, and no test
+is marked skipped or todo. The single failure is row 2.13, and it is the routed product defect above.
+
+### Guards after the change
+
+```
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/025-company-multi-horizon-intelligence-lab
+Artifact lint PASSED.
+artifact_lint_exit=0
+
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/025-company-multi-horizon-intelligence-lab
+passedGateIds: [G057,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,
+                G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131]
+failedGateIds: [G136]
+failedChecks: []
+failureCount: 1
+verdict: FAIL
+guard_exit=1
+```
+
+The passed-gate list is identical to the previous pass. G136 is still the only failure and must be:
+it is the terminal human-acceptance gate, human acceptance has not happened, and nothing in this pass
+touched `uservalidation.md`. No `## Checklist` item was ticked, the `## Human Acceptance Record` is
+still empty, top-level `status` is still `in_progress` and no `certifiedAt` was written.
+
+### What this pass deliberately did not do
+
+- It did not repair the `file://` defect. `company-intelligence-lab.html` is production code owned
+  by `bubbles.implement`, and inventing a fix here would have hidden the finding inside a green run.
+- It did not weaken row 2.13 to `refused` so the suite could exit 0. That was the one thing most
+  likely to be mistaken for progress, and it is the one thing that would have destroyed the finding.
+- It did not touch any lifetime-tax path, `specs/021`–`024`, `specs/026`, or
+  `tests/market-brief-cockpit.spec.mjs`, which was read as precedent and left byte-unchanged.
+- It did not address the two foreign repository-selftest failures (spec 021 PII; `TP-05-06` reading
+  `rltax*.js`). They belong to other owners and were left alone.
+
+**Claim Source:** executed.
+
 **Educational research only. Not investment advice.**
+
+---
+
+## Automation Readiness — the eight open rows, resolved against the tests that actually prove them
+
+The previous pass left eight readiness rows unchecked and recorded, for each, that the proof
+existed but sat in a test the row's pointer did not name. This pass verified that claim instead of
+inheriting it, read the exact Checklist items behind every row, read the cited tests, ran them, and
+resolved each row on what the tests assert rather than on what the pointer says.
+
+**The structural change.** The readiness table's third column was `Covering test row in scopes.md`.
+That column could not carry an honest checkmark, because for six of the eight rows the proof lives
+in a test that is not a Test Plan row at all. The column now names the tests. A reader can verify
+any checkmark by running one command rather than by resolving a pointer into another document and
+finding it short. `scopes.md` was left byte-unchanged: widening its Test Plan is `bubbles.plan`'s
+call, not this pass's.
+
+### Two premises in the request were wrong, and both were checked rather than assumed
+
+- **"A keyboard test may still be missing."** It is not missing. `tests/company-intelligence-lab.spec.mjs`
+  line 1093, `every interactive control on the route is reachable and operable from the keyboard alone`,
+  exists and passes. The suite's "30 passed" reading was 30 passed **and one failed**, not 30 of 30.
+  The 29 → 31 growth is both new tests, and the single failure is the `file://` row.
+- **"Row 'Nothing about my money' and three others are already proven."** True, and each was
+  confirmed by reading the assertions, not by trusting the prior pass's summary.
+
+### Every named test, run alone
+
+Each unit test cited by a newly-checked row was run under `node --test --test-name-pattern`,
+which reports `tests 1` and so cannot be satisfied by a neighbour.
+
+```
+$ node --test --test-name-pattern "no horizon read emits a numeric confidence beside its direction" tests/company-intelligence.unit.mjs
+✔ no horizon read emits a numeric confidence beside its direction (7.200667ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54.170042
+SINGLE_TEST_EXIT=0
+```
+
+The same form was run for `the financial event dimension moves to current from a sourced document
+while the non-financial one keeps no-source-exists` (T1_EXIT=0), `an unavailable dimension never
+renders as a zero or a neutral number` (T2_EXIT=0), `a read aged past its window stays in the
+denominator as stale rather than becoming neutral` (T3_EXIT=0), `adversarial: a read naming another
+company is refused and never reaches a horizon` (T4_EXIT=0), `the coverage account refuses a read
+set missing any one registry dimension rather than dropping the row` (T5_EXIT=0), and `an empty
+research plan is a real outcome rather than an absent one` (T6_EXIT=0). Each reported `tests 1`,
+`pass 1`, `fail 0`.
+
+The four cited browser tests that are not Test Plan rows were run under one filtered `--grep`:
+
+```
+$ npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "FR-025-014 every dated coverage row states its age|NFR-025-005 every rendered ticker is a linked|an empty research plan renders its reason as readable copy|a position, size or cost basis entry is refused in the browser" --reporter=list
+
+Running 4 tests using 1 worker
+
+  ✓  1 …cost basis entry is refused in the browser and nothing is stored (624ms)
+  ✓  2 …n renders its reason as readable copy rather than an empty block (329ms)
+  ✓  3 …erage row states its age, so a stale read cannot read as current (354ms)
+  ✓  4 …icker is a linked, described token from the shared ticker module (691ms)
+
+  4 passed (3.3s)
+CITED_BROWSER_EXIT=0
+```
+
+### The keyboard test was strengthened, because "every control" meant "every control in one view"
+
+As found, `every interactive control on the route is reachable and operable from the keyboard alone`
+walked the tab ring of the **Simple** view only. Simple carries the identifier field, the apply
+control, the two mode buttons and the four deep dives. It does not carry the owner deep links or the
+research-plan disclosures, which live in **Power** and are exactly where a keyboard reader is most
+likely to be stranded. A checkmark on "I can reach every control with the keyboard" earned from the
+smaller of the two views would have overstated.
+
+A seventh step was added: switch to Power from the keyboard, then Tab until every
+`a[data-owner-link]` and every `#workspace-plan-body [data-branch-id] > summary` has held focus, and
+fail naming any that never did.
+
+Two identity schemes were tried and discarded before the third worked, and the reason is recorded in
+the test itself so the next author does not repeat them. An index into `querySelectorAll('*')` drifts
+under this route's second paint. A `data-probe-id` stamped before the walk is destroyed when the
+shared ticker module rehydrates a token, which produced false misses on a ticker link and on a shared
+"?" button. Resolving the element's index within its own selector set inside the same `evaluate` that
+reads focus is stable under both.
+
+### Kill proof — the new assertion dies when the behaviour it claims dies
+
+```
+$ shasum -a 256 company-intelligence-lab.html rlcompanyintel.js
+c99d4245a4a5cad6f277ee542b921fc621e7fab1125a3da44dc1b3cbac0d76d9  company-intelligence-lab.html
+4881db1647da6400b36efa0f71c1bd790738c8a3b1f8e82ef675517849acae8e  rlcompanyintel.js
+```
+
+Mutation: `tabindex: "-1"` added to the owner link built at `company-intelligence-lab.html` line 908,
+which removes it from the tab ring while leaving it visible and clickable.
+
+```
+$ npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "every interactive control on the route is reachable and operable from the keyboard alone" --reporter=list
+
+  ✘  1 …ol on the route is reachable and operable from the keyboard alone (2.5s)
+
+    Error: Power-mode controls no Tab press ever focused: market-brief | company-fundamentals-lab |
+    company-fundamentals-lab | technical-analysis-decision-lab | trend-dynamics-cycle-lab |
+    options-structure-lab | gamma-trading-lab | options-flow-feed-lab | volatility-sizing-lab |
+    research-agenda-lab | market-brief
+
+  1 failed
+NEGATIVE_CONTROL_EXIT=1
+```
+
+Reverted, and verified byte-identical rather than merely re-passing:
+
+```
+$ shasum -a 256 company-intelligence-lab.html rlcompanyintel.js && git status --short company-intelligence-lab.html rlcompanyintel.js
+c99d4245a4a5cad6f277ee542b921fc621e7fab1125a3da44dc1b3cbac0d76d9  company-intelligence-lab.html
+4881db1647da6400b36efa0f71c1bd790738c8a3b1f8e82ef675517849acae8e  rlcompanyintel.js
+(empty git status above = byte-identical to HEAD)
+
+$ npx --no-install playwright test ... --grep "every interactive control ..." --reporter=list
+  ✓  1 …ol on the route is reachable and operable from the keyboard alone (1.0s)
+  1 passed (2.3s)
+KEYBOARD_AFTER_RESTORE_EXIT=0
+```
+
+Both hashes are unchanged from the values recorded at the head of this session. `rlcompanyintel.js`
+was never edited at all.
+
+### Outcome — six rows checked, two left unchecked because the product does not satisfy them
+
+| Row | Ready | Basis |
+| --- | --- | --- |
+| Absence is named, never blank | `[x]` | All six items proven. TP 1.1, 1.2, 2.5 plus four unit tests covering the zero/neutral substitution, the stale read, the missing-row refusal and the cross-company read. |
+| Every number tells me where it came from | `[x]` | All three items. TP 2.3 carries source, as-of and provenance class on every rendered value and asserts the class is one of the four; `FR-025-014` carries the age. |
+| Following the math to its owner | `[ ]` | Three items of four. The fourth is **not satisfied**, see Findings. |
+| Confidence is about evidence, not about winning | `[x]` | All three items. TP 2.1 asserts the four-word vocabulary in the DOM; the unit test asserts no percentage, no probability wording and no confidence-shaped key. |
+| The research the agent chose to do | `[x]` | All five items. TP 1.14 through 1.17 and 4.7, plus the empty-plan pair. |
+| Nothing about my money, ever | `[x]` | All four items. TP 1.18 at module level, and the browser test for the live DOM including zero `input[type="password"]`. |
+| It works with nothing | `[ ]` | One item of four. Two more are **not satisfied**, see Findings. |
+| Reading it at all | `[x]` | All five items. TP 2.6, 2.7, 2.8, the ticker test, and TP 2.14 now covering both views. Residual is legibility and flow, which is judgement, not mechanics. |
+
+### Findings
+
+**VAL-025-F4 — the owner deep link does not carry the company. New, product defect, routed.**
+
+Checklist item: "When another tool owns a dimension, the row links to that tool **for the same
+company**." The link does not. `rlcompanyintel.js` line 85 constrains an owner deep link to
+`/^[A-Za-z0-9._-]+\.html$/`, which forbids a query string, and every one of the eleven non-null
+`ownerDeepLink` values in `company-intelligence.config.json` is a bare route file such as
+`volatility-sizing-lab.html`. The remaining four of the fifteen are `null`, for the dimensions no
+tool owns, and those correctly render a sentence instead of a link. TP 2.2
+passes precisely because the href is bare: it asserts `REGISTERED_PAGES.has(target)` against the
+`tools.json` file list, which a `?symbol=` suffix would fail.
+
+Six of the nine distinct owner routes contain no `URLSearchParams` at all, so they could not read a
+symbol even if one were passed. Spec `UC-025-003` says "The owning tool opens on the same company",
+and the UI contract at `spec.md` line 1188 repeats it. The implementation and the spec disagree.
+
+Not repaired here. It needs a planning decision about whether the owner routes should accept a
+symbol before any code moves, so it is routed rather than patched.
+
+**VAL-025-F5 — the `file://` defect and the suite exit code. Pre-existing, unchanged.**
+
+Row 2.13 remains RED for the reason the previous pass recorded, and the browser suite therefore
+exits 1. That failure was present before this pass and is untouched by it. It was not relaxed.
+
+### Suites and guards after the change
+
+Recorded verbatim in the RESULT-ENVELOPE for this pass. Unit 74/74 exit 0; browser 30 passed / 1
+failed exit 1, the failure being row 2.13 only.
+
+### What this pass deliberately did not do
+
+- It did not tick anything in the `## Checklist` section. That section is human-owned
+  (`forbiddenAcceptedBy: ^bubbles\.`) and ticking it would fabricate the fact G136 exists to require.
+- It did not author a `## Human Acceptance Record`, set `status` to `done`, or write `certifiedAt`.
+- It did not edit `scopes.md`. Six readiness rows are proven by tests that are not Test Plan rows;
+  widening the Test Plan to match is `bubbles.plan`'s call.
+- It did not repair either product defect. Both are `bubbles.implement`'s, and fixing them inside a
+  test pass would have hidden them in a green run.
+- It did not touch any lifetime-tax path, `specs/021`–`024`, or `specs/026`. `rlcompanyintel.js` and
+  `company-intelligence-lab.html` are byte-identical to HEAD.
+
+**Claim Source:** executed.
+
+---
+
+## Cache-First First Paint, And The Home Path That Reached A Commit — `bubbles.implement`, 2026-08-19
+
+**Phase:** implement. Two items: one committed-surface privacy defect in this report's own
+evidence, and the last unresolved Automation Readiness row.
+
+### 1. The mutation-proof harness printed the operator's home path into this report
+
+`node scripts/selftest.mjs` was red on exactly one assertion,
+`committed surface carries no personal identifier`. `node scripts/pii-scan.mjs` named two
+`home-path` findings, both in this file, at 3916:10 and 3952:7 — the `PRISTINE` and `FINAL`
+lines of the AUD-025-F1 kill-proof block above. The harness lives outside the repository and
+prints the absolute path of the file it is mutating, and that output was pasted verbatim.
+
+The repair replaced ONLY the home-path prefix with `<repo-root>`, the same redaction this
+report already applies at two earlier preflight quotations. No sha256, no byte count, no
+`identical=true`, no `VERDICT`, and no exit code was altered, and the block was not deleted.
+No entry was added to `scripts/pii-scan.config.json` `"allow"`: blunting the scanner to hide
+our own leak is the one repair that would make the next leak invisible.
+
+```
+$ node scripts/pii-scan.mjs        # before
+[pii-scan] specs/025-company-multi-horizon-intelligence-lab/report.md:3916:10 rule=home-path length=16
+[pii-scan] specs/025-company-multi-horizon-intelligence-lab/report.md:3952:7 rule=home-path length=16
+[pii-scan] files=8104 messages=1530 findings=2 FAIL
+PII_SCAN_EXIT=1
+
+$ node scripts/pii-scan.mjs        # after
+[pii-scan] files=8104 messages=1530 findings=0 OK
+PII_SCAN_EXIT=0
+```
+
+```
+$ node scripts/selftest.mjs
+================================================
+Research-Lab self-test: 3100 passed, 0 failed
+================================================
+SELFTEST_PIPE_EXIT=0
+```
+
+### 2. "It works with nothing" — the first paint no longer waits on the server either
+
+The row's residual was one item of four: "Nothing waits on a network call before the first
+paint" was FALSE whenever a server WAS present, because `boot()` awaited the served registry
+before composing anything. The embedded registry copy existed only as a fallback for the
+null-origin `file://` case.
+
+The repair is the repository's own cache-first first paint (P12, "A tool paints a meaningful
+view **on load**, from cache, then fetches only the delta"). `boot()` now calls
+`paintFromEmbedded()` — parse the inert `application/json` block, read the coverage registry,
+compose, paint — strictly before `readConfig()` issues its request. The served registry is then
+read and reconciled: when it says anything the embedded copy does not, the view is recomposed
+from it, so a deployment's registry stays authoritative. `readConfig()` now reports its own
+source, and the body carries `data-registry-source` moving `pending → embedded → served`.
+
+The objection recorded in the previous pass — that painting the embedded copy first would show
+a registry the deployment may not have — is answered by the reconcile, not waved away. The
+embedded copy is a cache, and the served one still wins. When the served registry cannot be
+read the page still refuses by name, and the refusal now says explicitly that the view below
+came from the copy embedded in the document and may not match this deployment.
+
+The recompose is conditional on the two registries actually differing, because an
+unconditional second paint would discard a drill-down the reader opened between the two paints
+— the same defect `renderHorizonCards` already carries an open-set carry-over for.
+
+### Kill proof — the new assertion dies when the behaviour it claims dies
+
+The assertion holds EVERY runtime `fetch` the route issues open (registry, bars, events,
+research record) via `page.route`, continuing only the document and its classic scripts, and
+requires four horizons carrying readable copy to be on screen anyway, with
+`data-registry-source="embedded"` and the registry request confirmed still outstanding. It
+then releases the gate and requires the source to flip to `served`.
+
+Mutation: `paintFromEmbedded()` disabled in `boot()`, restoring the fetch-first order.
+
+```
+$ npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "first paint composes with every data request still outstanding" --reporter=list
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+    Locator:  locator('body')
+    Expected: "composed"
+    Received: "empty"
+    Timeout:  20000ms
+      - waiting for locator('body')
+        44 × locator resolved to <body data-mode="simple" class="rlapp-status" data-run-status="empty" data-corpus-status="pending" data-coverage-unavailable="0" data-registry-source="pending">…</body>
+           - unexpected value "empty"
+  1 failed
+MUTATED_EXIT=1
+```
+
+Restored, and green again:
+
+```
+$ npx --no-install playwright test ... --grep "first paint composes with every data request still outstanding" --reporter=list
+  ✓  1 …request still outstanding, then reconciles to the served registry (1.0s)
+  1 passed (3.3s)
+RESTORED_EXIT=0
+```
+
+### Source integrity
+
+`rlcompanyintel.js` was NOT touched: `shasum -a 256` reads
+`7ca00347203b317907dfc2a2e5e972ff20862f9b7de5eb9c47c6c9aac43e459c`, the value recorded at the
+head of this pass. The files this pass changed are `company-intelligence-lab.html`,
+`tests/company-intelligence-lab.spec.mjs`, this report, and `uservalidation.md`.
+
+### What this pass deliberately did not do
+
+- It did not tick anything in the `## Checklist` section, and authored no Human Acceptance Record.
+- It did not set `status` to `done` and did not write `certifiedAt`.
+- It did not touch any lifetime-tax path, `specs/021`–`024`, or `specs/026`.
+- It did not move the `Following the math to its owner` row. Its residual — that nine of the
+  eleven owning tools cannot open on a company at all — is unchanged by this work and remains a
+  planning decision.
+- It did not add a `scripts/pii-scan.config.json` allow entry.
+
+**Claim Source:** executed.
+
+**Educational research only. Not investment advice.**
+
+
 

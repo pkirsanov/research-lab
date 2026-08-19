@@ -428,14 +428,31 @@ delivery makes a row's claim false, the row is corrected rather than checked.
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence recorded,
       including the browser rows.
   - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-28 commands · **Evidence:** `report.md#test-evidence`
-  - **Unchecked because:** the named intended-RED assertion — a fixture pack carrying
-    a probability-bearing member is refused `RLTAX-PACK-INVALID` and produces no
-    comparison — was authored by an earlier dispatch that recorded no RED evidence,
-    and the refusal already existed when the completing session began, so no session
-    observed it fail. GREEN is recorded for every row. The only RED this scope can
-    honestly claim is the narrower one recorded in `report.md`: TP-03-05 and
-    TP-03-CLAIM failing at 2784 passed / 2 failed before the fix and passing at
-    2786 / 0 after it, under the identical command.
+  - **Claim Source:** executed for 27 of the 28 rows; `not-run` for the 28th.
+  - **Unchecked because:** exactly one row, **TP-03-25**, has GREEN with no RED.
+    The item says *every* row, so one unproven row leaves it `[ ]`.
+
+    **Done — 27 rows with both halves under the row's own command.** TP-03-01
+    through TP-03-24 were probed in the implementation session and are recorded
+    under `report.md#intended-red-evidence-per-test-plan-row`. TP-03-26, TP-03-27
+    and TP-03-28 were probed in a later session and are recorded under
+    `report.md#intended-red-evidence-for-the-four-gate-rows-tp-03-25--tp-03-28`,
+    with TP-03-28 carrying two probes because the row makes two separable claims.
+
+    **Not done — TP-03-25**, the broader browser regression. Its command selects
+    74 tests; two attempts reached `[74/74]` and returned no summary line and no
+    exit code, so no trustworthy baseline exists for a RED to be a delta against.
+    Separately, `--grep "SCN-02"` also selects `SCN-025-*` and `SCN-026-*`, whose
+    files a concurrent session was editing throughout, so a failure under a
+    mutation would not be attributable. **No mutation was applied for this row** —
+    a prior dispatch left an abandoned `RED PROBE TP-03-25` mutation in
+    `lifetime-tax-strategy-lab.html` that degraded the product until a human
+    reverted it, and repeating that was the worse outcome. The full reasoning and
+    what the next session needs is at `report.md#tp-03-25--not-probed-no-intended-red-evidence-exists-for-this-row`.
+
+    **Superseded:** the earlier note on this item claimed the only honest RED was
+    the narrow TP-03-05 / TP-03-CLAIM pair. That is now out of date — 27 rows
+    carry their own named, per-row RED.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds with

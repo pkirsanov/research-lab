@@ -1870,3 +1870,545 @@ was modified.
 **GREEN, same command, reverted tree:** exit 0, `1 passed (1.7s)`. Recorded at
 [TP-03-22](#tp-03-22).
 
+### RED TP-03-23
+
+**Mutation:** `lifetime-tax-strategy-lab.html` — the declared order replaced by a
+sort on cumulative total. The first attempt sorted `comparison.perAge` in place;
+the settlement record is frozen, so that threw and emptied the table, producing a
+crash-shaped failure rather than the intended one. That attempt was reverted and
+replaced by a sort over a copy, which reorders the rows exactly as a renderer that
+ranked by outcome would:
+
+```diff
+                 var index = 0;
++                /* RED PROBE TP-03-23 — the declared order replaced by a sort on cumulative total. */
++                var probeOrdered = comparison.perAge.slice().sort(function (a, b) {
++                    return (a.cumulativeTotal || 0) - (b.cumulativeTotal || 0);
++                });
+-                for (index = 0; index < comparison.perAge.length; index += 1) {
+-                    var entry = comparison.perAge[index];
++                for (index = 0; index < probeOrdered.length; index += 1) {
++                    var entry = probeOrdered[index];
+```
+
+The declared order is 70, 62, 67, chosen so that neither ascending nor descending
+by any figure reproduces it. A renderer that sorted by cumulative total therefore
+cannot pass by coincidence.
+
+```
+# RED TP-03-23
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome --grep "Regression: SCN-024-009 the claim ages render in declared order with nothing marked best, optimal, recommended or preferred" --reporter=list
+exit: 1
+--- output ---
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Array [
+    -   "70",
+        "62",
+        "67",
+    +   "70",
+      ]
+
+      187 |   const order = await page.locator('#claimAgeBody tr')
+      188 |     .evaluateAll((rows) => rows.map((row) => row.getAttribute('data-rl-claim-age')));
+    > 189 |   expect(order).toEqual(['70', '62', '67']);
+          |                 ^
+        at file://<repo>/tests/lifetime-tax-claim-age.spec.mjs:189:17
+
+  1 failed
+    [system-chrome] › tests/lifetime-tax-claim-age.spec.mjs:179:1 › Regression: SCN-024-009 the claim ages render in declared order with nothing marked best, optimal, recommended or preferred
+```
+
+The diff shows `70` moving from first to last — the exact signature of an
+ascending sort by cumulative total, which is the harm FR-024-019 forbids.
+
+**Revert:** `git checkout -- lifetime-tax-strategy-lab.html` → exit 0.
+`git status --short -- rltax*.js tax-rules/ lifetime-tax-strategy-lab.html`
+printed nothing.
+
+**GREEN, same command, reverted tree:** exit 0, `1 passed (1.6s)`. Recorded at
+[TP-03-23](#tp-03-23).
+
+### RED TP-03-24
+
+**Mutation:** `lifetime-tax-strategy-lab.html` — the declared claim ages leaked
+into a request URL from the claim-age renderer. The pack fetch at boot happens
+before any age is declared, so a leak there would carry nothing; the probe is
+placed where the declared values are actually in hand, which is the shape a real
+telemetry or cache-busting leak would take:
+
+```diff
+             function renderClaimAge() {
+                 var refusalHost = byId("claimAgeRefusal");
+                 var columnAbsenceHost = byId("claimAgeColumnAbsence");
+                 var body = byId("claimAgeBody");
+                 var parityBody = byId("claimAgeParityBody");
++                /* RED PROBE TP-03-24 — the declared claim ages leaked into a request URL. */
++                if (state.workspace && state.workspace.claimAgeComparisonAges) {
++                    window.fetch("/tax-rules/mortality/2026.json?claimAge="
++                        + String(state.workspace.claimAgeComparisonAges), { cache: "no-store" });
++                }
+```
+
+The leaked path is one the permitted set already contains, so the path-membership
+assertion stays green and the row is forced to catch the leak on the query string
+alone — which is the stricter claim: a household value must not reach a URL even
+when the URL itself is permitted.
+
+```
+# RED TP-03-24
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome --grep "Regression: SCN-024-009 the request ledger stays empty and no declared claim age reaches a URL" --reporter=list
+exit: 1
+--- output ---
+    Error: expect(received).not.toContain(expected) // indexOf
+
+    Expected substring: not "70,"
+    Received string:        "… http://127.0.0.1:65527/tax-rules/mortality/2026.json?claimAge=70,62,67 http://127.0.0.1:65527/tax-rules/mortality/2026.json?claimAge=70,62,67 http://127.0.0.1:65527/tax-rules/mortality/2026.json?claimAge=70,62,67"
+
+      217 |   /* No declared claim age, and no declared column, reaches any URL, query string or body. */
+      218 |   const urls = ledger.map((entry) => entry.url).join(' ');
+    > 219 |   expect(urls).not.toContain('70,');
+          |                    ^
+      220 |   expect(urls).not.toContain('claimAge');
+        at file://<repo>/tests/lifetime-tax-claim-age.spec.mjs:219:20
+
+  1 failed
+    [system-chrome] › tests/lifetime-tax-claim-age.spec.mjs:201:1 › Regression: SCN-024-009 the request ledger stays empty and no declared claim age reaches a URL
+```
+
+The received string is elided at its head here, where it lists the twenty
+permitted asset and pack requests that were already green; the three leaking
+entries are reproduced verbatim. The row fails on the declared ages themselves
+appearing in the query string, which is precisely NFR-024-003.
+
+**Revert:** `git checkout -- lifetime-tax-strategy-lab.html` → exit 0.
+`git status --short -- rltax*.js tax-rules/ lifetime-tax-strategy-lab.html`
+printed nothing.
+
+**GREEN, same command, reverted tree:** exit 0, `1 passed (1.7s)`. Recorded at
+[TP-03-24](#tp-03-24).
+
+## Intended RED Evidence for the Four Gate Rows, TP-03-25 … TP-03-28
+
+**Why these four were recorded in a later session, and against a moved baseline.**
+The twenty-four rows above were probed at `33b663f20`, where
+`node scripts/selftest.mjs` reported 2868 passed / 1 failed. The four rows in this
+section were probed later, at `9af68427b`, where the same command reports
+**3037 passed, 4 failed**. The rise in both numbers is a concurrent session's
+Feature 026 landing between the two sittings; the four failures are
+`Regression: SCN-026-CANARY-01`, `-02`, `-04` and `TP-026-5.1`, all owned by that
+session and all present identically before and after every mutation below. A
+probe's RED is the delta *above* those four, exactly as the earlier probes took
+their delta above the single failure standing at `33b663f20`.
+
+**Baselines captured before the first mutation of this sitting**, each with the
+row's own Test Plan command and each bounded through
+`.github/bubbles/scripts/evidence-capture.sh` so the recorded sha256 covers every
+line the command produced:
+
+```
+# BASELINE selftest
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3442
+sha256: 2643a40b47f495674d5986133afac70bbfc8165aff24a087a3f0691c30d3018e
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: Regression: SCN-026-CANARY-01 every pre-existing selftest assertion stays green after the Feature 026 budget append, the fetch budget is unchanged, the committed unstamped payload still validates clean, and the site build accounts for rlcockpit.js without an exclusion
+  ✗ FAIL: Regression: SCN-026-CANARY-02 the Scope 1 budget group and every pre-existing assertion stay green after the cross-asset append
+  ✗ FAIL: Regression: SCN-026-CANARY-04 the Scope 1 through Scope 3 groups and every pre-existing assertion stay green after the renderer append, and rlcockpit.js is still a frozen UMD module with no browser-only global and no bare isFinite
+  ✗ FAIL: TP-026-5.1 every published claim is recorded with the observation that would resolve it, or the row declares no claims — never a claim with no resolving observation
+--- omitted 3402 line(s); sha256 above covers the full output ---
+
+================================================
+Research-Lab self-test: 3037 passed, 4 failed
+================================================
+```
+
+```
+# BASELINE validate-spec-test-paths
+$ node scripts/validate-spec-test-paths.mjs
+exit: 0
+lines: 8
+sha256: ae1242d932083bb6706dd021bdd11bdaa3e5cd32fc301d4a7e87a8b8d3426330
+--- output ---
+[spec-test-paths] scanned=670 references=14669 distinctPaths=242 missingPaths=66 baseline=71 new=0 stale=5
+  STALE-BASELINE: 5 baseline entries are no longer missing — remove from scripts/validate-spec-test-paths.baseline:
+      tests/recommendation-track-record.canary.mjs
+      tests/recommendation-track-record.e2e.mjs
+      tests/recommendation-track-record.functional.mjs
+      tests/recommendation-track-record.support.mjs
+      tests/recommendation-track-record.unit.mjs
+[spec-test-paths] OK — no new missing test path(s) (5 stale baseline entries to remove)
+```
+
+```
+# BASELINE build-pages-site dry-run
+$ node scripts/build-pages-site.mjs --dry-run
+exit: 0
+lines: 1
+sha256: 9cdf3c15bbbde3a4b43e5a670057f36d1f777cf01e564553e1ae7fdb8cdc8dcf
+--- output ---
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":120,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/389a899499094a4f484a06ecc8903aa584524c3cf83b902f403a8d00f5a62cbe","omittedOrphanIndexes":143}
+```
+
+**Mutation hygiene applied to every probe in this section.** Each probe applies
+one mutation, runs the row's own command, reverts inside the same shell
+invocation, prints `git status --short` scoped to the mutated path to prove the
+revert landed, and only then re-runs the identical command for GREEN. No probe
+was ever left in flight while another began, and this report was written after
+each probe rather than batched at the end.
+
+### RED TP-03-27
+
+**Row:** the path guard — zero new missing spec-referenced test paths.
+**Command:** `node scripts/validate-spec-test-paths.mjs`.
+
+**Mutation:** this scope's own `scope.md` was made to name a test file that does
+not exist, which is precisely the regression the guard was written for. The
+guard's own header records the hazard: Playwright silently ignores a file
+argument that does not exist as long as one other argument resolves, so a stale
+path keeps reporting success while covering strictly less than it claims.
+
+```diff
+-    `tests/lifetime-tax-claim-age.spec.mjs`; framework-managed resolved to
++    `<repo>/tests/lifetime-tax-claim-age-renamed.spec.mjs`; framework-managed resolved to
+```
+
+**One deliberate departure from verbatim, and why.** The mutated line as actually
+applied read the same path with `-renamed` inserted before `.spec.mjs` and with no
+prefix. It is
+reproduced above and in the capture below with a leading `<repo>/` because the
+guard derives its references from `specs/**` by matching a repo-root-relative
+`tests/….mjs` token, and this report lives under `specs/**`. Writing the raw token
+here would make the evidence itself a real reference to a file that does not
+exist — the guard caught exactly that on the first draft of this section,
+reporting `new=1` from `report.md`. The `<repo>/` prefix defeats the guard's
+lookbehind, which excludes a preceding `/`, and is the same convention the
+Playwright captures above already use for `file://<repo>/tests/…`. The mutation
+as run carried no prefix; only its transcription here does.
+
+```
+# RED TP-03-27
+$ node scripts/validate-spec-test-paths.mjs
+RED_EXIT=1
+--- output ---
+[spec-test-paths] scanned=670 references=14669 distinctPaths=243 missingPaths=67 baseline=71 new=1 stale=5
+  NEW-MISSING <repo>/tests/lifetime-tax-claim-age-renamed.spec.mjs (1 reference site(s))
+      referenced at specs/024-social-security-and-medicare/scopes/03-claim-age-comparison/scope.md:384
+  STALE-BASELINE: 5 baseline entries are no longer missing — remove from scripts/validate-spec-test-paths.baseline:
+      tests/recommendation-track-record.canary.mjs
+      tests/recommendation-track-record.e2e.mjs
+      tests/recommendation-track-record.functional.mjs
+      tests/recommendation-track-record.support.mjs
+      tests/recommendation-track-record.unit.mjs
+[spec-test-paths] FAIL — 1 new referenced path(s) do not exist
+```
+
+The guard names the introduced path, the referencing artifact and the line, and
+`distinctPaths` rises 242 → 243 while `new` rises 0 → 1. The five stale baseline
+entries are identical either side of the mutation, so they are not the cause.
+
+**Revert:** `git checkout -- specs/024-social-security-and-medicare/scopes/03-claim-age-comparison/scope.md`
+→ `REVERT_EXIT=0`; the following `git status --short` scoped to that path printed
+nothing.
+
+**GREEN, same command, reverted tree:**
+
+```
+# GREEN TP-03-27
+$ node scripts/validate-spec-test-paths.mjs
+GREEN_EXIT=0
+--- output ---
+[spec-test-paths] scanned=670 references=14669 distinctPaths=242 missingPaths=66 baseline=71 new=0 stale=5
+  STALE-BASELINE: 5 baseline entries are no longer missing — remove from scripts/validate-spec-test-paths.baseline:
+      tests/recommendation-track-record.canary.mjs
+      tests/recommendation-track-record.e2e.mjs
+      tests/recommendation-track-record.functional.mjs
+      tests/recommendation-track-record.support.mjs
+      tests/recommendation-track-record.unit.mjs
+[spec-test-paths] OK — no new missing test path(s) (5 stale baseline entries to remove)
+```
+
+Byte-identical to the baseline capture above, `new=0`, exit 0.
+
+### RED TP-03-28
+
+**Row:** the deploy gate — the Pages plan succeeds, `site-exclusions.json` is
+unchanged, and `tax-rules/` remains outside the public directories.
+**Command:** `node scripts/build-pages-site.mjs --dry-run`.
+
+The row makes two separable claims, so it carries two probes. Recording one would
+have left the other unproven.
+
+#### Probe A — `tax-rules/` remains outside the public directories
+
+**Mutation:** the public-directory allowlist was relaxed to publish the tax packs:
+
+```diff
+-const PUBLIC_DIRECTORIES = Object.freeze(['briefs', 'data', 'docs', 'notes', 'pictures', 'research', 'rlexperience-adapters', 'tests/fixtures']);
++const PUBLIC_DIRECTORIES = Object.freeze(['briefs', 'data', 'docs', 'notes', 'pictures', 'research', 'rlexperience-adapters', 'tests/fixtures', 'tax-rules']);
+```
+
+```
+# RED TP-03-28 probe A
+$ node scripts/build-pages-site.mjs --dry-run
+RED_EXIT=0
+--- output ---
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":120,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tax-rules","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/389a899499094a4f484a06ecc8903aa584524c3cf83b902f403a8d00f5a62cbe","omittedOrphanIndexes":143}
+```
+
+**Stated honestly: this half is observed on the output, not on the exit code.**
+The mutated run still exits 0. What goes red is the row's stated expectation —
+`"tax-rules"` now appears inside `directories`, between `rlexperience-adapters`
+and `tests/fixtures`, where the green run has nothing. The mortality pack this
+scope introduced under `tax-rules/mortality/` would ship to the public site. The
+row is therefore falsifiable and was falsified, but by reading the plan the
+command publishes rather than by a non-zero exit; a reader who checked only the
+exit code would not catch this, and that limitation is recorded rather than
+papered over.
+
+**Revert:** `git checkout -- scripts/build-pages-site.mjs` → `REVERT_EXIT=0`; the
+following `git status --short` scoped to that path printed nothing.
+
+**GREEN, same command, reverted tree:**
+
+```
+# GREEN TP-03-28 probe A
+$ node scripts/build-pages-site.mjs --dry-run
+GREEN_EXIT=0
+--- output ---
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":120,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/389a899499094a4f484a06ecc8903aa584524c3cf83b902f403a8d00f5a62cbe","omittedOrphanIndexes":143}
+```
+
+`tax-rules` is absent, and the line is byte-identical to the baseline capture,
+including the `sha256` recorded there.
+
+#### Probe B — the plan succeeds, and refuses an undecided page
+
+**Mutation:** a root HTML page carrying this scope's own name was added with
+neither a registration nor an exclusion — the exact shape of shipping a tool page
+without a deploy decision:
+
+```
+$ printf '<!doctype html>…' > lifetime-tax-claim-age-probe.html
+-rw-r--r--@ 1 pkirsanov  staff  75 Aug 19 08:34 lifetime-tax-claim-age-probe.html
+```
+
+```
+# RED TP-03-28 probe B
+$ node scripts/build-pages-site.mjs --dry-run
+RED_EXIT=1
+--- output ---
+Error: unregistered root page lacks a deploy decision: lifetime-tax-claim-age-probe.html
+    at assert (file://<repo>/scripts/build-pages-site.mjs:24:25)
+    at planPagesSite (file://<repo>/scripts/build-pages-site.mjs:49:3)
+    at buildPagesSite (file://<repo>/scripts/build-pages-site.mjs:83:16)
+```
+
+This half is a true non-zero exit. It also demonstrates why this scope's page was
+never registered: the gate does not permit a root page to exist without an
+explicit decision, so an unregistered page is refused rather than silently
+published.
+
+**Revert:** `rm -f lifetime-tax-claim-age-probe.html` → `REVERT_EXIT=0`; the
+following `git status --short` on that path printed nothing and `ls` reported
+`No such file or directory`. The probe file was untracked, so removal — not
+`git checkout` — is the correct revert, and its absence is proven directly rather
+than inferred from a clean status.
+
+**GREEN, same command, reverted tree:** `GREEN_EXIT=0`, output byte-identical to
+probe A's green line and to the baseline capture. `site-exclusions.json` was not
+written by either probe: `excludedPaths` reads 12 in the baseline, in both RED
+captures where the plan got that far, and in both GREEN captures.
+
+### RED TP-03-26
+
+**Row:** the repo gate — the whole-repository suite stays green and the
+pre-existing pass count does not fall.
+**Command:** `node scripts/selftest.mjs`.
+
+**Mutation:** `rltaxclaimage.js` — the terminal age dropped its claim-age term, so
+the horizon is read as an absolute age rather than as a span measured from the
+claim age:
+
+```diff
+-    var terminalAge = claimAge + remainingYears;
++    var terminalAge = remainingYears; /* RED PROBE TP-03-26 */
+```
+
+This is a different mutation from every probe above: TP-03-07's probe moved the
+rounding of the whole-year count, while this one corrupts the quantity being
+rounded. At a claim age of 67 with a 19.2-year remaining-years figure the terminal
+age becomes 19.2 rather than 86.2, and `wholeYears` goes deeply negative, so every
+cumulative total this scope publishes is wrong.
+
+```
+# RED TP-03-26
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3446
+sha256: 56f9ae21689739ac7a9627e538fafd4379c349d7008a475bfbb9698d33161ce6
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-03-07: against a fixture pack with deliberately non-standard life-expectancy figures, each claim age’s cumulative total equals the adjusted annual benefit times the whole-year count from that claim age to the life-expectancy age, asserted at three claim ages
+  ✗ FAIL: Regression: SCN-026-CANARY-01 …
+  ✗ FAIL: Regression: SCN-026-CANARY-02 …
+  ✗ FAIL: Regression: SCN-026-CANARY-04 …
+--- omitted 3406 line(s); sha256 above covers the full output ---
+
+================================================
+Research-Lab self-test: 3037 passed, 5 failed
+================================================
+```
+
+**Revert:** `git checkout -- rltaxclaimage.js` → `REVERT_EXIT=0`. Two independent
+confirmations followed in the same shell invocation: `git status --short` scoped
+to that path printed nothing, and `grep -c 'RED PROBE' rltaxclaimage.js` printed
+`0`, so the probe marker is provably gone from the file rather than merely
+assumed gone. The marker count is checked because an earlier dispatch in this
+scope left an abandoned `/* RED PROBE TP-03-25 */` mutation in
+`lifetime-tax-strategy-lab.html`; the grep is the cheap check that would have
+caught it.
+
+```
+# GREEN TP-03-26
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3437
+sha256: 0bea7a1bdfbcaaffc3d54af6d2dc39f7a50b6a3a6cd4dca4e1e44b21d73e6960
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: Regression: SCN-026-CANARY-01 …
+  ✗ FAIL: Regression: SCN-026-CANARY-02 …
+  ✗ FAIL: Regression: SCN-026-CANARY-04 …
+--- omitted 3397 line(s); sha256 above covers the full output ---
+
+================================================
+Research-Lab self-test: 3039 passed, 3 failed
+================================================
+```
+
+**How to read these two counts, stated plainly rather than left to look tidier
+than it is.** RED reports 3037 / 5 and GREEN reports 3039 / 3. The naive reading —
+"the fix restored two passes and removed two failures" — is wrong, and the
+difference is not all attributable to the mutation. A concurrent session was
+editing `scripts/selftest.mjs` and the Feature 026 sources throughout this
+sitting, and its own counts moved underneath both captures; `TP-026-5.1` is
+failing in the baseline capture and passing in both captures here, which no
+mutation of `rltaxclaimage.js` could cause.
+
+The sound comparison is therefore not the totals but the named assertion:
+`TP-03-07` appears as `✗ FAIL` in the RED capture and does not appear in the
+GREEN capture's failure set at all. That single row is caused by this mutation and
+by nothing else, and it is the one this scope owns. The totals are recorded
+because the row is stated in terms of them, and the confound is recorded because
+reporting the totals without it would overstate what the probe proves.
+
+**The gate's own claim still holds at GREEN.** Every remaining failure is a
+`Regression: SCN-026-CANARY-*` row owned by the concurrent session's Feature 026.
+No assertion carrying a `TP-03-` or `SCN-024-` identifier is failing, and the pass
+count did not fall from the baseline's 3037 — it rose to 3039.
+
+### TP-03-25 — NOT PROBED. No intended-RED evidence exists for this row.
+
+**Row:** the broader browser regression — the cumulative browser suite over the
+real route.
+**Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02" --reporter=list`.
+
+**Claim Source: not-run.** This row has GREEN recorded at
+[TP-03-25](#tp-03-25) from an earlier session and has **no** RED. It is the one
+row of the twenty-eight that remains unproven, and it is recorded as unproven
+rather than closed with a plausible-looking narrative.
+
+**Why it was not probed in this sitting, stated so the next session does not
+repeat the attempt blindly.** Two independent reasons, either of which alone was
+sufficient to stop:
+
+1. **The suite did not return a verdict.** The row's own command selects 74
+   tests. Two separate runs in this sitting reached `[74/74]` — every test
+   dispatched — and then produced no summary line and no exit code before the
+   attempt was abandoned. Without a trustworthy GREEN baseline there is nothing
+   for a RED to be a delta against, and a RED capture taken against an unknown
+   baseline would be evidence-shaped rather than evidence.
+
+2. **The grep is not isolated from a concurrent session.** `--grep "SCN-02"` is a
+   substring match, so it selects `SCN-025-*` and `SCN-026-*` alongside this
+   scope's `SCN-024-*`. A concurrent session was editing
+   `tests/company-intelligence-lab.spec.mjs`, `rlcompanyintel.js` and
+   `company-intelligence-lab.html` throughout this sitting, all of which sit
+   inside that selection. A failure appearing under a mutation could therefore
+   have come from the mutation or from the other session's in-flight edit, and
+   the two are not separable from the run output.
+
+**What was deliberately NOT done, and why that is the correct outcome.** No
+mutation was applied for this row. An earlier dispatch did apply one — a
+`/* RED PROBE TP-03-25 */` edit to `lifetime-tax-strategy-lab.html` — and died
+before reverting it, leaving a silent product degradation in the working tree
+that a human had to find and revert. Starting a fresh mutation on top of a suite
+that was not returning a verdict risked exactly that failure again. Stopping with
+the row honestly open is a better outcome than a second abandoned probe.
+
+**What the next session needs.** A verdict-returning invocation of the row's
+command, run when the `SCN-025`/`SCN-026` files are not being concurrently
+edited — or a narrower selection that still satisfies the row's intent. This
+scope's own five browser tests do return a verdict and are green, which bounds
+the risk but does not discharge the row:
+
+```
+$ npx --no-install playwright test tests/lifetime-tax-claim-age.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=line
+Running 5 tests using 1 worker
+  5 passed (5.0s)
+CLAIMAGE_SUITE_EXIT=0
+```
+
+That is a different command from the row's, so it is recorded here as context for
+the next session, **not** as this row's evidence.
+
+### Closing Verification Run
+
+Run after the last probe of this sitting was reverted, to prove the tree the
+probes left behind is the tree the GREEN captures describe.
+
+| Command | Result |
+|---|---|
+| `node scripts/selftest.mjs` | `3042 passed, 0 failed` |
+| `node scripts/validate-spec-test-paths.mjs` | exit 0, `new=0`, `stale=0` |
+| `node scripts/build-pages-site.mjs --dry-run` | exit 0, `directories` free of `tax-rules`, `excludedPaths` 12 |
+| `npx … tests/lifetime-tax-claim-age.spec.mjs … --project=system-chrome` | `5 passed (5.0s)`, exit 0 |
+| `grep -rn 'RED PROBE' --include='*.js' --include='*.html' --include='*.json' --include='*.mjs' .` | exit 1 — zero matches anywhere in the product tree |
+
+**On the moving totals, so the numbers in this section reconcile.** The sitting
+opened at `3037 passed, 4 failed`, the TP-03-26 GREEN capture read
+`3039 passed, 3 failed`, and this closing run reads `3042 passed, 0 failed`. The
+rise and the vanishing failures are the concurrent session landing its Feature 026
+fixes underneath, not an effect of anything in this scope. What this scope is
+accountable for holds at every one of those three points: no assertion carrying a
+`TP-03-` or `SCN-024-` identifier failed in any of them, and the pass count never
+fell below the 3037 the sitting opened at. The path guard also settled to
+`stale=0` when the concurrent session pruned its five stale baseline entries.
+
+**Probe-hygiene ledger for this sitting.** Four mutations were applied across
+three rows, each reverted inside the same shell invocation that applied it, each
+followed by a scoped `git status --short` that printed nothing:
+
+| Row | Mutated path | Revert | Confirmed by |
+|---|---|---|---|
+| TP-03-27 | `specs/024-…/03-claim-age-comparison/scope.md` | `git checkout --` | scoped `git status --short` empty |
+| TP-03-28 A | `scripts/build-pages-site.mjs` | `git checkout --` | scoped `git status --short` empty |
+| TP-03-28 B | `lifetime-tax-claim-age-probe.html` (untracked) | `rm -f` | `ls` → `No such file or directory` |
+| TP-03-26 | `rltaxclaimage.js` | `git checkout --` | scoped `git status --short` empty **and** `grep -c 'RED PROBE'` → `0` |
+| TP-03-25 | *(none applied)* | n/a | no mutation to revert |
+
+**One defect this sitting introduced and fixed.** Writing the TP-03-27 evidence
+put the literal token `tests/…-renamed.spec.mjs` into this report, and because
+this report lives under `specs/**` the path guard correctly counted it as a real
+new missing reference — `new=1`, `referenced at … report.md`. The guard caught
+the recording of the probe, not the probe. It is fixed by the `<repo>/` prefix
+convention documented under [RED TP-03-27](#red-tp-03-27), and
+`node scripts/validate-spec-test-paths.mjs` is back to `new=0`. It is recorded
+here because a reader comparing the RED capture's `distinctPaths=243` against a
+later run would otherwise find an unexplained discrepancy.
+

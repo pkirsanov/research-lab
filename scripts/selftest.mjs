@@ -15148,6 +15148,30 @@ try {
   });
   assert(engineLeaks.length === 0,
     'TP-04-13 and TP-04-15: no engine module holds a California bracket, rate, threshold, statutory section number, state name or postal code, so the Scope 03 contract carried California without an engine edit (' + engineLeaks.join(', ') + ')');
+
+  /* TP-04-03: a long-term gain is priced in the same schedule as ordinary income. */
+  const CALIFORNIA_FEDERAL = californiaRequire('../rltax.js');
+  const gainHousehold = californiaWorkspace('single', 200000, 300000);
+  const ordinaryHousehold = californiaWorkspace('single', 500000, 0);
+  const gainState = STATE.computeAnnualStateTax(gainHousehold, californiaPack);
+  const ordinaryState = STATE.computeAnnualStateTax(ordinaryHousehold, californiaPack);
+  const gainFederal = CALIFORNIA_FEDERAL.computeAnnualFederalTax(gainHousehold, federalPack);
+  const ordinaryFederal = CALIFORNIA_FEDERAL.computeAnnualFederalTax(ordinaryHousehold, federalPack);
+  const pooledIncome = gainHousehold.income.ordinary + gainHousehold.income.longTermCapitalGain;
+  assert(gainState.grossSupportedIncome.value === pooledIncome
+    && ordinaryState.grossSupportedIncome.value === pooledIncome
+    && gainState.preferentialTaxableIncome === undefined
+    && ordinaryState.preferentialTaxableIncome === undefined
+    && JSON.stringify(gainState.totalStateTax) === JSON.stringify(ordinaryState.totalStateTax)
+    && statuses.every((status) => !RULES.isRateTable(californiaPack.preferentialRateTables[status]))
+    && Number.isFinite(gainFederal.totalFederalTax.value)
+    && Number.isFinite(ordinaryFederal.totalFederalTax.value)
+    && gainFederal.totalFederalTax.value !== ordinaryFederal.totalFederalTax.value
+    && gainFederal.preferentialTaxableIncome.value === gainHousehold.income.longTermCapitalGain
+    && ordinaryFederal.preferentialTaxableIncome.value === 0
+    && gainFederal.preferentialTax.value > 0
+    && ordinaryFederal.preferentialTax.value === 0,
+  'TP-04-03: a California household holding a long-term gain and one holding the same amount as ordinary income pool that income into one supported-income measure, carry no preferential taxable-income measure at all and receive the identical California outcome, while the identical two households receive different federal totals because the federal settlement does carve the gain into a preferential measure and prices it in a preferential band');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 04 California group threw): ' + e.message); }
 
 /* ================================================================================

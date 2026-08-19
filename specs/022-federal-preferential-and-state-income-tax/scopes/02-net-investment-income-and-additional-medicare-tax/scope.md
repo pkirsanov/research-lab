@@ -381,6 +381,8 @@ an absent test does not satisfy RED.
 - [ ] FR-022-008 is implemented: `CO-8` sums the pack's declared leg set, returns
       the refusal of the first refusing leg, and equals the previous two-leg sum
       for every Feature 021 fixture against the unmodified pack.
+  - **Open:** the leg-set and refusal-inheritance halves are proven, but the
+    TP-02-03 comparison against the **unmodified** Feature 021 pack was not run.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-02`, `report.md#tp-02-03`, `report.md#tp-02-10`
 - [ ] `BI-4`'s named authority — IRS Publication 505 (2026) — was opened in the
       implementation session, every rate and filing-status threshold was
@@ -388,6 +390,8 @@ an absent test does not satisfy RED.
       `retrievedAt`, and no figure was transcribed from `spec.md`. No
       `declaredFor` entry was populated from the absence of a year label on a
       page.
+  - **Open:** the pack carries the retrieval record, but an earlier session made it
+    and this session did not open the publication, so it cannot attest the act.
   - **Phase:** implement · **Command:** the retrieval record in the pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`
 - [ ] Both owned supersessions and both amendments are delivered: SUP-022-03, -08,
       -10, -14, -15, -16, -18 and -19 each replaced by the stronger assertion the
@@ -395,8 +399,9 @@ an absent test does not satisfy RED.
       each carrying its `SUP-022-NN` marker and its adversarial evidence;
       SUP-022-04's spot checks updated and SUP-022-09's derived count confirmed to
       follow the pack.
+  - **Open:** SUP-022-18 and -19 need the Simple/Power panels, which are not built.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#supersession-ledger`
-- [ ] The leg-reachability rule is implemented as `design.md` states it: both
+- [x] The leg-reachability rule is implemented as `design.md` states it: both
       basis members initialize to `null`, an undeclared basis refuses its leg by
       name, `CO-8` inherits, and neither member is ever initialized to a value.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-09`
@@ -405,48 +410,54 @@ an absent test does not satisfy RED.
       fixture household keeps both bases `null` and is asserted refusing, every
       previously settled Feature 021 value is unchanged, and no assertion was
       edited to accommodate a fixture-input change.
+  - **Open:** the TP-02-24 register row and its browser command were not run.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#tp-02-24`
 - [ ] No assertion outside this scope's ledger entries and amendments was edited,
       relaxed or deleted, no Simple-markup clause was relaxed under SUP-022-18 or
       SUP-022-19, and no sourcing rule, tolerance, determinism, privacy,
       zero-network or Feature 008 canary was touched.
+  - **Open:** nothing was edited, but the TP-02-22 and TP-02-23 conformance rows
+    that would prove it were not written.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-22`, `report.md#tp-02-23`
-- [ ] Any threshold whose applicability to the declared tax year could not be
+- [x] Any threshold whose applicability to the declared tax year could not be
       established ships as an `AbsentFigure/v1` and its leg refuses.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-11`
-- [ ] FR-022-009 through FR-022-011 are implemented: the capped investment-income
+- [x] FR-022-009 through FR-022-011 are implemented: the capped investment-income
       leg, the uncapped wage leg, and tax-exempt interest excluded from both
       quantities while still recorded.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-04`, `report.md#tp-02-05`, `report.md#tp-02-08`
-- [ ] Known-value boundary coverage exists at, below and above every threshold in
+- [x] Known-value boundary coverage exists at, below and above every threshold in
       both sets for every filing status, and each fixture names the source edition
       and tax year it was derived from.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-04`, `report.md#tp-02-05`
-- [ ] FR-022-012 is implemented: an undeclared basis refuses by name and a
+- [x] FR-022-012 is implemented: an undeclared basis refuses by name and a
       declared zero computes a real zero, proven by an adversarial case.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-09`
-- [ ] FR-022-013 and FR-022-014 are implemented: the completeness declaration is
+- [x] FR-022-013 and FR-022-014 are implemented: the completeness declaration is
       populated and non-empty, and the conversion asymmetry is a structural member
       proven by an adversarial mutation.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-06`, `report.md#tp-02-07`, `report.md#tp-02-12`
 - [ ] Both new household values are inventoried, cleared and redacted, each proven
       independently, and neither appears in any URL, request, referrer or console
       message.
+  - **Open:** the shipped sanitizer KEEPS both, so "redacted" is wrong as written —
+    a finding for `bubbles.plan`; the browser clause was also not run.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-13`
-- [ ] No module holds a surtax rate, threshold, jurisdiction name or authority
+- [x] No module holds a surtax rate, threshold, jurisdiction name or authority
       name, and the detector is proven to fire on a module that does.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-14`
-- [ ] No output states a probability, a lifetime figure, a track record or an
+- [x] No output states a probability, a lifetime figure, a track record or an
       error rate, and no result is labelled a complete federal tax.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
+  - **Open:** TP-02-03, -15, -16, -17, -18, -22, -23 and -24 carry no evidence.
   - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-18 commands · **Evidence:** `report.md#test-evidence`
-- [ ] Feature 008's files, Feature 021's spec directory, `rltaxstrategy.js`,
+- [x] Feature 008's files, Feature 021's spec directory, `rltaxstrategy.js`,
       `tests/lifetime-tax-conversion.spec.mjs`, the registries,
       `site-exclusions.json` and every brief or data artifact are byte-identical.
   - **Phase:** implement · **Command:** a path-scoped status check over the excluded list · **Evidence:** `report.md#change-boundary`
-- [ ] `node scripts/selftest.mjs` is green with no fall in pass count and no
+- [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, `node scripts/validate-spec-test-paths.mjs`
       reports zero new missing paths, and `node scripts/build-pages-site.mjs
       --dry-run` succeeds.

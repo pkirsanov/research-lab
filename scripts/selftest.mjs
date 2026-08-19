@@ -23638,6 +23638,403 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 budget freshness group threw): ' + e.message); }
 /* ---------- Feature 026 Scope 5: market brief — published budget freshness (END) ---------- */
 
+/* ---------- Feature 022 Scope 02: threshold surtaxes and declared tax legs (START) ---------- */
+/* The two federal threshold surtaxes and the pack-declared leg set. Every figure below is
+   transcribed independently from IRS Publication 505 (2026), chapter 2, Expected Taxes and
+   Credits - Lines 4-11c, Step 5 items 4 and 5 — never read back through the pack objects — so a
+   mistyped digit in either place fails the parity assertion rather than cancelling against
+   itself. */
+try {
+  group('lifetime-tax — threshold surtaxes and declared tax legs');
+  const { createRequire: createSurtaxRequire } = await import('node:module');
+  const surtaxRequire = createSurtaxRequire(import.meta.url);
+  const SURTAXRULES = surtaxRequire('../rltaxrules.js');
+  const SURTAXWORKSPACE = surtaxRequire('../rltaxworkspace.js');
+  const SURTAX = surtaxRequire('../rltax.js');
+  const surtaxPack = JSON.parse(read('tax-rules/federal/2026.json'));
+  const clonePack = () => JSON.parse(JSON.stringify(surtaxPack));
+  const refusedMembers = (pack) => SURTAXRULES.validateRulePack(pack).refusals.map((r) => r.domain);
+  const codeOfSurtax = (record) => (record && record.code) || null;
+
+  /* Publication 505 (2026), Step 5 item 5 (net investment income tax) and item 4 (additional
+     Medicare tax). Written out here rather than read from the pack. */
+  const KNOWN_SURTAX_SCHEDULE = {
+    'net-investment-income-tax': {
+      rate: 0.038,
+      thresholds: {
+        'single': 200000, 'married-filing-jointly': 250000,
+        'married-filing-separately': 125000, 'head-of-household': 200000
+      }
+    },
+    'additional-medicare-tax': {
+      rate: 0.009,
+      thresholds: {
+        'single': 200000, 'married-filing-jointly': 250000,
+        'married-filing-separately': 125000, 'head-of-household': 200000
+      }
+    }
+  };
+  const SURTAX_STATUSES = SURTAXRULES.SUPPORTED_FILING_STATUSES;
+
+  /* A workspace whose gross supported income — the pack's modified-adjusted-gross measure — is
+     exactly `magi`, of which `preferentialShare` is qualified dividend. Both surtax bases are
+     declared, so nothing here exercises the undeclared path by accident. */
+  const surtaxWorkspace = (filingStatus, magi, preferentialShare, declaredNii, declaredWage) => {
+    const workspace = SURTAXWORKSPACE.createEmptyWorkspace();
+    workspace.filingStatus = filingStatus;
+    workspace.declaredTaxYear = 2026;
+    workspace.deductionMode = 'itemized';
+    workspace.itemizedAmount = 0;
+    workspace.income.ordinary = magi - preferentialShare;
+    workspace.income.qualifiedDividend = preferentialShare;
+    workspace.income.longTermCapitalGain = 0;
+    workspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = declaredNii;
+    workspace.wageBasis.medicareWagesAndSelfEmploymentIncome = declaredWage;
+    return workspace;
+  };
+
+  /* TP-02-01. The pack's own threshold sets equal the transcribed schedule, and the four named
+     malformations are each refused by the member that carries them. */
+  const scheduleParity = Object.keys(KNOWN_SURTAX_SCHEDULE).every((setId) => {
+    const set = surtaxPack.thresholdSets[setId];
+    const known = KNOWN_SURTAX_SCHEDULE[setId];
+    return set.contractVersion === 'ThresholdSet/v1' && set.rate === known.rate
+      && set.varyByFilingStatus === true
+      && JSON.stringify(Object.keys(set.thresholds).sort()) === JSON.stringify(SURTAX_STATUSES.slice().sort())
+      && SURTAX_STATUSES.every((status) => set.thresholds[status] === known.thresholds[status]);
+  });
+  assert(scheduleParity && SURTAXRULES.validateRulePack(surtaxPack).ok === true,
+  'TP-02-01: both carried threshold sets equal the independently transcribed Publication 505 (2026) rates and filing-status thresholds, and the shipped pack validates with zero refusals');
+
+  const cappedWithoutCap = clonePack();
+  cappedWithoutCap.thresholdSets['net-investment-income-tax'].capMember = null;
+  const uncappedWithCap = clonePack();
+  uncappedWithCap.thresholdSets['additional-medicare-tax'].capMember = 'netInvestmentIncome';
+  const perStatusWithoutVariance = clonePack();
+  perStatusWithoutVariance.thresholdSets['net-investment-income-tax'].varyByFilingStatus = false;
+  const indexingBroken = clonePack();
+  indexingBroken.thresholdSets['additional-medicare-tax'].indexing = { indexed: false };
+  assert(refusedMembers(cappedWithoutCap).indexOf('pack-member:thresholdSets.net-investment-income-tax.capMember') >= 0
+    && refusedMembers(uncappedWithCap).indexOf('pack-member:thresholdSets.additional-medicare-tax.capMember') >= 0
+    && refusedMembers(perStatusWithoutVariance).indexOf('pack-member:thresholdSets.net-investment-income-tax.thresholds') >= 0
+    && refusedMembers(indexingBroken).indexOf('pack-member:thresholdSets.additional-medicare-tax.indexing') >= 0,
+  'TP-02-01: a capped set with a null capMember, an uncapped set carrying one, a varyByFilingStatus:false set holding per-status keys, and a malformed indexing block are each refused by the member that carries them');
+
+  /* The fourth malformation the row names — a declaredFor that omits the declared tax year — is
+     a resolve-time refusal rather than a shape refusal, because the pack alone cannot know which
+     year it will be asked for. An empty array is never permission. */
+  const yearOmitted = clonePack();
+  yearOmitted.thresholdSets['net-investment-income-tax'].indexing.declaredFor = [2025];
+  const yearEmpty = clonePack();
+  yearEmpty.thresholdSets['net-investment-income-tax'].indexing.declaredFor = [];
+  const yearOmittedRefusal = SURTAXRULES.thresholdSetYearRefusal(yearOmitted,
+    yearOmitted.thresholdSets['net-investment-income-tax'], 'probe');
+  const yearEmptyRefusal = SURTAXRULES.thresholdSetYearRefusal(yearEmpty,
+    yearEmpty.thresholdSets['net-investment-income-tax'], 'probe');
+  assert(codeOfSurtax(yearOmittedRefusal) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && codeOfSurtax(yearEmptyRefusal) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && yearOmittedRefusal.reason.indexOf('2026') >= 0
+    && SURTAXRULES.thresholdSetYearRefusal(surtaxPack, surtaxPack.thresholdSets['net-investment-income-tax'], 'probe') === null,
+  'TP-02-01: a declaredFor omitting the declared tax year and an empty declaredFor are each refused RLTAX-THRESHOLD-UNAVAILABLE naming the year, while the shipped set declaring 2026 is not');
+
+  /* TP-02-02. TaxLeg/v1: a duplicate legId, a figureRef the pack does not carry, and an excluded
+     leg over an absent figure are each refused by the member that carries them. */
+  const duplicateLeg = clonePack();
+  duplicateLeg.taxLegs.push(JSON.parse(JSON.stringify(duplicateLeg.taxLegs[0])));
+  const uncarriedFigure = clonePack();
+  uncarriedFigure.taxLegs[2].figureRef = 'thresholdSets.no-such-threshold-set';
+  const excludedOverAbsent = clonePack();
+  excludedOverAbsent.thresholdSets['net-investment-income-tax'] = {
+    contractVersion: 'AbsentFigure/v1',
+    figureId: 'thresholdSets.net-investment-income-tax',
+    reason: 'the probe withdraws this threshold set so an excluded leg sits over an absent figure',
+    whatWouldMakeItAvailable: 'restore the retrieved threshold set',
+    attemptedAt: '2026-08-17T19:03:51.000Z'
+  };
+  excludedOverAbsent.taxLegs[2].includedInTotal = false;
+  const duplicateRefusals = refusedMembers(duplicateLeg);
+  assert(duplicateRefusals.some((d) => /^pack-member:taxLegs\[\d+\]\.legId$/.test(d))
+    && refusedMembers(uncarriedFigure).indexOf('pack-member:taxLegs[2].figureRef') >= 0
+    && refusedMembers(excludedOverAbsent).indexOf('pack-member:taxLegs[2].includedInTotal') >= 0,
+  'TP-02-02: a duplicate legId, a figureRef naming a figure the pack does not carry, and an includedInTotal:false leg whose figure is absent are each refused by the member that carries them, so includedInTotal:false is not a mechanism for hiding a refusal from a total');
+
+  /* TP-02-04. The net investment income tax below, at and above every filing-status threshold,
+     against the rate applied to the LESSER of net investment income and the excess. The two rows
+     per status where the cap binds and where it does not are both present, so a implementation
+     that dropped the min() would fail here rather than only at one level. */
+  const niitFailures = [];
+  let niitChecks = 0;
+  SURTAX_STATUSES.forEach((filingStatus) => {
+    const known = KNOWN_SURTAX_SCHEDULE['net-investment-income-tax'];
+    const threshold = known.thresholds[filingStatus];
+    /* preferentialShare is the household's whole net investment income here, and the declared
+       ordinary portion is zero, so NII is a fixed 40000 while MAGI moves. */
+    [
+      { magi: threshold - 1, note: 'below' },
+      { magi: threshold, note: 'at' },
+      { magi: threshold + 10000, note: 'above, cap binds' },
+      { magi: threshold + 90000, note: 'above, excess exceeds the base' }
+    ].forEach((row) => {
+      const settled = SURTAX.computeAnnualFederalTax(
+        surtaxWorkspace(filingStatus, row.magi, 40000, 0, 0), surtaxPack);
+      const expected = known.rate * Math.min(40000, Math.max(0, row.magi - threshold));
+      niitChecks += 1;
+      if (!(Math.abs(settled.netInvestmentIncomeTax.value - expected) <= 0.0000001)) {
+        niitFailures.push(filingStatus + ':' + row.note);
+      }
+      if (settled.netInvestmentIncomeTax.threshold !== threshold
+        || settled.netInvestmentIncomeTax.rate !== known.rate
+        || settled.netInvestmentIncomeTax.modifiedAdjustedGross !== row.magi) {
+        niitFailures.push(filingStatus + ':' + row.note + ':published-detail');
+      }
+    });
+  });
+  assert(niitFailures.length === 0 && niitChecks === SURTAX_STATUSES.length * 4,
+  'TP-02-04: the net investment income tax is exact immediately below, exactly at and above every filing-status threshold in both the cap-binding and the excess-exceeds-base directions, and publishes the rate, threshold and modified-adjusted-gross measure it used (' + niitChecks + ' checks)');
+
+  /* TP-02-05. The additional Medicare tax below, at and above every threshold, and — the clause
+     that makes the leg what it is — reading exactly one workspace member. */
+  const medicareFailures = [];
+  let medicareChecks = 0;
+  SURTAX_STATUSES.forEach((filingStatus) => {
+    const known = KNOWN_SURTAX_SCHEDULE['additional-medicare-tax'];
+    const threshold = known.thresholds[filingStatus];
+    [threshold - 1, threshold, threshold + 40000].forEach((wage) => {
+      const settled = SURTAX.computeAnnualFederalTax(
+        surtaxWorkspace(filingStatus, 80000, 0, 0, wage), surtaxPack);
+      const expected = known.rate * Math.max(0, wage - threshold);
+      medicareChecks += 1;
+      if (!(Math.abs(settled.additionalMedicareTax.value - expected) <= 0.0000001)
+        || settled.additionalMedicareTax.wageBasis !== wage) {
+        medicareFailures.push(filingStatus + ':' + wage);
+      }
+    });
+  });
+  /* Every other income member is moved while the wage basis is held, one member at a time. A leg
+     that read gross income, or folded in either preferential member, moves here. */
+  const heldWage = 300000;
+  const baselineMedicare = SURTAX.computeAnnualFederalTax(
+    surtaxWorkspace('single', 80000, 0, 0, heldWage), surtaxPack).additionalMedicareTax;
+  const movedMembers = [
+    surtaxWorkspace('single', 900000, 0, 0, heldWage),
+    surtaxWorkspace('single', 900000, 400000, 0, heldWage),
+    surtaxWorkspace('single', 80000, 0, 250000, heldWage)
+  ];
+  const medicareInvariant = movedMembers.every((workspace) => {
+    const moved = SURTAX.computeAnnualFederalTax(workspace, surtaxPack).additionalMedicareTax;
+    return moved.value === baselineMedicare.value && moved.wageBasis === heldWage;
+  });
+  assert(medicareFailures.length === 0 && medicareChecks === SURTAX_STATUSES.length * 3 && medicareInvariant
+    && baselineMedicare.value > 0,
+  'TP-02-05: the additional Medicare tax is exact immediately below, exactly at and immediately above every filing-status threshold, and is byte-identical when ordinary income, qualified dividend and the declared investment-income portion are each moved with the wage basis held, so it reads exactly one workspace member (' + medicareChecks + ' boundary checks)');
+
+  /* TP-02-06. The asymmetry itself: added ordinary income moves one leg and not the other, and
+     the result carries that as a structural member rather than as page copy. */
+  /* Net investment income is 200000 against a 200000 threshold, so the excess — not the base —
+     is the binding quantity at both levels and the leg is free to move with ordinary income. */
+  const beforeConversion = SURTAX.computeAnnualFederalTax(
+    surtaxWorkspace('single', 210000, 200000, 0, 300000), surtaxPack);
+  const afterConversion = SURTAX.computeAnnualFederalTax(
+    surtaxWorkspace('single', 240000, 200000, 0, 300000), surtaxPack);
+  const asymmetry = afterConversion.conversionAsymmetry;
+  assert(afterConversion.netInvestmentIncomeTax.value > beforeConversion.netInvestmentIncomeTax.value
+    && afterConversion.additionalMedicareTax.value === beforeConversion.additionalMedicareTax.value
+    && beforeConversion.additionalMedicareTax.value > 0
+    && asymmetry.contractVersion === 'ConversionAsymmetry/v1'
+    && asymmetry.movedByAddedOrdinaryIncome.indexOf('net-investment-income-tax') >= 0
+    && asymmetry.notMovedByAddedOrdinaryIncome.indexOf('additional-medicare-tax') >= 0
+    && asymmetry.movedByAddedOrdinaryIncome.indexOf('additional-medicare-tax') < 0,
+  'TP-02-06: added ordinary income alone raises the net investment income tax where the cap does not bind and leaves a non-zero additional Medicare tax byte-identical, and the result publishes the asymmetry as a ConversionAsymmetry/v1 member naming which legs it can and cannot move');
+
+  /* TP-02-09. The leg-reachability rule. `null` is undeclared and refuses by name; `0` is a real
+     declaration that computes a real zero; and CO-8 inherits the refusal rather than summing the
+     legs that remain. The distinction between the two is the whole point of the rule. */
+  const emptyWorkspace = SURTAXWORKSPACE.createEmptyWorkspace();
+  const undeclaredBoth = surtaxWorkspace('single', 400000, 40000, 0, 0);
+  undeclaredBoth.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = null;
+  undeclaredBoth.wageBasis.medicareWagesAndSelfEmploymentIncome = null;
+  const undeclaredSettled = SURTAX.computeAnnualFederalTax(undeclaredBoth, surtaxPack);
+  const declaredZeroSettled = SURTAX.computeAnnualFederalTax(
+    surtaxWorkspace('single', 400000, 40000, 0, 0), surtaxPack);
+  assert(emptyWorkspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome === null
+    && emptyWorkspace.wageBasis.medicareWagesAndSelfEmploymentIncome === null
+    && codeOfSurtax(undeclaredSettled.netInvestmentIncomeTax) === 'RLTAX-INPUT-INCOMPLETE'
+    && codeOfSurtax(undeclaredSettled.additionalMedicareTax) === 'RLTAX-INPUT-INCOMPLETE'
+    && undeclaredSettled.netInvestmentIncomeTax.reason.indexOf('investmentIncomeBasis.otherOrdinaryNetInvestmentIncome') >= 0
+    && undeclaredSettled.additionalMedicareTax.reason.indexOf('wageBasis.medicareWagesAndSelfEmploymentIncome') >= 0
+    && codeOfSurtax(undeclaredSettled.totalFederalTax) === 'RLTAX-INPUT-INCOMPLETE'
+    && Object.prototype.hasOwnProperty.call(undeclaredSettled.totalFederalTax, 'value') === false
+    && declaredZeroSettled.additionalMedicareTax.value === 0
+    && codeOfSurtax(declaredZeroSettled.additionalMedicareTax) === null
+    && declaredZeroSettled.declaredBases.medicareWagesAndSelfEmploymentIncome === 0
+    && undeclaredSettled.declaredBases.medicareWagesAndSelfEmploymentIncome === null,
+  'TP-02-09: createEmptyWorkspace initializes both surtax bases to null, an undeclared basis refuses RLTAX-INPUT-INCOMPLETE naming the member it wants, CO-8 inherits that refusal instead of summing the legs that remain, and a declared zero computes a real zero carrying no refusal code');
+
+  /* TP-02-10. A refusal reached any other way — a withdrawn threshold set — still propagates, and
+     the total is a refusal rather than the sum of the available legs. */
+  const withdrawnSet = clonePack();
+  withdrawnSet.thresholdSets['additional-medicare-tax'] = {
+    contractVersion: 'AbsentFigure/v1',
+    figureId: 'thresholdSets.additional-medicare-tax',
+    reason: 'the probe withdraws this threshold set so its leg refuses',
+    whatWouldMakeItAvailable: 'restore the retrieved threshold set',
+    attemptedAt: '2026-08-17T19:03:51.000Z'
+  };
+  const withdrawnSettled = SURTAX.computeAnnualFederalTax(
+    surtaxWorkspace('single', 400000, 40000, 0, 300000), withdrawnSet);
+  const withdrawnLeg = withdrawnSettled.taxLegs.filter((leg) => leg.legId === 'additional-medicare-tax')[0];
+  assert(SURTAXRULES.isUnavailable(withdrawnSettled.additionalMedicareTax)
+    && SURTAXRULES.isUnavailable(withdrawnSettled.totalFederalTax)
+    && withdrawnSettled.totalFederalTax.code === withdrawnSettled.additionalMedicareTax.code
+    && withdrawnLeg.available === false && withdrawnLeg.value === null && withdrawnLeg.code !== null
+    && SURTAXRULES.isUnavailable(withdrawnSettled.averageRate),
+  'TP-02-10: a leg whose figure was withdrawn makes CO-8 a refusal carrying that leg\'s own code, publishes the leg as unavailable with a null value rather than a zero, and carries the refusal through to the average rate, so no leg is ever treated as zero because it is unavailable');
+
+  /* TP-02-11. A threshold set that does not declare itself applicable to the declared year is
+     refused at settlement rather than applied, and an absent set carries no numeric member. */
+  const staleYearPack = clonePack();
+  staleYearPack.thresholdSets['net-investment-income-tax'].indexing.declaredFor = [2025];
+  const staleSettled = SURTAX.computeAnnualFederalTax(
+    surtaxWorkspace('single', 400000, 40000, 0, 0), staleYearPack);
+  const absentSet = withdrawnSet.thresholdSets['additional-medicare-tax'];
+  assert(codeOfSurtax(staleSettled.netInvestmentIncomeTax) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && staleSettled.netInvestmentIncomeTax.value === undefined
+    && codeOfSurtax(staleSettled.totalFederalTax) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && SURTAXRULES.isAbsentFigure(absentSet)
+    && Object.keys(absentSet).every((key) => !Number.isFinite(absentSet[key]))
+    && absentSet.rate === undefined && absentSet.thresholds === undefined,
+  'TP-02-11: a threshold set whose declaredFor omits the declared tax year is refused RLTAX-THRESHOLD-UNAVAILABLE at settlement rather than applied, its leg carries no numeric value, and a withdrawn set ships as an AbsentFigure/v1 holding no numeric member at all');
+
+  /* TP-02-12. The modified-adjusted-gross measure declares its own completeness and names every
+     adjustment the pack does not model. An empty list is the failure this exists to prevent. */
+  const completenessSettled = SURTAX.computeAnnualFederalTax(
+    surtaxWorkspace('single', 400000, 40000, 0, 0), surtaxPack);
+  const emptyCompletenessPack = clonePack();
+  emptyCompletenessPack.modifiedAdjustedGrossCompleteness.unmodeledAdjustments = [];
+  const emptyCompletenessSettled = SURTAX.computeAnnualFederalTax(
+    surtaxWorkspace('single', 400000, 40000, 0, 0), emptyCompletenessPack);
+  const completenessHolds = (settled) => settled.modifiedAdjustedGross.complete === false
+    && settled.modifiedAdjustedGross.unmodeledAdjustments.length > 0;
+  assert(completenessHolds(completenessSettled)
+    && completenessSettled.modifiedAdjustedGross.value === completenessSettled.netInvestmentIncomeTax.modifiedAdjustedGross
+    && completenessSettled.modifiedAdjustedGross.contractVersion === 'MeasureCompleteness/v1'
+    && completenessHolds(emptyCompletenessSettled) === false,
+  'TP-02-12: the settlement publishes its modified-adjusted-gross measure as declared-incomplete with a non-empty list of unmodeled adjustments and the same value the surtax leg compared against, and a pack whose list is emptied is caught by the identical check rather than passing it');
+
+  /* TP-02-13. Both new household values are inventoried, cleared and redacted. Each clause is its
+     own comparison, so a change that fixes one and breaks another cannot pass on the strength of
+     the other two. */
+  const surtaxConfig = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  const privacyWorkspace = surtaxWorkspace('single', 400000, 40000, 12345, 67890);
+  const makeStorage = () => {
+    const cells = {};
+    cells[surtaxConfig.storage.workspaceKey] = JSON.stringify(privacyWorkspace);
+    cells[surtaxConfig.storage.pointerKey] = 'TaxWorkspace/v2';
+    cells[surtaxConfig.storage.probeKey] = surtaxConfig.storage.probeValue;
+    return {
+      cells: cells,
+      getItem: (key) => (Object.prototype.hasOwnProperty.call(cells, key) ? cells[key] : null),
+      setItem: (key, value) => { cells[key] = String(value); },
+      removeItem: (key) => { delete cells[key]; }
+    };
+  };
+  const inventoryStorage = makeStorage();
+  const inventory = SURTAXWORKSPACE.privacyInventory(inventoryStorage, surtaxConfig);
+  const workspaceEntry = inventory.entries.filter((entry) => entry.key === surtaxConfig.storage.workspaceKey)[0];
+  const clearedStorage = makeStorage();
+  SURTAXWORKSPACE.clearAllPrivateData(clearedStorage, surtaxConfig);
+  const sanitized = SURTAXWORKSPACE.sanitizeForExport(privacyWorkspace);
+  /* The sanitizer's own contract: a member it drops must be NAMED in omittedFields[]. Silence is
+     the defect that shape exists to prevent, so "covered" means carried-or-named, never absent
+     from both. */
+  const coveredBySanitizer = (member) =>
+    Object.prototype.hasOwnProperty.call(sanitized.workspace, member)
+    || sanitized.omittedFields.indexOf(member) >= 0;
+  assert(workspaceEntry.purpose.indexOf('net investment income portion') >= 0
+    && workspaceEntry.purpose.indexOf('Medicare wage and self-employment basis') >= 0
+    && workspaceEntry.carriesHouseholdValues === true
+    && JSON.stringify(makeStorage().cells).indexOf('12345') >= 0
+    && JSON.stringify(clearedStorage.cells).indexOf('12345') < 0
+    && JSON.stringify(clearedStorage.cells).indexOf('67890') < 0
+    && clearedStorage.getItem(surtaxConfig.storage.workspaceKey) === null
+    && coveredBySanitizer('investmentIncomeBasis') && coveredBySanitizer('wageBasis')
+    && sanitized.workspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome === 12345
+    && sanitized.workspace.wageBasis.medicareWagesAndSelfEmploymentIncome === 67890,
+  'TP-02-13: the privacy inventory names both declared surtax bases inside the household-values entry, the clear action removes the stored workspace carrying both declared amounts, and the export sanitizer covers both explicitly rather than dropping either without naming it in omittedFields');
+
+  /* TP-02-14. Scope 01 widened the no-shadow scan across every rltax module for BRACKET EDGES.
+     A surtax rate, a surtax threshold, a jurisdiction name and an authority name are the four
+     rule values this scope adds, and none of them is a bracket edge, so none of them was reached
+     by that scan. This extends the same standard to all four. */
+  const surtaxModuleFiles = readdirSync(ROOT).filter((name) => /^rltax[a-z]*\.js$/.test(name)).sort();
+  const stripForSurtaxScan = (source) => source
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/"(?:[^"\\]|\\.)*"/g, ' ')
+    .replace(/'(?:[^'\\]|\\.)*'/g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+  /* Derived from the pack and from the state pack on disk, so a figure either pack moves moves
+     this set with it rather than rotting into a literal nobody re-checks. */
+  const surtaxRuleLiterals = new Set();
+  Object.keys(surtaxPack.thresholdSets).forEach((setId) => {
+    const set = surtaxPack.thresholdSets[setId];
+    Object.keys(set.thresholds).forEach((status) => {
+      if (set.thresholds[status] > 1) surtaxRuleLiterals.add(String(set.thresholds[status]));
+    });
+    surtaxRuleLiterals.add(String(set.rate));
+  });
+  const statePackForNames = JSON.parse(read('tax-rules/state/CA/2026.json'));
+  const surtaxNameTokens = surtaxPack.sourceRecords.map((record) => record.sourceId)
+    .concat([statePackForNames.jurisdiction, statePackForNames.id]);
+  const surtaxShadowFindings = (modules) => {
+    const findings = [];
+    modules.forEach((entry) => {
+      [...new Set((stripForSurtaxScan(entry.source).match(/\b\d+(?:\.\d+)?\b/g) || [])
+        .filter((literal) => surtaxRuleLiterals.has(literal)))].sort()
+        .forEach((literal) => findings.push(entry.name + ':' + literal));
+      /* Names are searched in the UNSTRIPPED source on purpose: an authority id or a jurisdiction
+         name held as a string literal is exactly the shadow, so stripping strings first would
+         make this half of the detector unable to fire at all. */
+      surtaxNameTokens.forEach((token) => {
+        if (entry.source.indexOf(token) >= 0) findings.push(entry.name + ':' + token);
+      });
+    });
+    return findings;
+  };
+  const surtaxShippedModules = surtaxModuleFiles.map((name) => ({ name, source: read(name) }));
+  const surtaxShipped = surtaxShadowFindings(surtaxShippedModules);
+  /* ADVERSARIAL, in both halves. One planted rate, one planted threshold, one planted authority
+     id and one planted jurisdiction name, each in a different module, and the detector must name
+     all four. A clean verdict over an empty literal set or an empty module set would be vacuous,
+     so both are asserted non-empty. */
+  const plantedSurtaxModules = surtaxShippedModules.map((entry) => {
+    if (entry.name === 'rltaxrules.js') {
+      return { name: entry.name, source: 'var SHADOWED_SURTAX_RATE = 0.038;\n' + entry.source };
+    }
+    if (entry.name === 'rltaxstate.js') {
+      return { name: entry.name, source: 'var SHADOWED_THRESHOLD = 250000;\n' + entry.source };
+    }
+    if (entry.name === 'rltaxcombined.js') {
+      return { name: entry.name, source: 'var SHADOWED_AUTHORITY = "irs-p505-2026";\n' + entry.source };
+    }
+    if (entry.name === 'rltaxmedicare.js') {
+      return { name: entry.name, source: 'var SHADOWED_JURISDICTION = "state:CA";\n' + entry.source };
+    }
+    return entry;
+  });
+  const plantedSurtaxFindings = surtaxShadowFindings(plantedSurtaxModules);
+  assert(surtaxModuleFiles.length >= 14 && surtaxRuleLiterals.size >= 5 && surtaxNameTokens.length >= 8
+    && surtaxShipped.length === 0
+    && plantedSurtaxFindings.indexOf('rltaxrules.js:0.038') >= 0
+    && plantedSurtaxFindings.indexOf('rltaxstate.js:250000') >= 0
+    && plantedSurtaxFindings.indexOf('rltaxcombined.js:irs-p505-2026') >= 0
+    && plantedSurtaxFindings.indexOf('rltaxmedicare.js:state:CA') >= 0,
+  'TP-02-14: no rltax module on disk holds a surtax rate, a surtax threshold, a declared jurisdiction name or an authority id, and the detector is proven to fire on all four when one of each is planted in a different module ('
+    + surtaxModuleFiles.length + ' module(s), ' + surtaxRuleLiterals.size + ' rule literal(s), '
+    + surtaxNameTokens.length + ' name token(s); shipped findings: ' + (surtaxShipped.join(', ') || 'none') + ')');
+
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 threshold surtax group threw): ' + e.message); }
+/* ---------- Feature 022 Scope 02: threshold surtaxes and declared tax legs (END) ---------- */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

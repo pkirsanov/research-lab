@@ -400,7 +400,7 @@ because two corrected attributions are worth more than one confident wrong one.
 $ git worktree remove --force "$TMPDIR/rl-bug009-repro"
 REMOVE_EXIT=0
 $ git worktree list
-/Users/pkirsanov/Projects/research-lab  373f4572d [main]
+<repo-root>  373f4572d [main]
 ```
 
 ### E13 — Final verification: the canonical gate is green with this packet present

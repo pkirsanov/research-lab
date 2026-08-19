@@ -22879,6 +22879,224 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 change vocabulary group threw): ' + e.message); }
 /* ---------- Feature 026 Scope 3: rlcockpit.js — change vocabulary (END) ---------- */
 
+/* ---------- Feature 026 Scope 4: rlcockpit.js — reader tokens (BEGIN) ---------- */
+try {
+  group('rlcockpit.js — reader tokens');
+  const tokenRequire = (await import('node:module')).createRequire(import.meta.url);
+  const RLCOCKPIT = tokenRequire('../rlcockpit.js');
+  const cockpitSrc4 = read('rlcockpit.js');
+  const briefSrc4 = read('rlbrief.js');
+  const pageSrc4 = read('market-brief.html');
+  const suiteSrc4 = read('tests/market-brief-cockpit.spec.mjs');
+  /* Imported here rather than added to the file's top-level import list, so this append removes
+     and rewrites no pre-existing line of a 22,000-line shared surface. */
+  const { findReaderVocabularyLeaks } = await import('./reader-vocabulary.mjs');
+
+  /* PINNED fixtures again, and for the same reason: nothing below is bound to
+     market-brief.payload.json, market-brief.snapshot.json or brief-history.jsonl. Those
+     regenerate four times a day, the Scope 2 and Scope 3 blocks appear only once the composer
+     next runs, and a leg is legitimately dark. Every shape here is the CONTRACT shape; a
+     tolerant assertion at the end re-checks the live payload against it. */
+  const reading4 = (over) => ({
+    contractVersion: 'cross-asset-reading/v1', leg: 'rates', shape: 'measured', label: 'Rates',
+    driver: 'TLT', changePct: -1.42, sessions: 5, provenance: 'Observed', state: 'resolved', ...over
+  });
+
+  /* TP-026-4.14 — FR-026-030. ONE definition of each token, reachable by extractFn, exported
+     off the frozen api, and behaving over every state the two contracts can produce. */
+  ['legTokenLabel', 'changeTokenLabel'].forEach((name) => {
+    const body = extractFn(cockpitSrc4, name);
+    assert(body.length > 0 && body.indexOf('function ' + name + '(') === 0,
+      'extractFn reaches rlcockpit.js top-level declaration ' + name + ' and returns a non-empty body');
+  });
+
+  const legStates4 = [
+    ['a measured leg over its full horizon', reading4({}), '● Resolved'],
+    ['a measured leg short of its horizon', reading4({ state: 'partial', sessions: 3 }), '◐ Partial'],
+    ['a carried classification', reading4({ shape: 'carried', state: 'resolved' }), '● Resolved'],
+    ['a dark state', RLCOCKPIT.darkState({ id: 'credit' }, 'no source on file', 'whether credit confirms'), '○ Dark'],
+    ['a reading with no shape at all', reading4({ shape: undefined }), '○ Dark'],
+    ['a reading with an unmodelled state', reading4({ state: 'probably-fine' }), '○ Dark'],
+    ['nothing at all', null, '○ Dark']
+  ];
+  assert(legStates4.every(([, input, want]) => RLCOCKPIT.legTokenLabel(input) === want)
+    && legStates4.every(([, , want]) => /^[●◐○] [A-Z]/.test(want)),
+  'legTokenLabel answers every required-leg state with one glyph-plus-word token, and an unrecognised reading resolves to Dark rather than to a claim nothing measured');
+
+  const changeStates4 = [
+    ['levelCrossed', '▲ Level crossed'], ['stateFlipped', '⇄ State flipped'],
+    ['flagRaised', '⚑ Flag raised'], ['flagCleared', '⚐ Flag cleared'],
+    ['baseline', '+ First seen'], [null, '= Unchanged'], [undefined, '= Unchanged']
+  ];
+  assert(changeStates4.every(([kind, want]) => RLCOCKPIT.changeTokenLabel(kind) === want)
+    && RLCOCKPIT.changeTokenLabel('levelHalfCrossed') === null
+    && RLCOCKPIT.changeTokenLabel('') === null,
+  'changeTokenLabel answers every declared change kind with one glyph-plus-word token and returns null for a kind outside the closed set, so a renderer refuses the row by name instead of printing a raw kind at a reader');
+
+  /* The vocabulary the two functions answer to is the SAME closed set the composer decides
+     with. A token for a kind changeKind can never return would be reader copy for a state the
+     product does not have. */
+  const vocabKinds4 = JSON.parse(read('market-brief.config.json'))['change-vocabulary/v1'].kinds;
+  assert(vocabKinds4.every((kind) => RLCOCKPIT.changeTokenLabel(kind) !== null)
+    && vocabKinds4.length === 5,
+  'every kind the committed change vocabulary declares has exactly one reader token, so no declared kind reaches the screen unlabelled');
+
+  /* TP-026-4.14 second half — rlbrief.js CONSUMES the tokens and declares no local copy. This
+     is P18 and it is the shape BUG-009 stands as the standing example of: a function with no
+     production consumer, and a renderer with a private duplicate, are the same defect twice. */
+  const brokenTokenGlyphs4 = ['● Resolved', '◐ Partial', '○ Dark', '▲ Level crossed', '⇄ State flipped', '⚑ Flag raised', '⚐ Flag cleared'];
+  assert(briefSrc4.indexOf('api.legTokenLabel(') > 0 && briefSrc4.indexOf('api.changeTokenLabel(') > 0
+    && briefSrc4.indexOf('typeof api.legTokenLabel === "function"') > 0
+    && brokenTokenGlyphs4.every((token) => briefSrc4.indexOf(token) < 0)
+    && pageSrc4.indexOf('src="rlcockpit.js"') > 0
+    && pageSrc4.indexOf('src="rlcockpit.js"') < pageSrc4.indexOf('src="rlbrief.js"'),
+  'rlbrief.js calls legTokenLabel and changeTokenLabel and declares no literal copy of any token, and market-brief.html loads rlcockpit.js before the renderer that consumes it');
+
+  assert(['renderDarkLegs', 'renderCrossAsset', 'renderChangedList'].every((name) =>
+    briefSrc4.indexOf('root.RLBRIEF.' + name + ' = ' + name + ';') > 0
+    && extractFn(briefSrc4, name).indexOf('if (typeof document === "undefined") return;') > 0
+    && pageSrc4.indexOf('RLBRIEF.' + name + '(') > 0),
+  'each new renderer is exported, carries the explicit Node guard so the pure-helper extraction never reaches a DOM function, and has a production caller in market-brief.html');
+
+  /* TP-026-4.13 — NFR-026-008. No contract identifier, refusal code, spec number or content
+     digest reaches a default-visible reader string. The tokens and every authored string in the
+     three new renderers are checked against the shared leak vocabulary. */
+  const authored4 = [
+    ...legStates4.map(([, , want]) => want),
+    ...changeStates4.map(([, want]) => want),
+    ...['renderDarkLegs', 'renderCrossAsset', 'renderChangedList', 'valueCell', 'tokenUnavailable']
+      .flatMap((name) => extractFn(briefSrc4, name).match(/"[^"\\]{12,}"/g) || [])
+      .map((literal) => literal.slice(1, -1))
+  ];
+  const leaks4 = authored4.flatMap((text) => findReaderVocabularyLeaks(text, 'brief').map((leak) => leak.id + ' in ' + text));
+  const codeShaped4 = authored4.filter((text) => /\bv[0-9]+\/|\/v[0-9]+\b|FR-[0-9]{3}|NFR-[0-9]{3}|SCN-[0-9]{3}|BUG-[0-9]{3}|sha256|contractVersion/.test(text));
+  assert(leaks4.length === 0 && codeShaped4.length === 0 && authored4.length > 20,
+  'no contract identifier, refusal code, spec number or content digest appears in any default-visible reader string, across every token and every authored literal in the three new renderers');
+
+  /* TP-026-4.13 CONTROL. The leak scan is not vacuous: a string that DOES carry framework
+     vocabulary is caught by the same call, so the clean verdict above means something. */
+  const control4 = findReaderVocabularyLeaks('this leg is coverage-only for now', 'brief');
+  assert(control4.length > 0,
+  'the reader-vocabulary scan used above catches a string that genuinely carries framework vocabulary, so its clean verdict on the new copy is not vacuously green');
+
+  /* ADVERSARIAL 1 — the closed set in changeTokenLabel is load-bearing. Replace the final
+     refusal with a pass-through and an undeclared kind is printed at the reader verbatim,
+     which is the exact "raw contract word reaches reader copy" defect NFR-026-008 forbids. */
+  const tokenFnSrc4 = extractFn(cockpitSrc4, 'changeTokenLabel');
+  const leakyTokenSrc4 = tokenFnSrc4.replace('    return null;\n', '    return String(kind);\n');
+  const leakyToken4 = build([leakyTokenSrc4], ['changeTokenLabel'],
+    'var CHANGE_TOKEN_LEVEL_CROSSED="x";var CHANGE_TOKEN_STATE_FLIPPED="x";var CHANGE_TOKEN_FLAG_RAISED="x";'
+    + 'var CHANGE_TOKEN_FLAG_CLEARED="x";var CHANGE_TOKEN_BASELINE="x";var CHANGE_TOKEN_UNCHANGED="x";');
+  assert(leakyTokenSrc4 !== tokenFnSrc4
+    && RLCOCKPIT.changeTokenLabel('marketRegimeShift/v3') === null
+    && leakyToken4.changeTokenLabel('marketRegimeShift/v3') === 'marketRegimeShift/v3',
+  'TP-026-4.13 adversarial: replacing changeTokenLabel\'s closed-set refusal with a pass-through prints an undeclared contract-shaped kind straight at the reader');
+
+  /* ADVERSARIAL 2 — the Dark default in legTokenLabel is load-bearing. Flip it to Resolved and
+     a reading nothing measured is labelled as measured, which is the substitution the whole
+     dark-state mechanism exists to refuse. */
+  const legFnSrc4 = extractFn(cockpitSrc4, 'legTokenLabel');
+  const optimisticSrc4 = legFnSrc4.replace(/    return LEG_TOKEN_DARK;\n  \}$/, '    return LEG_TOKEN_RESOLVED;\n  }');
+  const optimistic4 = build([optimisticSrc4], ['legTokenLabel'],
+    'var LEG_TOKEN_RESOLVED="● Resolved";var LEG_TOKEN_PARTIAL="◐ Partial";var LEG_TOKEN_DARK="○ Dark";'
+    + 'function isPlainObject(v){return v!==null&&typeof v==="object"&&!Array.isArray(v);}');
+  const unmodelled4 = reading4({ state: 'probably-fine' });
+  assert(optimisticSrc4 !== legFnSrc4
+    && RLCOCKPIT.legTokenLabel(unmodelled4) === '○ Dark'
+    && optimistic4.legTokenLabel(unmodelled4) === '● Resolved',
+  'TP-026-4.13 adversarial: flipping legTokenLabel\'s fall-through from Dark to Resolved labels a reading it cannot vouch for as measured');
+
+  /* The screen inventory, as a static assertion over the page. The browser suite proves these
+     blocks behave; this proves the classification exists at all, so a block added later with no
+     data-mac-default is caught by the project selftest and not only by a browser run. */
+  const classified4 = [...pageSrc4.matchAll(/data-mac-block="([a-z-]+)"\s*\n?\s*data-mac-default="(visible|collapsed)"|data-mac-block="([a-z-]+)" data-mac-default="(visible|collapsed)"/g)];
+  const blockAttrs4 = [...pageSrc4.matchAll(/data-mac-block="([a-z-]+)"/g)].map((m) => m[1]);
+  const defaultAttrs4 = [...pageSrc4.matchAll(/data-mac-default="(visible|collapsed)"/g)].map((m) => m[1]);
+  assert(blockAttrs4.length === 16 && defaultAttrs4.length === 16
+    && new Set(blockAttrs4).size === 16
+    && defaultAttrs4.filter((state) => state === 'visible').length === 6
+    && defaultAttrs4.filter((state) => state === 'collapsed').length === 10
+    && classified4.length > 0,
+  'market-brief.html classifies exactly 16 uniquely-named top-level blocks, six default-visible and ten collapsed, so an unclassified block cannot reach the default view unnoticed');
+
+  /* FR-026-028 — build-free and no browser ES modules, asserted at the source so a future
+     script tag cannot reintroduce a build step without failing here first. */
+  assert(!/type=["']module["']/.test(pageSrc4)
+    && (pageSrc4.match(/<details class="drawer"/g) || []).length === 10
+    && !/<details[^>]*data-mac-block[^>]*\sopen[\s>]/.test(pageSrc4),
+  'market-brief.html declares no ES-module script tag, carries one drawer per collapsed block, and ships no drawer with an open attribute, so the default view is collapsed on every load rather than on the first only');
+
+  /* The browser suite exists, names its fixture rows as fixture-sourced, and does not pin
+     itself to a four-times-a-day artifact.
+
+     The three absence checks read CODE, not comments. The suite's header documents the very
+     properties asserted here — "There is no page.route, no context.route" and why nothing is
+     pinned to market-brief.payload.json — so a raw substring scan matched the prose that proves
+     compliance and failed the file for describing itself. A guard that punishes documentation
+     teaches the next author to delete it. Same reasoning as stripForShadowScan above: a comment
+     naming an edge is documentation, not the edge. The two COUNT checks stay on the raw source,
+     because FIXTURE-SOURCED is a label inside a test title and ^test( needs line structure. */
+  const suiteCode4 = suiteSrc4
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+  assert(suiteCode4.indexOf('market-brief.payload.json') < 0
+    && suiteCode4.indexOf('brief-history.jsonl') < 0
+    && (suiteSrc4.match(/^test\(/gm) || []).length === 14
+    && (suiteSrc4.match(/FIXTURE-SOURCED/g) || []).length === 2
+    && suiteCode4.indexOf('page.route') < 0 && suiteCode4.indexOf('context.route') < 0,
+  'tests/market-brief-cockpit.spec.mjs declares fourteen tests, labels both fixture-sourced decision-surface rows as such, intercepts no request, and binds itself to neither the payload nor the history ledger');
+
+  /* The stripper must not become the hole in the guard: a real page.route in CODE still fails,
+     and the same text inside a comment does not. */
+  const routeInCode4 = 'await page.route("**/x", (r) => r.abort());';
+  const routeInComment4 = '/* there is no page.route here */';
+  const strip4 = (text) => text.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+  assert(strip4(routeInCode4).indexOf('page.route') >= 0
+    && strip4(routeInComment4).indexOf('page.route') < 0,
+  'the comment stripper the suite scan relies on still sees an interception written in code, and stops seeing one written in prose');
+
+  /* TP-026-4.17 CANARY. The Scope 1, 2 and 3 groups, the committed payload's clean verdict and
+     the site build's account of the module all survive this append. */
+  const { validateBriefPayload } = await import('./validate-brief-payload.mjs');
+  const config4 = JSON.parse(read('market-brief.config.json'));
+  const payload4 = JSON.parse(read('market-brief.payload.json'));
+  const registry4 = JSON.parse(read('tools.json'));
+  const snapshot4 = JSON.parse(read('market-brief.snapshot.json'));
+  const agenda4 = JSON.parse(read('research-agenda.json'));
+  const page4 = payload4.researchAgenda !== undefined ? JSON.parse(read('market-brief.page.json')) : null;
+  const sitePlan4 = (await import('./build-pages-site.mjs')).planPagesSite(ROOT);
+  assert(config4['output-budget/v1'].totalDefaultVisibleChars === 3000
+    && config4['cross-asset/v1'].legs.filter((leg) => leg.required === true).length === 3
+    && config4['change-vocabulary/v1'].kinds.length === 5
+    && payload4.contractVersion === undefined
+    && validateBriefPayload(payload4, registry4, config4, snapshot4, agenda4, page4).length === 0
+    && sitePlan4.rootFiles.indexOf('rlcockpit.js') >= 0
+    && Object.isFrozen(RLCOCKPIT)
+    && cockpitSrc4.replace(/Number\.isFinite/g, '').indexOf('isFinite') < 0
+    && !/^\s*(import|export)\s/m.test(cockpitSrc4)
+    && ['document', 'localStorage', 'sessionStorage', 'innerHTML', 'fetch(', 'setTimeout', 'requestAnimationFrame'].every((token) => cockpitSrc4.indexOf(token) < 0),
+  'Regression: SCN-026-CANARY-04 the Scope 1 through Scope 3 groups and every pre-existing assertion stay green after the renderer append, and rlcockpit.js is still a frozen UMD module with no browser-only global and no bare isFinite');
+
+  /* The other half of the pinned-fixture bargain. The LIVE payload must be one of the states
+     the fixtures model — carrying the Scope 2 and Scope 3 blocks in contract shape, or not
+     carrying them at all because the composer has not run since they landed. Anything else is
+     real drift and should fail here rather than pass silently against a stale fixture. */
+  const liveCross4 = payload4.crossAsset;
+  const liveChanged4 = payload4.changed;
+  const liveRoll4 = payload4.rollUp;
+  const crossShapeOk4 = liveCross4 == null
+    || (Array.isArray(liveCross4.legs) && Array.isArray(liveCross4.dark)
+      && liveCross4.legs.every((leg) => RLCOCKPIT.legTokenLabel(leg) !== '○ Dark')
+      && liveCross4.dark.every((card) => RLCOCKPIT.legTokenLabel(card) === '○ Dark'));
+  const changedShapeOk4 = liveChanged4 == null
+    || (Array.isArray(liveChanged4) && liveChanged4.every((entry) => RLCOCKPIT.changeTokenLabel(entry.kind) !== null));
+  const rollShapeOk4 = liveRoll4 == null
+    || (Array.isArray(liveRoll4.members) && typeof liveRoll4.line === 'string');
+  assert(crossShapeOk4 && changedShapeOk4 && rollShapeOk4,
+  'the live payload\'s cross-asset, changed and roll-up blocks are either absent because the composer has not republished, or in the pinned contract shape every reader token can label — never a third shape the fixtures do not model');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 reader tokens group threw): ' + e.message); }
+/* ---------- Feature 026 Scope 4: rlcockpit.js — reader tokens (END) ---------- */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

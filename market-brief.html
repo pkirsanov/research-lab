@@ -543,7 +543,9 @@
 
         .drawer summary {
             cursor: pointer;
-            padding: 9px 13px;
+            padding: 13px;
+            min-height: 44px;
+            box-sizing: border-box;
             color: var(--dim);
             font-size: 12px;
             user-select: none
@@ -556,6 +558,61 @@
 
         .drawer .body {
             padding: 11px 13px
+        }
+
+        /* Feature 026 Scope 4 — the cross-asset strip. A real table with row and column headers
+           at desktop width, a stacked definition-style list below 600 CSS px, so it never becomes
+           a horizontally scrolling grid at 200 percent zoom. */
+        table.ca {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+            font-size: 12px
+        }
+
+        table.ca caption {
+            text-align: left;
+            padding-bottom: 6px
+        }
+
+        table.ca th,
+        table.ca td {
+            border-bottom: 1px solid var(--line);
+            padding: 8px 6px;
+            text-align: left;
+            vertical-align: top
+        }
+
+        table.ca thead th {
+            color: var(--dim);
+            font-weight: 600
+        }
+
+        @media (max-width:600px) {
+
+            table.ca,
+            table.ca tbody,
+            table.ca tr,
+            table.ca th,
+            table.ca td {
+                display: block;
+                width: auto
+            }
+
+            table.ca thead {
+                display: none
+            }
+
+            table.ca tr {
+                border-bottom: 1px solid var(--line);
+                padding: 6px 0
+            }
+
+            table.ca th,
+            table.ca td {
+                border: 0;
+                padding: 2px 0
+            }
         }
 
         .foot {
@@ -1017,68 +1074,122 @@
             <div class="winfocus" id="winFocus">—</div>
         </header>
 
-        <section id="mac-center" data-mac-center aria-live="polite"></section>
+        <!-- Feature 026 Scope 4 — the disclosure-first default view.
+             Every top-level block below carries data-mac-block and data-mac-default. The pair is
+             the checkable form of the screen inventory: "visible" means the block is not inside a
+             collapsed control, "collapsed" means it is a <details> that is shut on load. A block
+             carrying neither is an unclassified block, and the browser suite refuses one — that is
+             what stops a fifteenth section quietly appearing above the fold later.
 
-        <h2 class="sec"
-            title="How right this brief has actually been. Every call is scored only against the trigger and invalidation it published for itself. Misses are shown with the same prominence as hits.">
-            Track record — this brief&rsquo;s own error rate</h2>
-        <div id="freshbar" role="status" hidden></div>
-        <div id="scorecard" data-tkr-auto></div>
-        <section id="attentionRecord" aria-label="How the decision list has actually turned out"></section>
+             DOM order IS priority order and no style rule reorders it, so the dark legs come first
+             here and stay first with no stylesheet, at 200 percent zoom and in print. -->
 
-        <div class="strip" id="regimeStrip"></div>
-        <div class="sub" id="liveNote" style="margin:-8px 0 4px"></div>
+        <section id="darkLegs" data-mac-block="dark-legs" data-mac-default="visible"
+            aria-label="Required cross-asset legs that could not be resolved this run" hidden></section>
 
-        <h2 class="sec"
-            title="Only recommendations that clear the immediate-action bar: a concrete action, trigger and minimum confidence. Watch-only ideas stay in their owning tools.">
-            Next trading session — actions only</h2>
-        <div id="nextSession"></div>
+        <section id="mac-center" data-mac-center data-mac-block="headline" data-mac-default="visible"
+            aria-live="polite"></section>
 
-        <h2 class="sec" title="Recurring public research reviewed on its declared generation or cadence. Missing current evidence is shown as unavailable rather than filled from a prior dossier.">
-            Standing research — current generation</h2>
-        <section id="standingResearch" aria-label="Standing research agenda"></section>
+        <div data-mac-block="decision-surface" data-mac-default="visible">
+            <h2 class="sec"
+                title="Items that are asking for a decision inside a named window, ranked by how close their effect is to arriving — not by how bad they would be. Each one publishes what would escalate it, what would prove it wrong, and when it stops counting.">
+                Needs a decision — and when it stops counting</h2>
+            <!-- data-rlk-done opts this tier out of the body-wide ticker auto-scan. The tier
+                 quotes published decision text verbatim and explains every control it renders
+                 itself, so a generic decorator must not splice a symbol link and an unexplained
+                 "?" control into the middle of an authored sentence. -->
+            <section id="decisionAttention" data-rlk-done="1"
+                aria-label="Items asking for a decision this session"></section>
+        </div>
 
-        <details class="drawer">
-            <summary>⌄ Structural backdrop and invalidation map</summary>
-            <div class="body backdrop" id="backdrop"></div>
-        </details>
+        <section id="crossAsset" data-mac-block="cross-asset" data-mac-default="visible"
+            aria-label="Required cross-asset legs measured this run" hidden></section>
 
-        <h2 class="sec"
-            title="Items that are asking for a decision inside a named window, ranked by how close their effect is to arriving — not by how bad they would be. Each one publishes what would escalate it, what would prove it wrong, and when it stops counting.">
-            Needs a decision — and when it stops counting</h2>
-        <!-- data-rlk-done opts this tier out of the body-wide ticker auto-scan. The tier
-             quotes published decision text verbatim and explains every control it renders
-             itself, so a generic decorator must not splice a symbol link and an unexplained
-             "?" control into the middle of an authored sentence. -->
-        <section id="decisionAttention" data-rlk-done="1"
-            aria-label="Items asking for a decision this session"></section>
+        <section id="changedList" data-mac-block="changed" data-mac-default="visible"
+            aria-label="What changed since the last published run" hidden></section>
 
-        <h2 class="sec"
-            title="Only structurally anchored, adequately confident changes that can affect the next session. Watch/noise stays out.">
-            Actionable changes and catalysts</h2>
-        <div class="feed" id="attention"></div>
+        <div data-mac-block="track-record" data-mac-default="visible">
+            <h2 class="sec"
+                title="How right this brief has actually been. Every call is scored only against the trigger and invalidation it published for itself. Misses are shown with the same prominence as hits.">
+                Track record — this brief&rsquo;s own error rate</h2>
+            <div id="freshbar" role="status" hidden></div>
+            <div id="scorecard" data-tkr-auto></div>
+            <section id="attentionRecord" aria-label="How the decision list has actually turned out"></section>
+        </div>
 
-        <h2 class="sec"
-            title="Recent &amp; upcoming catalysts with the option-implied expected move and scenario probabilities (option-implied then psychology-adjusted) + the expected effect per scenario.">
-            Events — recent &amp; upcoming (implied move · scenarios · expected effect)</h2>
-        <div id="events"></div>
-
-        <details class="drawer">
-            <summary>⌄ Mega-caps, thematic groups, and watchlist detail</summary>
+        <details class="drawer" data-mac-block="regime" data-mac-default="collapsed">
+            <summary data-mac-summary="regime">⌄ Regime and live layer</summary>
             <div class="body">
-                <div class="grid2" id="groups"></div>
-                <div class="grid2" id="watchlist" style="margin-top:10px"></div>
+                <div class="strip" id="regimeStrip"></div>
+                <div class="sub" id="liveNote" style="margin:6px 0 0"></div>
             </div>
         </details>
 
-        <details class="drawer" id="mac-evidence" data-mac-evidence>
-            <summary>⌄ Latest owning-tool reads — evidence layer (Power view)</summary>
+        <details class="drawer" data-mac-block="next-session" data-mac-default="collapsed">
+            <summary data-mac-summary="next-session"
+                title="Only recommendations that clear the immediate-action bar: a concrete action, trigger and minimum confidence. Watch-only ideas stay in their owning tools.">⌄
+                Next trading session — actions only</summary>
+            <div class="body">
+                <div id="nextSession"></div>
+            </div>
+        </details>
+
+        <details class="drawer" data-mac-block="standing-research" data-mac-default="collapsed">
+            <summary data-mac-summary="standing-research"
+                title="Recurring public research reviewed on its declared generation or cadence. Missing current evidence is shown as unavailable rather than filled from a prior dossier.">⌄
+                Standing research — current generation</summary>
+            <div class="body">
+                <section id="standingResearch" aria-label="Standing research agenda"></section>
+            </div>
+        </details>
+
+        <details class="drawer" data-mac-block="backdrop" data-mac-default="collapsed">
+            <summary data-mac-summary="backdrop">⌄ Structural backdrop and invalidation map</summary>
+            <div class="body backdrop" id="backdrop"></div>
+        </details>
+
+        <details class="drawer" data-mac-block="catalysts" data-mac-default="collapsed">
+            <summary data-mac-summary="catalysts"
+                title="Only structurally anchored, adequately confident changes that can affect the next session. Watch/noise stays out.">⌄
+                Actionable changes and catalysts</summary>
+            <div class="body">
+                <div class="feed" id="attention"></div>
+            </div>
+        </details>
+
+        <details class="drawer" data-mac-block="events" data-mac-default="collapsed">
+            <summary data-mac-summary="events"
+                title="Recent &amp; upcoming catalysts with the option-implied expected move and scenario probabilities (option-implied then psychology-adjusted) + the expected effect per scenario.">⌄
+                Events — recent &amp; upcoming (implied move · scenarios · expected effect)</summary>
+            <div class="body">
+                <div id="events"></div>
+            </div>
+        </details>
+
+        <details class="drawer" data-mac-block="groups" data-mac-default="collapsed">
+            <summary data-mac-summary="groups">⌄ Mega-caps and thematic groups</summary>
+            <div class="body">
+                <div class="grid2" id="groups"></div>
+            </div>
+        </details>
+
+        <details class="drawer" data-mac-block="watchlist" data-mac-default="collapsed">
+            <summary data-mac-summary="watchlist">⌄ Watchlist detail</summary>
+            <div class="body">
+                <div class="grid2" id="watchlist"></div>
+            </div>
+        </details>
+
+        <details class="drawer" id="mac-evidence" data-mac-evidence data-mac-block="tool-reads"
+            data-mac-default="collapsed">
+            <summary data-mac-summary="tool-reads">⌄ Latest owning-tool reads — evidence layer (Power view)</summary>
             <div class="body" id="toolReads"></div>
             <div class="body" id="fxGlobalRelationship"></div>
         </details>
 
-        <details class="drawer" id="experimentalDrawer">
-            <summary>⌄ Experimental / in-progress analysis (hidden by default)</summary>
+        <details class="drawer" id="experimentalDrawer" data-mac-block="experimental"
+            data-mac-default="collapsed">
+            <summary data-mac-summary="experimental">⌄ Experimental / in-progress analysis (hidden by default)</summary>
             <div class="body" id="experimental"></div>
         </details>
 
@@ -1617,6 +1728,13 @@
             function renderAll() {
                 renderAsOf();
                 RLBRIEF.renderFreshness(el("freshbar"), RLBRIEF.narrativeFreshness(PAYLOAD, (CFG && CFG["freshness-policy/v1"]) || null));
+                /* Feature 026 Scope 4 — the default-visible blocks render FIRST and in DOM order,
+                   so a later throw inside a supporting renderer cannot cost the reader a dark
+                   state. Each one hides itself when its payload block is absent rather than
+                   painting an empty shell that reads as "nothing is wrong here". */
+                RLBRIEF.renderDarkLegs(el("darkLegs"), PAYLOAD && PAYLOAD.crossAsset);
+                RLBRIEF.renderCrossAsset(el("crossAsset"), PAYLOAD && PAYLOAD.crossAsset, CFG);
+                RLBRIEF.renderChangedList(el("changedList"), PAYLOAD && PAYLOAD.changed, PAYLOAD && PAYLOAD.rollUp);
                 RLBRIEF.renderScorecard(el("scorecard"), SCORECARD);
                 RLBRIEF.renderRegimeStrip(el("regimeStrip"), PAYLOAD && PAYLOAD.regime);
                 RLBRIEF.renderNextSession(el("nextSession"), PAYLOAD && PAYLOAD.nextSession, PAYLOAD && PAYLOAD.recommendations, CFG, SNAP);
@@ -1708,6 +1826,7 @@
     <script src="rlg.js" defer></script>
     <script src="rldata.js?v=20260712-4" defer></script>
     <script src="rlexperience-adapters/market-action.js" defer></script>
+    <script src="rlcockpit.js" defer></script>
     <script src="rlbrief.js" defer></script>
     <script src="rlmarketaction.js" defer></script>
     <script src="rlattention.js" defer></script>

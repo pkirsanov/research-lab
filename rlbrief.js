@@ -1525,6 +1525,162 @@
     host.hidden = false;
   }
 
+  /* ═══════════ Feature 026 Scope 4 — the disclosure-first default view ═══════════
+     Three renderers for the three blocks the default view gained: the dark-leg banner, the
+     cross-asset strip and the changed list with its roll-up. Each is a DOM helper and each
+     carries the explicit Node guard, so the selftest's extraction of pure analytic helpers
+     never reaches one.
+
+     Every authored string leaves through the SAME `esc` helper above; no new sink is added.
+     Every rendered value carries a `title` saying what it is and what the current reading
+     implies (FR-026-030) and a `data-mac-value` marker, so that pairing is COUNTABLE by a
+     browser assertion rather than merely claimed in prose.
+
+     The reader tokens are read from rlcockpit.js and never re-declared here. A renderer-local
+     copy is precisely the drift the single-definition rule exists to stop, so when the module
+     is absent these blocks say so by name instead of inventing a token. */
+  function cockpitApi() {
+    var api = root.RLCOCKPIT;
+    return api && typeof api.legTokenLabel === "function" && typeof api.changeTokenLabel === "function" ? api : null;
+  }
+
+  function tokenUnavailable(what) {
+    return '<div class="sub" data-mac-token-unavailable="' + esc(what) + '">The reader tokens for the '
+      + esc(what) + ' did not load, so this block is not rendered. Nothing was substituted for them.</div>';
+  }
+
+  function valueCell(text, explanation) {
+    return '<span data-mac-value title="' + esc(explanation) + '">' + esc(text) + '</span>';
+  }
+
+  /* A dark leg is a NEGATIVE, so this host is never a <details> and this renderer never
+     collapses one. It also never renders a partial card: all three sentences are present or
+     the card is refused, because a card missing its withheld clause would leave the reader
+     believing the brief simply had nothing to say about that leg. */
+  function renderDarkLegs(el, crossAsset) {
+    if (typeof document === "undefined") return;
+    if (!el) return;
+    var cards = crossAsset && Array.isArray(crossAsset.dark) ? crossAsset.dark : [];
+    var required = crossAsset && Number.isFinite(crossAsset.requiredLegs) ? crossAsset.requiredLegs : null;
+    if (!cards.length) { el.hidden = true; el.innerHTML = ""; return; }
+    var api = cockpitApi();
+    if (!api) { el.hidden = false; el.innerHTML = tokenUnavailable("required-leg states"); return; }
+    var token = api.legTokenLabel({ shape: "dark" });
+    var total = required === null ? cards.length + (Array.isArray(crossAsset.legs) ? crossAsset.legs.length : 0) : required;
+    var banner = '<div class="acard" data-mac-dark-banner style="border-left:3px solid var(--line)"><b>'
+      + esc(token.toUpperCase()) + " \u2014 " + valueCell(cards.length + " of " + total + " required legs",
+        "How many declared cross-asset legs could not be resolved this run. Reading now: the brief is blind on "
+        + cards.length + " of " + total + ", and says so here rather than filling the gap.")
+      + " could not be resolved this run</b></div>";
+    var body = cards.map(function (card) {
+      if (!card || !card.reason || !card.withheld || !card.substitutionRefusal) {
+        return '<div class="acard" data-mac-dark-refused="' + esc(card && card.leg) + '"><b>'
+          + esc(token) + " \u00b7 " + esc(card && card.leg)
+          + "</b><div class=\"ay\">This dark card is incomplete, so it is not published as one. A card states its"
+          + " reason, what is withheld and that nothing was substituted, or it is refused.</div></div>";
+      }
+      return '<div class="acard" data-mac-dark-card="' + esc(card.leg) + '" style="border-left:3px solid var(--line)">'
+        + "<b>" + esc(token) + " \u00b7 " + esc(card.leg) + "</b>"
+        + '<div class="ay">' + esc(card.reason) + "</div>"
+        + '<div class="ay"><b>What this blocks:</b> ' + esc(card.withheld) + "</div>"
+        + '<div class="ay">' + esc(card.substitutionRefusal) + "</div>"
+        + "</div>";
+    }).join("");
+    el.innerHTML = banner + body;
+    el.hidden = false;
+  }
+
+  /* Seven fields render or the row is refused. A row that dropped its provenance or its session
+     count would read as a measurement the brief cannot actually vouch for at that precision. */
+  function renderCrossAsset(el, crossAsset, cfg) {
+    if (typeof document === "undefined") return;
+    if (!el) return;
+    var legs = crossAsset && Array.isArray(crossAsset.legs) ? crossAsset.legs : [];
+    if (!legs.length) { el.hidden = true; el.innerHTML = ""; return; }
+    var api = cockpitApi();
+    if (!api) { el.hidden = false; el.innerHTML = tokenUnavailable("cross-asset legs"); return; }
+    var declared = crossAsset && Number.isFinite(crossAsset.sessions) ? crossAsset.sessions : null;
+    var rows = legs.map(function (leg) {
+      var token = api.legTokenLabel(leg);
+      var span = Number.isFinite(leg.sessions) ? leg.sessions : null;
+      var move = Number.isFinite(leg.changePct) ? pct(leg.changePct) : (leg.direction || "\u2014");
+      return "<tr data-mac-leg=\"" + esc(leg.leg) + "\">"
+        + '<th scope="row">' + valueCell(token,
+          "Whether this leg was measured this run. Reading now: " + token + " \u2014 "
+          + (token.indexOf("Partial") >= 0
+            ? "measured over fewer sessions than the declared horizon, and the shorter count is shown."
+            : "measured over the stated number of sessions.")) + "</th>"
+        + "<td>" + valueCell(leg.label || leg.leg, "The cross-asset leg this row reports. Reading now: "
+          + (leg.claim || "the leg's own declared claim.")) + "</td>"
+        + "<td>" + (leg.driver ? tkr(leg.driver) : valueCell(leg.pairId || "\u2014",
+          "The instrument this reading is taken from. Reading now: the owning model's own pair, carried rather than recomputed here.")) + "</td>"
+        + "<td>" + valueCell(move, "The move this leg made over the sessions counted. Reading now: "
+          + (Number.isFinite(leg.changePct)
+            ? "a " + pct(leg.changePct) + " change, which is the size of the build this leg is showing."
+            : "a classification carried from the owning model rather than a percentage measured here.")) + "</td>"
+        + "<td>" + valueCell(span === null ? "\u2014" : span + (span === 1 ? " session" : " sessions"),
+          "How many committed closes this reading actually spans" + (declared === null ? "." : ", against a declared horizon of " + declared + ".")
+          + " Reading now: " + (span === null ? "no measurable span, so nothing is claimed."
+            : declared !== null && span < declared ? "short of the horizon, so the reading is partial rather than full."
+              : "the full declared horizon.")) + "</td>"
+        + "<td>" + valueCell(leg.provenance || "\u2014",
+          "Where this figure comes from. Reading now: " + (leg.provenance === "Observed"
+            ? "a source published this exact value."
+            : leg.provenance === "Derived" ? "it is computed from published values through a named formula."
+              : "it stands in for a quantity no source on file publishes, and the stand-in is named.")) + "</td>"
+        + "<td>" + link(leg.deepLink || deepLink(cfg, leg.leg), "why \u25b8") + "</td>"
+        + "</tr>";
+    }).join("");
+    el.innerHTML = '<table class="ca" data-mac-crossasset><caption class="sub">Required cross-asset legs, '
+      + "as measured this run. Each row deep-links to the tool that owns the arithmetic; nothing here is recomputed.</caption>"
+      + '<thead><tr><th scope="col">State</th><th scope="col">Leg</th><th scope="col">Driver</th>'
+      + '<th scope="col">Move</th><th scope="col">Span</th><th scope="col">Provenance</th><th scope="col">Detail</th></tr></thead>'
+      + "<tbody>" + rows + "</tbody></table>";
+    el.hidden = false;
+  }
+
+  /* One line per instrument that moved, then ONE counted roll-up for everything that did not.
+     The roll-up's membership list is the only place an unchanged symbol appears, and it carries
+     a state token and nothing else — no rationale, no paragraph, no restated position. */
+  function renderChangedList(el, changed, rollUp) {
+    if (typeof document === "undefined") return;
+    if (!el) return;
+    var lines = Array.isArray(changed) ? changed : [];
+    if (!lines.length && !rollUp) { el.hidden = true; el.innerHTML = ""; return; }
+    var api = cockpitApi();
+    if (!api) { el.hidden = false; el.innerHTML = tokenUnavailable("change vocabulary"); return; }
+    var body = lines.map(function (entry) {
+      var token = api.changeTokenLabel(entry && entry.kind);
+      if (token === null) {
+        return '<div class="ay" data-mac-changed-refused="' + esc(entry && entry.symbol)
+          + '">This run reported a change for ' + esc(entry && entry.symbol)
+          + " that is outside the published vocabulary, so no line is written for it.</div>";
+      }
+      return '<div class="ay" data-mac-changed="' + esc(entry.symbol) + '">'
+        + valueCell(token, "What kind of change this instrument made since the last published run."
+          + " Reading now: " + token + ", which is why it earned a line at all.")
+        + " \u00b7 " + tkr(entry.symbol) + " \u00b7 "
+        + valueCell(entry.line || "", "The change as published. Reading now: this is the state that moved, on both sides of the move.")
+        + "</div>";
+    }).join("");
+    var roll = "";
+    if (rollUp && typeof rollUp === "object") {
+      var members = Array.isArray(rollUp.members) ? rollUp.members : [];
+      roll = '<details class="drawer" data-mac-rollup><summary>'
+        + esc(rollUp.line || "= 0 unchanged")
+        + " \u2014 open for the list</summary>"
+        + '<div class="body"><div class="sub">' + esc(members.length)
+        + " tracked instruments earned no line this run. Each is shown with its own state token and nothing else.</div>"
+        + members.map(function (member) {
+          return '<div class="ay" data-mac-rollup-member="' + esc(member.symbol) + '">'
+            + tkr(member.symbol) + " \u00b7 " + esc(member.state) + "</div>";
+        }).join("") + "</div></details>";
+    }
+    el.innerHTML = '<div class="sub">What moved since the last published run. Everything that did not is counted once below,'
+      + " not restated." + "</div>" + body + roll;
+    el.hidden = false;
+  }
+
   root.RLBRIEF.deepLink = deepLink;
   root.RLBRIEF.renderRegimeStrip = renderRegimeStrip;
   root.RLBRIEF.renderScorecard = renderScorecard;
@@ -1539,6 +1695,9 @@
   root.RLBRIEF.renderWatchlist = renderWatchlist;
   root.RLBRIEF.renderGroups = renderGroups;
   root.RLBRIEF.renderCenterNoAction = renderCenterNoAction;
+  root.RLBRIEF.renderDarkLegs = renderDarkLegs;
+  root.RLBRIEF.renderCrossAsset = renderCrossAsset;
+  root.RLBRIEF.renderChangedList = renderChangedList;
 
   /* ═══════════ Feature 012 · Scope 10 — SAFE WebEvidence disclosure consumer ═══════════
      A static, browser-side, READ-ONLY audit of a frozen `web-evidence-bundle/v1`. It

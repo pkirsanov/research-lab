@@ -113,6 +113,23 @@
   var CAP_TOTAL = "total cap";
   var TOTAL_PATH = "default-visible narrative";
 
+  /* Every reader token is a GLYPH PLUS A WORD. Strip all colour, or zoom to 200 percent and
+     lose the glyph's shape, and the word still carries the state. A bare glyph or a bare
+     colour would not survive either, which is why neither is a permitted token form. */
+  var LEG_TOKEN_RESOLVED = "\u25CF Resolved";
+  var LEG_TOKEN_PARTIAL = "\u25D0 Partial";
+  var LEG_TOKEN_DARK = "\u25CB Dark";
+
+  /* The change vocabulary as words, keyed by the SAME kind strings `changeKind` returns.
+     `baseline` and the null kind are roll-up-only tokens: neither ever labels a per-instrument
+     line, because an unchanged or never-before-seen instrument earns no line at all. */
+  var CHANGE_TOKEN_LEVEL_CROSSED = "\u25B2 Level crossed";
+  var CHANGE_TOKEN_STATE_FLIPPED = "\u21C4 State flipped";
+  var CHANGE_TOKEN_FLAG_RAISED = "\u2691 Flag raised";
+  var CHANGE_TOKEN_FLAG_CLEARED = "\u2690 Flag cleared";
+  var CHANGE_TOKEN_BASELINE = "\u002B First seen";
+  var CHANGE_TOKEN_UNCHANGED = "= Unchanged";
+
   function isPlainObject(value) {
     return value !== null && typeof value === "object" && !Array.isArray(value);
   }
@@ -601,6 +618,33 @@
     return narrative + unchanged + baseline === size;
   }
 
+  /* ═══════════ exported: the reader tokens ═══════════ */
+
+  /* ONE definition of each reader token, so a renderer cannot ship a second copy that drifts.
+     The default is DARK, never Resolved: an unrecognised reading is a reading this module
+     cannot vouch for, and claiming it resolved would assert a measurement nobody took. */
+  function legTokenLabel(reading) {
+    if (!isPlainObject(reading)) return LEG_TOKEN_DARK;
+    if (reading.shape === "dark") return LEG_TOKEN_DARK;
+    if (reading.shape !== "measured" && reading.shape !== "carried") return LEG_TOKEN_DARK;
+    if (reading.state === "partial") return LEG_TOKEN_PARTIAL;
+    if (reading.state === "resolved") return LEG_TOKEN_RESOLVED;
+    return LEG_TOKEN_DARK;
+  }
+
+  /* The vocabulary is CLOSED at the reader surface too. A kind this module carries no word for
+     returns null so the renderer can refuse the row by name, rather than passing the raw kind
+     through and printing a contract identifier at a reader. */
+  function changeTokenLabel(kind) {
+    if (kind === "levelCrossed") return CHANGE_TOKEN_LEVEL_CROSSED;
+    if (kind === "stateFlipped") return CHANGE_TOKEN_STATE_FLIPPED;
+    if (kind === "flagRaised") return CHANGE_TOKEN_FLAG_RAISED;
+    if (kind === "flagCleared") return CHANGE_TOKEN_FLAG_CLEARED;
+    if (kind === "baseline") return CHANGE_TOKEN_BASELINE;
+    if (kind === null || kind === undefined) return CHANGE_TOKEN_UNCHANGED;
+    return null;
+  }
+
   return {
     MEASUREMENT_CONTRACT: MEASUREMENT_CONTRACT,
     LEG_CONTRACT: LEG_CONTRACT,
@@ -613,6 +657,8 @@
     darkState: darkState,
     changeKind: changeKind,
     rollUpFrom: rollUpFrom,
-    rollUpBalances: rollUpBalances
+    rollUpBalances: rollUpBalances,
+    legTokenLabel: legTokenLabel,
+    changeTokenLabel: changeTokenLabel
   };
 });

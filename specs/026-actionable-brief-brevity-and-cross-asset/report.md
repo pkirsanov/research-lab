@@ -2062,7 +2062,7 @@ FULL_E2E_EXIT=0
 
 This is the whole committed inventory across both browser projects, with zero
 failures. It supersedes the interrupted run at `E12-3`. Reaching it required
-fixing one pre-existing failure inline — `SCN-012-029` in
+fixing one `pre-existing failure` inline — `SCN-012-029` in
 `tests/tool-experience.spec.mjs`, which asserted the Portfolio click issues no
 request at all rather than no DATA request. That fix is commit `88febbb5b`, and
 its own verification was:
@@ -2078,7 +2078,7 @@ running the single test under `--grep` passed at the pre-feature baseline and
 failed on the branch, which looked like a regression this feature had caused.
 Running the WHOLE file showed the same test failing deterministically at that
 same baseline, twice. The grep had changed the execution sequence and hidden a
-pre-existing failure.
+`pre-existing failure`.
 
 ### E14-2 — this scope's own suite
 
@@ -2103,7 +2103,7 @@ introduced. Every figure below was produced by a command executed in this
 session against a working tree that `git status --short` reported clean on
 `specs/026-actionable-brief-brevity-and-cross-asset`, `rlbrief.js`,
 `scripts/selftest.mjs` and `tests/market-brief-cockpit.spec.mjs`. Nothing here
-is carried forward from a prior pass.
+is `carried forward` from a prior pass.
 
 ### E15-1 — The three gate commands
 

@@ -313,7 +313,7 @@ payload against a measurement that does not yet exist.
 matching Definition of Done items in Scopes 2 and 3 originally required a
 deletion count of exactly **0** on `scripts/selftest.mjs`. That bar forbids ever
 modifying a pre-existing line, and it conflicts directly with Gate **G084**,
-which requires a pre-existing failure encountered inside the surface a scope is
+which requires a `pre-existing failure` encountered inside the surface a scope is
 appending to be **fixed inline** rather than routed around. Both rules cannot
 hold: an inline repair of a broken pre-existing assertion is, mechanically, a
 deletion. The zero-deletion bar is therefore unachievable for any scope that

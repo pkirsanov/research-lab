@@ -21390,13 +21390,19 @@ try {
   const validate26 = (candidate) => validateBriefPayload(candidate, registry26, briefConfig26, snapshot26, agenda26, page26);
   const stamp26 = (mutate) => {
     const candidate = JSON.parse(JSON.stringify(committedPayload26));
-    /* Drop only the inherited measurement. Everything else stays, so the fixture remains an
-       otherwise-valid v2 payload and the budget is the only thing a case can push over. Dropping
-       the legs or the roll-up instead would trip the cross-asset and delta gates, and each case
+    /* Drop the INHERITED measurement, then re-attach a fresh one after the mutation, in the
+       same allocate-measure-attach order the composer uses. Keeping the inherited block would
+       let a fixture be judged against a figure describing a different payload; dropping it and
+       leaving it dropped would make the fixture an invalid v2 run, because a published v2 run
+       must carry the measurement it was judged against. Measuring before attaching is what
+       keeps the block out of its own `total` — it lands in `disclosedTotal`, which is uncapped.
+       Everything else stays, so the budget is the only thing a case can push over: dropping the
+       legs or the roll-up instead would trip the cross-asset and delta gates, and each case
        would then be asserting about errors it never meant to raise. */
     delete candidate.budget;
     candidate.contractVersion = 'market-brief-payload/v2';
     if (mutate) mutate(candidate);
+    candidate.budget = RLCOCKPIT.measureDefaultVisible(candidate, budgetPolicy26);
     return candidate;
   };
   const budgetLines26 = (errors) => errors.filter((line) => line.indexOf('outputBudget: ') === 0);
@@ -22165,6 +22171,27 @@ try {
   const fxShapeOk26 = liveFx26 == null || typeof liveFx26.read === 'string';
   assert(bondShapeOk26 && fxShapeOk26,
   'the live payload\'s carried bond and FX reads are either absent, unresolved, or in the pinned contract shape — never a third shape the fixtures do not model');
+
+  /* HARDENING (found by an adversarial pass over the shipped validator, not by the plan). Two
+     shapes were being ACCEPTED that the contract forbids. A dark card carrying a figure is the
+     substituted value this entire leg set exists to refuse — a reader seeing `changePct` beside
+     a blindness would read it as a measurement that was taken. And a v2 payload with `budget`
+     deleted validated clean, so a producer could drop the measurement and still publish, leaving
+     no record of what the run was judged against. Both now refuse, and both are asserted here
+     against the LIVE payload so the guard cannot rot into a fixture-only check. */
+  const validateLive26 = (mutate) => {
+    const candidate = JSON.parse(JSON.stringify(committedPayload26c));
+    mutate(candidate);
+    return validateBriefPayload(candidate, registry26c, config26b, snapshot26c, agenda26c, page26c);
+  };
+  const darkNumberErrors26 = validateLive26((candidate) => {
+    if (candidate.crossAsset?.dark?.[0]) candidate.crossAsset.dark[0].changePct = 1.23;
+  });
+  const strippedBudgetErrors26 = validateLive26((candidate) => { delete candidate.budget; });
+  assert(darkNumberErrors26.some((line) => /dark state carries a number in changePct/.test(line))
+    && strippedBudgetErrors26.some((line) => /carries no budget block/.test(line))
+    && validateBriefPayload(committedPayload26c, registry26c, config26b, snapshot26c, agenda26c, page26c).length === 0,
+  'TP-026-2.20 a dark card carrying a figure and a v2 payload with the budget stripped are both refused, while the unmutated live payload still validates clean');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 cross-asset legs group threw): ' + e.message); }
 /* ---------- Feature 026 Scope 2: rlcockpit.js — cross-asset legs (END) ---------- */
 
@@ -22566,6 +22593,129 @@ try {
   'TP-02-11: the widened detectors still pass a pack value echoed into display detail and still flag a declared table, and the engine reads both rate-table families off the resolved pack');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 no-shadow widened scan group threw): ' + e.message); }
 /* ---------- Feature 022 Scope 01: no bracket edge is shadowed in ANY rltax module (END) ---------- */
+
+/* ---------- Feature 022 Scope 01: preferential settlement determinism (START) ---------- */
+/* TP-01-11. The preferential completion this scope delivers had no determinism assertion of its
+   own: the Feature 021 determinism check settled ordinary income only, so a preferential leg that
+   varied between two identical calls — through an ambient clock, an iteration order, or a network
+   read — would have been invisible. This group settles a household WITH preferential income twice
+   over byte-identical input and compares a canonical serialisation of the whole result, with
+   global `fetch` stubbed to throw for the entire group so a settlement that reached the network
+   fails rather than silently succeeding on a warm cache. */
+try {
+  group('Feature 022 Scope 01 — preferential settlement determinism');
+  const determinismRequire = (await import('node:module')).createRequire(import.meta.url);
+  const { createHash: createDeterminismHash } = await import('node:crypto');
+  const RULESDET = determinismRequire('../rltaxrules.js');
+  const WORKSPACEDET = determinismRequire('../rltaxworkspace.js');
+  const TAXDET = determinismRequire('../rltax.js');
+  const packDet = JSON.parse(read('tax-rules/federal/2026.json'));
+
+  const priorDeterminismFetch = globalThis.fetch;
+  globalThis.fetch = () => { throw new Error('a preferential settlement must never issue a network request'); };
+  try {
+    const determinismWorkspace = (filingStatus, ordinary, preferential, incomeKind) => {
+      const workspace = WORKSPACEDET.createEmptyWorkspace();
+      workspace.filingStatus = filingStatus;
+      workspace.declaredTaxYear = 2026;
+      workspace.deductionMode = 'itemized';
+      workspace.itemizedAmount = 0;
+      workspace.income.ordinary = ordinary;
+      workspace.income.longTermCapitalGain = incomeKind === 'qualified-dividend' ? 0 : preferential;
+      workspace.income.qualifiedDividend = incomeKind === 'qualified-dividend' ? preferential : 0;
+      workspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+      workspace.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+      return workspace;
+    };
+
+    /* Key order is normalised before hashing, so two results that differ only in property
+       insertion order still compare equal and the assertion cannot be satisfied by a JSON.stringify
+       that happens to walk the same order twice. */
+    const canonicalise = (value) => {
+      if (Array.isArray(value)) return value.map(canonicalise);
+      if (value && typeof value === 'object') {
+        return Object.keys(value).sort().reduce((out, key) => {
+          out[key] = canonicalise(value[key]);
+          return out;
+        }, {});
+      }
+      return value;
+    };
+    const digestOf = (value) => createDeterminismHash('sha256')
+      .update(JSON.stringify(canonicalise(value))).digest('hex');
+
+    /* One case per filing status the pack carries a preferential table for, each placed inside the
+       15 percent band so the settlement genuinely walks the preferential schedule. Each case is
+       settled REPEATEDLY rather than twice: an ambient clock read only changes value across a
+       millisecond boundary, so two adjacent calls can agree by accident. The repetition count is
+       the same one the Feature 021 ordinary-settlement determinism check uses, so a drift source
+       that check would catch cannot slip past this one. */
+    const DETERMINISM_REPETITIONS = 50;
+    const determinismStatuses = RULESDET.SUPPORTED_FILING_STATUSES
+      .filter((status) => RULESDET.isRateTable(packDet.preferentialRateTables[status]));
+    const determinismFailures = [];
+    let determinismCases = 0;
+    let determinismSettlements = 0;
+    determinismStatuses.forEach((status) => {
+      const table = packDet.preferentialRateTables[status];
+      const zeroRateTop = table.bands[0].upperExclusive;
+      const ordinary = Math.floor(zeroRateTop / 2);
+      const preferential = zeroRateTop;
+      ['long-term-capital-gain', 'qualified-dividend'].forEach((incomeKind) => {
+        const digests = new Set();
+        const serialisations = new Set();
+        let first = null;
+        let repetition = 0;
+        for (repetition = 0; repetition < DETERMINISM_REPETITIONS; repetition += 1) {
+          const settled = TAXDET.computeAnnualFederalTax(
+            determinismWorkspace(status, ordinary, preferential, incomeKind), packDet);
+          if (first === null) first = settled;
+          digests.add(digestOf(settled));
+          serialisations.add(JSON.stringify(settled));
+          determinismSettlements += 1;
+        }
+        determinismCases += 1;
+        if (digests.size !== 1) determinismFailures.push(status + ':' + incomeKind + ':digest×' + digests.size);
+        if (serialisations.size !== 1) determinismFailures.push(status + ':' + incomeKind + ':serialisation×' + serialisations.size);
+        if (RULESDET.isUnavailable(first.preferentialTax)) determinismFailures.push(status + ':' + incomeKind + ':leg-refused');
+        if (RULESDET.isUnavailable(first.totalFederalTax)) determinismFailures.push(status + ':' + incomeKind + ':total-refused');
+        if (!(first.preferentialTax.value > 0)) determinismFailures.push(status + ':' + incomeKind + ':leg-not-priced');
+      });
+    });
+    assert(determinismStatuses.length > 0
+      && determinismCases === determinismStatuses.length * 2
+      && determinismSettlements === determinismCases * DETERMINISM_REPETITIONS
+      && determinismFailures.length === 0,
+    'TP-01-11: a household carrying preferential income settles byte-identically over '
+      + DETERMINISM_REPETITIONS + ' repeated calls with identical input for every filing status whose preferential table the pack carries, across both preferential income kinds, with the preferential leg actually priced rather than refused ('
+      + determinismCases + ' case(s), ' + determinismSettlements + ' settlement(s); ' + (determinismFailures.join(',') || 'no failure') + ')');
+
+    /* ADVERSARIAL. The comparison must be able to see a difference. A single mutated member in
+       the second result is detected by both the digest and the raw serialisation, so a settlement
+       that varied between calls could not pass the assertion above. */
+    const probeStatus = determinismStatuses[0];
+    const probeTable = packDet.preferentialRateTables[probeStatus];
+    const probeOrdinary = Math.floor(probeTable.bands[0].upperExclusive / 2);
+    const probeSettlement = TAXDET.computeAnnualFederalTax(
+      determinismWorkspace(probeStatus, probeOrdinary, probeTable.bands[0].upperExclusive, 'long-term-capital-gain'), packDet);
+    const perturbed = JSON.parse(JSON.stringify(probeSettlement));
+    perturbed.preferentialTax.value = probeSettlement.preferentialTax.value + 0.01;
+    const reordered = canonicalise(JSON.parse(JSON.stringify(probeSettlement)));
+    assert(digestOf(probeSettlement) !== digestOf(perturbed)
+      && digestOf(probeSettlement) === digestOf(reordered)
+      && typeof globalThis.fetch === 'function',
+    'TP-01-11 ADVERSARIAL: the determinism comparison discriminates \u2014 a one-cent drift in the preferential leg changes the digest, while a key-reordered copy of the same settlement does not, so the check is sensitive to value drift and insensitive to property order');
+
+    /* And the stub really was in force for the whole group rather than declared and bypassed. */
+    let networkRefused = false;
+    try { globalThis.fetch('https://example.invalid'); } catch (networkError) { networkRefused = true; }
+    assert(networkRefused,
+    'TP-01-11: the stubbed global fetch throws for the duration of this group, so a settlement that reached the network would fail here rather than pass on an ambient response');
+  } finally {
+    if (priorDeterminismFetch === undefined) delete globalThis.fetch; else globalThis.fetch = priorDeterminismFetch;
+  }
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 preferential determinism group threw): ' + e.message); }
+/* ---------- Feature 022 Scope 01: preferential settlement determinism (END) ---------- */
 
 /* ---------- Feature 026 Scope 3: rlcockpit.js — change vocabulary (BEGIN) ---------- */
 try {

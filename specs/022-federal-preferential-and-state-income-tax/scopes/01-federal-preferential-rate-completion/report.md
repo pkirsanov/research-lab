@@ -1312,6 +1312,142 @@ Scenario SCN-022-002 — repeated computation over identical input produces a
 byte-identical result with global `fetch` stubbed to throw for the whole group.
 Command: `node scripts/selftest.mjs`
 
+#### Verification pass 4 — 2026-08-19 — TP-01-11 assertion authored, intended RED and same-command GREEN captured
+
+**Claim Source:** executed. **Outcome: the TP-01-11 row now has both halves.**
+
+The row was recorded as **OUTSTANDING — the assertion is not authored**. It is now
+authored. A new append-only group
+`Feature 022 Scope 01 — preferential settlement determinism` was added to
+`scripts/selftest.mjs` between the existing
+`no bracket edge is shadowed in ANY rltax module (END)` marker and the Feature 026
+group. It settles a household **carrying preferential income** repeatedly over
+byte-identical input for every filing status whose preferential table the pack
+carries, across both preferential income kinds, comparing a key-order-normalised
+sha256 digest and the raw serialisation, with global `fetch` stubbed to throw for
+the whole group and restored in a `finally`.
+
+**Why this row could not be satisfied by an existing assertion.** The Feature 021
+determinism check (`TP-02-06`) settles ordinary income only. A drift source
+reaching the preferential window alone would leave `TP-02-06` green. The two
+groups are therefore not redundant, and the probe below proves it: the probe
+targets the preferential window top specifically.
+
+**The first authored form was too weak, and the probe found that rather than the
+report asserting it.** The assertion originally compared **two** adjacent calls.
+Under the probe below it stayed **green**, because an ambient clock read only
+changes value across a millisecond boundary and two adjacent settlements land in
+the same millisecond. That run is recorded here rather than discarded:
+
+```
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3426
+sha256: fb7ff61e8b2159b024108169fec2d61594f76d27ff1703c2fdb5a336e7f6be7c
+Research-Lab self-test: 3021 passed, 8 failed
+```
+
+Eight assertions failed under that probe and **TP-01-11 was not among them** —
+`TP-02-06`, `TP-02-07`, `TP-03-01`, `TP-04-04`, `TP-05-01`, `TP-01-16` and two
+group-level throws were. A determinism assertion that a real non-determinism
+walks past is not a determinism assertion, so the probe was reverted, the
+assertion was strengthened to **50 repeated settlements per case** — the same
+repetition count `TP-02-06` uses, so a drift source that check catches cannot slip
+past this one — and the identical probe was re-applied.
+
+**Intended RED — the mutation.** Applied to `rltax.js`
+`stackPreferentialIncome`, the one function that computes the preferential window
+top:
+
+```
+-    var windowTop = ordinaryTaxableIncome + preferentialTaxableIncome;
++    /* RED PROBE TP-01-11 — an ambient clock reaching the preferential window top. */
++    var windowTop = ordinaryTaxableIncome + preferentialTaxableIncome + (Date.now() % 2);
+```
+
+**Intended RED — the run.** The strengthened assertion fires, and names every
+affected case rather than reporting a bare boolean:
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL: TP-01-11: a household carrying preferential income settles byte-identically
+    over 50 repeated calls with identical input for every filing status whose preferential
+    table the pack carries, across both preferential income kinds, with the preferential
+    leg actually priced rather than refused (8 case(s), 400 settlement(s);
+    single:long-term-capital-gain:digest×2,single:long-term-capital-gain:serialisation×2,
+    single:qualified-dividend:digest×2,single:qualified-dividend:serialisation×2,
+    married-filing-jointly:long-term-capital-gain:digest×2,
+    married-filing-jointly:long-term-capital-gain:serialisation×2,
+    married-filing-jointly:qualified-dividend:digest×2,
+    married-filing-jointly:qualified-dividend:serialisation×2,
+    married-filing-separately:long-term-capital-gain:digest×2,
+    married-filing-separately:long-term-capital-gain:serialisation×2,
+    married-filing-separately:qualified-dividend:digest×2,
+    married-filing-separately:qualified-dividend:serialisation×2,
+    head-of-household:long-term-capital-gain:digest×2,
+    head-of-household:long-term-capital-gain:serialisation×2,
+    head-of-household:qualified-dividend:digest×2,
+    head-of-household:qualified-dividend:serialisation×2)
+exit: 1
+lines: 3426
+sha256: f2124d707d885a40b5aa42477f393180a7d81b2df0d1cb0a6f165547e7f1e9df
+Research-Lab self-test: 3018 passed, 11 failed
+```
+
+All eight cases fail, in both the digest and the raw serialisation, and the
+`×2` records that exactly two distinct results appeared across the fifty
+settlements — which is the signature of a clock crossing a millisecond boundary
+mid-run. The failure is attributable: it is the mutated quantity and nothing else.
+
+**Revert, performed immediately after the capture and before any further step:**
+
+```
+$ git checkout -- rltax.js
+$ git status --short -- rltax.js
+                                  # empty
+$ grep -c "RED PROBE" rltax.js
+0
+probe_residue_exit=1              # grep found no match
+```
+
+**Same-command GREEN, after the revert:**
+
+```
+$ node scripts/selftest.mjs
+Feature 022 Scope 01 — preferential settlement determinism
+  ✓ TP-01-11: a household carrying preferential income settles byte-identically over 50
+    repeated calls with identical input for every filing status whose preferential table
+    the pack carries, across both preferential income kinds, with the preferential leg
+    actually priced rather than refused (8 case(s), 400 settlement(s); no failure)
+  ✓ TP-01-11 ADVERSARIAL: the determinism comparison discriminates — a one-cent drift in
+    the preferential leg changes the digest, while a key-reordered copy of the same
+    settlement does not, so the check is sensitive to value drift and insensitive to
+    property order
+  ✓ TP-01-11: the stubbed global fetch throws for the duration of this group, so a
+    settlement that reached the network would fail here rather than pass on an ambient
+    response
+
+Research-Lab self-test: 3048 passed, 3 failed
+```
+
+**The three failures in the GREEN run are foreign and are named.** They are
+`TP-026-1.1`, `TP-026-1.9` and `the budget fires only on a literal
+market-brief-payload/v2 stamp` — all in Feature 026's market-brief payload budget,
+all produced by an uncommitted working-tree edit to
+`scripts/validate-brief-payload.mjs` belonging to a concurrent session that owns
+that surface. Neither the file nor the assertions are inside this scope's change
+boundary, and this scope changed nothing that reaches them. The same run one step
+earlier — before that session's edit landed in the tree — reported
+**3050 passed, 0 failed, exit 0** with this same group present
+(`sha256: 44ce8eae09fe9b99b14c751339b4bb5f8e7c665c68301cd17604ee50e4e0d603`).
+
+**Pass-count movement attributable to this row.** 3047 passed before the group was
+authored, 3050 after, on the same tree — three added assertions, none removed.
+
+**The row's remaining status.** TP-01-11 is now GREEN with a captured intended RED.
+DoD item 10 is **not** thereby closed: it also requires RED for TP-01-13, -14,
+-15, -16, -17 and -20, which this pass did not capture.
+
 ### TP-01-12
 
 Scenario SCN-022-002 — `rltaxrules.js` and `rltax.js` hold no tax-domain numeric

@@ -213,36 +213,53 @@ Test Plan row.
 
 ### Definition of Done
 
-- [ ] PRA-021-019 through PRA-021-024 are implemented: two curves rather than a
+- [x] PRA-021-019 through PRA-021-024 are implemented: two curves rather than a
       rate, named thresholds with sources, cliffs preserved as steps, a
       populated unavailable-contributor list, derivation from Scope 02, and a
       text-equivalent table.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-01` through `report.md#tp-03-11`
-- [ ] Every curve rate is proven equal to a difference of two Scope 02 results,
+  - **Claim Source:** executed · **Result:** all 15 assertions in the Scope 03 group pass at `3042 passed, 0 failed`, exit 0. Two ordered curves with no `averageRate` and no scalar rate (TP-03-01), 6 moved segments each naming a threshold whose `sourceRef` resolves (TP-03-03), 5 pack-derived band edges each rendering as a probe-width step with no interpolated point (TP-03-05), the contributor set equal to the pack's `movesMarginalRate` entries in both directions (TP-03-07), and the text-equivalent rows emitted from the identical record the chart reads (TP-03-11).
+
+- [x] Every curve rate is proven equal to a difference of two Scope 02 results,
       to full internal precision. No rate is derived from bracket data inside
       the curve implementation.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-02`, `report.md#tp-03-09`
-- [ ] The cliff adversarial case proves the guard can fail: an interpolating
+  - **Claim Source:** executed · **Result:** 198 sampled points each equal to a forward difference of two full `computeAnnualFederalTax` settlements to full internal precision (TP-03-02), and the no-shadow detector reports an empty offender list with no band table declared in `rltax.js` (TP-03-09). Substituting the average rate `here / level` for the forward difference is proven to break TP-03-01 and both curve browser rows.
+
+- [x] The cliff adversarial case proves the guard can fail: an interpolating
       implementation is demonstrated to break the step assertion.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-06`
-- [ ] `unavailableContributors[]` is non-empty for the slice-1 pack and names
+  - **Claim Source:** executed · **Result:** TP-03-06 constructs a curve carrying an averaged point between the crossing pair and proves it breaks the no-interpolated-point assertion the real curve satisfies. The RED is permanent rather than transient: the interpolating implementation is built and refuted on every run.
+
+- [x] `unavailableContributors[]` is non-empty for the slice-1 pack and names
       every deferred threshold that would have moved a marginal rate. An empty
       list is proven to fail.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-07`, `report.md#tp-03-08`
-- [ ] The sweep policy is read from configuration and a missing policy is
+  - **Claim Source:** executed · **Result:** TP-03-08's permanent assertion builds a pack declaring no marginal-rate-moving absence and proves the empty list fails. A transient probe confirmed it end to end: making the contributor loop unreachable turned TP-03-07 (both assertions), TP-03-08 and the SCN-021-009 browser row red at `3038 passed, 4 failed`; the probe was reverted and all four returned green.
+
+- [x] The sweep policy is read from configuration and a missing policy is
       refused `RLTAX-CONFIG-INVALID`. No sweep constant is hard-coded.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-10`
-- [ ] Every Test Plan row has intended RED evidence and same-command GREEN
+  - **Claim Source:** executed · **Result:** TP-03-10 refuses a missing, a negative, an over-budget and an unknown-kind sweep member with `RLTAX-CONFIG-INVALID` and no curve, and asserts in the same row that no sweep constant is declared in the engine.
+
+- [x] Every Test Plan row has intended RED evidence and same-command GREEN
       evidence, recorded before the cumulative browser row.
   - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-14 commands · **Evidence:** `report.md#test-evidence`
-- [ ] No output in this scope states a probability, a lifetime figure, a
+  - **Claim Source:** executed · **Result:** all rows carry RED and same-command GREEN, recorded before TP-03-15. Two reversible probes supplied the RED — the average-rate substitution (TP-03-01, SCN-021-007, SCN-021-008) and the emptied contributor list (TP-03-07, TP-03-08, SCN-021-009). Six rows (TP-03-04, -05, -06, -07, -08, -11) are permanent guard-can-fail assertions whose RED is encoded in the assertion. Each probe was reverted before the next began; `git status --short rltax.js` is empty.
+
+- [x] No output in this scope states a probability, a lifetime figure, a
       recommendation, a track record or an error rate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Feature 008 files, the six registries and every brief or data artifact are
+  - **Claim Source:** executed · **Result:** the claim scan is a permanent selftest assertion covering `rltax.js`, which owns the curve, and it passes. Its can-fail proof plants a forbidden token in a copy of each scanned file and asserts it is caught.
+
+- [x] Feature 008 files, the six registries and every brief or data artifact are
       byte-identical.
   - **Phase:** implement · **Command:** a path-scoped `git status` over the excluded list · **Evidence:** `report.md#change-boundary`
-- [ ] `node scripts/selftest.mjs` is green with no fall in pass count and no
+  - **Claim Source:** executed · **Result:** the path-scoped `git status --short` returns no rows for any excluded path, and returns no rows for `rltax.js` after every probe. The only files this dispatch modified are this scope's `report.md` and `scope.md`.
+
+- [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, relaxed or removed, and
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths
       with the baseline file unmodified.
   - **Phase:** implement · **Command:** both commands · **Evidence:** `report.md#tp-03-16`, `report.md#tp-03-17`
+  - **Claim Source:** executed · **Result:** `Research-Lab self-test: 3042 passed, 0 failed`, identical to the count at the start of this dispatch and after every probe revert; `new=0 stale=0 baseline=66` at exit 0 from the path guard with the baseline file unmodified.

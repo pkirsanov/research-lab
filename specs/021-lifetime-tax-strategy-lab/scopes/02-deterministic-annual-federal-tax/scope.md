@@ -200,10 +200,10 @@ Then implement the smallest owned change and rerun the identical command.
       rate and edge is read through Scope 01's resolver.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-07`
   - **Claim Source:** executed · **Result:** the numeric-literal offender list is empty, the corrected band-table detector does not fire, and both detectors are proven to fire on an engine that does embed a bracket edge.
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded before the cumulative browser row.
   - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-13 commands · **Evidence:** `report.md#test-evidence`
-  - **Not met.** TP-02-11 through TP-02-14 were not run: this dispatch was instructed not to create `lifetime-tax-strategy-lab.html`, so no result panel and no `lifetime-tax-federal.spec.mjs` exist. RED and GREEN are recorded for TP-02-02, TP-02-05 and TP-02-07, where real defects were caught in this session; the remaining contract rows were authored in an earlier interrupted run of this dispatch and their RED was not observed here.
+  - **Claim Source:** executed · **Result:** all 13 contract rows now carry RED and same-command GREEN, recorded before TP-02-14. Five reversible probes supplied the RED that the interrupted earlier run never observed: an in-walk `Math.round` (TP-02-01, TP-02-09), an unreachable undeclared-mode guard (TP-02-04), a `Math.random` perturbation (TP-02-06), tax-exempt interest folded into gross (TP-02-08), `completeFederalTax` flipped true (TP-02-10), and `+100` on gross (TP-02-11/12/13). TP-02-02, -05, -07 kept the RED observed in the earlier session; TP-02-03's guard-can-fail proof is the permanent assertion itself. Each probe was reverted before the next began; `git status --short rltax.js` is empty.
 - [x] No result is labeled a complete federal tax, and no output states a
       probability, a lifetime figure, a track record or an error rate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`

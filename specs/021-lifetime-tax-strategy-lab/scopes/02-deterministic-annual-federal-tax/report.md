@@ -58,6 +58,27 @@ Internal Revenue Bulletin 2025-45, published 2025-11-03, tax year 2026, retrieve
 in this session. The digit-by-digit transcription check is recorded in the Scope 1
 report under TP-01-01.
 
+Intended RED. `applyRateTable` in `rltax.js` had its per-band product wrapped in
+`Math.round`, so the walk rounds inside the calculation instead of at the display
+boundary. The probe was applied, observed, and reverted before the next row was
+started; the revert is proven by the path-scoped `git status --short` recorded
+under Change Boundary.
+
+```text
+  ✗ FAIL: TP-02-01: ordinary tax is exact immediately below, exactly at, and immediately above all 24 bracket edges across the four filing statuses (72 checks)
+  ✗ FAIL: TP-02-09: no calculation stage rounds because the pack declares none, the settled value keeps its fractional cents, and rounding appears only in the display record beside the raw value
+Research-Lab self-test: 3016 passed, 5 failed
+```
+
+The same probe serves TP-02-09 below, because an in-calculation rounding stage is
+exactly the defect both rows exist to catch. GREEN, same command, after the
+revert:
+
+```text
+  ✓ TP-02-01: ordinary tax is exact immediately below, exactly at, and immediately above all 24 bracket edges across the four filing statuses (72 checks)
+Research-Lab self-test: 3042 passed, 0 failed
+```
+
 ### TP-02-02
 
 Scenario SCN-021-005 — long-term gains and qualified dividends stack above
@@ -113,6 +134,23 @@ Command: `node scripts/selftest.mjs`
   ✓ TP-02-04: CO-3 applies the deduction to total income and floors taxable income at zero when the deduction exceeds it
 ```
 
+Intended RED. The undeclared-mode guard in `selectDeduction` was made
+unreachable, so a household that declared no mode silently falls through to the
+standard deduction — the exact silent default the row forbids. The probe was
+applied, observed, and reverted before the next row was started:
+
+```text
+  ✗ FAIL: TP-02-04: standard and itemized modes each publish the applied amount and the mode, and an undeclared mode refuses RLTAX-INPUT-INCOMPLETE rather than applying a default
+Research-Lab self-test: 3021 passed, 2 failed
+```
+
+GREEN, same command, after the revert:
+
+```text
+  ✓ TP-02-04: standard and itemized modes each publish the applied amount and the mode, and an undeclared mode refuses RLTAX-INPUT-INCOMPLETE rather than applying a default
+Research-Lab self-test: 3042 passed, 0 failed
+```
+
 ### TP-02-05
 
 Scenario SCN-021-006 — the reconciliation identity holds for every fixture and a
@@ -148,6 +186,22 @@ Command: `node scripts/selftest.mjs`
   ✓ TP-02-06: 50 repeated settlements over identical input produce one byte-identical result while any network call throws
 ```
 
+Intended RED. A `Math.random()`-driven perturbation was added to the per-band
+product in `applyRateTable`, so two settlements over identical input can differ.
+The probe was applied, observed, and reverted before the next row was started:
+
+```text
+  ✗ FAIL: TP-02-06: 50 repeated settlements over identical input produce one byte-identical result while any network call throws
+Research-Lab self-test: 3002 passed, 20 failed
+```
+
+GREEN, same command, after the revert:
+
+```text
+  ✓ TP-02-06: 50 repeated settlements over identical input produce one byte-identical result while any network call throws
+Research-Lab self-test: 3042 passed, 0 failed
+```
+
 ### TP-02-07
 
 Scenario SCN-021-004 — `rltax.js` holds no tax-domain numeric constant and no
@@ -181,6 +235,23 @@ Command: `node scripts/selftest.mjs`
   ✓ TP-02-08: tax-exempt interest is retained as a recorded input, excluded from gross supported income, and changes no tax leg
 ```
 
+Intended RED. `income.taxExemptInterest` was added into `gross` in
+`computeTaxableIncome`, which is precisely the "tax the exempt interest" defect
+the row exists to catch. The probe was applied, observed, and reverted before the
+next row was started:
+
+```text
+  ✗ FAIL: TP-02-08: tax-exempt interest is retained as a recorded input, excluded from gross supported income, and changes no tax leg
+Research-Lab self-test: 3035 passed, 7 failed
+```
+
+GREEN, same command, after the revert:
+
+```text
+  ✓ TP-02-08: tax-exempt interest is retained as a recorded input, excluded from gross supported income, and changes no tax leg
+Research-Lab self-test: 3042 passed, 0 failed
+```
+
 ### TP-02-09
 
 Scenario SCN-021-004 — internal precision is preserved and rounding is applied
@@ -190,6 +261,20 @@ Command: `node scripts/selftest.mjs`
 
 ```text
   ✓ TP-02-09: no calculation stage rounds because the pack declares none, the settled value keeps its fractional cents, and rounding appears only in the display record beside the raw value
+```
+
+Intended RED, from the shared `Math.round` probe recorded under TP-02-01:
+
+```text
+  ✗ FAIL: TP-02-09: no calculation stage rounds because the pack declares none, the settled value keeps its fractional cents, and rounding appears only in the display record beside the raw value
+Research-Lab self-test: 3016 passed, 5 failed
+```
+
+GREEN, same command, after the revert:
+
+```text
+  ✓ TP-02-09: no calculation stage rounds because the pack declares none, the settled value keeps its fractional cents, and rounding appears only in the display record beside the raw value
+Research-Lab self-test: 3042 passed, 0 failed
 ```
 
 ### TP-02-10
@@ -205,30 +290,124 @@ Command: `node scripts/selftest.mjs`
   ✓ TP-02-10: no source, pack or configuration string claims a probability, a lifetime total, a break-even year, a track record, an accuracy figure or an error rate
 ```
 
+Intended RED. The structural `completeFederalTax: false` member was flipped to
+`true`, which is the exact "label it a complete federal tax" claim the row
+forbids. The probe was applied, observed, and reverted before the next row was
+started:
+
+```text
+  ✗ FAIL: TP-02-10: the surfaced notice id set equals the pack’s unsupportedFeatures id set in both directions, … completeFederalTax is structurally false, and the published calculation order is the pack’s own
+Research-Lab self-test: 3041 passed, 1 failed
+```
+
+Only that one assertion moved, which localises the failure to the completeness
+label rather than to the notice set. GREEN, same command, after the revert:
+
+```text
+Research-Lab self-test: 3042 passed, 0 failed
+```
+
+### Shared RED probe for TP-02-11, TP-02-12 and TP-02-13
+
+The route now exists, so the three browser rows the earlier interrupted run could
+not execute were run here. One mutation serves all three because all three read
+the same taxable-income base: `computeTaxableIncome` in `rltax.js` had `+ 100`
+appended to `gross`, shifting every taxable figure by a hundred dollars while
+leaving the pack, the bands and the display untouched. The probe was applied,
+observed, and reverted before the next row was started; the revert is proven by
+the path-scoped `git status --short` recorded under Change Boundary.
+
+Intended RED, with the probe applied:
+
+```text
+  3 failed
+    [system-chrome] › tests/lifetime-tax-federal.spec.mjs:48:1 › Regression: SCN-021-004 federal tax is exact below at and above a bracket edge
+    [system-chrome] › tests/lifetime-tax-federal.spec.mjs:77:1 › Regression: SCN-021-005 long term gains stack on ordinary income
+    [system-chrome] › tests/lifetime-tax-federal.spec.mjs:190:1 › Regression: SCN-021-006 deduction selection is explicit and the annual result reconciles
+```
+
+The failure is the contract assertion, not a collapsed page — the reconciliation
+row reports the exact expectation it lost:
+
+```text
+    Error: expect(locator).toHaveText(expected) failed
+    Locator: locator('[data-rl-value="headlineFederalTax"]')
+    Expected: "$24,734"
+        at .../tests/lifetime-tax-federal.spec.mjs:198:6
+```
+
+GREEN, same three commands, after the probe was reverted:
+
+```text
+Running 3 tests using 1 worker
+  ✓  1 [system-chrome] › tests/lifetime-tax-federal.spec.mjs:48:1 › Regression: SCN-021-004 federal tax is exact below at and above a bracket edge (915ms)
+  ✓  2 [system-chrome] › tests/lifetime-tax-federal.spec.mjs:77:1 › Regression: SCN-021-005 long term gains stack on ordinary income (579ms)
+  ✓  3 [system-chrome] › tests/lifetime-tax-federal.spec.mjs:190:1 › Regression: SCN-021-006 deduction selection is explicit and the annual result reconciles (603ms)
+  3 passed (3.6s)
+```
+
 ### Scenario SCN-021-004
 
 `Regression: SCN-021-004 federal tax is exact below at and above a bracket edge`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-004 federal tax is exact below at and above a bracket edge" --reporter=list`
-**Claim Source:** not-run. No route exists in this dispatch, so the spec was not
-authored and the command was not executed.
+**Claim Source:** executed. RED is recorded above.
+
+```text
+Running 1 test using 1 worker
+  ✓  1 …N-021-004 federal tax is exact below at and above a bracket edge (804ms)
+  1 passed (2.2s)
+TP0211_EXIT=0
+```
 
 ### Scenario SCN-021-005
 
 `Regression: SCN-021-005 long term gains stack on ordinary income`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-005 long term gains stack on ordinary income" --reporter=list`
-**Claim Source:** not-run, for the same reason.
+**Claim Source:** executed. RED is recorded above.
+
+```text
+Running 1 test using 1 worker
+  ✓  1 …Regression: SCN-021-005 long term gains stack on ordinary income (844ms)
+  1 passed (2.4s)
+TP0212_EXIT=0
+```
 
 ### Scenario SCN-021-006
 
 `Regression: SCN-021-006 deduction selection is explicit and the annual result reconciles`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-006 deduction selection is explicit and the annual result reconciles" --reporter=list`
-**Claim Source:** not-run, for the same reason.
+**Claim Source:** executed. RED is recorded above.
+
+```text
+Running 1 test using 1 worker
+  ✓  1 …deduction selection is explicit and the annual result reconciles (677ms)
+  1 passed (1.9s)
+TP0213_EXIT=0
+```
 
 ### TP-02-14
 
 The cumulative Scope 01 and Scope 02 browser suites over the real route.
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-00" --reporter=list`
-**Claim Source:** not-run, for the same reason.
+**Claim Source:** executed
+
+```text
+Running 9 tests using 3 workers
+  ✓  1 …21-007 the next dollar is priced as a curve with named thresholds (1.3s)
+  ✓  2 …nput resolves one federal pack and names every unavailable domain (1.3s)
+  ✓  3 …CN-021-004 federal tax is exact below at and above a bracket edge (1.5s)
+  ✓  4 …ion: SCN-021-008 a cliff renders as a step and is never smoothed (826ms)
+  ✓  5 …ear jurisdiction and income kind each refuse without substitution (2.2s)
+  ✓  6 … Regression: SCN-021-005 long term gains stack on ordinary income (1.3s)
+  ✓  7 …amed unavailable contributors and the curve is labeled incomplete (2.4s)
+  ✓  8 … deduction selection is explicit and the annual result reconciles (1.4s)
+  ✓  9 …ssues zero network requests and keeps every household value local (1.1s)
+  9 passed (5.9s)
+TP0214_EXIT=0
+```
+
+The cumulative row is deliberately run AFTER the three per-scenario rows above,
+so a green here cannot be the thing that discovered the scenarios pass.
 
 ### TP-02-15
 

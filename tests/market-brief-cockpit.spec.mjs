@@ -772,3 +772,33 @@ test('SCN-BUG009-R4 a genuinely quiet run still reads as quiet and is not dresse
     await server.close();
   }
 });
+
+/*
+ * The shape PRODUCTION actually ships. build-brief-page-artifacts.mjs collapses identical
+ * reasons to one record carrying a count, because the first-load budget had ~157 characters
+ * of headroom and four verbatim records cost 592. The reader must still be told four.
+ */
+test('SCN-BUG009-R4 the deduped production shape reports the true refusal count, not the record count', async ({ page }) => {
+  test.setTimeout(90_000);
+  const server = await startStaticServer({
+    overrides: {
+      'market-brief.page.json': cockpitPayload({
+        attention: [],
+        attentionExclusions: [{ code: 'RLATTN-PROVENANCE', reason: 'an attention item is built from an observed gate result', count: 4 }]
+      })
+    }
+  });
+  try {
+    await openCockpit(page, server);
+    await page.locator('[data-mac-summary="catalysts"]').click();
+    const host = page.locator('[data-mac-attention-empty="refused"]');
+    await expect(host).toBeVisible();
+    const text = (await host.textContent()) || '';
+    // ONE record, count 4 — the reader is told four, never one.
+    expect(text, 'the count field is what the reader is told, not the number of records')
+      .toContain('4 candidates refused');
+    expect(text, 'a counted record is not mislabelled singular').not.toContain('1 candidate refused');
+  } finally {
+    await server.close();
+  }
+});

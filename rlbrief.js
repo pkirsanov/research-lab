@@ -1181,11 +1181,14 @@
     list.forEach(function (e) {
       var hit = null;
       byReason.forEach(function (r) { if (r.reason === e.reason) hit = r; });
-      if (hit) { hit.count += 1; return; }
-      byReason.push({ reason: e.reason, code: e.code || "", count: 1 });
+      var n = Number.isFinite(e.count) && e.count > 0 ? e.count : 1;
+      if (hit) { hit.count += n; return; }
+      byReason.push({ reason: e.reason, code: e.code || "", count: n });
     });
+    var refused = 0;
+    byReason.forEach(function (r) { refused += r.count; });
     return '<div class="acard" data-mac-attention-empty="refused" style="border-left:3px solid var(--line)">'
-      + '<b>' + valueCell(list.length + (list.length === 1 ? " candidate" : " candidates") + " refused",
+      + '<b>' + valueCell(refused + (refused === 1 ? " candidate" : " candidates") + " refused",
         "How many attention candidates were built this run and then rejected before publication. Reading now: the feed is empty because these were refused, NOT because the market was quiet.")
       + ' \u2014 the feed is empty by refusal, not by calm</b>'
       + byReason.map(function (r) {

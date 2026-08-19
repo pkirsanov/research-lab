@@ -84,7 +84,7 @@ company-intelligence-lab.html
 | # | Name | Surfaces | Increment | Tests | Status |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Composition foundation and coverage registry | Shared module, root config | A | unit, regression e2e, selftest | [x] Executed, 38 of 38 DoD items ticked |
-| 2 | Route, reachability and browser proof | Route, note, site exclusions, selftest | A | e2e, regression e2e, page check, build, selftest | [x] Executed, 30 of 30 DoD items ticked |
+| 2 | Route, reachability and browser proof | Route, note, site exclusions, selftest | A | e2e, regression e2e, page check, build, selftest | [x] Executed, 32 of 32 DoD items ticked |
 | 3 | Company event capability | Shared module, root config, route, note, committed event data | B | unit, regression e2e | [x] Executed, 19 of 19 DoD items ticked |
 | 4 | Authored research plan and append-only versions | Shared module, root config, route, committed version tree | C | unit, e2e, regression e2e | [x] Executed, 22 of 22 DoD items ticked |
 
@@ -170,9 +170,15 @@ migration and no generated artifact depends on either edit.
 **Sequencing.** Scope 2 makes both edits in one change. Scope 1 touches neither
 shared surface, so Scope 1 can land while the tax work is still uncommitted.
 
-Sweeps that do not apply here carry no rows. This feature renames nothing and
-removes nothing, so no consumer-trace sweep fires. It performs no wide mechanical
-contract change, so no expand-migrate-contract sequencing applies.
+Sweeps that do not apply here carry no rows. This feature performs no wide
+mechanical contract change, so no expand-migrate-contract sequencing applies.
+
+This feature renames nothing and removes nothing. That is a claim about consumer
+surfaces, so it is established rather than asserted: Scope 2 carries a
+[Consumer Impact Sweep](#consumer-impact-sweep) that proves the additive shape
+from the commit record, enumerates and reads every first-party consumer of the
+two appended shared files, and resolves every path this feature's artifacts
+name.
 
 ---
 
@@ -375,11 +381,11 @@ code.
 
 ## Scope 2: Route, reachability and browser proof
 
-**Status:** Done (30 of 30 DoD items ticked)
+**Status:** Done (32 of 32 DoD items ticked)
 
 | Field | Value |
 | --- | --- |
-| Status | [x] Executed, 30 of 30 DoD items ticked |
+| Status | [x] Executed, 32 of 32 DoD items ticked |
 | Priority | P1 |
 | Depends On | Scope 1 (foundation). The route imports every composition function from `rlcompanyintel.js` and defines none of its own. |
 | Increment | A |
@@ -469,6 +475,65 @@ key field. Provider access stays on the home page.
 **Body state.** The route sets `data-run-status` and `data-coverage-unavailable`
 so a browser test can read the run outcome without scraping copy.
 
+### Consumer Impact Sweep
+
+**Nothing was renamed, moved or removed.** This scope created three files and
+appended to two existing shared files. No route, path, endpoint, contract, API,
+URL, slug, identifier, symbol, link, breadcrumb, navigation entry or redirect
+that existed before this scope changed its identity or disappeared. The sweep
+below exists to establish that claim rather than to assume it, because "it is
+only an append" is exactly the kind of assertion that is cheap to make and
+expensive to be wrong about.
+
+**What proves the additive shape.**
+
+| Proof | Command | Observed |
+| --- | --- | --- |
+| Every file this feature owns is new | `git show --shortstat --format= b160d587f` | `17 files changed, 14267 insertions(+)` — the shortstat carries no deletion clause at all |
+| Neither shared file lost a line | `git show --numstat --format= e903749c0 -- site-exclusions.json scripts/selftest.mjs` | `9089 0 scripts/selftest.mjs` and `44 0 site-exclusions.json` — the removal column is `0` on both |
+| The selftest edit sits past the previous tail | hunk header of `git diff -U0 e903749c0^ e903749c0 -- scripts/selftest.mjs` | `@@ -11919,0 +11920,9089 @@` against a parent of 11925 lines — one hunk at the end, so no interior line was rewritten |
+| The exclusions edit only adds array members | hunk header of `git diff -U0 e903749c0^ e903749c0 -- site-exclusions.json` | `@@ -7,0 +8,44 @@` — a pure insertion into `files[]`, no pre-existing member touched |
+| This scope's own share of that commit is bounded | the Feature 025 markers in `scripts/selftest.mjs` | one group at lines 21072-21253, 182 lines, opening `Feature 025 Scope 01 and 02` and closing at its own catch |
+
+`e903749c0` is a shared registration commit. It carries this feature's three
+exclusion entries and one selftest group **alongside** the concurrent Lifetime
+Tax owner's eight exclusion entries and their groups. This scope owns only the
+`company-intelligence` half. That is recorded here so the whole-file line counts
+above are not misread as this feature's contribution alone.
+
+**Consumers examined.** Every first-party reader of the two appended shared
+files was enumerated by a repository-wide search and then read.
+
+| Consumer | How it reads the shared file | Impact of this scope's append |
+| --- | --- | --- |
+| `scripts/build-pages-site.mjs` | Asserts every root file is either registered or carries an exclusion entry with a substantive reason | Three previously unexplainable paths become explainable. No pre-existing path's verdict changes. Ran at exit 0. |
+| `scripts/selftest.mjs` | Reads `site-exclusions.json` for parity assertions and runs every group in file order | The appended group adds 11 assertions and rewrites none. Every pre-existing group still runs at its original position. |
+| `tests/fx-regime-relative-value-lab.spec.mjs` | Asserts `fx-regime-relative-value-lab` is **absent** from the exclusion list | Unaffected. The three added paths are distinct from the one path it names. |
+| `tests/portfolio-survival-mobile.spec.mjs` | Asserts `portfolio-survival-allocation-lab.html` is **absent** from the exclusion list | Unaffected, for the same reason. |
+| `scripts/validate-trend-dynamics-cycle.mjs` | Asserts no entry path starts with `trend-dynamics-cycle` | Unaffected, for the same reason. |
+| `.github/workflows/pages.yml` and `.github/workflows/tier-a.yml` | Run `node scripts/selftest.mjs` as a gate | Both gates execute the appended group like any other group. |
+| `tools.json`, `index.html`, `rlnav.js` | The tool registry, the landing page and the shared navigation | Deliberately untouched. This route is unregistered by design and reachable only by direct URL, so no navigation entry, no breadcrumb, no deep link into this route and no redirect anywhere in the repository needed updating. |
+
+The three exclusion readers each assert the **absence of their own path**.
+Adding three paths that none of them names cannot change any of their verdicts.
+That is why this sweep concludes that no existing consumer changed behavior,
+rather than concluding only that the suites still happen to pass.
+
+**Stale-reference scan.** Because nothing was renamed or removed, a stale
+first-party reference could only arise if this feature named a file it never
+created. All six paths this feature's artifacts reference resolve on disk:
+`company-intelligence-lab.html`, `rlcompanyintel.js`,
+`company-intelligence.config.json`, `notes/company-intelligence-lab.md`,
+`tests/company-intelligence-lab.spec.mjs` and
+`tests/company-intelligence.unit.mjs`. `site-exclusions.json` holds twelve
+entries with no duplicate path, so no added entry shadows an existing one.
+
+**Outbound deep links.** The route emits a link only for a dimension whose owner
+is registered in `tools.json`, and the browser assertion `an owned dimension
+renders a deep link whose target is a registered route` asserts every emitted
+`href` resolves against that registry. This scope adds outbound deep links and
+changes no link target.
+
 ### Test Plan
 
 | # | Scenario | Type | Command | File and test title |
@@ -502,6 +567,8 @@ the append and after the append, and records both results.
 - [x] No file outside the Allowed file families table changed. → Evidence: `git status --short` transcript in [report.md](report.md); only the allowed paths appear.
 - [x] `tools.json`, `index.html` and `rlnav.js` are byte-unchanged. → Evidence: none of the three appears in `git status --short`; selftest `TP-025-09` also asserts the route, module and config are absent from all three.
 - [x] Every tax spec folder and every `rltax*.js` module is byte-unchanged. → Evidence: `git status --porcelain | grep -E '^ ?M' | grep -Ei 'tax|specs/02[1-4]'` printed `none`.
+- [x] The Consumer Impact Sweep above was carried out over every route, path, contract, identifier and UI target this scope touches, and zero stale first-party references remain. → Verify by proving the change is additive, by enumerating and reading every first-party consumer of the two appended shared files, and by resolving every path this feature's artifacts name. → Evidence: **Additive.** `git show --shortstat --format= b160d587f` returned `17 files changed, 14267 insertions(+)` with no deletion clause, and `git show --numstat --format= e903749c0 -- site-exclusions.json scripts/selftest.mjs` returned `9089 0 scripts/selftest.mjs` and `44 0 site-exclusions.json`, so the removal column is `0` on both shared files. The hunk headers `@@ -11919,0 +11920,9089 @@` (parent 11925 lines) and `@@ -7,0 +8,44 @@` prove a tail append and an in-array insertion rather than an interior rewrite. **Nothing renamed or removed**, so there is no retired interface a first-party caller could still be pointing at. **Consumers read.** The repository-wide search for readers of the two files returned `scripts/build-pages-site.mjs`, `scripts/selftest.mjs`, `tests/fx-regime-relative-value-lab.spec.mjs`, `tests/portfolio-survival-mobile.spec.mjs`, `scripts/validate-trend-dynamics-cycle.mjs` and the two CI workflows; each was read and each is unaffected for the reason recorded in the sweep table, the three exclusion readers because each asserts the absence of its own path and none of them names any of the three added paths. `node scripts/build-pages-site.mjs` ran at `build_pages_site_exit=0`. `node scripts/selftest.mjs` ran and reported `Research-Lab self-test: 3018 passed, 1 failed`; the eleven assertions of the `Feature 025 company multi-horizon intelligence` group all printed `✓`, including `Regression: SCN-025-CANARY`, and the single `✗` is `TP-01-03: an undeclared assessed value produces a refusal naming the member and carrying NO numeric value`, which sits at `scripts/selftest.mjs` line 15362 inside the group opened at line 15298 by the marker `Feature 023 Scope 01: property assessment mechanics and statutory relief`. That assertion reads neither shared file this scope appended to and belongs to the concurrent Lifetime Tax owner, so it is recorded as a foreign failure rather than absorbed into this scope's result. **No dangling reference.** All six paths this feature's artifacts name resolve on disk, and `site-exclusions.json` holds twelve entries with no duplicate path.
+- [x] Change Boundary is respected and zero excluded file families were changed by this scope. → Verify by listing every path in this feature's two commits and matching it against the Excluded file families table. → Evidence: `git show --name-only --format= b160d587f e903749c0 | sort -u` filtered against `rltax|lifetime-tax|tax-rules/|^specs/02[1-4]|^specs/026|^tools\.json$|^index\.html$|^rlnav\.js$|market-brief|build-pages-site` printed nothing, so neither commit touched an excluded family. `b160d587f` contains only this feature's own seventeen new files. `e903749c0` contains exactly two paths, `scripts/selftest.mjs` and `site-exclusions.json`, both of which are Allowed-append rows for Scope 2, and this scope's share of it is the three `company-intelligence` exclusion entries plus the single marker-bounded group at lines 21072-21253. `tools.json`, `index.html` and `rlnav.js` are byte-unchanged, as the preceding DoD item records. The working tree carries modifications under `specs/023-property-tax-and-rental-income/`; those belong to the concurrent Lifetime Tax owner and were not made by this scope, which is why they are named here rather than left for a reader to discover. Collateral cleanup stayed opt-in: the foreign `TP-01-03` failure observed during this scope's verification was recorded and attributed, not repaired inside this feature.
 - [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior this scope introduces are present and pass. The rendered behaviors this scope owns are held by the three persistently titled rows 2.4, 2.5 and 2.6: `Regression: SCN-025-005 four horizon cards stay peers and never merge into one direction`, `Regression: SCN-025-021 an unavailable dimension renders a named absence and never a dash or a zero`, and `Regression: SCN-025-021 a scripted narrative string renders as visible escaped text`. → Verify with `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` exiting 0 with all three titles printed as passed. → Evidence: that command ran and exited 0. All three titles printed as passed in the same listing — numbers 2, 5 and 6 of `16 passed (6.8s)`, with zero failing and zero skipped rows. Each is a persistently titled member of the committed browser suite, so all three re-run on every future full invocation rather than being one-off assertions.
 - [x] Broader E2E regression suite passes after both shared-surface appends land: `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` exits 0 with zero failing and zero skipped tests, and the **Feature 025 selftest gate holds — all four checks.** Run `node scripts/selftest.mjs` unfiltered. **(a) Own assertions, at full strength:** every assertion under the `Feature 025 company multi-horizon intelligence` header is `✓` and that header carries exactly 11 assertions; fewer means one was dropped, more means one was added outside this plan, and either fails this row. **(b) Own reference hygiene:** `grep -rhoE "tests/[A-Za-z0-9._-]+\.mjs" specs/025-company-multi-horizon-intelligence-lab | sort -u | while read -r p; do [ -f "$p" ] || echo "MISSING $p"; done` prints no line. **(c) Residual failures attributed, our contribution zero:** every remaining `✗` is attributed in writing to a named foreign owning spec, proven by `for p in $(grep -rhoE "tests/[A-Za-z0-9._-]+\.mjs" specs/ | sort -u); do [ -f "$p" ] && continue; printf 'ABSENT %s\n' "$p"; for d in specs/*/; do n=$(grep -roF "$p" "$d" 2>/dev/null | wc -l | tr -d ' '); [ "$n" -gt 0 ] && printf '  sites=%s %s\n' "$n" "$d"; done; done`, whose output names no site under `specs/025-company-multi-horizon-intelligence-lab/`. **(d) Own suites:** `node --test tests/company-intelligence.unit.mjs` and the Playwright command named at the head of this row each exit 0 with zero failing and zero skipped tests. **This still fails if this feature breaks anything repository-wide:** a regression we cause lands inside the Feature 025 group, failing (a) — the group's `Regression: SCN-025-CANARY` assertion exists to assert every pre-existing selftest assertion stays green after this feature's shared-surface append — or outside it, where (c) cannot discharge it, because discharging demands a foreign owner and zero contributing sites in this feature's directory. **Attribution note, measured 2026-08-18.** The one residual `✗` is the spec-test-path guard at `(1 new, 71 known-missing, 0 stale of 240 referenced)`, caused by a market-brief cockpit browser spec under `tests/` — described, never written here, because the guard counts any `tests/*.mjs` literal in a spec artifact as a reference site. Its sites are 31 in `specs/026-actionable-brief-brevity-and-cross-asset/` (`in_progress`, `lastUpdatedAt 2026-08-18T16:20:00Z`, its own Scope 4 creates the file), 2 in `specs/022-federal-preferential-and-state-income-tax/`, and **0** in this feature. → Evidence, executed in this pass. Both halves of this row now hold under the Feature-025-scoped gate, so the prior Uncertainty Declaration is superseded and removed. Browser half: `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` → `16 passed (7.3s)`, exit 0, zero failing and zero skipped, capture sha256 `5392c392c0e299fa27a07106913280ed140819fc640a305a2123b544ae37d73e`. Gate **(a)**: the `Feature 025 company multi-horizon intelligence` header carried exactly 11 assertions, every one `✓` and zero `✗` (measured `FEATURE_025_TICK_COUNT=11`, `FEATURE_025_CROSS_COUNT=0`). Gate **(b)**: the reference-hygiene command over this feature's directory printed no line. Gate **(c)**: the attribution loop over every spec named **0** sites under `specs/025-company-multi-horizon-intelligence-lab/`; the one new absent path is a market-brief cockpit browser spec under `tests/`, attributed to `specs/026-actionable-brief-brevity-and-cross-asset/` at 31 sites and `specs/022-federal-preferential-and-state-income-tax/` at 2 sites, and the 71 frozen-baseline absences are attributed to specs 002, 004, 010, 012, 013, 014, 015, 016 and `specs/_bugs/`. Gate **(d)**: `node --test tests/company-intelligence.unit.mjs` → `pass 67 / fail 0 / skipped 0`, exit 0, capture sha256 `3644df942e386e31af9ea20227ce8d153b8c95c71d669c4586c7626eb7114959`, together with the browser suite above. The repository-wide `node scripts/selftest.mjs` exits 1 at `Research-Lab self-test: 2875 passed, 1 failed`, capture sha256 `c752c957a5b00a38f31ae1448ab7751a37dd5122566fcb2859269585e844203d`; its single `✗` is the spec-artifact test-path guard at `(1 new, 71 known-missing, 0 stale of 240 referenced)`, which check (c) discharges to named foreign owners with zero contributing sites here. **Claim Source:** executed.
 

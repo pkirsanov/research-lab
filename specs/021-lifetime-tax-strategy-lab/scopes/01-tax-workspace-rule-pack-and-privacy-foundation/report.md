@@ -201,10 +201,112 @@ Command: `node scripts/selftest.mjs`
   ✓ TP-01-10: all 26 pure functions are extractable top-level declarations, the modules are UMD rather than ESM, and no source uses global isFinite
 ```
 
-**Uncertainty Declaration.** The CSP-parity half of this row is **not** covered.
-No page exists in this dispatch, so no CSP meta was authored and none was
-compared. That part of the row is unmet, and the corresponding DoD item is left
-unchecked.
+**Uncertainty Declaration (2026-08-18, superseded 2026-08-19).** The CSP-parity
+half of this row was **not** covered at the time of that run. No page existed in
+that dispatch, so no CSP meta was authored and none was compared.
+
+#### TP-01-10 completion (2026-08-19) — CSP byte-identity
+
+**Claim Source:** executed. The page now exists, so the half declared uncertain
+above was exercised. The repository's parity guard is the pre-existing
+`all pages use one identical CSP instead of drifting per page` assertion, which
+extracts the `content="…"` attribute from every shipped HTML page and requires
+the resulting set to have exactly one member. Because `lifetime-tax-strategy-lab.html`
+is a shipped page, that single-member set IS the byte-identity claim for it: any
+character of difference makes the set size two.
+
+Intended RED, probe I — a single extra directive, `; frame-ancestors 'none'`, was
+appended to the page's policy. It is a *tightening*, not a weakening, which is
+what makes it the right probe: it is the shape of a well-meant per-page edit that
+silently ends the repository's one-policy invariant:
+
+```text
+# PROBE-I RED: "; frame-ancestors 'none'" appended to the CSP meta in lifetime-tax-strategy-lab.html
+$ node scripts/selftest.mjs
+  ✗ FAIL: all pages use one identical CSP instead of drifting per page
+  ✗ FAIL: CSP keeps the single-file inline-script design while defaulting to self
+  ✗ FAIL: CSP blocks object, base-tag, and form exfiltration paths
+  ✗ FAIL: CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✗ FAIL: CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✗ FAIL: committed surface carries no personal identifier
+  ✗ FAIL: TP-05-06: the route carries no runtime transport beyond one same-origin read of the two local policy documents, writes only the two view-mode literals to the location hash, never w…
+Research-Lab self-test: 3060 passed, 7 failed
+```
+
+The drift detector is the intended catch. The four `CSP …` rows co-fail because
+they read the single agreed policy through the same set, which collapses once it
+holds two members — so they are downstream of the same detector rather than
+independent breaks. The `committed surface carries no personal identifier` row is
+a **pre-existing failure owned by a concurrent session**, present identically in
+the baseline and in the GREEN below.
+
+Reverted immediately, then the identical command re-run for GREEN:
+
+```text
+$ git status --short lifetime-tax-strategy-lab.html
+probeI_revert_dirty_lines=0
+
+$ node scripts/selftest.mjs
+  ✗ FAIL: committed surface carries no personal identifier
+Research-Lab self-test: 3066 passed, 1 failed
+```
+
+##### TP-01-10 re-probe (2026-08-19, clean baseline)
+
+**Claim Source:** executed. The GREEN above still carried one failure — the
+repository's `committed surface carries no personal identifier` assertion, which
+this session's first task fixed by rewriting the absolute checkout paths in this
+very report to the `<repo>/` form. That fix removes the only contaminant, so the
+row was re-probed against a zero-failure baseline. Both captures below are
+`evidence-capture.sh` blocks: the `sha256` covers every one of the 3466 lines the
+run produced and is re-derivable with `--verify`, so the summary cannot be a
+paste.
+
+Intended RED, probe II — a *different* mutation from probe I so the row is not
+resting on one perturbation shape. One directive value was flipped inside the
+existing policy, `manifest-src 'self'` → `manifest-src 'none'`, changing no
+directive count and no other character. A same-length token swap is the hardest
+case for a length- or shape-based check and the easiest to miss on review:
+
+```text
+# PROBE-CSP RED selftest
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3466
+sha256: 214fa5603ef5bb453163f9267ff079e40f90bfd547a9740f7c21163a739e4ea1
+  ✗ FAIL: all pages use one identical CSP instead of drifting per page
+  ✗ FAIL: CSP keeps the single-file inline-script design while defaulting to self
+  ✗ FAIL: CSP blocks object, base-tag, and form exfiltration paths
+  ✗ FAIL: CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✗ FAIL: CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✗ FAIL: TP-05-06: the route carries no runtime transport beyond one same-origin read of the two local policy documents, … and its CSP is byte-identical to the shared policy
+Research-Lab self-test: 3061 passed, 6 failed
+```
+
+Six failures, not seven: the personal-identifier row that polluted probe I's
+GREEN is gone, so every remaining failure is attributable to the mutation. Two
+independent detectors fire — the repository-wide one-policy set AND the Scope 05
+`pageCsp[1] === referenceCsp[1]` byte comparison — so the claim does not rest on
+a single assertion.
+
+Reverted in the same shell invocation that applied the mutation, the revert
+proven, then the identical command re-run for GREEN:
+
+```text
+$ git checkout -- lifetime-tax-strategy-lab.html
+revert_exit=0
+$ git status --short -- lifetime-tax-strategy-lab.html
+(no rows)
+
+# PROBE-CSP GREEN selftest
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3466
+sha256: fbd2d65ea58af3e4961ec05823ccf52aaeac907dbad0549a9e74f31ce51c3d16
+Research-Lab self-test: 3067 passed, 0 failed
+```
+
+Both halves of TP-01-10 are now met, against a baseline with zero failures.
 
 ### TP-01-11
 
@@ -257,7 +359,10 @@ BUILD_PAGES_EXIT=1
 ```
 
 The refusal names the page, so it is the intended contract assertion failing
-rather than a syntax error or an unrelated break. The mutation was reverted
+rather than a syntax error or an unrelated break. The absolute checkout path in
+the `file://` frames is written `file://<repo>/` here so the committed surface
+carries no personal identifier; no other character of the captured output is
+changed. The mutation was reverted
 immediately and the revert proven before the same command was rerun:
 
 ```
@@ -292,6 +397,145 @@ Command: `npx --no-install playwright test --config=playwright.config.mjs --proj
 **Claim Source:** not-run, for the same reason. The zero-network guarantee is
 therefore **unproven at the route level**. Its contract-level half is covered by
 TP-01-08 and TP-01-09.
+
+#### SCN-021-003 completion (2026-08-19) — the route-level zero-network canary
+
+**Claim Source:** executed. The route and `tests/lifetime-tax-foundation.spec.mjs`
+both exist now, so the half declared not-run above was exercised. RED and GREEN
+below are raw terminal output from the identical command.
+
+**A note on probe safety, because the previous attempt at this row got it wrong.**
+An earlier dispatch probed this canary by adding
+`window.fetch("/rl-probe-telemetry.json?ordinary=" + …)` to the page — a request
+carrying the household's declared income in a query string. That is the exact
+defect this canary exists to prevent, planted in the shipped page. Reverting it
+does not make it acceptable: if the revert had failed, the product would have
+shipped an exfiltrator. **A probe for a privacy canary must never construct the
+leak it is testing for.** Both probes below are therefore value-free with respect
+to transmission — neither one puts a household value anywhere it could leave the
+machine, and the worst outcome of a failed revert is a harmless 404, not a
+disclosure.
+
+Probe A — the "issues no request" arm. One value-free statement,
+`window.fetch("/rltaxprobe-undeclared.js")`, was added to the top of the page's
+`render()` function. It has no query string and carries no household value at
+all; it is simply a request for an asset the route never declared, which is the
+shape of an analytics or CDN beacon arriving by accident:
+
+```text
+=== PROBE-NET RED: value-free undeclared same-origin request added to render() ===
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-003" --reporter=list
+  ✘  1 [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:287:1 › Regression: SCN-021-003 the tax workspace issues zero network requests and keeps every household value local (835ms)
+  1) [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:287:1 › Regression: SCN-021-003 …
+    Error: expect(received).toEqual(expected) // deep equality
+    - Expected  -  1
+    + Received  + 11
+      309 |   expect(foreign).toEqual([]);
+    > 310 |   expect(unexpected).toEqual([]);
+  1 failed
+```
+
+The failure is on line 310, `expect(unexpected).toEqual([])` — the derived
+declared-asset filter, which is the intended detector rather than an unrelated
+break. `Received + 11` is the count of requests the undeclared path accumulated
+across the session, so the canary caught every one and not merely the first.
+Note the detector fired even though the request carried **no** household value:
+the canary refuses undeclared traffic on principle, so a leak channel is caught
+when it is opened, not only once something sensitive is pushed through it.
+
+Reverted in the same shell invocation that applied the mutation, with the revert
+proven twice — by token count and by path-scoped status — before the identical
+command was re-run:
+
+```text
+=== REVERT (same invocation) ===
+$ git checkout -- lifetime-tax-strategy-lab.html
+revert_exit=0
+probe_token_remaining=0
+$ git status --short -- lifetime-tax-strategy-lab.html
+(no rows)
+
+=== PROBE-NET GREEN ===
+Running 1 test using 1 worker
+  ✓  1 [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:287:1 › Regression: SCN-021-003 the tax workspace issues zero network requests and keeps every household value local (663ms)
+  1 passed (1.8s)
+```
+
+Probe B — the "a household value appears in no URL" arm. The mutation appends the
+declared ordinary amount to the **location hash**. A hash is the one place a value
+can enter the URL without ever being transmitted: browsers do not send the
+fragment to the server, and the page already declares `<meta name="referrer"
+content="no-referrer">`. So this reproduces the leak the canary tests for, in the
+URL, with nothing crossing the network.
+
+**First attempt missed, and the miss is recorded rather than discarded.** Probe B
+was first written against `state.input.ordinary`, a path the page does not carry.
+The hash became `"#simple-undefined"` — the shape assertion fired, but on the
+literal `undefined`, so the *sentinel* arm was never exercised and the probe did
+not prove what it claimed:
+
+```text
+=== PROBE-URL RED (first attempt — imprecise) ===
+    Error: expect(received).toMatch(expected)
+    Expected pattern: /^#(simple|power)$/
+    Received string:  "#simple-undefined"
+    > 360 |   expect(location.hash).toMatch(/^#(simple|power)$/);
+  1 failed
+```
+
+Re-probed against the real path, `state.workspace.income.ordinary`, so the actual
+sentinel reaches the URL:
+
+```text
+=== PROBE-URL2 RED: real declared ordinary amount appended to the local hash ===
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-003" --reporter=list
+  ✘  1 [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:287:1 › Regression: SCN-021-003 the tax workspace issues zero network requests and keeps every household value local (987ms)
+    Error: expect(received).toMatch(expected)
+    Expected pattern: /^#(simple|power)$/
+    Received string:  "#simple-123457"
+      359 |   expect(location.search).toBe('');
+    > 360 |   expect(location.hash).toMatch(/^#(simple|power)$/);
+      361 |   expect(location.href.includes(SENTINEL_ORDINARY)).toBe(false);
+      362 |   expect(location.referrer.includes(SENTINEL_ORDINARY)).toBe(false);
+  1 failed
+```
+
+`Received string: "#simple-123457"` is `SENTINEL_ORDINARY` — declared in
+`tests/lifetime-tax.support.mjs` as `'123457'` — sitting in the URL, so the leak
+was genuinely constructed and genuinely caught.
+
+**Which assertion caught it, stated precisely.** Line 360 fired; Playwright stops
+the test at the first failure, so lines 361-362 did not execute in this run and
+are **not** claimed as demonstrated. That ordering is the correct one and not a
+gap: line 360 is an *allow-list of shape* — the hash must be exactly `#simple` or
+`#power` — while 361 is a *deny-list of one known value*. The shape guard rejects
+any hash carrying anything extra, so it catches this sentinel AND a leak of a
+household field for which no sentinel exists, which the substring check would
+miss. The stronger assertion is the one in front.
+
+Reverted in the same shell invocation that applied the mutation, revert proven by
+token count and path-scoped status, then the identical command re-run:
+
+```text
+=== REVERT (same invocation) ===
+$ git checkout -- lifetime-tax-strategy-lab.html
+revert_exit=0
+probe_token_remaining=0
+$ git status --short -- lifetime-tax-strategy-lab.html
+(no rows)
+
+=== PROBE-URL2 GREEN ===
+Running 1 test using 1 worker
+  ✓  1 [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:287:1 › Regression: SCN-021-003 the tax workspace issues zero network requests and keeps every household value local (632ms)
+  1 passed (1.7s)
+```
+
+Both arms of the canary are now proven sensitive by an observed RED: the route
+issues no undeclared request (probe A), and no household value reaches the URL
+(probe B). The console and committed-artifact arms are covered by the same test's
+`expect(consoleMessages).toEqual([])` and by the repository PII scan, which this
+session returned to `findings=0 OK`.
+
 
 ### TP-01-15
 

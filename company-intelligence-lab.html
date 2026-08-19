@@ -392,14 +392,15 @@
                 <p id="workspace-coverage-totals" class="muted"></p>
                 <div class="tablewrap">
                     <table id="workspace-coverage-table">
-                        <caption id="workspace-coverage-caption">Every mandatory dimension, its state, its reason and
-                            its owner</caption>
+                        <caption id="workspace-coverage-caption">Every mandatory dimension, its state, its reason, its
+                            age and its owner</caption>
                         <thead>
                             <tr>
                                 <th scope="col">Dimension</th>
                                 <th scope="col">State</th>
                                 <th scope="col">Reason</th>
                                 <th scope="col">As of</th>
+                                <th scope="col">Age</th>
                                 <th scope="col">Owner</th>
                             </tr>
                         </thead>
@@ -509,6 +510,11 @@
                stay null when the company carries none, which the workspaces state as an absence. */
             var authoredPlan = null;
             var versionTree = null;
+            /* Every apply is a new reading intent. A corpus load carries the intent it was
+               started for, so a load that finishes after the operator has already asked for
+               something else — including an entry this tool refused — no longer repaints over
+               that newer answer. */
+            var readingIntent = 0;
 
             /* ---------- the only two DOM access helpers ---------- */
 
@@ -798,8 +804,17 @@
                 setBodyState("refused", 0);
             }
 
-            function renderHorizonCards(version) {
+            function renderHorizonCards(version, bundle) {
                 var host = byId("cockpit-horizons");
+                /* One user action paints this region twice: once synchronously from the
+                   registry and again when the corpus resolves. Rebuilding the cards discards
+                   the reader's own drill-down state, so a deep dive opened between those two
+                   paints was closed by a repaint the reader never asked for. The open set is
+                   carried across the rebuild and reapplied by horizon id. */
+                var openHorizonIds = [];
+                Array.prototype.forEach.call(host.querySelectorAll("[data-horizon-dive]"), function (node) {
+                    if (node.open) openHorizonIds.push(node.getAttribute("data-horizon-dive"));
+                });
                 clear(host);
                 version.horizons.forEach(function (horizon) {
                     var card = el("div", null, {
@@ -812,11 +827,35 @@
                     line.appendChild(el("span", ", evidence " + horizon.evidenceQuality));
                     card.appendChild(line);
                     card.appendChild(el("p", horizon.summary, { "data-horizon-summary": horizon.horizonId }));
-                    var dive = el("details", null, { "data-horizon-dive": horizon.horizonId });
+                    var dive = el("details", null, {
+                        "data-horizon-dive": horizon.horizonId,
+                        "data-contributing-dimension-ids": JSON.stringify(horizon.contributingDimensionIds)
+                    });
+                    if (openHorizonIds.indexOf(horizon.horizonId) !== -1) dive.open = true;
                     dive.appendChild(el("summary", "Deep dive"));
                     dive.appendChild(el("p", horizon.gapEffect, { "data-gap-effect": "true" }));
                     dive.appendChild(el("p", "Invalidation: " + horizon.invalidation, { "data-invalidation": "true" }));
-                    dive.appendChild(el("p", "Contributing: " + (horizon.contributingDimensionIds.join(", ") || "none")));
+                    if (horizon.contributingDimensionIds.length === 0) {
+                        dive.appendChild(el("p", "No dimension read reached this horizon, so nothing contributed to it.",
+                            { class: "muted", "data-no-contributors": "true" }));
+                    } else {
+                        dive.appendChild(el("p", "Contributing reads", { class: "muted" }));
+                        /* Each contributing read states its own state, source and as-of date here, so the
+                           deep dive is a derivation rather than a list of identifiers. A read with no named
+                           source or no dated source says so, because a dash would read as a value. */
+                        horizon.contributingDimensionIds.forEach(function (dimensionId) {
+                            var read = readOf(bundle, dimensionId);
+                            var state = read === null ? "unavailable" : read.state;
+                            var sourceName = read !== null && read.sourceName !== null ? read.sourceName : "no named source";
+                            var asOf = read !== null && read.asOf !== null ? read.asOf : "no dated source";
+                            dive.appendChild(el("p", dimensionId + ": " + state + ", source " + sourceName + ", as of " + asOf, {
+                                "data-contributing-dimension": dimensionId,
+                                "data-contributing-state": state,
+                                "data-contributing-source": sourceName,
+                                "data-contributing-as-of": asOf
+                            }));
+                        });
+                    }
                     if (horizon.claims.length === 0) {
                         dive.appendChild(el("p", "No claim rests on this horizon, because no eligible read carried a direction.",
                             { class: "muted", "data-no-claims": "true" }));
@@ -843,8 +882,14 @@
                 clear(body);
                 version.coverageAccount.rows.forEach(function (row) {
                     var owner = INTEL.describeDimensionOwner(registry, row.dimensionId);
+                    /* The age is what separates a current read from a stale one, so it is shown rather
+                       than left for the reader to infer from the state word. An undated read says it has
+                       no age, because a zero would read as "observed today". */
+                    var hasAge = row.asOf !== null && row.ageDays !== null;
                     var tr = el("tr", null, {
                         "data-coverage-row": row.dimensionId, "data-state": row.state,
+                        "data-coverage-as-of": row.asOf === null ? "no dated source" : row.asOf,
+                        "data-coverage-age-days": hasAge ? String(row.ageDays) : "no age",
                         "data-has-owner": owner.hasOwner ? "true" : "false"
                     });
                     tr.appendChild(el("th", row.label, { scope: "row" }));
@@ -855,6 +900,9 @@
                         "data-coverage-reason": row.reasonCode === null ? "none" : row.reasonCode
                     }));
                     tr.appendChild(el("td", row.asOf === null ? "no dated source" : row.asOf));
+                    tr.appendChild(el("td", hasAge
+                        ? row.ageDays + (row.ageDays === 1 ? " day old" : " days old")
+                        : "no age, because no dated source answered"));
                     var ownerCell = el("td");
                     if (owner.hasOwner) {
                         ownerCell.appendChild(el("a", owner.ownerToolId, { href: owner.ownerDeepLink, "data-owner-link": owner.ownerToolId }));
@@ -1131,7 +1179,7 @@
                 setText("cockpit-coverage-line",
                     version.coverageAccount.totals.unavailable + " of " + version.coverageAccount.rows.length +
                     " mandatory dimensions have no usable source in this run. Each one names its reason below.");
-                renderHorizonCards(version);
+                renderHorizonCards(version, bundle);
                 setText("cockpit-contradictions", version.contradictions.length === 0
                     ? "No two horizons oppose each other in this run."
                     : version.contradictions.length + " horizon pairs disagree. Both readings stand.");
@@ -1163,6 +1211,7 @@
 
             function applySubject() {
                 var raw = byId("subject-input").value.trim();
+                readingIntent += 1;
                 var refusal = INTEL.refuseInput(raw);
                 if (refusal) {
                     renderRefusal(refusal);
@@ -1205,6 +1254,7 @@
             }
 
             function loadCorpus() {
+                var intent = readingIntent;
                 corpusStatus = "pending";
                 return Promise.all([loadOne(currentTicker), loadOne(BENCHMARK_SYMBOL)])
                     .then(function (outcomes) {
@@ -1215,6 +1265,7 @@
                         return loadResearchRecord();
                     })
                     .then(function () {
+                        if (intent !== readingIntent) return;
                         run();
                     });
             }
@@ -1230,46 +1281,48 @@
                 var path = subject.contractVersion === "company-subject/v1"
                     ? INTEL.eventsPathFor(registry, subject.subjectId)
                     : null;
-                if (!path) {
-                    committedEvents = null;
-                    return Promise.resolve("uncovered");
-                }
-                return fetch(path, { cache: "no-store" })
-                    .then(function (response) {
-                        if (!response.ok) throw new Error("http " + response.status);
-                        return response.json();
-                    })
-                    .then(function (file) {
-                        committedEvents = file;
-                        return "loaded";
-                    })
-                    .catch(function () {
-                        committedEvents = null;
-                        return "unavailable";
-                    });
+                return loadOptionalJson(path, function (file) { committedEvents = file; });
             }
 
             /* A same-origin committed file this company may or may not carry. A company with no
                such file is a normal absence: the caller records null and the workspace states
-               the absence itself rather than rendering an empty region. */
+               the absence itself rather than rendering an empty region.
+
+               Each path is read from the network once per session and every later composition
+               reuses that read, the same cache-first discipline the committed bars already
+               follow. A committed file cannot change without a reload, so re-requesting one on
+               every apply only cost requests — and a path that answered 404 was asked again on
+               every apply too. The response BODY is what is retained, not the parsed object, so
+               each caller still receives its own value and no consumer can observe another
+               composition's object. */
+            var committedBodies = {};
+
             function loadOptionalJson(path, assign) {
                 if (!path) {
                     assign(null);
                     return Promise.resolve("uncovered");
                 }
-                return fetch(path, { cache: "no-store" })
-                    .then(function (response) {
-                        if (!response.ok) throw new Error("http " + response.status);
-                        return response.json();
-                    })
-                    .then(function (file) {
-                        assign(file);
-                        return "loaded";
-                    })
-                    .catch(function () {
+                if (!Object.prototype.hasOwnProperty.call(committedBodies, path)) {
+                    committedBodies[path] = fetch(path, { cache: "no-store" })
+                        .then(function (response) {
+                            if (!response.ok) throw new Error("http " + response.status);
+                            return response.text();
+                        })
+                        .catch(function () { return null; });
+                }
+                return committedBodies[path].then(function (body) {
+                    var file = null;
+                    if (typeof body === "string") {
+                        try { file = JSON.parse(body); }
+                        catch (error) { file = null; }
+                    }
+                    if (file === null) {
                         assign(null);
                         return "unavailable";
-                    });
+                    }
+                    assign(file);
+                    return "loaded";
+                });
             }
 
             /* The authored research plan and the append-only version tree for the current
@@ -1287,27 +1340,34 @@
                     return Promise.resolve("uncovered");
                 }
                 var paths = INTEL.versionPathsFor(subject.subjectId, null);
+                /* The walk accumulates into the tree it was started for rather than into the
+                   module slot. A load for another company can replace or clear that slot while
+                   this walk is still in flight, and reaching back through the slot would then
+                   write through null and abort the run with a failure that names the coverage
+                   registry — a cause that had nothing to do with it. */
+                var tree = { pointer: null, versions: [] };
+                versionTree = tree;
                 return loadOptionalJson(paths.authoredPlan, function (file) { authoredPlan = file; })
                     .then(function () {
                         return loadOptionalJson(paths.currentPointer, function (file) {
-                            versionTree = { pointer: file, versions: [] };
+                            tree.pointer = file;
                         });
                     })
                     .then(function () {
-                        var pointer = versionTree && versionTree.pointer ? versionTree.pointer : null;
+                        var pointer = tree.pointer ? tree.pointer : null;
                         if (!pointer || typeof pointer.versionId !== "string") {
-                            versionTree = { pointer: null, versions: [] };
+                            tree.pointer = null;
                             return "uncovered";
                         }
                         /* The pointer names the chain head. Each record names its own predecessor,
                            so the walk follows the committed chain and requests nothing else. */
-                        return walkVersionChain(subject.subjectId, pointer.versionId, []);
+                        return walkVersionChain(subject.subjectId, pointer.versionId, [], tree);
                     });
             }
 
-            function walkVersionChain(subjectId, versionId, collected) {
+            function walkVersionChain(subjectId, versionId, collected, tree) {
                 if (!versionId || collected.length >= 20) {
-                    versionTree.versions = collected;
+                    tree.versions = collected;
                     return "loaded";
                 }
                 var path = INTEL.versionPathsFor(subjectId, versionId).version;
@@ -1315,10 +1375,10 @@
                 return loadOptionalJson(path, function (file) { record = file; })
                     .then(function () {
                         if (!record) {
-                            versionTree.versions = collected;
+                            tree.versions = collected;
                             return "loaded";
                         }
-                        return walkVersionChain(subjectId, record.priorVersionId, collected.concat([record]));
+                        return walkVersionChain(subjectId, record.priorVersionId, collected.concat([record]), tree);
                     });
             }
 

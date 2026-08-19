@@ -2662,6 +2662,399 @@ this description". That is now false — a third Scope 01 group,
 is green with a captured RED. Correcting the row is a planning-text edit and is left
 to its owner rather than made here.
 
+#### Verification pass 5 — 2026-08-19 — TP-01-13 intended RED and same-command GREEN
+
+**Claim Source:** executed. **Outcome: the TP-01-13 row now has both halves.**
+
+TP-01-13 is the SCN-022-001 browser row: a preferential table displays a distinct
+source per component. The clause it turns on is that a component's reported origin
+matches whether the table actually declared an override for it.
+
+**Intended RED — the mutation.** One assignment in `RLTAXRULES.effectiveSourceFor`
+was flipped so an overridden component reports the inherited origin:
+
+```
+-        origin = "overridden";
++        origin = "inherited"; /* RED PROBE TP-01-13 — an overridden component reports the wrong origin. */
+```
+
+The mutation is deliberately **value-free**: it moves a provenance label, not a
+household quantity, so a revert that slipped could not disclose anything. It also
+sits in the module rather than the assertion, so the row is shown sensitive to the
+product's behaviour rather than to its own text.
+
+**Intended RED — the run:**
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-001 a preferential table displays a distinct source per component" --reporter=list
+  ✘  1 …01 a preferential table displays a distinct source per component (898ms)
+
+  1) [system-chrome] › tests/lifetime-tax-preferential.spec.mjs:73:1 › Regression: SCN-022-001 a preferential table displays a distinct source per component
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "overridden"
+    Received: "inherited"
+
+    > 143 |       expect(component.origin).toBe(component.declaredOverride ? 'overridden' : 'inherited');
+        at <repo>/tests/lifetime-tax-preferential.spec.mjs:143:32
+
+  1 failed
+red_exit=1
+```
+
+The failure is attributable and lands on the intended clause: line 143, the
+origin-agreement expectation, reached through the provenance the **browser's** engine
+resolved rather than a copy required into Node.
+
+**Revert, performed inside the same shell invocation that applied the probe** — an
+`EXIT`/`INT`/`TERM` trap was armed before the run, so an interrupted or timed-out
+command still reverts:
+
+```
+$ git checkout -- rltaxrules.js
+$ git status --short rltaxrules.js
+                                  # empty — nothing dirty
+$ grep -c 'RED PROBE' rltaxrules.js
+probe_residue=0
+```
+
+**Same-command GREEN, after the revert:**
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-001 a preferential table displays a distinct source per component" --reporter=list
+  ✓  1 …01 a preferential table displays a distinct source per component (838ms)
+
+  1 passed (2.0s)
+green_exit=0
+```
+
+**What this establishes.** The row is load-bearing rather than a page-loads check: a
+single mislabelled origin inside the module fails it, and the same command passes the
+moment the module is restored. What it does not establish is anything about the other
+three browser rows, which carry their own captures below.
+
+#### Verification pass 5 — 2026-08-19 — TP-01-14 first draft MISSED its own mutation (finding F-01-P), was strengthened, then RED and same-command GREEN
+
+**Claim Source:** executed. **Outcome: a false GREEN was caught and refused; the row
+was strengthened; TP-01-14 now has both halves.**
+
+TP-01-14 is the SCN-022-002 browser row: a household with preferential income
+receives a valued federal total. Its governing clause is FR-022-005 — preferential
+income stacks **above** ordinary taxable income.
+
+**The mutation.** The stacking floor was removed from `RLTAX.stackPreferentialIncome`,
+so preferential income stacks from zero rather than on top of ordinary income:
+
+```
+-      var slice = Math.max(0, Math.min(windowTop, upper) - Math.max(ordinaryTaxableIncome, band.lowerInclusive));
++      var slice = Math.max(0, Math.min(windowTop, upper) - band.lowerInclusive);
+```
+
+This is value-free — it changes a formula, not a household figure.
+
+**First run: the row PASSED under the mutation. That is a miss, not a GREEN.**
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-002 a household with preferential income receives a valued federal total" --reporter=list
+  ✓  1 …ousehold with preferential income receives a valued federal total (1.2s)
+
+  1 passed (3.1s)
+red_exit=0
+```
+
+**Finding F-01-P — the row asserted the stacking clause without exercising it.** Every
+fixture placed ordinary taxable income *below* the zero-rate top: the UI half used
+`ordinary = 40000` against a zero-rate top of 49,450 or more, and the boundary family
+used `ordinaryTaxable = Math.floor(maximumZeroRateAmount / 2)`. In that region
+`Math.max(ordinaryTaxableIncome, band.lowerInclusive)` always returns the band edge,
+so the floor never binds; the zero-rate band absorbs the difference at a rate of zero
+and the two upper bands compute identically with the floor present or absent. The row
+named the stacking clause in its text and could not have failed on it. Banking that
+pass would have been a false GREEN.
+
+**The strengthening.** A stacked family was added to the boundary set — three cases
+per filing status placing ordinary taxable income *inside* the fifteen percent band
+(`maximumZeroRateAmount + 10000`) with the window top at the fifteen percent
+breakpoint minus one, at it, and plus one — plus a non-vacuity clause asserting that
+the stacked family really does sit above the zero-rate top and really does carry
+preferential dollars. The case count assertion moved from `statuses.length * 6` to
+`statuses.length * 9`. No existing assertion was weakened, deleted or skipped, and no
+timeout was raised; the change is additive. The independent expectation
+`knownPreferentialTax` already carried the floor, so it states the correct answer
+without being a restatement of the engine.
+
+**Intended RED — the same mutation, re-run against the strengthened row:**
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-002 a household with preferential income receives a valued federal total" --reporter=list
+  ✘  1 …ousehold with preferential income receives a valued federal total (1.2s)
+
+  1) [system-chrome] › tests/lifetime-tax-preferential.spec.mjs:202:1 › Regression: SCN-022-002 a household with preferential income receives a valued federal total
+
+    Error: expect(received).toBeLessThan(expected)
+
+    Expected: < 1e-7
+    Received:   1500
+
+    > 348 |     expect(Math.abs(settled.preferentialTax - expected)).toBeLessThan(0.0000001);
+        at <repo>/tests/lifetime-tax-preferential.spec.mjs:348:58
+
+  1 failed
+red_exit=1
+```
+
+The discrepancy is the floor exactly: with ordinary income ten thousand dollars above
+the zero-rate top, an engine that stacks from zero prices those ten thousand dollars
+at fifteen percent a second time, which is the 1,500 reported.
+
+**Revert, performed inside the same shell invocation that applied the probe**, under
+an `EXIT`/`INT`/`TERM` trap armed before the run:
+
+```
+$ git checkout -- rltax.js
+$ git status --short rltax.js
+                                  # empty — nothing dirty
+$ grep -c 'RED PROBE' rltax.js
+probe_residue=0
+```
+
+**Same-command GREEN, after the revert:**
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-002 a household with preferential income receives a valued federal total" --reporter=list
+  ✓  1 …ousehold with preferential income receives a valued federal total (1.2s)
+
+  1 passed (2.4s)
+green_exit=0
+```
+
+`tests/lifetime-tax-preferential.spec.mjs` remains modified after this probe. That is
+the strengthening described above, which is a keeper, not probe residue — the residue
+check is scoped to the mutated module and reports zero.
+
+#### Verification pass 5 — 2026-08-19 — TP-01-15 intended RED and same-command GREEN
+
+**Claim Source:** executed. **Outcome: the TP-01-15 row now has both halves.**
+
+TP-01-15 is the SCN-022-003 browser row: unsupported preferential categories are
+named and never folded in. The disclosure the row protects is the marginal-rate
+column — the statement that stops a reader treating the settled figure as the whole
+of their liability.
+
+**Intended RED — the mutation.** The marginal-rate disclosure was suppressed in the
+feature-ledger renderer in `lifetime-tax-strategy-lab.html`, so every unsupported
+entry reports that it does not move the marginal rate:
+
+```
+-                        state.pack.unsupportedFeatures[index].movesMarginalRate ? "yes" : "no",
++                        /* RED PROBE TP-01-15 — the marginal-rate disclosure is suppressed. */
++                        "no",
+```
+
+The mutation is value-free: it changes a rendered disclosure flag, not a household
+quantity. It is also the exact shape of the defect the scenario exists to catch — an
+uncarried category presented as harmless.
+
+**Intended RED — the run:**
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-003 unsupported preferential categories are named and never folded in" --reporter=list
+  ✘  1 …nsupported preferential categories are named and never folded in (790ms)
+
+  1) [system-chrome] › tests/lifetime-tax-preferential.spec.mjs:370:1 › Regression: SCN-022-003 unsupported preferential categories are named and never folded in
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "yes"
+    Received: "no"
+
+    > 400 |     expect(row[3]).toBe('yes');
+        at <repo>/tests/lifetime-tax-preferential.spec.mjs:400:20
+
+  1 failed
+red_exit=1
+```
+
+Attributable and on the intended clause: line 400, the marginal-rate disclosure,
+read from the rendered table rather than from the pack on disk.
+
+**Revert, performed inside the same shell invocation that applied the probe**, under
+an `EXIT`/`INT`/`TERM` trap armed before the run:
+
+```
+$ git checkout -- lifetime-tax-strategy-lab.html
+$ git status --short lifetime-tax-strategy-lab.html
+                                  # empty — nothing dirty
+$ grep -c 'RED PROBE' lifetime-tax-strategy-lab.html
+probe_residue=0
+```
+
+**Same-command GREEN, after the revert:**
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-003 unsupported preferential categories are named and never folded in" --reporter=list
+  ✓  1 …nsupported preferential categories are named and never folded in (812ms)
+
+  1 passed (1.9s)
+green_exit=0
+```
+
+#### Verification pass 5 — 2026-08-19 — TP-01-16 intended RED and same-command GREEN
+
+**Claim Source:** executed. **Outcome: the TP-01-16 row now has both halves, and with
+it every browser row.**
+
+TP-01-16 is the broader-regression row: Feature 021's cumulative browser suite over
+the real route, proving this scope caused no regression.
+
+**Intended RED — the mutation.** The band ceiling was removed from the ordinary
+bracket walk in `RLTAX.applyRateTable`, so every band taxes every dollar above its
+floor and the schedule stops being progressive:
+
+```
+-      var taxed = Math.max(0, Math.min(amount, upper) - band.lowerInclusive);
++      var taxed = Math.max(0, amount - band.lowerInclusive);
+```
+
+Value-free — a formula change, not a household figure. It was chosen over a label
+mutation on purpose: a rendered-string probe would have shown only that the suite
+reads the page, whereas this shows the suite is sensitive to the arithmetic Feature
+021 exists to protect.
+
+**Intended RED — the run** (bounded through the repository's evidence-capture helper,
+which hashes every line produced rather than discarding any):
+
+```
+# TP-01-16 intended RED — ordinary band ceiling ignored
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-021- --reporter=list
+exit: 1
+lines: 134
+sha256: da2e32943c4267dfb7cc7f99e93090c1468964f1bcc81d19fb328ad20e104e49
+
+  ✘   5 › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack
+  ✘   3 › tests/lifetime-tax-federal.spec.mjs:48:1 › Regression: SCN-021-004 federal tax is exact below at and above a bracket edge
+  ✘  14 › tests/lifetime-tax-federal.spec.mjs:77:1 › Regression: SCN-021-005 long term gains stack on ordinary income
+  ✘  15 › tests/lifetime-tax-federal.spec.mjs:190:1 › Regression: SCN-021-006 deduction selection is explicit and the annual result reconciles
+
+      197 |   await expect(page.locator('[data-rl-value="headlineFederalTax"]'))
+    > 198 |     .toHaveText(dollars(knownSingleOrdinaryTax(150000 - 16100)));
+        at <repo>/tests/lifetime-tax-federal.spec.mjs:198:6
+
+  4 failed
+  12 passed (16.6s)
+```
+
+Re-derivable with
+`bash bubbles/scripts/evidence-capture.sh --verify da2e32943c4267dfb7cc7f99e93090c1468964f1bcc81d19fb328ad20e104e49 -- <the same command>`.
+
+The four failures are attributable and discriminating: the three federal scenarios
+and the conversion comparison all price ordinary dollars, and each fails against an
+independently stated known value. The twelve that stayed green are the provenance,
+refusal, accessibility, viewport, network-silence and export scenarios, which do not
+depend on the bracket arithmetic — the correct split, and evidence the suite is
+selective rather than uniformly brittle.
+
+**Revert, performed inside the same shell invocation that applied the probe**, under
+an `EXIT`/`INT`/`TERM` trap armed before the run:
+
+```
+$ git checkout -- rltax.js
+$ git status --short rltax.js
+                                  # empty — nothing dirty
+$ grep -c 'RED PROBE' rltax.js
+probe_residue=0
+```
+
+**Same-command GREEN, after the revert:**
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-" --reporter=list
+Running 16 tests using 5 workers
+  ✓   1 …put resolves one federal pack and names every unavailable domain (2.0s)
+  …
+  ✓  16 …pens only on explicit action and the request ledger stays empty (546ms)
+
+  16 passed (8.2s)
+green_exit=0
+```
+
+All sixteen Feature 021 scenarios pass under titles the `--grep` contract still
+matches, which is also limb 3 of DoD item 11 and the TP-01-16 half of DoD item 12.
+
+#### Verification pass 5 — 2026-08-19 — DoD item 10 HOLDS; finding F-01-O is closed
+
+**Claim Source:** executed. **Outcome: the item holds and is ticked `[x]`.**
+
+| Row | RED half | GREEN half | Status |
+| --- | --- | --- | --- |
+| TP-01-01 … TP-01-12 | recorded in earlier passes | recorded | closed |
+| **TP-01-13** | **captured this pass** — overridden component reports the inherited origin | **captured this pass** — 1 passed | **closed this pass** |
+| **TP-01-14** | **captured this pass**, after the first draft MISSED and was strengthened — stacking floor dropped, discrepancy 1,500 | **captured this pass** — 1 passed | **closed this pass** |
+| **TP-01-15** | **captured this pass** — marginal-rate disclosure suppressed | **captured this pass** — 1 passed | **closed this pass** |
+| **TP-01-16** | **captured this pass** — ordinary band ceiling ignored, 4 failed / 12 passed | **captured this pass** — 16 passed | **closed this pass** |
+| TP-01-17 … TP-01-20 | recorded at verification passes 3 and 4 | recorded | closed |
+| TP-01-21 | the adversarial cases fire inside the command that reports them, recorded at `report.md#tp-01-21` | recorded | closed |
+
+Verification pass 4 left four rows without a RED half. All four are closed here, so
+every Test Plan row now carries both halves and **F-01-O is closed**.
+
+**Probe hygiene across all four captures.** Every mutation was value-free — a
+provenance label, two formula changes and a rendered disclosure flag. None could
+disclose a household value had a revert slipped, which is the property that matters
+after the earlier incident in which an abandoned probe left a live
+`window.fetch` carrying an income figure in a URL query string. Each probe was
+applied with an editor, run and reverted inside a single shell invocation under an
+`EXIT`/`INT`/`TERM` trap armed *before* the run, so an interrupt or timeout still
+reverts. After the last capture:
+
+```
+$ git status --short rltax.js rltaxrules.js lifetime-tax-strategy-lab.html tax-rules/ tests/lifetime-tax-*.spec.mjs
+ M <repo>/tests/lifetime-tax-preferential.spec.mjs        # the F-01-P strengthening — a keeper
+$ git status --short --untracked-files=all | grep -i 'rl-.*probe'
+none
+$ grep -rln "RED PROBE" rltax.js rltaxrules.js lifetime-tax-strategy-lab.html tests/lifetime-tax-preferential.spec.mjs
+none
+```
+
+No module, page, pack or test file is left mutated, and no stray probe artefact
+exists.
+
+**Suite health after the strengthening.**
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL: committed surface carries no personal identifier
+  ✗ FAIL: byField carries one row per declared field, in policy order, and sums exactly to total
+  ✗ FAIL: the committed payload’s persisted budget equals a fresh measurement of that same payload
+Research-Lab self-test: 3071 passed, 3 failed
+selftest_exit=1
+```
+
+All three failures are **foreign to this scope and to this feature**. The first is
+the pre-existing `home-path` finding in `specs/025-…/report.md`. The second and third
+are Feature 026 market-brief-payload assertions (`TP-026-1.10`, `RLCOCKPIT`,
+`committedPayload26` — the live payload whose own comment records that it "changes
+four times a day"), owned by a concurrent session. None of the three reads any file
+this pass touched: the only source change here is
+`tests/lifetime-tax-preferential.spec.mjs`. The passed count **rose** from 3067 to
+3071, so no assertion was lost.
+
+```
+# Feature 022 cumulative browser suite SCN-02[1-4] after the TP-01-14 strengthening
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02[1-4] --reporter=list
+exit: 0
+lines: 143
+sha256: 2af7f97e9398281cd3e58fc24c1f362c8c4f757d4fa0ce2d3ff00f0a770f65d5
+
+  138 passed (1.3m)
+```
+
+The suite reports 138 rather than the expected 69 because a foreign
+`.first-load-fix-worktree/` checkout sits inside the repository and Playwright
+discovers every spec twice. Both copies pass; the figure is a duplicate-discovery
+artefact of another session's worktree, not new coverage.
+
 ## Supersession Ledger
 
 Filled at execution. One block per owned entry — SUP-022-01, -02, -04, -05, -06,
@@ -2740,6 +3133,96 @@ the retained-branch evidence under TP-01-21 already supplies for six of them.
 No file was mutated during this verification; every step was read-only.
 
 ## Change Boundary
+
+### Verification pass 5 — 2026-08-19 — DoD item 11: limbs 1(a), 2 and 3 HOLD, limb 1(b) FAILS on a real overlap (finding F-01-Q)
+
+**Claim Source:** executed. **Outcome: the item stays `[ ]`. Three of four limbs are
+decided in its favour; the fourth is decided against it by a commit that exists.**
+
+**Limb 1(a) — working tree. HOLDS.** One excluded path is dirty, and it is foreign:
+
+```
+$ git status --short -- <the excluded list>
+ M <repo>/notes/README.md
+$ git diff -- <the excluded list> | grep -c 'SUP-022'
+sup022_hits=0
+$ git diff --cached -- <the excluded list> | grep -c 'SUP-022'
+sup022_hits_cached=0
+$ git diff -- <the excluded list> | grep -icE 'filing.?status|bracket|preferential|breakpoint|married-filing|head-of-household|declaredTaxYear|Rev\. Proc|Internal Revenue'
+taxdomain_hits=0
+```
+
+The uncommitted hunk carries no `SUP-022` marker and no tax-domain content, so by the
+limb's own test it is not this scope's. `rltax.js` — itself an excluded path — was
+transiently mutated twice during this pass's TP-01-14 and TP-01-16 probes and reverted
+inside the same shell invocation each time; it reports no working-tree change at all,
+which is the condition the limb tests.
+
+**Limb 1(b) — history. FAILS.** The two commit sets are **not disjoint**:
+
+```
+$ git log --oneline b9d92a3f1..HEAD -- <the excluded list>
+…
+1a2f1c00b docs(021,022): record DoD evidence
+…
+$ git log --oneline b9d92a3f1..HEAD -- specs/022-federal-preferential-and-state-income-tax
+1a2f1c00b docs(021,022): record DoD evidence
+…
+```
+
+`1a2f1c00b` appears in both. It is not a merge, so the merge exemption does not apply:
+
+```
+$ git rev-list --parents -n1 1a2f1c00b | awk '{print "parents="NF-1}'
+parents=1
+$ git show --name-only --format="" 1a2f1c00b
+specs/021-lifetime-tax-strategy-lab/scopes/01-tax-workspace-rule-pack-and-privacy-foundation/report.md
+specs/021-lifetime-tax-strategy-lab/scopes/01-tax-workspace-rule-pack-and-privacy-foundation/scope.md
+specs/021-lifetime-tax-strategy-lab/scopes/05-simple-power-route-accessibility-and-local-export/report.md
+specs/021-lifetime-tax-strategy-lab/scopes/05-simple-power-route-accessibility-and-local-export/scope.md
+specs/022-federal-preferential-and-state-income-tax/design.md
+```
+
+**Finding F-01-Q — limb 1(b) is falsified by a commit that bundled two features'
+documentation.** The excluded-path files it moved are Feature 021's own `report.md`
+and `scope.md` evidence records, and the Feature 022 file it moved is `design.md`.
+No product surface is involved and no tax behaviour crossed the boundary — but the
+limb's disjointness test is structural and cannot see that, and this commit fails it.
+
+**This report does not rewrite the limb to make it pass.** Item 11 has already been
+superseded twice, at F-01-H and F-01-N, and superseding it a third time to dissolve a
+failure discovered while testing it would make the limb unfalsifiable — the exact
+defect the limb was rewritten to remove. The honest disposition is to leave the item
+open and route the requirement-text question to its owner. Two dispositions are
+available to that owner, and neither is this agent's to choose: treat the overlap as a
+real boundary breach and split the commit's concerns going forward, or narrow limb
+1(b)'s disjointness clause to *product* paths so a documentation commit spanning two
+features' spec directories no longer falsifies it.
+
+**Limb 2 — confinement. HOLDS.** The `SUP-022-NN` census over the five opened files,
+against the distribution `design.md` assigns this scope:
+
+| File | Assigned to Scope 01 | Observed | Verdict |
+| --- | --- | --- | --- |
+| `scripts/selftest.mjs` | 01, 02, 04, 05, 06, 11 | 01, 02, 04, 05, 06, 11 (+ 03, 08, 10, 14, 20, 22 — Scope 02's) | exact |
+| `tests/lifetime-tax-federal.spec.mjs` | 07, 21 | 07, 21 (+ 15 — Scope 02's) | exact |
+| `tests/lifetime-tax-foundation.spec.mjs` | 09, 12 | 09, 12 | exact |
+| `tests/lifetime-tax-marginal.spec.mjs` | 13 | 13 (+ 08 — Scope 02's) | exact |
+| `tests/lifetime-tax-route.spec.mjs` | 17 | 17 (+ 16 — Scope 02's) | exact |
+| `tests/lifetime-tax-conversion.spec.mjs` | none | `count=0` | exact |
+| `tests/lifetime-tax.support.mjs` | none | `count=0` | exact |
+
+All twelve owned markers are present, each in the file the table names for it, and no
+Scope 01 marker appears in any file the table does not name for it. The additional ids
+are Scope 02's own entries in files both scopes legitimately open, which the
+distribution allows.
+
+**Limb 3 — behavioural invariance. HOLDS.** All sixteen Feature 021 browser scenarios
+pass under titles the `--grep` contract still matches — `16 passed (8.2s)`, exit 0,
+recorded at the TP-01-16 GREEN above — and no Feature 021 selftest group appears among
+the three foreign selftest failures.
+
+**Net.** Item 11 needs limb 1(b) resolved by its owner and nothing else.
 
 ### Verification pass 4 — 2026-08-19 — DoD item 11 does NOT hold: limb 1's enumeration is factually stale (finding F-01-N)
 

@@ -344,20 +344,20 @@ RED.
 - [x] No output states a probability, a lifetime figure, a track record or an
       error rate, and no result is labelled a complete federal tax.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-  - **Phase:** implement · **Command:** the exact TP-01-01 through TP-01-16 commands · **Evidence:** `report.md#test-evidence`
-  - **Not closed.** Finding **F-01-O** (supersedes F-01-K, whose TP-01-11 half is
-    now cleared): the TP-01-11 assertion is authored and carries a captured
-    intended RED and same-command GREEN, and TP-01-17, TP-01-18, TP-01-19 and
-    TP-01-20 each now carry both halves. RED remains uncaptured for the four
-    browser rows **TP-01-13, TP-01-14, TP-01-15 and TP-01-16**, whose GREEN halves
-    are already recorded (66 passed, 0 failed, exit 0). Nine outstanding RED rows
-    at verification pass 3 are now four. See
-    `report.md#verification-pass-4--2026-08-19--tp-01-11-assertion-authored-intended-red-and-same-command-green-captured`,
-    `report.md#verification-pass-4--2026-08-19--tp-01-20-intended-red-and-same-command-green`
-    and
-    `report.md#verification-pass-4--2026-08-19--tp-01-17-intended-red-and-same-command-green`.
+  - **Phase:** implement · **Command:** the exact TP-01-01 through TP-01-16 commands · **Evidence:** `report.md#verification-pass-5--2026-08-19--tp-01-13-intended-red-and-same-command-green`, `report.md#verification-pass-5--2026-08-19--tp-01-14-first-draft-missed-its-own-mutation-finding-f-01-p-was-strengthened-then-red-and-same-command-green`, `report.md#verification-pass-5--2026-08-19--tp-01-15-intended-red-and-same-command-green`, `report.md#verification-pass-5--2026-08-19--tp-01-16-intended-red-and-same-command-green`
+  - **Closed at verification pass 5.** The four browser rows F-01-O named —
+    TP-01-13, TP-01-14, TP-01-15 and TP-01-16 — now each carry an intended RED and a
+    same-command GREEN, captured under `--project=system-chrome`. Every mutation was
+    value-free (a provenance label, two formula changes and a rendered disclosure
+    flag; never a household figure), was reverted inside the shell invocation that
+    applied it under an `EXIT`/`INT`/`TERM` trap, and left `probe_residue=0`.
+    TP-01-14's first draft **passed** under its own mutation; that miss is recorded
+    as finding **F-01-P** and the row was strengthened with a stacked boundary family
+    before its RED was accepted, rather than a false GREEN being banked. TP-01-21's
+    RED half is the adversarial failure the row fires inside its own command, already
+    recorded at `report.md#tp-01-21`. F-01-O is closed.
 - [ ] Every excluded path is unchanged **by this scope**, and the four Feature 021
       test files this scope opened stay confined to the clauses the ledger assigns
       them. Three limbs, each decidable against the tree as it stands.
@@ -417,6 +417,20 @@ RED.
       Feature 021 expectation silently changed outside a marker moves one of those
       results and fails this limb.
   - **Phase:** implement · **Command:** `git diff` and `git diff --cached` over the excluded list, `git log b9d92a3f1..HEAD` over the excluded list and over `specs/022-federal-preferential-and-state-income-tax/**`, a `SUP-022-NN` census over the five opened files, `node scripts/selftest.mjs`, and `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-" --reporter=list` · **Evidence:** `report.md#change-boundary`, `report.md#tp-01-16`
+  - **Not closed.** Finding **F-01-Q**: limbs 1(a), 2 and 3 all HOLD at verification
+    pass 5 — the only dirty excluded path carries no `SUP-022` marker and no
+    tax-domain content, the marker census matches the assigned distribution exactly
+    in both directions, and all sixteen Feature 021 browser scenarios pass. Limb
+    1(b) **fails on a commit that exists**: `1a2f1c00b` (`docs(021,022): record DoD
+    evidence`) is a non-merge commit appearing in **both** required-disjoint sets,
+    because it moved four Feature 021 `report.md`/`scope.md` evidence files together
+    with Feature 022's `design.md`. No product surface and no tax behaviour crossed
+    the boundary, but the limb's disjointness test is structural and cannot see that.
+    The limb was deliberately **not** rewritten to dissolve the failure — it has
+    already been superseded at F-01-H and F-01-N, and a third supersession made to
+    absorb a failure found while testing it would leave it unfalsifiable. The
+    requirement-text decision belongs to `bubbles.plan`. See
+    `report.md#verification-pass-5--2026-08-19--dod-item-11-limbs-1a-2-and-3-hold-limb-1b-fails-on-a-real-overlap-finding-f-01-q`.
   - **Why this shape.** The superseded wording asked for a per-expectation diff
     against a pre-scope original and for unqualified byte-identity. Neither is
     decidable here. `b9d92a3f1` is the only commit that has ever touched the four

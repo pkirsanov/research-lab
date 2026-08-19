@@ -212,12 +212,13 @@ Test Plan row.
 
 ### Definition of Done
 
-- [ ] PRA-021-025 through PRA-021-030 are implemented: exactly two policies on
+- [x] PRA-021-025 through PRA-021-030 are implemented: exactly two policies on
       identical inputs, a pack-derived fill amount, the reported amount, per-policy
       tax, difference and marginal rate at the edge, a closed `notModeled[]`
       disclosure, the funding-source distinction, and no probability, lifetime
       outcome, break-even year, ranking or recommendation.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-01` through `report.md#tp-04-11`
+  - **Claim Source:** executed · **Result:** all eleven contract rows now carry executed evidence. TP-04-01 pins two policies, both policy ids, one shared pack sha and the nine-member held-constant list; probe A appended a third policy and the row failed by name. TP-04-02 measures the fill from ordinary TAXABLE income across all 24 bounded bands; a recorded miss is disclosed — the zero-deduction fixture could not tell taxable from declared income and probe B survived it, so the fixture was strengthened to a non-zero deduction plus a `taxableIsSeparated === 24` clause and the re-applied probe then failed the row. TP-04-06 proves a full bracket is a labelled zero, not a negative; probe C removed the clamp and the row failed. TP-04-10 enumerates all 1092 member names; probe D added `breakEvenYear` and two independent detectors named it. TP-04-11 refuses an undeclared funding source; probe E returned a silent `outside-funds` default and the row failed. Every probe was reverted before the next, each with `dirty_lines=0` on `rltaxstrategy.js`.
 - [x] The converted case is proven to be a full recomputation rather than a
       marginal-rate adjustment, including moved long-term-gain stacking. The
       adversarial case proves the guard can fail.
@@ -236,9 +237,10 @@ Test Plan row.
       bracket edge. Every tax figure came from Scope 02.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-03`
   - **Claim Source:** executed · **Result:** TP-04-03 strips comments and string literals from the module and reports an empty offender list, while requiring `pack.ordinaryRateTables` to be read. Probe 1 planted an unused `var probeSlice1BracketEdge = 105700;` and the run went to `3039 passed, 3 failed`, with the failure text naming the planted `105700` in both the Scope 04 row and the cross-module Scope 02 sweep. Reverted immediately; `git status --short rltaxstrategy.js` empty.
-- [ ] Every Test Plan row has intended RED evidence and same-command GREEN
+- [x] Every Test Plan row has intended RED evidence and same-command GREEN
       evidence, recorded before the cumulative browser row.
   - **Phase:** implement · **Command:** the exact TP-04-01 through TP-04-14 commands · **Evidence:** `report.md#test-evidence`
+  - **Claim Source:** executed · **Result:** TP-04-01 through TP-04-11 carry intended RED and same-command GREEN — probes A/B/C/D/E in this dispatch, probes 1/2/3/4 in the prior one, and TP-04-05 and TP-04-09 as permanent in-suite adversarials re-proven on every run. The three browser rows were given RED at the rendering layer, where the module cannot see the defect: probe F started the policy loop at index 1 and TP-04-12 failed `toHaveCount` `Expected: 2 Received: 1`; probe G shortened the disclosure render and TP-04-13 failed `Expected: 8 Received: 7`; probe H rendered an assumed `outside-funds` and TP-04-14 failed with the invented default quoted back as the received string. Each was reverted with `git status --short lifetime-tax-strategy-lab.html` empty before its GREEN rerun, and all three REDs were recorded before the cumulative row. TP-04-15 then ran `69 passed` with zero failures.
 - [x] No source, artifact or UI string in this scope claims a published error
       rate, a self-invalidation statistic, a track record, an accuracy figure or
       a plan success probability.

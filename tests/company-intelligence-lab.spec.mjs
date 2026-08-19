@@ -352,6 +352,54 @@ test('switching the mode segment triggers no request and no recomposition', asyn
     expect(fingerprintAfter).toMatch(/Run fingerprint sha256:[a-f0-9]{64}/);
 });
 
+/* FR-025-017 asks the run to reuse committed and cached observations first and to retrieve only
+   the missing or stale delta. `loadOne` implements it by returning "cached" without a fetch when
+   the shared cache already holds the symbol, and nothing asserted that the short circuit fires:
+   a regression to always-fetch would have kept every other row in this file green. */
+test('FR-025-017 a second run reuses the cached corpus and refetches no committed bar file', async ({ page }) => {
+    const barRequests = [];
+    page.on('request', (request) => {
+        const path = new URL(request.url()).pathname;
+        if (path.startsWith('/data/bars/')) barRequests.push(path);
+    });
+
+    await page.goto(`${site.baseUrl}/${ROUTE}?symbol=MSFT`);
+    await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
+    await expect(page.locator('body')).toHaveAttribute('data-corpus-status', 'loaded');
+
+    /* Non-vacuous control: the first run really did go to the committed corpus for both legs,
+       so a later count of zero means the cache answered rather than that nothing ever fetches. */
+    expect(barRequests.length, `first run fetched: ${barRequests.join(', ')}`).toBeGreaterThan(0);
+    const firstRun = barRequests.slice();
+    expect(firstRun.some((path) => path.includes('MSFT'))).toBe(true);
+
+    /* And the delta really landed in the shared cache, which is what the reuse path reads. */
+    const cached = await page.evaluate(() => (window.RLDATA.bars('MSFT', '1d') || []).length);
+    expect(cached).toBeGreaterThan(0);
+
+    barRequests.length = 0;
+    const runLineBefore = await page.locator('#workspace-sources-run').textContent();
+
+    await page.locator('#subject-input').fill('MSFT');
+    await page.locator('#subject-apply').click();
+    await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
+    await expect(page.locator('body')).toHaveAttribute('data-corpus-status', 'loaded');
+
+    expect(barRequests, `second run refetched: ${barRequests.join(', ')}`).toEqual([]);
+
+    /* The reused corpus still composes a complete run over the same subject. The run FINGERPRINT
+       is deliberately not asserted equal: each run carries its own decision time, so two runs
+       milliseconds apart hash differently by design, and demanding equality here would assert
+       against the injected-clock contract rather than for the reuse one. */
+    const runLineAfter = await page.locator('#workspace-sources-run').textContent();
+    expect(runLineAfter).toContain('for company:msft on identity basis sec-cik');
+    expect(runLineBefore).toContain('for company:msft on identity basis sec-cik');
+    expect(runLineAfter).toMatch(/Run fingerprint sha256:[a-f0-9]{64}/);
+    await expect(page.locator('#workspace-coverage-rows [data-coverage-row]')).toHaveCount(15);
+    /* And the cache the second run read from still holds the same committed series it reused. */
+    expect(await page.evaluate(() => (window.RLDATA.bars('MSFT', '1d') || []).length)).toBe(cached);
+});
+
 test('at 375 CSS pixels the four summaries stack and the document never scrolls sideways', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 800 });
     await openComposedRoute(page);
@@ -559,4 +607,441 @@ test('Regression: SCN-025-022 the outcome record shows the predecessor unmodifie
     const copy = await record.textContent();
     expect(copy.trim().length).toBeGreaterThan(80);
     expect(copy).toContain(priorId);
+});
+
+test('FR-025-022 each deep dive lists every contributing read with its state, source and as-of date', async ({ page }) => {
+    await openComposedRoute(page, { query: '?symbol=MSFT' });
+
+    const horizonIds = await page.locator('#cockpit-horizons [data-horizon]')
+        .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-horizon')));
+    expect(horizonIds).toHaveLength(4);
+
+    /* A contributing read is one the composer actually used. The requirement is that the deep
+       dive states each one's state, source and as-of date — not that it lists bare identifiers. */
+    let contributingRowsSeen = 0;
+    for (const horizonId of horizonIds) {
+        const dive = page.locator(`#cockpit-horizons [data-horizon-dive="${horizonId}"]`);
+        await expect(dive).toHaveCount(1);
+
+        const declared = JSON.parse(await dive.getAttribute('data-contributing-dimension-ids'));
+        const rows = dive.locator('[data-contributing-dimension]');
+        await expect(rows, `${horizonId} renders one row per contributing read`).toHaveCount(declared.length);
+
+        const rendered = await rows.evaluateAll((nodes) => nodes.map((node) => ({
+            dimensionId: node.getAttribute('data-contributing-dimension'),
+            state: node.getAttribute('data-contributing-state'),
+            source: node.getAttribute('data-contributing-source'),
+            asOf: node.getAttribute('data-contributing-as-of'),
+            text: node.textContent
+        })));
+        expect(rendered.map((row) => row.dimensionId).sort()).toEqual(declared.slice().sort());
+
+        for (const row of rendered) {
+            contributingRowsSeen += 1;
+            /* A contributing read reached the composer, so it is current or partial by construction. */
+            expect(['current', 'partial'], `${horizonId}/${row.dimensionId} state`).toContain(row.state);
+            /* Honest absence: a missing source or date states the absence, never a dash or a zero. */
+            expect(row.source, `${horizonId}/${row.dimensionId} source`).toBeTruthy();
+            expect(row.asOf, `${horizonId}/${row.dimensionId} as-of`).toBeTruthy();
+            expect(row.text).toContain(row.state);
+            expect(row.text).not.toMatch(/(^|\s)[—–-](\s|$)/);
+            if (row.asOf === 'no dated source') {
+                expect(row.text).toContain('no dated source');
+            } else {
+                expect(row.asOf, `${horizonId}/${row.dimensionId} as-of is a real date`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+                expect(row.text).toContain(row.asOf);
+            }
+        }
+    }
+
+    /* The assertion is only meaningful if this corpus actually produced contributing reads. */
+    expect(contributingRowsSeen, 'the composed run carried at least one contributing read').toBeGreaterThan(0);
+});
+
+test('FR-025-014 every dated coverage row states its age, so a stale read cannot read as current', async ({ page }) => {
+    await openComposedRoute(page, { query: '?symbol=MSFT' });
+    await openPowerMode(page);
+
+    const rows = await page.locator('#workspace-coverage-rows [data-coverage-row]')
+        .evaluateAll((nodes) => nodes.map((node) => ({
+            dimensionId: node.getAttribute('data-coverage-row'),
+            state: node.getAttribute('data-state'),
+            asOf: node.getAttribute('data-coverage-as-of'),
+            ageDays: node.getAttribute('data-coverage-age-days'),
+            text: node.innerText.replace(/\s+/g, ' ')
+        })));
+    expect(rows.length, 'the coverage account renders every mandatory dimension').toBe(15);
+
+    /* A dated read is one the run actually sourced. Its age is what separates current from
+       stale, so the reader must be able to see it rather than infer it from the state word. */
+    const dated = rows.filter((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.asOf || ''));
+    expect(dated.length, 'the committed corpus produced at least one dated read').toBeGreaterThan(0);
+
+    for (const row of dated) {
+        expect(Number.isFinite(Number(row.ageDays)), `${row.dimensionId} carries a numeric age`).toBe(true);
+        expect(Number(row.ageDays), `${row.dimensionId} age is not negative`).toBeGreaterThanOrEqual(0);
+        expect(row.text, `${row.dimensionId} states its age in the row`).toMatch(
+            new RegExp(`${row.ageDays} day`));
+    }
+
+    /* An undated read states the absence in words. It never borrows a zero age, which would
+       read as "observed today", and never a dash. */
+    for (const row of rows.filter((candidate) => !dated.includes(candidate))) {
+        expect(row.ageDays, `${row.dimensionId} undated age`).toBe('no age');
+        expect(row.text, `${row.dimensionId} names the absence`).toContain('no age');
+        expect(row.text).not.toMatch(/(^|\s)[—–-](\s|$)/);
+        expect(row.text, `${row.dimensionId} must not claim a zero-day age`).not.toMatch(/\b0 days?\b/);
+    }
+});
+
+/* ---------- Gaps phase — a non-functional requirement the Coverage Report never audited ---------- */
+
+test('NFR-025-005 every rendered ticker is a linked, described token from the shared ticker module', async ({ page }) => {
+    await openComposedRoute(page, { query: '?symbol=MSFT' });
+    await openPowerMode(page);
+
+    /* The shared module rescans on a 240ms debounce after the route renders, so the reader sees
+       the upgraded token a moment after compose. Waiting for it is the honest test; asserting
+       before it would measure the debounce rather than the requirement. */
+    await expect.poll(
+        () => page.locator('a.rltkr').count(),
+        { message: 'the shared ticker module upgraded at least one token', timeout: 5000 }
+    ).toBeGreaterThan(0);
+
+    /* The shared module upgrades known symbols in place. A bare MSFT text node anywhere in the
+       rendered document means the token shipped undescribed and unlinked. */
+    const tokens = await page.evaluate(() => {
+        const linked = [...document.querySelectorAll('a.rltkr')].map((node) => node.textContent.trim());
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        const bare = [];
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+            const parent = node.parentElement;
+            if (!parent || parent.closest('a,button,input,textarea,select,script,style,code,pre,.rltkr,.rlnav')) continue;
+            if (/\bMSFT\b/.test(node.nodeValue || '')) bare.push(parent.tagName + ': ' + node.nodeValue.trim().slice(0, 60));
+        }
+        return { linked, bare };
+    });
+    expect(tokens.linked.length, 'the shared ticker module produced linked tokens').toBeGreaterThan(0);
+    expect(tokens.linked, 'the subject ticker itself is a described token').toContain('MSFT');
+    expect(tokens.bare, `undescribed ticker text nodes: ${tokens.bare.join(' | ')}`).toEqual([]);
+});
+
+/* ==========================================================================
+   Stabilize phase — runtime robustness and resource behaviour of this route.
+
+   The rows above all compose against a healthy corpus. These compose against a BROKEN one,
+   because the failure path is the one a reader meets on a bad day and the one nothing here
+   asserted. Every row below drives the real page over a real server; only the DEPENDENCY's
+   observed state is pinned, never the system under test.
+   ========================================================================== */
+
+const COMMITTED_SOURCES = [
+    'data/bars/MSFT.json',
+    'data/bars/SPY.json',
+    'data/company-intelligence/company-msft/events.json',
+    'data/company-intelligence/company-msft/plan-authored.json',
+    'data/company-intelligence/company-msft/current.json',
+    'data/company-intelligence/company-msft/versions/company-msft-2026-08-11.json'
+];
+
+/* An unhandled rejection leaves no mark on the page and no mark on `pageerror`, so a route can
+   swallow a whole load path and still look green. Recording it from inside the page is the only
+   way a "degrades honestly" claim can be checked rather than assumed. */
+async function watchForUnhandledRejections(page) {
+    await page.addInitScript(() => {
+        window.__rlUnhandled = [];
+        window.addEventListener('unhandledrejection', (event) => {
+            window.__rlUnhandled.push(String((event.reason && event.reason.message) || event.reason));
+        });
+    });
+    return () => page.evaluate(() => window.__rlUnhandled);
+}
+
+test('Stabilize: every committed source unavailable degrades to a named absence, not a blank or a zero', async ({ page }) => {
+    const broken = await startStaticServer({ missing: COMMITTED_SOURCES });
+    try {
+        const unhandled = await watchForUnhandledRejections(page);
+        const pageErrors = [];
+        page.on('pageerror', (error) => pageErrors.push(error.message));
+
+        await page.goto(`${broken.baseUrl}/${ROUTE}?symbol=MSFT`);
+        /* The run still completes. A corpus-wide outage is not a reason to stop composing, it is
+           a reason for every dimension to state that it has no source. */
+        await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
+        await expect(page.locator('body')).toHaveAttribute('data-corpus-status', 'unavailable');
+
+        /* Non-vacuous control: the outage really reached the coverage account. */
+        const rows = await page.locator('#workspace-coverage-rows [data-coverage-row]')
+            .evaluateAll((nodes) => nodes.map((node) => ({
+                dimensionId: node.getAttribute('data-coverage-row'),
+                state: node.getAttribute('data-state'),
+                text: node.innerText.replace(/\s+/g, ' ').trim()
+            })));
+        expect(rows.length, 'every mandatory dimension still answers under a total outage').toBe(15);
+        const unavailable = rows.filter((row) => row.state === 'unavailable');
+        expect(unavailable.length, 'the outage really reached the coverage account').toBeGreaterThan(0);
+
+        /* Named absence, never a fabricated zero and never a dash standing in for a number. */
+        for (const row of unavailable) {
+            expect(row.text.length, `${row.dimensionId} states its absence`).toBeGreaterThan(10);
+            expect(row.text, `${row.dimensionId} must not render a bare dash`).not.toMatch(/(^|\s)[—–-](\s|$)/);
+            expect(row.text, `${row.dimensionId} must not fabricate a zero`).not.toMatch(/(^|\s)0(\.0+)?(\s|%|$)/);
+        }
+
+        /* Four horizons still publish, and a horizon with no evidence says so rather than guessing. */
+        const cards = await page.locator('#cockpit-horizons [data-horizon]')
+            .evaluateAll((nodes) => nodes.map((node) => ({
+                direction: node.getAttribute('data-direction'),
+                quality: node.getAttribute('data-evidence-quality')
+            })));
+        expect(cards).toHaveLength(4);
+        for (const card of cards) {
+            if (card.direction === 'none') expect(card.quality).toBe('absent');
+        }
+
+        expect(await unhandled(), 'a failed load must not become an unhandled rejection').toEqual([]);
+        expect(pageErrors, `runtime errors: ${pageErrors.join(' | ')}`).toEqual([]);
+    } finally {
+        await broken.close();
+    }
+});
+
+test('Stabilize: a malformed committed payload degrades to an absence rather than a half-read value', async ({ page }) => {
+    const overrides = {};
+    for (const path of COMMITTED_SOURCES) overrides[path] = '<<< not json at all >>>';
+    const broken = await startStaticServer({ overrides });
+    try {
+        const unhandled = await watchForUnhandledRejections(page);
+        const pageErrors = [];
+        page.on('pageerror', (error) => pageErrors.push(error.message));
+
+        await page.goto(`${broken.baseUrl}/${ROUTE}?symbol=MSFT`);
+        await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
+        await expect(page.locator('body')).toHaveAttribute('data-corpus-status', 'unavailable');
+
+        /* A payload that parses to nothing must not surface as an empty region: the plan and the
+           event workspaces state the absence in words. */
+        const planCopy = await page.locator('#workspace-plan-summary').textContent();
+        expect(planCopy.trim().length, 'the plan region states why it is empty').toBeGreaterThan(20);
+        expect(await page.locator('#workspace-plan-body [data-branch-id]')).toHaveCount(0);
+
+        expect(await unhandled(), 'a malformed payload must not become an unhandled rejection').toEqual([]);
+        expect(pageErrors, `runtime errors: ${pageErrors.join(' | ')}`).toEqual([]);
+    } finally {
+        await broken.close();
+    }
+});
+
+test('Stabilize: an unreadable coverage registry refuses by name instead of rendering a blank page', async ({ page }) => {
+    const broken = await startStaticServer({ overrides: { 'company-intelligence.config.json': '{ not json' } });
+    try {
+        const unhandled = await watchForUnhandledRejections(page);
+        await page.goto(`${broken.baseUrl}/${ROUTE}`);
+
+        /* The registry is the one dependency the route cannot compose without, so it refuses —
+           and the refusal is a named code the reader can act on, not an empty shell. */
+        await expect(page.locator('body')).toHaveAttribute('data-run-status', 'refused', { timeout: 30_000 });
+        const refusal = page.locator('#subject-refusal');
+        await expect(refusal).toBeVisible();
+        const copy = (await refusal.innerText()).replace(/\s+/g, ' ').trim();
+        expect(copy).toMatch(/^C025-[A-Z-]+:/);
+        expect(copy.length, 'the refusal explains itself').toBeGreaterThan(40);
+
+        /* Refused is not blank: the page the reader is left with still explains what this tool is. */
+        expect((await page.locator('body').innerText()).length).toBeGreaterThan(500);
+        expect(await unhandled(), 'a refused boot must not leave an unhandled rejection').toEqual([]);
+    } finally {
+        await broken.close();
+    }
+});
+
+test('Stabilize: a storage layer that throws on every write still composes the run', async ({ page }) => {
+    const unhandled = await watchForUnhandledRejections(page);
+    const pageErrors = [];
+    page.on('pageerror', (error) => pageErrors.push(error.message));
+
+    /* Safari private mode throws on localStorage.setItem, and a full quota throws everywhere.
+       Persistence is a convenience here; losing it must not cost the reader the run. */
+    await page.addInitScript(() => {
+        Object.getPrototypeOf(window.localStorage).setItem = function () {
+            throw new DOMException('QuotaExceededError', 'QuotaExceededError');
+        };
+    });
+
+    await page.goto(`${site.baseUrl}/${ROUTE}?symbol=MSFT`);
+    await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
+    await expect(page.locator('#workspace-coverage-rows [data-coverage-row]')).toHaveCount(15);
+
+    /* And the composed run really used the corpus it just fetched, in memory, unpersisted. */
+    expect(await page.evaluate(() => (window.RLDATA.bars('MSFT', '1d') || []).length)).toBeGreaterThan(0);
+    expect(await unhandled(), 'a refused write must not become an unhandled rejection').toEqual([]);
+    expect(pageErrors, `runtime errors: ${pageErrors.join(' | ')}`).toEqual([]);
+});
+
+test('Stabilize: the route writes only the shared data container and leaves a sibling tool cache intact', async ({ page }) => {
+    /* Two sibling containers this route has no business touching. If a cache write ever widened
+       to a whole-container replace, these sentinels are what would disappear. */
+    await page.addInitScript(() => {
+        window.localStorage.setItem('sectorLab', JSON.stringify({ sentinel: 'sector-lab-payload' }));
+        window.localStorage.setItem('etfMomLab', JSON.stringify({ sentinel: 'etf-momentum-payload' }));
+    });
+
+    await page.goto(`${site.baseUrl}/${ROUTE}?symbol=MSFT`);
+    await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
+    await page.locator('#subject-input').fill('MSFT');
+    await page.locator('#subject-apply').click();
+    await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
+
+    const storage = await page.evaluate(() => ({
+        keys: Object.keys(window.localStorage).sort(),
+        sectorLab: window.localStorage.getItem('sectorLab'),
+        etfMomLab: window.localStorage.getItem('etfMomLab')
+    }));
+    expect(storage.sectorLab).toBe(JSON.stringify({ sentinel: 'sector-lab-payload' }));
+    expect(storage.etfMomLab).toBe(JSON.stringify({ sentinel: 'etf-momentum-payload' }));
+    /* Non-vacuous control: the run really did write, so "left the siblings alone" means something. */
+    expect(storage.keys, `keys written: ${storage.keys.join(', ')}`).toContain('rlData');
+    expect(storage.keys.filter((key) => !['rlData', 'sectorLab', 'etfMomLab'].includes(key)),
+        'the route introduced no container of its own').toEqual([]);
+});
+
+test('Stabilize: repeat composition of an unchanged subject issues no further request', async ({ page }) => {
+    const requests = [];
+    page.on('request', (request) => {
+        const path = new URL(request.url()).pathname;
+        if (path.startsWith('/data/') || path.endsWith('.json')) requests.push(path);
+    });
+
+    await page.goto(`${site.baseUrl}/${ROUTE}?symbol=MSFT`);
+    await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
+    await expect(page.locator('body')).toHaveAttribute('data-corpus-status', 'loaded');
+
+    /* Non-vacuous control: the first run really went to the network for the committed record,
+       so a later count of zero means the session read is being reused rather than that this
+       route never reads anything. */
+    expect(requests.some((path) => path.includes('/company-intelligence/')),
+        `first run fetched: ${requests.join(', ')}`).toBe(true);
+
+    requests.length = 0;
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+        await page.locator('#subject-apply').click();
+        await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
+    }
+    await expect.poll(() => requests.length, { timeout: 3000, message: 'settling' }).toBe(0);
+
+    /* A committed file cannot change without a reload, so re-requesting one on every apply is
+       pure cost. Five repeat compositions must cost nothing. */
+    expect(requests, `repeat compositions refetched: ${requests.join(', ')}`).toEqual([]);
+    /* And the reuse still composes a complete run rather than a degraded one. */
+    await expect(page.locator('#workspace-coverage-rows [data-coverage-row]')).toHaveCount(15);
+    await expect(page.locator('body')).toHaveAttribute('data-corpus-status', 'loaded');
+});
+
+test('Stabilize: the idle route runs no polling loop, no interval and no animation frame', async ({ page }) => {
+    /* The source-text check above proves this route's own script schedules nothing. It cannot
+       see what the shared modules schedule once the page is live, and a polling loop introduced
+       there would be invisible to every other row in this file. */
+    await page.addInitScript(() => {
+        window.__rlSchedules = { intervals: 0, frames: 0, timeouts: 0 };
+        const nativeInterval = window.setInterval;
+        const nativeFrame = window.requestAnimationFrame;
+        const nativeTimeout = window.setTimeout;
+        window.setInterval = function (...args) { window.__rlSchedules.intervals += 1; return nativeInterval.apply(window, args); };
+        window.requestAnimationFrame = function (...args) { window.__rlSchedules.frames += 1; return nativeFrame.apply(window, args); };
+        window.setTimeout = function (...args) { window.__rlSchedules.timeouts += 1; return nativeTimeout.apply(window, args); };
+    });
+
+    await page.goto(`${site.baseUrl}/${ROUTE}?symbol=MSFT`);
+    await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
+
+    /* Compose hands off to a one-shot debounce in the shared ticker module, so the count is taken
+       once that deferred work has run. Sampling before it would measure the handoff; sampling
+       after it measures whether anything RESCHEDULES, which is what a polling loop does. */
+    await page.waitForTimeout(1500);
+    const settled = await page.evaluate(() => window.__rlSchedules);
+    const requestsWhileIdle = [];
+    page.on('request', (request) => requestsWhileIdle.push(request.url()));
+    await page.waitForTimeout(3000);
+    const afterIdle = await page.evaluate(() => window.__rlSchedules);
+
+    /* No repeating clock anywhere on the live page, and no drawing loop. */
+    expect(afterIdle.intervals, 'the live route schedules no interval').toBe(0);
+    expect(afterIdle.frames, 'the live route schedules no animation frame').toBe(0);
+    /* Non-vacuous control: deferred work really was scheduled, so "no further work" is a claim
+       about settling rather than about a page that never scheduled anything. */
+    expect(settled.timeouts, 'the page did schedule deferred work while composing').toBeGreaterThan(0);
+    /* And it settled: three idle seconds add no new deferred work and no new request. */
+    expect(afterIdle.timeouts - settled.timeouts, 'the settled route reschedules nothing').toBe(0);
+    expect(requestsWhileIdle, `idle route polled: ${requestsWhileIdle.join(', ')}`).toEqual([]);
+});
+
+test('Stabilize: a version chain that points at itself terminates instead of looping', async ({ page }) => {
+    /* An append-only chain is walked by following each record's predecessor. A corrupted record
+       naming itself is the shape that turns that walk into an infinite request loop. */
+    const selfReferencing = JSON.stringify({
+        contractVersion: 'company-intel-version/v1',
+        subjectId: 'company:msft',
+        versionId: 'company:msft:2026-08-11',
+        priorVersionId: 'company:msft:2026-08-11',
+        authoredAt: '2026-08-11',
+        contentFingerprint: 'sha256:' + '0'.repeat(64),
+        horizons: []
+    });
+    const corrupted = await startStaticServer({
+        overrides: { 'data/company-intelligence/company-msft/versions/company-msft-2026-08-11.json': selfReferencing }
+    });
+    try {
+        const versionRequests = [];
+        page.on('request', (request) => {
+            if (new URL(request.url()).pathname.includes('/versions/')) versionRequests.push(request.url());
+        });
+        const unhandled = await watchForUnhandledRejections(page);
+
+        await page.goto(`${corrupted.baseUrl}/${ROUTE}?symbol=MSFT`);
+        await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
+        await page.waitForTimeout(2000);
+
+        /* The walk terminates, and the session read means the cycle costs one request, not one
+           per hop. Both bounds matter: the loop bound stops the walk, the session read stops the
+           traffic. */
+        expect(versionRequests.length, `version requests: ${versionRequests.length}`).toBe(1);
+        expect(await unhandled(), 'a corrupted chain must not become an unhandled rejection').toEqual([]);
+    } finally {
+        await corrupted.close();
+    }
+});
+
+test('Chaos: a background corpus paint does not close a deep dive the reader opened', async ({ page }) => {
+    /* One apply paints the cockpit twice: once synchronously from the coverage registry and
+       again when the corpus resolves. The second paint is not something the reader asked for,
+       so a drill-down opened between the two must survive it. Chaos found this by opening a
+       deep dive inside that window; the rebuild discarded every <details> open state. */
+    await openComposedRoute(page);
+    await page.waitForFunction(
+        () => document.body.getAttribute('data-corpus-status') !== 'pending',
+        null,
+        { timeout: 30_000 }
+    );
+    await page.waitForTimeout(2000);
+
+    /* Apply and open the dive in the same task as the synchronous paint, strictly before the
+       asynchronous corpus paint can land. */
+    const openedOnApplyPaint = await page.evaluate(() => {
+        document.getElementById('subject-input').value = 'AAPL';
+        document.getElementById('subject-apply').click();
+        const dive = document.querySelector('#cockpit-horizons [data-horizon-dive="immediate"]');
+        if (!dive) return false;
+        dive.open = true;
+        return dive.open;
+    });
+    expect(openedOnApplyPaint, 'the apply paint produced no deep dive to open').toBe(true);
+
+    await page.waitForTimeout(3000);
+
+    await expect(page.locator('#cockpit-horizons [data-horizon-dive="immediate"]')).toHaveAttribute('open', '');
+    /* The dives the reader did NOT open stay closed: the carry-over restores a recorded open
+       set rather than opening everything. */
+    const openCount = await page.locator('#cockpit-horizons [data-horizon-dive]')
+        .evaluateAll((nodes) => nodes.filter((node) => node.open).length);
+    expect(openCount, 'the carry-over opened dives the reader never touched').toBe(1);
 });

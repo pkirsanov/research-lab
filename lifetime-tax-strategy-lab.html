@@ -549,6 +549,20 @@
                     </label>
                 </div>
                 <div>
+                    <!-- The residency declarations. Left blank these are UNDECLARED, and an
+                         undeclared residency is never read as an absence of state tax. Where a
+                         household lives is a location signal, so neither member ever reaches a
+                         URL, a request or an export. -->
+                    <label class="field" for="inputResidencyJurisdiction"><span>Residency jurisdiction</span>
+                        <input id="inputResidencyJurisdiction" type="text" value="" placeholder="not declared">
+                    </label>
+                    <label class="field" for="inputResidencyPattern"><span>Residency pattern</span>
+                        <select id="inputResidencyPattern">
+                            <option value="">not declared</option>
+                        </select>
+                    </label>
+                </div>
+                <div>
                     <!-- The housing declarations. Left blank these are UNDECLARED, not zero. The
                          assessed value and the acquisition value sit beside a declared
                          jurisdiction, so they never leave this browser. -->
@@ -747,6 +761,7 @@
                 <div id="incompleteStateNotice"></div>
                 <div id="simpleDecisionSummary"></div>
                 <div id="headlineBlock" data-rl-leg-surface="headline"></div>
+                <div id="stateSettlementCard"></div>
                 <div id="annualMedicareCostCard"></div>
                 <div id="surtaxSummaryCard"></div>
                 <div id="conversionAsymmetryLine"></div>
@@ -1490,6 +1505,64 @@
                 <h3>Source records</h3>
                 <ul id="sourceRecordList"></ul>
             </div>
+
+            <div id="power-state" class="band">
+                <h3>The state settlement, and the jurisdiction that produced it</h3>
+                <p class="subtle">This is a separate settlement, not a term of the federal figure. It reads the state's
+                    own deduction and the state's own schedule and takes no federal amount through any parameter. A
+                    jurisdiction that levies no individual income tax states a zero and cites the authority that
+                    establishes it; a jurisdiction whose figures were not retrieved names each one rather than filling
+                    it in; and a jurisdiction with no pack at all says so instead of substituting an average.</p>
+                <div id="stateRefusal"></div>
+                <p id="statePackIdentity" class="identity"></p>
+                <p id="stateSeparationLine" class="subtle"></p>
+                <p id="stateAuthorityLine" class="subtle"></p>
+                <div class="table-scroll">
+                    <table id="stateStages"
+                        aria-label="Every stage the state settlement declares, in the order the pack states, with the value or the refusal each produced">
+                        <caption>The stage order is the pack's own calculation order. A stage the settlement did not
+                            reach is stated as not reached rather than shown as a zero.</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Stage</th>
+                                <th scope="col">Value or refusal</th>
+                                <th scope="col">Legal standing</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stateStagesBody"></tbody>
+                    </table>
+                </div>
+                <div class="table-scroll">
+                    <table id="stateNotices"
+                        aria-label="Every feature this state pack declares it does not carry, with the code it refuses under">
+                        <caption>Named rather than silently absent. A figure this pack does not carry is never
+                            interpolated from another year, another state or a federal amount.</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Feature</th>
+                                <th scope="col">Code</th>
+                                <th scope="col">Why it is not carried</th>
+                                <th scope="col">Moves the marginal rate</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stateNoticesBody"></tbody>
+                    </table>
+                </div>
+                <div class="table-scroll">
+                    <table id="stateReconciliation"
+                        aria-label="Each reconciliation identity the state settlement checked and whether it held">
+                        <caption>A leg whose input refused reports not-evaluable rather than quietly holding.</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Leg</th>
+                                <th scope="col">Identity</th>
+                                <th scope="col">State</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stateReconciliationBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </section>
     </main>
 
@@ -1510,6 +1583,10 @@
     <script src="rltaxclaimage.js"></script>
     <script src="rltaxmedicare.js"></script>
     <script src="rltax.js"></script>
+    <!-- After rltax.js: the state settlement reads the federal engine's rate-table walk and band
+         context, so exactly one definition of "apply a rate table" exists on this page. It takes
+         no federal figure through any parameter. -->
+    <script src="rltaxstate.js"></script>
     <script src="rltaxstrategy.js"></script>
     <script>
         (function () {
@@ -1521,6 +1598,7 @@
             var INCLUSION = window.RLTAXINCLUSION;
             var MEDICARE = window.RLTAXMEDICARE;
             var STRATEGY = window.RLTAXSTRATEGY;
+            var STATE = window.RLTAXSTATE;
 
             /* Simple may render only decision-level fields. The restriction is a closed list the
                renderer enforces, not a review convention: a field outside it cannot be drawn into
@@ -1529,13 +1607,14 @@
                 "federalTaxDifference", "effectiveMarginalRateAtEdge", "strongestTradeoff", "resultKind",
                 "deductionSideChosen", "propertyTax", "rentalNet", "dwellingUseCategory", "dispositionTax",
                 "annualBenefit", "taxableBenefitPortion", "annualMedicareCost",
-                "netInvestmentIncomeSurtax", "additionalMedicareSurtax", "conversionAsymmetry"];
+                "netInvestmentIncomeSurtax", "additionalMedicareSurtax", "conversionAsymmetry",
+                "stateIncomeTax"];
 
             var POWER_SECTION_IDS = ["power-rule-ledger", "power-settlement", "power-bracket-detail",
                 "power-reconciliation", "power-curve", "power-conversion", "power-property",
                 "power-deduction", "power-use", "power-rental", "power-disposition", "power-benefit",
                 "power-inclusion", "power-claim-age", "power-medicare", "power-tax-legs",
-                "power-source-records"];
+                "power-source-records", "power-state"];
 
             /* Every detail Simple withholds carries a link to the Power section that owns it, so
                nothing is hidden without a route to it. */
@@ -1562,7 +1641,8 @@
                    position, so an inserted row would silently retarget it. */
                 { detail: "Every rule pack this settlement resolved, the year it is effective for and the source it was transcribed from", section: "power-rule-ledger" },
                 { detail: "Each surtax rate, the basis it was applied to, the filing-status threshold it was compared against and the leg set the federal total summed", section: "power-tax-legs" },
-                { detail: "The modified adjusted gross measure's completeness declaration and every adjustment the pack does not model", section: "power-tax-legs" }
+                { detail: "The modified adjusted gross measure's completeness declaration and every adjustment the pack does not model", section: "power-tax-legs" },
+                { detail: "The state pack the declared residency resolved, every settlement stage it produced, the authority behind a jurisdiction that levies nothing and each figure the pack does not carry", section: "power-state" }
             ];
 
             var MODE_KEY = "rlLifetimeTaxDisplayMode";
@@ -1573,6 +1653,7 @@
                 pack: null,
                 packRefusals: [],
                 propertyRegimes: {},
+                statePacks: {},
                 benefitPack: null,
                 mortalityPack: null,
                 medicarePack: null,
@@ -1721,6 +1802,17 @@
                     yearOption.value = String(years[index]);
                     yearOption.textContent = String(years[index]);
                     yearSelect.appendChild(yearOption);
+                }
+                /* The patterns a household may declare are the patterns the contract declares.
+                   The page holds no pattern name, so a pattern this tool does not model refuses
+                   under its own code rather than being absent from the control entirely. */
+                var patterns = RULES.RESIDENCY_PATTERNS;
+                var patternSelect = byId("inputResidencyPattern");
+                for (index = 0; index < patterns.length; index += 1) {
+                    var patternOption = document.createElement("option");
+                    patternOption.value = patterns[index];
+                    patternOption.textContent = patterns[index];
+                    patternSelect.appendChild(patternOption);
                 }
             }
 
@@ -2112,6 +2204,56 @@
                 return ids;
             }
 
+            /* The displayable citation for a figure an authority states: the record its sourceRef
+               names, the locator the figure itself carries and the address that record was
+               retrieved from. A figure whose sourceRef names no record states why rather than
+               being shown as though it were uncited. */
+            function stateCitationText(pack, figure) {
+                var source = RULES.sourceForFigure(pack, figure);
+                if (RULES.isUnavailable(source)) return source.reason;
+                return source.title + " \u00b7 " + source.locator + " \u00b7 " + source.url;
+            }
+
+            /* CO-13 and CO-14, composed here rather than recomputed by either view. The state
+               settlement is a SEPARATE settlement: `computeAnnualStateTax` takes the workspace and
+               the state pack and has no parameter through which a federal figure could reach it,
+               and nothing below adds its total into the federal one.
+
+               Three refusals are kept distinct because they are three different work items. The
+               pack may refuse to resolve at all — an undeclared residency, a pattern this tool
+               does not model, a state with no shipped pack. The settlement may refuse as a whole.
+               Or the settlement may compose while its TOTAL refuses, which is California: the pack
+               resolved, the stages exist, and the standard deduction the state's own authority
+               would have supplied was never retrieved. Each is published with the pack that was
+               resolved where one was, so the Power section can still show what the pack does carry
+               beside what it does not. */
+            function stateSettlement() {
+                var empty = { available: false, refusal: null, settlement: null, pack: null, total: null };
+                if (!state.config || !state.workspace) return empty;
+                var resolved = STATE.resolveStatePack(state.workspace, state.statePacks, {
+                    program: state.config.rules.program,
+                    declaredTaxYear: state.workspace.declaredTaxYear,
+                    filingStatus: state.workspace.filingStatus
+                });
+                if (RULES.isUnavailable(resolved)) {
+                    return { available: false, refusal: resolved, settlement: null, pack: null, total: null };
+                }
+                var settlement = STATE.computeAnnualStateTax(state.workspace, resolved);
+                if (RULES.isUnavailable(settlement)) {
+                    return { available: false, refusal: settlement, settlement: null, pack: resolved, total: null };
+                }
+                if (RULES.isUnavailable(settlement.totalStateTax)) {
+                    return {
+                        available: false, refusal: settlement.totalStateTax,
+                        settlement: settlement, pack: resolved, total: null
+                    };
+                }
+                return {
+                    available: true, refusal: null, settlement: settlement, pack: resolved,
+                    total: settlement.totalStateTax
+                };
+            }
+
             function buildEnvelope() {
                 var unavailable = [];
                 var viable = WORKSPACE.minimumViableInput(state.workspace);
@@ -2127,6 +2269,7 @@
                 var inclusionLeg = inclusionSettlement(benefitLeg);
                 var claimAgeStage = claimAgeComparison();
                 var medicare = medicareStage();
+                var stateLeg = stateSettlement();
                 /* FR-023-027. The personal half of every allocated dwelling expense, published by
                    the settlement and handed to the composition so it competes there rather than
                    being discarded at the allocation. */
@@ -2145,6 +2288,7 @@
                         inclusion: inclusionLeg,
                         claimAge: claimAgeStage,
                         medicare: medicare,
+                        stateTax: stateLeg,
                         federalLegIds: [], legIds: settledLegIds(null, propertyLeg, rentalLeg, useLeg, dispositionLeg, benefitLeg, inclusionLeg, medicare),
                         unavailable: unavailable
                     };
@@ -2188,6 +2332,7 @@
                     inclusion: inclusionLeg,
                     claimAge: claimAgeStage,
                     medicare: medicare,
+                    stateTax: stateLeg,
                     federalLegIds: settledLegIds(settlement, null, null, null, null, null, null, null),
                     legIds: settledLegIds(settlement, propertyLeg, rentalLeg, useLeg, dispositionLeg, benefitLeg, inclusionLeg, medicare),
                     deduction: ENGINE.composeItemizedDeduction(state.workspace, state.pack, {
@@ -2531,6 +2676,42 @@
                             "The crossed curve segment carrying the largest product of effective marginal rate and conversion dollars falling inside it. Ties break by the lower level, so this line is computed rather than narrated."));
                         tradeoffHost.appendChild(tradeoffRow);
                     }
+                }
+
+                /* The state settlement reaches Simple as a decision-level figure of its own. It is
+                   rendered OUTSIDE the viability branch above because the state axis refuses and
+                   settles independently of whether the federal workspace is viable: a household
+                   that has declared where it lives but not yet enough to settle a federal year is
+                   still owed the answer for its state. Every member read below sits behind the
+                   available guard, because a refusing state settlement publishes its refusal alone
+                   and dereferencing a total it never produced would abort this renderer. */
+                var stateHost = byId("stateSettlementCard");
+                clear(stateHost);
+                var stateLeg = envelope.stateTax;
+                if (stateLeg && stateLeg.available !== true && stateLeg.refusal) {
+                    stateHost.appendChild(unavailableNode(stateLeg.refusal,
+                        "State income tax for the declared year"));
+                } else if (stateLeg && stateLeg.available === true) {
+                    var stateFigureHost = document.createElement("div");
+                    stateFigureHost.setAttribute("data-rl-state-settlement", stateLeg.settlement.jurisdiction);
+                    stateFigureHost.appendChild(text("div",
+                        "State income tax for the declared year, which is a separate settlement and is not part of the federal figure above",
+                        "label"));
+                    var stateFigureValue = document.createElement("div");
+                    stateFigureValue.className = "headline";
+                    stateFigureValue.appendChild(simpleValueNode("stateIncomeTax", money(stateLeg.total),
+                        "The individual income tax the jurisdiction you declared as your residency levies on the year you declared, settled from that jurisdiction's own deduction and its own schedule. It takes no federal amount through any parameter and it is never added into the federal figure above. Every stage, every citation and every figure the pack does not carry are in the Power state section."));
+                    stateFigureHost.appendChild(stateFigureValue);
+                    /* A jurisdiction that levies nothing states a zero that CARRIES ITS AUTHORITY.
+                       Rendering it as a bare zero would make it indistinguishable from an absence,
+                       which is the substitution the sourced-zero shape exists to prevent, so the
+                       citation is shown beside the figure rather than only in Power. */
+                    if (RULES.isSourcedZero(stateLeg.total)) {
+                        stateFigureHost.appendChild(text("div", stateLeg.total.reason, "subtle"));
+                        stateFigureHost.appendChild(text("div",
+                            "Established by " + stateCitationText(stateLeg.pack, stateLeg.total), "subtle"));
+                    }
+                    stateHost.appendChild(stateFigureHost);
                 }
 
                 var unavailableHost = byId("unavailableDomainList");
@@ -4232,6 +4413,127 @@
                 }
             }
 
+            /* Every member read here is one the state composition ACTUALLY publishes for the shape
+               it is in. A state settlement that refused publishes its refusal alone \u2014 no pack,
+               no stages, no reconciliation \u2014 and a settlement whose TOTAL refused publishes the
+               stages but no total, so each read below sits behind the guard for the shape that
+               produces it. Dereferencing a member the shape never published would throw and abort
+               renderPower(), taking every section after this one down with it. */
+            function renderState() {
+                var refusalHost = byId("stateRefusal");
+                var stagesBody = byId("stateStagesBody");
+                var noticesBody = byId("stateNoticesBody");
+                var reconciliationBody = byId("stateReconciliationBody");
+                clear(refusalHost);
+                clear(stagesBody);
+                clear(noticesBody);
+                clear(reconciliationBody);
+                byId("statePackIdentity").textContent = "";
+                byId("stateSeparationLine").textContent = "";
+                byId("stateAuthorityLine").textContent = "";
+                var leg = state.envelope ? state.envelope.stateTax : null;
+                if (!leg) return;
+                if (leg.refusal) {
+                    refusalHost.appendChild(unavailableNode(leg.refusal, "State income tax"));
+                }
+                var settlement = leg.settlement;
+                if (!settlement) return;
+                var pack = leg.pack;
+                byId("statePackIdentity").textContent = pack.id + " \u00b7 v" + pack.version
+                    + " \u00b7 " + pack.jurisdiction + " \u00b7 " + pack.program
+                    + " \u00b7 tax year " + pack.effectiveTaxYears.join(", ")
+                    + " \u00b7 " + pack.ruleStatus
+                    + " \u00b7 retrieved " + pack.retrievedAt
+                    + " \u00b7 " + pack.contentSha256;
+                byId("stateSeparationLine").textContent = "This settlement is priced from "
+                    + settlement.jurisdiction + "'s own deduction and its own schedule. No federal amount reaches it: "
+                    + "the state settlement takes the workspace and the state pack and has no parameter a federal figure could arrive through, "
+                    + "and its total is published beside the federal total rather than inside it.";
+
+                /* The stage rows walk the PACK'S OWN declared order, so a stage the settlement
+                   never reached is stated as not reached rather than omitted, and a jurisdiction
+                   that declares no stages at all shows an empty order rather than a fabricated
+                   one. */
+                var order = settlement.calculationOrder;
+                var index = 0;
+                for (index = 0; index < order.length; index += 1) {
+                    var record = settlement.stages[order[index]];
+                    var stageRow = document.createElement("tr");
+                    stageRow.setAttribute("data-rl-state-stage", order[index]);
+                    stageRow.appendChild(text("td", order[index]));
+                    var stageCell = document.createElement("td");
+                    if (RULES.isUnavailable(record)) {
+                        stageCell.appendChild(unavailableNode(record));
+                        stageRow.appendChild(stageCell);
+                        stageRow.appendChild(text("td", "unavailable"));
+                    } else if (record === null || record === undefined) {
+                        stageCell.appendChild(valueNode("state-stage-" + order[index],
+                            "not reached in this settlement",
+                            "This settlement stopped before this stage, so no figure was produced for it. Nothing stands in for the figure that would have been produced."));
+                        stageRow.appendChild(stageCell);
+                        stageRow.appendChild(text("td", "unavailable"));
+                    } else {
+                        stageCell.appendChild(valueNode("state-stage-" + order[index], dollars(record.value),
+                            "The amount stage " + order[index] + " produced, from the state pack's own figures alone."));
+                        stageRow.appendChild(stageCell);
+                        stageRow.appendChild(text("td", record.ruleStatus));
+                    }
+                    stagesBody.appendChild(stageRow);
+                }
+
+                /* The total, as its own row rather than as a stage: it is what the household reads,
+                   and a jurisdiction whose declared order is empty would otherwise publish nothing
+                   at all here. */
+                var totalRow = document.createElement("tr");
+                totalRow.setAttribute("data-rl-state-stage", "total");
+                totalRow.appendChild(text("td", "Total state income tax"));
+                var totalCell = document.createElement("td");
+                if (leg.available === true) {
+                    totalCell.appendChild(valueNode("state-total", money(leg.total),
+                        "The individual income tax this jurisdiction levies on the year you declared. It is a separate settlement and is never added into the federal total."));
+                    totalRow.appendChild(totalCell);
+                    totalRow.appendChild(text("td", leg.total.ruleStatus));
+                } else {
+                    totalCell.appendChild(unavailableNode(settlement.totalStateTax, "Total state income tax"));
+                    totalRow.appendChild(totalCell);
+                    totalRow.appendChild(text("td", "unavailable"));
+                }
+                stagesBody.appendChild(totalRow);
+
+                /* A sourced zero is a zero that CARRIES ITS AUTHORITY. Stating the authority here
+                   is what makes it distinguishable from an absence rather than only differently
+                   shaped in memory. */
+                if (leg.available === true && RULES.isSourcedZero(leg.total)) {
+                    byId("stateAuthorityLine").textContent = "This jurisdiction levies no individual income tax on this household. "
+                        + leg.total.reason + " Established by " + stateCitationText(pack, leg.total) + ".";
+                }
+
+                var notices = settlement.unsupportedFeatureNotices;
+                for (index = 0; index < notices.length; index += 1) {
+                    var notice = notices[index];
+                    var noticeRow = document.createElement("tr");
+                    noticeRow.setAttribute("data-rl-state-unsupported", notice.id);
+                    noticeRow.appendChild(text("td", notice.label));
+                    noticeRow.appendChild(text("td", notice.code));
+                    noticeRow.appendChild(text("td", notice.reason));
+                    noticeRow.appendChild(text("td", notice.movesMarginalRate === true
+                        ? "yes, so a marginal rate read without it is incomplete"
+                        : "no"));
+                    noticesBody.appendChild(noticeRow);
+                }
+
+                var reconciliationLegs = settlement.reconciliation.legs;
+                for (index = 0; index < reconciliationLegs.length; index += 1) {
+                    var identityLeg = reconciliationLegs[index];
+                    var identityRow = document.createElement("tr");
+                    identityRow.setAttribute("data-rl-state-reconciliation", identityLeg.id);
+                    identityRow.appendChild(text("td", identityLeg.id));
+                    identityRow.appendChild(text("td", identityLeg.identity));
+                    identityRow.appendChild(text("td", identityLeg.state));
+                    reconciliationBody.appendChild(identityRow);
+                }
+            }
+
             function renderPower() {                renderRuleLedger();
                 renderSettlement();
                 renderCurve();
@@ -4246,6 +4548,7 @@
                 renderClaimAge();
                 renderMedicare();
                 renderTaxLegLedger();
+                renderState();
                 renderLegVisibility();
             }
 
@@ -4343,6 +4646,12 @@
                 workspace.conversionFundingSource = byId("inputFundingSource").value === ""
                     ? null : byId("inputFundingSource").value;
                 workspace.selectedBracketId = byId("inputBracket").value === "" ? null : byId("inputBracket").value;
+                /* Both residency members are read as DECLARED: blank stays null and refuses by
+                   name. Neither is inferred from the property jurisdiction, because a household
+                   may own property in a state it does not live in, and a residency this page
+                   guessed would then be settled against that state's schedule. */
+                workspace.residencyJurisdiction = readDeclaredText("inputResidencyJurisdiction");
+                workspace.residencyPattern = readDeclaredText("inputResidencyPattern");
                 workspace.propertyJurisdiction = readDeclaredText("inputPropertyJurisdiction");
                 workspace.propertyAssessedValue = readDeclaredBasis("inputPropertyAssessedValue");
                 workspace.propertyPriorAssessedValue = readDeclaredBasis("inputPropertyPriorAssessedValue");
@@ -4407,6 +4716,7 @@
                 "inputOrdinary", "inputQualifiedDividend", "inputLongTermCapitalGain",
                 "inputTaxExemptInterest", "inputOtherNetInvestmentIncome", "inputMedicareWageBasis",
                 "inputFundingSource", "inputBracket",
+                "inputResidencyJurisdiction", "inputResidencyPattern",
                 "inputPropertyJurisdiction", "inputPropertyAssessedValue", "inputPropertyPriorAssessedValue",
                 "inputPropertyAcquisitionValue", "inputPropertyLocalCombinedRate",
                 "inputPropertyExemptionElections", "inputMortgageInterestPaid",
@@ -4452,6 +4762,8 @@
                         ? "" : String(workspace.wageBasis.medicareWagesAndSelfEmploymentIncome);
                 byId("inputFundingSource").value = workspace.conversionFundingSource === null
                     ? "" : workspace.conversionFundingSource;
+                byId("inputResidencyJurisdiction").value = workspace.residencyJurisdiction === null ? "" : workspace.residencyJurisdiction;
+                byId("inputResidencyPattern").value = workspace.residencyPattern === null ? "" : workspace.residencyPattern;
                 byId("inputPropertyJurisdiction").value = workspace.propertyJurisdiction === null ? "" : workspace.propertyJurisdiction;
                 byId("inputPropertyAssessedValue").value = workspace.propertyAssessedValue === null ? "" : String(workspace.propertyAssessedValue);
                 byId("inputPropertyPriorAssessedValue").value = workspace.propertyPriorAssessedValue === null ? "" : String(workspace.propertyPriorAssessedValue);
@@ -4672,6 +4984,21 @@
                                 state.propertyRegimes[jurisdiction] = regime;
                             }).catch(function () { return null; });
                         })).then(function () {
+                        /* The state packs are DECLARED by the configuration exactly as the federal
+                           pack and the regime packs are, and read from this checkout by the same
+                           local path mechanism. Declaring them is what lets the permitted-asset
+                           derivation absorb them from the page's own declarations rather than from
+                           a hand-listed path, so a request to a pack the configuration never
+                           declared is still an undeclared request. A pack that fails to read leaves
+                           that jurisdiction unresolved and its residency refuses by name; no
+                           average, no national default and no zero is substituted for it. */
+                        var declaredStatePaths = config.rules.statePackPaths;
+                        return Promise.all(Object.keys(declaredStatePaths).map(function (jurisdiction) {
+                            return loadJson(declaredStatePaths[jurisdiction]).then(function (statePack) {
+                                state.statePacks[jurisdiction] = statePack;
+                            }).catch(function () { return null; });
+                        }));
+                        }).then(function () {
                         /* The benefit pack is DECLARED by the configuration, exactly as the rule
                            pack and the regime packs are, and read from this checkout by the same
                            local path mechanism. Declaring it rather than assembling its path here

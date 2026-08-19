@@ -150,12 +150,31 @@ Assert that a producer for `gateResult` exists on the publication path.
   gates the Pages deploy, so landing it red halts the release channel. R5 must land
   **with** its remedy, not before it.
 
-**R1 and R2 remain UNSELECTED and blocked on the owner policy decision. R3 is a documented
-regression. R5 cannot land alone. R4 IS NOW SELECTED AND LANDED (2026-08-19)** — it is the
-only candidate implementable without inventing detection policy, it invents no judgement, and
-its coordination constraint was met by implementing the statement inside spec 026's own
-renderer rather than independently of it. R4 closes EB-3 and does NOT restore the feed; the
-capability still waits on R1's owner-declared mapping.
+**R1 AND R4 ARE NOW SELECTED AND LANDED (2026-08-19). R2 is superseded by R1. R3 remains a
+documented regression. R5 is now landable because its remedy has landed.**
+
+R4 closed EB-3 — the empty feed now states refusal rather than reading as calm — by
+implementing the statement inside spec 026's own renderer, which met its coordination
+constraint.
+
+R1 closed the producer gap. `rlattentiongate.js` derives the observed half of a
+`decision-attention/v1` item from committed Tier-A state and a NEW external policy artifact,
+`attention-detection-policy/v1` in `market-brief.config.json`. The objection §9 raised — that
+an implementer choosing the mapping is inventing product policy — is answered structurally
+rather than waived: the producer carries NO threshold of its own, so an absent or partial
+policy resolves to `null` and it emits nothing. The judgement therefore lives in a committed,
+versioned artifact the owner edits, not in code, and `SCN-BUG009-R1-NODEFAULT` asserts exactly
+that. The band VALUES were drafted under the owner's explicit delegation and are conservative
+by construction: only a SEVERE reading that INDEPENDENTLY PERSISTED reaches `attention`, and a
+severe but unconfirmed reading is demoted to `context`. Against real committed state that
+currently yields 9 observed subjects, all `context`, and zero interruptions.
+
+R2 is superseded rather than rejected. Its blocker was real and was verified in source:
+`assertCandidateShape` in `rlmarketaction.js` requires an integer `severity` 1–5 and a finite
+`likelihoodInterval`, and `runQualification` gate 4 requires authored `thesis`, `whyNow` and
+`trigger`. Those are authored judgement, so wiring that pipeline would have relocated the hole
+exactly as §4 predicted. R1's `decision-attention/v1` contract is the lighter one: the lane
+authors its judgement half and the gate supplies the observed half, which is derivable.
 
 ## 5. Why the proposed regression tests would not have caught this
 

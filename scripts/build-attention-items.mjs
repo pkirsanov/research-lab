@@ -56,6 +56,17 @@ const RLATTN = createRequire(import.meta.url)(resolve(ROOT, 'rlattention.js'));
    mutates default-visible content, so it owes a fresh measurement. rlcockpit.js
    owns the one measurement the composer and the validator already share. */
 const RLCOCKPIT = createRequire(import.meta.url)(resolve(ROOT, 'rlcockpit.js'));
+const RLATTNGATE = createRequire(import.meta.url)(resolve(ROOT, 'rlattentiongate.js'));
+
+/* The snapshot is read lazily and defensively: a missing or unreadable snapshot
+   yields no observations rather than aborting the composer. */
+function loadSnapshotForGate() {
+  try {
+    return loadJson('market-brief.snapshot.json');
+  } catch {
+    return null;
+  }
+}
 
 /** The judgement fields the lane owns. Anything outside this list is not authored. */
 export const AUTHORED_JUDGEMENT_KEYS = Object.freeze([
@@ -286,9 +297,19 @@ export function candidateFromPublishedItem(item) {
  */
 export function recomposePayloadAttention(payload, config) {
   const published = Array.isArray(payload?.attention) ? payload.attention : [];
-  const candidates = published.map((item) => item && item.contractVersion === 'decision-attention/v1'
+  const rawCandidates = published.map((item) => item && item.contractVersion === 'decision-attention/v1'
     ? candidateFromPublishedItem(item)
     : item);
+  /* BUG-009 R1. The lane authors judgement and never observes, so a candidate that
+     reaches here without an `observed` half is refused RLATTN-PROVENANCE and the feed
+     publishes nothing. Attach the observed half from committed Tier-A state, banded by
+     the owner-declared attention-detection-policy/v1. With no policy declared this is
+     a no-op and the prior refusal stands, which is the honest outcome. */
+  const candidates = RLATTNGATE.attachObserved(
+    rawCandidates,
+    loadSnapshotForGate(),
+    config && config['attention-detection-policy/v1']
+  );
   const { items, exclusions } = buildAttentionItems(candidates, payload, config);
 
   if (items.length + exclusions.length !== candidates.length) {

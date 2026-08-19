@@ -317,12 +317,30 @@ missing browser or an absent test does not satisfy RED.
       check confirms the repository's `SUP-023-NN` markers equal the nine ledger
       entries.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the marker check · **Evidence:** `report.md#supersession-ledger`, `report.md#tp-05-19`, `report.md#tp-05-20`
-  - **Left unchecked because:** the marker check is green and was observed in this
-    session (`TP-05-19 and TP-05-20`, exit 0), but the superseded clause verbatim
-    and the intended-RED failure that preceded SUP-023-09's green were produced in
-    the implementation session and are not recorded in `report.md`. This session
-    did not observe that RED and will not claim it. The row needs the
-    implementation session's capture, not a second green.
+  - **Left unchecked because:** TWO independent conjuncts fail, one of which is a
+    planning-vs-delivery contradiction this agent must not paper over.
+    1. **The row asserts the wrong count and is therefore false as written.** It
+       requires the marker check to confirm the repository's markers equal *the
+       nine ledger entries*. The delivered ledger holds **fourteen**. Executed in
+       this session:
+       `grep -rhoE 'SUP-023-[0-9]{2}' specs/023-property-tax-and-rental-income/ | sort -u | wc -l`
+       → `14`, the ids being SUP-023-01 through SUP-023-14. Nine was the planning
+       prediction; SUP-023-10 through SUP-023-14 were admitted in flight under
+       ASC-8 by Scopes 02, 03 and 04. Ticking this row would assert an equality
+       against nine that the repository contradicts, and rewriting the row's own
+       claim from nine to fourteen is a planning edit this agent does not own.
+       **Route to `bubbles.plan` to correct the stated count.**
+    2. **The intended-RED conjunct has no recoverable baseline.** The row requires
+       SUP-023-09's intended-RED failure to be *recorded before its green*. That
+       observation belongs to the implementation session, which is squashed into
+       commit `b9d92a3f1` together with every other scope of Features 021-024, so
+       no pre-supersession tree state exists to re-derive it from. This session did
+       not observe that RED and will not claim it.
+    What IS verified in this session: the marker check is green — `TP-05-19` and
+    `TP-05-20` pass inside `node scripts/selftest.mjs` (`3011 passed, 0 failed`,
+    exit `0`), confirming the row count, the ownership column's sum and the stated
+    arithmetic agree with each other, that Scope 05 owns exactly its one listed
+    entry, and that the marker sits only in the file the distribution names.
 - [x] NFR-023-010 holds: the tool is still absent from every registry and no new
       root HTML exists.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus `node scripts/build-pages-site.mjs --dry-run` · **Evidence:** `report.md#tp-05-21`, `report.md#tp-05-29`

@@ -313,7 +313,7 @@ missing browser or an absent test does not satisfy RED.
 - [x] NFR-023-003 holds: the disposition declarations are inventoried, cleared and
       redacted, and the request ledger stays empty.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser privacy row · **Evidence:** `report.md#tp-05-18`, `report.md#tp-05-25`
-- [ ] SUP-023-09 is delivered with its marker in the file the per-file distribution
+- [x] SUP-023-09 is delivered with its marker in the file the per-file distribution
       names, its superseded clause recorded verbatim at its own site and the
       superseded literal surviving nowhere else, and the marker check confirms the
       repository's distinct `SUP-023-NN` markers and the ledger's entries are the
@@ -324,7 +324,15 @@ missing browser or an absent test does not satisfy RED.
       without editing this row. The identity is proven able to fail: recomputed once
       with a marker id removed and once with a marker id renamed, it fails in both
       cases and names the id that broke it.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the marker check · **Evidence:** `report.md#supersession-ledger`, `report.md#tp-05-19`, `report.md#tp-05-20`
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the marker check · **Evidence:** `report.md#supersession-ledger`, `report.md#verification-of-the-corrected-ledger-derived-identity-row`, `report.md#tp-05-19`, `report.md#tp-05-20`
+  - **Verified and checked.** Executed against the committed tree. The three count
+    sources agree at fourteen (ledger rows `14`, ownership column `5+5+1+2+1=14`,
+    sentence *Five plus five plus one plus two plus one is fourteen*), the tree
+    carries exactly those fourteen distinct ids, and set equality holds in both
+    directions. Both adversarial recomputations fail and name the breaking id: the
+    removal names `SUP-023-12`, the rename names both `SUP-023-09` (lost) and
+    `SUP-023-99` (unledgered), the latter while holding the set size constant so a
+    count-only check could not have caught it.
   - **Corrected by `bubbles.plan`.** This row previously required the markers to
     equal *the nine ledger entries* and required SUP-023-09's intended-RED failure
     to be recorded before its green. Neither conjunct could be satisfied.

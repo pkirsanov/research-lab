@@ -289,7 +289,7 @@ all. A syntax error, a missing browser or an absent test does not satisfy RED.
 - [x] NFR-023-003 holds: the rental declarations are inventoried, cleared and
       redacted, and the request ledger stays empty.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-20`
-- [ ] Every assertion this scope changed outside the appended selftest group is a
+- [x] Every assertion this scope changed outside the appended selftest group is a
       ledgered supersession, and this scope owns exactly one: `SUP-023-12`, admitted
       in flight under ASC-8 because TP-02-12's byte-identity check reconstructed the
       pre-feature pack from a hand-maintained three-member removal list that
@@ -309,7 +309,14 @@ all. A syntax error, a missing browser or an absent test does not satisfy RED.
     the ledgered-supersession requirement above, which keeps the original protective
     intent — an unledgered assertion edit still fails it — instead of asserting a
     count of zero the repository refutes.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the marker check · **Evidence:** `report.md#supersession-ledger`
+  - **Verified and checked.** Every conjunct was executed against the committed
+    tree. `scripts/selftest.mjs` has zero deleted lines from the pre-feature
+    baseline `e903749c0^` to HEAD (`11265 0`), so no pre-existing assertion differs
+    from its pre-feature text; the ownership table declares Scope 03 owns exactly
+    `SUP-023-12`; all four ASC-8 surfaces book it; the superseded clause is quoted
+    verbatim at its marker site and the literal survives in no live code and in no
+    other file; and the marker sits only in the file the distribution names.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the marker check · **Evidence:** `report.md#supersession-ledger`, `report.md#verification-of-the-corrected-ledgered-supersession-row`
 - [x] Every excluded path is byte-identical, and the only federal pack change is
       the additive insertion of the three retrieved records.
   - **Phase:** implement · **Command:** a path-scoped status check over the excluded list · **Evidence:** `report.md#change-boundary`

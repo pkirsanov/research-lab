@@ -593,6 +593,85 @@ $ grep -cE '^\| SUP-023-[0-9]{2} \|' specs/023-property-tax-and-rental-income/sp
 14
 ```
 
+### Verification of the corrected ledger-derived identity row
+
+`bubbles.plan` replaced the stale literal *nine* with an identity whose expected
+count is derived from three independent artefact sources, and replaced the
+unrecoverable intended-RED with an adversarial probe. Both halves were executed
+in this session by an out-of-tree read-only probe. Verbatim output:
+
+```
+--- DERIVED COUNT, three independent sources ---
+  source 1  ledger row count              = 14
+  source 2  ownership count-column sum    = 14   (addends 5+5+1+2+1)
+  source 3  arithmetic sentence in words  = 14   ("Five plus five plus one plus two plus one is fourteen")
+  sentence addends match column entry-by-entry = true
+  ALL THREE AGREE = true  -> expected count = 14
+
+--- REPOSITORY MARKER SCAN (spec dir excluded) ---
+  distinct ids in tree = 14
+    SUP-023-01  ->  scripts/selftest.mjs
+    SUP-023-02  ->  scripts/selftest.mjs, tests/lifetime-tax-conversion.spec.mjs
+    SUP-023-03  ->  scripts/selftest.mjs, tests/lifetime-tax-conversion.spec.mjs
+    SUP-023-04  ->  scripts/selftest.mjs
+    SUP-023-05  ->  scripts/selftest.mjs
+    SUP-023-06  ->  scripts/selftest.mjs, tests/lifetime-tax-route.spec.mjs
+    SUP-023-07  ->  scripts/selftest.mjs, tests/lifetime-tax-foundation.spec.mjs
+    SUP-023-08  ->  scripts/selftest.mjs, tests/lifetime-tax-foundation.spec.mjs
+    SUP-023-09  ->  scripts/selftest.mjs
+    SUP-023-10  ->  scripts/selftest.mjs, tests/lifetime-tax-benefit.spec.mjs, tests/lifetime-tax-claim-age.spec.mjs, tests/lifetime-tax-foundation.spec.mjs, tests/lifetime-tax-medicare.spec.mjs, tests/lifetime-tax-property.spec.mjs, tests/lifetime-tax-retirement-route.spec.mjs, tests/lifetime-tax-route.spec.mjs, tests/lifetime-tax.support.mjs
+    SUP-023-11  ->  scripts/selftest.mjs
+    SUP-023-12  ->  scripts/selftest.mjs
+    SUP-023-13  ->  tests/lifetime-tax-rental.spec.mjs
+    SUP-023-14  ->  scripts/selftest.mjs
+
+--- BIDIRECTIONAL IDENTITY (baseline) ---
+  ok=true  set equality holds in both directions
+```
+
+The expected count is never read as a literal: it exists only because the three
+sources agree, so the next ASC-8 admission moves all three together and the row
+survives without a planning edit — which is what `SUP-023-14` traded the pinned
+totals for.
+
+**Adversarial probe — the identity is proven able to fail.** Recomputed twice
+against a deliberately corrupted marker set. Both recomputations fail, and each
+names the id that broke it:
+
+```
+--- ADVERSARIAL PROBE 1: a marker id REMOVED from the tree ---
+  removed SUP-023-12 -> ok=false  BROKEN BY: SUP-023-12 (in ledger, absent from tree)
+  PROBE 1 BEHAVED CORRECTLY = true
+
+--- ADVERSARIAL PROBE 2: a marker id RENAMED in the tree ---
+  renamed SUP-023-09 -> SUP-023-99 : ok=false  BROKEN BY: SUP-023-09 (in ledger, absent from tree); SUP-023-99 (in tree, absent from ledger)
+  PROBE 2 BEHAVED CORRECTLY = true
+
+PROBE_VERDICT=ALL_CLAUSES_HOLD
+PROBE_EXIT=0
+```
+
+The rename probe is the stronger of the two because it holds the set *size*
+constant at fourteen — a check that compared only counts would pass it. This one
+fails, and names both the id that disappeared and the id that appeared, so a
+degenerate implementation that reported nothing could not produce this output.
+
+**SUP-023-09's own booking.** Its marker sits in `scripts/selftest.mjs`, the file
+`design.md` names for it, with the superseded clause
+`noticeIds.includes('unrecaptured-section-1250-gain')` quoted verbatim at its own
+site and surviving in no live code:
+
+```
+$ node -e '<comment-stripped survival check over scripts/selftest.mjs>'
+  present inside marker comment = true
+  survives in live code        = false
+  design.md places it in selftest.mjs = true
+NODE_EXIT=0
+```
+
+Every conjunct of the corrected row holds, so the row is checked. The probe ran
+read-only and left no artefact in the tree.
+
 ## Change Boundary
 
 Path-scoped status over this scope's excluded list, run in this session:

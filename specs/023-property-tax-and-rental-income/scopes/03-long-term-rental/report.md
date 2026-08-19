@@ -223,6 +223,68 @@ carries `| scripts/selftest.mjs | SUP-023-12 | 03 |` in the marker distribution.
 Both name Scope 03, so the row's *no marker was added* clause is false for this
 scope specifically, not merely for the feature as a whole.
 
+### Verification of the corrected ledgered-supersession row
+
+`bubbles.plan` replaced the false *superseded nothing* prediction with a
+ledgered-supersession requirement. Each of its conjuncts was executed against the
+committed tree in this session rather than inferred from the correction note.
+
+**Conjunct 1 — no assertion outside the appended group changed.** The Feature
+021-024 selftest contribution entered `scripts/selftest.mjs` in commit
+`e903749c0`. Measured against the commit immediately before it, the file has
+never lost a line, so every pre-existing assertion is byte-identical to its
+pre-feature text. A modification would appear as a deletion paired with an
+addition, so a zero deletion count is a proof of the clause and not merely
+consistent with it.
+
+```
+$ git --no-pager diff --numstat e903749c0^ e903749c0 -- scripts/selftest.mjs
+9089    0       scripts/selftest.mjs
+
+$ git --no-pager diff -U0 e903749c0^ e903749c0 -- scripts/selftest.mjs | grep -c '^-[^-]'
+0
+
+$ git --no-pager diff --numstat e903749c0^ HEAD -- scripts/selftest.mjs
+11265   0       scripts/selftest.mjs
+```
+
+**Conjuncts 2 through 5 — exactly one owned entry, booked on all four surfaces,
+clause verbatim, literal retired.** Executed by an out-of-tree read-only probe
+that re-derives each surface from the artefact itself. Verbatim output:
+
+```
+--- OWNERSHIP TABLE, per scope ---
+  scope 03  declared=1  entries=[SUP-023-12]  consistent=true
+
+--- SCOPE 03 / SUP-023-12 FOUR-SURFACE BOOKING ---
+  surface 1 ledger row owned by 03       = true
+  surface 2 ownership table, exactly one = true
+  surface 3 per-file distribution        = true
+  surface 4 marker at its own site       = true
+  marker confined to the named file      = ["scripts/selftest.mjs"]
+
+--- SCOPE 03 SUPERSEDED LITERAL SURVIVAL ---
+  literal present inside its marker comment = true
+  literal survives in LIVE CODE            = false
+  literal in any other file                = []
+
+PROBE_VERDICT=ALL_CLAUSES_HOLD
+PROBE_EXIT=0
+```
+
+The superseded literal `const restored02 = clonePack02(); delete
+restored02.deductionCaps; delete restored02.mortgageDebtLimits; delete
+restored02.deductionChoicePolicy;` is quoted verbatim at `scripts/selftest.mjs`
+L15927-L15928 inside its own marker comment, which the marker convention
+requires, and survives nowhere as live code — the live reconstruction at L16096
+is the derived replacement `restorePreFeaturePack023(clonePack02())`.
+
+**Failure clause — a marker in a file the distribution does not name.** The
+probe reports `SUP-023-12` present in exactly one file, `scripts/selftest.mjs`,
+which is the file `design.md` L315 names for it. The clause does not fire.
+
+Every conjunct holds, so the row is checked.
+
 ## Test Evidence
 
 ### TP-03-01

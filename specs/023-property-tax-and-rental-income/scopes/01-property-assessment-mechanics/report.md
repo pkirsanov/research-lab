@@ -787,6 +787,465 @@ The off-by-one at the boundary is caught by the row and by nothing else in the
 group, so the at-cap case is carrying its own weight rather than riding on the
 below and above cases.
 
+## Intended-RED Completion Session
+
+Probes 1 through 6 above left intended-RED recorded for TP-01-01 through TP-01-07
+and TP-01-20 only. This session works the remaining Test Plan rows one at a time,
+in the same shape: mutate the implementation so the row's assertion genuinely
+fails, run the exact command the row names, revert, and re-run the same command.
+Every probe is reverted and the revert verified before the next one opens, so no
+two probes are ever live at once.
+
+Note on the pass count. The concurrent session working Features 025 and 026 has
+appended assertions to `scripts/selftest.mjs` during this session, so the totals
+here read above the 3019 baseline. The figure that matters per row is the
+one-failure delta between its RED and its GREEN, not the absolute total.
+
+### Probe 7 — same-command RED and GREEN for TP-01-01, re-verified
+
+Probe 2's mutation re-applied and re-run in this session, so TP-01-01 carries a
+current-session RED *and* its paired same-command GREEN rather than a RED whose
+green came from a suite-wide run:
+
+```js
+-      if (rules.carriesCitation(member)) {
++      if (false && rules.carriesCitation(member)) {
+```
+
+RED:
+
+```
+# TP-01-01 RED
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3424
+sha256: 437760734e390eb65264c4a84ac4baa57a62c2a7384cf596c13ab89a1089c27d
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-01-01: PropertyAssessment/v1 refuses any member carrying a sourceRef, and a regime figure whose sourceRef names no record is refused rather than displayed with an unreachable citation
+--- omitted 3384 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3027 passed, 1 failed
+```
+
+Reverted, revert verified, then the same command again:
+
+```
+$ git checkout -- rltaxproperty.js && git status --short -- rltaxproperty.js
+reverted-clean
+
+# TP-01-01 GREEN
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3424
+sha256: 4c7b6d22f43bd25deb030057da38b17b37f0d0bd6580581aeeea549b9b2e23be
+--- omitted 3384 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3028 passed, 0 failed
+```
+
+The two runs are the same command over the same tree modulo one predicate call,
+and the delta is exactly one assertion.
+
+### Probe 8 — same-command RED and GREEN for TP-01-08
+
+TP-01-08 asserts the ceiling step states the *right* fact in three situations:
+below the ceiling the declared rate is used unchanged and no bound is stated,
+above it the ceiling binds and says so, and a regime with no ceiling says that
+rather than passing silently. Forcing the bound flag on misstates the first case
+while leaving the arithmetic untouched:
+
+```js
+-      ceilingBound = ceiling.rate < assessment.localCombinedRate;
++      ceilingBound = true;
+```
+
+RED:
+
+```
+# TP-01-08 RED
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3424
+sha256: 962bc8e8b4dac27c45fd2b907bfb3fa3f54810a21a79d91d498ca62aa29c5728
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-01-08: a declared rate below the ceiling is used unchanged with that fact stated, a rate above it is reduced to the ceiling with that fact stated, and a regime carrying no ceiling states that rather than passing silently
+--- omitted 3418 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3027 passed, 1 failed
+```
+
+Reverted, revert verified, same command again:
+
+```
+$ git checkout -- rltaxproperty.js && git status --short -- rltaxproperty.js
+reverted-clean
+
+# TP-01-08 GREEN
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3424
+sha256: 2152c08bd6fdbcb1ef0bd12355e1c38226ff85e5b2b0357a591c526412ba699a
+--- omitted 3418 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3028 passed, 0 failed
+```
+
+**Independence worth recording.** Exactly one assertion fell. TP-01-09, which
+prices the below-ceiling case, stayed green because the mutation changed only the
+*stated fact* and not `appliedRate`. The two rows are therefore separating the
+narrative from the arithmetic rather than asserting the same thing twice.
+
+### Probe 9 — same-command RED and GREEN for TP-01-09
+
+TP-01-09 is the adversarial row naming its own defeating implementation: *an
+implementation using the ceiling as the rate fails here*. That implementation was
+written literally:
+
+```js
+-      appliedRate = Math.min(assessment.localCombinedRate, ceiling.rate);
++      appliedRate = ceiling.rate;
+```
+
+RED:
+
+```
+# TP-01-09 RED
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3424
+sha256: de114b69b13eb4a3c7f3c4910770be2c80c3b68c7cc1cfac33682a1301e5b554
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-01-08: a declared rate below the ceiling is used unchanged with that fact stated, a rate above it is reduced to the ceiling with that fact stated, and a regime carrying no ceiling states that rather than passing silently
+  ✗ FAIL: TP-01-09: below the ceiling the tax is computed from the declared rate and is strictly less than the ceiling would produce — an implementation using the ceiling as the rate fails here
+--- omitted 3418 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3026 passed, 2 failed
+```
+
+Reverted, revert verified, same command again:
+
+```
+$ git checkout -- rltaxproperty.js && git status --short -- rltaxproperty.js
+reverted-clean
+
+# TP-01-09 GREEN
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3424
+sha256: 4eb3b53c42258c06842021f76c21346b70108f4441e41298d24d49a6849fb7af
+--- omitted 3418 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3028 passed, 0 failed
+```
+
+Two assertions fell rather than one, and that is the correct result rather than
+an over-broad probe. Replacing the applied rate changes both the number
+TP-01-09 prices and the number TP-01-08 reads back, so both rows see it. Read
+together with Probe 8 the pair is a clean two-way discrimination: mutating only
+the narrative fell TP-01-08 alone, mutating the rate fell both.
+
+### Probe 10 — same-command RED and GREEN for TP-01-10
+
+TP-01-10 reads the two shipped relief packs directly, so its only faithful
+defeating implementation is a citation that does not resolve. The Florida
+assessment cap's `sourceRef` was pointed at a record id that does not exist:
+
+```json
+-    "sourceRef": "fl-const-a7s4",
++    "sourceRef": "fl-const-a7s4-NOT-A-RECORD",
+```
+
+Checked before mutating: `tax-rules/property/FL/2026.json` carries **no**
+`contentSha256` member, so this probe could not disturb a content digest. That
+was verified rather than assumed, because a digest cascade from an abandoned pack
+probe is a known prior failure in this repository.
+
+RED — and the assertion names the exact faulting path rather than merely failing:
+
+```
+# TP-01-10 RED
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3424
+sha256: 4d8b8c27b7a4a7dc7c13d3c86b5aa892e6adb0a90135bdaa9bde8240e2604ccc
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-01-10: every valued member of both shipped relief regimes cites exactly one retrieved record with a locator, and every unretrieved member is an AbsentFigure with a missingSource pointer and no numeric member beside it: florida-homestead-and-assessment-limitation:assessmentCap:citation
+--- omitted 3418 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3027 passed, 1 failed
+```
+
+Reverted, revert verified over the whole `tax-rules/` tree rather than the one
+file, same command again:
+
+```
+$ git checkout -- tax-rules/property/FL/2026.json && git status --short -- tax-rules
+reverted-clean
+
+# TP-01-10 GREEN
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3424
+sha256: 9891fb95fa36e73a4858e197f0138bfb0ab5bb1202230dd677d8ed43c7e8e0f0
+--- omitted 3418 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3028 passed, 0 failed
+```
+
+Exactly one assertion fell, and its message carried
+`florida-homestead-and-assessment-limitation:assessmentCap:citation` — the
+regime, the member and the fault class. A sourcing check that reported only a
+boolean could not have produced that string.
+
+### Probe 11 — same-command RED and GREEN for TP-01-11
+
+TP-01-11 is a structural row: it pins both signatures so there is no parameter
+through which an income figure could reach a property settlement. Opening exactly
+such a parameter is its defeating implementation:
+
+```js
+-  function computePropertyTax(assessment, regime) {
++  function computePropertyTax(assessment, regime, householdIncome) {
+```
+
+The added parameter is never read, which is the point — the row refuses the
+*possibility* rather than waiting for the misuse, so an unused third argument is
+enough to fail it.
+
+RED:
+
+```
+# TP-01-11 RED
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3424
+sha256: 592bd21c9642e06c7c362e4751da3c6aea59451d3542b01b28924108a43d2b19
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-01-11: computePropertyTax and the CO-15 stage each accept exactly the declared assessment and the sourced regime, no income figure reaches either, and the settled tax is the taxable basis times the applied rate and nothing else
+--- omitted 3418 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3027 passed, 1 failed
+```
+
+Reverted, revert verified, same command again:
+
+```
+$ git checkout -- rltaxproperty.js && git status --short -- rltaxproperty.js
+reverted-clean
+
+# TP-01-11 GREEN
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3424
+sha256: 11db83009210905f5783e3c6b953b019b904f1eb985fb6a3d34570e038fa940f
+--- omitted 3418 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3028 passed, 0 failed
+```
+
+Exactly one assertion fell. No arithmetic changed, so the row is genuinely
+guarding the shape of the seam and not a computed figure.
+
+### Probe 12 — same-command RED and GREEN for TP-01-12
+
+TP-01-12 asserts two-directional identity between the record's declared leg set
+and the four surfaces. Dropping the property leg from the record side breaks the
+identity from the direction the row exists to guard — a leg rendered by every
+surface that the record no longer declares:
+
+```js
+-    var declared = Array.isArray(recordLegIds) ? recordLegIds.slice().sort() : [];
++    var declared = Array.isArray(recordLegIds)
++      ? recordLegIds.filter(function (id) { return id !== "property-tax"; }).sort() : [];
+```
+
+RED:
+
+```
+# TP-01-12 RED
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3424
+sha256: 0ed5745d6a82e50acd1df6d829c71e7163ba7f163a1f6e54977ccda24d3efd1b
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-01-12: against a fixture in which every leg is non-zero and mutually distinct, the settled record’s declared leg set equals the leg set of the headline, the comparison, the curve contributors and the export in both directions, and a leg invented by a surface fails the identity from the …
+  ✗ FAIL: TP-01-13: removing the property leg from each of the four surfaces in turn fails the identity, each failure names the missing leg rather than reporting a numeric mismatch, …
+  ✗ FAIL: TP-03-16 and TP-03-17: the rental leg reaches all four surfaces on the all-non-zero fixture alongside the property leg, …
+  ✗ FAIL: TP-04-17 and TP-04-18: the classification leg reaches all four surfaces on the all-non-zero fixture alongside the property and rental legs, …
+  ✗ FAIL: TP-05-15: both disposition legs the engine produces reach the headline, the comparison, the curve and the export alongside every prior leg, …
+  ✗ FAIL: TP-05-16: removing each disposition leg from each of the four surfaces in turn fails the identity with the missing leg named on the named surface, …
+  ✗ FAIL: TP-01-12: against the all-non-zero fixture the settled record’s declared leg set … and the benefit leg is present in it carrying its own stage and its own identity from the pack
+  ✗ FAIL: TP-02-16: against the all-non-zero fixture the settled record’s declared leg set … with the inclusion leg present in it, …
+--- omitted 3418 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3020 passed, 8 failed
+```
+
+Reverted, revert verified, same command again:
+
+```
+$ git checkout -- rltaxproperty.js && git status --short -- rltaxproperty.js
+reverted-clean
+
+# TP-01-12 GREEN
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3424
+sha256: 3c665a547cd20b101407616a79fef1c343feddd66ef9d95a309beb336685d217
+--- omitted 3418 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3028 passed, 0 failed
+```
+
+**Eight assertions fell, and the breadth is the finding, not a defect in the
+probe.** `legVisibilityIdentity` is the single helper every scope's leg-visibility
+row consumes, so Features 023 and 024 both see the mutation. That is worth
+recording for its own sake: it demonstrates the leg-visibility contract is
+genuinely one shared implementation rather than five parallel copies that could
+drift apart, and it means any future regression in that helper is caught by six
+independent rows rather than one.
+
+### Probe 13 — same-command RED and GREEN for TP-01-13
+
+TP-01-13 is the adversarial half of the pair. It exists to refuse a *degenerate
+census* — an identity that reports an empty finding list for everything and so
+passes while a leg silently disappears. That degenerate implementation was
+written directly, by suppressing the missing-leg detector while leaving the
+identity's structure intact:
+
+```js
+       for (index = 0; index < declared.length; index += 1) {
+-        if (rendered.indexOf(declared[index]) < 0) missing.push(declared[index]);
++        if (false && rendered.indexOf(declared[index]) < 0) missing.push(declared[index]);
+       }
+```
+
+RED:
+
+```
+# TP-01-13 RED
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3424
+sha256: e9a1508083214bc0c482c30e8f55701bbbb43d041e3e443cf68224ab4fdbe7dc
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-01-13: removing the property leg from each of the four surfaces in turn fails the identity, each failure names the missing leg rather than reporting a numeric mismatch, …
+  ✗ FAIL: TP-02-14: removing the recomputed decision from each of the four surfaces in turn fails the identity and each failure names the missing element
+  ✗ FAIL: TP-03-16 and TP-03-17: the rental leg reaches all four surfaces on the all-non-zero fixture alongside the property leg, …
+  ✗ FAIL: TP-04-17 and TP-04-18: the classification leg reaches all four surfaces on the all-non-zero fixture alongside the property and rental legs, …
+  ✗ FAIL: TP-05-16: removing each disposition leg from each of the four surfaces in turn fails the identity with the missing leg named on the named surface, …
+  ✗ FAIL: TP-01-13: removing the benefit leg from each of the four surfaces in turn is proven to fail, …
+  ✗ FAIL: TP-02-17: removing the inclusion leg from each of the four surfaces in turn is proven to fail, …
+  ✗ FAIL: TP-04-19: removing each of the three premium legs from each of the four surfaces in turn fails the identity in all twelve cases with both the leg and the surface named, …
+--- omitted 3418 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3020 passed, 8 failed
+```
+
+Reverted, revert verified, same command again:
+
+```
+$ git checkout -- rltaxproperty.js && git status --short -- rltaxproperty.js
+reverted-clean
+
+# TP-01-13 GREEN
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3424
+sha256: ac381a0137375559daf0cf1a5119006cee63c4ae31d22b177c9cda9a2d0bbc18
+--- omitted 3418 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3028 passed, 0 failed
+```
+
+**The discrimination against Probe 12 is exact and is the point of the pair.**
+Both probes fell eight assertions, but *not the same eight*. Probe 12 fell
+TP-01-12 and left the invented-leg direction reporting; this probe leaves
+TP-01-12 **green** — the identity still holds on the unmutated fixture, so a
+reader looking only at TP-01-12 would see nothing wrong — and falls the eight
+adversarial removal rows instead. That is precisely the failure mode TP-01-13 was
+written to catch: an implementation that looks correct whenever nothing is
+missing, and stays silent when something is.
+
+### Probe 14 — same-command RED and GREEN for TP-01-14
+
+TP-01-14 holds the refusal vocabulary closed: the member count stays at its
+pre-feature value and every code the property surface raises is an existing
+member. Inventing a property-specific code is the defeating implementation —
+it is how a closed vocabulary quietly becomes an open one:
+
+```js
+-      refusals.push(rules.unavailable("RLTAX-CONFIG-INVALID", "assessment:exemptionElections",
++      refusals.push(rules.unavailable("RLTAX-PROPERTY-ELECTIONS-INVALID", "assessment:exemptionElections",
+```
+
+RED — the assertion names the invented code rather than reporting a count
+mismatch:
+
+```
+# TP-01-14 RED
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3424
+sha256: 04115ee9d49e2778c6717e2251b202e5e521653150ca73899d2698a39b939e35
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-01-14: the refusal vocabulary member count is unchanged at its pre-feature value and every code the property surface raises is an existing member: RLTAX-PROPERTY-ELECTIONS-INVALID
+--- omitted 3418 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3027 passed, 1 failed
+```
+
+Reverted, revert verified, same command again:
+
+```
+$ git checkout -- rltaxproperty.js && git status --short -- rltaxproperty.js
+reverted-clean
+
+# TP-01-14 GREEN
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3424
+sha256: 32ebb80e55d861ceac9151d36b412a0d60c0f639923c939a7c6a90cdf351bce6
+--- omitted 3418 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3028 passed, 0 failed
+```
+
+Exactly one assertion fell, and it carried `RLTAX-PROPERTY-ELECTIONS-INVALID` in
+its own message. The row therefore catches vocabulary growth by *name*, so a
+future reader is told which code escaped rather than only that the count moved.
+
+### Probe 15 — same-command RED and GREEN for TP-01-15
+
+TP-01-15 keeps every statutory figure in a pack and none in a module. Planting
+the Florida first-tier exemption amount in the engine is the exact shadowing the
+row forbids — and it is planted as an unused variable, so the probe proves the
+detector fires on *presence* rather than on use:
+
+```js
+   function legVisibilityIdentity(recordLegIds, surfaces) {
++    var fallbackExemptionAmount = 25000;
+     var declared = Array.isArray(recordLegIds) ? recordLegIds.slice().sort() : [];
+```
+
+RED:
+
+```
+# TP-01-15 RED
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3424
+sha256: bb0fd2a33764492f244f6bcaf814ab7eed63e16cac552ae44ca473190b62cee5
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-01-15: neither engine module holds a cap rate, a ceiling rate or an exemption amount, and the detector is demonstrated to fire on the packs that legitimately carry them
+--- omitted 3418 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3027 passed, 1 failed
+```
+
+Reverted, revert verified, same command again:
+
+```
+$ git checkout -- rltaxproperty.js && git status --short -- rltaxproperty.js
+reverted-clean
+
+# TP-01-15 GREEN
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3424
+sha256: fd679c6b14de2af45bacc6b2800370bb1216d15143a4621ab5753640c829e1ff
+--- omitted 3418 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3028 passed, 0 failed
+```
+
+Exactly one assertion fell. The planted figure was never read by any code path,
+which is what makes this probe informative: the row refuses a statutory figure
+*living* in a module, so a dormant constant waiting to become a fallback is
+caught before it ever runs.
+
 ## Change Boundary
 
 Command: a path-scoped status check over the excluded list.

@@ -1927,6 +1927,61 @@ paper over.
 
 No file was mutated during this verification; every step was read-only.
 
+#### Verification pass 4 — 2026-08-19 — DoD item 16 HOLDS
+
+**Claim Source:** executed. **Outcome: the item is ticked.**
+
+`bubbles.plan` narrowed the item's wording after verification pass 3. The embedded
+sub-clause "no assertion edited outside this scope's twelve ledger entries" — the
+clause that carried the undecidable pre-scope-baseline requirement recorded as
+**F-01-I** — has been moved into DoD item 15, where it is stated in decidable
+limbs. The item now turns on its three commands plus a pass-count floor, and both
+are satisfied against the tree as it stands.
+
+**The three commands:**
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3051 passed, 0 failed
+
+$ node scripts/selftest.mjs > /dev/null 2>&1; echo "selftest_exit=$?"
+selftest_exit=0
+
+$ node scripts/validate-spec-test-paths.mjs; echo "paths_exit=$?"
+[spec-test-paths] scanned=677 references=14809 distinctPaths=244 missingPaths=67 baseline=67 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+paths_exit=0
+
+$ node scripts/build-pages-site.mjs --dry-run; echo "pages_exit=$?"
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":120,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/389a899499094a4f484a06ecc8903aa584524c3cf83b902f403a8d00f5a62cbe","omittedOrphanIndexes":143}
+pages_exit=0
+```
+
+**The pass-count floor holds, and it holds in the direction the item cares about.**
+The item requires no fall between this scope's recorded intended-RED run and its
+same-command GREEN run. This scope's intended-RED runs of `node scripts/selftest.mjs`
+are the two TP-01-11 probe runs recorded above — **3018 passed, 11 failed** and
+**3021 passed, 8 failed**. The same-command GREEN run is **3051 passed, 0 failed**.
+The count rose by 30 and 33 respectively and fell in neither direction, so no
+assertion was deleted or downgraded to reach green. Within this pass alone the
+count moved 3047 → 3050 on an unchanged foreign tree when the three TP-01-11
+assertions were appended, which is the whole of this pass's own contribution.
+
+**One transient during this pass, named rather than smoothed over.** Mid-pass the
+suite reported **3046 passed, 1 failed** and then **3048 passed, 3 failed**. Both
+were produced by a concurrent session's uncommitted working-tree edits — first a
+spec reference to a test file that session had not yet created, then three
+market-brief payload-budget assertions against its in-flight
+`scripts/validate-brief-payload.mjs`. Both cleared when that session's files
+landed, without this scope changing anything that reaches them. The figure ticked
+above is the one measured after they cleared, and it is reproducible.
+
+**Attribution of the `rootFiles` count.** `rootFiles` reads 120, unchanged. A prior
+dispatch left an untracked root HTML probe artifact, `rl-tp0119-red-probe.html`, in
+the tree; it was deleted at the start of this pass before any measurement was
+taken, so no new root HTML entered without a deploy decision. `site-exclusions.json`
+is unmodified in the working tree.
+
 ### TP-01-20
 
 The supersession marker check: every distinct `SUP-022-NN` marker is a ledger id,

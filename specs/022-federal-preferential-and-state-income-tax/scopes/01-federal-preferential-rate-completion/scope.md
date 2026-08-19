@@ -479,14 +479,14 @@ RED.
     a set the plan states three ways. The four limbs above are each executable and
     each falsifiable, and the count is now twelve throughout. This supersedes the
     wording that produced finding **F-01-I**.
-- [ ] `node scripts/selftest.mjs` reports zero failures with no fall in pass count
+- [x] `node scripts/selftest.mjs` reports zero failures with no fall in pass count
       between this scope's recorded intended-RED run and its same-command GREEN
       run, `node scripts/validate-spec-test-paths.mjs` reports zero new missing
       paths, and `node scripts/build-pages-site.mjs --dry-run` succeeds. Assertion
       containment beyond that pass-count floor is DoD item 15's to prove and is
       deliberately not restated here, so this item turns on its three commands
       alone.
-  - **Phase:** implement · **Command:** all three commands · **Evidence:** `report.md#tp-01-17`, `report.md#tp-01-18`, `report.md#tp-01-19`
+  - **Phase:** implement · **Command:** all three commands · **Evidence:** `report.md#tp-01-17`, `report.md#tp-01-18`, `report.md#tp-01-19`, `report.md#verification-pass-4--2026-08-19--dod-item-16-holds`
   - **Why this shape.** The superseded wording carried an embedded sub-clause — "no
     assertion edited outside this scope's twelve ledger entries" — that restated
     DoD item 15's claim and therefore inherited its defect: it asked for a diff

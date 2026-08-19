@@ -1,11 +1,16 @@
 import { readFileSync } from 'node:fs';
 import { test, expect } from './playwright-runtime.mjs';
 import { startStaticServer } from './tool-experience.support.mjs';
+import { startPinnedAgendaSite } from './research-agenda-fixture.support.mjs';
 import { GATES_FILE } from '../scripts/build-dependency-gates.mjs';
 
 let site;
-test.beforeAll(async () => { site = await startStaticServer(); });
-test.afterAll(async () => { if (site) await site.close(); });
+// BUG-012 scope 02: the agenda fixture boots against committed bar inputs, so a scheduled corpus
+// refresh cannot change what these tests resolve. Separate from `site` on purpose — the Scope 03
+// regressions below compare against servers that must still expose the real, mutable corpus.
+let agendaSite;
+test.beforeAll(async () => { site = await startStaticServer(); agendaSite = await startPinnedAgendaSite(); });
+test.afterAll(async () => { if (site) await site.close(); if (agendaSite) await agendaSite.close(); });
 
 function readRepoJson(relativePath) {
   return JSON.parse(readFileSync(new URL(relativePath, new URL('../', import.meta.url)), 'utf8'));
@@ -322,7 +327,7 @@ test('Regression: BUG-001 options flow shell is ready before heavy hydration beg
 
 async function openResearchAgenda(page, { fixture = null, mode = 'simple' } = {}) {
   const query = fixture ? `?fixture=${fixture}` : '';
-  await page.goto(`${site.baseUrl}/research-agenda-lab.html${query}#${mode}/geopolitical-supply-shock`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${agendaSite.baseUrl}/research-agenda-lab.html${query}#${mode}/geopolitical-supply-shock`, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
   await page.waitForFunction(() => globalThis.__researchAgendaDebug && globalThis.__researchAgendaDebug.getViewState());
   await expect(page.locator('body')).toHaveAttribute('data-rlview', mode);

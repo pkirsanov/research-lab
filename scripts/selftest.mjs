@@ -27,6 +27,7 @@ import {
 import { formatSpecTestPathFindings, validateSpecTestPaths } from './validate-spec-test-paths.mjs';
 import { formatTimeoutBudgetFindings, validatePlaywrightTimeoutBudgets } from './validate-playwright-timeout-budgets.mjs';
 import { assertCoherentBar, formatBarsCoherenceFindings, isCoherentBar, partitionCoherentBars, validateBarsCorpus } from './validate-bars-coherence.mjs';
+import { findAgendaFixturePinDrift, formatAgendaFixturePinFinding, formatAgendaFixturePinFindings, validateAgendaFixturePin } from './validate-agenda-fixture-pin.mjs';
 import { quarantineRecord } from './quarantine-incoherent-bars.mjs';
 import * as piiScan from './pii-scan.mjs';
 import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';
@@ -8910,6 +8911,80 @@ try {
   assert(allBad.changed === false && typeof allBad.refused === 'string' && allBad.refused.indexOf('no history') > 0,
     'a record whose every row is incoherent is REFUSED rather than emptied \u2014 an empty history is a deletion wearing a quarantine\u2019s clothes, and whether the symbol belongs in the corpus is not this pass\u2019s call: ' + allBad.refused);
 } catch (e) { failures++; console.log('  \u2717 FAIL (bars quarantine guard threw): ' + e.message); }
+
+/* ---------- agenda fixture pin — a committed test resolves committed inputs (BUG-012 INV-012B-5/6) ----------
+   The reversal fixture pins a cutoff, and that cutoff used to resolve against `data/bars/*.json`,
+   which the cron rewrites. `643d74bfd` rewrote the row behind the cutoff and six deterministically
+   green tests went deterministically red with no change to the test, the page or the model. The
+   inputs are now committed and served to the page under test; this guard is the other half — the pin
+   is a SNAPSHOT of published history, and if the corpus row behind it is ever rewritten again that
+   is reported BY NAME rather than discovered as an unbounded wait.
+
+   Wired here rather than left standalone for the same reason the two guards above are: an unrun
+   guard protects nothing. It was written for scope 02 and, until this wiring, `scripts/selftest.mjs`
+   never mentioned it — so SCN-012B-006's "drift is reported" was true only of a script nobody
+   invoked. */
+try {
+  group('agenda fixture pin \u2014 the committed fixture\u2019s bar inputs are still the published rows (BUG-012)');
+  const fixturePin = validateAgendaFixturePin(ROOT);
+  assert(!fixturePin.vacuous, 'the pin holds real symbols, so a clean verdict is coverage rather than an emptied file reporting its cleanest result at the moment it stopped covering anything (' + fixturePin.checkedSymbols + ' pinned symbol(s) at cutoff ' + fixturePin.cutoff + ')');
+  assert(fixturePin.unpinned.length === 0, 'every bar the fixture resolves is pinned, so none falls through to the mutable corpus while the rest look reviewed (' + fixturePin.requiredSymbols.length + ' required, ' + fixturePin.unpinned.length + ' unpinned)');
+  for (const line of formatAgendaFixturePinFindings(fixturePin, 5)) console.log('    ' + line);
+  assert(fixturePin.driftCount === 0, 'no pinned row has drifted from the published row behind it \u2014 a closed session\u2019s prices do not legitimately change, so drift here means a published row was rewritten in place (' + fixturePin.driftCount + ' drifted of ' + fixturePin.checkedSymbols + ' checked)');
+
+  /* The field boundary is the design decision, so it is asserted rather than trusted. `ac` is
+     recomputed for every historical row on the next dividend; three of these twelve rows already
+     carry a live factor, so diffing it would turn this guard red on a correct refresh. A guard that
+     cries wolf gets muted, and a muted guard is worse than none because it still carries the belief
+     that something is watching. */
+  assert(fixturePin.comparedFields.join(',') === 'o,h,l,c,v',
+    'the diff covers exactly the fields rlagenda.js consumes and no derived one \u2014 `ac` is excluded because a dividend rewrites it legitimately, and `t` because the row is located by it (' + fixturePin.comparedFields.join('/') + ')');
+
+  /* Adversarial. A guard whose failure path is never exercised is indistinguishable from one that
+     cannot fail. The mutation below is the real defect replayed: `643d74bfd` moved the COP close of
+     2026-08-13 from 124.5200 to 123.6950 in place, which is the adjusted close displacing the raw
+     one — the exact rewrite that took the fixture red. */
+  const pinFile = JSON.parse(read('tests/fixtures/research-agenda/reversal-ui.bars.json'));
+  const cleanCorpus = (symbol) => JSON.parse(read('data/bars/' + symbol + '.json'));
+  assert(findAgendaFixturePinDrift(pinFile, cleanCorpus).length === 0,
+    'the same drift check over the UNMUTATED corpus is clean, so the mutation below is what the assertions react to rather than a pre-existing red');
+
+  const rewriteCopClose = (symbol) => {
+    const file = cleanCorpus(symbol);
+    if (symbol !== 'COP') return file;
+    const row = file.rows.find((entry) => entry.t === Date.parse('2026-08-13T13:30:00Z'));
+    return { ...file, rows: file.rows.map((entry) => (entry === row ? { ...entry, c: entry.ac } : entry)) };
+  };
+  const drift = findAgendaFixturePinDrift(pinFile, rewriteCopClose);
+  assert(drift.length === 1 && drift[0].symbol === 'COP' && drift[0].kind === 'row-changed',
+    'a single rewritten row is detected, and only that one \u2014 the other eleven symbols stay quiet (' + drift.length + ' finding(s))');
+  const driftMessage = drift.length ? formatAgendaFixturePinFinding(drift[0]) : '';
+  assert(driftMessage.indexOf('tests/fixtures/research-agenda/reversal-ui.json') === 0
+    && driftMessage.indexOf('COP') > 0
+    && driftMessage.indexOf('t=' + Date.parse('2026-08-13T13:30:00Z')) > 0
+    && driftMessage.indexOf('2026-08-13') > 0
+    && driftMessage.indexOf('c 124.5199966430664 -> 123.6949691772461') > 0,
+    'the failure names the FIXTURE, the SYMBOL, the ROW and the value that moved, so a reader learns what broke instead of watching a UI test wait forever: ' + driftMessage);
+
+  /* The other half of the boundary, and the one that keeps the guard usable. Rewriting only `ac` is
+     what an ordinary dividend does to every historical row of that symbol; it must stay silent. */
+  const readjustCop = (symbol) => {
+    const file = cleanCorpus(symbol);
+    if (symbol !== 'COP') return file;
+    return { ...file, rows: file.rows.map((entry) => ({ ...entry, ac: entry.ac * 0.98 })) };
+  };
+  assert(findAgendaFixturePinDrift(pinFile, readjustCop).length === 0,
+    'a corpus-wide re-adjustment of `ac` \u2014 what the next COP dividend does \u2014 raises nothing, so the guard does not have to be muted to survive an ordinary refresh');
+
+  const droppedRow = (symbol) => {
+    const file = cleanCorpus(symbol);
+    if (symbol !== 'COP') return file;
+    return { ...file, rows: file.rows.filter((entry) => entry.t !== Date.parse('2026-08-13T13:30:00Z')) };
+  };
+  const missing = findAgendaFixturePinDrift(pinFile, droppedRow);
+  assert(missing.length === 1 && missing[0].kind === 'corpus-row-missing' && formatAgendaFixturePinFinding(missing[0]).indexOf('no longer present') > 0,
+    'a pinned row REMOVED from the corpus is reported too, so the pin cannot be silently outlived by the history it snapshots: ' + (missing.length ? formatAgendaFixturePinFinding(missing[0]) : 'no finding'));
+} catch (e) { failures++; console.log('  \u2717 FAIL (agenda fixture pin guard threw): ' + e.message); }
 
 /* ── trend-dynamics-cycle-lab — owner read (TP-04-01, spec 006 scope 4) ───────────────────
    The owner read is this tool's ONLY route into the Market Brief, so its truth handling is a

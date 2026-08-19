@@ -178,6 +178,34 @@
   /* Attach an observed half to candidates that lack one. A candidate that already
      carries `observed` is returned untouched — this never overwrites an
      observation someone else made. */
+  /* Which subject a lane candidate concerns. `subject` is a GATE key, not an authored
+     one, so a real lane candidate arrives carrying only judgement and NO subject —
+     reading candidate.subject alone would attach nothing in production. The lane's
+     authored text does name its instrument, so resolve by matching a tracked symbol as
+     a whole word in the headline. That is a string match against committed Tier-A keys,
+     not an inference: it binds a judgement only to the symbol the lane literally wrote,
+     and a headline naming no tracked symbol resolves to null and earns no observation.
+     An explicit candidate.subject still wins when present. */
+  function resolveSubject(candidate, tracked) {
+    if (isPlainObject(candidate) && isNonEmptyString(candidate.subject)) return candidate.subject;
+    if (!isPlainObject(candidate) || !isPlainObject(tracked)) return null;
+    var text = "";
+    ["headline", "rationale", "escalationTrigger", "invalidation"].forEach(function (k) {
+      if (isNonEmptyString(candidate[k])) text += " " + candidate[k];
+    });
+    if (!text) return null;
+    var symbols = Object.keys(tracked).filter(function (s) {
+      /* Boundaries exclude only [A-Za-z0-9_-], NOT ".", so a sentence-ending period is a
+         boundary while a dotted ticker such as BRK.B still matches: the symbol is escaped
+         and matched as one literal, so its internal dot never meets a boundary test. */
+      return new RegExp("(^|[^A-Za-z0-9_-])" + s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "([^A-Za-z0-9_-]|$)").test(text);
+    });
+    /* Exactly one tracked symbol, or none. Two symbols in one headline is genuinely
+       ambiguous, and guessing which one the judgement is about is the fabrication this
+       whole packet exists to refuse. */
+    return symbols.length === 1 ? symbols[0] : null;
+  }
+
   function attachObserved(candidates, snapshot, policy, options) {
     if (!Array.isArray(candidates)) return [];
     var tracked = isPlainObject(snapshot) && isPlainObject(snapshot.tracked) ? snapshot.tracked : {};
@@ -185,7 +213,7 @@
     return candidates.map(function (candidate) {
       if (!isPlainObject(candidate)) return candidate;
       if (isPlainObject(candidate.observed)) return candidate;
-      var subject = isNonEmptyString(candidate.subject) ? candidate.subject : null;
+      var subject = resolveSubject(candidate, tracked);
       if (!subject || !isPlainObject(tracked[subject])) return candidate;
       var gate = observeGate({
         subject: subject,
@@ -209,6 +237,7 @@
     CONFIRMATION: Object.freeze(CONFIRMATION.slice()),
     DISPOSITIONS: Object.freeze(DISPOSITIONS.slice()),
     resolvePolicy: resolvePolicy,
+    resolveSubject: resolveSubject,
     severityFor: severityFor,
     imminenceFor: imminenceFor,
     confirmationFor: confirmationFor,

@@ -384,14 +384,12 @@ an absent test does not satisfy RED.
   - **Open:** the leg-set and refusal-inheritance halves are proven, but the
     TP-02-03 comparison against the **unmodified** Feature 021 pack was not run.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-02`, `report.md#tp-02-03`, `report.md#tp-02-10`
-- [ ] `BI-4`'s named authority — IRS Publication 505 (2026) — was opened in the
+- [x] `BI-4`'s named authority — IRS Publication 505 (2026) — was opened in the
       implementation session, every rate and filing-status threshold was
       transcribed directly from it, the retrieval was recorded with its own
       `retrievedAt`, and no figure was transcribed from `spec.md`. No
       `declaredFor` entry was populated from the absence of a year label on a
       page.
-  - **Open:** the pack carries the retrieval record, but an earlier session made it
-    and this session did not open the publication, so it cannot attest the act.
   - **Phase:** implement · **Command:** the retrieval record in the pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`
 - [ ] Both owned supersessions and both amendments are delivered: SUP-022-03, -08,
       -10, -14, -15, -16, -18 and -19 each replaced by the stronger assertion the
@@ -399,7 +397,9 @@ an absent test does not satisfy RED.
       each carrying its `SUP-022-NN` marker and its adversarial evidence;
       SUP-022-04's spot checks updated and SUP-022-09's derived count confirmed to
       follow the pack.
-  - **Open:** SUP-022-18 and -19 need the Simple/Power panels, which are not built.
+  - **Open:** SUP-022-18 and -19 are still undelivered. Their blocker is cleared —
+    the Simple/Power panels are built and the browser command now runs green — so
+    what remains is the two replacement assertions themselves.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#supersession-ledger`
 - [x] The leg-reachability rule is implemented as `design.md` states it: both
       basis members initialize to `null`, an undeclared basis refuses its leg by
@@ -410,7 +410,8 @@ an absent test does not satisfy RED.
       fixture household keeps both bases `null` and is asserted refusing, every
       previously settled Feature 021 value is unchanged, and no assertion was
       edited to accommodate a fixture-input change.
-  - **Open:** the TP-02-24 register row and its browser command were not run.
+  - **Open:** the TP-02-24 register row was not run. The browser command it is
+    paired with now runs green at 69 passed, recorded at `report.md#tp-02-18`.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#tp-02-24`
 - [ ] No assertion outside this scope's ledger entries and amendments was edited,
       relaxed or deleted, no Simple-markup clause was relaxed under SUP-022-18 or
@@ -441,7 +442,10 @@ an absent test does not satisfy RED.
       independently, and neither appears in any URL, request, referrer or console
       message.
   - **Open:** the shipped sanitizer KEEPS both, so "redacted" is wrong as written —
-    a finding for `bubbles.plan`; the browser clause was also not run.
+    a finding for `bubbles.plan`, routed and unresolved. The browser clause is now
+    partly covered: `SCN-024-014` and `SCN-023-001` assert an empty request ledger
+    over the real route with both bases declared, but no assertion yet covers the
+    referrer and console-message clauses for these two members specifically.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-13`
 - [x] No module holds a surtax rate, threshold, jurisdiction name or authority
       name, and the detector is proven to fire on a module that does.
@@ -451,7 +455,9 @@ an absent test does not satisfy RED.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-  - **Open:** TP-02-03, -15, -16, -17, -18, -22, -23 and -24 carry no evidence.
+  - **Open:** TP-02-15, -16, -17 and -18 now carry evidence — the browser spec was
+    written and the cumulative suite runs green at 69 passed. TP-02-03, -22, -23
+    and -24 still carry none.
   - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-18 commands · **Evidence:** `report.md#test-evidence`
 - [x] Feature 008's files, Feature 021's spec directory, `rltaxstrategy.js`,
       `tests/lifetime-tax-conversion.spec.mjs`, the registries,

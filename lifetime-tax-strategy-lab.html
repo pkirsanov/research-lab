@@ -748,6 +748,8 @@
                 <div id="simpleDecisionSummary"></div>
                 <div id="headlineBlock" data-rl-leg-surface="headline"></div>
                 <div id="annualMedicareCostCard"></div>
+                <div id="surtaxSummaryCard"></div>
+                <div id="conversionAsymmetryLine"></div>
                 <div id="conversionOutcomeCard"></div>
                 <div id="strongestTradeoffLine"></div>
             </div>
@@ -1458,6 +1460,32 @@
                 <p id="medicareNotATaxLine" class="subtle"></p>
             </div>
 
+            <div id="power-tax-legs" class="band">
+                <h3>Declared tax legs</h3>
+                <p class="subtle">Every leg the resolved pack declares, in the order it declares them. The
+                    federal total is the sum of exactly the legs marked as entering it, so a leg that
+                    refused is shown refusing here rather than counted as a zero.</p>
+                <div class="table-scroll">
+                    <table id="taxLegLedger"
+                        aria-label="Every tax leg the resolved pack declares, the stage that computed it, whether it enters the federal total and the figure or refusal it produced">
+                        <caption>The declared leg set the federal total is summed over.</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Leg</th>
+                                <th scope="col">Stage</th>
+                                <th scope="col">Figure the pack carries</th>
+                                <th scope="col">In the federal total</th>
+                                <th scope="col">Amount or refusal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="taxLegLedgerBody"></tbody>
+                    </table>
+                </div>
+                <p id="taxLegSummationLine" class="subtle"></p>
+                <p id="modifiedAdjustedGrossCompletenessLine" class="subtle"></p>
+                <ul id="modifiedAdjustedGrossUnmodeledList"></ul>
+            </div>
+
             <div id="power-source-records" class="band">
                 <h3>Source records</h3>
                 <ul id="sourceRecordList"></ul>
@@ -1500,12 +1528,13 @@
             var SIMPLE_FIELDS = ["packIdentity", "headlineFederalTax", "conversionAmount",
                 "federalTaxDifference", "effectiveMarginalRateAtEdge", "strongestTradeoff", "resultKind",
                 "deductionSideChosen", "propertyTax", "rentalNet", "dwellingUseCategory", "dispositionTax",
-                "annualBenefit", "taxableBenefitPortion", "annualMedicareCost"];
+                "annualBenefit", "taxableBenefitPortion", "annualMedicareCost",
+                "netInvestmentIncomeSurtax", "additionalMedicareSurtax", "conversionAsymmetry"];
 
             var POWER_SECTION_IDS = ["power-rule-ledger", "power-settlement", "power-bracket-detail",
                 "power-reconciliation", "power-curve", "power-conversion", "power-property",
                 "power-deduction", "power-use", "power-rental", "power-disposition", "power-benefit",
-                "power-inclusion", "power-claim-age", "power-medicare",
+                "power-inclusion", "power-claim-age", "power-medicare", "power-tax-legs",
                 "power-source-records"];
 
             /* Every detail Simple withholds carries a link to the Power section that owns it, so
@@ -1531,7 +1560,9 @@
                 { detail: "Every source record and the figures the pack does not carry", section: "power-source-records" },
                 /* Appended rather than inserted: a prior feature's browser row follows a link by
                    position, so an inserted row would silently retarget it. */
-                { detail: "Every rule pack this settlement resolved, the year it is effective for and the source it was transcribed from", section: "power-rule-ledger" }
+                { detail: "Every rule pack this settlement resolved, the year it is effective for and the source it was transcribed from", section: "power-rule-ledger" },
+                { detail: "Each surtax rate, the basis it was applied to, the filing-status threshold it was compared against and the leg set the federal total summed", section: "power-tax-legs" },
+                { detail: "The modified adjusted gross measure's completeness declaration and every adjustment the pack does not model", section: "power-tax-legs" }
             ];
 
             var MODE_KEY = "rlLifetimeTaxDisplayMode";
@@ -2540,6 +2571,114 @@
                     item.appendChild(link);
                     linkHost.appendChild(item);
                 }
+
+                /* FR-022-009 and FR-022-011. The two threshold surtaxes are legs of the federal
+                   total in their own right, so each reaches Simple as its own decision-level
+                   figure rather than being readable only as part of a sum. Each is drawn under its
+                   own declared field id here, in the renderer that owns the Simple surface, so the
+                   closed-list identity is checkable against this body rather than against a
+                   constructor call whose id only exists at run time. */
+                var surtaxHost = byId("surtaxSummaryCard");
+                clear(surtaxHost);
+                var surtaxRows = surtaxSummaryRows(envelope);
+                for (index = 0; index < surtaxRows.length; index += 1) {
+                    var surtaxRow = surtaxRows[index];
+                    if (!surtaxRow.available) {
+                        surtaxHost.appendChild(unavailableNode(surtaxRow.refusal, surtaxRow.label));
+                        continue;
+                    }
+                    var surtaxLegHost = document.createElement("div");
+                    surtaxLegHost.setAttribute("data-rl-leg", surtaxRow.legId);
+                    surtaxLegHost.appendChild(text("div", surtaxRow.label, "label"));
+                    var surtaxValueRow = document.createElement("div");
+                    surtaxValueRow.appendChild(surtaxRow.legId === "net-investment-income-tax"
+                        ? simpleValueNode("netInvestmentIncomeSurtax",
+                            dollars(surtaxRow.amount), surtaxTooltipText(surtaxRow))
+                        : simpleValueNode("additionalMedicareSurtax",
+                            dollars(surtaxRow.amount), surtaxTooltipText(surtaxRow)));
+                    surtaxLegHost.appendChild(surtaxValueRow);
+                    surtaxLegHost.appendChild(text("div", surtaxDetailText(surtaxRow), "subtle"));
+                    surtaxHost.appendChild(surtaxLegHost);
+                }
+
+                /* FR-022-014. The asymmetry is read off the settled record's own structural member,
+                   so this states what the engine declared rather than a second narration of it that
+                   could drift from the arithmetic. */
+                var asymmetryHost = byId("conversionAsymmetryLine");
+                clear(asymmetryHost);
+                var asymmetry = envelope.settlement === null ? null : envelope.settlement.conversionAsymmetry;
+                if (asymmetry) {
+                    var asymmetryLine = document.createElement("div");
+                    asymmetryLine.setAttribute("data-rl-asymmetry-moved",
+                        asymmetry.movedByAddedOrdinaryIncome.join(","));
+                    asymmetryLine.setAttribute("data-rl-asymmetry-not-moved",
+                        asymmetry.notMovedByAddedOrdinaryIncome.join(","));
+                    asymmetryLine.appendChild(text("span", "What added ordinary income moves: ", "label"));
+                    asymmetryLine.appendChild(simpleValueNode("conversionAsymmetry",
+                        asymmetry.movedByAddedOrdinaryIncome.join(", ") + " move \u00b7 "
+                        + asymmetry.notMovedByAddedOrdinaryIncome.join(", ") + " does not",
+                        asymmetry.reason));
+                    asymmetryHost.appendChild(asymmetryLine);
+                    asymmetryHost.appendChild(text("div", asymmetry.reason, "subtle"));
+                }
+            }
+
+            /* The surtax row set, built as a PURE function of the envelope so the leg identity the
+               Simple surface carries can be checked without a browser. A refusing stage publishes
+               its refusal alone and no detail member, so every detail read here sits behind the
+               refusal guard. */
+            function surtaxSummaryRows(envelope) {
+                var rows = [];
+                if (!envelope || !envelope.settlement) return rows;
+                var declared = [
+                    {
+                        legId: "net-investment-income-tax",
+                        label: "Net investment income tax",
+                        record: envelope.settlement.netInvestmentIncomeTax,
+                        basisLabel: "net investment income",
+                        basisMember: "netInvestmentIncome"
+                    },
+                    {
+                        legId: "additional-medicare-tax",
+                        label: "Additional Medicare tax",
+                        record: envelope.settlement.additionalMedicareTax,
+                        basisLabel: "declared Medicare wage and self-employment basis",
+                        basisMember: "wageBasis"
+                    }
+                ];
+                var index = 0;
+                for (index = 0; index < declared.length; index += 1) {
+                    var entry = declared[index];
+                    if (!entry.record) continue;
+                    if (RULES.isUnavailable(entry.record)) {
+                        rows.push({
+                            legId: entry.legId, label: entry.label, available: false,
+                            refusal: entry.record, amount: null, rate: null,
+                            basisLabel: entry.basisLabel, basis: null, threshold: null, ruleStatus: null
+                        });
+                        continue;
+                    }
+                    rows.push({
+                        legId: entry.legId, label: entry.label, available: true, refusal: null,
+                        amount: entry.record.value, rate: entry.record.rate,
+                        basisLabel: entry.basisLabel, basis: entry.record[entry.basisMember],
+                        threshold: entry.record.threshold, ruleStatus: entry.record.ruleStatus
+                    });
+                }
+                return rows;
+            }
+
+            function surtaxTooltipText(row) {
+                return "A separate leg of the federal total, computed as " + percent(row.rate)
+                    + " applied to the amount by which this household's " + row.basisLabel
+                    + " reaches past the filing-status threshold of " + dollars(row.threshold)
+                    + " that the resolved pack carries. It is not part of the ordinary or preferential bracket arithmetic.";
+            }
+
+            function surtaxDetailText(row) {
+                return "Rate " + percent(row.rate) + " \u00b7 " + row.basisLabel + " "
+                    + dollars(row.basis) + " \u00b7 threshold " + dollars(row.threshold)
+                    + " \u00b7 " + row.ruleStatus;
             }
 
             /* ---------- Power ---------- */
@@ -4030,6 +4169,69 @@
                 byId("medicareNotATaxLine").textContent = stage.annualCost.notATaxStatement;
             }
 
+            /* FR-022-008 and FR-022-013. The declared leg set the federal total was summed over,
+               published in the pack's own declared order, together with the completeness the
+               modified-adjusted-gross measure declares about itself. A leg that refused appears
+               here refusing, because the one failure this surface exists to catch is a leg
+               silently treated as a zero. */
+            function renderTaxLegLedger() {
+                var body = byId("taxLegLedgerBody");
+                clear(body);
+                var summationLine = byId("taxLegSummationLine");
+                var completenessLine = byId("modifiedAdjustedGrossCompletenessLine");
+                var unmodeledHost = byId("modifiedAdjustedGrossUnmodeledList");
+                clear(unmodeledHost);
+                var envelope = state.envelope;
+                if (!envelope || !envelope.settlement) {
+                    summationLine.textContent = "No year is settled yet, so the pack declares no leg set to sum here.";
+                    completenessLine.textContent = "";
+                    return;
+                }
+                var settlement = envelope.settlement;
+                var legs = settlement.taxLegs || [];
+                var index = 0;
+                var includedCount = 0;
+                for (index = 0; index < legs.length; index += 1) {
+                    var leg = legs[index];
+                    var row = document.createElement("tr");
+                    row.setAttribute("data-rl-tax-leg", leg.legId);
+                    row.appendChild(text("td", leg.legId));
+                    row.appendChild(text("td", leg.stageId));
+                    row.appendChild(text("td", leg.figureRef));
+                    row.appendChild(text("td", leg.includedInTotal ? "yes" : "no, it is published and never summed"));
+                    var amountCell = document.createElement("td");
+                    amountCell.setAttribute("data-rl-tax-leg-available", leg.available ? "true" : "false");
+                    if (leg.available) {
+                        amountCell.appendChild(valueNode("tax-leg-" + leg.legId, dollars(leg.value),
+                            "The figure this leg contributed. It was computed by stage " + leg.stageId
+                            + " from the figure the pack carries as " + leg.figureRef + "."));
+                    } else {
+                        amountCell.appendChild(text("div", leg.code, "code"));
+                        amountCell.appendChild(text("div", leg.reason, "subtle"));
+                    }
+                    row.appendChild(amountCell);
+                    body.appendChild(row);
+                    if (leg.includedInTotal) includedCount += 1;
+                }
+                summationLine.textContent = "The federal total is the sum of the "
+                    + String(includedCount) + " of " + String(legs.length)
+                    + " declared legs that enter it, taken in the order the pack declares them. A leg that refuses makes the total refuse by that leg's name rather than being summed as a zero.";
+                var measure = settlement.modifiedAdjustedGross;
+                if (!measure) {
+                    completenessLine.textContent = "";
+                    return;
+                }
+                completenessLine.textContent = "The modified adjusted gross measure this settlement compared against every threshold is "
+                    + dollars(measure.value) + ", and the pack declares it "
+                    + (measure.complete ? "complete" : "incomplete")
+                    + ". These are the adjustments it does not model:";
+                for (index = 0; index < measure.unmodeledAdjustments.length; index += 1) {
+                    var item = text("li", measure.unmodeledAdjustments[index]);
+                    item.setAttribute("data-rl-unmodeled-adjustment", measure.unmodeledAdjustments[index]);
+                    unmodeledHost.appendChild(item);
+                }
+            }
+
             function renderPower() {                renderRuleLedger();
                 renderSettlement();
                 renderCurve();
@@ -4043,6 +4245,7 @@
                 renderInclusion();
                 renderClaimAge();
                 renderMedicare();
+                renderTaxLegLedger();
                 renderLegVisibility();
             }
 

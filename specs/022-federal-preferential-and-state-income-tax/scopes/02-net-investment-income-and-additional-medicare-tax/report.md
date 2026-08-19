@@ -26,16 +26,159 @@ retrieval attestation.
 
 ## Sourcing
 
-Not delivered in this session. `tax-rules/federal/2026.json` carries a
-`SourceRecord/v2` for `irs-p505-2026` — Publication 505 (2026), Tax Withholding and
-Estimated Tax — with `retrievedAt: 2026-08-17T19:03:51.000Z`, `retrievalOutcome:
-retrieved`, and a retrieval note naming chapter 2, Step 5 items 4 and 5 as the
-locators for the two surtax rates and their filing-status threshold charts. That record
-was written by an earlier session. This session did not open Publication 505 and
-therefore cannot attest the retrieval as its own executed evidence; the DoD item stays
-open. What this session did execute is the parity check below, which compares the
-pack's carried figures against the same figures transcribed independently into the
-selftest group — a mistyped digit in either place fails rather than cancelling out.
+Delivered in this session. IRS Publication 505 (2026) — the authority `BI-4` names —
+was opened in this session and every rate and every filing-status threshold this scope
+carries was transcribed directly from it.
+
+- **Title:** Publication 505 (2026), Tax Withholding and Estimated Tax
+- **URL:** `https://www.irs.gov/publications/p505`
+- **Publisher:** Internal Revenue Service
+- **`retrievedAt` (this session):** 2026-08-19
+- **Year label read from the document itself:** the title block reads
+  `Publication 505 (2026), Tax Withholding and Estimated Tax` followed by
+  `For use in 2026`. The declared year is established by that explicit label, so no
+  `declaredFor` entry rests on the absence of a year label on a page.
+
+Transcribed from chapter 2, Expected Taxes and Credits — Lines 4–11c, Step 5.
+
+**Item 4, Additional Medicare Tax.** The publication states: "A 0.9% Additional Medicare
+Tax applies to your combined Medicare wages and self-employment income and/or your RRTA
+compensation that exceeds the amount listed in the following chart, based on your filing
+status." Its chart:
+
+| Filing Status | Threshold Amount |
+| --- | --- |
+| Married filing jointly | $250,000 |
+| Married filing separately | $125,000 |
+| Single | $200,000 |
+| Head of household | $200,000 |
+| Qualifying surviving spouse | $200,000 |
+
+**Item 5, Net Investment Income Tax.** The publication states: "The NIIT is 3.8% of the
+lesser of your net investment income or the excess of your MAGI over the amount listed in
+the following chart, based on your filing status." Its chart:
+
+| Filing Status | Threshold Amount |
+| --- | --- |
+| Married filing jointly | $250,000 |
+| Married filing separately | $125,000 |
+| Single | $200,000 |
+| Head of household | $200,000 |
+| Qualifying surviving spouse | $250,000 |
+
+Digit-by-digit comparison against the ten figures the pack carries in
+`tax-rules/federal/2026.json`:
+
+| Figure | Publication 505 (2026) | Pack carries | Agrees |
+| --- | --- | --- | --- |
+| NIIT rate | 3.8% | `0.038` | yes |
+| NIIT single | $200,000 | `200000` | yes |
+| NIIT married-filing-jointly | $250,000 | `250000` | yes |
+| NIIT married-filing-separately | $125,000 | `125000` | yes |
+| NIIT head-of-household | $200,000 | `200000` | yes |
+| Additional Medicare rate | 0.9% | `0.009` | yes |
+| Additional Medicare single | $200,000 | `200000` | yes |
+| Additional Medicare married-filing-jointly | $250,000 | `250000` | yes |
+| Additional Medicare married-filing-separately | $125,000 | `125000` | yes |
+| Additional Medicare head-of-household | $200,000 | `200000` | yes |
+
+All ten agree. No figure above was read from `spec.md`, which is not a transcription
+source; each was read from the publication retrieved in this session and then compared
+against the pack.
+
+Two observations that are evidence rather than transcription:
+
+- The qualifying-surviving-spouse threshold **differs between the two surtaxes** —
+  $200,000 for the Additional Medicare Tax and $250,000 for the NIIT. That divergence is
+  exactly the detail a recalled or interpolated figure gets wrong, and reading it
+  confirms the two charts were read separately rather than one being assumed to mirror
+  the other. That filing status is outside this pack's four declared statuses, so no
+  figure for it is transcribed and none is invented.
+- The pack's two `locator` strings name chapter 2, Step 5 item 4 for the Additional
+  Medicare Tax and Step 5 item 5 for the NIIT. Both were checked against the retrieved
+  document and both point at the passage that actually states the figure.
+
+The `SourceRecord/v2` for `irs-p505-2026` in the pack carries
+`retrievedAt: 2026-08-17T19:03:51.000Z` and remains the earlier session's record. This
+session did not re-date it: re-dating would not make the earlier retrieval more true, and
+it would churn the pack's self-referential `contentSha256` for no gain in accuracy. What
+this session adds is its own retrieval, recorded above with its own `retrievedAt`, and a
+digit-by-digit comparison that a mistyped digit in either the publication reading or the
+pack would fail rather than cancel out.
+
+## Simple And Power Surfaces Built
+
+Delivered in this session. The three surfaces Implementation Plan step 13 names were
+absent from `<repo>/lifetime-tax-strategy-lab.html` and are now rendered:
+
+- **`SurtaxSummaryLines`** — Simple host `#surtaxSummaryCard`. Each surtax leg is drawn
+  under its own declared Simple field id, `netInvestmentIncomeSurtax` and
+  `additionalMedicareSurtax`, with the rate, the basis, the filing-status threshold and
+  the rule status beside it, and with a refusing leg rendered whole through the one
+  unavailable constructor rather than as a blank or a zero.
+- **`ConversionAsymmetryLine`** — Simple host `#conversionAsymmetryLine`, field id
+  `conversionAsymmetry`. It reads `settlement.conversionAsymmetry` — the structural
+  member FR-022-014 already publishes — so the page states what the engine declared
+  rather than narrating a second copy that could drift from the arithmetic.
+- **`TaxLegLedger`** — new Power section `power-tax-legs`, table `#taxLegLedger`. Every
+  declared leg in the pack's own declared order with its stage, its `figureRef`, whether
+  it enters the total, and its figure or its refusal; plus the summation line and the
+  modified-adjusted-gross completeness declaration with every unmodeled adjustment.
+
+The row set behind the Simple surface is the pure function `surtaxSummaryRows(envelope)`,
+kept separate from the DOM walk for the same reason `legVisibilityRows` is: a unit
+assertion then reads the rows the page renders rather than a restatement of them. Both
+detail reads sit behind the `RULES.isUnavailable` guard and behind an
+`envelope.settlement === null` guard, because a stage that refuses publishes its refusal
+alone and `buildEnvelope` publishes `settlement: null` when no year is viable.
+
+Registrations: `SIMPLE_FIELDS` gained the three field ids, `POWER_SECTION_IDS` gained
+`power-tax-legs`, and `POWER_LINK_ROWS` gained two withheld-detail rows pointing at it.
+Both link rows were **appended**, not inserted, because a prior feature's browser row
+follows a link by position and an inserted row would silently retarget it.
+
+The first build of these surfaces drew the fields through `simpleValueNode(row.fieldId,
+…)` — an id that only exists at run time. Two pre-existing assertions failed on it:
+
+```text
+  ✗ FAIL: TP-05-01: Simple renders exactly its closed decision-field set … every rendered field is declared and every declared field is rendered …
+  ✗ FAIL: TP-05-08: the derived Simple field identity holds in both directions with the three new fields present — every id drawn through the Simple constructor is admitted by the closed list and every member of the closed list has a render site …
+```
+
+That is the cross-artifact identity working as designed: a Simple field declared in the
+closed list with no statically visible render site is exactly what those assertions
+exist to catch. Neither assertion was weakened. The render sites were moved into the
+body of `renderSimple` and given literal field ids, which is where a decision-level
+field belongs, and both assertions then passed **with** the new fields present. That
+pass is the useful evidence here — it is a pre-existing, independently authored check
+confirming the new surfaces are wired into the closed list in both directions, rather
+than a new assertion agreeing with the code that motivated it.
+
+Whole-repository suite after the surfaces were built:
+
+```text
+================================================
+Research-Lab self-test: 3064 passed, 0 failed
+================================================
+```
+
+3064 passed and 0 failed is byte-identical to the pre-existing count, so no assertion
+was lost and none was added to absorb the change.
+
+The cumulative browser suite over the real route confirms the page still boots and that
+the new section and fields satisfy the existing browser-level identity checks:
+
+```text
+  ✓  58 [system-chrome] › tests/lifetime-tax-retirement-route.spec.mjs:197:1 › Regression: SCN-024-015 Simple carries only decision-level fields and every withheld detail links to the Power section that owns it (1.1s)
+  ✓  66 [system-chrome] › tests/lifetime-tax-use.spec.mjs:265:1 › Regression: SCN-023-013 mixed use allocates by declared days and the personal portion reaches the composition (929ms)
+
+  66 passed (49.4s)
+```
+
+`SCN-024-015` is the load-bearing line: it walks the rendered Simple markup and every
+withheld-detail link against the declared Power sections in a real browser. It passes
+with `power-tax-legs` and the three new fields present, so the section is a real element
+the links resolve to rather than a declaration with no page behind it.
 
 ## Test Evidence
 
@@ -394,35 +537,148 @@ reading the modules from disk rather than restating its own planted copy.
 `Regression: SCN-022-004 the investment income surtax computes from a declared basis and refuses without one`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-004 the investment income surtax computes from a declared basis and refuses without one" --reporter=list`
 
-Not delivered in this session. This scope's Playwright spec does not exist yet, because
-the three Simple/Power panels it would drive — `SurtaxSummaryLines`,
-`ConversionAsymmetryLine` and `TaxLegLedger` — are not rendered by
-`<repo>/lifetime-tax-strategy-lab.html`. The row carries no evidence.
+Delivered in this session. The spec file `<repo>/tests/lifetime-tax-surtax.spec.mjs` was
+created and now carries the three persistent titles TP-02-15, TP-02-16 and TP-02-17 name.
+
+Intended RED, before the file existed: the command resolved to `No tests found`, which is
+the failure mode the row was in — a planned browser row that reported nothing while
+appearing to be coverage. That is not a satisfying RED on its own, so a targeted
+mutation RED is recorded under SCN-022-006 below.
+
+GREEN, same command:
+
+```text
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-surtax.spec.mjs:74:1 › Regression: SCN-022-004 the investment income surtax computes from a declared basis and refuses without one (837ms)
+
+  1 passed (2.8s)
+```
+
+The scenario drives both halves over the real route. The computed half declares an
+ordinary income of 260,000 against the single threshold of 200,000 and an
+investment-income portion of 12,000, chosen so the CAP binds — the tax is the rate on
+net investment income rather than on the 60,000 excess — because the capped direction is
+the one an implementation that dropped the `lesser of` rule gets wrong. The refusal half
+clears the declaration on the same page and asserts `RLTAX-INPUT-INCOMPLETE` naming
+`otherOrdinaryNetInvestmentIncome`, that no `netInvestmentIncomeSurtax` figure is
+rendered in its place, and that `headlineFederalTax` is absent too — the total inherited
+the refusal rather than summing the legs that remain.
 
 ### Scenario SCN-022-005
 
 `Regression: SCN-022-005 the additional Medicare surtax uses only its declared wage basis`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-005 the additional Medicare surtax uses only its declared wage basis" --reporter=list`
 
-Not delivered in this session, for the same reason as SCN-022-004.
+Delivered in this session. GREEN:
+
+```text
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-surtax.spec.mjs:135:1 › Regression: SCN-022-005 the additional Medicare surtax uses only its declared wage basis (874ms)
+
+  1 passed (2.7s)
+```
+
+Three distinct figures at, immediately below and immediately above the threshold, each
+derived from the pack's own threshold rather than pinned. The reads-exactly-one-member
+clause is the load-bearing part: ordinary income is raised to 410,000 and the
+investment-income portion to 50,000, each with the wage basis held, and the surtax must
+be byte-identical after both. An implementation reading gross income instead of the wage
+basis moves on the first of those and fails here.
 
 ### Scenario SCN-022-006
 
 `Regression: SCN-022-006 added ordinary income moves one surtax and not the other`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-006 added ordinary income moves one surtax and not the other" --reporter=list`
 
-Not delivered in this session, for the same reason as SCN-022-004.
+Delivered in this session, with a targeted mutation RED and a same-command GREEN.
+
+**Intended RED.** The mutation swapped the two arguments where `renderConversionAsymmetry`
+publishes the asymmetry, so the page declared the Medicare leg movable and the
+investment-income leg not — the exact inversion a reader could not detect by eye. Same
+command:
+
+```text
+Running 1 test using 1 worker
+
+  ✘  1 [system-chrome] › tests/lifetime-tax-surtax.spec.mjs:188:1 › Regression: SCN-022-006 added ordinary income moves one surtax and not the other (786ms)
+
+  1) [system-chrome] › tests/lifetime-tax-surtax.spec.mjs:188:1 › Regression: SCN-022-006 added ordinary income moves one surtax and not the other
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: "net-investment-income-tax"
+    Received array: ["additional-medicare-tax"]
+
+      230 |   const moved = (await line.getAttribute('data-rl-asymmetry-moved')).split(',');
+      231 |   const notMoved = (await line.getAttribute('data-rl-asymmetry-not-moved')).split(',');
+    > 232 |   expect(moved).toContain('net-investment-income-tax');
+          |                 ^
+      233 |   expect(notMoved).toContain('additional-medicare-tax');
+
+  1 failed
+```
+
+The RED names the inverted set and the line that read it, so the assertion is reading the
+rendered attribute rather than restating its own expectation.
+
+**GREEN, after reverting the mutation, identical command:**
+
+```text
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-surtax.spec.mjs:188:1 › Regression: SCN-022-006 added ordinary income moves one surtax and not the other (678ms)
+
+  1 passed (2.6s)
+```
+
+`git status --short` over the source, module, pack and test paths between the revert and
+the green run showed only this scope's own two files — the page and the new spec — with
+no stray probe file anywhere:
+
+```text
+ M lifetime-tax-strategy-lab.html
+?? tests/lifetime-tax-surtax.spec.mjs
+```
+
+The scenario itself declares both bases past their thresholds, with the investment-income
+portion large enough that the cap does NOT bind — if it bound, the leg would legitimately
+hold still and the asymmetry would be untestable. Adding 50,000 of ordinary income alone
+moves the investment-income surtax by exactly the rate applied to the added amount, and
+leaves the Medicare surtax byte-identical.
 
 ### TP-02-18
 
 The cumulative Feature 021 and Feature 022 browser suites over the real route.
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list`
 
-Not run in this session. This session changed no browser-reachable behaviour: the three
-files it touched are `<repo>/scripts/selftest.mjs`, this report, and the scope's
-Definition of Done. Running the cumulative suite would produce a result, but not evidence
-for a row whose owning spec does not exist, so it is left unrun rather than reported as a
-pass for something it did not check.
+Delivered in this session.
+
+```text
+  ✓  66 [system-chrome] › tests/lifetime-tax-retirement-route.spec.mjs:340:1 › Regression: SCN-024-015 a focused control survives a mode switch without being detached and a subsequent click registers (957ms)
+  ✓  67 [system-chrome] › tests/lifetime-tax-use.spec.mjs:231:1 › Regression: SCN-023-012 the under-threshold exception excludes the income and deducts no rental expense (929ms)
+  ✓  68 [system-chrome] › tests/lifetime-tax-retirement-route.spec.mjs:370:1 › Regression: SCN-024-014 the request ledger stays empty with three new packs loaded and no retirement declaration reaches a URL (791ms)
+  ✓  69 [system-chrome] › tests/lifetime-tax-use.spec.mjs:265:1 › Regression: SCN-023-013 mixed use allocates by declared days and the personal portion reaches the composition (887ms)
+
+  69 passed (41.3s)
+```
+
+69 passed, zero failed, zero skipped. The count rose from the 66 this suite carried
+before this session to 69, and the three added are exactly the three persistent titles
+TP-02-15, TP-02-16 and TP-02-17 name — so the rise is the new coverage rather than a
+selector change sweeping in scenarios another feature owns.
+
+The selector is the alternation `SCN-021`, `SCN-022`, `SCN-023`, `SCN-024`, pinned to the
+four owning spec numbers. It was run as `SCN-02[1-4]` and never as a bare `SCN-02`, which
+would sweep in a concurrent session's `SCN-025` and `SCN-026` scenarios and make any
+failure unattributable to this feature family.
+
+One operational note recorded because it affects how this row must be run: an earlier
+attempt started a second cumulative run while the first was still in flight, and the two
+contended for the same static-server port and stalled. Both were terminated, the process
+table was confirmed clear, and the run above is a single clean invocation. A stalled run
+is not a failing run, and neither stalled attempt is reported here as evidence.
 
 ### TP-02-19
 
@@ -452,6 +708,26 @@ SELFTEST_EXIT=0
 Thirteen assertions appended, zero pre-existing assertions edited, zero failures, and no
 fall in the pre-existing pass count.
 
+Re-run in this session after the three Simple/Power surfaces were built and the browser
+spec was added, same command:
+
+```text
+=== TP-02-19 selftest ===
+
+================================================
+Research-Lab self-test: 3065 passed, 0 failed
+================================================
+```
+
+Zero failed, and the pass count rose rather than fell. The rise of one is **not** this
+scope's: `scripts/selftest.mjs` is unmodified by this session, and the new browser spec
+is not referenced by the selftest at all — `node scripts/selftest.mjs | grep -c
+"lifetime-tax-surtax"` returns `0`. The selftest reads `company-intelligence-lab.html`
+and `rlcompanyintel.js` from disk, and both are being edited in-flight by a concurrent
+session that owns them. The count was confirmed stable at 3065 across two consecutive
+runs. What this row owes is that the count does not FALL and no assertion fails, and both
+hold.
+
 ### TP-02-20
 
 Zero new missing spec-referenced test paths, with the baseline file unmodified.
@@ -467,6 +743,20 @@ PATHGUARD_EXIT=0
 `missingPaths` equals `baseline` and `new=0`, so `scripts/validate-spec-test-paths.baseline`
 was neither edited nor needed to be.
 
+Re-run in this session after the browser spec was added, same command:
+
+```text
+=== TP-02-20 path guard ===
+[spec-test-paths] scanned=677 references=14838 distinctPaths=244 missingPaths=67 baseline=67 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+exit=0
+```
+
+`distinctPaths` rose from 243 to 244 — the new spec file is now a real path this report
+references — while `missingPaths` stayed at the baseline 67 with `new=0` and `stale=0`.
+That is the useful reading: the added reference resolves to a file that exists, so the
+baseline was neither edited nor needed to be.
+
 ### TP-02-21
 
 The Pages plan succeeds and `site-exclusions.json` is unchanged.
@@ -479,6 +769,19 @@ PAGES_EXIT=0
 ```
 
 `site-exclusions.json` is proven byte-identical by the change-boundary status below.
+
+Re-run in this session after the page work, same command:
+
+```text
+=== TP-02-21 pages build ===
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":120,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/004902309400a815a8ac1da2877422310e381d5c20748f711cbd0233e959a67a","omittedOrphanIndexes":144}
+exit=0
+```
+
+`registeredPages` is still 28 and `excludedPaths` still 12, so the three new surfaces
+added no root page and no second exclusion entry — the lifetime-tax route remains the one
+unregistered page it already was. The `historyIndexDirectory` and `omittedOrphanIndexes`
+differ because a concurrent session is writing brief history; neither is this scope's.
 
 ### TP-02-22
 

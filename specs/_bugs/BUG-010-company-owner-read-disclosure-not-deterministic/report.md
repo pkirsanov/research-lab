@@ -2,6 +2,10 @@
 
 ### Summary
 
+> **Historical — describes the packet-filing run only.** The fix has since been delivered under
+> Scopes 1-3. For the current position see "Scope 3 Closeout: Which Repair Route Was Taken" at the
+> end of this file.
+
 This run produced the bug artifact packet only. No fix was implemented, no product source file was
 modified, and no scope DoD item is discharged.
 
@@ -19,6 +23,10 @@ narrower than the assertion text suggests, and that every file-and-line citation
 `design.md` matches the tree at `HEAD` `5c005750e`.
 
 ### Completion Statement
+
+> **Historical — superseded by "Scope 3 Disposition" at the end of this file.** Everything listed
+> as not delivered below has since been delivered; 19 of the 21 DoD items across the three scopes
+> are now discharged, with the two open items blocked on BUG-013.
 
 **Delivered:** the eight-artifact bug packet for BUG-010, with the reported root cause independently
 grounded against the tree rather than restated.
@@ -364,3 +372,105 @@ R4 reassert, committed payload         -> reasserted=false (already present, lef
 files. They were already modified in the working tree before this session's first write — the
 session-opening `git status --porcelain` reported both as ` M` — and are another line of work. They
 were not touched here.
+
+---
+
+## Scope 3 Closeout: Which Repair Route Was Taken
+
+**Phase Agent:** bubbles.implement
+**Verified against:** `HEAD` `f65e5fa31`, tree clean
+
+### Provenance of the evidence in this section
+
+Two distinct sources are mixed below and are labelled throughout, because they carry different
+weight:
+
+- **Prior-session execution (operator-supplied).** The repair itself, the `git diff --stat` that
+  showed the payload change was one line, the observation that `scripts/selftest.mjs` was absent
+  from the diff, and the GitHub Actions cron run that republished the payload with the disclosure
+  intact (`HAS_ADAPTER_ID: True`, `HAS_DISCLOSURE: True`) were all executed in a prior session and
+  reported by the operator. They are recorded here as **attributed prior evidence**, not as this
+  agent's own execution.
+- **Re-derived this session.** Everything tagged `executed, this session` was run here against the
+  tree as it now stands, deliberately not trusting the prior figures, because the payload is a
+  per-window cron artifact that has been regenerated many times since.
+
+Where the two agree, that is stated. Nothing disagreed.
+
+### The route: regeneration through the fixed pipeline, not a byte patch
+
+`design.md` §3.4 admitted two routes for repairing the committed window — regenerate it through the
+fixed pipeline, or apply a targeted repair to the one `reason` string. **The regeneration route was
+taken.** The repaired bytes were produced by the pipeline's own
+`reassertCompanyOwnerReadDisclosure()`, so what landed in the committed payload is exactly what a
+real window emits, not prose an agent typed to satisfy a checker.
+
+That distinction is the whole point of the scope, and this session's re-derivation is what proves
+it rather than asserting it. Compare the repair commit against the payload committed today:
+
+| | `reason` window prose | disclosure sentence |
+|---|---|---|
+| repair commit `7314777ef` | "… carries into this **pre-close** view." | present |
+| `HEAD` `f65e5fa31`, `generatedAt 2026-08-19T15:03:46.574Z` | "… carries into this **pre-market** view." | present, byte-identical |
+
+The surrounding prose is regenerated per window and *did* change. The disclosure did not. Had the
+repair been a targeted byte patch, it would have been destroyed the first time the cron rewrote that
+sentence. It survived because the fact is re-emitted by the publication path on every run — which is
+the definition of deterministic the bug asked for.
+
+This also independently corroborates the attributed prior evidence from the GitHub Actions cron run:
+the operator observed the pipeline republishing both facts automatically, and the committed payload
+many windows later still carries them. Production behaviour, not test behaviour.
+
+### What was re-derived this session
+
+| # | Check | Command | Result | Exit |
+|---|---|---|---|---|
+| 1 | Publish gate against the current committed payload | `node scripts/validate-brief-payload.mjs` | `company owner-read names its producing adapter and states that no recommendation is produced: PASS`, all sections valid | 0 |
+| 2 | Payload repair confined to one line | `git show --stat 7314777ef -- market-brief.payload.json` | `market-brief.payload.json \| 2 +-` | 0 |
+| 3 | Repair confined to the company entry's `reason` | `git diff --unified=0 7314777ef^ 7314777ef -- market-brief.payload.json` | single `@@ -619 +619 @@` hunk; no other `toolCoverage` entry present | 0 |
+| 4 | `scripts/selftest.mjs` untouched by the packet | `git diff --stat 7314777ef^ ee424df41 -- scripts/selftest.mjs` | empty — byte-identical across the packet range | 0 |
+| 5 | Both facts present in the payload at `HEAD` | file read, `market-brief.payload.json:1045` | adapter id and no-recommendation disclosure both present | — |
+| 6 | No absolute path in packet artifacts or changed sources | search for the three absolute-path prefixes (both POSIX user-home roots, Windows drive form) | 0 matches | — |
+| 7 | Packet artifact lint | `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-010-company-owner-read-disclosure-not-deterministic` | see below | — |
+
+Every re-derived figure matched the attributed prior figure. The one-line payload change, the
+absence of `scripts/selftest.mjs` from the diff, and the publish gate's exit 0 all reproduced.
+
+### What is NOT claimed, and why
+
+`node scripts/selftest.mjs` **was not run in this session.** The suite currently reports 15 failures
+originating in Feature 026's cockpit first-load byte budget — an unrelated defect filed as
+**BUG-013** (`specs/_bugs/BUG-013-brief-recent-row-v2-breaches-cockpit-first-load-budget`, status
+`in_progress`, all scopes Not Started). The two Scope 3 DoD items whose named test is that command
+therefore remain **unticked**:
+
+- T-10-R1 — Feature 010 Scope 6 assertion passes with both previously failing conjuncts intact
+- T-10-R4 — repository selftest passes with no assertion removed, weakened, or skipped
+
+The prior session did observe `2490 passed, 0 failed` (row 3 of the Verification table above), and
+that observation stands as attributed prior evidence for the tree as it was then. It is **not**
+carried forward to tick these items now: BUG-013 landed after it, so a green run is no longer
+available to confirm, and an item whose command cannot be run green does not close on a stale
+observation of a different tree.
+
+What *can* be said without running it, and is recorded in `scopes.md` as an explicitly
+`interpreted` claim rather than an executed one: both conjuncts that previously failed at
+`scripts/selftest.mjs:6319` are satisfied by the committed reason. The literal
+`company-fundamentals-owner-v1` is present, and `no recommendation is produced` matches the
+assertion's `/no recommendation[^.]*\b(?:fabricat\w*|produced|generated|issued)\b/i`. The
+assertion's remaining conjuncts — registry-wide id parity, `deepLink` equality, status-set
+membership — are not evaluable by reading and stay unobserved.
+
+The honest read is that Scope 3's own delivery is complete and evidenced, while two of its six
+acceptance items are gated behind a repo-wide green suite that a different, already-filed defect
+currently withholds.
+
+### Scope 3 disposition
+
+**4 of 6 discharged.** Scope 3 status is `In Progress`. `state.json` `status` and
+`certification.status` both remain `in_progress`, because the packet cannot certify past an
+acceptance item it has not observed pass.
+
+Closing BUG-013 is what unblocks the remaining two items; no further work is required inside
+BUG-010 to satisfy them.

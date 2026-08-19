@@ -3,7 +3,7 @@
   "featureDir": "specs/_bugs/BUG-010-company-owner-read-disclosure-not-deterministic",
   "featureName": "BUG-010 A Safety-Bearing Disclosure Sourced From Non-Deterministic Prose",
   "createdAt": "2026-08-18T17:54:16Z",
-  "lastUpdatedAt": "2026-08-18T17:54:16Z",
+  "lastUpdatedAt": "2026-08-19T16:46:34Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -31,32 +31,32 @@
     "uservalidation": "uservalidation.md"
   },
   "execution": {
-    "activeAgent": "bubbles.bug",
-    "currentPhase": "analysis",
-    "currentPhaseStatus": "completed",
+    "activeAgent": "bubbles.implement",
+    "currentPhase": "implement",
+    "currentPhaseStatus": "in_progress",
     "phaseReconciliation": null,
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
     "runStartedAt": "2026-08-18T17:54:16Z",
     "completedAt": null,
-    "substate": null,
-    "currentScope": 1,
+    "substate": "implemented",
+    "currentScope": 3,
     "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "specs/_bugs/BUG-010-company-owner-read-disclosure-not-deterministic/scopes.md",
-    "nextRequiredReason": "Scope 1 installs the publish gate in scripts/validate-brief-payload.mjs and must be observed refusing the committed market-brief.payload.json before any producer change lands. A gate written after the fix can only be observed green.",
+    "nextRequiredTarget": "specs/_bugs/BUG-013-brief-recent-row-v2-breaches-cockpit-first-load-budget",
+    "nextRequiredReason": "Scope 3 is 4 of 6. Its two open items, T-10-R1 and T-10-R4, both name node scripts/selftest.mjs, which currently reports 15 failures originating in Feature 026's cockpit first-load byte budget and filed as BUG-013. No work remains inside BUG-010 to satisfy them: the payload carries both facts at HEAD, the publish gate exits 0 against it, and scripts/selftest.mjs is byte-identical across this packet's commit range. Closing BUG-013 restores a green repo-wide suite and unblocks both items.",
     "completedPhaseClaims": [],
     "pendingTransitionRequests": [],
     "scopeInventory": [
       {
         "scopeId": "01-publish-gate-proven-red",
         "scope": 1,
-        "status": "Not Started",
+        "status": "Done",
         "dependsOn": []
       },
       {
         "scopeId": "02-deterministic-producer",
         "scope": 2,
-        "status": "Not Started",
+        "status": "Done",
         "dependsOn": [
           "01-publish-gate-proven-red"
         ]
@@ -64,7 +64,7 @@
       {
         "scopeId": "03-repair-committed-window",
         "scope": 3,
-        "status": "Not Started",
+        "status": "In Progress",
         "dependsOn": [
           "01-publish-gate-proven-red",
           "02-deterministic-producer"
@@ -74,10 +74,9 @@
     "audit": null
   },
   "terminalTransitionBlockers": [
-    "No fix is implemented. scripts/validate-brief-payload.mjs carries no disclosure check, buildCompanyFundamentalsOwnerRead() omits both facts from the text it emits, the Tier-B coverage lane has no preservation duty, and market-brief.payload.json still carries the failing reason.",
-    "All 21 Definition of Done items across the 3 scopes are unchecked.",
-    "None of the 9 scenario contracts SCN-010B-001 through SCN-010B-009 has been executed; every entry in scenario-manifest.json is not_started.",
-    "node scripts/selftest.mjs exits 1 at HEAD 5c005750e with the Feature 010 Scope 6 assertion failing."
+    "Scope 3 DoD item T-10-R1 is unobserved. Its named command, node scripts/selftest.mjs, cannot be run to a green exit: the suite currently reports 15 failures originating in Feature 026's cockpit first-load byte budget, filed as BUG-013 (specs/_bugs/BUG-013-brief-recent-row-v2-breaches-cockpit-first-load-budget, in_progress). The Feature 010 Scope 6 assertion is therefore not observed passing, and is not claimed.",
+    "Scope 3 DoD item T-10-R4 is unobserved for the same reason. Its 'no assertion removed, weakened, or skipped' half is evidenced by git diff showing scripts/selftest.mjs byte-identical across this packet's commit range, but its 'repository selftest passes' half requires the same blocked command.",
+    "2 of the 21 Definition of Done items across the 3 scopes remain unchecked; both are the two above and both share the single external blocker BUG-013."
   ],
   "certification": {
     "status": "in_progress",
@@ -86,39 +85,41 @@
     "certifiedAt": null,
     "completedScopes": [],
     "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "Certification fields are validate-owned. bubbles.bug authored this packet only and claims no certification; the fields are initialised, not asserted.",
+    "certificationFieldWriteNote": "Certification fields are validate-owned and remain unasserted. bubbles.implement refreshed scopeProgress only, as a factual mirror of the checkbox counts in scopes.md, because the prior values described a packet-filing run that has since been superseded by delivery. status, completedAt, certifiedAt, completedScopes and certifiedCompletedPhases are untouched and no certification is claimed.",
     "scopeProgress": [
       {
         "scopeId": "01-publish-gate-proven-red",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 9
+        "status": "Done",
+        "dodChecked": 9,
+        "dodUnchecked": 0
       },
       {
         "scopeId": "02-deterministic-producer",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 6
+        "status": "Done",
+        "dodChecked": 6,
+        "dodUnchecked": 0
       },
       {
         "scopeId": "03-repair-committed-window",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 6
+        "status": "In Progress",
+        "dodChecked": 4,
+        "dodUnchecked": 2
       }
     ],
     "assurance": {
-      "level": "none",
+      "level": "partial",
       "missingForFull": [
-        "implementation",
         "scenario-execution",
         "independent-validate",
         "independent-audit",
-        "Detail: this run produced artifacts and diagnostic grounding only. Every citation in bug.md and design.md was verified against the tree at HEAD 5c005750e by executed command, and the reported failure was reproduced first-hand, but no scope test was written or run and no product source file was modified."
+        "Detail: the fix is delivered and evidenced. At HEAD f65e5fa31 the committed market-brief.payload.json carries both the adapter id and the no-recommendation disclosure in its company coverage reason, node scripts/validate-brief-payload.mjs exits 0 with the company owner-read check reporting PASS, and scripts/selftest.mjs is byte-identical across this packet's commit range, so the twice-relaxed Feature 010 Scope 6 assertion was not touched. What is missing is a green repo-wide node scripts/selftest.mjs run, which BUG-013 currently withholds, plus independent validate and audit passes."
       ]
     }
   },
-  "completedScopes": [],
+  "completedScopes": [
+    "01-publish-gate-proven-red",
+    "02-deterministic-producer"
+  ],
   "policySnapshot": {
     "workflowMode": "bugfix-fastlane",
     "grill": {
@@ -174,12 +175,39 @@
       "evidenceRef": "report.md#reproduction",
       "summary": "Authored the 8-artifact packet for BUG-010. Reproduced the reported failure first-hand at HEAD 5c005750e: node scripts/selftest.mjs exits 1 with 2489 passed and 1 failed, the single failure being the Feature 010 Scope 6 company owner-read assertion. Isolated the failure to 2 of that assertion's 6 conjuncts, with the other 4 passing. Verified against the tree that the deterministic producer already holds boundary.adapterId and boundary.recommendationEligibility and omits both from the read text it builds, that buildToolCoverage inherits that text verbatim, that the Tier-B coverage lane owns the key with no preservation duty, and that the publish validator's entire per-entry content test is hasText. Confirmed via git log -L that all 3 commits touching selftest.mjs line 6319 moved the assertion rather than the fact, and recorded a fourth loosening as a prohibited non-goal. Designed a 3-scope fix: gate first and proven red, then a deterministic producer with preservation, then the data repair.",
       "durationProvenance": "One continuous session. The repository selftest run is the long pole; every other command is a file read, a targeted grep, or a small node evaluation completing in under a second."
+    },
+    {
+      "agent": "bubbles.implement",
+      "workflowMode": "bugfix-fastlane",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.implement",
+      "expansionReason": "The operator scoped this run to closing the Scope 3 evidence gap against the repository as it stands and restricted writes to this packet's scopes.md, report.md, state.json and uservalidation.md. No subagent was dispatched and no validate or audit phase is claimed.",
+      "expansionEvidenceRef": "report.md",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-19T16:40:00Z",
+      "finishedAt": "2026-08-19T16:46:34Z",
+      "outcome": "blocked",
+      "addressedFindings": [
+        "BUG-010-COMPANY-OWNER-READ-DISCLOSURE-NOT-DETERMINISTIC"
+      ],
+      "unresolvedFindings": [
+        "BUG-010-SCOPE3-ACCEPTANCE-BLOCKED-ON-BUG-013"
+      ],
+      "evidenceRef": "report.md#scope-3-closeout-which-repair-route-was-taken",
+      "summary": "Closed the Scope 3 recording gap. The delivery had shipped in commits 7314777ef and ee424df41 but Scope 3 still read Not started with 6 unticked items. Re-derived each item against HEAD f65e5fa31 rather than trusting the prior session's figures, because market-brief.payload.json is a per-window cron artifact regenerated many times since. Ticked 4: the committed payload's company coverage reason carries both the adapter id and the no-recommendation disclosure; node scripts/validate-brief-payload.mjs exits 0 with the company owner-read check PASS; git proves scripts/selftest.mjs is byte-identical across the packet's commit range, so the twice-relaxed Feature 010 Scope 6 assertion was not relaxed a third time; and the Build Quality Gate clauses hold, with the repair route now recorded in report.md. Left 2 unticked: T-10-R1 and T-10-R4 both name node scripts/selftest.mjs, which is red on 15 Feature 026 byte-budget failures filed as BUG-013, so the Feature 010 Scope 6 assertion cannot be observed passing and is not claimed. The discriminating new observation is that the repair commit's window prose said 'pre-close view' while the payload committed today says 'pre-market view', with the disclosure sentence byte-identical across both. The prose is regenerated per window and the disclosure survived it, which is what distinguishes a deterministic producer from a byte patch that the next cron run would have erased. Scope 3 is In Progress at 4 of 6; status and certification.status both stay in_progress.",
+      "durationProvenance": "One short session. Two executed product commands, node scripts/validate-brief-payload.mjs and the packet artifact lint, plus git history reads and file reads. node scripts/selftest.mjs was deliberately not run, per the operator and per BUG-013."
     }
   ],
   "activeBugs": [],
   "resolvedBugs": [],
-  "addressedFindings": [],
-  "unresolvedFindings": [
+  "addressedFindings": [
     "BUG-010-COMPANY-OWNER-READ-DISCLOSURE-NOT-DETERMINISTIC"
+  ],
+  "unresolvedFindings": [
+    "BUG-010-SCOPE3-ACCEPTANCE-BLOCKED-ON-BUG-013"
   ]
 }

@@ -23344,10 +23344,10 @@ try {
     .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
   assert(suiteCode4.indexOf('market-brief.payload.json') < 0
     && suiteCode4.indexOf('brief-history.jsonl') < 0
-    && (suiteSrc4.match(/^test\(/gm) || []).length === 20
+    && (suiteSrc4.match(/^test\(/gm) || []).length === 21
     && (suiteSrc4.match(/FIXTURE-SOURCED/g) || []).length === 2
     && suiteCode4.indexOf('page.route') < 0 && suiteCode4.indexOf('context.route') < 0,
-  'tests/market-brief-cockpit.spec.mjs declares twenty tests — eighteen for Feature 026 plus the two BUG-009 R4 rows and their negative control — labels both fixture-sourced decision-surface rows as suchh, intercepts no request, and binds itself to neither the payload nor the history ledger');
+  'tests/market-brief-cockpit.spec.mjs declares twenty-one tests — eighteen for Feature 026 plus the three BUG-009 R4 rows: the refusal statement, its quiet negative control and the deduped production shape — labels both fixture-sourced decision-surface rows as suchh, intercepts no request, and binds itself to neither the payload nor the history ledger');
 
   /* The stripper must not become the hole in the guard: a real page.route in CODE still fails,
      and the same text inside a comment does not. */

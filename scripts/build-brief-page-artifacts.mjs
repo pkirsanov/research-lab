@@ -18,6 +18,22 @@ function jsonBytes(value) {
   return `${JSON.stringify(value)}\n`;
 }
 
+// The page carries WHY the attention feed is empty, not one record per refused
+// candidate: identical reasons collapse to a count. The reader learns the same fact
+// and the first-load budget, which has ~157 characters of headroom, survives it.
+function dedupeExclusions(exclusions) {
+  if (!Array.isArray(exclusions) || !exclusions.length) return exclusions;
+  const seen = new Map();
+  for (const entry of exclusions) {
+    if (!entry || typeof entry.reason !== 'string' || !entry.reason) continue;
+    const key = `${entry.code || ''}|${entry.reason}`;
+    const hit = seen.get(key);
+    if (hit) { hit.count += 1; continue; }
+    seen.set(key, { code: entry.code, reason: entry.reason, count: 1 });
+  }
+  return [...seen.values()];
+}
+
 export function buildBriefPageArtifactsFromInputs({ payload, config, snapshot, tools }) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload) ||
       !config || typeof config !== 'object' || Array.isArray(config) ||
@@ -37,7 +53,7 @@ export function buildBriefPageArtifactsFromInputs({ payload, config, snapshot, t
       regime: payload.regime,
       backdrop: payload.backdrop,
       attention: payload.attention,
-      attentionExclusions: payload.attentionExclusions,
+      attentionExclusions: dedupeExclusions(payload.attentionExclusions),
       recommendations: payload.recommendations,
       events: payload.events,
       watchlistNotes: payload.watchlistNotes,

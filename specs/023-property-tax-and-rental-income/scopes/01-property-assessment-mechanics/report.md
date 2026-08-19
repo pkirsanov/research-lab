@@ -513,6 +513,280 @@ MUTANT (no real cap-basis branch):
 Against the real module the two regimes produce 284000 / 5680 and 181000 / 3620
 from identical declarations.
 
+### Probe 1 — same-command RED for TP-01-06, TP-01-07 and TP-01-20
+
+The reconstruction above ran against an isolated copy, so it could not produce a
+same-command failure. A later session repeated it as a real in-tree mutation, which
+can. The single edit collapsed the cap-basis branch in `rltaxproperty.js` to the
+state the Scenario-First Red/Green Contract names — the branch reading the declared
+basis member was replaced by a fixed member, so two regimes differing only in
+`capBasis` settle identically:
+
+```js
+-      var basisMember = CAP_BASIS_MEMBER[cap.capBasis];
++      var basisMember = "priorAssessedValue";
+```
+
+Nothing else changed. Same command as the green run:
+
+```
+$ node scripts/selftest.mjs
+
+  ✗ FAIL: TP-01-06: two regimes differing ONLY in capBasis produce different taxable bases from identical declarations, and each record names the basis it applied
+  ✗ FAIL: TP-01-07: neither the property engine nor the settlement engine names a regime, a state or a relief programme, the branch is on the declared cap basis, and the detector is proven live by firing on the pack that legitimately does name one
+Research-Lab self-test: 3017 passed, 2 failed
+```
+
+The browser row for the same scenario fails under the same single edit, same
+command:
+
+```
+$ npx --no-install playwright test tests/lifetime-tax-property.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=line
+
+Running 5 tests using 1 worker
+  1) [system-chrome] › tests/lifetime-tax-property.spec.mjs:167:1 › Regression: SCN-023-003 an acquisition-value cap basis produces a different taxable basis and the rate ceiling is a ceiling
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('#propertyReliefBody tr').filter({ hasText: 'assessment-cap' }).first()
+    Expected substring: "$206,000"
+    Received string:    "assessment-capassessed-value$400,000$309,000yesFixture relief regime record — not an authority and not a transcription of one · fixture clause two"
+    Timeout: 5000ms
+
+      183 |     await expect(page.locator('#propertyCapBasisLine')).toContainText('acquisition-value');
+      184 |     const capRow = page.locator('#propertyReliefBody tr').filter({ hasText: 'assessment-cap' }).first();
+    > 185 |     await expect(capRow).toContainText('$206,000');
+          |                          ^
+      186 |     await expect(capRow).not.toContainText('$309,000');
+      187 |     await expect(page.locator('[data-rl-value="propertyTax"]')).toHaveText('$3,620');
+
+  1 failed
+    [system-chrome] › tests/lifetime-tax-property.spec.mjs:167:1 › Regression: SCN-023-003 an acquisition-value cap basis produces a different taxable basis and the rate ceiling is a ceiling
+  4 passed (31.2s)
+RED_PW_EXIT=1
+```
+
+The mutation was reverted immediately and the revert was verified before any other
+work resumed:
+
+```
+$ git diff --stat -- rltaxproperty.js
+(no output)
+```
+
+**Evidence class.** This is a mutation-derived RED, not a
+before-implementation RED. It proves the three assertions are load-bearing — each
+fails when the behaviour it names is removed — which is what the reconstruction
+above was reaching for and could not demonstrate through the real command. It does
+not reconstruct the original authoring sequence, and it is not recorded as though
+it did. Rows TP-01-06, TP-01-07 and TP-01-20 therefore carry same-command RED and
+GREEN; the remaining rows do not, which is why the covering Definition of Done row
+stays open.
+
+### Probe 2 — same-command RED for TP-01-01
+
+The declared/sourced split is enforced by one predicate call. Disabling it lets a
+household's own input carry an authority's citation, which is the exact failure
+TP-01-01 exists to catch:
+
+```js
+-      if (rules.carriesCitation(member)) {
++      if (false && rules.carriesCitation(member)) {
+```
+
+Nothing else changed. Same command, captured through the bounded evidence tool so
+every line produced is covered by the hash:
+
+```
+# probe2-selftest
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3415
+sha256: 0bf8c8c74ba7401474c968f0619baf2f90c5e77f6bd6659e846ac4156b70d148
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-01-01: PropertyAssessment/v1 refuses any member carrying a sourceRef, and a regime figure whose sourceRef names no record is refused rather than displayed with an unreachable citation
+--- omitted 3375 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3018 passed, 1 failed
+```
+
+Reverted immediately, revert verified before any other work resumed:
+
+```
+$ git diff --stat -- rltaxproperty.js rltax.js rltaxrules.js tax-rules lifetime-tax-strategy-lab.html tests
+(no output)
+```
+
+Same evidence class as Probe 1: mutation-derived, not before-implementation.
+
+### Probe 3 — same-command RED for TP-01-02
+
+TP-01-02 asserts the two halves of the epistemology are separated by contract
+shape rather than by wording. Collapsing the undeclared-member refusal onto the
+unretrieved-rule code and domain removes exactly that separation while leaving
+both messages untouched, so the row fails on shape and not on text:
+
+```js
+-    return rules.unavailable("RLTAX-INPUT-INCOMPLETE", "property-assessment:" + member,
++    return rules.unavailable("RLTAX-THRESHOLD-UNAVAILABLE", "property-regime:" + member,
+```
+
+Same command:
+
+```
+# probe3-selftest
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3415
+sha256: 92287f5450e67cc9a29e3d5a575ea092fb48c99b2d4cd0dccf862fca29bde0f4
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-01-02: a missing household declaration and an unretrieved statutory rule refuse with different codes AND different domain prefixes, so the two halves are separated by shape rather than by wording
+--- omitted 3375 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3018 passed, 1 failed
+```
+
+Reverted immediately, revert verified:
+
+```
+$ git diff --stat -- rltaxproperty.js rltax.js rltaxrules.js tax-rules lifetime-tax-strategy-lab.html tests
+(no output)
+```
+
+**Observation worth recording.** TP-01-03 stayed green under this mutation. It
+asserts that an undeclared assessed value carries no numeric value and names the
+member, and both remained true when only the code and domain changed. The two rows
+are therefore genuinely independent rather than one assertion written twice, which
+is what the pair was designed to establish.
+
+### Probe 4 — same-command RED for TP-01-03
+
+TP-01-03 is the adversarial row guarding against a plausible number standing in
+for a refusal. Making the refused property leg carry a zero is precisely the
+implementation it names:
+
+```js
+         available: false,
++        value: 0,
+         refusal: settlement,
+```
+
+Same command:
+
+```
+# probe4-selftest
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3415
+sha256: 1d168ce4f2148ddd91bbc94acbd68ed12df260728019c1096224b1d9bb32a8fb
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-01-03: an undeclared assessed value produces a refusal naming the member and carrying NO numeric value — an implementation returning 0 would fail this
+--- omitted 3409 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3018 passed, 1 failed
+```
+
+Reverted immediately, revert verified:
+
+```
+$ git diff --stat -- rltaxproperty.js rltax.js rltaxrules.js tax-rules lifetime-tax-strategy-lab.html tests
+(no output)
+```
+
+The row's own wording — *an implementation returning 0 would fail this* — is now
+recorded as an observation rather than a prediction.
+
+### Probe 5 — same-command RED for TP-01-04, and a discarded first attempt
+
+The first attempt at this probe disabled the coherence check outright. It is
+recorded here because it is instructive, not because it counts:
+
+```js
+-    if (figure.applicationPoint !== COHERENT_POINT[kind]) {
++    if (false && figure.applicationPoint !== COHERENT_POINT[kind]) {
+```
+
+```
+# probe5-selftest
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3398
+sha256: 86f3ab2fbc9ab2c40be55342d511c95e737e92c8acd380e8e3d2e757767b6f64
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL (Feature 023 Scope 01 property group threw): Cannot read properties of undefined (reading 'code')
+--- omitted 3392 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3001 passed, 1 failed
+```
+
+**This is not RED and is not claimed as RED.** With the pairing accepted, the
+incoherent fixture settles instead of refusing, `refusal` is undefined and the
+whole group throws before reaching the assertion. This scope's Scenario-First
+Red/Green Contract rules that out in terms: *a syntax error, a missing browser or
+an absent test does not satisfy RED*. A group that throws proves only that the
+group stopped.
+
+The probe was re-aimed to keep the group running and let the row itself fail. The
+refusal is still raised at the same point and still names the same incoherent
+pairing; only its code changes, so the assertion fails on the code it pins:
+
+```js
+     if (figure.applicationPoint !== COHERENT_POINT[kind]) {
+-      refusals.push(rules.unavailable("RLTAX-PACK-INVALID", label + ":applicationPoint",
++      refusals.push(rules.unavailable("RLTAX-CONFIG-INVALID", label + ":applicationPoint",
+```
+
+```
+# probe5b-selftest
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3415
+sha256: a2098daf6b356f865c3855ff52b47ac0c8980f6cc64ef8abf575d26ed3eb4fba
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-01-04: an exemption declaring the tax-rate application point and a cap declaring it are each refused RLTAX-PACK-INVALID naming the incoherent pairing
+--- omitted 3409 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3018 passed, 1 failed
+```
+
+Reverted immediately, revert verified:
+
+```
+$ git diff --stat -- rltaxproperty.js rltax.js rltaxrules.js tax-rules lifetime-tax-strategy-lab.html tests
+(no output)
+```
+
+### Probe 6 — same-command RED for TP-01-05
+
+TP-01-05 pins three points around the cap ceiling and, decisively, that the
+boundary itself is *not* bound. Widening the comparison by one character is the
+smallest change that violates only that last clause:
+
+```js
+-      capBound = capCeilingValue < assessment.assessedValue;
++      capBound = capCeilingValue <= assessment.assessedValue;
+```
+
+Same command:
+
+```
+# probe6-selftest
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3415
+sha256: 14901441fef9e43d84c70bd905a996c477a06cb432f09b347838e916beb84ca4
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-01-05: below, exactly at and above the cap ceiling the capped assessment, the exemption-reduced taxable basis and the tax are each exact, and the boundary itself is not treated as bound
+--- omitted 3409 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3018 passed, 1 failed
+```
+
+Reverted immediately, revert verified:
+
+```
+$ git diff --stat -- rltaxproperty.js rltax.js rltaxrules.js tax-rules lifetime-tax-strategy-lab.html tests
+(no output)
+```
+
+The off-by-one at the boundary is caught by the row and by nothing else in the
+group, so the at-cap case is carrying its own weight rather than riding on the
+below and above cases.
+
 ## Change Boundary
 
 Command: a path-scoped status check over the excluded list.

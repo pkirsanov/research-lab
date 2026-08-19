@@ -289,19 +289,26 @@ all. A syntax error, a missing browser or an absent test does not satisfy RED.
 - [x] NFR-023-003 holds: the rental declarations are inventoried, cleared and
       redacted, and the request ledger stays empty.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-20`
-- [ ] This scope superseded nothing: no assertion outside the appended selftest
-      group changed, and no `SUP-023-NN` marker was added.
-  - **NOT SATISFIED AS WRITTEN, and correctly so.** One supersession was required
-    and was admitted in flight under ASC-8: `SUP-023-12`. TP-02-12's byte-identity
-    check reconstructs the pre-feature pack by deleting a hand-maintained list of
-    exactly the three top-level members Scope 02 added, and FR-023-016 through
-    FR-023-018 require this scope to insert two more, so the assertion failed for
-    an ASC-1 cause. The entry is booked on all four surfaces in the same change
-    ASC-8 requires. No OTHER pre-existing assertion changed. This row is left
-    unchecked rather than reworded, because rewriting it to match delivery would
-    be exactly the content fabrication the ownership rules forbid; the planning
-    prediction that this scope would own no supersession was simply wrong, and
-    ASC-8 exists for that case.
+- [ ] Every assertion this scope changed outside the appended selftest group is a
+      ledgered supersession, and this scope owns exactly one: `SUP-023-12`, admitted
+      in flight under ASC-8 because TP-02-12's byte-identity check reconstructed the
+      pre-feature pack from a hand-maintained three-member removal list that
+      FR-023-016 through FR-023-018 force this scope to grow. It is booked in the
+      same change on all four surfaces ASC-8 requires — the ledger row, the
+      ownership table, the per-file marker distribution and the marker at its own
+      site — with its superseded clause recorded verbatim there and the superseded
+      literal surviving nowhere else. No other pre-existing assertion differs from
+      its pre-feature text. An assertion edited without a ledger row and a marker,
+      or a marker carried in a file the distribution does not name, fails this row
+      by name.
+  - **Corrected by `bubbles.plan`.** This row previously predicted that the scope
+    superseded nothing and that no `SUP-023-NN` marker was added. Delivery
+    contradicts the prediction: `SUP-023-12` exists, and both `spec.md`'s ledger and
+    `design.md`'s per-file marker distribution book its ownership to Scope 03, so
+    the row could never be honestly ticked as written. The prediction is replaced by
+    the ledgered-supersession requirement above, which keeps the original protective
+    intent — an unledgered assertion edit still fails it — instead of asserting a
+    count of zero the repository refutes.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the marker check · **Evidence:** `report.md#supersession-ledger`
 - [x] Every excluded path is byte-identical, and the only federal pack change is
       the additive insertion of the three retrieved records.

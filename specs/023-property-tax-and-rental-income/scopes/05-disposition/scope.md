@@ -137,9 +137,10 @@ Scenario: SCN-023-015 The primary-residence exclusion applies after recapture an
     re-resolving its target against the tree Feature 022 left.
 14. Append a `lifetime-tax — disposition, recapture and the residence exclusion`
     group to `scripts/selftest.mjs`.
-15. Run the whole-feature closing checks: the marker check over all nine ledger
-    entries, the cumulative browser suite, and the assertion that the tool is still
-    absent from every registry.
+15. Run the whole-feature closing checks: the marker check over every ledger entry,
+    with the expected count derived from the ledger rather than pinned, the
+    cumulative browser suite, and the assertion that the tool is still absent from
+    every registry.
 
 ## Shared Infrastructure Impact Sweep
 
@@ -242,7 +243,7 @@ missing browser or an absent test does not satisfy RED.
 | TP-05-17 | Vocabulary | unit | SCN-023-014 | `scripts/selftest.mjs` | The refusal vocabulary member count equals its pre-feature value | `node scripts/selftest.mjs` | No | `report.md#tp-05-17` |
 | TP-05-18 | Privacy | unit | SCN-023-015 | `scripts/selftest.mjs` | The disposition declarations are inventoried, cleared, redacted, and absent from every URL, request, referrer and console message | `node scripts/selftest.mjs` | No | `report.md#tp-05-18` |
 | TP-05-19 | Supersession | unit | SCN-023-014 | `scripts/selftest.mjs` | SUP-023-09's replacement asserts the carried category and retains the original clause for every remaining category on a fixture proven to exercise it; the superseded literal is proven to have failed first | `node scripts/selftest.mjs` | No | `report.md#supersession-ledger` |
-| TP-05-20 | Marker check | unit | SCN-023-014 | `scripts/selftest.mjs` | The distinct `SUP-023-NN` markers in the repository equal the nine ledger entries, and no assertion outside that set differs from its pre-feature text | `node scripts/selftest.mjs` | No | `report.md#supersession-ledger` |
+| TP-05-20 | Marker check | unit | SCN-023-014 | `scripts/selftest.mjs` | The distinct `SUP-023-NN` markers in the repository and the ledger's entries are the same set in both directions, the expected count being derived from the ledger's own row count, the sum of the ownership column and the total its arithmetic sentence states rather than from a literal; the identity is proven able to fail when a marker id is removed and when one is renamed; and no assertion outside that set differs from its pre-feature text | `node scripts/selftest.mjs` | No | `report.md#supersession-ledger` |
 | TP-05-21 | No-registration | unit | SCN-023-015 | `scripts/selftest.mjs` | The tool remains absent from `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/README.md` and market-brief coverage | `node scripts/selftest.mjs` | No | `report.md#tp-05-21` |
 | TP-05-22 | Regression E2E | e2e-ui | SCN-023-014 | `lifetime-tax-disposition.spec.mjs` | `Regression: SCN-023-014 the gain splits into two legs priced under different rules` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-014 the gain splits into two legs priced under different rules" --reporter=list` | Yes | `report.md#scenario-scn-023-014` |
 | TP-05-23 | Regression E2E | e2e-ui | SCN-023-015 | `lifetime-tax-disposition.spec.mjs` | `Regression: SCN-023-015 the residence exclusion applies to the remainder only and names a failing test` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-015 the residence exclusion applies to the remainder only and names a failing test" --reporter=list` | Yes | `report.md#scenario-scn-023-015` |
@@ -312,51 +313,49 @@ missing browser or an absent test does not satisfy RED.
 - [x] NFR-023-003 holds: the disposition declarations are inventoried, cleared and
       redacted, and the request ledger stays empty.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser privacy row · **Evidence:** `report.md#tp-05-18`, `report.md#tp-05-25`
-- [ ] SUP-023-09 is delivered with its marker, its superseded clause recorded
-      verbatim, its intended-RED failure recorded before its green, and the marker
-      check confirms the repository's `SUP-023-NN` markers equal the nine ledger
-      entries.
+- [ ] SUP-023-09 is delivered with its marker in the file the per-file distribution
+      names, its superseded clause recorded verbatim at its own site and the
+      superseded literal surviving nowhere else, and the marker check confirms the
+      repository's distinct `SUP-023-NN` markers and the ledger's entries are the
+      same set in both directions. The expected count is DERIVED from the ledger
+      itself — its row count, the sum of the ownership table's own count column and
+      the total its arithmetic sentence states in words, all three in agreement —
+      rather than stated as a literal, so a later ASC-8 admission is absorbed
+      without editing this row. The identity is proven able to fail: recomputed once
+      with a marker id removed and once with a marker id renamed, it fails in both
+      cases and names the id that broke it.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the marker check · **Evidence:** `report.md#supersession-ledger`, `report.md#tp-05-19`, `report.md#tp-05-20`
-  - **Left unchecked because:** TWO independent conjuncts fail, one of which is a
-    planning-vs-delivery contradiction this agent must not paper over.
-    1. **The row asserts the wrong count and is therefore false as written.** It
-       requires the marker check to confirm the repository's markers equal *the
-       nine ledger entries*. The delivered ledger holds **fourteen**. Executed in
-       this session:
+  - **Corrected by `bubbles.plan`.** This row previously required the markers to
+    equal *the nine ledger entries* and required SUP-023-09's intended-RED failure
+    to be recorded before its green. Neither conjunct could be satisfied.
+    1. **The count was a stale planning prediction.** The delivered ledger holds
+       **fourteen** rows and the tree carries fourteen distinct ids, SUP-023-01
+       through SUP-023-14, SUP-023-10 through SUP-023-14 having been admitted in
+       flight under ASC-8 by Scopes 02, 03 and 04. Executed at correction time:
        `grep -rhoE 'SUP-023-[0-9]{2}' specs/023-property-tax-and-rental-income/ | sort -u | wc -l`
-       → `14`, the ids being SUP-023-01 through SUP-023-14. Nine was the planning
-       prediction; SUP-023-10 through SUP-023-14 were admitted in flight under
-       ASC-8 by Scopes 02, 03 and 04. Ticking this row would assert an equality
-       against nine that the repository contradicts, and rewriting the row's own
-       claim from nine to fourteen is a planning edit this agent does not own.
-       **Route to `bubbles.plan` to correct the stated count.**
-    2. **The intended-RED conjunct has no recoverable baseline.** The row requires
-       SUP-023-09's intended-RED failure to be *recorded before its green*. That
-       observation belongs to the implementation session, which is squashed into
-       commit `b9d92a3f1` together with every other scope of Features 021-024, so
-       no pre-supersession tree state exists to re-derive it from. This session did
-       not observe that RED and will not claim it.
-    What IS verified in this session: the marker check is green — `TP-05-19` and
-    `TP-05-20` pass inside `node scripts/selftest.mjs` (`3011 passed, 0 failed`,
-    exit `0`), confirming the row count, the ownership column's sum and the stated
-    arithmetic agree with each other, that Scope 05 owns exactly its one listed
-    entry, and that the marker sits only in the file the distribution names.
+       → `14`, and `grep -cE '^\| SUP-023-[0-9]{2} \|' specs/023-property-tax-and-rental-income/spec.md`
+       → `14`. The literal is replaced by the ledger-derived identity above — the
+       same form Feature 024's equivalent row uses — so the next ASC-8 admission is
+       absorbed without another planning edit rather than re-staling the number.
+    2. **The intended-RED baseline is not recoverable.** The implementation session
+       is squashed into commit `b9d92a3f1` together with every other scope of
+       Features 021-024, so no pre-supersession tree state survives to re-derive
+       that observation from. It is replaced by the adversarial identity probe
+       above, which any session can reproduce on demand and which still fails
+       whenever a marker and its ledger row disagree.
 - [x] NFR-023-010 holds: the tool is still absent from every registry and no new
       root HTML exists.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus `node scripts/build-pages-site.mjs --dry-run` · **Evidence:** `report.md#tp-05-21`, `report.md#tp-05-29`
-- [ ] Every excluded path is byte-identical, including `rltaxrental.js`, proving
+- [x] Every excluded path is byte-identical, including `rltaxrental.js`, proving
       the disposition reads a published basis rather than reaching into the rental
       engine.
-  - **Phase:** implement · **Command:** a path-scoped status check over the excluded list · **Evidence:** `report.md#change-boundary`
-  - **Left unchecked because:** byte-identity has no measurable baseline for the
-    untracked excluded paths. The whole Feature 021 to 023 delivery is uncommitted,
-    so `rltaxrental.js`, `rltaxuse.js`, `rltaxproperty.js` and the prior spec files
-    are `??` rather than clean, and `site-exclusions.json` differs from `HEAD` by
-    Feature 021's eight entries. What the path-scoped check in
-    `report.md#change-boundary` does establish is that every TRACKED excluded path
-    except `site-exclusions.json` is byte-identical to `HEAD`, that
-    `site-exclusions.json` carries zero Feature 023 entries, and that this session
-    changed only this scope's own spec file.
+  - **Phase:** implement · **Command:** a path-scoped status check over the excluded list · **Evidence:** `report.md#change-boundary`, `report.md#attribution-closed--the-row-is-now-satisfied`
+  - **Closed on:** every pre-existing excluded path unchanged by the series commit;
+    the created entries carrying none of this scope's artefacts as it left the tree;
+    zero working-tree drift over all thirty-five entries; and `rltaxdisposition.js`
+    requiring only `./rltaxrules`, so the rental engine is never reached into. The
+    Feature 023 references now in the Feature 022 Scope 01 report arrived after this
+    scope, in commit `906866405`.
 - [x] No output states a probability, an appreciation assumption, a lifetime
       figure, a future year, a track record or an error rate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`

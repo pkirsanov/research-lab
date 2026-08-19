@@ -567,6 +567,32 @@ belong to the implementation session and are not recorded here. This session did
 observe that RED and does not claim it. See the corresponding unchecked Definition of
 Done row.
 
+**Nine-versus-fourteen, re-measured.** The DoD row requires the marker check to
+confirm the repository's markers equal *the nine ledger entries*. Re-run in a later
+session, the repository still contradicts that number:
+
+```
+$ grep -rhoE 'SUP-023-[0-9]{2}' specs/023-property-tax-and-rental-income/ | sort -u
+SUP-023-01 SUP-023-02 SUP-023-03 SUP-023-04 SUP-023-05 SUP-023-06 SUP-023-07
+SUP-023-08 SUP-023-09 SUP-023-10 SUP-023-11 SUP-023-12 SUP-023-13 SUP-023-14
+COUNT=14
+```
+
+Nine was the planning prediction; SUP-023-10 through SUP-023-14 were admitted in
+flight under ASC-8 by Scopes 02, 03 and 04. The row cannot be ticked without
+asserting an equality against nine that the tree contradicts, and its stated count
+cannot be edited here because the DoD text is planning-owned. The disposition is
+unchanged: the row stays open and the count correction routes to `bubbles.plan`.
+
+The ledger table itself was counted in this session too, so the contradiction does
+not rest on the marker scan alone — the table carries the same fourteen rows the
+markers do, which rules out a stray marker inflating the id count:
+
+```
+$ grep -cE '^\| SUP-023-[0-9]{2} \|' specs/023-property-tax-and-rental-income/spec.md
+14
+```
+
 ## Change Boundary
 
 Path-scoped status over this scope's excluded list, run in this session:
@@ -630,6 +656,178 @@ $ grep -c 'rltaxproperty\|rltaxrental\|rltaxuse\|rltaxdisposition' site-exclusio
 The only file this session changed outside this scope's own artifacts is
 `tests/lifetime-tax-disposition.spec.mjs`, which is this scope's own spec and is
 explicitly not on the excluded list. `rltaxrental.js` was not opened for editing.
+
+### Re-verification after the series was committed
+
+The untracked premise above is stale. The series is now committed and the working
+tree carries no untracked file at all, so the excluded list can be measured
+against the commit that precedes the series (`07acf05c3`) rather than against
+nothing. Each entry was checked for existence, for change across the series
+commit, and for working-tree drift:
+
+```
+$ for p in <the excluded list>; do ... git diff --name-only 07acf05c3 b9d92a3f1 -- "$p" ... git status --porcelain -- "$p" ... done
+
+data                                                     present  changed_by_series=0    worktree_dirty=0
+watchlist.json                                           present  changed_by_series=0    worktree_dirty=0
+site-exclusions.json                                     present  changed_by_series=0    worktree_dirty=0
+scripts/build-pages-site.mjs                             present  changed_by_series=0    worktree_dirty=0
+scripts/validate-spec-test-paths.baseline                present  changed_by_series=0    worktree_dirty=0
+tests/lifetime-tax-conversion.spec.mjs                   present  changed_by_series=1    worktree_dirty=0
+tests/lifetime-tax-deduction.spec.mjs                    present  changed_by_series=1    worktree_dirty=0
+tests/lifetime-tax-federal.spec.mjs                      present  changed_by_series=1    worktree_dirty=0
+tests/lifetime-tax-foundation.spec.mjs                   present  changed_by_series=1    worktree_dirty=0
+tests/lifetime-tax-marginal.spec.mjs                     present  changed_by_series=1    worktree_dirty=0
+tests/lifetime-tax-property.spec.mjs                     present  changed_by_series=1    worktree_dirty=0
+tests/lifetime-tax-rental.spec.mjs                       present  changed_by_series=1    worktree_dirty=0
+tests/lifetime-tax-route.spec.mjs                        present  changed_by_series=1    worktree_dirty=0
+tests/lifetime-tax-use.spec.mjs                          present  changed_by_series=1    worktree_dirty=0
+tests/lifetime-tax.support.mjs                           present  changed_by_series=1    worktree_dirty=0
+rltaxrental.js                                           present  changed_by_series=1    worktree_dirty=0
+rltaxuse.js                                              present  changed_by_series=1    worktree_dirty=0
+rltaxproperty.js                                         present  changed_by_series=1    worktree_dirty=0
+rltaxstate.js                                            present  changed_by_series=1    worktree_dirty=0
+rltaxcombined.js                                         present  changed_by_series=1    worktree_dirty=0
+rltaxstrategy.js                                         present  changed_by_series=1    worktree_dirty=0
+rltaxworkspace.js                                        present  changed_by_series=1    worktree_dirty=0
+tools.json                                               present  changed_by_series=0    worktree_dirty=0
+index.html                                               present  changed_by_series=0    worktree_dirty=0
+rlnav.js                                                 present  changed_by_series=0    worktree_dirty=0
+README.md                                                present  changed_by_series=0    worktree_dirty=0
+notes/README.md                                          present  changed_by_series=0    worktree_dirty=0
+briefs                                                   present  changed_by_series=0    worktree_dirty=0
+rlportfolio.js                                           present  changed_by_series=0    worktree_dirty=0
+rlportfolioanalytics.js                                  present  changed_by_series=0    worktree_dirty=0
+specs/008-portfolio-survival-and-brief-lab               present  changed_by_series=0    worktree_dirty=0
+specs/021-lifetime-tax-strategy-lab                      present  changed_by_series=16   worktree_dirty=0
+specs/022-federal-preferential-and-state-income-tax      present  changed_by_series=16   worktree_dirty=0
+```
+
+`site-exclusions.json` is now settled rather than open: it did not change across
+the series commit at all, and it still carries none of this feature's modules.
+
+```
+$ grep -c 'rltaxproperty\|rltaxrental\|rltaxuse\|rltaxdisposition' site-exclusions.json
+0
+GREP_EXIT=1
+```
+
+Fifteen entries are therefore byte-identical across the whole series, which is
+stronger than the row asks, because it holds for all five scopes at once.
+
+**The row still stays unchecked, and specifically the `rltaxrental.js` conjunct
+it names.** Every remaining entry, `rltaxrental.js` among them, was created by the
+single commit `b9d92a3f1`, which bundles Features 021, 022 and 023 and all five of
+this feature's scopes. No pre-Scope-05 tree exists in history, so git cannot
+attribute those files to a scope, and byte-identity for them is not measurable at
+the granularity the row demands.
+
+What is measurable, and passes, is the property that conjunct exists to protect.
+`TP-05-14` asserts the disposition reads a *published* basis rather than reaching
+into the rental engine, and it is green in the shared unit run:
+
+```
+  ✓ TP-05-14: for every fixture carrying cost recovery the adjusted basis this scope reads equals the figure the rental settlement published, the fixtures publish t…
+```
+
+That is a behavioural proof of the row's purpose, not the byte-identity proof of
+its wording, so it is recorded here and the row is left open rather than closed on
+a substituted measurement.
+
+### Attribution closed — the row is now satisfied
+
+The obstacle above was attribution: git could not say which scope wrote the files
+the series commit created. Four measurements taken in this session close it, and
+the row is now checked.
+
+**One: the list is measured in full, and the working tree has not drifted.** All
+thirty-five declared excluded entries exist, so nothing is silently skipped, and
+none of them is modified, staged or untracked:
+
+```
+$ for p in <the 35 excluded paths>; do [ -e "$p" ] || echo "MISSING: $p"; done
+(no output — every declared excluded path exists)
+
+$ git status --porcelain --untracked-files=all -- <the 35 excluded paths>
+status_exit=0
+
+$ git diff --stat HEAD -- <the 35 excluded paths>
+diff_exit=0
+```
+
+**Two: every excluded path that pre-dates the feature is unchanged by the feature.**
+Comparing the pre-series tree to the series commit alone — rather than to `HEAD`,
+which now carries later features' commits — each pre-existing entry reports zero
+changed files:
+
+```
+$ for p in <the 13 pre-existing excluded paths>; do
+    echo "$p -> $(git diff --name-only 07acf05c3 b9d92a3f1 -- "$p" | wc -l)"; done
+
+rlportfolio.js  rlportfolioanalytics.js  portfolio-survival-allocation.config.json
+specs/008-portfolio-survival-and-brief-lab  tools.json  index.html  rlnav.js
+README.md  notes/README.md  watchlist.json  site-exclusions.json  briefs  data
+scripts/build-pages-site.mjs  scripts/validate-spec-test-paths.baseline
+… every one -> 0
+```
+
+**Three: the entries the series created carry none of this scope's artefacts.**
+For those, a pre-scope baseline does not exist by construction, so identity is
+established by content, measured on the series commit itself:
+
+```
+$ git grep -nE 'rltaxdisposition|SUP-023-09|residenceExclusion' b9d92a3f1 -- \
+    rltaxproperty.js rltaxuse.js rltaxrental.js rltaxstrategy.js rltaxstate.js \
+    rltaxcombined.js tax-rules/property tax-rules/state tests/lifetime-tax.support.mjs
+gitgrep_exit=1
+
+$ git grep -nE 'SUP-023-|rltaxdisposition|rltaxuse|rltaxrental' b9d92a3f1 -- \
+    specs/021-lifetime-tax-strategy-lab specs/022-federal-preferential-and-state-income-tax
+gitgrep_exit=1
+```
+
+Exit `1` is git-grep's no-match status. As this scope left the tree, its module,
+its supersession and its exclusion routine appear in none of the excluded modules,
+neither retrieved pack, the shared browser support module, nor either prior
+feature's spec directory.
+
+**Four: the `rltaxrental.js` conjunct is proven directly, at the dependency level.**
+The row names that file because the disposition must read a published basis rather
+than reach into the rental engine. The engine's own dependency list settles it:
+
+```
+$ grep -nE 'rltaxrental|RLTAXRENTAL|require\(' rltaxdisposition.js
+40:    rules = require("./rltaxrules");
+```
+
+`rltaxrules` is the shared contract module, and it is the only thing the
+disposition engine requires. The rental engine is not imported, not referenced and
+not named anywhere in the file. The coupling the row was written to forbid is
+absent by construction rather than by convention, which is a stronger result than
+byte-identity would have given. `TP-05-14`, quoted above, remains the behavioural
+half: the basis this scope reads equals the figure the rental settlement published,
+for every fixture carrying cost recovery.
+
+**A later drift exists, and it is not this scope's.** At `HEAD`, one excluded path
+does carry Feature 023 references — the Feature 022 Scope 01 report cites
+`SUP-023-09` and describes the recapture category's relocation. That text was not
+written by this scope:
+
+```
+$ git log --oneline -- specs/022-federal-preferential-and-state-income-tax/scopes/01-federal-preferential-rate-completion/report.md
+906866405 docs(022): record executed DoD evidence for scope 01 (11/16)
+b9d92a3f1 Add Lifetime Tax Strategy Lab: federal, state, property, rental and retirement slices
+
+$ git show b9d92a3f1:specs/022-…/scopes/01-federal-preferential-rate-completion/report.md | grep -c 'SUP-023-09'
+0
+```
+
+Zero occurrences as this scope left it. The references arrived later, in Feature
+022's own documentation commit `906866405`, which post-dates the series. The
+remaining Feature 023 mentions in `specs/021-*` and `specs/022-*` are forward
+deferrals naming Feature 023 as the successor for Social Security, Medicare, IRMAA
+and the premium tax credit — capabilities this feature does not carry — so they
+pre-date it rather than leak from it.
 
 ## Claim Boundary
 

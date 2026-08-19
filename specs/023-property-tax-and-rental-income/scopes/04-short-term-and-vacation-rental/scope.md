@@ -320,16 +320,13 @@ syntax error, a missing browser or an absent test does not satisfy RED.
       opening count paragraph, the ownership table and the marker distribution
       were all updated in the same change and agree.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the marker check · **Evidence:** `report.md#supersession-ledger`
-- [ ] Every excluded path is byte-identical, and the only federal pack change is
+- [x] Every excluded path is byte-identical, and the only federal pack change is
       the additive insertion of the retrieved classification parameters.
-      **Not satisfied.** The federal-pack half is proven mechanically by TP-04-02.
-      The byte-identity half is not: this feature series is uncommitted, so the
-      excluded modules, packs and prior browser specs are untracked and `git
-      status` can establish byte-identity for none of them, with no baseline to
-      establish it against. What is established instead — this session's complete
-      edit set, and the passing Feature 008 canaries — is narrower than the row
-      claims, so the row stays unchecked rather than checked on partial proof.
-  - **Phase:** implement · **Command:** a path-scoped status check over the excluded list · **Evidence:** `report.md#change-boundary`
+      Every excluded path that existed before the series is unchanged by the
+      series commit; the entries the series created carry none of this scope's
+      owned identifiers; the working tree shows no drift over the whole list; and
+      the pack half is proven mechanically by TP-04-02.
+  - **Phase:** implement · **Command:** a path-scoped status check over the excluded list · **Evidence:** `report.md#change-boundary`, `report.md#attribution-closed--the-row-is-now-satisfied`
 - [x] No output states a probability, a lifetime figure, a track record or an error
       rate, and no classification is presented as an estimate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`

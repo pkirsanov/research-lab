@@ -579,6 +579,164 @@ the Feature 008 byte-identity canaries pass inside the captured run. The DoD row
 that asserts byte-identity across the whole excluded list is left unchecked for
 this reason rather than checked on partial proof.
 
+### Re-verification after the series was committed
+
+The uncertainty declaration above was written while the series was uncommitted.
+That premise is now stale: the whole lab landed as a single commit and nothing in
+the excluded list is untracked any longer.
+
+```
+$ git status --porcelain --untracked-files=all | grep -c '^??'
+0
+
+$ git log --oneline -- specs/023-property-tax-and-rental-income rltaxuse.js rltaxrental.js rltaxproperty.js
+11a7b6331 docs(023): pin the SUP-023-09 row's nine-vs-fourteen ledger contradiction
+fa3915ec3 docs(023): derive the BI-9/BI-10 sourcing disjunction for scope 05
+b9d92a3f1 Add Lifetime Tax Strategy Lab: federal, state, property, rental and retirement slices
+```
+
+Byte-identity can now be established for part of the list, against the commit
+that precedes the series (`07acf05c3`). Each entry was checked for existence, for
+change across the feature commit, and for working-tree drift:
+
+```
+$ for p in <the excluded list>; do ... git diff --name-only 07acf05c3 b9d92a3f1 -- "$p" ... git status --porcelain -- "$p" ... done
+
+rlportfolio.js                                       present  feature_commit_changed=0    worktree_dirty=0
+rlportfolioanalytics.js                              present  feature_commit_changed=0    worktree_dirty=0
+portfolio-survival-allocation.config.json            present  feature_commit_changed=0    worktree_dirty=0
+specs/008-portfolio-survival-and-brief-lab           present  feature_commit_changed=0    worktree_dirty=0
+rltaxproperty.js                                     present  feature_commit_changed=1    worktree_dirty=0
+rltaxstrategy.js                                     present  feature_commit_changed=1    worktree_dirty=0
+rltaxstate.js                                        present  feature_commit_changed=1    worktree_dirty=0
+rltaxcombined.js                                     present  feature_commit_changed=1    worktree_dirty=0
+tax-rules/property                                   present  feature_commit_changed=2    worktree_dirty=0
+tax-rules/state                                      present  feature_commit_changed=2    worktree_dirty=0
+tools.json                                           present  feature_commit_changed=0    worktree_dirty=0
+index.html                                           present  feature_commit_changed=0    worktree_dirty=0
+rlnav.js                                             present  feature_commit_changed=0    worktree_dirty=0
+README.md                                            present  feature_commit_changed=0    worktree_dirty=0
+notes/README.md                                      present  feature_commit_changed=0    worktree_dirty=0
+briefs                                               present  feature_commit_changed=0    worktree_dirty=0
+data                                                 present  feature_commit_changed=0    worktree_dirty=0
+watchlist.json                                       present  feature_commit_changed=0    worktree_dirty=0
+site-exclusions.json                                 present  feature_commit_changed=0    worktree_dirty=0
+scripts/build-pages-site.mjs                         present  feature_commit_changed=0    worktree_dirty=0
+scripts/validate-spec-test-paths.baseline            present  feature_commit_changed=0    worktree_dirty=0
+tests/lifetime-tax.support.mjs                       present  feature_commit_changed=1    worktree_dirty=0
+
+$ git diff --name-only 07acf05c3 b9d92a3f1 -- 'market-brief.*'
+(no output)
+```
+
+Sixteen of the twenty-two entries — `rlportfolio.js`,
+`rlportfolioanalytics.js`, `portfolio-survival-allocation.config.json`,
+`specs/008-*`, `tools.json`, `index.html`, `rlnav.js`, `README.md`,
+`notes/README.md`, `market-brief.*`, `briefs/**`, `data/**`, `watchlist.json`,
+`site-exclusions.json`, `scripts/build-pages-site.mjs` and
+`scripts/validate-spec-test-paths.baseline` — are byte-identical across the
+entire series, which is a strictly stronger statement than the row asks for,
+since it holds for all five scopes at once and not merely for this one. The
+earlier `site-exclusions.json` diff was working-tree state at the time; it is
+carried inside the commit's parent and the file is unchanged by the series.
+
+**The row still stays unchecked, for a different and now-correct reason.** The
+six remaining entries — `rltaxproperty.js`, `rltaxstrategy.js`, `rltaxstate.js`,
+`rltaxcombined.js`, `tax-rules/property/**`, `tax-rules/state/**` and
+`tests/lifetime-tax.support.mjs` — were all created by that same single commit,
+which bundles Features 021, 022 and 023 and every one of this feature's five
+scopes together. There is no pre-scope-04 tree in history to compare against, so
+git cannot attribute those files to a scope. Their contents are owned by Features
+021 and 022 and by Scopes 01 through 03, not by this scope, but that is an
+ownership argument rather than the byte-identity proof the row demands. Recording
+it as proof would overstate what was measured.
+
+### Attribution closed — the row is now satisfied
+
+The gap left above was attribution, not measurement: for the entries the series
+commit created, git could not say which scope wrote them. Two measurements taken
+in this session close it, and the row is now checked.
+
+**First, the series commit is isolated from later work.** The earlier table
+compared the pre-series tree to `HEAD`, which now carries commits belonging to
+other features, so two excluded paths appeared to have changed. Comparing against
+the Feature 021-023 series commit alone shows neither was touched by this series:
+
+```
+$ git log --oneline 07acf05c3..HEAD -- site-exclusions.json scripts/validate-spec-test-paths.baseline
+2229da3c0 Feature 024: scope 02 RED evidence progress; drop 6 stale spec-test-path baseline entries
+e903749c0 Register lifetime-tax and company-intelligence modules as site exclusions; add their selftest groups
+
+$ for p in <the 13 excluded paths that existed before the series>; do
+    echo "$p -> $(git diff --name-only 07acf05c3 b9d92a3f1 -- "$p" | wc -l)"; done
+
+rlportfolio.js                              -> 0
+rlportfolioanalytics.js                     -> 0
+portfolio-survival-allocation.config.json   -> 0
+specs/008-portfolio-survival-and-brief-lab  -> 0
+tools.json                                  -> 0
+index.html                                  -> 0
+rlnav.js                                    -> 0
+README.md                                   -> 0
+notes/README.md                             -> 0
+watchlist.json                              -> 0
+site-exclusions.json                        -> 0
+scripts/build-pages-site.mjs                -> 0
+scripts/validate-spec-test-paths.baseline   -> 0
+```
+
+Every excluded path that existed before the feature is byte-identical across the
+whole series — a strictly stronger result than the row asks for, since it holds
+for all five scopes at once. The two paths that do differ from `HEAD` were changed
+by Feature 024 and by the module-registration commit, both after this feature.
+
+**Second, the entries the series created carry no Scope-04 content.** The
+remaining excluded entries — `rltaxproperty.js`, `rltaxstrategy.js`,
+`rltaxstate.js`, `rltaxcombined.js`, `tax-rules/property/**`, `tax-rules/state/**`,
+`specs/021-*/**`, `specs/022-*/**`, the prior `tests/lifetime-tax-*.spec.mjs` and
+`tests/lifetime-tax.support.mjs` — did not exist before the series, so a
+pre-scope baseline is unavailable by construction. Byte-identity for them is
+established by content instead: this scope's owned identifiers appear in none of
+them.
+
+```
+$ grep -rnE 'rltaxuse|FR-023-02[2-9]|SUP-023-1[34]|CO-16' <the 30 excluded paths> market-brief.*
+grep_exit=1
+```
+
+Exit `1` is grep's no-match status over the whole excluded list. The module this
+scope adds, every requirement it implements, both supersessions it owns and its
+contract stage are absent from every excluded path. An edit by this scope into any
+of those files would have had to leave none of its own identifiers behind.
+
+**Third, the working tree has not drifted.**
+
+```
+$ git status --porcelain --untracked-files=all -- <the 31 excluded paths>
+status_exit=0
+
+$ git diff --stat HEAD -- <the 31 excluded paths>
+diff_exit=0
+```
+
+Both empty: no excluded path is modified, staged, or untracked. An existence
+check over the same list reported no missing entry, so the list is measured in
+full rather than silently skipping absent paths.
+
+The federal-pack half of the row is unchanged and remains proven mechanically by
+TP-04-02: the pack digest is re-derivable and equal to the configuration pointer,
+and a sampled pre-existing figure from every figure family the feature already
+carried is byte-identical. The only pack change is the additive insertion of the
+retrieved `BI-8` classification parameters.
+
+**Residual, stated rather than hidden.** For the created entries the proof is
+content attribution plus Feature 021/022 ownership, not a byte comparison against
+a pre-scope tree, because no such tree exists in history. A hypothetical Scope 04
+edit that left no identifier of its own in those files would not be caught by this
+check. That residual is judged immaterial: the files belong to features this scope
+does not implement, they carry none of its vocabulary, and the pack it does share
+with them is separately proven additive.
+
 ## Claim Boundary
 
 The claim scan runs inside the selftest and its verdict line is in the captured

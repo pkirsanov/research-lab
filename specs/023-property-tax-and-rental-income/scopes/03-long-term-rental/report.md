@@ -187,6 +187,42 @@ five plus one plus one is twelve*), and the per-file marker distribution in
 [`design.md`](../../design.md#per-file-marker-distribution). TP-03-26 asserts all
 four agree.
 
+### Re-verification of the "superseded nothing" DoD row
+
+The DoD row *This scope superseded nothing: no assertion outside the appended
+selftest group changed, and no `SUP-023-NN` marker was added* was re-checked in a
+later session rather than taken on trust. A repository-wide search for the marker
+returns it as a delivered, booked artifact, so the row's claim is false as
+written:
+
+```
+$ grep -rn 'SUP-023-12' --include='*.js' --include='*.mjs' --include='*.md' --include='*.html' .
+
+specs/023-property-tax-and-rental-income/spec.md:362:| SUP-023-12 | `scripts/selftest.mjs` — TP-02-12's `restored02` reconstruction, …
+specs/023-property-tax-and-rental-income/design.md:315:| `scripts/selftest.mjs` | SUP-023-12 | 03 |
+specs/023-property-tax-and-rental-income/scopes/_index.md:84:| 03 | SUP-023-12 | 1 |
+scripts/selftest.mjs:15927:     SUP-023-12: supersedes `const restored02 = clonePack02(); delete restored02.deductionCaps;
+scripts/selftest.mjs:16764:    && /\| 03 \| SUP-023-12 \| 1 \|/.test(indexText03)
+scripts/selftest.mjs:16765:    && /\| `scripts\/selftest\.mjs` \| SUP-023-12 \| 03 \|/.test(designText03)
+scripts/selftest.mjs:16766:    && markers03.indexOf('SUP-023-12') >= 0
+scripts/selftest.mjs:16767:    && /SUP-023-12: supersedes/.test(selftestText03),
+```
+
+The marker is present in `scripts/selftest.mjs`, which is outside this scope's
+appended group, and it is booked on all four governance surfaces. The row
+therefore stays unchecked. It is not reworded to match delivery, because the DoD
+text is planning-owned content and rewriting a behavioural claim to fit what
+shipped is precisely the fabrication the ownership rules forbid. The correct
+disposition is the one already recorded: the planning prediction was wrong, ASC-8
+covers exactly that case, and the row remains an honest open item.
+
+Re-measured again in a later session against the committed tree, the ownership is
+unchanged and is booked to this scope by id rather than by inference — `spec.md`
+carries `| SUP-023-12 | … | 03 |` in the ledger's ownership column and `design.md`
+carries `| scripts/selftest.mjs | SUP-023-12 | 03 |` in the marker distribution.
+Both name Scope 03, so the row's *no marker was added* clause is false for this
+scope specifically, not merely for the feature as a whole.
+
 ## Test Evidence
 
 ### TP-03-01

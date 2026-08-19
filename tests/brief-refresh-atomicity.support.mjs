@@ -14,11 +14,109 @@ import {
 } from 'node:fs';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
-import { dirname, extname, normalize, resolve, sep } from 'node:path';
+import { dirname, extname, normalize, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { conformantNarrativePayload } from './required-narrative-fields.support.mjs';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+
+/* Every script scripts/brief-refresh-and-push.sh actually invokes, MINUS the three the fixture
+   deliberately replaces with stubs (fetch-bars, fetch-options, brief-refresh) and the agenda
+   refresher, which only exists in the agendaAssets variant. Only the ENTRY points are listed;
+   their transitive relative-import closure is derived, never restated — see copyModuleClosure. */
+export const FIXTURE_PUBLICATION_SCRIPTS = [
+  'scripts/brief-narrative-parallel.mjs',
+  'scripts/research-agenda-generation.mjs',
+  'scripts/web-evidence-acquire.mjs',
+  'scripts/web-evidence-policy.mjs',
+  'scripts/brief-distributed-publish.mjs',
+  'scripts/brief-publication.mjs',
+  'scripts/recommendation-body.mjs',
+  'scripts/evaluate-recommendations.mjs',
+  'scripts/shard-brief-history.mjs',
+  'scripts/build-scorecard.mjs',
+  'scripts/build-owner-reads.mjs',
+  'scripts/build-brief-page-artifacts.mjs',
+  'scripts/build-attention-items.mjs',
+  'scripts/build-attention-scorecard.mjs',
+  'scripts/validate-distributed-briefs.mjs',
+  'scripts/validate-brief-cache.mjs',
+  'scripts/validate-brief-payload.mjs',
+  'scripts/reader-vocabulary.mjs'
+];
+
+/* An import clause and nothing else: identifiers, braces, commas, star, `as`, whitespace. The
+   character class deliberately excludes `(`, `=`, `/` and quotes so `export function f() {` and
+   `export const X = '…'` cannot be mistaken for a re-export when a `from '…'` appears later in
+   a comment or a template literal. Multi-line clauses are covered because whitespace is allowed. */
+const STATIC_MODULE_SPECIFIER = /^[ \t]*(?:import|export)\s+(?:[\w$*{},\s]*?\s)?from\s*['"]([^'"]+)['"]/gm;
+const SIDE_EFFECT_IMPORT = /^[ \t]*import\s*['"]([^'"]+)['"]\s*;/gm;
+
+function readRelativeModuleSpecifiers(absolutePath) {
+  const source = readFileSync(absolutePath, 'utf8');
+  const specifiers = new Set();
+  for (const pattern of [STATIC_MODULE_SPECIFIER, SIDE_EFFECT_IMPORT]) {
+    pattern.lastIndex = 0;
+    for (let match = pattern.exec(source); match; match = pattern.exec(source)) {
+      if (match[1].startsWith('./') || match[1].startsWith('../')) specifiers.add(match[1]);
+    }
+  }
+  return [...specifiers];
+}
+
+/**
+ * The repo-relative transitive closure of a module's STATIC relative imports/re-exports.
+ *
+ * Hand-maintaining the fixture's copy list has now failed three times in the same shape — a
+ * missing company-fundamentals.config.json, a missing rlcockpit.js, and a brief-refresh.mjs stub
+ * that satisfied the CLI half of a module whose library half is imported. None of them read as
+ * "the fixture is incomplete": each surfaced as a publication refusal or a soft narrative failure,
+ * so the suite went on exercising a branch the real publication path no longer takes, green.
+ *
+ * So the closure is DERIVED from the source. A missing file THROWS naming both the path and the
+ * module that referenced it, because silently skipping is exactly what let those three land green.
+ * Bare specifiers (`node:*`, packages) are ignored; a specifier escaping the repository is refused.
+ */
+export function resolveModuleClosure(entryPath) {
+  const visited = new Set();
+  const closure = [];
+  const queue = [[entryPath, null]];
+  while (queue.length) {
+    const [relativePath, referrer] = queue.shift();
+    const absolutePath = resolve(ROOT, relativePath);
+    if (visited.has(absolutePath)) continue;
+    visited.add(absolutePath);
+    if (!existsSync(absolutePath)) {
+      throw new Error(referrer
+        ? `fixture module closure: ${relativePath} does not exist but is imported by ${referrer}`
+        : `fixture module closure: entry ${relativePath} does not exist`);
+    }
+    closure.push(relativePath);
+    for (const specifier of readRelativeModuleSpecifiers(absolutePath)) {
+      const dependency = relative(ROOT, resolve(dirname(absolutePath), specifier));
+      if (dependency.startsWith('..')) {
+        throw new Error(`fixture module closure: ${specifier} in ${relativePath} resolves outside the repository`);
+      }
+      queue.push([dependency, relativePath]);
+    }
+  }
+  return closure;
+}
+
+/** Copy a module and its whole relative-import closure into the fixture at the same repo-relative paths. */
+export function copyModuleClosure(repoRoot, entryPath, options = {}) {
+  const copied = [];
+  for (const relativePath of resolveModuleClosure(entryPath)) {
+    const destination = relativePath === entryPath && options.entryDestination
+      ? options.entryDestination
+      : relativePath;
+    const destinationPath = resolve(repoRoot, destination);
+    mkdirSync(dirname(destinationPath), { recursive: true });
+    copyFileSync(resolve(ROOT, relativePath), destinationPath);
+    copied.push(destination);
+  }
+  return copied;
+}
 
 const PUBLICATION_PATHS = [
   'market-brief.snapshot.json',
@@ -125,34 +223,21 @@ export function createBriefRefreshFixture(options = {}) {
     copyFileSync(resolve(ROOT, 'scripts/brief-refresh-and-push.sh'), wrapperPath);
   }
   chmodSync(wrapperPath, 0o755);
-  copyFileSync(resolve(ROOT, 'scripts/brief-narrative-parallel.mjs'), resolve(repoRoot, 'scripts/brief-narrative-parallel.mjs'));
-  copyFileSync(resolve(ROOT, 'scripts/research-agenda-generation.mjs'), resolve(repoRoot, 'scripts/research-agenda-generation.mjs'));
-  copyFileSync(resolve(ROOT, 'scripts/web-evidence-acquire.mjs'), resolve(repoRoot, 'scripts/web-evidence-acquire.mjs'));
-  copyFileSync(resolve(ROOT, 'scripts/web-evidence-policy.mjs'), resolve(repoRoot, 'scripts/web-evidence-policy.mjs'));
-  copyFileSync(resolve(ROOT, 'scripts/brief-distributed-publish.mjs'), resolve(repoRoot, 'scripts/brief-distributed-publish.mjs'));
-  copyFileSync(resolve(ROOT, 'scripts/brief-publication.mjs'), resolve(repoRoot, 'scripts/brief-publication.mjs'));
-  copyFileSync(resolve(ROOT, 'scripts/recommendation-body.mjs'), resolve(repoRoot, 'scripts/recommendation-body.mjs'));
-  copyFileSync(resolve(ROOT, 'scripts/evaluate-recommendations.mjs'), resolve(repoRoot, 'scripts/evaluate-recommendations.mjs'));
-  copyFileSync(resolve(ROOT, 'scripts/shard-brief-history.mjs'), resolve(repoRoot, 'scripts/shard-brief-history.mjs'));
-  copyFileSync(resolve(ROOT, 'scripts/build-scorecard.mjs'), resolve(repoRoot, 'scripts/build-scorecard.mjs'));
-  // The per-ticker owner-read producer. brief-refresh-and-push.sh runs it inside the transaction
-  // right after the Tier-A refresh, so a fixture without it cannot reproduce the real publication
-  // path — the wrapper aborts on a missing module before it ever reaches the steps under test.
-  copyFileSync(resolve(ROOT, 'scripts/build-owner-reads.mjs'), resolve(repoRoot, 'scripts/build-owner-reads.mjs'));
-  copyFileSync(resolve(ROOT, 'scripts/build-brief-page-artifacts.mjs'), resolve(repoRoot, 'scripts/build-brief-page-artifacts.mjs'));
-  copyFileSync(resolve(ROOT, 'scripts/validate-distributed-briefs.mjs'), resolve(repoRoot, 'scripts/validate-distributed-briefs.mjs'));
-  copyFileSync(resolve(ROOT, 'scripts/validate-brief-cache.mjs'), resolve(repoRoot, 'scripts/validate-brief-cache.mjs'));
-  // validate-brief-payload.mjs imports this on both validator branches below.
-  copyFileSync(resolve(ROOT, 'scripts/reader-vocabulary.mjs'), resolve(repoRoot, 'scripts/reader-vocabulary.mjs'));
-  // The publish-time attention build step. brief-refresh-and-push.sh runs it
-  // between the narrative lane and the payload gate (F-017-06), so a fixture
-  // without it cannot reproduce the real publication path at all.
-  copyFileSync(resolve(ROOT, 'scripts/build-attention-items.mjs'), resolve(repoRoot, 'scripts/build-attention-items.mjs'));
+  /* Every publication-path script the wrapper invokes, WITH its transitive relative-import
+     closure. The per-ticker owner-read producer, the F-017-06 attention build+scorecard steps and
+     the payload gate all run inside the transaction, so a fixture missing any one of them — or any
+     module one of them imports — cannot reproduce the real publication path: the wrapper aborts or
+     soft-falls-back before it reaches the steps under test. */
+  for (const entry of FIXTURE_PUBLICATION_SCRIPTS) copyModuleClosure(repoRoot, entry);
+  /* brief-refresh.mjs is stubbed further down to fake Tier A, but it is ALSO a library that
+     brief-narrative-parallel.mjs imports from. Copy the real one under a *.real.mjs name — with its
+     own closure — so the stub can re-export it; same convention as validate-brief-payload.mjs. */
+  copyModuleClosure(repoRoot, 'scripts/brief-refresh.mjs', { entryDestination: 'scripts/brief-refresh.real.mjs' });
   copyFileSync(resolve(ROOT, 'rlcontracts.js'), resolve(repoRoot, 'rlcontracts.js'));
   copyFileSync(resolve(ROOT, 'rlagenda.js'), resolve(repoRoot, 'rlagenda.js'));
   if (options.agendaAssets) {
     copyFileSync(resolve(ROOT, 'research-agenda.json'), resolve(repoRoot, 'research-agenda.json'));
-    copyFileSync(resolve(ROOT, 'scripts/research-agenda-refresh.mjs'), resolve(repoRoot, 'scripts/research-agenda-refresh.mjs'));
+    copyModuleClosure(repoRoot, 'scripts/research-agenda-refresh.mjs');
     copyFileSync(resolve(ROOT, 'research-agenda-lab.html'), resolve(repoRoot, 'research-agenda-lab.html'));
     mkdirSync(resolve(repoRoot, 'research'), { recursive: true });
     cpSync(resolve(ROOT, 'research/agenda'), resolve(repoRoot, 'research/agenda'), { recursive: true });
@@ -338,23 +423,41 @@ console.log('[fixture-fetch-bars] no external fetch required');
 `);
   writeFixtureScript(resolve(repoRoot, 'scripts/brief-refresh.mjs'), `
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
-if (process.env.BUG002_BOUNDARY_LOG) appendFileSync(process.env.BUG002_BOUNDARY_LOG, 'tier-a\\n');
-const snapshotUrl = new URL('../market-brief.snapshot.json', import.meta.url);
-const historyUrl = new URL('../brief-history.jsonl', import.meta.url);
-const snapshot = JSON.parse(readFileSync(snapshotUrl, 'utf8'));
-snapshot.asOf = process.env.BUG002_CANDIDATE_DATE + 'T14:00:00.000Z';
-snapshot.generatedAt = process.env.BUG002_CANDIDATE_DATE + 'T14:00:00.000Z';
-snapshot.nextSessionDate = process.env.BUG002_CANDIDATE_DATE;
-snapshot.marketClosed = true;
-writeFileSync(snapshotUrl, JSON.stringify(snapshot, null, 2) + '\\n');
-appendFileSync(historyUrl, JSON.stringify({
-  ts: process.env.BUG002_CANDIDATE_DATE + 'T14:00:00.000Z',
-  window: 'pre-market',
-  marketClosed: false,
-  nextSessionDate: process.env.BUG002_CANDIDATE_DATE,
-  source: 'bug-002-candidate'
-}) + '\\n');
-console.log('[fixture-tier-a] candidate nextSessionDate=' + process.env.BUG002_CANDIDATE_DATE);
+import { resolve as resolvePath } from 'node:path';
+import { fileURLToPath } from 'node:url';
+/* brief-refresh.mjs is BOTH a CLI and a library: brief-narrative-parallel.mjs imports
+   distinctRowsBy / reassertCompanyOwnerReadDisclosure / trackedAsOfReader from it. A stub that
+   models only the CLI half breaks that import with a SyntaxError, every narrative lane dies, and
+   the wrapper falls back to transaction=raw-data-only — so the fixture publishes the BASELINE date
+   and the suite quietly tests a branch the real path never takes. Re-exporting the real module
+   keeps the library half intact. Safe because the real module guards its own CLI entry on
+   process.argv[1], so importing it here never runs the real Tier A. Same convention as
+   validate-brief-payload.mjs above. */
+export * from './brief-refresh.real.mjs';
+
+/* The FAKE Tier-A mutation MUST live behind the same CLI guard. At module scope it would fire on
+   every IMPORT as well, so each narrative lane would advance the snapshot and append a 'tier-a'
+   boundary row — and the boundary log would stop meaning invocations at all. */
+const SCRIPT_PATH = fileURLToPath(import.meta.url);
+if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
+  if (process.env.BUG002_BOUNDARY_LOG) appendFileSync(process.env.BUG002_BOUNDARY_LOG, 'tier-a\\n');
+  const snapshotUrl = new URL('../market-brief.snapshot.json', import.meta.url);
+  const historyUrl = new URL('../brief-history.jsonl', import.meta.url);
+  const snapshot = JSON.parse(readFileSync(snapshotUrl, 'utf8'));
+  snapshot.asOf = process.env.BUG002_CANDIDATE_DATE + 'T14:00:00.000Z';
+  snapshot.generatedAt = process.env.BUG002_CANDIDATE_DATE + 'T14:00:00.000Z';
+  snapshot.nextSessionDate = process.env.BUG002_CANDIDATE_DATE;
+  snapshot.marketClosed = true;
+  writeFileSync(snapshotUrl, JSON.stringify(snapshot, null, 2) + '\\n');
+  appendFileSync(historyUrl, JSON.stringify({
+    ts: process.env.BUG002_CANDIDATE_DATE + 'T14:00:00.000Z',
+    window: 'pre-market',
+    marketClosed: false,
+    nextSessionDate: process.env.BUG002_CANDIDATE_DATE,
+    source: 'bug-002-candidate'
+  }) + '\\n');
+  console.log('[fixture-tier-a] candidate nextSessionDate=' + process.env.BUG002_CANDIDATE_DATE);
+}
 `);
 
   let copilotPath = null;
@@ -432,8 +535,11 @@ if (process.env.BUG002_NARRATIVE_MODE === 'post-write-hang' && lane === 'core') 
   // Build the same selected-history, scorecard, and compact projections the production transaction
   // owns before the baseline commit. Failed/retained runs can then prove byte-identity instead of
   // manufacturing first-run derived files that obscure atomicity.
+  // The attention scorecard is the same class of derived file; build-attention-items.mjs is not,
+  // since it only rewrites the already-tracked payload (or a private candidate), never a new path.
   execFileSync(process.execPath, ['scripts/shard-brief-history.mjs'], { cwd: repoRoot, stdio: 'ignore' });
   execFileSync(process.execPath, ['scripts/build-scorecard.mjs'], { cwd: repoRoot, stdio: 'ignore' });
+  execFileSync(process.execPath, ['scripts/build-attention-scorecard.mjs', '--as-of', `${baselineDate}T14:00:00Z`], { cwd: repoRoot, stdio: 'ignore' });
   execFileSync(process.execPath, ['scripts/build-brief-page-artifacts.mjs'], { cwd: repoRoot, stdio: 'ignore' });
 
   runGit(repoRoot, ['init']);

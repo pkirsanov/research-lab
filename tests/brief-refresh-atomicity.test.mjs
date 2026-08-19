@@ -7,8 +7,10 @@ import { dirname, resolve } from 'node:path';
 import {
   createBriefRefreshFixture,
   FIXTURE_ATTENTION_CANDIDATE,
+  FIXTURE_PUBLICATION_SCRIPTS,
   gitFixture,
   readPublicationState,
+  resolveModuleClosure,
   runBriefRefreshFixture,
   runFixtureValidator
 } from './brief-refresh-atomicity.support.mjs';
@@ -22,6 +24,7 @@ import {
 } from '../scripts/research-agenda-generation.mjs';
 import { prepareResearchAgendaRuntime } from '../scripts/research-agenda-refresh.mjs';
 import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const RLAGENDA = require('../rlagenda.js');
@@ -70,8 +73,81 @@ function readSchedulerStatus(path) {
   }));
 }
 
+/* The names brief-narrative-parallel.mjs imports from './brief-refresh.mjs', read from the
+   statement itself. A restated list here would go stale the moment the import changes, which is
+   the whole failure mode under guard. */
+function namesImportedFromBriefRefresh() {
+  const source = readFileSync(new URL('../scripts/brief-narrative-parallel.mjs', import.meta.url), 'utf8');
+  const statement = source.match(/^[ \t]*import\s*\{([^}]*)\}\s*from\s*['"]\.\/brief-refresh\.mjs['"]/m);
+  if (!statement) return [];
+  return statement[1].split(',')
+    .map((clause) => clause.trim().split(/\s+as\s+/)[0].trim())
+    .filter(Boolean);
+}
+
+/** Module-namespace keys of the fixture's scripts/brief-refresh.mjs, resolved the way an importer would. */
+function fixtureBriefRefreshExports(fixture) {
+  const moduleUrl = pathToFileURL(resolve(fixture.repoRoot, 'scripts/brief-refresh.mjs')).href;
+  const probe = spawnSync(process.execPath, ['--input-type=module', '-e',
+    `import * as m from ${JSON.stringify(moduleUrl)};\nprocess.stdout.write(JSON.stringify(Object.keys(m)));`
+  ], { cwd: fixture.repoRoot, encoding: 'utf8' });
+  assert.equal(probe.status, 0, `fixture scripts/brief-refresh.mjs is not importable\nstdout:\n${probe.stdout}\nstderr:\n${probe.stderr}`);
+  return JSON.parse(probe.stdout);
+}
+
 if (process.env.NODE_TEST_CONTEXT) {
   const { default: test } = await import('node:test');
+
+  /* Three fixture gaps have now shipped green in the same shape: a missing
+     company-fundamentals.config.json, a missing rlcockpit.js, and a scripts/brief-refresh.mjs stub
+     that modelled only the CLI half of a module whose LIBRARY half brief-narrative-parallel.mjs
+     imports. None of them announced themselves as a fixture gap — the last one surfaced as
+     "narrative attempt failed", the wrapper fell back to transaction=raw-data-only, and the suite
+     went on asserting a publication branch the real path never takes. These two guards make the
+     gap fail as a gap. */
+  test('Guard: the fixture brief-refresh.mjs provides every export brief-narrative-parallel.mjs imports from it', (context) => {
+    const required = namesImportedFromBriefRefresh();
+    // Non-vacuity: if the import statement stops being readable there is nothing left to guard.
+    assert.ok(required.length > 0, 'brief-narrative-parallel.mjs must import named bindings from ./brief-refresh.mjs');
+
+    const fixture = createBriefRefreshFixture();
+    context.after(() => fixture.cleanup());
+    const exported = new Set(fixtureBriefRefreshExports(fixture));
+
+    for (const name of required) {
+      assert.ok(exported.has(name), `fixture scripts/brief-refresh.mjs does not export ${name}, so brief-narrative-parallel.mjs cannot link against it`);
+    }
+    /* Adversarial: the membership check must be able to fail. A name no module exports proves the
+       assertion above is reading a real namespace rather than passing on an empty or permissive set. */
+    assert.equal(exported.has('__fixtureClosureGuardCanaryExport'), false,
+      'the export check passes vacuously — it accepted a name the real module never exports');
+  });
+
+  test('Guard: the fixture contains the whole relative-import closure of every publication script', (context) => {
+    const fixture = createBriefRefreshFixture({ agendaAssets: true });
+    context.after(() => fixture.cleanup());
+
+    const closure = new Set(FIXTURE_PUBLICATION_SCRIPTS.flatMap((entry) => resolveModuleClosure(entry)));
+    assert.ok(closure.size > FIXTURE_PUBLICATION_SCRIPTS.length,
+      'the closure must reach beyond the declared entry points, otherwise nothing transitive is being checked');
+    for (const modulePath of closure) {
+      assert.ok(existsSync(resolve(fixture.repoRoot, modulePath)),
+        `${modulePath} is reachable from a publication script but is absent from the fixture`);
+    }
+    // The real brief-refresh.mjs travels under its *.real.mjs name so the stub can re-export it.
+    for (const modulePath of resolveModuleClosure('scripts/brief-refresh.mjs').slice(1)) {
+      assert.ok(existsSync(resolve(fixture.repoRoot, modulePath)),
+        `${modulePath} is reachable from brief-refresh.mjs but is absent from the fixture`);
+    }
+    assert.ok(existsSync(resolve(fixture.repoRoot, 'scripts/brief-refresh.real.mjs')));
+
+    /* Adversarial, twice: the presence check must be able to fail on a module the fixture does not
+       carry, and the closure resolver must REFUSE a dangling specifier rather than skip it —
+       silent skipping is precisely what let the three gaps above land green. */
+    assert.equal(existsSync(resolve(fixture.repoRoot, 'scripts/__fixture-closure-guard-canary.mjs')), false,
+      'the presence check passes vacuously — it accepted a module the fixture never copied');
+    assert.throws(() => resolveModuleClosure('scripts/__fixture-closure-guard-canary.mjs'), /does not exist/);
+  });
 
   test('Regression: agenda publication writes immutable files before ledger and moves current pointer last', (context) => {
     const root = mkdtempSync(resolve(tmpdir(), 'research-agenda-atomicity-'));
@@ -664,7 +740,7 @@ if (process.env.NODE_TEST_CONTEXT) {
     assert.ok(!publication.snapshotBytes.equals(fixture.baseline['market-brief.snapshot.json']));
     assert.ok(!publication.historyBytes.equals(fixture.baseline['brief-history.jsonl']));
     assert.ok(publication.payloadBytes.equals(fixture.baseline['market-brief.payload.json']));
-    assert.deepEqual(new Set(publication.lastCommitPaths), new Set(['brief-history.jsonl', 'brief-history.recent.jsonl', 'briefs/tier-a/2026-07.jsonl', 'data/raw-refresh.json', 'market-brief.owner-reads.json', 'market-brief.scorecard.json', 'market-brief.snapshot.json', 'market-brief.snapshot.page.json']));
+    assert.deepEqual(new Set(publication.lastCommitPaths), new Set(['brief-history.jsonl', 'brief-history.recent.jsonl', 'briefs/tier-a/2026-07.jsonl', 'data/raw-refresh.json', 'market-brief.attention-scorecard.json', 'market-brief.owner-reads.json', 'market-brief.scorecard.json', 'market-brief.snapshot.json', 'market-brief.snapshot.page.json']));
   });
 
   test('matching generated Tier B advances snapshot payload and history together', (context) => {
@@ -1583,7 +1659,7 @@ process.exit(count < 3 ? 1 : 0);
     assert.match(result.stdout, /committed: market-data: cache refresh/);
     assert.ok(publication.snapshotBytes.equals(invalidSnapshotBytes));
     assert.ok(publication.payloadBytes.equals(payloadBytes));
-    assert.deepEqual(publication.lastCommitPaths, ['data/raw-refresh.json', 'market-brief.scorecard.json', 'market-brief.snapshot.page.json']);
+    assert.deepEqual(publication.lastCommitPaths, ['data/raw-refresh.json', 'market-brief.attention-scorecard.json', 'market-brief.scorecard.json', 'market-brief.snapshot.page.json']);
     assert.notEqual(publication.head, invalidHead);
     assert.equal(gitFixture(fixture, ['rev-parse', 'origin/main']), publication.head);
   });

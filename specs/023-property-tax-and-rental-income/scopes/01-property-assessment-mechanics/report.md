@@ -1246,6 +1246,110 @@ which is what makes this probe informative: the row refuses a statutory figure
 *living* in a module, so a dormant constant waiting to become a fallback is
 caught before it ever runs.
 
+### Probe 16 — same-command RED and GREEN for TP-01-16
+
+TP-01-16 requires that no property declaration survives an export. The sanitiser
+works by allow-list: `kept` names what leaves, and everything else is pushed to
+`omittedFields`. Adding one member to that allow-list is therefore the exact
+privacy regression the row exists to catch, and it is the smallest possible
+form of it — one line, no logic change:
+
+```js
+     deductionMode: workspace.deductionMode,
+     itemizedAmount: workspace.itemizedAmount,
++    propertyAssessedValue: workspace.propertyAssessedValue,
+     conversionFundingSource: workspace.conversionFundingSource,
+```
+
+RED:
+
+```
+# TP-01-16 RED
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3437
+sha256: a84c6988e64dd4b723c696f2d1d224e5acd9305f38a010824361d528689a0042
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-01-16: every property and mortgage declaration is a declared workspace member, is created undeclared, is named by the unavailable-domain report while it is undeclared, is omitted by the export sanitiser and listed in omittedFields, and neither the assessed value nor the declared jurisdi
+--- omitted 3397 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3041 passed, 1 failed
+```
+
+Reverted, revert verified, same command again:
+
+```
+$ git checkout -- rltaxworkspace.js && git status --short -- rltaxworkspace.js
+reverted-clean
+
+# TP-01-16 GREEN
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3437
+sha256: d1b562e2e79d48aced9e6deaad83739db1b7e158e692d19360c5a7d072e014eb
+--- omitted 3397 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3042 passed, 0 failed
+```
+
+Exactly one assertion fell, and the row caught the leak by *two* independent
+conjuncts rather than one: the member vanished from `omittedFields`, and the
+literal `407311` appeared in the exported workspace. A regression that renamed
+the field instead of removing it would still be caught by the second.
+
+### Probe 17 — same-command RED and GREEN for TP-01-17
+
+TP-01-17 has two halves: each marker sits in the file the distribution names,
+and not one superseded literal survives anywhere. The marker half was rejected
+as a probe target because `SUP-023-10` appears four times in the foundation
+spec, so falsifying it would need four coordinated edits and would no longer be
+a minimal probe. The literal half takes one line.
+
+The literal chosen is the one SUP-023-10 retired — the hand-maintained
+`toHaveCount(3)` inventory count. It was planted inside a comment, which is the
+strongest form of the probe: a superseded literal that is not even executed must
+still fail the row, because a commented-out clause is exactly the "merely
+commented out" case the assertion's own note calls out.
+
+```js
+     derived set admits only what the page itself asks for and rots into no false green. */
++  /* RED PROBE: storageInventoryBody tr')).toHaveCount(3) */
+   const declaredAssets = declaredRouteAssets();
+```
+
+RED:
+
+```
+# TP-01-17 RED
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3437
+sha256: 214456bd6edb5c1865869a688536d196f5d541653929d4a60ade233512aa9c31
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-01-17: every supersession this scope owns carries its marker in the file the per-file distribution places it in, each replacement derives its expected value from the artifact it describes, and not one superseded literal survives anywhere:
+--- omitted 3397 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3041 passed, 1 failed
+```
+
+Reverted, revert verified, and the probe token proven absent:
+
+```
+$ git checkout -- tests/lifetime-tax-foundation.spec.mjs && git status --short -- tests/lifetime-tax-foundation.spec.mjs
+reverted-clean
+$ grep -c "RED PROBE" tests/lifetime-tax-foundation.spec.mjs
+0
+
+# TP-01-17 GREEN
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3437
+sha256: 639cec10f734cbaf4a4d587fe99680a753cbc6475cd33d58c52f071fbb5279c1
+--- omitted 3397 line(s); sha256 above covers the full output ---
+Research-Lab self-test: 3042 passed, 0 failed
+```
+
+The failure message's trailing list is empty, which is the informative part:
+`missingMarkers23` was empty, so the row fell purely on the surviving literal
+rather than on a missing marker. The two halves are independently sensitive.
+
 ## Change Boundary
 
 Command: a path-scoped status check over the excluded list.

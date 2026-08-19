@@ -301,6 +301,29 @@ all. A syntax error, a missing browser or an absent test does not satisfy RED.
       its pre-feature text. An assertion edited without a ledger row and a marker,
       or a marker carried in a file the distribution does not name, fails this row
       by name.
+  - **Executed. Evidence:** every conjunct re-run against the working tree on
+    2026-08-19. The added-line count differs from the `11265` recorded below
+    because later scopes appended to the same file, so the total grew. The
+    load-bearing half of that pair is the deleted count, and it is still `0`.
+
+    ```text
+    $ git diff --numstat e903749c0^ HEAD -- scripts/selftest.mjs
+    11529   0       scripts/selftest.mjs
+    exit=0
+    $ grep -rn "delete restored02.deductionCaps" --include="*.mjs" --include="*.js" --include="*.html" .
+    ./scripts/selftest.mjs:16002:     SUP-023-12: supersedes `const restored02 = clonePack02(); delete restored02.deductionCaps;
+    exit=0   # sole survival is inside the marker comment itself, not live code
+    $ grep -n "^| 03 |" specs/023-property-tax-and-rental-income/scopes/_index.md
+    84:| 03 | SUP-023-12 | 1 |
+    ```
+
+    Four-surface booking, each read at the line named: ledger row
+    `spec.md:362`; per-file marker distribution `design.md:315`
+    (`| scripts/selftest.mjs | SUP-023-12 | 03 |`); ownership table
+    `_index.md:84`; marker at its own site `scripts/selftest.mjs:16002-16008`,
+    carrying the superseded clause verbatim and the `Ledger:` back-pointer.
+    The marker appears in no file other than the one the distribution names.
+  - **Phase:** implement · **Command:** `git diff --numstat`, the marker grep and the ownership-table read shown above · **Evidence:** `report.md#supersession-ledger`, `report.md#verification-of-the-corrected-ledgered-supersession-row`
   - **Corrected by `bubbles.plan`.** This row previously predicted that the scope
     superseded nothing and that no `SUP-023-NN` marker was added. Delivery
     contradicts the prediction: `SUP-023-12` exists, and both `spec.md`'s ledger and
@@ -316,7 +339,6 @@ all. A syntax error, a missing browser or an absent test does not satisfy RED.
     `SUP-023-12`; all four ASC-8 surfaces book it; the superseded clause is quoted
     verbatim at its marker site and the literal survives in no live code and in no
     other file; and the marker sits only in the file the distribution names.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the marker check · **Evidence:** `report.md#supersession-ledger`, `report.md#verification-of-the-corrected-ledgered-supersession-row`
 - [x] Every excluded path is byte-identical, and the only federal pack change is
       the additive insertion of the three retrieved records.
   - **Phase:** implement · **Command:** a path-scoped status check over the excluded list · **Evidence:** `report.md#change-boundary`

@@ -49,6 +49,20 @@ async function openBrief(page, server) {
   await expect(page.locator('#scorecard')).toBeVisible();
 }
 
+/*
+ * #standingResearch is not absent when it fails to be visible — it is COLLAPSED. Feature 026 Scope 4
+ * moved it inside `<details class="drawer" data-mac-default="collapsed">`, and the feature asserts in
+ * selftest that the page ships no drawer carrying an `open` attribute, so every load starts closed by
+ * design. Specs that assert what the block renders must therefore first take the reader's path to it.
+ * Clicking the summary rather than setting `.open` keeps the disclosure itself under test: a helper
+ * that forced the attribute would stay green even if the summary stopped opening the drawer at all.
+ */
+async function expandStandingResearch(page) {
+  const drawer = page.locator('details[data-mac-block="standing-research"]');
+  if (!(await drawer.evaluate((el) => el.open))) await drawer.locator(':scope > summary').click();
+  await expect(page.locator('#standingResearch')).toBeVisible();
+}
+
 test('the scorecard renders above the attention feed and reports the committed outcome ledger', async ({ page }) => {
   test.setTimeout(90_000);
   const server = await startStaticServer();
@@ -90,6 +104,7 @@ test('SCN-019-020 compact standing research read is visible on the brief and dee
   const server = await startStaticServer();
   try {
     await openBrief(page, server);
+    await expandStandingResearch(page);
     const section = page.locator('#standingResearch');
     await expect(section).toBeVisible();
     await expect(section.locator('.research-agenda-row')).toHaveCount(3);
@@ -137,6 +152,7 @@ test('Regression: compact agenda read renders exact mode and change assessment w
   const server = await startStaticServer();
   try {
     await openBrief(page, server);
+    await expandStandingResearch(page);
     const section = page.locator('#standingResearch');
     const topics = REAL_PAYLOAD.researchAgenda?.topics;
     expect(Array.isArray(topics)).toBe(true);

@@ -137,7 +137,7 @@
     "configMaxBytes": 65536,
     "simpleModelsMaxBytes": 524288,
     "journeysMaxBytes": 1048576,
-    "briefHistoryRecentMaxBytes": 204800,
+    "briefHistoryRecentMaxBytes": 40960,
     "briefHistoryRecentMaxRows": 30,
     "briefFirstLoadMaxBytes": 204800
   },

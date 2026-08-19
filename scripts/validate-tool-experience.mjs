@@ -111,7 +111,11 @@ function loadActualPacket() {
   };
 }
 
-function validateArtifactBudgets(packet, byteInventory) {
+/* Exported so a test can run the real refusal path over a synthetic inventory. The per-file
+   `brief-history-recent` check precedes the aggregate `brief-first-load` check in this list, and
+   `invariant` throws on the first breach, so an oversized recent artifact is refused by name
+   before the aggregate is ever evaluated. */
+export function validateArtifactBudgets(packet, byteInventory) {
   const budgets = packet.config.artifactBudgets;
   const checks = [
     { artifact: 'config', bytes: byteInventory.config, budget: budgets.configMaxBytes },

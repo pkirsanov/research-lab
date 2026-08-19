@@ -260,7 +260,17 @@ test('Regression: SCN-012-029 uncertified Feature 008 preserves public Portfolio
   expect(storageAfter.privateKeys).toEqual([]);
   expect(Object.keys(storageAfter.modeRecord)).toEqual(['contractVersion', 'toolId', 'mode', 'savedAt']);
   expect(storageAfter.modeRecord.mode).toBe('portfolio');
-  expect(requests).toEqual([]);
+  // The claim is that switching to an UNCERTIFIED Portfolio fetches no data — no holdings, no
+  // private overlay, no gated artifact. It is not that the page makes no request at all: rlg.js
+  // pulls the shared rlcontext.js/rlexperience.js controller the first time it decorates a
+  // glossary term, and which side of `settleThenClearRequests` that lands on depends on when a
+  // decoratable term first renders. Asserting an empty array made this test fail deterministically
+  // in chromium on the full-file run while passing under `--grep`, because the grep changed the
+  // sequence. Those two modules carry no user data and no gated content, so they are named here
+  // and everything else — any JSON, any artifact, any portfolio route — still fails the test.
+  const RUNTIME_LAZY_CHAIN = ['rlcontext.js', 'rlexperience.js'];
+  const dataRequests = requests.filter((url) => !RUNTIME_LAZY_CHAIN.some((mod) => url.endsWith(`/${mod}`)));
+  expect(dataRequests).toEqual([]);
 });
 
 test('Regression: BUG-001 options flow shell is ready before heavy hydration begins', async ({ page }) => {

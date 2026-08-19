@@ -23723,6 +23723,134 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (BUG-009 R4 group threw): ' + e.message); }
 /* ---------- BUG-009 R4: honest empty attention feed (END) ---------- */
 
+/* ---------- BUG-009 R1: observed attention gate producer (BEGIN) ---------- */
+/* R1 from the BUG-009 design: the missing producer. rlattentiongate.js emits the
+   OBSERVED half of decision-attention/v1 by applying DECLARED bands from
+   attention-detection-policy/v1 to committed Tier-A readings. The module holds no
+   thresholds of its own — the adversarial rows below are what prove that, because a
+   module with a hidden default would still pass every happy-path check. */
+try {
+  group('BUG-009 R1 — the observed attention gate producer');
+  const gateReq = (await import('node:module')).createRequire(import.meta.url);
+  const GATE = gateReq(join(ROOT, 'rlattentiongate.js'));
+  const RLATTN1 = gateReq(join(ROOT, 'rlattention.js'));
+  const gateSrc = read('rlattentiongate.js');
+  const policy1 = JSON.parse(read('market-brief.config.json'))['attention-detection-policy/v1'];
+
+  assert(Object.isFrozen(GATE) && typeof GATE.observeGate === 'function' && typeof GATE.resolvePolicy === 'function',
+    'rlattentiongate.js is a frozen module exporting observeGate and resolvePolicy');
+  assert(['document', 'localStorage', 'innerHTML', 'fetch(', 'setTimeout'].every((t) => gateSrc.indexOf(t) < 0)
+    && gateSrc.replace(/Number\.isFinite/g, '').indexOf('isFinite') < 0
+    && !/^\s*(import|export)\s/m.test(gateSrc),
+    'the producer is pure: no DOM, no storage, no network, no timer, no bare isFinite and no top-level module syntax');
+
+  /* THE central anti-invention row. Every threshold this module applies must come
+     from the committed policy, so a policy missing any band must yield NO
+     observation rather than a default-shaped one. */
+  assert(GATE.resolvePolicy(null) === null && GATE.resolvePolicy({}) === null
+    && GATE.resolvePolicy({ policyId: 'p', severityBands: [], imminentWithinPct: 2, developingWithinPct: 6, transmissionBySubject: {} }) === null
+    && GATE.resolvePolicy({ policyId: 'p', severityBands: [{ severity: 'severe', minAbsPct: 15 }], developingWithinPct: 6, transmissionBySubject: {} }) === null
+    && GATE.resolvePolicy({ policyId: 'p', severityBands: [{ severity: 'severe', minAbsPct: 15 }], imminentWithinPct: 2, developingWithinPct: 6 }) === null,
+    'Regression: SCN-BUG009-R1-NODEFAULT an absent, empty or partially declared policy resolves to null — the producer carries NO threshold of its own and cannot observe without an owner-declared one');
+  assert(GATE.resolvePolicy(policy1) === policy1,
+    'the committed attention-detection-policy/v1 is complete enough to resolve');
+
+  const trackedFixture = (over) => Object.assign({
+    asOf: '2026-08-19T18:00:00.000Z', px: 100, ma200Dist: -20, maStack: 'tangled',
+    levels: { high52w: 160, low52w: 80, ma20: 104, ma50: 108, ma200: 125 },
+    flags: { persistenceGateMet: true }
+  }, over || {});
+
+  /* A reading under the narrowest declared band is NOT downgraded to 'mild' — it is
+     no observation, which is how a quiet day publishes an empty feed honestly. */
+  assert(GATE.severityFor(20, policy1) === 'severe' && GATE.severityFor(9, policy1) === 'moderate'
+    && GATE.severityFor(3, policy1) === null,
+    'severity is the widest band the reading clears, and a reading below every band yields NO severity rather than the smallest one');
+  assert(GATE.observeGate({ subject: 'FBTC', tracked: trackedFixture({ ma200Dist: -3 }), policy: policy1 }) === null,
+    'a subject clearing no declared band produces no observation at all, so a quiet market cannot manufacture an attention candidate');
+
+  assert(GATE.imminenceFor(-1, policy1) === 'imminent' && GATE.imminenceFor(-5, policy1) === 'developing'
+    && GATE.imminenceFor(-20, policy1) === 'latent',
+    'imminence is distance to the watched level, banded by the declared imminent and developing widths');
+
+  /* Confirmation is READ off an independently computed Tier-A flag. A producer that
+     inferred it from the same number that produced the severity would let one
+     reading corroborate itself. */
+  assert(GATE.confirmationFor({ flags: { persistenceGateMet: true } }).state === 'present'
+    && GATE.confirmationFor({ flags: { persistenceGateMet: false } }).state === 'absent'
+    && GATE.confirmationFor({ flags: {} }).state === 'partial'
+    && GATE.confirmationFor(null).state === 'absent',
+    'market confirmation is read from the Tier-A persistence flag, and an absent verdict becomes partial rather than an assumed present');
+
+  assert(GATE.dispositionFor('severe', 'present') === 'attention'
+    && GATE.dispositionFor('severe', 'absent') === 'context'
+    && GATE.dispositionFor('moderate', 'present') === 'context'
+    && GATE.dispositionFor(null, 'present') === 'no-action',
+    'Regression: SCN-BUG009-R1-CONSERVATIVE only a SEVERE reading that independently persisted reaches attention; a severe but unconfirmed reading is context, never an interruption');
+
+  /* END TO END. The whole defect was that RLATTN refused every candidate for want of
+     an observed gate. A produced gate must therefore be ACCEPTED by the real
+     validator, not merely look plausible. */
+  const producedGate = GATE.observeGate({ subject: 'FBTC', tracked: trackedFixture(), policy: policy1, observedAt: '2026-08-19T18:00:00.000Z' });
+  assert(producedGate && producedGate.severity === 'severe' && producedGate.disposition === 'attention'
+    && producedGate.marketConfirmation.state === 'present' && Array.isArray(producedGate.figures) && producedGate.figures.length > 0
+    && producedGate.figures.every((f) => f.provenance && f.provenance.sourceId && f.provenance.asOf),
+    'a produced gate carries a banded severity, a disposition, and figures that each name their source and as-of instant');
+  assert(producedGate.policyId === 'attention-detection-policy/v1' && producedGate.triggeredBy
+    && producedGate.triggeredBy.reading === 'ma200Dist' && Number.isFinite(producedGate.triggeredBy.value),
+    'every gate names the policy it was judged under and the exact reading that crossed, so a reader can answer "why am I seeing this" with a number and a rule');
+
+  const built1 = RLATTN1.buildAttentionItem
+    ? RLATTN1.buildAttentionItem(Object.assign({}, producedGate, { deepLink: 'market-brief.html' }), {
+      headline: 'FBTC sits far below its 200-day', rationale: 'r', verb: 'watch', horizon: 'swing',
+      severity: 'severe', imminence: 'imminent', escalationTrigger: 't', invalidation: 'i', decisionWindow: 'after-hours'
+    }, { watchlistScope: ['FBTC'], toolDeepLinks: ['market-brief.html'], publishedActionSubjects: [], generationWindow: 'after-hours' })
+    : null;
+  assert(built1 && built1.ok !== false ? true : (built1 && built1.code !== 'RLATTN-PROVENANCE'),
+    'Regression: SCN-BUG009-R1-ACCEPTED a produced gate is no longer refused with RLATTN-PROVENANCE — the exact refusal that emptied the feed on every published run');
+
+  /* attachObserved must never overwrite an observation someone else made. */
+  const pre = { subject: 'FBTC', observed: { contractVersion: 'pre-existing' } };
+  const attached = GATE.attachObserved([pre], { asOf: '2026-08-19T18:00:00.000Z', tracked: { FBTC: trackedFixture() } }, policy1);
+  assert(attached[0].observed.contractVersion === 'pre-existing',
+    'attachObserved leaves a candidate that already carries an observation untouched');
+  const attached2 = GATE.attachObserved([{ subject: 'FBTC' }], { asOf: '2026-08-19T18:00:00.000Z', tracked: { FBTC: trackedFixture() } }, policy1);
+  assert(attached2[0].observed && attached2[0].observed.subject === 'FBTC',
+    'attachObserved supplies the observed half for a candidate that lacks one');
+  assert(GATE.attachObserved([{ subject: 'NOPE' }], { tracked: {} }, policy1)[0].observed === undefined,
+    'a candidate naming a subject Tier-A does not track gains no observation, so an unobservable subject is never dressed up as observed');
+
+  /* THE END-TO-END ROW, and the reason this packet exists. A lane-authored candidate
+     carries judgement and no observation. Before R1 the composer refused every one of
+     them RLATTN-PROVENANCE and the feed published nothing on every run. */
+  const composer1 = await import('./build-attention-items.mjs');
+  const basePayload1 = JSON.parse(read('market-brief.payload.json'));
+  const fullConfig1 = JSON.parse(read('market-brief.config.json'));
+  const laneCandidate1 = {
+    subject: 'FBTC', headline: 'FBTC sits far below its 200-day', rationale: 'structural',
+    verb: 'monitor', horizon: 'swing', severity: 'moderate', imminence: 'latent',
+    escalationTrigger: 'a close back above the 200-day', invalidation: 'a close below the 52-week low',
+    expiry: '2026-08-26T20:00:00.000Z'
+  };
+  const withCandidate1 = Object.assign({}, basePayload1, { attention: [laneCandidate1] });
+  const built1e2e = composer1.recomposePayloadAttention(withCandidate1, fullConfig1);
+  assert(built1e2e.items.length === 1 && built1e2e.exclusions.length === 0
+    && built1e2e.items[0].contractVersion === 'decision-attention/v1'
+    && built1e2e.items[0].subject === 'FBTC' && typeof built1e2e.items[0].deepLink === 'string' && built1e2e.items[0].deepLink.length > 0,
+    'Regression: SCN-BUG009-R1-E2E a lane-authored candidate carrying judgement and NO observation now composes into a published decision-attention/v1 item, deep-linked to the tool that owns its math');
+
+  /* The adversarial twin. Strip the policy and the SAME candidate must fall back to the
+     original refusal — which is what proves the producer is load-bearing rather than
+     something else having quietly fixed the feed. */
+  const noPolicyConfig1 = Object.assign({}, fullConfig1);
+  delete noPolicyConfig1['attention-detection-policy/v1'];
+  const refused1 = composer1.recomposePayloadAttention(withCandidate1, noPolicyConfig1);
+  assert(refused1.items.length === 0 && refused1.exclusions.length === 1
+    && refused1.exclusions[0].code === 'RLATTN-PROVENANCE',
+    'Regression: SCN-BUG009-R1-LOADBEARING with attention-detection-policy/v1 removed the same candidate is refused RLATTN-PROVENANCE again — the producer, and no other change, is what restored the feed');
+} catch (e) { failures++; console.log('  ✗ FAIL (BUG-009 R1 group threw): ' + e.message); }
+/* ---------- BUG-009 R1: observed attention gate producer (END) ---------- */
+
 /* ---------- Feature 022 Scope 02: threshold surtaxes and declared tax legs (START) ---------- */
 /* The two federal threshold surtaxes and the pack-declared leg set. Every figure below is
    transcribed independently from IRS Publication 505 (2026), chapter 2, Expected Taxes and
@@ -23842,6 +23970,91 @@ try {
     && refusedMembers(uncarriedFigure).indexOf('pack-member:taxLegs[2].figureRef') >= 0
     && refusedMembers(excludedOverAbsent).indexOf('pack-member:taxLegs[2].includedInTotal') >= 0,
   'TP-02-02: a duplicate legId, a figureRef naming a figure the pack does not carry, and an includedInTotal:false leg whose figure is absent are each refused by the member that carries them, so includedInTotal:false is not a mechanism for hiding a refusal from a total');
+
+  /* TP-02-03. The compatibility canary the shared-infrastructure sweep names. The generalized
+     CO-8 is run against the UNMODIFIED Feature 021 pack — the shipped pack with `taxLegs` and
+     `thresholdSets` withdrawn, so `declaredTaxLegs` falls back to the two Feature 021 legs and
+     the engine is in exactly the leg configuration it had before this scope — and its total must
+     equal the previous two-leg sum. The comparand is recomputed here from the CO-6 and CO-7 stage
+     records rather than read back from CO-8, so a summation that mis-orders, double-counts or
+     silently skips a leg fails here instead of cancelling against itself.
+
+     The grid is every Feature 021 settlement household shape: each of the four filing statuses,
+     both deduction modes, six income mixes spanning no income, ordinary-only, preferential-only,
+     both legs live, deduction-exceeds-income and above-every-surtax-threshold, and each mix run
+     once with both surtax bases undeclared — the literal state of every household built before
+     this scope existed — and once declared at zero. */
+  const feature021Pack = clonePack();
+  delete feature021Pack.taxLegs;
+  delete feature021Pack.thresholdSets;
+  const FEATURE_021_MIXES = [
+    { ordinary: 0, qualifiedDividend: 0, longTermCapitalGain: 0, note: 'no income at all' },
+    { ordinary: 90000, qualifiedDividend: 0, longTermCapitalGain: 0, note: 'ordinary only' },
+    { ordinary: 0, qualifiedDividend: 40000, longTermCapitalGain: 25000, note: 'preferential only' },
+    { ordinary: 120000, qualifiedDividend: 30000, longTermCapitalGain: 15000, note: 'both legs live' },
+    { ordinary: 5000, qualifiedDividend: 0, longTermCapitalGain: 0, note: 'deduction exceeds income' },
+    { ordinary: 400000, qualifiedDividend: 100000, longTermCapitalGain: 60000, note: 'above every surtax threshold' }
+  ];
+  const feature021Failures = [];
+  let feature021Checks = 0;
+  let feature021LegSetSeen = 0;
+  SURTAX_STATUSES.forEach((filingStatus) => {
+    ['standard', 'itemized'].forEach((deductionMode) => {
+      FEATURE_021_MIXES.forEach((mix) => {
+        [false, true].forEach((declareBases) => {
+          const workspace = SURTAXWORKSPACE.createEmptyWorkspace();
+          workspace.filingStatus = filingStatus;
+          workspace.declaredTaxYear = 2026;
+          workspace.deductionMode = deductionMode;
+          workspace.itemizedAmount = deductionMode === 'itemized' ? 12000 : 0;
+          workspace.income.ordinary = mix.ordinary;
+          workspace.income.qualifiedDividend = mix.qualifiedDividend;
+          workspace.income.longTermCapitalGain = mix.longTermCapitalGain;
+          if (declareBases) {
+            workspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+            workspace.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+          }
+          const settled = SURTAX.computeAnnualFederalTax(workspace, feature021Pack);
+          const ordinaryRecord = settled.stages['CO-6'];
+          const preferentialRecord = settled.stages['CO-7'];
+          const totalRecord = settled.stages['CO-8'];
+          const label = filingStatus + '/' + deductionMode + '/' + mix.note
+            + (declareBases ? '/declared' : '/undeclared');
+          /* The leg set the engine actually summed must be the two Feature 021 legs and nothing
+             else, so a fallback that quietly grew or shrank is caught by name and not only by
+             arithmetic that happens to agree. */
+          const summedLegIds = settled.taxLegs
+            .filter((leg) => leg.includedInTotal === true)
+            .map((leg) => leg.legId);
+          if (JSON.stringify(summedLegIds) !== JSON.stringify(['ordinary', 'preferential'])) {
+            feature021Failures.push(label + ': summed leg set is ' + JSON.stringify(summedLegIds));
+          } else {
+            feature021LegSetSeen += 1;
+          }
+          const ordinaryOut = SURTAXRULES.isUnavailable(ordinaryRecord);
+          const preferentialOut = SURTAXRULES.isUnavailable(preferentialRecord);
+          if (ordinaryOut || preferentialOut) {
+            const expectedCode = ordinaryOut ? ordinaryRecord.code : preferentialRecord.code;
+            if (!SURTAXRULES.isUnavailable(totalRecord) || totalRecord.code !== expectedCode) {
+              feature021Failures.push(label + ': a refusing Feature 021 leg did not become the total');
+            }
+          } else {
+            const previousTwoLegSum = ordinaryRecord.value + preferentialRecord.value;
+            if (SURTAXRULES.isUnavailable(totalRecord) || totalRecord.value !== previousTwoLegSum) {
+              feature021Failures.push(label + ': total ' + JSON.stringify(totalRecord.value)
+                + ' is not the previous two-leg sum ' + String(previousTwoLegSum));
+            }
+          }
+          feature021Checks += 1;
+        });
+      });
+    });
+  });
+  assert(feature021Failures.length === 0
+    && feature021Checks === SURTAX_STATUSES.length * 2 * FEATURE_021_MIXES.length * 2
+    && feature021LegSetSeen === feature021Checks
+    && SURTAXRULES.declaredTaxLegs(feature021Pack).length === 2,
+  'TP-02-03: against the UNMODIFIED Feature 021 pack the generalized CO-8 sums exactly the two Feature 021 legs and its total equals the previous two-leg sum recomputed from the CO-6 and CO-7 records, over every Feature 021 household shape — four filing statuses, both deduction modes, six income mixes, each with both surtax bases undeclared and declared (' + feature021Checks + ' households)');
 
   /* TP-02-04. The net investment income tax below, at and above every filing-status threshold,
      against the rate applied to the LESSER of net investment income and the excess. The two rows

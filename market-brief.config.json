@@ -567,6 +567,37 @@
         ],
         "note": "Caps OUTPUT. artifact-budget/v1 caps FETCH. Neither may be raised inside a change that would otherwise fail against it. The measurement sums String.length over the paths above and counts no key, no number, no boolean, no null and no field outside the list; everything else in the payload is reported once as disclosedTotal and is never capped. Raising a cap to rescue a failing run is a separate owner decision recorded in notes/market-brief.md, never part of the change that would have failed."
     },
+    "attention-detection-policy/v1": {
+        "contractVersion": "attention-detection-policy/v1",
+        "policyId": "attention-detection-policy/v1",
+        "authorship": "DRAFTED BY AGENT on 2026-08-19 under explicit operator delegation, and NOT yet owner-tuned. These numbers decide when the brief interrupts you, which is a statement about your risk tolerance and not a fact about any market. They are deliberately conservative so the first failure mode is silence rather than noise. Tune THESE NUMBERS, never rlattentiongate.js: the module holds no thresholds and refuses to observe anything when this block is absent or incomplete.",
+        "severityBands": [
+            { "severity": "moderate", "minAbsPct": 8 },
+            { "severity": "severe", "minAbsPct": 15 }
+        ],
+        "severityBandsNote": "Read against the subject's percentage distance from its 200-day moving average. A reading under the narrowest band produces NO observation at all rather than a 'mild' one, which is how a quiet day stays quiet. 'mild' is left undeclared on purpose: nothing in this repository has yet earned the right to interrupt a reader at that size.",
+        "imminentWithinPct": 2,
+        "developingWithinPct": 6,
+        "sourceToolId": "etf-momentum-lab",
+        "sourceToolNote": "The tool that OWNS the math this policy reads. A gate's figures cite it as their provenance, which is also how the composer resolves the item's deep link — so a reader can open the tool that produced the number. Declared here rather than hard-coded because the owning tool is a property of where the math lives, and that can move.",
+        "imminenceNote": "Distance to the 200-day, the level this policy watches. Sitting within 2% of it is 'imminent' because the level is in play now; out to 6% is 'developing'; beyond that the reading is real but 'latent'.",
+        "transmissionBySubject": {
+            "XLE": ["commodities-energy"],
+            "GLD": ["commodities-energy"],
+            "FBTC": ["volatility-options"],
+            "FETH": ["volatility-options"],
+            "SOXX": ["breadth-market-structure"],
+            "XLK": ["breadth-market-structure"],
+            "VGT": ["breadth-market-structure"],
+            "QQQ": ["breadth-market-structure"],
+            "SPMO": ["breadth-market-structure"],
+            "FMTM": ["breadth-market-structure"],
+            "SPCX": ["breadth-market-structure"],
+            "MSFT": ["breadth-market-structure"]
+        },
+        "transmissionNote": "The channel an effect would travel, drawn from the certified vocabulary in rlmarketaction.js. A subject missing from this map declares NO channel rather than a guessed one; when such a subject is also imminent, the gate says so explicitly instead of implying a path it cannot name.",
+        "gaps": "Rates and the dollar are NOT in this map, and that is a real gap rather than an oversight: the brief's rates leg resolves through TLT and its dollar leg is dark by governance, so a policy row for them would promise an observation the data layer cannot supply today. Adding them is a data-layer change first, a policy change second."
+    },
     "cross-asset/v1": {
         "contractVersion": "cross-asset/v1",
         "policyId": "cross-asset/v1",

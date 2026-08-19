@@ -808,6 +808,74 @@ export function validateBriefPayload(payload, registry, config, snapshot, agenda
     }
   }
 
+  /* Feature 026 Scope 3 — delta-only publishing, fail-closed and gated on the same v2 stamp the
+     budget and the legs answer to. Four assertions, adopted verbatim from the UX layer's D1-D4:
+
+       D1  every published change names a kind the committed vocabulary declares;
+       D2  the roll-up BALANCES — narrative + unchanged + baseline === the tracked set;
+       D3  no rolled-up instrument's symbol reaches a default-visible sentence;
+       D4  the validator RECOMPUTES the kind from the entry's own two states and refuses one it
+           cannot reproduce.
+
+     D4 is the load-bearing one and it is why each entry carries `prev` and `cur`. A composer that
+     asserts a level crossing its own states do not show is refused HERE rather than believed — and
+     because `changeKind` reads no narrative field, rewriting every sentence cannot rescue it.
+     Like the budget and the legs, this adds no CLI flag: a change cannot be waved through. */
+  const changeVocabulary = config?.['change-vocabulary/v1'];
+  if (payload?.contractVersion === BRIEF_PAYLOAD_BUDGET_CONTRACT && hasObject(changeVocabulary)) {
+    const declaredKinds = Array.isArray(changeVocabulary.kinds) ? changeVocabulary.kinds : [];
+    const trackedSet = Array.isArray(changeVocabulary.trackedSet) ? changeVocabulary.trackedSet : [];
+    const changed = Array.isArray(payload.changed) ? payload.changed.filter(hasObject) : [];
+    const rollUp = payload.rollUp;
+
+    for (const entry of changed) {
+      const id = hasText(entry.symbol) ? entry.symbol : '<unnamed>';
+      if (!declaredKinds.includes(entry.kind)) {
+        errors.push(`delta: ${id} is published as ${JSON.stringify(entry.kind)}, which change-vocabulary/v1 does not declare; the kind set is closed`);
+        continue;
+      }
+      if (!hasObject(entry.cur)) {
+        errors.push(`delta: ${id} is published as ${entry.kind} but carries no current state, so the claim cannot be reproduced`);
+        continue;
+      }
+      let recomputed = null;
+      try {
+        recomputed = RLCOCKPIT.changeKind(hasObject(entry.prev) ? entry.prev : null, entry.cur, changeVocabulary);
+      } catch (error) {
+        errors.push(`delta: recomputing ${id} refused the vocabulary itself — ${error.message}`);
+        continue;
+      }
+      if (recomputed !== entry.kind) {
+        errors.push(`delta: ${id} is published as ${entry.kind} but its own two states recompute to ${JSON.stringify(recomputed)}; a change the validator cannot reproduce is refused`);
+      }
+    }
+
+    if (!hasObject(rollUp)) {
+      /* A run that publishes NO change and no roll-up made no delta claim — a snapshot predating
+         the tracked block, which publishes exactly as it did before. A run that publishes a change
+         and no roll-up has told the reader about one instrument and said nothing about the other
+         eleven, which is the silent drop FR-026-012 exists to close. */
+      if (changed.length) {
+        errors.push(`delta: ${changed.length} change(s) are published with no rollUp, so the remaining tracked instruments of the declared ${trackedSet.length} are unaccounted for`);
+      }
+    } else if (!RLCOCKPIT.rollUpBalances(changed.length, rollUp, trackedSet.length)) {
+      errors.push(`delta: the roll-up does not balance — ${changed.length} published with narrative plus ${JSON.stringify(rollUp.count)} unchanged plus ${JSON.stringify(rollUp.baselineCount)} first seen against a tracked set of ${trackedSet.length}, listing ${Array.isArray(rollUp.members) ? rollUp.members.length : 0} member(s); an instrument is published or counted, never neither`);
+    } else {
+      /* D3. An unchanged instrument is a COUNT, never a paragraph. Its symbol may appear in the
+         drawer body, which is disclosed, and nowhere a default reader can see it: not the
+         headline, not a changed line, not the roll-up line itself. */
+      const visible = [payload.headline, rollUp.line, ...changed.map((entry) => entry.line)].filter(hasText).join(' ');
+      for (const member of rollUp.members.filter(hasObject)) {
+        if (Object.keys(member).sort().join(',') !== 'state,symbol') {
+          errors.push(`delta: the roll-up member ${JSON.stringify(member.symbol)} carries ${JSON.stringify(Object.keys(member).sort())}; a rolled-up instrument is a symbol and a state token and nothing else`);
+        }
+        if (hasText(member.symbol) && new RegExp(`\\b${member.symbol}\\b`).test(visible)) {
+          errors.push(`delta: ${member.symbol} is counted into the roll-up yet named in a default-visible sentence; an unchanged instrument is a count, never a paragraph`);
+        }
+      }
+    }
+  }
+
   return errors;
 }
 

@@ -15,7 +15,7 @@ import {
 } from 'node:fs';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
-import { reassertCompanyOwnerReadDisclosure } from './brief-refresh.mjs';
+import { distinctRowsBy, reassertCompanyOwnerReadDisclosure, trackedAsOfReader } from './brief-refresh.mjs';
 import { RESEARCH_AGENDA_CONTRACTS, runResearchSidePool } from './research-agenda-generation.mjs';
 import { BRIEF_PAYLOAD_BUDGET_CONTRACT, briefEventContractInstruction } from './validate-brief-payload.mjs';
 import { BRIEF_NARRATIVE_FIELDS_REQUIRED } from './reader-vocabulary.mjs';
@@ -288,6 +288,33 @@ function writeResearchCache(execution) {
     const candidatePath = RESEARCH_CACHE_PATH + '.candidate';
     writeFileSync(candidatePath, JSON.stringify(cache) + '\n');
     renameSync(candidatePath, RESEARCH_CACHE_PATH);
+}
+
+/* The memory row this run compares itself against (Feature 026 Scope 3).
+   NOT simply "the run before": notes/market-brief.md §5's distinct-market-bar rule says repeated
+   weekend and holiday runs over one completed close are a single observation, so the comparison
+   walks back to the last row whose tracked bar differs from this one's. Four Friday runs produce
+   one comparison, not four. The dedupe is brief-refresh.mjs's own `distinctRowsBy`, imported
+   rather than restated, so Tier A's persistence read and this comparison cannot drift apart.
+   No prior row — a first run, an empty file, a corrupt line — is absent prior state, and the
+   detector answers `baseline` for it. */
+function previousMemoryRow(snapshot) {
+    const abs = resolve(ROOT, 'brief-history.recent.jsonl');
+    if (!existsSync(abs)) return null;
+    const symbols = Object.keys(snapshot.tracked && typeof snapshot.tracked === 'object' ? snapshot.tracked : {}).sort();
+    if (!symbols.length) return null;
+    const rows = [];
+    for (const line of readFileSync(abs, 'utf8').split('\n')) {
+        if (!line.length) continue;
+        try { rows.push(JSON.parse(line)); } catch { continue; }
+    }
+    const readAsOf = trackedAsOfReader(symbols[0]);
+    const currentAsOf = readAsOf({ tracked: snapshot.tracked });
+    const distinct = distinctRowsBy(rows, readAsOf);
+    for (let index = distinct.length - 1; index >= 0; index--) {
+        if (readAsOf(distinct[index]) !== currentAsOf) return distinct[index];
+    }
+    return null;
 }
 
 function recentHistory(limit = 6) {
@@ -779,6 +806,50 @@ try {
         };
         console.log(`[brief-parallel] cross-asset legs resolved=${legs.length} dark=${dark.length}`
             + ` required=${crossAssetPolicy.legs.filter((leg) => leg && leg.required === true).length}`);
+    }
+
+    /* Delta-only publishing (Feature 026 Scope 3). Emitted after the legs and BEFORE the budget
+       block, because `changed[].line` and `rollUp.line` are declared default-visible fields the
+       budget measures — and because the whole point of the roll-up is that it costs one line
+       where twelve paragraphs used to sit.
+
+       The kind is decided by rlcockpit.js from TWO STATE OBJECTS AND THE VOCABULARY. No narrative
+       reaches it, which is why rewriting every sentence about an unchanged instrument cannot buy
+       that instrument a paragraph. Each changed entry carries the two states it was decided from
+       so the validator can RECOMPUTE the kind and refuse one it cannot reproduce — a composer
+       that asserts a crossing its own states do not show is refused rather than believed.
+
+       An unchanged instrument's symbol reaches the payload in exactly one place: the roll-up's
+       drawer body, as a symbol and a state token. There is no path here that writes a sentence
+       about it. */
+    const changeVocabulary = config['change-vocabulary/v1'];
+    if (changeVocabulary && typeof changeVocabulary === 'object' && Array.isArray(changeVocabulary.trackedSet)) {
+        const priorRow = previousMemoryRow(snapshot);
+        const curStates = snapshot.tracked && typeof snapshot.tracked === 'object' ? snapshot.tracked : {};
+        const prevStates = priorRow && priorRow.tracked && typeof priorRow.tracked === 'object' ? priorRow.tracked : {};
+        const kinds = {};
+        const changed = [];
+        for (const symbol of [...changeVocabulary.trackedSet].sort()) {
+            const cur = curStates[symbol] ?? null;
+            if (cur === null) continue;
+            const prev = prevStates[symbol] ?? null;
+            const kind = RLCOCKPIT.changeKind(prev, cur, changeVocabulary);
+            kinds[symbol] = kind;
+            if (kind === null || kind === 'baseline') continue;
+            changed.push({ symbol, kind, line: `${symbol} ${kind}`, prev, cur });
+        }
+        const rollUp = RLCOCKPIT.rollUpFrom(curStates, kinds);
+        /* A snapshot predating the Tier-A tracked block carries no memory at all. That is not an
+           excuse to publish an empty roll-up claiming twelve instruments are accounted for: with
+           nothing tracked this run makes NO delta claim, so it emits no changed list and no
+           roll-up, and the validator has nothing to balance. The claim appears the first run Tier
+           A writes a tracked block, and from then on it must balance. */
+        if (Object.keys(curStates).length) {
+            payload.changed = changed;
+            payload.rollUp = rollUp;
+        }
+        console.log(`[brief-parallel] delta tracked=${Object.keys(curStates).length} changed=${changed.length} unchanged=${rollUp.count} baseline=${rollUp.baselineCount}`
+            + ` balances=${RLCOCKPIT.rollUpBalances(changed.length, rollUp, Object.keys(curStates).length)}`);
     }
 
     /* Output budget — allocation, then measurement, then the stamp, in that order and in

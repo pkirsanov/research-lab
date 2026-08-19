@@ -52,6 +52,25 @@
  *       The published blindness. It names the leg, the reason, the conclusion
  *       being withheld and the refusal to substitute.
  *
+ * Scope 3 — the change vocabulary.
+ *
+ *   changeKind(prevState, curState, vocabulary) -> kind | null
+ *       The whole point of the feature. It takes TWO STATE OBJECTS AND THE
+ *       VOCABULARY AND NOTHING ELSE, and it reads no narrative field: rewrite
+ *       every sentence about an unchanged instrument and the answer is still
+ *       `null`. That is what stops novel wording from buying a paragraph.
+ *
+ *   rollUpFrom(trackedStates, kinds) -> rollUp
+ *       Everything that did not change, as ONE line and a drawer body of
+ *       symbol-plus-state-token pairs. `baseline` is counted separately from
+ *       `unchanged`, because an instrument the brief has never seen before is
+ *       not unchanged — that would be a false statement about the past.
+ *
+ *   rollUpBalances(narrativeCount, rollUp, trackedSize) -> boolean
+ *       The arithmetic that makes silent dropping impossible:
+ *       narrative + unchanged + baseline === trackedSize, and the drawer body
+ *       holds exactly the members those two counts claim.
+ *
  * Neither function measures anything. The trailing return lives once, in the
  * owning tool (real-assets-lab.html `realTrailingPct`), and Tier A calls it;
  * this module resolves what Tier A measured into a published shape. A
@@ -449,6 +468,139 @@
       legPolicy.withheld);
   }
 
+  /* ═══════════ exported: the change vocabulary ═══════════ */
+
+  function declaredList(vocabulary, key) {
+    return isPlainObject(vocabulary) && Array.isArray(vocabulary[key]) ? vocabulary[key] : [];
+  }
+
+  /* The signed distance from a declared level, or null when the run cannot place the
+     instrument against it. Sitting EXACTLY on a level returns null too: zero has no side, so
+     a run that touches the 200-day and a run that closes on it are not a crossing between
+     them. Both sides must be placeable or there is nothing to compare. */
+  function levelGap(state, name) {
+    var px = finiteOrNull(state.px);
+    var levels = isPlainObject(state.levels) ? state.levels : null;
+    var level = levels === null ? null : finiteOrNull(levels[name]);
+    if (px === null || level === null) return null;
+    var gap = px - level;
+    return gap === 0 ? null : gap;
+  }
+
+  function crossedDeclaredLevel(prevState, curState, vocabulary) {
+    var levels = declaredList(vocabulary, "levels");
+    for (var i = 0; i < levels.length; i++) {
+      var before = levelGap(prevState, levels[i]);
+      var after = levelGap(curState, levels[i]);
+      if (before === null || after === null) continue;
+      if ((before > 0) !== (after > 0)) return true;
+    }
+    return false;
+  }
+
+  /* A token that is absent on either side is an absence, not a flip. Otherwise the first run
+     to persist a token would report every instrument as flipped out of nothing. */
+  function flippedDeclaredToken(prevState, curState, vocabulary) {
+    var tokens = declaredList(vocabulary, "stateTokens");
+    for (var i = 0; i < tokens.length; i++) {
+      var before = nonEmptyString(prevState[tokens[i]]);
+      var after = nonEmptyString(curState[tokens[i]]);
+      if (before === null || after === null) continue;
+      if (before !== after) return true;
+    }
+    return false;
+  }
+
+  /* Strict booleans on both sides. A flag that was absent last run and is `false` now has not
+     been cleared — nothing was ever raised. */
+  function movedDeclaredFlag(prevState, curState, vocabulary, toValue) {
+    var before = isPlainObject(prevState.flags) ? prevState.flags : null;
+    var after = isPlainObject(curState.flags) ? curState.flags : null;
+    if (before === null || after === null) return false;
+    var flags = declaredList(vocabulary, "flags");
+    for (var i = 0; i < flags.length; i++) {
+      var was = before[flags[i]], now = after[flags[i]];
+      if (typeof was !== "boolean" || typeof now !== "boolean") continue;
+      if (now === toValue && was === !toValue) return true;
+    }
+    return false;
+  }
+
+  function predicateFires(kind, prevState, curState, vocabulary) {
+    if (kind === "levelCrossed") return crossedDeclaredLevel(prevState, curState, vocabulary);
+    if (kind === "stateFlipped") return flippedDeclaredToken(prevState, curState, vocabulary);
+    if (kind === "flagRaised") return movedDeclaredFlag(prevState, curState, vocabulary, true);
+    if (kind === "flagCleared") return movedDeclaredFlag(prevState, curState, vocabulary, false);
+    throw new Error("RLCOCKPIT_UNDECLARED_CHANGE_KIND: " + String(kind));
+  }
+
+  /* The one predicate. TWO STATE OBJECTS AND THE VOCABULARY — no narrative argument exists to
+     pass, so rewriting every sentence about an instrument cannot move the answer. That is the
+     whole mechanism behind "novel wording around an unchanged conclusion earns nothing".
+
+     The vocabulary is CLOSED: a kind named in `precedence` that this module carries no
+     predicate for, or a resolved kind absent from `kinds`, throws rather than passing through.
+     A silent pass-through is how a closed set stops being closed. */
+  function changeKind(prevState, curState, vocabulary) {
+    if (!isPlainObject(curState)) return null;
+    var kinds = declaredList(vocabulary, "kinds");
+    if (kinds.indexOf("baseline") < 0) {
+      throw new Error("RLCOCKPIT_UNDECLARED_CHANGE_KIND: baseline");
+    }
+    if (!isPlainObject(prevState)) return "baseline";
+    var order = declaredList(vocabulary, "precedence");
+    for (var i = 0; i < order.length; i++) {
+      var kind = order[i];
+      if (kinds.indexOf(kind) < 0) throw new Error("RLCOCKPIT_UNDECLARED_CHANGE_KIND: " + String(kind));
+      if (predicateFires(kind, prevState, curState, vocabulary)) return kind;
+    }
+    return null;
+  }
+
+  /* The state token a drawer row shows. It is the instrument's OWN declared token, never a
+     sentence: an unchanged instrument gets a symbol and a word, and the roll-up carries no
+     rationale, no paragraph and no restated position. */
+  function rollUpStateToken(state) {
+    if (!isPlainObject(state)) return "n/a";
+    return nonEmptyString(state.maStack) || nonEmptyString(state.rrgState) || "n/a";
+  }
+
+  /* Everything that earned no narrative, as ONE line and a drawer body. `unchanged` and
+     `baseline` are counted SEPARATELY on purpose: telling a reader an instrument is unchanged
+     when the brief has never seen it before is a false statement about the past. Members sort
+     by symbol so two runs over one pair of rows serialize identically. */
+  function rollUpFrom(trackedStates, kinds) {
+    var states = isPlainObject(trackedStates) ? trackedStates : {};
+    var resolved = isPlainObject(kinds) ? kinds : {};
+    var symbols = Object.keys(states).sort();
+    var members = [], count = 0, baselineCount = 0;
+    for (var i = 0; i < symbols.length; i++) {
+      var symbol = symbols[i];
+      var kind = resolved[symbol] === undefined ? null : resolved[symbol];
+      if (kind !== null && kind !== "baseline") continue;
+      if (kind === "baseline") baselineCount++; else count++;
+      members.push({ symbol: symbol, state: rollUpStateToken(states[symbol]) });
+    }
+    var parts = [];
+    if (count > 0 || baselineCount === 0) parts.push(count + " unchanged");
+    if (baselineCount > 0) parts.push(baselineCount + " first seen");
+    return { line: "= " + parts.join(" · "), count: count, baselineCount: baselineCount, members: members };
+  }
+
+  /* The arithmetic that makes a silent drop impossible. An instrument is EITHER published with
+     narrative OR counted here — never neither. The members check is the second half: a roll-up
+     that claims eleven and lists ten has lost one, and a count alone would not notice. */
+  function rollUpBalances(narrativeCount, rollUp, trackedSize) {
+    if (!isPlainObject(rollUp) || !Array.isArray(rollUp.members)) return false;
+    var narrative = finiteOrNull(narrativeCount);
+    var size = finiteOrNull(trackedSize);
+    var unchanged = finiteOrNull(rollUp.count);
+    var baseline = finiteOrNull(rollUp.baselineCount);
+    if (narrative === null || size === null || unchanged === null || baseline === null) return false;
+    if (rollUp.members.length !== unchanged + baseline) return false;
+    return narrative + unchanged + baseline === size;
+  }
+
   return {
     MEASUREMENT_CONTRACT: MEASUREMENT_CONTRACT,
     LEG_CONTRACT: LEG_CONTRACT,
@@ -458,6 +610,9 @@
     budgetViolations: budgetViolations,
     selectDefaultVisible: selectDefaultVisible,
     resolveLeg: resolveLeg,
-    darkState: darkState
+    darkState: darkState,
+    changeKind: changeKind,
+    rollUpFrom: rollUpFrom,
+    rollUpBalances: rollUpBalances
   };
 });

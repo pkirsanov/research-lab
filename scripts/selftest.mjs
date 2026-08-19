@@ -21283,8 +21283,15 @@ try {
      cross-asset contract; these fixtures are budget fixtures and carry no legs, so the leg
      gate correctly refuses them. Excluding both prefixes keeps every assertion below about
      the budget alone. That the leg gate really does refuse a legless v2 payload is asserted
-     in the `rlcockpit.js — cross-asset legs` group, not assumed here. */
-  const otherLines26 = (errors) => errors.filter((line) => line.indexOf('outputBudget: ') !== 0 && line.indexOf('crossAsset: ') !== 0);
+     in the `rlcockpit.js — cross-asset legs` group, not assumed here.
+
+     Scope 3 adds the `delta: ` prefix for the same reason and on the same terms: these
+     fixtures publish `changed[]` entries shaped for the CHARACTER budget rather than for the
+     change contract, and carry no roll-up, so the delta gate correctly refuses them too. That
+     it really does is asserted in the `rlcockpit.js — change vocabulary` group, not assumed
+     here. This is the ONE pre-existing line Scope 3 modifies, and it is modified for the
+     precedent Scope 2 already set on this exact line. */
+  const otherLines26 = (errors) => errors.filter((line) => line.indexOf('outputBudget: ') !== 0 && line.indexOf('crossAsset: ') !== 0 && line.indexOf('delta: ') !== 0);
 
   /* The committed policy carries its literals, not a computed value a change could drift. */
   assert(budgetPolicy26 && budgetPolicy26.contractVersion === 'output-budget/v1'
@@ -22019,6 +22026,858 @@ try {
   'the live payload\'s carried bond and FX reads are either absent, unresolved, or in the pinned contract shape — never a third shape the fixtures do not model');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 cross-asset legs group threw): ' + e.message); }
 /* ---------- Feature 026 Scope 2: rlcockpit.js — cross-asset legs (END) ---------- */
+
+/* ---------- Feature 022 Scope 01: preferential breakpoints beyond `single` (START) ---------- */
+/* Every preferentialRateTables assertion in this file indexes `.single`. The six breakpoints
+   belonging to married-filing-jointly, married-filing-separately and head-of-household were
+   asserted NOWHERE, so three of the four filing statuses carried unverified long-term capital
+   gain and qualified-dividend math in a shipping engine. This group closes that at the rigour the
+   `single` coverage already has: below, at and above every breakpoint, plus the CO-7 stacking
+   window that places those bands on top of ordinary taxable income rather than on the gain alone.
+
+   Every figure below is transcribed from the committed `tax-rules/federal/2026.json`. Nothing is
+   interpolated, derived from a neighbouring status, or recalled. */
+try {
+  group('Feature 022 Scope 01 — preferential breakpoints for the three filing statuses beyond single');
+  const { createRequire: createPreferentialRequire } = await import('node:module');
+  const preferentialRequire = createPreferentialRequire(import.meta.url);
+  const RULESPREF = preferentialRequire('../rltaxrules.js');
+  const WORKSPACEPREF = preferentialRequire('../rltaxworkspace.js');
+  const TAXPREF = preferentialRequire('../rltax.js');
+  const packPref = JSON.parse(read('tax-rules/federal/2026.json'));
+  const codeOfPref = (record) => (record && record.code) || null;
+
+  /* `single` is deliberately excluded. It already carries below/at/above coverage two groups up,
+     and repeating it here would inflate the check count without checking a new figure. */
+  const STATUSES_BEYOND_SINGLE = ['married-filing-jointly', 'married-filing-separately', 'head-of-household'];
+
+  /* Rev. Proc. 2025-32 section 4.03 states the preferential schedule as two amounts per filing
+     status — the maximum zero rate amount and the maximum 15 percent rate amount — with the top
+     rate carried separately by the pack's own `componentSources` override citing `irs-tc409`.
+     Written out here rather than read back through the pack objects, so a mistyped digit in
+     either place fails the parity assertion below instead of cancelling against itself. */
+  const KNOWN_PREFERENTIAL_SCHEDULE = {
+    'married-filing-jointly': { maximumZeroRateAmount: 98900, maximumFifteenPercentRateAmount: 613700 },
+    'married-filing-separately': { maximumZeroRateAmount: 49450, maximumFifteenPercentRateAmount: 306850 },
+    'head-of-household': { maximumZeroRateAmount: 66200, maximumFifteenPercentRateAmount: 579600 }
+  };
+  const KNOWN_PREFERENTIAL_RATES = [0, 0.15, 0.2];
+
+  /* PARTITION. A status whose table the pack CARRIES gets known-value coverage. A status whose
+     table is an `AbsentFigure/v1` gets the REFUSAL asserted instead, because a refusal is the
+     correct outcome for an unretrieved figure and asserting it is coverage rather than a gap.
+     Both branches are derived from the pack, so a later retrieval — or a later withdrawal —
+     moves the expectation with it instead of rotting into a false green. */
+  const carriedStatuses = STATUSES_BEYOND_SINGLE
+    .filter((status) => RULESPREF.isRateTable(packPref.preferentialRateTables[status]));
+  const absentStatuses = STATUSES_BEYOND_SINGLE
+    .filter((status) => RULESPREF.isAbsentFigure(packPref.preferentialRateTables[status]));
+  assert(carriedStatuses.length + absentStatuses.length === STATUSES_BEYOND_SINGLE.length
+    && STATUSES_BEYOND_SINGLE.every((status) => RULESPREF.SUPPORTED_FILING_STATUSES.indexOf(status) >= 0)
+    && STATUSES_BEYOND_SINGLE.indexOf('single') < 0,
+  'TP-01-16: every filing status beyond single is either a carried preferential rate table or a declared absent figure with no third state, and all three are statuses the engine supports (carried: '
+    + (carriedStatuses.join(',') || 'none') + '; absent: ' + (absentStatuses.join(',') || 'none') + ')');
+
+  /* Each carried table's breakpoints, rates, floors and unbounded top equal the independently
+     transcribed schedule. A single transposed digit in the pack or in the transcription fails. */
+  const parityFailures = [];
+  carriedStatuses.forEach((status) => {
+    const table = packPref.preferentialRateTables[status];
+    const known = KNOWN_PREFERENTIAL_SCHEDULE[status];
+    const top = table.bands[table.bands.length - 1];
+    if (table.bands.length !== 3) parityFailures.push(status + ':band-count');
+    if (table.filingStatus !== status) parityFailures.push(status + ':filing-status');
+    if (table.kind !== 'preferential') parityFailures.push(status + ':kind');
+    if (table.bands[0].lowerInclusive !== 0) parityFailures.push(status + ':floor');
+    if (table.bands[0].upperExclusive !== known.maximumZeroRateAmount) parityFailures.push(status + ':zero-rate-top');
+    if (table.bands[1].lowerInclusive !== known.maximumZeroRateAmount) parityFailures.push(status + ':fifteen-rate-floor');
+    if (table.bands[1].upperExclusive !== known.maximumFifteenPercentRateAmount) parityFailures.push(status + ':fifteen-rate-top');
+    if (top.lowerInclusive !== known.maximumFifteenPercentRateAmount) parityFailures.push(status + ':top-floor');
+    if (top.upperExclusive !== null) parityFailures.push(status + ':top-bounded');
+    if (JSON.stringify(table.bands.map((band) => band.rate)) !== JSON.stringify(KNOWN_PREFERENTIAL_RATES)) {
+      parityFailures.push(status + ':rates');
+    }
+  });
+  assert(parityFailures.length === 0,
+    'TP-01-16: every carried preferential band edge and rate for married-filing-jointly, married-filing-separately and head-of-household equals the independently transcribed Rev. Proc. 2025-32 section 4.03 schedule, with a zero-floored first band and an unbounded top band ('
+      + carriedStatuses.length + ' table(s) checked)');
+
+  /* The preferential tax the AUTHORITY's own two amounts imply for a slice sitting ON TOP of
+     ordinary taxable income. Written from the transcribed schedule — never from the pack's band
+     objects and never by calling the engine — so it is an independent check on the CO-7 window
+     rather than a restatement of the implementation under test. */
+  const knownPreferentialTax = (filingStatus, ordinaryTaxableIncome, preferentialAmount) => {
+    const known = KNOWN_PREFERENTIAL_SCHEDULE[filingStatus];
+    const windowTop = ordinaryTaxableIncome + preferentialAmount;
+    const fifteenSlice = Math.max(0, Math.min(windowTop, known.maximumFifteenPercentRateAmount)
+      - Math.max(ordinaryTaxableIncome, known.maximumZeroRateAmount));
+    const twentySlice = Math.max(0, windowTop
+      - Math.max(ordinaryTaxableIncome, known.maximumFifteenPercentRateAmount));
+    return 0.15 * fifteenSlice + 0.2 * twentySlice;
+  };
+
+  const preferentialWorkspace = (filingStatus, ordinary, preferential, incomeKind) => {
+    const workspace = WORKSPACEPREF.createEmptyWorkspace();
+    workspace.filingStatus = filingStatus;
+    workspace.declaredTaxYear = 2026;
+    /* An itemised deduction of zero makes declared income equal taxable income, so the edge under
+       test is the pack's own breakpoint rather than the deduction. */
+    workspace.deductionMode = 'itemized';
+    workspace.itemizedAmount = 0;
+    workspace.income.ordinary = ordinary;
+    workspace.income.longTermCapitalGain = incomeKind === 'qualified-dividend' ? 0 : preferential;
+    workspace.income.qualifiedDividend = incomeKind === 'qualified-dividend' ? preferential : 0;
+    /* Fixture Input Completion Register, FIC-4: a real declaration of no net investment income
+       portion and no Medicare wage basis, so both surtax legs compute a real zero. */
+    workspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+    workspace.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+    return workspace;
+  };
+
+  const breakpointsFor = (status) => [
+    KNOWN_PREFERENTIAL_SCHEDULE[status].maximumZeroRateAmount,
+    KNOWN_PREFERENTIAL_SCHEDULE[status].maximumFifteenPercentRateAmount
+  ];
+
+  /* Below, at, and above every breakpoint of every carried status. Ordinary taxable income is
+     held FIXED at half the zero-rate top for the status, so the only thing moving between the
+     three positions is where the top of the preferential window lands relative to the edge. */
+  let preferentialBoundaryChecks = 0;
+  const preferentialBoundaryFailures = [];
+  carriedStatuses.forEach((status) => {
+    const ordinaryTaxable = Math.floor(KNOWN_PREFERENTIAL_SCHEDULE[status].maximumZeroRateAmount / 2);
+    breakpointsFor(status).forEach((breakpoint) => {
+      [breakpoint - 1, breakpoint, breakpoint + 1].forEach((windowTop) => {
+        const preferential = windowTop - ordinaryTaxable;
+        const settled = TAXPREF.computeAnnualFederalTax(
+          preferentialWorkspace(status, ordinaryTaxable, preferential, 'long-term-capital-gain'), packPref);
+        const expected = knownPreferentialTax(status, ordinaryTaxable, preferential);
+        preferentialBoundaryChecks += 1;
+        if (RULESPREF.isUnavailable(settled.preferentialTax)
+          || !approx(settled.preferentialTax.value, expected, 0.0000001)
+          || !approx(settled.preferentialTaxableIncome.value, preferential, 0.0000001)
+          || !approx(settled.ordinaryTaxableIncome.value, ordinaryTaxable, 0.0000001)) {
+          preferentialBoundaryFailures.push(status + '@' + windowTop);
+        }
+      });
+    });
+  });
+  assert(preferentialBoundaryChecks === carriedStatuses.length * 6
+    && preferentialBoundaryFailures.length === 0,
+  'TP-01-16: the preferential tax is exact immediately below, exactly at, and immediately above every breakpoint of every carried filing status beyond single ('
+    + preferentialBoundaryChecks + ' checks over ' + (carriedStatuses.length * 2) + ' breakpoint(s): '
+    + (preferentialBoundaryFailures.join(',') || 'no failure') + ')');
+
+  /* An amount exactly at a breakpoint sits in the band beginning there and contributes zero
+     dollars to it, and crossing by one dollar moves the tax by exactly that band's rate. This is
+     the clause that separates a correct edge from an off-by-one edge, which the aggregate above
+     could satisfy with both sides shifted together. */
+  const edgeStepFailures = [];
+  carriedStatuses.forEach((status) => {
+    const known = KNOWN_PREFERENTIAL_SCHEDULE[status];
+    const ordinaryTaxable = Math.floor(known.maximumZeroRateAmount / 2);
+    const priced = (windowTop) => TAXPREF.computeAnnualFederalTax(
+      preferentialWorkspace(status, ordinaryTaxable, windowTop - ordinaryTaxable, 'long-term-capital-gain'),
+      packPref).preferentialTax.value;
+    const atZeroTop = priced(known.maximumZeroRateAmount);
+    const overZeroTop = priced(known.maximumZeroRateAmount + 1);
+    const atFifteenTop = priced(known.maximumFifteenPercentRateAmount);
+    const overFifteenTop = priced(known.maximumFifteenPercentRateAmount + 1);
+    if (!approx(atZeroTop, 0, 0.0000001)) edgeStepFailures.push(status + ':zero-top-not-zero');
+    if (!approx(overZeroTop - atZeroTop, 0.15, 0.0000001)) edgeStepFailures.push(status + ':zero-top-step');
+    if (!approx(overFifteenTop - atFifteenTop, 0.2, 0.0000001)) edgeStepFailures.push(status + ':fifteen-top-step');
+    if (!approx(atFifteenTop, 0.15 * (known.maximumFifteenPercentRateAmount - known.maximumZeroRateAmount), 0.0000001)) {
+      edgeStepFailures.push(status + ':fifteen-top-cumulative');
+    }
+  });
+  assert(edgeStepFailures.length === 0 && carriedStatuses.length > 0,
+    'TP-01-16: at each carried breakpoint the band beginning there is priced at zero dollars, one dollar past the zero-rate top costs exactly 15 cents, one dollar past the 15 percent top costs exactly 20 cents, and the cumulative tax at the 15 percent top equals 15 percent of the whole 15 percent band ('
+      + (edgeStepFailures.join(',') || 'no failure') + ')');
+
+  /* CO-7. The preferential bands are placed ON TOP of ordinary taxable income, never on the gain
+     alone. Asserted per status, because a stacking defect can be status-specific: the same gain
+     is priced differently as ordinary income moves, while an implementation walking the bands
+     from zero is blind to ordinary income and returns the same figure at both positions. */
+  const stackingFailures = [];
+  carriedStatuses.forEach((status) => {
+    const known = KNOWN_PREFERENTIAL_SCHEDULE[status];
+    const gain = known.maximumZeroRateAmount;
+    const atFloor = TAXPREF.computeAnnualFederalTax(
+      preferentialWorkspace(status, 0, gain, 'long-term-capital-gain'), packPref);
+    const onTopOfOrdinary = TAXPREF.computeAnnualFederalTax(
+      preferentialWorkspace(status, known.maximumZeroRateAmount, gain, 'long-term-capital-gain'), packPref);
+    const inTopBand = TAXPREF.computeAnnualFederalTax(
+      preferentialWorkspace(status, known.maximumFifteenPercentRateAmount, gain, 'long-term-capital-gain'), packPref);
+    /* The gain-alone model: the same band walk with the ordinary term dropped. It cannot see
+       ordinary income at all, which is exactly why it must disagree with the engine here. */
+    const gainAlone = knownPreferentialTax(status, 0, gain);
+    if (!approx(atFloor.preferentialTax.value, 0, 0.0000001)) stackingFailures.push(status + ':floor-not-sourced-zero');
+    if (!approx(onTopOfOrdinary.preferentialTax.value, 0.15 * gain, 0.0000001)) stackingFailures.push(status + ':second-band');
+    if (!approx(inTopBand.preferentialTax.value, 0.2 * gain, 0.0000001)) stackingFailures.push(status + ':top-band');
+    if (approx(onTopOfOrdinary.preferentialTax.value, gainAlone, 0.0000001)) stackingFailures.push(status + ':gain-alone-agrees');
+    if (approx(inTopBand.preferentialTax.value, gainAlone, 0.0000001)) stackingFailures.push(status + ':gain-alone-agrees-top');
+    if (atFloor.declaredIncome.longTermCapitalGain !== onTopOfOrdinary.declaredIncome.longTermCapitalGain
+      || onTopOfOrdinary.declaredIncome.longTermCapitalGain !== inTopBand.declaredIncome.longTermCapitalGain) {
+      stackingFailures.push(status + ':gain-moved');
+    }
+    /* Qualified dividends receive identical treatment: the same amount declared either way is
+       priced identically at the same stacking position. */
+    const asDividend = TAXPREF.computeAnnualFederalTax(
+      preferentialWorkspace(status, known.maximumZeroRateAmount, gain, 'qualified-dividend'), packPref);
+    if (!approx(asDividend.preferentialTax.value, onTopOfOrdinary.preferentialTax.value, 0.0000001)) {
+      stackingFailures.push(status + ':dividend-parity');
+    }
+  });
+  assert(stackingFailures.length === 0 && carriedStatuses.length > 0,
+    'TP-01-16: for every carried filing status beyond single an unchanged gain is priced at the pack\u2019s zero rate at the floor, at 15 percent when it sits on top of the zero-rate top, and at 20 percent when it sits on top of the 15 percent top, a gain-alone model blind to ordinary income disagrees at both raised positions, and qualified dividends are priced identically to long-term gains ('
+      + (stackingFailures.join(',') || 'no failure') + ')');
+
+  /* The REFUSAL branch, which is the correct expected outcome for a status the pack does not
+     carry. The shipped pack carries all four today, so the branch is exercised against a fixture
+     derived from that pack — otherwise this coverage would exist only while some status happened
+     to be unretrieved, and would silently vanish the moment one was. A refused status must refuse
+     the preferential leg AND the total; it must never price the gain at a substituted rate and
+     must never drop the leg from the total. */
+  const absentBeyondSinglePack = JSON.parse(read('tax-rules/federal/2026.json'));
+  STATUSES_BEYOND_SINGLE.forEach((status) => {
+    absentBeyondSinglePack.preferentialRateTables[status] = {
+      contractVersion: 'AbsentFigure/v1',
+      code: 'RLTAX-THRESHOLD-UNAVAILABLE',
+      domain: 'preferential-rate-table:' + status,
+      reason: 'This fixture pack deliberately carries no preferential rate table for this filing status, so the refusal this coverage owes an unretrieved breakpoint is asserted regardless of what the shipped pack carries.',
+      whatWouldMakeItAvailable: 'Retrieve an authority stating the full preferential schedule for this filing status and the declared tax year (missing source: absent-preferential-table fixture pointer).',
+      missingSource: {
+        title: 'Absent-preferential-table fixture pointer',
+        url: 'https://www.irs.gov/irb/2025-45_IRB',
+        documentKind: 'revenue-procedure',
+        locator: 'Deliberately unretrieved so the refusal branch is never vacuous.'
+      }
+    };
+  });
+  const refusalFailures = [];
+  STATUSES_BEYOND_SINGLE.forEach((status) => {
+    const figure = absentBeyondSinglePack.preferentialRateTables[status];
+    const refused = TAXPREF.computeAnnualFederalTax(
+      preferentialWorkspace(status, 40000, 20000, 'long-term-capital-gain'), absentBeyondSinglePack);
+    if (!RULESPREF.isAbsentFigure(figure)) refusalFailures.push(status + ':not-absent');
+    if (Object.prototype.hasOwnProperty.call(figure, 'bands')) refusalFailures.push(status + ':carries-bands');
+    if (codeOfPref(refused.preferentialTax) !== 'RLTAX-THRESHOLD-UNAVAILABLE') refusalFailures.push(status + ':leg-not-refused');
+    if (codeOfPref(refused.totalFederalTax) !== 'RLTAX-THRESHOLD-UNAVAILABLE') refusalFailures.push(status + ':total-not-refused');
+    if (refused.totalFederalTax.value !== undefined) refusalFailures.push(status + ':total-valued');
+    if (refused.preferentialTax.value !== undefined) refusalFailures.push(status + ':leg-valued');
+    if (RULESPREF.isUnavailable(refused.ordinaryTax)) refusalFailures.push(status + ':ordinary-collapsed');
+    if (refused.reconciliation.legs.find((leg) => leg.id === 'L4').state !== 'not-evaluable') {
+      refusalFailures.push(status + ':L4-state');
+    }
+  });
+  /* And the fixture really is a mutation of the shipped pack rather than a separate document, so
+     the refusal is proven against the shape the engine actually consumes. */
+  assert(refusalFailures.length === 0
+    && STATUSES_BEYOND_SINGLE.every((status) => RULESPREF.isRateTable(packPref.preferentialRateTables[status]))
+    && absentBeyondSinglePack.id === packPref.id,
+  'TP-01-16 REFUSAL: a filing status beyond single whose preferential table is an AbsentFigure refuses the preferential leg and the whole federal total with RLTAX-THRESHOLD-UNAVAILABLE, carries no bands and no value, leaves the ordinary leg standing and marks L4 not-evaluable, rather than pricing the gain at a substituted rate or dropping the leg from the total ('
+    + (refusalFailures.join(',') || 'no failure') + ')');
+
+  /* ADVERSARIAL. The known-value assertions must discriminate rather than pass vacuously. Two
+     mutations prove it: pricing the whole preferential window from zero (the gain-alone defect),
+     and reusing the `single` table for every status (the copy-paste defect that would make three
+     statuses look correct while carrying one status's breakpoints). */
+  const discriminationFailures = [];
+  carriedStatuses.forEach((status) => {
+    const known = KNOWN_PREFERENTIAL_SCHEDULE[status];
+    const ordinaryTaxable = Math.floor(known.maximumZeroRateAmount / 2);
+    const preferential = known.maximumFifteenPercentRateAmount - ordinaryTaxable;
+    const shipped = TAXPREF.computeAnnualFederalTax(
+      preferentialWorkspace(status, ordinaryTaxable, preferential, 'long-term-capital-gain'), packPref).preferentialTax.value;
+    const asSingleTable = TAXPREF.stackPreferentialIncome(
+      ordinaryTaxable, preferential, packPref.preferentialRateTables.single).tax;
+    const fromZero = knownPreferentialTax(status, 0, preferential);
+    if (approx(shipped, fromZero, 0.0000001)) discriminationFailures.push(status + ':from-zero-agrees');
+    if (status !== 'married-filing-separately' && approx(shipped, asSingleTable, 0.0000001)) {
+      discriminationFailures.push(status + ':single-table-agrees');
+    }
+  });
+  /* married-filing-separately shares the single zero-rate top, so its own 15 percent top is the
+     figure that separates the two tables. Named explicitly rather than excused. */
+  const mfsKnown = KNOWN_PREFERENTIAL_SCHEDULE['married-filing-separately'];
+  const singleTable = packPref.preferentialRateTables.single;
+  assert(discriminationFailures.length === 0
+    && mfsKnown.maximumZeroRateAmount === singleTable.bands[0].upperExclusive
+    && mfsKnown.maximumFifteenPercentRateAmount !== singleTable.bands[1].upperExclusive
+    && KNOWN_PREFERENTIAL_SCHEDULE['married-filing-jointly'].maximumZeroRateAmount !== singleTable.bands[0].upperExclusive
+    && KNOWN_PREFERENTIAL_SCHEDULE['head-of-household'].maximumZeroRateAmount !== singleTable.bands[0].upperExclusive,
+  'TP-01-16 ADVERSARIAL: the known-value coverage discriminates \u2014 pricing the window from zero disagrees with the shipped figure for every carried status, substituting the single table disagrees wherever the two schedules differ, and married-filing-separately is shown to share the single zero-rate top while carrying its own 15 percent top so the shared figure is named rather than mistaken for agreement ('
+    + (discriminationFailures.join(',') || 'no failure') + ')');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 preferential breakpoints beyond single group threw): ' + e.message); }
+/* ---------- Feature 022 Scope 01: preferential breakpoints beyond `single` (END) ---------- */
+
+/* ---------- Feature 022 Scope 01: no bracket edge is shadowed in ANY rltax module (START) ---------- */
+/* TP-02-07 asserts that no bracket edge is hardcoded outside the pack, but it reads `rltax.js`
+   and nothing else. A top bracket edge and a declared band table planted in RLTAXRULES passed
+   the entire suite with the failure count unchanged, which means the guarantee the scan is
+   named for was never enforced for thirteen of the fourteen modules. This group widens the same
+   two detectors across every `rltax*.js` module and proves the widened form fires on exactly
+   that planted edge. */
+try {
+  group('Feature 022 Scope 01 — no bracket edge is shadowed in any rltax module');
+  const shadowPack = JSON.parse(read('tax-rules/federal/2026.json'));
+
+  /* The module set is read from disk, not listed, so a module a later scope adds is scanned the
+     day it lands rather than the day someone remembers to extend a list here. */
+  const rlTaxModuleFiles = readdirSync(ROOT).filter((name) => /^rltax[a-z]*\.js$/.test(name)).sort();
+
+  /* Every band edge the pack carries, across both rate-table families and all four filing
+     statuses. Derived from the pack, so an edge the pack moves moves this set with it. 0 and 1
+     are excluded: 0 is the band floor every table shares and 1 is an ordinary integer, so
+     neither identifies a shadowed threshold. */
+  const packBracketEdges = new Set();
+  ['ordinaryRateTables', 'preferentialRateTables'].forEach((family) => {
+    Object.keys(shadowPack[family]).forEach((status) => {
+      const table = shadowPack[family][status];
+      if (!Array.isArray(table.bands)) return;
+      table.bands.forEach((band) => {
+        if (band.lowerInclusive > 1) packBracketEdges.add(String(band.lowerInclusive));
+        if (band.upperExclusive !== null && band.upperExclusive > 1) packBracketEdges.add(String(band.upperExclusive));
+      });
+    });
+  });
+
+  /* Comments and string literals are removed first: a comment naming an edge is documentation and
+     a string carrying one is display text, neither of which is an arithmetic constant. */
+  const stripForShadowScan = (source) => source
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/"(?:[^"\\]|\\.)*"/g, ' ')
+    .replace(/'(?:[^'\\]|\\.)*'/g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+  /* The two detectors TP-02-07 already uses, unchanged in shape so the widening is a change of
+     REACH rather than a change of standard. */
+  const declaresBandTable = (source) => /(?:lowerInclusive|upperExclusive|thresholdKind|rate)\s*:\s*-?\d/.test(source)
+    || /\bbands\s*:\s*\[/.test(source);
+  const shadowedEdgesIn = (source) => [...new Set((source.match(/\b\d+(?:\.\d+)?\b/g) || [])
+    .filter((literal) => packBracketEdges.has(literal)))].sort();
+  const scanModules = (modules) => {
+    const findings = [];
+    modules.forEach((entry) => {
+      if (declaresBandTable(entry.source)) findings.push(entry.name + ':declares-band-table');
+      shadowedEdgesIn(entry.source).forEach((literal) => findings.push(entry.name + ':' + literal));
+    });
+    return findings;
+  };
+  const shippedModules = rlTaxModuleFiles.map((name) => ({ name, source: stripForShadowScan(read(name)) }));
+
+  /* Non-vacuity, in both directions. The module set must contain the engine and the contracts
+     module by name, and the edge set must contain every preferential breakpoint the pack carries
+     for every filing status — so a derivation that silently collapsed to nothing cannot pass the
+     clean verdict below by vacuous truth. */
+  const everyPreferentialBreakpoint = Object.keys(shadowPack.preferentialRateTables)
+    .reduce((edges, status) => {
+      const table = shadowPack.preferentialRateTables[status];
+      return Array.isArray(table.bands)
+        ? edges.concat(table.bands.filter((band) => band.upperExclusive !== null)
+          .map((band) => String(band.upperExclusive)))
+        : edges;
+    }, []);
+  assert(rlTaxModuleFiles.length >= 14
+    && rlTaxModuleFiles.indexOf('rltax.js') >= 0
+    && rlTaxModuleFiles.indexOf('rltaxrules.js') >= 0
+    && everyPreferentialBreakpoint.length > 0
+    && everyPreferentialBreakpoint.every((edge) => packBracketEdges.has(edge)),
+  'TP-02-11: the widened scan reaches every rltax module on disk and its edge set is derived from the pack, carrying every preferential breakpoint the pack states for every filing status ('
+    + rlTaxModuleFiles.length + ' module(s), ' + packBracketEdges.size + ' edge(s))');
+
+  const shippedFindings = scanModules(shippedModules);
+  assert(shippedFindings.length === 0,
+    'TP-02-11: no rltax module holds a pack bracket edge as a numeric literal or declares a band table of its own, so every rate and every edge is read from the resolved pack in all '
+      + rlTaxModuleFiles.length + ' module(s) (' + (shippedFindings.join(', ') || 'no finding') + ')');
+
+  /* ADVERSARIAL. The exact probe that passed the whole suite before this group existed: a top
+     bracket edge and a declared band table planted in RLTAXRULES. The NARROW scan — TP-02-07's
+     reach, which is `rltax.js` alone — stays silent on it, and the widened scan names it. The
+     silent half is the finding this group was written for; the firing half is the fix. */
+  const rulesSource = read('rltaxrules.js');
+  const plantedRulesSource = rulesSource.replace(
+    'var PACK_CONTRACT = "TaxRulePack/v1";',
+    'var SHADOWED_TOP_BRACKET_EDGE = 640600;\n  var SHADOWED_BANDS = [{ lowerInclusive: 0, upperExclusive: 640600, rate: 0.37 }];\n  var PACK_CONTRACT = "TaxRulePack/v1";');
+  const plantedModules = shippedModules.map((entry) => entry.name === 'rltaxrules.js'
+    ? { name: entry.name, source: stripForShadowScan(plantedRulesSource) }
+    : entry);
+  const narrowFindings = scanModules(plantedModules.filter((entry) => entry.name === 'rltax.js'));
+  const widenedFindings = scanModules(plantedModules);
+  assert(plantedRulesSource !== rulesSource
+    && packBracketEdges.has('640600')
+    && narrowFindings.length === 0
+    && widenedFindings.length === 2
+    && widenedFindings.indexOf('rltaxrules.js:declares-band-table') >= 0
+    && widenedFindings.indexOf('rltaxrules.js:640600') >= 0,
+  'TP-02-11 ADVERSARIAL: the guard can fail \u2014 a top bracket edge and a declared band table planted in rltaxrules.js are invisible to a scan that reads rltax.js alone and are named by both detectors once the scan reaches every module (narrow: '
+    + (narrowFindings.join(', ') || 'silent') + '; widened: ' + widenedFindings.join(', ') + ')');
+
+  /* And the detectors still separate a DECLARED table from a pack value read off the resolved
+     pack and echoed into display detail, so widening the reach did not widen the standard into
+     something every module would trip over. */
+  const echoedPackValue = 'detail.push({ lowerInclusive: band.lowerInclusive, upperExclusive: band.upperExclusive });';
+  const readsPack = /pack\.ordinaryRateTables/.test(read('rltax.js'))
+    && /pack\.preferentialRateTables/.test(read('rltax.js'));
+  assert(!declaresBandTable(echoedPackValue)
+    && shadowedEdgesIn(echoedPackValue).length === 0
+    && declaresBandTable('bands: [{ lowerInclusive: 0 }]') === true
+    && readsPack,
+  'TP-02-11: the widened detectors still pass a pack value echoed into display detail and still flag a declared table, and the engine reads both rate-table families off the resolved pack');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 no-shadow widened scan group threw): ' + e.message); }
+/* ---------- Feature 022 Scope 01: no bracket edge is shadowed in ANY rltax module (END) ---------- */
+
+/* ---------- Feature 026 Scope 3: rlcockpit.js — change vocabulary (BEGIN) ---------- */
+try {
+  group('rlcockpit.js — change vocabulary');
+  const deltaRequire = (await import('node:module')).createRequire(import.meta.url);
+  const RLCOCKPIT = deltaRequire('../rlcockpit.js');
+  const cockpitSrc3 = read('rlcockpit.js');
+  const refreshSrc3 = read('scripts/brief-refresh.mjs');
+  const composerSrc3 = read('scripts/brief-narrative-parallel.mjs');
+  const shardSrc3 = read('scripts/shard-brief-history.mjs');
+  const validatorSrc3 = read('scripts/validate-brief-payload.mjs');
+  const config3 = JSON.parse(read('market-brief.config.json'));
+  const vocab3 = config3['change-vocabulary/v1'];
+  const watchlist3 = JSON.parse(read('watchlist.json'));
+
+  /* PINNED fixtures. Nothing below is bound to market-brief.payload.json,
+     market-brief.snapshot.json or brief-history.jsonl: those regenerate four times a day and a
+     read is legitimately null on a run that could not resolve, so a fixture bound to them fails
+     on ordinary published data instead of on a defect. The shapes here are the CONTRACT shape;
+     a tolerant assertion at the end re-checks the live recent file against it. */
+  const stateAt3 = (over) => ({
+    asOf: '2026-08-17', px: 100, maStack: 'bull-stack', ma200Dist: 5, rrgState: 'Leading',
+    levels: { ma20: 98, ma50: 95, ma200: 90, high52w: 110, low52w: 70 },
+    flags: { callOpen: false, gammaFlipProximity: false, persistenceGateMet: false, earningsWithinWindow: false },
+    ...over
+  });
+  const withFlag3 = (base, name, value) => ({ ...base, flags: { ...base.flags, [name]: value } });
+  const unchangedPrev3 = stateAt3({});
+  const unchangedCur3 = stateAt3({ asOf: '2026-08-18', px: 100.4 });
+  const crossedCur3 = stateAt3({ asOf: '2026-08-18', px: 89 });
+  const flippedCur3 = stateAt3({ asOf: '2026-08-18', maStack: 'tangled' });
+
+  /* TP-026-3.9 — FR-026-008. The kind set is CLOSED, over an exhaustive predicate matrix. */
+  const matrix3 = [
+    ['identical', unchangedPrev3, unchangedCur3, null],
+    ['level crossed', unchangedPrev3, crossedCur3, 'levelCrossed'],
+    ['maStack flipped', unchangedPrev3, flippedCur3, 'stateFlipped'],
+    ['rrgState flipped', unchangedPrev3, stateAt3({ rrgState: 'Weakening' }), 'stateFlipped'],
+    ['flag raised', unchangedPrev3, withFlag3(unchangedCur3, 'callOpen', true), 'flagRaised'],
+    ['flag cleared', withFlag3(unchangedPrev3, 'callOpen', true), unchangedCur3, 'flagCleared'],
+    ['no prior row', null, unchangedCur3, 'baseline']
+  ];
+  const matrixKinds3 = matrix3.map(([, prev, cur]) => RLCOCKPIT.changeKind(prev, cur, vocab3));
+  assert(vocab3 && vocab3.contractVersion === 'change-vocabulary/v1'
+    && vocab3.kinds.join(',') === 'levelCrossed,stateFlipped,flagRaised,flagCleared,baseline'
+    && vocab3.precedence.join(',') === 'levelCrossed,stateFlipped,flagRaised,flagCleared'
+    && vocab3.levels.join(',') === 'ma20,ma50,ma200,high52w,low52w'
+    && vocab3.flags.join(',') === 'callOpen,gammaFlipProximity,persistenceGateMet,earningsWithinWindow'
+    && matrixKinds3.every((kind) => kind === null || vocab3.kinds.includes(kind))
+    && matrixKinds3.join(',') === matrix3.map(([, , , want]) => want).join(','),
+  'TP-026-3.9 changeKind returns only a member of the declared closed kind set or null, over an exhaustive predicate matrix, and change-vocabulary/v1 declares exactly the five kinds, the precedence, the five levels and the four flags');
+
+  /* An UNDECLARED kind is a refusal, never a silent pass-through. Both directions: a precedence
+     entry the module carries no predicate for, and a vocabulary that omits `baseline`. */
+  const strayPrecedence3 = { ...vocab3, precedence: ['sentimentShifted', ...vocab3.precedence] };
+  const strayKind3 = { ...vocab3, kinds: [...vocab3.kinds, 'sentimentShifted'], precedence: ['sentimentShifted'] };
+  const noBaseline3 = { ...vocab3, kinds: vocab3.kinds.filter((kind) => kind !== 'baseline') };
+  const refusal3 = (vocabulary, prev, cur) => {
+    try { RLCOCKPIT.changeKind(prev, cur, vocabulary); return null; } catch (error) { return error.message; }
+  };
+  assert(/RLCOCKPIT_UNDECLARED_CHANGE_KIND: sentimentShifted/.test(refusal3(strayPrecedence3, unchangedPrev3, unchangedCur3))
+    && /RLCOCKPIT_UNDECLARED_CHANGE_KIND: sentimentShifted/.test(refusal3(strayKind3, unchangedPrev3, unchangedCur3))
+    && /RLCOCKPIT_UNDECLARED_CHANGE_KIND: baseline/.test(refusal3(noBaseline3, unchangedPrev3, unchangedCur3))
+    && RLCOCKPIT.changeKind(unchangedPrev3, unchangedCur3, vocab3) === null,
+  'a kind outside the declared closed set is REFUSED by name rather than passed through, whether it reaches the module through precedence, through kinds, or by omitting baseline');
+
+  /* TP-026-3.10 — FR-026-008 precedence. Two predicates fire; exactly one kind comes back. */
+  const bothCrossAndFlip3 = stateAt3({ px: 89, maStack: 'tangled' });
+  const bothFlipAndFlag3 = withFlag3(stateAt3({ maStack: 'bear-stack' }), 'callOpen', true);
+  const bothFlagDirections3 = { ...unchangedCur3, flags: { ...unchangedCur3.flags, callOpen: true, persistenceGateMet: false } };
+  const flagPrev3 = { ...unchangedPrev3, flags: { ...unchangedPrev3.flags, callOpen: false, persistenceGateMet: true } };
+  assert(RLCOCKPIT.changeKind(unchangedPrev3, bothCrossAndFlip3, vocab3) === 'levelCrossed'
+    && RLCOCKPIT.changeKind(unchangedPrev3, bothFlipAndFlag3, vocab3) === 'stateFlipped'
+    && RLCOCKPIT.changeKind(flagPrev3, bothFlagDirections3, vocab3) === 'flagRaised'
+    && RLCOCKPIT.changeKind(unchangedPrev3, crossedCur3, { ...vocab3, precedence: ['stateFlipped', 'levelCrossed'] }) === 'levelCrossed',
+  'TP-026-3.10 when two predicates fire the declared precedence selects exactly one kind, and reordering the declaration is what changes the answer rather than the order the predicates happen to run in');
+
+  /* Sitting EXACTLY on a level is not a crossing: zero has no side. */
+  assert(RLCOCKPIT.changeKind(stateAt3({ px: 90 }), stateAt3({ px: 91 }), vocab3) === null
+    && RLCOCKPIT.changeKind(stateAt3({ px: 91 }), stateAt3({ px: 90 }), vocab3) === null
+    && RLCOCKPIT.changeKind(stateAt3({ px: 91 }), stateAt3({ px: 89 }), vocab3) === 'levelCrossed'
+    && RLCOCKPIT.changeKind(stateAt3({ levels: {} }), stateAt3({ px: 1, levels: {} }), vocab3) === null,
+  'a close that lands ON a declared level is not a crossing, a close that moves through it is, and a level the run could not compute is an absence rather than a crossing');
+
+  /* TP-026-3.1 and TP-026-3.3 — SCN-026-006 and SCN-026-008. Novel wording earns nothing. */
+  const noisyPrev3 = { ...unchangedPrev3, line: 'MSFT holds its bull stack', headline: 'A quiet tape', what: 'nothing', rationale: 'unchanged', narrative: 'x' };
+  const noisyCur3 = { ...unchangedCur3, line: 'MSFT extends a commanding advance', headline: 'Momentum broadens sharply', what: 'everything', rationale: 'transformed', narrative: 'y' };
+  const changeKindSrc3 = extractFn(cockpitSrc3, 'changeKind');
+  assert(RLCOCKPIT.changeKind(noisyPrev3, noisyCur3, vocab3) === null
+    && RLCOCKPIT.changeKind(unchangedPrev3, unchangedCur3, vocab3) === null
+    && /^function changeKind\(prevState, curState, vocabulary\)/.test(changeKindSrc3)
+    && !/\.(line|headline|narrative|rationale|what|text|body|prose|summary)\b/.test(changeKindSrc3),
+  'TP-026-3.1/3.3 an instrument whose state is identical to the prior row returns null even when every narrative string on it is replaced, and changeKind\'s own source admits only two state objects and the vocabulary and names no narrative field');
+
+  /* TP-026-3.14 ADVERSARIAL. Give changeKind one narrative comparison and the SCN-026-008 fixture
+     turns green where it must stay red. That is the whole mechanism, proved by breaking it. */
+  const deltaHelpers3 = ['isPlainObject', 'finiteOrNull', 'nonEmptyString', 'declaredList', 'levelGap',
+    'crossedDeclaredLevel', 'flippedDeclaredToken', 'movedDeclaredFlag', 'predicateFires']
+    .map((name) => extractFn(cockpitSrc3, name));
+  const narrativeMutantSrc3 = changeKindSrc3.replace(
+    'var order = declaredList(vocabulary, "precedence");',
+    'if (prevState.line !== curState.line) return "stateFlipped";\n    var order = declaredList(vocabulary, "precedence");');
+  const narrativeMutant3 = build([...deltaHelpers3, narrativeMutantSrc3], ['changeKind']);
+  assert(narrativeMutantSrc3 !== changeKindSrc3
+    && narrativeMutant3.changeKind(noisyPrev3, noisyCur3, vocab3) === 'stateFlipped'
+    && RLCOCKPIT.changeKind(noisyPrev3, noisyCur3, vocab3) === null,
+  'TP-026-3.14 adversarial: giving changeKind access to a narrative field turns the SCN-026-008 fixture green when the shipped predicate keeps it null');
+
+  /* The tracked fixture: the declared set, one crossing, one first-seen, the rest unchanged. */
+  const trackedSet3 = vocab3.trackedSet;
+  const curStates3 = {}, prevStates3 = {};
+  trackedSet3.forEach((symbol, index) => {
+    curStates3[symbol] = index === 0 ? crossedCur3 : unchangedCur3;
+    if (index !== 1) prevStates3[symbol] = unchangedPrev3;
+  });
+  const kinds3 = {};
+  for (const symbol of trackedSet3) kinds3[symbol] = RLCOCKPIT.changeKind(prevStates3[symbol] ?? null, curStates3[symbol], vocab3);
+  const rollUp3 = RLCOCKPIT.rollUpFrom(curStates3, kinds3);
+  const narrative3 = trackedSet3.filter((symbol) => kinds3[symbol] !== null && kinds3[symbol] !== 'baseline');
+
+  /* TP-026-3.2 — SCN-026-007. A crossing earns narrative, and the narrative NAMES the kind. */
+  assert(kinds3[trackedSet3[0]] === 'levelCrossed'
+    && kinds3[trackedSet3[1]] === 'baseline'
+    && narrative3.length === 1 && narrative3[0] === trackedSet3[0]
+    && `${trackedSet3[0]} ${kinds3[trackedSet3[0]]}`.includes('levelCrossed'),
+  'TP-026-3.2 an instrument that crossed a declared level earns narrative naming the change kind, and it is the only one of the twelve that does');
+
+  /* TP-026-3.4 — SCN-026-009. ONE line, carrying the count and the state, for everything else. */
+  assert(rollUp3.line === '= 10 unchanged · 1 first seen'
+    && rollUp3.count === 10 && rollUp3.baselineCount === 1
+    && rollUp3.members.length === 11
+    && rollUp3.members.every((member) => Object.keys(member).sort().join(',') === 'state,symbol')
+    && rollUp3.members.every((member) => member.state === 'bull-stack')
+    && rollUp3.members.map((member) => member.symbol).join(',') === [...rollUp3.members.map((m) => m.symbol)].sort().join(','),
+  'TP-026-3.4 every unchanged instrument is counted into exactly one roll-up line stating the count and the unchanged state, and the drawer body carries a symbol and a state token and nothing else');
+
+  /* `baseline` is NOT `unchanged`. Calling an instrument the brief has never seen unchanged is a
+     false statement about the past, so the line distinguishes the two in all four shapes. */
+  const allSeen3 = {}; trackedSet3.forEach((symbol) => { allSeen3[symbol] = null; });
+  const allNew3 = {}; trackedSet3.forEach((symbol) => { allNew3[symbol] = 'baseline'; });
+  assert(RLCOCKPIT.rollUpFrom(curStates3, allSeen3).line === '= 12 unchanged'
+    && RLCOCKPIT.rollUpFrom(curStates3, allNew3).line === '= 12 first seen'
+    && RLCOCKPIT.rollUpFrom(curStates3, allNew3).count === 0
+    && RLCOCKPIT.rollUpFrom({}, {}).line === '= 0 unchanged'
+    && rollUp3.line.includes('first seen') && !rollUp3.line.includes('11 unchanged'),
+  'the roll-up line distinguishes unchanged from first seen in every shape, and never reports an instrument the brief has not seen before as unchanged');
+
+  /* TP-026-3.5 — SCN-026-010 / FR-026-012. Nothing is silently dropped. */
+  assert(RLCOCKPIT.rollUpBalances(narrative3.length, rollUp3, trackedSet3.length) === true
+    && narrative3.length + rollUp3.count + rollUp3.baselineCount === trackedSet3.length
+    && trackedSet3.length === 12
+    && trackedSet3.join(',') === watchlist3.items.map((item) => item.ticker).join(','),
+  'TP-026-3.5 narrative count plus unchanged count plus baseline count equals the declared tracked set size, and that set mirrors watchlist.json rather than restating it: ' + narrative3.length + ' + ' + rollUp3.count + ' + ' + rollUp3.baselineCount + ' = ' + trackedSet3.length);
+
+  /* Validator wiring. The committed payload is a BASE for stamped candidates only; no assertion
+     below reads its live content, so a four-times-a-day republish cannot fail this suite. */
+  const registry3 = JSON.parse(read('tools.json'));
+  const snapshotBase3 = JSON.parse(read('market-brief.snapshot.json'));
+  const payloadBase3 = JSON.parse(read('market-brief.payload.json'));
+  const agenda3 = payloadBase3.researchAgenda !== undefined ? JSON.parse(read('research-agenda.json')) : null;
+  const page3 = payloadBase3.researchAgenda !== undefined ? JSON.parse(read('market-brief.page.json')) : null;
+  const deltaErrors3 = (candidate) => validateBriefPayload(candidate, registry3, config3, snapshotBase3, agenda3, page3)
+    .filter((line) => line.indexOf('delta: ') === 0);
+  const stampDelta3 = (mutate) => {
+    const candidate = JSON.parse(JSON.stringify(payloadBase3));
+    candidate.contractVersion = 'market-brief-payload/v2';
+    candidate.changed = narrative3.map((symbol) => ({ symbol, kind: kinds3[symbol], line: `${symbol} ${kinds3[symbol]}`, prev: prevStates3[symbol], cur: curStates3[symbol] }));
+    candidate.rollUp = JSON.parse(JSON.stringify(rollUp3));
+    if (mutate) mutate(candidate);
+    return candidate;
+  };
+  assert(deltaErrors3(stampDelta3(null)).length === 0,
+  'a v2 payload whose published changes and roll-up both reproduce is accepted with zero delta refusals');
+
+  /* The refusal the Scope 1 group's `otherLines26` filter EXCLUDES, asserted here rather than
+     assumed there. A budget fixture publishes `changed[]` entries shaped for the character count
+     — no kind, no states — and carries no roll-up, and the delta gate refuses it on both counts.
+     A run that publishes NEITHER makes no delta claim and is left alone, which is what lets a
+     snapshot predating the tracked block keep publishing exactly as it did before. */
+  const budgetShapedEntry3 = stampDelta3((candidate) => {
+    candidate.changed = [{ symbol: 'AAA', state: 'bull-stack', line: 'c'.repeat(80) }];
+    delete candidate.rollUp;
+  });
+  const noClaimAtAll3 = stampDelta3((candidate) => { delete candidate.changed; delete candidate.rollUp; });
+  const budgetShapedErrors3 = deltaErrors3(budgetShapedEntry3);
+  assert(budgetShapedErrors3.some((line) => /which change-vocabulary\/v1 does not declare; the kind set is closed/.test(line))
+    && budgetShapedErrors3.some((line) => /are published with no rollUp, so the remaining tracked instruments/.test(line))
+    && deltaErrors3(noClaimAtAll3).length === 0,
+  'a v2 payload whose changed[] entries name no declared kind and which carries no roll-up is refused on both counts, while a v2 payload making no delta claim at all is left alone');
+
+  /* TP-026-3.16 ADVERSARIAL — assertion D4 has teeth. A composer-asserted crossing that the two
+     states do not show is refused BY RECOMPUTATION, not by trusting the claim. */
+  const forgedKind3 = stampDelta3((candidate) => {
+    candidate.changed = [{ symbol: trackedSet3[2], kind: 'levelCrossed', line: `${trackedSet3[2]} levelCrossed`, prev: unchangedPrev3, cur: unchangedCur3 }];
+    candidate.rollUp = RLCOCKPIT.rollUpFrom(curStates3, { ...kinds3, [trackedSet3[0]]: null, [trackedSet3[2]]: 'levelCrossed' });
+  });
+  const forgedErrors3 = deltaErrors3(forgedKind3);
+  const survivesClosedSetCheck3 = vocab3.kinds.includes('levelCrossed');
+  assert(forgedErrors3.some((line) => /recompute to null; a change the validator cannot reproduce is refused/.test(line))
+    && survivesClosedSetCheck3
+    && RLCOCKPIT.changeKind(unchangedPrev3, unchangedCur3, vocab3) === null,
+  'TP-026-3.16 adversarial: a fixture claiming levelCrossed on two states showing no crossing is a DECLARED kind and so clears the closed-set check, and is refused only by the validator\'s own recomputation');
+
+  /* TP-026-3.15 ADVERSARIAL — the roll-up balances. Drop one instrument from BOTH the narrative
+     list and the roll-up, and only rollUpBalances notices; a mere presence check does not. */
+  const droppedOne3 = stampDelta3((candidate) => {
+    candidate.rollUp = { ...candidate.rollUp, count: candidate.rollUp.count - 1, members: candidate.rollUp.members.slice(1) };
+  });
+  const droppedErrors3 = deltaErrors3(droppedOne3);
+  const presenceCheckAlone3 = droppedOne3.rollUp !== null && typeof droppedOne3.rollUp === 'object';
+  assert(droppedErrors3.some((line) => /the roll-up does not balance/.test(line))
+    && RLCOCKPIT.rollUpBalances(narrative3.length, droppedOne3.rollUp, trackedSet3.length) === false
+    && presenceCheckAlone3 === true
+    && RLCOCKPIT.rollUpBalances(narrative3.length, { ...rollUp3, members: rollUp3.members.slice(1) }, trackedSet3.length) === false,
+  'TP-026-3.15 adversarial: a fixture dropping one instrument from both the narrative list and the roll-up passes a presence check and is caught only by rollUpBalances, which also refuses a count that disagrees with its own member list');
+
+  /* Assertion D3 made structural: a counted instrument is a count, never a paragraph. */
+  const namedInHeadline3 = stampDelta3((candidate) => { candidate.headline = `${rollUp3.members[0].symbol} is quietly holding its stack`; });
+  assert(deltaErrors3(namedInHeadline3).some((line) => new RegExp(`^delta: ${rollUp3.members[0].symbol} is counted into the roll-up yet named in a default-visible sentence`).test(line))
+    && deltaErrors3(stampDelta3((candidate) => { candidate.rollUp.members = [{ symbol: 'MSFT', state: 'bull-stack', rationale: 'still constructive' }, ...candidate.rollUp.members.slice(1)]; }))
+      .some((line) => /a rolled-up instrument is a symbol and a state token and nothing else/.test(line)),
+  'a roll-up member named in the headline is refused, and a member carrying anything beyond a symbol and a state token is refused: the drawer body is the only place an unchanged symbol may appear');
+
+  /* TP-026-3.12 — FR-026-040. Additive: every v1 key survives at its path with its meaning. */
+  const { compactRow: compactRow3, RECENT_CONTRACT: RECENT3, RECENT_CONTRACT_V1: RECENT_V1_3 } = await import('./shard-brief-history.mjs');
+  const historicSource3 = {
+    ts: '2026-06-01T12:00:00.000Z', window: 'morning', marketClosed: false, nextSessionDate: '2026-06-02',
+    regimeBand: 'Neutral', regimeScore: 0, vix: 15.5, fearGreed: 50,
+    bench: { px: 600.1, maStack: 'bull-stack', ma200Dist: 7.7, pctFrom52wHigh: -1.2, mom126: 9.9, mom252: 12.1 },
+    names: {}, sectors: {}, toolReads: {}
+  };
+  const projectedHistoric3 = compactRow3(historicSource3);
+  const v1Keys3 = ['ts', 'window', 'marketClosed', 'nextSessionDate', 'regimeBand', 'regimeScore', 'vix', 'fearGreed'];
+  assert(RECENT3 === 'brief-history-recent-row/v2' && RECENT_V1_3 === 'brief-history-recent-row/v1'
+    && projectedHistoric3.contractVersion === RECENT3
+    && v1Keys3.every((key) => projectedHistoric3[key] === historicSource3[key])
+    && JSON.stringify(projectedHistoric3.bench) === JSON.stringify(historicSource3.bench)
+    && JSON.parse(JSON.stringify(projectedHistoric3)) !== null,
+  'TP-026-3.12 compactRow emits brief-history-recent-row/v2 and every v1 key survives at its path with its meaning, so a v1-only reader parses a v2 row unchanged');
+
+  /* Historic rows project as `null` — never `{}`, never `0` — and the detector answers `baseline`.
+     The distinction is load-bearing: `{}` would read as twelve instruments none of them tracked,
+     and `0` would read as measured and the answer was zero. */
+  const v2Source3 = { ...historicSource3, crossAsset: { rates: { changePct: -1.8, asOf: '2026-08-17' } }, tracked: { MSFT: unchangedCur3 }, claims: { openCount: 4, openedThisRun: null, resolvedThisRun: null }, dark: [{ leg: 'dollar', reason: 'no approved source' }] };
+  const projectedV2_3 = compactRow3(v2Source3);
+  assert(projectedHistoric3.crossAsset === null && projectedHistoric3.tracked === null
+    && projectedHistoric3.claims === null && projectedHistoric3.dark === null
+    && !['crossAsset', 'tracked', 'claims', 'dark'].some((key) => JSON.stringify(projectedHistoric3[key]) === '{}' || projectedHistoric3[key] === 0)
+    && RLCOCKPIT.changeKind((projectedHistoric3.tracked || {}).MSFT ?? null, unchangedCur3, vocab3) === 'baseline'
+    && JSON.stringify(projectedV2_3.crossAsset) === JSON.stringify(v2Source3.crossAsset)
+    && JSON.stringify(projectedV2_3.tracked) === JSON.stringify(v2Source3.tracked),
+  'a historic source row lacking the new fields projects them as null rather than {} or 0, the detector answers baseline for that absence, and a v2 source row carries them through unchanged');
+
+  /* TP-026-3.6 — SCN-026-029. The row carries the run\'s readings, its claims and its dark states. */
+  assert(/crossAsset: memoryLegs, tracked, claims: memoryClaims, dark: memoryDark/.test(refreshSrc3)
+    && /crossAsset: row\.crossAsset \?\? null/.test(shardSrc3)
+    && /tracked: row\.tracked \?\? null/.test(shardSrc3)
+    && /claims: row\.claims \?\? null/.test(shardSrc3)
+    && /dark: row\.dark \?\? null/.test(shardSrc3)
+    && JSON.stringify(Object.keys(v2Source3.claims).sort()) === '["openCount","openedThisRun","resolvedThisRun"]',
+  'TP-026-3.6 the v2 memory row carries the run\'s cross-asset readings, its claims and its dark states, and brief-refresh.mjs is the file that appends them');
+
+  /* TP-026-3.7 — SCN-026-030. Prior state is READ from the memory row; the detector fetches nothing. */
+  const detectorSrc3 = [changeKindSrc3, ...deltaHelpers3, extractFn(cockpitSrc3, 'rollUpFrom'), extractFn(cockpitSrc3, 'rollUpBalances')].join('\n');
+  assert(!/fetch|https?:|await |import |require\(|readFile|XMLHttpRequest/.test(detectorSrc3)
+    && /previousMemoryRow\(snapshot\)/.test(composerSrc3)
+    && /brief-history\.recent\.jsonl/.test(composerSrc3)
+    && /RLCOCKPIT\.changeKind\(prev, cur, changeVocabulary\)/.test(composerSrc3),
+  'TP-026-3.7 every tracked instrument\'s prior state is read from the memory row and the detector performs no fetch, no read and no await of its own');
+
+  /* TP-026-3.8 — SCN-026-031. The source ledger is APPEND-ONLY. Its length is read rather than
+     asserted against a literal, because it grows four times a day and a literal would be stale
+     within hours — as the plan\'s own "194 rows" already is. */
+  const sourceLines3 = read('brief-history.jsonl').split('\n').filter((line) => line.length > 0);
+  const parsedSource3 = sourceLines3.map((line) => JSON.parse(line));
+  assert(sourceLines3.length >= 194
+    && parsedSource3.every((row) => typeof row.ts === 'string')
+    && /appendFileSync\(join\(ROOT, 'brief-history\.jsonl'\), JSON\.stringify\(snap\) \+ '\\n'\)/.test(refreshSrc3)
+    && !/writeFileSync\(join\(ROOT, 'brief-history\.jsonl'\)/.test(refreshSrc3),
+  'TP-026-3.8 the committed brief-history.jsonl rows all parse and brief-refresh.mjs only ever APPENDS to that file, never rewrites it — ' + sourceLines3.length + ' rows committed');
+
+  /* Each declared flag reuses its NAMED existing producer. No second implementation, anywhere. */
+  assert(/loadToolFunctions\('rlbrief\.js', \['flipProximityPct'\]\)/.test(refreshSrc3)
+    && /loadToolFunctions\('rlexperience-adapters\/market-action\.js', \['nearTermEvents', 'consecutiveRun', 'isPersistentSignal'\]\)/.test(refreshSrc3)
+    && /import\('\.\/evaluate-recommendations\.mjs'\)/.test(refreshSrc3) && /foldLedger\(readHistoryPartitions\(root\)\)/.test(refreshSrc3)
+    && !/function\s+(flipProximityPct|isPersistentSignal|consecutiveRun|nearTermEvents|foldLedger)\s*\(/.test(refreshSrc3)
+    && /flipProximityPct/.test(read('rlbrief.js'))
+    && /function isPersistentSignal/.test(read('rlexperience-adapters/market-action.js')),
+  'each of the four declared flags is produced by its named existing producer — foldLedger, flipProximityPct, isPersistentSignal and nearTermEvents — and brief-refresh.mjs declares no second copy of any of them');
+
+  /* The producers are not merely NAMED in the source — they are LOADED AND RUN here, against a
+     fixture whose closes are chosen so each answer is checkable by hand. A grep proves a string is
+     present; this proves the extraction actually resolves and the flag actually answers. */
+  const barRows3 = (count, step, base) => {
+    const out = [];
+    for (let index = 0; index < count; index++) out.push({ t: Date.UTC(2026, 0, 5) + index * 86400000, c: base + index * step });
+    return out;
+  };
+  const msftBars3 = barRows3(300, 0.5, 400);
+  const { legPersistence: legPersistence3, distinctRowsBy: distinctRowsBy3, legAsOfReader: legAsOfReader3, buildTrackedStates: buildTrackedStates3, eventNamesInstrument: eventNamesInstrument3, loadChangeFlagProducers: loadChangeFlagProducers3 } = await import('./brief-refresh.mjs');
+  const liveProducers3 = loadChangeFlagProducers3();
+  const runTracked3 = buildTrackedStates3({
+    symbols: ['MSFT', 'GLD'], barsBySymbol: { MSFT: msftBars3, GLD: barRows3(300, -0.1, 300) },
+    benchRows: barRows3(300, 0.3, 600), thresholds: config3.thresholds,
+    gamma: { symbol: 'MSFT', flip: 549.0 }, events: [{ when: '2026-08-19', type: 'positioning' }],
+    asOf: '2026-08-18', priorRows: [], openInstruments: new Set(['MSFT']), producers: liveProducers3
+  });
+  const lastClose3 = msftBars3[msftBars3.length - 1].c;
+  assert(Object.keys(liveProducers3).sort().join(',') === 'consecutiveRun,flipProximityPct,isPersistentSignal,nearTermEvents'
+    && Object.keys(runTracked3).join(',') === 'GLD,MSFT'
+    && runTracked3.MSFT.px === lastClose3
+    && runTracked3.MSFT.levels.high52w === lastClose3
+    && Object.keys(runTracked3.MSFT.levels).sort().join(',') === 'high52w,low52w,ma20,ma200,ma50'
+    && runTracked3.MSFT.flags.callOpen === true && runTracked3.GLD.flags.callOpen === false
+    && runTracked3.MSFT.flags.gammaFlipProximity === true && runTracked3.GLD.flags.gammaFlipProximity === false
+    && runTracked3.MSFT.flags.persistenceGateMet === false
+    && RLCOCKPIT.changeKind(null, runTracked3.MSFT, vocab3) === 'baseline'
+    && RLCOCKPIT.changeKind(runTracked3.MSFT, runTracked3.MSFT, vocab3) === null,
+  'the four flag producers LOAD AND RUN against a fixture: the gamma flip answers true only for the symbol the gamma read names, callOpen only for an instrument with an open call, and the produced state feeds changeKind unchanged');
+
+  /* The persistence gate reads the COMMITTED threshold; it declares no second constant. */
+  const trackedFnSrc3 = extractFn(refreshSrc3, 'buildTrackedStates');
+  assert(config3.thresholds.persistenceSnapshots === 3
+    && /Number\.isFinite\(thresholds\.persistenceSnapshots\) \? thresholds\.persistenceSnapshots : 3/.test(trackedFnSrc3)
+    && /isPersistentSignal\(series, snapshots - 1, 0\)/.test(trackedFnSrc3)
+    && !/persistenceSnapshots\s*=\s*[0-9]/.test(refreshSrc3),
+  'the persistence gate reads thresholds.persistenceSnapshots from the committed config (3) and declares no second constant, and N distinct snapshots are gated on their N-1 deltas');
+
+  /* TP-026-3.11 — FR-026-039. A multi-session build, through the SHIPPED gate on new inputs. */
+  const legRow3 = (asOf, changePct) => ({ crossAsset: { rates: { asOf, changePct } } });
+  const buildingLeg3 = legPersistence3([legRow3('2026-08-13', -0.5), legRow3('2026-08-14', -1.2), legRow3('2026-08-17', -2.4)], 'rates', { snapshots: 3 });
+  const reversingLeg3 = legPersistence3([legRow3('2026-08-13', -0.5), legRow3('2026-08-14', -1.2), legRow3('2026-08-17', 0.8)], 'rates', { snapshots: 3 });
+  assert(buildingLeg3.persisted === true && buildingLeg3.observations === 3 && buildingLeg3.run === 2
+    && reversingLeg3.persisted === false
+    && legPersistence3([legRow3('2026-08-17', -2.4)], 'rates', { snapshots: 3 }).persisted === false,
+  'TP-026-3.11 a leg whose change moves one way across three distinct snapshots clears the persistence gate through isPersistentSignal and one that reverses does not, and fewer than three observations is an unanswered question rather than a cleared gate');
+
+  /* TP-026-3.17 ADVERSARIAL — the distinct-market-bar rule. Four runs over ONE Friday close are
+     one observation. Remove the dedupe and the same four rows become four. */
+  const fourWeekendRuns3 = [legRow3('2026-08-14', -1.2), legRow3('2026-08-14', -1.2), legRow3('2026-08-14', -1.2), legRow3('2026-08-14', -1.2)];
+  const dedupeSrc3 = extractFn(refreshSrc3, 'distinctRowsBy');
+  const noDedupeSrc3 = dedupeSrc3.replace('byAsOf.set(asOf, row);', 'byAsOf.set(asOf + String(byAsOf.size), row);');
+  const noDedupe3 = build([noDedupeSrc3], ['distinctRowsBy']);
+  assert(noDedupeSrc3 !== dedupeSrc3
+    && distinctRowsBy3(fourWeekendRuns3, legAsOfReader3('rates')).length === 1
+    && noDedupe3.distinctRowsBy(fourWeekendRuns3, legAsOfReader3('rates')).length === 4
+    && legPersistence3(fourWeekendRuns3, 'rates', { snapshots: 3 }).observations === 1,
+  'TP-026-3.17 adversarial: four rows over one identical leg asOf collapse to one comparison, and removing the dedupe produces four');
+
+  /* TP-026-3.13 — NFR-026-001. Determinism: no clock, no random, sorted before serialization. */
+  const runOnce3 = () => JSON.stringify({ kinds: trackedSet3.map((symbol) => RLCOCKPIT.changeKind(prevStates3[symbol] ?? null, curStates3[symbol], vocab3)), rollUp: RLCOCKPIT.rollUpFrom(curStates3, kinds3) });
+  const shuffled3 = {}; [...trackedSet3].reverse().forEach((symbol) => { shuffled3[symbol] = curStates3[symbol]; });
+  assert(runOnce3() === runOnce3()
+    && JSON.stringify(RLCOCKPIT.rollUpFrom(shuffled3, kinds3)) === JSON.stringify(rollUp3)
+    && !/Date\.now|new Date\(|Math\.random/.test(cockpitSrc3),
+  'TP-026-3.13 two runs over one frozen pair of memory rows produce byte-identical change kinds, roll-up and ordering even when the input key order is reversed, and rlcockpit.js calls no clock and no random source');
+
+  /* P18 — every function this scope adds has a PRODUCTION consumer. That is the BUG-009 lesson. */
+  assert(/RLCOCKPIT\.changeKind\(/.test(composerSrc3) && /RLCOCKPIT\.rollUpFrom\(/.test(composerSrc3)
+    && /payload\.changed = changed/.test(composerSrc3) && /payload\.rollUp = rollUp/.test(composerSrc3)
+    && /RLCOCKPIT\.changeKind\(/.test(validatorSrc3) && /RLCOCKPIT\.rollUpBalances\(/.test(validatorSrc3),
+  'changeKind and rollUpFrom have a production consumer in scripts/brief-narrative-parallel.mjs, the file that writes the payload, and changeKind and rollUpBalances have one in scripts/validate-brief-payload.mjs, the file that refuses it');
+
+  /* NFR-026-010. The measured v2 window, against the committed fetch budget. */
+  const syntheticTracked3 = {}; trackedSet3.forEach((symbol) => { syntheticTracked3[symbol] = unchangedCur3; });
+  const syntheticRow3 = compactRow3({
+    ...historicSource3,
+    crossAsset: { rates: { driver: 'TLT', changePct: -1.8, sessions: 5, long63Pct: -4.1, provenance: 'Observed', state: 'resolved', asOf: '2026-08-17', persisted: false }, energy: { driver: 'USO', changePct: 0.4, sessions: 5, long63Pct: -6.2, provenance: 'Observed', state: 'resolved', asOf: '2026-08-17', persisted: false }, credit: { pairId: 'jnk-lqd', direction: 'strengthening', provenance: 'Owner-classified', state: 'resolved', asOf: '2026-08-17' } },
+    tracked: syntheticTracked3,
+    claims: { openCount: 109, openedThisRun: null, resolvedThisRun: null },
+    dark: [{ leg: 'dollar', reason: 'No FX evidence source is approved for use.' }]
+  });
+  const rowBytes3 = Buffer.byteLength(JSON.stringify(syntheticRow3), 'utf8');
+  const windowBytes3 = rowBytes3 * 30;
+  assert(windowBytes3 < config3['artifact-budget/v1'].maxNormalizedObservationBytes
+    && config3['artifact-budget/v1'].maxNormalizedObservationBytes === 262144,
+  'NFR-026-010 the measured 30-row recent window under v2 is ' + windowBytes3 + ' bytes (' + rowBytes3 + ' per row) against maxNormalizedObservationBytes of ' + config3['artifact-budget/v1'].maxNormalizedObservationBytes);
+
+  /* Nothing private and nothing monetary reaches the persisted row or the published roll-up. */
+  const rowKeyNames3 = [];
+  const walkRowKeys3 = (node) => {
+    if (Array.isArray(node)) { node.forEach(walkRowKeys3); return; }
+    if (node && typeof node === 'object') { for (const key of Object.keys(node)) { rowKeyNames3.push(key); walkRowKeys3(node[key]); } }
+  };
+  walkRowKeys3(syntheticRow3); walkRowKeys3(rollUp3);
+  assert(rowKeyNames3.length > 0
+    && !rowKeyNames3.some((key) => /position|costBasis|cost_basis|pnl|profit|apiKey|api_key|password|secret|credential|shares|quantity/i.test(key))
+    && !/\$\s?\d/.test(JSON.stringify(syntheticRow3)),
+  'the emitted v2 memory row and the published roll-up carry no position size, cost basis, profit figure, credential or currency amount');
+
+  /* Two flags answer FALSE on the committed data, and it is the DATA that is absent rather than
+     the predicate that is missing — proved by a fixture the predicate does answer true for. This
+     is routed as finding R-10, not papered over. */
+  const committedEvents3 = Array.isArray(payloadBase3.events) ? payloadBase3.events : [];
+  assert(eventNamesInstrument3({ instruments: ['MSFT'], when: '2026-08-19' }, 'MSFT') === true
+    && eventNamesInstrument3({ tickers: ['MSFT'], when: '2026-08-19' }, 'MSFT') === true
+    && eventNamesInstrument3({ when: '2026-08-19', type: 'positioning' }, 'MSFT') === false
+    && committedEvents3.every((event) => !('instrument' in event) && !('instruments' in event) && !('tickers' in event)),
+  'the earningsWithinWindow predicate answers true for an event that DECLARES its instrument and false for one that does not, and no committed event row declares one — an absence in the event contract, recorded as finding R-10, never inferred from the event prose');
+
+  /* Module shape holds after the append: still frozen, still UMD, still no bare isFinite. */
+  ['changeKind', 'rollUpFrom', 'rollUpBalances'].forEach((name) => {
+    const body = extractFn(cockpitSrc3, name);
+    assert(body.length > 0 && body.indexOf('function ' + name + '(') === 0,
+      'extractFn reaches rlcockpit.js top-level declaration ' + name + ' and returns a non-empty body');
+  });
+  assert(['changeKind', 'rollUpFrom', 'rollUpBalances'].every((name) => typeof RLCOCKPIT[name] === 'function')
+    && Object.isFrozen(RLCOCKPIT)
+    && cockpitSrc3.replace(/Number\.isFinite/g, '').indexOf('isFinite') < 0
+    && !/^\s*(import|export)\s/m.test(cockpitSrc3)
+    && ['document', 'localStorage', 'sessionStorage', 'innerHTML', 'fetch(', 'setTimeout', 'requestAnimationFrame'].every((token) => cockpitSrc3.indexOf(token) < 0),
+  'rlcockpit.js still exports a frozen UMD api with no top-level import or export, no browser-only global and no bare isFinite after the change-vocabulary append');
+
+  /* The version gate, again, for this block: an unstamped payload is untouched by it. And still
+     no sixth CLI flag — a change cannot be waved through. */
+  const deltaFlags3 = [...new Set(validatorSrc3.match(/'--[a-z0-9-]+'/g) || [])].sort();
+  assert(payloadBase3.contractVersion === undefined
+    && deltaErrors3(payloadBase3).length === 0
+    && validateBriefPayload(payloadBase3, registry3, config3, snapshotBase3, agenda3, page3).length === 0
+    && deltaFlags3.length === 5
+    && deltaFlags3.join(',') === "'--defer-page-parity','--drop-ineligible-causal','--drop-unscoreable','--enforce-d16','--require-narrative-fields'",
+  'the delta checks fire only on a literal market-brief-payload/v2 stamp so the committed unstamped payload is unaffected, and scripts/validate-brief-payload.mjs still declares exactly the five pre-existing CLI flags');
+
+  /* CANARY. The Scope 1 and Scope 2 groups and every pre-existing assertion survive this append. */
+  const sitePlan3 = (await import('./build-pages-site.mjs')).planPagesSite(ROOT);
+  assert(config3['output-budget/v1'].totalDefaultVisibleChars === 3000
+    && config3['cross-asset/v1'].legs.length === 4
+    && config3['artifact-budget/v1'].maxBarsPerSymbolTradingDate === 200
+    && typeof RLCOCKPIT.measureDefaultVisible === 'function' && typeof RLCOCKPIT.resolveLeg === 'function'
+    && config3['output-budget/v1'].defaultVisibleFields.includes('changed[].line')
+    && config3['output-budget/v1'].defaultVisibleFields.includes('rollUp.line')
+    && sitePlan3.rootFiles.indexOf('rlcockpit.js') >= 0,
+  'Regression: SCN-026-CANARY-03 the Scope 1 and Scope 2 groups and every pre-existing assertion stay green after the delta append, and the two lines this scope emits were already declared default-visible');
+
+  /* The fixtures above are pinned so a four-times-a-day republish cannot fail this suite. This is
+     the other half of that bargain: the LIVE recent file must still be one of the states the
+     fixtures model — a v1 row, or a v2 row whose four new keys are absent, null, or in the pinned
+     shape. Anything else is real drift and should fail HERE rather than pass against a stale
+     fixture. */
+  const liveRecent3 = read('brief-history.recent.jsonl').split('\n').filter((line) => line.length > 0).map((line) => JSON.parse(line));
+  const liveShapeOk3 = liveRecent3.every((row) => {
+    if (row.contractVersion !== RECENT3 && row.contractVersion !== RECENT_V1_3) return false;
+    const tracked = row.tracked;
+    if (tracked === undefined || tracked === null) return true;
+    return Object.values(tracked).every((state) => state && typeof state === 'object'
+      && (state.px === null || Number.isFinite(state.px))
+      && (state.levels === null || (state.levels && typeof state.levels === 'object'))
+      && (state.flags === null || (state.flags && typeof state.flags === 'object')));
+  });
+  assert(liveRecent3.length > 0 && liveShapeOk3,
+  'every row in the live brief-history.recent.jsonl declares a contractVersion this scope models and carries tracked state that is absent, null, or in the pinned shape — never a third shape');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 change vocabulary group threw): ' + e.message); }
+/* ---------- Feature 026 Scope 3: rlcockpit.js — change vocabulary (END) ---------- */
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

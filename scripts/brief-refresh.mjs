@@ -16,7 +16,7 @@
  *
  * Usage:  node scripts/brief-refresh.mjs [--window pre-market|morning|pre-close|after-hours]
  */
-import { readFileSync, appendFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, appendFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -37,6 +37,10 @@ const read = (f) => readFileSync(join(ROOT, f), 'utf8');
 const featureRequire = createRequire(import.meta.url);
 const RLCONTRACTS = featureRequire(join(ROOT, 'rlcontracts.js'));
 const RLMETRICS = featureRequire(join(ROOT, 'rlmetrics.js'));
+/* rlcockpit.js owns the ONE cross-asset leg resolver. Tier A requires it so the memory row and
+   the published block agree about which leg is dark by construction, not by two implementations
+   that happen to match today. */
+const RLCOCKPIT = featureRequire(join(ROOT, 'rlcockpit.js'));
 const cfg = JSON.parse(read('market-brief.config.json'));
 const wl = JSON.parse(read('watchlist.json'));
 const SNAPSHOT_MAX_AGE_MS = 6 * 3600e3;
@@ -1046,9 +1050,186 @@ const round = (x, d = 2) => (Number.isFinite(x) ? +x.toFixed(d) : null);
 function sma(rows, n) { if (!rows || rows.length < n || n <= 0) return null; let s = 0; for (let i = rows.length - n; i < rows.length; i++) s += rows[i].c; return s / n; }
 function maDistPct(rows, n) { const m = sma(rows, n), c = rows && rows.length ? rows[rows.length - 1].c : null; return (Number.isFinite(m) && Number.isFinite(c) && m) ? round((c / m - 1) * 100, 2) : null; }
 function maStack(rows) { const a = sma(rows, 20), b = sma(rows, 50), c = sma(rows, 200); if (![a, b, c].every(Number.isFinite)) return 'n/a'; if (a > b && b > c) return 'bull-stack'; if (a < b && b < c) return 'bear-stack'; return 'tangled'; }
-function pctFrom52wHigh(rows) { if (!rows || !rows.length) return null; const w = rows.slice(-252); let hi = -Infinity; for (const r of w) if (r.c > hi) hi = r.c; const c = rows[rows.length - 1].c; return (Number.isFinite(hi) && hi) ? round((c / hi - 1) * 100, 2) : null; }
+function pctFrom52wHigh(rows) { const hi = range52w(rows).high; const c = rows && rows.length ? rows[rows.length - 1].c : null; return (Number.isFinite(hi) && hi && Number.isFinite(c)) ? round((c / hi - 1) * 100, 2) : null; }
+/* The 52-week range in ONE place. pctFrom52wHigh reads its high from here rather than scanning the
+   window a second time, so the LEVEL the change detector compares a close against and the
+   PERCENTAGE the brief prints can never disagree about where the 52-week high was. */
+function range52w(rows) {
+  if (!rows || !rows.length) return { high: null, low: null };
+  let hi = -Infinity, lo = Infinity;
+  for (const r of rows.slice(-252)) { if (r.c > hi) hi = r.c; if (r.c < lo) lo = r.c; }
+  return { high: Number.isFinite(hi) ? hi : null, low: Number.isFinite(lo) ? lo : null };
+}
 /* the structural block for a series: long-horizon momentum + MA structure + 52w-range position */
 function structural(rows) { return { mom126: round(momentumPct(rows, 126)), mom252: round(momentumPct(rows, 252)), ma50Dist: maDistPct(rows, 50), ma200Dist: maDistPct(rows, 200), maStack: maStack(rows), pctFrom52wHigh: pctFrom52wHigh(rows) }; }
+
+/* The prior memory, read from the COMPACT recent projection rather than the 194-row source. That
+   is the surface notes/market-brief.md §5 already names as the change-detection read, and it is
+   the one shard-brief-history.mjs regenerates in full on every run — so a row that predates v2
+   arrives with its four new keys projected as `null`, which the detector answers `baseline` for.
+   An unreadable line is skipped rather than thrown on: a corrupt row is missing prior state, and
+   missing prior state is `baseline`, which is already a defined answer. */
+export function readRecentMemoryRows() {
+  const abs = join(ROOT, 'brief-history.recent.jsonl');
+  if (!existsSync(abs)) return [];
+  const rows = [];
+  for (const line of readFileSync(abs, 'utf8').split('\n')) {
+    if (!line.length) continue;
+    try { rows.push(JSON.parse(line)); } catch { continue; }
+  }
+  return rows;
+}
+
+/* The committed event slate. It lives on the published payload, which Tier A reads as a COMMITTED
+   artifact and never writes — the R-5 boundary holds. A missing or unreadable payload is an empty
+   slate, never a fabricated one. */
+export function committedBriefEvents() {
+  const abs = join(ROOT, 'market-brief.payload.json');
+  if (!existsSync(abs)) return [];
+  try {
+    const payload = JSON.parse(readFileSync(abs, 'utf8'));
+    return Array.isArray(payload.events) ? payload.events : [];
+  } catch { return []; }
+}
+
+/* ────────── Feature 026 Scope 3 — run-specific memory (brief-history-recent-row/v2) ──────────
+   What the run SAW, persisted so the next run can answer "what changed since I last told you"
+   without refetching a single instrument. Nothing below composes a sentence: this is state. */
+
+/* The §5 distinct-market-bar rule, in ONE place and one implementation. Repeated weekend and
+   holiday runs read the SAME completed close, and a close observed four times is one piece of
+   evidence, not four. Rows collapse to the last row per distinct `asOf`, so four Friday runs
+   become one comparison. `asOfOf` is supplied by the caller, which is what lets the cross-asset
+   legs and the tracked instruments share this rule instead of each growing their own. */
+export function distinctRowsBy(rows, asOfOf) {
+  const byAsOf = new Map();
+  for (const row of (Array.isArray(rows) ? rows : [])) {
+    const asOf = asOfOf(row);
+    if (typeof asOf !== 'string' || asOf.length === 0) continue;
+    byAsOf.set(asOf, row);
+  }
+  return [...byAsOf.values()];
+}
+export function legAsOfReader(legId) {
+  return (row) => (row && row.crossAsset && row.crossAsset[legId] ? row.crossAsset[legId].asOf : null);
+}
+export function trackedAsOfReader(symbol) {
+  return (row) => (row && row.tracked && row.tracked[symbol] ? row.tracked[symbol].asOf : null);
+}
+
+/* The four declared flags reuse EXISTING producers, each loaded from the file that defines it.
+   `flipProximityPct` is rlbrief.js's own; `nearTermEvents`, `consecutiveRun` and
+   `isPersistentSignal` are loaded from rlexperience-adapters/market-action.js, which is the single
+   source rlbrief.js itself delegates to for all three. Nothing here reimplements any of them. */
+export function loadChangeFlagProducers() {
+  return {
+    ...loadToolFunctions('rlbrief.js', ['flipProximityPct']),
+    ...loadToolFunctions('rlexperience-adapters/market-action.js', ['nearTermEvents', 'consecutiveRun', 'isPersistentSignal'])
+  };
+}
+
+/* FR-026-039 — a multi-session build, reached by feeding the shipped persistence gate new inputs
+   rather than by writing a second gate. N distinct snapshots yield N-1 deltas, so the minimum run
+   is `snapshots - 1`. A leg that reverses breaks the run and earns no build language; it is still
+   published with its measured value. */
+export function legPersistence(recentRows, legId, options = {}) {
+  const gate = options.producers || loadChangeFlagProducers();
+  const snapshots = Number.isFinite(options.snapshots) && options.snapshots > 1 ? options.snapshots : 3;
+  const distinct = distinctRowsBy(recentRows, legAsOfReader(legId)).slice(-snapshots);
+  const values = distinct.map((row) => row.crossAsset[legId].changePct).filter((value) => Number.isFinite(value));
+  if (values.length < snapshots) return { persisted: false, observations: values.length, run: 0, direction: 0 };
+  const run = gate.consecutiveRun(values, 0);
+  return { persisted: gate.isPersistentSignal(values, snapshots - 1, 0), observations: values.length, run: run.len, direction: run.dir };
+}
+
+/* An event names an instrument only through a DECLARED field. The committed event rows carry
+   `when` and `type` and no instrument at all, so this answers false for every tracked symbol until
+   the event contract gains one — recorded as finding R-10 rather than papered over. Reading the
+   instrument out of the event prose would attribute an earnings date no calendar ever stated. */
+export function eventNamesInstrument(event, symbol) {
+  if (!event || typeof event !== 'object') return false;
+  const declared = Array.isArray(event.instruments) ? event.instruments
+    : Array.isArray(event.tickers) ? event.tickers
+      : [event.instrument, event.ticker];
+  return declared.some((value) => typeof value === 'string' && value === symbol);
+}
+
+/* The tracked instrument set the change detector reads next run. Its SIZE is the roll-up's balance
+   denominator, so the symbol list is the caller's — mirrored from watchlist.json — rather than a
+   second list declared here that could drift out of step with what the run actually pulled. */
+export function buildTrackedStates(deps) {
+  const producers = deps.producers || loadChangeFlagProducers();
+  const thresholds = deps.thresholds || {};
+  const maWindows = Array.isArray(thresholds.maWindows) ? thresholds.maWindows : [];
+  const proximityCap = thresholds.gammaFlipProximityPct;
+  const snapshots = Number.isFinite(thresholds.persistenceSnapshots) ? thresholds.persistenceSnapshots : 3;
+  const gamma = deps.gamma && typeof deps.gamma === 'object' ? deps.gamma : {};
+  const priorRows = Array.isArray(deps.priorRows) ? deps.priorRows : [];
+  const openInstruments = deps.openInstruments instanceof Set ? deps.openInstruments : new Set();
+  const nearTerm = producers.nearTermEvents(Array.isArray(deps.events) ? deps.events : [], deps.asOf || null, deps.eventWindowDays);
+  const tracked = {};
+  for (const symbol of [...(Array.isArray(deps.symbols) ? deps.symbols : [])].sort()) {
+    const rows = deps.barsBySymbol ? deps.barsBySymbol[symbol] : null;
+    if (!rows || !rows.length) continue;
+    const px = round(rows[rows.length - 1].c, 2);
+    const range = range52w(rows);
+    const levels = { high52w: round(range.high, 2), low52w: round(range.low, 2) };
+    for (const window of maWindows) levels[`ma${window}`] = round(sma(rows, window), 2);
+    const ma200Dist = maDistPct(rows, 200);
+    const rrg = deps.benchRows && deps.benchRows.length ? rrgFull(rows, deps.benchRows) : null;
+    /* §6c on this instrument's own structural distance: the last `snapshots` DISTINCT observations
+       including this one. Fewer than that is not a cleared gate, it is an unanswered question. */
+    const history = distinctRowsBy(priorRows, trackedAsOfReader(symbol))
+      .slice(-(snapshots - 1))
+      .map((row) => row.tracked[symbol].ma200Dist)
+      .filter((value) => Number.isFinite(value));
+    const series = Number.isFinite(ma200Dist) ? history.concat([ma200Dist]) : history;
+    /* The gamma flip belongs to exactly ONE symbol per run — the gamma read's own metrics.symbol.
+       Measuring another instrument's close against it would state a dealer position that
+       instrument does not have, so every other symbol is false because the run holds no flip for
+       it, never because proximity was measured and missed. */
+    const flipPct = gamma.symbol === symbol ? producers.flipProximityPct(px, gamma.flip) : null;
+    tracked[symbol] = {
+      asOf: new Date(rows[rows.length - 1].t).toISOString().slice(0, 10),
+      px,
+      maStack: maStack(rows),
+      ma200Dist,
+      rrgState: rrg ? rrg.rrgState : null,
+      levels,
+      flags: {
+        callOpen: openInstruments.has(symbol),
+        gammaFlipProximity: Number.isFinite(flipPct) && Number.isFinite(proximityCap) ? flipPct <= proximityCap : false,
+        persistenceGateMet: series.length >= snapshots && producers.isPersistentSignal(series, snapshots - 1, 0),
+        earningsWithinWindow: nearTerm.some((event) => eventNamesInstrument(event, symbol))
+      }
+    };
+  }
+  return tracked;
+}
+
+/* The claim ledger, folded through the SHIPPED reducer. `foldLedger` is imported rather than
+   re-walked, so "which calls are open" keeps one definition and the callOpen flag cannot disagree
+   with the scorecard. `openedThisRun` and `resolvedThisRun` stay NULL — absent, never `[]` — because
+   per-run claim resolution is Scope 5's obligation and an empty array here would assert that
+   nothing resolved this run, which this scope has no evidence for. */
+export async function buildRunClaims(root) {
+  const { readHistoryPartitions } = await import('./backfill-recommendations.mjs');
+  const { foldLedger } = await import('./evaluate-recommendations.mjs');
+  const ledger = foldLedger(readHistoryPartitions(root));
+  const openInstruments = new Set();
+  let openCount = 0;
+  for (const entry of ledger.values()) {
+    if (entry.closed || !entry.body) continue;
+    openCount++;
+    const body = entry.body;
+    const levels = Array.isArray(body.levels) ? body.levels : [];
+    for (const symbol of [body.instrument, ...levels.map((level) => level.instrument)]) {
+      if (typeof symbol === 'string' && symbol.length) openInstruments.add(symbol);
+    }
+  }
+  return { claims: { openCount, openedThisRun: null, resolvedThisRun: null }, openInstruments };
+}
+
 function macroRegime(fg, vix) {
   const s = fg && Number.isFinite(fg.score) ? fg.score : null;
   if (s == null && vix == null) return { risk: 0, band: 'Unknown' };
@@ -2298,9 +2479,11 @@ async function main() {
     sectors[s] = { rsMom1m: round(m1 - benchMom1m, 2), rsMom3m: round(m3 - benchMom3m, 2), rsMom6m: round(momentumPct(rows, 126) - benchMom6m, 2), rsRatio: rrg.rsRatio, rsMom: rrg.rsMom, quad: rrg.quad, accel: rrg.accel, rrgState: rrg.rrgState, rotation: rrg.rotation, maStack: st.maStack, ma200Dist: st.ma200Dist };
   }
   const names = {};
+  const trackedBars = {};
   for (const it of (wl.items || [])) {
     const rows = await yahooRowsMemo(it.ticker); if (!rows) continue;
     names[it.ticker] = { px: round(rows[rows.length - 1].c, 2), mom5: round(momentumPct(rows, 5)), mom21: round(momentumPct(rows, 21)), mom63: round(momentumPct(rows, 63)), ...structural(rows) };
+    trackedBars[it.ticker] = rows;
   }
 
   // thematic groups (Mag 7 → MAGS, semis → SOXX): the group ETF proxy read (sector-style RS/RRG/MA-stack)
@@ -2389,18 +2572,49 @@ async function main() {
 
   const toolCoverage = buildToolCoverage(toolReads), nextSession = nextSessionDate(window), dataFreshness = dataSnapshotFreshness();
 
+  /* Feature 026 Scope 3 — the v2 memory row. This run persists what it SAW so the next run can
+     answer "what changed since I last told you" without refetching one instrument. The legs are
+     resolved through rlcockpit.js's ONE resolver, so the row and the published block agree about
+     which leg is dark by construction rather than by two implementations happening to match.
+
+     The compact per-leg projection keeps the state fields and drops every prose field: a memory
+     row is what the run observed, and re-persisting the sentences is what makes an artifact grow
+     without bound. */
+  const priorRecentRows = readRecentMemoryRows();
+  const changeFlagProducers = loadChangeFlagProducers();
+  const memoryLegs = {}, memoryDark = [];
+  for (const legPolicy of (cfg['cross-asset/v1']?.legs || [])) {
+    const resolved = RLCOCKPIT.resolveLeg(legPolicy, crossAsset.legs?.[legPolicy.id] ?? null, cfg['cross-asset/v1'].sessions);
+    if (resolved === null) continue;
+    if (resolved.shape === 'dark') { memoryDark.push({ leg: resolved.leg, reason: resolved.reason }); continue; }
+    memoryLegs[resolved.leg] = {
+      driver: resolved.driver ?? null, pairId: resolved.pairId ?? null, direction: resolved.direction ?? null,
+      changePct: resolved.changePct ?? null, sessions: resolved.sessions ?? null, long63Pct: resolved.long63Pct ?? null,
+      provenance: resolved.provenance ?? null, state: resolved.state ?? null, asOf: resolved.asOf ?? null,
+      persisted: legPersistence(priorRecentRows, resolved.leg, { producers: changeFlagProducers, snapshots: cfg.thresholds?.persistenceSnapshots }).persisted
+    };
+  }
+  const { claims: memoryClaims, openInstruments } = await buildRunClaims(ROOT);
+  const tracked = buildTrackedStates({
+    symbols: (wl.items || []).map((item) => item.ticker),
+    barsBySymbol: trackedBars, benchRows: bench, thresholds: cfg.thresholds,
+    gamma: gammaRead.metrics, events: committedBriefEvents(), asOf: nextSession,
+    priorRows: priorRecentRows, openInstruments, producers: changeFlagProducers
+  });
+
   const snap = {
     ts: new Date().toISOString(), window, marketClosed, nextSessionDate: nextSession,
     regimeScore: reg.risk, regimeBand: reg.band, vix, fearGreed: fg ? fg.score : null,
     dataFreshness, bench: { px: bench && bench.length ? round(bench[bench.length - 1].c, 2) : null, ...benchStruct },
-    sectors, names, groups, toolReads, toolCoverage, source: 'brief-refresh.mjs'
+    sectors, names, groups, toolReads, toolCoverage, source: 'brief-refresh.mjs',
+    crossAsset: memoryLegs, tracked, claims: memoryClaims, dark: memoryDark
   };
   const dryRun = process.argv.includes('--dry-run');
   if (!dryRun) appendFileSync(join(ROOT, 'brief-history.jsonl'), JSON.stringify(snap) + '\n');
 
   // deterministic slice the browser cockpit reads (market-brief.html overlays it as the "Computed (Tier-A)" line)
   // asOf = the window this refresh anchors to; generatedAt = the actual wall-clock this refresh ran (both are the run time for Tier-A).
-  const snapshot = { asOf: snap.ts, generatedAt: snap.ts, window, marketClosed, nextSessionDate: nextSession, dataFreshness, regime: { band: reg.band, score: reg.risk, vix, fearGreed: fg ? fg.score : null }, bench: snap.bench, names, sectors, groups, toolReads, toolCoverage, crossAsset };
+  const snapshot = { asOf: snap.ts, generatedAt: snap.ts, window, marketClosed, nextSessionDate: nextSession, dataFreshness, regime: { band: reg.band, score: reg.risk, vix, fearGreed: fg ? fg.score : null }, bench: snap.bench, names, sectors, groups, toolReads, toolCoverage, tracked, crossAsset };
   if (!dryRun) writeFileSync(join(ROOT, 'market-brief.snapshot.json'), JSON.stringify(snapshot, null, 2) + '\n');
   /* Deterministic public causal snapshot. Written only when the evaluation succeeded, so a failed
      run leaves the previous snapshot in place rather than replacing it with a stub that a reader

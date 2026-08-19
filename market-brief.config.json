@@ -622,6 +622,61 @@
         ],
         "note": "Three REQUIRED slots — rates, dollar, energy — each present on every published run and each resolving to exactly one of a reading or a dark state. Credit is a fourth, non-required leg: it is published when the bond model offers a classification to carry and omitted when it does not, and its absence never fails the required set. A measured leg makes an INSTRUMENT-level claim only: it reports its own driver's price change over `sessions` and never renames that instrument as the concept it tracks, so the rates leg is the TLT price and never 'the yield curve', and the energy leg is the USO price and never 'crude'. Both drivers are declared by real-assets-universe.json, which is what puts them in reach of the bars map buildRealAssetsToolRead builds; a committed data/bars file is not the admission test. The dollar leg is DARK BY GOVERNANCE and declares no driver on purpose: fx-regime-universe.json admits no broad-dollar evidence source (fed-h10-unavailable is denied, broad-proxy-unreviewed is unreviewed with persistence forbidden), so no broad-dollar index or proxy figure may be published in any form and the dark reason is the sentence buildFxToolRead already emits rather than one composed here. Raising a leg out of dark by widening a universe or approving a proxy is a separate owner decision, never part of a change that would otherwise publish an inadmissible reading."
     },
+    "change-vocabulary/v1": {
+        "contractVersion": "change-vocabulary/v1",
+        "policyId": "change-vocabulary/v1",
+        "kinds": [
+            "levelCrossed",
+            "stateFlipped",
+            "flagRaised",
+            "flagCleared",
+            "baseline"
+        ],
+        "precedence": [
+            "levelCrossed",
+            "stateFlipped",
+            "flagRaised",
+            "flagCleared"
+        ],
+        "levels": [
+            "ma20",
+            "ma50",
+            "ma200",
+            "high52w",
+            "low52w"
+        ],
+        "stateTokens": [
+            "maStack",
+            "rrgState"
+        ],
+        "flags": [
+            "callOpen",
+            "gammaFlipProximity",
+            "persistenceGateMet",
+            "earningsWithinWindow"
+        ],
+        "flagProducers": {
+            "callOpen": "foldLedger in scripts/evaluate-recommendations.mjs",
+            "gammaFlipProximity": "flipProximityPct in rlbrief.js against thresholds.gammaFlipProximityPct",
+            "persistenceGateMet": "isPersistentSignal in rlexperience-adapters/market-action.js against thresholds.persistenceSnapshots",
+            "earningsWithinWindow": "nearTermEvents in rlexperience-adapters/market-action.js against the committed events[]"
+        },
+        "trackedSet": [
+            "MSFT",
+            "QQQ",
+            "SPMO",
+            "FMTM",
+            "XLK",
+            "VGT",
+            "SOXX",
+            "SPCX",
+            "FBTC",
+            "FETH",
+            "GLD",
+            "XLE"
+        ],
+        "note": "The CLOSED set of things the brief is willing to call a change. An instrument earns per-instrument narrative only when changeKind returns a member of `kinds`; everything else is counted into one roll-up line and never restated as a paragraph. A kind outside this list is a refusal, never a silent pass-through. `precedence` makes the single-kind-per-instrument rule deterministic when more than one predicate fires, and it deliberately omits `baseline`, which is not a predicate but the answer to an absent prior row. `baseline` is NOT `unchanged`: calling an instrument the brief has never seen before unchanged is a false statement about the past, so the roll-up counts the two separately and the balance is narrative + unchanged + baseline === trackedSet.length. Each declared flag reuses the producer named in `flagProducers` and this vocabulary declares no second producer; a call opening is flagRaised on callOpen and a call closing is flagCleared on it, so the vocabulary stays closed rather than growing an opened/closed pair. `levels` names the thresholds.maWindows values plus the 52-week range the structural block already spans, and a crossing is a sign change of px minus the level on BOTH sides, so a level a run cannot compute is an absence and never a crossing. `trackedSet` mirrors watchlist.json; the roll-up balance is asserted against its length, so adding a ticker here without adding it to the watchlist is refused by the balance rather than silently dropped."
+    },
     "web-evidence-acquisition/v1": {
         "contractVersion": "web-evidence-acquisition/v1",
         "policyId": "web-evidence-acquisition/v1",

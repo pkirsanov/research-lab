@@ -26,7 +26,11 @@ import path from 'node:path';
 export const SOURCE = 'brief-history.jsonl';
 export const RECENT = 'brief-history.recent.jsonl';
 export const SHARD_DIR = 'briefs/tier-a';
-export const RECENT_CONTRACT = 'brief-history-recent-row/v1';
+export const RECENT_CONTRACT = 'brief-history-recent-row/v2';
+/* The projection this file emitted before Feature 026 Scope 3. Kept as a named export so a
+   reader can distinguish the two by contractVersion instead of by field probing, and so the
+   additive claim of FR-026-040 is checkable against a name rather than a memory. */
+export const RECENT_CONTRACT_V1 = 'brief-history-recent-row/v1';
 
 function etMonth(iso) {
   const epoch = Date.parse(iso);
@@ -40,6 +44,17 @@ function etMonth(iso) {
  * The compact projection the cockpit can afford to load every time. Deliberately excludes
  * toolReads / toolCoverage / groups / sectors / names: those are the monthly shard's job, and a page
  * that needs them should read the one month it cares about.
+ *
+ * Feature 026 Scope 3 raised this to brief-history-recent-row/v2. The bump is ADDITIVE: every v1
+ * key above `crossAsset` stays at its path with its meaning, so a reader that never heard of v2
+ * reads exactly what it read before. The four new keys carry what the run SAW, which is what makes
+ * "what changed since I last told you" answerable without refetching a single instrument.
+ *
+ * A historic source row carries none of them and is projected as `null` — never `{}` and never `0`.
+ * That distinction is load-bearing: `{}` would read as "twelve instruments, none of them tracked"
+ * and `0` would read as "measured, and the answer was zero". `null` reads as absent prior state,
+ * and the change detector answers `baseline` for it, which is notes/market-brief.md §5's existing
+ * rule rather than a new one.
  */
 export function compactRow(row) {
   const bench = row.bench || {};
@@ -60,7 +75,11 @@ export function compactRow(row) {
       pctFrom52wHigh: bench.pctFrom52wHigh ?? null,
       mom126: bench.mom126 ?? null,
       mom252: bench.mom252 ?? null
-    }
+    },
+    crossAsset: row.crossAsset ?? null,
+    tracked: row.tracked ?? null,
+    claims: row.claims ?? null,
+    dark: row.dark ?? null
   };
 }
 

@@ -1,6 +1,6 @@
 {
   "contractVersion": "official-curve-artifact/v1",
-  "generatedAt": "2026-08-18T20:30:34.156Z",
+  "generatedAt": "2026-08-19T12:16:35.911Z",
   "freshnessPolicy": {
     "policyId": "observed-cadence/v1",
     "cadenceWindowRows": 10,
@@ -16,7 +16,7 @@
         2025,
         2026
       ],
-      "observedAt": "2026-08-17",
+      "observedAt": "2026-08-18",
       "declaredPolicy": {
         "id": "us-treasury-nominal",
         "mode": "public-official-live",
@@ -3274,6 +3274,14 @@
           "y5": 4.38,
           "y10": 4.72,
           "y30": 5.31
+        },
+        {
+          "date": "2026-08-18",
+          "y3m": 3.86,
+          "y2": 4.19,
+          "y5": 4.37,
+          "y10": 4.71,
+          "y30": 5.28
         }
       ],
       "provenance": [
@@ -3299,7 +3307,7 @@
             }
           },
           "sourcePublishedAt": null,
-          "retrievedAt": "2026-08-18T20:30:34.156Z",
+          "retrievedAt": "2026-08-19T12:16:35.911Z",
           "contentSha256": "sha256:cf2fa3da7f160384b63d2ead698532b1d76cd9f789ce4911e2304db85b14e6d5",
           "retentionMode": "normalized-facts-and-hash",
           "freshnessState": "current",
@@ -3327,8 +3335,8 @@
             }
           },
           "sourcePublishedAt": null,
-          "retrievedAt": "2026-08-18T20:30:34.156Z",
-          "contentSha256": "sha256:6bc17dc548b956f82a7a0a4a0811396c928c677b803eda422ee2bc593fce06e4",
+          "retrievedAt": "2026-08-19T12:16:35.911Z",
+          "contentSha256": "sha256:1281101d3c53a4699aa6d91d2c90239bca18cf17155dd91c6bc768c2b0eb6053",
           "retentionMode": "normalized-facts-and-hash",
           "freshnessState": "current",
           "diagnostics": []
@@ -6229,7 +6237,7 @@
             }
           },
           "sourcePublishedAt": null,
-          "retrievedAt": "2026-08-18T20:30:34.156Z",
+          "retrievedAt": "2026-08-19T12:16:35.911Z",
           "contentSha256": "sha256:d3d3131c41e1f93f4661d227ce7079049d51888b395aaff863b6ad8e08838b64",
           "retentionMode": "normalized-facts-and-hash",
           "freshnessState": "current",
@@ -6257,7 +6265,7 @@
             }
           },
           "sourcePublishedAt": null,
-          "retrievedAt": "2026-08-18T20:30:34.156Z",
+          "retrievedAt": "2026-08-19T12:16:35.911Z",
           "contentSha256": "sha256:7b0c2c00e8a2dca2e52d149916b4087f2d8bebee91bb9b539ccc68f2712e8254",
           "retentionMode": "normalized-facts-and-hash",
           "freshnessState": "current",

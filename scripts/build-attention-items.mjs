@@ -418,7 +418,16 @@ function main(argv) {
       + 'The build step never invents candidates; it composes the ones the authoring lane produced.');
     return 2;
   }
-  const candidates = JSON.parse(readFileSync(resolve(ROOT, argv[candidatesArg + 1]), 'utf8'));
+  const rawCandidates = JSON.parse(readFileSync(resolve(ROOT, argv[candidatesArg + 1]), 'utf8'));
+  /* BUG-009 R1. This is the PRIMARY path the scheduled publisher uses; --recompose only
+     re-derives from an already-published feed. The observed half must be attached here
+     too, or a lane candidate is refused RLATTN-PROVENANCE exactly as before and the fix
+     is a no-op in production. */
+  const candidates = RLATTNGATE.attachObserved(
+    rawCandidates,
+    loadSnapshotForGate(),
+    config && config['attention-detection-policy/v1']
+  );
   const { items, exclusions } = buildAttentionItems(candidates, payload, config);
 
   console.log(`[build-attention-items] ${items.length} built, ${exclusions.length} refused`);

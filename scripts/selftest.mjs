@@ -23848,6 +23848,15 @@ try {
   assert(refused1.items.length === 0 && refused1.exclusions.length === 1
     && refused1.exclusions[0].code === 'RLATTN-PROVENANCE',
     'Regression: SCN-BUG009-R1-LOADBEARING with attention-detection-policy/v1 removed the same candidate is refused RLATTN-PROVENANCE again — the producer, and no other change, is what restored the feed');
+
+  /* Both entry points, or neither. build-attention-items.mjs is reachable two ways:
+     --recompose, which the scheduled publisher runs, and --candidates, which the CLI
+     documents. A candidate refused for want of an observation on one path and accepted
+     on the other is an inconsistency a reader would experience as randomness, so this
+     pins the attachment to BOTH call sites. */
+  const builderSrc1 = read('scripts/build-attention-items.mjs');
+  assert((builderSrc1.match(/RLATTNGATE\.attachObserved\(/g) || []).length === 2,
+    'Regression: SCN-BUG009-R1-BOTHPATHS the observed half is attached on BOTH build-attention-items entry points — the --recompose path the publisher runs and the --candidates path the CLI documents — so neither can silently refuse what the other accepts');
 } catch (e) { failures++; console.log('  ✗ FAIL (BUG-009 R1 group threw): ' + e.message); }
 /* ---------- BUG-009 R1: observed attention gate producer (END) ---------- */
 

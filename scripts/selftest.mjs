@@ -14958,6 +14958,79 @@ try {
     && /root\.RLTAXSTATE = api/.test(stateSource)
     && stateSource.indexOf('requestAnimationFrame') < 0,
   'TP-03-22: rltaxstate.js is a UMD dual module with top-level function declarations, no ESM syntax, no bare isFinite and no animation frame');
+
+  /* TP-03-01: every member of the refusal vocabulary is still raised from the site that owns it.
+     The assertion labelled TP-01-05 pins membership, the derived count and numeric-free
+     construction — but none of that notices a code that moved from the module raising it to a
+     different module, or stopped being raised anywhere, which is exactly what "retains its exact
+     raising site" means. This pins the site.
+
+     The pinned set is Feature 021's four modules plus this scope's new one. A later feature that
+     adds its own raise in its own module has not taken a Feature 021 site away, so it does not
+     churn this map; a raise leaving one of these five does.
+
+     The scan is textual and deliberately counts every occurrence outside the frozen declaration
+     block, whatever idiom carries it — `unavailable(`, `refuse(`, a `deferralCode:` member, a
+     ternary arm. A code planted in a comment reads the same as a moved call. That is the point:
+     an occurrence is the signal, so the detector cannot be evaded by changing the call shape. */
+  const PINNED_RAISE_MODULES = ['rltax.js', 'rltaxrules.js', 'rltaxstate.js',
+    'rltaxstrategy.js', 'rltaxworkspace.js'];
+  const EXPECTED_RAISE_SITES = {
+    'RLTAX-CONFIG-INVALID': 'rltax.js,rltaxrules.js,rltaxstrategy.js,rltaxworkspace.js',
+    'RLTAX-PACK-INVALID': 'rltax.js,rltaxrules.js,rltaxstate.js,rltaxstrategy.js',
+    'RLTAX-PACK-EXPIRED': 'rltaxrules.js',
+    'RLTAX-YEAR-UNSUPPORTED': 'rltaxrules.js',
+    'RLTAX-JURISDICTION-UNSUPPORTED': 'rltaxrules.js,rltaxstate.js,rltaxstrategy.js,rltaxworkspace.js',
+    'RLTAX-INCOME-KIND-UNSUPPORTED': 'rltax.js,rltaxstate.js,rltaxworkspace.js',
+    'RLTAX-FILING-STATUS-UNSUPPORTED': 'rltax.js,rltaxrules.js,rltaxstrategy.js,rltaxworkspace.js',
+    'RLTAX-INPUT-INCOMPLETE': 'rltax.js,rltaxrules.js,rltaxstate.js,rltaxstrategy.js,rltaxworkspace.js',
+    'RLTAX-FEATURE-UNSUPPORTED': 'rltax.js,rltaxrules.js,rltaxstrategy.js',
+    'RLTAX-THRESHOLD-UNAVAILABLE': 'rltax.js,rltaxrules.js,rltaxstate.js,rltaxstrategy.js',
+    'RLTAX-RECONCILE': 'rltax.js,rltaxrules.js,rltaxstate.js',
+    'RLTAX-SCOPE-DEFERRED': 'rltaxstrategy.js',
+    'RLTAX-RESIDENCY-UNSUPPORTED': 'rltaxstate.js',
+    /* Raised by Scope 05's combined module and by Feature 024's medicare module, both outside
+       the pinned set. Its absence here is pinned too, so a stray raise appearing inside one of
+       these five modules falls this row rather than passing unnoticed. */
+    'RLTAX-PACK-YEAR-MISMATCH': ''
+  };
+  const raiseSiteText = {};
+  PINNED_RAISE_MODULES.forEach((file) => {
+    const body = read(file);
+    /* rltaxrules.js declares the vocabulary; a declaration is not a raise. */
+    const declarationBlock = /var RLTAX_CODES = Object\.freeze\(\{[\s\S]*?\}\);/.exec(body);
+    raiseSiteText[file] = declarationBlock === null ? body : body.replace(declarationBlock[0], '');
+  });
+  const observedRaiseSites = {};
+  Object.keys(EXPECTED_RAISE_SITES).forEach((code) => {
+    observedRaiseSites[code] = PINNED_RAISE_MODULES
+      .filter((file) => raiseSiteText[file].indexOf('"' + code + '"') >= 0)
+      .join(',');
+  });
+  const movedOrLostSites = Object.keys(EXPECTED_RAISE_SITES)
+    .filter((code) => observedRaiseSites[code] !== EXPECTED_RAISE_SITES[code])
+    .map((code) => code + ' expected [' + EXPECTED_RAISE_SITES[code] + '] observed [' + observedRaiseSites[code] + ']');
+  /* Adversarial: the comparison must be able to fail. A map with one site removed and a map with
+     one site added are each rejected against the same observation. */
+  const siteRemoved = JSON.parse(JSON.stringify(EXPECTED_RAISE_SITES));
+  siteRemoved['RLTAX-RECONCILE'] = 'rltax.js,rltaxrules.js';
+  const siteAdded = JSON.parse(JSON.stringify(EXPECTED_RAISE_SITES));
+  siteAdded['RLTAX-PACK-EXPIRED'] = 'rltaxrules.js,rltaxstate.js';
+  const mismatchCount = (candidate) => Object.keys(candidate)
+    .filter((code) => observedRaiseSites[code] !== candidate[code]).length;
+  /* Every declared member is accounted for, and PACK-YEAR-MISMATCH is raised somewhere rather
+     than being a member nothing constructs. */
+  const pinnedCodes = Object.keys(EXPECTED_RAISE_SITES);
+  const liveVocabulary = Object.keys(RULES.RLTAX_CODES);
+  const yearMismatchRaisedSomewhere = readdirSync(ROOT)
+    .filter((file) => /^rltax.*\.js$/.test(file))
+    .some((file) => read(file).indexOf('unavailable("RLTAX-PACK-YEAR-MISMATCH"') >= 0);
+  assert(movedOrLostSites.length === 0
+    && mismatchCount(siteRemoved) === 1 && mismatchCount(siteAdded) === 1
+    && pinnedCodes.length === liveVocabulary.length
+    && liveVocabulary.every((code) => pinnedCodes.indexOf(code) >= 0)
+    && yearMismatchRaisedSomewhere,
+  'TP-03-01: every member of the refusal vocabulary is raised from exactly the modules that own it across Feature 021\u2019s four modules and this scope\u2019s new one, a raise that moved module or disappeared is proven to fail the comparison, and the one member raised outside the pinned set is proven to be raised somewhere rather than declared and never constructed (' + movedOrLostSites.join('; ') + ')');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 03 state contract group threw): ' + e.message); }
 
 /* ================================================================================

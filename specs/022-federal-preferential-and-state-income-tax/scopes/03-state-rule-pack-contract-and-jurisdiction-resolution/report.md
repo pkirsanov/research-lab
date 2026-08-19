@@ -143,26 +143,88 @@ Feature 021 members retain their meaning and raising site, and exactly two membe
 were added.
 Command: `node scripts/selftest.mjs`
 
-**Claim Source:** not-run. **This row is NOT satisfied and its Definition-of-Done
-item is left open.**
+**Claim Source:** executed.
 
-**Uncertainty Declaration.** The behaviour this row names is only partly asserted
-today, and the gap is a real coverage hole rather than a wording difference.
+The row has four clauses. Three were already pinned by the assertion labelled
+`TP-01-05`: the names parsed out of the module's own frozen declaration are
+compared element for element against the live export, the live count is required
+to equal the twelve named Feature 021 members plus the two named jurisdiction-axis
+members with a fabricated third addition proven to fail, and every member is
+required to construct a numeric-free refusal with a repurposed member proven to
+fail.
 
-| Clause of TP-03-01 | Asserted today | Where |
-| --- | --- | --- |
-| exactly one declaration in the repository | yes — the names parsed out of the module's own frozen declaration are compared element for element against the live export | the assertion labelled `TP-01-05` |
-| exactly two members were added | yes — the live count is required to equal the twelve named Feature 021 members plus the two named jurisdiction-axis members, and a fabricated third addition is proven to fail | the assertion labelled `TP-01-05` |
-| all twelve Feature 021 members retain their exact **meaning** | partly — membership and numeric-free construction are pinned, and a repurposed member is proven to fail | the assertion labelled `TP-01-05` |
-| all twelve retain their exact **raising site** | **no** | nothing in `scripts/selftest.mjs` pins a raising site; a repository search for the phrase finds only a Feature 024 row asserting that scope added none |
+The fourth clause — **raising site** — was asserted by nothing. A previous session
+recorded that gap honestly rather than banking the row. It is now closed by an
+appended assertion labelled `TP-03-01` in `scripts/selftest.mjs`, which pins, for
+every member of the vocabulary, the exact set of modules that raise it across
+Feature 021's four modules and this scope's new one. The scan strips the frozen
+declaration block first, because a declaration is not a raise, and then counts
+every remaining occurrence whatever idiom carries it — `unavailable(`, `refuse(`,
+a `deferralCode:` member or a ternary arm — so the detector cannot be evaded by
+changing the call shape.
 
-A code could therefore be moved from the module that raises it today to a
-different module, or cease to be raised at all, and the suite would stay green.
-Closing this row requires an appended assertion that pins, for each of the twelve
-members, the site that constructs it, together with a mutation proving the new
-assertion falls when a raise is moved or removed. That assertion was not written
-in this session, so the row is recorded as an open gap rather than banked as a
-GREEN it did not earn.
+Three clauses are additional to the pinned map and were written because the map
+alone would not have caught them: the pinned key set must equal the live
+vocabulary exactly, so a member added later cannot go unpinned; the one member
+raised entirely outside the pinned set is asserted to be raised somewhere in the
+tax modules, so it cannot be a member that is declared and never constructed; and
+two deliberately wrong maps — one with a raising site removed, one with a raising
+site added — are each required to be rejected against the same observation, so the
+comparison is shown to be capable of failing.
+
+**Intended RED.** A comment was planted at the head of the residency declaration
+in `rltaxstate.js` carrying the text
+`unavailable("RLTAX-PACK-EXPIRED", domain, reason, remediation)`. The mutation is
+value-free by construction — it is a comment holding a code literal and four
+parameter names, and it discloses no household member. It is also behaviourally
+inert, which is what makes it the right probe here: it changes no result any other
+assertion reads, so whatever falls is attributable to the new row alone. It stands
+for the failure this row exists to catch, a raise appearing in a module that does
+not own it. The pre-run guard confirmed the anchor matched exactly once and that
+the planted text landed on line 57 before the suite was run.
+
+```text
+GUARD_ANCHOR_COUNT=1
+GUARD_PROBE_PLANTED=1
+GUARD_PLANTED_LINE=57:  /* PROBE moved raise: unavailable("RLTAX-PACK-EXPIRED", domain, reason, remediation)
+RED_EXIT=1
+
+================================================
+Research-Lab self-test: 3098 passed, 2 failed
+================================================
+=== failing assertions ===
+  ✗ FAIL: committed surface carries no personal identifier
+  ✗ FAIL: TP-03-01: every member of the refusal vocabulary is raised from exactly the modules that own it across Feature 021's four modules and this scope's new one, a ra
+```
+
+Exactly one assertion fell, and it is the new one. The other failure,
+`committed surface carries no personal identifier`, is pre-existing and belongs to
+a concurrent session's spec directory; it is present in the GREEN run below with
+the identical text and is not this scope's.
+
+**Same-command GREEN.** The probe was reverted with `git checkout --` in the same
+session, the leftover count was re-read as zero and the source tree was confirmed
+to carry no dirty tax module, pack or test file, then the identical command was
+re-run.
+
+```text
+REVERT_LEFTOVER=0
+=== git status for source paths ===
+ M tests/company-intelligence-lab.spec.mjs
+?? tests/chaos-company-intelligence.spec.mjs
+GREEN_EXIT=1
+
+================================================
+Research-Lab self-test: 3099 passed, 1 failed
+================================================
+=== failing assertions ===
+  ✗ FAIL: committed surface carries no personal identifier
+```
+
+The two paths shown dirty are a concurrent session's company-intelligence spec
+files, not this scope's; no `rltax*.js` module, no pack under `tax-rules/` and no
+file this scope owns is modified. The pass count rose by one — the appended
+assertion — and the failure count is unchanged at the one pre-existing failure.
 
 ### TP-03-02
 

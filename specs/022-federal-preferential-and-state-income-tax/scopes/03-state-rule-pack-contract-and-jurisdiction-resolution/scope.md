@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** In progress — 4 of 12 Definition of Done rows satisfied
+**Status:** In progress — 5 of 12 Definition of Done rows satisfied
 **Scope-Kind:** runtime-behavior
 **Tags:** `capability:jurisdiction-axis`, `sourced-zero:true`, `sourcing-gated:true`, `known-value-tested`
 **Depends On:** 01, 02
@@ -260,10 +260,18 @@ error, a missing browser or an absent test does not satisfy RED.
     TP-03-16 and its Scope 04 sibling (`3089 passed, 3 failed`). Both reverted
     under a trap inside the applying invocation, both returned to
     `3091 passed, 1 failed`.
-- [ ] The refusal vocabulary gained exactly two members, every Feature 021 member
+- [x] The refusal vocabulary gained exactly two members, every Feature 021 member
       retains its exact meaning and raising site, and exactly one declaration
       exists in the repository.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-01`
+  - **Evidence:** the declaration, count and meaning clauses were already pinned by
+    the assertion labelled `TP-01-05`; the raising-site clause was pinned by nothing
+    and is now closed by an appended assertion that maps every member to the exact
+    modules that raise it. Intended RED: a value-free comment planting a foreign
+    raise in the state module fell the new assertion alone
+    (`3098 passed, 2 failed`, the second failure pre-existing and not this scope's).
+    Reverted with `git checkout --` in the same session with the leftover count
+    re-read as zero; the same command returned `3099 passed, 1 failed`.
 - [x] FR-022-016 through FR-022-018 are implemented: undeclared residency,
       unshipped state and unsupported residency pattern each refuse under their
       own code with their own remediation, and the separation is proven by an

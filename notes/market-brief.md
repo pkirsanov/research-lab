@@ -290,6 +290,36 @@ regime, cross-asset). A single-slice wiggle that clears none of these is labeled
 a trend"** with capped confidence, never an action. The history file is what makes this checkable — read the
 last 2–3 snapshots before calling anything a "change."
 
+**The memory row is `brief-history-recent-row/v2` (Feature 026 Scope 3).** The v1 row stored the regime, the
+VIX, and a SPY `bench` block — and nothing about what the brief itself had *said*. That made "what changed
+since I last told you" unanswerable from the record: the brief could see the market move but not its own
+prior claim. It also stored no macro leg, so a multi-session build in rates, the dollar or energy was
+invisible to the persistence gate above, which is precisely the gate that build was supposed to clear.
+
+v2 is **additive** — every v1 field is still present and the 194 committed v1 rows still read — and adds:
+
+- `claims` — the calls this run published, each with the observation that would resolve it. This is what
+  makes the prior claim, not just the prior price, part of the memory.
+- `tracked` — the roll-up balance: how many watchlist items were tracked, how many published a change, and
+  how many were unchanged. The two must sum to the tracked count.
+- `crossAsset` and `dark` — the §9b legs and any dark state, so a rates or energy build spanning several
+  sessions is visible in the record rather than re-derived from scratch each run.
+
+A reader tells the versions apart by `contractVersion`; nothing rewrites history, and `brief-history.jsonl`
+stays append-only.
+
+**Change vocabulary (`change-vocabulary/v1`).** What counts as a change is a **closed set** declared in
+`market-brief.config.json`, not free prose. An unrecognised kind is a refusal, never a silent pass-through,
+because a vocabulary that accepts anything cannot support the roll-up balance below.
+
+**Delta-only publishing, and the roll-up that keeps it honest.** A watchlist item earns a line only when it
+crosses a declared change. An item that did nothing is a **count, never a paragraph** — the failure mode this
+replaces is the brief re-emitting roughly 1,270 characters of prose per ticker across twelve tickers every
+run, unchanged, which is what made four runs a day read identically. Silence is therefore load-bearing, and
+the roll-up is what stops it becoming *omission*: if twelve items are tracked and one publishes a change, the
+roll-up must account for the other eleven. `rollUpBalances` asserts that sum, so an item can be quiet but
+never quietly dropped.
+
 ---
 
 ## 6. Events, probabilities & psychology (kept honest)
@@ -725,6 +755,34 @@ filled in from a neighbouring instrument.
 
 ---
 
+### 9c. Disclosure — what the reader sees before scrolling
+
+Every top-level block carries `data-mac-block` and `data-mac-default`. The pair is the contract: the first
+names the block, the second says whether it is open on load. Fourteen blocks, six visible, eight collapsed.
+
+**Visible by default** — `headline`, `decision-surface`, `dark-legs`, `cross-asset`, `changed`,
+`track-record`. This is the decision surface: what changed, what to do, what the brief cannot see, and how
+its past calls actually went.
+
+**Collapsed by default** — `regime`, `next-session`, `standing-research`, `backdrop`, `catalysts`, `events`,
+`groups`, `watchlist`, plus the `tool-reads` evidence drawer and the `experimental` drawer. This is context.
+It is one keystroke away and none of it is deleted; it is simply not what a reader needs before deciding.
+
+**The no-collapsed-negative rule.** *An adverse state is never collapsed by default.* A dark leg, a withheld
+rate, a miss, or a refusal is default-visible, and no configuration may move one behind a drawer. This is the
+one rule that makes the rest of the disclosure trustworthy: a page that hides its context is concise, but a
+page that hides its bad news is marketing. It is why `dark-legs` sits in the visible set beside the headline
+rather than in the evidence drawer with the tool reads, and why the track-record line — including the
+withheld attention rate — cannot be collapsed away.
+
+**A collapsed block still costs nothing to skip and little to open.** Disclosure is DOM, not a fetch: opening
+a block issues no off-origin request and sends no credential, so the page keeps working from a bare `file://`
+checkout with no server and no key. One block is deliberately different — the `experimental` drawer defers
+its own artifact until it is opened, so a reader who never opens it never pays for it on first load. That
+deferral is a same-origin `file://` read, which is why the browser suite asserts *origin*, not request count.
+
+---
+
 ## 10. Anti-fabrication / honesty
 
 Consistent with every Research Lab tool: estimates are estimates (show inputs), proxies are labeled as
@@ -754,12 +812,31 @@ as escalated and is scored under that outcome, so the record stays honest today.
 in front of the reader as live alerts waits on the alert surface itself, which is still gated in the code
 and is not switched on by this work. Nothing here quietly turns that gate on.
 
-*What the record says today:* the outcome ledger `market-brief.attention-outcomes.jsonl` is empty and no
-scheduled step appends to it — `scripts/build-attention-scorecard.mjs` is a manual CLI, not part of the
-4×/day pipeline. So the record surface reports that the closed sample is too small to state an interruption
-rate, rather than a flattering zero. That is the designed refusal to publish a rate below the minimum
-sample, not a defect in the maths; closing it needs a closure step on the publication path. See
-[`notes/decision-attention.md`](decision-attention.md) §10.
+*What the record says today:* the outcome ledger `market-brief.attention-outcomes.jsonl` is empty, so the
+record surface reports that the closed sample is too small to state an interruption rate, rather than a
+flattering zero. That is the designed refusal to publish a rate below the minimum sample, not a defect in
+the maths. See [`notes/decision-attention.md`](decision-attention.md) §10.
+
+*What changed (Feature 026 Scope 5):* `scripts/build-attention-scorecard.mjs` **is no longer a manual CLI**.
+It now runs on BOTH publication paths — `.github/workflows/tier-a.yml` ("Rebuild the attention scorecard")
+and `scripts/brief-refresh-and-push.sh` §1b-iii — beside the recommendation evaluator that was already
+there. Until then its published record froze at `2026-08-07T12:00:00Z` while the recommendation record
+stayed current four times a day, which is what a manual step in an automated pipeline always eventually
+does.
+
+Two details are load-bearing:
+
+- Both callers pass `--as-of`. The CLI **requires** it (`build-attention-scorecard: --as-of <ISO instant>
+  is required`) so that one ledger always reduces to one record. Omitting it exits 2, and the surrounding
+  soft-fail `|| echo` would swallow that exit and leave the producer unwired while *reading* as wired in
+  the file — the same shape as BUG-009. A selftest asserts the argument is present, not merely that the
+  script is named.
+- **The withheld rate is still withheld, and that is the point.** Rebuilding it does not manufacture a
+  number: `closedSample` is 0 against a `minClosedSample` of 20, so `rate` stays `null` and the statement
+  says so. Wiring the producer makes the withholding *current* instead of frozen; it does not convert an
+  absent measurement into a zero, which would read as "we were never right" and is a different and false
+  claim. The rate begins to publish only when the attention feed produces items and those items close —
+  which is BUG-009's subject, not this scope's.
 
 ---
 

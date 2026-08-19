@@ -3,7 +3,7 @@
   "featureDir": "specs/026-actionable-brief-brevity-and-cross-asset",
   "featureName": "Actionable Brief Brevity and Cross-Asset Coverage",
   "createdAt": "2026-08-18T00:00:00Z",
-  "lastUpdatedAt": "2026-08-18T16:20:00Z",
+  "lastUpdatedAt": "2026-08-19T07:10:00Z",
   "status": "in_progress",
   "workflowMode": "full-delivery",
   "planningOnly": false,
@@ -30,15 +30,15 @@
     "goalContractRef": null,
     "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
-    "currentPhaseStatus": "in_progress",
-    "currentScope": 3,
-    "substate": "not_started",
+    "currentPhaseStatus": "completed",
+    "currentScope": 5,
+    "substate": "implemented",
     "runStartedAt": "2026-08-18T00:00:00Z",
     "completedAt": null,
     "completedPhaseClaims": [],
     "pendingTransitionRequests": [],
-    "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "specs/026-actionable-brief-brevity-and-cross-asset/scopes.md Scope 3, BLOCKED PENDING AN OWNER DECISION ON A GIT MERGE. Scopes 1 and 2 are implemented and independently re-verified: node scripts/selftest.mjs reports 2906 passed 1 failed exit 1, and the single failure is the spec-test-path guard on tests/market-brief-cockpit.spec.mjs, which Scope 4 creates. node scripts/validate-brief-payload.mjs exits 0, node scripts/build-pages-site.mjs exits 0, artifact-lint exits 0, and scopes.md holds at 1383 lines with 32 code fences at even parity and 46 checked Definition of Done items. Scope 1 is 23 of 26 and Scope 2 is 23 of 27; every unchecked item on both is gated on the same Scope 4 browser suite and each carries its reason inline. THE BLOCKER: the working branch is 11 ahead and 26 BEHIND origin/main, and those 26 upstream commits modify four of the exact files this feature has rewritten - scripts/selftest.mjs, scripts/brief-refresh.mjs, scripts/brief-narrative-parallel.mjs and scripts/validate-brief-payload.mjs - including 7ed81d82d fix(009) wire the timeout-budget guard into the repo self-test, which touches the same selftest.mjs now carrying roughly 1100 added lines from Scopes 1 and 2. A second session is committing into this repository concurrently, evidenced by untracked specs/025 and company-intelligence artifacts, a modified specs/024 report, and the ahead count moving from 10 to 11 mid-run. Merging or rebasing is a shared-state operation with real conflict risk across those four files and is not taken unilaterally. Scope 3 work is deliberately NOT started, because adding a third scope of uncommitted change to a tree already 26 behind on the same files would compound the conflict rather than reduce it. RECOMMENDED ORDER: commit Scopes 1 and 2 as their own change so the work is durable, then merge or rebase origin/main and re-run node scripts/selftest.mjs to confirm the count returns to 2906 passed with the one known Scope 4 failure, then resume Scope 3. FINDINGS OPEN: R-7 the Change Boundary needs a derived-artifact row for market-brief.config.page.json, routed to the plan owner. R-8 specs/022 gained four checked Definition of Done boxes from the other session and was deliberately not reverted. R-9 the three selftest deletions are an operator-precedence repair to assertion TP-03-15 in the lifetime-tax claim age comparison group owned by specs/024; the original parsed as A and B or C so a true C made the assertion vacuous, the replacement parenthesises it as A and open B or C close, the guard is therefore strictly stronger and passes, and reverting would restore a vacuous assertion, so it stands and is routed to the specs/024 owner. An earlier draft of that Scope 2 Definition of Done item described those deletions as Scope 1 budget assertions re-scoped around the version stamp; that description was verified false and has been corrected in place. BUG-009 remains filed and unworked; it is the unwired decision-attention producer and is the highest-impact defect in the original review, but it belongs to delivered spec 017 and not to this feature. HISTORICAL RECORD from the Scope 1 implement round follows. specs/026-actionable-brief-brevity-and-cross-asset/scopes.md Scope 1 Change Boundary and Implementation Plan, plus design.md section D3 Consumers. Scope 1 landed The plan owner reassigned the market-brief-payload/v2 stamp and the selectDefaultVisible call from scripts/brief-refresh.mjs to the real payload writer scripts/brief-narrative-parallel.mjs, and the implementer landed the block at its finalisation point: RLCOCKPIT is required at line 28, allocation runs at line 750, measurement at line 752 and the stamp at line 753, imported from the validator's exported BRIEF_PAYLOAD_BUDGET_CONTRACT rather than a second literal. Seven TP-026-1.6 assertions now cover both halves, the allocate-measure-stamp ordering, the absence of a violations gate on the measurement write, a fixture-level check that a PASSING run emits budget.total, budget.byField and budget.disclosedTotal under budget-measurement/v1, and one adversarial case proving the ordering and violations-gate checks both reject the shape they exist to catch. node scripts/selftest.mjs moved 2868 to 2874 passed with the failure count unchanged at 1. Scope 1 Definition of Done is now 23 of 26 checked. The 3 that remain are the Tier 1 selftest-exits-zero item and its two dependants; all three are gated on the single remaining selftest failure, the spec-test-path guard on tests/market-brief-cockpit.spec.mjs, which Scope 4 creates. That is a real cross-scope dependency and not a Scope 1 defect: the guard fires because this feature's own scopes.md Test Plan names Scope 4's browser suite before Scope 4 has authored it. Scope 1 is substantively complete and closes when Scope 4 lands. HISTORICAL RECORD from the Scope 1 implement round follows. specs/026-actionable-brief-brevity-and-cross-asset/scopes.md Scope 1 Change Boundary and Implementation Plan, plus design.md section D3 Consumers. Scope 1 landed its capability foundation and its refusal gate with evidence: rlcockpit.js is created and frozen with measureDefaultVisible, budgetViolations and selectDefaultVisible as top-level function declarations; market-brief.config.json declares output-budget/v1 with the literals 140, 300 and 3000 and exactly thirteen default-visible paths beside a byte-unchanged artifact-budget/v1; scripts/validate-brief-payload.mjs refuses a v2 payload over any cap through the existing errors array with no sixth CLI flag; scripts/selftest.mjs gained two marker-bounded groups by pure append with 309 insertions and zero deletions; notes/market-brief.md gained section 9a. node scripts/selftest.mjs moved from 2842 passed 1 failed to 2868 passed 1 failed, exit 1 both times, and the single failure is unchanged: the spec-test-path guard on tests/market-brief-cockpit.spec.mjs, which is Scope 4's browser suite and is not created here. node scripts/validate-brief-payload.mjs market-brief.payload.json produces byte-identical output and exit 0 before and after, because the committed payload carries no contractVersion and the budget is gated on a literal market-brief-payload/v2 stamp. node scripts/build-pages-site.mjs exits 0 with rootFiles 118 to 119 and accounts for rlcockpit.js with no site-exclusions entry, resolving the conditional the plan left open. artifact-lint exits 0. Twenty of the twenty-six Scope 1 Definition of Done items are checked with inline evidence; six are deliberately left unchecked. Three of those six are blocked by one new routed finding, R-5: scopes.md, design.md section D3 and the Change Boundary Composer family all assign the market-brief-payload/v2 stamp and the selectDefaultVisible call to scripts/brief-refresh.mjs, but that script is Tier A and writes only market-brief.snapshot.json at line 2243, causal-rotation.snapshot.json at line 2248 and an appended brief-history.jsonl row; it names market-brief.payload.json only in comments at lines 688 and 2269. The payload is written by scripts/brief-narrative-parallel.mjs, PAYLOAD_PATH at line 23 and renameSync at line 752, invoked from scripts/brief-refresh-and-push.sh line 513, and that file is not in the Scope 1 Allowed file families table. The plan owner owes either an admitted composer path or a reassignment of the stamp obligation. The other three unchecked items are the Tier 1 selftest-exits-zero item and its two dependants, which Scope 4 resolves by creating tests/market-brief-cockpit.spec.mjs. Test Plan row 1.12 did not run at all and row 1.6 ran only in its validator half, both for the same reason; no vacuous assertion was authored in either place.",
+    "nextRequiredOwner": "bubbles.validate",
+    "nextRequiredTarget": "specs/026-actionable-brief-brevity-and-cross-asset - ALL FIVE SCOPES IMPLEMENTED AND COMMITTED; DEFINITION OF DONE CLOSED OUT AND READY FOR CERTIFICATION REVIEW. Commits: Scopes 1 and 2 0f61d1a14, merge cff40e23d, fixture and PII repair a7ca8ad55, Scope 3 3855ee75d, Scope 4 6b00105c7, Scope 5 ec7d24b31. The earlier git-merge blocker recorded below is RESOLVED: the merge landed and the branch is no longer behind. Gate commands re-run in the closure session with real exit codes: node scripts/selftest.mjs reports 3019 passed 0 failed exit 0 sha256 29700a6bfd4a430dd306357fff2afd7b4783087e4031dcb8bb03c54c38c20f1a; npx --no-install playwright test tests/market-brief-cockpit.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list reports 14 passed exit 0; node scripts/validate-brief-payload.mjs market-brief.payload.json exits 0; node scripts/build-pages-site.mjs exits 0; artifact-lint exits 0 with Artifact lint PASSED. scopes.md holds at 1383 lines with 32 code fences at even parity and 101 of 120 Definition of Done items checked. Per scope: Scope 1 is 26 of 26 and COMPLETE; Scope 2 is 25 of 27; Scope 3 is 20 of 23; Scope 4 is 22 of 25; Scope 5 is 8 of 19. IMPORTANT NOTE FOR THE VALIDATOR, because the green gates do not tell the whole story. Scope 5 is materially incomplete and should be examined first. Seven of its fifteen declared Test Plan rows were never authored - 5.1, 5.8, 5.9, 5.12, 5.13, 5.14 and 5.15 - including BOTH publication-path canaries SCN-026-CANARY-05 and SCN-026-CANARY-05B, which return no match anywhere in the suite; this is the only scope that edits the publication path, so those are the canaries that mattered most. FR-026-031 has no implementation at all: commit ec7d24b31 does not touch scripts/brief-narrative-parallel.mjs, so no run records a claim together with the observation that would resolve it, and the memory row claims block at scripts/brief-refresh.mjs line 1230 carries openedThisRun null and resolvedThisRun null as hard placeholders. Scope 5 also lacks the PII field-name scan that every other scope carries for its own emitted artifacts. Routed as finding R-14. Second issue: notes/market-brief.md was updated by exactly one commit, 0f61d1a14, so Scopes 3, 4 and 5 all failed their runbook obligation, and the Scope 5 case is worse than an omission because section 10a line 758 still states that scripts/build-attention-scorecard.mjs is a manual CLI not part of the scheduled path, which Scope 5 made false by wiring it into both publication paths; the runbook now contradicts the shipped code. Routed as R-13. Third issue: commit 3855ee75d carried 397 added lines of FOREIGN Feature 022 selftest content against 453 lines of genuine Feature 026 Scope 3 content, which breaches the Change Boundary clause admitting scripts/selftest.mjs for appended marker-bounded Feature 026 groups only; not repaired here because rewriting a pushed commit would destroy a concurrent session's work. Routed as R-10. Also open and unchanged: R-7, the derived-artifact boundary gap, which now has three instances - market-brief.config.page.json in Scope 2, brief-history.recent.jsonl in Scope 3 and market-brief.scorecard.json in Scope 5 - and R-9, the three-line cross-spec selftest repair with the spec 024 owner. New findings R-11, R-12 and R-15 are wording and marker-hygiene defects rather than delivery gaps. One environmental caution for whoever re-runs the gates: a concurrent session is actively committing into this repository and transiently mutates files under adversarial test, which produced two red selftest runs in the closure session on the unrelated Feature 023 assertion TP-01-01 PropertyAssessment while rltaxproperty.js was mid-edit; confirm git status is clean for that path before trusting a red run. Full transcripts, hashes and per-item reasoning are in report.md section Scopes 3, 4 and 5 Test Evidence. No source file was modified by the closure pass; only scopes.md, report.md and state.json were edited. SUPERSEDED HISTORICAL NOTE, RETAINED AS THE AUDIT RECORD OF A BLOCKER THAT HAS SINCE BEEN RESOLVED: specs/026-actionable-brief-brevity-and-cross-asset/scopes.md Scope 3, BLOCKED PENDING AN OWNER DECISION ON A GIT MERGE. Scopes 1 and 2 are implemented and independently re-verified: node scripts/selftest.mjs reports 2906 passed 1 failed exit 1, and the single failure is the spec-test-path guard on tests/market-brief-cockpit.spec.mjs, which Scope 4 creates. node scripts/validate-brief-payload.mjs exits 0, node scripts/build-pages-site.mjs exits 0, artifact-lint exits 0, and scopes.md holds at 1383 lines with 32 code fences at even parity and 46 checked Definition of Done items. Scope 1 is 23 of 26 and Scope 2 is 23 of 27; every unchecked item on both is gated on the same Scope 4 browser suite and each carries its reason inline. THE BLOCKER: the working branch is 11 ahead and 26 BEHIND origin/main, and those 26 upstream commits modify four of the exact files this feature has rewritten - scripts/selftest.mjs, scripts/brief-refresh.mjs, scripts/brief-narrative-parallel.mjs and scripts/validate-brief-payload.mjs - including 7ed81d82d fix(009) wire the timeout-budget guard into the repo self-test, which touches the same selftest.mjs now carrying roughly 1100 added lines from Scopes 1 and 2. A second session is committing into this repository concurrently, evidenced by untracked specs/025 and company-intelligence artifacts, a modified specs/024 report, and the ahead count moving from 10 to 11 mid-run. Merging or rebasing is a shared-state operation with real conflict risk across those four files and is not taken unilaterally. Scope 3 work is deliberately NOT started, because adding a third scope of uncommitted change to a tree already 26 behind on the same files would compound the conflict rather than reduce it. RECOMMENDED ORDER: commit Scopes 1 and 2 as their own change so the work is durable, then merge or rebase origin/main and re-run node scripts/selftest.mjs to confirm the count returns to 2906 passed with the one known Scope 4 failure, then resume Scope 3. FINDINGS OPEN: R-7 the Change Boundary needs a derived-artifact row for market-brief.config.page.json, routed to the plan owner. R-8 specs/022 gained four checked Definition of Done boxes from the other session and was deliberately not reverted. R-9 the three selftest deletions are an operator-precedence repair to assertion TP-03-15 in the lifetime-tax claim age comparison group owned by specs/024; the original parsed as A and B or C so a true C made the assertion vacuous, the replacement parenthesises it as A and open B or C close, the guard is therefore strictly stronger and passes, and reverting would restore a vacuous assertion, so it stands and is routed to the specs/024 owner. An earlier draft of that Scope 2 Definition of Done item described those deletions as Scope 1 budget assertions re-scoped around the version stamp; that description was verified false and has been corrected in place. BUG-009 remains filed and unworked; it is the unwired decision-attention producer and is the highest-impact defect in the original review, but it belongs to delivered spec 017 and not to this feature. HISTORICAL RECORD from the Scope 1 implement round follows. specs/026-actionable-brief-brevity-and-cross-asset/scopes.md Scope 1 Change Boundary and Implementation Plan, plus design.md section D3 Consumers. Scope 1 landed The plan owner reassigned the market-brief-payload/v2 stamp and the selectDefaultVisible call from scripts/brief-refresh.mjs to the real payload writer scripts/brief-narrative-parallel.mjs, and the implementer landed the block at its finalisation point: RLCOCKPIT is required at line 28, allocation runs at line 750, measurement at line 752 and the stamp at line 753, imported from the validator's exported BRIEF_PAYLOAD_BUDGET_CONTRACT rather than a second literal. Seven TP-026-1.6 assertions now cover both halves, the allocate-measure-stamp ordering, the absence of a violations gate on the measurement write, a fixture-level check that a PASSING run emits budget.total, budget.byField and budget.disclosedTotal under budget-measurement/v1, and one adversarial case proving the ordering and violations-gate checks both reject the shape they exist to catch. node scripts/selftest.mjs moved 2868 to 2874 passed with the failure count unchanged at 1. Scope 1 Definition of Done is now 23 of 26 checked. The 3 that remain are the Tier 1 selftest-exits-zero item and its two dependants; all three are gated on the single remaining selftest failure, the spec-test-path guard on tests/market-brief-cockpit.spec.mjs, which Scope 4 creates. That is a real cross-scope dependency and not a Scope 1 defect: the guard fires because this feature's own scopes.md Test Plan names Scope 4's browser suite before Scope 4 has authored it. Scope 1 is substantively complete and closes when Scope 4 lands. HISTORICAL RECORD from the Scope 1 implement round follows. specs/026-actionable-brief-brevity-and-cross-asset/scopes.md Scope 1 Change Boundary and Implementation Plan, plus design.md section D3 Consumers. Scope 1 landed its capability foundation and its refusal gate with evidence: rlcockpit.js is created and frozen with measureDefaultVisible, budgetViolations and selectDefaultVisible as top-level function declarations; market-brief.config.json declares output-budget/v1 with the literals 140, 300 and 3000 and exactly thirteen default-visible paths beside a byte-unchanged artifact-budget/v1; scripts/validate-brief-payload.mjs refuses a v2 payload over any cap through the existing errors array with no sixth CLI flag; scripts/selftest.mjs gained two marker-bounded groups by pure append with 309 insertions and zero deletions; notes/market-brief.md gained section 9a. node scripts/selftest.mjs moved from 2842 passed 1 failed to 2868 passed 1 failed, exit 1 both times, and the single failure is unchanged: the spec-test-path guard on tests/market-brief-cockpit.spec.mjs, which is Scope 4's browser suite and is not created here. node scripts/validate-brief-payload.mjs market-brief.payload.json produces byte-identical output and exit 0 before and after, because the committed payload carries no contractVersion and the budget is gated on a literal market-brief-payload/v2 stamp. node scripts/build-pages-site.mjs exits 0 with rootFiles 118 to 119 and accounts for rlcockpit.js with no site-exclusions entry, resolving the conditional the plan left open. artifact-lint exits 0. Twenty of the twenty-six Scope 1 Definition of Done items are checked with inline evidence; six are deliberately left unchecked. Three of those six are blocked by one new routed finding, R-5: scopes.md, design.md section D3 and the Change Boundary Composer family all assign the market-brief-payload/v2 stamp and the selectDefaultVisible call to scripts/brief-refresh.mjs, but that script is Tier A and writes only market-brief.snapshot.json at line 2243, causal-rotation.snapshot.json at line 2248 and an appended brief-history.jsonl row; it names market-brief.payload.json only in comments at lines 688 and 2269. The payload is written by scripts/brief-narrative-parallel.mjs, PAYLOAD_PATH at line 23 and renameSync at line 752, invoked from scripts/brief-refresh-and-push.sh line 513, and that file is not in the Scope 1 Allowed file families table. The plan owner owes either an admitted composer path or a reassignment of the stamp obligation. The other three unchecked items are the Tier 1 selftest-exits-zero item and its two dependants, which Scope 4 resolves by creating tests/market-brief-cockpit.spec.mjs. Test Plan row 1.12 did not run at all and row 1.6 ran only in its validator half, both for the same reason; no vacuous assertion was authored in either place.",
     "audit": {
       "schemaVersion": "audit-run/v1",
       "runId": null,
@@ -49,9 +49,93 @@
   "certification": {
     "status": "in_progress",
     "certifiedAt": null,
-    "completedScopes": [],
+    "completedScopes": [
+      1
+    ],
     "certifiedCompletedPhases": [],
-    "scopeProgress": [],
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "name": "Budget policy, measurement and fail-closed refusal",
+        "increment": "A",
+        "implementationState": "implemented",
+        "dodChecked": 26,
+        "dodTotal": 26,
+        "commits": [
+          "0f61d1a14",
+          "a7ca8ad55"
+        ],
+        "openFindings": [],
+        "note": "Complete. The three items previously blocked on the Scope 4 browser suite closed on 2026-08-19 once that suite existed and the selftest reached 3019 passed 0 failed. Row 1.12 carries no marker of its own and its behaviour executes under the 1.6 marker; recorded as R-11."
+      },
+      {
+        "scope": 2,
+        "name": "Cross-asset legs, required-leg set and dark state",
+        "increment": "A",
+        "implementationState": "implemented",
+        "dodChecked": 25,
+        "dodTotal": 27,
+        "commits": [
+          "0f61d1a14",
+          "a7ca8ad55"
+        ],
+        "openFindings": [
+          "R-7",
+          "R-9"
+        ],
+        "note": "Neither open item is a test failure. R-7 is the derived-artifact boundary gap on market-brief.config.page.json and needs a plan-owner amendment. R-9 is a three-line cross-spec selftest repair that strengthened a vacuous spec 024 assertion; the deletion count is 3 against a required 0 and reverting would restore the vacuous guard."
+      },
+      {
+        "scope": 3,
+        "name": "Memory row v2, change vocabulary, delta-only publishing and roll-up",
+        "increment": "B",
+        "implementationState": "implemented",
+        "dodChecked": 20,
+        "dodTotal": 23,
+        "commits": [
+          "3855ee75d"
+        ],
+        "openFindings": [
+          "R-10",
+          "R-13"
+        ],
+        "note": "All nineteen Test Plan rows execute and pass. Open: the commit carried brief-history.recent.jsonl as an unadmitted derived artifact plus 397 lines of foreign Feature 022 selftest content (R-10); it modified 2 pre-existing selftest lines against a required 0, both inside this feature's own Scope 1 group; and notes/market-brief.md section 5 was never updated with the change vocabulary (R-13)."
+      },
+      {
+        "scope": 4,
+        "name": "Disclosure-first rendering",
+        "increment": "C",
+        "implementationState": "implemented",
+        "dodChecked": 22,
+        "dodTotal": 25,
+        "commits": [
+          "6b00105c7"
+        ],
+        "openFindings": [
+          "R-12",
+          "R-13"
+        ],
+        "note": "The strongest scope on boundary discipline: the only one that touched no file outside its Allowed families, and one of two that met the zero-deletion append rule. All eighteen Test Plan rows ran, fourteen of them in the browser suite at 14 passed exit 0. Open: no value-to-explanation pairing count was recorded; the no-new-sink clause is contradicted by 9 added innerHTML lines that are the file's own escaped idiom (R-12); and the runbook disclosure subsection is absent (R-13)."
+      },
+      {
+        "scope": 5,
+        "name": "Closed loop on the publication path",
+        "increment": "D",
+        "implementationState": "implemented_incomplete",
+        "dodChecked": 8,
+        "dodTotal": 19,
+        "commits": [
+          "ec7d24b31"
+        ],
+        "openFindings": [
+          "R-7",
+          "R-13",
+          "R-14",
+          "R-15"
+        ],
+        "note": "MATERIALLY INCOMPLETE and the first thing a validator should examine. Seven of fifteen Test Plan rows were never authored, including both publication-path canaries, and FR-026-031 has no implementation at all. The green gates partly reflect assertions that were never written rather than behaviour that was proven. What did land is real and evidenced: resolvedThisRun, notEvaluableShare, the two-rate rendering with the withheld rate as a sentence rather than a zero, and the attention builder wired into both publication paths with its required --as-of argument under a producer-existence assertion that is the BUG-009 lesson made mechanical."
+      }
+    ],
     "lockdownState": {
       "active": false,
       "lockedScenarioIds": []

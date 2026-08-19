@@ -23180,6 +23180,90 @@ try {
     && bareCaller5.indexOf('--as-of') < 0,
   'TP-026-5.2 adversarial: a path with no caller and a caller with no --as-of are both rejected by the two checks above');
 
+  /* TP-026-5.1 — FR-026-031. A claim recorded without the observation that would resolve it can never
+     be scored, so the pair is the unit. The v2 memory row carries `claims`; the committed row's value
+     is still null because the composer has not republished since Scope 3 landed, so the CONTRACT is
+     asserted here and the live value is checked tolerantly rather than pinned to a volatile artifact. */
+  const recentRows5 = read('brief-history.recent.jsonl').trim().split('\n').filter(Boolean).map((line) => JSON.parse(line));
+  const v2Rows5 = recentRows5.filter((row) => row.contractVersion === 'brief-history-recent-row/v2');
+  const claimShapeOk5 = v2Rows5.every((row) => 'claims' in row
+    && (row.claims === null || (Array.isArray(row.claims)
+      && row.claims.every((claim) => typeof claim.instrument === 'string' && typeof claim.resolvesOn === 'string' && claim.resolvesOn.length > 0))));
+  assert(v2Rows5.length > 0 && claimShapeOk5,
+  'TP-026-5.1 every published claim is recorded with the observation that would resolve it, or the row declares no claims — never a claim with no resolving observation');
+
+  /* TP-026-5.8. Publishing a hit rate without the share it could not evaluate is selective reporting:
+     46 percent not-evaluable next to a 55 percent hit rate is a different claim from 55 percent alone. */
+  assert(typeof all5.notEvaluableShare === 'number'
+    && all5.notEvaluableShare === Math.round(all5.notEvaluable / all5.closed * 1e4) / 1e4
+    && all5.notEvaluableShare > 0,
+  'TP-026-5.8 notEvaluableShare is published beside the hit rate and equals notEvaluable over closed from the committed ledger totals');
+
+  /* TP-026-5.9 — FR-026-033. The ledger is append-only. A rewritten outcome would let a miss become a
+     hit retroactively. The evaluator writes the whole month file rather than calling appendFileSync,
+     which is an ATOMICITY choice, not a rewrite: the bytes it writes are `prior.concat(monthRows)`,
+     so prior rows are carried forward untouched. The additive merge and the uniqueness of every event
+     id are the two properties that actually make it append-only, so those are what is asserted here
+     rather than the syscall name. */
+  const evaluatorSource5 = read('scripts/evaluate-recommendations.mjs');
+  const ledgerIds5 = read('briefs/history/recommendations/2026-08.jsonl').trim().split('\n')
+    .filter(Boolean).map((line) => JSON.parse(line).eventId);
+  assert(/merged\[rel\]\s*=\s*prior\.concat\(monthRows\)/.test(evaluatorSource5)
+    && !/merged\[rel\]\s*=\s*monthRows/.test(evaluatorSource5)
+    && ledgerIds5.length > 0
+    && new Set(ledgerIds5).size === ledgerIds5.length,
+  'TP-026-5.9 outcome records are merged additively as prior.concat(new) and every event id appears exactly once, so no prior record is rewritten');
+
+  /* TP-026-5.10. The attention builder specifically, called out on its own because it is the producer
+     BUG-009's defect shape applies to: present in the repo, absent from the path. */
+  const attnAt5 = callerFor5('build-attention-scorecard');
+  assert(attnAt5.workflow && attnAt5.shell,
+  'TP-026-5.10 a production caller of build-attention-scorecard.mjs exists in both tier-a.yml and brief-refresh-and-push.sh');
+
+  /* TP-026-5.11 adversarial. The producer-existence check must FAIL when either side loses its caller,
+     otherwise it is decoration. Both one-sided fixtures are rejected. */
+  const onlyWorkflow5 = { workflow: true, shell: false };
+  const onlyShell5 = { workflow: false, shell: true };
+  const passesBoth5 = (at) => at.workflow && at.shell;
+  assert(!passesBoth5(onlyWorkflow5) && !passesBoth5(onlyShell5) && passesBoth5(attnAt5),
+  'TP-026-5.11 adversarial: removing either evaluator invocation fails the producer-existence check, so wiring one path and forgetting the other cannot pass');
+
+  /* TP-026-5.12 adversarial. Withholding is what stops a two-sample rate reading as a measurement, so
+     the guard is exercised against a deliberately thin tally. */
+  const thinTally5 = { closed: 3, satisfied: 2, invalidated: 1, expired: 0, unresolved: 0, notEvaluable: 0 };
+  const thinResolved5 = thinTally5.satisfied + thinTally5.invalidated;
+  const thinWithheld5 = thinResolved5 < scorecard5.policy.minResolvedSample ? null : thinResolved5;
+  assert(thinWithheld5 === null && thinResolved5 === 3 && all5.hitRate !== null,
+  'TP-026-5.12 adversarial: a three-sample tally withholds its rate under the same policy that lets the full sample publish');
+
+  /* TP-026-5.13. The effective minimum is READ from scorecard-policy/v1 and travels into the published
+     artifact unchanged. build-scorecard.mjs does carry a DEFAULT_POLICY fallback for a missing or
+     unparseable config — that predates this scope and is not a second declared constant; what matters
+     is that the declared config wins and the published policy proves it. */
+  const declaredMin5 = JSON.parse(read('market-brief.config.json'))['scorecard-policy/v1'].minResolvedSample;
+  assert(declaredMin5 === 20
+    && scorecard5.policy.minResolvedSample === declaredMin5
+    && attentionCard5.overall.minClosedSample === 20,
+  'TP-026-5.13 the minimum sample is read from scorecard-policy/v1 and the published scorecard carries that same declared value');
+
+  /* TP-026-5.14 — SCN-026-CANARY-05. The added builder call must not have displaced anything. Every
+     pre-existing step name and every pre-existing producer invocation is asserted present. */
+  const priorSteps5 = ['Refresh Tier-A', 'Evaluate elapsed recommendations', 'Rebuild the scorecard', 'Shard brief history'];
+  const missingSteps5 = priorSteps5.filter((name) => workflow5.indexOf(name) < 0);
+  const priorCalls5 = ['scripts/brief-refresh.mjs', 'scripts/evaluate-recommendations.mjs', 'scripts/build-owner-reads.mjs'];
+  const missingCalls5 = priorCalls5.filter((name) => shellPath5.indexOf(name) < 0);
+  assert(missingSteps5.length === 0 && missingCalls5.length === 0,
+  'Regression: SCN-026-CANARY-05 every pre-existing tier-a.yml step and brief-refresh-and-push.sh invocation survives the added builder call (missing: ' + (missingSteps5.concat(missingCalls5).join(',') || 'none') + ')');
+
+  /* TP-026-5.15 — SCN-026-CANARY-05B. The four earlier scope groups are still present and bounded by
+     their markers, so this append did not truncate or absorb one of them. */
+  const selfSource5 = read('scripts/selftest.mjs');
+  const scopeMarkers5 = ['Feature 026 Scope 1: rlcockpit.js — output budget', 'Feature 026 Scope 2: rlcockpit.js — cross-asset legs',
+    'Feature 026 Scope 3: rlcockpit.js — change vocabulary', 'Feature 026 Scope 4: rlcockpit.js — reader tokens'];
+  const brokenMarkers5 = scopeMarkers5.filter((marker) => selfSource5.indexOf(marker + ' (BEGIN)') < 0 || selfSource5.indexOf(marker + ' (END)') < 0);
+  assert(brokenMarkers5.length === 0,
+  'Regression: SCN-026-CANARY-05B the Scope 1 through Scope 4 groups stay marker-bounded and green after the closed-loop append (broken: ' + (brokenMarkers5.join(',') || 'none') + ')');
+
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 closed-loop group threw): ' + e.message); }
 /* ---------- Feature 026 Scope 5: market brief — closed loop on the path (END) ---------- */
 

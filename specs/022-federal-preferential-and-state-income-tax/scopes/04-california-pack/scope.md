@@ -228,30 +228,80 @@ syntax error, a missing browser or an absent test does not satisfy RED.
 
 ### Definition of Done
 
-- [ ] `BI-7` was closed by a retrieval performed in the implementation session and
+- [x] `BI-7` was closed by a retrieval performed in the implementation session and
       recorded with its own `retrievedAt`, or the whole pack ships refusing and no
       partial California figure exists anywhere.
   - **Phase:** implement · **Command:** the retrieval record in the pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`, `report.md#tp-04-12`
+  - **Evidence:** the first branch is the one taken. Revenue and Taxation Code
+    sections 17041, 17039 and 17043 were each opened in this session and read
+    back against the shipped pack; section 17043 subdivision (a) states the rate
+    and the threshold digit for digit, and subdivisions (c)(1) to (c)(3) state
+    the three exclusions the pack encodes. TP-04-12 fell by name under a
+    value-free `retrieved`-to-`attempted` probe and returned green under the
+    identical command after an in-invocation revert.
 - [ ] `BI-6` was closed by retrievals performed in the implementation session,
       each recorded with its own `retrievedAt` and its own locator, and no figure
       was recalled, derived from another figure, or taken from a secondary site.
   - **Phase:** implement · **Command:** the retrieval records in the pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`
-- [ ] FR-022-027 is implemented: every unretrieved figure is an `AbsentFigure/v1`
+  - **Open because:** `BI-6` covers three figure groups and only one was
+    retrievable in this session. The Franchise Tax Board publication reached at
+    `https://www.ftb.ca.gov/forms/2026/2026-540-es-instructions.html` states the
+    declared year's standard deduction, but it directs the reader to a prior-year
+    publication for both the rate schedule and the exemption credit amount, and
+    the two rate-and-exemption pages tried alongside it each returned HTTP 404.
+    The pack was deliberately left unmodified rather than banking one figure of
+    three. The retrieved deduction and both failed URLs are recorded verbatim at
+    `report.md#sourcing` so the next session transcribes rather than re-retrieves.
+- [x] FR-022-027 is implemented: every unretrieved figure is an `AbsentFigure/v1`
       with a `missingSource` pointer and no numeric member, and its leg refuses
       while sibling legs still resolve.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-11`
-- [ ] FR-022-022 is implemented: the pack declares no preferential treatment,
+  - **Evidence:** twelve absent figures across the deduction, rate-table and
+    exemption-credit groups each carry the refusal code, a resolvable
+    `missingSource`, and none of the five value-bearing member names. TP-04-11
+    fell by name under a value-free probe that emptied one `missingSource`
+    locator and returned green under the identical command after an
+    in-invocation revert.
+- [x] FR-022-022 is implemented: the pack declares no preferential treatment,
       carries no preferential table, and prices pooled preferential income in its
       ordinary schedule, proven by an adversarial mutation.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-01`, `report.md#tp-04-03`, `report.md#tp-04-10`
+  - **Evidence:** the pack declares `preferentialPolicy: "none"`, carries no
+    preferential rate table for any status, and its declared order omits the two
+    preferential stages. TP-04-03 pins that a gain-holding and an ordinary-only
+    California household pool one supported-income measure, publish no
+    preferential measure and receive the identical outcome, while the same two
+    households diverge federally because the federal settlement does carve the
+    gain into a preferential band. TP-04-03 fell by name when one term was
+    dropped from the pooling sum and returned green under the identical command
+    after an in-invocation revert; TP-04-10 refuses a pack that declares `none`
+    while carrying a table.
 - [ ] FR-022-023 and FR-022-024 are implemented: California's own deduction, and a
       credit applied after rate application with both figures published, proven by
       an adversarial mutation.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-04`, `report.md#tp-04-05`, `report.md#tp-04-06`
-- [ ] FR-022-025 and FR-022-026 are implemented: all four filing statuses cross at
+  - **Open because:** this row requires published figures, and there are none to
+    publish. The standard deduction and the exemption credit amounts are both
+    `AbsentFigure/v1` in every filing status, so no deduction resolves and no
+    pre-credit and post-credit pair can be shown side by side. The application
+    point itself is proven — TP-04-05 and TP-04-06 pin the credit as
+    `credit-against-tax` at `after-rate-application`, place that stage after both
+    the rate stage and the leg sum, and refuse a pack that moves it before the
+    rate or turns it into a deduction from income. TP-04-04 has no assertion at
+    all, because a deduction that does not resolve cannot be asserted to resolve
+    per filing status. This row unblocks when `BI-6` closes; it must not be
+    closed by weakening it to the application point alone.
+- [x] FR-022-025 and FR-022-026 are implemented: all four filing statuses cross at
       the identical surcharge threshold and no credit reduces the surcharge, each
       proven by an adversarial mutation.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-07`, `report.md#tp-04-08`, `report.md#tp-04-09`
+  - **Evidence:** the threshold set declares `varyByFilingStatus: false` with the
+    single `all` key, and all four statuses produce identical figures below, at
+    and above it. TP-04-08 doubles the joint threshold in a clone and proves two
+    households with the same taxable income then diverge; TP-04-09 proves the
+    shipped `appliesToLegs[]` names the ordinary leg alone while the surcharge leg
+    is declared. TP-04-07 fell by name under a value-free boolean probe and
+    returned green under the identical command after an in-invocation revert.
 - [ ] Known-value boundary coverage exists below, at and above every California
       bracket edge the pack carries and the surcharge threshold, for every filing
       status, and each fixture names the source edition and tax year it was

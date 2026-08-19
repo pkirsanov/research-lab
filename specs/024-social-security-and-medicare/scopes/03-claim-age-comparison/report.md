@@ -1787,3 +1787,86 @@ the message, the frame and the exit code are otherwise unaltered.
 **GREEN, same command, reverted tree:** exit 0, `1 passed`. Recorded at
 [TP-03-21](#tp-03-21).
 
+### RED TP-03-22
+
+**Mutation:** `lifetime-tax-strategy-lab.html` — the named refusal for a claim
+age the table carries no row for was replaced by a fabricated zero total:
+
+```diff
+                     if (entry.withheld) {
+                         var withheldCell = document.createElement("td");
+                         withheldCell.setAttribute("colspan", "3");
+-                        withheldCell.appendChild(unavailableNode(entry.withheld,
+-                            "Remaining years and the total over them"));
++                        /* RED PROBE TP-03-22 — the named refusal replaced by a fabricated zero total. */
++                        withheldCell.appendChild(text("span", dollars(0)));
+                         row.appendChild(withheldCell);
+```
+
+This is the exact harm the row exists to catch. The settlement is untouched:
+`rltaxclaimage.js` still withholds the figure and still emits
+`RLTAX-THRESHOLD-UNAVAILABLE`, so TP-03-11 and TP-03-12 stay green. The invention
+happens at the render layer, where a reader is told the total over the remaining
+years is `$0` rather than that the table carries no row for age 75 — a withheld
+figure presented as a settled one.
+
+```
+# RED TP-03-22
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome --grep "Regression: SCN-024-008 an absent life-expectancy figure withholds the totals and the equality age while the per-age benefits still render" --reporter=list
+exit: 1
+--- output ---
+
+Running 1 test using 1 worker
+
+  ✘  1 …tals and the equality age while the per-age benefits still render (5.8s)
+
+
+  1) [system-chrome] › tests/lifetime-tax-claim-age.spec.mjs:144:1 › Regression: SCN-024-008 an absent life-expectancy figure withholds the totals and the equality age while the per-age benefits still render 
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator: locator('#claimAgeBody tr[data-rl-claim-age="75"] [data-rl-unavailable]')
+    Expected: "RLTAX-THRESHOLD-UNAVAILABLE"
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toHaveAttribute" with timeout 5000ms
+      - waiting for locator('#claimAgeBody tr[data-rl-claim-age="75"] [data-rl-unavailable]')
+
+
+      161 |     .toHaveText('$35,712');
+      162 |   const withheld = page.locator('#claimAgeBody tr[data-rl-claim-age="75"] [data-rl-unavailable]');
+    > 163 |   await expect(withheld).toHaveAttribute('data-rl-unavailable', 'RLTAX-THRESHOLD-UNAVAILABLE');
+          |                          ^
+      164 |   await expect(withheld).toContainText('no adjacent row stands in for it');
+      165 |
+      166 |   /* Neither a total nor an equality age is invented for it. */
+        at file://<repo>/tests/lifetime-tax-claim-age.spec.mjs:163:26
+
+    Error Context: test-results/tests-lifetime-tax-claim-a-93b57-r-age-benefits-still-render-system-chrome/error-context.md
+
+    Error Context: test-results/tests-lifetime-tax-claim-a-93b57-r-age-benefits-still-render-system-chrome/error-context.md
+
+  1 failed
+    [system-chrome] › tests/lifetime-tax-claim-age.spec.mjs:144:1 › Regression: SCN-024-008 an absent life-expectancy figure withholds the totals and the equality age while the per-age benefits still render 
+```
+
+The row fails on the *named* refusal rather than on the `$0` string, which is the
+stricter of its two assertions: the panel must not merely avoid printing a zero,
+it must say by code and in words which figure it is withholding and why. The
+absolute checkout path in the trailing `at` frame is written `file://<repo>/`
+here so this committed artefact carries no user path; the message, the frame and
+the exit code are otherwise unaltered.
+
+**Revert:** `git checkout -- lifetime-tax-strategy-lab.html` → exit 0.
+`git status --short` afterwards listed `market-brief.config.json`,
+`notes/market-brief.md`, `scripts/brief-narrative-parallel.mjs`,
+`scripts/selftest.mjs` and `scripts/validate-brief-payload.mjs` — all owned by the
+concurrent session — plus that session's untracked files. No path this scope owns
+was modified.
+
+**GREEN, same command, reverted tree:** exit 0, `1 passed (1.7s)`. Recorded at
+[TP-03-22](#tp-03-22).
+

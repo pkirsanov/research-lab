@@ -305,43 +305,48 @@ RED.
 
 ### Definition of Done
 
-- [ ] FR-022-001 through FR-022-003 are implemented: a figure carries a default
+- [x] FR-022-001 through FR-022-003 are implemented: a figure carries a default
       citation plus an override list, every effective component citation names a
       retrieved non-newsroom source, and every one carries a locator.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-01`, `report.md#tp-01-03`
-- [ ] `RateTable/v1` is accepted unchanged and the unmodified Feature 021 pack
+- [x] `RateTable/v1` is accepted unchanged and the unmodified Feature 021 pack
       validates and produces every previously passing value.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-02`
-- [ ] `BI-1` and `BI-3` were closed by retrievals performed in the implementation
+- [x] `BI-1` and `BI-3` were closed by retrievals performed in the implementation
       session, each recorded in a `SourceRecord/v1` with its own `retrievedAt`,
       and every figure transcribed directly from the opened document.
   - **Phase:** implement · **Command:** the retrieval record in the pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`
-- [ ] Every figure that a retrieval failed to establish ships as an
+- [x] Every figure that a retrieval failed to establish ships as an
       `AbsentFigure/v1` with a `missingSource` pointer and no smuggled numeric
       member. No partial table ships for any status.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-10`
-- [ ] FR-022-004 and FR-022-005 are implemented: the preferential table resolves
+- [x] FR-022-004 and FR-022-005 are implemented: the preferential table resolves
       per status, preferential income stacks above ordinary taxable income, and
       the two preferential kinds are pooled and taxed identically.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-04`, `report.md#tp-01-05`, `report.md#tp-01-06`
-- [ ] Known-value boundary coverage exists for every preferential breakpoint the
+- [x] Known-value boundary coverage exists for every preferential breakpoint the
       pack carries — below, at, and above — for every filing status, and each
       fixture names the source edition and tax year it was derived from.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-04`
-- [ ] FR-022-006 and FR-022-007 are implemented: every uncarried preferential
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-04`, `report.md#verification-pass-2--2026-08-18--dod-item-6-now-holds`
+- [x] FR-022-006 and FR-022-007 are implemented: every uncarried preferential
       category is named, and the tax-year mixing adversarial case proves the guard
       can fail.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-07`, `report.md#tp-01-08`, `report.md#tp-01-09`
-- [ ] No module holds a tax-domain numeric constant, a bracket table, a
+- [x] No module holds a tax-domain numeric constant, a bracket table, a
       jurisdiction name or an authority name, and both detectors are proven to
       fire on a module that does.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-12`
-- [ ] No output states a probability, a lifetime figure, a track record or an
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-12`, `report.md#verification-pass-2--2026-08-18--dod-item-8-now-holds`
+- [x] No output states a probability, a lifetime figure, a track record or an
       error rate, and no result is labelled a complete federal tax.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
   - **Phase:** implement · **Command:** the exact TP-01-01 through TP-01-16 commands · **Evidence:** `report.md#test-evidence`
+  - **Not closed.** Finding **F-01-K** (supersedes F-01-E, whose blocking absence
+    is now cleared): `tests/lifetime-tax-preferential.spec.mjs` exists and
+    TP-01-13/14/15/16 are GREEN (66 passed, 0 failed, exit 0). RED remains
+    uncaptured for TP-01-11, -13, -14, -15, -16, -17, -18, -19 and -20. See
+    `report.md#verification-pass-2--2026-08-18--dod-item-10-still-does-not-hold-but-f-01-e-is-closed`.
 - [ ] Feature 008's files, Feature 021's spec directory, the registries,
       `site-exclusions.json` and every brief or data artifact are byte-identical.
       The only Feature 021 test files touched are
@@ -353,28 +358,56 @@ RED.
       `tests/lifetime-tax-conversion.spec.mjs` and `tests/lifetime-tax.support.mjs`
       are byte-identical.
   - **Phase:** implement · **Command:** a path-scoped status check over the excluded list · **Evidence:** `report.md#change-boundary`
+  - **Not closed.** Finding **F-01-H**: `site-exclusions.json` (commit `e903749c0`)
+    and `scripts/validate-spec-test-paths.baseline` (commit `2229da3c0`) are not
+    byte-identical, and the per-expectation clause is unverifiable because
+    Features 021 and 022 landed in one squashed commit (`b9d92a3f1`). The other
+    seventeen excluded paths are proven byte-identical. See
+    `report.md#verification-pass-2--2026-08-18--dod-item-11-does-not-hold`.
 - [ ] All twelve owned supersessions are delivered: each replacement is at least as
       strong as the clause it superseded, each was written before the behaviour
       change and seen to fail against the unchanged implementation, each carries
       its `SUP-022-NN` marker naming its shape, and each of the ledger's
       adversarial cases was seen to fail before it was seen to pass.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-01-16 browser command · **Evidence:** `report.md#supersession-ledger`
-- [ ] Per-component-kind year containment is implemented and both outcomes are
+  - **Not closed.** Finding **F-01-L**: all twelve markers are present with their
+    shapes named (12/12, derived), marker↔ledger closure passes (`TP-05-22`), and
+    the six retained branches are proven non-vacuous. The "written before the
+    behaviour change and seen to fail" and "at least as strong as the clause it
+    superseded" clauses are unverifiable — Features 021 and 022 landed in one
+    squashed commit (`b9d92a3f1`), so no unchanged-implementation state and no
+    superseded-clause original exist to run or compare against. See
+    `report.md#verification-pass-2--2026-08-18--dod-item-12-does-not-hold`.
+- [x] Per-component-kind year containment is implemented and both outcomes are
       demonstrated on the same source record: the top-band rate override passes
       containment and a breakpoint override to the same record refuses.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-07`
-- [ ] Every retained branch is non-vacuous: the absent-table fixture exercises the
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-07`, `report.md#verification-pass-2--2026-08-18--dod-item-13-holds`
+- [x] Every retained branch is non-vacuous: the absent-table fixture exercises the
       original clauses of SUP-022-02, SUP-022-05, SUP-022-06, SUP-022-11,
       SUP-022-12 and SUP-022-13 at least once, independently of how many shipped
       statuses resolved.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-21`
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus `npx playwright test tests/lifetime-tax-*.spec.mjs --project=system-chrome --reporter=line --workers=2` · **Evidence:** `report.md#tp-01-21`, `report.md#verification-pass-2--2026-08-18--dod-item-14-holds`
 - [ ] No assertion outside the twelve owned ledger entries was edited, relaxed or
       deleted, and no sourcing rule, tolerance, determinism, privacy,
       zero-network or Feature 008 canary was touched.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-20`
+  - **Not closed.** Finding **F-01-I**: the marker check (`TP-05-22`) proves
+    marker↔ledger closure but cannot detect an *unmarked* edit, and no pre-scope
+    baseline exists to diff against because Features 021 and 022 landed in one
+    squashed commit (`b9d92a3f1`). The row also states the owned-entry count three
+    ways — twelve, eleven, seven. The second clause (no sourcing, tolerance,
+    determinism, privacy, zero-network or Feature 008 canary touched) is proven.
+    See `report.md#verification-pass-2--2026-08-18--dod-item-15-does-not-hold`.
 - [ ] `node scripts/selftest.mjs` is green with no fall in pass count and no
       assertion edited outside this scope's twelve ledger entries,
       `node scripts/validate-spec-test-paths.mjs`
       reports zero new missing paths, and `node scripts/build-pages-site.mjs
       --dry-run` succeeds.
   - **Phase:** implement · **Command:** all three commands · **Evidence:** `report.md#tp-01-17`, `report.md#tp-01-18`, `report.md#tp-01-19`
+  - **Not closed.** Finding **F-01-J**: `node scripts/validate-spec-test-paths.mjs`
+    (exit 0, `new=0`) and `node scripts/build-pages-site.mjs --dry-run` (exit 0)
+    both pass. `node scripts/selftest.mjs` is at `2993 passed, 1 failed` — the one
+    failure is the concurrent session's stale
+    `tests/market-brief-cockpit.spec.mjs` reference, foreign to this scope and
+    deliberately untouched. The item says "is green", so it is not ticked. See
+    `report.md#verification-pass-2--2026-08-18--dod-item-16-does-not-hold`.

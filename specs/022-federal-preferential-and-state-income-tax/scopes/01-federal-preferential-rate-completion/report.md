@@ -2567,9 +2567,9 @@ is not a behavioural quantity, so only the marker check should see it.
 ```
 $ git checkout -- tests/lifetime-tax-route.spec.mjs
 $ git status --short -- tests/
- M tests/company-intelligence-lab.spec.mjs      # foreign, concurrent session
- M tests/company-intelligence.unit.mjs          # foreign, concurrent session
-?? tests/chaos-company-intelligence.spec.mjs    # foreign, concurrent session
+ M <repo>/tests/company-intelligence-lab.spec.mjs      # foreign, concurrent session
+ M <repo>/tests/company-intelligence.unit.mjs          # foreign, concurrent session
+?? <repo>/tests/chaos-company-intelligence.spec.mjs    # foreign, concurrent session
 $ grep -c "RED PROBE" tests/lifetime-tax-route.spec.mjs
 0
 probe_residue_exit=1              # grep found no match

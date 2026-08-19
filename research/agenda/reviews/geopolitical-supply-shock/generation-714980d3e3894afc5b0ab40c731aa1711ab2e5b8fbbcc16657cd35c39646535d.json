@@ -1,0 +1,97 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-67540ba0c2746e9a507f7bcb0251dc89b329987b1d7d87f6336ea50adbab41c4",
+  "generationId": "generation-714980d3e3894afc5b0ab40c731aa1711ab2e5b8fbbcc16657cd35c39646535d",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-08-19T14:31:04.945Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "No authorable current evidence for U.S., Iran, or shipping-insurer actor state was retained this generation. The web-evidence bundle retained zero sources and marked the official-policy-and-statements claim (actor-state) uncorroborated and unsupported, so no actor reaction-function change can be asserted from observed policy or verified statements.",
+      "gaps": [
+        "official-policy-and-statements (actor-state): missing-or-stale, zero retained official sources; no verified U.S./Iran declared-policy or statement inside the 24h freshness window.",
+        "No maritime or enforcement observation to ground a Hormuz/Red Sea/Bab el-Mandeb transit-control or escort/reinsurance reaction."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "Scenario-tree interpretation cannot be grounded because no current actor-state or flow evidence was retained. This side process authors no scenario probabilities; even the qualitative escalation read is unsupported without a single corroborated current source.",
+      "gaps": [
+        "No authorable actor-state, physical-flow, or insured-flow evidence to move any escalation node.",
+        "No predecessor dossier exists (priorDossier is null), so no baseline scenario state is carried."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "No measured maritime flow or insured-capacity evidence was retained. The measured-maritime-flow requirement (physical-flow, insured-flow) is missing-or-stale with zero retained maritime-observation or official sources, so no physicalPassFraction, insuredPassFraction, or delay observation can be stated for Hormuz, the Red Sea, or Bab el-Mandeb.",
+      "gaps": [
+        "measured-maritime-flow (physical-flow): no measured transit/loading observation inside the 24h window.",
+        "measured-maritime-flow (insured-flow): no insured effective-throughput or war-risk capacity observation retained."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "No energy or input-balance evidence was retained. The energy-and-input-balances requirement (transmission-input) is missing-or-stale with zero retained official or industry-data sources, so no inventory, production, export, or policy-response input exists for oil, refined-products, LNG, fertilizer, aluminum, or shipping transmission.",
+      "gaps": [
+        "energy-and-input-balances (transmission-input): no inventory/production/export or coordinated policy-response observation inside the 72h window.",
+        "inventoryGapByChannel cannot be populated from observed data; left explicitly empty."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "Committed public daily bars were reused (proxy-bar coverage, observed 2026-08-18), but there is no authorable current-situation shock evidence to calibrate proxy sensitivity against. This side process authors no proxy ranges; without a corroborated current supply-shock signal the bars alone cannot yield a sensitivity read.",
+      "gaps": [
+        "No current actor-state or flow evidence to anchor a proxy sensitivity claim to an observed shock.",
+        "Proxy ranges and calibration outputs are owned by the deterministic model layer, not this evidence pass."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "No trigger or invalidation could be evaluated. The snapshot carried no maritime, insured, or policy observation, so transit-restriction-observed, insured-capacity-tightens, and inventory-response-confirmed remain unobserved, and transit/insurance normalization invalidations cannot be confirmed either.",
+      "gaps": [
+        "physicalPassFraction / insuredPassFraction: no observation available to test the transit and insured-capacity thresholds.",
+        "policyResponse: no confirmed public inventory or coordinated policy response retained."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "The current-generation source ledger is empty. The acquisition bundle retained zero web sources and rejected all three material claims; only a committed-bar reference (proxy-bar) was reused, which is not a citable current-situation source for actor, flow, or transmission claims.",
+      "gaps": [
+        "Zero retained sources for official-policy-and-statements, measured-maritime-flow, and energy-and-input-balances.",
+        "Only committed-public-bars was reused; it covers proxy-bar and does not satisfy actor-state / physical-flow / insured-flow / transmission-input coverage."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "No predecessor change assessment is possible. priorDossier is null, so there is no prior situation to compare against, and this side process authors no changeAssessment. With no authorable current evidence, direction of change is insufficient-evidence by construction.",
+      "gaps": [
+        "No predecessor dossier exists for this topic (priorDossier is null).",
+        "No authorable current evidence to compare, so no strengthened/weakened/reversed direction can be supported."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

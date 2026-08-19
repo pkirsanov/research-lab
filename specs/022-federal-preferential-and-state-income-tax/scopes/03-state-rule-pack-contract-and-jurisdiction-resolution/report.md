@@ -803,6 +803,84 @@ Scenario SCN-022-009 — `computeAnnualStateTax` accepts no federal figure throu
 any parameter, and reconciliation leg `L7` holds for every fixture.
 Command: `node scripts/selftest.mjs`
 
+**Claim Source:** executed.
+
+The row has two halves and each was probed separately, because a single mutation
+that fell both would not have shown which half the assertion actually reads.
+
+**Intended RED, the parameter half.** A third parameter named `federalResult` was
+added to the `computeAnnualStateTax` signature in `rltaxstate.js`. The mutation is
+value-free by construction — it is an identifier in a parameter list, it carries no
+household member, and the parameter is never read, so the mutation is
+behaviourally inert. That inertness is the point: the module still computes the
+same settlement, and the only thing that changed is that a federal figure now has
+a door to come through. The row fell on that alone.
+
+```text
+GUARD_A_SIGNATURE=421:  function computeAnnualStateTax(workspace, statePack, federalResult) {
+RED_A_EXIT=1
+
+================================================
+Research-Lab self-test: 3098 passed, 2 failed
+================================================
+  ✗ FAIL: committed surface carries no personal identifier
+  ✗ FAIL: TP-03-14: computeAnnualStateTax declares exactly the workspace and the state pack, no federal result reaches the module by name, and reconciliation leg L7
+```
+
+Exactly one assertion fell, and it is this row. Reverted with `git checkout --` in
+the same invocation; `REVERT_A_LEFTOVER=0`.
+
+**Intended RED, the `L7` half.** The one term of the local identity that names the
+state pack's own deduction had its sign flipped, so
+`grossSupportedIncome - appliedDeduction` became
+`grossSupportedIncome + appliedDeduction`. The mutation is value-free by
+construction — it is a single arithmetic operator, and it introduces no figure.
+It stands for exactly the defect `L7` exists to catch: a state taxable income that
+does not derive from the state pack's own deduction.
+
+```text
+GUARD_B_TERM=343:      Math.abs(basis.stateTaxableIncome - Math.max(0, basis.grossSupportedIncome + result.applie
+RED_B_EXIT=1
+
+================================================
+Research-Lab self-test: 3087 passed, 5 failed
+================================================
+  ✗ FAIL: committed surface carries no personal identifier
+  ✗ FAIL: TP-03-14: computeAnnualStateTax declares exactly the workspace and the state pack, no federal result reaches the module by name, and reconciliation leg L7
+  ✗ FAIL: TP-05-02 and TP-05-06: the combined total equals the sum of the two jurisdiction totals, includes a sourced zero as a real addend rather than skipping it,
+  ✗ FAIL: TP-05-04 and TP-05-05: a state settlement whose taxable income was reduced by the federal total produces a serialised result the order-independence compari
+  ✗ FAIL (Feature 022 Scope 05 combined group threw): Cannot read properties of undefined (reading 'every')
+```
+
+This probe is not isolated and was not expected to be. Breaking `L7` makes the
+state settlement refuse rather than balance, so Scope 05's combined rows lose the
+addend they consume and its group throws. That cascade is itself evidence that
+`L7` is load-bearing rather than decorative. Reverted with `git checkout --` in
+the same invocation; `REVERT_B_LEFTOVER=0`.
+
+**Same-command GREEN.** With both probes reverted, a path-scoped status check over
+the tax modules, the packs and the scripts directory printed nothing — no source
+file left dirty — and the identical command was re-run.
+
+```text
+########## GREEN: same command, both probes reverted
+GREEN_EXIT=1
+
+================================================
+Research-Lab self-test: 3099 passed, 1 failed
+================================================
+  ✗ FAIL: committed surface carries no personal identifier
+```
+
+The single remaining failure is pre-existing, belongs to a concurrent session's
+spec directory and is not this scope's; the pass count returned to its full value
+and no assertion was edited.
+
+`L7`'s negative control is asserted inside the suite as well as by the source
+probe above: the assertion labelled `TP-03-09` in the same group constructs a
+settlement whose taxable income does not derive from its own applied deduction and
+requires it to break `L7` and to refuse `RLTAX-RECONCILE` rather than balance.
+
 ### TP-03-15
 
 Scenario SCN-022-007 — the residency members are inventoried, cleared and

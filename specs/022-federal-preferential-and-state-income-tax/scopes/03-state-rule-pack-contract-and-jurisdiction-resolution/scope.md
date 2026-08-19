@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** In progress — 5 of 12 Definition of Done rows satisfied
+**Status:** In progress — 6 of 12 Definition of Done rows satisfied
 **Scope-Kind:** runtime-behavior
 **Tags:** `capability:jurisdiction-axis`, `sourced-zero:true`, `sourcing-gated:true`, `known-value-tested`
 **Depends On:** 01, 02
@@ -312,9 +312,17 @@ error, a missing browser or an absent test does not satisfy RED.
     recorded: the row reads the fixture directly, so the validator is not its
     lever, and that mutation fell the Scope 04 row instead. Both same-command
     GREEN runs returned `3092 passed, 1 failed`.
-- [ ] `computeAnnualStateTax` accepts no federal figure through any parameter and
+- [x] `computeAnnualStateTax` accepts no federal figure through any parameter and
       reconciliation leg `L7` holds for every fixture.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-14`
+  - **Evidence:** the two halves were probed separately so each is shown to be read.
+    Adding a never-read third parameter named `federalResult` to the signature fell
+    this row alone (`3098 passed, 2 failed`, the second failure pre-existing and not
+    this scope's). Flipping the sign of the one term that names the state pack's own
+    deduction in the `L7` identity fell this row plus three Scope 05 rows and threw
+    that group (`3087 passed, 5 failed`) — a cascade that shows `L7` is load-bearing.
+    Both reverted with `git checkout --` inside the applying invocation with the
+    leftover counts re-read as zero; the same command returned `3099 passed, 1 failed`.
 - [ ] The residency state is inventoried, cleared and redacted, and the request
       ledger stays empty with two pack files now loaded from disk.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser privacy row · **Evidence:** `report.md#tp-03-15`, `report.md#tp-03-21`

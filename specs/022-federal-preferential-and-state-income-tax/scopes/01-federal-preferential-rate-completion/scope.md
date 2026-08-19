@@ -490,6 +490,7 @@ RED.
       from the `Owning scope` column of the
       [supersession ledger](../../spec.md#supersession-ledger): SUP-022-01, -02,
       -04, -05, -06, -07, -09, -11, -12, -13, -17 and -21.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs`, a `SUP-022-NN` census over the five opened files, and `git diff --name-only b9d92a3f1 HEAD` over the excluded list · **Evidence:** `report.md#tp-01-20`, `report.md#change-boundary`, `report.md#verification-pass-4--2026-08-19--dod-item-15-holds`
 
       **Containment is proven four ways, none of which needs a pre-scope baseline.**
       Marker↔ledger closure passes in both directions (`TP-05-22`). Each of the
@@ -506,7 +507,6 @@ RED.
       empty `git diff --name-only b9d92a3f1 HEAD`, and the sourcing, tolerance,
       determinism, privacy, zero-network and Feature 008 production-consumer canary
       assertions are each present by title and passing.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs`, a `SUP-022-NN` census over the five opened files, and `git diff --name-only b9d92a3f1 HEAD` over the excluded list · **Evidence:** `report.md#tp-01-20`, `report.md#change-boundary`, `report.md#verification-pass-4--2026-08-19--dod-item-15-holds`
   - **Why this shape.** The superseded wording asked for a diff against a pre-scope
     assertion text, and no such text exists: `b9d92a3f1` already carries the
     `SUP-022` markers in the four Feature 021 test files and `e903749c0` already

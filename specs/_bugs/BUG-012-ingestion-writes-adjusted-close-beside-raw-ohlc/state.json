@@ -1,0 +1,198 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc",
+  "featureName": "BUG-012 Ingestion Writes An Adjusted Close Beside A Raw Low, And The Page Hangs Instead Of Saying So",
+  "createdAt": "2026-08-19T00:00:00Z",
+  "lastUpdatedAt": "2026-08-19T00:00:00Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "priorBlockedReason": null,
+  "blockedReasonResolved": null,
+  "crossFeatureEditAuthorization": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "priorPlanningOnlyJustification": null,
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json"
+  },
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": "analysis",
+    "currentPhaseStatus": "in_progress",
+    "phaseReconciliation": null,
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-19T00:00:00Z",
+    "completedAt": null,
+    "substate": null,
+    "currentScope": null,
+    "nextRequiredOwner": "bubbles.design",
+    "nextRequiredTarget": "specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc/design.md",
+    "nextRequiredReason": "The remedy for the primary defect is an open contract decision, recorded in design.md section 2 as Option A (adjust o, h, l and c together) versus Option B (keep all four raw and give the adjusted close its own field). The two differ in what every downstream consumer of data/bars sees and in whether an already-published historical row changes meaning, so the choice belongs to a design owner and cannot be inherited from a bug report. Scope 02 carries a second, smaller open choice in design.md section 3. Until both are decided, no scope can begin, all Definition of Done items stay unticked, and no scenario contract is discharged.",
+    "phaseClaimNote": "currentPhase is 'analysis' with currentPhaseStatus 'in_progress' because the root cause is established to the line while the fix design is deliberately unresolved. No implementation phase is claimed and none has occurred: not one file outside this packet was modified. completedPhaseClaims is empty, certification.certifiedCompletedPhases is empty, and certification.completedScopes is empty.",
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scopeId": "01-restore-ohlc-coherence-in-bars-ingestion",
+        "scope": 1,
+        "status": "Not Started",
+        "dependsOn": []
+      },
+      {
+        "scopeId": "02-decouple-committed-fixture-from-mutable-bars",
+        "scope": 2,
+        "status": "Not Started",
+        "dependsOn": [
+          "01-restore-ohlc-coherence-in-bars-ingestion"
+        ]
+      },
+      {
+        "scopeId": "03-surface-boot-failure-instead-of-hanging",
+        "scope": 3,
+        "status": "Not Started",
+        "dependsOn": []
+      }
+    ],
+    "audit": null
+  },
+  "terminalTransitionBlockers": [
+    "Nothing is fixed. This packet was authored under an explicit instruction to file the defect and implement no remedy, because choosing the ingestion contract inside a filing task would settle a design decision by accident. No file under data/, tests/, scripts/, research-agenda-lab.html, or the BUG-011 packet was modified.",
+    "The primary remedy is undecided. design.md section 2 records Option A and Option B with their consequences and picks neither. Scope 01 cannot begin until one is chosen.",
+    "The fixture decoupling shape is undecided. design.md section 3 records two shapes and picks neither. Scope 02 cannot begin until one is chosen.",
+    "All Definition of Done items across the three scopes and the cross-scope block in scopes.md are unchecked, and all three scopes are Not Started.",
+    "None of the 11 scenario contracts SCN-012B-001 through SCN-012B-011 has been executed; every entry in scenario-manifest.json is not_started.",
+    "The six failing tests still fail at HEAD 5c978c5cb. tests/tool-experience.spec.mjs lines 442, 485, 566, 605 and 639 and tests/contextual-tooltip.spec.mjs line 115 hang on an unreachable wait, and the corpus defect that causes it is untouched.",
+    "Gate G136 human acceptance is not established and cannot be: uservalidation.md carries unchecked acceptance items and an unfilled Human Acceptance Record, and there is no delivered behaviour for a human to exercise.",
+    "No measurement in report.md was executed by an agent in the authoring session. Every Playwright run, headless boot, corpus scan and model replay is a reported observation from prior execution in this session. The agent's own execution was limited to read-only inspection confirming that the packet's line and field citations are accurate."
+  ],
+  "knownLimitation": {
+    "statement": "This packet is documentation only. It establishes that the defect exists, what causes it, and what any fix must satisfy. It does not establish that any proposed remedy works, because no remedy was implemented.",
+    "recordedIn": [
+      "bug.md 'Why nothing is implemented here'",
+      "design.md section 0 and section 6",
+      "report.md 'Completion Statement' and 'Outstanding Verification'",
+      "scopes.md preamble"
+    ],
+    "whyNotClosedHere": "The instruction that produced this packet was to file and not fix. The primary remedy is a decision about the ingestion contract with more than one defensible answer, and the two options differ in what every consumer of data/bars sees. Making that call inside a filing task would bury a design decision in a bug report instead of surfacing it for a deliberate choice.",
+    "consequenceForStatus": "status is in_progress and no terminal status is available. A terminal status would assert that the defect is resolved; the six tests still fail and 71714 rows across 245 files remain incoherent as reported."
+  },
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "certificationFieldWriteNote": "Certification fields are validate-owned. This packet's state.json was authored to complete the required artifact set under explicit operator instruction; the certification block is INITIALISED, not asserted. status mirrors the top-level status at in_progress, and completedScopes and certifiedCompletedPhases are deliberately empty because those are certification claims and remain bubbles.validate's to write.",
+    "scopeProgress": [
+      {
+        "scopeId": "01-restore-ohlc-coherence-in-bars-ingestion",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 8
+      },
+      {
+        "scopeId": "02-decouple-committed-fixture-from-mutable-bars",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 7
+      },
+      {
+        "scopeId": "03-surface-boot-failure-instead-of-hanging",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 8
+      }
+    ],
+    "assurance": {
+      "level": "none",
+      "missingForFull": [
+        "scenario-execution",
+        "independent-validate",
+        "independent-audit",
+        "Detail: nothing was implemented, so there is no change to validate or audit. The defect itself is well grounded — six tests fail in the full suite and in isolation, a 240000 ms budget was applied and the same tests still failed, and a single repaired field makes the canonical model replay return ok=true — but every one of those measurements is a reported observation from prior execution this session, not agent-derived. design.md and scopes.md were authored without dispatch to bubbles.design and bubbles.plan, so neither has been reviewed by its owning specialist, and the open contract decision in design.md section 2 is exactly the kind of choice that warrants that review before any fix begins."
+      ]
+    }
+  },
+  "completedScopes": [],
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.bug",
+      "workflowMode": "bugfix-fastlane",
+      "phasesExecuted": [],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.bug",
+      "expansionReason": "The operator scoped this run to filing a defect and explicitly forbade implementing a remedy, on the reasoning that the fix is a design decision about the ingestion contract and choosing it inside a filing task would prejudge it. No subagent was dispatched, no workflow phase is claimed complete, and no test command was executed.",
+      "expansionEvidenceRef": "report.md#test-evidence",
+      "statusBefore": "not_started",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-19T00:00:00Z",
+      "finishedAt": "2026-08-19T00:00:00Z",
+      "outcome": "route_required",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "BUG-012-INGESTION-WRITES-ADJUSTED-CLOSE-BESIDE-RAW-OHLC",
+        "BUG-012-COMMITTED-FIXTURE-PINNED-TO-MUTABLE-BARS",
+        "BUG-012-BOOT-ERROR-PATH-NEVER-SETS-STATE-VIEW"
+      ],
+      "evidenceRef": "report.md#outstanding-verification",
+      "summary": "Authored the eight artifacts of this packet after committing the repository binding preflight for research-lab. Captured three distinct defects as three separate scopes: ingestion writing an adjusted close beside a raw low so that 71714 of 150161 rows across 245 of 293 bars files carry l > min(o, c); a committed fixture pinned to a fixed cutoff that resolves against mutable data the cron rewrites; and a boot error path whose catch never assigns state.view, so a data break presents as an unbounded hang instead of the refusal the page has already computed. Recorded in design.md that retroactively rewriting an already-published row is a provenance concern independent of the arithmetic, and that mergeRows overwrites by timestamp with no trace. Recorded in report.md that a global Playwright timeout was considered and disproven by execution at 240000 ms, and that applying one would have masked this defect rather than fixed it. Modified nothing outside this packet: data/, tests/, scripts/, research-agenda-lab.html and the BUG-011 packet are untouched, and nothing was committed. Every measurement in report.md is attributed to prior execution in this session; the agent's own execution was read-only inspection confirming each cited line number, field name and call site, including that the five failing tool-experience tests are exactly the five calling openResearchAgenda with the reversal fixture while the three calling it without the fixture pass.",
+      "durationProvenance": "One continuous session segment consisting of a repository-binding preflight, read-only repository inspection, eight file writes, and verification runs of artifact-lint and the repository selftest. No test file, source file, data file or script was modified."
+    }
+  ],
+  "activeBugs": [
+    "BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc"
+  ],
+  "resolvedBugs": [],
+  "addressedFindings": [],
+  "unresolvedFindings": [
+    "BUG-012-INGESTION-WRITES-ADJUSTED-CLOSE-BESIDE-RAW-OHLC",
+    "BUG-012-COMMITTED-FIXTURE-PINNED-TO-MUTABLE-BARS",
+    "BUG-012-BOOT-ERROR-PATH-NEVER-SETS-STATE-VIEW"
+  ]
+}

@@ -83,7 +83,7 @@ DATA_FILES=(market-brief.snapshot.json brief-history.jsonl)
 PAYLOAD="market-brief.payload.json"
 CONFIG="market-brief.config.json"
 PAGE_FILES=(market-brief.page.json market-brief.config.page.json market-brief.snapshot.page.json market-brief.tools.page.json market-brief.experimental.json)
-DERIVED_FILES=(brief-history.recent.jsonl market-brief.scorecard.json market-brief.owner-reads.json)
+DERIVED_FILES=(brief-history.recent.jsonl market-brief.scorecard.json market-brief.owner-reads.json market-brief.attention-scorecard.json)
 DERIVED_DIRS=(briefs/tier-a)
 DISTRIBUTED_DIR="briefs"
 AGENDA_DIR="research/agenda"
@@ -567,15 +567,17 @@ if [ "$NARRATIVE_OK" != "1" ]; then
   fi
 fi
 
+# The attention scorecard rides every selection: it reduces an append-only ledger this transaction
+# never touches, so it carries no brief-pair parity and is written on every run regardless of outcome.
 if [ "$NARRATIVE_OK" = "1" ]; then
-  SELECTED_FILES=("${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" market-brief.owner-reads.json data)
+  SELECTED_FILES=("${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" market-brief.owner-reads.json market-brief.attention-scorecard.json data)
   [ -d "$AGENDA_DIR" ] && SELECTED_FILES+=("$AGENDA_DIR")
   SELECTION="matching-pair"
 elif [ "$RETAINED_TIER_B_OK" = "1" ]; then
-  SELECTED_FILES=("${DATA_FILES[@]}" market-brief.owner-reads.json data)
+  SELECTED_FILES=("${DATA_FILES[@]}" market-brief.owner-reads.json market-brief.attention-scorecard.json data)
   SELECTION="same-target-data-only"
 else
-  SELECTED_FILES=(data)
+  SELECTED_FILES=(market-brief.attention-scorecard.json data)
   SELECTION="raw-data-only"
 fi
 

@@ -20,38 +20,65 @@ and committed: Scopes 1 and 2 in `0f61d1a14` with a fixture and PII repair in
 `a7ca8ad55`, Scope 3 in `3855ee75d`, Scope 4 in `6b00105c7` and Scope 5 in
 `ec7d24b31`, across the merge `cff40e23d`.
 
+**2026-08-19 closure pass.** Two things changed after the previous pass wrote its
+account, and both are remediations of findings that pass had itself routed. The
+seven Test Plan rows Scope 5 never authored — 5.1, 5.8, 5.9, 5.12, 5.13, 5.14 and
+5.15, including both publication-path canaries — now exist and pass, which is what
+**R-14** asked for; and the three runbook gaps — §5 change vocabulary, §9c
+disclosure, §10a automated path — are now written, which is what **R-13** asked
+for. The suite moved from `3019 passed, 0 failed` to `3042 passed, 0 failed`, and
+the 23 added assertions are those rows and their supports. Eleven DoD items were
+re-verified against the new state and checked; eight remain unchecked and are
+listed below with the reason each still fails its own stated verification. The
+full re-measurement is `### E11`.
+
 ---
 
 ## Completion Statement
 
-**All five scopes are implemented. The Definition of Done stands at 101 of 120
-items checked, and the 19 that remain unchecked are listed with their reasons
-rather than closed to make the number look better.**
+**All five scopes are implemented. After the 2026-08-19 closure pass the
+Definition of Done stands at 112 of 120 items checked, up from 101. The 8 that
+remain unchecked are listed with their reasons rather than closed to make the
+number look better, and not one of them was checked on weaker evidence than its
+own stated verification method demands.**
 
 | Scope | Checked | Unchecked | Position |
 | --- | --- | --- | --- |
 | 1 | 26 | 0 | complete |
 | 2 | 25 | 2 | both open on routed findings R-7 and R-9, neither a test failure |
-| 3 | 20 | 3 | boundary overrun R-10, two selftest line deletions, runbook gap R-13 |
-| 4 | 22 | 3 | unrecorded pairing count, no-new-sink wording R-12, runbook gap R-13 |
-| 5 | 8 | 11 | **materially incomplete** — seven Test Plan rows never authored (R-14), FR-026-031 undelivered, runbook contradicts the shipped wiring |
+| 3 | 21 | 2 | boundary overrun R-10 and two selftest line deletions; the runbook gap closed |
+| 4 | 23 | 2 | unrecorded pairing count and no-new-sink wording R-12; the runbook gap closed |
+| 5 | 17 | 2 | derived-artifact boundary R-7 and one absent privacy assertion; the seven missing rows and FR-026-031 are delivered |
 
-The three gate commands are green and were run in this session with their exit
-codes recorded: `node scripts/selftest.mjs` at `3019 passed, 0 failed` exit 0,
-the browser suite at `14 passed` exit 0, and
-`node scripts/validate-brief-payload.mjs` and `node scripts/build-pages-site.mjs`
-both exit 0. Full transcripts are in
-`## Scopes 3, 4 and 5 Test Evidence`.
+The gate commands are green and were run with their exit codes recorded:
+`node scripts/selftest.mjs` at `Research-Lab self-test: 3042 passed, 0 failed`
+exit 0; the browser suite at `28 passed (12.6s)` exit 0 across two browser
+projects; and `node scripts/validate-brief-payload.mjs`,
+`node scripts/build-pages-site.mjs`, `node scripts/validate-brief-cache.mjs`,
+`node scripts/audit-reader-legibility.mjs` and `node scripts/pii-scan.mjs` all at
+exit 0. Full transcripts are in `## Scopes 3, 4 and 5 Test Evidence` and `### E11`.
 
-**The honest headline is Scope 5.** Scopes 1 through 4 are substantially
-delivered and the few open items on them are boundary bookkeeping or documentation.
-Scope 5 is different in kind: it is missing more than half its declared test
-coverage, including both publication-path canaries, and one of its five
-requirements has no implementation at all. This feature should not be certified
-as done on the strength of the green gates alone — the gates are green partly
-because the assertions that would have been hardest to satisfy were never
-written. That judgement belongs to `bubbles.validate`, and the evidence it needs
-is recorded below rather than summarised away.
+**The headline has moved, and the reason it moved is recorded rather than
+asserted.** The previous pass judged Scope 5 materially incomplete because more
+than half its declared test coverage had never been written — the gates were
+green partly because the hardest assertions did not exist. That is no longer
+true: all fifteen Scope 5 rows now exist, both publication-path canaries name
+their pre-existing steps explicitly, and FR-026-031 is delivered by a shipped
+producer rather than by a hard `null` placeholder. Scope 5 moved from 8 checked
+to 17.
+
+**What remains open is bookkeeping and one real gap, and they are different in
+kind.** Six of the eight open items are Change Boundary or append-rule
+bookkeeping (R-7, R-9, R-10, R-12) plus one unrecorded measurement — conditions
+that are structural facts about pushed commits or about plan wording, and that
+cannot be closed by this session without either rewriting history or amending
+the plan. The eighth is a genuine coverage gap: Scope 5 still carries no
+per-artifact privacy assertion over the scorecard, the outcome rows and the
+rendered track-record string, which is the one R-14 row the new test authoring
+did not close. `node scripts/pii-scan.mjs` returns `findings=0` repository-wide,
+but that is a different instrument and is not offered as a substitute.
+Certification remains `bubbles.validate`'s judgement; the evidence it needs is
+recorded below rather than summarised away.
 
 ---
 
@@ -185,9 +212,12 @@ to `in_progress` to match the top-level status.
 | R-10 | **Commit `3855ee75d` (Scope 3) carried 397 added lines of FOREIGN Feature 022 selftest content.** The commit added three marker-bounded groups, not one: `Feature 022 Scope 01: preferential breakpoints beyond `single``, `Feature 022 Scope 01: no bracket edge is shadowed in ANY rltax module`, and the genuine `Feature 026 Scope 3: rlcockpit.js — change vocabulary`. Measured split of the 861 insertions: 397 lines in the Feature 022 region against 453 in the Feature 026 region. The Change Boundary admits `scripts/selftest.mjs` for "appended marker-bounded **Feature 026** groups only", so this breaches the boundary even though the file itself is admitted. Almost certainly a concurrent session's work swept in by a broad `git add` — the same contamination class as R-8 and E9. **Not repaired here:** rewriting a pushed commit to excise another session's assertions would destroy work this scope does not own, and the assertions themselves pass. | owner of the concurrent Feature 022 session, with the plan owner for the boundary record | the Scope 3 Tier 1 "no file outside the Allowed file families table changed" item, which is left unchecked and cites this finding |
 | R-11 | **Test Plan row 1.12 has no assertion carrying its own marker.** The row's behaviour — the composer cannot regress to an unstamped payload — does execute and pass, but under the **1.6** marker at `scripts/selftest.mjs` line 21404, `TP-026-1.6 the writer stamps v2 from the validator's exported constant, so the two cannot drift to different literals`. `grep -c "TP-026-1.12 "` returns 0. The delivered mechanism is stronger than the row as written, because the composer imports `BRIEF_PAYLOAD_BUDGET_CONTRACT` from the validator rather than repeating a literal, so the two cannot drift. This is a marker-hygiene defect only: row-to-assertion traceability is broken even though coverage is not. | plan owner (`scopes.md` Scope 1 Test Plan) or implementer, to relabel | nothing; Scope 1 is complete and the two items that cite the row are checked with the mismatch named |
 | R-12 | **The Scope 4 no-new-sink DoD clause is unsatisfiable as literally worded by any renderer change.** The item requires "a source assertion that `rlbrief.js` gained no new direct `innerHTML` assignment", but `el.innerHTML = …` with `esc()` on model-authored values IS the file's established rendering idiom, so any new block adds one. Commit `6b00105c7` added 9, taking the file from 25 to 34. The substantive protection holds and is proven: row 4.12 passes and the repository-wide `no model/config-authored field reaches innerHTML without esc()` guard passes alongside its own non-vacuity control. The wording should become "introduced no new UNESCAPED sink", which is what the guards actually prove. | plan owner (`scopes.md` Scope 4 DoD wording) | the Scope 4 "every authored string reaches the DOM through `esc`" item, left unchecked pending the wording amendment |
-| R-13 | **Three of the five scopes never updated `notes/market-brief.md`, and one of the gaps is an active contradiction.** The runbook was modified by exactly one Feature 026 commit, `0f61d1a14`, which added §9a and §9b for Scopes 1 and 2. Scopes 3, 4 and 5 each carry a runbook DoD item and none delivered it. Measured over the committed file: the change-vocabulary kind names occur 0 times (Scope 3), the tokens `collapsed` and `disclosure` occur 0 times (Scope 4), and — the serious one — §10a line 758 still states that `scripts/build-attention-scorecard.mjs` "is a manual CLI, not part of the" scheduled path, which Scope 5 made false by wiring it into both publication paths. A reader following the runbook would either run a builder by hand that the pipeline already runs, or assume an unwired producer that is in fact wired. | docs owner, or implementer under a docs-scoped follow-up | the runbook DoD item in each of Scopes 3, 4 and 5, all three left unchecked |
-| R-14 | **Seven of Scope 5's fifteen declared Test Plan rows were never authored, and FR-026-031 is undelivered.** The `market brief — closed loop on the path` group contains exactly eight assertions, covering rows 5.2 (three, one subsuming 5.10 and one being 5.11's adversarial), 5.3, 5.4, 5.5, 5.6 and 5.7. Absent under any marker: **5.1, 5.8, 5.9, 5.12, 5.13, 5.14, 5.15**. `SCN-026-CANARY-05` and `SCN-026-CANARY-05B` return no match anywhere in the suite, so both publication-path canaries are missing from the only scope that edits the publication path. Separately, **FR-026-031 has no implementation**: commit `ec7d24b31` does not touch `scripts/brief-narrative-parallel.mjs`, so no run records a claim together with the observation that would resolve it, and the memory row's claims block at `scripts/brief-refresh.mjs` line 1230 is `{ openCount, openedThisRun: null, resolvedThisRun: null }` — two hard `null` placeholders. Also missing: the PII field-name scan every other scope carries for its own artifacts. | plan owner and implementer, as a Scope 5 completion pass | six Scope 5 DoD items, all left unchecked and each naming its own absent row |
-| R-15 | **A Scope 5 DoD item names a figure the ledger has outgrown.** The `notEvaluableShare` item says to record "the observed value against 152 of 304". The committed scorecard now reports `notEvaluable` 152 of `closed` **330**, so the share is **0.4606**, not the 0.50 the plan anticipated. The numerator is unchanged and the denominator has grown, which is the expected behaviour of an append-only ledger. The item's expected value needs restating as a derivation rather than a literal pair. | plan owner (`scopes.md` Scope 5 DoD) | the `notEvaluableShare` item, left unchecked for this reason together with the absent row 5.8 |
+| R-13 | **Three of the five scopes never updated `notes/market-brief.md`, and one of the gaps is an active contradiction.** The runbook was modified by exactly one Feature 026 commit, `0f61d1a14`, which added §9a and §9b for Scopes 1 and 2. Scopes 3, 4 and 5 each carry a runbook DoD item and none delivered it. Measured over the committed file: the change-vocabulary kind names occur 0 times (Scope 3), the tokens `collapsed` and `disclosure` occur 0 times (Scope 4), and — the serious one — §10a line 758 still states that `scripts/build-attention-scorecard.mjs` "is a manual CLI, not part of the" scheduled path, which Scope 5 made false by wiring it into both publication paths. A reader following the runbook would either run a builder by hand that the pipeline already runs, or assume an unwired producer that is in fact wired. **2026-08-19 — REMEDIATED and closed.** All three sections were subsequently written and the contradiction repaired. Re-measured over the committed runbook: `levelCrossed`=2, `stateFlipped`=2, `flagRaised`=3, `flagCleared`=3, `baseline`=7 (§5, was 0 for the kind names); `collapsed`=4, `disclosure`=1 with `### 9c. Disclosure` at line 774 (was 0); and the phrase "manual CLI" now occurs on exactly one line, §10a's correction `scripts/build-attention-scorecard.mjs` **"is no longer a manual CLI"**. The three runbook DoD items in Scopes 3, 4 and 5 are now checked, each quoting the delivered text. **One qualification: §9c and §10a are in `HEAD`; the §5 text is present in the working tree but NOT YET COMMITTED — pending diff `17 insertions(+), 1 deletion(-)`, and `git show HEAD:notes/market-brief.md` returns 0 occurrences of `levelCrossed`. Routed as R-18.** | docs owner, or implementer under a docs-scoped follow-up | **closed** — the runbook DoD item in each of Scopes 3, 4 and 5 is now checked; the §5 item carries the pending-commit qualification on its face |
+| R-14 | **Seven of Scope 5's fifteen declared Test Plan rows were never authored, and FR-026-031 is undelivered.** The `market brief — closed loop on the path` group contains exactly eight assertions, covering rows 5.2 (three, one subsuming 5.10 and one being 5.11's adversarial), 5.3, 5.4, 5.5, 5.6 and 5.7. Absent under any marker: **5.1, 5.8, 5.9, 5.12, 5.13, 5.14, 5.15**. `SCN-026-CANARY-05` and `SCN-026-CANARY-05B` return no match anywhere in the suite, so both publication-path canaries are missing from the only scope that edits the publication path. Separately, **FR-026-031 has no implementation**: commit `ec7d24b31` does not touch `scripts/brief-narrative-parallel.mjs`, so no run records a claim together with the observation that would resolve it, and the memory row's claims block at `scripts/brief-refresh.mjs` line 1230 is `{ openCount, openedThisRun: null, resolvedThisRun: null }` — two hard `null` placeholders. Also missing: the PII field-name scan every other scope carries for its own artifacts. **2026-08-19 — REMEDIATED IN PART; one row remains open and is named rather than swept along.** All seven absent rows were subsequently authored and pass — re-measured marker counts 5.1=3, 5.8=1, 5.9=2, 5.12=2, 5.13=1, 5.14=1, 5.15=1, and both canaries now match at `SCN-026-CANARY-05`=4 and `SCN-026-CANARY-05B`=2. FR-026-031 is delivered: row 5.1's second assertion pins the shipped producer to `resolvedThisRun = scorecard.resolvedThisRun` and forbids a second local tally, so the field is no longer a hard `null`. **What is NOT remediated is the last clause of this finding:** the per-artifact privacy scan is still absent from the Scope 5 group. A scan of `scripts/selftest.mjs` lines 23206–23389 for `position`, `costBasis`, `cost_basis`, `pnl`, `profit`, `credential`, `password`, `secret`, `apiKey` and currency-shaped tokens returns **zero** matching lines; `costBasis` occurs only in the Scope 2 group (line 21986) and the Scope 3 group (line 22918). | plan owner and implementer, as a Scope 5 completion pass | **narrowed from six DoD items to one** — five are now checked; only the Scope 5 privacy item remains unchecked, citing this residual clause |
+| R-15 | **A Scope 5 DoD item names a figure the ledger has outgrown.** The `notEvaluableShare` item says to record "the observed value against 152 of 304". The committed scorecard now reports `notEvaluable` 152 of `closed` **330**, so the share is **0.4606**, not the 0.50 the plan anticipated. The numerator is unchanged and the denominator has grown, which is the expected behaviour of an append-only ledger. The item's expected value needs restating as a derivation rather than a literal pair. **2026-08-19 — STILL OPEN with the plan owner, but no longer blocking.** The companion cause is gone: row 5.8 now exists and asserts the derivation `notEvaluableShare === Math.round(notEvaluable / closed * 1e4) / 1e4` rather than a literal. The DoD item's stated verification is "recording the observed value against 152 of 304", and that recording is now performed with the divergence named — observed `closed=330`, `notEvaluable=152`, `notEvaluableShare=0.4606` — so the item is checked on the recording, not on adoption of the stale pair. The plan-side wording still needs the amendment described above. | plan owner (`scopes.md` Scope 5 DoD) | the `notEvaluableShare` item is now checked, with the divergence recorded inline rather than absorbed |
+| R-16 | **The delivered runbook §9c carries a stale block count that contradicts its own enumeration.** The section's summary sentence reads "Fourteen blocks, six visible, eight collapsed", but its own collapsed list names eight blocks **plus** the `tool-reads` and `experimental` drawers — ten — and the selftest independently pins the total at "exactly 16 uniquely-named top-level blocks, six default-visible and ten collapsed". The enumeration and the selftest agree with each other; only the summary sentence's two numbers are wrong. Surfaced by the 2026-08-19 closure pass while quoting §9c as evidence, and reported rather than repaired, because this session's write boundary is `scopes.md` and `report.md` only. | docs owner | nothing; the Scope 4 runbook DoD item requires the three recordings, which are present and correct, so it is checked with this inconsistency named |
+| R-17 | **Test Plan row 5.13 proves the weaker of the two readings its DoD item admits.** The item says the minimum sample "is read from `scorecard-policy/v1.minResolvedSample` and no second constant is declared". Row 5.13 as authored proves this by **value identity** — `market-brief.config.json` declares 20 and the published `market-brief.scorecard.json` carries 20 — which a second constant coincidentally holding 20 would pass. The stronger form the phrase also admits is a source-side scan for a second literal `20` in the changed source, which is what the row's original plan text described. Surfaced by the 2026-08-19 closure pass. | plan owner (`scopes.md` Scope 5 Test Plan) or implementer, to strengthen the assertion | nothing; the DoD item's own stated verification is "row 5.13 passing", which is met, and the item is checked with this deviation named |
+| R-18 | **The delivered §5 runbook text is uncommitted.** The Scope 3 change-vocabulary documentation — the five kinds, the precedence order and the `baseline`-versus-`unchanged` distinction — exists in the working tree but not in `HEAD`: `git show HEAD:notes/market-brief.md` returns **0** occurrences of `levelCrossed` against **2** in the working tree, with a pending `17 insertions(+), 1 deletion(-)` diff. The added lines were inspected and contain that content and nothing else, so this is Feature 026's own Scope 3 delivery awaiting a commit rather than a concurrent session's work. §9c and §10a are both in `HEAD` by contrast. Surfaced by the 2026-08-19 closure pass, which cannot commit it: that pass's write boundary is `scopes.md` and `report.md` only. **Until it is committed a `git checkout` would silently erase the delivery and reopen the Scope 3 runbook item.** | implementer, to commit `notes/market-brief.md` | nothing; the Scope 3 runbook DoD item is checked on the text being present and quotable, with this pending-commit qualification stated on the item itself |
 
 ---
 
@@ -1343,6 +1373,255 @@ One negative observation is recorded because it bears on a DoD item:
 Scope 5 DoD item that names it is scoped to the builder publishing it, which it
 does, so that item is checked; but the Implementation Plan's intent that the
 track-record line show resolved-this-run is not met, and it is recorded here.
+
+---
+
+## E11 — Definition of Done closure pass, 2026-08-19
+
+This pass changed no source file, no config and no test. It re-verified the 19
+items the previous pass left unchecked against the current committed state,
+checked the 11 that now satisfy their own stated verification method, and left 8
+unchecked with the reason each still fails. Every measurement below was executed
+in this session.
+
+### E11-1 — The gate commands
+
+```text
+node scripts/selftest.mjs
+  → Research-Lab self-test: 3042 passed, 0 failed
+  → exit 0
+
+npx playwright test tests/market-brief-cockpit.spec.mjs
+  → 28 passed (12.6s)          (14 tests across 2 browser projects)
+  → exit 0
+
+node scripts/validate-brief-payload.mjs market-brief.payload.json   → exit 0
+node scripts/build-pages-site.mjs                                   → exit 0
+node scripts/validate-brief-cache.mjs                               → exit 0
+node scripts/audit-reader-legibility.mjs                            → exit 0
+  → pages audited: 28   with view tabs: 28   errored: 0   total leaks: 0
+node scripts/pii-scan.mjs                                           → exit 0
+  → [pii-scan] files=8034 messages=1477 findings=0 OK
+
+bash .github/bubbles/scripts/artifact-lint.sh specs/026-actionable-brief-brevity-and-cross-asset
+  → Artifact lint PASSED.
+  → exit 0
+```
+
+The suite moved from the `3019 passed, 0 failed` the previous pass recorded to
+`3042 passed, 0 failed`. The 23 added assertions are the seven previously-absent
+Scope 5 rows and their supports, which is what makes this pass possible at all.
+
+### E11-2 — The seven absent Scope 5 rows now exist
+
+This is the measurement that reverses the previous pass's central finding. The
+previous pass recorded `grep -c` returning **0** for each of rows 5.1, 5.8, 5.9,
+5.12, 5.13, 5.14 and 5.15, and no match anywhere for either canary. Re-measured
+against `scripts/selftest.mjs`:
+
+```text
+TP-026-5.1    count=3        TP-026-5.9    count=2        TP-026-5.14   count=1
+TP-026-5.2    count=3        TP-026-5.10   count=1        TP-026-5.15   count=1
+TP-026-5.3    count=1        TP-026-5.11   count=2
+TP-026-5.4    count=1        TP-026-5.12   count=2        SCN-026-CANARY-05    count=4
+TP-026-5.5    count=1        TP-026-5.13   count=1        SCN-026-CANARY-05B   count=2
+TP-026-5.6    count=1
+TP-026-5.7    count=1
+TP-026-5.8    count=1
+```
+
+All fifteen declared rows are present. A run reporting `0 failed` means each of
+them passed. The two canaries are the ones that mattered most, because Scope 5 is
+the only scope that edits the publication path, and they now name their subjects
+explicitly rather than asserting a property in the abstract:
+
+```text
+Regression: SCN-026-CANARY-05 every pre-existing tier-a.yml step and
+  brief-refresh-and-push.sh invocation survives the added builder call (missing: none)
+    steps asserted: Refresh Tier-A, Evaluate elapsed recommendations,
+                    Rebuild the scorecard, Shard brief history
+    calls asserted: scripts/brief-refresh.mjs, scripts/evaluate-recommendations.mjs,
+                    scripts/build-owner-reads.mjs
+
+Regression: SCN-026-CANARY-05B the Scope 1 through Scope 4 groups stay
+  marker-bounded and green after the closed-loop append (broken: none)
+```
+
+### E11-3 — FR-026-031 is delivered, not merely asserted
+
+The previous pass recorded the memory row's claims block as
+`{ openCount, openedThisRun: null, resolvedThisRun: null }` — two hard `null`
+placeholders — and FR-026-031 as having no implementation. Row 5.1 now carries
+two assertions, and the second is the one that closes it:
+
+```text
+TP-026-5.1 every published claim is recorded with the observation that would
+  resolve it, or the row declares no claims — never a claim with no resolving observation
+
+TP-026-5.1 the memory row reads resolvedThisRun from buildScorecard and declares
+  no second tally of its own
+    pins scripts/brief-refresh.mjs to:  resolvedThisRun = scorecard.resolvedThisRun
+    forbids a second local  satisfied + invalidated  tally
+```
+
+`openedThisRun` remains `null`, and that is a declared contract rather than an
+omission: Tier A writes the memory row before Tier B composes, and the reason is
+recorded in the assertion's own comment.
+
+### E11-4 — The three runbook gaps are closed
+
+The previous pass measured zero occurrences of the change-vocabulary kind names
+and zero occurrences of `collapsed` and `disclosure`, and found §10a actively
+contradicting the shipped wiring. Re-measured over `notes/market-brief.md`
+(938 lines, 4 code fences, balanced):
+
+```text
+levelCrossed   2      collapsed     4
+stateFlipped   2      disclosure    1
+flagRaised     3
+flagCleared    3      "manual CLI"  1 occurrence — and it is the CORRECTION
+baseline       7
+
+§5   Change-detection (the brief's memory)                 line 257
+§9c  Disclosure — what the reader sees before scrolling    line 774
+§10a The two attention surfaces, and why there are two     line 811
+```
+
+**Two of the three are committed; the third is not, and the difference is
+recorded rather than glossed.** Measured against `HEAD`:
+
+```text
+git show HEAD:notes/market-brief.md | grep -c ...
+
+                                                  HEAD   WORKTREE
+levelCrossed                                        0        2     ← §5  UNCOMMITTED
+"Precedence, so one instrument gets one kind"       0        1     ← §5  UNCOMMITTED
+"9c. Disclosure"                                    1        1     ← §9c committed
+"no-collapsed-negative"                             1        1     ← §9c committed
+"no longer a manual CLI"                            1        1     ← §10a committed
+
+git diff --numstat -- notes/market-brief.md   →   17      1
+```
+
+The pending 17-line diff was inspected line by line. It adds exactly the §5
+change vocabulary, the precedence paragraph and the `baseline`-versus-`unchanged`
+paragraph, and nothing else — unambiguously this feature's own Scope 3 content,
+not the concurrent session's work that accounts for the other modified paths in
+the tree. So §5 is delivered documentation awaiting a commit. The Scope 3 DoD
+item's stated verification is "reading the added text and quoting it in
+report.md", which the present text satisfies, so the item is checked with this
+qualification stated on it; the outstanding commit is routed as **R-18** so the
+delivery cannot be lost to a `git checkout`.
+
+The three quotations the DoD items require are recorded inline on each item in
+`scopes.md`. The one that reverses a stated contradiction is §10a:
+`scripts/build-attention-scorecard.mjs` **"is no longer a manual CLI"**, which
+matches the re-counted single invocation in each of the two publication-path
+files.
+
+One defect inside the delivered text is surfaced and routed rather than repaired,
+because this pass's write boundary is `scopes.md` and `report.md` only: §9c's
+summary sentence says "Fourteen blocks, six visible, eight collapsed" while its
+own enumeration lists ten collapsed and the selftest pins the total at sixteen.
+Routed as **R-16**.
+
+### E11-5 — The published values, re-read directly
+
+```text
+market-brief.scorecard.json    windows.all:
+  closed=330   notEvaluable=152   notEvaluableShare=0.4606   resolved=154
+  policy.minResolvedSample=20
+
+market-brief.config.json       scorecard-policy/v1.minResolvedSample=20
+
+market-brief.attention-scorecard.json   overall:
+  closedSample=0   minClosedSample=20   rate=null
+
+grep -c 'build-attention-scorecard.mjs' .github/workflows/tier-a.yml        → 1
+grep -c 'build-attention-scorecard.mjs' scripts/brief-refresh-and-push.sh   → 1
+```
+
+Two observations are recorded because they bear on checked items. First, the
+minimum sample is one declared value carried through to the artifact: config 20,
+published policy 20, no second constant standing between them. Second, the
+`notEvaluableShare` DoD item names "152 of 304" and the observed figure is 152 of
+**330** at 46.06 percent. The item asks that the observed value be recorded
+against that pair, which is done here with the divergence named; the stale
+denominator stays routed as **R-15** rather than being silently adopted.
+
+### E11-6 — The one R-14 row that did NOT close
+
+R-14 named seven absent rows plus a missing per-artifact privacy scan. The seven
+rows are delivered. The privacy scan is not, and it is named here rather than
+swept along with them. Scanned across the whole closed-loop group,
+`scripts/selftest.mjs` lines 23206–23389:
+
+```text
+tokens scanned: position costBasis cost_basis pnl profit credential
+                password secret apiKey  and currency-shaped values
+matching lines in the Scope 5 group: 0
+
+costBasis occurrences elsewhere in the file:
+  line 21986  — Feature 026 Scope 2 group (cross-asset legs)
+  line 22918  — Feature 026 Scope 3 group (change vocabulary)
+```
+
+Scopes 2 and 3 each carry this assertion for their own emitted artifacts; Scope 5
+does not, and Scope 5 is the only scope that publishes a track record whose
+`recentMisses` rows carry per-call price levels. `node scripts/pii-scan.mjs`
+returning `findings=0` across 8,034 files is real and reassuring, but it is a
+different instrument from the per-artifact field-name and currency-shape
+assertion the DoD item names. Checking that box on the repository-wide scan would
+swap weaker evidence for a stronger requirement, so the item stays unchecked.
+
+### E11-7 — Final Definition of Done state
+
+```text
+scopes.md   1383 lines   32 code fences   parity even
+            112 checked   8 unchecked   120 total
+
+Scope 1   checked=26   unchecked=0
+Scope 2   checked=25   unchecked=2
+Scope 3   checked=21   unchecked=2
+Scope 4   checked=23   unchecked=2
+Scope 5   checked=17   unchecked=2
+```
+
+Checked in this pass — 11 items:
+
+| Scope | Item | What closed it |
+| --- | --- | --- |
+| 3 | runbook §5 records the change vocabulary | §5 written; kind names 0 → 2/2/3/3. **Text is uncommitted — see R-18** |
+| 4 | runbook records visible, collapsed and the no-collapsed-negative rule | §9c delivered; `collapsed` 0 → 4 |
+| 5 | every Test Plan row above ran | all 15 rows now exist; suite `0 failed` |
+| 5 | regression coverage rows 5.11–5.15 | 4 missing rows authored, both canaries present |
+| 5 | `notEvaluableShare` published and derived | row 5.8 exists; observed value recorded against the named pair |
+| 5 | one added builder invocation per publication file | row 5.14 exists; counts re-measured at 1 and 1 |
+| 5 | attention rate withheld at `closedSample: 0` | row 5.12 exists, proving the gate load-bearing |
+| 5 | minimum sample read from `scorecard-policy/v1` | row 5.13 exists; config 20 = published 20 |
+| 5 | outcome records appended, none rewritten | row 5.9 exists, asserting the producer's merge shape |
+| 5 | runbook §10a records the automated path | §10a delivered; contradiction repaired |
+| 5 | FR-026-031 … 035 each name a passing row | rows 5.1 and 5.9 exist; 031's producer delivered |
+
+Left unchecked — 8 items, each with the reason it still fails its own stated
+verification:
+
+| Scope | Item | Why it stays unchecked |
+| --- | --- | --- |
+| 2 | no file outside the Allowed file families table changed | `market-brief.config.page.json` is a derived projection the table does not name. **R-7** open; structural fact about a pushed commit |
+| 2 | the appended selftest group removed zero pre-existing lines | observed `775 insertions(+), 3 deletions(-)`; the 3 are named and attributed to spec 024. **R-9** open; required count is 0 |
+| 3 | no file outside the Allowed file families table changed | `brief-history.recent.jsonl` derived (**R-7**) plus 397 lines of foreign Feature 022 content (**R-10**) |
+| 3 | the appended selftest group removed zero pre-existing lines | observed `861 insertions(+), 2 deletions(-)`; both named, both this feature's own. Required count is 0 |
+| 4 | every rendered default-view value carries an in-place explanation | second clause needs a **pairing** count; `28 passed` is a test count, not a pairing count, and no count was emitted or enumerated |
+| 4 | every authored string reaches the DOM through `esc`, no new sink | commit `6b00105c7` added 9 `innerHTML` lines (25 → 34). The guards prove no new *unescaped* sink, which is not what the item literally requires. **R-12** open |
+| 5 | no file outside the Allowed file families table changed | `market-brief.scorecard.json` derived (**R-7**) and `tests/market-brief-cockpit.spec.mjs` assigned to scope 4 only |
+| 5 | no artifact carries a position size, cost basis, profit or credential | the named selftest assertion does not exist; 0 matching lines in the Scope 5 group. **R-14** residual |
+
+Six of the eight are Change Boundary or append-rule bookkeeping plus one
+unrecorded measurement — conditions that are structural facts about pushed
+commits or about plan wording, closable only by amending the plan or rewriting
+history. The eighth is a genuine coverage gap. Not one box was checked to raise
+the count.
 
 ---
 

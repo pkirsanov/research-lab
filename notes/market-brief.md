@@ -310,7 +310,23 @@ stays append-only.
 
 **Change vocabulary (`change-vocabulary/v1`).** What counts as a change is a **closed set** declared in
 `market-brief.config.json`, not free prose. An unrecognised kind is a refusal, never a silent pass-through,
-because a vocabulary that accepts anything cannot support the roll-up balance below.
+because a vocabulary that accepts anything cannot support the roll-up balance below. The five kinds are
+`levelCrossed`, `stateFlipped`, `flagRaised`, `flagCleared` and `baseline`. Each declared flag reuses the
+producer named in `flagProducers` and the vocabulary declares no second producer of its own; a call opening
+is `flagRaised` on `callOpen` and a call closing is `flagCleared` on it, so the set stays closed rather than
+growing an opened/closed pair.
+
+**Precedence, so one instrument gets one kind.** More than one predicate can fire on the same instrument in
+the same run, so the order is declared and deterministic: `levelCrossed` → `stateFlipped` → `flagRaised` →
+`flagCleared`. It deliberately **omits `baseline`**, which is not a predicate at all but the answer to an
+absent prior row.
+
+**`baseline` is not `unchanged`, and the difference is load-bearing.** Calling an instrument the brief has
+never seen before *unchanged* is a false statement about the past — it asserts a comparison that never
+happened. The roll-up therefore counts the two separately, and the balance it asserts is
+`narrative + unchanged + baseline === trackedSet.length`. A historic row missing the new fields projects them
+as `null`, never `{}` and never `0`: `{}` would read as twelve instruments none of them tracked, and `0`
+would read as measured-and-the-answer-was-zero.
 
 **Delta-only publishing, and the roll-up that keeps it honest.** A watchlist item earns a line only when it
 crosses a declared change. An item that did nothing is a **count, never a paragraph** — the failure mode this

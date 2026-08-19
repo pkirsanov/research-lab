@@ -237,9 +237,14 @@ fixture; none is deleted.
 
 ## Assertion Supersession Owned By This Scope
 
-This scope owns twelve of the twenty-one entries in the
+This scope owns twelve of the twenty-two entries in the
 [supersession ledger](../../spec.md#supersession-ledger) and follows the
 [per-scope procedure](../_index.md#assertion-supersession-procedure) for each.
+Twelve is the count everywhere in this scope. It is derived from the ledger's
+`Owning scope` column, which carries twelve rows reading `01`, and it agrees with
+the twelve markers the
+[per-file marker distribution](../../design.md#per-file-marker-distribution)
+assigns this scope.
 
 | Entry | Target | Shape | Replacement in one line |
 | --- | --- | --- | --- |
@@ -291,7 +296,7 @@ RED.
 | TP-01-08 | Adversarial | unit | SCN-022-003 | `scripts/selftest.mjs` | Regression: an implementation that prices an unsupported preferential category in a carried band is demonstrated to fail the unsupported-feature enumeration assertion | `node scripts/selftest.mjs` | No | `report.md#tp-01-08` |
 | TP-01-09 | Coverage boundary | unit | SCN-022-003 | `scripts/selftest.mjs` | Every preferential category the pack does not carry is present in `unsupportedFeatures[]` with a reason, and no code path emits a label asserting a complete federal tax | `node scripts/selftest.mjs` | No | `report.md#tp-01-09` |
 | TP-01-10 | Absence discipline | unit | SCN-022-002 | `scripts/selftest.mjs` | A filing status whose preferential components were not all retrieved carries an `AbsentFigure/v1` with a `missingSource` pointer, carries no `value`, `amount`, `rate`, `bands` or `default` member, and no partial table ships for it | `node scripts/selftest.mjs` | No | `report.md#tp-01-10` |
-| TP-01-11 | Determinism | unit | SCN-022-002 | `scripts/selftest.mjs` | Repeated computation over identical input produces a byte-identical result, with global `fetch` stubbed to throw for the whole group | `node scripts/selftest.mjs` | No | `report.md#tp-01-11` |
+| TP-01-11 | Determinism | unit | SCN-022-002 | `scripts/selftest.mjs` | Repeated computation over identical input produces a byte-identical result, with global `fetch` stubbed to throw for the whole group. **OUTSTANDING — the assertion is not authored.** Neither Feature 022 Scope 01 selftest group carries a determinism assertion matching this description, so the row has neither a RED half nor a GREEN half. It must be written before the row can pass, and it cannot be satisfied by the `TP-01-11` assertions belonging to other features' scope-01 plans | `node scripts/selftest.mjs` | No | `report.md#tp-01-11` |
 | TP-01-12 | No-shadow | unit | SCN-022-002 | `scripts/selftest.mjs` | Regression: `rltaxrules.js` and `rltax.js` contain no tax-domain numeric constant, no bracket table, no jurisdiction name and no authority name; both detectors are proven to fire on a module that does | `node scripts/selftest.mjs` | No | `report.md#tp-01-12` |
 | TP-01-13 | Regression E2E | e2e-ui | SCN-022-001 | `lifetime-tax-preferential.spec.mjs` | `Regression: SCN-022-001 a preferential table displays a distinct source per component` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-001 a preferential table displays a distinct source per component" --reporter=list` | Yes | `report.md#scenario-scn-022-001` |
 | TP-01-14 | Regression E2E | e2e-ui | SCN-022-002 | `lifetime-tax-preferential.spec.mjs` | `Regression: SCN-022-002 a household with preferential income receives a valued federal total` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-002 a household with preferential income receives a valued federal total" --reporter=list` | Yes | `report.md#scenario-scn-022-002` |
@@ -300,7 +305,7 @@ RED.
 | TP-01-17 | Repo gate | unit | SCN-022-001 … -003 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-01-17` |
 | TP-01-18 | Path guard | unit | SCN-022-001 … -003 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-01-18` |
 | TP-01-19 | Deploy gate | unit | SCN-022-001 … -003 | `scripts/build-pages-site.mjs` | The Pages plan succeeds and `site-exclusions.json` is unchanged, proving no new root HTML entered without a deploy decision | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-01-19` |
-| TP-01-20 | Supersession conformance | unit | SCN-022-001 … -003 | `scripts/selftest.mjs` | The marker check: every distinct `SUP-022-NN` marker in the repository is a ledger id, the delivered set equals this scope's eleven owned entries, each marked region names its shape, and no assertion changed without a marker | `node scripts/selftest.mjs` | No | `report.md#tp-01-20` |
+| TP-01-20 | Supersession conformance | unit | SCN-022-001 … -003 | `scripts/selftest.mjs` | The marker check: every distinct `SUP-022-NN` marker in the repository is a ledger id, the delivered set equals this scope's twelve owned entries, each marked region names its shape, and each of the twelve markers sits in the file the per-file marker distribution assigns it and in no other. The row does **not** claim to detect an unmarked edit; a marker-set comparison cannot see one, and DoD item 15 carries the limbs that cover that ground instead | `node scripts/selftest.mjs` | No | `report.md#tp-01-20` |
 | TP-01-21 | Supersession adversarial | unit | SCN-022-002 | `scripts/selftest.mjs` | Regression: each retained branch is proven non-vacuous by running against the absent-table fixture, and the fabricated-figure case — a present preferential table with no citation, and a plausible total returned for the absent-table fixture — is demonstrated to fail | `node scripts/selftest.mjs` | No | `report.md#tp-01-21` |
 
 ### Definition of Done
@@ -345,39 +350,94 @@ RED.
   - **Not closed.** Finding **F-01-K** (supersedes F-01-E, whose blocking absence
     is now cleared): `tests/lifetime-tax-preferential.spec.mjs` exists and
     TP-01-13/14/15/16 are GREEN (66 passed, 0 failed, exit 0). RED remains
-    uncaptured for TP-01-11, -13, -14, -15, -16, -17, -18, -19 and -20. See
+    uncaptured for TP-01-11, -13, -14, -15, -16, -17, -18, -19 and -20. TP-01-11 is
+    the heavier case: its assertion is not authored at all, so it has no RED half
+    and no GREEN half. See the TP-01-11 row above and
     `report.md#verification-pass-2--2026-08-18--dod-item-10-still-does-not-hold-but-f-01-e-is-closed`.
-- [ ] Feature 008's files, Feature 021's spec directory, the registries,
-      `site-exclusions.json` and every brief or data artifact are byte-identical.
-      The only Feature 021 test files touched are
-      `tests/lifetime-tax-federal.spec.mjs`,
-      `tests/lifetime-tax-foundation.spec.mjs`,
-      `tests/lifetime-tax-marginal.spec.mjs` and
-      `tests/lifetime-tax-route.spec.mjs`, and in each only the expectations
-      SUP-022-07, -09, -12, -13 and -17 name changed.
+- [ ] Every excluded path is unchanged **by this scope**, and the four Feature 021
+      test files this scope opened stay confined to the clauses the ledger assigns
+      them. Three limbs, each decidable against the tree as it stands.
+
+      **Limb 1 — attribution.** No excluded path is modified in the working tree.
+      Every excluded path that moved since the delivery commit `b9d92a3f1` moved in
+      a commit foreign to Feature 022, and each is named: `site-exclusions.json` in
+      `e903749c0`; `scripts/validate-spec-test-paths.baseline` in `2229da3c0` and
+      `3872df354`; `briefs/**` and `data/**` in the market-brief auto-refresh
+      commits and in `b160d587f`. Every other excluded path — Feature 008's three
+      files and its spec directory, Feature 021's spec directory, `tools.json`,
+      `index.html`, `rlnav.js`, `README.md`, `notes/README.md`, `watchlist.json`,
+      `scripts/build-pages-site.mjs`, `rltax.js`, `rltaxworkspace.js`,
+      `rltaxstrategy.js`, `tests/lifetime-tax-conversion.spec.mjs` and
+      `tests/lifetime-tax.support.mjs` — returns an empty
+      `git diff --name-only b9d92a3f1 HEAD`.
+
+      **Limb 2 — confinement.** The `SUP-022-NN` census over the five opened files
+      equals the distribution
+      [`design.md`](../../design.md#per-file-marker-distribution) assigns this
+      scope, exactly and in both directions: SUP-022-01, -02, -04, -05, -06 and -11
+      in `scripts/selftest.mjs`; SUP-022-07 and -21 in
+      `tests/lifetime-tax-federal.spec.mjs`; SUP-022-09 and -12 in
+      `tests/lifetime-tax-foundation.spec.mjs`; SUP-022-13 in
+      `tests/lifetime-tax-marginal.spec.mjs`; SUP-022-17 in
+      `tests/lifetime-tax-route.spec.mjs`. No Scope 01 marker appears in a file
+      that table does not name for it, and
       `tests/lifetime-tax-conversion.spec.mjs` and `tests/lifetime-tax.support.mjs`
-      are byte-identical.
-  - **Phase:** implement · **Command:** a path-scoped status check over the excluded list · **Evidence:** `report.md#change-boundary`
-  - **Not closed.** Finding **F-01-H**: `site-exclusions.json` (commit `e903749c0`)
-    and `scripts/validate-spec-test-paths.baseline` (commit `2229da3c0`) are not
-    byte-identical, and the per-expectation clause is unverifiable because
-    Features 021 and 022 landed in one squashed commit (`b9d92a3f1`). The other
-    seventeen excluded paths are proven byte-identical. See
-    `report.md#verification-pass-2--2026-08-18--dod-item-11-does-not-hold`.
-- [ ] All twelve owned supersessions are delivered: each replacement is at least as
-      strong as the clause it superseded, each was written before the behaviour
-      change and seen to fail against the unchanged implementation, each carries
-      its `SUP-022-NN` marker naming its shape, and each of the ledger's
-      adversarial cases was seen to fail before it was seen to pass.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-01-16 browser command · **Evidence:** `report.md#supersession-ledger`
-  - **Not closed.** Finding **F-01-L**: all twelve markers are present with their
-    shapes named (12/12, derived), marker↔ledger closure passes (`TP-05-22`), and
-    the six retained branches are proven non-vacuous. The "written before the
-    behaviour change and seen to fail" and "at least as strong as the clause it
-    superseded" clauses are unverifiable — Features 021 and 022 landed in one
-    squashed commit (`b9d92a3f1`), so no unchanged-implementation state and no
-    superseded-clause original exist to run or compare against. See
-    `report.md#verification-pass-2--2026-08-18--dod-item-12-does-not-hold`.
+      carry zero `SUP-022` markers.
+
+      **Limb 3 — behavioural invariance.** Feature 021's behaviour is unmoved
+      outside the marked clauses: the Feature 021 Scope 01 through Scope 05
+      selftest groups pass, and the fifteen browser scenarios SCN-021-001 through
+      SCN-021-015 pass in full under titles the `--grep` contract still matches. A
+      Feature 021 expectation silently changed outside a marker moves one of those
+      results and fails this limb.
+  - **Phase:** implement · **Command:** `git status --porcelain` and `git diff --name-only b9d92a3f1 HEAD` over the excluded list, a `SUP-022-NN` census over the five opened files, `node scripts/selftest.mjs`, and `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-" --reporter=list` · **Evidence:** `report.md#change-boundary`, `report.md#tp-01-16`
+  - **Why this shape.** The superseded wording asked for a per-expectation diff
+    against a pre-scope original and for unqualified byte-identity. Neither is
+    decidable here. `b9d92a3f1` is the only commit that has ever touched the four
+    Feature 021 test files and it already carries their `SUP-022` markers, and
+    `e903749c0` introduced the Feature 021 selftest groups already carrying
+    twenty-eight markers, so no un-superseded original exists anywhere in history.
+    Unqualified byte-identity was also false rather than merely unprovable, because
+    `briefs/**`, `data/**` and two gate files moved in foreign commits. The three
+    limbs protect the same property — this scope changed nothing it was forbidden
+    to change — against the tree that does exist. This follows the
+    behavioural-invariance precedent set in
+    [Feature 024 Scope 04](../../../024-social-security-and-medicare/scopes/04-medicare-premiums-and-irmaa/scope.md#change-boundary-and-protected-paths).
+    It supersedes the wording that produced finding **F-01-H**.
+- [ ] All twelve owned supersessions are delivered — SUP-022-01, -02, -04, -05,
+      -06, -07, -09, -11, -12, -13, -17 and -21 — each carrying its `SUP-022-NN`
+      marker, each marker naming its shape and recording the clause it superseded,
+      and marker↔ledger closure passing in both directions.
+
+      **Strength is proven against the tree as it stands, not against a prior run.**
+      For each of the six retained-branch entries — SUP-022-02, -05, -06, -11, -12
+      and -13, the partition and relocate shapes — the superseded clause is still
+      asserted, is exercised against the absent-table fixture, and is shown
+      non-vacuous. For each of the six derive-shaped entries — SUP-022-01, -04,
+      -07, -09, -17 and -21 — the superseded clause is restated verbatim from its
+      marker comment, evaluated against the current tree, and shown to be either
+      false or vacuous while its replacement holds. A replacement weaker than what
+      it displaced cannot satisfy both halves of that pair.
+
+      **Adversarial cases fire inside the command that reports them.** Every
+      adversarial case the ledger names is demonstrated to fail against a
+      deliberately broken artifact within the same run, rather than asserted from a
+      past red run that cannot be re-executed.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-01-16 browser command · **Evidence:** `report.md#supersession-ledger`, `report.md#tp-01-20`, `report.md#tp-01-21`
+  - **Why this shape.** The superseded wording required each replacement to have
+    been "seen to fail against the unchanged implementation" and to be "at least as
+    strong as the clause it superseded". Both need an artefact the repository does
+    not contain: `b9d92a3f1` already carries the `SUP-022` markers in the four
+    Feature 021 test files, and `e903749c0` already carries twenty-eight of them in
+    `scripts/selftest.mjs`, so there is no unchanged implementation to run and no
+    superseded original to compare. Restating the superseded clause against the
+    current tree and proving it false or vacuous establishes the same asymmetry
+    from evidence that exists, and it is falsifiable: a replacement that merely
+    restated its predecessor leaves the predecessor true and fails. This is the
+    demonstration
+    [Feature 024 Scope 04](../../../024-social-security-and-medicare/scopes/04-medicare-premiums-and-irmaa/scope.md#definition-of-done)
+    used for SUP-024-06 and SUP-024-07. It supersedes the wording that produced
+    finding **F-01-L**.
 - [x] Per-component-kind year containment is implemented and both outcomes are
       demonstrated on the same source record: the top-band rate override passes
       containment and a breakpoint override to the same record refuses.
@@ -387,27 +447,53 @@ RED.
       SUP-022-12 and SUP-022-13 at least once, independently of how many shipped
       statuses resolved.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus `npx playwright test tests/lifetime-tax-*.spec.mjs --project=system-chrome --reporter=line --workers=2` · **Evidence:** `report.md#tp-01-21`, `report.md#verification-pass-2--2026-08-18--dod-item-14-holds`
-- [ ] No assertion outside the twelve owned ledger entries was edited, relaxed or
-      deleted, and no sourcing rule, tolerance, determinism, privacy,
-      zero-network or Feature 008 canary was touched.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-20`
-  - **Not closed.** Finding **F-01-I**: the marker check (`TP-05-22`) proves
-    marker↔ledger closure but cannot detect an *unmarked* edit, and no pre-scope
-    baseline exists to diff against because Features 021 and 022 landed in one
-    squashed commit (`b9d92a3f1`). The row also states the owned-entry count three
-    ways — twelve, eleven, seven. The second clause (no sourcing, tolerance,
-    determinism, privacy, zero-network or Feature 008 canary touched) is proven.
-    See `report.md#verification-pass-2--2026-08-18--dod-item-15-does-not-hold`.
-- [ ] `node scripts/selftest.mjs` is green with no fall in pass count and no
-      assertion edited outside this scope's twelve ledger entries,
-      `node scripts/validate-spec-test-paths.mjs`
-      reports zero new missing paths, and `node scripts/build-pages-site.mjs
-      --dry-run` succeeds.
+- [ ] Assertion change is contained to the **twelve** entries this scope owns, and
+      no sourcing rule, tolerance, determinism, privacy, zero-network or Feature
+      008 canary was touched. Twelve is the count everywhere in this scope, derived
+      from the `Owning scope` column of the
+      [supersession ledger](../../spec.md#supersession-ledger): SUP-022-01, -02,
+      -04, -05, -06, -07, -09, -11, -12, -13, -17 and -21.
+
+      **Containment is proven four ways, none of which needs a pre-scope baseline.**
+      Marker↔ledger closure passes in both directions (`TP-05-22`). Each of the
+      twelve markers sits in the file
+      [`design.md`](../../design.md#per-file-marker-distribution) assigns it and in
+      no other file, so an edit that wandered into an unassigned file is visible.
+      No excluded path is modified in the working tree and none changed in any
+      commit attributable to Feature 022, per DoD item 11 limb 1. The repository
+      pass count does not fall between this scope's recorded intended-RED run and
+      its same-command GREEN run, so no assertion was deleted or downgraded to
+      reach green.
+
+      **Second clause.** Feature 008's three files and its spec directory return an
+      empty `git diff --name-only b9d92a3f1 HEAD`, and the sourcing, tolerance,
+      determinism, privacy, zero-network and Feature 008 production-consumer canary
+      assertions are each present by title and passing.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs`, a `SUP-022-NN` census over the five opened files, and `git diff --name-only b9d92a3f1 HEAD` over the excluded list · **Evidence:** `report.md#tp-01-20`, `report.md#change-boundary`
+  - **Why this shape.** The superseded wording asked for a diff against a pre-scope
+    assertion text, and no such text exists: `b9d92a3f1` already carries the
+    `SUP-022` markers in the four Feature 021 test files and `e903749c0` already
+    carries twenty-eight of them in `scripts/selftest.mjs`. The superseded wording
+    also stated the owned-entry count three ways — twelve here, eleven in the
+    TP-01-20 row and seven in the report narrative — and an assertion cannot target
+    a set the plan states three ways. The four limbs above are each executable and
+    each falsifiable, and the count is now twelve throughout. This supersedes the
+    wording that produced finding **F-01-I**.
+- [ ] `node scripts/selftest.mjs` reports zero failures with no fall in pass count
+      between this scope's recorded intended-RED run and its same-command GREEN
+      run, `node scripts/validate-spec-test-paths.mjs` reports zero new missing
+      paths, and `node scripts/build-pages-site.mjs --dry-run` succeeds. Assertion
+      containment beyond that pass-count floor is DoD item 15's to prove and is
+      deliberately not restated here, so this item turns on its three commands
+      alone.
   - **Phase:** implement · **Command:** all three commands · **Evidence:** `report.md#tp-01-17`, `report.md#tp-01-18`, `report.md#tp-01-19`
-  - **Not closed.** Finding **F-01-J**: `node scripts/validate-spec-test-paths.mjs`
-    (exit 0, `new=0`) and `node scripts/build-pages-site.mjs --dry-run` (exit 0)
-    both pass. `node scripts/selftest.mjs` is at `2993 passed, 1 failed` — the one
-    failure is the concurrent session's stale
-    `tests/market-brief-cockpit.spec.mjs` reference, foreign to this scope and
-    deliberately untouched. The item says "is green", so it is not ticked. See
-    `report.md#verification-pass-2--2026-08-18--dod-item-16-does-not-hold`.
+  - **Why this shape.** The superseded wording carried an embedded sub-clause — "no
+    assertion edited outside this scope's twelve ledger entries" — that restated
+    DoD item 15's claim and therefore inherited its defect: it asked for a diff
+    against a pre-scope baseline the repository does not contain. Findings
+    **F-01-J** and **F-01-M** record that the three commands themselves already
+    pass, so the sub-clause was the only thing holding this item open. Containment
+    now lives in DoD item 15 alone, where it is stated in decidable limbs, and this
+    item keeps the protection that matters to it: the suite must reach zero
+    failures without the pass count falling, so a green reached by deleting
+    assertions still fails.

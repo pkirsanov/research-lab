@@ -21657,11 +21657,28 @@ try {
   const bars26 = { TLT: rows26(80, 0.5), USO: rows26(80, -0.25) };
   const { buildCrossAssetReadings: buildCrossAsset26 } = await import('./brief-refresh.mjs');
 
-  /* The two owner reads this scope CARRIES rather than re-derives, in the shape the committed
-     payload actually publishes them in. */
+  /* The two owner reads this scope CARRIES rather than re-derives. These are FIXTURES, not the
+     live payload. market-brief.payload.json is regenerated four times a day and a tool read is
+     legitimately `null` on a run that could not resolve it, so binding the fixture to it made
+     the suite fail on ordinary published data instead of on a defect — which is exactly what
+     happened on the 2026-08-18 run. The shapes below are the real published contract, taken
+     verbatim from a run that carried both. A tolerant assertion further down re-checks the LIVE
+     payload against this shape and accepts `null` as the other valid state. */
   const committedPayload26c = JSON.parse(read('market-brief.payload.json'));
-  const fxRead26 = committedPayload26c.toolReads['fx-regime-relative-value-lab'];
-  const bondRead26 = committedPayload26c.toolReads['bond-regime-lab'];
+  const fxRead26 = {
+    read: 'The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.',
+    deepLink: 'fx-regime-relative-value-lab.html#power'
+  };
+  const bondRead26 = {
+    deepLink: 'bond-regime-lab.html#simple',
+    metrics: {
+      readablePairs: [
+        { asOf: '2026-08-17', direction: 'strengthening', pairId: 'jnk-lqd', purity: 'clean' },
+        { asOf: '2026-08-17', direction: 'strengthening', pairId: 'hyg-lqd', purity: 'clean' }
+      ],
+      evidenceGaps: ['an independent credit-spread reading']
+    }
+  };
   const scoringDrivers26 = { uup63: -1.5, tlt63: 3.75, tip63: 0.5, qqq63: 8, xle63: 2, xli63: 1, gld63: 6, btc63: 12, dbc63: 1.5, goldSilverRatio63: -2, breadth: 55 };
 
   const measureRun26 = async (overrides) => buildCrossAsset26({
@@ -21985,6 +22002,21 @@ try {
     && validateBriefPayload(committedPayload26c, registry26c, config26b, snapshot26c, agenda26c, page26c).length === 0
     && sitePlan26c.rootFiles.indexOf('rlcockpit.js') >= 0,
   'Regression: SCN-026-CANARY-02 the Scope 1 budget group and every pre-existing assertion stay green after the cross-asset append');
+
+  /* The carried-read fixtures above are pinned so a four-times-a-day republish cannot fail this
+     suite. This is the other half of that bargain: the LIVE payload must still be one of the two
+     states the fixtures model — carrying the contract shape, or `null` because the owner could
+     not resolve the read. Anything else is real drift and should fail here rather than pass
+     silently against a stale fixture. */
+  const liveBond26 = committedPayload26c.toolReads?.['bond-regime-lab'];
+  const liveFx26 = committedPayload26c.toolReads?.['fx-regime-relative-value-lab'];
+  const bondShapeOk26 = liveBond26 == null || liveBond26.metrics == null
+    || (Array.isArray(liveBond26.metrics.readablePairs)
+      && liveBond26.metrics.readablePairs.every((pair) => typeof pair.pairId === 'string' && typeof pair.asOf === 'string'
+        && typeof pair.direction === 'string' && typeof pair.purity === 'string'));
+  const fxShapeOk26 = liveFx26 == null || typeof liveFx26.read === 'string';
+  assert(bondShapeOk26 && fxShapeOk26,
+  'the live payload\'s carried bond and FX reads are either absent, unresolved, or in the pinned contract shape — never a third shape the fixtures do not model');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 026 cross-asset legs group threw): ' + e.message); }
 /* ---------- Feature 026 Scope 2: rlcockpit.js — cross-asset legs (END) ---------- */
 

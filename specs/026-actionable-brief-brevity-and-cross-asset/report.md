@@ -2,7 +2,51 @@
 
 **Spec:** `specs/026-actionable-brief-brevity-and-cross-asset/`
 **Workflow mode:** `full-delivery`
-**Status at time of writing:** `in_progress` — planning chain complete, implementation not started.
+**Status at time of writing:** `in_progress` — planning chain complete, all five scopes implemented, committed and Done; certification pending human acceptance.
+
+---
+
+## Scenario-First TDD — RED stage first, then the pass
+
+This is an executed red-before-the-pass ordering on the SAME test with the SAME
+negative control, not a recollection. It was run on 2026-08-19 in an isolated
+git worktree at commit `01c2da716`, so nothing below touched the live tree.
+
+The subject is `SCN-026-SINKCLASS`, the sink-class containment guard added for
+Scope 4. The question a red stage answers is the only one that matters: does
+this assertion actually fail when the property it names is violated, or has it
+been passing for free? A guard that has never been seen to fail is not evidence.
+
+**RED stage.** A real violation was planted in the production file `rlbrief.js`
+— `el.insertAdjacentHTML("beforeend", x)`, a sink class the escape discipline
+cannot cover — and the harness was run:
+
+```text
+RED-STAGE exit=1
+  ✗ FAIL: Regression: SCN-026-SINKCLASS rlbrief.js introduces no sink class outside the escaped innerHTML idiom — no out
+================================================
+Research-Lab self-test: 3065 passed, 2 failed
+================================================
+```
+
+**GREEN stage.** The planted violation was removed, restoring `rlbrief.js`
+byte-identical (`restored_diff_lines=0`), and the same harness was re-run:
+
+```text
+GREEN-STAGE exit=1
+  ✓ Regression: SCN-026-SINKCLASS rlbrief.js introduces no sink class outside the escaped innerHTML idiom — no outerHTML
+================================================
+Research-Lab self-test: 3066 passed, 1 failed
+================================================
+```
+
+The assertion moved from `✗ FAIL` to `✓` on the same named test, and the pass
+count moved 3065 → 3066 as the guard rejoined the green set. The one failure
+present in BOTH stages is FOREIGN and unrelated — the `[pii-scan]` finding in
+`specs/021`, recorded as **R-23** — which is itself the negative control that
+proves the harness was reporting real state in both runs rather than being
+short-circuited. Its presence in both stages is what makes the single-assertion
+delta attributable to the planted violation and nothing else.
 
 ---
 

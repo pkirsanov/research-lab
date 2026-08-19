@@ -1520,15 +1520,142 @@ The whole-repository suite, with the pre-existing pass count recorded before and
 after the appended group.
 Command: `node scripts/selftest.mjs`
 
+#### Verification pass 3 — 2026-08-19 — TP-01-17 GREEN half captured; RED half still outstanding
+
+**Claim Source:** executed. **Outcome: the GREEN half now holds. The row is still
+incomplete because its intended-RED half was not captured in this pass.**
+
+The suite is green and the pass count has risen, not fallen, against the 2993
+recorded in verification pass 2:
+
+```
+$ node scripts/selftest.mjs; echo "exit=$?"
+Research-Lab self-test: 3042 passed, 0 failed
+exit=0
+```
+
+The single foreign failure recorded in verification pass 2 — the concurrent
+session's stale `market-brief-cockpit` spec reference — is resolved upstream and
+no longer present. This scope changed nothing to achieve that.
+
+**RED not captured, and why.** The intended-RED mutation for this row has to make
+the whole-repository suite fail, which means perturbing `scripts/selftest.mjs` or
+a lifetime-tax spec — both shared with a concurrent session that runs the same
+suite. A perturbation held across a multi-minute suite run would surface in that
+session as an unattributable failure. The row is therefore left without its RED
+half rather than probed unsafely. This is a deliberate omission, not an oversight,
+and it is one of the seven rows still named under finding **F-01-K** below.
+
 ### TP-01-18
 
 Zero new missing spec-referenced test paths, with the baseline file unmodified.
 Command: `node scripts/validate-spec-test-paths.mjs`
 
+#### Verification pass 3 — 2026-08-19 — TP-01-18 intended RED and same-command GREEN
+
+**Claim Source:** executed. **Outcome: TP-01-18 now carries both halves.**
+
+Intended RED. The guard's whole purpose is to catch a spec artifact that names a
+test path which does not exist, so the mutation is a single bogus reference added
+to this scope's own `report.md` — the one artifact this agent owns. No test,
+module, pack or registry file was touched.
+
+```
+$ node scripts/validate-spec-test-paths.mjs; echo "exit=$?"
+[spec-test-paths] scanned=670 references=14766 distinctPaths=244 missingPaths=67 baseline=66 new=1 stale=0
+  NEW-MISSING <repo>/tests/rl-tp0118-intended-red-probe.spec.mjs (1 reference site(s))
+      referenced at specs/022-federal-preferential-and-state-income-tax/scopes/01-federal-preferential-rate-completion/report.md:1528
+[spec-test-paths] FAIL — 1 new referenced path(s) do not exist
+exit=1
+```
+
+The guard names the offending path, the reference site and the line, and fails
+with a non-zero exit. It is therefore sensitive to exactly the condition the row
+claims it detects.
+
+**One transcription change, declared.** The captured path is reproduced above with
+a `<repo>/` prefix that the guard did not print. Without it this evidence block
+would itself be a live spec reference to a file that does not exist, and the guard
+would fail on the report that records its own RED capture — which is the same
+defect the probe was built to demonstrate. Nothing else in the block is altered.
+
+Same-command GREEN, after the probe line was reverted (revert performed before
+any other step, and a repository-wide scan for the probe marker returns nothing):
+
+```
+$ node scripts/validate-spec-test-paths.mjs; echo "exit=$?"
+[spec-test-paths] scanned=670 references=14765 distinctPaths=243 missingPaths=66 baseline=66 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+exit=0
+```
+
+`distinctPaths` returns to 243, `missingPaths` to 66 and `new` to 0. The
+`references` total reads 14765 against 14764 at the start of this session; the
+delta is a concurrently-edited Feature 025/026 artifact outside this scope, and
+it moves neither `distinctPaths`, `missingPaths` nor `new`.
+`scripts/validate-spec-test-paths.baseline` was not modified at any point.
+
+**Negative control.** The perturbation is the bogus path reference; removing it
+is what turns the command from exit 1 back to exit 0, so the GREEN result is
+demonstrably caused by the absence of the defect rather than by the guard being
+insensitive.
+
 ### TP-01-19
 
 The Pages plan succeeds and `site-exclusions.json` is unchanged.
 Command: `node scripts/build-pages-site.mjs --dry-run`
+
+#### Verification pass 3 — 2026-08-19 — TP-01-19 intended RED and same-command GREEN
+
+**Claim Source:** executed. **Outcome: TP-01-19 now carries both halves.**
+
+Intended RED. The row's claim is that the gate proves no new root HTML entered
+without a deploy decision, so the mutation is one temporary unregistered root
+HTML file. Nothing was added to `tools.json`, `index.html`, `rlnav.js` or
+`site-exclusions.json` — the point of the probe is precisely that the file has no
+deploy decision anywhere.
+
+```
+$ node scripts/build-pages-site.mjs --dry-run; echo "exit=$?"
+file://<repo>/scripts/build-pages-site.mjs:24
+  if (!condition) throw new Error(message);
+                        ^
+
+Error: unregistered root page lacks a deploy decision: rl-tp0119-red-probe.html
+    at assert (file://<repo>/scripts/build-pages-site.mjs:24:25)
+exit=1
+```
+
+The gate names the offending root page and refuses with a non-zero exit rather
+than silently packaging it. It is therefore sensitive to exactly the condition
+the row claims it detects.
+
+**One transcription change, declared.** The two `file://` lines above printed an
+absolute path beginning with this machine's home directory. That path is an
+operator identifier, and the repository's `pii-scan` assertion fails on it, so it
+is rendered here as `<repo>`. No other character of the captured output is
+altered, and the assertion message, the offending page name and the exit code are
+verbatim.
+
+Same-command GREEN, after the probe file was deleted (deletion performed in the
+same command as the RED capture, before any other step; `ls` confirms the path is
+gone):
+
+```
+$ node scripts/build-pages-site.mjs --dry-run; echo "exit=$?"
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":120,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/389a899499094a4f484a06ecc8903aa584524c3cf83b902f403a8d00f5a62cbe","omittedOrphanIndexes":143}
+exit=0
+```
+
+`registeredPages` returns to 28 and `excludedPaths` to 12, both unchanged from
+the pre-probe reading. `site-exclusions.json` was not modified at any point in
+this pass — the RED was produced by adding an undeclared page, not by editing the
+exclusion list.
+
+**Negative control.** The perturbation is the unregistered root HTML file;
+deleting it is what turns the command from exit 1 back to exit 0, so the GREEN
+result is caused by the absence of the defect rather than by the gate being
+insensitive.
 
 #### Verification pass 2 — 2026-08-18 — DoD item 16 does NOT hold
 
@@ -1602,6 +1729,65 @@ It closes as soon as the concurrent session's stale
 `tests/market-brief-cockpit.spec.mjs` reference is resolved — either the spec file
 lands or the reference is corrected — provided finding F-01-I is also settled.
 Neither is this scope's to perform.
+
+#### Verification pass 3 — 2026-08-19 — DoD item 16: all three commands now pass, but the item still does NOT hold
+
+**Claim Source:** executed. **Outcome: the item stays `[ ]`. Its command half is
+now fully satisfied; its non-command sub-clause remains unverifiable.**
+
+All three of the item's commands pass in this pass:
+
+```
+$ node scripts/selftest.mjs; echo "exit=$?"
+Research-Lab self-test: 3042 passed, 0 failed
+exit=0
+
+$ node scripts/validate-spec-test-paths.mjs; echo "exit=$?"
+[spec-test-paths] scanned=670 references=14765 distinctPaths=243 missingPaths=66 baseline=66 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+exit=0
+
+$ node scripts/build-pages-site.mjs --dry-run; echo "exit=$?"
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":120,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/389a899499094a4f484a06ecc8903aa584524c3cf83b902f403a8d00f5a62cbe","omittedOrphanIndexes":143}
+exit=0
+```
+
+The blocking condition recorded as **F-01-J** is cleared: the suite is green, the
+pass count rose from 2993 to 3042 rather than falling, the five stale baseline
+entries are gone and `new` is still 0, and the deploy plan succeeds. The
+`market-brief-cockpit` reference that was red in verification pass 2 was resolved
+upstream by the session that owns it; this scope changed nothing to achieve it.
+
+**Why the item still does not hold.** The item's wording is not only a list of
+three commands. It also requires "no assertion edited outside this scope's twelve
+ledger entries". That sub-clause is the same claim as DoD item 15 and carries the
+same defect, recorded as finding **F-01-I**: Features 021 and 022 landed in one
+squashed commit (`b9d92a3f1`), so there is no pre-scope state to diff against. Re-checked
+directly in this pass rather than taken on trust:
+
+```
+$ git log --oneline -- 'tests/lifetime-tax-*.spec.mjs'
+5920d9ede test(021): close preferential coverage holes for MFJ/MFS/HoH
+b9d92a3f1 Add Lifetime Tax Strategy Lab: federal, state, property, rental and retirement slices
+
+$ git cat-file -e b9d92a3f1^:tests/lifetime-tax-federal.spec.mjs; echo $?
+fatal: path 'tests/lifetime-tax-federal.spec.mjs' exists on disk, but not in 'b9d92a3f1^'
+DID_NOT_EXIST
+```
+
+The lifetime-tax spec files did not exist before `b9d92a3f1`, so every assertion
+in them was created inside the same commit that changed the behaviour. There is
+no unchanged-implementation state and no superseded-clause original to diff or to
+run against. Ticking the item would assert an unproven claim, so it stays `[ ]`.
+
+**Finding F-01-J is superseded by F-01-M.** The command half of DoD item 16 is
+satisfied and is expected to stay satisfied. The item is now blocked solely by
+F-01-I, which is a requirement-text problem rather than a test problem: the clause
+asks for a diff against a baseline the repository does not contain. Resolving it
+is `bubbles.plan`'s to do — either by narrowing the clause to what the marker
+check (`TP-05-22`) can actually prove, or by recording the missing baseline as an
+accepted, permanently unverifiable condition. It is not this agent's to
+paper over.
 
 No file was mutated during this verification; every step was read-only.
 
@@ -1966,6 +2152,44 @@ verification.
 
 No file was mutated during this verification; every step was read-only.
 
+#### Verification pass 3 — 2026-08-19 — DoD item 10: two of the nine RED rows captured; item still does NOT hold
+
+**Claim Source:** executed. **Outcome: the item stays `[ ]`. The outstanding RED
+list shrinks from nine rows to seven.**
+
+Two of the nine rows named under F-01-K now carry an intended-RED capture with a
+same-command GREEN re-run and a stated negative control:
+
+| Row | Intended-RED mutation | RED result | GREEN after revert | Evidence |
+|---|---|---|---|---|
+| TP-01-18 | one bogus spec-referenced test path added to this scope's own `report.md` | exit 1, `new=1`, offending path and reference site named | exit 0, `new=0`, `distinctPaths` back to 243 | `report.md#tp-01-18` || TP-01-19 | one temporary unregistered root HTML page, declared nowhere | exit 1, `unregistered root page lacks a deploy decision` | exit 0, `registeredPages` 28, `excludedPaths` 12 | `report.md#tp-01-19` |
+
+Both probes were reverted in the same step that captured the RED, before any
+other work. A repository-wide scan for the TP-01-18 probe marker returns nothing,
+and `ls` confirms the TP-01-19 probe file is gone. Neither probe touched a
+module, a rule pack, a test file, a registry or `site-exclusions.json` — each was
+confined to an artifact this agent owns or to a file it created and deleted.
+
+**F-01-K is narrowed, not closed.** RED remains uncaptured for seven rows:
+TP-01-11, -13, -14, -15, -16, -17 and -20. Every one of them has to be driven red
+through `scripts/selftest.mjs` or through the lifetime-tax browser specs, and both
+of those surfaces are shared with a concurrent session that runs the same suite.
+Holding a perturbation in a shared file across a multi-minute suite run would
+surface there as an unattributable failure, and an abandoned probe in a sourced
+tax pack is the specific accident this programme has already had once. The seven
+rows are therefore left uncaptured deliberately rather than probed unsafely; they
+need a window in which this scope's test surfaces are not shared.
+
+A further defect, independent of the probes: TP-01-11 has no recorded assertion at
+all. Its `report.md` section carries only a scenario restatement and a command,
+and no determinism assertion matching its description — "repeated computation over
+identical input produces a byte-identical result, with global `fetch` stubbed to
+throw for the whole group" — was located in the Feature 022 Scope 01 groups of
+`scripts/selftest.mjs`. Until that assertion is shown to exist, TP-01-11 has no
+GREEN half either, so no mutation can give it a meaningful RED. That is a Test
+Plan defect for `bubbles.plan` and `bubbles.implement`, not something this pass
+can close by probing.
+
 ## Supersession Ledger
 
 Filled at execution. One block per owned entry — SUP-022-01, -02, -04, -05, -06,
@@ -2316,11 +2540,11 @@ verification step in this pass was read-only, so no probe needed reverting.
 | 8 | No module holds a tax-domain constant, table, jurisdiction or authority name | `[ ]` | **`[x]`** |
 | 13 | Per-component-kind year containment, both outcomes on one record | `[ ]` | **`[x]`** |
 | 14 | Every retained branch non-vacuous against the absent-table fixture | `[ ]` | **`[x]`** |
-| 10 | RED and GREEN for every Test Plan row | `[ ]` | `[ ]` — F-01-K (F-01-E closed; RED outstanding on 9 rows) |
+| 10 | RED and GREEN for every Test Plan row | `[ ]` | `[ ]` — F-01-K narrowed (F-01-E closed; TP-01-18 and TP-01-19 RED captured; RED outstanding on 7 rows; TP-01-11 has no assertion) |
 | 11 | Excluded paths byte-identical | `[ ]` | `[ ]` — F-01-H |
 | 12 | All twelve owned supersessions delivered | `[ ]` | `[ ]` — F-01-L |
 | 15 | No assertion edited outside the owned entries | `[ ]` | `[ ]` — F-01-I |
-| 16 | Three repo gates green | `[ ]` | `[ ]` — F-01-J |
+| 16 | Three repo gates green | `[ ]` | `[ ]` — F-01-M (all three commands now pass; blocked solely by the F-01-I sub-clause) |
 
 Scope 01 Definition of Done: **11 of 16 closed** (7 before this pass, 4 closed by
 it). Five remain open, each with a named finding and a stated reason; none was

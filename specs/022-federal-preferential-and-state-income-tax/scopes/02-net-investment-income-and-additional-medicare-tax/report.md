@@ -1237,6 +1237,137 @@ zero lifetime figures, zero track records and zero error rates across `rltax.js`
 `rltaxrules.js`, `rltaxworkspace.js`, `tax-rules/federal/2026.json`,
 `lifetime-tax-strategy-lab.html` and the appended selftest group.
 
+### Verification pass — 2026-08-20 (third) — SUP-022-19's narrowed clause is buildable and was built, but delivering it turns Scope 05's TP-05-22 red; all three items stay `[ ]` (finding F-02-D)
+
+**Claim Source:** executed. **Outcome: all three open items stay `[ ]`.** The
+correction `bubbles.plan` recorded at `63fbf797b` for finding **F-02-C** is sound as
+far as it goes — SUP-022-19's surviving clause is real, buildable work, and it was
+built and proven here before being reverted. What the correction did not carry is the
+consequence that delivering it has for a later scope's already-green assertion, which
+is a planning decision this agent may not take on its own.
+
+**The narrowed clause was delivered and proven, then reverted.** The positional
+`links.nth(3)` focus expectation is the last ordinal selection of a withheld-detail
+link anywhere in the suite; every other caller — the rental, retirement-route and
+state specs — already selects by `data-power-section`. The replacement selects the
+bracket-detail link by the target it declares, pins that the declaration is
+unambiguous for that target, and derives the focus expectation from the clicked
+link's own attribute instead of a literal.
+
+*Intended RED.* The bracket-detail row's declared section was retargeted in the page
+— a value-free markup change, no household figure anywhere near it — and the row
+failed on the new assertion:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome --grep "SCN-021-013 Simple opens first" --reporter=list
+    > 109 |   await expect(bracketDetailLink).toHaveCount(1);
+          |                                   ^
+      - waiting for locator('#powerLinkRows button[data-power-section="power-bracket-detail"]')
+        14 × locator resolved to 0 elements
+           - unexpected value "0"
+  1 failed
+    [system-chrome] › <repo>/tests/lifetime-tax-route.spec.mjs:37:1 › Regression: SCN-021-013 ...
+```
+
+*Same-command GREEN.* The probe was reverted inside the same shell invocation that
+applied it, and the identical command was re-run:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome --grep "SCN-021-013 Simple opens first" --reporter=list
+  ✓  1 [system-chrome] › <repo>/tests/lifetime-tax-route.spec.mjs:37:1 › Regression: SCN-021-013 ... (1.1s)
+  1 passed (3.3s)
+```
+
+*Control proving the replacement is stronger, not merely different.* A RED alone does
+not earn the word "supersedes" — the superseded ordinal would also have failed the
+retarget above. The mutation that separates them is the one the page's own source
+comment says the product must avoid: *"Appended rather than inserted: a prior
+feature's browser row follows a link by position, so an inserted row would silently
+retarget it."* A row was inserted ahead of the bracket-detail row and both forms were
+run against it:
+
+```
+A. replacement, row inserted ahead   → 1 passed (879ms)
+B. superseded ordinal, same insertion → 1 failed
+```
+
+The replacement survives; the ordinal does not. That is the constraint the narrowed
+clause removes — a test dictating the order of a production array — and it is why the
+clause is a strengthening rather than a rewrite.
+
+**Finding F-02-D — the blocker the correction did not foresee.** With the marker
+delivered, `node scripts/selftest.mjs` fell from 3155 passed / 0 failed to **3154
+passed / 1 failed**:
+
+```
+  ✗ FAIL: TP-05-22: every SUP-022 marker delivered in the source maps to a ledger row,
+    every ledger row except the two pre-existing unmarked Scope 02 rows named here is
+    delivered, the ids stay inside the declared range, and the ledger total agrees with
+    the paragraph that states it
+```
+
+Scope 05's TP-05-22 pins the tolerated gap as an exact list of **two** ids, assembled
+from parts so the scanner does not count them as delivered, and compares it with
+`JSON.stringify` — deliberately, so that "a third undelivered marker, or a delivered
+marker with no ledger row, fails immediately". Delivering SUP-022-19 shrinks the real
+gap to one id and the pinned equality no longer holds. The remedy is a one-line
+tightening of that literal from two tolerated gaps to one, which is strictly stronger
+than what stands today.
+
+**Why this agent did not take it.** The remedy edits an assertion that belongs to
+Scope 05, and the very DoD item it would unblock reads *"No assertion outside this
+scope's ledger entries and amendments was edited, relaxed or deleted."* Feature 022
+already has a shape for this — Scope 02 amends Scope 01's SUP-022-04 and SUP-022-09
+replacements, and the ledger records it in an `Amending scope` column so an auditor is
+not surprised by a second edit to the same line. No such amendment exists for
+TP-05-22. Editing it anyway would close one item by silently breaching another, which
+is the trade this item exists to refuse. The delivery was therefore reverted:
+`tests/lifetime-tax-route.spec.mjs` is byte-identical to `569f7899c`, the live
+`links.nth(3)` call is back, no `SUP-022-19` marker exists anywhere, no page or
+fixture is dirty, and `node scripts/selftest.mjs` is back to **3155 passed, 0 failed**.
+
+**What would make this decidable.** Either (a) `bubbles.plan` records an amendment
+authorising SUP-022-19's delivery to tighten Scope 05's TP-05-22 tolerated-gap list
+from `{18, 19}` to `{18}`, with the `Amending scope` column carrying it exactly as it
+carries the SUP-022-04 and SUP-022-09 amendments; or (b) Scope 05's TP-05-22 is
+restated to derive its tolerated gap from the ledger's own disposition column — the
+row for SUP-022-18 already records superseded-in-substance — instead of pinning a
+literal pair, which is the same defect shape as the stale totals TP-02-22 was itself
+corrected to stop pinning.
+
+**Consequences for the three open items, each re-derived against the tree.**
+
+*Item — the eight deliverable supersessions.* Stays `[ ]`. Seven of the eight markers
+are present in the tree (03, 08, 10, 14, 20 in `scripts/selftest.mjs`, 15 in the
+federal spec, 16 in the route spec); SUP-022-19 is the eighth and is absent, for the
+reason above. `SUP-022-18` correctly appears nowhere. The item cannot tick on seven of
+eight, and the item's further requirement — that each of the eight was seen to fail
+against the unchanged implementation first and carries its adversarial evidence — was
+not re-derived for the seven here and is not claimed.
+
+*Item — no assertion outside this scope's entries was edited.* Stays `[ ]`. Nothing
+was edited: the working tree carries no change to `scripts/selftest.mjs` or any
+Feature 021 spec from this session. But TP-02-22 and TP-02-23, the rows that would
+prove it, are still unwritten, and both now depend on SUP-022-19. TP-02-22's expected
+set is Scope 01's twelve plus this scope's eight deliverable ids plus later-scope ids
+already present; the delivered set today is twenty ids and the expected set is
+twenty-one, so the row as corrected would fail on the missing SUP-022-19 rather than
+on anything it is meant to catch. TP-02-23's third case asserts SUP-022-19's narrowed
+declared-target clause over the route spec's own source text, which cannot be asserted
+while the clause is absent. Writing either row before the marker lands would produce a
+row that fails for a reason it does not name.
+
+*Item — every Test Plan row has intended RED and same-command GREEN.* Stays `[ ]`.
+TP-02-22 and TP-02-23 carry no evidence for the reason above, and TP-02-03 carries
+none either; its section records that the compatibility comparison against the
+unmodified Feature 021 pack was not performed.
+
+No file is left mutated by this pass. `git status --short` over this scope's product
+surfaces, the five marker files and the route page is empty, and the only paths this
+session changed are Feature 022's own scope and report artifacts.
+
 ## Completion Statement
 
 Nine of the seventeen Definition of Done items are closed with executed evidence. The

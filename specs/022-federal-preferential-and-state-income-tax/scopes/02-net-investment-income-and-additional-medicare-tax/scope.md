@@ -466,7 +466,26 @@ an absent test does not satisfy RED.
     live at line 97 of `tests/lifetime-tax-route.spec.mjs`, so selection by
     declared target is real, buildable work. This item stays open because the eight
     deliverable replacements are not yet written; nothing here ticks it.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#supersession-ledger`, `report.md#verification-pass--2026-08-20-second--sup-022-18-and--19-were-displaced-by-feature-023-before-this-scope-could-deliver-them-finding-f-02-c`
+  - **Still open after verification pass 2026-08-20 (third) — finding F-02-D.**
+    SUP-022-19's narrowed clause was built and proven in that pass: intended RED on a
+    value-free retarget of the bracket-detail row, same-command GREEN after an
+    immediate revert, and a control showing the replacement survives a row insertion
+    the superseded ordinal does not. It was then **reverted**, because delivering its
+    marker drops `node scripts/selftest.mjs` from 3155 passed to 3154 passed and 1
+    failed: Scope 05's TP-05-22 pins the tolerated marker gap as the exact pair
+    `{18, 19}` and compares it with `JSON.stringify`, so a delivered SUP-022-19
+    breaks it. The remedy is a one-line tightening of that literal to `{18}` —
+    strictly stronger than what stands — but it edits an assertion Scope 05 owns,
+    which the sibling no-edit DoD item forbids without a recorded amendment, and no
+    such amendment exists. Seven of the eight markers are present in the tree;
+    SUP-022-19 is absent and `SUP-022-18` correctly appears nowhere. Seven of eight
+    cannot tick this item, and the further requirement that each of the eight was
+    seen to fail first and carries its adversarial evidence was not re-derived for
+    the seven and is not claimed. Decidable once `bubbles.plan` either records the
+    TP-05-22 amendment in the ledger's `Amending scope` column or restates TP-05-22
+    to derive its tolerated gap from the ledger's disposition column instead of
+    pinning a literal pair.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#supersession-ledger`, `report.md#verification-pass--2026-08-20-second--sup-022-18-and--19-were-displaced-by-feature-023-before-this-scope-could-deliver-them-finding-f-02-c`, `report.md#verification-pass--2026-08-20-third--sup-022-19s-narrowed-clause-is-buildable-and-was-built-but-delivering-it-turns-scope-05s-tp-05-22-red-all-three-items-stay---finding-f-02-d`
 - [x] The leg-reachability rule is implemented as `design.md` states it: both
       basis members initialize to `null`, an undeclared basis refuses its leg by
       name, `CO-8` inherits, and neither member is ever initialized to a value.
@@ -492,7 +511,18 @@ an absent test does not satisfy RED.
     tree — TP-02-22 derives its expected marker set from the ledger instead of
     pinning a stale total, and TP-02-23's fourth case is retargeted onto
     SUP-022-19's narrowed clause — so what remains is writing them.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-22`, `report.md#tp-02-23`
+  - **Still open after verification pass 2026-08-20 (third) — finding F-02-D.** The
+    no-edit property itself holds against the tree: this session left no change to
+    `scripts/selftest.mjs` or to any Feature 021 spec. What blocks the tick is that
+    both proving rows now depend on SUP-022-19, which is not delivered. TP-02-22's
+    expected set is Scope 01's twelve plus this scope's eight deliverable ids plus
+    later-scope ids already present — twenty-one — while the delivered set is twenty,
+    so the row as corrected would fail on the missing marker rather than on anything
+    it exists to catch. TP-02-23's third case asserts SUP-022-19's narrowed
+    declared-target clause over the route spec's own source text, which cannot be
+    asserted while that clause is absent. Writing either row first would bank a row
+    that fails for a reason it does not name.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-22`, `report.md#tp-02-23`, `report.md#verification-pass--2026-08-20-third--sup-022-19s-narrowed-clause-is-buildable-and-was-built-but-delivering-it-turns-scope-05s-tp-05-22-red-all-three-items-stay---finding-f-02-d`
 - [x] Any threshold whose applicability to the declared tax year could not be
       established ships as an `AbsentFigure/v1` and its leg refuses.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-11`
@@ -538,7 +568,15 @@ an absent test does not satisfy RED.
   - **Open:** TP-02-15, -16, -17 and -18 now carry evidence — the browser spec was
     written and the cumulative suite runs green at 69 passed. TP-02-03, -22, -23
     and -24 still carry none.
-  - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-18 commands · **Evidence:** `report.md#test-evidence`
+  - **Still open after verification pass 2026-08-20 (third).** TP-02-24 now carries
+    its register evidence. TP-02-22 and TP-02-23 remain unwritten and are blocked
+    behind SUP-022-19 by finding **F-02-D**. TP-02-03 carries no evidence for its own
+    reason: its section records that the compatibility comparison against the
+    unmodified Feature 021 pack was not performed. The cumulative browser suite was
+    re-run once in this pass at `--grep "SCN-02[1-4]"` and reported 77 passed, zero
+    failed and zero skipped, so the browser rows have not regressed while these three
+    remain outstanding.
+  - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-18 commands · **Evidence:** `report.md#test-evidence`, `report.md#verification-pass--2026-08-20-third--sup-022-19s-narrowed-clause-is-buildable-and-was-built-but-delivering-it-turns-scope-05s-tp-05-22-red-all-three-items-stay---finding-f-02-d`
 - [x] Feature 008's files, Feature 021's spec directory, `rltaxstrategy.js`,
       `tests/lifetime-tax-conversion.spec.mjs`, the registries,
       `site-exclusions.json` and every brief or data artifact are byte-identical.

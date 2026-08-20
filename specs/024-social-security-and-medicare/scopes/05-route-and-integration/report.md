@@ -1310,3 +1310,49 @@ guarantee `TP-05-01` imposes on the unit fixture. That is a change to the
 scenario's declared inputs and belongs to `bubbles.plan`. It is carried in
 `## Findings Raised And Not Fixed Here` rather than resolved by loosening what the
 scenario asserts.
+
+### `TP-05-26` — the cumulative family suite, and it does discriminate
+
+This is the row's own named command, unmodified: the whole `SCN-021` … `SCN-024`
+browser family over the real route. What it must prove is not that some scenario
+fails when broken, but that a single scenario's failure is **visible in the
+cumulative run** — that the row cannot be satisfied by a convenient subset.
+
+The mutation is the one `TP-05-19` clause one established as detectable: a declared
+leg that stops reaching the export. Run against the whole family rather than against
+its own scenario alone, it takes the suite from 77 passed to 72 passed and turns the
+run red:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-26 cumulative browser suite: a declared leg that stops reaching the export must fail the whole SCN-021..024 family suite, not merely its own scenario
+file:             lifetime-tax-strategy-lab.html
+mutation:         var settledLegs = state.envelope ? state.envelope.legIds.slice() : [];  ->  var settledLegs = state.envelope ? state.envelope.legIds.slice(1) : [];   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02\[1-4\] --reporter=list
+red-exit:         1
+red-summary:        72 passed (25.0s)
+green-exit:       0
+green-summary:      77 passed (46.8s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Two independent channels agree, which is why this is not the `TP-03-25` situation.**
+The equivalent Feature 023 row had to be read through its reported pass count,
+because that suite exited non-zero even unmutated from a `worker-N … force-killed it`
+teardown fault, leaving the exit code constant and therefore blind. Here the
+unmutated run exits 0 cleanly, so the harness's own exit-code verdict discriminates,
+**and** the pass count moves in the same direction — 77 to 72. The
+`--summary-match` regex was supplied so the count would be legible in the block; the
+verdict did not have to lean on it. No teardown fault appeared in either half of
+this probe.
+
+The five-scenario drop is itself the point of the row. The broken leg belongs to one
+scenario's subject, but the census it feeds is asserted from several scenarios across
+the family, so the damage surfaces in five of them rather than one. A row satisfied
+by running only the owning scenario would have reported a single failure and hidden
+the blast radius.
+
+The mutation was reverted inside the invocation that applied it and the revert was
+proven by blob hash, identical before and after.

@@ -1151,3 +1151,59 @@ discriminating:   yes (red-exit 1 != green-exit 0)
 === END RED/GREEN PROBE EVIDENCE ===
 ```
 
+## Harness Pass 5 — `TP-04-19` … `TP-04-21` Carry Intended REDs
+
+### `TP-04-19`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-19 vocabulary: adding a scope-specific refusal code must fail the assertion that the refusal vocabulary member count equals its pre-feature value
+file:             rltaxrules.js
+mutation:         "RLTAX-PACK-YEAR-MISMATCH": true  ->  "RLTAX-PACK-YEAR-MISMATCH": true, "RLTAX-USE-UNAVAILABLE": true   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-19: the refusal vocabulary still has exactly its fourteen pre-feature members and this scope added none
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-20`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-20 no-shadow: giving the module its own remembered copy of the sourced day figure must fail the assertion that it holds no test-parameter literal
+file:             rltaxuse.js
+mutation:           var CLASSIFICATION_CONTRACT = rules.USE_CLASSIFICATION_CONTRACT;  ->    var REMEMBERED_DAY_FIGURE = 14;
+  var CLASSIFICATION_CONTRACT = rules.USE_CLASSIFICATION_CONTRACT;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-20: rltaxuse.js contains no test-parameter literal, no percentage, no authority name and no publication name, the detector is proven to fire on a module that does, and the module is 
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-21`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-21 privacy: carrying a declared personal-use day count into the exported bytes must fail the assertion that both day-count declarations are omitted and have no value in the export
+file:             rltaxworkspace.js
+mutation:               selectedBracketId: workspace.selectedBracketId  ->        
+      selectedBracketId: workspace.selectedBracketId,
+      rentalPersonalUseDays: workspace.rentalPersonalUseDays   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-21: both day-count declarations are declared workspace fields, are named in the export’s omitted list, have no value in the exported bytes, are named in the privacy inventory purpo
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=6760587f2303516755ab6a5e14436050717f1227 restored=6760587f2303516755ab6a5e14436050717f1227)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+

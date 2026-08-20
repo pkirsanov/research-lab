@@ -407,13 +407,17 @@ an absent test does not satisfy RED.
       basis members initialize to `null`, an undeclared basis refuses its leg by
       name, `CO-8` inherits, and neither member is ever initialized to a value.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-09`
-- [ ] The Fixture Input Completion Register is satisfied and closed: every named
+- [x] The Fixture Input Completion Register is satisfied and closed: every named
       helper declares both bases at `0` and changed nothing else, at least one
       fixture household keeps both bases `null` and is asserted refusing, every
       previously settled Feature 021 value is unchanged, and no assertion was
       edited to accommodate a fixture-input change.
-  - **Open:** the TP-02-24 register row was not run. The browser command it is
-    paired with now runs green at 69 passed, recorded at `report.md#tp-02-18`.
+  - **Closed:** the TP-02-24 register row now reads the register out of this
+    artifact at run time, proves each named helper on its own, sweeps every
+    governed completion site, holds the `null`-basis household refusing on each
+    leg and on the total, and settles one household twice against the unmodified
+    Feature 021 pack for byte-identity. Two first-draft misses are recorded with
+    the row rather than quietly corrected.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#tp-02-24`
 - [ ] No assertion outside this scope's ledger entries and amendments was edited,
       relaxed or deleted, no Simple-markup clause was relaxed under SUP-022-18 or

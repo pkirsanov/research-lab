@@ -112,6 +112,26 @@ export function findAttentionVerbInstructionGaps(instruction) {
 /** The verb vocabulary the gate refuses on, re-exported so callers read one array. */
 export const ATTENTION_RESEARCH_VERBS = Object.freeze(RLATTN.RESEARCH_VERBS.slice());
 
+/**
+ * The exact authored KEYS handed to the lane, rendered from AUTHORED_JUDGEMENT_KEYS.
+ *
+ * Prose does not hold. Successive publishes described the same nine fields in
+ * words and the author supplied a different subset each time: 02:26 EDT carried
+ * `escalationTrigger` and dropped `rationale`; 02:54 EDT, after `rationale` was
+ * added to the prose, carried it and dropped `escalationTrigger`. Neither run
+ * was refused for writing a bad item - both were refused for writing an
+ * incomplete one, because a sentence that DESCRIBES fields leaves the author to
+ * guess which literal keys the composer reads. This is the same failure the
+ * events keys already have a comment about, and it takes the same fix: name the
+ * keys, and render them from the contract so the ask cannot drift from it.
+ */
+export function attentionAuthoredKeysInstruction() {
+  return 'Every attention item must carry all of these keys and omit none of them: '
+    + `${AUTHORED_JUDGEMENT_KEYS.join(', ')}. `
+    + 'An item missing any one of them is refused whole by the publication gate, so a partial item costs '
+    + 'an attention slot and reaches no reader.';
+}
+
 function loadJson(relPath) {
   return JSON.parse(readFileSync(resolve(ROOT, relPath), 'utf8'));
 }

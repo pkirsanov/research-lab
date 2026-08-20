@@ -1,0 +1,100 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-d194774b244619cff53742e18d2c19984c46982637d722656ece6018b7f699a8",
+  "generationId": "generation-9f7cf9e2a650eb157bc5513f883dd03e131326573cc1d54f1908ad7e8f352603",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-08-20T05:18:26.673Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "No current authorable evidence is present this generation for any declared actor state (United States, Iran, Oman mediators, Gulf exporters, Houthis, shipping insurers, OPEC buffer producers). The official-policy-and-statements requirement returned missing-or-stale with a null record and its material claim is marked authorable:false in the web-evidence bundle, so no declared policy or verified statement can be cited. No actor reaction function is asserted and no unobserved intent is inferred.",
+      "gaps": [
+        "official-policy-and-statements requirement is missing-or-stale (record null); no official source retained.",
+        "web-evidence claim geopolitical-supply-shock:official-policy-and-statements is uncorroborated, freshness unsupported, authorable:false.",
+        "No verified statement or declared policy exists to establish any actor-state observation within the 24h freshness window."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "Scenario probability authorship is out of scope for this side process and is left entirely to the deterministic model layer. Independently, no current trigger observation (transit-restriction-observed, insured-capacity-tightens, inventory-response-confirmed) is supported by retained evidence this generation, so no scenario entry or invalidation state can be evidenced. No probability, prior update, or direction score is authored.",
+      "gaps": [
+        "No retained evidence supports firing or clearing any escalation trigger or invalidation.",
+        "measured-maritime-flow and official-policy-and-statements requirements are both missing-or-stale, leaving entry conditions unobserved."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "No measured maritime transit, loading, delay, or insured-capacity observation is available for Hormuz, Bab el-Mandeb, or the Red Sea. The measured-maritime-flow requirement (covering physical-flow and insured-flow) is missing-or-stale with a null record, and its bundle claim is authorable:false with unsupported freshness. Physical and insured pass fractions and delay days are therefore unknown, not normal; no flow state is asserted.",
+      "gaps": [
+        "measured-maritime-flow requirement is missing-or-stale (record null); no maritime-observation or official source retained.",
+        "physical-flow and insured-flow claims are uncorroborated with independentOriginCount 0.",
+        "No basis to populate chokepointState.physicalPassFraction, insuredPassFraction, or delayDays."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "No current inventory, production, export, or policy-response evidence is available for any declared channel (oil, refined-products, lng, fertilizer, aluminum, shipping). The energy-and-input-balances requirement is missing-or-stale with a null record and its material claim is authorable:false, so no transmission input can be evidenced. No inventory gap by channel is asserted; commodity ranges and channel shock magnitudes are model-owned and are not authored here.",
+      "gaps": [
+        "energy-and-input-balances requirement is missing-or-stale (record null); no official or industry-data source retained.",
+        "transmission-input claim is uncorroborated, freshness unsupported, authorable:false.",
+        "No basis to populate inventoryGapByChannel for any declared channel."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "Committed public proxy bars are reused this generation (committed-public-bars source geopolitical-supply-shock-committed-public-bars-committed-bars, observed 2026-08-19T23:59:59Z), but no current geopolitical flow, actor, or transit evidence exists to anchor a situation-level sensitivity interpretation. Proxy sensitivity ranges and calibration are model-owned outputs and are not authored here; without the driving geopolitical evidence there is no honest current read to attach to the proxy bars.",
+      "gaps": [
+        "No current maritime, actor, or channel evidence to relate proxy price behavior to a supply-shock driver.",
+        "Proxy sensitivity and calibration are deterministic model outputs and are outside this author's ownership."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "No trigger (transit-restriction-observed, insured-capacity-tightens, inventory-response-confirmed) and no invalidation (transit-normalizes, insurance-normalizes, evidence-stales) can be evidenced as fired or cleared this generation, because the underlying maritime, insurance, and policy-response requirements are all missing-or-stale. The evidence-stales invalidation condition (no supporting observation inside the 24h window) is effectively met for the actor, flow, and transmission requirements, but this is authored as an evidence gap rather than a scored state change.",
+      "gaps": [
+        "physicalPassFraction and insuredPassFraction are unobserved, so route and insurance trigger/invalidation states cannot be measured.",
+        "No confirmed public inventory or coordinated policy response is available for the inventory-response-confirmed trigger."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "The retained web-evidence bundle contains no sources (sources: [], retainedSourceCount 0, independentOriginCount 0) and rejected 3 of 3 material claims. The only committed evidence is the reused proxy-bar snapshot, which is not a citable claim source for actor, flow, or transmission findings. The situation source ledger is therefore empty and no finding can reference a source.",
+      "gaps": [
+        "Zero retained origins for the three material requirements this generation.",
+        "committed-public-bars provides proxy bars only and is not an authorable claim source for this situation's declared question."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "No prior dossier is supplied for this topic (priorDossier is null), so there is no predecessor situation to compare against. Change direction and change assessment are model-owned and are not authored here regardless; with no predecessor and no current authorable evidence, no change can be described.",
+      "gaps": [
+        "priorDossier is null; no predecessor findings, evidence, or model state to compare.",
+        "Current pass produced no authorable evidence, so no delta could be characterized even if a predecessor existed."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

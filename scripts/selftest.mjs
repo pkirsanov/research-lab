@@ -15146,6 +15146,61 @@ try {
     && surchargeSet.indexing.declaredFor.indexOf(2026) >= 0,
   'TP-04-07: the surcharge is exact immediately below, exactly at and immediately above its declared threshold, all four filing statuses cross at the identical value, and the set declares itself applicable to the declared tax year');
 
+  /* TP-04-02: boundary coverage is closed over the edges the pack ACTUALLY carries rather than
+     over the edges someone remembered to cover. The enumerator walks both edge families, so an
+     ordinary schedule that resolved later would enlarge the carried set and this row would fall
+     until it was covered too; it is proven able to find ordinary band edges on a clone that
+     carries one. The provenance half resolves each carried edge to a retrieved source record and
+     is proven able to fail on a clone whose pointer dangles. */
+  function californiaCarriedEdges(pack) {
+    const edges = [];
+    statuses.forEach((status) => {
+      const table = pack.ordinaryRateTables[status];
+      if (RULES.isRateTable(table)) {
+        table.bands.forEach((band) => { edges.push('ordinary:' + status + ':' + band.bandId); });
+      }
+    });
+    Object.keys(pack.thresholdSets).forEach((setId) => {
+      Object.keys(pack.thresholdSets[setId].thresholds).forEach((key) => {
+        edges.push('threshold:' + setId + ':' + key);
+      });
+    });
+    return edges;
+  }
+  const carriedEdges = californiaCarriedEdges(californiaPack);
+  const packCarryingASchedule = clone(californiaPack);
+  packCarryingASchedule.ordinaryRateTables.single = {
+    contractVersion: 'RateTable/v1', tableId: 'probe-ordinary', kind: 'ordinary', filingStatus: 'single',
+    bands: [
+      { bandId: 'probe-lower', lowerInclusive: 0, upperExclusive: 1, rate: 0.01, thresholdKind: 'rate-step' },
+      { bandId: 'probe-upper', lowerInclusive: 1, upperExclusive: null, rate: 0.02, thresholdKind: 'rate-step' }
+    ],
+    sourceRef: 'ca-rtc-17041', locator: 'a probe schedule that ships in no pack'
+  };
+  const recordFor = (pack, ref) => pack.sourceRecords.filter((record) => record.sourceId === ref)[0];
+  const surchargeRecord = recordFor(californiaPack, surchargeSet.sourceRef);
+  const danglingPointerPack = clone(californiaPack);
+  danglingPointerPack.thresholdSets['additional-tax-above-one-million'].sourceRef = 'ca-rtc-no-such-section';
+  const danglingRecord = recordFor(danglingPointerPack,
+    danglingPointerPack.thresholdSets['additional-tax-above-one-million'].sourceRef);
+  assert(carriedEdges.length === 1
+    && carriedEdges[0] === 'threshold:additional-tax-above-one-million:all'
+    && californiaCarriedEdges(packCarryingASchedule).length === carriedEdges.length + 2
+    && statuses.length === 4
+    && statuses.every((status) => surchargeByStatus[status].length === surchargePositions.length)
+    && surchargePositions[0] === surchargeThreshold - 1
+    && surchargePositions[1] === surchargeThreshold
+    && surchargePositions[2] === surchargeThreshold + 1
+    && !!surchargeRecord && danglingRecord === undefined
+    && surchargeRecord.title.length > 0
+    && surchargeRecord.publishedAt.length > 0
+    && surchargeRecord.retrievedAt.length > 0
+    && surchargeRecord.retrievalOutcome === 'retrieved'
+    && surchargeSet.componentSources.some((component) =>
+      component.component === 'threshold:all' && component.sourceRef === surchargeSet.sourceRef)
+    && surchargeSet.indexing.declaredFor.indexOf(californiaPack.effectiveTaxYears[0]) >= 0,
+  'TP-04-02: the boundary set is closed over every edge the California pack actually carries — no ordinary schedule resolved so it contributes none, the enumerator is proven able to find band edges on a clone that carries one, the single carried edge is the surcharge threshold and it is covered immediately below, exactly at and immediately above for all four filing statuses, and that edge names the source edition it was transcribed from and the tax year it is declared for through a pointer proven able to dangle');
+
   /* TP-04-08 adversarial: a pack that doubles the joint threshold fails the identical-threshold rule. */
   const doubledPack = clone(californiaPack);
   doubledPack.thresholdSets['additional-tax-above-one-million'].varyByFilingStatus = true;

@@ -420,10 +420,25 @@ delivery makes a row's claim false, the row is corrected rather than checked.
   - **Reason not checked:** intended RED was observed and recorded for TP-05-04 —
     this scope's own named intended-RED assertion — and for TP-05-08, TP-05-09 and
     two clauses of TP-05-22. TP-05-01 through TP-05-03, TP-05-05 through TP-05-07
-    and TP-05-10 through TP-05-18 were already GREEN when this session began, so no
-    intended RED was observed for them in this session. Breaking a passing
+    and TP-05-10 through TP-05-18 were already GREEN when the authoring session
+    began, so no intended RED was observed for them there. Breaking a passing
     assertion to manufacture one would fabricate the evidence rather than record
-    it.
+    it; deriving one by a value-free mutation, as scope 04 did across eighteen
+    probes, is the correct route and is still owed for those rows.
+  - **Later session, two probes attempted and neither closed its row.** Probe 5-A
+    drove TP-05-28's command from 2 to 3 new missing paths and back, proving the
+    mutation is detected, but the row's GREEN does not currently exist: the
+    command now FAILS on the unmutated tree because a concurrent session's
+    `specs/027-company-scoped-owner-deep-links/design.md` references two paths
+    that do not exist. A RED without a GREEN does not satisfy the row. Probe 5-B
+    removed this feature's configuration entry from the Pages exclusion list and
+    the gate did NOT refuse, so TP-05-29 has no intended RED; the probe is
+    recorded as a miss and as a finding about the gate's refusal surface. Both
+    mutations were reverted inside the invocation that applied them, with
+    `site-exclusions.json` restored byte-for-byte and verified by SHA-256.
+  - **Outstanding, stated precisely:** TP-05-01 through TP-05-03, TP-05-05
+    through TP-05-07, TP-05-10 through TP-05-21 and TP-05-23 through TP-05-29
+    still owe an observed intended RED on their own named command.
   - **Phase:** implement · **Command:** the exact TP-05-01 through TP-05-29 commands · **Evidence:** `report.md#test-evidence`
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,

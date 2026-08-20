@@ -415,6 +415,91 @@ the public directories. `site-exclusions.json` was not edited by this session an
 still carries exactly one `lifetime-tax-strategy-lab.html` decision, asserted by
 TP-05-REGISTRATION.
 
+## Intended-RED Mutation Probes
+
+Method, as in scope 04. A row's intended RED is produced by planting one
+value-free defect in the surface the row asserts against, running the row's own
+command, reverting explicitly inside the same shell invocation, and running the
+same command again. Every mutation below is a path literal, so a slipped revert
+could disclose no household value.
+
+### Probe 5-A — a spec-referenced test path pointed at a file that does not exist
+
+TP-05-28's command is `node scripts/validate-spec-test-paths.mjs`. The scope's
+single clean `tests/….mjs` reference token, at `scope.md:388`, was renamed to a
+sibling that does not exist.
+
+```
+$ node scripts/validate-spec-test-paths.mjs
+GUARD_ON_LINE_388=1
+      ... and 1 further reference site(s)
+[spec-test-paths] FAIL — 2 new referenced path(s) do not exist
+GREEN_EXIT=1
+POST_MUTATION_SITES=1
+      referenced at specs/027-company-scoped-owner-deep-links/design.md:648
+      referenced at specs/027-company-scoped-owner-deep-links/design.md:660
+      referenced at specs/027-company-scoped-owner-deep-links/design.md:661
+      ... and 1 further reference site(s)
+[spec-test-paths] FAIL — 3 new referenced path(s) do not exist
+RED_EXIT=1
+$ git checkout -- <scope.md>
+DIRTY_AFTER_REVERT=0 MUTATION_LEFT=0
+      ... and 1 further reference site(s)
+[spec-test-paths] FAIL — 2 new referenced path(s) do not exist
+GREEN2_EXIT=1
+```
+
+**The mutation is shown to be detected — the count moves 2 → 3 → 2 — but this is
+NOT a satisfied row, and it is recorded as unsatisfied.** The row's claim is
+`new=0`. The command currently reports `FAIL — 2 new referenced path(s) do not
+exist` on the UNMUTATED tree, so its GREEN does not presently exist to be paired
+with the RED. A demonstrated sensitivity without a GREEN does not meet this
+scope's own evidence bar, and TP-05-28 therefore remains outstanding.
+
+**Whose failure the two paths are, stated plainly.** Both name
+`specs/027-company-scoped-owner-deep-links/design.md`, a spec owned by a
+concurrent session and outside this feature entirely. This scope did not write
+them and must not edit that spec to clear them. The earlier TP-05-28 record above
+captured `new=0` at a time when spec 027 did not yet reference those paths; that
+record is not withdrawn, but it no longer reproduces, and the honest present
+state is the failing one shown here. The row is owed a re-run once the owning
+session resolves its own references.
+
+### Probe 5-B — an excluded configuration dropped from the Pages exclusion list, which the gate did not detect
+
+TP-05-29's command is `node scripts/build-pages-site.mjs --dry-run`. The
+`lifetime-tax-strategy.config.json` entry — the exclusion that keeps this
+feature's configuration out of the public site — was deleted from
+`site-exclusions.json`.
+
+```
+$ node scripts/build-pages-site.mjs --dry-run
+PRE_SHA=f3c437749395f2549166ded7a55942aa611670bb4d8262bc2e7e57efa79e1260
+GUARD_MATCHES=1
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,…}
+GREEN_EXIT=0
+POST_MUTATION_ENTRY_LEFT=0 STILL_VALID_JSON=yes
+RED_EXIT=0
+$ cp <snapshot> site-exclusions.json
+POST_SHA=f3c437749395f2549166ded7a55942aa611670bb4d8262bc2e7e57efa79e1260
+BYTES_ROUND_TRIPPED=yes
+GREEN2_EXIT=0
+```
+
+**No RED. Recorded as a miss, and as a finding.** Removing the configuration's
+exclusion entry did not make the gate refuse. Scope 04's Probe 17 shows the same
+gate DOES refuse when the corresponding `.html` route entry is removed, so the
+refusal is specific to unregistered root HTML and does not extend to a non-HTML
+asset that an exclusion entry names. The practical consequence is that the Pages
+gate would not by itself stop this feature's configuration document from being
+published; only the HTML entry is load-bearing.
+
+This is not a defect introduced here and it is not silently repaired — changing
+the gate's refusal surface is outside this scope's allowed paths, and
+`site-exclusions.json` was restored byte-for-byte, verified by SHA-256. It is
+recorded so the next session inherits the observation rather than rediscovering
+it. TP-05-29 remains without an intended RED.
+
 ### Artifact lint
 
 ```text

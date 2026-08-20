@@ -118,6 +118,45 @@ Scenario SCN-022-010 — state tax is exact below, at and above every California
 bracket edge the pack carries, for every filing status whose schedule resolved.
 Command: `node scripts/selftest.mjs`
 
+No ordinary rate table resolved for any filing status, so the pack carries **no
+bracket edge at all**. The row is therefore not satisfied by covering a schedule
+that does not exist; it is satisfied by proving the covered set is *closed over
+whatever the pack actually carries*. An assertion was added that enumerates both
+edge families — ordinary band edges and threshold-set keys — and pins the result
+to exactly one carried edge, the surcharge threshold, covered immediately below,
+exactly at and immediately above for all four filing statuses.
+
+Two negative controls are built into the assertion rather than asserted about it.
+The enumerator is run a second time against a clone carrying a two-band ordinary
+schedule and must return exactly two more edges, which is what stops the closure
+clause from being vacuously true while the pack carries nothing. The provenance
+clause resolves the carried edge's `sourceRef` to a retrieved `SourceRecord/v1`
+and is run a second time against a clone whose pointer names a section the pack
+does not record, which must resolve to nothing.
+
+Intended RED planted the tempting defect for a closure row: an enumerator that
+walks only the ordinary schedules and silently forgets the threshold family, so
+coverage reads complete because the carried set came back empty. The substitution
+is value-free — one expression replaced by an empty array literal — and its
+anchor was counted before and after substitution.
+
+```text
+anchor_count_before=1
+anchor_after=0 probe_after=1
+=== RED RUN ===
+  ✗ FAIL: TP-04-02: the boundary set is closed over every edge the California pack actually carries — no ordinary schedule resolved so it contributes none, the enumerator is proven able to find band edges on a clone that carries one, the single carried edge is the surcharge threshold and it is covered immediately below, exactly at and immediately above for all four filing statuses, and that edge names the source edition it was transcribed from and the tax year it is declared for through a pointer proven able to dangle
+Research-Lab self-test: 3103 passed, 1 failed
+=== EXPLICIT REVERT ===
+leftover_probe=0 anchor_restored=1
+(empty status above means clean)
+=== GREEN RUN (same command) ===
+Research-Lab self-test: 3104 passed, 0 failed
+```
+
+TP-04-02 fell alone and by name. The revert ran inside the same shell invocation
+that applied the probe, the leftover count was re-read as zero and the path-scoped
+status check came back empty before the GREEN run.
+
 ### TP-04-03
 
 Scenario SCN-022-010 — a long-term gain and an equal amount of ordinary income

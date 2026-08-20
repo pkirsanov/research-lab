@@ -302,11 +302,22 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     shipped `appliesToLegs[]` names the ordinary leg alone while the surcharge leg
     is declared. TP-04-07 fell by name under a value-free boolean probe and
     returned green under the identical command after an in-invocation revert.
-- [ ] Known-value boundary coverage exists below, at and above every California
+- [x] Known-value boundary coverage exists below, at and above every California
       bracket edge the pack carries and the surcharge threshold, for every filing
       status, and each fixture names the source edition and tax year it was
       derived from.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-02`, `report.md#tp-04-07`
+  - **Evidence:** no ordinary schedule resolved, so the pack carries no bracket
+    edge and the row is closed by proving the covered set is closed over what the
+    pack actually carries rather than by covering an absent schedule. TP-04-02
+    enumerates both edge families, pins the carried set to the single surcharge
+    threshold covered below, at and above for all four statuses, and resolves that
+    edge to a retrieved source record naming its edition and declared year. Two
+    negative controls are built in: the enumerator must find two more edges on a
+    clone carrying a schedule, and the provenance pointer must resolve to nothing
+    on a clone whose `sourceRef` dangles. TP-04-02 fell alone by name under a
+    value-free probe that truncated the enumerator to the ordinary family and
+    returned green under the identical command after an in-invocation revert.
 - [ ] No module file changed in this scope. Every module is byte-identical to its
       Scope 03 state, proving the contract carried California without an engine
       edit. Any edit that appeared necessary is recorded as a finding routed back

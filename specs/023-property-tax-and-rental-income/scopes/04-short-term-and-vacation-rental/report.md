@@ -924,3 +924,121 @@ can red `TP-04-05` alone. Each row still has a mutation aimed at the defect its
 own text names — the settlement side for `TP-04-04`, the recalled-rule fallback
 for `TP-04-05` — and each probe's `red-summary` is that row's own failure line.
 
+## Harness Pass 3 — `TP-04-07` … `TP-04-12` Carry Intended REDs
+
+### `TP-04-07`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-07 boundary: inverting the published greater-of selection must fail the percentage-boundary assertion that names which of the two candidate quantities the test was run against
+file:             rltaxuse.js
+mutation:         result: dayFigure >= percentageOfRentalDays  ->  result: dayFigure <= percentageOfRentalDays   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-07: at exactly the sourced percentage of the declared rental days the dwelling is not a residence and one day above it is, and the published greater-of comparison names which of the 
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-08`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-08 boundary: letting a dwelling below the sourced rental-days threshold reach the exception without having been used as a residence must fail the threshold-boundary assertion
+file:             rltaxuse.js
+mutation:         if (usedAsResidence && minimalRentalUse) {  ->  if (minimalRentalUse) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-08: at exactly the sourced rental-days threshold the exception does not apply and one day below it does, the published comparison carries that exact figure, and a dwelling below the 
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-09`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-09 adversarial: making the engine apply strict arithmetic for the inclusive operator the pack declares must fail the both-directions inclusivity assertion
+file:             rltaxuse.js
+mutation:         if (operator === "at-least") result = left >= right;  ->  if (operator === "at-least") result = left > right;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-09: flipping each of the three comparisons from the strict form the publication states to the inclusive form changes the outcome at that comparison’s exact boundary, flipping back 
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-10`
+
+The mutation spans the two adjacent stage declarations, because reversing the
+edge on one alone would make the pair a cycle and the order would refuse rather
+than resolve to the wrong order. The harness prints the mutation verbatim, so the
+`mutation:` field carries the line break the literal carries.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-10 ordering: reversing the declared dependency edge so the rental settlement no longer needs the classification must fail the assertion that CO-16 derives strictly before CO-17
+file:             rltax.js
+mutation:         Object.freeze({ stageId: "CO-16", dependsOn: Object.freeze([]) }),
+    Object.freeze({ stageId: "CO-17", dependsOn: Object.freeze(["CO-16"]) }),  ->  Object.freeze({ stageId: "CO-16", dependsOn: Object.freeze(["CO-17"]) }),
+    Object.freeze({ stageId: "CO-17", dependsOn: Object.freeze([]) }),   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-10: the derived housing stage order places CO-16 strictly before CO-17 and CO-17 before CO-18 for every pack, and a settlement attempted with something that is not a published classi
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-11`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-11 known value: publishing a zero value beside the exclusion, so an excluded activity reads as a rental that settled to nothing, must fail the exception assertion
+file:             rltaxrental.js
+mutation:               excludedRentalIncome: activity.rentalIncome,  ->        
+      value: 0,
+      excludedRentalIncome: activity.rentalIncome,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-11: under the exception the rental income is excluded and published as excluded, no rental expense is deducted, no limit is applied, the exclusion is stated as the reason with its ci
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=04505d51f87117fe1613b41a41277bfea5096b11 restored=04505d51f87117fe1613b41a41277bfea5096b11)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-12`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-12 adversarial: emptying the stated exclusion reason, which is what an implementation publishing a zero net result in its place would leave behind, must fail the stated-reason assertion
+file:             rltaxrental.js
+mutation:         exclusionReason: "This dwelling was used as a residence and rented fewer than the sourced threshold of days, so the sourced rule removes the activity from rental reporting: the rent you received is excluded from income and no rental expense is deducted. This is an exclusion, not a rental that settled to nothing.",  ->  exclusionReason: "",   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-12: an implementation publishing a zero net result in place of an exclusion reason carries no exclusion reason at all, so the stated-reason assertion is proven to discriminate betwee
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=04505d51f87117fe1613b41a41277bfea5096b11 restored=04505d51f87117fe1613b41a41277bfea5096b11)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+`TP-04-11` and `TP-04-12` are the same twinned pair as `TP-04-04` and `TP-04-05`:
+`TP-04-12` exists to prove that `TP-04-11`'s stated-reason clause discriminates,
+so emptying the reason reds both. `TP-04-11`'s own probe is aimed elsewhere — at
+the published zero value the row exists to forbid — and reds `TP-04-11` alone.
+

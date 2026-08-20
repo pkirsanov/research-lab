@@ -1,0 +1,447 @@
+#!/usr/bin/env node
+/*
+ * Test-file reachability guard (ratchet).
+ *
+ * `scripts/validate-spec-test-paths.mjs` answers one half of the coverage
+ * question: does every test path a spec NAMES exist on disk? This guard answers
+ * the other half, which nothing was asking: does every test file that EXISTS on
+ * disk get picked up by any verification command this repo declares?
+ *
+ * Measured on 2026-08-20 at fc9b71280, the answer was no for 62 of 180
+ * `tests/*.mjs` files. Whole suffix families — `.functional.mjs`,
+ * `.integration.mjs`, `.stress.mjs`, `.load.mjs`, `.security.mjs`,
+ * `.canary.mjs` — were written, committed, and never reached by a glob any
+ * declared command uses. Two of them had been failing for long enough that
+ * their pinned expectations had rotted, and nobody saw it, because nothing ran
+ * them. A test that is never selected costs the same to write as one that is,
+ * and proves strictly nothing.
+ *
+ * DERIVATION. Both sides of the comparison are read from the repository at run
+ * time. Neither is written down here:
+ *   - The FILE set is `readdirSync(tests)` filtered to `*.mjs`.
+ *   - The GLOB set is the union of (a) the Playwright discovery matcher parsed
+ *     out of `playwright.config.mjs`, which is what the blocking CI browser job
+ *     actually selects with, and (b) every glob-shaped `tests/....mjs` token
+ *     that sits in ARGUMENT POSITION of a `--test` invocation anywhere in the
+ *     committed tree.
+ * A frozen copy of either list is the exact defect this guard exists to detect,
+ * so it must not be reintroduced to implement it.
+ *
+ * ARGUMENT POSITION, not co-occurrence. `--test` and a glob appearing on the
+ * same line is not a command: 25 such lines are prose in spec reports, and the
+ * broadest of them (`tests/` + `*` + `.mjs`) would have made every file
+ * trivially reachable and the guard vacuously green. The scanner therefore
+ * consumes only the run of tokens after `--test` that are each either a flag or
+ * a `tests/....mjs` path, and stops at the first token that is neither.
+ *
+ * GLOBS ONLY. A command that names one exact file is not counted. Naming a file
+ * proves someone once ran it; it cannot keep covering that file when it is
+ * renamed, and it never covers the sibling added next to it. The property worth
+ * protecting is that a file is selected by a PATTERN, which keeps holding
+ * without anyone editing a command.
+ *
+ * EXEMPTION — one named rule, `shared-helper-module`, never a silent skip. A
+ * file is exempt iff BOTH hold, and both are evidenced from the file contents:
+ *   1. it imports nothing from `node:test`, so it registers no test of its own
+ *      and there is nothing for a runner to select; and
+ *   2. at least one other `tests/*.mjs` file imports it, so it is a shared seam
+ *      rather than a dead file.
+ * This is what `.support.mjs` and the shared Playwright seam satisfy. A file
+ * that registers tests is never exempt however it is named, and a file nothing
+ * imports is never exempt however it is named. Exempt files are reported, with
+ * their importer count, so the exemption stays legible instead of invisible.
+ *
+ * RATCHET. The debt predates the guard, so the pre-existing orphan set is
+ * frozen in a committed baseline and the guard fails ONLY on files that are NOT
+ * in it.
+ *   - A NEW orphan -> exit 1 (the regression this guard exists to stop).
+ *   - A baseline entry that is no longer orphaned -> reported as stale, exit 0.
+ *     Remove it; the baseline is meant to shrink, never grow.
+ *
+ * SELF-DECLARATION. This file and its baseline are excluded from the
+ * declaration scan. A guard that quotes a command shape in its own source would
+ * declare that shape to itself; the same trap was recorded live in
+ * `specs/025-.../scopes.md`, where quoting a validator's diagnostic verbatim
+ * into an artifact kept the validator red. For the same reason the findings
+ * printed below carry bare glob patterns and never a runnable command line: the
+ * output of this guard is routinely pasted into `report.md`, which is inside
+ * the scan.
+ *
+ * VACUITY. A scan that derives zero globs, finds zero test files, or reads zero
+ * artifacts fails on its own, baseline or not — a pattern that quietly stopped
+ * matching would otherwise reproduce the blind spot this guard closes.
+ *
+ * Usage:
+ *   node scripts/validate-test-file-reachability.mjs [--root <dir>] [--all-sites]
+ *   node scripts/validate-test-file-reachability.mjs --update-baseline
+ *
+ * Exit: 0 = no new orphans (stale baseline entries may be reported)
+ *       1 = new orphan(s), a vacuous scan, or a missing baseline file
+ *       2 = unusable invocation (unknown argument, including any bypass-shaped
+ *           flag — there is no --skip / --force / --ignore / --bypass and there
+ *           never will be; accept a new orphan by editing the baseline in a
+ *           reviewed commit)
+ */
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const SCRIPT_PATH = fileURLToPath(import.meta.url);
+const ROOT = resolve(dirname(SCRIPT_PATH), '..');
+const TESTS_DIR = 'tests';
+const BASELINE_REL = 'scripts/validate-test-file-reachability.baseline';
+const SELF_REL = 'scripts/validate-test-file-reachability.mjs';
+const PLAYWRIGHT_CONFIG_REL = 'playwright.config.mjs';
+const EXEMPT_RULE = 'shared-helper-module';
+
+/* `--test` followed by a run of tokens that are each a flag or a repo test
+   path. The trailing guard keeps `--testMatch` and `--test-only` from matching,
+   and the one-or-more quantifier is what makes prose inert: the first token
+   after `--test` in a sentence is a word, so nothing is captured. */
+const NODE_TEST_INVOCATION =
+  /--test(?![A-Za-z0-9-])((?:[ \t]+(?:--[A-Za-z0-9][A-Za-z0-9=._/-]*|tests\/[A-Za-z0-9._*/-]*\.mjs))+)/g;
+
+/* A repo-root-relative test path inside an already-isolated argument run. */
+const TEST_PATH_ARGUMENT = /tests\/[A-Za-z0-9._*/-]*\.mjs/g;
+
+/* Playwright's discovery matcher, in either the single-string or array form. */
+const PLAYWRIGHT_TEST_MATCH_ARRAY = /testMatch:\s*\[([^\]]*)\]/;
+const PLAYWRIGHT_TEST_MATCH_STRING = /testMatch:\s*(['"])([^'"]+)\1/;
+const QUOTED_STRING = /(['"])([^'"]+)\1/g;
+
+/* `import ... from 'node:test'`, `import 'node:test'`, and `import('node:test')`
+   all register the runner; any of them disqualifies a file from being treated
+   as a shared helper. */
+const NODE_TEST_IMPORT = /(?:from\s*|import\s*|require\s*\(\s*)(['"])node:test\1/;
+
+/* Byte order, so the committed baseline sorts identically to `LC_ALL=C sort` on
+   every platform. Test paths are ASCII by construction. */
+const byteOrder = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
+function displayPath(root, abs) {
+  const rel = relative(root, abs).split('\\').join('/');
+  return rel === '' || rel.startsWith('../') ? abs : rel;
+}
+
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/* Directory names the working tree carries but the repository does not, read
+   out of `.gitignore` rather than listed here so a newly ignored build
+   directory is skipped without editing this file. `.git` is always skipped. */
+export function ignoredDirectoryMatchers(root = ROOT) {
+  const matchers = [/^\.git$/];
+  const gitignore = resolve(root, '.gitignore');
+  if (!existsSync(gitignore)) return matchers;
+  for (const raw of readFileSync(gitignore, 'utf8').split(/\r?\n/)) {
+    const line = raw.trim();
+    if (line === '' || line.startsWith('#') || line.startsWith('!')) continue;
+    const name = line.replace(/^\//, '').replace(/\/$/, '');
+    if (name === '' || name.includes('/')) continue;
+    if (name.startsWith('*.') || name.endsWith('.pyc') || name.endsWith('.flock')) continue;
+    matchers.push(new RegExp('^' + name.split('*').map(escapeRegExp).join('[^/]*') + '$'));
+  }
+  return matchers;
+}
+
+/* A shell-style glob over repo-root-relative POSIX paths. `**` crosses path
+   separators, a single `*` does not — the same split Playwright's own matcher
+   uses, so `**` + `/*.spec.mjs` selects the same files here as it does there. */
+export function globToRegExp(pattern) {
+  let source = '';
+  for (let i = 0; i < pattern.length; i++) {
+    const ch = pattern[i];
+    if (ch === '*' && pattern[i + 1] === '*') {
+      i++;
+      if (pattern[i + 1] === '/') { i++; source += '(?:[^/]+/)*'; } else source += '.*';
+    } else if (ch === '*') {
+      source += '[^/]*';
+    } else if (ch === '?') {
+      source += '[^/]';
+    } else {
+      source += escapeRegExp(ch);
+    }
+  }
+  return new RegExp('^' + source + '$');
+}
+
+function listFilesRecursive(absDir, ignored) {
+  const found = [];
+  let entries;
+  try { entries = readdirSync(absDir, { withFileTypes: true }); } catch { return found; }
+  for (const entry of entries) {
+    const abs = join(absDir, entry.name);
+    if (entry.isDirectory()) {
+      if (ignored.some((matcher) => matcher.test(entry.name))) continue;
+      found.push(...listFilesRecursive(abs, ignored));
+    } else if (entry.isFile()) {
+      found.push(abs);
+    }
+  }
+  return found;
+}
+
+/* Every verification glob the repository declares, each carrying the artifact
+   and line that declares it. */
+export function collectDeclaredTestGlobs(root = ROOT) {
+  const byPattern = new Map();
+  const record = (pattern, kind, artifact, line) => {
+    if (!byPattern.has(pattern)) byPattern.set(pattern, { pattern, kind, sites: [] });
+    byPattern.get(pattern).sites.push({ artifact, line });
+  };
+
+  const configAbs = resolve(root, PLAYWRIGHT_CONFIG_REL);
+  let playwrightMatchers = 0;
+  if (existsSync(configAbs)) {
+    const source = readFileSync(configAbs, 'utf8');
+    const line = source.slice(0, source.search(/testMatch:/) + 1).split(/\r?\n/).length;
+    const arrayForm = PLAYWRIGHT_TEST_MATCH_ARRAY.exec(source);
+    const patterns = [];
+    if (arrayForm) {
+      QUOTED_STRING.lastIndex = 0;
+      let quoted;
+      while ((quoted = QUOTED_STRING.exec(arrayForm[1])) !== null) patterns.push(quoted[2]);
+    } else {
+      const stringForm = PLAYWRIGHT_TEST_MATCH_STRING.exec(source);
+      if (stringForm) patterns.push(stringForm[2]);
+    }
+    for (const pattern of patterns) {
+      playwrightMatchers++;
+      record(pattern, 'playwright-testMatch', PLAYWRIGHT_CONFIG_REL, line);
+    }
+  }
+
+  const ignored = ignoredDirectoryMatchers(root);
+  const selfAbs = resolve(root, SELF_REL);
+  const baselineAbs = resolve(root, BASELINE_REL);
+  let scannedFiles = 0;
+  for (const abs of listFilesRecursive(root, ignored).sort()) {
+    if (abs === selfAbs || abs === baselineAbs) continue;
+    let text;
+    try { text = readFileSync(abs, 'utf8'); } catch { continue; }
+    if (text.includes('\0')) continue;
+    scannedFiles++;
+    if (!text.includes('--test')) continue;
+    const artifact = displayPath(root, abs);
+    const lines = text.split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+      NODE_TEST_INVOCATION.lastIndex = 0;
+      let invocation;
+      while ((invocation = NODE_TEST_INVOCATION.exec(lines[i])) !== null) {
+        TEST_PATH_ARGUMENT.lastIndex = 0;
+        let argument;
+        while ((argument = TEST_PATH_ARGUMENT.exec(invocation[1])) !== null) {
+          if (argument[0].includes('*')) record(argument[0], 'node-test-argument', artifact, i + 1);
+        }
+      }
+    }
+  }
+
+  const globs = [...byPattern.values()].sort((a, b) => byteOrder(a.pattern, b.pattern));
+  return { globs, playwrightMatchers, scannedFiles };
+}
+
+export function readBaseline(absBaselineFile) {
+  if (!existsSync(absBaselineFile)) return null;
+  const entries = new Set();
+  for (const raw of readFileSync(absBaselineFile, 'utf8').split(/\r?\n/)) {
+    const line = raw.trim();
+    if (line === '' || line.startsWith('#')) continue;
+    entries.add(line);
+  }
+  return entries;
+}
+
+export function validateTestFileReachability(root = ROOT, options = {}) {
+  const testsDir = options.testsDir ?? TESTS_DIR;
+  const baselineFile = options.baselineFile
+    ? resolve(options.baselineFile)
+    : resolve(root, BASELINE_REL);
+  const absTests = resolve(root, testsDir);
+
+  const testFiles = (existsSync(absTests) ? readdirSync(absTests) : [])
+    .filter((name) => name.endsWith('.mjs'))
+    .sort()
+    .map((name) => `${testsDir}/${name}`);
+
+  const sources = new Map();
+  for (const path of testFiles) {
+    try { sources.set(path, readFileSync(resolve(root, path), 'utf8')); } catch { sources.set(path, ''); }
+  }
+
+  /* Rule `shared-helper-module`, both clauses evidenced from file contents. */
+  const exempt = [];
+  const exemptPaths = new Set();
+  for (const path of testFiles) {
+    if (NODE_TEST_IMPORT.test(sources.get(path))) continue;
+    const specifier = new RegExp(
+      `(?:from\\s*|import\\s*\\(\\s*)(['"])\\.{1,2}/(?:${escapeRegExp(testsDir)}/)?${escapeRegExp(path.slice(testsDir.length + 1))}\\1`
+    );
+    const importers = testFiles.filter((other) => other !== path && specifier.test(sources.get(other)));
+    if (importers.length > 0) {
+      exempt.push({ path, importerCount: importers.length, importers });
+      exemptPaths.add(path);
+    }
+  }
+
+  const { globs, playwrightMatchers, scannedFiles } = collectDeclaredTestGlobs(root);
+  const compiled = globs.map((glob) => ({ ...glob, matcher: globToRegExp(glob.pattern) }));
+
+  const reachable = [];
+  const orphans = [];
+  for (const path of testFiles) {
+    if (exemptPaths.has(path)) continue;
+    const matchedBy = compiled.filter((glob) => glob.matcher.test(path)).map((glob) => glob.pattern);
+    if (matchedBy.length > 0) reachable.push({ path, matchedBy });
+    else orphans.push(path);
+  }
+
+  const baseline = readBaseline(baselineFile);
+  const baselinePresent = baseline !== null;
+  const frozen = baseline ?? new Set();
+  const newOrphans = orphans.filter((path) => !frozen.has(path)).sort(byteOrder);
+  const knownOrphans = orphans.filter((path) => frozen.has(path)).sort(byteOrder);
+  const orphanSet = new Set(orphans);
+  const staleBaseline = [...frozen].filter((path) => !orphanSet.has(path)).sort(byteOrder);
+
+  return {
+    allSites: options.allSites === true,
+    baselineCount: frozen.size,
+    baselineFile: displayPath(root, baselineFile),
+    baselinePresent,
+    exempt,
+    exemptRule: EXEMPT_RULE,
+    globCount: globs.length,
+    globs,
+    knownOrphans,
+    newOrphans,
+    orphans: orphans.slice().sort(byteOrder),
+    playwrightMatchers,
+    reachable,
+    scannedFiles,
+    staleBaseline,
+    testFileCount: testFiles.length,
+    testsDir,
+    vacuous: globs.length === 0 || testFiles.length === 0 || scannedFiles === 0
+  };
+}
+
+export function formatTestFileReachabilityFindings(result, indent = 0) {
+  const pad = ' '.repeat(indent);
+  const lines = [];
+  lines.push(`${pad}${result.testFileCount} test file(s) in ${result.testsDir}/, `
+    + `${result.globCount} declared glob(s) from ${result.scannedFiles} artifact(s), `
+    + `${result.reachable.length} reachable, ${result.exempt.length} exempt (${result.exemptRule}), `
+    + `${result.orphans.length} orphan(s)`);
+  for (const glob of result.globs) {
+    lines.push(`${pad}glob ${glob.pattern} [${glob.kind}] declared at ${glob.sites.length} site(s), `
+      + `first ${glob.sites[0].artifact}:${glob.sites[0].line}`);
+  }
+  for (const entry of result.exempt) {
+    lines.push(`${pad}exempt ${entry.path} — ${result.exemptRule}: registers no node:test test, `
+      + `imported by ${entry.importerCount} test file(s)`);
+  }
+  for (const path of result.newOrphans) {
+    lines.push(`${pad}NEW ORPHAN ${path} — matched by none of the ${result.globCount} declared glob(s)`);
+  }
+  if (result.knownOrphans.length > 0) {
+    lines.push(`${pad}${result.knownOrphans.length} known orphan(s) frozen in ${result.baselineFile}`);
+    if (result.allSites) for (const path of result.knownOrphans) lines.push(`${pad}  known ${path}`);
+  }
+  for (const path of result.staleBaseline) {
+    lines.push(`${pad}STALE BASELINE ${path} — now reachable; remove it from ${result.baselineFile}`);
+  }
+  if (!result.baselinePresent) lines.push(`${pad}BASELINE MISSING ${result.baselineFile}`);
+  return lines;
+}
+
+function usage(stream = console.log) {
+  stream('Usage: node scripts/validate-test-file-reachability.mjs [--root <dir>] [--all-sites]');
+  stream('       node scripts/validate-test-file-reachability.mjs --update-baseline [--root <dir>]');
+  stream('There is no --skip / --force / --ignore / --bypass flag.');
+}
+
+function writeBaseline(root, result) {
+  const absBaseline = resolve(root, BASELINE_REL);
+  const header = [
+    '# validate-test-file-reachability baseline — Research Lab',
+    '#',
+    '# `tests/*.mjs` files that NO declared verification glob selects, so no',
+    '# command this repository declares ever runs them. Frozen so the guard can',
+    '# fail on NEW orphans while this pre-existing set is paid down.',
+    '#',
+    '# Keyed on the FILE path. A file added to a suffix family already listed',
+    '# here still FAILS unless its own path is listed — the debt is the file,',
+    '# not the family, so a frozen family cannot absorb new work silently.',
+    '#',
+    '# THIS LIST MUST SHRINK, NEVER GROW. Every entry is paid down by one of:',
+    '#   - declare a glob that selects it in a real verification command, or',
+    '#   - fold its assertions into a suite a declared glob already selects, or',
+    '#   - delete it, if the coverage it claims is not wanted',
+    '#',
+    '# A baseline entry that is no longer orphaned is reported as STALE and the',
+    '# run still exits 0. Remove it. Do NOT regenerate the baseline to silence a',
+    '# genuine new finding.',
+    '#',
+    '# Regenerate ONLY when deliberately accepting the current set:',
+    '#   node scripts/validate-test-file-reachability.mjs --update-baseline',
+    '#',
+    '# There is no --skip / --force / --ignore / --bypass flag and there never',
+    '# will be. A bypass-shaped flag exits non-zero.',
+    '#',
+    `# FROZEN: ${result.orphans.length} orphan(s) of ${result.testFileCount} test file(s), against`,
+    `# ${result.globCount} declared glob(s), on ${new Date().toISOString().slice(0, 10)}.`,
+    '#',
+    '# ---- unreachable suffix families -----------------------------------------',
+    ...suffixSummary(result).map((line) => `#   ${line}`),
+    '#',
+    '# ---- frozen files (LC_ALL=C sorted) --------------------------------------',
+    ''
+  ];
+  writeFileSync(absBaseline, header.concat(result.orphans, '').join('\n'), 'utf8');
+  return displayPath(root, absBaseline);
+}
+
+function suffixSummary(result) {
+  const counts = new Map();
+  for (const path of result.orphans) {
+    const name = path.slice(path.lastIndexOf('/') + 1);
+    const dot = name.indexOf('.');
+    const suffix = dot >= 0 ? name.slice(dot) : name;
+    counts.set(suffix, (counts.get(suffix) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || byteOrder(a[0], b[0]))
+    .map(([suffix, count]) => `${String(count).padStart(4)} | ${suffix}`);
+}
+
+function main(argv) {
+  let root = ROOT;
+  let update = false;
+  let allSites = false;
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === '--update-baseline') update = true;
+    else if (arg === '--all-sites') allSites = true;
+    else if (arg === '--root') { root = resolve(argv[++i] ?? ''); }
+    else if (arg === '--help' || arg === '-h') { usage(); return 0; }
+    else { console.error(`unknown argument: ${arg}`); usage(console.error); return 2; }
+  }
+
+  const result = validateTestFileReachability(root, { allSites });
+  for (const line of formatTestFileReachabilityFindings(result, 0)) console.log(line);
+
+  if (update) {
+    console.log(`baseline written: ${writeBaseline(root, result)}`);
+    return 0;
+  }
+  if (result.vacuous) {
+    console.error('vacuous scan: derived no globs, found no test files, or read no artifacts');
+    return 1;
+  }
+  if (!result.baselinePresent) return 1;
+  return result.newOrphans.length > 0 ? 1 : 0;
+}
+
+if (resolve(process.argv[1] ?? '') === SCRIPT_PATH) process.exit(main(process.argv.slice(2)));

@@ -1640,6 +1640,68 @@ perfectly innocuous declared asset after every keystroke would leak nothing and
 still be caught, which is the property a privacy row needs: it pins silence, not
 merely the absence of a known-bad string.
 
+### Probe 24 — same-command RED and GREEN for TP-01-24
+
+`TP-01-24` is the repository gate: the whole suite stays green **and** the
+pre-existing pass count does not fall. A gate row is falsified by any real
+regression reaching the suite, so the probe is a value-free arithmetic mutation —
+one term of a local difference dropped, so the elected exemptions stop reducing
+the taxable basis:
+
+```js
+-    var taxableBasis = Math.max(0, cappedValue - exemptionTotal);
++    var taxableBasis = Math.max(0, cappedValue);
+```
+
+The dropped term is a running local total, not a figure, so a slipped revert
+could not have disclosed a household value. The mutation was verified to have
+landed before the run:
+
+```
+new=1 old=0
+```
+
+RED — the row's exact command:
+
+```
+$ node scripts/selftest.mjs
+
+  ✗ FAIL: TP-01-05: below, exactly at and above the cap ceiling the capped assessment, the exemption-reduced taxable basis and the tax are each exact, and the boundary itself is not treated as bound
+  ✗ FAIL: TP-01-06: two regimes differing ONLY in capBasis produce different taxable bases from identical declarations, and each record names the basis it applied
+  ✗ FAIL: TP-01-11b: the property marginal context states explicitly that the leg does not move with income, and a refused settlement produces an unavailable context carrying the refusal code rather than a zero contribution
+Research-Lab self-test: 3103 passed, 3 failed
+RED_EXIT=1
+```
+
+Reverted inside the same shell invocation, revert verified before anything else
+ran:
+
+```
+$ git checkout -- rltaxproperty.js
+revert_rc=0
+$ git status --short -- rltaxproperty.js
+STATUS_EMPTY_ABOVE
+```
+
+GREEN — same command, clean tree:
+
+```
+$ git status --short -- rltaxproperty.js
+PRE_GREEN_STATUS_EMPTY_ABOVE
+
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3106 passed, 0 failed
+GREEN_EXIT=0
+```
+
+Both halves of the row moved and the row is sensitive to each. The suite went
+from green to failing, and the pass count fell 3106 → 3103 rather than merely
+holding while failures appeared — so the row would catch a regression that
+deleted assertions as well as one that broke them. The three failures are
+themselves informative: a single dropped term reached the known-value row, the
+cap-basis row and the marginal-context row, which is the blast radius a
+repository gate exists to surface.
+
 ## Change Boundary
 
 Command: a path-scoped status check over the excluded list.

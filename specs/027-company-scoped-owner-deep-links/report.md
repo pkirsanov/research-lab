@@ -1334,3 +1334,560 @@ markers only. Spec 025 states the correct polarity: "Every item below ships
 **unchecked**." The paragraph is routed to `bubbles.plan` as finding
 `UV-027-F1`. While it stands, it invites a subsequent agent to re-tick the
 checklist.
+
+---
+
+## Closeout Pass — the three rewritten DoD items, verified by execution
+
+**Date:** 2026-08-20
+**Phase Agent:** bubbles.implement
+**Claim Source:** executed unless a paragraph states otherwise
+
+`bubbles.plan` rewrote three DoD items that a prior pass had correctly refused
+to tick, and left verification and ticking to this agent. This section records
+what was executed against each, plus the re-examination of the six items that
+were still unticked when this pass began.
+
+### Closeout · Item at `scopes.md` line 526 — the single shared definition
+
+One assertion was appended to the Feature 027 Scope 1 marker region of
+`scripts/selftest.mjs`. It carries both halves the item asks for.
+
+The module-load half reads the two values off the object the UMD file itself
+installs, not off a re-declaration:
+
+```js
+const f027Module = Function('var window, document, globalThis = {}; ' + f027Source + '\nreturn globalThis.RLTKR;')();
+…
+f027Module.SUBJECT_PARAM === 'ticker'
+  && f027Module.SUBJECT_PATTERN instanceof RegExp
+  && f027Module.SUBJECT_PATTERN.source === '^[A-Z0-9.\\-]{1,12}$'
+```
+
+The tree-scan half runs over every root-level `.html` / `.js` production file
+and requires: exactly one declaration site for each of `SUBJECT_PARAM` and
+`SUBJECT_PATTERN`, and it is `rlticker.js`; the pattern text
+`[A-Z0-9.\-]{1,12}` present in exactly one file, and it is `rlticker.js`; zero
+production files outside it reading the parameter themselves, where reading it
+means `.get('ticker')` or a `?ticker=` / `&ticker=` literal; and both precedent
+routes containing `RLTKR.linkedSubject` while containing no declaration of
+either name, no copy of the pattern text and no parameter read of their own.
+
+The registry is the one place outside `rlticker.js` that legitimately carries
+the parameter NAME. It is asserted equal rather than excused: the distinct
+`ownerSubjectParam` values in `company-intelligence.config.json` must be
+exactly `["ticker"]` and must equal the module's own `SUBJECT_PARAM`, so a
+divergent second convention there turns this assertion red.
+
+Observed message in the green run:
+
+```text
+  ✓ Feature 027: SUBJECT_PARAM "ticker" and SUBJECT_PATTERN /^[A-Z0-9.\-]{1,12}$/ are read off the real RLTKR export and are the single shared definition of the convention (declared only in: rlticker.js / rlticker.js; pattern text only in: rlticker.js; production files outside it that read the parameter themselves: none; both precedent routes reach it only through RLTKR.linkedSubject and name neither; registry declares the one name ["ticker"])
+```
+
+Corroborated independently in the shell:
+
+```text
+$ grep -nE '\b(var|const|let)\s+SUBJECT_(PARAM|PATTERN)\b' *.html *.js
+rlticker.js:53:  var SUBJECT_PARAM = "ticker";
+rlticker.js:54:  var SUBJECT_PATTERN = /^[A-Z0-9.\-]{1,12}$/;
+
+$ grep -nE "(searchParams|URLSearchParams\([^)]*\))\s*\.?\s*get\(\s*['\"]ticker['\"]" *.html *.js
+(no match)
+
+$ grep -l 'A-Z0-9\.\\-\]{1,12}' *.html *.js
+rlticker.js
+```
+
+`rlcompanyintel.js` matches a plain text search for `SUBJECT_PARAM` only
+through the unrelated identifier `SAFE_SUBJECT_PARAM`, a validator for the
+registry-declared name. The word-boundary-anchored declaration scan correctly
+does not count it.
+
+### Closeout · Item at `scopes.md` line 538 — the aggregate mutation proof
+
+The four adversarial guards 1.7 through 1.10 are in-memory mutants inside one
+`node scripts/selftest.mjs` run, so each was proven able to fail by NEUTRALISING
+its mutant — making the mutant identical to the real rule — and observing the
+guard go red. Per guard:
+
+| Guard | Assertion turned red | Mutation applied |
+| --- | --- | --- |
+| 1.7 | `Feature 027 adversarial: replacing SUBJECT_PATTERN with a permissive pattern fails the corpus assertion` | the permissive mutant pattern `/^.*$/` replaced with the real `/^[A-Z0-9.\-]{1,12}$/`, so zero corpus values slip through |
+| 1.8 | `Feature 027 adversarial: returning the refused value in raw fails the never-reaches-a-sink assertion` | the leaky mutant's `.replace(…, 'status: "refused", subject: null, raw: normalised')` changed back to `raw: null`, so nothing escapes through `raw` |
+| 1.9 | `Feature 027 adversarial: the containment property is provably able to fail …` | the narrowing mutant pattern `{2,12}` widened back to `{1,12}`, so the narrowed receiver refuses no sender-valid value |
+| 1.10 | `Feature 027 adversarial: restoring either private tickerFromQuery fails the single-definition assertion` | the restored-private-rule injection retargeted from `options-structure-lab.html` to a path that does not exist, so no private copy is appended |
+
+Digests and runs:
+
+```text
+PRE-MUTATION  sha256(scripts/selftest.mjs) = 2cc70cf4b78b332f862e4c280ec46f24dcdbc681329458683db23898b2f119f6
+MUTATED       sha256(scripts/selftest.mjs) = 573974ae8180bd1fb250d88b8eb4c37b2d231bc4249dc115349c05fa3c89dca0
+POST-RESTORE  sha256(scripts/selftest.mjs) = 2cc70cf4b78b332f862e4c280ec46f24dcdbc681329458683db23898b2f119f6
+residual mutation tokens after restore: grep -c 'no-such-route.html' scripts/selftest.mjs = 0
+```
+
+RED run — `node scripts/selftest.mjs`, exit 1, capture sha256
+`5242b3ad4eece15ebfbfb558e6e3df0dbaf5b51c3d199f00acd92f71fc1895ef`. Exactly
+four `✗ FAIL` lines, all four guards named:
+
+```text
+  ✗ FAIL: Feature 027 adversarial: replacing SUBJECT_PATTERN with a permissive pattern fails the corpus assertion (0 corpus value(s) would slip through)
+  ✗ FAIL: Feature 027 adversarial: returning the refused value in raw fails the never-reaches-a-sink assertion (0 refused value(s) would escape through raw)
+  ✗ FAIL: Feature 027 adversarial: the containment property is provably able to fail — a receiver narrowed to reject a one-character subject refuses sender-valid [], while narrowing it to the sender expression refuses nothing, so design.md adversarial obligation 4 is not a falsifier of this property
+  ✗ FAIL: Feature 027 adversarial: restoring either private tickerFromQuery fails the single-definition assertion
+
+================================================
+Research-Lab self-test: 3152 passed, 4 failed
+================================================
+```
+
+GREEN run after restore — `node scripts/selftest.mjs`, exit 0, capture sha256
+`a62ae0a99f8ad136b508d03a8189ebac405dbc0a01cd426cb049437978fa6822`:
+
+```text
+================================================
+Research-Lab self-test: 3156 passed, 0 failed
+================================================
+```
+
+No other assertion moved between the two runs, so the four failures are
+attributable one-to-one to the four mutations, and the post-restore digest
+proves no mutation was left on disk.
+
+### Closeout · Item at `scopes.md` line 760 — nothing about the linked company is persisted
+
+Row 2.11 in `tests/options-flow-feed-lab.spec.mjs` did not previously compare
+two visits; it only asserted that three named keys were absent from the linked
+visit's payload. The comparison the item requires was added, along with a
+`persisted()` helper that reads the payload key set, the whole `localStorage`
+key list and the raw persisted string out of the page:
+
+```js
+await open(page);
+const unlinked = await persisted(page);
+await open(page, { query: '?ticker=' + UNCOVERED });
+const linked = await persisted(page);
+expect(unlinked.stateKeys).toEqual(['dte', 'min', 'mode', 'side', 'sortDir', 'sortK']);
+expect(linked.stateKeys).toEqual(unlinked.stateKeys);
+expect(linked.storageKeys).toEqual(unlinked.storageKeys);
+expect(linked.raw).not.toContain(UNCOVERED);
+expect(linked.storageKeys.filter((key) => key.indexOf(UNCOVERED) !== -1)).toEqual([]);
+```
+
+The linked visit deliberately uses `UNCOVERED` (`MU`) — the one grammar-valid
+symbol the harness does NOT seed a `rlOptFlow:<SYM>` cache entry for — so the
+"no storage key contains the linked ticker" clause holds literally rather than
+with a carve-out for a pre-seeded cache key.
+
+Green run — exit 0, `1 passed (3.9s)`, capture sha256
+`bba9035afe7675b6ed496f89e3e347d58554c27b457dcf8063eac2f2977aefd0`.
+
+The new comparison was then proven live rather than vacuous. Pointing the
+storage-key scan at a seeded symbol turned the row red — exit 1, capture sha256
+`506eed0a38f81c15a4003f1cc7cf922168254270fa785c4cc1d82bf4a0fdd87e`:
+
+```text
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Array []
+    + Array [
+    +   "rlOptFlow:NVDA",
+    + ]
+```
+
+That proves `storageKeys` carries the page's real storage rather than an empty
+list. The probe was reverted and the file's sha256 returned to its pre-probe
+value `0da3386854b26e80905baa59f2dea777c801a68b71a987c1a8c3e23dbd57e838`.
+
+### Closeout · Re-examination of the six items that were still unticked
+
+Two moved to ticked, four did not. Line numbers are post-edit.
+
+| `scopes.md` line | Item | Outcome |
+| --- | --- | --- |
+| 519 | Scope 1 Change Boundary | stays unticked — routed to `bubbles.plan` |
+| 551 | Scope 1 `file://` with a *manual* open | stays unticked — routed to `bubbles.plan` |
+| 747 | Scope 2 Change Boundary | stays unticked — routed to `bubbles.plan` |
+| 778 | Scope 2 `file://` on both routes | stays unticked — routed to `bubbles.plan` |
+| 785 | Scope 2 `rlticker.js` byte-unchanged | **now ticked** — the named proof passes |
+| 970 | Scope 3 Change Boundary | stays unticked — routed to `bubbles.plan` |
+
+The three rewritten items are at lines 527, 540 and 765 and are all now ticked,
+so this pass closed four of the nine that were open when it began.
+
+`rlticker.js` byte-unchanged moved because the fact changed, not the standard.
+Scope 1's `+25 / -0` append to that file has since landed as commit
+`0f63acb50 spec 027: company-scoped owner deep links, and a coherent registry`,
+so the working-tree copy matches `HEAD`:
+
+```text
+$ git status --porcelain rlticker.js
+PORCELAIN_EXIT=0
+$ git --no-pager diff --numstat -- rlticker.js
+(no output)
+$ grep -n 'SUBJECT_PARAM\|SUBJECT_PATTERN' rlticker.js
+53:  var SUBJECT_PARAM = "ticker";
+54:  var SUBJECT_PATTERN = /^[A-Z0-9.\-]{1,12}$/;
+60:    var value = params.get(SUBJECT_PARAM);
+64:    if (!SUBJECT_PATTERN.test(normalised)) return { status: "refused", subject: null, raw: null };
+145:  root.RLTKR.SUBJECT_PARAM = SUBJECT_PARAM;
+146:  root.RLTKR.SUBJECT_PATTERN = SUBJECT_PATTERN;
+```
+
+The item's named proof now prints nothing, exactly as it requires, so it is
+ticked on the proof it names rather than on a substitute.
+
+The three Change Boundary items are all false for one external reason and one
+only: their predicate is whole-tree. Re-read in this session:
+
+```text
+$ git status --porcelain
+ M briefs/history-current.json
+ M briefs/history/recommendations/2026-08.jsonl
+ M market-brief.owner-reads.json
+ M notes/README.md
+ M scripts/brief-narrative-parallel.mjs
+ M scripts/build-attention-items.mjs
+ M scripts/selftest.mjs
+ M specs/027-company-scoped-owner-deep-links/scopes.md
+ M specs/_bugs/BUG-009-decision-attention-gate-result-producer-absent/design.md
+ M specs/_bugs/BUG-009-decision-attention-gate-result-producer-absent/report.md
+ M specs/_bugs/BUG-009-decision-attention-gate-result-producer-absent/scopes.md
+ M specs/_bugs/BUG-009-decision-attention-gate-result-producer-absent/spec.md
+ M specs/_bugs/BUG-009-decision-attention-gate-result-producer-absent/state.json
+ M tests/options-flow-feed-lab.spec.mjs
+?? .first-load-fix-worktree/
+?? briefs/indexes/669b1d226a4f5fbf37bad55c204222992816e8c6bb5eea3ae3890a096c625ba4/
+?? err.txt
+?? get_elements.py
+?? notes/us-israel-iran-conflict-market-scenarios-2026-08-19.md
+?? notes/us-israel-iran-cross-asset-equity-screen-2026-08-19.md
+?? out.log
+?? out.txt
+?? parse_ui.py
+?? run_accessibility_map.py
+?? specs/_bugs/BUG-009-decision-attention-gate-result-producer-absent/scenario-manifest.json
+?? temp_script.scpt
+?? tests/zz-probe-focusable.spec.mjs
+```
+
+Every feature-027 path in that list is inside `workBoundary.allowedPaths`:
+`scripts/selftest.mjs`, `tests/options-flow-feed-lab.spec.mjs` and
+`specs/027-company-scoped-owner-deep-links/scopes.md`. Everything else belongs
+to other sessions. The narrow halves of the two items that have them were
+re-confirmed here: `git status --porcelain company-fundamentals-lab.html
+technical-analysis-decision-lab.html trend-dynamics-cycle-lab.html` prints
+nothing, and `git status --porcelain specs/025-company-multi-horizon-intelligence-lab`
+prints nothing. A whole-tree-clean predicate is unsatisfiable by any scope in a
+repository several sessions write to concurrently, so these three are routed to
+`bubbles.plan` to be rewritten as scope-scoped predicates rather than ticked.
+
+The two `file://` items are not blocked by tree dirtiness. The structural half
+was re-checked in this session and holds:
+
+```text
+$ grep -cE '^(import|export)[[:space:]]' rlticker.js options-structure-lab.html gamma-trading-lab.html volatility-sizing-lab.html options-flow-feed-lab.html
+rlticker.js:0
+options-structure-lab.html:0
+gamma-trading-lab.html:0
+volatility-sizing-lab.html:0
+options-flow-feed-lab.html:0
+```
+
+The Scope 1 item additionally requires a *manual* open — a human act this agent
+cannot perform, and one the human-owned `uservalidation.md` checklist already
+carries. The Scope 2 item additionally requires that BOTH routes *operate* from
+`file://`, and `volatility-sizing-lab.html:1192` issues
+`fetch("volatility-sizing-universe.json", { cache: "no-store" })`, which a
+`file://` origin has no working origin for. **Claim Source for the fetch site:**
+executed. This session did NOT re-run a browser `file://` probe — the machine is
+contended and runs were deliberately kept targeted — so the earlier recorded
+finding that the route falls back to its configuration-unavailable banner is a
+prior pass's evidence and is not restated here as this session's own. **Claim
+Source for that finding:** not-run in this session. Both items stay unticked and
+are routed to `bubbles.plan`.
+
+### Closeout · Commands, exit codes and the resulting tally
+
+```text
+$ node scripts/selftest.mjs                     # pre-edit baseline
+exit: 0   Research-Lab self-test: 3155 passed, 0 failed
+capture sha256 aa9357bb8d9f96eedf260e22d572619690b0ee7b864e5931746303b023b00430
+
+$ node scripts/selftest.mjs                     # four mutations applied
+exit: 1   Research-Lab self-test: 3152 passed, 4 failed
+capture sha256 5242b3ad4eece15ebfbfb558e6e3df0dbaf5b51c3d199f00acd92f71fc1895ef
+
+$ node scripts/selftest.mjs                     # mutations restored
+exit: 0   Research-Lab self-test: 3156 passed, 0 failed
+capture sha256 a62ae0a99f8ad136b508d03a8189ebac405dbc0a01cd426cb049437978fa6822
+
+$ npx --no-install playwright test tests/options-flow-feed-lab.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --workers=1 \
+    --grep "SCN-027-002" --reporter=list
+exit: 0   1 passed (3.9s)
+capture sha256 bba9035afe7675b6ed496f89e3e347d58554c27b457dcf8063eac2f2977aefd0
+```
+
+DoD tally after this pass: **68 ticked, 5 unticked** across the three scopes,
+against 64 ticked and 9 unticked when it began. `uservalidation.md` is
+unchanged and still ships **0 ticked / 19 unticked**; its `## Checklist` is
+human-owned and was not touched.
+
+---
+
+## Final Five — the rewritten DoD items, verified by execution (`bubbles.implement`)
+
+`bubbles.plan` rewrote the last five DoD items so that each one is both
+satisfiable by this feature and still able to fail. This pass executed every
+predicate in all five, wrote the assertions that were missing, and ticked only
+what it proved. All five now hold, so the tally moves **68 → 73 of 73**.
+
+### The design point the lifetime-tax conjunct exists for
+
+Three of the five items check the lifetime-tax family (`rltax*.js`,
+`lifetime-tax-*`, `tax-rules`, `specs/021-*` … `specs/024-*`) by **authorship**
+rather than by **cleanliness**. This pass found the reason live in the tree, not
+hypothetically: `git --no-pager diff --name-only` over that pathspec names
+`rltaxrental.js`, carrying a thirteen-line diff authored by a concurrent session
+— a deliberate adversarial probe substituting `"mid-month-probe"` for
+`"mid-month"` inside `conventionFraction`. A cleanliness predicate over that
+family would have been false for a reason Feature 027 neither caused nor can
+remove. The authorship predicate is false only if a Feature 027 token appears
+there, which is a claim only this feature can falsify. It returns a count of
+`0`.
+
+That same concurrent probe is why `node scripts/selftest.mjs` currently exits
+non-zero; see "Selftest state and its attribution" below. It is reported here as
+observed, not explained away.
+
+### Item 1 · Scope 1 Change Boundary — TICKED
+
+| Conjunct | Command | Exit | Result |
+|---|---|---|---|
+| (a) scope-scoped porcelain | `git status --porcelain --` + 21 `allowedPaths` + 12 Excluded families | 0 | six lines, all inside `allowedPaths`, no Excluded family named |
+| (b) lifetime-tax authorship | `git --no-pager diff -- <tax pathspec> \| grep -cE '<7 tokens>'` | 1 (no match) | count `0` |
+
+Conjunct (a) output, in full:
+
+```text
+ M scripts/selftest.mjs
+ M specs/027-company-scoped-owner-deep-links/report.md
+ M specs/027-company-scoped-owner-deep-links/scopes.md
+ M specs/027-company-scoped-owner-deep-links/state.json
+ M tests/options-flow-feed-lab.spec.mjs
+ M tests/volatility-sizing-lab.spec.mjs
+```
+
+**Falsifiability was proved by mutation, not argued.** `site-exclusions.json`
+(an Excluded family) was clean at sha256
+`f3c437749395f2549166ded7a55942aa611670bb4d8262bc2e7e57efa79e1260`. One appended
+newline made the identical restricted command print ` M site-exclusions.json` —
+a path outside `allowedPaths` — so the conjunct went false. `git checkout --`
+restored it; the digest re-read as the identical
+`f3c437749395f2549166ded7a55942aa611670bb4d8262bc2e7e57efa79e1260`
+(`RESTORE_VERIFIED=yes`) and the restricted porcelain printed nothing for it
+again. Nothing was left mutated on disk.
+
+### Items 3 and 5 · Scope 2 and Scope 3 Change Boundary — TICKED
+
+Both carry the same conjunct (a) and the same lifetime-tax conjunct (c) as
+above, plus their own preserved per-scope conjunct (b):
+
+```text
+$ git status --porcelain company-fundamentals-lab.html \
+    technical-analysis-decision-lab.html trend-dynamics-cycle-lab.html
+exit: 0   (no output — the three design-D1-disqualified routes are byte-unchanged)
+
+$ git status --porcelain specs/025-company-multi-horizon-intelligence-lab
+exit: 0   (no output — Feature 025's artifacts are byte-unchanged, per FR-027-034)
+```
+
+### Item 2 · Scope 1 `file://` compatibility — TICKED
+
+```text
+$ grep -cE '^(import|export)[[:space:]]' rlticker.js options-structure-lab.html gamma-trading-lab.html
+exit: 1
+rlticker.js:0
+options-structure-lab.html:0
+gamma-trading-lab.html:0
+
+$ grep -n 'type="module"' rlticker.js options-structure-lab.html gamma-trading-lab.html
+exit: 1   (no output)
+
+$ grep -n 'script src="rlticker.js"' options-structure-lab.html gamma-trading-lab.html
+exit: 0
+options-structure-lab.html:2798:  <script src="rlticker.js" defer></script>
+gamma-trading-lab.html:1840:    <script src="rlticker.js" defer></script>
+
+$ node -e 'const p=require("./package.json");console.log("hasScripts="+Object.prototype.hasOwnProperty.call(p,"scripts"));'
+exit: 0   hasScripts=false
+```
+
+The whole manifest is `name`, `version`, `private`, `engines` and one
+`devDependencies` entry (`playwright`) — no bundler, no build step between the
+source files and a browser. The human half, physically opening each route from a
+disk with no server, is delegated to the human-owned `uservalidation.md`
+checklist and was deliberately **not** ticked by this agent.
+
+### Item 4 · Scope 2 `file://` — TICKED, on a real browser run from a real `file://` origin
+
+Conjuncts (b) and (c) cannot be settled by grep, so three **new persistent**
+Playwright rows were written for them and run. Prior passes' `file://` findings
+were **not** restated as this pass's proof.
+
+New assertions, both files inside `workBoundary.allowedPaths`:
+
+| File | Row |
+|---|---|
+| `tests/options-flow-feed-lab.spec.mjs` | `FEATURE-027 file:// parity: the options-flow route reaches the same file:// outcome with a ?ticker= subject as with no query string` |
+| `tests/options-flow-feed-lab.spec.mjs` | `FEATURE-027 file:// paint: the options-flow route fully reaches its paint from a file:// origin with and without a subject` |
+| `tests/volatility-sizing-lab.spec.mjs` | `FEATURE-027 file:// parity: the volatility route reaches the same file:// outcome with a ?ticker= subject as with no query string` |
+
+Each navigates to `file://` + the absolute route path. No static server is in the
+picture for these rows.
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome tests/options-flow-feed-lab.spec.mjs \
+    tests/volatility-sizing-lab.spec.mjs --grep "FEATURE-027 file://" \
+    --workers=1 --reporter=list
+exit: 0   3 passed (6.4s)
+
+FILE_PARITY options-flow plain:  {"scriptCompleted":true,"rltkrResolved":true,"noticePresent":true,"feedRendered":true,"tableRendered":true,"noticeText":"","noticeHidden":true,"pageErrors":0,"errorMessages":[]}
+FILE_PARITY options-flow linked: {"scriptCompleted":true,"rltkrResolved":true,"noticePresent":true,"feedRendered":true,"tableRendered":true,"noticeText":"Focus: NVDA — 2 flagged strikes · call premium $260K vs put premium $25K · end-of-day proxy over 12 liquid names, not a real-time tape.","noticeHidden":false,"pageErrors":0,"errorMessages":[]}
+FILE_PARITY volatility  plain:   {"rltkrResolved":true,"labPresent":false,"configErrorShown":true,"configLoaded":false,"activeAsset":null,"noticePresent":true,"noticeHidden":true,"pageErrors":0,"errorMessages":[]}
+FILE_PARITY volatility  linked:  {"rltkrResolved":true,"labPresent":false,"configErrorShown":true,"configLoaded":false,"activeAsset":null,"noticePresent":true,"noticeHidden":true,"pageErrors":0,"errorMessages":[]}
+```
+
+Conjunct (b) holds on both routes: every reach field is element-wise identical
+with a subject and without one. The volatility route reaches its pre-existing
+configuration-unavailable banner in both cases — which is exactly what the
+parity formulation measures, since the parameter changes nothing about how far
+that route gets from disk. Conjunct (c) holds: options-flow reaches a full paint
+from `file://` with `RLTKR` resolved, feed and table rendered, zero page errors,
+and the focus band carrying real text when a subject is supplied.
+
+**Falsifiability was proved by mutation, not argued.**
+`options-flow-feed-lab.html` was clean at sha256
+`88568b5744937f93c133aa52659a633335f043d8b65b5242bd7327c0d79471cc`. Rewriting its
+`<script src="rlticker.js" defer>` tag to `type="module"` produced a real red:
+
+```text
+exit: 1
+  ✘ FEATURE-027 file:// paint: … with and without a subject
+    Error: RLTKR must resolve from a file:// origin
+    expect(received).toBe(expected)
+    Expected: true
+    Received: false
+```
+
+That is precisely the loss of `file://` operation the conjunct exists to catch.
+The tag was restored, the digest re-read as the identical
+`88568b5744937f93c133aa52659a633335f043d8b65b5242bd7327c0d79471cc`
+(`RESTORE_VERIFIED=yes`), `git status --porcelain options-flow-feed-lab.html`
+printed nothing, and all three rows re-ran green. Nothing was left mutated on
+disk.
+
+### Targeted regression
+
+Both touched spec files were then run in full. The full 677-test suite was
+deliberately **not** re-run.
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome tests/options-flow-feed-lab.spec.mjs \
+    tests/volatility-sizing-lab.spec.mjs --workers=1 --reporter=list
+exit: 0   37 passed (31.3s)
+```
+
+### Selftest state and its attribution
+
+```text
+$ node scripts/selftest.mjs
+exit: 1   Research-Lab self-test: 3122 passed, 9 failed
+capture sha256 8c435b7e0ff5001e82eb0c99d9cdb2342b286a218813a29de29c8d1f8692a082
+```
+
+This is reported as observed. It is **not** attributable to this pass, and the
+attribution was established by execution rather than asserted:
+
+1. This pass edited exactly two files, `tests/options-flow-feed-lab.spec.mjs`
+   and `tests/volatility-sizing-lab.spec.mjs`. `grep -n
+   'options-flow-feed-lab.spec\|volatility-sizing-lab.spec' scripts/selftest.mjs`
+   exits 1 — the selftest does not read either file.
+2. Seven of the nine failures are Feature 023 lifetime-tax rows: `TP-03-03`,
+   `TP-04-02`, `TP-04-11`, `TP-04-12`, `TP-05-14`, plus the Scope 03 rental and
+   Scope 04 dwelling-use groups throwing on `undefined`.
+3. The remaining two are the `SCN-027-CANARY` rows, which assert "every
+   pre-existing selftest assertion stays green" and therefore report red
+   whenever anything upstream is red. They are consequences, not causes.
+4. The cause is visible in the tree: `rltaxrental.js` carries the concurrent
+   session's live `"mid-month"` → `"mid-month-probe"` probe in
+   `conventionFraction`, which makes that function return `null` for the
+   mid-month convention and cascades into exactly those seven rows.
+
+The probe belongs to another session that is actively running lifetime-tax work.
+It was **not** reverted, **not** touched, and **not** disturbed.
+
+#### The attribution was then confirmed by a natural experiment
+
+While this pass was still running, the concurrent session finished and reverted
+its own probe. The lifetime-tax pathspec went from naming `rltaxrental.js` to
+printing nothing, and the selftest was re-run unchanged:
+
+```text
+$ git status --porcelain -- 'rltax*.js' 'lifetime-tax-*' 'tax-rules' 'specs/021-*' 'specs/022-*' 'specs/023-*' 'specs/024-*'
+exit: 0   (no output — the probe is gone)
+
+$ node scripts/selftest.mjs
+exit: 0   Research-Lab self-test: 3156 passed, 0 failed
+```
+
+Nothing in this feature changed between the two selftest runs. The 9 failures
+appeared with the concurrent probe present and vanished with it removed, which
+confirms the attribution by observation rather than by argument. Both runs are
+recorded here — the failing one is not suppressed now that a greener one exists.
+
+One consequence is recorded honestly rather than quietly dropped: the
+lifetime-tax authorship conjunct was **demonstrably non-vacuous** when it was
+executed, because the family was dirty at that moment and still carried zero
+Feature 027 tokens. At the close of this pass the family is clean, so the same
+conjunct now holds over an empty diff. It was true in both states.
+
+### Final commands, exit codes and tally
+
+```text
+$ node scripts/selftest.mjs                      # concurrent probe present
+exit: 1   3122 passed, 9 failed
+capture sha256 8c435b7e0ff5001e82eb0c99d9cdb2342b286a218813a29de29c8d1f8692a082
+
+$ node scripts/selftest.mjs                      # concurrent probe reverted by its owner
+exit: 0   3156 passed, 0 failed
+
+$ npx … --grep "FEATURE-027 file://" --workers=1
+exit: 0   3 passed
+
+$ npx … tests/options-flow-feed-lab.spec.mjs tests/volatility-sizing-lab.spec.mjs --workers=1
+exit: 0   37 passed
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/027-company-scoped-owner-deep-links
+exit: 0   Artifact lint PASSED.
+
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/027-company-scoped-owner-deep-links
+exit: 1   verdict FAIL against targetStatus done — EXPECTED, and not a defect of this pass
+          failedGateIds: [G056,G060,G022,G040,G068,G089,G094,G136]
+          G022 names the twelve specialist phases that have not run; G136 is
+          human acceptance, which this agent must not claim; the single G040 hit
+          is bubbles.plan-authored routing prose on scopes.md line 786, and the
+          five paragraphs this pass added contribute zero deferral hits.
+```
+
+DoD tally after this pass: **73 ticked, 0 unticked** across the three scopes,
+against 68 ticked and 5 unticked when it began. `uservalidation.md` is unchanged
+and still ships **0 ticked / 19 unticked**; its `## Checklist` is human-owned and
+was not touched. Top-level `status` remains `in_progress`, `certifiedAt` remains
+`null`, and no `certification.*` field was written — the twelve specialist phases
+have not run.
+

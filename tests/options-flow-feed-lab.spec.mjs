@@ -86,6 +86,18 @@ async function capture(page) {
     });
 }
 
+/* what the route actually persists, read straight out of the page after a visit */
+async function persisted(page) {
+    return page.evaluate(() => {
+        const raw = localStorage.getItem('optFlowState');
+        return {
+            raw,
+            stateKeys: Object.keys(JSON.parse(raw)).sort(),
+            storageKeys: Object.keys(localStorage).sort()
+        };
+    });
+}
+
 /* FR-027-015 — captured from the unmodified route (sha256
    5b66a095b58e798686aefb407767dd118584a70694965b36b52d39a45b57dc98, identical to HEAD)
    BEFORE any Scope 2 edit, and recorded verbatim in report.md. Note savedState: the
@@ -161,6 +173,20 @@ test('Regression: SCN-027-002 a link outranks saved state for this visit and the
     expect(Object.prototype.hasOwnProperty.call(restored, 'subject')).toBe(false);
     expect(Object.prototype.hasOwnProperty.call(restored, 'focus')).toBe(false);
     expect(Object.prototype.hasOwnProperty.call(restored, 'ticker')).toBe(false);
+
+    /* The persisted key set is IDENTICAL with and without a link: the focus is a per-visit
+       read, never a stored preference. UNCOVERED is grammar-valid and is the one symbol the
+       harness does NOT seed a rlOptFlow:<SYM> cache entry for, so on that visit no storage
+       key at all carries the linked ticker and the claim needs no carve-out. */
+    await open(page);
+    const unlinked = await persisted(page);
+    await open(page, { query: '?ticker=' + UNCOVERED });
+    const linked = await persisted(page);
+    expect(unlinked.stateKeys).toEqual(['dte', 'min', 'mode', 'side', 'sortDir', 'sortK']);
+    expect(linked.stateKeys).toEqual(unlinked.stateKeys);
+    expect(linked.storageKeys).toEqual(unlinked.storageKeys);
+    expect(linked.raw).not.toContain(UNCOVERED);
+    expect(linked.storageKeys.filter((key) => key.indexOf(UNCOVERED) !== -1)).toEqual([]);
 });
 
 test('Regression: SCN-027-004 the focus band names the active subject as page text rather than only in a table cell', async ({ page }) => {
@@ -234,4 +260,77 @@ test('Regression: SCN-027-005 an unlinked open issues no request the linked open
     await open(page, { query: '?ticker=NVDA' });
     expect(seen.length).toBe(plain);
     expect(plain).toBe(0);
+});
+
+/* FEATURE-027 file:// reach parity ─────────────────────────────────────────────
+ * Scope 2 DoD: the subject handoff must introduce no NEW file:// incompatibility.
+ * These two rows open the real route from a file:// origin (no server, no bundler)
+ * and compare the reach signature — did the route's own script run to completion,
+ * did the shared ticker module resolve, how many uncaught page errors — with a
+ * ?ticker= value present against no query string at all.
+ * ───────────────────────────────────────────────────────────────────────────── */
+
+const FILE_ORIGIN = 'file://' + new URL('../options-flow-feed-lab.html', import.meta.url).pathname;
+
+async function openFromFile(page, query) {
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(String(error && error.message)));
+    await page.addInitScript((cache) => {
+        try { for (const key of Object.keys(cache)) localStorage.setItem(key, JSON.stringify(cache[key])); } catch (e) { /* opaque file:// storage is itself part of the signature */ }
+    }, seededCache());
+    await page.goto(FILE_ORIGIN + (query || ''));
+    await page.waitForFunction(() => {
+        const status = document.getElementById('status');
+        return status && status.textContent && status.textContent !== 'loading…';
+    }, null, { timeout: 15000 }).catch(() => { /* a route that never leaves 'loading…' is a real reach failure, recorded below */ });
+    const reach = await page.evaluate(() => {
+        const status = document.getElementById('status');
+        const notice = document.getElementById('linkNotice');
+        return {
+            scriptCompleted: !!(status && status.textContent && status.textContent.indexOf('chains cached') !== -1),
+            rltkrResolved: typeof window.RLTKR === 'object' && window.RLTKR !== null,
+            noticePresent: !!notice,
+            feedRendered: document.querySelectorAll('#feed .card').length > 0,
+            tableRendered: document.querySelectorAll('#tbody tr').length > 0,
+            noticeText: notice ? notice.textContent : null,
+            noticeHidden: notice ? notice.hasAttribute('hidden') : null
+        };
+    });
+    return { ...reach, pageErrors: errors.length, errorMessages: errors };
+}
+
+test('FEATURE-027 file:// parity: the options-flow route reaches the same file:// outcome with a ?ticker= subject as with no query string', async ({ page }) => {
+    const plain = await openFromFile(page, '');
+    const linked = await openFromFile(page, '?ticker=NVDA');
+    const signature = (r) => ({
+        scriptCompleted: r.scriptCompleted,
+        rltkrResolved: r.rltkrResolved,
+        noticePresent: r.noticePresent,
+        feedRendered: r.feedRendered,
+        tableRendered: r.tableRendered,
+        pageErrors: r.pageErrors
+    });
+    console.log('FILE_PARITY options-flow plain: ' + JSON.stringify(plain));
+    console.log('FILE_PARITY options-flow linked: ' + JSON.stringify(linked));
+    expect(signature(linked)).toEqual(signature(plain));
+});
+
+test('FEATURE-027 file:// paint: the options-flow route fully reaches its paint from a file:// origin with and without a subject', async ({ page }) => {
+    const plain = await openFromFile(page, '');
+    expect(plain.pageErrors, 'unlinked file:// open must raise no page error: ' + JSON.stringify(plain.errorMessages)).toBe(0);
+    expect(plain.scriptCompleted, 'unlinked file:// open must reach the cached-chains status').toBe(true);
+    expect(plain.rltkrResolved, 'RLTKR must resolve from a file:// origin').toBe(true);
+    expect(plain.feedRendered).toBe(true);
+    expect(plain.tableRendered).toBe(true);
+    expect(plain.noticeHidden, 'with no subject the notice stays hidden').toBe(true);
+    expect(plain.noticeText).toBe('');
+
+    const linked = await openFromFile(page, '?ticker=NVDA');
+    expect(linked.pageErrors, 'linked file:// open must raise no page error: ' + JSON.stringify(linked.errorMessages)).toBe(0);
+    expect(linked.scriptCompleted, 'linked file:// open must reach the cached-chains status').toBe(true);
+    expect(linked.rltkrResolved).toBe(true);
+    expect(linked.feedRendered).toBe(true);
+    expect(linked.tableRendered).toBe(true);
+    expect(linked.noticeHidden, 'with a subject the focus band is shown').toBe(false);
+    expect(linked.noticeText, 'the focus band must render its real text, not a blank').toContain('NVDA');
 });

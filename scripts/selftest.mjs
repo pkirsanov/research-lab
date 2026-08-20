@@ -25433,6 +25433,45 @@ try {
     && typeof f027Module.linkedSubject === 'function',
   'Feature 027: rlticker.js exports SUBJECT_PARAM "ticker", SUBJECT_PATTERN /^[A-Z0-9.\\-]{1,12}$/ and linkedSubject on RLTKR');
 
+  /* The single-definition claim, proven in one assertion: both values are read off the REAL
+     export object, and a scan of the whole production tree proves the pair has exactly one
+     declaration site, that no other production file reads the query parameter itself, and
+     that the two precedent routes reach the convention only through RLTKR.linkedSubject and
+     name neither the parameter nor the pattern. The coverage registry declares the same
+     parameter NAME for its subject-carrying rows; that is a consumer of this definition, not
+     a second one, so it is asserted EQUAL to the module's own value rather than excused. */
+  const f027DeclarationSites = (files, name) => files
+    .filter((f) => new RegExp('\\b(?:var|const|let)\\s+' + name + '\\b').test(f.source)).map((f) => f.path);
+  const f027ParamReadPattern = /\.get\(\s*['"]ticker['"]\s*\)|[?&]ticker=/;
+  const f027ForeignParamReaders = f027ProductionFiles
+    .filter((f) => f.path !== 'rlticker.js' && f027ParamReadPattern.test(f.source)).map((f) => f.path);
+  const f027RegistryParams = Array.from(new Set(JSON.parse(read('company-intelligence.config.json'))
+    .coverageRegistry.map((row) => row.ownerSubjectParam).filter((value) => typeof value === 'string')));
+  const f027RouteSources = F027_SUBJECT_ROUTES.map((name) => f027ProductionFiles.find((f) => f.path === name));
+  const f027ParamDecls = f027DeclarationSites(f027ProductionFiles, 'SUBJECT_PARAM');
+  const f027PatternDecls = f027DeclarationSites(f027ProductionFiles, 'SUBJECT_PATTERN');
+  assert(f027Module.SUBJECT_PARAM === 'ticker'
+    && f027Module.SUBJECT_PATTERN instanceof RegExp
+    && f027Module.SUBJECT_PATTERN.source === '^[A-Z0-9.\\-]{1,12}$'
+    && f027ParamDecls.join(',') === 'rlticker.js'
+    && f027PatternDecls.join(',') === 'rlticker.js'
+    && f027PatternSites(f027ProductionFiles).join(',') === 'rlticker.js'
+    && f027ForeignParamReaders.length === 0
+    && f027RouteSources.length === F027_SUBJECT_ROUTES.length
+    && f027RouteSources.every((f) => !!f
+      && f.source.includes('RLTKR.linkedSubject')
+      && !/\b(?:var|const|let)\s+SUBJECT_(?:PARAM|PATTERN)\b/.test(f.source)
+      && !f.source.includes(f027PatternToken)
+      && !f027ParamReadPattern.test(f.source))
+    && f027RegistryParams.length === 1 && f027RegistryParams[0] === f027Module.SUBJECT_PARAM,
+  'Feature 027: SUBJECT_PARAM "' + f027Module.SUBJECT_PARAM + '" and SUBJECT_PATTERN /' + f027Module.SUBJECT_PATTERN.source
+    + '/ are read off the real RLTKR export and are the single shared definition of the convention'
+    + ' (declared only in: ' + (f027ParamDecls.join(', ') || 'nowhere') + ' / ' + (f027PatternDecls.join(', ') || 'nowhere')
+    + '; pattern text only in: ' + (f027PatternSites(f027ProductionFiles).join(', ') || 'nowhere')
+    + '; production files outside it that read the parameter themselves: ' + (f027ForeignParamReaders.join(', ') || 'none')
+    + '; both precedent routes reach it only through RLTKR.linkedSubject and name neither'
+    + '; registry declares the one name ' + JSON.stringify(f027RegistryParams) + ')');
+
   const f027Body = extractFn(f027Source, 'linkedSubject');
   assert(!/\bwindow\b|\bdocument\b|localStorage|sessionStorage|location\./.test(f027Body)
     && f027Body.includes('normTicker(')

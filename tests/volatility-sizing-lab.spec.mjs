@@ -726,3 +726,56 @@ test('Regression: SCN-027-010 no adversarial corpus value appears in the body, i
         expect(leak.asset, 'a refused value must never become the active asset: ' + value).toBe('SPY');
     }
 });
+
+/* FEATURE-027 file:// reach parity ─────────────────────────────────────────────
+ * Scope 2 DoD: the subject handoff must introduce no NEW file:// incompatibility
+ * on this receiving route. This route fetches volatility-sizing-universe.json at
+ * boot, which a file:// origin cannot serve, so it renders its pre-existing
+ * configuration-unavailable banner instead of operating — a limitation the route
+ * already had at HEAD and which this feature did not create. What IS this
+ * feature's responsibility, and what this row asserts, is that the reach outcome
+ * is IDENTICAL with a ?ticker= subject present and with no query string at all:
+ * the parameter neither adds nor removes a file:// failure.
+ * ───────────────────────────────────────────────────────────────────────────── */
+
+const VOL_FILE_ORIGIN = 'file://' + new URL('../volatility-sizing-lab.html', import.meta.url).pathname;
+
+async function volReachFromFile(page, query) {
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(String(error && error.message)));
+    await page.goto(VOL_FILE_ORIGIN + (query || ''));
+    await page.waitForTimeout(1500);
+    const reach = await page.evaluate(() => {
+        const configError = document.getElementById('configError');
+        const notice = document.getElementById('linkNotice');
+        const lab = window.VolSizingLab;
+        return {
+            rltkrResolved: typeof window.RLTKR === 'object' && window.RLTKR !== null,
+            labPresent: !!lab,
+            configErrorShown: !!(configError && !configError.classList.contains('is-hidden')),
+            configLoaded: !!(lab && lab.runtime && lab.runtime.config),
+            activeAsset: lab && lab.runtime && lab.runtime.controls ? lab.runtime.controls.asset : null,
+            noticePresent: !!notice,
+            noticeHidden: notice ? notice.hasAttribute('hidden') : null
+        };
+    });
+    return { ...reach, pageErrors: errors.length, errorMessages: errors };
+}
+
+test('FEATURE-027 file:// parity: the volatility route reaches the same file:// outcome with a ?ticker= subject as with no query string', async ({ page }) => {
+    const plain = await volReachFromFile(page, '');
+    const linked = await volReachFromFile(page, '?ticker=NVDA');
+    const signature = (r) => ({
+        rltkrResolved: r.rltkrResolved,
+        labPresent: r.labPresent,
+        configErrorShown: r.configErrorShown,
+        configLoaded: r.configLoaded,
+        activeAsset: r.activeAsset,
+        noticePresent: r.noticePresent,
+        noticeHidden: r.noticeHidden,
+        pageErrors: r.pageErrors
+    });
+    console.log('FILE_PARITY volatility plain: ' + JSON.stringify(plain));
+    console.log('FILE_PARITY volatility linked: ' + JSON.stringify(linked));
+    expect(signature(linked)).toEqual(signature(plain));
+});

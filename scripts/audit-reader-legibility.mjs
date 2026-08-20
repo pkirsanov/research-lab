@@ -198,7 +198,12 @@ async function main() {
   }
 
   const failing = report.some((r) => r.error || Object.values(r.views).some((v) => v.leaks.length));
-  process.exit(failing ? 1 : 0);
+  /* stdout is a PIPE under spawnSync, where writes are async — process.exit()
+     discards whatever has not flushed and truncates the JSON at the pipe buffer
+     (measured: 63,729 of 63,7xx+ bytes, mid-token). Setting exitCode lets Node
+     drain first. A TTY writes synchronously, which is why running this by hand
+     never showed the loss. */
+  process.exitCode = failing ? 1 : 0;
 }
 
 main().catch((error) => {

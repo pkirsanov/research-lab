@@ -667,6 +667,68 @@ unmutated tree, for the same foreign spec-027 references described above, so the
 is no present GREEN to pair a RED with. Its historical GREEN, captured when the
 tree was clean, stands in `report.md#tp-03-27` and is not withdrawn.
 
+### Repair of the three weaknesses — M-2, `TP-03-11`
+
+The finding above stands as recorded; this section appends what changed, it does
+not rewrite it. The repair is **additive**: no existing assertion was edited,
+weakened, removed or skipped, and no timeout was raised. Each strengthening is a
+new assertion carrying the same row id beside the one that was too weak, so the
+old assertion's text and verdict survive unchanged and the pair reads as a
+before-and-after.
+
+**What `TP-03-11` could not see.** Its check hands the contract validator a
+limitation record **the test itself zeroed** and observes that the validator
+rejects it. That proves the validator rejects a zeroed member. It says nothing
+about whether the **engine** publishes the disallowed amounts it computed. M-2
+zeroes the engine's accumulator, not a record the test builds, so the whole
+assertion passed while the published carryforward went to zero — exactly the
+"silently zeroed" defect `FR-023-019` forbids and the row names.
+
+**The strengthening.** The engine's published aggregate is
+`closingSuspendedLoss`, and the module's own contract comment says it is the sum
+of every disallowed amount the ladder published. The new assertion recomputes that
+sum from the individual limitation records and pins the published aggregate to it,
+across all five reconciliation fixtures and the ladder fixture, and requires the
+ladder's aggregate to be strictly positive so a fixture that legitimately
+disallows nothing cannot make the check vacuous. Reading the aggregate is a
+number read, so a zeroed accumulator fails **this row** rather than throwing and
+aborting the group.
+
+```text
+PROBE M-2 (re-run against the strengthened assertion)   target=TP-03-11
+  file=<repo>/rltaxrental.js:698
+  mutation: disallowedTotal += appliedLimits[index].disallowedAmount;  →  disallowedTotal += 0;
+  BEFORE_SHA256=230f966c0c38eba8a71f90dfa9d5c4aca71685997da03dce393dd942ede8026c
+  MUTATED_SHA256=f34e36b9f560e1e446d24956bc60c32a263bfb24cf03f79fd3da9994be020e84
+
+  $ node scripts/selftest.mjs
+  ✓ TP-03-11: a limitation whose disallowed amount is zeroed fails the reconciliation
+    assertion and one that omits the member fails the contract, while the record the
+    engine actually published passes both
+  ✗ FAIL: TP-03-11: the published closing suspended loss equals the sum of the disallowed
+    amounts the ladder published, recomputed from the individual limitation records,
+    across every reconciliation fixture and the ladder fixture, so an engine that
+    accumulated zero instead of the amount it computed fails here rather than publishing
+    a silently zeroed carryforward
+  Research-Lab self-test: 3130 passed, 1 failed
+
+  RED IS THE NEW ASSERTION ALONE. The pre-existing TP-03-11 assertion still passed
+  under the same mutation, which is the direct demonstration that it was the weak one
+  and that the added conjunct is what discriminates. Exactly one failure, so the group
+  did not throw and no later row was aborted.
+
+  AFTER_SHA256=230f966c0c38eba8a71f90dfa9d5c4aca71685997da03dce393dd942ede8026c
+  REVERT_VERIFIED=yes
+
+  $ node scripts/selftest.mjs        # same command, after revert
+  ✓ TP-03-11: the published closing suspended loss equals the sum of the disallowed
+    amounts the ladder published, ...
+  Research-Lab self-test: 3131 passed, 0 failed
+```
+
+`git status --short` over every module, pack, page and test path was empty after
+the revert. `TP-03-11` now carries an intended RED and a same-command GREEN.
+
 ## Supersession Ledger
 
 Filled at execution. This scope supersedes nothing, so this section holds the

@@ -17016,6 +17016,25 @@ try {
     && RULES03.validateLossLimitation(ladder03.appliedLimits[0]).ok === true,
     'TP-03-11: a limitation whose disallowed amount is zeroed fails the reconciliation assertion and one that omits the member fails the contract, while the record the engine actually published passes both');
 
+  /* TP-03-11 ADVERSARIAL, second discriminator. The check above hands the validator a record
+     the TEST zeroed, so it proves the validator rejects a zeroed member — not that the ENGINE
+     publishes the disallowed amounts it computed. The engine's published aggregate is the
+     closing suspended loss, and the module's own contract says it is the sum of every
+     disallowed amount the ladder published. Pinning it to that sum, recomputed from the
+     individual limitation records rather than read back from the accumulator that produced it,
+     is what makes "none is silently zeroed" fail when the aggregate is zeroed. */
+  const disallowedSum03 = (settlement) => settlement.appliedLimits
+    .reduce((total, limit) => total + limit.disallowedAmount, 0);
+  const aggregateHolds03 = reconcileFixtures03.concat([ladder03])
+    .every((settlement) => Number.isFinite(settlement.closingSuspendedLoss)
+      && near03(settlement.closingSuspendedLoss, disallowedSum03(settlement)));
+  assert(aggregateHolds03
+    && disallowedSum03(ladder03) > 0
+    && ladder03.closingSuspendedLoss > 0
+    && near03(ladder03.closingSuspendedLoss, disallowedSum03(ladder03))
+    && reconcileFixtures03.some((settlement) => settlement.closingSuspendedLoss > 0),
+    'TP-03-11: the published closing suspended loss equals the sum of the disallowed amounts the ladder published, recomputed from the individual limitation records, across every reconciliation fixture and the ladder fixture, so an engine that accumulated zero instead of the amount it computed fails here rather than publishing a silently zeroed carryforward');
+
   /* TP-03-12 CONTRACT. The opening carryforward is a DECLARATION carrying no citation, and a
      carryforward member carrying a sourceRef is refused. */
   const citedCarryforward03 = activity03({ openingSuspendedLoss: { amount: 5000, sourceRef: 'irs-p925-2025' } });
@@ -24894,6 +24913,205 @@ try {
 
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 threshold surtax group threw): ' + e.message); }
 /* ---------- Feature 022 Scope 02: threshold surtaxes and declared tax legs (END) ---------- */
+
+/* FEATURE-027-SUBJECT-HANDOFF-BEGIN */
+try {
+  group('Feature 027 Scope 1: the shared subject-handoff rule and the two precedent routes');
+  const f027Source = read('rlticker.js');
+
+  /* The rule is lifted out of the UMD file the same way every other pure helper here is,
+     which is what proves it takes its input as an argument and reads no browser global. */
+  const f027ParamLine = /\n\s*var SUBJECT_PARAM = [^\n]*\n/.exec(f027Source);
+  const f027PatternLine = /\n\s*var SUBJECT_PATTERN = [^\n]*\n/.exec(f027Source);
+  if (!f027ParamLine || !f027PatternLine) throw new Error('SUBJECT_PARAM / SUBJECT_PATTERN not declared in rlticker.js');
+  const f027Rule = build(
+    [extractFn(f027Source, 'normTicker'), extractFn(f027Source, 'linkedSubject')],
+    ['normTicker', 'linkedSubject'],
+    f027ParamLine[0] + f027PatternLine[0]
+  );
+
+  /* Load the UMD module itself under a shadowed global so the frozen-export claims are read
+     off the real export object rather than a copy of it. rlticker.js returns before any DOM
+     work when `document` is absent, so this is the module's own Node path. */
+  const f027Module = Function('var window, document, globalThis = {}; ' + f027Source + '\nreturn globalThis.RLTKR;')();
+
+  /* The corpus is defined once here and reused by every later scope (design.md Security). It
+     partitions three ways, because the receiver pattern FR-027-003 forbids narrowing does not
+     refuse every corpus member:
+       - two values are empty-ish and indistinguishable from no parameter at all (FR-027-012);
+       - `.`, `-` and `..` are grammar-VALID under /^[A-Z0-9.\-]{1,12}$/ and are accepted
+         today by both precedent routes, which is exactly the "grammar-valid oddity" D5 names
+         and hands to catalog binding rather than to the grammar;
+       - the rest must be refused. */
+  const F027_ABSENT_CORPUS = Object.freeze(['', '   \t  ']);
+  const F027_ODDITY_CORPUS = Object.freeze(['.', '-', '..']);
+  const F027_REFUSED_CORPUS = Object.freeze([
+    'javascript:alert(1)', 'data:text/html,x', '//evil.example', '../../etc/passwd',
+    '<img src=x onerror=1>', 'SPY onmouseover=1', 'SPY&x=1', 'SPY#frag', 'SPY\u0000',
+    'ABCDEFGHIJKLM', '\u0426\u0415\u041d\u0410', 'SP\nY', 'SP\tY'
+  ]);
+  const F027_CORPUS = Object.freeze(F027_ABSENT_CORPUS.concat(F027_ODDITY_CORPUS, F027_REFUSED_CORPUS));
+  const f027Query = (value) => '?' + f027Module.SUBJECT_PARAM + '=' + encodeURIComponent(value);
+
+  /* The rule as it stood privately in each precedent route before this scope deleted it.
+     Frozen here on purpose: it is the reference the equivalence proof compares against. */
+  function f027RemovedPrivateRule(search) {
+    var raw = new URLSearchParams(search).get('ticker');
+    if (typeof raw !== 'string') return null;
+    var value = raw.trim().toUpperCase();
+    return /^[A-Z0-9.\-]{1,12}$/.test(value) ? value : null;
+  }
+
+  /* Root-level production sources only. `_site` is a generated projection of these same
+     files and `scripts` / `tests` hold the proofs, so including any of them would make the
+     single-definition count structurally impossible to satisfy. */
+  const f027ProductionFiles = readdirSync(ROOT)
+    .filter((name) => /\.(html|js)$/.test(name))
+    .map((name) => ({ path: name, source: read(name) }));
+  const f027PatternToken = '[A-Z0-9.\\-]{1,12}';
+  const f027PatternSites = (files) => files.filter((f) => f.source.includes(f027PatternToken)).map((f) => f.path);
+  const f027PrivateRuleSites = (files) => files.filter((f) => /function\s+tickerFromQuery\s*\(/.test(f.source)).map((f) => f.path);
+  const F027_SUBJECT_ROUTES = Object.freeze(['options-structure-lab.html', 'gamma-trading-lab.html']);
+  const f027Consumers = F027_SUBJECT_ROUTES.filter((name) =>
+    f027ProductionFiles.some((f) => f.path === name && f.source.includes('RLTKR.linkedSubject')));
+
+  /* 1.1 — SCN-027-017 */
+  assert(f027PatternSites(f027ProductionFiles).join(',') === 'rlticker.js'
+    && f027PrivateRuleSites(f027ProductionFiles).length === 0
+    && f027Consumers.length === F027_SUBJECT_ROUTES.length,
+  'Feature 027: exactly one definition of the linked-subject rule exists in the tree and every subject-carrying route consumes it'
+    + ' (pattern at: ' + (f027PatternSites(f027ProductionFiles).join(', ') || 'nowhere')
+    + '; private copies: ' + (f027PrivateRuleSites(f027ProductionFiles).join(', ') || 'none')
+    + '; consumers: ' + f027Consumers.length + '/' + F027_SUBJECT_ROUTES.length + ')');
+
+  /* 1.2 — SCN-027-007 */
+  const f027Noise = '?symbol=NVDA&q=javascript:alert(1)&TICKER=AMD&tickerX=MU&' + f027Module.SUBJECT_PARAM + '=nvda&next=//evil.example';
+  const f027NoiseRead = f027Rule.linkedSubject(f027Noise);
+  const f027OnlyNoise = f027Rule.linkedSubject('?symbol=NVDA&TICKER=AMD&tickerX=MU');
+  assert(f027Module.SUBJECT_PARAM === 'ticker'
+    && f027NoiseRead.status === 'accepted' && f027NoiseRead.subject === 'NVDA'
+    && f027OnlyNoise.status === 'absent' && f027OnlyNoise.subject === null,
+  'Feature 027: linkedSubject reads only SUBJECT_PARAM and ignores every other key in the query string');
+
+  /* 1.3 — SCN-027-006 */
+  const f027AbsentReads = [f027Rule.linkedSubject(''), f027Rule.linkedSubject('?other=1'), f027Rule.linkedSubject(null)]
+    .concat(F027_ABSENT_CORPUS.map((value) => f027Rule.linkedSubject(f027Query(value))));
+  assert(f027AbsentReads.length === 5
+    && f027AbsentReads.every((read027) => read027.status === 'absent' && read027.subject === null && read027.raw === null),
+  'Feature 027: a missing, empty and whitespace-only subject all yield status absent with subject null');
+
+  /* 1.4 — SCN-027-010 */
+  const f027RefusedReads = F027_REFUSED_CORPUS.map((value) => f027Rule.linkedSubject(f027Query(value)));
+  const f027CorpusReads = F027_CORPUS.map((value) => f027Rule.linkedSubject(f027Query(value)));
+  const f027OddityReads = F027_ODDITY_CORPUS.map((value) => f027Rule.linkedSubject(f027Query(value)));
+  assert(f027RefusedReads.length === F027_REFUSED_CORPUS.length
+    && f027RefusedReads.every((read027) => read027.status === 'refused' && read027.subject === null && read027.raw === null)
+    && f027CorpusReads.every((read027) => read027.raw === null),
+  'Feature 027: every value in the adversarial corpus yields status refused with subject null and raw null');
+
+  /* The three grammar-valid oddities are NOT refused, and saying otherwise would be a false
+     claim. They stay accepted because FR-027-003 forbids narrowing the receiver; D5 hands
+     them to catalog binding on the routes where an accepted string could matter. */
+  assert(f027OddityReads.every((read027, index) => read027.status === 'accepted'
+    && read027.subject === F027_ODDITY_CORPUS[index] && read027.raw === null),
+  'Feature 027: the grammar-valid oddities ".", "-" and ".." stay accepted by the unchanged receiver pattern rather than being silently narrowed away');
+
+  /* 1.5 — FR-027-004, the D4 containment property */
+  const F027_SENDER_PATTERN = /^[A-Za-z][A-Za-z0-9.\-]{0,9}$/;
+  const F027_SENDER_CORPUS = Object.freeze([
+    'S', 'SPY', 'nvda', 'BrK.b', 'brk-b', 'A123456789', 'z.........', 'X-Y.Z', 'Aa0', 'spy'
+  ]);
+  const f027SenderValid = F027_SENDER_CORPUS.filter((value) => F027_SENDER_PATTERN.test(value));
+  const f027Contained = f027SenderValid.filter((value) => f027Rule.linkedSubject(f027Query(value)).status === 'accepted');
+  const f027LeadingDigit = f027Rule.linkedSubject(f027Query('3M'));
+  const f027TwelveChars = f027Rule.linkedSubject(f027Query('ABCDEFGHIJKL'));
+  assert(f027SenderValid.length === F027_SENDER_CORPUS.length
+    && f027Contained.length === f027SenderValid.length
+    && f027Rule.linkedSubject(f027Query('S')).status === 'accepted'
+    && f027Rule.linkedSubject(f027Query('A123456789')).status === 'accepted'
+    && f027LeadingDigit.status === 'accepted' && f027LeadingDigit.subject === '3M'
+    && f027TwelveChars.status === 'accepted',
+  'Feature 027: every sender-valid value is accepted by the shared receiver rule after normalisation'
+    + ' (' + f027Contained.length + '/' + f027SenderValid.length + ' contained)');
+
+  /* 1.6 — FR-027-003, equivalence against the rule this scope deleted */
+  const f027EquivalenceInputs = F027_CORPUS.concat(F027_SENDER_CORPUS)
+    .concat(['3M', 'ABCDEFGHIJKL', '  spy  ', 'BRK.B', 'BRK-B', 'SPY ']);
+  const f027SharedAccepts = f027EquivalenceInputs
+    .filter((value) => f027Rule.linkedSubject(f027Query(value)).status === 'accepted')
+    .map((value) => f027Rule.linkedSubject(f027Query(value)).subject);
+  const f027PrivateAccepts = f027EquivalenceInputs
+    .map((value) => f027RemovedPrivateRule(f027Query(value)))
+    .filter((value) => value !== null);
+  assert(f027EquivalenceInputs.length >= 30
+    && JSON.stringify(f027SharedAccepts) === JSON.stringify(f027PrivateAccepts),
+  'Feature 027: the shared rule and the removed private rule agree on the full corpus, so the precedent accept-set is unchanged'
+    + ' (' + f027SharedAccepts.length + ' accepted of ' + f027EquivalenceInputs.length + ')');
+
+  /* ── the four adversarial mutants (design.md Adversarial obligations 1, 2, 4 and 6) ── */
+  const f027Mutant = (patternLine) => build(
+    [extractFn(f027Source, 'normTicker'), extractFn(f027Source, 'linkedSubject')],
+    ['linkedSubject'], f027ParamLine[0] + patternLine);
+
+  /* 1.7 */
+  const f027Permissive = f027Mutant('\nvar SUBJECT_PATTERN = /^.*$/;\n');
+  const f027PermissiveSurvivors = F027_REFUSED_CORPUS
+    .filter((value) => f027Permissive.linkedSubject(f027Query(value)).status !== 'refused');
+  assert(f027PermissiveSurvivors.length > 0,
+    'Feature 027 adversarial: replacing SUBJECT_PATTERN with a permissive pattern fails the corpus assertion'
+    + ' (' + f027PermissiveSurvivors.length + ' corpus value(s) would slip through)');
+
+  /* 1.8 */
+  const f027Leaky = build(
+    [extractFn(f027Source, 'normTicker'),
+      extractFn(f027Source, 'linkedSubject').replace(/status: "refused", subject: null, raw: null/, 'status: "refused", subject: null, raw: normalised')],
+    ['linkedSubject'], f027ParamLine[0] + f027PatternLine[0]);
+  const f027Leaked = F027_REFUSED_CORPUS.filter((value) => f027Leaky.linkedSubject(f027Query(value)).raw !== null);
+  assert(f027Leaked.length > 0 && f027CorpusReads.every((read027) => read027.raw === null),
+    'Feature 027 adversarial: returning the refused value in raw fails the never-reaches-a-sink assertion'
+    + ' (' + f027Leaked.length + ' refused value(s) would escape through raw)');
+
+  /* 1.9 — design.md adversarial obligation 4 asks for the receiver to be narrowed to the
+     SENDER expression and expects the containment property to go red. It cannot: the sender
+     expression is applied AFTER normalisation, uppercasing maps every sender-legal letter
+     back into the sender class, and every value that narrowing then refuses was never
+     sender-valid in the first place. That is recorded mechanically here rather than papered
+     over, and the containment guard is instead proved able to fail by a narrowing that
+     really does refuse a sender-valid value. */
+  const f027NarrowedToSender = f027Mutant('\nvar SUBJECT_PATTERN = /^[A-Za-z][A-Za-z0-9.\\-]{0,9}$/;\n');
+  const f027SenderNarrowBreaks = f027SenderValid
+    .filter((value) => f027NarrowedToSender.linkedSubject(f027Query(value)).status !== 'accepted');
+  const f027NarrowedTwoPlus = f027Mutant('\nvar SUBJECT_PATTERN = /^[A-Z0-9.\\-]{2,12}$/;\n');
+  const f027RealNarrowBreaks = f027SenderValid
+    .filter((value) => f027NarrowedTwoPlus.linkedSubject(f027Query(value)).status !== 'accepted');
+  assert(f027RealNarrowBreaks.length > 0 && f027SenderNarrowBreaks.length === 0,
+    'Feature 027 adversarial: the containment property is provably able to fail — a receiver narrowed to reject a one-character subject refuses sender-valid ' + JSON.stringify(f027RealNarrowBreaks)
+    + ', while narrowing it to the sender expression refuses nothing, so design.md adversarial obligation 4 is not a falsifier of this property');
+
+  /* 1.10 */
+  const f027Restored = f027ProductionFiles.map((f) => f.path === 'options-structure-lab.html'
+    ? { path: f.path, source: f.source + '\nfunction tickerFromQuery() { return null; }\n' } : f);
+  assert(f027PrivateRuleSites(f027Restored).length === 1 && f027PrivateRuleSites(f027ProductionFiles).length === 0,
+    'Feature 027 adversarial: restoring either private tickerFromQuery fails the single-definition assertion');
+
+  /* ── Tier 2 contract claims read off the real export object ── */
+  assert(f027Module.SUBJECT_PARAM === 'ticker'
+    && String(f027Module.SUBJECT_PATTERN) === String(/^[A-Z0-9.\-]{1,12}$/)
+    && typeof f027Module.linkedSubject === 'function',
+  'Feature 027: rlticker.js exports SUBJECT_PARAM "ticker", SUBJECT_PATTERN /^[A-Z0-9.\\-]{1,12}$/ and linkedSubject on RLTKR');
+
+  const f027Body = extractFn(f027Source, 'linkedSubject');
+  assert(!/\bwindow\b|\bdocument\b|localStorage|sessionStorage|location\./.test(f027Body)
+    && f027Body.includes('normTicker(')
+    && f027Rule.linkedSubject(f027Query('  brk.b  ')).subject === f027Rule.normTicker('  brk.b  '),
+  'Feature 027: linkedSubject reads no window, document or storage API and normalises through the existing normTicker');
+
+  /* 1.19 — shared-surface canary */
+  assert(f027CorpusReads.length === F027_CORPUS.length && passes > 3000,
+    'Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the Feature 027 append'
+    + ' (' + passes + ' assertion(s) already green at this point)');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 027 subject-handoff group threw): ' + e.message); }
+/* FEATURE-027-SUBJECT-HANDOFF-END */
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

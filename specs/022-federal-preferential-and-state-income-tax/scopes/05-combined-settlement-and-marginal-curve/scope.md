@@ -246,24 +246,24 @@ missing browser or an absent test does not satisfy RED.
 
 ### Definition of Done
 
-- [ ] FR-022-028 is implemented: the two settlements are computed independently
+- [x] FR-022-028 is implemented: the two settlements are computed independently
       with no parameter through which either could reach the other, and
       `orderIndependence` is produced by settling both orders rather than by a
       constant.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-03`
-- [ ] The order-independence guard is proven able to fail, by both adversarial
+- [x] The order-independence guard is proven able to fail, by both adversarial
       mutations: state consuming the federal total, and federal consuming the
       state total.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-04`, `report.md#tp-05-05`
-- [ ] FR-022-029 is implemented: the combined total sums the jurisdiction totals,
+- [x] FR-022-029 is implemented: the combined total sums the jurisdiction totals,
       inherits either refusal, and treats a sourced zero as a real addend through a
       contract-version branch rather than a value comparison.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-02`, `report.md#tp-05-06`
-- [ ] FR-022-030 is implemented: the coupling record carries an empty `modeled`
+- [x] FR-022-030 is implemented: the coupling record carries an empty `modeled`
       list as a required member, names the unmodeled state-tax deduction, and
       populates the itemized notice exactly when the deduction mode is itemized.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-07`
-- [ ] FR-022-031 and FR-022-032 are implemented: three rates per point, no scalar
+- [x] FR-022-031 and FR-022-032 are implemented: three rates per point, no scalar
       average, and a sample set that is the exact union of the grid and both
       jurisdictions' crossings, proven by an adversarial mutation that drops the
       state's crossings.

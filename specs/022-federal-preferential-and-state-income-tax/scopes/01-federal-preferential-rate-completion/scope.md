@@ -400,9 +400,13 @@ RED.
     before its RED was accepted, rather than a false GREEN being banked. TP-01-21's
     RED half is the adversarial failure the row fires inside its own command, already
     recorded at `report.md#tp-01-21`. F-01-O is closed.
-- [ ] Every excluded path is unchanged **by this scope**, and the four Feature 021
+- [x] Every excluded path is unchanged **by this scope**, and the four Feature 021
       test files this scope opened stay confined to the clauses the ledger assigns
       them. Three limbs, each decidable against the tree as it stands.
+  - **Evidence:** `report.md#verification-pass-7--2026-08-20--dod-item-11-every-limb-of-the-corrected-requirement-re-derived-against-the-tree-all-hold-the-item-is-ticked`
+    — **closed at verification pass 7**, every limb re-derived against the tree at
+    `569f7899c` and all holding. The limb text below is the requirement it was
+    derived against.
 
       **Limb 1 — attribution.** No change to any excluded path — in the working
       tree or in history since the delivery commit `b9d92a3f1` — is attributable to
@@ -524,30 +528,30 @@ RED.
       SCN-021-015 pass in full under titles the `--grep` contract still matches. A
       Feature 021 expectation silently changed outside a marker moves one of those
       results and fails this limb.
-  - **Phase:** implement · **Command:** `git diff` and `git diff --cached` over the excluded list, `git log b9d92a3f1..HEAD` over group E1's eight product paths, over group E2 against this scope's owned product surfaces, over group E3 against `specs/022-federal-preferential-and-state-income-tax/**`, and over group E4 against both this scope's owned product surfaces and `specs/022-federal-preferential-and-state-income-tax/**`, a `SUP-022-NN` census over the five opened files, `node scripts/selftest.mjs`, and `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-" --reporter=list` · **Evidence:** `report.md#change-boundary`, `report.md#tp-01-16`, `report.md#verification-pass-6--2026-08-20--dod-item-11-re-derived-against-the-restated-limbs-1a-e2-e3-and-limb-2-hold-e1-is-false-finding-f-01-r`
-  - **Open — requirement text corrected for finding F-01-R; awaiting verification.**
-    The restatement had already fixed what finding **F-01-Q** named: limb 1(b) no
-    longer uses whole-list disjointness, and `1a2f1c00b` no longer breaks it.
-    Re-derived at verification pass 6, limb 1(a) held, E2 held, E3 held and limb 2
-    held exactly and in both directions. **Group E1 did not.** It admitted no
-    commit at all and eleven existed — every one a framework-installer sync, none
-    touching a line of product. What was false was E1's stated premise, *"No
-    automation writes any of them"*: true of the eight product paths, false of the
-    open-ended *every framework-managed file* clause, which has a dedicated
-    automated writer. That was finding **F-01-N**'s failure mode arriving in a new
-    place. **Correction taken.** E1's absolute no-commit clause is now ranged over
-    the eight product paths and nothing else, and framework-managed files are
-    lifted into a new [group E4](#excluded-path-groups) carrying E2's attribution
-    shape: disjointness from this scope's exclusive owned product surfaces,
-    disjointness from `specs/022-federal-preferential-and-state-income-tax/**`, and
-    no added `SUP-022-` line. Nothing was relaxed — E1 still fails on the first
-    command if `rltax.js` moves at all, and a framework-managed file edited by this
-    scope's own work still fails E4 on one of its three clauses, as the
-    [E4 adversarial case](#definition-of-done) sets out. Whether both now hold is a
-    verification question, not a planning one, and this item stays open until the
-    verifying agent re-derives limbs 1(a), E1, E2, E3, E4, limb 2 and limb 3
-    against the tree. Limb 3 was not re-run at pass 6 and is recorded `not-run`,
-    not carried forward.
+  - **Phase:** implement · **Command:** `git diff` and `git diff --cached` over the excluded list, `git log b9d92a3f1..HEAD` over group E1's eight product paths, over group E2 against this scope's owned product surfaces, over group E3 against `specs/022-federal-preferential-and-state-income-tax/**`, and over group E4 against both this scope's owned product surfaces and `specs/022-federal-preferential-and-state-income-tax/**`, a `SUP-022-NN` census over the five opened files, `node scripts/selftest.mjs`, and `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-" --reporter=list` · **Evidence:** `report.md#change-boundary`, `report.md#tp-01-16`, `report.md#verification-pass-7--2026-08-20--dod-item-11-every-limb-of-the-corrected-requirement-re-derived-against-the-tree-all-hold-the-item-is-ticked`
+  - **Closed at verification pass 7.** The restatement had already fixed what
+    finding **F-01-Q** named: limb 1(b) no longer uses whole-list disjointness, and
+    `1a2f1c00b` no longer breaks it. The correction `bubbles.plan` then took for
+    finding **F-01-R** ranged E1's absolute no-commit clause over the eight product
+    paths and lifted framework-managed files into group E4 under E2's attribution
+    shape. Re-derived at verification pass 7 against the tree at `569f7899c`, every
+    limb holds: limb 1(a) with four dirty excluded paths all foreign and zero
+    markers and zero tax-domain tokens; **E1 at zero** over the eight product paths,
+    with the single `--full-history` merge exempt because its excluded-path name
+    list is empty; E2 and E4 each disjoint from this scope's exclusive owned product
+    surfaces, E4 additionally disjoint from this feature's spec directory, and
+    neither adding a `SUP-022-` line; E3 with one commit touching both, capturing no
+    requirement and pairing every `[ ]`→`[x]` flip with an added `Claim Source:`
+    line in the same file; limb 2 exactly and in both directions; and **limb 3**,
+    which pass 6 recorded `not-run`, executed here rather than carried forward —
+    selftest green at 3155 passed and the browser run under this limb's own declared
+    `--grep "SCN-021-"` exiting 0 with all fifteen SCN-021 scenarios green. Two
+    derivation errors that would each have banked a false result are recorded with
+    the pass rather than quietly corrected: a bare directory prefix is not a glob in
+    a git pathspec and undercounted E4 by one commit, and simplified history hid a
+    merge that E1 had to surface before it could honestly be decided. Nothing was
+    relaxed to reach this — E1 still fails on the first command if `rltax.js` moves
+    at all. Finding **F-01-R** is closed.
   - **Why limb 1(b) no longer uses whole-list disjointness.** The superseded
     wording used commit-set disjointness as a proxy for *no product surface of one
     feature was changed by the other*. The proxy assumed commit membership is a

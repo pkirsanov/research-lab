@@ -500,38 +500,45 @@ identical command.
 
 | Row | Command | Result | Intended RED recorded |
 | --- | --- | --- | --- |
-| TP-04-01 | `node scripts/selftest.mjs` | green | no — delivered by an earlier dispatch |
-| TP-04-02 | `node scripts/selftest.mjs` | green | no — delivered by an earlier dispatch |
-| TP-04-03 | `node scripts/selftest.mjs` | green | no — delivered by an earlier dispatch |
-| TP-04-04 | `node scripts/selftest.mjs` | green | no — delivered by an earlier dispatch |
-| TP-04-05 | `node scripts/selftest.mjs` | green | no — delivered by an earlier dispatch |
-| TP-04-06 | `node scripts/selftest.mjs` | green | no — delivered by an earlier dispatch |
-| TP-04-07 | `node scripts/selftest.mjs` | green | no — delivered by an earlier dispatch |
-| TP-04-08 | `node scripts/selftest.mjs` | green | no — delivered by an earlier dispatch |
-| TP-04-09 | `node scripts/selftest.mjs` | green | no — delivered by an earlier dispatch |
-| TP-04-10 | `node scripts/selftest.mjs` | green | no — delivered by an earlier dispatch |
-| TP-04-11 | `node scripts/selftest.mjs` | green | no — delivered by an earlier dispatch |
-| TP-04-12 | `node scripts/selftest.mjs` | green, strengthened this session | partial — the settlement-level clause was added in RED 1's run and passed on first execution |
-| TP-04-13 | `node scripts/selftest.mjs` | green, strengthened this session | **yes — RED 1** |
-| TP-04-14 | `node scripts/selftest.mjs` | green, authored this session | no — passed on first execution |
-| TP-04-15 | `node scripts/selftest.mjs` | green | no — delivered by an earlier dispatch |
-| TP-04-16 | `node scripts/selftest.mjs` | green, authored this session | no — passed on first execution |
-| TP-04-17 | `node scripts/selftest.mjs` | green | no — delivered by an earlier dispatch |
-| TP-04-18 | `node scripts/selftest.mjs` | green, authored this session | **yes — RED 2** |
-| TP-04-19 | `node scripts/selftest.mjs` | green, authored this session | **yes — RED 1 and RED 2** |
-| TP-04-20 | `node scripts/selftest.mjs` | green | no — delivered by an earlier dispatch |
-| TP-04-21 | `node scripts/selftest.mjs` | green, authored this session | no — passed on first execution |
-| TP-04-22 | `node scripts/selftest.mjs` | green, second arm authored this session | **yes — RED 1** |
-| TP-04-23 | `node scripts/selftest.mjs` | green, second arm authored this session | no — passed on first execution |
-| TP-04-24 | the scope.md grep command | green within the 56-row browser suite | no — delivered by an earlier dispatch |
-| TP-04-25 | the scope.md grep command | green within the 56-row browser suite | no — delivered by an earlier dispatch |
-| TP-04-26 | the scope.md grep command | green within the 56-row browser suite | no — delivered by an earlier dispatch |
-| TP-04-27 | the scope.md grep command | green, authored this session | **yes — RED 3** |
-| TP-04-28 | the scope.md grep command | green within the 56-row browser suite | no — delivered by an earlier dispatch |
-| TP-04-29 | `npx … --grep "SCN-02[1-4]"` | **green on its own named command — `77 passed`, zero failed, zero skipped.** The prior dispatches' outstanding defect is discharged; see `report.md#tp-04-29` | not applicable — a cumulative gate row |
-| TP-04-30 | `node scripts/selftest.mjs` | green, `2812 passed, 0 failed`, no fall in pass count | not applicable — a gate row |
-| TP-04-31 | `node scripts/validate-spec-test-paths.mjs` | green, `new=0` | not applicable — a gate row |
-| TP-04-32 | `node scripts/build-pages-site.mjs --dry-run` | green, exit 0, `site-exclusions.json` not opened this session | not applicable — a gate row |
+| TP-04-01 | `node scripts/selftest.mjs` | green | yes — Probe 3b |
+| TP-04-02 | `node scripts/selftest.mjs` | green | yes — Probe 4 |
+| TP-04-03 | `node scripts/selftest.mjs` | green | yes — Probe 2 |
+| TP-04-04 | `node scripts/selftest.mjs` | green | yes — Probe 5a |
+| TP-04-05 | `node scripts/selftest.mjs` | green | yes — Probe 5b |
+| TP-04-06 | `node scripts/selftest.mjs` | green | yes — Probe 1, re-observed in Probe 2 |
+| TP-04-07 | `node scripts/selftest.mjs` | green | yes — Probe 1 |
+| TP-04-08 | `node scripts/selftest.mjs` | green | yes — Probe 2 |
+| TP-04-09 | `node scripts/selftest.mjs` | green | yes — Probe 6a |
+| TP-04-10 | `node scripts/selftest.mjs` | green | yes — Probe 6a |
+| TP-04-11 | `node scripts/selftest.mjs` | green | yes — Probe 7 |
+| TP-04-12 | `node scripts/selftest.mjs` | green, strengthened this session | yes — Probe 8a |
+| TP-04-13 | `node scripts/selftest.mjs` | green, strengthened this session | yes — RED 1 |
+| TP-04-14 | `node scripts/selftest.mjs` | green, authored this session | yes — Probe 8a |
+| TP-04-15 | `node scripts/selftest.mjs` | green | yes — Probe 9 |
+| TP-04-16 | `node scripts/selftest.mjs` | green, authored this session | yes — Probe 9 |
+| TP-04-17 | `node scripts/selftest.mjs` | green | yes — Probe 10 |
+| TP-04-18 | `node scripts/selftest.mjs` | green, authored this session | yes — RED 2 and Probe 8a |
+| TP-04-19 | `node scripts/selftest.mjs` | green, authored this session | yes — RED 1, RED 2 and Probe 8a |
+| TP-04-20 | `node scripts/selftest.mjs` | green | yes — Probe 10 |
+| TP-04-21 | `node scripts/selftest.mjs` | green, authored this session | yes — Probe 11 |
+| TP-04-22 | `node scripts/selftest.mjs` | green, second arm authored this session | yes — RED 1 |
+| TP-04-23 | `node scripts/selftest.mjs` | green, second arm strengthened after a vacuity finding | yes — Probe 11b |
+| TP-04-24 | the scope.md grep command | green | yes — Probe 12 |
+| TP-04-25 | the scope.md grep command | green | yes — Probe 13b, after the clause was strengthened |
+| TP-04-26 | the scope.md grep command | green | yes — Probe 14, after a vacuous clause was replaced |
+| TP-04-27 | the scope.md grep command | green, authored this session | yes — RED 3 |
+| TP-04-28 | the scope.md grep command | green | yes — Probe 15 |
+| TP-04-29 | `npx … --grep "SCN-02[1-4]"` | green on its own named command, `77 passed`, zero failed, zero skipped | yes — Probe 18, `64 passed / 13 failed` on the identical command |
+| TP-04-30 | `node scripts/selftest.mjs` | green, `2812 passed, 0 failed`, no fall in pass count | yes — Probes 1 through 11 all drive this exact command red and back |
+| TP-04-31 | `node scripts/validate-spec-test-paths.mjs` | green, `new=0` | yes — Probe 16 |
+| TP-04-32 | `node scripts/build-pages-site.mjs --dry-run` | green, exit 0 | yes — Probe 17 |
+
+Every row in this scope's Test Plan now carries an observed intended RED and a
+same-command GREEN. Three of those REDs cost a strengthening first: TP-04-23,
+TP-04-25 and TP-04-26 each passed under their own mutation on the first attempt,
+which exposed a clause that could not fail. Each was strengthened and re-probed
+rather than banked. Probe 16 additionally records a mutation that landed on text
+its command does not read, kept in the record as a miss rather than discarded.
 
 ### TP-04-12
 

@@ -206,7 +206,7 @@ already on disk.
 - [ ] T-02-I1 passes: every committed row of **both** versions validates unchanged, the count is read from the file rather than asserted as a literal and the validated count equals it, and the partition bytes are unmodified → evidence recorded in `report.md#t-02-i1`.
 - [ ] T-02-I2 passes: a mixed partition round-trips append-only with prior bytes byte-identical → evidence recorded in `report.md#t-02-i2`. — proves SCN-015-014
 - [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope pass — [T-02-R1] the claim-referencing `v2` row, the dual-version read with an unchanged seven-field projection, the append-only byte preservation, and `RTR-LEGACY-BACKFILL` all re-assert end to end → evidence recorded in `report.md#t-02-r1`.
-- [ ] Broader E2E regression suite passes unchanged — [T-02-R2] the committed Node E2E files and the whole committed Playwright spec suite are green against the extended partition, proving the repo's existing ledger readers are unaffected → evidence recorded in `report.md#t-02-r2`.
+- [x] Broader E2E regression suite passes unchanged — [T-02-R2] the committed Node E2E files and the whole committed Playwright spec suite are green against the extended partition, proving the repo's existing ledger readers are unaffected → evidence recorded in `report.md#t-02-r2`.
 - [ ] T-02-S1 passes: `node scripts/selftest.mjs` reports `baseline + N passed, 0 failed` against the scope-start baseline captured in `report.md`, with no pre-existing assertion count decreasing → evidence recorded in `report.md#t-02-s1`.
 
 **Test-related DoD items: 12. Test Plan rows: 12. Parity confirmed.**

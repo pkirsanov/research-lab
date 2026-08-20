@@ -2,23 +2,27 @@
 
 Evidence contract: [scope.md](scope.md), [spec.md](../../spec.md), [scope index](../_index.md), and [uservalidation.md](../../uservalidation.md).
 
-**Evidence status:** In Progress. Two increments have landed and are recorded below with executed evidence.
+**Evidence status:** In Progress. Three increments have landed and are recorded below with executed evidence.
 The 2026-08-20 planning-correction sections that follow the increments are **not** implementation evidence and
 satisfy no Definition of Done item; they are preserved as the analysis that produced the `F-015-03-01` ruling.
 
 ## Summary
 
-Two increments landed, and this pass recorded their evidence and closed the Definition of Done items they
-genuinely satisfy: **22 of 30 ticked, 8 left open.** The eight are open for real reasons, not for want of a
-measurement — three Test Plan rows have no test at their named file, one has no test anywhere, two cannot be
-run truthfully in this working tree, one requires a baseline that can no longer be taken, and one core item
-has a conjunct that is absent from 015-authored code. Each is named in
-[Items left open, and the real reason for each](#items-left-open) with its blocking conjunct.
+Three increments have landed. Increment 3 declared the denominator contract and authored the four Test Plan rows
+that had been named but never written; this pass re-executed every command against `HEAD` = `d7aa39d1d` and
+closed the five Definition of Done items those changes genuinely satisfy: **27 of 30 ticked, 3 left open.**
+
+The three remaining are open for real reasons, not for want of a measurement. One (`T-03-R2`) has a red conjunct
+whose cause lies outside this scope and a second conjunct that was not measured at all. One (`T-03-S1`) needs a
+scope-start baseline that was never captured and can no longer be taken. One (the Build Quality Gate) is a
+grouped gate that inherits both and additionally names a revert this evidence pass did not perform. Each is named
+with its blocking conjunct in [Items left open, and the real reason for each](#items-left-open).
 
 Before the increments, a reality check found **six stale premises and one blocking defect** in `scope.md`. All
 seven are recorded below, the blocking defect was ruled on, and the falsified plan text was corrected. That
 correction moved the count from 27 unticked / 0 ticked to **30 unticked / 0 ticked** because it added
-obligations rather than removing them; this pass moves it to **22 ticked / 8 unticked**.
+obligations rather than removing them; increment 2's pass moved it to 22 ticked / 8 unticked, and this pass to
+**27 ticked / 3 unticked**.
 
 ---
 
@@ -30,6 +34,21 @@ obligations rather than removing them; this pass moves it to **22 ticked / 8 unt
 |---|---|---|---|
 | 1 — outcome vocabulary, routing table, flat-band guard | `2fb48abcc` | `rlclaims.js`, `scripts/selftest.mjs`, `scripts/validate-spec-test-paths.mjs`, `tests/recommendation-track-record.unit.mjs` | T-03-U1, U2, U3, U6 (increment-1 half), U7 |
 | 2 — `brief-recommendation-resolution/v1` | `1bb5a2ebc` | `rlclaims.js`, `tests/recommendation-track-record.unit.mjs` | T-03-U4, U5, U6 (increment-2 half), plus unit precursors for T-03-F1 and T-03-F2 |
+| 3 — the denominator contract, and the F and R rows | `d7aa39d1d` | `rlclaims.js`, `tests/recommendation-track-record.functional.mjs`, `tests/recommendation-track-record.e2e.mjs` | T-03-F1, F2, F3, R1 |
+
+Increment 3 is the current `HEAD`. **The hash `2083159bb` in circulation for it is a pre-rebase orphan and is
+unreachable**, exactly like the three recorded in [the correction below](#commit-hash-correction). Measured this
+session:
+
+```text
+2083159bb ancestor-of-HEAD=NO   feat(015): declare the denominator contract and author scope 03 F and R rows
+d7aa39d1d ancestor-of-HEAD=yes  feat(015): declare the denominator contract and author scope 03 F and R rows
+```
+
+`d7aa39d1d` is the reachable hash and is what this report cites. Its diffstat is three files — `rlclaims.js`
+(+61), `tests/recommendation-track-record.e2e.mjs` (+235), `tests/recommendation-track-record.functional.mjs`
+(+347, −1) — so `rlvalidation.js`, `spec.md` and `design.md` are untouched by it on the record.
+| 3 — the denominator contract, and the F and R rows | `d7aa39d1d` | `rlclaims.js`, `tests/recommendation-track-record.functional.mjs`, `tests/recommendation-track-record.e2e.mjs` | T-03-F1, F2, F3, R1 |
 
 Also load-bearing for this scope but **owned by scope 01**: `3c0aa1036`, which added the eighth `MINT_REFUSALS`
 member `no-authored-flat-band`. Verified this session that neither scope-03 increment touched `MINT_REFUSALS`
@@ -169,6 +188,213 @@ sha256: b52a9c8740aa3a10a01d3ff9b95788c268d18ffd6965f9caad0beabf5ee271c0
 === End Anti-Fabrication Checks ===
 Artifact lint PASSED.
 ```
+
+---
+
+<a id="increment-3-runs"></a>
+
+## Increment 3 evidence — re-measured at `HEAD` = `d7aa39d1d`
+
+Increment 3 landed the denominator contract in `rlclaims.js` and authored the four rows the Test Plan had named
+but never written. Every figure below was **re-executed this session** at `HEAD` = `d7aa39d1d`; nothing is
+carried forward from the increment-2 pass. The working tree still carries a concurrent session's 63 uncommitted
+files, and the two places that changes a figure are named where they occur.
+
+<a id="run-unit-inc3"></a>
+
+### The unit run, unchanged by increment 3
+
+```text
+$ node --test tests/recommendation-track-record.unit.mjs
+✔ T-03-U1: outcomeClass at the flatBand boundary, where an `=== 0` classifier fails (2.872899ms)
+✔ T-03-U2: RTR-FLAT-ZERO refuses a bare zero reaching the directional array (2.8996ms)
+✔ T-03-U3 (increment 1): the routing table feeds only win and loss to the directional array (0.665399ms)
+✔ T-03-U6 (increment 1): the outcomeClass vocabulary refuses a one-character-off value (0.4477ms)
+✔ T-03-U7: a degenerate flatBand refuses before any outcomeClass is assigned (14.487696ms)
+✔ T-03-U5: the exact unrounded outcomeValue survives into the record, the bytes, and the store (858.144773ms)
+✔ T-03-U4 (increment 2): summary.unresolved is consumed and discarded while the 015 counts stay distinct (2.100299ms)
+✔ T-03-U6 (increment 2): the closure vocabulary is read from rlcontracts.js and RTR-CLOSURE-VOCAB refuses (1241.406075ms)
+✔ T-03-F1 (unit precursor): resolutionHash covers exactly the hashed terms, and the write is a no-op or a refusal (308.06012ms)
+✔ T-03-F2 (unit precursor): the partition accounts for every proposed call, and no claim can fall out (1.4771ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2868.495444
+EXIT=0
+```
+
+`21 pass, 0 fail`, exit `0`, zero warnings, zero skipped, zero todo. Eleven scope-01/02 rows are elided from the
+listing above for length only; all 21 are counted in the totals and all are green.
+
+<a id="run-functional-inc3"></a>
+
+### The scope-03 functional file, where the three F rows now live
+
+```text
+$ node --test tests/recommendation-track-record.functional.mjs
+✔ T-01-F1: the content-addressed write round-trips as a byte-identical no-op (30.310993ms)
+✔ T-01-F2: citedToolId is a citation — neither identity nor the producer (38.05189ms)
+✔ T-01-F3: recommendationKey is one-to-many with claimHash across horizon kinds (7.770598ms)
+✔ T-03-F1: resolutionHash is content-only and the content-addressed write is a byte-identical no-op (153.715762ms)
+✔ T-03-F2: the class partition holds over a classified cohort and fails when a whole class is dropped (5.767198ms)
+✔ T-03-F3: resolvedDirectional === 0 is reachable and the primitive is never called (10.686198ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 368.992308
+EXIT=0
+```
+
+All three rows are at `tests/recommendation-track-record.functional.mjs`, the file the Test Plan names. The
+`(unit precursor)` rows in `.unit.mjs` remain and are additive, not a substitute.
+
+The whole committed functional suite was also run, and is **not** clean:
+
+```text
+$ node --test tests/*.functional.mjs
+exit: 1
+lines: 1270
+sha256: 2139d2819467fa7cc809922a4ba3dd86b59230357cad83522705af7613a71d96
+--- failure-shaped lines from the omitted region ---
+not ok 9 - SCN-012-003 exact TP-03-01 through TP-03-05 commands replay RED then GREEN in isolated rollback baseline
+--- last ---
+# tests 182
+# suites 0
+# pass 181
+# fail 1
+```
+
+The single failure is `SCN-012-003`, which belongs to `tests/contextual-tooltip.functional.mjs` and to spec 012 —
+not to this scope, and not to any file increment 3 touched. It is recorded here because a suite-level figure that
+omitted it would be a lie; no Definition of Done item in this scope is ticked on the suite-level figure.
+
+<a id="run-e2e-inc3"></a>
+
+### The scope-03 e2e file, and the committed Node E2E suite
+
+```text
+$ node --test tests/recommendation-track-record.e2e.mjs
+✔ T-01-R1: the whole fixture claim set holds the frozen contract against the real store layout (166.963631ms)
+✖ T-01-R2: the committed suites are intact, and the committed Node E2E suite runs green (50.296983ms)
+✔ T-03-R1: a resolved-flat outcome survives a full classify-route-summarise-store pass as its own class (215.957825ms)
+ℹ tests 3
+ℹ pass 2
+ℹ fail 1
+ℹ duration_ms 532.108377
+
+✖ T-01-R2 …
+  AssertionError [ERR_ASSERTION]: no committed test file may be modified, renamed or removed by this scope; git reported:
+   M tests/portfolio-survival-allocation.spec.mjs
+   M tests/portfolio-survival-brief.spec.mjs
+   M tests/portfolio-survival-diversification.spec.mjs
+   M tests/portfolio-survival-foundation.spec.mjs
+   M tests/portfolio-survival-mobile.spec.mjs
+   M tests/portfolio-survival-paths.spec.mjs
+   M tests/portfolio-survival-risk.spec.mjs
+EXIT=1
+```
+
+`T-03-R1` is green. `T-01-R2` fails, and its own assertion message names the cause: seven **uncommitted**
+`tests/portfolio-survival-*.spec.mjs` files belonging to a concurrent session. That is a property of the working
+tree, not of this scope's change — increment 3 modified three files and none is among them.
+
+The whole committed Node E2E suite carries that one failure and nothing else:
+
+```text
+$ node --test tests/*.e2e.mjs
+exit: 1
+lines: 266
+sha256: 81264321dd9642cc12b19fa308b99cc239dcf483447773a848c61bd8ed6c73e3
+--- failure-shaped lines from the omitted region ---
+not ok 31 - T-01-R2: the committed suites are intact, and the committed Node E2E suite runs green
+--- last ---
+# tests 35
+# suites 0
+# pass 34
+# fail 1
+```
+
+<a id="run-selftest-inc3"></a>
+
+### The repo self-test at `HEAD` = `d7aa39d1d`
+
+```text
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3615
+sha256: 357bb15c8b5ca0e2aec16025ee6e5eeb75120e5fcbb720a8b1a53d79d01820ef
+--- last 3 ---
+================================================
+Research-Lab self-test: 3184 passed, 0 failed
+================================================
+```
+
+`3184 passed, 0 failed`, exit `0`, up from `3182` at increment 2 — no assertion count decreased. Captured with
+`.github/bubbles/scripts/evidence-capture.sh`; the digest covers all 3,615 lines and is re-derivable with
+`--verify`. This remains a **green reading only**. It is still **not** offered against `T-03-S1`, which needs a
+delta against a scope-start baseline that was never captured; see [Items left open](#items-left-open).
+
+<a id="t-03-f1"></a>
+
+### T-03-F1 — `resolutionHash` is content-only and the write is a byte-identical no-op
+
+`✔ T-03-F1 … (153.715762ms)` in [the functional run above](#run-functional-inc3); command
+`node --test tests/recommendation-track-record.functional.mjs`, exit `0`.
+
+The row is adversarial by construction rather than by an external mutate-and-revert claim. It iterates **every**
+hashed term, asserts the mutation genuinely differs (`assert.notDeepEqual`) before asserting the hash moves, and
+refuses to pass if a hashed term has no mutation authored for it — `'a hashed term with no mutation authored
+here would go uncovered'`. It then iterates every unhashed field and asserts the hash does **not** move, with the
+same coverage guard. An implementation that hashed the whole object, or that hashed only a subset, fails a named
+term rather than passing quietly.
+
+<a id="t-03-f2"></a>
+
+### T-03-F2 — the partition holds, and fails when a whole class is dropped
+
+`✔ T-03-F2 … (5.767198ms)` in [the functional run above](#run-functional-inc3); same command, exit `0`.
+
+The load-bearing half is the drop loop: for each `outcomeClass` present in the cohort it removes every member of
+that class, asserts `droppedCount > 0` first so the drop is real, then asserts the partition **refuses** with
+`partition-does-not-sum-to-proposed` on `totalProposed` and that the refusal names the exact shortfall
+(`refused.error.unaccounted === droppedCount`) and the sum it reached. The same is done for each lifecycle
+bucket. A partition assertion that only ever saw a correct cohort would be decoration; this one is proven to
+fire, per class, on the exact failure mode that quietly flatters a denominator.
+
+<a id="t-03-f3"></a>
+
+### T-03-F3 — `resolvedDirectional === 0` is reachable and the primitive is never called
+
+`✔ T-03-F3 … (10.686198ms)` in [the functional run above](#run-functional-inc3); same command, exit `0`.
+
+The row is at the file the Test Plan names, and it drives the branch through `directionalDenominator(routed,
+null)`: an all-withheld cohort yields `resolvedDirectional === 0` and the contract refuses
+`no-directional-denominator-to-publish` on `resolvedDirectional` **before** `summary` is inspected at all —
+asserted at `tests/recommendation-track-record.functional.mjs#L717`. Passing `null` for the summary is the proof
+that no primitive was called: a `null` summary is exactly what the caller holds when it has correctly branched
+before calling, and the refusal arrives without it ever being read.
+
+<a id="t-03-r1"></a>
+
+### T-03-R1 — the persistent SCN-015-004 regression
+
+`✔ T-03-R1: a resolved-flat outcome survives a full classify-route-summarise-store pass as its own class
+(215.957825ms)` in [the e2e run above](#run-e2e-inc3); command
+`node --test tests/recommendation-track-record.e2e.mjs`, exit `1` **for `T-01-R2` only** — `T-03-R1` itself
+passed, and the failing row is the concurrent session's uncommitted tree, evidenced above.
+
+This is the permanent row for BS-004 / SCN-015-004: a later scope that merges `resolved-flat` back into
+`unresolved` fails here rather than shipping. It also carries the published-denominator assertion at
+`tests/recommendation-track-record.e2e.mjs#L750-753`, so the end-to-end pass proves the label travels with the
+rate and not merely that the rate is right.
 
 ---
 
@@ -423,6 +649,37 @@ address; it also asserts the repeat write is a byte-identical no-op and that a b
 non-class buckets, so a seventh class cannot appear without a bucket and a renamed bucket cannot appear without a
 class. The T-03-F2 precursor declares its expected mapping by hand rather than reading the module's table —
 iterating the module's own table would let a seventh class cover itself.
+
+<a id="core-denominator-contract"></a>
+
+### Core — the denominator contract is declared, not left as a convention
+
+Increment 3 (`d7aa39d1d`) closes the conjunct this item was open on. Both halves are now in 015-authored code.
+
+**`resolvedDirectional` IS the fed array's length, and IS the published denominator.** `directionalDenominator`
+(`rlclaims.js#L901`) binds the two at one place so they cannot drift, and refuses each way they could:
+
+| Refusal | What it catches |
+|---|---|
+| `resolved-directional-is-not-the-fed-array-length` | `routed.resolvedDirectional !== routed.directional.length` — a re-derived count |
+| `summary-count-is-not-the-fed-array-length` | a summary produced from a **different** array than routing built — a filtered or padded feed |
+| `wins-plus-losses-is-not-the-fed-array-length` | `wins + losses !== resolvedDirectional` — under the zero-free convention, a zero absorbed into the primitive's `unresolved` |
+| `no-directional-denominator-to-publish` | a rate published with no denominator to publish beside it (`resolvedDirectional === 0`) |
+
+The item's wording demands the identity, not agreement, and that is what is enforced: a quantity that merely
+*happened* to equal the denominator would pass the first check and still fail the second and third. `rate` is
+`summary.winRate` passed through verbatim — never recomputed here, because a second division is a second answer.
+
+**The rate is labelled *directional hit rate*.** `DIRECTIONAL_RATE_LABEL = "directional hit rate"`
+(`rlclaims.js#L155`) is exported (`#L1504`) and returned as `label` on every published result, so a rate cannot
+leave this contract without it. This is the conjunct the increment-2 pass recorded as *"absent from 015-authored
+code"*; it is now present, and asserted at `tests/recommendation-track-record.functional.mjs#L742` and
+`tests/recommendation-track-record.e2e.mjs#L753`.
+
+The plan/DoD ownership disagreement noted in the increment-2 pass is resolved rather than routed: the label is
+**declared** here, beside the array whose length defines it, and **rendered** by scope 05 — one definition, so no
+surface can render a bare "hit rate" over a directional-only denominator. Implementation Plan step 7 assigns only
+the rendering to scope 05, which is consistent with declaring it here.
 
 <a id="core-resolved-directional"></a>
 
@@ -721,6 +978,8 @@ scope became larger, not smaller; no row was deleted or weakened.
 | R14 | DoD footer | *"Test-related DoD items: 12. Test Plan rows: 12."* | *"13. … 13. Parity confirmed."* |
 | R15 | Must-not-touch table | `rlclaims.js` absent | added — scope 01-owned and `Done`; `F-015-03-01` is fixed there, and an eighth `MINT_REFUSALS` member added from here would fail the existing assertion at `tests/recommendation-track-record.e2e.mjs#L363` |
 
+<a id="what-is-unblocked"></a>
+
 ### What is unblocked, and what is not
 
 | | State |
@@ -740,19 +999,22 @@ evidence for this scope is under [Test Evidence](#run-unit), earlier in this rep
 
 ## Completion Statement
 
-Scope 03 is `In Progress`. Two increments have landed, and **22 of 30 Definition of Done items are ticked** with
-executed evidence recorded above. **No scope completion is claimed and no certification is requested**: eight
-items remain open, and each is named with its blocking conjunct in
+Scope 03 is `In Progress`. Three increments have landed, and **27 of 30 Definition of Done items are ticked**
+with executed evidence recorded above. **No scope completion is claimed and no certification is requested**:
+three items remain open, and each is named with its blocking conjunct in
 [Items left open, and the real reason for each](#items-left-open).
 
-Four of the eight are missing tests — `T-03-F1`, `T-03-F2` and `T-03-R1` have no row at the file the Test Plan
-names, and `T-03-F3` has none anywhere. Two cannot be measured truthfully in this working tree, which carries 63
-uncommitted files from a concurrent session. One needs a baseline that can no longer be taken. One core item has
-a conjunct that lives only in planning prose.
+None of the three is open for want of a test. `T-03-R2` has a **red** Node conjunct — one failure, `T-01-R2`,
+caused by a concurrent session's seven uncommitted `tests/portfolio-survival-*.spec.mjs` files — and a Playwright
+conjunct that was **not run** and is therefore unmeasured rather than green. `T-03-S1` names a scope-start
+baseline that was never captured, so there is no number to subtract from; today's `3184 passed, 0 failed` is
+recorded as a green reading only. The Build Quality Gate ticks as a block, inherits both, and additionally names
+a revert-verification this evidence pass did not perform.
 
 This pass wrote evidence only. No source file, no test file, no fixture, no `state.json`, no `uservalidation.md`,
 `spec.md`, or `design.md` was modified, and no committed ledger byte was touched. The artifacts changed are this
-report, `scope.md` (status and Definition of Done ticks), and two scope-03 status cells in `scopes/_index.md`.
-Two findings are routed to the owner rather than resolved here: the falsified `rlclaims.js` row in the
-must-not-touch table ([divergence](#divergence-rlclaims-must-not-touch)) and the ownership disagreement over the
-*directional hit rate* label ([items left open](#items-left-open)).
+report and `scope.md` (five Definition of Done ticks). One finding remains routed to the owner rather than
+resolved here: the falsified `rlclaims.js` row in the must-not-touch table
+([divergence](#divergence-rlclaims-must-not-touch)). The *directional hit rate* ownership disagreement recorded
+by the increment-2 pass is **resolved**, not routed — the label is declared in `rlclaims.js` and rendered by
+scope 05, which is what Implementation Plan step 7 assigns.

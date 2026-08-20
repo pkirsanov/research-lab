@@ -378,11 +378,13 @@ an absent test does not satisfy RED.
 
 ### Definition of Done
 
-- [ ] FR-022-008 is implemented: `CO-8` sums the pack's declared leg set, returns
+- [x] FR-022-008 is implemented: `CO-8` sums the pack's declared leg set, returns
       the refusal of the first refusing leg, and equals the previous two-leg sum
       for every Feature 021 fixture against the unmodified pack.
-  - **Open:** the leg-set and refusal-inheritance halves are proven, but the
-    TP-02-03 comparison against the **unmodified** Feature 021 pack was not run.
+  - **Closed:** the TP-02-03 comparison against the **unmodified** Feature 021 pack
+    now runs over 96 household shapes, with its comparand recomputed from the
+    `CO-6` and `CO-7` records rather than read back from `CO-8`, and was proven
+    RED by a one-leg fallback mutation before it was banked.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-02`, `report.md#tp-02-03`, `report.md#tp-02-10`
 - [x] `BI-4`'s named authority — IRS Publication 505 (2026) — was opened in the
       implementation session, every rate and filing-status threshold was

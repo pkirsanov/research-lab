@@ -218,8 +218,48 @@ Scenario SCN-022-004 — the generalized `CO-8` sum equals the previous two-leg 
 for every Feature 021 fixture against the unmodified Feature 021 pack.
 Command: `node scripts/selftest.mjs`
 
-Not delivered in this session. The compatibility comparison against the **unmodified**
-Feature 021 pack was not executed here, so this row carries no evidence.
+The compatibility canary named in the Shared Infrastructure Impact Sweep. The shipped
+pack has `taxLegs` and `thresholdSets` withdrawn, so `declaredTaxLegs` falls back to the
+two Feature 021 legs and the engine is in exactly the leg configuration it held before
+this scope. The comparand is recomputed from the `CO-6` and `CO-7` stage records rather
+than read back from `CO-8`, so a summation that mis-orders, double-counts or silently
+skips a leg fails here instead of cancelling against itself. The grid is 96 households:
+four filing statuses × two deduction modes × six income mixes × bases undeclared and
+declared at zero.
+
+```text
+  ✓ TP-02-03: against the UNMODIFIED Feature 021 pack the generalized CO-8 sums exactly the two Feature 021 legs and its total equals the previous two-leg sum recomputed from the CO-6 and CO-7 records, over every Feature 021 household shape — four filing statuses, both deduction modes, six income mixes, each with both surtax bases undeclared and declared (96 households)
+Research-Lab self-test: 3105 passed, 0 failed
+```
+
+**Intended RED.** `rltaxrules.js` `declaredTaxLegs` mutated so its Feature 021 fallback
+returns `V1_TAX_LEGS.slice(0, 1)` — a one-leg fallback. The mutation is value-free by
+construction: it carries an index literal and no rule figure and no household amount.
+It reaches only packs that declare no `taxLegs`, which is precisely the pack this row
+constructs, so the RED is targeted at the compatibility claim rather than at settlement
+generally. Pre-run guard confirmed the substitution landed on the intended line:
+
+```text
+-    return V1_TAX_LEGS;
++    return V1_TAX_LEGS.slice(0, 1);
+```
+
+```text
+  ✗ FAIL: TP-02-03: against the UNMODIFIED Feature 021 pack the generalized CO-8 sums exactly the two Feature 021 legs and its total equals the previous two-leg sum recomputed from the CO-6 and CO-7 records, over every Feature 021 household shape — four filing statuses, both deduction modes, six income mixes, each with both surtax bases undeclared and declared (96 households)
+Research-Lab self-test: 3103 passed, 2 failed
+RED_SELFTEST_EXIT=1
+```
+
+Both clauses fire together: the summed-leg-set identity sees `["ordinary"]` where it
+requires `["ordinary","preferential"]`, and the arithmetic clause sees a total that is no
+longer the recomputed two-leg sum. The second failure in the RED run is Feature 021's own
+`TP-04-05` marginal-rate guard, which reads the same fallback — collateral to the probe,
+not part of this row, and green again on revert.
+
+**Same-command GREEN.** The mutation was reverted inside the same shell invocation that
+applied it; `git status --short -- rltaxrules.js` printed nothing and the anchor line read
+`return V1_TAX_LEGS;` again. The identical `node scripts/selftest.mjs` then returned
+`3105 passed, 0 failed`, `GREEN_SELFTEST_EXIT=0` — the pre-existing pass count, unmoved.
 
 ### TP-02-04
 

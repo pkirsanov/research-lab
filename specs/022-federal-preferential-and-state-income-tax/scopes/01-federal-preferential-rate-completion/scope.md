@@ -577,7 +577,23 @@ RED.
       adversarial case the ledger names is demonstrated to fail against a
       deliberately broken artifact within the same run, rather than asserted from a
       past red run that cannot be re-executed.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-01-16 browser command · **Evidence:** `report.md#supersession-ledger`, `report.md#tp-01-20`, `report.md#tp-01-21`
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-01-16 browser command · **Evidence:** `report.md#supersession-ledger`, `report.md#tp-01-20`, `report.md#tp-01-21`, `report.md#verification-pass-6--2026-08-20--dod-item-12-clause-1-now-holds-after-a-real-marker-defect-was-found-and-fixed-clause-2-is-not-delivered-finding-f-01-s`
+  - **Open — clause 1 now holds, clause 2 is not built; finding F-01-S.** The
+    restatement made the item answerable: the two clauses **F-01-L** called
+    unverifiable against a squashed history are gone. Clause 1 is now proven, and
+    it did not hold when verification pass 6 began — a census against this scope's
+    own ledger table found SUP-022-07's marker declaring `shape=partition` where
+    the ledger and this item's own family list both call it a derive, and the
+    region retains no branch, so the marker was wrong and was corrected. The gap
+    that hid it is closed additively: `TP-05-22` reads marker ids only, so a new
+    `TP-01-22` was added beside it, left `TP-05-22` byte-identical, and named the
+    real disagreement on its first run with no mutation planted. Clause 2 remains
+    undelivered — no assertion restates a derive entry's superseded clause against
+    the current tree to show it false or vacuous, and `TP-01-21`'s retained-branch
+    evidence was not re-run this pass. Five of the six derive markers now carry an
+    evaluable verbatim original, which is the input **F-01-L** said clause 2 would
+    need; SUP-022-07's is still descriptive and must be restated in evaluable form
+    first.
   - **Why this shape.** The superseded wording required each replacement to have
     been "seen to fail against the unchanged implementation" and to be "at least as
     strong as the clause it superseded". Both need an artefact the repository does

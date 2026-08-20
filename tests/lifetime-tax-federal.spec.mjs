@@ -78,10 +78,11 @@ test('Regression: SCN-021-005 long term gains stack on ordinary income', async (
   await openLifetimeTax(page, site);
 
   /* SUP-022-07: supersedes the refusal expectations for the gain household and the dividend
-     household and the zero-valued-headline clause; shape=partition. The pack now carries the
+     household and the zero-valued-headline clause; shape=derive. The pack now carries the
      preferential rate table, so the scenario asserts the STACKING it was always named for: the
      headline equals the ordinary tax plus the preferential tax the pack's own table implies for
-     a gain stacked on top of ordinary taxable income. */
+     a gain stacked on top of ordinary taxable income. No branch retains the superseded refusal
+     expectations, which is why the shape is a derive and not a partition. */
   const ordinaryTaxable = 40000;
   const declareGain = async (gain) => {
     await declareOrdinaryHousehold(page, {

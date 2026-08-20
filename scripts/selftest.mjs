@@ -23195,6 +23195,73 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 preferential determinism group threw): ' + e.message); }
 /* ---------- Feature 022 Scope 01: preferential settlement determinism (END) ---------- */
 
+/* ---------- Feature 022 Scope 01: supersession marker shape agreement (START) ---------- */
+/* TP-01-22. DoD item 12 requires every delivered marker to name ITS shape, and the item's strength
+   clause then sends each entry down one of two mutually exclusive proof paths chosen by that
+   shape: a retained-branch entry must still assert its superseded clause, while a derive entry
+   must show that same clause false or vacuous. An entry cannot satisfy both. Nothing checked that
+   the shape token compiled into the marker agreed with the shape the scope's ledger assigns it,
+   so an entry could be carried down the wrong path with no assertion objecting. TP-05-22 closes
+   marker<->ledger membership but reads ids only and is deliberately left untouched; this group
+   adds the missing agreement beside it. Marker ids are assembled from parts so that naming them
+   here does not place a Scope 01 marker in a file the distribution does not assign it. */
+try {
+  group('Feature 022 Scope 01 — supersession marker shape agrees with its ledger row');
+  const SHAPE_PREFIX = 'SUP-' + '022-';
+  const shapeScopeText = read('specs/022-federal-preferential-and-state-income-tax/scopes/01-federal-preferential-rate-completion/scope.md');
+  const ledgerShapes = new Map();
+  (shapeScopeText.match(/^\| SUP-022-\d{2} \|[^\n]*$/gm) || []).forEach((row) => {
+    const cells = row.split('|').map((cell) => cell.trim());
+    const id = /SUP-022-(\d{2})/.exec(cells[1] || '');
+    if (id && /^(derive|partition|relocate)$/.test(cells[3] || '')) ledgerShapes.set(id[1], cells[3]);
+  });
+
+  /* One reader, used for the real sources and for the planted controls below, so the control
+     exercises the same extraction the verdict depends on rather than a restatement of it. */
+  const shapeDeclaredIn = (text, id) => {
+    const at = text.indexOf(SHAPE_PREFIX + id + ':');
+    if (at < 0) return null;
+    const token = /shape=([a-z]+)/.exec(text.slice(at, at + 900));
+    return token ? token[1] : 'NONE';
+  };
+
+  const shapeSources = ['scripts/selftest.mjs', 'tests/lifetime-tax-federal.spec.mjs',
+    'tests/lifetime-tax-foundation.spec.mjs', 'tests/lifetime-tax-marginal.spec.mjs',
+    'tests/lifetime-tax-route.spec.mjs'].map((file) => read(file));
+  const shapeDisagreements = [];
+  const shapeUnfound = [];
+  Array.from(ledgerShapes.keys()).sort().forEach((id) => {
+    let declared = null;
+    for (let index = 0; index < shapeSources.length && declared === null; index += 1) {
+      declared = shapeDeclaredIn(shapeSources[index], id);
+    }
+    if (declared === null) shapeUnfound.push(id);
+    else if (declared !== ledgerShapes.get(id)) {
+      shapeDisagreements.push(id + ' marker=' + declared + ' ledger=' + ledgerShapes.get(id));
+    }
+  });
+  assert(ledgerShapes.size === 12
+    && shapeUnfound.length === 0
+    && shapeDisagreements.length === 0,
+  'TP-01-22: each of this scope\u2019s twelve supersession markers declares a shape token agreeing with the shape its ledger row assigns, so no entry can be proved down the retained-branch path while its ledger calls it a derive, or the reverse (' + shapeDisagreements.join('; ') + ')');
+
+  /* The reader discriminates rather than reporting an empty set it never populated: over planted
+     text it returns the token that is there, returns a DIFFERENT token when a wrong shape is
+     planted for a real entry, and returns null when no marker is present at all. */
+  const controlId = Array.from(ledgerShapes.keys()).sort()[0];
+  const controlTrue = ledgerShapes.get(controlId);
+  const controlWrong = controlTrue === 'derive' ? 'relocate' : 'derive';
+  const plantedTrue = '/* ' + SHAPE_PREFIX + controlId + ': planted control; shape=' + controlTrue + '. */';
+  const plantedWrong = '/* ' + SHAPE_PREFIX + controlId + ': planted control; shape=' + controlWrong + '. */';
+  assert(ledgerShapes.size === 12
+    && shapeDeclaredIn(plantedTrue, controlId) === controlTrue
+    && shapeDeclaredIn(plantedWrong, controlId) === controlWrong
+    && shapeDeclaredIn(plantedWrong, controlId) !== ledgerShapes.get(controlId)
+    && shapeDeclaredIn('/* a comment carrying no marker at all */', controlId) === null,
+  'TP-01-22 ADVERSARIAL: the shape reader the verdict depends on returns the planted token, reports a planted wrong shape as disagreeing with the ledger, and reports absence as absence rather than as agreement');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 01 marker shape agreement group threw): ' + e.message); }
+/* ---------- Feature 022 Scope 01: supersession marker shape agreement (END) ---------- */
+
 /* ---------- Feature 026 Scope 3: rlcockpit.js — change vocabulary (BEGIN) ---------- */
 try {
   group('rlcockpit.js — change vocabulary');
@@ -25201,6 +25268,86 @@ try {
     + ' (' + passes + ' assertion(s) already green at this point)');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 027 subject-handoff group threw): ' + e.message); }
 /* FEATURE-027-SUBJECT-HANDOFF-END */
+
+/* FEATURE-027-CATALOG-BOUND-BEGIN */
+try {
+  group('Feature 027 Scope 2: the two catalog-bound receiving routes');
+  const f027bVol = read('volatility-sizing-lab.html');
+  const f027bFlow = read('options-flow-feed-lab.html');
+
+  /* 2.a — neither route may re-declare the acceptance rule Scope 1 centralised. */
+  const f027bPrivateRule = [['volatility-sizing-lab.html', f027bVol], ['options-flow-feed-lab.html', f027bFlow]]
+    .filter(([, source]) => /function\s+tickerFromQuery|SUBJECT_PATTERN\s*=/.test(source))
+    .map(([path]) => path);
+  assert(f027bPrivateRule.length === 0 && /RLTKR\.linkedSubject\(/.test(f027bVol) && /RLTKR\.linkedSubject\(/.test(f027bFlow),
+    'Feature 027 Scope 2: both receiving routes consume the shared RLTKR.linkedSubject rule and neither declares a private acceptance grammar ('
+    + (f027bPrivateRule.join(', ') || 'no private rule') + ')');
+
+  /* 2.b — catalog binding: an accepted subject is applied only after a catalog match. */
+  assert(/function catalogAsset\(/.test(f027bVol) && /runtime\.config \? runtime\.config\.assets : \[\]/.test(f027bVol)
+    && /var match = handoff\.status === "accepted" \? catalogAsset\(handoff\.subject\) : null;/.test(f027bVol),
+    'Feature 027 Scope 2: volatility-sizing-lab resolves an accepted subject against runtime.config.assets[].symbol before applying it');
+  assert(/function inUniverse\(sym\)/.test(f027bFlow) && /if \(!inUniverse\(FOCUS\.subject\)\)/.test(f027bFlow),
+    'Feature 027 Scope 2: options-flow-feed-lab resolves an accepted subject against its UNIVERSE before treating it as covered');
+
+  /* 2.c — no accepted subject may reach a storage key, a path or a fetch target. */
+  const f027bSinks = [
+    [/localStorage\.setItem\([^)]*handoff/, 'volatility handoff → localStorage'],
+    [/localStorage\.setItem\([^)]*FOCUS/, 'options-flow FOCUS → localStorage'],
+    [/CACHE_PREFIX \+ (?!sym\b)/, 'options-flow cache key built from something other than a UNIVERSE member'],
+    [/pagesUrl\((?!sym\b)/, 'options-flow snapshot path built from something other than a UNIVERSE member'],
+    [/(fetch|ensureBars|ensureChain)\([^)]*(handoff|FOCUS)\./, 'a subject reaching a fetch target']
+  ].filter(([pattern]) => pattern.test(f027bVol) || pattern.test(f027bFlow)).map(([, label]) => label);
+  assert(f027bSinks.length === 0,
+    'Feature 027 Scope 2: no accepted subject reaches a localStorage key, a constructed path or a fetch target on either route ('
+    + (f027bSinks.join('; ') || 'no sink reached') + ')');
+
+  /* 2.d — the focus band is a band, not a filter and not a pre-sort. */
+  const f027bFilteredBody = (f027bFlow.split('function filtered()')[1] || '').split('\n      }')[0];
+  assert(f027bFilteredBody.length > 0 && !/FOCUS/.test(f027bFilteredBody)
+    && !/state\.sortK\s*=\s*[^;]*FOCUS/.test(f027bFlow) && !/state\.sortDir\s*=\s*[^;]*FOCUS/.test(f027bFlow),
+    'Feature 027 Scope 2: the options-flow focus band never enters filtered() and never writes state.sortK or state.sortDir ('
+    + f027bFilteredBody.length + ' chars of filtered() scanned)');
+
+  /* 2.e — the resolved focus is never persisted, because saveState serialises the whole state object. */
+  assert(/localStorage\.setItem\(LS, JSON\.stringify\(state\)\)/.test(f027bFlow)
+    && !/state\.focus|state\.subject|state\.ticker/.test(f027bFlow)
+    && /var FOCUS = \{ status: "absent", subject: null \};/.test(f027bFlow),
+    'Feature 027 Scope 2: the resolved focus is held off state, so the unchanged saveState(JSON.stringify(state)) cannot persist it');
+
+  /* 2.f — one status element per route, textContent-written, role=status, hidden when absent. */
+  const f027bNotice = (source) => (source.match(/id="linkNotice"/g) || []).length;
+  assert(f027bNotice(f027bVol) === 1 && f027bNotice(f027bFlow) === 1
+    && /id="linkNotice" role="status" hidden/.test(f027bVol) && /id="linkNotice" role="status" hidden/.test(f027bFlow)
+    && !/linkNotice[^\n]*innerHTML/.test(f027bVol) && !/linkNotice[^\n]*innerHTML/.test(f027bFlow),
+    'Feature 027 Scope 2: each route carries exactly one role="status" #linkNotice, hidden by default and never written with innerHTML');
+
+  /* 2.g — the four options-flow band outcomes stay four distinct statements. */
+  const f027bOutcomes = [
+    /band\.textContent = "";/,
+    /could not accept/,
+    /does not include it/,
+    /no strike crossed the activity bar/,
+    /flagged strike/
+  ].filter((pattern) => pattern.test(f027bFlow)).length;
+  assert(f027bOutcomes === 5,
+    'Feature 027 Scope 2: the options-flow band renders absent, refused, not-covered, covered-with-nothing-flagged and covered-with-flags as five distinct statements ('
+    + f027bOutcomes + '/5)');
+
+  /* 2.h — the ES5 / no-bundler / file:// invariants hold on both edited routes. */
+  const f027bModern = [['volatility-sizing-lab.html', f027bVol], ['options-flow-feed-lab.html', f027bFlow]]
+    .filter(([, source]) => /\bimport\s+[\w{*]/.test(source) || /\bexport\s+(default|const|function)/.test(source) || /=>/.test(source.split('<script>')[1] || ''))
+    .map(([path]) => path);
+  assert(f027bModern.length === 0,
+    'Feature 027 Scope 2: neither edited route introduced ES module syntax or an arrow function into its inline ES5 script ('
+    + (f027bModern.join(', ') || 'both ES5') + ')');
+
+  /* 2.17 — shared-surface canary */
+  assert(passes > 3140,
+    'Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the Feature 027 Scope 2 append'
+    + ' (' + passes + ' assertion(s) already green at this point)');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 027 Scope 2 catalog-bound group threw): ' + e.message); }
+/* FEATURE-027-CATALOG-BOUND-END */
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

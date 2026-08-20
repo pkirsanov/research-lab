@@ -3132,6 +3132,136 @@ the retained-branch evidence under TP-01-21 already supplies for six of them.
 
 No file was mutated during this verification; every step was read-only.
 
+### Verification pass 6 — 2026-08-20 — DoD item 12: clause 1 now HOLDS after a real marker defect was found and fixed; clause 2 is NOT delivered (finding F-01-S)
+
+**Claim Source:** executed. **Outcome: the item stays `[ ]`.** The restatement made
+the item answerable — the two clauses finding **F-01-L** called unverifiable against
+a squashed history are gone, replaced by clauses the tree can answer. One of the two
+remaining clauses is now proven. The other is not built.
+
+**Clause 1 — twelve markers, each naming its shape, each recording the clause it
+superseded, closure both directions. NOW HOLDS. It did not when this pass began.**
+
+A census of every owned marker against the scope's own ledger table found **one
+disagreement out of twelve**:
+
+```
+SUP-022-01 marker=derive    ledger=derive    AGREE
+SUP-022-02 marker=partition ledger=partition AGREE
+SUP-022-04 marker=derive    ledger=derive    AGREE
+SUP-022-05 marker=relocate  ledger=relocate  AGREE
+SUP-022-06 marker=relocate  ledger=relocate  AGREE
+SUP-022-07 marker=partition ledger=derive    *** MISMATCH ***
+SUP-022-09 marker=derive    ledger=derive    AGREE
+SUP-022-11 marker=relocate  ledger=relocate  AGREE
+SUP-022-12 marker=partition ledger=partition AGREE
+SUP-022-13 marker=relocate  ledger=relocate  AGREE
+SUP-022-17 marker=derive    ledger=derive    AGREE
+SUP-022-21 marker=derive    ledger=derive    AGREE
+MISMATCH_COUNT=1
+```
+
+All twelve record the clause they superseded, and the derive entries record it
+**verbatim and evaluably** — `citedFigures.length === 8` for SUP-022-01,
+`noticeIds.length === 18` for SUP-022-04, `toHaveCount(2)` on `#sourceRecordList
+li` for SUP-022-17, the rendered counts of 14 and 4 for SUP-022-09, and the raw
+member name `preferentialRateTables` for SUP-022-21. Verification pass 2 recorded
+that those verbatim originals "were never captured"; against the current tree that
+is no longer true for five of the six, and it is exactly the input finding
+**F-01-L** said clause 2 would need.
+
+**Why the mismatch is a defect in the marker and not in the ledger.** The
+SUP-022-07 region was read end to end. Every expectation in it derives its expected
+value from the pack — `packPreferentialTax` and `knownSingleOrdinaryTax` over
+`federalPack.preferentialRateTables` — across the below-breakpoint case, the
+across-breakpoint case, the implied-move case, the dividend-pooling case and the
+removal case. **There is no retained branch:** no absent-table fixture, no
+conditional, nothing keeping the superseded refusal expectation alive on a second
+path. A partition is defined by retaining the superseded clause on one branch, and
+this region retains nothing. The scope's ledger table and DoD item 12's own family
+list both call it a derive; one comment token disagreed with both. The token was
+corrected to `shape=derive` and the marker now states in one added sentence why. No
+assertion was touched — the change is comment text in a file this scope owns for
+exactly this entry.
+
+**Why the mismatch mattered rather than being cosmetic.** Clause 2 routes each entry
+down one of two **mutually exclusive** proof paths chosen by its shape. A
+retained-branch entry must show its superseded clause *still asserted and
+non-vacuous*; a derive entry must show that same clause *false or vacuous*. No entry
+can satisfy both. Carrying SUP-022-07 as a partition would have demanded a retained
+branch that does not exist, and a proof built to that demand would have had to
+invent one.
+
+**The gap that hid it, closed additively.** `TP-05-22` closes marker↔ledger
+membership but reads **ids only** — it never compares the shape token to the ledger,
+which is why a twelve-for-twelve id closure sat green over a wrong shape.
+`TP-05-22` was left byte-identical and a new assertion was added beside it:
+
+```
+  ✗ FAIL: TP-01-22: each of this scope's twelve supersession markers declares a shape token
+    agreeing with the shape its ledger row assigns, so no entry can be proved down the
+    retained-branch path while its ledger calls it a derive, or the reverse (07 marker=partition ledger=derive)
+  ✓ TP-01-22 ADVERSARIAL: the shape reader the verdict depends on returns the planted token,
+    reports a planted wrong shape as disagreeing with the ledger, and reports absence as
+    absence rather than as agreement
+Research-Lab self-test: 3144 passed, 1 failed
+```
+
+**This RED is the defect itself, not a planted mutation.** No file was mutated to
+produce it: the assertion was written, run against the tree as it stood, and it
+named the real disagreement on its first execution. The adversarial control passed
+in the same run, so the reader was already known to discriminate — it returns a
+planted token, reports a planted wrong shape as disagreeing with the ledger, and
+reports absence as absence rather than as agreement. That is what separates a real
+finding from an extractor reporting an empty set it never populated.
+
+Same command after correcting the token:
+
+```
+  ✓ TP-01-22: each of this scope's twelve supersession markers declares a shape token agreeing
+    with the shape its ledger row assigns, so no entry can be proved down the retained-branch
+    path while its ledger calls it a derive, or the reverse ()
+  ✓ TP-01-22 ADVERSARIAL: the shape reader the verdict depends on returns the planted token,
+    reports a planted wrong shape as disagreeing with the ledger, and reports absence as
+    absence rather than as agreement
+Research-Lab self-test: 3145 passed, 0 failed
+```
+
+The assertion total is 3145 in both runs, so nothing was deleted or downgraded to
+reach green — the one failure became a pass. Marker↔ledger closure itself is green
+in the same run.
+
+**Clause 2 — strength proven against the tree. NOT DELIVERED. The item stays `[ ]`
+on finding F-01-S.** The clause asks for two demonstrations and neither was built in
+this pass:
+
+- *Retained six — SUP-022-02, -05, -06, -11, -12, -13.* Each superseded clause must
+  still be asserted, exercised against the absent-table fixture, and shown
+  non-vacuous. `TP-01-21` supplies exactly this and DoD item 14 is ticked on it, so
+  the evidence very likely exists — but it was **not re-run in this pass** and is
+  recorded `not-run` rather than carried across from a prior one.
+- *Derive six — SUP-022-01, -04, -07, -09, -17, -21.* Each superseded clause must be
+  restated verbatim from its marker comment, evaluated against the current tree, and
+  shown **false or vacuous while its replacement holds**. No assertion in the suite
+  does this today. Five of the six now have an evaluable verbatim original to test;
+  **SUP-022-07 does not** — its marker records what it superseded descriptively
+  ("the refusal expectations for the gain household and the dividend household and
+  the zero-valued-headline clause") rather than as an expression that can be
+  evaluated, so for that entry the clause has no input.
+
+**What would close clause 2.** For the derive family, one appended assertion group
+restating each of the five evaluable originals against the current pack and
+asserting each is now false — the pack-derived cited-figure count is not 8, the
+pack's `unsupportedFeatures` length is not 18, `pack.sourceRecords.length` is not 2,
+the rendered contributor and absent-figure counts are not 14 and 4, and the
+absent-figure inventory no longer renders the raw member name — while the
+replacement passes in the same run. For SUP-022-07 the marker must first record its
+superseded clause in evaluable form, which is a marker-text change in this scope's
+own file and can be taken once the shape correction above has landed. For the
+retained six, re-running `TP-01-21` in the same command supplies it. Until that group
+exists and runs, the item is not closeable; the browser half of its command was also
+not run this pass.
+
 ## Change Boundary
 
 ### Verification pass 6 — 2026-08-20 — DoD item 11 re-derived against the restated limbs: 1(a), E2, E3 and limb 2 HOLD; E1 is FALSE (finding F-01-R)

@@ -425,43 +425,41 @@ delivery makes a row's claim false, the row is corrected rather than checked.
       track record or an error rate, and no claim age is described as optimal,
       recommended or best.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence recorded,
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence recorded,
       including the browser rows.
   - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-28 commands · **Evidence:** `report.md#test-evidence`
-  - **Claim Source:** executed for 27 of the 28 rows; `not-run` for the 28th.
-  - **Unchecked because:** exactly one row, **TP-03-25**, has GREEN with no RED.
-    The item says *every* row, so one unproven row leaves it `[ ]`.
+  - **Claim Source:** executed for all 28 rows.
+  - **Checked because:** every one of the 28 rows now carries a RED and a GREEN
+    captured under that row's own declared command.
 
-    **Done — 27 rows with both halves under the row's own command.** TP-03-01
-    through TP-03-24 were probed in the implementation session and are recorded
-    under `report.md#intended-red-evidence-per-test-plan-row`. TP-03-26, TP-03-27
-    and TP-03-28 were probed in a later session and are recorded under
+    **26 rows probed earlier.** TP-03-01 through TP-03-24 were probed in the
+    implementation session and are recorded under
+    `report.md#intended-red-evidence-per-test-plan-row`. TP-03-26, TP-03-27 and
+    TP-03-28 were probed in a later session and are recorded under
     `report.md#intended-red-evidence-for-the-four-gate-rows-tp-03-25--tp-03-28`,
     with TP-03-28 carrying two probes because the row makes two separable claims.
 
-    **Not done — TP-03-25**, the broader browser regression. At the time of that
-    attempt its command selected 74 tests; two attempts reached `[74/74]` and
-    returned no summary line and no exit code, so no trustworthy baseline existed
-    for a RED to be a delta against. Separately, the then-current `--grep "SCN-02"`
-    also selected `SCN-025-*` and `SCN-026-*`, whose files a concurrent session was
-    editing throughout, so a failure under a mutation would not be attributable.
-    **No mutation was applied for this row** — a prior dispatch left an abandoned
-    `RED PROBE TP-03-25` mutation in `lifetime-tax-strategy-lab.html` that degraded
-    the product until a human reverted it, and repeating that was the worse
-    outcome. The full reasoning and what the next session needs is at
-    `report.md#tp-03-25--not-probed-no-intended-red-evidence-exists-for-this-row`.
+    **TP-03-25 closed.** The broader browser regression was the last row without a
+    RED. It is now probed at `report.md#probe-29--same-command-red-and-green-for-tp-03-25`:
+    a single value-free rounding mutation in `rltaxclaimage.js` produced
+    `2 failed, 75 passed` under the row's own command, the mutation was reverted
+    inside the same shell invocation, and the same command then produced
+    `77 passed`. Both failing rows carry `SCN-024-008`, a scenario this scope owns,
+    so the delta is attributable to the mutation.
 
-    **Attribution blocker removed (planning correction, no evidence claimed).**
-    TP-03-25's selector is now `--grep "SCN-02[1-4]"`, pinned to the four owning
-    spec numbers, and selects 66 tests — the whole 021 … 024 family and nothing
-    else. The 8 excluded tests are exactly the concurrent session's 5 `SCN-025-*`
-    and 3 `SCN-026-*`. A mutation applied inside 021 … 024 is therefore now
-    attributable. This item stays `[ ]` regardless: the row still has GREEN with no
-    RED, and only `bubbles.test` may record that RED and tick this box.
+    **Both prior blockers are gone, and neither was waved away.** The command now
+    returns a summary line and an exit code in both directions, so a baseline
+    exists for the RED to be a delta against. The selector is now the
+    four-feature-pinned `SCN-02[1-4]` rather than the substring `SCN-02`, so the
+    concurrent session's `SCN-025-*` and `SCN-026-*` files can neither satisfy nor
+    break the row. The GREEN run's non-zero exit code comes from Playwright worker
+    teardown faults that the runner itself classifies as `errors … not a part of
+    any test`; the run reports zero failed, and the discrepancy is stated in the
+    evidence rather than hidden.
 
     **Superseded:** the earlier note on this item claimed the only honest RED was
-    the narrow TP-03-05 / TP-03-CLAIM pair. That is now out of date — 27 rows
-    carry their own named, per-row RED.
+    the narrow TP-03-05 / TP-03-CLAIM pair, and a later note claimed TP-03-25 was
+    unprovable in that sitting. Both are now out of date.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds with

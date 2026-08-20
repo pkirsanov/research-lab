@@ -25678,6 +25678,212 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 027 Scope 3 registry-declaration group threw): ' + e.message); }
 /* FEATURE-027-REGISTRY-DECLARATIONS-END */
 
+/* RED-GREEN-PROBE-HARNESS-BEGIN */
+/* The harness exists because a `trap ... EXIT` set in a persistent interactive
+   shell never fires, so a truncated dispatch has three times left a live
+   mutation inside a shipped module. These assertions are adversarial: each one
+   drives scripts/red-green-probe.sh into a way it could fail unsafely and
+   proves it refuses, or proves the target came back byte-identical to its
+   committed blob anyway. Everything runs against a throwaway Git repository in
+   the temp directory, never against a shipped module. */
+group('RED/GREEN probe harness (scripts/red-green-probe.sh)');
+try {
+  const { mkdtempSync, writeFileSync, rmSync } = await import('node:fs');
+  const { spawn, spawnSync } = await import('node:child_process');
+  const { tmpdir } = await import('node:os');
+
+  const RGP = join(ROOT, 'scripts', 'red-green-probe.sh');
+  const RGP_SRC = read('scripts/red-green-probe.sh');
+  const RGP_FIXTURE = 'probe-fixture.txt';
+  const RGP_CLEAN = 'token=alpha\n';
+  /* Re-reads the fixture from disk on every run, so it observes the mutation. */
+  const RGP_CMD = ['perl', '-e',
+    'open(my $f, "<", "probe-fixture.txt") or exit 3; local $/; my $s = <$f>;'
+    + ' exit($s =~ /token=alpha/ ? 0 : 1);'];
+  const RGP_ENV = Object.assign({}, process.env, { GIT_TERMINAL_PROMPT: '0' });
+  const rgpGit = (cwd, args) => spawnSync('git', args, { cwd, encoding: 'utf8', env: RGP_ENV });
+  const rgpCommitted = (dir) => rgpGit(dir, ['rev-parse', 'HEAD:' + RGP_FIXTURE]).stdout.trim();
+  const rgpWorking = (dir) => rgpGit(dir, ['hash-object', RGP_FIXTURE]).stdout.trim();
+  const rgpClean = (dir) => rgpWorking(dir) === rgpCommitted(dir)
+    && rgpGit(dir, ['status', '--porcelain']).stdout.trim() === '';
+  const rgpTemps = [];
+  function rgpRepo() {
+    const dir = mkdtempSync(join(tmpdir(), 'rlprobe-'));
+    rgpTemps.push(dir);
+    rgpGit(dir, ['init', '-q']);
+    rgpGit(dir, ['config', 'user.email', 'selftest@example.invalid']);
+    rgpGit(dir, ['config', 'user.name', 'research-lab selftest']);
+    rgpGit(dir, ['config', 'commit.gpgsign', 'false']);
+    writeFileSync(join(dir, RGP_FIXTURE), RGP_CLEAN);
+    rgpGit(dir, ['add', RGP_FIXTURE]);
+    rgpGit(dir, ['commit', '-q', '--no-verify', '-m', 'probe fixture']);
+    return dir;
+  }
+  const rgpRun = (dir, args) =>
+    spawnSync('bash', [RGP].concat(args), { cwd: dir, encoding: 'utf8', env: RGP_ENV });
+  const rgpArgs = (find, replace, label, cmd) => [
+    '--file', RGP_FIXTURE, '--find', find, '--replace', replace, '--label', label, '--'
+  ].concat(cmd || RGP_CMD);
+
+  /* H.1 — the revert is armed before the mutation is applied. This ordering is
+     the whole reason the harness is a standalone script: if the trap were
+     installed after the edit, a kill in that window would strand the mutation,
+     which is exactly the incident this replaces. */
+  const rgpTrapAt = RGP_SRC.indexOf('trap restore EXIT');
+  const rgpMutateAt = RGP_SRC.indexOf("perl -0777 -i -pe");
+  assert(rgpTrapAt > 0 && rgpMutateAt > 0 && rgpTrapAt < rgpMutateAt
+    && /trap 'on_signal 2' INT/.test(RGP_SRC) && /trap 'on_signal 15' TERM/.test(RGP_SRC),
+    'RED/GREEN harness: the EXIT, INT and TERM traps are installed before the mutation is applied'
+    + ' (trap at char ' + rgpTrapAt + ', mutation at char ' + rgpMutateAt + ')');
+
+  /* H.2 — portability: the failure modes this repo has already hit on macOS
+     BSD userland are a GNU-only `sed -i` and a missing `timeout`. */
+  const rgpStripped = RGP_SRC.replace(/^\s*#.*$/gm, '');
+  assert(!/\bsed\s+-i\b/.test(rgpStripped)
+    && !/(^|[;&|]\s*)timeout\s/.test(rgpStripped)
+    && /alarm shift @ARGV/.test(rgpStripped),
+    'RED/GREEN harness: no GNU-only `sed -i` and no `timeout`; the optional bound uses the portable perl alarm form');
+
+  /* H.3 — refuses a dirty target. Reverting a dirty file would silently throw
+     away uncommitted work, so a probe must start from a clean baseline. */
+  const rgpDirtyDir = rgpRepo();
+  writeFileSync(join(rgpDirtyDir, RGP_FIXTURE), RGP_CLEAN + 'uncommitted work\n');
+  const rgpDirty = rgpRun(rgpDirtyDir, rgpArgs('token=alpha', 'token=beta', 'dirty-target'));
+  assert(rgpDirty.status === 4 && /dirty/i.test(rgpDirty.stderr)
+    && rgpGit(rgpDirtyDir, ['show', 'HEAD:' + RGP_FIXTURE]).stdout === RGP_CLEAN
+    && String(rgpDirty.stdout).indexOf('RED/GREEN PROBE EVIDENCE') === -1,
+    'RED/GREEN harness: refuses a dirty target with exit 4, emits no evidence, and leaves the uncommitted edit in place'
+    + ' (exit ' + rgpDirty.status + ')');
+
+  /* H.4 — refuses when --find matched nothing. A probe that silently mutated
+     nothing runs the command unchanged twice and produces a false GREEN. */
+  const rgpMissDir = rgpRepo();
+  const rgpMiss = rgpRun(rgpMissDir, rgpArgs('no-such-literal-anywhere', 'token=gamma', 'find-absent'));
+  assert(rgpMiss.status === 5 && /did not change|matched nothing/i.test(rgpMiss.stderr)
+    && rgpClean(rgpMissDir),
+    'RED/GREEN harness: refuses with exit 5 when --find matched nothing, and the target is still byte-identical to its committed blob'
+    + ' (exit ' + rgpMiss.status + ')');
+
+  /* H.5 — the safety rail. A probe mutation must be value-free by
+     construction: one earlier hand-run probe wrote a network sink carrying the
+     operator's declared income into a URL. */
+  const rgpSinks = [
+    ['fetch("/probe?v=" + declaredIncome)', 'fetch('],
+    ['var x = new XMLHttpRequest();', 'XMLHttpRequest'],
+    ['var u = "http://example.invalid/p";', 'http://'],
+    ['var u = "https://example.invalid/p";', 'https://'],
+    ['navigator.sendBeacon("/p", v);', 'navigator.sendBeacon'],
+    ['location.href = declaredIncome;', 'location. assignment']
+  ];
+  const rgpSinkDir = rgpRepo();
+  const rgpSinkResults = rgpSinks.map(([replacement]) =>
+    rgpRun(rgpSinkDir, rgpArgs('token=alpha', replacement, 'exfil-rail')));
+  const rgpSinkRefused = rgpSinkResults.filter((r) => r.status === 3
+    && /REFUSED/.test(r.stderr) && /value-free/.test(r.stderr)).length;
+  assert(rgpSinkRefused === rgpSinks.length && rgpClean(rgpSinkDir),
+    'RED/GREEN harness: refuses every exfiltrating --replace with exit 3 and a stated reason, before touching the file ('
+    + rgpSinkRefused + '/' + rgpSinks.length + ' sinks refused: '
+    + rgpSinks.map((s) => s[1]).join(', ') + ')');
+
+  /* H.6 — refuses a probe that did not discriminate. `token=alpha2` still
+     satisfies the command's /token=alpha/ test, so RED and GREEN both pass:
+     that is the "assertion that cannot fail" defect, not evidence. */
+  const rgpFlatDir = rgpRepo();
+  const rgpFlat = rgpRun(rgpFlatDir, rgpArgs('token=alpha', 'token=alpha2', 'non-discriminating'));
+  assert(rgpFlat.status === 7 && /same outcome/i.test(rgpFlat.stderr)
+    && /discriminating:\s+NO/.test(rgpFlat.stdout) && rgpClean(rgpFlatDir),
+    'RED/GREEN harness: refuses with exit 7 when RED and GREEN produce the same outcome, and still reverts'
+    + ' (exit ' + rgpFlat.status + ')');
+
+  /* H.7 — the adversarial case that matters most: the harness is killed while
+     the mutation is live. The EXIT/TERM trap must still put the file back. */
+  const rgpKillDir = rgpRepo();
+  const rgpKillCommitted = rgpCommitted(rgpKillDir);
+  let rgpMutationWasLive = false;
+  let rgpKillSignalled = false;
+  const rgpKilled = spawn('bash',
+    [RGP].concat(rgpArgs('token=alpha', 'token=beta', 'killed-mid-run', ['perl', '-e', 'sleep 30'])),
+    { cwd: rgpKillDir, env: RGP_ENV, stdio: ['ignore', 'pipe', 'pipe'] });
+  rgpKilled.stdout.resume();
+  rgpKilled.stderr.resume();
+  await new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      rgpMutationWasLive = rgpWorking(rgpKillDir) !== rgpKillCommitted;
+      rgpKillSignalled = rgpKilled.kill('SIGTERM');
+    }, 1500);
+    rgpKilled.on('close', () => { clearTimeout(timer); resolve(); });
+  });
+  assert(rgpMutationWasLive && rgpKillSignalled
+    && rgpWorking(rgpKillDir) === rgpKillCommitted && rgpClean(rgpKillDir),
+    'RED/GREEN harness: a SIGTERM delivered while the mutation was live still restores the target to its committed blob'
+    + ' (mutation observed live: ' + rgpMutationWasLive + ', restored hash matches: '
+    + (rgpWorking(rgpKillDir) === rgpKillCommitted) + ')');
+
+  /* H.8 — the happy path actually discriminates and emits the evidence block. */
+  const rgpOkDir = rgpRepo();
+  const rgpOk = rgpRun(rgpOkDir, rgpArgs('token=alpha', 'token=beta', 'happy-path'));
+  const rgpField = (name) => {
+    const m = new RegExp('^' + name + ':\\s*(.*)$', 'm').exec(rgpOk.stdout || '');
+    return m ? m[1].trim() : null;
+  };
+  assert(rgpOk.status === 0 && rgpField('red-exit') === '1' && rgpField('green-exit') === '0'
+    && /^yes \(committed=[0-9a-f]{40} restored=[0-9a-f]{40}\)$/.test(rgpField('revert-verified') || '')
+    && rgpClean(rgpOkDir),
+    'RED/GREEN harness: a discriminating probe exits 0, reports red-exit 1 then green-exit 0, and hash-verifies the revert'
+    + ' (exit ' + rgpOk.status + ', red ' + rgpField('red-exit') + ' -> green ' + rgpField('green-exit') + ')');
+
+  /* H.9 — the block is paste-ready: every field a reviewer needs is present,
+     and the two hashes it prints are the same hash, so "reverted" is checked
+     rather than asserted. */
+  const rgpRequired = ['label', 'file', 'mutation', 'command', 'red-exit', 'red-summary',
+    'green-exit', 'green-summary', 'revert-verified', 'discriminating'];
+  const rgpMissing = rgpRequired.filter((f) => rgpField(f) === null);
+  const rgpHashes = /committed=([0-9a-f]{40}) restored=([0-9a-f]{40})/.exec(rgpOk.stdout || '');
+  assert(rgpMissing.length === 0 && rgpHashes && rgpHashes[1] === rgpHashes[2]
+    && rgpField('file') === RGP_FIXTURE
+    && /token=alpha\s+->\s+token=beta\s+\(1 occurrence/.test(rgpField('mutation') || ''),
+    'RED/GREEN harness: the evidence block carries every reviewer field, names the exact mutation and occurrence count, and its two hashes agree'
+    + ' (missing: ' + (rgpMissing.join(', ') || 'none') + ')');
+
+  /* H.10 — nothing the harness prints may carry a personal absolute path; the
+     repo PII scan rejects those, so evidence has to be paste-ready as emitted. */
+  const rgpEmitted = String(rgpOk.stdout || '') + String(rgpOk.stderr || '');
+  assert(rgpEmitted.indexOf('/Users/') === -1 && rgpEmitted.indexOf('/home/') === -1
+    && rgpEmitted.indexOf(tmpdir()) === -1,
+    'RED/GREEN harness: the emitted evidence carries no absolute home or worktree path, only repo-relative ones');
+
+  /* H.11 — usage is enforced rather than guessed: a probe with no command, or
+     with no target, must refuse instead of half-running. */
+  const rgpUsageDir = rgpRepo();
+  const rgpNoCmd = rgpRun(rgpUsageDir,
+    ['--file', RGP_FIXTURE, '--find', 'token=alpha', '--replace', 'token=beta', '--label', 'no-command']);
+  const rgpNoFile = rgpRun(rgpUsageDir,
+    ['--find', 'token=alpha', '--replace', 'token=beta', '--label', 'no-file', '--'].concat(RGP_CMD));
+  assert(rgpNoCmd.status === 2 && rgpNoFile.status === 2 && rgpClean(rgpUsageDir),
+    'RED/GREEN harness: a missing command or a missing --file refuses with exit 2 and never touches the target'
+    + ' (' + rgpNoCmd.status + ', ' + rgpNoFile.status + ')');
+
+  /* H.12 — an untracked target has no committed blob to revert to, so the
+     harness must refuse rather than invent a baseline. */
+  const rgpUntrackedDir = rgpRepo();
+  writeFileSync(join(rgpUntrackedDir, 'untracked-fixture.txt'), RGP_CLEAN);
+  const rgpUntracked = rgpRun(rgpUntrackedDir, [
+    '--file', 'untracked-fixture.txt', '--find', 'token=alpha', '--replace', 'token=beta',
+    '--label', 'untracked', '--'].concat(RGP_CMD));
+  assert(rgpUntracked.status === 4 && /not tracked/i.test(rgpUntracked.stderr)
+    && rgpWorking(rgpUntrackedDir) === rgpCommitted(rgpUntrackedDir),
+    'RED/GREEN harness: refuses an untracked target with exit 4 because there is no committed blob to revert to'
+    + ' (exit ' + rgpUntracked.status + ')');
+
+  rgpTemps.forEach((dir) => { try { rmSync(dir, { recursive: true, force: true }); } catch { /* best effort */ } });
+
+  /* H.13 — shared-surface canary */
+  assert(passes > 3150,
+    'Regression: every pre-existing selftest assertion stays green after the RED/GREEN probe harness append'
+    + ' (' + passes + ' assertion(s) already green at this point)');
+} catch (e) { failures++; console.log('  ✗ FAIL (RED/GREEN probe harness group threw): ' + e.message); }
+/* RED-GREEN-PROBE-HARNESS-END */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

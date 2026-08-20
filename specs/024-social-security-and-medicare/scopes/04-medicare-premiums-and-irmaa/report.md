@@ -754,3 +754,63 @@ premiums alone are distinct and non-zero. That is a real insensitivity in those
 two rows to a bracket-selection defect, and it is recorded here rather than
 absorbed into a green.
 
+### Probe 3 — a citation admitted into the declared lookback shape
+
+Mutation: in `rltaxrules.js`, `"sourceRef"` was appended to `LOOKBACK_MAGI_KEYS`,
+the list of members the declaration is allowed to carry. One key name, no figure.
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3106 passed, 0 failed
+$ git checkout -- rltaxrules.js
+DIRTY_AFTER_REVERT=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3106 passed, 0 failed
+```
+
+**Survived — and the reason is recorded rather than hidden.** No row failed,
+because the contract refuses a citation twice over: the shape list is one
+defence, and `LOOKBACK_MAGI_FORBIDDEN_KEYS` refuses the member *by name* as a
+second. Admitting the key into the shape leaves the name-based refusal standing.
+This is defence in depth in the module, not a weak assertion in the row, and
+probe 3b removes both defences to prove the row can fail.
+
+### Probe 3b — both defences against a cited lookback removed
+
+Mutation: `"sourceRef"` admitted into `LOOKBACK_MAGI_KEYS` **and** removed from
+`LOOKBACK_MAGI_FORBIDDEN_KEYS`. Two key names, no figure.
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL: TP-04-01: LookbackMagi/v1 refuses a sourceRef because a household declaration is never a cited figure, carries
+Research-Lab self-test: 3105 passed, 1 failed
+$ git checkout -- rltaxrules.js
+DIRTY_AFTER_REVERT=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3106 passed, 0 failed
+```
+
+**Intended RED recorded for TP-04-01.** The row fails exactly when the contract
+stops refusing a household figure that claims to be a cited one, which is the
+defect the row exists to prevent.
+
+### Probe 4 — a third parameter opened on the resolver
+
+Mutation: in `rltaxmedicare.js`, `resolveAdjustmentBracket(lookback, bracketPack)`
+became `resolveAdjustmentBracket(lookback, bracketPack, options)`. One parameter
+name, no figure.
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL: TP-04-02: resolveAdjustmentBracket accepts exactly a LookbackMagi/v1 and a bracket pack — no third parameter, 
+Research-Lab self-test: 3105 passed, 1 failed
+$ git checkout -- rltaxmedicare.js
+DIRTY_AFTER_REVERT=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3106 passed, 0 failed
+```
+
+**Intended RED recorded for TP-04-02.** The row is the structural half of
+FR-024-023 — the resolver must have nowhere to put a current-year figure — and it
+fails the moment a parameter is opened that a caller could put one in.
+

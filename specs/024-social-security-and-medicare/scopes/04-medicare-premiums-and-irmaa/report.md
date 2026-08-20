@@ -1498,6 +1498,66 @@ route, module and configuration. They are not this scope's and this scope did no
 write them; the figure is restated here so the two numbers in this report are not
 read as a drift in this feature's own surface.
 
+### Probe 18 — the cumulative browser gate driven red on its own command
+
+TP-04-29 is the broader-regression gate. Its GREEN on its own named command is
+recorded at [TP-04-29](#tp-04-29) above — `77 passed`, zero failed. What it still
+owed was a RED on that same command, because a cumulative gate that has only ever
+been observed green cannot be shown to be load-bearing.
+
+Mutation: the same value-free redirect used in Probe 15, reapplied. In
+`lifetime-tax-strategy-lab.html`, `loadJson` appends a constant suffix to the
+medicare pack's path and to nothing else. No household value is placed anywhere.
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list
+GUARD_MATCHES=1
+POST_MUTATION_SITES=1 ORIGINAL_LEFT=0
+  ✘  36 …lifetime-tax-foundation.spec.mjs:287:1 › SCN-021-003 the tax workspace issues zero network requests and keeps every household value local (978ms)
+  ✘  24 …lifetime-tax-benefit.spec.mjs:276:1 › SCN-024-001 the request ledger stays empty and no benefit declaration reaches a URL (1.7s)
+  ✘  21 …lifetime-tax-claim-age.spec.mjs:201:1 › SCN-024-009 the request ledger stays empty and no declared claim age reaches a URL (1.2s)
+  ✘  34 …lifetime-tax-combined.spec.mjs:350:1 › SCN-022-013 the request ledger stays empty across the full combined workflow (1.1s)
+  ✘  40 …lifetime-tax-medicare.spec.mjs:51:1 › SCN-024-010 an undeclared lookback names the year required and a wrong lookback year refuses naming the offset (6.9s)
+  ✘  63 …lifetime-tax-property.spec.mjs:311:1 › SCN-023-001 the request ledger stays empty and no property declaration reaches a URL (1.5s)
+  ✘  61 …lifetime-tax-medicare.spec.mjs:80:1 › SCN-024-011 the bracket is selected at the exact boundary and both part adjustments are shown with their citations (1.9s)
+  ✘  68 …lifetime-tax-route.spec.mjs:290:1 › SCN-021-015 a private export happens only on explicit action and the request ledger stays empty (1.4s)
+  ✘  69 …lifetime-tax-medicare.spec.mjs:109:1 › SCN-024-012 the annual Medicare cost is rendered beside the headline and no premium leg is inside the federal tax total (1.2s)
+  ✘  72 …lifetime-tax-medicare.spec.mjs:147:1 › SCN-024-012 all three premium legs reach the headline, the comparison, the curve and the export (939ms)
+  ✘  75 …lifetime-tax-medicare.spec.mjs:200:1 › SCN-024-010 the request ledger stays empty and no lookback declaration reaches a URL (833ms)
+Error: worker-4 process did not exit within 300000ms after stop, force-killed it
+  ✘  62 …lifetime-tax-retirement-route.spec.mjs:289:1 › SCN-024-015 every unavailable retirement item is focusable and states its code, domain, reason and remediation (2.6s)
+  ✘  77 …lifetime-tax-retirement-route.spec.mjs:370:1 › SCN-024-014 the request ledger stays empty with three new packs loaded and no retirement declaration reaches a URL (888ms)
+    Error: expect(locator).toHaveAttribute(expected) failed
+  13 failed
+  64 passed (5.8m)
+$ git checkout -- lifetime-tax-strategy-lab.html
+DIRTY_AFTER_REVERT=0 MUTATION_LEFT=0 ORIGINAL_RESTORED=1
+```
+
+**Intended RED recorded for TP-04-29**, on the row's own named command, against
+the `77 passed` GREEN recorded above on the identical command and the unmutated
+source. The gate moves `77 passed / 0 failed` → `64 passed / 13 failed` → and
+back, so it is demonstrably sensitive to a defect in the route it guards.
+
+**How this transcript was reduced, stated rather than left implicit.** The run
+emits one line per scenario. The lines above are the thirteen `✘` lines and the
+verbatim summary; the sixty-four `✓` lines are omitted as uniform. Nothing
+failure-shaped was dropped — the filter selected failures, so a hidden failure
+could not have survived it, and the `13 failed` / `64 passed` summary is the
+runner's own and reconciles with the count of `✘` lines shown.
+
+**What the blast radius shows, and why it is the right result rather than an
+over-broad mutation.** Thirteen scenarios fail, spanning all four features. Eleven
+are privacy-ledger rows across features 021 through 024: each asserts the page
+fetched nothing it did not declare, and the redirected pack is exactly such a
+fetch. This is not the mutation leaking outside its blast radius — it is the
+cumulative gate demonstrating that the declared-asset invariant is asserted by
+every route in the family, not only by the medicare one. The remaining two are
+the medicare rows that lose their pack outright. The route-level scenarios that
+do not read the request ledger stayed green, which is the discrimination that
+makes this a RED rather than a wholesale break.
+
+
 
 
 

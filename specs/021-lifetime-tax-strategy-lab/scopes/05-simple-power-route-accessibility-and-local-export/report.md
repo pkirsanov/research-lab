@@ -517,15 +517,97 @@ still doing exactly the job it was added for.
 `Regression: SCN-021-013 Simple opens first with a decision level answer and Power holds the detail`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-013 Simple opens first with a decision level answer and Power holds the detail" --reporter=list`
 
+**Claim Source:** executed, through `scripts/red-green-probe.sh` against the real
+route. The probe inverts the stored-mode default so an unvisited reader lands in
+Power. That is the defect the row is named after — the route stops opening on the
+decision-level answer and opens on the drill-down instead.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-11 the route no longer opens Simple first
+file:             lifetime-tax-strategy-lab.html
+mutation:         window.localStorage.getItem(MODE_KEY) === "power" ? "power" : "simple"  ->  window.localStorage.getItem(MODE_KEY) === "simple" ? "simple" : "power"   (1 occurrence(s))
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (3.0s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The RED is the row's own first expectation, at the top of the test body:
+
+```
+    Error: expect(locator).toHaveAttribute(expected) failed
+    > 41 |   await expect(page.locator('#modeSimple')).toHaveAttribute('aria-pressed', 'true');
+      42 |   await expect(page.locator('#simple')).toBeVisible();
+      43 |   await expect(page.locator('#power')).toBeHidden();
+```
+
 ### Scenario SCN-021-014
 
 `Regression: SCN-021-014 every value is explained and every unavailable state is keyboard reachable`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-014 every value is explained and every unavailable state is keyboard reachable" --reporter=list`
 
+**Claim Source:** executed, through the same harness against the real route. The
+probe renames the `aria-describedby` attach to an inert attribute, so the
+tooltip element is still built and still visible while no displayed figure is
+programmatically associated with its explanation. The browser row resolves the
+association live rather than reading the source, so it catches what a source
+scan alone could not distinguish from a renamed-but-still-wired attribute.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-12 displayed values lose their programmatic tooltip association
+file:             lifetime-tax-strategy-lab.html
+mutation:         figure.setAttribute("aria-describedby", "tip-" + fieldId);  ->  figure.setAttribute("data-tip-ref", "tip-" + fieldId);   (1 occurrence(s))
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (2.8s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+    Error: expect(received).toBe(expected) // Object.is equality
+    > 184 |     expect(entry.role).toBe('tooltip');
+```
+
 ### Scenario SCN-021-014 mobile
 
 `Regression: SCN-021-014 tax and account tables stay readable at the mobile viewport`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-014 tax and account tables stay readable at the mobile viewport" --reporter=list`
+
+**Claim Source:** executed, through the same harness against the real route at
+390×844. The probe relaxes the per-table scroll container to `visible`, so the
+nine wide tables push the document itself into horizontal scroll instead of each
+scrolling inside its own box.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-13 tables lose their scroll container and trap the mobile viewport
+file:             lifetime-tax-strategy-lab.html
+mutation:         overflow-x: auto;  ->  overflow-x: visible;   (1 occurrence(s))
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (3.2s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+    Error: expect(received).toBeLessThanOrEqual(expected)
+    > 278 |   expect(documentOverflow).toBeLessThanOrEqual(1);
+```
+
+The RED lands on the document-level overflow rather than on the per-table
+container check, which is the stronger of the two: the row's real promise is
+that no table traps the page, not that a class name is present.
 
 ### Scenario SCN-021-015
 
@@ -550,13 +632,65 @@ Running 1 test using 1 worker
   1 passed (2.3s)
 ```
 
-**Uncertainty Declaration — this row is reported as a GREEN with no RED.** No
-mutation probe was applied to it in this session. The assertion body already
-existed and already passed, so claiming an observed RED would be a fabrication.
-What the row does carry is a built-in negative control the test performs on
-itself, which is stronger than a passing status line: it asserts
-`downloads.length === 0` at two separate points before the click — after first
-paint and after the household is declared — and only then asserts
+**The earlier uncertainty declaration on this row is now discharged.** It
+previously carried a GREEN with no RED, because no mutation probe had been
+applied. One has now been applied through `scripts/red-green-probe.sh`, and the
+row discriminates.
+
+The probe removes the acknowledgement term from the one runtime gate, so the
+export control goes live the moment configuration resolves — before the reader
+has acknowledged that the file carries household values. That is precisely the
+"no file without explicit user action" clause:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-14 the export control goes live without the sensitivity acknowledgement
+file:             lifetime-tax-strategy-lab.html
+mutation:         byId("exportPrivateFile").disabled = !byId("exportAcknowledgement").checked || !state.config;  ->  byId("exportPrivateFile").disabled = !state.config;   (1 occurrence(s))
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+    Error: expect(locator).toBeDisabled() failed
+      - Expect "toBeDisabled" with timeout 5000ms
+    > 314 |   await expect(page.locator('#exportPrivateFile')).toBeDisabled();
+```
+
+**Finding — the markup `disabled` attribute on the export control is inert, and
+the first probe attempt proved it.** The first mutation deleted `disabled` from
+`<button id="exportPrivateFile" type="button" disabled>` and the row still
+passed. The reason is that `updateExportEnabled()` is called during boot and
+assigns `.disabled` from the checkbox state, so by the time any assertion runs
+the runtime gate has already overwritten whatever the markup said. The attribute
+is therefore a first-paint convenience, not the gate. This is a probe-design
+finding rather than an assertion weakness: the row was never relying on the
+attribute, and the second probe — aimed at the real gate — made it fail
+immediately. The attribute is left in place because it still suppresses a click
+in the window before boot completes; it is recorded here so a future reader does
+not mistake it for the enforcement point.
+
+**Finding — a Playwright summary channel must be duration-normalised.** The
+first probe run reported `discriminating: yes (summary differs: "  1 passed
+(2.6s)" vs "  1 passed (2.1s)")`. Both runs had passed and both exited 0; the
+only difference was the elapsed-time string inside Playwright's summary line. A
+`--summary-match` of `[0-9]+ (passed|failed)` therefore captures a value that
+changes between two identical outcomes, so the summary channel can report a
+discrimination that did not happen. Every browser probe recorded above is
+unaffected — each discriminated on exit status, and the summary channel was not
+the deciding one — but the re-run pipes the tail through
+`perl -pe "s/\s*\([0-9.]+m?s\)//g"` so the compared line is `  1 failed` against
+`  1 passed` with no timing in it. A probe whose ONLY signal is a Playwright
+summary line must strip the duration first, or it can pass on noise.
+
+The row also carries a built-in negative control the test performs on itself: it
+asserts `downloads.length === 0` at two separate points before the click — after
+first paint and after the household is declared — and only then asserts
 `downloads.length === 1` after the explicit click on an acknowledged control. So
 the "no file without explicit action" clause is proven by a counted transition,
 not by observing that a file eventually appeared.

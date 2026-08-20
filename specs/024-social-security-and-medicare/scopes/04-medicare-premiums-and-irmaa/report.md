@@ -1444,5 +1444,60 @@ named by TP-04-01 through TP-04-23. Every selftest probe above — Probes 1 thro
 invocation. TP-04-30 therefore does not need a probe of its own; it has eleven,
 and each is recorded with its verbatim counter movement above.
 
+### Probe 17 — this scope's own route dropped from the Pages exclusion list
+
+TP-04-32's command is `node scripts/build-pages-site.mjs --dry-run`, and its
+claim is that the Pages plan succeeds, that `site-exclusions.json` is unchanged,
+and that `tax-rules/` stays outside the published directories.
+
+**Mutation.** The single `lifetime-tax-strategy-lab.html` entry was deleted from
+`site-exclusions.json`. That is the entry which keeps this feature's own
+unregistered route out of the public site. One JSON object holding a path and a
+prose reason, no figure. The file remained parseable after the deletion, so the
+refusal below is the gate's own judgement and not a syntax error — which the
+scope's RED definition explicitly does not accept as a RED.
+
+**Restore method, and why it is not `git checkout`.** `site-exclusions.json` is
+shared with a concurrent session working on an unrelated feature, and its
+committed state already differs from the working tree. A `git checkout --` would
+have discarded that session's in-flight edits. The probe therefore snapshotted
+the pre-probe working-tree bytes and copied them back, and asserted the SHA-256
+round-tripped rather than assuming it.
+
+```
+$ node scripts/build-pages-site.mjs --dry-run
+PRE_SHA=f3c437749395f2549166ded7a55942aa611670bb4d8262bc2e7e57efa79e1260
+GUARD_MATCHES=1
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],…}
+GREEN_EXIT=0
+POST_MUTATION_ENTRY_LEFT=0 STILL_VALID_JSON=yes
+    at planPagesSite (<repo>/scripts/build-pages-site.mjs:49:3)
+    at buildPagesSite (<repo>/scripts/build-pages-site.mjs:83:16)
+    at <repo>/scripts/build-pages-site.mjs:110:16
+RED_EXIT=1
+$ cp <snapshot> site-exclusions.json
+POST_SHA=f3c437749395f2549166ded7a55942aa611670bb4d8262bc2e7e57efa79e1260
+BYTES_ROUND_TRIPPED=yes
+DIRTY_VS_INDEX=0
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,…}
+GREEN2_EXIT=0
+```
+
+**Intended RED recorded for TP-04-32**, with the same-command GREEN captured
+immediately before the mutation and again on the restored file. The gate refuses
+inside `planPagesSite` — the refusal path that rejects an unregistered root HTML
+that no exclusion entry covers — rather than returning a result contract with the
+route quietly published. The pre and post SHA-256 are identical, so the probe
+left the shared exclusion list byte-for-byte as it found it, and the row's own
+"`site-exclusions.json` is unchanged" clause survives the probe that tested it.
+
+**A correction to an earlier figure in this report.** The `excludedPaths` count
+in the result contract now reads `12`, where the previous session recorded `9`.
+The three added entries are the concurrent session's `company-intelligence`
+route, module and configuration. They are not this scope's and this scope did not
+write them; the figure is restated here so the two numbers in this report are not
+read as a drift in this feature's own surface.
+
+
 
 

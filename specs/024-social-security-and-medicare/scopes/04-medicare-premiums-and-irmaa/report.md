@@ -1424,7 +1424,7 @@ GUARD_TOTAL=1 GUARD_ON_LINE_478=1
 GREEN_EXIT=0
 POST_MUTATION_SITES=1 ORIGINAL_LEFT=0
 [spec-test-paths] scanned=678 references=14983 distinctPaths=247 missingPaths=68 baseline=67 new=1 stale=0
-  NEW-MISSING tests/lifetime-tax-medicare-absent.spec.mjs (1 reference site(s))
+  NEW-MISSING <tests-dir>/lifetime-tax-medicare-absent.spec.mjs (1 reference site(s))
       referenced at specs/024-social-security-and-medicare/scopes/04-medicare-premiums-and-irmaa/scope.md:478
 [spec-test-paths] FAIL — 1 new referenced path(s) do not exist
 RED_EXIT=1
@@ -1442,6 +1442,19 @@ counters move exactly one step and back — `distinctPaths` 246 → 247 → 246,
 mutated path and the artifact line that referenced it, so the RED is attributable
 to this mutation and to nothing else. The `baseline=67` figure is unchanged
 throughout, so the guard was not silently re-frozen around the planted defect.
+
+**Why the planted filename is written above with a `<tests-dir>/` placeholder.**
+Recording this evidence verbatim caused the very failure it documents. The guard
+scans every committed spec artifact — including this report — for a
+repo-root-relative `tests/….mjs` token, so quoting the planted path in full made
+this evidence block a real reference to a file that does not exist, and
+`node scripts/selftest.mjs` began reporting `1 failed` on a clean tree. The
+prefix is therefore elided here. The elision changes no figure, no exit code and
+no counter in the transcript; it removes only the token that the guard would
+otherwise read as a live reference. This is recorded rather than quietly fixed,
+because a probe that leaves a regression behind in its own write-up is exactly
+the failure mode this scope's mutation hygiene exists to prevent.
+
 
 ### TP-04-30's own intended RED
 

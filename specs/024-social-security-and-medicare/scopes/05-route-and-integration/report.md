@@ -456,14 +456,21 @@ exist` on the UNMUTATED tree, so its GREEN does not presently exist to be paired
 with the RED. A demonstrated sensitivity without a GREEN does not meet this
 scope's own evidence bar, and TP-05-28 therefore remains outstanding.
 
-**Whose failure the two paths are, stated plainly.** Both name
-`specs/027-company-scoped-owner-deep-links/design.md`, a spec owned by a
-concurrent session and outside this feature entirely. This scope did not write
-them and must not edit that spec to clear them. The earlier TP-05-28 record above
-captured `new=0` at a time when spec 027 did not yet reference those paths; that
-record is not withdrawn, but it no longer reproduces, and the honest present
-state is the failing one shown here. The row is owed a re-run once the owning
-session resolves its own references.
+**Whose failure the two paths are — corrected after the fact.** This section
+first recorded that both new paths belonged to a concurrent session's
+`specs/027-company-scoped-owner-deep-links/design.md`. That was wrong, and the
+correction matters because it moved a failure from "not mine" to "half mine".
+Only one of the two is spec 027's. The other was self-inflicted by this very
+session: scope 04's Probe 16 write-up quoted its planted `tests/….mjs` filename
+verbatim, and the guard scans committed spec artifacts for exactly that token, so
+the evidence block became a live reference to a file that does not exist. It has
+since been elided to a placeholder in that report, which removes this session's
+contribution to the count. The remaining new path is spec 027's and is not this
+feature's to resolve. The earlier TP-05-28 record above captured `new=0` before
+either reference existed; it is not withdrawn, but the honest present state is
+the failing one shown here, and TP-05-28 is owed a re-run once spec 027 resolves
+its own references.
+
 
 ### Probe 5-B — an excluded configuration dropped from the Pages exclusion list, which the gate did not detect
 

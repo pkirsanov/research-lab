@@ -87,14 +87,18 @@ test('Regression: SCN-024-011 the bracket is selected at the exact boundary and 
   await declareLookback(page, FIRST_BOUNDARY);
   await openPower(page);
   const atBoundary = await page.locator('#medicareBracketLine').innerText();
-  expect(atBoundary).toContain(String(INDIVIDUAL_BRACKETS[0].bracketIndex));
+  /* Anchored on the index the line LEADS with. A bare substring test would be satisfied by any
+     digit inside the quoted range the same line prints, so a bracket selected one row too high
+     could still carry the index this clause is looking for. */
+  const namesBracket = (line, index) => new RegExp('^Bracket ' + String(index) + ' of the ').test(line);
+  expect(namesBracket(atBoundary, INDIVIDUAL_BRACKETS[0].bracketIndex), atBoundary).toBe(true);
 
   /* One dollar above the same boundary lands in the next row, so the assertion above is not
      passing because every income lands in the same place. */
   await declareLookback(page, FIRST_BOUNDARY + 1);
   await openPower(page);
   const aboveBoundary = await page.locator('#medicareBracketLine').innerText();
-  expect(aboveBoundary).toContain(String(INDIVIDUAL_BRACKETS[1].bracketIndex));
+  expect(namesBracket(aboveBoundary, INDIVIDUAL_BRACKETS[1].bracketIndex), aboveBoundary).toBe(true);
   expect(aboveBoundary).not.toBe(atBoundary);
 
   /* The operator itself is shown, so the inclusivity is readable on the page. */

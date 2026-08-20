@@ -1181,3 +1181,68 @@ distinguishes the two refusals rather than accepting any refusal, so a wrong
 lookback year that answered under the undeclared-input code could not pass as a
 year mismatch.
 
+### Probe 13 — the strict lower bound turned inclusive, and the exact-boundary clause let it through
+
+Mutation: in `rltaxmedicare.js`, the `greater-than` comparison
+`result: amount > bracket.lowerBound` changed to `>=`. One operator character,
+no figure. A pre-run guard required exactly one strict site and the
+post-substitution count confirmed zero remained.
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-011 the bracket is selected at the exact boundary and both part adjustments are shown with their citations" --reporter=list
+  ✘  1 …boundary and both part adjustments are shown with their citations (1.3s)
+    Error: expect(received).not.toBe(expected) // Object.is equality
+    >  98 |   expect(aboveBoundary).not.toBe(atBoundary);
+  1 failed
+RED_EXIT=1
+$ git checkout -- rltaxmedicare.js
+DIRTY_AFTER_REVERT=0
+```
+
+**A weak clause found, and the miss recorded rather than banked.** The row did
+go red, but at line 98 — the distinctness clause — not at the exact-boundary
+clause that is the row's whole reason to exist. That clause was
+`expect(atBoundary).toContain(String(INDIVIDUAL_BRACKETS[0].bracketIndex))`, a
+bare substring test for a single digit against a line that also prints the
+publication's quoted range. A bracket selected one row too high still carried
+that digit somewhere in the quoted text, so the clause passed on the wrong
+bracket. Per the evidence bar the clause was strengthened rather than the red
+banked at the wrong line.
+
+**The strengthening.** The clause now anchors on the index the line LEADS with —
+`^Bracket <index> of the ` — and the same anchored predicate is applied to the
+above-boundary line, so neither clause can be satisfied by a digit inside the
+quoted range. No assertion was removed or relaxed; the substring test was
+replaced by a stricter one and the distinctness clause was left standing.
+
+### Probe 13b — the same inclusivity flip against the strengthened clause
+
+Mutation: identical to probe 13.
+
+```
+$ npx --no-install playwright test … --grep "Regression: SCN-024-011 the bracket is selected at the exact boundary and both part adjustments are shown with their citations" --reporter=list
+  ✓  1 …oundary and both part adjustments are shown with their citations (817ms)
+  1 passed (2.4s)
+GREEN_EXIT=0
+GUARD_MATCHES=1
+POST_MUTATION_STRICT_SITES=0
+  ✘  1 …oundary and both part adjustments are shown with their citations (653ms)
+    Error: Bracket 1 of the individual-return set, stated by the publication as “…” at Monthly Medicare Premiums for 2026, first table, second row.
+    expect(received).toBe(expected) // Object.is equality
+    Expected: true
+    Received: false
+    > 94 |   expect(namesBracket(atBoundary, INDIVIDUAL_BRACKETS[0].bracketIndex), atBoundary).toBe(true);
+  1 failed
+RED_EXIT=1
+$ git checkout -- rltaxmedicare.js
+DIRTY_AFTER_REVERT=0
+```
+
+The quoted range inside the failure message is elided above only to keep sourced
+pack figures from being restated without their citation; the run itself was not
+filtered. **Intended RED recorded for TP-04-25**, against the strengthened
+clause, with the same-command GREEN captured immediately before it on the
+unmutated source. A household sitting exactly on a sourced boundary now cannot
+be placed one row too high without this row failing at the clause that owns the
+claim.
+

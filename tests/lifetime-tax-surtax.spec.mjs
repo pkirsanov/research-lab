@@ -235,3 +235,86 @@ test('Regression: SCN-022-006 added ordinary income moves one surtax and not the
   moved.forEach((legId) => expect(notMoved).not.toContain(legId));
   await expect(page.locator('[data-rl-value="conversionAsymmetry"]')).toBeVisible();
 });
+
+/* The browser half of this scope's privacy clause. The engine-side inventory, clear and
+   export behaviour is asserted at TP-02-13; what only a real route can show is that neither
+   declared basis leaves the page — in the address bar, in a request line, in a request
+   REFERRER, or in a console message. The referrer channel is the one an ordinary request
+   ledger misses, because a value smuggled into the page URL reaches every subsequent asset
+   request as a `Referer` header even when the request URL itself is clean. */
+test('Regression: SCN-022-005 neither declared surtax basis reaches a URL, a request, a referrer or a console message', async ({ page }) => {
+  const issued = [];
+  page.on('request', (request) => issued.push(request));
+  const messages = [];
+  page.on('console', (message) => messages.push(message.text()));
+  page.on('pageerror', (error) => messages.push(String(error && error.message)));
+
+  await openLifetimeTax(page, site);
+
+  /* Two declared amounts chosen to be unmistakable in any transcript: neither is a rule
+     figure, neither is any other input on this page, and neither is a substring of one. A
+     match can therefore only have come from the declaration itself. */
+  const declaredInvestmentBasis = 13571;
+  const declaredWageBasis = 246813;
+  await declareOrdinaryHousehold(page, {
+    filingStatus: 'single', deductionMode: 'itemized', itemizedAmount: 0,
+    ordinary: 260000, otherNetInvestmentIncome: declaredInvestmentBasis,
+    medicareWageBasis: declaredWageBasis, bracketId: 'b3'
+  });
+  /* Both legs actually computed from the declarations, so the scan below is running against
+     a page that HELD both values rather than one that never received them. */
+  await expect(page.locator('[data-rl-value="netInvestmentIncomeSurtax"]')).toBeVisible();
+  await expect(page.locator('[data-rl-value="additionalMedicareSurtax"]')).toBeVisible();
+  await openPower(page);
+
+  const needles = [String(declaredInvestmentBasis), String(declaredWageBasis)];
+  const carriersIn = (label, text, sink) => {
+    needles.forEach((needle) => {
+      if (String(text).includes(needle)) sink.push(`${label}:${needle}`);
+    });
+  };
+
+  /* Headers are resolved through `allHeaders()` rather than the synchronous `headers()` view,
+     and EVERY header value is scanned rather than the referrer alone. Two drafts failed here
+     first: the synchronous view carries no `Referer` at all on this route, and no request this
+     page issues presents one even through `allHeaders()`. A referrer-only clause therefore had
+     nothing to look at and would have reported a clean channel it had never read. Scanning the
+     whole header set subsumes the referrer clause — a value smuggled into the page URL reaches
+     subsequent requests as `Referer`, and any other header carrying it is just as much a leak —
+     and it gives the scan a corpus that is provably non-empty. */
+  const requests = [];
+  for (const request of issued) {
+    const headers = await request.allHeaders();
+    requests.push({ url: request.url(), postData: request.postData() || '', headers });
+  }
+
+  const carriers = [];
+  carriersIn('page-url', page.url(), carriers);
+  requests.forEach((entry, index) => {
+    carriersIn(`request-url[${index}]`, entry.url, carriers);
+    carriersIn(`request-body[${index}]`, entry.postData, carriers);
+    Object.keys(entry.headers).forEach((name) => {
+      carriersIn(`request-header[${index}].${name}`, entry.headers[name], carriers);
+    });
+  });
+  messages.forEach((text, index) => carriersIn(`console[${index}]`, text, carriers));
+  expect(carriers).toEqual([]);
+
+  /* Non-vacuity, in both channels. A clean verdict over an empty ledger would prove nothing,
+     so the run must actually have observed requests AND a non-empty header corpus. */
+  expect(requests.length).toBeGreaterThan(0);
+  const headerValues = requests.reduce((count, entry) => count + Object.keys(entry.headers).length, 0);
+  expect(headerValues).toBeGreaterThan(0);
+
+  /* The detector is proven able to fail, without ever routing a household value through the
+     page. Both control strings are built and scanned inside this test process only — nothing
+     is navigated, fetched, logged or rendered — so a slipped revert cannot disclose anything.
+     A scan that could not name a planted value would pass above for the wrong reason. */
+  const control = [];
+  carriersIn('control-referrer', `${page.url()}?basis=${declaredWageBasis}`, control);
+  carriersIn('control-console', `portion ${declaredInvestmentBasis} wage ${declaredWageBasis}`, control);
+  expect(control).toContain(`control-referrer:${declaredWageBasis}`);
+  expect(control).toContain(`control-console:${declaredInvestmentBasis}`);
+  expect(control).toContain(`control-console:${declaredWageBasis}`);
+  expect(control.length).toBe(3);
+});

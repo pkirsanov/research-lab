@@ -96,17 +96,24 @@ export function attentionVerbContractInstruction() {
 }
 
 /**
- * The verbs the gate refuses on that a given instruction does NOT offer.
+ * The members of a contract vocabulary that a rendered instruction does NOT offer.
  *
- * Whole values are matched, never substrings: `verify` appears inside no other
- * verb today, but a future `verify-flows` would make a substring test report an
- * instruction as complete while the author was never offered the longer value.
+ * Whole values are matched, never substrings, and the boundary class excludes
+ * `-` on purpose: `\b` would find `scenario` inside `scenario-test` and report a
+ * hyphenated value as offered when it never was. Every rendered-instruction
+ * guard shares this one predicate so a vocabulary that gains a hyphenated member
+ * cannot be checked correctly in one place and loosely in another.
  */
-export function findAttentionVerbInstructionGaps(instruction) {
+export function findUnofferedTerms(terms, instruction) {
   const text = typeof instruction === 'string' ? instruction : '';
-  return RLATTN.RESEARCH_VERBS.filter(
-    (verb) => !new RegExp(`(^|[^A-Za-z0-9-])${verb}([^A-Za-z0-9-]|$)`).test(text)
+  return (Array.isArray(terms) ? terms : []).filter(
+    (term) => !new RegExp(`(^|[^A-Za-z0-9-])${String(term).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^A-Za-z0-9-]|$)`).test(text)
   );
+}
+
+/** The verbs the gate refuses on that a given instruction does NOT offer. */
+export function findAttentionVerbInstructionGaps(instruction) {
+  return findUnofferedTerms(RLATTN.RESEARCH_VERBS, instruction);
 }
 
 /** The verb vocabulary the gate refuses on, re-exported so callers read one array. */

@@ -34,7 +34,8 @@ import {
   attentionExpiryFormatInstruction,
   attentionSubjectMenuInstruction,
   attentionVerbContractInstruction,
-  findAttentionVerbInstructionGaps
+  findAttentionVerbInstructionGaps,
+  findUnofferedTerms
 } from './build-attention-items.mjs';
 import { formatTestFileReachabilityFindings, validateTestFileReachability } from './validate-test-file-reachability.mjs';
 import { formatTimeoutBudgetFindings, validatePlaywrightTimeoutBudgets } from './validate-playwright-timeout-budgets.mjs';
@@ -3004,7 +3005,7 @@ try {
      sentence that DESCRIBES a field leaves the literal key to guesswork. The keys are now
      rendered from AUTHORED_JUDGEMENT_KEYS, so the ask cannot drift from the contract. */
   const renderedKeys = attentionAuthoredKeysInstruction();
-  const unrenderedKeys = RLATTN_AUTHORED_KEYS.filter((key) => !new RegExp('\\b' + key + '\\b').test(renderedKeys));
+  const unrenderedKeys = findUnofferedTerms(RLATTN_AUTHORED_KEYS, renderedKeys);
   assert(unrenderedKeys.length === 0,
     'the authored-key instruction names every key the composer reads (unnamed: ' + unrenderedKeys.join(', ') + ')');
   assert(/import\s*\{[^}]*attentionAuthoredKeysInstruction[^}]*\}\s*from\s*'\.\/build-attention-items\.mjs'/.test(laneSource)
@@ -3020,7 +3021,7 @@ try {
      candidates on subjects that resolved to nothing. The admissible set is rendered from the same
      WATCHLIST_SCOPE the privacy check refuses on, so the menu cannot disagree with the gate. */
   const renderedMenu = attentionSubjectMenuInstruction();
-  const unlistedSubjects = RLATTN_WATCHLIST_SCOPE.filter((ticker) => !new RegExp('\\b' + ticker + '\\b').test(renderedMenu));
+  const unlistedSubjects = findUnofferedTerms(RLATTN_WATCHLIST_SCOPE, renderedMenu);
   assert(unlistedSubjects.length === 0,
     'the subject menu offers every ticker the privacy check admits (unoffered: ' + unlistedSubjects.join(', ') + ')');
   assert(signalsInstruction.includes('${attentionSubjectMenuInstruction()}'),
@@ -3038,7 +3039,7 @@ try {
   const cardFields = (budgetPolicy.defaultVisibleFields || [])
     .filter((field) => typeof field === 'string' && field.startsWith('attention[].'))
     .map((field) => field.slice('attention[].'.length));
-  const unstatedFields = cardFields.filter((field) => !new RegExp('\\b' + field + '\\b').test(renderedBudget));
+  const unstatedFields = findUnofferedTerms(cardFields, renderedBudget);
   assert(unstatedFields.length === 0,
     'the card-budget instruction names every field the cap measures (unnamed: ' + unstatedFields.join(', ') + ')');
   assert(new RegExp('\\b' + budgetPolicy.decisionCardChars + '\\b').test(renderedBudget),
@@ -24263,8 +24264,32 @@ try {
   const composer1 = await import('./build-attention-items.mjs');
   const basePayload1 = JSON.parse(read('market-brief.payload.json'));
   const fullConfig1 = JSON.parse(read('market-brief.config.json'));
+  /* The SUBJECT is chosen from live state rather than pinned to one ticker.
+     An earlier version hardcoded FBTC, and on 2026-08-20 a scheduled Tier-A
+     refresh moved FBTC's 200-day distance from -10.16 to -6.12 — inside the
+     moderate band — so `severityFor` returned null, the composer refused, and
+     the canonical suite went red across a commit of 158 data-only files with no
+     code change at all. A row that reads live market data must not also assume
+     which instrument that data will favour. Picking whichever subject the gate
+     observes TODAY keeps the row on real committed state, which is the whole
+     point of it, without betting on one instrument's drift. */
+  const snapshot1 = JSON.parse(read('market-brief.snapshot.json'));
+  /* Eligibility is BOTH halves of the real production condition: the gate must
+     observe the subject AND no published action may already cover it. Filtering
+     only on "observed" reproduces the bug rather than fixing it — on 2026-08-20
+     all seven observed subjects were already actioned, so every one of them was
+     refused RLATTN-OVERLAP. */
+  const actioned1 = new Set(composer1.actionSubjectTickers(
+    (basePayload1.nextSession && basePayload1.nextSession.actions) || [], RLATTN_WATCHLIST_SCOPE));
+  const observedNow1 = RLATTN_WATCHLIST_SCOPE.find((ticker) => {
+    if (actioned1.has(ticker)) return false;
+    const probe = GATE.attachObserved([{ headline: `${ticker} probe` }], snapshot1, policy1)[0];
+    return probe && probe.observed && probe.observed.subject === ticker;
+  });
+  assert(typeof observedNow1 === 'string' && observedNow1.length > 0,
+    'Regression: SCN-BUG009-R1-E2E-SUBJECT at least one watchlist subject clears a detection band against committed state — with none, the end-to-end row below would pass vacuously by testing nothing, so this asserts the row has real input before it runs');
   const laneCandidate1 = {
-    headline: 'FBTC sits far below its 200-day', rationale: 'structural',
+    headline: `${observedNow1} sits far from its 200-day`, rationale: 'structural',
     verb: 'monitor', horizon: 'swing', severity: 'moderate', imminence: 'latent',
     escalationTrigger: 'a close back above the 200-day', invalidation: 'a close below the 52-week low',
     expiry: '2026-08-26T20:00:00.000Z'
@@ -24281,7 +24306,7 @@ try {
   const built1e2e = composer1.recomposePayloadAttention(withCandidate1, fullConfig1);
   assert(built1e2e.items.length === 1 && built1e2e.exclusions.length === 0
     && built1e2e.items[0].contractVersion === 'decision-attention/v1'
-    && built1e2e.items[0].subject === 'FBTC' && typeof built1e2e.items[0].deepLink === 'string' && built1e2e.items[0].deepLink.length > 0,
+    && built1e2e.items[0].subject === observedNow1 && typeof built1e2e.items[0].deepLink === 'string' && built1e2e.items[0].deepLink.length > 0,
     'Regression: SCN-BUG009-R1-E2E a lane-authored candidate carrying judgement and NO observation now composes into a published decision-attention/v1 item, deep-linked to the tool that owns its math');
 
   /* The adversarial twin. Strip the policy and the SAME candidate must fall back to the

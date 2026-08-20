@@ -17153,6 +17153,44 @@ try {
       && result.findings[0].missingFromSurface.indexOf('property-tax') >= 0),
     'TP-03-16 and TP-03-17: the rental leg reaches all four surfaces on the all-non-zero fixture alongside the property leg, and removing either from each surface in turn fails the identity with the missing leg named on the named surface rather than as a numeric mismatch');
 
+  /* TP-03-16 and TP-03-17, second discriminator. The identity above is fed a HAND-WRITTEN leg
+     list on BOTH sides, so it exercises the helper and never reads the id the engine actually
+     publishes: renaming the rental leg in the module left it green, because the four surfaces
+     went on agreeing with each other about a leg the record no longer names. Here the surfaces
+     are built from the id the producers publish — the settlement's marginal context, the
+     composed federal leg, and the marginal context that leg carries — and run against the
+     declared set, so a rename in any one producer either breaks the producers' agreement or
+     goes missing from every surface and is named in the finding. The renamed control proves
+     the check can fail, so a surface set that silently matched nothing cannot pass it. */
+  const rentalLeg03 = TAX03.composeRentalLeg(lossActivity03, allowancePack03);
+  const publishedRentalIds03 = [
+    RENT03.rentalMarginalContext(ladder03).legId,
+    rentalLeg03.legId,
+    rentalLeg03.marginalContext.legId
+  ];
+  const surfacesCarrying03 = (legId) => {
+    const others = allLegs03.filter((entry) => entry !== 'rental-net');
+    return {
+      headline: others.concat([legId]), comparison: others.concat([legId]),
+      curve: others.concat([legId]), export: others.concat([legId])
+    };
+  };
+  const publishedHolds03 = PROPERTY03.legVisibilityIdentity(
+    allLegs03, surfacesCarrying03(publishedRentalIds03[0]));
+  const renamedHolds03 = PROPERTY03.legVisibilityIdentity(
+    allLegs03, surfacesCarrying03('rental-net-renamed-control'));
+  assert(rentalLeg03.available === true
+    && publishedRentalIds03.length === 3
+    && publishedRentalIds03.every((legId) => typeof legId === 'string' && legId.length > 0)
+    && new Set(publishedRentalIds03).size === 1
+    && publishedHolds03.holds === true
+    && renamedHolds03.holds === false
+    && renamedHolds03.findings.length === 4
+    && renamedHolds03.findings.every((finding) =>
+      finding.missingFromSurface.indexOf('rental-net') >= 0
+      && finding.unexpectedOnSurface.indexOf('rental-net-renamed-control') >= 0),
+    'TP-03-16 and TP-03-17: the rental leg id is read back from all three producers that publish it, they agree, and the four surfaces built from the published id satisfy the identity against the declared set, while a renamed control is proven to fail it on every surface with the missing leg named — so a module that renamed its rental leg cannot leave the four surfaces agreeing about a leg the record no longer names');
+
   /* TP-03-18 VOCABULARY. The refusal vocabulary member count equals its pre-feature value. This
      feature folds every new condition into an existing member. */
   assert(Object.keys(RULES03.RLTAX_CODES).length === 14

@@ -729,6 +729,59 @@ PROBE M-2 (re-run against the strengthened assertion)   target=TP-03-11
 `git status --short` over every module, pack, page and test path was empty after
 the revert. `TP-03-11` now carries an intended RED and a same-command GREEN.
 
+### Repair of the three weaknesses — M-1, `TP-03-16` and `TP-03-17`
+
+**What the rows could not see.** The leg-visibility identity was fed a
+**hand-written leg list on both sides**: the declared set and all four surfaces
+were built from the same literal array in the test. That exercises the helper —
+which is real work, and the original assertion keeps doing it — but it never reads
+the id the engine actually publishes. Renaming the rental leg in the module
+therefore changed nothing the assertion looks at: the four surfaces went on
+agreeing with each other about a leg the settled record no longer names, which is
+precisely the drift `NFR-023-006` exists to catch.
+
+**The strengthening.** The rental leg id is now read back from all three producers
+that publish it — the settlement's marginal context, the composed federal leg, and
+the marginal context that leg carries — and the three are required to agree. The
+four surfaces are then rebuilt **from the published id** and run against the
+declared set, so a rename in any one producer either breaks the producers'
+agreement or leaves the leg missing from every surface. A renamed control is
+carried in the same assertion and required to fail on all four surfaces with the
+missing leg named, so a surface set that silently matched nothing cannot pass.
+
+```text
+PROBE M-1 (re-run against the strengthened assertion)   target=TP-03-16, TP-03-17
+  file=<repo>/rltaxrental.js:757
+  mutation: legId: "rental-net"  →  legId: "rental-net-probe"
+  BEFORE_SHA256=230f966c0c38eba8a71f90dfa9d5c4aca71685997da03dce393dd942ede8026c
+  MUTATED_SHA256=95847443ec3edf3e5bea0bd854b177ca24546f60480bb3c53dba6d320ab56f34
+
+  $ node scripts/selftest.mjs
+  ✓ TP-03-16 and TP-03-17: the rental leg reaches all four surfaces on the all-non-zero
+    fixture alongside the property leg, and removing either from each surface in turn
+    fails the identity with the missing leg named ...
+  ✗ FAIL: TP-03-16 and TP-03-17: the rental leg id is read back from all three producers
+    that publish it, they agree, and the four surfaces built from the published id satisfy
+    the identity against the declared set, while a renamed control is proven to fail it on
+    every surface with the missing leg named ...
+  Research-Lab self-test: 3131 passed, 1 failed
+
+  RED IS THE NEW ASSERTION ALONE. The pre-existing pair still passed under the same
+  rename, which is the demonstration that it read the leg id from the test rather than
+  from the engine. Exactly one failure, so the group did not throw.
+
+  AFTER_SHA256=230f966c0c38eba8a71f90dfa9d5c4aca71685997da03dce393dd942ede8026c
+  REVERT_VERIFIED=yes
+
+  $ node scripts/selftest.mjs        # same command, after revert
+  ✓ TP-03-16 and TP-03-17: the rental leg id is read back from all three producers ...
+  Research-Lab self-test: 3132 passed, 0 failed
+```
+
+`git status --short` over every module, pack, page and test path was empty after
+the revert. `TP-03-16` and `TP-03-17` now carry an intended RED and a same-command
+GREEN.
+
 ## Supersession Ledger
 
 Filled at execution. This scope supersedes nothing, so this section holds the

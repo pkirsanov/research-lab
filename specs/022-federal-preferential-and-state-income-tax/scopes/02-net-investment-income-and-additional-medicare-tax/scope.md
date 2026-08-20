@@ -399,10 +399,24 @@ an absent test does not satisfy RED.
       each carrying its `SUP-022-NN` marker and its adversarial evidence;
       SUP-022-04's spot checks updated and SUP-022-09's derived count confirmed to
       follow the pack.
-  - **Open:** SUP-022-18 and -19 are still undelivered. Their blocker is cleared —
-    the Simple/Power panels are built and the browser command now runs green — so
-    what remains is the two replacement assertions themselves.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#supersession-ledger`
+  - **Open — and SUP-022-18 is not deliverable as work; finding F-02-C.** The
+    earlier blocker note is superseded: the Simple/Power panels being built was
+    never the whole story. Every clause SUP-022-18 and SUP-022-19 were written to
+    supersede has since been displaced by **Feature 023**, under Feature 023's
+    markers. `simpleFields.length === 7`, `powerLinkDetails.length === 9`,
+    `powerLinkSections.length === 9` and the route spec's `toHaveCount(9)` each
+    return a fixed-string count of zero; the replacements are present and marked
+    `SUP-023-04`, `SUP-023-05` and `SUP-023-06`, and SUP-023-04's marker states
+    SUP-022-18's ledger replacement almost verbatim. Attaching a `SUP-022-18`
+    marker to those regions would attribute one replacement to two features.
+    SUP-022-19 splits: its count clause is displaced by SUP-023-06, but the
+    positional focus expectation it also names **survives** as `links.nth(3)`, so
+    "a selection by declared target instead of by ordinal" is still real,
+    buildable work. **What would make it decidable:** record SUP-022-18 as
+    superseded-in-substance by SUP-023-04 and -05 rather than as this scope's to
+    deliver, and narrow SUP-022-19's row to the ordinal-selection clause. Both are
+    ledger-text decisions, routed to `bubbles.plan`.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#supersession-ledger`, `report.md#verification-pass--2026-08-20-second--sup-022-18-and--19-were-displaced-by-feature-023-before-this-scope-could-deliver-them-finding-f-02-c`
 - [x] The leg-reachability rule is implemented as `design.md` states it: both
       basis members initialize to `null`, an undeclared basis refuses its leg by
       name, `CO-8` inherits, and neither member is ever initialized to a value.

@@ -1106,6 +1106,74 @@ half of this item's command was not run in this pass either.
 **No file in this scope was mutated during this verification.** Every step was a
 read-only census or the repository-wide selftest.
 
+### Verification pass — 2026-08-20 (second) — SUP-022-18 and -19 were displaced by Feature 023 before this scope could deliver them (finding F-02-C)
+
+**Claim Source:** executed, read-only. **Outcome: the item stays `[ ]`, but for a
+materially different reason than the pass above recorded.** That pass established
+*that* SUP-022-18 and SUP-022-19 are undelivered. It did not ask what had become of
+the clauses they were written to supersede. They are gone — displaced by Feature
+023, under Feature 023's markers.
+
+**The superseded literals no longer exist.** Each of the four literals the two
+ledger rows name was searched for as a fixed string in the file its row cites:
+
+```
+simpleFields.length === 7                selftest.mjs count=0
+powerLinkDetails.length === 9            selftest.mjs count=0
+powerLinkSections.length === 9           selftest.mjs count=0
+toHaveCount(9)                           route.spec count=0
+links.nth(3)                             route.spec count=1
+```
+
+Three of the four are absent. The only surviving text matching the first two is an
+escaped regular expression inside Feature 023's own `TP-01-17`, which asserts those
+literals are gone — it is the proof of absence, not a surviving instance.
+
+**Which marker displaced each.** The replacements are present and marked, but the
+marker on each is a Feature 023 id:
+
+```
+scripts/selftest.mjs:14411:  /* SUP-023-04: supersedes the pinned seven-member Simple field count; shape=derive.
+scripts/selftest.mjs:14426:  /* SUP-023-05: supersedes the pinned nine-member withheld-detail and Power-section counts;
+tests/lifetime-tax-route.spec.mjs:71:  /* SUP-023-06: supersedes the pinned nine-link count on the withheld-detail rows; shape=derive.
+```
+
+SUP-023-04's marker states its replacement as "cross-artifact identity between the
+closed `SIMPLE_FIELDS` list and the fields the markup actually renders, in both
+directions … every Simple-stays-decision-level clause is retained verbatim". That is
+SUP-022-18's ledger replacement, in substance and very nearly in wording. SUP-023-06
+delivers the two-directional link/section identity that is the first half of
+SUP-022-19's replacement. A search for `SUP-022-18` or `SUP-022-19` across the five
+marker-bearing files returns nothing outside the assembled-from-parts strings in
+`TP-05-22`'s known-gap list, confirming neither id is delivered.
+
+**Consequence for SUP-022-18 — not deliverable as work; this is a ledger decision.**
+Every clause it was to supersede is already displaced and the replacement it names is
+already in the tree under `SUP-023-04` and `SUP-023-05`. Attaching a `SUP-022-18`
+marker to those regions would attribute one replacement to two features, which is
+exactly the failure mode the marker census exists to prevent. Nothing remains that
+this scope could build.
+
+**Consequence for SUP-022-19 — one half is displaced, one half is real work.** Its
+first clause, the pinned nine-link count, is displaced by SUP-023-06. Its second
+clause is not: the positional focus expectation **survives** as `links.nth(3)` at
+line 97 of the route spec, and SUP-023-06 replaced only the count, leaving the
+ordinal selection untouched. "A selection by declared target instead of by ordinal"
+is therefore still undelivered, still buildable, and collides with no Feature 023
+entry.
+
+**What would make the item decidable.** Record SUP-022-18 in the ledger as
+superseded-in-substance by `SUP-023-04` and `SUP-023-05` — withdrawn rather than
+delivered — so the item no longer asks this scope to deliver a replacement that
+exists under another feature's id, and narrow SUP-022-19's row to the ordinal-
+selection clause that is genuinely outstanding. Both are ledger-text decisions and
+are routed to `bubbles.plan` rather than taken here. Until they are taken, the
+item's own wording asks for something that cannot be built without double
+attribution, so it stays `[ ]`.
+
+**No file was mutated during this verification.** Every step was a fixed-string
+search or a marker census.
+
 ## Change Boundary
 
 Command: a path-scoped status check over the excluded list.

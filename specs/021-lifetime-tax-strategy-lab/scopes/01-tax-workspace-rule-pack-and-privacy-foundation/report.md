@@ -74,6 +74,42 @@ Every transcribed figure was checked digit-by-digit:
 | Seven ordinary rates `0.10 0.12 0.22 0.24 0.32 0.35 0.37` | §2.01 "The existing seven tax rates of 10%, 12%, 22%, 24%, 32%, 35%, and 37% remain in effect for individual taxpayers", and each §4.01 table | yes |
 | Preferential tables, all four statuses: `AbsentFigure/v1` | §4.03 states only "the maximum zero rate amounts and maximum 15 percent rate amounts under § 1(j)(5)(B)". No rate above the maximum 15-percent amount appears anywhere in the retrieved text. | absence confirmed |
 
+#### TP-01-01 intended RED (2026-08-20)
+
+**Claim Source:** executed. Driven by `scripts/red-green-probe.sh`, which installs
+its restore trap before it writes, refuses a dirty target, verifies the mutation
+landed, reverts, and re-derives the committed blob hash. Block emitted verbatim.
+
+The probe flips the last hex digit of the pack's declared `contentSha256`, so the
+pack asserts a digest its own bytes no longer produce. That is the defect this
+row's second assertion exists for — a rule pack whose self-description has come
+adrift from its content, which is how a silently edited threshold would arrive.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-01 the pack declares a digest that its own bytes no longer produce
+file:             tax-rules/federal/2026.json
+mutation:         "contentSha256": "sha256:06681e372f4ea15c2f088c7f92de70ce712f05b6aff09c7d3bb819ec9c6753bf"  ->  "contentSha256": "sha256:06681e372f4ea15c2f088c7f92de70ce712f05b6aff09c7d3bb819ec9c6753be"   (1 occurrence(s))
+red-exit:         1
+red-summary:      Research-Lab self-test: 3167 passed, 5 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3172 passed, 0 failed
+revert-verified:  yes (committed=28c096427fc9e5b56d3be4854473dfcccb5f3425 restored=28c096427fc9e5b56d3be4854473dfcccb5f3425)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The intended row failed, and four downstream scopes that pin the same pointer
+failed with it, so a drifted digest cannot pass anywhere in the feature:
+
+```
+  ✗ FAIL: TP-01-01: the pack contentSha256 is re-derivable from the pack bytes and equals the configuration pointer
+  ✗ FAIL: TP-01-03: an unsupported year, a non-federal jurisdiction, an expired pack, an unknown filing status and a digest mismatch each refuse by their own code and return no pack
+  ✗ FAIL: TP-03-02: the pack stays valid after the additive insertion, its digest is re-derivable and equals the configuration pointer
+  ✗ FAIL: TP-04-02: the profitable Scope 03 fixtures produce their exact prior settlements
+  ✗ FAIL: TP-05-01: every Feature 022 preferential fixture produces its exact prior preferential and total figures
+```
+
 ### TP-01-02
 
 Scenario SCN-021-002 — a pack missing any one required member is refused
@@ -121,6 +157,34 @@ Command: `node scripts/selftest.mjs`
   ✓ TP-01-03: an income kind outside the four supported kinds is refused RLTAX-INCOME-KIND-UNSUPPORTED
 ```
 
+#### TP-01-03 intended RED (2026-08-20)
+
+**Claim Source:** executed, through the same harness. The probe short-circuits
+the resolver's effective-tax-year membership test, so a pack is handed back for
+a year it does not cover. That is the exact failure mode the scope was written
+to prevent — a threshold silently carried into an unsupported year.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-03 the resolver carries a pack into a year it does not cover
+file:             rltaxrules.js
+mutation:         if (pack.effectiveTaxYears.indexOf(ask.declaredTaxYear) < 0) {  ->  if (false && pack.effectiveTaxYears.indexOf(ask.declaredTaxYear) < 0) {   (1 occurrence(s))
+red-exit:         1
+red-summary:      Research-Lab self-test: 3170 passed, 2 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3172 passed, 0 failed
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+  ✗ FAIL: TP-01-03: an unsupported year, a non-federal jurisdiction, an expired pack, an unknown filing status and a digest mismatch each refuse by their own code and return no pack
+  ✗ FAIL: TP-01-04: the guards can fail — a threshold-carrying resolver and a zero-substituting unavailable() are both distinguishable from the real ones
+```
+
+This probe also supplies TP-01-04's intended RED, recorded immediately below.
+
 ### TP-01-04
 
 Scenario SCN-021-002 — a mutated resolver that carries a threshold into an
@@ -131,6 +195,32 @@ Command: `node scripts/selftest.mjs`
 ```text
   ✓ TP-01-04: the guards can fail — a threshold-carrying resolver and a zero-substituting unavailable() are both distinguishable from the real ones
 ```
+
+#### TP-01-04 intended RED (2026-08-20)
+
+**Claim Source:** executed. This row is itself the adversarial row — it asserts
+that a threshold-carrying resolver and a zero-substituting `unavailable()` are
+distinguishable from the real ones. Its intended RED is therefore the case where
+the real resolver *becomes* the carrying one, which is exactly what the TP-01-03
+probe above produced: the row failed by name, in the same run, on the same
+mutation. No separate block is duplicated here; the evidence is the TP-01-03
+block and its second failure line.
+
+**Finding — a second probe at the other half of this row was rejected rather
+than counted.** The row names two adversarial variants, and an attempt was made
+to exercise the second by replacing the body of `isUnavailable` with
+`return true;`, so a substituted zero would be indistinguishable from a refusal.
+That mutation did not produce a valid RED: it made five whole selftest groups
+throw (`Feature 021 Scope 01 rule-pack group threw: unavailable() refuses an
+unknown RLTAX code: undefined`) and drove the suite to `2859 passed, 45 failed`.
+The scope's Red/Green contract is explicit that a thrown group is not the
+intended contract assertion failing, so the probe is recorded as rejected rather
+than reported as a discrimination. The mutation was reverted and blob-hash
+verified by the harness like every other. What this leaves is honest and narrow:
+the carrying-resolver half of TP-01-04 is proven able to fail; the
+zero-substituting half is asserted in-process against a locally constructed
+`() => 0` and is not separately mutation-proven, because every mutation broad
+enough to break the real detector also collapses the modules that depend on it.
 
 ### TP-01-05
 
@@ -143,6 +233,41 @@ Command: `node scripts/selftest.mjs`
   ✓ TP-01-05: the RLTAX enum is closed at 12 members, every member constructs a numeric-free TaxUnavailable, and an unknown code is refused
 ```
 
+#### TP-01-05 intended RED (2026-08-20)
+
+**Claim Source:** executed, through the same harness. The probe unfreezes the
+`RLTAX_CODES` map, so the closed refusal vocabulary becomes an open, mutable
+object that any module could extend at runtime. The row's whole purpose is that
+the vocabulary is closed and derived from one declaration, so this is the defect
+it names rather than a cosmetic edit.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-05 the closed RLTAX refusal vocabulary stops being closed
+file:             rltaxrules.js
+mutation:         var RLTAX_CODES = Object.freeze({  ->  var RLTAX_CODES = ({   (1 occurrence(s))
+red-exit:         1
+red-summary:      Research-Lab self-test: 3168 passed, 4 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3172 passed, 0 failed
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+  ✗ FAIL: TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members
+  ✗ FAIL: TP-01-07: exactly one module declares the RLTAX code map, the RuleStatus enum, the income-kind list and the calculation order
+  ✗ FAIL: TP-03-01: every member of the refusal vocabulary is raised from exactly the modules that own it
+  ✗ FAIL: TP-05-17: at feature end the refusal vocabulary still carries exactly its fourteen pre-feature members in both directions
+```
+
+The live assertion text has moved on from the `12 members` wording captured in
+the GREEN block above — Feature 022 added the two jurisdiction-axis members and
+superseded the literal count with a module-derived one. The RED line quoted here
+is the current text. Both are shown rather than the older one being quietly
+overwritten.
+
 ### TP-01-06
 
 Scenario SCN-021-001 — the minimum-viable-input boundary, and an unsupplied
@@ -154,6 +279,34 @@ Command: `node scripts/selftest.mjs`
   ✓ TP-01-06: minimum viable input validates on four declarations, names every missing member, applies no default, and records unsupplied domains without blocking supplied ones
 ```
 
+#### TP-01-06 intended RED (2026-08-20)
+
+**Claim Source:** executed, through the same harness. The probe makes
+`minimumViableInput` write a `standard` deduction mode into the workspace instead
+of naming the member as missing. That is the precise clause the row carries —
+"applies no default" — and it is the most dangerous shape the defect can take,
+because the household is never told a choice was made on its behalf.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-06 minimumViableInput defaults a missing deduction mode instead of naming it
+file:             rltaxworkspace.js
+mutation:         if (!isPlainObject(workspace) || DEDUCTION_MODES[workspace.deductionMode] !== true) missing.push("deductionMode");  ->  if (!isPlainObject(workspace) || DEDUCTION_MODES[workspace.deductionMode] !== true) workspace.deductionMode = "standard";   (1 occurrence(s))
+red-exit:         1
+red-summary:      Research-Lab self-test: 3171 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3172 passed, 0 failed
+revert-verified:  yes (committed=6760587f2303516755ab6a5e14436050717f1227 restored=6760587f2303516755ab6a5e14436050717f1227)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Exactly one assertion moved, and it is this row:
+
+```
+  ✗ FAIL: TP-01-06: minimum viable input validates on four declarations, names every missing member, applies no default, and records unsupplied domains without blocking supplied ones
+```
+
 ### TP-01-07
 
 Scenario SCN-021-001 — exactly one module declares the rule-status enum, the
@@ -163,6 +316,37 @@ Command: `node scripts/selftest.mjs`
 
 ```text
   ✓ TP-01-07: exactly one module declares the RLTAX code map, the RuleStatus enum, the income-kind list and the calculation order
+```
+
+#### TP-01-07 intended RED (2026-08-20)
+
+**Claim Source:** executed, through the same harness. The probe declares a second
+`RLTAX_CODES` map inside `rltaxworkspace.js`. This is deliberately the harder of
+the two directions: the TP-01-05 probe above already showed the row fails when
+the single declaration disappears, which only proves it can count to zero. A
+second declaration is the drift this row actually exists to catch — two modules
+each believing they own the closed vocabulary — and the count must reject it too.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-07 a second module declares its own copy of the closed RLTAX vocabulary
+file:             rltaxworkspace.js
+mutation:           var WORKSPACE_CONTRACT = "TaxWorkspace/v2";  ->    var RLTAX_CODES = Object.freeze({ "RLTAX-PACK-INVALID": true });\n  var WORKSPACE_CONTRACT = "TaxWorkspace/v2";   (1 occurrence(s))
+red-exit:         1
+red-summary:      Research-Lab self-test: 3171 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3172 passed, 0 failed
+revert-verified:  yes (committed=6760587f2303516755ab6a5e14436050717f1227 restored=6760587f2303516755ab6a5e14436050717f1227)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Exactly one assertion moved, and the duplicate declaration is inert code that
+changes no behaviour — so the row is catching the declaration itself, not a
+knock-on effect:
+
+```
+  ✗ FAIL: TP-01-07: exactly one module declares the RLTAX code map, the RuleStatus enum, the income-kind list and the calculation order
 ```
 
 ### TP-01-08
@@ -188,6 +372,33 @@ Command: `node scripts/selftest.mjs`
 
 ```text
   ✓ TP-01-09: an unknown key, an unknown version and an over-budget sweep are each RLTAX-CONFIG-INVALID, the privacy inventory and clear stay reachable, and no module carries a config or pack fallback
+```
+
+#### TP-01-09 intended RED (2026-08-20)
+
+**Claim Source:** executed, through the same harness. The probe adds a single
+`|| "rlLifetimeTaxV1"` fallback to one configuration read, so a missing storage
+namespace resolves to a hard-coded literal instead of refusing. That is the
+"production code contains no policy fallback" clause, and it is the shape that
+would otherwise be invisible — the tool keeps working, on a value nobody
+configured.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-09 a module starts carrying a silent configuration fallback
+file:             rltaxworkspace.js
+mutation:               namespace: config.storage.namespace,  ->        namespace: config.storage.namespace || "rlLifetimeTaxV1",   (1 occurrence(s))
+red-exit:         1
+red-summary:      Research-Lab self-test: 3171 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3172 passed, 0 failed
+revert-verified:  yes (committed=6760587f2303516755ab6a5e14436050717f1227 restored=6760587f2303516755ab6a5e14436050717f1227)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+  ✗ FAIL: TP-01-09: an unknown key, an unknown version and an over-budget sweep are each RLTAX-CONFIG-INVALID, the privacy inventory and clear stay reachable, and no module carries a config or pack fallback
 ```
 
 ### TP-01-10

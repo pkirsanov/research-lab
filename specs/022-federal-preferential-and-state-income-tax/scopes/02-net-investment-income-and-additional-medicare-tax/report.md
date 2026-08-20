@@ -536,6 +536,63 @@ to prevent". So the two members are *covered* by the sanitizer, not redacted by 
 row asserts the behaviour that actually ships; the assertion was not weakened to fit the
 wording, and the wording was not treated as satisfied. The DoD item stays open.
 
+**Browser half — the URL, request, header and console clauses.** The engine-side inventory,
+clear and export behaviour above is all a unit test can see. What only the real route can
+show is that neither declared basis leaves the page. Added as a persistent title in this
+scope's own spec:
+
+```text
+npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-005 neither declared surtax basis reaches a URL, a request, a referrer or a console message" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-surtax.spec.mjs:245:1 › Regression: SCN-022-005 neither declared surtax basis reaches a URL, a request, a referrer or a console message (732ms)
+
+  1 passed (2.4s)
+PW_EXIT=0
+```
+
+The household declares two amounts chosen to be unmistakable in a transcript — neither is a
+rule figure, neither is any other input on the page, and neither is a substring of one — and
+both legs are asserted rendered first, so the scan runs against a page that actually held
+both values. The scan then covers the address bar, every request URL, every request body,
+**every request header value**, and every console message and page error.
+
+**Two recorded misses, both fixed before the row was banked.** Neither is a defect in the
+shipped page.
+
+1. *The referrer channel was being read through the wrong API.* The first draft read
+   `request.headers()`, whose synchronous view carries no `Referer` on this route. The
+   referrer clause was therefore scanning an always-empty string.
+2. *No request this page issues presents a `Referer` at all*, even through the async
+   `allHeaders()`. A referrer-only clause is structurally vacuous here. The clause was
+   widened to every request header value, which subsumes it — a value smuggled into the page
+   URL reaches subsequent requests as `Referer`, and any other header carrying it is just as
+   much a leak — and gives the scan a corpus that is provably non-empty.
+
+Both misses were caught by the row's own non-vacuity clause rather than by inspection, and
+both produced a real failing run before the fix:
+
+```text
+    Error: expect(received).toBeGreaterThan(expected)
+    Expected: > 0
+    Received:   0
+    > 294 |   expect(requests.filter((entry) => entry.referrer.length > 0).length).toBeGreaterThan(0);
+  1 failed
+PW_EXIT=1
+```
+
+**Why this row carries an in-test negative control instead of a leak mutation.** Every
+mutation that could make this assertion fail must, by construction, route a household value
+into a URL, a header or the console — which is precisely the defect the row exists to
+prevent, and precisely the defect a prior session left live in this repository as a real
+`window.fetch("/rl-probe-telemetry.json?ordinary=" + …)`. No such probe was applied here and
+none should be. Instead the detector is proven able to fail inside the test process only:
+two control strings carrying the declared amounts are built and scanned without being
+navigated, fetched, logged or rendered, and the scan must name all three planted
+occurrences. A scan that could not name a planted value would have passed above for the
+wrong reason.
+
 ### TP-02-14
 
 Scenario SCN-022-004 — no module holds a surtax rate, threshold, jurisdiction name
@@ -719,6 +776,35 @@ attempt started a second cumulative run while the first was still in flight, and
 contended for the same static-server port and stalled. Both were terminated, the process
 table was confirmed clear, and the run above is a single clean invocation. A stalled run
 is not a failing run, and neither stalled attempt is reported here as evidence.
+
+Re-run in this session after the privacy title was added, same command:
+
+```text
+Running 77 tests using 6 workers
+
+Error: worker-0 process did not exit within 300000ms after stop, force-killed it
+Error: worker-1 process did not exit within 300000ms after stop, force-killed it
+Error: worker-5 process did not exit within 300000ms after stop, force-killed it
+Error: worker-2 process did not exit within 300000ms after stop, force-killed it
+Error: worker-4 process did not exit within 300000ms after stop, force-killed it
+Error: worker-3 process did not exit within 300000ms after stop, force-killed it
+Error: worker-3 process did not exit within 300000ms after stop, force-killed it
+
+  77 passed (5.5m)
+  7 errors were not a part of any test, see above for details
+CUMULATIVE_EXIT=1
+```
+
+**77 passed, zero failed, zero skipped.** The trailing `worker-N … force-killed it` lines
+are a known teardown fault in this harness, not test failures: Playwright reports them
+separately as "errors … not a part of any test", and every one of the 77 tests is already
+counted passed above them. They are the reason `CUMULATIVE_EXIT` is 1 while the suite
+itself is clean, and they are reported here rather than filtered out.
+
+The count rose from 69 to 77. One of the eight is this scope's added privacy title; the
+other seven are `SCN-023` and `SCN-024` scenarios a concurrent session added to the same
+feature family, which this selector legitimately sweeps because it is pinned to the four
+owning spec numbers. No scenario outside `SCN-021` … `SCN-024` can enter or leave this row.
 
 ### TP-02-19
 

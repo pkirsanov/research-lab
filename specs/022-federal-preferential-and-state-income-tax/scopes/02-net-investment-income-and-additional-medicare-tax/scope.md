@@ -444,20 +444,22 @@ an absent test does not satisfy RED.
       populated and non-empty, and the conversion asymmetry is a structural member
       proven by an adversarial mutation.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-06`, `report.md#tp-02-07`, `report.md#tp-02-12`
-- [ ] Both new household values are inventoried, are removed by the clear action,
+- [x] Both new household values are inventoried, are removed by the clear action,
       and are accounted for by the export sanitizer under the identical rule as
       every income amount: both are kept in the exported workspace the user asked
       for, and the manifest names in `omittedFields[]` every member it withholds,
       so neither can be dropped without being named. Each is proven independently,
       and neither appears in any URL, request, referrer or console message.
-  - **Open:** the wording defect is corrected — the shipped sanitizer KEEPS both,
+  - **Closed:** the wording defect is corrected — the shipped sanitizer KEEPS both,
     matching how it treats the four income amounts, so "redacted" was false as
     written and is replaced by the kept-and-disclosed disposition the design
-    intends. The browser clause is now partly covered: `SCN-024-014` and
-    `SCN-023-001` assert an empty request ledger over the real route with both
-    bases declared, but no assertion yet covers the referrer and console-message
-    clauses for these two members specifically.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-13`
+    intends. The browser clause now has its own persistent title in this scope's
+    spec, scanning the address bar, every request URL and body, every request
+    header value and every console message and page error against two declared
+    amounts, with an in-test negative control proving the scan can name a planted
+    value. No leak mutation was applied, because any mutation that would fail this
+    row must route a household value off the page.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-13 browser title · **Evidence:** `report.md#tp-02-13`
 - [x] No module holds a surtax rate, threshold, jurisdiction name or authority
       name, and the detector is proven to fire on a module that does.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-14`

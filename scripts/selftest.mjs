@@ -25,7 +25,13 @@ import {
   validateBriefPayload
 } from './validate-brief-payload.mjs';
 import { formatSpecTestPathFindings, validateSpecTestPaths } from './validate-spec-test-paths.mjs';
-import { ATTENTION_RESEARCH_VERBS as RLATTN_RESEARCH_VERBS, attentionVerbContractInstruction, findAttentionVerbInstructionGaps } from './build-attention-items.mjs';
+import {
+  ATTENTION_RESEARCH_VERBS as RLATTN_RESEARCH_VERBS,
+  AUTHORED_JUDGEMENT_KEYS as RLATTN_AUTHORED_KEYS,
+  attentionAuthoredKeysInstruction,
+  attentionVerbContractInstruction,
+  findAttentionVerbInstructionGaps
+} from './build-attention-items.mjs';
 import { formatTestFileReachabilityFindings, validateTestFileReachability } from './validate-test-file-reachability.mjs';
 import { formatTimeoutBudgetFindings, validatePlaywrightTimeoutBudgets } from './validate-playwright-timeout-budgets.mjs';
 import { assertCoherentBar, formatBarsCoherenceFindings, isCoherentBar, partitionCoherentBars, validateBarsCorpus } from './validate-bars-coherence.mjs';
@@ -2986,6 +2992,23 @@ try {
   const handTypedVerbs = RLATTN_RESEARCH_VERBS.filter((verb) => new RegExp('\\b' + verb + '\\b').test(signalsInstruction));
   assert(handTypedVerbs.length === 0,
     'the signals lane instruction holds no second hand-maintained copy of the verb list (hand-typed: ' + handTypedVerbs.join(', ') + ')');
+
+  /* ── and the authored KEY NAMES, for the reason prose failed twice ───────────────────────────
+     Describing the nine authored fields in words let the author supply a different subset each
+     run: 02:26 EDT carried escalationTrigger and dropped rationale; 02:54 EDT carried rationale
+     and dropped escalationTrigger. Neither item was bad — both were incomplete, because a
+     sentence that DESCRIBES a field leaves the literal key to guesswork. The keys are now
+     rendered from AUTHORED_JUDGEMENT_KEYS, so the ask cannot drift from the contract. */
+  const renderedKeys = attentionAuthoredKeysInstruction();
+  const unrenderedKeys = RLATTN_AUTHORED_KEYS.filter((key) => !new RegExp('\\b' + key + '\\b').test(renderedKeys));
+  assert(unrenderedKeys.length === 0,
+    'the authored-key instruction names every key the composer reads (unnamed: ' + unrenderedKeys.join(', ') + ')');
+  assert(/import\s*\{[^}]*attentionAuthoredKeysInstruction[^}]*\}\s*from\s*'\.\/build-attention-items\.mjs'/.test(laneSource)
+    && signalsInstruction.includes('${attentionAuthoredKeysInstruction()}'),
+    'the signals lane renders the authored key list from the composer instead of describing the fields in prose');
+  /* No "holds no second copy" rule here, unlike the event keys and the verbs: SCN-017-045 REQUIRES
+     the prose that explains each field, and that prose legitimately contains the key words. The
+     two guards would contradict. What must not drift is the rendered LIST, which is asserted above. */
 
   /* Staleness must be readable as a FACT, never inferred from an ambiguous count. The
      2026-08-02 brief read the symbol count (287 tickers) as a session count, published

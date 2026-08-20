@@ -528,7 +528,7 @@ test('SCN-017-045 The authoring instruction names every required attention field
   const AUTHORED_JUDGEMENT_TERMS = [
     ['headline', /\bheadline\b/i],
     ['rationale', /\brationale\b/i],
-    ['escalation trigger', /escalation trigger/i],
+    ['escalation trigger', /escalation[\s-]?trigger/i],
     ['invalidation', /\binvalidation\b/i],
     ['expiry', /\bexpir(?:y|ation)\b/i],
     ['verb', /\bverbs?\b/i],
@@ -2090,7 +2090,7 @@ function attentionAuthoringInstruction() {
 const AUTHORED_JUDGEMENT_ASKS = Object.freeze([
   ['headline', /\bheadline\b/i],
   ['rationale', /\brationale\b/i],
-  ['escalation trigger', /escalation trigger/i],
+  ['escalation trigger', /escalation[\s-]?trigger/i],
   ['invalidation', /\binvalidation\b/i],
   ['expiry', /\bexpir(?:y|ation)\b/i],
   ['verb', /\bverbs?\b/i],

@@ -76,6 +76,71 @@ function legacyAttentionConsumer(item) {
   return parsed;
 }
 
+/* The whole of the pre-migration reader's contract, in one callable place, so
+   the committed payload and the fixture that proves this branch still fires
+   are held to a single bar. It throws on the first violation — which is what
+   the mutation proof in SCN-017-027 exercises. */
+function assertLegacyConsumerContract(item, label) {
+  const legacyRecord = legacyAttentionConsumer(item);
+  for (const key of LEGACY_ATTENTION_KEYS) {
+    assert.ok(
+      Object.prototype.hasOwnProperty.call(item, key),
+      `${label}.${key} is a pre-existing consumer key and must survive the migration`
+    );
+    assert.equal(
+      typeof item[key], LEGACY_ATTENTION_TYPES[key],
+      `${label}.${key} must keep its original ${LEGACY_ATTENTION_TYPES[key]} type`
+    );
+    assert.equal(
+      legacyRecord[key], item[key],
+      `${label}.${key} must keep its original value when read by a pre-existing consumer`
+    );
+  }
+  assert.ok(Number.isInteger(item.rank) && item.rank > 0, `${label}.rank stays a positive integer rank`);
+  assert.ok(Number.isFinite(item.confidence), `${label}.confidence stays a finite number`);
+  assert.ok(item.deepLink.trim().length > 0, `${label}.deepLink stays a non-empty link`);
+
+  /* the pre-migration reader sees an identical record whether it is handed the
+     nine-key projection or the full item: any newer key is additive and
+     invisible to it. */
+  assert.deepStrictEqual(
+    legacyAttentionConsumer(legacyRecord), legacyAttentionConsumer(item),
+    `${label} must parse identically before and after the attention keys were added`
+  );
+}
+
+/* brace-matched source extraction — the same technique scripts/selftest.mjs
+   uses to hold a browser-only function to a Node assertion. */
+function extractPageFunction(source, name) {
+  const signature = new RegExp('function\\s+' + name + '\\s*\\(');
+  const opening = signature.exec(source);
+  assert.ok(opening, `market-brief.html must still define ${name}()`);
+  let index = source.indexOf('{', opening.index);
+  assert.ok(index > 0, `market-brief.html must still give ${name}() a body`);
+  let depth = 0;
+  for (; index < source.length; index += 1) {
+    const ch = source[index];
+    if (ch === '{') depth += 1;
+    else if (ch === '}') { depth -= 1; if (depth === 0) { index += 1; break; } }
+  }
+  return source.slice(opening.index, index);
+}
+
+/* The routing market-brief.html actually performs, taken from the page's own
+   source rather than restated here: an item declaring the current contract
+   goes to the decision tier, and only what is left over reaches the
+   pre-migration card renderer in rlbrief.js. */
+function pageAttentionRouting() {
+  const page = readFileSync(resolve(ROOT, 'market-brief.html'), 'utf8');
+  const declared = /var\s+ATTN_CONTRACT\s*=\s*"([^"]+)"/.exec(page);
+  assert.ok(declared, 'market-brief.html must declare the attention contract it routes on');
+  // eslint-disable-next-line no-new-func
+  const attnItemsOf = Function(
+    'ATTN_CONTRACT', `${extractPageFunction(page, 'attnItemsOf')}\nreturn attnItemsOf;`
+  )(declared[1]);
+  return { page, contract: declared[1], attnItemsOf };
+}
+
 /* ── fixtures: observations only, never a verdict ─────────────────────────── */
 
 /* A headline that lands exactly ON the published ceiling, and one that lands
@@ -418,37 +483,107 @@ test('SCN-017-027 Existing attention consumers still parse the payload unchanged
     'the committed payload accounts for at least one candidate as published or excluded'
   );
 
-  payload.attention.forEach((item, index) => {
-    /* HALF ONE — every pre-existing key survives the migration, by name, by
-       type and by value. A rename of `title` to `headline` breaks here. */
-    const legacyRecord = legacyAttentionConsumer(item);
-    for (const key of LEGACY_ATTENTION_KEYS) {
-      assert.ok(
-        Object.prototype.hasOwnProperty.call(item, key),
-        `attention[${index}].${key} is a pre-existing consumer key and must survive the migration`
-      );
-      assert.equal(
-        typeof item[key], LEGACY_ATTENTION_TYPES[key],
-        `attention[${index}].${key} must keep its original ${LEGACY_ATTENTION_TYPES[key]} type`
-      );
-      assert.equal(
-        legacyRecord[key], item[key],
-        `attention[${index}].${key} must keep its original value when read by a pre-existing consumer`
-      );
-    }
-    assert.ok(Number.isInteger(item.rank) && item.rank > 0, `attention[${index}].rank stays a positive integer rank`);
-    assert.ok(Number.isFinite(item.confidence), `attention[${index}].confidence stays a finite number`);
-    assert.ok(item.deepLink.trim().length > 0, `attention[${index}].deepLink stays a non-empty link`);
+  /* ── the routing this promise is scoped to ────────────────────────────────
+     attention[] is no longer one undifferentiated list. market-brief.html
+     routes it: an item declaring the current contract goes to the decision
+     tier, and only the leftovers reach the pre-migration card renderer that
+     reads the nine keys. So the nine-key promise is owed to the items that
+     actually reach that renderer.
 
-    /* the pre-migration reader sees an identical record whether it is handed
-       the nine-key projection or the full item: the new keys are additive and
-       invisible to it. */
-    assert.deepStrictEqual(
-      legacyAttentionConsumer(legacyRecord), legacyAttentionConsumer(item),
-      `attention[${index}] must parse identically before and after the attention keys were added`
+     Narrowing a guard is only honest if the narrowing cannot hollow it out, so
+     three things are pinned below: the routing still exists in the page, the
+     legacy branch still fires against a fixture, and the legacy branch can
+     still fail under mutation. */
+  const routing = pageAttentionRouting();
+  assert.equal(
+    routing.contract, RLATTN.CONTRACT_VERSION,
+    'the page must route on the contract version the composer publishes, or the tier and the renderer disagree about the same array'
+  );
+
+  const tierItems = routing.attnItemsOf(payload.attention);
+  const tierIds = tierItems.map((item) => item.id);
+  const inTier = (item) => Boolean(item) && tierIds.indexOf(item.id) !== -1;
+  const entries = payload.attention.map((item, index) => ({ item, index }));
+  const legacyEntries = entries.filter(({ item }) => !inTier(item));
+  const tierEntries = entries.filter(({ item }) => inTier(item));
+
+  assert.equal(
+    tierEntries.length + legacyEntries.length, payload.attention.length,
+    'every published item must land in exactly one renderer — an item routed nowhere is an item no reader sees'
+  );
+  assert.equal(
+    tierEntries.length, tierItems.length,
+    'the tier selection and the tier partition must agree on the same set of items'
+  );
+
+  /* the routing chain, read off the page source. Remove any link of it and
+     versioned items start reaching the pre-migration renderer, at which point
+     the scoping below is no longer sound — so this fails first. */
+  assert.match(
+    routing.page, /var\s+tierIds\s*=\s*attnItemsOf\(/,
+    'the page must derive the decision tier through attnItemsOf, otherwise the split is not contract-driven'
+  );
+  assert.match(
+    routing.page, /var\s+catalystsOnly\s*=[\s\S]{0,300}?tierIds\.indexOf/,
+    'the pre-migration feed must exclude everything the decision tier already published'
+  );
+  assert.match(
+    routing.page, /actionableAttention\(\s*catalystsOnly/,
+    'the pre-migration card renderer must be fed the leftovers, not the whole attention array'
+  );
+  legacyEntries.forEach(({ item, index }) => {
+    assert.notEqual(
+      item.contractVersion, RLATTN.CONTRACT_VERSION,
+      `attention[${index}] declares ${RLATTN.CONTRACT_VERSION} yet routed to the pre-migration renderer`
+    );
+  });
+
+  /* HALF ONE — every item that still reaches the pre-migration reader carries
+     all nine of its keys, by name, by type and by value. A rename of `title`
+     to `headline` on a legacy card breaks here. */
+  legacyEntries.forEach(({ item, index }) => assertLegacyConsumerContract(item, `attention[${index}]`));
+
+  /* NON-VACUITY — a generation may legitimately publish no legacy card at all,
+     and a check that only runs when one happens to exist is not a check. A
+     fixture card is routed through the page's own predicate to prove it lands
+     on the pre-migration renderer, then held to the identical assertion. */
+  const legacyFixture = {};
+  for (const key of LEGACY_ATTENTION_KEYS) {
+    legacyFixture[key] = LEGACY_ATTENTION_TYPES[key] === 'number' ? 1 : `${key} text`;
+  }
+  legacyFixture.deepLink = 'market-heatmap-lab.html';
+  assert.deepEqual(
+    routing.attnItemsOf([legacyFixture]), [],
+    'a card declaring no contract version must route to the pre-migration renderer, not to the decision tier'
+  );
+  assertLegacyConsumerContract(legacyFixture, 'legacy fixture');
+
+  /* MUTATION — and that branch can still fail. Each of the nine keys is
+     dropped, then type-swapped, and the identical assertion must reject both.
+     If HALF ONE were ever relaxed, this loop stops throwing and the scenario
+     goes red rather than quietly passing. */
+  for (const key of LEGACY_ATTENTION_KEYS) {
+    const dropped = Object.assign({}, legacyFixture);
+    delete dropped[key];
+    assert.throws(
+      () => assertLegacyConsumerContract(dropped, 'mutant'),
+      new RegExp(`mutant\\.${key}\\b`),
+      `dropping ${key} from a legacy card must still fail this scenario`
     );
 
-    /* HALF TWO — the card now carries the decision-attention/v1 field set. */
+    const swapped = Object.assign({}, legacyFixture, {
+      [key]: LEGACY_ATTENTION_TYPES[key] === 'number' ? 'not a number' : 42
+    });
+    assert.throws(
+      () => assertLegacyConsumerContract(swapped, 'mutant'),
+      new RegExp(`mutant\\.${key}\\b`),
+      `changing the type of ${key} on a legacy card must still fail this scenario`
+    );
+  }
+
+  /* HALF TWO — the routed decision tier carries the decision-attention/v1
+     field set. */
+  tierEntries.forEach(({ item, index }) => {
     assert.equal(
       item.contractVersion, RLATTN.CONTRACT_VERSION,
       `attention[${index}].contractVersion must declare ${RLATTN.CONTRACT_VERSION}`

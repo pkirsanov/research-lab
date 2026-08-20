@@ -228,6 +228,21 @@ would make published items disappear as data moves. Whether stale-but-stable or
 fresh-but-disappearing is the better contract for a reader is an owner decision, and it
 is what `DISC-009-004` now tracks. It is NOT a missing path.
 
+**The mechanism was then executed, so the decision is not also a gamble on the tooling.**
+Run against the live payload on 2026-08-20, `build-attention-items.mjs --recompose`
+exits 0 and reports `1 built, 0 refused` with `violations=0`. Adding `--write` rewrites
+88 lines, which looks alarming and is not: comparing the payload before and after shows
+**zero semantic change**, and the only two top-level keys that move are `attention` and
+`budget` — precisely the two the step owns. A second `--write` is byte-identical to the
+first, so the step is idempotent after one normalization and does not churn. The 88 lines
+are key ordering inside the regions it legitimately rewrites, which is why the step's own
+"additive or nothing" guard — which checks for LOST keys — correctly does not fire.
+
+That narrows `DISC-009-004` to what it always was. The scheduled job COULD call this step
+safely today; the reason not to is the reader contract, not a defect. An owner choosing
+stale-but-stable is accepting a known-good mechanism they have decided not to run, which
+is a different and much smaller decision than the one this record used to imply.
+
 ---
 
 ## Capability Foundation
